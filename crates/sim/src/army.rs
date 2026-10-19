@@ -2332,9 +2332,16 @@ impl Sim {
                     } else if enemy && cd.capital && pers.raid < 0 {
                         v = v * 3 / 2;
                     }
-                    let bordering = self.ai[w]
-                        .city_ai
-                        .get(c)
+                    // The city's own `bordering` (`CityData +0x65`,
+                    // `find_target@006f69b0:486`–`489` and `:550`), which
+                    // `compute_reg_territory` writes into the city's
+                    // **owner's** row — never the scoring army's: an enemy
+                    // city read from the attacker's table is never
+                    // bordering (item 3338, `docs/AI.md` §273).
+                    let bordering = self
+                        .ai
+                        .get(cd.owner as usize)
+                        .and_then(|a| a.city_ai.get(c))
                         .is_some_and(|ca| ca.bordering & (1 << who) != 0);
                     if bordering {
                         v *= if pers.raid < 1 { 4 } else { 2 };
@@ -4570,6 +4577,61 @@ mod tests {
             [false, true, false, true],
             "the city is drawn for only when its census found water, and under \
              team style 2 only when its owner is the start list's target"
+        );
+    }
+
+    /// **An enemy city's `bordering` is its own** (item 3338, `docs/AI.md`
+    /// §273): `find_target@006f69b0:486`–`489` reads `CityData +0x65` off
+    /// the city record, which `compute_reg_territory` writes into the
+    /// city's owner's row. Two enemy cities: B is already this army's
+    /// target (×8), A borders who=1 in who=0's row (×4, and ×3 twice for
+    /// a quiet leader and city at a high difficulty) — A wins. Read off the
+    /// scoring army's own table, A is never bordering and B wins (run973b's
+    /// 10490: Napata scored 192 against who=1's own cities' 313..347).
+    #[test]
+    fn an_enemy_city_s_bordering_is_read_off_its_owner() {
+        let (mut sim, c) = sim_with_city();
+        sim.lobby.difficulty = 5;
+        sim.ai[1].pers.early_army = 1;
+        sim.frame = 20_000;
+        sim.cities[c].no_muster = true;
+        let slot = sim.init_army(1, Some(c));
+        let hop = soldier_type(&mut sim);
+        sim.unit_types[hop].cols.role |= role::HOPLITE;
+        for i in 0..4 {
+            let u = put(&mut sim, 1, hop, Pos::new(0x3000 + i * 48, 0x3000));
+            sim.army_add_unit(1, slot, u);
+        }
+        let mut foes = Vec::new();
+        for x in [0x6000, 0x6800] {
+            let fb = sim.add_building(0, Pos::new(x, 0x3000), 1);
+            let mut foe = sim.cities[c].clone();
+            foe.owner = 0;
+            foe.founder = 0;
+            foe.capital = false;
+            foe.founding_capital = false;
+            foe.no_muster = false;
+            foe.building = fb;
+            foe.pos = sim.buildings[fb].pos;
+            let fc = sim.cities.len();
+            sim.cities.push(foe);
+            sim.buildings[fb].city = Some(fc);
+            foes.push((fc, fb));
+        }
+        let (a, a_b) = foes[0];
+        let (_, b_b) = foes[1];
+        sim.ai[0]
+            .city_ai
+            .resize(sim.cities.len(), crate::ai::CityAi::default());
+        sim.ai[0].city_ai[a].bordering = 3;
+        sim.declare_war(1, 0);
+        sim.armies[1].list[slot].status = status::FORMING;
+        sim.armies[1].list[slot].target = Some(Obj::Building(b_b));
+        sim.find_target(1, slot);
+        assert_eq!(
+            sim.armies[1].list[slot].target,
+            Some(Obj::Building(a_b)),
+            "the bordering city, read off its owner"
         );
     }
 

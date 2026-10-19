@@ -32,9 +32,13 @@ pub(crate) const MAYA: Lobby = Lobby {
     // Item 3338, `get_cost`'s Maya arm (`:973`–`987`, a quarter off a
     // building's timber): 776 → 10497, ours 13 draws, theirs 12, at 2 ours
     // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
-    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-    count: 10497,
-    sequence: 10497,
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Item 3338, `find_target`
+    // reading an enemy city's `bordering` off the city's owner (`:486`–`489`):
+    // 10497 → 12197, ours 12 draws, theirs 14, at 3 ours
+    // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    count: 12197,
+    sequence: 12197,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -181,7 +185,7 @@ fn run973b_s_word_frame_is_widened_whole() {
     let Some(w) = maya_frame_10497_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -194,14 +198,30 @@ fn run973b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run973b on the first try");
+    // Item 3338. On the first try 1501 keys part, already on block 10491:
+    // who=0's `attacked_by` ours −1 against theirs 1 and `frame_attacked`
+    // 0 against 10490 — `find_target`'s write when an army picks an enemy
+    // city — and who=1's army head `1/83` (a Catapult, TI 265) on its
+    // `ATTACK_TO` at (22824, 20328) against theirs (1320, 28872), Napata's
+    // side of the map. Ours' army 1 had scored Napata 192 and its own
+    // cities 313..347: the city's `bordering` (theirs 3) was read off
+    // who=1's own `city_ai` table, where who=0's city is never written,
+    // so its ×4 never applied. With the read off the owner (`find_target:
+    // 486`–`489`, `:550`) **28**: the standing set alone, and the word
+    // moved 10497 → 12197, past the window.
+    pin_eq!(
+        w.firsts.len(),
+        28,
+        "run973b with bordering read off the owner"
+    );
 }
 
 /// run973c: the gap from run973's last block to run973b's first, one block
 /// in fifty (`--stride 50`): blocks 1027, 1077, …, 10477, at `GUYS=2`
 /// (item 3338) — where run973b's block 10491, already apart, was walked
 /// back to.
-pub(crate) const RUN973C: &str = "gamelog-run973c-greatsahara-maya-diff4-gap-1027-10487-stride50.txt";
+pub(crate) const RUN973C: &str =
+    "gamelog-run973c-greatsahara-maya-diff4-gap-1027-10487-stride50.txt";
 
 /// The window: block 1027 through 10477, one in fifty.
 pub(crate) const WIDENING_MAYA_GAP_973C: (i64, i64) = (1027, 10477);
@@ -226,7 +246,7 @@ fn run973c_s_gap_is_widened_whole() {
     let Some(w) = maya_gap_973c_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 189, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -239,5 +259,11 @@ fn run973c_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run973c on the first try");
+    // Item 3338. **48** keys: the standing set, the newborns'
+    // `g.angle[0]` (`1/18`..`1/43`, ours `Angle::INITIAL` against theirs
+    // 0) and the Citizen `1/0`'s `group` 66 against 64 from 6228, with
+    // nothing apart on the army's targets — so the parting run973b's
+    // first block holds is the army 1 target choice on 10490, between this
+    // gap's last block (10478) and run973b's first.
+    pin_eq!(w.firsts.len(), 48, "run973c, quiet to its last block");
 }
