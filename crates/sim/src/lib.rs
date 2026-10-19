@@ -3360,13 +3360,45 @@ impl Sim {
         let time = self.tech_tree.types[t].job_time * production::TIME_SCALE;
         let time = production::research_tick(time, self.tuning.research_tick_premium);
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
-        let mut tail = self.research_rares(who);
+        let mut tail = self.greek_research(who, t);
+        tail.extend(self.research_rares(who));
         tail.extend(production::science_speedup(
             &self.tuning,
             science,
             self.tech_tree.types[t].age,
         ));
         production::adjusted(time, tail.as_slice()).max(production::MIN_TIME)
+    }
+
+    /// **The Greeks' arm** of `ObjectData::train_time@006508c0`'s research
+    /// block (`LAB_006515d7`, `:453`–`458`): for a leader with
+    /// `has_tribe_bonus(5)`, `t × 100 / (GREEK_RESEARCH_SPEED + 100)`. The
+    /// label is reached from the age branch (`0x220..0x226`, after its
+    /// `ages_queued` catch-up) and the epoch branch (`0x227..0x242`, after
+    /// its `ages + epochs` catch-up) and from nowhere else: a final, a
+    /// building tech or a government takes `LAB_006513c0`'s held-elsewhere
+    /// term and divides at `LAB_006513e8`, past the arm, and a unit's
+    /// research never enters the block. It stands ahead of Relics. run957b's
+    /// Greeks hold City State (a Civic epoch) on 176 and their script places
+    /// its second city five times there; without the arm ours is still
+    /// researching it (item 3326, `docs/AI.md` §266).
+    ///
+    /// SEAM: the two catch-up terms ahead of it are not carried (see
+    /// [`Sim::research_rares`]).
+    pub(crate) fn greek_research(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
+        let age_or_epoch = matches!(
+            self.tech_tree.kind(t),
+            tech::Kind::Age(_) | tech::Kind::Epoch { .. }
+        );
+        if age_or_epoch
+            && self
+                .tech_tree
+                .has_tribe_bonus(&self.setup, &self.tech[who as usize], crate::nations::power::GREEKS)
+        {
+            vec![production::Adjust::Faster(self.tuning.greek_research_speed)]
+        } else {
+            Vec::new()
+        }
     }
 
     /// The steps of `ObjectData::train_time@006508c0`'s research block

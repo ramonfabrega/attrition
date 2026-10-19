@@ -104,6 +104,9 @@ pub(crate) mod power {
     pub const IROQUOIS: usize = 18;
     pub const AMERICANS: usize = 20;
     pub const DUTCH: usize = 22;
+    /// Not `Build::activate`'s: the Greeks' research arm is
+    /// `ObjectData::train_time`'s (`Sim::greek_research`).
+    pub const GREEKS: usize = 5;
     /// Not `Build::activate`'s: the Persians' caravan is `Build::process`'s
     /// (`Sim::persian_market_caravan`).
     pub const PERSIANS: usize = 23;

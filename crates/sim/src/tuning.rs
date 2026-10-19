@@ -578,6 +578,11 @@ pub struct Tuning {
     /// `ObjectData::train_time@006508c0:521`–`524`, `(100 − x) × t / 100`
     /// after Angkor Wat's and before the science speedup. Ships as 33.
     pub relics_research_speed: i32,
+    /// Percent faster an age or a library epoch researches for the Greeks
+    /// (`has_tribe_bonus(5)`) — `ObjectData::train_time@006508c0:453`–`458`,
+    /// `t × 100 / (x + 100)` after the age and epoch catch-up terms and
+    /// ahead of `RESEARCH_FASTER`. Ships as `100% bonus`.
+    pub greek_research_speed: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -1309,6 +1314,7 @@ impl Tuning {
         space_air_speed: 100,
         uranium_nuke_speed: 10,
         relics_research_speed: 33,
+        greek_research_speed: 100,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1911,6 +1917,10 @@ impl Tuning {
             (
                 "RELICS_RESEARCH_SPEED",
                 Slot::Value(T.relics_research_speed),
+            ),
+            (
+                "GREEK_RESEARCH_SPEED",
+                Slot::Value(T.greek_research_speed),
             ),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),

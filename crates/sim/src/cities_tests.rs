@@ -8456,6 +8456,33 @@ fn relics_take_a_third_off_a_research_job() {
     assert_eq!(sim.tech_time(1, monarchy), plain, "and only its holder's");
 }
 
+/// **The Greeks research an age or a library epoch in half the time**
+/// (item 3326, `docs/AI.md` §266): `ObjectData::train_time@006508c0`'s
+/// `has_tribe_bonus(5)` arm, `t × 100 / (GREEK_RESEARCH_SPEED + 100)`, is
+/// reached from the age and epoch branches only — a government divides
+/// past it. run957b's Greeks hold City State on 176, where ours was still
+/// researching it.
+#[test]
+fn the_greeks_halve_an_age_or_an_epoch_and_nothing_else() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let senate_t = tree.add(tech::TypeDef::building("Senate"));
+    let city_state = tree.add(tech::TypeDef::epoch("City State", tech::Line::Civic, 0));
+    let classical = tree.add(tech::TypeDef::age("Classical Age", 1));
+    let monarchy = tree.add(tech::TypeDef::gov("Monarchy", 0, 0).at(senate_t));
+    for t in [city_state, classical, monarchy] {
+        tree.types[t].job_time = 350;
+    }
+    sim.set_tech_tree(tree);
+    let plain = [city_state, classical, monarchy].map(|t| sim.tech_time(0, t));
+    sim.tech[0].has_city = true;
+    sim.tech[0].power = Some(crate::nations::power::GREEKS);
+    assert_eq!(sim.tech_time(0, city_state), plain[0] * 100 / 200);
+    assert_eq!(sim.tech_time(0, classical), plain[1] * 100 / 200);
+    assert_eq!(sim.tech_time(0, monarchy), plain[2], "a government is past the arm");
+    assert_eq!(sim.tech_time(1, city_state), plain[0], "and only the Greeks'");
+}
+
 /// **A decoy counts for neither side of the capture tally** (item 3318,
 /// `docs/AI.md` §264): `check_capture@006276a0`'s object loop skips a unit
 /// whose `unit_masks & 1` is set. Two hoplites against the base of 2 do not
