@@ -7956,7 +7956,7 @@ unreached; tech `age` 0..6; the leader stub's argument and `ecx` unrecorded. The
 while the original reads separate `+0x18/+0x1c` fields — a flag setting one world word as a function of another
 would sweep the worlds where they differ. No disagreement.
 
-(3261g) `mutate.py` has no per-mutant timeout: two mutants of one batch hung two hours (Loop 3276 filed by the
+(3261g) 3261's "for the Loop": `mutate.py` has no per-mutant timeout: two mutants of one batch hung two hours (Loop 3276 filed by the
 commander). Subagents ran the rest under a hand watchdog (`run.py`, build 900 s, test 200 s).
 
 ## Parked by item 3263, 2026-10-18 — chapter 102, stance-0 hoplites beside a wreck
