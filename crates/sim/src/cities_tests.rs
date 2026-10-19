@@ -1320,6 +1320,32 @@ fn a_nomads_first_city_takes_three_times_as_long_and_is_refunded_by_what_is_left
     );
 }
 
+/// **`Wall::do_construct@006434d0`'s `recharging`** (sweep `wall_do_construct`):
+/// the first builder of a frame counts the site once (`BuildData +0x7a += 1`,
+/// `+0x60 |= 0x800`), a second builder the same frame does not, and
+/// `Build::activate@00623e20:132` starts the count again from nothing.
+#[test]
+fn a_site_counts_once_a_frame_and_activation_clears_it() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let b = sim.place_building(0, t.village, tile_pos(32, 32)).unwrap();
+    sim.do_construct(b, 100);
+    assert_eq!(sim.buildings[b].recharging, 1);
+    assert!(sim.buildings[b].gather_bumped);
+    sim.do_construct(b, 100);
+    assert_eq!(
+        sim.buildings[b].recharging, 1,
+        "the second builder is not counted"
+    );
+    sim.buildings[b].helpers = 0;
+    sim.buildings[b].gather_bumped = false;
+    sim.do_construct(b, 100);
+    assert_eq!(sim.buildings[b].recharging, 2);
+    assert!(sim.do_construct(b, 1_000_000), "finished");
+    assert!(sim.buildings[b].active);
+    assert_eq!(sim.buildings[b].recharging, 0, "activate zeroes it");
+}
+
 #[test]
 fn a_placed_ghost_is_free_to_cancel_and_blocks_nothing_but_placement() {
     let mut sim = world_sim();

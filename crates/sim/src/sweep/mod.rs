@@ -51,6 +51,7 @@ mod unit_min_range;
 mod unit_uber_size;
 mod wall_construct_time;
 mod wall_data_covers_tile;
+mod wall_do_construct;
 mod wall_has_repeat_air;
 mod wall_is_under_attack;
 mod wall_start;
