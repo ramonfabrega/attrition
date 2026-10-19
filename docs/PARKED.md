@@ -8404,13 +8404,10 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KX — reserved
+## Parked by item 3340, 2026-10-19 — the Indians to the long's end, a carrying boat's region
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the word closed at 24000 and the close compares whole (`docs/AI.md` §274). The standing set on
+run970e (the control's rows on 14588, `group:71.held` and `pool:71` on 14640) is 3326a's shape and names no score.
 
 ## Parked by the next landing, slot KY — reserved
 
