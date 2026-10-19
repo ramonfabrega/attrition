@@ -304,18 +304,30 @@ impl Sim {
     fn goody_amount(&self, who: Player) -> i32 {
         let level = self.tech[who as usize].epoch[Line::Science.index()];
         let t = &self.tuning;
-        if self
+        let spanish = self
             .tech_tree
-            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9)
-        {
-            level
-                .wrapping_mul(t.spanish_ruins)
-                .wrapping_add(t.spanish_ruins_base)
-        } else {
-            level
-                .wrapping_mul(t.goody_box_age)
-                .wrapping_add(t.goody_box)
-        }
+            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9);
+        goody_pile(
+            level,
+            spanish,
+            [
+                t.goody_box_age,
+                t.goody_box,
+                t.spanish_ruins,
+                t.spanish_ruins_base,
+            ],
+        )
+    }
+}
+
+/// The pile's arithmetic, `int` wraparound and all: `level * k[0] + k[1]`
+/// (`GOODY_BOX_AGE`, `GOODY_BOX`), the Spanish pair `k[2]`, `k[3]` in place
+/// of both when the finder has the tribe bonus.
+pub(crate) fn goody_pile(level: i32, spanish: bool, k: [i32; 4]) -> i32 {
+    if spanish {
+        level.wrapping_mul(k[2]).wrapping_add(k[3])
+    } else {
+        level.wrapping_mul(k[0]).wrapping_add(k[1])
     }
 }
 

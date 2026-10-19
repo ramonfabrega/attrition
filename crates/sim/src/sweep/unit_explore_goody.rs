@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(7);
@@ -57,7 +62,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 // simulation keeps no item chain — so it is inline here.
                 use crate::goody::{GoodyView, explore_goody_steps};
                 let rd16 = |w: &[u8], o: usize| i32::from(i16::from_le_bytes([w[o], w[o + 1]]));
-                let wr16 = |w: &mut [u8], o: usize, v: i32| w[o..o + 2].copy_from_slice(&(v as i16).to_le_bytes());
+                let wr16 = |w: &mut [u8], o: usize, v: i32| {
+                    w[o..o + 2].copy_from_slice(&(v as i16).to_le_bytes())
+                };
                 let owner = usize::from(m[9]);
                 let (x, y) = (rd(m, 0x10) ^ 0x6_3637, rd(m, 0x14) ^ 0x6_3637);
                 let div3 = |c: &[Vec<u8>], v: i32| rd(&c[1], 4 * (v >> 8) as usize);
@@ -126,11 +133,11 @@ fn the_emulated_original_agrees_on_every_row() {
                         self.log.push(format!("s4:{},9", self.leader()));
                         let level = rd(&self.p[20 + self.owner], 0xf4) ^ 0x6_3187;
                         let k = &self.c[5];
-                        if self.a[4] != 0 {
-                            level.wrapping_mul(rd(k, 0x68c)).wrapping_add(rd(k, 0x688))
-                        } else {
-                            level.wrapping_mul(rd(k, 0xc28)).wrapping_add(rd(k, 0xc24))
-                        }
+                        crate::goody::goody_pile(
+                            level,
+                            self.a[4] != 0,
+                            [rd(k, 0xc28), rd(k, 0xc24), rd(k, 0x68c), rd(k, 0x688)],
+                        )
                     }
                     fn pay(&mut self, good: usize, amount: i32) {
                         let enc = &mut self.p[20 + self.owner];
@@ -158,14 +165,25 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "explore_goody — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "explore_goody — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "explore_goody — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "explore_goody — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "explore_goody — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[8 + i], "explore_goody — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[8 + i],
+                "explore_goody — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
