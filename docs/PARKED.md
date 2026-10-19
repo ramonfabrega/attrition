@@ -8141,6 +8141,10 @@ words and edits nothing here; a refill lands when two remain.
   The hero arm casts Ambush on the move, so it would last a step; it would part where an enemy's target search runs
   on the cast's own frame. A capture's hero cut (`Cities::capture_city`, the unwritten `Nation::plunder_hero`) is the
   same family, unread.
+- **3297's "for the Loop"** (the journal's line, filed for the commander): `mana_burn` was on `coverage.rs`'s unread
+  list for run943's and run952's windows, and the parting it hid stood on every block of run943 (10689..10945, theirs
+  1000 against ours 832..576) without a row. A hero's craft is a field `think_hero` reads ("with the mana"). Candidate
+  check: no field a `think_*` arm reads stays on the unread list of the newest word's window.
 
 ## Parked by the next landing, slot KE — reserved
 
