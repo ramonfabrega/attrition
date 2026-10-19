@@ -1523,6 +1523,33 @@ mod tests {
         assert_eq!(s.type_speed(1, inf), 34, "a whale is the navy's");
     }
 
+    /// **The Bantu move a citizen a quarter faster, and only for a Bantu
+    /// leader** (item 3343, `update_speed@006055c0`'s arm after the foot
+    /// line): `PEASANTS` and `PEASANTSKOREAN` by identity, `MOVES` 25 → 31
+    /// as run978 prints the Bantu word's citizens from block 1; a type of
+    /// neither identity, trainer nor line takes nothing.
+    #[test]
+    fn a_bantu_citizen_moves_a_quarter_faster() {
+        let (mut s, _) = sea_sim();
+        let foot = |s: &mut Sim, type_index: i32| {
+            s.add_unit_type(crate::UnitType {
+                hits: 40,
+                moves: 25,
+                type_index,
+                ..crate::UnitType::default()
+            })
+        };
+        let citizen = foot(&mut s, PEASANTS);
+        let korean = foot(&mut s, PEASANTS_KOREAN);
+        let other = foot(&mut s, PEASANTS_KOREAN + 1);
+        assert_eq!(s.type_speed(1, citizen), 25, "not a Bantu leader");
+        s.nation[1].bantu = true;
+        assert_eq!(s.type_speed(1, citizen), 31, "run978: 25 x 125 / 100");
+        assert_eq!(s.type_speed(1, korean), 31);
+        assert_eq!(s.type_speed(1, other), 25, "neither citizen");
+        assert_eq!(s.type_speed(0, citizen), 25, "and it is the owner's");
+    }
+
     /// **The gunpowder foot line is a lineage, not an identity** (twenty-fourth
     /// pass, group 22): `Unit::update_speed`'s four tests ask the type's vslot
     /// `0x60`, which is `ObjectTypeData::is`, so a national replacement that
