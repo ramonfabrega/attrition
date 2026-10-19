@@ -148,8 +148,17 @@ pub(crate) const IROQUOIS: Lobby = Lobby {
     // and who=1's metal on block 10853 is 59 on both sides (ours 44 before).
     // 10917: ours 285 draws, theirs 296, index 272, ours `Guy::set_anim
     // +0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
-    count: 10917,
-    sequence: 10917,
+    // **Item 3287 moved it 10917 → 11585** (`docs/AI.md` §260): `1/2027`'s
+    // road replan priced node 5, (45216, 29472), at 139 against theirs' 27
+    // — ours' caravan diagonal (235, 153) had been swept on 10620, because
+    // `set_diags`' corner tail (C4 references, `docs/ROADS.md` §12) was not
+    // carried; with it, node 5 is 27 and the search 283 nodes on both sides,
+    // and run946's packet's twelve elements agree on 10842. 11585: ours 16
+    // draws, theirs 15, index 4, ours `Leader::make_stuff+0x221`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`; past run943's last block
+    // (10945), its widening owed.
+    count: 11585,
+    sequence: 11585,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
