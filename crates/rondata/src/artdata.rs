@@ -272,6 +272,32 @@ impl<'a> PieceName<'a> {
     }
 }
 
+/// `GRAPH` to the `TypeIndex`es that play it, keyed **upper case**. The
+/// gaia records (`0x192` up) are left out: their pieces come from
+/// `first_bird_piece`, not from the unit arithmetic ([`gaia_lengths`]).
+///
+/// **The name is matched without case** (item 3329): the one mixed-case
+/// `GRAPH` the install ships, the Dutch caravan's `ArmedCaravan`
+/// (`TypeIndex` 60, `CARADUTCH`), plays the `ARMEDCARAVAN-…` entries in
+/// the original — run963's `1/14`, born on 1764, holds piece 10 and 12682,
+/// its age-0 slot and its crew's — and a case-sensitive key left the type
+/// with no piece, so ours fell back to `first_unit_piece`.
+/// [`pivot_restrictions`] already matched without case.
+fn graph_types(graphs: &[String]) -> BTreeMap<String, Vec<i32>> {
+    let mut by_graph: BTreeMap<String, Vec<i32>> = BTreeMap::new();
+    for (i, g) in graphs.iter().enumerate() {
+        let ty = 0x32 + i as i32;
+        if ty >= 0x192 {
+            break;
+        }
+        by_graph
+            .entry(g.trim().to_ascii_uppercase())
+            .or_default()
+            .push(ty);
+    }
+    by_graph
+}
+
 /// Every player unit piece's `(slot → frames)`, read from the install.
 ///
 /// `graphs` is the `GRAPH` column of each unit record in file order — the
@@ -297,24 +323,14 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
     };
     let files = anim_files(&adoc);
     let units = unit_anims(&udoc);
-    // `GRAPH` to the `TypeIndex`es that play it. The gaia records
-    // (`0x192` up) are left out: their pieces come from
-    // `first_bird_piece`, not from this arithmetic ([`gaia_lengths`]).
-    let mut by_graph: BTreeMap<&str, Vec<i32>> = BTreeMap::new();
-    for (i, g) in graphs.iter().enumerate() {
-        let ty = 0x32 + i as i32;
-        if ty >= 0x192 {
-            break;
-        }
-        by_graph.entry(g.trim()).or_default().push(ty);
-    }
+    let by_graph = graph_types(graphs);
     let mut frames: BTreeMap<&str, u32> = BTreeMap::new();
     let mut out = PieceLengths::new();
     for (name, rows) in &units {
         let Some(p) = PieceName::parse(name) else {
             continue;
         };
-        let Some(types) = by_graph.get(p.graph) else {
+        let Some(types) = by_graph.get(&p.graph.to_ascii_uppercase()) else {
             continue;
         };
         let mut lengths: BTreeMap<i8, u32> = BTreeMap::new();
@@ -514,14 +530,7 @@ pub fn piece_skeletons(install: &Install, graphs: &[String]) -> std::collections
     let Ok(udoc) = crate::parse(&upath, &utext) else {
         return out;
     };
-    let mut by_graph: BTreeMap<&str, Vec<i32>> = BTreeMap::new();
-    for (i, g) in graphs.iter().enumerate() {
-        let ty = 0x32 + i as i32;
-        if ty >= 0x192 {
-            break;
-        }
-        by_graph.entry(g.trim()).or_default().push(ty);
-    }
+    let by_graph = graph_types(graphs);
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
             continue;
@@ -532,7 +541,7 @@ pub fn piece_skeletons(install: &Install, graphs: &[String]) -> std::collections
         let Some(p) = PieceName::parse(name.trim()) else {
             continue;
         };
-        let Some(types) = by_graph.get(p.graph) else {
+        let Some(types) = by_graph.get(&p.graph.to_ascii_uppercase()) else {
             continue;
         };
         for &ty in types {
@@ -572,14 +581,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
     let Ok(udoc) = crate::parse(&upath, &utext) else {
         return PieceReleases::new();
     };
-    let mut by_graph: BTreeMap<&str, Vec<i32>> = BTreeMap::new();
-    for (i, g) in graphs.iter().enumerate() {
-        let ty = 0x32 + i as i32;
-        if ty >= 0x192 {
-            break;
-        }
-        by_graph.entry(g.trim()).or_default().push(ty);
-    }
+    let by_graph = graph_types(graphs);
     let harmless = harmless_ammo(install);
     let missile = missile_ammo(install);
     let mut out = PieceReleases::new();
@@ -590,7 +592,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         let Some(p) = PieceName::parse(name.trim()) else {
             continue;
         };
-        let Some(types) = by_graph.get(p.graph) else {
+        let Some(types) = by_graph.get(&p.graph.to_ascii_uppercase()) else {
             continue;
         };
         let mut rows: BTreeMap<i8, Vec<(u32, i8, bool, bool)>> = BTreeMap::new();
@@ -757,14 +759,7 @@ pub fn piece_tracks(install: &Install, graphs: &[String]) -> PieceTracks {
     let Ok(udoc) = crate::parse(&upath, &utext) else {
         return PieceTracks::new();
     };
-    let mut by_graph: BTreeMap<&str, Vec<i32>> = BTreeMap::new();
-    for (i, g) in graphs.iter().enumerate() {
-        let ty = 0x32 + i as i32;
-        if ty >= 0x192 {
-            break;
-        }
-        by_graph.entry(g.trim()).or_default().push(ty);
-    }
+    let by_graph = graph_types(graphs);
     let mut out = PieceTracks::new();
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
@@ -773,7 +768,7 @@ pub fn piece_tracks(install: &Install, graphs: &[String]) -> PieceTracks {
         let Some(p) = PieceName::parse(name.trim()) else {
             continue;
         };
-        let Some(types) = by_graph.get(p.graph) else {
+        let Some(types) = by_graph.get(&p.graph.to_ascii_uppercase()) else {
             continue;
         };
         let attr = |k: &str| -> f32 {
@@ -1014,6 +1009,31 @@ mod tests {
     /// and a case-sensitive match would have lost it. `SuperBattleship`
     /// names no `GRAPH` at all and binds to nothing. Made to fail first
     /// with `==` in place of `eq_ignore_ascii_case`.
+    /// Item 3329: the Dutch caravan's `GRAPH` is `ArmedCaravan` and its
+    /// art is `ARMEDCARAVAN-…`; the original plays it (run963's `1/14`,
+    /// pieces 10 and 12682 on block 1765), so the piece table holds both.
+    #[test]
+    fn a_unit_piece_binds_by_graph_whatever_its_case() {
+        let Some(inst) = crate::testenv::install() else {
+            eprintln!("skipping: no install");
+            return;
+        };
+        let units = inst.units().expect("unitrules.xml");
+        let graphs: Vec<String> = units
+            .records
+            .iter()
+            .map(|r| r.text("GRAPH").unwrap_or_default().trim().to_string())
+            .collect();
+        assert_eq!(
+            graphs[60 - 0x32],
+            "ArmedCaravan",
+            "the case differs in the file"
+        );
+        let lengths = piece_lengths(&inst, &graphs);
+        assert!(lengths.contains_key(&10), "CARADUTCH's age-0 piece");
+        assert!(lengths.contains_key(&12682), "and its crew's");
+    }
+
     #[test]
     fn a_pivot_restriction_binds_by_graph_whatever_its_case() {
         let Some(inst) = crate::testenv::install() else {

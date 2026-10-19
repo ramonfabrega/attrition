@@ -29,9 +29,22 @@ pub(crate) const DUTCH: Lobby = Lobby {
     // Item 3107, the battery's first try: count and sequence both at 1567
     // (ours 6 draws, theirs 5, at index 2: ours `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d`, theirs `Farms::inc_time+0x1ae`). Item 3329
-    // promoted it to the AI word (`docs/AI.md` §267).
-    count: 1567,
-    sequence: 1567,
+    // promoted it to the AI word (`docs/AI.md` §267). **Item 3329 moved it
+    // 1567 → 1769** with the Dutch merchant's leg of `Unit::think`'s
+    // auto-attack arm (`think@005f6e40:145`, `docs/MERCHANT.md` §4): the
+    // packed `1/2` (`MERCHANTDUTCH`) asks `think_merchant` one frame in
+    // thirty-two, so on 1566 it took its `MOVE_TO` (31800, 37176) in theirs
+    // and stood idle in ours, whose only call was the tail's one in 128
+    // (run963's block 1567: `orders.len` 0 against 1). **And 1769 → 5583**
+    // with the unit piece table keyed without case
+    // (`rondata::artdata::graph_types`): the Dutch caravan `1/14`
+    // (`CARADUTCH`, `GRAPH` `ArmedCaravan`), born on 1764, played no piece
+    // in ours — `gpiece` 0 against theirs' 10 and 12682 on block 1765, its
+    // clock 33 against 31 — and on 1769 its idle draw fell a frame apart.
+    // At 5583 ours 10 draws, theirs 9, at 4: ours `Leader::make_stuff+0x63d`,
+    // theirs `GameDaemon::calc_market+0x54`, past run963's last block.
+    count: 5583,
+    sequence: 5583,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -91,4 +104,58 @@ fn dutch_word_is_no_other_lobby() {
         assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
+}
+
+/// run963: the word 1567's window, blocks 1561..1817 at `GUYS=4` (item
+/// 3329, run958e's recipe); run915 dumps blocks 0..36 and run917 its setup
+/// and closing blocks only.
+pub(crate) const RUN963: &str = "gamelog-run963-eastindies-dutch-diff4-window-1561-1818-guys4.txt";
+
+/// The window: block 1561 through 1817; the word 1567's own block is 1568.
+pub(crate) const WIDENING_DUTCH_FRAME_1567: (i64, i64) = (1561, 1817);
+
+pub(crate) fn dutch_frame_1567_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[DUTCH.start],
+        true,
+        DUTCH.long,
+        "run963",
+        &[(RUN963, WIDENING_DUTCH_FRAME_1567.0)],
+        WIDENING_DUTCH_FRAME_1567,
+        1,
+        &[1568],
+        true,
+    )
+}
+
+#[test]
+fn run963_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = dutch_frame_1567_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 38, "keys that part in the window");
+    // Item 3329: 531 keys part on blocks 1561..1817, the word's own block
+    // being 1568. Standing from 1561 (36): the control's set —
+    // `SITE[n].reg`, `form`, the groups' `held`, the pool and both
+    // leaders' `aggression`. The first that is not: block 1567, who=1's
+    // Dutch merchant `1/2` (`TypeIndex` 62, land) holds a `MOVEORDER` to
+    // (31800, 37176) in theirs and nothing in ours (`orders.len` 0/1,
+    // `orders_x` 40344/31800), then its path, idle and figures.
+    //
+    // **531 → 239** with the Dutch merchant's leg of the auto-attack arm:
+    // the order is on both sides on 1567. The first that parted next was
+    // block 1765, the newborn caravan `1/14`'s `g.gpiece[0]` 0/10 and
+    // `g.gpiece[1]` 0/12682, `g.end_time[0]` 33/31. **239 → 38** with the
+    // piece table keyed without case: both read 10 and 12682. What stands
+    // is the control's set and its two late rows, who=1's `SITE[6].reg` on
+    // 1576 and `group:64.held` on 1577.
 }
