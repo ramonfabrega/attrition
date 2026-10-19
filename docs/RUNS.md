@@ -18877,3 +18877,42 @@ SHA-256 `52a7a6e563932c1b843afc7224cb08bf3ffd3681d467d267fe7c9d7cff376ea7`.
 **What it holds**: `diff::indian_word::run970b_s_word_frame_is_widened_whole` (257 blocks): 400 keys at first (who=1's
 citizen `1/7` without its build order on 1177, the Camp numbered 2009 against 2010), **35** with a closed building's
 number held thirty frames (the standing set). Its window is in the coverage driver.
+
+## run970c — the AI word: East Indies, Indians at difficulty 2, the word 9985's widening (9979..10236) (2026-10-19, item 3335, `att-3335`)
+
+`docs/AI.md` §271. **What the disk could not answer**: a closed building's held number moved the word to 9985, past
+run970b's last block 1428. run970's `--detail`, tribe, cover and profile, with `--end-frame 10240 --timeout 5400
+--log-window 9979 10236`.
+- Pool lane 1, launched 10:28:37 and exited 10:45:50 (1033 s). `success`, 10241 frames. `rngcmp.py
+  rontrace-run962b.log rontrace-run970c.log`: **10241 identical, 0 differing**. Filed with `filerun.py run970c
+  eastindies-indian-diff2-window-9979-10236-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run970c-eastindies-indian-diff2-window-9979-10236-guys4.txt`, 545,374,028 bytes,
+SHA-256 `d8fde88c7fb5f38c6b07d21abe93037c47588170a9a06d173e6bef3b2ebecd6d`.
+
+Archive `rontrace-run970c.log`, 45,789,984 bytes,
+SHA-256 `f4f130f64a5732dcf102e279788566846de6a14675d4f0cca930967f51433bc2`.
+
+**What it holds**: `diff::indian_word::run970c_s_word_frame_is_widened_whole` (257 blocks): 586 keys, the state parted
+before the window opens; 569 with the Indian elephant arm, **50** with every attacking type counted in its trainer's
+group (block 9983's Horse Archer). Its window is in the coverage driver and the `WIDENINGS` row's until run970e.
+
+## run970d — the AI word: East Indies, Indians at difficulty 2, the gap 1428..9979 at a stride of 32 (2026-10-19, item 3335, `att-3335`)
+
+`docs/AI.md` §271. **What the disk could not answer**: run970c's first block 9979 is already parted and nothing on disk
+dumps 1429..9978. run970's `--detail`, tribe, cover and profile, with `--end-frame 9980 --timeout 5400 --log-window
+1428 9979 --stride 32`.
+- Pool lane 1, launched 10:49:48 and exited 11:06:26. `success`, 9981 frames; 268 `BEGIN FRAME`s (1429, 1461, …,
+  9941, and the closing 9981). `rngcmp.py rontrace-run962b.log rontrace-run970d.log`: **9981 identical, 0 differing**.
+  Filed with `filerun.py run970d eastindies-indian-diff2-stride32-1428-9979`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run970d-eastindies-indian-diff2-stride32-1428-9979.txt`, 535,065,934 bytes,
+SHA-256 `b5ac47307b2b3ff847090e51c99facfacce7a1f5eacefa1e2ab2ed29e9f49fcb`.
+
+Archive `rontrace-run970d.log`, 44,658,464 bytes,
+SHA-256 `7b5d668fbd61cb9d85ac6214305fa12a2e39791d2f18d97524d3ecb6f654fcfb`.
+
+**What it holds**: `diff::indian_word::run970d_s_gap_is_widened_whole` (267 blocks): 67 keys, the first not the
+standing set block 9589's War Elephant priced without the Indian elephant arm; **62** with it.
