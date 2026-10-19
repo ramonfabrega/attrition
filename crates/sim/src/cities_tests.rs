@@ -8635,6 +8635,10 @@ fn a_maya_building_costs_a_quarter_less_timber() {
     let t = install_types(&mut sim);
     let _ = city_at(&mut sim, &t, 0, 32, 32);
     let timber = economy::Resource::Timber.index();
+    // The arm reads the tree's `TypeIndex`; the fallback for a type outside
+    // the tree is checked last.
+    sim.build_types[t.senate].tree = Some(0x1b6);
+    sim.build_types[t.barracks].tree = Some(crate::nations::ty::BARRACKS);
     let senate = sim.building_price(0, t.senate);
     let barracks = sim.building_price(0, t.barracks);
     assert_ne!(senate[timber], 0, "a Senate costs timber");
@@ -8652,4 +8656,10 @@ fn a_maya_building_costs_a_quarter_less_timber() {
         "a Barracks is listed"
     );
     assert_eq!(sim.building_price(1, t.senate), senate, "another nation's");
+    sim.build_types[t.barracks].tree = None;
+    assert_eq!(
+        sim.building_price(0, t.barracks),
+        barracks,
+        "outside the tree, by its ident"
+    );
 }
