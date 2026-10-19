@@ -111,6 +111,33 @@ impl crate::Sim {
         self.cavarch_fight(u, frame);
     }
 
+    /// **`Unit::do_group_move@005e79a0:392`–`406`** — a formation
+    /// follower's fire on the move, just before its `move_step` (item 3336,
+    /// `docs/AI.md` §272). The same test as [`Self::cavarch_head`]'s, with
+    /// one difference the listing keeps: a `HOLD_FIRE` stance or an
+    /// `ATTACK` action does not clear `cavarch_o` here — the call is
+    /// skipped and the pair kept. Great Sahara's Royal Mameluke `1/68`
+    /// (TypeIndex 198) on tick 20186, a follower of a `GROUP_ATTACK_TO`
+    /// given that frame: theirs spends `fight`'s re-search roll on the
+    /// Citizen `0/4` it held (run967g).
+    ///
+    /// SEAM: the `unit_flags & 0x400` exemption, as at the head.
+    pub(crate) fn cavarch_follower(&mut self, u: usize, frame: i64) {
+        if !self.fires_on_move(u) || self.attack_of(Obj::Unit(u)) == 0 {
+            return;
+        }
+        let attacking = self
+            .action_of(u)
+            .is_some_and(|i| matches!(self.units[u].orders[i].body, Body::Attack(_)));
+        if self.units[u].combat.stance == Stance::HoldFire || attacking {
+            return;
+        }
+        if self.units[u].cavarch_idle && (i64::from(self.units[u].index) + frame) % 32 != 0 {
+            return;
+        }
+        self.cavarch_fight(u, frame);
+    }
+
     /// **`Unit::cavarch_fight@005ff4b0`**: the fight, and then the
     /// throttle — an answer of nothing after an answer of nothing (the old
     /// `cavarch_o` read as unsigned past `0x7fff`) is written −2.

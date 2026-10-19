@@ -56,9 +56,14 @@ pub(crate) const EGYPTIAN: Lobby = Lobby {
     // `collide` 4 → 5 — `do_move`'s `ATTACK` retarget, a non-mandatory
     // attack's `find_new_target(NULL, 1)` four frames after the collision
     // (`005f7b30`). The word moved 20031 → 20186: ours 11 draws, theirs 12,
-    // at 1 ours `Unit::do_move+0xe84`, theirs `Unit::fight+0x9b0`.
-    count: 20186,
-    sequence: 20186,
+    // at 1 ours `Unit::do_move+0xe84`, theirs `Unit::fight+0x9b0`: the
+    // Royal Mameluke `1/68`, a `GROUP_ATTACK_TO` follower, re-searching
+    // from the Citizen `0/4` it held — `do_group_move`'s own fire on the
+    // move (`005e79a0:392`–`406`). The word moved 20186 → 20235: ours 15
+    // draws, theirs 16, at 4 ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+    // theirs `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
+    count: 20235,
+    sequence: 20235,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`

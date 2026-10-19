@@ -6315,7 +6315,6 @@ impl Sim {
         mut mo: MoveOrder,
         flags: u8,
     ) {
-        let _ = frame;
         let l = gm.leader;
         // 1. The leader has to still be usable: alive, on the map, in my
         //    group, and holding a group order with **my** `id` — or a
@@ -6504,15 +6503,14 @@ impl Sim {
         //    item 1293): within `0x300` Manhattan of the unit, a slot whose
         //    cell is `FOREST` sends up a flock from a unit in a group —
         //    [`Sim::group_flock`].
-        //
-        //    SEAM: the follower's own fire on the move below it: the
-        //    original calls it here too, and this crate wires the fire on
-        //    the move ([`crate::cavarch`]) into the plain move's step only.
         if self.invalid_loc(u, mo.waypoint.tile(), false, false, false, false, false) != 0 {
             self.group_flock(u, mo.waypoint);
             self.ungroup_move_order(u, gm.id);
             return;
         }
+        //    **Then the follower's own fire on the move** (`5e84d0`–
+        //    `5e856d`, item 3336): [`Sim::cavarch_follower`].
+        self.cavarch_follower(u, frame);
         // 10. **The step's own answer is the formation's end condition**
         //     (`5e856d`–`5e8660`). `move_step` returns 0 from exactly
         //     three places — blocked and still owing a turn, blocked and
