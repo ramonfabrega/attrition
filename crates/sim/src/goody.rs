@@ -262,17 +262,37 @@ impl Sim {
     /// `seen2` clear on all four half-cells, the cell `who` 1. The centre
     /// is assumed for every box.
     ///
-    /// SEAM: the Spanish `has_tribe_bonus(9)` arm, and the whole chain walk
-    /// that finds the item in the first place (`docs/QUEUE.md` item 48). A
-    /// box on a cell nothing has ever seen and nobody's ground answers no
-    /// here either way.
+    /// **The Spanish arm** (item 3318, `docs/GOODY.md` §7.2): a leader
+    /// with `has_tribe_bonus(9)` whose own cell the box is on — `WData
+    /// +0xf`, `who`, read at the item's cell (`00677850`: the item's
+    /// coordinates `>> 8` through `div_3_table`, the byte at `wdata +
+    /// cell × 0x1c + 0xf` against `who`) — answers
+    /// `WorldData::was_seen` at the item's half-cell, territory shortcut
+    /// and all, and returns it **without** falling through to the line of
+    /// sight. On Great Sahara the Spanish Scout sweeps a box inside its own
+    /// borders on 524 from three cells away (run896b's `astar_path` to the
+    /// box's cell that frame, `docs/AI.md` §264).
+    ///
+    /// SEAM: the whole chain walk that finds the item in the first place
+    /// (`docs/QUEUE.md` item 48). A box on a cell nothing has ever seen and
+    /// nobody's ground answers no here either way.
     fn goody_item_is_seen(&self, c: Cell, who: Player) -> bool {
         let (x, y) = (2 * c.x, 2 * c.y);
-        self.was_really_seen_fog(x + 1, y + 1, who)
+        if self.was_really_seen_fog(x + 1, y + 1, who)
             || self.was_really_seen_fog(x, y + 1, who)
             || self.was_really_seen_fog(x + 1, y, who)
             || self.was_really_seen_fog(x, y, who)
-            || self.world_is_seen_fog(x + 1, y + 1, who)
+        {
+            return true;
+        }
+        if self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9)
+            && self.world.owner(c) == crate::world::Owner::Player(who)
+        {
+            return self.was_seen_fog(x + 1, y + 1, who);
+        }
+        self.world_is_seen_fog(x + 1, y + 1, who)
     }
 
     /// `Unit::get_goody_box@005f7690`: a one-member group, and an
