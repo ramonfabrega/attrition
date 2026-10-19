@@ -1081,8 +1081,13 @@ fn run943_s_word_frame_is_widened_whole() {
     // `DEATHS` (run943 prints no `DEATH_OBJS`). The state first parts on
     // 10853 still: `1/25`, upgraded Javelineers → Peltasts on 10852 on both
     // sides, `g.cur_anim[0]` ours 1 against theirs 2 and `g.end_time[0]` 96
-    // against 36.
-    pin_eq!(w.firsts.len(), 174, "run943 with The Despot's unit plunder");
+    // against 36. **Item 3287, 47**, the standing set alone through
+    // 10945: `Guy::init_real` zeroes `guy_flags`, so `1/25`'s re-typed
+    // figure rolls `IDLE2` (`g.cur_anim[0]` 2, `g.end_time[0]` 36 on both
+    // sides on 10853); the Peltasts' bays (piece 1442) bring `0/2000`'s
+    // `build:damage` to 44 on both on 10870; `set_diags`' corner tail keeps
+    // the caravan diagonal (235, 153) (`docs/AI.md` §260).
+    pin_eq!(w.firsts.len(), 47, "run943 with set_diags' corner tail");
 }
 
 /// run930: the walk-back behind run928's first block, blocks 5556..5578 at

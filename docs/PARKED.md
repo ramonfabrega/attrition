@@ -8058,13 +8058,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot JY — reserved
+## Parked by item 3287, 2026-10-18 — set_diags' corner tail built, the Iroquois word at 11585
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3287a) **The battery word 11585** (`GreatLakesIroquoisTier3`, `docs/AI.md` §260). Item 3287 moved the word
+  10917 → 11585: ours 16 draws against theirs 15, index 4, ours `Leader::make_stuff+0x221`, theirs
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run943's widening is down to 47 keys (the standing set) through its last
+  block 10945, so no dump on disk holds the word's frame. **Its widening is owed** (a window capture around 11585 at
+  run943's detail). The booking is the frame and the draw delta. A theirs-only figure roll inside who=1's
+  `make_stuff` is a hypothesis.
+- (3287b) **(235, 154)'s two counts** (`docs/ROADS.md` §12). run946's packet at 10842 holds ref 2 / camel 0; ours holds
+  ref 1 / camel 1, the same sum. One of the corner tail's references is taken under a `param` that this crate reads as
+  the caravan's and the original does not. No score moves: the element stands either way, and
+  `run946_s_road_elements_at_10842_are_ours` compares it by the sum. It would part when a camel step is spent before a
+  reference, i.e. `road_changed` lowering `pending_camel_steps` first on a removal.
+- (3287c) **The C4 piece on a road tile** (`docs/ROADS.md` §12, not established). `finish_pieces` clears `c4` on a tile
+  that is road, on the reading that `find_piece` re-pieces it, and the packet's road tiles carry 54 and 56. The pick is
+  not modelled. It would matter if a road tile left with a C4 piece is later un-laid and the sweep spares it.
+  `get_road_data` and `find_piece` on a re-laid road tile is the reading.
 
 ## Parked by the next landing, slot JZ — reserved
 
