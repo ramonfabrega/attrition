@@ -1688,6 +1688,40 @@ mod tests {
         }
     }
 
+    /// run971's two Musketeer rounds (piece 49, item 3336), the rows
+    /// [`MEASURED`] was fitted to: `1/136`'s `ATTACK3` at frame 4 on 20374
+    /// and `1/54`'s `ATTACK1` at frame 1 on 20378, `(anim, t, gx, gy, ga,
+    /// gz, sx, sy, sz)` as the dump prints them.
+    #[test]
+    fn run971_s_musketeer_rounds_leave_from_their_release_nodes() {
+        #[rustfmt::skip]
+        const ROWS: &[(i8, u32, i32, i32, i32, i32, i32, i32, i32)] = &[
+            (crate::anim::ATTACK3, 4, 5448, 26856, -1_656_487_936, 504, 5333, 26970, 682),
+            (crate::anim::ATTACK1, 1, 5544, 26808, -1_641_873_408, 495, 5426, 26889, 713),
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in ROWS {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 49, anim, t, 0);
+            assert_eq!((got.x, got.y), (sx, sy), "piece 49 anim {anim} t {t}");
+            assert_eq!(
+                gz + release_dz(49, anim, t, 0).unwrap_or(0),
+                sz,
+                "piece 49 dz"
+            );
+        }
+        assert_eq!(
+            launch_point(
+                Pos::new(5448, 26856),
+                Angle(0),
+                49,
+                crate::anim::ATTACK2,
+                7,
+                0
+            ),
+            Pos::new(5448, 26856),
+            "ATTACK2's frame 7 is not measured: the unit's own position"
+        );
+    }
+
     /// **Piece 1442, the Native American Peltasts** (item 3287): four
     /// headings of each row's `get_position.py` sweep on run943c's packet,
     /// `(anim, starttime, degree, x, y)`, the degree `fast_angle_to_degrees`'

@@ -7026,6 +7026,38 @@ mod tests {
         (sim, me)
     }
 
+    /// **A packer mid-pack keeps its cast through a `QUEUE_NEW` clear**
+    /// (`Group::action_move_near@00704990:410`–`440`, item 3336; run967g's
+    /// Cannon `1/125` on 20218): the pack cast is lifted off, the rest is
+    /// cleared, and the cast goes back at the head. A packer whose head is
+    /// not a pack cast is left alone and answered false.
+    ///
+    /// Made to fail by answering false always: the Egyptian word reads
+    /// 20235 (item 3336's M3).
+    #[test]
+    fn a_packer_mid_pack_keeps_its_cast_through_a_new_clear() {
+        use crate::orders::{Body, MoveKind, QueuePos, spell};
+        let (mut sim, me) = unpacked_packer(48);
+        let far = Pos::new(0x4000 + 20 * 192, 0x4000);
+        sim.add_move_order(me, far, MoveKind::AttackTo, QueuePos::New, true);
+        assert!(
+            !sim.clear_keeping_pack(me),
+            "a march at the head is no pack"
+        );
+        assert_eq!(sim.units[me].orders.len(), 1, "and is left alone");
+        let frame = sim.frame;
+        sim.work(me, frame);
+        assert_eq!(sim.units[me].orders.len(), 2, "the pack over the march");
+        assert!(sim.clear_keeping_pack(me));
+        assert_eq!(sim.units[me].orders.len(), 1, "the march is cleared");
+        assert!(
+            matches!(sim.units[me].orders.front().map(|o| o.body), Some(Body::Cast(c)) if c.spell == spell::PACK),
+            "the pack is not at the head: {:?}",
+            sim.units[me].orders
+        );
+        assert_eq!(sim.units[me].spell_time, 1, "the cast runs on");
+    }
+
     /// **An unpacked packer told to march packs first** (`Unit::work@0060d180`'s
     /// pack arm, `0060d600`, item 1370): the move stays under a `0x28b`
     /// cast, and the bit goes up on the cast's eightieth frame with the

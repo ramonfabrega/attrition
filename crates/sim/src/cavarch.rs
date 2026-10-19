@@ -275,7 +275,7 @@ impl crate::Sim {
 #[cfg(test)]
 mod tests {
     use crate::ai_load::uflags;
-    use crate::combat::{Obj, Profile};
+    use crate::combat::{Obj, Profile, Stance};
     use crate::orders::{Body, MoveKind, QueuePos, index};
     use crate::world::World;
     use crate::{Player, Pos, Sim};
@@ -413,6 +413,45 @@ mod tests {
                 assert_eq!(sim.units[me].combat.recharging, 30, "shot");
             }
         }
+    }
+
+    /// **A formation follower fires on the move too, and keeps its pair
+    /// where the head drops it** (`do_group_move@005e79a0:392`–`406`, item
+    /// 3336; run967g's Royal Mameluke `1/68` on 20186). A `v` follower on
+    /// an attack-move searches as the head does; under `HOLD_FIRE` the
+    /// head clears `cavarch_o` and the follower skips with it kept.
+    ///
+    /// Made to fail by dropping the call from `group_move_follower`: the
+    /// Egyptian word reads 20186 (item 3336's M2).
+    #[test]
+    fn a_follower_fires_on_the_move_and_keeps_its_pair_under_hold_fire() {
+        let (mut sim, ty) = field(true);
+        let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+        let foe = put(&mut sim, 0, ty, Pos::new(3000, 4200));
+        sim.add_move_order(
+            me,
+            Pos::new(9000, 3000),
+            MoveKind::AttackTo,
+            QueuePos::New,
+            false,
+        );
+        let frame = 64 - i64::from(sim.units[me].index);
+        sim.cavarch_follower(me, frame);
+        assert_eq!(
+            sim.units[me].cast_target,
+            Some(Obj::Unit(foe)),
+            "the search"
+        );
+        sim.units[me].combat.stance = Stance::HoldFire;
+        sim.cavarch_follower(me, frame + 1);
+        assert_eq!(
+            sim.units[me].cast_target,
+            Some(Obj::Unit(foe)),
+            "a follower under HOLD_FIRE keeps the pair"
+        );
+        assert_eq!(sim.units[me].combat.recharging, 0, "and does not shoot");
+        sim.cavarch_head(me, frame + 1);
+        assert_eq!(sim.cavarch_o(me), -1, "the head clears it");
     }
 
     /// **An empty search after an empty one waits for the phase**

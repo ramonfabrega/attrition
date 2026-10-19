@@ -441,8 +441,7 @@ fn run645_egyptian_closing_state() {
 /// run971: the game's last blocks, 20368..20380, at run967g's detail with
 /// `AMMO=5` (item 3336); run645 prints only its closing block past its
 /// setup, and run967g ends on 20282.
-pub(crate) const RUN971: &str =
-    "gamelog-run971-greatsahara-egyptian-diff4-window-20368-20380.txt";
+pub(crate) const RUN971: &str = "gamelog-run971-greatsahara-egyptian-diff4-window-20368-20380.txt";
 
 /// The window: block 20368 through 20380, the long's last frame.
 pub(crate) const WIDENING_EGYPTIAN_971: (i64, i64) = (20368, 20380);
