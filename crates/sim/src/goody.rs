@@ -161,7 +161,63 @@ impl GoodyView for SimGoody<'_> {
     }
 }
 
+/// One goody box: `Item`'s position and live bit, and its `ever_seen`
+/// (`ItemData +0x20`). `Item::init@006770e0` zeroes the byte and marks the
+/// cell [`GOODY`]; `World::reveal_fog@006b3d30` is the byte's only other
+/// writer.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct GoodyItem {
+    pub pos: Pos,
+    pub alive: bool,
+    pub ever_seen: u8,
+}
+
 impl Sim {
+    /// A box from the dump's `ITEM` record (item 3335).
+    pub fn add_goody_item(&mut self, pos: Pos, alive: bool, ever_seen: u8) {
+        self.goody_items.push(GoodyItem {
+            pos,
+            alive,
+            ever_seen,
+        });
+    }
+
+    /// `ObjectsData::find_goody_at@0065c040` as far as this crate keeps
+    /// items: the live box standing on `c` while the cell still carries
+    /// [`GOODY`] — the flag `get_goody` clears when the box is taken.
+    fn goody_item_at(&self, c: Cell) -> Option<usize> {
+        if self.world.cell_data(c).flags & GOODY == 0 {
+            return None;
+        }
+        self.goody_items
+            .iter()
+            .position(|it| it.alive && it.pos.cell() == c)
+    }
+
+    /// `World::reveal_fog@006b3d30`'s goody arm (`006b4078`–`006b414e`),
+    /// for the fog cell `(fx, fy)` whose `seen2` a unit's `set_seen` has
+    /// just changed: a box on the world cell `(fx >> 1, fy >> 1)` — the
+    /// cell's `WData` short negative, which is [`GOODY`], and not water by
+    /// `find_goody_at`'s inlined test (no `HALFLAND` and a `land` byte of
+    /// 1 or 2) — takes `who`'s bit in its `ever_seen`.
+    ///
+    /// SEAM: the arm's tail, `get_goody_box` for the revealing unit when
+    /// its `unit_masks & 0x100` is set; nothing here sets that bit
+    /// (`docs/GOODY.md` §7.5).
+    pub(crate) fn reveal_goody(&mut self, fx: i32, fy: i32, who: Player) {
+        let c = Cell::new(fx >> 1, fy >> 1);
+        if !self.world.contains(c) || who >= 8 {
+            return;
+        }
+        let d = self.world.cell_data(c);
+        if d.flags & crate::world::cell::HALFLAND == 0 && (d.land == 1 || d.land == 2) {
+            return;
+        }
+        if let Some(i) = self.goody_item_at(c) {
+            self.goody_items[i].ever_seen |= 1 << who;
+        }
+    }
+
     /// `Unit::find_goody_box@005f2540` (`docs/GOODY.md` §7): the 49-cell
     /// sweep for a box worth walking to. Returns whether an order was
     /// issued; spends no draw either way.
@@ -278,11 +334,22 @@ impl Sim {
     /// nobody's ground answers no here either way.
     fn goody_item_is_seen(&self, c: Cell, who: Player) -> bool {
         let (x, y) = (2 * c.x, 2 * c.y);
-        if self.was_really_seen_fog(x + 1, y + 1, who)
-            || self.was_really_seen_fog(x, y + 1, who)
-            || self.was_really_seen_fog(x + 1, y, who)
-            || self.was_really_seen_fog(x, y, who)
-        {
+        // The item's own byte when the boxes are loaded (item 3335): the
+        // fog is not it. A box a building's light reached before any unit
+        // looked is in `seen2` and in no leader's `ever_seen` —
+        // run962's item 1 at (45, 49), `ever_seen` 0 on every block to 36
+        // under `seen2` 2 at (91, 98) and (91, 99).
+        let item_seen = if self.goody_items.is_empty() {
+            self.was_really_seen_fog(x + 1, y + 1, who)
+                || self.was_really_seen_fog(x, y + 1, who)
+                || self.was_really_seen_fog(x + 1, y, who)
+                || self.was_really_seen_fog(x, y, who)
+        } else {
+            let mask = self.ai.get(who as usize).map_or(0, |a| a.census.ally_mask) | (1 << who);
+            self.goody_item_at(c)
+                .is_some_and(|i| u32::from(self.goody_items[i].ever_seen) & mask != 0)
+        };
+        if item_seen {
             return true;
         }
         if self

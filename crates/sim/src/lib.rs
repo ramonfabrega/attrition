@@ -1341,6 +1341,14 @@ pub struct Sim {
     /// `docs/AI.md` §152), by goods-list index. `reveal_fog`'s own writes are
     /// answered by the fog read in [`Sim::good_ever_seen`].
     pub good_seen_bits: Vec<u8>,
+    /// The goody boxes as `Objects::init_item` laid them down, with each
+    /// one's `ItemData::ever_seen` (`+0x20`): a bit per leader that
+    /// `World::reveal_fog` ORs in when a unit's sight first changes `seen2`
+    /// on one of the box's half-cells, and nothing else (item 3335,
+    /// `docs/GOODY.md` §7.2). Empty when the world was stood up without
+    /// the dump's `ITEM` records; [`Sim::goody_item_is_seen`] then reads
+    /// the fog in its place.
+    pub goody_items: Vec<goody::GoodyItem>,
     /// Whether a frame has run. A border fix before the first is setup's —
     /// `World::compute_all_territory` with the budget unlimited, on the
     /// map at once — and one after it takes the daemon's pass
@@ -1786,6 +1794,7 @@ impl Sim {
             border_pass: None,
             territory_won: Vec::new(),
             good_seen_bits: Vec::new(),
+            goody_items: Vec::new(),
             in_play: false,
             // Ten slots, not `players`: gaia's animals and birds are units
             // of owners 8 and 9 and take numbers from their own bands.

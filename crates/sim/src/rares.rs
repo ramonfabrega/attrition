@@ -322,6 +322,17 @@ impl Sim {
     /// type — and adds it to the revealing leader's `oil_patches` unless
     /// it is already there.
     pub(crate) fn reveal_fog(&mut self, fx: i32, fy: i32, who: Player) {
+        self.reveal_fog_goods(fx, fy, who);
+        // The goody arm, last in the original too (`006b4078`; item 3335).
+        self.reveal_goody(fx, fy, who);
+    }
+
+    /// [`Sim::reveal_fog`]'s rare and oil arms alone — what the harness's
+    /// replay of the dump's `seen2` ([`Sim::seed_new_rares_from_fog`])
+    /// stands in for. Its goody arm is not replayed: the dump prints each
+    /// box's `ever_seen` itself, and a `seen2` bit a building's light set
+    /// never passed through `reveal_fog` (item 3335).
+    pub(crate) fn reveal_fog_goods(&mut self, fx: i32, fy: i32, who: Player) {
         let c = crate::world::Cell::new(fx >> 1, fy >> 1);
         let t = crate::Pos::new(2 * fx + 1, 2 * fy + 1);
         if self.world.tile_mask(t) & crate::world::tile::AS_BUILDING != 0 {
@@ -484,7 +495,7 @@ impl Sim {
                 }
                 for who in 0..self.players.len().min(8) {
                     if bits >> who & 1 != 0 {
-                        self.reveal_fog(fx, fy, who as Player);
+                        self.reveal_fog_goods(fx, fy, who as Player);
                     }
                 }
             }
