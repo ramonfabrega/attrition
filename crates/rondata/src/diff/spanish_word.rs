@@ -197,5 +197,14 @@ fn run958d_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run958d on its first build");
+    // Item 3318: 666 keys on the first build. Past the standing set the
+    // first parting was block 7783: who=1's `bucket[0]`/`bucket[4]` 37/79
+    // against 47/85, and `1/2019`'s (the Barracks) two new Hoplites priced
+    // 53/34 and 57/38 against 48/31 and 52/35 — Salt's tenth off the scaled
+    // base, which ours did not take. With it the window parts **the
+    // standing set alone** (both leaders' `SITE[n].reg`, `aggression`,
+    // `form`, the groups' `held` and the pools, from 7779, and group 68's
+    // on 7939); the word's block
+    // 7786 parts nothing, and the word moved 7785 → 14382, past the window.
+    pin_eq!(w.firsts.len(), 34, "run958d with Salt's Barracks arm");
 }

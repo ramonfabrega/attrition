@@ -9909,7 +9909,10 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // held the word's block: its widening is run958's window over
     // 570..826 (`run958_s_word_frame_is_widened_whole`). The item's
     // `leader_flags 0x1000` arm moved it 576 → 7785, past the window and
-    // past every dump on disk; 7785's widening is owed by this item.
+    // past every dump on disk; run958d widened 7785 over 7779..8035
+    // (`run958d_s_word_frame_is_widened_whole`), and Salt's Barracks arm
+    // moved it 7785 → 14382, past that window too. 14382's widening is
+    // owed by this item.
     (
         "SPANISH_WORD",
         crate::diff::spanish_word::SPANISH_WORD,
@@ -10245,8 +10248,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::spanish_word::SPANISH_WORD,
         length: 22_700,
         endpoint: None,
-        // run958's window is 576's; 7785's is owed (item 3318).
-        window: Some("spanish_frame_576_window"),
+        // run958d's window is 7785's; 14382's is owed (item 3318).
+        window: Some("spanish_frame_7785_window"),
     },
     // **The battery's second word** (DECISIONS 72; item 3107): Great
     // Lakes, the Iroquois at Difficulty 3 — the held-out battery's lowest
