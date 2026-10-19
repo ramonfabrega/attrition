@@ -8178,13 +8178,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KI — reserved
+## Parked by item 3314, 2026-10-19 — the Romans' fort discount and a dead Library's ring, the Roman word at the game's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The Roman closing's residue** (`EastIndiesRomanTier2`, `docs/AI.md` §263; it names a score:
+  `run899b_roman_closing_state`'s counts `[0, 0, 0, 6, 0, 1, 0]`). The draw stream agrees to 18620. In theirs, who=0's
+  Village `0/2000` is captured on the last frame, and ours stands at 1199 of 1200. run956c parts it on **block 18369,
+  ours 868 against theirs 869**, from the blow of 18368: the Horse Archers `1/53`, 1.0 here and 2.0 there. Its blows of
+  18320, 18343 and 18393 are 1.0 on both sides, and every other blow agrees. Theirs' `1/53` drops `up` (86, the
+  Senator `1/55`'s uid) on block 18367. The booking is the frame and the blow. "The Senator's escort" is a hypothesis.
+- **who=1's `g.angle[0]` on `1/22`..`1/37`** (run956b, run956c, standing from 18020): ours `0x55555555` against 0.
+  It parts nothing that moves, and names no score.
+- **The teardown's other arms** (`docs/ROADS.md` §9.6): a city centre's ring and the third arm's have reached no
+  consequence in a capture this crate walks. Of the seventeen tiles ours clears on 18011, only (28, 40) is observed
+  (through a search's price).
 
 ## Parked by the next landing, slot KJ — reserved
 
