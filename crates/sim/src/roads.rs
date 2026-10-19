@@ -177,7 +177,21 @@ impl Sim {
             return;
         }
         self.buildings[b].regen_roads = false;
+        let probe = std::env::var("RON_PROBE_ROADS").ok().and_then(|v| v.parse::<i64>().ok()) == Some(frame);
+        let was = self.trace_costs;
+        if probe {
+            self.trace_costs = true;
+            self.road_marks.clear();
+        }
         self.place_roads(b);
+        if probe {
+            self.trace_costs = was;
+            let bd = &self.buildings[b];
+            eprintln!("PROBE roads f{frame} b{b} {}/{} ty {:?} pos {:?} city {:?} marks {}", bd.owner, bd.index, bd.ty, bd.pos, bd.city, self.road_marks.len());
+            for (i, m) in self.road_marks.iter().enumerate() {
+                eprintln!("PROBE  {i} to {:?} from {:?} dir {} cost {}", m.to, m.from, m.dir, m.cost);
+            }
+        }
     }
 
     // ------------------------------------------------------------------
