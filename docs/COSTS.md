@@ -1051,7 +1051,10 @@ draw stream to 10131
 The Bantu term is read alone; no capture holds a Bantu leader. The rest of
 the building tail after it (marble, the Egyptian wonders, Korean towers,
 the Colosseum and Roman forts, Tikal's temples, Nubian markets, Greek
-libraries, Maya timber) is not carried.
+libraries, Maya timber) is not carried. ~~Maya timber~~: carried since item
+3338 (`cost::Modifiers::maya_timber`, `docs/AI.md` §273) — a quarter off the
+timber of every building but a wonder and the military, naval, tower, fort
+and lookout types, `get_cost:973`–`987`.
 
 ## A Citizen is ramped by the Militia too
 

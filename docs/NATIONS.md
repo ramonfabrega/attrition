@@ -52,9 +52,9 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | index | nation | rules key | `city::Nation` flag | census functions | lobbies that hold it |
 |---:|---|---|---|---:|---|
 | 0 | Aztecs | aztecs | `aztecs` | 7 | none |
-| 1 | Maya | maya | `maya` | 2 | none |
+| 1 | Maya | maya | `maya` | 2 | `GreatSaharaMayaTier4` (AI word, tier 4) |
 | 2 | Inca | inca | `inca` | 3 | none |
-| 3 | Bantu | bantu | `bantu` | 5 | none |
+| 3 | Bantu | bantu | `bantu` | 5 | `GreatSaharaBantuTier4` (map 7, tier 4) |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
 | 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2) |
@@ -150,7 +150,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AZTEC_PLUNDER` | 100 | Build::plunder, Unit::plunder | modelled at city.rs | `aztec_plunder` |
 | `AZTEC_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `aztec_free_military` |
 | `MAYA_GARRISON_ARROWS` | 1 | BuildData::get_base_garrison_arrows | not carried | `maya_garrison_arrows` |
-| `MAYA_BUILDING_TIMBER` | 25 | TypeData::get_cost | not carried | `maya_building_timber` |
+| `MAYA_BUILDING_TIMBER` | 25 | TypeData::get_cost | modelled at city.rs | `maya_building_timber` |
 | `MAYA_BUILDING_HP` | 25 | Wall::update_hits | modelled at build.rs | `maya_building_hp` |
 | `MAYA_BUILDING_SPEED` | 20 | Wall::update_construct_time | modelled at build.rs | `maya_building_speed` |
 | `INCA_WEALTH_CAP` | 33 | Leader::calc_resource_caps | modelled at economy.rs | `inca_wealth_cap` |
