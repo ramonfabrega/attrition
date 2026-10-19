@@ -347,6 +347,7 @@ impl RoadMesh {
         if e.flags & mask != 0 {
             return;
         }
+        if std::env::var("RON_PROBE_MESH").is_ok() && [(235, 152), (235, 153)].contains(&(t.x, t.y)) { eprintln!("PROBM join ({}, {}) {:#x} |= {mask:#x} from at {:?}", t.x, t.y, e.flags, self.at); }
         e.flags |= mask;
         self.add_unique(i, list);
     }
@@ -357,6 +358,7 @@ impl RoadMesh {
 
     fn set_flags(&mut self, world: &World, t: Pos, flags: u32) {
         if let Some(e) = self.elems.get_mut(&index_of(world, t)) {
+            if std::env::var("RON_PROBE_MESH").is_ok() && [(235, 152), (235, 153)].contains(&(t.x, t.y)) { eprintln!("PROBM set ({}, {}) {:#x} -> {flags:#x} at {:?} road {:?} blocked {:?}", t.x, t.y, e.flags, self.at, self.road, self.blocked); }
             e.flags = flags;
         }
     }
@@ -594,6 +596,9 @@ impl Sim {
     /// pass it 1 so that a tile it lays does not re-enter `add_roads`.
     pub(crate) fn world_set_road_at(&mut self, t: Pos, set: bool, p4: i32, p5: i32) {
         let m = self.world.tile_mask(t);
+        if std::env::var("RON_PROBE_MESH").is_ok() && self.frame == 10485 {
+            eprintln!("PROBM lay ({}, {}) set {set} p5 {p5} was_road {}", t.x, t.y, m & tile::SURFACE == tile::SURFACE_ROAD);
+        }
         if std::env::var("RON_PROBE_ROADS").is_ok() && [(235, 152), (235, 153), (232, 155), (233, 155)].contains(&(t.x, t.y)) {
             eprintln!("PROBW f{} tile ({}, {}) set {set} p4 {p4} p5 {p5} mask {m:#x}", self.frame, t.x, t.y);
             if !set {
