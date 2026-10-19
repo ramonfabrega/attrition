@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-18, **the forty-fourth tranche (commander, Opus): 15 of 20 landed from `6db69429`**, four lanes (DECISIONS 78
+*2026-10-18, **the forty-fourth tranche (commander, Opus): 16 of 20 landed from `6db69429`**, four lanes (DECISIONS 78
 (i)); last whole gate `09f5ae51` (3292's booking, green, 6 of 6; release 11.3 min); every booking gate green.*
 
-- **Words**: every pair closed. The battery word `GreatLakesIroquoisTier3` 5576 → 10917 of 12658 (3211, 3231, 3242,
-  3248, 3255, 3269, 3279); `EastIndiesGermanTier3` closed at 13519. Chapters 102–105 closed (3263, 3267, 3271, 3274, 3285, 3292),
-  94 → 98. Census 1512 → 1546, **port 347 → 382** (3259, 3268, 3272, 3261, 3281, 3289). The battery's median 4770.
-- **Lanes: four live, landings 15 of 20** (3263–3292, 3289 since `6db69429`): 3287 AI (att-3287, run 948, AI §260,
-  JY), 3294 rules (att-3294, run 951, GOLDEN §143, KB), 3282 shape (att-3282, JW), 3295 the nations seat (att-3295,
-  KC). Next 3296, run 952. Pools: GOLDEN §144–148, AI §261–263, park KD–KH.
-  **Ramon's**: the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
-- **Fable backlog: 14 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265, 3276, 3277, 3280, 3290).
+- **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` 5576 → 11585 of 12658 (3211–3287, eight);
+  `EastIndiesGermanTier3` closed at 13519. Chapters 102–105 closed (3263–3292, six), 94 → 98. Census 1512 → 1546,
+  **port 347 → 382** (3259, 3268, 3272, 3261, 3281, 3289). The battery's median 4770.
+- **Lanes: four live, landings 16 of 20**: 3297 AI (att-3297, run 952, AI §261, KD), 3294 rules (att-3294, run 951,
+  GOLDEN §143, KB), 3282 shape (att-3282, JW), 3295 the nations seat (att-3295, KC). Next 3301, run 953. Pools: GOLDEN
+  §144–148, AI §262–263, park KE–KH. **Ramon's**: the nations seat (3188), the port score's witnesses (3237), 3118, 1570.
+- **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3118, 3139, 3143, 3188, 3237, 3240, 3265, 3276, 3277, 3280, 3290,
+  3300).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,31 +31,32 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatLakesIroquoisTier3 w10917 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
+Battery word: GreatLakesIroquoisTier3 w11585 of 12,658 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1546 of 3611 · port 382 · layout 1164
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 98 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — fifteen of twenty landed from `6db69429`;
-four lanes live (att-3287, att-3294, att-3282, att-3295); re-arm `tools/lanewait.py` on them, merge each landing at its
-gate's exit, refill by `tools/brief.py` (3287's successor on `--model 'claude-opus-5-5[1m]' --effort medium`, the rest on
+**Opener: continue the forty-fourth tranche from docs/QUEUE.md's handoff — sixteen of twenty landed from `6db69429`;
+four lanes live (att-3297, att-3294, att-3282, att-3295); re-arm `tools/lanewait.py` on them, merge each landing at its
+gate's exit, refill by `tools/brief.py` (3297's successor on `--model 'claude-opus-5-5[1m]' --effort medium`, the rest on
 `'claude-sonnet-5-5[1m]' --effort medium`), the model said in user-visible text; the chain is `CLAUDE.md`'s; the whole
 gate at the third widened merge since `09f5ae51`; at twenty the handoff, the drain and `ccc clear steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's**:
-3287 the AI word's (Opus); 3294, 3282 and 3295 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 10917. Take the first unstarted item unless a better
+3297 the AI word's (Opus); 3294, 3282 and 3295 (Sonnet), four lanes, Ramon's word at the fortieth steer. The battery word is the AI's — lower map first — Great Lakes (Iroquois), at 11585. Take the first unstarted item unless a better
 order is clear, and say why. The backlog is `docs/PARKED.md`.
 
-3287. **The battery word, 10917 of 12658 (`GreatLakesIroquoisTier3`)** (parked 3286; 3279 built The Despot's
-    `Unit::plunder` from `take_damage_typed`, 10852 → 10917, who=1's metal on 10853 now 59 both sides, four draws not
-    five, run943's widening 455 → 174 keys, AI §259): ours 285 draws against theirs 296 at index 272 — ours
-    `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`. The widening first parts
-    on 10853: `1/25` (Javelineers upgraded to Peltasts on 10852, both sides, under an `ATTACK` on `0/2000`) has
-    `g.cur_anim[0]` ours 1 against theirs 2 and `g.end_time[0]` 96 against 36; then `0/2000`'s `build:damage` 41
-    against 44 on 10870. Which arm of the upgrade resets a figure mid-attack is a hypothesis. AI §260.
+3297. **The battery word, 11585 of 12658 (`GreatLakesIroquoisTier3`)** (parked 3296; 3287 built `set_diags`' corner
+    tail, the Peltasts' bays and `init_real`'s `guy_flags` clear, 10917 → 11585, run943's widening 174 → 47 keys, AI
+    §260): ours 16 draws against theirs 15 at index 4 — ours `Leader::make_stuff+0x221`, theirs
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run943's last block is 10945, so no dump on disk holds the word's
+    frame: **its widening is owed first** — a Great Lakes window capture around 11585 at run943's detail (run 952), the whole
+    record either side of the word, both directions; run125 and run130 span 11585 on the long pair's lobby, another
+    game, and cannot answer this one. A theirs-only figure roll inside who=1's `make_stuff` is a
+    hypothesis. AI §261.
 
 3294. **Chapter one hundred and six, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
     chapter; run 951 minted here): 3292's chapter 105 (run950, the squad given a `@move` toward the Tower at 806) closed

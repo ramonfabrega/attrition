@@ -9876,13 +9876,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // first parts on 10843 (`run943_s_word_frame_is_widened_whole`).
     // **Item 3287 moved it 10917 → 11585** (`set_diags`' corner tail, the
     // Peltasts' bays, `init_real`'s `guy_flags`), past run943's last block
-    // (10945): owed as the parked row item 3287 filed under its heading
-    // (`docs/PARKED.md`), numbered by the commander at the merge.
+    // (10945): owed as 3297 (`docs/QUEUE.md`; parked 3296, the row item
+    // 3287 filed under its heading, numbered at the merge).
     (
         "IROQUOIS_WORD",
         crate::diff::iroquois_word::IROQUOIS_WORD,
         None,
-        3287,
+        3297,
         None,
     ),
     // **The third map in the coverage pair's lobby** (item 1538): its word
