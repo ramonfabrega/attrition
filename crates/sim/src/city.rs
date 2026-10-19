@@ -746,45 +746,22 @@ impl Sim {
         }
     }
 
-    /// `City::find_buildings`: the radius sweep — own city-bound buildings
-    /// inside the radius join; foreign ones that need a city are converted.
-    /// Ends in `check_upgrade`.
+    /// `City::find_buildings@007384c0`: the radius sweep — own city-bound
+    /// buildings inside the radius join; foreign ones that need a city are
+    /// converted. Ends in `check_upgrade`. The steps are
+    /// [`find_buildings_steps`], run over the live state.
     pub fn find_buildings(&mut self, c: usize) {
         let (who, pos) = (self.cities[c].owner, self.cities[c].pos);
-        let r = self.radius_of(c).min(64);
-        let ct = pos.tile();
-        for b in 0..self.buildings.len() {
-            let bd = &self.buildings[b];
-            if !bd.alive || bd.city.is_some() || self.building_is_city(b) {
-                continue;
-            }
-            let Some(ty) = bd.ty else {
-                continue;
-            };
-            let p = bd.owner;
-            if p != who && self.build_types[ty].has(flags::NO_CITY) {
-                continue;
-            }
-            let bt = bd.pos.tile();
-            if vector_dist(ct.x - bt.x, ct.y - bt.y) > r {
-                continue;
-            }
-            if p == who {
-                self.add_to_city(b, c);
-            } else if let Some(n) = self.swap_team(b, who) {
-                self.activate(n, false, false);
-                // `City::find_buildings@007384c0:222` closes the old half
-                // with reason 0, which flags its cell.
-                self.mark_closed_cell(b);
-                self.close_building(b, true);
-            } else {
-                // A failed conversion kills the building and **ends the
-                // sweep** — the rest waits for the next trigger.
-                self.die_building(b);
-                return;
-            }
-        }
-        self.check_upgrade(c);
+        let n = self.buildings.len();
+        find_buildings_steps(&mut SimFind {
+            sim: self,
+            c,
+            who,
+            ct: pos.tile(),
+            n,
+            at: usize::MAX,
+            swapped: None,
+        });
     }
 
     /// `Leader::gain_tech@006dcb60:1324–1356`, the Civic library level's
@@ -1167,6 +1144,7 @@ impl Sim {
                 } else {
                     [0; 2]
                 },
+                fort: self.fort_discounts(who, ty),
                 ..cost::Modifiers::default()
             },
             &holdings.available,
@@ -1225,6 +1203,28 @@ impl Sim {
             0
         };
         [bantu, pyramids]
+    }
+
+    /// `get_cost`'s fort arm (`00665e0f`..`00665e8a`, [`cost::Modifiers::fort`]):
+    /// a fort or a Tower-line building that is not a wonder takes
+    /// `COLOSSEUM_FORT_COST` with the Colosseum held, then `ROMAN_FORT_COST`
+    /// for a Roman leader (item 3314, `docs/AI.md` §263).
+    fn fort_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
+        let types = &self.build_types;
+        if types[ty].wonder || !(build::is_fort(types, ty) || build::is_tower(types, ty)) {
+            return [0; 2];
+        }
+        let colosseum = if self.wonders_held(who) & (1 << crate::tech::wonder::COLOSSEUM) != 0 {
+            self.tuning.colosseum_fort_cost
+        } else {
+            0
+        };
+        let roman = if self.nation[who as usize].romans {
+            self.tuning.roman_fort_cost
+        } else {
+            0
+        };
+        [colosseum, roman]
     }
 
     /// `get_cost`'s wonder count for pricing wonder `ty` ([`cost::wonder_count`]):
@@ -1886,6 +1886,11 @@ impl Sim {
                     }
                 }
             }
+        }
+        // `mask_me`'s last statement on the unmask: `place_roads(…, 0,
+        // REGEN_SIMPLE)` takes the ring road away (`docs/ROADS.md` §13).
+        if !on {
+            self.unplace_roads(b);
         }
     }
 
@@ -3608,6 +3613,174 @@ pub trait CheckUpgradeView {
     fn announce(&mut self);
 }
 
+/// What `City::find_buildings@007384c0` reads and does, one question or call
+/// a method (item 3304): the steps are [`find_buildings_steps`], the
+/// emulated original's sweep holds them against the executable and
+/// [`SimFind`] runs them over the simulation. The walk is the original's
+/// `leaders × (two object ranges) × index`, which the view flattens to a
+/// cursor; the crate walks its building slots.
+pub trait FindBuildingsView {
+    /// `LeaderData::get_radius(city type)`, before the `0x40` clamp.
+    fn radius(&mut self) -> i32;
+    /// The cursor goes to the next object; false at the end of the walk.
+    fn next_object(&mut self) -> bool;
+    /// The object's slot `+0x10`: a building at all.
+    fn is_building(&mut self) -> bool;
+    /// The object's `flags & 0x20`.
+    fn flagged(&mut self) -> bool;
+    /// Slot `+0xac`'s `Build`: its city (`+0x72`) is negative.
+    fn cityless(&mut self) -> bool;
+    /// The object's owner is the city's.
+    fn same_owner(&mut self) -> bool;
+    /// The type's `flags & 0x10` (`NO_CITY`).
+    fn no_city(&mut self) -> bool;
+    /// `vector_dist` of the tile offsets between the city and the object.
+    fn dist(&mut self) -> i32;
+    /// `is(0x1b3, 0)` of the `Build`: a Library by lineage.
+    fn is_library(&mut self) -> bool;
+    /// `Build::new_library`.
+    fn new_library(&mut self);
+    /// `Build::add_to_city(city)`.
+    fn add_to_city(&mut self);
+    /// `Build::swap_team(who)`: the converted copy's slot, or none.
+    fn swap_team(&mut self) -> bool;
+    /// A failed conversion: the old building's `die(0, -1, 0)`.
+    fn die_old(&mut self);
+    /// The console is the city's owner or the old owner.
+    fn console_involved(&mut self) -> bool;
+    /// The `MessageWin` line.
+    fn announce(&mut self);
+    /// The converted copy's data slot `+0x1a8(0, 1, 0)`.
+    fn activate_new(&mut self);
+    /// The old building's slot `+0x150(0, -1, 0)`.
+    fn close_old(&mut self);
+    /// `Wall::mask_me(1, 2)` on the converted copy.
+    fn mask_new(&mut self);
+    /// `City::check_upgrade`.
+    fn check_upgrade(&mut self);
+}
+
+/// `City::find_buildings@007384c0`.
+pub fn find_buildings_steps<V: FindBuildingsView>(v: &mut V) {
+    let r = v.radius().min(0x40);
+    while v.next_object() {
+        if !v.is_building() || v.flagged() || !v.cityless() {
+            continue;
+        }
+        let own = v.same_owner();
+        if !own && v.no_city() {
+            continue;
+        }
+        if v.dist() > r {
+            continue;
+        }
+        if own {
+            if v.is_library() {
+                v.new_library();
+            }
+            v.add_to_city();
+        } else {
+            if !v.swap_team() {
+                // A failed conversion kills the building and **ends the
+                // sweep** — the rest waits for the next trigger.
+                v.die_old();
+                return;
+            }
+            if v.console_involved() {
+                v.announce();
+            }
+            v.activate_new();
+            v.close_old();
+            v.mask_new();
+        }
+    }
+    v.check_upgrade();
+}
+
+/// [`FindBuildingsView`] over a [`Sim`]: the building slots in order, as the
+/// sweep started (a converted copy is appended and not visited).
+struct SimFind<'a> {
+    sim: &'a mut Sim,
+    c: usize,
+    who: Player,
+    ct: Pos,
+    n: usize,
+    at: usize,
+    swapped: Option<usize>,
+}
+
+impl FindBuildingsView for SimFind<'_> {
+    fn radius(&mut self) -> i32 {
+        self.sim.radius_of(self.c)
+    }
+    fn next_object(&mut self) -> bool {
+        self.at = self.at.wrapping_add(1);
+        self.at < self.n
+    }
+    fn is_building(&mut self) -> bool {
+        self.sim.buildings[self.at].alive
+    }
+    /// SEAM: the record's `0x20` flag has no counterpart here.
+    fn flagged(&mut self) -> bool {
+        false
+    }
+    /// Also the crate's own reading of "needs a city": a city centre is
+    /// never swept, and a building with no type has nothing to join.
+    fn cityless(&mut self) -> bool {
+        let bd = &self.sim.buildings[self.at];
+        bd.city.is_none() && !self.sim.building_is_city(self.at) && bd.ty.is_some()
+    }
+    fn same_owner(&mut self) -> bool {
+        self.sim.buildings[self.at].owner == self.who
+    }
+    fn no_city(&mut self) -> bool {
+        let ty = self.sim.buildings[self.at]
+            .ty
+            .expect("cityless names a type");
+        self.sim.build_types[ty].has(flags::NO_CITY)
+    }
+    fn dist(&mut self) -> i32 {
+        let bt = self.sim.buildings[self.at].pos.tile();
+        vector_dist(self.ct.x - bt.x, self.ct.y - bt.y)
+    }
+    fn is_library(&mut self) -> bool {
+        self.sim.building_is(self.at, Ident::Library)
+    }
+    /// SEAM: a library's queue is the owner's first library's
+    /// (`get_first_library`), read where it is used and never copied.
+    fn new_library(&mut self) {}
+    fn add_to_city(&mut self) {
+        self.sim.add_to_city(self.at, self.c);
+    }
+    fn swap_team(&mut self) -> bool {
+        self.swapped = self.sim.swap_team(self.at, self.who);
+        self.swapped.is_some()
+    }
+    fn die_old(&mut self) {
+        self.sim.die_building(self.at);
+    }
+    /// The console is the renderer's; the sim has none.
+    fn console_involved(&mut self) -> bool {
+        false
+    }
+    fn announce(&mut self) {}
+    fn activate_new(&mut self) {
+        let n = self.swapped.expect("swap_team answered a slot");
+        self.sim.activate(n, false, false);
+    }
+    fn close_old(&mut self) {
+        // `City::find_buildings@007384c0:222` closes the old half with
+        // reason 0, which flags its cell.
+        self.sim.mark_closed_cell(self.at);
+        self.sim.close_building(self.at, true);
+    }
+    /// SEAM: the copy's wall mask is whatever `activate` leaves.
+    fn mask_new(&mut self) {}
+    fn check_upgrade(&mut self) {
+        self.sim.check_upgrade(self.c);
+    }
+}
+
 /// `City::check_upgrade@00738b20`: when the city is ready, its building
 /// becomes the next level, is re-masked, the leader's wall stats are marked,
 /// the city re-sweeps its buildings, the population and borders follow and
@@ -3728,6 +3901,50 @@ pub trait AssimilateView {
     fn console_is_owner(&mut self) -> bool;
     /// The sound and the `MessageWin` line.
     fn announce(&mut self);
+}
+
+/// What `Build::new_library@00627fe0` reads and writes: the research queue
+/// (a count byte at `+0x82`, entries of 0x14 bytes behind `+0x8c`) of the
+/// library it is handed and of the owner's first library.
+pub trait NewLibraryView {
+    /// `is(0x1b3, 0)`: a Library by lineage.
+    fn is_library(&mut self) -> bool;
+    /// `LeaderData::get_first_library`: the object index, or negative.
+    fn first_library(&mut self) -> i32;
+    /// The library's own object index (the short at `+0xa`).
+    fn own_index(&mut self) -> i32;
+    /// The first library's queued count (the byte at `+0x82`).
+    fn source_queued(&mut self, first: i32) -> u8;
+    /// Entry `i` of the first library's queue copied onto this one's.
+    fn copy_entry(&mut self, first: i32, i: usize);
+    /// This library's own count byte.
+    fn set_queued(&mut self, n: u8);
+    /// The first library's count byte cleared.
+    fn clear_source(&mut self, first: i32);
+}
+
+/// `Build::new_library@00627fe0`: a library that sits earlier in the object
+/// table than the owner's first one takes that one's research queue and leaves
+/// it empty. (The crate keeps the queue on the first library and resolves
+/// `queue_home` on read, so `SimAssimilate` does not call this; the sweep
+/// holds the arithmetic.)
+pub fn new_library_steps<V: NewLibraryView>(v: &mut V) {
+    if !v.is_library() {
+        return;
+    }
+    let first = v.first_library();
+    if first < 0 || v.own_index() >= first {
+        return;
+    }
+    if v.source_queued(first) == 0 {
+        return;
+    }
+    let n = v.source_queued(first);
+    v.set_queued(n);
+    for i in 0..usize::from(n) {
+        v.copy_entry(first, i);
+    }
+    v.clear_source(first);
 }
 
 /// `City::assimilate@00738e90`.

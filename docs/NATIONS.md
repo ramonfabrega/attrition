@@ -57,7 +57,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 3 | Bantu | bantu | `bantu` | 5 | none |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (map 7, tier 1) |
-| 6 | Romans | romans | `romans` | 10 | none |
+| 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3) |
@@ -71,7 +71,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 17 | Mongols | mongols | `mongols` | 3 | none |
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | none |
-| 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | none |
+| 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | none |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (map 18, tier 4) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | none |
@@ -183,7 +183,7 @@ left out; a constant with no reader in the export is dead there too.
 | `ROMAN_FORT_HP` | 0 | Wall::update_hits | modelled at build.rs | `roman_fort_hp` |
 | `ROMAN_FORT_RANGE` | 0 | BuildTypeData::get_building_range | not carried | `roman_fort_range` |
 | `ROMAN_FORT_BORDERS` | 3 | World::compute_reg_territory | modelled at territory.rs | `roman_fort_borders` |
-| `ROMAN_FORT_COST` | 25 | TypeData::get_cost | not carried | `roman_fort_cost` |
+| `ROMAN_FORT_COST` | 25 | TypeData::get_cost | modelled at cost.rs | `roman_fort_cost` |
 | `ROMAN_FORT_EARLY` | 1 | LeaderData::has_preq, LeaderData::special_preq | modelled at tech.rs | `roman_fort_early` |
 | `ROMAN_FORT_SPEED` | 50 | Wall::update_construct_time | modelled at build.rs | `roman_fort_speed` |
 | `ROMAN_FORT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `roman_fort_upgrades` |
@@ -407,7 +407,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `BuildTypeData::calc_gather@00639e40` |  +var | carried at gather.rs | `00639e40` |
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
-| `Wall::do_construct@006434d0` | 7 | carried at city.rs | `006434d0` |
+| `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |
 | `ObjectData::get_damage@00644130` | 15 | carried at combat.rs | `00644130` |
 | `Object::disband@006455c0` | 0 19 | not modelled | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
@@ -453,7 +453,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::get_radius@006db790` | 21 | carried at city.rs | `006db790` |
 | `LeaderData::has_preq@006db810` | 4 5 6 7 10 12 13 16 | carried at build_data_has_objmask.rs | `006db810` |
 | `LeaderData::calc_market_prices@006dc2a0` | 4 13 | carried at ai_make.rs | `006dc2a0` |
-| `Leader::calc_pop_cap@006dc490` | 3 | carried at economy.rs | `006dc490` |
+| `Leader::calc_pop_cap@006dc490` | 3 | carried at build_finished_628490.rs | `006dc490` |
 | `Leader::lost_a_city@006dc6d0` | 23 | carried at city.rs | `fn lost_a_city` |
 | `LeaderData::get_caravan_limit@006dca50` | 4 | carried at ai_units.rs | `006dca50` |
 | `Leader::gain_tech@006dcb60` | 5 6 7 8 9 10 11 12 13 14 16 17 18 19 20 21 23 | carried at lib.rs | `006dcb60` |
@@ -469,7 +469,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
 | `Cities::capture_city@00733380` | 13 23 | carried at holdings.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |
-| `City::assimilate@00738e90` | 14 | carried at holdings.rs | `00738e90` |
+| `City::assimilate@00738e90` | 14 | carried at city.rs | `00738e90` |
 | `Caravan::trade_value@0073d9d0` | 21 | carried at caravan.rs | `0073d9d0` |
 | `ConquestGame::setup_scenario_bonuses@0078be90` | 0 6 13 20 22 23 | not sim | `Conquer the World, cut from v1` |
 | `ConquestGame::build_cities@00796140` | 14 | not sim | `Conquer the World, cut from v1` |

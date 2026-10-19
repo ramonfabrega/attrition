@@ -56,6 +56,8 @@ mod oracle;
 mod order;
 mod report;
 #[cfg(test)]
+mod roman_word;
+#[cfg(test)]
 mod sahara_coverage;
 #[cfg(test)]
 mod sahara_mongol;
