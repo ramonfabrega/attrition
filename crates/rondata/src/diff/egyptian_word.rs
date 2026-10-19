@@ -92,3 +92,93 @@ fn egyptian_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run967: the word 2974's window, blocks 2968..3225 at run965's detail
+/// (`LEADERS=9`, `GUYS=4`; item 3332); run648 dumps blocks 0..2 and run645
+/// its setup and closing blocks only.
+pub(crate) const RUN967: &str =
+    "gamelog-run967-greatsahara-egyptian-diff4-window-2968-3225-guys4.txt";
+
+/// The window: block 2968 through 3225; the word 2974's own block is 2975.
+pub(crate) const WIDENING_EGYPTIAN_FRAME_2974: (i64, i64) = (2968, 3225);
+
+pub(crate) fn egyptian_frame_2974_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN.start],
+        true,
+        EGYPTIAN.long,
+        "run967",
+        &[(RUN967, WIDENING_EGYPTIAN_FRAME_2974.0)],
+        WIDENING_EGYPTIAN_FRAME_2974,
+        1,
+        &[2975],
+        true,
+    )
+}
+
+#[test]
+fn run967_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_frame_2974_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run967 on the first try");
+}
+
+/// run967b: the gap from run648's last block to run967's first, one block
+/// in fifty (`--stride 50`): blocks 4, 54, …, 2954, at run967's detail with
+/// `GUYS=2` (item 3332) — where who=1's age, standing apart on run967's
+/// block 2968, was walked back to.
+pub(crate) const RUN967B: &str = "gamelog-run967b-greatsahara-egyptian-diff4-gap-3-2967-stride50.txt";
+
+/// The window: block 4 through 2954, one in fifty.
+pub(crate) const WIDENING_EGYPTIAN_GAP_967B: (i64, i64) = (4, 2954);
+
+pub(crate) fn egyptian_gap_967b_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN.start],
+        true,
+        EGYPTIAN.long,
+        "run967b",
+        &[(RUN967B, WIDENING_EGYPTIAN_GAP_967B.0)],
+        WIDENING_EGYPTIAN_GAP_967B,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn run967b_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_gap_967b_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 60, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run967b on the first try");
+}
