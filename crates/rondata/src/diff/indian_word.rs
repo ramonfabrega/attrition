@@ -37,9 +37,12 @@ pub(crate) const INDIAN: Lobby = Lobby {
     // (`find_gather_spot`'s region is `get_tregion`'s coastal-refined one,
     // run970e's barge `1/77` beside the Dock): ours 12 draws, theirs 11,
     // at 10: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    // `Farms::inc_time+0x1ae`.
-    count: 14631,
-    sequence: 14631,
+    // `Farms::inc_time+0x1ae`. Item 3340 moved it 14631 → 24000, the
+    // long's last frame (`think_carry_civilian`'s boat region is
+    // `get_tregion`'s, run970e's barge `1/77` on 14595); the close is
+    // compared whole by `run962b_indian_closing_state`.
+    count: 24000,
+    sequence: 24000,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -388,5 +391,73 @@ fn run970e_s_word_frame_is_widened_whole() {
     // theirs' AI gives the idle `1/77` a move to (21912, 32664)
     // (`orders.len` 0/1, `orders_x` 38952/21912), ours leaves it standing
     // — `think_peasant`'s tail, a hypothesis.
-    pin_eq!(w.firsts.len(), 929, "keys that part in the window");
+    //
+    // Item 3340: the arm is `think@005f6e40`'s carry arm, not the peasant's
+    // — the barge carries the citizen `1/42` (TI 50), so `think_carry` asks
+    // `think_carry_civilian(1)`, whose shore search starts from
+    // `get_tregion` of the boat's tile (`005f37c0`, `local_64`): sea region
+    // 0 on the coastal cell's ocean tile, where ours read the cell's plain
+    // `tregion`, land region 12, which no land region coasts. Value diff,
+    // block 14595: `1/77`'s `orders.len` 0/1 → 1/1, `orders_x/_y` (38952,
+    // 33048)/(21912, 32664) → agreeing. **929 → 56**: the 54 standing on
+    // 14588 and who=1's `group:71.held` and `pool:71` on 14640, the
+    // control's late rows as run970's 177 and 222. The word 14631 → 24000.
+    pin_eq!(w.firsts.len(), 56, "keys that part in the window");
+}
+
+/// The closing state's window: run962b's closing block alone, the long's
+/// last frame 24000 writing it (item 3340).
+pub(crate) const WIDENING_INDIAN_CLOSING: (i64, i64) = (23999, 24002);
+
+/// **The lobby's closing state** (item 3340, DECISIONS 55): run962b — the
+/// draw stream's own capture, `cover=0` — prints the closing block whole.
+/// The game does not end itself; the long's `!quit` at 24000 closes it.
+#[test]
+fn run962b_indian_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(INDIAN.long.0),
+        dump(INDIAN.start),
+        trace(INDIAN.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Indian closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 24001, "the closing block");
+    pin_eq!(e.compared, 113, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3340, the first walk (with `think_carry_civilian`'s region from
+    // `get_tregion`, the word at 24000): 113 units compared on block
+    // 24001, none apart, no building or city field-row, no closing field.
 }
