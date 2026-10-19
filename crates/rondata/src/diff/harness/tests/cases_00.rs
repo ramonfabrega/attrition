@@ -19,6 +19,8 @@ mod bodies {
         let at = |t: i32| sim::Pos::new(t * 192 + 96, t * 192 + 96);
         let dead = s.init_build(1, ty, at(5), false);
         s.close_building(dead, false);
+        // The close's thirty-frame hold run out (`docs/COMBAT.md` §59.3).
+        s.buildings[dead].hold_frames = 0;
         let live = s.init_build(1, ty, at(20), false);
         let o = i64::from(s.buildings[live].index);
         assert_eq!(

@@ -3096,6 +3096,10 @@ const NOT_THE_INSTRUMENT_S: &[(&str, &str)] = &[
     ("CellDump", "the world, `diff::world`"),
     ("RegionDump", "the world, `build_sim`"),
     ("GoodDump", "the world, `build_sim`"),
+    (
+        "ItemDump",
+        "the goody boxes, `diff::setup` (`Sim::add_goody_item`, item 3335)",
+    ),
     ("HerdDump", "the world, `build_sim`"),
     ("FarmDump", "the world, `diff::world`"),
     ("MountainDump", "the world, `build_sim`"),

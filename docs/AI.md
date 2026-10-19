@@ -23730,12 +23730,42 @@ merchants' second figures (3329a). run963c's 116 held unchanged with the fix, so
 crate's live buildings of the two types, not the original's two `u16` arrays; a queued, unplaced oil building would
 part them, and no window has one.
 
-## 271. Reserved for the next item on the AI track
+## 271. The Indians: a goody box's own sight, an Indian building unramped, a closed building's number held (2026-10-19, item 3335)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Score.** `EastIndiesIndianTier2` (Nubians against the Indians at Difficulty 2, East Indies; run962, run962b),
+promoted out of the held-out battery as the AI word once item 3333 closed the Dutch: **221 → 1176 → 1177 → 9985 of
+24000** (count and sequence). The Incas (tribe 2, Difficulty 3, East Indies; run969, run969b) take the Indians'
+place in the battery, first try **7782 / 7782**.
+
+**221: the goody box's own `ever_seen`.** run970's first row that is not the standing set is block 180: ours'
+scout `1/0` (TI 69) sweeps the goody box `o 1` at (34944, 38016), cell (45, 49), and re-targets (`ExploreTo` (34968,
+38040)) where theirs walks on (block 181, `orders_x` 34968/36600). The dump's item 1 reads `ever_seen` **0** on every
+start block to 36 while `seen2` at (91, 98) and (91, 99) reads 2 from the start: a building's `set_seen2` lit the
+cells, and only `reveal_fog`'s goody arm (`006b4078`..`006b414e`) writes the item's byte (`Item::init` zeroes it,
+`reveal_fog:148` ORs it; nothing else). The boxes are loaded from the start dump's `ITEM` records
+(`Sim::add_goody_item`) and `is_seen` reads their byte (`docs/GOODY.md` §7.2). 221 → 1176.
+
+**1176: `get_cost`'s Indian ramp arm** (`docs/COSTS.md`, "An Indian building does not ramp"). run970 block 37,
+who=1's `bucket[1:timber]` 29 ours against 41 for the whole window: the Farm `1/2006` placed on frame 0 charged 52
+(40 plus three Farms' 4) against theirs' 40. `has_tribe_bonus(0x15)` zeroes a non-city building's support term, or
+halves it rounding up for a wonder or a defence (`:843`–`876`). 1176 → 1177.
+
+**1177: a closed building's number is held thirty frames** (`docs/COMBAT.md` §59.3). run970b's block 1177: who=1's
+citizen `1/7` holds a `BUILDORDER` on `1/2009` and a walk to (38184, 36744) in theirs and nothing in ours, and the
+Woodcutter's Camp ours numbers 2009 is theirs' 2010. On frame 1176 the Indian script places a Camp at the queued
+Small City 2007 (`place_orphan_building_with_cost`), reads `max_workers_at_building` 4, `destroy_building`s it and
+places another. `Build::close` reaches `Object::close` through `Wall::close:155`, which leaves `hold_frames` 30, and
+`find_free` reuses no held number; this crate held a dead building's number only while its garrison emptied, so it
+reused 2009 at once and the second Camp's builder took the first's place. Value diff, run970b block 1177: `1/7`'s
+`orders.len` 2/2 and the Camp 2010 on both sides; run970b's keys 400 → 35, the standing set. 1177 → 9985.
+
+**The new word, 9985**: ours 5 draws, theirs 6, at 2: ours `Leader::make_stuff+0x221`, theirs
+`Leader::use_market+0x1ed`.
+
+**Not established.** The ramp arm's halved branch (a wonder, a defence) is the listing's alone. The hold's exact
+frame of release (the thirtieth `process_all` after the close, against this crate's building loop) is not compared
+on any window; run970b's numbers are both 30 frames inside it. A sim whose goody boxes were not loaded from a dump
+keeps the four-half-cell fog read.
 
 ## 272. Reserved for the next item on the AI track
 
