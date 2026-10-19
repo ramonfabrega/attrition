@@ -202,6 +202,8 @@ mod unit_execute_events;
 mod unit_find_garrison_build;
 #[path = "unit_find_goody_box.rs"]
 mod unit_find_goody_box;
+#[path = "unit_find_melee_pos.rs"]
+mod unit_find_melee_pos;
 #[path = "unit_find_nearby_spot.rs"]
 mod unit_find_nearby_spot;
 #[path = "unit_find_new_bomber_target.rs"]
