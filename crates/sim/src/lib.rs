@@ -3416,8 +3416,8 @@ impl Sim {
     /// its second city five times there; without the arm ours is still
     /// researching it (item 3326, `docs/AI.md` §266).
     ///
-    /// SEAM: the two catch-up terms ahead of it are not carried (see
-    /// [`Sim::research_rares`]).
+    /// SEAM: the two catch-up terms ahead of it — `ages_queued` on an age,
+    /// `ages + epochs` on an epoch — are not carried.
     pub(crate) fn greek_research(&self, who: Player, t: tech::TypeId) -> Vec<production::Adjust> {
         let age_or_epoch = matches!(
             self.tech_tree.kind(t),
