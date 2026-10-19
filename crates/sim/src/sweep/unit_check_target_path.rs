@@ -75,8 +75,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 // `update_order`'s second, fourth, sixth and eighth answer is null.
                 // Stubs: 0 `SpellTypeData::is_valid_target`, 1 `repath`, 2
                 // `kill_current_order`, 3 `find_angle` and 4 `flanking` and 13
-                // `vector_dist` (run, not hooked), 5 `is_in_range@00648d70`, 6
-                // `is_in_range@006486b0`, 7 `update_order`, 8 `Group::is_moving_to`, 9
+                // `vector_dist` (run, not hooked), 5 `is_in_range` (first overload), 6
+                // `is_in_range` (second overload), 7 `update_order`, 8 `Group::is_moving_to`, 9
                 // `kill_next_order`, 10 `action_attack`, 11 `is_map_unit`, 12
                 // `find_attack_pos`, 14 `find_new_target`, 15 `add_move_order`, 16
                 // `UnitData::get_order`, 17 slot `+0x48`, 18 `+0x10`, 19 `+0x7c`, 20 `+0x8`,
