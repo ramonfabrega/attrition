@@ -921,6 +921,19 @@ pub fn pay(
     available: &[bool; RESOURCES],
     from_escrow: bool,
 ) {
+    if std::env::var_os("RON_PROBE_PAY").is_some() {
+        let bt = std::backtrace::Backtrace::force_capture().to_string();
+        let names: Vec<&str> = bt
+            .lines()
+            .filter(|l| l.contains("sim::") && !l.contains("cost::pay"))
+            .take(4)
+            .map(str::trim)
+            .collect();
+        eprintln!(
+            "PAY charges {charges:?} bucket {:?} escrow {:?} from_escrow {from_escrow} {names:?}",
+            ledger.bucket, ledger.escrow
+        );
+    }
     for r in Resource::ALL {
         let i = r.index();
         if !available[i] {
