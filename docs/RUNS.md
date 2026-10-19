@@ -18806,3 +18806,74 @@ SHA-256 `fcacb6b422bd07a47a2df5613a8cf8206689c04016422bca9f2b91eb2f64cef3`.
 **What it holds**: `diff::japanese_word::run965_s_word_frame_is_widened_whole` (257 blocks). Block 570 parts who=1's
 `bucket[1:timber]` 52 against 78 and `income[0:food]` 800 against 960; with the two Japanese farm arms **34** keys, the
 standing set alone, and the word moved 576 → 24000. Its window is in the coverage driver.
+
+## run969 — the battery's replacement lobby: East Indies, Incas at difficulty 3, a `DUMP_ALL` start (2026-10-19, item 3335, `att-3335`)
+
+`docs/AI.md` §271. The Indians left the battery for the AI word, and the Incas (tribe 2) at Difficulty 3 on East
+Indies are the lobby minted in their place. `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 2
+--profile DIFFICULTY=3`.
+- Pool lane 1, launched 09:05:38 and exited 09:12:57 (438 s). `success`, 37 frames.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run969-eastindies-inca-diff3-start.txt`, 153,485,470 bytes,
+SHA-256 `66c829d1a6af6669baa6a53bcf0c6030f0fbdad55b61fc1e83eb86acfcead74c`.
+
+Archive `rontrace-run969.log`, 9,798,976 bytes,
+SHA-256 `616bb5bd706b0baa11f5412b98cbe15e8c0a05242a2af07b84b43064627e79f9`.
+
+**What it holds**: the Inca lobby's start, `battery::BATTERY`'s `EastIndiesIncaTier3`.
+
+## run969b — the same lobby, the draw stream to 24000 (2026-10-19, item 3335, `att-3335`)
+
+`docs/AI.md` §271. run962b's recipe with `--ai-tribe 2 --profile DIFFICULTY=3`.
+- Pool lane 2, launched 09:05:42 and exited 09:07:42 (121 s). `success`, 24001 frames, `ended_early` false.
+  `rngcmp.py rontrace-run969.log rontrace-run969b.log`: **37 identical**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run969b-eastindies-inca-diff3-24k-trace.txt`, 14,003,057 bytes,
+SHA-256 `0606a062de3bad98c21370380d8893d842796b42800cfd2f0af2f2861d267054`.
+
+Archive `rontrace-run969b.log`, 194,527,808 bytes,
+SHA-256 `fa583a4d02bbbf855f3d9b49aafb0f7338cef3b3e82d97dcbc79b4d7dd96e453`.
+
+**What it holds**: the Incas' first try, **7782 / 7782** of 24000 (ours 3218 draws, theirs 3219, index 1: ours
+`Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`), pinned in `battery::BATTERY`.
+
+## run970 — the AI word: East Indies, Indians at difficulty 2, the word 221's widening (37..472) (2026-10-19, item 3335, `att-3335`)
+
+`docs/AI.md` §271. **What the disk could not answer**: run962 dumps blocks 0..36 and run962b only its setup and closing
+blocks, so nothing near 221; the window starts at the start dump's last block so the gap and the word are one capture.
+`--map 18 --end-frame 478 --timeout 2400 --log-window 37 472 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+--ai-tribe 21 --cover cover=0 --profile DIFFICULTY=2`.
+- Pool lane 3, launched 09:05:48 and exited 09:34:48. `success`, 479 frames. `rngcmp.py rontrace-run962b.log
+  rontrace-run970.log`: **479 identical**.
+- Minutes waited on another lane: about five (09:05:48 to 09:10:57).
+
+Archive `gamelog-run970-eastindies-indian-diff2-window-37-473-guys4.txt`, 824,877,471 bytes,
+SHA-256 `5331ac15a3abe8cc2b3fef928547f458427b1a680b029ad1f53236f5b26a0c7c`.
+
+Archive `rontrace-run970.log`, 10,904,864 bytes,
+SHA-256 `b8c5e648c14a32ea5ebb39388e6cec72bdcbf0fb63b0d5366ba0d00139a684cc`.
+
+**What it holds**: `diff::indian_word::run970_s_word_frame_is_widened_whole` (435 blocks): 496 keys at first, 33 with
+the goody box's own `ever_seen`, **32** with `get_cost`'s Indian ramp arm (the standing set). Its window is in the
+coverage driver.
+
+## run970b — the AI word: East Indies, Indians at difficulty 2, the word 1177's widening (1171..1428) (2026-10-19, item 3335, `att-3335`)
+
+`docs/AI.md` §271. **What the disk could not answer**: the Indian ramp moved the word to 1177, past run970's last block
+472. run970's `--detail`, tribe, cover and profile, with `--end-frame 1432 --timeout 2400 --log-window 1171 1428`.
+- Pool lane 1, launched 09:57:38 and exited 10:12:37 (899 s). `success`, 1433 frames, seed 12345.
+  `rngcmp.py rontrace-run962b.log rontrace-run970b.log`: **1433 identical, 0 differing**. Filed with `filerun.py
+  run970b eastindies-indian-diff2-window-1171-1428-guys4`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run970b-eastindies-indian-diff2-window-1171-1428-guys4.txt`, 492,944,051 bytes,
+SHA-256 `80c658b1ce5f0b7e75f1fc63a5f78c6a28366faa6ad05c08632f0e0eb8ffe2eb`.
+
+Archive `rontrace-run970b.log`, 13,214,272 bytes,
+SHA-256 `52a7a6e563932c1b843afc7224cb08bf3ffd3681d467d267fe7c9d7cff376ea7`.
+
+**What it holds**: `diff::indian_word::run970b_s_word_frame_is_widened_whole` (257 blocks): 400 keys at first (who=1's
+citizen `1/7` without its build order on 1177, the Camp numbered 2009 against 2010), **35** with a closed building's
+number held thirty frames (the standing set). Its window is in the coverage driver.
