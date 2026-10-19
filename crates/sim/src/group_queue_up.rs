@@ -114,7 +114,8 @@ pub fn action_queue_up_steps<V: QueueUpView>(v: &mut V, ty: i32, num: i32) -> us
         }
     }
     v.refresh();
-    let train = (v.type_is_unit(ty) && v.type_avail(ty)) || (v.type_is_build(ty) && !v.build_flag4(ty));
+    let train =
+        (v.type_is_unit(ty) && v.type_avail(ty)) || (v.type_is_build(ty) && !v.build_flag4(ty));
     let mut laid = 0;
     if train {
         for _ in 0..num.max(0) {
@@ -139,7 +140,12 @@ pub fn action_queue_up_steps<V: QueueUpView>(v: &mut V, ty: i32, num: i32) -> us
     }
     for pass in 0..2 {
         for &o in &list {
-            if v.alive(o) && v.active(o) && v.targetable(o) && (pass != 0 || v.queued(o) == 0) && v.queue_up(o, ty) {
+            if v.alive(o)
+                && v.active(o)
+                && v.targetable(o)
+                && (pass != 0 || v.queued(o) == 0)
+                && v.queue_up(o, ty)
+            {
                 return 1;
             }
         }

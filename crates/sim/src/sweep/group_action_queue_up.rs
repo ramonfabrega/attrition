@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(11);
@@ -111,7 +116,10 @@ fn the_emulated_original_agrees_on_every_row() {
                         rd32(self.m, 0xc)
                     }
                     fn member(&self, k: usize) -> i32 {
-                        i32::from(i16::from_le_bytes([self.m[0x8cc + 2 * k], self.m[0x8cd + 2 * k]]))
+                        i32::from(i16::from_le_bytes([
+                            self.m[0x8cc + 2 * k],
+                            self.m[0x8cd + 2 * k],
+                        ]))
                     }
                     fn alive(&mut self, o: i32) -> bool {
                         self.log.push(format!("s2:p{}+0x0", 11 + o));
@@ -199,14 +207,25 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "action_queue_up — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "action_queue_up — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "action_queue_up — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "action_queue_up — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "action_queue_up — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[12 + i], "action_queue_up — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[12 + i],
+                "action_queue_up — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
