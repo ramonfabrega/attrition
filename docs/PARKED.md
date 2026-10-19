@@ -8059,53 +8059,46 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
 
 **3281e.** Generator gaps: `--ptrtab`/`--answer-by` cannot span two object tables (find_besieged_city pins the city's `+0x5e` byte to 0); `--wbias` has no strided range (`pA..B/3`) so gen.sh loops; `--sparse @VA` slices are bytes not pointers (a pointer slot needs `--sparse …:OFF,4` plus `--place pK+0:0:N`) — worth a line in the help; the `memset` import thunk faults unless stubbed `--stub ADDR:3 --stub-cdecl K` — worth a note in the docs. `think_carry`: `docs/AI.md` §195/§235 describe the attack arm as inline in `think_carry`; it is a tail-jump to `think_carry_military@005f3260`, which with `think_carry_civilian` and `think_carry_idle@005f2f30` (unmodelled; `SimCarry::idle` answers 0) is unswept.
 
-## Parked by the next landing, slot JW — reserved
+## Parked by item 3282, 2026-10-18 — the shape lane's seventeenth batch: three built, three parked on the generator
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
-
-## Parked by item 3285, 2026-10-18 — chapter 104, a Tower strikes a squad beside a wreck
-
-- (booked as item 3292) (3291) Chapter 104 closed at 1500 on the first take (run949, GOLDEN §141): a who=1 Tower against six stance-0 hoplites parts on nothing. Still unreached: `Unit::target_opportunity`'s move-front proximity arm (parked 3283, line 121: a victim *walking* when struck; here every victim is stationary until struck) and a Fort's near-face gate (the Tower's `near` was never the wreck). The next chapter is either a squad given a `@move` toward the Tower before it opens fire, or the Fort in the Tower's place.
-
-## Parked by item 3287, 2026-10-18 — set_diags' corner tail built, the Iroquois word at 11585
-
-- (booked as item 3297) (3296) **The battery word 11585** (`GreatLakesIroquoisTier3`, `docs/AI.md` §260). Item 3287 moved the word
-  10917 → 11585: ours 16 draws against theirs 15, index 4, ours `Leader::make_stuff+0x221`, theirs
-  `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run943's widening is down to 47 keys (the standing set) through its last
-  block 10945, so no dump on disk holds the word's frame. **Its widening is owed** (a window capture around 11585 at
-  run943's detail). The booking is the frame and the draw delta. A theirs-only figure roll inside who=1's
-  `make_stuff` is a hypothesis.
-- (3298) **(235, 154)'s two counts** (`docs/ROADS.md` §12). run946's packet at 10842 holds ref 2 / camel 0; ours holds
-  ref 1 / camel 1, the same sum. One of the corner tail's references is taken under a `param` that this crate reads as
-  the caravan's and the original does not. No score moves: the element stands either way, and
-  `run946_s_road_elements_at_10842_are_ours` compares it by the sum. It would part when a camel step is spent before a
-  reference, i.e. `road_changed` lowering `pending_camel_steps` first on a removal.
-- (3299) **The C4 piece on a road tile** (`docs/ROADS.md` §12, not established). `finish_pieces` clears `c4` on a tile
-  that is road, on the reading that `find_piece` re-pieces it, and the packet's road tiles carry 54 and 56. The pick is
-  not modelled. It would matter if a road tile left with a C4 piece is later un-laid and the sweep spares it.
-  `get_road_data` and `find_piece` on a re-laid road tile is the reading.
-
-## Parked by item 3289, 2026-10-18 — the nations seat's eighth shape batch: all six built
-
-**3289a.** `Unit::do_attack_ground@005f1410`: the attack-unit-0 arm (peace test, `is_in_range`, `find_nearby_spot`, walk-in) is unswept; the crate's SEAM kills on 0 and the sweep draws shots 1, 2, 3, 5, 200. The port's shots field is `u8` and the original's an `int`, so negative values are unswept. The shot gate reads the type's `+0x2cc`, which the crate has no reading of (`fires()` stands in).
-
-**3289b.** `Unit::set_new_location@005f8d20`: the crate has no `_steps`; the sweep's port is a `model()` copy over `Sim::set_new_location`/`crew_des`/`vision::moved_to`. Port gaps it shows: the `+0xb5 != 1` squad arm, the Iroquois `has_tribe_bonus(0x12)` `unit_masks & 0x800` write, `update_ceo_position` and the `+0x174` slot. The sweep needs `--init-call 0xa46980` (`trig_init`) or `sine_table` reads zero.
-
-**3289c.** `Unit::find_melee_pos@006010b0`: the target's `full` counter (+0xac, +5 capped at 0x1e) is applied in the sweep, the crate has no field (SEAM in `attack_pos.rs` stands); `vector_dist` overflows differently from the original's `(lo + 2*hi) >> 1` for a wild point near ±2^31 (unreachable in play, `from` bounded). The sweep's generated script was hand-edited, so `--regen` needs `--port-file`.
-
-**3289d.** `Unit::do_air_patrol@005ea620`: `SimPatrol` answers none of the carrier-relative goal, the FIGHTERBOMBER search/look, or the `semaphore & 2` fallbacks (SEAMs in its doc comment). `find_building_at`'s final argument is whatever `ecx` held (modelled `air::Stale`); the sweep is in `sweep/mod.rs`, not a standalone partition, because the port uses `pub(crate)` internals.
-
-**3289e.** `Wall::do_construct@006434d0`: `SimConstruct` leaves console messages, sounds and `recalc_builds` no-ops and `ai_speed` at 1. Three `recalc_crossed` breaks survive (counters above 2^24, a tie at the 0.84 midpoint). The generated doc comment's `0x006455c0` was hand-edited to `0x6455c0` for `nations::the_audit_table_s_witnesses_hold`, so a `--regen` brings that test red again. Generator note: `--regen` wipes a hand-written port block even with the port given (do_attack_ground), worth checking against `--port-file`.
-
-**3289f.** `CollCheck::collide_here@00682540`: negative unit cells (the original reads before the block) and `fill_slots@006820e0` itself (stubbed, arguments recorded) are unswept. `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` fails on the base too (Loop 2132).
-
-## Parked by item 3292, 2026-10-18 — chapter 105, a Tower strikes a squad walking toward it
-
-- (booked as item 3294) (3293) Chapter 105 closed at 1500 on the first take (run950, GOLDEN §142) with the squad walking: both hoplite captains ordered east at 806, the Tower (1/2006) acquired as `near` from about 818 and an `ATTACKORDER` laid under each `MOVEORDER`. It parts on the eleven standing `form` rows alone. Still unreached, and unreachable by this staging: `Unit::target_opportunity`'s move-front proximity arm *as a strike* (no round lands on a walking victim before the squad's own attack order takes over) and a Fort's near-face gate. The next chapter is the Fort in the Tower's place, or a victim walking *past* the Tower at a distance beyond its sight so a round lands first.
+- **3282a. `BuildTypeData::find_friends@00639270`: no stub answers by one of its own arguments.** It asks vtable slot 0x60
+  `is(type, c)` for six constants (0x1b7, 0x209, 0x1a2, 0x1a1, 0x1a4, 0x1a7) on `this` and on the neighbour's type and
+  the answer depends on the constant; `--stub`/`--seq` draw per call, `--answer-by` keys on `ecx` only. Flag:
+  `--stub-by-arg IDX:ARGK:VALS`. The port `Sim::find_friends` (`ai_place.rs`) is welded to `Sim`; a pure helper taking
+  per-type test closures is owed.
+- **3282b. `Unit::find_build_spot@00603e20`: stack-resident growing arrays.** Two `SimpleArray<int>` locals grow through
+  slot 0 of the image's vftable (malloc resolves to nothing under the emulator); flag `--stub-alloc IDX:ECXOFF:CAPOFF`
+  (a stub that allocates from the harness bump heap into `[ecx+OFF]`). Also a ~0xa00-byte stack `Group` with its
+  vtables, `Objects::find_builds/find_units` with 11 stack arguments, and per-object slot 0xac/0xa8 chains. The crate's
+  `Sim::find_build_spot` (`orders.rs`) is a wrapper over `find_construct_sites`/`build_crowd`/`swarm_around` with no
+  pure helper.
+- **3282c. `Balance::compute_modifier@00581cc0`: TLS statics and a struct-returning stub.** Two function-local statics
+  guarded by `_TSS0/_TSS1` read `fs:[0x2c]` TLS (same gap as parked 2817): flag `--tls`/`--tss VA:VA`. `rows`/`cols`
+  are `.bss` `SimpleArray`s that need laying out structured (not `--at` random). `return_pack@005821c0` fills a
+  5-word `BalancePack` through a hidden out pointer: flag `--stub-struct IDX:K:FIELDS` (N drawn words per call, two
+  independent draws). Port drive when built: `balance::xml_product` and `balance::categories`, already closures.
+  (Second shape parked for two batches' worth of reach: `find_friends` and `find_build_spot` have each parked once.)
+- **3282d. `Object::fire_ammo@0064c8b0` swept inline; the crate does not model its side of the shot.** No `Ammo`
+  package fields (gpiece, who/o/whom/ox, angle), no `first_ammo_piece` lookup (+0xdc0), no unit-type +0x2cc piece, no
+  leader-age bump, no per-figure `add_ammo` fan-out (+0xb5, +0xf4), no building footprint scatter, no
+  `play_sound(S_ATTACK)`. Sweep limits: `who` and unit id drawn 0..1; a `get_shot` answer above 5 leaves gpiece
+  uninitialised in the original and the sweep (`--clean-stack`) reads 0.
+- **3282e. `Unit::think_fish` findings.** `CellData.down_who` is `i8` in the sim; the original tests a short at +0xa
+  `< 8` (a `who` in 0x80..0xff differs; not drawn). The original's MOVE_TO target is
+  `div_3_table[(cell*0x300+0x180)>>4]*0x30+0x18` (centre + 24 if the table is i/3) and the sim passes the cell centre
+  to `add_move_order`; unchecked whether that snaps. `find_angle@0092d130` takes `ecx`/`edx`, so its inputs are not
+  recorded (`--record-edx` and `--record-order` are exclusive: a second module would check them).
+- **3282f. Mutation survivors not read against the draw.** `fire_ammo` held 67 of 74; seven passed:
+  the `cols[0].push(m+0x0…)` record format, `a[13 + turn.min(7)]`, the `w.wrapping_sub(1) > 0` and `h.wrapping_sub(1)
+  > 0` footprint guards, `rand(..).wrapping_rem(w)`, the x offset `wrapping_add(rx)`, and `else if go && is_building`.
+  `think_fish` held 96 of 103; seven passed: `down >= 0 && who < 8 && down != me`, `_ => Some(GOOD_SCORE)`,
+  `(base / dist)`, `best_score = 0` (both of two variants), `cell[2] as i8`, `sh(cell, 10) as i16`. The first
+  `fire_ammo` batch the subagent ran (12 of 12) is in these counts. A successor reads each against the draw (dense
+  value, starved arm, or equivalent) before the next sweep touches these two.
+- **3282g. Subagent worktrees were removed under three running subagents** (att-3281's cleanup, 2026-10-18): the
+  `fire_ammo`, `think_fish` and (briefly) `Build::finished` trees went; branches survived and were merged from refs.
+  `fire_ammo` and `think_fish` lost their remaining breaks, which the lane ran itself. For the Loop: a lane's cleanup
+  must name only its own subagents' worktrees (3258 again).
 
 ## Parked by item 3294, 2026-10-18 — chapter 106, a Fort in the Tower's place
 

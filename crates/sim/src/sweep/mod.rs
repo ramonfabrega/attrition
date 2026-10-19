@@ -48,6 +48,7 @@ mod unit_is_special;
 mod unit_kill_garrison_order;
 mod unit_mana_left;
 mod unit_min_range;
+mod unit_think_fish;
 mod unit_uber_size;
 mod wall_construct_time;
 mod wall_data_covers_tile;
