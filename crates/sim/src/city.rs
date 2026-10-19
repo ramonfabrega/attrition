@@ -1188,13 +1188,17 @@ impl Sim {
     }
 
     /// `get_cost`'s **Greek Library arm** (`:966`–`972`): the Library or
-    /// the University by type equality, for a Greek leader
+    /// the University by type equality — their `TypeIndex`, or their idents
+    /// where a type stands outside the tree — for a Greek leader
     /// ([`cost::Modifiers::greek_library`]). run961b's block 1977: who=1's
     /// University `1/2013` is placed on 1976 at timber 27, wealth 17 —
     /// a third of 80 and 50 — where ours could not pay the whole price
     /// (item 3326, `docs/AI.md` §266).
     fn greek_library_discount(&self, who: Player, ty: usize) -> i32 {
         let library = matches!(
+            self.build_types[ty].tree,
+            Some(crate::nations::ty::LIBRARY | crate::nations::ty::UNIVERSITY)
+        ) || matches!(
             self.build_types[ty].ident,
             Ident::Library | Ident::University
         );

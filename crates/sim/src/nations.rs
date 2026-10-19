@@ -73,6 +73,9 @@ pub mod ty {
 
     /// `UNIVERSITY`.
     pub const UNIVERSITY: TypeId = 0x1a4;
+    /// `LIBRARY`, which the Greek Library arm tests by equality beside the
+    /// University (`get_cost:966`–`972`).
+    pub const LIBRARY: TypeId = 0x1b3;
     /// `BARRACKS`.
     pub const BARRACKS: TypeId = 0x1ab;
     /// `STABLE` and `AUTOPLANT`, the Mongol arm's pair.
