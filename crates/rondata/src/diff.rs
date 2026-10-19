@@ -68,6 +68,8 @@ mod shutdown;
 #[cfg(test)]
 mod slots;
 #[cfg(test)]
+mod spanish_word;
+#[cfg(test)]
 mod third;
 #[cfg(test)]
 mod third_pair;
