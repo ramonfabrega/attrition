@@ -529,6 +529,286 @@ impl CollGrid {
     }
 }
 
+/// What [`detect_boat_collision_steps`] reads of the world and does to it:
+/// the unit `u` that pushes, and `o`, a unit the push may move. [`SimBoat`]
+/// is the simulation's; `sweep::unit_detect_boat_collision` lays the
+/// emulated original's windows behind the same methods (item 3304).
+pub trait BoatView {
+    fn owner(&mut self, o: usize) -> Player;
+    fn domain(&mut self, o: usize) -> Domain;
+    /// The type's `push_size` and `push_circles` (`+0x2f8`, `+0x2fc`), raw.
+    fn push_size(&mut self, o: usize) -> i32;
+    fn push_circles(&mut self, o: usize) -> i32;
+    /// `UnitData::get_action` and the order's slot `+0x10`.
+    fn action_index(&mut self, u: usize) -> Option<i32>;
+    fn is_transport(&mut self, u: usize) -> bool;
+    /// `Objects::find_units(at, all players, range, 0x200, FILTER_NOT_ME)`,
+    /// the pusher's raw circle count handed along.
+    fn find_units(&mut self, u: usize, at: Pos, size: i32, circles: i32) -> Vec<usize>;
+    /// The object's `+0xa8` slot, the unit it stands for; the simulation's
+    /// list holds units already.
+    fn resolve(&mut self, o: usize);
+    fn facing(&mut self, o: usize) -> Angle;
+    fn pos(&mut self, o: usize) -> Pos;
+    fn group(&mut self, o: usize) -> i64;
+    fn index(&mut self, o: usize) -> i16;
+    fn collide_o(&mut self, o: usize) -> i16;
+    fn collide_who(&mut self, o: usize) -> i8;
+    fn collide_frame(&mut self, o: usize) -> i64;
+    fn frame(&mut self) -> i64;
+    /// The type's `attack` (`+0x1e8`) is set.
+    fn attack(&mut self, o: usize) -> bool;
+    fn is_ally(&mut self, a: Player, b: Player) -> bool;
+    fn packs(&mut self, o: usize) -> bool;
+    fn packed(&mut self, o: usize) -> bool;
+    fn is_unpacking(&mut self, o: usize) -> bool;
+    fn entrenched(&mut self, o: usize) -> bool;
+    fn is_tank(&mut self, o: usize) -> bool;
+    fn is_moving(&mut self, o: usize) -> bool;
+    fn invalid_loc(&mut self, o: usize, tile: Pos) -> i32;
+    fn set_new_location(&mut self, o: usize, to: Pos);
+    /// `o`'s `collide_o` and `collide_who` name the pusher `by`.
+    fn name_pusher(&mut self, o: usize, by: usize);
+    fn no_orders(&mut self, o: usize) -> bool;
+    /// `Unit::set_angle` and the guy-0 turn (`5faea6`-`5faedb`).
+    fn turn_idle(&mut self, o: usize, bearing: Angle, by: usize);
+    fn stamp_collide_frame(&mut self, o: usize);
+}
+
+/// [`Sim`] behind [`BoatView`].
+struct SimBoat<'a>(&'a mut Sim);
+
+impl BoatView for SimBoat<'_> {
+    fn owner(&mut self, o: usize) -> Player {
+        self.0.units[o].owner
+    }
+    fn domain(&mut self, o: usize) -> Domain {
+        self.0.units[o].kind.domain
+    }
+    fn push_size(&mut self, o: usize) -> i32 {
+        self.0.profile(Obj::Unit(o)).push_size
+    }
+    fn push_circles(&mut self, o: usize) -> i32 {
+        self.0.profile(Obj::Unit(o)).push_circles
+    }
+    fn action_index(&mut self, u: usize) -> Option<i32> {
+        self.0
+            .action_of(u)
+            .map(|a| i32::from(self.0.units[u].orders[a].index()))
+    }
+    fn is_transport(&mut self, u: usize) -> bool {
+        self.0.units[u].ty.is_some_and(|t| {
+            self.0.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+        })
+    }
+    fn find_units(&mut self, u: usize, at: Pos, size: i32, _circles: i32) -> Vec<usize> {
+        self.0.find_push_candidates(u, at, size)
+    }
+    fn resolve(&mut self, _o: usize) {}
+    fn facing(&mut self, o: usize) -> Angle {
+        self.0.units[o].movement.facing
+    }
+    fn pos(&mut self, o: usize) -> Pos {
+        self.0.units[o].pos
+    }
+    fn group(&mut self, o: usize) -> i64 {
+        self.0.pool_group_of(o)
+    }
+    fn index(&mut self, o: usize) -> i16 {
+        self.0.units[o].index
+    }
+    fn collide_o(&mut self, o: usize) -> i16 {
+        self.0.units[o].collide_o
+    }
+    fn collide_who(&mut self, o: usize) -> i8 {
+        self.0.units[o].collide_who
+    }
+    fn collide_frame(&mut self, o: usize) -> i64 {
+        self.0.units[o].collide_frame
+    }
+    fn frame(&mut self) -> i64 {
+        self.0.frame
+    }
+    fn attack(&mut self, o: usize) -> bool {
+        self.0.profile(Obj::Unit(o)).attack != 0
+    }
+    fn is_ally(&mut self, a: Player, b: Player) -> bool {
+        self.0.is_ally(a, b)
+    }
+    fn packs(&mut self, o: usize) -> bool {
+        self.0.units[o]
+            .ty
+            .map(|t| self.0.unit_types[t].cols)
+            .is_some_and(|c| c.flag2(crate::ai_load::uflags2::PACKS))
+    }
+    fn packed(&mut self, o: usize) -> bool {
+        self.0.units[o].combat.packed
+    }
+    fn is_unpacking(&mut self, o: usize) -> bool {
+        self.0.is_unpacking(o)
+    }
+    fn entrenched(&mut self, o: usize) -> bool {
+        self.0.units[o].combat.entrenched
+    }
+    fn is_tank(&mut self, o: usize) -> bool {
+        self.0.units[o]
+            .ty
+            .map(|t| self.0.unit_types[t].cols)
+            .is_some_and(|c| c.flag(crate::ai_load::uflags::TANK))
+    }
+    fn is_moving(&mut self, o: usize) -> bool {
+        self.0.is_moving(o)
+    }
+    fn invalid_loc(&mut self, o: usize, tile: Pos) -> i32 {
+        self.0
+            .invalid_loc(o, tile, false, false, false, false, false)
+    }
+    fn set_new_location(&mut self, o: usize, to: Pos) {
+        self.0.set_new_location(o, to, false);
+    }
+    fn name_pusher(&mut self, o: usize, by: usize) {
+        self.0.units[o].collide_o = self.0.units[by].index;
+        self.0.units[o].collide_who = self.0.units[by].owner as i8;
+    }
+    fn no_orders(&mut self, o: usize) -> bool {
+        self.0.units[o].orders.is_empty()
+    }
+    fn turn_idle(&mut self, o: usize, bearing: Angle, _by: usize) {
+        self.0.unit_set_angle(o, bearing);
+        self.0.push_turn(o, bearing);
+    }
+    fn stamp_collide_frame(&mut self, o: usize) {
+        self.0.units[o].collide_frame = self.0.frame;
+    }
+}
+
+/// The body of [`Sim::detect_boat_collision`] over a [`BoatView`].
+pub fn detect_boat_collision_steps<V: BoatView>(v: &mut V, u: usize, at: Pos, mates: bool) -> bool {
+    let who = v.owner(u);
+    if who >= 8 {
+        return true;
+    }
+    let domain = v.domain(u);
+    let action = v.action_index(u);
+    let (size, raw_circles) = (v.push_size(u), v.push_circles(u));
+    let circles = raw_circles.max(1);
+    if size == 0 {
+        return true;
+    }
+    let transport = v.is_transport(u);
+    let found = v.find_units(u, at, size, raw_circles);
+    if found.is_empty() {
+        return true;
+    }
+    let r_mine = size / circles;
+    let facing = v.facing(u);
+    let line = |p: Pos, a: Angle, r: i32, n: i32| -> (Pos, (i32, i32)) {
+        if n > 1 {
+            let (dx, dy) = (sin_component(a, r), -cos_component(a, r));
+            (
+                Pos::new(p.x - (n - 1) * dx, p.y - (n - 1) * dy),
+                (2 * dx, 2 * dy),
+            )
+        } else {
+            (p, (0, 0))
+        }
+    };
+    let (mine0, mine_step) = line(at, facing, r_mine, circles);
+    let my_group = v.group(u);
+    let land = domain == Domain::Land;
+    for o in found {
+        v.resolve(o);
+        let oowner = v.owner(o);
+        // `(local_54 == 0 || who < 8)`: a land pusher's candidates
+        // include gaia's.
+        if (!land && oowner >= 8) || v.domain(o) != domain {
+            continue;
+        }
+        let mate = oowner == who && v.group(o) == my_group && my_group != -1;
+        if mate && mates && action != Some(10) {
+            continue;
+        }
+        if v.collide_o(u) == v.index(o)
+            && v.collide_who(u) == oowner as i8
+            && v.collide_frame(u) == v.frame()
+        {
+            continue;
+        }
+        let (osize, ocircles) = (v.push_size(o), v.push_circles(o).max(1));
+        if osize == 0 {
+            continue;
+        }
+        let r_other = osize / ocircles;
+        let (opos, ofacing) = (v.pos(o), v.facing(o));
+        let (other0, other_step) = line(opos, ofacing, r_other, ocircles);
+        let mut nearest = 0x0fff_ffff;
+        for i in 0..circles {
+            let m = Pos::new(mine0.x + i * mine_step.0, mine0.y + i * mine_step.1);
+            for j in 0..ocircles {
+                let t = Pos::new(other0.x + j * other_step.0, other0.y + j * other_step.1);
+                let d = boat_dist(m.x - t.x, m.y - t.y);
+                if (i == 0 && j == 0) || d < nearest {
+                    nearest = d;
+                }
+            }
+        }
+        let overlap = (r_other - nearest + r_mine) / 2;
+        if overlap <= 0 {
+            continue;
+        }
+        if transport && v.attack(o) {
+            return false;
+        }
+        // `5fad01`-`5fad3f`: a stranger who is not a mutual ally
+        // refuses the push only while it is a player's — `cmpb $8,
+        // %dl; jb` — so gaia's animals are pushed aside.
+        if oowner < 8 && !v.is_ally(who, oowner) {
+            return false;
+        }
+        // A land pusher's own refusals (`5fac8b`-`5faccc`): a packer
+        // that is not packed or is unpacking, an entrenched unit
+        // (`unit_masks & 0x2000000`), and a tank (the type's vslot
+        // `+0x110`, `UnitTypeData::is_tank`).
+        if land {
+            if v.packs(o) && (!v.packed(o) || v.is_unpacking(o)) {
+                return false;
+            }
+            if v.entrenched(o) || v.is_tank(o) {
+                return false;
+            }
+        }
+        let push = overlap.min(0x30);
+        let there = opos;
+        let mut bearing = find_angle(there.x - at.x, there.y - at.y);
+        let rel = (bearing.0 as u32).wrapping_sub(facing.0 as u32);
+        if !v.is_moving(o) {
+            if rel < 0x2000_0000 {
+                bearing = Angle(facing.0.wrapping_add(0x2000_0000));
+            } else if rel > 0xe000_0000 {
+                bearing = Angle(facing.0.wrapping_sub(0x2000_0000));
+            }
+        } else if rel.wrapping_add(0xe000_0000) > 0xc000_0000 {
+            return false;
+        }
+        let to = Pos::new(
+            there.x + sin_component(bearing, push),
+            there.y - cos_component(bearing, push),
+        );
+        if v.invalid_loc(o, to.tile()) != 0 {
+            continue;
+        }
+        v.set_new_location(o, to);
+        if mates && (ocircles == 1 || land) {
+            v.name_pusher(o, u);
+            if v.no_orders(o) {
+                v.turn_idle(o, bearing, u);
+            }
+        }
+        v.stamp_collide_frame(o);
+    }
+    true
+}
+
 impl Sim {
     // ------------------------------------------------------------------
     // §2 — the occupancy index
@@ -607,142 +887,7 @@ impl Sim {
     ///   `collide_frame` is stamped; with `mates` and one circle it also
     ///   records its pusher, and an idle one is turned to the bearing.
     pub(crate) fn detect_boat_collision(&mut self, u: usize, at: Pos, mates: bool) -> bool {
-        let who = self.units[u].owner;
-        if who >= 8 {
-            return true;
-        }
-        let domain = self.units[u].kind.domain;
-        let prof = self.profile(Obj::Unit(u));
-        let (size, circles) = (prof.push_size, prof.push_circles.max(1));
-        if size == 0 {
-            return true;
-        }
-        let action = self.action_of(u).map(|a| self.units[u].orders[a].index());
-        let transport = self.units[u].ty.is_some_and(|t| {
-            self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
-        });
-        let found = self.find_push_candidates(u, at, size);
-        if found.is_empty() {
-            return true;
-        }
-        let r_mine = size / circles;
-        let facing = self.units[u].movement.facing;
-        let line = |p: Pos, a: Angle, r: i32, n: i32| -> (Pos, (i32, i32)) {
-            if n > 1 {
-                let (dx, dy) = (sin_component(a, r), -cos_component(a, r));
-                (
-                    Pos::new(p.x - (n - 1) * dx, p.y - (n - 1) * dy),
-                    (2 * dx, 2 * dy),
-                )
-            } else {
-                (p, (0, 0))
-            }
-        };
-        let (mine0, mine_step) = line(at, facing, r_mine, circles);
-        let my_group = self.pool_group_of(u);
-        let land = domain == crate::attrition::Domain::Land;
-        for o in found {
-            let other = &self.units[o];
-            // `(local_54 == 0 || who < 8)`: a land pusher's candidates
-            // include gaia's.
-            if (!land && other.owner >= 8) || other.kind.domain != domain {
-                continue;
-            }
-            let mate = other.owner == who && self.pool_group_of(o) == my_group && my_group != -1;
-            if mate && mates && action != Some(10) {
-                continue;
-            }
-            if self.units[u].collide_o == other.index
-                && self.units[u].collide_who == other.owner as i8
-                && self.units[u].collide_frame == self.frame
-            {
-                continue;
-            }
-            let op = self.profile(Obj::Unit(o));
-            let (osize, ocircles) = (op.push_size, op.push_circles.max(1));
-            if osize == 0 {
-                continue;
-            }
-            let r_other = osize / ocircles;
-            let (other0, other_step) = line(
-                self.units[o].pos,
-                self.units[o].movement.facing,
-                r_other,
-                ocircles,
-            );
-            let mut nearest = 0x0fff_ffff;
-            for i in 0..circles {
-                let m = Pos::new(mine0.x + i * mine_step.0, mine0.y + i * mine_step.1);
-                for j in 0..ocircles {
-                    let t = Pos::new(other0.x + j * other_step.0, other0.y + j * other_step.1);
-                    let d = boat_dist(m.x - t.x, m.y - t.y);
-                    if (i == 0 && j == 0) || d < nearest {
-                        nearest = d;
-                    }
-                }
-            }
-            let overlap = (r_other - nearest + r_mine) / 2;
-            if overlap <= 0 {
-                continue;
-            }
-            if transport && self.profile(Obj::Unit(o)).attack != 0 {
-                return false;
-            }
-            // `5fad01`-`5fad3f`: a stranger who is not a mutual ally
-            // refuses the push only while it is a player's — `cmpb $8,
-            // %dl; jb` — so gaia's animals are pushed aside.
-            if self.units[o].owner < 8 && !self.is_ally(who, self.units[o].owner) {
-                return false;
-            }
-            // A land pusher's own refusals (`5fac8b`-`5faccc`): a packer
-            // that is not packed or is unpacking, an entrenched unit
-            // (`unit_masks & 0x2000000`), and a tank (the type's vslot
-            // `+0x110`, `UnitTypeData::is_tank`).
-            if land {
-                let t = self.units[o].ty.map(|t| self.unit_types[t].cols);
-                if t.is_some_and(|c| c.flag2(crate::ai_load::uflags2::PACKS))
-                    && (!self.units[o].combat.packed || self.is_unpacking(o))
-                {
-                    return false;
-                }
-                if self.units[o].combat.entrenched
-                    || t.is_some_and(|c| c.flag(crate::ai_load::uflags::TANK))
-                {
-                    return false;
-                }
-            }
-            let push = overlap.min(0x30);
-            let there = self.units[o].pos;
-            let mut bearing = find_angle(there.x - at.x, there.y - at.y);
-            let rel = (bearing.0 as u32).wrapping_sub(facing.0 as u32);
-            if !self.is_moving(o) {
-                if rel < 0x2000_0000 {
-                    bearing = Angle(facing.0.wrapping_add(0x2000_0000));
-                } else if rel > 0xe000_0000 {
-                    bearing = Angle(facing.0.wrapping_sub(0x2000_0000));
-                }
-            } else if rel.wrapping_add(0xe000_0000) > 0xc000_0000 {
-                return false;
-            }
-            let to = Pos::new(
-                there.x + sin_component(bearing, push),
-                there.y - cos_component(bearing, push),
-            );
-            if self.invalid_loc(o, to.tile(), false, false, false, false, false) != 0 {
-                continue;
-            }
-            self.set_new_location(o, to, false);
-            if mates && (ocircles == 1 || land) {
-                self.units[o].collide_o = self.units[u].index;
-                self.units[o].collide_who = who as i8;
-                if self.units[o].orders.is_empty() {
-                    self.unit_set_angle(o, bearing);
-                    self.push_turn(o, bearing);
-                }
-            }
-            self.units[o].collide_frame = self.frame;
-        }
-        true
+        detect_boat_collision_steps(&mut SimBoat(self), u, at, mates)
     }
 
     /// The pushed idle unit's guy 0 turned to the push's bearing

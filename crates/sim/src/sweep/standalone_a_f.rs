@@ -236,6 +236,8 @@ mod build_find_target;
 mod build_finished;
 #[path = "build_finished_628490.rs"]
 mod build_finished_628490;
+#[path = "build_new_library.rs"]
+mod build_new_library;
 #[path = "build_order_get_type.rs"]
 mod build_order_get_type;
 #[path = "build_order_get_type_vtordisp.rs"]
@@ -448,6 +450,8 @@ mod city_data_ready_to_upgrade;
 mod city_data_smelter_level;
 #[path = "city_data_upgrades_to.rs"]
 mod city_data_upgrades_to;
+#[path = "city_find_buildings.rs"]
+mod city_find_buildings;
 #[path = "city_get_trade_routes.rs"]
 mod city_get_trade_routes;
 #[path = "city_set_name.rs"]

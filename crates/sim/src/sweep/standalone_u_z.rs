@@ -74,6 +74,8 @@ mod unit_cavarch_fight_written;
 mod unit_change_target;
 #[path = "unit_check_idle.rs"]
 mod unit_check_idle;
+#[path = "unit_check_target_path.rs"]
+mod unit_check_target_path;
 #[path = "unit_data_action_type.rs"]
 mod unit_data_action_type;
 #[path = "unit_data_activity_type.rs"]
@@ -172,12 +174,18 @@ mod unit_data_transport_type;
 mod unit_data_turn_speed;
 #[path = "unit_data_will_be_corner.rs"]
 mod unit_data_will_be_corner;
+#[path = "unit_detect_boat_collision.rs"]
+mod unit_detect_boat_collision;
 #[path = "unit_die.rs"]
 mod unit_die;
 #[path = "unit_do_air_attack_ground.rs"]
 mod unit_do_air_attack_ground;
+#[path = "unit_do_attack.rs"]
+mod unit_do_attack;
 #[path = "unit_do_attack_ground.rs"]
 mod unit_do_attack_ground;
+#[path = "unit_do_attack_neg.rs"]
+mod unit_do_attack_neg;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
 #[path = "unit_do_build.rs"]
@@ -472,6 +480,8 @@ mod wall_set_type;
 mod wall_set_type_dispatch;
 #[path = "wall_swap_team.rs"]
 mod wall_swap_team;
+#[path = "wall_update_local_seen.rs"]
+mod wall_update_local_seen;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]

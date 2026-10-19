@@ -205,7 +205,7 @@ impl Sim {
     }
 
     /// `ObjectData::is(t, 0)` on a unit's type — the lineage test.
-    fn unit_is(&self, u: usize, t: TypeId) -> bool {
+    pub(crate) fn unit_is(&self, u: usize, t: TypeId) -> bool {
         self.units[u]
             .ty
             .and_then(|i| self.unit_types[i].tree)
