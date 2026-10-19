@@ -18,7 +18,7 @@
 
 use crate::ai_load::{uflags, uflags2};
 use crate::anim;
-use crate::build::{self, Ident, flags as bflags};
+use crate::build::{Ident, flags as bflags};
 use crate::combat::{self, Obj};
 use crate::economy;
 use crate::garrison::GarrisonRefused;
@@ -1750,7 +1750,7 @@ pub enum Coll {
 /// and the pair is what the collision half exempts. `cast_transport` passes
 /// `(-1, -1)` (`docs/TRANSPORT.md` §6), and that is [`Seeker::Type`].
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Seeker {
+pub enum Seeker {
     Unit(usize),
     Type(usize),
     /// A type asked **for** a unit: the block, domain and radius defaults
@@ -1758,6 +1758,261 @@ enum Seeker {
     /// (`FILTER_NOT_ME` with the unit as `(not_o, not_who)`), which is how
     /// `cast_create_decoy` places a copy beside its General.
     TypeFor(usize, usize),
+}
+
+/// What [`spot_ring`] reads of the world and the units: the tile masks, the
+/// footprint, and the collision half. [`SimSpot`] answers from a [`Sim`];
+/// the emulator sweep answers from the original's own records.
+pub trait SpotView {
+    fn tile_in_bounds(&self, t: Pos) -> bool;
+    fn tile_mask(&self, t: Pos) -> u16;
+    fn covers_tile(&self, building: usize, t: Pos) -> bool;
+    /// `is(AIRCRAFTCARRIER, 1)` of the seeker's type, asked only of a sea
+    /// type whose `attack` is zero.
+    fn is_carrier(&self, who: Seeker) -> bool;
+    fn owner(&self, u: usize) -> Player;
+    fn find_collision(&self, u: usize, at: Pos) -> bool;
+    fn find_ordered_collision(&self, u: usize, at: Pos) -> bool;
+    fn find_unit_with_radius(&self, r: i32, at: Pos, exempt: Option<usize>) -> bool;
+    fn find_unit_ordered_with_radius(
+        &self,
+        r: i32,
+        at: Pos,
+        who: Player,
+        exempt: Option<usize>,
+    ) -> bool;
+}
+
+/// [`SpotView`] over a [`Sim`].
+struct SimSpot<'a>(&'a Sim);
+
+impl SpotView for SimSpot<'_> {
+    fn tile_in_bounds(&self, t: Pos) -> bool {
+        self.0.world.tile_in_bounds(t)
+    }
+    fn tile_mask(&self, t: Pos) -> u16 {
+        self.0.world.tile_mask(t)
+    }
+    fn covers_tile(&self, building: usize, t: Pos) -> bool {
+        self.0.covers_tile(building, t)
+    }
+    fn is_carrier(&self, who: Seeker) -> bool {
+        let ty = match who {
+            Seeker::Unit(u) => self.0.units[u].ty,
+            Seeker::Type(t) | Seeker::TypeFor(t, _) => Some(t),
+        };
+        ty.is_some_and(|t| self.0.is_aircraft_carrier(t))
+    }
+    fn owner(&self, u: usize) -> Player {
+        self.0.units[u].owner
+    }
+    fn find_collision(&self, u: usize, at: Pos) -> bool {
+        self.0.find_collision(u, at)
+    }
+    fn find_ordered_collision(&self, u: usize, at: Pos) -> bool {
+        self.0.find_ordered_collision(u, at)
+    }
+    fn find_unit_with_radius(&self, r: i32, at: Pos, exempt: Option<usize>) -> bool {
+        self.0.find_unit_with_radius(r, at, exempt)
+    }
+    fn find_unit_ordered_with_radius(
+        &self,
+        r: i32,
+        at: Pos,
+        who: Player,
+        exempt: Option<usize>,
+    ) -> bool {
+        self.0.find_unit_ordered_with_radius(r, at, who, exempt)
+    }
+}
+
+/// The ring sweep of `UnitType::find_nearby_spot@0061de70`, over a
+/// [`SpotView`] (the body of [`Sim::spot_sweep`]). `p` is the asking
+/// type's record, `transport` its `unit_flags & 0x10`, `range` is
+/// `(min, max, step)`, `footprint` the building to keep off and whether a
+/// farm is exempt.
+#[allow(clippy::too_many_arguments)]
+pub fn spot_ring(
+    view: &impl SpotView,
+    who: Seeker,
+    p: &combat::Profile,
+    transport: bool,
+    centre: Pos,
+    range: (i32, i32, i32),
+    angle: Angle,
+    footprint: Option<(usize, bool)>,
+    coll: Coll,
+    uber: bool,
+) -> Option<Pos> {
+    let (min, max, step) = range;
+    let mut max = max;
+    if (min > 0 && max == 0) || max < 0 {
+        // `find_nearby_spot@0061de70:45`: the default is
+        // `min + 4 × big_radius`, overridden to `min + 0x240` only when
+        // `big_radius == 0` **and** `!(unit_flags & 0x10)` — the
+        // transport-capable flag, which this crate does not model, so the
+        // second condition is assumed false. It can only differ for a
+        // transport-capable type whose `big_radius` is 0, and no shipped
+        // row is both. Stated in §14. The squad branch (`uber_unit !=
+        // 0`, the decompile's lines 52–54) is `min + 0xc0 + 4 ×
+        // (((uber − 1) × guy_spacing) / 2 + big_radius)`: `come_out`'s
+        // routing asks it for a squad's target with `max` −1 (item
+        // 955, run338's `0/13` on 858); `go_to` passes its own `max`.
+        // (`docs/audit/2026-08-21-orders.md` R7 N3.)
+        max = if uber {
+            min + 0xc0 + 4 * (((p.uber_size - 1) * p.guy_spacing) / 2 + p.big_radius)
+        } else if p.big_radius == 0 && !transport {
+            min + 0x240
+        } else {
+            min + 4 * p.big_radius
+        };
+    }
+    if max < min {
+        max = min;
+    }
+    let step = if step <= 0 {
+        ((max - min) / 8).max(1)
+    } else {
+        step
+    };
+    // **The squad's own collision radius** (`61df42`–`61df58`): with
+    // `uber_unit != 0` the block the general query is asked with is
+    // `block_radius + ((uber_size − 1) × guy_spacing) / 2 + 0x30` —
+    // half the formation's own span plus a quarter-tile, so a squad
+    // asks for the room it will actually stand in.
+    let uber_r = p.block_radius + ((p.uber_size - 1) * p.guy_spacing) / 2 + 0x30;
+    let air = matches!(p.domain, crate::attrition::Domain::Air);
+    // **A warship keeps off the `0x2400` tiles** (`61df8b`–`61dfaf`,
+    // the test at `61e3a1`): a sea type whose `attack` (`ObjectTypeData
+    // +0x1e8`, the type record's name) is non-zero, or that strictly
+    // `is(AIRCRAFTCARRIER)` (`0x15f`, `TypeIndex`), refuses an ocean
+    // tile carrying either bit. East Indies' Trireme `1/32` is born
+    // due east of Dock `1/2010` because the channel south of it is
+    // `0x0420` (`docs/ORDERS.md` §25).
+    let warship = matches!(p.domain, crate::attrition::Domain::Sea)
+        && (p.attack != 0 || { view.is_carrier(who) });
+    let mut r = min;
+    loop {
+        let ks: &[i32] = if r == 0 { &[0] } else { &BEARINGS };
+        for &k in ks {
+            let cand = if r == 0 {
+                centre
+            } else {
+                let half = if !(-7..=7).contains(&k) {
+                    0x800_0000
+                } else {
+                    0
+                };
+                let a = Angle(
+                    angle
+                        .0
+                        .wrapping_add(k.wrapping_mul(0x1000_0000))
+                        .wrapping_add(half),
+                );
+                Pos::new(
+                    centre.x + movement::sin_component(a, r),
+                    centre.y - movement::cos_component(a, r),
+                )
+            };
+            let c = Pos::new(
+                cand.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
+                cand.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
+            );
+            if !view.tile_in_bounds(c.tile()) {
+                continue;
+            }
+            if !air && view.tile_mask(c.tile()) & crate::world::tile::BLOCKED != 0 {
+                continue;
+            }
+            if let Some((b, farm_ok)) = footprint
+                && !farm_ok
+                && view.covers_tile(b, c.tile())
+            {
+                continue;
+            }
+            // **The terrain class, by domain** (`0061e3a1`..`0061e39e`):
+            // an air type takes anything; a **sea** type needs the tile's
+            // surface field to be `SURFACE_OCEAN` exactly; a **land**
+            // type needs it not to be. This crate asked
+            // `World::accepts` here — a cell-bounds test the loop's own
+            // `tile_in_bounds` has already made — so a citizen was free
+            // to stand in the sea, which is what put the AI's dock
+            // builder on the wrong point of the swarm ring
+            // (`docs/ORDERS.md` §10, "The ocean the ring could stand
+            // in").
+            //
+            // And the warship clause: a sea type that can fight also
+            // needs `!(mask & 0x2400)` — `BAD_PATH` and the unnamed
+            // `0x400` (`warship` above).
+            if !air {
+                let mask = view.tile_mask(c.tile());
+                let ocean = mask & tile::SURFACE == tile::SURFACE_OCEAN;
+                if ocean != matches!(p.domain, crate::attrition::Domain::Sea) {
+                    continue;
+                }
+                if warship && mask & WARSHIP_REFUSES != 0 {
+                    continue;
+                }
+            }
+            // The collision half, last of all: `Objects::find_collision`
+            // then `Objects::find_ordered_collision`, both against
+            // `(u)` as "me" (`docs/COLLISION.md` §5.2). A spot another
+            // unit is standing on — or has already been sent to — is
+            // taken.
+            let hit = coll != Coll::None
+                && match (uber, who) {
+                    // **A squad placement never takes the pairwise
+                    // pair.** `bVar17` — the flag that selects
+                    // `find_collision` plus `find_ordered_collision` —
+                    // is written only in the arm `uber_unit != 0`
+                    // jumps over (`61df3e`, the write at
+                    // `61df5f`–`61df7c`), so a squad goes down the general
+                    // path whatever its filter says: one radius query
+                    // against every player's positions, and, because
+                    // `not_who` is a real player here, the *ordered*
+                    // one beside it.
+                    (true, _) => {
+                        let exempt = match who {
+                            Seeker::Unit(u) | Seeker::TypeFor(_, u) => Some(u),
+                            Seeker::Type(_) => None,
+                        };
+                        view.find_unit_with_radius(uber_r, c, exempt)
+                            || match who {
+                                Seeker::Unit(u) => view.find_unit_ordered_with_radius(
+                                    uber_r,
+                                    c,
+                                    view.owner(u),
+                                    exempt,
+                                ),
+                                Seeker::Type(_) | Seeker::TypeFor(..) => false,
+                            }
+                    }
+                    (false, Seeker::Unit(u)) if coll == Coll::All => {
+                        let r = if p.block_radius == 0 {
+                            0x180
+                        } else {
+                            p.block_radius
+                        };
+                        // The seeker counts (item 955): no exemption
+                        // on the position query under `FILTER_ALL`.
+                        view.find_unit_with_radius(r, c, None)
+                            || view.find_unit_ordered_with_radius(r, c, view.owner(u), Some(u))
+                    }
+                    (false, Seeker::Unit(u) | Seeker::TypeFor(_, u)) => {
+                        view.find_collision(u, c) || view.find_ordered_collision(u, c)
+                    }
+                    (false, Seeker::Type(_)) => view.find_unit_with_radius(p.block_radius, c, None),
+                };
+            if hit {
+                continue;
+            }
+            return Some(c);
+        }
+        if max <= r {
+            return None;
+        }
+        r = (r + step).min(max);
+    }
 }
 
 /// Which worker kind a unit type is, for the gather chain and `think_peasant`.
@@ -7662,189 +7917,22 @@ impl Sim {
             Seeker::Unit(u) => self.profile(Obj::Unit(u)),
             Seeker::Type(t) | Seeker::TypeFor(t, _) => self.unit_types[t].combat,
         };
-        let mut max = max;
-        if (min > 0 && max == 0) || max < 0 {
-            // `find_nearby_spot@0061de70:45`: the default is
-            // `min + 4 × big_radius`, overridden to `min + 0x240` only when
-            // `big_radius == 0` **and** `!(unit_flags & 0x10)` — the
-            // transport-capable flag, which this crate does not model, so the
-            // second condition is assumed false. It can only differ for a
-            // transport-capable type whose `big_radius` is 0, and no shipped
-            // row is both. Stated in §14. The squad branch (`uber_unit !=
-            // 0`, the decompile's lines 52–54) is `min + 0xc0 + 4 ×
-            // (((uber − 1) × guy_spacing) / 2 + big_radius)`: `come_out`'s
-            // routing asks it for a squad's target with `max` −1 (item
-            // 955, run338's `0/13` on 858); `go_to` passes its own `max`.
-            // (`docs/audit/2026-08-21-orders.md` R7 N3.)
-            max = if uber {
-                min + 0xc0 + 4 * (((p.uber_size - 1) * p.guy_spacing) / 2 + p.big_radius)
-            } else if p.big_radius == 0 {
-                min + 0x240
-            } else {
-                min + 4 * p.big_radius
-            };
-        }
-        if max < min {
-            max = min;
-        }
-        let step = if step <= 0 {
-            ((max - min) / 8).max(1)
-        } else {
-            step
-        };
-        // **The squad's own collision radius** (`61df42`–`61df58`): with
-        // `uber_unit != 0` the block the general query is asked with is
-        // `block_radius + ((uber_size − 1) × guy_spacing) / 2 + 0x30` —
-        // half the formation's own span plus a quarter-tile, so a squad
-        // asks for the room it will actually stand in.
-        let uber_r = p.block_radius + ((p.uber_size - 1) * p.guy_spacing) / 2 + 0x30;
         let farm_ok = footprint_of.is_some_and(|b| self.building_ident(b) == Ident::Farm)
             && matches!(who, Seeker::Unit(u) if self.worker_of(u) == Worker::Citizen);
-        let air = matches!(p.domain, crate::attrition::Domain::Air);
-        // **A warship keeps off the `0x2400` tiles** (`61df8b`–`61dfaf`,
-        // the test at `61e3a1`): a sea type whose `attack` (`ObjectTypeData
-        // +0x1e8`, the type record's name) is non-zero, or that strictly
-        // `is(AIRCRAFTCARRIER)` (`0x15f`, `TypeIndex`), refuses an ocean
-        // tile carrying either bit. East Indies' Trireme `1/32` is born
-        // due east of Dock `1/2010` because the channel south of it is
-        // `0x0420` (`docs/ORDERS.md` §25).
-        let warship = matches!(p.domain, crate::attrition::Domain::Sea)
-            && (p.attack != 0 || {
-                let ty = match who {
-                    Seeker::Unit(u) => self.units[u].ty,
-                    Seeker::Type(t) | Seeker::TypeFor(t, _) => Some(t),
-                };
-                ty.is_some_and(|t| self.is_aircraft_carrier(t))
-            });
-        let mut r = min;
-        loop {
-            let ks: &[i32] = if r == 0 { &[0] } else { &BEARINGS };
-            for &k in ks {
-                let cand = if r == 0 {
-                    centre
-                } else {
-                    let half = if !(-7..=7).contains(&k) {
-                        0x800_0000
-                    } else {
-                        0
-                    };
-                    let a = Angle(
-                        angle
-                            .0
-                            .wrapping_add(k.wrapping_mul(0x1000_0000))
-                            .wrapping_add(half),
-                    );
-                    Pos::new(
-                        centre.x + movement::sin_component(a, r),
-                        centre.y - movement::cos_component(a, r),
-                    )
-                };
-                let c = Pos::new(
-                    cand.x.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
-                    cand.y.div_euclid(SNAP) * SNAP + SNAP_CENTRE,
-                );
-                if !self.world.tile_in_bounds(c.tile()) {
-                    continue;
-                }
-                if !air && self.world.tile_mask(c.tile()) & crate::world::tile::BLOCKED != 0 {
-                    continue;
-                }
-                if let Some(b) = footprint_of
-                    && !farm_ok
-                    && self.covers_tile(b, c.tile())
-                {
-                    continue;
-                }
-                // **The terrain class, by domain** (`0061e3a1`..`0061e39e`):
-                // an air type takes anything; a **sea** type needs the tile's
-                // surface field to be `SURFACE_OCEAN` exactly; a **land**
-                // type needs it not to be. This crate asked
-                // `World::accepts` here — a cell-bounds test the loop's own
-                // `tile_in_bounds` has already made — so a citizen was free
-                // to stand in the sea, which is what put the AI's dock
-                // builder on the wrong point of the swarm ring
-                // (`docs/ORDERS.md` §10, "The ocean the ring could stand
-                // in").
-                //
-                // And the warship clause: a sea type that can fight also
-                // needs `!(mask & 0x2400)` — `BAD_PATH` and the unnamed
-                // `0x400` (`warship` above).
-                if !air {
-                    let mask = self.world.tile_mask(c.tile());
-                    let ocean = mask & tile::SURFACE == tile::SURFACE_OCEAN;
-                    if ocean != matches!(p.domain, crate::attrition::Domain::Sea) {
-                        continue;
-                    }
-                    if warship && mask & WARSHIP_REFUSES != 0 {
-                        continue;
-                    }
-                }
-                // The collision half, last of all: `Objects::find_collision`
-                // then `Objects::find_ordered_collision`, both against
-                // `(u)` as "me" (`docs/COLLISION.md` §5.2). A spot another
-                // unit is standing on — or has already been sent to — is
-                // taken.
-                let hit = coll != Coll::None
-                    && match (uber, who) {
-                        // **A squad placement never takes the pairwise
-                        // pair.** `bVar17` — the flag that selects
-                        // `find_collision` plus `find_ordered_collision` —
-                        // is written only in the arm `uber_unit != 0`
-                        // jumps over (`61df3e`, the write at
-                        // `61df5f`–`61df7c`), so a squad goes down the general
-                        // path whatever its filter says: one radius query
-                        // against every player's positions, and, because
-                        // `not_who` is a real player here, the *ordered*
-                        // one beside it.
-                        (true, _) => {
-                            let exempt = match who {
-                                Seeker::Unit(u) | Seeker::TypeFor(_, u) => Some(u),
-                                Seeker::Type(_) => None,
-                            };
-                            self.find_unit_with_radius(uber_r, c, exempt)
-                                || match who {
-                                    Seeker::Unit(u) => self.find_unit_ordered_with_radius(
-                                        uber_r,
-                                        c,
-                                        self.units[u].owner,
-                                        exempt,
-                                    ),
-                                    Seeker::Type(_) | Seeker::TypeFor(..) => false,
-                                }
-                        }
-                        (false, Seeker::Unit(u)) if coll == Coll::All => {
-                            let r = if p.block_radius == 0 {
-                                0x180
-                            } else {
-                                p.block_radius
-                            };
-                            // The seeker counts (item 955): no exemption
-                            // on the position query under `FILTER_ALL`.
-                            self.find_unit_with_radius(r, c, None)
-                                || self.find_unit_ordered_with_radius(
-                                    r,
-                                    c,
-                                    self.units[u].owner,
-                                    Some(u),
-                                )
-                        }
-                        (false, Seeker::Unit(u) | Seeker::TypeFor(_, u)) => {
-                            self.find_collision(u, c) || self.find_ordered_collision(u, c)
-                        }
-                        (false, Seeker::Type(_)) => {
-                            self.find_unit_with_radius(p.block_radius, c, None)
-                        }
-                    };
-                if hit {
-                    continue;
-                }
-                return Some(c);
-            }
-            if max <= r {
-                return None;
-            }
-            r = (r + step).min(max);
-        }
+        // `unit_flags & 0x10`, the transport-capable flag, which this
+        // crate does not model: assumed clear (the ring's comment).
+        spot_ring(
+            &SimSpot(self),
+            who,
+            &p,
+            false,
+            centre,
+            (min, max, step),
+            angle,
+            footprint_of.map(|b| (b, farm_ok)),
+            coll,
+            uber,
+        )
     }
 
     /// The swarm ring (§5.4): `min(x_size, y_size) × 0x60 + 0x30`, halved
@@ -8038,7 +8126,9 @@ impl Sim {
         }
     }
 
-    /// `Unit::do_build` (§5.2).
+    /// `Unit::do_build` (§5.2): [`do_build_steps`] over [`DoBuildView`]
+    /// (`SimDoBuild`); `crates/sim/src/sweep/unit_do_build.rs` runs the
+    /// steps against the original under the emulator (item 3295).
     fn do_build(&mut self, u: usize, frame: i64) {
         let Some(Order {
             body: Body::Build(b),
@@ -8047,118 +8137,13 @@ impl Sim {
         else {
             return;
         };
-        let who = self.units[u].owner;
-        let action = flags & flag::ACTION != 0;
-        if !self.buildings.get(b).is_some_and(|bd| bd.alive) {
-            self.kill_current_order(u);
-            if self.order_type(u) != index::NONE {
-                return;
-            }
-            self.build_done(u, Some(b));
-            return;
-        }
-        if self.buildings[b].active {
-            self.kill_current_order(u);
-            if self.order_type(u) != index::NONE {
-                self.check_build_order(u);
-                return;
-            }
-            // §5.2 step 2, and the same predicate as step 6: only an
-            // **oil platform** overrides it, and the exemption is
-            // "not AI-driven *and* a gathering stance". An AI builder
-            // that finds its site already finished never adopts it — it
-            // goes back through `build_done`'s own arm.
-            if self.building_ident(b) != Ident::OilPlatform
-                && (self.ai_driven(who) || self.units[u].stance > 1)
-            {
-                self.build_done(u, Some(b));
-                return;
-            }
-            if self.buildings[b].owner != who
-                || !self.is_gather_type(b)
-                || self.building_ident(b) == Ident::University
-            {
-                self.build_done(u, Some(b));
-                return;
-            }
-            self.add_gather_order(u, b, QueuePos::New, false);
-            // `LAB_005eed5f`: the gather clears the unit's `+0x80`
-            // (`group`), the pointer only (`005eed9c`, item 1167).
-            self.units[u].group_ptr = None;
-            return;
-        }
-        let inside =
-            self.covers_tile(b, self.units[u].pos.tile()) && self.building_ident(b) != Ident::Farm;
-        if !self.adjacent_to(u, b) || inside {
-            self.kill_current_order(u);
-            // `Unit::do_build@005eebf0` re-enters through a one-member
-            // `Group` at `QUEUE_FIRST` (`005ef165`–`005ef1a0`): the group
-            // insert dance (`Group::action_swarm_around@0070fbe0`,
-            // `docs/GROUPS.md` §17) — the unit's action-flagged orders
-            // copied aside, the member halted, this swarm at `QUEUE_NEW`,
-            // and each copy re-issued at `QUEUE_LAST`, so a build queued
-            // behind this one is swarmed afresh from where the unit now
-            // stands (run767's `1/12` on 2877, `docs/AI.md` §189).
-            let mut g = crate::group::Group::stack(who);
-            self.group_add(&mut g, u);
-            let insert = self.group_set_up_insert(&g);
-            self.group_action_halt(&g, 0);
-            self.swarm_around(u, b, Body::Build(b), action);
-            self.group_finish_insert(&g, insert);
-            return;
-        }
-        // §5.2 step 4's first half, and it is a draw the arrival stand
-        // would otherwise spend: the builder is put on its **work**
-        // animation before it is turned, so `Guy::move`'s arrival test
-        // (`cur_anim == CHAR_WALK`) never sees a walk again and the idle
-        // roll at `Guy::set_anim+0x97a < Guy::move+0x19f` never fires
-        // (`docs/ANIM.md` §4.6). A farm sows; everything else builds.
-        let work = if self.building_ident(b) == Ident::Farm {
-            anim::SOW
-        } else {
-            anim::BUILD
-        };
-        self.set_anim(u, work, false, true);
-        let bpos = self.buildings[b].pos;
-        let here = self.units[u].pos;
-        // `Unit::do_build@005eebf0:155` turns the builder through
-        // `Unit::set_angle`, whose turn of 90° or more toggles the mirror
-        // of the group it leads — the `@build`'s own group. That flag is
-        // the layout's `facing` on the group's next move (item 1330:
-        // chapter forty-seven's builders, `facing` 1 on block 624).
-        self.unit_set_angle(u, find_angle(bpos.x - here.x, bpos.y - here.y));
-        let amount = build::builder_amount(
-            &self.tuning,
-            self.buildings[b].is_under_attack(),
-            self.nation[who as usize].koreans,
-        );
-        if !self.do_construct(b, amount) {
-            return;
-        }
         let _ = frame;
-        self.kill_current_order(u);
-        let rest = self.order_type(u);
-        if rest != index::NONE {
-            self.check_build_order(u);
-            return;
-        }
-        // §5.2 step 6 — **the builder keeps the building it just finished
-        // only if it is not the AI's.** `(OILPLATFORM or (not
-        // `unit_masks & 0x40000` and stance ∈ {0,1}))`; an AI citizen goes
-        // to `build_done`, whose own arm searches afresh and may well pick
-        // a different building.
-        let gather = (self.building_ident(b) == Ident::OilPlatform
-            || (!self.ai_driven(who) && self.units[u].stance <= 1))
-            && self.buildings[b].owner == who
-            && self.is_gather_type(b)
-            && self.building_ident(b) != Ident::University;
-        if gather {
-            self.add_gather_order(u, b, QueuePos::New, false);
-            // The same `LAB_005eed5f` (entered at `005ef12b`'s `je`).
-            self.units[u].group_ptr = None;
-            return;
-        }
-        self.build_done(u, Some(b));
+        do_build_steps(&mut SimDoBuild {
+            s: self,
+            u,
+            b,
+            action: flags & flag::ACTION != 0,
+        });
     }
 
     /// `Unit::check_build_order` (§5.3): pop the queued build orders, re-add
@@ -11438,6 +11423,328 @@ pub(crate) fn add_air_patrol_steps<C, O>(
         *f &= !flag::ACTION;
     }
     link(cx, o);
+}
+
+/// What `Unit::do_build@005eebf0` asks of its unit, the order's site and the
+/// world, in the order it asks (item 3295). [`SimDoBuild`] answers from this
+/// crate's state; the sweep answers from the emulated original's windows.
+///
+/// The site is the order's `(idx, uid)` pair; the view holds it, so no
+/// method takes one. The `is(type)` questions are the object's vslot `+0xb8`
+/// (the slow arm of the compare with `ObjectData::is`); the sweep holds that
+/// arm only.
+pub trait DoBuildView {
+    /// The order's body (vslot `+0x60`), `idx` and `uid` both non-negative,
+    /// and the object's vslot `+0xc` (in use).
+    fn site_alive(&mut self) -> bool;
+    /// The object's vslot `+0x4c`: the site is already finished.
+    fn site_active(&mut self) -> bool;
+    /// `Unit::kill_current_order(0)`.
+    fn kill_current_order(&mut self);
+    /// `UnitData::order_type != NONE`, inlined (the dead-site arm: the
+    /// list head, the cursor, vslot `+0x10` of the current order).
+    fn order_pending_inline(&mut self) -> bool;
+    /// `UnitData::order_type != NONE`, called.
+    fn order_pending(&mut self) -> bool;
+    /// `Unit::build_done(idx, uid, gather_respond_range * 0xc0)`.
+    fn build_done(&mut self);
+    /// `Unit::check_build_order`.
+    fn check_build_order(&mut self);
+    /// The site's `is(0x1a6)`: an oil platform.
+    fn is_oil(&mut self) -> bool;
+    /// `unit_masks & 0x40000`.
+    fn ai_driven(&mut self) -> bool;
+    /// The unit's vslot `+0xf8`: the worker stance.
+    fn stance(&mut self) -> i32;
+    /// The unit's player is the order's `uid`.
+    fn owned(&mut self) -> bool;
+    /// The site's data record, vslot `+0x90` of the object behind `+0x18`.
+    fn is_gather_type(&mut self) -> bool;
+    /// The site's `is(0x1a4)`: a University.
+    fn is_university(&mut self) -> bool;
+    /// `Unit::add_gather_order(idx, QUEUE_NEW, 0)`.
+    fn add_gather_order(&mut self);
+    /// What follows the gather order at `LAB_005eed5f`: the select-group
+    /// drop-out (the player's group with more than one member is told, vslot
+    /// `+0x10`) and the unit's `+0x80` cleared. SEAM: the interface's
+    /// select groups are not modelled.
+    fn gather_adopted(&mut self);
+    /// The unit's vslot `+0x170` (`adjacent_to`) of the site.
+    fn adjacent(&mut self) -> bool;
+    /// `WallData::covers_tile` of the site's footprint at the unit's tile.
+    fn covers_tile(&mut self) -> bool;
+    /// The footprint object's `is(0x1a1)` (a Farm), vtable-compared.
+    fn wall_is_farm(&mut self) -> bool;
+    /// The order's flag byte `& 4`, through its virtual base.
+    fn order_action(&mut self) -> bool;
+    /// `Group::action_swarm_around(idx, player, QUEUE_FIRST, BUILD_AT,
+    /// action)` on a one-member stack group.
+    fn swarm(&mut self, action: bool);
+    /// The site object's own `is(0x1a1)`: the work animation is a sow.
+    fn is_farm(&mut self) -> bool;
+    /// `Unit::set_anim(CHAR_BUILD or CHAR_SOW, 0, 1)`.
+    fn set_work_anim(&mut self, farm: bool);
+    /// `find_angle` of the site from the unit.
+    fn angle_to_site(&mut self) -> i32;
+    /// The unit's `+0x50`.
+    fn heading(&mut self) -> i32;
+    /// `Unit::set_angle(angle, ..., 0)`.
+    fn set_angle(&mut self, angle: i32);
+    /// `unit_masks & 1`: a decoy builds nothing.
+    fn decoy(&mut self) -> bool;
+    /// `constants->accel_construct`.
+    fn accel_construct(&mut self) -> i32;
+    /// The Koreans' tribe bonus `0x10` **and** `korean_build_under_fire`.
+    fn under_fire_exempt(&mut self) -> bool;
+    /// The site's vslot `+0x188` (`WallData::is_under_attack`).
+    fn site_under_attack(&mut self) -> bool;
+    /// `Wall::do_construct(amount)` of the site.
+    fn do_construct(&mut self, amount: i32) -> bool;
+    /// The unit's `+0x80` names a group (not negative).
+    fn has_group(&mut self) -> bool;
+    /// `Group::normalize` of the unit's group.
+    fn group_normalize(&mut self);
+    /// `GroupData::count(COUNT_PEASANTS, 0, 0)` of the unit's group.
+    fn group_peasants(&mut self) -> i32;
+}
+
+/// **`Unit::do_build@005eebf0`'s steps** (item 3295, `docs/ORDERS.md` §5.2):
+/// the dead or finished site, the re-swarm of a builder out of reach or
+/// standing in a footprint, the work animation, the turn, the decoy's early
+/// return, the construction, and what the builder does once the site is up.
+pub fn do_build_steps<V: DoBuildView>(v: &mut V) {
+    if !v.site_alive() {
+        v.kill_current_order();
+        if v.order_pending_inline() {
+            return;
+        }
+        v.build_done();
+        return;
+    }
+    // Whether the worker keeps the finished site: oil platforms always, a
+    // player's builder only on a gathering stance (0 or 1).
+    fn adopts<V: DoBuildView>(v: &mut V) -> bool {
+        let oil = v.is_oil();
+        (oil || (!v.ai_driven() && (v.stance() == 1 || v.stance() == 0)))
+            && v.owned()
+            && v.is_gather_type()
+            && !v.is_university()
+    }
+    if v.site_active() {
+        v.kill_current_order();
+        if v.order_pending() {
+            v.check_build_order();
+            return;
+        }
+        if adopts(v) {
+            v.add_gather_order();
+            v.gather_adopted();
+        } else {
+            v.build_done();
+        }
+        return;
+    }
+    let reach = v.adjacent() && !(v.covers_tile() && !v.wall_is_farm());
+    if !reach {
+        // `005ef165`: the order's action bit is read before the kill.
+        let action = v.order_action();
+        v.kill_current_order();
+        v.swarm(action);
+        return;
+    }
+    let farm = v.is_farm();
+    v.set_work_anim(farm);
+    let angle = v.angle_to_site();
+    if v.heading() != angle {
+        v.set_angle(angle);
+    }
+    if v.decoy() {
+        return;
+    }
+    let accel = v.accel_construct();
+    let amount = if !v.under_fire_exempt() && v.site_under_attack() {
+        accel / 4
+    } else {
+        accel
+    };
+    if !v.do_construct(amount) {
+        return;
+    }
+    v.kill_current_order();
+    let pending = v.order_pending();
+    if pending {
+        if !v.is_gather_type() || v.is_university() || !v.has_group() {
+            v.check_build_order();
+            return;
+        }
+        v.group_normalize();
+        if v.group_peasants() < 2 {
+            v.check_build_order();
+            return;
+        }
+    }
+    if adopts(v) {
+        v.add_gather_order();
+        v.gather_adopted();
+    } else if pending {
+        v.check_build_order();
+    } else {
+        v.build_done();
+    }
+}
+
+/// [`DoBuildView`] over the live [`Sim`].
+struct SimDoBuild<'a> {
+    s: &'a mut Sim,
+    u: usize,
+    b: usize,
+    action: bool,
+}
+
+impl DoBuildView for SimDoBuild<'_> {
+    fn site_alive(&mut self) -> bool {
+        self.s.buildings.get(self.b).is_some_and(|bd| bd.alive)
+    }
+    fn site_active(&mut self) -> bool {
+        self.s.buildings[self.b].active
+    }
+    fn kill_current_order(&mut self) {
+        self.s.kill_current_order(self.u);
+    }
+    fn order_pending_inline(&mut self) -> bool {
+        self.s.order_type(self.u) != index::NONE
+    }
+    fn order_pending(&mut self) -> bool {
+        self.s.order_type(self.u) != index::NONE
+    }
+    fn build_done(&mut self) {
+        self.s.build_done(self.u, Some(self.b));
+    }
+    fn check_build_order(&mut self) {
+        self.s.check_build_order(self.u);
+    }
+    fn is_oil(&mut self) -> bool {
+        self.s.building_ident(self.b) == Ident::OilPlatform
+    }
+    fn ai_driven(&mut self) -> bool {
+        self.s.ai_driven(self.s.units[self.u].owner)
+    }
+    fn stance(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].stance)
+    }
+    fn owned(&mut self) -> bool {
+        self.s.buildings[self.b].owner == self.s.units[self.u].owner
+    }
+    fn is_gather_type(&mut self) -> bool {
+        self.s.is_gather_type(self.b)
+    }
+    fn is_university(&mut self) -> bool {
+        self.s.building_ident(self.b) == Ident::University
+    }
+    fn add_gather_order(&mut self) {
+        self.s
+            .add_gather_order(self.u, self.b, QueuePos::New, false);
+    }
+    fn gather_adopted(&mut self) {
+        // `LAB_005eed5f`: the gather clears the unit's `+0x80` (`group`),
+        // the pointer only (`005eed9c`, item 1167).
+        self.s.units[self.u].group_ptr = None;
+    }
+    fn adjacent(&mut self) -> bool {
+        self.s.adjacent_to(self.u, self.b)
+    }
+    fn covers_tile(&mut self) -> bool {
+        self.s.covers_tile(self.b, self.s.units[self.u].pos.tile())
+    }
+    fn wall_is_farm(&mut self) -> bool {
+        self.s.building_ident(self.b) == Ident::Farm
+    }
+    fn order_action(&mut self) -> bool {
+        self.action
+    }
+    fn swarm(&mut self, action: bool) {
+        // `Unit::do_build@005eebf0` re-enters through a one-member
+        // `Group` at `QUEUE_FIRST` (`005ef165`–`005ef1a0`): the group
+        // insert dance (`Group::action_swarm_around@0070fbe0`,
+        // `docs/GROUPS.md` §17) — the unit's action-flagged orders
+        // copied aside, the member halted, this swarm at `QUEUE_NEW`,
+        // and each copy re-issued at `QUEUE_LAST`, so a build queued
+        // behind this one is swarmed afresh from where the unit now
+        // stands (run767's `1/12` on 2877, `docs/AI.md` §189).
+        let (u, b) = (self.u, self.b);
+        let who = self.s.units[u].owner;
+        let mut g = crate::group::Group::stack(who);
+        self.s.group_add(&mut g, u);
+        let insert = self.s.group_set_up_insert(&g);
+        self.s.group_action_halt(&g, 0);
+        self.s.swarm_around(u, b, Body::Build(b), action);
+        self.s.group_finish_insert(&g, insert);
+    }
+    fn is_farm(&mut self) -> bool {
+        self.s.building_ident(self.b) == Ident::Farm
+    }
+    fn set_work_anim(&mut self, farm: bool) {
+        // §5.2 step 4's first half, and it is a draw the arrival stand
+        // would otherwise spend: the builder is put on its **work**
+        // animation before it is turned, so `Guy::move`'s arrival test
+        // (`cur_anim == CHAR_WALK`) never sees a walk again and the idle
+        // roll at `Guy::set_anim+0x97a < Guy::move+0x19f` never fires
+        // (`docs/ANIM.md` §4.6). A farm sows; everything else builds.
+        let work = if farm { anim::SOW } else { anim::BUILD };
+        self.s.set_anim(self.u, work, false, true);
+    }
+    fn angle_to_site(&mut self) -> i32 {
+        let bpos = self.s.buildings[self.b].pos;
+        let here = self.s.units[self.u].pos;
+        find_angle(bpos.x - here.x, bpos.y - here.y).0
+    }
+    fn heading(&mut self) -> i32 {
+        self.s.units[self.u].movement.heading.0
+    }
+    fn set_angle(&mut self, angle: i32) {
+        // `Unit::do_build@005eebf0:155` turns the builder through
+        // `Unit::set_angle`, whose turn of 90° or more toggles the mirror
+        // of the group it leads — the `@build`'s own group. That flag is
+        // the layout's `facing` on the group's next move (item 1330:
+        // chapter forty-seven's builders, `facing` 1 on block 624).
+        self.s.unit_set_angle(self.u, Angle(angle));
+    }
+    fn decoy(&mut self) -> bool {
+        self.s.units[self.u].decoy
+    }
+    fn accel_construct(&mut self) -> i32 {
+        self.s.tuning.accel_construct
+    }
+    fn under_fire_exempt(&mut self) -> bool {
+        self.s.nation[self.s.units[self.u].owner as usize].koreans
+            && self.s.tuning.korean_build_under_fire != 0
+    }
+    fn site_under_attack(&mut self) -> bool {
+        self.s.buildings[self.b].is_under_attack()
+    }
+    fn do_construct(&mut self, amount: i32) -> bool {
+        self.s.do_construct(self.b, amount)
+    }
+    fn has_group(&mut self) -> bool {
+        self.s.units[self.u].group_ptr.is_some()
+    }
+    fn group_normalize(&mut self) {
+        if let Some(seat) = self.s.seat_of(self.u) {
+            self.s.seat_normalize(seat);
+        }
+    }
+    fn group_peasants(&mut self) -> i32 {
+        // SEAM: a rider's host (`is_map_unit` with `+0x28` set) is counted
+        // too by the original; a peasant never carries, so it adds none.
+        let Some(seat) = self.s.seat_of(self.u) else {
+            return 0;
+        };
+        self.s
+            .seat_list(seat)
+            .iter()
+            .filter(|&&m| self.s.units[m].alive() && self.s.is_peasant(m))
+            .count() as i32
+    }
 }
 
 /// What `Unit::add_gather_order@0061a5c0` asks of the unit, the order and
