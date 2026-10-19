@@ -3637,7 +3637,30 @@ mod tests {
     #[test]
     fn a_boat_on_a_coastal_cell_s_water_searches_from_the_sea() {
         let mut f = fix();
-        f.sim.world.set_region_flags(f.land, 8);
+        // The only region the leader wants is an island across the sea:
+        // the boat's own land answers `is_coast` of itself, so the island
+        // is what tells the two regions apart.
+        let far = f
+            .sim
+            .world
+            .fill_region(Terrain::Land, Cell::new(11, 0), Cell::new(11, 7));
+        for y in 0..8 {
+            let c = Cell::new(11, y);
+            let mut d = f.sim.world.cell_data(c);
+            d.land = 0;
+            d.flags |= 0x100;
+            d.region2 = Some(f.sea);
+            f.sim.world.set_cell_data(c, d);
+            for tx in 44..48 {
+                for ty in y * 4..y * 4 + 4 {
+                    f.sim
+                        .world
+                        .set_tile_field(Pos::new(tx, ty), tile::SURFACE, 0);
+                }
+            }
+        }
+        f.sim.world.rebuild_coasts();
+        f.sim.world.set_region_flags(far, 8);
         let at = tile_pos(31, 13);
         f.sim
             .world
@@ -3652,8 +3675,14 @@ mod tests {
         f.sim.units[rider].on_map = false;
         assert!(
             f.sim.think_carry(boat),
-            "the sea's coast is found from the coastal cell's water"
+            "the island's coast is found from the coastal cell's water"
         );
+        let dest = f.sim.units[boat]
+            .orders
+            .front()
+            .and_then(|o| o.move_dest())
+            .expect("a move order");
+        assert!(dest.cell().x >= 10, "towards the island: {dest:?}");
     }
 
     /// The shore arm of `think_carry_civilian` (§195): a boat beside the land
