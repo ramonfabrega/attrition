@@ -177,7 +177,10 @@ impl Sim {
             return;
         }
         self.buildings[b].regen_roads = false;
-        let probe = std::env::var("RON_PROBE_ROADS").ok().and_then(|v| v.parse::<i64>().ok()) == Some(frame);
+        let probe = std::env::var("RON_PROBE_ROADS").ok().is_some_and(|v| {
+            let (a, b) = v.split_once('-').unwrap_or((&v, &v));
+            (a.parse::<i64>().unwrap_or(0)..=b.parse::<i64>().unwrap_or(0)).contains(&frame)
+        });
         let was = self.trace_costs;
         if probe {
             self.trace_costs = true;
@@ -188,7 +191,7 @@ impl Sim {
             self.trace_costs = was;
             let bd = &self.buildings[b];
             eprintln!("PROBE roads f{frame} b{b} {}/{} ty {:?} pos {:?} city {:?} marks {}", bd.owner, bd.index, bd.ty, bd.pos, bd.city, self.road_marks.len());
-            for (i, m) in self.road_marks.iter().enumerate() {
+            for (i, m) in self.road_marks.iter().enumerate().filter(|_| std::env::var("RON_PROBE_MARKS").is_ok()) {
                 eprintln!("PROBE  {i} to {:?} from {:?} dir {} cost {}", m.to, m.from, m.dir, m.cost);
             }
         }

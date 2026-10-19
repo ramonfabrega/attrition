@@ -188,8 +188,15 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         let Some((f, ours)) = built.frame_sites.last() else {
             continue;
         };
-        if std::env::var("RON_PROBE_ROADS").ok().and_then(|v| v.parse::<i64>().ok()) == Some(*f) {
-            for (i, m) in tr.road_nodes(*f).iter().enumerate() {
+        if std::env::var("RON_PROBE_ROADS").ok().is_some_and(|v| {
+            let (a, b) = v.split_once('-').unwrap_or((&v, &v));
+            (a.parse::<i64>().unwrap_or(0)..=b.parse::<i64>().unwrap_or(0)).contains(f)
+        }) {
+            let n = tr.road_nodes(*f);
+            if !n.is_empty() {
+                eprintln!("PROBT roads f{f} nodes {}", n.len());
+            }
+            for (i, m) in n.iter().enumerate().filter(|_| std::env::var("RON_PROBE_MARKS").is_ok()) {
                 eprintln!("PROBT  {i} to {:?} from {:?} dir {} cost {}", m.to, m.from, m.dir, m.cost);
             }
         }
