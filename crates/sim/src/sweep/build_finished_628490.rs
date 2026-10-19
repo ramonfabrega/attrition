@@ -223,7 +223,7 @@ fn the_emulated_original_agrees_on_every_row() {
                         ans(4)
                     };
                     if senate != 0 {
-                        call(log, 21, &lead, &[lead.clone()]);
+                        call(log, 21, &lead, std::slice::from_ref(&lead));
                         let hero = ans(21);
                         if hero >= 0 {
                             if rd(&p[7 * who + 4], 0) < 0 {
