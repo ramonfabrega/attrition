@@ -18183,3 +18183,8 @@ Kept in place: `~/ron-golden/run946/map-14/frame-snapshot.bin`, 840,195,088 byte
 
 `docs/GOLDEN.md` §141. **What the disk could not answer**: no dump held a building shooter striking a unit beside a `blocks_while_dead` wreck. Recipe `tools/gamelog/golden/chapter104.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch104/map-14/`, 1,501 frames, seed 12345. Waited on another lane: none.
 **What it holds**: `golden::chapter_one_hundred_and_four_holds_to_the_golden_word` (1500, closed) and `chapter_one_hundred_and_four_s_window_is_widened_whole` (eleven standing `form` rows); its window 1496..1500 (four blocks) is in the coverage driver's slice.
+
+## run950 — chapter one hundred and five: a Tower meets a squad walking toward it (2026-10-18, item 3292, `att-3292`)
+
+`docs/GOLDEN.md` §142. **What the disk could not answer**: no dump held a squad walking (a move front) toward a building shooter. Recipe `tools/gamelog/golden/chapter105.cmd` (`--map 14 --end-frame 1500 --log-window 605 1500`, chapter 94's `end:`/`start:` sets). Pool lane 1, kept in `~/ron-golden/ch105/map-14/`, 1,501 frames, seed 12345, 494 s. Waited on another lane: none.
+**What it holds**: `golden::chapter_one_hundred_and_five_holds_to_the_golden_word` (1500, closed) and `chapter_one_hundred_and_five_s_window_is_widened_whole` (eleven standing `form` rows); its window 1496..1500 (four blocks) is in the coverage driver's slice.

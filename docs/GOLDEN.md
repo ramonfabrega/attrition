@@ -13526,12 +13526,17 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: the draws, orders and every dumped value to 1500. Reading only: nothing new.
 
-## 142. Reserved for the next item on the rules track
+## 142. Chapter one hundred and five — a Tower meets a squad walking toward it; closed at 1500 on the first take, no code (item 3292, run950)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking** (parked 3291, 3283): chapter 104's victims were stationary until struck, so `Unit::target_opportunity`'s move-front proximity arm (line 121) was never reached.
+
+**Staging** (`tools/gamelog/golden/chapter105.cmd`, 17 lines, `RON_STAGE=ch76:chapter105:1500`): chapter 104's recipe plus `806 @move 0 14592 16032 10` and `806 @move 0 14592 16008 13`, the two hoplite captains (squads 0/10..12, 0/13..15) ordered east toward the Tower added at 800. `stage_walk` landed 17 lines; each `@move` reached its squad of three. Run950 on the pool's lane 1, 1,501 frames, seed 12345, chapter 94's detail sets.
+
+**What the original does and this crate agrees with.** The squad walks from 808 (`MOVEORDER` to 14616,16056), the Tower enters `near` (1/2006) at about 818 and each captain takes an `ATTACKORDER` under its move (`new_ord 1`, `targetorder.ox 2006`). The golden word is the trace's end, 1500: no draw or order part (sequence 810), no value. Window 605..1500 (`WIDENING_CHAPTER_ONE_HUNDRED_AND_FIVE` (604, 1501)) parts on the eleven standing `form` rows and nothing else.
+
+**Not established.** The squad's attack order takes over before a round lands on a walking victim, so the move-front proximity arm's strike-while-walking path is still not shown to run; a Fort's near-face gate is also unreached. Both parked as 3292a.
+
+**Coverage.** Diff-backed: draws, orders and every dumped value to 1500, with the squad moving. Reading only: nothing new.
 
 ## 143. Reserved for the next item on the rules track
 
