@@ -628,6 +628,8 @@ mod object_must_walk;
 mod object_poor_target;
 #[path = "object_repair_damage.rs"]
 mod object_repair_damage;
+#[path = "object_replace_hotunit.rs"]
+mod object_replace_hotunit;
 #[path = "object_support_cost.rs"]
 mod object_support_cost;
 #[path = "object_type_backup.rs"]
