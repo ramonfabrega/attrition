@@ -190,6 +190,8 @@ mod specials_data_find_special;
 mod spell_type_cast_blow_tread;
 #[path = "spell_type_cast_civilian.rs"]
 mod spell_type_cast_civilian;
+#[path = "spell_type_cast_create_decoy.rs"]
+mod spell_type_cast_create_decoy;
 #[path = "spell_type_cast_depopulate.rs"]
 mod spell_type_cast_depopulate;
 #[path = "spell_type_cast_jam_radar.rs"]
