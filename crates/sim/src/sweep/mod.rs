@@ -144,6 +144,7 @@ mod unit_data_is_flying_high;
 mod unit_data_is_flying_low;
 mod unit_data_is_gathering_at;
 mod unit_data_is_idle;
+mod unit_do_air_patrol;
 mod unit_do_attack_to_pause;
 mod unit_do_think_order;
 mod unit_get_goody_box;
