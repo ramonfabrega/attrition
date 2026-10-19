@@ -656,13 +656,7 @@ pub trait RevealFogView {
 /// `(fx >> 1, fy >> 1)`; **a cell whose `flags` sign is clear returns before
 /// the goody arm and the box arm**, so the box arm is reached only on a goody
 /// cell.
-pub fn reveal_fog_steps<V: RevealFogView>(
-    v: &mut V,
-    fx: i32,
-    fy: i32,
-    who: i32,
-    unit: i32,
-) {
+pub fn reveal_fog_steps<V: RevealFogView>(v: &mut V, fx: i32, fy: i32, who: i32, unit: i32) {
     let (cx, cy) = (fx >> 1, fy >> 1);
     if v.tile_marked(fx, fy) {
         let gi = v.find_good_at((2 * fx + 1) >> 2, (2 * fy + 1) >> 2, who);
