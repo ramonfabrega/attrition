@@ -1256,6 +1256,48 @@ mod tests {
         assert_eq!(both(4, true), [52, 35]);
     }
 
+    /// **The Greeks' research and Library arms** (item 3326, `docs/AI.md`
+    /// §266): `get_cost:1254` takes a tenth off a tech's price in every good
+    /// but knowledge, and `get_cost:970` two thirds off a Library or a
+    /// University — run961c's City State at food 108 for 120, and run961b's
+    /// University at timber 27 and wealth 17 for 80 and 50.
+    #[test]
+    fn the_greeks_take_a_tenth_off_research_and_two_thirds_off_a_library() {
+        let tech = Price {
+            kind: Kind::Tech,
+            ..Price::free()
+        }
+        .with_base(Resource::Food, 120)
+        .with_base(Resource::Knowledge, 120);
+        let greek = Modifiers {
+            greek_research: 10,
+            ..Modifiers::default()
+        };
+        for r in [Resource::Food, Resource::Knowledge] {
+            let plain = cost_of(&T, &tech, r, owned(0), &Modifiers::default());
+            let off = cost_of(&T, &tech, r, owned(0), &greek);
+            let want = if r == Resource::Knowledge {
+                plain
+            } else {
+                90 * plain / 100
+            };
+            assert_eq!(off, want, "{r:?}");
+        }
+        let university = small_city()
+            .with_base(Resource::Timber, 80)
+            .with_base(Resource::Wealth, 50);
+        let library = Modifiers {
+            greek_library: 66,
+            ..Modifiers::default()
+        };
+        for r in [Resource::Timber, Resource::Wealth] {
+            let plain = cost_of(&T, &university, r, owned(0), &Modifiers::default());
+            let off = cost_of(&T, &university, r, owned(0), &library);
+            assert_eq!(off, 34 * plain / 100, "{r:?}");
+            assert_ne!(off, plain);
+        }
+    }
+
     #[test]
     fn a_building_s_ramp_is_not_capped() {
         let city = small_city();
