@@ -3106,7 +3106,9 @@ mod tests {
         assert!(c.garrison.fortify);
         assert_eq!(c.garrison.trained_at, l.build_named("Small City"));
         assert!(!c.kind.exempt_kind);
-        assert_eq!(c.group, None);
+        // An attacking type counts in its trainer's group whatever its
+        // progression (item 3335): the Citizen's attack is 40.
+        assert_eq!(c.group, Some(0));
         // Hoplites: attack 13 -> 130, a Barracks unit in a jump chain.
         let h = l.unit_named("Hoplites").unwrap();
         let ht = &l.unit_types[h];

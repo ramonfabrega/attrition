@@ -1161,7 +1161,7 @@ fn run710_s_word_frame_is_widened_whole() {
     // leader's 47 (`docs/AI.md` §161).
     // Item 2761: 106 → 100 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 86, "initial run710 baseline");
+    pin_eq!(w.firsts.len(), 81, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)
@@ -1292,7 +1292,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // numbers.
     // Item 2761: 106 → 102 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 88, "initial run711 baseline");
+    pin_eq!(w.firsts.len(), 76, "initial run711 baseline");
     // **The word 1960's value diff, item 1594** (`docs/AI.md` §165): on
     // 1954 every number player 1's births took in the gap is the
     // original's. The Freighter `1/37` (`TypeIndex` 322) reached the Oil
@@ -1353,7 +1353,7 @@ fn run711_s_word_frame_is_widened_whole() {
     // item 1598).
     pin_eq!(
         first,
-        Some(1971),
+        Some(1972),
         "the first parting past the standing block"
     );
 }
@@ -1414,7 +1414,7 @@ fn run714_s_word_frame_is_widened_whole() {
     // first of it to part, the item after's hypothesis.
     // Item 2761: 109 → 105 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 91, "initial run714 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    pin_eq!(w.firsts.len(), 82, "initial run714 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
     pin_eq!(
         w.firsts
             .iter()
@@ -1555,7 +1555,7 @@ fn run715_s_word_frame_is_widened_whole() {
     // spline where the straight line put them on 2939 and 2942
     // (`docs/AI.md` §174). **147** on item 1625's tree merged with 1620's.
     // Item 2761: 114 → 110 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 96, "initial run715 baseline");
+    pin_eq!(w.firsts.len(), 95, "initial run715 baseline");
     pin_eq!(
         w.firsts
             .iter()
@@ -1642,7 +1642,7 @@ fn run716_s_word_frame_is_widened_whole() {
     // position on 3387. The word 3395 lies past the window (run721's).
     // **190** on item 1625's tree merged with 1620's (194 before it).
     // Item 2761: 153 → 149 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 132, "initial run716 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −3, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 131, "initial run716 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −3, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
     let first = w
         .firsts
         .values()
@@ -1770,7 +1770,7 @@ fn run763_s_closing_frame_is_widened_whole() {
     // Item 2384: 190 -> 191, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 190 → 186 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 171, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 170, "run763 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1799,7 +1799,7 @@ fn run762_s_word_frame_is_widened_whole() {
     // Item 2384: 196 -> 197, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 196 → 192 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 177, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 176, "run762 keys that part (item 1719)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −1, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1828,7 +1828,7 @@ fn run754_s_word_frame_is_widened_whole() {
     // Item 1497: `myhits` and `construct_hits` compared on buildings, +2
     // on the tree before item 1700 (411); measured on the merged tree: 204.
     // Item 2761: 176 → 172 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 149, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+    pin_eq!(w.firsts.len(), 148, "run754 keys that part (item 1669)"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680). // Item 3172: −9, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
 }
 
 #[test]
@@ -1867,7 +1867,7 @@ fn run721_s_word_frame_is_widened_whole() {
     // Item 2761: 179 → 175 with `Unit::close`'s count (`docs/AI.md` §232).
     pin_eq!(
         w.firsts.len(),
-        145, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
+        144, // Item 2677: −1 (parked 2680). // Item 3172: −16, the Sulphur siege arm (`get_cost`, a Siege Factory unit)
         "run721 after find_path relocates a unit off a refusing tile (item 1667: 394 -> 326)"
     );
     let path = dump(RUN721).expect("the replay just read run721");
