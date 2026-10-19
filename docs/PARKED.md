@@ -3804,6 +3804,12 @@ live `Ammo` bound for the target before reading formulas (the second round was a
 ammo). Candidates: the guard joins `COMMANDERS_LINES`, made to fail first on a journal with an unfiled line; the note
 a brief row. One reach.
 
+(3334) **A click-free capture launched straight from a session dies on `nodrv_CreateWindow`** (3329's "for the Loop"
+line, its parked 3329e, filed at its merge): twice in one lane the launch died in 3.8 s and read as a renderer
+failure (`docs/ORACLE.md`, "The click-free lane needs a window"); `viadriver.sh tools/explore/golden_capture.sh` ran.
+Candidate: `unattended_capture.py` refuses a launch with no window-server connection and names `viadriver.sh`, made
+to fail first on a launch from a bare shell. One reach.
+
 ## Loop, filed 2026-10-18 — the forty-fourth tranche's
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
