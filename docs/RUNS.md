@@ -18952,3 +18952,22 @@ SHA-256 `192be1fdb1ee183c74afb3dee197ae1e61b79539efd169cd3483f29aa0fb6679`.
 
 **What it holds**: 69 `make_me` offers on 15981, none of type 417, and no `check_income(417)`: theirs' Farm is refused
 at `gather_value`'s three-quarters gate — the census's `gather_slots`, a second copy in ours. No test reads it.
+
+## run967g — the AI word: Great Sahara, the Egyptians at difficulty 4, the word 20031's widening (20025..20282) (2026-10-19, item 3332, `att-3332`)
+
+`docs/AI.md` §269. **What the disk could not answer**: run967c ends on 16033 and run645 prints its setup and closing
+blocks only. `--map 7 --end-frame 20287 --timeout 5400 --log-window 20025 20282 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 09:30:40 and the game exited at 09:49:03 (1103 s). `success`, 20288 frames.
+  `rngcmp.py rontrace-run645.log rontrace-run967g.log`: **20288 identical, 0 differing**. Filed with
+  `filerun.py run967g greatsahara-egyptian-diff4-window-20025-20282`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run967g-greatsahara-egyptian-diff4-window-20025-20282.txt`, 547,174,487 bytes,
+SHA-256 `043c449b650d96b233f1704c1eb19fd4ae237364bd4974032df2a1cc3dcb2cfd`.
+
+Archive `rontrace-run967g.log`, 116,638,304 bytes,
+SHA-256 `5123437e2d43e2b7c2b212967453f839ba4245d7b56e2c0986137d1b1ff18be0`.
+
+**What it holds**: the word 20031's frame, `run967g_s_word_frame_is_widened_whole` (3286 keys on the first try):
+who=1's `1/162` and `1/163` in a fight from block 20030, and `1/92`/`1/160`'s `attack[1].mandatory` apart on 20025.

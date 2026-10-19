@@ -9913,14 +9913,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // industry discount). **And 15782 → 15982** on the same window
     // (who=1's building 417 offered where theirs researches Metal Alloys),
     // **and 15982 → 20031** on it again (the census's `gather_slots`, one
-    // field with the ledger's). 20031 is past run967c's last block, and
-    // its own widening is owed by the item after 3332.
+    // field with the ledger's), widened on **run967g** over 20025..20282
+    // (`run967g_s_word_frame_is_widened_whole`: who=1's `1/162` and
+    // `1/163` in a fight, 3286 keys on the first try).
     (
         "EGYPTIAN_WORD",
         crate::diff::egyptian_word::EGYPTIAN_WORD,
-        Some("run967c_s_word_frame_is_widened_whole"),
+        Some("run967g_s_word_frame_is_widened_whole"),
         3332,
-        Some(crate::diff::egyptian_word::WIDENING_EGYPTIAN_FRAME_15782),
+        Some(crate::diff::egyptian_word::WIDENING_EGYPTIAN_FRAME_20031),
     ),
     // **The battery's Japanese word** (item 3331, DECISIONS 72, 83): frame
     // 576, the Japanese lobby's first try. run960 dumps blocks 0..36 and
@@ -10347,7 +10348,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::egyptian_word::EGYPTIAN_WORD,
         length: 20_380,
         endpoint: None,
-        window: Some("egyptian_frame_15782_window"),
+        window: Some("egyptian_frame_20031_window"),
     },
     // **The battery's fifth word** (DECISIONS 72, 83; item 3329): East
     // Indies, the Dutch at Difficulty 4 — the held-out battery's lowest

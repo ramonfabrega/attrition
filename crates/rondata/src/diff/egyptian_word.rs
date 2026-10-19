@@ -299,3 +299,60 @@ fn run967c_s_word_frame_is_widened_whole() {
         "run967c with the census's gather slots the ledger's"
     );
 }
+
+/// run967g: the word 20031's window, blocks 20025..20282 at run967c's
+/// detail (item 3332); run967c ends on 16033.
+pub(crate) const RUN967G: &str =
+    "gamelog-run967g-greatsahara-egyptian-diff4-window-20025-20282.txt";
+
+/// The window: block 20025 through 20282; the word 20031's own block is
+/// 20032.
+pub(crate) const WIDENING_EGYPTIAN_FRAME_20031: (i64, i64) = (20025, 20282);
+
+pub(crate) fn egyptian_frame_20031_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN.start],
+        true,
+        EGYPTIAN.long,
+        "run967g",
+        &[(RUN967G, WIDENING_EGYPTIAN_FRAME_20031.0)],
+        WIDENING_EGYPTIAN_FRAME_20031,
+        1,
+        &[20032],
+        true,
+    )
+}
+
+#[test]
+fn run967g_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_frame_20031_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3332. On the first try **3286** keys part. Past the standing
+    // set the first are on block 20025, `1/92` and `1/160`'s
+    // `attack[1].mandatory` (ours 0, theirs 1) — apart before the window
+    // opens — and on 20030 the word's unit, who=1's `1/162`: ours two
+    // orders and a three-node path where theirs holds none, `orders_x/y`
+    // (7608, 28584) against (7080, 26280), `collide` 5 against 4 and
+    // `collide_frame` 20025 against 20029. On 20031 `1/162`'s order kind
+    // is 1 against theirs' 10 and it is idle on theirs only, and `1/163`'s
+    // path is 1 node against 17 (`start_dist` 1344 against 672); the
+    // positions part on 20032. The word's draws: theirs
+    // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4` where ours idles
+    // an animal. The next item's frame; not a mechanism yet.
+    pin_eq!(w.firsts.len(), 3286, "run967g on its first try");
+}

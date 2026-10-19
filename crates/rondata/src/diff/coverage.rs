@@ -3437,6 +3437,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::egyptian_word::egyptian_frame_2974_window(),
         || super::egyptian_word::egyptian_gap_967b_window(),
         || super::egyptian_word::egyptian_frame_15782_window(),
+        || super::egyptian_word::egyptian_frame_20031_window(),
         || super::japanese_word::japanese_frame_576_window(),
         || super::spanish_word::spanish_frame_576_window(),
         || super::spanish_word::spanish_frame_7785_window(),

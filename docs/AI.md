@@ -23747,8 +23747,11 @@ rewrites it (wealth excepted) from its walk of the objects lists. The dump shows
 the gate (`ai_build.rs`), the oil reads and `scholar` count read it. **Value diff**: ours' gate reads 20 on 15981;
 run967c 276 → **36** keys — the standing set, the newborns' `g.angle[0]`, the pool and group lists — and nothing on
 15982. **The word moves 15982 → 20031** of 20380: ours 12 draws, theirs 15, at 4, ours `Animal::do_idle+0x83`,
-theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. 20031 is past run967c's window; its widening is owed by
-the next item.
+theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. **Widened** on run967g (20025..20282;
+`run967g_s_word_frame_is_widened_whole`), **3286** keys on the first try: past the standing set, `1/92` and `1/160`'s
+`attack[1].mandatory` (ours 0, theirs 1) already apart on block 20025, and from 20030 who=1's `1/162` — ours two
+orders and a path where theirs holds none, `collide_frame` 20025 against 20029 — and `1/163`'s path, 1 node against
+17, on 20031. The next item's frame; not a mechanism.
 
 Each fix has a test (`holdings::tests::an_egyptian_worked_farm_pays_two_wealth_flat`,
 `rares::tests::reveal_fog_marks_the_rare_it_meets_seen`) and a `tools/mutate.py` mutation that held against
