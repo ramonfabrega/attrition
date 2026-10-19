@@ -5058,7 +5058,7 @@ pub(crate) mod tests {
         // Item 1461: (112, 118) → (106, 112); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (36, 36), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (36, 36), // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -5261,7 +5261,7 @@ pub(crate) mod tests {
         // Item 1461: (118, 210) → (112, 204); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (36, 36), // Item 2997: (38, 125) → (38, 38), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (36, 36), // Item 2997: (38, 125) → (38, 38), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -5603,7 +5603,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, own.len(), firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -5714,7 +5714,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -5872,7 +5872,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6027,7 +6027,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6151,7 +6151,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
@@ -6295,7 +6295,7 @@ pub(crate) mod tests {
         // Item 1461: (216, 0, 216) → (210, 0, 210); a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
         pin_eq!(
             (under, mid, firsts.len()), // Item 1444: the ruins guard removes stale site fields (batch replay).
-            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+            (38, 0, 38), // Item 2997: (127, 0, 127) → (40, 0, 40), the Citizens' Militia pool at the next leader pass (`docs/AI.md` §244). Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 3287: −2, `1/41`'s idle roll on 11922 (`init_real` zeroes `guy_flags`, `docs/AI.md` §260).
             "the floor"
         );
     }
