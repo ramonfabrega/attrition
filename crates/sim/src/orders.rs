@@ -4128,59 +4128,16 @@ impl Sim {
         // `AWAIT_BOARD`, which this crate never puts under a move.
         let Some(a) = self.action_of(u) else { return };
         match self.units[u].orders[a].body {
-            Body::Attack(_) => {
-                self.check_target_path(u);
-            }
             Body::Guard(_) if self.units[u].phase(frame).rem_euclid(64) == 0 => {
                 self.repath(u);
             }
-            // **The `GARRISON` arm** (`check_target_path@005e22d0`, action
-            // type `0x1a`): a building target that is on the map and
-            // `Object::adjacent_to` the unit (vslot `+0x170`) ends the walk
-            // — `repath` pops the leg — and the head re-read runs
-            // `do_garrison` on the same frame, which takes the squad in
-            // (`docs/ORDERS.md` §29). run208's chariot goes in on 699
-            // without its last step, ~140 short of its leg's point.
-            Body::Garrison { building, .. } if self.adjacent_to(u, building) => {
-                self.repath(u);
+            // The attack, the garrison and the cast arms are one function in
+            // the original, `Unit::check_target_path@005e22d0`, whose arm is
+            // picked by the action's type ([`check_target_path_steps`]).
+            Body::Attack(_) | Body::Garrison { .. } | Body::Cast(_) => {
+                self.check_target_path(u);
             }
-            Body::Cast(c) => self.check_cast_target_path(u, c),
             _ => {}
-        }
-    }
-
-    /// `Unit::check_target_path@005e22d0`'s action-type `0xe` arm (a
-    /// cast on an object target, `docs/GOLDEN.md` §110): a target that
-    /// is seen by the caster's player and is no longer a valid one ends
-    /// the walk **and the cast** (`repath`, `kill_current_order`); a
-    /// valid **unit** whose head order is a move (`UnitData::is_moving`)
-    /// ends the walk only (`repath`), and the head re-read runs
-    /// `do_cast` the same frame, which re-aims the approach at where the
-    /// target now stands. run880's `0/7` on 1177, five frames after its
-    /// approach began.
-    ///
-    /// The listing's `+0x8 & 1` is the target object's `flags & 1`
-    /// (`obj_alive` here), and the `is_moving` test sits behind the
-    /// object's own vslot `+0x8` (is a unit), so a building target is
-    /// never `repath`ed — the arm as written (run889, `docs/GOLDEN.md`
-    /// §112: the kill on 1258, backed by a mutation that parts there).
-    ///
-    /// SEAM: the arm's `is_seen` is `target_is_seen`'s fog half.
-    fn check_cast_target_path(&mut self, u: usize, c: CastOrder) {
-        let Some(t) = c.target else { return };
-        if !self.target_is_seen(Obj::Unit(u), t) {
-            return;
-        }
-        let who = self.units[u].owner;
-        if !self.obj_alive(t) || !self.spell_valid_target(c.spell, who, t) {
-            self.repath(u);
-            self.kill_current_order(u);
-            return;
-        }
-        if let Obj::Unit(v) = t
-            && self.is_moving(v)
-        {
-            self.repath(u);
         }
     }
 
@@ -4237,150 +4194,32 @@ impl Sim {
         }
     }
 
-    /// `Unit::check_target_path@005e22d0`'s first arm: **the chase that has
-    /// arrived**. The target is in reach on the plain radius — no
-    /// `mandatory` margin, unlike `do_move`'s own kill (§35.3) — so the
-    /// transit legs are dropped and the attack underneath takes over.
+    /// `Unit::check_target_path@005e22d0` (item 3304): [`check_target_path_steps`]
+    /// over [`CheckTargetView`] (`SimCheckTarget`), for the action order the
+    /// sixteen-frame review found. The three action types this crate routes
+    /// here are the ones its orders carry: an `ATTACK` (10) on the unit's
+    /// combat target, a `CAST` (`0xe`) on the spell's target object and a
+    /// `GARRISON` (`0x1a`) on its building.
     ///
-    /// The flank triple ahead of the range test is `do_move@005f7fbe`'s,
-    /// with one difference that matters: the angle it compares the
-    /// target's facing against is the **bearing from the attacker to the
-    /// target** (`find_angle(t.x − my.x, t.y − my.y)`) rather than the
-    /// attacker's own heading. A target facing within 120° of that bearing
-    /// is running away from me, and a running target that is *moving* is
-    /// chased rather than shot at.
-    ///
-    /// Returns whether the review changed the order list.
-    ///
-    /// **A fleeing target re-aims the chase** (item 1023, `docs/COMBAT.md`
-    /// §67): when the flank triple holds, the original does not return —
-    /// it falls through to [`Self::rechase_fleeing`].
-    ///
-    /// SEAM: a **building** target (vslot `+0x8` answers 0) takes the same
-    /// fall-through, and every exit it can reach there returns 0 but one —
-    /// the building's vslot `+0xbc` answering 0, which `repath`s. This
-    /// crate returns for a building, as it always has.
+    /// Returns what the original returns: whether the review changed the
+    /// order list (the only caller ignores it).
     fn check_target_path(&mut self, u: usize) -> bool {
-        let me = Obj::Unit(u);
-        let Some(t) = self.units[u].combat.target else {
+        let Some(a) = self.action_of(u) else {
             return false;
         };
-        if !self.target_is_seen(me, t) {
-            return false;
-        }
-        let Obj::Unit(tu) = t else { return false };
-        // **A dead target is re-aimed at** (item 1086, `docs/COMBAT.md`
-        // §76): `5e2429` asks the slot's vslot `+0x8`, which on a unit is
-        // `SubObjectData::is_active@0046cda0` (`flags & 1`, read off the
-        // vtable's own bytes), and `je 5e24e8` jumps a dead one past the
-        // flank triple into the fall-through. `Object::close` clears the
-        // flag and leaves the object in `objects[whom][ox]` with its
-        // position and `inside_up`, so the chase is re-aimed at the
-        // corpse's last spot on every review.
-        if !self.units[tu].alive() {
-            return self.rechase_fleeing(u, t);
-        }
-        if !self.active(t) {
-            return false;
-        }
-        // `5e2434`-`5e24b3`: the target's facing against the bearing to it.
-        let (tp, mp) = (self.pos_of(t), self.units[u].pos);
-        let bearing = crate::movement::find_angle(tp.x - mp.x, tp.y - mp.y);
-        let e = (self.units[tu].movement.heading.0 as u32)
-            .wrapping_sub(bearing.0 as u32)
-            .wrapping_add(0x8000_0000);
-        // `5e2493`: the negative half of the window is tested inline and
-        // jumps past the call, so `flanking` alone is not the predicate.
-        if e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && self.is_moving(tu) {
-            return self.rechase_fleeing(u, t);
-        }
-        if !self.is_in_range(me, t) {
-            return false;
-        }
-        self.repath(u);
-        true
-    }
-
-    /// **`check_target_path@005e22d0`'s fall-through for a fleeing unit
-    /// target** (item 1023, `docs/COMBAT.md` §67), from the listing
-    /// (`5e24e2`–`5e2873`), for an `ATTACK` action (`local_14 == 10`):
-    ///
-    /// 1. the target's vslot `+0xbc`, `UnitData::is_on_map`, answers 0 →
-    ///    `repath`, return 1 (`5e24f9`, `5e2529`);
-    /// 2. `is_in_range@006486b0(o, who, orders_x, orders_y, ·, 0, 0)` —
-    ///    asked from **where the unit is walking**, the unit's own `+0x70`/
-    ///    `+0x74`, with no margin — answers yes → return 0 (`5e254e`–
-    ///    `5e2568`);
-    /// 3. a melee type (`max_range` `+0x1fc` zero) whose path holds one
-    ///    node returns 0 (`5e2586`–`5e2599`), and so does a building target
-    ///    (`5e25b0`);
-    /// 4. a head that is not a group order (`vt+0x2c`, `5e25c6`) or a unit
-    ///    in no group → `repath`, then `find_attack_pos(o, who, 1, &x, &y,
-    ///    0)` from the unit's own position (`5e26f7`–`5e2710`); nothing
-    ///    found → return 1 with the legs gone;
-    /// 5. a `DEFENSIVE` stance (`vt+0xf4 == 1`) on an attack that is not
-    ///    `mandatory` (`+0x1c`), not flagged `& 4`, and `defensive`
-    ///    (`+0x1d`) with a post (`+0x14`/`+0x18` both non-negative):
-    ///    standing `max(unit_defensive_respond_range, max_range) × 0xc0` or
-    ///    further from the post (`vector_dist` of the two absolute
-    ///    differences) → `find_new_target(this, NULL, 0)`, return 1
-    ///    (`5e2719`–`5e2832`);
-    /// 6. else `add_move_order(x, y, 1, 0, QUEUE_FIRST, 0, ·, −1, −1)`,
-    ///    return 1 (`5e2840`–`5e2868`) — the same move `fight`'s chase
-    ///    pushes.
-    ///
-    /// `find_attack_pos`'s third argument only picks the sweep's filter,
-    /// `FILTER_CAN_COLLIDE` (5) against `fight`'s `FILTER_NOT_ME` (3), and
-    /// `UnitType::find_nearby_spot` takes the one pairwise branch for both
-    /// (`0061de70:72`), so this crate passes nothing for it.
-    ///
-    /// SEAM: the group arm (`5e25d1`–`5e26e9`, `Group::is_moving_to` and
-    /// `Group::action_attack`) needs a group head, and
-    /// [`Self::check_target_path_review`] reviews no group head.
-    fn rechase_fleeing(&mut self, u: usize, t: Obj) -> bool {
-        let me = Obj::Unit(u);
-        let Obj::Unit(tu) = t else { return false };
-        if !self.units[tu].on_map {
-            self.repath(u);
-            return true;
-        }
-        if self.is_in_range_at(me, self.units[u].orders_pos, t) {
-            return false;
-        }
-        if self.profile(me).max_range == 0 && self.units[u].path.len() == 1 {
-            return false;
-        }
-        self.repath(u);
-        let here = self.units[u].pos;
-        let Some(dest) = self.find_attack_pos(u, t, here, crate::fight::SITE_ATTACK_POS_REVIEW)
-        else {
-            return true;
+        let (ty, target, spell) = match self.units[u].orders[a].body {
+            Body::Attack(_) => (10, self.units[u].combat.target, 0),
+            Body::Cast(c) => (0xe, c.target, c.spell),
+            Body::Garrison { building, .. } => (0x1a, Some(Obj::Building(building)), 0),
+            _ => return false,
         };
-        if let Some(Order {
-            body: Body::Attack(a),
-            flags,
-        }) = self.current_order(u).copied()
-            && self.units[u].combat.stance == combat::Stance::Defensive
-            && !self.units[u].combat.mandatory
-            && flags & 4 == 0
-            && a.defensive
-            && let Some(post) = a.def
-            && post.x >= 0
-            && post.y >= 0
-        {
-            let reach = self
-                .tuning
-                .unit_defensive_respond_range
-                .max(self.max_range_of(me))
-                * 0xc0;
-            let at = self.units[u].pos;
-            if crate::world::vector_dist((at.x - post.x).abs(), (at.y - post.y).abs()) >= reach {
-                self.find_new_target(u, false);
-                return true;
-            }
-        }
-        self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
-        true
+        check_target_path_steps(&mut SimCheckTarget {
+            s: self,
+            u,
+            ty,
+            target,
+            spell,
+        })
     }
 
     /// `Unit::repath@005e29b0` ([`repath_steps`], item 2341): while the
@@ -11744,6 +11583,435 @@ impl DoBuildView for SimDoBuild<'_> {
             .iter()
             .filter(|&&m| self.s.units[m].alive() && self.s.is_peasant(m))
             .count() as i32
+    }
+}
+
+/// What `Unit::check_target_path@005e22d0` asks of its unit, its action
+/// order, the target and the world, in the order it asks (item 3304).
+/// [`SimCheckTarget`] answers from this crate's state; the sweep answers
+/// from the emulated original's windows.
+///
+/// The target is the order's `(ox, whom)` pair; the view holds it, so no
+/// method takes one but the group arm's (`map_unit`, `action_attack`), which
+/// name a *second* object, the order's own site record.
+pub trait CheckTargetView {
+    /// `ox >= 0`: the order names an object.
+    fn target_set(&mut self) -> bool;
+    /// The target's vslot `+0x48` (`is_seen`), asked of the unit's player.
+    fn target_seen(&mut self) -> bool;
+    /// The order's vslot `+0x10`: its action type.
+    fn action_type(&mut self) -> i32;
+    /// The cast arm's pair: the target's `flags & 1` **and**
+    /// `SpellTypeData::is_valid_target(player, ox, whom, null)` of the
+    /// spell the order names (vslot `+0x7c`'s `+0x20`).
+    fn cast_target_valid(&mut self) -> bool;
+    /// The target's vslot `+0x8`: on a unit `SubObjectData::is_active`
+    /// (`flags & 1`), on a building 0.
+    fn target_is_unit(&mut self) -> bool;
+    /// The target unit's vslot `+0xd8`, `UnitData::is_moving`.
+    fn target_moving(&mut self) -> bool;
+    /// `Unit::repath`.
+    fn repath(&mut self);
+    /// `Unit::kill_current_order(0)`.
+    fn kill_current_order(&mut self);
+    /// The target's vslot `+0x1c`: 1 on a building, 0 on a unit.
+    fn target_is_building(&mut self) -> bool;
+    /// The target's position less the unit's: `(dx, dy)`.
+    fn target_offset(&mut self) -> (i32, i32);
+    /// The target unit's `+0x50`, its heading.
+    fn target_heading(&mut self) -> i32;
+    /// `ObjectData::is_in_range@00648d70(ox, whom, ·, 0)`.
+    fn in_range_plain(&mut self) -> bool;
+    /// The target's vslot `+0xbc`, `UnitData::is_on_map`.
+    fn target_on_map(&mut self) -> bool;
+    /// The unit's vslot `+0x170`, `adjacent_to(ox, whom)`.
+    fn adjacent(&mut self) -> bool;
+    /// `ObjectData::is_in_range@006486b0(ox, whom, orders_x, orders_y, ·, 0,
+    /// 0)`, asked from where the unit is walking.
+    fn in_range_from_orders(&mut self) -> bool;
+    /// The order's vslot `+0x18`: an attack-shaped order.
+    fn order_is_attack(&mut self) -> bool;
+    /// The target's vslot `+0x18`: 1 on a unit, 0 on a building.
+    fn target_is_unit_class(&mut self) -> bool;
+    /// The `BUILD_AT` arm's pair of position records (`UnitData::get_order`
+    /// twice, each's vslot `+0xb8`), against the target's position:
+    /// `(target.x − first.+8, target.y − second.+4)`.
+    fn pair_offsets(&mut self) -> (i32, i32);
+    /// `max_range == 0` (the type record's `+0x1fc`) **and** one node on the
+    /// path (`+0xc0 == 1`), the pair of reads the listing makes in order.
+    fn melee_lone_node(&mut self) -> bool;
+    /// `Unit::update_order`: the head's order is there.
+    fn update_order(&mut self) -> bool;
+    /// The `update_order` result's vslot `+0x2c`: a group order.
+    fn head_is_group_order(&mut self) -> bool;
+    /// The `update_order` result's vslot `+0x14`.
+    fn head_vslot_14(&mut self) -> bool;
+    /// The unit's `+0x80`, a signed short: its group.
+    fn group(&mut self) -> i32;
+    /// `Group::is_moving_to` of the unit's group.
+    fn group_moving(&mut self) -> bool;
+    /// The order record (vslot `+0x50`) byte `+0x1c`: `mandatory`.
+    fn site_mandatory(&mut self) -> bool;
+    /// The order record's byte `+0x1d`: `defensive`.
+    fn site_defensive(&mut self) -> bool;
+    /// The order record's `+0x14`, `+0x18`: the post.
+    fn site_post(&mut self) -> (i32, i32);
+    /// The order record's `+0x8`, `+0xc`: the order's own site.
+    fn site(&mut self) -> (i32, i32);
+    /// The order's flag byte `& 4`, through its virtual base.
+    fn order_flag4(&mut self) -> bool;
+    /// `ObjectData::is_map_unit` of `objects[whom][ox]`.
+    fn map_unit(&mut self, ox: i32, whom: i32) -> bool;
+    /// `Group::kill_next_order` of the unit's group.
+    fn kill_next_order(&mut self);
+    /// `Group::action_attack(ox, whom, 1, QUEUE_FIRST, 0)`.
+    fn action_attack(&mut self, ox: i32, whom: i32);
+    /// `Unit::find_attack_pos@00602e60(ox, whom, 1, &x, &y, 0)` from the
+    /// unit's own position.
+    fn find_attack_pos(&mut self) -> Option<(i32, i32)>;
+    /// The unit's vslot `+0xf4`, `get_combat_stance`.
+    fn stance(&mut self) -> i32;
+    /// The unit's vslot `+0x130`, `max_range`.
+    fn max_range_slot(&mut self) -> i32;
+    /// `constants->unit_defensive_respond_range`.
+    fn respond_range(&mut self) -> i32;
+    /// The unit's position.
+    fn unit_pos(&mut self) -> (i32, i32);
+    /// `Unit::find_new_target(NULL, 0)`.
+    fn find_new_target(&mut self);
+    /// `Unit::add_move_order(x, y, 1, 0, QUEUE_FIRST, 0, ·, −1, −1)`.
+    fn add_move_order(&mut self, x: i32, y: i32);
+}
+
+/// **`Unit::check_target_path@005e22d0`'s steps** (item 3304): the review of
+/// a chase, a cast or a garrison walk against where its target now is.
+///
+/// 1. No target, or one the unit's player cannot see: 0.
+/// 2. A **cast** (`0xe`): a target that is no longer a valid one ends the
+///    walk **and the cast** (`repath`, `kill_current_order`); a valid
+///    **unit** that is moving ends the walk only; anything else 0
+///    (`docs/GOLDEN.md` §110, §112).
+/// 3. Type 8 is 0, and type `0xd` on a building target is 0.
+/// 4. **A unit target** is flanked-and-running (`target.heading −
+///    bearing + 0x8000_0000` past a sixth of the circle, `flanking` nonzero,
+///    and moving) or it is not: if not, in reach on the plain radius ends
+///    the walk (`repath`, 1) and out of reach is 0 (`docs/COMBAT.md` §36);
+///    if so, the review falls through.
+/// 5. Off the map: `repath`, 1. A **garrison** (`0x1a`) beside its
+///    building: `repath`, 1 (`docs/ORDERS.md` §29).
+/// 6. In reach from where the unit is walking: 0.
+/// 7. An order that is not attack-shaped is 0 — but for type `0xb` on a
+///    unit-class target farther than `0x900` from the pair of positions its
+///    two orders hold: `repath`, 1.
+/// 8. A melee type on one node, or a building target: 0. Otherwise the
+///    chase is re-aimed: a group head moving on its plan re-issues the
+///    attack through the group (`docs/COMBAT.md` §67's SEAM), a group head
+///    standing pops its orders down to the one that moves; a unit with no
+///    group `repath`s and asks `find_attack_pos` — nothing found is 1 with
+///    the legs gone, a **defensive** unit on a post it has strayed
+///    `max(respond range, max range) × 0xc0` from is told to
+///    `find_new_target`, and anything else is `add_move_order` to the spot
+///    (`docs/COMBAT.md` §67).
+///
+/// The `ecx` the listing hands `is_in_range` and `add_move_order` as a
+/// stale register is not a value (the sweep masks it).
+pub fn check_target_path_steps<V: CheckTargetView>(v: &mut V) -> bool {
+    if !v.target_set() || !v.target_seen() {
+        return false;
+    }
+    let ty = v.action_type();
+    if ty == 0xe {
+        if !v.cast_target_valid() {
+            v.repath();
+            v.kill_current_order();
+            return true;
+        }
+        if v.target_is_unit() && v.target_moving() {
+            v.repath();
+            return true;
+        }
+        return false;
+    }
+    if ty == 8 || (ty == 0xd && v.target_is_building()) {
+        return false;
+    }
+    if v.target_is_unit() {
+        let (dx, dy) = v.target_offset();
+        let bearing = find_angle(dx, dy);
+        let e = (v.target_heading() as u32)
+            .wrapping_sub(bearing.0 as u32)
+            .wrapping_add(0x8000_0000);
+        // `5e2493`: the negative half of the window is tested inline and
+        // jumps past the call, so `flanking` alone is not the predicate.
+        let fleeing = e >= 0x2aaa_aaaa && combat::flanking(e) != 0 && v.target_moving();
+        if !fleeing {
+            if !v.in_range_plain() {
+                return false;
+            }
+            v.repath();
+            return true;
+        }
+    }
+    if !v.target_on_map() {
+        v.repath();
+        return true;
+    }
+    if ty == 0x1a && v.adjacent() {
+        v.repath();
+        return true;
+    }
+    if v.in_range_from_orders() {
+        return false;
+    }
+    if !v.order_is_attack() {
+        if ty == 0xb && v.target_is_unit_class() {
+            let (dx, dy) = v.pair_offsets();
+            if vector_dist(dx.wrapping_abs(), dy.wrapping_abs()) > 0x900 {
+                v.repath();
+                return true;
+            }
+        }
+        return false;
+    }
+    if v.melee_lone_node() || v.target_is_building() {
+        return false;
+    }
+    v.update_order();
+    if v.head_is_group_order() && v.group() >= 0 {
+        if v.group_moving() {
+            v.repath();
+            if v.order_is_attack() && v.site_mandatory() {
+                let (ox, whom) = v.site();
+                if v.map_unit(ox, whom) {
+                    v.kill_next_order();
+                    v.action_attack(ox, whom);
+                }
+            }
+        } else if v.update_order() {
+            loop {
+                v.update_order();
+                if !v.head_vslot_14() {
+                    break;
+                }
+                v.kill_current_order();
+                if !v.update_order() {
+                    break;
+                }
+            }
+        }
+        return true;
+    }
+    v.repath();
+    let Some((x, y)) = v.find_attack_pos() else {
+        return true;
+    };
+    if v.order_is_attack()
+        && v.stance() == 1
+        && !v.site_mandatory()
+        && !v.order_flag4()
+        && v.site_defensive()
+    {
+        let (px, py) = v.site_post();
+        if px >= 0 && py >= 0 {
+            let a = v.max_range_slot();
+            let mut reach = v.respond_range();
+            if reach.wrapping_mul(0xc0) < a.wrapping_mul(0xc0) {
+                reach = v.max_range_slot();
+            }
+            let (ux, uy) = v.unit_pos();
+            let dist = vector_dist((ux - px).wrapping_abs(), (uy - py).wrapping_abs());
+            if reach.wrapping_mul(0xc0) <= dist {
+                v.find_new_target();
+                return true;
+            }
+        }
+    }
+    v.add_move_order(x, y);
+    true
+}
+
+/// [`CheckTargetView`] over the live [`Sim`]: the action order `ty` names
+/// (an `ATTACK` on the unit's combat target, a `CAST` on its spell's target
+/// object, a `GARRISON` on its building).
+///
+/// SEAM: the group arm (`5e25d1`–`5e26e9`) needs a group head, and
+/// [`Sim::check_target_path_review`] reviews no group head, so the group
+/// questions answer "no group order"; the `BUILD_AT` arm (type `0xb`) is
+/// not routed here. A **building** target answers `is_on_map` yes, as this
+/// crate always has.
+struct SimCheckTarget<'a> {
+    s: &'a mut Sim,
+    u: usize,
+    ty: i32,
+    target: Option<Obj>,
+    spell: i32,
+}
+
+impl SimCheckTarget<'_> {
+    fn me(&self) -> Obj {
+        Obj::Unit(self.u)
+    }
+    fn t(&self) -> Obj {
+        self.target.expect("target_set was asked first")
+    }
+    /// The action order's body, read when asked: after `repath` the head
+    /// is the action itself, which is where the original's order object
+    /// has been all along.
+    fn action(&self) -> Option<Order> {
+        self.s
+            .action_of(self.u)
+            .map(|a| self.s.units[self.u].orders[a])
+    }
+}
+
+impl CheckTargetView for SimCheckTarget<'_> {
+    fn target_set(&mut self) -> bool {
+        self.target.is_some()
+    }
+    fn target_seen(&mut self) -> bool {
+        self.s.target_is_seen(self.me(), self.t())
+    }
+    fn action_type(&mut self) -> i32 {
+        self.ty
+    }
+    fn cast_target_valid(&mut self) -> bool {
+        let who = self.s.units[self.u].owner;
+        let t = self.t();
+        self.s.obj_alive(t) && self.s.spell_valid_target(self.spell, who, t)
+    }
+    fn target_is_unit(&mut self) -> bool {
+        // `SubObjectData::is_active` (`flags & 1`) on a unit: the corpse
+        // `Object::close` leaves in `objects[whom][ox]` answers 0.
+        matches!(self.t(), Obj::Unit(tu) if self.s.units[tu].alive())
+    }
+    fn target_moving(&mut self) -> bool {
+        matches!(self.t(), Obj::Unit(tu) if self.s.is_moving(tu))
+    }
+    fn repath(&mut self) {
+        self.s.repath(self.u);
+    }
+    fn kill_current_order(&mut self) {
+        self.s.kill_current_order(self.u);
+    }
+    fn target_is_building(&mut self) -> bool {
+        matches!(self.t(), Obj::Building(_))
+    }
+    fn target_offset(&mut self) -> (i32, i32) {
+        let (tp, mp) = (self.s.pos_of(self.t()), self.s.units[self.u].pos);
+        (tp.x - mp.x, tp.y - mp.y)
+    }
+    fn target_heading(&mut self) -> i32 {
+        match self.t() {
+            Obj::Unit(tu) => self.s.units[tu].movement.heading.0,
+            Obj::Building(_) => 0,
+        }
+    }
+    fn in_range_plain(&mut self) -> bool {
+        self.s.is_in_range(self.me(), self.t())
+    }
+    fn target_on_map(&mut self) -> bool {
+        match self.t() {
+            Obj::Unit(tu) => self.s.units[tu].on_map,
+            Obj::Building(_) => true,
+        }
+    }
+    fn adjacent(&mut self) -> bool {
+        match self.t() {
+            Obj::Building(b) => self.s.adjacent_to(self.u, b),
+            Obj::Unit(_) => false,
+        }
+    }
+    fn in_range_from_orders(&mut self) -> bool {
+        let at = self.s.units[self.u].orders_pos;
+        self.s.is_in_range_at(self.me(), at, self.t())
+    }
+    fn order_is_attack(&mut self) -> bool {
+        self.ty == 10
+    }
+    fn target_is_unit_class(&mut self) -> bool {
+        matches!(self.t(), Obj::Unit(_))
+    }
+    fn pair_offsets(&mut self) -> (i32, i32) {
+        (0, 0)
+    }
+    fn melee_lone_node(&mut self) -> bool {
+        self.s.profile(self.me()).max_range == 0 && self.s.units[self.u].path.len() == 1
+    }
+    fn update_order(&mut self) -> bool {
+        !self.s.units[self.u].orders.is_empty()
+    }
+    fn head_is_group_order(&mut self) -> bool {
+        matches!(self.s.current_order(self.u).map(|o| o.body), Some(Body::Move(m)) if m.group.is_some())
+    }
+    fn head_vslot_14(&mut self) -> bool {
+        false
+    }
+    fn group(&mut self) -> i32 {
+        if self.s.units[self.u].group_ptr.is_some() {
+            0
+        } else {
+            -1
+        }
+    }
+    fn group_moving(&mut self) -> bool {
+        false
+    }
+    fn site_mandatory(&mut self) -> bool {
+        self.s.units[self.u].combat.mandatory
+    }
+    fn site_defensive(&mut self) -> bool {
+        matches!(self.action(), Some(Order { body: Body::Attack(a), .. }) if a.defensive)
+    }
+    fn site_post(&mut self) -> (i32, i32) {
+        match self.action() {
+            Some(Order {
+                body: Body::Attack(a),
+                ..
+            }) => a.def.map_or((-1, -1), |p| (p.x, p.y)),
+            _ => (-1, -1),
+        }
+    }
+    fn site(&mut self) -> (i32, i32) {
+        (-1, -1)
+    }
+    fn order_flag4(&mut self) -> bool {
+        self.action().is_some_and(|o| o.flags & 4 != 0)
+    }
+    fn map_unit(&mut self, _ox: i32, _whom: i32) -> bool {
+        false
+    }
+    fn kill_next_order(&mut self) {}
+    fn action_attack(&mut self, _ox: i32, _whom: i32) {}
+    fn find_attack_pos(&mut self) -> Option<(i32, i32)> {
+        let here = self.s.units[self.u].pos;
+        self.s
+            .find_attack_pos(self.u, self.t(), here, crate::fight::SITE_ATTACK_POS_REVIEW)
+            .map(|p| (p.x, p.y))
+    }
+    fn stance(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].combat.stance == combat::Stance::Defensive)
+    }
+    fn max_range_slot(&mut self) -> i32 {
+        self.s.max_range_of(self.me())
+    }
+    fn respond_range(&mut self) -> i32 {
+        self.s.tuning.unit_defensive_respond_range
+    }
+    fn unit_pos(&mut self) -> (i32, i32) {
+        let p = self.s.units[self.u].pos;
+        (p.x, p.y)
+    }
+    fn find_new_target(&mut self) {
+        self.s.find_new_target(self.u, false);
+    }
+    fn add_move_order(&mut self, x: i32, y: i32) {
+        self.s.add_move_order(
+            self.u,
+            Pos::new(x, y),
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
     }
 }
 
