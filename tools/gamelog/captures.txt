@@ -9754,3 +9754,18 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks: `rngcmp.py` run957 vs run957b -> 37 identical; run896b vs run958 -> 0 differing in 833; vs run958d -> 0 in 8041;
 #         vs run958e -> 0 in 14638; vs run958f -> 0 in 22701 (ended itself on 22700). run957b runs to 24000.
 # ==== TAKEN 2026-10-19, one take each, 01:56-03:31, pool lanes 1-3 ====
+# ==== item 3326: the Greek word's widenings and the battery's twelfth held-out lobby (`docs/AI.md` §266; `docs/RUNS.md` run960 .. run961d) ====
+#   run960   --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 15 --profile DIFFICULTY=1   (Great Sahara, Japanese; start)
+#   run960b  --map 7 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#            --ai-tribe 15 --allow-early-end --profile DIFFICULTY=1 (run643's four --detail lines)
+#   run961   --map 7 --end-frame 432 --timeout 2400 --log-window 170 427 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 5 --cover cover=0 --profile DIFFICULTY=1   (Great Sahara, Greeks; the word 176's window)
+#   run961b  --map 7 --end-frame 2232 --timeout 3600 --log-window 1970 2227 (run961's --detail, --ai-tribe, --cover, --profile)
+#            (the word 1976's window)
+#   run961c  --map 7 --end-frame 175 --timeout 2400 --log-window 37 171 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#            (run961's --ai-tribe, --cover, --profile)   (the gap between run957 and run961)
+#   run961d  --map 7 --end-frame 19437 --timeout 7200 --log-window 19176 19433 (run961's --detail, --ai-tribe, --cover, --profile)
+#            (the word 19182's window)
+# Checks: `rngcmp.py` run960 vs run960b -> 0 differing in 37; run957b vs run961 -> 0 in 433; vs run961b -> 0 in 2233;
+#         vs run961c -> 0 in 176. run960b runs to 24000; its first take died at startup (exit 5 then 40), moved aside.
+# ==== TAKEN 2026-10-19, run960b taken twice, the rest once, 04:31-, pool lanes 1-3 ====

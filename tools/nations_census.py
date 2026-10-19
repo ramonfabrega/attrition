@@ -164,7 +164,9 @@ HAND = [
 ]
 
 HAND += [
-    ("Greeks", "research faster (train_time's research tail)", "ObjectData::train_time@006508c0", "not modelled", "greek_research_speed"),
+    ("Greeks", "an age or an epoch researches faster (train_time's research tail)", "ObjectData::train_time@006508c0", "modelled at lib.rs", "greek_research_speed"),
+    ("Greeks", "an age or an epoch costs 10% less in every good but knowledge", "TypeData::get_cost@00664090", "modelled at lib.rs", "greek_research_cost"),
+    ("Greeks", "a Library or a University costs 66% less", "TypeData::get_cost@00664090", "modelled at city.rs", "greek_library_cost"),
     ("Romans", "legions train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "roman_legion_fast"),
     ("French", "siege units train faster", "ObjectData::train_time@006508c0", "not modelled", "french_siege_speed"),
     ("French", "special (general) units train faster, 0 in the rules", "ObjectData::train_time@006508c0", "not modelled", "french_special_speed"),
@@ -229,7 +231,8 @@ ROSTER = ["Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egy
 LOBBY = {7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGermanTier3` (AI word, tier 3)",
          18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (map 18, tier 4)",
          13: "`GreatLakesRussianTier2` (map 14, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
-         9: "`GreatSaharaSpanishTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (map 7, tier 1)",
+         9: "`GreatSaharaSpanishTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (AI word, tier 1)",
+         15: "`GreatSaharaJapaneseTier1` (map 7, tier 1)",
          6: "`EastIndiesRomanTier2` (AI word, tier 2)", 20: "`EastIndiesAmericanTier1` (map 18, tier 1)",
          4: "the human in every capture", 10: "scored pairs", 11: "scored pairs", 16: "scored pairs"}
 FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans", 7: "egyptians",
