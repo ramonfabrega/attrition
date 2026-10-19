@@ -1159,6 +1159,23 @@ impl Sim {
         self.units[u].hold_frames = Self::CLOSE_HOLD;
         self.close_supply(u);
         self.forget(Obj::Unit(u));
+        self.clear_decoy_at_close(u);
+    }
+
+    /// **`Unit::close@0060ee50`'s last statement** (`:603`, after
+    /// `close_orders` and `Object::close`, on every path through the
+    /// function): `unit_masks &= ~1` — a closed unit is no decoy. So a
+    /// round a decoy fired is a real blow if it lands after its shooter
+    /// closed: `Ammo::do_damage` hands the dead slot to `Object::do_damage`,
+    /// whose decoy return reads the bit, and `get_damage` prices it on the
+    /// slot's own type (item 3322, `docs/AI.md` §265). run956c: who=1's
+    /// Horse Archers decoy `1/110` stands at `mana_burn` 2499 on block
+    /// 18366 and is gone on 18367 with a round in flight; on 18368 it
+    /// lands on who=0's Village `0/2000` beside `1/53`'s, 2.0 together
+    /// (867 → 869). run959's packet holds the closed `1/110` at `flags 0`,
+    /// `unit_masks` `0x851006`.
+    pub(crate) fn clear_decoy_at_close(&mut self, u: usize) {
+        self.units[u].decoy = false;
     }
 
     /// `SpellType::cast_march@00671500` — Forced March on a hero: an
