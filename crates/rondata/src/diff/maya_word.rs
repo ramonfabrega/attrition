@@ -267,3 +267,48 @@ fn run973c_s_gap_is_widened_whole() {
     // gap's last block (10478) and run973b's first.
     pin_eq!(w.firsts.len(), 48, "run973c, quiet to its last block");
 }
+
+/// run973d: the word 12197's window, blocks 12191..12447 at `GUYS=2`
+/// (item 3338); run973b ends on 10747 and run966b prints its setup and
+/// closing blocks only.
+pub(crate) const RUN973D: &str = "gamelog-run973d-greatsahara-maya-diff4-window-12191-12447.txt";
+
+/// The window: block 12191 through 12447; the word 12197's own block is
+/// 12198.
+pub(crate) const WIDENING_MAYA_FRAME_12197: (i64, i64) = (12191, 12447);
+
+pub(crate) fn maya_frame_12197_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA.start],
+        true,
+        MAYA.long,
+        "run973d",
+        &[(RUN973D, WIDENING_MAYA_FRAME_12197.0)],
+        WIDENING_MAYA_FRAME_12197,
+        1,
+        &[12198],
+        true,
+    )
+}
+
+#[test]
+fn run973d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_frame_12197_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run973d on the first try");
+}

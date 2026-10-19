@@ -9821,3 +9821,18 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --ai-tribe 7 --cover cover=0 --allow-early-end --profile DIFFICULTY=4   (Great Sahara, Egyptians; the closing window)
 # Checks: `rngcmp.py` run645 vs run971 -> 0 differing in 20381.
 # ==== TAKEN 2026-10-19, one take, 10:34-10:36, pool lane 2 ====
+# ==== item 3338: the Maya word's widenings and the battery's replacement lobby (`docs/AI.md` §273; `docs/RUNS.md` run972 .. run973d) ====
+#   run972   --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 3 --profile DIFFICULTY=4   (Great Sahara, Bantu; start)
+#   run972b  --map 7 --end-frame 24000 --timeout 7200 --log-window 0 24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+#            --ai-tribe 3 --allow-early-end --profile DIFFICULTY=4 (run643's four --detail lines)
+#   run973   --map 7 --end-frame 1031 --timeout 3600 --log-window 770 1026 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 1 --cover cover=0 --profile DIFFICULTY=4   (Great Sahara, Maya; the word 776's window)
+#   run973b  --map 7 --end-frame 10752 --timeout 5400 --log-window 10491 10747 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+#            (run973's --ai-tribe, --cover, --profile)   (the word 10497's window)
+#   run973c  --map 7 --end-frame 10490 --timeout 5400 --log-window 1027 10487 --stride 50 (run973b's --detail, --ai-tribe, --cover, --profile)
+#            (the gap, one block in fifty)
+#   run973d  --map 7 --end-frame 12452 --timeout 5400 --log-window 12191 12447 (run973b's --detail, --ai-tribe, --cover, --profile)
+#            (the word 12197's window)
+# Checks: `rngcmp.py` run972 vs run972b -> 37 identical; run966b vs run973 -> 1032 identical, vs run973b -> 10753, vs run973c -> 10491.
+# run972b ended itself on 23627.
+# ==== TAKEN 2026-10-19, one take each, 11:40-, pool lanes 1-3 ====

@@ -85,6 +85,34 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 178,
         },
     ),
+    // **842 is the Horse Archer's piece** (unit type 188, `CAVARCHERS`;
+    // item 3338, run973e on the Maya Great Sahara seed, `AMMO=5` over
+    // `[12128, 12200]`): `1/56`'s two rounds of the window, both at guy
+    // (8808, 31944) `z` 588 facing −730923008 — `CHAR_ATTACK3` at
+    // starttime 20 on tick 12134, `sx, sy, sz` (8725, 31923, 816), and
+    // `CHAR_ATTACK1` at 18 on tick 12158, (8729, 31908, 813). One facing
+    // each, so the bearing is the middle of the exact fits and the radius
+    // the fits' own; `CHAR_ATTACK2` is not measured.
+    (
+        842,
+        crate::anim::ATTACK1,
+        18,
+        Node {
+            bearing: -45_285_376,
+            radius: 86,
+            dz: 225,
+        },
+    ),
+    (
+        842,
+        crate::anim::ATTACK3,
+        20,
+        Node {
+            bearing: -168_689_664,
+            radius: 85,
+            dz: 228,
+        },
+    ),
     (
         127,
         crate::anim::ATTACK1,
@@ -1721,6 +1749,28 @@ mod tests {
             Pos::new(5448, 26856),
             "ATTACK2's frame 7 is not measured: the unit's own position"
         );
+    }
+
+    /// **Piece 842, the Horse Archer** (item 3338): run973e's two rounds
+    /// of `1/56`, `(anim, starttime, guy x, guy y, guy angle, guy z, sx,
+    /// sy, sz)` — the dump's own columns.
+    #[test]
+    fn run973e_s_horse_archer_rounds_leave_from_their_release_nodes() {
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        #[rustfmt::skip]
+        const ROWS: &[Row] = &[
+            (crate::anim::ATTACK3, 20, 8808, 31944, -730_923_008, 588, 8725, 31923, 816),
+            (crate::anim::ATTACK1, 18, 8808, 31944, -730_923_008, 588, 8729, 31908, 813),
+        ];
+        for &(anim, t, gx, gy, ga, gz, sx, sy, sz) in ROWS {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 842, anim, t, 0);
+            assert_eq!((got.x, got.y), (sx, sy), "piece 842 anim {anim} t {t}");
+            assert_eq!(
+                gz + release_dz(842, anim, t, 0).unwrap_or(0),
+                sz,
+                "piece 842 dz"
+            );
+        }
     }
 
     /// **Piece 1442, the Native American Peltasts** (item 3287): four
