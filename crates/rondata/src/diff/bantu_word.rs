@@ -95,3 +95,59 @@ fn bantu_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run978: the word 4's window, blocks 1..256 at `GUYS=4` (item 3343);
+/// run972 dumps blocks 1, 36 and 37 and run972b its setup and closing
+/// blocks only.
+pub(crate) const RUN978: &str = "gamelog-run978-greatsahara-bantu-diff4-window-1-256-guys4.txt";
+
+/// The window: block 1 through 256; the word 4's own block is 5.
+pub(crate) const WIDENING_BANTU_FRAME_4: (i64, i64) = (1, 256);
+
+pub(crate) fn bantu_frame_4_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU.start],
+        true,
+        BANTU.long,
+        "run978",
+        &[(RUN978, WIDENING_BANTU_FRAME_4.0)],
+        WIDENING_BANTU_FRAME_4,
+        1,
+        &[5],
+        true,
+    )
+}
+
+#[test]
+fn run978_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_frame_4_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3343. Without `update_speed`'s Bantu arm 419 keys part, the
+    // first value rows on block 1: who=1's `myspeed`, ours 25 against
+    // theirs 31 on the five citizens `1/1`..`1/5` and 34 against 42 on
+    // the Scout `1/0` (its `WHERE` the Barracks) — `BANTU_UNITS_MOVE`; on
+    // block 2 theirs' `1/1` holds a sidestep waypoint (38232, 15864) and
+    // `coll` (38257, 15834), its first step of 31 blocked, and from there
+    // the two citizens meet a frame later than ours (the word's
+    // `move_step` stop on 4 against theirs' on 5). With the arm, 37; with
+    // `calc_pop_cap`'s Bantu flag written (who=1's `pop_cap` 25 against
+    // 50 on block 1), **36**: the standing set alone (both leaders'
+    // `SITE[n].reg` and `aggression`, every unit's `form`, who=1's groups'
+    // `held` and pools), and the word moved 4 → 3184.
+    pin_eq!(w.firsts.len(), 36, "run978 with the Bantu arm");
+}

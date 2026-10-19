@@ -2286,6 +2286,11 @@ impl Sim {
                 .get(who)
                 .is_some_and(|l| l.rare & peacocks != 0);
             m.bonuses.colossus = colossus[who];
+            // `Leader::calc_pop_cap`'s `has_tribe_bonus(3)` (`:68`–`73`): the
+            // flag [`cost::pop_cap`]'s Bantu arm reads, which had no writer
+            // until the Bantu word's block 1 printed who=1's cap at 50
+            // against this crate's 25 (run978, `docs/AI.md` §276).
+            m.bonuses.bantu = self.nation.get(who).is_some_and(|n| n.bantu);
             m.cap = cost::pop_cap(&self.tuning, m.military_level, m.limit, &m.bonuses);
         }
     }
