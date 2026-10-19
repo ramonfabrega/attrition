@@ -4698,6 +4698,18 @@ impl Sim {
                 // `QUEUE_NEW` here dropped run818's `1/9` walk on 701
                 // (item 2117, `docs/GOLDEN.md` §77).
                 self.nearby_add(u, t);
+                if std::env::var_os("RON_PROBE_GTO").is_some() {
+                    let seat = self.seat_of(u);
+                    eprintln!(
+                        "PROBE_GTO f{} think_attack {}/{} t {:?} seat {:?} listed {:?}",
+                        self.frame,
+                        self.units[u].owner,
+                        self.units[u].index,
+                        t,
+                        seat,
+                        seat.map(|s| self.seat_list(s).contains(&u))
+                    );
+                }
                 // `think_attack`'s tail (`005f5da6`..): a **unit** find by
                 // a unit its group lists is handed to
                 // `Group::target_opportunity(…, param_4 = 1)`
