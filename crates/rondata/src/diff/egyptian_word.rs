@@ -30,8 +30,16 @@ pub(crate) const EGYPTIAN: Lobby = Lobby {
     // and sequence both at 2974: ours 9 draws, theirs 12, at 2 ours
     // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x389`,
     // theirs `Guy::set_anim+0x104b`. Item 3332 promoted it to the AI word.
-    count: 2974,
-    sequence: 2974,
+    // run967 (2968..3225) parts who=1's economy on its first block, walked
+    // back through run967b's stride to block 54's wealth income, 0 against
+    // 96: the Egyptian Farm's wealth (`calc_gather:997`–`1005`,
+    // `EGYPTIAN_FARM_WEALTH`). With it the word's row is the Merchant
+    // `1/17`'s destination on 2973, good 12 against good 13: the good's
+    // `ever_seen` bit `reveal_fog` sets (`:87`–`88`). The word moved 2974
+    // → 15782: ours 62 draws, theirs 63, at 1 ours
+    // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
+    count: 15782,
+    sequence: 15782,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -122,7 +130,7 @@ fn run967_s_word_frame_is_widened_whole() {
     let Some(w) = egyptian_frame_2974_window() else {
         return;
     };
-    pin_eq!(w.blocks, 258, "every captured block");
+    pin_eq!(w.blocks, 257, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -135,7 +143,25 @@ fn run967_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run967 on the first try");
+    // Item 3332. On the first try 736 keys part, the first who=1's
+    // economy on block 2968 past the standing set — `ages` 0 against 1,
+    // `tech_frame` 2776 against 2576, `discovered` 1 against 3,
+    // `income[2:wealth]` 160 against 384 — walked back through run967b to
+    // the Egyptian Farm's wealth (`calc_gather:997`–`1005`); with it the
+    // economy closes and **the word's own row is the Merchant `1/17`'s
+    // order on 2973**: `MOVEORDER` (31032, 21048) against (34968, 25752),
+    // the good 12 ours took where theirs took good 13, the head of
+    // who=1's `new_rares`, met through its footprint on 2114 and
+    // unmarked in ours (`reveal_fog:87`–`88`, the good's `ever_seen`).
+    // With both: **33** keys, the standing set (both leaders'
+    // `SITE[n].reg` and `aggression`, every unit's `form`, who=1's groups'
+    // `held` and pools) and `1/16`'s `g.gpiece` from 3056 (ours 11 against
+    // 363), and the word moved 2974 → 15782.
+    pin_eq!(
+        w.firsts.len(),
+        33,
+        "run967 with the Egyptian farm wealth and the good's ever_seen"
+    );
 }
 
 /// run967b: the gap from run648's last block to run967's first, one block
@@ -176,10 +202,19 @@ fn run967b_s_gap_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
+    // The capture's `GUYS=2` prints two gaia animation keys nothing reads
+    // (item 1496's pattern): the animals' clocks.
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
-        Vec::<String>::new(),
+        ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run967b on the first try");
+    // Item 3332. On the first try 55 keys part, the first past the
+    // standing set on block 54: who=1's `income[2:wealth]` 0 against 96
+    // (`leftover` 0 against 5640), three worked Egyptian Farms at
+    // `EGYPTIAN_FARM_WEALTH` 2 each (`calc_gather:997`–`1005`); behind it
+    // the food bucket from 1704 and the age's queue on 2604 (`tech_frame`
+    // 1576 against 2576). With the arm, **39**: the standing set and
+    // who=0's `other_team_terr` 441 against 388 from 1404.
+    pin_eq!(w.firsts.len(), 39, "run967b with the Egyptian farm wealth");
 }
