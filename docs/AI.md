@@ -23626,12 +23626,53 @@ application line deleted against its own test (exit 101). Every other lobby's `f
 (`JAPANESE_BARRACKS_SPEED`, `JAPANESE_CARRIER_SPEED`) are not carried; this lobby at Difficulty 1 never reaches them
 in a way the draw stream can see (parked 3331a).
 
-## 269. Reserved for the next item on the AI track
+## 269. The Egyptians: a worked Farm's wealth, a good met through its footprint, and the word 15782 (2026-10-19, item 3332)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery's Great Sahara Egyptian word. `GreatSaharaEgyptianTier4` (map 7, the Egyptians (7) at
+Difficulty 4; runs 648, 645) was the held-out battery's lowest open lobby on the measure of `987c4c33`, at **2974 /
+2974** of 20380 (the game ends itself) on its first try (§125). It is promoted here (`diff::egyptian_word`,
+`SCORED_LOBBIES` `(7, 7, 4)`). The battery is eight lobbies again with **`GreatSaharaMayaTier4`** (map 7, the Maya (1)
+at Difficulty 4; runs 966, 966b), whose first try is **776 / 776** of 13086 (the game ends itself): ours 34 draws,
+theirs 75, at index 0, ours `Animal::think_bird+0x82`, theirs `Leader::produce_building+0xc99`. No dump had held the
+Maya, and tier 4 is the tier Great Sahara's battery lacked once the Egyptians left.
+
+**The frame.** On 2974 both spend `Unit::do_job` twice; then ours turns a unit (`Guy::set_anim+0x97a < Guy::do_turn <
+Unit::move_step`) and wraps two `Guy::inc_time`s where theirs wraps six. The turning unit is the Merchant `1/17` (TY
+11), born on 2972 on both sides.
+
+**The widening** (run967, 2968..3225, block 2975; `run967_s_word_frame_is_widened_whole`): 736 keys on the first try,
+already apart on block 2968 past the standing set in who=1's economy — `ages` 0 against 1, `tech_frame` 2776 against
+2576, `discovered` 1 against 3, `income[2:wealth]` 160 against 384. **Walked back** through run967b (3..2967 at stride
+50; `run967b_s_gap_is_widened_whole`): block 54, who=1's `income[2:wealth]` **0 against 96**, theirs' series 96, 128,
+160 — steps of 32.
+
+**1. The Egyptian Farm's wealth.** `BuildTypeData::calc_gather@00639e40:997`–`1005`: in the flat branch, a building
+`isa` Farm (`0x1a1`) with any gatherer, for a leader with `has_tribe_bonus(7)`, adds `EGYPTIAN_FARM_WEALTH × 16`
+(shipped 2, so 32 sixteenths) to wealth — once a farm, not per gatherer. Built: `economy::Site::farm_wealth`, set by
+`holdings.rs::site_of` for an Egyptian Farm, paid in `economy::city_rates` when the site is worked;
+`Tuning::egyptian_farm_wealth`. **Value diff**: run967b 55 → 39 keys, every economy row gone.
+
+**2. A good met through its footprint is seen.** With the economy closed, run967's row was the Merchant's destination:
+`1/17`'s `MOVEORDER` on 2973 ours (31032, 21048) against theirs (34968, 25752). who=1's `new_rares` on 2972 is `[13,
+10, 12]` on both sides, and theirs heads to good 13 at (34944, 25728); ours skipped it, because `think_merchant@005f4740:53`
+tests the good's `ever_seen` byte (`GoodData +0x20`) and ours held it unset — good 13 was met on 2114 through
+`reveal_fog`'s footprint arm (the Scout at (36564, 24953), sight 6), its own half-cell never seen. `World::reveal_fog@006b3d30:87`–`88`
+sets `ever_seen |= 1 << who` right after `new_rare`; ours set it only in `compute_reg_territory`'s goods scan. Built:
+`Sim::mark_good_seen`, called from both (`docs/MERCHANT.md`'s substitution note). **The word moves 2974 → 15782**: ours
+62 draws, theirs 63, at index 1, ours `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`. run967 went to
+**33** keys (the standing set, and `1/16`'s `g.gpiece[0..1]` from 3056 — parked 3332a), run967b to **39** (the
+standing set, and who=0's `other_team_terr` from 1404 — parked 3332b).
+
+RUN967C_PLACEHOLDER
+
+Each fix has a test (`holdings::tests::an_egyptian_worked_farm_pays_two_wealth_flat`,
+`rares::tests::reveal_fog_marks_the_rare_it_meets_seen`) and a `tools/mutate.py` mutation that held against
+`egyptian_word_first_parting` (exit 101): the farm wealth's application zeroed, and `reveal_fog`'s `mark_good_seen`
+deleted.
+
+**Not established.** `EGYPTIAN_SCHOLARS_FOOD` (0 as shipped) and `EGYPTIAN_GRANARY_UPGRADES`' consumer are not
+carried past their loaders (`docs/NATIONS.md`); this lobby's walk to 15782 never needed them. Whether the `ever_seen`
+byte has a reader past `think_merchant` is not read.
 
 ## 270. Reserved for the next item on the AI track
 
