@@ -556,7 +556,9 @@ fn sim_unit_fields() -> BTreeSet<String> {
     body.lines()
         .filter_map(|l| {
             let l = l.trim_start();
-            let l = l.strip_prefix("pub(crate) ").or_else(|| l.strip_prefix("pub "))?;
+            let l = l
+                .strip_prefix("pub(crate) ")
+                .or_else(|| l.strip_prefix("pub "))?;
             let (name, _) = l.split_once(':')?;
             Some(name.trim().to_string())
         })
@@ -566,14 +568,22 @@ fn sim_unit_fields() -> BTreeSet<String> {
 #[test]
 fn a_unit_key_the_simulation_carries_is_read_or_owed() {
     let fields = sim_unit_fields();
-    assert!(fields.len() > 20, "the Unit struct parsed to {} fields", fields.len());
+    assert!(
+        fields.len() > 20,
+        "the Unit struct parsed to {} fields",
+        fields.len()
+    );
     let unread: BTreeSet<&str> = UNREAD
         .iter()
         .filter(|(path, _)| *path == "GAME/FRAME/UNITDATA")
         .flat_map(|(_, keys)| keys.split_whitespace())
         .collect();
     let owed: BTreeSet<&str> = UNREAD_UNIT_FIELDS_OWED.iter().map(|(k, _)| *k).collect();
-    let carried: BTreeSet<&str> = unread.iter().copied().filter(|k| fields.contains(*k)).collect();
+    let carried: BTreeSet<&str> = unread
+        .iter()
+        .copied()
+        .filter(|k| fields.contains(*k))
+        .collect();
     let unowed: Vec<&str> = carried.difference(&owed).copied().collect();
     let stale: Vec<&str> = owed.difference(&carried).copied().collect();
     assert!(
