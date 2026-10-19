@@ -72,8 +72,8 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | none |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
-| 21 | Indians | indians | `indians` | 4 | none |
-| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (map 18, tier 4) |
+| 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
+| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | none |
 
 ## 3. The held-out nations, arm by arm
