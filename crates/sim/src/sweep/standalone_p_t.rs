@@ -206,6 +206,8 @@ mod spell_type_cast_rally;
 mod spell_type_cast_research_project;
 #[path = "spell_type_cast_supplies.rs"]
 mod spell_type_cast_supplies;
+#[path = "spell_type_cast_transport.rs"]
+mod spell_type_cast_transport;
 #[path = "spell_type_cast_unlock_gate.rs"]
 mod spell_type_cast_unlock_gate;
 #[path = "spell_type_pay_cast_costs.rs"]
