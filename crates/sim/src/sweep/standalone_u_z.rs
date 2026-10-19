@@ -228,6 +228,8 @@ mod unit_find_new_bomber_target;
 mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
 mod unit_get_speed;
+#[path = "unit_go_around_building.rs"]
+mod unit_go_around_building;
 #[path = "unit_go_inside.rs"]
 mod unit_go_inside;
 #[path = "unit_go_to_city.rs"]

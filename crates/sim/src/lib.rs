@@ -70,6 +70,7 @@ pub mod combat;
 pub(crate) mod construct;
 pub mod cost;
 pub mod danger;
+pub mod detour;
 pub mod diplomacy;
 pub mod do_attack;
 pub mod economy;
