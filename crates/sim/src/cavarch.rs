@@ -421,8 +421,9 @@ mod tests {
     /// an attack-move searches as the head does; under `HOLD_FIRE` the
     /// head clears `cavarch_o` and the follower skips with it kept.
     ///
-    /// Made to fail by dropping the call from `group_move_follower`: the
-    /// Egyptian word reads 20186 (item 3336's M2).
+    /// The call in `group_move_follower` is the floor's to hold: dropped,
+    /// the Egyptian word reads 20186 and this test stays green (item
+    /// 3336's M2).
     #[test]
     fn a_follower_fires_on_the_move_and_keeps_its_pair_under_hold_fire() {
         let (mut sim, ty) = field(true);

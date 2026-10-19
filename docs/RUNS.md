@@ -18971,3 +18971,24 @@ SHA-256 `5123437e2d43e2b7c2b212967453f839ba4245d7b56e2c0986137d1b1ff18be0`.
 
 **What it holds**: the word 20031's frame, `run967g_s_word_frame_is_widened_whole` (3286 keys on the first try):
 who=1's `1/162` and `1/163` in a fight from block 20030, and `1/92`/`1/160`'s `attack[1].mandatory` apart on 20025.
+
+## run971 — the Egyptian close: Great Sahara at difficulty 4, the closing window 20368..20380 at `AMMO=5` (2026-10-19, item 3336, `att-3336`)
+
+`docs/AI.md` §272. **What the disk could not answer**: run645 prints no block between its setup and its closing block,
+run967g ends on 20282, and no dump held a landing record for the Citizen `0/1`'s last flee step. `--map 7 --end-frame
+20380 --timeout 5400 --log-window 20368 20380 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 7 --cover cover=0 --allow-early-end --profile DIFFICULTY=4`, through `viadriver.sh` + `golden_capture.sh`.
+- Pool lane 2. Launched 10:34:18 and the game exited at 10:36:17 (119 s). `success`, 20381 frames.
+  `rngcmp.py rontrace-run645.log rontrace-run971.log`: **20381 identical, 0 differing**. Filed with
+  `filerun.py run971 greatsahara-egyptian-diff4-window-20368-20380`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run971-greatsahara-egyptian-diff4-window-20368-20380.txt`, 25,942,749 bytes,
+SHA-256 `5665b7c0deb7d5d507eeacef8570a34af156230481355a000bade9a1753cba99`.
+
+Archive `rontrace-run971.log`, 117,824,640 bytes,
+SHA-256 `fa90653708981a651daafb0c9ef941d306dbf137c47ca0331308a242161806d2`.
+
+**What it holds**: the Musketeer's two release events (`1/136`'s `CHAR_ATTACK3` on 20374, `1/54`'s `CHAR_ATTACK1` on
+20378) that `launch::MEASURED`'s piece-49 rows are fitted to (`run971_s_musketeer_rounds_leave_from_their_release_nodes`),
+and the window `run971_s_window_is_widened_whole` widens (28 keys, the standing set).

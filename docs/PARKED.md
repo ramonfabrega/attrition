@@ -4392,8 +4392,9 @@ run818, on 905, five frames past its word 900 — the item on that word reaches 
 reaches `resolve_unit_collision`'s call (`crate::collide`), with the stance at `STAND_GROUND` across the head as the
 original sets it. No capture holds a follower bumped by an enemy that is not its target. Names no frame. **Amended by item 2066** (`docs/GOLDEN.md` §75): the premise is false —
 `Unit::resolve_unit_collision@005f9d30` makes that call for a captain only (the export's line 233). A follower reaches
-`find_new_target(this, NULL, 1)` through `Unit::do_move@005f7b30`'s `ATTACK` retarget (line 105), this crate's
-dormant `SEAM` in `do_move`, which no walk in the release suite reaches (a probe: 19 suspended searches under an
+`find_new_target(this, NULL, 1)` through `Unit::do_move@005f7b30`'s `ATTACK` retarget (line 105), ~~this crate's
+dormant `SEAM` in `do_move`, which no walk in the release suite reaches~~ — built by item 3336 (`docs/AI.md` §272),
+which run967g's Fusilier `1/162` reaches on 20029 (a probe: 19 suspended searches under an
 `ATTACK`, none on the retarget's phase with `repaths` set).
 
 ## Parked by item 2020, 2026-10-13 — the sweep's forty-second batch
@@ -8356,13 +8357,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KT — reserved
+## Parked by item 3336, 2026-10-19 — the Egyptian word 20031 → 20380, the game's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3336a) **The Cannons `1/92` and `1/160`'s `attack[1].mandatory` 0 ours against 1**, apart before run967g's window
+  opens (20025), and `attack[0].mandatory` from 20044 (`docs/AI.md` §272). The attack orders' mandatory byte as the
+  AI's army hands them out; no draw moves on it to 20380 and the closing block compares whole. The first reading is
+  who writes byte `+0x1c` on an army's attack order. Returns when a word's frame reaches a Cannon's retarget.
+- (3336b) **Four `dest_angle` rows on run967g**: `1/66` on 20234 (ours 0, theirs 2102591488), `1/55` on 20235
+  (−141688832 / −2048458752), `1/53` on 20249 (151846912 / −1605566464), `1/106` on 20266 (−412155904 /
+  −1033306112). A heading the move asks for and nothing in the window's draws reads; positions agree. A word that
+  parts on one of these units' turns is where it would be read.
 
 ## Parked by the next landing, slot KU — reserved
 

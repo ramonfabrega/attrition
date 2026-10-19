@@ -7032,7 +7032,7 @@ mod tests {
     /// cleared, and the cast goes back at the head. A packer whose head is
     /// not a pack cast is left alone and answered false.
     ///
-    /// Made to fail by answering false always: the Egyptian word reads
+    /// Made to fail by answering false always, with the Egyptian word at
     /// 20235 (item 3336's M3).
     #[test]
     fn a_packer_mid_pack_keeps_its_cast_through_a_new_clear() {

@@ -3151,8 +3151,8 @@ For `1/43` on 14649: elapsed 6, and `vector_dist(96, 240) = 240 + 96² /
 480 = 259 < 288`. The first frame the arm could fire, it did.
 
 `Sim::do_move`'s suspended block (`crates/sim/src/orders.rs`) carries it
-now, replacing the SEAM line that called it dormant. The `ATTACK` retarget
-above it is still a seam.
+now, replacing the SEAM line that called it dormant. ~~The `ATTACK` retarget
+above it is still a seam.~~ Built by item 3336 (`docs/AI.md` §272).
 
 ### 15.3 What it moved
 

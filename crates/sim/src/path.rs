@@ -2804,7 +2804,7 @@ mod tests {
     /// control changes one input: three frames, a mandatory attack, and
     /// `repaths` zero.
     ///
-    /// Made to fail by taking the arm out: the Egyptian word reads 20031
+    /// Made to fail by taking the arm out, with the Egyptian word at 20031
     /// (item 3336's M1).
     #[test]
     fn an_attacker_on_a_suspended_search_retargets_every_fourth_frame() {
