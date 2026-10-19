@@ -23709,6 +23709,14 @@ This crate counted the Platform's own type only. Built in `Sim::building_price` 
 `cities_tests::an_oil_platform_is_counted_with_the_oil_wells_and_a_well_with_the_platforms`. Value diff, run963d's block
 23983: who=1's `bucket` timber 199/179 and metal 136/116, both 179 and 116 after; run963d's parted keys 197 → 94.
 
+**Two closed pairs' windows close with it.** The Lakota peace pair's eleven windows (run848..run883) and the coverage
+pair's run678 carried who=1's `bucket` timber and metal above theirs by a Platform's 20 each, accumulating: run848's
+block 1378 timber 18475/18435 and metal 15805/15765, run861's 4853 timber 7707/7282 and metal 6422/5997, run678's 1183
+timber 17978/17958 and metal 14157/14137. Every such metal row closes, and the timber rows through run861; from run866
+the timber row stands with ours **below** theirs (5183: 3866/4692), a second cause that no word reaches (both pairs are
+closed at their ends). Their widenings re-pinned one or two keys down (`lakota_pair.rs`, `coverage_pair.rs`), each
+pin's comment naming its rows; neither pair's `first_parting` moved.
+
 **Mutation** (`tools/mutate.py`): the sibling set to none for both types — `dutch_word_first_parting` back at 23985
 with the same row, and the unit test red; both `exit 101`, held.
 
