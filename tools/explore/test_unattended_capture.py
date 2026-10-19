@@ -12,6 +12,29 @@ import unattended_capture as runner
 
 
 class RunnerTest(unittest.TestCase):
+    def test_a_launch_under_a_background_manager_is_refused_and_names_the_driver(self):
+        # Loop 3334 (the forty-fifth pass): a click-free capture launched
+        # straight from a session dies in 3.8 s on `nodrv_CreateWindow` and
+        # reads as a renderer failure (ORACLE, "The click-free lane needs a
+        # window"); 3329 lost two launches to it. `launchctl managername`
+        # reads `Aqua` through RonDriver.app and `Background` from a
+        # session's tree (measured 2026-10-19, both ways), so the tool
+        # refuses before it stages and names `viadriver.sh`.
+        why = runner.refused_launch_context('Background')
+        self.assertIn('Background', why)
+        self.assertIn('viadriver.sh', why)
+        self.assertIn('nodrv_CreateWindow', why)
+        self.assertIsNone(runner.refused_launch_context('Aqua'))
+        # Unknown (not macOS, or launchctl missing): not refused here.
+        self.assertIsNone(runner.refused_launch_context(None))
+        def run(command, **kwargs):
+            self.assertEqual(command, ['launchctl', 'managername'])
+            return SimpleNamespace(stdout='Aqua\n', returncode=0)
+        self.assertEqual(runner.launchd_manager(run=run), 'Aqua')
+        def missing(command, **kwargs):
+            raise FileNotFoundError(command[0])
+        self.assertIsNone(runner.launchd_manager(run=missing))
+
     def test_the_pace_line_projects_the_end_frame_against_the_timeout(self):
         # Loop 2874 (2832's line): a golden take with `WORLD=6,CITIES=5` ran
         # at about a frame a second and met the lane's hour at 1219 of 1260

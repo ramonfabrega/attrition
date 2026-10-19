@@ -2852,6 +2852,10 @@ zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh \
 So the click-free lane's independence is from **TCC and the cursor**, not from
 the desktop: it still cannot run on a box with no login session, and a lane
 that launches it any other way gets a fault that will be misread as DXVK.
+Since the forty-fifth pass (Loop 3334) the tool refuses that launch itself:
+`launchctl managername` reads `Aqua` through `RonDriver.app` and `Background`
+from a session's own process tree (measured both ways, 2026-10-19), and
+`unattended_capture.py` exits before staging, naming `viadriver.sh`.
 
 **`--timeout` truncates rather than stops**, and it defaults to 180 s — the
 same trap `tools/gamelog/captures.txt` documents for `poll_max`. run106's first

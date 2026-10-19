@@ -213,6 +213,35 @@ def refused_window(log_window, detail):
             'or a window under 1000 frames')
 
 
+def launchd_manager(run=subprocess.run):
+    """`launchctl managername`: `Aqua` in a GUI login session, `Background`
+    under a daemon's process tree (Claude Code's own, through ccc), None
+    where launchctl is missing or refuses."""
+    try:
+        return run(['launchctl', 'managername'], capture_output=True, text=True, check=True).stdout.strip() or None
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def refused_launch_context(manager):
+    """Loop 3334 (the forty-fifth pass): a click-free capture launched
+    straight from a session has no window-server session — winemac.drv
+    refuses, the game dies in 3.8 s on `nodrv_CreateWindow`, and the run
+    reads as a renderer failure (ORACLE, "The click-free lane needs a
+    window"); 3329 lost two launches to it. `launchctl managername` reads
+    `Aqua` through RonDriver.app and `Background` from a session's tree
+    (measured 2026-10-19, both ways), so the launch is refused before it
+    stages. None (no launchctl) is not refused: the window check is
+    macOS's."""
+    if manager is None or manager == 'Aqua':
+        return None
+    return (f"this process runs under launchd's `{manager}` manager, with no window-server session: "
+            "the game would die in seconds on `nodrv_CreateWindow` and read as a renderer failure "
+            "(docs/ORACLE.md, \"The click-free lane needs a window\"). Launch through the driver app "
+            "instead — `zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh <output> …` — "
+            "and wait on its `log:` with `tools/gamelog/waitrun.sh` (Loop 3334)")
+
+
 def refused_tracer_defs(defs):
     """Why a `--tracer-def` set is refused before the lane is taken, or
     None: `RON_STATE_FRAME` names a packet frame and the tracer's
@@ -856,6 +885,9 @@ def main():
     # under a running lane-1 game — and the closed-game check is scoped to
     # the lane's prefix either way.
     if pool:
+        # Loop 3334: refused before a lane is taken or a profile staged.
+        if (why := refused_launch_context(launchd_manager())):
+            ap.error(why)
         with pool_lane(args.lane_wait) as paths, holding(paths):
             args.install,args.profile=paths['install'].resolve(),paths['profile'].resolve()
             print(f"lane: {paths['lane']} ({paths['prefix']}), from the pool",flush=True)
@@ -874,6 +906,9 @@ def main():
     # Cooperative lock: protects runners using this tool, not arbitrary GUI use.
     with holding(paths), capture_lane(args.profile):
         require_closed()
+        # Loop 3334: the pinned lane's checks above answer first; the launch is refused before staging.
+        if (why := refused_launch_context(launchd_manager())):
+            ap.error(why)
         capture_all(args)
 
 

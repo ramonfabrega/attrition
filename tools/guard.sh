@@ -33,8 +33,9 @@ PROFILE=()
 if [ "$1" = "--built" ]; then PROFILE=(--release); shift; fi
 (cd tools/explore && python3 -m unittest -q test_brief test_queueledger test_sweep_gen.FamilyRegistrations)
 if [ -n "$RON_LANE" ]; then
-  # The journal's gate quote cannot exist before the lane's gate has run (3277).
-  cargo test -q "${PROFILE[@]}" -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form --skip a_journal_quotes_its_lane_verdict_and_gate_minutes
+  # The journal's gate quote cannot exist before the lane's gate has run (3277),
+  # and its Loop line is the commander's to file at the merge (3328).
+  cargo test -q "${PROFILE[@]}" -p sim docs_guard -- --skip an_item_number_is_minted_once_and_in_its_file_s_form --skip a_journal_quotes_its_lane_verdict_and_gate_minutes --skip a_journal_s_loop_line_is_filed_or_says_none
 else
   cargo test -q "${PROFILE[@]}" -p sim docs_guard
 fi

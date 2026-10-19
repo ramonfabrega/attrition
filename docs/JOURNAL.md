@@ -21333,3 +21333,25 @@ DECISIONS 83): three lanes for the forty-fifth tranche, two Opus wide on
 battery words (the Iroquois at 12156, the Romans at 576) and one Sonnet
 sweep; the lane gate widens only on the AI kind; the fan-out rules move
 to `docs/LOOP.md` and `CLAUDE.md` drops from 55 to 37 KB.
+
+**2026-10-19 — the forty-fifth Fable pass: three Opus lanes landing wide
+cost three times the landing and a third of the game, the lane gate
+reads how far its base has moved, the Loop-line guard is forgiven on a
+lane, the click-free lane refuses a windowless launch, and the held-out
+unit is the lobby.** Twenty landings on three lanes in 16 h 55: 321.41
+USD in all against 108.92, 14.79 USD and 96.4 minutes waiting a landing
+against 4.64 / 60.1 — and fourteen battery games closed, eleven of them
+by fifteen Opus landings at 26 USD a game closed, where the tranche
+before spent 62.53 on one word and did not close it; the price is the
+context (fifteen `DEEP` clears, seventeen sessions past 300 k) and the
+clock is sixty-seven captures and the sweep's own subagents. The census
+1555 → 1580, port 393 → 436; the held-out median 4770 → 9284, two kept
+lobbies moved on fixes made for others. Twenty booking gates, every one
+green, none ending past the cores; two merges backed out at `ccc merge`
+on bases two and four landings behind. Built, red first: the lane gate's
+`Base moved:` line and refusal, the Loop-line guard's forgiveness,
+`unattended_capture.py`'s refusal of a `Background` launch, `--hooked`
+red on the address form alone; entry 72 amended with the replacement's
+criterion; three closed on measurements, one unreached, 2003's four
+reaches filed, five Ramon's; 17 → 7. The archives compressed, 30 → 76
+GiB free. **DECISIONS 84.** `docs/audit/2026-10-19-fable-pass-45.md`.

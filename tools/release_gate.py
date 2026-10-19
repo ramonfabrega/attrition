@@ -159,6 +159,7 @@ def summarize_requests(directory, *, release_completed):
 # and forgives nothing. `test_release_gate.py` pins that each name is a
 # test that exists.
 JOURNAL_QUOTE_GUARD = 'a_journal_quotes_its_lane_verdict_and_gate_minutes'
+LOOP_LINE_GUARD = 'a_journal_s_loop_line_is_filed_or_says_none'
 COMMANDERS_LINES = (
     'the_handoff_s_scoreboard_is_the_floors',
     'the_handoff_s_golden_line_is_the_pinned_word',
@@ -186,6 +187,15 @@ COMMANDERS_LINES = (
     # cannot write before the gate is forgiven on a lane and held at the
     # booking gate; the verdict says what to add.
     JOURNAL_QUOTE_GUARD,
+    # The journal's Loop line (Loop 3328, the forty-fifth pass): the guard
+    # asks that a journal's "for the Loop" line be filed in the parked
+    # file by number, and only the commander files it, at the merge — a
+    # worker never writes the Loop section. 3314's lane gate exited 1
+    # three times on it alone, 3318 filed its own line to get past it,
+    # and 3322 wrote `none` and moved its note out of the heading.
+    # Forgiven on a lane, held at the booking gate; the verdict says
+    # whose line it is.
+    LOOP_LINE_GUARD,
 )
 # **The lane gate's suite** (1567): the timed tests over this many seconds
 # alone are the booking gate's. The file is the thirty-fifth pass's
@@ -254,6 +264,47 @@ def branch_paths(base, run=subprocess.run):
     return out.split()
 
 
+def base_moved(base, run=subprocess.run):
+    """(commits, overlap): the commits `base` has gained since this branch
+    left it, and the paths both sides touched since — what a `ccc merge`
+    will have to reconcile. (None, None) when `base` is not a ref here.
+    Loop 3341 (the forty-fifth pass): 3335 announced its landing on a base
+    four landings behind and 3338 on one two behind, and both merges backed
+    out at `ccc merge` on the battery tables every promotion edits."""
+    try:
+        fork = run(['git', 'merge-base', base, 'HEAD'], capture_output=True, text=True,
+                   cwd=ROOT, check=True).stdout.strip()
+        commits = run(['git', 'log', '--format=%h %s', f'{fork}..{base}'], capture_output=True,
+                      text=True, cwd=ROOT, check=True).stdout.splitlines()
+        theirs = set(run(['git', 'diff', '--name-only', fork, base], capture_output=True, text=True,
+                         cwd=ROOT, check=True).stdout.split())
+        ours = set(run(['git', 'diff', '--name-only', fork, 'HEAD'], capture_output=True, text=True,
+                       cwd=ROOT, check=True).stdout.split())
+    except subprocess.CalledProcessError:
+        return None, None
+    return [c for c in commits if c.strip()], sorted(theirs & ours)
+
+
+def base_line(base, commits, overlap):
+    """The `Base moved:` line a lane gate prints last: how far the base has
+    moved since the branch left it and what that means for the done line."""
+    if commits is None:
+        return f"Base moved: {base} is not a ref here, so nothing was compared"
+    if not commits:
+        return f"Base moved: no — {base} has not moved since this branch left it"
+    first = commits[0].split(' ', 1)[0]
+    last = commits[-1].split(' ', 1)[0]
+    line = (f"Base moved: {len(commits)} commit(s) on {base} since this branch left it "
+            f"({first}{'..' + last if len(commits) > 1 else ''}); ")
+    if overlap:
+        shown = ', '.join(overlap[:4]) + (', …' if len(overlap) > 4 else '')
+        return line + (f"{len(overlap)} path(s) both sides touched ({shown}): take `ccc update <your ref>` "
+                       "(`--keep-conflicts` on a conflict), gate again, and only then your done line — a "
+                       "landing announced here backs out at `ccc merge` (Loop 3341)")
+    return line + ("no path both sides touched: take `ccc update <your ref>` at this gate's exit and "
+                   "land on this verdict if the update is clean, saying which base the gate ran on")
+
+
 def unmatched_filters(log, tests):
     """The word filters no test that ran contains — read off the release
     log's `test <name> ... ok|FAILED` lines, so an ignored test is not a
@@ -277,6 +328,9 @@ def lane_verdict(failed_tests):
         remedy = ('; quote this gate\'s `Lane verdict:` and `Gate minutes:` lines in your journal '
                   'before your done line — the booking gate holds the quote (3277)'
                   if any(name.endswith(JOURNAL_QUOTE_GUARD) for name in failed_tests) else '')
+        remedy += ('; your journal\'s "for the Loop" line is unfiled, and the commander files it at the '
+                   'merge — leave it as written, never file it yourself or rewrite it to `none` (3328)'
+                   if any(name.endswith(LOOP_LINE_GUARD) for name in failed_tests) else '')
         return True, (f"Lane verdict: red only on the commander's lines "
                       f"({len(failed_tests)}): " + ', '.join(failed_tests) + remedy)
     return False, (f"Lane verdict: red on the worker's own ({len(own)}): "
@@ -445,6 +499,15 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         _run_steps(commands, run=run, env=env, audit_dir=audit_dir, report_dir=report_dir,
                    require_fixtures=require_fixtures, reached=reached, lane=lane, word=tests,
                    seconds=seconds)
+        if lane:
+            # Loop 3341: the base is read after the steps, so the line is
+            # the freshest a lane can have before its done line.
+            commits, overlap = base_moved(base)
+            print(base_line(base, commits, overlap), flush=True)
+            if overlap:
+                raise ValueError(f"the base moved under this branch and both sides touched "
+                                 f"{', '.join(overlap)}: take `ccc update <your ref>` and gate again "
+                                 "before your done line (Loop 3341)")
     finally:
         print(minutes_line([step_name(c) for c in commands], seconds), flush=True)
         print(steps_line(commands, reached), flush=True)

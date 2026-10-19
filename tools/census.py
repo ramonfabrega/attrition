@@ -416,6 +416,21 @@ def hooked_in_sweeps(src, emu_dir, by_name=None):
     return out
 
 
+def hooked_verdict(rows, by_addr):
+    """(exit, line) for `--hooked` (Loop 3312, the forty-fifth pass): the
+    audit exited 1 at 62, 72, 89 and 109 chunks across four passes and
+    every row was the name form — a port's comment naming the callee its
+    stub answers for, which `sweep_backed` already subtracts (the
+    thirty-eighth pass). The address form, a chunk citing `Class::m@ADDR`
+    for a callee its script hooks, is pinned at zero on the tree
+    (`test_census`), and it alone is red here."""
+    named = len(rows) - len(by_addr)
+    line = (f"hooked callees cited in sweep chunks: {len(rows)} — {len(by_addr)} by address (red when any: "
+            f"the chunk asserts what its stub answers), {named} by name (a port comment naming its stub's "
+            "answer, subtracted from `backed` already; information, not a defect)")
+    return (1 if by_addr else 0), line
+
+
 def layers(index, docs, sim_src, pdb):
     """The census by layer: {layer: {functions, backed, doc, sweep}}, the
     unknowns' sources, and the simulation layer's files."""
@@ -786,10 +801,12 @@ def main():
                 addr, name = line.rstrip("\n").split("\t")[:2]
                 by_name.setdefault(name, []).append(int(addr, 16))
         rows = hooked_in_sweeps(a.sim_src, os.path.join(HERE, "emu"), by_name)
+        by_addr = hooked_in_sweeps(a.sim_src, os.path.join(HERE, "emu"))
         for file, script, addr in rows:
             print(f"{file}\t{script}\t{addr:08x}")
-        print(f"hooked callees cited in sweep chunks: {len(rows)}")
-        sys.exit(1 if rows else 0)
+        code, line = hooked_verdict(rows, by_addr)
+        print(line)
+        sys.exit(code)
     if a.pin:
         a.logs = pinned_logs() + a.logs
 

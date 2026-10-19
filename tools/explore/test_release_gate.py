@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location('release_gate', Path(__file__).resolve().parents[1]/'release_gate.py')
@@ -607,6 +608,73 @@ class GateTests(unittest.TestCase):
         self.assertNotIn('quote this gate', line)
         guard = (Path(__file__).resolve().parents[2] / 'tools/guard.sh').read_text()
         self.assertIn(f'--skip {name}', guard)
+
+    def test_the_loop_line_guard_is_forgiven_on_a_lane_and_the_verdict_says_the_commander_files_it(self):
+        # Loop 3328 (the forty-fifth pass): `a_journal_s_loop_line_is_filed_or_says_none`
+        # asks that a journal's "for the Loop" line be filed in the parked
+        # file, and only the commander files it, at the merge (CLAUDE.md:
+        # a worker never edits the queue or the parked file's Loop section
+        # by number). 3314's lane gate exited 1 three times on it alone,
+        # 3318 filed its own line to get past it, 3322 wrote `none` and
+        # moved its note out of the heading. Forgiven on a lane, held at
+        # the booking gate, and the verdict says whose line it is.
+        name = 'a_journal_s_loop_line_is_filed_or_says_none'
+        self.assertIn(name, gate.COMMANDERS_LINES)
+        forgiven, line = gate.lane_verdict([f'sim::docs_guard::{name}'])
+        self.assertTrue(forgiven, line)
+        self.assertIn("red only on the commander's lines", line)
+        self.assertIn('the commander files', line)
+        forgiven, line = gate.lane_verdict([f'sim::docs_guard::{name}', 'sim::x::a_red_of_the_worker_s_own'])
+        self.assertFalse(forgiven)
+        self.assertNotIn('the commander files', line)
+        guard = (Path(__file__).resolve().parents[2] / 'tools/guard.sh').read_text()
+        self.assertIn(f'--skip {name}', guard)
+
+    def test_a_lane_gate_on_a_moved_base_names_the_paths_both_sides_touched_and_refuses_the_done_line(self):
+        # Loop 3341 (the forty-fifth pass): 3335 announced its landing on a
+        # base four landings behind and 3338 on one two behind; both merges
+        # backed out at `ccc merge` on the battery tables every promotion
+        # edits, and each cost the lane an update, a resolve and a second
+        # gate after it had said landed. The lane gate reads how far the
+        # base has moved since the branch left it and which paths both
+        # sides touched; with any such path it refuses the done line and
+        # names `ccc update`. Made to fail first on 3338's shape.
+        def git(args):
+            if args[:2] == ['git', 'merge-base']:
+                return 'f0rk\n'
+            if args[:2] == ['git', 'log']:
+                return 'c2729a5 Book 3337\n4a8c010 Book 3338\n'
+            if args[:3] == ['git', 'diff', '--name-only'] and args[-1] == 'worktree-replan-pdb':
+                return 'crates/rondata/src/diff/battery.rs\ncrates/rondata/src/diff/testkit.rs\ndocs/QUEUE.md\n'
+            return 'crates/rondata/src/diff/battery.rs\ncrates/sim/src/city.rs\n'
+        def run(command, **kwargs):
+            return SimpleNamespace(stdout=git(command), returncode=0)
+        commits, overlap = gate.base_moved('worktree-replan-pdb', run=run)
+        self.assertEqual(len(commits), 2)
+        self.assertEqual(overlap, ['crates/rondata/src/diff/battery.rs'])
+        line = gate.base_line('worktree-replan-pdb', commits, overlap)
+        self.assertIn('Base moved: 2 commit(s)', line)
+        self.assertIn('battery.rs', line)
+        self.assertIn('ccc update', line)
+        # No overlap: the line says land on this verdict after the update.
+        line = gate.base_line('worktree-replan-pdb', commits, [])
+        self.assertIn('no path both sides touched', line)
+        self.assertIn('ccc update', line)
+        # Not moved at all.
+        self.assertIn('has not moved', gate.base_line('worktree-replan-pdb', [], []))
+        # Through the gate: green steps, a moved base with an overlap, and
+        # the gate exits red on the line alone.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed, \
+                 patch.object(gate, 'base_moved', return_value=(commits, overlap)), \
+                 self.assertRaises(ValueError) as refused:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertIn('Base moved: 2 commit(s)', said)
+            self.assertIn('Gate steps: 6 of 6 ran', said)
+            self.assertIn('battery.rs', str(refused.exception))
 
     def test_every_test_that_reads_the_handoff_is_one_of_the_commander_s_lines(self):
         # The other direction (the nineteenth pass): a handoff guard added

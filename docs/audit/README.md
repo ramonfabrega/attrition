@@ -315,6 +315,39 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-fifth pass
+
+The forty-fifth tranche (DECISIONS 84): twenty landings on three lanes
+in 16 h 55 from the pass's seventh commit, 14.79 USD and 96.4 minutes
+waiting a landing (4.64 / 60.1), fourteen battery games closed; no red
+booking gate, no kill rule, fifteen `DEEP` answered, two `LANDED` after
+the line, two merges backed out at `ccc merge` and re-merged. The pass
+added these rows, each from the tranche's own receipts.
+
+- **Read the gate's `Base moved:` line before the done line** (3341;
+  the commander at 3335's and 3338's merges): two lanes announced
+  landings on bases four and two landings behind, both merges backed
+  out on the battery tables every promotion edits, and each cost an
+  update, a resolve and a second gate after "landed"; the lane gate
+  reads the base's movement and the paths both sides touched, and
+  refuses the done line while any stands.
+- **A red on the Loop-line guard alone is forgiven on a lane, and the
+  line is the commander's to file** (3328; 3314's three lane gates,
+  3318's self-filed row, 3322's `none`): the guard asks that a journal's
+  "for the Loop" line be filed in the parked file, which only the
+  commander does, at the merge.
+- **`check.sh`'s exit is cargo's; read the command's exit, never a
+  pipe's** (3327; 3318's line): the wrapper returns the child's code,
+  measured on a build error this pass (exit 101).
+- **The click-free lane launches through `viadriver.sh`, never from the
+  session's shell** (3334; 3329's line): `launchctl managername` reads
+  `Aqua` through RonDriver.app and `Background` from a session's tree,
+  and the tool refuses the second before it stages.
+- **A road-node parting's first step is a whole-game log of ours' map
+  around the tile** (3323; 3314's line), **and a blow larger than ours
+  with `get_damage` agreeing is a packet scan for live `Ammo` first**
+  (3328's note; 3322's method note).
+
 ## The brief checklist, from the forty-fourth pass
 
 The forty-fourth tranche (DECISIONS 82): twenty landings on four lanes in

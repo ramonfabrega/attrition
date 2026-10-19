@@ -117,6 +117,23 @@ class PinnedTraces(unittest.TestCase):
         # 501 landed sweeps cites a callee its script hooks.
         self.assertEqual(census.hooked_in_sweeps(str(ROOT / 'crates/sim/src'), str(ROOT / 'tools/emu')), [])
 
+    def test_the_hooked_audit_exits_red_on_an_address_row_alone(self):
+        # Loop 3312 (the forty-fifth pass): `--hooked` exited 1 at 62, 72, 89
+        # and 109 chunks across four passes, and every row was the name
+        # form — a port's comment naming the callee its stub answers for,
+        # which `backed` already subtracts (the thirty-eighth pass, above).
+        # The address form is pinned at zero on the tree (the test above);
+        # the audit's exit is red on that form alone, and the name count is
+        # printed as what it is. Made to fail first.
+        rows = [('a.rs', 's.py', 0x512340), ('b.rs', 't.py', 0x512344)]
+        code, line = census.hooked_verdict(rows, by_addr=[])
+        self.assertEqual(code, 0)
+        self.assertIn('2 by name', line)
+        self.assertIn('0 by address', line)
+        code, line = census.hooked_verdict(rows, by_addr=[rows[0]])
+        self.assertEqual(code, 1)
+        self.assertIn('1 by address', line)
+
     def test_a_hooked_callee_a_chunk_names_is_not_backed_by_that_chunk(self):
         # The thirty-eighth pass: sixteen landed sweeps name the callee their
         # script stubs in the port's own comment (`// Map::point (stub 0)
