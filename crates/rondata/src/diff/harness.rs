@@ -4961,8 +4961,11 @@ pub(crate) mod tests {
         // §11). Until the fix this crate reset the clock alone, and the
         // block parted on 29 rows: `stopped` and both speeds on all nine.
         // What stands is `1/41`'s idle variant, on this block only. The
-        // draws agree, so the two sides gave it different rolls.
-        pin_eq!(halt, [], "block 11922");
+        // draws agree, so the two sides gave it different rolls. **Item
+        // 3287: none.** `Guy::init_real` zeroes `guy_flags` too, so the kept
+        // figure loses its `0x20` mark and rolls `IDLE2`, as the original's
+        // does (`docs/AI.md` §260).
+        pin_eq!(halt, Vec::<String>::new(), "block 11922");
         // **The move's value diff, both directions.** Until the fix,
         // `1/62`'s position parted on 11923, a step of 12 against 27,
         // because a body at speed 0 turns at once. On the word's block,
