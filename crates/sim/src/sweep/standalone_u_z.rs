@@ -180,6 +180,8 @@ mod unit_do_air_attack_ground;
 mod unit_do_attack_ground;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
+#[path = "unit_do_build.rs"]
+mod unit_do_build;
 #[path = "unit_do_explore_to.rs"]
 mod unit_do_explore_to;
 #[path = "unit_do_flee_to.rs"]

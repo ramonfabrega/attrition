@@ -583,8 +583,8 @@ pub fn construct_time(t: &Tuning, ty: &BuildType, base: i32, m: &ClockMods) -> i
 pub const fn builder_amount(t: &Tuning, under_attack: bool, korean: bool) -> i32 {
     let a = t.accel_construct;
     if under_attack && !(korean && t.korean_build_under_fire != 0) {
-        // The sign-fixed `>> 2` of the original.
-        a.div_euclid(4)
+        // The sign-fixed `>> 2` of the original: truncation toward zero.
+        a / 4
     } else {
         a
     }
