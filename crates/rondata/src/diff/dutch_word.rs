@@ -159,3 +159,43 @@ fn run963_s_word_frame_is_widened_whole() {
     // is the control's set and its two late rows, who=1's `SITE[6].reg` on
     // 1576 and `group:64.held` on 1577.
 }
+
+/// run963b: the word 5583's window, blocks 5577..5833 at run963's detail
+/// (item 3329); run963 ends on block 1817 and run917 dumps its setup and
+/// closing blocks only.
+pub(crate) const RUN963B: &str =
+    "gamelog-run963b-eastindies-dutch-diff4-window-5577-5834-guys4.txt";
+
+/// The window: block 5577 through 5833; the word 5583's own block is 5584.
+pub(crate) const WIDENING_DUTCH_FRAME_5583: (i64, i64) = (5577, 5833);
+
+pub(crate) fn dutch_frame_5583_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[DUTCH.start],
+        true,
+        DUTCH.long,
+        "run963b",
+        &[(RUN963B, WIDENING_DUTCH_FRAME_5583.0)],
+        WIDENING_DUTCH_FRAME_5583,
+        1,
+        &[5584],
+        true,
+    )
+}
+
+#[test]
+fn run963b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = dutch_frame_5583_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}

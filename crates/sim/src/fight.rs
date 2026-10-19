@@ -323,12 +323,30 @@ impl Sim {
     }
 
     /// `attack()` — the type's, plus the player's flat modifier (§4.1).
+    ///
+    /// The base is `ObjectData::attack@006469f0`'s, and its Dutch term
+    /// (item 3329) is inside it: a Dutch kind ([`Sim::dutch_ages`]) adds
+    /// `ages × DUTCH_ATTACK_BONUS × 10` **before** `UnitData::attack`'s
+    /// zero test, so an armed merchant of an age past the first is a
+    /// combatant on a type with no attack.
     pub fn attack_of(&self, o: Obj) -> i32 {
-        let base = self.profile(o).attack;
+        let base = self.profile(o).attack + self.dutch_term(o) * 10;
         if base == 0 {
             return 0;
         }
         base + self.mods_of(self.owner_of(o) as usize).attack
+    }
+
+    /// `ages × DUTCH_ATTACK_BONUS` for a unit of a Dutch kind, else 0
+    /// (`ObjectData::attack`'s and `::armor`'s shared arm; a building is
+    /// never one).
+    fn dutch_term(&self, o: Obj) -> i32 {
+        match o {
+            Obj::Unit(u) => self.units[u].ty.map_or(0, |rec| {
+                self.dutch_ages(self.units[u].owner, rec) * self.tuning.dutch_attack_bonus
+            }),
+            Obj::Building(_) => 0,
+        }
     }
 
     /// The damage formula's modifiers of an owner: the player's, or none
@@ -353,7 +371,11 @@ impl Sim {
     /// `thesenator_build_armor` before the halving. Not modelled; scan:
     /// a building struck in a capture whose `GUY` blocks hold type 353.
     pub fn armor_of(&self, o: Obj) -> i32 {
-        let armor = self.profile(o).armor + self.mods_of(self.owner_of(o) as usize).armor;
+        // `ObjectData::armor@00647db0`'s Dutch term (item 3329): `ages ×
+        // DUTCH_ATTACK_BONUS` on a Dutch kind.
+        let armor = self.profile(o).armor
+            + self.dutch_term(o)
+            + self.mods_of(self.owner_of(o) as usize).armor;
         match o {
             Obj::Building(b) if !self.buildings[b].active => armor / 2,
             _ => armor,
