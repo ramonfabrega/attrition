@@ -22,7 +22,11 @@ fn rd16(m: &[u8], off: usize) -> i32 {
 
 /// `vector_dist@0046cff0` (the octagonal estimate the array arm spells inline) of two absolute deltas.
 fn vdist(dx: i32, dy: i32) -> i32 {
-    let (hi, lo) = if dy < dx { (dx as u32, dy as u32) } else { (dy as u32, dx as u32) };
+    let (hi, lo) = if dy < dx {
+        (dx as u32, dy as u32)
+    } else {
+        (dy as u32, dx as u32)
+    };
     (if hi == 0 {
         0
     } else if lo < 60_000 {
@@ -38,7 +42,8 @@ fn vdist(dx: i32, dy: i32) -> i32 {
 /// c2 `div_3_table`, c3 `circle_radius`, c4/c5 `circle_x`/`circle_y`, c6 `obj_base`. `a[15..31]` and `a[31..47]` are
 /// `valid_search`'s and `valid_filter`'s answers, in call order, the last repeated.
 fn find_port(a: &[i32], c: &mut [Vec<u8>], p: &[Vec<u8>], log: &mut Vec<String>) -> i64 {
-    let (x, y, p3, p4, r, filt, p8, p9, early) = (a[0], a[1], a[2], a[3], a[4], a[6], a[7], a[8], a[12] != 0);
+    let (x, y, p3, p4, r, filt, p8, p9, early) =
+        (a[0], a[1], a[2], a[3], a[4], a[6], a[7], a[8], a[12] != 0);
     let (mut n_search, mut n_filter) = (0usize, 0usize);
     let mut valid_search = |s: i32, log: &mut Vec<String>| {
         log.push(format!("s0:{s},{p3},{p4}"));
@@ -137,10 +142,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(7);
@@ -153,7 +163,11 @@ fn the_emulated_original_agrees_on_every_row() {
             find_port(a, c, p, &mut log)
         };
         assert_eq!(got, want_eax, "find — eax, row `{line}`");
-        let log: Vec<String> = if log.is_empty() { vec!["-".into()] } else { log };
+        let log: Vec<String> = if log.is_empty() {
+            vec!["-".into()]
+        } else {
+            log
+        };
         assert_eq!(log, want_log, "find — the recorded calls, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "find — this's bytes, row `{line}`");
