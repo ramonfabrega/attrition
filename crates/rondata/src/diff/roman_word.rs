@@ -162,3 +162,150 @@ fn run956_s_word_frame_is_widened_whole() {
     // leaders' `aggression` — and who=1's `SITE[2].reg` on 576 as its
     // sites fill. The word moved to 18026, past the window's last block.
 }
+
+/// run956b: the word 18026's window, blocks 18020..18276 at run956's
+/// detail (item 3314); run956 ends on block 826 and run899b dumps its setup
+/// and closing blocks only.
+pub(crate) const RUN956B: &str = "gamelog-run956b-eastindies-roman-diff2-window-18020-18277.txt";
+
+/// The window: block 18020 through 18276; the word 18026's own block is
+/// 18027.
+pub(crate) const WIDENING_ROMAN_FRAME_18026: (i64, i64) = (18020, 18276);
+
+pub(crate) fn roman_frame_18026_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN.start],
+        true,
+        ROMAN.long,
+        "run956b",
+        &[(RUN956B, WIDENING_ROMAN_FRAME_18026.0)],
+        WIDENING_ROMAN_FRAME_18026,
+        1,
+        &[18027],
+        true,
+    )
+}
+
+#[test]
+fn run956b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_frame_18026_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "initial run956b baseline");
+}
+
+/// **The word 18026's caravan road search, node for node** (item 3314):
+/// theirs' `PathFinder::astar_caravan_road` spends 194 `calc_road_cost`
+/// draws on 18026 against ours' 192; run899b's call window (`--callwin 0
+/// 24000`) holds every `valid_roadcoord`/`calc_road_cost` pair.
+#[test]
+fn run899b_s_road_search_on_18026_holds_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) =
+        (dump(ROMAN.long.0), dump(ROMAN.start), trace(ROMAN.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_phases = true;
+    built.sim.trace_costs = true;
+    // Every road search before the word, node for node: the first that
+    // parts dates the road state's split.
+    let mut first: Option<String> = None;
+    let mut searched = 0;
+    while built.sim.frame < 18026 {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        let theirs = tr.road_nodes(f);
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        if std::env::var_os("RON_PROBE_ROAD").is_some() {
+            for m in theirs
+                .iter()
+                .filter(|m| m.to == (5472, 7776) || m.from == (5472, 7776))
+            {
+                eprintln!("  visit {f}: {m:?}");
+            }
+        }
+        searched += 1;
+        if first.is_none()
+            && let Some(i) =
+                (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
+        {
+            first = Some(format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            ));
+        }
+    }
+    eprintln!("ROAD searched {searched}; first parting {first:?}");
+    if std::env::var_os("RON_PROBE_ROAD").is_some() {
+        for b in built.sim.buildings.iter().filter(|b| b.alive) {
+            if (b.pos.x - 5472).abs() < 1200 && (b.pos.y - 7776).abs() < 1200 {
+                eprintln!(
+                    "  building {}/{} ty {:?} {:?} at {:?} active {}",
+                    b.owner,
+                    b.index,
+                    b.ty,
+                    b.ty.map(|t| built.sim.build_types[t].ident),
+                    b.pos,
+                    b.active
+                );
+            }
+        }
+        let t = sim::Pos::new(5472, 7776).tile();
+        for dy in -2..=2 {
+            let row: Vec<String> = (-2..=2)
+                .map(|dx| {
+                    format!(
+                        "{:04x}",
+                        built.sim.world.tile_mask(sim::Pos::new(t.x + dx, t.y + dy))
+                    )
+                })
+                .collect();
+            eprintln!("  mask row {}: {}", t.y + dy, row.join(" "));
+        }
+    }
+    built.sim.road_marks.clear();
+    built.tick();
+    let ours = std::mem::take(&mut built.sim.road_marks);
+    let theirs = tr.road_nodes(18026);
+    let at = (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i));
+    if std::env::var_os("RON_FIRSTS").is_some()
+        && let Some(i) = at
+    {
+        for j in i.saturating_sub(3)..(i + 6).min(ours.len().max(theirs.len())) {
+            eprintln!("  {j}: ours {:?} theirs {:?}", ours.get(j), theirs.get(j));
+        }
+    }
+    pin_eq!(theirs.len(), 194, "theirs' road nodes on 18026");
+    pin_eq!(ours.len(), 0, "ours' road nodes on 18026");
+    pin_eq!(at, None, "the first node that parts");
+}
