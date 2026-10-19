@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(6);
@@ -76,7 +81,9 @@ fn the_emulated_original_agrees_on_every_row() {
                     i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
                 }
                 fn rd16(w: &[u8], o: usize) -> i32 {
-                    i32::from(i16::from_le_bytes(w[o..o + 2].try_into().expect("two bytes")))
+                    i32::from(i16::from_le_bytes(
+                        w[o..o + 2].try_into().expect("two bytes"),
+                    ))
                 }
                 impl V<'_> {
                     /// Stub `k`'s next answer of `n` from `a[base]`, the last repeated.
@@ -167,7 +174,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                     fn castable(&mut self, spell: i32) -> bool {
                         let (w, _) = Self::row(spell);
-                        self.log.push(format!("s6:p{w}+0x0,{},{},0", rd16(self.m, 0xa), self.m[9]));
+                        self.log
+                            .push(format!("s6:p{w}+0x0,{},{},0", rd16(self.m, 0xa), self.m[9]));
                         self.seq(6, 19, 3) != 0
                     }
                     fn mana(&mut self) -> i32 {
@@ -182,7 +190,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                     fn range(&mut self, spell: i32) -> i32 {
                         let (w, slot) = Self::row(spell);
-                        self.log.push(format!("s9:p{w}+0x0,p16+{slot:#x},{},-1,-1", self.m[9]));
+                        self.log
+                            .push(format!("s9:p{w}+0x0,p16+{slot:#x},{},-1,-1", self.m[9]));
                         self.seq(9, 25, 2)
                     }
                     fn find(&mut self, spell: i32, mode: i32, range: i32) -> i32 {
@@ -240,7 +249,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     fn add_cast(&mut self, target: i32, spell: i32) {
                         self.log.push(format!(
                             "s12:m+0x0,{target},{},{},{},{spell},0,0",
-                            if target < 0 { -1 } else { rd32(&self.c[2], 0x200) },
+                            if target < 0 {
+                                -1
+                            } else {
+                                rd32(&self.c[2], 0x200)
+                            },
                             self.x(),
                             self.y()
                         ));
@@ -272,15 +285,30 @@ fn the_emulated_original_agrees_on_every_row() {
             f.join(",")
         };
         let mine: Vec<String> = log.iter().map(|t| mask(t)).collect();
-        let want_log: Vec<String> = want_log.iter().filter(|t| **t != "-").map(|t| mask(t)).collect();
-        assert_eq!(mine, want_log, "think_spellcaster — the recorded calls, row `{line}`");
+        let want_log: Vec<String> = want_log
+            .iter()
+            .filter(|t| **t != "-")
+            .map(|t| mask(t))
+            .collect();
+        assert_eq!(
+            mine, want_log,
+            "think_spellcaster — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "think_spellcaster — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "think_spellcaster — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "think_spellcaster — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[7 + i], "think_spellcaster — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[7 + i],
+                "think_spellcaster — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

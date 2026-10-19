@@ -385,7 +385,7 @@ impl CasterView for SimCaster<'_> {
         } else {
             SITE_SPECIAL_COIN
         });
-        self.s.rng.roll() as i32
+        self.s.rng.roll()
     }
     fn cell_owner(&self) -> i32 {
         self.s
