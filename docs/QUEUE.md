@@ -17,7 +17,7 @@ in 7 h 25 on four lanes** (DECISIONS 82), 108.92 USD in all, 4.64 USD and 60.1 m
 17 booking gates green; no kill rule, no merge backed out. Built, red first: the lane's forgiveness of the journal-quote
 guard (3277), `mutate.py`'s timeout, no-verdict and signal restore (3276, 3300), `--watch VA+OFF:LEN` (3280),
 `tools/reap_agents.py` (3290), `coverage::a_unit_key_the_simulation_carries_is_read_or_owed` (3310). **The
-forty-fifth tranche's base is the pass's commit**, named with its whole gate in its second.*
+forty-fifth tranche's base is `be35dd2d`**; the last whole gate is the pass's, on its second commit, named in its third.*
 
 - **Words**: every pair closed. Battery `GreatLakesIroquoisTier3` 10695 → 12156 of 12658 (3255, 3279, 3287, 3297),
   its widening owed as 3306 with the readers for `mana_burn`, `rare`, `good_obj` (3310); `EastIndiesGermanTier3`
@@ -41,7 +41,7 @@ Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-fifth tranche from docs/QUEUE.md's handoff — commander, Opus: spawn 3306 (Opus 5.5
-medium), 3302, 3303 and 3304 (Sonnet 5.5 medium) off the pass's commit, DECISIONS 78 (i); twenty landings, then the forty-fifth pass.**
+medium), 3302, 3303 and 3304 (Sonnet 5.5 medium) off `be35dd2d`, DECISIONS 78 (i); twenty landings, then the forty-fifth pass.**
 
 ## The queue
 
