@@ -204,8 +204,11 @@ unit taking the same ruins, since step 2 leaves the item linked.
   both are reset by `Leader::reset_score`; neither has a writer in this
   executable, so a box in RoN:EE holds resources and nothing else. Not
   re-checked against the 2003 build.
-- **The Spanish branch has never run.** `has_tribe_bonus(9)` is false in
-  every capture on disk.
+- ~~**The Spanish branch has never run.** `has_tribe_bonus(9)` is false in
+  every capture on disk.~~ **A Spanish lobby is on disk since item 3318**
+  (`GreatSaharaSpanishTier3`; run896, run896b, run958 .. run958f), and its
+  sight arm is carried (§7.2). Whether its Scout *opens* a box before the
+  game's end, and so runs the payout's pair, is unread (parked 3318d).
 - ~~**Whether a box's *good* is right.**~~ **Answered 2026-09-02, and it
   was wrong** (`docs/ECONOMY.md`, "run60"). run60 is run58's game with
   `[End Frame]` cut to `MISC,LEADERS=2`, so both leaders' six buckets are
@@ -320,7 +323,15 @@ Three things there are worth naming.
   models `is_seen` as `was_really_seen` — the bare fog, `World::seen2`
   without the shortcut — over the same four half-cells, which is the same
   accumulation under a different name and at cell rather than item
-  resolution. Unmodelled with it: the Spanish `has_tribe_bonus(9)` arm ~~and
+  resolution. Unmodelled with it: ~~the Spanish `has_tribe_bonus(9)` arm~~
+  — **carried since item 3318** (`docs/AI.md` §264): after the
+  `ever_seen` read, a Spanish leader whose own cell (`WData +0xf`) the box
+  is on answers `WorldData::was_seen` at the item's half-cell and returns
+  it without falling through; with `leader_flags 0x1000`, which
+  `Setup::build_empire@005abb80` gives every Spanish leader, that is every
+  box on its own ground. run896b's Scout re-paths to the box at (47, 29)
+  on 524 from three cells away; the arm put ours on the same frame
+  (`goody::tests::a_spanish_box_on_its_own_ground_answers_was_seen`) ~~and
   the fall-through to `WorldData::is_seen`, the *current* grid rather than
   the accumulated one~~ — the fall-through is **carried since item 1558**
   (`docs/AI.md` §153): `WorldData::is_seen` at the item's half-cell, whose

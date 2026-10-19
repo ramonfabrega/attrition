@@ -2278,6 +2278,7 @@ impl Sim {
         let citizens = self.citizen_discounts(who, ty);
         let liberty = self.liberty_discount(who, ty);
         let despotism = self.despotism_unit_discount(who, ty);
+        let salt = self.salt_barracks_discount(who, ty);
         let m = match self.research_modifiers(who, ty) {
             Some(r) => cost::Modifiers {
                 research: Some(r),
@@ -2286,6 +2287,7 @@ impl Sim {
                 discount,
                 stable_rares,
                 despotism,
+                salt,
                 liberty,
                 uranium,
                 citizens,
@@ -2302,6 +2304,7 @@ impl Sim {
                 discount,
                 stable_rares,
                 despotism,
+                salt,
                 liberty,
                 uranium,
                 citizens,
@@ -2330,6 +2333,17 @@ impl Sim {
         {
             self.units[u].unit_masks2 |= crate::combat::umask2::IROQUOIS_SCOUT;
         }
+    }
+
+    /// `TypeData::get_cost@00664090`'s **Salt arm** (`:208`–`213`, the head
+    /// of the unit path, ahead of the research fork): a unit whose trainer
+    /// (`UnitTypeData +0x40`) is the Barracks, by equality, of a leader
+    /// holding Salt ([`economy::SALT`]) is charged `scaled × 9 / 10`.
+    /// run958d's Spanish Hoplites at `1/2019` on block 7783 are 48/31 and
+    /// 52/35 where the list price with the ramp is 53/34 and 57/38 (item
+    /// 3318, `docs/AI.md` §264).
+    pub fn salt_barracks_discount(&self, who: Player, ty: usize) -> bool {
+        self.trainer_where(ty) == Some(nations::ty::BARRACKS) && self.has_rare(who, economy::SALT)
     }
 
     /// `TypeData::get_cost@00664090`'s **Despotism arm** (`:382`–`404`, the
@@ -3346,8 +3360,36 @@ impl Sim {
         let time = self.tech_tree.types[t].job_time * production::TIME_SCALE;
         let time = production::research_tick(time, self.tuning.research_tick_premium);
         let science = self.tech[who as usize].epoch[tech::Line::Science.index()];
-        let tail = production::science_speedup(&self.tuning, science, self.tech_tree.types[t].age);
+        let mut tail = self.research_rares(who);
+        tail.extend(production::science_speedup(
+            &self.tuning,
+            science,
+            self.tech_tree.types[t].age,
+        ));
         production::adjusted(time, tail.as_slice()).max(production::MIN_TIME)
+    }
+
+    /// The steps of `ObjectData::train_time@006508c0`'s research block
+    /// that stand ahead of the science speedup and that this crate
+    /// carries: **Relics** (`rare.ptr[0] & 2`, or `rare_conquest`'s;
+    /// `:521`–`524`), `(100 − RELICS_RESEARCH_SPEED) × t / 100`, read live
+    /// every frame as the target is. run896b's Spanish Chemistry, queued
+    /// at the Library `1/2005` on 14035, finishes before run958e's block
+    /// 14376 in the original once who=1 holds Relics, where 35000 without
+    /// the term runs past 14382 (item 3318, `docs/AI.md` §264).
+    ///
+    /// SEAM: the block's other steps — `has_preq(RESEARCH_FASTER)`'s three
+    /// quarters, Angkor Wat's `ANGKOR_RESEARCH` (0% shipped), Conquer the
+    /// World's cards, the handicap, the lobby's `tech_cost`, and the
+    /// head's catch-up and held-elsewhere terms — are not carried.
+    pub(crate) fn research_rares(&self, who: Player) -> Vec<production::Adjust> {
+        if self.has_rare(who, economy::RELICS) {
+            vec![production::Adjust::Scale(
+                100 - self.tuning.relics_research_speed,
+            )]
+        } else {
+            Vec::new()
+        }
     }
 
     /// `LeaderData::researching(t)` as the scripts' `researching_tech` reads
@@ -3508,9 +3550,9 @@ impl Sim {
                 }
                 _ => 0,
             };
-            production::science_speedup(&self.tuning, science, level)
-                .into_iter()
-                .collect()
+            let mut tail = self.research_rares(who);
+            tail.extend(production::science_speedup(&self.tuning, science, level));
+            tail
         };
         // `train_time@006508c0:79`–`85`, before the ramp: a type of the
         // Nuclear Missile line (`is(0x13b, 0)`) of a player holding Uranium

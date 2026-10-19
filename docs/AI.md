@@ -23408,12 +23408,67 @@ tile after block 36. The sixteen other ring tiles ours clears on 18011 are unobs
 the control's set are the standing residue, and they part nothing that moves. The capture's own sequence
 (`Cities::capture_city`, `Build::swap_team`) has not run here on this lobby.
 
-## 264. Reserved for the next item on the AI track
+## 264. The Spanish: every cell seen, Salt and Relics, a decoy in the capture tally, and the game's end (2026-10-19, item 3318)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The booking**: the battery's Great Sahara word. `GreatSaharaSpanishTier3` (map 7, the Spanish (9) at Difficulty 3)
+was the held-out battery's lowest lobby beside the Romans, both at 576 on their first try (§243); 3314's fort arm
+left the Spanish 576 unmoved, so the two were two mechanisms. It is promoted here (`diff::spanish_word`,
+`SCORED_LOBBIES` `(7, 9, 3)`). The battery is eight lobbies again with **`GreatSaharaGreekTier1`** (map 7, the Greeks
+(5) at Difficulty 1; runs 957, 957b), whose first try is **176 / 176**: ours 15 draws, theirs 36, at index 0, ours
+`Animal::think_bird+0x82`, theirs `Leader::compute_sites+0x4ac`. No dump had held the Greeks, and no battery lobby on
+Great Sahara was at tier 1.
+
+**1. The Spanish goody-sight arm (576, unmoved).** `ItemData::is_seen@00677850`'s `has_tribe_bonus(9)` arm: a
+Spanish leader on its own ground answers `WorldData::was_seen` at the box's half-cell (`docs/GOODY.md` §7.2). run896b's
+Scout re-paths to the box at (47, 29) on 524 from three cells away; the arm put ours on the same frame. run958's
+widening (570..826, block 577) went 323 → 308 keys and the word stayed at 576.
+
+**2. The Spanish see every cell (576 → 7785).** Past the Scout, who=1's site scores parted from frame 0's ninth
+`compute_site_stats` call (run958c, every call to 580), every mismatch being theirs = ours × `(min(danger, 9) + 7) /
+8`. run958b's packet at 375 has theirs' fog grid and cell owners agree whole with ours (0 of 14,400 half-cells, 0 of
+3,600 cells), so the fog was not it. The cause is `Setup::build_empire@005abb80`'s `leader_flags |= 0x1000` for
+`has_tribe_bonus(9)`, which `sees_every_cell` reads (`ai_sites.rs`). **Value diff**: run958's widening went 308 →
+**36** keys, the standing set alone; the `missing` pin holds `gaia:cur_anim`/`cur_time` (`GUYS=2` prints the short
+record). The word moved past run958's window and past every dump on disk.
+
+**3. Salt's Barracks arm (7785 → 14382).** run958d (7779..8035, block 7786): the first parting is block 7783, who=1's
+`bucket[0]`/`[4]` 37/79 against 47/85, and the Barracks `1/2019`'s two Hoplites at 53/34 and 57/38 against 48/31 and
+52/35. A probe of `price_with` gave the arithmetic: (50 + 6) × 95 / 100 = 53 ours, and (45 + 6) × 0.95 = 48 theirs.
+`TypeData::get_cost@00664090:208` takes nine tenths off the scaled base for a Barracks (`0x1ab`) trainer whose leader
+holds Salt (`rare +0x6da4 & 0x80`, or `rare_conquest`'s), ahead of the research fork; the shipped `SALT_BARRACKS_COST`
+is never read (`docs/COSTS.md`). Built: `cost::Modifiers::salt`, `Sim::salt_barracks_discount`, `economy::SALT`.
+**Value diff**: run958d's widening went 666 → **34** keys.
+
+**4. Relics' research arm (14382 → 22692).** run958e (14376..14632, block 14383) is already apart on 14376: who=1's
+`epoch[3]` 2 against 3, the Library `1/2005` still `queued`, and seven units' `mylos` short. Chemistry was queued on
+14035 on both sides (theirs' `tech_cat_frame[3]`); ours was at 34500 of 35000 with no Relics term, and who=1 gains
+Relics between 14036 and 14380. `ObjectData::train_time@006508c0:521` takes `(100 − RELICS_RESEARCH_SPEED) × t / 100`
+off a research job, read live every frame. Built: `Sim::research_rares` (tech and unit research),
+`Tuning::relics_research_speed` 33, `economy::RELICS`. **Value diff**: run958e's widening went 833 → **28** keys.
+
+**5. A decoy counts for neither side of the capture tally (22692 → 22700).** run958f (22686..22701, 16 blocks, block
+22693): the human's capital `0/2000` was taken in ours on 22692. A probe of `check_capture@006276a0`'s tally showed
+who=1's decoy `1/104` at distance 1897 of 1920 (`unit_masks` 262153 in theirs, bit 0 set) tipping it 3 to 2; the
+original skips a unit with `unit_masks & 1`. Built in `city.rs::check_capture`. **Value diff**: run958f's widening
+went 3065 → **33** keys. **The word moves 22692 → 22700, the game's last frame.**
+
+**6. The closing state.** run896b prints the closing block 22701 whole. Walked to it and compared
+(`run896b_spanish_closing_state`): 166 units, none apart, no building or city field-row, and no closing field parted.
+What is left past the standing set on run958f: the newborn `1/136`, `1/138`, `1/141`'s `g.angle[0]` (`0x55555555`
+against 0, the Iroquois' and the Romans' shape), and on 22701 alone who=0's `defense` (0 against −1) and `1/2024`'s
+`queued` (1 against 0). Parked 3318a, 3318b.
+
+Each build has a test (`goody::tests::a_spanish_box_on_its_own_ground_answers_was_seen`,
+`ai_sites::tests::the_spanish_see_every_cell_once_they_hold_the_bonus`, `cost::tests::salt_cuts_a_tenth_before_the_ramp`,
+`cities_tests::relics_take_a_third_off_a_research_job`, `cities_tests::a_decoy_does_not_count_in_the_capture_tally`)
+and a `tools/mutate.py` mutation that the walk or the test caught. Every other lobby's `first_parting`,
+`battery_floors_hold` and `sahara_coverage` held on every build.
+
+**Not established.** Salt on a research job is unpriced: no capture prices one. Relics on a *unit* research job is
+built under the assumption that `train_time`'s research block is one block for both (parked 3318c). `research_rares`'
+SEAMs — RESEARCH_FASTER, Angkor, Conquer the World, the handicap, `tech_cost`, the catch-up and held-elsewhere terms —
+are not carried (3318e). `fix_tech_flags` clearing `0x1000` on `lose_tech` is never reached. Whether the Spanish Scout
+opens a box, and so runs `explore_goody`'s Spanish payout pair, is unread (3318d).
 
 ## 265. Reserved for the next item on the AI track
 

@@ -190,6 +190,9 @@ OVERRIDES = {
     # The Despot's arm is built (fight.rs, item 3279); the Aztec arms the
     # census counts (the slay bonus, AZTEC_PLUNDER on a unit) are not.
     "Unit::plunder@00605b00": ("not modelled", "aztec_slay_bonus"),
+    # Its Spanish arm is leader state, not the start: `leader_flags |=
+    # 0x1000`, which `sees_every_cell` carries (item 3318).
+    "Setup::build_empire@005abb80": ("modelled at ai_sites.rs", "sees_every_cell"),
 }
 NOT_SIM = ("Setup::", "ConquestGame::", "ScenarioFuncSet::", "IFace", "StatWin::",
            "Options::", "Scene::", "BuildTypeOut::", "BuildOut::", "LeaderOut::",
@@ -226,6 +229,7 @@ ROSTER = ["Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egy
 LOBBY = {7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGermanTier3` (AI word, tier 3)",
          18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (map 18, tier 4)",
          13: "`GreatLakesRussianTier2` (map 14, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
+         9: "`GreatSaharaSpanishTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (map 7, tier 1)",
          6: "`EastIndiesRomanTier2` (AI word, tier 2)", 20: "`EastIndiesAmericanTier1` (map 18, tier 1)",
          4: "the human in every capture", 10: "scored pairs", 11: "scored pairs", 16: "scored pairs"}
 FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans", 7: "egyptians",

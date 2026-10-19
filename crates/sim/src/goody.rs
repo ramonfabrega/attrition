@@ -262,17 +262,37 @@ impl Sim {
     /// `seen2` clear on all four half-cells, the cell `who` 1. The centre
     /// is assumed for every box.
     ///
-    /// SEAM: the Spanish `has_tribe_bonus(9)` arm, and the whole chain walk
-    /// that finds the item in the first place (`docs/QUEUE.md` item 48). A
-    /// box on a cell nothing has ever seen and nobody's ground answers no
-    /// here either way.
+    /// **The Spanish arm** (item 3318, `docs/GOODY.md` §7.2): a leader
+    /// with `has_tribe_bonus(9)` whose own cell the box is on — `WData
+    /// +0xf`, `who`, read at the item's cell (`00677850`: the item's
+    /// coordinates `>> 8` through `div_3_table`, the byte at `wdata +
+    /// cell × 0x1c + 0xf` against `who`) — answers
+    /// `WorldData::was_seen` at the item's half-cell, territory shortcut
+    /// and all, and returns it **without** falling through to the line of
+    /// sight. On Great Sahara the Spanish Scout sweeps a box inside its own
+    /// borders on 524 from three cells away (run896b's `astar_path` to the
+    /// box's cell that frame, `docs/AI.md` §264).
+    ///
+    /// SEAM: the whole chain walk that finds the item in the first place
+    /// (`docs/QUEUE.md` item 48). A box on a cell nothing has ever seen and
+    /// nobody's ground answers no here either way.
     fn goody_item_is_seen(&self, c: Cell, who: Player) -> bool {
         let (x, y) = (2 * c.x, 2 * c.y);
-        self.was_really_seen_fog(x + 1, y + 1, who)
+        if self.was_really_seen_fog(x + 1, y + 1, who)
             || self.was_really_seen_fog(x, y + 1, who)
             || self.was_really_seen_fog(x + 1, y, who)
             || self.was_really_seen_fog(x, y, who)
-            || self.world_is_seen_fog(x + 1, y + 1, who)
+        {
+            return true;
+        }
+        if self
+            .tech_tree
+            .has_tribe_bonus(&self.setup, &self.tech[who as usize], 9)
+            && self.world.owner(c) == crate::world::Owner::Player(who)
+        {
+            return self.was_seen_fog(x + 1, y + 1, who);
+        }
+        self.world_is_seen_fog(x + 1, y + 1, who)
     }
 
     /// `Unit::get_goody_box@005f7690`: a one-member group, and an
@@ -524,6 +544,33 @@ mod tests {
         enemy.world.set_owner(c, Owner::Player(0), Owner::None);
         assert!(!enemy.find_goody_box(u), "an enemy's ground is not lit");
         assert!(enemy.units[u].orders.is_empty());
+    }
+
+    /// **The Spanish arm** (item 3318, `docs/GOODY.md` §7.2): a Spanish
+    /// leader's box on its own ground answers `was_seen` — which its
+    /// `leader_flags 0x1000` makes every cell — and never reaches the line
+    /// of sight; on another's ground the item's gate falls through to
+    /// `is_seen`, which has no `0x1000` arm. Another power on the same
+    /// ground is refused. On Great Sahara this is the Scout's re-path to
+    /// the box on 524 (run896b).
+    #[test]
+    fn a_spanish_box_on_its_own_ground_answers_was_seen() {
+        use crate::world::Owner;
+        let (mut s, u) = sweeper();
+        assert!(s.world.set_fog(vec![0; 16 * 16]));
+        s.setup.starting_town = true;
+        s.tech[1].power = Some(crate::nations::power::SPANISH);
+        assert!(!s.find_goody_box(u), "nobody's ground: the line of sight");
+        let c = Cell::new(3, 2);
+        s.world.set_owner(c, Owner::Player(1), Owner::None);
+        let mut french = s.clone();
+        let mut enemy = s.clone();
+        assert!(s.find_goody_box(u), "its own ground: was_seen");
+        assert_eq!(aimed_at(&s, u), Some(c));
+        french.tech[1].power = Some(crate::nations::power::FRENCH);
+        assert!(!french.find_goody_box(u), "another power: unseen");
+        enemy.world.set_owner(c, Owner::Player(0), Owner::None);
+        assert!(!enemy.find_goody_box(u), "an enemy's ground: unseen");
     }
 
     /// A box in another region is not a candidate however close it is: the

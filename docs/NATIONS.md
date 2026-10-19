@@ -56,11 +56,11 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 2 | Inca | inca | `inca` | 3 | none |
 | 3 | Bantu | bantu | `bantu` | 5 | none |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
-| 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | none |
+| 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (map 7, tier 1) |
 | 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
-| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | none |
+| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3) |
 | 10 | French | french | `french` | 7 | scored pairs |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
@@ -382,7 +382,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Setup::build_units@005aafc0` | 5 9 16 19 20 22 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
 | `Setup::build_civ_specific@005ab760` | 4 5 7 10 16 18 22 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
 | `Setup::build_cities@005ab910` | 14 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
-| `Setup::build_empire@005abb80` | 9 | not sim | `the lobby's start builder; the harness takes the start state from the dump` |
+| `Setup::build_empire@005abb80` | 9 | modelled at ai_sites.rs | `sees_every_cell` |
 | `AnimalData::is_seen@005d8160` | 4 9 | carried at fight.rs | `005d8160` |
 | `Unit::process_healing@005e0670` | 10 18 | carried at heal.rs | `005e0670` |
 | `Unit::process_cloak@005e1c20` | 18 | carried at lib.rs | `005e1c20` |
@@ -407,7 +407,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `BuildTypeData::calc_gather@00639e40` |  +var | carried at gather.rs | `00639e40` |
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
-| `Wall::do_construct@006434d0` | 7 | carried at city.rs | `006434d0` |
+| `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |
 | `ObjectData::get_damage@00644130` | 15 | carried at combat.rs | `00644130` |
 | `Object::disband@006455c0` | 0 19 | not modelled | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
@@ -453,7 +453,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::get_radius@006db790` | 21 | carried at city.rs | `006db790` |
 | `LeaderData::has_preq@006db810` | 4 5 6 7 10 12 13 16 | carried at build_data_has_objmask.rs | `006db810` |
 | `LeaderData::calc_market_prices@006dc2a0` | 4 13 | carried at ai_make.rs | `006dc2a0` |
-| `Leader::calc_pop_cap@006dc490` | 3 | carried at economy.rs | `006dc490` |
+| `Leader::calc_pop_cap@006dc490` | 3 | carried at build_finished_628490.rs | `006dc490` |
 | `Leader::lost_a_city@006dc6d0` | 23 | carried at city.rs | `fn lost_a_city` |
 | `LeaderData::get_caravan_limit@006dca50` | 4 | carried at ai_units.rs | `006dca50` |
 | `Leader::gain_tech@006dcb60` | 5 6 7 8 9 10 11 12 13 14 16 17 18 19 20 21 23 | carried at lib.rs | `006dcb60` |
@@ -469,7 +469,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
 | `Cities::capture_city@00733380` | 13 23 | carried at holdings.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |
-| `City::assimilate@00738e90` | 14 | carried at holdings.rs | `00738e90` |
+| `City::assimilate@00738e90` | 14 | carried at city.rs | `00738e90` |
 | `Caravan::trade_value@0073d9d0` | 21 | carried at caravan.rs | `0073d9d0` |
 | `ConquestGame::setup_scenario_bonuses@0078be90` | 0 6 13 20 22 23 | not sim | `Conquer the World, cut from v1` |
 | `ConquestGame::build_cities@00796140` | 14 | not sim | `Conquer the World, cut from v1` |

@@ -8214,13 +8214,27 @@ words and edits nothing here; a refill lands when two remain.
   consequence in a capture this crate walks. Of the seventeen tiles ours clears on 18011, only (28, 40) is observed
   (through a search's price).
 
-## Parked by the next landing, slot KJ — reserved
+## Parked by item 3318, 2026-10-19 — the Spanish see every cell, Salt and Relics, a decoy in the capture tally; the Spanish word at its game's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3318a) **The closing block's two rows** (run958f, block 22701 only; `docs/AI.md` §264): who=0's `defense` 0 in ours
+  against −1 in theirs, and the Barracks `1/2024`'s `queued` 1 against 0. The draw stream agrees to 22700 and
+  `run896b_spanish_closing_state` compares the closing block whole; neither is a field it parts. It names no score:
+  the lobby is closed.
+- (3318b) **The newborn `1/136`, `1/138`, `1/141`'s `g.angle[0]`** (run958f, 22686..22701): ours `0x55555555` against
+  theirs 0, the Iroquois' and the Romans' shape (parked 3317, 3324). No draw moves on it.
+- (3318c) **Relics on a unit research job** (`Sim::research_rares` serves tech and unit research alike): only a tech job
+  (run958e's Chemistry) has priced it. Built under the stated assumption that `train_time`'s research block is one
+  block for both; returns when a word's unit research job carries Relics.
+- (3318d) **The Spanish payout pair** (`docs/GOODY.md` §3, "The Spanish pair replaces both halves"): reading only.
+  Whether the Spanish Scout opens a box before 22700 is a grep of run896b's trace for `explore_goody`'s draws; no
+  word waits on it.
+- (3318e) **`research_rares`' SEAMs** (`crates/sim/src/lib.rs`): RESEARCH_FASTER, Angkor, Conquer the World, the
+  handicap, `tech_cost`, the catch-up and the held-elsewhere arms are not modelled; and `fix_tech_flags` clearing
+  `leader_flags 0x1000` on `lose_tech` is never reached by any capture. Each returns when a word's frame reaches it.
+- (3318f) **3318's "for the Loop"** (the journal's line, filed by the lane): `zsh tools/check.sh test …` exited 0 on a
+  `rondata` compile error after the merge, so the budget wrapper's exit is not cargo's; a worker reads the `test
+  result:` lines. And `RON_DISABLE_ORACLE_CACHE`/`RON_DISABLE_PREFIX_REUSE` were not needed for a sim-side probe. The
+  pass decides whether `check.sh` should carry cargo's exit.
 
 ## Parked by the next landing, slot KK — reserved
 

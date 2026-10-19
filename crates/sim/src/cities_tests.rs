@@ -8434,3 +8434,58 @@ fn a_city_at_its_ceiling_keeps_its_damage_fraction() {
         assert_eq!((bd.damage, bd.damage_frac), (bd.hits_now(), want));
     }
 }
+
+/// **Relics take a third off a research job, read live** (item 3318,
+/// `docs/AI.md` §264): `train_time@006508c0`'s research block scales the
+/// time by `100 − RELICS_RESEARCH_SPEED` while the leader holds Relics, so a
+/// job already running finishes sooner the frame the rare arrives — run896b's
+/// Spanish Chemistry at the Library `1/2005`. Another rare does nothing.
+#[test]
+fn relics_take_a_third_off_a_research_job() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let senate_t = tree.add(tech::TypeDef::building("Senate"));
+    let monarchy = tree.add(tech::TypeDef::gov("Monarchy", 0, 0).at(senate_t));
+    tree.types[monarchy].job_time = 350;
+    sim.set_tech_tree(tree);
+    let plain = sim.tech_time(0, monarchy);
+    sim.ledgers[0].rare |= 1 << (economy::SALT - economy::BASE_RARE);
+    assert_eq!(sim.tech_time(0, monarchy), plain, "Salt is not Relics");
+    sim.ledgers[0].rare |= 1 << (economy::RELICS - economy::BASE_RARE);
+    assert_eq!(sim.tech_time(0, monarchy), 67 * plain / 100);
+    assert_eq!(sim.tech_time(1, monarchy), plain, "and only its holder's");
+}
+
+/// **A decoy counts for neither side of the capture tally** (item 3318,
+/// `docs/AI.md` §264): `check_capture@006276a0`'s object loop skips a unit
+/// whose `unit_masks & 1` is set. Two hoplites against the base of 2 do not
+/// take a city at zero, and a third that is a decoy does not tip it —
+/// Great Sahara's capital fell eight frames early to who=1's decoy `1/104`.
+#[test]
+fn a_decoy_does_not_count_in_the_capture_tally() {
+    let setup = |decoy: bool| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+        let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+        let bd = &mut sim.buildings[b];
+        bd.damage = bd.hits;
+        bd.sync_health();
+        sim.frame = 1000;
+        let hs: Vec<usize> = (0..3)
+            .map(|i| spawn(&mut sim, 0, hoplite, tile_pos(36, 32 + i)))
+            .collect();
+        sim.units[hs[0]].decoy = decoy;
+        (sim, b, hs[2])
+    };
+    let (mut sim, b, h) = setup(false);
+    assert!(
+        sim.check_capture(b, h),
+        "three hoplites against the base of 2"
+    );
+    let (mut sim, b, h) = setup(true);
+    assert!(
+        !sim.check_capture(b, h),
+        "a decoy among them: two against two holds"
+    );
+}

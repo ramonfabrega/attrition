@@ -75,6 +75,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // AI word (item 3107, DECISIONS 72): the Iroquois at Difficulty 3,
     // Great Lakes.
     (14, 18, 3),
+    // The battery's lowest lobby after item 3306 closed the Iroquois,
+    // promoted to the AI word (item 3318, DECISIONS 72, 83): the Spanish at
+    // Difficulty 3, Great Sahara.
+    (7, 9, 3),
     // The battery's lowest lobby after item 3306's booking, promoted to the
     // AI word (item 3314, DECISIONS 72, 83): the Romans at Difficulty 2,
     // East Indies.
@@ -157,20 +161,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 9130,
         sequence: 9130,
     },
-    Lobby {
-        name: "GreatSaharaSpanishTier3",
-        map_style: 7,
-        ai_tribe: 9,
-        difficulty: 3,
-        start: "gamelog-run896-greatsahara-spanish-diff3-start.txt",
-        long: (
-            "gamelog-run896b-greatsahara-spanish-diff3-24k-trace.txt",
-            "rontrace-run896b.log",
-        ),
-        length: 22700,
-        count: 576,
-        sequence: 576,
-    },
+    // `GreatSaharaSpanishTier3` (Spanish 9, Difficulty 3, map 7; run896
+    // and run896b, 576 of 22700) left the battery on item 3318 for the AI
+    // word (`diff::spanish_word`, DECISIONS 72, 83).
     // `GreatLakesIroquoisTier3` (Iroquois 18, Difficulty 3, map 14; run897
     // and run897b, 0 of 12658) left the battery on item 3107 for the AI
     // word (`diff::iroquois_word`, DECISIONS 72).
@@ -214,6 +207,27 @@ pub(crate) const BATTERY: &[Lobby] = &[
         // `Farms::inc_time+0x1ae`.
         count: 1567,
         sequence: 1567,
+    },
+    // The lobby minted by item 3318 (DECISIONS 72, `docs/AI.md` §125,
+    // §264; runs 957 and 957b) when the Spanish left for the AI word, so
+    // the held-out set stays eight: Great Sahara, the Greeks at Difficulty
+    // 1 — a nation no dump held and a tier no lobby on the map has. The
+    // game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "GreatSaharaGreekTier1",
+        map_style: 7,
+        ai_tribe: 5,
+        difficulty: 1,
+        start: "gamelog-run957-greatsahara-greek-diff1-start.txt",
+        long: (
+            "gamelog-run957b-greatsahara-greek-diff1-24k-trace.txt",
+            "rontrace-run957b.log",
+        ),
+        length: 24000,
+        // Item 3318, the first try: ours 15 draws, theirs 36, at 0 ours
+        // `Animal::think_bird+0x82`, theirs `Leader::compute_sites+0x4ac`.
+        count: 176,
+        sequence: 176,
     },
     // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §263; runs 955 and 955b) when the Romans left for the AI word, so

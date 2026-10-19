@@ -9903,6 +9903,29 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Great Sahara word** (item 3318, DECISIONS 72, 83):
+    // frame 576, the Spanish lobby's first try. run896 dumps blocks 0..36
+    // and run896b its setup and closing blocks only, so no dump on disk
+    // held the word's block: its widening is run958's window over
+    // 570..826 (`run958_s_word_frame_is_widened_whole`). The item's
+    // `leader_flags 0x1000` arm moved it 576 → 7785, past the window and
+    // past every dump on disk; run958d widened 7785 over 7779..8035
+    // (`run958d_s_word_frame_is_widened_whole`), and Salt's Barracks arm
+    // moved it 7785 → 14382, past that window too; run958e widened 14382
+    // over 14376..14632 (`run958e_s_word_frame_is_widened_whole`), and
+    // Relics' research arm moved it 14382 → 22692, eight frames from the
+    // game's end; run958f widened 22692 over 22686..22701
+    // (`run958f_s_word_frame_is_widened_whole`), and **22692 → 22700**, the
+    // game's end, with a decoy counting for neither side of
+    // `check_capture`'s tally; the close is compared whole on run896b's
+    // closing block 22701 by `run896b_spanish_closing_state`.
+    (
+        "SPANISH_WORD",
+        crate::diff::spanish_word::SPANISH_WORD,
+        Some("run896b_spanish_closing_state"),
+        3318,
+        Some(crate::diff::spanish_word::WIDENING_SPANISH_CLOSING),
+    ),
     // **The battery's third word** (item 3314, DECISIONS 72, 83): frame
     // 576, the Roman lobby's first try. run899 dumps blocks 0..36 and
     // run899b its setup and closing blocks only, so no dump on disk held
@@ -10240,6 +10263,21 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Great Sahara word** (DECISIONS 72, 83; item 3318):
+    // the Spanish at Difficulty 3 — the held-out battery's lowest lobby
+    // once item 3306 closed the Iroquois, which ends itself at 22700. It
+    // joins the `Battery word` line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaSpanishTier3",
+        named: "Great Sahara (Spanish)",
+        word: crate::diff::spanish_word::SPANISH_WORD,
+        length: 22_700,
+        // Closed by item 3318: the draw stream agrees to 22700, and
+        // run896b's closing block 22701 scores the end itself.
+        endpoint: Some("run896b_spanish_closing_state"),
+        window: Some("spanish_frame_22692_window"),
+    },
     // **The battery's second word** (DECISIONS 72; item 3107): Great
     // Lakes, the Iroquois at Difficulty 3 — the held-out battery's lowest
     // lobby once the Germans closed, which ends itself at 12658. It shares

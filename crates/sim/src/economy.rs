@@ -138,6 +138,18 @@ pub const FISH: usize = 6;
 /// second of the two `LeaderData::calc_rare` treats as a **fisherman's**
 /// rather than a merchant's.
 pub const WHALES: usize = 31;
+/// `TypeIndex::RELICS` — the rare `ObjectData::train_time@006508c0`'s
+/// research block reads: `rare.ptr[0] & 2`, else `rare_conquest`'s, byte 0
+/// bit 1, which is bit `7 - `[`BASE_RARE`]` = 1`; `resourcerules.xml`'s
+/// eighth `RESOURCE` is Relics. A research job takes `RELICS_RESEARCH_SPEED`
+/// off its time (item 3318, `docs/AI.md` §264).
+pub const RELICS: usize = 7;
+/// `TypeIndex::SALT` — the rare `TypeData::get_cost@00664090`'s Barracks
+/// arm reads: `0x6da4 & 0x80`, else `0x6dcc & 0x80`, byte 0 bit 7 of `rare`
+/// or of `rare_conquest`, which is bit `13 - `[`BASE_RARE`]` = 7`;
+/// `resourcerules.xml`'s fourteenth `RESOURCE` is Salt. A Barracks unit
+/// costs nine tenths (item 3318, `docs/AI.md` §264).
+pub const SALT: usize = 13;
 /// `TypeIndex::HORSES` — the rare `TypeData::get_cost@00664090` reads for
 /// a Stable or Auto Plant unit: `rare.ptr[1] & 1` (or `rare_conquest`'s),
 /// byte 1 bit 0, which is bit `14 - `[`BASE_RARE`]` = 8`;

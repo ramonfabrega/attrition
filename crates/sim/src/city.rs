@@ -2900,6 +2900,15 @@ impl Sim {
             if i == unit || !x.alive() || !x.on_map {
                 continue;
             }
+            // **A decoy counts for neither side** (`check_capture@006276a0`'s
+            // object loop: vslot `+0x18` answers 1, a unit, and `unit_masks &
+            // 1` must be clear before the filter is asked; item 3318). On
+            // Great Sahara who=1's decoy `1/104` walks inside the radius on
+            // 22692 and the human's capital fell to it in this crate, eight
+            // frames before the original takes it (run958f, `docs/AI.md` §264).
+            if x.decoy {
+                continue;
+            }
             if !x.ty.is_some_and(|t| {
                 self.unit_types[t].combat.attack != 0 && self.unit_types[t].combat.combat_role
             }) {
