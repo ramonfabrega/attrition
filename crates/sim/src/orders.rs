@@ -12730,9 +12730,14 @@ impl GatherSpotView for GatherSpotSim<'_> {
         self.sim.worker_of(self.u) == Worker::Scholar
     }
     fn region_of_unit(&mut self) -> i32 {
+        // `get_tregion@006b52e0` is the coastal-refined region, here and
+        // for each building below (item 3335: run970e's builder `1/77`
+        // beside the Dock it finished on 14593 stands on a coastal cell's
+        // water tile — `tregion` 12, `tregion_alt` 0 — so the original
+        // finds no camp in its region and leaves it idle).
         self.sim
             .world
-            .tregion(self.here.tile())
+            .tregion_alt(self.here.tile())
             .map_or(-1, i32::from)
     }
     fn city_of_unit(&mut self) -> i32 {
@@ -12776,7 +12781,7 @@ impl GatherSpotView for GatherSpotSim<'_> {
     fn region_of(&mut self, i: i32) -> i32 {
         self.sim
             .world
-            .tregion(self.sim.buildings[i as usize].pos.tile())
+            .tregion_alt(self.sim.buildings[i as usize].pos.tile())
             .map_or(-1, i32::from)
     }
     fn city_of(&mut self, i: i32) -> i32 {

@@ -33,11 +33,13 @@ pub(crate) const INDIAN: Lobby = Lobby {
     // box's own `ever_seen`, `reveal_fog`'s goody arm) → 1177 (`get_cost`'s
     // Indian ramp arm) → 9985 (a closed building's number held thirty
     // frames, run970b's 1176) → 14594 (every attacking type counted in
-    // its trainer's group, run970c's 9983 Horse Archer): ours 11 draws,
-    // theirs 12, at 3: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
-    // theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
-    count: 14594,
-    sequence: 14594,
+    // its trainer's group, run970c's 9983 Horse Archer) → 14631
+    // (`find_gather_spot`'s region is `get_tregion`'s coastal-refined one,
+    // run970e's builder `1/77` beside the Dock): ours 12 draws, theirs 11,
+    // at 10: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Farms::inc_time+0x1ae`.
+    count: 14631,
+    sequence: 14631,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -379,8 +381,12 @@ fn run970e_s_word_frame_is_widened_whole() {
     // away, timber headroom 832 — where theirs' found no spot, left it
     // idle, and on 14595 the AI walks it to (21912, 32664). The leader's
     // caps and incomes, the camp's gatherers and the unit's masks agree;
-    // which of `find_gather_spot`'s inputs answers otherwise in theirs
-    // (the builder's `find_city_at` beside the city test, most likely) is
-    // a reading inside the decision, booked as the next step.
-    pin_eq!(w.firsts.len(), 1125, "keys that part in the window");
+    // The input was the region: the builder stands on a coastal cell's
+    // water tile, `tregion` 12 and `get_tregion` (`tregion_alt`) 0, and no
+    // camp is in region 0. With it, 1125 → 929 and the word 14594 →
+    // 14631. Walked back from 14631, the first parting is block 14595:
+    // theirs' AI gives the idle `1/77` a move to (21912, 32664)
+    // (`orders.len` 0/1, `orders_x` 38952/21912), ours leaves it standing
+    // — `think_peasant`'s tail, a hypothesis.
+    pin_eq!(w.firsts.len(), 929, "keys that part in the window");
 }
