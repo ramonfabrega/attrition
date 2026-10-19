@@ -122,6 +122,7 @@ pub mod type_index;
 pub mod victory;
 pub mod vision;
 pub mod world;
+pub mod wpath;
 
 pub use tuning::Tuning;
 pub use world::{Cell, Owner, Player, Pos, Terrain, World};

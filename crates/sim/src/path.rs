@@ -36,8 +36,8 @@
 
 use std::collections::BTreeMap;
 
-use crate::orders::{self, Body, MoveKind, PathData, Worker, path_flag};
-use crate::world::{Owner, Pos, TILES_PER_CELL, UNITS_PER_CELL, cell, tile, vector_dist};
+use crate::orders::{self, Body, PathData, path_flag};
+use crate::world::{Owner, Pos, TILES_PER_CELL, cell, tile, vector_dist};
 use crate::{Sim, movement};
 
 /// **A payoff probe's hand**, not a mechanic (item 563,
@@ -1553,203 +1553,24 @@ impl Sim {
     /// it, since a human jumps the whole mode block (`leaders & 4` at
     /// `0068973d`).
     pub(crate) fn find_wpath_from(&mut self, u: usize, here: Pos, army_hint: bool) -> i32 {
-        let Some(goal_e) = self.units[u].path.pop() else {
-            return 0;
-        };
-        let gc = goal_e.to.cell();
-        if !self.world.contains(gc) {
-            self.units[u].path.clear();
-            return -1;
-        }
-        // Same cell, or a type that flies like a helicopter (`+0x2b4 &
-        // 0x20`, `689110`, item 1048): push back, done.
-        self.pf_start = here.tile();
-        if here.cell() == gc || self.is_helicopter(u) {
-            self.units[u].path.push(goal_e);
-            return self.units[u].path.len() as i32;
-        }
-        // The pull-back walk: step the goal toward the start until its
-        // tile region matches the start's. On one-region maps this exits
-        // immediately.
-        //
-        // **A unit that can board skips it whole**, and that gate is the
-        // whole of transport pathing: `00689375` runs the walk only for
-        // `domain < 2 && (!is_on_map() || !can_transport())`, so a land
-        // unit with `unit_masks & 0x800000` keeps the goal it was given and
-        // the search is asked to cross the water. Without the gate the goal
-        // is dragged back onto the unit's own island and the route ends at
-        // the shore — which is what this crate did on the day `go_here`
-        // first pointed a scout at another one (`docs/TRANSPORT.md` §7).
-        //
-        // **A sea unit's break test has a second clause** (`00689375`–
-        // `00689331`, item 1868): the matched region must also pass
-        // `invalid_loc(t, 0, 1, 1, 1, 0)`, the tile grid's own question, so
-        // a goal on the shore (a fishing spot's tile, a dock's) is stepped
-        // back over water even when its region reads as the boat's.
-        let mut goal_e = goal_e;
-        let mut goal = goal_e.to;
-        let boardless = !self.units[u].on_map || !self.unit_can_transport(u);
-        // **A human's leader takes the other variant first** (`leaders &
-        // 4`, `00689109`–`006892e4`; item 676, `docs/GOLDEN.md` §17): it
-        // does not drag the goal back toward the start, it **pops**. While
-        // the goal cell's centre tile is in another region from the start
-        // cell's, or its centre half-cell (`2c + 1`) has never been seen,
-        // the goal is dropped for the entry under it — stopping on a final
-        // entry or an empty stack. So a human's unit whose next world
-        // waypoint turns out to be water re-plans to the first waypoint
-        // past it it may still stand on, or to its order's own goal, and
-        // the search runs. Only a goal it **has** seen — or a sea unit —
-        // then goes on to the AI's walk. run180's chariot does this on 693,
-        // a cell short of the sand its first plan crossed unseen, and its
-        // new plan goes round the lake to the destination.
-        let human = self
-            .nation
-            .get(self.units[u].owner as usize)
-            .is_some_and(|n| n.human);
-        let sea = self.unit_domain_of(u) == crate::attrition::Domain::Sea;
-        let mut ai_walk = true;
-        if human {
-            let owner = self.units[u].owner;
-            let centre = |c: crate::world::Cell| {
-                Pos::new(c.x * TILES_PER_CELL + 2, c.y * TILES_PER_CELL + 2)
-            };
-            let seen =
-                |s: &Self, c: crate::world::Cell| s.was_seen_fog(2 * c.x + 1, 2 * c.y + 1, owner);
-            if boardless {
-                let start = self.world.tregion_alt(centre(here.cell()));
-                loop {
-                    let c = goal_e.to.cell();
-                    if self.world.tregion_alt(centre(c)) == start && seen(self, c) {
-                        break;
-                    }
-                    if goal_e.flags & crate::orders::path_flag::FINAL != 0
-                        || self.units[u].path.is_empty()
-                    {
-                        break;
-                    }
-                    goal_e = self.units[u].path.pop().expect("a non-empty stack");
-                    if !self.world.contains(goal_e.to.cell()) {
-                        self.units[u].path.clear();
-                        return -1;
-                    }
-                }
-                goal = goal_e.to;
-            }
-            ai_walk = seen(self, goal.cell()) || sea;
-        }
-        let walks = ai_walk && self.unit_domain_of(u) != crate::attrition::Domain::Air && boardless;
-        while walks
-            && (self.world.tregion_alt(goal.tile()) != self.world.tregion_alt(here.tile())
-                || (sea && self.invalid_loc(u, goal.tile(), false, true, true, true, false) != 0))
-        {
-            let (dx, dy) = (here.x - goal.x, here.y - goal.y);
-            let far = dx.abs() + dy.abs() >= 0x300;
-            let s = if far { 0x180 } else { 0x30 };
-            // The give-up exit: a remainder smaller than the step on both
-            // axes takes the goal where it stands **without running A\***
-            // (audit V17) — the same push-and-return as reaching the
-            // start's cell. Only a region match continues to the search.
-            if dx.abs() < s && dy.abs() < s {
-                self.units[u].path.push(goal_e);
-                return self.units[u].path.len() as i32;
-            }
-            let ang = movement::find_angle(dx, dy);
-            // **No sign flip here.** The decompiler's `if (angle < 0) step =
-            // -step` before the two `sin_table` calls is the *inlined* fold
-            // that [`movement::sin_component`] already performs — and the
-            // listing settles it: at `0x6894c3` the cosine's distance is
-            // reloaded from the un-negated `s` and negated again only on the
-            // sign of `angle + 0x40000000`. Doing it twice cancels the fold,
-            // which sends the pull-back away from the start instead of
-            // toward it; the walk then never converges. Every capture broke
-            // out of this loop on its first region test, so nothing caught
-            // it until a dock stood one cell further out
-            // (`docs/PATHFINDER.md` §13).
-            let sx = movement::sin_component(ang, s);
-            let cy = movement::cos_component(ang, s);
-            goal = Pos::new(goal.x + sx, goal.y - cy);
-            goal_e.to = goal;
-            if goal.cell() == here.cell() {
-                self.units[u].path.push(goal_e);
-                return self.units[u].path.len() as i32;
-            }
-        }
-        self.units[u].path.push(goal_e);
-        // The near test and the centre push use the (possibly pulled-back)
-        // goal's cell.
-        let gc = goal.cell();
-        let hc = here.cell();
-        if (gc.x - hc.x).abs() + (gc.y - hc.y).abs() < 3 {
-            return self.units[u].path.len() as i32;
-        }
+        crate::wpath::find_wpath_steps(
+            &mut crate::wpath::SimWpath::new(self, u, army_hint),
+            here,
+        )
+    }
 
-        // `army`/`worker` are **AI-only**: `leaders.flags & 4` is
-        // `is_human`, and a human's `find_wpath` jumps straight to the
-        // search past the whole mode block (audit V14).
-        // **Gaia is a leader and it is a computer one.** `self.nation` has
-        // a row per *player*; the original's `leaders.list` has ten, and
-        // run58's own dump prints owner 8 with `leader_flags 33554439` —
-        // the same `0x2000007` the AI player carries, `& 4` set — against
-        // the human's `0x800113`. So an owner with no row here is not
-        // human, and a wandering animal takes the AI's mode block, which
-        // is what it took in the original. Before this read panicked on
-        // owner 8, 19,000 frames past East Indies' word.
-        let human = self
-            .nation
-            .get(self.units[u].owner as usize)
-            .is_some_and(|n| n.human);
+    /// `find_wpath`'s search: `astar_path` on the world grid with the modes
+    /// the planner set on the pathfinder (`pathfinder +0x94/+0x70/+0x78`); the
+    /// caller runs `kill_lists` after reading the verdict (`68973d`-`68978e`).
+    pub(crate) fn wpath_search(&mut self, u: usize, scouting: bool, army: bool, worker: bool) -> i32 {
         let modes = Modes {
-            // `scouting = 1` iff the **type** is a scout — `role & 0x10`,
-            // `is(SCOUT)` on land and `is(BARK)` at sea
-            // (`UnitType::determine_roles@0061c320`) — **and** the order is
-            // `EXPLORE_TO` (§3). The type half was missing, and it is not a
-            // refinement: `scouting` prices seen ground at `0x400` against
-            // unseen `8`, so any unit given an `EXPLORE_TO` walked toward
-            // the fog. run10's AI citizen `1/1` is sent to its second
-            // city's site under an `EXPLORETO` on frame 777 and took a
-            // ten-cell detour west through unexplored ground where the
-            // original walks seven cells south-east.
-            //
-            // SEAM: the clause `order.flags & 4 == 0 || unit_masks &
-            // 0x40100`, which can only ever turn scouting *off* for a
-            // scout whose explore order carries `ACTION`. Left out until
-            // the two mask bits are modelled; every explore order in the
-            // corpus has `flags 1`.
-            scouting: self.units[u]
-                .ty
-                .is_some_and(|t| self.unit_types[t].cols.is(crate::ai_load::role::SCOUT))
-                && self.current_order(u).is_some_and(
-                    |o| matches!(o.body, Body::Move(mo) if mo.kind == MoveKind::ExploreTo),
-                ),
-            army: army_hint || (!human && self.army_mode(u)),
-            worker: !human
-                && self.units[u]
-                    .ty
-                    .is_some_and(|t| self.unit_types[t].worker != Worker::None),
+            scouting,
+            army,
+            worker,
             no_danger: self.no_danger_mode(u),
-            // `iroquois` is `astar_path`'s own, from the unit (§4.1).
             ..Modes::default()
         };
-        let centre = |c: crate::world::Cell| {
-            Pos::new(c.x * UNITS_PER_CELL + 0x180, c.y * UNITS_PER_CELL + 0x180)
-        };
-        self.units[u].path.push(PathData {
-            to: centre(gc),
-            tolerance: 0x180,
-            flags: 0,
-        });
-        self.units[u].path.push(PathData {
-            to: centre(here.cell()),
-            tolerance: 0,
-            flags: 0,
-        });
-        let r = self.astar_path(u, &modes, STEP_WORLD, 0, false);
-        self.kill_lists();
-        if r == 0 {
-            let popped = self.units[u].path.pop();
-            return -i32::from(popped.is_some_and(|p| p.flags & path_flag::FINAL != 0));
-        }
-        self.units[u].path.len() as i32
+        self.astar_path(u, &modes, STEP_WORLD, 0, false)
     }
 
     /// `find_tpath`'s search: `astar_path` on the tile grid, then
@@ -2058,6 +1879,7 @@ impl Sim {
     /// which no hero reaches here, being armed. A Supply Wagon plans as an
     /// army and pays `base << 5` for every `0x200` cell; golden chapter
     /// four's wagon `1/10` is the first `find_wpath` of one in the corpus.
+    #[cfg(test)]
     fn army_mode(&self, u: usize) -> bool {
         let armed = self.units[u].ty.is_some_and(|t| {
             let ty = &self.unit_types[t];
@@ -2065,7 +1887,7 @@ impl Sim {
         });
         let worker = self.units[u]
             .ty
-            .is_some_and(|t| self.unit_types[t].worker != Worker::None);
+            .is_some_and(|t| self.unit_types[t].worker != orders::Worker::None);
         // `is_attacking`: the current order's `is_attack` (`006896b9`).
         let attacking = self
             .current_order(u)
@@ -2097,6 +1919,7 @@ impl Sim {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::orders::{MoveKind, Worker};
     use crate::world::{Cell, Terrain};
     use crate::{Tuning, Unit, World};
 
