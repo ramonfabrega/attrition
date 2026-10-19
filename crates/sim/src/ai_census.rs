@@ -882,9 +882,6 @@ impl Sim {
             // **The active test gates the gather slots alone**: its `je`
             // at `006bb09c` lands on `006bb15a`, the defensive count's own
             // guard, so an unfinished Keep counts (item 1377).
-            if std::env::var("RON_PROBE_CEN").is_ok() && (15700..=15982).contains(&self.frame) && who == 1 && bt.ident == build::Ident::Farm {
-                eprintln!("CENB {} b={} active={} gather={} good={:?} gm={:?} city={:?}", self.frame, b, bd.active, bt.has(build::flags::GATHER), crate::ai_place::gather_good(bt.ident), bd.gather_max, bd.city);
-            }
             if bd.active
                 && bt.has(build::flags::GATHER)
                 && let Some(good) = crate::ai_place::gather_good(bt.ident)
