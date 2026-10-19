@@ -215,6 +215,27 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 1567,
         sequence: 1567,
     },
+    // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
+    // §263; runs 955 and 955b) when the Romans left for the AI word, so
+    // the held-out set stays eight: East Indies, the Americans at
+    // Difficulty 1 — a nation no dump held and a tier no lobby on the map
+    // has. The game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "EastIndiesAmericanTier1",
+        map_style: 18,
+        ai_tribe: 20,
+        difficulty: 1,
+        start: "gamelog-run955-eastindies-american-diff1-start.txt",
+        long: (
+            "gamelog-run955b-eastindies-american-diff1-24k-trace.txt",
+            "rontrace-run955b.log",
+        ),
+        length: 24000,
+        // Item 3314, the first try: ours 14 draws, theirs 12, at 1 ours
+        // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
+        count: 9382,
+        sequence: 9382,
+    },
 ];
 
 /// **The measure, read at every pass** (`--ignored`): each lobby walked
