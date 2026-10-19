@@ -793,9 +793,10 @@ pub fn init_form(type_index: i32) -> i8 {
 /// A unit type the simulation knows how to build.
 ///
 /// The price is the data's, the kind is what attrition and supply read, and
-/// the group is which production building's output the ramp counts against —
-/// `None` for a type whose progression counts by type, which is every civilian
-/// in the shipped data.
+/// the group is which production building's output counts it — `None` for a
+/// type without attack, which is every civilian in the shipped data. A type
+/// whose progression counts by type is still counted in its group; only a
+/// by-group progression reads the group back (`cost::Counts::of_group`).
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct UnitType {
     pub price: cost::Price,

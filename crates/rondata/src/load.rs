@@ -1301,11 +1301,15 @@ pub fn load_tables(
             RampClass::Military
         };
         let progression = Progression(c.progression as u8);
-        let group = if progression.by_group() && c.attack != 0 {
-            c.where_
-        } else {
-            None
-        };
+        // The group's counters (`stable_units`, `stable_queued`, …) are
+        // moved for **every** attacking type its trainer makes:
+        // `Leader::track_unit_type@006e0dd0` and `Leader::track_queued@006e0f30`
+        // gate on `+0x1e8` (attack) alone. Only the read,
+        // `LeaderData::get_support_count@006da110`, asks the progression's
+        // group bit too — and `cost::charges` asks it there. So a War
+        // Elephant (`PROGRESSION 2`) ramps by its type and still counts
+        // toward a Horse Archer's stable ramp (run970c's 9983, item 3335).
+        let group = if c.attack != 0 { c.where_ } else { None };
         let mut price = Price {
             kind: cost::Kind::Unit,
             base: c.cost,
@@ -2909,6 +2913,24 @@ mod tests {
         assert_eq!(l.tech_names.len(), 85);
         assert_eq!(l.good_names.len(), 50);
         assert_eq!(l.tree.types.len(), 50 + 364 + 129 + 85);
+    }
+
+    /// **Every attacking type counts in its trainer's group** (item 3335,
+    /// `docs/COSTS.md` "The ramp"): `Leader::track_unit_type` and
+    /// `track_queued` gate the group counters on attack alone, and only the
+    /// read asks for the progression's group bit. The War Elephant
+    /// (`PROGRESSION 2`) is in the Stable's group beside the Horse Archer
+    /// (`3`), and only the second reads the group back.
+    #[test]
+    fn an_elephant_counts_toward_a_horse_archer_s_ramp() {
+        let Some(i) = install() else { return };
+        let l = load(&i).unwrap();
+        let ty = |ti: usize| &l.unit_types[ti - 0x32];
+        let (elephant, archer) = (ty(261), ty(187));
+        assert!(elephant.group.is_some());
+        assert_eq!(elephant.group, archer.group, "both the Stable's");
+        assert!(!elephant.price.progression.by_group());
+        assert!(archer.price.progression.by_group());
     }
 
     /// **`BuildTypeData::to` skips a hero-masked record** (item 1326,

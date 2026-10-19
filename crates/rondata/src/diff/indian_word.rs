@@ -32,10 +32,12 @@ pub(crate) const INDIAN: Lobby = Lobby {
     // the AI word (`docs/AI.md` §271) and moved it 221 → 1176 (a goody
     // box's own `ever_seen`, `reveal_fog`'s goody arm) → 1177 (`get_cost`'s
     // Indian ramp arm) → 9985 (a closed building's number held thirty
-    // frames, run970b's 1176): ours 5 draws, theirs 6, at 2: ours
-    // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
-    count: 9985,
-    sequence: 9985,
+    // frames, run970b's 1176) → 14594 (every attacking type counted in
+    // its trainer's group, run970c's 9983 Horse Archer): ours 11 draws,
+    // theirs 12, at 3: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    // theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    count: 14594,
+    sequence: 14594,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -259,7 +261,16 @@ fn run970c_s_word_frame_is_widened_whole() {
     // (`MAKE[3].num` 5/1) and 9982 (`MAKE[3].t` 438/261), the queue's
     // price on 9983 and the empty head on 9986 — the word's. The gap
     // 1428..9979 is run970d's.
-    pin_eq!(w.firsts.len(), 586, "keys that part in the window");
+    //
+    // **586 → 569** with the Indian elephant arm (the food and wealth rows
+    // close; run970d's 9589), and **569 → 50** with every attacking type
+    // counted in its trainer's group: block 9983's Horse Archer (TI 187,
+    // `PROGRESSION 3`) at the Stable `1/2019` cost 51/34 ours against
+    // 52/35, theirs' `stable_units` 1 — the War Elephant, `PROGRESSION 2`,
+    // which this crate kept out of the group. Both read 52/35, and the
+    // word moved 9985 → 14594. What stands is the control's set and the
+    // newborns' `g.angle[0]`.
+    pin_eq!(w.firsts.len(), 50, "keys that part in the window");
 }
 
 /// run970d: the gap 1428..9979 at a stride of 32 (item 3335): blocks
@@ -290,7 +301,7 @@ fn run970d_s_gap_is_widened_whole() {
     let Some(w) = indian_gap_970d_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 267, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -303,5 +314,12 @@ fn run970d_s_gap_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the gap");
+    // Item 3335: 67 keys part over the gap. Apart from the control's set
+    // and twelve newborns' `g.angle[0]` (1431655765 against 0, each on the
+    // first block that prints the unit, 6485 to 8981): block 9589, who=1's
+    // `bucket[0:food]` 53 against 68 and `bucket[2:wealth]` 51 against 60,
+    // the War Elephant (TI 261) queued at the Stable `1/2019` costing
+    // 96/56 ours against 81/47 — fifteen percent, `get_cost`'s Indian
+    // elephant arm. **67 → 62** with the arm: the standing set alone.
+    pin_eq!(w.firsts.len(), 62, "keys that part in the gap");
 }

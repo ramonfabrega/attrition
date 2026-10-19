@@ -1872,6 +1872,22 @@ mod tests {
         assert_eq!(cost_of(&T, &c, Resource::Food, owned(10), &m), 60);
     }
 
+    /// The Indian elephant arm (`get_cost:1556`–`1576`, item 3335) is the
+    /// listing's last step: fifteen percent off the doubled price, not
+    /// doubled after it. run970d's War Elephant is 96/56 → 81/47.
+    #[test]
+    fn an_indian_elephant_is_discounted_after_the_captured_doubling() {
+        let c = citizen();
+        let m = Modifiers {
+            unassimilated: true,
+            indian_elephant: T.indians_elephant_cost,
+            ..Modifiers::default()
+        };
+        assert_eq!(cost_of(&T, &c, Resource::Food, owned(10), &m), 85 * 60 / 100);
+        let elephant = |p: i32| (100 - T.indians_elephant_cost) * p / 100;
+        assert_eq!((elephant(96), elephant(56)), (81, 47));
+    }
+
     /// The headline of the whole document: the same hoplite costs timber
     /// before Metal is available and metal after — and the timber is five
     /// quarters of the metal, because `UNDISC_COST_RATE` is `5/4`.
