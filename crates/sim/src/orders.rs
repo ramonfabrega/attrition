@@ -9689,7 +9689,7 @@ impl Sim {
     /// attack step: the target check, the reload gate with `new_ord`, the
     /// 1/5 re-search, range → strike, out of range → the chase inserted in
     /// front.
-    fn do_attack(&mut self, u: usize, frame: i64) {
+    pub(crate) fn do_attack_fight(&mut self, u: usize, frame: i64) {
         let Some(Order {
             body: Body::Attack(mut a),
             flags,
