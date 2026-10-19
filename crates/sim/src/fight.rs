@@ -3514,6 +3514,26 @@ impl Sim {
         if self.is_fleeing(responder) {
             return;
         }
+        // **`param_3 = update_action(this)`** (`Unit::target_opportunity@005fffc0`,
+        // `LAB_006002cf`, the decompile's line 138), the first thing past the
+        // `is_fleeing` return and ahead of every gate below: a hit on a unit
+        // that has not fled rewrites its `orders_x/y` and `dest_angle` from
+        // where it stands and which way it faces *now*. Chapter 103's `0/10`
+        // is struck on 935 after its own step snapped it a cell on and
+        // turned it; the dump's `orders_y` 16008 and `dest_angle`
+        // 1181417472 are this call's, not the step's start (`docs/GOLDEN.md`
+        // §140). The air orders (`STRAFE`, `AIR_PATROL`, `AIR_ATTACK_GROUND`)
+        // return above it in the original.
+        if !front.is_some_and(|o| {
+            matches!(
+                o.body,
+                crate::orders::Body::Strafe(_)
+                    | crate::orders::Body::AirPatrol(_)
+                    | crate::orders::Body::AirAttackGround(_)
+            )
+        }) {
+            self.update_action(responder);
+        }
         if st.target.is_some() && !self.attack_action_yields(responder, attacker) {
             return;
         }
