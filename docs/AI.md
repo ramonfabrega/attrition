@@ -23338,8 +23338,15 @@ unlinked**: theirs' `1/2040` (a city, at (6240, 7008)) and `1/2041`..`1/2045` ar
 its Woodcutter, three Farms and Market. They were captured on the last frame, and the human is defeated
 (`defeated_by 1`). Ours' Village stands at **damage 1199 of 1200**, health level 5.
 `check_capture_eligible@0062d1d0` takes a city centre (`flags & 0x20`) only at level 6, and a non-centre village
-at > 4, so ours' threshold is right. The Village is at 840 on both sides on run956b's last block. Its last point
-parts somewhere in 18277..18620, which no dump on disk covers, so the window is booked as run956c (`docs/RUNS.md`).
+at > 4, so ours' threshold is right. The Village is at 840 on both sides on run956b's last block. No dump on disk
+covered 18277..18620, so **run956c** took it (draw-identical to run899b, ended itself on 18620). Its widening
+(`run956c_s_gap_is_widened_whole`) has 52 keys: the 51 standing, and **`0/2000`'s `damage` on block 18369, ours 868
+against theirs 869** (867, fraction 6, on both before it). The blow of 18368 is the Horse Archers `1/53`'s, 1.0 here
+and 2.0 there. Its blows of 18320, 18343 and 18393 are 1.0 on both sides, and every other blow of the window agrees
+(the next, `1/65`'s 2+10/16 on 18373, included). So it isn't territory or armour, which would move every blow. Ours
+deals the floor (the Village's armour 3 on friendly ground, step 26's "at least one"). Theirs' `1/53` drops its `up`
+(86, the Senator `1/55`'s uid; its guard order's target) on block 18367, and nothing else dumped on it changes. That
+is the next word's frame, not its mechanism.
 
 **Not established.** Theirs' (28, 40) is read off the search's price, not seen: no dump of this lobby prints a
 tile after block 36. The sixteen other ring tiles ours clears on 18011 are unobserved. The `g.angle[0]` rows and

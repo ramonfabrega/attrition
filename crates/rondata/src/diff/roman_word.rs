@@ -283,6 +283,54 @@ fn run899b_s_road_search_on_18026_holds_node_for_node() {
     pin_eq!(first, None, "the first node that parts");
 }
 
+/// run956c: the gap from run956b's last block to the game's end, blocks
+/// 18277..18621 at run956's detail (item 3314), to find where who=0's
+/// Village `0/2000` takes its last point in theirs and not in ours.
+pub(crate) const RUN956C: &str = "gamelog-run956c-eastindies-roman-diff2-window-18277-18622.txt";
+
+/// The window: block 18277 through the closing block 18621.
+pub(crate) const WIDENING_ROMAN_GAP_956C: (i64, i64) = (18277, 18621);
+
+pub(crate) fn roman_gap_956c_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN.start],
+        true,
+        ROMAN.long,
+        "run956c",
+        &[(RUN956C, WIDENING_ROMAN_GAP_956C.0)],
+        WIDENING_ROMAN_GAP_956C,
+        1,
+        &[18621],
+        true,
+    )
+}
+
+#[test]
+fn run956c_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_gap_956c_window() else {
+        return;
+    };
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.blocks, 344, "every captured block");
+    pin_eq!(w.firsts.len(), 52, "keys that part in the window");
+    // Item 3314: run956b's 51 standing keys, and one more — **`0/2000`'s
+    // `damage` on block 18369, ours 868 against theirs 869** (867 and
+    // fraction 6 on both sides before it). The blow of 18368 is the Horse
+    // Archers `1/53`'s on the Village: 1.0 here, 2.0 there; its blows of
+    // 18320, 18343 and 18393 are 1.0 on both, and every other blow of the
+    // window agrees. That point is the closing's capture: theirs' Village
+    // reaches 1200 by 18620, ours 1199.
+    // Theirs' `1/53` drops its `up` (86, the Senator `1/55`'s uid) on block
+    // 18367; nothing else dumped on it changes.
+}
+
 /// The closing state's window: run899b's closing block 18621 alone, the
 /// game's last frame 18620 writing it (item 3314).
 pub(crate) const WIDENING_ROMAN_CLOSING: (i64, i64) = (18619, 18622);
@@ -339,7 +387,8 @@ fn run899b_roman_closing_state() {
     // Village `0/2000` and its five buildings, captured on the game's last
     // frame, where ours' Village stands at damage 1199 of 1200 (level 5;
     // a city centre is taken at 6, `check_capture_eligible@0062d1d0`).
-    // run956b's last block has it at 840 on both sides.
+    // run956b's last block has it at 840 on both sides; run956c parts it
+    // on block 18369 (`run956c_s_gap_is_widened_whole`).
     pin_eq!(e.compared, 110, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 6, 0, 1, 0], "the closing counts");
 }

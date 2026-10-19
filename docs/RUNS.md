@@ -18303,3 +18303,24 @@ SHA-256 `3ca9df1af96cb0d11ed6070fe228274a9d17d87b3b9e0ac85b966744d2a35164`.
 (`docs/ROADS.md` §9.6), 51 keys, every one standing from 18020: the control's set and who=1's `g.angle[0]` on
 `1/22`..`1/37`. who=0's Village `0/2000` is at damage 840 of 1200 on both sides on the last block. Its window is in the
 coverage driver.
+
+## run956c — the Roman lobby's last 344 blocks: East Indies, the Romans at difficulty 2, blocks 18277..18621 (2026-10-19, item 3314, `att-3314`)
+
+`docs/AI.md` §263. **What the disk could not answer**: who=0's Village `0/2000` is at damage 840 on both sides on
+run956b's last block (18276) and 1199 against a capture in the closing block 18621. run956b ends on 18276, and run899b
+prints nothing between its setup and its closing block. run956b's recipe, from its end to the game's: `--map 18
+--end-frame 18625 --allow-early-end --timeout 10800 --log-window 18277 18621` with run956's `--detail`, `--ai-tribe`,
+`--cover` and `--profile`. Filed with `filerun.py run956c eastindies-roman-diff2-window-18277-18622`.
+- One take, pool lane 2, 02:02:57–02:25:26 (1,349 s), 18,621 frames, ended itself on 18620, players `(0,4,7),(1,6,1)`.
+- `rngcmp.py rontrace-run899b.log rontrace-run956c.log`: **18,621 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run956c-eastindies-roman-diff2-window-18277-18622.txt`, 690,682,571 bytes,
+SHA-256 `bacb1f6e407e3f803a16594b23fd55e4bdefcdcc4fc39abe0c4ac9b0701f67ec`.
+
+Archive `rontrace-run956c.log`, 92,774,272 bytes,
+SHA-256 `8f532e6d099eb44a01309096391252cc08f505314af77bd80554686b63a862e8`.
+
+**What it holds**: `diff::roman_word::run956c_s_gap_is_widened_whole` (344 blocks). 52 keys: run956b's 51 standing,
+and `0/2000`'s `damage` on block 18369, ours 868 against theirs 869. That is the Horse Archers `1/53`'s blow of
+18368, 1.0 here and 2.0 there. Its window is in the coverage driver.
