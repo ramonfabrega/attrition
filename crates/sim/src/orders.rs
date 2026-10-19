@@ -2372,8 +2372,8 @@ impl Sim {
             // clears `paid` before its own kill, so only an interrupted cast
             // reaches it: run346's `1/98`, whose Create Decoys the army's
             // tick replaced with an `ATTACK_TO` on 11508, `mana_burn` 903 →
-            // 0 (item 1302). SEAM: `unpay_cost`'s resources, which
-            // `pay_cast_costs` is not modelled as taking either.
+            // 0 (item 1302). SEAM: the refund's resources (the cost
+            // type's unpay), which `pay_cast_costs` is not modelled as taking either.
             Body::Cast(c) if c.paid && !closing => {
                 if let Some(d) = self.spell(c.spell) {
                     let back = i16::try_from(d.mana).unwrap_or(i16::MAX);
