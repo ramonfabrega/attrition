@@ -407,6 +407,7 @@ impl Sim {
         let r = self.building_value_probe(who, f, rec, pass);
         if std::env::var("RON_PROBE_FARM").is_ok() && (15978..=15982).contains(&self.frame) && matches!(self.build_types[rec].ident, Ident::Farm | Ident::Woodcutter) {
             let have = self.city_count_exact(f.c, rec, false);
+            if f.c == 5 && self.build_types[rec].ident == Ident::Farm { for (i, bd) in self.buildings.iter().enumerate() { if bd.owner == who && bd.alive && bd.ty.is_some_and(|t| self.build_types[t].ident == Ident::Farm) { eprintln!("FARMB {} b={} active={} gm={:?} city={:?} pos={:?} idx={}", self.frame, i, bd.active, bd.gather_max, bd.city, bd.pos, bd.index); } } }
             { let cen = &self.ai[who as usize].census; eprintln!("FARMG {} c={} filled={:?} slots={:?} income={:?} cap0={} cap1={} open_slots={:?} ter={:?} freep={} mcap={} ctrl={}", self.frame, f.c, cen.filled_gather_slots, cen.gather_slots, self.ledgers[who as usize].income, self.mod_resource_cap(who, 0), self.mod_resource_cap(who, 1), f.open_slots, f.ter, Census::reg_u16(&cen.reg_free_peasants, f.reg), self.muster[who as usize].cap, self.muster[who as usize].control); }
             eprintln!("FARM {} who={} c={} {:?} have={} limit={} level={} fit={:?} open={} free={} pd={} -> {:?}", self.frame, who, f.c, self.build_types[rec].ident, have, self.farm_limit(f.c), f.level, f.space, f.open, f.free, f.peasant_dist, r.as_ref().map(|l| (l.val, l.escrow, l.cat, l.up, l.mult)));
         }
