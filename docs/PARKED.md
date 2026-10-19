@@ -8085,13 +8085,9 @@ words and edits nothing here; a refill lands when two remain.
 
 - (booked as item 3294) (3293) Chapter 105 closed at 1500 on the first take (run950, GOLDEN §142) with the squad walking: both hoplite captains ordered east at 806, the Tower (1/2006) acquired as `near` from about 818 and an `ATTACKORDER` laid under each `MOVEORDER`. It parts on the eleven standing `form` rows alone. Still unreached, and unreachable by this staging: `Unit::target_opportunity`'s move-front proximity arm *as a strike* (no round lands on a walking victim before the squad's own attack order takes over) and a Fort's near-face gate. The next chapter is the Fort in the Tower's place, or a victim walking *past* the Tower at a distance beyond its sight so a round lands first.
 
-## Parked by the next landing, slot KB — reserved
+## Parked by item 3294, 2026-10-18 — chapter 106, a Fort in the Tower's place
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3294a) Chapter 106 closed at 1500 on the first take (run951, GOLDEN §143): a who=1 Fort (1/2006) against three stationary hoplite captains parts on the eleven standing `form` rows alone. The squad took the Fort as `near` from 823, walked to it and sat in range by 1040, but no hoplite lost a hit to 1500: the Fort struck no one, so its near-face gate and `Unit::target_opportunity`'s move-front arm as strikes are both still unreached. Next: a Fort with a garrison staged (or a victim inside its reach from the start), or a victim walking past a Tower beyond its sight so a round lands first.
 
 ## Parked by the next landing, slot KC — reserved
 
