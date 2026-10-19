@@ -306,7 +306,7 @@ Before any reading, in order:
   Parked rows go under your park heading
   (1812). The gate: `python3 tools/release_gate.py
   ~/code/fun/attrition/game --test-threads 4 --lane --item {item}
-  --tests {tests}` (1567, 1623), to a file, backgrounded; read
+  --tests {tests}{widen}` (1567, 1623, 3313), to a file, backgrounded; read
   its exit before saying landed; quote `Lane verdict:`, `Gate
   steps:` and `Gate minutes:` (969, 3224); its verdict: a second commit.
   A red on the journal-quote guard alone is forgiven: add its two

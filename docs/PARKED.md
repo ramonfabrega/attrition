@@ -3740,6 +3740,26 @@ for: it cost one run rather than an item.
 
 (3068) **A harvest batch: the order-adders' family** — held off the queue at the fortieth steer (Ramon: the harvest lane becomes the nations lane, 3092; DECISIONS 78 amended), its text as booked: the score `Census:` 1429 of 3611; parked 3069–3072): `Unit::add_patrol_order`,     `add_cast_order`, `add_trade_order`, `add_repair_order`,     `add_build_order` by 3064's recipe (parked 3070), then ten more off     `--claimed` the live sweep lanes' trees; never a `process_*`.     Unstarted. `--kind sweep`. It returns when a pass books a sweep lane on it; the shape sweep (3078) keeps the generator.
 
+## Parked by the forty-fourth Fable pass, 2026-10-19 — held off the queue at the steer
+
+Ramon's word at the forty-fourth steer (DECISIONS 83): three lanes for the forty-fifth tranche, two Opus on battery
+words and one Sonnet sweep; the chapter lane and the second sweep lane are held here with their numbers and return
+when a steer books them.
+
+(3302) **Chapter one hundred and seven, without a capture yet** (GOLDEN §13, §14: no rules item open means the next
+chapter; run 953 minted here): 3294's chapter 106 (run951, a who=1 Fort in the Tower's place) closed at 1500 on the
+first take, no sim change, GOLDEN §143 — but the squad sat in the Fort's range by 1040 and the Fort struck no one,
+so its near-face gate and the move-front arm as strikes are both still unreached. Candidates (parked 3301, 3283):
+a Fort with a garrison staged, or a victim inside its reach from the start; or a victim walking past a Tower beyond
+its sight so a round lands first. Stage it, capture it, open it at its first word. GOLDEN §144. **Held** at the forty-fourth steer.
+
+(3303) **The sweep's next shape batch** (DECISIONS 63 (iv); the score `Census:` port 385; 3282 built three of its six —
+`Build::finished`, `Object::fire_ammo`, `Unit::think_fish`, no port disagreeing — and parked `find_friends`,
+`find_build_spot`, `compute_modifier` on generator flags, 3282a–g): `Unit::find_gather_spot`, `Objects::add_flock`,
+`Unit::do_air_physics`, `Unit::think_civilian_transport`, `PathFinder::find_wpath`, `SpellType::cast_create_decoy`
+(`census.py --unbacked`, the `port` mark, `--claimed` the nations seat's tree) — each built against the crate's own
+method where it has one, or parked naming the generator flag it could not spell. `--kind sweep`. **Held** at the forty-fourth steer.
+
 ## Loop, filed 2026-10-18 — the forty-fourth pass's own
 
 (3311) **A sweep batch's subagents go out in sequence** (the forty-fourth pass's measurement, `tranche.py` over

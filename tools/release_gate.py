@@ -302,7 +302,8 @@ def memory_cap_gib(test_threads):
 
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
-         lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=None):
+         lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=None,
+         no_widen=False):
     # Parked 1713: two lanes `pkill -f release_gate.py`'d every gate on the
     # box to stop their own; a gate names its pid first so it can be killed
     # by it.
@@ -327,13 +328,20 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                          '(the widening, the pinned walk); the full suite is the booking gate\'s')
     if tests and not lane:
         raise ValueError('--tests is a lane gate\'s; the booking gate runs the whole suite')
+    if no_widen and not lane:
+        raise ValueError('--no-widen is a lane gate\'s: the booking gate always widens on a path that can move a pin')
     if any(not f.strip() for f in tests):
         raise ValueError('an empty --tests filter would keep every slow test')
     skips, widened, touched = [], [], None
     if lane or scope is not None:
         touched = branch_paths(base if lane else scope)
         widened = lane_widens(touched or [])
-        skips = [] if widened else lane_skips(TIMINGS.read_text(), tests)
+        # DECISIONS 83 (the forty-fourth steer): every lane of one tranche
+        # touched a sim path and every lane gate ran the whole timed suite
+        # at four threads (6–26 minutes, median 18.9) while fifteen of the
+        # twenty moved no pin. The AI lane's brief widens; a sweep's or a
+        # chapter's says `--no-widen`, and the booking gate holds the pins.
+        skips = [] if widened and not no_widen else lane_skips(TIMINGS.read_text(), tests)
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
@@ -377,7 +385,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         policy['scope'] = {'base': scope, 'widened': widened, 'skipped': len(skips),
                            'timings': str(TIMINGS.relative_to(ROOT))}
     if lane:
-        policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)),
+        policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)), 'no_widen': bool(no_widen),
                           'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
                           'base': base, 'widened': widened}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
@@ -416,7 +424,12 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                 if widened else
                 f"{len(skips)} timed tests left to the next whole gate" +
                 (f"; {scope} is not a ref here, so nothing widened" if touched is None else ''))), flush=True)
-    if lane and widened:
+    if lane and widened and no_widen:
+        print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
+              f"booking gate by the brief's --no-widen, though the branch touches {len(widened)} path(s) "
+              f"that can move a pin ({widened[0]}{', …' if len(widened) > 1 else ''}); the booking gate "
+              "holds the pins (DECISIONS 83)", flush=True)
+    elif lane and widened:
         print(f"Lane suite: every timed test — the branch touches {len(widened)} path(s) that can move "
               f"the diff:: pins ({widened[0]}{', …' if len(widened) > 1 else ''}; Loop 2415); "
               f"the word's: {', '.join(tests)}", flush=True)
@@ -661,6 +674,9 @@ def main():
     parser.add_argument('--tests', nargs='+', metavar='FILTER',
                         help="with --lane, required: the word's own tests, kept however slow; "
                              'each must match a test that ran')
+    parser.add_argument('--no-widen', action='store_true',
+                        help="with --lane: leave the timed tests to the booking gate even on a branch that can "
+                             "move a pin — the sweep and chapter kinds' (DECISIONS 83); the AI lane widens")
     parser.add_argument('--item', type=int, metavar='N',
                         help='with --lane: the item; the gate refuses a tree with no '
                              'docs/journal/*-item-N.md (parked 1699)')
@@ -676,7 +692,7 @@ def main():
         refuse_stale_agent_worktrees(stale_agent_worktrees_now(), lane=args.lane)
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
-             base=args.base, scope=args.scope, isolated=args.isolated)
+             base=args.base, scope=args.scope, isolated=args.isolated, no_widen=args.no_widen)
     except ValueError as exc:
         parser.error(str(exc))
 

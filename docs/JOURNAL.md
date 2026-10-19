@@ -21328,4 +21328,8 @@ forgiveness, `mutate.py`'s timeout, no-verdict and signal restore,
 `--watch VA+OFF:LEN`, `tools/reap_agents.py`, the unread-Unit-field
 guard (red on `mana_burn`, `rare`, `good_obj`, owed to 3306); one closed
 on a measurement, one unreached, the ledger split, three filed; 16 → 11.
-**DECISIONS 82.** `docs/audit/2026-10-18-fable-pass-44.md`.
+**DECISIONS 82.** `docs/audit/2026-10-18-fable-pass-44.md`. **Then the steer, with Ramon** (2026-10-19,
+DECISIONS 83): three lanes for the forty-fifth tranche, two Opus wide on
+battery words (the Iroquois at 12156, the Romans at 576) and one Sonnet
+sweep; the lane gate widens only on the AI kind; the fan-out rules move
+to `docs/LOOP.md` and `CLAUDE.md` drops from 55 to 37 KB.

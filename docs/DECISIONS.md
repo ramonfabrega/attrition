@@ -93,6 +93,7 @@ is append-only and amended in place, as it always was.
 - 79 standing — The forty-first tranche is scored on four lanes at the loop's cheapest, the census splits port-backed from layout-backed, the Golden line is counted, the whole gate counts widening landings, and twenty-six Loop items become tools, rows or closes
 - 80 standing — The forty-second tranche is scored on four lanes at the loop's price, the lane gate is named the loop's bottleneck and given a clock, the gate table graduates, the nations tool round-trips again, and twenty-one Loop items become tools, rows, closes or Ramon's
 - 81 standing — The forty-third tranche is scored on four lanes at less and slower, the sweep lanes' fan-outs are read as their own, the lane gate is two to four runs a landing and its quote is guarded, a regen keeps every hand item, and twenty-two Loop items become tools, guards, rows, closes or Ramon's
+- 83 standing — The forty-fourth steer: three lanes, two Opus wide on battery words and one Sonnet sweep, a lane gate that widens only on the AI kind, and the fan-out rules move to docs/LOOP.md
 - 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
 
 ## 1. Fidelity before divergence
@@ -6766,3 +6767,59 @@ the nations seat (3188); the port score's witnesses (3237); 3118's
 sound; 1570. The pass recommends in its record and moves none of them.
 The commander's clear into the forty-fifth tranche (3306, 3302, 3303,
 3304, the roster of entry 78 (i)) waits on the steer Ramon asked for.
+
+## 83. The forty-fourth steer: three lanes, two Opus wide on battery words and one Sonnet sweep, a lane gate that widens only on the AI kind, and the fan-out rules move to docs/LOOP.md
+
+*2026-10-19, Ramon with the forty-fourth pass (the `steer` session, Fable),
+after entry 82's measurement. The roster and the lane count are the user's
+(entry 61); the gate rule and the split are the pass's.*
+
+**The measurement that drove it.** Every one of the forty-fourth tranche's
+twenty lanes touched a sim path, so every lane gate ran the whole timed
+suite at four threads on a box at its cores: 6–26 minutes, median 18.9,
+while fifteen of the twenty landings moved no pin. The held-out battery's
+eight games part at 576, 576, 1,567, 2,974, 6,563, 6,982, 9,130 and
+12,712 frames, the median 4,770 and moved once in five tranches; two games
+on different maps part on the same frame. The chapter track closed four of
+five chapters with no sim change. More threads on a box at its cores would
+move the wait to the admission door, so the thread count stays (Loop 3313
+stands as a measurement, not a change).
+
+**(i) Three lanes.** Two Opus 5.5 lanes at `--effort medium` on battery
+words, one Sonnet 5.5 lane at `--effort medium` on the sweep. The chapter
+lane and the second sweep lane are held in the parked file with their
+numbers (3302, 3303) and return when a steer books them. Ramon's word:
+run three, compare with the four-lane tranches, then decide a second
+Sonnet or a swap.
+
+**(ii) A battery word's lane lands wide.** An item is still booked by a
+frame and a draw delta, and its gate is still the gate; what changes is
+that a landing carries every fix the widening exposed between the word
+and the next parting, verified as ever, in one gate — the gate costs the
+same whatever a landing carries, and four of twenty landings last tranche
+carried no sim change. The second battery word is `EastIndiesRomanTier2`
+at 576 (item 3314), promoted by entry 72's recipe with a replacement lobby
+minted; the Spanish game that parts on the same frame stays held out and
+says whether the fix generalised (entry 54).
+
+**(iii) The lane gate widens only on the AI kind.** `release_gate.py
+--lane --no-widen` leaves the timed tests to the booking gate even on a
+branch that touches a pin-moving path; `brief.py` writes it into every
+kind's gate line but `residue`'s; the booking gate, which always widens,
+holds the pins. Red first (`test_a_lane_gate_told_not_to_widen_leaves_the_timed_tests_to_the_booking_gate`,
+`test_a_sweep_or_chapter_brief_s_gate_takes_no_widen_and_a_residue_brief_s_does_not`).
+What it costs: a sweep lane that moves a pin is caught at the booking
+gate, a second commit the commander writes; the last thirty-four booking
+gates were red once.
+
+**(iv) The fan-out rules move to `docs/LOOP.md`.** `CLAUDE.md` carried
+55 KB and every worker inherited it; the 18 KB of roster, brief, chain,
+lanes, ratification and fence are the commander's and the pass's. They
+move whole, under six headings, amended in place as before; `CLAUDE.md`
+keeps a sixteen-line landing paragraph a worker needs and a row in the
+file table. The queue's opener tells the commander to read it first.
+
+**What is not established.** Whether two 576s are one mechanism; whether
+a wide landing's gate is red more often than a narrow one's; whether
+three lanes land fewer an hour than four — the forty-fifth pass measures
+each against entry 82's figures.

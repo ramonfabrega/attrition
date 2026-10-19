@@ -115,6 +115,15 @@ class ABriefIsComposed(unittest.TestCase):
         args.update(kw)
         return brief.compose(item, kind, **args)
 
+    def test_a_sweep_or_chapter_brief_s_gate_takes_no_widen_and_a_residue_brief_s_does_not(self):
+        # DECISIONS 83: the AI lane's gate widens to every timed test on a sim
+        # path, because it moves pins; the other kinds leave the timed suite
+        # to the booking gate, as item 1567 meant.
+        queue = QUEUE.replace("1131. **Chapter thirty-eight's word", "1131. **The sweep's next batch")
+        self.assertIn(' --no-widen`', self.compose(1131, 'sweep', queue=queue, tests=[]))
+        self.assertIn(' --no-widen`', self.compose(1131, 'chapter'))
+        self.assertNotIn('--no-widen', self.compose(1133))
+
     def test_the_item_is_the_queue_s_own_words(self):
         text = self.compose(1133)
         self.assertIn("1133. **Great Sahara's word: frame 8, ours 6 draws against 7** (1066),\n"

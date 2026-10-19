@@ -347,6 +347,12 @@ own receipts.
 - A `--watch` of a field is `VA+OFF:LEN`, and a bare `+N` past 0x20 is
   refused (3280; 3269's line): `unit+0x58` watched 0x58 bytes from the
   unit and missed the field, which cost a run.
+- **A lane gate widens only on the AI kind** (3313; DECISIONS 83, the
+  forty-fourth steer): every lane of the tranche touched a sim path and
+  every lane gate ran the whole timed suite at four threads, 6 to 26
+  minutes, while fifteen of twenty landings moved no pin; the sweep and
+  chapter kinds' gate lines carry `--no-widen` and the booking gate holds
+  the pins.
 
 ## The brief checklist, from the forty-third pass
 

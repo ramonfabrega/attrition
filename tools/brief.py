@@ -192,7 +192,8 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
     def fill(text):
         return (text.replace('{item}', str(item)).replace('{model}', model)
                 .replace('{base}', base).replace('{track}', TRACKS[kind])
-                .replace('{tests}', ' '.join(tests)))
+                .replace('{tests}', ' '.join(tests))
+                .replace('{widen}', '' if kind == 'residue' else ' --no-widen'))
 
     others = [(n, h) for n, h in open_items(queue) if n != item]
     # The other sweep lanes' worktrees, for `census.py --unbacked --claimed`

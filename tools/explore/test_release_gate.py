@@ -691,6 +691,21 @@ class GateTests(unittest.TestCase):
         self.assertIn('--skip', command)
         self.assertEqual(policy['lane']['widened'], [])
 
+    def test_a_lane_gate_told_not_to_widen_leaves_the_timed_tests_to_the_booking_gate(self):
+        # DECISIONS 83 (the forty-fourth steer, Ramon's word): every lane of
+        # the forty-fourth tranche touched a sim path, so every lane gate ran
+        # the whole timed suite at four threads — 6 to 26 minutes, median
+        # 18.9 — and fifteen of the twenty moved no pin. The AI lane widens;
+        # a sweep or chapter lane takes `--no-widen` from its brief and the
+        # booking gate holds the pins.
+        command, policy = self.release_command(touched=['crates/sim/src/diplomacy.rs'],
+                                               lane=True, tests=WORD, no_widen=True)
+        self.assertIn('--skip', command)
+        self.assertEqual(policy['lane']['widened'], ['crates/sim/src/diplomacy.rs'])
+        self.assertTrue(policy['lane']['no_widen'])
+        with self.assertRaises(ValueError):
+            self.release_command(touched=[], scope='abc1234', no_widen=True)
+
     def test_a_scoped_booking_gate_runs_the_timed_tests_only_when_a_merge_can_move_a_pin(self):
         # The thirty-fifth steer, Ramon's word: the booking gate after every
         # merge was 22 whole suites a tranche; scoped to the merges since the
