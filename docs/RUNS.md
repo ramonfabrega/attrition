@@ -19294,3 +19294,41 @@ SHA-256 `a1ce43d6e0e4908d7f2f6f269bb6711bb17585b16e74191b3402ac129b1720f5`.
 
 **What it holds**: piece 842's nine `AttachPos` rows (`pos_start` 146), node 0 at anims 10/18, 11/18, 12/16 and
 13/20; the sweeps of 11/18, 12/16, 13/20 fit a `Bay` each and miss the dumped rounds (3338a).
+
+## run977 — the battery's replacement lobby: Great Sahara, the French at difficulty 4, a `DUMP_ALL` start (2026-10-19, item 3343, `att-3343`)
+
+`docs/AI.md` §276. **What the disk could not answer**: the Bantu left the battery for the AI word, and the held-out set
+stays eight with a lobby no dump holds. Every nation is in some dump now (item 3342's finding), so the nation is one
+held only in a closed pair and never on Great Sahara — the French (10), held only by the third pair (East Indies and
+Great Lakes at Toughest), the Lakota being 3342's — at the tier (4) Great Sahara's battery lacked once the Bantu left.
+`--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 10 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 14:48:06 and the game exited at 14:55:04 (418 s). `success`, 37 frames, `map_style 7`, seed
+  12345, players `(0, 4, 7), (1, 10, 1)`. Filed with `filerun.py run977 greatsahara-french-diff4-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run977-greatsahara-french-diff4-start.txt`, 149,600,439 bytes,
+SHA-256 `13c7307d4664feb24ca765e6f0247e17376aaecfbb7a924a1ba72f5d92f44abb`.
+
+Archive `rontrace-run977.log`, 8,536,576 bytes,
+SHA-256 `4be21df5c2937ae1e839eb27a1a2222d1d136b9e5fb7c3f612b7902a76688f9c`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaFrenchTier4` start.
+
+## run977b — the same lobby, the draw stream to the game's end (2026-10-19, item 3343, `att-3343`)
+
+`docs/AI.md` §276. run972b's recipe with `--ai-tribe 10`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=4` and run643's four
+`--detail` lines.
+- Pool lane 2. Launched 14:48:08 and the game exited at 14:50:10 (122 s). `success`, **the game ended itself on 16764**
+  (closing block 16765, `ended_early` true). `rngcmp.py rontrace-run977.log rontrace-run977b.log`: **37 identical, 0
+  differing**. Filed with `filerun.py run977b greatsahara-french-diff4-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run977b-greatsahara-french-diff4-24k-trace.txt`, 12,742,402 bytes,
+SHA-256 `239ed64413b568fabc60188ce6366caa980579fe33020a4e5318af47f1d21cce`.
+
+Archive `rontrace-run977b.log`, 111,135,200 bytes,
+SHA-256 `e2f36e62a20108105e146963e900fb9ef9c7aa53fa2feabaed7e5e4623581842`.
+
+**What it holds**: the French's first try, **13422 / 13422** of 16764 (ours 14 draws, theirs 19, index 6: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52`), pinned in `battery::BATTERY`.
