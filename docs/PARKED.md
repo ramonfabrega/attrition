@@ -8083,7 +8083,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3292, 2026-10-18 — chapter 105, a Tower strikes a squad walking toward it
 
-- **3292a** Chapter 105 closed at 1500 on the first take (run950, GOLDEN §142) with the squad walking: both hoplite captains ordered east at 806, the Tower (1/2006) acquired as `near` from about 818 and an `ATTACKORDER` laid under each `MOVEORDER`. It parts on the eleven standing `form` rows alone. Still unreached, and unreachable by this staging: `Unit::target_opportunity`'s move-front proximity arm *as a strike* (no round lands on a walking victim before the squad's own attack order takes over) and a Fort's near-face gate. The next chapter is the Fort in the Tower's place, or a victim walking *past* the Tower at a distance beyond its sight so a round lands first.
+- (booked as item 3294) (3293) Chapter 105 closed at 1500 on the first take (run950, GOLDEN §142) with the squad walking: both hoplite captains ordered east at 806, the Tower (1/2006) acquired as `near` from about 818 and an `ATTACKORDER` laid under each `MOVEORDER`. It parts on the eleven standing `form` rows alone. Still unreached, and unreachable by this staging: `Unit::target_opportunity`'s move-front proximity arm *as a strike* (no round lands on a walking victim before the squad's own attack order takes over) and a Fort's near-face gate. The next chapter is the Fort in the Tower's place, or a victim walking *past* the Tower at a distance beyond its sight so a round lands first.
 
 ## Parked by the next landing, slot KB — reserved
 
