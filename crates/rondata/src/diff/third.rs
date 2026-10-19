@@ -180,6 +180,20 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         // `RON_DEBUG_UNIT` and `RON_DEBUG_SITES=<lo>-<hi>`'s attributed
         // sites, as the second pair's long walk prints them (item 1206).
         crate::diff::harness::debug_watch(&built, at + 1);
+        if std::env::var("RON_PROBE_RARES13").is_ok() {
+            use std::sync::atomic::{AtomicUsize, Ordering};
+            static N: AtomicUsize = AtomicUsize::new(0);
+            let s = &built.sim;
+            let n = s.ai[1].new_rares.len();
+            if N.swap(n, Ordering::Relaxed) != n {
+                eprintln!("PROBE13 f{at} new_rares {:?} seen13 {} ever13 {}", s.ai[1].new_rares, s.good_seen_bits.get(13).copied().unwrap_or(0), s.good_ever_seen(s.world.goods()[13].pos, 1));
+                for (i, x) in s.units.iter().enumerate() {
+                    if x.alive() && x.owner == 1 && x.on_map {
+                        eprintln!("PROBE13   u{i} o{} ty {} at {:?} los {}", x.index, x.type_index, x.pos, x.mylos);
+                    }
+                }
+            }
+        }
         if std::env::var("RON_PROBE_RARES").ok().and_then(|v| v.parse::<i64>().ok()) == Some(at) {
             let s = &built.sim;
             for (i, &gi) in s.ai[1].new_rares.iter().enumerate() {
