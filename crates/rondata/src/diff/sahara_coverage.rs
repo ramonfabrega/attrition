@@ -1316,5 +1316,7 @@ fn run817_s_word_frame_is_widened_whole() {
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
     // Item 2761: 297 → 293 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 279, "initial run817 baseline");
+    // Item 3326: 279 → 278 with the Colossus' cap (`docs/AI.md` §266):
+    // who=1's `pop_cap` stood from 4260, ours 220 against theirs 270.
+    pin_eq!(w.firsts.len(), 278, "initial run817 baseline");
 }

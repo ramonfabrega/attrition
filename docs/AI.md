@@ -23547,7 +23547,9 @@ who=1's `pop_cap` 110 against 160. Theirs is at Military 3 (100), holds Peacocks
 888888 (ours 8461), and on 19182 theirs makes a second item at its capital (`MAKE[1]`, `cat 4`, 118500), queued at
 `1/2014` on 19183. Built: `recompute_pop_caps` reads `has_wonder(0x20f)` live, beside Peacocks, and a Colossus'
 activation (`Build::activate:1795`) and close (`Build::close:328`) recompute it. **Value diff**: run961d's widening
-went to **41** keys, the standing set alone. **The word moves 19182 → 24000, the long's last frame.**
+went to **41** keys, the standing set alone. **The word moves 19182 → 24000, the long's last frame.** The same term
+closes a second lobby's row: run817's widening (`sahara_coverage`) went 279 → 278, who=1's `pop_cap` 220 against
+270 standing from 4260 now agreeing.
 
 **5. The closing state.** The game does not end itself; the long's `!quit` closes it on 24000, and run957b prints
 the closing block 24001 whole. Walked to it and compared (`run957b_greek_closing_state`): **114 units, none apart,
