@@ -23603,23 +23603,11 @@ the age 95300 → 95400 under the old target, finishing it on 22936; ours, walki
 age's target after the epoch landed, took 90000 and finished it on 22935. Value diff, block 22936: `1/2005`'s `queued`
 0 ours against 1, who=1's `ages` 5 against 4, `pop` 17 against 13, the oil grant 100 against 0; all agree from 22937.
 
-**Build 5, 23782 → 23985: the Colossus in the population cap** (, ,
-;  calls it for the Colossus; ). Nothing had set the flag.
-Value diff, run963d's block 23776: who=1's  150 ours against 200 (the Colossus  built in
-23186..23775, which no dump holds), and from 23779 ours' make list topped by  at 9999999; both 200
-after. It closes run817's  220 against 270 on Great Sahara too (279 → 278).
-
-**The word 23985.** Ours 13 draws, theirs 15, at 0: ours , theirs
-. On 23982 theirs buys an  (20 timber, 20 metal; block 23983's ) that ours
-does not; ours has carried  () −1 and  () 1 against 0 and 0 since
-before run963c's first block — an upgrade that took a unit off the German variant's count. That is the next item's
-hypothesis, not this one's finding.
-
 **Build 5, 23782 → 23985: the Colossus in the population cap** (`Leader::calc_pop_cap@006dc490:89`, `has_wonder(0x20f)`,
-`+ COLOSSUS_POP_CAP`; `Build::activate:1795` calls it for the Colossus; `docs/COSTS.md`). Nothing had set the flag.
-Value diff, run963d's block 23776: who=1's `pop_cap` 150 ours against 200 (the Colossus `1/2071` built in
-23186..23775, which no dump holds), and from 23779 ours' make list topped by `NATION_IN_ARMS` at 9999999; both 200
-after. It closes run817's `pop_cap` 220 against 270 on Great Sahara too (279 → 278).
+`+ COLOSSUS_POP_CAP`; `Build::activate:1795` calls it for the Colossus; `docs/COSTS.md`). Built here and by item 3326
+(§266) in parallel; the merge keeps 3326's, and ours is gone. This item's evidence is a second lobby's: run963d's block
+23776, who=1's `pop_cap` 150 against 200 (the Colossus `1/2071` built in 23186..23775, which no dump holds), and from
+23779 the tree's make list topped by `NATION_IN_ARMS` at 9999999; both 200 after.
 
 **The word 23985.** Ours 13 draws, theirs 15, at 0: ours `Leader::produce_building+0x1805`, theirs
 `Leader::use_market+0x1ed`. On 23982 theirs buys an `ARTILLERY` (20 timber, 20 metal; block 23983's `bucket`) that ours
@@ -23629,7 +23617,8 @@ hypothesis, not this one's finding.
 
 **Mutations** (`tools/mutate.py`), each `exit 101`, held: build 1's leg off; build 2's key case-sensitive; the interest
 off; the ship arm back inside `0 < ahead`; each of the hit-point, attack and armour terms zeroed; build 4's slots read
-late; build 5's activation call and its flag, each.
+late; build 5's activation call and its flag, each, before the merge (after it, 3326's activation arm stands
+beside the removed one).
 
 **Captures** (`docs/RUNS.md`): run962, run962b (the Indians), run963 (1561..1818), run963b (5577..5834), run963c
 (22929..23186), run963d (23776..24001). run963c and run963d were launched through `viadriver.sh`: two direct launches

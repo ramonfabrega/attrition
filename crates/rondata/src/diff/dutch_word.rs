@@ -65,10 +65,11 @@ pub(crate) const DUTCH: Lobby = Lobby {
     // 3: ours `Leader::make_stuff+0x221`, theirs `Leader::use_market
     // +0x1ed`, past run963c's last block. **And 23782 → 23985** with the
     // Colossus in the population cap (`calc_pop_cap@006dc490:89`, called
-    // from `Build::activate:1795` for the Colossus): run963d's block 23776,
-    // who=1's `pop_cap` 150 ours against 200 — ours never set the flag —
-    // and its make list topped by `NATION_IN_ARMS` at 9999999 from 23779;
-    // both 200 after. At 23985 ours 13 draws, theirs 15, at 0: ours
+    // from `Build::activate:1795` for the Colossus), built by this item and
+    // by item 3326 in parallel and kept as 3326's at the merge: run963d's
+    // block 23776, who=1's `pop_cap` 150 ours against 200, and its make
+    // list topped by `NATION_IN_ARMS` at 9999999 from 23779; both 200
+    // after. At 23985 ours 13 draws, theirs 15, at 0: ours
     // `Leader::produce_building+0x1805`, theirs `Leader::use_market+0x1ed`;
     // on 23982 theirs bought an `ARTILLERY` (20 timber, 20 metal) that
     // ours did not, and ours has carried `num_units[270]` −1 and `[271]` 1
