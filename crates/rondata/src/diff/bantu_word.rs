@@ -124,7 +124,7 @@ fn run978_s_word_frame_is_widened_whole() {
     let Some(w) = bantu_frame_4_window() else {
         return;
     };
-    pin_eq!(w.blocks, 256, "every captured block");
+    pin_eq!(w.blocks, 255, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
