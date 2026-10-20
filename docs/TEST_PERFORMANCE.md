@@ -481,6 +481,20 @@ sampled build memory1071→400–404MiB; an existing independent sweep edit rema
 [public-API journal](journal/2026-10-16-public-sweeps.md) and
 [audit](audit/2026-10-16-public-sweeps.json). No whole-suite gain claimed.
 
+### The emulator rows cache (2026-10-19)
+
+`emu_rows` caches each script's rows under `target/emu-cache/`, keyed on the
+inputs' SHA-256s (`docs/EMULATOR.md` §1.1). Measured on two real sweeps, debug,
+`RON_INSTALL` set, `uv` already warm, `zsh tools/check.sh test -p sim --
+sweep::wall_update_local_seen sweep::object_is_peasant`: the first run (empty
+cache, both scripts run and written) took 1.96 s (`object_is_peasant`, library
+binary) and 1.46 s (`wall_update_local_seen`, `sweep_u_z`), 5.01 s of budgeted
+run; the second (two hits) 0.49 s and 0.64 s, 1.55 s of budgeted run. What a
+hit still costs is one debug-build SHA-256 of the 9.9 MB executable per test
+binary (memoized for the process), so the saving grows with the number of
+sweeps a binary runs. The whole gate sets `RON_VERIFY_EMU`, so it runs every
+script as before and gains nothing there; every other run takes the hits.
+
 ## Golden replay case modules
 
 The211 golden test bodies now live in ten chapter-based child modules, called

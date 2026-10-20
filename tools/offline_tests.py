@@ -61,6 +61,7 @@ SUITES = (
     'test_hooks_stubs',
     'test_suite_timings',
     'test_buildat',
+    'test_emu_receipts',
     'test_offline_tests',
     'test_archive_census',
 )

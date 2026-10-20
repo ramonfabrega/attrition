@@ -422,7 +422,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     if whole:
         env['RON_VERIFY_ORACLE'] = '1'
         env['RON_VERIFY_SETUP_OBSERVATIONS'] = '1'
-    policy = {'schema': 1, 'release_test_threads': test_threads,
+        env['RON_VERIFY_EMU'] = '1'
+    policy ={'schema': 1, 'release_test_threads': test_threads,
               'test_allocator': allocator_policy(env),
               'verify_caches': whole,
               'memory_cap_gib': 32 if isolated else min(32, memory_cap_gib(test_threads)),

@@ -32,6 +32,35 @@ sweep; `crates/sim/src/path.rs`'s
 asserts every row against this crate. The table stays outside the
 repository, like the captures: it is derived from the user's own executable.
 
+### 1.1 The sweeps' cache and receipt (2026-10-19)
+
+Every sweep test reaches the emulator through one door,
+`crates/sim/src/sweep/support.rs`'s `emu_rows(script)`, and that door now
+caches. A run is keyed on the SHA-256 of a short text naming the
+executable's SHA-256, the script's, each shared module's name and
+SHA-256 — every `tools/emu/*.py` that is not a `sweep_*.py`
+(conservatively: every library a script can reach), plus each
+`sweep_*.py` the script imports, transitively — and the argument list.
+No path enters the key: moving the install or the checkout keeps every
+entry, and a changed byte in any input is a miss.
+
+The cache is `target/emu-cache/<key>.rows` (`RON_EMU_CACHE_DIR` moves
+it; `RON_EMU_CACHE=off` bypasses it). A file is the receipt as `#` lines —
+the key, the executable's path and hash, the script's and each module's
+name and hash, the date, `uv --version`, the Python `uv run` resolves,
+the row count, `# end` — then the rows verbatim; the header is stripped
+before the rows are returned, so no test sees it. A hit skips `uv`; a
+miss runs and writes through a temporary file and a rename. With no
+install or no `uv` the test skips and says so, as before.
+
+`RON_VERIFY_EMU=1` runs the script on a hit as well and panics with the
+first line the cached and fresh rows part on. The whole gate sets it
+beside `RON_VERIFY_ORACLE` (`tools/release_gate.py`), so every hit is
+proven against a fresh run on that schedule. `tools/emu_receipts.py`
+lists the receipts as a table; `--verify` re-hashes each receipt's inputs
+as they are on disk now, rebuilds the key text (the same literal is pinned
+by both sides' tests), and exits 1 naming each stale entry and why.
+
 ## 2. What it costs, measured
 
 | function | state to synthesize | cost |
