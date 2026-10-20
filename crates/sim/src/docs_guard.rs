@@ -1653,7 +1653,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("COLLISION.md", 1),
     ("COMBAT.md", 3),
     ("COSTS.md", 1),
-    ("ECONOMY.md", 11),
+    ("ECONOMY.md", 10),
     ("GOLDEN.md", 4),
     ("GOODY.md", 4),
     ("GROUPS.md", 3),
@@ -2334,7 +2334,7 @@ const UNSCANNED_SEAMS: &[(&str, usize)] = &[
     ("sim/src/group.rs", 3),
     ("sim/src/lib.rs", 1),
     ("sim/src/orders.rs", 9),
-    ("sim/src/rally.rs", 5),
+    ("sim/src/rally.rs", 4),
     ("sim/src/site_recruit.rs", 1),
 ];
 
