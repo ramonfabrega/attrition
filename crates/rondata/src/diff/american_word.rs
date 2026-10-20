@@ -161,3 +161,49 @@ fn run999_s_word_frame_is_widened_whole() {
     // printed, the newborn `g.angle[0]`).
     pin_eq!(w.firsts.len(), 51, "keys that part in the window");
 }
+
+/// run999b: the word 10982's window, blocks 10976..11232 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3374). run999 closes on 9632, before
+/// the word.
+pub(crate) const RUN999B: &str =
+    "gamelog-run999b-eastindies-american-diff1-window-10976-11233-leaders.txt";
+
+/// The window: block 10976 through 11232; the word 10982's own block is
+/// 10983.
+pub(crate) const WIDENING_AMERICAN_FRAME_10982: (i64, i64) = (10976, 11232);
+
+pub(crate) fn american_frame_10982_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AMERICAN.start],
+        true,
+        AMERICAN.long,
+        "run999b",
+        &[(RUN999B, WIDENING_AMERICAN_FRAME_10982.0)],
+        WIDENING_AMERICAN_FRAME_10982,
+        1,
+        &[10983],
+        true,
+    )
+}
+
+#[test]
+fn run999b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_frame_10982_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
