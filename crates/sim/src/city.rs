@@ -2518,40 +2518,32 @@ impl Sim {
     }
 
     /// `Object::disband(full)`: the building goes back; the refund is the
-    /// fraction not yet built, or the whole price.
+    /// fraction not yet built, or the whole price. The steps are
+    /// [`crate::disband::disband_steps`], swept against the original
+    /// (item 3346); this takes the prices ahead of them, while the building
+    /// still counts in the ramps they are read from.
     pub fn disband_building(&mut self, b: usize, full: bool) {
         if !self.buildings[b].alive {
             return;
         }
         let who = self.buildings[b].owner;
-        // The builders' orders die in `Unit::work`'s liveness test, not here.
-        let mut full = full;
-        if self.nation[who as usize].lakota && self.tuning.lakota_raze_price != 0 {
-            full = true;
-        }
+        let lakota = self.nation[who as usize].lakota && self.tuning.lakota_raze_price != 0;
+        let mut prices = [0; RESOURCES];
         if let Some(ty) = self.buildings[b].ty {
             let bd = &self.buildings[b];
-            let ct = self.construct_time_of(b);
-            let partial =
-                !full && !bd.active && bd.job_counter < self.build_types[ty].job_time * 100;
-            if partial || full {
-                let price = self.building_price(who, ty);
-                let ledger = &mut self.ledgers[who as usize];
-                for (g, p) in price.iter().enumerate() {
-                    let r = if full {
-                        *p
-                    } else {
-                        build::refund(*p, ct, bd.job_counter_2)
-                    };
-                    ledger.bucket[g] += r;
-                }
+            let partial = !bd.active && bd.job_counter < self.build_types[ty].job_time * 100;
+            if full || lakota || partial {
+                prices = self.building_price(who, ty);
             }
         }
-        if !self.buildings[b].started {
-            self.close_building(b, false);
-        } else {
-            self.die_building(b);
-        }
+        crate::disband::disband_steps(
+            &mut crate::disband::SimDisband {
+                sim: self,
+                b,
+                prices,
+            },
+            i32::from(full),
+        );
     }
 
     /// `Object::die` on a building: close it and keep the slot while the
