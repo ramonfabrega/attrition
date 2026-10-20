@@ -386,16 +386,16 @@ fn bell<V: AlarmView>(v: &mut V, who: i32, c: i32, rang: &mut bool) {
 /// garrison unit indices; the original's one object index is told apart by
 /// which method asks. Where the crate models less than the original:
 ///
-/// - SEAM: the scenario's `ignore_orders` sweep is not modelled (no list, so
+/// - SEAM: the scenario's ignore-orders sweep is not modelled (no list, so
 ///   the head's loop never runs), nor the group's armed flag (a group here is
-///   always armed), the group's refresh slot, `action_alarm_peasant`, the
-///   console (no sound) or `Error::report` (`obj_slot10` is the member being
-///   alive and the player's own).
-/// - SEAM: a cell's chain holds units only (`Sim::cell_chain`), so the bell's
-///   building-on-the-chain arm (`slot1c`) never runs, and the Citizens inside
+///   always armed), the group's refresh slot, the peasant variant, the
+///   console (no sound) or the error report (the object's slot 0x10 is the
+///   member being alive and the player's own).
+/// - SEAM: a cell's chain holds units only, so the bell's
+///   building-on-the-chain arm never runs, and the Citizens inside
 ///   such a building are not taken.
-/// - SEAM: the tribe's Citizen substitution (`tribe_can_type`, the type's
-///   slot `+0x68`) is not modelled: the Citizen is `PEASANTS`.
+/// - SEAM: the tribe's Citizen substitution (the type's slot `+0x68`) is not
+///   modelled: the Citizen is `PEASANTS`.
 pub struct SimAlarm<'a> {
     pub sim: &'a mut crate::Sim,
     pub who: crate::world::Player,

@@ -352,7 +352,7 @@ impl ActivateArmsView for SimArms<'_> {
         self.city().map_or(-1, |c| c as i32)
     }
     /// SEAM: the `0x80`/`0x200`/`0x400`/`0x800` bits are derived from the
-    /// city's buildings (`Sim::city_has`), not carried.
+    /// city's buildings, not carried.
     fn city_flags_or(&mut self, _mask: u16) {}
     /// SEAM: the granary and lumber bonus bytes (`+0x56`, `+0x57`) are not
     /// carried.
