@@ -28,9 +28,14 @@ pub(crate) const INCA: Lobby = Lobby {
     // Item 3335's first try, held by the battery's measure to `3eb2c76c`:
     // count 7782, sequence 7782 (ours 3218 draws, theirs 3219, at 1: ours
     // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`). Item
-    // 3360 promoted it to the AI word (`docs/AI.md` §281).
-    count: 7782,
-    sequence: 7782,
+    // 3360 promoted it to the AI word (`docs/AI.md` §281), and built
+    // `calc_gather`'s Inca arm (a mine's wealth per miner): 7782 → 16516,
+    // ours 12 draws, theirs 11, at 3: ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    // Value diff, run987 block 7776: who=1's `income[2:wealth]` ours 752,
+    // theirs 912 → 912/912.
+    count: 16516,
+    sequence: 16516,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -90,4 +95,59 @@ fn inca_word_is_no_other_lobby() {
         assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
+}
+
+/// run987: the word 7782's window, blocks 7776..8032 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3360). run969 dumps blocks 0..36 and
+/// run969b its setup and closing blocks only, so no dump on disk held the
+/// leader's ledger on the word's block.
+pub(crate) const RUN987: &str = "gamelog-run987-eastindies-inca-diff3-window-7776-8033-leaders.txt";
+
+/// The window: block 7776 through 8032; the word 7782's own block is 7783.
+pub(crate) const WIDENING_INCA_FRAME_7782: (i64, i64) = (7776, 8032);
+
+pub(crate) fn inca_frame_7782_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA.start],
+        true,
+        INCA.long,
+        "run987",
+        &[(RUN987, WIDENING_INCA_FRAME_7782.0)],
+        WIDENING_INCA_FRAME_7782,
+        1,
+        &[7783],
+        true,
+    )
+}
+
+#[test]
+fn run987_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_frame_7782_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3360: 533 keys parted on the first try, the window opening apart
+    // on who=1's wealth — `income[2:wealth]` ours 752, theirs 912, `rate`
+    // 47/57, `bucket` 22/37 on block 7776 — sixteen miners at
+    // `INCA_WEALTH_PER_MINER` (10), the arm `BuildTypeData::calc_gather`'s
+    // mine branch adds beside `german_miners` and this crate did not carry.
+    // Built: 533 → 49. On 7782 the wealth then covers less of timber's
+    // need, so `use_market` spends its second sell pass, as theirs does.
+    // What stands: the standing family alone (`SITE[·].reg` 65 against 0,
+    // `aggression`, `form` −1 against 0/9, the army `pool:n` and
+    // `group:n.held` with no `GROUPDATA` printed, the newborn `g.angle[0]`).
+    pin_eq!(w.firsts.len(), 49, "keys that part in the window");
 }
