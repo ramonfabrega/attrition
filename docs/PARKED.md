@@ -3857,6 +3857,14 @@ nothing, and one that would merge a draft if read at face value. Candidates: a r
 a `/clear` (the UNCLEARED probe's own read) or whose session uuid changed since the wait began is not a landing; or
 LANDED waits two polls for the row to stay out, as ENDED does. The pass's. One reach.
 
+(3371) **A probe's `commit -am` swept a lane's uncommitted widening into it** (3367's "for the Loop", filed at its
+merge; parked 3367c): the first session's `RON_PROBE_CAV` probe was committed with `commit -am` and took the
+uncommitted run993c widening with it, and the probe's revert conflicted and was resolved by hand, keeping the
+widening. The brief's row 1864 says exactly this, and it was broken anyway: a prose rule a lane reads at its start
+does not reach the commit it makes three hours later. Candidates: a `commit-msg` hook that refuses a commit whose
+message says `PROBE` and whose diff touches a path outside the probe's own (`RON_DEBUG_*`, `RON_PROBE_*` sites); or
+`tools/probe.py`, which commits only the hunks behind the probe's variable. The pass's. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
