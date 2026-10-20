@@ -146,6 +146,7 @@ mod unit_add_move_facing_order;
 mod unit_add_strafe_order;
 mod unit_add_think_order;
 mod unit_air_turn_speed;
+mod unit_come_out_edx;
 mod unit_data_calc_gather;
 mod unit_data_curr_uber_size;
 mod unit_data_decoy_time;

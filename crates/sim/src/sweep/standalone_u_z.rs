@@ -78,6 +78,8 @@ mod unit_check_idle;
 mod unit_check_target_path;
 #[path = "unit_come_out.rs"]
 mod unit_come_out;
+#[path = "unit_come_out_edx.rs"]
+mod unit_come_out_edx;
 #[path = "unit_data_action_type.rs"]
 mod unit_data_action_type;
 #[path = "unit_data_activity_type.rs"]
