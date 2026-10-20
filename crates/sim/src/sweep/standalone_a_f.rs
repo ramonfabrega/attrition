@@ -96,6 +96,10 @@ mod army_is_engaged;
 mod army_member;
 #[path = "army_member_by_unit.rs"]
 mod army_member_by_unit;
+#[path = "army_normalize.rs"]
+mod army_normalize;
+#[path = "army_normalize_one.rs"]
+mod army_normalize_one;
 #[path = "army_release_mustering.rs"]
 mod army_release_mustering;
 #[path = "army_remove_group.rs"]

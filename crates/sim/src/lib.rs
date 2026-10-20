@@ -106,6 +106,7 @@ pub mod form_view;
 pub mod friends;
 pub mod gaia;
 pub mod garrison;
+pub mod army_normalize_view;
 pub mod garrison_view;
 pub mod gather;
 pub mod gather_tile;
