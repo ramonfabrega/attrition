@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(5);
@@ -41,218 +46,239 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // The view over the emulated windows. `a`: the three arguments, the 19
-    // stubs' answers (from 3), the seq values, then the slot-0xb8 flag (73).
-    struct Sw<'a> {
-        a: &'a [i32],
-        m: &'a [u8],
-        c: &'a [Vec<u8>],
-        p: &'a [Vec<u8>],
-        pass: usize,
-        turn: [usize; 19],
-        calls: Vec<Vec<String>>,
-    }
-    impl Sw<'_> {
-        fn ans(&mut self, i: usize) -> i32 {
-            let (base, n) = match i {
-                0 => (22, 8),
-                1 => (30, 8),
-                2 => (38, 2),
-                4 => (40, 2),
-                5 => (42, 2),
-                6 => (44, 2),
-                7 => (46, 2),
-                8 => (48, 5),
-                9 => (53, 5),
-                10 => (58, 2),
-                11 => (60, 2),
-                12 => (62, 2),
-                13 => (64, 2),
-                15 => (66, 2),
-                17 => (68, 2),
-                18 => (70, 3),
-                _ => return self.a[3 + i],
-            };
-            let t = self.turn[i].min(n - 1);
-            self.turn[i] += 1;
-            self.a[base + t]
-        }
-        fn rec_log(&mut self, i: usize, s: String) {
-            self.calls[i].push(s);
-        }
-        fn sp(&self) -> &[u8] {
-            if self.pass == 0 { self.m } else { &self.p[20] }
-        }
-        fn this_tok(&self) -> String {
-            if self.pass == 0 { "m+0x0".into() } else { "p20+0x0".into() }
-        }
-        fn lead(&self) -> String {
-            format!("p{}+0x0", 2 * self.a[1])
-        }
-        fn xy(&self) -> (i32, i32) {
-            (rd(&self.p[17], 0x10) ^ 0x63637, rd(&self.p[17], 0x14) ^ 0x63637)
-        }
-        fn div3(&self, i: i32) -> i32 {
-            rd(&self.c[3], i as usize * 4)
-        }
-    }
-    impl crate::castable::CastableView for Sw<'_> {
-        fn id(&mut self) -> i32 {
-            rd(self.sp(), 4)
-        }
-        fn from(&mut self) -> i32 {
-            rd(self.sp(), 0x3c)
-        }
-        fn from2(&mut self) -> i32 {
-            rd(self.sp(), 0x1dc)
-        }
-        fn next_spell(&mut self) {
-            self.pass = 1;
-        }
-        fn spell_slot50(&mut self) -> i32 {
-            let t = self.this_tok();
-            self.rec_log(6, t);
-            self.ans(6)
-        }
-        fn spell_slot54(&mut self) -> i32 {
-            let t = self.this_tok();
-            self.rec_log(7, t);
-            self.ans(7)
-        }
-        fn obj_is(&mut self, ty: i32) -> i32 {
-            let s = format!("p17+0x0,{ty},0");
-            if self.a[73] == 0 {
-                self.rec_log(0, s);
-                self.ans(0)
-            } else {
-                self.rec_log(1, s);
-                self.ans(1)
+                // The view over the emulated windows. `a`: the three arguments, the 19
+                // stubs' answers (from 3), the seq values, then the slot-0xb8 flag (73).
+                struct Sw<'a> {
+                    a: &'a [i32],
+                    m: &'a [u8],
+                    c: &'a [Vec<u8>],
+                    p: &'a [Vec<u8>],
+                    pass: usize,
+                    turn: [usize; 19],
+                    calls: Vec<Vec<String>>,
+                }
+                impl Sw<'_> {
+                    fn ans(&mut self, i: usize) -> i32 {
+                        let (base, n) = match i {
+                            0 => (22, 8),
+                            1 => (30, 8),
+                            2 => (38, 2),
+                            4 => (40, 2),
+                            5 => (42, 2),
+                            6 => (44, 2),
+                            7 => (46, 2),
+                            8 => (48, 5),
+                            9 => (53, 5),
+                            10 => (58, 2),
+                            11 => (60, 2),
+                            12 => (62, 2),
+                            13 => (64, 2),
+                            15 => (66, 2),
+                            17 => (68, 2),
+                            18 => (70, 3),
+                            _ => return self.a[3 + i],
+                        };
+                        let t = self.turn[i].min(n - 1);
+                        self.turn[i] += 1;
+                        self.a[base + t]
+                    }
+                    fn rec_log(&mut self, i: usize, s: String) {
+                        self.calls[i].push(s);
+                    }
+                    fn sp(&self) -> &[u8] {
+                        if self.pass == 0 { self.m } else { &self.p[20] }
+                    }
+                    fn this_tok(&self) -> String {
+                        if self.pass == 0 {
+                            "m+0x0".into()
+                        } else {
+                            "p20+0x0".into()
+                        }
+                    }
+                    fn lead(&self) -> String {
+                        format!("p{}+0x0", 2 * self.a[1])
+                    }
+                    fn xy(&self) -> (i32, i32) {
+                        (
+                            rd(&self.p[17], 0x10) ^ 0x63637,
+                            rd(&self.p[17], 0x14) ^ 0x63637,
+                        )
+                    }
+                    fn div3(&self, i: i32) -> i32 {
+                        rd(&self.c[3], i as usize * 4)
+                    }
+                }
+                impl crate::castable::CastableView for Sw<'_> {
+                    fn id(&mut self) -> i32 {
+                        rd(self.sp(), 4)
+                    }
+                    fn from(&mut self) -> i32 {
+                        rd(self.sp(), 0x3c)
+                    }
+                    fn from2(&mut self) -> i32 {
+                        rd(self.sp(), 0x1dc)
+                    }
+                    fn next_spell(&mut self) {
+                        self.pass = 1;
+                    }
+                    fn spell_slot50(&mut self) -> i32 {
+                        let t = self.this_tok();
+                        self.rec_log(6, t);
+                        self.ans(6)
+                    }
+                    fn spell_slot54(&mut self) -> i32 {
+                        let t = self.this_tok();
+                        self.rec_log(7, t);
+                        self.ans(7)
+                    }
+                    fn obj_is(&mut self, ty: i32) -> i32 {
+                        let s = format!("p17+0x0,{ty},0");
+                        if self.a[73] == 0 {
+                            self.rec_log(0, s);
+                            self.ans(0)
+                        } else {
+                            self.rec_log(1, s);
+                            self.ans(1)
+                        }
+                    }
+                    fn obj_slot18(&mut self) -> i32 {
+                        self.rec_log(2, "p17+0x0".into());
+                        self.ans(2)
+                    }
+                    fn obj_slot20(&mut self) -> i32 {
+                        self.rec_log(4, "p17+0x0".into());
+                        self.ans(4)
+                    }
+                    fn obj_slot110(&mut self) -> i32 {
+                        self.rec_log(5, "p17+0x0".into());
+                        self.ans(5)
+                    }
+                    fn is_map_unit(&mut self) -> i32 {
+                        self.rec_log(13, "p17+0x0".into());
+                        self.ans(13)
+                    }
+                    fn unit_flags(&mut self) -> u32 {
+                        rd(&self.p[19], 0x68) as u32
+                    }
+                    fn tribe_can_type(&mut self, _ty: i32) -> i32 {
+                        let s = format!("{},p27+0x0", self.lead());
+                        self.rec_log(9, s);
+                        self.ans(9)
+                    }
+                    fn type_slot68(&mut self, _ty: i32) -> i32 {
+                        let s = format!("p27+0x0,{}", rd(&self.p[2 * self.a[1] as usize + 1], 0));
+                        self.rec_log(8, s);
+                        self.ans(8)
+                    }
+                    fn get_graft(&mut self, ty: i32) -> i32 {
+                        let s = format!("{},{ty}", self.lead());
+                        self.rec_log(10, s);
+                        self.ans(10)
+                    }
+                    fn has_tech(&mut self, ty: i32) -> i32 {
+                        let s = format!("{},{ty}", self.lead());
+                        self.rec_log(18, s);
+                        self.ans(18)
+                    }
+                    fn researching(&mut self, id: i32) -> i32 {
+                        let s = format!("{},{id},{},1,0", self.lead(), self.a[0]);
+                        self.rec_log(11, s);
+                        self.ans(11)
+                    }
+                    fn is_ally(&mut self, whom: i32) -> i32 {
+                        let s = format!("{},{whom}", self.lead());
+                        self.rec_log(15, s);
+                        self.ans(15)
+                    }
+                    fn leader_flag2(&mut self, i: i32) -> bool {
+                        self.p[2 * i as usize][0] & 2 != 0
+                    }
+                    fn tile_flag100(&mut self) -> bool {
+                        let (x, y) = self.xy();
+                        let idx = self
+                            .div3(y >> 6)
+                            .wrapping_mul(rd(&self.c[1], 0x18))
+                            .wrapping_add(self.div3(x >> 6));
+                        let w = &self.p[22];
+                        u16::from_le_bytes([w[idx as usize * 2], w[idx as usize * 2 + 1]]) & 0x100
+                            != 0
+                    }
+                    fn tile_owner(&mut self) -> i32 {
+                        let (x, y) = self.xy();
+                        let idx = self
+                            .div3(y >> 8)
+                            .wrapping_mul(rd(&self.c[1], 0))
+                            .wrapping_add(self.div3(x >> 8));
+                        i32::from(self.p[21][idx as usize * 0x1c + 0xf] as i8)
+                    }
+                    fn find_city_at(&mut self) -> i32 {
+                        let (x, y) = self.xy();
+                        let s = format!("12626800,{x},{y},{},-1,0", self.a[1]);
+                        self.rec_log(14, s);
+                        self.ans(14)
+                    }
+                    fn rec(&mut self) {
+                        self.rec_log(3, "p17+0x0".into());
+                    }
+                    fn rec_unassimilated(&mut self) -> i32 {
+                        self.rec_log(12, "p23+0x0".into());
+                        self.ans(12)
+                    }
+                    fn rec_city(&mut self) -> i32 {
+                        i32::from(i16::from_le_bytes([self.p[23][0x72], self.p[23][0x73]]))
+                    }
+                    fn rec_flag8(&mut self) -> u32 {
+                        u32::from(self.p[23][8])
+                    }
+                    fn rec_cfg(&mut self) -> u32 {
+                        u32::from(self.p[24][0x2c0])
+                    }
+                    fn city_owner(&mut self, _c: i32) -> i32 {
+                        i32::from(self.p[26][0x5f] as i8)
+                    }
+                    fn city_b60(&mut self, _c: i32) -> i32 {
+                        i32::from(self.p[26][0x60] as i8)
+                    }
+                    fn city_flags68(&mut self, _c: i32) -> u32 {
+                        u32::from(self.p[26][0x68])
+                    }
+                    fn city_flags4(&mut self, _c: i32) -> u32 {
+                        u32::from(self.p[26][4])
+                    }
+                    fn depop_can_queue(&mut self, _c: i32) -> i32 {
+                        self.rec_log(16, "p26+0x0".into());
+                        self.ans(16)
+                    }
+                    fn is_disbanding(&mut self, _c: i32) -> i32 {
+                        self.rec_log(17, "p26+0x0".into());
+                        self.ans(17)
+                    }
+                }
+                let mut sw = Sw {
+                    a,
+                    m,
+                    c,
+                    p,
+                    pass: 0,
+                    turn: [0; 19],
+                    calls: vec![Vec::new(); 19],
+                };
+                let r = crate::castable::is_castable_steps(&mut sw, a[1], a[2]);
+                for col in &sw.calls {
+                    log.push(if col.is_empty() {
+                        "-".to_string()
+                    } else {
+                        col.join("/")
+                    });
+                }
+                i64::from(r)
             }
-        }
-        fn obj_slot18(&mut self) -> i32 {
-            self.rec_log(2, "p17+0x0".into());
-            self.ans(2)
-        }
-        fn obj_slot20(&mut self) -> i32 {
-            self.rec_log(4, "p17+0x0".into());
-            self.ans(4)
-        }
-        fn obj_slot110(&mut self) -> i32 {
-            self.rec_log(5, "p17+0x0".into());
-            self.ans(5)
-        }
-        fn is_map_unit(&mut self) -> i32 {
-            self.rec_log(13, "p17+0x0".into());
-            self.ans(13)
-        }
-        fn unit_flags(&mut self) -> u32 {
-            rd(&self.p[19], 0x68) as u32
-        }
-        fn tribe_can_type(&mut self, _ty: i32) -> i32 {
-            let s = format!("{},p27+0x0", self.lead());
-            self.rec_log(9, s);
-            self.ans(9)
-        }
-        fn type_slot68(&mut self, _ty: i32) -> i32 {
-            let s = format!("p27+0x0,{}", rd(&self.p[2 * self.a[1] as usize + 1], 0));
-            self.rec_log(8, s);
-            self.ans(8)
-        }
-        fn get_graft(&mut self, ty: i32) -> i32 {
-            let s = format!("{},{ty}", self.lead());
-            self.rec_log(10, s);
-            self.ans(10)
-        }
-        fn has_tech(&mut self, ty: i32) -> i32 {
-            let s = format!("{},{ty}", self.lead());
-            self.rec_log(18, s);
-            self.ans(18)
-        }
-        fn researching(&mut self, id: i32) -> i32 {
-            let s = format!("{},{id},{},1,0", self.lead(), self.a[0]);
-            self.rec_log(11, s);
-            self.ans(11)
-        }
-        fn is_ally(&mut self, whom: i32) -> i32 {
-            let s = format!("{},{whom}", self.lead());
-            self.rec_log(15, s);
-            self.ans(15)
-        }
-        fn leader_flag2(&mut self, i: i32) -> bool {
-            self.p[2 * i as usize][0] & 2 != 0
-        }
-        fn tile_flag100(&mut self) -> bool {
-            let (x, y) = self.xy();
-            let idx = self.div3(y >> 6).wrapping_mul(rd(&self.c[1], 0x18)).wrapping_add(self.div3(x >> 6));
-            let w = &self.p[22];
-            u16::from_le_bytes([w[idx as usize * 2], w[idx as usize * 2 + 1]]) & 0x100 != 0
-        }
-        fn tile_owner(&mut self) -> i32 {
-            let (x, y) = self.xy();
-            let idx = self.div3(y >> 8).wrapping_mul(rd(&self.c[1], 0)).wrapping_add(self.div3(x >> 8));
-            i32::from(self.p[21][idx as usize * 0x1c + 0xf] as i8)
-        }
-        fn find_city_at(&mut self) -> i32 {
-            let (x, y) = self.xy();
-            let s = format!("12626800,{x},{y},{},-1,0", self.a[1]);
-            self.rec_log(14, s);
-            self.ans(14)
-        }
-        fn rec(&mut self) {
-            self.rec_log(3, "p17+0x0".into());
-        }
-        fn rec_unassimilated(&mut self) -> i32 {
-            self.rec_log(12, "p23+0x0".into());
-            self.ans(12)
-        }
-        fn rec_city(&mut self) -> i32 {
-            i32::from(i16::from_le_bytes([self.p[23][0x72], self.p[23][0x73]]))
-        }
-        fn rec_flag8(&mut self) -> u32 {
-            u32::from(self.p[23][8])
-        }
-        fn rec_cfg(&mut self) -> u32 {
-            u32::from(self.p[24][0x2c0])
-        }
-        fn city_owner(&mut self, _c: i32) -> i32 {
-            i32::from(self.p[26][0x5f] as i8)
-        }
-        fn city_b60(&mut self, _c: i32) -> i32 {
-            i32::from(self.p[26][0x60] as i8)
-        }
-        fn city_flags68(&mut self, _c: i32) -> u32 {
-            u32::from(self.p[26][0x68])
-        }
-        fn city_flags4(&mut self, _c: i32) -> u32 {
-            u32::from(self.p[26][4])
-        }
-        fn depop_can_queue(&mut self, _c: i32) -> i32 {
-            self.rec_log(16, "p26+0x0".into());
-            self.ans(16)
-        }
-        fn is_disbanding(&mut self, _c: i32) -> i32 {
-            self.rec_log(17, "p26+0x0".into());
-            self.ans(17)
-        }
-    }
-    let mut sw = Sw {
-        a,
-        m,
-        c,
-        p,
-        pass: 0,
-        turn: [0; 19],
-        calls: vec![Vec::new(); 19],
-    };
-    let r = crate::castable::is_castable_steps(&mut sw, a[1], a[2]);
-    for col in &sw.calls {
-        log.push(if col.is_empty() { "-".to_string() } else { col.join("/") });
-    }
-    i64::from(r)
-}
         };
         assert_eq!(got, want_eax, "is_castable — eax, row `{line}`");
-        assert_eq!(log, want_log, "is_castable — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "is_castable — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "is_castable — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
