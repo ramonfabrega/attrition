@@ -89,6 +89,7 @@ mod army_do_marching_found;
 mod army_do_transporting;
 mod army_find_besieged_city;
 mod army_find_muster_spot;
+mod army_find_target;
 mod army_march_to_target;
 mod army_set_stance;
 mod army_use_generals;
