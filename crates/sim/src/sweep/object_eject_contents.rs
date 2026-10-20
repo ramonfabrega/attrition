@@ -614,6 +614,7 @@ fn the_emulated_original_agrees_on_every_row() {
         let mut log: Vec<String> = Vec::new();
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
+            let _ = (&a, &m, &c, &p);
             let derefs = {
                 let mut emu = Emu::new(a, m, c, p, &mut log);
                 eject_steps(&mut emu, a[0], a[1], a[2], a[3]);
