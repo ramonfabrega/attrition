@@ -752,6 +752,8 @@ mod objects_data_find_unit_with_radius;
 mod objects_data_find_village;
 #[path = "objects_data_make_tree_mask.rs"]
 mod objects_data_make_tree_mask;
+#[path = "objects_find_builds.rs"]
+mod objects_find_builds;
 #[path = "objects_out_sort_objects.rs"]
 mod objects_out_sort_objects;
 #[path = "objects_remove_item.rs"]
