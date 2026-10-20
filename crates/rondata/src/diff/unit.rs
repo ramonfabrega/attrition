@@ -519,8 +519,9 @@ mod tests {
         assert_eq!(
             loaded.piece_lengths.len(),
             // 1440 → 1446: item 3329 binds a `GRAPH` to its types without
-            // case, so six more entries name a piece.
-            1446,
+            // case, so six more entries name a piece. 1446 → 1452: item 3369
+            // names the six "over time" merchant pieces (`artdata::OVER_TIME`).
+            1452,
             "every `<UNIT>` entry the unit path can name"
         );
         // **And an entry with no `<ANIM>` child is one of them.** All
