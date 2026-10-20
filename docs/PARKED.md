@@ -3783,6 +3783,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3389) **A journal's `## For the Loop` heading over `none` reads as unfiled, twice now** (3384's "for the Loop",
+filed at its merge: the heading, a blank line, `none`): `docs_guard::a_journal_s_loop_line_is_filed_or_says_none`
+reads only the heading's own line, so 3384's lane gate was red on it as the commander's line, as 3370's was. 3370's
+note (below) said the guard should read the next non-blank line if the shape recurred; it has. The guard's, a few
+lines, made to fail on 3370's and 3384's journals first. One reach.
+
 (3388) **The `port` mark runs dry: the sweep refill rule needs its next source** (the commander, at 3379's booking):
 after 3379 and 3381 merged (`8fd0850a`), `census.py --unbacked --all` lists eight `port`-marked rows, six of them
 3386's batch; two (`Group::normalize`, `Army::normalize`, newly spelled by 3379) are left for the next refill, and the
