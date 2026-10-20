@@ -570,15 +570,15 @@ impl Sim {
     /// The nearest by `vector_dist × max(1, danger)` wins, and the unit is
     /// put in a group of one and sent to the cell's centre.
     ///
-    /// SEAMS: `unit_masks & 0x100` (an exploring unit) is clear on every
-    /// unit in every capture, so the three arms that re-enter
-    /// `think_scout(1)` are unreachable and the order is always `MOVE_TO`;
-    /// the danger grid has no writer, so [`World::danger_half`] answers 0
-    /// and every score is its distance.
+    /// SEAMS: an exploring unit (bit `0x100` of its mask) is clear on every
+    /// unit in every capture, so the three arms that re-enter the scout
+    /// think are unreachable and the order is always `MOVE_TO`; the
+    /// danger grid has no writer, so its half-size read answers 0 and
+    /// every score is its distance.
     ///
     /// The document says the region loop skips the unit's own region. It
     /// does not — `005f4283` gates on `Region.size` alone — and what keeps
-    /// a scout from choosing home is the `scouted` bit its own tail has
+    /// a scout from choosing home is the scouted bit its own tail has
     /// just set. Amended in §7.
     pub(crate) fn think_civilian_transport(&mut self, u: usize, colonise: bool) -> bool {
         let mut v = crate::civ_transport::SimCivTransport::new(self, u);

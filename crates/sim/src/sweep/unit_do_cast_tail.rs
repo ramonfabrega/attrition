@@ -46,8 +46,8 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // The whole untargeted half: the crate's own `do_cast_clock_steps` over the emulated original's
-            // windows (`super::do_cast_emu`). Flag columns: after the 25 stub answers.
-            let mut v = super::do_cast_emu::EmuCast {
+            // windows (`super::unit_do_cast_emu`). Flag columns: after the 25 stub answers.
+            let mut v = super::unit_do_cast_emu::EmuCast {
                 a,
                 m,
                 c,

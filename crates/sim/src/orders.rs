@@ -6524,11 +6524,10 @@ impl Sim {
         //     it as "arrived", which is the one thing a 0 never means:
         //     arrival returns 1.
         //
-        //     SEAM: the attack-context hand-off above it —
-        //     `Group::action_attack` for a `GROUP_ATTACK_TO` whose
-        //     `collide_o` is a valid target, `kill_current_order`
-        //     otherwise — is the leader arm's own seam and is not
-        //     modelled; no capture reaches it, because every collider in
+        //     SEAM: the attack-context hand-off above it is the leader
+        //     arm's, which carries it since item 3376 save the spreading
+        //     of the attack over the group; the follower's step does not
+        //     take it. No capture reaches it, because every collider in
         //     the captures on disk belongs to the colliding unit's own
         //     player.
         if self.unit_step(u, mo, v) == Did::Nothing && self.still_group_move(u, gm.id) {

@@ -6,8 +6,8 @@ mod support;
 use support::{emu_rows, row, tail_row};
 
 // Registered standalone sweeps.
-#[path = "do_cast_emu.rs"]
-mod do_cast_emu;
+#[path = "unit_do_cast_emu.rs"]
+mod unit_do_cast_emu;
 #[path = "unbuilt_cities_add_unbuilt_city.rs"]
 mod unbuilt_cities_add_unbuilt_city;
 #[path = "unbuilt_cities_remove_unbuilt_city.rs"]
