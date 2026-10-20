@@ -4433,29 +4433,6 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
-                        if let Ok(f) = std::env::var("RON_DEBUG_NEARBY")
-                            && f.parse::<i64>().ok() == Some(self.frame)
-                            && let Obj::Unit(ai) = attacker
-                        {
-                            let lab = |s: &Self, o: Obj| match o {
-                                Obj::Unit(u) => {
-                                    format!("{}/{}", s.units[u].owner, s.units[u].index)
-                                }
-                                Obj::Building(b) => format!("b{b}"),
-                            };
-                            eprintln!(
-                                "NEARBY f{} {} -> {} dist {} targeted {} value {} in_range {} score {} best {:?}",
-                                self.frame,
-                                lab(self, Obj::Unit(ai)),
-                                lab(self, o),
-                                dist,
-                                targeted,
-                                value,
-                                in_range,
-                                score,
-                                best.map(|(b, bo)| (b, lab(self, bo)))
-                            );
-                        }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
