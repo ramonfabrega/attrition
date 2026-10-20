@@ -31,9 +31,17 @@ pub(crate) const DUTCH_SAHARA: Lobby = Lobby {
     // count 311, sequence 311 (ours 7 draws, theirs 6, at 1: ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Farms::inc_time+0x1ae`). Item 3369 promoted it to the AI word
-    // (`docs/AI.md` §285).
-    count: 311,
-    sequence: 311,
+    // (`docs/AI.md` §285), and moved it 311 → 15725 (+15414): the Dutch
+    // merchant's `think_attack` leg and that function's `go_to_city` tail
+    // (run995's block 310: `1/1` (`MERCHANTDUTCH`) `group` −1 ours, 64
+    // theirs, `orders.len` 0/1, `ATTACK_TO` (41304, 17304); agreeing
+    // after), and a merchant re-pieced as its pack begins (block 311:
+    // figure 0's `gpiece` 12 ours, 6348 theirs, `end_time` 3/149;
+    // agreeing after). 15725: ours 9 draws, theirs 13, at 4: ours
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
+    count: 15725,
+    sequence: 15725,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -148,5 +156,7 @@ fn run995_s_word_frame_is_widened_whole() {
     // `group` −1 against 64, `orders.len` 0 against 1 (`ATTACK_TO`
     // (41304, 17304)), `form_mod` −1 against 50 — the frame after its
     // unpack seated it.
-    pin_eq!(w.firsts.len(), 433, "keys that part in the window");
+    // Built (the merchant's `think_attack` leg, the `go_to_city` tail,
+    // the pack's re-piece): 433 -> 39, the standing family on 305.
+    pin_eq!(w.firsts.len(), 39, "keys that part in the window");
 }
