@@ -9905,13 +9905,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
-    // 6065..6321 (block 6072).
+    // 6065..6321 (block 6072). Item 3345 moved it 6071 → 7902, the game's
+    // last frame, with the `NA`-style Slinger's release bays (piece 1440;
+    // run980 keeps 6071's value diff, run980b the stones' `sx, sy`). The
+    // close is compared whole on run975b's own closing block 7903 by
+    // `run975b_lakota_closing_state`.
     (
         "LAKOTA_WORD",
         crate::diff::lakota_word::LAKOTA_WORD,
-        Some("run980_s_word_frame_is_widened_whole"),
+        Some("run975b_lakota_closing_state"),
         3345,
-        Some(crate::diff::lakota_word::WIDENING_LAKOTA_FRAME_6071),
+        Some(crate::diff::lakota_word::WIDENING_LAKOTA_CLOSING),
     ),
     // **The battery's Bantu word** (item 3343, DECISIONS 72, 83): frame
     // 4, the battery's first try, widened on run978 over 1..256 (block 5).
@@ -10435,7 +10439,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Lakes (Lakota)",
         word: crate::diff::lakota_word::LAKOTA_WORD,
         length: 7_902,
-        endpoint: None,
+        // Closed by item 3345: the draw stream agrees to 7902, and
+        // run975b's closing block 7903 scores the end itself.
+        endpoint: Some("run975b_lakota_closing_state"),
         window: Some("lakota_frame_6071_window"),
     },
     // **The battery's Bantu word** (DECISIONS 72, 83; item 3343): Great

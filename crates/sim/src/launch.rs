@@ -1262,6 +1262,30 @@ pub fn launch_point(
 mod tests {
     use super::*;
 
+    /// **The Lakota Slingers' stones leave from piece 1440's bays** (item
+    /// 3345): run980b's `AMMO` records, the stone `1/18` threw on 6046 at
+    /// the citizen `0/2` and `1/20`'s on 6050 at the city centre — each
+    /// figure on its unit's own square at its facing, `sx, sy` the dump's
+    /// own.
+    #[test]
+    fn run980b_s_lakota_stones_leave_from_the_na_slinger_s_bays() {
+        let at = |x, y, facing, key: (i8, u32)| {
+            launch_point(Pos::new(x, y), Angle(facing), 1440, key.0, key.1, 0)
+        };
+        for (x, y, facing, want) in [
+            (5016, 30264, -48_431_104, Pos::new(4962, 30153)),
+            (5064, 30744, -1_097_334_784, Pos::new(4943, 30718)),
+        ] {
+            let keys = [
+                (crate::anim::ATTACK1, 21),
+                (crate::anim::ATTACK2, 22),
+                (crate::anim::ATTACK3, 16),
+            ];
+            let got: Vec<_> = keys.iter().map(|&k| at(x, y, facing, k)).collect();
+            assert!(got.contains(&want), "{want:?} from {got:?}");
+        }
+    }
+
     /// Every launch point run109 measured, reproduced to the unit.
     ///
     /// `(guy x, guy y, guy angle, anim, starttime, sx, sy)` — the dump's
