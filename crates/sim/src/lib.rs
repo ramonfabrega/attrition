@@ -2146,11 +2146,12 @@ impl Sim {
         }
         if self.units[i].alive() && self.units[i].on_map {
             self.chain_add(i);
-            // The third thing `add_to_world` does, and the one that was
-            // missing here: `update_seen(0)`, the whole disc rather than
-            // the ring (`docs/VISION.md` §6). [`Sim::come_out_place`] has
-            // made this call since garrisoning landed; a unit *born* on the
-            // map made none, so its owner's line of sight did not exist
+            // `update_seen(0)`, the whole disc rather than the ring
+            // (`docs/VISION.md` §6). This was long credited to
+            // `add_to_world`; item 3361 read it as `Unit::init`'s own call,
+            // at the trainer's snapped centre — the same disc, so the same
+            // effect — and [`Sim::come_out_place`]'s inside arm lights
+            // none of its own. A unit *born* on the map once made none, so its owner's line of sight did not exist
             // until the unit first crossed a half-cell or the hundredth-
             // frame resync came round. Nothing read the plane closely
             // enough to notice until [`Sim::target_is_seen`]

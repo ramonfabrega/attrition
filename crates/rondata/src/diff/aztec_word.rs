@@ -138,7 +138,14 @@ fn fog_parted(window: &str) -> Option<Vec<(i64, Vec<(i32, i32, u8, u8)>)>> {
         assert_eq!(theirs.len(), (fw * fh) as usize, "block {n}'s fog plane");
         let parted = (0..fh)
             .flat_map(|y| (0..fw).map(move |x| (x, y)))
-            .map(|(x, y)| (x, y, w.seen2(x, y).unwrap_or(0), theirs[(y * fw + x) as usize]))
+            .map(|(x, y)| {
+                (
+                    x,
+                    y,
+                    w.seen2(x, y).unwrap_or(0),
+                    theirs[(y * fw + x) as usize],
+                )
+            })
             .filter(|&(_, _, a, b)| a != b)
             .collect();
         out.push((n, parted));
