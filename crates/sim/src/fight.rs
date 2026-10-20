@@ -4371,9 +4371,6 @@ impl Sim {
                             && (self.attack_of(o) == 0
                                 || (self.ai_driven(self.owner_of(attacker))
                                     && self.profile(o).has(mask::ANTI_AIR)));
-                        if cavarch && std::env::var("RON_PROBE_CAV").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
-                            eprintln!("PROBE f{} cav {:?} cand {:?} dist {} in_range {} maxr {} pos {:?} tpos {:?}", self.frame, attacker, o, dist, self.is_in_range(attacker, o), maxr, at, self.pos_of(o));
-                        }
                         let in_range = if must_reach || guard_reach {
                             if !self.is_in_range(attacker, o) {
                                 let wonder = matches!(o, Obj::Building(b)
