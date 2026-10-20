@@ -134,10 +134,8 @@ pub fn blocked_tcoord_steps<V: TcoordView>(
                     return code(Blocked::Land);
                 }
             }
-            0 => {
-                if mask & tile::SURFACE == tile::SURFACE_OCEAN {
-                    return code(Blocked::Water);
-                }
+            0 if mask & tile::SURFACE == tile::SURFACE_OCEAN => {
+                return code(Blocked::Water);
             }
             _ => {}
         }
