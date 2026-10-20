@@ -18,6 +18,26 @@
 //!           (the strafe order's retarget), a member already attacking this target, then
 //!           packing / building / melee-retarget arms
 //! ```
+//!
+//! **Swept** by three scripts over the same steps (`tools/emu/sweep_group_action_attack*.py`, one
+//! `Group::action_attack@00712490` run whole each): the whole function with `ignore` bit 1 clear
+//! (`sweep::group_action_attack`, five thousand rows), the same with bit 1 set and no `QUEUE_FIRST`
+//! (`_spy`), and the head to the group's refresh slot with the scenario's ignore-orders list
+//! (`_head`). **Not swept**, each for a reason the generator gave:
+//!
+//! - the `ignore` list's `slot +0x10(o, who, 0, 0)` inside the whole-function run: the stub vtable
+//!   has one arity a slot and the target's and the orders' `+0x10` take none (the list is off there,
+//!   `_head` holds it);
+//! - `ignore & 1` together with `QUEUE_FIRST`: `slot +0xb8` is `is(0x3a, 0)` (two arguments) on a unit
+//!   and the order's record getter (none) on an order, the stub pops none, and the two words it leaves
+//!   shift the recursion's epilogue pops (`pop edi/esi/ebx`), so the caller's `ebx` is garbage after it;
+//! - `slot +0xb8` equal to `ObjectData::is@00653790`, the inlined `type.slot(+0x60)(0x3a, 0)` arm: a
+//!   `--vtat-keep` of it would lay the real function in the orders' vtable too;
+//! - `Error::report` returning non-zero (`int3`), the message strings and the sound: stubbed, not
+//!   recorded; the answer is held at 0.
+//!
+//! **The crate does not model** (a `SEAM` of [`SimAttack`]): the scenario ignore list, building
+//! groups (`+0x49`), the console's refusals, mana and the strafe retarget, a spy type.
 
 use crate::Sim;
 use crate::combat::Obj;

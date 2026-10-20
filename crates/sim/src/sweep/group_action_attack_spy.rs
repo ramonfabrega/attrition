@@ -114,9 +114,6 @@ fn the_emulated_original_agrees_on_every_row() {
                     fn whom(&self) -> i32 {
                         self.a[0]
                     }
-                    fn wwho(&self) -> i32 {
-                        self.a[1]
-                    }
                     fn ans(&self, k: usize) -> i32 {
                         self.a[5 + k]
                     }
