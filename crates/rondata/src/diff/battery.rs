@@ -354,6 +354,32 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // and run1000b, 13582 of 19483), minted by item 3375 under rule (2),
     // left the battery on item 3378 for the AI word
     // (`diff::german_sahara_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3378 (DECISIONS 72 as amended by 84, rule
+    // (2); `docs/AI.md` §289; runs 1002 and 1002b) when the Germans left
+    // for the AI word, so the held-out set stays eight: Great Sahara, the
+    // Indians at Difficulty 3 — a header survey of 567 gamelogs puts no
+    // map-7 dump on the Inca, Romans, Turks, Chinese, Americans or Indians;
+    // the Romans, Turks and Chinese are held by open battery lobbies and
+    // the Americans were item 3380's, so of the nations held only by closed
+    // games on another map the Indians (`EastIndiesIndianTier2`) reach the
+    // most census functions (4, against the Inca's 3), at the tier the
+    // Germans leave. The game ends itself on 16564.
+    Lobby {
+        name: "GreatSaharaIndianTier3",
+        map_style: 7,
+        ai_tribe: 21,
+        difficulty: 3,
+        start: "gamelog-run1002-greatsahara-indian-diff3-start.txt",
+        long: (
+            "gamelog-run1002b-greatsahara-indian-diff3-24k-trace.txt",
+            "rontrace-run1002b.log",
+        ),
+        length: 16564,
+        // Item 3378, the first try: ours 9 draws, theirs 10, at 7: ours
+        // `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+        count: 15922,
+        sequence: 15922,
+    },
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on
     // item 3335 for the AI word (`diff::indian_word`, DECISIONS 72, 83).
