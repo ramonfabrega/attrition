@@ -892,7 +892,12 @@ impl Sim {
             let unit = &self.units[u];
             (unit.owner, unit.index, unit.ty)
         };
-        let packed = self.units[u].combat.packed;
+        // `Guy::update_gpiece@005d8530`: for the three merchant ids
+        // (`TypeData +4` exactly `0x3d`, `0x3e`, `400`) the piece is the
+        // packed one while `unit_masks & 0x80000` **or** the current order
+        // is a pack (`UnitData::is_packing`); for everything else, the bit
+        // alone (item 3369).
+        let packed = self.units[u].combat.packed || (self.is_merchant(u) && self.is_packing(u));
         let Some(ty) = ty else { return };
         let (at, facing) = (
             self.units[u].movement.body.pos,
