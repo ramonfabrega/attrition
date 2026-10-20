@@ -24238,12 +24238,74 @@ the term dropped); the widenings `run982_…`, `run982b_…`, `run982d_…` and 
 **Coverage.** Diff-backed: the three fixes by the blocks named and the draw stream to 16764. Not established: the
 last frame's hits on the city (the close); the French special arm; the Dragoon's third node.
 
-## 279. Reserved for the next item on the AI track
+## 279. The battery's Persian word: two release bays, a captain's search and the Immortals' strike, to the game's end
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3355, 2026-10-19, Opus 5.5. Great Lakes, the Nubians (human) against the Persians at Difficulty 2, seed 12345:
+the lobby item 3345 minted (§277), scored at 6046 of 7105 on its first try and promoted here to the AI word
+(`diff::persian_word`). The Romans at Difficulty 2 (`GreatLakesRomanTier2`, runs 983 and 983b) replace it in the
+battery under entry 72's **rule (2)** as amended by 84: a header survey of all 521 gamelogs holds every nation, so
+rule (1) has no answer; Great Lakes' dumps hold tribes 2, 8, 10, 11, 13, 14, 18, 19 and 23; of the nations on no Great
+Lakes dump and held only by closed games (the open battery's Aztecs, Koreans and Americans out), the Romans reach the
+most census functions (10; the Spanish and the Dutch 9), held only by `EastIndiesRomanTier2`; tier 2 is the one the
+Persians left. First try **7799 / 7799** of 7799: the draw stream agrees to the game's end.*
+
+**Four fixes, each on its own frame.** The word moved 6046 → 6252 → 6323 → 6387 → **7105**, the game's last frame,
+count and sequence. run979 dumps blocks 0..36 and run979b its setup and closing blocks only, so two windows were
+booked: run984 over 6020..6276 and run984d over 6317..6573, both at `GUYS=4` and `AMMO=5`, with two packets (run984b
+at 6011, run984c at 6251). Every capture is `rngcmp`-identical to run979b.
+
+**6046: piece 112's bays.** run984's widening (1282 keys) opens on 6022, where the Scout `0/0` takes a hit in theirs
+(`damage_frame` 6021) and not in ours. run984's `AMMO`: the Immortal `1/16`'s arrow thrown on 6012 leaves from
+(3766, 32893) and flies 10 frames; ours threw from the unit's own square (3768, 33000) in 11. The Immortals are a
+Persian piece with no continent offset, piece 112, and `sim::launch` held no bays for it. run984b's packet holds its
+two `AttachPos` rows, `CHAR_ATTACK2` at 14 and `CHAR_ATTACK3` at 6, and `tools/recomp/get_position.py`'s sweep of each
+is reproduced at all 361 headings by one integer bay: (25067, 104603, dz 178) and (27678, 36793, dz 171), each the
+centroid of its exact region (105 and 115 lattice points). **Value diff**: ours' arrow now leaves (3766, 32893) in 10
+frames. 6046 → 6252; run984 1282 → 271.
+
+**6252: `do_move`'s captain search.** On 6251 the Immortal `1/10` re-searches (`fight`'s one-in-five roll, agreeing).
+Theirs takes the citizen `0/4`; ours kept the fleeing `0/3`, which it scored at 1137 against `0/4`'s 1106. Under
+`step4.py --entry` on run984c's packet, `Object::compare_target@0064e5c0` returns ours' values (10239 and 9960), but
+the packet's `Object +0x3d` (`targeted`, which no dump prints) reads `0/3` 3 and `0/4` 1 where ours had 0 and 0.
+With those counts the distance term puts `0/3` at 1023. The writer is `Unit::do_move@005f7b30:238-250`
+(`005f803f`–`005f80a6`, `docs/COMBAT.md` §37.2's seam): a non-mandatory captain chasing a unit calls
+`find_melee_target(this, −1, &who, 0, 0, word)` on every sixteenth `o + frame`, with the word 1 (`UNITS`), or 2 for a
+siege type. That writes `near` and bumps its winner's `targeted`, and a find in range stands in for `near`. Ours read
+`near` alone and never searched. **Value diff**: ours' `targeted` on 6251 is now 3 and 1, and `1/10` takes `0/4`.
+6252 → 6323; run984 271 → 32.
+
+**6323: piece 1792's bays.** run984d's widening (1136 keys) opens on its standing 31, and the state parts on 6319: the
+citizen `0/3`'s `damage` is 15 in ours against 16 in theirs. The Slingers `1/22` and `1/24` play **piece 1792**,
+`32 + 5 × 0x160`, the Persians' art style. Ours threw their stones at `0/3` from the units' own squares in 6 frames;
+run984d prints (2504, 33053) and (2398, 32523) in 5. run984c's packet holds the piece's three rows, piece 1440's keys
+(§277), and the sweep is reproduced by **piece 1440's own three bays**: the same centroids of the same regions.
+**Value diff**: ours' stones now leave (2504, 33053) and (2398, 32523) in 5. 6323 → 6387; run984d 1136 → 594.
+
+**6387: the Immortals' special strike.** On 6387 the citizen `0/4`'s `damage` is 13 in ours against 17 in theirs.
+The projectiles on 6383..6387 agree on both sides, so the blow is not a missile. Theirs' `1/10` holds `CHAR_
+ATTACKSPECIAL` (14) on 6387 and plays it on 6388, where ours plays `CHAR_ATTACK2`. `Unit::fight@005fd4d0:784`–`:803`:
+for `is(IMMORTALS)` (`0xa2`) whose `local_1c` (`is_in_range`'s out-distance, 144 here) is under `0xc0`, the swing is
+`set_anim(CHAR_ATTACKSPECIAL, 0, 0)`, and `do_damage` lands inline once per figure. The arm then jumps past the
+default `set_anim` to `set_attacking`, and its ranged tail launches nothing. `sim::fight::fight_as` takes the arm
+ahead of `swing_anim`. **Value diff**: `0/4`'s `damage` on 6387 is 17 on both sides. **6387 → 7105**; run984d 594 → 31.
+
+**The close.** `run979b_persian_closing_state` walks to run979b's closing block 7106 and compares 38 units, every
+count 0, no closing field. The lobby is closed.
+
+**What stands.** run984's 32 on 6020 and run984d's 31 on 6317: the standing family (`form` −1 against 9, the leaders'
+`SITE[·].reg` 1 against 0, `aggression[1]`, the army pools `pool:65`/`67` and `group:65..67.held` with no
+`GROUPDATA` printed). Parked by item 3355 (no score): `do_move`'s `c != t` test (3355a), `Unit::fight`'s
+`unit_flags & 0x400` arm (3355b), and the two pieces' later brackets and female slots (3355c).
+
+**Tests.** `launch::tests::run984_s_immortal_arrow_leaves_from_piece_112_s_bays` and
+`run984d_s_persian_stones_leave_from_piece_1792_s_bays` (the dumped launches); `persian_word_first_parting` at 7105,
+which `tools/mutate.py` turns red (exit 101) four ways: piece 112's `CHAR_ATTACK2` row keyed to 15; the captain
+search's phase never met; piece 1792's `CHAR_ATTACK3` row keyed to 17; and the special strike's bound set to 0.
+Also `run984_s_word_frame_is_widened_whole`, `run984d_s_word_frame_is_widened_whole` and the closing state.
+
+**Coverage.** Diff-backed: the four launches' points and flight times, `0/4`'s damage on 6387, the draw stream to
+7105, the close. Packet only: `targeted` on 6251 (no dump prints it), and the bays' `dz`. Reading only: the search's
+word 2 for a siege type, and the special strike's per-figure loop past one figure (`guy_mark` is 1 in this crate).
 
 ## 280. Reserved for the next item on the AI track
 

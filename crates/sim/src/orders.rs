@@ -5593,9 +5593,43 @@ impl Sim {
                         // `is_captain`: a squad member's target comes
                         // down the chain from here and it decides nothing
                         // itself.
+                        //
+                        // **And on every sixteenth `o + frame` it searches
+                        // first** (`005f803f`–`005f80a6`; item 3355,
+                        // `docs/AI.md` §279): `find_melee_target(this, −1,
+                        // &who, 0, 0, word)` with no add, the word 1
+                        // (`UNITS`) — the target's vslot `+0x1c` is 0 on
+                        // this arm — or 2 for a siege type (`+0x10c`). The
+                        // search writes `near` and bumps its winner's
+                        // `targeted` whatever follows, and a find in range
+                        // stands in for `near` below. The Persian word's
+                        // 6251: the Immortal captains chasing the fleeing
+                        // citizen `0/3` leave it `targeted` 3 and `0/4` 1
+                        // (run984c's packet, `Object +0x3d`), so `1/10`'s
+                        // re-search takes `0/4`; without the search both
+                        // read 0 and it kept `0/3`.
+                        let searched = if !self.units[u].combat.mandatory
+                            && self.units[u].captain
+                            && self.units[u].phase(frame) % 16 == 0
+                        {
+                            let siege = self.units[u].ty.is_some_and(|ty| {
+                                self.unit_types[ty].cols.flag(crate::ai_load::uflags::SIEGE)
+                            });
+                            let word = if siege {
+                                crate::fight::search::BUILDINGS
+                            } else {
+                                crate::fight::search::UNITS
+                            };
+                            self.find_melee_target_with(u, -1, word)
+                        } else {
+                            None
+                        };
                         if !self.units[u].combat.mandatory
                             && self.units[u].captain
-                            && let Some(c) = self.units[u].near
+                            && let Some(near) = self.units[u].near
+                            && let c = searched
+                                .filter(|&f| self.is_in_range(me, f))
+                                .unwrap_or(near)
                             && c != t
                             && self.active(c)
                             && self.is_in_range(me, c)
