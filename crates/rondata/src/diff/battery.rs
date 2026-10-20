@@ -171,6 +171,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Indians being item 3383's, promoted to the AI word (item 3384,
     // DECISIONS 72, 83, 84): the Americans at Difficulty 4, Great Lakes.
     (14, 20, 4),
+    // The battery's lowest open lobby on the measure of `02005991`, the Inca
+    // at Great Sahara being item 3385's, promoted to the AI word (item 3390,
+    // DECISIONS 72, 83, 84): the Spanish at Difficulty 4, Great Lakes.
+    (14, 9, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -326,32 +330,10 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // and run1004b, 3176 of 6152), minted by item 3380 under rule (2), left
     // the battery on item 3384 for the AI word
     // (`diff::american_lakes_word`, DECISIONS 72, 83, 84).
-    // The lobby minted by item 3384 (DECISIONS 72 rule (2) as amended by
-    // 84, `docs/AI.md` §292; runs 1008 and 1008b) when the Americans left
-    // for the AI word, so the held-out set stays eight: Great Lakes, the
-    // Spanish at Difficulty 4 — no map-14 dump holds them (a header survey
-    // of 575 gamelogs); of the nations held only by closed games off Great
-    // Lakes the Spanish and the Dutch reach the most census functions (9,
-    // the Germans 8), and item 3367's tie-break (the lobby moves both map
-    // and tier off the nation's games: the Spanish hold Great Sahara 3 and
-    // East Indies 3, the Dutch East Indies 4) gives the Spanish; tier 4 is
-    // the tier the Americans leave. The game ends itself on 14068.
-    Lobby {
-        name: "GreatLakesSpanishTier4",
-        map_style: 14,
-        ai_tribe: 9,
-        difficulty: 4,
-        start: "gamelog-run1008-greatlakes-spanish-diff4-start.txt",
-        long: (
-            "gamelog-run1008b-greatlakes-spanish-diff4-24k-trace.txt",
-            "rontrace-run1008b.log",
-        ),
-        length: 14068,
-        // Item 3384, the first try: ours 3266 draws, theirs 3271, at 3262
-        // ours `Herd::process+0x17`, theirs `PathFinder::calc_road_cost+0x46`.
-        count: 8384,
-        sequence: 8384,
-    },
+    // `GreatLakesSpanishTier4` (Spanish 9, Difficulty 4, map 14; run1008
+    // and run1008b, 8384 of 14068), minted by item 3384 under rule (2), left
+    // the battery on item 3390 for the AI word (`diff::spanish_lakes_word`,
+    // DECISIONS 72, 83, 84).
     // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
     // run899b, 576 of 18620) left the battery on item 3314 for the AI word
     // (`diff::roman_word`, DECISIONS 72, 83).

@@ -191,6 +191,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the battery's Turkish word's walks: it compares no field itself, and its widening is harness.rs's (item 3380)",
     ),
     (
+        "diff/spanish_lakes_word.rs",
+        "the battery's Spanish word at Great Lakes' walks: it compares no field itself, and its widening is harness.rs's (item 3390)",
+    ),
+    (
         "diff/american_lakes_word.rs",
         "the battery's American word at Great Lakes' walks: it compares no field itself, and its widening is harness.rs's (item 3384)",
     ),

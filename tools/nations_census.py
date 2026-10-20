@@ -238,7 +238,7 @@ LOBBY = {0: "`GreatSaharaAztecTier2` (AI word, tier 2); `EastIndiesAztecTier1` (
          1: "`GreatSaharaMayaTier4` (AI word, tier 4)", 3: "`GreatSaharaBantuTier4` (map 7, tier 4)",
          13: "`GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2)",
          19: "`GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2)", 23: "`GreatLakesPersianTier2` (AI word, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
-         9: "`GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3); `GreatLakesSpanishTier4` (map 14, tier 4)",
+         9: "`GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3); `GreatLakesSpanishTier4` (AI word, tier 4)",
          2: "`EastIndiesIncaTier3` (AI word, tier 3); `GreatSaharaIncaTier3` (map 7, tier 3)", 5: "`GreatSaharaGreekTier1` (AI word, tier 1)",
          15: "`GreatSaharaJapaneseTier1` (map 7, tier 1)",
          6: "`EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2)", 20: "`EastIndiesAmericanTier1` (AI word, tier 1); `GreatLakesAmericanTier4` (AI word, tier 4)", 8: "`GreatLakesTurkishTier4` (AI word, tier 4)",

@@ -10631,6 +10631,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Spanish word at Great Lakes** (DECISIONS 72, 83, 84;
+    // item 3390): Great Lakes, the Spanish at Difficulty 4 — the held-out
+    // battery's lowest open lobby on the measure of `02005991`, minted by
+    // item 3384 under rule (2); the game ends itself on 14068. It joins the
+    // `Battery word` line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesSpanishTier4",
+        named: "Great Lakes (Spanish)",
+        word: crate::diff::spanish_lakes_word::SPANISH_LAKES_WORD,
+        length: 14_068,
+        endpoint: None,
+        window: None,
+    },
     // **The battery's American word at Great Lakes** (DECISIONS 72, 83, 84;
     // item 3384): Great Lakes, the Americans at Difficulty 4 — the held-out
     // battery's lowest open lobby on the measure of `689ddb67`, minted by
