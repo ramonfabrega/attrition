@@ -143,6 +143,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Inca being item 3360's, promoted to the AI word (item 3365, DECISIONS
     // 72, 83, 84): the Koreans at Difficulty 3, Great Sahara.
     (7, 16, 3),
+    // The battery's lowest open lobby on the measure of `13bebf18`, the
+    // Dutch being item 3369's, promoted to the AI word (item 3374,
+    // DECISIONS 72, 83, 84): the Americans at Difficulty 1, East Indies.
+    (18, 20, 1),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -381,27 +385,10 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 14540,
         sequence: 14540,
     },
-    // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §263; runs 955 and 955b) when the Romans left for the AI word, so
-    // the held-out set stays eight: East Indies, the Americans at
-    // Difficulty 1 — a nation no dump held and a tier no lobby on the map
-    // has. The game does not end itself: the long runs to 24000.
-    Lobby {
-        name: "EastIndiesAmericanTier1",
-        map_style: 18,
-        ai_tribe: 20,
-        difficulty: 1,
-        start: "gamelog-run955-eastindies-american-diff1-start.txt",
-        long: (
-            "gamelog-run955b-eastindies-american-diff1-24k-trace.txt",
-            "rontrace-run955b.log",
-        ),
-        length: 24000,
-        // Item 3314, the first try: ours 14 draws, theirs 12, at 1 ours
-        // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
-        count: 9382,
-        sequence: 9382,
-    },
+    // `EastIndiesAmericanTier1` (Americans 20, Difficulty 1, map 18; run955
+    // and run955b, 9382 of 24000), minted by item 3314, left the battery on
+    // item 3374 for the AI word (`diff::american_word`, DECISIONS 72, 83,
+    // 84).
 ];
 
 /// **The measure, read at every pass** (`--ignored`): each lobby walked
