@@ -101,3 +101,49 @@ fn french_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run982: the word 13422's window and the word 13843's, blocks 13416..14093
+/// at `GUYS=2`, `AMMO=5` (item 3347); run977 dumps blocks 1, 36 and 37 and
+/// run977b its setup and closing blocks only.
+pub(crate) const RUN982: &str =
+    "gamelog-run982-greatsahara-french-diff4-window-13416-14093-ammo.txt";
+
+/// The window: block 13416 through 14093; the words' own blocks are 13423
+/// and 13844.
+pub(crate) const WIDENING_FRENCH_FRAME_13422: (i64, i64) = (13416, 14093);
+
+pub(crate) fn french_frame_13422_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[FRENCH.start],
+        true,
+        FRENCH.long,
+        "run982",
+        &[(RUN982, WIDENING_FRENCH_FRAME_13422.0)],
+        WIDENING_FRENCH_FRAME_13422,
+        1,
+        &[13423, 13844],
+        true,
+    )
+}
+
+#[test]
+fn run982_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_frame_13422_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 678, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run982 with the French siege arm");
+}

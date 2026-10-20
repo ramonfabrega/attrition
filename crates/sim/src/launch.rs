@@ -111,6 +111,55 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 228,
         },
     ),
+    // The Cavalry Archer's other two, and **139, `DRAGOON`** (type 189, the
+    // line `1/39` upgrades into before 14002), from the same window: `1/39`'s
+    // `CHAR_ATTACK2` frame 16 on 13851, guy (9480, 30936) at −1535115264,
+    // (9388, 30958, 822) over 614; its `CHAR_ATTACK1` frame 18 on 13982,
+    // guy (7944, 30840) at −990642176, (7860, 30861, 883) over 658; and as
+    // a Dragoon from the same pose, `CHAR_ATTACK1` frame 12 on 14002,
+    // (7794, 30874, 881), and `CHAR_ATTACK3` frame 18 on 14039, (7797,
+    // 30845, 866). The Dragoon's `CHAR_ATTACK2` (frame 13) fires on 14188,
+    // past the window, and is not measured.
+    (
+        138,
+        crate::anim::ATTACK1,
+        18,
+        Node {
+            bearing: -246_988_800,
+            radius: 86,
+            dz: 225,
+        },
+    ),
+    (
+        138,
+        crate::anim::ATTACK2,
+        16,
+        Node {
+            bearing: 304_234_496,
+            radius: 94,
+            dz: 208,
+        },
+    ),
+    (
+        139,
+        crate::anim::ATTACK1,
+        12,
+        Node {
+            bearing: -233_406_464,
+            radius: 153,
+            dz: 223,
+        },
+    ),
+    (
+        139,
+        crate::anim::ATTACK3,
+        18,
+        Node {
+            bearing: -103_956_480,
+            radius: 147,
+            dz: 208,
+        },
+    ),
     // **49 is `MUSKETEERS`** (unit type 99; item 3336, run971 on the
     // Egyptian Great Sahara seed, `AMMO=5` over `[20368, 20380]`): the
     // Musketeer's two release events a round of run971 leaves from —
@@ -2089,7 +2138,11 @@ mod tests {
                 (127, crate::anim::ATTACK2, 22),
                 (127, crate::anim::ATTACK3, 10),
                 (127, crate::anim::ATTACK3, 24),
+                (138, crate::anim::ATTACK1, 18),
+                (138, crate::anim::ATTACK2, 16),
                 (138, crate::anim::ATTACK3, 20),
+                (139, crate::anim::ATTACK1, 12),
+                (139, crate::anim::ATTACK3, 18),
                 (384, crate::anim::ATTACK1, 21),
                 (384, crate::anim::ATTACK2, 22),
                 (472, crate::anim::ATTACK1, 12),
