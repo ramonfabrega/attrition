@@ -310,6 +310,30 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // run898b, 14991 of 15503), minted by item 2975, left the battery on
     // item 3380 for the AI word (`diff::turkish_word`, DECISIONS 72, 83,
     // 84).
+    // The lobby minted by item 3380 (DECISIONS 72 rule (2) as amended by
+    // 84, `docs/AI.md` §290; runs 1004 and 1004b) when the Turks left for
+    // the AI word, so the held-out set stays eight: Great Lakes, the
+    // Americans at Difficulty 4 — no map-14 dump holds them (a header
+    // survey of 564 gamelogs); of the nations held only by closed games off
+    // Great Lakes the Americans reach the most census functions (14, the
+    // Spanish and Dutch 9), held only by `EastIndiesAmericanTier1`; tier 4
+    // is the tier the Turks leave. The game ends itself on 6152.
+    Lobby {
+        name: "GreatLakesAmericanTier4",
+        map_style: 14,
+        ai_tribe: 20,
+        difficulty: 4,
+        start: "gamelog-run1004-greatlakes-american-diff4-start.txt",
+        long: (
+            "gamelog-run1004b-greatlakes-american-diff4-24k-trace.txt",
+            "rontrace-run1004b.log",
+        ),
+        length: 6152,
+        // Item 3380, the first try: ours 31 draws, theirs 36, at 0 ours
+        // `Animal::think_bird+0x82`, theirs `Leader::compute_sites+0x4ac`.
+        count: 3176,
+        sequence: 3176,
+    },
     // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
     // run899b, 576 of 18620) left the battery on item 3314 for the AI word
     // (`diff::roman_word`, DECISIONS 72, 83).
