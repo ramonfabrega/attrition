@@ -2846,6 +2846,7 @@ impl Sim {
         }
         let mut discount = 0;
         let mut dutch_ship = 0;
+        let mut american_land = 0;
         if self.role_word_of_rec(ty) & ai_load::role::MILITARY != 0 {
             let ahead = self.tech[w].epoch[tech::Line::Military.index()]
                 - self.tech_tree.military_level_in(&self.setup, t);
@@ -2859,13 +2860,25 @@ impl Sim {
             // `get_cost:532`–`535` is after the Military block's close, so
             // a Dutch ship's research pays it whether or not the line is
             // ahead (item 3329: run963b's Dromon at the dock, 54 against
-            // 60, on block 5783). The Americans' land arm beside it
-            // (`AMERICANS_UPGRADE_DISCOUNT`, `0x14`) is not modelled.
+            // 60, on block 5783). The Americans' land arm is the step before
+            // it (`get_cost:528`–`531`, `has_tribe_bonus(0x14)` and `+0x218
+            // == 0`; item 3374: run999's who=1 held 20 food and 20 metal more
+            // than ours on block 9376, a quarter of an 80-and-80 upgrade).
+            if self.unit_types[ty].combat.domain == attrition::Domain::Land
+                && self.tech_tree.has_tribe_bonus(
+                    &self.setup,
+                    &self.tech[w],
+                    crate::ai::tribe::AMERICANS,
+                )
+            {
+                american_land = self.tuning.americans_upgrade_discount;
+            }
             if self.nation[w].dutch && self.unit_types[ty].combat.domain == attrition::Domain::Sea {
                 dutch_ship = self.tuning.dutch_ship_discount;
             }
         }
         Some(cost::Research {
+            american_land,
             dutch_ship,
             wine: if self.has_rare(who, economy::WINE) {
                 self.tuning.wine_unit_upgrades

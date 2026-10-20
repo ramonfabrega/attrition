@@ -30,9 +30,14 @@ pub(crate) const AMERICAN: Lobby = Lobby {
     // Item 3314's lobby, held by the battery's measure to `13bebf18`:
     // count 9382, sequence 9382 (ours 14 draws, theirs 12, at 1: ours
     // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`).
-    // Item 3374 promoted it to the AI word (`docs/AI.md` §287).
-    count: 9382,
-    sequence: 9382,
+    // Item 3374 promoted it to the AI word (`docs/AI.md` §287), and built
+    // `get_cost`'s American arm (a quarter off a land unit's upgrade,
+    // `get_cost:528`–`531`): 9382 → 10982, ours 41 draws, theirs 44, at 3:
+    // ours `Unit::think_scout+0x941`, theirs `Leader::make_stuff+0x63d`.
+    // Value diff, run999 block 9376: who=1's `bucket[0:food]` ours 87,
+    // theirs 107, `bucket[4:metal]` 158 against 178 → 107/107, 178/178.
+    count: 10982,
+    sequence: 10982,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -92,4 +97,60 @@ fn american_word_is_no_other_lobby() {
         assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
+}
+
+/// run999: the word 9382's window, blocks 9376..9632 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3374). run955 dumps blocks 0..36 and
+/// run955b its setup and closing blocks only, so no dump on disk held the
+/// leader's ledger on the word's block.
+pub(crate) const RUN999: &str =
+    "gamelog-run999-eastindies-american-diff1-window-9376-9633-leaders.txt";
+
+/// The window: block 9376 through 9632; the word 9382's own block is 9383.
+pub(crate) const WIDENING_AMERICAN_FRAME_9382: (i64, i64) = (9376, 9632);
+
+pub(crate) fn american_frame_9382_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AMERICAN.start],
+        true,
+        AMERICAN.long,
+        "run999",
+        &[(RUN999, WIDENING_AMERICAN_FRAME_9382.0)],
+        WIDENING_AMERICAN_FRAME_9382,
+        1,
+        &[9383],
+        true,
+    )
+}
+
+#[test]
+fn run999_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_frame_9382_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3374: 601 keys parted on the first try, the window opening
+    // apart on who=1's `bucket[0:food]` 87 against 107 and
+    // `bucket[4:metal]` 158 against 178 on block 9376 with `income`
+    // agreeing: a quarter of an 80-food, 80-metal land upgrade
+    // `AMERICANS_UPGRADE_DISCOUNT` takes off and this crate did not. Built:
+    // 601 → 51. On 9382 the food then covers less, so `use_market` spends
+    // its second sell pass, as theirs does. What stands: the standing
+    // family alone (`SITE[·].reg` 65 against 0, `aggression`, `form` −1
+    // against 0/9, the army `pool:n` and `group:n.held` with no `GROUPDATA`
+    // printed, the newborn `g.angle[0]`).
+    pin_eq!(w.firsts.len(), 51, "keys that part in the window");
 }
