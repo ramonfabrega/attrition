@@ -206,6 +206,8 @@ mod unit_do_group_attack_to;
 mod unit_do_idle;
 #[path = "unit_do_patrol.rs"]
 mod unit_do_patrol;
+#[path = "unit_do_repair.rs"]
+mod unit_do_repair;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
 #[path = "unit_end_trade_route.rs"]
