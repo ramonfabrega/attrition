@@ -98,3 +98,49 @@ fn spanish_east_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run993: the word 9028's window, blocks 9022..9278 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3367). run986 dumps blocks 0..36 and
+/// run986b its setup and closing blocks only, so no dump on disk held the
+/// word's block.
+pub(crate) const RUN993: &str =
+    "gamelog-run993-eastindies-spanish-diff3-window-9022-9279-leaders.txt";
+
+/// The window: block 9022 through 9278; the word 9028's own block is 9029.
+pub(crate) const WIDENING_SPANISH_EAST_FRAME_9028: (i64, i64) = (9022, 9278);
+
+pub(crate) fn spanish_east_frame_9028_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_EAST.start],
+        true,
+        SPANISH_EAST.long,
+        "run993",
+        &[(RUN993, WIDENING_SPANISH_EAST_FRAME_9028.0)],
+        WIDENING_SPANISH_EAST_FRAME_9028,
+        1,
+        &[9029],
+        true,
+    )
+}
+
+#[test]
+fn run993_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_east_frame_9028_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
