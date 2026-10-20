@@ -10,7 +10,7 @@
 //! [`pack_categories`]; the arrays are held to the categories it walks.
 
 use sim::balance::{Pack, compute_modifier_with, pack_categories};
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 /// `ta tb | records | td | packs | before | cells` parsed.
 struct Row {
@@ -20,7 +20,7 @@ struct Row {
     td: i32,
     packs: [Pack; 2],
     before: (Vec<i32>, Vec<i32>),
-    cells: HashMap<usize, i32>,
+    cells: BTreeMap<usize, i32>,
 }
 
 fn ints(s: &str) -> Vec<i64> {
@@ -59,7 +59,7 @@ fn parse(lhs: &str) -> Row {
         flags: w[4] as u32,
     };
     let cells = if f[5].trim() == "-" {
-        HashMap::new()
+        BTreeMap::new()
     } else {
         f[5].trim()
             .split(',')
