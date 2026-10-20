@@ -562,15 +562,6 @@ impl Sim {
                     city.x + i32::from(table.x[k]),
                     city.y + i32::from(table.y[k]),
                 );
-                if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
-                    let reg_ok = self.world.region_of(c) == self.world.tregion(self.units[u].pos.tile());
-                    let t = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
-                    let ocean = self.world.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN;
-                    let seen = self.was_really_seen(c, who);
-                    let owner = self.world.owner(c).player();
-                    let inv = self.invalid_loc(u, t, false, false, false, false, false);
-                    eprintln!("PROBE visit ring{} cell({},{}) reg_ok{} ocean{} seen{} owner{:?} invalid{}", ring, c.x, c.y, reg_ok, ocean, seen, owner, inv);
-                }
                 self.scout_cell(u, who, c, scan, ring);
                 if scan.over {
                     return max_ring + 1 + step;
