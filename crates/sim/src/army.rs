@@ -1115,6 +1115,117 @@ impl Sim {
         }
     }
 
+    /// **`think_attack`'s tail** (`think_attack@005f5a80:190`–`239`,
+    /// listing `5f5e75`–`5f5fd8`; item 3369, `docs/ARMY.md` §4.3,
+    /// `docs/AI.md` §285): an AI-driven unit that found no melee target,
+    /// joined no army and is **not standing on its own territory** walks to
+    /// its best city of its own in its own land region.
+    ///
+    /// ```text
+    /// if !manual && !home && army < 0:
+    ///     region = get_tregion(tile(unit)); best = 99999999; idx = -1
+    ///     for i < leader.num_cities:                  # +0x408, its own list
+    ///         c = cities[who][i]
+    ///         if c.flags & 1 and region(cell(c)) == region:
+    ///             w = max(1, danger[who][half-cell(c)])  # world+0x13c
+    ///             d = vector_dist(c − unit) / w
+    ///             if c.flags & 2: d /= 2              # CITY_UNDER_ATTACK
+    ///             if d < best: best = d, idx = i      # strict, first wins
+    ///     if idx >= 0: go_to_city(idx, ATTACK_TO)
+    /// ```
+    ///
+    /// `manual` is the head's (not AI-driven, or a leader without
+    /// `leader_flags & 2`, or `leader_flags2 & 8`), read as this crate
+    /// reads it everywhere, `!ai_driven || defeated`; `home` is the
+    /// own-territory arm [`Self::think_attack_join_army`] tests too.
+    pub(crate) fn think_attack_tail(&mut self, u: usize) {
+        if let Some(c) = self.think_attack_city(u) {
+            self.go_to_city(u, c);
+        }
+    }
+
+    /// The tail's choice, apart from its walk: the city
+    /// [`Self::think_attack_tail`] sends `u` to, or none.
+    fn think_attack_city(&self, u: usize) -> Option<usize> {
+        let who = self.units[u].owner;
+        if !self.ai_driven(who) || self.defeated[who as usize] || self.think_attack_home(u) {
+            return None;
+        }
+        let p = self.units[u].pos;
+        let reg = self.world.tregion(p.tile());
+        let mut best = 99_999_999;
+        let mut idx = None;
+        for c in self.cities_of(who) {
+            let city = &self.cities[c];
+            if city.reg != reg {
+                continue;
+            }
+            let w = self.world.danger_at(who, city.pos).max(1);
+            let mut d = vector_dist((p.x - city.pos.x).abs(), (p.y - city.pos.y).abs()) / w;
+            if city.no_heal {
+                d /= 2;
+            }
+            if d < best {
+                best = d;
+                idx = Some(c);
+            }
+        }
+        idx
+    }
+
+    /// `Unit::go_to_city(idx, who, orders)@005f79c0` with `orders = 2`,
+    /// `ATTACK_TO`: the city's **building** (`objects[who][city +8]`), and
+    /// a walk only when it is farther than `0x480` — `go_to(x, y, orders,
+    /// 0x240, 0)` (listing `5f7a27`–`5f7a35`; `go_to_unit` pushes `0,
+    /// 0x300` in the same two slots).
+    fn go_to_city(&mut self, u: usize, c: usize) {
+        let to = self.buildings[self.cities[c].building].pos;
+        let at = self.units[u].pos;
+        if vector_dist(to.x - at.x, to.y - at.y) > 0x480 {
+            self.go_to(u, to, MoveKind::AttackTo, 0x240, 0);
+        }
+    }
+
+    /// `think_attack`'s own-territory test: the tile is inside a city's
+    /// radius (`tile & 0x100`) and the cell's owner is the unit's.
+    fn think_attack_home(&self, u: usize) -> bool {
+        let who = self.units[u].owner;
+        let p = self.units[u].pos;
+        self.world.tile_mask(p.tile()) & crate::world::tile::CITY_RADIUS != 0
+            && self.world.owner_at(p) == crate::world::Owner::Player(who)
+    }
+
+    /// **`think_attack` for a Dutch merchant** (item 3369): the lineage's
+    /// leg of `Unit::think`'s auto-attack disjunction reaches the same
+    /// function as a soldier, and of it a merchant can take only two
+    /// things — its packed arm is skipped for `is(0x3e, 1)` and its army
+    /// join for the three merchant ids (`5f5d53`–`5f5d94`). So: the melee
+    /// search with radius −1, as the soldier's, and when that finds
+    /// nothing, the tail's walk to a city ([`Self::think_attack_tail`]).
+    /// `true` is the function's `return 1`, a target found.
+    ///
+    /// SEAM: the head's `get_combat_stance() > 4` refusal and the
+    /// game-semaphore radius `0x2d00` are not read, as the soldier's arm
+    /// does not read them.
+    pub(crate) fn think_attack_merchant(&mut self, u: usize) -> bool {
+        let unit = &self.units[u];
+        if unit.combat.stance != Stance::HoldFire
+            && unit.combat.target.is_none()
+            && let Some(t) = self.find_melee_target(u, -1)
+        {
+            self.nearby_add(u, t);
+            if matches!(t, Obj::Unit(_))
+                && let Some(seat) = self.seat_of(u)
+                && self.seat_list(seat).contains(&u)
+            {
+                self.group_target_opportunity(seat, t, u, true);
+            }
+            return true;
+        }
+        self.think_attack_tail(u);
+        false
+    }
+
     /// `Unit::think_attack@005f5a80`'s head — the **sixth** caller of
     /// [`Sim::add_to_army`], and the one the AI's **first soldier** takes
     /// (`docs/ARMY.md` §4.2).
@@ -1152,7 +1263,8 @@ impl Sim {
     /// `find_city` whose answer the original **discards** — `local_10` is
     /// written 1 before the call, and the only reader of the call would
     /// be that variable. The tail's `go_to_city` walk, which that
-    /// variable and the army slot gate, is not modelled.
+    /// variable and the army slot gate, is [`Self::think_attack_tail`]
+    /// (item 3369).
     pub(crate) fn think_attack_join_army(&mut self, u: usize) -> Option<usize> {
         use crate::ai_load::{role, uflags2};
         use crate::combat::mask;
@@ -1172,11 +1284,9 @@ impl Sim {
         if self.unit_types[t].combat.attack == 0 || !self.unit_types[t].cols.is(role::MILITARY) {
             return None;
         }
-        let p = self.units[u].pos;
         // The own-territory arm: inside a city's radius (`tile & 0x100`)
         // and on a cell my own territory holds.
-        let home = self.world.tile_mask(p.tile()) & crate::world::tile::CITY_RADIUS != 0
-            && self.world.owner_at(p) == crate::world::Owner::Player(who);
+        let home = self.think_attack_home(u);
         if home
             && self.units[u].health < self.units[u].max_health
             && self.unit_types[t].combat.obj_masks & (mask::FOOT | mask::MOUNTED) != 0
@@ -5021,6 +5131,81 @@ mod tests {
             sim.think_attack_join_army(c).is_some(),
             "the stay-and-heal arm is the city radius', not the damage's alone"
         );
+    }
+
+    /// `think_attack`'s tail, each arm made to fail: the nearer city wins
+    /// on distance alone; a city's danger divides its distance, so a
+    /// farther city with danger 4 wins; `CITY_UNDER_ATTACK` halves it
+    /// again (danger 2 alone loses, danger 2 and `no_heal` wins); a unit
+    /// on its own territory, a human's, and one in another region, walk
+    /// nowhere (item 3369, `docs/AI.md` §285).
+    #[test]
+    fn think_attack_s_tail_picks_the_city_by_distance_over_danger() {
+        let (mut sim, c0) = sim_with_city();
+        let near = Pos::new(0x1000, 0x2000);
+        let b = sim.add_building(1, near, 1);
+        let mut city = sim.cities[c0].clone();
+        city.building = b;
+        city.pos = near;
+        city.capital = false;
+        city.founding_capital = false;
+        sim.cities.push(city);
+        let c1 = sim.cities.len() - 1;
+        for c in [c0, c1] {
+            sim.cities[c].reg = sim.world.tregion(sim.cities[c].pos.tile());
+        }
+        let ty = soldier_type(&mut sim);
+        let u = put(&mut sim, 1, ty, Pos::new(0x1000, 0x1000));
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c1),
+            "the nearer city, on distance alone"
+        );
+
+        let far = sim.cities[c0].pos.cell();
+        sim.world.set_danger_at(1, far, 4);
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c0),
+            "danger divides the distance"
+        );
+        sim.world.set_danger_at(1, far, 2);
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c1),
+            "danger 2 alone is not enough"
+        );
+        sim.cities[c0].no_heal = true;
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c0),
+            "`CITY_UNDER_ATTACK` halves it"
+        );
+
+        sim.cities[c0].reg = sim.cities[c0].reg.map(|r| r + 1).or(Some(1));
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c1),
+            "a city in another region is not a candidate"
+        );
+
+        let p = sim.units[u].pos;
+        sim.world.set_owner(
+            p.cell(),
+            crate::world::Owner::Player(1),
+            crate::world::Owner::None,
+        );
+        sim.world
+            .set_tile_mask(p.tile(), crate::world::tile::CITY_RADIUS);
+        assert_eq!(
+            sim.think_attack_city(u),
+            None,
+            "a unit on its own territory stays"
+        );
+        sim.world.set_tile_mask(p.tile(), 0);
+
+        sim.nation[1].human = true;
+        assert_eq!(sim.think_attack_city(u), None, "a human's unit is not sent");
     }
 
     #[test]

@@ -26,8 +26,10 @@
 //! ```
 //!
 //! Still seams, in [`SimTransport`]: the sounds, `MARINES` (`unit_masks2`
-//! and `update_speed`), the caravan's slot hand-over, the selection group's
+//! and `update_speed`), the caravan's `0x200` bit, the selection group's
 //! swap and `replace_hotunit` — none of them is state this crate keeps.
+//! ~~The caravan's slot hand-over~~ is built (item 3370, `docs/AI.md`
+//! §286): the slot is [`crate::Unit::caravan`].
 
 use crate::orders::PathData;
 use crate::{Pos, Sim};
@@ -320,11 +322,26 @@ impl TransportView for SimTransport<'_> {
             .movement
             .set_facing(crate::movement::Angle(angle));
     }
-    fn caravan_slot(&self, _o: i32) -> i32 {
-        0
+    // **The caravan's slot goes with it** (`cast_transport@00670db0:117`–
+    // `121`, item 3370): the Merchant Fleet's `+0x86` is the caravan's, so
+    // the fleet is the route's walker at sea — its `do_move` verifies the
+    // route's road and its `do_trade` runs on the route's record. The
+    // caravan keeps its own copy; `eject_contents` hands it back
+    // ([`Sim::disembark`]).
+    fn caravan_slot(&self, o: i32) -> i32 {
+        self.sim.units[o as usize].caravan.map_or(-1, |v| v as i32)
     }
-    fn set_caravan_slot(&mut self, _o: i32, _s: i32) {}
-    fn set_caravan_unit(&mut self, _who: i32, _s: i32, _b: i32) {}
+    fn set_caravan_slot(&mut self, o: i32, s: i32) {
+        self.sim.units[o as usize].caravan = usize::try_from(s).ok();
+    }
+    fn set_caravan_unit(&mut self, who: i32, s: i32, b: i32) {
+        if let Some(van) = usize::try_from(s)
+            .ok()
+            .and_then(|s| self.sim.caravans[who as usize].slots.get_mut(s))
+        {
+            van.unit = Some(b as usize);
+        }
+    }
     fn has_200(&self, _o: i32) -> bool {
         false
     }

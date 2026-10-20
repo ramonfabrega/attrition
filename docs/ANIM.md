@@ -368,8 +368,9 @@ window. The arm's entry, read off the listing: the type is `0x3d`, `0x3e`
 or 400 and not packed; the bracket is 1, or 0 with `build_continent` 6;
 and `build_continent` is 1, 3 or at least 6. The piece is `total − 6` for
 3, `− 5` for 1, `− 4 + (bracket ≠ 0)` for 6, `− 2` for 7, `− 1` for 8.
-Which `<UNIT>` name each of the six slots loads, and so their lengths, is
-the loader's, and it is not read.
+~~Which `<UNIT>` name each slot loads is not read.~~ **Built, item 3369**
+(`docs/AI.md` §285 has the reading and the diff): `rondata::artdata::
+OVER_TIME`, `sim::anim::stall_piece`.
 
 **And a trained unit's tracked crew figure is seated at birth.**
 `Unit::init@00612100:549` is `set_new_location(x, y, 1, 1)`, whose

@@ -742,6 +742,42 @@ pub const PIECES_PER_CREW: i32 = 0x3180;
 /// `GraphicPieces::first_unit_piece` — zero, and the answer
 /// `get_unit_gpiece` falls back to when its four walks find nothing.
 pub const FIRST_UNIT_PIECE: i32 = 0;
+/// `GraphicPieces::total_num_unit_pieces`: the four crews and the six
+/// "over time" merchant pieces after them.
+pub const TOTAL_UNIT_PIECES: i32 = 0xc606;
+
+/// **An unpacked merchant's "over time" piece** —
+/// `get_unit_gpiece@0090c030:104`–`:140`, by the nation's build style and
+/// the leader's age bracket, for every figure alike:
+///
+/// ```text
+/// if (bracket == 1 or (bracket == 0 and build == 6))
+///    and (build == 3 or build == 1 or build >= 6):
+///     3 → total − 6   1 → total − 5   6 → total − 4 + bracket
+///     7 → total − 2   8 → total − 1   else → total − 6
+/// ```
+///
+/// The six are `MERCHANT-KOREAN-AGE3`, `-NEUROPE-AGE3`, `-IROQUOIS-AGE0`,
+/// `-IROQUOIS-AGE3`, `-COLONIAL-AGE3` and `-EINDIAN-AGE3`
+/// (`unit_node_from_gpiece@00901c30:174`). The caller keeps it only where
+/// the art has the piece — `data_pieces[piece] != 0`. run995d's Dutch
+/// (`BUILD_CONTINENT 1`) Armed Merchant `1/51` re-pieces both figures to
+/// 50689 on its unpack's last frame, 15717 (item 3369, `docs/AI.md` §285).
+pub fn stall_piece(build: i32, bracket: i32) -> Option<i32> {
+    let age = bracket == 1 || (bracket == 0 && build == 6);
+    let style = build == 3 || build == 1 || build >= 6;
+    if !(age && style) {
+        return None;
+    }
+    let back = match build {
+        1 => 5,
+        6 => 4 - bracket,
+        7 => 2,
+        8 => 1,
+        _ => 6,
+    };
+    Some(TOTAL_UNIT_PIECES - back)
+}
 
 impl Sim {
     /// The two coordinates a **leader** contributes to
@@ -752,6 +788,14 @@ impl Sim {
     ///
     /// A `who` this simulation keeps no leader for is the function's own
     /// `param_2 == −1`: style 0 and bracket 0, and no gender walk.
+    /// The leader's nation's `BUILD_CONTINENT` (`Tribe +0x64`).
+    fn leader_build_continent(&self, who: Player) -> i32 {
+        self.tech
+            .get(who as usize)
+            .and_then(|p| self.tech_tree.tribes.get(p.tribe))
+            .map_or(0, |t| t.build_continent)
+    }
+
     fn leader_art(&self, who: Player) -> (i32, i32) {
         let Some(p) = self.tech.get(who as usize) else {
             return (0, 0);
@@ -789,14 +833,14 @@ impl Sim {
     /// a `verify_load`, and a piece the graphics file names at all is one
     /// that loads.
     ///
-    /// SEAM: the merchant family's "over time" pieces — `TypeIndex`
-    /// `0x3d`, `0x3e` and `0x190` reach `total_num_unit_pieces − 6 … − 1`
-    /// by the nation's `build_continent` before any of this, and those six
-    /// are the `-NEUROPE-`/`-KOREAN-`/`-IROQUOIS-`/`-COLONIAL-`/
-    /// `-EINDIAN-` entries whose names the piece arithmetic cannot build.
-    /// ~~No capture holds a merchant.~~ run490 holds two deployed ones
-    /// re-pieced by an age, on 50689 (`total − 5`), where this derives
-    /// 2123 and 14795 (`docs/ANIM.md` §3.4); no clock parts on it there.
+    /// ~~SEAM: the merchant family's "over time" pieces~~ — built, item
+    /// 3369: `TypeIndex` `0x3d`, `0x3e` and `0x190`, unpacked, reach
+    /// `total_num_unit_pieces − 6 … − 1` by the nation's `build_continent`
+    /// before any of this ([`stall_piece`]), the six `-KOREAN-`/
+    /// `-NEUROPE-`/`-IROQUOIS-`/`-COLONIAL-`/`-EINDIAN-` entries the art
+    /// loader matches by name. run490's two deployed merchants on 50689
+    /// (`total − 5`, `docs/ANIM.md` §3.4) were the first sight of it;
+    /// run995d's `1/51` on 15717 is the draw it parts.
     pub fn unit_gpiece(
         &self,
         who: Player,
@@ -809,7 +853,23 @@ impl Sim {
         if t < 0x32 {
             return None;
         }
-        let (style, bracket) = self.leader_art(who);
+        let (mut style, bracket) = self.leader_art(who);
+        // `:104`–`:140`: an **unpacked merchant** (`TypeIndex` 0x3d, 0x3e,
+        // 0x190) is drawn by the nation's `BUILD_CONTINENT` — every figure
+        // on one "over time" piece where [`stall_piece`] names one the art
+        // has, and otherwise the walks below, with the unit style forced
+        // to 1 for a build style of 5 (item 3369).
+        if !packed && matches!(t, 0x3d | 0x3e | 0x190) {
+            let build = self.leader_build_continent(who);
+            if build == 5 {
+                style = 1;
+            }
+            if let Some(p) = stall_piece(build, bracket)
+                && self.art.piece_lengths.contains_key(&p)
+            {
+                return Some(p);
+            }
+        }
         let base = t - 0x32 + FIRST_UNIT_PIECE + PIECES_PER_CREW * i32::from(guy_num);
         // `LAB_0090c2ff`: the gender bit is the object number's low bit,
         // and a type the packet exempts (`unit_flags2 & 4`) or an object
@@ -892,7 +952,12 @@ impl Sim {
             let unit = &self.units[u];
             (unit.owner, unit.index, unit.ty)
         };
-        let packed = self.units[u].combat.packed;
+        // `Guy::update_gpiece@005d8530`: for the three merchant ids
+        // (`TypeData +4` exactly `0x3d`, `0x3e`, `400`) the piece is the
+        // packed one while `unit_masks & 0x80000` **or** the current order
+        // is a pack (`UnitData::is_packing`); for everything else, the bit
+        // alone (item 3369).
+        let packed = self.units[u].combat.packed || (self.is_merchant(u) && self.is_packing(u));
         let Some(ty) = ty else { return };
         let (at, facing) = (
             self.units[u].movement.body.pos,
@@ -2763,6 +2828,50 @@ mod tests {
         assert_eq!(f.track, (0, -192));
         assert_ne!(f.des, packed, "the new offset is elsewhere");
         assert_eq!(f.body.pos, f.des, "and the figure is put on it");
+    }
+
+    /// **The stall arm's table** (`get_unit_gpiece@0090c030:104`–`:140`;
+    /// item 3369): each build style's piece, the age gate (bracket 1, or 0
+    /// for style 6 alone), and the styles that take none.
+    #[test]
+    fn an_unpacked_merchant_s_over_time_piece_is_its_build_style_s() {
+        assert_eq!(
+            stall_piece(1, 1),
+            Some(TOTAL_UNIT_PIECES - 5),
+            "NEUROPE-AGE3, 50689"
+        );
+        assert_eq!(stall_piece(1, 1), Some(50689));
+        assert_eq!(
+            stall_piece(3, 1),
+            Some(TOTAL_UNIT_PIECES - 6),
+            "KOREAN-AGE3"
+        );
+        assert_eq!(
+            stall_piece(6, 0),
+            Some(TOTAL_UNIT_PIECES - 4),
+            "IROQUOIS-AGE0"
+        );
+        assert_eq!(
+            stall_piece(6, 1),
+            Some(TOTAL_UNIT_PIECES - 3),
+            "IROQUOIS-AGE3"
+        );
+        assert_eq!(
+            stall_piece(7, 1),
+            Some(TOTAL_UNIT_PIECES - 2),
+            "COLONIAL-AGE3"
+        );
+        assert_eq!(
+            stall_piece(8, 1),
+            Some(TOTAL_UNIT_PIECES - 1),
+            "EINDIAN-AGE3"
+        );
+        assert_eq!(stall_piece(1, 0), None, "the first bracket is the walks'");
+        assert_eq!(stall_piece(1, 2), None, "and so is the last");
+        assert_eq!(stall_piece(7, 0), None, "only style 6 takes bracket 0");
+        for build in [0, 2, 4, 5] {
+            assert_eq!(stall_piece(build, 1), None, "build style {build} has none");
+        }
     }
 
     fn stepped(seed: u32, n: usize) -> u32 {

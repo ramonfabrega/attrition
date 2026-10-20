@@ -9925,13 +9925,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // `danger` plane), widened 12756 on run993c over 12750..13006, moved it
     // 12756 → 14942 (a trained Bark's combat stance, a building find that
     // does not end the think) and widened 14942 on run993d over
-    // 14936..15192 (block 14943).
+    // 14936..15192 (block 14943). **Item 3370 moved it 14942 → 24000, the
+    // long's last frame** (a caravan's slot goes with it onto the Merchant
+    // Fleet and back): run993d's test keeps 14943's value diff, and the
+    // close is compared whole on run986b's own closing block 24001 by
+    // `run986b_spanish_east_closing_state`.
     (
         "SPANISH_EAST_WORD",
         crate::diff::spanish_east_word::SPANISH_EAST_WORD,
-        Some("run993d_s_word_frame_is_widened_whole"),
-        3367,
-        Some(crate::diff::spanish_east_word::WIDENING_SPANISH_EAST_FRAME_14942),
+        Some("run986b_spanish_east_closing_state"),
+        3370,
+        Some(crate::diff::spanish_east_word::WIDENING_SPANISH_EAST_CLOSING),
     ),
     // **The battery's Aztec word** (item 3361, DECISIONS 72, 83, 84):
     // frame 9130, the battery's first try (item 2975), promoted here and
@@ -9962,6 +9966,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("run964b_korean_closing_state"),
         3365,
         Some(crate::diff::korean_word::WIDENING_KOREAN_CLOSING),
+    ),
+    // **The battery's Dutch word at Great Sahara** (item 3369, DECISIONS
+    // 72, 83, 84): frame 311, the battery's first try (item 3365),
+    // promoted here and widened on run995 over 305..561 (block 312). Item
+    // 3369 moved it 311 → 15725 with the merchant's `think_attack` leg,
+    // its `go_to_city` tail and the pack's re-piece, and — widened on
+    // run995c over 15719..15975 (block 15726), walked back on run995d over
+    // 15462..15718 — 15725 → 16109, the game's last frame, with an
+    // unpacked merchant's "over time" piece. The close is compared whole
+    // on run990b's own closing block 16110 by
+    // `run990b_dutch_sahara_closing_state`.
+    (
+        "DUTCH_SAHARA_WORD",
+        crate::diff::dutch_sahara_word::DUTCH_SAHARA_WORD,
+        Some("run990b_dutch_sahara_closing_state"),
+        3369,
+        Some(crate::diff::dutch_sahara_word::WIDENING_DUTCH_SAHARA_CLOSING),
     ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
@@ -10531,7 +10552,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Spanish)",
         word: crate::diff::spanish_east_word::SPANISH_EAST_WORD,
         length: 24_000,
-        endpoint: None,
+        // Closed by item 3370: the draw stream agrees to 24000, and
+        // run986b's closing block 24001 scores the end itself.
+        endpoint: Some("run986b_spanish_east_closing_state"),
         window: Some("spanish_east_frame_14942_window"),
     },
     // **The battery's Inca word** (DECISIONS 72, 83, 84; item 3360): East
@@ -10615,6 +10638,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // run964b's closing block 15945 scores the end itself.
         endpoint: Some("run964b_korean_closing_state"),
         window: Some("korean_frame_15291_window"),
+    },
+    // **The battery's Dutch word at Great Sahara** (DECISIONS 72, 83, 84;
+    // item 3369): Great Sahara, the Dutch at Difficulty 3 — the held-out
+    // battery's lowest open lobby on the measure of `efc5d4c1`, minted by
+    // item 3365 under entry 72's rule (2); the game ends itself on 16109.
+    // It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaDutchTier3",
+        named: "Great Sahara (Dutch)",
+        word: crate::diff::dutch_sahara_word::DUTCH_SAHARA_WORD,
+        length: 16_109,
+        // run990b's closing block 16110 scores the end itself.
+        endpoint: Some("run990b_dutch_sahara_closing_state"),
+        window: Some("dutch_sahara_frame_15725_window"),
     },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's
