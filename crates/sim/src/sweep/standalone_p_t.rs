@@ -8,6 +8,8 @@ use support::{emu_rows, row, tail_row};
 // Registered standalone sweeps.
 #[path = "path_finder_add_to_openlist.rs"]
 mod path_finder_add_to_openlist;
+#[path = "path_finder_astar_suspend.rs"]
+mod path_finder_astar_suspend;
 #[path = "path_finder_building_danger.rs"]
 mod path_finder_building_danger;
 #[path = "path_finder_calc_river_cost.rs"]

@@ -54,6 +54,7 @@ pub mod alarm;
 pub mod alarm_view;
 pub mod anim;
 pub mod army;
+pub mod astar_view;
 pub mod attack_pos;
 pub mod attack_view;
 pub mod attrition;
