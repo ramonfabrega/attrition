@@ -352,6 +352,8 @@ mod group_patrol_order_vector_deleting_destructor_vtordisp;
 mod group_patrol_order_walk_data;
 #[path = "group_patrol_order_walk_data_vtordisp.rs"]
 mod group_patrol_order_walk_data_vtordisp;
+#[path = "group_redo_patrol_order.rs"]
+mod group_redo_patrol_order;
 #[path = "group_report_speed.rs"]
 mod group_report_speed;
 #[path = "group_set_ordered.rs"]
