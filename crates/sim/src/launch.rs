@@ -1207,6 +1207,12 @@ pub fn launch_point(
     starttime: u32,
     node: i8,
 ) -> Pos {
+    if std::env::var_os("RON_PROBE_ARC").is_some() {
+        eprintln!(
+            "  PROBE launch piece {gpiece} anim {anim} start {starttime} node {node} pos ({},{}) facing {}",
+            pos.x, pos.y, facing.0
+        );
+    }
     if let Some(b) = bay(gpiece, anim, starttime, node) {
         return b.point(pos, facing);
     }
