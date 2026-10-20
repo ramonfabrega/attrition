@@ -433,9 +433,9 @@ impl Sim {
     /// `attack_dist` 918, past three tiles' 582 and inside five's 966, with
     /// who=1's `1/161` (type 357) 2371 off.
     ///
-    /// SEAM: the siege arm below it — `TURK_SIEGE_RANGE` is
-    /// [`Self::siege_unit_range`]; the Liberty and Eiffel wonders and
-    /// Napoleon are not carried — Ptolemy's general, the rum naval range
+    /// SEAM: of the siege arm below it only `TURK_SIEGE_RANGE` is carried
+    /// (item 3380); the Liberty and Eiffel wonders and Napoleon are not —
+    /// nor Ptolemy's general, the rum naval range
     /// and the obsidian archers are not carried; `is(0x165)` is taken as
     /// the type itself, as the patriot tests of the radius are.
     fn ceo_unit_range(&self, o: Obj) -> i32 {
