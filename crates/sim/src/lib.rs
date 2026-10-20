@@ -120,6 +120,8 @@ pub mod spellcaster;
 pub mod stance;
 pub mod supply;
 pub mod swarm;
+pub mod target_gate;
+pub mod target_score;
 pub mod tcoord;
 pub mod tech;
 pub mod terrain;
