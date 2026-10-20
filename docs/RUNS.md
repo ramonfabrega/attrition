@@ -19648,3 +19648,24 @@ SHA-256 `8f4ee9f55d4878a7ec617a6885ce37479a82b945220f17569bb8811afc87254a`.
 **What it holds**: under `tools/recomp/step4.py --entry`, `Object::compare_target@0064e5c0` returns 10239 and 9960 for
 `0/3` and `0/4` (ours' values), and `targeted` reads `0/3` 3, `0/4` 1 — `do_move`'s every-sixteenth search. No test
 reads it.
+
+## run984d — the Persian word: the word 6323's window, blocks 6317..6573 at `GUYS=4` and `AMMO=5` (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: run984 closes on 6276, before the word 6323, and run979b
+prints its setup and closing blocks only. `--map 14 --end-frame 6578 --timeout 5400 --log-window 6317 6573 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0 --profile DIFFICULTY=2`.
+- Pool lane 2. Launched 22:02:05 and the game exited at 22:18:18 (973 s). `success`, 6579 frames.
+  `rngcmp.py rontrace-run979b.log rontrace-run984d.log`: **6579 identical, 0 differing**. Filed with
+  `filerun.py run984d greatlakes-persian-diff2-window-6317-6574-guys4-ammo`. Block 6573 is not printed (256 blocks).
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run984d-greatlakes-persian-diff2-window-6317-6574-guys4-ammo.txt`, 464,848,702 bytes,
+SHA-256 `59eba32eeca00f4c165bc2cad1ac5354b28c3b14996ace6fe0e85db175434acf`.
+
+Archive `rontrace-run984d.log`, 31,664,640 bytes,
+SHA-256 `fdfe77ceec4a63f6e097e47fef9e4deaec95c5763600f3cebe95a1cfcf8fe30e`.
+
+**What it holds**: the word 6323's frame, `run984d_s_word_frame_is_widened_whole` (1136 keys on the first try, 594
+after piece 1792's bays, 31 after the Immortals' special strike); the Slingers `1/22`'s and `1/24`'s stones at `0/3`
+from (2504, 33053) and (2398, 32523) in 5 frames, pinned by
+`launch::tests::run984d_s_persian_stones_leave_from_piece_1792_s_bays`.

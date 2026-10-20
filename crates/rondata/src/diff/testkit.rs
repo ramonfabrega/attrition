@@ -9903,6 +9903,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Persian word** (item 3355, DECISIONS 72, 83, 84):
+    // frame 6046, the battery's first try, widened on run984 over
+    // 6020..6276 (block 6047). Item 3355 moved it 6046 → 6252 with piece
+    // 112's release bays, 6252 → 6323 with `do_move`'s captain search,
+    // and — widened on run984d over 6317..6573 (block 6324) — 6323 → 6387
+    // with piece 1792's bays and 6387 → 7105, the game's last frame, with
+    // the Immortals' special strike. The close is compared whole on
+    // run979b's own closing block 7106 by `run979b_persian_closing_state`.
+    (
+        "PERSIAN_WORD",
+        crate::diff::persian_word::PERSIAN_WORD,
+        Some("run979b_persian_closing_state"),
+        3355,
+        Some(crate::diff::persian_word::WIDENING_PERSIAN_CLOSING),
+    ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
     // 6065..6321 (block 6072). Item 3345 moved it 6071 → 7902, the game's
@@ -10439,8 +10454,10 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Lakes (Persians)",
         word: crate::diff::persian_word::PERSIAN_WORD,
         length: 7_105,
-        endpoint: None,
-        window: None,
+        // Closed by item 3355: the draw stream agrees to 7105, and
+        // run979b's closing block 7106 scores the end itself.
+        endpoint: Some("run979b_persian_closing_state"),
+        window: Some("persian_frame_6323_window"),
     },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's

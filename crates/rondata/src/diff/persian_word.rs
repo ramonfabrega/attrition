@@ -36,9 +36,15 @@ pub(crate) const PERSIAN: Lobby = Lobby {
     // (run984's `1/16` arrow thrown on 6012 at the Scout `0/0` from (3766,
     // 32893) in 10 frames); and `do_move`'s captain retarget searching on
     // every sixteenth `o + frame` (`005f803f`): 6252 → 6323 (run984c's
-    // `targeted` 3 and 1 on `0/3` and `0/4`, so `1/10` takes `0/4`).
-    count: 6323,
-    sequence: 6323,
+    // `targeted` 3 and 1 on `0/3` and `0/4`, so `1/10` takes `0/4`);
+    // the Slingers' bays in the Persians' art style (piece 1792, piece
+    // 1440's own): 6323 → 6387 (run984d's `1/22` stone at `0/3` from
+    // (2504, 33053) in 5 frames); and the Immortals' special strike inside
+    // `0xc0` (`Unit::fight@005fd4d0:784`): 6387 → 7105, the game's last
+    // frame, count and sequence (run984d's block 6387, `0/4`'s `damage`
+    // 17 after `1/10`'s blow at 144).
+    count: 7105,
+    sequence: 7105,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -141,7 +147,17 @@ fn run984_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3355: 1282 keys parted on the first try, the window opening
+    // apart: the Immortal `1/16`'s arrow at the Scout `0/0`, thrown on
+    // 6012, flew 11 frames against 10 from the unit's own square, where
+    // run984's `AMMO` prints (3766, 32893) — piece 112 had no bays. Built:
+    // 1282 → 271; then `do_move`'s captain search on every sixteenth `o +
+    // frame`, which `1/10`'s 6251 re-search read through `targeted`: 271 →
+    // 32. What stands: 6020's standing family alone (`form` −1 against 9,
+    // the leaders' `SITE[·].reg` 1 against 0, `aggression[1]`, the army
+    // pools `pool:65`/`67` and `group:65..67.held` with no `GROUPDATA`
+    // printed).
+    pin_eq!(w.firsts.len(), 32, "keys that part in the window");
 }
 
 /// run984d: the word 6323's window, blocks 6317..6573 at `GUYS=4` and
@@ -185,5 +201,66 @@ fn run984d_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3355: 1136 keys parted on the first try, from 6319: the
+    // Slingers `1/22` and `1/24`, who play piece 1792 (the Persians' art
+    // style), threw at the citizen `0/3` from their own squares in 6
+    // frames where run984d prints (2504, 33053) and (2398, 32523) in 5.
+    // Built: 1136 → 594, the next parting 6387, where `1/10` at 144 from
+    // `0/4` struck it inline under `CHAR_ATTACKSPECIAL` (`0/4`'s `damage`
+    // 17 against 13). Built: 594 → 31, 6317's standing family alone.
+    pin_eq!(w.firsts.len(), 31, "keys that part in the window");
+}
+
+/// The closing state's window: run979b's closing block alone, the long's
+/// last frame 7105 writing it (item 3355).
+pub(crate) const WIDENING_PERSIAN_CLOSING: (i64, i64) = (7104, 7107);
+
+/// **The lobby's closing state** (item 3355, DECISIONS 55): run979b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+/// The game ends itself on 7105.
+#[test]
+fn run979b_persian_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(PERSIAN.long.0),
+        dump(PERSIAN.start),
+        trace(PERSIAN.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Persian closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 7106, "the closing block");
+    pin_eq!(e.compared, 38, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }

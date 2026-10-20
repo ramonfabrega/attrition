@@ -8505,13 +8505,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LE — reserved
+## Parked by item 3355, 2026-10-19 — the Persians to the game's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What it read and did not build:
+
+- **3355a — `do_move`'s captain retarget keeps a `c != t` test the original has not.** `005f803f`–`005f8216` calls
+  `change_target` with no test that the candidate differs from the current target; `sim::orders`' arm keeps one.
+  `change_target` to the incumbent rewrites the `o_down` chain in place, so the difference is a footprint, not a target.
+  Nothing on any widening parts on it; read `Unit::change_target@005e36c0`'s writes when one does.
+- **3355b — `Unit::fight`'s `unit_flags & 0x400` arm.** Ahead of the Immortals' (`fight@005fd4d0:764`): a type with
+  the flag and a `max_range` swings `CHAR_ATTACKSPECIAL` with no roll, and this crate swings `CHAR_ATTACK1`. It draws
+  nothing; no widening on file names a type with the flag. Grep the install's unit flags for `0x400` when a slot
+  parts on a ranged type's swing.
+- **3355c — piece 112's and piece 1792's later pieces.** Both are the first age bracket's male figure. Their other
+  brackets and female slots (`+0x840`, `+0x18c0`) are on no packet, so `sim::launch` has no bays for them. A packet
+  of a Persian game past the third age that fields both answers them with `tools/recomp/get_position.py`.
 
 ## Parked by the next landing, slot LF — reserved
 
