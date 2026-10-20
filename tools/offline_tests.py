@@ -62,6 +62,7 @@ SUITES = (
     'test_suite_timings',
     'test_buildat',
     'test_offline_tests',
+    'test_archive_census',
 )
 
 # The lab's suites (`docs/DECISIONS.md` entry 38: merged whole, its ledger
