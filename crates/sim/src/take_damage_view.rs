@@ -194,3 +194,212 @@ fn notice<V: TakeDamageHead>(v: &mut V, p7: i32, p8: i32) {
     }
     v.declare(who, p8, ((flags as u32 >> 2) ^ 1) as i32 & 1);
 }
+
+/// `ObjectData` type test the building arm asks of the attacker.
+pub const IS_ATTACKER_WALL: i32 = 0x42;
+/// The city's flags `+4`: the alarm bell is rung.
+pub const CITY_BELL: i32 = 0x40;
+/// What a hit marks on the city it strikes: under attack, attacking, ever
+/// attacked.
+pub const CITY_STRUCK: i32 = 0xe;
+/// What a hit marks on the victim's data when it comes from beyond the
+/// walls: the data's `+0x60` flags.
+pub const DATA_STRUCK: i32 = 0x30;
+/// `Object` flags `+8`: a city building.
+pub const OBJ_CITY_BUILDING: i32 = 0x20;
+/// `Object` flags `+8`: set where a city building is held at its share.
+pub const OBJ_HELD: i32 = 0x10;
+/// A site's progress lost per hit point.
+pub const PROGRESS_PER_HIT: u32 = 0x32;
+/// `LeaderData::get_diff` at or above which a computer player raises its
+/// alarms.
+pub const ALARM_DIFFICULTY: i32 = 2;
+
+/// What the accumulate, the building's walls and the peasants' alarm ask of
+/// the world, after the head: everything up to the call of slot `+0x18`
+/// that opens the kill arm.
+pub trait TakeDamageArms: TakeDamageHead {
+    /// `this`'s slot `+0x11c(0)`: what the figure can absorb.
+    fn share(&mut self) -> i32;
+    /// Sets `[this + 0x24]`.
+    fn set_damage(&mut self, v: i32);
+    /// Sets `[this + 8]`.
+    fn set_flags8(&mut self, v: i32);
+    /// `this`'s slot `+0x4c`: finished.
+    fn this_finished(&mut self) -> bool;
+    /// The attacker `objects[p8][p7]` is live and its data's domain
+    /// (`+0x218`) is the air.
+    fn attacker_air(&self, p8: i32, p7: i32) -> bool;
+    /// `objects[who][idx]`'s slot `+0xb0`, then its `+0x48`: a site's
+    /// progress.
+    fn progress(&mut self) -> u32;
+    /// The same slot again, then the store.
+    fn set_progress(&mut self, v: u32);
+    /// `this`'s slot `+0x20`: a building of a city.
+    fn this_city_building(&mut self) -> bool;
+    /// `ObjectData::is_peasant` of the attacker `objects[p8][p7]`.
+    fn attacker_peasant(&mut self, p8: i32, p7: i32) -> bool;
+    /// `objects[p8][p7]->is(ty, 0)`.
+    fn attacker_obj_is(&mut self, p8: i32, p7: i32, ty: i32) -> bool;
+    /// `ObjectData::is_peasant` of `this`.
+    fn this_peasant(&mut self) -> bool;
+    /// `objects[who][idx]`'s slot `+0xac`, then its data's `+0x60` flags
+    /// `|= 0x30`.
+    fn mark_struck(&mut self);
+    /// Slot `+0xac`, then the data's short `+0x72`: its city.
+    fn data_city(&mut self) -> i32;
+    /// Slot `+0xac`, then slot `+0x90` of its type.
+    fn data_type_slot90(&mut self) -> bool;
+    /// Slot `+0xac`, then the data's flags `+8`.
+    fn data_flags8(&mut self) -> i32;
+    /// `cities[who][c]`'s flags `+4`.
+    fn city_flags(&self, c: i32) -> i32;
+    /// Sets them.
+    fn set_city_flags(&mut self, c: i32, v: i32);
+    /// `cities[who][c]`'s short `+8`: its building.
+    fn city_building(&self, c: i32) -> i32;
+    /// Its signed byte `+0x5e`: the building's player.
+    fn city_player(&self, c: i32) -> i32;
+    /// The leader's word at `+4`.
+    fn leader_word4(&self, who: i32) -> i32;
+    /// `LeaderData::get_diff`.
+    fn leader_diff(&mut self, who: i32) -> i32;
+    /// `ObjectsData::find_city_at(x, y, who, -1, 0)` over `this`'s position.
+    fn find_city_at(&mut self, who: i32) -> i32;
+    /// The city's building `objects[player][idx]`, finished: its data is a
+    /// `Build` and flag `4` is set, else the data's slot `+0x4c`.
+    fn city_building_finished(&mut self, player: i32, idx: i32) -> bool;
+    /// The stack group's `Group::clear(-1)`.
+    fn group_clear(&mut self);
+    /// `Group::add(idx, player, 0, 0)`.
+    fn group_add(&mut self, idx: i32, player: i32);
+    /// `Groups::push_group(who, group, 1)`.
+    fn push_group(&mut self, who: i32) -> i32;
+    /// `Group::action_alarm` of the group `g` pushed.
+    fn group_alarm(&mut self, g: i32);
+    /// `ObjectData::can_carry(this, AIR)`.
+    fn can_carry_air(&mut self) -> bool;
+    /// `Object::eject_contents(1, -1, 0, 1)`.
+    fn eject(&mut self);
+}
+
+/// Where the arms leave the function.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ArmsOut {
+    /// The function returned.
+    Return(i32),
+    /// On to the kill arm; the figure's share, read once more at the join.
+    Join {
+        /// `local_c`: the share before the squad's division.
+        share: i32,
+    },
+}
+
+/// The accumulate and what follows it up to the kill arm: the damage taken,
+/// the site's lost progress, the walls' flags and the alarm a city raises.
+pub fn take_damage_arms<V: TakeDamageArms>(v: &mut V, a: &TdArgs, whole: i32) -> ArmsOut {
+    let [_, _, _, _, p5, _, p7, p8, _] = a.p;
+    // The share is asked and the answer dropped, as the original does.
+    v.share();
+    let damage = v.damage().wrapping_add(whole);
+    v.set_damage(damage);
+    if v.is_build() && p5 == 0 {
+        let air = p7 >= 0 && p8 >= 0 && v.attacker_air(p8, p7);
+        if !v.this_finished() && whole > 0 && !air {
+            let cost = (whole as u32).wrapping_mul(PROGRESS_PER_HIT);
+            let cur = v.progress();
+            v.set_progress(if cost < cur { cur - cost } else { 0 });
+        }
+    }
+    let who = v.who();
+    if v.this_city_building() {
+        if p5 == 0 && who != p8 {
+            wall_notice(v, who, p7, p8);
+        }
+        let share = v.share();
+        if v.damage() >= share && !v.can_carry_air() {
+            v.eject();
+        }
+        if v.flags8() & OBJ_CITY_BUILDING != 0 && v.this_finished() {
+            let share = v.share();
+            if v.damage() < share {
+                return ArmsOut::Return(0);
+            }
+            let share = v.share();
+            let flags = v.flags8() | OBJ_HELD;
+            v.set_flags8(flags);
+            v.set_damage(share);
+            return ArmsOut::Return(0);
+        }
+    } else {
+        peasant_alarm(v, who);
+    }
+    ArmsOut::Join { share: v.share() }
+}
+
+/// A blow from outside on a city building: the victim's data is marked, the
+/// city is marked struck and, for a computer player, its alarm is rung.
+fn wall_notice<V: TakeDamageArms>(v: &mut V, who: i32, p7: i32, p8: i32) {
+    let marked = if p7 < 0 || p8 < 0 {
+        true
+    } else if !v.attacker_peasant(p8, p7) && !v.attacker_obj_is(p8, p7, IS_ATTACKER_WALL) {
+        true
+    } else {
+        v.cell_owner() == p8
+    };
+    if marked {
+        v.mark_struck();
+    }
+    if v.data_city() < 0 {
+        return;
+    }
+    let c = v.data_city();
+    let flags = v.city_flags(c) | CITY_STRUCK;
+    v.set_city_flags(c, flags);
+    if v.leader_flags(who) & LEADER_OUT != 0
+        || v.leader_word4(who) & 8 != 0
+        || v.leader_diff(who) < ALARM_DIFFICULTY
+    {
+        return;
+    }
+    if !v.data_type_slot90() && v.data_flags8() & OBJ_CITY_BUILDING == 0 {
+        return;
+    }
+    if v.city_flags(c) & CITY_BELL != 0 {
+        return;
+    }
+    let (idx, player) = (v.city_building(c), v.city_player(c));
+    push_alarm(v, who, idx, player);
+}
+
+/// A peasant struck in the open: the city it stands in rings its alarm.
+fn peasant_alarm<V: TakeDamageArms>(v: &mut V, who: i32) {
+    if v.leader_flags(who) & LEADER_OUT != 0
+        || v.leader_word4(who) & 8 != 0
+        || v.leader_diff(who) < ALARM_DIFFICULTY
+        || !v.this_peasant()
+    {
+        return;
+    }
+    let c = v.find_city_at(who);
+    if c < 0 {
+        return;
+    }
+    let (idx, player) = (v.city_building(c), v.city_player(c));
+    if !v.city_building_finished(player, idx) || v.city_flags(c) & CITY_BELL != 0 {
+        return;
+    }
+    push_alarm(v, who, idx, player);
+}
+
+/// The stack group of one building, pushed on the owner's groups and
+/// alarmed.
+fn push_alarm<V: TakeDamageArms>(v: &mut V, who: i32, idx: i32, player: i32) {
+    v.group_clear();
+    v.group_clear();
+    v.group_add(idx, player);
+    let g = v.push_group(who);
+    if g >= 0 {
+        v.group_alarm(g);
+    }
+}

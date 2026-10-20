@@ -648,6 +648,8 @@ mod object_repair_damage;
 mod object_replace_hotunit;
 #[path = "object_support_cost.rs"]
 mod object_support_cost;
+#[path = "object_take_damage_arms.rs"]
+mod object_take_damage_arms;
 #[path = "object_take_damage_head.rs"]
 mod object_take_damage_head;
 #[path = "object_type_backup.rs"]
