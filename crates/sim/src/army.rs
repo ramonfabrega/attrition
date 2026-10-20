@@ -1135,44 +1135,6 @@ impl Sim {
         }
     }
 
-    /// `Unit::think_attack@005f5a80`'s head — the **sixth** caller of
-    /// [`Sim::add_to_army`], and the one the AI's **first soldier** takes
-    /// (`docs/ARMY.md` §4.2).
-    ///
-    /// It sits before the function's target search, so a military unit
-    /// that reaches `Unit::think`'s auto-attack arm joins an army whether
-    /// or not it finds something to shoot. The listing is
-    /// `llvm-objdump 0x5f5a80..0x5f5db0`, and the gate is five tests:
-    ///
-    /// ```text
-    /// manual = !(unit_masks & 0x40000)                 # not AI-driven
-    /// if !manual and !(leader_flags & 2):   manual = 1 # not in play
-    /// if leader_flags2 & 8:                 manual = 1
-    /// if manual: return                                # 5f5c4d
-    /// range = 0
-    /// if tile(x, y) & 0x100 and cell(x, y).who == who: # my own city's radius
-    ///     find_city(x, y, SEARCH_FRIENDLY, who, 0x200, FILTER_ALL)   # dropped
-    ///     if damage != 0 and ((obj_masks & 0x1020) or healing != 0):
-    ///         range = -1                               # 5f5d10 — stay and heal
-    /// if role & 0x10:            range = -1            # 5f5d49 — a scout
-    /// if type_index in {0x3d, 0x3e, 0x190} or is_caravan(): return
-    /// if range >= 0: army = add_to_army(this)          # 5f5d8c
-    /// ```
-    ///
-    /// `0x1020` is `MOUNTED | FOOT` (`docs/COMBAT.md` §3), `+0x24` is
-    /// `ObjectData::damage` and `+0x38` its `healing`; `role & 0x10` is
-    /// the scout bit the think tail reads too. So **a damaged foot or
-    /// mounted unit standing inside one of its own cities' radius stays
-    /// there** and everything else joins.
-    ///
-    /// Three things in the head are seams: `leader_flags2 & 8`, which no
-    /// capture sets; `ObjectData::healing`, which this crate does not
-    /// carry (it only widens the stay-and-heal arm, and only for a
-    /// damaged unit that is neither foot nor mounted); and the
-    /// `find_city` whose answer the original **discards** — `local_10` is
-    /// written 1 before the call, and the only reader of the call would
-    /// be that variable. The tail's `go_to_city` walk, which that
-    /// variable and the army slot gate, is not modelled.
     /// **`think_attack`'s tail** (`think_attack@005f5a80:190`–`239`,
     /// listing `5f5e75`–`5f5fd8`; item 3369, `docs/ARMY.md` §4.3,
     /// `docs/AI.md` §285): an AI-driven unit that found no melee target,
@@ -1197,9 +1159,17 @@ impl Sim {
     /// reads it everywhere, `!ai_driven || defeated`; `home` is the
     /// own-territory arm [`Self::think_attack_join_army`] tests too.
     pub(crate) fn think_attack_tail(&mut self, u: usize) {
+        if let Some(c) = self.think_attack_city(u) {
+            self.go_to_city(u, c);
+        }
+    }
+
+    /// The tail's choice, apart from its walk: the city
+    /// [`Self::think_attack_tail`] sends `u` to, or none.
+    fn think_attack_city(&self, u: usize) -> Option<usize> {
         let who = self.units[u].owner;
         if !self.ai_driven(who) || self.defeated[who as usize] || self.think_attack_home(u) {
-            return;
+            return None;
         }
         let p = self.units[u].pos;
         let reg = self.world.tregion(p.tile());
@@ -1220,9 +1190,7 @@ impl Sim {
                 idx = Some(c);
             }
         }
-        if let Some(c) = idx {
-            self.go_to_city(u, c);
-        }
+        idx
     }
 
     /// `Unit::go_to_city(idx, who, orders)@005f79c0` with `orders = 2`,
@@ -1278,6 +1246,45 @@ impl Sim {
         false
     }
 
+    /// `Unit::think_attack@005f5a80`'s head — the **sixth** caller of
+    /// [`Sim::add_to_army`], and the one the AI's **first soldier** takes
+    /// (`docs/ARMY.md` §4.2).
+    ///
+    /// It sits before the function's target search, so a military unit
+    /// that reaches `Unit::think`'s auto-attack arm joins an army whether
+    /// or not it finds something to shoot. The listing is
+    /// `llvm-objdump 0x5f5a80..0x5f5db0`, and the gate is five tests:
+    ///
+    /// ```text
+    /// manual = !(unit_masks & 0x40000)                 # not AI-driven
+    /// if !manual and !(leader_flags & 2):   manual = 1 # not in play
+    /// if leader_flags2 & 8:                 manual = 1
+    /// if manual: return                                # 5f5c4d
+    /// range = 0
+    /// if tile(x, y) & 0x100 and cell(x, y).who == who: # my own city's radius
+    ///     find_city(x, y, SEARCH_FRIENDLY, who, 0x200, FILTER_ALL)   # dropped
+    ///     if damage != 0 and ((obj_masks & 0x1020) or healing != 0):
+    ///         range = -1                               # 5f5d10 — stay and heal
+    /// if role & 0x10:            range = -1            # 5f5d49 — a scout
+    /// if type_index in {0x3d, 0x3e, 0x190} or is_caravan(): return
+    /// if range >= 0: army = add_to_army(this)          # 5f5d8c
+    /// ```
+    ///
+    /// `0x1020` is `MOUNTED | FOOT` (`docs/COMBAT.md` §3), `+0x24` is
+    /// `ObjectData::damage` and `+0x38` its `healing`; `role & 0x10` is
+    /// the scout bit the think tail reads too. So **a damaged foot or
+    /// mounted unit standing inside one of its own cities' radius stays
+    /// there** and everything else joins.
+    ///
+    /// Three things in the head are seams: `leader_flags2 & 8`, which no
+    /// capture sets; `ObjectData::healing`, which this crate does not
+    /// carry (it only widens the stay-and-heal arm, and only for a
+    /// damaged unit that is neither foot nor mounted); and the
+    /// `find_city` whose answer the original **discards** — `local_10` is
+    /// written 1 before the call, and the only reader of the call would
+    /// be that variable. The tail's `go_to_city` walk, which that
+    /// variable and the army slot gate, is [`Self::think_attack_tail`]
+    /// (item 3369).
     pub(crate) fn think_attack_join_army(&mut self, u: usize) -> Option<usize> {
         use crate::ai_load::{role, uflags2};
         use crate::combat::mask;
@@ -5413,6 +5420,81 @@ mod tests {
             sim.think_attack_join_army(c).is_some(),
             "the stay-and-heal arm is the city radius', not the damage's alone"
         );
+    }
+
+    /// `think_attack`'s tail, each arm made to fail: the nearer city wins
+    /// on distance alone; a city's danger divides its distance, so a
+    /// farther city with danger 4 wins; `CITY_UNDER_ATTACK` halves it
+    /// again (danger 2 alone loses, danger 2 and `no_heal` wins); a unit
+    /// on its own territory, a human's, and one in another region, walk
+    /// nowhere (item 3369, `docs/AI.md` §285).
+    #[test]
+    fn think_attack_s_tail_picks_the_city_by_distance_over_danger() {
+        let (mut sim, c0) = sim_with_city();
+        let near = Pos::new(0x1000, 0x2000);
+        let b = sim.add_building(1, near, 1);
+        let mut city = sim.cities[c0].clone();
+        city.building = b;
+        city.pos = near;
+        city.capital = false;
+        city.founding_capital = false;
+        sim.cities.push(city);
+        let c1 = sim.cities.len() - 1;
+        for c in [c0, c1] {
+            sim.cities[c].reg = sim.world.tregion(sim.cities[c].pos.tile());
+        }
+        let ty = soldier_type(&mut sim);
+        let u = put(&mut sim, 1, ty, Pos::new(0x1000, 0x1000));
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c1),
+            "the nearer city, on distance alone"
+        );
+
+        let far = sim.cities[c0].pos.cell();
+        sim.world.set_danger_at(1, far, 4);
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c0),
+            "danger divides the distance"
+        );
+        sim.world.set_danger_at(1, far, 2);
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c1),
+            "danger 2 alone is not enough"
+        );
+        sim.cities[c0].no_heal = true;
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c0),
+            "`CITY_UNDER_ATTACK` halves it"
+        );
+
+        sim.cities[c0].reg = sim.cities[c0].reg.map(|r| r + 1).or(Some(1));
+        assert_eq!(
+            sim.think_attack_city(u),
+            Some(c1),
+            "a city in another region is not a candidate"
+        );
+
+        let p = sim.units[u].pos;
+        sim.world.set_owner(
+            p.cell(),
+            crate::world::Owner::Player(1),
+            crate::world::Owner::None,
+        );
+        sim.world
+            .set_tile_mask(p.tile(), crate::world::tile::CITY_RADIUS);
+        assert_eq!(
+            sim.think_attack_city(u),
+            None,
+            "a unit on its own territory stays"
+        );
+        sim.world.set_tile_mask(p.tile(), 0);
+
+        sim.nation[1].human = true;
+        assert_eq!(sim.think_attack_city(u), None, "a human's unit is not sent");
     }
 
     #[test]
