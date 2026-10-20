@@ -203,11 +203,10 @@ pub(crate) fn target_score<V: TargetScoreView>(
                 Default,
             }
             let m = if raid == 1 {
-                if captains < 20 {
-                    Mult::Default
-                } else if v.count(4, 0) < 3 {
-                    Mult::Default
-                } else if (v.f18(i).wrapping_shl(2)) / 3 < v.f18(who) {
+                if captains >= 20
+                    && v.count(4, 0) >= 3
+                    && (v.f18(i).wrapping_shl(2)) / 3 < v.f18(who)
+                {
                     Mult::Level
                 } else {
                     Mult::Default
