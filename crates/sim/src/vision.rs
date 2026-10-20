@@ -294,11 +294,18 @@ impl Sim {
         let pos = unit.pos;
         if r < 4 {
             // A small, ordinary, land unit sees from a half-cell in front of
-            // its own nose.
-            let projects = unit.ty.is_some_and(|rec| {
-                self.unit_types[rec].kind.domain == Domain::Land
-                    && !self.unit_types[rec].cols.flag2(uflags2::PACKS)
-            });
+            // its own nose. **A decoy does not** (`00651c8c`, the test's
+            // fourth term, `unit_masks & 1`): it takes the own-cell arm, so
+            // a step's ring pass at radius 0 lights the cell it stands in
+            // where the projected arm's lights nothing. The battery's French
+            // decoy Hussars `1/100` lights the Citizen `0/1`'s half-cell
+            // (11, 73) on 14596 there, and holds it as a valid target on
+            // 14604 (item 3347, `docs/VISION.md` §3).
+            let projects = !unit.decoy
+                && unit.ty.is_some_and(|rec| {
+                    self.unit_types[rec].kind.domain == Domain::Land
+                        && !self.unit_types[rec].cols.flag2(uflags2::PACKS)
+                });
             let (centre, start) = if projects {
                 // **The unit's own angle, not its body's.** The `project` at
                 // `00651d05` is handed `UnitData +0x50` in `ecx`
