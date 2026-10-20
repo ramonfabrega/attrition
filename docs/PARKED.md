@@ -3842,6 +3842,9 @@ same tree at `--test-threads 4` is green, 6 of 6, release 20.9 minutes. So no te
 it. Until the fix lands, this tranche's whole gates run at four threads. Ramon: fixed by the next steer — the
 whole gate back at four threads, the footprint worked down (a few ugly tests, likely), or the cap raised a little,
 since every kill has landed just over it.
+**And the lib grew** (3362's merge, parked 3362g): `action_attack`'s and `find_target`'s sweeps sit in `sweep/mod.rs`,
+the `sim` lib, because their ports use crate internals the standalone targets cannot reach — the brief's row naming a
+`sweep_*` target was read and could not be kept. The scoped gate on that merge ran at four threads.
 
 (3366) **A lane gate refused for a moved base reads as a broken tool** (3360's "for the Loop", filed at its merge):
 the refusal is one line at the log's foot, and above it seven of `tools/offline_tests.py`'s `test_release_gate`
