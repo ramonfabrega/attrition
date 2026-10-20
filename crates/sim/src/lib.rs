@@ -3259,6 +3259,21 @@ impl Sim {
     /// no ramp, so it rides [`cost::Modifiers::late_discount`], the same
     /// expression at the same place (`docs/AI.md` §74).
     pub fn tech_price(&self, who: Player, t: tech::TypeId) -> [i32; economy::RESOURCES] {
+        // `get_cost:1048`–`1053`, right after `TECH_COST_FACTOR`: a
+        // government (`TypeData::is_gov_type`, `0x26f..0x274`) costs an
+        // American leader (`has_tribe_bonus(0x14)`) nothing, and every later
+        // step is a percentage of that zero (item 3374: run999b's who=1
+        // queues Republic and a Dock on 10982 and pays only the Dock's
+        // timber).
+        if matches!(self.tech_tree.types[t].kind, tech::Kind::Gov { .. })
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[who as usize],
+                crate::ai::tribe::AMERICANS,
+            )
+        {
+            return [0; economy::RESOURCES];
+        }
         let holdings = &self.holdings[who as usize];
         let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         let british_taxation = self.tech_tree.roles.taxation_line.contains(&t)
