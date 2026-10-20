@@ -284,6 +284,8 @@ mod build_type_data_area;
 mod build_type_data_basic_type;
 #[path = "build_type_data_blocked_site.rs"]
 mod build_type_data_blocked_site;
+#[path = "build_type_data_blocked_tcoord.rs"]
+mod build_type_data_blocked_tcoord;
 #[path = "build_type_data_blocked_town.rs"]
 mod build_type_data_blocked_town;
 #[path = "build_type_data_can_capture.rs"]

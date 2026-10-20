@@ -113,6 +113,7 @@ pub mod spellcaster;
 pub mod stance;
 pub mod supply;
 pub mod swarm;
+pub mod tcoord;
 pub mod tech;
 pub mod terrain;
 pub mod territory;
