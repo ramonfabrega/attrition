@@ -366,7 +366,7 @@ impl Sim {
     /// took a Hoplite's blow at 2: 13 whole hits, 69 sixteenths a figure.
     ///
     /// SEAM: the Senator's arm above the halving (`63fab0`–`63fb1f`):
-    /// with a leader whose `+0x59c0` is set, `HeroesData::find_hero` for a
+    /// with a leader whose `+0x59c0` is set, the hero search at `0073a1b0` for a
     /// `THESENATOR` (`0x161`) within `(type +0x234 + +0x238) × 96` adds
     /// `thesenator_build_armor` before the halving. Not modelled; scan:
     /// a building struck in a capture whose `GUY` blocks hold type 353.
@@ -2860,8 +2860,8 @@ impl Sim {
     /// (the original's whole function, swept against it in item 3356).
     ///
     /// SEAM: the General, caravan and supply-wagon victims
-    /// (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec killer's slay bonus
-    /// (`AZTEC_SLAY_BONUS`, `param_3`), the Inca refund, and the victim
+    /// (their own plunder constants), the Aztec killer's slay bonus
+    /// (the `param_3` of the original), the Inca refund, and the victim
     /// redirect of a type with `+0x2b4 & 0x10` are not carried.
     pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
         use crate::ai_load::uflags2;
