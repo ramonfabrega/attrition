@@ -8202,13 +8202,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot KF — reserved
+## Parked by item 3359, 2026-10-19 — the French close: the Dragoon's pivot
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3359a — the Crossbowman's round is 1 off.** run982d block 16764: `1/42`'s round on `0/2000` leaves from (6768,
+  30960) at `angle` −358678528 in theirs and (6767, 30960) at −358154240 here, the landing (6411, 30358) and the
+  flight (3) agreeing. `launch::MEASURED`'s piece 122 rows are each one shot at one pose (run982, item 3347), so the
+  bearing is the middle of its exact fits; a second pose, or the piece's `AttachPos` rows (run985b's packet may hold
+  them: `get_position.py … entries 122`), would say whether it is a `Bay`'s whole-degree turn. Names no score: the
+  close compares whole.
+- **3359b — piece 842, the Horse Archer, as the Dragoon** (3338a's open row). run973g's `AttachPos` rows put every
+  dumped round's height at the pivot's z plus the release's, × 4.8 (225, 228, 208), as piece 139's do — the pivot
+  branch, its turret unmodelled in `launch::MEASURED`'s planar rows. Carry it as `pivot::RELEASES` rows when a word
+  parts on a Horse Archer's round.
 
 ## Parked by item 3304, 2026-10-19 — the nations seat's tenth shape batch: all six built
 
@@ -8530,20 +8535,22 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
 - **3347a — the French special arm.** `ObjectData::train_time@006508c0`'s French branch has a second arm beside the
   siege one: a type that `is(0x36)` takes `FRENCH_SPECIAL_SPEED`. The rules ship it as 0, so it can change no
   time; not carried. Build it if a mod or a later rules file sets it.
-- **3347b — the Dragoon's `CHAR_ATTACK2` release node.** Piece 139 (`DRAGOON`, type 189) fires its `ATTACK2` at
+- ~~**3347b — the Dragoon's `CHAR_ATTACK2` release node.** Piece 139 (`DRAGOON`, type 189) fires its `ATTACK2` at
   frame 13 (run982's `1/39` on 14188, 14218, …), past every `AMMO` window on file, so `launch::MEASURED` has no row
   for it and its round leaves from the unit. Names no score until a word parts on that round; measure it from the
-  first `AMMO` window that holds one.
+  first `AMMO` window that holds one.~~ Closed by item 3359 (`docs/AI.md` §280): piece 139 is a pivot piece, and run985b's packet
+  holds all four of its release rows.
 - **3347c — theirs' lingering ammo record.** run982 still prints `1/39`'s first round on 14040 with `flags 1` at
   `cur_time` 196 of 14; ours closes the record when the round lands. The ammo blocks are `diff::ammo`'s own parser
   and in no widening, so nothing compares it, and the draw stream agrees past it. Names no score.
-- **3347d — the close: frame 16764, `0/2000`'s last hits.** The French draw stream agrees to the game's end
+- ~~**3347d — the close: frame 16764, `0/2000`'s last hits.** The French draw stream agrees to the game's end
   (16764), and run977b's closing block 16765 has four buildings and a city unlinked (`run977b_french_closing_state`):
   theirs' who=1 captures the human's city on the last frame (`0/2000` → `1/2058`, three of its buildings →
   `1/2059`..`1/2061`). Its damage is 1197 of 1200 on both sides through block 16764 (run982c, run982d); on 16764
   ours lands +1 (1198) and theirs at least +3. Twenty-two who=1 units hold an attack on it there. Names the close's
   score. Next: a call trace of `Object::do_damage` on frame 16764, both sides' hits by
-  attacker, before any reading.
+  attacker, before any reading.~~ Closed by item 3359 (`docs/AI.md` §280): the parting was `1/39`'s Dragoon round, from the
+  unit's square in ours and the pivot in theirs; the close is whole.
 
 ## Parked by item 3348, 2026-10-19 — the second sweep lane's first shape batch
 
