@@ -8812,13 +8812,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LT — reserved
+## Parked by item 3383, 2026-10-20 — the Indian word at Great Sahara closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3383a. run1007's seven `dest_angle` rows from 15980, no draw.** After the word's two builds,
+  `run1007_s_word_frame_is_widened_whole` holds 38 keys: the standing family on 15916 (31) and seven `dest_angle` rows
+  from block 15980 on who=1's guards standing at their posts — the Pikeman `1/51` reads 440991744 ours against
+  −440991744 theirs, a mirror of the same angle. The draw stream agrees to the game's end (16564), so the rows name no
+  score; a word that parts on a guard's turn reads them first (`Unit::set_angle`'s callers this crate reaches without
+  `unit_set_angle`, brief row 2234).
 
 ## Parked by the next landing, slot LU — reserved
 

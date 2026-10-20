@@ -20302,3 +20302,97 @@ SHA-256 `284c98e1a029c5f2b9754a245f7d3cab14f5df451299ee5524cd1bba16926e6b`.
 **What it holds**: on block 13579 who=1's rebuilt make list lists Carpentry (609) at slot 1, `val` 120000, where ours
 listed it at 30000 — a German's industry tech at half price. Test `run1003_s_word_frame_is_widened_whole`: 1039 keys
 on the first try, 26 after the build (the standing family).
+
+## run1006 — the battery's replacement lobby `GreatSaharaIncaTier3`: a `DUMP_ALL` start (2026-10-20, item 3383, `att-3383`)
+
+`docs/AI.md` §291. **What the disk could not answer**: no dump holds an Inca game on Great Sahara. Entry 72's rule (2)
+as amended by 84: the Inca are held only by a closed game on another map (`EastIndiesIncaTier3`); the Mongols and
+Persians have map-7 dumps, the Romans, Turks and Chinese are held by open battery lobbies and the Americans were
+att-3380's. Tier 3 is the tier the Indians leave; the commander relayed the pick before the capture. Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1006`: run1002's line with `--ai-tribe 2`.
+- Pool lane 1. Launched 16:20:42, exited 16:29:30. `success`, 37 frames, `players` tribe 4 and tribe 2.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1006-greatsahara-inca-diff3-start.txt`, 149,597,250 bytes,
+SHA-256 `85f56fa9c111b95927e870dfdaff26b45bff77b878e075b7f8542ad0902a1c05`.
+
+Archive `rontrace-run1006.log`, 8,554,912 bytes,
+SHA-256 `1e00be8e8a2f14f96e833e216d58018e7dc5684ef1a1c5f21a102c344855f786`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaIncaTier3` start.
+
+## run1006b — `GreatSaharaIncaTier3`'s draw stream (2026-10-20, item 3383, `att-3383`)
+
+`docs/AI.md` §291. run1002b's recipe with `--ai-tribe 2`.
+- Pool lane 1. Launched 16:31:38, exited 16:33:17. `success`, **the game ended itself on 15632** (closing block
+  15633, `ended_early` true). `rngcmp.py rontrace-run1006.log rontrace-run1006b.log`: **37 identical, 0 differing**.
+  Filed with `filerun.py run1006b greatsahara-inca-diff3-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1006b-greatsahara-inca-diff3-24k-trace.txt`, 12,557,531 bytes,
+SHA-256 `df4a56cdce90f96562f861d6a9538c49509444269a456b2b4b09576dff59435c`.
+
+Archive `rontrace-run1006b.log`, 70,986,816 bytes,
+SHA-256 `bcd9d39f750c8d2f31a0f421f1601c37beaf1b35c3cce41e7d9041b6e4cec42b`.
+
+**What it holds**: the Inca's first try, **count 13127, sequence 13126 of 15632**. Pinned in `battery::BATTERY`.
+
+## run1007 — the Indian word at Great Sahara: the word 15922's window, blocks 15916..16172 at `GOODS=3` (2026-10-20, item 3383, `att-3383`)
+
+`docs/AI.md` §291. **What the disk could not answer**: run1002 dumps blocks 0..36 and run1002b its setup and closing
+blocks only, so no dump held the units, rounds or ledgers on the word's block. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1007`: `--map 7 --end-frame 16177 --timeout 5400 --log-window 15916
+16172 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 21 --cover cover=0 --profile
+DIFFICULTY=3`.
+- Pool lane 2. Launched 16:21:14, exited 16:45:03. `success`, 16178 frames; `rngcmp.py` vs run1002b: 16178 identical.
+  Filed with `filerun.py run1007 greatsahara-indian-diff3-window-15916-16173`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1007-greatsahara-indian-diff3-window-15916-16173.txt`, 554,079,879 bytes,
+SHA-256 `9d064ea2f54c13137969200bcbd329a3c137d7c0d78c6346d07dd8ef95897130`.
+
+Archive `rontrace-run1007.log`, 87,128,544 bytes,
+SHA-256 `c28aaa6316b7e079212e9c6a3dfa233c4d2006e0fd1e98ed730554dcb96f9bd5`.
+
+**What it holds**: the word's window. Test `run1007_s_word_frame_is_widened_whole`: 38 keys after the build — the
+standing family on 15916 (31) and seven `dest_angle` rows from 15980 that part no draw (parked 3383a).
+
+## run1007b — the Indian word at Great Sahara: the Heavy Horse Archer's round, blocks 15900..15925 at `AMMO=5`, and a packet at 15915 (2026-10-20, item 3383, `att-3383`)
+
+`docs/AI.md` §291. **What the disk could not answer**: run1007 starts at 15916, after `1/64`'s round was loosed, and
+no dump prints the piece's release nodes. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1007b`: `--end-frame 15930 --log-window 15900 15925 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5`, the
+tracer built with `RON_STATE_FRAME=15915` and item 597's plan.
+- Pool lane 3. Launched 16:22:54, exited 16:27:21. `success`, 15931 frames; `rngcmp.py` vs run1002b: 15931
+  identical. Filed with `filerun.py run1007b greatsahara-indian-diff3-window-15900-15926`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1007b-greatsahara-indian-diff3-window-15900-15926.txt`, 12,387,169 bytes,
+SHA-256 `a61b278d895908c7ec6dcb72769ce66695779033b160aa3ecd424540b91d42e6`.
+
+Archive `rontrace-run1007b.log`, 109,031,936 bytes,
+SHA-256 `876d382809ef36782f9614bc1c96aadaad12bf16aa258d387de2f36576ff70b5`.
+
+**What it holds**: theirs' round from (8675, 30245, 866), `total_time` 8, toward (7860, 29991); the packet's piece
+1898 (nine entries, four release nodes of its own), which `pivot::RELEASES` carries.
+
+## run1007c — the Indian word at Great Sahara: the word 16548's window, blocks 16542 to the game's end at `AMMO=5` (2026-10-20, item 3383, `att-3383`)
+
+`docs/AI.md` §291. **What the disk could not answer**: no dump past run1007's 16172 held who=1's units before
+run1002b's closing block. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1007c`:
+`--end-frame 24000 --log-window 16542 16566 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5
+--allow-early-end`.
+- Pool lane 1. Launched 16:36:17, exited 16:41:33. The first take died (exit 41) and the retake held: `success`, the
+  game ended itself on 16564; `rngcmp.py` vs run1002b: 16565 identical. Filed with `filerun.py run1007c
+  greatsahara-indian-diff3-window-16542-16565`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1007c-greatsahara-indian-diff3-window-16542-16565.txt`, 52,893,806 bytes,
+SHA-256 `58dc8a5b22853b8aaa32e1bbc6c669281d51365f5903972ad48a7aa2d1e949df`.
+
+Archive `rontrace-run1007c.log`, 105,660,896 bytes,
+SHA-256 `c778ae735d882b69b1bb67e5b2d23ea92b0667399d524893a9b3c01099ed2f38`.
+
+**What it holds**: block 16548's Gun Mahout `1/93` (`cavarch_o/who` 0/0 theirs). Test
+`run1007c_s_word_frame_is_widened_whole`: 31 keys after the build — the standing family and five births' `g.angle[0]`
+on 16542.

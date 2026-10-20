@@ -24866,12 +24866,75 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 291. Reserved for the next item on the AI track
+## 291. The battery's Indian word at Great Sahara closes: a horse archer's own release, and a Mahout's second range
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3383, 2026-10-20, Opus 5.5. `GreatSaharaIndianTier3` (map 7, human Nubians against the Indians at Difficulty 3,
+seed 12345; item 3378's lobby, runs 1002 and 1002b), promoted out of the battery at 15922 of 16564
+(`diff::indian_sahara_word`; not `diff::indian_word`, the closed East Indies game). Captures run1007 (`GOODS=3` over
+15916..16172), run1007b (`AMMO=5` over 15900..15925 and a `RON_STATE_FRAME=15915` packet) and run1007c (`AMMO=5`
+over 16542 to the game's end). Its battery place went to `GreatSaharaIncaTier3` (runs 1006, 1006b; entry 72's rule
+(2), below): 13126 of 15632 on its first try.*
+
+**The draw delta on 15922.** Ours 9, theirs 10, parting at index 7: theirs `Object::take_damage+0xe1` (`0x652101`,
+the 5 % flock roll at the head of a combat hit), ours `Farms::inc_time+0x1ae` one draw early. `RON_DEBUG_AMMO`
+names the hit: who=1's `1/64` (`TypeIndex` 188, `CAVARCHERS`, the Indian Heavy Horse Archer, piece 1898) has one
+round in flight at the Nubian building `0/2005`; ours looses it from the figure's own (8760, 30264) with
+`total_time` 9, and no `launch`/`pivot` row names piece 1898 — the crate had no release table for it.
+
+**The release: piece 1898's own nodes.** run1007b's packet at 15915 (15931 frames, identical to run1002b): theirs'
+round leaves (8675, 30245, 866), `total_time` 8, toward (7860, 29991); `1/64`'s guy carries `turret_angles[0]`
+262209536 and `gpiece` 1898. `tools/recomp/get_position.py … entries 1898` lists nine entries: the pivot node is
+1545's, the four release nodes the piece's own (anim 10 at time 18, 11 at 18, 12 at 16, 13 at 20). The four pivot
+sweeps (`get_position.py pivot 1898 0 <anim> <time> 1`, outside git) agree with the integer form on every cell, so
+none carries a `float_lands`. Built: `pivot::NODES`' row for 1898 and four `pivot::RELEASES` rows.
+
+**The word: 15922 → 16548.** Value diff, run1007b block 15916: `1/64`'s round `sx, sy` (8760, 30264) → (8675,
+30245), `total_time` 9 → 8, `ey` 29989 → 29991, angle −838270976; agreeing with theirs.
+
+**The draw delta on 16548.** Ours 10, theirs 11, at index 3: theirs `Unit::fight+0x9b0` (`SITE_FIGHT_RESEARCH`,
+the captain's one-in-five re-search roll). run1007c's widening: the first unit row is block 16548's `1/93` (uid 141,
+`TypeIndex` 263, `GUNMAHOUT`, `FLAGS` `mjvyk`, `RANGE` 0-9): `cavarch_o/who` 0/0 theirs (the human's idle Scout
+`0/0`, 1938 off), −2/−1 ours. Both sides ran the fire-on-the-move search on 16547 (`(93 + 16547) % 32 == 0`); a
+probe (reverted whole) showed ours' radius 4608 and `max_range_of` 0, so the search's must-reach gate refused
+everything past melee.
+
+**Cause: the second range, swapped in for one call.** `k` (`0x400`, `uflags::MELEE_AND_RANGED`) zeroes the type's
+`max_range` (`UnitTypeData +0x1fc`) at load and keeps the range in `+0x2d0` (`UnitType::init@0061ab50:359`–`362`,
+as this crate's loader does). **`Unit::cavarch_fight@005ff4b0` writes `+0x2d0` into `+0x1fc` round its `fight`
+(`005ff4c5`) and 0 back after (`005ff4f0`)** — a write to the type, so every reader inside the call sees it. Two
+more callers bracket the same way: `Unit::do_attack@005f1b80:245`–`251` (a `k` type at stance 2 fights inside the
+swap and returns) and `Unit::think_attack@005f5a80:167`–`174` (round its `find_melee_target`). Only the three Indian
+Mahouts carry `k` (`unitrules.xml`). Built: `Sim::second_range` (the type in the swap, `None` outside one),
+`Sim::with_second_range`, `Sim::profile` answering `second_max_range` as `max_range` for that type; the three
+callers each wrap their call.
+
+**The word: 16548 → 16564, the game's end.** Value diff, run1007c block 16548: `1/93` `cavarch_o` −2 → 0,
+`cavarch_who` −1 → 0, `g.cur_anim[0..2]` 8 → 10; agreeing. **The close**: run1002b's closing block 16565, 118
+units compared, none apart (`run1002b_indian_sahara_closing_state`). Every other lobby's `first_parting` holds (29
+of 29).
+
+**The replacement: `GreatSaharaIncaTier3`, rule (2).** No map-7 dump holds the Inca, who are held only by a closed
+game on another map (`EastIndiesIncaTier3`); the Mongols and Persians have map-7 dumps (the AllTech pairs), the
+Romans, Turks and Chinese are held by open battery lobbies, and the Americans were att-3380's — so the Inca are the
+one nation rule (2) leaves, at the tier the Indians leave. The commander relayed the pick before the capture. run1006
+(a `DUMP_ALL` start) and run1006b (the draw stream; the game ends itself on 15632) agree on 37 of 37. First try:
+count 13127, sequence 13126 of 15632.
+
+**Not established.** The `do_attack` arm (a `k` type at `STAND_GROUND`) is built from the listing and no walk
+reaches it: no Mahout in a captured game held that stance under an `ATTACK`. `think_attack`'s arm changes the radius
+only where `r × 0xc0` beats the respond floor — a `DEFENSIVE` stance, since an AI-driven unit's floor is
+`unit_respond_range × 0x180` (4608) — and no capture shows that either. Seven `dest_angle` rows on run1007 from
+15980 (who=1's guards at their posts; a Pikeman `1/51`, 440991744 ours against −440991744 theirs) part no draw and
+are parked (3383a).
+
+**Coverage.** Diff-backed: `indian_sahara_word_first_parting` (the draw stream to 16564),
+`run1007_s_word_frame_is_widened_whole`, `run1007c_s_word_frame_is_widened_whole`,
+`run1002b_indian_sahara_closing_state`. Sim tests: `pivot::tests::run1007b_s_heavy_horse_archer_looses_through_
+piece_1898_s_pivot` (x, y, z exact), `the_original_s_release_agrees_on_every_cell_for_piece_1898`
+(`$RON_RELEASE_TABLE_1898`), and `fight::tests::an_idle_melee_and_ranged_type_searches_at_its_second_range` (a
+`DEFENSIVE` Mahout finds a foe 1200 off with the flag and not without). Mutations (`tools/mutate.py`):
+`with_second_range` made a no-op → the word back at 16548, theirs `Unit::fight+0x9b0`, held; piece 1898's `ATTACK1`
+release time 18 → 17 → the word back at 15922, held.
 
 ## 292. Reserved for the next item on the AI track
 
