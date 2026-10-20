@@ -3349,13 +3349,10 @@ impl Sim {
     /// A member whose action is already a GARRISON is `repath`ed and has
     /// its head killed first.
     ///
-    /// SEAMS, none reached by a capture on file: `QUEUE_FIRST`'s insert
-    /// dance (`set_up_insert`, `action_halt`, the garrison at
-    /// `QUEUE_NEW`, `finish_insert`), taken here as `QUEUE_NEW`; the
-    /// scenario's `ignore_orders` sweep; the zero-limit arm's second test
-    /// (a type vslot `+0x60`), taken as a refusal; the editor's instant
-    /// `go_inside` (`Game::semaphore` bit `0xb`); a packing type's arm;
-    /// `is_entering_or_exiting`.
+    /// The walk is [`crate::garrison_view::action_garrison_steps`], swept
+    /// against the original (item 3376); the SEAMs are
+    /// [`crate::garrison_view::SimGarrison`]'s, none reached by a capture on
+    /// file.
     pub fn group_action_garrison(&mut self, g: &Group, b: usize, queue: QueuePos) {
         self.group_action_garrison_search(g, b, queue, false);
     }
@@ -3376,59 +3373,21 @@ impl Sim {
         queue: QueuePos,
         search: bool,
     ) {
-        let queue = if queue == QueuePos::First {
-            QueuePos::New
-        } else {
-            queue
+        let queue = match queue {
+            QueuePos::First => 0,
+            QueuePos::Last => 1,
+            QueuePos::New => 2,
         };
-        if let Some(st) = self.gstate_mut(g) {
-            st.form = -1;
-        }
-        let whom = self.buildings[b].owner;
-        if !self.is_ally(g.who, whom) || !self.buildings[b].alive {
-            return;
-        }
-        let Some(bty) = self.buildings[b].ty else {
-            return;
-        };
-        if self.garrison_limit(b) == 0 {
-            return;
-        }
-        // `BuildData::is_unassimilated`: a city whose race is not its owner.
-        if self.building_is_city(b)
-            && let Some(c) = self.buildings[b].city
-            && self.cities[c].alive
-            && self.cities[c].race != Some(whom)
-        {
-            return;
-        }
-        for &m in &g.list {
-            if !self.group_member_orderable(m) {
-                continue;
-            }
-            if self
-                .action_of(m)
-                .is_some_and(|a| matches!(self.units[m].orders[a].body, Body::Garrison { .. }))
-            {
-                self.repath(m);
-                self.kill_current_order(m);
-            }
-            if !self.units[m].ty.is_some_and(|t| self.can_garrison(t, bty)) {
-                continue;
-            }
-            let target = if search {
-                self.find_garrison_build(m, self.buildings[b].city, g.who)
-                    .unwrap_or(b)
-            } else {
-                b
-            };
-            let pos = if queue == QueuePos::New && self.is_worker(m) {
-                QueuePos::First
-            } else {
-                queue
-            };
-            self.add_garrison_order(m, target, search, pos, true);
-        }
+        let who = i32::from(self.buildings[b].owner);
+        let mut view = crate::garrison_view::SimGarrison { sim: self, g };
+        crate::garrison_view::action_garrison_steps(
+            &mut view,
+            b as i32,
+            who,
+            queue,
+            i32::from(search),
+            0,
+        );
     }
 
     /// `ObjectData::is_worker@0046fa10`: the type is `0x32`..`0x35` — the

@@ -1298,7 +1298,7 @@ impl UngroupView for SimUngroup<'_> {
 
 /// What `Unit::do_move` reports back to `work`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Did {
+pub(crate) enum Did {
     Nothing,
     Something,
 }
@@ -5318,7 +5318,7 @@ impl Sim {
     /// `Unit::do_move` (§4.4) on open ground: the planning half, the
     /// waypoint take with both arrival tests, the straight-line check, the
     /// step.
-    fn do_move(&mut self, u: usize, frame: i64) -> Did {
+    pub(crate) fn do_move(&mut self, u: usize, frame: i64) -> Did {
         let Some(Order {
             body: Body::Move(mut mo),
             flags,
@@ -6289,81 +6289,24 @@ impl Sim {
     fn do_group_move(&mut self, u: usize, frame: i64) {
         let Some(Order {
             body: Body::Move(mo),
-            flags,
+            ..
         }) = self.current_order(u).copied()
         else {
             return;
         };
         let Some(gm) = mo.group else { return };
-        // `if (this->group == -1) ungroup` (`5e79f0`): the back-pointer
-        // ([`crate::Unit::group_ptr`], `docs/GROUPS.md` §23) names no seat,
-        // and the group order degrades on the spot.
-        let Some(g) = self.group_of(u) else {
-            self.ungroup_move_order(u, gm.id);
-            return;
-        };
-        if gm.leader == u {
-            self.group_move_leader(u, frame, &g, gm);
-        } else {
-            self.group_move_follower(u, frame, &g, gm, mo, flags);
-        }
-    }
-
-    /// `do_group_move`'s leader arm (`5e7a10`–`5e7c6c`).
-    fn group_move_leader(&mut self, u: usize, frame: i64, g: &crate::group::Group, gm: GroupMove) {
-        // Every 32nd frame, phased by `o`, an attacking leader whose
-        // target has come within `0x900` drops the whole group move — the
-        // formation stops marching and starts fighting.
-        if let Some(a) = self.action_of(u)
-            && matches!(self.units[u].orders[a].body, Body::Attack(_))
-            && (frame + i64::from(self.units[u].index)).rem_euclid(32) == 0
-            && let Some(t) = self.units[u].combat.target
-        {
-            let p = self.pos_of(t);
-            let here = self.units[u].pos;
-            if vector_dist(p.x - here.x, p.y - here.y) < 0x900 {
-                self.kill_group_move(g, gm.id);
-                return;
-            }
-        }
-        if self.do_move(u, frame) == Did::Something {
-            // `update_order(this) != param_1` — the move I just stepped is
-            // still the one at the head.
-            if !self.still_group_move(u, gm.id) {
-                return;
-            }
-            // **The leader publishes the pass** (`5e7a9a`, which is
-            // `Group::leader_report_speed@007137f0` inlined): its own
-            // **uncapped** speed becomes the accumulator and what the
-            // accumulator held becomes the cap every member without an
-            // action order walks at this frame (`docs/GROUPS.md` §18).
-            // It runs only on a frame the leader's own step succeeded,
-            // and after it, which is why a group's cap is one pass stale.
-            //
-            // **And the `march` arm under it** (`5e7ab?`, `docs/AI.md`
-            // §99.15): the leader's report clears `+0x4b`, and a leader
-            // whose leader flags carry `0x8000` and which
-            // `has_general(0x8000, -1)` sets it — from then on only a
-            // follower near a marching hero reports its speed.
-            let mine = self.get_speed(u, 1);
-            self.group_leader_report_speed(g, mine);
-            if self.leader_marching(u) && self.near_marching_hero(u) {
-                self.group_set_march(g);
-            }
-            self.group_update_positions(g, u);
-            return;
-        }
-        // `do_move` gave up. The attack hand-off is a seam
-        // (`Group::distribute_attack`, `Group::action_attack` — no capture
-        // reaches either from here); what is left is the ungroup, which is
-        // what a move that simply ended does.
-        if self.still_group_move(u, gm.id) {
-            self.ungroup_move_order(u, gm.id);
-        }
+        // The head and the leader arm are [`crate::group_move`]'s steps
+        // (item 3376's sweep holds them to the original); the follower arm
+        // is entered through its view. `this->group == -1` (`5e79f0`) — the
+        // back-pointer ([`crate::Unit::group_ptr`], `docs/GROUPS.md` §23)
+        // names no seat — is the view's `group_unset`.
+        let g = self.group_of(u);
+        let mut view = crate::group_move::SimGroupMove::new(self, u, frame, g, gm);
+        crate::group_move::do_group_move_steps(&mut view);
     }
 
     /// `do_group_move`'s follower arm (`5e7c8c`–`5e8660`).
-    fn group_move_follower(
+    pub(crate) fn group_move_follower(
         &mut self,
         u: usize,
         frame: i64,
@@ -6608,7 +6551,7 @@ impl Sim {
     }
 
     /// Is `u`'s head order still a group move carrying `id`?
-    fn still_group_move(&self, u: usize, id: i64) -> bool {
+    pub(crate) fn still_group_move(&self, u: usize, id: i64) -> bool {
         self.current_order(u).is_some_and(|o| match o.body {
             Body::Move(m) => m.group.is_some_and(|x| x.id == id),
             _ => false,

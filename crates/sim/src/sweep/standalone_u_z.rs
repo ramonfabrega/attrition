@@ -204,6 +204,14 @@ mod unit_do_attack_neg;
 mod unit_do_board;
 #[path = "unit_do_build.rs"]
 mod unit_do_build;
+#[path = "unit_do_cast_anim.rs"]
+mod unit_do_cast_anim;
+#[path = "unit_do_cast_emu.rs"]
+mod unit_do_cast_emu;
+#[path = "unit_do_cast_head.rs"]
+mod unit_do_cast_head;
+#[path = "unit_do_cast_tail.rs"]
+mod unit_do_cast_tail;
 #[path = "unit_do_explore_to.rs"]
 mod unit_do_explore_to;
 #[path = "unit_do_flee_to.rs"]
@@ -216,6 +224,8 @@ mod unit_do_gather;
 mod unit_do_gather_005ef2a0;
 #[path = "unit_do_group_attack_to.rs"]
 mod unit_do_group_attack_to;
+#[path = "unit_do_group_move_leader.rs"]
+mod unit_do_group_move_leader;
 #[path = "unit_do_idle.rs"]
 mod unit_do_idle;
 #[path = "unit_do_patrol.rs"]
@@ -320,6 +330,8 @@ mod unit_think_caravan;
 mod unit_think_carry;
 #[path = "unit_think_carry_civilian.rs"]
 mod unit_think_carry_civilian;
+#[path = "unit_think_civilian_transport.rs"]
+mod unit_think_civilian_transport;
 #[path = "unit_think_hero.rs"]
 mod unit_think_hero;
 #[path = "unit_think_peasant.rs"]

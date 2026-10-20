@@ -194,6 +194,10 @@ mod group_action_alarm_head;
 mod group_action_begin;
 #[path = "group_action_buildmask.rs"]
 mod group_action_buildmask;
+#[path = "group_action_garrison.rs"]
+mod group_action_garrison;
+#[path = "group_action_garrison_head.rs"]
+mod group_action_garrison_head;
 #[path = "group_action_hotkey.rs"]
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
@@ -648,6 +652,10 @@ mod object_repair_damage;
 mod object_replace_hotunit;
 #[path = "object_support_cost.rs"]
 mod object_support_cost;
+#[path = "object_take_damage_arms.rs"]
+mod object_take_damage_arms;
+#[path = "object_take_damage_head.rs"]
+mod object_take_damage_head;
 #[path = "object_type_backup.rs"]
 mod object_type_backup;
 #[path = "object_type_data_basic_type.rs"]
