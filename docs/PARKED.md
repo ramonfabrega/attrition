@@ -8545,13 +8545,34 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
   score. Next: a call trace of `Object::do_damage` on frame 16764, both sides' hits by
   attacker, before any reading.
 
-## Parked by the next landing, slot LD — reserved
+## Parked by item 3348, 2026-10-19 — the second sweep lane's first shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3348a. `Unit::do_group_move@005e79a0`: port not level** (second sweep-lane park of the class 3339b). `Sim::do_group_move`
+  (`orders.rs`) is one `&mut Sim` method over `group_move_leader`/`group_move_follower`, each calling ~15 Sim methods directly;
+  a sweep needs a `GroupMoveView` split first. The original's tail also reads an uninitialised `local_30` on an empty path stack
+  (the crate substitutes `mo.dest`), and calls `vector_dist`/`find_angle` with register arguments the decompile dropped. The
+  subagent judged this from reading, no generator run. Successors: the leader arm (`5e7a10`–`5e7c6c`, ~6 callees) as
+  `group_move_leader_steps`; the path unwind (`5e8034`–`5e80c0`) as an `obj` shape with `--ptrarg`.
+- **3348b. `Roads::add_roads@0088f4b0`: `--stub-alloc IDX` lacking** (third park on it after 3282b, 3339a) **and the port is
+  not level**: `Sim::add_roads` (`mesh.rs`) models three of the original's phases; it lacks the `param_1 != 0` block, the last
+  pass (`fixup_lines(0)`, four mask clears, `find_piece`), pass two's `set_diags` branches, the flagged-iterator queue
+  (`set_diags` appends mid-walk) and breaks at `local_3c > 10` where the crate runs 12. Also a `_TSS0` thread-safe-static
+  guard reading `ThreadLocalStoragePointer`. Order: `--stub-alloc` (bump-heap malloc stub), then a `RoadsView`.
+- **3348c. `Unit::find_path@005fb910`: `--stub-alloc IDX` lacking** (as 3348b) **plus a stateful `Stack<PathData>` model**
+  (`push`/`pop`/`peek` moving `length`; no flag does, e.g. `--stack-model LOC:LEN:SIZE:ENTRY`), and the port is not level:
+  `Sim::find_path` (`orders.rs:6679`) does not model the `go_around_building` replay or the recursive return 2. ~15 callees.
+  Alternative: split a `find_path_march` and sweep that. Sits over 3339c's residue.
+- **3348d. `Unit::work@0060d180`: the caravan block and the move-family dispatch** unswept: `LinkListBase::tail/prev` must
+  answer a window pointer in `ecx`, and `--ecx-out IDX:V,..` takes integers only (flag lacking: a pointer form of `--ecx-out`).
+  The post-`update_action` tail (action target tests, `do_job` hand-off, the final find_unit/set_new_location block) is
+  untried. The fresh-latch lines still run early in the crate with the front order's type (SEAM in `orders.rs`); the original
+  runs them after the dispatch.
+- **3348e. `Unit::target_opportunity@005fffc0` past `600108`**: the flee arm, action and spell tests, `on_duty`, the
+  retaliation and the Group-forwarding tail (~25 further callees, the `objects`/`types` tables) untried, not parked on a
+  failure. The inline `is_captain` arm (`o_up >> 15`) is unexercised in the walk sweep (a set bit faults); type windows of
+  walked units alias unit 0's. `SimTopp` and `SimWorkGate` themselves are not driven by their sweeps (only the steps are).
+- **3348f. `Build::check_capture@006276a0`** sits between `add_roads` and `find_path` on the census and was left out of this
+  batch's booking; no parked row explains it (the grep finds only `check_capture_health` and `check_capture_eligible`, other functions): the commander books it next.
 
 ## Parked by the next landing, slot LE — reserved
 
