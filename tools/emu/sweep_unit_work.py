@@ -326,6 +326,17 @@ def main(argv):
     for va_ in INITCALLS:
         h.call(va_, (), max_insns=500_000_000)
     base = h.brk
+    stopped = [False]
+    if STOPSTUB is not None:
+        from callfn import SENTINEL
+        from unicorn import UC_HOOK_CODE
+        from unicorn.x86_const import UC_X86_REG_EIP
+        stop_addr = next(a_ for a_, v_ in h.hooked.items() if v_[0] == names[STOPSTUB])
+
+        def stop_hook(uc_, addr_, size_, _):
+            if stopped[0]:
+                uc_.reg_write(UC_X86_REG_EIP, SENTINEL)
+        uc.hook_add(UC_HOOK_CODE, stop_hook, begin=stop_addr, end=stop_addr)
     for i in range(3000):
         h.brk = base  # the bump heap is reused a row; 3000 rows of windows outgrow it
         this = h.alloc(WIN + 0x20)
@@ -675,25 +686,20 @@ def main(argv):
             uc.mem_write(STACK_BASE + STACK_SIZE - 0x100 - STACKCLEAN, bytes(STACKCLEAN))
         h.calls.clear()
         h.edxs.clear()
-        # `--stop-stub IDX` (item 3348, `Unit::work`): the call ends at the first time stub IDX is entered
-        # (the call is recorded, the answer drawn, the emulation stopped there): a function too large to
-        # sweep whole is swept to a chosen callee, and the port stops at the same call.
-        stopped = [False]
+        # `--stop-stub IDX` (item 3348, `Unit::work`): the call ends where stub IDX is first entered
+        # (the call is recorded, the answer drawn, `eip` set to the return sentinel by a hook that runs
+        # after the harness's own): a function too large to sweep whole is swept to a chosen callee,
+        # and the port stops at the same call. `emu_stop` was tried and runs on past the hook.
+        stopped[0] = False
         if STOPSTUB is not None:
             inner_stop = h.answers[names[STOPSTUB]]
 
             def stop_answer(ecx, args, inner_stop=inner_stop):
                 stopped[0] = True
-                uc.emu_stop()
                 return inner_stop(ecx, args) if callable(inner_stop) else inner_stop
             h.answers[names[STOPSTUB]] = stop_answer
-        try:
-            r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
-                       edx=edxa, xmm=xmm, ret=RET, max_insns=MAXINSNS)  # Harness.call signs eax; signed() again would double a negative
-        except RuntimeError as e_:
-            if not (stopped[0] and "did not return" in str(e_)):
-                raise
-            r = 0
+        r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
+                   edx=edxa, xmm=xmm, ret=RET, max_insns=MAXINSNS)  # Harness.call signs eax; signed() again would double a negative
         esp = uc.reg_read(UC_X86_REG_ESP)
         # A `__cdecl` function leaves its arguments for the caller (item 2181).
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)

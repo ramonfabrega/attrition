@@ -368,6 +368,8 @@ mod unit_update_patrol_order;
 mod unit_update_z;
 #[path = "unit_work.rs"]
 mod unit_work;
+#[path = "unit_work_tail.rs"]
+mod unit_work_tail;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
 #[path = "valid_filter_case0.rs"]

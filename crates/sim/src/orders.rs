@@ -3493,12 +3493,15 @@ impl Sim {
         // carrying the idle latch drops it, and a **fisherman or merchant**
         // marks its owner's economy dirty on the way — it has just left
         // `Leader::calc_gather` step 6's walk ([`crate::rares`]).
-        if self.order_type(u) != index::NONE && self.units[u].idle_latch {
-            self.units[u].idle_latch = false;
-            if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
-                self.economy_changed(self.units[u].owner);
-            }
-        }
+        // The steps are [`crate::work_gate::fresh_latch_steps`] (swept, item
+        // 3348). SEAM: the original runs them after the dispatch, with the
+        // type the dispatch left; this crate runs them here, with the front
+        // order's.
+        let ty = i32::from(self.order_type(u));
+        crate::work_gate::fresh_latch_steps(
+            &mut crate::work_gate::SimWorkGate::new(self, u, frame),
+            ty,
+        );
         // `Unit::work@0060d180:97` — the caravan block, ahead of the
         // dispatch: a linked trade route runs another frame of its road
         // plan, or is ended when the order under it is no longer one
@@ -3523,6 +3526,14 @@ impl Sim {
         // And `update_action` is **unconditional** there (`:283`): every
         // frame's `Unit::work` rewrites `orders_x/y` and `dest_angle`
         // before the dispatch, whatever the order.
+        // `Unit::work@0060d180:0060d77d`, just above it: an open path search
+        // under a head order that is not a move is dropped
+        // ([`crate::work_gate::partial_path_steps`], swept, item 3348).
+        let has_head = self.current_order(u).is_some();
+        crate::work_gate::partial_path_steps(
+            &mut crate::work_gate::SimWorkGate::new(self, u, frame),
+            has_head,
+        );
         let action = self.update_action(u);
         if action.is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
             && let Some(t) = self.units[u].combat.target

@@ -149,3 +149,83 @@ impl WorkGateView for SimWorkGate<'_> {
         })
     }
 }
+
+/// What the lines after the dispatch read (`work@0060d180:0060d733-0060d79c`,
+/// item 3348): the "freshly ordered" latch, the type's identity, the open
+/// path search. The order is the one the dispatch left at the head.
+pub trait WorkTailView {
+    /// `+0x8 & 8`: set by `check_idle`.
+    fn fresh_latch(&self) -> bool;
+    /// `+0x8 &= ~8`.
+    fn clear_fresh_latch(&mut self);
+    /// The unit type's index (`+0x4`).
+    fn type_id(&self) -> i32;
+    /// `this->type->vtable[0x60](0x13d, 0)`: `is(FISHERMEN)`.
+    fn type_is_fisherman(&mut self) -> bool;
+    /// `leaders.list[owner] |= 0x2000000`: the economy is dirty.
+    fn mark_leader_dirty(&mut self);
+    /// `+0x104 != 0`: a suspended path search is open.
+    fn has_open_search(&self) -> bool;
+    /// The head order's slot `+0x14`, `is_move`.
+    fn order_is_move(&mut self) -> bool;
+    /// `Unit::clear_partial_path@005e3920`.
+    fn clear_partial_path(&mut self);
+}
+
+/// The merchants' type indices (`MERCHANTS`) the leader latch tests by id.
+const MERCHANT_IDS: [i32; 3] = [0x3d, 0x3e, 0x190];
+/// `TypeIndex::FISHERMEN`.
+const FISHERMEN_ID: i32 = 0x13d;
+const _: () = assert!(FISHERMEN_ID == crate::fish::FISHERMEN as i32);
+
+/// `:0060d733-0060d779`: an order of any type (`local_8 != NONE`) with the
+/// fresh latch up drops it, and a merchant or a fisherman first marks its
+/// leader's economy dirty. `order_type` is the type `Unit::work` holds after
+/// its dispatch.
+pub fn fresh_latch_steps<V: WorkTailView>(v: &mut V, order_type: i32) {
+    if order_type == i32::from(index::NONE) || !v.fresh_latch() {
+        return;
+    }
+    if MERCHANT_IDS.contains(&v.type_id()) || v.type_is_fisherman() {
+        v.mark_leader_dirty();
+    }
+    v.clear_fresh_latch();
+}
+
+/// `:0060d77d-0060d79c`: an open path search under a head order that is
+/// not a move is dropped. `has_order` is whether the head exists.
+pub fn partial_path_steps<V: WorkTailView>(v: &mut V, has_order: bool) {
+    if v.has_open_search() && has_order && !v.order_is_move() {
+        v.clear_partial_path();
+    }
+}
+
+impl WorkTailView for SimWorkGate<'_> {
+    fn fresh_latch(&self) -> bool {
+        self.sim.units[self.u].idle_latch
+    }
+    fn clear_fresh_latch(&mut self) {
+        self.sim.units[self.u].idle_latch = false;
+    }
+    fn type_id(&self) -> i32 {
+        self.sim.unit_tree(self.u).map_or(-1, |t| t as i32)
+    }
+    fn type_is_fisherman(&mut self) -> bool {
+        self.sim.unit_line_is(self.u, crate::fish::FISHERMEN)
+    }
+    fn mark_leader_dirty(&mut self) {
+        let who = self.sim.units[self.u].owner;
+        self.sim.economy_changed(who);
+    }
+    fn has_open_search(&self) -> bool {
+        self.sim.units[self.u].search.is_some()
+    }
+    fn order_is_move(&mut self) -> bool {
+        self.sim
+            .current_order(self.u)
+            .is_some_and(crate::orders::Order::is_move)
+    }
+    fn clear_partial_path(&mut self) {
+        self.sim.clear_partial_path(self.u);
+    }
+}
