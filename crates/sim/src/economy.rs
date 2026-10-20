@@ -1898,7 +1898,10 @@ mod tests {
         assert_eq!(gained, [96, 96, 96, 0, 0, 0]);
         h.available[Resource::Metal.index()] = true;
         let metal = assemble(&t, &h);
-        assert_eq!(metal[Resource::Metal.index()] - base[Resource::Metal.index()], 96);
+        assert_eq!(
+            metal[Resource::Metal.index()] - base[Resource::Metal.index()],
+            96
+        );
     }
 
     /// **The Lakota's food** (`docs/AI.md` §219): run846's who=1 on block

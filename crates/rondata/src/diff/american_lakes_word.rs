@@ -57,9 +57,17 @@ fn american_lakes_word_first_parting() {
         "AMERICAN_LAKES {}: count {} sequence {} of {}; {}",
         AMERICAN_LAKES.name, w.count, w.sequence, w.last, w.row
     );
-    pin_eq!(w.difficulty, AMERICAN_LAKES.difficulty, "the lobby read back");
+    pin_eq!(
+        w.difficulty,
+        AMERICAN_LAKES.difficulty,
+        "the lobby read back"
+    );
     pin_eq!(w.last, AMERICAN_LAKES.length, "the game's last frame");
-    pin_eq!(w.count, AMERICAN_LAKES.count, "the draw count's first parting");
+    pin_eq!(
+        w.count,
+        AMERICAN_LAKES.count,
+        "the draw count's first parting"
+    );
     pin_eq!(
         w.sequence,
         AMERICAN_LAKES.sequence,
