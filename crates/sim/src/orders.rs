@@ -5818,6 +5818,12 @@ impl Sim {
             {
                 self.caravan_road_step(u, top.to);
             }
+            // The strip above wrote the stack; the region check below pops
+            // and pushes **the stack's** top, so it carries the stripped
+            // flags (`do_move@005f7b30:496`, `Stack<PathData>::pop` and
+            // `pPVar8->flags | 4`): run993d's block 14943, `1/79`'s
+            // `path[19].flags` 4 in theirs, ours 36 (item 3370).
+            let top = self.units[u].path.last().copied().unwrap_or(top);
             // **The region check** (`5f8544`–`5f86f4`, §4.4; item 1143): a
             // **final** waypoint, or any waypoint under a `TRADE_ROUTE`
             // action, whose tile's `get_tregion@006b52e0` is not the unit's
