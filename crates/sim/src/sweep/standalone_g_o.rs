@@ -360,6 +360,8 @@ mod group_set_ordered;
 mod group_set_up_insert;
 #[path = "group_toggle.rs"]
 mod group_toggle;
+#[path = "group_update_positions.rs"]
+mod group_update_positions;
 #[path = "group_walk_data.rs"]
 mod group_walk_data;
 #[path = "groupmoveorder_is_fleeing.rs"]

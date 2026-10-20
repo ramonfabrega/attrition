@@ -151,6 +151,7 @@ pub mod transport;
 pub mod tuning;
 pub mod type_index;
 pub mod upath;
+pub mod update_positions_view;
 pub mod victory;
 pub mod vision;
 pub mod work_gate;

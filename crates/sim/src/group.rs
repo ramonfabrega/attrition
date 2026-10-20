@@ -3794,25 +3794,15 @@ impl Sim {
     /// frame of a turn — which is exactly where a follower would otherwise
     /// be walking into its leader.
     pub(crate) fn group_update_positions(&mut self, g: &Group, leader: usize) {
-        let Some(off) = self.gstate(g).map(|st| st.off.clone()) else {
+        if self.gstate(g).is_none() {
             return;
-        };
-        let p = self.units[leader].pos;
-        let theta = match self.current_move(leader) {
-            Some(m) if m.has_waypoint => find_angle(m.waypoint.x - p.x, m.waypoint.y - p.y),
-            _ => self.units[leader].movement.heading,
-        };
-        let curr = Sim::form_update_positions(&off, theta);
-        if let Some(st) = self.gstate_mut(g) {
-            // `update_positions@00713810` loops over `form_num` slots, not
-            // `num`: a member past it keeps the `curr` it was given — a
-            // siege unit's, copied back from the sub-group (item 1493).
-            let n = (st.form_num.max(0) as usize).min(curr.len());
-            if st.curr.len() < curr.len() {
-                st.curr.resize(curr.len(), Pos::new(0, 0));
-            }
-            st.curr[..n].copy_from_slice(&curr[..n]);
         }
+        let mut v = SimUpdatePositions {
+            sim: self,
+            g,
+            u: leader,
+        };
+        crate::update_positions_view::update_positions_steps(&mut v);
     }
 
     /// A follower's target point this frame: the leader's **current**
@@ -4163,6 +4153,49 @@ pub(crate) fn eject_all_wants(
     is_hangar: impl FnOnce() -> bool,
 ) -> bool {
     alive && holds_squad() && !is_hangar()
+}
+
+/// `Group::update_positions`' view over the sim: the leader unit and the
+/// group's slot table (`update_positions_view.rs`).
+struct SimUpdatePositions<'a> {
+    sim: &'a mut Sim,
+    g: &'a Group,
+    u: usize,
+}
+
+impl crate::update_positions_view::UpdatePositionsView for SimUpdatePositions<'_> {
+    fn heading(&mut self) -> i32 {
+        self.sim.units[self.u].movement.heading.0
+    }
+    fn waypoint(&mut self) -> Option<(i32, i32)> {
+        match self.sim.current_move(self.u) {
+            Some(m) if m.has_waypoint => Some((m.waypoint.x, m.waypoint.y)),
+            _ => None,
+        }
+    }
+    fn leader_point(&mut self) -> (i32, i32) {
+        let p = self.sim.units[self.u].pos;
+        (p.x, p.y)
+    }
+    /// `update_positions@00713810` loops over `form_num` slots, not `num`: a
+    /// member past it keeps the `curr` it was given — a siege unit's, copied
+    /// back from the sub-group (item 1493). The table's own length bounds it.
+    fn form_num(&mut self) -> i32 {
+        self.sim
+            .gstate(self.g)
+            .map_or(0, |st| st.form_num.max(0).min(st.off.len() as i32))
+    }
+    fn slot_offset(&mut self, i: usize) -> (i32, i32) {
+        self.sim.gstate(self.g).map_or((0, 0), |st| st.off[i])
+    }
+    fn set_curr(&mut self, i: usize, p: Pos) {
+        if let Some(st) = self.sim.gstate_mut(self.g) {
+            if st.curr.len() <= i {
+                st.curr.resize(i + 1, Pos::new(0, 0));
+            }
+            st.curr[i] = p;
+        }
+    }
 }
 
 #[cfg(test)]
