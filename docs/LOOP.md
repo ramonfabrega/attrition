@@ -66,7 +66,12 @@ the previous brief, copied and edited. The frame and the checklist
 behind it (`docs/audit/README.md`, "The brief checklist") are the pass's
 to write, and a test holds every row of the one to a section of the
 other; a worker's "for the Loop" line that names a brief's omission is a
-candidate row.
+candidate row. **The fourth kind is `reading`** (entry 84), beside
+`residue`, `chapter` and `sweep`: a lane that reads the never-entered
+functions its document cites into claims that each name their
+falsifying capture, and gates on `python3 tools/release_gate.py
+~/code/fun/attrition/game --test-threads 4 --lane --item <N> --tests
+blind:: --no-widen`.
 
 ## The worker's landing
 

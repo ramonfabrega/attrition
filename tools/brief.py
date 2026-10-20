@@ -17,7 +17,9 @@ A brief is four things, and this writes three of them:
   goes: what this item alone needs, in its own words, as short as it can be.
 
 Kinds: `residue` — a word on the AI track, a pair's or the third map's;
-`chapter` — the rules track's. A refusal is a `ValueError` and exit 2: an
+`chapter` — the rules track's; `sweep` — a batch of never-backed functions;
+`reading` — the never-entered functions a document cites, read into claims
+that each name their falsifying capture (DECISIONS 84). A refusal is a `ValueError` and exit 2: an
 item the queue does not book has no brief.
 
 Why (the nineteenth pass, 2026-09-29): a brief was the previous brief,
@@ -48,8 +50,14 @@ KINDS = {
     # A sweep batch (DECISIONS 63 (iv), parked 1629): no word, no booking
     # paragraph — its section says how a fanned batch is cut and merged.
     'sweep': ('opening', 'lanes', 'sweep', 'landing'),
+    # A reading lane (DECISIONS 84): the decompile, for the functions its
+    # document cites and no trace enters (`blind::NEVER`), into claims each
+    # naming the capture that would falsify it. No capture, no packet, no
+    # build rows: its section says what a claim carries.
+    'reading': ('opening', 'booked', 'lanes', 'reading-item', 'landing'),
 }
-TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the sweep track'}
+TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the sweep track',
+          'reading': 'the reading track'}
 # The lane gate's filters every word lane runs (parked 1623): a widening
 # puts its window in the coverage driver, so `coverage::` is a word's own.
 # And every lobby's `first_parting` (parked 1910, 2000, the thirty-first
@@ -63,7 +71,13 @@ TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the
 # pin is 0.4 s.
 ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'blind::'),
                 'chapter': ('coverage::', 'first_parting', 'battery_floors', 'blind::'),
-                'sweep': ('sweep::', 'blind::')}
+                'sweep': ('sweep::', 'blind::'),
+                # A reading moves no word and no sweep; its one pin is the
+                # blind list it re-pins when it cites a never-entered
+                # function (DECISIONS 84).
+                'reading': ('blind::',)}
+# The kinds whose lane gate names no filter of its own: no word moves.
+NO_WORD = ('sweep', 'reading')
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()
@@ -137,7 +151,7 @@ def filters(kind, tests):
     the coverage pins its widening moved, and the booking gate was red).
     A filter whose every matching `fn` is `#[ignore]` is refused (3227)."""
     tests = [t for t in (tests or ()) if t]
-    if kind != 'sweep' and not tests:
+    if kind not in NO_WORD and not tests:
         raise ValueError("a word's brief names its lane gate's filters: --tests FILTER [FILTER ...]")
     fns = test_fns()
     for t in tests:
@@ -240,6 +254,7 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
         out += ['```']
     titles = {'before-reading': 'Before any reading', 'reading': 'Reading the original',
               'capture': 'A capture or a packet', 'chapter': 'A chapter', 'sweep': 'The sweep',
+              'reading-item': 'A reading item',
               'build': 'Build', 'landing': 'Landing'}
     for name in KINDS[kind]:
         if name in ('opening', 'booked', 'lanes'):
@@ -262,7 +277,8 @@ def main():
     ap.add_argument('--note-file', type=Path, help="the commander's own note for this item")
     ap.add_argument('--model', default='Opus 5.5')
     ap.add_argument('--tests', nargs='+', default=[],
-                    help="the lane gate's filters for the word; `coverage::` is added (1623)")
+                    help="the lane gate's filters for the word; `coverage::` is added (1623); "
+                         "a sweep or a reading names none")
     ap.add_argument('--park', help='the park slot letter reserved for the item (parked 1812)')
     ap.add_argument('--no-seams', action='store_true', help='leave out the seams.py print (parked 1743)')
     ap.add_argument('--briefs', type=Path, default=Path(os.environ['CLAUDE_JOB_DIR']) / 'tmp' if os.environ.get('CLAUDE_JOB_DIR') else None,

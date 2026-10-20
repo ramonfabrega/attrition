@@ -259,6 +259,34 @@ Before any reading, in order:
   tree it does not pass** (3037); **a break that spans two lines
   writes `\n` in its OLD and NEW** (3048).
 
+## reading-item
+
+- **You read the never-entered functions your document cites**, by
+  `Class::method@ADDR`: the list under "This item", else `python3
+  tools/census.py --pin --never` and `report.py <log> blind docs/` on
+  the base (DECISIONS 84); one function's claims at a time, committed
+  as they land.
+- **A claim carries its falsifier**: the predicate or the formula, the
+  address it is read at, and the capture that would kill it — the ini
+  category, the frame, the field; one no capture reaches says so.
+- **Claims go in the document's own section**, amended in place, and
+  each is listed reading-only in its coverage section; a new section is
+  named to me first.
+- **No capture, no packet, no emulator run, and no mechanism built from
+  a reading alone**: the decompiler is a reading tool. A `#[test]` only
+  where a claim is a pure predicate pinned without the box.
+- **A function you cite that no trace enters joins `blind::NEVER`**:
+  its address in order, a doc-comment line `**N** with item {item}'s
+  cite of …`; the gate's `blind::` is what moves it.
+- **CLAUDE.md's blind-reading rules hold**: grep the writers of every
+  field you call frozen and the callers of every function you call
+  once-only; a name is settled by the type record; read the loaders,
+  not only the consumers; a local that cannot be right is read off the
+  listing (`llvm-objdump`).
+- **Your gate is `--tests blind:: --no-widen`**, the line under Landing:
+  no widening, no `first_parting`. You move no word: a draw delta and
+  a value diff are a word lane's rows.
+
 ## build
 
 - **Per reading, a killer that tests the claim's own unit and that the

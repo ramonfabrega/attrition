@@ -69,6 +69,11 @@ class TheAlwaysSet(unittest.TestCase):
         # booking gate's second commit. The pin is 0.4 s; every kind runs it.
         for kind in brief.ALWAYS_TESTS:
             self.assertIn('blind::', brief.filters(kind, ['nations::'] if kind != 'sweep' else []), kind)
+        self.assertEqual(set(brief.ALWAYS_TESTS), set(brief.KINDS))
+        # A reading lane (DECISIONS 84) moves no word: its gate is the blind
+        # pin alone, and it names no filter of its own.
+        self.assertEqual(brief.filters('reading', []), ['blind::'])
+        self.assertNotIn('first_parting', brief.filters('reading', []))
 
 
 class TheFrameHoldsTheChecklist(unittest.TestCase):
@@ -100,6 +105,10 @@ class TheFrameHoldsTheChecklist(unittest.TestCase):
         body = brief.sections(brief.FRAME.read_text())
         for kind, names in brief.KINDS.items():
             self.assertLessEqual(sum(len(body[n]) for n in names), brief.FRAME_CEILING, kind)
+        # The reading kind (DECISIONS 84) is one new section on the shared
+        # four, and the section stays a page.
+        self.assertIn('reading', brief.KINDS)
+        self.assertLessEqual(len(body['reading-item']), 1600)
 
     def test_every_kind_s_sections_are_in_the_frame(self):
         have = set(brief.sections(brief.FRAME.read_text()))
@@ -123,6 +132,9 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertIn(' --no-widen`', self.compose(1131, 'sweep', queue=queue, tests=[]))
         self.assertIn(' --no-widen`', self.compose(1131, 'chapter'))
         self.assertNotIn('--no-widen', self.compose(1133))
+        # A reading lane (DECISIONS 84) runs no capture and moves no pin
+        # but the blind list: the fast suite and `blind::`, no widening.
+        self.assertIn('--tests blind:: --no-widen`', self.compose(1131, 'reading', tests=[]))
 
     def test_the_item_is_the_queue_s_own_words(self):
         text = self.compose(1133)
@@ -187,7 +199,7 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertNotIn('issuer chapter', self.compose(1133))
 
     def test_no_placeholder_survives(self):
-        for kind, item in (('residue', 1133), ('chapter', 1131)):
+        for kind, item in (('residue', 1133), ('chapter', 1131), ('reading', 1131)):
             text = self.compose(item, kind)
             self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
             self.assertIn('abc1234', text)
@@ -236,6 +248,26 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertNotIn('The frame and the draw delta are the booking', text)
         self.assertNotIn('## Before any reading', text)
         self.assertIn('the sweep track', text)
+        self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
+
+    def test_a_reading_brief_has_its_section_and_no_capture(self):
+        # DECISIONS 84: a reading lane reads the decompile for the functions
+        # its document cites and no trace enters, and writes claims that
+        # each name their falsifying capture; it takes no capture, no packet
+        # and no emulator run, so its brief carries none of those rows.
+        text = self.compose(1131, 'reading', tests=[], runs=[])
+        self.assertIn('## A reading item', text)
+        self.assertIn('the reading track', text)
+        section = text.split('## A reading item')[1].split('\n## ')[0]
+        for word in ('NEVER', 'reading-only', 'falsif', '--tests blind:: --no-widen', 'loaders'):
+            self.assertIn(word, section)
+        for gone in ('## A capture or a packet', '## Before any reading', '## Reading the original',
+                     '## Build', '## The sweep', '## Seams, read for you', 'waitrun.sh'):
+            self.assertNotIn(gone, text)
+        self.assertNotIn('## Seams, read for you',
+                         self.compose(1131, 'reading', tests=[], runs=[], seams=lambda item: 'SEAM x'))
+        self.assertIn('## Landing', text)
+        self.assertLess(text.index('## A reading item'), text.index('## Landing'))
         self.assertEqual(re.findall(r'\{[a-z]+\}', text), [])
 
     def test_a_sweep_brief_names_the_other_sweep_lane_s_worktree_for_claims(self):
