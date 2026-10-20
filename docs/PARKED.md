@@ -3837,6 +3837,11 @@ gate exited 1 with `isolated_tests.py`'s 137 and no test failed. The scoped gate
 passed on the same tranche's merges. The sweeps added this tranche (`unit_think`, `do_repair`, 12000 rows each) are
 the likeliest growth. Candidates: the `sim` lib's limit sized from its measured row, as the other targets'
 reservation already is; or the 12000-row sweeps moved to their own `sweep_*` target. The pass's. One reach.
+**Second red, and Ramon's word** (2026-10-20): the re-run on `163e8d89` was stopped again (RSS 4262 MiB), and the
+same tree at `--test-threads 4` is green, 6 of 6, release 20.9 minutes. So no test fails; the cap is the whole of
+it. Until the fix lands, this tranche's whole gates run at four threads. Ramon: fixed by the next steer — the
+whole gate back at four threads, the footprint worked down (a few ugly tests, likely), or the cap raised a little,
+since every kill has landed just over it.
 
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
