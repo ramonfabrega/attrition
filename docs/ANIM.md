@@ -2498,3 +2498,39 @@ trace, and `1/77`'s figures on block 19414
 test*: `a_walker_that_boards_its_boat_moves_its_figures_that_frame`,
 made to fail on the aircraft-only gate. *Decompile-backed*: the entry's
 single `inside_up` test and the figure loops after `+0x188`.
+
+## 16. A moving figure on a turn slot is put back on the walk (item 3360, 2026-10-20)
+
+`Guy::move@005d9240`'s moving arm (the body is off its destination,
+`:176`–`181`) asks for the walk under a gate of three terms and nothing
+else. The listing `5d9565`–`5d958a`: the plane bit (`guy_flags & 0x40`),
+then `unit_flags2 & 4` and `unit_masks & 0x80000` (the pack pair,
+`docs/COMBAT.md` §58.2), then `set_anim(esi, 0, 1)`, where `esi` is the
+walk the arm chose (`CHAR_WALK`, a carrying walk, or `CHAR_ATTACKWALK`).
+**`cur_anim` is not read.** A figure holding `CHAR_TURN_LEFT` or
+`CHAR_TURN_RIGHT` is put on the walk like any other, and `set_anim`'s
+walk arm has no same-category return for it (a turn slot is not the walk
+category). Only the standing arms, `:85` and `:92`, spare slots 21 and 22.
+
+So a turn asked for earlier in the frame never survives a frame the body
+moves. The case that showed it is a push. A pushed unit's guy 0 is turned
+by `detect_boat_collision` → `turn_angles` → `do_turn`, which asks for
+`CHAR_TURN_*` while `guy_flags & 8` is set, and `Guy::move` then runs on a
+body still moving and puts it back on `CHAR_WALK`. The turn plays the
+first frame the body stands. The Inca word's Trebuchet `1/118` on run987b:
+theirs holds 8 on 16512..16516 with `last_speed` falling 26 → 5 and the
+angle trailing `des_angle`, and plays 22 on 16517 (`last_speed 0`).
+
+`Sim::guy_follow_anim`'s moving arm spared both turn slots and
+`CHAR_ATTACKWALK` from its first writing (2026-08-24). The turn slots are
+taken out of it. `CHAR_ATTACKWALK` stays as a stand-in: the original asks
+for it again here when `cavarch_o >= 0` and the type's `0x200000` are
+set, which `Sim::walk_for` does not model, and sparing the slot is what
+asking for it again keeps.
+
+**Coverage.** *Diff-backed*: `1/118`'s `g.cur_anim[0]` on run987b's 16512
+(`run987b_s_word_frame_is_widened_whole`) and the Inca word to 24000.
+*Listing-backed*: the gate. *Unit test*:
+`a_moving_figure_on_a_turn_slot_is_put_back_on_the_walk`, made to fail
+on the old exemption. **Not established**: the `CHAR_ATTACKWALK` request
+(above); no capture has a unit stepping with a target.

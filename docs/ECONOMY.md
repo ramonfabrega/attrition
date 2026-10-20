@@ -660,7 +660,11 @@ own — the Inca earn `gatherers * INCA_WEALTH_PER_MINER * 16` of wealth per
 mine, when that constant is positive. When it is *negative*, a separate branch
 back in `Leader::calc_gather` instead adds the player's whole metal rate to
 their wealth rate, which is a strange enough way to spell "the Inca sell their
-metal" that it is recorded here rather than explained.
+metal" that it is recorded here rather than explained. The positive arm is
+modelled (`economy::Site::miner_wealth`, the gatherers after the mine's cap,
+outside the enhancer; item 3360, `docs/AI.md` §281) and diff-backed on run987's
+block 7776 (who=1's `income[2:wealth]` 912 on both sides); the negative arm is
+dead at the shipped 10 and not modelled.
 
 The flat branch is also the only one that does not bound gatherers by slots:
 it adds `per × n` for whatever `n` it was handed, where the mine, woodcutter
