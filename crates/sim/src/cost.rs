@@ -474,6 +474,10 @@ pub struct Research {
     /// `535`, after that block's close; item 3329): its own `(100 − x) ×
     /// cost / 100` after it.
     pub dutch_ship: i32,
+    /// `AMERICANS_UPGRADE_DISCOUNT` for an American leader's land unit of a
+    /// military role (`get_cost:528`–`531`, the step before the Dutch
+    /// arm's; item 3374): its own `(100 − x) × cost / 100`.
+    pub american_land: i32,
 }
 
 /// The count after the progression has shaped it.
@@ -651,6 +655,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
         cost += rs.refit[r.index()];
         if rs.discount != 0 {
             cost = ((100 - rs.discount) * cost / 100).max(0);
+        }
+        if rs.american_land != 0 {
+            cost = (100 - rs.american_land) * cost / 100;
         }
         if rs.dutch_ship != 0 {
             cost = (100 - rs.dutch_ship) * cost / 100;
@@ -1732,6 +1739,34 @@ mod tests {
         let plain = price(0);
         assert!(plain > 0);
         assert_eq!(price(T.dutch_ship_discount), (100 - 10) * plain / 100);
+    }
+
+    /// `get_cost:528`: an American land-unit upgrade loses
+    /// `AMERICANS_UPGRADE_DISCOUNT` percent in a truncating step after the
+    /// Military discount, before the Dutch arm's (item 3374).
+    #[test]
+    fn an_american_land_upgrade_costs_a_quarter_less() {
+        let upgrade = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Food, 8)
+        };
+        let price = |american_land: i32| {
+            let m = Modifiers {
+                research: Some(Research {
+                    premium_cost: 256,
+                    american_land,
+                    ..Research::default()
+                }),
+                ..Modifiers::default()
+            };
+            cost_of(&T, &upgrade, Resource::Food, owned(0), &m)
+        };
+        let plain = price(0);
+        assert!(plain > 0);
+        assert_eq!(
+            price(T.americans_upgrade_discount),
+            (100 - 25) * plain / 100
+        );
     }
 
     #[test]

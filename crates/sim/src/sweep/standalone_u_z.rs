@@ -72,6 +72,14 @@ mod unit_cavarch_fight;
 mod unit_cavarch_fight_written;
 #[path = "unit_change_target.rs"]
 mod unit_change_target;
+#[path = "unit_check_build_order.rs"]
+mod unit_check_build_order;
+#[path = "unit_check_build_order_crowd.rs"]
+mod unit_check_build_order_crowd;
+#[path = "unit_check_build_order_deep.rs"]
+mod unit_check_build_order_deep;
+#[path = "unit_check_build_order_move.rs"]
+mod unit_check_build_order_move;
 #[path = "unit_check_idle.rs"]
 mod unit_check_idle;
 #[path = "unit_check_target_path.rs"]
@@ -220,6 +228,8 @@ mod unit_do_spec_unit_anim;
 mod unit_end_trade_route;
 #[path = "unit_execute_events.rs"]
 mod unit_execute_events;
+#[path = "unit_find_build_spot.rs"]
+mod unit_find_build_spot;
 #[path = "unit_find_garrison_build.rs"]
 mod unit_find_garrison_build;
 #[path = "unit_find_gather_spot.rs"]
@@ -296,6 +306,8 @@ mod unit_set_new_location;
 mod unit_set_rally;
 #[path = "unit_set_type.rs"]
 mod unit_set_type;
+#[path = "unit_suffer_attrition.rs"]
+mod unit_suffer_attrition;
 #[path = "unit_supplies_left.rs"]
 mod unit_supplies_left;
 #[path = "unit_target_opportunity.rs"]

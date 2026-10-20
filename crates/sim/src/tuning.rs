@@ -968,6 +968,11 @@ pub struct Tuning {
     /// upgrade, `TypeData::get_cost@00664090:530`–`533` (the research arm,
     /// inside the Military-level discount's block).
     pub dutch_ship_discount: i32,
+    /// `AMERICANS_UPGRADE_DISCOUNT` — percentage off an American leader's
+    /// land-unit upgrade (`UnitTypeData +0x218 == 0`),
+    /// `TypeData::get_cost@00664090:528`–`531`: the Dutch arm's twin, the
+    /// step before it (item 3374).
+    pub americans_upgrade_discount: i32,
     /// `WOOL_CITIZENS_COST` — percentage off a Citizen for a player holding
     /// Wool, `TypeData::get_cost@00664090` (the Citizen arms of the pre-ramp tail, both arms).
     pub wool_citizens_cost: i32,
@@ -1566,6 +1571,7 @@ impl Tuning {
         roman_legion_cheap: 10,
         roman_legion_fast: 10,
         dutch_ship_discount: 10,
+        americans_upgrade_discount: 25,
         wool_citizens_cost: 15,
         turk_citizen: 33,
         chinese_citizen_creation: 100,
@@ -2348,6 +2354,10 @@ impl Tuning {
             ("ROMAN_LEGION_CHEAP", Slot::Value(T.roman_legion_cheap)),
             ("ROMAN_LEGION_FAST", Slot::Value(T.roman_legion_fast)),
             ("DUTCH_SHIP_DISCOUNT", Slot::Value(T.dutch_ship_discount)),
+            (
+                "AMERICANS_UPGRADE_DISCOUNT",
+                Slot::Value(T.americans_upgrade_discount),
+            ),
             ("WOOL_CITIZENS_COST", Slot::Value(T.wool_citizens_cost)),
             ("TURK_CITIZEN", Slot::Value(T.turk_citizen)),
             (

@@ -494,6 +494,25 @@ class Shapes(unittest.TestCase):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
                                        stubs=['0x402000:1', '0x403000:1'], stub_write=[bad])
 
+    def test_an_import_stub_may_allocate(self):
+        # Item 3372 (parked 3282b, 3339a, 3348b/c): a stack-resident `SimpleArray`
+        # grows through `malloc` (`call [0xac54f0]`), an import the emulator
+        # resolves to nothing, so a plain stub answered a random pointer and two
+        # calls could share a buffer. `--stub-alloc IDX` answers a fresh address
+        # of the bump heap a call.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=3372, win=0x40, bias=[], own=0, ret='none',
+            stubs=['iat:0xac54f0:1'], stub_cdecl=['0'], stub_alloc=['0'])
+        compile(script, str(sp), 'exec')
+        self.assertIn('STUBALLOC = [0]', script)
+        self.assertIn('h.alloc(', script)
+        self.assertIn('stub 0 answers a fresh bump-heap address', test)
+        # IDX names a callee or import of at least one argument
+        for stubs, bad in ((['iat:0xac54f0:1'], '1'), (['iat:0xac54f0:1'], 'x'), (['0x402000:0'], '0')):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
+                                       stubs=stubs, stub_cdecl=[], stub_alloc=[bad])
+
     def test_a_cdecl_stub_may_copy(self):
         # Item 2921 (parked 2906): `memcpy` and `memcmp` are import thunks
         # (`jmp [0xac5428]`); a stub of one copied nothing, so the string

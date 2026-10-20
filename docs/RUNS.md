@@ -20156,3 +20156,89 @@ Pool lane 1, launched 06:43:18, exited 06:44:58; 13767 frames, 13767 identical t
 851 MB, `~/ron-golden/run1001d/map-7/frame-snapshot.bin`. **What it holds**: piece 1531's three attack `AttachPos`
 rows (`launch::BAYS`) and piece 1546's nine (`pivot::RELEASES`, `pivot::NODES`), read and swept by
 `tools/recomp/get_position.py`; the sweeps are under `~/ron-data/lab-experiments/2026-10-20-item-3375/`.
+## run998 — the battery's replacement lobby: East Indies, the Aztecs at difficulty 1, a `DUMP_ALL` start (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. **What the disk could not answer**: no dump holds an Aztec game on East Indies — the Aztecs' only
+games are Great Sahara 2 and 5 (a header survey of 554 gamelogs). Entry 72's rule (2) as amended by 84: of the
+nations held only by closed games off East Indies the Iroquois were att-3369's (run994), and the Aztecs and Greeks
+tie on the census's reach (7); the Aztecs' lobby moves both map and tier (item 3367's tie-break). Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run998`: `--map 18 --end-frame 36 --timeout 1200
+--dump-all-start --ai-tribe 0 --profile DIFFICULTY=1`.
+- Pool lane 1. Launched 05:39:07, exited 05:47:25. `success`, 37 frames.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run998-eastindies-aztec-diff1-start.txt`, 153,128,123 bytes,
+SHA-256 `cdc63757d72ab3b4a000264642508fc276f0eece28ffc108b8225e668b4c2704`.
+
+Archive `rontrace-run998.log`, 9,810,976 bytes,
+SHA-256 `045fcc4705256ce7e539c11ee568317faf9715e6fae29429b9eecf68397548a0`.
+
+## run998b — the Aztecs at East Indies 1: the draw stream to 24000 (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. run986b's recipe with `--ai-tribe 0 --profile DIFFICULTY=1`.
+- Pool lane 2. Launched 05:39:35 (a retake 4 s after a first take exited 5), exited 05:42:16. `success`, 24001
+  frames, `ended_early` false: the game runs to 24000. `rngcmp.py` run998 vs run998b: **37 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run998b-eastindies-aztec-diff1-24k-trace.txt`, 13,384,677 bytes,
+SHA-256 `38c5ee85c093eef550581a3b65b9bcb1e9b031e800c8c8d5f2b6b2d58d665dd8`.
+
+Archive `rontrace-run998b.log`, 169,956,832 bytes,
+SHA-256 `79f4266bbf6f433b13446bb177d36aeae0dc4aa17188ed03ecd78798971349b5`.
+
+**What it holds**: the battery's `EastIndiesAztecTier1`, **24000 / 24000** on its first try, pinned in
+`battery::BATTERY`.
+
+## run999 — the American word: the word 9382's window, blocks 9376..9632 at `LEADERS=9` (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. **What the disk could not answer**: run955 dumps blocks 0..36 and run955b its setup and closing
+blocks only, so no dump held who=1's ledger on the word's block. `--map 18 --end-frame 9637 --timeout 5400
+--log-window 9376 9632 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 20 --cover
+cover=0 --profile DIFFICULTY=1`.
+- Pool lane 3. Launched 05:44:52, exited 06:03:29. `success`, 9638 frames; `rngcmp.py` vs run955b: 9638 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run999-eastindies-american-diff1-window-9376-9633-leaders.txt`, 531,160,272 bytes,
+SHA-256 `587f18ac7db62bcdad2ccb659444494a0dd2525fbddae6ead63f25ac3d137dbf`.
+
+Archive `rontrace-run999.log`, 40,897,024 bytes,
+SHA-256 `6b483b1f909eb4b9deda0a76bc4b07ca87fa1fd70d819d31fcb974d7649cd7a1`.
+
+**What it holds**: `run999_s_word_frame_is_widened_whole` — 601 keys on the first try (who=1's `bucket[0:food]`
+87 against 107 and `bucket[4:metal]` 158 against 178 on block 9376, income agreeing), 51 after the American
+land-upgrade arm.
+
+## run999b — the American word: the word 10982's window, blocks 10976..11232 at `LEADERS=9` (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. **What the disk could not answer**: run999 closes on 9632, and nothing else holds who=1's ledger
+or make list past it. run999's recipe with `--end-frame 11237 --log-window 10976 11232`.
+- Pool lane 1. Launched 06:09:12, exited 06:31:32. `success`, 11238 frames; `rngcmp.py` vs run955b: 11238
+  identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run999b-eastindies-american-diff1-window-10976-11233-leaders.txt`, 543,605,456 bytes,
+SHA-256 `eaa30be1c053a9677b6fe0ea5f837dfb24a00642adf9be57ca945e62c4bc9e3f`.
+
+Archive `rontrace-run999b.log`, 52,203,904 bytes,
+SHA-256 `3dfb9b05a520d6c7ff7028e52d2bc943ed820cd7e2be32c17c83d8259a194ae0`.
+
+**What it holds**: on block 10983 theirs queues Republic (`num_queued[624]`) and a Dock (`num_queued[432]`) and pays
+only the Dock's timber; `run999b_s_word_frame_is_widened_whole` — 575 keys before the government arm, 55 after.
+
+## run999c — the American word: the word 17215's window, blocks 17209..17465 at `LEADERS=9` (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. **What the disk could not answer**: run999b closes on 11232, and run955b holds no unit or
+building between its setup and closing blocks. run999's recipe with `--end-frame 17470 --timeout 7200 --log-window
+17209 17465`.
+- Pool lane 3. Launched through the driver at 06:19:39, the pool's lane taken at 06:26:25, exited 06:47:24.
+  `success`, 17471 frames; `rngcmp.py` vs run955b: 17471 identical.
+- Minutes waited on another lane: 7 (all three lanes held, two by att-3375).
+
+Archive `gamelog-run999c-eastindies-american-diff1-window-17209-17466-leaders.txt`, 573,318,729 bytes,
+SHA-256 `4b7db29a261d60a2d3e6460a779fc11e1d05e52cf546eade88008a14acb1e379`.
+
+Archive `rontrace-run999c.log`, 92,177,760 bytes,
+SHA-256 `507c3e1f85fc6c99544794c461a60ec1e436a50a9deb7b34dc2dedce75adaeea`.
+
+**What it holds**: who=1's Pyramids `1/2031` at `construct_hits` 2200 on block 17209 (ours 1101), finished on 17214;
+`run999c_s_word_frame_is_widened_whole` — 879 keys before the free first wonder, 50 after.

@@ -62,6 +62,7 @@ pub mod bhs;
 pub mod border_pass;
 pub mod bribe;
 pub mod build;
+pub mod build_spot_view;
 pub mod calc_gather;
 pub mod capture;
 pub mod capture_view;
@@ -72,6 +73,7 @@ pub mod cast_decoy;
 pub mod cast_transport;
 pub mod castable;
 pub mod cavarch;
+pub mod check_build_view;
 pub mod city;
 pub mod collide;
 pub mod combat;
@@ -88,6 +90,7 @@ pub mod economy;
 pub mod eject;
 pub mod farms;
 pub mod fight;
+pub mod finish_insert_view;
 pub mod fish;
 pub mod flag_reads;
 pub mod flock;
@@ -120,12 +123,14 @@ pub mod plunder;
 pub mod production;
 pub mod rally;
 pub mod rares;
+pub mod remove_inside_view;
 pub mod roads;
 pub mod scout;
 pub mod single;
 pub mod site_recruit;
 pub mod spellcaster;
 pub mod stance;
+pub mod suffer_view;
 pub mod supply;
 pub mod swarm;
 pub mod target_gate;
@@ -2017,42 +2022,26 @@ impl Sim {
     /// `Object::insert_inside@00647e90` (`delta` 1) and
     /// `remove_from_inside@006480f0` (−1): a captain going into or out of a
     /// building moves one of the leader's garrison counts — a peasant, else
-    /// a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout bit)
-    /// — and with `LAKOTA_FOOD` set a Lakota leader's `0x2000000`
-    /// (`docs/AI.md` §219). The chain's fourth arm, `barracks_garr` for a
-    /// Barracks type (`0x1ab`), feeds only the Americans' term, which is not
-    /// built, and is not kept.
+    /// a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout bit),
+    /// else a Barracks type (`0x1ab`) — and with `LAKOTA_FOOD` set a Lakota
+    /// leader's `0x2000000` (`docs/AI.md` §219).
     ///
-    /// SEAM: the gate's `unit_masks & 1` is not read.
+    /// The −1 is [`remove_inside_view::remove_from_inside_steps`] itself, the
+    /// whole function swept under the emulator (item 3372); the +1 is its
+    /// tail alone, [`remove_inside_view::garrison_tail`] behind the captain
+    /// test — `insert_inside` is not swept.
+    ///
+    /// SEAM: the gate's `unit_masks & 1` is not read, nor the container's
+    /// slot `0x20`; the Americans' `AMERICANS_BARRACKS_GATHER` is not in the
+    /// tuning, so the Barracks arm counts (`barracks_garr`) and raises
+    /// nothing.
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
-        let unit = &self.units[u];
-        let who = unit.owner;
-        let Some(t) = unit.ty else { return };
-        if !unit.captain {
-            return;
-        }
-        let trainer = self.trainer_ident(t);
-        let census = &mut self.ai[who as usize].census;
-        let lakota_count = if matches!(self.unit_types[t].worker, orders::Worker::Citizen) {
-            census.peasants_garr += delta;
-            true
-        } else if trainer == Some(build::Ident::Stable) {
-            census.stable_garr += delta;
-            true
-        } else if self.unit_types[t].cols.flag2(ai_load::uflags2::SCOUT) {
-            // `UnitData::is_special@0046cea0`: `unit_flags2 & 0x10`, the
-            // land scout line alone — a Bark (the role word's other `0x10`)
-            // is not one, and a Bark born at a dock raises nothing.
-            census.scout_garr += delta;
-            true
-        } else {
-            false
-        };
-        if lakota_count
-            && self.nation.get(who as usize).is_some_and(|n| n.lakota)
-            && self.tuning.lakota_food != 0
-        {
-            self.economy_changed(who);
+        use remove_inside_view::{RemoveInsideView, SimRemoveInside};
+        let mut view = SimRemoveInside { sim: self, unit: u };
+        if delta < 0 {
+            remove_inside_view::remove_from_inside_steps(&mut view);
+        } else if view.is_captain() {
+            remove_inside_view::garrison_tail(&mut view, delta);
         }
     }
 
@@ -2850,6 +2839,7 @@ impl Sim {
         }
         let mut discount = 0;
         let mut dutch_ship = 0;
+        let mut american_land = 0;
         if self.role_word_of_rec(ty) & ai_load::role::MILITARY != 0 {
             let ahead = self.tech[w].epoch[tech::Line::Military.index()]
                 - self.tech_tree.military_level_in(&self.setup, t);
@@ -2863,13 +2853,25 @@ impl Sim {
             // `get_cost:532`–`535` is after the Military block's close, so
             // a Dutch ship's research pays it whether or not the line is
             // ahead (item 3329: run963b's Dromon at the dock, 54 against
-            // 60, on block 5783). The Americans' land arm beside it
-            // (`AMERICANS_UPGRADE_DISCOUNT`, `0x14`) is not modelled.
+            // 60, on block 5783). The Americans' land arm is the step before
+            // it (`get_cost:528`–`531`, `has_tribe_bonus(0x14)` and `+0x218
+            // == 0`; item 3374: run999's who=1 held 20 food and 20 metal more
+            // than ours on block 9376, a quarter of an 80-and-80 upgrade).
+            if self.unit_types[ty].combat.domain == attrition::Domain::Land
+                && self.tech_tree.has_tribe_bonus(
+                    &self.setup,
+                    &self.tech[w],
+                    crate::ai::tribe::AMERICANS,
+                )
+            {
+                american_land = self.tuning.americans_upgrade_discount;
+            }
             if self.nation[w].dutch && self.unit_types[ty].combat.domain == attrition::Domain::Sea {
                 dutch_ship = self.tuning.dutch_ship_discount;
             }
         }
         Some(cost::Research {
+            american_land,
             dutch_ship,
             wine: if self.has_rare(who, economy::WINE) {
                 self.tuning.wine_unit_upgrades
@@ -3250,6 +3252,21 @@ impl Sim {
     /// no ramp, so it rides [`cost::Modifiers::late_discount`], the same
     /// expression at the same place (`docs/AI.md` §74).
     pub fn tech_price(&self, who: Player, t: tech::TypeId) -> [i32; economy::RESOURCES] {
+        // `get_cost:1048`–`1053`, right after `TECH_COST_FACTOR`: a
+        // government (`TypeData::is_gov_type`, `0x26f..0x274`) costs an
+        // American leader (`has_tribe_bonus(0x14)`) nothing, and every later
+        // step is a percentage of that zero (item 3374: run999b's who=1
+        // queues Republic and a Dock on 10982 and pays only the Dock's
+        // timber).
+        if matches!(self.tech_tree.types[t].kind, tech::Kind::Gov { .. })
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[who as usize],
+                crate::ai::tribe::AMERICANS,
+            )
+        {
+            return [0; economy::RESOURCES];
+        }
         let holdings = &self.holdings[who as usize];
         let (rare_goods, gypsum) = self.rare_goods_discounts(who);
         let british_taxation = self.tech_tree.roles.taxation_line.contains(&t)
@@ -6728,48 +6745,22 @@ impl Sim {
     /// period's bleed above and a detected decoy's
     /// ([`Sim::recover_mana`]). Its argument gates the graphic alone.
     pub(crate) fn suffer_attrition(&mut self, i: usize, frame: i64) -> Tick {
-        // The damage is sixteenths of a hit point per figure, carried through
-        // a fractional accumulator the way `Object::take_damage` carries it,
-        // so a lone figure loses one whole point a tick and a figure in a
-        // squad of four loses one every fourth tick.
-        //
-        // **The squad is counted, not stored** (item 552):
-        // `Unit::suffer_attrition` asks `curr_uber_size`, which walks up to
-        // the captain and counts down the chain. [`Unit::squad_size`] is a
-        // field nothing maintains — 1 on every unit `init_unit` makes — so
-        // chapter four's hoplites took a whole point a tick against the
-        // original's 6/16 until this read the chain.
-        let sixteenths = attrition::damage(self.curr_uber_size(i));
-        // **A figure falls at its share of the squad's hit points** — the same
-        // threshold `Object::take_damage` applies to a combat hit
-        // (`docs/COMBAT.md` §7.2 step 8): a Hoplite squad of three at 120
-        // hits falls at 40, not at 120 (`docs/GOLDEN.md` §135, run936: `0/12`
-        // dies on 2544 at its fortieth point).
-        let (uber, alone) = {
-            let u = &self.units[i];
-            (
-                self.profile(combat::Obj::Unit(i)).uber_size,
-                u.combat.captain == i32::from(u.index) && u.squad_size == 1,
-            )
+        // The walk is [`suffer_view::suffer_attrition_steps`], the swept one
+        // (item 3372): the damage is sixteenths of a hit point per figure,
+        // carried through a fractional accumulator the way
+        // `Object::take_damage` carries it (a lone figure loses one whole
+        // point a tick, a figure in a squad of four one every fourth tick),
+        // **and the squad is counted, not stored** (item 552): the view asks
+        // `curr_uber_size`, which walks up to the captain and counts down the
+        // chain, and a figure falls at its share of the squad's hit points
+        // (`docs/COMBAT.md` §7.2 step 8, `docs/GOLDEN.md` §135, run936).
+        let mut view = suffer_view::SimSuffer {
+            sim: self,
+            unit: i,
+            outcome: None,
         };
-        let unit = &mut self.units[i];
-        let share = combat::share(unit.max_health, uber, alone);
-        let (taken, _, frac) = combat::take(
-            unit.max_health - unit.health,
-            unit.damage_frac,
-            share,
-            combat::Sixteenths {
-                whole: sixteenths / 16,
-                frac: sixteenths % 16,
-            },
-        );
-        let (combat::Taken::Alive { lost } | combat::Taken::Died { lost, .. }) = taken;
-        unit.damage_frac = frac;
-        unit.health -= lost;
-        let killed = matches!(taken, combat::Taken::Died { .. });
-        if killed {
-            unit.health = unit.health.min(0);
-        }
+        let killed = suffer_view::suffer_attrition_steps(&mut view, false);
+        let (sixteenths, lost, _) = view.outcome.expect("the hurt call is always made");
         if killed {
             // `Object::take_damage`'s `die` with `dtype` 1 — the whole combat
             // tail, `Unit::close`'s draw and orders and the thirty-frame hold
