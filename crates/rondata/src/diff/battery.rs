@@ -147,6 +147,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Spanish being item 3367's, promoted to the AI word (item 3369,
     // DECISIONS 72, 83, 84): the Dutch at Difficulty 3, Great Sahara.
     (7, 22, 3),
+    // The battery's lowest open lobby on the measure of `ac79accd`, the
+    // Americans being item 3374's, promoted to the AI word (item 3375,
+    // DECISIONS 72, 83, 84): the Iroquois at Difficulty 3, Great Sahara.
+    (7, 18, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -326,32 +330,10 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // run990b, 311 of 16109), minted by item 3365 under rule (2), left the
     // battery on item 3369 for the AI word (`diff::dutch_sahara_word`,
     // DECISIONS 72, 83, 84).
-    // The lobby minted by item 3369 (DECISIONS 72 as amended by 84, rule
-    // (2); `docs/AI.md` §285; runs 994 and 994b) when the Dutch left for
-    // the AI word, so the held-out set stays eight: Great Sahara, the
-    // Iroquois at Difficulty 3 — no map-7 dump held the Iroquois, who are
-    // held only by a closed game on another map (`GreatLakesIroquoisTier3`)
-    // and tie the Germans on the census's reach (8, `docs/NATIONS.md`); the
-    // tie goes to the shorter closed game by item 3347's precedent (12658
-    // against the Germans' 13519, so theirs are the later-age arms no trace
-    // has run), at the tier the Dutch leave. The game ends itself on 16371.
-    Lobby {
-        name: "GreatSaharaIroquoisTier3",
-        map_style: 7,
-        ai_tribe: 18,
-        difficulty: 3,
-        start: "gamelog-run994-greatsahara-iroquois-diff3-start.txt",
-        long: (
-            "gamelog-run994b-greatsahara-iroquois-diff3-24k-trace.txt",
-            "rontrace-run994b.log",
-        ),
-        length: 16371,
-        // Item 3369, the first try: ours 13 draws, theirs 11, at 1: ours
-        // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
-        // `GameAccess::rnd+0x20 < Unit::do_job+0x67`.
-        count: 13757,
-        sequence: 13757,
-    },
+    // `GreatSaharaIroquoisTier3` (Iroquois 18, Difficulty 3, map 7; run994
+    // and run994b, 13757 of 16371), minted by item 3369 under rule (2), left
+    // the battery on item 3375 for the AI word
+    // (`diff::iroquois_sahara_word`, DECISIONS 72, 83, 84).
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on
     // item 3335 for the AI word (`diff::indian_word`, DECISIONS 72, 83).
