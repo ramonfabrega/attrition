@@ -1415,6 +1415,48 @@ fn two_builders_are_one_and_a_half_builders() {
     );
 }
 
+/// `Object::disband(full)` through [`crate::disband::disband_steps`] (item
+/// 3346): a full disband returns the whole price; a finished building
+/// disbanded part-way returns nothing; and a Lakota owner's raze makes the
+/// part-way one full (`LAKOTA_RAZE_PRICE != 0`).
+#[test]
+fn a_full_disband_returns_the_price_and_a_lakota_raze_makes_every_disband_full() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let pos = tile_pos(32, 32);
+    let b = sim.place_building(0, t.village, pos).unwrap();
+    let price = sim.building_price(0, t.village);
+    assert!(price.iter().any(|&p| p > 0));
+    let before = sim.ledgers[0].bucket;
+    sim.disband_building(b, true);
+    for g in 0..price.len() {
+        assert_eq!(sim.ledgers[0].bucket[g] - before[g], price[g], "good {g}");
+    }
+    let b = sim.place_building(0, t.village, pos).unwrap();
+    finish(&mut sim, b);
+    let before = sim.ledgers[0].bucket;
+    sim.disband_building(b, false);
+    assert!(!sim.buildings[b].alive);
+    assert_eq!(
+        sim.ledgers[0].bucket, before,
+        "a finished building: nothing"
+    );
+    let b = sim.place_building(0, t.village, pos).unwrap();
+    finish(&mut sim, b);
+    sim.nation[0].lakota = true;
+    sim.tuning.lakota_raze_price = 1;
+    let price = sim.building_price(0, t.village);
+    let before = sim.ledgers[0].bucket;
+    sim.disband_building(b, false);
+    for g in 0..price.len() {
+        assert_eq!(
+            sim.ledgers[0].bucket[g] - before[g],
+            price[g],
+            "raze, good {g}"
+        );
+    }
+}
+
 #[test]
 fn a_nomads_first_city_takes_three_times_as_long_and_is_refunded_by_what_is_left() {
     let mut sim = world_sim();
