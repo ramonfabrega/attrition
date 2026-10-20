@@ -10,6 +10,7 @@
 //! garrison `garrison.rs`'s.
 
 use crate::build::{self, Ident, flags};
+use crate::capture_view::{Head, SimCapture, capture_city_steps};
 use crate::combat::Obj;
 use crate::cost;
 use crate::economy::RESOURCES;
@@ -3109,57 +3110,35 @@ impl Sim {
         if !self.cities[c].alive {
             return None;
         }
-        let old_building = self.cities[c].building;
         let was_capital = self.cities[c].capital;
-        self.city_tally[o as usize].lost += 1;
-        self.city_tally[a as usize].captured += 1;
-        let mut base;
-        let mut to_close: Vec<usize> = vec![old_building];
-        let newcity = match self.swap_team(old_building, a) {
-            None => {
-                base = 0;
-                for m in self.cities[c].members.clone() {
-                    if self.buildings[m]
-                        .ty
-                        .is_some_and(|t| !self.build_types[t].has(flags::NO_CITY))
-                    {
-                        to_close.push(m);
-                        base += 25;
-                    }
-                }
-                None
-            }
-            Some(n) => {
-                self.activate(n, true, false);
-                let newcity = self.buildings[n]
-                    .city
-                    .expect("a city building activates with a record");
-                base = self.tuning.city_plunder_per_level * (self.city_level_of(newcity) - 1);
-                self.city_capture_record(newcity, c, a, n);
-                self.armies_update_city(Obj::Building(old_building), Obj::Building(n), a);
-                for m in self.cities[c].members.clone() {
-                    let Some(t) = self.buildings[m].ty else {
-                        continue;
-                    };
-                    if self.build_types[t].has(flags::NOT_CIVILIAN) {
-                        continue;
-                    }
-                    to_close.push(m);
-                    let farmish = matches!(self.build_types[t].ident, Ident::Farm | Ident::Granary);
-                    if farmish && self.nation[a as usize].lakota {
-                        continue;
-                    }
-                    if self.buildings[m].active
-                        && let Some(nm) = self.swap_team(m, a)
-                    {
-                        self.activate(nm, true, false);
-                        base += 25;
-                    }
-                }
-                self.find_buildings(newcity);
-                Some(newcity)
-            }
+        // The head — entry to `City::find_buildings` — is
+        // `capture_view::capture_city_steps`, swept against the original
+        // (item 3362); the failed-swap arm below is not.
+        let (head, to_close) = {
+            let members = self.cities[c].members.clone();
+            let mut view = SimCapture {
+                sim: self,
+                members,
+                to_close: Vec::new(),
+                masks: Vec::new(),
+            };
+            let head = capture_city_steps(&mut view, a, c, o);
+            (head, view.to_close)
         };
+        let Head { newcity, mut base } = head;
+        let mut to_close: Vec<usize> = to_close;
+        if newcity.is_none() {
+            base = 0;
+            for m in self.cities[c].members.clone() {
+                if self.buildings[m]
+                    .ty
+                    .is_some_and(|t| !self.build_types[t].has(flags::NO_CITY))
+                {
+                    to_close.push(m);
+                    base += 25;
+                }
+            }
+        }
         self.plunder_on_capture(a, o, c, base, was_capital);
         for b in to_close {
             if self.buildings[b].alive {
@@ -3196,7 +3175,7 @@ impl Sim {
     }
 
     /// `City::capture(new, old, c, A, o)`: the record hand-over.
-    fn city_capture_record(&mut self, newcity: usize, old: usize, a: Player, n: usize) {
+    pub(crate) fn city_capture_record(&mut self, newcity: usize, old: usize, a: Player, n: usize) {
         let o = self.cities[old].owner;
         let oldc = self.cities[old].clone();
         let friendly = o == a || self.is_ally(a, o);

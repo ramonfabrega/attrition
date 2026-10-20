@@ -398,6 +398,8 @@ mod categories_find_key;
 mod circle_render_get_name;
 #[path = "circle_render_on_field_change.rs"]
 mod circle_render_on_field_change;
+#[path = "cities_capture_city.rs"]
+mod cities_capture_city;
 #[path = "city_assimilate.rs"]
 mod city_assimilate;
 #[path = "city_calc_gather.rs"]

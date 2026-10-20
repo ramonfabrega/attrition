@@ -61,6 +61,7 @@ pub mod border_pass;
 pub mod bribe;
 pub mod build;
 pub mod calc_gather;
+pub mod capture_view;
 pub mod caravan;
 pub mod carry_civ;
 pub mod cast;
