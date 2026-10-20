@@ -464,8 +464,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     let (w, h) = (rd(&self.c[2], 0), rd(&self.c[2], 4));
                     let spiral = shipped_spiral();
                     let mut hit = false;
-                    for i in 0..=limit as usize {
-                        let (cxx, cyy) = (ccx + spiral[i].0, ccy + spiral[i].1);
+                    for &(sx, sy) in spiral.iter().take(limit as usize + 1) {
+                        let (cxx, cyy) = (ccx + sx, ccy + sy);
                         if cxx < 0 || cyy < 0 || cxx >= w || cyy >= h {
                             continue;
                         }
