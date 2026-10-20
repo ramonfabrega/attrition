@@ -9922,3 +9922,17 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   run985b  run985's line   (the packet)
 # Checks: `rngcmp.py` run977b vs run985b -> 16765 identical.
 # ==== TAKEN 2026-10-19, two takes, 22:47-22:50, pool lane 1 ====
+# ==== item 3361: the Aztec word, its battery replacement and its windows (`docs/AI.md` §282; `docs/RUNS.md` run988..run989d) ====
+#   run988   --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 19 --profile DIFFICULTY=2   (Great Sahara, Lakota; start)
+#   run988b  run895b's line with --ai-tribe 19   (the Lakota's draw stream, 24001 frames)
+#   run989   --map 7 --end-frame 9385 --timeout 5400 --log-window 9124 9380 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 0 --cover cover=0 --profile DIFFICULTY=2   (the word 9130's window)
+#   run989b  --map 7 --end-frame 9136 --log-window 9128 9131 --detail end:MISC,UNITS=3,GUYS=4,WORLD=6 (run989's --ai-tribe, --cover, --profile)
+#            (the word 9130's fog)
+#   run989c  --map 7 --end-frame 8662 --log-window 8653 8657 --detail end:MISC,UNITS=3,GUYS=4,BUILDS=7,WORLD=6 (run989's --ai-tribe, --cover, --profile)
+#            (the Horse Archer 1/45's birth)
+#   run989d  --map 7 --end-frame 17560 --timeout 5400 --log-window 17388 17555 --allow-early-end
+#            --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 (run989's --ai-tribe, --cover, --profile)   (the word 17394's window)
+# Checks: `rngcmp.py` run988 vs run988b -> 37 identical; run895b vs run989 -> 9386 identical, vs run989b -> 9137, vs run989c -> 8663,
+# vs run989d -> 17555.
+# ==== TAKEN 2026-10-19/20, one take each, 23:58-00:41, pool lanes 1-3 ====
