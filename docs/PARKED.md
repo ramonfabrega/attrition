@@ -8762,7 +8762,10 @@ crate carries no `unit_masks2`. Names no score.
   run at 3000 rows (the survivor was caught at 12000); the full batch was not rerun at 12000.
 - **3372f. `Group::finish_insert@0070e620`: leftover `ecx`.** Cases `0x12` (`action_form`) and `0x16` (`redo_patrol_order`)
   pass the leftover `ecx` after the accessor vcall as a stack argument (in the emulator, the order's own address, which
-  `action_form` takes as its queue position); the sim's `redo_patrol_order` ignores it. Unchased. The `+0x14` word of a group move's
+  `action_form` takes as its queue position); the sim's `redo_patrol_order` ignores it. Unchased.
+  **Settled by item 3379 (`Group::action_form`'s sweep, `form_view.rs`):** the leftover is the *fourth* of `action_form`'s five
+  stack arguments (`[ebp+0x14]`), which the listing never reads; the queue position is the plain `QUEUE_LAST` (1). 3000 rows ×
+  two sweeps draw it at random and agree. (`redo_patrol_order`'s is dead likewise.) The `+0x14` word of a group move's
   record has no sim field. Branch coverage not re-measured at 800 rows.
 
 ## Parked by item 3374, 2026-10-20 — the American word
@@ -8789,13 +8792,20 @@ none apart. Names no score (`docs/AI.md` §288).
 - **3376d. `Unit::think_civilian_transport` and `Group::action_garrison`: the Sim adapters are weakly tested.** Six of seven mutants on `SimCivTransport` survived the lib's narrow transport tests (land-slot offset, `tregion_alt`, cell owner, `reg_xport`, move kind, leader flags); the exploring arms (`this+0x68 & 0x100`, `think_scout`) and the type flag words are not modelled. `SimGarrison` leaves ignore-orders, console feedback, the editor semaphore and the packing arm unmodelled. The row files (830 MB for transport) exceed the emu cache cap: `RON_EMU_CACHE_MAX_BYTES`.
 - **3376e. Sim fixes this batch forced, none run against the diff pins** (the lane gate is `--no-widen`): `think_civilian_transport` (coastal `tregion_alt`, truncating `%`, wrapping score, double `go_here`, the record test, slot caps 63/62, the failed push), `add_roads` (11 redo rounds not 12; pass three `fixup_lines`/`find_piece` clearing C4; pass two `set_diags` and `fill_cache`), `do_group_move` (the leader's give-up attack arm, `update_action` on the 32nd frame), `do_cast` (hero crafts on the craft; `cast_blow` once not twice; `paid` cleared after the effect), `action_garrison` (`who` the building's owner; the `QUEUE_FIRST` re-entry; member check order). `add_roads` pass three is the likeliest to move a road-derived pin.
 
-## Parked by the next landing, slot LQ — reserved
+## Parked by item 3379, 2026-10-20 — the nations seat's nineteenth shape batch
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LQ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
+
+- **3379a. `Group::action_form@00707220`: the `loc_to == None` arm is unswept.** Both sweeps (`group_action_form`, `_ins`, 3000 rows each) agree; the `get_loc_to` stub's `--outarg` always writes both coordinates, so the arm never runs. Flag lacking (not confirmed against `_stub`/`--alias` docs by the worker): a stub that skips its out-write on some rows. `SimActionForm::get_form_option` rests on a reading, no sweep of its own; the `OrderList` ctor stub's `list+0x10` constant cannot vary per row (hence two sweeps).
+- **3379b. `SimGarrison::action_halt` (`garrison_view.rs`) is still an empty body.** `Group::action_halt` is swept whole (`halt_view.rs`, 1500 rows; head 400); the Sim has no insert list, so calling halt there without `set_up_insert`/`finish_insert` would drop queued orders. `SimHalt` leaves `unit_busy`, the `+0x68 & 0x100` clear, mask bit 1 and the ignore-orders sweep unmodelled (same gaps as `SimGarrison`).
+- **3379c. `Object::add_to_world` has no Sim adapter.** `add_to_world_view::add_to_world_steps` is swept (4000 rows, 41 of 42 mutants caught); the crate holds one figure a unit and the chain as unit indices, so `Sim::chain_add`/`coll_paint` are not wired to it and `SimRemoveInside::add_to_world` stays an empty gap. Rows are 128 MB, over the emu cache cap: `--rows 2500` would cache.
+- **3379d. `Objects::find_builds@0065a120`: cell chains holding ids below 2000 are diff-unchecked.** The sweep's arrays are laid for ids 2000/2001 only; a second slice with an array window at index 0 would cover units and the `id >= 0` boundary. Sim fix: the list walk (circle over 200 points) measures `vector_dist(dx - 192*x_size, dx - 192*y_size)`, not `vector_dist(dx, dy)`.
+- **3379e. `Sim::group_update_positions` adapter (`SimUpdatePositions`) has no direct test**: 3 of 32 mutants survived (the `has_waypoint` guard, the `.min(off.len())` clamp, the heading `+1`), as in 3376d. `form_num` above 128 and offsets overflowing `x*48` are not driven. The leader unit's cursor refresh (`+0xcc/+0xd0/+0xd4`) is unmodelled and nothing in the Sim reads it.
+- **3379f. Sim fixes this batch forced, none run against the diff pins** (the lane gate is `--no-widen`): `redo_patrol_order` now runs the speed tail of `Group::normalize` (`group_set_speed`) first; `action_form` acts on forms -1/-2/-3 and the plane/unit member predicate (`group_action_form_at`); `find_construct_sites` list walk as in 3379d (the likeliest pin mover: ring 8 and up, range above about 5400, `find_build_spot` after a site completes). `action_halt`, `update_positions`: refactors, no behaviour change; `Sim::ignored` deleted.
 
 ## Parked by item 3380, 2026-10-20 — the Turkish word closes
 
