@@ -494,9 +494,6 @@ impl Sim {
                 scan.ring = cap;
                 scan.leader = leader;
                 let city = self.cities[c].pos.cell();
-                if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
-                    eprintln!("PROBE f{} city leader{} idx{} cell({},{}) step{} cap{} near{} here{:?}", self.frame, leader, c, city.x, city.y, step, cap, near, self.units[u].pos.cell());
-                }
                 let end = self.scout_rings(u, city, step, cap, &mut scan);
                 if end == if leader == who { 12 } else { 8 } {
                     // Unreachable for an AI scout — the ring counter comes
@@ -644,14 +641,6 @@ impl Sim {
         let cities = self.city_num(who);
         if (cities == 0 && goods & 0x02 != 0) || (cities == 1 && goods & 0x10 != 0) {
             score /= 2;
-        }
-        let probe = std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame);
-        if probe {
-            eprintln!(
-                "PROBE f{} u{} lead{} ring{} cell({},{}) score{} best{} danger{} owner{} goods{:#x} near{}",
-                self.frame, self.units[u].index, scan.leader, ring, c.x, c.y, score, scan.score,
-                self.scout_danger(who, c), owner, goods, self.scout_unit_near(u, c)
-            );
         }
         if score >= scan.score {
             return;
