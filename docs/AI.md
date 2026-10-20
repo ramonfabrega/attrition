@@ -24196,7 +24196,7 @@ Reading-and-packet only: the three rows' `dz` (no dump prints a stone's `sz` aga
 the lobby item 3343 minted (§276), scored at 13422 of 16,764 on its first try and promoted here to the AI word
 (`diff::french_word`); the Russians at Difficulty 4 (`GreatSaharaRussianTier4`, entry 72's rule (2): the nation held
 only by closed games off Great Sahara whose later ages no trace has run) replace it in the battery, **18883 of 18883**
-on their first try (run981, run981b). Captures run982, run982b, run982c, every one `rngcmp`-identical to run977b.*
+on their first try (run981, run981b). Captures run982, run982b, run982c, run982d, every one `rngcmp`-identical to run977b.*
 
 **Three fixes that moved the word, each its own value diff.**
 
@@ -24223,17 +24223,20 @@ on their first try (run981, run981b). Captures run982, run982b, run982c, every o
 **The close is open.** `run977b_french_closing_state` walks to run977b's closing block 16765: 130 units, every one
 agreeing, and **four buildings and a city unlinked** — on the last frame theirs' who=1 captures the human's city,
 `0/2000` closing as `1/2058` (damage 1430) with three of its buildings as `1/2059`..`1/2061`, and ours still holds
-`0/2000` at damage 1198, uncaptured. A building's damage costs no draw, so the stream agrees while it drifts; nothing
-inside run982b's window parts on `0/2000`. run982c (a stride over 14855..16765, `BUILDS=7`) is the window that finds
-where.
+`0/2000` at damage 1198, uncaptured. It does not drift: run982c's stride (every twentieth block from 14856) and
+run982d's last blocks (16740..16764, widened whole, 38 standing keys) agree on its damage to **1197 of 1200 through
+block 16764**. The close is the last frame's own hits — ours +1 to 1198, theirs at least +3, through
+`health_level`'s sixth level, which `check_capture` needs. Twenty-two who=1 units hold an attack on `0/2000` on that
+block; which hit differs is a question for a call trace of `Object::do_damage` on frame 16764 or a packet, not a
+dump (parked 3347d).
 
 **Tests.** `cities_tests::a_french_siege_factory_unit_trains_a_quarter_faster` (fails with `0x1af` dropped);
 `launch::tests::run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit` (eight rounds; fails with a
 radius off by one); `vision::tests::a_decoy_sees_from_where_it_stands_and_its_step_lights_its_own_cell` (fails with
-the term dropped); the widenings `run982_…`, `run982b_…` and the closing state.
+the term dropped); the widenings `run982_…`, `run982b_…`, `run982d_…` and the closing state.
 
-**Coverage.** Diff-backed: the three fixes by the blocks named and the draw stream to 16764. Not established: why
-the city's damage parts (the close); the French special arm; the Dragoon's third node.
+**Coverage.** Diff-backed: the three fixes by the blocks named and the draw stream to 16764. Not established: the
+last frame's hits on the city (the close); the French special arm; the Dragoon's third node.
 
 ## 279. Reserved for the next item on the AI track
 

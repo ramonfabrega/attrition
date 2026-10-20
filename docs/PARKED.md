@@ -8537,6 +8537,13 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
 - **3347c — theirs' lingering ammo record.** run982 still prints `1/39`'s first round on 14040 with `flags 1` at
   `cur_time` 196 of 14; ours closes the record when the round lands. The ammo blocks are `diff::ammo`'s own parser
   and in no widening, so nothing compares it, and the draw stream agrees past it. Names no score.
+- **3347d — the close: frame 16764, `0/2000`'s last hits.** The French draw stream agrees to the game's end
+  (16764), and run977b's closing block 16765 has four buildings and a city unlinked (`run977b_french_closing_state`):
+  theirs' who=1 captures the human's city on the last frame (`0/2000` → `1/2058`, three of its buildings →
+  `1/2059`..`1/2061`). Its damage is 1197 of 1200 on both sides through block 16764 (run982c, run982d); on 16764
+  ours lands +1 (1198) and theirs at least +3. Twenty-two who=1 units hold an attack on it there. Names the close's
+  score. Next: a call trace of `Object::do_damage` on frame 16764, both sides' hits by
+  attacker, before any reading.
 
 ## Parked by the next landing, slot LD — reserved
 
