@@ -104,3 +104,49 @@ fn indian_sahara_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run1007c: the word 16548's window, blocks 16542 to the game's end at
+/// `GUYS=4`, `LEADERS=9` and `AMMO=5` (item 3383). run1002 dumps blocks
+/// 0..36, run1002b its setup and closing blocks only, and run1007 stops at
+/// 16172, so no dump on disk held the word's block.
+pub(crate) const RUN1007C: &str = "gamelog-run1007c-greatsahara-indian-diff3-window-16542-16565.txt";
+
+/// The window: block 16542 through the game's last frame 16564; the word
+/// 16548's own block is 16549.
+pub(crate) const WIDENING_INDIAN_SAHARA_FRAME_16548: (i64, i64) = (16542, 16564);
+
+pub(crate) fn indian_sahara_frame_16548_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INDIAN_SAHARA.start],
+        true,
+        INDIAN_SAHARA.long,
+        "run1007c",
+        &[(RUN1007C, WIDENING_INDIAN_SAHARA_FRAME_16548.0)],
+        WIDENING_INDIAN_SAHARA_FRAME_16548,
+        1,
+        &[16549],
+        true,
+    )
+}
+
+#[test]
+fn run1007c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = indian_sahara_frame_16548_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
