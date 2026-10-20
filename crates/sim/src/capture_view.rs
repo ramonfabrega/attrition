@@ -158,12 +158,13 @@ pub fn capture_city_steps<V: CaptureView>(v: &mut V, a: Player, c: usize, o: Pla
         if !v.not_civilian(o, x) {
             v.close_later(x);
             let farmish = v.is_ident(o, x, IS_FARM) || v.is_ident(o, x, IS_GRANARY);
-            if !(farmish && v.has_tribe_bonus(a, TRIBE_LAKOTA)) && v.is_active(o, x) {
-                if let Some(nm) = v.swap_member(o, x, a) {
-                    v.activate(a, nm);
-                    v.mask_later(nm);
-                    base = base.wrapping_add(MEMBER_BASE);
-                }
+            if !(farmish && v.has_tribe_bonus(a, TRIBE_LAKOTA))
+                && v.is_active(o, x)
+                && let Some(nm) = v.swap_member(o, x, a)
+            {
+                v.activate(a, nm);
+                v.mask_later(nm);
+                base = base.wrapping_add(MEMBER_BASE);
             }
         }
         m = v.next_member(o, x);
