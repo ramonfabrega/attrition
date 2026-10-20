@@ -216,6 +216,8 @@ mod unit_do_gather;
 mod unit_do_gather_005ef2a0;
 #[path = "unit_do_group_attack_to.rs"]
 mod unit_do_group_attack_to;
+#[path = "unit_do_group_move_leader.rs"]
+mod unit_do_group_move_leader;
 #[path = "unit_do_idle.rs"]
 mod unit_do_idle;
 #[path = "unit_do_patrol.rs"]
