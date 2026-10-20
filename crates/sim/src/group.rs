@@ -2279,13 +2279,6 @@ impl Sim {
             .map_or(Domain::Land, |t| self.unit_types[t].combat.domain)
     }
 
-    /// `action_halt`'s and `action_attack`'s shared `ignore` mask (§7):
-    /// `4` siege, `2` special, `1` spy. The simulation has no spy type, so
-    /// bit 1 never matches.
-    fn ignored(&self, u: usize, mask: i32) -> bool {
-        (mask & 4 != 0 && self.is_siege_unit(u)) || (mask & 2 != 0 && self.is_special_unit(u))
-    }
-
     /// `UnitData::is_plane@0046ce40` — `domain == 2 && !(unit_flags & 0x20)`.
     /// There is no altitude test: a plane is skipped whether it is in the
     /// air or on a runway (§7). Bit `f` is `unitrules.xml`'s "flies like a
@@ -2478,21 +2471,11 @@ impl Sim {
         crate::finish_insert_view::finish_insert(&mut v);
     }
 
-    /// `Group::action_halt(mask)` (§7).
+    /// `Group::action_halt(mask)` (§7): the steps of [`crate::halt_view`]
+    /// over this simulation.
     pub fn group_action_halt(&mut self, g: &Group, mask: i32) {
-        // `0070d0c0:29`: the **group's** `form` is cleared once, before any
-        // member is examined, and only for a unit group. No member's
-        // `+0xaa` is touched — and `get_form` reads those bytes, so a halt
-        // does not cost the group the formation its members still carry.
-        if let Some(st) = self.gstate_mut(g) {
-            st.form = -1;
-        }
-        for &u in &g.list {
-            if !self.group_member_orderable(u) || self.ignored(u, mask) {
-                continue;
-            }
-            self.clear_orders(u);
-        }
+        let mut view = crate::halt_view::SimHalt { sim: self, g };
+        crate::halt_view::action_halt_steps(&mut view, mask);
     }
 
     /// `Group::action_stance(s)` (§8). A negative `s` cycles: −1 forward,
