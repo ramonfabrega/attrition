@@ -3829,6 +3829,15 @@ the address, so the queue cannot name the row either way. The pass left the cens
 probably for this reason, and 3356 names it as `Build`'s method at 0x6276a0. Candidate: the guard skips backticked
 text, or a `--kind sweep` item. The pass's. One reach.
 
+(3363) **The whole gate's sim library outgrew its 4096 MiB limit at eight threads** (the commander, the forty-sixth
+tranche's first whole gate, on `fc206a90`): `isolated_tests.py`'s `target_budget` gives the `sim` lib target
+`min(threads, 8)` slots and a hard 4096 MiB, and the run peaked at RSS 4218 and 4249 MiB. The budget stopped the
+workload twice (while `unit_find_repair_spot`'s sweep was running, and again among the soak and sweep tests), so the
+gate exited 1 with `isolated_tests.py`'s 137 and no test failed. The scoped gates and the lane gates (four threads)
+passed on the same tranche's merges. The sweeps added this tranche (`unit_think`, `do_repair`, 12000 rows each) are
+the likeliest growth. Candidates: the `sim` lib's limit sized from its measured row, as the other targets'
+reservation already is; or the 12000-row sweeps moved to their own `sweep_*` target. The pass's. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
@@ -8635,6 +8644,54 @@ The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What 
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LL renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
