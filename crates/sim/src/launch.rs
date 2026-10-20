@@ -954,6 +954,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 168,
         },
     ),
+    // **Piece 1792, the Slingers in the Persians' art style** (`32 + 5 ×
+    // 0x160`; item 3355, `docs/AI.md` §279): the Persians'
+    // `UNIT_CONTINENT` is 5. run984c's `RON_STATE_FRAME=6251` packet on
+    // the Persian Great Lakes game holds its three `AttachPos` rows, piece
+    // 1440's keys, and `get_position.py`'s sweep of each is reproduced at
+    // all 361 headings by piece 1440's own three bays — the same centroids
+    // of the same regions (534, 319 and 28 lattice points). Without them
+    // the Persian stones left the unit's own square: the Persian word's
+    // 6323, whose state had parted on 6319 — `1/22`'s stone at the citizen
+    // `0/3` landing a frame late (6 frames against 5).
+    (
+        1792,
+        crate::anim::ATTACK1,
+        21,
+        Bay {
+            right: 71_298,
+            fwd: 69_592,
+            dz: 174,
+        },
+    ),
+    (
+        1792,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: 32_704,
+            fwd: 120_229,
+            dz: 144,
+        },
+    ),
+    (
+        1792,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -47_065,
+            fwd: 114_687,
+            dz: 168,
+        },
+    ),
     // **Piece 112, the Persians' Immortals** (type 162; item 3355,
     // `docs/AI.md` §279): a nation's own piece, so no continent offset.
     // run984b's `RON_STATE_FRAME=6011` packet on the Persian Great Lakes
@@ -1313,6 +1353,28 @@ mod tests {
                 (crate::anim::ATTACK3, 16),
             ];
             let got: Vec<_> = keys.iter().map(|&k| at(x, y, facing, k)).collect();
+            assert!(got.contains(&want), "{want:?} from {got:?}");
+        }
+    }
+
+    /// **The Persian Slingers' stones leave from piece 1792's bays** (item
+    /// 3355): run984d's `AMMO` records, the stones `1/22` and `1/24` threw
+    /// at the citizen `0/3` — each from its unit's own square at block
+    /// 6317's facing, `sx, sy` the dump's own.
+    #[test]
+    fn run984d_s_persian_stones_leave_from_piece_1792_s_bays() {
+        for (x, y, facing, want) in [
+            (2616, 33000, -1_092_616_192, Pos::new(2504, 33053)),
+            (2472, 32424, -1_435_041_792, Pos::new(2398, 32523)),
+        ] {
+            let got: Vec<_> = [
+                (crate::anim::ATTACK1, 21),
+                (crate::anim::ATTACK2, 22),
+                (crate::anim::ATTACK3, 16),
+            ]
+            .iter()
+            .map(|&(anim, start)| launch_point(Pos::new(x, y), Angle(facing), 1792, anim, start, 0))
+            .collect();
             assert!(got.contains(&want), "{want:?} from {got:?}");
         }
     }

@@ -143,3 +143,47 @@ fn run984_s_word_frame_is_widened_whole() {
     );
     pin_eq!(w.firsts.len(), 0, "keys that part in the window");
 }
+
+/// run984d: the word 6323's window, blocks 6317..6573 at `GUYS=4` and
+/// `AMMO=5` (item 3355). run984 closes on 6276, before the word.
+pub(crate) const RUN984D: &str =
+    "gamelog-run984d-greatlakes-persian-diff2-window-6317-6574-guys4-ammo.txt";
+
+/// The window: block 6317 through 6573; the word 6323's own block is 6324.
+pub(crate) const WIDENING_PERSIAN_FRAME_6323: (i64, i64) = (6317, 6573);
+
+pub(crate) fn persian_frame_6323_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[PERSIAN.start],
+        true,
+        PERSIAN.long,
+        "run984d",
+        &[(RUN984D, WIDENING_PERSIAN_FRAME_6323.0)],
+        WIDENING_PERSIAN_FRAME_6323,
+        1,
+        &[6324],
+        true,
+    )
+}
+
+#[test]
+fn run984d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_frame_6323_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
