@@ -272,11 +272,34 @@ impl Sim {
     /// The combat profile of an object.
     pub fn profile(&self, o: Obj) -> Profile {
         match o {
-            Obj::Unit(i) => self.units[i]
-                .ty
-                .map_or_else(no_profile, |t| self.unit_types[t].combat),
+            Obj::Unit(i) => self.units[i].ty.map_or_else(no_profile, |t| {
+                let mut p = self.unit_types[t].combat;
+                if self.second_range == Some(t) {
+                    p.max_range = p.second_max_range;
+                }
+                p
+            }),
             Obj::Building(b) => self.buildings[b].combat.unwrap_or_default(),
         }
+    }
+
+    /// **`f` with a melee-and-ranged type's second range in its
+    /// `max_range`** — the bracket `Unit::cavarch_fight@005ff4b0` puts
+    /// round its `fight` (`005ff4c5`, `005ff4f0`): for a type whose flags
+    /// carry `0x400` the type's `+0x1fc` reads its `+0x2d0` for the call
+    /// and 0 after it, which is the value [`uflags::MELEE_AND_RANGED`]
+    /// leaves there at load ([`Sim::second_range`]).
+    pub(crate) fn with_second_range<R>(&mut self, u: usize, f: impl FnOnce(&mut Self) -> R) -> R {
+        let swap = self.units[u]
+            .ty
+            .filter(|&t| self.unit_types[t].cols.flag(uflags::MELEE_AND_RANGED));
+        let Some(t) = swap else {
+            return f(self);
+        };
+        let held = self.second_range.replace(t);
+        let r = f(self);
+        self.second_range = held;
+        r
     }
 
     pub(crate) fn owner_of(&self, o: Obj) -> Player {

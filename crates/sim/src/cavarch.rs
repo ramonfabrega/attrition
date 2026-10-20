@@ -150,7 +150,12 @@ impl crate::Sim {
     /// reached.
     fn cavarch_fight(&mut self, u: usize, frame: i64) {
         let was_empty = self.units[u].cast_target.is_none();
-        self.cavarch_fight_body(u, frame);
+        // **A melee-and-ranged type fights here at its second range**
+        // (`cavarch_fight@005ff4b0`'s bracket, item 3383): the Gun Mahout
+        // (`GUNMAHOUT`, `mjvyk`) melees by `max_range` 0 and keeps its 9
+        // in `second_max_range`, which this call alone reads — without it
+        // the search's must-reach gate refuses everything past melee.
+        self.with_second_range(u, |s| s.cavarch_fight_body(u, frame));
         if was_empty && self.units[u].cast_target.is_none() {
             self.units[u].cavarch_idle = true;
         }

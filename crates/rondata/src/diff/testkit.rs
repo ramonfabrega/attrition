@@ -10031,6 +10031,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3378,
         Some(crate::diff::german_sahara_word::WIDENING_GERMAN_SAHARA_CLOSING),
     ),
+    // **The battery's Indian word at Great Sahara** (item 3383, DECISIONS
+    // 72, 83, 84): frame 15922, the battery's first try (item 3378),
+    // promoted here and widened on run1007 over 15916..16172 (block 15923).
+    // Item 3383 moved it 15922 → 16548 with piece 1898's pivot releases
+    // (the Indian Heavy Horse Archer, run1007b's packet and round), and —
+    // widened on run1007c over 16542..16564 (block 16549) — 16548 →
+    // 16564, the game's last frame, with `cavarch_fight`'s second-range
+    // bracket for the Gun Mahout. The close is compared whole on run1002b's
+    // own closing block 16565 by `run1002b_indian_sahara_closing_state`.
+    (
+        "INDIAN_SAHARA_WORD",
+        crate::diff::indian_sahara_word::INDIAN_SAHARA_WORD,
+        Some("run1002b_indian_sahara_closing_state"),
+        3383,
+        Some(crate::diff::indian_sahara_word::WIDENING_INDIAN_SAHARA_CLOSING),
+    ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
     // 6065..6321 (block 6072). Item 3345 moved it 6071 → 7902, the game's
@@ -10764,8 +10780,10 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara (Indians)",
         word: crate::diff::indian_sahara_word::INDIAN_SAHARA_WORD,
         length: 16_564,
-        endpoint: None,
-        window: None,
+        // Closed by item 3383: the draw stream agrees to 16564, and
+        // run1002b's closing block 16565 scores the end itself.
+        endpoint: Some("run1002b_indian_sahara_closing_state"),
+        window: Some("indian_sahara_frame_15922_window"),
     },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's
