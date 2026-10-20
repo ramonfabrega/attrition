@@ -4427,9 +4427,6 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
-                        if cavarch && std::env::var("RON_PROBE_CAV").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
-                            eprintln!("PROBE score cand {:?} value {} score {} dist {} in_range {} ai {}", o, value, score, dist, in_range, ai);
-                        }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
