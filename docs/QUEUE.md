@@ -18,8 +18,8 @@ French, Aztecs and Inca closed; four sweeps); roster Ramon's (DECISIONS 83, 84).
 - **Words**: every pair closed; nineteen battery words closed (`AI_WORDS` holds eighteen). Battery on `9e63ec11`: 9028
   (the Spanish, 3367), 9185 (the Koreans, 3365), 7799, 18883, 24000, 24000 (whole), 14991, 9382 — median 12187. Census 1596, port 459.
 - **Lanes: four live**: 3365 AI (Opus; runs 990, 991, AI §283, LI), 3367 AI (Opus; runs 992, 993, AI §284, LJ), 3362
-  the second sweep (Sonnet, LG), 3364 the nations seat (Sonnet, LH). Next 3368, run 994. Pools: GOLDEN §144–148, AI §285–288, park LK–LL.
-- **Fable backlog: 16 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352, 3353, 3354, 3357, 3363, 3366); DECISIONS 84.
+  the second sweep (Sonnet, LG), 3364 the nations seat (Sonnet, LH). Next 3369, run 994. Pools: GOLDEN §144–148, AI §285–288, park LK–LL.
+- **Fable backlog: 17 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352, 3353, 3354, 3357, 3363, 3366, 3368); DECISIONS 84.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

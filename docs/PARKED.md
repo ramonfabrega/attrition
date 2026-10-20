@@ -3849,6 +3849,14 @@ cases fail, because they read the real tree's base. A lane reading the log top-d
 Candidate: the offline cases take a fixture tree, not the real one; or the refusal prints first and the gate exits
 before the offline step. The pass's. One reach.
 
+(3368) **A clear that fires on a lane which pushed a draft exits the waiter as LANDED** (the commander, 2026-10-20):
+att-3365 crossed DEEP at 315k, committed and pushed its draft journal (`2caf3aee`) as answered, and ended its turn
+for the armed clear; the row left `working` for the seconds the clear took, and `lanewait.py` exited `LANDED
+att-3365 … none..2caf3aee` with the row back at `working` under the new session — a commander turn that learned
+nothing, and one that would merge a draft if read at face value. Candidates: a row whose newest transcript ends on
+a `/clear` (the UNCLEARED probe's own read) or whose session uuid changed since the wait began is not a landing; or
+LANDED waits two polls for the row to stay out, as ENDED does. The pass's. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
