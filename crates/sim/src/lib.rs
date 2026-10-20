@@ -147,6 +147,7 @@ pub mod terrain;
 pub mod territory;
 pub mod topp;
 pub mod tpath;
+pub mod trade_view;
 pub mod transport;
 pub mod tuning;
 pub mod type_index;
