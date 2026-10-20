@@ -3922,6 +3922,17 @@ impl Sim {
         let me = Obj::Unit(u);
         let p = self.profile(me);
         let civilian = p.has(mask::CIVILIAN) && self.max_range_of(me) == 0;
+        if std::env::var_os("RON_PROBE_3375").is_some() {
+            eprintln!(
+                "PROBE3375 flee {}/{} civilian_mask {} max_range {} attack {} packs {}",
+                self.units[u].owner,
+                self.units[u].index,
+                p.has(mask::CIVILIAN),
+                self.max_range_of(me),
+                p.attack,
+                p.packs
+            );
+        }
         if !civilian && p.attack != 0 {
             return false;
         }
