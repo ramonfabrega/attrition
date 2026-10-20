@@ -6014,11 +6014,6 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         self.in_play = true;
         let frame = self.frame;
-        if std::env::var_os("RON_PROBE_100").is_some() && (14520..=14606).contains(&frame) {
-            let p = self.units.iter().position(|x| x.owner == 1 && x.index == 100);
-            let c = self.units.iter().position(|x| x.owner == 0 && x.index == 1);
-            eprintln!("PROBE tick f{frame} seen(11,73) {:?} mask {} 1/100 {:?} 0/1 {:?}", self.world.seen(11, 73), self.seen_ally_mask(1), p.map(|i| (self.units[i].pos, self.units[i].movement.heading.0)), c.map(|i| (self.units[i].pos, self.units[i].visible)));
-        }
         let mut events = Vec::new();
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
