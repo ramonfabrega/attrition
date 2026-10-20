@@ -5128,21 +5128,8 @@ impl Sim {
                     if std::env::var_os("RON_PROBE_ARC").is_some() {
                         eprintln!(
                             "  PROBE f{frame} slot {} t{}/{} at ({},{}) z {:?} ground {:?} ez {} gz_raw {} landing ({},{}) launch ({},{}) sz {:?} v1z {:?}",
-                            p.slot,
-                            p.cur_time,
-                            p.total_time,
-                            at.x,
-                            at.y,
-                            z,
-                            ground,
-                            p.ez,
-                            self.ground_z(at),
-                            p.landing.x,
-                            p.landing.y,
-                            p.launch.x,
-                            p.launch.y,
-                            p.sz,
-                            p.v1z
+                            p.slot, p.cur_time, p.total_time, at.x, at.y, z, ground, p.ez,
+                            self.ground_z(at), p.landing.x, p.landing.y, p.launch.x, p.launch.y, p.sz, p.v1z
                         );
                     }
                     if z.gt(ground) {
