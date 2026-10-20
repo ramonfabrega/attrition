@@ -9987,3 +9987,26 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 (run995's --ai-tribe, --cover, --profile)   (1/51's unpack, walked back)
 # Checks: `rngcmp.py` run990b vs run995c -> 15981 identical, vs run995d -> 15724.
 # ==== TAKEN 2026-10-20, 03:51-04:35, pool lane 1 ====
+# ==== item 3375: the Iroquois word at Great Sahara, its battery replacement and its windows (`docs/AI.md` §288; `docs/RUNS.md` run1000..run1001d) ====
+#   run1000  run964's line with --ai-tribe 12   (Great Sahara, Germans; start; the first take died on Wine's startup fault, kept as run1000-deadtake1)
+#   run1000b run964b's line with --ai-tribe 12   (the Germans' draw stream; ended itself on 19483)
+#   run1001  --map 7 --end-frame 14012 --timeout 7200 --log-window 13751 14007 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 18 --cover cover=0 --profile DIFFICULTY=3   (the word 13757's window)
+#   run1001b --map 7 --end-frame 13764 --log-window 13744 13760 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5
+#            (run1001's --ai-tribe, --cover, --profile)   (the Heavy Archers' rounds)
+#   run1001c --map 7 --end-frame 14012 --log-window 13755 14007 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5
+#            (run1001's --ai-tribe, --cover, --profile)   (the Cavalry Archers' rounds; the word 13810's window)
+#   run1001d --map 7 --end-frame 13766 --log-window 13758 13764 --detail end:GUYS=4,AMMO=5 (run1001's --ai-tribe, --cover, --profile)
+#            --tracer-def RON_STATE_FRAME=13760 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (a packet)
+# Checks: `rngcmp.py` run1000 vs run1000b -> 37 identical; run994b vs run1001 -> 14013 identical, vs run1001b -> 13765, vs run1001c -> 14013,
+# vs run1001d -> 13767.
+# ==== TAKEN 2026-10-20, one take each, 06:12-06:49, pool lanes 1-3 ====
+# ==== item 3374: the American word, its battery replacement and its windows (`docs/AI.md` §287; `docs/RUNS.md` run998..run999c) ====
+#   run998   --map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 0 --profile DIFFICULTY=1   (East Indies, Aztecs; start)
+#   run998b  run986b's recipe with --ai-tribe 0 --profile DIFFICULTY=1   (the draw stream to 24000)
+#   run999   --map 18 --end-frame 9637 --timeout 5400 --log-window 9376 9632 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 20 --cover cover=0 --profile DIFFICULTY=1   (the word 9382's window)
+#   run999b  --end-frame 11237 --log-window 10976 11232 (run999's --detail, --ai-tribe, --cover, --profile)   (the word 10982's window)
+#   run999c  --end-frame 17470 --timeout 7200 --log-window 17209 17465 (run999's --detail, --ai-tribe, --cover, --profile)   (the word 17215's window)
+# Checks: `rngcmp.py` run998 vs run998b -> 37 identical; run955b vs run999 -> 9638 identical, vs run999b -> 11238, vs run999c -> 17471.
+# ==== TAKEN 2026-10-20, one take each (run998b retaken once by the runner), 05:39-06:47, pool lanes 1-3, through `viadriver.sh tools/explore/golden_capture.sh` ====

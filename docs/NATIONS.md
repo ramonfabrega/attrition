@@ -51,7 +51,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 <!-- GENERATED:roster -->
 | index | nation | rules key | `city::Nation` flag | census functions | lobbies that hold it |
 |---:|---|---|---|---:|---|
-| 0 | Aztecs | aztecs | `aztecs` | 7 | `GreatSaharaAztecTier2` (AI word, tier 2) |
+| 0 | Aztecs | aztecs | `aztecs` | 7 | `GreatSaharaAztecTier2` (AI word, tier 2); `EastIndiesAztecTier1` (map 18, tier 1) |
 | 1 | Maya | maya | `maya` | 2 | `GreatSaharaMayaTier4` (AI word, tier 4) |
 | 2 | Inca | inca | `inca` | 3 | `EastIndiesIncaTier3` (AI word, tier 3) |
 | 3 | Bantu | bantu | `bantu` | 5 | `GreatSaharaBantuTier4` (map 7, tier 4) |
@@ -63,15 +63,15 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3) |
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
-| 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
+| 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3); `GreatSaharaGermanTier3` (map 7, tier 3) |
 | 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
 | 16 | Koreans | koreans | `koreans` | 6 | `GreatSaharaKoreanTier3` (AI word, tier 3); scored pairs |
 | 17 | Mongols | mongols | `mongols` | 3 | none |
-| 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3); `GreatSaharaIroquoisTier3` (map 7, tier 3) |
+| 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3); `GreatSaharaIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
-| 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
+| 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (AI word, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
@@ -348,7 +348,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AMERICANS_STARTING_FARMS` | 3 | Setup::build_units, Setup::small_city_buildings | not carried | `americans_starting_farms` |
 | `AMERICANS_FREE_SCIENCE` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `americans_free_science` |
 | `AMERICANS_SCIENCE_DISCOUNT` | 0 | TypeData::get_cost | modelled at lib.rs | `americans_science_discount` |
-| `AMERICANS_UPGRADE_DISCOUNT` | 25 | TypeData::get_cost | not carried | `americans_upgrade_discount` |
+| `AMERICANS_UPGRADE_DISCOUNT` | 25 | TypeData::get_cost | modelled at cost.rs | `americans_upgrade_discount` |
 | `AMERICANS_BARRACKS_GATHER` | 2 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | not carried | `americans_barracks_gather` |
 | `INDIANS_CITY_RADIUS` | 4 | Leader::plan_strategy, LeaderData::get_radius | modelled at city.rs | `indians_city_radius` |
 | `INDIANS_CARAVAN` | 15 | Caravan::trade_value | modelled at caravan.rs | `indians_caravan` |
@@ -669,7 +669,12 @@ a pass books against a word, not a fix for the lobby that exposed it.
    (`cost::Research::dutch_ship`, set in `Sim::research_modifiers`). Test
    `a_dutch_ship_upgrade_costs_a_tenth_less`. Not diff-backed. **Battery unmoved**: the Dutch lobby
    (`EastIndiesDutchTier4`) stays at 1567 and all eight lobbies at their pins, median 2270.
-   The American twin (`+0x218 == 0`) is unbuilt (parked).
+   ~~The American twin (`+0x218 == 0`) is unbuilt (parked).~~ **Built, item 3374** (`docs/AI.md` §287):
+   `get_cost:528`–`531`, `has_tribe_bonus(0x14)` and `+0x218 == 0` take `AMERICANS_UPGRADE_DISCOUNT` (25) in the
+   step before the Dutch arm's (`cost::Research::american_land`), and `get_cost:1048`–`1053` makes a government
+   (`is_gov_type`, `0x26f..0x274`) free for an American leader (`Sim::tech_price`). Both diff-backed by the
+   American battery word (run999 block 9376, run999b block 10983). Tests
+   `an_american_land_upgrade_costs_a_quarter_less`, `an_american_government_is_free`.
    **Built, item 3160: the Citizen cost arms.** `get_cost`'s tail, after the Spy/General arm and
    the stable rares and before the Statue of Liberty, on the train and research arms alike: for
    `TypeIndex` `0x32`/`0x33`, `WOOL_CITIZENS_COST` (15) for a player holding Wool (`rare` or

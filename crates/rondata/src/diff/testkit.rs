@@ -9967,6 +9967,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3365,
         Some(crate::diff::korean_word::WIDENING_KOREAN_CLOSING),
     ),
+    // **The battery's American word** (item 3374, DECISIONS 72, 83, 84):
+    // frame 9382, the battery's first try (item 3314), promoted here and
+    // widened on run999 over 9376..9632 (block 9383). Item 3374 moved it
+    // 9382 → 10982 with `get_cost`'s American land-upgrade arm, — widened
+    // on run999b over 10976..11232 (block 10983) — 10982 → 17215 with its
+    // government arm, and — widened on run999c over 17209..17465 (block
+    // 17216) — 17215 → 24000, the long's last frame, with
+    // `construct_time`'s free first wonder. The close is compared whole on
+    // run955b's own closing block 24001 by `run955b_american_closing_state`.
+    (
+        "AMERICAN_WORD",
+        crate::diff::american_word::AMERICAN_WORD,
+        Some("run955b_american_closing_state"),
+        3374,
+        Some(crate::diff::american_word::WIDENING_AMERICAN_CLOSING),
+    ),
     // **The battery's Dutch word at Great Sahara** (item 3369, DECISIONS
     // 72, 83, 84): frame 311, the battery's first try (item 3365),
     // promoted here and widened on run995 over 305..561 (block 312). Item
@@ -9983,6 +9999,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("run990b_dutch_sahara_closing_state"),
         3369,
         Some(crate::diff::dutch_sahara_word::WIDENING_DUTCH_SAHARA_CLOSING),
+    ),
+    // **The battery's Iroquois word at Great Sahara** (item 3375,
+    // DECISIONS 72, 83, 84): frame 13757, the battery's first try (item
+    // 3369), promoted here and widened on run1001 over 13751..14007 (block
+    // 13758). Item 3375 moved it 13757 → 13810 with `HEAVYARCHERS-NA`'s
+    // release bays (piece 1531, run1001d's packet), and — widened on
+    // run1001c over 13755..14007 (block 13811) — 13810 → 16371, the game's
+    // last frame, with the Cavalry Archers' pivot releases (piece 1546).
+    // The close is compared whole on run994b's own closing block 16372 by
+    // `run994b_iroquois_sahara_closing_state`.
+    (
+        "IROQUOIS_SAHARA_WORD",
+        crate::diff::iroquois_sahara_word::IROQUOIS_SAHARA_WORD,
+        Some("run994b_iroquois_sahara_closing_state"),
+        3375,
+        Some(crate::diff::iroquois_sahara_word::WIDENING_IROQUOIS_SAHARA_CLOSING),
     ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
@@ -10623,6 +10655,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         endpoint: Some("run895b_aztec_closing_state"),
         window: Some("aztec_frame_17394_window"),
     },
+    // **The battery's American word** (DECISIONS 72, 83, 84; item 3374):
+    // East Indies, the Americans at Difficulty 1 — the held-out battery's
+    // lowest open lobby on the measure of `13bebf18`, minted by item 3314;
+    // the game does not end itself (the long runs to 24000). It joins the
+    // `Battery word` line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesAmericanTier1",
+        named: "East Indies (Americans)",
+        word: crate::diff::american_word::AMERICAN_WORD,
+        length: 24_000,
+        // Closed by item 3374: the draw stream agrees to 24000, and
+        // run955b's closing block 24001 scores the end itself.
+        endpoint: Some("run955b_american_closing_state"),
+        window: Some("american_frame_17215_window"),
+    },
     // **The battery's Korean word** (DECISIONS 72, 83, 84; item 3365):
     // Great Sahara, the Koreans at Difficulty 3 — the held-out battery's
     // next open lobby once item 3361 closed the Aztecs, minted by item 3331;
@@ -10654,6 +10702,23 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // run990b's closing block 16110 scores the end itself.
         endpoint: Some("run990b_dutch_sahara_closing_state"),
         window: Some("dutch_sahara_frame_15725_window"),
+    },
+    // **The battery's Iroquois word at Great Sahara** (DECISIONS 72, 83,
+    // 84; item 3375): Great Sahara, the Iroquois at Difficulty 3 — the
+    // held-out battery's lowest open lobby on the measure of `ac79accd`,
+    // minted by item 3369 under entry 72's rule (2); the game ends itself
+    // on 16371. It joins the `Battery word` line first; the closed rows
+    // choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaIroquoisTier3",
+        named: "Great Sahara (Iroquois)",
+        word: crate::diff::iroquois_sahara_word::IROQUOIS_SAHARA_WORD,
+        length: 16_371,
+        // Closed by item 3375: the draw stream agrees to 16371, and
+        // run994b's closing block 16372 scores the end itself.
+        endpoint: Some("run994b_iroquois_sahara_closing_state"),
+        window: Some("iroquois_sahara_frame_13810_window"),
     },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's

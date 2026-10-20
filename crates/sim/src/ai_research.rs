@@ -1338,6 +1338,27 @@ mod tests {
         assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
     }
 
+    /// `get_cost:1048`–`1053`: a government costs an American leader
+    /// nothing, and only a government, and only the Americans (item 3374:
+    /// run999b's who=1 queues Republic on 10982 and pays only a Dock's
+    /// timber beside it).
+    #[test]
+    fn an_american_government_is_free() {
+        let (mut sim, t) = sim();
+        for x in [t.gov_b, t.taxation] {
+            sim.tech_tree.types[x].cost = [7, 0, 0, 0, 7, 0];
+        }
+        sim.holdings[1].available = [true, true, true, true, true, false];
+        let plain = sim.tech_price(1, t.gov_b);
+        assert!(plain[0] > 0 && plain[4] > 0);
+        let taxation = sim.tech_price(1, t.taxation);
+        sim.tech[1].power = Some(crate::ai::tribe::AMERICANS);
+        assert_eq!(sim.tech_price(1, t.gov_b), [0; RESOURCES]);
+        assert_eq!(sim.tech_price(1, t.taxation), taxation, "a plain tech pays");
+        sim.tech[1].power = Some(crate::ai::tribe::DUTCH);
+        assert_eq!(sim.tech_price(1, t.gov_b), plain);
+    }
+
     /// The price feeds both AI affordability and the purchase: run574's
     /// Medicine offer and Monotheism charge (`docs/AI.md` §109).
     #[test]

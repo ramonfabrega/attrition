@@ -115,6 +115,184 @@ impl Insert {
     }
 }
 
+/// [`crate::finish_insert_view::FinishInsertView`] over an [`Insert`]: the
+/// copies are typed [`Order`]s, not the original's raw records, so a record's
+/// words are what this crate stores of the order and an action reads the
+/// current order's body where the record names a slot or a pair this crate
+/// holds as one index (`docs/GROUPS.md` §12).
+///
+/// SEAM: `finish_insert`'s other cases — gather, garrison, board, follow,
+/// trade, spell, form, attack-ground — reach no action here. No capture
+/// reaches a group `QUEUE_FIRST` carrying one.
+struct SimInsert<'a> {
+    sim: &'a mut Sim,
+    g: &'a Group,
+    saved: std::collections::VecDeque<Order>,
+    cur: Option<Order>,
+    aim: Option<(Obj, bool)>,
+}
+
+impl crate::finish_insert_view::FinishInsertView for SimInsert<'_> {
+    fn reseat(&mut self) {}
+
+    fn pending(&mut self) -> bool {
+        !self.saved.is_empty()
+    }
+
+    fn take(&mut self) -> bool {
+        self.cur = self.saved.pop_front();
+        self.cur.is_some()
+    }
+
+    fn kind(&mut self) -> i32 {
+        let Some(o) = self.cur else { return 0 };
+        match o.body {
+            Body::Move(m) => match (m.kind, m.group.is_some()) {
+                (MoveKind::MoveTo, false) => 1,
+                (MoveKind::AttackTo, false) => 2,
+                (MoveKind::ExploreTo, _) => 3,
+                (MoveKind::FleeTo, _) => 4,
+                (MoveKind::MoveTo, true) => 0x13,
+                (MoveKind::AttackTo, true) => 0x15,
+            },
+            Body::Build(_) => 6,
+            Body::Gather(_) => 7,
+            Body::Attack(_) => 0xa,
+            Body::Follow(_) => 0xb,
+            Body::Guard(_) => 0xc,
+            Body::Repair(_) => 0xd,
+            Body::Cast(_) => 0xe,
+            Body::Trade(_) => 0xf,
+            Body::Patrol(_) => 0x16,
+            Body::AttackGround(_) => 0x17,
+            Body::Garrison { .. } => 0x1a,
+            Body::Strafe(_) | Body::AirPatrol(_) | Body::AirAttackGround(_) | Body::Think => 0,
+        }
+    }
+
+    fn word(&mut self, _slot: u32, off: u32) -> i32 {
+        match self.cur.map(|o| o.body) {
+            Some(Body::Move(m)) => {
+                let orig = m.group.map(|gm| gm.orig).or(m.orig);
+                match off {
+                    4 => m.dest.x,
+                    8 => m.dest.y,
+                    0xc => m.angle.0,
+                    0x44 => orig.map_or(-1, |p| p.x),
+                    0x48 => orig.map_or(-1, |p| p.y),
+                    _ => 0,
+                }
+            }
+            Some(Body::Build(b) | Body::Repair(b)) => {
+                let bd = &self.sim.buildings[b];
+                match off {
+                    8 => i32::from(bd.owner),
+                    0xc => i32::from(bd.index),
+                    _ => 0,
+                }
+            }
+            _ => 0,
+        }
+    }
+
+    fn record(&mut self, _slot: u32) -> i32 {
+        0
+    }
+
+    fn flags4(&mut self, _slot: u32) -> i32 {
+        match self.cur {
+            Some(o) if o.has(flag::ACTION) => 4,
+            _ => 0,
+        }
+    }
+
+    fn left_ecx(&mut self) -> i32 {
+        0
+    }
+
+    fn give_obj(&mut self) {
+        self.cur = None;
+    }
+
+    fn action_move_near(&mut self, a: [i32; 11]) {
+        // `a[2]` (`+0x14` of a group move's record) has no field here.
+        let kind = match a[6] {
+            2 => MoveKind::AttackTo,
+            3 => MoveKind::ExploreTo,
+            4 => MoveKind::FleeTo,
+            _ => MoveKind::MoveTo,
+        };
+        self.sim.group_action_move_to(
+            self.g,
+            Pos { x: a[0], y: a[1] },
+            QueuePos::Last,
+            a[4] != 0,
+            Angle(a[5]),
+            kind,
+            a[7] != 0,
+        );
+    }
+
+    // Cases 6 and `0xd`: the copy names a slot, not a building — the case
+    // passes the order's `ox` and `whom` and no uid, and
+    // `action_swarm_around` asks only that the slot's object be alive
+    // (`docs/AI.md` §215); this crate holds the pair as the building index
+    // and re-looks it up by its owner and number.
+    fn action_swarm_around(&mut self, a: [i32; 5]) {
+        let Some(Body::Build(b) | Body::Repair(b)) = self.cur.map(|o| o.body) else {
+            return;
+        };
+        let bd = &self.sim.buildings[b];
+        let Some(now) = self.sim.building_by_o(bd.owner, bd.index) else {
+            return;
+        };
+        let body = if a[3] == crate::finish_insert_view::REPAIR {
+            Body::Repair(now)
+        } else {
+            Body::Build(now)
+        };
+        self.sim
+            .group_action_swarm_around(self.g, now, QueuePos::Last, body, a[4] != 0);
+    }
+
+    fn action_gather(&mut self, _a: [i32; 2]) {}
+
+    fn action_board_ship(&mut self, _a: [i32; 2]) {}
+
+    fn action_attack(&mut self, _a: [i32; 5]) {
+        // The target is the unit's, not the order's (`docs/GROUPS.md` §12).
+        if let Some((t, mandatory)) = self.aim {
+            self.sim
+                .group_action_attack(self.g, t, mandatory, QueuePos::Last, 0);
+        }
+    }
+
+    fn action_follow(&mut self, _a: [i32; 3]) {}
+
+    fn action_guard(&mut self, _a: [i32; 4]) {
+        if let Some(Body::Guard(gd)) = self.cur.map(|o| o.body) {
+            self.sim
+                .group_action_guard(self.g, gd.target, QueuePos::Last, false);
+        }
+    }
+
+    fn action_spell(&mut self, _a: [i32; 5]) {}
+
+    fn action_trade(&mut self, _a: [i32; 5]) {}
+
+    fn action_form(&mut self, _a: [i32; 5]) {}
+
+    fn redo_patrol_order(&mut self, _a: [i32; 2]) {
+        if let Some(Body::Patrol(p)) = self.cur.map(|o| o.body) {
+            self.sim.group_redo_patrol_order(self.g, p);
+        }
+    }
+
+    fn action_attack_ground(&mut self, _a: [i32; 3]) {}
+
+    fn action_garrison(&mut self, _a: [i32; 4]) {}
+}
+
 /// `reversing@0092cf20` — "is this angular difference a turn-around?"
 ///
 /// Nine lines in the original and the engine's own name for the test three
@@ -2284,88 +2462,20 @@ impl Sim {
 
     /// `Group::finish_insert@0070e620` (§6.2, §17): each copy
     /// [`Self::group_set_up_insert`] saved, re-issued as a **group**
-    /// action at `QUEUE_LAST`.
+    /// action at `QUEUE_LAST`. The dispatch is
+    /// [`crate::finish_insert_view::finish_insert`], swept against the
+    /// original (item 3372); this crate's view over the copies is
+    /// [`SimInsert`].
     pub(crate) fn group_finish_insert(&mut self, g: &Group, insert: Insert) {
         let Insert { saved, aim } = insert;
-        for o in saved {
-            match o.body {
-                // Cases 1–4, `0x13` and `0x15`: `action_move_near` to the
-                // copy's `orig_x`/`orig_y` when both are non-negative — the
-                // point the move was issued to, a group move's and a plain
-                // one's alike — else its `x`/`y`, at `QUEUE_LAST`,
-                // `set_angle 1` and the order's own angle, with the action
-                // bit. run219's explorers replay to their click behind the
-                // goody-box leg (`docs/GOLDEN.md` §24): the chariot's plan
-                // ends on (2400, 17280), not its snap, and the squad lays
-                // its slots out afresh round the click.
-                Body::Move(m) => self.group_action_move_to(
-                    g,
-                    m.group
-                        .map(|gm| gm.orig)
-                        .or(m.orig)
-                        .filter(|p| p.x >= 0 && p.y >= 0)
-                        .unwrap_or(m.dest),
-                    QueuePos::Last,
-                    true,
-                    m.angle,
-                    m.kind,
-                    true,
-                ),
-                Body::Attack(_) => {
-                    if let Some((t, mandatory)) = aim {
-                        self.group_action_attack(g, t, mandatory, QueuePos::Last, 0);
-                    }
-                }
-                // Cases 6 and `0xd`: `action_swarm_around(o, who,
-                // QUEUE_LAST, kind, flags & 4)`, the order's own
-                // action bit. run157's `1/1` is a citizen on its way
-                // to a site when the goody look halts it on 990, and
-                // the original keeps the build behind the box's walk
-                // (§24).
-                //
-                // **The copy names a slot, not a building**: the case
-                // passes the order's `ox` and `whom` (`+8`, `+0xc`) and no
-                // uid, and `action_swarm_around` asks only that the slot's
-                // object be alive (`objects[whom].list[ox] + 8 & 1`). A
-                // copy whose site closed and whose number a later site
-                // took is re-issued on the later site: run788's `1/82`
-                // re-entering `2053` on 2972 takes `BUILD 2057` uid 214
-                // where the copy held uid 196 (`docs/AI.md` §215).
-                Body::Build(b) | Body::Repair(b) => {
-                    let bd = &self.buildings[b];
-                    let Some(now) = self.building_by_o(bd.owner, bd.index) else {
-                        continue;
-                    };
-                    let body = match o.body {
-                        Body::Build(_) => Body::Build(now),
-                        _ => Body::Repair(now),
-                    };
-                    self.group_action_swarm_around(
-                        g,
-                        now,
-                        QueuePos::Last,
-                        body,
-                        o.has(flag::ACTION),
-                    );
-                }
-                // Case `0x16`: `redo_patrol_order(group, order,
-                // QUEUE_LAST)` — every member's patrol rebuilt from
-                // the leader's, its step included. It is how a
-                // patrol's leg reaches the whole group (§27 of
-                // `docs/ORDERS.md`, run184).
-                Body::Patrol(p) => self.group_redo_patrol_order(g, p),
-                // Case `0xc`: `action_guard(group, o, who, QUEUE_LAST, 0)`
-                // — the leader's guard, every member's post laid out round
-                // the guarded unit afresh (`docs/AI.md` §142: the army
-                // charge of item 1528 leaves each of 77 members a guard
-                // order on `1/95` at the foot of the stack).
-                Body::Guard(gd) => self.group_action_guard(g, gd.target, QueuePos::Last, false),
-                // SEAM: `finish_insert`'s other sixteen cases —
-                // gather, garrison, board, follow, trade, spell. No
-                // capture reaches a group `QUEUE_FIRST` carrying one.
-                _ => {}
-            }
-        }
+        let mut v = SimInsert {
+            sim: self,
+            g,
+            saved: saved.into(),
+            cur: None,
+            aim,
+        };
+        crate::finish_insert_view::finish_insert(&mut v);
     }
 
     /// `Group::action_halt(mask)` (§7).

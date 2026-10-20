@@ -20111,3 +20111,134 @@ opened apart and no dump held `1/51`'s unpack (15570..15717). **What it holds**:
 frame, theirs re-pieces both of `1/51`'s figures to 50689 (`total_num_unit_pieces − 5`, the Dutch `BUILD_CONTINENT
 1`) and puts them on the merchant's point (17664, 25344); ours put figure 0 on 2124 and left figure 1 on 14796 and
 its offset. Test `run995d_s_walk_back_is_widened_whole`: 32 keys after the build, the standing family on 15462.
+
+## run1000 — the battery's replacement lobby `GreatSaharaGermanTier3`: the start (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 3, launched 06:18:50, exited 06:26:11; 37 frames, run964's line with `--ai-tribe 12 --profile
+DIFFICULTY=3`. Minted by `docs/DECISIONS.md` entry 72's rule (2): of the nations on no map-7 dump and held only by
+closed games, the Germans reach the most census functions (8, against the Indians' 4 and the Inca's 3); tier 3 is the
+tier the Iroquois leave. The first take died on Wine's `7BF21139` startup fault (`process failed: 40`); its directory
+is kept aside as `~/ron-golden/run1000-deadtake1`. `rngcmp.py` against run1000b: 37 identical.
+
+## run1000b — `GreatSaharaGermanTier3`'s draw stream (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 3, launched 06:16:51, exited 06:18:33; run964b's line with `--ai-tribe 12`. **The game ended itself on
+19483** (`ended_early` true). Scored on its first try: count 13585, sequence 13582 of 19483 (`battery_floors_hold`;
+at 0: ours `Leader::use_market+0x1ed`, theirs `Leader::produce_building+0xc99`).
+
+## run1001 — the Iroquois word at Great Sahara: the word 13757's window, blocks 13751..14007 at `GOODS=3` (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 2, launched 06:12:09, exited 06:32:52; 14013 frames, 14013 identical to run994b. Booked because run994
+dumps blocks 0..36 and run994b its setup and closing blocks only. **What it holds**: on block 13757 theirs' human
+Scout `0/0` (TI 69) holds a second `FLEE_TO` to (7944, 33384), `damage_frame` 13756, `damage_o` 35, `hits:damage` 21
+against ours 16 — `1/35`'s arrow struck it a frame earlier in theirs. Test `run1001_s_word_frame_is_widened_whole`:
+1404 keys on the first try, 1109 after piece 1531's release, 35 after piece 1546's (the standing family).
+
+## run1001b — the Iroquois word at Great Sahara: the Heavy Archers' rounds, blocks 13744..13760 at `AMMO=5` (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 1, launched 06:36:27, exited 06:37:32; 13765 frames, 13765 identical to run994b. **What it holds**: `1/35`
+(`HEAVYARCHERS`, type 173, piece 1531) looses its `CHAR_ATTACK2` round from (8976, 31176, 799), `total_time` 8,
+where ours loosed from the figure's own (9048, 31128), 9. Test
+`launch::tests::run1001b_s_heavy_archer_round_leaves_its_release_node` (sim) carries the dump's columns.
+
+## run1001c — the Iroquois word at Great Sahara: the word 13810's window, blocks 13755..14007 at `AMMO=5` (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 2, launched 06:43:22, exited 06:49:23; 14013 frames, 14013 identical to run994b. Booked for the rounds that
+wound the Scout `0/0` on 13772..13774. **What it holds**: eleven rounds of the Cavalry Archers `1/43` and `1/44`
+(`CAVARCHERS`, type 188, piece 1546), three of them loosed walking, each through the figure's turret (`node_flags`
+15); and the Heavy Archers' `1/36`, `1/37` (piece 1531). Test `run1001c_s_word_frame_is_widened_whole`: 67 keys on the
+first try (piece 1546 built), the standing family and 36 `build:extra` rows (no `BUILDS` record printed), nothing on
+the word's block 13811; sim test `pivot::tests::run1001c_s_cavalry_archers_loose_through_piece_1546_s_pivot`.
+
+## run1001d — the Iroquois word at Great Sahara: a packet at 13760 (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 1, launched 06:43:18, exited 06:44:58; 13767 frames, 13767 identical to run994b. `RON_STATE_FRAME=13760`,
+851 MB, `~/ron-golden/run1001d/map-7/frame-snapshot.bin`. **What it holds**: piece 1531's three attack `AttachPos`
+rows (`launch::BAYS`) and piece 1546's nine (`pivot::RELEASES`, `pivot::NODES`), read and swept by
+`tools/recomp/get_position.py`; the sweeps are under `~/ron-data/lab-experiments/2026-10-20-item-3375/`.
+## run998 — the battery's replacement lobby: East Indies, the Aztecs at difficulty 1, a `DUMP_ALL` start (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. **What the disk could not answer**: no dump holds an Aztec game on East Indies — the Aztecs' only
+games are Great Sahara 2 and 5 (a header survey of 554 gamelogs). Entry 72's rule (2) as amended by 84: of the
+nations held only by closed games off East Indies the Iroquois were att-3369's (run994), and the Aztecs and Greeks
+tie on the census's reach (7); the Aztecs' lobby moves both map and tier (item 3367's tie-break). Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run998`: `--map 18 --end-frame 36 --timeout 1200
+--dump-all-start --ai-tribe 0 --profile DIFFICULTY=1`.
+- Pool lane 1. Launched 05:39:07, exited 05:47:25. `success`, 37 frames.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run998-eastindies-aztec-diff1-start.txt`, 153,128,123 bytes,
+SHA-256 `cdc63757d72ab3b4a000264642508fc276f0eece28ffc108b8225e668b4c2704`.
+
+Archive `rontrace-run998.log`, 9,810,976 bytes,
+SHA-256 `045fcc4705256ce7e539c11ee568317faf9715e6fae29429b9eecf68397548a0`.
+
+## run998b — the Aztecs at East Indies 1: the draw stream to 24000 (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. run986b's recipe with `--ai-tribe 0 --profile DIFFICULTY=1`.
+- Pool lane 2. Launched 05:39:35 (a retake 4 s after a first take exited 5), exited 05:42:16. `success`, 24001
+  frames, `ended_early` false: the game runs to 24000. `rngcmp.py` run998 vs run998b: **37 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run998b-eastindies-aztec-diff1-24k-trace.txt`, 13,384,677 bytes,
+SHA-256 `38c5ee85c093eef550581a3b65b9bcb1e9b031e800c8c8d5f2b6b2d58d665dd8`.
+
+Archive `rontrace-run998b.log`, 169,956,832 bytes,
+SHA-256 `79f4266bbf6f433b13446bb177d36aeae0dc4aa17188ed03ecd78798971349b5`.
+
+**What it holds**: the battery's `EastIndiesAztecTier1`, **24000 / 24000** on its first try, pinned in
+`battery::BATTERY`.
+
+## run999 — the American word: the word 9382's window, blocks 9376..9632 at `LEADERS=9` (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. **What the disk could not answer**: run955 dumps blocks 0..36 and run955b its setup and closing
+blocks only, so no dump held who=1's ledger on the word's block. `--map 18 --end-frame 9637 --timeout 5400
+--log-window 9376 9632 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 20 --cover
+cover=0 --profile DIFFICULTY=1`.
+- Pool lane 3. Launched 05:44:52, exited 06:03:29. `success`, 9638 frames; `rngcmp.py` vs run955b: 9638 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run999-eastindies-american-diff1-window-9376-9633-leaders.txt`, 531,160,272 bytes,
+SHA-256 `587f18ac7db62bcdad2ccb659444494a0dd2525fbddae6ead63f25ac3d137dbf`.
+
+Archive `rontrace-run999.log`, 40,897,024 bytes,
+SHA-256 `6b483b1f909eb4b9deda0a76bc4b07ca87fa1fd70d819d31fcb974d7649cd7a1`.
+
+**What it holds**: `run999_s_word_frame_is_widened_whole` — 601 keys on the first try (who=1's `bucket[0:food]`
+87 against 107 and `bucket[4:metal]` 158 against 178 on block 9376, income agreeing), 51 after the American
+land-upgrade arm.
+
+## run999b — the American word: the word 10982's window, blocks 10976..11232 at `LEADERS=9` (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. **What the disk could not answer**: run999 closes on 9632, and nothing else holds who=1's ledger
+or make list past it. run999's recipe with `--end-frame 11237 --log-window 10976 11232`.
+- Pool lane 1. Launched 06:09:12, exited 06:31:32. `success`, 11238 frames; `rngcmp.py` vs run955b: 11238
+  identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run999b-eastindies-american-diff1-window-10976-11233-leaders.txt`, 543,605,456 bytes,
+SHA-256 `eaa30be1c053a9677b6fe0ea5f837dfb24a00642adf9be57ca945e62c4bc9e3f`.
+
+Archive `rontrace-run999b.log`, 52,203,904 bytes,
+SHA-256 `3dfb9b05a520d6c7ff7028e52d2bc943ed820cd7e2be32c17c83d8259a194ae0`.
+
+**What it holds**: on block 10983 theirs queues Republic (`num_queued[624]`) and a Dock (`num_queued[432]`) and pays
+only the Dock's timber; `run999b_s_word_frame_is_widened_whole` — 575 keys before the government arm, 55 after.
+
+## run999c — the American word: the word 17215's window, blocks 17209..17465 at `LEADERS=9` (2026-10-20, item 3374, `att-3374`)
+
+`docs/AI.md` §287. **What the disk could not answer**: run999b closes on 11232, and run955b holds no unit or
+building between its setup and closing blocks. run999's recipe with `--end-frame 17470 --timeout 7200 --log-window
+17209 17465`.
+- Pool lane 3. Launched through the driver at 06:19:39, the pool's lane taken at 06:26:25, exited 06:47:24.
+  `success`, 17471 frames; `rngcmp.py` vs run955b: 17471 identical.
+- Minutes waited on another lane: 7 (all three lanes held, two by att-3375).
+
+Archive `gamelog-run999c-eastindies-american-diff1-window-17209-17466-leaders.txt`, 573,318,729 bytes,
+SHA-256 `4b7db29a261d60a2d3e6460a779fc11e1d05e52cf546eade88008a14acb1e379`.
+
+Archive `rontrace-run999c.log`, 92,177,760 bytes,
+SHA-256 `507c3e1f85fc6c99544794c461a60ec1e436a50a9deb7b34dc2dedce75adaeea`.
+
+**What it holds**: who=1's Pyramids `1/2031` at `construct_hits` 2200 on block 17209 (ours 1101), finished on 17214;
+`run999c_s_word_frame_is_widened_whole` — 879 keys before the free first wonder, 50 after.

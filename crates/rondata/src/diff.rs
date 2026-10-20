@@ -30,6 +30,8 @@ use crate::load::Loaded;
 use sim::{Pos, Sim, Tuning, Unit, World};
 
 #[cfg(test)]
+mod american_word;
+#[cfg(test)]
 mod aztec_word;
 #[cfg(test)]
 mod bantu_word;
@@ -61,6 +63,8 @@ mod harness;
 mod inca_word;
 #[cfg(test)]
 mod indian_word;
+#[cfg(test)]
+mod iroquois_sahara_word;
 #[cfg(test)]
 mod iroquois_word;
 #[cfg(test)]

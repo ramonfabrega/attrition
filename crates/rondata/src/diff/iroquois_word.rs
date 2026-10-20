@@ -1220,7 +1220,10 @@ fn run954_s_word_frame_is_widened_whole() {
     );
     // Item 3369: 61 -> 34, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 34, "run954 on its first build");
+    // Item 3375: 34 -> 33, the Cavalry Archers' piece 1546 in
+    // `sim::pivot::RELEASES`: block 12231's `0/2000` `build:damage`, ours
+    // 902 against theirs 904, agrees.
+    pin_eq!(w.firsts.len(), 33, "run954 on its first build");
     // Item 3306: 1118 on the first build, 1088 with the held building's
     // yield (the parting index 1 → 10), and 61 with the yield's skip of
     // the flee arm and the on-duty gate. Block 12150 holds the standing

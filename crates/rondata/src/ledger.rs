@@ -183,12 +183,20 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the battery's Inca word's walks: it compares no field itself, and its widening is harness.rs's (item 3360)",
     ),
     (
+        "diff/american_word.rs",
+        "the battery's American word's walks: it compares no field itself, and its widening is harness.rs's (item 3374)",
+    ),
+    (
         "diff/aztec_word.rs",
         "the battery's Aztec word's walks: it compares no field itself, and its widening is harness.rs's (item 3361)",
     ),
     (
         "diff/dutch_sahara_word.rs",
         "the battery's Dutch word at Great Sahara's walks: it compares no field itself, and its widening is harness.rs's (item 3369)",
+    ),
+    (
+        "diff/iroquois_sahara_word.rs",
+        "the battery's Iroquois word at Great Sahara's walks: it compares no field itself, and its widening is harness.rs's (item 3375)",
     ),
     (
         "diff/korean_word.rs",

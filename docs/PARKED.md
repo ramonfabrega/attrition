@@ -3878,10 +3878,23 @@ not seen as a read (the caller reads by field instead). No kill rule tripped, si
 test. Candidates: the paperwork-shaped guards (`writers::`, `docs_guard`) run in every lane gate whatever their
 time; or the guard's scan cached, so it falls under the budget. The pass's. One reach.
 
+(3377) **The sweep generator lacks three shapes `Balance::compute_modifier` needed** (3372's "for the Loop", filed at
+its merge; parked 3372d): TLS statics, a hidden out-pointer answered back, and a 318 KB (399 × 399) table argument.
+3372 wrote that sweep's script by hand. A hand-written script is a second generator nobody regenerates, so `--regen`
+drops it the way 3362's hand-edited bodies were dropped. 3372 also reports that `--stub-alloc` now exists, so 3362a
+(`PathFinder::astar_path`) and the other four parks of that flag (3282b, 3339a, 3348b, 3358d) can be retried: a
+sweep lane's next batch, not the pass's. Candidates for the three shapes: `sweep_gen.py` flags for each, landed with
+`compute_modifier`'s script regenerated from them. The pass's. One reach.
+
 3370's "for the Loop" says `none` under a heading (`## For the Loop`, then `none` on its own line), and
 `docs_guard::a_journal_s_loop_line_is_filed_or_says_none` reads only the heading's line, so the journal read as
 unfiled. It is recorded here as filed and empty, and the journal is left as its worker wrote it. If the shape
 recurs, the guard should read the next non-blank line.
+
+3374's "for the Loop", filed at its merge: the draft journal carried the item across a `/clear` at 344 k with a
+numbered list of what was left, and the next session finished from it and the queue's item without re-deriving
+anything. A draft journal is a sufficient handoff at a lane's seam. That confirms the DEEP answer as written; it is
+not an item.
 
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
@@ -7619,10 +7632,11 @@ Four shapes built (change_target, find_army, cast_civilian, resolve_block); two 
 
 ## Parked by item 3145, 2026-10-18 — the Dutch ship-upgrade discount, and its twin
 
-- (3159) The American upgrade discount (`get_cost:524`–`527`, `AMERICANS_UPGRADE_DISCOUNT`, `has_tribe_bonus(0x14)`
+- (3159) ~~The American upgrade discount (`get_cost:524`–`527`, `AMERICANS_UPGRADE_DISCOUNT`, `has_tribe_bonus(0x14)`
 and `+0x218 == 0`, a land unit) sits beside the Dutch one in the same research-arm block and is still
 unbuilt: `city::Nation` carries no `americans` flag and no battery lobby holds an American leader. Names
-no score; the next American lobby's term. The remaining uncarried arms (Mongol stable, Japanese
+no score; the next American lobby's term.~~ **Built by item 3374** (`docs/AI.md` §287): `cost::Research::american_land`,
+the step before the Dutch arm's; the American word 9382 → 10982. The remaining uncarried arms (Mongol stable, Japanese
 barracks and ships, American aircraft, British AA, Nubian merchants, French `train_time`) stand as
 parked 3144 listed them; none belongs to a battery lobby's leader.
 
@@ -8053,8 +8067,9 @@ die-when-emptied step, no `eject_o`/`eject_who` arm (`Unit::come_out` walk), no 
 no argument mask for `--record` (stack-local pointer args). Two further passes equivalent under the draw
 (`offset(node)`/`range(node)`), one starved (`d > 0x8000_0000`).
 
-(3261c) `BuildData::construct_time`: `ClockMods.free_first_wonder` and `.hanging_gardens` have no writer outside tests, so
-`Sim::construct_time_of` never applies the American free first wonder or the Hanging Gardens discount; the original
+(3261c) `BuildData::construct_time`: ~~`ClockMods.free_first_wonder` and~~ `.hanging_gardens` ha~~ve~~s no writer outside tests, so
+`Sim::construct_time_of` never applies ~~the American free first wonder or~~ the Hanging Gardens discount (**the free
+first wonder is read live by item 3374**, `Sim::american_free_wonder`, `docs/AI.md` §287: the American word 17215 → 24000); the original
 derives both per call (rival scan from object 2000 to `objects.field_0x184[p]`). The original divides unsigned
 (`cmova` max with 1); the crate is signed i32 — agree only for hg 0..100, president speed ≥ 0, base ≤ 20M. The
 `param_1 != 0` form has no crate counterpart. `--seq` and `--answer-win` cannot share one stub.
@@ -8810,29 +8825,52 @@ words and edits nothing here; a refill lands when two remain.
 **3370b.** `cast_transport` and `eject_contents` copy the caravan's `unit_masks2 & 0x200` to the boat and back; this
 crate carries no `unit_masks2`. Names no score.
 
-## Parked by the next landing, slot LM — reserved
+## Parked by item 3372, 2026-10-20 — the second sweep lane's fourth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3372a. `Unit::suffer_attrition@005e1a10`: the warning's `is_ally(leaders[who], who)` and the stamp.** The original asks the
+  unit's own player against itself (asm `5e1a8b`..`5e1a95`), not against the tile's owner; whether the warning can ever show is
+  `LeaderData::is_ally(self, self)`'s to answer, unchecked. `leader+0x1f8` (the warning stamp) is not modelled: a headless sim has
+  `console_who` -1 and nothing else reads it. `play`'s recorded `ecx` in the sweep is an artefact of the stub. Rows over the emu cache cap (~8 s).
+- **3372b. `Object::remove_from_inside@006480f0`: three SEAMs.** The splice words (`inside_up`/`inside_down`) have no crate field (a
+  holder is one pointer; the adapter's splice is empty); the container's slot `0x20` (`host_flag` always true); `unit+0x68 & 1`
+  (`masked` always false). The Barracks arm counts `barracks_garr` (`ai.rs`), which nothing reads: `AMERICANS_BARRACKS_GATHER` is not
+  in the tuning. `docs/AI.md` §219 and the "not modelled" paragraphs still say the arm is unbuilt.
+- **3372c. `Unit::check_build_order@00603470`: `--stub-alloc` built; the crowd tally is a sim fix not diff-backed.** The shape had
+  parked twice (3282b, 3339a) on `--stub-alloc`; it is now in `sweep_gen.py` (test `test_an_import_stub_may_allocate`, not made to
+  fail on purpose once). The crowd now counts only `find_units(SEARCH_FRIENDLY, owner, unit_build_respond_range*0xc0, 0x200,
+  BUILDREPAIR)` results less the unit itself — AI builders queueing several sites may move a pin (the booking gate says);
+  the build order's `+0xc` owner = the unit's owner is assumed; `FILTER_BUILDREPAIR` is treated as subsumed by the action test.
+  Negative `idx`/`uid` on the target-order lookup faults the emulator, so those inline guards are unswept. 3362a's astar_path
+  parks on `--stub-alloc`: that flag exists now, and the park is to be re-tried.
+- **3372d. `Balance::compute_modifier@00581cc0`: the script is hand-written** (`sweep_balance_compute_modifier.py`): the generator
+  lacks TLS statics (`fs:[0x2c]` `_TSS` guards; `--tib` sets only `fs:[0]`), a hidden out-pointer answered back (`--outarg` writes one
+  word at offset 0), and a table argument of 399x399 shorts (a generated row prints every window whole: ~250 MB for 200 rows). The
+  old 3282c / 3337a park text on `compute_modifier` is stale. Two breaks unrun (loop nesting, plain vs wrapping multiply).
+  `compute_modifier_with`, `Pack` and `Kind::pack()` were split out of `balance.rs`; `xml_product` and the final multiply now wrap.
+- **3372e. `Unit::find_build_spot@00603e20`: the second pass.** The original asks the building prefix of the shared result array for
+  an action (`+0xa8` on a Build object); the Sim treats those as no action. `Sim` has no worker-stance-type concept
+  (`worker_stance` is the unit's `stance`). `find_construct_sites` and `find_units_friendly` are unswept. The 32-break batch was
+  run at 3000 rows (the survivor was caught at 12000); the full batch was not rerun at 12000.
+- **3372f. `Group::finish_insert@0070e620`: leftover `ecx`.** Cases `0x12` (`action_form`) and `0x16` (`redo_patrol_order`)
+  pass the leftover `ecx` after the accessor vcall as a stack argument (in the emulator, the order's own address, which
+  `action_form` takes as its queue position); the sim's `redo_patrol_order` ignores it. Unchased. The `+0x14` word of a group move's
+  record has no sim field. Branch coverage not re-measured at 800 rows.
 
-## Parked by the next landing, slot LN — reserved
+## Parked by item 3374, 2026-10-20 — the American word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3374a.** The free first wonder (`docs/AI.md` §287) reads the census's `wonder_mark` and the standing wonders for
+`get_wonders`/`wonders_built`; the leader's own `wonders_built` (`+0x854`) is not carried, so a leader whose only
+wonder was destroyed reads "none yet", and the rival scan does not test the rival leader's alive flag
+(`leaders[p] & 1`). No capture on disk reaches either; names no score.
 
-## Parked by the next landing, slot LO — reserved
+## Parked by item 3375, 2026-10-20 — the Iroquois word at Great Sahara closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3375a.** `GreatSaharaIroquoisTier3`, run1001c and run1001 block 13825: who=1's `1/0` (`uid 6`) `blown`, ours 1
+against theirs 0 (`unit_masks` 262152, no `0x1000`), with the draw stream agreeing to 16371 and the closing state
+none apart. Names no score (`docs/AI.md` §288).
+
+**3375b.** run1001's `1/91` (from 13751) and `1/54` (from 13963) `g.angle[0]` ours 1431655765 against 0 — parked
+2995's `0x55555555`, on this lobby too. Names no score.
 
 ## Parked by the next landing, slot LP — reserved
 
