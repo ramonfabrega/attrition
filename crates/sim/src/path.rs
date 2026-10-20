@@ -3465,11 +3465,12 @@ mod tests {
             eprintln!("skipping: set RON_EMU_TABLE or RON_INSTALL");
             return None;
         };
-        let out = std::process::Command::new("uv")
-            .args(["run", &format!("{root}/tools/emu/callfn.py")])
-            .arg(format!("{install}/riseofnations.exe"))
-            .arg("sweep")
-            .output();
+        // On `tools/emu`'s shared environment, not a per-path one (item 3354).
+        let out =
+            crate::sweep::uv_command(std::path::Path::new(&format!("{root}/tools/emu/callfn.py")))
+                .arg(format!("{install}/riseofnations.exe"))
+                .arg("sweep")
+                .output();
         match out {
             Ok(o) if o.status.success() => Some(String::from_utf8(o.stdout).unwrap()),
             Ok(o) => panic!("callfn.py failed: {}", String::from_utf8_lossy(&o.stderr)),

@@ -12,7 +12,7 @@
 //! as `path::tests::the_emulated_original_agrees_on_every_row` does.
 
 mod support;
-pub(crate) use support::{emu_rows, row, tail_row};
+pub(crate) use support::{emu_rows, row, tail_row, uv_command};
 
 mod ammo_do_damage;
 mod build_start;

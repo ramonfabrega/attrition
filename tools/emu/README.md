@@ -11,8 +11,16 @@ uv run tools/emu/callfn.py <install>/riseofnations.exe sweep [SEED] [N]
 ```
 
 The one third-party Python package under `tools/`, `unicorn`, is declared
-inline in the script (PEP 723) and resolved by `uv`; nothing is installed
-into the checkout. The sweep's rows are asserted by
+inline in the script (PEP 723) and resolved by `uv`. The tests run the
+scripts instead through this directory's `pyproject.toml` —
+`uv run --locked --project tools/emu python <script> …`, on one
+gitignored `tools/emu/.venv` that `uv` makes on the first run — because a
+bare `uv run <script>` builds an environment per script *path* in uv's
+cache, one per sweep per worktree (item 3354; `docs/EMULATOR.md` §1.1).
+Either form works for a person; a new dependency goes in both the
+script's inline block and `pyproject.toml` (then `uv lock --project
+tools/emu`), and `tools/explore/test_emu_env.py` fails until it does.
+The sweep's rows are asserted by
 `crates/sim/src/path.rs`'s `the_emulated_original_agrees_on_every_row`,
 which reads `$RON_EMU_TABLE` or runs the script against `$RON_INSTALL`
 (or the checkout's `game/`) and skips, saying so, when neither exists.
