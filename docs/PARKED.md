@@ -8096,7 +8096,7 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
   the answer depends on the constant; `--stub`/`--seq` draw per call, `--answer-by` keys on `ecx` only. Flag:
   `--stub-by-arg IDX:ARGK:VALS`. The port `Sim::find_friends` (`ai_place.rs`) is welded to `Sim`; a pure helper taking
   per-type test closures is owed.
-- **3282b. `Unit::find_build_spot@00603e20`: stack-resident growing arrays.** Two `SimpleArray<int>` locals grow through
+~~- **3282b. `Unit::find_build_spot@00603e20`: stack-resident growing arrays.** Two `SimpleArray<int>` locals grow through~~ **Struck by item 3381:** swept whole by item 3372 (`build_spot_view.rs`, 12000 rows, 31 of 32 breaks held) once `--stub-alloc` existed; the generator needed nothing more.
   slot 0 of the image's vftable (malloc resolves to nothing under the emulator); flag `--stub-alloc IDX:ECXOFF:CAPOFF`
   (a stub that allocates from the harness bump heap into `[ecx+OFF]`). Also a ~0xa00-byte stack `Group` with its
   vtables, `Objects::find_builds/find_units` with 11 stack arguments, and per-object slot 0xac/0xa8 chains. The crate's
@@ -8200,7 +8200,7 @@ reading, not a measurement.
   prefix, spacing (city/fort lists), tail (get_town through wonder checks, water/mountain/tree counts, gather survey).
   Two differences to check when the view exists: the crate skips the gather survey for who = None (a marked seam);
   `!n.lakota` where the original calls `has_tribe_bonus(0x13)`.~~ Answered by item 3364: `location.rs` (`LocationView`, `blocked_location_steps`, `SimLocation`) and three generator sweeps (`build_type_data_blocked_location{,_tail,_town}`); the pointer-table walk spelled with `--ptrtab`, `--ecx-answer` and `--vtat-image`, no flag lacking.
-- **3358d. `Unit::do_non_flat_gather@005f0170`: port not level, plus `--stub-alloc IDX`.** Crate arms absent: the
+~~- **3358d. `Unit::do_non_flat_gather@005f0170`: port not level, plus `--stub-alloc IDX`.** Crate arms absent: the~~ **Struck by item 3381 for the head and the `goto_build != 0, wait < 0` tile arm** (`gather_tile.rs`, 2500 rows, 47 of 49 breaks held); the rest is 3381c.
   transport arm (`get_tregion` both ends, `can_transport`, `add_move_order`), the worker doober cleanup
   (`+0x86`, `Doober::remove_hold_doobers`), the camp-side vcall `+0x170` with `set_angle` where the crate uses
   `set_heading(find_angle)`, the `Error::report` "PANCAKE" arms (String allocation: `--stub-alloc` lacking, fourth
@@ -8442,7 +8442,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3339, 2026-10-19 — the nations seat's fourteenth shape batch
 
-- **3339a. `Unit::find_build_spot@00603e20`, a second time (3282b was the first): `--stub-alloc IDX` is the flag
+~~- **3339a. `Unit::find_build_spot@00603e20`, a second time (3282b was the first): `--stub-alloc IDX` is the flag~~ **Struck by item 3381:** as 3282b — `--stub-alloc` landed and 3372 swept it; `Sim::find_build_spot` runs `build_spot_steps`.
   `sweep_gen.py` lacks.** Two stack-local `SimpleArray<int>` (the site list and the per-site builder counts) grow
   through `increase_size@004220e0`, whose callees are `malloc [0xac54f0]`, `free [0xac5500]` and `memcpy`; `--answers`,
   `--answer-range` and `--seq` draw each malloc's answer at random, so two calls can return one buffer and the counts
@@ -8596,7 +8596,7 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
 
 ## Parked by item 3362, 2026-10-20 — the second sweep lane's third shape batch
 
-- **3362a. `PathFinder::astar_path@00683770`: `--stub-alloc IDX` lacking, a stateful tree/pool model lacking, port not level.**
+~~- **3362a. `PathFinder::astar_path@00683770`: `--stub-alloc IDX` lacking, a stateful tree/pool model lacking, port not level.**~~ **Struck by item 3381 for four slices** (`astar_view.rs`; suspend and the first expansion, 3000 rows each); the rest is 3381e.
   Stands on a generator run: `sweep_gen.py obj --item 3362 --own 3 --win 0x200 --ptrarg 0:0x40 --argset 1:0x30,0xc0,0x10
   --argset 2:0,1 --max-insns 2000000 PathFinder::astar_path@00683770` emits both files and the module registers, but the first
   run of the original dies in the prologue: `UC_ERR_READ_UNMAPPED` (fault 0x7f7f7f6e) on the pointer chased from `this+0x54`
@@ -8807,7 +8807,13 @@ closing state is none apart. Names no score (`docs/AI.md` §290).
 **3380b.** run1005: `1/54`'s `dest_angle` on 15214 (ours −1073741824, theirs −1295384576) and `1/50`'s on 15224
 (−1275002880 against −852099072). Names no score.
 
-## Parked by the next landing, slot LS — reserved
+## Parked by item 3381, 2026-10-20 — the second sweep's fifth batch
+
+- **3381a. `Group::action_trade@00701cc0` swept whole (1600 rows) and by head (400), 47 breaks, none equivalent; not wired.** `trade_view.rs::action_trade_steps`; the stub at `group.rs:281` stays empty and `Unit::add_trade_order@005e4dc0(b, who, c, d, queue, 1)` has no crate twin (`caravan.rs`'s `add_trade_order(u, home)` is a `QUEUE_NEW` reduction). Wiring adds trade orders to every capture whose human clicks a caravan onto a market: the likeliest pin mover. Next: sweep `Unit::add_trade_order`, then a `SimTrade` adapter. No flag lacking.
+- **3381b. `Group::distribute_attack@00713390` swept (2000 rows, 36 of 37 breaks held, one equivalent); not wired.** `distribute_attack_view.rs`; `SimGroupMove::distribute_attack` (`group_move.rs:320`) stays `{}`. A Sim adapter needs the update-order record's counterparts (`+8/+0xc`, `+0x1c` plausibly `combat.target`/`mandatory`); the `& 4` flag at `rec + 8 + [[rec+4]+4]`, the `is_plane` gate (`+0x218 == 2`, `+0x2b4 & 0x20`) and the `+0xdc` order-list cache are unmodelled; `Group::normalize` is stubbed so the walk over a changing member list is unswept. Wiring re-issues attack orders to groups: a pin mover. No flag lacking.
+- **3381c. `Unit::do_non_flat_gather@005f0170`: the other arms.** Unswept: the `goto_build == 0` half (`5f0b9c`..`5f13fb`: carry clear, return to camp, the chop/mine animation tests, arrival and `find_nearby_spot`, `is_gathered_by`, `add_move_order`, `add_hold_doober` x2, `remove_hold_doobers`); the camp arm (`wait >= 0`, `5f073f`..`5f0ef1`: vcall `+0x170` with `set_angle`, `get_tregion` x2, `can_transport`, `find_nearby_spot`); the remaining `PANCAKE` arms. No flag lacking (`--stub slot:OFF:N` per slot spells the multi-slot vcall; `--stub-alloc` was not needed). **Sim fix**: a held tile that loses `has_gather_access` now stays held when no replacement is found (the original writes `tx`/`ty` only on a pick); a pin mover only if a tile closes with no eligible one. The hold doobers (`+0x86`) are not carried. The rows are 48 MB, over the emu cache cap (16 MB): the test re-runs the emulator, 9 to 80 s.
+- **3381d. `Group::action_attack_ground@00704520` swept (3000 rows + 400 head, 43 of 45 breaks held, two equivalent); not wired.** `attack_ground_view.rs`; `group.rs` ~291 stays empty (wiring needs `Group::add` and `action_air_attack_ground` at group level). Lacking in `sweep_gen.py`: a `--wbias` conditioned on another word (the flagged-group leader's sign-extended short at `m+0x8cc`), and a `--stub-write` offset or value indexed by the stub's own call count or taken from a call argument (the scratch group's re-add loop reads (0, 0); `Group::add`'s dedupe/0x80 cap and `clear`'s count zero are uncompared). World held to 1..3 cells.
+- **3381e. `PathFinder::astar_path@00683770`: slices B (suspend) and C (first expansion, three probes) swept, 3000 rows each; 40 of 49 breaks held, 7 starved by the slices, 2 equivalent.** Unswept: the resume arm (`+0x84 != 0`: `kill_tree`, `close`/`clear`, recycler pushes), the loop past the first probe (`dinc`, `calc_cost`, `seek`, `find_node_open`, `remove_current`, the `0xc0` depth cap), the finishing arms (arrival, the work cap and `Drain`, transport re-push, reconstruction into `Stack<PathData>`), the open-list-exhausted `Random::get` roll, the diagonal loop for `su > 1`. The flag it lacks is a second `--stop-stub` (stop at the Nth entry of a stub, or per-row stop selection). `--stub-alloc` is no longer the blocker (3362h): the remaining wall is the pointer-linked `Tree`/`BRTree`. The crate's `Sim::astar_path` runs through `astar_view` (sim refactor, `stack_len < 2` guard kept where the original clamps to 1; no pin should move).
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LS renames this heading `## Parked by item N, <date> — <title>`
@@ -8815,13 +8821,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LT — reserved
+## Parked by item 3383, 2026-10-20 — the Indian word at Great Sahara closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3383a. run1007's seven `dest_angle` rows from 15980, no draw.** After the word's two builds,
+  `run1007_s_word_frame_is_widened_whole` holds 38 keys: the standing family on 15916 (31) and seven `dest_angle` rows
+  from block 15980 on who=1's guards standing at their posts — the Pikeman `1/51` reads 440991744 ours against
+  −440991744 theirs, a mirror of the same angle. The draw stream agrees to the game's end (16564), so the rows name no
+  score; a word that parts on a guard's turn reads them first (`Unit::set_angle`'s callers this crate reaches without
+  `unit_set_angle`, brief row 2234).
 
 ## Parked by item 3384, 2026-10-20 — the American word at Great Lakes closes
 
@@ -8852,6 +8859,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MB renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

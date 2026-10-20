@@ -272,11 +272,34 @@ impl Sim {
     /// The combat profile of an object.
     pub fn profile(&self, o: Obj) -> Profile {
         match o {
-            Obj::Unit(i) => self.units[i]
-                .ty
-                .map_or_else(no_profile, |t| self.unit_types[t].combat),
+            Obj::Unit(i) => self.units[i].ty.map_or_else(no_profile, |t| {
+                let mut p = self.unit_types[t].combat;
+                if self.second_range == Some(t) {
+                    p.max_range = p.second_max_range;
+                }
+                p
+            }),
             Obj::Building(b) => self.buildings[b].combat.unwrap_or_default(),
         }
+    }
+
+    /// **`f` with a melee-and-ranged type's second range in its
+    /// `max_range`** — the bracket `Unit::cavarch_fight@005ff4b0` puts
+    /// round its `fight` (`005ff4c5`, `005ff4f0`): for a type whose flags
+    /// carry `0x400` the type's `+0x1fc` reads its `+0x2d0` for the call
+    /// and 0 after it, which is the value [`uflags::MELEE_AND_RANGED`]
+    /// leaves there at load ([`Sim::second_range`]).
+    pub(crate) fn with_second_range<R>(&mut self, u: usize, f: impl FnOnce(&mut Self) -> R) -> R {
+        let swap = self.units[u]
+            .ty
+            .filter(|&t| self.unit_types[t].cols.flag(uflags::MELEE_AND_RANGED));
+        let Some(t) = swap else {
+            return f(self);
+        };
+        let held = self.second_range.replace(t);
+        let r = f(self);
+        self.second_range = held;
+        r
     }
 
     pub(crate) fn owner_of(&self, o: Obj) -> Player {
@@ -10267,6 +10290,52 @@ mod tests {
                 "in_army {in_army}: {:?}",
                 sim.units[me].orders
             );
+        }
+    }
+
+    /// **An idle melee-and-ranged type searches at its second range**
+    /// (`Unit::think_attack@005f5a80:167`–`174`, item 3383, `docs/AI.md`
+    /// §291): a type whose flags carry `0x400` has `max_range` 0 and its
+    /// range in `second_max_range`; `think_attack` swaps the second in for
+    /// its `find_melee_target`, whose radius at a `DEFENSIVE` stance is
+    /// `max(r × 0xc0, unit_defensive_respond_range × 0xc0)` — 1728 at the
+    /// Gun Mahout's 9 against a melee type's 768. A foe 1200 off is found
+    /// with the flag and not without it.
+    #[test]
+    fn an_idle_melee_and_ranged_type_searches_at_its_second_range() {
+        for flagged in [true, false] {
+            let (mut sim, foe_ty) = at_war();
+            sim.nation[0].human = false;
+            sim.lobby.difficulty = 5;
+            let mut ty = crate::UnitType {
+                hits: 100,
+                combat: Profile {
+                    attack: 40,
+                    max_range: 0,
+                    second_max_range: 9,
+                    combat_role: true,
+                    uber_size: 1,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            };
+            if flagged {
+                ty.cols.unit_flags |= crate::ai_load::uflags::MELEE_AND_RANGED;
+            }
+            let ty = sim.add_unit_type(ty);
+            let at = Pos::new(0x1200, 0x1200);
+            let me = put(&mut sim, 0, ty, at);
+            let foe = put(&mut sim, 1, foe_ty, Pos::new(at.x + 1200, at.y));
+            sim.units[me].combat.stance = combat::Stance::Defensive;
+            sim.units[me].idle = 1;
+            sim.think(me, 1);
+            assert_eq!(
+                sim.units[me].combat.target == Some(Obj::Unit(foe)),
+                flagged,
+                "flagged {flagged}: {:?}",
+                sim.units[me].orders
+            );
+            assert_eq!(sim.second_range, None);
         }
     }
 
