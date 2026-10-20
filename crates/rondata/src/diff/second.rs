@@ -2407,7 +2407,10 @@ mod tests {
         // Item 1383, the re-plan's step past the pause: 662 → 243.
         // Item 1457: 242 → 237; a member comes out with its orders, a pushed stack group's point is (0, 0), every push normalizes the last slot (`docs/GROUPS.md` §36).
         // Item 1458: 237 → 233; a member's slot across a coast is re-placed on slot 0's, and a recycled slot keeps its `path_recursion` (`docs/GROUPS.md` §37).
-        pin_eq!(w.firsts.len(), 51, "every key parted on run544");
+        // Item 3370: 51 → 50; `1/40`'s `path[43].flags` on 16074 (ours 32,
+        // theirs 0) — the region check pushes the stack's stripped top
+        // (`docs/AI.md` §286).
+        pin_eq!(w.firsts.len(), 50, "every key parted on run544");
     }
 
     /// **run572 — the second pair's East Indies word 16179, widened whole**

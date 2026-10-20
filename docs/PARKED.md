@@ -8427,7 +8427,7 @@ Nothing parked: the word closed (`docs/AI.md` §265).
 
 **3330b.** `TechType::compute_ai_values`: the `basic_type` inline arm (slot 0xe4 against 0x639970) is never laid (`--vtat-keep` not used because the function recurses); the Sim view's id-to-predicate mapping for the four enhancer ids is checked by the install check, not the sweep (a `Root::Smelter` for `Lumbermill` mutant survives). 220 rows at ~1.4 MB each; a sparse `--cell-win` would allow more.
 
-**3330c.** `SpellType::cast_transport`: seams left no-ops in `SimTransport` — sounds, MARINES (`unit_masks2`/`update_speed`), the caravan slot hand-over, the selection group swap, `replace_hotunit`.
+**3330c.** `SpellType::cast_transport`: seams left no-ops in `SimTransport` — sounds, MARINES (`unit_masks2`/`update_speed`), ~~the caravan slot hand-over~~ (built by item 3370, `docs/AI.md` §286), the selection group swap, `replace_hotunit`.
 
 **3330d.** `Group::action_queue_up`: the inline fast paths (slot equal to `is_unit_type`/`is_build_type`/`ObjectData::is`) and the sound-table branch are unexercised (shared slots conflict under `--vtat-keep`; the sound count cells are 0 in the image).
 
@@ -8793,13 +8793,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LL — reserved
+## Parked by item 3370, 2026-10-20 — the East Indies Spanish word closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3370a.** `EastIndiesSpanishTier3`, run993d block 15129: `1/87`'s `dest_angle`, ours 793640960 against theirs
+1008795648, with the draw stream agreeing to 24000. Names no score (`docs/AI.md` §286).
+
+**3370b.** `cast_transport` and `eject_contents` copy the caravan's `unit_masks2 & 0x200` to the boat and back; this
+crate carries no `unit_masks2`. Names no score.
 
 ## Parked by the next landing, slot LM — reserved
 
