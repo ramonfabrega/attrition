@@ -8472,13 +8472,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LC — reserved
+## Parked by item 3347, 2026-10-19 — the battery's French word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+What the French word's landing (`docs/AI.md` §278) read and did not build:
+
+- **3347a — the French special arm.** `ObjectData::train_time@006508c0`'s French branch has a second arm beside the
+  siege one: a type that `is(0x36)` takes `FRENCH_SPECIAL_SPEED`. The rules ship it as 0, so it can change no
+  time; not carried. Build it if a mod or a later rules file sets it.
+- **3347b — the Dragoon's `CHAR_ATTACK2` release node.** Piece 139 (`DRAGOON`, type 189) fires its `ATTACK2` at
+  frame 13 (run982's `1/39` on 14188, 14218, …), past every `AMMO` window on file, so `launch::MEASURED` has no row
+  for it and its round leaves from the unit. Names no score until a word parts on that round; measure it from the
+  first `AMMO` window that holds one.
+- **3347c — theirs' lingering ammo record.** run982 still prints `1/39`'s first round on 14040 with `flags 1` at
+  `cur_time` 196 of 14; ours closes the record when the round lands. The ammo blocks are `diff::ammo`'s own parser
+  and in no widening, so nothing compares it, and the draw stream agrees past it. Names no score.
 
 ## Parked by the next landing, slot LD — reserved
 
