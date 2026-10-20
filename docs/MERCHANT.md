@@ -625,6 +625,15 @@ corpus, where no capture has an ally.
   theirs and stood idle in ours (`orders.len` 0 against 1); they agree
   after it (`docs/AI.md` §267). Test
   `merchant::tests::a_dutch_merchant_searches_one_frame_in_thirty_two`.
+- **The Dutch merchant's `think_attack` leg, and its re-piece.** Built,
+  item 3369 (`docs/AI.md` §285), **diff-backed**: the auto-attack
+  disjunction's second leg (`!is_packing_or_unpacking && think_attack`)
+  reaches `think_attack` for an unpacked `MERCHANTDUTCH`, which skips its
+  packed arm and army join and takes its `go_to_city` tail (run995's block
+  310, `1/1`'s `ATTACK_TO`, `group` 64); and `Guy::update_gpiece@005d8530`
+  reads a merchant as packed while its current order is a pack, re-pieced
+  by `do_cast` on the pack's first frame (`005ecb3a`; run995's block 311,
+  figure 0's `gpiece` 6348 with `end_time` 149).
 - **`unit_masks &= ~0x100`**, which `unpack_merchant` clears before the
   cast. The bit is `Unit::work` step 3's ("this unit was ordered
   recently"), and nothing here keeps it.

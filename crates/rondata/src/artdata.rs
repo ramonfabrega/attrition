@@ -272,6 +272,38 @@ impl<'a> PieceName<'a> {
     }
 }
 
+/// **The six "over time" merchant pieces** (item 3369), in the order
+/// `GraphicPieces::unit_node_from_gpiece@00901c30:174`–`198` names them
+/// — six consecutive `internal_strings.xml` entries, `total_num_unit_pieces
+/// − 6` first. They are the pieces `get_unit_gpiece@0090c030:104`–`140`
+/// gives an unpacked merchant by the nation's `BUILD_CONTINENT`
+/// (`sim::anim`'s stall arm); the name grammar cannot build them, so they
+/// are matched whole. The install's other `-NEUROPE-`/`-KOREAN-` ages are
+/// on no index and stay skipped.
+pub const OVER_TIME: [&str; 6] = [
+    "MERCHANT-KOREAN-AGE3",
+    "MERCHANT-NEUROPE-AGE3",
+    "MERCHANT-IROQUOIS-AGE0",
+    "MERCHANT-IROQUOIS-AGE3",
+    "MERCHANT-COLONIAL-AGE3",
+    "MERCHANT-EINDIAN-AGE3",
+];
+
+/// `total_num_unit_pieces`, the first index past the unit pieces.
+pub const TOTAL_UNIT_PIECES: i32 = 0xc606;
+
+/// Every piece a `<UNIT>` entry is: an "over time" name's one index
+/// ([`OVER_TIME`]), or the arithmetic's for each `TypeIndex` that plays
+/// its `GRAPH`. `None` when it is neither.
+fn entry_pieces(name: &str, by_graph: &BTreeMap<String, Vec<i32>>) -> Option<Vec<i32>> {
+    if let Some(k) = OVER_TIME.iter().position(|n| *n == name) {
+        return Some(vec![TOTAL_UNIT_PIECES - 6 + k as i32]);
+    }
+    let p = PieceName::parse(name)?;
+    let types = by_graph.get(&p.graph.to_ascii_uppercase())?;
+    Some(types.iter().map(|&ty| p.piece(ty)).collect())
+}
+
 /// `GRAPH` to the `TypeIndex`es that play it, keyed **upper case**. The
 /// gaia records (`0x192` up) are left out: their pieces come from
 /// `first_bird_piece`, not from the unit arithmetic ([`gaia_lengths`]).
@@ -327,10 +359,7 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
     let mut frames: BTreeMap<&str, u32> = BTreeMap::new();
     let mut out = PieceLengths::new();
     for (name, rows) in &units {
-        let Some(p) = PieceName::parse(name) else {
-            continue;
-        };
-        let Some(types) = by_graph.get(&p.graph.to_ascii_uppercase()) else {
+        let Some(pieces) = entry_pieces(name, &by_graph) else {
             continue;
         };
         let mut lengths: BTreeMap<i8, u32> = BTreeMap::new();
@@ -350,8 +379,8 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
             };
             lengths.insert(*slot, n);
         }
-        for &ty in types {
-            out.insert(p.piece(ty), lengths.clone());
+        for &piece in &pieces {
+            out.insert(piece, lengths.clone());
         }
     }
     out
@@ -538,14 +567,11 @@ pub fn piece_skeletons(install: &Install, graphs: &[String]) -> std::collections
         if u.attribute("skeleton").is_none() {
             continue;
         }
-        let Some(p) = PieceName::parse(name.trim()) else {
+        let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
             continue;
         };
-        let Some(types) = by_graph.get(&p.graph.to_ascii_uppercase()) else {
-            continue;
-        };
-        for &ty in types {
-            out.insert(p.piece(ty));
+        for &piece in &pieces {
+            out.insert(piece);
         }
     }
     out
@@ -589,10 +615,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         let Some(name) = u.attribute("name") else {
             continue;
         };
-        let Some(p) = PieceName::parse(name.trim()) else {
-            continue;
-        };
-        let Some(types) = by_graph.get(&p.graph.to_ascii_uppercase()) else {
+        let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
             continue;
         };
         let mut rows: BTreeMap<i8, Vec<(u32, i8, bool, bool)>> = BTreeMap::new();
@@ -620,8 +643,8 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         if rows.is_empty() {
             continue;
         }
-        for &ty in types {
-            out.insert(p.piece(ty), rows.clone());
+        for &piece in &pieces {
+            out.insert(piece, rows.clone());
         }
     }
     out
@@ -765,10 +788,7 @@ pub fn piece_tracks(install: &Install, graphs: &[String]) -> PieceTracks {
         let Some(name) = u.attribute("name") else {
             continue;
         };
-        let Some(p) = PieceName::parse(name.trim()) else {
-            continue;
-        };
-        let Some(types) = by_graph.get(&p.graph.to_ascii_uppercase()) else {
+        let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
             continue;
         };
         let attr = |k: &str| -> f32 {
@@ -792,8 +812,8 @@ pub fn piece_tracks(install: &Install, graphs: &[String]) -> PieceTracks {
         // the roundings land where they land.
         let dx = (ox * GUY_SCALE * scale) as i32;
         let dy = (GUY_SCALE * oy * scale) as i32;
-        for &ty in types {
-            out.insert(p.piece(ty), (dx, dy));
+        for &piece in &pieces {
+            out.insert(piece, (dx, dy));
         }
     }
     out

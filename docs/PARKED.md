@@ -3868,6 +3868,21 @@ does not reach the commit it makes three hours later. Candidates: a `commit-msg`
 message says `PROBE` and whose diff touches a path outside the probe's own (`RON_DEBUG_*`, `RON_PROBE_*` sites); or
 `tools/probe.py`, which commits only the hunks behind the probe's variable. The pass's. One reach.
 
+(3373) **The lane gate's one-second budget skips the writers guard** (the commander, 3362's booking gate on
+`a59bdbb0`): `rondata::writers::a_field_the_sim_writes_is_read_by_something` is timed at 1.08 s
+(`docs/audit/2026-10-15-suite-timings.txt`), over `LANE_BUDGET_SECONDS`, so `--lane --no-widen` leaves it to the
+booking gate. A sweep lane is the lane most likely to add a view struct's field, and 3362 added two
+(`Find::a13`, `Head::newcity`). The booking gate went red on them, and the second commit `13a66de6` fixed the
+guard's own blind spots: the `#[cfg(test)]` `sweep/` directory is now read as test source, and a destructure is
+not seen as a read (the caller reads by field instead). No kill rule tripped, since the lane gate never ran the
+test. Candidates: the paperwork-shaped guards (`writers::`, `docs_guard`) run in every lane gate whatever their
+time; or the guard's scan cached, so it falls under the budget. The pass's. One reach.
+
+3370's "for the Loop" says `none` under a heading (`## For the Loop`, then `none` on its own line), and
+`docs_guard::a_journal_s_loop_line_is_filed_or_says_none` reads only the heading's line, so the journal read as
+unfiled. It is recorded here as filed and empty, and the journal is left as its worker wrote it. If the shape
+recurs, the guard should read the next non-blank line.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
@@ -8417,7 +8432,7 @@ Nothing parked: the word closed (`docs/AI.md` §265).
 
 **3330b.** `TechType::compute_ai_values`: the `basic_type` inline arm (slot 0xe4 against 0x639970) is never laid (`--vtat-keep` not used because the function recurses); the Sim view's id-to-predicate mapping for the four enhancer ids is checked by the install check, not the sweep (a `Root::Smelter` for `Lumbermill` mutant survives). 220 rows at ~1.4 MB each; a sparse `--cell-win` would allow more.
 
-**3330c.** `SpellType::cast_transport`: seams left no-ops in `SimTransport` — sounds, MARINES (`unit_masks2`/`update_speed`), the caravan slot hand-over, the selection group swap, `replace_hotunit`.
+**3330c.** `SpellType::cast_transport`: seams left no-ops in `SimTransport` — sounds, MARINES (`unit_masks2`/`update_speed`), ~~the caravan slot hand-over~~ (built by item 3370, `docs/AI.md` §286), the selection group swap, `replace_hotunit`.
 
 **3330d.** `Group::action_queue_up`: the inline fast paths (slot equal to `is_unit_type`/`is_build_type`/`ObjectData::is`) and the sound-table branch are unexercised (shared slots conflict under `--vtat-keep`; the sound count cells are 0 in the image).
 
@@ -8761,9 +8776,11 @@ part with no draw:
 - **3365a — `1/85`'s `dest_angle` on 15329.** run991b: ours −2147483648, theirs −1351155712; no draw parts, and
   nothing the word reads follows from it. Read who writes `dest_angle` on a unit with no destination when a draw
   parts on `1/85`'s facing.
-- **3365b — who=1's six Merchants re-pieced on 15413.** Both sides re-piece them; theirs puts both figures on
+- ~~**3365b — who=1's six Merchants re-pieced on 15413.** Both sides re-piece them; theirs puts both figures on
   `gpiece` 50688 with the cart snapped onto the merchant's point, ours on 3179 / 15851 with the cart apart. No draw
-  parts. Read the caravan's piece pairing when a draw parts on a Merchant's figure.
+  parts. Read the caravan's piece pairing when a draw parts on a Merchant's figure.~~ **Built, item 3369**: a draw
+  parted on one (the Dutch at Great Sahara, 15725); the piece is the unpacked merchant's "over time" piece by the
+  nation's `BUILD_CONTINENT` (`docs/ANIM.md` §3.4, `docs/AI.md` §285), and run991b's window dropped 80 → 32.
 
 ## Parked by item 3367, 2026-10-20 — the East Indies Spanish word, 9028 → 14942
 
@@ -8783,13 +8800,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LL — reserved
+## Parked by item 3370, 2026-10-20 — the East Indies Spanish word closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3370a.** `EastIndiesSpanishTier3`, run993d block 15129: `1/87`'s `dest_angle`, ours 793640960 against theirs
+1008795648, with the draw stream agreeing to 24000. Names no score (`docs/AI.md` §286).
+
+**3370b.** `cast_transport` and `eject_contents` copy the caravan's `unit_masks2 & 0x200` to the boat and back; this
+crate carries no `unit_masks2`. Names no score.
 
 ## Parked by the next landing, slot LM — reserved
 

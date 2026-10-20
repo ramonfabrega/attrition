@@ -462,6 +462,7 @@ pub fn load(install: &Install) -> Result<Loaded, crate::Error> {
     for (tribe, def) in loaded.tree.tribes.iter_mut().zip(defs) {
         tribe.name = def.name;
         tribe.unit_continent = def.unit_continent;
+        tribe.build_continent = def.build_continent;
     }
     // The gaia types' animation lengths, straight from the install's own
     // graphics tables and the `.bha` files they name. It is the only art
@@ -925,6 +926,7 @@ pub fn load_tables(
             barbarian: false,
             name: String::new(),
             unit_continent: 0,
+            build_continent: 0,
         });
     }
     // The roles, by the shipped names. A name that does not resolve leaves

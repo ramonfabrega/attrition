@@ -10,7 +10,7 @@
 //! garrison `garrison.rs`'s.
 
 use crate::build::{self, Ident, flags};
-use crate::capture_view::{Head, SimCapture, capture_city_steps};
+use crate::capture_view::{SimCapture, capture_city_steps};
 use crate::combat::Obj;
 use crate::cost;
 use crate::economy::RESOURCES;
@@ -2961,7 +2961,8 @@ impl Sim {
             let head = capture_city_steps(&mut view, a, c, o);
             (head, view.to_close)
         };
-        let Head { newcity, mut base } = head;
+        let newcity = head.newcity;
+        let mut base = head.base;
         let mut to_close: Vec<usize> = to_close;
         if newcity.is_none() {
             base = 0;

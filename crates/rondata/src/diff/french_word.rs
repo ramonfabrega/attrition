@@ -157,7 +157,9 @@ fn run982_s_word_frame_is_widened_whole() {
     // group ours forms and theirs does not) and 67 on 13600; and `1/82`'s
     // `dest_angle` on 13856. `0/0`'s wound on 13870 and `0/2000`'s raid stamp
     // on 13941 left with the Cavalry Archer's and the Dragoon's nodes.
-    pin_eq!(w.firsts.len(), 41, "run982 with the release nodes");
+    // Item 3369: 41 -> 33, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 33, "run982 with the release nodes");
 }
 
 /// run982b: the word 14604's window, blocks 14598..14854 at `GUYS=2`,
@@ -215,9 +217,11 @@ fn run982b_s_word_frame_is_widened_whole() {
     // who=1's groups and pools 64/65/67 with the members run982 lacked,
     // `1/43`'s defensive `def_x/def_y` (ours its own post, theirs (8712,
     // 31272)), and group and pool 66 on 14612 and 68 on 14631.
+    // Item 3369: 38 -> 30, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
     pin_eq!(
         w.firsts.len(),
-        38,
+        30,
         "run982b with the decoy's own-cell sight"
     );
 }
@@ -348,5 +352,7 @@ fn run982d_s_last_blocks_are_widened_whole() {
     // timing tear at 16336 aside), so the close's capture is the last
     // frame's own hits — ours +1 to 1198, theirs at least +3, through the
     // threshold.
-    pin_eq!(w.firsts.len(), 38, "run982d, the last blocks");
+    // Item 3369: 38 -> 30, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 30, "run982d, the last blocks");
 }

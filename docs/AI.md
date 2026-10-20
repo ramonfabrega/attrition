@@ -24576,19 +24576,124 @@ the think by `spanish_east_word_first_parting` (mutation: the unit-only return r
 (mutation: the fog read restored, held), `a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance`
 (mutation: the `combat.stance` write dropped, held).
 
-## 285. Reserved for the next item on the AI track
+## 285. The battery's Dutch word at Great Sahara closes: a merchant drafted to its city, and its crew on one piece
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3369, 2026-10-20, Opus 5.5. `GreatSaharaDutchTier3` (map 7, human Nubians against the Dutch at Difficulty 3,
+seed 12345; runs 990 and 990b), promoted out of the battery at 311 of 16109. Captures run995 (`GOODS=3` over
+305..561), run995b (`WORLD=6` over 305..312), run995c (15719..15975), run995d (15462..15718). Its battery place went
+to `GreatSaharaIroquoisTier3` (runs 994, 994b; entry 72's rule (2) as amended by 84: of the nations on no map-7 dump
+and held only by closed games the Iroquois and the Germans tie on the census's reach, 8, and the tie goes to the
+shorter closed game by item 3347's precedent): 13757 of 16371 on its first try.*
 
-## 286. Reserved for the next item on the AI track
+**311 → 312: the Dutch merchant's `think_attack` leg, and that function's tail.** On 311 ours spends 7 draws and
+theirs 6; at index 1 ours wraps the deployed animation of who=1's Armed Merchant `1/1` (`MERCHANTDUTCH`, type 62),
+whose 149-frame unpack ended on 309 in both. run995's block 310: theirs drafted it — `group` −1 ours, 64 theirs,
+`orders.len` 0/1 (`ATTACK_TO` (41304, 17304), offsets (600, 408)), `form_mod` −1/50 — and on 311 queued a pack in
+front. `Unit::think`'s auto-attack disjunction is `is(0x3e,1) && ((packed && think_merchant) ||
+(!is_packing_or_unpacking && think_attack))`. `think_attack@005f5a80` skips its packed arm for the lineage and its
+army join for the three merchant ids (`5f5d53`–`5f5d94`), finds no melee target, and its tail (`:190`–`239`, listing
+`5f5e75`–`5f5fd8`) sends a unit off its own territory with no army to its best own city in its region: `vector_dist
+/ max(1, danger[who])`, halved for `CITY_UNDER_ATTACK`, strict `<`; `go_to_city@005f79c0` → `go_to(x, y, ATTACK_TO,
+0x240, 0)` (listing `5f7a27`–`5f7a35`) → `push_group`, the group 64. Built: `Sim::think_attack_merchant`,
+`think_attack_tail`, `think_attack_city`, `go_to_city`, `think_attack_home` (army.rs), and the soldier's arm also
+takes the tail when its join answers none (`docs/ARMY.md` §4.2). Value diff, block 310 after: agreeing.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**312 → 15725: a merchant re-pieced as its pack begins.** run995's block 311, the pack's first frame: figure 0's
+`gpiece` 12 ours, 6348 theirs, `end_time` 3/149. `Guy::update_gpiece@005d8530` reads a merchant as packed while its
+current order is a pack (`UnitData::is_packing`), and `do_cast@005ebfe0` (`005ecb3a`) calls `Unit::update_gpiece`
+for a merchant on the pack's first frame. Built: `Sim::update_gpiece`'s merchant arm (anim.rs), `do_cast`'s pack arm
+(transport.rs). Value diff, block 311 after: agreeing.
+
+**15725 → 16109, the game's last frame: an unpacked merchant's "over time" piece.** On 15725 ours spends 9 draws,
+theirs 13; at 4 theirs turns a figure (`Guy::set_anim < Guy::do_turn < Guy::turn_towards`). run995c opened apart on
+who=1's Armed Merchant `1/51`, on its pack's first frame two after its unpack ended: figure 1 walking out to
+(17597, 25530) from beside the merchant's point in theirs, standing on it in ours. run995d walks it back: on 15717,
+the unpack's last frame, theirs re-pieces **both** figures to 50689 and puts them on the merchant's point (17664,
+25344); ours put figure 0 on 2124 and left figure 1 on 14796 and its offset. `get_unit_gpiece@0090c030:104`–`:140`:
+an unpacked merchant id, in age bracket 1 (or 0 under build style 6), of build style 1, 3 or ≥ 6, takes one piece
+from the last six for every figure — `total_num_unit_pieces` (0xc606) less 6 for 3, 5 for 1, `4 − bracket` for 6, 2
+for 7, 1 for 8 — where the art has it, and a build style of 5 forces its walks to unit style 1. The six are named by
+`unit_node_from_gpiece@00901c30:174`–`198` from consecutive `internal_strings.xml` entries (`MERCHANT-KOREAN-AGE3`,
+`-NEUROPE-AGE3`, `-IROQUOIS-AGE0`, `-IROQUOIS-AGE3`, `-COLONIAL-AGE3`, `-EINDIAN-AGE3`). Built:
+`Tribe::build_continent` (the tribe file's `<BUILD_CONTINENT>`), `rondata::artdata::OVER_TIME`, `sim::anim::
+stall_piece` and its arm in `unit_gpiece`; the SEAM it carried is gone and parked 3365b is struck. Value diff, block
+15717 after: agreeing; run995c's window 748 → 34, run995d's 32, both the standing family. Fifty-two other windows lost
+their merchant residue with it, every one downward — sixteen on the battery's words (run991b 80 → 32, run963c 112 →
+74, run954 61 → 34, …) and thirty-six on the closed pairs' (run490 51 → 35, whose pinned row `11329: ours 2123 theirs
+50689` now agrees; run667 190 → 166, …); the census's port-backed count goes 471 → 473; no first parting and no
+closing state moved.
+
+**The close.** run990b's closing block 16110: 86 units compared, none apart, no building, city or closing field
+(`run990b_dutch_sahara_closing_state`). Every other lobby's first parting, the battery floors and every closing state
+hold on this tree.
+
+**Not established.** The tail's head refusals the soldier's arm also leaves out (`get_combat_stance() > 4`, the
+game-semaphore radius) are not read; the build-style-5 arm and the `− 6` default for a build style past 8
+are read and on no capture; the tail is diff-backed by one merchant's walk alone, and a soldier's tail by none.
+
+**Coverage.** Diff-backed: the merchant leg and the tail by `dutch_sahara_word_first_parting` and
+`run995_s_word_frame_is_widened_whole`; the pack's re-piece by the same; the over-time piece by
+`run995d_s_walk_back_is_widened_whole`, `run995c_s_word_frame_is_widened_whole` and the first parting; the close by
+`run990b_dutch_sahara_closing_state`. Sim tests: `army::tests::think_attack_s_tail_picks_the_city_by_distance_over_
+danger`, `anim::tests::an_unpacked_merchant_s_over_time_piece_is_its_build_style_s`. Mutations (`tools/mutate.py`,
+each against `dutch_sahara_word_first_parting` or the whole module): the pack's re-piece removed, the merchant
+`is_packing` read removed, the tail's walk removed, the merchant leg's tail call removed, the stall arm disabled —
+all held.
+
+## 286. The battery's East Indies Spanish word closes: a caravan's slot goes to sea with it
+
+*Item 3370, 2026-10-20, Opus 5.5. `EastIndiesSpanishTier3` (map 18, human Nubians against the Spanish at Difficulty
+3, seed 12345), carried from 14942 (§284). No capture: run993d's window (14936..15192) and run986b's closing block
+answered everything; runs 996 and 997 went unused.*
+
+**The frame.** On 14942 ours spends 8 draws and theirs 3211, at index 2 theirs `PathFinder::calc_road_cost+0x46` —
+3203 of them in a row, one road search, between `1/9`'s `do_non_flat_gather` and the frame's guys. run993d's first
+row past the standing family is on block 14943: `1/79`'s `path[19].flags`, ours 36, theirs 4.
+
+**The unit.** `1/79` is a Merchant Fleet (TI 318, type record 268, sea), `uid 164`, carrying `inside_down 35` — a
+land caravan at sea — under a `TRADEORDER` (home 2, far city 3) with a `MOVEORDER` current. On 14942 both sides pop
+the reached node, take the next, (33952, 21664), flagged `0x20` (`path_flag::ROAD`, `build_road`'s), strip `0x20`
+from every entry (`do_move@005f7b30:437`–`478`, `docs/CARAVAN.md` §10) and push (33944, 21714) with tolerance 0 and
+`| 4`, the region check (§4.4 of `docs/ORDERS.md`). The tile, (176, 112), is a building's (its mask's low bits 3).
+
+**Two halves.**
+
+- *The fleet owns its caravan's route.* `do_move`'s check calls `Caravan::verify_road` on
+  `caravans.lists[who][*(short *)(this + 0x86)]`, unchecked. The dump prints `1/79`'s `special 2` and `hero 2` —
+  the same short, printed twice. It is not a `Specials` slot: `SpellType::cast_transport@00670db0:117`–`121` gives
+  the boat the caravan's `+0x86` and names the boat in the route's `o` (`+0xa`), and `Object::eject_contents@0064cd20:
+  225`–`241` gives both back and sets the boat's to −1. So at sea the fleet is the route's walker: its `do_move`
+  verifies the route, whose road stack holds five tiles built on (`mask 0x0103`, tiles (180, 104)..(183, 100)), and
+  `build_road` searches — the 3203 draws. `SimTransport` answered the three calls with stubs (parked 3330c); ours'
+  fleet had no slot and verified nothing. Built both ways: the boarding's three answers read and write
+  `Unit::caravan` and the route's `unit`, and `Sim::disembark` hands them back before the boat closes, so the boat's
+  `Unit::close` closes no route.
+- *The region check pushes the stack's own top.* `do_move:496` pops the entry the strip has just written and pushes
+  it back `pPVar8->flags | 4`, so the node carries 4. Ours pushed the copy it read before the strip, 36.
+
+**The value diff, block 14943**: `1/79` `path[19]` (33944, 21714), `flags` ours 36, theirs 4; with both halves 4.
+With both, the draw stream agrees to the long's last frame, **14942 → 24000**, and run993d's window drops 1006 →
+61 keys: the standing family (`SITE[·].reg`, `aggression[1]`, `form`, the army `pool:n` and `group:n.held`, the
+newborn `g.angle[0]`, `0/2000`'s `raid_stamp`) and `1/87`'s `dest_angle` on 15129 (ours 793640960, theirs
+1008795648), which the draw stream never feels (parked 3370a).
+
+**The close.** `run986b_spanish_east_closing_state` walks to run986b's closing block 24001 and compares 160 units,
+none apart, no building field-row; one closing field, city `0/2000`'s `raid_stamp`, ours 12774 against theirs 12773
+— the human's city, standing since run993c (parked 3367a's neighbour). Every other lobby's first parting holds (23
+of 23), and the battery's floors. The second pair's run544 window drops 51 → 50: `1/40`'s `path[43].flags` on 16074,
+ours 32, theirs 0 — the same stripped top.
+
+**Not established.** Whether a Merchant Fleet takes a `Specials` slot of its own at `Unit::init` before the boarding
+overwrites `+0x86` (`Unit::init@00612100:414`–`431`, `unit_flags2 & 0x10`): nothing reads one, and this crate keeps
+no `Specials` list. `Unit::close`'s `close_caravan` asks `is_caravan` alone, so a fleet that dies at sea closes its
+route; this crate's close does the same through `Unit::caravan`. The caravan's `unit_masks2 & 0x200` that the
+boarding and the landing copy is not carried.
+
+**Coverage.** Diff-backed: both halves by `spanish_east_word_first_parting` (mutation: the boarding's slot stubbed,
+held) and `run993d_s_word_frame_is_widened_whole` (mutation: the pre-strip push, held, 61 → 63); the close by
+`run986b_spanish_east_closing_state`. Sim tests: `a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back`
+(mutation: the landing's hand-back without the boat's clear, held),
+`a_trade_walker_s_region_push_carries_the_stripped_road_flag` (mutation: the pre-strip push, held).
 
 ## 287. Reserved for the next item on the AI track
 
@@ -24598,6 +24703,48 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 288. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 289. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 290. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 291. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 292. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 293. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 294. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number
