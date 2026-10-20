@@ -640,6 +640,13 @@ pub struct Tuning {
     /// `EGYPTIAN_FARM_WEALTH × 16` to wealth, flat per farm (item 3332).
     /// Ships as `2`.
     pub egyptian_farm_wealth: i32,
+    /// `INCA_WEALTH_PER_MINER` (`BuildTypeData::calc_gather@00639e40:850`–
+    /// `856`): a mine's gatherers, after the cap, for a leader with tribe
+    /// bonus 2, each add `INCA_WEALTH_PER_MINER × 16` to wealth, beside the
+    /// metal they gather and outside the enhancer (item 3360). Ships as `10`;
+    /// a negative value is `Leader::calc_gather`'s other arm (the whole
+    /// metal rate copied to wealth), dead in a stock game and not modelled.
+    pub inca_wealth_per_miner: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -1018,6 +1025,10 @@ pub struct Tuning {
     /// Colosseum held (`has_wonder(0x212)`, the same arm's first step).
     /// Ships as 20.
     pub colosseum_fort_cost: i32,
+    /// Percent off a Tower-line building's price (`is(0x1b7, 0)`) for a
+    /// Korean leader (`TypeData::get_cost@00664090:916`–`922`, between the
+    /// wonder tail and the fort arm; `docs/AI.md` §283). Ships as 33.
+    pub korean_tower_cost: i32,
     /// Percent off construction time in the Hanging Gardens' city. Ships as zero.
     pub hanging_gardens_build_time: i32,
     /// Percent off an industry technology's price — the food, timber and
@@ -1409,6 +1420,7 @@ impl Tuning {
         indians_elephant_cost: 15,
         japanese_fishing_boats: 25,
         egyptian_farm_wealth: 2,
+        inca_wealth_per_miner: 10,
 
         accel_train: 100,
         accel_construct: 100,
@@ -1571,6 +1583,7 @@ impl Tuning {
         roman_fort_speed: 50,
         roman_fort_cost: 25,
         colosseum_fort_cost: 20,
+        korean_tower_cost: 33,
         hanging_gardens_build_time: 0,
         hanging_gardens_industry_discount: 66,
         thepresident_building_speed: 33,
@@ -2047,6 +2060,10 @@ impl Tuning {
                 Slot::Value(T.indians_elephant_cost),
             ),
             ("EGYPTIAN_FARM_WEALTH", Slot::Value(T.egyptian_farm_wealth)),
+            (
+                "INCA_WEALTH_PER_MINER",
+                Slot::Value(T.inca_wealth_per_miner),
+            ),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),
@@ -2361,6 +2378,7 @@ impl Tuning {
             ("ROMAN_FORT_SPEED", Slot::Value(T.roman_fort_speed)),
             ("ROMAN_FORT_COST", Slot::Value(T.roman_fort_cost)),
             ("COLOSSEUM_FORT_COST", Slot::Value(T.colosseum_fort_cost)),
+            ("KOREAN_TOWER_COST", Slot::Value(T.korean_tower_cost)),
             (
                 "HANGING_GARDENS_BUILD_TIME",
                 Slot::Value(T.hanging_gardens_build_time),

@@ -550,6 +550,8 @@ mod object_data_can_carry_pair;
 mod object_data_can_carry_type;
 #[path = "object_data_cargo_inside.rs"]
 mod object_data_cargo_inside;
+#[path = "object_data_get_damage.rs"]
+mod object_data_get_damage;
 #[path = "object_data_get_inside.rs"]
 mod object_data_get_inside;
 #[path = "object_data_get_wonder_value.rs"]
@@ -608,6 +610,8 @@ mod object_data_support;
 mod object_data_valid_target_const;
 #[path = "object_disband.rs"]
 mod object_disband;
+#[path = "object_eject_contents.rs"]
+mod object_eject_contents;
 #[path = "object_execute_events.rs"]
 mod object_execute_events;
 #[path = "object_fire_ammo.rs"]

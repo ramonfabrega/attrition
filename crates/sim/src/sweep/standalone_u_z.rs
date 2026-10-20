@@ -204,6 +204,8 @@ mod unit_do_flee_to;
 mod unit_do_form_change;
 #[path = "unit_do_gather.rs"]
 mod unit_do_gather;
+#[path = "unit_do_gather_005ef2a0.rs"]
+mod unit_do_gather_005ef2a0;
 #[path = "unit_do_group_attack_to.rs"]
 mod unit_do_group_attack_to;
 #[path = "unit_do_idle.rs"]
@@ -274,6 +276,8 @@ mod unit_order_walk_data;
 mod unit_out_issue_come_out;
 #[path = "unit_out_issue_unqueue.rs"]
 mod unit_out_issue_unqueue;
+#[path = "unit_plunder.rs"]
+mod unit_plunder;
 #[path = "unit_replace_form_id.rs"]
 mod unit_replace_form_id;
 #[path = "unit_resolve_block.rs"]

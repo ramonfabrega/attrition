@@ -61,6 +61,7 @@ pub mod border_pass;
 pub mod bribe;
 pub mod build;
 pub mod calc_gather;
+pub mod capture;
 pub mod capture_view;
 pub mod caravan;
 pub mod carry_civ;
@@ -74,12 +75,14 @@ pub mod combat;
 pub mod come_out_view;
 pub(crate) mod construct;
 pub mod cost;
+pub mod damage;
 pub mod danger;
 pub mod detour;
 pub mod diplomacy;
 pub mod disband;
 pub mod do_attack;
 pub mod economy;
+pub mod eject;
 pub mod farms;
 pub mod fight;
 pub mod fish;
@@ -109,6 +112,7 @@ pub mod orders;
 pub mod path;
 pub mod pivot;
 pub mod place;
+pub mod plunder;
 pub mod production;
 pub mod rally;
 pub mod rares;
@@ -2151,11 +2155,12 @@ impl Sim {
         }
         if self.units[i].alive() && self.units[i].on_map {
             self.chain_add(i);
-            // The third thing `add_to_world` does, and the one that was
-            // missing here: `update_seen(0)`, the whole disc rather than
-            // the ring (`docs/VISION.md` §6). [`Sim::come_out_place`] has
-            // made this call since garrisoning landed; a unit *born* on the
-            // map made none, so its owner's line of sight did not exist
+            // `update_seen(0)`, the whole disc rather than the ring
+            // (`docs/VISION.md` §6). This was long credited to
+            // `add_to_world`; item 3361 read it as `Unit::init`'s own call,
+            // at the trainer's snapped centre — the same disc, so the same
+            // effect — and [`Sim::come_out_place`]'s inside arm lights
+            // none of its own. A unit *born* on the map once made none, so its owner's line of sight did not exist
             // until the unit first crossed a half-cell or the hundredth-
             // frame resync came round. Nothing read the plane closely
             // enough to notice until [`Sim::target_is_seen`]
@@ -6700,6 +6705,13 @@ impl Sim {
             self.units[i].sheltered = true;
             return None;
         }
+        Some(self.suffer_attrition(i, frame))
+    }
+
+    /// **`Unit::suffer_attrition@005e1a10`**: one tick's damage, for the
+    /// period's bleed above and a detected decoy's
+    /// ([`Sim::recover_mana`]). Its argument gates the graphic alone.
+    pub(crate) fn suffer_attrition(&mut self, i: usize, frame: i64) -> Tick {
         // The damage is sixteenths of a hit point per figure, carried through
         // a fractional accumulator the way `Object::take_damage` carries it,
         // so a lone figure loses one whole point a tick and a figure in a
@@ -6748,13 +6760,13 @@ impl Sim {
             // on the number (`docs/COMBAT.md` §59.3, `docs/GOLDEN.md` §135).
             self.die_by_attrition(i, frame);
         }
-        Some(Tick {
+        Tick {
             unit: i,
             frame,
             sixteenths,
             lost,
             killed,
-        })
+        }
     }
 
     /// [`turning_of`] for a type this simulation holds.

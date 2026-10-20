@@ -91,6 +91,19 @@ impl Sim {
         }
     }
 
+    /// `Unit::process@00610bc0`'s decoy test: on the map, and some bit of
+    /// `seen3` (`World +0x164`, the inner disc of a `DETECT` object) at the
+    /// decoy's fog cell outside its owner's ally mask (`LeaderData
+    /// +0x6929`) — an enemy detector has it in its disc.
+    pub(crate) fn decoy_detected(&self, u: usize) -> bool {
+        let un = &self.units[u];
+        if !un.on_map {
+            return false;
+        }
+        let fog = crate::vision::UNITS_PER_FOG;
+        self.world.seen3(un.pos.x / fog, un.pos.y / fog) & !self.seen_ally_mask(un.owner) != 0
+    }
+
     /// `UnitData::mana_left@00609a30`: `max(0, mana − mana_burn)`.
     pub(crate) fn mana_left(&self, u: usize) -> i32 {
         (self.unit_mana(u) - i32::from(self.units[u].mana_burn)).max(0)
@@ -1029,8 +1042,7 @@ impl Sim {
         // `Unit::process@00610bc0`'s other arm, `unit_masks & 1`: a decoy's
         // `mana_burn` is its age, one a frame from 0 (run422: 1 on its first
         // block), and it closes once the age reaches `(general_upgrade + 2)
-        // × DECOY_TIME / 2` ([`Self::close_decoy`]). SEAM: the attrition it
-        // takes every seventh frame on another's ground.
+        // × DECOY_TIME / 2` ([`Self::close_decoy`]).
         if self.units[u].decoy {
             self.units[u].mana_burn = self.units[u].mana_burn.saturating_add(1);
             let left = decoy_time_left(
@@ -1040,6 +1052,14 @@ impl Sim {
             );
             if left == 0 {
                 self.close_decoy(u);
+            } else if self.decoy_detected(u) {
+                // **A detected decoy bleeds every frame** (`610c8a`..
+                // `611158`, item 3361): `suffer_attrition(frame % 7 == 0)`,
+                // whose argument is the graphic alone. run989d: who=1's
+                // Cataphract decoys `1/72`, `1/74` beside who=0's Scout
+                // `0/0` take a point a frame (28 → 29 → … on 17388..), and
+                // `1/75`, `1/81` are already gone.
+                let _ = self.suffer_attrition(u, frame);
             }
             return;
         }

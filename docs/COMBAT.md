@@ -10129,7 +10129,8 @@ and when"). They keep the slot they had, the crew arm of
 same frame, and no draw is spent.
 
 `Sim::guy_follow_anim`'s moving arm asked for the walk for every figure,
-gated only by the turn slots. On 781 the crew took `CHAR_WALK`, three
+gated only by the turn slots (themselves not in the original's gate:
+item 3360 took them out, `docs/ANIM.md` §16). On 781 the crew took `CHAR_WALK`, three
 frames long, stepped their own clock, and wrapped on 782 into two idle
 rolls. The gate is in that arm now, with the plane read as `is_plane`
 (as `set_anim`'s deferral already reads `guy_flags & 0x40`).

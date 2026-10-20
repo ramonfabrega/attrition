@@ -405,7 +405,7 @@ impl Sim {
         // A plane's figure keeps its running average through a launch
         // (run265's 778: 25, the value it stood inside with).
         let avg = self.units[captain].movement.body.avg_speed;
-        self.come_out_place(captain, spot, gather.map(|g| g.1), false);
+        self.come_out_place(captain, spot, gather.map(|g| g.1), false, gather.is_some());
         self.track_garrison(captain, -1);
         // The captain's `orders_x/y` and `dest_angle` are its new place
         // on the block it leaves (run208's `0/6` on 902, `0/7` on 903);
@@ -440,7 +440,7 @@ impl Sim {
             // `0/8` and `0/9` come out on 903 with `0/7`'s heading and
             // facing, not their own.
             if let Some(s) = self.come_out_unit_host_spot(f, captain) {
-                self.come_out_place(f, s, Some(host_angle), true);
+                self.come_out_place(f, s, Some(host_angle), true, false);
                 // **The member's own `come_out` runs the same tail**
                 // (`Unit::come_out@00617c10:545`, the `o_down` recursion,
                 // then `:552`..`:563`): a computer's unit that is not a
@@ -638,6 +638,7 @@ impl Sim {
         spot: crate::Pos,
         angle: Option<crate::movement::Angle>,
         turn: bool,
+        light: bool,
     ) {
         let u = &mut self.units[f];
         let flip = turn
@@ -678,12 +679,24 @@ impl Sim {
             body,
             ..crate::Movement::at(spot)
         };
-        // `Object::add_to_world` reaches `update_seen(0)` — the whole
-        // disc, not the ring (`docs/VISION.md` §6) — and both
-        // collision indices (`docs/COLLISION.md` §2, §3).
+        // `Object::add_to_world` (`remove_from_inside`'s, at `6186a7`):
+        // both collision indices (`docs/COLLISION.md` §2, §3) — and **no
+        // disc**. Every inside arm of `Unit::come_out@00617c10` stores the
+        // spot into `+0x10`/`+0x14` (`618667`, `618675`) before
+        // `set_new_location(spot, 1, 1)` at `6186bc`, so the half-cell test
+        // that gates its `update_seen` (`005f8d20`, vslot `+0x174`) sees no
+        // change; a trained unit's disc is the one `Unit::init` wrote at
+        // its trainer's snapped centre ([`Sim::add_unit`]). Only the
+        // gather point's re-placement of a captain (`619381`, `619c08`,
+        // `619f86`) moves it off the first spot and lights the whole disc
+        // (`docs/VISION.md` §6). The battery's Aztec Horse Archer `1/45`,
+        // out on 8655 at (44184, 19704) with no gather point, lit fog
+        // (117, 55) and (119, 53) here and not in run989c (item 3361).
         self.coll_add(f);
         self.chain_add(f);
-        self.update_seen(f, false);
+        if light {
+            self.update_seen(f, false);
+        }
         // **And the crew comes out with it.** The original places the
         // unit with `set_new_location(·, ·, 1, 1)` (`00617c10:518`),
         // whose snap flag reaches `Guy::set_new_location(guy 0, spot,

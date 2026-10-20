@@ -127,6 +127,18 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // promoted to the AI word (item 3355, DECISIONS 72, 83, 84): the
     // Persians at Difficulty 2, Great Lakes.
     (14, 23, 2),
+    // The battery's lowest open lobby on the measure of `3eb2c76c`,
+    // promoted to the AI word (item 3360, DECISIONS 72, 83, 84): the Inca
+    // at Difficulty 3, East Indies.
+    (18, 2, 3),
+    // The battery's lowest open lobby once item 3359 closed the French, the
+    // Inca being item 3360's, promoted to the AI word (item 3361, DECISIONS
+    // 72, 83, 84): the Aztecs at Difficulty 2, Great Sahara.
+    (7, 0, 2),
+    // The battery's next open lobby once item 3361 closed the Aztecs, the
+    // Inca being item 3360's, promoted to the AI word (item 3365, DECISIONS
+    // 72, 83, 84): the Koreans at Difficulty 3, Great Sahara.
+    (7, 16, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -237,19 +249,33 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // The five lobbies minted by item 2975 (DECISIONS 77 (ii), `docs/AI.md`
     // §125, §243; runs 895–899): a nation no dump holds, a tier of 2, 3 or 4,
     // no two sharing a nation or a tier on a map. Each game ended itself.
+    // `GreatSaharaAztecTier2` (Aztecs 0, Difficulty 2, map 7; run895 and
+    // run895b, 9130 of 17554) left the battery on item 3361 for the AI
+    // word (`diff::aztec_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3361 (DECISIONS 72 as amended by 84,
+    // `docs/AI.md` §125, §282; runs 988 and 988b) when the Aztecs left for
+    // the AI word, so the held-out set stays eight: Great Sahara, the
+    // Lakota at Difficulty 2 — **rule (2)**: rule (1) has no answer (a
+    // header survey of the 529 gamelogs on disk holds every nation); of
+    // the nations no Great Sahara dump holds and only closed games hold
+    // (`GreatLakesLakotaTier2` and the peace pair; the open battery's
+    // Inca, Turks, Chinese, Americans and Romans out), the Lakota reach the
+    // most census functions (17, `docs/NATIONS.md`; the Dutch 9); tier 2
+    // is the tier the Aztecs left (the Russians hold 4 and the Koreans 3).
+    // The game does not end itself: the long runs to 24000.
     Lobby {
-        name: "GreatSaharaAztecTier2",
+        name: "GreatSaharaLakotaTier2",
         map_style: 7,
-        ai_tribe: 0,
+        ai_tribe: 19,
         difficulty: 2,
-        start: "gamelog-run895-greatsahara-aztec-diff2-start.txt",
+        start: "gamelog-run988-greatsahara-lakota-diff2-start.txt",
         long: (
-            "gamelog-run895b-greatsahara-aztec-diff2-24k-trace.txt",
-            "rontrace-run895b.log",
+            "gamelog-run988b-greatsahara-lakota-diff2-24k-trace.txt",
+            "rontrace-run988b.log",
         ),
-        length: 17554,
-        count: 9130,
-        sequence: 9130,
+        length: 24000,
+        count: 24000,
+        sequence: 24000,
     },
     // `GreatSaharaSpanishTier3` (Spanish 9, Difficulty 3, map 7; run896
     // and run896b, 576 of 22700) left the battery on item 3318 for the AI
@@ -285,50 +311,67 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaJapaneseTier1` (Japanese 15, Difficulty 1, map 7; run960
     // and run960b, 576 of 24000), minted by item 3326, left the battery on
     // item 3331 for the AI word (`diff::japanese_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3331 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §268; runs 964 and 964b) when the Japanese left for the AI word, so
-    // the held-out set stays eight: Great Sahara, the Koreans at Difficulty
-    // 3 — a nation no dump held, and a tier no battery lobby holds. The game
-    // ends itself on 15944.
+    // `GreatSaharaKoreanTier3` (Koreans 16, Difficulty 3, map 7; run964
+    // and run964b, 9185 of 15944), minted by item 3331, left the battery on
+    // item 3365 for the AI word (`diff::korean_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3365 (DECISIONS 72 as amended by 84, rule
+    // (2); `docs/AI.md` §283; runs 990 and 990b) when the Koreans left for
+    // the AI word, so the held-out set stays eight: Great Sahara, the Dutch
+    // at Difficulty 3 — no map-7 dump held the Dutch, who are held only by
+    // a closed game on another map (`EastIndiesDutchTier4`) and reach the
+    // most census functions of the nations so held (9; the Germans and
+    // Iroquois 8, the Indians 4), at the tier the Koreans leave. The game
+    // ends itself on 16109.
     Lobby {
-        name: "GreatSaharaKoreanTier3",
+        name: "GreatSaharaDutchTier3",
         map_style: 7,
-        ai_tribe: 16,
+        ai_tribe: 22,
         difficulty: 3,
-        start: "gamelog-run964-greatsahara-korean-diff3-start.txt",
+        start: "gamelog-run990-greatsahara-dutch-diff3-start.txt",
         long: (
-            "gamelog-run964b-greatsahara-korean-diff3-24k-trace.txt",
-            "rontrace-run964b.log",
+            "gamelog-run990b-greatsahara-dutch-diff3-24k-trace.txt",
+            "rontrace-run990b.log",
         ),
-        length: 15944,
-        // Item 3331, the first try: ours 14 draws, theirs 13, at 1 ours
-        // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`.
-        count: 9185,
-        sequence: 9185,
+        length: 16109,
+        // Item 3365, the first try: ours 7 draws, theirs 6, at 1: ours
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+        // `Farms::inc_time+0x1ae`.
+        count: 311,
+        sequence: 311,
     },
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on
     // item 3335 for the AI word (`diff::indian_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3335 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §271; runs 969 and 969b) when the Indians left for the AI word, so
-    // the held-out set stays eight: East Indies, the Incas at Difficulty 3
-    // — a nation no dump held, and a tier the map's battery lacks. The
-    // game does not end itself: the long runs to 24000.
+    // `EastIndiesIncaTier3` (Inca 2, Difficulty 3, map 18; run969 and
+    // run969b, 7782 of 24000), minted by item 3335, left the battery on
+    // item 3360 for the AI word (`diff::inca_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3360 (DECISIONS 72 as amended by 84,
+    // `docs/AI.md` §125, §281; runs 986 and 986b) when the Inca left for the
+    // AI word, so the held-out set stays eight: East Indies, the Spanish at
+    // Difficulty 3 — **rule (2)**: rule (1) has no answer (every nation is in
+    // some dump), and of the nations no East Indies dump holds and only
+    // closed games hold (the Maya, Bantu, Greeks, Egyptians, Spanish,
+    // Japanese and Iroquois; the open battery's nations out), the Spanish
+    // reach the most census functions (9, `docs/NATIONS.md`), held only by
+    // `GreatSaharaSpanishTier3`; tier 3 is the tier the Inca left, and East
+    // Indies' battery then holds tier 1 alone. The game does not end itself:
+    // the long runs to 24000.
     Lobby {
-        name: "EastIndiesIncaTier3",
+        name: "EastIndiesSpanishTier3",
         map_style: 18,
-        ai_tribe: 2,
+        ai_tribe: 9,
         difficulty: 3,
-        start: "gamelog-run969-eastindies-inca-diff3-start.txt",
+        start: "gamelog-run986-eastindies-spanish-diff3-start.txt",
         long: (
-            "gamelog-run969b-eastindies-inca-diff3-24k-trace.txt",
-            "rontrace-run969b.log",
+            "gamelog-run986b-eastindies-spanish-diff3-24k-trace.txt",
+            "rontrace-run986b.log",
         ),
         length: 24000,
-        // Item 3335, the first try: ours 3218 draws, theirs 3219, at 1 ours
-        // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
-        count: 7782,
-        sequence: 7782,
+        // Item 3360, the first try: ours 2 draws, theirs 12, at 0 ours
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+        // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+        count: 9028,
+        sequence: 9028,
     },
     // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §263; runs 955 and 955b) when the Romans left for the AI word, so

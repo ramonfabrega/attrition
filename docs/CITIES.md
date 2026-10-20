@@ -1681,14 +1681,16 @@ R = city ? CITY_CAPTURE_RADIUS (10) : UNIT_RESPOND_RANGE (12) tiles;  dist_max =
 land = B's cell's land id
 def_base = (frame − capture_stamp < 900) ? city.capture_strength : 2
 mine = U.get_capture_value()                                # the triggering unit, counted once, never distance-tested
-per_player[A] = mine;  per_player[O] = def_base;  attackers = mine;  defenders = def_base
-for every object X in the cells within circle_radius[cells] of B's cell, same land id:
+per_player[A] = mine;  per_player[O] = def_base;  attackers = mine;  defenders = def_base   # in that order: A = O leaves def_base
+for i in 0..circle_radius[cells], each cell (circle_x[i], circle_y[i]) off B's cell that is on the map, has a chain
+and the same land id as B's (checked on the cell, once, not on the object), and each X on its chain
+(WorldData::get_down, then each object's +0x2c/+0x2e link):
     skip B, skip U, dead, sea or air domain, decoys, !valid_filter(8), vector_dist(X, B) > dist_max
         # valid_filter(8), 0067de47 (item 1099): a unit passes iff type->attack (+0x1e8) != 0
         # and type->role & 0x10000; a building iff type->attack != 0, not a city (flags & 0x20),
         # active (vslot +0x4c, flags & 4) and hits_left (vslot +0x114) != 0
     v = X.get_capture_value()                                # a unit: max(1, min(uber_size, living figures)), 0 for a decoy or siege; a building: 1
-    v != 0 and X is O's building: v += num_inside(1) + (is_fort ? 12 : 6); revealed to A
+    v != 0 and X is O's building: v += num_inside(1) + (is_fort ? 12 : 6); X.visible |= 1 << A, update_local_seen
     per_player[X.who] += v
     X is A or (A's ally and O's enemy) → attackers += v;   X is O or (O's ally and A's enemy) → defenders += v
 defenders ≥ attackers → 0
@@ -1703,8 +1705,20 @@ if `founder ∉ {O, W}`, allied with `W`, alive; else `race` likewise; else
 **`cities[taker][newcity].capture_strength = mine`** — the triggering unit's
 own capture value (settled in the listing: `[ebp−0x44]` is written once, with
 `get_capture_value()`, and stored after the call), which is what defends the
-city for the next 900 frames against a recapture. A village: `swap_team(A)`,
-`activate(0, 1, 0)`, the old one closed; a failed swap destroys it instead.
+city for the next 900 frames against a recapture. A village (`flags & 0x20`
+clear — and the radius `UNIT_RESPOND_RANGE`): `swap_team(A)`,
+`activate(0, 1, 0)`, the old one closed; a failed swap destroys it instead;
+the console's player hears the capture and reads who took what.
+
+**An object is counted by its cell, not only its distance** (item 3356, swept
+against the original: `sweep::build_check_capture`, 9000 rows over two draws):
+the walk is `circle_x`/`circle_y` out to `circle_radius[⌈R·192 / 768⌉]`, an
+octagon of cells, so an object within `dist_max` whose cell lies outside it
+(a diagonal at the radius' edge) is not in the tally. The crate walks the same
+cells over chains it builds for the objects near the building
+(`capture::SimCapture`). **Not established / not modelled:** the crate has no
+counterpart of `flags & 0x20`, so every city building takes the city arm and
+the village arm's steps are swept but never entered by the sim.
 
 The defending side's **buildings weigh more than units**: each of the owner's
 buildings in the radius counts `7 + garrison`, a fort `13 + garrison`; a

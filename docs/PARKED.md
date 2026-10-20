@@ -3837,6 +3837,25 @@ gate exited 1 with `isolated_tests.py`'s 137 and no test failed. The scoped gate
 passed on the same tranche's merges. The sweeps added this tranche (`unit_think`, `do_repair`, 12000 rows each) are
 the likeliest growth. Candidates: the `sim` lib's limit sized from its measured row, as the other targets'
 reservation already is; or the 12000-row sweeps moved to their own `sweep_*` target. The pass's. One reach.
+**Second red, and Ramon's word** (2026-10-20): the re-run on `163e8d89` was stopped again (RSS 4262 MiB), and the
+same tree at `--test-threads 4` is green, 6 of 6, release 20.9 minutes. So no test fails; the cap is the whole of
+it. Until the fix lands, this tranche's whole gates run at four threads. Ramon: fixed by the next steer — the
+whole gate back at four threads, the footprint worked down (a few ugly tests, likely), or the cap raised a little,
+since every kill has landed just over it.
+
+(3366) **A lane gate refused for a moved base reads as a broken tool** (3360's "for the Loop", filed at its merge):
+the refusal is one line at the log's foot, and above it seven of `tools/offline_tests.py`'s `test_release_gate`
+cases fail, because they read the real tree's base. A lane reading the log top-down sees a broken gate first.
+Candidate: the offline cases take a fixture tree, not the real one; or the refusal prints first and the gate exits
+before the offline step. The pass's. One reach.
+
+(3368) **A clear that fires on a lane which pushed a draft exits the waiter as LANDED** (the commander, 2026-10-20):
+att-3365 crossed DEEP at 315k, committed and pushed its draft journal (`2caf3aee`) as answered, and ended its turn
+for the armed clear; the row left `working` for the seconds the clear took, and `lanewait.py` exited `LANDED
+att-3365 … none..2caf3aee` with the row back at `working` under the new session — a commander turn that learned
+nothing, and one that would merge a draft if read at face value. Candidates: a row whose newest transcript ends on
+a `/clear` (the UNCLEARED probe's own read) or whose session uuid changed since the wait began is not a landing; or
+LANDED waits two polls for the row to stay out, as ENDED does. The pass's. One reach.
 
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
@@ -7956,13 +7975,15 @@ argument mask for a recorded stub (3250 (f), (g)).
 
 - (booked as item 3263) (3262) **The wreck on the chain (3235), still unread**: run942 closes at 1500 with two idle hoplite squads beside a Sabotaged Tank's wreck, so the idle stance does not show whether the original's search sees it (GOLDEN §136). A staging with an armed unit that must search — a shooter on an aggressive stance with the wreck as its only object in range, or a unit that takes damage there so `alarm` runs — would; names no score until a frame shows it.
 
-## Parked by the next landing, slot JK — reserved
+## Parked by item 3360, 2026-10-20 — the Inca word closes at 24000
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3360a) **The Inca close's one field**: run969b's closing block 24001, the human's city `0/2000`'s `peasant_dist`, ours
+  2 against theirs 1 (`run969b_inca_closing_state`). No draw parts and 177 units agree; names no score.
+- (3360b) **`1/46`'s `dest_angle` on 16714** (run987b): ours 1073741824, theirs −1334181888, the window's one row past the
+  standing family. The draw stream agrees to 24000; names no score.
+- (3360c) **The moving arm's `CHAR_ATTACKWALK` request** (`Guy::move:113`–`116`: `cavarch_o >= 0` and the type's
+  `0x200000`): `Sim::walk_for` does not make it, and `guy_follow_anim` spares a figure already on `CHAR_ATTACKWALK` in
+  its place (`docs/ANIM.md` §16). No capture has a unit stepping with a target.
 
 ## Parked by item 3259, 2026-10-18 — the nations seat's fourth shape batch
 
@@ -8658,13 +8679,38 @@ The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What 
   brackets and female slots (`+0x840`, `+0x18c0`) are on no packet, so `sim::launch` has no bays for them. A packet
   of a Persian game past the third age that fields both answers them with `tools/recomp/get_position.py`.
 
-## Parked by the next landing, slot LF — reserved
+## Parked by item 3356, 2026-10-20 — the nations seat's sixteenth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3356a. `Object::eject_contents@0064cd20`: the slot `0x18` clash, and no live caller.** `Object::is_unit` (slot `0x18`, no
+  stack arguments) and `GroupData`'s slot `0x18` (three) share one stubbed vtable, so the selection's `(s, who, 0)` arguments
+  are unrecorded (only its `ecx` is) — the generator lacks a per-object vtable, or a per-`ecx` argument count for one slot.
+  `eject_steps` (`eject.rs`) has no `Sim` caller: the crate's `garrison.rs`, `build.rs`, `city.rs` and `transport.rs` hold
+  approximations on its own model, so a `SimEject` view is owed. `die` and `come_out` are the stubs' answers.
+- **3356b. `Unit::plunder@00605b00` residue.** The `wcscpy_s` arm of `String::reinit == 0` is unreached: the caller's stack
+  `String` has a null data pointer and the original faults at address 8 — the generator lacks a stub that writes a pointer
+  through its `ecx` (an object on the caller's stack). `SimPlunder` carries only the EE Despot arm: `GENERAL_PLUNDER`,
+  `CARAVAN_PLUNDER`, `AZTEC_SLAY_*`, `INCA_REFUND` answer 0 (the SEAM paragraph in `fight.rs` stays). The row text (290 MB) is
+  over the emu cache cap, so the sweep re-emulates (~16 s). `LeaderDataEncrypt::scratch` is not compared.
+- **3356c. `Ammo::do_damage@00678060`: `Sim::land`'s splash is one cell wide of the original's, and the shipped `move_x`/`move_y`
+  is defective beyond ring 7.** The original walks the spiral `0..=radius[k]` inclusive (one cell past the Chebyshev disc:
+  `(-1,-2)` for `radius[1]=9`, `(-(k+1),-(k+1))` for k >= 2); the crate's `splash_cells` takes the exact `(2k+1)^2` disc. Ring 8's
+  last entry is `(-8,-16)` (the crate has it as `MOVE_289[288]`); rings 9 and 10 lack the NE and SW corners, lay the SE corner
+  twice and close on a stray cell, and entry 441 is a stray word that `radius[10]=441` makes the loop read. The sweep lays the
+  table as shipped (`shipped_spiral()`); `Sim::land` is not fixed — a fight-lane item (a pinned diff could move). Six calls
+  (`Achieve::add_event`, `play_sound`, the stale-`ecx` Nuke/sound stubs) are not held in the log.
+- **3356d. `Unit::do_gather@005ef2a0`: the Sim-side view is outside the sweep.** The sweep checks `do_gather_steps`, not
+  `SimDoGather`: ten breaks in the view, seven survived `cargo test -p sim --lib gather` (`gather_max` None as `i32::MAX`, the
+  oil-well counter, the farm grow cell, the `SITE_FARM_CELL` mark, Mine's build type, the repair order's `QueuePos`, the
+  east-facing angle) — for the diff suite to judge. `invalid_farm_cell` is a no-op SEAM (the dialog and the original's `int3`).
+  The six sim changes (AI auto-repair arm, the room check on platforms, the farm region check, the `unit_domain() == 0` guard,
+  scholar before the platform arm, the domain compare) may move a pin.
+- **3356e. `Build::check_capture@006276a0`: the village arm is swept but never entered.** The crate has no `flags & 0x20`, so
+  `SimCapture::centre` answers yes for every city and the village arm's view methods are inert (a `SEAM:` on that method). The
+  octagon tally and the defending buildings' reveal (`visible |= 1 << captor`, `update_local_seen_build`) change behaviour: the
+  run347 / run958f city-capture frames and the vision/fog pins may move.
+- **3356f. `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other`** failed in debug `--lib` in four subagents'
+  trees (a `coll_add` assertion at collide.rs:1023); none touched collide.rs and none ran it on the base — the lane gate says
+  whether it is the base's.
 
 ## Parked by the next landing, slot LG — reserved
 
@@ -8682,13 +8728,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LI — reserved
+## Parked by item 3365, 2026-10-20 — the Korean word closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word closed at 15944 and the close compares whole (`docs/AI.md` §283). Two keys of run991b's 80 standing ones
+part with no draw:
+
+- **3365a — `1/85`'s `dest_angle` on 15329.** run991b: ours −2147483648, theirs −1351155712; no draw parts, and
+  nothing the word reads follows from it. Read who writes `dest_angle` on a unit with no destination when a draw
+  parts on `1/85`'s facing.
+- **3365b — who=1's six Merchants re-pieced on 15413.** Both sides re-piece them; theirs puts both figures on
+  `gpiece` 50688 with the cart snapped onto the merchant's point, ours on 3179 / 15851 with the cart apart. No draw
+  parts. Read the caravan's piece pairing when a draw parts on a Merchant's figure.
 
 ## Parked by the next landing, slot LJ — reserved
 
@@ -8710,6 +8760,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LR renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

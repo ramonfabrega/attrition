@@ -51,29 +51,29 @@ and the battery is never debugged against (`docs/AI.md` §125).
 <!-- GENERATED:roster -->
 | index | nation | rules key | `city::Nation` flag | census functions | lobbies that hold it |
 |---:|---|---|---|---:|---|
-| 0 | Aztecs | aztecs | `aztecs` | 7 | none |
+| 0 | Aztecs | aztecs | `aztecs` | 7 | `GreatSaharaAztecTier2` (AI word, tier 2) |
 | 1 | Maya | maya | `maya` | 2 | `GreatSaharaMayaTier4` (AI word, tier 4) |
-| 2 | Inca | inca | `inca` | 3 | none |
+| 2 | Inca | inca | `inca` | 3 | `EastIndiesIncaTier3` (AI word, tier 3) |
 | 3 | Bantu | bantu | `bantu` | 5 | `GreatSaharaBantuTier4` (map 7, tier 4) |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
 | 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
-| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3) |
+| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (map 18, tier 3) |
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
 | 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
-| 16 | Koreans | koreans | `koreans` | 6 | scored pairs |
+| 16 | Koreans | koreans | `koreans` | 6 | `GreatSaharaKoreanTier3` (AI word, tier 3); scored pairs |
 | 17 | Mongols | mongols | `mongols` | 3 | none |
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
-| 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2) |
+| 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
-| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4) |
+| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (map 7, tier 3) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
 
 ## 3. The held-out nations, arm by arm
@@ -149,14 +149,14 @@ left out; a constant with no reader in the export is dead there too.
 | `AZTEC_SLAY_CAP` | 60 | Unit::plunder | not carried | `aztec_slay_cap` |
 | `AZTEC_BARRACKS_LIGHT` | 1 | Build::activate | modelled at nations.rs | `aztec_barracks_light` |
 | `AZTEC_MAX_LIGHT` | 3 | Build::activate | modelled at nations.rs | `aztec_max_light` |
-| `AZTEC_PLUNDER` | 100 | Build::plunder, Unit::plunder | modelled at city.rs | `aztec_plunder` |
+| `AZTEC_PLUNDER` | 100 | Build::plunder, Unit::plunder | modelled at plunder.rs | `aztec_plunder` |
 | `AZTEC_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `aztec_free_military` |
 | `MAYA_GARRISON_ARROWS` | 1 | BuildData::get_base_garrison_arrows | not carried | `maya_garrison_arrows` |
 | `MAYA_BUILDING_TIMBER` | 25 | TypeData::get_cost | modelled at city.rs | `maya_building_timber` |
 | `MAYA_BUILDING_HP` | 25 | Wall::update_hits | modelled at build.rs | `maya_building_hp` |
 | `MAYA_BUILDING_SPEED` | 20 | Wall::update_construct_time | modelled at build.rs | `maya_building_speed` |
 | `INCA_WEALTH_CAP` | 33 | Leader::calc_resource_caps | modelled at economy.rs | `inca_wealth_cap` |
-| `INCA_WEALTH_PER_MINER` | 10 | BuildTypeData::calc_gather, Leader::calc_gather | not carried | `inca_wealth_per_miner` |
+| `INCA_WEALTH_PER_MINER` | 10 | BuildTypeData::calc_gather, Leader::calc_gather | modelled at holdings.rs | `inca_wealth_per_miner` |
 | `INCA_REFUND` | 25 | Object::take_damage, Unit::plunder | not carried | `inca_refund` |
 | `BANTU_CITY_LIMIT` | 1 | Leader::found_cities, LeaderData::get_city_limit | modelled at place.rs | `bantu_city_limit` |
 | `BANTU_POP_CAP` | 100 | Leader::calc_pop_cap | modelled at cost.rs | `bantu_pop_cap` |
@@ -282,7 +282,7 @@ left out; a constant with no reader in the export is dead there too.
 | `RUSSIAN_BORDERS_PER_AGE` | 1 | World::compute_reg_territory | modelled at territory.rs | `russian_borders_per_age` |
 | `RUSSIAN_COMMUNISM` | 0 | LeaderData::calc_market_prices | carried, unread | `russian_communism` |
 | `RUSSIAN_SPY_COST` | 50 | TypeData::get_cost | modelled at cost.rs | `russian_spy_cost` |
-| `RUSSIAN_COSSACK_DAMAGE` | 25 | ObjectData::get_damage | modelled at combat.rs | `russian_cossack_damage` |
+| `RUSSIAN_COSSACK_DAMAGE` | 25 | ObjectData::get_damage | modelled at damage.rs | `russian_cossack_damage` |
 | `RUSSIAN_PLUNDER_STEAL` | 1 | Build::plunder, Cities::capture_city | modelled at city.rs | `russian_plunder_steal` |
 | `RUSSIAN_FREE_CIVIC` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `russian_free_civic` |
 | `CHINESE_KNOWLEDGE_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `chinese_knowledge_upgrades` |
@@ -292,7 +292,7 @@ left out; a constant with no reader in the export is dead there too.
 | `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_creation` |
 | `CHINESE_LARGE_CITY` | 1 | ConquestGame::build_cities, Setup::build_cities | not carried | `chinese_large_city` |
 | `CHINESE_LARGE_CITIES` | 1 | Build::activate, City::assimilate, ConquestGame::build_cities +1 | modelled at city.rs | `chinese_large_cities` |
-| `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at combat.rs | `japanese_damage` |
+| `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at damage.rs | `japanese_damage` |
 | `JAPANESE_BARRACKS_COST` | -7 | TypeData::get_cost | not carried | `japanese_barracks_cost` |
 | `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | not carried | `japanese_barracks_speed` |
 | `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | not carried | `japanese_ship_cost` |
@@ -308,7 +308,7 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_MILITIA_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `korean_militia_upgrades` |
 | `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at orders.rs | `korean_build_under_fire` |
 | `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at orders.rs | `korean_repair` |
-| `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | not carried | `korean_tower_cost` |
+| `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | modelled at cost.rs | `korean_tower_cost` |
 | `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | not carried | `mongol_stable_cost` |
 | `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at lib.rs | `mongol_stable_speed` |
 | `MONGOL_ATTRITION` | 50 | Leader::calc_anti_attrition | modelled at attrition.rs | `mongol_attrition` |
@@ -410,11 +410,11 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `BuildOut::make_options@00629ed0` | 4 | not sim | `interface or render side` |
 | `BuildData::construct_time@0062d5c0` | 20 | modelled at build.rs | `iroquois_quick_senate` |
 | `BuildTypeData::get_building_range@00639990` | 6 | carried at fight.rs | `00639990` |
-| `BuildTypeData::calc_gather@00639e40` |  +var | carried at holdings.rs | `00639e40` |
+| `BuildTypeData::calc_gather@00639e40` |  +var | carried at economy.rs | `00639e40` |
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
 | `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |
-| `ObjectData::get_damage@00644130` | 15 | carried at combat.rs | `00644130` |
+| `ObjectData::get_damage@00644130` | 15 | carried at damage.rs | `00644130` |
 | `Object::disband@006455c0` | 0 19 | carried at object_disband.rs | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
 | `Object::remove_from_inside@006480f0` | 19 20 | carried at holdings.rs | `006480f0` |
@@ -457,7 +457,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::calc_resource_bonuses@006db030` | 13 | carried at economy.rs | `006db030` |
 | `LeaderData::get_farm_limit@006db270` | 7 | modelled at city.rs | `egyptian_farms_per_city_base` |
 | `LeaderData::get_radius@006db790` | 21 | carried at city.rs | `006db790` |
-| `LeaderData::has_preq@006db810` | 4 5 6 7 10 12 13 16 | carried at build_data_has_objmask.rs | `006db810` |
+| `LeaderData::has_preq@006db810` | 4 5 6 7 10 12 13 16 | carried at ammo_do_damage.rs | `006db810` |
 | `LeaderData::calc_market_prices@006dc2a0` | 4 13 | carried at ai_make.rs | `006dc2a0` |
 | `Leader::calc_pop_cap@006dc490` | 3 | carried at build_finished_628490.rs | `006dc490` |
 | `Leader::lost_a_city@006dc6d0` | 23 | carried at city.rs | `fn lost_a_city` |
@@ -473,7 +473,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::has_tribe_bonus@006e1370` |  +var | carried at borders_is_border_hidden.rs | `006e1370` |
 | `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at lib.rs | `006e3930` |
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
-| `Cities::capture_city@00733380` | 13 23 | carried at holdings.rs | `00733380` |
+| `Cities::capture_city@00733380` | 13 23 | carried at build_check_capture.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |
 | `City::assimilate@00738e90` | 14 | carried at city.rs | `00738e90` |
 | `Caravan::trade_value@0073d9d0` | 21 | carried at caravan.rs | `0073d9d0` |

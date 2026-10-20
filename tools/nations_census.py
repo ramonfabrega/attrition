@@ -232,16 +232,17 @@ ROSTER = ["Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egy
           "Turks", "Spanish", "French", "British", "Germans", "Russians", "Chinese",
           "Japanese", "Koreans", "Mongols", "Iroquois", "Lakota", "Americans", "Indians",
           "Dutch", "Persians"]
-LOBBY = {7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGermanTier3` (AI word, tier 3)",
-         18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (AI word, tier 4)",
+LOBBY = {0: "`GreatSaharaAztecTier2` (AI word, tier 2)", 7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGermanTier3` (AI word, tier 3)",
+         18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (map 7, tier 3)",
          21: "`EastIndiesIndianTier2` (map 18, tier 2)",
          1: "`GreatSaharaMayaTier4` (AI word, tier 4)", 3: "`GreatSaharaBantuTier4` (map 7, tier 4)",
          13: "`GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2)",
-         19: "`GreatLakesLakotaTier2` (AI word, tier 2)", 23: "`GreatLakesPersianTier2` (AI word, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
-         9: "`GreatSaharaSpanishTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (AI word, tier 1)",
+         19: "`GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2)", 23: "`GreatLakesPersianTier2` (AI word, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
+         9: "`GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (map 18, tier 3)",
+         2: "`EastIndiesIncaTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (AI word, tier 1)",
          15: "`GreatSaharaJapaneseTier1` (map 7, tier 1)",
          6: "`EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2)", 20: "`EastIndiesAmericanTier1` (map 18, tier 1)",
-         4: "the human in every capture", 10: "`GreatSaharaFrenchTier4` (AI word, tier 4)", 11: "scored pairs", 16: "scored pairs"}
+         4: "the human in every capture", 10: "`GreatSaharaFrenchTier4` (AI word, tier 4)", 11: "scored pairs", 16: "`GreatSaharaKoreanTier3` (AI word, tier 3); scored pairs"}
 FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans", 7: "egyptians",
         8: "turks", 10: "french", 11: "british", 12: "germans", 13: "russians", 14: "chinese",
         16: "koreans", 17: "mongols", 19: "lakota", 21: "indians", 22: "dutch"}

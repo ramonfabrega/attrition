@@ -9915,6 +9915,15 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks: `rngcmp.py` run981 vs run981b -> 37 identical; run977b vs run982 -> 14099 identical, vs run982b -> 14860, vs run982c -> 16765,
 # vs run982d -> 16765.
 # ==== TAKEN 2026-10-19, one take each, 20:17-22:02, pool lanes 1-2 ====
+# ==== item 3360: the Inca word's widenings and the battery's replacement lobby (`docs/AI.md` §281; `docs/RUNS.md` run986 .. run987b) ====
+#   run986   --map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 9 --profile DIFFICULTY=3   (East Indies, Spanish; start)
+#   run986b  run962b's recipe with --ai-tribe 9 --profile DIFFICULTY=3   (the draw stream to 24000)
+#   run987   --map 18 --end-frame 8037 --timeout 5400 --log-window 7776 8032 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3   (the word 7782's window)
+#   run987b  --map 18 --end-frame 16771 --timeout 7200 --log-window 16510 16766 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3   (the word 16516's window)
+# Checks: `rngcmp.py` run986 vs run986b -> 37 identical; run969b vs run987 -> 8038 identical, vs run987b -> 16772 identical.
+# ==== TAKEN 2026-10-19/20, one take each, 23:34-, pool lanes 1-3 ====
 # ==== item 3359: the French word's close, a packet of piece 139 (`docs/AI.md` §280; `docs/RUNS.md` run985, run985b) ====
 #   run985   --map 7 --end-frame 16766 --timeout 3600 --log-window 16760 16765 --detail end:MISC,UNITS=3,GUYS=4 --ai-tribe 10
 #            --cover cover=0 --allow-early-end --profile DIFFICULTY=4 --tracer-def RON_STATE_FRAME=16762
@@ -9922,3 +9931,31 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   run985b  run985's line   (the packet)
 # Checks: `rngcmp.py` run977b vs run985b -> 16765 identical.
 # ==== TAKEN 2026-10-19, two takes, 22:47-22:50, pool lane 1 ====
+# ==== item 3361: the Aztec word, its battery replacement and its windows (`docs/AI.md` §282; `docs/RUNS.md` run988..run989d) ====
+#   run988   --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 19 --profile DIFFICULTY=2   (Great Sahara, Lakota; start)
+#   run988b  run895b's line with --ai-tribe 19   (the Lakota's draw stream, 24001 frames)
+#   run989   --map 7 --end-frame 9385 --timeout 5400 --log-window 9124 9380 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 0 --cover cover=0 --profile DIFFICULTY=2   (the word 9130's window)
+#   run989b  --map 7 --end-frame 9136 --log-window 9128 9131 --detail end:MISC,UNITS=3,GUYS=4,WORLD=6 (run989's --ai-tribe, --cover, --profile)
+#            (the word 9130's fog)
+#   run989c  --map 7 --end-frame 8662 --log-window 8653 8657 --detail end:MISC,UNITS=3,GUYS=4,BUILDS=7,WORLD=6 (run989's --ai-tribe, --cover, --profile)
+#            (the Horse Archer 1/45's birth)
+#   run989d  --map 7 --end-frame 17560 --timeout 5400 --log-window 17388 17555 --allow-early-end
+#            --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 (run989's --ai-tribe, --cover, --profile)   (the word 17394's window)
+# Checks: `rngcmp.py` run988 vs run988b -> 37 identical; run895b vs run989 -> 9386 identical, vs run989b -> 9137, vs run989c -> 8663,
+# vs run989d -> 17555.
+# ==== TAKEN 2026-10-19/20, one take each, 23:58-00:41, pool lanes 1-3 ====
+# ==== item 3365: the Korean word, its battery replacement and its windows (`docs/AI.md` §283; `docs/RUNS.md` run990..run991d) ====
+#   run990   run988's line with --ai-tribe 22 --profile DIFFICULTY=3   (Great Sahara, Dutch; start)
+#   run990b  run964b's line with --ai-tribe 22   (the Dutch's draw stream; ended itself on 16109)
+#   run991   --map 7 --end-frame 9440 --timeout 5400 --log-window 9179 9435 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 16 --cover cover=0 --profile DIFFICULTY=3   (the word 9185's window)
+#   run991b  --map 7 --end-frame 15546 --timeout 5400 --log-window 15285 15541 --allow-early-end
+#            --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3,AMMO=5 (run991's --ai-tribe, --cover, --profile)   (the word 15291's window)
+#   run991c  --map 7 --end-frame 15296 --log-window 15240 15291 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5
+#            (run991's --ai-tribe, --cover, --profile)   (the Hwarang's arrows)
+#   run991d  --map 7 --end-frame 15262 --log-window 15254 15259 --detail end:GUYS=4,AMMO=5 (run991's --ai-tribe, --cover, --profile)
+#            --tracer-def RON_STATE_FRAME=15256 --tracer-def RON_STATE_PLAN=<item 597's plan.h>   (a packet)
+# Checks: `rngcmp.py` run990 vs run990b -> 37 identical; run964b vs run991 -> 9441 identical, vs run991b -> 15547, vs run991c -> 15297,
+# vs run991d -> 15263.
+# ==== TAKEN 2026-10-20, one take each, 01:35-02:32, pool lanes 1-3 ====
