@@ -136,6 +136,14 @@ mod river_section_out_compute_vert_height;
 mod rivers_out_get_name;
 #[path = "rivers_walk_data.rs"]
 mod rivers_walk_data;
+#[path = "roads_add_roads.rs"]
+mod roads_add_roads;
+#[path = "roads_add_roads_amb.rs"]
+mod roads_add_roads_amb;
+#[path = "roads_add_roads_redo.rs"]
+mod roads_add_roads_redo;
+#[path = "roads_add_roads_view.rs"]
+mod roads_add_roads_view;
 #[path = "roads_generate.rs"]
 mod roads_generate;
 #[path = "roads_out_fill_cache.rs"]
