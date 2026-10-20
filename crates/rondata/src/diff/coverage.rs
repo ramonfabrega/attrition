@@ -3474,6 +3474,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::lakota_word::lakota_frame_6071_window(),
         || super::persian_word::persian_frame_6046_window(),
         || super::persian_word::persian_frame_6323_window(),
+        || super::aztec_word::aztec_frame_9130_window(),
+        || super::aztec_word::aztec_frame_17394_window(),
         || super::bantu_word::bantu_frame_4_window(),
         || super::bantu_word::bantu_gap_978c_window(),
         || super::bantu_word::bantu_escrow_978d_window(),
