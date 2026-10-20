@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,88 +46,98 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-            // `Army::normalize` through `army_normalize_view` (not the crate's `Sim::army_normalize`, a namesake):
-            // the view over the windows. Group id `g` is row `g` of the sparse table, its slices `p[6g..6g+6]`
-            // (vtable, num, leader word at +0x10, role, +0x48 word, list word); the units chain is `p[41 + i]`
-            // (`+0x14` of unit i's type record). Stub answers: stub 2 `a[5 + k]`, stub 3 `a[17 + k]` for the k-th call.
-            use crate::army_normalize_view::{ArmyNormalizeView, army_normalize_steps};
-            struct V<'a> {
-                m: &'a mut [u8],
-                p: &'a mut [Vec<u8>],
-                a: &'a [i32],
-                log: &'a mut Vec<String>,
-                k2: usize,
-                k3: usize,
+                // `Army::normalize` through `army_normalize_view` (not the crate's `Sim::army_normalize`, a namesake):
+                // the view over the windows. Group id `g` is row `g` of the sparse table, its slices `p[6g..6g+6]`
+                // (vtable, num, leader word at +0x10, role, +0x48 word, list word); the units chain is `p[41 + i]`
+                // (`+0x14` of unit i's type record). Stub answers: stub 2 `a[5 + k]`, stub 3 `a[17 + k]` for the k-th call.
+                use crate::army_normalize_view::{ArmyNormalizeView, army_normalize_steps};
+                struct V<'a> {
+                    m: &'a mut [u8],
+                    p: &'a mut [Vec<u8>],
+                    a: &'a [i32],
+                    log: &'a mut Vec<String>,
+                    k2: usize,
+                    k3: usize,
+                }
+                impl ArmyNormalizeView for V<'_> {
+                    fn who(&self) -> i32 {
+                        i32::from(i16::from_le_bytes([self.m[0x94], self.m[0x95]]))
+                    }
+                    fn count(&self) -> i32 {
+                        i32::from(i16::from_le_bytes([self.m[0x96], self.m[0x97]]))
+                    }
+                    fn slot(&self, s: i32) -> i32 {
+                        rd(self.m, 0x54 + 4 * s as usize)
+                    }
+                    fn set_slot(&mut self, s: i32, id: i32) {
+                        wr(self.m, 0x54 + 4 * s as usize, id);
+                    }
+                    fn total(&self, t: usize) -> i32 {
+                        rd(self.m, [0xc, 0x10, 0x14, 0x18, 0x1c][t])
+                    }
+                    fn set_total(&mut self, t: usize, v: i32) {
+                        wr(self.m, [0xc, 0x10, 0x14, 0x18, 0x1c][t], v);
+                    }
+                    fn group_normalize(&mut self, g: i32) {
+                        self.log.push(format!("s0:p{}+0x0", 6 * g));
+                    }
+                    fn num(&self, g: i32) -> i32 {
+                        rd(&self.p[6 * g as usize + 1], 0)
+                    }
+                    fn buildings(&self, g: i32) -> u8 {
+                        self.p[6 * g as usize + 4][1]
+                    }
+                    fn role(&self, g: i32) -> i32 {
+                        rd(&self.p[6 * g as usize + 3], 0)
+                    }
+                    fn list0(&self, g: i32) -> i32 {
+                        let w = &self.p[6 * g as usize + 5];
+                        i32::from(i16::from_le_bytes([w[0], w[1]]))
+                    }
+                    fn vcall8(&mut self, g: i32) -> i32 {
+                        self.log.push(format!("s2:p{}+0x0", 6 * g));
+                        let v = self.a[5 + self.k2.min(11)];
+                        self.k2 += 1;
+                        v
+                    }
+                    fn group_count(&mut self, g: i32, kind: i32, x: i32, y: i32) -> i32 {
+                        self.log.push(format!("s3:p{}+0x0,{kind},{x},{y}", 6 * g));
+                        let v = self.a[17 + self.k3.min(29)];
+                        self.k3 += 1;
+                        v
+                    }
+                    fn find_leader(&mut self, g: i32) -> i32 {
+                        self.log.push(format!("s4:p{}+0x0,0", 6 * g));
+                        rd(&self.p[6 * g as usize + 2], 0)
+                    }
+                    fn remove_group(&mut self, id: i32) {
+                        self.log.push(format!("s1:m+0x0,{id}"));
+                    }
+                    fn unit_type_field(&self, who: i32, unit: i32) -> i32 {
+                        // The cell read is `units + who * 0x1c`: the ptrtab sits at the army's own player.
+                        assert_eq!(who, self.who());
+                        rd(&self.p[41 + unit as usize], 0x14)
+                    }
+                }
+                army_normalize_steps(&mut V {
+                    m,
+                    p,
+                    a,
+                    log: &mut log,
+                    k2: 0,
+                    k3: 0,
+                });
+                if log.is_empty() {
+                    log.push("-".into());
+                }
+                0
             }
-            impl ArmyNormalizeView for V<'_> {
-                fn who(&self) -> i32 {
-                    i32::from(i16::from_le_bytes([self.m[0x94], self.m[0x95]]))
-                }
-                fn count(&self) -> i32 {
-                    i32::from(i16::from_le_bytes([self.m[0x96], self.m[0x97]]))
-                }
-                fn slot(&self, s: i32) -> i32 {
-                    rd(self.m, 0x54 + 4 * s as usize)
-                }
-                fn set_slot(&mut self, s: i32, id: i32) {
-                    wr(self.m, 0x54 + 4 * s as usize, id);
-                }
-                fn total(&self, t: usize) -> i32 {
-                    rd(self.m, [0xc, 0x10, 0x14, 0x18, 0x1c][t])
-                }
-                fn set_total(&mut self, t: usize, v: i32) {
-                    wr(self.m, [0xc, 0x10, 0x14, 0x18, 0x1c][t], v);
-                }
-                fn group_normalize(&mut self, g: i32) {
-                    self.log.push(format!("s0:p{}+0x0", 6 * g));
-                }
-                fn num(&self, g: i32) -> i32 {
-                    rd(&self.p[6 * g as usize + 1], 0)
-                }
-                fn buildings(&self, g: i32) -> u8 {
-                    self.p[6 * g as usize + 4][1]
-                }
-                fn role(&self, g: i32) -> i32 {
-                    rd(&self.p[6 * g as usize + 3], 0)
-                }
-                fn list0(&self, g: i32) -> i32 {
-                    let w = &self.p[6 * g as usize + 5];
-                    i32::from(i16::from_le_bytes([w[0], w[1]]))
-                }
-                fn vcall8(&mut self, g: i32) -> i32 {
-                    self.log.push(format!("s2:p{}+0x0", 6 * g));
-                    let v = self.a[5 + self.k2.min(11)];
-                    self.k2 += 1;
-                    v
-                }
-                fn group_count(&mut self, g: i32, kind: i32, x: i32, y: i32) -> i32 {
-                    self.log.push(format!("s3:p{}+0x0,{kind},{x},{y}", 6 * g));
-                    let v = self.a[17 + self.k3.min(29)];
-                    self.k3 += 1;
-                    v
-                }
-                fn find_leader(&mut self, g: i32) -> i32 {
-                    self.log.push(format!("s4:p{}+0x0,0", 6 * g));
-                    rd(&self.p[6 * g as usize + 2], 0)
-                }
-                fn remove_group(&mut self, id: i32) {
-                    self.log.push(format!("s1:m+0x0,{id}"));
-                }
-                fn unit_type_field(&self, who: i32, unit: i32) -> i32 {
-                    // The cell read is `units + who * 0x1c`: the ptrtab sits at the army's own player.
-                    assert_eq!(who, self.who());
-                    rd(&self.p[41 + unit as usize], 0x14)
-                }
-            }
-            army_normalize_steps(&mut V { m, p, a, log: &mut log, k2: 0, k3: 0 });
-            if log.is_empty() {
-                log.push("-".into());
-            }
-            0
-        }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "normalize — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "normalize — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "normalize — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
