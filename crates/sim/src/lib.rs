@@ -123,6 +123,7 @@ pub mod production;
 pub mod rally;
 pub mod rares;
 pub mod roads;
+pub mod roads_view;
 pub mod scout;
 pub mod single;
 pub mod site_recruit;

@@ -26,6 +26,7 @@
 //! a rotation are not.
 
 use crate::Sim;
+use crate::roads_view::{ModQueue, RoadsView, TileRec, Which, add_roads_steps};
 use crate::ai_place::{MOVE_X, MOVE_Y};
 use crate::world::{Cell, Pos, World, cell, tile};
 use std::collections::BTreeMap;
@@ -126,15 +127,6 @@ pub struct Elem {
     pub c4: bool,
 }
 
-/// One entry of `RoadsData::added_roads` — a `RoadModification`: a packed
-/// tile index and two bytes.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Modification {
-    index: i32,
-    added: u8,
-    valid: u8,
-}
-
 /// `Roads`' own state: the element store, the modification queue, and the two
 /// lists the redo pass ping-pongs between.
 ///
@@ -149,9 +141,9 @@ pub struct RoadMesh {
     /// iterates it, but the crate's own lint would rather it could not.
     elems: BTreeMap<i32, Elem>,
     /// `RoadsData::added_roads`.
-    mods: Vec<Modification>,
+    mods: ModQueue,
     /// `Roads::add_roads`' function-static `remove_list`.
-    remove: Vec<Modification>,
+    remove: ModQueue,
     /// `changed_roads` (`+0x150`) and `changed_roads2` (`+0x16c`).
     redo: [Vec<i32>; 2],
     /// `RoadsData::tx` / `ty`.
@@ -638,11 +630,7 @@ impl Sim {
     /// `valid = 1`, and `add_roads` is entered with a zero.
     fn road_cleared(&mut self, t: Pos) {
         let index = index_of(&self.world, t);
-        self.mesh.mods.push(Modification {
-            index,
-            added: 0,
-            valid: 1,
-        });
+        self.mesh.mods.push(index, 0x100);
         self.add_roads(0);
     }
 
@@ -653,11 +641,7 @@ impl Sim {
             self.mesh.road_changed(&self.world, t, true, 1, 0);
         }
         let index = index_of(&self.world, t);
-        self.mesh.mods.push(Modification {
-            index,
-            added: 1,
-            valid: 1,
-        });
+        self.mesh.mods.push(index, 0x101);
         if p4 != 0 {
             self.add_roads(i32::from(p3 != 0));
         }
@@ -674,89 +658,7 @@ impl Sim {
     /// touched, ping-ponging between two lists until neither grows, at most
     /// eleven times round.
     fn add_roads(&mut self, param: i32) {
-        self.mesh.remove.clear();
-        // ---- pass one
-        let mut cursor = 0;
-        while cursor < self.mesh.mods.len() {
-            let cur = self.mesh.mods[cursor];
-            let at = tile_of(&self.world, cur.index);
-            self.mesh.at = at;
-            if cur.valid != 0 {
-                if cur.added == 0 {
-                    self.clear_roads(cur);
-                    if let Some(e) = self
-                        .mesh
-                        .mods
-                        .iter_mut()
-                        .find(|e| e.index == cur.index && e.valid == 1)
-                    {
-                        e.valid = 0;
-                    }
-                } else {
-                    self.mesh.fill_cache(&self.world, at);
-                    let n = self
-                        .mesh
-                        .road_changed(&self.world, at, true, 0, i32::from(param != 0));
-                    if n < 2 {
-                        if self.mesh.get_road_data(&self.world, at, false, 0, false) {
-                            self.mesh.trim_directions(&self.world, 1);
-                        }
-                    } else {
-                        self.mesh.mods.push(Modification {
-                            index: cur.index,
-                            added: 0,
-                            valid: 1,
-                        });
-                        self.mesh.remove.push(cur);
-                    }
-                }
-            }
-            cursor += 1;
-        }
-        // ---- the removals pass one asked for
-        let remove = std::mem::take(&mut self.mesh.remove);
-        for r in remove {
-            if let Some(k) = self
-                .mesh
-                .mods
-                .iter()
-                .position(|e| e.index == r.index && e.added == r.added)
-            {
-                self.mesh.mods.remove(k);
-            }
-        }
-        // ---- pass two
-        let mut cursor = 0;
-        while cursor < self.mesh.mods.len() {
-            let cur = self.mesh.mods[cursor];
-            cursor += 1;
-            if cur.valid == 0 {
-                continue;
-            }
-            let at = tile_of(&self.world, cur.index);
-            self.mesh.at = at;
-            if !self.mesh.get_road_data(&self.world, at, false, 0, false) {
-                continue;
-            }
-            if cur.added == 0 {
-                self.mesh.trim_directions(&self.world, 1);
-            }
-            self.mesh.fill_cache(&self.world, at);
-            self.set_diags(1, param);
-        }
-        // ---- the redo ping-pong
-        let mut which = 0;
-        for _ in 0..12 {
-            if self.mesh.redo[which].is_empty() {
-                break;
-            }
-            self.redo_changed_roads(which, if which == 0 { 2 } else { 1 }, param);
-            self.mesh.redo[which].clear();
-            which = 1 - which;
-        }
-        self.mesh.redo[0].clear();
-        self.mesh.redo[1].clear();
-        self.mesh.mods.clear();
+        add_roads_steps(&mut SimRoads { sim: self }, param);
     }
 
     /// `Roads::set_diags@0088e9d0`. Answers the original's `local_8` — set
@@ -900,8 +802,8 @@ impl Sim {
 
     /// `Roads::clear_roads@0088fef0` — a queued *removal*. The road tile only
     /// goes if the mesh laid it and nothing else still holds its element.
-    fn clear_roads(&mut self, m: Modification) {
-        let at = tile_of(&self.world, m.index);
+    fn clear_roads(&mut self, index: i32) {
+        let at = tile_of(&self.world, index);
         self.mesh.at = at;
         let mine = self.clear_support(at, 0);
         self.mesh.fill_cache(&self.world, at);
@@ -1119,6 +1021,115 @@ impl RedoView for SimRedo<'_> {
     }
 }
 
+/// [`RoadsView`] over the simulation: the mesh and the world as they stand.
+/// The terrain's cell patches and the world's per-tile flag word are not
+/// carried, so the ambience scan the add arm runs under a non-zero `param`
+/// finds no cell with tile records and does nothing — which is all it could
+/// do here, its two writes being an audio-and-graphics event and a mark on a
+/// terrain cell that only the scan itself reads.
+struct SimRoads<'a> {
+    sim: &'a mut Sim,
+}
+
+impl RoadsView for SimRoads<'_> {
+    fn queue(&mut self) -> &mut ModQueue {
+        &mut self.sim.mesh.mods
+    }
+    fn remove_list(&mut self) -> &mut ModQueue {
+        &mut self.sim.mesh.remove
+    }
+    fn grow(&mut self, _which: Which, _step: i16) {
+        // Both arrays are `Vec`s, whose capacity `ModQueue` reports as
+        // unbounded, so no push ever asks.
+    }
+    fn world_cells(&self) -> (i32, i32) {
+        (self.sim.world.width(), self.sim.world.height())
+    }
+    fn world_tiles(&self) -> (i32, i32) {
+        (self.sim.world.width() * 4, self.sim.world.height() * 4)
+    }
+    fn set_tile(&mut self, x: i32, y: i32) {
+        self.sim.mesh.at = Pos::new(x, y);
+    }
+    fn clear_roads(&mut self, index: i32, _flags: i32) {
+        self.sim.clear_roads(index);
+    }
+    fn fill_cache(&mut self) {
+        let at = self.sim.mesh.at;
+        self.sim.mesh.fill_cache(&self.sim.world, at);
+    }
+    fn road_changed(&mut self, flag: bool) -> i32 {
+        let at = self.sim.mesh.at;
+        self.sim
+            .mesh
+            .road_changed(&self.sim.world, at, true, 0, i32::from(flag))
+    }
+    fn get_road_data(&mut self) -> bool {
+        let at = self.sim.mesh.at;
+        self.sim
+            .mesh
+            .get_road_data(&self.sim.world, at, false, 0, false)
+    }
+    fn mark_and_trim(&mut self, list: i32) {
+        self.sim.mesh.trim_directions(&self.sim.world, list);
+    }
+    fn set_diags(&mut self, list: i32, param: i32) -> i32 {
+        self.sim.set_diags(list, param)
+    }
+    // The texture marks pick a texture and a rotation, which nothing here
+    // reads (`docs/ROADS.md` §9.4).
+    fn mark_splits(&mut self) {}
+    fn mark_white_lines(&mut self) {}
+    fn mark_yellow_lines(&mut self) {}
+    fn mark_intersections(&mut self) {}
+    fn fixup_lines(&mut self, _arg: i32) {}
+    fn elem_flags(&self) -> u32 {
+        self.sim.mesh.flags_at(&self.sim.world, self.sim.mesh.at)
+    }
+    fn set_elem_flags(&mut self, flags: u32) {
+        let at = self.sim.mesh.at;
+        self.sim.mesh.set_flags(&self.sim.world, at, flags);
+    }
+    fn find_piece(&mut self) {
+        // The piece the pick settles on is the road tile's own, so the C4 a
+        // corner left on it goes (§12; the pick itself is not modelled).
+        let at = self.sim.mesh.at;
+        if self.sim.world.tile_mask(at) & tile::SURFACE == tile::SURFACE_ROAD
+            && let Some(e) = self.sim.mesh.elems.get_mut(&index_of(&self.sim.world, at))
+        {
+            e.c4 = false;
+        }
+    }
+    fn redo_len(&self, which: usize) -> i32 {
+        self.sim.mesh.redo[which].len() as i32
+    }
+    fn redo_changed_roads(&mut self, which: usize, arg: i32, param: i32) {
+        self.sim.redo_changed_roads(which, arg, param);
+    }
+    fn redo_clear(&mut self, which: usize) {
+        self.sim.mesh.redo[which].clear();
+    }
+    fn tile_flags(&self, _x: i32, _y: i32) -> u16 {
+        0
+    }
+    fn cell_has_tiles(&self, _cx: i32, _cy: i32) -> bool {
+        false
+    }
+    fn cell_flags(&self, _cx: i32, _cy: i32) -> u16 {
+        0
+    }
+    fn set_cell_flags(&mut self, _cx: i32, _cy: i32, _bits: u16) {}
+    fn tile_rec(&self, _x: i32, _y: i32) -> Option<TileRec> {
+        None
+    }
+    fn add_ambience(&mut self, _x: i32, _y: i32) {}
+    fn finish(&mut self) {
+        self.sim.mesh.redo[0].clear();
+        self.sim.mesh.redo[1].clear();
+        self.sim.mesh.mods.count = 0;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1279,23 +1290,13 @@ mod tests {
 
         // Somebody else's tile: the count falls, the road stays.
         let plain = Pos::new(222, 80);
-        let m = Modification {
-            index: index_of(&sim.world, plain),
-            added: 0,
-            valid: 1,
-        };
-        sim.clear_roads(m);
+        sim.clear_roads(index_of(&sim.world, plain));
         assert!(!is_road(&sim, 222, 80) || sim.mesh.elem(&sim.world, plain).is_none());
 
         // The mesh's own: `clear_support` on the tile that made it takes
         // both, because `is_terrain_creation` is set and the count runs out.
         let at = Pos::new(224, 79);
-        let m = Modification {
-            index: index_of(&sim.world, at),
-            added: 0,
-            valid: 1,
-        };
-        sim.clear_roads(m);
+        sim.clear_roads(index_of(&sim.world, at));
         assert!(!is_road(&sim, 223, 79), "the fill goes with what made it");
         assert_eq!(sim.mesh.made(), 0);
     }
