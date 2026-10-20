@@ -6,6 +6,8 @@ mod support;
 use support::{emu_rows, row, tail_row};
 
 // Registered standalone sweeps.
+#[path = "activate_view.rs"]
+mod activate_view;
 #[path = "add_type_bucket.rs"]
 mod add_type_bucket;
 #[path = "add_type_bucket2.rs"]
@@ -160,8 +162,12 @@ mod borders_process_all;
 mod borders_remove_border_region;
 #[path = "borders_save_last_who.rs"]
 mod borders_save_last_who;
+#[path = "build_activate_arms.rs"]
+mod build_activate_arms;
 #[path = "build_activate_head.rs"]
 mod build_activate_head;
+#[path = "build_activate_senate.rs"]
+mod build_activate_senate;
 #[path = "build_add_attack_order.rs"]
 mod build_add_attack_order;
 #[path = "build_add_gather_point.rs"]

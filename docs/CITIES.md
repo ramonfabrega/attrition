@@ -2474,7 +2474,7 @@ if in a city and not captured:
   Norwich `1/2007` (1 → 17), and the draw stream agrees through
   that frame.
 
-`Sim::senate_moves_capital` is the arm. `a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one`
+`crate::activate::senate_arm_steps` is the arm (item 3364 moved it from `Sim::senate_moves_capital`; the arm's head, the government hero, now runs too). `a_senate_moves_the_capital_to_its_city_unless_the_capital_has_one`
 is the test, made to fail once with the call removed.
 
 **Backed by the diff:** the two `city_flags[0x10]` rows on run178's
