@@ -122,6 +122,7 @@ pub mod single;
 pub mod site_recruit;
 pub mod spellcaster;
 pub mod stance;
+pub mod suffer_view;
 pub mod supply;
 pub mod swarm;
 pub mod target_gate;
@@ -6724,48 +6725,22 @@ impl Sim {
     /// period's bleed above and a detected decoy's
     /// ([`Sim::recover_mana`]). Its argument gates the graphic alone.
     pub(crate) fn suffer_attrition(&mut self, i: usize, frame: i64) -> Tick {
-        // The damage is sixteenths of a hit point per figure, carried through
-        // a fractional accumulator the way `Object::take_damage` carries it,
-        // so a lone figure loses one whole point a tick and a figure in a
-        // squad of four loses one every fourth tick.
-        //
-        // **The squad is counted, not stored** (item 552):
-        // `Unit::suffer_attrition` asks `curr_uber_size`, which walks up to
-        // the captain and counts down the chain. [`Unit::squad_size`] is a
-        // field nothing maintains — 1 on every unit `init_unit` makes — so
-        // chapter four's hoplites took a whole point a tick against the
-        // original's 6/16 until this read the chain.
-        let sixteenths = attrition::damage(self.curr_uber_size(i));
-        // **A figure falls at its share of the squad's hit points** — the same
-        // threshold `Object::take_damage` applies to a combat hit
-        // (`docs/COMBAT.md` §7.2 step 8): a Hoplite squad of three at 120
-        // hits falls at 40, not at 120 (`docs/GOLDEN.md` §135, run936: `0/12`
-        // dies on 2544 at its fortieth point).
-        let (uber, alone) = {
-            let u = &self.units[i];
-            (
-                self.profile(combat::Obj::Unit(i)).uber_size,
-                u.combat.captain == i32::from(u.index) && u.squad_size == 1,
-            )
+        // The walk is [`suffer_view::suffer_attrition_steps`], the swept one
+        // (item 3372): the damage is sixteenths of a hit point per figure,
+        // carried through a fractional accumulator the way
+        // `Object::take_damage` carries it (a lone figure loses one whole
+        // point a tick, a figure in a squad of four one every fourth tick),
+        // **and the squad is counted, not stored** (item 552): the view asks
+        // `curr_uber_size`, which walks up to the captain and counts down the
+        // chain, and a figure falls at its share of the squad's hit points
+        // (`docs/COMBAT.md` §7.2 step 8, `docs/GOLDEN.md` §135, run936).
+        let mut view = suffer_view::SimSuffer {
+            sim: self,
+            unit: i,
+            outcome: None,
         };
-        let unit = &mut self.units[i];
-        let share = combat::share(unit.max_health, uber, alone);
-        let (taken, _, frac) = combat::take(
-            unit.max_health - unit.health,
-            unit.damage_frac,
-            share,
-            combat::Sixteenths {
-                whole: sixteenths / 16,
-                frac: sixteenths % 16,
-            },
-        );
-        let (combat::Taken::Alive { lost } | combat::Taken::Died { lost, .. }) = taken;
-        unit.damage_frac = frac;
-        unit.health -= lost;
-        let killed = matches!(taken, combat::Taken::Died { .. });
-        if killed {
-            unit.health = unit.health.min(0);
-        }
+        let killed = suffer_view::suffer_attrition_steps(&mut view, false);
+        let (sixteenths, lost, _) = view.outcome.expect("the hurt call is always made");
         if killed {
             // `Object::take_damage`'s `die` with `dtype` 1 — the whole combat
             // tail, `Unit::close`'s draw and orders and the thirty-frame hold
