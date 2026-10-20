@@ -30,9 +30,12 @@ pub(crate) const INDIAN_SAHARA: Lobby = Lobby {
     // Item 3378's first try, held by the battery's measure to `bb82188d`:
     // count and sequence 15922 (ours 9 draws, theirs 10, at 7: ours
     // `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`). Item
-    // 3383 promoted it to the AI word (`docs/AI.md` §291).
-    count: 15922,
-    sequence: 15922,
+    // 3383 promoted it to the AI word (`docs/AI.md` §291), and moved it
+    // 15922 -> 16548 (+626): piece 1898's pivot releases (run1007b's
+    // `1/64` round at `0/2005`: `sx, sy` (8760, 30264) ours, (8675, 30245)
+    // theirs, `total_time` 9 against 8; agreeing after).
+    count: 16548,
+    sequence: 16548,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
