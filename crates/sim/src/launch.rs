@@ -2023,9 +2023,10 @@ mod tests {
         }
     }
 
-    /// run982's four first rounds (item 3347): `(piece, anim, starttime,
-    /// guy x, y, z, angle, sx, sy, sz)`, the dump's own columns, reproduced
-    /// to the unit.
+    /// run982's rounds (item 3347): `(piece, anim, starttime, guy x, y, z,
+    /// angle, sx, sy, sz)`, the dump's own columns, reproduced to the unit —
+    /// the four first rounds, then the Cavalry Archer's other two and the
+    /// Dragoon's two (`cf3e7e2c2`).
     #[test]
     fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
         const M: &[(i32, i8, u32, i32, i32, i32, i32, i32, i32, i32)] = &[
@@ -2076,6 +2077,54 @@ mod tests {
                 9401,
                 30970,
                 842,
+            ),
+            (
+                138,
+                crate::anim::ATTACK2,
+                16,
+                9480,
+                30936,
+                614,
+                -1_535_115_264,
+                9388,
+                30958,
+                822,
+            ),
+            (
+                138,
+                crate::anim::ATTACK1,
+                18,
+                7944,
+                30840,
+                658,
+                -990_642_176,
+                7860,
+                30861,
+                883,
+            ),
+            (
+                139,
+                crate::anim::ATTACK1,
+                12,
+                7944,
+                30840,
+                658,
+                -990_642_176,
+                7794,
+                30874,
+                881,
+            ),
+            (
+                139,
+                crate::anim::ATTACK3,
+                18,
+                7944,
+                30840,
+                658,
+                -990_642_176,
+                7797,
+                30845,
+                866,
             ),
         ];
         for &(piece, anim, t, gx, gy, gz, ga, sx, sy, sz) in M {
