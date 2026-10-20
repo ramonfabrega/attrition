@@ -92,6 +92,8 @@ Before any reading, in order:
 9. **A road-node parting: log ours' map around the tile over the whole
    game first** (3323); **a larger blow with `get_damage` agreeing: the
    packet's live `Ammo` first** (3328, 3322).
+10. **A widening's reading goes to a subagent that returns the verdict
+   and the rows, never the greps** (3351).
 
 ## reading
 
@@ -147,31 +149,27 @@ Before any reading, in order:
 ## chapter
 
 - **At most three arms of one staging; one that opens with a parting
-  ends there**: staging walked, capture taken, word pinned, section
-  written; **at the trace's end `word == hi − 1`; the `Golden:` count
-  is mine** (1781).
+  ends there**: staging walked, captured, pinned, written; **at the trace's end `word == hi − 1`; `Golden:` is mine**
+  (1781).
 - **An issuer chapter's staging is walked before its capture** (794): a
   dump when every predicate prints (821), else a staging-only packet
-  (808), through the command's entry (885); combat precondition first
+  (808), via the command's entry (885); combat precondition first
   (828); **a cheat goes two frames clear of a birth** (2479).
-- **A staging booked on a function's name greps its writers and gates
+- **A staging booked on a function greps its writers and gates
   first** (903, 968); **a cast lists its callees' line counts first**
   (2824); **no capture while a packet or widening on disk answers the
-  arm** (2330); **an arm the AI track built: grep its constant's readers
-  in the export, port or park each** (2356).
+  arm** (2330); **an arm the AI track built: its constant's readers in
+  the export, port or park each** (2356).
 - **`blind.rs` is a pin an issuer chapter moves** (950); a context
-  citation picks the address or the pin (943). **A control:
-  `--cmd-without <the arm's frame>` on the second run** (2542). **The
-  staging is the landing; a build without it parks** (2756).
-- **A script that stages nothing still exits `success: true`** (1170):
-  `stage_walk` first; **a command to another player's units holds `be`
-  across the pump** (1205); **`@` lines: `issuesmatch.py --none-refused
-  <trace>`** (966, 1256).
-- **A table row that will not fit says where** (932, 949); **ids come
-  off `RON_STAGE_ALL`**, `add N <type>` is N squads (1730);
-  **`runwiring.py --chapter N`: the places and the staged count**
-  (2914); **the walk prints each `add`'s landing and reach** (2970,
-  2654).
+  citation picks address or pin (943). **A control: `--cmd-without <the
+  arm's frame>`, second run** (2542). **The staging is the landing; a
+  build without it parks** (2756).
+- **`success: true` with nothing staged** (1170): `stage_walk` first; **another player's units hold `be` across the
+  pump** (1205); **`@` lines: `issuesmatch.py --none-refused <trace>`**
+  (966, 1256). **A row that will not fit says where** (932, 949);
+  **ids come off `RON_STAGE_ALL`**, `add N <type>` is N squads (1730);
+  **`runwiring.py --chapter N`: places and staged count** (2914); **the
+  walk prints each `add`'s landing** (2970, 2654).
 
 ## sweep
 
