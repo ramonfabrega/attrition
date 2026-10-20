@@ -190,6 +190,10 @@ mod greatest_common_factor;
 mod group_action_alarm;
 #[path = "group_action_alarm_head.rs"]
 mod group_action_alarm_head;
+#[path = "group_action_attack_ground.rs"]
+mod group_action_attack_ground;
+#[path = "group_action_attack_ground_head.rs"]
+mod group_action_attack_ground_head;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
 #[path = "group_action_buildmask.rs"]
