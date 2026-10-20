@@ -8624,6 +8624,24 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
 - **3348f. `Build::check_capture@006276a0`** sits between `add_roads` and `find_path` on the census and was left out of this
   batch's booking; no parked row explains it (the grep finds only `check_capture_health` and `check_capture_eligible`, other functions): the commander books it next.
 
+## Parked by item 3362, 2026-10-19 — the second sweep lane's third shape batch
+
+- **3362a. `PathFinder::astar_path@00683770`: `--stub-alloc IDX` lacking, a stateful tree/pool model lacking, port not level.**
+  Stands on a generator run: `sweep_gen.py obj --item 3362 --own 3 --win 0x200 --ptrarg 0:0x40 --argset 1:0x30,0xc0,0x10
+  --argset 2:0,1 --max-insns 2000000 PathFinder::astar_path@00683770` emits both files and the module registers, but the first
+  run of the original dies in the prologue: `UC_ERR_READ_UNMAPPED` (fault 0x7f7f7f6e) on the pointer chased from `this+0x54`
+  (the `UnitData`, then `units+0x10`, `GameAccess::world`, the order list at `+0xdc`) — nothing is placed. Placing those is
+  `--place`/`--ptrarg` work; the wall behind it is not: the body `malloc(0x24)`s a `PathNode` when `Recycler<PathNode>::temp_pool`
+  is empty (`--stub-alloc` lacking, as 3282b/3339a/3348b), pushes `Stack<PathData>` (`increase_size`, `peek`; the stateful stack of
+  3348c), and keeps its open/closed sets in five pointer-linked `Tree`/`BRTree` containers swapped with the unit's at `+0x104`
+  (`ordered_insert`, `remove_current`, `find_node_open`, `kill_tree`, `close`, `clear`, and five `Recycler` pools). Stubbing
+  those answers per row cannot reproduce a search; running them needs the trees built in the emulated heap. The crate's side is
+  not level either: `PathFinder::astar_path` (`path.rs:983`) holds `Vec<Node>` and `BTreeMap`s, calls ~15 `self.*` methods
+  directly (`avoid_flags`, `metric_of`, `roll_upath_retry`, …) and has no view trait. Order: a `PathView` over the world/unit
+  reads and an `AstarState` the sweep can seed from the original's trees; or compare the finished path stack only, over a
+  small placed world, with the tree callees run for real under `--stub-alloc`. Slices (`--tail`/`--stop-stub`) do not help
+  until the prologue (`683770`–`683a2d`, containers swapped) is placed. No files left: the emitted pair was removed.
+
 ## Parked by item 3355, 2026-10-19 — the Persians to the game's end
 
 The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What it read and did not build:
