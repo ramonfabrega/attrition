@@ -8710,13 +8710,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LJ — reserved
+## Parked by item 3367, 2026-10-20 — the East Indies Spanish word, 9028 → 14942
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3367a) **`0/2004`'s `damage` on 12774** (run993c): ours 2, theirs 3 (`damage_frac` 10 against 15), the window's
+  first row past the standing family after the move to 14942. The draw stream agrees to 14942; names no score.
+- (3367b) **`think_attack`'s `go_to_city` tail after a building find** (`005f5f..`, `docs/ARMY.md` §4.2): a building
+  find returns 0 and reaches the tail's city walk when `local_c`, `local_10` and `local_14` allow; the tail is not
+  modelled. No capture on disk shows a unit walking to a city from it.
+- (3367c) **A probe's `commit -am` swept the uncommitted run993c widening into it** (`4540cffa`/`eaca2003`; the
+  brief's row 1864 says exactly this). The revert conflicted and was resolved keeping the widening; for the Loop.
 
 ## Parked by the next landing, slot LK — reserved
 

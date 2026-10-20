@@ -24478,12 +24478,64 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 284. Reserved for the next item on the AI track
+## 284. The battery's East Indies Spanish word: a fog the Spanish see whole, a Bark's two stances, and a building find that does not end the think
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3367, 2026-10-20, Opus 5.5. `EastIndiesSpanishTier3` (map 18, human Nubians against the Spanish at Difficulty
+3, seed 12345; item 3360's lobby), promoted out of the battery at 9028 of 24000. Captures run993 (`GUYS=4`,
+`LEADERS=9`, `GOODS=3` over 9022..9278), run993b (`WORLD=6` with the unit, guy, leader, build and city records over
+8955..8961), run993c (`AMMO=5`, `GUYS=4`, `LEADERS=9` over 12750..13006), run993d (the standard window over
+14936..15192). Its battery place went to `EastIndiesEgyptianTier3` (runs 992, 992b) by entry 72's rule (2): 14540 of
+14540, whole, on its first try.*
+
+**The replacement.** Rule (1) has no answer. A header survey of every gamelog puts the Egyptians (7) only at Great
+Sahara 4 and the Iroquois (18) only at Great Lakes 3, both closed games and both eight census functions — the widest
+reach left among the nations no East Indies dump holds. The tie-break is the Egyptians, whose lobby moves both map
+and tier off their only game; tier 3 is the tier the Spanish left. The game ends itself on 14540 (closing block
+14541); `rngcmp` run992 against run992b, 37 of 37 identical.
+
+**9028 → 12756: the danger pass sees a building by its own `ever_seen`** (§5 of `docs/DANGER.md`, which was right).
+`Sim::danger_build_is_seen` read the fog through `was_seen_fog`, and a Spanish leader's `leader_flags & 0x1000`
+(`build_empire`'s explore bonus) lights every cell of it, so no human building was ever halved for the Spanish
+viewer. It is now `Sim::build_is_seen` (`BuildData::is_seen@0062e1a0` → `WallData::is_seen@00642bd0`). Value diff,
+run993b block 8959: `danger[1]` at half-cell (4, 4) ours 125, theirs 60; (3, 5) 60/29; (3, 4) 90/43 — eighteen
+half-cells around the human's city, each about double, none elsewhere. The Scout `1/0` (TI 69) re-targets on 8959
+over the human's city (8, 9) with the same draws both sides; ours scored (9, 8) 179, (7, 11) 148, (6, 8) 200 and
+walked to (5880, 8952); with theirs' danger (9, 8) is 114 against 117 and it walks to (7416, 6648), goes idle on
+9028 and runs `think_scout` again — the booked delta. run993's window 519 → 49 keys.
+
+**12756 → 14942, in two halves that only move together.** On 12756 theirs spends two `Ammo::init` draws, a round
+from the Caravel `1/49` (TI 325, sea, born a Bark out of a Dock on 10369, a Caravel by 11010), fire-on-the-move and
+exploring; its cavarch search on 12751 (`(49 + 12751) % 32 == 0`) took the human's `0/2004` and ours took nothing.
+
+- *A Bark's two stances.* `Unit::init@00612100:598-611` gives a computer's Bark `set_stance(3)`, RAID, and this crate
+  wrote both its byte `+0xb1` and the `combat.stance` it keeps beside it. `Build::train@0062f9b0:86-101` then
+  writes the trainer's byte through `Unit::set_stance@00605310` when the type's stance kind is the trainer's, and
+  nothing when it is not; `Sim::build_train` applied it to the byte alone. `+0xb1` is the byte
+  `get_combat_stance` reads, so in the original the Dock's 0 makes the Bark Aggressive; ours kept RAID, and
+  `compare_target`'s raiding-ship arm (item 2001) left the building alone. Value: run993c prints `1/49` `stance 0`
+  on every block of 12750..13006; ours byte 0, `combat.stance` RAID. Now `build_train` writes both halves, and a
+  type whose kind its trainer does not share keeps what it was born with (`Sim::trained_stance` returns `None`).
+- *That alone moves the word back to 12742*: the Caravel goes idle there, its `think_attack` search takes `0/2004`
+  (radius 4608, the respond floor; distance about 1680), and ours ends the think; theirs runs `think_scout`.
+  `Unit::think_attack@005f5a80` returns 1 only when the find answers `is_unit` (the target's vslot `+0x18`); a
+  building's attack order is added by the search all the same and `think_attack` returns 0, so `Unit::think` goes
+  on to its tail. Ours returned on any find.
+
+With both, the run993c window drops 765 → 61 keys: `1/49` agrees through it, the standing family stands, and
+`0/2004`'s `damage` parts on 12774 (ours 2, theirs 3). Every other lobby's first parting and the battery hold.
+
+**The word 14942.** Ours 8 draws, theirs 3211, at 2: theirs `PathFinder::calc_road_cost+0x46`.
+RUN993D_RESULT
+
+**Not established.** Who lights `0/2004`'s `ever_seen` bit for player 1 in theirs: ours does on 9336 (the Scout
+`1/0` at about 1970 from it), and no dump holds a building record between 8961 and 12750. Whether a building find
+from `think_attack` should also skip `think_attack`'s `go_to_city` tail (not modelled, §4.2 of `docs/ARMY.md`).
+
+**Coverage.** Diff-backed: the danger by `spanish_east_word_first_parting` and run993's widening; the stance and
+the think by `spanish_east_word_first_parting` (mutation: the unit-only return reverted, held) and
+`run993c_s_word_frame_is_widened_whole`. Sim tests: `a_lit_fog_does_not_see_a_building_its_ever_seen_byte_has_not`
+(mutation: the fog read restored, held), `a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance`
+(mutation: the `combat.stance` write dropped, held).
 
 ## 285. Reserved for the next item on the AI track
 
