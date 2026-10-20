@@ -64,6 +64,8 @@ mod harness;
 #[cfg(test)]
 mod inca_word;
 #[cfg(test)]
+mod indian_sahara_word;
+#[cfg(test)]
 mod indian_word;
 #[cfg(test)]
 mod iroquois_sahara_word;
