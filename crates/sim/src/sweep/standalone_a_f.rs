@@ -124,6 +124,8 @@ mod attacktoorder_get_attack_to_order;
 mod balance_lookup_absolute_name;
 #[path = "balance_return_modifier.rs"]
 mod balance_return_modifier;
+#[path = "balance_type_damage.rs"]
+mod balance_type_damage;
 #[path = "balance_walk_rules_data.rs"]
 mod balance_walk_rules_data;
 #[path = "border_build_border.rs"]
