@@ -1976,9 +1976,6 @@ impl Sim {
                             self.frame, self.units[u].owner, self.units[u].index, guy.gpiece, guy.anim, start, node, self.units[u].pos, self.units[u].movement.facing.0
                         );
                     }
-                    if std::env::var_os("RON_PROBE_LAUNCH").is_some() {
-                        eprintln!("PROBE pivots {} turret {:?} flags {}", pivots, guy.turret.angles, guy.turret.node_flags);
-                    }
                     let (from, dz) = match pivot.filter(|r| ((r.node & 3) as usize) < pivots) {
                         Some(r) => {
                             let turret = guy.turret.angles[(r.node & 3) as usize];
