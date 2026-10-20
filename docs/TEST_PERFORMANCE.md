@@ -483,7 +483,7 @@ sampled build memory1071→400–404MiB; an existing independent sweep edit rema
 
 ### The emulator rows cache (2026-10-19)
 
-`emu_rows` caches each script's rows under `~/Library/Caches/attrition/emu-cache/`, keyed on the
+`emu_rows` caches each script's rows under `~/Library/Caches/attrition/emu-cache/` (results under 16 MiB, `RON_EMU_CACHE_MAX_BYTES`; the 136 largest sweeps' rows were 20 GiB after one gate and run uncached), keyed on the
 inputs' SHA-256s (`docs/EMULATOR.md` §1.1). Measured on two real sweeps, debug,
 `RON_INSTALL` set, `uv` already warm, `zsh tools/check.sh test -p sim --
 sweep::wall_update_local_seen sweep::object_is_peasant`: the first run (empty
