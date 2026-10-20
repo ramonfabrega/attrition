@@ -888,7 +888,8 @@ def tree_label():
 def backed_header(date, tree, count):
     return (f"# census-backed.txt — the {count} backed simulation functions, by address, as\n"
             f"# `tools/census.py --backed-list` counts them: ADDR<tab>Class::method<tab>by (doc|sweep).\n"
-            f"# Measured {date} on {tree}. The steering pass regenerates it with\n"
+            f"# Measured {date} on {tree}.\n"
+            f"# The steering pass regenerates it with\n"
             f"# `python3 tools/census.py --backed-list --write docs/audit/census-backed.txt`;\n"
             f"# `--check-backed` names every address here that is no longer backed (a gain is silent).\n")
 
@@ -969,8 +970,11 @@ def main():
         rows = backed_now(a.index, a.docs, a.sim_src, a.pdb)
         body = "".join(format_backed(r) + "\n" for r in rows)
         if a.write:
+            # The label is read before the file is opened: an open for write
+            # would mark the tree dirty with the list itself.
+            head = backed_header(datetime.date.today().isoformat(), tree_label(), len(rows))
             with open(a.write, "w") as f:
-                f.write(backed_header(datetime.date.today().isoformat(), tree_label(), len(rows)) + body)
+                f.write(head + body)
             print(f"wrote {len(rows)} backed simulation functions to {a.write}")
         else:
             sys.stdout.write(body)
