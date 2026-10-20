@@ -2923,6 +2923,25 @@ before and after goes in the pass's record. The race on 1648 left four
 raw windows of 630 MB and four traces of 188 MB; this pass compressed
 them.
 
+## The archive's census (2026-10-19)
+
+The disk went from 103 GiB free to 30 in one tranche of sixty-seven
+captures, so pruning goes by a list nobody guesses at:
+`python3 tools/archive_census.py [--top N] [--json]` reads `~/ron-golden`
+(`$RON_GOLDEN_DIR`), the queue lane's `Logs` (`tools/census.py`'s
+`$RON_GAMELOG_DIR` resolution) and `~/ron-data`'s other directories, and
+prints every entry with its allocated and apparent size and who reads it,
+from the repo's text alone: **pinned** (a Rust string literal under
+`crates/*/src` names it — a log by its exact name or its run tag, a run
+directory by its name), **rust-comment** (only a Rust comment does),
+**ledger-only** (`docs/RUNS.md`, `docs/GOLDEN.md`, a journal, another
+document or `tools/gamelog/captures.txt`), **orphan** (nothing). A
+`frame-snapshot.bin` is its own row. Three candidate lists close it:
+**recreatable** packets (no Rust code pins their run), **orphans**,
+**ledger-only**, each with its total. It deletes nothing and has no flag
+that could; the tests (`tools/explore/test_archive_census.py`) pin both.
+Notes flag a file over 2 GiB (`compressible-unsupported`) and an entry
+still `raw` after the last `afsctool` line above.
 ## The click-free lanes are a pool (2026-10-07, items 1568 and 1569; parked 1139)
 
 The click-free lane is a pool of lanes. Everything a capture writes is a
