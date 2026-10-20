@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -41,128 +46,131 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-            // Window layout. `m` the group (`+0xc` count, `+0x10` form, `+0x18`/`+0x1c` `ox`/`oy`, `+0x24` `o_angle`,
-            // `+0x49` building byte, `+0x4a` player, `+0x8cc` the member shorts); `c[0]` the objects record; `p[0..2]` the
-            // players' arrays of objects, `p[2 + 4 * who + i]` the objects, `p[10..12]` the `units` arrays,
-            // `p[12 + 4 * who + i]` the units. `a`: 0 form, 1 rotate, 2 queue, 3 the dead fourth (the leftover `ecx`),
-            // 4 inserting; 5.. the stubs' own answers (14 of them, void ones random), then the `get_loc_to` writes
-            // (`x` at 19, `y` at 20) and each answering stub's run: slot `+0x18` 21..27, slot `+0xc0` 27..35,
-            // `is_on_map` 35..37, `find_leader` 37..41, `get_form_option` 41..44, `get_unit` 44..46.
-            //
-            // **The port is the crate's own steps**, `crate::form_view::action_form_steps`, which
-            // `Sim::group_action_form` runs over its `SimActionForm`; here the view is the emulated original's windows.
-            use crate::form_view::{ActionFormView, action_form_steps};
-            struct V<'a> {
-                a: &'a [i32],
-                m: &'a mut [u8],
-                p: &'a mut [Vec<u8>],
-                log: &'a mut Vec<String>,
-                used: [usize; 46],
+                // Window layout. `m` the group (`+0xc` count, `+0x10` form, `+0x18`/`+0x1c` `ox`/`oy`, `+0x24` `o_angle`,
+                // `+0x49` building byte, `+0x4a` player, `+0x8cc` the member shorts); `c[0]` the objects record; `p[0..2]` the
+                // players' arrays of objects, `p[2 + 4 * who + i]` the objects, `p[10..12]` the `units` arrays,
+                // `p[12 + 4 * who + i]` the units. `a`: 0 form, 1 rotate, 2 queue, 3 the dead fourth (the leftover `ecx`),
+                // 4 inserting; 5.. the stubs' own answers (14 of them, void ones random), then the `get_loc_to` writes
+                // (`x` at 19, `y` at 20) and each answering stub's run: slot `+0x18` 21..27, slot `+0xc0` 27..35,
+                // `is_on_map` 35..37, `find_leader` 37..41, `get_form_option` 41..44, `get_unit` 44..46.
+                //
+                // **The port is the crate's own steps**, `crate::form_view::action_form_steps`, which
+                // `Sim::group_action_form` runs over its `SimActionForm`; here the view is the emulated original's windows.
+                use crate::form_view::{ActionFormView, action_form_steps};
+                struct V<'a> {
+                    a: &'a [i32],
+                    m: &'a mut [u8],
+                    p: &'a mut [Vec<u8>],
+                    log: &'a mut Vec<String>,
+                    used: [usize; 46],
+                }
+                impl V<'_> {
+                    fn seq(&mut self, base: usize, n: usize) -> i32 {
+                        let k = self.used[base].min(n - 1);
+                        self.used[base] += 1;
+                        self.a[base + k]
+                    }
+                    fn who(&self) -> usize {
+                        self.m[0x4a] as usize
+                    }
+                    fn unit(&mut self, i: i32) -> &mut Vec<u8> {
+                        let w = self.who();
+                        &mut self.p[12 + 4 * w + i as usize]
+                    }
+                }
+                impl ActionFormView for V<'_> {
+                    fn is_on_map(&mut self) -> bool {
+                        self.seq(35, 2) != 0
+                    }
+                    fn refresh(&mut self) {}
+                    fn buildings(&mut self) -> bool {
+                        self.m[0x49] != 0
+                    }
+                    fn count(&mut self) -> i32 {
+                        rd(self.m, 0xc)
+                    }
+                    fn find_leader(&mut self) -> i32 {
+                        self.seq(37, 4)
+                    }
+                    fn unit_plane(&mut self, _i: i32) -> bool {
+                        self.seq(27, 8) != 0
+                    }
+                    fn get_form_option(&mut self) -> i32 {
+                        self.seq(41, 3)
+                    }
+                    fn set_group_form(&mut self, v: i32) {
+                        wr(self.m, 0x10, v);
+                    }
+                    fn get_unit(&mut self) -> i32 {
+                        self.seq(44, 2)
+                    }
+                    fn unit_form(&mut self, i: i32) -> i32 {
+                        i32::from(self.unit(i)[0xaa] as i8)
+                    }
+                    fn member(&mut self, k: i32) -> i32 {
+                        let o = 0x8cc + 2 * k as usize;
+                        i32::from(i16::from_le_bytes([self.m[o], self.m[o + 1]]))
+                    }
+                    fn obj_unit(&mut self, _i: i32) -> bool {
+                        self.seq(21, 6) != 0
+                    }
+                    fn set_unit_form(&mut self, i: i32, v: i32) {
+                        self.unit(i)[0xaa] = v as u8;
+                    }
+                    fn new_list(&mut self) {
+                        self.log.push("s6:sp-0x44".into());
+                    }
+                    fn set_up_insert(&mut self) {
+                        self.log.push("s7:m+0x0,sp-0x44".into());
+                    }
+                    fn action_halt(&mut self) {
+                        self.log.push("s8:m+0x0,0".into());
+                    }
+                    fn list_pending(&mut self) -> bool {
+                        true // the ctor stub writes `1` at `list + 0x10`
+                    }
+                    fn finish_insert(&mut self) {
+                        self.log.push("s9:m+0x0,sp-0x44".into());
+                    }
+                    fn clear_list(&mut self) {
+                        self.log.push("s10:sp-0x40".into());
+                    }
+                    fn loc_to(&mut self) -> Option<(i32, i32)> {
+                        Some((self.a[19], self.a[20]))
+                    }
+                    fn o_xy(&mut self) -> (i32, i32) {
+                        (rd(self.m, 0x18), rd(self.m, 0x1c))
+                    }
+                    fn o_angle(&mut self) -> i32 {
+                        rd(self.m, 0x24)
+                    }
+                    fn unit_heading(&mut self, i: i32) -> i32 {
+                        rd(self.unit(i), 0x50)
+                    }
+                    fn action_move_to(&mut self, b: [i32; 10]) {
+                        let t: Vec<String> = b.iter().map(|x| x.to_string()).collect();
+                        self.log.push(format!("s13:m+0x0,{}", t.join(",")));
+                    }
+                }
+                let mut v = V {
+                    a,
+                    m,
+                    p,
+                    log: &mut log,
+                    used: [0; 46],
+                };
+                action_form_steps(&mut v, a[0], a[1], a[2], a[4]);
+                if log.is_empty() {
+                    log.push("-".into());
+                }
+                0
             }
-            impl V<'_> {
-                fn seq(&mut self, base: usize, n: usize) -> i32 {
-                    let k = self.used[base].min(n - 1);
-                    self.used[base] += 1;
-                    self.a[base + k]
-                }
-                fn who(&self) -> usize {
-                    self.m[0x4a] as usize
-                }
-                fn unit(&mut self, i: i32) -> &mut Vec<u8> {
-                    let w = self.who();
-                    &mut self.p[12 + 4 * w + i as usize]
-                }
-            }
-            impl ActionFormView for V<'_> {
-                fn is_on_map(&mut self) -> bool {
-                    self.seq(35, 2) != 0
-                }
-                fn refresh(&mut self) {}
-                fn buildings(&mut self) -> bool {
-                    self.m[0x49] != 0
-                }
-                fn count(&mut self) -> i32 {
-                    rd(self.m, 0xc)
-                }
-                fn find_leader(&mut self) -> i32 {
-                    self.seq(37, 4)
-                }
-                fn unit_plane(&mut self, _i: i32) -> bool {
-                    self.seq(27, 8) != 0
-                }
-                fn get_form_option(&mut self) -> i32 {
-                    self.seq(41, 3)
-                }
-                fn set_group_form(&mut self, v: i32) {
-                    wr(self.m, 0x10, v);
-                }
-                fn get_unit(&mut self) -> i32 {
-                    self.seq(44, 2)
-                }
-                fn unit_form(&mut self, i: i32) -> i32 {
-                    i32::from(self.unit(i)[0xaa] as i8)
-                }
-                fn member(&mut self, k: i32) -> i32 {
-                    let o = 0x8cc + 2 * k as usize;
-                    i32::from(i16::from_le_bytes([self.m[o], self.m[o + 1]]))
-                }
-                fn obj_unit(&mut self, _i: i32) -> bool {
-                    self.seq(21, 6) != 0
-                }
-                fn set_unit_form(&mut self, i: i32, v: i32) {
-                    self.unit(i)[0xaa] = v as u8;
-                }
-                fn new_list(&mut self) {
-                    self.log.push("s6:sp-0x44".into());
-                }
-                fn set_up_insert(&mut self) {
-                    self.log.push("s7:m+0x0,sp-0x44".into());
-                }
-                fn action_halt(&mut self) {
-                    self.log.push("s8:m+0x0,0".into());
-                }
-                fn list_pending(&mut self) -> bool {
-                    true // the ctor stub writes `1` at `list + 0x10`
-                }
-                fn finish_insert(&mut self) {
-                    self.log.push("s9:m+0x0,sp-0x44".into());
-                }
-                fn clear_list(&mut self) {
-                    self.log.push("s10:sp-0x40".into());
-                }
-                fn loc_to(&mut self) -> Option<(i32, i32)> {
-                    Some((self.a[19], self.a[20]))
-                }
-                fn o_xy(&mut self) -> (i32, i32) {
-                    (rd(self.m, 0x18), rd(self.m, 0x1c))
-                }
-                fn o_angle(&mut self) -> i32 {
-                    rd(self.m, 0x24)
-                }
-                fn unit_heading(&mut self, i: i32) -> i32 {
-                    rd(self.unit(i), 0x50)
-                }
-                fn action_move_to(&mut self, b: [i32; 10]) {
-                    let t: Vec<String> = b.iter().map(|x| x.to_string()).collect();
-                    self.log.push(format!("s13:m+0x0,{}", t.join(",")));
-                }
-            }
-            let mut v = V {
-                a,
-                m,
-                p,
-                log: &mut log,
-                used: [0; 46],
-            };
-            action_form_steps(&mut v, a[0], a[1], a[2], a[4]);
-            if log.is_empty() {
-                log.push("-".into());
-            }
-            0
-        }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "action_form — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "action_form — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "action_form — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

@@ -6422,6 +6422,37 @@ mod tests {
     /// the action bit; a group that walks is halted and the leader's move
     /// replayed to the same point, **with** it. Neither holds a
     /// `CHANGE_FORM`.
+    /// `-1` and `-3` step `get_form_option` forward (modulo 5) and back
+    /// (wrapping below zero to 4); `-2` keeps the leader's own byte and
+    /// sets the group's `form` to `-2` (`form_view.rs`, swept against the
+    /// original). `finish_insert`'s fourth argument is dead (parked 3372f).
+    #[test]
+    fn action_form_steps_the_buttons_and_minus_two_keeps_the_leaders_byte() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 0, t, Pos::new(0x1200, 0x1000));
+        let g = group_of(0, &[a, b]);
+        for u in [a, b] {
+            s.units[u].form = 1;
+        }
+        s.group_action_form(&g, -1, 0, QueuePos::New);
+        assert_eq!(s.units[a].form, 2, "forward from the majority button");
+        s.group_action_form(&g, -3, 0, QueuePos::New);
+        assert_eq!(s.units[a].form, 1, "back from it");
+        s.units[a].form = 0;
+        s.units[b].form = 0;
+        s.group_action_form(&g, -3, 0, QueuePos::New);
+        assert_eq!(s.units[a].form, 4, "below zero wraps to 4");
+        let leader = s.group_find_leader(&g).expect("a leader");
+        let other = if leader == a { b } else { a };
+        s.units[leader].form = 3;
+        s.units[other].form = 1;
+        s.group_action_form(&g, -2, 0, QueuePos::New);
+        assert_eq!(s.units[a].form, 3);
+        assert_eq!(s.units[b].form, 3, "every member takes the leader's byte");
+    }
+
     #[test]
     fn action_form_writes_the_byte_and_moves_the_group_it_does_not_order_a_form() {
         let mut s = sim();

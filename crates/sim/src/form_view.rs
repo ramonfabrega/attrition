@@ -230,9 +230,7 @@ impl ActionFormView for SimActionForm<'_> {
         self.g.list.len() as i32
     }
     fn find_leader(&mut self) -> i32 {
-        self.sim
-            .group_find_leader(self.g)
-            .map_or(-1, |u| u as i32)
+        self.sim.group_find_leader(self.g).map_or(-1, |u| u as i32)
     }
     fn unit_plane(&mut self, i: i32) -> bool {
         self.sim.is_plane(i as usize)

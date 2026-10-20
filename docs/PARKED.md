@@ -8761,7 +8761,10 @@ crate carries no `unit_masks2`. Names no score.
   run at 3000 rows (the survivor was caught at 12000); the full batch was not rerun at 12000.
 - **3372f. `Group::finish_insert@0070e620`: leftover `ecx`.** Cases `0x12` (`action_form`) and `0x16` (`redo_patrol_order`)
   pass the leftover `ecx` after the accessor vcall as a stack argument (in the emulator, the order's own address, which
-  `action_form` takes as its queue position); the sim's `redo_patrol_order` ignores it. Unchased. The `+0x14` word of a group move's
+  `action_form` takes as its queue position); the sim's `redo_patrol_order` ignores it. Unchased.
+  **Settled by item 3379 (`Group::action_form`'s sweep, `form_view.rs`):** the leftover is the *fourth* of `action_form`'s five
+  stack arguments (`[ebp+0x14]`), which the listing never reads; the queue position is the plain `QUEUE_LAST` (1). 3000 rows ×
+  two sweeps draw it at random and agree. (`redo_patrol_order`'s is dead likewise.) The `+0x14` word of a group move's
   record has no sim field. Branch coverage not re-measured at 800 rows.
 
 ## Parked by item 3374, 2026-10-20 — the American word
