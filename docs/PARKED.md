@@ -3843,6 +3843,12 @@ it. Until the fix lands, this tranche's whole gates run at four threads. Ramon: 
 whole gate back at four threads, the footprint worked down (a few ugly tests, likely), or the cap raised a little,
 since every kill has landed just over it.
 
+(3366) **A lane gate refused for a moved base reads as a broken tool** (3360's "for the Loop", filed at its merge):
+the refusal is one line at the log's foot, and above it seven of `tools/offline_tests.py`'s `test_release_gate`
+cases fail, because they read the real tree's base. A lane reading the log top-down sees a broken gate first.
+Candidate: the offline cases take a fixture tree, not the real one; or the refusal prints first and the gate exits
+before the offline step. The pass's. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
