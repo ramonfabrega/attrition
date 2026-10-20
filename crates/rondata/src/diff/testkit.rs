@@ -10428,6 +10428,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Persian word** (DECISIONS 72, 83, 84; item 3355):
+    // Great Lakes, the Persians at Difficulty 2 — the held-out battery's
+    // lowest open lobby once item 3345 closed the Lakota, minted by item
+    // 3345 under entry 72's rule (2); the game ends itself on 7105. It
+    // joins the `Battery word` line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesPersianTier2",
+        named: "Great Lakes (Persians)",
+        word: crate::diff::persian_word::PERSIAN_WORD,
+        length: 7_105,
+        endpoint: None,
+        window: None,
+    },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's
     // lowest open lobby once item 3343 closed the Bantu, minted by item

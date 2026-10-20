@@ -70,6 +70,8 @@ mod mongol_pair;
 #[cfg(test)]
 mod oracle;
 mod order;
+#[cfg(test)]
+mod persian_word;
 mod report;
 #[cfg(test)]
 mod roman_word;
