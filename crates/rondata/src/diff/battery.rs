@@ -258,9 +258,12 @@ pub(crate) const BATTERY: &[Lobby] = &[
         // Chinese herbal-lore free-tech block (`gain_tech@006dcb60`, NATIONS
         // §7.4): 5663 → 12712, ours 34 draws, theirs 40, at 30 ours
         // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-        // `Guy::init_real+0x52`.
-        count: 12712,
-        sequence: 12712,
+        // `Guy::init_real+0x52`. Measured whole, 24000 of 24000, on the
+        // forty-fifth tranche's fixes made for other words (3326's measure
+        // first); re-pinned by the forty-sixth pass, a kept lobby that
+        // moved on nobody's item.
+        count: 24000,
+        sequence: 24000,
     },
     // The five lobbies minted by item 2975 (DECISIONS 77 (ii), `docs/AI.md`
     // §125, §243; runs 895–899): a nation no dump holds, a tier of 2, 3 or 4,
@@ -311,9 +314,14 @@ pub(crate) const BATTERY: &[Lobby] = &[
         ),
         length: 15503,
         // 1440 → 6982 on item 3160 (`get_cost`'s `TURK_CITIZEN` and
-        // `WOOL_CITIZENS_COST` arms, `cost::Modifiers::citizens`).
-        count: 6982,
-        sequence: 6982,
+        // `WOOL_CITIZENS_COST` arms, `cost::Modifiers::citizens`). 6982 →
+        // 14991 on the forty-fifth tranche's fixes made for other words
+        // (3326's measure first); re-pinned by the forty-sixth pass: ours
+        // 20 draws, theirs 23, at 12 ours `Guy::set_anim+0x97a <
+        // Guy::inc_time+0x271`, theirs `Unit::find_attack_pos+0xea9 <
+        // Unit::fight+0xcb4`.
+        count: 14991,
+        sequence: 14991,
     },
     // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
     // run899b, 576 of 18620) left the battery on item 3314 for the AI word

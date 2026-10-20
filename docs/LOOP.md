@@ -30,13 +30,13 @@ commander, and nothing else** — never a worker: one pass did, on an
 opener that said "refill", and ratified a trial only the user decides
 (DECISIONS 59, 61). Never Sonnet on a reading or an adjudication;
 **the workers' roster is the user's, set at a steer** (DECISIONS 61):
-**three lanes for the forty-fifth tranche: Opus 5.5 at `--effort
+**four lanes from the forty-sixth tranche: Opus 5.5 at `--effort
 medium` on each of the two battery words' lanes, landing wide, and
-Sonnet 5.5 at `--effort medium` on one sweep lane** (Ramon, at the
-forty-fourth steer, DECISIONS 83: four lanes on a box at its cores ran
-every lane gate as the whole timed suite at four threads, and fifteen of
-twenty landings moved no pin; four lanes stood from the fortieth steer,
-DECISIONS 78–82; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
+Sonnet 5.5 at `--effort medium` on each of two sweep lanes** (Ramon, at
+the forty-fifth steer, DECISIONS 84: the second sweep is the
+token-for-CPU trade, its clock its own subagents' and no capture lane
+held; three lanes stood from the forty-fourth steer, DECISIONS 83, four
+from the fortieth, DECISIONS 78–82; `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium` and
 `--model 'claude-sonnet-5-5[1m]' --effort medium`, after three Opus
 tranches measured against three Sonnet ones, DECISIONS 65 and 68; the
 model and effort verified from each worker's transcript and the spawn
@@ -194,7 +194,10 @@ idle notice built against that fires at every backgrounded wait —
 three notices for one idle, none a landing
 (`docs/audit/2026-10-04-sequential-arm.md`). A done line is the
 lane's, and the wait is what wakes a commander when the line does not
-come — **so a done line that arrives while a wait runs stops the wait
+come — **and a `DRAFT <lane>` line on the waiter's stderr is a push
+under a clear, never a landing** (Loop 3368: twice in one tranche a
+lane's draft journal, pushed for its `DEEP` answer, exited the waiter
+`LANDED`) — **so a done line that arrives while a wait runs stops the wait
 (`TaskStop`) and re-arms it without that lane in the same turn**: all
 sixteen of the twenty-ninth tranche's `LANDED` exits came after the
 lane's own line, each a whole-context turn that learned nothing (parked

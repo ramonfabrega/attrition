@@ -382,7 +382,7 @@ fn a_capture_booked_on_a_map_cites_the_window_the_disk_holds() {
     for (n, text) in open_item_texts(&q) {
         // A golden chapter's captures are `golden_capture.sh`'s and its
         // ledger is `docs/GOLDEN.md` §14, not this file.
-        if !text.contains("capture") || text.to_lowercase().contains("chapter") {
+        if !books_a_capture(&text) {
             continue;
         }
         // The third scored map first (DECISIONS 54): its item names the
@@ -415,6 +415,37 @@ fn a_capture_booked_on_a_map_cites_the_window_the_disk_holds() {
         bad.is_empty(),
         "a booking cites what the disk could not answer (CLAUDE.md): {bad:#?}"
     );
+}
+
+/// Whether an open item books a capture: the word `capture` outside
+/// backticks. A function's name is not a booking — 3357 (`Build::
+/// check_capture@006276a0`, a sweep item) was refused for naming no map —
+/// and neither is a flag (`--kind sweep`); a golden chapter's captures are
+/// `golden_capture.sh`'s and its ledger is `docs/GOLDEN.md` §14, not
+/// `captures.txt`.
+fn books_a_capture(item: &str) -> bool {
+    let mut prose = String::with_capacity(item.len());
+    let mut inside = false;
+    for c in item.chars() {
+        if c == '`' {
+            inside = !inside;
+        } else if !inside {
+            prose.push(c);
+        }
+    }
+    prose.contains("capture") && !prose.to_lowercase().contains("chapter")
+}
+
+#[test]
+fn a_function_s_name_in_backticks_is_not_a_capture_booking() {
+    assert!(!books_a_capture(
+        "3379. The seat's next batch: `Build::check_capture@006276a0` built against the crate"
+    ));
+    assert!(!books_a_capture("a batch run `--kind sweep`, `--no-widen`"));
+    assert!(books_a_capture(
+        "3378. The Germans at Great Sahara: a Great Sahara capture at detail (run 1003)"
+    ));
+    assert!(!books_a_capture("the next chapter's capture on the golden lane"));
 }
 
 /// The frame an open item books: the number after its first `frame`, else

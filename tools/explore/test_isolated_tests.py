@@ -202,6 +202,10 @@ class Admission(unittest.TestCase):
 class Manifest(unittest.TestCase):
     def test_target_budgets_preserve_requested_cpu_width(self):
         self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'sim'}, 4), (4, 4096))
+        # Loop 3363: the sim lib at eight threads peaked at 4218-4262 MiB on
+        # three whole gates (fc206a90, 163e8d89 twice) and the budget stopped
+        # it with no test red; the limit follows the thread count.
+        self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'sim'}, 8), (8, 6144))
         self.assertEqual(runner.target_budget({'kind': ['lib'], 'name': 'fixed'}, 8), (8, 512))
         self.assertEqual(runner.target_budget({'kind': ['test'], 'name': 'new'}, 4), (8, 32768))
         for family in ('a_f', 'g_o', 'p_t', 'u_z'):

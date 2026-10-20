@@ -92,8 +92,6 @@ Before any reading, in order:
 9. **A road-node parting: log ours' map around the tile over the whole
    game first** (3323); **a larger blow with `get_damage` agreeing: the
    packet's live `Ammo` first** (3328, 3322).
-10. **A widening's reading goes to a subagent that returns the verdict
-   and the rows, never the greps** (3351).
 
 ## reading
 
@@ -338,11 +336,13 @@ Before any reading, in order:
   quote the two lines; your Loop line is mine to file (3277, 3328).
 - **`ccc update att-<n>` takes the ref, never a SHA** (1557);
   `--keep-conflicts` on a conflict, keep both, commit (1161); **a `Base
-  moved:` path both sides touched is an update and a second gate before
-  your done line** (3341); a re-pinned
+  moved:` line is an update and a second gate before your done line,
+  and a refused gate ran nothing** (3341, 3366); a re-pinned
   count is the merged tree's (1151); read your run's RUNS section
-  (1285); a landing that moves another lane's word says so (1289).
+  (1285); a landing that moves another's word says so (1289).
   **`check.sh` exits as cargo does; never read a pipe's** (3327).
+  **Paperwork guards run under `--lane`** (3373); **never delete under
+  `~/ron-data`** (3375).
 - **At a trace's end, `runwiring.py runNNN` says what the word owes**
   (1729); a `Pair`'s word and a golden `WANT_CH*` list are
   consts `repin.py --write` rewrites (1767, 2071).

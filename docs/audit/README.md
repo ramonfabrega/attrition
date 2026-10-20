@@ -315,6 +315,30 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-sixth pass
+
+The forty-sixth tranche (DECISIONS 85): twenty landings on four lanes
+in 16 h 00 to the handoff from the pass's last commit, about three and
+a half of them a weekly-limit stall; 11.10 USD and 127.2 minutes waiting
+a landing (14.79 / 96.4), ten battery games closed; four red booking
+gates, one a test, three the sim lib's memory cap; twelve `DEEP`
+answered, one `LANDED` under a clear, one blocked ending of a minute.
+The pass added these rows, each from the tranche's own receipts.
+
+- **Never delete under `~/ron-data` or `~/ron-golden`; a retried
+  attempt writes a new file name** (3375's block): the classifier
+  refused a lane's `rm` of its own scratch files and the lane stood on
+  a person's prompt until the refusal fired — one minute, a push
+  notification — on files no later step needed deleted.
+- **A lane gate on a moved base refuses before its offline step** (3366;
+  3360's line): the `Base moved:` line is the first after `Gate pid:`,
+  nothing ran, and the remedy is `ccc update` and a second gate; the
+  offline cases no longer read the real tree.
+- **The paperwork guards run in every lane gate whatever their timing**
+  (3373; 3362's booking gate red on the writers guard after a green lane
+  gate): `writers::`, `ledger::`, `docs_guard` and the handoff's test
+  are never left to the booking gate by the one-second budget.
+
 ## The brief checklist, from the forty-fifth pass
 
 The forty-fifth tranche (DECISIONS 84): twenty landings on three lanes

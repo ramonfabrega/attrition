@@ -202,8 +202,15 @@ def isolated(binary, output, directory, slots=8, skips=()):
 def target_budget(target, test_threads):
     if target['kind'] == ['test'] and target['name'] in ('sweep_a_f', 'sweep_g_o', 'sweep_p_t', 'sweep_u_z'):
         return min(test_threads, 8), 4096
-    if target['kind'] == ['lib'] and target['name'] in ('fixed', 'sim'):
-        return min(test_threads, 8), 512 if target['name'] == 'fixed' else 4096
+    if target['kind'] == ['lib'] and target['name'] == 'fixed':
+        return min(test_threads, 8), 512
+    if target['kind'] == ['lib'] and target['name'] == 'sim':
+        # Loop 3363: at eight threads the lib peaked at 4218, 4249 and 4262
+        # MiB on three whole gates and was stopped with no test red (the
+        # 12000-row sweeps in `sweep/mod.rs`, which the standalone targets
+        # cannot hold); the same tree at four threads peaks under 4096. The
+        # limit follows the width, 512 MiB a thread past four.
+        return min(test_threads, 8), 4096 + 512 * max(0, min(test_threads, 8) - 4)
     return 8, 32768
 
 

@@ -115,3 +115,19 @@ class Fold(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Captures(unittest.TestCase):
+    RUNS = (
+        "## run981 — the battery's replacement lobby (2026-10-19, item 3347, `att-3347`)\n"
+        "text\n"
+        "## run981b — the same lobby, the draw stream (2026-10-19, item 3347, `att-3347`)\n"
+        "## run999c — the American word (2026-10-20, item 3374, `att-3374`)\n"
+        "## run1 — an old capture with no item\n"
+    )
+
+    def test_a_lane_s_captures_are_the_runs_sections_booked_under_its_item(self):
+        # Loop 3352: the pass reads captures a landing; nobody counted them.
+        self.assertEqual(tranche.captures_of(3347, self.RUNS), ["run981", "run981b"])
+        self.assertEqual(tranche.captures_of(3374, self.RUNS), ["run999c"])
+        self.assertEqual(tranche.captures_of(3345, self.RUNS), [])

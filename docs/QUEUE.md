@@ -12,14 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-20, **the forty-sixth tranche (commander, Opus): drained, 20 of 20 from `000549d4` in 16 h 14** (about four
-of them a weekly-limit stall; the Lakota, Persians, French, Aztecs, Inca, Koreans, Spanish, Dutch, Americans and Iroquois closed; eight sweeps); roster Ramon's (DECISIONS 83, 84). The drain's whole gate is the booking's.*
+*2026-10-20, **the forty-sixth pass (steer, Fable): the forty-sixth tranche measured — 20 landings on four lanes from
+`000549d4` in 16 h 00 (three and a half a weekly-limit stall), ten battery games closed, 11.10 USD a landing and 20.27
+a game** (DECISIONS 85, `docs/audit/2026-10-20-fable-pass-46.md`); the roster is Ramon's (DECISIONS 84): two Opus 5.5
+medium battery lanes landing wide, two Sonnet 5.5 medium sweep lanes; the base is this pass's last commit.*
 
-- **Words**: every pair closed; twenty-four battery words closed (`AI_WORDS` holds twenty-two). Battery on `e8dc9761`: 13582
-  (the Germans, 3375), 24000 (the Aztecs, whole), 7799, 18883, 24000, 24000 (whole), 14991, 14540 (whole) — median 16937. Census 1619, port 501.
-- **Lanes: none live.** Unspawned for the pass: 3378 the Germans at Great Sahara (Opus; runs 1002, 1003, AI §289,
-  LK), 3379 the nations seat (Sonnet, LQ). Next 3380, run 1004. Pools: GOLDEN §144–148, AI §290–294, park LR.
-- **Fable backlog: 20 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352, 3353, 3354, 3357, 3363, 3366, 3368, 3371, 3373, 3377); DECISIONS 84.
+- **Words**: every pair closed; twenty-four battery words closed (`AI_WORDS` holds twenty-two). Battery on this tree:
+  13582 (the Germans), 14991 (the Turks), 7799, 14540, 18883, 24000 ×3 — six of eight whole, median 16937 (9284). Census 1619, port 501.
+- **Lanes: none live.** Unspawned: 3378 the Germans (Opus; runs 1002, 1003, AI §289, LK), 3380 the Turks (Opus; runs
+  1004, 1005, AI §290, LR), 3379 the nations seat (Sonnet, LQ), 3381 the second sweep (Sonnet, LS). Next 3382, run 1006. Pools: GOLDEN §144–148, AI §291–294, park LT–LX.
+- **Fable backlog: 9 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371); DECISIONS 85.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -34,31 +36,49 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the forty-sixth pass (steer, Fable): measure the forty-sixth tranche (twenty landings from `000549d4`,
-drained), ratify the marked rows, rule the 20 Loop items (3188, 3237, 3118 and 1570 are Ramon's; 3377 the tranche's
-own), then clear `commander` into the forty-seventh tranche on the queue's two unspawned items (3378, 3379).**
+**Opener: continue the forty-seventh tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md
+first; spawn the four unspawned items (3378 and 3380 on `claude-opus-5-5[1m]` `--effort medium`, landing wide; 3379
+and 3381 on `claude-sonnet-5-5[1m]` `--effort medium`, `--no-widen`, each sweep brief naming the other's worktree for
+`--claimed`), `python3 tools/lanewait.py` on the four and carry the chain — the whole gate at eight threads again (Loop
+3363), a battery lane refilled by `battery_measure`'s lowest open lobby under entry 72's rules as amended (DECISIONS
+84; the booking names the rule), a sweep lane by the next six `port`-marked rows; twenty landings, then clear `steer`.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 83, 84): 3378 the battery
-word's (Opus), 3379 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its widening
-exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed (`AI_WORDS` holds
-twenty-two); open: none until 3378 promotes the Germans on Great Sahara. An open word
-is carried to its end before the next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why.
+In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 84): 3378 and 3380 the battery
+words' (Opus), 3379 and 3381 the sweeps' (Sonnet). **A battery word's lane lands wide**: every fix its widening
+exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed (`AI_WORDS`
+holds twenty-two); open: none until 3378 and 3380 promote the Germans and the Turks. An open word is carried to its
+end before the next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why.
 
 3378. **The battery's lowest open game, `GreatSaharaGermanTier3` at 13582 of 19483** (entry 72: 3375 closed the Iroquois at
-    Great Sahara and minted the Germans under rule (2), 13582 on the first try; the Turks 14991 of 15503 the other open
-    lobby, by the measure on `957df84a`): ours 64 draws against theirs 64 at index 0 — ours `Leader::use_market+0x1ed`,
-    theirs `Leader::produce_building+0xc99`. Promoted by the recipe — `diff::german_sahara_word` and its `AI_WORDS` pin, the
-    lobby leaving `BATTERY`, a replacement minted (run 1002, the rule named) — **its widening first**: grep the lobby's
-    start and long dumps (runs 1000, 1000b) for 13582, a Great Sahara window at detail only for what they cannot answer
-    (run 1003), both directions. Lands wide. AI §289, park LK.
+    Great Sahara and minted the Germans under rule (2), 13582 on the first try, by the measure on this tree): ours 64
+    draws against theirs 64 at index 0 — ours `Leader::use_market+0x1ed`, theirs `Leader::produce_building+0xc99`.
+    Promoted by the recipe — `diff::german_sahara_word` and its `AI_WORDS` pin, the lobby leaving `BATTERY`, a
+    replacement minted (run 1002, the rule named) — **its widening first**: grep the lobby's start and long dumps
+    (runs 1000, 1000b) for 13582, a Great Sahara window capture at detail only for what they cannot answer (run 1003),
+    both directions. Lands wide. AI §289, park LK.
+
+3380. **The battery's second open game, `GreatLakesTurkishTier4` at 14991 of 15503** (entry 72: the Turks minted by
+    2975, 1440 → 6982 on 3160 → 14991 on the forty-fifth tranche's fixes made for other words, re-pinned by the
+    forty-sixth pass): ours 20 draws against theirs 23 at index 12 — ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+    theirs `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`. Promoted by the recipe — `diff::turkish_word` and its
+    `AI_WORDS` pin, the lobby leaving `BATTERY`, a replacement minted (run 1004, the rule named) — **its widening
+    first**: grep the lobby's start and long dumps (runs 898, 898b) for 14991, a Great Lakes window capture at detail
+    only for what they cannot answer (run 1005; run192's 14894..15040 is another lobby's game), both directions. Lands
+    wide. AI §290, park LR.
 
 3379. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 501; 3376 swept
     six, parked 3376a–e and struck 3348b): `Group::update_positions`, `Group::redo_patrol_order` (3372f's leftover `ecx`),
     `Group::action_halt`, `Group::action_form`, `Object::add_to_world`, `Objects::find_builds` (`census.py --unbacked
     --all --top 4000`, the `port` mark) — each built against the crate's own method where it has one, or parked on a
     generator run naming the flag it could not spell. `--kind sweep`, `--no-widen`, park LQ.
+
+3381. **The second sweep's next batch** (DECISIONS 84 (i), Loop 3188; the score `Census:` port 501): the `--stub-alloc`
+    retries 3377 names — `Unit::find_build_spot` (3282b, 3339a), `Unit::do_non_flat_gather` (3358d),
+    `PathFinder::astar_path` (3362a) — and `Group::action_trade`, `Group::distribute_attack`,
+    `Group::action_attack_ground` (the next `port`-marked rows); each built against the crate's own method where it
+    has one, or parked on a generator run naming the flag it could not spell. `--kind sweep`, `--no-widen`, park LS.
 
 ## How to maintain this file
 

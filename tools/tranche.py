@@ -39,6 +39,7 @@ import re
 import subprocess
 import sys
 from datetime import datetime
+from pathlib import Path
 
 WELL = "worktrees-att-{item}"
 
@@ -79,6 +80,22 @@ def classify(instruction: dict | None) -> str:
         if rx.search(text):
             return name
     return "other"
+
+
+RUNS = Path(__file__).resolve().parent.parent / "docs" / "RUNS.md"
+
+
+def captures_of(item: int, runs_md: str) -> list[str]:
+    """The captures a lane booked: `docs/RUNS.md`'s sections whose heading
+    names `item <N>` (Loop 3352 — sixty-seven captures in one tranche and
+    nobody counted them a landing)."""
+    runs = []
+    for line in runs_md.splitlines():
+        if line.startswith("## ") and re.search(rf"\bitem {item}\b", line):
+            m = re.match(r"## (run\d+[a-z]?)", line)
+            if m:
+                runs.append(m.group(1))
+    return runs
 
 
 def ts(s: str) -> datetime:
@@ -178,25 +195,29 @@ def main() -> int:
     args = ap.parse_args()
 
     rows = []
+    runs_md = RUNS.read_text() if RUNS.exists() else ""
     for item in args.items:
         sids = sessions_of(item)
         if not sids:
             print(f"{item}: no session in {WELL.format(item=item)}", file=sys.stderr)
             continue
-        for sid in sids:
-            rows.append({"item": item, "session": sid[:8], **fold(trace(sid), args.gap, args.deep)})
+        captures = captures_of(item, runs_md)
+        for i, sid in enumerate(sids):
+            rows.append({"item": item, "session": sid[:8], "captures": captures if i == 0 else [],
+                         **fold(trace(sid), args.gap, args.deep)})
     for sid in args.session:
-        rows.append({"item": None, "session": sid[:8], **fold(trace(sid), args.gap, args.deep)})
+        rows.append({"item": None, "session": sid[:8], "captures": [], **fold(trace(sid), args.gap, args.deep)})
 
     if args.json:
         json.dump(rows, sys.stdout, indent=1)
         return 0
 
-    print(f"{'item':>6} {'session':8} {'usd':>7} {'req':>4} {'peak_k':>6} {'deep':>5} {'clock':>6} {'work':>6} {'wait':>6}  on")
+    print(f"{'item':>6} {'session':8} {'usd':>7} {'req':>4} {'peak_k':>6} {'deep':>5} {'clock':>6} {'work':>6} {'wait':>6} {'caps':>4}  on")
     for r in rows:
         on = " ".join(f"{k}={v}" for k, v in r["on"].items())
+        caps = str(len(r["captures"])) if r["captures"] else ""
         print(f"{str(r['item'] or '-'):>6} {r['session']:8} {r['price']:7.2f} {r['requests']:4d} {r['peak_k']:6d} "
-              f"{r['deep_share']:5.2f} {r['clock_min']:6.1f} {r['working_min']:6.1f} {r['waiting_min']:6.1f}  {on}")
+              f"{r['deep_share']:5.2f} {r['clock_min']:6.1f} {r['working_min']:6.1f} {r['waiting_min']:6.1f} {caps:>4}  {on}")
         if args.show_gaps:
             for at, mins, cmd in r["gaps"]:
                 print(f"         {at[11:19]} {mins:6.1f}  {cmd}")
@@ -213,6 +234,11 @@ def main() -> int:
               + " ".join(f"{k}={v/n:.1f}" for k, v in sorted(on.items(), key=lambda kv: -kv[1])))
         print(f"{'total':>6} {'':8} {tot('price'):7.2f} {tot('requests'):4d} {max(r['peak_k'] for r in rows):6d} "
               f"{'':5} {tot('clock_min'):6.0f} {tot('working_min'):6.0f} {tot('waiting_min'):6.0f}")
+        items = {r["item"] for r in rows if r["item"]}
+        captures = sum(len(r["captures"]) for r in rows)
+        if items:
+            print(f"captures: {captures} over {len(items)} items — {captures / len(items):.1f} a landing "
+                  f"(docs/RUNS.md sections naming the item; Loop 3352)")
     return 0
 
 
