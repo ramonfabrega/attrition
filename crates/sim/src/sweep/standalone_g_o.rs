@@ -268,6 +268,8 @@ mod group_data_valid_target;
 mod group_dbg_jump_to_action;
 #[path = "group_dbg_jump_to_waypoint.rs"]
 mod group_dbg_jump_to_waypoint;
+#[path = "group_distribute_attack.rs"]
+mod group_distribute_attack;
 #[path = "group_equals_group.rs"]
 mod group_equals_group;
 #[path = "group_find_role.rs"]

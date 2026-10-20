@@ -86,6 +86,7 @@ pub mod danger;
 pub mod detour;
 pub mod diplomacy;
 pub mod disband;
+pub mod distribute_attack_view;
 pub mod do_attack;
 pub mod do_cast_view;
 pub mod economy;
