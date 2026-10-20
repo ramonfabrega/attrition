@@ -3491,6 +3491,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::dutch_sahara_word::dutch_sahara_gap_995d_window(),
         || super::iroquois_sahara_word::iroquois_sahara_frame_13757_window(),
         || super::iroquois_sahara_word::iroquois_sahara_frame_13810_window(),
+        || super::german_sahara_word::german_sahara_frame_13582_window(),
         || super::turkish_word::turkish_frame_14991_window(),
         || super::bantu_word::bantu_frame_4_window(),
         || super::bantu_word::bantu_gap_978c_window(),

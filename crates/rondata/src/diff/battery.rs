@@ -155,6 +155,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Dutch being item 3369's, promoted to the AI word (item 3374,
     // DECISIONS 72, 83, 84): the Americans at Difficulty 1, East Indies.
     (18, 20, 1),
+    // The battery's lowest open lobby on the measure of `56f23ba5`, the
+    // Iroquois being item 3375's, promoted to the AI word (item 3378,
+    // DECISIONS 72, 83, 84): the Germans at Difficulty 3, Great Sahara.
+    (7, 12, 3),
     // The battery's second open lobby on the measure of `56f23ba5`, the
     // Germans being item 3378's, promoted to the AI word (item 3380,
     // DECISIONS 72, 83, 84): the Turks at Difficulty 4, Great Lakes.
@@ -357,31 +361,35 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // and run994b, 13757 of 16371), minted by item 3369 under rule (2), left
     // the battery on item 3375 for the AI word
     // (`diff::iroquois_sahara_word`, DECISIONS 72, 83, 84).
-    // The lobby minted by item 3375 (DECISIONS 72 as amended by 84, rule
-    // (2); `docs/AI.md` §288; runs 1000 and 1000b) when the Iroquois left
+    // `GreatSaharaGermanTier3` (Germans 12, Difficulty 3, map 7; run1000
+    // and run1000b, 13582 of 19483), minted by item 3375 under rule (2),
+    // left the battery on item 3378 for the AI word
+    // (`diff::german_sahara_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3378 (DECISIONS 72 as amended by 84, rule
+    // (2); `docs/AI.md` §289; runs 1002 and 1002b) when the Germans left
     // for the AI word, so the held-out set stays eight: Great Sahara, the
-    // Germans at Difficulty 3 — no map-7 dump held the Germans, who are
-    // held only by a closed game on another map (`EastIndiesGermanTier3`)
-    // and reach the most census functions of the nations so held (8; the
-    // Indians 4, the Inca 3), at the tier the Iroquois leave. The game ends
-    // itself on 19483.
+    // Indians at Difficulty 3 — a header survey of 567 gamelogs puts no
+    // map-7 dump on the Inca, Romans, Turks, Chinese, Americans or Indians;
+    // the Romans, Turks and Chinese are held by open battery lobbies and
+    // the Americans were item 3380's, so of the nations held only by closed
+    // games on another map the Indians (`EastIndiesIndianTier2`) reach the
+    // most census functions (4, against the Inca's 3), at the tier the
+    // Germans leave. The game ends itself on 16564.
     Lobby {
-        name: "GreatSaharaGermanTier3",
+        name: "GreatSaharaIndianTier3",
         map_style: 7,
-        ai_tribe: 12,
+        ai_tribe: 21,
         difficulty: 3,
-        start: "gamelog-run1000-greatsahara-german-diff3-start.txt",
+        start: "gamelog-run1002-greatsahara-indian-diff3-start.txt",
         long: (
-            "gamelog-run1000b-greatsahara-german-diff3-24k-trace.txt",
-            "rontrace-run1000b.log",
+            "gamelog-run1002b-greatsahara-indian-diff3-24k-trace.txt",
+            "rontrace-run1002b.log",
         ),
-        length: 19483,
-        // Item 3375, the first try: the count parts at 13585; the
-        // sequence at 13582, ours 64 draws, theirs 64, at 0: ours
-        // `Leader::use_market+0x1ed`, theirs
-        // `Leader::produce_building+0xc99`.
-        count: 13585,
-        sequence: 13582,
+        length: 16564,
+        // Item 3378, the first try: ours 9 draws, theirs 10, at 7: ours
+        // `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+        count: 15922,
+        sequence: 15922,
     },
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on

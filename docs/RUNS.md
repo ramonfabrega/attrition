@@ -20300,3 +20300,62 @@ SHA-256 `b00c1a6fae4b8459ff938dac8e1f9a4f95af9ad52ed5279940f93bb4cf941650`.
 **What it holds**: on block 14992 the Trebuchet `1/70` holds a `MOVEORDER` to (7368, 29544) under its `ATTACKORDER` on
 Napata `0/2000` — the bombard ring's stand-off at 19 tiles; `run1005_s_word_frame_is_widened_whole` — 57 keys after
 the siege range (the siege units' `mylos` 4 against 7), 53 after the siege sight.
+## run1002 — the battery's replacement lobby `GreatSaharaIndianTier3`: a `DUMP_ALL` start (2026-10-20, item 3378, `att-3378`)
+
+`docs/AI.md` §289. **What the disk could not answer**: no dump holds an Indian game on Great Sahara. A header survey of
+567 gamelogs puts no map-7 dump on the Inca, Romans, Turks, Chinese, Americans or Indians. Entry 72's rule (2) as
+amended by 84: the Romans, Turks and Chinese are held by open battery lobbies and the Americans were att-3380's, so
+of the nations held only by closed games off Great Sahara the Indians (`EastIndiesIndianTier2`, 4 census functions)
+lead the Inca (3). Tier 3 is the tier the Germans leave; the commander relayed the pick before the capture. Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1002`: `--map 7 --end-frame 36 --timeout 1200
+--dump-all-start --ai-tribe 21 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 15:11:42, exited 15:18:03. `success`, 37 frames, `players` tribe 4 and tribe 21.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1002-greatsahara-indian-diff3-start.txt`, 149,610,399 bytes,
+SHA-256 `4697dd18143fc1c3a848f2bdb0265d64a64a7d539276ac00708f61f6b55e01cf`.
+
+Archive `rontrace-run1002.log`, 8,463,456 bytes,
+SHA-256 `3db70d7974f817503a78b62f2cdc75a90120766a7177199c55017a0a3cc8f6fe`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaIndianTier3` start.
+
+## run1002b — `GreatSaharaIndianTier3`'s draw stream (2026-10-20, item 3378, `att-3378`)
+
+`docs/AI.md` §289. run1000b's recipe with `--ai-tribe 21`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=3` and run643's four
+`--detail` lines.
+- Pool lane 3. Launched 15:23:15, exited 15:24:45. `success`, **the game ended itself on 16564** (closing block
+  16565, `ended_early` true). `rngcmp.py rontrace-run1002.log rontrace-run1002b.log`: **37 identical, 0 differing**.
+  Filed with `filerun.py run1002b greatsahara-indian-diff3-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1002b-greatsahara-indian-diff3-24k-trace.txt`, 12,730,317 bytes,
+SHA-256 `14fb1f032612a3da0932f6a6831583640d092c839f1811315c053812e68aa687`.
+
+Archive `rontrace-run1002b.log`, 91,153,440 bytes,
+SHA-256 `e0b6980f3dd14937226df00521ee91ea1445ad852facf792ee12d6b0593ae591`.
+
+**What it holds**: the Indians' first try, **15922 / 15922 of 16564** (at 7: ours `Farms::inc_time+0x1ae`, theirs
+`Object::take_damage+0xe1`). Pinned in `battery::BATTERY`.
+
+## run1003 — the German word at Great Sahara: the word 13582's window, blocks 13576..13832 at `GOODS=3` (2026-10-20, item 3378, `att-3378`)
+
+`docs/AI.md` §289. **What the disk could not answer**: run1000 dumps blocks 0..36 and run1000b its setup and closing
+blocks only, so no dump held who=1's ledger or make list on the word's block. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1003`: `--map 7 --end-frame 13837 --timeout 5400 --log-window 13576
+13832 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 12 --cover cover=0 --profile
+DIFFICULTY=3`.
+- Pool lane 1. Launched 15:10:04, exited 15:29:29. `success`, 13838 frames; `rngcmp.py` vs run1000b: 13838 identical.
+  Filed with `filerun.py run1003 greatsahara-german-diff3-window-13576-13833`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1003-greatsahara-german-diff3-window-13576-13833.txt`, 516,396,779 bytes,
+SHA-256 `bae6c89ada24d613425669a0da6d19c06517ae910f369fa259fba8b29ebe6e4d`.
+
+Archive `rontrace-run1003.log`, 56,600,256 bytes,
+SHA-256 `284c98e1a029c5f2b9754a245f7d3cab14f5df451299ee5524cd1bba16926e6b`.
+
+**What it holds**: on block 13579 who=1's rebuilt make list lists Carpentry (609) at slot 1, `val` 120000, where ours
+listed it at 30000 — a German's industry tech at half price. Test `run1003_s_word_frame_is_widened_whole`: 1039 keys
+on the first try, 26 after the build (the standing family).

@@ -1338,6 +1338,37 @@ mod tests {
         assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
     }
 
+    /// `get_cost`'s German industry term (`:1277`–`1281`, item 3378): a
+    /// German leader pays half for a food, timber or metal gathering-line
+    /// technology. run1003's who=1, the Germans, listed Carpentry at `val`
+    /// 120000 on block 13579 where this crate, pricing it whole, listed it
+    /// at a quarter of that and dropped it under the Crossbowmen.
+    #[test]
+    fn the_germans_pay_half_for_the_industry_lines() {
+        let (mut sim, t) = sim();
+        for x in [t.taxation, t.religion] {
+            sim.tech_tree.types[x].cost = [8, 8, 0, 0, 0, 0];
+        }
+        sim.tech_tree.types[t.taxation].name = "Carpentry".into();
+        sim.holdings[1].available = [true, true, true, true, true, false];
+        sim.ledgers[1].bucket = [106, 76, 89, 299, 20, 0];
+        sim.tech[1].has_city = true;
+        let income = |sim: &Sim, x| sim.check_income(1, x, 0x400, None, true, -1, 1, 0);
+        assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
+        assert_eq!(
+            income(&sim, t.taxation),
+            0x40,
+            "not German: 88 is out of reach"
+        );
+        sim.tech[1].power = Some(0xc);
+        assert_eq!(sim.tech_price(1, t.taxation), [44, 44, 0, 0, 0, 0]);
+        assert_eq!(income(&sim, t.taxation), 0x100, "German: 44 is in reach");
+        // Only the industry lines, and only for the Germans.
+        assert_eq!(sim.tech_price(1, t.religion), [88, 88, 0, 0, 0, 0]);
+        sim.tech[1].power = Some(0xb);
+        assert_eq!(sim.tech_price(1, t.taxation), [88, 88, 0, 0, 0, 0]);
+    }
+
     /// `get_cost:1048`–`1053`: a government costs an American leader
     /// nothing, and only a government, and only the Americans (item 3374:
     /// run999b's who=1 queues Republic on 10982 and pays only a Dock's
