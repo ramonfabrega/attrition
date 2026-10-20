@@ -912,6 +912,48 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 177,
         },
     ),
+    // **Piece 1440, the Slingers in the `NA` art style** (`32 + 4 ×
+    // 0x160`; item 3345, `docs/AI.md` §277): the Lakota's and the
+    // Iroquois' Slinger, whose `UNIT_CONTINENT` is 4. run954b's
+    // `RON_STATE_FRAME` packet on the Iroquois Great Lakes game holds its
+    // three `AttachPos` rows (`CHAR_ATTACK1` at 21, `2` at 22, `3` at 16,
+    // piece 32's keys), and `tools/recomp/get_position.py`'s sweep of each
+    // is reproduced by these at all 361 headings, x, y and z; each is the
+    // centroid of its exact region (534, 319 and 28 lattice points).
+    // Without them every Lakota stone left the unit's own square: the
+    // Lakota word's 6071, whose state had parted on 6052 — `1/18`'s stone
+    // at `0/2` landing a frame late (8 frames against 7) and `1/20`'s at
+    // the city centre `0/2000` (10 against 9).
+    (
+        1440,
+        crate::anim::ATTACK1,
+        21,
+        Bay {
+            right: 71_298,
+            fwd: 69_592,
+            dz: 174,
+        },
+    ),
+    (
+        1440,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: 32_704,
+            fwd: 120_229,
+            dz: 144,
+        },
+    ),
+    (
+        1440,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -47_065,
+            fwd: 114_687,
+            dz: 168,
+        },
+    ),
     // **Piece 33, the Javelineers (type 83): the original's own
     // `get_position`** (item 1194). Its `Spear` leaves node 0 on frame 12
     // of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
