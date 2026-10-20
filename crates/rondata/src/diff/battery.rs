@@ -131,6 +131,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Inca being item 3360's, promoted to the AI word (item 3361, DECISIONS
     // 72, 83, 84): the Aztecs at Difficulty 2, Great Sahara.
     (7, 0, 2),
+    // The battery's next open lobby once item 3361 closed the Aztecs, the
+    // Inca being item 3360's, promoted to the AI word (item 3365, DECISIONS
+    // 72, 83, 84): the Koreans at Difficulty 3, Great Sahara.
+    (7, 16, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -303,27 +307,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaJapaneseTier1` (Japanese 15, Difficulty 1, map 7; run960
     // and run960b, 576 of 24000), minted by item 3326, left the battery on
     // item 3331 for the AI word (`diff::japanese_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3331 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §268; runs 964 and 964b) when the Japanese left for the AI word, so
-    // the held-out set stays eight: Great Sahara, the Koreans at Difficulty
-    // 3 — a nation no dump held, and a tier no battery lobby holds. The game
-    // ends itself on 15944.
-    Lobby {
-        name: "GreatSaharaKoreanTier3",
-        map_style: 7,
-        ai_tribe: 16,
-        difficulty: 3,
-        start: "gamelog-run964-greatsahara-korean-diff3-start.txt",
-        long: (
-            "gamelog-run964b-greatsahara-korean-diff3-24k-trace.txt",
-            "rontrace-run964b.log",
-        ),
-        length: 15944,
-        // Item 3331, the first try: ours 14 draws, theirs 13, at 1 ours
-        // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`.
-        count: 9185,
-        sequence: 9185,
-    },
+    // `GreatSaharaKoreanTier3` (Koreans 16, Difficulty 3, map 7; run964
+    // and run964b, 9185 of 15944), minted by item 3331, left the battery on
+    // item 3365 for the AI word (`diff::korean_word`, DECISIONS 72, 83, 84).
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on
     // item 3335 for the AI word (`diff::indian_word`, DECISIONS 72, 83).
