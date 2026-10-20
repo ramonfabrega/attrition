@@ -10752,6 +10752,21 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         endpoint: Some("run1000b_german_sahara_closing_state"),
         window: Some("german_sahara_frame_13582_window"),
     },
+    // **The battery's Indian word at Great Sahara** (DECISIONS 72, 83, 84;
+    // item 3383): Great Sahara, the Indians at Difficulty 3 — the held-out
+    // battery's lowest open lobby on the measure of `bb82188d`, minted by
+    // item 3378 under entry 72's rule (2); the game ends itself on 16564.
+    // It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaIndianTier3",
+        named: "Great Sahara (Indians)",
+        word: crate::diff::indian_sahara_word::INDIAN_SAHARA_WORD,
+        length: 16_564,
+        endpoint: None,
+        window: None,
+    },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's
     // lowest open lobby once item 3343 closed the Bantu, minted by item

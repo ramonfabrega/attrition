@@ -234,7 +234,7 @@ ROSTER = ["Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egy
           "Dutch", "Persians"]
 LOBBY = {0: "`GreatSaharaAztecTier2` (AI word, tier 2); `EastIndiesAztecTier1` (map 18, tier 1)", 7: "`GreatSaharaEgyptianTier4` (AI word, tier 4), `EastIndiesEgyptianTier3` (map 18, tier 3)", 12: "`EastIndiesGermanTier3` (AI word, tier 3); `GreatSaharaGermanTier3` (AI word, tier 3)",
          18: "`GreatLakesIroquoisTier3` (AI word, tier 3); `GreatSaharaIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3)",
-         21: "`EastIndiesIndianTier2` (AI word, tier 2); `GreatSaharaIndianTier3` (map 7, tier 3)",
+         21: "`EastIndiesIndianTier2` (AI word, tier 2); `GreatSaharaIndianTier3` (AI word, tier 3)",
          1: "`GreatSaharaMayaTier4` (AI word, tier 4)", 3: "`GreatSaharaBantuTier4` (map 7, tier 4)",
          13: "`GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2)",
          19: "`GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2)", 23: "`GreatLakesPersianTier2` (AI word, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
