@@ -327,17 +327,14 @@ impl crate::Sim {
     /// building's whenever the two stance *kinds* match. So a citizen out of
     /// a city takes the city's, a hoplite out of a barracks takes the
     /// barracks', and a unit whose kind its trainer does not share keeps the
-    /// one it was born with.
+    /// one it was born with — `None` here, because `train` then writes
+    /// nothing at all: the byte stays whatever `Unit::init` left, the
+    /// computer's Bark's RAID (`Unit::init@00612100:598-611`) included.
     #[must_use]
-    pub fn trained_stance(&self, who: Player, ty: usize, b: usize) -> u8 {
-        let born = self.init_stance(who, ty);
-        let Some(t) = self.buildings[b].ty else {
-            return born;
-        };
-        if self.type_stance_type(ty) == build_stance_type(&self.build_types, t) {
-            return self.build_stance(b);
-        }
-        born
+    pub fn trained_stance(&self, ty: usize, b: usize) -> Option<u8> {
+        let t = self.buildings[b].ty?;
+        (self.type_stance_type(ty) == build_stance_type(&self.build_types, t))
+            .then(|| self.build_stance(b))
     }
 
     /// `GameAccess::leader_options->list[who]`, or `LeaderOptions::init`'s
