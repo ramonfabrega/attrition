@@ -126,7 +126,11 @@ fn the_emulated_original_agrees_on_every_row() {
                     );
                     self.log.push(line);
                 }
-                fn is_captain(&mut self, _: usize) -> bool {
+                fn is_captain(&mut self, u: usize) -> bool {
+                    assert_eq!(
+                        u, self.s0,
+                        "the walk asks the unit it reached, one level a call"
+                    );
                     let k = self.s0.min(2);
                     self.s0 += 1;
                     self.a[9 + k] != 0
@@ -164,6 +168,11 @@ fn the_emulated_original_agrees_on_every_row() {
             assert!(
                 !matches!(head, Head::Go(_)),
                 "stub 4 answers 5: the slice ends at the hold-fire return"
+            );
+            // The hand-off is the head's `Handed`, and only it logs `Group::target_opportunity`.
+            assert_eq!(
+                head == Head::Handed,
+                w.log.iter().any(|t| t.starts_with("s2:"))
             );
             0
         };
