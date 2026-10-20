@@ -27,15 +27,10 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line
-            .split_once(" -> ")
-            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args
-            .split_whitespace()
-            .map(|s| s.parse().expect("an integer"))
-            .collect();
+        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(4);
@@ -103,9 +98,7 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
-        if let Some(k) = (0..log.len().max(want_log.len()))
-            .find(|&k| log.get(k).map(String::as_str) != want_log.get(k).copied())
-        {
+        if let Some(k) = (0..log.len().max(want_log.len())).find(|&k| log.get(k).map(String::as_str) != want_log.get(k).copied()) {
             panic!(
                 "action_alarm — the recorded calls part at call {k}: port {:?}, original {:?}; before it {:?}; row {n}",
                 log.get(k),
@@ -116,18 +109,10 @@ fn the_emulated_original_agrees_on_every_row() {
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "action_alarm — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[1 + i],
-                "action_alarm — window c[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[1 + i], "action_alarm — window c[{i}], row `{line}`");
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(
-                w,
-                &want[5 + i],
-                "action_alarm — window p[{i}], row `{line}`"
-            );
+            assert_eq!(w, &want[5 + i], "action_alarm — window p[{i}], row `{line}`");
         }
         n += 1;
     }
