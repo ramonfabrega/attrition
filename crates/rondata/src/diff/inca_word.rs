@@ -33,9 +33,13 @@ pub(crate) const INCA: Lobby = Lobby {
     // ours 12 draws, theirs 11, at 3: ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
     // Value diff, run987 block 7776: who=1's `income[2:wealth]` ours 752,
-    // theirs 912 → 912/912.
-    count: 16516,
-    sequence: 16516,
+    // theirs 912 → 912/912. Then `Guy::move`'s moving arm put back on the
+    // walk a moving figure that holds a turn slot (the listing
+    // `5d9565`–`5d958a` reads nothing of `cur_anim`): 16516 → **24000**,
+    // the long's last frame. Value diff, run987b block 16512: the
+    // Trebuchet `1/118`'s `g.cur_anim[0]` ours 22, theirs 8 → 8/8.
+    count: 24000,
+    sequence: 24000,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -198,6 +202,69 @@ fn run987b_s_word_frame_is_widened_whole() {
     // Item 3360: 1994 keys on the first try. The first after the standing
     // family: the Trebuchet `1/118` (TI 266), orderless and drifting, takes
     // its turn animation (22) on 16512 in ours, where theirs keeps 8 until
-    // 16517.
-    pin_eq!(w.firsts.len(), 1994, "keys that part in the window");
+    // 16517 — pushed by `1/74` every frame, its push turn asked for by
+    // `do_turn` and put back on `CHAR_WALK` the same frame by
+    // `Guy::move`'s moving arm, which spares no turn slot. Built: 1994 →
+    // 48, the word 16516 → 24000. What stands: the standing family (47:
+    // `SITE[·].reg`, `aggression[1]`, `form`, the army `pool:n` and
+    // `group:n.held` with no `GROUPDATA` printed) and `1/46`'s
+    // `dest_angle` on 16714 (ours 1073741824, theirs −1334181888), which
+    // the draw stream never feels.
+    pin_eq!(w.firsts.len(), 48, "keys that part in the window");
+}
+
+/// The closing state's window: run969b's closing block alone, the long's
+/// last frame 24000 writing it (item 3360).
+pub(crate) const WIDENING_INCA_CLOSING: (i64, i64) = (23999, 24002);
+
+/// **The lobby's closing state** (item 3360, DECISIONS 55): run969b — the
+/// draw stream's own capture, `cover=0` — prints the closing block whole.
+/// The game does not end itself; the long's `!quit` at 24000 closes it.
+#[test]
+fn run969b_inca_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) =
+        (dump(INCA.long.0), dump(INCA.start), trace(INCA.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Inca closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 24001, "the closing block");
+    pin_eq!(e.compared, 177, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    // Item 3360, the first walk (the word at 24000): 177 units compared on
+    // block 24001, none apart, no building field-row; one closing field,
+    // city `0/2000`'s `peasant_dist`, ours 2 against theirs 1 — the human's
+    // city, which the draw stream never feels.
 }
