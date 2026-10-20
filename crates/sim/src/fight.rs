@@ -347,13 +347,17 @@ impl Sim {
 
     /// `attack()` — the type's, plus the player's flat modifier (§4.1).
     ///
-    /// The base is `ObjectData::attack@006469f0`'s, and its Dutch term
-    /// (item 3329) is inside it: a Dutch kind ([`Sim::dutch_ages`]) adds
-    /// `ages × DUTCH_ATTACK_BONUS × 10` **before** `UnitData::attack`'s
-    /// zero test, so an armed merchant of an age past the first is a
-    /// combatant on a type with no attack.
+    /// The base is `ObjectData::attack@006469f0`'s
+    /// ([`crate::object_attack_view::object_attack_steps`], swept: item
+    /// 3387). Its caravan arm replaces a caravan's attack with
+    /// `CARAVAN_ATTACK_BONUS` once its owner holds that bonus's
+    /// prerequisite, and its Dutch term (item 3329) is inside it: a Dutch
+    /// kind ([`Sim::dutch_ages`]) adds `ages × DUTCH_ATTACK_BONUS × 10`
+    /// **before** `UnitData::attack`'s zero test, so an armed merchant of
+    /// an age past the first is a combatant on a type with no attack.
     pub fn attack_of(&self, o: Obj) -> i32 {
-        let base = self.profile(o).attack + self.dutch_term(o) * 10;
+        let base =
+            crate::object_attack_view::object_attack_steps(&mut SimObjectAttack { sim: self, o });
         if base == 0 {
             return 0;
         }
@@ -5951,6 +5955,86 @@ pub fn die_hold_steps(
     }
     v = v.max(i32::from(hold));
     v as u16
+}
+
+/// [`crate::object_attack_view::ObjectAttackView`] over the crate's [`Sim`]: the object's type record and
+/// owner. A building answers false on the unit slots (`+0x18`, `+0xd0`, `+0xcc`, `+0xc8`).
+struct SimObjectAttack<'a> {
+    sim: &'a Sim,
+    o: Obj,
+}
+
+impl SimObjectAttack<'_> {
+    fn rec(&self) -> Option<usize> {
+        match self.o {
+            Obj::Unit(u) => self.sim.units[u].ty,
+            Obj::Building(_) => None,
+        }
+    }
+    fn owner(&self) -> usize {
+        self.sim.owner_of(self.o) as usize
+    }
+}
+
+impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
+    fn type_attack(&mut self) -> i32 {
+        self.sim.profile(self.o).attack
+    }
+    fn is_caravan(&mut self) -> bool {
+        self.rec().is_some_and(|r| {
+            self.sim.unit_types[r]
+                .cols
+                .flag2(crate::ai_load::uflags2::CARAVAN)
+        })
+    }
+    fn has_caravan_preq(&mut self) -> bool {
+        // A tree that does not name the bonus's prerequisite holds it for nobody.
+        match (
+            self.sim.tech_tree.roles.caravan_attack_preq,
+            self.sim.tech.get(self.owner()),
+        ) {
+            (Some(t), Some(p)) => self.sim.tech_tree.has_tech(&self.sim.setup, p, t),
+            _ => false,
+        }
+    }
+    fn caravan_attack_bonus(&mut self) -> i32 {
+        self.sim.tuning.caravan_attack_bonus
+    }
+    fn has_dutch_bonus(&mut self) -> bool {
+        self.sim.tech.get(self.owner()).is_some_and(|p| {
+            self.sim
+                .tech_tree
+                .has_tribe_bonus(&self.sim.setup, p, crate::ai::tribe::DUTCH)
+        })
+    }
+    fn dutch_attack_bonus(&mut self) -> i32 {
+        self.sim.tuning.dutch_attack_bonus
+    }
+    fn is_unit(&mut self) -> bool {
+        matches!(self.o, Obj::Unit(_))
+    }
+    fn type_index(&mut self) -> i32 {
+        self.rec().map_or(0, |r| self.sim.unit_types[r].type_index)
+    }
+    fn is_supply(&mut self) -> bool {
+        self.rec().is_some_and(|r| {
+            self.sim.unit_types[r]
+                .cols
+                .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+        })
+    }
+    fn is_gov_hero(&mut self) -> bool {
+        self.rec().is_some_and(|r| {
+            self.sim.unit_types[r]
+                .tree
+                .and_then(|i| self.sim.tech_tree.types.get(i))
+                .and_then(|d| d.kind.unit())
+                .is_some_and(|u| u.patriot)
+        })
+    }
+    fn ages(&mut self) -> i32 {
+        self.sim.tech.get(self.owner()).map_or(0, |p| p.ages)
+    }
 }
 
 #[cfg(test)]

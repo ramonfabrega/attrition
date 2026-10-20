@@ -127,6 +127,7 @@ pub mod movement;
 pub mod muster;
 pub mod nations;
 pub mod nuke;
+pub mod object_attack_view;
 pub mod orders;
 pub mod path;
 pub mod pivot;

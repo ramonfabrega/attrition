@@ -206,7 +206,11 @@ pub fn tuning_drift(dump: &[ConstantDump<'_>]) -> TuningReport {
     for &(name, slot) in Tuning::ron_slots() {
         let theirs = dumped(dump, name).map(|c| c.values.clone());
         let (ours, same): (String, bool) = match slot {
-            Slot::Value(v) | Slot::Ratio256(v) | Slot::Ratio100(v) | Slot::Ratio192(v) => (
+            Slot::Value(v)
+            | Slot::Ratio256(v)
+            | Slot::Ratio100(v)
+            | Slot::Ratio192(v)
+            | Slot::Scaled10(v) => (
                 v.to_string(),
                 theirs.as_deref() == Some(&[i64::from(v)][..]),
             ),
@@ -309,7 +313,11 @@ mod tests {
         let mut owned: Vec<(String, Vec<i64>)> = Vec::new();
         for &(name, slot) in Tuning::ron_slots() {
             let vals = match slot {
-                Slot::Value(v) | Slot::Ratio256(v) | Slot::Ratio100(v) | Slot::Ratio192(v) => {
+                Slot::Value(v)
+                | Slot::Ratio256(v)
+                | Slot::Ratio100(v)
+                | Slot::Ratio192(v)
+                | Slot::Scaled10(v) => {
                     vec![i64::from(v)]
                 }
                 Slot::Entries(e) | Slot::Entries256(e) => e.iter().map(|&v| i64::from(v)).collect(),
