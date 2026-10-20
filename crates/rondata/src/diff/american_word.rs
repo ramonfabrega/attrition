@@ -41,8 +41,8 @@ pub(crate) const AMERICAN: Lobby = Lobby {
     // at 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Value diff, run999b block
     // 10983: who=1's `bucket[0:food]` ours 64, theirs 134, `bucket[4:metal]`
-    // 27 against 97 (ours paid Republic's 70 and 70), `bucket[1:timber]`
-    // 112 against 12 (theirs queued the Dock beside it) → 134, 97, 12.
+    // 27 against 97 (ours paid Republic's 70 and 70; theirs queued it
+    // free, and a Dock beside it) → 134/134, 97/97.
     count: 17215,
     sequence: 17215,
 };
@@ -205,5 +205,13 @@ fn run999b_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3374: 575 keys parted before the government arm, the window
+    // opening apart on block 10983 on who=1's `bucket[0:food]` 64 against
+    // 134 and `bucket[4:metal]` 27 against 97 — Republic's 70 and 70, which
+    // `get_cost:1048`–`1053` makes free for an American leader — and the
+    // make list's row 8 (`val` 5358976 against 53589: theirs took the
+    // head). Built: 575 → 55, the standing family alone (`SITE[·].reg`,
+    // `aggression`, `form`, the army `pool:n` and `group:n.held`, the
+    // newborn `g.angle[0]`).
+    pin_eq!(w.firsts.len(), 55, "keys that part in the window");
 }
