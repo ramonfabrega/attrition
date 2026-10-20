@@ -726,7 +726,11 @@ impl Sim {
             && matches!(target, Obj::Building(_))
         {
             let hp = match target {
-                Obj::Building(b) => (self.buildings[b].index, self.buildings[b].health, self.buildings[b].alive),
+                Obj::Building(b) => (
+                    self.buildings[b].index,
+                    self.buildings[b].health,
+                    self.buildings[b].alive,
+                ),
                 Obj::Unit(_) => (0, 0, false),
             };
             eprintln!(
@@ -736,7 +740,14 @@ impl Sim {
                 at.y,
                 at.tile(),
                 self.world.tile_mask(at.tile()),
-                self.attack_dist_from(attacker, Pos::new(at.x.div_euclid(48) * 48 + 0x18, at.y.div_euclid(48) * 48 + 0x18), target),
+                self.attack_dist_from(
+                    attacker,
+                    Pos::new(
+                        at.x.div_euclid(48) * 48 + 0x18,
+                        at.y.div_euclid(48) * 48 + 0x18
+                    ),
+                    target
+                ),
                 self.max_range_of(attacker)
             );
         }
@@ -4513,6 +4524,40 @@ impl Sim {
                         if halve {
                             score /= 2;
                         }
+                        // `local_44` counts a unit candidate here, above the
+                        // bearing's skip (`0064979a`), and the ten-unit stop
+                        // below is reached only by one that was scored.
+                        if is_unit {
+                            unit_candidates += 1;
+                        }
+                        // **The fire on the move looks ahead** (`param_4`,
+                        // `006497b4`–`00649869`; item 3385, `docs/AI.md`
+                        // §293): the bearing to the candidate,
+                        // `find_angle(o.x − x, o.y − y)` off the two raw
+                        // points (the listing's `ecx`/`edx`; Ghidra prints
+                        // `unaff_EDI, unaff_ESI`), less the searcher's own
+                        // `UnitData +0x50`, folded at a half turn. Within
+                        // 30° the score is quadrupled, within 60° doubled;
+                        // past 135° the candidate is passed over (`ja
+                        // 006498a1`), and past 90° a signed tenth.
+                        if cavarch && let Obj::Unit(me) = attacker {
+                            let to = self.pos_of(o);
+                            let bearing = find_angle(to.x - at.x, to.y - at.y);
+                            let mut off =
+                                bearing.0.wrapping_sub(self.units[me].movement.facing.0) as u32;
+                            if off > 0x8000_0000 {
+                                off = !off;
+                            }
+                            if off < 0x1555_5555 {
+                                score <<= 2;
+                            } else if off < 0x2aaa_aaaa {
+                                score *= 2;
+                            } else if off > 0x6000_0000 {
+                                continue;
+                            } else if off > 0x4000_0000 {
+                                score /= 10;
+                            }
+                        }
                         if score == 0 && value != 0 {
                             score = 1;
                         }
@@ -4523,11 +4568,8 @@ impl Sim {
                         if score > best.map_or(0, |(b, _)| b) {
                             best = Some((score, o));
                         }
-                        if is_unit {
-                            unit_candidates += 1;
-                            if unit_candidates > 10 && best.is_some() {
-                                break 'rings;
-                            }
+                        if unit_candidates > 10 && best.is_some() {
+                            break 'rings;
                         }
                     }
                 }

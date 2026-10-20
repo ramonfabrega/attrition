@@ -34,9 +34,12 @@ pub(crate) const INCA_SAHARA: Lobby = Lobby {
     // 13126 -> 13250 (+124): piece 841's pivot releases (run1011b's `1/72`
     // round at `0/2000` loosed on block 13112: `sx, sy, sz` (7629, 31482,
     // 652) ours, (7563, 31441, 893) theirs, `total_time` 17 against 16;
-    // agreeing after).
-    count: 13250,
-    sequence: 13250,
+    // agreeing after), and 13250 -> 13282 (+32): the fire on the move's
+    // bearing in `find_nearby_target` (run1011's block 13226: `1/72`'s
+    // `cavarch_o/who` -1/-1 theirs, the city `0/2000` behind it at 179
+    // degrees off its facing; 2000/0 ours, which struck two frames early).
+    count: 13282,
+    sequence: 13282,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -96,4 +99,50 @@ fn inca_sahara_word_is_no_other_lobby() {
         assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
+}
+
+/// run1011: the word's window, blocks 13104..13360 at `GUYS=4`,
+/// `LEADERS=9`, `GOODS=3` and `AMMO=5` (item 3385). run1006 dumps blocks
+/// 0..36 and run1006b its setup and closing blocks only, so no dump on disk
+/// held the word's block.
+pub(crate) const RUN1011: &str = "gamelog-run1011-greatsahara-inca-diff3-window-13104-13361.txt";
+
+/// The window: block 13104 through 13360; the word 13250's own block is
+/// 13251.
+pub(crate) const WIDENING_INCA_SAHARA_FRAME_13250: (i64, i64) = (13104, 13360);
+
+pub(crate) fn inca_sahara_frame_13250_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA_SAHARA.start],
+        true,
+        INCA_SAHARA.long,
+        "run1011",
+        &[(RUN1011, WIDENING_INCA_SAHARA_FRAME_13250.0)],
+        WIDENING_INCA_SAHARA_FRAME_13250,
+        1,
+        &[13251],
+        true,
+    )
+}
+
+#[test]
+fn run1011_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_sahara_frame_13250_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
 }
