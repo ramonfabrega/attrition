@@ -20281,3 +20281,24 @@ SHA-256 `e0b6980f3dd14937226df00521ee91ea1445ad852facf792ee12d6b0593ae591`.
 
 **What it holds**: the Indians' first try, **15922 / 15922 of 16564** (at 7: ours `Farms::inc_time+0x1ae`, theirs
 `Object::take_damage+0xe1`). Pinned in `battery::BATTERY`.
+
+## run1003 — the German word at Great Sahara: the word 13582's window, blocks 13576..13832 at `GOODS=3` (2026-10-20, item 3378, `att-3378`)
+
+`docs/AI.md` §289. **What the disk could not answer**: run1000 dumps blocks 0..36 and run1000b its setup and closing
+blocks only, so no dump held who=1's ledger or make list on the word's block. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1003`: `--map 7 --end-frame 13837 --timeout 5400 --log-window 13576
+13832 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 12 --cover cover=0 --profile
+DIFFICULTY=3`.
+- Pool lane 1. Launched 15:10:04, exited 15:29:29. `success`, 13838 frames; `rngcmp.py` vs run1000b: 13838 identical.
+  Filed with `filerun.py run1003 greatsahara-german-diff3-window-13576-13833`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1003-greatsahara-german-diff3-window-13576-13833.txt`, 516,396,779 bytes,
+SHA-256 `bae6c89ada24d613425669a0da6d19c06517ae910f369fa259fba8b29ebe6e4d`.
+
+Archive `rontrace-run1003.log`, 56,600,256 bytes,
+SHA-256 `284c98e1a029c5f2b9754a245f7d3cab14f5df451299ee5524cd1bba16926e6b`.
+
+**What it holds**: on block 13579 who=1's rebuilt make list lists Carpentry (609) at slot 1, `val` 120000, where ours
+listed it at 30000 — a German's industry tech at half price. Test `run1003_s_word_frame_is_widened_whole`: 1039 keys
+on the first try, 26 after the build (the standing family).
