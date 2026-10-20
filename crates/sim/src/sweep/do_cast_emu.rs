@@ -184,8 +184,7 @@ impl DoCastClock for EmuCast<'_> {
     fn feedback(&mut self, msg: i32) {
         self.log.push(format!("s14:{},64", rd(&self.c[0], 0x298)));
         self.log.push(format!("s15:sp-0x6c,{msg}"));
-        self.log
-            .push("s16:c1+0x0,0,0,0,0,0,-1,13161032".into());
+        self.log.push("s16:c1+0x0,0,0,0,0,0,-1,13161032".into());
     }
     fn board_spot_blocked(&mut self) -> bool {
         let (x, y) = (rd(self.m, 0x10) ^ 0x63637, rd(self.m, 0x14) ^ 0x63637);
