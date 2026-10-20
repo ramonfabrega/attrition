@@ -270,6 +270,8 @@ mod unit_order_walk_data;
 mod unit_out_issue_come_out;
 #[path = "unit_out_issue_unqueue.rs"]
 mod unit_out_issue_unqueue;
+#[path = "unit_plunder.rs"]
+mod unit_plunder;
 #[path = "unit_replace_form_id.rs"]
 mod unit_replace_form_id;
 #[path = "unit_resolve_block.rs"]

@@ -101,6 +101,7 @@ pub mod movement;
 pub mod nations;
 pub mod nuke;
 pub mod orders;
+pub mod plunder;
 pub mod path;
 pub mod pivot;
 pub mod place;
