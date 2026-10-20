@@ -1039,6 +1039,77 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 168,
         },
     ),
+    // **Piece 1792, the Slingers in the Persians' art style** (`32 + 5 ×
+    // 0x160`; item 3355, `docs/AI.md` §279): the Persians'
+    // `UNIT_CONTINENT` is 5. run984c's `RON_STATE_FRAME=6251` packet on
+    // the Persian Great Lakes game holds its three `AttachPos` rows, piece
+    // 1440's keys, and `get_position.py`'s sweep of each is reproduced at
+    // all 361 headings by piece 1440's own three bays — the same centroids
+    // of the same regions (534, 319 and 28 lattice points). Without them
+    // the Persian stones left the unit's own square: the Persian word's
+    // 6323, whose state had parted on 6319 — `1/22`'s stone at the citizen
+    // `0/3` landing a frame late (6 frames against 5).
+    (
+        1792,
+        crate::anim::ATTACK1,
+        21,
+        Bay {
+            right: 71_298,
+            fwd: 69_592,
+            dz: 174,
+        },
+    ),
+    (
+        1792,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: 32_704,
+            fwd: 120_229,
+            dz: 144,
+        },
+    ),
+    (
+        1792,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -47_065,
+            fwd: 114_687,
+            dz: 168,
+        },
+    ),
+    // **Piece 112, the Persians' Immortals** (type 162; item 3355,
+    // `docs/AI.md` §279): a nation's own piece, so no continent offset.
+    // run984b's `RON_STATE_FRAME=6011` packet on the Persian Great Lakes
+    // game holds its two `AttachPos` rows — `CHAR_ATTACK2` at 14 and `3` at
+    // 6, there is no `CHAR_ATTACK1` row — and `tools/recomp/get_position.
+    // py`'s sweep of each is reproduced by these at all 361 headings, x, y
+    // and z; each is the centroid of its exact region (105 and 115 lattice
+    // points). Without them every Immortal's arrow left the unit's own
+    // square: the Persian word's 6046, whose state had parted on 6021 —
+    // `1/16`'s arrow at the Scout `0/0` thrown on 6012 landing a frame late
+    // (11 frames against 10), so `0/0` took no wound and stood.
+    (
+        112,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_067,
+            fwd: 104_603,
+            dz: 178,
+        },
+    ),
+    (
+        112,
+        crate::anim::ATTACK3,
+        6,
+        Bay {
+            right: 27_678,
+            fwd: 36_793,
+            dz: 171,
+        },
+    ),
     // **Piece 33, the Javelineers (type 83): the original's own
     // `get_position`** (item 1194). Its `Spear` leaves node 0 on frame 12
     // of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
@@ -1369,6 +1440,50 @@ mod tests {
             let got: Vec<_> = keys.iter().map(|&k| at(x, y, facing, k)).collect();
             assert!(got.contains(&want), "{want:?} from {got:?}");
         }
+    }
+
+    /// **The Persian Slingers' stones leave from piece 1792's bays** (item
+    /// 3355): run984d's `AMMO` records, the stones `1/22` and `1/24` threw
+    /// at the citizen `0/3` — each from its unit's own square at block
+    /// 6317's facing, `sx, sy` the dump's own.
+    #[test]
+    fn run984d_s_persian_stones_leave_from_piece_1792_s_bays() {
+        for (x, y, facing, want) in [
+            (2616, 33000, -1_092_616_192, Pos::new(2504, 33053)),
+            (2472, 32424, -1_435_041_792, Pos::new(2398, 32523)),
+        ] {
+            let got: Vec<_> = [
+                (crate::anim::ATTACK1, 21),
+                (crate::anim::ATTACK2, 22),
+                (crate::anim::ATTACK3, 16),
+            ]
+            .iter()
+            .map(|&(anim, start)| launch_point(Pos::new(x, y), Angle(facing), 1792, anim, start, 0))
+            .collect();
+            assert!(got.contains(&want), "{want:?} from {got:?}");
+        }
+    }
+
+    /// **The Persian Immortals' arrows leave from piece 112's bays** (item
+    /// 3355): run984's `AMMO` record of the arrow `1/16` threw on 6012 at
+    /// the Scout `0/0` — `sx, sy` (3766, 32893), `total_time` 10 — from
+    /// the unit's own square (3768, 33000) at block 6020's facing.
+    #[test]
+    fn run984_s_immortal_arrow_leaves_from_piece_112_s_bays() {
+        let got: Vec<_> = [(crate::anim::ATTACK2, 14), (crate::anim::ATTACK3, 6)]
+            .iter()
+            .map(|&(anim, start)| {
+                launch_point(
+                    Pos::new(3768, 33000),
+                    Angle(-173_146_112),
+                    112,
+                    anim,
+                    start,
+                    0,
+                )
+            })
+            .collect();
+        assert!(got.contains(&Pos::new(3766, 32893)), "{got:?}");
     }
 
     /// Every launch point run109 measured, reproduced to the unit.
