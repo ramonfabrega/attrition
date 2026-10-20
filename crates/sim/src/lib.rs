@@ -127,6 +127,7 @@ pub mod plunder;
 pub mod production;
 pub mod rally;
 pub mod rares;
+pub mod redo_patrol_view;
 pub mod remove_inside_view;
 pub mod roads;
 pub mod roads_view;

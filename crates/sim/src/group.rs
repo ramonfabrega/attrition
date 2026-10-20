@@ -3504,31 +3504,8 @@ impl Sim {
     /// SEAM: the copy of points past the second; see
     /// [`crate::orders::PatrolOrder`].
     pub(crate) fn group_redo_patrol_order(&mut self, g: &Group, p: crate::orders::PatrolOrder) {
-        const MISSILE: u32 = 0x800_0000;
-        for &m in &g.list {
-            if !self.group_member_orderable(m) {
-                continue;
-            }
-            let missile = self.units[m]
-                .ty
-                .is_some_and(|t| self.unit_types[t].combat.obj_masks & MISSILE != 0);
-            if missile {
-                continue;
-            }
-            self.add_patrol_order(
-                m,
-                (p.points[0], p.points[1]),
-                p.id,
-                p.form_id,
-                p.leader,
-                QueuePos::Last,
-            );
-            if let Some(i) = self.update_patrol_order(m, Some(p.id))
-                && let Body::Patrol(x) = &mut self.units[m].orders[i].body
-            {
-                x.waypoint = p.waypoint;
-            }
-        }
+        let mut v = crate::redo_patrol_view::SimRedoPatrol::new(self, g, p);
+        crate::redo_patrol_view::redo_patrol_order_steps(&mut v);
     }
 
     /// §9's anchor score.
