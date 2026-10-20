@@ -100,6 +100,19 @@ Three shapes, each a `__thiscall` on `ecx`:
           order) and `p: &mut [Vec<u8>]` beside `a` and `m`; every byte
           of every window is held.
 
+          Three shapes of `Balance::compute_modifier` (item 3377, parked
+          3372d): `--tls OFF:V` lays `fs:[0x2c]` -> a TLS array -> one
+          block whose word at OFF is V (a function-local static's `_TSS`
+          guard read as initialised; implies `--tib`); `--outret
+          IDX:N:SPEC/SPEC/..` makes stub IDX a struct-returning callee
+          that writes N calls' drawn words (one SPEC, `V,V,..` or
+          `LO..HI`, a word) through its hidden argument 0 and answers
+          it, the words printed after the other numbers on the row; and
+          `--table-arg IDX:ROWS:COLS:ESIZE:VALS` makes argument IDX a
+          zeroed table whose cells are filled from VALS the first time
+          the function reads each, printed `idx:val,..` after ` @ ` (the
+          test's `t`, every other cell 0) rather than as a window.
+
           `--outarg IDX:K:VALS` (item 2325) makes stub IDX write a value
           drawn from VALS through its argument K — the caller's local,
           as `get_inside` writes a player index — printed after the
@@ -186,7 +199,18 @@ keeps the line that drew it (`# sweep_gen: [...]`, its last line), so
 `--regen tools/emu/sweep_<snake>.py` — or `--regen <snake>` — redraws it
 with no line at hand (item 2325, parked 2311); a whole line given with
 `--regen` replaces the kept one; a `--regen` with no `--port` keeps the test's
-hand-written port block between the generated halves (item 2368). Without `--port` the test's port is `todo!()`, so the row
+hand-written port block between the generated halves (item 2368), every hand item outside them (Loop 3013,
+`kept_items`), and every hand block inside a generated body fenced as
+
+        // hand: <name>
+        ...
+        // end hand
+
+which goes back after the generated code it followed (whitespace ignored, so a
+`cargo fmt` split matches), or before its item's closing brace, named on stderr,
+when that code is gone (Loop 3013's fifth reach). A `--regen` whose script is
+another overload's (its kept line names another address) is refused: an
+overload names its own module with `--name` (3182). Without `--port` the test's port is `todo!()`, so the row
 fails until the lane writes it — a sweep lands when the two sides agree,
 never when a file exists. `--dry-run` prints both files instead.
 """
@@ -1438,6 +1462,7 @@ from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 from sweeplib import link_value  # noqa: E402
 from sweeplib import draw_reg, xmm_bits, set_tib  # noqa: E402
+import sweeplib  # noqa: E402
 
 ENTRY = 0x{va:08x}
 WIN = {win}
@@ -1446,6 +1471,9 @@ BIAS = {bias!r}
 ARGSET = {argset!r}
 ARGFROM = {argfrom!r}
 CELLS = {cells!r}
+TLS = {tls!r}
+OUTRET = {outret!r}
+TABLEARG = {tablearg!r}
 AT = {at!r}
 ATRANGE = {atrange!r}
 PTRARGS = {ptrargs!r}
@@ -1666,6 +1694,50 @@ def read_arg(inner, k, n, read, sink, written=None):
     return answer
 
 
+def tls_lay(write, tib, tls):
+    """`--tls OFF:V` (item 3377, parked 3372d): `fs:[0x2c]` -> a TLS array of 64 slots in the TIB
+    page, every slot one zeroed block whose word at OFF is V. A function-local static's `_TSS` guard
+    compares the block's epoch (`+8`) with its own word, so 0 reads "already initialised"."""
+    arr, block = tib + 0x100, tib + 0x200
+    write(tib + 0x2C, arr.to_bytes(4, "little"))
+    write(block, bytes(0xE00))
+    for k in range(64):
+        write(arr + 4 * k, block.to_bytes(4, "little"))
+    for off, v in tls:
+        write(block + off, (v & 0xFFFFFFFF).to_bytes(4, "little"))
+
+
+def outret_answer(vals, write):
+    """`--outret IDX:N:SPEC/..` (item 3377, parked 3372d): a struct-returning callee. MSVC passes
+    the caller's buffer as a hidden first stack argument and the callee answers it; call k writes
+    `vals[k]`'s words there (the last call's past N)."""
+    turn = [0]
+
+    def answer(ecx, args):
+        words = vals[min(turn[0], len(vals) - 1)]
+        turn[0] += 1
+        at = args[0] & 0xFFFFFFFF
+        write(at, b"".join((w & 0xFFFFFFFF).to_bytes(4, "little") for w in words))
+        return at
+    return answer
+
+
+def table_hook(base, esize, n, draw, cells):
+    """`--table-arg` (item 3377, parked 3372d): a read hook over an N-cell table that fills each
+    cell the function reads the first time it is read: a value from `draw()`, written before the
+    load (unicorn's read hook runs first, and the load sees the write), recorded in `cells` as the
+    signed value the cell holds."""
+    def hook(uc_, access, addr, size, value, _):
+        first = max(addr - base, 0) // esize
+        last = min((addr + size - 1 - base) // esize, n - 1)
+        for k in range(first, last + 1):
+            if k not in cells:
+                b = (draw() & ((1 << 8 * esize) - 1)).to_bytes(esize, "little")
+                cells[k] = int.from_bytes(b, "little", signed=True)
+                uc_.mem_write(base + esize * k, b)
+    return hook
+
+
 def wdraw(rng, vals):
     """A bias's value: a set's member, or a range's — its own edges and the
     small integers inside it three rows in ten, so a boundary inside a wide
@@ -1726,6 +1798,8 @@ def main(argv):
     # `--tib`: an SEH-framed function reads and writes `fs:[0]` (item 3120).
     if TIB:
         set_tib(uc)
+    if TLS:
+        tls_lay(uc.mem_write, sweeplib.TIB, TLS)
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
     names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"run{{a:x}}" if k == "run" else f"{{a:x}}" for k, a, _ in STUBS]
@@ -1750,6 +1824,18 @@ def main(argv):
         h.answers[names[idx]] = copy_answer(0, lambda a_, n_: bytes(uc.mem_read(a_, n_)), uc.mem_write, 0x10000)
     for va_ in INITCALLS:
         h.call(va_, (), max_insns=500_000_000)
+    # `--table-arg` (item 3377): the table laid once, zeroed; a read hook fills the cells read.
+    tcells = {{}}
+    twritten = [False]
+    if TABLEARG is not None:
+        from unicorn import UC_HOOK_MEM_READ, UC_HOOK_MEM_WRITE
+        tidx, trows, tcols, tesz, tvals = TABLEARG
+        tsize = trows * tcols * tesz
+        tbase = h.alloc(tsize + 0x20)
+        uc.mem_write(tbase, bytes(tsize))
+        uc.hook_add(UC_HOOK_MEM_READ, table_hook(tbase, tesz, trows * tcols, lambda: wdraw(rng, tvals), tcells),
+                    begin=tbase, end=tbase + tsize - 1)
+        uc.hook_add(UC_HOOK_MEM_WRITE, lambda *_: twritten.__setitem__(0, True), begin=tbase, end=tbase + tsize - 1)
     base = h.brk
     stopped = [False]
     if STOPSTUB is not None:
@@ -2097,6 +2183,18 @@ def main(argv):
         ecxo = [rng.choice(vals) & 0xFFFFFFFF for _, vals in ECXOUT]
         for (idx, _), v in zip(ECXOUT, ecxo):
             h.answers[names[idx]] = pair_answer(h.answers[names[idx]], v)
+        # `--outret IDX:N:SPEC/..` (item 3377): N calls' words drawn a row, printed last on the row.
+        orets = []
+        for idx, n, specs in OUTRET:
+            vals = [[wdraw(rng, sp_) for sp_ in specs] for _ in range(n)]
+            orets.append(vals)
+            h.answers[names[idx]] = outret_answer(vals, uc.mem_write)
+        if TABLEARG is not None:
+            for k_ in tcells:
+                uc.mem_write(tbase + tesz * k_, bytes(tesz))
+            tcells.clear()
+            twritten[0] = False
+            args[tidx] = tbase
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -2139,13 +2237,16 @@ def main(argv):
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
         assert stopped[0] or esp == want_esp, f"esp {{esp:x}}: wrong pop"
         assert bytes(uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
+        assert not twritten[0], "wrote the --table-arg table"
         before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
         shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based] + [str(f) for f in nullflags]
                  + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)])
-                 + [str(v) for v in xmmv] + [str(v) for v in ecxo])
+                 + [str(v) for v in xmmv] + [str(v) for v in ecxo]
+                 + [str(((w + 0x80000000) & 0xFFFFFFFF) - 0x80000000) for vals in orets for call in vals for w in call])
+        tshown = "" if TABLEARG is None else " @ " + (",".join(f"{{k_}}:{{v_}}" for k_, v_ in sorted(tcells.items())) or "-")
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
@@ -2173,7 +2274,7 @@ def main(argv):
             # `--deref`: the bytes each call's argument pointed at (item 2379).
             cols += ["/".join(sink) or "-" for sink in derefs]
             log = " # " + " ".join(cols)
-        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + log)
+        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + tshown + log)
     return 0
 
 
@@ -2208,7 +2309,7 @@ fn the_emulated_original_agrees_on_every_row() {{
     }};
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
-{logsplit}        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+{logsplit}{tablesplit}        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
         let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
@@ -2406,7 +2507,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, tib=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), stub_alloc=(), clean_stack=0, stop_stub=None, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), stub_alloc=(), clean_stack=0, stop_stub=None, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000,
+                 tls=(), outret=(), table_arg=None):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2680,6 +2782,43 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not 0 <= idx < len(pstubs) or pstubs[idx][0] not in ('call', 'iat') or pstubs[idx][2] < 1:
             raise ValueError('--stub-alloc IDX names a direct callee or import of one argument or more (`malloc`: the size)')
         palloc.append(idx)
+    # Item 3377 (parked 3372d): `Balance::compute_modifier`'s three shapes.
+    ptls = []
+    for spec_ in tls:
+        m_ = re.fullmatch(r'(\w+):(-?\w+)', spec_)
+        if not m_ or not 0 <= int(m_.group(1), 0) <= 0xDFC:
+            raise ValueError(f'--tls is OFF:V, OFF a word of the 0xe00-byte TLS block, not {spec_!r}')
+        ptls.append((int(m_.group(1), 0), int(m_.group(2), 0)))
+    if ptls:
+        tib = True
+    poret = []
+    for o in outret:
+        parts = o.split(':', 2)
+        if len(parts) != 3 or not parts[2]:
+            raise ValueError(f'--outret is IDX:N:SPEC/SPEC/.., one SPEC (V,V,.. or LO..HI) a word, not {o!r}')
+        idx, n = int(parts[0], 0), int(parts[1], 0)
+        if not 0 <= idx < len(pstubs) or pstubs[idx][2] < 1 or pstubs[idx][0] == 'run':
+            raise ValueError(f'--outret {o}: IDX names a --stub callee of one argument or more (the hidden pointer)')
+        if n < 1:
+            raise ValueError(f'--outret {o}: N, the calls drawn a row, is at least 1')
+        specs = [_wbias(f'm+0:{w}')[0][2] for w in parts[2].split('/')]
+        if any(sp_[0] not in ('set', 'range') for sp_ in specs):
+            raise ValueError(f'--outret {o}: a word is V,V,.. or LO..HI')
+        poret.append((idx, n, specs))
+    ptab = None
+    if table_arg:
+        parts = table_arg.split(':', 4)
+        if len(parts) != 5:
+            raise ValueError(f'--table-arg is IDX:ROWS:COLS:ESIZE:VALS, not {table_arg!r}')
+        tidx, trows, tcols, tesz = (int(x, 0) for x in parts[:4])
+        if not 0 <= tidx < own or tidx in [i for i, _ in pptr]:
+            raise ValueError(f'--table-arg {table_arg}: IDX names a stack argument no --ptrarg lays')
+        if tesz not in (1, 2, 4) or trows < 1 or tcols < 1:
+            raise ValueError(f'--table-arg {table_arg}: ROWS and COLS at least 1, ESIZE 1, 2 or 4')
+        tv = _wbias(f'm+0:{parts[4]}')[0][2]
+        if tv[0] not in ('set', 'range'):
+            raise ValueError(f'--table-arg {table_arg}: VALS is V,V,.. or LO..HI')
+        ptab = (tidx, trows, tcols, tesz, tv)
     pecxans = []
     for spec in ecx_answer:
         m_ = re.fullmatch(r'(\d+):(\w+)(?::(\w+))?', spec)
@@ -2723,7 +2862,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or plinkhi or pout or pcdecl or pwrite or pcopy or palloc or clean_stack or pecxout or init_call):
+            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or plinkhi or pout or pcdecl or pwrite or pcopy or palloc or clean_stack or pecxout or init_call
+            or ptls or poret or ptab):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2787,6 +2927,13 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + ([f'the call ends where stub {stop_stub} is first entered (the function is swept to that callee)'] if stop_stub is not None else [])
         + [f'`{int(v, 0):#010x}` run once before the rows (a table builder the startup would have run)' for v in init_call]
         + [f'stub {idx} answers a fresh bump-heap address of its argument 0 bytes (a `malloc`)' for idx in palloc]
+        + [f'`fs:[0x2c]` -> a TLS array -> one block whose word +{o:#x} is {v} (a `_TSS` guard read as initialised)'
+           for o, v in ptls]
+        + [f'stub {idx} returns a {len(sp_)}-word struct through its hidden argument 0 and answers it, {n} call(s) '
+           f'drawn a row (the last repeated), the words printed last on the row' for idx, n, sp_ in poret]
+        + ([f'argument {ptab[0]} is a {ptab[1]} x {ptab[2]} table of {ptab[3]}-byte cells, zeroed, each cell the '
+            f'function reads filled from {ptab[4][1:]} when first read and printed `idx:val` after ` @ ` (`t`, every '
+            f'other cell 0); a write to it fails the row'] if ptab else [])
         + [f'stub {idx} copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`)' for idx in pcopy]
         + [f'stub {idx} lowers `{w}+{o:#x}` ({z} bytes) by one each call' if v == 'dec'
            else f'stub {idx} writes {v} ({z} bytes) at `{w}+{o:#x}` each call' for idx, w, o, z, v in pwrite]
@@ -2829,7 +2976,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, tib=tib, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stuballoc=palloc, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
+                                   outarg=pout, tls=ptls, outret=poret, tablearg=ptab, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stuballoc=palloc, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret=ret if ret == 'xmm0' or ret.startswith('ebp:') else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
@@ -2842,9 +2989,20 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         logcheck = (f'        assert_eq!(log, want_log, "{short} — the recorded calls, row `{{line}}`");\n')
     else:
         logsplit = logdecl = logcheck = ''
+    tablesplit = '' if ptab is None else (
+        '        let (line, tcells) = line.split_once(" @ ").expect("`<row> @ <table cells>`");\n'
+        '        let t: std::collections::BTreeMap<usize, i64> = if tcells.trim() == "-" {\n'
+        '            std::collections::BTreeMap::new()\n'
+        '        } else {\n'
+        '            tcells.trim().split(\',\').map(|c| {\n'
+        '                let (i, v) = c.split_once(\':\').expect("idx:val");\n'
+        '                (i.parse().expect("idx"), v.parse().expect("val"))\n'
+        '            }).collect()\n'
+        '        };\n'
+        '        let _ = &t;\n')
     test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
                                ret=retcode, nc=len(pcells) + len(pat) + 2 * len(pgtab), pbase=1 + len(pcells) + len(pat) + 2 * len(pgtab),
-                               logsplit=logsplit, logdecl=logdecl, logcheck=logcheck, floor=floor)
+                               logsplit=logsplit, tablesplit=tablesplit, logdecl=logdecl, logcheck=logcheck, floor=floor)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -3103,6 +3261,115 @@ def kept_items(old, new):
         # The blank line that separated the item from its neighbour.
         out.insert(at, (head, block if block.endswith('\n') else block + '\n'))
     return '\n'.join(b for _, b in out)
+
+
+HAND = re.compile(r'^\s*// hand(?::\s*(.*?))?\s*$')
+END_HAND = '// end hand'
+
+
+def _fences(lines):
+    """The hand fences in `lines`: `(first, last, name)`, both lines of the
+    fence included. A fence left open is refused."""
+    out, i = [], 0
+    while i < len(lines):
+        m = HAND.match(lines[i])
+        if not m:
+            i += 1
+            continue
+        j = i + 1
+        while j < len(lines) and lines[j].strip() != END_HAND:
+            j += 1
+        if j == len(lines):
+            raise ValueError(f'`{lines[i].strip()}` has no `{END_HAND}` after it')
+        out.append((i, j, m.group(1) or f'line {i + 1}'))
+        i = j + 1
+    return out
+
+
+def _squash(lines):
+    """`lines` with every whitespace character dropped, and the line each
+    remaining character came from — so an anchor `cargo fmt` split over
+    three lines matches the generator's one."""
+    chars, at = [], []
+    for k, line in enumerate(lines):
+        for c in line:
+            if not c.isspace():
+                chars.append(c)
+                at.append(k)
+    return ''.join(chars), at
+
+
+def kept_hands(old, new):
+    """Loop 3013's fifth reach (the forty-sixth pass): a hand block inside a
+    generated body, fenced `// hand: <name>` … `// end hand`, carried from
+    the old test to the new. Its anchor is the generated code it followed
+    in its item — the shortest tail of the item's text above the fence
+    (whitespace ignored, other fences left out) that the item holds once —
+    and it goes back after that code in the new item, after any fence
+    already placed there. An anchor the new item lacks puts the block
+    before the item's closing brace; an item the new test lacks drops it;
+    each said by name. A fence already in the new text (inside a kept port
+    block or a kept item) is left where it is. Returns `(text, warnings)`."""
+    warnings = []
+    old_items = _items(old)
+    out = new
+    for head, block in old_items:
+        lines = block.split('\n')
+        fences = _fences(lines)
+        if not fences:
+            continue
+        inside = {k for a, b, _ in fences for k in range(a, b + 1)}
+        gen = [ln for k, ln in enumerate(lines) if k not in inside]
+        whole, _ = _squash(gen)
+        for first, last, name in fences:
+            text = '\n'.join(lines[first:last + 1])
+            if text in out:
+                continue
+            above, _ = _squash([ln for k, ln in enumerate(lines[:first]) if k not in inside])
+            key = above
+            for n in (24, 48, 96, 192, 384):
+                if n < len(above) and whole.count(above[-n:]) == 1:
+                    key = above[-n:]
+                    break
+            occ = above.count(key) - 1
+            items = _items(out)
+            idx = next((i for i, (h, _) in enumerate(items) if h == head and h), None)
+            if idx is None:
+                warnings.append(f'hand block `{name}`: its item `{head}` is not in the new test; dropped')
+                continue
+            new_lines = items[idx][1].split('\n')
+            flat, at = _squash(new_lines)
+            pos = -1
+            for _ in range(occ + 1):
+                pos = flat.find(key, pos + 1)
+                if pos < 0:
+                    break
+            if key and pos >= 0:
+                k = at[pos + len(key) - 1] + 1
+                # After the fences already placed at this anchor, in their order.
+                while k < len(new_lines) and HAND.match(new_lines[k]):
+                    while k < len(new_lines) and new_lines[k].strip() != END_HAND:
+                        k += 1
+                    k += 1
+            else:
+                k = max(i for i, ln in enumerate(new_lines) if ln.rstrip() == '}')
+                warnings.append(f'hand block `{name}`: its anchor is not in the new `{head}`; '
+                                "placed at the item's end")
+            new_lines[k:k] = lines[first:last + 1]
+            items[idx] = (items[idx][0], '\n'.join(new_lines))
+            out = '\n'.join(b for _, b in items)
+    return out, warnings
+
+
+def regen_owner(path, function):
+    """Loop 3013's third reach (3182): the function a script at `path`
+    keeps in its line when that is not `function` — an overload's sweep
+    under the same snake name — else None."""
+    line = kept_line(path) if path.exists() else None
+    if not line:
+        return None
+    other = next((a for a in line if NAME.match(a)), None)
+    return other if other and other != function else None
 
 
 SWEEP_FAMILIES = ('a_f', 'g_o', 'p_t', 'u_z')
@@ -3746,6 +4013,17 @@ def main(argv=None):
                          'places (a callee that answers a record; parked 2151); repeated for one IDX, '
                          'one window a call in call order, the last repeated (parked 2623); a negative SIZE '
                          'answers null a third of the calls (item 3268)')
+    ap.add_argument('--tls', action='append', default=[], metavar='OFF:V',
+                    help='obj: `fs:[0x2c]` -> a TLS array -> one block whose word at OFF is V (a function-local '
+                         'static\'s `_TSS` guard read as initialised: `8:0`); implies --tib (item 3377, parked 3372d)')
+    ap.add_argument('--outret', action='append', default=[], metavar='IDX:N:SPEC/SPEC/..',
+                    help='obj: stub IDX returns a struct through its hidden argument 0 and answers it: N calls\' '
+                         'words drawn a row, one SPEC (V,V,.. or LO..HI) a word, call k\'s written (the last past N), '
+                         'printed last on the row (`return_pack`; item 3377, parked 3372d)')
+    ap.add_argument('--table-arg', metavar='IDX:ROWS:COLS:ESIZE:VALS',
+                    help='obj: argument IDX is a zeroed ROWS x COLS table of ESIZE-byte cells, each cell the function '
+                         'reads filled from VALS (V,V,.. or LO..HI) when first read, printed `idx:val,..` after ` @ `, '
+                         'the test\'s `t` (every other cell 0); a write to it fails the row (item 3377, parked 3372d)')
     ap.add_argument('--tib', action='store_true', help='obj: the function opens an SEH frame (`mov eax, fs:[0]`): '
                     'a guest TIB page is mapped and `fs` pointed at it (item 3120)')
     ap.add_argument('--cdecl', action='store_true', help='obj: the function is `__cdecl` (a bare `ret`), so '
@@ -3825,7 +4103,9 @@ def main(argv=None):
                     '(the default for a fresh generation since item 2887; kept so old lines run)')
     ap.add_argument('--no-write-mod', action='store_true', help='leave the registry alone and print the line (item 2887, parked 2872)')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
-                    '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
+                    '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298) or the '
+                         'script is another overload\'s (3182); the port block, hand items and `// hand: NAME` … '
+                         '`// end hand` fences inside a generated body are carried (Loop 3013)')
     ap.add_argument('--fwd-gate', metavar='OFF:MASK:VA[:T,T..]',
                     help='obj: a forwarder gated on a byte of gamec, then a call to VA with the caller\'s stale ecx, '
                          '--own arguments and the tail T.. (GroupOut::issue_*; item 2443, parked 2433)')
@@ -3996,6 +4276,7 @@ def main(argv=None):
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link, link_hi=args.link_hi,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy, stub_alloc=args.stub_alloc, clean_stack=args.clean_stack, stop_stub=args.stop_stub, init_call=args.init_call, max_insns=args.max_insns,
+                                                    tls=args.tls, outret=args.outret, table_arg=args.table_arg,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
             sp, script, tp, test, mod = generate_vcallbase(args.function, item=args.item, slot=args.slot,
@@ -4032,10 +4313,15 @@ def main(argv=None):
             return 2
         print(f'# {sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
         return 0
+    owner = regen_owner(sp, args.function) if args.regen else None
+    if owner:
+        print(f'sweep_gen.py: {shown(sp)} is the sweep of `{owner}`, not `{args.function}`; an overload '
+              'names its own module with --name (Loop 3013, 3182)', file=sys.stderr)
+        return 2
+    old_test = tp.read_text() if args.regen and tp.exists() else None
     if args.regen and args.port is None and tp.exists():
         # The test's hand-written port is kept between the generated halves
         # (item 2368: two of 2341's ten restored it by hand from a copy).
-        old_test = tp.read_text()
         todo = f'todo!("the port of {parse(args.function)[0]}")'
         kept = kept_port(old_test, test, todo)
         if kept is not None:
@@ -4051,6 +4337,15 @@ def main(argv=None):
         else:
             print(f'sweep_gen.py: {shown(tp)}: no port block where the new test holds one (its windows '
                   'changed?); the port is `todo!()` again — restore it from git', file=sys.stderr)
+    if old_test is not None:
+        # Fenced hand blocks inside a generated body (Loop 3013's fifth reach).
+        try:
+            test, warned = kept_hands(old_test, test)
+        except ValueError as e:
+            print(f'sweep_gen.py: {shown(tp)}: {e}', file=sys.stderr)
+            return 2
+        for w in warned:
+            print(f'sweep_gen.py: {shown(tp)}: {w}', file=sys.stderr)
     for p in (sp, tp):
         if p.exists() != args.regen:
             print(f'sweep_gen.py: {p} ' + ('is missing; --regen redraws a generated sweep' if args.regen

@@ -513,6 +513,121 @@ class Shapes(unittest.TestCase):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
                                        stubs=stubs, stub_cdecl=[], stub_alloc=[bad])
 
+    def test_tls_statics_are_laid_initialised(self):
+        # Item 3377 (parked 3372d): `Balance::compute_modifier`'s function-local
+        # statics are guarded by `_TSS` words checked against the thread's TLS
+        # block (`fs:[0x2c]` -> the TLS array -> a block whose `+8` is the
+        # epoch); `--tib` laid only `fs:[0]`. `--tls OFF:V` lays the chain
+        # (every slot of the array one block) with the word at OFF set to V.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=3377, win=0x10, bias=[], own=0, ret='none', tls=['8:0', '0xc:-1'])
+        compile(script, str(sp), 'exec')
+        self.assertIn('TLS = [(8, 0), (12, -1)]', script)
+        self.assertIn('TIB = True', script, '--tls implies the guest TIB')
+        self.assertIn("fs:[0x2c]", test)
+        src = script[script.index('def tls_lay('):]
+        ns = {}
+        exec(src[:src.index('\n\n\n')], ns)
+        mem = {}
+
+        def wr_(a, b):
+            for i, x in enumerate(b):
+                mem[a + i] = x
+
+        def rd32(a):
+            return int.from_bytes(bytes(mem.get(a + i, 0) for i in range(4)), 'little', signed=True)
+        tib = 0x7C010000
+        ns['tls_lay'](wr_, tib, [(8, 0), (12, -1)])
+        arr = rd32(tib + 0x2C) & 0xFFFFFFFF
+        self.assertTrue(tib < arr < tib + 0x1000, 'the array lies in the TIB page')
+        for slot in (0, 3, 63):
+            block = rd32(arr + 4 * slot) & 0xFFFFFFFF
+            self.assertTrue(tib < block < tib + 0x1000)
+            self.assertEqual(rd32(block + 8), 0)
+            self.assertEqual(rd32(block + 0xC), -1)
+        for bad in ('8', 'x:0', '0x1000:0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x10, bias=[], ret='none', tls=[bad])
+
+    def test_a_struct_returning_stub_answers_its_hidden_pointer(self):
+        # Item 3377 (parked 3372d): `return_pack` returns a five-word struct
+        # through the hidden pointer MSVC passes as its first stack argument,
+        # and answers that pointer; `--outarg` writes one word. `--outret
+        # IDX:N:SPEC/SPEC/..` draws N calls' words, one SPEC (`V,V,..` or
+        # `LO..HI`) a word, writes call k's through argument 0 (the last
+        # repeated past N), answers it, and prints the words after the other
+        # numbers on the row.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=3377, win=0x10, bias=[], own=1, ret='eax',
+            stubs=['0x402000:2'], outret=['0:2:-1..3/5,6'])
+        compile(script, str(sp), 'exec')
+        self.assertIn("OUTRET = [(0, 2, [('range', -1, 3), ('set', [5, 6])])]", script)
+        self.assertIn('stub 0 returns a 2-word struct through its hidden argument 0', test)
+        src = script[script.index('def outret_answer('):]
+        ns = {}
+        exec(src[:src.index('\n\n\n')], ns)
+        mem = bytearray(0x40)
+        wr_ = lambda a, b: mem.__setitem__(slice(a, a + len(b)), b)
+        ans = ns['outret_answer']([[1, -2], [3, 4]], wr_)
+        self.assertEqual(ans(0, [0x10, 7]), 0x10)
+        self.assertEqual(bytes(mem[0x10:0x18]), (1).to_bytes(4, 'little') + (-2 & 0xFFFFFFFF).to_bytes(4, 'little'))
+        self.assertEqual(ans(0, [0x20, 7]), 0x20)
+        self.assertEqual(bytes(mem[0x20:0x28]), (3).to_bytes(4, 'little') + (4).to_bytes(4, 'little'))
+        mem[0x20:0x28] = bytes(8)
+        ans(0, [0x20, 7])
+        self.assertEqual(bytes(mem[0x20:0x28]), (3).to_bytes(4, 'little') + (4).to_bytes(4, 'little'), 'the last repeats')
+        for stubs, bad in ((['0x402000:2'], '1:2:1..2'), (['0x402000:0'], '0:2:1..2'), (['0x402000:2'], '0:0:1..2'),
+                           (['0x402000:2'], '0:2:'), (['0x402000:2'], '0:2:1..2/x')):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x10, bias=[], own=1, ret='eax',
+                                       stubs=stubs, outret=[bad])
+
+    def test_a_table_argument_is_filled_where_it_is_read(self):
+        # Item 3377 (parked 3372d): argument 2 of `compute_modifier` is a 399 x
+        # 399 `short` table (318 KB); a `--ptrarg` window prints whole, ~250 MB
+        # for 200 rows. `--table-arg IDX:ROWS:COLS:ESIZE:VALS` lays a zeroed
+        # table once, fills a cell from VALS the first time the function reads
+        # it (a read hook writes it before the load), refuses a write to it, and
+        # prints the cells read, `idx:val,..` (`-` for none), after ` @ `; the
+        # test holds them as `t`, every other cell 0.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=3377, win=0x10, bias=[], own=3, ret='eax', table_arg='2:4:5:2:1..9')
+        compile(script, str(sp), 'exec')
+        self.assertIn("TABLEARG = (2, 4, 5, 2, ('range', 1, 9))", script)
+        self.assertIn('split_once(" @ ")', test)
+        self.assertIn('let t: std::collections::BTreeMap<usize, i64>', test)
+        self.assertIn('argument 2 is a 4 x 5 table of 2-byte cells', test)
+        src = script[script.index('def table_hook('):]
+        ns = {}
+        exec(src[:src.index('\n\n\n')], ns)
+        mem = bytearray(0x100)
+
+        class Uc:
+            def mem_write(self, a, b):
+                mem[a - 0x1000:a - 0x1000 + len(b)] = b
+        cells = {}
+        draws = iter(range(1, 100))
+        hook = ns['table_hook'](0x1000, 2, 20, lambda: next(draws), cells)
+        hook(Uc(), 0, 0x1000 + 2 * 7, 2, 0, None)
+        self.assertEqual(cells, {7: 1})
+        self.assertEqual(int.from_bytes(mem[14:16], 'little'), 1)
+        hook(Uc(), 0, 0x1000 + 2 * 7, 2, 0, None)
+        self.assertEqual(cells, {7: 1}, 'a cell read again keeps its value')
+        hook(Uc(), 0, 0x1000 + 2 * 8 + 1, 4, 0, None)
+        self.assertEqual(cells, {7: 1, 8: 2, 9: 3, 10: 4}, 'a read straddling cells fills each')
+        hook(Uc(), 0, 0x1000 + 2 * 20, 2, 0, None)
+        self.assertEqual(len(cells), 4, 'past the table, nothing')
+        mem[:] = bytes(0x100)
+        hook(Uc(), 0, 0x1000, 2, 0, None)
+        self.assertEqual(int.from_bytes(mem[0:2], 'little', signed=True), 5)
+        for bad in ('3:4:5:2:1..9', '2:4:5:3:1..9', '2:4:5:2', '2:0:5:2:1'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x10, bias=[], own=3, ret='eax',
+                                       table_arg=bad)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x10, bias=[], own=3, ret='eax',
+                                   table_arg='2:4:5:2:1..9', ptrargs=['2:4'])
+
     def test_a_cdecl_stub_may_copy(self):
         # Item 2921 (parked 2906): `memcpy` and `memcmp` are import thunks
         # (`jmp [0xac5428]`); a stub of one copied nothing, so the string
@@ -1877,6 +1992,92 @@ fn x_port(a: &[i32]) -> i64 {
         self.assertLess(kept.index('fn x_port'), kept.index('fn hex4('))
         # Nothing to keep leaves the new test as it is.
         self.assertEqual(sweep_gen.kept_items(new, new), new)
+
+    def test_regen_keeps_a_fenced_hand_block_inside_the_generated_loop(self):
+        # Loop 3013's fifth reach (the forty-sixth pass): `kept_items` keeps a
+        # hand item outside the generated body, and a hand block *inside* the
+        # generated loop (3250's `gate_parted` check against
+        # `Sim::think_peasant`) was dropped; 3362 lost five hand bodies and
+        # 3337/3339/3372 refused to regenerate. A block fenced `// hand:
+        # <name>` … `// end hand` is carried by its anchor, the generated
+        # code it followed — matched with whitespace ignored, so a `cargo
+        # fmt` that split the anchor's line still finds it.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
+                self.assertEqual(sweep_gen.main(line), 0)
+                tp = Path(tmp) / 'x_y.rs'
+                text = tp.read_text()
+                # As `cargo fmt` leaves it: the anchor line split in three.
+                one = '        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");\n'
+                self.assertIn(one, text)
+                split = ('        let (eax, after) = rhs\n'
+                         '            .split_once(" | ")\n            .expect("`<eax> | <after>`");\n')
+                head = ('    let mut n = 0;\n'
+                        '    // hand: gate count\n    let mut gate_parted = 0;\n    // end hand\n')
+                loop = ('        // hand: the crate\'s gate\n'
+                        '        if a.len() > 7 {\n            gate_parted += 1;\n        }\n'
+                        '        // end hand\n')
+                second = '        // hand: a second, same anchor\n        let _ = gate_parted;\n        // end hand\n'
+                tail = '    // hand: the gate\'s assert\n    assert_eq!(gate_parted, 0);\n    // end hand\n'
+                text = text.replace(one, split + loop + second).replace('    let mut n = 0;\n', head)
+                text = text.replace('    assert!(n >= 200', tail + '    assert!(n >= 200')
+                tp.write_text(text)
+                self.assertEqual(sweep_gen.main(line + ['--rows', '300', '--regen']), 0)
+                out = tp.read_text()
+                self.assertIn('range(300)', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertIn(one + loop + second, out, 'at its anchor, the two blocks in their order')
+                self.assertIn(head, out)
+                self.assertIn(tail + '    assert!(n >= 300', out)
+                self.assertEqual(out.count('// hand:'), 4)
+                # A second regen is idempotent: nothing doubles.
+                self.assertEqual(sweep_gen.main(line + ['--rows', '300', '--regen']), 0)
+                self.assertEqual(tp.read_text(), out)
+                # An anchor the new test lacks: the block goes to its item's end, said by name.
+                tp.write_text(out.replace(loop + second, loop + '        let zz = 1; // gone\n' + second))
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    self.assertEqual(sweep_gen.main(line + ['--rows', '301', '--regen']), 0)
+                self.assertIn('a second, same anchor', err.getvalue())
+                self.assertIn(one + loop + '        let a: Vec', tp.read_text())
+                self.assertIn(second + '}\n', tp.read_text())
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_fence_left_open_is_refused(self):
+        with self.assertRaises(ValueError):
+            sweep_gen.kept_hands('fn a() {\n    // hand: x\n    let v = 1;\n}\n', 'fn a() {\n}\n')
+
+    def test_regen_refuses_a_plain_name_that_is_another_overload_s_sweep(self):
+        # Loop 3013's third reach (3182, the forty-second pass): `--regen
+        # --fresh` on an overload's line with no `--name` wrote over the other
+        # overload's sweep, which shares its snake name (restored by hand).
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']), 0)
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x20',
+                                                 '--name', 'x_y_b']), 0)
+                drawn = (Path(tmp) / 'sweep_x_y.py').read_text()
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x40',
+                                                     '--regen', '--fresh']), 2)
+                self.assertIn('X::y@00401000', err.getvalue())
+                self.assertIn('--name', err.getvalue())
+                self.assertEqual((Path(tmp) / 'sweep_x_y.py').read_text(), drawn)
+                # Named, the overload's own sweep redraws.
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x40',
+                                                 '--name', 'x_y_b', '--regen', '--fresh']), 0)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
     def test_regen_replaces_an_option_given_in_equals_form_and_never_takes_the_kept_port(self):
         # Loop 2886 (five reaches, the thirty-ninth pass). 2946: `--rows=2400`
