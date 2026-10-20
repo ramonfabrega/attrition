@@ -714,12 +714,6 @@ impl Sim {
                     (self.rng.roll() & 1) != 0
                 });
             let dropped = u8::from(!drop_first);
-            if std::env::var_os("RON_PROBE_GOV").is_some() {
-                eprintln!(
-                    "PROBE gov f{} who {who} t {t:?} kind {kind:?} raid {raid} dropped {dropped}",
-                    self.frame
-                );
-            }
             if let Kind::Gov { column, .. } = kind
                 && column == dropped
             {
