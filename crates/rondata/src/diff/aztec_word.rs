@@ -33,9 +33,11 @@ pub(crate) const AZTEC: Lobby = Lobby {
     // 9130 -> 17394 (+8264): `come_out`'s inside arm lights no disc, so
     // the scout's two half-cells stay unseen. 17394: ours 18 draws,
     // theirs 15, at 6: ours `Unit::fight+0x9b0`, theirs
-    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
-    count: 17394,
-    sequence: 17394,
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` — and moved it 17394 ->
+    // 17554 (+160), the game's last frame: a detected decoy bleeds a point
+    // a frame (run989d).
+    count: 17554,
+    sequence: 17554,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -231,4 +233,120 @@ fn run989_s_word_frame_is_widened_whole() {
     // the word's draw, parts in no dumped key: its cause was the fog
     // (run989b's test).
     pin_eq!(w.firsts.len(), 38, "keys that part in the window");
+}
+
+/// run989d: the word 17394's window, blocks 17388..17554 at `GUYS=4` and
+/// `AMMO=5` (item 3361), to the game's last frame. run989 closes on 9380,
+/// before the word.
+pub(crate) const RUN989D: &str =
+    "gamelog-run989d-greatsahara-aztec-diff2-window-17388-17555-ammo.txt";
+
+/// The window: block 17388 through 17554; the word 17394's own block is
+/// 17395.
+pub(crate) const WIDENING_AZTEC_FRAME_17394: (i64, i64) = (17388, 17554);
+
+pub(crate) fn aztec_frame_17394_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AZTEC.start],
+        true,
+        AZTEC.long,
+        "run989d",
+        &[(RUN989D, WIDENING_AZTEC_FRAME_17394.0)],
+        WIDENING_AZTEC_FRAME_17394,
+        1,
+        &[17395],
+        true,
+    )
+}
+
+#[test]
+fn run989d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = aztec_frame_17394_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 167, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3361: 1133 keys parted on the first try, the window opening
+    // apart: who=1's Cataphract decoys `1/72` and `1/74` stood at damage
+    // 28 and 67 in theirs and 0 in ours, and the Light Horse decoys
+    // `1/75`, `1/81` were gone from theirs alone. Theirs bleeds each a
+    // point a frame where who=0's Scout `0/0` has it in its `seen3` disc,
+    // `mana_burn` and `damage` stepping together (28 -> 29 on 17389):
+    // `Unit::process`'s decoy arm calls `suffer_attrition` every frame,
+    // which ours took for a SEAM. Built: 1133 -> 42, and the word 17394
+    // -> 17554, the game's last frame. What stands: 17388's standing
+    // family alone (`form` −1 against 9, the leaders' `SITE[·].reg` 1
+    // against 0, `aggression[1]`, `pool:64`/`65`/`67` and
+    // `group:64`/`65`/`67.held` with no `GROUPDATA` printed, and the
+    // `g.angle[0]` of fourteen figures).
+    pin_eq!(w.firsts.len(), 42, "keys that part in the window");
+}
+
+/// The closing state's window: run895b's closing block alone, the long's
+/// last frame 17554 writing it (item 3361).
+pub(crate) const WIDENING_AZTEC_CLOSING: (i64, i64) = (17553, 17556);
+
+/// **The lobby's closing state** (item 3361, DECISIONS 55): run895b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+/// The game ends itself on 17554.
+#[test]
+fn run895b_aztec_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        crate::testenv::dump(AZTEC.long.0),
+        crate::testenv::dump(AZTEC.start),
+        trace(AZTEC.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Aztec closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 17555, "the closing block");
+    pin_eq!(e.compared, 89, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3361, the first walk (with the detected decoy's bleed, the word
+    // at 17554): 89 units compared on block 17555, none apart, no building
+    // or city field-row, no closing field.
 }

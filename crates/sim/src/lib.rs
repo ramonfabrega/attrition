@@ -6696,6 +6696,13 @@ impl Sim {
             self.units[i].sheltered = true;
             return None;
         }
+        Some(self.suffer_attrition(i, frame))
+    }
+
+    /// **`Unit::suffer_attrition@005e1a10`**: one tick's damage, for the
+    /// period's bleed above and a detected decoy's
+    /// ([`Sim::recover_mana`]). Its argument gates the graphic alone.
+    pub(crate) fn suffer_attrition(&mut self, i: usize, frame: i64) -> Tick {
         // The damage is sixteenths of a hit point per figure, carried through
         // a fractional accumulator the way `Object::take_damage` carries it,
         // so a lone figure loses one whole point a tick and a figure in a
@@ -6744,13 +6751,13 @@ impl Sim {
             // on the number (`docs/COMBAT.md` §59.3, `docs/GOLDEN.md` §135).
             self.die_by_attrition(i, frame);
         }
-        Some(Tick {
+        Tick {
             unit: i,
             frame,
             sixteenths,
             lost,
             killed,
-        })
+        }
     }
 
     /// [`turning_of`] for a type this simulation holds.
