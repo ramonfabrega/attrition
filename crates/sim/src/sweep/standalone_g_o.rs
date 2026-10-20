@@ -694,6 +694,8 @@ mod objects_data_count_nukes_in_flight;
 mod objects_data_find;
 #[path = "objects_data_find_any_building_at.rs"]
 mod objects_data_find_any_building_at;
+#[path = "objects_data_find_building.rs"]
+mod objects_data_find_building;
 #[path = "objects_data_find_building_placed_at.rs"]
 mod objects_data_find_building_placed_at;
 #[path = "objects_data_find_city.rs"]
