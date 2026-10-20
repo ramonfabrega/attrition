@@ -153,6 +153,8 @@ pub(crate) struct Head {
     pub strong: bool,
     /// The capital's cell, when the owner has one.
     pub cap: Option<(i32, i32)>,
+    /// `count(NON_DECOY_TYPE, SUPPLYWAGON)`.
+    pub supply: i32,
     /// The two sea averages (`local_4c`, `local_48`).
     pub ours: i32,
     pub theirs: i32,
@@ -166,6 +168,7 @@ pub(crate) fn target_head<V: TargetGateView>(v: &mut V) -> Head {
     if v.lflags(who) & 8 != 0 {
         return Head {
             stop: true,
+            supply,
             strong: false,
             cap: None,
             ours: 0,
@@ -207,6 +210,7 @@ pub(crate) fn target_head<V: TargetGateView>(v: &mut V) -> Head {
     }
     Head {
         stop: false,
+        supply,
         strong,
         cap,
         ours: if on != 0 { os / on } else { os },
@@ -480,12 +484,8 @@ impl TargetGateView for SimGate<'_> {
             .map_or(-1, |c| i32::from(self.sim.cities[c].founder))
     }
     fn city_ocean(&self, a: usize, k: usize) -> i32 {
-        self.city(a, k).map_or(0, |c| {
-            self.sim.ai[a]
-                .city_ai
-                .get(c)
-                .map_or(0, |r| r.ocean)
-        })
+        self.city(a, k)
+            .map_or(0, |c| self.sim.ai[a].city_ai.get(c).map_or(0, |r| r.ocean))
     }
     fn capital_cell(&self, owner: i32, idx: i32) -> (i32, i32) {
         let c = self.sim.cities_of(owner as crate::Player)[idx as usize];
