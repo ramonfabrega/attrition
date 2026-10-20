@@ -51,8 +51,8 @@ pub trait TradeView: GarrisonHead {
     /// Slot `+0xb0`, then the data's `is_trade` (slot `+0x24`, or
     /// `WallData::is_trade` inline: `is(0x19e, 0)`).
     fn data_is_trade(&mut self, p: i32, o: i32) -> bool;
-    /// `GroupData::count(COUNT_TYPE, ty, 0)`.
-    fn count_type(&mut self, ty: i32) -> i32;
+    /// `GroupData::count(kind, ty, 0)`, `kind` [`COUNT_TYPE`].
+    fn count_type(&mut self, kind: i32, ty: i32) -> i32;
     /// `[this + 0xc]`.
     fn count(&self) -> i32;
     /// The short `i` of the group's array at `+0x8cc`.
@@ -96,7 +96,7 @@ pub fn action_trade_steps<V: TradeView>(
     if !v.obj_slot0c(who, b) || !v.obj_slot4c(who, b) || !v.data_is_trade(who, b) {
         return;
     }
-    if v.count_type(TYPE_CARAVAN) == 0 && v.count_type(TYPE_TRADE_SHIP) == 0 {
+    if v.count_type(COUNT_TYPE, TYPE_CARAVAN) == 0 && v.count_type(COUNT_TYPE, TYPE_TRADE_SHIP) == 0 {
         return;
     }
     if queue == 0 {

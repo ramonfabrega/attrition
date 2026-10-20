@@ -211,8 +211,8 @@ fn the_emulated_original_agrees_on_every_row() {
                         self.rec(3, &format!("p{}+0x0", Self::ow(p, o)), &[]);
                         self.is_trade_on(Self::dw(p, o), Self::tdw(p, o))
                     }
-                    fn count_type(&mut self, ty: i32) -> i32 {
-                        self.rec(12, "m+0x0", &[0x11, ty, 0]);
+                    fn count_type(&mut self, kind: i32, ty: i32) -> i32 {
+                        self.rec(12, "m+0x0", &[kind, ty, 0]);
                         self.seq(12)
                     }
                     fn count(&self) -> i32 {
