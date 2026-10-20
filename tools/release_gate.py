@@ -16,6 +16,8 @@ The lane gate's release step runs:
     those are `--skip`ped by exact name; a test the file does not name (the
     worker's new widening among them) runs. So the sim suite, the paperwork
     guards and the data layer run whole, and rondata's walks under a second;
+    a paperwork guard (`PAPERWORK_GUARDS`: `writers::`, `ledger::`,
+    `docs_guard`, `the_handoff_s_`) runs whatever its timing (item 3373);
   * **the word's own tests**, `--tests FILTER ...`, which the brief names
     and the lane gate refuses to run without: a timed test that contains a
     filter is kept, however slow, and a filter that matched no test that
@@ -209,21 +211,53 @@ COMMANDERS_LINES = (
 TIMINGS = ROOT / 'docs/audit/2026-10-15-suite-timings.txt'
 LANE_BUDGET_SECONDS = 1.0
 RAN_TEST = re.compile(r'^test (\S+) \.\.\. (?:ok|FAILED)$')
+# **The paperwork guards run in every lane gate, whatever their timing**
+# (item 3373, the forty-sixth pass): `writers::a_field_the_sim_writes_is_
+# read_by_something` timed at 1.08 s, so `--lane --no-widen` left it to the
+# booking gate, and 3362's booking gate went red on it after a green lane
+# gate. A guard that reads the tree's own source or paperwork is cheap and
+# is the worker's to keep green, so the budget never skips a test whose
+# name contains one of these: the field-writer guards (`writers::`), the
+# widening ledger (`ledger::`), the sim's paperwork guard (`docs_guard`,
+# not timed today, named so a re-timing cannot skip it) and the handoff's
+# readers of `docs/QUEUE.md` (`the_handoff_s_`, the commander's lines, which
+# a lane forgives by name and still runs).
+PAPERWORK_GUARDS = ('writers::', 'ledger::', 'docs_guard', 'the_handoff_s_')
 
 
-def lane_skips(timings, tests):
-    """The timed tests a lane gate leaves to the booking gate: every name
-    whose seconds alone exceed the budget and which no word filter in
-    `tests` names. `timings` is the file's text: `seconds<TAB>name` rows,
-    `#` comments."""
-    skips = []
+def _timed_rows(timings):
     for line in timings.splitlines():
         if not line.strip() or line.startswith('#'):
             continue
         seconds, name = line.split('\t')
-        if float(seconds) > LANE_BUDGET_SECONDS and not any(f in name for f in tests):
-            skips.append(name)
-    return sorted(skips)
+        yield float(seconds), name
+
+
+def is_paperwork(name):
+    return any(p in name for p in PAPERWORK_GUARDS)
+
+
+def lane_skips(timings, tests):
+    """The timed tests a lane gate leaves to the booking gate: every name
+    whose seconds alone exceed the budget, which no word filter in `tests`
+    names, and which is no paperwork guard (`PAPERWORK_GUARDS`). `timings`
+    is the file's text: `seconds<TAB>name` rows, `#` comments."""
+    return sorted(name for seconds, name in _timed_rows(timings)
+                  if seconds > LANE_BUDGET_SECONDS and not any(f in name for f in tests)
+                  and not is_paperwork(name))
+
+
+def kept_line(paperwork):
+    """The `Lane suite:` line's clause for the paperwork the budget kept."""
+    return (f"; {len(paperwork)} over budget kept as paperwork ({', '.join(PAPERWORK_GUARDS)}; item 3373)"
+            if paperwork else '')
+
+
+def lane_paperwork(timings):
+    """The timed tests over the budget a lane gate keeps because they are
+    paperwork guards — the count its `Lane suite:` line says."""
+    return sorted(name for seconds, name in _timed_rows(timings)
+                  if seconds > LANE_BUDGET_SECONDS and is_paperwork(name))
 
 
 # Loop 2415 (the thirty-fifth pass): the lane gate leaves the timed
@@ -357,7 +391,10 @@ def memory_cap_gib(test_threads):
 
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
          lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=None,
-         no_widen=False):
+         no_widen=False, git=subprocess.run):
+    # `git` runs the gate's own reads of the tree (`branch_paths`,
+    # `base_moved`); the offline cases hand it a fixture so none reads the
+    # tree the gate runs in (item 3366).
     # Parked 1713: two lanes `pkill -f release_gate.py`'d every gate on the
     # box to stop their own; a gate names its pid first so it can be killed
     # by it.
@@ -386,16 +423,32 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         raise ValueError('--no-widen is a lane gate\'s: the booking gate always widens on a path that can move a pin')
     if any(not f.strip() for f in tests):
         raise ValueError('an empty --tests filter would keep every slow test')
-    skips, widened, touched = [], [], None
+    if lane:
+        # Item 3366: 3360's refusal was one line at the log's foot, under
+        # seven offline cases that had failed for reading the same moved
+        # tree, and it read as a broken tool. The base is read before the
+        # first step too; when both sides touched a path the gate says so
+        # first and runs nothing. It is read again after the steps (below),
+        # for a base that moves while the gate runs.
+        commits, overlap = base_moved(base, run=git)
+        if overlap:
+            print(base_line(base, commits, overlap), flush=True)
+            raise ValueError(f"the base moved under this branch and both sides touched "
+                             f"{', '.join(overlap)}: refused before the offline step, nothing ran; "
+                             "take `ccc update <your ref>` and gate again (Loop 3341, item 3366)")
+    skips, widened, touched, paperwork = [], [], None, []
     if lane or scope is not None:
-        touched = branch_paths(base if lane else scope)
+        touched = branch_paths(base if lane else scope, run=git)
         widened = lane_widens(touched or [])
         # DECISIONS 83 (the forty-fourth steer): every lane of one tranche
         # touched a sim path and every lane gate ran the whole timed suite
         # at four threads (6–26 minutes, median 18.9) while fifteen of the
         # twenty moved no pin. The AI lane's brief widens; a sweep's or a
         # chapter's says `--no-widen`, and the booking gate holds the pins.
-        skips = [] if widened and not no_widen else lane_skips(TIMINGS.read_text(), tests)
+        if not widened or no_widen:
+            timings = TIMINGS.read_text()
+            skips = lane_skips(timings, tests)
+            paperwork = lane_paperwork(timings)
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
@@ -442,7 +495,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     if lane:
         policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)), 'no_widen': bool(no_widen),
                           'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
-                          'base': base, 'widened': widened}
+                          'paperwork_kept': len(paperwork), 'base': base, 'widened': widened}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
     #
@@ -483,7 +536,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
               f"booking gate by the brief's --no-widen, though the branch touches {len(widened)} path(s) "
               f"that can move a pin ({widened[0]}{', …' if len(widened) > 1 else ''}); the booking gate "
-              "holds the pins (DECISIONS 83)", flush=True)
+              "holds the pins (DECISIONS 83)" + kept_line(paperwork), flush=True)
     elif lane and widened:
         print(f"Lane suite: every timed test — the branch touches {len(widened)} path(s) that can move "
               f"the diff:: pins ({widened[0]}{', …' if len(widened) > 1 else ''}; Loop 2415); "
@@ -491,8 +544,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     elif lane:
         print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
               f"booking gate ({TIMINGS.relative_to(ROOT)}); the word's: {', '.join(tests)}"
-              + (f"; base {base} is not a ref here, so nothing widened" if touched is None else ''),
-              flush=True)
+              + (f"; base {base} is not a ref here, so nothing widened" if touched is None else '')
+              + kept_line(paperwork), flush=True)
     reached = []
     seconds = []
     load_at_start = host_load()
@@ -503,7 +556,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         if lane:
             # Loop 3341: the base is read after the steps, so the line is
             # the freshest a lane can have before its done line.
-            commits, overlap = base_moved(base)
+            commits, overlap = base_moved(base, run=git)
             print(base_line(base, commits, overlap), flush=True)
             if overlap:
                 raise ValueError(f"the base moved under this branch and both sides touched "

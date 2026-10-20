@@ -69,6 +69,32 @@ error: 1 target failed:
 WORD = ['the_gate_has_a_bounded_test_width']
 
 
+def git_fixture(commits=(), theirs=(), ours=()):
+    """A `git` runner for the gate's own reads (`branch_paths`,
+    `base_moved`), so no case reads the real tree. Item 3366: 3360's lane
+    gate refused for a moved base, and seven of these cases failed above
+    the refusal because they read the tree the gate ran in."""
+    def run(args, **kwargs):
+        if args[:2] == ['git', 'merge-base']:
+            out = 'f0rk\n'
+        elif args[:2] == ['git', 'log']:
+            out = ''.join(c + '\n' for c in commits)
+        elif args[:3] == ['git', 'diff', '--name-only']:
+            out = ''.join(p + '\n' for p in (ours if args[-1] == 'HEAD' else theirs))
+        else:
+            raise AssertionError(f'the gate ran an unexpected git: {args}')
+        return SimpleNamespace(stdout=out, returncode=0)
+    return run
+
+
+# The base has not moved and the branch touched nothing.
+UNMOVED = git_fixture()
+# 3360's shape: the base gained two landings and both sides touched a table.
+MOVED = git_fixture(commits=['c2729a5 Book 3337', '4a8c010 Book 3338'],
+                    theirs=['crates/rondata/src/diff/battery.rs', 'docs/QUEUE.md'],
+                    ours=['crates/rondata/src/diff/battery.rs', 'crates/sim/src/city.rs'])
+
+
 def release_ran(kwargs, log=RELEASE_LOG, present=True):
     """What a release child leaves behind: the fixture audit and the log."""
     write_request(kwargs['env']['RON_FIXTURE_AUDIT_DIR'], present)
@@ -120,7 +146,7 @@ class SharedEntryPoints(unittest.TestCase):
                     if '--release' in command:
                         release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
                 with patch.object(gate, 'branch_paths', return_value=[]):
-                    gate.gate(install, report_dir=Path(d)/'report', run=run, **options)
+                    gate.gate(install, report_dir=Path(d)/'report', run=run, git=UNMOVED, **options)
                 self.assertEqual('tools/isolated_tests.py' in calls[4], isolated)
                 self.assertEqual(len(calls), 6)
 
@@ -137,7 +163,8 @@ class SharedEntryPoints(unittest.TestCase):
                             commands.append(command)
                             release_ran(kwargs, RELEASE_LOG.replace('FAILED', 'ok'))
                     with patch.object(gate, 'branch_paths', return_value=[]):
-                        gate.gate(install, report_dir=install/'report', run=run, isolated=isolated, **options)
+                        gate.gate(install, report_dir=install/'report', run=run, isolated=isolated,
+                                  git=UNMOVED, **options)
             selections = [[c[i+1] for i, arg in enumerate(c) if arg == '--skip'] for c in commands]
             self.assertEqual(selections[0], selections[1])
             self.assertTrue(bool(selections[1]) == bool(options))
@@ -507,7 +534,7 @@ class GateTests(unittest.TestCase):
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(RELEASE_LOG)
             with patch('builtins.print') as printed:
-                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertEqual([gate.step_name(c) for c, _ in calls],
                              ['offline','clippy','fmt','survey','release','guard'])
@@ -523,7 +550,7 @@ class GateTests(unittest.TestCase):
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(own)
             with patch('builtins.print') as printed, self.assertRaises(subprocess.CalledProcessError):
-                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertEqual(gate.step_name(calls[-1][0]), 'release')
             self.assertIn("Lane verdict: red on the worker's own (1)", said)
@@ -536,7 +563,7 @@ class GateTests(unittest.TestCase):
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(RELEASE_LOG, returncode=137)
             with self.assertRaises(subprocess.CalledProcessError):
-                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
             self.assertEqual(gate.step_name(calls[-1][0]), 'release')
 
     def test_a_lane_gate_refuses_a_tree_with_no_journal(self):
@@ -546,13 +573,15 @@ class GateTests(unittest.TestCase):
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(RELEASE_LOG)
             with self.assertRaises(ValueError) as refused:
-                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, item=999999)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, item=999999,
+                          git=UNMOVED)
             self.assertIn('item-999999.md', str(refused.exception))
             self.assertEqual(calls, [])
             # An item whose journal is in the tree gates (1735's is).
             self.assertTrue(gate.journal_of(1735))
             with patch('builtins.print') as printed:
-                gate.gate(path, report_dir=path/'report2', run=run, lane=True, tests=WORD, item=1735)
+                gate.gate(path, report_dir=path/'report2', run=run, lane=True, tests=WORD, item=1735,
+                          git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertIn('Gate pid: ', said)
             self.assertEqual(len(calls), 6)
@@ -662,15 +691,16 @@ class GateTests(unittest.TestCase):
         self.assertIn('ccc update', line)
         # Not moved at all.
         self.assertIn('has not moved', gate.base_line('worktree-replan-pdb', [], []))
-        # Through the gate: green steps, a moved base with an overlap, and
-        # the gate exits red on the line alone.
+        # Through the gate: green steps, a base that moved with an overlap
+        # while the gate ran (item 3366 reads it before the first step too,
+        # where it had not), and the gate exits red on the line alone.
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
             calls, run = self.lane_run(RELEASE_LOG)
             with patch('builtins.print') as printed, \
-                 patch.object(gate, 'base_moved', return_value=(commits, overlap)), \
+                 patch.object(gate, 'base_moved', side_effect=[([], []), (commits, overlap)]), \
                  self.assertRaises(ValueError) as refused:
-                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD)
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
             said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
             self.assertIn('Base moved: 2 commit(s)', said)
             self.assertIn('Gate steps: 6 of 6 ran', said)
@@ -711,7 +741,7 @@ class GateTests(unittest.TestCase):
                 if '--release' in command:
                     release_ran(kwargs)
             with patch('builtins.print'), patch.object(gate, 'branch_paths', return_value=list(touched)):
-                gate.gate(path, report_dir=path/'report', run=run, test_threads=4, **kw)
+                gate.gate(path, report_dir=path/'report', run=run, test_threads=4, git=UNMOVED, **kw)
             policy=json.loads((path/'report/gate-policy.json').read_text())
         return next(c for c in calls if '--release' in c), policy
 
@@ -826,11 +856,84 @@ class GateTests(unittest.TestCase):
                 if '--release' in command:
                     release_ran(kwargs, log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
             with patch('builtins.print'), self.assertRaises(ValueError) as caught:
-                gate.gate(path, report_dir=path/'report', run=run, lane=True,
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, git=UNMOVED,
                           tests=WORD + ['run683_s_wrod'])
             self.assertIn('run683_s_wrod', str(caught.exception))
             self.assertNotIn('the_gate_has', str(caught.exception))
             self.assertEqual(gate.step_name(calls[-1]), 'release')
+
+    def test_a_lane_gate_refused_for_a_moved_base_says_so_before_the_offline_step(self):
+        # Item 3366: 3360's lane gate printed its `Base moved:` refusal as
+        # the log's last line, under seven offline cases that failed for
+        # reading the same moved tree; it read as a broken tool. A lane gate
+        # reads the base before its first step, and when both sides touched
+        # a path it says so first and runs nothing.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed, self.assertRaises(ValueError) as refused:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=MOVED)
+            lines=[str(c.args[0]) for c in printed.call_args_list if c.args]
+            self.assertEqual(calls, [])
+            moved=[line for line in lines if line.startswith('Base moved:')]
+            self.assertEqual(len(moved), 1)
+            self.assertIn('battery.rs', moved[0])
+            self.assertIn('ccc update', moved[0])
+            # Nothing but the pid line comes before it.
+            self.assertEqual([l for l in lines[:lines.index(moved[0])] if not l.startswith('Gate pid:')], [])
+            self.assertIn('battery.rs', str(refused.exception))
+            self.assertIn('before the offline step', str(refused.exception))
+        # A base that moved with no path both sides touched still gates.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=['c2729a5 Book 3337'], theirs=['docs/QUEUE.md'],
+                                          ours=['crates/sim/src/city.rs']))
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertEqual(len(calls), 6)
+            self.assertIn('no path both sides touched', said)
+
+    # Item 3373: `writers::a_field_the_sim_writes_is_read_by_something` timed
+    # at 1.08 s, over the lane budget, so `--lane --no-widen` left it to the
+    # booking gate, and 3362's booking gate went red on it after a green
+    # lane gate. A paperwork guard runs in every lane gate whatever its time.
+    PAPERWORK_TIMINGS = ('1.08\twriters::a_field_the_sim_writes_is_read_by_something\n'
+                         '1.20\tledger::tests::the_widening_ledger_counts_what_nothing_compares\n'
+                         '3.00\tdiff::floors::tests::the_handoff_s_scoreboard_is_the_floors\n'
+                         '0.12\twriters::compared_fields_have_writers\n'
+                         '2.00\tdiff::harness::tests::run97_s_build_queues_are_the_original_s\n')
+
+    def test_the_paperwork_guards_run_in_every_lane_gate_whatever_their_timing(self):
+        skips=gate.lane_skips(self.PAPERWORK_TIMINGS, ['run589'])
+        self.assertEqual(skips, ['diff::harness::tests::run97_s_build_queues_are_the_original_s'])
+        self.assertEqual(gate.lane_paperwork(self.PAPERWORK_TIMINGS), [
+            'diff::floors::tests::the_handoff_s_scoreboard_is_the_floors',
+            'ledger::tests::the_widening_ledger_counts_what_nothing_compares',
+            'writers::a_field_the_sim_writes_is_read_by_something'])
+        for pattern in ('writers::', 'docs_guard', 'ledger::', 'the_handoff_s_'):
+            self.assertIn(pattern, gate.PAPERWORK_GUARDS)
+        # The suite's own file: the writers guard is over budget there and
+        # is kept.
+        text=gate.TIMINGS.read_text()
+        self.assertNotIn('writers::a_field_the_sim_writes_is_read_by_something', gate.lane_skips(text, []))
+        # The lane gate's line counts what the budget kept for the paperwork.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            def run(command, **kwargs):
+                if '--release' in command:
+                    release_ran(kwargs, log=RELEASE_LOG.replace(' ... FAILED', ' ... ok'))
+            (path/'timings.txt').write_text(self.PAPERWORK_TIMINGS)
+            with patch('builtins.print') as printed, patch.object(gate, 'TIMINGS', path/'timings.txt'), \
+                 patch.object(gate, 'ROOT', path):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED,
+                          isolated=False)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            policy=json.loads((path/'report/gate-policy.json').read_text())
+        suite=next(l for l in said.splitlines() if l.startswith('Lane suite:'))
+        self.assertIn('3 over budget kept as paperwork', suite)
+        self.assertEqual(policy['lane']['paperwork_kept'], 3)
 
     def test_the_timings_file_is_the_suite_s(self):
         # The constant names a file that exists, holds the two coverage pins
