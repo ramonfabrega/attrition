@@ -105,7 +105,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     let o = self.m[9];
                     self.put(1, format!("{x},{x},{y},1,{o},{range},512,10,1,0,{x},1"));
                 }
-                fn len(&self) -> usize {
+                fn count(&self) -> usize {
                     r32(&self.c[0], 0x208) as usize
                 }
                 fn site(&mut self, i: usize) -> Option<i32> {

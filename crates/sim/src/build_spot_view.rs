@@ -34,7 +34,7 @@ pub trait BuildSpotView {
     /// FILTER_BUILDREPAIR)`: appends to the result array.
     fn find_units(&mut self, range: i32);
     /// The result array's length now.
-    fn len(&self) -> usize;
+    fn count(&self) -> usize;
     /// Element `i` as the first pass reads it (vtable `+0xac`): its site id
     /// when `build_masks & 0x20` is clear and its owner is mine.
     fn site(&mut self, i: usize) -> Option<i32>;
@@ -56,7 +56,7 @@ pub fn build_spot_steps(v: &mut impl BuildSpotView) -> bool {
     }
     v.find_builds(range);
     let mut sites: Vec<i32> = Vec::new();
-    for i in 0..v.len() {
+    for i in 0..v.count() {
         if let Some(s) = v.site(i) {
             sites.push(s);
         }
@@ -66,7 +66,7 @@ pub fn build_spot_steps(v: &mut impl BuildSpotView) -> bool {
     }
     v.find_units(range);
     let mut counts = vec![0i32; sites.len()];
-    for i in 0..v.len() {
+    for i in 0..v.count() {
         if let Some(t) = v.building_at(i)
             && let Some(k) = sites.iter().position(|&s| s == t)
         {
@@ -123,7 +123,7 @@ impl BuildSpotView for SimBuildSpot<'_> {
     fn find_units(&mut self, range: i32) {
         self.units = self.s.find_units_friendly(self.u, range);
     }
-    fn len(&self) -> usize {
+    fn count(&self) -> usize {
         self.sites.len() + self.units.len()
     }
     fn site(&mut self, i: usize) -> Option<i32> {
