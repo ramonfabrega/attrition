@@ -144,6 +144,66 @@ metadata: even `-noanalysis -readOnly` rotates project index/backup files.
   read-only in zsh.** The script once did `status=$?` and died with
   "read-only variable" on every run; it is `rc` now.
 
+### What the compiler was, and what it does to a listing
+
+From `rise.pdb` (`llvm-pdbutil dump --symbols`, `--ids`; 2026-10-19), each
+module's first `S_COMPILE3`: **Visual Studio 2015 Update 3.** 561 modules
+are compiler `19.0.24215.1`, all `ltcg` — 391 C++ and 5 C under `game\`,
+139 under `basic\` and `bighuge\` (also `security checks`), 26 C of
+`pnglib`/`zlib`; 48 at `19.0.24123.0` are the runtime's static objects;
+the linker is `14.0.24215.1`. `LF_BUILDINFO` `0x3046` (`game\`; strings
+`0x3041`–`0x3045`) runs `Microsoft Visual Studio 14.0\VC\bin\CL.exe -Zi
+-W3 -Ox -Ob2 -Oy- -GL … -Gm- -EHa -MD -GS- -fp:precise … -Yugamemain.h …
+-std:c++latest`, Windows SDK `10.0.18362.0`, no `-arch` — so 2015's x86
+default, `/arch:SSE2`. `bighuge`'s (`0xC538`) is the same with `-GS`.
+
+- **`-GL`: a symbol is not a body.** LTCG inlines across files and folds
+  identical bodies: `rise_z.map` gives 2,972 addresses 11,978 function
+  names. `0x0041bff0` (`xor eax,eax; ret`) carries 186, among them
+  `ObjectTypeData::blocks_while_dead`, and the export files it as
+  `Window::get_button`. Grep the map for the address before calling a
+  function unused or foreign; name a vtable slot by `LF_ONEMETHOD`'s
+  offset, not the folded symbol `vtables.txt` prints.
+- **`-Ob2`: the accessor is at every caller, a virtual one behind a
+  guard.** `LeaderData::get_age@0043ecd0` has 5 direct calls and its
+  `xor 0x62766` is in `.text` 141 times across 26 objects.
+  `UnitData::is_hero@0046ce60` has none: 35 sites compare the vtable slot
+  with its address and inline it on a match (`Guy::inc_time@005d9e10`,
+  `if (pcVar4 == UnitData::is_hero)`). Grep an accessor's constant or
+  offset, never its name.
+- **`-Oy-` is not in every function.** Of 1,093 methods of the sim's main
+  classes, 747 open `push ebp; mov ebp,esp`, 306 build no frame, and 40
+  use `ebp` as a general register — `LeaderData::calc_city_resources@006d5530`
+  opens `sub esp,0x1c0; push ebx; push ebp; mov ebp,[esp+0x1dc]`. Read the
+  prologue before calling an `ebp` offset a local; why LTCG dropped the
+  frame was not read.
+- **`-fp:precise`, `/arch:SSE2`: scalar SSE, not x87.**
+  `Vector<float>::norm@00420870` is `movss`/`mulss`/`ucomiss` throughout;
+  `.text` has 12,511 `movss` and 1,049 `cvttss2si` against 22 `flds`
+  (`docs/lab/RECOMP-REVIEW.md` has the histogram). The 316 `ucomiss; lahf;
+  test ah,0x44; jnp` runs are the NaN-correct compare, printed as `==` or
+  `!=`. The trap is the `xmm0` convention the decompiler does not track:
+  `norm` divides `1.0` by `sqrtf@0041e6f0`'s answer and prints
+  `sqrtf(unaff_ESI)` and a division by the squared length. For any float
+  call, read the listing.
+- **`-EHa`: unwind state and funclets look like code.** 7,128 exported
+  functions open with the `ExceptionList` link, and `local_8 = 0xffffffff`
+  in `Leader::~Leader@0042de10` is the EH state index, not a game local;
+  the 238 `Catch@…` funclets run on the parent's frame and read through
+  `unaff_EBP` (`Catch_00420727`). Read a funclet against its parent.
+- **`-GS-` for `game\` only.** 880 exported functions carry
+  `__security_cookie` — `LobbyManager`, `Window` (`bighuge`'s
+  `window.cpp`), `Steam` — none of `Leader`, `Unit`, `Object`, `World`,
+  `Ammo`, `PathFinder`. A cookie means library code.
+- **`-MD`: the runtime is a DLL, small copies inline.** `memcpy@0055e0ac`
+  is `jmp [0xac5428]`, an import thunk; a fixed clear is `rep stosd` in
+  place (`LeaderData::calc_city_resources`, 6 dwords twice), printed as a
+  counted `for` loop.
+- **`-std:c++latest`: lambdas are functions of their own.** 72
+  `<lambda_…>::operator()` and 2,400 index names with `lambda_`, most
+  `std::_Func_impl` wrappers; the hash names no enclosing function, so
+  find it through the caller.
+
 ## Cheaper than Ghidra
 
 - `game/sbl/rise_z.map` is a 13 MB linker map and a free symbol index:
