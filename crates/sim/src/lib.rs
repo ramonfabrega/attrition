@@ -131,6 +131,7 @@ pub mod spellcaster;
 pub mod stance;
 pub mod supply;
 pub mod swarm;
+pub mod take_damage_view;
 pub mod target_gate;
 pub mod target_score;
 pub mod tcoord;
