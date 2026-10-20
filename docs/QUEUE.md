@@ -15,13 +15,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-19, **the forty-fifth pass (steer, Fable): the forty-fifth tranche measured — 20 landings on three lanes from
 `43e161a7` in 16 h 55, fourteen battery games closed, 14.79 USD a landing and 26 a game** (DECISIONS 84, its record
 `docs/audit/2026-10-19-fable-pass-45.md`); the roster is Ramon's (DECISIONS 83): two Opus 5.5 medium lanes on battery
-words, landing wide, one Sonnet 5.5 medium sweep lane; the forty-sixth tranche's base is this pass's last commit.*
+words, landing wide, two Sonnet 5.5 medium sweep lanes (his word at this steer, entry 84); the base is this pass's last commit.*
 
 - **Words**: every pair closed; fourteen battery words closed (`AI_WORDS` holds thirteen). Battery on `ec062f94`: 6071
   (the Lakota, 3345), 13422 (the French, 3347), 24000, 9130, 14991, 9185, 7782, 9382 — median 9284 (4770). Census 1580, port 436.
 - **Lanes: none live**; unspawned: 3345 AI (runs 979, 980, AI §277, LA), 3347 AI (runs 981, 982, AI §278, LC), 3346
-  the nations seat (LB). Next 3348, run 983. Pools: GOLDEN §144–148, AI §279–282, park LD–LF.
-- **Fable backlog: 7 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237); the pass's builds are DECISIONS 84.
+  the nations seat (LB), 3348 the second sweep (LD). Next 3353, run 983. Pools: GOLDEN §144–148, AI §279–282, park LE–LF.
+- **Fable backlog: 11 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352); DECISIONS 84.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,16 +37,16 @@ Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-sixth tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md
-first; spawn the three unspawned items (3345 and 3347 on `claude-opus-5-5[1m]` `--effort medium`, landing wide;
-3346 on `claude-sonnet-5-5[1m]` `--effort medium`, `--no-widen`), `python3 tools/lanewait.py` on the three and
-carry the chain — a battery word's lane refills by `battery_measure`'s lowest open lobby under entry 72's rules
-as amended (DECISIONS 84; the booking says which rule minted the replacement), the sweep on Sonnet; twenty
-landings, then clear `steer`.**
+first; spawn the four unspawned items (3345 and 3347 on `claude-opus-5-5[1m]` `--effort medium`, landing wide;
+3346 and 3348 on `claude-sonnet-5-5[1m]` `--effort medium`, `--no-widen`, each sweep brief naming the other's
+worktree for `--claimed`), `python3 tools/lanewait.py` on the four and carry the chain — a battery word's lane
+refills by `battery_measure`'s lowest open lobby under entry 72's rules as amended (DECISIONS 84; the booking says
+which rule minted the replacement), a sweep lane by the next six `port`-marked rows; twenty landings, then clear `steer`.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **The roster is Ramon's** (the forty-fourth steer, DECISIONS 83): 3345 and
-3347 the battery words' (Opus), 3346 the sweep's (Sonnet). **A battery word's lane lands wide**: every fix its widening
+In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 83, 84): 3345 and 3347 the battery
+words' (Opus), 3346 and 3348 the sweeps' (Sonnet). **A battery word's lane lands wide**: every fix its widening
 exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed until 3345's pin lands (`AI_WORDS` holds
 thirteen); open: none until 3345 and 3347 promote the Lakota and the French. An open word is carried to its end before
 the next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why.
@@ -74,6 +74,13 @@ the next lobby is promoted (3329 → 3333). Take the first unstarted item unless
     `Unit::think_carry_civilian`, `Object::disband`, `BuildTypeData::blocked_tcoord` (`census.py --unbacked`, the
     `port` mark) — each built against the crate's own method where it has one, or parked naming the generator flag it
     could not spell. `--kind sweep`, `--no-widen`, park LB.
+
+3348. **The second sweep lane's first shape batch** (DECISIONS 84 (i), Ramon's word; the score `Census:` port 436;
+    the next six `port`-marked rows after 3346's on `census.py --unbacked --all --top 4000`): `Unit::do_group_move`,
+    `Roads::add_roads`, `Unit::find_path`, `Unit::work`, `Army::find_muster_spot`, `Unit::target_opportunity` — each built
+    against the crate's own method where it has one, or parked naming the generator flag it could not spell; the brief
+    names 3346's worktree for `--claimed` (Loop 2926) so the two sweeps never build one function. `--kind sweep`,
+    `--no-widen`, park LD.
 
 ## How to maintain this file
 

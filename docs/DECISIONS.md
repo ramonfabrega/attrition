@@ -6975,3 +6975,31 @@ against 369, backed against 1580, port against 436, cited against 1678,
 `suite_timings.py --stale` against 0 after this pass's re-timing; the
 disk against 76 GiB; whether the forgiven Loop-line red, the `Base
 moved:` line and the launch refusal fired in the tranche.
+
+**Ramon's word at this steer, 2026-10-19, in the session.** (i) **Four
+lanes for the forty-sixth tranche**: two battery words on Opus 5.5 at
+`--effort medium`, landing wide, and two sweeps on Sonnet 5.5 at
+medium — the second sweep is the token-for-CPU trade: its clock is its
+own subagents' and it holds no capture lane. (ii) **The 300 k cap
+stays**; measured this pass, a clear restarts a lane at 67 k and the
+heavy sessions are 250 shell calls at about 1.4 k tokens a step, the
+lane's own command text most of it — the lever is fewer, batched reads
+and a widening's reading delegated to a subagent, which rides as a
+frame row on one battery lane and is measured next pass (Loop 3351).
+(iii) **The loop is capture-bound where it could be static**: 4.5
+captures a battery landing; the second sweep lane, a `reading` brief
+kind (built this pass, run as a fifth lane after the next steer) and a
+measure of captures a parting (Loop 3352) shift the weight. (iv) **No
+cold storage**: pruning is by a list, `tools/archive_census.py` (built
+this pass) produces it, and Ramon approves each deletion; the lab's
+245 capture directories (14 GiB, read by no test) were deleted on his
+word, 75 → 89 GiB free. (v) **A matching track is off the table for a
+reason now written down**: the PDB's build records say Visual Studio
+2015 Update 3 with `-GL`, so inlining crosses files and a per-unit
+byte match cannot be reproduced; what transfers from banteg's tooling
+is a byte-weighted census column and a per-function regression check
+(built this pass), block coverage and a bounded search over the sweep
+generator's draw-only flags (Loop 3349), and the question whether the
+behavioural diff should credit the large functions it reaches, which
+the census counts as unbacked (Loop 3350, Ramon's — 43.8 % of
+simulation functions are backed and about 23.5 % of their bytes).

@@ -3762,6 +3762,39 @@ method where it has one, or parked naming the generator flag it could not spell.
 
 ## Loop, filed 2026-10-18 — the forty-fourth pass's own
 
+## Loop, filed 2026-10-19 — the forty-fifth pass's own
+
+(3349) **Block coverage for the sweeps, then a bounded search over the generator's draw-only flags** (the forty-fifth
+pass's reader of banteg's `hv search`, with Ramon): no sweep measures which branches its rows reach, so a batch that
+"agrees on every row" may have drawn the same arm sixty times; and every generator flag is added by hand (Loop 2003's
+ledger). Candidate, in two steps each made to fail first: (1) the emulator scripts record the blocks each row entered
+and the test prints the function's block coverage; (2) a seeded, budgeted search over the draw-only flags (`--seq`,
+`--answers`, `--answer-range`, never a state-shaping flag — `--alias`, `--vtat-*`, `--link` can reach states the game
+never builds) whose guard is that every row that agreed still agrees and coverage never falls, with caches keyed on
+the inputs. A day or two; the pass's, in a tranche with a quiet box. One reach.
+
+(3350) **The census counts the large functions the behavioural diff reaches as unbacked** (the forty-fifth pass's
+reader, byte-weighted: 1,580 of 3,611 simulation functions backed is 43.8 % of functions and about 23.5 % of their
+bytes; the 200 largest are 45 % of the bytes and 25 of them backed; `--unbacked` lists shortest-first): the words
+drive `Unit::think`, `do_move`, `find_path` every frame against the original's logger, and the census credits none of
+it. Candidate: an `audit` column — a function a document marks diff-backed that a pinned trace entered — counted
+beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
+Ramon's.
+
+(3351) **A battery lane that delegates its widening's reading to subagents** (the forty-fifth steer, Ramon): the
+heavy sessions are 250 shell calls at 1.4 k tokens a step and fifteen `DEEP` clears; the sweep lanes run the same
+shape at 150 k peak by fanning out. The frame row (landing: the widening's reading goes to a subagent that returns
+the verdict and the rows, never the greps) rides on the battery kind from the forty-sixth tranche; the next pass
+reads sessions over 300 k against seventeen and USD a game closed against 26, and says whether the row stays. One
+reach.
+
+(3352) **Captures a parting** (the forty-fifth steer, Ramon: the loop is capture-bound where it could be static):
+sixty-seven captures in one tranche, 4.5 a battery landing, each a serial game on one lane and a gigabyte. The frame
+says grep the disk first and a window capture only for what the dumps cannot answer; nobody measures it. Candidate:
+`tranche.py` counts a lane's captures (RUNS sections booked under its item) and the pass reads captures a parting;
+the ceiling the frame would then carry is one window capture a parting, the long's blocks and a packet before it.
+One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):

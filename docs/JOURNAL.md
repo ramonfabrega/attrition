@@ -21354,4 +21354,10 @@ on bases two and four landings behind. Built, red first: the lane gate's
 red on the address form alone; entry 72 amended with the replacement's
 criterion; three closed on measurements, one unreached, 2003's four
 reaches filed, five Ramon's; 17 → 7. The archives compressed, 30 → 76
-GiB free. **DECISIONS 84.** `docs/audit/2026-10-19-fable-pass-45.md`.
+GiB free. **DECISIONS 84.** `docs/audit/2026-10-19-fable-pass-45.md`. **Then the steer, with Ramon** (the same
+evening, entry 84's last paragraph): four lanes for the forty-sixth
+tranche, a second Sonnet sweep; the cap stays, measured; a `reading`
+brief kind, the archive census, the byte-weighted census and the MSVC
+14 reader notes built in the pass by four Opus subagents; the lab's 14
+GiB of captures deleted on his word; a matching track ruled out by the
+PDB's own build records.
