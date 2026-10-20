@@ -8808,13 +8808,36 @@ words and edits nothing here; a refill lands when two remain.
 **3370b.** `cast_transport` and `eject_contents` copy the caravan's `unit_masks2 & 0x200` to the boat and back; this
 crate carries no `unit_masks2`. Names no score.
 
-## Parked by the next landing, slot LM — reserved
+## Parked by item 3372, 2026-10-20 — the second sweep lane's fourth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3372a. `Unit::suffer_attrition@005e1a10`: the warning's `is_ally(leaders[who], who)` and the stamp.** The original asks the
+  unit's own player against itself (asm `5e1a8b`..`5e1a95`), not against the tile's owner; whether the warning can ever show is
+  `LeaderData::is_ally(self, self)`'s to answer, unchecked. `leader+0x1f8` (the warning stamp) is not modelled: a headless sim has
+  `console_who` -1 and nothing else reads it. `play`'s recorded `ecx` in the sweep is an artefact of the stub. Rows over the emu cache cap (~8 s).
+- **3372b. `Object::remove_from_inside@006480f0`: three SEAMs.** The splice words (`inside_up`/`inside_down`) have no crate field (a
+  holder is one pointer; the adapter's splice is empty); the container's slot `0x20` (`host_flag` always true); `unit+0x68 & 1`
+  (`masked` always false). The Barracks arm counts `barracks_garr` (`ai.rs`), which nothing reads: `AMERICANS_BARRACKS_GATHER` is not
+  in the tuning. `docs/AI.md` §219 and the "not modelled" paragraphs still say the arm is unbuilt.
+- **3372c. `Unit::check_build_order@00603470`: `--stub-alloc` built; the crowd tally is a sim fix not diff-backed.** The shape had
+  parked twice (3282b, 3339a) on `--stub-alloc`; it is now in `sweep_gen.py` (test `test_an_import_stub_may_allocate`, not made to
+  fail on purpose once). The crowd now counts only `find_units(SEARCH_FRIENDLY, owner, unit_build_respond_range*0xc0, 0x200,
+  BUILDREPAIR)` results less the unit itself — AI builders queueing several sites may move a pin (the booking gate says);
+  the build order's `+0xc` owner = the unit's owner is assumed; `FILTER_BUILDREPAIR` is treated as subsumed by the action test.
+  Negative `idx`/`uid` on the target-order lookup faults the emulator, so those inline guards are unswept. 3362a's astar_path
+  parks on `--stub-alloc`: that flag exists now, and the park is to be re-tried.
+- **3372d. `Balance::compute_modifier@00581cc0`: the script is hand-written** (`sweep_balance_compute_modifier.py`): the generator
+  lacks TLS statics (`fs:[0x2c]` `_TSS` guards; `--tib` sets only `fs:[0]`), a hidden out-pointer answered back (`--outarg` writes one
+  word at offset 0), and a table argument of 399x399 shorts (a generated row prints every window whole: ~250 MB for 200 rows). The
+  old 3282c / 3337a park text on `compute_modifier` is stale. Two breaks unrun (loop nesting, plain vs wrapping multiply).
+  `compute_modifier_with`, `Pack` and `Kind::pack()` were split out of `balance.rs`; `xml_product` and the final multiply now wrap.
+- **3372e. `Unit::find_build_spot@00603e20`: the second pass.** The original asks the building prefix of the shared result array for
+  an action (`+0xa8` on a Build object); the Sim treats those as no action. `Sim` has no worker-stance-type concept
+  (`worker_stance` is the unit's `stance`). `find_construct_sites` and `find_units_friendly` are unswept. The 32-break batch was
+  run at 3000 rows (the survivor was caught at 12000); the full batch was not rerun at 12000.
+- **3372f. `Group::finish_insert@0070e620`: leftover `ecx`.** Cases `0x12` (`action_form`) and `0x16` (`redo_patrol_order`)
+  pass the leftover `ecx` after the accessor vcall as a stack argument (in the emulator, the order's own address, which
+  `action_form` takes as its queue position); the sim's `redo_patrol_order` ignores it. Unchased. The `+0x14` word of a group move's
+  record has no sim field. Branch coverage not re-measured at 800 rows.
 
 ## Parked by the next landing, slot LN — reserved
 
