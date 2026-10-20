@@ -100,6 +100,19 @@ Three shapes, each a `__thiscall` on `ecx`:
           order) and `p: &mut [Vec<u8>]` beside `a` and `m`; every byte
           of every window is held.
 
+          Three shapes of `Balance::compute_modifier` (item 3377, parked
+          3372d): `--tls OFF:V` lays `fs:[0x2c]` -> a TLS array -> one
+          block whose word at OFF is V (a function-local static's `_TSS`
+          guard read as initialised; implies `--tib`); `--outret
+          IDX:N:SPEC/SPEC/..` makes stub IDX a struct-returning callee
+          that writes N calls' drawn words (one SPEC, `V,V,..` or
+          `LO..HI`, a word) through its hidden argument 0 and answers
+          it, the words printed after the other numbers on the row; and
+          `--table-arg IDX:ROWS:COLS:ESIZE:VALS` makes argument IDX a
+          zeroed table whose cells are filled from VALS the first time
+          the function reads each, printed `idx:val,..` after ` @ ` (the
+          test's `t`, every other cell 0) rather than as a window.
+
           `--outarg IDX:K:VALS` (item 2325) makes stub IDX write a value
           drawn from VALS through its argument K — the caller's local,
           as `get_inside` writes a player index — printed after the
@@ -1449,6 +1462,7 @@ from callfn import STACK_BASE, STACK_SIZE  # noqa: E402
 from unicorn.x86_const import UC_X86_REG_ESP  # noqa: E402
 from sweeplib import link_value  # noqa: E402
 from sweeplib import draw_reg, xmm_bits, set_tib  # noqa: E402
+import sweeplib  # noqa: E402
 
 ENTRY = 0x{va:08x}
 WIN = {win}
@@ -1457,6 +1471,9 @@ BIAS = {bias!r}
 ARGSET = {argset!r}
 ARGFROM = {argfrom!r}
 CELLS = {cells!r}
+TLS = {tls!r}
+OUTRET = {outret!r}
+TABLEARG = {tablearg!r}
 AT = {at!r}
 ATRANGE = {atrange!r}
 PTRARGS = {ptrargs!r}
@@ -1677,6 +1694,50 @@ def read_arg(inner, k, n, read, sink, written=None):
     return answer
 
 
+def tls_lay(write, tib, tls):
+    """`--tls OFF:V` (item 3377, parked 3372d): `fs:[0x2c]` -> a TLS array of 64 slots in the TIB
+    page, every slot one zeroed block whose word at OFF is V. A function-local static's `_TSS` guard
+    compares the block's epoch (`+8`) with its own word, so 0 reads "already initialised"."""
+    arr, block = tib + 0x100, tib + 0x200
+    write(tib + 0x2C, arr.to_bytes(4, "little"))
+    write(block, bytes(0xE00))
+    for k in range(64):
+        write(arr + 4 * k, block.to_bytes(4, "little"))
+    for off, v in tls:
+        write(block + off, (v & 0xFFFFFFFF).to_bytes(4, "little"))
+
+
+def outret_answer(vals, write):
+    """`--outret IDX:N:SPEC/..` (item 3377, parked 3372d): a struct-returning callee. MSVC passes
+    the caller's buffer as a hidden first stack argument and the callee answers it; call k writes
+    `vals[k]`'s words there (the last call's past N)."""
+    turn = [0]
+
+    def answer(ecx, args):
+        words = vals[min(turn[0], len(vals) - 1)]
+        turn[0] += 1
+        at = args[0] & 0xFFFFFFFF
+        write(at, b"".join((w & 0xFFFFFFFF).to_bytes(4, "little") for w in words))
+        return at
+    return answer
+
+
+def table_hook(base, esize, n, draw, cells):
+    """`--table-arg` (item 3377, parked 3372d): a read hook over an N-cell table that fills each
+    cell the function reads the first time it is read: a value from `draw()`, written before the
+    load (unicorn's read hook runs first, and the load sees the write), recorded in `cells` as the
+    signed value the cell holds."""
+    def hook(uc_, access, addr, size, value, _):
+        first = max(addr - base, 0) // esize
+        last = min((addr + size - 1 - base) // esize, n - 1)
+        for k in range(first, last + 1):
+            if k not in cells:
+                b = (draw() & ((1 << 8 * esize) - 1)).to_bytes(esize, "little")
+                cells[k] = int.from_bytes(b, "little", signed=True)
+                uc_.mem_write(base + esize * k, b)
+    return hook
+
+
 def wdraw(rng, vals):
     """A bias's value: a set's member, or a range's — its own edges and the
     small integers inside it three rows in ten, so a boundary inside a wide
@@ -1737,6 +1798,8 @@ def main(argv):
     # `--tib`: an SEH-framed function reads and writes `fs:[0]` (item 3120).
     if TIB:
         set_tib(uc)
+    if TLS:
+        tls_lay(uc.mem_write, sweeplib.TIB, TLS)
     slots = {{off: (f"slot{{off:x}}", n, 0) for k, off, n in STUBS if k == "slot"}}
     vt = h.vtable(slots) if slots else None
     names = [f"slot{{a:x}}" if k == "slot" else f"iat{{a:x}}" if k == "iat" else f"run{{a:x}}" if k == "run" else f"{{a:x}}" for k, a, _ in STUBS]
@@ -1761,6 +1824,18 @@ def main(argv):
         h.answers[names[idx]] = copy_answer(0, lambda a_, n_: bytes(uc.mem_read(a_, n_)), uc.mem_write, 0x10000)
     for va_ in INITCALLS:
         h.call(va_, (), max_insns=500_000_000)
+    # `--table-arg` (item 3377): the table laid once, zeroed; a read hook fills the cells read.
+    tcells = {{}}
+    twritten = [False]
+    if TABLEARG is not None:
+        from unicorn import UC_HOOK_MEM_READ, UC_HOOK_MEM_WRITE
+        tidx, trows, tcols, tesz, tvals = TABLEARG
+        tsize = trows * tcols * tesz
+        tbase = h.alloc(tsize + 0x20)
+        uc.mem_write(tbase, bytes(tsize))
+        uc.hook_add(UC_HOOK_MEM_READ, table_hook(tbase, tesz, trows * tcols, lambda: wdraw(rng, tvals), tcells),
+                    begin=tbase, end=tbase + tsize - 1)
+        uc.hook_add(UC_HOOK_MEM_WRITE, lambda *_: twritten.__setitem__(0, True), begin=tbase, end=tbase + tsize - 1)
     base = h.brk
     stopped = [False]
     if STOPSTUB is not None:
@@ -2108,6 +2183,18 @@ def main(argv):
         ecxo = [rng.choice(vals) & 0xFFFFFFFF for _, vals in ECXOUT]
         for (idx, _), v in zip(ECXOUT, ecxo):
             h.answers[names[idx]] = pair_answer(h.answers[names[idx]], v)
+        # `--outret IDX:N:SPEC/..` (item 3377): N calls' words drawn a row, printed last on the row.
+        orets = []
+        for idx, n, specs in OUTRET:
+            vals = [[wdraw(rng, sp_) for sp_ in specs] for _ in range(n)]
+            orets.append(vals)
+            h.answers[names[idx]] = outret_answer(vals, uc.mem_write)
+        if TABLEARG is not None:
+            for k_ in tcells:
+                uc.mem_write(tbase + tesz * k_, bytes(tesz))
+            tcells.clear()
+            twritten[0] = False
+            args[tidx] = tbase
         uc.mem_write(this, bytes(mem))
         # A global cell that holds `this` itself: a method that reads the
         # global as well as its object sees one object (item 2217).
@@ -2150,13 +2237,16 @@ def main(argv):
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
         assert stopped[0] or esp == want_esp, f"esp {{esp:x}}: wrong pop"
         assert bytes(uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
+        assert not twritten[0], "wrote the --table-arg table"
         before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
                          + [bytes(uc.mem_read(a, len(b))).hex() for a, b in wins])
         shown = ([str(a) for a in args] + [str(v) for v in answers] + [str(v) for v in outs]
                  + [str(v) for s in seqs for v in s] + [str(f) for f in based] + [str(f) for f in nullflags]
                  + ([] if ECXINT is None else [str(ecx)]) + ([] if EDX is None else [str(edx)])
-                 + [str(v) for v in xmmv] + [str(v) for v in ecxo])
+                 + [str(v) for v in xmmv] + [str(v) for v in ecxo]
+                 + [str(((w + 0x80000000) & 0xFFFFFFFF) - 0x80000000) for vals in orets for call in vals for w in call])
+        tshown = "" if TABLEARG is None else " @ " + (",".join(f"{{k_}}:{{v_}}" for k_, v_ in sorted(tcells.items())) or "-")
         # `--record IDX`: what stub IDX was handed, each call `ecx,arg..`,
         # calls joined by `/`, `-` when it was not called, after ` # `
         # (item 2281: a tail target's `ecx` and argument, parked 2272).
@@ -2184,7 +2274,7 @@ def main(argv):
             # `--deref`: the bytes each call's argument pointed at (item 2379).
             cols += ["/".join(sink) or "-" for sink in derefs]
             log = " # " + " ".join(cols)
-        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + log)
+        print(" ".join(shown) + f" | {{before}} -> {{r}} | {{after}}" + tshown + log)
     return 0
 
 
@@ -2219,7 +2309,7 @@ fn the_emulated_original_agrees_on_every_row() {{
     }};
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {{
-{logsplit}        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+{logsplit}{tablesplit}        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
         let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
@@ -2417,7 +2507,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, tib=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), stub_alloc=(), clean_stack=0, stop_stub=None, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), stub_alloc=(), clean_stack=0, stop_stub=None, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000,
+                 tls=(), outret=(), table_arg=None):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2691,6 +2782,43 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if not 0 <= idx < len(pstubs) or pstubs[idx][0] not in ('call', 'iat') or pstubs[idx][2] < 1:
             raise ValueError('--stub-alloc IDX names a direct callee or import of one argument or more (`malloc`: the size)')
         palloc.append(idx)
+    # Item 3377 (parked 3372d): `Balance::compute_modifier`'s three shapes.
+    ptls = []
+    for spec_ in tls:
+        m_ = re.fullmatch(r'(\w+):(-?\w+)', spec_)
+        if not m_ or not 0 <= int(m_.group(1), 0) <= 0xDFC:
+            raise ValueError(f'--tls is OFF:V, OFF a word of the 0xe00-byte TLS block, not {spec_!r}')
+        ptls.append((int(m_.group(1), 0), int(m_.group(2), 0)))
+    if ptls:
+        tib = True
+    poret = []
+    for o in outret:
+        parts = o.split(':', 2)
+        if len(parts) != 3 or not parts[2]:
+            raise ValueError(f'--outret is IDX:N:SPEC/SPEC/.., one SPEC (V,V,.. or LO..HI) a word, not {o!r}')
+        idx, n = int(parts[0], 0), int(parts[1], 0)
+        if not 0 <= idx < len(pstubs) or pstubs[idx][2] < 1 or pstubs[idx][0] == 'run':
+            raise ValueError(f'--outret {o}: IDX names a --stub callee of one argument or more (the hidden pointer)')
+        if n < 1:
+            raise ValueError(f'--outret {o}: N, the calls drawn a row, is at least 1')
+        specs = [_wbias(f'm+0:{w}')[0][2] for w in parts[2].split('/')]
+        if any(sp_[0] not in ('set', 'range') for sp_ in specs):
+            raise ValueError(f'--outret {o}: a word is V,V,.. or LO..HI')
+        poret.append((idx, n, specs))
+    ptab = None
+    if table_arg:
+        parts = table_arg.split(':', 4)
+        if len(parts) != 5:
+            raise ValueError(f'--table-arg is IDX:ROWS:COLS:ESIZE:VALS, not {table_arg!r}')
+        tidx, trows, tcols, tesz = (int(x, 0) for x in parts[:4])
+        if not 0 <= tidx < own or tidx in [i for i, _ in pptr]:
+            raise ValueError(f'--table-arg {table_arg}: IDX names a stack argument no --ptrarg lays')
+        if tesz not in (1, 2, 4) or trows < 1 or tcols < 1:
+            raise ValueError(f'--table-arg {table_arg}: ROWS and COLS at least 1, ESIZE 1, 2 or 4')
+        tv = _wbias(f'm+0:{parts[4]}')[0][2]
+        if tv[0] not in ('set', 'range'):
+            raise ValueError(f'--table-arg {table_arg}: VALS is V,V,.. or LO..HI')
+        ptab = (tidx, trows, tcols, tesz, tv)
     pecxans = []
     for spec in ecx_answer:
         m_ = re.fullmatch(r'(\d+):(\w+)(?::(\w+))?', spec)
@@ -2734,7 +2862,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or plinkhi or pout or pcdecl or pwrite or pcopy or palloc or clean_stack or pecxout or init_call):
+            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or plinkhi or pout or pcdecl or pwrite or pcopy or palloc or clean_stack or pecxout or init_call
+            or ptls or poret or ptab):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2798,6 +2927,13 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + ([f'the call ends where stub {stop_stub} is first entered (the function is swept to that callee)'] if stop_stub is not None else [])
         + [f'`{int(v, 0):#010x}` run once before the rows (a table builder the startup would have run)' for v in init_call]
         + [f'stub {idx} answers a fresh bump-heap address of its argument 0 bytes (a `malloc`)' for idx in palloc]
+        + [f'`fs:[0x2c]` -> a TLS array -> one block whose word +{o:#x} is {v} (a `_TSS` guard read as initialised)'
+           for o, v in ptls]
+        + [f'stub {idx} returns a {len(sp_)}-word struct through its hidden argument 0 and answers it, {n} call(s) '
+           f'drawn a row (the last repeated), the words printed last on the row' for idx, n, sp_ in poret]
+        + ([f'argument {ptab[0]} is a {ptab[1]} x {ptab[2]} table of {ptab[3]}-byte cells, zeroed, each cell the '
+            f'function reads filled from {ptab[4][1:]} when first read and printed `idx:val` after ` @ ` (`t`, every '
+            f'other cell 0); a write to it fails the row'] if ptab else [])
         + [f'stub {idx} copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`)' for idx in pcopy]
         + [f'stub {idx} lowers `{w}+{o:#x}` ({z} bytes) by one each call' if v == 'dec'
            else f'stub {idx} writes {v} ({z} bytes) at `{w}+{o:#x}` each call' for idx, w, o, z, v in pwrite]
@@ -2840,7 +2976,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, tib=tib, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stuballoc=palloc, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
+                                   outarg=pout, tls=ptls, outret=poret, tablearg=ptab, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stuballoc=palloc, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret=ret if ret == 'xmm0' or ret.startswith('ebp:') else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
@@ -2853,9 +2989,20 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         logcheck = (f'        assert_eq!(log, want_log, "{short} — the recorded calls, row `{{line}}`");\n')
     else:
         logsplit = logdecl = logcheck = ''
+    tablesplit = '' if ptab is None else (
+        '        let (line, tcells) = line.split_once(" @ ").expect("`<row> @ <table cells>`");\n'
+        '        let t: std::collections::BTreeMap<usize, i64> = if tcells.trim() == "-" {\n'
+        '            std::collections::BTreeMap::new()\n'
+        '        } else {\n'
+        '            tcells.trim().split(\',\').map(|c| {\n'
+        '                let (i, v) = c.split_once(\':\').expect("idx:val");\n'
+        '                (i.parse().expect("idx"), v.parse().expect("val"))\n'
+        '            }).collect()\n'
+        '        };\n'
+        '        let _ = &t;\n')
     test = OBJ_WIN_TEST.format(name=name, va=va, item=item, snake=sn, short=short, doc=doc, port=port,
                                ret=retcode, nc=len(pcells) + len(pat) + 2 * len(pgtab), pbase=1 + len(pcells) + len(pat) + 2 * len(pgtab),
-                               logsplit=logsplit, logdecl=logdecl, logcheck=logcheck, floor=floor)
+                               logsplit=logsplit, tablesplit=tablesplit, logdecl=logdecl, logcheck=logcheck, floor=floor)
     return EMU / f'sweep_{sn}.py', script, SWEEP / f'{sn}.rs', test, f'mod {sn};'
 
 
@@ -3866,6 +4013,17 @@ def main(argv=None):
                          'places (a callee that answers a record; parked 2151); repeated for one IDX, '
                          'one window a call in call order, the last repeated (parked 2623); a negative SIZE '
                          'answers null a third of the calls (item 3268)')
+    ap.add_argument('--tls', action='append', default=[], metavar='OFF:V',
+                    help='obj: `fs:[0x2c]` -> a TLS array -> one block whose word at OFF is V (a function-local '
+                         'static\'s `_TSS` guard read as initialised: `8:0`); implies --tib (item 3377, parked 3372d)')
+    ap.add_argument('--outret', action='append', default=[], metavar='IDX:N:SPEC/SPEC/..',
+                    help='obj: stub IDX returns a struct through its hidden argument 0 and answers it: N calls\' '
+                         'words drawn a row, one SPEC (V,V,.. or LO..HI) a word, call k\'s written (the last past N), '
+                         'printed last on the row (`return_pack`; item 3377, parked 3372d)')
+    ap.add_argument('--table-arg', metavar='IDX:ROWS:COLS:ESIZE:VALS',
+                    help='obj: argument IDX is a zeroed ROWS x COLS table of ESIZE-byte cells, each cell the function '
+                         'reads filled from VALS (V,V,.. or LO..HI) when first read, printed `idx:val,..` after ` @ `, '
+                         'the test\'s `t` (every other cell 0); a write to it fails the row (item 3377, parked 3372d)')
     ap.add_argument('--tib', action='store_true', help='obj: the function opens an SEH frame (`mov eax, fs:[0]`): '
                     'a guest TIB page is mapped and `fs` pointed at it (item 3120)')
     ap.add_argument('--cdecl', action='store_true', help='obj: the function is `__cdecl` (a bare `ret`), so '
@@ -4118,6 +4276,7 @@ def main(argv=None):
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link, link_hi=args.link_hi,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
                                                     edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy, stub_alloc=args.stub_alloc, clean_stack=args.clean_stack, stop_stub=args.stop_stub, init_call=args.init_call, max_insns=args.max_insns,
+                                                    tls=args.tls, outret=args.outret, table_arg=args.table_arg,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
             sp, script, tp, test, mod = generate_vcallbase(args.function, item=args.item, slot=args.slot,

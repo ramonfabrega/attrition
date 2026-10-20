@@ -513,6 +513,121 @@ class Shapes(unittest.TestCase):
                 sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x40, bias=[], ret='none',
                                        stubs=stubs, stub_cdecl=[], stub_alloc=[bad])
 
+    def test_tls_statics_are_laid_initialised(self):
+        # Item 3377 (parked 3372d): `Balance::compute_modifier`'s function-local
+        # statics are guarded by `_TSS` words checked against the thread's TLS
+        # block (`fs:[0x2c]` -> the TLS array -> a block whose `+8` is the
+        # epoch); `--tib` laid only `fs:[0]`. `--tls OFF:V` lays the chain
+        # (every slot of the array one block) with the word at OFF set to V.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=3377, win=0x10, bias=[], own=0, ret='none', tls=['8:0', '0xc:-1'])
+        compile(script, str(sp), 'exec')
+        self.assertIn('TLS = [(8, 0), (12, -1)]', script)
+        self.assertIn('TIB = True', script, '--tls implies the guest TIB')
+        self.assertIn("fs:[0x2c]", test)
+        src = script[script.index('def tls_lay('):]
+        ns = {}
+        exec(src[:src.index('\n\n\n')], ns)
+        mem = {}
+
+        def wr_(a, b):
+            for i, x in enumerate(b):
+                mem[a + i] = x
+
+        def rd32(a):
+            return int.from_bytes(bytes(mem.get(a + i, 0) for i in range(4)), 'little', signed=True)
+        tib = 0x7C010000
+        ns['tls_lay'](wr_, tib, [(8, 0), (12, -1)])
+        arr = rd32(tib + 0x2C) & 0xFFFFFFFF
+        self.assertTrue(tib < arr < tib + 0x1000, 'the array lies in the TIB page')
+        for slot in (0, 3, 63):
+            block = rd32(arr + 4 * slot) & 0xFFFFFFFF
+            self.assertTrue(tib < block < tib + 0x1000)
+            self.assertEqual(rd32(block + 8), 0)
+            self.assertEqual(rd32(block + 0xC), -1)
+        for bad in ('8', 'x:0', '0x1000:0'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x10, bias=[], ret='none', tls=[bad])
+
+    def test_a_struct_returning_stub_answers_its_hidden_pointer(self):
+        # Item 3377 (parked 3372d): `return_pack` returns a five-word struct
+        # through the hidden pointer MSVC passes as its first stack argument,
+        # and answers that pointer; `--outarg` writes one word. `--outret
+        # IDX:N:SPEC/SPEC/..` draws N calls' words, one SPEC (`V,V,..` or
+        # `LO..HI`) a word, writes call k's through argument 0 (the last
+        # repeated past N), answers it, and prints the words after the other
+        # numbers on the row.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=3377, win=0x10, bias=[], own=1, ret='eax',
+            stubs=['0x402000:2'], outret=['0:2:-1..3/5,6'])
+        compile(script, str(sp), 'exec')
+        self.assertIn("OUTRET = [(0, 2, [('range', -1, 3), ('set', [5, 6])])]", script)
+        self.assertIn('stub 0 returns a 2-word struct through its hidden argument 0', test)
+        src = script[script.index('def outret_answer('):]
+        ns = {}
+        exec(src[:src.index('\n\n\n')], ns)
+        mem = bytearray(0x40)
+        wr_ = lambda a, b: mem.__setitem__(slice(a, a + len(b)), b)
+        ans = ns['outret_answer']([[1, -2], [3, 4]], wr_)
+        self.assertEqual(ans(0, [0x10, 7]), 0x10)
+        self.assertEqual(bytes(mem[0x10:0x18]), (1).to_bytes(4, 'little') + (-2 & 0xFFFFFFFF).to_bytes(4, 'little'))
+        self.assertEqual(ans(0, [0x20, 7]), 0x20)
+        self.assertEqual(bytes(mem[0x20:0x28]), (3).to_bytes(4, 'little') + (4).to_bytes(4, 'little'))
+        mem[0x20:0x28] = bytes(8)
+        ans(0, [0x20, 7])
+        self.assertEqual(bytes(mem[0x20:0x28]), (3).to_bytes(4, 'little') + (4).to_bytes(4, 'little'), 'the last repeats')
+        for stubs, bad in ((['0x402000:2'], '1:2:1..2'), (['0x402000:0'], '0:2:1..2'), (['0x402000:2'], '0:0:1..2'),
+                           (['0x402000:2'], '0:2:'), (['0x402000:2'], '0:2:1..2/x')):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x10, bias=[], own=1, ret='eax',
+                                       stubs=stubs, outret=[bad])
+
+    def test_a_table_argument_is_filled_where_it_is_read(self):
+        # Item 3377 (parked 3372d): argument 2 of `compute_modifier` is a 399 x
+        # 399 `short` table (318 KB); a `--ptrarg` window prints whole, ~250 MB
+        # for 200 rows. `--table-arg IDX:ROWS:COLS:ESIZE:VALS` lays a zeroed
+        # table once, fills a cell from VALS the first time the function reads
+        # it (a read hook writes it before the load), refuses a write to it, and
+        # prints the cells read, `idx:val,..` (`-` for none), after ` @ `; the
+        # test holds them as `t`, every other cell 0.
+        sp, script, tp, test, mod = sweep_gen.generate_obj(
+            'Foo::bar@00401000', item=3377, win=0x10, bias=[], own=3, ret='eax', table_arg='2:4:5:2:1..9')
+        compile(script, str(sp), 'exec')
+        self.assertIn("TABLEARG = (2, 4, 5, 2, ('range', 1, 9))", script)
+        self.assertIn('split_once(" @ ")', test)
+        self.assertIn('let t: std::collections::BTreeMap<usize, i64>', test)
+        self.assertIn('argument 2 is a 4 x 5 table of 2-byte cells', test)
+        src = script[script.index('def table_hook('):]
+        ns = {}
+        exec(src[:src.index('\n\n\n')], ns)
+        mem = bytearray(0x100)
+
+        class Uc:
+            def mem_write(self, a, b):
+                mem[a - 0x1000:a - 0x1000 + len(b)] = b
+        cells = {}
+        draws = iter(range(1, 100))
+        hook = ns['table_hook'](0x1000, 2, 20, lambda: next(draws), cells)
+        hook(Uc(), 0, 0x1000 + 2 * 7, 2, 0, None)
+        self.assertEqual(cells, {7: 1})
+        self.assertEqual(int.from_bytes(mem[14:16], 'little'), 1)
+        hook(Uc(), 0, 0x1000 + 2 * 7, 2, 0, None)
+        self.assertEqual(cells, {7: 1}, 'a cell read again keeps its value')
+        hook(Uc(), 0, 0x1000 + 2 * 8 + 1, 4, 0, None)
+        self.assertEqual(cells, {7: 1, 8: 2, 9: 3, 10: 4}, 'a read straddling cells fills each')
+        hook(Uc(), 0, 0x1000 + 2 * 20, 2, 0, None)
+        self.assertEqual(len(cells), 4, 'past the table, nothing')
+        mem[:] = bytes(0x100)
+        hook(Uc(), 0, 0x1000, 2, 0, None)
+        self.assertEqual(int.from_bytes(mem[0:2], 'little', signed=True), 5)
+        for bad in ('3:4:5:2:1..9', '2:4:5:3:1..9', '2:4:5:2', '2:0:5:2:1'):
+            with self.assertRaises(ValueError):
+                sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x10, bias=[], own=3, ret='eax',
+                                       table_arg=bad)
+        with self.assertRaises(ValueError):
+            sweep_gen.generate_obj('Foo::bar@00401000', item=1, win=0x10, bias=[], own=3, ret='eax',
+                                   table_arg='2:4:5:2:1..9', ptrargs=['2:4'])
+
     def test_a_cdecl_stub_may_copy(self):
         # Item 2921 (parked 2906): `memcpy` and `memcmp` are import thunks
         # (`jmp [0xac5428]`); a stub of one copied nothing, so the string
