@@ -19616,3 +19616,24 @@ SHA-256 `2dbe2d5558e0db9d751409dda45c6f44ee8107d4876990036c5a12eac59b3644`.
 
 **What it holds**: seven Lakota Slinger stones' `sx, sy` — `1/18`'s on 6047 from (4962, 30153) in 7 frames, `1/20`'s
 from (4943, 30718) — pinned by `launch::tests::run980b_s_lakota_stones_leave_from_the_na_slinger_s_bays`.
+
+## run982b — the French word: the word 14604's window, blocks 14598..14854 at `AMMO=5` (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: the word moved to 14604, past run982's last block (14093), and
+run977b holds only its setup and closing blocks. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run982b`: `--map 7 --end-frame 14859 --timeout 5400 --log-window 14598 14854` (run982's `--detail`,
+`--ai-tribe`, `--cover`, `--profile`).
+- Pool lane 2. Launched 21:21:31 and the game exited at 21:42:08 (1237 s). `success`, 14860 frames, `map_style 7`,
+  seed 12345. `rngcmp.py rontrace-run982b.log rontrace-run977b.log`: **14860 identical, 0 differing**. Filed with
+  `filerun.py run982b greatsahara-french-diff4-window-14598-14854-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run982b-greatsahara-french-diff4-window-14598-14854-ammo.txt`, 487,342,785 bytes,
+SHA-256 `d666589cb981fd49d536739ed95a90c0a70a87bb0b8ab869ab35f0560299d29b`.
+
+Archive `rontrace-run982b.log`, 78,516,864 bytes,
+SHA-256 `26b0c5bf7143c4f62c04fbe9d9b9c1266bbe59b718ebe6dacc1f4b9842c3f18f`.
+
+**What it holds**: `run982b_s_word_frame_is_widened_whole`: 14604's value diff — the decoy Hussars `1/100`
+(`unit_masks` 0x4000f, `mylos` 1) holding its attack on the Citizen `0/1` with a chase move to (4440, 28392) on 14605,
+where ours had called `0/1` unseen (the decoy's own-cell sight, `docs/VISION.md` §3).
