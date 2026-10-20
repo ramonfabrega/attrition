@@ -112,6 +112,8 @@ mod spanish_word;
 mod third;
 #[cfg(test)]
 mod third_pair;
+#[cfg(test)]
+mod turkish_word;
 mod unit;
 
 #[cfg(test)]

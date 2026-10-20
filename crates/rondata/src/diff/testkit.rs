@@ -9967,6 +9967,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3365,
         Some(crate::diff::korean_word::WIDENING_KOREAN_CLOSING),
     ),
+    // **The battery's Turkish word** (item 3380, DECISIONS 72, 83, 84):
+    // frame 14991, the battery's measure on `56f23ba5` (item 2975's lobby,
+    // moved by item 3160 and the forty-fifth tranche), promoted here and
+    // widened on run1005 over 14985..15241 (block 14992). Item 3380 moved
+    // it 14991 → 15503, the game's last frame, with `max_range`'s Turkish
+    // siege term. The close is compared whole on run898b's own closing
+    // block 15504 by `run898b_turkish_closing_state`.
+    (
+        "TURKISH_WORD",
+        crate::diff::turkish_word::TURKISH_WORD,
+        Some("run898b_turkish_closing_state"),
+        3380,
+        Some(crate::diff::turkish_word::WIDENING_TURKISH_CLOSING),
+    ),
     // **The battery's American word** (item 3374, DECISIONS 72, 83, 84):
     // frame 9382, the battery's first try (item 3314), promoted here and
     // widened on run999 over 9376..9632 (block 9383). Item 3374 moved it
@@ -10587,6 +10601,22 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Turkish word** (DECISIONS 72, 83, 84; item 3380):
+    // Great Lakes, the Turks at Difficulty 4 — the held-out battery's
+    // second open lobby on the measure of `56f23ba5`, minted by item 2975;
+    // the game ends itself on 15503. It joins the `Battery word` line
+    // first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesTurkishTier4",
+        named: "Great Lakes (Turks)",
+        word: crate::diff::turkish_word::TURKISH_WORD,
+        length: 15_503,
+        // Closed by item 3380: the draw stream agrees to 15503, and
+        // run898b's closing block 15504 scores the end itself.
+        endpoint: Some("run898b_turkish_closing_state"),
+        window: Some("turkish_frame_14991_window"),
+    },
     // **The battery's East Indies Spanish word** (DECISIONS 72, 83, 84;
     // item 3367): East Indies, the Spanish at Difficulty 3 — the held-out
     // battery's lowest open lobby on the measure of `9e63ec11`, minted by

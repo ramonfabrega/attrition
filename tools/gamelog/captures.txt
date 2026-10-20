@@ -9987,6 +9987,13 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 (run995's --ai-tribe, --cover, --profile)   (1/51's unpack, walked back)
 # Checks: `rngcmp.py` run990b vs run995c -> 15981 identical, vs run995d -> 15724.
 # ==== TAKEN 2026-10-20, 03:51-04:35, pool lane 1 ====
+# ==== item 3380: the Turkish word, its battery replacement and its window (`docs/AI.md` §290; `docs/RUNS.md` run1004..run1005) ====
+#   run1004  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 20 --profile DIFFICULTY=4   (Great Lakes, Americans; start)
+#   run1004b run962b's recipe on --map 14 with --ai-tribe 20 --profile DIFFICULTY=4   (the Americans' draw stream; ended itself on 6152)
+#   run1005  --map 14 --end-frame 15246 --timeout 7200 --log-window 14985 15241 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 8 --cover cover=0 --profile DIFFICULTY=4   (the word 14991's window)
+# Checks: `rngcmp.py` run1004 vs run1004b -> 37 identical; run898b vs run1005 -> 15247 identical.
+# ==== TAKEN 2026-10-20, one take each, 15:10-15:38, pool lanes 2-3, through `viadriver.sh tools/explore/golden_capture.sh` ====
 # ==== item 3375: the Iroquois word at Great Sahara, its battery replacement and its windows (`docs/AI.md` §288; `docs/RUNS.md` run1000..run1001d) ====
 #   run1000  run964's line with --ai-tribe 12   (Great Sahara, Germans; start; the first take died on Wine's startup fault, kept as run1000-deadtake1)
 #   run1000b run964b's line with --ai-tribe 12   (the Germans' draw stream; ended itself on 19483)

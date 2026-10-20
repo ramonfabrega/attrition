@@ -24859,12 +24859,50 @@ Germans; `check_income`'s escrow arm flips from `0x40` to `0x100`) and
 `cost::tests::the_hanging_gardens_take_two_thirds_off_an_industry_tech` (the German step alone 250 → 125, and 85 →
 42 behind the Gardens, never a combined percentage).
 
-## 290. Reserved for the next item on the AI track
+## 290. The battery's Turkish word closes: a Turkish siege engine's range and sight
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3380, 2026-10-20, Opus 5.5. `GreatLakesTurkishTier4` (map 14, human Nubians against the Turks at Difficulty 4,
+seed 12345; runs 898 and 898b, minted by item 2975), promoted out of the battery at 14991 of 15503. Capture run1005
+(`GOODS=3` over 14985..15241). Its battery place went to `GreatLakesAmericanTier4` (runs 1004, 1004b; entry 72's rule
+(2): a header survey of 564 gamelogs finds no map-14 dump of tribes 1, 3, 5, 7, 9, 12, 15, 16, 17, 20, 21, 22, and of
+those held only by closed games the Americans reach 14 census functions, the Spanish and the Dutch 9; tier 4 the tier
+the Turks leave): 3176 of 6152 on its first try.*
+
+**14991 → 15503, the game's last frame: `TURK_SIEGE_RANGE`.** On 14991 theirs spends 23 draws and ours 20: theirs
+fifteen `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`, ours twelve, then both the same five `Guy::inc_time` wraps and
+three farm rolls. `RON_DEBUG_SITES` puts the ring draws on the Turks' Trebuchet `1/70` (TY 216, TI 266, a land siege
+engine that packs), which leaves its `AttackTo` group move on 14991 for an `ATTACK` on Napata `0/2000`, the human's
+capital at (3168, 30816). It is `find_attack_pos`'s bombard ring (§17 of `docs/COMBAT.md`; a computer's siege engine
+against a building): the cut after the first draw leaves fifteen iterations, so theirs found all fifteen candidates
+clear, and a probe (`RON_PROBE_RING`, reverted whole) showed ours rejecting three of them on forest tiles it holds
+blocked — (29, 144), (28, 144), (21, 141), all three forest. That was the forest's hypothesis, and the value killed it:
+run1005's block 14992 has `1/70`'s `MOVEORDER` to **(7368, 29544)**, none of ours' sixteen candidates, on the north-east
+corner arc at about 3552 from the corner — 19 tiles' stand-off (`19 × 0xc0 − 0x60`) where ours stood 16's 2976.
+`UnitData::max_range@0060fe90`'s siege arm adds `TURK_SIEGE_RANGE` (3) for a type that `is_siege` (vslot `+0x10c`) of
+a `has_tribe_bonus(8)` leader; this crate carried the arm as a seam. Built: `Sim::siege_unit_range` in `max_range_of`,
+`Tuning::turk_siege_range`. Ours' ring now walks fifteen clear candidates at 3552, (7368, 29544) among them. Value
+diff, block 14992: `1/70`'s destination (7368, 29544) both sides; the draw stream agrees to 15503.
+
+**The widening, and the sight.** run1005's window parted on 57 keys on its first walk with the range built: the
+standing family on 14985 and the four Turkish siege engines' `mylos`, ours 4 against theirs 7 (`1/37`, `1/38`, `1/70`,
+`1/71`). `Unit::update_los@0060e4d0`'s term 9 (`docs/VISION.md` §2) adds `TURK_SIEGE_LOS` (3) on the same predicate,
+after term 5's packed clamp, so a packed Turkish engine sees 7. Built in `Sim::unit_los` (`Tuning::turk_siege_los`):
+57 → 53. What stands past the family is figure residue that parts no draw — `1/38`'s and `1/37`'s `g.des` on 15081
+and 15084, a frame's lag after a 64-unit step (parked 3380a), and two `dest_angle`s on 15214 and 15224 (3380b).
+
+**The close.** run898b's closing block 15504: 127 units compared, none apart, no building, city or closing field
+(`run898b_turkish_closing_state`).
+
+**Not established.** The Liberty and Eiffel wonder terms of both arms (`0x219`, `0x21c`) are not carried; no capture
+holds a siege engine of a leader with either. Which of `1/70`'s fifteen candidates the forest tiles would have refused
+in theirs is not read: at 19 tiles the ring clears them all on both sides.
+
+**Coverage.** Diff-backed: the range by `turkish_word_first_parting` (15503) and run1005's block 14992; the sight by
+`run1005_s_word_frame_is_widened_whole` (53); the close by `run898b_turkish_closing_state`. Sim tests:
+`air::flak_tests::a_turkish_siege_unit_reaches_three_tiles_further`,
+`vision::tests::a_turkish_siege_engine_sees_three_tiles_past_the_packed_clamp`. Mutations (`tools/mutate.py`): the
+range term → 0 held on `turkish_word_first_parting` (exit 101); the sight term → 0 held on
+`run1005_s_word_frame_is_widened_whole` (exit 101).
 
 ## 291. Reserved for the next item on the AI track
 
