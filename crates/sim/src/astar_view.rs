@@ -242,15 +242,19 @@ pub struct Fresh {
 
 /// `astar_path@00683770:303-461`: pop the start and the goal, seed the open
 /// list, ask the two regions, and set the search's avoid flags.
-pub fn fresh_steps<V: AstarView + ?Sized>(v: &mut V, e: &Entry, step: i32) -> Fresh {
+pub fn fresh_steps<V: AstarView + ?Sized>(v: &mut V, step: i32) -> Fresh {
     v.reset_valid_hit();
     let start = v.pop_path().to;
     let goal = v.pop_path().to;
     let tol = v.top_tolerance();
     let root_metric = metric_of(v, step, start);
-    let root_estimate = estimate(start.x.wrapping_sub(goal.x), start.y.wrapping_sub(goal.y), step);
+    let root_estimate = estimate(
+        start.x.wrapping_sub(goal.x),
+        start.y.wrapping_sub(goal.y),
+        step,
+    );
     v.seed_open(start, root_metric, root_estimate);
-    let avoid = avoid_steps(v, e, step, start, goal);
+    let avoid = avoid_steps(v, step, start, goal);
     v.set_avoid(avoid.0, avoid.1);
     let (dx, dy) = (start.x.wrapping_sub(goal.x), start.y.wrapping_sub(goal.y));
     let start_dist = dx.wrapping_abs().wrapping_add(dy.wrapping_abs());
@@ -275,9 +279,8 @@ pub fn fresh_steps<V: AstarView + ?Sized>(v: &mut V, e: &Entry, step: i32) -> Fr
 /// terrain. The world grid reads the two cells' region shorts straight out
 /// of the array and compares them; the tile and unit grids ask
 /// `get_tregion` — the goal's first, then the start's.
-fn avoid_steps<V: AstarView + ?Sized>(
+pub fn avoid_steps<V: AstarView + ?Sized>(
     v: &mut V,
-    _e: &Entry,
     step: i32,
     start: Pos,
     goal: Pos,
@@ -315,7 +318,14 @@ fn avoid_steps<V: AstarView + ?Sized>(
     if on_water {
         return (1, 0);
     }
-    (0, if v.action_type() == Some(ACTION_ATTACK) { 2 } else { 1 })
+    (
+        0,
+        if v.action_type() == Some(ACTION_ATTACK) {
+            2
+        } else {
+            1
+        },
+    )
 }
 
 /// `local_60 / 2 + local_7c`: how near the goal ends the search.

@@ -37,6 +37,10 @@
 use std::collections::BTreeMap;
 
 use crate::Sim;
+use crate::astar_view::{
+    AstarView, NoDangerView, Stash, SuspendView, Top, arrive, entry_steps, fresh_steps,
+    suspend_steps, top_of_loop,
+};
 use crate::orders::{self, Body, PathData, path_flag};
 use crate::world::{Owner, Pos, TILES_PER_CELL, cell, tile, vector_dist};
 
@@ -904,71 +908,22 @@ impl Sim {
 
     /// The heuristic — `PathFinderData::get_estimate`.
     fn estimate(dx: i32, dy: i32, step: i32) -> i32 {
-        let d = vector_dist(dx, dy);
-        if step == STEP_UNIT {
-            d * 10
-        } else {
-            d * 60 / step
-        }
-    }
-
-    /// The grid-cell index of a position — the `metric`.
-    fn metric_of(&self, p: Pos, step: i32) -> i64 {
-        let w = i64::from(self.world.width());
-        match step {
-            STEP_WORLD => i64::from(p.cell().x) + i64::from(p.cell().y) * w,
-            STEP_TILE => {
-                let t = p.tile();
-                i64::from(t.x) + i64::from(t.y) * w * i64::from(TILES_PER_CELL)
-            }
-            _ => {
-                let g = Pos::new(p.x.div_euclid(0x30), p.y.div_euclid(0x30));
-                i64::from(g.x) + i64::from(g.y) * w * 16
-            }
-        }
+        crate::astar_view::estimate(dx, dy, step)
     }
 
     /// `astar_path`'s `avoid_land`/`avoid_sea`, off the start's terrain
-    /// (§4.1). **The world grid does not ask `get_tregion`** — it reads
-    /// `WData.region` (`+0x4`) of the two cells straight out of the array
-    /// and compares the shorts (§4.1, "The same-region test is two
-    /// functions"); only the tile and unit grids call `get_tregion`, and
-    /// only they take the coastal refinement.
+    /// (§4.1): [`crate::astar_view::avoid_steps`] over this unit. **The
+    /// world grid does not ask `get_tregion`** — it reads `WData.region`
+    /// (`+0x4`) of the two cells straight out of the array and compares the
+    /// shorts (§4.1, "The same-region test is two functions"); only the tile
+    /// and unit grids call `get_tregion`, and only they take the coastal
+    /// refinement. Computer-controlled transport types can cross either
+    /// terrain without the same-region preference (PATHFINDER §31).
     ///
     /// Not asked again on a resume: the pair is stashed and restored.
-    fn avoid_flags(&self, u: usize, start: Pos, goal: Pos, step: i32) -> (i32, i32) {
-        let same_region = if step == STEP_WORLD {
-            self.world.region_of(start.cell()) == self.world.region_of(goal.cell())
-        } else {
-            self.world.tregion_alt(start.tile()) == self.world.tregion_alt(goal.tile())
-        };
-        if same_region {
-            let on_water = if step == STEP_WORLD {
-                self.world.is_ocean(start.cell())
-            } else {
-                self.world.tile_mask(start.tile()) & tile::SURFACE == tile::SURFACE_OCEAN
-            };
-            // Computer-controlled transport types can cross either terrain
-            // without the same-region preference (PATHFINDER §31).
-            if self.unit_ai_bit(self.units[u].owner)
-                && self.units[u].ty.is_some_and(|t| {
-                    self.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
-                })
-            {
-                return (0, 0);
-            }
-            if on_water {
-                return (1, 0);
-            }
-            let attacking = self
-                .action_of(u)
-                .is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Attack(_)));
-            return (0, if attacking { 2 } else { 1 });
-        }
-        if self.current_order(u).is_some_and(|o| o.flags & 0x20 != 0) {
-            return (1, 0);
-        }
-        (0, 0)
+    #[cfg(test)]
+    fn avoid_flags(&mut self, u: usize, start: Pos, goal: Pos, step: i32) -> (i32, i32) {
+        crate::astar_view::avoid_steps(&mut SimAstar { sim: self, u }, step, start, goal)
     }
 
     /// `PathFinder::astar_path` (`docs/PATHFINDER.md` §4). Returns 1 on a
@@ -981,35 +936,24 @@ impl Sim {
     /// recomputed either way, exactly as `00683770` does: the work cap, the
     /// stride, the row width, the direction increment and `toff`.
     fn astar_path(&mut self, u: usize, m: &Modes, step: i32, anti: i32, resume: bool) -> i32 {
-        let work_cap = if step == STEP_UNIT { 500 } else { 50 } * 64;
-        // The recovery grid uses max(1, (collision size + 1) / 2).
-        // Larger units also check the intermediate diagonal positions.
-        // `docs/PATHFINDER.md` §30 (item 1431).
-        let su: i32 = if step == STEP_UNIT {
-            ((self.coll_size(u) + 1) / 2).max(1)
-        } else {
-            1
-        };
-        let stride = su * step;
-        let width = i64::from(self.world.width());
-        let row = match step {
-            STEP_WORLD => width,
-            STEP_TILE => width * i64::from(TILES_PER_CELL),
-            _ => width * 16,
-        };
-        let dinc: i32 = if step == STEP_UNIT && anti != 0 { 2 } else { 1 };
-        // The prologue's `toff`; zero when the current order is not a move,
-        // which is exactly what the probe's `− 0x180` then means.
-        let toff = self.toff(u).unwrap_or((0, 0));
-        let no_danger = m.no_danger;
-        // §4.1: `iroquois` is the unit's own `unit_masks2 & 0x4000`, taken
-        // at the entry for every wrapper (item 3117: run918b's block 894,
-        // the Iroquois Scout `1/0`'s ten-leg explore path, legs 6..8 one
-        // cell east in ours while it priced forest by `blocked`).
-        let iroquois = self.units[u].unit_masks2 & crate::combat::umask2::FOREST_WALKER != 0;
+        // **The entry** is `crate::astar_view::entry_steps` (item 3381,
+        // `sweep::path_finder_astar_suspend`): the work cap, the stride
+        // (`max(1, (collision size + 1) / 2)` steps on the unit grid, whose
+        // larger units also check the intermediate diagonal positions,
+        // `docs/PATHFINDER.md` §30, item 1431), the row width, the
+        // direction increment, `toff` (zero when the current order is not a
+        // move, which is exactly what the probe's `− 0x180` then means),
+        // `no_danger` and `iroquois` — the last the unit's own
+        // `unit_masks2 & 0x4000`, taken for every wrapper (§4.1; item 3117:
+        // run918b's block 894, the Iroquois Scout `1/0`'s ten-leg explore
+        // path, legs 6..8 one cell east in ours while it priced forest by
+        // `blocked`).
+        let e = entry_steps(&mut SimAstar { sim: self, u }, step, anti);
+        let (work_cap, su, stride, toff, dinc) = (e.work_cap, e.su, e.stride, e.toff, e.dinc);
+        let row = i64::from(e.row);
         let m = Modes {
-            no_danger,
-            iroquois: m.iroquois || iroquois,
+            no_danger: e.no_danger,
+            iroquois: m.iroquois || e.iroquois,
             ..*m
         };
 
@@ -1055,14 +999,15 @@ impl Sim {
                 // list.
                 return 0;
             }
-            let start_e = self.units[u].path.pop().expect("start entry");
-            let goal_e = self.units[u].path.pop().expect("goal entry");
-            let start;
-            (start, goal) = (start_e.to, goal_e.to);
-            // The arrival tolerance is the *final* goal's — the entry now on
-            // top — not the search-goal entry's.
-            tol = self.units[u].path.last().map_or(0, |p| p.tolerance);
-            (avoid_land, avoid_sea) = self.avoid_flags(u, start, goal, step);
+            // The two pops, the root node, the region tests and the wheel's
+            // start are `crate::astar_view::fresh_steps`. The arrival
+            // tolerance is the *final* goal's — the entry now on top — not
+            // the search-goal entry's.
+            let f = fresh_steps(&mut SimAstar { sim: self, u }, step);
+            let start = f.start;
+            goal = f.goal;
+            tol = f.tol;
+            (avoid_land, avoid_sea) = f.avoid;
             nodes = Vec::new();
             // Min `value` first; equal values newest-first (LIFO), as the
             // original's BST leans (§2.1).
@@ -1079,10 +1024,10 @@ impl Sim {
                 x: start.x,
                 y: start.y,
                 length: 0,
-                estimate: Self::estimate(start.x - goal.x, start.y - goal.y, step),
-                value: Self::estimate(start.x - goal.x, start.y - goal.y, step),
+                estimate: f.root_estimate,
+                value: f.root_estimate,
                 timeout: 0,
-                metric: self.metric_of(start, step),
+                metric: i64::from(f.root_metric),
                 transport: false,
                 building: false,
                 parent: None,
@@ -1093,18 +1038,11 @@ impl Sim {
             seq += 1;
             // The direction preference: the wheel starts one past this, at
             // the cardinal facing the goal.
-            let (dx0, dy0) = (start.x - goal.x, start.y - goal.y);
-            start_dist = dx0.abs() + dy0.abs();
-            pref = if dy0.abs() < dx0.abs() {
-                if goal.x < start.x { 7 } else { 3 }
-            } else if start.y <= goal.y {
-                5
-            } else {
-                1
-            };
+            start_dist = f.start_dist;
+            pref = f.pref;
             traversed = 0;
         }
-        let arrive = tol / 2 + stride;
+        let arrive = arrive(tol, stride);
         let mut probes: i32 = 0;
 
         while let Some((&key, &cur_id)) = open.first_key_value() {
@@ -1119,8 +1057,17 @@ impl Sim {
             }
 
             let manh = (cur.x - goal.x).abs() + (cur.y - goal.y).abs();
-            let over_limit = m.anti_unit && m.limit < probes;
-            if manh <= arrive || traversed + probes >= work_cap || over_limit {
+            let top = top_of_loop(
+                manh,
+                arrive,
+                traversed,
+                probes,
+                work_cap,
+                m.anti_unit,
+                m.limit,
+                anti,
+            );
+            if top != Top::Expand {
                 // **Suspend** (§4.3 step 3): a unit-grid search over its
                 // limit, still short of the goal, without `anti`. The node
                 // it stopped on goes back on the open list — so the resumed
@@ -1128,34 +1075,30 @@ impl Sim {
                 // state moves onto the unit. `find_upath` then returns −1
                 // without touching the stack, which is left holding the
                 // caller's final goal and nothing else.
-                if over_limit && manh > arrive && anti == 0 {
-                    open.insert(key, cur_id);
-                    open_by_metric.insert(cur.metric, (key.1.0, cur.value, cur_id));
-                    // The stamp goes on the **unit**, not into the stash:
-                    // `astar_path@00683770:517` writes `UnitData +0x130`,
-                    // which outlives the containers it hands over beside it
-                    // (`docs/PATHFINDER.md` §18.6). Nothing but a unit's
-                    // birth clears it, so this is the one field of the
-                    // hand-over that survives `clear_partial_path`.
-                    self.units[u].start_dist = start_dist;
-                    self.units[u].search = Some(Box::new(Search {
+                if top == Top::Suspend {
+                    let mut sv = SimSuspend {
+                        sim: self,
+                        u,
                         nodes,
                         open,
                         open_by_metric,
                         closed,
-                        // The suspend hands the memo to the unit and pops
-                        // an empty one (`00683770:505`).
-                        valid_memo: std::mem::take(&mut self.path_memo),
-                        block_copies: std::mem::take(self.coll_copies.get_mut()),
                         seq,
-                        tol,
-                        pref,
-                        goal,
-                        start_dist,
-                        traversed: traversed + probes,
-                        avoid_land,
-                        avoid_sea,
-                    }));
+                        key,
+                        cur_id,
+                        cur,
+                    };
+                    suspend_steps(
+                        &mut sv,
+                        &Stash {
+                            tol,
+                            pref,
+                            goal,
+                            start_dist,
+                            traversed: traversed + probes,
+                            avoid: (avoid_land, avoid_sea),
+                        },
+                    );
                     return -1;
                 }
                 let mut end_id = cur_id;
@@ -1699,13 +1642,187 @@ impl Sim {
     /// army walking under an attack-to priced its own city's negative
     /// danger and cut through it (`docs/PATHFINDER.md` §28).
     fn no_danger_mode(&self, u: usize) -> bool {
-        self.action_of(u)
-            .is_some_and(|a| matches!(self.units[u].orders[a].body, Body::Attack(_)))
-            || self.units[u].owner >= 8
-            || matches!(
-                self.order_type(u),
-                orders::index::ATTACK_TO | orders::index::GROUP_ATTACK_TO
-            )
+        crate::astar_view::no_danger_steps(&mut SimNoDanger { sim: self, u })
+    }
+}
+
+/// The crate's [`Sim`] as `no_danger`'s view: unit `u`'s action, owner and
+/// current order.
+struct SimNoDanger<'a> {
+    sim: &'a Sim,
+    u: usize,
+}
+
+impl NoDangerView for SimNoDanger<'_> {
+    fn action_type(&mut self) -> Option<i32> {
+        self.sim
+            .action_of(self.u)
+            .map(|a| i32::from(self.sim.units[self.u].orders[a].index()))
+    }
+    fn owner(&mut self) -> i32 {
+        i32::from(self.sim.units[self.u].owner)
+    }
+    fn order_type(&mut self) -> i32 {
+        i32::from(self.sim.order_type(self.u))
+    }
+}
+
+/// The crate's [`Sim`] as `astar_path`'s view (item 3381,
+/// [`crate::astar_view`]): unit `u`, its orders, the world and its path
+/// stack. The pathfinder's own words (`+0x74`, `+0x7c`, `+0x88`, `+0x8c`,
+/// `+0x90`) and the root node's trees have no field here — the loop keeps
+/// them in locals and containers — so their setters are empty.
+struct SimAstar<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+}
+
+impl NoDangerView for SimAstar<'_> {
+    fn action_type(&mut self) -> Option<i32> {
+        SimNoDanger {
+            sim: self.sim,
+            u: self.u,
+        }
+        .action_type()
+    }
+    fn owner(&mut self) -> i32 {
+        i32::from(self.sim.units[self.u].owner)
+    }
+    fn order_type(&mut self) -> i32 {
+        i32::from(self.sim.order_type(self.u))
+    }
+}
+
+impl AstarView for SimAstar<'_> {
+    fn masks2(&mut self) -> i32 {
+        self.sim.units[self.u].unit_masks2 as i32
+    }
+    fn collision(&mut self) -> i32 {
+        self.sim.coll_size(self.u)
+    }
+    fn transport_type(&mut self) -> bool {
+        self.sim.units[self.u].ty.is_some_and(|t| {
+            self.sim.unit_types[t].cols.unit_flags & crate::ai_load::uflags::TRANSPORT != 0
+        })
+    }
+    fn ai_bit(&mut self) -> bool {
+        self.sim.unit_ai_bit(self.sim.units[self.u].owner)
+    }
+    fn list_present(&mut self) -> bool {
+        !self.sim.units[self.u].orders.is_empty()
+    }
+    fn cursor_to_front(&mut self) {}
+    fn has_order(&mut self) -> bool {
+        self.sim.current_order(self.u).is_some()
+    }
+    fn order_is_move(&mut self) -> bool {
+        self.sim
+            .current_order(self.u)
+            .is_some_and(orders::Order::is_move)
+    }
+    fn move_offset(&mut self) -> (i32, i32) {
+        self.sim.toff(self.u).unwrap_or((0, 0))
+    }
+    fn order_present(&mut self) -> bool {
+        self.sim.current_order(self.u).is_some()
+    }
+    fn order_flags(&mut self) -> i32 {
+        self.sim
+            .current_order(self.u)
+            .map_or(0, |o| i32::from(o.flags))
+    }
+    fn world_width(&mut self) -> i32 {
+        self.sim.world.width()
+    }
+    fn world_width_tiles(&mut self) -> i32 {
+        self.sim.world.width() * TILES_PER_CELL
+    }
+    fn div3(&mut self, i: i32) -> i32 {
+        i.div_euclid(3)
+    }
+    fn region_of_cell(&mut self, cx: i32, cy: i32) -> i32 {
+        self.sim
+            .world
+            .region_of(crate::world::Cell::new(cx, cy))
+            .map_or(-1, i32::from)
+    }
+    fn tregion(&mut self, tx: i32, ty: i32) -> i32 {
+        self.sim
+            .world
+            .tregion_alt(Pos::new(tx, ty))
+            .map_or(-1, i32::from)
+    }
+    fn is_ocean_cell(&mut self, cx: i32, cy: i32) -> bool {
+        self.sim.world.is_ocean(crate::world::Cell::new(cx, cy))
+    }
+    fn tile_mask(&mut self, tx: i32, ty: i32) -> i32 {
+        i32::from(self.sim.world.tile_mask(Pos::new(tx, ty)))
+    }
+    fn pop_path(&mut self) -> PathData {
+        // The caller has seen two entries.
+        self.sim.units[self.u].path.pop().expect("a path entry")
+    }
+    fn top_tolerance(&mut self) -> i32 {
+        self.sim.units[self.u]
+            .path
+            .last()
+            .map_or(0, |p| p.tolerance)
+    }
+    fn set_iroquois(&mut self, _word: i32) {}
+    fn set_no_danger(&mut self, _on: bool) {}
+    fn reset_valid_hit(&mut self) {}
+    fn seed_open(&mut self, _start: Pos, _metric: i32, _estimate: i32) {}
+    fn set_avoid(&mut self, _land: i32, _sea: i32) {}
+}
+
+/// The crate's [`Sim`] as the suspend's view: the search's containers, which
+/// the hand-over moves onto the unit as a [`Search`].
+struct SimSuspend<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    nodes: Vec<Node>,
+    open: BTreeMap<(i32, std::cmp::Reverse<u64>), u32>,
+    open_by_metric: BTreeMap<i64, (u64, i32, u32)>,
+    closed: BTreeMap<i64, u32>,
+    seq: u64,
+    key: (i32, std::cmp::Reverse<u64>),
+    cur_id: u32,
+    cur: Node,
+}
+
+impl SuspendView for SimSuspend<'_> {
+    fn reinsert_current(&mut self) {
+        self.open.insert(self.key, self.cur_id);
+        self.open_by_metric
+            .insert(self.cur.metric, (self.key.1.0, self.cur.value, self.cur_id));
+    }
+    fn hand_over(&mut self, st: &Stash) {
+        // The stamp goes on the **unit**, not into the stash:
+        // `astar_path@00683770:517` writes `UnitData +0x130`, which
+        // outlives the containers it hands over beside it
+        // (`docs/PATHFINDER.md` §18.6). Nothing but a unit's birth clears
+        // it, so this is the one field of the hand-over that survives
+        // `clear_partial_path`.
+        self.sim.units[self.u].start_dist = st.start_dist;
+        let search = Search {
+            nodes: std::mem::take(&mut self.nodes),
+            open: std::mem::take(&mut self.open),
+            open_by_metric: std::mem::take(&mut self.open_by_metric),
+            closed: std::mem::take(&mut self.closed),
+            // The suspend hands the memo to the unit and pops an empty one
+            // (`00683770:505`).
+            valid_memo: std::mem::take(&mut self.sim.path_memo),
+            block_copies: std::mem::take(self.sim.coll_copies.get_mut()),
+            seq: self.seq,
+            tol: st.tol,
+            pref: st.pref,
+            goal: st.goal,
+            start_dist: st.start_dist,
+            traversed: st.traversed,
+            avoid_land: st.avoid.0,
+            avoid_sea: st.avoid.1,
+        };
+        self.sim.units[self.u].search = Some(Box::new(search));
     }
 }
 
