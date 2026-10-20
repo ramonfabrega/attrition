@@ -8481,13 +8481,39 @@ The word closed at 7902 and the close compares whole (`docs/AI.md` §277). What 
   them. A packet of an Iroquois or Lakota game past the third age that fields Slingers answers them with
   `tools/recomp/get_position.py`.
 
-## Parked by the next landing, slot LB — reserved
+## Parked by item 3346, 2026-10-19 — the nations seat's fifteenth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3346a. `Wall::process@00640450` swept inline; the crate's `process_building` (city.rs) parts from it in four places
+  the sweep does not call.** (1) Reveal-to-land-owner arm missing: with the tile owner neither the building's owner nor an
+  ally, a building sets bit `s` in `m+0x62` and calls `check_ever_seen(force=1)` when `leaders[s].flags & 0x2000` and the
+  bit was clear; the crate passes `force=false` only. Likeliest to move a pin (fog / meet on a capture). (2) Rush-rules
+  period: with the `rush_rules` byte set and `Game::war_allowed()` false the attrition check runs every 16 frames; the
+  crate hardcodes `ENEMY_TERRITORY_PERIOD = 32`. (3) Types whose slot `+0x108` is true take the owner from
+  `check_enemy_adjacent`. (4) A disbanded unstarted site falls through to the warning and writes `leaders[who]+0x1fc`.
+  Unbuilt: `--gtab` could not lay `unbuilt_wonders`' inline 4-byte-stride id arrays (a sparse slice plus `--place` did).
+- **3346b. `Unit::think@005f6e40`: the non-captain half is not swept; a sibling `unit_think_mirror` module owes it.** The
+  opening captain mirror (`get_action`, `valid_target`, `add_attack_order`) needs vtable slots `0x10` and `0xcc`, and
+  `0xcc` is also `this`'s `is_supply`, kept half the rows; one stubbed vtable cannot serve both. A module with `is_supply`
+  stubbed only covers it; the generator can spell it (`--answer-win` takes a negative size). The port is also inline: the
+  crate's `Sim::think` (`orders.rs:4399`) reads `self.units` and its `think_*` callees run for real, so a view trait over
+  the whole dispatcher is the owed refactor. Reading only: the citizen arm (`TypeIndex` 0x32/0x33) also does
+  `leaders[who].word0 |= 0x80000` (the crate clears carry only); the comment at `orders.rs` ~4437 is stale.
+- **3346c. `Object::disband@006455c0`: three holes.** (1) The garrison recursion cannot be stubbed — the function's own
+  entry is the sweep's entry, so `this+0x28` is held negative; `--stub` on the function's own entry (or a call-site hook)
+  is the flag `sweep_gen.py` lacks. (2) Price order: the crate takes prices before the close, the original after;
+  wonder / city / oil ramps may differ; unchecked. (3) A started wall takes `Random::get(0,0xffff)` + `die(r%3+1)`; the
+  crate has no wall as a building, `SimDisband` answers plain. Also held out: the `SubObject::time` arm of slot `0xa4`
+  (collides with the order objects' slot `0x6c`), the Lakota message arm (UI), `who` 0..1.
+- **3346d. `BuildTypeData::blocked_tcoord@00636db0` seams.** `semaphore[1] & 8` is not carried (`sem8()` false); a tile
+  region outside `0..64` or `-1` reads another field of the original's leader record and the sweep draws only `0..7`.
+  `blocked_site` still does its own unseen tally beside the now-faithful per-tile `0x24` answer.
+- **3346e. `Unit::think_carry_civilian@005f37c0` seams in `SimCarryCiv` (not swept; only the steps are).** `eject_all` is
+  a no-op (the original builds a one-boat `Group` and calls `action_eject_all(0,-1,-1,-1)`); `military()` returns false
+  (`think_carry_military@005f3260`); region slots are the dense-by-terrain stand-in. Same root as parked 3339b.
+- **3346f. `Unit::do_repair@005ee420` seams.** The complaint throttle (leader `+0x208`), message and sound are a UI SEAM
+  (`feedback_stamp` returns `i32::MIN`); `LeaderDataEncrypt::scratch` is not compared; draws held to price 0..9, hits
+  1..80, uid 0/1. Not 3346: `cargo test -p sim --lib` showed one failure in the subagent's tree,
+  `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` — the lane gate says whether it is the base's.
 
 ## Parked by the next landing, slot LC — reserved
 

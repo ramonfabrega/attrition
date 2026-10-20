@@ -206,6 +206,8 @@ mod unit_do_group_attack_to;
 mod unit_do_idle;
 #[path = "unit_do_patrol.rs"]
 mod unit_do_patrol;
+#[path = "unit_do_repair.rs"]
+mod unit_do_repair;
 #[path = "unit_do_spec_unit_anim.rs"]
 mod unit_do_spec_unit_anim;
 #[path = "unit_end_trade_route.rs"]
@@ -288,12 +290,19 @@ mod unit_set_rally;
 mod unit_set_type;
 #[path = "unit_supplies_left.rs"]
 mod unit_supplies_left;
+<<<<<<< HEAD
 #[path = "unit_target_opportunity.rs"]
 mod unit_target_opportunity;
+=======
+#[path = "unit_think.rs"]
+mod unit_think;
+>>>>>>> refs/heads/worktree-replan-pdb
 #[path = "unit_think_caravan.rs"]
 mod unit_think_caravan;
 #[path = "unit_think_carry.rs"]
 mod unit_think_carry;
+#[path = "unit_think_carry_civilian.rs"]
+mod unit_think_carry_civilian;
 #[path = "unit_think_hero.rs"]
 mod unit_think_hero;
 #[path = "unit_think_peasant.rs"]
@@ -488,6 +497,8 @@ mod wall_out_draw;
 mod wall_out_get_gpiece;
 #[path = "wall_out_make_options.rs"]
 mod wall_out_make_options;
+#[path = "wall_process.rs"]
+mod wall_process;
 #[path = "wall_set_type.rs"]
 mod wall_set_type;
 #[path = "wall_set_type_dispatch.rs"]
