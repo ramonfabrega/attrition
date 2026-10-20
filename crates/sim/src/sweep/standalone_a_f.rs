@@ -120,6 +120,8 @@ mod attack_order_walk_data;
 mod attack_to_order_walk_data;
 #[path = "attacktoorder_get_attack_to_order.rs"]
 mod attacktoorder_get_attack_to_order;
+#[path = "balance_compute_modifier.rs"]
+mod balance_compute_modifier;
 #[path = "balance_lookup_absolute_name.rs"]
 mod balance_lookup_absolute_name;
 #[path = "balance_return_modifier.rs"]
