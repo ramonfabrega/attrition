@@ -71,6 +71,7 @@ pub mod collide;
 pub mod combat;
 pub(crate) mod construct;
 pub mod cost;
+pub mod damage;
 pub mod danger;
 pub mod detour;
 pub mod diplomacy;
