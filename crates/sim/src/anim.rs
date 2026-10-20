@@ -1970,6 +1970,12 @@ impl Sim {
                     // and the aim is then taken from *that* point —
                     // `find_angle(T − launch)`, which is what run108's
                     // `ex, ey` reproduce.
+                    if std::env::var_os("RON_PROBE_LAUNCH").is_some() {
+                        eprintln!(
+                            "PROBE launch f{} {}/{} gpiece {} anim {} start {} node {} pos {:?} facing {}",
+                            self.frame, self.units[u].owner, self.units[u].index, guy.gpiece, guy.anim, start, node, self.units[u].pos, self.units[u].movement.facing.0
+                        );
+                    }
                     let (from, dz) = match pivot.filter(|r| ((r.node & 3) as usize) < pivots) {
                         Some(r) => {
                             let turret = guy.turret.angles[(r.node & 3) as usize];
