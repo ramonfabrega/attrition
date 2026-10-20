@@ -2911,69 +2911,6 @@ impl Sim {
         }
     }
 
-    /// The repair arithmetic of `Unit::do_repair` once the repairer stands
-    /// adjacent — `docs/CITIES.md` §9.3: the period, the helper count, the
-    /// amount, the price, `Build::repair_damage`. The order side is
-    /// `orders::do_repair`.
-    pub(crate) fn repair_step(&mut self, i: usize, at: usize, frame: i64) {
-        let who = self.units[i].owner;
-        let Some(ty) = self.buildings[at].ty else {
-            self.kill_current_order(i);
-            return;
-        };
-        let bd = &self.buildings[at];
-        let (city, captured) = match bd.city {
-            Some(c) if self.building_is_city(at) && self.cities[c].alive => {
-                (true, self.cities[c].race != Some(bd.owner))
-            }
-            _ => (false, false),
-        };
-        let target = build::RepairTarget {
-            helpers: bd.helpers,
-            construct_time: self.construct_time_of(at),
-            hits: bd.hits_now(),
-            city,
-            captured,
-            under_attack: bd.is_under_attack(),
-            fresh_hit: bd.under_attack & 0x1 != 0,
-        };
-        let period = build::repair_period(&self.tuning, &target, self.nation[who as usize].koreans);
-        self.buildings[at].helpers += 1;
-        let amount = build::repair_amount(frame, period, self.buildings[at].damage);
-        if amount == 0 {
-            return;
-        }
-        // The price, again: one unit of a good whenever the repaired
-        // figure crosses a multiple of `hits / cost`. Pinned as the
-        // exact rational.
-        let hits = i64::from(self.buildings[at].hits_now());
-        let left = i64::from(hits as i32 - self.buildings[at].damage);
-        let price = self.building_price(who, ty);
-        let mut due = [0i32; RESOURCES];
-        for (g, p) in price.iter().enumerate() {
-            if *p <= 0 || hits <= 0 {
-                continue;
-            }
-            let before = left * i64::from(*p) / hits;
-            let after = (left + i64::from(amount)) * i64::from(*p) / hits;
-            if after > before {
-                due[g] = 1;
-            }
-        }
-        let ledger = &mut self.ledgers[who as usize];
-        if due.iter().enumerate().any(|(g, d)| *d > ledger.bucket[g]) {
-            self.kill_current_order(i);
-            return;
-        }
-        // `Unit::do_repair@005ee420`'s charge draws the escrow down by the
-        // same amount, floored at zero (`docs/AI.md` §98).
-        for (g, d) in due.iter().enumerate() {
-            ledger.bucket[g] -= d;
-            ledger.escrow[g] = (ledger.escrow[g] - d).max(0);
-        }
-        self.repair_building(at, amount);
-    }
-
     // ------------------------------------------------------------------
     // Capture
     // ------------------------------------------------------------------
