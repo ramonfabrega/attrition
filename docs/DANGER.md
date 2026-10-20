@@ -162,7 +162,10 @@ else:
 `ObjectData::visible` bit for the viewer, then infiltration, then
 `WallData::is_seen@00642bd0`, whose deciding clause is the building's own
 `ever_seen` byte ANDed with the viewer's `ally_mask` — a per-object
-accumulation of line of sight, not a fog read.
+accumulation of line of sight, not a fog read. **The code follows this since
+item 3367** (`Sim::build_is_seen`, `docs/AI.md` §284): it had read the fog
+plane, which a leader with `leader_flags & 0x1000` sees whole, so the Spanish
+never halved a human building's danger.
 
 **The AI reads the map whole and `calc_cost` eighths it.** Five producers —
 `produce_unit@006cb9e0:142`, `:236`, `:380`, `produce_tech@006ca980:138`,
