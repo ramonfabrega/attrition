@@ -110,11 +110,12 @@ pub(crate) trait GatherView {
 /// `is_building`, then neither a University nor a Missile Silo. `flag` picks
 /// the inside scan's `+8 & 1` read for the first.
 fn member_ok<V: GatherView>(v: &mut V, h: V::H, flag: bool) -> bool {
-    let alive = if flag { v.alive_flag(h) } else { v.alive_slot(h) };
-    alive
-        && v.is_building(h)
-        && !v.is_ident(h, IS_UNIVERSITY)
-        && !v.is_ident(h, IS_MISSILE_SILO)
+    let alive = if flag {
+        v.alive_flag(h)
+    } else {
+        v.alive_slot(h)
+    };
+    alive && v.is_building(h) && !v.is_ident(h, IS_UNIVERSITY) && !v.is_ident(h, IS_MISSILE_SILO)
 }
 
 /// `Group::action_gather_point@006ff1b0(x, y, action, add_to_end)`.
