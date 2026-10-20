@@ -24135,12 +24135,60 @@ the five widenings `run978{,b,c,d,e,f}_…` and the closing state.
 Coal, Gold, Iron and Gypsum change no price on any widening on file; the research cursor's write order
 (`find_counters[0x1e]` only on success in the original, before the price here) moves no pin and is parked.
 
-## 277. Reserved for the next item on the AI track
+## 277. The battery's Lakota word: the `NA` Slinger's stone leaves the hand, to the game's end
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3345, 2026-10-19, Opus 5.5. Great Lakes, the Nubians (human) against the Lakota at Difficulty 2, seed 12345:
+the lobby item 3342 minted (§275), scored at 6071 of 7902 on its first try and promoted here to the AI word
+(`diff::lakota_word`; the peace pair's `diff::lakota_pair` is another game). The Persians at Difficulty 2
+(`GreatLakesPersianTier2`, runs 979 and 979b) replace it in the battery under entry 72's **rule (2)** as amended by
+84: every nation is in some dump, so rule (1) has no answer; of the nations no Great Lakes dump holds and only closed
+games hold, the Persians reach the most census functions (11); tier 2 is the one the Lakota left (Great Lakes'
+battery keeps the Chinese at 1 and the Turks at 4). First try **6046 / 6046** of 7105 (ours 5 draws, theirs 4, at 1
+ours `Unit::fight+0x9b0`, theirs `Farms::inc_time+0x1ae`).*
+
+**The frame.** On 6071 ours spends 2 draws and theirs 3, parting at index 0: theirs' first is `Unit::do_move+0xe84`
+(seed `9aaf99c0`), ahead of the two `Ammo::init` draws both sides spend for the Slinger `1/18` (`TypeIndex` 82,
+land). run975 dumps blocks 0..36 and run975b its setup and closing blocks only, so run980 was booked over
+6065..6321 at `GUYS=4` (6327 frames `rngcmp`-identical to run975b). It opened apart: 1147 keys, 46 on 6065.
+
+**The direction: theirs' stones land a frame sooner.** Past the standing family, 6065's rows are one frame of offset
+on one target — the citizen `0/2`'s `damage_frame` 6053 against 6052, its gather `wait` 276 against 277, its walk a
+frame behind (theirs' (4620, 29040) on 6065 is ours on 6066), and the city centre `0/2000`'s `raid_stamp` 6059
+against 6058. `RON_DEBUG_AMMO` names both: `1/18`'s stone thrown on 6046 at `0/2` flies 8 frames in ours, and
+`1/20`'s on 6050 at the centre 10. The Slingers' `PROJ_SPEED` is 150 and the plan distances 1251 and 1540, so the
+straight line gives 8 and 10 from the unit's own square — and 7 and 9 from about 50 units nearer, which is the bow
+hand. **Who throws is the Lakota's art**: `get_unit_gpiece` adds `0x160 × UNIT_CONTINENT`, the Lakota's is 4
+(`NA`), so the Slinger plays **piece 1440**, and `sim::launch` held bays for piece 32 alone (item 1040); a piece with
+no row leaves from the unit's square.
+
+**The rows, from the original's own function.** run954b's `RON_STATE_FRAME` packet (the Iroquois' Great Lakes game,
+the same art style) holds piece 1440's three `AttachPos` rows — `CHAR_ATTACK1` at 21, `2` at 22, `3` at 16, piece
+32's keys — and `tools/recomp/get_position.py`'s sweep of each at all 361 headings is reproduced exactly by one
+integer `launch::Bay` per key: (71298, 69592, dz 174), (32704, 120229, 144), (−47065, 114687, 168), each the
+centroid of its exact region (534, 319 and 28 lattice points). Pieces 3552, 5664 and 7776 (the later age brackets
+and the female slot) are not on the packet.
+
+**The value diff** (run980b, `AMMO=5` over 6040..6120, 6126 frames identical): `1/18`'s stone on 6047 prints `sx,
+sy` (4962, 30153), `total_time` 7, `angle` −22937600; ours now throws from (4962, 30153) in 7 at the same angle,
+where it threw from (5016, 30264) in 8. `1/20`'s leaves from (4943, 30718) on both sides. **6071 → 7902, the game's
+last frame**, count and sequence; run980 1147 → 30 keys.
+
+**The close.** `run975b_lakota_closing_state` walks to run975b's closing block 7903 and compares 26 units, every
+count 0, no closing field. The lobby is closed.
+
+**What stands.** run980's 30: 6065's standing 27 (`form`, the leaders' `SITE[·].reg`, `aggression[1]`, the army
+pools with no `GROUPDATA`), who=1's `SITE[1].reg` on 6176, and two Slingers' `order:target` — `1/12` on 6085 and
+`1/6` on 6092, ours the citizen `0/2`, theirs the city centre `0/2000` — parked by item 3345 (no score: the draw
+stream agrees past both to the end).
+
+**Tests.** `launch::tests::run980b_s_lakota_stones_leave_from_the_na_slinger_s_bays` (the two dumped stones);
+`lakota_word_first_parting` at 7902, which fails with piece 1440's `CHAR_ATTACK3` row keyed away (`tools/mutate.py`,
+exit 101); `run980_s_word_frame_is_widened_whole`; the closing state. Every other lobby's `first_parting`, the
+battery's floors and every closing state held: no other walk on file throws an `NA` stone across a frame boundary.
+
+**Coverage.** Diff-backed: the two stones' launch points and flight times, the draw stream to 7902, the close.
+Reading-and-packet only: the three rows' `dz` (no dump prints a stone's `sz` against its figure here; run980b's
+`sz` 743 is over the ground, not the figure). Not established: the NA Slinger's later-age and female pieces.
 
 ## 278. Reserved for the next item on the AI track
 

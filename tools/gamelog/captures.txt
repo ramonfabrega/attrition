@@ -9881,3 +9881,12 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks: `rngcmp.py` run977 vs run977b -> 37 identical; run972b vs run978 -> 262 identical, vs run978b -> 3440, vs run978c -> 3178,
 # vs run978d -> 1617, vs run978e -> 4632, vs run978f -> 15838.
 # ==== TAKEN 2026-10-19, one take each, 14:48-16:11, pool lanes 1-2 ====
+# ==== item 3345: the Lakota word's widenings and the battery's replacement lobby (`docs/AI.md` §277; `docs/RUNS.md` run979 .. run980b) ====
+#   run979   --map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 23 --profile DIFFICULTY=2   (Great Lakes, Persians; start)
+#   run979b  run962b's recipe on --map 14 with --ai-tribe 23 --profile DIFFICULTY=2   (the draw stream; ended itself on 7105)
+#   run980   --map 14 --end-frame 6326 --timeout 3600 --log-window 6065 6321 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9
+#            --ai-tribe 19 --cover cover=0 --profile DIFFICULTY=2   (the word 6071's window)
+#   run980b  --map 14 --end-frame 6125 --timeout 5400 --log-window 6040 6120 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+#            --ai-tribe 19 --cover cover=0 --profile DIFFICULTY=2   (the Slingers' stones)
+# Checks: `rngcmp.py` run979 vs run979b -> 37 identical; run975b vs run980 -> 6327 identical, vs run980b -> 6126.
+# ==== TAKEN 2026-10-19, one take each, 20:14-20:40, pool lanes 1-3 ====
