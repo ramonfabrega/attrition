@@ -101,3 +101,118 @@ fn turkish_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run1005: the word 14991's window, blocks 14985..15241 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3380). run898 dumps blocks 0..36 and
+/// run898b its setup and closing blocks only, so no dump on disk held the
+/// word's block.
+pub(crate) const RUN1005: &str = "gamelog-run1005-greatlakes-turkish-diff4-window-14985-15242.txt";
+
+/// The window: block 14985 through 15241; the word 14991's own block is
+/// 14992.
+pub(crate) const WIDENING_TURKISH_FRAME_14991: (i64, i64) = (14985, 15241);
+
+pub(crate) fn turkish_frame_14991_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[TURKISH.start],
+        true,
+        TURKISH.long,
+        "run1005",
+        &[(RUN1005, WIDENING_TURKISH_FRAME_14991.0)],
+        WIDENING_TURKISH_FRAME_14991,
+        1,
+        &[14992],
+        true,
+    )
+}
+
+#[test]
+fn run1005_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = turkish_frame_14991_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3380, the first walk (the Turkish siege range built, the word at
+    // the game's end): 57 keys. The standing family on 14985 (`form`, the
+    // leaders' `SITE[·].reg`, `aggression[1]`, the army pools and
+    // `group:N.held` with no `GROUPDATA` printed, `g.angle[0]` of nine of
+    // who=1's), and the four Turkish siege units' `mylos`, ours 4 against
+    // theirs 7 (`1/37`, `1/38`, `1/70`, `1/71`). Built (`TURK_SIEGE_LOS`,
+    // after the packed clamp): 57 -> 53. What stands past the family:
+    // `1/38`'s and `1/37`'s figures' `g.des_x/y` on 15081 and 15084 (the
+    // Basilica Bombard steps 64 in y and its figures follow a frame late in
+    // theirs; agreeing the block after) and `dest_angle` of `1/54` on 15214
+    // and `1/50` on 15224 (parked 3380a, 3380b). Nothing on the word's
+    // block 14992.
+    pin_eq!(w.firsts.len(), 53, "keys that part in the window");
+}
+
+/// The closing state's window: run898b's closing block alone, the long's
+/// last frame 15503 writing it (item 3380).
+pub(crate) const WIDENING_TURKISH_CLOSING: (i64, i64) = (15502, 15505);
+
+/// **The lobby's closing state** (item 3380, DECISIONS 55): run898b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+/// The game ends itself on 15503.
+#[test]
+fn run898b_turkish_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        crate::testenv::dump(TURKISH.long.0),
+        crate::testenv::dump(TURKISH.start),
+        trace(TURKISH.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Turkish closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 15504, "the closing block");
+    pin_eq!(e.compared, 127, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3380, the first walk (the Turkish siege range and sight, the
+    // word at 15503): 127 units compared on block 15504, none apart, no
+    // building or city field-row, no closing field.
+}

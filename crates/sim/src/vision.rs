@@ -213,6 +213,16 @@ impl Sim {
         ) {
             los += self.troops_los_level(unit.owner) * self.tuning.troops_upgrade_los;
         }
+        // **The siege term** (`0060e7bc`..`0060e81f`, item 3380): a type
+        // that `is_siege` (vslot `+0x10c`) of a leader with
+        // `has_tribe_bonus(8)` sees `TURK_SIEGE_LOS` more — added after
+        // term 5's packed clamp, so `GreatLakesTurkishTier4`'s packed
+        // Trebuchets and Catapults print `mylos 7` in run1005, not 4. The
+        // arm's Liberty (`0x219`) and Eiffel (`0x21c`) wonder terms are not
+        // carried.
+        if self.is_siege_unit(u) && self.nation[who].turks {
+            los += self.tuning.turk_siege_los;
+        }
         // A Spy sees `SPY_UPGRADE_LOS` more per upgrade held (`0060e87c`,
         // `docs/AI.md` §160).
         if self.is_spy_type(rec) {
@@ -1697,6 +1707,32 @@ mod tests {
             circle().radius[5],
             "the unpack lights the ten-tile disc, radius five, where it stands"
         );
+    }
+
+    /// **The Turkish siege term** (item 3380, `docs/VISION.md` §2 term 9):
+    /// a packed siege engine of a Turkish leader sees `TURK_SIEGE_LOS` past
+    /// the packed clamp — run1005's Trebuchets print `mylos 7`, not 4 — and
+    /// unpacked, past its own; another nation's sees neither.
+    #[test]
+    fn a_turkish_siege_engine_sees_three_tiles_past_the_packed_clamp() {
+        let mut s = crate::Sim::new(Tuning::RON, World::new(40, 40), 2);
+        let mut ty = crate::UnitType {
+            hits: 80,
+            los: 10,
+            ..crate::UnitType::default()
+        };
+        ty.combat.packs = true;
+        ty.combat.siege = true;
+        ty.cols.unit_flags2 |= crate::ai_load::uflags2::PACKS;
+        let t = s.add_unit_type(ty);
+        let mut u = crate::Unit::new(1, 0, Pos::new(0x180, 0x180), 80);
+        u.ty = Some(t);
+        let u = s.add_unit(u);
+        assert_eq!(s.unit_los(u), PACKED_LOS, "not Turkish");
+        s.nation[1].turks = true;
+        assert_eq!(s.unit_los(u), PACKED_LOS + 3, "Turkish, packed");
+        s.units[u].combat.packed = false;
+        assert_eq!(s.unit_los(u), 13, "Turkish, unpacked");
     }
 
     /// A type with no `LOS` reveals nothing at all — the `mylos == 0` head,
