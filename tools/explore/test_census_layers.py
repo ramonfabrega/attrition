@@ -143,5 +143,87 @@ class TheUnbackedList(unittest.TestCase):
         self.assertEqual(census.snake('is_tank'), 'is_tank')
 
 
+class TheByteColumn(unittest.TestCase):
+    # The count weighs a two-line getter as much as `PathFinder::find_tpath`:
+    # a reader measured the backed functions at 43.8 % of the count and
+    # about 23.5 % of the decompile's bytes. The byte column says which.
+    SIM = M + 'game\\unit.cpp'
+    REN = M + 'game\\rendersystem.cpp'
+
+    def rows(self):
+        names = {0x10: 'Unit::a', 0x20: 'Unit::b', 0x30: 'Unit::c', 0x40: 'Render::d'}
+        sizes = {0x10: 100, 0x20: 300, 0x30: 600, 0x40: 50}
+        source = {0x10: self.SIM, 0x20: self.SIM, 0x30: self.SIM, 0x40: self.REN}
+        return census.layer_rows(names, sizes, source, by_doc={0x20}, by_sweep={0x10, 0x40},
+                                 spelled={'Unit::a'})
+
+    def test_each_layer_carries_its_bytes_and_its_backed_bytes(self):
+        rows, sim_files, _unknown = self.rows()
+        sim = rows['simulation']
+        self.assertEqual((sim['functions'], sim['backed'], sim['port']), (3, 2, 2))
+        self.assertEqual((sim['bytes'], sim['backed_bytes']), (1000, 400))
+        self.assertEqual((rows['engine']['bytes'], rows['engine']['backed_bytes']), (50, 50))
+        self.assertEqual(sim_files['unit.cpp'], 3)
+
+    def test_the_bytes_line_follows_the_census_line_unchanged(self):
+        import io
+        from contextlib import redirect_stdout
+        rows, sim_files, unknown = self.rows()
+        out = io.StringIO()
+        with redirect_stdout(out):
+            census.print_layers(rows, sim_files, unknown, False, size_note="bytes: the test's own")
+        lines = out.getvalue().splitlines()
+        at = lines.index('Census: simulation backed 2 of 3 · port 2 · layout 0')
+        self.assertEqual(lines[at + 1], 'Census bytes: simulation 400 of 1000 bytes backed · 40.0%')
+        self.assertIn("# bytes: the test's own", lines)
+        head = next(l for l in lines if l.startswith('layer'))
+        for col in ('bytes', 'backed bytes', 'byte share'):
+            self.assertIn(col, head)
+        sim = next(l for l in lines if l.startswith('simulation '))
+        self.assertTrue(sim.rstrip().endswith('40.0%'), sim)
+
+    def test_the_json_carries_the_bytes(self):
+        import io
+        import json
+        from contextlib import redirect_stdout
+        rows, sim_files, unknown = self.rows()
+        out = io.StringIO()
+        with redirect_stdout(out):
+            census.print_layers(rows, sim_files, unknown, True, size_note='bytes: decompile')
+        got = json.loads(out.getvalue())
+        self.assertEqual((got['simulation_bytes'], got['simulation_backed_bytes']), (1000, 400))
+        self.assertEqual(got['bytes_source'], 'bytes: decompile')
+        self.assertEqual(got['layers']['simulation']['backed_bytes'], 400)
+        # `rondata::census`'s reader matches `"simulation_backed":` whole.
+        self.assertEqual(got['simulation_backed'], 2)
+        self.assertEqual(out.getvalue().count('"simulation_backed":'), 1)
+
+    def test_a_symbol_size_in_the_index_wins_over_the_decompile_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, 'funcs', 'Unit').mkdir(parents=True)
+            Path(tmp, 'funcs', 'Unit', 'a@00000010.c').write_text('x' * 70)
+            Path(tmp, 'INDEX.tsv').write_text(
+                '00000010\tUnit::a\tfuncs/Unit/a@00000010.c\n'
+                '00000020\tUnit::b\tfuncs/Unit/b@00000020.c\t42\n'
+                '00000030\tUnit::c\tfuncs/Unit/c@00000030.c\n')
+            got = census.index_entries(str(Path(tmp, 'INDEX.tsv')))
+        self.assertEqual([(e[0], e[3], e[4]) for e in got],
+                         [(0x10, 70, 'decompile'), (0x20, 42, 'symbol'), (0x30, 0, 'decompile')])
+        from collections import Counter
+        self.assertIn('decompile file', census.size_note(Counter(['decompile'])))
+        self.assertIn('no symbol size', census.size_note(Counter(['decompile'])))
+        both = census.size_note(Counter(['decompile', 'symbol', 'symbol']))
+        self.assertIn('symbol', both)
+        self.assertIn('2', both)
+
+    def test_the_unbacked_list_by_bytes_is_largest_first(self):
+        entries = [(0x10, 'Unit::is_tank', self.SIM, 300), (0x20, 'Unit::get_captain', self.SIM, 120),
+                   (0x40, 'Unit::move_step', self.SIM, 5000), (0x60, 'Unit::hits', self.SIM, 80)]
+        short = census.rank_unbacked(entries, backed=set(), port=set())
+        big = census.rank_unbacked(entries, backed=set(), port=set(), by='bytes')
+        self.assertEqual([r[0] for r in short], [80, 120, 300, 5000])
+        self.assertEqual([r[0] for r in big], [5000, 300, 120, 80])
+
+
 if __name__ == '__main__':
     unittest.main()
