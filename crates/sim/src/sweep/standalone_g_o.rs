@@ -202,6 +202,10 @@ mod group_action_garrison_head;
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
 mod group_action_queue_up;
+#[path = "group_action_trade.rs"]
+mod group_action_trade;
+#[path = "group_action_trade_head.rs"]
+mod group_action_trade_head;
 #[path = "group_attack_order_vector_deleting_destructor_vtordisp.rs"]
 mod group_attack_order_vector_deleting_destructor_vtordisp;
 #[path = "group_attack_order_walk_data.rs"]
