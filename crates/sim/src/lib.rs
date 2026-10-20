@@ -104,6 +104,7 @@ pub mod grouppath;
 pub mod heal;
 pub mod holdings;
 pub mod launch;
+pub mod location;
 pub mod market;
 pub mod merchant;
 pub mod mesh;

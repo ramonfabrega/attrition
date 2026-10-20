@@ -8255,13 +8255,13 @@ reading, not a measurement.
   also `SoundGlobal::play`, `Error::report`, a `ScenarioData::ignore_orders` arm. Needs a view trait shared with
   `alarm_bell`/`alarm_all_clear`, stubs for `GroupData::member/add/action_garrison`; no shape is known to spell a
   callee-built stack group. `alarm.rs`'s own SEAMs are the inputs it would part on first.
-- **3358c. `BuildTypeData::blocked_location@006375b0`: no view trait.** `place.rs` `blocked_location` takes `&Sim`
+- ~~**3358c. `BuildTypeData::blocked_location@006375b0`: no view trait.** `place.rs` `blocked_location` takes `&Sim`
   (split into `blocked_location_verdict` and `gather_verdict`); `tcoord.rs` covers only `blocked_tcoord_steps`. 14
   callees (`non_friendly_territory`, `has_preq`, `get_town`, `count_water`, `calc_gather` …), ~8 type-predicate vcalls,
   leader rows via `--sparse`. Lacking: a pointer-table-of-lists walk (the `unbuilt_*` lists). Split: territory/colonize
   prefix, spacing (city/fort lists), tail (get_town through wonder checks, water/mountain/tree counts, gather survey).
   Two differences to check when the view exists: the crate skips the gather survey for who = None (a marked seam);
-  `!n.lakota` where the original calls `has_tribe_bonus(0x13)`.
+  `!n.lakota` where the original calls `has_tribe_bonus(0x13)`.~~ Answered by item 3364: `location.rs` (`LocationView`, `blocked_location_steps`, `SimLocation`) and three generator sweeps (`build_type_data_blocked_location{,_tail,_town}`); the pointer-table walk spelled with `--ptrtab`, `--ecx-answer` and `--vtat-image`, no flag lacking.
 - **3358d. `Unit::do_non_flat_gather@005f0170`: port not level, plus `--stub-alloc IDX`.** Crate arms absent: the
   transport arm (`get_tregion` both ends, `can_transport`, `add_move_order`), the worker doober cleanup
   (`+0x86`, `Doober::remove_hold_doobers`), the camp-side vcall `+0x170` with `set_angle` where the crate uses

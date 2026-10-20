@@ -94,7 +94,7 @@ says in its doc comment that only the British and Mongol arms are built,
 | Egyptians | scholars swap food and wealth (gate is 0 in the rules) | `TypeData::get_cost@00664090` | not modelled | `egyptian_scholars_food` |
 | Egyptians | granary available early | `LeaderData::has_preq@006db810` | modelled at tech.rs | `egyptian_granary_early` |
 | Egyptians | wonders one age early | `LeaderData::special_preq@006d7030` | modelled at tech.rs | `egyptian_wonders_early` |
-| Egyptians | one more wonder per city (placement) | `BuildTypeData::blocked_location@006375b0` | modelled at place.rs | `n.egyptians` |
+| Egyptians | one more wonder per city (placement) | `BuildTypeData::blocked_location@006375b0` | modelled at location.rs | `n.egyptians` |
 | Egyptians | the same limit enforced at construction | `Wall::do_construct@006434d0` | modelled at city.rs | `006434d0` |
 | Egyptians | farm limit per city | `LeaderData::get_farm_limit@006db270` | modelled at city.rs | `egyptian_farms_per_city_base` |
 | Egyptians | food commerce bonus | `Leader::calc_resource_caps@006ce900` | modelled at economy.rs | `egyptian_food_commerce` |
