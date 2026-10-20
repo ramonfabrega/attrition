@@ -2699,7 +2699,7 @@ impl Sim {
     }
 
     /// The unit named by `collide_o`/`collide_who`, if it is still alive.
-    fn collider_of(&self, u: usize) -> Option<usize> {
+    pub(crate) fn collider_of(&self, u: usize) -> Option<usize> {
         if self.units[u].collide_o < 0 || self.units[u].collide_who < 0 {
             return None;
         }

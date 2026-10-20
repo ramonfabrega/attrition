@@ -101,6 +101,7 @@ pub mod gather;
 pub mod gather_view;
 pub mod goody;
 pub mod group;
+pub mod group_move;
 pub mod group_queue_up;
 pub mod grouppath;
 pub mod heal;
