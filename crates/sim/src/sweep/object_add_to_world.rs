@@ -47,7 +47,7 @@ fn the_emulated_original_agrees_on_every_row() {
             let _ = (&a, &m, &c, &p);
             {
                 // Window layout (sweep_gen's flag order): `m` the object; `c[0]` the world (`0xc06188`), `c[1]` `GameAccess::objects`
-                // (`0xc0618c`), `c[2]` `div_3_table` (`i / 3`), `c[4]`/`c[3]` `move_x`/`move_y` (`0xadcaf0`, `0xadc400`), `c[5]` `radius`, `c[6]` `ignore_always`.
+                // (`0xc0618c`), `c[2]` `div_3_table` (`i / 3`), `c[4]`/`c[3]` `step_x`/`step_y` (`0xadcaf0`, `0xadc400`), `c[5]` `radius`, `c[6]` `ignore_always`.
                 // `p[2+l]` objects' arrays (list `l`), `p[4+2l+i]` the objects, `p[10+2l+i]` the unit records, `p[14+2l+i]` their
                 // types, `p[22+4l+2i+g]` guy `g`, `p[30]` this's type, `p[31]` the cells, `p[32+k]` cell `k`'s block, `p[41]` the new block.
                 // The answers `a`: slot 0x8, slot 0xbc, `get_tregion`, `new_coll_block` (unread), the two string ctors, `Error::report`, close.
@@ -172,10 +172,10 @@ fn the_emulated_original_agrees_on_every_row() {
                     fn radius(&mut self, t: i32) -> i32 {
                         r32(&self.c[5], 4 * usize::try_from(t).expect("radius index"))
                     }
-                    fn move_x(&mut self, k: i32) -> i32 {
+                    fn step_x(&mut self, k: i32) -> i32 {
                         r32(&self.c[4], 4 * k as usize)
                     }
-                    fn move_y(&mut self, k: i32) -> i32 {
+                    fn step_y(&mut self, k: i32) -> i32 {
                         r32(&self.c[3], 4 * k as usize)
                     }
                     fn cell_region(&mut self, cell: i32) -> i32 {

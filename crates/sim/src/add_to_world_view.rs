@@ -69,10 +69,10 @@ pub trait AddToWorldView {
     fn guy_pos(&mut self, g: i32) -> (i32, i32);
     /// `WorldData::get_tregion(&tx, &ty)`.
     fn tregion(&mut self, tx: i32, ty: i32) -> i32;
-    /// `radius[t]`, `move_x[k]`, `move_y[k]`.
+    /// `radius[t]`, `step_x[k]`, `step_y[k]`.
     fn radius(&mut self, t: i32) -> i32;
-    fn move_x(&mut self, k: i32) -> i32;
-    fn move_y(&mut self, k: i32) -> i32;
+    fn step_x(&mut self, k: i32) -> i32;
+    fn step_y(&mut self, k: i32) -> i32;
     /// The cell record's `+4` short.
     fn cell_region(&mut self, cell: i32) -> i32;
     /// The cell record's `+0x18` word, `-1`, `0` or a block (any other).
@@ -124,8 +124,8 @@ pub fn add_to_world_steps<V: AddToWorldView>(v: &mut V) {
         if v.radius(ct) > 0 {
             loop {
                 let (gx, gy) = v.guy_pos(g);
-                let ux = v.div3(gx >> 4).wrapping_add(v.move_x(k));
-                let uy = v.div3(gy >> 4).wrapping_add(v.move_y(k));
+                let ux = v.div3(gx >> 4).wrapping_add(v.step_x(k));
+                let uy = v.div3(gy >> 4).wrapping_add(v.step_y(k));
                 let (w, h) = v.world_size();
                 if ux >= 0 && uy >= 0 && ux < w.wrapping_mul(16) && uy < h.wrapping_mul(16) {
                     let (cy, cx) = (uy >> 4, ux >> 4);
