@@ -3829,6 +3829,19 @@ impl Sim {
                 tail.push(production::Adjust::Faster(self.tuning.british_aa_speed));
             }
         }
+        // **The French arm** (`train_time@006508c0:179`–`192`, after the
+        // British and before the German): a French leader's unit whose
+        // trainer (`TypeData +0x40`) is, by equality, the Siege Factory or
+        // the Factory (0x1ae, 0x1af) takes `FRENCH_SIEGE_SPEED`, `t × 100 /
+        // (k + 100)`. The battery's French Siege Factory `1/2026` finishes
+        // its type 266 on 13422 there: 30000 × 100 / 125 = 24000 (item
+        // 3347, `docs/AI.md` §278). The arm's other branch, a type of class
+        // `0x36` taking `FRENCH_SPECIAL_SPEED`, ships as 0 and is not
+        // modelled.
+        if self.nation[who as usize].french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af))
+        {
+            tail.push(production::Adjust::Faster(self.tuning.french_siege_speed));
+        }
         // **The German arm** (`train_time@006508c0:193`–`205`, after the
         // French): a German leader's aircraft (`+0x218 == 2`) takes
         // `GERMAN_AIR_SPEED`, and a unit of the Fire Raft line (`is(0x14e,
@@ -3854,10 +3867,9 @@ impl Sim {
         if self.nation[who as usize].romans && self.is_legion_line(ty) {
             tail.push(production::Adjust::Faster(self.tuning.roman_legion_fast));
         }
-        // The French arm, and `TROOPS_FASTER` (`role & 0x10000`,
-        // three-quarters), stand around it: the first two are other
-        // nations' powers, and the bonus's prerequisite is `Disable` in the
-        // shipped file, so no player holds it.
+        // `TROOPS_FASTER` (`role & 0x10000`, three-quarters) follows it:
+        // the bonus's prerequisite is `Disable` in the shipped file, so no
+        // player holds it.
         //
         // **The speed-upgrade step** (`0065102d`): `t = (10 − n) × t / 10`,
         // `n` the ships' count for a sea unit (`+0x218 == 1`), else the

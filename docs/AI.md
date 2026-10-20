@@ -24190,12 +24190,53 @@ battery's floors and every closing state held: no other walk on file throws an `
 Reading-and-packet only: the three rows' `dz` (no dump prints a stone's `sz` against its figure here; run980b's
 `sz` 743 is over the ground, not the figure). Not established: the NA Slinger's later-age and female pieces.
 
-## 278. Reserved for the next item on the AI track
+## 278. The battery's French word: from the first try to the game's end, and an open close
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3347, 2026-10-19, Opus 5.5. Great Sahara, the Nubians (human) against the French at Difficulty 4, seed 12345:
+the lobby item 3343 minted (§276), scored at 13422 of 16,764 on its first try and promoted here to the AI word
+(`diff::french_word`); the Russians at Difficulty 4 (`GreatSaharaRussianTier4`, entry 72's rule (2): the nation held
+only by closed games off Great Sahara whose later ages no trace has run) replace it in the battery, **18883 of 18883**
+on their first try (run981, run981b). Captures run982, run982b, run982c, run982d, every one `rngcmp`-identical to run977b.*
+
+**Three fixes that moved the word, each its own value diff.**
+
+1. **`train_time`'s French siege arm** (`ObjectData::train_time@006508c0:179`–`192`, after the British, before the
+   German): a French leader's unit whose trainer is, by equality, `0x1ae` or `0x1af` takes `FRENCH_SIEGE_SPEED` (25),
+   `t × 100 / (k + 100)`. run982 block 13421: the Siege Factory `1/2026`'s Trebuchet clock 24000 of 30000, born on
+   13422 in theirs (`Guy::init_real+0x52`). **13422 → 13843.** The `is(0x36)` arm (`FRENCH_SPECIAL_SPEED`, 0 in the
+   rules) is parked (3347a).
+2. **The Crossbowman's and the Cavalry Archer's release nodes** (`launch::MEASURED`, pieces 122 and 138, §22's
+   table). 13843 is `Ammo::do_damage`'s roll on `1/39`'s rolling round: theirs left (9401, 30970, 842), ours the guy's
+   (9480, 30936, 614), so at its landing frame ours' arc was at 720 over a ground of 659 and stayed up. Four rows fitted
+   exactly from run982's rounds. **13843 → 14604.** Four more rows (138 `ATTACK1`/`ATTACK2`, the Dragoon 139's
+   `ATTACK1`/`ATTACK3`) are state only; the Dragoon's `ATTACK2` is in no window (3347b).
+3. **A decoy sees from where it stands** (`Object::update_seen@00651b80`'s projection test, its fourth term
+   `unit_masks & 1` at `651cdc`; `docs/VISION.md` §3). 14604: theirs' draw 6 is `Unit::fight+0x9b0` in a `do_job` of
+   its own after `1/39`'s — the captain's re-search roll, taken only on a unit target. Theirs' units were read on
+   run982b's block: the one attacking a unit is the decoy Hussars `1/100` (type 211, `unit_masks` 0x4000f, `mylos` 1
+   on both sides), arriving at (4776, 28344) on 14604 with its attack on the Citizen `0/1` current. Ours called `0/1`
+   unseen — who=1 had no bit at its half-cell (11, 73) — and took the invalid-target branch to the city `0/2000`;
+   theirs rolled, kept `0/1` and pushed a chase move to (4440, 28392) on 14605. The decoy's own-cell arm lights
+   (11, 73) on 14596, when `1/100` steps into it. **14604 → 16764, the game's last frame**; run982b 38 keys, the
+   standing set.
+
+**The close is open.** `run977b_french_closing_state` walks to run977b's closing block 16765: 130 units, every one
+agreeing, and **four buildings and a city unlinked** — on the last frame theirs' who=1 captures the human's city,
+`0/2000` closing as `1/2058` (damage 1430) with three of its buildings as `1/2059`..`1/2061`, and ours still holds
+`0/2000` at damage 1198, uncaptured. It does not drift: run982c's stride (every twentieth block from 14856) and
+run982d's last blocks (16740..16764, widened whole, 38 standing keys) agree on its damage to **1197 of 1200 through
+block 16764**. The close is the last frame's own hits — ours +1 to 1198, theirs at least +3, through
+`health_level`'s sixth level, which `check_capture` needs. Twenty-two who=1 units hold an attack on `0/2000` on that
+block; which hit differs is a question for a call trace of `Object::do_damage` on frame 16764 or a packet, not a
+dump (parked 3347d).
+
+**Tests.** `cities_tests::a_french_siege_factory_unit_trains_a_quarter_faster` (fails with `0x1af` dropped);
+`launch::tests::run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit` (eight rounds; fails with a
+radius off by one); `vision::tests::a_decoy_sees_from_where_it_stands_and_its_step_lights_its_own_cell` (fails with
+the term dropped); the widenings `run982_…`, `run982b_…`, `run982d_…` and the closing state.
+
+**Coverage.** Diff-backed: the three fixes by the blocks named and the draw stream to 16764. Not established: the
+last frame's hits on the city (the close); the French special arm; the Dragoon's third node.
 
 ## 279. Reserved for the next item on the AI track
 
