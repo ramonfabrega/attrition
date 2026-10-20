@@ -2149,30 +2149,6 @@ mod tests {
                 30861,
                 883,
             ),
-            (
-                139,
-                crate::anim::ATTACK1,
-                12,
-                7944,
-                30840,
-                658,
-                -990_642_176,
-                7794,
-                30874,
-                881,
-            ),
-            (
-                139,
-                crate::anim::ATTACK3,
-                18,
-                7944,
-                30840,
-                658,
-                -990_642_176,
-                7797,
-                30845,
-                866,
-            ),
         ];
         for &(piece, anim, t, gx, gy, gz, ga, sx, sy, sz) in M {
             let got = launch_point(Pos::new(gx, gy), Angle(ga), piece, anim, t, 0);
@@ -2214,7 +2190,8 @@ mod tests {
     /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4. **842**, the
     /// Horse Archer's three, are run973e/f's (item 3338): keys 18, 16, 20.
     /// **122**, the Crossbowman's three, and **138**, the Cavalry Archer's
-    /// `CHAR_ATTACK3`, are run982's (item 3347): keys 5, 3, 6 and 20.
+    /// `CHAR_ATTACK3`, are run982's (item 3347): keys 5, 3, 6 and 20. The
+    /// Dragoon's, **139**, left for `pivot::RELEASES` (item 3359).
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -2237,8 +2214,6 @@ mod tests {
                 (138, crate::anim::ATTACK1, 18),
                 (138, crate::anim::ATTACK2, 16),
                 (138, crate::anim::ATTACK3, 20),
-                (139, crate::anim::ATTACK1, 12),
-                (139, crate::anim::ATTACK3, 18),
                 (384, crate::anim::ATTACK1, 21),
                 (384, crate::anim::ATTACK2, 22),
                 (472, crate::anim::ATTACK1, 12),
