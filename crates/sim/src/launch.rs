@@ -170,26 +170,6 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 178,
         },
     ),
-    // **1531 is `HEAVYARCHERS-NA`** (unit type 173, the Native American
-    // Heavy Archer; item 3375, run1001b on the Iroquois Great Sahara seed,
-    // `AMMO=5` over `[13744, 13760]`): `1/35`'s `CHAR_ATTACK2` round,
-    // released at 666 ms (frame 9), guy (9048, 31128) at −1464008704 over
-    // a guy `z` of 635, first printed on block 13750 at (8976, 31176, 799),
-    // `total_time` 8. One shot: radii 85 and 86 both fit, and 86 is kept,
-    // whose exact fits are the wider; the bearing is the middle of them.
-    // Without it the round left from the guy, flew 9 frames against 8 and
-    // struck the fleeing Scout `0/0` the frame after it had stopped, where
-    // theirs struck it on its arrival frame (`docs/AI.md` §288).
-    (
-        1531,
-        crate::anim::ATTACK2,
-        9,
-        Node {
-            bearing: -10_420_224,
-            radius: 86,
-            dz: 164,
-        },
-    ),
     // **842 is the Horse Archer's piece** (unit type 188, `CAVARCHERS`;
     // item 3338, run973e on the Maya Great Sahara seed, `AMMO=5` over
     // `[12128, 12200]`): `1/56`'s two rounds of the window, both at guy
@@ -577,6 +557,45 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             right: 21620,
             fwd: 35314,
             dz: 159,
+        },
+    ),
+    // **`HEAVYARCHERS-NA`'s piece 1531** (unit type 173, the Native American
+    // Heavy Archer; item 3375, `docs/AI.md` §288): run1001d's
+    // `RON_STATE_FRAME=13760` packet on the Iroquois Great Sahara seed holds
+    // its three attack `AttachPos` rows, and `tools/recomp/get_position.py`'s
+    // sweep of each is reproduced by these at every heading
+    // [`whole_degrees`] reaches (257 of 361), x and y, the fits' own middle.
+    // who=1's `1/35` loosed at the fleeing Scout `0/0` on 13749 from (8976,
+    // 31176) in run1001b where this crate loosed from the figure's own
+    // (9048, 31128): 8 frames against 9, and the Scout struck a frame late.
+    (
+        1531,
+        11,
+        12,
+        Bay {
+            right: -1826,
+            fwd: 88743,
+            dz: 163,
+        },
+    ),
+    (
+        1531,
+        12,
+        9,
+        Bay {
+            right: 334,
+            fwd: 87412,
+            dz: 164,
+        },
+    ),
+    (
+        1531,
+        13,
+        15,
+        Bay {
+            right: 9709,
+            fwd: 66502,
+            dz: 164,
         },
     ),
     // **The Royal Hwarang's piece 132** (`KORYOHWARANG`, unit type 182; item
@@ -2174,7 +2193,8 @@ mod tests {
     }
 
     /// **Piece 1531, `HEAVYARCHERS-NA`** (item 3375): run1001b's round of
-    /// `1/35`, `CHAR_ATTACK2` at frame 9 — the dump's own columns.
+    /// `1/35`, `CHAR_ATTACK2` at frame 9 — the dump's own columns,
+    /// independent of run1001d's packet sweep the bays were fitted to.
     #[test]
     fn run1001b_s_heavy_archer_round_leaves_its_release_node() {
         let got = launch_point(
@@ -2190,6 +2210,12 @@ mod tests {
             635 + release_dz(1531, crate::anim::ATTACK2, 9, 0).unwrap_or(0),
             799
         );
+        for (anim, time) in [(11, 12), (12, 9), (13, 15)] {
+            assert!(
+                bay(1531, anim, time, 0).is_some(),
+                "every attack AttachPos row"
+            );
+        }
     }
 
     /// **Piece 842, the Horse Archer** (item 3338): run973e's two rounds
