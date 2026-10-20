@@ -39,9 +39,15 @@ pub(crate) const DUTCH_SAHARA: Lobby = Lobby {
     // figure 0's `gpiece` 12 ours, 6348 theirs, `end_time` 3/149;
     // agreeing after). 15725: ours 9 draws, theirs 13, at 4: ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`.
-    count: 15725,
-    sequence: 15725,
+    // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Guy::turn_towards+0x69`
+    // — and moved it 15725 -> 16109 (+384), the game's last frame: an
+    // unpacked merchant's "over time" piece (run995d's block 15717: who=1's
+    // Armed Merchant `1/51` re-pieces both figures to 50689, `total − 5`
+    // by the Dutch `BUILD_CONTINENT 1`, with the cart on its own point,
+    // where ours put figure 0 on 2124 and left figure 1 on 14796 and its
+    // offset; agreeing after).
+    count: 16109,
+    sequence: 16109,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -209,6 +215,115 @@ fn run995c_s_word_frame_is_widened_whole() {
     // still walking out to its deployed spot (17597, 25530) in theirs
     // from beside the merchant's point (17689, 25362), and stands on it
     // in ours; on the word's block 15726 its `g.end_time[1]` is 150 ours,
-    // 60 theirs.
-    pin_eq!(w.firsts.len(), 748, "keys that part in the window");
+    // 60 theirs. run995d walks it back to the unpack's last frame, 15717.
+    // Built (an unpacked merchant's "over time" piece): 748 -> 34, the
+    // standing family on 15719 (`form`, the leaders' `SITE[·].reg`,
+    // `aggression[1]`, the army pools and `group:N.held` with no
+    // `GROUPDATA` printed) and `pool:69`/`group:69.held` on 15796.
+    pin_eq!(w.firsts.len(), 34, "keys that part in the window");
+}
+
+/// The closing state's window: run990b's closing block alone, the long's
+/// last frame 16109 writing it (item 3369).
+pub(crate) const WIDENING_DUTCH_SAHARA_CLOSING: (i64, i64) = (16108, 16111);
+
+/// **The lobby's closing state** (item 3369, DECISIONS 55): run990b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+/// The game ends itself on 16109.
+#[test]
+fn run990b_dutch_sahara_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        crate::testenv::dump(DUTCH_SAHARA.long.0),
+        crate::testenv::dump(DUTCH_SAHARA.start),
+        trace(DUTCH_SAHARA.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Dutch Sahara closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 16110, "the closing block");
+    pin_eq!(e.compared, 86, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3369, the first walk (with the merchant's "over time" piece, the
+    // word at 16109): 86 units compared on block 16110, none apart, no
+    // building or city field-row, no closing field.
+}
+
+/// run995d: the walk back from the word 15725, blocks 15462..15718 at the
+/// same detail (item 3369) — run995c opened apart on 1/51's crew, and no
+/// dump held the unpack before it.
+pub(crate) const RUN995D: &str = "gamelog-run995d-greatsahara-dutch-diff3-window-15462-15719.txt";
+
+/// The window: block 15462 through 15718; `1/51`'s unpack ends on 15717.
+pub(crate) const WIDENING_DUTCH_SAHARA_GAP_995D: (i64, i64) = (15462, 15718);
+
+pub(crate) fn dutch_sahara_gap_995d_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[DUTCH_SAHARA.start],
+        true,
+        DUTCH_SAHARA.long,
+        "run995d",
+        &[(RUN995D, WIDENING_DUTCH_SAHARA_GAP_995D.0)],
+        WIDENING_DUTCH_SAHARA_GAP_995D,
+        1,
+        &[15717],
+        true,
+    )
+}
+
+#[test]
+fn run995d_s_walk_back_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = dutch_sahara_gap_995d_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3369, first read after the build: 32 keys, the standing family
+    // on 15462 alone. Before it, `1/51`'s crew parted on 15717 — both
+    // figures on 50689 at the merchant's point in theirs, figure 0 on 2124
+    // and figure 1 on 14796 and its offset in ours.
+    pin_eq!(w.firsts.len(), 32, "keys that part in the window");
 }

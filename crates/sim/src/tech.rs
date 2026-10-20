@@ -304,6 +304,11 @@ pub struct Tribe {
     /// (`docs/ANIM.md` §3.4). Zero — Europe — when unloaded, which is what
     /// `Tribe::Tribe` initialises it to.
     pub unit_continent: i32,
+    /// `Tribe::build_continent` (`+0x64`), the tribe file's
+    /// `<BUILD_CONTINENT>`: the nation's building art style, and the key
+    /// of an unpacked merchant's "over time" piece
+    /// ([`crate::anim::stall_piece`]; item 3369). Zero when unloaded.
+    pub build_continent: i32,
 }
 
 /// The types the rules name by role. Each is optional: a tree without the

@@ -99,6 +99,10 @@ pub struct TribeDef {
     /// coordinates `GraphicPieces::get_unit_gpiece` sums
     /// (`sim::anim::PIECES_PER_STYLE`).
     pub unit_continent: i32,
+    /// `<BUILD_CONTINENT>`, `Tribe +0x64` — the nation's building art
+    /// style, which `get_unit_gpiece` also reads for an unpacked merchant
+    /// (`sim::tech::Tribe::build_continent`; item 3369).
+    pub build_continent: i32,
 }
 
 impl Install {
@@ -210,16 +214,18 @@ impl Install {
                     // number is the value and the word beside it is the
                     // designers' own note, which the loader's `atoi` stops
                     // at.
-                    let unit_continent = root
-                        .descendants()
-                        .find(|n| n.has_tag_name("UNIT_CONTINENT"))
-                        .and_then(|n| n.text())
-                        .and_then(|t| t.split_whitespace().next())
-                        .and_then(|t| t.parse().ok())
-                        .unwrap_or(0);
+                    let number = |tag: &str| {
+                        root.descendants()
+                            .find(|n| n.has_tag_name(tag))
+                            .and_then(|n| n.text())
+                            .and_then(|t| t.split_whitespace().next())
+                            .and_then(|t| t.parse().ok())
+                            .unwrap_or(0)
+                    };
                     Some(TribeDef {
                         name,
-                        unit_continent,
+                        unit_continent: number("UNIT_CONTINENT"),
+                        build_continent: number("BUILD_CONTINENT"),
                     })
                 })
                 .unwrap_or_default();
