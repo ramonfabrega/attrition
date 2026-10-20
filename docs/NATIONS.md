@@ -53,7 +53,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 |---:|---|---|---|---:|---|
 | 0 | Aztecs | aztecs | `aztecs` | 7 | `GreatSaharaAztecTier2` (AI word, tier 2); `EastIndiesAztecTier1` (map 18, tier 1) |
 | 1 | Maya | maya | `maya` | 2 | `GreatSaharaMayaTier4` (AI word, tier 4) |
-| 2 | Inca | inca | `inca` | 3 | `EastIndiesIncaTier3` (AI word, tier 3) |
+| 2 | Inca | inca | `inca` | 3 | `EastIndiesIncaTier3` (AI word, tier 3); `GreatSaharaIncaTier3` (map 7, tier 3) |
 | 3 | Bantu | bantu | `bantu` | 5 | `GreatSaharaBantuTier4` (map 7, tier 4) |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
@@ -72,7 +72,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3); `GreatSaharaIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (AI word, tier 1); `GreatLakesAmericanTier4` (map 14, tier 4) |
-| 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (AI word, tier 2); `GreatSaharaIndianTier3` (map 7, tier 3) |
+| 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (AI word, tier 2); `GreatSaharaIndianTier3` (AI word, tier 3) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
 

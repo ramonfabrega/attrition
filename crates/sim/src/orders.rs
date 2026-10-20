@@ -4549,8 +4549,11 @@ impl Sim {
             let unit = &self.units[u];
             if unit.combat.stance != combat::Stance::HoldFire
                 && unit.combat.target.is_none()
-                && let Some(t) = self.find_melee_target(u, -1)
+                && let Some(t) = self.with_second_range(u, |s| s.find_melee_target(u, -1))
             {
+                // The search runs at a melee-and-ranged type's second range
+                // (`think_attack@005f5a80:167`–`174`, item 3383), the
+                // bracket `cavarch_fight` puts round its `fight`.
                 // `find_melee_target(−1, &whom, 0, 1, 0)` adds its own
                 // order (`find_nearby_target`'s add, [`Self::nearby_add`]):
                 // `QUEUE_FIRST` under an attack-move, so the walk
