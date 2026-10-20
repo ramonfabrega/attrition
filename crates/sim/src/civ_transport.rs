@@ -417,7 +417,7 @@ impl CivTransportView for SimCivTransport<'_> {
                 .census
                 .reg_xport_peasants
                 .get(r as usize)
-                .map_or(1, |&n| i32::from(n))
+                .map_or(1, |&n| n)
         })
     }
     fn coord(&mut self, slot: i32, i: i32) -> Cell {
