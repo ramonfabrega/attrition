@@ -173,7 +173,7 @@ pub struct SimCarryCiv<'a> {
     lands: Vec<u16>,
     my: Option<u16>,
     /// A slot's coordinate list, read from the grid once.
-    coords: std::collections::HashMap<i32, Vec<Cell>>,
+    coords: std::collections::BTreeMap<i32, Vec<Cell>>,
 }
 
 impl<'a> SimCarryCiv<'a> {
@@ -190,7 +190,7 @@ impl<'a> SimCarryCiv<'a> {
             u,
             lands,
             my,
-            coords: std::collections::HashMap::new(),
+            coords: std::collections::BTreeMap::new(),
         }
     }
     fn land(&self, slot: i32) -> Option<u16> {
