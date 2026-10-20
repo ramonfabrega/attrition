@@ -3883,6 +3883,11 @@ time; or the guard's scan cached, so it falls under the budget. The pass's. One 
 unfiled. It is recorded here as filed and empty, and the journal is left as its worker wrote it. If the shape
 recurs, the guard should read the next non-blank line.
 
+3374's "for the Loop", filed at its merge: the draft journal carried the item across a `/clear` at 344 k with a
+numbered list of what was left, and the next session finished from it and the queue's item without re-deriving
+anything. A draft journal is a sufficient handoff at a lane's seam. That confirms the DEEP answer as written; it is
+not an item.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
