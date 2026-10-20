@@ -104,7 +104,8 @@ fn korean_word_is_no_other_lobby() {
 /// `LEADERS=9` and `GOODS=3` (item 3365). run964 dumps blocks 0..36 and
 /// run964b its setup and closing blocks only, so no dump on disk held the
 /// leaders' goods or the market on the word's block.
-pub(crate) const RUN991: &str = "gamelog-run991-greatsahara-korean-diff3-window-9179-9436-goods.txt";
+pub(crate) const RUN991: &str =
+    "gamelog-run991-greatsahara-korean-diff3-window-9179-9436-goods.txt";
 
 /// The window: block 9179 through 9435; the word 9185's own block is 9186.
 pub(crate) const WIDENING_KOREAN_FRAME_9185: (i64, i64) = (9179, 9435);

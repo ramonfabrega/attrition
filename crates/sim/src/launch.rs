@@ -2059,9 +2059,30 @@ mod tests {
     #[test]
     fn run991c_s_hwarang_arrows_leave_the_bow_hand() {
         for (x, y, facing, anim, time, want) in [
-            (9336, 30840, -916_717_568, crate::anim::ATTACK1, 6, (9264, 30827)),
-            (9288, 30648, -979_763_200, crate::anim::ATTACK1, 6, (9215, 30643)),
-            (9240, 30936, -872_480_768, crate::anim::ATTACK3, 10, (9183, 30911)),
+            (
+                9336,
+                30840,
+                -916_717_568,
+                crate::anim::ATTACK1,
+                6,
+                (9264, 30827),
+            ),
+            (
+                9288,
+                30648,
+                -979_763_200,
+                crate::anim::ATTACK1,
+                6,
+                (9215, 30643),
+            ),
+            (
+                9240,
+                30936,
+                -872_480_768,
+                crate::anim::ATTACK3,
+                10,
+                (9183, 30911),
+            ),
         ] {
             let at = launch_point(Pos::new(x, y), Angle(facing), 132, anim, time, 0);
             assert_eq!((at.x, at.y), want);
