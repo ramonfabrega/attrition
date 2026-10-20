@@ -1693,11 +1693,62 @@ impl Sim {
                     // the constant, `0062d8d8` the `high_buildings` short):
                     // get_cost's predicate, read live (item 3231).
                     iroquois_first_senate: self.iroquois_free_senate(bd.owner, t),
+                    free_first_wonder: self.american_free_wonder(b, t),
                     ..bd.clock
                 },
             ),
             None => 1,
         }
+    }
+
+    /// `construct_time@0062d5c0`'s first arm (`docs/CITIES.md` §3.2 (a)),
+    /// read live (item 3374): an American leader's wonder — not the
+    /// Supercollider or the Space Program — while the leader holds and has
+    /// built none (`get_wonders() == 0 && wonders_built == 0`; this crate
+    /// reads both as the census's `wonder_mark`, a high-water mark that
+    /// only an activation raises, at zero and no active wonder of its own
+    /// standing — the census is the sweep's, a frame behind an activation,
+    /// and a human leader's is never swept) and no other player has the same wonder unfinished
+    /// (`WallData::is_active`, flag 4, clear). run999c's who=1 held its
+    /// Pyramids site `1/2031` at `construct_hits` 2200 on block 17209,
+    /// ours at 1101, and finished it on 17214.
+    pub(crate) fn american_free_wonder(&self, b: usize, t: usize) -> bool {
+        let who = self.buildings[b].owner;
+        if !self.build_types[t].wonder
+            || !self.tech.get(who as usize).is_some_and(|p| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::AMERICANS)
+            })
+        {
+            return false;
+        }
+        let k = self.build_types[t].tree.and_then(|tr| {
+            self.tech_tree
+                .roles
+                .wonder_line
+                .iter()
+                .position(|&w| w == tr)
+        });
+        if k.is_some_and(|k| {
+            k == crate::tech::wonder::SUPERCOLLIDER || k == crate::tech::wonder::SPACE_PROGRAM
+        }) {
+            return false;
+        }
+        let none_yet = self
+            .ai
+            .get(who as usize)
+            .is_none_or(|a| a.census.wonder_mark == 0)
+            && !self.buildings.iter().any(|x| {
+                x.alive
+                    && x.active
+                    && x.owner == who
+                    && x.ty.is_some_and(|k| self.build_types[k].wonder)
+            });
+        none_yet
+            && !self
+                .buildings
+                .iter()
+                .any(|x| x.alive && !x.active && x.owner != who && x.ty == Some(t))
     }
 
     /// The temple's hit-point level, 1..4: `has_preq(TEMPLEHP4)` is 4, else
