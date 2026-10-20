@@ -3114,17 +3114,18 @@ impl Sim {
         // The head — entry to `City::find_buildings` — is
         // `capture_view::capture_city_steps`, swept against the original
         // (item 3362); the failed-swap arm below is not.
-        let head = {
+        let (head, to_close) = {
             let members = self.cities[c].members.clone();
-            let mut view = SimCapture { sim: self, members };
-            capture_city_steps(&mut view, a, c, o)
+            let mut view = SimCapture {
+                sim: self,
+                members,
+                to_close: Vec::new(),
+                masks: Vec::new(),
+            };
+            let head = capture_city_steps(&mut view, a, c, o);
+            (head, view.to_close)
         };
-        let Head {
-            newcity,
-            mut base,
-            to_close,
-            masks: _,
-        } = head;
+        let Head { newcity, mut base } = head;
         let mut to_close: Vec<usize> = to_close;
         if newcity.is_none() {
             base = 0;

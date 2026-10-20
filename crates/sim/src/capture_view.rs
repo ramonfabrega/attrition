@@ -97,25 +97,24 @@ pub trait CaptureView {
     fn is_active(&mut self, o: Player, m: Self::B) -> bool;
     /// `City::find_buildings@007384c0` on `a`'s new city.
     fn find_buildings(&mut self, a: Player, nc: usize);
+    /// `local_74`'s push: a building to close once the plunder is paid.
+    fn close_later(&mut self, b: Self::B);
+    /// `local_98`'s push: a new building the original `mask_me`s at the end.
+    fn mask_later(&mut self, b: Self::B);
 }
 
-/// What the head leaves for the rest of the function.
-pub struct Head<B> {
+/// What the head leaves for the rest of the function (the two lists are the
+/// view's: [`CaptureView::close_later`] and [`CaptureView::mask_later`]).
+pub struct Head {
     /// The new city, or `None` when the swap failed (the failed-swap arm is
     /// the caller's).
     pub newcity: Option<usize>,
     /// `local_28`: the plunder base so far.
     pub base: i32,
-    /// `local_74`: the buildings to close, the old city building first.
-    pub to_close: Vec<B>,
-    /// `local_98`: the new buildings the original `mask_me`s at the end
-    /// (SEAM: the port has no mask pass to hand them to).
-    #[allow(dead_code)]
-    pub masks: Vec<B>,
 }
 
 /// Entry to the `City::find_buildings` call of `Cities::capture_city`.
-pub fn capture_city_steps<V: CaptureView>(v: &mut V, a: Player, c: usize, o: Player) -> Head<V::B> {
+pub fn capture_city_steps<V: CaptureView>(v: &mut V, a: Player, c: usize, o: Player) -> Head {
     if v.diplo_agrees(a, o) {
         v.action_clear_all(o, a);
     }
@@ -130,14 +129,13 @@ pub fn capture_city_steps<V: CaptureView>(v: &mut V, a: Player, c: usize, o: Pla
     v.mark_economy(o);
     v.city_radius_probe(o, c);
     let old = v.city_building(o, c);
-    let mut to_close = vec![old];
-    let mut masks = Vec::new();
+    v.close_later(old);
     let mut base = 0;
     let mut newcity = None;
     let mut n_new = None;
     if let Some(n) = v.swap_head(o, old, a) {
         v.activate(a, n);
-        masks.push(n);
+        v.mask_later(n);
         if let Some(nc) = v.city_of(a, n) {
             let level = v.level(a, nc);
             base = v.plunder_per_level().wrapping_mul(level.wrapping_sub(1));
@@ -151,8 +149,6 @@ pub fn capture_city_steps<V: CaptureView>(v: &mut V, a: Player, c: usize, o: Pla
         return Head {
             newcity: None,
             base: 0,
-            to_close,
-            masks,
         };
     };
     v.city_capture(nc, o, c, a, n);
@@ -160,12 +156,12 @@ pub fn capture_city_steps<V: CaptureView>(v: &mut V, a: Player, c: usize, o: Pla
     let mut m = v.first_member(o, old);
     while let Some(x) = m {
         if !v.not_civilian(o, x) {
-            to_close.push(x);
+            v.close_later(x);
             let farmish = v.is_ident(o, x, IS_FARM) || v.is_ident(o, x, IS_GRANARY);
             if !(farmish && v.has_tribe_bonus(a, TRIBE_LAKOTA)) && v.is_active(o, x) {
                 if let Some(nm) = v.swap_member(o, x, a) {
                     v.activate(a, nm);
-                    masks.push(nm);
+                    v.mask_later(nm);
                     base = base.wrapping_add(MEMBER_BASE);
                 }
             }
@@ -173,12 +169,7 @@ pub fn capture_city_steps<V: CaptureView>(v: &mut V, a: Player, c: usize, o: Pla
         m = v.next_member(o, x);
     }
     v.find_buildings(a, nc);
-    Head {
-        newcity,
-        base,
-        to_close,
-        masks,
-    }
+    Head { newcity, base }
 }
 
 /// The crate's view: the live [`Sim`], the old city's member list as it
@@ -186,6 +177,10 @@ pub fn capture_city_steps<V: CaptureView>(v: &mut V, a: Player, c: usize, o: Pla
 pub struct SimCapture<'a> {
     pub sim: &'a mut Sim,
     pub members: Vec<usize>,
+    /// `local_74`.
+    pub to_close: Vec<usize>,
+    /// `local_98` (SEAM: the port has no mask pass to hand them to).
+    pub masks: Vec<usize>,
 }
 
 fn ident_of(id: i32) -> Option<Ident> {
@@ -280,5 +275,11 @@ impl CaptureView for SimCapture<'_> {
     }
     fn find_buildings(&mut self, _a: Player, nc: usize) {
         self.sim.find_buildings(nc);
+    }
+    fn close_later(&mut self, b: usize) {
+        self.to_close.push(b);
+    }
+    fn mask_later(&mut self, b: usize) {
+        self.masks.push(b);
     }
 }
