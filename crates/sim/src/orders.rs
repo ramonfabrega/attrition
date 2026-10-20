@@ -4568,7 +4568,16 @@ impl Sim {
                 {
                     self.group_target_opportunity(seat, t, u, true);
                 }
-                return;
+                // **Only a unit find ends the think** (`005f5da6`..: the
+                // `return 1` is gated on the target's vslot `+0x18`,
+                // `is_unit`). A building's attack order is added all the
+                // same, and `think_attack` returns 0, so `Unit::think`
+                // goes on to its tail — the scout's explore among it. The
+                // East Indies Spanish Caravel `1/49` found the human's
+                // `0/2004` on 12742 and still ran `think_scout` (item 3367).
+                if matches!(t, Obj::Unit(_)) {
+                    return;
+                }
             }
             if joined.is_none() {
                 self.think_attack_tail(u);

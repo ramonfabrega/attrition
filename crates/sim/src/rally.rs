@@ -365,40 +365,6 @@ impl Sim {
         self.buildings[b].gather.first().copied()
     }
 
-    /// `come_out`'s **gather-point block** (`6181a3`..`618377`): a captain
-    /// leaving a building with a point, not "inside", is given the free
-    /// spot nearest its head point (`UnitType::find_nearby_spot(point, 0,
-    /// 0x600, 0x55555555)`, `FILTER_NOT_ME` for a type with a
-    /// `block_radius`), and `find_angle(spot − building)` becomes its
-    /// `angle` (`+0x50`) and the exit sweep's bias in place of south.
-    /// Returns the spot and the bearing; `None` leaves the exit as it was.
-    pub(crate) fn gather_exit(&mut self, captain: usize, b: usize) -> Option<(crate::Pos, Angle)> {
-        let head = self.first_gather(b)?;
-        if self.gather_inside(b) || head.action == 3 {
-            // SEAM: action 3's point is an object's (`HotKeyGroups::copy`
-            // and the object's own point); no capture sets one.
-            return None;
-        }
-        let spot = if self.profile(crate::combat::Obj::Unit(captain)).block_radius == 0 {
-            self.find_nearby_spot_coll(
-                captain,
-                head.pos,
-                0,
-                REACH,
-                0,
-                NEUTRAL,
-                None,
-                crate::orders::Coll::None,
-            )
-        } else {
-            self.find_nearby_spot(captain, head.pos, 0, REACH, 0, NEUTRAL, None)
-        }?;
-        let from = self.buildings[b].pos;
-        let bearing = find_angle(spot.x - from.x, spot.y - from.y);
-        self.units[captain].movement.heading = bearing;
-        Some((spot, bearing))
-    }
-
     /// `come_out`'s two **re-seats**: the captain swept again round its
     /// trainer's **land** exit ring (`(x_size + y_size) × 0x30 +
     /// UNIT_TRAIN_DISTANCE` out to `… + UNIT_TRAIN_MAX_DISTANCE`, step 0,

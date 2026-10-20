@@ -1736,7 +1736,7 @@ def main(argv):
     for (_, sa), (i, (k, _, _)) in zip(iats, [e for e in enumerate(STUBS) if e[1][0] == "iat"]):
         if i in CDECLSTUBS:
             h.hooked[sa] = h.hooked[sa][:3] + (True,)
-    stubbed = {{off: h.r32(vt + off) & 0xFFFFFFFF for off, _ in SLOTBASE}}
+    stubbed = {{e[0]: h.r32(vt + e[0]) & 0xFFFFFFFF for e in SLOTBASE}}
     # `--vtat-image WIN+OFF:VA` (item 2863): the stub slots copied into the image's own vtable at VA,
     # so a record whose vtable word is compared with VA (`Build::vftable`) still answers its slots.
     for va_ in sorted({{va for _, _, va in VTIMAGE}}):
@@ -2012,8 +2012,8 @@ def main(argv):
         for cell, stub in iats:
             uc.mem_write(cell, stub.to_bytes(4, "little"))
         based = []
-        for off, addr in SLOTBASE:
-            on = rng.random() < 0.5
+        for off, addr, *always in SLOTBASE:
+            on = True if always else rng.random() < 0.5
             h.w32(vt + off, addr if on else stubbed[off])
             based.append(int(on))
         for name, v in zip(names, answers):
@@ -2424,7 +2424,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         # A `bool` in `al` over an `eax` whose upper bytes are a pointer's
         # (`sete al`; item 2336, parked 2327): the low byte alone is held.
         retcode = f'        assert_eq!(got & 0xff, want_eax & 0xff, "{short} — al, row `{{line}}`");'
-    elif ret in ('eax', 'xmm0'):
+    elif ret in ('eax', 'xmm0') or re.fullmatch(r'ebp:-?(0x[0-9a-f]+|\d+)', ret):
+        # `ebp:OFF` (item 3362): the dword of the function's frame at ebp+OFF when the call ends, a
+        # local a swept slice leaves (`Cities::capture_city`'s plunder base); held as eax is.
         retcode = f'        assert_eq!(got, want_eax, "{short} — eax, row `{{line}}`");'
     elif ret.startswith('arg:') and ret[4:].isdigit() and int(ret[4:]) < own:
         # An out-pointer returned (the inlined `String` constructors, parked 2594, item 2604):
@@ -2432,7 +2434,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         retcode = (f'        assert_eq!(want_eax, i64::from(a[{int(ret[4:])}]), "{short} — eax is the out-pointer, row `{{line}}`");\n'
                    '        let _ = got;')
     else:
-        raise ValueError(f'obj --ret is eax, xmm0, al, none or arg:N (N a stack argument), not {ret!r}')
+        raise ValueError(f'obj --ret is eax, xmm0, al, none, ebp:OFF or arg:N (N a stack argument), not {ret!r}')
     pcells = [_window(c, 0x400) for c in cells]
     # `--at VA:SIZE:LO..HI[/b]` (item 3030, parked 2998): every element of the table drawn from
     # LO..HI — 32-bit words, or signed bytes with `/b` — for an image table the boot builds and
@@ -2477,7 +2479,8 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     plinkhi = [_link_hi(s) for s in link_hi]
     pfills = [tuple(f.split(':', 1)) for f in fills]
     prange = [tuple(int(x, 0) for x in r.split(':')) for r in argrange]
-    pslot = [tuple(int(x, 0) for x in s.split(':')) for s in slotbase]
+    # a trailing `!` on ADDR lays the base every row (item 3362: the real `ObjectTypeData::is` at a stubbed slot)
+    pslot = [tuple(int(x.rstrip('!'), 0) for x in s.split(':')) + ((1,) if s.endswith('!') else ()) for s in slotbase]
     # `--vtat-keep SLOT:VA` (item 2900, parked 2888): one named image function laid at one slot of the stubbed vtable
     # half the rows, a stub or nothing the others, so a branch on a vtable compare reaches both arms. The slot need not
     # be a stub (`--slotbase` names one that is); the flag after the answers is the same.
@@ -2492,7 +2495,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     pans = [(int(a.split(':', 1)[0]), [int(v, 0) for v in a.split(':', 1)[1].split(',')]) for a in answers]
     if any(not 0 <= idx < len(pstubs) for idx, _ in pans):
         raise ValueError('--answers IDX:V,.. names one of the --stub callees, by its order on the line')
-    if any(('slot', off) not in {(k, a) for k, a, _ in pstubs} for off, _ in pslot):
+    if any(('slot', e[0]) not in {(k, a) for k, a, _ in pstubs} for e in pslot):
         raise ValueError('--slotbase OFF:ADDR names a slot --stub slot:OFF:N stubs')
     pslot = pslot + pkeep
     if any(w and w[0] == 's' and not int(w[1:]) < len(pstubs) for w, _, _, _ in pplaces):
@@ -2731,7 +2734,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            else f'callee 0x{a:08x} ({n} args) stubbed' for k, a, n in pstubs]
         + [f'{_placed(w, o)} points at {n} random bytes less `{e}` (placed'
            + (', null a third of the rows)' if k in pnull else ')') for k, (w, o, e, n) in enumerate(pplaces)]
-        + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a in pslot]
+        + [f'slot +0x{o:x} laid as 0x{a:08x} or its stub, a flag after the answers' for o, a, *_ in pslot]
         + [f'stub {idx} answered from {vals} (90%)' for idx, vals in pans]
         + [f'stub {idx} answers the address of {n} random bytes, a `p` window after the places'
            for idx, n in pansw if [i for i, _ in pansw].count(idx) == 1]
@@ -2812,7 +2815,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
-                                   ret='xmm0' if ret == 'xmm0' else 'eax')
+                                   ret=ret if ret == 'xmm0' or ret.startswith('ebp:') else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')
@@ -3661,7 +3664,7 @@ def main(argv=None):
                     help='obj: argument IDX drawn from LO..HI every row (parked 2045)')
     ap.add_argument('--slotbase', action='append', default=[], metavar='OFF:ADDR',
                     help='obj: the stubbed slot OFF laid as the base ADDR half the rows, a 0/1 flag after the '
-                         'answers (parked 2095)')
+                         'answers (parked 2095); ADDR! every row (item 3362)')
     ap.add_argument('--name', dest='module', help='obj: the module\'s snake name, for an overload whose snake an '
                     'earlier sweep holds (parked 2045: two `WorldData::restrict`s, two `get_land`s)')
     ap.add_argument('--ecx-int', metavar='LO..HI|V,V,..', help='obj: `ecx` an integer drawn from the range or '

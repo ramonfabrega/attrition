@@ -19930,6 +19930,102 @@ Pool lane 2, launched 00:24:38, exited 00:41:28; **the game ended itself on 1755
 block 17555. 17555 frames identical to run895b. **What it holds**: who=1's Cataphract decoys `1/72`, `1/74` bleeding
 a point a frame in who=0's Scout `0/0`'s `seen3` disc. Test `run989d_s_word_frame_is_widened_whole`: 167 blocks, 42
 keys after the fix (1133 before).
+## run992 — the battery's replacement lobby: East Indies, the Egyptians at difficulty 3, a `DUMP_ALL` start (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: no dump holds an Egyptian game on East Indies — the Egyptians'
+only game is Great Sahara 4 (a header survey of every gamelog). Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run992`: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 7 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 01:59:02 (a stall relaunch after 300 s), exited 02:05:30. `success`, 37 frames.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run992-eastindies-egyptian-diff3-start.txt`, 153,494,290 bytes,
+SHA-256 `086a598ec537d28a680d33a6dcb8c2a0543f445c3be44c1769503aa29ce89b05`.
+
+Archive `rontrace-run992.log`, 10,155,040 bytes,
+SHA-256 `41a9389f719673c1d5c9c2d0314d45cb0e8fdb6057907975ca04d52d54a9c329`.
+
+## run992b — the Egyptians at East Indies 3: the draw stream to the game's end (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. run986b's recipe with `--ai-tribe 7 --profile DIFFICULTY=3`.
+- Pool lane 2. Launched 01:54:05, exited 01:58:08. `success`; **the game ended itself on 14540**, closing block
+  14541. `rngcmp.py` run992 vs run992b: 37 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run992b-eastindies-egyptian-diff3-24k-trace.txt`, 13,356,335 bytes,
+SHA-256 `28393776402c41aad6dec6d290cd6e421043fb4ac795734be36355447eb6a4e1`.
+
+Archive `rontrace-run992b.log`, 106,760,288 bytes,
+SHA-256 `6c83f95cb6a4fc4f4dbfd9a4114c0e8b3d721935416f1ad64bd73be55f7426a0`.
+
+**What it holds**: the battery's `EastIndiesEgyptianTier3`, 14540 of 14540 on its first try.
+
+## run993 — the East Indies Spanish word: the word 9028's window, blocks 9022..9278 at `LEADERS=9` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run986 dumps blocks 0..36 and run986b its setup and closing
+blocks only, so no dump held the word's block. `--map 18 --end-frame 9283 --log-window 9022 9278 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 01:54:51, exited 02:16:26. `success`, 9284 frames; `rngcmp.py` vs run986b: 9284 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993-eastindies-spanish-diff3-window-9022-9279-leaders.txt`, 548,242,653 bytes,
+SHA-256 `80bbf6474b86a1d940e23067ea25d6b269549241bf9308a2a7f82dc420b2e8b2`.
+
+Archive `rontrace-run993.log`, 66,092,960 bytes,
+SHA-256 `633f8bba518b353a1d1162c0800a68981feb69be80958dfa46b5fc2ec794b985`.
+
+**What it holds**: `run993_s_word_frame_is_widened_whole` — 519 keys on the first try, 49 after the danger fix.
+
+## run993b — the East Indies Spanish word: the danger map over 8955..8961 at `WORLD=6` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run993 starts on 9022, after the Scout `1/0` re-targets on
+8959, and prints no `danger` plane. `--map 18 --end-frame 8966 --log-window 8955 8961 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,WORLD=6` (run993's `--ai-tribe`, `--cover`, `--profile`).
+- Pool lane 1. Launched 02:23:00, exited 02:24:48. `success`, 8967 frames.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993b-eastindies-spanish-diff3-window-8955-8962-world.txt`, 32,632,827 bytes,
+SHA-256 `8b5bf61140820f2891c945239e8ebc5134964aa195e725d28f9f5b7cd0603ef6`.
+
+Archive `rontrace-run993b.log`, 65,177,952 bytes,
+SHA-256 `77fbbb1217da3027162af145bca7cfd2f651344d3738fc11cd973fff376a4b78`.
+
+**What it holds**: block 8959's `danger[1]`, eighteen half-cells around the human's city about double in ours.
+
+## run993c — the East Indies Spanish word: the word 12756's window, blocks 12750..13006 at `AMMO=5` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run993 closes on 9278 and run986b holds no unit record near
+12756, where theirs spends two `Ammo::init` draws. `--map 18 --end-frame 13011 --log-window 12750 13006 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5` (run993's `--ai-tribe`, `--cover`, `--profile`).
+- Pool lane 1. Launched 02:31:09, exited 02:50:42. `success`, 13012 frames; `rngcmp.py` vs run986b: 13012 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993c-eastindies-spanish-diff3-window-12750-13007-ammo.txt`, 577,887,973 bytes,
+SHA-256 `85662af8ee2b22cfdd37d09360f536ecd471f8266fee4be21f51a623e2ea838b`.
+
+Archive `rontrace-run993c.log`, 119,416,064 bytes,
+SHA-256 `76f826feccd2a9909bb1cb8b22aca181f1c04ea32605e252e0abff04cd733bb1`.
+
+**What it holds**: `run993c_s_word_frame_is_widened_whole` — 765 keys on the first try, 61 after the move to 14942;
+the Caravel `1/49`'s `stance 0` on every block.
+
+## run993d — the East Indies Spanish word: the word 14942's window, blocks 14936..15192 at `LEADERS=9` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run993c closes on 13006 and run986b holds no record near
+14942, where theirs spends 3211 `PathFinder::calc_road_cost` draws. `--map 18 --end-frame 15197 --timeout 7200
+--log-window 14936 15192 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover
+cover=0 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 03:13:54, exited 03:39:54 (1560 s). `success`, 15198 frames; `rngcmp.py` vs run986b: 15198
+  identical. Filed with `filerun.py run993d eastindies-spanish-diff3-window-14936-15193-leaders`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993d-eastindies-spanish-diff3-window-14936-15193-leaders.txt`, 612,959,977 bytes,
+SHA-256 `eedf4e58d545dcec335cee455f07944472adcd4bfff71a9a85c7896d0ede44b3`.
+
+Archive `rontrace-run993d.log`, 164,149,728 bytes,
+SHA-256 `21d871d352869afaf0ecbd825059fa6a2d99cc8bf4c8998bb929409a84d3cdfe`.
+
+**What it holds**: `run993d_s_word_frame_is_widened_whole` — 1006 keys on the first try; on the word's block 14943
+the Spanish `1/79`'s `path[19].flags`, ours 36 against theirs 4.
 
 ## run990 — the battery's replacement lobby `GreatSaharaDutchTier3`: the start (2026-10-20, item 3365, `att-3365`)
 

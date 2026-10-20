@@ -48,6 +48,7 @@ pub const SLOTS: usize = 16;
 const AAGUN: crate::tech::TypeId = 0x119;
 /// `TypeIndex` `0x3f`, `SUPPLYWAGON`: `find_target`'s weak test asks
 /// `type_avail` of it.
+#[cfg(test)]
 const SUPPLYWAGON: crate::tech::TypeId = 0x3f;
 /// `TypeIndex` `0x36`, the General — the lineage `Army::process` counts
 /// before its generals' turn; a government patriot `FROM General` is one.
@@ -224,27 +225,6 @@ pub fn march_origin(pos: Pos, muster_angle: Angle) -> Pos {
 /// `|dx|, |dy|` through `vector_dist`.
 const fn dist(a: Pos, b: Pos) -> i32 {
     vector_dist((a.x - b.x).abs(), (a.y - b.y).abs())
-}
-
-/// `TOWN → 2, METROPOLIS / FORBIDDENCITY → 3, else 1` — the city size
-/// factor §10 and §12 use, from [`Sim::city_level_of`] (1 city, 2 town, 3
-/// metropolis).
-const fn size_factor(level: i32) -> i32 {
-    match level {
-        2 => 2,
-        3 => 3,
-        _ => 1,
-    }
-}
-
-/// `TOWN → 2, METROPOLIS / FORBIDDENCITY → 1, else 3` — a raider's
-/// preference for small cities (§12).
-const fn raid_factor(level: i32) -> i32 {
-    match level {
-        2 => 2,
-        3 => 1,
-        _ => 3,
-    }
 }
 
 /// What `Army::find_besieged_city@006f58b0` reads and writes, one query a
@@ -891,7 +871,7 @@ impl Sim {
     }
 
     /// `count(NON_DECOY_TYPE, SUPPLYWAGON)`.
-    fn army_count_supply(&self, who: Player, slot: usize) -> i32 {
+    pub(crate) fn army_count_supply(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, Sim::is_supply_wagon)
     }
 
@@ -901,7 +881,7 @@ impl Sim {
 
     /// `COUNT_NON_DECOY_TYPE, CATAPHRACT`: the complete lineage (§25),
     /// including upgrades and unique grafts; dead units and decoys do not count.
-    fn army_count_cataphracts(&self, who: Player, slot: usize) -> i32 {
+    pub(crate) fn army_count_cataphracts(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, |s, u| {
             !s.units[u].decoy
                 && s.units[u]
@@ -918,7 +898,7 @@ impl Sim {
 
     /// `COUNT_NON_DECOY_TYPE, HOPLITES`: a decoy is skipped, as the cavalry
     /// term beside it skips one (twenty-fourth pass, group 1).
-    fn army_count_hoplites(&self, who: Player, slot: usize) -> i32 {
+    pub(crate) fn army_count_hoplites(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, |s, u| {
             !s.units[u].decoy
                 && s.units[u]
@@ -1971,7 +1951,7 @@ impl Sim {
     }
 
     /// `WorldData::restrict`: clamp a position into the world.
-    fn restrict(&self, p: Pos) -> Pos {
+    pub(crate) fn restrict(&self, p: Pos) -> Pos {
         Pos::new(
             p.x.clamp(0, self.world.width() * UNITS_PER_CELL - 1),
             p.y.clamp(0, self.world.height() * UNITS_PER_CELL - 1),
@@ -2174,6 +2154,7 @@ impl Sim {
     /// 2`, a lobby no capture on disk has (scan: `grep -h '^  TEAM_STYLE'
     /// gamelog*.txt | sort | uniq -c`, 313 of style 1 and none of 2 over the
     /// 316 dumps).
+    #[cfg(test)]
     pub(crate) fn start_list_target(&self, who: Player) -> usize {
         let list = &self.lobby.start_list;
         let at = list.iter().position(|&l| l == who as usize).unwrap_or(0);
@@ -2189,351 +2170,98 @@ impl Sim {
     /// `Army::find_target` over cities. The forts pass and the fields the
     /// sim lacks are seams; see the module doc.
     pub fn find_target(&mut self, who: Player, slot: usize) {
-        let w = who as usize;
-        let diff = self.ai_difficulty();
-        // `epoch[0] ^ 0x63187`, the Military library level, at every
-        // read below (§12); the forts pass's `ages ^ 0x62766` is a seam.
-        let age = self.tech[w].military_level() as i32;
-        let team_style = self.lobby.team_style;
-        let frame = self.frame;
-        let (navy, my_reg, num_captains, num_standard) = {
-            let a = &self.armies[w].list[slot];
-            (a.navy, a.reg, a.num_captains, a.num_standard)
-        };
-        let siege = self.army_count_siege(who, slot);
-        let supply = self.army_count_supply(who, slot);
-        let cavalry = self.army_count_cataphracts(who, slot);
-        // `local_54` (`6f6a1b..6f6a6b`): a land army is weak with fewer
-        // than four of hoplites, siege twice and cataphracts — **or**, past
-        // Military 2, with no wagon of its own while the leader can have
-        // one (`type_avail(SUPPLYWAGON, 1) != 0`, researchable included).
-        // French East Indies' army 0 is that on 14332..14844 and scores no
-        // enemy city; army 6 carries a wagon on 15088 (item 1487).
-        let weak_army = !navy
-            && (self.army_count_hoplites(who, slot) + 2 * siege + cavalry < 4
-                || (age > 2 && supply == 0 && self.type_avail(who, SUPPLYWAGON) != 0));
-        let capital = self
-            .cities_of(who)
-            .into_iter()
-            .find(|&c| self.cities[c].capital)
-            .map(|c| self.cities[c].pos.cell());
-        let level = self.transport_level(who) as i32;
-        let pers = self.ai[w].pers;
-        let my_combat = self.ai[w].census.combat;
-
-        // The two averages of `sea_combat` (audit B.20: the listing's base
-        // is the leader plus 8, so `+0x944` there is `+0x94c`).
-        let (mut ours, mut theirs) = ((0, 0), (0, 0));
-        for i in 0..self.players.len() {
-            if self.defeated[i] {
-                continue;
-            }
-            let ip = i as Player;
-            if self.is_ally(who, ip) {
-                ours = (ours.0 + self.ai[i].census.sea_combat, ours.1 + 1);
-            } else if self.is_enemy(who, ip) {
-                theirs = (theirs.0 + self.ai[i].census.sea_combat, theirs.1 + 1);
-            }
+        use crate::target_gate::{SimGate, target_city_gate, target_head, target_leader_gate};
+        use crate::target_score::{Ctx, target_score, target_tail};
+        // `epoch[0] ^ 0x63187`, the Military library level, is read at every
+        // site below (§12); the forts pass's `ages ^ 0x62766` is a seam.
+        // The head (`target_gate::target_head`, swept against the original
+        // in `sweep/army_find_target.rs`): the weak test — a land army is
+        // weak with fewer than four of hoplites, siege twice and
+        // cataphracts, **or**, past Military 2, with no wagon of its own
+        // while the leader can have one (French East Indies' army 0 is that
+        // on 14332..14844 and scores no enemy city; army 6 carries a wagon
+        // on 15088, item 1487) — the capital, and the two sea averages
+        // (audit B.20: the listing's base is the leader plus 8, so `+0x944`
+        // there is `+0x94c`).
+        let head = target_head(&mut SimGate {
+            sim: &mut *self,
+            who,
+            slot,
+        });
+        if head.stop {
+            return;
         }
-        let ours = if ours.1 != 0 { ours.0 / ours.1 } else { 0 };
-        let theirs = if theirs.1 != 0 {
-            theirs.0 / theirs.1
-        } else {
-            0
-        };
 
         let mut best: Option<(i32, usize, Player)> = None;
         for pass in 0..2 {
-            for i in 0..self.players.len() {
-                if self.defeated[i] {
-                    continue;
-                }
+            for i in 0..8 {
+                // The leader gate (`target_gate::target_leader_gate`):
+                // seated, the diplomacy arms (`defense_mod` is the switch,
+                // audit B.22), the difficulty clauses (listing
+                // `6f6ce1`-`6f6fb4`; at `diff < 2` the stamp, the
+                // aggressive-army test and the coin come first and a
+                // leader that passes them **goes on** — run26), and the
+                // `team_style == 2` list (`6f6fb4..6f705f`; group 4, A5
+                // #30). `weak`/`strong`/the tribute period are seams.
+                let about = match target_leader_gate(
+                    &mut SimGate {
+                        sim: &mut *self,
+                        who,
+                        slot,
+                    },
+                    i,
+                ) {
+                    Ok(Some(about)) => about,
+                    _ => continue,
+                };
                 let ip = i as Player;
-                let enemy = self.is_enemy(who, ip);
-                let allied = self.is_ally(who, ip);
-                if i != w {
-                    // `defense_mod` is the switch (audit B.22): above 0x100
-                    // only allies are considered, below it only enemies.
-                    // `weak`/`strong`/the tribute period are seams.
-                    let dm = self.ai[w].defense_mod;
-                    if !enemy && (!allied || dm < 0x100) {
+                for (k, c) in self.cities_of(ip).into_iter().enumerate() {
+                    // The city gate (`target_gate::target_city_gate`): a
+                    // navy's coast and `ocean` test (`6f70b5..6f70e0`;
+                    // twenty-fourth pass, group 4: the count the owner's
+                    // census wrote, so a leader whose census never ran has
+                    // none), and the test before the draw (B.25): on the
+                    // two easiest difficulties a city of mine or an ally's
+                    // is scored only if I founded it; an enemy's always is.
+                    // (Run26 caught the inverse — the human's capital
+                    // dropped and one draw short.)
+                    if !target_city_gate(
+                        &mut SimGate {
+                            sim: &mut *self,
+                            who,
+                            slot,
+                        },
+                        i,
+                        k,
+                    ) {
                         continue;
                     }
-                    if enemy && dm > 0x100 {
-                        continue;
-                    }
-                    // The difficulty gate (listing `6f6ce1`–`6f6fb4`): at
-                    // `diff < 2` the stamp, the aggressive-army test and
-                    // the coin come first, and a leader that passes them
-                    // **goes on** to the tests every difficulty applies —
-                    // the `diff == 1` clause is reached only that way
-                    // (run26: the decompiler's `else` had hidden the
-                    // `goto` and left it dead).
-                    if diff < 2 {
-                        if !(diff != 0 || self.nation[i].human) {
-                            continue;
-                        }
-                        if self.ai[i].frame_attacked + 0x1c20 > frame {
-                            continue;
-                        }
-                        let go = match self.find_aggressive_army(who) {
-                            Some(k) => k == slot,
-                            None => {
-                                self.mark(SITE_FIND_TARGET_COIN);
-                                self.rng.get(0, 0xffff) & 1 == 0
-                            }
-                        };
-                        if !go {
-                            continue;
-                        }
-                    }
-                    if diff == 1
-                        && (num_captains >= my_combat / 2
-                            || self.find_aggressive_army(who).is_some_and(|k| k != slot))
-                    {
-                        continue;
-                    }
-                    if !(diff < 2
-                        || allied
-                        || (age < 3 && pers.early_army != 0 && diff != 2)
-                        || num_standard >= 7 - 2 * pers.raid)
-                    {
-                        continue;
-                    }
-                    if diff == 2 {
-                        let fa = self.ai[i].frame_attacked;
-                        if !(fa + 0x708 <= frame
-                            && (team_style == 3
-                                || fa + 0xe10 <= frame
-                                || self.ai[i].attacked_by == i32::from(who)
-                                || self.ai[w].attacked_by == i32::from(ip)))
-                        {
-                            continue;
-                        }
-                    }
-                }
-                // `team_style == 2` (`6f6fb4..6f705f`; group 4, A5 #30): the
-                // leader must be me, the leader `LeaderData::get_target`
-                // names, or a mutual ally. Reached by every leader, `i == w`
-                // included.
-                if team_style == 2 && i != w && !allied && self.start_list_target(who) != i {
-                    continue;
-                }
-                for c in self.cities_of(ip) {
-                    let cd = self.cities[c].clone();
-                    if navy {
-                        let coast = match (my_reg, cd.reg) {
-                            (Some(r), Some(cr)) => self.world.is_coast(r, cr),
-                            _ => false,
-                        };
-                        // And the city's own `ocean` (`+0x62`) is non-zero
-                        // (`6f70b5..6f70e0`; twenty-fourth pass, group 4):
-                        // the count the owner's census wrote, so a leader
-                        // whose census never ran has none.
-                        let ocean = self.ai[i].city_ai.get(c).is_some_and(|r| r.ocean != 0);
-                        if !coast || !ocean {
-                            continue;
-                        }
-                    }
-                    // The test before the draw (B.25): on the two easiest
-                    // difficulties a city of mine or an ally's is scored
-                    // only if I founded it; an enemy's always is. (Run26
-                    // caught the inverse — the human's capital dropped and
-                    // one draw short.)
-                    if diff <= 1 && allied && cd.founder != who {
-                        continue;
-                    }
+                    // The score (`target_score::target_score`, swept against
+                    // the original in `sweep/army_find_target_run.rs`).
                     self.mark(SITE_FIND_TARGET_SCORE);
-                    let mut v = self.rng.get(0, 0xffff) % 200 + 900;
-                    if let Some(cap) = capital
-                        && enemy
-                    {
-                        if weak_army && !(cd.founder == who && cd.unassimilated) {
-                            continue;
-                        }
-                        let cc = cd.pos.cell();
-                        let d = vector_dist((cc.x - cap.x).abs(), (cc.y - cap.y).abs());
-                        v += d * -50 / self.world.width();
-                    }
-                    let attacked = cd.no_heal;
-                    let lvl = self.city_level_of(c);
-                    if !enemy {
-                        // Not at war: me, or an ally — a neutral never
-                        // reaches the scoring. `diplos` is 2 on its
-                        // diagonal, so `me` passes the allied test the
-                        // same way an ally does (`LeaderData +0x8` is
-                        // `who`, not an ally slot — `types.txt`): my own
-                        // untroubled city takes the size factor and the
-                        // mark's division.
-                        if allied {
-                            if !attacked {
-                                if num_captains < 20 || siege < 2 {
-                                    if num_captains < 10 || siege == 0 {
-                                        v *= size_factor(lvl);
-                                    }
-                                } else {
-                                    v = v * (4 - lvl) / 4;
-                                }
-                                // §13's "no muster spot" mark.
-                                if cd.no_muster {
-                                    v /= 20;
-                                }
-                            } else if team_style == 2 {
-                                v *= 5;
-                            }
-                        }
-                    } else {
-                        if team_style == 2 || team_style == 3 {
-                            v *= 5;
-                        }
-                        if navy {
-                            v *= 10;
-                        }
-                        let k = if pers.raid == -1 {
-                            Some(size_factor(lvl))
-                        } else if pers.raid == 1 {
-                            // The `score × 4/3` clause is a seam: the
-                            // level counts only with the army.
-                            if num_captains > 19 && siege > 2 {
-                                Some(lvl)
-                            } else {
-                                Some(raid_factor(lvl))
-                            }
-                        } else if num_captains > 19 && siege > 1 {
-                            Some(lvl)
-                        } else if num_captains > 9 && siege != 0 {
-                            None
-                        } else {
-                            Some(raid_factor(lvl))
-                        };
-                        if let Some(k) = k {
-                            v *= k;
-                        }
-                    }
-                    if cd.reg != my_reg && !navy {
-                        v /= 2;
-                        if level == 0 {
-                            continue;
-                        }
-                        if ours < theirs || ours < 5 {
-                            v /= 2;
-                            if ours < theirs - 2 || ours == 0 {
-                                v /= 5;
-                            }
-                        }
-                    }
-                    if (pass == 0 || diff > 2) && (i == w || allied) && !attacked {
-                        v /= 3;
-                    }
-                    if (i == w || allied) && attacked {
-                        if i == w {
-                            v *= 10;
-                        }
-                        if cd.capital {
-                            v *= 10;
-                        }
-                    } else if enemy && cd.capital && pers.raid < 0 {
-                        v = v * 3 / 2;
-                    }
-                    // The city's own `bordering` (`CityData +0x65`,
-                    // `find_target@006f69b0:486`–`489` and `:550`), which
-                    // `compute_reg_territory` writes into the city's
-                    // **owner's** row — never the scoring army's: an enemy
-                    // city read from the attacker's table is never
-                    // bordering (item 3338, `docs/AI.md` §273).
-                    let bordering = self
-                        .ai
-                        .get(cd.owner as usize)
-                        .and_then(|a| a.city_ai.get(c))
-                        .is_some_and(|ca| ca.bordering & (1 << who) != 0);
-                    if bordering {
-                        v *= if pers.raid < 1 { 4 } else { 2 };
-                        if enemy && diff > 2 {
-                            if self.ai[i].frame_attacked + 9000 < frame {
-                                v *= 3;
-                            }
-                            if cd.attack_stamp + 9000 < frame {
-                                v *= 3;
-                            }
-                        }
-                    }
-                    if i != w && allied {
-                        v = v * 3 / 4;
-                        if !attacked {
-                            v /= 2;
-                        }
-                    }
-                    // `about_to_win` (`local_34`, `6f79d8`): an enemy's city
-                    // is worth a hundred times more while my territory
-                    // timer runs (`crate::victory`) — French East Indies'
-                    // Napata on 15088, 20040 against Paris's 345 (item
-                    // 1487). My `wonderwin_timer` is the other half; it is
-                    // a seam (the module doc).
-                    if enemy && self.ai[w].popwin_timer != 0 {
-                        v *= 100;
-                    }
-                    let (hits, health) = {
-                        let bd = &self.buildings[cd.building];
-                        (bd.hits, bd.health)
+                    let draw = self.rng.get(0, 0xffff);
+                    let ctx = Ctx {
+                        strong: head.strong,
+                        cap: head.cap,
+                        ours: head.ours,
+                        theirs: head.theirs,
+                        supply: head.supply,
+                        pass,
+                        about,
                     };
-                    let damaged = health < hits;
-                    if i == w && damaged {
-                        v *= 2;
-                    } else if damaged {
-                        v = if bordering { v * 3 / 2 } else { v * 5 / 4 };
-                    }
-                    if cd.was_capital & (1 << who) == 0 {
-                        if enemy && !navy {
-                            if age > 2 && diff > 2 && !cd.unassimilated {
-                                if siege == 0 && age > 3 {
-                                    v /= 10;
-                                }
-                                if supply < 2 {
-                                    if age > 4 {
-                                        v /= 10;
-                                    }
-                                    v /= 10;
-                                    if supply < 1 {
-                                        v /= 10;
-                                    }
-                                }
-                            }
-                            if self.nation[i].human {
-                                if diff == 4 {
-                                    v = v * 5 / 4;
-                                } else if diff == 5 {
-                                    v = v * 4 / 3;
-                                }
-                            }
-                        }
-                    } else {
-                        v = 1_000_000;
-                    }
-                    let target = Obj::Building(cd.building);
-                    for (k, b) in self.armies[w].valid() {
-                        if b.status & status::MUSTERING != 0 || b.target != Some(target) {
-                            continue;
-                        }
-                        if k == slot {
-                            v *= if enemy || attacked { 8 } else { 2 };
-                            if i == w && cd.unassimilated {
-                                v *= 8;
-                            }
-                            if i == w && (hits - health) * 2 > hits {
-                                v *= 8;
-                            }
-                        } else if !attacked || (i != w && !allied && diff < 3 && !navy) {
-                            // Two arms of the original, the same quarter:
-                            // another army has a quiet city, or an enemy's
-                            // attacked one at low difficulty on land.
-                            v /= 4;
-                        } else {
-                            v *= 4;
-                        }
-                    }
-                    if v < 0 {
-                        v = 1_000_000;
-                    }
+                    let Some(v) = target_score(
+                        &mut SimGate {
+                            sim: &mut *self,
+                            who,
+                            slot,
+                        },
+                        &ctx,
+                        i,
+                        k,
+                        draw,
+                    ) else {
+                        continue;
+                    };
                     if best.is_none_or(|(bv, _, _)| bv <= v) {
                         best = Some((v, c, ip));
                     }
@@ -2544,51 +2272,21 @@ impl Sim {
             }
         }
         let Some((_, c, tw)) = best else { return };
-        if tw != who {
-            self.armies[w].list[slot].hurry = 0;
-        }
-        if diff == 0 && self.nation[tw as usize].human {
-            // **The probe** (`docs/ARMY.md` §12, `docs/COMBAT.md` §17):
-            // the easiest AI never takes a human's city as an army
-            // target, and instead sends two of its units — the army
-            // group's first and last, each of which arrives with its
-            // squad — to poke a farm. It is the whole of Great Lakes'
-            // frame 8186, where the long word parts.
-            self.find_target_probe(who, slot, c, tw, frame);
-            return;
-        }
-        let target = Obj::Building(self.cities[c].building);
-        {
-            let a = &mut self.armies[w].list[slot];
-            if a.target != Some(target) {
-                a.rally_dist = 0x1200;
-            }
-            a.target = Some(target);
-        }
-        if self.is_enemy(who, tw) {
-            self.ai[tw as usize].frame_attacked = frame;
-            self.ai[tw as usize].attacked_by = i32::from(who);
-            // **The escort** (`find_target@006f69b0:1061`–`1087`): a land
-            // army whose own point stands in another cell region than the
-            // target's hands the target to the navy, before its point is
-            // moved onto the target below (`docs/TRANSPORT.md` §8.3).
-            if !self.armies[w].list[slot].navy {
-                let mine = self.world.region_of(self.armies[w].list[slot].pos.cell());
-                let theirs = self.world.region_of(self.pos_of(target).cell());
-                if mine != theirs {
-                    self.send_navy(who, target, mine, theirs);
-                }
-            }
-        }
-        let cpos = self.cities[c].pos;
-        let p = self.restrict(Pos::new(cpos.x, cpos.y + UNITS_PER_CELL));
-        self.armies[w].list[slot].pos = p;
-        if self.find_muster_spot(who, slot, target, false) {
-            let a = &mut self.armies[w].list[slot];
-            a.muster_angle = Angle(a.muster_angle.0.wrapping_add(i32::MIN));
-        } else {
-            self.close_army(who, slot);
-        }
+        // The tail (`target_score::target_tail`): the hurry, the probe of the
+        // easiest AI against a human (`docs/ARMY.md` §12, `docs/COMBAT.md`
+        // §17; the whole of Great Lakes' frame 8186, where the long word
+        // parts), the target and its rally, the target's leader marked
+        // attacked, the escort (`find_target@006f69b0:1061`-`1087`,
+        // `docs/TRANSPORT.md` §8.3), the point and the muster spot.
+        target_tail(
+            &mut SimGate {
+                sim: &mut *self,
+                who,
+                slot,
+            },
+            tw as usize,
+            c as i32,
+        );
     }
 
     /// `Armies::send_navy(who, o, target_who, reg_a, reg_b)@006f2c90`
@@ -2597,7 +2295,13 @@ impl Sim {
     /// army's region and the target's, takes the same target and is
     /// `Army::process(0)`ed at once — the gated call, which does nothing
     /// off its own frames but count `human_frame` down.
-    fn send_navy(&mut self, who: Player, target: Obj, reg_a: Option<u16>, reg_b: Option<u16>) {
+    pub(crate) fn send_navy(
+        &mut self,
+        who: Player,
+        target: Obj,
+        reg_a: Option<u16>,
+        reg_b: Option<u16>,
+    ) {
         let w = who as usize;
         // `leader_flags & 5 == 1`: active and not human. `leader_flags2 &
         // 0xa`, the stop bits, are never set here (the module doc).
@@ -2639,7 +2343,14 @@ impl Sim {
     /// `action_stance(5)`, a **mandatory** `action_attack`, and a
     /// trailing `action_move_to` back to the pair's own leader; otherwise
     /// a single `ATTACK_TO` at the city.
-    fn find_target_probe(&mut self, who: Player, slot: usize, c: usize, tw: Player, frame: i64) {
+    pub(crate) fn find_target_probe(
+        &mut self,
+        who: Player,
+        slot: usize,
+        c: usize,
+        tw: Player,
+        frame: i64,
+    ) {
         let w = who as usize;
         let units = self.armies[w].list[slot].units.clone();
         let (Some(&first), Some(&last)) = (units.first(), units.last()) else {
