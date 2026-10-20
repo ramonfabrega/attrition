@@ -113,7 +113,10 @@ pub(crate) const RUN989C: &str =
 
 /// Ours' `seen2` against a window's `WORLD` records, block by block: the
 /// half-cells that part on each, as `(fx, fy, ours, theirs)`.
-fn fog_parted(window: &str) -> Option<Vec<(i64, Vec<(i32, i32, u8, u8)>)>> {
+/// Per block, the half-cells whose fog parts: `(fx, fy, ours, theirs)`.
+type FogParted = Vec<(i64, Vec<(i32, i32, u8, u8)>)>;
+
+fn fog_parted(window: &str) -> Option<FogParted> {
     let inst = crate::testenv::install()?;
     let (start, tr, win) = (dump(AZTEC.start)?, trace(AZTEC.long.1)?, dump(window)?);
     let loaded = crate::load::load(&inst).unwrap();
