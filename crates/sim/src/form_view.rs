@@ -195,10 +195,10 @@ pub fn action_form_steps<V: ActionFormView>(
 ///
 /// - Every group in the simulation is a unit group (`buildings` false) and
 ///   every member's object answers slot `+0x18`.
-/// - SEAM: `get_form_option`'s global `counts[5]` side effect is not modelled
-///   (nothing reads it); its `*out` flag is not asked here.
-/// - `loc_to` is `None` only where the group has no leader, which the head
-///   of the steps has already ruled out.
+/// - SEAM: the form-option getter's global `counts[5]` side effect is not
+///   modelled (nothing reads it); its `*out` flag is not asked here.
+/// - The destination query answers `None` only where the group has no leader,
+///   which the head of the steps has already ruled out.
 pub struct SimActionForm<'a> {
     /// The simulation.
     pub sim: &'a mut crate::Sim,

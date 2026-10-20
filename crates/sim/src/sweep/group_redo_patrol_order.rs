@@ -84,7 +84,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 }
             }
             impl RedoPatrolView for V<'_> {
-                fn normalize(&mut self) {
+                fn speed_tail(&mut self) {
                     self.rec(0, "m+0x0".to_string(), &[]);
                 }
                 fn count(&self) -> i32 {

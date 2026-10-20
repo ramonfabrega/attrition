@@ -24,7 +24,7 @@ pub const QUEUE_LAST: i32 = 1;
 /// two records. `m` is a member's index (the group's short at `+0x8cc`).
 pub trait RedoPatrolView {
     /// `Group::normalize`.
-    fn normalize(&mut self);
+    fn speed_tail(&mut self);
     /// `[this + 0xc]`.
     fn count(&self) -> i32;
     /// The short `i` of the group's array at `+0x8cc`.
@@ -80,7 +80,7 @@ fn growth(have: i32, i: i32, cap: i32) -> Option<i32> {
 
 /// `Group::redo_patrol_order(order, _)`: the steps.
 pub fn redo_patrol_order_steps<V: RedoPatrolView>(v: &mut V) {
-    v.normalize();
+    v.speed_tail();
     let mut k = 0;
     while k < v.count() {
         let m = v.member(k);
@@ -158,7 +158,7 @@ impl<'a> SimRedoPatrol<'a> {
 }
 
 impl RedoPatrolView for SimRedoPatrol<'_> {
-    fn normalize(&mut self) {
+    fn speed_tail(&mut self) {
         // SEAM: `normalize`'s prune of dead members; `obj_alive` skips them.
         self.sim.group_set_speed(self.g);
     }
