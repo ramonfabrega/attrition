@@ -8468,13 +8468,18 @@ The word closed at 23627 and the close compares whole (`docs/AI.md` §276). What
   0x55555555 against theirs 0 (`1/24` on 4467; twelve units on 15576), and two `dest_angle`s on 15624 and 15653;
   positions agree and the close compares whole, so it names no score.
 
-## Parked by the next landing, slot LA — reserved
+## Parked by item 3345, 2026-10-19 — the Lakota to the game's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word closed at 7902 and the close compares whole (`docs/AI.md` §277). What it read and did not build:
+
+- **3345a — two Slingers' `order:target` on run980.** `1/12` on 6085 and `1/6` on 6092: ours keeps the citizen `0/2`,
+  theirs takes the city centre `0/2000`. Positions and the draw stream agree past both to 7902, and the close compares
+  whole, so it names no score. Read the Slingers' retarget (`retarget_admits`, `docs/COMBAT.md`) when a widening
+  shows a Slinger's position apart behind it.
+- **3345b — the `NA` Slinger's later pieces.** Piece 1440 is the first age bracket's male figure; its other age
+  brackets (3552, 5664) and its female slot (7776) are not on run954b's packet, so `sim::launch` has no bays for
+  them. A packet of an Iroquois or Lakota game past the third age that fields Slingers answers them with
+  `tools/recomp/get_position.py`.
 
 ## Parked by the next landing, slot LB — reserved
 

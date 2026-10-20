@@ -115,6 +115,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the Maya being item 3338's, promoted to the AI word (item 3342,
     // DECISIONS 72, 83): the Russians at Difficulty 2, Great Lakes.
     (14, 13, 2),
+    // The battery's lowest open lobby once item 3343 closed the Bantu,
+    // promoted to the AI word (item 3345, DECISIONS 72, 83, 84): the Lakota
+    // at Difficulty 2, Great Lakes.
+    (14, 19, 2),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -159,29 +163,34 @@ pub(crate) const BATTERY: &[Lobby] = &[
         count: 13422,
         sequence: 13422,
     },
-    // The lobby minted by item 3342 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §275; runs 975 and 975b) when the Russians left for the AI word, so
-    // the held-out set stays eight: Great Lakes, the Lakota at Difficulty 2.
-    // With item 3338's Bantu every nation is in some dump, so "a nation no
-    // dump holds" had no answer: the Lakota were held only by the East
-    // Indies peace pair (a closed pair on another map), reach 17 census
-    // functions, and Difficulty 2 is the tier the map's battery lacks once
-    // the Russians leave. The game ends itself on 7902.
+    // `GreatLakesLakotaTier2` (Lakota 19, Difficulty 2, map 14; run975
+    // and run975b, 6071 of 7902), minted by item 3342, left the battery on
+    // item 3345 for the AI word (`diff::lakota_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3345 (DECISIONS 72 as amended by 84,
+    // `docs/AI.md` §125, §277; runs 979 and 979b) when the Lakota left for
+    // the AI word, so the held-out set stays eight: Great Lakes, the
+    // Persians at Difficulty 2 — **rule (2)**: rule (1) has no answer (every
+    // nation is in some dump), and of the nations no Great Lakes dump holds
+    // and only closed games hold (the coverage pair on East Indies, the
+    // Persian lobby on Great Sahara), the Persians reach the most census
+    // functions (11, `docs/NATIONS.md`); tier 2 is the tier the Lakota left,
+    // one of the two Great Lakes' battery lacks (Chinese 1 and Turks 4
+    // remain). The game ends itself on 7105.
     Lobby {
-        name: "GreatLakesLakotaTier2",
+        name: "GreatLakesPersianTier2",
         map_style: 14,
-        ai_tribe: 19,
+        ai_tribe: 23,
         difficulty: 2,
-        start: "gamelog-run975-greatlakes-lakota-diff2-start.txt",
+        start: "gamelog-run979-greatlakes-persian-diff2-start.txt",
         long: (
-            "gamelog-run975b-greatlakes-lakota-diff2-24k-trace.txt",
-            "rontrace-run975b.log",
+            "gamelog-run979b-greatlakes-persian-diff2-24k-trace.txt",
+            "rontrace-run979b.log",
         ),
-        length: 7902,
-        // Item 3342, the first try: ours 2 draws, theirs 3, at 0 ours
-        // `Ammo::init+0xcd9`, theirs `Unit::do_move+0xe84`.
-        count: 6071,
-        sequence: 6071,
+        length: 7105,
+        // Item 3345, the first try: ours 5 draws, theirs 4, at 1 ours
+        // `Unit::fight+0x9b0`, theirs `Farms::inc_time+0x1ae`.
+        count: 6046,
+        sequence: 6046,
     },
     // The fourth lobby (item 2904, DECISIONS 72), minted when the first
     // left for the AI word so three stay held out: Great Lakes, the Chinese

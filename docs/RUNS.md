@@ -19481,3 +19481,80 @@ Archive `rontrace-run978f.log`, 93,069,120 bytes,
 SHA-256 `fbbb9695db0b47f36373c099fb057a222af0db37d1f68707369104ea1b188680`.
 
 **What it holds**: `run978f_s_word_frame_is_widened_whole`: who=1's Enlightenment Age offered at 9999999 against 3564000 on 15579 and bought on 15583 at 382 food (Sugar, `get_cost`'s rares' tail).
+
+## run979 — the battery's replacement lobby: Great Lakes, the Persians at difficulty 2, a `DUMP_ALL` start (2026-10-19, item 3345, `att-3345`)
+
+`docs/AI.md` §277. **What the disk could not answer**: the Lakota left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds — entry 72's rule (2) as amended by 84: the Persians (23), held only by
+closed games (the coverage pair on East Indies, the Persian lobby on Great Sahara) and on no Great Lakes dump, the
+widest census reach of that kind (11), at the tier (2) the Lakota left. `--map 14 --end-frame 36 --timeout 1200
+--dump-all-start --ai-tribe 23 --profile DIFFICULTY=2`, through `viadriver.sh` + `golden_capture.sh`.
+- Pool lane 1. Launched 20:14:23 and the game exited at 20:22:31 (488 s). `success`, 37 frames, `map_style 14`, seed
+  12345, players `(0, 4, 7), (1, 23, 1)`. Filed with `filerun.py run979 greatlakes-persian-diff2-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run979-greatlakes-persian-diff2-start.txt`, 150,820,836 bytes,
+SHA-256 `780317e21c201d885506cafc617ecdb610dcba385e24102faed6305996ee007b`.
+
+Archive `rontrace-run979.log`, 8,577,376 bytes,
+SHA-256 `e5251fe1f05e046a36143958e691d5f1876dc79035a767eac5fbcc352565db9d`.
+
+**What it holds**: `battery::BATTERY`'s `GreatLakesPersianTier2` start.
+
+## run979b — the same lobby, the draw stream to the game's end (2026-10-19, item 3345, `att-3345`)
+
+`docs/AI.md` §277. run962b's recipe on map 14 with `--ai-tribe 23 --profile DIFFICULTY=2` and run643's four
+`--detail` lines.
+- Pool lane 2. Launched 20:14:23 and the game exited at 20:16:36 (133 s). `success`, 7106 frames, **the game ended
+  itself on 7105** (closing block 7106, `ended_early` true). `rngcmp.py rontrace-run979.log rontrace-run979b.log`:
+  **37 identical, 0 differing**. Filed with `filerun.py run979b greatlakes-persian-diff2-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run979b-greatlakes-persian-diff2-24k-trace.txt`, 12,592,060 bytes,
+SHA-256 `77b713918581f79d9fc964101b5a2a9b0b7651459e59a782f03b116d72dd0103`.
+
+Archive `rontrace-run979b.log`, 33,329,088 bytes,
+SHA-256 `a8f0a93d37c4adf340290fd6f2a26b515f781bea85e92f6d5c024ee6c210e0b0`.
+
+**What it holds**: the Persians' first try, **6046 / 6046** of 7105 (ours 5 draws, theirs 4, index 1: ours
+`Unit::fight+0x9b0`, theirs `Farms::inc_time+0x1ae`), pinned in `battery::BATTERY`.
+
+## run980 — the Lakota word: the word 6071's window, blocks 6065..6321 at `GUYS=4` (2026-10-19, item 3345, `att-3345`)
+
+`docs/AI.md` §277. **What the disk could not answer**: run975 holds blocks 0..36 and run975b its setup and closing
+blocks only, so no dump held a unit record near 6071. `--map 14 --end-frame 6326 --timeout 3600 --log-window 6065
+6321 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 --ai-tribe 19 --cover cover=0 --profile
+DIFFICULTY=2`, through `viadriver.sh` + `golden_capture.sh`.
+- Pool lane 3. Launched 20:14:27 and the game exited at 20:28:51 (865 s). `success`, 6327 frames.
+  `rngcmp.py rontrace-run975b.log rontrace-run980.log`: **6327 identical, 0 differing**. Filed with
+  `filerun.py run980 greatlakes-lakota-diff2-window-6065-6322-guys4`. Block 6321 is not printed (256 blocks).
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run980-greatlakes-lakota-diff2-window-6065-6322-guys4.txt`, 453,640,910 bytes,
+SHA-256 `3c9d008340f24d3d52f0fb775923c8a67fbd24099bbf1726cbec784377c2789b`.
+
+Archive `rontrace-run980.log`, 27,763,584 bytes,
+SHA-256 `0248e1617729d919d96f95f503539b3912b25c3112ea3b63c4f0b75bba046428`.
+
+**What it holds**: the word 6071's frame, `run980_s_word_frame_is_widened_whole` (1147 keys on the first try, 30
+after piece 1440's bays): the Lakota Slingers' stones landing a frame late on 6053 and 6059.
+
+## run980b — the Lakota word: the Slingers' stones, 6040..6120 at `AMMO=5` (2026-10-19, item 3345, `att-3345`)
+
+`docs/AI.md` §277. **What the disk could not answer**: no dump of this game prints an `AMMO` record, and run980 opens
+on 6065, after both stones. `--map 14 --end-frame 6125 --timeout 5400 --log-window 6040 6120 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0 --profile DIFFICULTY=2`.
+Run number on the commander's word (980b).
+- Pool lane 2. Launched 20:34:04 and the game exited at 20:39:46 (342 s). `success`, 6126 frames.
+  `rngcmp.py rontrace-run975b.log rontrace-run980b.log`: **6126 identical, 0 differing**. Filed with
+  `filerun.py run980b greatlakes-lakota-diff2-window-6040-6120-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run980b-greatlakes-lakota-diff2-window-6040-6120-ammo.txt`, 131,935,919 bytes,
+SHA-256 `89f5a0d5af31bbed2f2eddaadb98c039c0e6d927f4403d411fd9a0776c2c7e70`.
+
+Archive `rontrace-run980b.log`, 25,455,040 bytes,
+SHA-256 `2dbe2d5558e0db9d751409dda45c6f44ee8107d4876990036c5a12eac59b3644`.
+
+**What it holds**: seven Lakota Slinger stones' `sx, sy` — `1/18`'s on 6047 from (4962, 30153) in 7 frames, `1/20`'s
+from (4943, 30718) — pinned by `launch::tests::run980b_s_lakota_stones_leave_from_the_na_slinger_s_bays`.
