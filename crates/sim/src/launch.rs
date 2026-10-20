@@ -2095,7 +2095,8 @@ mod tests {
     /// Dragoon's two (`cf3e7e2c2`).
     #[test]
     fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
-        const M: &[(i32, i8, u32, i32, i32, i32, i32, i32, i32, i32)] = &[
+        type Round = (i32, i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        const M: &[Round] = &[
             (
                 122,
                 crate::anim::ATTACK2,
