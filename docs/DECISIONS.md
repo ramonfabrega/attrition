@@ -6995,7 +6995,8 @@ this pass) produces it, and Ramon approves each deletion; the lab's
 245 capture directories (14 GiB, read by no test) were deleted on his
 word, 75 → 89 GiB free. (v) **A matching track is off the table for a
 reason now written down**: the PDB's build records say Visual Studio
-2015 Update 3 with `-GL`, so inlining crosses files and a per-unit
+14.0 (2015), compiler 19.0.24215.1, every game module `ltcg` under
+`-GL`, so inlining crosses files and a per-unit
 byte match cannot be reproduced; what transfers from banteg's tooling
 is a byte-weighted census column and a per-function regression check
 (built this pass), block coverage and a bounded search over the sweep
