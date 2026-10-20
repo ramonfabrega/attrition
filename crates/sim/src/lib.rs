@@ -116,6 +116,7 @@ pub mod group_move;
 pub mod group_queue_up;
 pub mod grouppath;
 pub mod halt_view;
+pub mod spell_find_view;
 pub mod heal;
 pub mod holdings;
 pub mod launch;
