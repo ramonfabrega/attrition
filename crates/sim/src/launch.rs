@@ -152,6 +152,16 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     ),
     (
         139,
+        crate::anim::ATTACK2,
+        13,
+        Node {
+            bearing: 407_633_920,
+            radius: 68,
+            dz: 262,
+        },
+    ),
+    (
+        139,
         crate::anim::ATTACK3,
         18,
         Node {
