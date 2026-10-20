@@ -2081,9 +2081,7 @@ impl Sim {
     /// `Army::find_target` over cities. The forts pass and the fields the
     /// sim lacks are seams; see the module doc.
     pub fn find_target(&mut self, who: Player, slot: usize) {
-        use crate::target_gate::{
-            SimGate, target_city_gate, target_head, target_leader_gate,
-        };
+        use crate::target_gate::{SimGate, target_city_gate, target_head, target_leader_gate};
         let w = who as usize;
         let diff = self.ai_difficulty();
         // `epoch[0] ^ 0x63187`, the Military library level, at every

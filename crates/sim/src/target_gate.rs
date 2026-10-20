@@ -237,8 +237,7 @@ pub(crate) fn target_leader_gate<V: TargetGateView>(v: &mut V, i: usize) -> G<Op
             if ii != wid && (v.ld(who, i) != 2 || v.lc(i, wid) != 2) {
                 return Ok(None);
             }
-            if v.x250(who, i) != 0 || v.x230(who, i) == 0 || v.tribute(i) || v.defmod(who) < 0x100
-            {
+            if v.x250(who, i) != 0 || v.x230(who, i) == 0 || v.tribute(i) || v.defmod(who) < 0x100 {
                 return Ok(None);
             }
         }
@@ -485,7 +484,7 @@ impl TargetGateView for SimGate<'_> {
             self.sim.ai[a]
                 .city_ai
                 .get(c)
-                .map_or(0, |r| i32::from(r.ocean))
+                .map_or(0, |r| r.ocean)
         })
     }
     fn capital_cell(&self, owner: i32, idx: i32) -> (i32, i32) {
