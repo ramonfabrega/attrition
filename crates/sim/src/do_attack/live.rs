@@ -207,8 +207,13 @@ impl DoAttackView for SimDoAttack<'_> {
             0
         }
     }
-    fn fight_cavarch_range(&mut self, mandatory: bool) -> bool {
-        self.fight(mandatory)
+    /// `do_attack@005f1b80:245`–`251`: a melee-and-ranged type at stance 2
+    /// fights at its second range, the bracket [`crate::Sim::cavarch_fight`]
+    /// also puts round its own (item 3383).
+    fn fight_cavarch_range(&mut self, _mandatory: bool) -> bool {
+        let (u, frame) = (self.u, self.frame);
+        self.s.with_second_range(u, |s| s.do_attack_fight(u, frame));
+        false
     }
     fn fight(&mut self, _mandatory: bool) -> bool {
         self.s.do_attack_fight(self.u, self.frame);

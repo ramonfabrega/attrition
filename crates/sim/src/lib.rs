@@ -1506,6 +1506,15 @@ pub struct Sim {
     /// enemy ladder lets a captain re-search only while it is under ten
     /// (`docs/COLLISION.md` §14). Not dumped per frame at `LEADERS=5`.
     pub retargets: Vec<i32>,
+    /// **A melee-and-ranged type's second range, swapped in for one call**
+    /// (item 3383, `docs/AI.md` §291): `Unit::cavarch_fight@005ff4b0`
+    /// writes the type's `second_max_range` (`UnitTypeData +0x2d0`) into
+    /// its `max_range` (`+0x1fc`) before `fight` when the type's flags
+    /// carry `0x400` ([`ai_load::uflags::MELEE_AND_RANGED`]), and 0 back after. The
+    /// write is to the **type**, so every reader inside the call sees it;
+    /// [`Sim::profile`] answers the type's second range for a unit whose
+    /// type this holds. `None` outside such a call.
+    pub(crate) second_range: Option<usize>,
     pub frame: i64,
 }
 
@@ -1863,6 +1872,7 @@ impl Sim {
             pf_start: Pos::default(),
             building_log: Vec::new(),
             retargets: vec![0; players.max(10)],
+            second_range: None,
             tuning,
             world,
             frame: 0,

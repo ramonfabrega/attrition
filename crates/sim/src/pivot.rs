@@ -72,6 +72,9 @@ pub struct Node {
 /// **Piece 1546, the Iroquois Cavalry Archer** (item 3375): run1001d's
 /// packet reads the same `(4, 0, 0)` entry as 1545's.
 ///
+/// **Piece 1898, the Indian Heavy Horse Archer** (item 3383): run1007b's
+/// packet reads the same `(4, 0, 0)` entry as 1545's, `RData +0x88` 1.0.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -83,6 +86,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (194, 4, Node { px: 0, py: -96 }),
     (1545, 4, Node { px: -6, py: -148 }),
     (1546, 4, Node { px: -6, py: -148 }),
+    (1898, 4, Node { px: -6, py: -148 }),
     (139, 4, Node { px: 0, py: -148 }),
 ];
 
@@ -655,6 +659,61 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: &[(147, 1, -63, -62), (237, 1, 62, -63)],
         },
     ),
+    // **The Indian Heavy Horse Archer, piece 1898** (unit type 188,
+    // `CAVARCHERS`; item 3383, `docs/AI.md` §291): run1007b's packet
+    // (`RON_STATE_FRAME=15915` on the Indians' Great Sahara seed), the
+    // piece's nine entries. Its pivot node is 1545's; its four release
+    // nodes are its own, none of them 1545's or 1546's, and
+    // `get_position.py pivot 1898 0 <anim> <time> 1` agrees with the
+    // integer form on every cell of all four, so none has a `float_lands`.
+    (
+        1898,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 1898,
+            node: 0,
+            pivot: [-60_000, -2_676_834, 34_506_775],
+            at: [479_090, -15_615_540, 16_108_955],
+            float_lands: &[],
+        },
+    ),
+    (
+        1898,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 1898,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [1_223_768, -16_729_307, 14_252_346],
+            float_lands: &[],
+        },
+    ),
+    (
+        1898,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 1898,
+            node: 0,
+            pivot: [-60_000, -919_060, 31_409_014],
+            at: [1_516_343, -18_837_709, 12_125_257],
+            float_lands: &[],
+        },
+    ),
+    (
+        1898,
+        crate::anim::ATTACK3,
+        20,
+        Release {
+            piece: 1898,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [4_182_650, -16_023_108, 15_027_695],
+            float_lands: &[],
+        },
+    ),
 ];
 
 /// The release row for `(piece, anim, starttime frame)`, if the piece
@@ -897,6 +956,49 @@ mod tests {
     /// `angle` and `turret_angles[0]` on the block the round is first
     /// printed — the release block, which for the three walking rounds is
     /// a step on from the block before — against the round's `sx, sy`.
+    /// **The original's pivot branch on every cell, for piece 1898** (item
+    /// 3383): `tools/recomp/get_position.py … pivot 1898 0 <anim> <time> 1`
+    /// on run1007b's packet for its four rows. `$RON_RELEASE_TABLE_1898` is
+    /// the directory holding `pivot-1898-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-20-item-3383/`). No row has a
+    /// `float_lands`: every cell agrees with the integer form.
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_1898() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_1898") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_1898 (item 3375's oracle, run1007b)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 18),
+            (crate::anim::ATTACK1, 18),
+            (crate::anim::ATTACK2, 16),
+            (crate::anim::ATTACK3, 20),
+        ] {
+            let path = format!("{dir}/pivot-1898-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_1898");
+            let r = release(1898, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} {} {} {} {}", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **run1001c's Cavalry Archers `1/43` and `1/44`** (item 3375,
+    /// `docs/AI.md` §288): every round of the window, the figure's `x, y`,
+    /// `angle` and `turret_angles[0]` on the block the round is first
+    /// printed — the release block, which for the three walking rounds is
+    /// a step on from the block before — against the round's `sx, sy`.
     #[test]
     fn run1001c_s_cavalry_archers_loose_through_piece_1546_s_pivot() {
         use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
@@ -995,6 +1097,22 @@ mod tests {
             assert_eq!((fx + x, fy + y), (sx, sy), "slot {slot} from ({fx}, {fy})");
         }
         assert_eq!(node(1546, 4), Some(Node { px: -6, py: -148 }));
+    }
+
+    /// **run1007b's Heavy Horse Archer `1/64`** (item 3383, `docs/AI.md`
+    /// §291): the Indians' one round of the window, `CHAR_ATTACK1` at frame
+    /// 18, loosed at the Nubians' building `0/2005` from the figure at
+    /// (8760, 30264) `z` 641, facing −1104936960, `turret_angles[0]`
+    /// 262209536 — the dump's `AMMO` `sx, sy, sz` (8675, 30245, 866),
+    /// `total_time` 8, where this crate loosed from the figure's own point,
+    /// 9, and the building was struck a frame late (the word 15922). Made
+    /// to fail with 1898's rows out of `RELEASES`.
+    #[test]
+    fn run1007b_s_heavy_horse_archer_looses_through_piece_1898_s_pivot() {
+        let r = release(1898, crate::anim::ATTACK1, 18).expect("the Heavy Horse Archer's row");
+        let (x, y, z) = release_offset(&r, Angle(-1_104_936_960), 262_209_536);
+        assert_eq!((8760 + x, 30264 + y, 641 + z), (8675, 30245, 866));
+        assert_eq!(node(1898, 4), Some(Node { px: -6, py: -148 }));
     }
 
     /// **run943b's Horse Archers `1/51`** (item 3255, `docs/AI.md` §257):
