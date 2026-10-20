@@ -20007,3 +20007,22 @@ SHA-256 `76f826feccd2a9909bb1cb8b22aca181f1c04ea32605e252e0abff04cd733bb1`.
 
 **What it holds**: `run993c_s_word_frame_is_widened_whole` — 765 keys on the first try, 61 after the move to 14942;
 the Caravel `1/49`'s `stance 0` on every block.
+
+## run993d — the East Indies Spanish word: the word 14942's window, blocks 14936..15192 at `LEADERS=9` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run993c closes on 13006 and run986b holds no record near
+14942, where theirs spends 3211 `PathFinder::calc_road_cost` draws. `--map 18 --end-frame 15197 --timeout 7200
+--log-window 14936 15192 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover
+cover=0 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 03:13:54, exited 03:39:54 (1560 s). `success`, 15198 frames; `rngcmp.py` vs run986b: 15198
+  identical. Filed with `filerun.py run993d eastindies-spanish-diff3-window-14936-15193-leaders`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993d-eastindies-spanish-diff3-window-14936-15193-leaders.txt`, 612,959,977 bytes,
+SHA-256 `eedf4e58d545dcec335cee455f07944472adcd4bfff71a9a85c7896d0ede44b3`.
+
+Archive `rontrace-run993d.log`, 164,149,728 bytes,
+SHA-256 `21d871d352869afaf0ecbd825059fa6a2d99cc8bf4c8998bb929409a84d3cdfe`.
+
+**What it holds**: `run993d_s_word_frame_is_widened_whole` — 1006 keys on the first try; on the word's block 14943
+the Spanish `1/79`'s `path[19].flags`, ours 36 against theirs 4.

@@ -24525,7 +24525,9 @@ With both, the run993c window drops 765 → 61 keys: `1/49` agrees through it, t
 `0/2004`'s `damage` parts on 12774 (ours 2, theirs 3). Every other lobby's first parting and the battery hold.
 
 **The word 14942.** Ours 8 draws, theirs 3211, at 2: theirs `PathFinder::calc_road_cost+0x46`.
-RUN993D_RESULT
+run993d's window (14936..15192, block 14943), 1006 keys on the first try: past the standing family the first
+row is on the word's own block, the Spanish `1/79`'s `path[19].flags`, ours 36 against theirs 4 — the next item's
+frame and value (`run993d_s_word_frame_is_widened_whole`).
 
 **Not established.** Who lights `0/2004`'s `ever_seen` bit for player 1 in theirs: ours does on 9336 (the Scout
 `1/0` at about 1970 from it), and no dump holds a building record between 8961 and 12750. Whether a building find

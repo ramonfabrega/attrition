@@ -217,3 +217,54 @@ fn run993c_s_word_frame_is_widened_whole() {
     // 12774 (ours 2, theirs 3).
     pin_eq!(w.firsts.len(), 61, "keys that part in the window");
 }
+
+/// run993d: the word 14942's window, blocks 14936..15192 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3367). run993c closes on 13006, before
+/// the word.
+pub(crate) const RUN993D: &str =
+    "gamelog-run993d-eastindies-spanish-diff3-window-14936-15193-leaders.txt";
+
+/// The window: block 14936 through 15192; the word 14942's own block is
+/// 14943.
+pub(crate) const WIDENING_SPANISH_EAST_FRAME_14942: (i64, i64) = (14936, 15192);
+
+pub(crate) fn spanish_east_frame_14942_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_EAST.start],
+        true,
+        SPANISH_EAST.long,
+        "run993d",
+        &[(RUN993D, WIDENING_SPANISH_EAST_FRAME_14942.0)],
+        WIDENING_SPANISH_EAST_FRAME_14942,
+        1,
+        &[14943],
+        true,
+    )
+}
+
+#[test]
+fn run993d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_east_frame_14942_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3367, the first try on 14942: 1006 keys. Past the standing
+    // family (and `0/2000`'s `raid_stamp`, ours 12774 against 12773, parked
+    // 3367a's neighbour), the first row is on the word's own block 14943:
+    // `1/79`'s `path[19].flags`, ours 36, theirs 4 — the frame theirs spends
+    // 3211 draws in `PathFinder::calc_road_cost`.
+    pin_eq!(w.firsts.len(), 1006, "keys that part in the window");
+}

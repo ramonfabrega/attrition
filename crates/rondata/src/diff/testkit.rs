@@ -9918,6 +9918,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3355,
         Some(crate::diff::persian_word::WIDENING_PERSIAN_CLOSING),
     ),
+    // **The battery's East Indies Spanish word** (item 3367, DECISIONS 72,
+    // 83, 84): frame 9028, the battery's first try (item 3360), promoted
+    // here and widened on run993 over 9022..9278 (block 9029). The same item
+    // moved it 9028 → 12756 (the danger pass's `ever_seen`, run993b's
+    // `danger` plane), widened 12756 on run993c over 12750..13006, moved it
+    // 12756 → 14942 (a trained Bark's combat stance, a building find that
+    // does not end the think) and widened 14942 on run993d over
+    // 14936..15192 (block 14943).
+    (
+        "SPANISH_EAST_WORD",
+        crate::diff::spanish_east_word::SPANISH_EAST_WORD,
+        Some("run993d_s_word_frame_is_widened_whole"),
+        3367,
+        Some(crate::diff::spanish_east_word::WIDENING_SPANISH_EAST_FRAME_14942),
+    ),
     // **The battery's Aztec word** (item 3361, DECISIONS 72, 83, 84):
     // frame 9130, the battery's first try (item 2975), promoted here and
     // widened on run989 over 9124..9380 (block 9131). Item 3361 moved it
@@ -10502,7 +10517,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::spanish_east_word::SPANISH_EAST_WORD,
         length: 24_000,
         endpoint: None,
-        window: None,
+        window: Some("spanish_east_frame_14942_window"),
     },
     // **The battery's Inca word** (DECISIONS 72, 83, 84; item 3360): East
     // Indies, the Inca at Difficulty 3 — the held-out battery's lowest open
