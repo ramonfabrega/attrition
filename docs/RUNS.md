@@ -20112,6 +20112,50 @@ frame, theirs re-pieces both of `1/51`'s figures to 50689 (`total_num_unit_piece
 1`) and puts them on the merchant's point (17664, 25344); ours put figure 0 on 2124 and left figure 1 on 14796 and
 its offset. Test `run995d_s_walk_back_is_widened_whole`: 32 keys after the build, the standing family on 15462.
 
+## run1000 — the battery's replacement lobby `GreatSaharaGermanTier3`: the start (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 3, launched 06:18:50, exited 06:26:11; 37 frames, run964's line with `--ai-tribe 12 --profile
+DIFFICULTY=3`. Minted by `docs/DECISIONS.md` entry 72's rule (2): of the nations on no map-7 dump and held only by
+closed games, the Germans reach the most census functions (8, against the Indians' 4 and the Inca's 3); tier 3 is the
+tier the Iroquois leave. The first take died on Wine's `7BF21139` startup fault (`process failed: 40`); its directory
+is kept aside as `~/ron-golden/run1000-deadtake1`. `rngcmp.py` against run1000b: 37 identical.
+
+## run1000b — `GreatSaharaGermanTier3`'s draw stream (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 3, launched 06:16:51, exited 06:18:33; run964b's line with `--ai-tribe 12`. **The game ended itself on
+19483** (`ended_early` true). Scored on its first try: count 13585, sequence 13582 of 19483 (`battery_floors_hold`;
+at 0: ours `Leader::use_market+0x1ed`, theirs `Leader::produce_building+0xc99`).
+
+## run1001 — the Iroquois word at Great Sahara: the word 13757's window, blocks 13751..14007 at `GOODS=3` (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 2, launched 06:12:09, exited 06:32:52; 14013 frames, 14013 identical to run994b. Booked because run994
+dumps blocks 0..36 and run994b its setup and closing blocks only. **What it holds**: on block 13757 theirs' human
+Scout `0/0` (TI 69) holds a second `FLEE_TO` to (7944, 33384), `damage_frame` 13756, `damage_o` 35, `hits:damage` 21
+against ours 16 — `1/35`'s arrow struck it a frame earlier in theirs. Test `run1001_s_word_frame_is_widened_whole`:
+1404 keys on the first try, 1109 after piece 1531's release, 35 after piece 1546's (the standing family).
+
+## run1001b — the Iroquois word at Great Sahara: the Heavy Archers' rounds, blocks 13744..13760 at `AMMO=5` (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 1, launched 06:36:27, exited 06:37:32; 13765 frames, 13765 identical to run994b. **What it holds**: `1/35`
+(`HEAVYARCHERS`, type 173, piece 1531) looses its `CHAR_ATTACK2` round from (8976, 31176, 799), `total_time` 8,
+where ours loosed from the figure's own (9048, 31128), 9. Test
+`launch::tests::run1001b_s_heavy_archer_round_leaves_its_release_node` (sim) carries the dump's columns.
+
+## run1001c — the Iroquois word at Great Sahara: the word 13810's window, blocks 13755..14007 at `AMMO=5` (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 2, launched 06:43:22, exited 06:49:23; 14013 frames, 14013 identical to run994b. Booked for the rounds that
+wound the Scout `0/0` on 13772..13774. **What it holds**: eleven rounds of the Cavalry Archers `1/43` and `1/44`
+(`CAVARCHERS`, type 188, piece 1546), three of them loosed walking, each through the figure's turret (`node_flags`
+15); and the Heavy Archers' `1/36`, `1/37` (piece 1531). Test `run1001c_s_word_frame_is_widened_whole`: 67 keys on the
+first try (piece 1546 built), the standing family and 36 `build:extra` rows (no `BUILDS` record printed), nothing on
+the word's block 13811; sim test `pivot::tests::run1001c_s_cavalry_archers_loose_through_piece_1546_s_pivot`.
+
+## run1001d — the Iroquois word at Great Sahara: a packet at 13760 (2026-10-20, item 3375, `att-3375`)
+
+Pool lane 1, launched 06:43:18, exited 06:44:58; 13767 frames, 13767 identical to run994b. `RON_STATE_FRAME=13760`,
+851 MB, `~/ron-golden/run1001d/map-7/frame-snapshot.bin`. **What it holds**: piece 1531's three attack `AttachPos`
+rows (`launch::BAYS`) and piece 1546's nine (`pivot::RELEASES`, `pivot::NODES`), read and swept by
+`tools/recomp/get_position.py`; the sweeps are under `~/ron-data/lab-experiments/2026-10-20-item-3375/`.
 ## run998 — the battery's replacement lobby: East Indies, the Aztecs at difficulty 1, a `DUMP_ALL` start (2026-10-20, item 3374, `att-3374`)
 
 `docs/AI.md` §287. **What the disk could not answer**: no dump holds an Aztec game on East Indies — the Aztecs' only

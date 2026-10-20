@@ -69,6 +69,9 @@ pub struct Node {
 /// packet reads its `(4, 0, 0)` entry as `(−0.06, −1.48, 32.63)`
 /// (`0xbd75c28f`, `0xbfbd70a3`), `RData +0x88` 1.0.
 ///
+/// **Piece 1546, the Iroquois Cavalry Archer** (item 3375): run1001d's
+/// packet reads the same `(4, 0, 0)` entry as 1545's.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -79,6 +82,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (137, 4, Node { px: -6, py: -148 }),
     (194, 4, Node { px: 0, py: -96 }),
     (1545, 4, Node { px: -6, py: -148 }),
+    (1546, 4, Node { px: -6, py: -148 }),
     (139, 4, Node { px: 0, py: -148 }),
 ];
 
@@ -596,6 +600,61 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: &[(129, 155, 77, 0), (219, 155, 0, 77), (309, 155, -77, 0)],
         },
     ),
+    // **The Iroquois Cavalry Archer, piece 1546** (unit type 188,
+    // `CAVARCHERS`; item 3375, `docs/AI.md` §288): run1001d's packet
+    // (`RON_STATE_FRAME=13760`), the piece's nine entries. Three of its four
+    // releases are 1545's bit for bit — the pivot's and the release node's
+    // entries both, at the same scale — so their rows and `float_lands` are
+    // 1545's; `CHAR_ATTACK3` releases at frame 20, from a node of its own,
+    // and its `float_lands` are `get_position.py pivot 1546 0 13 20 1`'s.
+    (
+        1546,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 1546,
+            node: 0,
+            pivot: [-60_000, -2_676_834, 34_506_775],
+            at: [577_225, -16_320_717, 15_752_338],
+            float_lands: &[(82, 186, 65, -4), (308, 321, 88, 4)],
+        },
+    ),
+    (
+        1546,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 1546,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [1_322_394, -17_432_364, 13_891_037],
+            float_lands: &[(176, 155, 45, 63)],
+        },
+    ),
+    (
+        1546,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 1546,
+            node: 0,
+            pivot: [-60_000, -919_060, 31_409_014],
+            at: [1_600_198, -19_470_568, 11_654_627],
+            float_lands: &[(11, 295, 79, 52), (191, 295, -79, -52), (281, 295, 52, -79)],
+        },
+    ),
+    (
+        1546,
+        crate::anim::ATTACK3,
+        20,
+        Release {
+            piece: 1546,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [4_378_072, -16_710_272, 14_675_652],
+            float_lands: &[(147, 1, -63, -62), (237, 1, 62, -63)],
+        },
+    ),
 ];
 
 /// The release row for `(piece, anim, starttime frame)`, if the piece
@@ -792,6 +851,150 @@ mod tests {
         }
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 1546** (item
+    /// 3375): `tools/recomp/get_position.py … pivot 1546 0 <anim> <time> 1`
+    /// on run1001d's packet for its four rows. `$RON_RELEASE_TABLE_1546` is
+    /// the directory holding `pivot-1546-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-20-item-3375/`). The three rows
+    /// 1545 shares agree with 1545's `float_lands`; `CHAR_ATTACK3`'s two
+    /// cells are its own. Made to fail by emptying them.
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_1546() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_1546") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_1546 (item 3375's oracle, run1001d)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 18),
+            (crate::anim::ATTACK1, 18),
+            (crate::anim::ATTACK2, 16),
+            (crate::anim::ATTACK3, 20),
+        ] {
+            let path = format!("{dir}/pivot-1546-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_1546");
+            let r = release(1546, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} {} {} {} {}", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **run1001c's Cavalry Archers `1/43` and `1/44`** (item 3375,
+    /// `docs/AI.md` §288): every round of the window, the figure's `x, y`,
+    /// `angle` and `turret_angles[0]` on the block the round is first
+    /// printed — the release block, which for the three walking rounds is
+    /// a step on from the block before — against the round's `sx, sy`.
+    #[test]
+    fn run1001c_s_cavalry_archers_loose_through_piece_1546_s_pivot() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+        for (slot, time, (fx, fy), facing, turret, (sx, sy)) in [
+            (
+                ATTACKWALK,
+                18,
+                (9135, 31207),
+                -1_147_535_360,
+                -584_384_512,
+                (9081, 31274),
+            ),
+            (
+                ATTACKWALK,
+                18,
+                (8804, 31456),
+                -1_082_130_432,
+                -785_186_816,
+                (8764, 31529),
+            ),
+            (
+                ATTACK2,
+                16,
+                (9144, 31224),
+                -1_777_139_712,
+                -1_441_792,
+                (9102, 31312),
+            ),
+            (
+                ATTACK3,
+                20,
+                (8568, 31464),
+                -2_013_921_280,
+                5_505_024,
+                (8573, 31553),
+            ),
+            (
+                ATTACKWALK,
+                18,
+                (7495, 31438),
+                -1_064_763_392,
+                551_092_224,
+                (7425, 31385),
+            ),
+            (
+                ATTACK3,
+                20,
+                (7416, 31416),
+                -488_112_128,
+                -65_536,
+                (7342, 31367),
+            ),
+            (
+                ATTACKWALK,
+                18,
+                (7611, 30979),
+                -720_240_640,
+                0,
+                (7531, 30936),
+            ),
+            (
+                ATTACK2,
+                16,
+                (7416, 31416),
+                -488_112_128,
+                -65_536,
+                (7344, 31350),
+            ),
+            (
+                ATTACK1,
+                18,
+                (6264, 30696),
+                -827_326_464,
+                23_986_176,
+                (6178, 30670),
+            ),
+            (
+                ATTACK2,
+                16,
+                (6264, 30696),
+                -827_326_464,
+                304_414_720,
+                (6189, 30634),
+            ),
+            (
+                ATTACK2,
+                16,
+                (6264, 30696),
+                -827_326_464,
+                -162_529_280,
+                (6167, 30693),
+            ),
+        ] {
+            let r = release(1546, slot, time).expect("the Cavalry Archer's row");
+            let (x, y, _) = release_offset(&r, Angle(facing), turret);
+            assert_eq!((fx + x, fy + y), (sx, sy), "slot {slot} from ({fx}, {fy})");
+        }
+        assert_eq!(node(1546, 4), Some(Node { px: -6, py: -148 }));
     }
 
     /// **run943b's Horse Archers `1/51`** (item 3255, `docs/AI.md` §257):

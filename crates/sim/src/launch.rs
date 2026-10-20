@@ -559,6 +559,45 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 159,
         },
     ),
+    // **`HEAVYARCHERS-NA`'s piece 1531** (unit type 173, the Native American
+    // Heavy Archer; item 3375, `docs/AI.md` §288): run1001d's
+    // `RON_STATE_FRAME=13760` packet on the Iroquois Great Sahara seed holds
+    // its three attack `AttachPos` rows, and `tools/recomp/get_position.py`'s
+    // sweep of each is reproduced by these at every heading
+    // [`whole_degrees`] reaches (257 of 361), x and y, the fits' own middle.
+    // who=1's `1/35` loosed at the fleeing Scout `0/0` on 13749 from (8976,
+    // 31176) in run1001b where this crate loosed from the figure's own
+    // (9048, 31128): 8 frames against 9, and the Scout struck a frame late.
+    (
+        1531,
+        11,
+        12,
+        Bay {
+            right: -1826,
+            fwd: 88743,
+            dz: 163,
+        },
+    ),
+    (
+        1531,
+        12,
+        9,
+        Bay {
+            right: 334,
+            fwd: 87412,
+            dz: 164,
+        },
+    ),
+    (
+        1531,
+        13,
+        15,
+        Bay {
+            right: 9709,
+            fwd: 66502,
+            dz: 164,
+        },
+    ),
     // **The Royal Hwarang's piece 132** (`KORYOHWARANG`, unit type 182; item
     // 3365, `docs/AI.md` §283): the Longbowman's six release events on a
     // smaller figure (`koryo.bh3`), so piece 127's nodes do not serve it.
@@ -2151,6 +2190,58 @@ mod tests {
             Pos::new(5448, 26856),
             "ATTACK2's frame 7 is not measured: the unit's own position"
         );
+    }
+
+    /// **Piece 1531, `HEAVYARCHERS-NA`** (item 3375): run1001b's round of
+    /// `1/35`, `CHAR_ATTACK2` at frame 9 — the dump's own columns,
+    /// independent of run1001d's packet sweep the bays were fitted to.
+    #[test]
+    fn run1001b_s_heavy_archer_round_leaves_its_release_node() {
+        let got = launch_point(
+            Pos::new(9048, 31128),
+            Angle(-1_464_008_704),
+            1531,
+            crate::anim::ATTACK2,
+            9,
+            0,
+        );
+        assert_eq!((got.x, got.y), (8976, 31176));
+        assert_eq!(
+            635 + release_dz(1531, crate::anim::ATTACK2, 9, 0).unwrap_or(0),
+            799
+        );
+        for (anim, time) in [(11, 12), (12, 9), (13, 15)] {
+            assert!(
+                bay(1531, anim, time, 0).is_some(),
+                "every attack AttachPos row"
+            );
+        }
+    }
+
+    /// **Piece 1531's bays against run1001c's rounds** (item 3375): `1/36`
+    /// and `1/37`, the Heavy Archers, at three facings — all three attack
+    /// keys, the figure's `x, y` and `angle` on the release block against
+    /// the round's `sx, sy`. Independent of run1001d's packet sweep the bays
+    /// were fitted to; the walk reaches only `CHAR_ATTACK2`'s.
+    #[test]
+    fn run1001c_s_heavy_archer_rounds_leave_piece_1531_s_bays() {
+        for (anim, time, (gx, gy), facing, (sx, sy)) in [
+            (11, 12, (9096, 30984), -1_696_006_144, (9045, 31055)),
+            (11, 12, (9096, 30984), -673_775_616, (9020, 30939)),
+            (11, 12, (9000, 31320), -565_313_536, (8933, 31262)),
+            (12, 9, (9096, 30984), -673_775_616, (9023, 30938)),
+            (12, 9, (9000, 31320), -565_313_536, (8936, 31262)),
+            (13, 15, (9000, 31320), -1_610_022_912, (8947, 31360)),
+            (13, 15, (9096, 30984), -673_775_616, (9045, 30941)),
+            (13, 15, (9000, 31320), -565_313_536, (8958, 31269)),
+        ] {
+            let got = launch_point(Pos::new(gx, gy), Angle(facing), 1531, anim, time, 0);
+            assert_eq!(
+                (got.x, got.y),
+                (sx, sy),
+                "piece 1531 anim {anim} at {facing}"
+            );
+        }
     }
 
     /// **Piece 842, the Horse Archer** (item 3338): run973e's two rounds

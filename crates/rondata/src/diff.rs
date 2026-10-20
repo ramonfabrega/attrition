@@ -64,6 +64,8 @@ mod inca_word;
 #[cfg(test)]
 mod indian_word;
 #[cfg(test)]
+mod iroquois_sahara_word;
+#[cfg(test)]
 mod iroquois_word;
 #[cfg(test)]
 mod japanese_word;
