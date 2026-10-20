@@ -42,9 +42,14 @@ pub(crate) const AMERICAN: Lobby = Lobby {
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Value diff, run999b block
     // 10983: who=1's `bucket[0:food]` ours 64, theirs 134, `bucket[4:metal]`
     // 27 against 97 (ours paid Republic's 70 and 70; theirs queued it
-    // free, and a Dock beside it) → 134/134, 97/97.
-    count: 17215,
-    sequence: 17215,
+    // free, and a Dock beside it) → 134/134, 97/97. Then
+    // `construct_time`'s first arm (an American's first wonder takes one
+    // frame of clock while no rival has the same one unfinished): 17215 →
+    // **24000**, the long's last frame. Value diff, run999c block 17209:
+    // the Pyramids `1/2031`'s `construct_hits` ours 1101, theirs 2200 →
+    // 2200/2200, and who=1's `wonder_mark` 1 on 17214 on both sides.
+    count: 24000,
+    sequence: 24000,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -214,4 +219,56 @@ fn run999b_s_word_frame_is_widened_whole() {
     // `aggression`, `form`, the army `pool:n` and `group:n.held`, the
     // newborn `g.angle[0]`).
     pin_eq!(w.firsts.len(), 55, "keys that part in the window");
+}
+
+/// run999c: the word 17215's window, blocks 17209..17465 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3374). run999b closes on 11232, before
+/// the word.
+pub(crate) const RUN999C: &str =
+    "gamelog-run999c-eastindies-american-diff1-window-17209-17466-leaders.txt";
+
+/// The window: block 17209 through 17465; the word 17215's own block is
+/// 17216.
+pub(crate) const WIDENING_AMERICAN_FRAME_17215: (i64, i64) = (17209, 17465);
+
+pub(crate) fn american_frame_17215_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AMERICAN.start],
+        true,
+        AMERICAN.long,
+        "run999c",
+        &[(RUN999C, WIDENING_AMERICAN_FRAME_17215.0)],
+        WIDENING_AMERICAN_FRAME_17215,
+        1,
+        &[17216],
+        true,
+    )
+}
+
+#[test]
+fn run999c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_frame_17215_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3374: 879 keys parted before the free first wonder, the window
+    // opening apart on block 17209 on the Pyramids `1/2031`'s
+    // `construct_hits`, ours 1101 against 2200 — `construct_time`'s
+    // American arm, which this crate carried as `ClockMods` and nothing
+    // set — then who=1's `wonder_mark` 0 against 1 on 17214, when theirs
+    // finished it. Built: 879 → 50, the standing family alone.
+    pin_eq!(w.firsts.len(), 50, "keys that part in the window");
 }
