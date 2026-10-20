@@ -11801,7 +11801,10 @@ pub fn do_gather_steps<V: DoGatherView>(v: &mut V) {
     }
     // `5efb20`: an AI's idle worker mends a damaged site once in 256 frames.
     if v.ai_driven() {
-        let sum = v.unit_id().wrapping_add(v.frame()).wrapping_add(v.unit_player());
+        let sum = v
+            .unit_id()
+            .wrapping_add(v.frame())
+            .wrapping_add(v.unit_player());
         if on_phase(sum) && v.leader_diff() > 1 && v.site_damage() != 0 && !v.site_under_attack() {
             let city = v.site_city();
             if city >= 0 && !v.city_under_attack() {
@@ -11842,8 +11845,16 @@ pub fn do_gather_steps<V: DoGatherView>(v: &mut V) {
         }
         let rx = v.rnd(xs / 2);
         let ry = v.rnd(ys / 2);
-        let x = cx.wrapping_add(1).wrapping_add(rx).wrapping_mul(TILE).wrapping_add(HALF_TILE);
-        let y = cy.wrapping_add(1).wrapping_add(ry).wrapping_mul(TILE).wrapping_add(HALF_TILE);
+        let x = cx
+            .wrapping_add(1)
+            .wrapping_add(rx)
+            .wrapping_mul(TILE)
+            .wrapping_add(HALF_TILE);
+        let y = cy
+            .wrapping_add(1)
+            .wrapping_add(ry)
+            .wrapping_mul(TILE)
+            .wrapping_add(HALF_TILE);
         v.add_move_order(x, y);
         return;
     }
@@ -11878,8 +11889,14 @@ pub fn do_gather_steps<V: DoGatherView>(v: &mut V) {
     // not name: a new tile of the crop.
     let rx = v.rnd(xs);
     let ry = v.rnd(ys);
-    let x = cx.wrapping_add(rx).wrapping_mul(TILE).wrapping_add(HALF_TILE);
-    let y = cy.wrapping_add(ry).wrapping_mul(TILE).wrapping_add(HALF_TILE);
+    let x = cx
+        .wrapping_add(rx)
+        .wrapping_mul(TILE)
+        .wrapping_add(HALF_TILE);
+    let y = cy
+        .wrapping_add(ry)
+        .wrapping_mul(TILE)
+        .wrapping_add(HALF_TILE);
     v.add_move_order(x, y);
 }
 
@@ -11980,8 +11997,13 @@ impl DoGatherView for SimDoGather<'_> {
         (p.x, p.y)
     }
     fn add_move_order(&mut self, x: i32, y: i32) {
-        self.s
-            .add_move_order(self.u, Pos::new(x, y), MoveKind::MoveTo, QueuePos::First, false);
+        self.s.add_move_order(
+            self.u,
+            Pos::new(x, y),
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
     }
     fn add_move_order_spot(&mut self, x: i32, y: i32) {
         self.add_move_order(x, y);
@@ -12027,7 +12049,10 @@ impl DoGatherView for SimDoGather<'_> {
         self.s.units[self.u].cant_reach = true;
     }
     fn region_differs(&mut self) -> bool {
-        let site = self.s.world.tregion_alt(self.s.buildings[self.b].pos.tile());
+        let site = self
+            .s
+            .world
+            .tregion_alt(self.s.buildings[self.b].pos.tile());
         let unit = self.s.world.tregion_alt(self.s.units[self.u].pos.tile());
         site != unit
     }

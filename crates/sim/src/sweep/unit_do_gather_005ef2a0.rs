@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(6);
@@ -104,9 +109,6 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                     fn obj(&self) -> usize {
                         [4, 5, 6, 8, 9, 10][self.k()]
-                    }
-                    fn b0(&self) -> usize {
-                        27 + self.k()
                     }
                     fn ac(&self) -> usize {
                         33 + self.k()
@@ -311,7 +313,9 @@ fn the_emulated_original_agrees_on_every_row() {
                     fn carrier_same_damage(&mut self) {
                         if i32::from(i16::from_le_bytes([self.m[0x28], self.m[0x29]])) >= 0 {
                             let o = usize::from(self.m[0x3e]);
-                            let i = usize::from(i16::from_le_bytes([self.m[0x28], self.m[0x29]]) as u16);
+                            let i = usize::from(
+                                i16::from_le_bytes([self.m[0x28], self.m[0x29]]) as u16
+                            );
                             let w = [[18, 19], [21, 22]][o][i];
                             let s = format!("s14:p{w}+0x0,{},{}", self.id(), self.who());
                             self.push(s);
@@ -423,17 +427,26 @@ fn the_emulated_original_agrees_on_every_row() {
                 do_gather_steps(&mut v);
                 let deref = std::mem::take(&mut v.deref);
                 // The two `get_tregion` columns: the tile bytes each call's arguments pointed at.
-                let (c0, c1): (Vec<&str>, Vec<&str>) = deref
-                    .iter()
-                    .map(|d| (d[0].as_str(), d[1].as_str()))
-                    .unzip();
-                log.push(if c0.is_empty() { "-".into() } else { c0.join("/") });
-                log.push(if c1.is_empty() { "-".into() } else { c1.join("/") });
+                let (c0, c1): (Vec<&str>, Vec<&str>) =
+                    deref.iter().map(|d| (d[0].as_str(), d[1].as_str())).unzip();
+                log.push(if c0.is_empty() {
+                    "-".into()
+                } else {
+                    c0.join("/")
+                });
+                log.push(if c1.is_empty() {
+                    "-".into()
+                } else {
+                    c1.join("/")
+                });
                 0
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "do_gather — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "do_gather — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "do_gather — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
