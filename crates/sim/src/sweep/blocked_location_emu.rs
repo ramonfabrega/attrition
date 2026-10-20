@@ -147,9 +147,15 @@ impl Emu<'_> {
         let w = &self.p[Self::list_win(fort, i)];
         let o = i16_at(w, 4 * k as usize);
         let kind = i32::from(w[4 * k as usize + 2] as i8);
-        assert!((0..2).contains(&kind) && (0..NG as i32).contains(&o), "entry {kind} {o}");
+        assert!(
+            (0..2).contains(&kind) && (0..NG as i32).contains(&o),
+            "entry {kind} {o}"
+        );
         let gobj = W_GOBJS + (1 + NG) * kind as usize;
-        (gobj + 1 + o as usize, W_GBUILD + NG * kind as usize + o as usize)
+        (
+            gobj + 1 + o as usize,
+            W_GBUILD + NG * kind as usize + o as usize,
+        )
     }
     fn is_id(&mut self, id: i32) -> bool {
         self.log.push(format!("s0:m+0x0,{id},0"));
@@ -283,7 +289,10 @@ impl LocationView for Emu<'_> {
     }
     fn reg_terr(&self, i: i32, tr: i32) -> i32 {
         let w = self.lead(i, 5);
-        i32::from(u16::from_le_bytes([w[2 * tr as usize], w[2 * tr as usize + 1]]))
+        i32::from(u16::from_le_bytes([
+            w[2 * tr as usize],
+            w[2 * tr as usize + 1],
+        ]))
     }
     fn city_count(&self, i: i32) -> i32 {
         rd(self.lead(i, 2), 0x10)
@@ -334,8 +343,7 @@ impl LocationView for Emu<'_> {
         self.ans(16)
     }
     fn count_water(&mut self) -> i32 {
-        self.log
-            .push(format!("s22:m+0x0,{},{}", self.tx, self.ty));
+        self.log.push(format!("s22:m+0x0,{},{}", self.tx, self.ty));
         self.ans(22)
     }
     fn check_land_adjacent(&mut self, who: i32) -> i32 {
@@ -354,8 +362,7 @@ impl LocationView for Emu<'_> {
         self.ans(25)
     }
     fn was_seen(&mut self, hx: i32, hy: i32, who: i32) -> bool {
-        self.log
-            .push(format!("s26:c0+0x0,sp-0x58,sp-0xc,{who}"));
+        self.log.push(format!("s26:c0+0x0,sp-0x58,sp-0xc,{who}"));
         self.deref(6, hx, hy);
         self.ans(26) != 0
     }
@@ -468,7 +475,13 @@ impl LocationView for Emu<'_> {
 
 /// One row: the verdict, the recorded calls and the `--deref` columns left in
 /// `log`, `param_7`'s buffer written in `p[0]`.
-pub(super) fn run(a: &[i32], m: &[u8], c: &[Vec<u8>], p: &mut [Vec<u8>], log: &mut Vec<String>) -> i64 {
+pub(super) fn run(
+    a: &[i32],
+    m: &[u8],
+    c: &[Vec<u8>],
+    p: &mut [Vec<u8>],
+    log: &mut Vec<String>,
+) -> i64 {
     let mut base = [0usize; 28];
     let mut len = [1usize; 28];
     let mut at = 36;

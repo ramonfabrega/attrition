@@ -314,7 +314,9 @@ pub fn blocked_location_steps<V: LocationView>(v: &mut V, a: &LocArgs) -> i32 {
                     }
                     let x = v.unbuilt_tx(false, i, k);
                     let y = v.unbuilt_ty(false, i, k);
-                    if v.cell_region(x >> 2, y >> 2) == reg && vd((x - sx).abs(), (y - sy).abs()) <= spacing {
+                    if v.cell_region(x >> 2, y >> 2) == reg
+                        && vd((x - sx).abs(), (y - sy).abs()) <= spacing
+                    {
                         return Blocked::CityDistance as i32;
                     }
                 }
@@ -322,7 +324,8 @@ pub fn blocked_location_steps<V: LocationView>(v: &mut V, a: &LocArgs) -> i32 {
                     for j in 0..v.city_count(i) {
                         if v.city_alive(i, j)
                             && v.city_reg(i, j) == reg
-                            && vd((v.city_tx(i, j) - sx).abs(), (v.city_ty(i, j) - sy).abs()) <= spacing
+                            && vd((v.city_tx(i, j) - sx).abs(), (v.city_ty(i, j) - sy).abs())
+                                <= spacing
                         {
                             return Blocked::CityDistance as i32;
                         }
@@ -473,11 +476,7 @@ pub fn blocked_location_steps<V: LocationView>(v: &mut V, a: &LocArgs) -> i32 {
                     return Blocked::Land as i32;
                 }
             }
-            0 => {
-                if v.count_water() != 0 {
-                    return Blocked::Water as i32;
-                }
-            }
+            0 if v.count_water() != 0 => return Blocked::Water as i32,
             _ => {}
         }
     } else {
@@ -689,9 +688,8 @@ impl LocationView for SimLocation<'_> {
     }
 
     fn alive(&self, i: i32) -> bool {
-        Self::player(i).is_some_and(|p| {
-            usize::from(p) < self.sim.players.len() && self.sim.player_alive(p)
-        })
+        Self::player(i)
+            .is_some_and(|p| usize::from(p) < self.sim.players.len() && self.sim.player_alive(p))
     }
     fn city_num(&self, i: i32) -> i32 {
         Self::player(i).map_or(0, |p| self.sim.city_num(p))
