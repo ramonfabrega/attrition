@@ -134,6 +134,9 @@ pub mod uflags {
     /// plane of the kind wants half its cruising altitude
     /// (`docs/ORDERS.md` §39).
     pub const STRAFES: u32 = 0x40_0000;
+    /// `k` — "Unit has melee AND ranged attacks". `Unit::work@0060d180:79-86`
+    /// lets such a type step while it recharges (`crate::work_gate`).
+    pub const MELEE_AND_RANGED: u32 = 0x400;
     /// `o` — "Unit is cloaked" (the Spy, the submarines). `UnitData::is_seen`'s
     /// stealth arm tests the type's `0x4000` (`docs/GOLDEN.md` §101).
     pub const CLOAKED: u32 = 0x4000;

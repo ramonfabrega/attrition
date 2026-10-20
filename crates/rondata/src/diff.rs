@@ -45,6 +45,8 @@ mod egyptian_word;
 mod endpoint;
 mod floors;
 #[cfg(test)]
+mod french_word;
+#[cfg(test)]
 mod german_word;
 #[cfg(test)]
 mod golden;

@@ -1780,6 +1780,11 @@ impl World {
         self.owner(p.cell())
     }
 
+    /// The map's width and height in tiles (`worldc +0x18`, `+0x1c`).
+    pub const fn tile_dims(&self) -> (i32, i32) {
+        (self.width * TILES_PER_CELL, self.height * TILES_PER_CELL)
+    }
+
     /// Whether a tile coordinate is on the map — `blocked_tcoord`'s first
     /// test.
     pub const fn tile_in_bounds(&self, t: Pos) -> bool {

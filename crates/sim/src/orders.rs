@@ -23,6 +23,7 @@ use crate::combat::{self, Obj};
 use crate::economy;
 use crate::garrison::GarrisonRefused;
 use crate::movement::{self, Angle, find_angle};
+use crate::single::Single;
 use crate::world::{tile, vector_dist};
 use crate::{Player, Pos, Sim, Unit, farms};
 
@@ -3432,42 +3433,18 @@ impl Sim {
         // `ATTACK`, and the test above reads it *before* that drop — so
         // the frame a unit stops attacking still counts as attacking, and
         // the visibility outlives the order by up to 32 frames.
-        if self.units[u].phase(frame).rem_euclid(32) == 0 {
-            if !self.units[u].attacking {
-                self.units[u].visible = 0;
-            }
-            // And the in-danger latch beside it, on the same tick and
-            // with no latch of its own (`0060d19d`): `unit_masks &= ~4`
-            // sits inside the same `if` as the `visible` clear, one line
-            // below it. [`sim::Unit::in_danger`].
-            self.units[u].in_danger = false;
-        }
-        if self.order_type(u) != index::ATTACK {
-            self.units[u].attacking = false;
-        }
-        // The recharging-melee gate: a recharging melee unit steps only an
-        // order carrying the action bit, and never an ATTACK through here
-        // (ATTACK's own entry gate is `fight`'s). **An animal has none**:
-        // `Animal::work@005d7330` is `do_job` on the front order and the
-        // herd's sighting, and a flock's bird leaves `recharging` at 1 on
-        // every frame it flies (`crate::flock`).
-        //
-        // **And an orderless one steps nothing at all** — `if (order == 0)
-        // return;` is the gate's first arm (`Unit::work@0060d180:79-86`),
-        // so a recharging melee unit with no order reaches neither
-        // `do_idle` nor its `check_idle` until the countdown ends. The
-        // battery word 13054 (`docs/AI.md` §245): the Knight `1/65` ends
-        // its `ATTACK_TO` on 13053 at `recharging` 21 and the original
-        // leaves it standing orderless at `idle` 0, where this crate rolled
-        // its idle and found it a target on 13054.
-        let held = match self.current_order(u).copied() {
-            None => true,
-            Some(o) => o.index() != index::ATTACK && !o.has(flag::ACTION),
-        };
-        if held
-            && !self.units[u].is_gaia()
-            && self.units[u].combat.recharging != 0
-            && self.max_range_of(Obj::Unit(u)) == 0
+        // **The recharging-melee gate** — a recharging melee unit steps only an
+        // order carrying the action bit, never an ATTACK through here, and an
+        // orderless one steps nothing (`:79-86`; the battery word 13054,
+        // `docs/AI.md` §245: the Knight `1/65` stands orderless at `idle` 0
+        // until the countdown ends). A type with `unit_flags & 0x400` ("melee
+        // AND ranged") has no gate (parked 3106). An animal has none:
+        // `Animal::work@005d7330` is its own entry. The steps — the clock,
+        // the latch drop and the gate — are [`crate::work_gate::work_gate_steps`],
+        // swept to the first call after them (item 3348).
+        if crate::work_gate::work_gate_steps(&mut crate::work_gate::SimWorkGate::new(
+            self, u, frame,
+        )) == crate::work_gate::Gate::Return
         {
             return;
         }
@@ -3517,12 +3494,15 @@ impl Sim {
         // carrying the idle latch drops it, and a **fisherman or merchant**
         // marks its owner's economy dirty on the way — it has just left
         // `Leader::calc_gather` step 6's walk ([`crate::rares`]).
-        if self.order_type(u) != index::NONE && self.units[u].idle_latch {
-            self.units[u].idle_latch = false;
-            if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
-                self.economy_changed(self.units[u].owner);
-            }
-        }
+        // The steps are [`crate::work_gate::fresh_latch_steps`] (swept, item
+        // 3348). SEAM: the original runs them after the dispatch, with the
+        // type the dispatch left; this crate runs them here, with the front
+        // order's.
+        let ty = i32::from(self.order_type(u));
+        crate::work_gate::fresh_latch_steps(
+            &mut crate::work_gate::SimWorkGate::new(self, u, frame),
+            ty,
+        );
         // `Unit::work@0060d180:97` — the caravan block, ahead of the
         // dispatch: a linked trade route runs another frame of its road
         // plan, or is ended when the order under it is no longer one
@@ -3547,6 +3527,14 @@ impl Sim {
         // And `update_action` is **unconditional** there (`:283`): every
         // frame's `Unit::work` rewrites `orders_x/y` and `dest_angle`
         // before the dispatch, whatever the order.
+        // `Unit::work@0060d180:0060d77d`, just above it: an open path search
+        // under a head order that is not a move is dropped
+        // ([`crate::work_gate::partial_path_steps`], swept, item 3348).
+        let has_head = self.current_order(u).is_some();
+        crate::work_gate::partial_path_steps(
+            &mut crate::work_gate::SimWorkGate::new(self, u, frame),
+            has_head,
+        );
         let action = self.update_action(u);
         if action.is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
             && let Some(t) = self.units[u].combat.target
@@ -8333,7 +8321,9 @@ impl Sim {
         true
     }
 
-    /// `Unit::do_repair` (§5.6), on the existing repair step.
+    /// `Unit::do_repair` (§5.6): [`do_repair_steps`] over [`DoRepairView`]
+    /// (`SimDoRepair`); `crates/sim/src/sweep/unit_do_repair.rs` runs the
+    /// steps against the original under the emulator (item 3346).
     fn do_repair(&mut self, u: usize, frame: i64) {
         let Some(Order {
             body: Body::Repair(b),
@@ -8342,55 +8332,13 @@ impl Sim {
         else {
             return;
         };
-        let who = self.units[u].owner;
-        let action = flags & flag::ACTION != 0;
-        // §5.6's first line, and unlike `do_build`'s it is **ahead of every
-        // gate**: a repairer is put on `CHAR_REPAIR` even on the frame the
-        // order dies. Same reason as `do_build`'s (`docs/ANIM.md` §4.6).
-        self.set_anim(u, anim::REPAIR, false, true);
-        // §5.6: an AI repairer takes `find_repair_spot` instead of
-        // adopting the building it has just mended — the same `unit_masks &
-        // 0x40000` split as `do_build`'s two.
-        let gather_after = |sim: &mut Sim| {
-            if !sim.ai_driven(who)
-                && sim.order_type(u) == index::NONE
-                && sim.buildings[b].owner == who
-                && sim.units[u].stance < 2
-                && sim.is_gather_type(b)
-                && sim.building_ident(b) != Ident::University
-            {
-                sim.add_gather_order(u, b, QueuePos::New, false);
-            }
-        };
-        let bd = &self.buildings[b];
-        if bd.damage == 0 {
-            self.kill_current_order(u);
-            gather_after(self);
-            if self.ai_driven(who) {
-                self.find_repair_spot(u);
-            }
-            return;
-        }
-        if bd.owner != who && !self.is_ally(who, bd.owner) {
-            self.kill_current_order(u);
-            gather_after(self);
-            return;
-        }
-        if !bd.active || (bd.is_under_attack() && !action) {
-            self.kill_current_order(u);
-            return;
-        }
-        let bpos = bd.pos;
-        if matches!(self.world.owner_at(bpos), crate::Owner::Player(p) if self.is_enemy(who, p)) {
-            self.kill_current_order(u);
-            return;
-        }
-        if !self.adjacent_to(u, b) {
-            self.kill_current_order(u);
-            self.swarm_around(u, b, Body::Repair(b), action);
-            return;
-        }
-        self.repair_step(u, b, frame);
+        do_repair_steps(&mut SimDoRepair {
+            s: self,
+            u,
+            b,
+            action: flags & flag::ACTION != 0,
+            frame: frame as i32,
+        });
     }
 
     /// `Unit::do_garrison`'s order side (§5.7): the gates are the garrison
@@ -11381,6 +11329,442 @@ impl DoBuildView for SimDoBuild<'_> {
             .iter()
             .filter(|&&m| self.s.units[m].alive() && self.s.is_peasant(m))
             .count() as i32
+    }
+}
+
+/// What `Unit::do_repair@005ee420` asks of its unit, the order's site, the
+/// leaders and the world, in the order it asks (item 3346). [`SimDoRepair`]
+/// answers from this crate's state; the sweep answers from the emulated
+/// original's windows.
+///
+/// The site is the order's `(idx, uid)` pair; the view holds it, so no
+/// method takes one. `good` is the good's index, 0 to 5.
+pub trait DoRepairView {
+    /// `Unit::set_anim(CHAR_REPAIR, 0, 1)`, ahead of every gate.
+    fn set_repair_anim(&mut self);
+    /// The site object's `+0x24`: the damage it carries.
+    fn site_damage(&mut self) -> i32;
+    /// The order's `uid` (the site's owner).
+    fn order_owner(&mut self) -> i32;
+    /// The unit's player (the byte at `+0x9`).
+    fn unit_player(&mut self) -> i32;
+    /// `leaders[who]`'s `+0x8`.
+    fn leader_id(&mut self) -> i32;
+    /// `leaders[who]`'s `+0x74 + 4 * uid`.
+    fn relation(&mut self) -> i32;
+    /// `leadersc[uid]`'s `+0x74 + 4 * leader`.
+    fn relation_const(&mut self) -> i32;
+    /// `UnitData::order_type == NONE`.
+    fn order_none(&mut self) -> bool;
+    /// `unit_masks & 0x40000`.
+    fn ai_driven(&mut self) -> bool;
+    /// The unit's vslot `+0xf8`: the worker stance.
+    fn stance(&mut self) -> i32;
+    /// The site's vslot `+0x1c`.
+    fn site_in_use(&mut self) -> bool;
+    /// The site's data record, vslot `+0x90` of the object behind `+0x18`.
+    fn is_gather_type(&mut self) -> bool;
+    /// The site's `is(0x1a4)`: a University.
+    fn is_university(&mut self) -> bool;
+    /// `Unit::add_gather_order(idx, QUEUE_NEW, 0)`.
+    fn add_gather_order(&mut self);
+    /// `Unit::find_repair_spot`.
+    fn find_repair_spot(&mut self);
+    /// `Unit::kill_current_order(0)`.
+    fn kill_current_order(&mut self);
+    /// The site record's vslot `+0x4c`: finished.
+    fn site_active(&mut self) -> bool;
+    /// The site record's vslot `+0x188`.
+    fn site_under_attack(&mut self) -> bool;
+    /// The order's flag byte `& 4`, through its virtual base.
+    fn order_action(&mut self) -> bool;
+    /// The owner of the tile under the site (`-1` for none).
+    fn tile_owner(&mut self) -> i32;
+    /// `LeaderData::is_ally(leaders[uid], owner)`.
+    fn leader_ally(&mut self, owner: i32) -> bool;
+    /// The unit's vslot `+0x170` (`adjacent_to`) of the site.
+    fn adjacent(&mut self) -> bool;
+    /// `Group::action_swarm_around(idx, player, QUEUE_FIRST, REPAIR,
+    /// action)` on a one-member stack group.
+    fn swarm(&mut self, action: bool);
+    /// `unit_masks & 1`: a decoy repairs nothing.
+    fn decoy(&mut self) -> bool;
+    /// The site record's vslot `+0x11c(0)`.
+    fn hits(&mut self) -> i32;
+    /// The site object's own vslot `+0x11c(0)`, asked once a priced good.
+    fn good_hits(&mut self) -> i32;
+    /// `constants->accel_construct`.
+    fn accel_construct(&mut self) -> i32;
+    /// The site record's vslot `+0x18c(1)`.
+    fn construct_time(&mut self) -> i32;
+    /// The site record's helpers byte (`+0x64`).
+    fn helpers(&mut self) -> i32;
+    /// The site record's flag `0x20`: a city building.
+    fn is_city(&mut self) -> bool;
+    /// The city's two bytes (`+0x5e`, `+0x5f`) differ: a captured city.
+    fn captured(&mut self) -> bool;
+    /// `LeaderData::has_tribe_bonus(0x10)`: the Koreans.
+    fn korean(&mut self) -> bool;
+    /// `constants->korean_repair`.
+    fn korean_repair(&mut self) -> i32;
+    /// `constants->korean_build_under_fire`.
+    fn korean_under_fire(&mut self) -> i32;
+    /// The site record's `+0x60 & 0x10`: freshly hit.
+    fn fresh_hit(&mut self) -> bool;
+    /// The helpers byte incremented.
+    fn bump_helpers(&mut self);
+    /// `game->frame`.
+    fn frame(&mut self) -> i32;
+    /// The site's vslot `+0x114`: the hit points it has.
+    fn hits_left(&mut self) -> i32;
+    /// `LeaderData::type_avail(good, 1) != 0`.
+    fn good_avail(&mut self, good: usize) -> bool;
+    /// The site's type's vslot `+0x78(good, uid, ..)`: the price in `good`.
+    fn price(&mut self, good: usize) -> i32;
+    /// The leader's decrypted bucket of `good`.
+    fn bucket(&mut self, good: usize) -> i32;
+    /// The leader's last-complaint frame (`+0x208`).
+    fn feedback_stamp(&mut self) -> i32;
+    fn set_feedback_stamp(&mut self, frame: i32);
+    /// The console's player is the unit's.
+    fn is_console_player(&mut self) -> bool;
+    /// The complaint: `MessageWin::add_feedback` and the invalid-order
+    /// sound. SEAM: the interface is not modelled.
+    fn feedback(&mut self);
+    /// The bucket of `good` down by `d` and its escrow down by `d`, floored
+    /// at zero.
+    fn charge(&mut self, good: usize, d: i32);
+    /// The site's vslot `+0x168(amount, 0, 1)`: `Build::repair_damage`.
+    fn repair_damage(&mut self, amount: i32);
+}
+
+/// **`Unit::do_repair@005ee420`'s steps** (item 3346, `docs/ORDERS.md`
+/// §5.6): the gates, the re-swarm of a repairer out of reach, the period
+/// and the amount, the price in whole units of each good (a single-precision
+/// quotient, truncated), and the charge.
+#[allow(clippy::needless_range_loop)]
+pub fn do_repair_steps<V: DoRepairView>(v: &mut V) {
+    /// `LAB_005eeb02`: the order dies, and the unit goes on to look for
+    /// work — an AI repairer for the next repair, a human one for the site
+    /// it has just mended (or the one it was refused).
+    fn refused<V: DoRepairView>(v: &mut V) {
+        v.kill_current_order();
+        if v.ai_driven() {
+            v.find_repair_spot();
+            return;
+        }
+        let uid = v.order_owner();
+        // The unit's own player, the unit between orders and on a gathering
+        // stance, a site that is in use, gathered from and not a University.
+        if uid == v.unit_player()
+            && v.order_none()
+            && v.stance() < 2
+            && v.site_in_use()
+            && v.is_gather_type()
+            && !v.is_university()
+        {
+            v.add_gather_order();
+        }
+    }
+    v.set_repair_anim();
+    if v.site_damage() == 0 {
+        refused(v);
+        return;
+    }
+    let uid = v.order_owner();
+    if uid != v.leader_id() && !(v.relation() == 2 && v.relation_const() == 2) {
+        refused(v);
+        return;
+    }
+    if !v.site_in_use() || !v.site_active() {
+        v.kill_current_order();
+        return;
+    }
+    if v.site_under_attack() && !v.order_action() {
+        v.kill_current_order();
+        return;
+    }
+    let owner = v.tile_owner();
+    if owner >= 0 && owner != uid && !v.leader_ally(owner) {
+        v.kill_current_order();
+        return;
+    }
+    if !v.adjacent() {
+        // The action bit is read before the kill.
+        let action = v.order_action();
+        v.kill_current_order();
+        v.swarm(action);
+        return;
+    }
+    if v.decoy() {
+        return;
+    }
+    let amount = if !v.site_in_use() {
+        frame_amount(v.frame(), 0x100)
+    } else {
+        let hits = v.hits();
+        let accel = v.accel_construct();
+        let construct_time = v.construct_time();
+        let helpers = v.helpers();
+        let city = v.is_city();
+        let captured = city && v.captured();
+        let korean = v.korean();
+        let korean_repair = if korean { v.korean_repair() } else { 0 };
+        let exempt = korean && v.korean_under_fire() != 0;
+        let under_attack = !exempt && v.site_under_attack();
+        let fresh_hit = !exempt && v.fresh_hit();
+        let period = crate::build::repair_period(&crate::build::RepairTarget {
+            helpers,
+            construct_time,
+            hits,
+            accel,
+            city,
+            captured,
+            korean_repair,
+            under_attack,
+            fresh_hit,
+        });
+        v.bump_helpers();
+        if period < 1 {
+            v.site_damage()
+        } else {
+            frame_amount(v.frame(), period)
+        }
+    };
+    if amount == 0 {
+        return;
+    }
+    let left = v.hits_left();
+    let mut due = [0i32; 6];
+    for g in 0..6 {
+        if !v.good_avail(g) {
+            continue;
+        }
+        let p = v.price(g);
+        if p == 0 {
+            continue;
+        }
+        let hits = v.good_hits();
+        let q = Single::from_i32(hits).divss(Single::from_i32(p));
+        let before = Single::from_i32(left).divss(q).to_i32();
+        let after = Single::from_i32(amount.wrapping_add(left))
+            .divss(q)
+            .to_i32();
+        if before < after {
+            due[g] = 1;
+        }
+        if v.bucket(g) < due[g] {
+            v.kill_current_order();
+            let frame = v.frame();
+            if frame.wrapping_sub(v.feedback_stamp()) < 0x97 {
+                return;
+            }
+            v.set_feedback_stamp(frame);
+            if v.is_console_player() {
+                v.feedback();
+            }
+            return;
+        }
+    }
+    for g in 0..6 {
+        if v.good_avail(g) {
+            v.charge(g, due[g]);
+        }
+    }
+    v.repair_damage(amount);
+}
+
+/// `frame * 256 / period - (frame * 256 - 256) / period`, the signed
+/// divides of `Unit::do_repair`.
+fn frame_amount(frame: i32, period: i32) -> i32 {
+    let f = frame.wrapping_mul(0x100);
+    (f / period).wrapping_sub(f.wrapping_sub(0x100) / period)
+}
+
+/// [`DoRepairView`] over the live [`Sim`].
+struct SimDoRepair<'a> {
+    s: &'a mut Sim,
+    u: usize,
+    b: usize,
+    action: bool,
+    frame: i32,
+}
+
+impl DoRepairView for SimDoRepair<'_> {
+    fn set_repair_anim(&mut self) {
+        // §5.6's first line, and unlike `do_build`'s it is **ahead of every
+        // gate**: a repairer is put on `CHAR_REPAIR` even on the frame the
+        // order dies. Same reason as `do_build`'s (`docs/ANIM.md` §4.6).
+        self.s.set_anim(self.u, anim::REPAIR, false, true);
+    }
+    fn site_damage(&mut self) -> i32 {
+        self.s.buildings[self.b].damage
+    }
+    fn order_owner(&mut self) -> i32 {
+        i32::from(self.s.buildings[self.b].owner)
+    }
+    fn unit_player(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].owner)
+    }
+    fn leader_id(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].owner)
+    }
+    fn relation(&mut self) -> i32 {
+        let (a, b) = (self.s.units[self.u].owner, self.s.buildings[self.b].owner);
+        if self.s.allied_with(a, b) { 2 } else { 0 }
+    }
+    fn relation_const(&mut self) -> i32 {
+        let (a, b) = (self.s.units[self.u].owner, self.s.buildings[self.b].owner);
+        if self.s.allied_with(b, a) { 2 } else { 0 }
+    }
+    fn order_none(&mut self) -> bool {
+        self.s.order_type(self.u) == index::NONE
+    }
+    fn ai_driven(&mut self) -> bool {
+        self.s.ai_driven(self.s.units[self.u].owner)
+    }
+    fn stance(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].stance)
+    }
+    fn site_in_use(&mut self) -> bool {
+        self.s.buildings.get(self.b).is_some_and(|bd| bd.alive)
+    }
+    fn is_gather_type(&mut self) -> bool {
+        self.s.is_gather_type(self.b)
+    }
+    fn is_university(&mut self) -> bool {
+        self.s.building_ident(self.b) == Ident::University
+    }
+    fn add_gather_order(&mut self) {
+        self.s
+            .add_gather_order(self.u, self.b, QueuePos::New, false);
+    }
+    fn find_repair_spot(&mut self) {
+        self.s.find_repair_spot(self.u);
+    }
+    fn kill_current_order(&mut self) {
+        self.s.kill_current_order(self.u);
+    }
+    fn site_active(&mut self) -> bool {
+        self.s.buildings[self.b].active
+    }
+    fn site_under_attack(&mut self) -> bool {
+        self.s.buildings[self.b].is_under_attack()
+    }
+    fn order_action(&mut self) -> bool {
+        self.action
+    }
+    fn tile_owner(&mut self) -> i32 {
+        match self.s.world.owner_at(self.s.buildings[self.b].pos) {
+            crate::Owner::Player(p) => i32::from(p),
+            _ => -1,
+        }
+    }
+    fn leader_ally(&mut self, owner: i32) -> bool {
+        self.s.is_ally(
+            self.s.buildings[self.b].owner,
+            owner as crate::world::Player,
+        )
+    }
+    fn adjacent(&mut self) -> bool {
+        self.s.adjacent_to(self.u, self.b)
+    }
+    fn swarm(&mut self, action: bool) {
+        // The same one-member `Group` insert dance as `do_build`'s
+        // (`Group::action_swarm_around@0070fbe0`, `docs/GROUPS.md` §17):
+        // `Unit::do_repair@005ee420` clears two groups, adds the unit to
+        // one and swarms at `QUEUE_FIRST` (item 3346).
+        let (u, b) = (self.u, self.b);
+        let who = self.s.units[u].owner;
+        let mut g = crate::group::Group::stack(who);
+        self.s.group_add(&mut g, u);
+        let insert = self.s.group_set_up_insert(&g);
+        self.s.group_action_halt(&g, 0);
+        self.s.swarm_around(u, b, Body::Repair(b), action);
+        self.s.group_finish_insert(&g, insert);
+    }
+    fn decoy(&mut self) -> bool {
+        self.s.units[self.u].decoy
+    }
+    fn hits(&mut self) -> i32 {
+        self.s.buildings[self.b].hits_now()
+    }
+    fn good_hits(&mut self) -> i32 {
+        self.s.buildings[self.b].hits_now()
+    }
+    fn accel_construct(&mut self) -> i32 {
+        self.s.tuning.accel_construct
+    }
+    fn construct_time(&mut self) -> i32 {
+        self.s.construct_time_of(self.b)
+    }
+    fn helpers(&mut self) -> i32 {
+        self.s.buildings[self.b].helpers
+    }
+    fn is_city(&mut self) -> bool {
+        let bd = &self.s.buildings[self.b];
+        matches!(bd.city, Some(c) if self.s.building_is_city(self.b) && self.s.cities[c].alive)
+    }
+    fn captured(&mut self) -> bool {
+        let bd = &self.s.buildings[self.b];
+        bd.city
+            .is_some_and(|c| self.s.cities[c].race != Some(bd.owner))
+    }
+    fn korean(&mut self) -> bool {
+        self.s.nation[self.s.units[self.u].owner as usize].koreans
+    }
+    fn korean_repair(&mut self) -> i32 {
+        self.s.tuning.korean_repair
+    }
+    fn korean_under_fire(&mut self) -> i32 {
+        self.s.tuning.korean_build_under_fire
+    }
+    fn fresh_hit(&mut self) -> bool {
+        self.s.buildings[self.b].under_attack & 0x1 != 0
+    }
+    fn bump_helpers(&mut self) {
+        self.s.buildings[self.b].helpers += 1;
+    }
+    fn frame(&mut self) -> i32 {
+        self.frame
+    }
+    fn hits_left(&mut self) -> i32 {
+        let bd = &self.s.buildings[self.b];
+        bd.hits_now() - bd.damage
+    }
+    fn good_avail(&mut self, good: usize) -> bool {
+        self.s.holdings[self.s.units[self.u].owner as usize].available[good]
+    }
+    fn price(&mut self, good: usize) -> i32 {
+        // The site's owner is the `uid` the type's price is asked for
+        // (`vslot +0x78(good, uid, ..)`), not the repairer: an ally
+        // mends at the owner's price (item 3346).
+        let bd = &self.s.buildings[self.b];
+        bd.ty
+            .map_or(0, |t| self.s.building_price(bd.owner, t)[good])
+    }
+    fn bucket(&mut self, good: usize) -> i32 {
+        self.s.ledgers[self.s.units[self.u].owner as usize].bucket[good]
+    }
+    fn feedback_stamp(&mut self) -> i32 {
+        // SEAM: the complaint's throttle stamp is not carried; a complaint
+        // is always due, and nothing reads the answer.
+        i32::MIN
+    }
+    fn set_feedback_stamp(&mut self, _frame: i32) {}
+    fn is_console_player(&mut self) -> bool {
+        false
+    }
+    fn feedback(&mut self) {}
+    fn charge(&mut self, good: usize, d: i32) {
+        // `Unit::do_repair@005ee420`'s charge draws the escrow down by the
+        // same amount, floored at zero (`docs/AI.md` §98).
+        let ledger = &mut self.s.ledgers[self.s.units[self.u].owner as usize];
+        ledger.bucket[good] -= d;
+        ledger.escrow[good] = (ledger.escrow[good] - d).max(0);
+    }
+    fn repair_damage(&mut self, amount: i32) {
+        self.s.repair_building(self.b, amount);
     }
 }
 

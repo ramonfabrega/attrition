@@ -9950,6 +9950,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3343,
         Some(crate::diff::bantu_word::WIDENING_BANTU_CLOSING),
     ),
+    // **The battery's French word** (item 3347, DECISIONS 72, 83, 84):
+    // frame 13422, the battery's first try (item 3343), promoted here.
+    // Item 3347 moved it 13422 → 13843 with `train_time`'s French siege
+    // arm and 13843 → 14604 with the Crossbowman's and the Cavalry
+    // Archer's release nodes (run982 over 13416..14093), and 14604 →
+    // 16764, the game's last frame, with a decoy's own-cell sight
+    // (run982b over 14598..14854 keeps 14604's value diff, the decoy
+    // Hussars `1/100`'s attack on `0/1`). The close is compared whole on
+    // run977b's own closing block 16765 by `run977b_french_closing_state`.
+    (
+        "FRENCH_WORD",
+        crate::diff::french_word::FRENCH_WORD,
+        Some("run977b_french_closing_state"),
+        3347,
+        Some(crate::diff::french_word::WIDENING_FRENCH_CLOSING),
+    ),
     // **The battery's Maya word** (item 3338, DECISIONS 72, 83): frame
     // 776, the battery's first try, widened on run973 over 770..1026
     // (block 777). Item 3338 moved it 776 → 10497 with `get_cost`'s Maya
@@ -10443,6 +10459,24 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's French word** (DECISIONS 72, 83, 84; item 3347):
+    // Great Sahara, the French at Difficulty 4 — the held-out battery's
+    // second open lobby once item 3343 closed the Bantu; the game ends
+    // itself on 16764. It joins the `Battery word` line first; the closed
+    // rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaFrenchTier4",
+        named: "Great Sahara (French)",
+        word: crate::diff::french_word::FRENCH_WORD,
+        length: 16_764,
+        // The draw stream agrees to 16764 since item 3347, and run977b's
+        // closing block 16765 scores the end itself: four buildings and a
+        // city apart (who=1's capture of `0/2000` on the last frame, which
+        // ours does not make).
+        endpoint: Some("run977b_french_closing_state"),
+        window: Some("french_frame_14604_window"),
+    },
     // **The battery's Persian word** (DECISIONS 72, 83, 84; item 3355):
     // Great Lakes, the Persians at Difficulty 2 — the held-out battery's
     // lowest open lobby once item 3345 closed the Lakota, minted by item
