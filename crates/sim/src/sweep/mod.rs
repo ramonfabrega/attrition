@@ -14,6 +14,7 @@
 mod support;
 pub(crate) use support::{emu_rows, row, tail_row};
 
+mod ammo_do_damage;
 mod build_start;
 mod build_type_get_good;
 mod city_get_empty_trade_routes;
