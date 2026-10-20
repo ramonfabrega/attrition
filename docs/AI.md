@@ -24628,7 +24628,7 @@ closing state moved.
 hold on this tree.
 
 **Not established.** The tail's head refusals the soldier's arm also leaves out (`get_combat_stance() > 4`, the
-game-semaphore radius `0x2d00`) are not read; the build-style-5 arm and the `− 6` default for a build style past 8
+game-semaphore radius) are not read; the build-style-5 arm and the `− 6` default for a build style past 8
 are read and on no capture; the tail is diff-backed by one merchant's walk alone, and a soldier's tail by none.
 
 **Coverage.** Diff-backed: the merchant leg and the tail by `dutch_sahara_word_first_parting` and
