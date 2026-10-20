@@ -3421,8 +3421,8 @@ impl Sim {
             .collect();
         let hold = die_hold_steps(
             u16::try_from(Self::CLOSE_HOLD).expect("0x1e"),
-            who as u8,
-            idx as i16,
+            who,
+            idx,
             true,
             Self::NUKE_SPREAD,
             &ammo,
