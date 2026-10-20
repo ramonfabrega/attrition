@@ -288,6 +288,8 @@ mod unit_set_rally;
 mod unit_set_type;
 #[path = "unit_supplies_left.rs"]
 mod unit_supplies_left;
+#[path = "unit_think.rs"]
+mod unit_think;
 #[path = "unit_think_caravan.rs"]
 mod unit_think_caravan;
 #[path = "unit_think_carry.rs"]
