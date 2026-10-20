@@ -1403,7 +1403,29 @@ pub(crate) fn debug_gap(
                     .collect();
                 // `line_ok` and `tolerance` are what `Unit::do_move` branches
                 // on first (Loop 2678: 2638 took a probe commit for each).
-                format!("orders {stack:?} line_ok {} tol {}", x.line_ok, x.tolerance)
+                // Each figure's follower body, its destination and its
+                // animation (item 3369: a merchant's crew dated per tick).
+                let guys: Vec<String> = x
+                    .guys
+                    .iter()
+                    .map(|g| {
+                        let f = g
+                            .follow
+                            .map(|b| (b.body.pos.x, b.body.pos.y, b.des.x, b.des.y));
+                        format!(
+                            "{f:?} a{} t{}/{} s{} p{}",
+                            g.anim,
+                            g.cur_time,
+                            g.end_time,
+                            u8::from(g.stopped),
+                            g.gpiece
+                        )
+                    })
+                    .collect();
+                format!(
+                    "orders {stack:?} line_ok {} tol {} guys {guys:?}",
+                    x.line_ok, x.tolerance
+                )
             },
         );
         rows.push((format!("{w}/{o}"), val));

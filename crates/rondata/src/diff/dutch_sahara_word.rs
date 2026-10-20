@@ -160,3 +160,55 @@ fn run995_s_word_frame_is_widened_whole() {
     // the pack's re-piece): 433 -> 39, the standing family on 305.
     pin_eq!(w.firsts.len(), 39, "keys that part in the window");
 }
+
+/// run995c: the word 15725's window, blocks 15719..15975 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3369). run995 closes on 561, and
+/// run990b dumps its setup and closing blocks only.
+pub(crate) const RUN995C: &str = "gamelog-run995c-greatsahara-dutch-diff3-window-15719-15976.txt";
+
+/// The window: block 15719 through 15975; the word 15725's own block is
+/// 15726.
+pub(crate) const WIDENING_DUTCH_SAHARA_FRAME_15725: (i64, i64) = (15719, 15975);
+
+pub(crate) fn dutch_sahara_frame_15725_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[DUTCH_SAHARA.start],
+        true,
+        DUTCH_SAHARA.long,
+        "run995c",
+        &[(RUN995C, WIDENING_DUTCH_SAHARA_FRAME_15725.0)],
+        WIDENING_DUTCH_SAHARA_FRAME_15725,
+        1,
+        &[15726],
+        true,
+    )
+}
+
+#[test]
+fn run995c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = dutch_sahara_frame_15725_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3369: 748 keys on the first try. The window opens apart: the
+    // standing family on 15719 and who=1's Armed Merchant `1/51`, on its
+    // pack's first frame two after its unpack ended, whose figure 1 is
+    // still walking out to its deployed spot (17597, 25530) in theirs
+    // from beside the merchant's point (17689, 25362), and stands on it
+    // in ours; on the word's block 15726 its `g.end_time[1]` is 150 ours,
+    // 60 theirs.
+    pin_eq!(w.firsts.len(), 748, "keys that part in the window");
+}
