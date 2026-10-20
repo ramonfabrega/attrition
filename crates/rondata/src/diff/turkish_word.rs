@@ -32,9 +32,15 @@ pub(crate) const TURKISH: Lobby = Lobby {
     // count 14991, sequence 14991 (ours 20 draws, theirs 23, at 12: ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4`). Item 3380
-    // promoted it to the AI word (`docs/AI.md` §290).
-    count: 14991,
-    sequence: 14991,
+    // promoted it to the AI word (`docs/AI.md` §290), and moved it 14991 ->
+    // 15503 (+512), the game's end: `max_range`'s Turkish siege term
+    // (`TURK_SIEGE_RANGE`, `Sim::siege_unit_range`). On 14991 the
+    // Trebuchet `1/70` walked its bombard ring round Napata `0/2000` at
+    // ours 2976, theirs 3552: ours drew 12 (three candidates on blocked
+    // forest), theirs 15, and stopped at (7368, 29544) in run1005's block
+    // 14992; agreeing after.
+    count: 15503,
+    sequence: 15503,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`

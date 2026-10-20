@@ -1081,6 +1081,9 @@ pub struct Tuning {
     pub aztec_max_light: i32,
     /// Siege engines a Turkish Siege Factory delivers.
     pub turk_free_siege: i32,
+    /// `TURK_SIEGE_RANGE` — tiles a Turkish leader's siege unit adds to its
+    /// range (`UnitData::max_range@0060fe90`'s siege arm, item 3380).
+    pub turk_siege_range: i32,
     /// Whether a French Siege Factory delivers a supply wagon, and a French
     /// fort a general.
     pub french_free_supply: i32,
@@ -1611,6 +1614,7 @@ impl Tuning {
         aztec_barracks_light: 1,
         aztec_max_light: 3,
         turk_free_siege: 2,
+        turk_siege_range: 3,
         french_free_supply: 1,
         french_free_general: 1,
         spanish_free_trireme: 1,
@@ -2446,6 +2450,7 @@ impl Tuning {
             ("AZTEC_BARRACKS_LIGHT", Slot::Value(T.aztec_barracks_light)),
             ("AZTEC_MAX_LIGHT", Slot::Value(T.aztec_max_light)),
             ("TURK_FREE_SIEGE", Slot::Value(T.turk_free_siege)),
+            ("TURK_SIEGE_RANGE", Slot::Value(T.turk_siege_range)),
             ("FRENCH_FREE_SUPPLY", Slot::Value(T.french_free_supply)),
             ("FRENCH_FREE_GENERAL", Slot::Value(T.french_free_general)),
             ("SPANISH_FREE_TRIREME", Slot::Value(T.spanish_free_trireme)),
