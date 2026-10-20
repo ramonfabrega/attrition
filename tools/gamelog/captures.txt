@@ -9915,6 +9915,15 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks: `rngcmp.py` run981 vs run981b -> 37 identical; run977b vs run982 -> 14099 identical, vs run982b -> 14860, vs run982c -> 16765,
 # vs run982d -> 16765.
 # ==== TAKEN 2026-10-19, one take each, 20:17-22:02, pool lanes 1-2 ====
+# ==== item 3360: the Inca word's widenings and the battery's replacement lobby (`docs/AI.md` §281; `docs/RUNS.md` run986 .. run987b) ====
+#   run986   --map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 9 --profile DIFFICULTY=3   (East Indies, Spanish; start)
+#   run986b  run962b's recipe with --ai-tribe 9 --profile DIFFICULTY=3   (the draw stream to 24000)
+#   run987   --map 18 --end-frame 8037 --timeout 5400 --log-window 7776 8032 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3   (the word 7782's window)
+#   run987b  --map 18 --end-frame 16771 --timeout 7200 --log-window 16510 16766 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3   (the word 16516's window)
+# Checks: `rngcmp.py` run986 vs run986b -> 37 identical; run969b vs run987 -> 8038 identical, vs run987b -> 16772 identical.
+# ==== TAKEN 2026-10-19/20, one take each, 23:34-, pool lanes 1-3 ====
 # ==== item 3359: the French word's close, a packet of piece 139 (`docs/AI.md` §280; `docs/RUNS.md` run985, run985b) ====
 #   run985   --map 7 --end-frame 16766 --timeout 3600 --log-window 16760 16765 --detail end:MISC,UNITS=3,GUYS=4 --ai-tribe 10
 #            --cover cover=0 --allow-early-end --profile DIFFICULTY=4 --tracer-def RON_STATE_FRAME=16762

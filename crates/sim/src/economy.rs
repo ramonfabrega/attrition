@@ -309,6 +309,12 @@ pub struct Site {
     /// whatever its count (`EGYPTIAN_FARM_WEALTH`; item 3332, `docs/AI.md`
     /// §269). Zero is the identity.
     pub farm_wealth: i32,
+    /// `BuildTypeData::calc_gather@00639e40:850`–`856`, the mine branch's
+    /// **Inca arm**: wealth per thirty seconds for each of the mine's
+    /// gatherers, after the cap and outside the enhancer, for a leader with
+    /// tribe bonus 2 (`INCA_WEALTH_PER_MINER`; item 3360, `docs/AI.md`
+    /// §281). Zero is the identity.
+    pub miner_wealth: i32,
 }
 
 impl Site {
@@ -319,6 +325,7 @@ impl Site {
             level: 1,
             nation_pct: 0,
             farm_wealth: 0,
+            miner_wealth: 0,
         }
     }
 }
@@ -737,6 +744,8 @@ pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
         if site.gatherers != 0 {
             out[Resource::Wealth.index()] += site.farm_wealth * RATE_SCALE;
         }
+        // `calc_gather:850`–`856`: the Inca's wealth per miner (item 3360).
+        out[Resource::Wealth.index()] += site.miner_wealth * RATE_SCALE * site.gatherers;
     }
 
     // The city itself. Ships as ten food and ten timber: a city is worth that
@@ -1571,6 +1580,7 @@ mod tests {
                 level: 6,
                 nation_pct: 0,
                 farm_wealth: 0,
+                miner_wealth: 0,
             }],
             ..City::default()
         });
@@ -1651,6 +1661,7 @@ mod tests {
                 level: 6,
                 nation_pct: 0,
                 farm_wealth: 0,
+                miner_wealth: 0,
             }],
             ..City::default()
         });

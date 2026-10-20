@@ -10128,6 +10128,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // boat region from `get_tregion`): run970e's test keeps 14595's value
     // diff, and the close is compared whole on run962b's own closing block
     // 24001 by `run962b_indian_closing_state`.
+    // **The battery's Inca word** (item 3360, DECISIONS 72, 83, 84): frame
+    // 7782, the Inca lobby's first try. run969 dumps blocks 0..36 and
+    // run969b its setup and closing blocks only; the word's windows are
+    // run987's (7776..8032: `calc_gather`'s Inca arm, 7782 → 16516) and
+    // run987b's (16510..16766: `Guy::move`'s moving arm spares no turn
+    // slot, 16516 → 24000, the long's last frame). run987b's test keeps
+    // 16512's value diff, and the close is compared whole on run969b's own
+    // closing block 24001 by `run969b_inca_closing_state`.
+    (
+        "INCA_WORD",
+        crate::diff::inca_word::INCA_WORD,
+        Some("run969b_inca_closing_state"),
+        3360,
+        Some(crate::diff::inca_word::WIDENING_INCA_CLOSING),
+    ),
     (
         "INDIAN_WORD",
         crate::diff::indian_word::INDIAN_WORD,
@@ -10489,6 +10504,22 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Inca word** (DECISIONS 72, 83, 84; item 3360): East
+    // Indies, the Inca at Difficulty 3 — the held-out battery's lowest open
+    // lobby on the measure of `3eb2c76c`, minted by item 3335; the game does
+    // not end itself (the long runs to 24000). It joins the `Battery word`
+    // line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesIncaTier3",
+        named: "East Indies (Inca)",
+        word: crate::diff::inca_word::INCA_WORD,
+        length: 24_000,
+        // Closed by item 3360: the draw stream agrees to 24000, and
+        // run969b's closing block 24001 scores the end itself.
+        endpoint: Some("run969b_inca_closing_state"),
+        window: Some("inca_frame_16516_window"),
+    },
     // **The battery's French word** (DECISIONS 72, 83, 84; item 3347):
     // Great Sahara, the French at Difficulty 4 — the held-out battery's
     // second open lobby once item 3343 closed the Bantu; the game ends

@@ -3843,6 +3843,20 @@ it. Until the fix lands, this tranche's whole gates run at four threads. Ramon: 
 whole gate back at four threads, the footprint worked down (a few ugly tests, likely), or the cap raised a little,
 since every kill has landed just over it.
 
+(3366) **A lane gate refused for a moved base reads as a broken tool** (3360's "for the Loop", filed at its merge):
+the refusal is one line at the log's foot, and above it seven of `tools/offline_tests.py`'s `test_release_gate`
+cases fail, because they read the real tree's base. A lane reading the log top-down sees a broken gate first.
+Candidate: the offline cases take a fixture tree, not the real one; or the refusal prints first and the gate exits
+before the offline step. The pass's. One reach.
+
+(3368) **A clear that fires on a lane which pushed a draft exits the waiter as LANDED** (the commander, 2026-10-20):
+att-3365 crossed DEEP at 315k, committed and pushed its draft journal (`2caf3aee`) as answered, and ended its turn
+for the armed clear; the row left `working` for the seconds the clear took, and `lanewait.py` exited `LANDED
+att-3365 … none..2caf3aee` with the row back at `working` under the new session — a commander turn that learned
+nothing, and one that would merge a draft if read at face value. Candidates: a row whose newest transcript ends on
+a `/clear` (the UNCLEARED probe's own read) or whose session uuid changed since the wait began is not a landing; or
+LANDED waits two polls for the row to stay out, as ENDED does. The pass's. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
@@ -7961,13 +7975,15 @@ argument mask for a recorded stub (3250 (f), (g)).
 
 - (booked as item 3263) (3262) **The wreck on the chain (3235), still unread**: run942 closes at 1500 with two idle hoplite squads beside a Sabotaged Tank's wreck, so the idle stance does not show whether the original's search sees it (GOLDEN §136). A staging with an armed unit that must search — a shooter on an aggressive stance with the wreck as its only object in range, or a unit that takes damage there so `alarm` runs — would; names no score until a frame shows it.
 
-## Parked by the next landing, slot JK — reserved
+## Parked by item 3360, 2026-10-20 — the Inca word closes at 24000
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3360a) **The Inca close's one field**: run969b's closing block 24001, the human's city `0/2000`'s `peasant_dist`, ours
+  2 against theirs 1 (`run969b_inca_closing_state`). No draw parts and 177 units agree; names no score.
+- (3360b) **`1/46`'s `dest_angle` on 16714** (run987b): ours 1073741824, theirs −1334181888, the window's one row past the
+  standing family. The draw stream agrees to 24000; names no score.
+- (3360c) **The moving arm's `CHAR_ATTACKWALK` request** (`Guy::move:113`–`116`: `cavarch_o >= 0` and the type's
+  `0x200000`): `Sim::walk_for` does not make it, and `guy_follow_anim` spares a figure already on `CHAR_ATTACKWALK` in
+  its place (`docs/ANIM.md` §16). No capture has a unit stepping with a target.
 
 ## Parked by item 3259, 2026-10-18 — the nations seat's fourth shape batch
 
