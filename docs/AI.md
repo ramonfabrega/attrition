@@ -24623,7 +24623,8 @@ newborn `g.angle[0]`, `0/2000`'s `raid_stamp`) and `1/87`'s `dest_angle` on 1512
 **The close.** `run986b_spanish_east_closing_state` walks to run986b's closing block 24001 and compares 160 units,
 none apart, no building field-row; one closing field, city `0/2000`'s `raid_stamp`, ours 12774 against theirs 12773
 — the human's city, standing since run993c (parked 3367a's neighbour). Every other lobby's first parting holds (23
-of 23), and the battery's floors.
+of 23), and the battery's floors. The second pair's run544 window drops 51 → 50: `1/40`'s `path[43].flags` on 16074,
+ours 32, theirs 0 — the same stripped top.
 
 **Not established.** Whether a Merchant Fleet takes a `Specials` slot of its own at `Unit::init` before the boarding
 overwrites `+0x86` (`Unit::init@00612100:414`–`431`, `unit_flags2 & 0x10`): nothing reads one, and this crate keeps
