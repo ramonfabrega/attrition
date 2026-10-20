@@ -56,6 +56,8 @@ mod golden;
 mod greek_word;
 mod harness;
 #[cfg(test)]
+mod inca_word;
+#[cfg(test)]
 mod indian_word;
 #[cfg(test)]
 mod iroquois_word;

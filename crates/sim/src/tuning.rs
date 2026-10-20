@@ -640,6 +640,13 @@ pub struct Tuning {
     /// `EGYPTIAN_FARM_WEALTH × 16` to wealth, flat per farm (item 3332).
     /// Ships as `2`.
     pub egyptian_farm_wealth: i32,
+    /// `INCA_WEALTH_PER_MINER` (`BuildTypeData::calc_gather@00639e40:850`–
+    /// `856`): a mine's gatherers, after the cap, for a leader with tribe
+    /// bonus 2, each add `INCA_WEALTH_PER_MINER × 16` to wealth, beside the
+    /// metal they gather and outside the enhancer (item 3360). Ships as `10`;
+    /// a negative value is `Leader::calc_gather`'s other arm (the whole
+    /// metal rate copied to wealth), dead in a stock game and not modelled.
+    pub inca_wealth_per_miner: i32,
 
     // ---- production ----
     /// Hundredths of a frame a training job advances per call. Ships as `1/1`,
@@ -1409,6 +1416,7 @@ impl Tuning {
         indians_elephant_cost: 15,
         japanese_fishing_boats: 25,
         egyptian_farm_wealth: 2,
+        inca_wealth_per_miner: 10,
 
         accel_train: 100,
         accel_construct: 100,
@@ -2047,6 +2055,10 @@ impl Tuning {
                 Slot::Value(T.indians_elephant_cost),
             ),
             ("EGYPTIAN_FARM_WEALTH", Slot::Value(T.egyptian_farm_wealth)),
+            (
+                "INCA_WEALTH_PER_MINER",
+                Slot::Value(T.inca_wealth_per_miner),
+            ),
             ("POP_CAP", Slot::Entries(&T.pop_cap)),
             ("VILLAGE_POP", Slot::Value(T.village_pop)),
             ("COLOSSUS_POP_CAP", Slot::Value(T.colossus_pop_cap)),

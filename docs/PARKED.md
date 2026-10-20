@@ -7961,13 +7961,15 @@ argument mask for a recorded stub (3250 (f), (g)).
 
 - (booked as item 3263) (3262) **The wreck on the chain (3235), still unread**: run942 closes at 1500 with two idle hoplite squads beside a Sabotaged Tank's wreck, so the idle stance does not show whether the original's search sees it (GOLDEN §136). A staging with an armed unit that must search — a shooter on an aggressive stance with the wreck as its only object in range, or a unit that takes damage there so `alarm` runs — would; names no score until a frame shows it.
 
-## Parked by the next landing, slot JK — reserved
+## Parked by item 3360, 2026-10-20 — the Inca word closes at 24000
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot JK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3360a) **The Inca close's one field**: run969b's closing block 24001, the human's city `0/2000`'s `peasant_dist`, ours
+  2 against theirs 1 (`run969b_inca_closing_state`). No draw parts and 177 units agree; names no score.
+- (3360b) **`1/46`'s `dest_angle` on 16714** (run987b): ours 1073741824, theirs −1334181888, the window's one row past the
+  standing family. The draw stream agrees to 24000; names no score.
+- (3360c) **The moving arm's `CHAR_ATTACKWALK` request** (`Guy::move:113`–`116`: `cavarch_o >= 0` and the type's
+  `0x200000`): `Sim::walk_for` does not make it, and `guy_follow_anim` spares a figure already on `CHAR_ATTACKWALK` in
+  its place (`docs/ANIM.md` §16). No capture has a unit stepping with a target.
 
 ## Parked by item 3259, 2026-10-18 — the nations seat's fourth shape batch
 

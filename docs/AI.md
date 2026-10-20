@@ -24364,12 +24364,60 @@ carried here.
 **Coverage.** Diff-backed: the four Dragoon rounds by `the_french_dragoon_s_rounds_leave_from_its_pivot`, the close
 by `run977b_french_closing_state`, the third pair's three windows. Reading-backed: none new; the branch is §55's.
 
-## 281. Reserved for the next item on the AI track
+## 281. The battery's Inca word: a mine's wealth per miner and a push turn the walk overwrites, to the game's end
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3360, 2026-10-20, Opus 5.5. East Indies, the Nubians (human) against the Inca at Difficulty 3, seed 12345: the
+lobby item 3335 minted, scored at 7782 of 24000 on its first try and promoted here to the AI word
+(`diff::inca_word`). The Spanish at Difficulty 3 (`EastIndiesSpanishTier3`, runs 986 and 986b) replace it in the
+battery under entry 72's **rule (2)** as amended by 84: every nation is in some dump, so rule (1) has no answer; a
+header survey of the 1015 gamelogs puts AI tribes 2, 6, 10, 11, 12, 16, 17, 19, 20, 21, 22, 23 on East Indies; of the
+nations on no East Indies dump and held only by closed games (the open battery's out), the Spanish reach the most
+census functions (9), held only by `GreatSaharaSpanishTier3`; tier 3 is the one the Inca left. First try **9028 /
+9028**: ours 2 draws, theirs 12, at 0, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a
+< Unit::do_idle+0x7d`.*
+
+**Two fixes, each on its own frame.** The word moved 7782 → 16516 → **24000**, the long's last frame, count and
+sequence. run969 dumps blocks 0..36 and run969b its setup and closing blocks only, so two windows were booked:
+run987 over 7776..8032 and run987b over 16510..16766, both at `GUYS=4`, `LEADERS=9` and `GOODS=3`. Both are
+`rngcmp`-identical to run969b.
+
+**7782: `calc_gather`'s Inca arm.** run987's widening (533 keys) opens on 7776 on who=1's wealth: `income[2:wealth]`
+ours 752, theirs 912, `rate` 47/57, `bucket` 22/37. Sixteen miners at `INCA_WEALTH_PER_MINER` (10): the mine branch
+of `BuildTypeData::calc_gather@00639e40:850`–`856` adds, after the cap, `gatherers × INCA_WEALTH_PER_MINER × 16` of
+wealth beside the metal and outside the enhancer, for a leader with tribe bonus 2 (`economy::Site::miner_wealth`,
+`Tuning::inca_wealth_per_miner`). On 7782 the wealth then covers less of timber's need, and `use_market` spends its
+second sell pass, as theirs does. **Value diff**: `income[2:wealth]` 912/912 on 7776. 7782 → 16516; run987 533 → 49.
+
+**16516: `Guy::move`'s moving arm spares no turn slot.** Ours 12 draws, theirs 11, at 3; theirs spends a fourth
+`Unit::do_idle` draw. run987b's widening (1994 keys) puts its first non-standing row on 16512: the Trebuchet `1/118`
+(TI 266, packs, packed, no orders, idle), pushed every frame by `1/74` (`collide_o 74`), guy 0's `g.cur_anim[0]` ours
+22 (`CHAR_TURN_RIGHT`), theirs 8 (`CHAR_WALK`). Theirs' angle trails `des_angle` by half the body rate a frame, so
+the push turn runs there too (`detect_boat_collision` → `turn_angles` → `do_turn`, which asks for `CHAR_TURN_*`
+under `guy_flags & 8`, printed 8). What puts theirs back on the walk is `Guy::move@005d9240:176`–`181`: the listing
+`5d9565`–`5d958a` tests the plane bit and the pack pair and calls `set_anim(walk, 0, 1)` without reading `cur_anim`.
+Only the standing arms spare slots 21 and 22. Ours' moving arm spared them as well, from its first writing
+(`3ccdbe3c`, 2026-08-24), and so kept 22 until the push stopped. A blind reader of this session put the gate on the
+standing arm alone; the dump's per-frame angle step killed that reading before anything was built. **Value diff**:
+`1/118`'s `g.cur_anim[0]` on 16512 is 8 on both sides. **16516 → 24000**; run987b 1994 → 48. `docs/ANIM.md` §16.
+
+**The close.** `run969b_inca_closing_state` walks to run969b's closing block 24001 and compares 177 units, none
+apart, no building field-row; one closing field parts, the human's city `0/2000`'s `peasant_dist`, ours 2 against
+theirs 1 (parked 3360a). The lobby is closed.
+
+**What stands.** run987's 49 and run987b's 48: the standing family (`SITE[·].reg` 65 against 0, `aggression[1]`,
+`form` −1 against 0/9, the army `pool:n` and `group:n.held` with no `GROUPDATA` printed) and, in run987b, `1/46`'s
+`dest_angle` on 16714 (ours 1073741824, theirs −1334181888), which the draw stream never feels (parked 3360b).
+
+**Tests.** `holdings::tests::an_inca_mine_pays_ten_wealth_a_miner` and
+`anim::tests::a_moving_figure_on_a_turn_slot_is_put_back_on_the_walk` (made to fail first with the turn slots spared);
+`inca_word_first_parting` at 24000, which `tools/mutate.py` turned red (exit 101) on the Inca arm two ways (the arm's
+`Resource::Metal` → `Timber`; the per-head multiply dropped); `run987_s_word_frame_is_widened_whole`,
+`run987b_s_word_frame_is_widened_whole` and the closing state.
+
+**Coverage.** Diff-backed: who=1's wealth on 7776, `1/118`'s animation on 16512, the draw stream to 24000, the close.
+Listing-backed: the moving arm's gate (`5d9565`–`5d958a`). Reading only: `Leader::calc_gather:279`'s negative arm
+(dead at 10); and the moving arm's `CHAR_ATTACKWALK` request (`cavarch_o >= 0` and the type's `0x200000`), which
+`Sim::walk_for` does not make. Ours keeps sparing a figure already on `CHAR_ATTACKWALK` in its place (parked 3360c).
 
 ## 282. The battery's Aztec word closes: a scout's fog, and a detected decoy's bleed
 

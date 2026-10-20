@@ -127,6 +127,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // promoted to the AI word (item 3355, DECISIONS 72, 83, 84): the
     // Persians at Difficulty 2, Great Lakes.
     (14, 23, 2),
+    // The battery's lowest open lobby on the measure of `3eb2c76c`,
+    // promoted to the AI word (item 3360, DECISIONS 72, 83, 84): the Inca
+    // at Difficulty 3, East Indies.
+    (18, 2, 3),
     // The battery's lowest open lobby once item 3359 closed the French, the
     // Inca being item 3360's, promoted to the AI word (item 3361, DECISIONS
     // 72, 83, 84): the Aztecs at Difficulty 2, Great Sahara.
@@ -327,26 +331,36 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on
     // item 3335 for the AI word (`diff::indian_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3335 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §271; runs 969 and 969b) when the Indians left for the AI word, so
-    // the held-out set stays eight: East Indies, the Incas at Difficulty 3
-    // — a nation no dump held, and a tier the map's battery lacks. The
-    // game does not end itself: the long runs to 24000.
+    // `EastIndiesIncaTier3` (Inca 2, Difficulty 3, map 18; run969 and
+    // run969b, 7782 of 24000), minted by item 3335, left the battery on
+    // item 3360 for the AI word (`diff::inca_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3360 (DECISIONS 72 as amended by 84,
+    // `docs/AI.md` §125, §281; runs 986 and 986b) when the Inca left for the
+    // AI word, so the held-out set stays eight: East Indies, the Spanish at
+    // Difficulty 3 — **rule (2)**: rule (1) has no answer (every nation is in
+    // some dump), and of the nations no East Indies dump holds and only
+    // closed games hold (the Maya, Bantu, Greeks, Egyptians, Spanish,
+    // Japanese and Iroquois; the open battery's nations out), the Spanish
+    // reach the most census functions (9, `docs/NATIONS.md`), held only by
+    // `GreatSaharaSpanishTier3`; tier 3 is the tier the Inca left, and East
+    // Indies' battery then holds tier 1 alone. The game does not end itself:
+    // the long runs to 24000.
     Lobby {
-        name: "EastIndiesIncaTier3",
+        name: "EastIndiesSpanishTier3",
         map_style: 18,
-        ai_tribe: 2,
+        ai_tribe: 9,
         difficulty: 3,
-        start: "gamelog-run969-eastindies-inca-diff3-start.txt",
+        start: "gamelog-run986-eastindies-spanish-diff3-start.txt",
         long: (
-            "gamelog-run969b-eastindies-inca-diff3-24k-trace.txt",
-            "rontrace-run969b.log",
+            "gamelog-run986b-eastindies-spanish-diff3-24k-trace.txt",
+            "rontrace-run986b.log",
         ),
         length: 24000,
-        // Item 3335, the first try: ours 3218 draws, theirs 3219, at 1 ours
-        // `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`.
-        count: 7782,
-        sequence: 7782,
+        // Item 3360, the first try: ours 2 draws, theirs 12, at 0 ours
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+        // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+        count: 9028,
+        sequence: 9028,
     },
     // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §263; runs 955 and 955b) when the Romans left for the AI word, so
