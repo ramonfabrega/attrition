@@ -2940,8 +2940,11 @@ document or `tools/gamelog/captures.txt`), **orphan** (nothing). A
 **recreatable** packets (no Rust code pins their run), **orphans**,
 **ledger-only**, each with its total. It deletes nothing and has no flag
 that could; the tests (`tools/explore/test_archive_census.py`) pin both.
-Notes flag a file over 2 GiB (`compressible-unsupported`) and an entry
-still `raw` after the last `afsctool` line above.
+Notes flag a file over 2 GiB (`compressible-unsupported`), an entry
+still `raw` after the last `afsctool` line above, and one written within
+`--recent-days` (7): those are kept off the lists, because an unfiled
+capture is most often one whose item has not landed (the first run
+found 121 of 178 orphans were that week's tranche).
 ## The click-free lanes are a pool (2026-10-07, items 1568 and 1569; parked 1139)
 
 The click-free lane is a pool of lanes. Everything a capture writes is a

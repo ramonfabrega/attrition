@@ -47,7 +47,11 @@ pins — the item that took them has landed), **orphans** and
 **ledger-only** (packets excepted, which are under recreatable), each
 with its total. Notes: `compressible-unsupported` where one file is over
 2 GiB, `raw` where the allocation is at least 90 % of the apparent size
-(over 1 MiB; a capture lands raw and the steering pass compresses it).
+(over 1 MiB; a capture lands raw and the steering pass compresses it),
+`recent` where the entry's own mtime is under `--recent-days` (7) old —
+kept off the candidate lists and printed apart, because an unfiled
+capture is most often one whose item has not landed yet (on 2026-10-19,
+121 of 178 orphans were that week's tranche).
 """
 import argparse
 import importlib.util
@@ -55,6 +59,7 @@ import json
 import os
 import re
 import sys
+import time
 from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -251,11 +256,23 @@ def notes_for(size):
 
 # ---- the census ----------------------------------------------------------------
 
+RECENT = {'now': None, 'days': 7}
+
+
 def _row(entry, kind, size, path, notes=()):
-    return {'entry': entry, 'kind': kind, 'path': path, 'apparent': size['apparent'],
-            'alloc': size['alloc'], 'largest': size['largest'], 'class': None,
-            'pinned_by': [], 'comment_by': [], 'ledger': [],
-            'notes': list(notes) + notes_for(size)}
+    row = {'entry': entry, 'kind': kind, 'path': path, 'apparent': size['apparent'],
+           'alloc': size['alloc'], 'largest': size['largest'], 'class': None,
+           'pinned_by': [], 'comment_by': [], 'ledger': [],
+           'notes': list(notes) + notes_for(size), 'recent': False}
+    now, days = RECENT['now'], RECENT['days']
+    try:
+        age = (now if now is not None else time.time()) - os.lstat(path).st_mtime
+    except OSError:
+        age = None
+    if days and age is not None and age < days * 86400:
+        row['recent'] = True
+        row['notes'].append('recent (< %d d): its item may be in flight' % days)
+    return row
 
 
 def _classify(row, refs, names, tag=None):
@@ -320,7 +337,9 @@ def log_rows(logs, refs):
         path = os.path.join(logs, name)
         entry = 'logs/' + name
         if os.path.isdir(path) and not os.path.islink(path):
-            row = _row(entry, 'other', sum_sizes(walk(path)), path, ['a directory in the logs'])
+            row = _row(entry, 'other', sum_sizes(walk(path)), path,
+                       ['a cache directory in the logs (the readers rebuild it)'
+                        if name.startswith('.') else 'a directory in the logs'])
             _classify(row, refs, [name])
             rows.append(row)
             continue
@@ -355,8 +374,12 @@ def data_rows(data, logs, skip_names=()):
     return rows
 
 
-def census(root, logs, data, refs):
-    """Every row, sorted by allocated size, largest first."""
+def census(root, logs, data, refs, now=None, recent_days=7):
+    """Every row, sorted by allocated size, largest first. An entry whose
+    top-level mtime is under `recent_days` old (against `now`) is marked
+    recent and kept off the candidate lists: an unfiled capture is most
+    often one whose item has not landed yet."""
+    RECENT['now'], RECENT['days'] = now, recent_days
     root, logs, data = str(root), str(logs), str(data)
     skip = ()
     if os.path.realpath(root).startswith(os.path.realpath(data) + os.sep):
@@ -378,20 +401,24 @@ def summarize(rows):
     for r in rows:
         by_kind[r['kind']].append(r)
         by_class[r['class']].append(r)
+    unread = [r for r in rows if (r['class'] in ('orphan', 'ledger-only')
+                                  or (r['kind'] == 'packet' and r['class'] != 'pinned'))]
+    old = [r for r in unread if not r['recent']]
     lists = {
-        'recreatable': [r for r in rows if r['kind'] == 'packet' and r['class'] != 'pinned'],
-        'orphans': [r for r in rows if r['kind'] != 'packet' and r['class'] == 'orphan'],
-        'ledger-only': [r for r in rows if r['kind'] != 'packet' and r['class'] == 'ledger-only'],
+        'recreatable': [r for r in old if r['kind'] == 'packet'],
+        'orphans': [r for r in old if r['kind'] != 'packet' and r['class'] == 'orphan'],
+        'ledger-only': [r for r in old if r['kind'] != 'packet' and r['class'] == 'ledger-only'],
     }
-    candidates = {}
-    for name, entries in lists.items():
+
+    def listed(entries):
         c = _total(entries)
         c['entries'] = entries
-        candidates[name] = c
+        return c
     return {'total': _total(rows),
             'by_kind': {k: _total(v) for k, v in sorted(by_kind.items())},
             'by_class': {k: _total(v) for k, v in sorted(by_class.items())},
-            'candidates': candidates}
+            'candidates': {name: listed(entries) for name, entries in lists.items()},
+            'recent': listed([r for r in unread if r['recent']])}
 
 
 def mib(n):
@@ -452,6 +479,12 @@ def print_report(rows, summary, top, roots):
         for r in c['entries']:
             extra = '' if name == 'orphans' else '  ' + referenced(r)
             print('  %10s  %s%s' % (mib(r['alloc']), r['entry'], extra))
+    c = summary['recent']
+    print()
+    print('## Not candidates, recent: unpinned or recreatable but written within --recent-days'
+          ' — %d entries, %s MiB allocated' % (c['count'], mib(c['alloc'])))
+    for r in c['entries']:
+        print('  %10s  %s  %s' % (mib(r['alloc']), r['entry'], referenced(r)))
 
 
 def main(argv=None):
@@ -465,6 +498,8 @@ def main(argv=None):
                     help='the other top-level directories, by size only (default ~/ron-data)')
     ap.add_argument('--repo', default=REPO, help='the checkout whose text says who reads what')
     ap.add_argument('--top', type=int, default=0, help='rows of the table (default all)')
+    ap.add_argument('--recent-days', type=int, default=7,
+                    help='an entry newer than this is no candidate (default 7; 0 turns it off)')
     ap.add_argument('--json', action='store_true', help='everything, as JSON')
     a = ap.parse_args(argv)
     for label, path in (('--root', a.root), ('--logs', a.logs), ('--data', a.data)):
@@ -472,7 +507,7 @@ def main(argv=None):
             print('archive_census: %s %s is not a directory; its rows are empty' % (label, path),
                   file=sys.stderr)
     refs = load_refs(a.repo)
-    rows = census(a.root, a.logs, a.data, refs)
+    rows = census(a.root, a.logs, a.data, refs, recent_days=a.recent_days)
     summary = summarize(rows)
     if a.json:
         json.dump({'roots': {'root': a.root, 'logs': a.logs, 'data': a.data, 'repo': a.repo},

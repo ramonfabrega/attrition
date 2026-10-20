@@ -15,6 +15,7 @@ import json
 import os
 import re
 import tempfile
+import time
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
@@ -115,7 +116,9 @@ class Archive(unittest.TestCase):
         make_repo(self.repo)
         self.golden, self.logs, self.data = make_archive(base)
         self.refs = ac.load_refs(self.repo)
-        self.rows = ac.census(self.golden, self.logs, self.data, self.refs)
+        # the authored archive is a month old, except where a test says otherwise
+        self.now = time.time() + 30 * 86400
+        self.rows = ac.census(self.golden, self.logs, self.data, self.refs, now=self.now)
         self.by = {r['entry']: r for r in self.rows}
 
     def tearDown(self):
@@ -274,12 +277,29 @@ class Summary(Archive):
                          sum(r['alloc'] for r in self.rows))
 
 
+class Recent(Archive):
+    def test_an_entry_written_this_week_is_no_candidate(self):
+        os.utime(self.golden / 'run300', (self.now - 86400, self.now - 86400))
+        rows = ac.census(self.golden, self.logs, self.data, self.refs, now=self.now)
+        by = {r['entry']: r for r in rows}
+        self.assertEqual(by['run300']['class'], 'orphan')
+        self.assertIn('recent', '; '.join(by['run300']['notes']))
+        s = ac.summarize(rows)
+        orphans = {r['entry'] for r in s['candidates']['orphans']['entries']}
+        self.assertNotIn('run300', orphans)
+        self.assertIn('run95', orphans)
+        self.assertEqual({r['entry'] for r in s['recent']['entries']}, {'run300'})
+
+    def test_a_cache_directory_in_the_logs_says_so(self):
+        self.assertIn('cache', '; '.join(self.by['logs/.ron-oracle-v1']['notes']))
+
+
 class Cli(Archive):
     def run_main(self, *extra):
         out = io.StringIO()
         with redirect_stdout(out):
             ac.main(['--root', str(self.golden), '--logs', str(self.logs), '--data', str(self.data),
-                     '--repo', str(self.repo), *extra])
+                     '--repo', str(self.repo), '--recent-days', '0', *extra])
         return out.getvalue()
 
     def test_json_is_the_whole_thing(self):
