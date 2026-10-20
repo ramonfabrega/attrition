@@ -294,6 +294,8 @@ mod unit_think;
 mod unit_think_caravan;
 #[path = "unit_think_carry.rs"]
 mod unit_think_carry;
+#[path = "unit_think_carry_civilian.rs"]
+mod unit_think_carry_civilian;
 #[path = "unit_think_hero.rs"]
 mod unit_think_hero;
 #[path = "unit_think_peasant.rs"]

@@ -82,6 +82,7 @@ pub mod fish;
 pub mod flag_reads;
 pub mod flock;
 pub mod form;
+pub mod carry_civ;
 pub mod friends;
 pub mod gaia;
 pub mod garrison;
