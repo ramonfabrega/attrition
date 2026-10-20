@@ -127,6 +127,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // promoted to the AI word (item 3355, DECISIONS 72, 83, 84): the
     // Persians at Difficulty 2, Great Lakes.
     (14, 23, 2),
+    // The battery's lowest open lobby once item 3359 closed the French, the
+    // Inca being item 3360's, promoted to the AI word (item 3361, DECISIONS
+    // 72, 83, 84): the Aztecs at Difficulty 2, Great Sahara.
+    (7, 0, 2),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -237,20 +241,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // The five lobbies minted by item 2975 (DECISIONS 77 (ii), `docs/AI.md`
     // §125, §243; runs 895–899): a nation no dump holds, a tier of 2, 3 or 4,
     // no two sharing a nation or a tier on a map. Each game ended itself.
-    Lobby {
-        name: "GreatSaharaAztecTier2",
-        map_style: 7,
-        ai_tribe: 0,
-        difficulty: 2,
-        start: "gamelog-run895-greatsahara-aztec-diff2-start.txt",
-        long: (
-            "gamelog-run895b-greatsahara-aztec-diff2-24k-trace.txt",
-            "rontrace-run895b.log",
-        ),
-        length: 17554,
-        count: 9130,
-        sequence: 9130,
-    },
+    // `GreatSaharaAztecTier2` (Aztecs 0, Difficulty 2, map 7; run895 and
+    // run895b, 9130 of 17554) left the battery on item 3361 for the AI
+    // word (`diff::aztec_word`, DECISIONS 72, 83, 84).
     // `GreatSaharaSpanishTier3` (Spanish 9, Difficulty 3, map 7; run896
     // and run896b, 576 of 22700) left the battery on item 3318 for the AI
     // word (`diff::spanish_word`, DECISIONS 72, 83).
