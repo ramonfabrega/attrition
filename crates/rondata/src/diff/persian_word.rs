@@ -94,3 +94,47 @@ fn persian_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+/// run984: the word 6046's window, blocks 6020..6276 at `GUYS=4` and
+/// `AMMO=5` (item 3355). run979 dumps blocks 0..36 and run979b its setup
+/// and closing blocks only, so no dump on disk held the word's block.
+pub(crate) const RUN984: &str =
+    "gamelog-run984-greatlakes-persian-diff2-window-6020-6277-guys4-ammo.txt";
+
+/// The window: block 6020 through 6276; the word 6046's own block is 6047.
+pub(crate) const WIDENING_PERSIAN_FRAME_6046: (i64, i64) = (6020, 6276);
+
+pub(crate) fn persian_frame_6046_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[PERSIAN.start],
+        true,
+        PERSIAN.long,
+        "run984",
+        &[(RUN984, WIDENING_PERSIAN_FRAME_6046.0)],
+        WIDENING_PERSIAN_FRAME_6046,
+        1,
+        &[6047],
+        true,
+    )
+}
+
+#[test]
+fn run984_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_frame_6046_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}

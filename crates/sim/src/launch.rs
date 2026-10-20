@@ -954,6 +954,37 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 168,
         },
     ),
+    // **Piece 112, the Persians' Immortals** (type 162; item 3355,
+    // `docs/AI.md` §279): a nation's own piece, so no continent offset.
+    // run984b's `RON_STATE_FRAME=6011` packet on the Persian Great Lakes
+    // game holds its two `AttachPos` rows — `CHAR_ATTACK2` at 14 and `3` at
+    // 6, there is no `CHAR_ATTACK1` row — and `tools/recomp/get_position.
+    // py`'s sweep of each is reproduced by these at all 361 headings, x, y
+    // and z; each is the centroid of its exact region (105 and 115 lattice
+    // points). Without them every Immortal's arrow left the unit's own
+    // square: the Persian word's 6046, whose state had parted on 6021 —
+    // `1/16`'s arrow at the Scout `0/0` thrown on 6012 landing a frame late
+    // (11 frames against 10), so `0/0` took no wound and stood.
+    (
+        112,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_067,
+            fwd: 104_603,
+            dz: 178,
+        },
+    ),
+    (
+        112,
+        crate::anim::ATTACK3,
+        6,
+        Bay {
+            right: 27_678,
+            fwd: 36_793,
+            dz: 171,
+        },
+    ),
     // **Piece 33, the Javelineers (type 83): the original's own
     // `get_position`** (item 1194). Its `Spear` leaves node 0 on frame 12
     // of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
