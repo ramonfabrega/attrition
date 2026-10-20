@@ -371,17 +371,25 @@ mod tests {
     use crate::world::{Cell, Pos};
     use crate::{Sim, Tuning, Unit, World};
 
-    /// A land of one region, a builder of player 0 in cell (2, 2), and `n` sites.
+    const CELL: i32 = 768;
+
+    /// A land of one region (a second, empty one beside it), a builder of
+    /// player 0 at the middle of cell (8, 8), and the sites `(owner, x, y)`.
     fn land(sites: &[(u8, i32, i32)]) -> (Sim, usize, Vec<usize>) {
-        let mut world = World::new(8, 8);
+        let mut world = World::new(16, 16);
         world.fill_region(
             crate::world::Terrain::Land,
             Cell::new(0, 0),
-            Cell::new(7, 7),
+            Cell::new(15, 15),
         );
         world.add_region(crate::world::Terrain::Land);
         let mut s = Sim::new(Tuning::RON, world, 4);
-        let u = s.add_unit(Unit::new(0, 1, Pos::new(2 * 768 + 100, 2 * 768 + 100), 10));
+        let u = s.add_unit(Unit::new(
+            0,
+            1,
+            Pos::new(8 * CELL + CELL / 2, 8 * CELL + CELL / 2),
+            10,
+        ));
         let b = sites
             .iter()
             .map(|&(owner, x, y)| {
@@ -393,15 +401,19 @@ mod tests {
         (s, u, b)
     }
 
+    fn at(cx: i32, cy: i32) -> (i32, i32) {
+        (cx * CELL + 10, cy * CELL + 10)
+    }
+
     #[test]
     fn a_cell_lists_its_newest_site_first_and_keeps_only_mine_unfinished_and_unattacked() {
-        let c = (2 * 768 + 300, 2 * 768 + 300);
+        let (x, y) = at(8, 8);
         let (mut s, u, b) = land(&[
-            (0, c.0, c.1),
-            (0, c.0 + 5, c.1),
-            (1, c.0, c.1 + 5),
-            (0, c.0 + 9, c.1),
-            (0, c.0 + 20, c.1),
+            (0, x, y),
+            (0, x + 5, y),
+            (1, x, y + 5),
+            (0, x + 9, y),
+            (0, x + 20, y),
         ]);
         s.buildings[b[3]].active = true;
         s.buildings[b[4]].under_attack = 2;
@@ -411,20 +423,66 @@ mod tests {
 
     #[test]
     fn a_site_in_another_region_is_not_found() {
-        let (mut s, u, b) = land(&[(0, 2 * 768 + 300, 2 * 768 + 300)]);
-        s.world.set_region(Cell::new(3, 2), 1);
-        s.buildings[b[0]].pos = Pos::new(3 * 768 + 10, 2 * 768 + 10);
+        let (x, y) = at(9, 8);
+        let (mut s, u, b) = land(&[(0, x, y)]);
+        s.world.set_region(Cell::new(9, 8), 1);
         assert!(s.find_construct_sites(u, 0x300).is_empty());
-        s.world.set_region(Cell::new(3, 2), 0);
+        s.world.set_region(Cell::new(9, 8), 0);
         assert_eq!(s.find_construct_sites(u, 0x300), vec![b[0]]);
     }
 
     #[test]
-    fn the_list_walk_measures_the_x_offset_twice_less_the_footprint() {
-        // Range 0x2400 is ring 12, 452 points: past `num_def_builds`, so the list walk.
-        let here = 2 * 768 + 100;
-        // Straight north, 1500 units away: the original never reads the y offset.
-        let (s, u, b) = land(&[(0, here, here + 3 * 768), (0, here + 0x2500, here)]);
+    fn the_circle_walks_nearer_cells_first_and_the_list_walk_slots_in_order() {
+        // Slot order is far, near, far-north; the ring puts the near one first.
+        let sites = [at(12, 8), at(9, 8), at(8, 4)].map(|(x, y)| (0, x, y));
+        let (s, u, b) = land(&sites);
+        // Range 0xc00 is ring 4 (49 points): the circle walk.
+        let circle = s.find_construct_sites(u, 0xc00);
+        assert_eq!(circle.len(), 3);
+        assert_eq!(circle[0], b[1]);
+        // Range 0x1a00 is ring 9 (254 points, past `num_def_builds`): the list, by slot.
+        assert_eq!(s.find_construct_sites(u, 0x1a00), vec![b[0], b[1], b[2]]);
+    }
+
+    #[test]
+    fn the_list_walk_measures_the_x_offset_twice() {
+        // Range 0x2400 is ring 12: the list walk. 3000 units straight north is
+        // distance 0 to the original (it never reads `+0x14`); 7000 east is 10500.
+        let here = 8 * CELL + CELL / 2;
+        let (s, u, b) = land(&[(0, here, here - 3 * CELL), (0, here + 7000, here)]);
         assert_eq!(s.find_construct_sites(u, 0x2400), vec![b[0]]);
+        let (s, u, b) = land(&[
+            (0, here + 6000, here),
+            (0, here + 2 * CELL, here - 4 * CELL),
+        ]);
+        assert_eq!(s.find_construct_sites(u, 0x2400), vec![b[0], b[1]]);
+    }
+
+    #[test]
+    fn the_list_walk_takes_the_footprint_off_both_operands() {
+        let here = 8 * CELL + CELL / 2;
+        let (mut s, u, b) = land(&[(0, here + 6700, here)]);
+        assert!(s.find_construct_sites(u, 0x2400).is_empty());
+        // x_size 4 takes 768 off each operand: 5932, distance 8898 against 9216 (10050 without).
+        let t = s.add_build_type(crate::build::BuildType {
+            x_size: 4,
+            y_size: 4,
+            ..crate::build::BuildType::default()
+        });
+        s.buildings[b[0]].ty = Some(t);
+        assert_eq!(s.find_construct_sites(u, 0x2400), vec![b[0]]);
+        // One operand alone does not do it: (5932, 6700) is 9326.
+        s.build_types[t].y_size = 0;
+        assert!(s.find_construct_sites(u, 0x2400).is_empty());
+        s.build_types[t].y_size = 4;
+        s.build_types[t].x_size = 0;
+        assert!(s.find_construct_sites(u, 0x2400).is_empty());
+    }
+
+    #[test]
+    fn the_list_walk_reaches_the_owners_last_site() {
+        let here = 8 * CELL + CELL / 2;
+        let (s, u, b) = land(&[(0, here, here), (0, here + 100, here), (1, here, here)]);
+        assert_eq!(s.find_construct_sites(u, 0x2400), vec![b[0], b[1]]);
     }
 }
