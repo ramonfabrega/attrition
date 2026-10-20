@@ -3868,6 +3868,16 @@ does not reach the commit it makes three hours later. Candidates: a `commit-msg`
 message says `PROBE` and whose diff touches a path outside the probe's own (`RON_DEBUG_*`, `RON_PROBE_*` sites); or
 `tools/probe.py`, which commits only the hunks behind the probe's variable. The pass's. One reach.
 
+(3373) **The lane gate's one-second budget skips the writers guard** (the commander, 3362's booking gate on
+`a59bdbb0`): `rondata::writers::a_field_the_sim_writes_is_read_by_something` is timed at 1.08 s
+(`docs/audit/2026-10-15-suite-timings.txt`), over `LANE_BUDGET_SECONDS`, so `--lane --no-widen` leaves it to the
+booking gate. A sweep lane is the lane most likely to add a view struct's field, and 3362 added two
+(`Find::a13`, `Head::newcity`). The booking gate went red on them, and the second commit `13a66de6` fixed the
+guard's own blind spots: the `#[cfg(test)]` `sweep/` directory is now read as test source, and a destructure is
+not seen as a read (the caller reads by field instead). No kill rule tripped, since the lane gate never ran the
+test. Candidates: the paperwork-shaped guards (`writers::`, `docs_guard`) run in every lane gate whatever their
+time; or the guard's scan cached, so it falls under the budget. The pass's. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
