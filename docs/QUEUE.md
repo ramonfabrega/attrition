@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-20, **the forty-seventh tranche (commander, Opus): 3 of 20 landed from `56f23ba5`** (the Germans and the
-Indians at Great Sahara and the Turks at Great Lakes closed); the roster is Ramon's (DECISIONS 84, 85): two Opus 5.5 medium battery lanes landing wide, two Sonnet
-5.5 medium sweep lanes. Last whole gate `0870d1da` (the forty-sixth pass's).*
+*2026-10-20, **the forty-seventh tranche (commander, Opus): 4 of 20 landed from `56f23ba5`** (the Germans and the
+Indians at Great Sahara and the Turks at Great Lakes closed; one sweep); the roster is Ramon's (DECISIONS 84, 85): two Opus 5.5 medium battery lanes landing wide, two Sonnet
+5.5 medium sweep lanes. Last whole gate `a17aadbc`.*
 
 - **Words**: every pair closed; twenty-seven battery words closed (`AI_WORDS` holds twenty-five). Battery on `60438302`:
-  3176 (the Americans at Great Lakes, 3384), 13126 (the Inca at Great Sahara, 3385), 7799, 14540, 18883, 24000 ×3 — six of eight whole, median 16711. Census 1619, port 501.
+  3176 (the Americans at Great Lakes, 3384), 13126 (the Inca at Great Sahara, 3385), 7799, 14540, 18883, 24000 ×3 — six of eight whole, median 16711. Census 1624, port 507.
 - **Lanes: four live**: 3385 the Inca (Opus; runs 1010, 1011, AI §293, LV), 3384 the Americans (Opus; runs 1008,
-  1009, AI §292, LU), 3379 the nations seat (Sonnet, LQ), 3381 the second sweep (Sonnet, LS). Next 3386, run 1012. Pools: GOLDEN §144–148, AI §294–299, park LW–MB.
+  1009, AI §292, LU), 3379 the nations seat (Sonnet, LQ), 3386 the second sweep (Sonnet, LW). Next 3387, run 1012. Pools: GOLDEN §144–148, AI §294–299, park LX–MB.
 - **Fable backlog: 10 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382); DECISIONS 85.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -30,21 +30,21 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1619 of 3611 · port 501 · layout 1118
+Census: simulation backed 1624 of 3611 · port 507 · layout 1117
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-seventh tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md
-first; 3 of 20 landed from `56f23ba5`; re-arm `python3 tools/lanewait.py` on att-3385, att-3384, att-3379 and
-att-3381 and carry the chain — the whole gate at eight threads again (Loop
+first; 4 of 20 landed from `56f23ba5`; re-arm `python3 tools/lanewait.py` on att-3385, att-3384, att-3379 and
+att-3386 and carry the chain — the whole gate at eight threads again (Loop
 3363), a battery lane refilled by `battery_measure`'s lowest open lobby under entry 72's rules as amended (DECISIONS
 84; the booking names the rule), a sweep lane by the next six `port`-marked rows; twenty landings, then clear `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 84): 3385 and 3384 the battery
-words' (Opus), 3379 and 3381 the sweeps' (Sonnet). **A battery word's lane lands wide**: every fix its widening
+words' (Opus), 3379 and 3386 the sweeps' (Sonnet). **A battery word's lane lands wide**: every fix its widening
 exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed (`AI_WORDS`
 holds twenty-five); open: none until 3385 and 3384 promote the Inca at Great Sahara and the Americans at Great Lakes. An open word is carried to its
 end before the next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why.
@@ -73,11 +73,12 @@ end before the next lobby is promoted (3329 → 3333). Take the first unstarted 
     --all --top 4000`, the `port` mark) — each built against the crate's own method where it has one, or parked on a
     generator run naming the flag it could not spell. `--kind sweep`, `--no-widen`, park LQ.
 
-3381. **The second sweep's next batch** (DECISIONS 84 (i), Loop 3188; the score `Census:` port 501): the `--stub-alloc`
-    retries 3377 names — `Unit::find_build_spot` (3282b, 3339a), `Unit::do_non_flat_gather` (3358d),
-    `PathFinder::astar_path` (3362a) — and `Group::action_trade`, `Group::distribute_attack`,
-    `Group::action_attack_ground` (the next `port`-marked rows); each built against the crate's own method where it
-    has one, or parked on a generator run naming the flag it could not spell. `--kind sweep`, `--no-widen`, park LS.
+3386. **The second sweep's next batch** (DECISIONS 84 (i), Loop 3188; the score `Census:` port 507; 3381 swept five,
+    parked 3381a–e and struck 3282b, 3339a, 3358d, 3362a): the last six `port`-marked rows outside 3379's batch —
+    `Group::action_board_ship`, `Unit::find_path`, `Group::action_swarm_around`, `Group::action_gather`,
+    `Group::action_spell`, `BuildTypeData::calc_gather` (`census.py --unbacked --all --top 4000`, the `port` mark) —
+    each built against the crate's own method where it has one, or parked on a generator run naming the flag it could
+    not spell. `--kind sweep`, `--no-widen`, park LW.
 
 ## How to maintain this file
 
