@@ -445,7 +445,9 @@ fn a_function_s_name_in_backticks_is_not_a_capture_booking() {
     assert!(books_a_capture(
         "3378. The Germans at Great Sahara: a Great Sahara capture at detail (run 1003)"
     ));
-    assert!(!books_a_capture("the next chapter's capture on the golden lane"));
+    assert!(!books_a_capture(
+        "the next chapter's capture on the golden lane"
+    ));
 }
 
 /// The frame an open item books: the number after its first `frame`, else
