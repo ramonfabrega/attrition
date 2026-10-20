@@ -9918,6 +9918,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3355,
         Some(crate::diff::persian_word::WIDENING_PERSIAN_CLOSING),
     ),
+    // **The battery's Aztec word** (item 3361, DECISIONS 72, 83, 84):
+    // frame 9130, the battery's first try (item 2975), promoted here and
+    // widened on run989 over 9124..9380 (block 9131). Item 3361 moved it
+    // 9130 → 17394 with `come_out`'s inside arm lighting no disc (run989b's
+    // fog, run989c the Horse Archer's birth), and — widened on run989d
+    // over 17388..17554 (block 17395) — 17394 → 17554, the game's last
+    // frame, with a detected decoy's bleed. The close is compared whole on
+    // run895b's own closing block 17555 by `run895b_aztec_closing_state`.
+    (
+        "AZTEC_WORD",
+        crate::diff::aztec_word::AZTEC_WORD,
+        Some("run895b_aztec_closing_state"),
+        3361,
+        Some(crate::diff::aztec_word::WIDENING_AZTEC_CLOSING),
+    ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
     // 6065..6321 (block 6072). Item 3345 moved it 6071 → 7902, the game's
@@ -10523,6 +10538,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // run979b's closing block 7106 scores the end itself.
         endpoint: Some("run979b_persian_closing_state"),
         window: Some("persian_frame_6323_window"),
+    },
+    // **The battery's Aztec word** (DECISIONS 72, 83, 84; item 3361):
+    // Great Sahara, the Aztecs at Difficulty 2 — the held-out battery's
+    // next open lobby once item 3359 closed the French; the game ends
+    // itself on 17554. It joins the `Battery word` line first; the closed
+    // rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaAztecTier2",
+        named: "Great Sahara (Aztecs)",
+        word: crate::diff::aztec_word::AZTEC_WORD,
+        length: 17_554,
+        // Closed by item 3361: the draw stream agrees to 17554, and
+        // run895b's closing block 17555 scores the end itself.
+        endpoint: Some("run895b_aztec_closing_state"),
+        window: Some("aztec_frame_17394_window"),
     },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's
