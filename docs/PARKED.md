@@ -8694,13 +8694,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LI — reserved
+## Parked by item 3365, 2026-10-20 — the Korean word closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word closed at 15944 and the close compares whole (`docs/AI.md` §283). Two keys of run991b's 80 standing ones
+part with no draw:
+
+- **3365a — `1/85`'s `dest_angle` on 15329.** run991b: ours −2147483648, theirs −1351155712; no draw parts, and
+  nothing the word reads follows from it. Read who writes `dest_angle` on a unit with no destination when a draw
+  parts on `1/85`'s facing.
+- **3365b — who=1's six Merchants re-pieced on 15413.** Both sides re-piece them; theirs puts both figures on
+  `gpiece` 50688 with the cart snapped onto the merchant's point, ours on 3179 / 15851 with the cart apart. No draw
+  parts. Read the caravan's piece pairing when a draw parts on a Merchant's figure.
 
 ## Parked by the next landing, slot LJ — reserved
 
