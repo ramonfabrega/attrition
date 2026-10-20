@@ -956,6 +956,15 @@ impl World {
     /// (gated on a flag nothing here sets), `World +0x168` and `WData
     /// +0x14` — have no reader in this simulation; §7.
     pub fn set_seen(&mut self, fx: i32, fy: i32, mask: u8) -> bool {
+        if std::env::var_os("RON_PROBE_FOG").is_some()
+            && ((fx, fy) == (117, 55) || (fx, fy) == (119, 53))
+            && self.fog_index(fx, fy).is_some_and(|i| self.fog[i] & mask != mask)
+        {
+            eprintln!(
+                "PROBE set ({fx}, {fy}) mask {mask}: {}",
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let Some(i) = self.fog_index(fx, fy) else {
             return false;
         };
@@ -975,6 +984,15 @@ impl World {
     /// footprint must not make its neighbour think it has been spotted.
     /// Answers whether `seen2` changed. `docs/VISION.md` §6.1.
     pub fn set_seen2_only(&mut self, fx: i32, fy: i32, mask: u8) -> bool {
+        if std::env::var_os("RON_PROBE_FOG").is_some()
+            && ((fx, fy) == (117, 55) || (fx, fy) == (119, 53))
+            && self.fog_index(fx, fy).is_some_and(|i| self.fog[i] & mask != mask)
+        {
+            eprintln!(
+                "PROBE set ({fx}, {fy}) mask {mask}: {}",
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let Some(i) = self.fog_index(fx, fy) else {
             return false;
         };
