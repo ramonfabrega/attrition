@@ -3587,19 +3587,6 @@ impl Sim {
             _ => return,
         };
         let me = Obj::Unit(responder);
-        if std::env::var_os("RON_PROBE_3375").is_some() {
-            eprintln!(
-                "PROBE3375 topp victim {} resp {}/{} attacker {:?} orders {:?} fleeing {} idle {} worker {:?}",
-                victim,
-                self.units[responder].owner,
-                self.units[responder].index,
-                attacker,
-                self.units[responder].orders.front().map(|o| o.index()),
-                self.is_fleeing(responder),
-                self.is_idle(responder),
-                self.worker_of(responder)
-            );
-        }
         let st = self.units[responder].combat;
         // `UnitData::is_fleeing@0046efa0` — `order_type() == FLEE_TO`
         // (`docs/ORDERS.md` §1.3). A unit already running does not answer
@@ -3922,17 +3909,6 @@ impl Sim {
         let me = Obj::Unit(u);
         let p = self.profile(me);
         let civilian = p.has(mask::CIVILIAN) && self.max_range_of(me) == 0;
-        if std::env::var_os("RON_PROBE_3375").is_some() {
-            eprintln!(
-                "PROBE3375 flee {}/{} civilian_mask {} max_range {} attack {} packs {}",
-                self.units[u].owner,
-                self.units[u].index,
-                p.has(mask::CIVILIAN),
-                self.max_range_of(me),
-                p.attack,
-                p.packs
-            );
-        }
         if !civilian && p.attack != 0 {
             return false;
         }
