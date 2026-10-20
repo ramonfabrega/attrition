@@ -76,6 +76,8 @@ mod unit_change_target;
 mod unit_check_build_order;
 #[path = "unit_check_build_order_deep.rs"]
 mod unit_check_build_order_deep;
+#[path = "unit_check_build_order_move.rs"]
+mod unit_check_build_order_move;
 #[path = "unit_check_idle.rs"]
 mod unit_check_idle;
 #[path = "unit_check_target_path.rs"]
