@@ -20359,3 +20359,80 @@ SHA-256 `284c98e1a029c5f2b9754a245f7d3cab14f5df451299ee5524cd1bba16926e6b`.
 **What it holds**: on block 13579 who=1's rebuilt make list lists Carpentry (609) at slot 1, `val` 120000, where ours
 listed it at 30000 — a German's industry tech at half price. Test `run1003_s_word_frame_is_widened_whole`: 1039 keys
 on the first try, 26 after the build (the standing family).
+
+## run1008 — the battery's replacement lobby: Great Lakes, the Spanish at difficulty 4, a `DUMP_ALL` start (2026-10-20, item 3384, `att-3384`)
+
+`docs/AI.md` §292. **What the disk could not answer**: no dump holds a Spanish game on Great Lakes — the Spanish's
+only games are Great Sahara 3 and East Indies 3 (a header survey of 575 gamelogs). Entry 72's rule (2) as amended by
+84: of the nations no map-14 dump holds and only closed games hold, the Spanish and the Dutch reach the most census
+functions (9); item 3367's tie-break gives the Spanish at tier 4, the tier the Americans leave. Named to the commander
+before the capture (att-3383 holds the Inca at Great Sahara 3). Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1008`: `--map 14 --end-frame 36 --timeout 1200 --dump-all-start
+--ai-tribe 9 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 16:51:39, exited 16:58:12 (393 s). `success`, 37 frames, players `(0, 4, 7), (1, 9, 1)`.
+  Filed with `filerun.py run1008 greatlakes-spanish-diff4-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1008-greatlakes-spanish-diff4-start.txt`, 150,837,099 bytes,
+SHA-256 `258491d542c01b8a60fb675a020370f8d8f63d8c6e7f8e4e94d6ea21c90d5223`.
+
+Archive `rontrace-run1008.log`, 9,433,952 bytes,
+SHA-256 `5dd2915396270949204c7c1d72aea4a95a4cac78ed63a1cee6349e668fdc0884`.
+
+## run1008b — the Spanish at Great Lakes 4: the draw stream to the game's end (2026-10-20, item 3384, `att-3384`)
+
+`docs/AI.md` §292. run1004b's recipe with `--ai-tribe 9` (`--map 14 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=4` and run643's four
+`--detail` lines).
+- Pool lane 2. Launched 16:51:39, exited 16:53:27 (109 s). `success`, 14069 frames, **the game ended itself on
+  14068** (closing block 14069, `ended_early` true). `rngcmp.py rontrace-run1008.log rontrace-run1008b.log`: **37
+  identical, 0 differing**. Filed with `filerun.py run1008b greatlakes-spanish-diff4-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1008b-greatlakes-spanish-diff4-24k-trace.txt`, 12,996,089 bytes,
+SHA-256 `a9f5ab2436adf7c80216ae27fd75246a45f60e9abc1123aa97eaf7bd5d586f05`.
+
+Archive `rontrace-run1008b.log`, 106,914,368 bytes,
+SHA-256 `ebfa793840f0ca09db5f8b978ae8fa2ec9d680df6367657a2edd476f64a99996`.
+
+**What it holds**: the battery's `GreatLakesSpanishTier4`, **8384 / 8384** of 14068 on its first try (ours 3266
+draws, theirs 3271, at 3262: ours `Herd::process+0x17`, theirs `PathFinder::calc_road_cost+0x46`), pinned in
+`battery::BATTERY`.
+
+## run1009 — the American word at Great Lakes: the word 3176's window, blocks 3170..3426 at `GOODS=3` (2026-10-20, item 3384, `att-3384`)
+
+`docs/AI.md` §292. **What the disk could not answer**: run1004 dumps blocks 0..36 and run1004b its setup and closing
+blocks only, so no dump held the word's block. `--map 14 --end-frame 3431 --timeout 7200 --log-window 3170 3426
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 20 --cover cover=0 --profile
+DIFFICULTY=4`.
+- Pool lane 1. Launched 17:05:12, exited 17:27:14 (1322 s). `success`, 3432 frames; `rngcmp.py` vs run1004b: 3432
+  identical. Filed with `filerun.py run1009 greatlakes-american-diff4-window-3170-3427`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1009-greatlakes-american-diff4-window-3170-3427.txt`, 454,732,389 bytes,
+SHA-256 `6c1994375600113b5f4afa37b2acea6b3cbc4b4e7b9804669add1f6697769527`.
+
+Archive `rontrace-run1009.log`, 18,739,168 bytes,
+SHA-256 `818097fcde7674ada8f9db82d95679eae6837c24eb6f343ccc22d93ec0231237`.
+
+**What it holds**: the word's window with the Barracks gather built: `run1009_s_word_frame_is_widened_whole` — 256
+blocks, 34 keys, the standing family alone; nothing on block 3177.
+
+## run1009b — the American word at Great Lakes: the script's ticks, blocks 2370..2980 at `LEADERS=9`, `BUILDS=7` (2026-10-20, item 3384, `att-3384`)
+
+`docs/AI.md` §292. **What the disk could not answer**: which tick theirs paid Written Word and City State on — no dump
+held who=1's purse past block 36. `--map 14 --end-frame 2985 --timeout 7200 --log-window 2370 2980 --detail
+end:MISC,BUILDS=7,LEADERS=9 --ai-tribe 20 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched 17:05:12, exited 17:51:56 (2804 s). `success`, 2986 frames; `rngcmp.py` vs run1004b: 2986
+  identical. Filed with `filerun.py run1009b greatlakes-american-diff4-window-2370-2981`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1009b-greatlakes-american-diff4-window-2370-2981.txt`, 913,060,023 bytes,
+SHA-256 `f98f6b4f7df48fd4c5825a705af1a2fb57f350694bab8a5edf02f5db546d282d`.
+
+Archive `rontrace-run1009b.log`, 17,085,504 bytes,
+SHA-256 `5ed8a36565ec452b2726f5421b4e6ca0514f89385e13c9e9a4375ea905db00e4`.
+
+**What it holds**: on block 2777 who=1's `bucket` [61, 16, 69] — Written Word and City State paid on the 2776 tick —
+with `barracks_units` 5, `barracks_garr` 0 and a wealth `income` of 160 (128 on block 2376 at four): the Americans'
+Barracks gather, `n × 2 × 16`.

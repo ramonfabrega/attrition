@@ -20558,7 +20558,7 @@ Their writers:
   and `Sim::lakota_food_units` (`holdings.rs`).
 - `Census::scouts`, kept live by `track_civilian_type`. Nothing had written it: ours read 0 against theirs' 3.
 - `Census::{peasants_garr, stable_garr, scout_garr}`, kept live by `Sim::track_garrison` at `go_inside` and
-  `come_out`. The chain's fourth arm, `barracks_garr`, feeds only the Americans' term and is not kept.
+  `come_out`. The chain's fourth arm, `barracks_garr`, feeds only the Americans' term ~~and is not kept~~ (kept and read since item 3384, §292).
 - `Unit::init`'s Lakota flag, in `init_unit`.
 - Test: `the_lakota_eat_off_their_citizens_and_scouts_and_nobody_else_does` (`economy`).
 
@@ -20592,7 +20592,8 @@ the peace changes is the next item's hypothesis. **Its widening is run849** (blo
   building leaves its count as `come_out` would not.
 - The three garrison counts are not compared by the leader diff (parked 2352), so they are checked only through the
   food rate they feed.
-- The Americans' `americans_barracks_gather` term in the same function is still not built.
+- ~~The Americans' `americans_barracks_gather` term in the same function is still not built.~~ Built by item 3384
+  (§292): `economy::american_barracks_gather`, reading `barracks_garr`.
 - A mutation of the term was not made: the unit test and the widening both fail without it.
 
 **Diff-backed**: the term and its six inputs on run846 block 1 and across run848's window; the live garrison counter
@@ -24911,12 +24912,67 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 292. Reserved for the next item on the AI track
+## 292. The battery's American word at Great Lakes closes: a Barracks that gathers
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3384, 2026-10-20, Opus 5.5. `GreatLakesAmericanTier4` (map 14, human Nubians against the Americans at
+Difficulty 4, seed 12345; runs 1004 and 1004b, minted by item 3380), promoted out of the battery at 3176 of 6152
+(`diff::american_lakes_word`; not `diff::american_word`, the closed East Indies game). Captures run1009 (`GOODS=3`
+over 3170..3426) and run1009b (`LEADERS=9`, `BUILDS=7` over 2370..2980). Its battery place went to
+`GreatLakesSpanishTier4` (runs 1008, 1008b; entry 72's rule (2), below): 8384 of 14068 on its first try.*
+
+**The draw delta on 3176.** Ours spends 31 draws, theirs 36, parting at index 0: theirs' first five are
+`Leader::compute_sites+0x4ac`, `+0x50a` and three `Leader::make_stuff+0x221 < Leader::found_cities+0x696`, all under
+`ScenarioFuncSet::place_city_with_cost < ScriptFuncSet::call_func`; the ten birds' thirty draws and the farm roll are
+the same on both sides. It is the one script `place_city_with_cost` in theirs' whole trace (every other
+`compute_sites` is `plan_strategy`'s, on the 175 + 200k cadence): the American AI founding its second city.
+
+**Why ours did not.** A host-call probe (`RON_PROBE_HOST`, two commits reverted whole) put ours' script in
+`defensive.bhs` step 11 on 3176, asking `have_tech(City State)` and getting 0: step 6 had queued Written Word and step
+9 City State at the Library `1/2005` on the 2976 tick, so Written Word ran 2976..3176 and City State only started on
+3176. Theirs had City State by the 3176 tick, so theirs queued the two a tick earlier. Ours' purse on the ticks:
+timber 61, 89, **116** on 2376, 2576, 2776 against Written Word's 120 timber and 50 wealth. run1009b's block 2777
+(frame 2776) has who=1's `bucket` **[61, 16, 69]** — 181 food, 136 timber and 119 wealth less Written Word and City
+State's 120 food — with `barracks_units` 5 and `barracks_garr` 0, and a wealth `income` of 160 — 128 on block 2376 at four Barracks
+units: the term alone, `n × 2 × 16`.
+
+**`Leader::calc_gather@006ceee0:124`–`143`**: for a `has_tribe_bonus(0x14)` leader, `(barracks_units −
+barracks_garr) × AMERICANS_BARRACKS_GATHER × 16` (`LeaderData +0x9f8`, `+0xa34`; the file's "2 each of food, timber,
+metal, and gold" loads as 2) is added to food, timber, metal and wealth, each only while `type_avail` holds it — right
+after the Lakota's food, before the cities. `barracks_units` is `track_unit_type@006e0dd0`'s count of armed types
+(`+0x1e8`) whose trainer is the Barracks (`0x1ab`). Five Barracks units are 160 sixteenths of each, theirs' wealth
+income exactly. `Unit::init@00612100:629`, `Unit::close@0060ee50:157` and the garrison tail of
+`insert_inside`/`remove_from_inside` raise the leader's `0x2000000` for such a unit (not a scout), as the Lakota's arms
+do. Built: `Tuning::americans_barracks_gather`, `economy::american_barracks_gather` in `assemble`,
+`Holdings::americans`/`american_units` set in `Sim::assemble_holdings` (`Sim::barracks_units`, shared now with the
+Terra Cotta Army), `Sim::american_barracks_unit` in `Unit::init`'s tail and `close_count`, and the garrison view's
+American bonus and constant. **3176 → 6152, the game's last frame.** Value diff, block 2777: who=1's `bucket` ours
+[161, 116, 100] (nothing paid) against theirs [61, 16, 69] → [61, 16, 69] both sides; the draw stream agrees to 6152.
+
+**The widening.** run1009's window (256 blocks) parts on 34 keys, the standing family alone: on 3170 the leaders'
+`SITE[·].reg` and `aggression`, eleven units' `form`, the army pools and `group:N.held` with no `GROUPDATA` printed;
+`pool:64`/`group:64.held` on 3194 and who=1's `SITE[3].reg` on 3376. Nothing on the word's block 3177.
+
+**The close.** run1004b's closing block 6153: 37 units compared, none apart, no building, city or closing field
+(`run1004b_american_lakes_closing_state`).
+
+**The replacement: `GreatLakesSpanishTier4`, rule (2).** A header survey of 575 gamelogs: no map-14 dump holds the
+Aztecs (0), Maya (1), Bantu (3), Greeks (5), Egyptians (7), Spanish (9), Germans (12), Japanese (15), Koreans (16),
+Mongols (17), Indians (21) or Dutch (22). The Aztecs, Egyptians and Indians are held by open battery lobbies; of the
+rest the Spanish and the Dutch reach the most census functions (9; the Germans 8). Item 3367's tie-break — the lobby
+moves both map and tier off the nation's games — gives the Spanish (Great Sahara 3, East Indies 3) over the Dutch
+(East Indies 4) at tier 4, the tier the Americans leave. Named to the commander before the capture. First try: ours
+3266 draws, theirs 3271 at 8384, parting at 3262, ours `Herd::process+0x17`, theirs `PathFinder::calc_road_cost+0x46`;
+the game ends itself on 14068.
+
+**Not established.** The four raises are built from the reading and no walk holds them (parked 3384a). Ours'
+`barracks_units` is the live muster's sum, not a census field; a garrisoned American Barracks unit has no capture.
+Metal's term is unexercised: no capture holds an American leader with metal available while owning Barracks units
+that the diff reads.
+
+**Coverage.** Diff-backed: the term by `american_lakes_word_first_parting` (6152) and run1009b's block 2777; the window
+by `run1009_s_word_frame_is_widened_whole` (34); the close by `run1004b_american_lakes_closing_state`. Sim test:
+`economy::tests::an_american_barracks_unit_gathers_two_of_each_available_resource`. Mutations (`tools/mutate.py`): the
+term → 0 held on `american_lakes_word_first_parting` (exit 101); the raises off failed nothing (parked 3384a).
 
 ## 293. Reserved for the next item on the AI track
 
