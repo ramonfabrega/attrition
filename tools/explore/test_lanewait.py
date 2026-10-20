@@ -86,6 +86,101 @@ class Event(unittest.TestCase):
         self.assertEqual(found, (4, 'QUIET a b 100'))
 
 
+class ADraftUnderAClear(unittest.TestCase):
+    """Item 3368 (the forty-sixth pass): att-3365 crossed DEEP, pushed its
+    draft journal as the commander's answer asks, and ended its turn for
+    the armed `ccc clear`; the row left `working` for the seconds the
+    clear took and the waiter exited `LANDED att-3365 … none..2caf3aee`
+    with the row back at work under a new session. A push that arrives
+    with the session's uuid changed, or with the lane's newest transcript
+    ending on a `/clear`, is a draft: recorded, said on one line, and
+    watched past."""
+
+    def watching(self, tip='1' * 40, session='s1'):
+        watch = watching(a=tip)
+        watch['a']['session'] = session
+        return watch
+
+    def test_a_push_with_the_session_changed_is_a_draft_not_a_landing(self):
+        watch, drafts = self.watching(), []
+        found = lanewait.event(watch, {'a': 'idle'}, {'a': '2' * 40}, 5, 100, sessions={'a': 's2'},
+                               drafts=drafts)
+        self.assertIsNone(found)
+        self.assertEqual(len(drafts), 1)
+        self.assertTrue(drafts[0].startswith('DRAFT a worktree-a 11111111..22222222'), drafts)
+        # The ref is recorded and the new session is the one watched: the
+        # same tip again is no push, and the row still out of `working` a
+        # second poll is an ended row (a clear whose prompt never ran),
+        # never the draft's landing.
+        self.assertEqual(lanewait.event(watch, {'a': 'idle'}, {'a': '2' * 40}, 6, 100, sessions={'a': 's2'}),
+                         (3, 'ENDED a idle'))
+        watch, drafts = self.watching(), []
+        lanewait.event(watch, {'a': 'idle'}, {'a': '2' * 40}, 5, 100, sessions={'a': 's2'}, drafts=drafts)
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 6, 100,
+                                         sessions={'a': 's2'}))
+
+    def test_the_new_session_s_own_push_lands(self):
+        watch = self.watching()
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 5, 100, sessions={'a': 's2'},
+                                         drafts=[]))
+        self.assertEqual(lanewait.event(watch, {'a': 'done'}, {'a': '3' * 40}, 6, 100, sessions={'a': 's2'}),
+                         (0, 'LANDED a worktree-a 22222222..33333333'))
+
+    def test_a_push_with_the_session_unchanged_still_lands(self):
+        watch, drafts = self.watching(), []
+        found = lanewait.event(watch, {'a': 'done'}, {'a': '2' * 40}, 5, 100, sessions={'a': 's1'},
+                               drafts=drafts)
+        self.assertEqual(found, (0, 'LANDED a worktree-a 11111111..22222222'))
+        self.assertEqual(drafts, [])
+
+    def test_a_clear_with_no_push_does_not_make_the_next_push_a_draft(self):
+        # A DEEP answered by a clear with nothing pushed: the session moves
+        # on one poll, and the new session's landing a later poll is real.
+        watch = self.watching()
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '1' * 40}, 5, 100, sessions={'a': 's2'}))
+        self.assertEqual(lanewait.event(watch, {'a': 'done'}, {'a': '2' * 40}, 6, 100, sessions={'a': 's2'}),
+                         (0, 'LANDED a worktree-a 11111111..22222222'))
+
+    def test_a_push_made_while_working_and_then_cleared_is_a_draft(self):
+        # The draft pushed while the old turn still ran; the clear fired by
+        # the next poll. The pending push is the old session's draft.
+        watch, notes, drafts = self.watching(), [], []
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 5, 100, notes,
+                                         sessions={'a': 's1'}))
+        self.assertEqual(notes, ['PUSHED a worktree-a 11111111..22222222'])
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 6, 100, sessions={'a': 's2'},
+                                         drafts=drafts))
+        self.assertEqual(len(drafts), 1)
+        self.assertIsNone(lanewait.event(watch, {'a': 'idle'}, {'a': '2' * 40}, 7, 100, sessions={'a': 's2'}))
+        self.assertEqual(lanewait.event(watch, {'a': 'idle'}, {'a': '2' * 40}, 8, 100, sessions={'a': 's2'}),
+                         (3, 'ENDED a idle'))
+
+    def test_a_push_whose_transcript_ends_on_a_clear_is_a_draft(self):
+        # The clear typed, the uuid not yet moved in the roster: the
+        # transcript's own `/clear` tail is the tell.
+        watch, drafts = self.watching(), []
+        found = lanewait.event(watch, {'a': 'idle'}, {'a': '2' * 40}, 5, 100, sessions={'a': 's1'},
+                               cleared={'a'}, drafts=drafts)
+        self.assertIsNone(found)
+        self.assertEqual(len(drafts), 1)
+        self.assertIn('clear', drafts[0])
+
+    def test_a_tail_that_ends_on_a_clear_is_one(self):
+        self.assertTrue(lanewait.ends_on_clear((100.0, None)))
+        self.assertTrue(lanewait.ends_on_clear((100.0, 90.0)))
+        self.assertFalse(lanewait.ends_on_clear((100.0, 110.0)))
+        self.assertFalse(lanewait.ends_on_clear((None, 110.0)))
+        self.assertFalse(lanewait.ends_on_clear(None))
+
+    def test_an_unknown_session_is_read_as_unchanged(self):
+        watch = self.watching(session=None)
+        self.assertEqual(lanewait.event(watch, {'a': 'done'}, {'a': '2' * 40}, 5, 100, sessions={'a': 's2'}),
+                         (0, 'LANDED a worktree-a 11111111..22222222'))
+        watch = self.watching()
+        self.assertEqual(lanewait.event(watch, {'a': 'done'}, {'a': '2' * 40}, 5, 100, sessions={'a': None}),
+                         (0, 'LANDED a worktree-a 11111111..22222222'))
+
+
 class StateOf(unittest.TestCase):
     def test_a_running_turn_is_working_whatever_the_row_says(self):
         # Parked 1572: a lane's self-written `blocked` stranded the waiter.

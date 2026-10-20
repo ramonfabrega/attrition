@@ -8,7 +8,9 @@ Run it backgrounded after a spawn and end the turn; its exit re-invokes the
 session. A lane is named as `ccc list` names it. The exits:
 
     0  LANDED <lane> <branch> <old>..<new>   origin's ref of the lane's branch moved
-                                             and the row is out of `working`
+                                             and the row is out of `working`, its
+                                             session unchanged (a push under a
+                                             clear is a DRAFT on stderr; item 3368)
     3  ENDED <lane> <state> — <detail>       the row left `working` and stayed out;
                                              the row's own status line follows
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
@@ -69,6 +71,26 @@ transcript's tail every --deep-every polls, beside `ctx`, and exits once
 per lane whose `/clear` has stood --uncleared-after minutes with no turn
 past it; the commander answers with the prompt as one message.
 `--uncleared-after 0` turns it off.
+
+A push under a clear is a draft, not a landing (item 3368, the
+forty-sixth pass): att-3365 crossed DEEP, pushed its draft journal as the
+commander's answer asks, and ended its turn for the armed `ccc clear`;
+the row left `working` for the seconds the clear took, and the waiter
+exited `LANDED att-3365 … none..2caf3aee` with the row back at work under
+a new session — a commander turn that learned nothing, and one that would
+merge a draft read at face value; att-3374 the same morning. A clear
+gives the row a new session uuid (`ccc list --json`'s
+`session.sessionId`) and opens the new transcript on the `/clear`
+record. So a push seen on the poll its session's uuid moved, or while
+the lane's newest transcript ends on a `/clear`, and a push noted while
+working whose session has since moved, is printed on stderr as `DRAFT
+<lane> <branch> <old>..<new> — …`, its ref recorded, and the wait goes
+on; LANDED fires only for a push whose session is the one the previous
+poll saw. The uuid is compared poll to poll, never to the wait's start:
+a lane cleared at DEEP with nothing pushed lands under its new session.
+Not closed: a poll that falls after the old turn ended and before the
+clear has fired sees neither tell (the armed clear itself, `ccc clear
+--json`, is not read here).
 """
 import os
 import argparse
@@ -84,7 +106,18 @@ WORKING = 'working'
 STILL = 2
 
 
-def event(watch, states, tips, minutes, quiet_after, notes=None, details=None):
+def ends_on_clear(tail):
+    """Whether a `transcript_tail` result ends on a `/clear` with no
+    record after it — the new session the clear opened, before its first
+    turn."""
+    if not tail:
+        return False
+    cleared_at, last_at = tail
+    return cleared_at is not None and (last_at is None or last_at <= cleared_at)
+
+
+def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, sessions=None,
+          cleared=None, drafts=None):
     """The first event among the lanes, as (exit code, line), or None.
 
     `watch` maps a lane to {'branch', 'tip', 'still'} and is updated in
@@ -99,12 +132,41 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None):
     on 1648's twenty landings ended `blocked` asking for the commander's
     queue lines (parked 1671), and the one message that unblocks such a
     row is written in the turn that reads the line.
+
+    `sessions` maps a lane to its row's session uuid now, and `seen`'s
+    `session` holds the one the previous poll saw; `cleared` holds the
+    lanes whose newest transcript ends on a `/clear`. A push on the poll
+    the uuid moved, or from a `cleared` lane, and a pending push whose
+    session has since moved, is a draft under a clear (item 3368): it
+    goes in `drafts` (when given), its tip is remembered, and it never
+    lands. An unknown uuid, either side, is read as unchanged.
     """
+    sessions = sessions or {}
+    cleared = cleared or set()
+    moved_session = {}
+    for lane, seen in watch.items():
+        now, then = sessions.get(lane), seen.get('session')
+        moved_session[lane] = (then[:8], now[:8]) if now and then and now != then else None
+        if now:
+            seen['session'] = now
+        if moved_session[lane] and seen.get('pushed'):
+            line = seen.pop('pushed')
+            if drafts is not None:
+                drafts.append(f"DRAFT {line} — pushed before a clear (session "
+                              "{}..{}); watching on".format(*moved_session[lane]))
     for lane, seen in watch.items():
         tip = tips.get(lane)
         if tip and tip != seen['tip']:
             old = seen['tip'][:8] if seen['tip'] else 'none'
             moved = f"{lane} {seen['branch']} {old}..{tip[:8]}"
+            if moved_session[lane] or lane in cleared:
+                seen['tip'] = tip
+                seen.pop('pushed', None)
+                if drafts is not None:
+                    why = ('session {}..{}'.format(*moved_session[lane]) if moved_session[lane]
+                           else 'transcript ends on /clear')
+                    drafts.append(f"DRAFT {moved} — pushed under a clear ({why}); watching on")
+                continue
             if states.get(lane) == WORKING:
                 seen['tip'] = tip
                 seen['pushed'] = moved
@@ -511,7 +573,8 @@ def main(argv=None):
     for lane in args.lanes:
         _, cwd, branch, _, _ = rows[lane]
         where[lane] = cwd
-        watch[lane] = {'branch': branch, 'tip': origin_tip(cwd, branch), 'still': 0}
+        watch[lane] = {'branch': branch, 'tip': origin_tip(cwd, branch), 'still': 0,
+                       'session': getattr(roster, 'sessions', {}).get(lane)}
 
     started = time.monotonic()
     polls = 0
@@ -554,11 +617,19 @@ def main(argv=None):
                 print(found[1], flush=True)
                 return found[0]
         tips = {lane: origin_tip(where[lane], seen['branch']) for lane, seen in watch.items()}
-        notes = []
+        sessions = {lane: getattr(roster, 'sessions', {}).get(lane) for lane in watch}
+        # The transcript is read only for a lane whose ref moved: the tell
+        # is asked of a push, never of every poll.
+        pushed = [lane for lane, seen in watch.items() if tips.get(lane) and tips[lane] != seen['tip']]
+        tails = tails_of(pushed, where, sessions) if pushed else {}
+        cleared = {lane for lane, tail in tails.items() if ends_on_clear(tail)}
+        notes, drafts = [], []
         found = event(watch, states, tips, (time.monotonic() - started) / 60, args.quiet_after, notes,
-                      details)
+                      details, sessions, cleared, drafts)
         for note in notes:
             print(note, flush=True)
+        for draft in drafts:
+            print(draft, file=sys.stderr, flush=True)
         if found:
             print(found[1], flush=True)
             return found[0]
