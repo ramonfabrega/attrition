@@ -24220,7 +24220,7 @@ on their first try (run981, run981b). Captures run982, run982b, run982c, run982d
    (11, 73) on 14596, when `1/100` steps into it. **14604 → 16764, the game's last frame**; run982b 38 keys, the
    standing set.
 
-**The close is open.** `run977b_french_closing_state` walks to run977b's closing block 16765: 130 units, every one
+**The close is open** (closed by §280). `run977b_french_closing_state` walks to run977b's closing block 16765: 130 units, every one
 agreeing, and **four buildings and a city unlinked** — on the last frame theirs' who=1 captures the human's city,
 `0/2000` closing as `1/2058` (damage 1430) with three of its buildings as `1/2059`..`1/2061`, and ours still holds
 `0/2000` at damage 1198, uncaptured. It does not drift: run982c's stride (every twentieth block from 14856) and
@@ -24235,8 +24235,9 @@ dump (parked 3347d).
 radius off by one); `vision::tests::a_decoy_sees_from_where_it_stands_and_its_step_lights_its_own_cell` (fails with
 the term dropped); the widenings `run982_…`, `run982b_…`, `run982d_…` and the closing state.
 
-**Coverage.** Diff-backed: the three fixes by the blocks named and the draw stream to 16764. Not established: the
-last frame's hits on the city (the close); the French special arm; the Dragoon's third node.
+**Coverage.** Diff-backed: the three fixes by the blocks named and the draw stream to 16764. Not established: ~~the
+last frame's hits on the city (the close)~~; the French special arm; ~~the Dragoon's third node~~ — both closed by
+§280: the Dragoon is a pivot piece, and its `CHAR_ATTACK2` round of 16763 is the close.
 
 ## 279. Reserved for the next item on the AI track
 
@@ -24245,12 +24246,61 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 280. Reserved for the next item on the AI track
+## 280. The battery's French word closes: the Dragoon releases from its pivot
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3359, 2026-10-19, Opus 5.5. `GreatSaharaFrenchTier4` (§278), at 16764 of 16764 with its close open. Captures
+run985 (a packet; Wine faulted before the first frame, no output) and run985b (`RON_STATE_FRAME=16762`, the packet,
+`rngcmp`-identical to run977b on all 16765 frames).*
+
+**The close's parting is a round, and no widening compared it.** The draw stream agrees to 16764 and every unit at
+the closing block; `0/2000` is 1197 of 1200 with `damage_frac` 14 on both sides through block 16764. run982d's own
+`AMMO=5` records on that block (the ammo blocks are `diff::ammo`'s parser and in no widening, 3347c) hold two who=1
+rounds on the city, and ours (`RON_DEBUG_AMMO`) holds the same two:
+
+| block 16764 | theirs | ours, before |
+|---|---|---|
+| `1/42` (Crossbowman) | `sx, sy` (6768, 30960), `ex, ey` (6411, 30358), 2 of 3 | (6767, 30960), (6411, 30358), 2 of 3 |
+| `1/39` (Dragoon, type 189) | (6805, 31302, 872), (6461, 30325), **1 of 2** | (6792, 31368), (6453, 30329), **1 of 3** |
+
+Theirs' `1/39` round lands on 16764 with `1/42`'s and the city falls on the last frame; ours' lands a frame late,
+past the game's end. Ours' round left from the figure's own square: `(139, CHAR_ATTACK2, 13)` had no row.
+
+**Why no planar node could fit it.** `1/39`'s two `CHAR_ATTACK2` rounds on disk — run982b's 14677 (guy (7944, 30840)
+at −990642176, offset (−61, −18)) and run982d's 16764 (guy (6792, 31368) at −271515648, offset (13, −66)), both from a
+standing figure — are radius 63.6 and 67.3, and a rotation keeps a radius. Their height over the figure is 262 on
+both. The Dragoon has `<RESTRICTION name="Dragoon" node="4">` (`unit_graphics.xml`), so `execute_game_events` hands
+it `get_position`'s **pivot branch** (§55 of `docs/COMBAT.md`; `pivot::release_offset`): the pivot node's entry at the
+figure's degree plus the release node's at the figure's degree **and the turret's**. No packet on disk had built
+piece 139 (`get_position.py … entries 139` on every `frame-snapshot.bin`), so run985b took one: nine `AttachPos`
+rows, `(4, 0, 0)` = (0.0, −1.48, 31.05) as piece 491's, and a pivot and a release entry for each of the four
+`<RELEASEEVENT>`s (frames 12, 12, 13, 18 of `CHAR_ATTACKWALK`, `CHAR_ATTACK1`..`3`). Each height is the pivot's z
+plus the release's, × 4.8: 262, 223 and 208, the dump's own `sz − z` on every round.
+
+**The fix** (`pivot::NODES` and `pivot::RELEASES`, piece 139; the two single-pose `launch::MEASURED` rows 3347
+fitted for 139 retired). `pivot::tests::the_french_dragoon_s_rounds_leave_from_its_pivot`: every Dragoon round the
+French lobby's windows print, at its pose on the block before — 14621's `CHAR_ATTACK3`, 14645's `CHAR_ATTACK1` and
+14676's `CHAR_ATTACK2` at turret step −13 (≈ −18°, bearing on `0/2002`), and 16763's at step −1, the dump's own
+`turret_angles[0]` −196608 (run985b, `GUYS=4`) — each fits exactly one turret step and lands on the dump's point
+and height.
+
+**Value diff, block 16764, after**: ours' `1/39` round (6805, 31302) → (6461, 30325), 1 of 2, accuracy 294,
+`angle` −289800192 — theirs', field for field. **The close: `[0, 0, 0, 4, 0, 1, 0]` → `[0, 0, 0, 0, 0, 0, 0]`**, 130
+units; the word stays 16764 of 16764.
+
+**And three windows of the third pair agree whole** (French East Indies, `third_pair.rs`): run657's `1/90` round of
+17165 (`sx, sy` (6467, 9094), from ours' (6498, 9100)), run661's `1/80` of 17242 ((6611, 8852), from (6603, 8854)),
+and run662's `1/80` of 17309 and `1/90` of 17311 (the latter from (6456, 9240, 186) to (6474, 9179, 448)); run662's
+rows past its word 337 → 298.
+
+**Not established.** `1/42`'s Crossbowman round is 1 off in `sx` (6767 against 6768) and its `angle` (−358154240
+against −358678528) with the same landing and flight (parked 3359a): `launch::MEASURED`'s piece 122 rows are
+single-pose fits and the piece may be a `Bay`'s whole-degree turn. Ours' turret is not compared: no widening reads
+`turret_angles`, and run985b's is the only `GUYS=4` block of the lobby. The Horse Archer's piece 842 (parked 3338a)
+has the same shape — its heights are its pivot's sums too (run973g's rows: 225, 228, 208, the dump's) — and is not
+carried here.
+
+**Coverage.** Diff-backed: the four Dragoon rounds by `the_french_dragoon_s_rounds_leave_from_its_pivot`, the close
+by `run977b_french_closing_state`, the third pair's three windows. Reading-backed: none new; the branch is §55's.
 
 ## 281. Reserved for the next item on the AI track
 
