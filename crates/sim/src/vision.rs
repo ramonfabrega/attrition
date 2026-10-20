@@ -270,6 +270,17 @@ impl Sim {
         )
     }
 
+    /// `UnitData::is_packing_or_unpacking@0060a410` — the current order is
+    /// a cast whose spell is a pack (`TypeData` vslot `+0x50`) or an
+    /// unpack (`+0x54`).
+    pub fn is_packing_or_unpacking(&self, u: usize) -> bool {
+        matches!(
+            self.current_order(u).map(|o| o.body),
+            Some(crate::orders::Body::Cast(c))
+                if crate::orders::spell::is_pack(c.spell) || crate::orders::spell::is_unpack(c.spell)
+        )
+    }
+
     // ------------------------------------------------------------------
     // §3, §4 — the disc
     // ------------------------------------------------------------------

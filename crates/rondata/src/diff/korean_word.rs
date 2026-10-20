@@ -208,7 +208,9 @@ fn run991b_s_word_frame_is_widened_whole() {
     // six Merchants' figures on 15413, re-pieced on both sides — theirs to
     // 50688 with the cart on the merchant's point, ours to 3179 and 15851
     // with the cart apart (3365b). No draw parts on either.
-    pin_eq!(w.firsts.len(), 80, "keys that part in the window");
+    // Item 3369: 80 -> 32, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 32, "keys that part in the window");
 }
 
 /// The closing state's window: run964b's closing block alone, the long's

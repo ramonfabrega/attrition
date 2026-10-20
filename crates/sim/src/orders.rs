@@ -4499,20 +4499,28 @@ impl Sim {
         // theirs, `(2 + 1566) & 31 == 0` and `& 127 == 32`, and stood idle
         // in ours (the battery's Dutch word, 1567).
         //
-        // SEAM: the leg's other half — a packed merchant whose trade
-        // search just above answered 0, or a deployed one, asks
-        // `think_attack` when it is not packing or unpacking — is not
-        // taken: this crate's `think_attack` is the military arm below,
-        // and a merchant has no attack column (`docs/MERCHANT.md` §7).
+        // **And the leg's other half** (item 3369, `docs/AI.md` §285): a
+        // packed merchant whose trade search answered 0, or a deployed
+        // one, asks `think_attack` when its current order is neither a
+        // pack nor an unpack (`UnitData::is_packing_or_unpacking@0060a410`)
+        // — `(packed && think_merchant) || (!packing_or_unpacking &&
+        // think_attack)`. `think_attack` skips its packed arm for the
+        // lineage and its army join for the three merchant ids, so what it
+        // can do for a merchant is the target search and the tail's walk
+        // to a city ([`Sim::think_attack_merchant`]). run995's `1/1`
+        // (`TypeIndex` 62) is the diff: seated by its unpack on 309, on
+        // 310 it was in group 64 with an `ATTACK_TO` (41304, 17304) in
+        // theirs and idle in ours.
         let dutch = self
             .unit_tree(u)
             .is_some_and(|ti| self.tech_tree.is(ti, MERCHANTDUTCH, true));
-        if dutch
-            && (unit.idle == 1 || phase & 0x1f == 0)
-            && unit.combat.packed
-            && self.think_merchant(u)
-        {
-            return;
+        if dutch && (unit.idle == 1 || phase & 0x1f == 0) {
+            if unit.combat.packed && self.think_merchant(u) {
+                return;
+            }
+            if !self.is_packing_or_unpacking(u) && self.think_attack_merchant(u) {
+                return;
+            }
         }
         let unit = &self.units[u];
         let p = self.profile(me);
@@ -4521,7 +4529,7 @@ impl Sim {
             && (unit.idle == 1 || phase & 0x1f == 0)
             && !self.think_attack_packed(u)
         {
-            self.think_attack_join_army(u);
+            let joined = self.think_attack_join_army(u);
             let unit = &self.units[u];
             // **The packed computer siege engine takes its army's target
             // first** (`find_nearby_target@00648da0:198`–`222`, reached
@@ -4570,6 +4578,9 @@ impl Sim {
                 if matches!(t, Obj::Unit(_)) {
                     return;
                 }
+            }
+            if joined.is_none() {
+                self.think_attack_tail(u);
             }
         }
         // `005f7195`: a worker whose `think_peasant` **found something**
