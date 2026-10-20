@@ -6803,6 +6803,62 @@ mod tests {
         assert!(s.current_order(m).is_none());
     }
 
+    /// **`action_halt` skips a member that is dead, off the map or a plane,
+    /// and the mask's 2 bit exempts a special unit** (item 3379,
+    /// `0070d0c0`, swept in `sweep::group_action_halt`; the sweep holds the
+    /// steps, this holds the view over this simulation).
+    #[test]
+    fn action_halt_skips_the_dead_the_absent_and_planes_and_the_mask_exempts_specials() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let mut plane = UnitType {
+            hits: 100,
+            ..UnitType::default()
+        };
+        plane.combat.domain = Domain::Air;
+        let plane = s.add_unit_type(plane);
+        let mut scout = UnitType {
+            hits: 100,
+            ..UnitType::default()
+        };
+        scout.cols.unit_flags2 |= uflags2::SCOUT;
+        let scout = s.add_unit_type(scout);
+        let ground = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        let dead = spawn(&mut s, 1, foot, Pos::new(0x1100, 0x1000));
+        let away = spawn(&mut s, 1, foot, Pos::new(0x1200, 0x1000));
+        let flier = spawn(&mut s, 1, plane, Pos::new(0x1300, 0x1000));
+        let special = spawn(&mut s, 1, scout, Pos::new(0x1400, 0x1000));
+        let all = [ground, dead, away, flier, special];
+        for u in all {
+            s.add_move_order(
+                u,
+                Pos::new(0x4000, 0x4000),
+                MoveKind::MoveTo,
+                QueuePos::New,
+                true,
+            );
+        }
+        s.units[dead].health = 0;
+        s.units[away].on_map = false;
+        let g = group_of(1, &all);
+        s.group_action_halt(&g, 2);
+        assert!(s.current_order(ground).is_none(), "the footman halts");
+        assert!(s.current_order(dead).is_some(), "a dead member is skipped");
+        assert!(
+            s.current_order(away).is_some(),
+            "an absent member is skipped"
+        );
+        assert!(s.current_order(flier).is_some(), "a plane is skipped");
+        assert!(
+            s.current_order(special).is_some(),
+            "the mask's 2 bit exempts a special unit"
+        );
+        s.group_action_halt(&g, 0);
+        assert!(s.current_order(special).is_none(), "mask 0 halts it");
+        assert!(s.current_order(dead).is_some() && s.current_order(away).is_some());
+        assert!(s.current_order(flier).is_some());
+    }
+
     /// **A human's 1, 2 or 5 kills an order it was not given** (item 2165,
     /// `docs/GOLDEN.md` §79; `Group::action_stance@0070d440`'s middle arm):
     /// a current order without the action bit goes, one with it stays, and a
