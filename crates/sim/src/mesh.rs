@@ -26,8 +26,8 @@
 //! a rotation are not.
 
 use crate::Sim;
-use crate::roads_view::{ModQueue, RoadsView, TileRec, Which, add_roads_steps};
 use crate::ai_place::{MOVE_X, MOVE_Y};
+use crate::roads_view::{ModQueue, RoadsView, TileRec, Which, add_roads_steps};
 use crate::world::{Cell, Pos, World, cell, tile};
 use std::collections::BTreeMap;
 
