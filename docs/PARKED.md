@@ -3821,6 +3821,14 @@ the runner calls directly, so the key stops varying; (ii) the immediate measure,
 rest point between gates, never while a lane's sweep runs. Every environment regenerates. The pass's for (i); (ii) at
 a drain. One reach.
 
+(3357) **The capture-citation guard reads a function's name as a capture booking** (the commander, at 3346's
+booking): `docs_guard::a_capture_booked_on_a_map_cites_the_window_the_disk_holds` takes any open item whose text
+contains `capture` as one that books a capture, so a sweep item that names `Build::check_capture@006276a0` fails
+with "books a capture and names no map". `every_cited_address_names_its_function` meanwhile wants the name beside
+the address, so the queue cannot name the row either way. The pass left the census row out of 3348's booking,
+probably for this reason, and 3356 names it as `Build`'s method at 0x6276a0. Candidate: the guard skips backticked
+text, or a `--kind sweep` item. The pass's. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
