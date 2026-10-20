@@ -10489,6 +10489,21 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's East Indies Spanish word** (DECISIONS 72, 83, 84;
+    // item 3367): East Indies, the Spanish at Difficulty 3 — the held-out
+    // battery's lowest open lobby on the measure of `9e63ec11`, minted by
+    // item 3360 under rule (2); the game does not end itself (the long runs
+    // to 24000). It joins the `Battery word` line first; the closed rows
+    // choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesSpanishTier3",
+        named: "East Indies (Spanish)",
+        word: crate::diff::spanish_east_word::SPANISH_EAST_WORD,
+        length: 24_000,
+        endpoint: None,
+        window: None,
+    },
     // **The battery's Inca word** (DECISIONS 72, 83, 84; item 3360): East
     // Indies, the Inca at Difficulty 3 — the held-out battery's lowest open
     // lobby on the measure of `3eb2c76c`, minted by item 3335; the game does
