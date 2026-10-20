@@ -244,6 +244,31 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaAztecTier2` (Aztecs 0, Difficulty 2, map 7; run895 and
     // run895b, 9130 of 17554) left the battery on item 3361 for the AI
     // word (`diff::aztec_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3361 (DECISIONS 72 as amended by 84,
+    // `docs/AI.md` §125, §282; runs 988 and 988b) when the Aztecs left for
+    // the AI word, so the held-out set stays eight: Great Sahara, the
+    // Lakota at Difficulty 2 — **rule (2)**: rule (1) has no answer (a
+    // header survey of the 529 gamelogs on disk holds every nation); of
+    // the nations no Great Sahara dump holds and only closed games hold
+    // (`GreatLakesLakotaTier2` and the peace pair; the open battery's
+    // Inca, Turks, Chinese, Americans and Romans out), the Lakota reach the
+    // most census functions (17, `docs/NATIONS.md`; the Dutch 9); tier 2
+    // is the tier the Aztecs left (the Russians hold 4 and the Koreans 3).
+    // The game does not end itself: the long runs to 24000.
+    Lobby {
+        name: "GreatSaharaLakotaTier2",
+        map_style: 7,
+        ai_tribe: 19,
+        difficulty: 2,
+        start: "gamelog-run988-greatsahara-lakota-diff2-start.txt",
+        long: (
+            "gamelog-run988b-greatsahara-lakota-diff2-24k-trace.txt",
+            "rontrace-run988b.log",
+        ),
+        length: 24000,
+        count: 24000,
+        sequence: 24000,
+    },
     // `GreatSaharaSpanishTier3` (Spanish 9, Difficulty 3, map 7; run896
     // and run896b, 576 of 22700) left the battery on item 3318 for the AI
     // word (`diff::spanish_word`, DECISIONS 72, 83).
