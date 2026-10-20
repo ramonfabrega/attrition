@@ -115,6 +115,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the Maya being item 3338's, promoted to the AI word (item 3342,
     // DECISIONS 72, 83): the Russians at Difficulty 2, Great Lakes.
     (14, 13, 2),
+    // The battery's second open lobby once item 3343 closed the Bantu,
+    // promoted to the AI word (item 3347, DECISIONS 72, 83, 84): the French
+    // at Difficulty 4, Great Sahara.
+    (7, 10, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -133,32 +137,9 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaBantuTier4` (Bantu 3, Difficulty 4, map 7; run972 and
     // run972b, 4 of 23627), minted by item 3338, left the battery on item
     // 3343 for the AI word (`diff::bantu_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3343 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §276; runs 977 and 977b) when the Bantu left for the AI word, so the
-    // held-out set stays eight: Great Sahara, the French at Difficulty 4.
-    // Every nation is in some dump now (item 3342's finding); the French
-    // are held only in a closed pair (the third pair, East Indies and Great
-    // Lakes at Toughest) and never on Great Sahara, the one nation of that
-    // kind once the Lakota went to item 3342's lobby; tier 4 is the tier
-    // Great Sahara's battery lacked once the Bantu left (Aztecs 2, Koreans
-    // 3 remain). The game ends itself on 16764.
-    Lobby {
-        name: "GreatSaharaFrenchTier4",
-        map_style: 7,
-        ai_tribe: 10,
-        difficulty: 4,
-        start: "gamelog-run977-greatsahara-french-diff4-start.txt",
-        long: (
-            "gamelog-run977b-greatsahara-french-diff4-24k-trace.txt",
-            "rontrace-run977b.log",
-        ),
-        length: 16764,
-        // Item 3343, the first try: ours 14 draws, theirs 19, at 6 ours
-        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-        // `Guy::init_real+0x52`.
-        count: 13422,
-        sequence: 13422,
-    },
+    // `GreatSaharaFrenchTier4` (French 10, Difficulty 4, map 7; run977 and
+    // run977b, 13422 of 16764), minted by item 3343, left the battery on
+    // item 3347 for the AI word (`diff::french_word`, DECISIONS 72, 83, 84).
     // The lobby minted by item 3342 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §275; runs 975 and 975b) when the Russians left for the AI word, so
     // the held-out set stays eight: Great Lakes, the Lakota at Difficulty 2.

@@ -10414,6 +10414,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's French word** (DECISIONS 72, 83, 84; item 3347):
+    // Great Sahara, the French at Difficulty 4 — the held-out battery's
+    // second open lobby once item 3343 closed the Bantu; the game ends
+    // itself on 16764. It joins the `Battery word` line first; the closed
+    // rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaFrenchTier4",
+        named: "Great Sahara (French)",
+        word: crate::diff::french_word::FRENCH_WORD,
+        length: 16_764,
+        endpoint: None,
+        window: None,
+    },
     // **The battery's Bantu word** (DECISIONS 72, 83; item 3343): Great
     // Sahara, the Bantu at Difficulty 4 — the held-out battery's lowest open
     // lobby once item 3338 closed the Maya; the game ends itself on 23627.
