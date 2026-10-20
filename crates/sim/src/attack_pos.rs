@@ -522,16 +522,6 @@ impl crate::Sim {
                     counter,
                     budget
                 );
-                eprintln!("RING   mask {:#06x}", self.world.tile_mask(tl));
-                for b in &self.buildings {
-                    let d = (b.pos.x - c.x).abs().max((b.pos.y - c.y).abs());
-                    if d < 192 * 4 {
-                        eprintln!(
-                            "RING   near {}/{} ty {:?} at ({}, {}) alive {} hits {}",
-                            b.owner, b.index, b.ty, b.pos.x, b.pos.y, b.alive, b.hits
-                        );
-                    }
-                }
             }
             if clear {
                 self.mark(site);
