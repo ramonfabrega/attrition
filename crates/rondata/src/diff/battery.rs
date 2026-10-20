@@ -329,9 +329,11 @@ pub(crate) const BATTERY: &[Lobby] = &[
             "rontrace-run990b.log",
         ),
         length: 16109,
-        // Item 3365, the first try.
-        count: 0,
-        sequence: 0,
+        // Item 3365, the first try: ours 7 draws, theirs 6, at 1: ours
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+        // `Farms::inc_time+0x1ae`.
+        count: 311,
+        sequence: 311,
     },
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on
