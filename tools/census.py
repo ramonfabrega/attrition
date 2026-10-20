@@ -849,7 +849,10 @@ def census_bytes_line(backed_bytes, total_bytes):
 
 
 # --- the backed list ------------------------------------------------------
-BACKED_ROW = re.compile(r"^([0-9a-f]{8})\t([^\t]+)\t(doc|sweep)$")
+# The file carries addresses and the backing kind only — never names:
+# CLAUDE.md keeps symbol lists out of the repo, and a name is looked up in
+# the export when a loss is reported. The old three-column form still reads.
+BACKED_ROW = re.compile(r"^([0-9a-f]{8})\t(?:([^\t]+)\t)?(doc|sweep)$")
 
 
 def backed_rows(names, source, by_doc, by_sweep):
@@ -881,8 +884,15 @@ def backed_now(index, docs, sim_src, pdb):
 
 
 def format_backed(row):
+    """A file row: ADDR<tab>by. The name stays in the export (CLAUDE.md)."""
+    va, _name, by = row
+    return f"{va:08x}\t{by}"
+
+
+def format_lost(row):
+    """A reported loss: ADDR<tab>Class::method<tab>by, the name from the export."""
     va, name, by = row
-    return f"{va:08x}\t{name}\t{by}"
+    return f"{va:08x}\t{name or '?'}\t{by}"
 
 
 def tree_label():
@@ -902,7 +912,8 @@ def tree_label():
 
 def backed_header(date, tree, count):
     return (f"# census-backed.txt — the {count} backed simulation functions, by address, as\n"
-            f"# `tools/census.py --backed-list` counts them: ADDR<tab>Class::method<tab>by (doc|sweep).\n"
+            f"# `tools/census.py --backed-list` counts them: ADDR<tab>by (doc|sweep) — addresses only, the\n"
+            f"# names stay in the export (CLAUDE.md keeps symbol lists out of the repo).\n"
             f"# Measured {date} on {tree}.\n"
             f"# The steering pass regenerates it with\n"
             f"# `python3 tools/census.py --backed-list --write docs/audit/census-backed.txt`;\n"
@@ -920,8 +931,8 @@ def read_backed(path):
                 continue
             m = BACKED_ROW.match(line)
             if not m:
-                sys.exit(f"{path}:{n}: not ADDR<tab>Class::method<tab>doc|sweep: {line!r}")
-            out[int(m.group(1), 16)] = (m.group(2), m.group(3))
+                sys.exit(f"{path}:{n}: not ADDR<tab>doc|sweep: {line!r}")
+            out[int(m.group(1), 16)] = (m.group(2) or '', m.group(3))
     return out
 
 
@@ -997,9 +1008,10 @@ def main():
     if a.check_backed:
         listed = read_backed(a.check_backed)
         live = {va for va, _, _ in backed_now(a.index, a.docs, a.sim_src, a.pdb)}
-        lost = lost_backed(listed, live)
+        _total, _cls_of, name_of = load_index(a.index)
+        lost = [(va, name or name_of.get(va, ''), by) for va, name, by in lost_backed(listed, live)]
         for row in lost:
-            print("lost\t" + format_backed(row))
+            print("lost\t" + format_lost(row))
         print(f"census-backed: {len(listed)} listed, {len(lost)} no longer backed, "
               f"{len(live - listed.keys())} backed and not listed (silent)")
         sys.exit(1 if lost else 0)

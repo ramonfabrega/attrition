@@ -1,1582 +1,1587 @@
-# census-backed.txt — the 1576 backed simulation functions, by address, as
-# `tools/census.py --backed-list` counts them: ADDR<tab>Class::method<tab>by (doc|sweep).
-# Measured 2026-10-19 on b425675bb (worktree-agent-a145902d44e7a4040).
+# census-backed.txt — the 1580 backed simulation functions, by address, as
+# `tools/census.py --backed-list` counts them: ADDR<tab>by (doc|sweep) — addresses only, the
+# names stay in the export (CLAUDE.md keeps symbol lists out of the repo).
+# Measured 2026-10-19 on ae4754f50 (worktree-replan-pdb).
 # The steering pass regenerates it with
 # `python3 tools/census.py --backed-list --write docs/audit/census-backed.txt`;
 # `--check-backed` names every address here that is no longer backed (a gain is silent).
-0041bfe0	Window::on_app_focus	sweep
-0041c000	GraphicWinXML::get_graphicwinxml	sweep
-0041dbe0	Window::on_focus	sweep
-0042db70	TypeData::is_peasant	sweep
-0042db90	TypeData::is_scholar	sweep
-0042dbb0	TypeData::is_worker	sweep
-0042dbd0	TypeData::is_merchant	sweep
-004352b0	FarmsOut::get_name	sweep
-00437880	Cliffs::get_parse_name	sweep
-00437900	RiversOut::get_name	sweep
-00437980	RoadsOut::get_name	sweep
-0043c2f0	TerrainOut::get_name	sweep
-0043cca0	GameAccess::rnd	doc
-0043e220	Player::is_over	sweep
-0043ec40	Game::is_solo	sweep
-0043ec50	Game::is_recording	sweep
-0043ec70	Game::is_scenario	sweep
-0043ec90	Game::is_tournament	sweep
-0043ecb0	Game::is_turbo_resources	sweep
-0043f360	WorldData::is_valid	sweep
-00447880	CircleRender::get_name	sweep
-00461340	WorldData::is_blocked_at	sweep
-004613b0	WCoord::operator_TCoord	sweep
-004613d0	WorldData::get_down	sweep
-00461420	WorldData::valid	sweep
-00461450	WCoord::WCoord	sweep
-0046cda0	SubObjectData::is_active	sweep
-0046ce10	Unit::set_type	sweep
-0046ce20	SubObject::time	sweep
-0046ce30	UnitData::is_on_map	sweep
-0046ce40	UnitData::is_plane	sweep
-0046ce60	UnitData::is_hero	sweep
-0046ce70	UnitData::is_gov_hero	sweep
-0046ce80	UnitData::is_supply	sweep
-0046ce90	UnitData::is_caravan	sweep
-0046cea0	UnitData::is_special	sweep
-0046ceb0	UnitData::is_captain	sweep
-0046cec0	UnitData::has_repeat_air	sweep
-0046ced0	UnitData::has_stance_type	sweep
-0046cee0	UnitData::get_stance_type	sweep
-0046cef0	ObjectData::support	sweep
-0046cf10	ObjectData::has_objmask	sweep
-0046cf20	ObjectData::get_wonder_value	sweep
-0046cff0	vector_dist	sweep
-0046d060	vector_dist	sweep
-0046d220	World::get_wdata	sweep
-0046d250	World::new_coll_block	sweep
-0046d310	ObjectData::is_peasant	sweep
-0046d330	ObjectData::is_scholar	sweep
-0046d370	UnitData::is_merchant	sweep
-0046d390	WorldData::is_river	sweep
-0046ed60	OrderList::get_new_data	sweep
-0046ed70	OrderList::get_data_type	sweep
-0046eea0	ObjectData::is_active_wallbuild	sweep
-0046eed0	WCoord::traverse_y	sweep
-0046eef0	WCoord::traverse_x	sweep
-0046ef10	WorldData::get_goods	sweep
-0046ef50	World::set_down	sweep
-0046ef90	ObjectData::is_siege	sweep
-0046efa0	UnitData::is_fleeing	sweep
-0046f000	is_air	sweep
-0046f020	vector_dist	sweep
-0046f050	is_move	sweep
-0046f080	WCoord::get_tcorner	sweep
-0046f0a0	BuildData::num_gather	sweep
-0046f140	BuildData::get_first_gather	sweep
-0046f180	BuildData::gather_inside	sweep
-0046f290	UnitData::can_ever_transport	sweep
-0046f370	SubObject::swap_team	sweep
-0046f760	WorldData::is_valid	sweep
-0046f790	UnitData::transport_type	sweep
-0046f820	GroupData::one_member	sweep
-0046f880	WorldData::is_built_at	sweep
-0046f8c0	WorldData::is_cliff_at	sweep
-0046f900	WorldData::is_mountain_at	sweep
-0046f930	WorldData::is_tree_at	sweep
-0046f960	UnitData::can_transport	sweep
-0046f9d0	WorldData::get_land	sweep
-0046fa10	ObjectData::is_worker	sweep
-0046fa40	UnitData::is_idle	sweep
-0046fae0	UnitData::is_rare_collector	sweep
-0046fb10	WorldData::is_tocean	sweep
-0046fb40	ObjectData::is_active_build	sweep
-0046ffa0	ObjectData::is_map_unit	sweep
-004703f0	ObjectTypeOut::draw	sweep
-00470410	ObjectTypeOut::draw_template	sweep
-00470420	UnitTypeData::is_caravan	sweep
-00470430	ObjectTypeData::is_upgrade	sweep
-00470440	UnitTypeData::blocks_while_dead	sweep
-00470450	UnitTypeData::is_tank	sweep
-00470460	UnitTypeData::is_siege	sweep
-00470470	ObjectTypeData::is_defense	sweep
-004704d0	TypeData::is_cancel_alliance	sweep
-004704f0	TypeData::is_declare_war	sweep
-00470510	TypeData::is_unpack	sweep
-00470540	TypeData::is_pack	sweep
-00470570	TypeData::is_specialty_type	sweep
-00470590	TypeData::is_spell_type	sweep
-004705b0	TypeData::is_bonus_type	sweep
-004705d0	TypeData::is_plain_tech_type	sweep
-00470660	TypeData::is_final_type	sweep
-00470680	TypeData::is_gov_hero_type	sweep
-004706a0	TypeData::is_gov_type	sweep
-004706c0	TypeData::is_tech_type	sweep
-004706e0	TypeData::is_object_type	sweep
-00470760	TypeData::is_item_type	sweep
-00470780	TypeData::is_wonder_type	sweep
-004707a0	TypeData::is_gaia_type	sweep
-004707c0	TypeData::is_build_type	sweep
-004707e0	TypeData::is_unit_type	sweep
-00470800	TypeData::is_good_type	sweep
-00470810	UnitTypeData::num_preq	sweep
-00470820	TypeData::is_age_type	sweep
-00470860	ObjectTypeData::has_objmask	sweep
-00470870	TypeData::is_epoch_type	sweep
-00470e50	Build::finished	sweep
-00470e90	GatherPointList::get_new_data	sweep
-00470f30	GatherPoint::walk_data	sweep
-00471130	ObjectData::is_visible_wonder	sweep
-00471160	MiningList::clear	sweep
-00471170	WorldData::is_valid	sweep
-004711e0	ObjectData::is_dock	sweep
-00471360	WallData::can_capture	sweep
-004722f0	WallData::is_sea_trade	sweep
-00472320	BuildData::is_wonder	sweep
-00472350	WallData::is_active	sweep
-00472360	WallData::is_started	sweep
-00472370	WallOut::draw	sweep
-004723b0	Wall::set_type	sweep
-00472400	ObjectData::get_captain	sweep
-00472410	WallData::has_repeat_air	sweep
-00472420	WallData::is_under_attack	sweep
-00472430	BuildData::can_make	sweep
-00472a30	BuildTypeData::is_tower	sweep
-00472a40	BuildTypeData::is_mine	sweep
-00472a50	TypeData::type_graft	sweep
-00472a60	BuildTypeData::num_preq	sweep
-00472a70	BuildTypeData::is_dock	sweep
-00472ac0	WorldData::is_gathered_from	sweep
-00472af0	WorldData::is_oil_at	sweep
-00472b20	BuildTypeData::is_flat	sweep
-00472b30	TCoord::operator<	sweep
-00472b50	BuildTypeData::is_gather_enhancer	sweep
-00472ba0	BuildTypeData::is_fort	sweep
-00472bb0	BuildTypeData::is_gather_type	sweep
-00472bc0	BuildTypeData::is_city	sweep
-00472cb0	WallData::can_make	sweep
-00473600	BuildTypeData::is_defensive	sweep
-00473650	WallData::is_defensive	sweep
-00475640	ObjectsArray::get_data_type	sweep
-004761e0	GoodTypeData::is_herd_type	sweep
-00476aa0	ObjectTypeData::get_stance_type	sweep
-00476e50	SubObject::is	sweep
-004770d0	TypeData::avail	sweep
-004771c0	TypeData::is	sweep
-004780c0	GoodTypeData::is_flat	sweep
-0047a920	PathFinderOut::get_name	sweep
-0047a970	WorldData::is_edge	sweep
-0047be70	FogMaster::get_name	sweep
-0047e0e0	Player::is_active	sweep
-0047ef80	AttackOrder::get_type	sweep
-0047ef86	AttackOrder::get_type`vtordisp{4294967292,0}'	sweep
-0047f220	TargetOrder::walk_data	sweep
-0047f260	AttackOrder::walk_data	sweep
-0047f2b0	UnitOrder::walk_data	sweep
-0047f2d0	AirOrder::walk_data	sweep
-0047f310	StrafeOrder::walk_data	sweep
-0047f38a	StrafeOrder::walk_data`vtordisp{4294967292,0}'	sweep
-0047ff00	UnitOrder::is_move_attack	sweep
-0047ff40	TargetOrder::get_target_order	sweep
-0047ff50	StrafeOrder::get_attack_order	sweep
-0047ff54	StrafeOrder::get_strafe_order`vtordisp{4294967292,0}'	sweep
-0047ff60	StrafeOrder::get_air_order	sweep
-0047ff70	AirOrder::get_air_order	sweep
-00482510	GroupAttackToOrder::walk_data	sweep
-00482519	GroupAttackToOrder::walk_data`vtordisp{4294967292,0}'	sweep
-004825e0	GroupAttackToOrder::get_group_attack_to_order	sweep
-004825e4	GroupMoveOrder::get_group_move_order`vtordisp{4294967292,0}'	sweep
-004827a0	RepairOrder::get_type	sweep
-004827a6	RepairOrder::get_type`vtordisp{4294967292,0}'	sweep
-00482b50	BuildOrder::get_type	sweep
-00482b56	BuildOrder::get_type`vtordisp{4294967292,0}'	sweep
-00482c0a	GroupPatrolOrder::`vector_deleting_destructor'`vtordisp{4294967292,0}'	sweep
-00482c70	GroupPatrolOrder::walk_data	sweep
-00482ce2	GroupPatrolOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00482dc0	FormOrder::get_form_order	sweep
-00482dd0	GarrisonOrder::get_garrison_order	sweep
-00482e70	AttackToOrder::walk_data	sweep
-00482ea8	MoveOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00482f60	AttackToOrder::get_attack_to_order	sweep
-00482f64	MoveOrder::get_move_order`vtordisp{4294967292,0}'	sweep
-00483260	TradeOrder::walk_data	sweep
-004832a6	TradeOrder::walk_data`vtordisp{4294967292,0}'	sweep
-004835b0	AirAttackGroundOrder::get_air_order	sweep
-004835b4	AirAttackGroundOrder::get_air_order`vtordisp{4294967292,0}'	sweep
-00483aaa	AirPatrolOrder::`vector_deleting_destructor'`vtordisp{4294967292,0}'	sweep
-00483e80	PatrolOrder::walk_data	sweep
-00483ed0	AirPatrolOrder::walk_data	sweep
-00483f42	AirPatrolOrder::walk_data`vtordisp{4294967292,0}'	sweep
-004843d0	AirPatrolOrder::get_air_patrol_order	sweep
-004843e0	PatrolOrder::get_patrol_order	sweep
-004845c0	ThinkOrder::get_type	sweep
-00484690	GarrisonOrder::walk_data	sweep
-004846df	GarrisonOrder::walk_data`vtordisp{4294967292,0}'	sweep
-004849a0	SpecialAnimOrder::walk_data	sweep
-0048509a	GroupAttackOrder::`vector_deleting_destructor'`vtordisp{4294967292,0}'	sweep
-004850b0	GroupAttackOrder::walk_data	sweep
-0048512a	GroupAttackOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00485580	GroupOrder::walk_data	sweep
-004855c0	GroupMoveOrder::walk_data	sweep
-0048562c	GroupMoveOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00485a20	GroupMoveOrder::is_pathed	sweep
-00485a2f	GroupMoveOrder::is_pathed`vtordisp{4294967292,0}'	sweep
-00485a40	GroupMoveOrder::is_fleeing	sweep
-00485a4f	GroupMoveOrder::is_fleeing`vtordisp{4294967292,0}'	sweep
-00485cc0	FormOrder::walk_data	sweep
-00485d06	FormOrder::walk_data`vtordisp{4294967292,0}'	sweep
-004860a0	CastOrder::walk_data	sweep
-004860e6	CastOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00486550	GuardOrder::walk_data	sweep
-00486596	GuardOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00486920	GuardOrder::get_guard_order	sweep
-00486924	GuardOrder::get_guard_order`vtordisp{4294967292,0}'	sweep
-00486b50	FollowOrder::walk_data	sweep
-00486b94	FollowOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00486c20	FollowOrder::get_type	sweep
-00486c26	FollowOrder::get_type`vtordisp{4294967292,0}'	sweep
-00486c60	FollowOrder::get_follow_order	sweep
-00486c64	FollowOrder::get_follow_order`vtordisp{4294967292,0}'	sweep
-00486e60	GatherOrder::walk_data	sweep
-00486ea6	GatherOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00487310	GatherOrder::get_type	sweep
-00487316	GatherOrder::get_type`vtordisp{4294967292,0}'	sweep
-0048758d	AirAttackGroundOrder::`vector_deleting_destructor'`vtordisp{4294967292,0}'	sweep
-004875a0	AirAttackGroundOrder::walk_data	sweep
-0048760c	AirAttackGroundOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00487840	AirAttackGroundOrder::get_air_attack_ground_order	sweep
-00487a60	AttackGroundOrder::walk_data	sweep
-00487a98	AttackGroundOrder::walk_data`vtordisp{4294967292,0}'	sweep
-00487cf0	AttackGroundOrder::get_type	sweep
-00487cf6	AttackGroundOrder::get_type`vtordisp{4294967292,0}'	sweep
-00488980	MoveOrder::is_pathed	sweep
-0048898f	MoveOrder::is_pathed`vtordisp{4294967292,0}'	sweep
-004889a0	MoveOrder::is_fleeing	sweep
-004889af	MoveOrder::is_fleeing`vtordisp{4294967292,0}'	sweep
-00489220	City::walk_data	sweep
-00499c10	Storm::get_name	sweep
-0049f320	OceanVars::get_name	sweep
-004a1ca0	BorderSpline::on_field_change	sweep
-004a1cb0	BorderSpline::get_name	sweep
-004a5dc0	Surf::get_name	sweep
-004b2ee0	Nuke::get_name	sweep
-004b71d0	Player::is_active_connection	sweep
-004d2030	BuildData::can_queue	sweep
-0057f910	Constants::walk_data	sweep
-00581ca0	Balance::return_modifier	sweep
-00582910	Balance::lookup_absolute_name	sweep
-00582cc0	Balance::walk_rules_data	sweep
-00583370	GameAccessConst::get_scary_cliffs	sweep
-00583380	GameAccessConst::get_scary_scenario_editor	sweep
-00583390	GameAccessConst::get_scary_iface_main	sweep
-005833a0	GameAccessConst::get_scary_camera	sweep
-005833b0	GameAccessConst::get_scary_fog	sweep
-005833c0	GameAccessConst::get_scary_console	sweep
-005833d0	GameAccessConst::get_scary_iface_current	sweep
-005833e0	GameAccessConst::get_scary_console_leader	sweep
-00583400	GameAccessConst::get_scary_terrain	sweep
-00583410	GameAccessConst::get_scary_options	sweep
-00583420	GameAccessConst::get_scary_doobers	sweep
-00583430	GameAccessConst::get_scary_my_player	sweep
-00583450	GameAccessConst::get_scary_select_group	sweep
-00583470	GameAccessConst::get_scary_scene	sweep
-00583480	GameAccessConst::get_scary_message_win	sweep
-00583490	GameAccessConst::get_scary_graphic_pieces	sweep
-005834a0	GameAccessConst::get_scary_console_who	sweep
-005834b0	GameAccessConst::find_tcoord_z	sweep
-005834f0	GameAccessConst::find_data_z	sweep
-005837f0	MiscAccess::find_global_render_z	sweep
-00583810	MiscAccess::world_to_screen	sweep
-00583a00	MiscAccess::world_to_screen	sweep
-00583a60	MiscAccess::coord_vis	sweep
-00583aa0	MiscAccess::coord_vis	sweep
-00583af0	Game::is_game_ready	sweep
-005860a0	Game::run_unit_editor	sweep
-005877d0	Game::unload_net_lib	sweep
-00588530	Game::clock_init	sweep
-00589550	Game::walk_rules_data	sweep
-00589600	Game::walk_data	sweep
-0058da90	Game::get_game_fps_average	sweep
-0058dae0	Game::add_game_fps_to_average	sweep
-00592aa0	Game::defeat_all	sweep
-005930c0	Game::action_cheat_ai_toggle	sweep
-005930e0	Game::action_cheat_ai_speed_normal	sweep
-00593100	Game::action_cheat_ai_speed_increase	sweep
-00593f70	Game::is_team_game	sweep
-00593f80	Game::get_time_limit	sweep
-00594020	Game::get_armageddon	sweep
-00594480	Game::is_raining	sweep
-00594490	Game::is_observing	sweep
-005944b0	Game::popwin_timer	sweep
-005944f0	Game::wonder_timer	sweep
-00594630	Game::is_deathmatch	sweep
-00594640	Game::is_infinite	sweep
-00594650	Game::is_nomad	sweep
-00594660	Game::is_never_war	sweep
-00594670	Game::war_allowed	sweep
-005946c0	Game::is_no_rush	sweep
-005946d0	Game::current_age	sweep
-005947e0	Game::is_sandbox	sweep
-00594810	Game::is_cooperative	sweep
-00594880	Game::teams_locked	sweep
-005948a0	Game::wonder_winning	sweep
-00594950	Game::is_victory_timer	sweep
-00595250	Game::OnFindLeaderboard	sweep
-00595260	Game::get_patch_version	sweep
-005aac70	Setup::init_wild_life	sweep
-005aaf50	Setup::get_starting_citizens	sweep
-005abc70	Setup::build_leader	sweep
-005d46f0	GameInfo::get_map_size_name	sweep
-005d4a10	GameInfo::load_from_playback	sweep
-005d7200	GameInfo::default_setting	sweep
-005d72c0	Animal::process	sweep
-005d7460	Animal::do_idle	doc
-005d7700	Animal::think_farm_animal	sweep
-005d79e0	Animal::think_bird	sweep
-005d7d50	Animal::update_los	sweep
-005d7ea0	AnimalData::walk_data	sweep
-005d8120	AnimalData::valid_target_const	sweep
-005d8380	AnimalData::get_speed	sweep
-005d84b0	Guy::copy_data	sweep
-005d8530	Guy::update_gpiece	sweep
-005d86a0	Guy::set_pitch	sweep
-005d86b0	Guy::set_bank	sweep
-005d86c0	Guy::set_new_z	sweep
-005d8bc0	Guy::set_all_pivots	sweep
-005d8fb0	Guy::set_elev_angle	sweep
-005d8fc0	Guy::set_pivot_angle	sweep
-005d9240	Guy::move	doc
-005d9720	Guy::turn_towards	sweep
-005d97a0	Guy::do_turn	doc
-005d98c0	Guy::turn_angles	sweep
-005d9950	Guy::update_z	sweep
-005d9e10	Guy::inc_time	doc
-005da300	Guy::set_anim	doc
-005db6b0	Guy::init_real	doc
-005de270	GuyData::is_corner	sweep
-005de340	GuyData::turn_speed	sweep
-005de410	GuyData::get_speed	sweep
-005de4f0	GuyData::get_render_pitch	sweep
-005de530	GuyData::get_render_bank	sweep
-005de570	GuyData::get_render_angle	sweep
-005de5d0	GuyData::get_render_z	sweep
-005de620	GuyData::get_render_y	sweep
-005de670	GuyData::get_render_x	sweep
-005e0210	GuyData::walk_data	sweep
-005e22d0	Unit::check_target_path	sweep
-005e2920	Unit::update_gpiece	sweep
-005e29b0	Unit::repath	sweep
-005e2bb0	Unit::kill_current_action	sweep
-005e2bd0	Unit::kill_garrison_order	sweep
-005e2cb0	Unit::kill_current_order	doc
-005e31d0	Unit::kill_current_path	sweep
-005e3220	Unit::update_guard_order	doc
-005e3310	Unit::kill_group_order	sweep
-005e3400	Unit::kill_group_move	sweep
-005e3530	Unit::modify_group_order	sweep
-005e35e0	Unit::update_patrol_order	sweep
-005e36c0	Unit::change_target	sweep
-005e3bd0	Unit::end_trade_route	sweep
-005e3df0	Unit::add_think_order	sweep
-005e3e40	Unit::add_guard_order	doc
-005e3f60	Unit::add_follow_order	doc
-005e4080	Unit::add_garrison_order	sweep
-005e4160	Unit::add_spec_anim_order	sweep
-005e41c0	Unit::add_air_attack_ground_order	sweep
-005e4290	Unit::add_attack_ground_order	sweep
-005e4350	Unit::add_air_patrol_order	sweep
-005e4560	Unit::add_patrol_order	sweep
-005e4710	Unit::add_group_move_order	doc
-005e48c0	Unit::add_strafe_order	sweep
-005e4a60	Unit::add_cast_order	sweep
-005e4c80	Unit::add_await_board_order	sweep
-005e4d10	Unit::add_board_order	sweep
-005e4dc0	Unit::add_trade_order	sweep
-005e4ff0	Unit::add_repair_order	sweep
-005e5210	Unit::add_build_order	sweep
-005e5410	Unit::add_attack_order	doc
-005e55c0	Unit::add_move_facing_order	sweep
-005e5be0	Unit::do_spec_unit_anim	sweep
-005e5bf0	Unit::do_think_order	sweep
-005e5c70	Unit::do_guard	doc
-005e65d0	Unit::do_follow	doc
-005e74e0	Unit::do_group_attack_to	sweep
-005e8670	Unit::do_form_change	sweep
-005e86d0	Unit::do_air_physics	sweep
-005e9520	Unit::bank_aircraft	sweep
-005ea360	Unit::air_alt_speed	sweep
-005ea390	Unit::air_turn_speed	sweep
-005ea420	Unit::do_air_attack_ground	sweep
-005ea620	Unit::do_air_patrol	sweep
-005eab00	Unit::do_strafe	doc
-005eb960	Unit::find_new_bomber_target	sweep
-005ebc70	Unit::find_new_air_target	sweep
-005ed1f0	Unit::do_board	sweep
-005ed270	Unit::do_trade	sweep
-005eebf0	Unit::do_build	sweep
-005f1410	Unit::do_attack_ground	sweep
-005f1910	Unit::do_patrol	sweep
-005f1b80	Unit::do_attack	sweep
-005f22a0	Unit::do_attack_to_pause	sweep
-005f2480	Unit::do_flee_to	sweep
-005f24a0	Unit::do_explore_to	sweep
-005f2540	Unit::find_goody_box	sweep
-005f27a0	Unit::think_spellcaster	sweep
-005f2ee0	Unit::think_carry	sweep
-005f4720	Unit::think_hero	sweep
-005f4730	Unit::think_supply	sweep
-005f4c60	Unit::think_fish	sweep
-005f5170	Unit::find_gather_spot	sweep
-005f5650	Unit::think_caravan	sweep
-005f5760	Unit::think_peasant	sweep
-005f5a80	Unit::think_attack	doc
-005f6010	Unit::think_scout	doc
-005f7690	Unit::get_goody_box	sweep
-005f7740	Unit::add_to_army	doc
-005f78c0	Unit::go_to_unit	doc
-005f79c0	Unit::go_to_city	sweep
-005f7a50	Unit::go_to	doc
-005f7b30	Unit::do_move	doc
-005f8d20	Unit::set_new_location	sweep
-005f9400	Unit::same_damage	sweep
-005f96b0	Unit::update_ceo_position	sweep
-005f9780	Unit::explore_goody	sweep
-005f9d30	Unit::resolve_unit_collision	doc
-005fa8b0	Unit::detect_boat_collision	sweep
-005faf30	Unit::move_step	doc
-005fc350	Unit::go_around_building	sweep
-005fccc0	Unit::resolve_block	sweep
-005fce20	Unit::do_gather	sweep
-005fce70	Unit::set_attack	sweep
-005fcfb0	Unit::set_in_danger	sweep
-005fd140	Unit::ungroup_move_order	sweep
-005fd420	Unit::replace_form_id	sweep
-005fd4d0	Unit::fight	doc
-005ff4b0	Unit::cavarch_fight	sweep
-005ff5b0	Unit::set_attacking	sweep
-005ff670	Unit::set_rally	sweep
-005ff6a0	Unit::find_new_target	doc
-005ff9c0	Unit::find_melee_target	doc
-005fff70	Unit::on_duty	doc
-00600e30	Unit::find_open_slots	sweep
-006010b0	Unit::find_melee_pos	sweep
-00601280	Unit::find_attack_pos	doc
-00602e60	Unit::find_attack_pos	doc
-006032c0	Unit::check_idle	sweep
-006038e0	Unit::unpack_merchant	doc
-00603ab0	Unit::find_merchant_spot	doc
-00603bf0	Unit::build_done	sweep
-00604320	Unit::find_repair_spot	sweep
-00605040	Unit::find_garrison_build	sweep
-00605200	Unit::set_ai_control	sweep
-00605220	Unit::set_group	sweep
-00605310	Unit::set_stance	doc
-00605400	Unit::set_angle	sweep
-006054a0	Unit::set_mask	sweep
-006054c0	Unit::update_armor	sweep
-00606590	Unit::update_z	sweep
-006068a0	UnitData::good_merchant_spot	sweep
-00607a60	UnitData::is_seen	sweep
-00607b40	UnitData::is_modern_infantry	sweep
-00607bc0	UnitOut::issue_unqueue	sweep
-00607be0	UnitOut::issue_come_out	sweep
-00607c30	UnitData::invalid_loc	sweep
-00608040	UnitData::get_final_loc	doc
-006081f0	UnitData::next_action_type	sweep
-00608210	UnitData::activity_type	sweep
-00608370	UnitData::get_activity	doc
-00608450	UnitData::get_action	doc
-00608560	UnitData::find_def_pos	sweep
-006086f0	UnitData::get_speed	sweep
-00608720	UnitData::get_speed	sweep
-00608850	UnitData::can_gather	sweep
-00608880	UnitData::is_gathering_at	sweep
-006089b0	UnitData::is_gathering	sweep
-00608fd0	UnitData::get_attrition	sweep
-00609180	UnitData::calc_gather	sweep
-00609920	UnitData::needs_transport	sweep
-006099a0	UnitData::can_garrison	sweep
-00609a20	UnitData::supplies_left	sweep
-00609a30	UnitData::mana_left	sweep
-00609a50	UnitData::mana	sweep
-00609b50	UnitData::has_damage	sweep
-00609d40	UnitData::control_cost	sweep
-00609d70	UnitData::decoy_time	sweep
-00609dc0	UnitData::home_base	sweep
-00609ef0	UnitData::in_supply	sweep
-00609fa0	UnitData::will_be_corner	sweep
-0060a040	UnitData::is_corner	sweep
-0060a0c0	UnitData::is_here	sweep
-0060a140	UnitData::is_flying_low	sweep
-0060a310	UnitData::is_flying_high	sweep
-0060a370	UnitData::is_busy	sweep
-0060a410	UnitData::is_packing_or_unpacking	sweep
-0060a4b0	UnitData::is_unpacking	sweep
-0060a530	UnitData::is_casting	sweep
-0060a5b0	UnitData::is_attacking	sweep
-0060a600	UnitData::turn_speed	sweep
-0060a630	UnitData::is_detected	sweep
-0060a6a0	UnitData::is_cloaked	sweep
-0060a6e0	UnitData::is_blown	sweep
-0060a6f0	UnitData::is_entering_or_exiting	sweep
-0060a760	UnitData::curr_uber_size	sweep
-0060a800	UnitData::uber_size	sweep
-0060a810	UnitData::is_entrenched	sweep
-0060a850	UnitData::action_type	sweep
-0060a870	Unit::update_action	sweep
-0060aa60	UnitData::is_packing	sweep
-0060b030	UnitData::get_order	sweep
-0060d040	Unit::must_walk	sweep
-0060dcd0	Unit::do_idle	sweep
-0060dd80	UnitData::get_gpiece	sweep
-0060e410	Unit::update_local_seen	sweep
-0060e4d0	Unit::update_los	sweep
-0060eda0	Unit::die	sweep
-0060edc0	Unit::execute_events	sweep
-0060fde0	UnitData::support_cost	sweep
-0060fdf0	UnitData::recharge	sweep
-006100b0	UnitData::min_range	sweep
-006100c0	UnitData::los	sweep
-00610890	UnitData::hits	sweep
-00610970	UnitData::get_packer_stance	sweep
-006109b0	UnitData::get_caster_stance	sweep
-006109f0	UnitData::get_worker_stance	sweep
-00610a30	UnitData::get_combat_stance	doc
-00610a70	UnitData::get_capture_value	sweep
-00610ab0	UnitData::get_captain	sweep
-00610af0	UnitData::is_moving	sweep
-00610b40	Unit::inc_time	sweep
-00612100	Unit::init	doc
-00616d70	UnitData::get_gpiece	sweep
-00616e80	UnitData::order_type	sweep
-00616ed0	Unit::add_move_order	doc
-00616f40	Unit::set_anim	sweep
-00617010	Unit::find_nearby_spot	sweep
-006179d0	Unit::update_order	sweep
-0061a2e0	Unit::go_inside	sweep
-0061a5c0	Unit::add_gather_order	sweep
-0061a960	Units::make_valid	sweep
-0061c320	UnitType::determine_roles	sweep
-0061d190	UnitType::walk_rules_data	sweep
-0061d350	UnitTypeData::get_stance_type	sweep
-0061d3b0	UnitTypeData::has_stance_type	sweep
-0061d3d0	UnitTypeData::get_kill_value	sweep
-0061d430	UnitTypeData::is_missile	sweep
-0061d470	UnitTypeData::can_entrench	sweep
-0061d4c0	UnitTypeData::get_military_level	sweep
-0061d4d0	UnitTypeData::get_military_level_slow	doc
-0061d740	UnitTypeData::get_relative_value	sweep
-0061d760	UnitTypeData::research_time	sweep
-0061d790	UnitTypeData::type_graft	sweep
-0061d7d0	UnitTypeData::can_garrison	sweep
-0061daa0	UnitType::gather_radius	sweep
-0061daf0	UnitTypeData::get_underlay_circle_radius	sweep
-0061db10	UnitTypeData::get_circle_radius	sweep
-0061db20	UnitTypeData::can_attack_ground	sweep
-0061dc50	UnitTypeData::is_spellcaster	sweep
-0061dc60	UnitTypeData::needs_packing	sweep
-0061ddd0	UnitType::restore	sweep
-0061de20	UnitType::backup	sweep
-0061de70	UnitType::find_nearby_spot	sweep
-006201e0	Build::process_ejection	sweep
-00620280	Build::action_unqueue	sweep
-006206e0	Build::unpay_cost	sweep
-00620f40	Build::queue_up	doc
-00622030	Build::remove_from_city	sweep
-00622380	Build::add_to_city	sweep
-00622670	Build::do_missile_launch	sweep
-00622c80	Build::find_target	sweep
-00622ce0	Build::add_attack_order	sweep
-00622e70	Build::add_gather_point	sweep
-00623310	Build::update_max_gatherers	sweep
-00623350	Build::find_gather_tiles	sweep
-00623570	Build::verify_gather_tiles	sweep
-006273a0	Build::start	sweep
-00627fe0	Build::new_library	sweep
-00628130	Build::repair_damage	sweep
-00628180	Build::find_city	sweep
-00628210	Build::swap_team	sweep
-00628490	Build::finished	sweep
-0062d1d0	BuildData::check_capture_eligible	sweep
-0062d250	BuildData::check_capture_health	sweep
-0062d280	BuildData::get_queue	sweep
-0062d360	BuildData::calc_gather	sweep
-0062d430	BuildData::num_scholars	sweep
-0062d470	BuildData::is_unassimilated	sweep
-0062d4d0	BuildData::can_infinite	sweep
-0062d5b0	BuildData::is_infinite	sweep
-0062d5c0	BuildData::construct_time	sweep
-0062d920	BuildData::show_later_tech	sweep
-0062da00	BuildData::can_queue	sweep
-0062da50	BuildData::could_queue	sweep
-0062dd90	BuildData::get_shot	sweep
-0062de70	BuildData::find_in_queue	sweep
-0062dee0	BuildData::count_queue	sweep
-0062e030	BuildData::get_packer_stance	sweep
-0062e070	BuildData::get_caster_stance	sweep
-0062e0b0	BuildData::get_worker_stance	sweep
-0062e0f0	BuildData::get_combat_stance	sweep
-0062e130	BuildData::is_now_seen	sweep
-0062e1a0	BuildData::is_seen	doc
-0062e210	BuildData::has_objmask	sweep
-0062e2f0	BuildData::most_shots	sweep
-0062e300	BuildData::get_most_shots	sweep
-0062e340	BuildData::get_base_garrison_arrows	sweep
-0062e3d0	BuildData::get_garrison_arrows	sweep
-0062e740	BuildData::hits	sweep
-0062f520	BuildData::is_gathered_by	sweep
-0062f570	Build::all_gathering	sweep
-0062f640	Build::add_gatherer	sweep
-0062f710	Build::check_gatherers	sweep
-0062f8d0	Build::remove_gatherer	sweep
-0062f9b0	Build::train	sweep
-00630450	BuildData::num_gatherers	sweep
-00630590	BuildData::max_gatherers	sweep
-006305f0	BuildQueue::walk_data	sweep
-00630670	BuildQueueData::get_queue	sweep
-00630690	BuildQueueData::get_job_counter	sweep
-006306b0	BuildQueueData::get_size	sweep
-006309f0	BuildQueue::set_queue	sweep
-00630ab0	BuildQueue::set_job_counter	sweep
-00630ad0	BuildQueue::un_queue	sweep
-00630b10	BuildQueueData::get_next_non_unit	sweep
-00630bb0	BuildQueueData::get_next_helicopter	sweep
-00630c20	BuildQueueData::get_next_non_caravan	sweep
-00631f50	BuildType::walk_rules_data	sweep
-00631f80	BuildType::restore	sweep
-00631ff0	BuildType::backup	sweep
-00633390	BuildType::set_domain	sweep
-00633f50	BuildTypeData::get_garrison_limit	sweep
-00636190	BuildTypeData::snap_center	sweep
-00636440	BuildTypeData::tile_corner	sweep
-006364c0	BuildTypeData::corner_tile	sweep
-00636500	BuildTypeData::total_gather_access	sweep
-006365e0	BuildTypeData::max_knowledge_gatherers	sweep
-006365f0	BuildTypeData::max_flat_gatherers	sweep
-00636700	BuildTypeData::is_dock_tile	sweep
-00636a50	BuildTypeData::blocked_site	sweep
-00636d80	BuildTypeData::blocked_town	sweep
-006389b0	BuildTypeData::area	sweep
-006389c0	BuildTypeData::non_friendly_territory	sweep
-00638b40	BuildTypeData::in_enemy_territory	sweep
-00638ce0	BuildTypeData::count_water	sweep
-00638d70	BuildTypeData::check_enemy_adjacent	sweep
-00638ed0	BuildTypeData::check_land_adjacent	sweep
-00639090	BuildTypeData::count_trees_adjacent	sweep
-00639180	BuildTypeData::count_mountains_adjacent	sweep
-006396c0	BuildTypeData::get_stance_type	sweep
-00639770	BuildTypeData::has_stance_type	sweep
-00639790	BuildTypeData::get_kill_value	sweep
-00639800	BuildTypeData::get_city_level	sweep
-00639830	BuildTypeData::is_embassy	sweep
-00639840	BuildTypeData::is_spellcaster	sweep
-00639880	BuildTypeData::get_enhancing_good	sweep
-006398c0	BuildTypeData::connects_to_roads	sweep
-00639910	BuildTypeData::makes_roads	sweep
-00639930	BuildTypeData::is_civilian	sweep
-00639950	BuildTypeData::fundamental_type	sweep
-00639970	BuildTypeData::basic_type	sweep
-00639b90	BuildTypeData::get_town	sweep
-00639d10	BuildTypeData::queue_here	sweep
-00639de0	BuildTypeData::is_training_building	sweep
-0063bc40	BuildTypeData::can_capture	sweep
-0063bc60	BuildTypeData::gather_radius	sweep
-0063bcf0	BuildTypeData::is_military_trainer	sweep
-0063bd50	BuildTypeData::get_good	sweep
-0063bda0	BuildTypeData::gathers	sweep
-0063c430	BuildTypeData::max_gatherers	sweep
-0063ce10	BuildTypeData::already_built	sweep
-0063ce70	Wall::check_ever_seen	sweep
-0063d230	Wall::mark_behind_tiles	doc
-0063d3a0	Wall::kill_competing_buildings	sweep
-0063e2a0	WallData::valid_buildmask	sweep
-0063e310	Wall::mask_city	sweep
-0063e810	Wall::start	sweep
-0063e9b0	Wall::init	doc
-0063eca0	WallData::in_unfriendly_territory	sweep
-0063ed30	WallData::is_neutralized	sweep
-0063ed40	WallData::get_garrison_limit	sweep
-0063ed50	Wall::update_local_seen	sweep
-0063f0d0	Wall::update_hits	sweep
-0063f6c0	Wall::die	sweep
-0063fa30	WallData::support_cost	sweep
-0063fa50	WallData::los	sweep
-0063fa60	WallData::armor	sweep
-00640c00	Wall::swap_team	sweep
-00640da0	Wall::set_type	sweep
-00642470	WallOut::make_options	sweep
-006424d0	WallOut::get_gpiece	sweep
-006424e0	WallData::is_trade	sweep
-00642510	WallData::walk_data	sweep
-00642bb0	WallData::hits	sweep
-00642bd0	WallData::is_seen	doc
-00642ca0	WallData::is_now_seen	sweep
-00642d90	WallData::construct_time	sweep
-00642fc0	Wall::mask_me	sweep
-00643440	WallData::tile_corner	sweep
-006434d0	Wall::do_construct	sweep
-006439b0	WallData::covers_tile	sweep
-00643b70	Object::replace_hotunit	sweep
-00643d40	ObjectData::has_nuke	sweep
-00644000	ObjectData::inside_bottom	sweep
-00644080	ObjectData::in_a_building	sweep
-006440c0	ObjectData::in_a_ship	sweep
-006450b0	ObjectData::los	sweep
-006450c0	ObjectData::hits	sweep
-006452f0	ObjectData::support_cost	sweep
-00645310	ObjectData::say_name	sweep
-00645330	ObjectData::num_aircraft_here	sweep
-006454a0	ObjectData::num_aircraft_limit	sweep
-00645550	Object::kill_contents	sweep
-00645e00	ObjectData::can_carry	sweep
-00646b00	ObjectData::has_general	sweep
-00646c00	ObjectData::max_range	sweep
-00646c10	ObjectData::has_range	sweep
-00646c20	ObjectData::min_range	sweep
-00646c30	ObjectData::recharge	sweep
-00646c40	ObjectData::can_carry	sweep
-00646d50	ObjectData::num_inside	sweep
-00646f90	Object::repair_damage	sweep
-00646fe0	Object::update_los	sweep
-00647010	Object::update_hits	sweep
-00647150	Object::execute_events	sweep
-006472c0	ObjectData::valid_target_const	sweep
-00647830	Object::walk_data	sweep
-00647930	Object::must_walk	sweep
-00647db0	ObjectData::armor	sweep
-006483c0	ObjectData::can_carry	sweep
-006486a0	ObjectData::assault_benefit	sweep
-006486b0	ObjectData::is_in_range	sweep
-006488f0	ObjectData::attack_dist	sweep
-00648ba0	Object::valid_target	sweep
-00648d70	ObjectData::is_in_range	sweep
-00648da0	Object::find_nearby_target	doc
-00649d70	Object::get_army	sweep
-00649e00	Object::check_target	doc
-0064a270	Object::poor_target	sweep
-0064a480	Object::do_damage	doc
-0064c880	ObjectData::attack_dist	sweep
-0064c8b0	Object::fire_ammo	sweep
-0064dcd0	ObjectData::cargo_inside	sweep
-0064e470	ObjectData::is_in_range	sweep
-0064e4a0	ObjectData::is_in_range	sweep
-0064e5c0	Object::compare_target	doc
-0064f3b0	Object::do_launch	sweep
-006508c0	ObjectData::train_time	doc
-00651a80	ObjectData::get_inside	sweep
-00651b80	Object::update_seen	sweep
-00651f40	Object::adjacent_to	sweep
-00653480	ObjectData::isnt	sweep
-006534b0	ObjectData::health_level	sweep
-006535c0	ObjectData::hits_left	sweep
-00653600	ObjectData::is_cargo	sweep
-00653660	ObjectData::is_jammed	sweep
-00653750	ObjectData::is_infiltrated	sweep
-00653790	ObjectData::is	sweep
-00654a30	ObjectsOut::sort_objects	sweep
-00658160	ObjectsData::find_good_at	sweep
-00658190	ObjectsData::find_town_at	sweep
-00658490	ObjectsData::count_nukes_in_flight	sweep
-00658880	ObjectsData::make_tree_mask	sweep
-00658b10	Objects::add_ammo	sweep
-00658c80	ObjectsData::find_building_placed_at	sweep
-00658e60	ObjectsData::find_town	sweep
-00658ea0	ObjectsData::find_village	sweep
-00658ef0	ObjectsData::find_unit_ordered_with_radius	sweep
-00659130	ObjectsData::find_good_at	sweep
-00659180	ObjectsData::find_any_building_at	sweep
-00659890	ObjectsData::find_unit_with_radius	sweep
-0065a620	Objects::find_units	sweep
-0065ab40	ObjectsData::find_building_at	sweep
-0065ad60	Objects::find_free	sweep
-0065b1b0	Objects::find_collision	sweep
-0065b440	Objects::find_ordered_collision	sweep
-0065b7c0	ObjectsData::find_goody_at	sweep
-0065b850	Objects::remove_item	sweep
-0065b870	ObjectsData::find_city_at	sweep
-0065ba90	ObjectsData::find_city	sweep
-0065bec0	ObjectsData::find_good_at	sweep
-0065c040	ObjectsData::find_goody_at	sweep
-0065c0e0	Objects::add_flock	sweep
-0065c6b0	ObjectsData::find	sweep
-0065cfd0	ObjectsData::find_dock	sweep
-0065f7d0	ObjectTypeData::is	sweep
-0065fac0	ObjectType::backup	sweep
-0065fb30	ObjectType::restore	sweep
-0065fba0	ObjectType::walk_rules_data	sweep
-00661090	ObjectTypeData::upgrade_level	sweep
-006619e0	ObjectTypeData::basic_type	sweep
-00661a00	ObjectTypeData::get_age_slow	sweep
-00661ac0	ObjectTypeData::get_age	sweep
-00661ae0	ObjectTypeData::is_slow	sweep
-00661b80	ObjectTypeData::isnt	sweep
-00661ba0	ObjectTypeData::get_wonder_value	sweep
-00661d70	ObjectTypeData::blocked_site	sweep
-00661d80	ObjectTypeData::is_cargo	sweep
-00661ed0	SubObject::refresh_z	sweep
-00661f10	SubObjectData::is_seen	sweep
-006623a0	SubObject::must_walk	sweep
-006623e0	SubObjectData::is_spellcaster	sweep
-00662450	SubObject::set_type	sweep
-006625c0	SubObjectData::play_sound	sweep
-00662670	SubObjectOut::is_on_screen	sweep
-00662680	SubObject::set_new_location	sweep
-00663190	Type::walk_rules_data	sweep
-006639a0	TypeData::research_time	sweep
-00663a00	TypeData::get_kill_value	sweep
-00663ae0	Type::set_name	sweep
-00663b60	Type::set_graph_name	sweep
-00663b70	Type::set_type_name	sweep
-00663b90	Type::set_help_name	sweep
-00663f20	TypeData::time	sweep
-00663f80	TypeData::count_discovered	sweep
-00664090	TypeData::get_cost	doc
-006673b0	TypeData::get_score_value	sweep
-00667570	TypeData::can_pay_cost	sweep
-00667730	TypeData::get_limiting_resource	sweep
-006677c0	TypeData::say_name	sweep
-00667ee0	Type::backup	sweep
-00668000	Type::restore	sweep
-00668080	Type::sum_cost	sweep
-006680e0	Type::sum_rules_cost	sweep
-006681f0	Type::pay_cost	sweep
-006682f0	Type::unpay_cost	sweep
-00668700	TypeData::get_preq	sweep
-00668a10	TypeData::get_abbrev_parsed	sweep
-00668ae0	Types::object_key	sweep
-00669100	get_unique_types2	sweep
-00669110	get_type_count2	sweep
-00669120	get_unique_types	sweep
-00669130	get_type_count	sweep
-00669140	add_type_bucket2	sweep
-00669160	add_type_bucket	sweep
-00669780	Types::walk_data	sweep
-00669800	Types::walk_rules_data	sweep
-0066c310	TechType::set_disabled	sweep
-0066c350	TechType::add_preq_ai	sweep
-0066c410	TechType::is_ultimate_preq	sweep
-0066cdc0	TechType::compute_ai_values	sweep
-0066d5c0	TechType::walk_rules_data	sweep
-0066d810	TechType::restore	sweep
-0066d830	TechType::backup	sweep
-0066d850	Good::inc_time	sweep
-0066e4c0	GoodData::is_seen	sweep
-0066e5b0	GoodData::get_gpiece	sweep
-0066e5d0	Good::walk_data	sweep
-0066e920	GoodType::compute_largest_gather	sweep
-0066fab0	GoodType::walk_rules_data	sweep
-0066fcb0	GoodTypeData::snap_center	sweep
-0066fcf0	GoodTypeData::get_enhancer	sweep
-0066fd40	GoodTypeData::avail_drop	sweep
-0066fd50	GoodTypeData::avail_ctw	sweep
-006700d0	GoodTypeOut::say_gather_level	sweep
-00670230	GoodTypeData::best_gather_type	sweep
-006704a0	SpellType::cast_civilian	sweep
-00670880	SpellType::cast_to_arms	sweep
-00670990	SpellType::cast_research_project	sweep
-006709c0	SpellType::cast_unpack	sweep
-00670be0	SpellType::cast_pack	sweep
-00670db0	SpellType::cast_transport	sweep
-00671440	SpellType::cast_unlock_gate	sweep
-00671480	SpellType::cast_lock_gate	sweep
-006714c0	SpellType::cast_supplies	sweep
-006714f0	SpellType::cast_jam_radar	sweep
-00671500	SpellType::cast_march	sweep
-00671600	SpellType::cast_rally	sweep
-00671610	SpellType::cast_ambush	sweep
-00671e50	SpellType::cast_depopulate	sweep
-00672cb0	SpellType::cast_blow_tread	sweep
-00674370	SpellType::cast_create_decoy	sweep
-00675400	SpellType::walk_rules_data	sweep
-00676c40	SpellType::pay_cast_costs	sweep
-00676ff0	SpellType::unpay_cast_costs	sweep
-00677150	Item::walk_data	sweep
-00677590	ItemOut::draw_overlays	sweep
-00677850	ItemData::is_seen	sweep
-00677970	ItemData::get_gpiece	sweep
-00677df0	ItemTypeData::snap_center	sweep
-00678d90	Ammo::check_hit	sweep
-00678f90	Ammo::hit_target	sweep
-00679200	AmmoOut::set_shooter_vis	sweep
-0067ab50	AmmoData::walk_data	sweep
-0067bbf0	Ammo::init	sweep
-0067d370	Ammo::process	sweep
-0067daa0	Search::valid_search	sweep
-0067dbb0	Search::valid_filter	sweep
-0067e600	Search::walk_data	sweep
-0067e610	Lands::find_key	sweep
-0067e680	Land::walk_data	sweep
-0067e6d0	LandData::get_amount	sweep
-0067e700	Lands::walk_data	sweep
-0067eed0	Regions::get_num_sea	sweep
-0067f7d0	Regions::fix_all_borders	sweep
-00680500	Regions::concat	sweep
-00680560	Region::release	sweep
-00680760	Region::num_coasts	sweep
-00680e20	Region::walk_data	sweep
-00680f60	Region::fix_borders	sweep
-00680f90	Region::is_coast	sweep
-00681020	Region::coast_here	sweep
-006810f0	Region::go_here	sweep
-00681240	Regions::walk_data	sweep
-00681b20	WCoordData::walk_data	sweep
-00681c50	TCoordData::walk_data	sweep
-00681e30	CollBlock::get	sweep
-00682070	CollBlock::set	sweep
-00682540	CollCheck::collide_here	sweep
-00683730	PathFinder::find_wpath_army	sweep
-00684e50	PathFinder::calc_cost	doc
-00685900	PathFinder::building_danger	sweep
-00685950	PathFinder::find_road_restore	sweep
-00686300	PathFinder::calc_road_cost	sweep
-00687930	PathFinder::calc_river_cost	sweep
-00687aa0	PathFinder::add_to_openlist	sweep
-00687ae0	PathFinder::kill_lists	sweep
-00687ba0	PathFinder::kill_tree	sweep
-00687c10	PathFinder::kill_tree	sweep
-00687c80	PathFinder::valid_ucoord	sweep
-00687d60	PathFinder::valid_tcoord	sweep
-00687da0	PathFinder::valid_wcoord	sweep
-00688270	PathFinderData::find_node_closed	sweep
-006882b0	PathFinderData::find_node_open	sweep
-00688310	PathFinderData::get_estimate	sweep
-00688730	PathFinderOut::dbg_draw_failures	sweep
-00688740	PathFinderData::valid_roadcoord	sweep
-00688e10	PathFinder::find_wpath	sweep
-00688e60	PathFinder::find_tpath	sweep
-00688eb0	PathFinder::find_upath	sweep
-00688f40	PathFinder::find_upath_restore	sweep
-006897d0	PathFinder::find_tpath	sweep
-00689c70	PathFinder::empty_lists	sweep
-00689cb0	PathFinder::walk_data	sweep
-00689ec0	PathFinder::init	doc
-0068a100	MapFairness::recompute	sweep
-0068a150	MapFairness::unapply_distances	sweep
-0068a180	MapFairness::apply_distances	sweep
-0068a1b0	MapFairness::point_lowers_highest	sweep
-0068a370	MapFairness::enable_team_mode	sweep
-0068a440	ResourceDivvyPool::refresh_water	sweep
-0068a460	ResourceDivvyPool::refresh_late	sweep
-0068a480	ResourceDivvyPool::refresh_early	sweep
-0068a4a0	ResourceDivvyPool::get_water	sweep
-0068a570	ResourceDivvyPool::get_late	sweep
-0068a640	ResourceDivvyPool::get_early	sweep
-0068a700	ResourceDivvyPool::done_adding_goods	sweep
-0068a790	ResourceDivvyPool::add_water	sweep
-0068a7d0	ResourceDivvyPool::add_late	sweep
-0068a800	ResourceDivvyPool::add_early	sweep
-0068a830	ResourceDivvyPool::add_good	sweep
-0068b0a0	Map::is_near_ocean	sweep
-0068b280	Map::get_player_overage	sweep
-0068b2f0	Map::get_player_underage	sweep
-0068c860	MapScript::run_map_script	sweep
-0068d1a0	MapConquest::check_sea_map	sweep
-00692e70	Map::calc_bonus2	sweep
-00692f10	Map::calc_bonus	sweep
-0069cf80	Map::stamp	sweep
-0069d880	Map::invert_land	sweep
-0069d970	Map::land_dist	sweep
-006a06a0	Map::set_file	sweep
-006a08d0	Map::scale_by_axis	sweep
-006a0910	Map::scale_by_area	sweep
-006aa870	Fractal::get_height	sweep
-006b0240	World::set_edge_flags	sweep
-006b07f0	World::gather_at	sweep
-006b1b80	World::set_orig_coast	sweep
-006b1ba0	World::get_was_seen	sweep
-006b1c60	World::set_tocean	sweep
-006b1c90	World::set_waterhalf	sweep
-006b1d10	World::set_coastal	sweep
-006b1eb0	World::set_cliff_at	sweep
-006b1f00	World::set_mountain_at	sweep
-006b1f80	World::set_river_at	sweep
-006b2060	World::set_tree_at	sweep
-006b2110	World::set_gather_edge	sweep
-006b2340	WorldData::buildings_allowed	sweep
-006b2390	WorldData::is_dead_build	sweep
-006b23c0	WorldData::is_passable	sweep
-006b2400	WorldData::is_tocean_slow	sweep
-006b2490	WorldData::is_enemy_territory	sweep
-006b2510	WorldData::get_who2	sweep
-006b2540	WorldData::is_seen_wcoord	sweep
-006b25f0	WorldData::was_seen_wcoord	sweep
-006b26e0	WorldData::check_building_wcoord	sweep
-006b27f0	WorldData::space_at_corner	sweep
-006b2990	WorldData::has_blocked_neighbors	sweep
-006b2a10	World::set_oil_at	sweep
-006b2b10	World::scale_by_area	sweep
-006b2b50	World::set_land	sweep
-006b3020	WorldData::is_coast	sweep
-006b3050	WorldData::has_mountain_tcoords	sweep
-006b30e0	WorldData::start_city_wcoord	sweep
-006b3120	WorldData::is_flat	sweep
-006b3180	World::is_edge_of_region	sweep
-006b3790	World::compute_all_vals	sweep
-006b3850	WorldData::start_city_rad_wcoord	sweep
-006b3960	WorldData::get_region2	sweep
-006b3990	WorldData::is_building_wcoord	sweep
-006b3a80	World::set_resource_at	sweep
-006b3b80	WorldData::is_city_at	sweep
-006b3c10	WorldData::get_bottom	sweep
-006b3c60	World::set_seen	sweep
-006b3d30	World::reveal_fog	sweep
-006b4180	World::set_city_at	sweep
-006b41d0	World::set_was_seen	sweep
-006b4230	World::set_behind	sweep
-006b4290	World::get_seen	sweep
-006b42c0	WorldData::is_really_seen	sweep
-006b4380	WorldData::is_rocks	sweep
-006b43b0	World::set_road_at	sweep
-006b4530	World::set_started2_at	sweep
-006b4570	World::set_started_at	sweep
-006b45c0	World::set_building_at	sweep
-006b4610	World::set_bad_path	sweep
-006b46b0	World::set_gathered_at	sweep
-006b4700	WorldData::get_who	sweep
-006b4730	WorldData::get_land	sweep
-006b4830	WorldData::is_ocean	sweep
-006b4880	WorldData::is_impassable	sweep
-006b48c0	WorldData::is_detected	sweep
-006b4900	World::set_blocked_at	sweep
-006b4bb0	World::set_seen2	sweep
-006b4c70	WorldData::get_land	sweep
-006b4d80	WorldData::get_whose	sweep
-006b4db0	WorldData::num_waterhalf	sweep
-006b4e50	WorldData::has_gather_access	sweep
-006b50a0	WorldData::restrict	sweep
-006b50f0	WorldData::is_detected_by_enemy	sweep
-006b52e0	WorldData::get_tregion	sweep
-006b5350	WorldData::get_coll_block	sweep
-006b53a0	WorldData::restrict	sweep
-006b53f0	WorldData::was_seen	sweep
-006b54f0	WorldData::was_really_seen	sweep
-006b5560	WorldData::is_forest	sweep
-006b5590	WorldData::is_mountains	sweep
-006b55c0	WorldData::is_seen	sweep
-006b5680	WorldData::get_region	sweep
-006b56b0	WorldData::is_pass_land	sweep
-006b5700	World::compute_all_territory	sweep
-006b76a0	World::adjust_fog	sweep
-006b76b0	World::scale_by_axis	sweep
-006edb90	Player::is_connection	sweep
-006ee110	Player::end_game	sweep
-006ee250	Player::lose	sweep
-006ee290	Player::win	sweep
-006ee2d0	Player::walk_data	sweep
-006ef2d0	Tribes::find	sweep
-006efb20	Tribes::walk_data	sweep
-006f0200	Tribe::set_pseudonym	sweep
-006f0270	Tribe::walk_data	sweep
-006f0530	Tribe::get_name	sweep
-006f1270	Tribe::walk_rules_data	sweep
-006f1e30	Categories::find_data	sweep
-006f20e0	Categories::find_key	sweep
-006f2c90	Armies::send_navy	sweep
-006f2d70	Armies::update_city	sweep
-006f2e10	Armies::find_aggressive_army	sweep
-006f2f90	Armies::leader_defeated	sweep
-006f2fe0	Armies::find_useful_army	sweep
-006f30f0	Armies::diplo_change	sweep
-006f3160	Armies::find_city	sweep
-006f3200	Armies::num_armies	sweep
-006f3250	Armies::emergency	sweep
-006f32e0	Armies::find_local_army	sweep
-006f34f0	Armies::find_army	sweep
-006f3b00	Armies::process_all	sweep
-006f3df0	Army::do_marching	sweep
-006f4260	Army::do_mustering	sweep
-006f43c0	Army::do_forming	sweep
-006f4690	Army::do_transporting	sweep
-006f49a0	Army::use_scouts	sweep
-006f4af0	Army::use_spies	sweep
-006f4c30	Army::use_generals	sweep
-006f4d80	Army::march_to_target	sweep
-006f5160	Army::engagement	sweep
-006f56d0	Army::is_engaged	sweep
-006f58b0	Army::find_besieged_city	sweep
-006f8750	Army::set_stance	sweep
-006f87c0	Army::release_mustering	sweep
-006f8b50	Army::remove_group	sweep
-006f8c00	Army::add_group	doc
-006f8de0	Army::member	sweep
-006f8ea0	Army::close	doc
-006f8f20	ArmyData::select	sweep
-006f9120	Army::count	sweep
-006f9850	Army::walk_data	sweep
-006f98a0	Army::send_here	sweep
-006f9a50	Army::member	sweep
-006f9a90	Army::charge	sweep
-006f9df0	ArmyData::get_unit	doc
-006f9f40	Army::add_unit	doc
-006fa690	Groups::copy_group	sweep
-006fa7a0	Group::action_hotkey	sweep
-006fc9a0	Group::action_buildmask	sweep
-006fcd30	Group::action_guard	doc
-006fd510	Group::action_follow	doc
-006fdbb0	Group::action_queue_up	sweep
-00704990	Group::action_move_near	doc
-00707a00	Group::dbg_jump_to_action	sweep
-00707aa0	Group::dbg_jump_to_waypoint	sweep
-00707c80	Group::compute_form	doc
-00707f80	Group::compute_speed	sweep
-00707fd0	Group::set_ordered	sweep
-00708000	Group::equals_group	sweep
-007081f0	Group::find_role	sweep
-00708290	Group::can_activate	sweep
-007083c0	Group::toggle	sweep
-00708400	Group::walk_data	sweep
-007084c0	GroupsData::find_group_const	sweep
-00708570	GroupData::valid_target	sweep
-00708800	GroupOut::issue_hotkey	sweep
-00708820	GroupOut::issue_buildmask	sweep
-00708880	GroupOut::issue_unitmask	sweep
-00708a20	GroupOut::issue_stop_spell	sweep
-00708a70	GroupOut::issue_scramble	sweep
-00708ac0	GroupOut::issue_recall	sweep
-00708b10	GroupOut::issue_flight	sweep
-00708b40	GroupOut::issue_alarm	sweep
-00708c60	GroupOut::issue_build	sweep
-00709590	GroupOut::issue_spell	sweep
-0070a470	GroupOut::issue_disband	sweep
-0070a9b0	GroupOut::issue_garrison	sweep
-0070ac70	GroupOut::issue_city_gather	sweep
-0070ace0	GroupOut::issue_trade	sweep
-0070ad10	GroupOut::issue_set_transport	sweep
-0070ad70	GroupOut::issue_halt	sweep
-0070adc0	GroupOut::issue_launch_patrol	sweep
-0070adf0	GroupOut::issue_patrol	sweep
-0070afc0	GroupOut::issue_swarm_around	sweep
-0070aff0	GroupOut::issue_siege_attack	sweep
-0070b060	GroupOut::issue_attack	sweep
-0070b090	GroupOut::issue_form	sweep
-0070b100	GroupOut::issue_stance	sweep
-0070b160	GroupData::group_air	sweep
-0070b250	GroupData::has_air_units	sweep
-0070b5b0	GroupData::can_transport	sweep
-0070b9f0	GroupData::get_form	sweep
-0070bab0	GroupData::get_stance_option	doc
-0070bd00	GroupData::get_form_mod_option	sweep
-0070beb0	GroupData::get_form_option	sweep
-0070c0b0	GroupData::get_repeat_air	sweep
-0070c1b0	GroupData::get_auto_explore	sweep
-0070c310	GroupData::get_infinite_queue	sweep
-0070c450	GroupData::is_on_map	sweep
-0070c560	GroupData::get_angle	sweep
-0070c5d0	GroupData::get_loc_to	doc
-0070cc90	GroupData::get_unit	sweep
-0070ccb0	GroupData::find_leader	sweep
-0070cdf0	GroupData::equals_group_const	sweep
-0070d000	GroupData::get_num_const	sweep
-0070d060	GroupData::play_sound	sweep
-0070d370	GroupData::get_stance_type	doc
-0070d440	Group::action_stance	doc
-0070d7e0	GroupData::num_valid	sweep
-0070e520	Group::set_up_insert	sweep
-0070f8a0	GroupData::get_speed	sweep
-0070f8b0	GroupData::get_o	sweep
-0070f8f0	GroupData::member	sweep
-0070f960	GroupData::get_num_cap_const	sweep
-0070f9e0	Groups::push_group	sweep
-0070fba0	Group::action_move_to	doc
-007107d0	Group::target_opportunity	sweep
-00710aa0	Group::kill_group_order	sweep
-00710b40	Group::action_eject_all	sweep
-00710e40	Group::is_attacking_near	sweep
-00711080	GroupData::get_max_range	sweep
-007123f0	Group::kill_group_move	sweep
-007137f0	Group::leader_report_speed	sweep
-00713bb0	Group::report_speed	sweep
-00713d90	Group::kill_next_order	sweep
-00713e30	Groups::walk_data	sweep
-00713e80	Group::clear	doc
-00714100	Group::action_begin	sweep
-00714110	Group::kill	doc
-00714350	Group::add	doc
-007145c0	Group::get_num_cap	sweep
-00714700	Group::get_num	sweep
-0072ff10	TargetOrder::target_exists	sweep
-0072ff60	TargetOrder::get_target	sweep
-00730400	GatherPoint::is_inside	sweep
-00735aa0	City::fix_world_vals	sweep
-00735be0	City::set_name	sweep
-007363f0	CityData::get_trade_value	sweep
-00736470	CityData::get_trade_routes	sweep
-00736480	CityData::ready_to_upgrade	sweep
-007364f0	CityData::upgrades_to	sweep
-00736540	CityData::enough_kinds	sweep
-00736640	CityData::num_kinds_needed	sweep
-007366c0	CityData::num_kinds	sweep
-007367a0	CityData::smelter_level	sweep
-00736820	CityData::lumber_level	sweep
-00736890	CityData::granary_level	sweep
-007368c0	CityData::count_farms	sweep
-007369c0	CaravanLink::walk_data	sweep
-00737ae0	CityData::num_city_buildings	sweep
-00737b50	CityData::get_taxes	sweep
-00737c00	CityData::get_literacy	sweep
-00737c60	City::calc_gather	sweep
-00737d40	CityData::pop_cap	sweep
-00737dc0	City::count_gather_slots	sweep
-00737fa0	City::could_queue	sweep
-00738030	CityData::is_unassimilated	sweep
-00738060	CityData::depop_can_queue	sweep
-007380a0	CityData::is_disbanding	sweep
-00738180	CityData::pop_growth	sweep
-00738190	CityData::num_buildings	sweep
-00738230	CityData::get_farm_limit	sweep
-007382b0	CityData::num_wonders	sweep
-00738360	CityData::enhancer_amount	sweep
-007383c0	CityData::can_upgrade	sweep
-00738410	CityData::get_radius	sweep
-00738450	CityData::get_pop_value	sweep
-007384c0	City::find_buildings	sweep
-007389d0	CityData::enhancer_level	sweep
-00738aa0	City::regen_roads	sweep
-00738b20	City::check_upgrade	sweep
-00738e90	City::assimilate	sweep
-00739340	CityData::get_level	sweep
-00739390	CityData::count_buildings	sweep
-00739480	CityData::get_building	sweep
-00739560	CityData::is_seen	sweep
-007395c0	CityData::get_empty_trade_routes	sweep
-00739640	City::compute_trade	sweep
-00739ab0	Caster::walk_data	sweep
-00739ad0	Caster::process_spells	sweep
-00739e20	Hero::walk_data	sweep
-0073a1b0	HeroesData::find_hero	sweep
-0073aba0	Supplies::find_supply	sweep
-0073b540	Supply::walk_data	sweep
-0073b560	SupplyData::get_radius	sweep
-0073b5d0	Supply::deplete	sweep
-0073b700	UnbuiltCity::is_started	sweep
-0073b740	UnbuiltCity::get_x	sweep
-0073b780	UnbuiltCity::get_y	sweep
-0073b7c0	UnbuiltCities::add_unbuilt_city	sweep
-0073b810	UnbuiltCities::remove_unbuilt_city	sweep
-0073b880	UnbuiltCity::walk_data	sweep
-0073bb20	UnbuiltFort::walk_data	sweep
-0073bb40	UnbuiltFort::is_started	sweep
-0073bb80	UnbuiltFort::get_x	sweep
-0073bbc0	UnbuiltFort::get_y	sweep
-0073bc00	UnbuiltForts::add_unbuilt_fort	sweep
-0073bc50	UnbuiltForts::remove_unbuilt_fort	sweep
-0073c050	UnbuiltWonder::is_started	sweep
-0073c1b0	UnbuiltWonder::walk_data	sweep
-0073c1d0	UnbuiltWonders::add_unbuilt_wonder	sweep
-0073c220	UnbuiltWonders::remove_unbuilt_wonder	sweep
-0073c660	Wonder::get_timer	sweep
-0073c780	Wonder::walk_data	sweep
-0073c7a0	WonderData::get_value	sweep
-0073d070	Caravan::restart_trade_route	sweep
-0073d2b0	Caravan::walk_data	sweep
-0073d300	Caravan::distance	sweep
-0073d380	Caravan::distance	sweep
-0073d3d0	CaravanData::has_city	sweep
-0073d950	Caravan::verify_road	sweep
-0073d9d0	Caravan::trade_value	sweep
-0073e0c0	Caravans::new_danger	sweep
-0073ebc0	Fort::walk_data	sweep
-0073ebe0	Forts::find_fort	sweep
-0073f650	OilWell::walk_data	sweep
-00740030	Special::walk_data	sweep
-00740060	SpecialData::get_radius	sweep
-00740070	SpecialsData::find_special	sweep
-00740c40	Dock::walk_data	sweep
-00741760	Herd::process	sweep
-00741a40	Herd::walk_data	sweep
-00741b50	Herds::find_herd	sweep
-00741cc0	Herds::process	sweep
-00741d10	Herds::start_herds	sweep
-00741d50	Herds::walk_data	sweep
-00842050	Storm::on_field_change	sweep
-00846250	Doober::remove_doobers	sweep
-00846450	Doober::get_num	sweep
-00846480	Doober::find_x_pos	sweep
-008464d0	Doober::find_y_pos	sweep
-008466d0	Doober::has_doobers	sweep
-00846770	Doober::inc_time	sweep
-00846a30	Doober::remove_cover_doober	sweep
-00846cd0	Doober::remove_hold_doobers	sweep
-0084b8d0	Terrain::convert_errant_sandy	sweep
-0084b9e0	TerrainList::walk_data	sweep
-0084dd60	Terrain::build_beach_data	sweep
-00850060	Terrain::has_south_forest	sweep
-00850b60	Terrain::refresh_good_z	sweep
-00850c40	Terrain::object_placed	sweep
-00850ef0	Terrain::walk_coord_data	sweep
-0087fd00	Border::process_morph	sweep
-0087fd70	Border::rebuild_visible_list	sweep
-0087fe00	Border::build_border	sweep
-0087fe30	Border::process	sweep
-00880050	Border::generate_morph_side	sweep
-00882050	StripBuilder::check_last_connect	sweep
-008820a0	StripBuilder::remove_end	sweep
-00882170	BorderNodes::find	sweep
-008821e0	LinkVert::append	sweep
-00882300	Borders::is_border_hidden	sweep
-00882370	Borders::check_border_blocked	sweep
-00882490	Borders::process_all	sweep
-008826c0	BorderSplineRender::is_visible	sweep
-008826f0	BorderSplineRender::make_bbox	sweep
-00883190	Borders::get_who	sweep
-008831d0	BordersOut::no_border	sweep
-008835e0	Borders::save_last_who	sweep
-008836d0	Borders::remove_border_region	sweep
-00885b70	RiverDoober::add_doob_for_render	sweep
-00885b80	RiverDoober::add_for_render	sweep
-00887700	RiverDoobers::add_doobers_for_render	sweep
-008890e0	Rivers::walk_data	sweep
-0088b6a0	RiverSectionOut::compute_vert_height	sweep
-0088e050	Roads::scan_and_kill_straggled_tcoord	sweep
-0088e670	Roads::redo_changed_roads	sweep
-0088e9d0	Roads::set_diags	doc
-00890c30	RoadsOut::set_neighbor	sweep
-00893b30	RoadsOut::fill_cache	sweep
-008942d0	get_float_z	sweep
-00894350	Roads::generate	sweep
-008954d0	Roads::road_added	sweep
-008955d0	Roads::road_cleared	sweep
-008956a0	Roads::scan_and_kill_stray_roads	sweep
-00895af0	RoadsPieces::rot_byte	sweep
-00897a50	Signposts::cur_y	sweep
-00897a60	Signposts::cur_x	sweep
-00897a70	Signposts::cur_name	sweep
-00897ac0	Signposts::next	sweep
-00897b50	Signposts::head	sweep
-00897bc0	Signposts::get_num	sweep
-00897e20	Signposts::add	sweep
-0089ad00	MountainRange::validate_tcoord	sweep
-0089be90	MountainsOut::mnt_locs	sweep
-0089bea0	MountainsOut::mnt_ranges	sweep
-0089beb0	MountainsOut::mnt_types	sweep
-0089c110	MountainsData::total_gather_size	sweep
-0089cf90	MountainsData::mnt_loc_x	sweep
-0089d080	MountainsData::mnt_loc_y	sweep
-0089d320	Mountains::walk_data	sweep
-0089d3a0	Mountains::tileset_texture_load	sweep
-0089e8e0	SurfWaveSection::load_old_bh3	sweep
-008a2ac0	TerrainOil::remove_rocky_patch	sweep
-008a2e40	TerrainOil::gain_tech	sweep
-008a2f30	TerrainOil::lose_tech	sweep
-008a4040	Cliff::walk_data	sweep
-008a4060	Cliff::average_neighbor_norms	sweep
-008a4070	Cliff::get_vert_offsets	sweep
-008a60c0	Cliff::render	sweep
-008a6d70	CliffMiningData::walk_data	sweep
-008a6da0	CliffsOut::get_mining_size	sweep
-008a8590	CliffsOut::get_mining_data	sweep
-008a85e0	Cliffs::set_edge_flags	sweep
-008b0060	TerrainVis::get_verts_per_bucket	sweep
-008b13b0	TerrainVis::wcoord_was_cached	sweep
-008b13d0	TerrainVis::invalidate_wcoord	sweep
-008b1e60	TerrainVis::invalidate_fog_wcoord	sweep
-008b2a80	TerrainVis::set_base_source_pool	sweep
-008b2aa0	TerrainVis::set_extra_source_pool	sweep
-008b2e80	TerrainVis::invalidate_wcoord	sweep
-008c51a0	draw_thick_diamond	sweep
-008c6db0	CircleRender::on_field_change	sweep
-008c7000	WorldMap::on_right_down	sweep
-008d1300	WorldMapFog::set_fog_lookup	sweep
-008d17b0	WorldMapFog::fill_colors	sweep
-008d1830	WorldMapFog::get_fog_lookup	sweep
-008d2760	WorldMapFog::add_update	sweep
-008d2b60	WorldMap::reinit_all	sweep
-008d4a90	DeathObjData::blocking	sweep
-008d5520	DeathObjData::walk_data	sweep
-008d73a0	FarmsData::get_nearest_farm_type	sweep
-008d8600	Farms::inc_time	doc
-008d8a40	Farms::add	sweep
-008d8e50	Farms::remove	sweep
-008d8f30	Farms::add_animals	sweep
-008d9160	FarmsData::get_farm_type	sweep
-008d9190	FarmsData::get_wheat_status	sweep
-008d91c0	Farms::grow	sweep
-008d9240	Farms::snip	sweep
-008d9280	Farms::walk_data	sweep
-008d92d0	Farms::add_animals	sweep
-00925c20	Nuke::been_damaged_before	sweep
-00925c90	NukeOut::setup_terrain_terraforming	sweep
-00925cb0	Nuke::on_field_change	sweep
-00928f30	NukeOut::update	sweep
-0092b9a0	NukeOut::num_current_nukes	sweep
-0092b9f0	Nuke::draw_ctw	sweep
-0092bc80	Nuke::do_damage	sweep
-0092cee0	greatest_common_factor	sweep
-0092cf20	reversing	sweep
-0092cf40	project	sweep
-0092cfe0	flanking	sweep
-0092d000	project	sweep
-0092d0b0	angle_diff	sweep
-0092d0c0	cosx	sweep
-0092d100	sinx	doc
-0092d130	find_angle	sweep
-0092d5c0	sort	sweep
-0092d680	sort	sweep
-00935930	Syllable::parse	sweep
-0093a140	SyncPoint::on_player_deleted	sweep
-00940a20	CommandManager::issue_camera	sweep
-00940a70	CommandManager::check_accept_issue	sweep
-00940b00	CommandManager::issue_speed_down	sweep
-00940b30	CommandManager::issue_speed_up	sweep
-00940b60	CommandManager::issue_speed_set	sweep
-00940ba0	CommandManager::issue_pause	sweep
-00940f70	CommandManager::issue_spline	sweep
-00940fa0	CommandManager::issue_cheat_ai_toggle	sweep
-00940fd0	CommandManager::issue_console_cmd	sweep
-00941070	CommandManager::issue_mp_log	sweep
-009410b0	CommandManager::issue_cheat_view_all	sweep
-009410f0	CommandManager::issue_cheat_zero_buckets	sweep
-00941130	CommandManager::issue_cheat_increase_buckets	sweep
-00941170	CommandManager::issue_resign	sweep
-009411d0	CommandManager::issue_rename_city	sweep
-00941260	CommandManager::issue_cannon_time	sweep
-00941490	CommandManager::issue_chat_set	sweep
-00941530	CommandManager::issue_stance	doc
-00941580	CommandManager::issue_form	sweep
-009415e0	CommandManager::issue_attack	sweep
-00941650	CommandManager::issue_siege_attack	sweep
-009416b0	CommandManager::issue_swarm_around	sweep
-00941720	CommandManager::issue_move_to	sweep
-009417a0	CommandManager::issue_attack_ground	sweep
-00941800	CommandManager::issue_patrol	sweep
-00941860	CommandManager::issue_launch_patrol	sweep
-009418d0	CommandManager::issue_halt	sweep
-00941910	CommandManager::issue_set_transport	sweep
-00941960	CommandManager::issue_trade	sweep
-009419d0	CommandManager::issue_city_gather	sweep
-00941a20	CommandManager::issue_gather	sweep
-00941a70	CommandManager::issue_garrison	sweep
-00941ad0	CommandManager::issue_disband	sweep
-00941b20	CommandManager::issue_gather_point	sweep
-00941b80	CommandManager::issue_spell	sweep
-00941be0	CommandManager::issue_queue_up	sweep
-00941c30	CommandManager::issue_build	sweep
-00941ca0	CommandManager::issue_eject_all	sweep
-00941d00	CommandManager::issue_alarm	sweep
-00941d40	CommandManager::issue_flight	sweep
-00941db0	CommandManager::issue_recall	sweep
-00941df0	CommandManager::issue_scramble	sweep
-00941e30	CommandManager::issue_stop_spell	sweep
-00941e70	CommandManager::issue_follow	sweep
-00941ed0	CommandManager::issue_guard	doc
-00941f30	CommandManager::issue_unitmask	sweep
-00941f80	CommandManager::issue_buildmask	sweep
-00941fd0	CommandManager::issue_hotkey	sweep
-00942080	CommandManager::issue_leader_option	sweep
-00942100	CommandManager::issue_treaty	sweep
-00942200	CommandManager::issue_declare	sweep
-00942300	CommandManager::issue_clear_tributes	sweep
-00942400	CommandManager::issue_clear_all	sweep
-00942500	CommandManager::issue_accept	sweep
-00942600	CommandManager::issue_reject	sweep
-00942700	CommandManager::issue_tribute	sweep
-00942a30	CommandManager::issue_buy	sweep
-00942a80	CommandManager::issue_sell	sweep
-00942ad0	CommandManager::issue_ping	sweep
-00942c40	CommandManager::issue_unqueue	sweep
-00942c90	CommandManager::issue_come_out	sweep
-00942ce0	CommandManager::issue_unqueue	sweep
-00943100	CommandManager::issue_player_speed	sweep
-00943660	CommandPackage::process_marwan	sweep
-009438c0	CommandPackage::process_resign	sweep
-009439a0	CommandPackage::process_quit	sweep
-00943d20	CommandPackage::process_turn_data	sweep
-00943ea0	CommandPackage::process_ungraceful_player_drop	sweep
-00943f30	CommandPackage::process_console_cmd	sweep
-00944090	CommandPackage::process_rename_city	sweep
-00944160	CommandPackage::process_pause	sweep
-009449b0	CommandPackage::process_cheat_view_all	sweep
-00944a80	CommandPackage::process_cheat_init_unit	sweep
-00944b80	CommandPackage::process_cheat_zero_buckets	sweep
-00944c50	CommandPackage::process_cheat_increase_buckets	sweep
-00944d20	CommandPackage::process_cheat_ai_toggle	sweep
-00944df0	CommandPackage::process_cheat_ai_speed_normal	sweep
-00944ec0	CommandPackage::process_cheat_ai_speed_increase	sweep
-00944fa0	CommandPackage::process_cheat_zero_techs	sweep
-00945070	CommandPackage::process_cheat_give_techs	sweep
-009453f0	CommandPackage::process_ping	sweep
-009458e0	CommandPackage::process_chat_set	sweep
-00946020	CommandPackage::process_check_random	sweep
-00946080	CommandPackage::process_mp_log	sweep
-009461a0	CommandPackage::process_speed_up	sweep
-00946290	CommandPackage::process_speed_down	sweep
-00946380	CommandPackage::process_speed_set	sweep
-009464f0	CommandPackage::process_cannon_time	sweep
-009465d0	CommandPackage::process_come_out	sweep
-009468a0	CommandPackage::process_sell	sweep
-00946a20	CommandPackage::process_buy	sweep
-00946b30	CommandPackage::process_propose_attack	sweep
-00946c50	CommandPackage::process_demand_tribute	sweep
-00946d70	CommandPackage::process_tribute	sweep
-00946e90	CommandPackage::process_reject	sweep
-00946fb0	CommandPackage::process_accept	sweep
-009470b0	CommandPackage::process_clear_all	sweep
-009471b0	CommandPackage::process_clear_tributes	sweep
-009472b0	CommandPackage::process_declare	sweep
-009473c0	CommandPackage::process_treaty	sweep
-009474d0	CommandPackage::process_hotkey	sweep
-00947680	CommandPackage::process_buildmask	sweep
-00947790	CommandPackage::process_unitmask	sweep
-009478a0	CommandPackage::process_guard	doc
-009479c0	CommandPackage::process_follow	doc
-00947ae0	CommandPackage::process_scramble	sweep
-00947bd0	CommandPackage::process_recall	sweep
-00947cc0	CommandPackage::process_stop_spell	sweep
-00947db0	CommandPackage::process_flight	sweep
-00947ef0	CommandPackage::process_alarm	sweep
-00947fe0	CommandPackage::process_eject_all	sweep
-00948110	CommandPackage::process_build	sweep
-00948230	CommandPackage::process_queue_up	sweep
-00948510	CommandPackage::process_gather_point	sweep
-00948660	CommandPackage::process_disband	sweep
-00948760	CommandPackage::process_garrison	sweep
-009488b0	CommandPackage::process_gather	sweep
-00948a10	CommandPackage::process_city_gather	sweep
-00948b20	CommandPackage::process_trade	sweep
-00948cb0	CommandPackage::process_repair	sweep
-00948e00	CommandPackage::process_board_ship	sweep
-00948f60	CommandPackage::process_set_transport	sweep
-00949050	CommandPackage::process_transport	sweep
-00949140	CommandPackage::process_halt	sweep
-00949230	CommandPackage::process_launch_patrol	sweep
-00949380	CommandPackage::process_patrol	sweep
-009494a0	CommandPackage::process_attack_ground	sweep
-009495c0	CommandPackage::process_move_near	sweep
-009497c0	CommandPackage::process_move_to	doc
-00949970	CommandPackage::process_swarm_around	sweep
-00949ae0	CommandPackage::process_siege_attack	sweep
-00949c30	CommandPackage::process_attack	sweep
-00949d90	CommandPackage::process_form	sweep
-00949ed0	CommandPackage::process_stance	doc
-00949fd0	CommandPackage::process_begin	sweep
-0094b740	CommandPackage::walk_data	sweep
-0094bae0	CommandPackage::add_command	sweep
-0094c4c0	CommandPackage::begin_process	sweep
-00954b90	TimeSync::analyze_response	sweep
-00954c60	TimeSync::test_accept_ping	sweep
-00954c80	TimeSync::add_ping	sweep
-00954cf0	TimeSync::update	sweep
-00954da0	TimeSync::get_best_ping_time	sweep
-00955020	TimeSync::on_player_deleted	sweep
-00955fe0	TurnControl::compute_next_turn_solo	sweep
-00956010	TurnControl::check_new_frame_playback	sweep
-00956320	TurnControl::check_new_frame_solo	sweep
-009563d0	TurnControl::set_new_target_time	sweep
-00956470	TurnControl::end_cannon_time	sweep
-009568c0	TurnControl::speed_down	sweep
-00956910	TurnControl::speed_up	sweep
-00956ac0	TurnControl::is_cannon_time	sweep
-00956ad0	TurnControl::issue_speed_set	sweep
-00956b40	TurnControl::issue_toggle_pause	sweep
-00956b90	TurnControl::issue_speed_down	sweep
-00956bf0	TurnControl::issue_speed_up	sweep
-00956c50	TurnControl::walk_data	sweep
-009578f0	TurnControl::get_lag_time	sweep
-00957920	TurnControl::get_frame_timing	sweep
-00957950	TurnControl::get_delta_percent	sweep
-00957d80	TurnControl::set_pause	sweep
-009b32f0	TerrainMap::river_point	sweep
-009b3320	TerrainMap::start_river	sweep
-009b39e0	TerrainMap::remove_feature	sweep
-009b4710	TerrainMap::map_change_river	sweep
-009b4780	TerrainMap::on_mouse_leave	sweep
-009b4820	TerrainMap::on_right_up	sweep
-009b4930	TerrainMap::on_left_up	sweep
-009b5ec0	TerrainMap::get_terrain_type	sweep
-009b5ee0	TerrainMap::cancel_button_enable	sweep
+0041bfe0	sweep
+0041c000	sweep
+0041dbe0	sweep
+0042db70	sweep
+0042db90	sweep
+0042dbb0	sweep
+0042dbd0	sweep
+004352b0	sweep
+00437880	sweep
+00437900	sweep
+00437980	sweep
+0043c2f0	sweep
+0043cca0	doc
+0043e220	sweep
+0043ec40	sweep
+0043ec50	sweep
+0043ec70	sweep
+0043ec90	sweep
+0043ecb0	sweep
+0043f360	sweep
+00447880	sweep
+00461340	sweep
+004613b0	sweep
+004613d0	sweep
+00461420	sweep
+00461450	sweep
+0046cda0	sweep
+0046ce10	sweep
+0046ce20	sweep
+0046ce30	sweep
+0046ce40	sweep
+0046ce60	sweep
+0046ce70	sweep
+0046ce80	sweep
+0046ce90	sweep
+0046cea0	sweep
+0046ceb0	sweep
+0046cec0	sweep
+0046ced0	sweep
+0046cee0	sweep
+0046cef0	sweep
+0046cf10	sweep
+0046cf20	sweep
+0046cff0	sweep
+0046d060	sweep
+0046d220	sweep
+0046d250	sweep
+0046d310	sweep
+0046d330	sweep
+0046d370	sweep
+0046d390	sweep
+0046ed60	sweep
+0046ed70	sweep
+0046eea0	sweep
+0046eed0	sweep
+0046eef0	sweep
+0046ef10	sweep
+0046ef50	sweep
+0046ef90	sweep
+0046efa0	sweep
+0046f000	sweep
+0046f020	sweep
+0046f050	sweep
+0046f080	sweep
+0046f0a0	sweep
+0046f140	sweep
+0046f180	sweep
+0046f290	sweep
+0046f370	sweep
+0046f760	sweep
+0046f790	sweep
+0046f820	sweep
+0046f880	sweep
+0046f8c0	sweep
+0046f900	sweep
+0046f930	sweep
+0046f960	sweep
+0046f9d0	sweep
+0046fa10	sweep
+0046fa40	sweep
+0046fae0	sweep
+0046fb10	sweep
+0046fb40	sweep
+0046ffa0	sweep
+004703f0	sweep
+00470410	sweep
+00470420	sweep
+00470430	sweep
+00470440	sweep
+00470450	sweep
+00470460	sweep
+00470470	sweep
+004704d0	sweep
+004704f0	sweep
+00470510	sweep
+00470540	sweep
+00470570	sweep
+00470590	sweep
+004705b0	sweep
+004705d0	sweep
+00470660	sweep
+00470680	sweep
+004706a0	sweep
+004706c0	sweep
+004706e0	sweep
+00470760	sweep
+00470780	sweep
+004707a0	sweep
+004707c0	sweep
+004707e0	sweep
+00470800	sweep
+00470810	sweep
+00470820	sweep
+00470860	sweep
+00470870	sweep
+00470e50	sweep
+00470e90	sweep
+00470f30	sweep
+00471130	sweep
+00471160	sweep
+00471170	sweep
+004711e0	sweep
+00471360	sweep
+004722f0	sweep
+00472320	sweep
+00472350	sweep
+00472360	sweep
+00472370	sweep
+004723b0	sweep
+00472400	sweep
+00472410	sweep
+00472420	sweep
+00472430	sweep
+00472a30	sweep
+00472a40	sweep
+00472a50	sweep
+00472a60	sweep
+00472a70	sweep
+00472ac0	sweep
+00472af0	sweep
+00472b20	sweep
+00472b30	sweep
+00472b50	sweep
+00472ba0	sweep
+00472bb0	sweep
+00472bc0	sweep
+00472cb0	sweep
+00473600	sweep
+00473650	sweep
+00475640	sweep
+004761e0	sweep
+00476aa0	sweep
+00476e50	sweep
+004770d0	sweep
+004771c0	sweep
+004780c0	sweep
+0047a920	sweep
+0047a970	sweep
+0047be70	sweep
+0047e0e0	sweep
+0047ef80	sweep
+0047ef86	sweep
+0047f220	sweep
+0047f260	sweep
+0047f2b0	sweep
+0047f2d0	sweep
+0047f310	sweep
+0047f38a	sweep
+0047ff00	sweep
+0047ff40	sweep
+0047ff50	sweep
+0047ff54	sweep
+0047ff60	sweep
+0047ff70	sweep
+00482510	sweep
+00482519	sweep
+004825e0	sweep
+004825e4	sweep
+004827a0	sweep
+004827a6	sweep
+00482b50	sweep
+00482b56	sweep
+00482c0a	sweep
+00482c70	sweep
+00482ce2	sweep
+00482dc0	sweep
+00482dd0	sweep
+00482e70	sweep
+00482ea8	sweep
+00482f60	sweep
+00482f64	sweep
+00483260	sweep
+004832a6	sweep
+004835b0	sweep
+004835b4	sweep
+00483aaa	sweep
+00483e80	sweep
+00483ed0	sweep
+00483f42	sweep
+004843d0	sweep
+004843e0	sweep
+004845c0	sweep
+00484690	sweep
+004846df	sweep
+004849a0	sweep
+0048509a	sweep
+004850b0	sweep
+0048512a	sweep
+00485580	sweep
+004855c0	sweep
+0048562c	sweep
+00485a20	sweep
+00485a2f	sweep
+00485a40	sweep
+00485a4f	sweep
+00485cc0	sweep
+00485d06	sweep
+004860a0	sweep
+004860e6	sweep
+00486550	sweep
+00486596	sweep
+00486920	sweep
+00486924	sweep
+00486b50	sweep
+00486b94	sweep
+00486c20	sweep
+00486c26	sweep
+00486c60	sweep
+00486c64	sweep
+00486e60	sweep
+00486ea6	sweep
+00487310	sweep
+00487316	sweep
+0048758d	sweep
+004875a0	sweep
+0048760c	sweep
+00487840	sweep
+00487a60	sweep
+00487a98	sweep
+00487cf0	sweep
+00487cf6	sweep
+00488980	sweep
+0048898f	sweep
+004889a0	sweep
+004889af	sweep
+00489220	sweep
+00499c10	sweep
+0049f320	sweep
+004a1ca0	sweep
+004a1cb0	sweep
+004a5dc0	sweep
+004b2ee0	sweep
+004b71d0	sweep
+004d2030	sweep
+0057f910	sweep
+00581ca0	sweep
+00582910	sweep
+00582cc0	sweep
+00583370	sweep
+00583380	sweep
+00583390	sweep
+005833a0	sweep
+005833b0	sweep
+005833c0	sweep
+005833d0	sweep
+005833e0	sweep
+00583400	sweep
+00583410	sweep
+00583420	sweep
+00583430	sweep
+00583450	sweep
+00583470	sweep
+00583480	sweep
+00583490	sweep
+005834a0	sweep
+005834b0	sweep
+005834f0	sweep
+005837f0	sweep
+00583810	sweep
+00583a00	sweep
+00583a60	sweep
+00583aa0	sweep
+00583af0	sweep
+005860a0	sweep
+005877d0	sweep
+00588530	sweep
+00589550	sweep
+00589600	sweep
+0058da90	sweep
+0058dae0	sweep
+00592aa0	sweep
+005930c0	sweep
+005930e0	sweep
+00593100	sweep
+00593f70	sweep
+00593f80	sweep
+00594020	sweep
+00594480	sweep
+00594490	sweep
+005944b0	sweep
+005944f0	sweep
+00594630	sweep
+00594640	sweep
+00594650	sweep
+00594660	sweep
+00594670	sweep
+005946c0	sweep
+005946d0	sweep
+005947e0	sweep
+00594810	sweep
+00594880	sweep
+005948a0	sweep
+00594950	sweep
+00595250	sweep
+00595260	sweep
+005aac70	sweep
+005aaf50	sweep
+005abc70	sweep
+005d46f0	sweep
+005d4a10	sweep
+005d7200	sweep
+005d72c0	sweep
+005d7460	doc
+005d7700	sweep
+005d79e0	sweep
+005d7d50	sweep
+005d7ea0	sweep
+005d8120	sweep
+005d8380	sweep
+005d84b0	sweep
+005d8530	sweep
+005d86a0	sweep
+005d86b0	sweep
+005d86c0	sweep
+005d8bc0	sweep
+005d8fb0	sweep
+005d8fc0	sweep
+005d9240	doc
+005d9720	sweep
+005d97a0	doc
+005d98c0	sweep
+005d9950	sweep
+005d9e10	doc
+005da300	doc
+005db6b0	doc
+005de270	sweep
+005de340	sweep
+005de410	sweep
+005de4f0	sweep
+005de530	sweep
+005de570	sweep
+005de5d0	sweep
+005de620	sweep
+005de670	sweep
+005e0210	sweep
+005e22d0	sweep
+005e2920	sweep
+005e29b0	sweep
+005e2bb0	sweep
+005e2bd0	sweep
+005e2cb0	doc
+005e31d0	sweep
+005e3220	doc
+005e3310	sweep
+005e3400	sweep
+005e3530	sweep
+005e35e0	sweep
+005e36c0	sweep
+005e3bd0	sweep
+005e3df0	sweep
+005e3e40	doc
+005e3f60	doc
+005e4080	sweep
+005e4160	sweep
+005e41c0	sweep
+005e4290	sweep
+005e4350	sweep
+005e4560	sweep
+005e4710	doc
+005e48c0	sweep
+005e4a60	sweep
+005e4c80	sweep
+005e4d10	sweep
+005e4dc0	sweep
+005e4ff0	sweep
+005e5210	sweep
+005e5410	doc
+005e55c0	sweep
+005e5be0	sweep
+005e5bf0	sweep
+005e5c70	doc
+005e65d0	doc
+005e74e0	sweep
+005e8670	sweep
+005e86d0	sweep
+005e9520	sweep
+005ea360	sweep
+005ea390	sweep
+005ea420	sweep
+005ea620	sweep
+005eab00	doc
+005eb960	sweep
+005ebc70	sweep
+005ed1f0	sweep
+005ed270	sweep
+005eebf0	sweep
+005f1410	sweep
+005f1910	sweep
+005f1b80	sweep
+005f22a0	sweep
+005f2480	sweep
+005f24a0	sweep
+005f2540	sweep
+005f27a0	sweep
+005f2ee0	sweep
+005f4720	sweep
+005f4730	sweep
+005f4c60	sweep
+005f5170	sweep
+005f5650	sweep
+005f5760	sweep
+005f5a80	doc
+005f6010	doc
+005f7690	sweep
+005f7740	doc
+005f78c0	doc
+005f79c0	sweep
+005f7a50	doc
+005f7b30	doc
+005f8d20	sweep
+005f9400	sweep
+005f96b0	sweep
+005f9780	sweep
+005f9d30	doc
+005fa8b0	sweep
+005faf30	doc
+005fc350	sweep
+005fccc0	sweep
+005fce20	sweep
+005fce70	sweep
+005fcfb0	sweep
+005fd140	sweep
+005fd420	sweep
+005fd4d0	doc
+005ff4b0	sweep
+005ff5b0	sweep
+005ff670	sweep
+005ff6a0	doc
+005ff9c0	doc
+005fff70	doc
+00600e30	sweep
+006010b0	sweep
+00601280	doc
+00602e60	doc
+006032c0	sweep
+006038e0	doc
+00603ab0	doc
+00603bf0	sweep
+00604320	sweep
+00605040	sweep
+00605200	sweep
+00605220	sweep
+00605310	doc
+00605400	sweep
+006054a0	sweep
+006054c0	sweep
+00606590	sweep
+006068a0	sweep
+00607a60	sweep
+00607b40	sweep
+00607bc0	sweep
+00607be0	sweep
+00607c30	sweep
+00608040	doc
+006081f0	sweep
+00608210	sweep
+00608370	doc
+00608450	doc
+00608560	sweep
+006086f0	sweep
+00608720	sweep
+00608850	sweep
+00608880	sweep
+006089b0	sweep
+00608fd0	sweep
+00609180	sweep
+00609920	sweep
+006099a0	sweep
+00609a20	sweep
+00609a30	sweep
+00609a50	sweep
+00609b50	sweep
+00609d40	sweep
+00609d70	sweep
+00609dc0	sweep
+00609ef0	sweep
+00609fa0	sweep
+0060a040	sweep
+0060a0c0	sweep
+0060a140	sweep
+0060a310	sweep
+0060a370	sweep
+0060a410	sweep
+0060a4b0	sweep
+0060a530	sweep
+0060a5b0	sweep
+0060a600	sweep
+0060a630	sweep
+0060a6a0	sweep
+0060a6e0	sweep
+0060a6f0	sweep
+0060a760	sweep
+0060a800	sweep
+0060a810	sweep
+0060a850	sweep
+0060a870	sweep
+0060aa60	sweep
+0060b030	sweep
+0060d040	sweep
+0060dcd0	sweep
+0060dd80	sweep
+0060e410	sweep
+0060e4d0	sweep
+0060eda0	sweep
+0060edc0	sweep
+0060fde0	sweep
+0060fdf0	sweep
+006100b0	sweep
+006100c0	sweep
+00610890	sweep
+00610970	sweep
+006109b0	sweep
+006109f0	sweep
+00610a30	doc
+00610a70	sweep
+00610ab0	sweep
+00610af0	sweep
+00610b40	sweep
+00612100	doc
+00616d70	sweep
+00616e80	sweep
+00616ed0	doc
+00616f40	sweep
+00617010	sweep
+006179d0	sweep
+0061a2e0	sweep
+0061a5c0	sweep
+0061a960	sweep
+0061c320	sweep
+0061d190	sweep
+0061d350	sweep
+0061d3b0	sweep
+0061d3d0	sweep
+0061d430	sweep
+0061d470	sweep
+0061d4c0	sweep
+0061d4d0	doc
+0061d740	sweep
+0061d760	sweep
+0061d790	sweep
+0061d7d0	sweep
+0061daa0	sweep
+0061daf0	sweep
+0061db10	sweep
+0061db20	sweep
+0061dc50	sweep
+0061dc60	sweep
+0061ddd0	sweep
+0061de20	sweep
+0061de70	sweep
+006201e0	sweep
+00620280	sweep
+006206e0	sweep
+00620f40	doc
+00622030	sweep
+00622380	sweep
+00622670	sweep
+00622c80	sweep
+00622ce0	sweep
+00622e70	sweep
+00623310	sweep
+00623350	sweep
+00623570	sweep
+006273a0	sweep
+00627fe0	sweep
+00628130	sweep
+00628180	sweep
+00628210	sweep
+00628490	sweep
+0062d1d0	sweep
+0062d250	sweep
+0062d280	sweep
+0062d360	sweep
+0062d430	sweep
+0062d470	sweep
+0062d4d0	sweep
+0062d5b0	sweep
+0062d5c0	sweep
+0062d920	sweep
+0062da00	sweep
+0062da50	sweep
+0062dd90	sweep
+0062de70	sweep
+0062dee0	sweep
+0062e030	sweep
+0062e070	sweep
+0062e0b0	sweep
+0062e0f0	sweep
+0062e130	sweep
+0062e1a0	doc
+0062e210	sweep
+0062e2f0	sweep
+0062e300	sweep
+0062e340	sweep
+0062e3d0	sweep
+0062e740	sweep
+0062f520	sweep
+0062f570	sweep
+0062f640	sweep
+0062f710	sweep
+0062f8d0	sweep
+0062f9b0	sweep
+00630450	sweep
+00630590	sweep
+006305f0	sweep
+00630670	sweep
+00630690	sweep
+006306b0	sweep
+006309f0	sweep
+00630ab0	sweep
+00630ad0	sweep
+00630b10	sweep
+00630bb0	sweep
+00630c20	sweep
+00631f50	sweep
+00631f80	sweep
+00631ff0	sweep
+00633390	sweep
+00633f50	sweep
+00636190	sweep
+00636440	sweep
+006364c0	sweep
+00636500	sweep
+006365e0	sweep
+006365f0	sweep
+00636700	sweep
+00636a50	sweep
+00636d80	sweep
+006389b0	sweep
+006389c0	sweep
+00638b40	sweep
+00638ce0	sweep
+00638d70	sweep
+00638ed0	sweep
+00639090	sweep
+00639180	sweep
+00639270	sweep
+006396c0	sweep
+00639770	sweep
+00639790	sweep
+00639800	sweep
+00639830	sweep
+00639840	sweep
+00639880	sweep
+006398c0	sweep
+00639910	sweep
+00639930	sweep
+00639950	sweep
+00639970	sweep
+00639b90	sweep
+00639d10	sweep
+00639de0	sweep
+0063bc40	sweep
+0063bc60	sweep
+0063bcf0	sweep
+0063bd50	sweep
+0063bda0	sweep
+0063c430	sweep
+0063ce10	sweep
+0063ce70	sweep
+0063d230	doc
+0063d3a0	sweep
+0063e2a0	sweep
+0063e310	sweep
+0063e810	sweep
+0063e9b0	doc
+0063eca0	sweep
+0063ed30	sweep
+0063ed40	sweep
+0063ed50	sweep
+0063f0d0	sweep
+0063f6c0	sweep
+0063fa30	sweep
+0063fa50	sweep
+0063fa60	sweep
+00640c00	sweep
+00640da0	sweep
+00642470	sweep
+006424d0	sweep
+006424e0	sweep
+00642510	sweep
+00642bb0	sweep
+00642bd0	doc
+00642ca0	sweep
+00642d90	sweep
+00642fc0	sweep
+00643440	sweep
+006434d0	sweep
+006439b0	sweep
+00643b70	sweep
+00643d40	sweep
+00644000	sweep
+00644080	sweep
+006440c0	sweep
+006450b0	sweep
+006450c0	sweep
+006452f0	sweep
+00645310	sweep
+00645330	sweep
+006454a0	sweep
+00645550	sweep
+00645e00	sweep
+00646b00	sweep
+00646c00	sweep
+00646c10	sweep
+00646c20	sweep
+00646c30	sweep
+00646c40	sweep
+00646d50	sweep
+00646f90	sweep
+00646fe0	sweep
+00647010	sweep
+00647150	sweep
+006472c0	sweep
+00647830	sweep
+00647930	sweep
+00647db0	sweep
+006483c0	sweep
+006486a0	sweep
+006486b0	sweep
+006488f0	sweep
+00648ba0	sweep
+00648d70	sweep
+00648da0	doc
+00649d70	sweep
+00649e00	doc
+0064a270	sweep
+0064a480	doc
+0064c880	sweep
+0064c8b0	sweep
+0064dcd0	sweep
+0064e470	sweep
+0064e4a0	sweep
+0064e5c0	doc
+0064f3b0	sweep
+006508c0	doc
+00651a80	sweep
+00651b80	sweep
+00651f40	sweep
+00653480	sweep
+006534b0	sweep
+006535c0	sweep
+00653600	sweep
+00653660	sweep
+00653750	sweep
+00653790	sweep
+00654a30	sweep
+00658160	sweep
+00658190	sweep
+00658490	sweep
+00658880	sweep
+00658b10	sweep
+00658c80	sweep
+00658e60	sweep
+00658ea0	sweep
+00658ef0	sweep
+00659130	sweep
+00659180	sweep
+00659890	sweep
+0065a620	sweep
+0065ab40	sweep
+0065ad60	sweep
+0065b1b0	sweep
+0065b440	sweep
+0065b7c0	sweep
+0065b850	sweep
+0065b870	sweep
+0065ba90	sweep
+0065bec0	sweep
+0065c040	sweep
+0065c0e0	sweep
+0065c6b0	sweep
+0065ca80	sweep
+0065cfd0	sweep
+0065f7d0	sweep
+0065fac0	sweep
+0065fb30	sweep
+0065fba0	sweep
+00661090	sweep
+006619e0	sweep
+00661a00	sweep
+00661ac0	sweep
+00661ae0	sweep
+00661b80	sweep
+00661ba0	sweep
+00661d70	sweep
+00661d80	sweep
+00661ed0	sweep
+00661f10	sweep
+006623a0	sweep
+006623e0	sweep
+00662450	sweep
+006625c0	sweep
+00662670	sweep
+00662680	sweep
+00663190	sweep
+006639a0	sweep
+00663a00	sweep
+00663ae0	sweep
+00663b60	sweep
+00663b70	sweep
+00663b90	sweep
+00663f20	sweep
+00663f80	sweep
+00664090	doc
+006673b0	sweep
+00667570	sweep
+00667730	sweep
+006677c0	sweep
+00667ee0	sweep
+00668000	sweep
+00668080	sweep
+006680e0	sweep
+006681f0	sweep
+006682f0	sweep
+00668700	sweep
+00668a10	sweep
+00668ae0	sweep
+00669100	sweep
+00669110	sweep
+00669120	sweep
+00669130	sweep
+00669140	sweep
+00669160	sweep
+00669780	sweep
+00669800	sweep
+0066c310	sweep
+0066c350	sweep
+0066c410	sweep
+0066cdc0	sweep
+0066d5c0	sweep
+0066d810	sweep
+0066d830	sweep
+0066d850	sweep
+0066e4c0	sweep
+0066e5b0	sweep
+0066e5d0	sweep
+0066e920	sweep
+0066fab0	sweep
+0066fcb0	sweep
+0066fcf0	sweep
+0066fd40	sweep
+0066fd50	sweep
+006700d0	sweep
+00670230	sweep
+006704a0	sweep
+00670880	sweep
+00670990	sweep
+006709c0	sweep
+00670be0	sweep
+00670db0	sweep
+00671440	sweep
+00671480	sweep
+006714c0	sweep
+006714f0	sweep
+00671500	sweep
+00671600	sweep
+00671610	sweep
+00671e50	sweep
+00672cb0	sweep
+00674370	sweep
+00675400	sweep
+00676c40	sweep
+00676ff0	sweep
+00677150	sweep
+00677590	sweep
+00677850	sweep
+00677970	sweep
+00677df0	sweep
+00678d90	sweep
+00678f90	sweep
+00679200	sweep
+0067ab50	sweep
+0067bbf0	sweep
+0067d370	sweep
+0067daa0	sweep
+0067dbb0	sweep
+0067e600	sweep
+0067e610	sweep
+0067e680	sweep
+0067e6d0	sweep
+0067e700	sweep
+0067eed0	sweep
+0067f7d0	sweep
+00680500	sweep
+00680560	sweep
+00680760	sweep
+00680e20	sweep
+00680f60	sweep
+00680f90	sweep
+00681020	sweep
+006810f0	sweep
+00681240	sweep
+00681b20	sweep
+00681c50	sweep
+00681e30	sweep
+00682070	sweep
+00682540	sweep
+00682f30	sweep
+00683730	sweep
+00684e50	doc
+00685900	sweep
+00685950	sweep
+00686300	sweep
+00687930	sweep
+00687aa0	sweep
+00687ae0	sweep
+00687ba0	sweep
+00687c10	sweep
+00687c80	sweep
+00687d60	sweep
+00687da0	sweep
+00688270	sweep
+006882b0	sweep
+00688310	sweep
+00688730	sweep
+00688740	sweep
+00688e10	sweep
+00688e60	sweep
+00688eb0	sweep
+00688f40	sweep
+00688fc0	sweep
+006897d0	sweep
+00689c70	sweep
+00689cb0	sweep
+00689ec0	doc
+0068a100	sweep
+0068a150	sweep
+0068a180	sweep
+0068a1b0	sweep
+0068a370	sweep
+0068a440	sweep
+0068a460	sweep
+0068a480	sweep
+0068a4a0	sweep
+0068a570	sweep
+0068a640	sweep
+0068a700	sweep
+0068a790	sweep
+0068a7d0	sweep
+0068a800	sweep
+0068a830	sweep
+0068b0a0	sweep
+0068b280	sweep
+0068b2f0	sweep
+0068c860	sweep
+0068d1a0	sweep
+00692e70	sweep
+00692f10	sweep
+0069cf80	sweep
+0069d880	sweep
+0069d970	sweep
+006a06a0	sweep
+006a08d0	sweep
+006a0910	sweep
+006aa870	sweep
+006b0240	sweep
+006b07f0	sweep
+006b1b80	sweep
+006b1ba0	sweep
+006b1c60	sweep
+006b1c90	sweep
+006b1d10	sweep
+006b1eb0	sweep
+006b1f00	sweep
+006b1f80	sweep
+006b2060	sweep
+006b2110	sweep
+006b2340	sweep
+006b2390	sweep
+006b23c0	sweep
+006b2400	sweep
+006b2490	sweep
+006b2510	sweep
+006b2540	sweep
+006b25f0	sweep
+006b26e0	sweep
+006b27f0	sweep
+006b2990	sweep
+006b2a10	sweep
+006b2b10	sweep
+006b2b50	sweep
+006b3020	sweep
+006b3050	sweep
+006b30e0	sweep
+006b3120	sweep
+006b3180	sweep
+006b3790	sweep
+006b3850	sweep
+006b3960	sweep
+006b3990	sweep
+006b3a80	sweep
+006b3b80	sweep
+006b3c10	sweep
+006b3c60	sweep
+006b3d30	sweep
+006b4180	sweep
+006b41d0	sweep
+006b4230	sweep
+006b4290	sweep
+006b42c0	sweep
+006b4380	sweep
+006b43b0	sweep
+006b4530	sweep
+006b4570	sweep
+006b45c0	sweep
+006b4610	sweep
+006b46b0	sweep
+006b4700	sweep
+006b4730	sweep
+006b4830	sweep
+006b4880	sweep
+006b48c0	sweep
+006b4900	sweep
+006b4bb0	sweep
+006b4c70	sweep
+006b4d80	sweep
+006b4db0	sweep
+006b4e50	sweep
+006b50a0	sweep
+006b50f0	sweep
+006b52e0	sweep
+006b5350	sweep
+006b53a0	sweep
+006b53f0	sweep
+006b54f0	sweep
+006b5560	sweep
+006b5590	sweep
+006b55c0	sweep
+006b5680	sweep
+006b56b0	sweep
+006b5700	sweep
+006b76a0	sweep
+006b76b0	sweep
+006edb90	sweep
+006ee110	sweep
+006ee250	sweep
+006ee290	sweep
+006ee2d0	sweep
+006ef2d0	sweep
+006efb20	sweep
+006f0200	sweep
+006f0270	sweep
+006f0530	sweep
+006f1270	sweep
+006f1e30	sweep
+006f20e0	sweep
+006f2c90	sweep
+006f2d70	sweep
+006f2e10	sweep
+006f2f90	sweep
+006f2fe0	sweep
+006f30f0	sweep
+006f3160	sweep
+006f3200	sweep
+006f3250	sweep
+006f32e0	sweep
+006f34f0	sweep
+006f3b00	sweep
+006f3df0	sweep
+006f4260	sweep
+006f43c0	sweep
+006f4690	sweep
+006f49a0	sweep
+006f4af0	sweep
+006f4c30	sweep
+006f4d80	sweep
+006f5160	sweep
+006f56d0	sweep
+006f58b0	sweep
+006f8750	sweep
+006f87c0	sweep
+006f8b50	sweep
+006f8c00	doc
+006f8de0	sweep
+006f8ea0	doc
+006f8f20	sweep
+006f9120	sweep
+006f9850	sweep
+006f98a0	sweep
+006f9a50	sweep
+006f9a90	sweep
+006f9df0	doc
+006f9f40	doc
+006fa690	sweep
+006fa7a0	sweep
+006fc9a0	sweep
+006fcd30	doc
+006fd510	doc
+006fdbb0	sweep
+00704990	doc
+00707a00	sweep
+00707aa0	sweep
+00707c80	doc
+00707f80	sweep
+00707fd0	sweep
+00708000	sweep
+007081f0	sweep
+00708290	sweep
+007083c0	sweep
+00708400	sweep
+007084c0	sweep
+00708570	sweep
+00708800	sweep
+00708820	sweep
+00708880	sweep
+00708a20	sweep
+00708a70	sweep
+00708ac0	sweep
+00708b10	sweep
+00708b40	sweep
+00708c60	sweep
+00709590	sweep
+0070a470	sweep
+0070a9b0	sweep
+0070ac70	sweep
+0070ace0	sweep
+0070ad10	sweep
+0070ad70	sweep
+0070adc0	sweep
+0070adf0	sweep
+0070afc0	sweep
+0070aff0	sweep
+0070b060	sweep
+0070b090	sweep
+0070b100	sweep
+0070b160	sweep
+0070b250	sweep
+0070b5b0	sweep
+0070b9f0	sweep
+0070bab0	doc
+0070bd00	sweep
+0070beb0	sweep
+0070c0b0	sweep
+0070c1b0	sweep
+0070c310	sweep
+0070c450	sweep
+0070c560	sweep
+0070c5d0	doc
+0070cc90	sweep
+0070ccb0	sweep
+0070cdf0	sweep
+0070d000	sweep
+0070d060	sweep
+0070d370	doc
+0070d440	doc
+0070d7e0	sweep
+0070e520	sweep
+0070f8a0	sweep
+0070f8b0	sweep
+0070f8f0	sweep
+0070f960	sweep
+0070f9e0	sweep
+0070fba0	doc
+007107d0	sweep
+00710aa0	sweep
+00710b40	sweep
+00710e40	sweep
+00711080	sweep
+007123f0	sweep
+007137f0	sweep
+00713bb0	sweep
+00713d90	sweep
+00713e30	sweep
+00713e80	doc
+00714100	sweep
+00714110	doc
+00714350	doc
+007145c0	sweep
+00714700	sweep
+0072ff10	sweep
+0072ff60	sweep
+00730400	sweep
+00735aa0	sweep
+00735be0	sweep
+007363f0	sweep
+00736470	sweep
+00736480	sweep
+007364f0	sweep
+00736540	sweep
+00736640	sweep
+007366c0	sweep
+007367a0	sweep
+00736820	sweep
+00736890	sweep
+007368c0	sweep
+007369c0	sweep
+00737ae0	sweep
+00737b50	sweep
+00737c00	sweep
+00737c60	sweep
+00737d40	sweep
+00737dc0	sweep
+00737fa0	sweep
+00738030	sweep
+00738060	sweep
+007380a0	sweep
+00738180	sweep
+00738190	sweep
+00738230	sweep
+007382b0	sweep
+00738360	sweep
+007383c0	sweep
+00738410	sweep
+00738450	sweep
+007384c0	sweep
+007389d0	sweep
+00738aa0	sweep
+00738b20	sweep
+00738e90	sweep
+00739340	sweep
+00739390	sweep
+00739480	sweep
+00739560	sweep
+007395c0	sweep
+00739640	sweep
+00739ab0	sweep
+00739ad0	sweep
+00739e20	sweep
+0073a1b0	sweep
+0073aba0	sweep
+0073b540	sweep
+0073b560	sweep
+0073b5d0	sweep
+0073b700	sweep
+0073b740	sweep
+0073b780	sweep
+0073b7c0	sweep
+0073b810	sweep
+0073b880	sweep
+0073bb20	sweep
+0073bb40	sweep
+0073bb80	sweep
+0073bbc0	sweep
+0073bc00	sweep
+0073bc50	sweep
+0073c050	sweep
+0073c1b0	sweep
+0073c1d0	sweep
+0073c220	sweep
+0073c660	sweep
+0073c780	sweep
+0073c7a0	sweep
+0073d070	sweep
+0073d2b0	sweep
+0073d300	sweep
+0073d380	sweep
+0073d3d0	sweep
+0073d950	sweep
+0073d9d0	sweep
+0073e0c0	sweep
+0073ebc0	sweep
+0073ebe0	sweep
+0073f650	sweep
+00740030	sweep
+00740060	sweep
+00740070	sweep
+00740c40	sweep
+00741760	sweep
+00741a40	sweep
+00741b50	sweep
+00741cc0	sweep
+00741d10	sweep
+00741d50	sweep
+00842050	sweep
+00846250	sweep
+00846450	sweep
+00846480	sweep
+008464d0	sweep
+008466d0	sweep
+00846770	sweep
+00846a30	sweep
+00846cd0	sweep
+0084b8d0	sweep
+0084b9e0	sweep
+0084dd60	sweep
+00850060	sweep
+00850b60	sweep
+00850c40	sweep
+00850ef0	sweep
+0087fd00	sweep
+0087fd70	sweep
+0087fe00	sweep
+0087fe30	sweep
+00880050	sweep
+00882050	sweep
+008820a0	sweep
+00882170	sweep
+008821e0	sweep
+00882300	sweep
+00882370	sweep
+00882490	sweep
+008826c0	sweep
+008826f0	sweep
+00883190	sweep
+008831d0	sweep
+008835e0	sweep
+008836d0	sweep
+00885b70	sweep
+00885b80	sweep
+00887700	sweep
+008890e0	sweep
+0088b6a0	sweep
+0088e050	sweep
+0088e670	sweep
+0088e9d0	doc
+00890c30	sweep
+00893b30	sweep
+008942d0	sweep
+00894350	sweep
+008954d0	sweep
+008955d0	sweep
+008956a0	sweep
+00895af0	sweep
+00897a50	sweep
+00897a60	sweep
+00897a70	sweep
+00897ac0	sweep
+00897b50	sweep
+00897bc0	sweep
+00897e20	sweep
+0089ad00	sweep
+0089be90	sweep
+0089bea0	sweep
+0089beb0	sweep
+0089c110	sweep
+0089cf90	sweep
+0089d080	sweep
+0089d320	sweep
+0089d3a0	sweep
+0089e8e0	sweep
+008a2ac0	sweep
+008a2e40	sweep
+008a2f30	sweep
+008a4040	sweep
+008a4060	sweep
+008a4070	sweep
+008a60c0	sweep
+008a6d70	sweep
+008a6da0	sweep
+008a8590	sweep
+008a85e0	sweep
+008b0060	sweep
+008b13b0	sweep
+008b13d0	sweep
+008b1e60	sweep
+008b2a80	sweep
+008b2aa0	sweep
+008b2e80	sweep
+008c51a0	sweep
+008c6db0	sweep
+008c7000	sweep
+008d1300	sweep
+008d17b0	sweep
+008d1830	sweep
+008d2760	sweep
+008d2b60	sweep
+008d4a90	sweep
+008d5520	sweep
+008d73a0	sweep
+008d8600	doc
+008d8a40	sweep
+008d8e50	sweep
+008d8f30	sweep
+008d9160	sweep
+008d9190	sweep
+008d91c0	sweep
+008d9240	sweep
+008d9280	sweep
+008d92d0	sweep
+00925c20	sweep
+00925c90	sweep
+00925cb0	sweep
+00928f30	sweep
+0092b9a0	sweep
+0092b9f0	sweep
+0092bc80	sweep
+0092cee0	sweep
+0092cf20	sweep
+0092cf40	sweep
+0092cfe0	sweep
+0092d000	sweep
+0092d0b0	sweep
+0092d0c0	sweep
+0092d100	doc
+0092d130	sweep
+0092d5c0	sweep
+0092d680	sweep
+00935930	sweep
+0093a140	sweep
+00940a20	sweep
+00940a70	sweep
+00940b00	sweep
+00940b30	sweep
+00940b60	sweep
+00940ba0	sweep
+00940f70	sweep
+00940fa0	sweep
+00940fd0	sweep
+00941070	sweep
+009410b0	sweep
+009410f0	sweep
+00941130	sweep
+00941170	sweep
+009411d0	sweep
+00941260	sweep
+00941490	sweep
+00941530	doc
+00941580	sweep
+009415e0	sweep
+00941650	sweep
+009416b0	sweep
+00941720	sweep
+009417a0	sweep
+00941800	sweep
+00941860	sweep
+009418d0	sweep
+00941910	sweep
+00941960	sweep
+009419d0	sweep
+00941a20	sweep
+00941a70	sweep
+00941ad0	sweep
+00941b20	sweep
+00941b80	sweep
+00941be0	sweep
+00941c30	sweep
+00941ca0	sweep
+00941d00	sweep
+00941d40	sweep
+00941db0	sweep
+00941df0	sweep
+00941e30	sweep
+00941e70	sweep
+00941ed0	doc
+00941f30	sweep
+00941f80	sweep
+00941fd0	sweep
+00942080	sweep
+00942100	sweep
+00942200	sweep
+00942300	sweep
+00942400	sweep
+00942500	sweep
+00942600	sweep
+00942700	sweep
+00942a30	sweep
+00942a80	sweep
+00942ad0	sweep
+00942c40	sweep
+00942c90	sweep
+00942ce0	sweep
+00943100	sweep
+00943660	sweep
+009438c0	sweep
+009439a0	sweep
+00943d20	sweep
+00943ea0	sweep
+00943f30	sweep
+00944090	sweep
+00944160	sweep
+009449b0	sweep
+00944a80	sweep
+00944b80	sweep
+00944c50	sweep
+00944d20	sweep
+00944df0	sweep
+00944ec0	sweep
+00944fa0	sweep
+00945070	sweep
+009453f0	sweep
+009458e0	sweep
+00946020	sweep
+00946080	sweep
+009461a0	sweep
+00946290	sweep
+00946380	sweep
+009464f0	sweep
+009465d0	sweep
+009468a0	sweep
+00946a20	sweep
+00946b30	sweep
+00946c50	sweep
+00946d70	sweep
+00946e90	sweep
+00946fb0	sweep
+009470b0	sweep
+009471b0	sweep
+009472b0	sweep
+009473c0	sweep
+009474d0	sweep
+00947680	sweep
+00947790	sweep
+009478a0	doc
+009479c0	doc
+00947ae0	sweep
+00947bd0	sweep
+00947cc0	sweep
+00947db0	sweep
+00947ef0	sweep
+00947fe0	sweep
+00948110	sweep
+00948230	sweep
+00948510	sweep
+00948660	sweep
+00948760	sweep
+009488b0	sweep
+00948a10	sweep
+00948b20	sweep
+00948cb0	sweep
+00948e00	sweep
+00948f60	sweep
+00949050	sweep
+00949140	sweep
+00949230	sweep
+00949380	sweep
+009494a0	sweep
+009495c0	sweep
+009497c0	doc
+00949970	sweep
+00949ae0	sweep
+00949c30	sweep
+00949d90	sweep
+00949ed0	doc
+00949fd0	sweep
+0094b740	sweep
+0094bae0	sweep
+0094c4c0	sweep
+00954b90	sweep
+00954c60	sweep
+00954c80	sweep
+00954cf0	sweep
+00954da0	sweep
+00955020	sweep
+00955fe0	sweep
+00956010	sweep
+00956320	sweep
+009563d0	sweep
+00956470	sweep
+009568c0	sweep
+00956910	sweep
+00956ac0	sweep
+00956ad0	sweep
+00956b40	sweep
+00956b90	sweep
+00956bf0	sweep
+00956c50	sweep
+009578f0	sweep
+00957920	sweep
+00957950	sweep
+00957d80	sweep
+009b32f0	sweep
+009b3320	sweep
+009b39e0	sweep
+009b4710	sweep
+009b4780	sweep
+009b4820	sweep
+009b4930	sweep
+009b5ec0	sweep
+009b5ee0	sweep

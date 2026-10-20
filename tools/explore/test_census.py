@@ -376,7 +376,7 @@ class TheBackedList(unittest.TestCase):
         rows = census.backed_rows(names, source, by_doc={0x20, 0x30}, by_sweep={0x10, 0x30, 0x40})
         self.assertEqual(rows, [(0x10, 'Unit::a', 'sweep'), (0x20, 'Unit::b', 'doc'),
                                 (0x30, 'Unit::c', 'doc')])
-        self.assertEqual(census.format_backed(rows[0]), '00000010\tUnit::a\tsweep')
+        self.assertEqual(census.format_backed(rows[0]), '00000010\tsweep')
 
     def written(self, tmp, rows):
         path = Path(tmp, 'census-backed.txt')
@@ -394,12 +394,12 @@ class TheBackedList(unittest.TestCase):
         self.assertIn('2026-10-19', text)
         self.assertIn('abc1234 (worktree-x)', text)
         self.assertIn('--backed-list --write', text)
-        self.assertEqual(got, {0x10: ('Unit::a', 'sweep'), 0x20: ('Unit::b', 'doc')})
+        self.assertEqual(got, {0x10: ('', 'sweep'), 0x20: ('', 'doc')})
 
     def test_a_line_that_does_not_parse_is_refused(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp, 'x.txt')
-            path.write_text('00000010\tUnit::a\tsweep\nnot a row\n')
+            path.write_text('00000010\tsweep\nnot a row\n')
             with self.assertRaises(SystemExit) as stop:
                 census.read_backed(str(path))
         self.assertIn(':2', str(stop.exception))
@@ -410,7 +410,10 @@ class TheBackedList(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self.written(tmp, listed)
             out = io.StringIO()
+            # The file carries no names (CLAUDE.md); a loss is named off the export's index.
+            names = {va: name for va, name, _ in listed}
             with patch.object(census, 'backed_now', return_value=live), \
+                    patch.object(census, 'load_index', return_value=(len(names), {}, names)), \
                     patch.object(sys, 'argv', ['census.py', '--check-backed', path]), \
                     redirect_stdout(out), self.assertRaises(SystemExit) as stop:
                 census.main()
@@ -442,7 +445,7 @@ class TheBackedList(unittest.TestCase):
                 patch.object(census, 'tree_label', return_value='abc1234 (b)'), \
                 patch.object(sys, 'argv', ['census.py', '--backed-list']), redirect_stdout(out):
             census.main()
-        self.assertIn('00000010\tUnit::a\tsweep', out.getvalue().splitlines())
+        self.assertIn('00000010\tsweep', out.getvalue().splitlines())
 
 
 if __name__ == '__main__':
