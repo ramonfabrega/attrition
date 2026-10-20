@@ -1621,8 +1621,7 @@ const ADJACENT: i32 = 0x60;
 /// gathering at a **pasture** re-picks its spot on the frames where
 /// `(o · 7 + frame + who) % 256` is zero, and does nothing else at all
 /// (§6.5). Both numbers are the listing's.
-const PASTURE_PHASE: i64 = 0x100;
-const PASTURE_STRIDE: i64 = 7;
+const PASTURE_STRIDE: i32 = 7;
 
 /// `unit_masks & 0x78000000` — the four carrying-walk bits
 /// ([`crate::Unit::carry`]), named as `Guy::set_anim`'s walk arm tests
@@ -8602,163 +8601,25 @@ impl Sim {
     // `do_gather` — §6.3
     // ------------------------------------------------------------------
 
-    /// `Unit::do_gather`: the walk, the arrival, the stand.
+    /// `Unit::do_gather` (§6.3): [`do_gather_steps`] over [`DoGatherView`]
+    /// (`SimDoGather`); `crates/sim/src/sweep/unit_do_gather_005ef2a0.rs`
+    /// runs the steps against the original under the emulator (item 3356).
     fn do_gather(&mut self, u: usize, frame: i64) {
         let Some(Order {
-            body: Body::Gather(mut g),
+            body: Body::Gather(g),
             ..
         }) = self.current_order(u).copied()
         else {
             return;
         };
-        let b = g.building;
-        let who = self.units[u].owner;
-        let bd = &self.buildings[b];
-        if bd.owner != who || !bd.alive || !bd.active {
-            self.kill_current_order(u);
-            return;
-        }
-        let ident = self.building_ident(b);
-        let fail = |sim: &mut Sim| {
-            sim.kill_current_order(u);
-            sim.add_think_order(u);
-            if sim.is_flat(b) && !sim.covers_tile(b, sim.units[u].pos.tile()) {
-                let p = sim.buildings[b].pos;
-                sim.add_move_order(u, p, MoveKind::MoveTo, QueuePos::First, false);
-            }
-        };
-        if !g.been_there && !self.is_gathered_by(b, u) {
-            // The retry for a unit refused at issue. An oil platform, and any
-            // non-land unit, skip the chain entirely and go straight on to
-            // the arrival path — `do_gather@005ef2a0:98`
-            // `if (build_type == 0x1a6 || ptype[0x218] != 0) goto ARRIVED`.
-            // Registering them gave the platform chain entries the original
-            // never creates. (`docs/audit/2026-08-21-orders.md` R4 G19.)
-            let skips_chain = ident == Ident::OilPlatform
-                || self.units[u].kind.domain != crate::attrition::Domain::Land;
-            if !skips_chain && (!self.gather_room(b) || !self.add_gatherer(b, u)) {
-                fail(self);
-                return;
-            }
-        }
-        if ident == Ident::Farm && self.buildings[b].city.is_none() {
-            fail(self);
-            return;
-        }
-        if matches!(ident, Ident::Mine | Ident::Woodcutter) {
-            let phase = frame + i64::from(self.units[u].index) * 4;
-            if phase & 127 == 0
-                && self.buildings[b]
-                    .gather_max
-                    .is_some_and(|max| self.num_gatherers(b, false, false) > max)
-            {
-                self.kill_current_order(u);
-                self.add_think_order(u);
-                return;
-            }
-            self.do_non_flat_gather(u, g);
-            return;
-        }
-        let here = self.units[u].pos;
-        let bpos = self.buildings[b].pos;
-        if ident != Ident::Farm {
-            if !self.adjacent_to(u, b) {
-                let (xs, ys) = self.buildings[b].ty.map_or((1, 1), |t| {
-                    (self.build_types[t].x_size, self.build_types[t].y_size)
-                });
-                let d = xs.min(ys) * HALF_TILE + SNAP;
-                let angle = find_angle(here.x - bpos.x, here.y - bpos.y);
-                let Some(spot) = self.find_nearby_spot(u, bpos, d, -1, 0, angle, None) else {
-                    self.kill_current_order(u);
-                    self.units[u].cant_reach = true;
-                    return;
-                };
-                if !self.is_gathered_by(b, u) && ident != Ident::OilPlatform {
-                    g.been_there = false;
-                    self.store_gather(u, g);
-                    return;
-                }
-                self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::First, false);
-                return;
-            }
-        } else if !self.covers_tile(b, here.tile()) {
-            if self.buildings[b]
-                .gather_max
-                .is_some_and(|max| self.num_gatherers(b, false, false) > max)
-            {
-                self.kill_current_order(u);
-                self.units[u].cant_reach = true;
-                return;
-            }
-            if !self.is_gathered_by(b, u) {
-                g.been_there = false;
-                self.store_gather(u, g);
-                return;
-            }
-            self.add_move_order(u, bpos, MoveKind::MoveTo, QueuePos::First, false);
-            return;
-        }
-        // Arrived.
-        if !g.been_there {
-            if self.buildings[b]
-                .gather_max
-                .is_some_and(|max| self.num_gatherers(b, false, false) > max)
-            {
-                self.kill_current_order(u);
-                self.units[u].cant_reach = true;
-                return;
-            }
-            g.been_there = true;
-            self.store_gather(u, g);
-            self.ledgers[who as usize].dirty = true;
-            // A transport carrying the platform's builder goes in and dies,
-            // its passenger spliced into the platform in its place
-            // ([`Sim::transport_into_platform`], `5efa39`).
-            if ident == Ident::OilPlatform && self.transport_into_platform(u, b) {
-                self.check_gatherers(b);
-                return;
-            }
-            if self.worker_of(u) == Worker::Scholar || ident == Ident::OilPlatform {
-                self.go_inside(u, b);
-                self.check_gatherers(b);
-                self.kill_current_order(u);
-                return;
-            }
-            self.check_gatherers(b);
-        }
-        if ident != Ident::Farm {
-            // The oil well: one worker a frame bumps the building's counter;
-            // stand at `b.x + 0x120`.
-            if !self.buildings[b].gather_bumped {
-                self.buildings[b].recharging += 1;
-                self.buildings[b].gather_bumped = true;
-            }
-            // **The farm animation, and its guard** (`do_gather@005ef2a0:377`):
-            // a guy already on `CHAR_FARM` returns here, and any other is put
-            // on it before it is turned — so `Guy::move`'s arrival test, which
-            // wants `CHAR_WALK`, never sees the walk the turn arm puts back
-            // and the arrival stand `Guy::move+0x19f` is never rolled
-            // (`docs/AI.md` §150, item 1549).
-            if self.units[u]
-                .guys
-                .first()
-                .is_some_and(|g| g.anim == anim::FARM)
-            {
-                return;
-            }
-            self.set_anim(u, anim::FARM, false, true);
-            self.units[u].movement.set_heading(Angle(0x4000_0000));
-            let stand = Pos::new(bpos.x + OILWELL_OFFSET, bpos.y);
-            if self.world.accepts(stand) {
-                let from = self.units[u].pos;
-                self.set_new_location(u, stand, true);
-                // `do_gather`'s `set_new_location(…, 1, 1)`: the whole disc,
-                // not the ring (`docs/VISION.md` §6).
-                self.moved_to(u, from, false);
-            }
-            return;
-        }
-        self.do_farm(u, b, g, frame);
+        do_gather_steps(&mut SimDoGather {
+            b: g.building,
+            g,
+            s: self,
+            u,
+            frame: frame as i32,
+            drew: false,
+        });
     }
 
     /// Writes a gather order's fields back — **to the gather order, not to
@@ -9104,127 +8965,6 @@ impl Sim {
         // `:694` / `:700`, the function's last statement either way.
         self.units[u].carry |= if wood { CARRY_TO_WOOD } else { CARRY_TO_ORE };
         self.store_gather(u, g);
-    }
-
-    /// The farm stand (§6.5), `Unit::do_gather@005ef2a0`'s wheat branch on
-    /// the cell under the farmer, by the cell's state and the guy's
-    /// animation (`'#'` is the sow anim — index 35, the one every farmer
-    /// shows — and `'$'` the reap):
-    ///
-    /// ```text
-    /// pasture: set_anim(SOW); off phase → return; else → inner tile
-    /// 0: not reaping → as 1;                    else → new tile
-    /// 1: set_anim(SOW); Farms::grow
-    /// 2: not sowing  → set_anim(REAP); snip;    else → new tile
-    /// 3: set_anim(REAP)
-    /// ```
-    ///
-    /// The clock is `farms.rs`'s: the farmer's `grow` and `inc_time`'s add
-    /// each frame ripen the cell on frame 100's `grow` — the farmer is still
-    /// sowing, so the next frame is the "new tile": two draws
-    /// (`GameAccess::rnd` on the type's `x_size`, then its `y_size`) and a
-    /// move to that tile's centre, in front of the gather order. That is
-    /// the original's re-target on the log's frame 102 — sim-frame 101,
-    /// where run13 shows all six farmers' `orders_x/y` change and the walk
-    /// start on 102 (`docs/SYNC.md` §4). A **pasture** has no such clock
-    /// and no switch: see the arm below.
-    fn do_farm(&mut self, u: usize, b: usize, _g: GatherOrder, frame: i64) {
-        let Some(ty) = self.buildings[b].ty else {
-            return;
-        };
-        let corner = self.tile_corner(ty, self.buildings[b].pos);
-        // **The re-target's modulus is the type's own footprint**, and the
-        // decompiler lost it because it travels in `ecx`: `005efff9` loads
-        // the crop's from `ObjectType::x_size` (`+0x234`) and `005f0004`
-        // its `y_size` (`+0x238`); the pasture's two, at `005efdd8` and
-        // `005efde5`, take half of each. Both are 4 for the farm, which is
-        // what run13 measured before the register was read — all six
-        // farmers' twelve draws on sim-frame 101 land on the dump's new
-        // tiles under `% 4` and under no other modulus (`docs/SYNC.md` §4).
-        let (xs, ys) = (self.build_types[ty].x_size, self.build_types[ty].y_size);
-        // **The pasture arm, `005efd77`.** `FarmsData::get_farm_type`
-        // answers `farm_type & 1`, and a `1` takes the whole of the
-        // function before the cell arithmetic below has run. A herder sows
-        // nothing: it shows the sow animation, and on its own 256-frame
-        // phase it walks to a tile of the **inner** 2 × 2 —
-        // `corner + 1 + rnd(size / 2)` an axis, against the crop's
-        // `corner + rnd(size)` over all sixteen. `Farms::inc_time` skips a
-        // pasture, so no cell under it ever ripens on the clock, and the
-        // switch below would instead send the herder walking on the
-        // farmer's own 201st add — a hundred frames late, and on a frame
-        // the original spends nothing (`docs/SYNC.md` §3.15).
-        if self.buildings[b].farm.farm_type & farms::ANIMAL_FARM != 0 {
-            self.set_anim(u, crate::anim::SOW, false, true);
-            let phase = i64::from(self.units[u].index) * PASTURE_STRIDE
-                + frame
-                + i64::from(self.units[u].owner);
-            if phase % PASTURE_PHASE != 0 {
-                return;
-            }
-            self.mark(SITE_FARM_CELL);
-            let rx = self.rnd(xs / 2);
-            let ry = self.rnd(ys / 2);
-            let dest = Pos::new(
-                (corner.x + 1 + rx) * TILE + HALF_TILE,
-                (corner.y + 1 + ry) * TILE + HALF_TILE,
-            );
-            self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
-            return;
-        }
-        let here = self.units[u].pos.tile();
-        let (mut dx, mut dy) = (here.x - corner.x, here.y - corner.y);
-        if dx < 0 || dy < 0 || dx >= xs || dy >= ys {
-            dx = 1;
-            dy = 1;
-        }
-        // **`dx * 4 + dy`, not `dy * 4 + dx`.** `FarmStruct::status` is a
-        // `uchar[4][4]` and the farmer's cell is `status[dx][dy]`: both
-        // `do_gather`'s own switch (`005eff54`, `(dx + farm·0x30)·4 + 0xac +
-        // dy`) and `Farms::grow@008d91c0`'s write (`(farm·0x30 + param_3)·4
-        // + 0xac + param_2`, called `(dy, dx)`) land on the same byte, and
-        // it is the transpose of what this had. Invisible for a hundred
-        // frames — every starting farmer stands on `(2, 2)`, which is its
-        // own transpose — and then wrong the moment one re-picks a cell
-        // (`docs/ORDERS.md` §6.5).
-        let idx = (dx * 4 + dy) as usize;
-        // **`guy[0].cur_anim`, live — not a flag the farm branch keeps.**
-        // The switch reads `*(char *)(**(int **)&this->field_0xf4 + 0x9c)`
-        // (`do_gather@005ef2a0:454`, `GuyData +0x9c cur_anim`), so anything
-        // that plays an animation between two farm frames — a walk, a
-        // blocked stand, an idle — is what the test sees. A sticky byte
-        // written only here and cleared only by a step is not the same
-        // thing (`docs/ORDERS.md` §6.5).
-        let anim = self.units[u]
-            .guys
-            .first()
-            .map_or(crate::anim::DEFAULT, |g| g.anim);
-        let state = self.buildings[b].farm.state[idx];
-        match state {
-            s if s == farms::GROWING || (s == farms::EMPTY && anim != crate::anim::REAP) => {
-                self.set_anim(u, crate::anim::SOW, false, true);
-                self.buildings[b].farm.grow(idx);
-                return;
-            }
-            farms::RIPE if anim != crate::anim::SOW => {
-                self.set_anim(u, crate::anim::REAP, false, true);
-                self.buildings[b].farm.snip(idx);
-                return;
-            }
-            farms::CUT => {
-                self.set_anim(u, crate::anim::REAP, false, true);
-                return;
-            }
-            // Empty under a reaper, or ripe under a sower: a new tile.
-            _ => {}
-        }
-        self.mark(SITE_FARM_CELL);
-        let rx = self.rnd(xs);
-        let ry = self.rnd(ys);
-        let dest = Pos::new(
-            (corner.x + rx) * TILE + HALF_TILE,
-            (corner.y + ry) * TILE + HALF_TILE,
-        );
-        self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
     }
 
     /// `Unit::find_gather_spot` (§6.6): the best gather building of the
@@ -11745,6 +11485,700 @@ impl DoRepairView for SimDoRepair<'_> {
     fn repair_damage(&mut self, amount: i32) {
         self.s.repair_building(self.b, amount);
     }
+}
+
+/// What `Unit::do_gather@005ef2a0` asks of its unit, its gather order, the
+/// site and the world, in the order it asks (item 3356). [`SimDoGather`]
+/// answers from this crate's state; the sweep answers from the emulated
+/// original's windows (`crates/sim/src/sweep/unit_do_gather_005ef2a0.rs`).
+///
+/// The site is the order's `(idx, uid)` pair; the view holds it, so no
+/// method takes one. Coordinates are the world's own (decoded: the unit
+/// stores `x ^ 0x63637`), tiles are `div_3_table[c >> 6]`.
+pub trait DoGatherView {
+    /// The order's `uid` (`+0xc`): the site's owner.
+    fn order_owner(&mut self) -> i32;
+    /// The unit's player (the byte at `+0x9`).
+    fn unit_player(&mut self) -> i32;
+    /// The site's vslot `+0xb0` record, slot `+0xc`: in use.
+    fn site_alive(&mut self) -> bool;
+    /// The same record's slot `+0x4c`: finished.
+    fn site_active(&mut self) -> bool;
+    /// The order's `been_there` byte (`+0x27`).
+    fn been_there(&mut self) -> bool;
+    fn set_been_there(&mut self, on: bool);
+    /// The order's `build_type` (`+0x1c`): a `TypeIndex`, `0x1a1` farm,
+    /// `0x1a2` woodcutter, `0x1a3` mine, `0x1a6` oil platform.
+    fn build_type(&mut self) -> i32;
+    /// `BuildData::is_gathered_by(unit)`.
+    fn is_gathered_by(&mut self) -> bool;
+    /// The site record's gatherer cap, the signed byte at `+0x80`.
+    fn max_gatherers(&mut self) -> i32;
+    /// `BuildData::num_gatherers(0, 0)`.
+    fn num_gatherers(&mut self) -> i32;
+    /// The unit's type record, `+0x218`: its domain.
+    fn unit_domain(&mut self) -> i32;
+    /// The site's type record, `+0x218`.
+    fn site_domain(&mut self) -> i32;
+    /// `Build::add_gatherer(unit, player)`.
+    fn add_gatherer(&mut self);
+    /// `Unit::kill_current_order(0)`.
+    fn kill_current_order(&mut self);
+    /// `Unit::add_think_order`.
+    fn add_think_order(&mut self);
+    /// The site's type, slot `+0x94`: flat.
+    fn site_flat(&mut self) -> bool;
+    /// `WallData::covers_tile(unit's tile)`.
+    fn covers_unit_tile(&mut self) -> bool;
+    /// The unit's position.
+    fn unit_pos(&mut self) -> (i32, i32);
+    /// The site object's position.
+    fn site_pos(&mut self) -> (i32, i32);
+    /// `Unit::add_move_order(x, y, 1, 0, QUEUE_FIRST, 0, y, -1, -1)`.
+    fn add_move_order(&mut self, x: i32, y: i32);
+    /// The same call from the spot search's tail, whose unused seventh
+    /// argument is the caller's leftover `ecx` and not `y`.
+    fn add_move_order_spot(&mut self, x: i32, y: i32);
+    /// The site record's city (`+0x72`), `-1` for none.
+    fn site_city(&mut self) -> i32;
+    /// The site record's farm slot (`+0x78`).
+    fn farm_index(&mut self) -> i32;
+    /// `game->frame`.
+    fn frame(&mut self) -> i32;
+    /// The unit's number (the short at `+0xa`).
+    fn unit_id(&mut self) -> i32;
+    /// `Unit::do_non_flat_gather(order)`.
+    fn non_flat_gather(&mut self);
+    /// The unit's vslot `+0x170` of the site: `adjacent_to`.
+    fn adjacent(&mut self) -> bool;
+    /// The smaller side of the site record's footprint (`+0x234`/`+0x238` of
+    /// its `+0x18`, through slot `+0xb0`).
+    fn site_min_size(&mut self) -> i32;
+    /// The footprint (`+0x234`, `+0x238`) of the site record's type through
+    /// slot `+0xac`.
+    fn site_size(&mut self) -> (i32, i32);
+    /// `UnitData::can_transport`.
+    fn can_transport(&mut self) -> bool;
+    /// `UnitType::find_nearby_spot(site, out, dist, -1, 0, angle,
+    /// FILTER_NOT_ME, unit, player, 0, 0, -1, 0, -1)`: the spot, or `None`
+    /// when the search answers non-zero.
+    fn find_spot(&mut self, dist: i32, angle: i32) -> Option<(i32, i32)>;
+    /// `unit_flags |= 0x10`.
+    fn set_cant_reach(&mut self);
+    /// `WorldData::get_tregion` of the site's tile and of the unit's differ.
+    fn region_differs(&mut self) -> bool;
+    /// `leaders[player].flags |= 0x2000000`.
+    fn mark_leader(&mut self);
+    /// `ObjectData::is_scholar`.
+    fn is_scholar(&mut self) -> bool;
+    /// `Unit::go_inside(idx, uid, 0)`.
+    fn go_inside(&mut self);
+    /// `Build::check_gatherers`.
+    fn check_gatherers(&mut self);
+    /// The site record `is(OILPLATFORM)`: a `Build` asks its type (slot
+    /// `+0x60`), any other record its own slot `+0xb8(0x1a6, 0)`.
+    fn is_platform(&mut self) -> bool;
+    /// `ObjectData::can_carry(GROUND)`.
+    fn can_carry_ground(&mut self) -> bool;
+    /// `Unit::same_damage` on the unit's first passenger, when it has one
+    /// (the short at `+0x28`, not negative).
+    fn carrier_same_damage(&mut self);
+    /// The unit's vslot `+0x158` (`Object::die(0, -1, 0.0)`).
+    fn die(&mut self);
+    /// `unit_masks & 0x40000`.
+    fn ai_driven(&mut self) -> bool;
+    /// `LeaderData::get_diff`.
+    fn leader_diff(&mut self) -> i32;
+    /// The site record's damage (`+0x24`).
+    fn site_damage(&mut self) -> i32;
+    /// The site record under attack: a `Build`'s `+0x60 & 0x20`, any other
+    /// record's slot `+0x188`.
+    fn site_under_attack(&mut self) -> bool;
+    /// `cities[player][city].city_flags & 2`: `CITY_UNDER_ATTACK`.
+    fn city_under_attack(&mut self) -> bool;
+    /// `Unit::add_repair_order(idx, uid, QUEUE_NEW, 0)`.
+    fn add_repair_order(&mut self);
+    /// The site record's `+0x60 & 0x800`: a worker has been counted.
+    fn site_counted(&mut self) -> bool;
+    /// `+0x7a += 1` and `+0x60 |= 0x800`.
+    fn bump_site_counter(&mut self);
+    /// Guy 0's current animation, the byte at `+0x9c`.
+    fn cur_anim(&mut self) -> i32;
+    /// `Unit::set_anim(anim, 0, 1)`.
+    fn set_anim(&mut self, anim: i32);
+    /// `Unit::set_angle(0x40000000, ., 0)`: face east.
+    fn face_east(&mut self);
+    /// `Unit::set_new_location(x, y, 1, 1)`.
+    fn set_new_location(&mut self, x: i32, y: i32);
+    /// `FarmsData::get_farm_type(farm)`.
+    fn farm_type(&mut self, farm: i32) -> i32;
+    /// `WallData::tile_corner`: the footprint's corner tile.
+    fn tile_corner(&mut self) -> (i32, i32);
+    /// The unit's tile.
+    fn unit_tile(&mut self) -> (i32, i32);
+    /// The farm's cell `(fx, fy)`: `status[fx][fy]`.
+    fn farm_cell(&mut self, farm: i32, fx: i32, fy: i32) -> i32;
+    /// `Farms::grow(farm, fy, fx)`.
+    fn farm_grow(&mut self, farm: i32, fy: i32, fx: i32);
+    /// `Farms::snip(farm, fy, fx)`.
+    fn farm_snip(&mut self, farm: i32, fy: i32, fx: i32);
+    /// `GameAccess::rnd(n)`.
+    fn rnd(&mut self, n: i32) -> i32;
+    /// The "Invalid farming location?" report, unless `ignore_always` is
+    /// set. SEAM: the dialog is not modelled; the original's `int3` on a
+    /// non-zero answer is a debugger break.
+    fn invalid_farm_cell(&mut self);
+}
+
+/// `TypeIndex` values the gather order names.
+const GATHER_FARM: i32 = 0x1a1;
+const GATHER_WOODCUTTER: i32 = 0x1a2;
+const GATHER_MINE: i32 = 0x1a3;
+const GATHER_PLATFORM: i32 = 0x1a6;
+
+/// **`Unit::do_gather@005ef2a0`'s steps** (item 3356, `docs/ORDERS.md`
+/// §6.3): the gate on the order, the chain, the arrival, the stand, the
+/// farm. `docs/ORDERS.md` §6.5 has the farm cell.
+pub fn do_gather_steps<V: DoGatherView>(v: &mut V) {
+    /// The site walk shared by every give-up and by the retargets:
+    /// `LAB_005ef3b1` — a flat site the unit is not on is walked to.
+    fn site_walk<V: DoGatherView>(v: &mut V) {
+        if !v.site_flat() || v.covers_unit_tile() {
+            return;
+        }
+        let (x, y) = v.site_pos();
+        v.add_move_order(x, y);
+    }
+    /// `LAB_005ef4dc`: the order dies, the unit thinks, and walks back to a
+    /// flat site.
+    fn fail<V: DoGatherView>(v: &mut V) {
+        v.kill_current_order();
+        v.add_think_order();
+        site_walk(v);
+    }
+    /// `LAB_005ef63e` / `LAB_005ef68f`: the order dies and the unit is
+    /// marked unable to reach.
+    fn cant_reach<V: DoGatherView>(v: &mut V) {
+        v.kill_current_order();
+        v.set_cant_reach();
+    }
+    /// The unit's phase against a 256-frame period: the original masks
+    /// with `0x800000ff` and tests a negative remainder by hand, which is
+    /// the low byte either way.
+    fn on_phase(sum: i32) -> bool {
+        sum & 0xff == 0
+    }
+
+    // `5ef2de`: the order is the unit's player's, and its site in use and
+    // finished.
+    if v.order_owner() != v.unit_player() {
+        v.kill_current_order();
+        return;
+    }
+    if !v.site_alive() || !v.site_active() {
+        v.kill_current_order();
+        return;
+    }
+    let ty = v.build_type();
+    if !v.been_there() && !v.is_gathered_by() {
+        // The retry for a unit refused at issue (`5ef338`): room in the
+        // chain, and the unit put into it. An oil platform and any unit
+        // that is not a land unit skip the chain and go on to the arrival.
+        let max = v.max_gatherers();
+        if v.num_gatherers() >= max {
+            fail(v);
+            return;
+        }
+        if ty != GATHER_PLATFORM && v.unit_domain() == 0 {
+            v.add_gatherer();
+            if !v.is_gathered_by() {
+                fail(v);
+                return;
+            }
+        }
+    }
+    // `5ef4f5`
+    let mut farm = -1;
+    if ty == GATHER_FARM {
+        if v.site_city() < 0 {
+            fail(v);
+            return;
+        }
+        farm = v.farm_index();
+    }
+    if ty == GATHER_MINE || ty == GATHER_WOODCUTTER {
+        // Wood and ore: the over-full check once in 128 frames, and the
+        // non-flat machine otherwise.
+        if on_phase_128(v.frame().wrapping_add(v.unit_id().wrapping_mul(4))) {
+            let max = v.max_gatherers();
+            if v.num_gatherers() > max {
+                v.kill_current_order();
+                v.add_think_order();
+                site_walk(v);
+                return;
+            }
+        }
+        v.non_flat_gather();
+        return;
+    }
+    if ty != GATHER_FARM {
+        if !v.adjacent() {
+            // `5ef73b`: walk to a spot beside the site, or to the site
+            // itself for a transport that crosses water.
+            let dist = v.site_min_size().wrapping_mul(0x60).wrapping_add(0x30);
+            let (x, y);
+            if v.site_domain() == v.unit_domain() || !v.can_transport() {
+                let (ux, uy) = v.unit_pos();
+                let (sx, sy) = v.site_pos();
+                let angle = crate::movement::find_angle(ux.wrapping_sub(sx), uy.wrapping_sub(sy)).0;
+                let Some(spot) = v.find_spot(dist, angle) else {
+                    cant_reach(v);
+                    return;
+                };
+                (x, y) = spot;
+            } else {
+                (x, y) = v.site_pos();
+            }
+            if !v.is_gathered_by() && !v.is_platform() {
+                v.set_been_there(false);
+                return;
+            }
+            v.add_move_order_spot(x, y);
+            return;
+        }
+    } else if !v.covers_unit_tile() {
+        // `5ef5a8`: a farm the unit is not on. Across a region boundary
+        // without a transport, or over the cap, it cannot reach.
+        if v.region_differs() && !v.can_transport() {
+            cant_reach(v);
+            return;
+        }
+        let max = v.max_gatherers();
+        if v.num_gatherers() > max {
+            cant_reach(v);
+            return;
+        }
+        if v.unit_domain() == 0 && !v.is_gathered_by() {
+            v.set_been_there(false);
+            return;
+        }
+        let (x, y) = v.site_pos();
+        v.add_move_order(x, y);
+        return;
+    }
+    // `5ef939`: at the site.
+    if !v.been_there() {
+        let max = v.max_gatherers();
+        if v.num_gatherers() > max {
+            cant_reach(v);
+            return;
+        }
+        v.set_been_there(true);
+        v.mark_leader();
+        if v.is_scholar() {
+            v.go_inside();
+            v.check_gatherers();
+            v.kill_current_order();
+            return;
+        }
+        if v.is_platform() {
+            if v.can_carry_ground() {
+                // `5efa4a`: a transport goes in and dies, its passenger
+                // the platform's.
+                v.carrier_same_damage();
+                v.go_inside();
+                v.kill_current_order();
+                v.die();
+                v.check_gatherers();
+                return;
+            }
+            v.go_inside();
+            v.check_gatherers();
+            v.kill_current_order();
+            return;
+        }
+        v.check_gatherers();
+    }
+    // `5efb20`: an AI's idle worker mends a damaged site once in 256 frames.
+    if v.ai_driven() {
+        let sum = v
+            .unit_id()
+            .wrapping_add(v.frame())
+            .wrapping_add(v.unit_player());
+        if on_phase(sum) && v.leader_diff() > 1 && v.site_damage() != 0 && !v.site_under_attack() {
+            let city = v.site_city();
+            if city >= 0 && !v.city_under_attack() {
+                v.add_repair_order();
+                return;
+            }
+        }
+    }
+    if ty != GATHER_FARM {
+        // The oil well: counted once, then stood at beside the platform.
+        if !v.site_counted() {
+            v.bump_site_counter();
+        }
+        if v.cur_anim() == i32::from(anim::FARM) {
+            return;
+        }
+        v.set_anim(i32::from(anim::FARM));
+        v.face_east();
+        let (sx, sy) = v.site_pos();
+        v.set_new_location(sx.wrapping_add(OILWELL_OFFSET), sy);
+        return;
+    }
+    // `5efcfb`: the farm.
+    let kind = v.farm_type(farm);
+    let (xs, ys) = v.site_size();
+    let (cx, cy) = v.tile_corner();
+    if kind == 1 {
+        // A pasture sows nothing: on its own 256-frame phase it walks to a
+        // tile of the inner part.
+        v.set_anim(i32::from(anim::SOW));
+        let sum = v
+            .unit_id()
+            .wrapping_mul(PASTURE_STRIDE)
+            .wrapping_add(v.frame())
+            .wrapping_add(v.unit_player());
+        if !on_phase(sum) {
+            return;
+        }
+        let rx = v.rnd(xs / 2);
+        let ry = v.rnd(ys / 2);
+        let x = cx
+            .wrapping_add(1)
+            .wrapping_add(rx)
+            .wrapping_mul(TILE)
+            .wrapping_add(HALF_TILE);
+        let y = cy
+            .wrapping_add(1)
+            .wrapping_add(ry)
+            .wrapping_mul(TILE)
+            .wrapping_add(HALF_TILE);
+        v.add_move_order(x, y);
+        return;
+    }
+    let (ux, uy) = v.unit_tile();
+    let (mut fx, mut fy) = (ux.wrapping_sub(cx), uy.wrapping_sub(cy));
+    if fy < 0 || fx < 0 || fy >= ys || fx >= xs {
+        fx = 1;
+        fy = 1;
+        v.invalid_farm_cell();
+    }
+    // `status[fx][fy]` — the cell in the farm's own record, the byte at
+    // `(farm * 0x30 + fx) * 4 + fy + 0xac`.
+    match v.farm_cell(farm, fx, fy) {
+        0 if v.cur_anim() == i32::from(anim::REAP) => {}
+        0 | 1 => {
+            v.set_anim(i32::from(anim::SOW));
+            v.farm_grow(farm, fy, fx);
+            return;
+        }
+        2 if v.cur_anim() != i32::from(anim::SOW) => {
+            v.set_anim(i32::from(anim::REAP));
+            v.farm_snip(farm, fy, fx);
+            return;
+        }
+        3 => {
+            v.set_anim(i32::from(anim::REAP));
+            return;
+        }
+        _ => {}
+    }
+    // Empty under a reaper, ripe under a sower, or a byte the switch does
+    // not name: a new tile of the crop.
+    let rx = v.rnd(xs);
+    let ry = v.rnd(ys);
+    let x = cx
+        .wrapping_add(rx)
+        .wrapping_mul(TILE)
+        .wrapping_add(HALF_TILE);
+    let y = cy
+        .wrapping_add(ry)
+        .wrapping_mul(TILE)
+        .wrapping_add(HALF_TILE);
+    v.add_move_order(x, y);
+}
+
+/// `test al, 0x7f` of `frame + id * 4`.
+fn on_phase_128(sum: i32) -> bool {
+    sum & 0x7f == 0
+}
+
+/// [`DoGatherView`] over the live [`Sim`].
+struct SimDoGather<'a> {
+    s: &'a mut Sim,
+    u: usize,
+    b: usize,
+    /// The gather order, as the original holds a pointer to it for the
+    /// whole of the function (see [`Sim::store_gather`]).
+    g: GatherOrder,
+    frame: i32,
+    /// The farmer's pair of draws has been marked.
+    drew: bool,
+}
+
+impl DoGatherView for SimDoGather<'_> {
+    fn order_owner(&mut self) -> i32 {
+        i32::from(self.s.buildings[self.b].owner)
+    }
+    fn unit_player(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].owner)
+    }
+    fn site_alive(&mut self) -> bool {
+        self.s.buildings[self.b].alive
+    }
+    fn site_active(&mut self) -> bool {
+        self.s.buildings[self.b].active
+    }
+    fn been_there(&mut self) -> bool {
+        self.g.been_there
+    }
+    fn set_been_there(&mut self, on: bool) {
+        self.g.been_there = on;
+        self.s.store_gather(self.u, self.g);
+    }
+    fn build_type(&mut self) -> i32 {
+        match self.s.building_ident(self.b) {
+            Ident::Farm => GATHER_FARM,
+            Ident::Woodcutter => GATHER_WOODCUTTER,
+            Ident::Mine => GATHER_MINE,
+            Ident::OilPlatform => GATHER_PLATFORM,
+            _ => 0,
+        }
+    }
+    fn is_gathered_by(&mut self) -> bool {
+        self.s.is_gathered_by(self.b, self.u)
+    }
+    fn max_gatherers(&mut self) -> i32 {
+        // No cap is a cap nothing reaches.
+        self.s.buildings[self.b].gather_max.unwrap_or(i32::MAX)
+    }
+    fn num_gatherers(&mut self) -> i32 {
+        self.s.num_gatherers(self.b, false, false)
+    }
+    fn unit_domain(&mut self) -> i32 {
+        match self.s.units[self.u].kind.domain {
+            crate::attrition::Domain::Land => 0,
+            crate::attrition::Domain::Sea => 1,
+            crate::attrition::Domain::Air => 2,
+        }
+    }
+    fn site_domain(&mut self) -> i32 {
+        self.s.buildings[self.b]
+            .ty
+            .map_or(0, |t| match self.s.build_types[t].domain() {
+                crate::build::BuildDomain::Land => 0,
+                crate::build::BuildDomain::Water => 1,
+                crate::build::BuildDomain::Both => 2,
+            })
+    }
+    fn add_gatherer(&mut self) {
+        self.s.add_gatherer(self.b, self.u);
+    }
+    fn kill_current_order(&mut self) {
+        self.s.kill_current_order(self.u);
+    }
+    fn add_think_order(&mut self) {
+        self.s.add_think_order(self.u);
+    }
+    fn site_flat(&mut self) -> bool {
+        self.s.is_flat(self.b)
+    }
+    fn covers_unit_tile(&mut self) -> bool {
+        self.s.covers_tile(self.b, self.s.units[self.u].pos.tile())
+    }
+    fn unit_pos(&mut self) -> (i32, i32) {
+        let p = self.s.units[self.u].pos;
+        (p.x, p.y)
+    }
+    fn site_pos(&mut self) -> (i32, i32) {
+        let p = self.s.buildings[self.b].pos;
+        (p.x, p.y)
+    }
+    fn add_move_order(&mut self, x: i32, y: i32) {
+        self.s.add_move_order(
+            self.u,
+            Pos::new(x, y),
+            MoveKind::MoveTo,
+            QueuePos::First,
+            false,
+        );
+    }
+    fn add_move_order_spot(&mut self, x: i32, y: i32) {
+        self.add_move_order(x, y);
+    }
+    fn site_city(&mut self) -> i32 {
+        self.s.buildings[self.b].city.map_or(-1, |c| c as i32)
+    }
+    fn farm_index(&mut self) -> i32 {
+        // A farm's record is its own building in this crate.
+        self.b as i32
+    }
+    fn frame(&mut self) -> i32 {
+        self.frame
+    }
+    fn unit_id(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].index)
+    }
+    fn non_flat_gather(&mut self) {
+        self.s.do_non_flat_gather(self.u, self.g);
+    }
+    fn adjacent(&mut self) -> bool {
+        self.s.adjacent_to(self.u, self.b)
+    }
+    fn site_min_size(&mut self) -> i32 {
+        let (xs, ys) = self.site_size();
+        xs.min(ys)
+    }
+    fn site_size(&mut self) -> (i32, i32) {
+        self.s.buildings[self.b].ty.map_or((1, 1), |t| {
+            (self.s.build_types[t].x_size, self.s.build_types[t].y_size)
+        })
+    }
+    fn can_transport(&mut self) -> bool {
+        self.s.unit_can_transport(self.u)
+    }
+    fn find_spot(&mut self, dist: i32, angle: i32) -> Option<(i32, i32)> {
+        let at = self.s.buildings[self.b].pos;
+        self.s
+            .find_nearby_spot(self.u, at, dist, -1, 0, Angle(angle), None)
+            .map(|p| (p.x, p.y))
+    }
+    fn set_cant_reach(&mut self) {
+        self.s.units[self.u].cant_reach = true;
+    }
+    fn region_differs(&mut self) -> bool {
+        let site = self
+            .s
+            .world
+            .tregion_alt(self.s.buildings[self.b].pos.tile());
+        let unit = self.s.world.tregion_alt(self.s.units[self.u].pos.tile());
+        site != unit
+    }
+    fn mark_leader(&mut self) {
+        let who = self.s.units[self.u].owner as usize;
+        self.s.ledgers[who].dirty = true;
+    }
+    fn is_scholar(&mut self) -> bool {
+        self.s.worker_of(self.u) == Worker::Scholar
+    }
+    fn go_inside(&mut self) {
+        self.s.go_inside(self.u, self.b);
+    }
+    fn check_gatherers(&mut self) {
+        self.s.check_gatherers(self.b);
+    }
+    fn is_platform(&mut self) -> bool {
+        self.s.building_ident(self.b) == Ident::OilPlatform
+    }
+    fn can_carry_ground(&mut self) -> bool {
+        self.s.can_carry_ground(self.u)
+    }
+    fn carrier_same_damage(&mut self) {
+        self.s.boat_same_damage(self.u);
+    }
+    fn die(&mut self) {
+        self.s.boat_dies_into(self.u, self.b);
+    }
+    fn ai_driven(&mut self) -> bool {
+        self.s.unit_ai_bit(self.s.units[self.u].owner)
+    }
+    fn leader_diff(&mut self) -> i32 {
+        self.s.ai_difficulty()
+    }
+    fn site_damage(&mut self) -> i32 {
+        self.s.buildings[self.b].damage
+    }
+    fn site_under_attack(&mut self) -> bool {
+        self.s.buildings[self.b].is_under_attack()
+    }
+    fn city_under_attack(&mut self) -> bool {
+        self.s.buildings[self.b]
+            .city
+            .is_some_and(|c| self.s.cities[c].no_heal)
+    }
+    fn add_repair_order(&mut self) {
+        self.s
+            .add_repair_order(self.u, self.b, QueuePos::New, false);
+    }
+    fn site_counted(&mut self) -> bool {
+        self.s.buildings[self.b].gather_bumped
+    }
+    fn bump_site_counter(&mut self) {
+        self.s.buildings[self.b].recharging += 1;
+        self.s.buildings[self.b].gather_bumped = true;
+    }
+    fn cur_anim(&mut self) -> i32 {
+        i32::from(
+            self.s.units[self.u]
+                .guys
+                .first()
+                .map_or(anim::DEFAULT, |g| g.anim),
+        )
+    }
+    fn set_anim(&mut self, a: i32) {
+        self.s.set_anim(self.u, a as i8, false, true);
+    }
+    fn face_east(&mut self) {
+        self.s.units[self.u]
+            .movement
+            .set_heading(Angle(0x4000_0000));
+    }
+    fn set_new_location(&mut self, x: i32, y: i32) {
+        // `world.accepts` is this crate's own guard: the original's
+        // `set_new_location` has none, and the oil-well stand is inside
+        // the map.
+        let stand = Pos::new(x, y);
+        if self.s.world.accepts(stand) {
+            let from = self.s.units[self.u].pos;
+            self.s.set_new_location(self.u, stand, true);
+            // `do_gather`'s `set_new_location(…, 1, 1)`: the whole disc,
+            // not the ring (`docs/VISION.md` §6).
+            self.s.moved_to(self.u, from, false);
+        }
+    }
+    fn farm_type(&mut self, _farm: i32) -> i32 {
+        i32::from(self.s.buildings[self.b].farm.farm_type & farms::ANIMAL_FARM)
+    }
+    fn tile_corner(&mut self) -> (i32, i32) {
+        let c = self.s.buildings[self.b].ty.map_or(Pos::new(0, 0), |t| {
+            self.s.tile_corner(t, self.s.buildings[self.b].pos)
+        });
+        (c.x, c.y)
+    }
+    fn unit_tile(&mut self) -> (i32, i32) {
+        let t = self.s.units[self.u].pos.tile();
+        (t.x, t.y)
+    }
+    fn farm_cell(&mut self, _farm: i32, fx: i32, fy: i32) -> i32 {
+        // **`dx * 4 + dy`, not `dy * 4 + dx`.** `FarmStruct::status` is a
+        // `uchar[4][4]` and the farmer's cell is `status[dx][dy]`: both
+        // `do_gather`'s own switch (`005eff54`, `(dx + farm·0x30)·4 + 0xac +
+        // dy`) and `Farms::grow@008d91c0`'s write (`(farm·0x30 + param_3)·4
+        // + 0xac + param_2`, called `(dy, dx)`) land on the same byte, and
+        // it is the transpose of what this had. Invisible for a hundred
+        // frames — every starting farmer stands on `(2, 2)`, which is its
+        // own transpose — and then wrong the moment one re-picks a cell
+        // (`docs/ORDERS.md` §6.5).
+        i32::from(self.s.buildings[self.b].farm.state[(fx * 4 + fy) as usize])
+    }
+    fn farm_grow(&mut self, _farm: i32, fy: i32, fx: i32) {
+        self.s.buildings[self.b].farm.grow((fx * 4 + fy) as usize);
+    }
+    fn farm_snip(&mut self, _farm: i32, fy: i32, fx: i32) {
+        self.s.buildings[self.b].farm.snip((fx * 4 + fy) as usize);
+    }
+    fn rnd(&mut self, n: i32) -> i32 {
+        // The farmer's cell re-pick and the herder's: one mark, the pair
+        // (`SITE_FARM_CELL`).
+        if !self.drew {
+            self.drew = true;
+            self.s.mark(SITE_FARM_CELL);
+        }
+        self.s.rnd(n)
+    }
+    fn invalid_farm_cell(&mut self) {}
 }
 
 /// What `Unit::check_target_path@005e22d0` asks of its unit, its action
