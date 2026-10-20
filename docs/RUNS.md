@@ -19637,3 +19637,42 @@ SHA-256 `26b0c5bf7143c4f62c04fbe9d9b9c1266bbe59b718ebe6dacc1f4b9842c3f18f`.
 **What it holds**: `run982b_s_word_frame_is_widened_whole`: 14604's value diff — the decoy Hussars `1/100`
 (`unit_masks` 0x4000f, `mylos` 1) holding its attack on the Citizen `0/1` with a chase move to (4440, 28392) on 14605,
 where ours had called `0/1` unseen (the decoy's own-cell sight, `docs/VISION.md` §3).
+
+## run982c — the French word: the rest of the game at stride 20, blocks 14855..16765 (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: the word reached the game's end (16764) and the close parts on
+who=1's capture of `0/2000`, whose damage no dump prints between run982b's last block (14854) and the closing block.
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run982c`: `--map 7 --end-frame 16766 --timeout 5400
+--log-window 14855 16765 --stride 20 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 10 --cover
+cover=0 --allow-early-end --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 21:48:44 and the game exited at 21:58:43 (599 s). `success`, **the game ended itself on 16764**
+  (`ended_early` true). `rngcmp.py rontrace-run982c.log rontrace-run977b.log`: **16765 identical, 0 differing**. Filed
+  with `filerun.py run982c greatsahara-french-diff4-window-14855-16765-stride20`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run982c-greatsahara-french-diff4-window-14855-16765-stride20.txt`, 184,967,683 bytes,
+SHA-256 `967a80d2ea71e049b60f4bf72e17730b383b469739c6e7c0b471818893296ad3`.
+
+Archive `rontrace-run982c.log`, 109,543,616 bytes,
+SHA-256 `05382e9d73296b4c7bd3d703839be37afbf57f02dbcfa413ed63f4a8f21e9cc1`.
+
+**What it holds**: `0/2000`'s damage every twentieth block, against `RON_DEBUG_BUILDS`' on the walk: 80 blocks agree
+(block n against our frame n − 1), one timing tear at 16336 aside, to 1197 of 1200 on 16756. Not widened.
+
+## run982d — the French word: the game's last blocks, 16740..16765 at `AMMO=5` (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: run982c's last stride block is 16756 and the capture falls
+between it and the closing block. run982c's line with `--log-window 16740 16765` and no `--stride`, and `AMMO=5`.
+- Pool lane 1. Launched 21:59:35 and the game exited at 22:02:04 (149 s). `success`, the game ended itself on 16764.
+  `rngcmp.py rontrace-run982d.log rontrace-run977b.log`: **16765 identical, 0 differing**. Filed with `filerun.py
+  run982d greatsahara-french-diff4-window-16740-16765-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run982d-greatsahara-french-diff4-window-16740-16765-ammo.txt`, 48,729,763 bytes,
+SHA-256 `c14feaa99fe11ddc421b255b604c1f028792b87d6fd9591e4a4eaf71f63fb0dd`.
+
+Archive `rontrace-run982d.log`, 109,538,176 bytes,
+SHA-256 `038663c47493b19809922f59f4cac188d06e1f63f8f9654eaf82f05d107b9df8`.
+
+**What it holds**: `run982d_s_last_blocks_are_widened_whole`: 38 standing keys and nothing on `0/2000`, damage 1197
+of 1200 through block 16764 on both sides; the capture is the last frame's own hits.
