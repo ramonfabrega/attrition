@@ -123,6 +123,7 @@ pub mod type_index;
 pub mod upath;
 pub mod victory;
 pub mod vision;
+pub mod work_gate;
 pub mod world;
 pub mod wpath;
 

@@ -3432,42 +3432,18 @@ impl Sim {
         // `ATTACK`, and the test above reads it *before* that drop — so
         // the frame a unit stops attacking still counts as attacking, and
         // the visibility outlives the order by up to 32 frames.
-        if self.units[u].phase(frame).rem_euclid(32) == 0 {
-            if !self.units[u].attacking {
-                self.units[u].visible = 0;
-            }
-            // And the in-danger latch beside it, on the same tick and
-            // with no latch of its own (`0060d19d`): `unit_masks &= ~4`
-            // sits inside the same `if` as the `visible` clear, one line
-            // below it. [`sim::Unit::in_danger`].
-            self.units[u].in_danger = false;
-        }
-        if self.order_type(u) != index::ATTACK {
-            self.units[u].attacking = false;
-        }
-        // The recharging-melee gate: a recharging melee unit steps only an
-        // order carrying the action bit, and never an ATTACK through here
-        // (ATTACK's own entry gate is `fight`'s). **An animal has none**:
-        // `Animal::work@005d7330` is `do_job` on the front order and the
-        // herd's sighting, and a flock's bird leaves `recharging` at 1 on
-        // every frame it flies (`crate::flock`).
-        //
-        // **And an orderless one steps nothing at all** — `if (order == 0)
-        // return;` is the gate's first arm (`Unit::work@0060d180:79-86`),
-        // so a recharging melee unit with no order reaches neither
-        // `do_idle` nor its `check_idle` until the countdown ends. The
-        // battery word 13054 (`docs/AI.md` §245): the Knight `1/65` ends
-        // its `ATTACK_TO` on 13053 at `recharging` 21 and the original
-        // leaves it standing orderless at `idle` 0, where this crate rolled
-        // its idle and found it a target on 13054.
-        let held = match self.current_order(u).copied() {
-            None => true,
-            Some(o) => o.index() != index::ATTACK && !o.has(flag::ACTION),
-        };
-        if held
-            && !self.units[u].is_gaia()
-            && self.units[u].combat.recharging != 0
-            && self.max_range_of(Obj::Unit(u)) == 0
+        // **The recharging-melee gate** — a recharging melee unit steps only an
+        // order carrying the action bit, never an ATTACK through here, and an
+        // orderless one steps nothing (`:79-86`; the battery word 13054,
+        // `docs/AI.md` §245: the Knight `1/65` stands orderless at `idle` 0
+        // until the countdown ends). A type with `unit_flags & 0x400` ("melee
+        // AND ranged") has no gate (parked 3106). An animal has none:
+        // `Animal::work@005d7330` is its own entry. The steps — the clock,
+        // the latch drop and the gate — are [`crate::work_gate::work_gate_steps`],
+        // swept to the first call after them (item 3348).
+        if crate::work_gate::work_gate_steps(&mut crate::work_gate::SimWorkGate::new(
+            self, u, frame,
+        )) == crate::work_gate::Gate::Return
         {
             return;
         }

@@ -1491,6 +1491,7 @@ CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
 STUBCOPY = {stubcopy!r}
 STACKCLEAN = {stackclean!r}
+STOPSTUB = {stopstub!r}
 INITCALLS = {initcalls!r}
 MAXINSNS = {maxinsns!r}
 ECXANSWER = {ecxanswer!r}
@@ -2091,12 +2092,29 @@ def main(argv):
             uc.mem_write(STACK_BASE + STACK_SIZE - 0x100 - STACKCLEAN, bytes(STACKCLEAN))
         h.calls.clear()
         h.edxs.clear()
-        r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
-                   edx=edxa, xmm=xmm, ret=RET, max_insns=MAXINSNS)  # Harness.call signs eax; signed() again would double a negative
+        # `--stop-stub IDX` (item 3348, `Unit::work`): the call ends at the first time stub IDX is entered
+        # (the call is recorded, the answer drawn, the emulation stopped there): a function too large to
+        # sweep whole is swept to a chosen callee, and the port stops at the same call.
+        stopped = [False]
+        if STOPSTUB is not None:
+            inner_stop = h.answers[names[STOPSTUB]]
+
+            def stop_answer(ecx, args, inner_stop=inner_stop):
+                stopped[0] = True
+                uc.emu_stop()
+                return inner_stop(ecx, args) if callable(inner_stop) else inner_stop
+            h.answers[names[STOPSTUB]] = stop_answer
+        try:
+            r = h.call(ENTRY, tuple(args), ecx=this if ECXINT is None else ecx,
+                       edx=edxa, xmm=xmm, ret=RET, max_insns=MAXINSNS)  # Harness.call signs eax; signed() again would double a negative
+        except RuntimeError as e_:
+            if not (stopped[0] and "did not return" in str(e_)):
+                raise
+            r = 0
         esp = uc.reg_read(UC_X86_REG_ESP)
         # A `__cdecl` function leaves its arguments for the caller (item 2181).
         want_esp = STACK_BASE + STACK_SIZE - 0x100 - (4 * len(args) if CDECL else 0)
-        assert esp == want_esp, f"esp {{esp:x}}: wrong pop"
+        assert stopped[0] or esp == want_esp, f"esp {{esp:x}}: wrong pop"
         assert bytes(uc.mem_read(this + WIN, 0x20)) == guard, "wrote past the window"
         before = ";".join([bytes(mem).hex()] + [bytes(b).hex() for _, b in wins])
         after = ";".join([bytes(uc.mem_read(this, WIN)).hex()]
@@ -2359,7 +2377,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, tib=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), clean_stack=0, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), clean_stack=0, stop_stub=None, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2725,6 +2743,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
            + f' through its argument {k}, printed after the answers (`o` in a place)' for idx, k, v in pout]
         + [f'stub {k} is `__cdecl`: the caller pops its arguments' for k in pcdecl]
         + ([f'the stack {clean_stack} bytes under the call is zeroed before each row'] if clean_stack else [])
+        + ([f'the call ends where stub {stop_stub} is first entered (the function is swept to that callee)'] if stop_stub is not None else [])
         + [f'`{int(v, 0):#010x}` run once before the rows (a table builder the startup would have run)' for v in init_call]
         + [f'stub {idx} copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`)' for idx in pcopy]
         + [f'stub {idx} lowers `{w}+{o:#x}` ({z} bytes) by one each call' if v == 'dec'
@@ -2768,7 +2787,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, tib=tib, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stackclean=clean_stack, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret='xmm0' if ret == 'xmm0' else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
@@ -3651,6 +3670,10 @@ def main(argv=None):
     ap.add_argument('--clean-stack', type=lambda v: int(v, 0), default=0, metavar='N',
                     help='obj: zero N bytes of stack under the entry esp before each row, so a byte of a caller\'s '
                          'local the function did not write reads 00 and not the last row\'s (item 2921, parked 2906)')
+    ap.add_argument('--stop-stub', type=int, default=None, metavar='IDX',
+                    help='obj: the call ends where stub IDX is first entered (recorded, answered, the emulation '
+                         'stopped): a function too large to sweep whole is swept up to a chosen callee, and the '
+                         'port stops at the same call (item 3348, `Unit::work`)')
     ap.add_argument('--ecx-answer', action='append', default=[], metavar='IDX:OFF[:FLAGOFF]',
                     help='obj: stub IDX answers from its own `ecx`: the word at ecx+OFF, or with FLAGOFF ecx+OFF '
                          'itself when the word at ecx+FLAGOFF is set, else null (a slot of a record laid in a '
@@ -3925,7 +3948,7 @@ def main(argv=None):
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link, link_hi=args.link_hi,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
-                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy, clean_stack=args.clean_stack, init_call=args.init_call, max_insns=args.max_insns,
+                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy, clean_stack=args.clean_stack, stop_stub=args.stop_stub, init_call=args.init_call, max_insns=args.max_insns,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
             sp, script, tp, test, mod = generate_vcallbase(args.function, item=args.item, slot=args.slot,
