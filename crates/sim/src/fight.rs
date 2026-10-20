@@ -3556,47 +3556,22 @@ impl Sim {
     /// when `Group::target_opportunity` is the caller, which skips the
     /// group arm below (`005fffc0`'s `param_3 == 0` test).
     pub(crate) fn target_opportunity_in(&mut self, victim: usize, attacker: Obj, from_group: bool) {
-        let (a, b) = (self.units[victim].owner, self.owner_of(attacker));
-        if !self.at_war_with(a, b) && !self.at_war_with(b, a) {
-            return;
-        }
-        // **The group arm** (item 1403, `docs/GOLDEN.md` §58): at each
-        // level of the captain walk, a unit that names a group, is listed
-        // by it (`GroupData::member(group, o, who, 1)`) and whose type is
-        // **not** combat-role (`type +0x2c8 & 0x10000`) hands the hit to
-        // `Group::target_opportunity` and returns — it never flees and
-        // never retaliates itself. A Scout walked by `@move` is such a
-        // unit: the golden record's `0/7` takes its fourth wound on 912
-        // and keeps no order.
-        if !from_group {
-            let mut at = victim;
-            loop {
-                if !self.profile(Obj::Unit(at)).combat_role
-                    && self.units[at].on_map
-                    && let Some(seat) = self.seat_of(at)
-                    && self.seat_list(seat).contains(&at)
-                {
-                    self.group_target_opportunity(seat, attacker, at, false);
-                    return;
-                }
-                if self.units[at].captain {
-                    break;
-                }
-                match self.units[at].o_up {
-                    Some(c) if c != at && self.units[c].alive() => at = c,
-                    _ => break,
-                }
-            }
-        }
-        let responder = self.squad_captain(victim);
+        // **The head** (`5fffe1`..`60010b`): the diplomacy gate, the group arm
+        // and the captain walk, `valid_target` and the hold-fire return, as
+        // [`crate::topp::target_opportunity_head`] over [`crate::topp::SimTopp`]
+        // (item 3348, swept). The gate and the group arm run at each level of
+        // the walk, and `param_3` is zero from the second level on.
+        let responder = match crate::topp::target_opportunity_head(
+            &mut crate::topp::SimTopp { sim: self },
+            victim,
+            attacker,
+            from_group,
+        ) {
+            crate::topp::Head::Go(u) => u,
+            _ => return,
+        };
         let me = Obj::Unit(responder);
-        if !self.valid_target(me, attacker) {
-            return;
-        }
         let st = self.units[responder].combat;
-        if st.stance == Stance::HoldFire {
-            return;
-        }
         // `UnitData::is_fleeing@0046efa0` — `order_type() == FLEE_TO`
         // (`docs/ORDERS.md` §1.3). A unit already running does not answer
         // the hit again, and the test sits **above** everything below it

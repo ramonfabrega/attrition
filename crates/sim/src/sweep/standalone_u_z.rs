@@ -290,6 +290,8 @@ mod unit_set_rally;
 mod unit_set_type;
 #[path = "unit_supplies_left.rs"]
 mod unit_supplies_left;
+#[path = "unit_target_opportunity.rs"]
+mod unit_target_opportunity;
 #[path = "unit_think.rs"]
 mod unit_think;
 #[path = "unit_think_caravan.rs"]
@@ -372,6 +374,10 @@ mod unit_update_order;
 mod unit_update_patrol_order;
 #[path = "unit_update_z.rs"]
 mod unit_update_z;
+#[path = "unit_work.rs"]
+mod unit_work;
+#[path = "unit_work_tail.rs"]
+mod unit_work_tail;
 #[path = "units_make_valid.rs"]
 mod units_make_valid;
 #[path = "valid_filter_case0.rs"]
