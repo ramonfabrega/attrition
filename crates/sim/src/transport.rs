@@ -542,7 +542,7 @@ impl Sim {
 
     /// `ObjectData::is_cargo@00653600`: an on-map unit whose type is a unit
     /// type in `0x32..=0x19d` of the **land** domain. What can ride a boat.
-    fn is_cargo(&self, u: usize) -> bool {
+    pub(crate) fn is_cargo(&self, u: usize) -> bool {
         self.units[u].on_map
             && cargo_type(
                 self.units[u].type_index,
@@ -581,147 +581,8 @@ impl Sim {
     /// a scout from choosing home is the `scouted` bit its own tail has
     /// just set. Amended in §7.
     pub(crate) fn think_civilian_transport(&mut self, u: usize, colonise: bool) -> bool {
-        let who = self.units[u].owner;
-        let w = who as usize;
-        let domain = self.unit_domain_of(u);
-        let always = self.units[u]
-            .ty
-            .is_some_and(|t| self.unit_types[t].cols.unit_flags & 0x10 != 0);
-        if domain == Domain::Sea && !always {
-            return false;
-        }
-        if domain != Domain::Air
-            && (self.transport_level(who) < self.unit_transport_type(u)
-                || !self.unit_can_transport(u)
-                || !self.is_cargo(u))
-        {
-            return false;
-        }
-        let my_cell = self.units[u].pos.cell();
-        let Some(my_region) = self.world.tregion(self.units[u].pos.tile()) else {
-            return false;
-        };
-        if colonise {
-            let census = &self.ai[w].census;
-            let sent = census.xport_peasants;
-            if sent >= self.city_num(who)
-                || self.world.owner(my_cell).player() != Some(who)
-                || self.reg_cities(who, my_region) == 0
-            {
-                return false;
-            }
-        }
-        // `Region.size` for every region at once: the loop below asks for
-        // sixty-three of them and each answer is a sweep of the grid.
-        let sizes: Vec<i32> = (0..self.world.region_count() as u16)
-            .map(|r| self.world.region_size(r))
-            .collect();
-        let size = |r: u16| sizes.get(r as usize).copied().unwrap_or(0);
-
-        let mut best = 99_999_999;
-        let mut best_cell: Option<Cell> = None;
-        // The original walks region **slots** — land `1..=0x3f`, sea
-        // `0x41..=0x7e` — because its own numbering puts the two kinds in
-        // those bands. This crate numbers its regions densely in order of
-        // first appearance, so the band is the terrain instead.
-        //
-        // SEAM: that also makes the *order* this crate's rather than the
-        // original's, and the order decides a tie — `score < best` keeps
-        // the first. On every capture so far the two agree: the dump's land
-        // regions come out in the same order as the sweep's, one apart.
-        let lands: Vec<u16> = self
-            .world
-            .regions()
-            .filter(|&(_, t)| t == crate::world::Terrain::Land)
-            .map(|(r, _)| r)
-            .collect();
-        let seas: Vec<u16> = self
-            .world
-            .regions()
-            .filter(|&(_, t)| t == crate::world::Terrain::Sea)
-            .map(|(r, _)| r)
-            .collect();
-        for r in lands {
-            if size(r) == 0 {
-                continue;
-            }
-            let g = self.go_here(r, who);
-            let accept = if g & 1 != 0 {
-                if colonise {
-                    self.ai[w].census.reg_xport_peasants.get(r as usize) == Some(&0)
-                } else {
-                    !self.world.region_scouted(r, who)
-                }
-            } else if colonise || g & 2 == 0 {
-                false
-            } else {
-                !self.world.region_scouted(r, who)
-            };
-            if !accept {
-                continue;
-            }
-            let Some(s) = seas.iter().copied().find(|&s| {
-                size(s) != 0 && self.world.is_coast(s, my_region) && self.world.is_coast(s, r)
-            }) else {
-                continue;
-            };
-            let stride = (size(r) / 0x32).max(0x10);
-            let len = size(r);
-            let mut phase = i32::from(self.units[u].index)
-                .wrapping_add(i32::try_from(self.frame).unwrap_or(i32::MAX));
-            for _ in 0..stride {
-                let start = phase.rem_euclid(stride);
-                if start < len {
-                    let mut found = false;
-                    for c in self.world.region_coords_strided(r, start, stride) {
-                        if self.world.coast_here(r, s, c) == 0 || self.world.num_waterhalf(c) != 0 {
-                            continue;
-                        }
-                        found = true;
-                        let danger = self.world.danger_half(who, c);
-                        let dist = crate::world::vector_dist(c.x - my_cell.x, c.y - my_cell.y);
-                        let score = dist * danger.max(1);
-                        if score >= 0 && score < best {
-                            best = score;
-                            best_cell = Some(c);
-                        }
-                    }
-                    if found {
-                        break;
-                    }
-                }
-                phase += 1;
-            }
-        }
-        let Some(cell) = best_cell else {
-            return false;
-        };
-        let mut g = crate::group::Group::stack(who);
-        self.group_add(&mut g, u);
-        if !self.push_group(&mut g, true) {
-            return false;
-        }
-        let to = Pos::new(cell.x * 0x300 + 0x180, cell.y * 0x300 + 0x180);
-        self.group_action_move_to(
-            &g,
-            to,
-            crate::orders::QueuePos::New,
-            false,
-            crate::movement::Angle(0),
-            crate::orders::MoveKind::MoveTo,
-            false,
-        );
-        if colonise {
-            self.ai[w].census.xport_peasants += 1;
-            // **The destination cell's own region**, not `r` — audit A.36's
-            // open question is whether that can ever be a sea index.
-            if let Some(dr) = self.world.region_of(cell)
-                && let Some(n) = self.ai[w].census.reg_xport_peasants.get_mut(dr as usize)
-            {
-                *n += 1;
-            }
-        }
-        true
+        let mut v = crate::civ_transport::SimCivTransport::new(self, u);
+        crate::civ_transport::think_civilian_transport_steps(&mut v, colonise) != 0
     }
 
     /// `Unit::think_carry@005f2ee0`'s dispatch (`docs/AI.md` §195), reached from
