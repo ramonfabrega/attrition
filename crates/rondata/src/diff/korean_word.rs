@@ -92,3 +92,48 @@ fn korean_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run991: the word 9185's window, blocks 9179..9435 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3365). run964 dumps blocks 0..36 and
+/// run964b its setup and closing blocks only, so no dump on disk held the
+/// leaders' goods or the market on the word's block.
+pub(crate) const RUN991: &str = "gamelog-run991-greatsahara-korean-diff3-window-9179-9436-goods.txt";
+
+/// The window: block 9179 through 9435; the word 9185's own block is 9186.
+pub(crate) const WIDENING_KOREAN_FRAME_9185: (i64, i64) = (9179, 9435);
+
+pub(crate) fn korean_frame_9185_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[KOREAN.start],
+        true,
+        KOREAN.long,
+        "run991",
+        &[(RUN991, WIDENING_KOREAN_FRAME_9185.0)],
+        WIDENING_KOREAN_FRAME_9185,
+        1,
+        &[9186],
+        true,
+    )
+}
+
+#[test]
+fn run991_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = korean_frame_9185_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
