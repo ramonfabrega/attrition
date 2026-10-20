@@ -312,6 +312,10 @@ mod build_type_data_blocked_site;
 mod build_type_data_blocked_tcoord;
 #[path = "build_type_data_blocked_town.rs"]
 mod build_type_data_blocked_town;
+#[path = "build_type_data_calc_gather_emu.rs"]
+mod build_type_data_calc_gather_emu;
+#[path = "build_type_data_calc_gather_a.rs"]
+mod build_type_data_calc_gather_a;
 #[path = "build_type_data_can_capture.rs"]
 mod build_type_data_can_capture;
 #[path = "build_type_data_check_enemy_adjacent.rs"]

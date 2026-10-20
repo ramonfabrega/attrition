@@ -66,6 +66,7 @@ pub mod bribe;
 pub mod build;
 pub mod build_spot_view;
 pub mod calc_gather;
+pub mod calc_gather_type_view;
 pub mod capture;
 pub mod capture_view;
 pub mod caravan;
