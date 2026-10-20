@@ -8788,7 +8788,7 @@ none apart. Names no score (`docs/AI.md` §288).
 - **3376d. `Unit::think_civilian_transport` and `Group::action_garrison`: the Sim adapters are weakly tested.** Six of seven mutants on `SimCivTransport` survived the lib's narrow transport tests (land-slot offset, `tregion_alt`, cell owner, `reg_xport`, move kind, leader flags); the exploring arms (`this+0x68 & 0x100`, `think_scout`) and the type flag words are not modelled. `SimGarrison` leaves ignore-orders, console feedback, the editor semaphore and the packing arm unmodelled. The row files (830 MB for transport) exceed the emu cache cap: `RON_EMU_CACHE_MAX_BYTES`.
 - **3376e. Sim fixes this batch forced, none run against the diff pins** (the lane gate is `--no-widen`): `think_civilian_transport` (coastal `tregion_alt`, truncating `%`, wrapping score, double `go_here`, the record test, slot caps 63/62, the failed push), `add_roads` (11 redo rounds not 12; pass three `fixup_lines`/`find_piece` clearing C4; pass two `set_diags` and `fill_cache`), `do_group_move` (the leader's give-up attack arm, `update_action` on the 32nd frame), `do_cast` (hero crafts on the craft; `cast_blow` once not twice; `paid` cleared after the effect), `action_garrison` (`who` the building's owner; the `QUEUE_FIRST` re-entry; member check order). `add_roads` pass three is the likeliest to move a road-derived pin.
 
-## Parked by the next landing, slot LQ — reserved
+## Parked by item 3379, 2026-10-20 — the nations seat's nineteenth shape batch
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LQ renames this heading `## Parked by item N, <date> — <title>`
