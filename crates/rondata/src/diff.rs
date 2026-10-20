@@ -62,6 +62,8 @@ mod golden;
 mod greek_word;
 mod harness;
 #[cfg(test)]
+mod inca_sahara_word;
+#[cfg(test)]
 mod inca_word;
 #[cfg(test)]
 mod indian_sahara_word;
