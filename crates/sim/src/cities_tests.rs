@@ -1421,10 +1421,21 @@ fn two_builders_are_one_and_a_half_builders() {
 /// part-way one full (`LAKOTA_RAZE_PRICE != 0`).
 #[test]
 fn a_full_disband_returns_the_price_and_a_lakota_raze_makes_every_disband_full() {
+    use crate::tech::{TechTree, TypeDef};
     let mut sim = world_sim();
     let t = install_types(&mut sim);
+    // The goods in front of the tree, so `type_avail` is asked of each.
+    let mut tree = TechTree::new();
+    for name in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
+        tree.add(TypeDef::good(name));
+    }
+    sim.set_tech_tree(tree);
     let pos = tile_pos(32, 32);
     let b = sim.place_building(0, t.village, pos).unwrap();
+    for _ in 0..300 {
+        sim.do_construct(b, 100);
+        sim.buildings[b].helpers = 0;
+    }
     let price = sim.building_price(0, t.village);
     assert!(price.iter().any(|&p| p > 0));
     let before = sim.ledgers[0].bucket;
