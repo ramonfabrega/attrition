@@ -102,6 +102,7 @@ pub mod gaia;
 pub mod garrison;
 pub mod garrison_view;
 pub mod gather;
+pub mod gather_tile;
 pub mod gather_view;
 pub mod goody;
 pub mod group;
