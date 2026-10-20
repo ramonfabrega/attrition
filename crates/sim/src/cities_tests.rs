@@ -8029,6 +8029,45 @@ fn a_french_siege_factory_unit_costs_fifteen_percent_less() {
     assert_eq!(sim.price_of(1, foot)[metal], scaled, "not the factory line");
 }
 
+/// **A French Siege Factory unit trains a quarter faster** (item 3347,
+/// `train_time@006508c0:179`–`192`, `docs/AI.md` §278): a French leader's
+/// unit whose trainer is, by equality, `0x1ae` or `0x1af` takes
+/// `FRENCH_SIEGE_SPEED`, `t × 100 / 125`. The battery's French Siege
+/// Factory `1/2026` read its Trebuchet's clock 24000 of 30000 there, on
+/// the frame before it finished.
+#[test]
+fn a_french_siege_factory_unit_trains_a_quarter_faster() {
+    use crate::tech::{TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let mut tree = TechTree::new();
+    while tree.types.len() < 0x1ae {
+        tree.add(TypeDef::good("filler"));
+    }
+    let siege_factory = tree.add(TypeDef::building("Siege Factory"));
+    let factory = tree.add(TypeDef::building("Factory"));
+    assert_eq!(factory, 0x1af);
+    let barracks = tree.add(TypeDef::building("Barracks"));
+    let siege_t = tree.add(TypeDef::unit("Trebuchet", Traits::default()).at(siege_factory));
+    let tank_t = tree.add(TypeDef::unit("Tank", Traits::default()).at(factory));
+    let foot_t = tree.add(TypeDef::unit("Hoplites", Traits::default()).at(barracks));
+    sim.set_tech_tree(tree);
+    let ty = |sim: &mut Sim, t| {
+        sim.add_unit_type(UnitType {
+            tree: Some(t),
+            ..UnitType::default()
+        })
+    };
+    let siege = ty(&mut sim, siege_t);
+    let tank = ty(&mut sim, tank_t);
+    let foot = ty(&mut sim, foot_t);
+    let time = |s: &Sim, ty| production::adjusted(30000, &s.train_tail(1, ty));
+    assert_eq!(time(&sim, siege), 30000, "not a French leader");
+    sim.nation[1].french = true;
+    assert_eq!(time(&sim, siege), 24000, "30000 × 100 / 125");
+    assert_eq!(time(&sim, tank), 24000, "the Factory too");
+    assert_eq!(time(&sim, foot), 30000, "not the factory line");
+}
+
 /// **A German leader's Fire Raft line costs a quarter less and trains a
 /// third faster** (item 2974, `docs/AI.md` §242): `get_cost`'s German arm
 /// takes `GERMAN_SUBMARINE_COST` (25%) off a unit that `is(0x14e, 0)` — by

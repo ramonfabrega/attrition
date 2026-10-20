@@ -225,6 +225,17 @@ decompiler dropped both register arguments; the listing at `651cf1`
 lighting a disc centred a half-cell ahead of itself, which is most of what
 a citizen's vision *is*.
 
+**The last term was in this section and not in `vision.rs`** until item
+3347: `unit_masks & 1` (a decoy, `testb $0x1, 0x68(%ecx)` at `651cdc`)
+takes the own-cell arm. At radius 0 the two arms part completely: a
+step's ring pass on the projected arm walks `circle_radius[0]..
+circle_radius[0]`, nothing, and on the own-cell arm `0..circle_radius[0]`,
+the cell the unit stands in. The battery's French decoy Hussars `1/100`
+(`mylos` 1 on both sides) lights the Citizen `0/1`'s half-cell (11, 73) on
+14596 there and holds `0/1` as a valid target on 14604; this crate called
+it unseen and searched without the captain's roll. **14604 → 16764**, the
+game's last frame (`docs/AI.md` §278).
+
 **`unit->angle` is `UnitData +0x50`, and it is not the guy's facing.**
 The distinction is the whole of item 79 (2026-08-30), and this section
 carried it correctly for two days while `vision.rs` projected along the

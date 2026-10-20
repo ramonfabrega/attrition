@@ -8523,13 +8523,27 @@ The word closed at 7902 and the close compares whole (`docs/AI.md` §277). What 
   1..80, uid 0/1. Not 3346: `cargo test -p sim --lib` showed one failure in the subagent's tree,
   `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` — the lane gate says whether it is the base's.
 
-## Parked by the next landing, slot LC — reserved
+## Parked by item 3347, 2026-10-19 — the battery's French word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+What the French word's landing (`docs/AI.md` §278) read and did not build:
+
+- **3347a — the French special arm.** `ObjectData::train_time@006508c0`'s French branch has a second arm beside the
+  siege one: a type that `is(0x36)` takes `FRENCH_SPECIAL_SPEED`. The rules ship it as 0, so it can change no
+  time; not carried. Build it if a mod or a later rules file sets it.
+- **3347b — the Dragoon's `CHAR_ATTACK2` release node.** Piece 139 (`DRAGOON`, type 189) fires its `ATTACK2` at
+  frame 13 (run982's `1/39` on 14188, 14218, …), past every `AMMO` window on file, so `launch::MEASURED` has no row
+  for it and its round leaves from the unit. Names no score until a word parts on that round; measure it from the
+  first `AMMO` window that holds one.
+- **3347c — theirs' lingering ammo record.** run982 still prints `1/39`'s first round on 14040 with `flags 1` at
+  `cur_time` 196 of 14; ours closes the record when the round lands. The ammo blocks are `diff::ammo`'s own parser
+  and in no widening, so nothing compares it, and the draw stream agrees past it. Names no score.
+- **3347d — the close: frame 16764, `0/2000`'s last hits.** The French draw stream agrees to the game's end
+  (16764), and run977b's closing block 16765 has four buildings and a city unlinked (`run977b_french_closing_state`):
+  theirs' who=1 captures the human's city on the last frame (`0/2000` → `1/2058`, three of its buildings →
+  `1/2059`..`1/2061`). Its damage is 1197 of 1200 on both sides through block 16764 (run982c, run982d); on 16764
+  ours lands +1 (1198) and theirs at least +3. Twenty-two who=1 units hold an attack on it there. Names the close's
+  score. Next: a call trace of `Object::do_damage` on frame 16764, both sides' hits by
+  attacker, before any reading.
 
 ## Parked by item 3348, 2026-10-19 — the second sweep lane's first shape batch
 

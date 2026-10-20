@@ -168,7 +168,7 @@ HAND += [
     ("Greeks", "an age or an epoch costs 10% less in every good but knowledge", "TypeData::get_cost@00664090", "modelled at lib.rs", "greek_research_cost"),
     ("Greeks", "a Library or a University costs 66% less", "TypeData::get_cost@00664090", "modelled at city.rs", "greek_library_cost"),
     ("Romans", "legions train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "roman_legion_fast"),
-    ("French", "siege units train faster", "ObjectData::train_time@006508c0", "not modelled", "french_siege_speed"),
+    ("French", "siege units train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "french_siege_speed"),
     ("French", "special (general) units train faster, 0 in the rules", "ObjectData::train_time@006508c0", "not modelled", "french_special_speed"),
     ("Germans", "aircraft train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "german_air_speed"),
     ("Germans", "submarines train faster", "ObjectData::train_time@006508c0", "modelled at lib.rs", "german_submarine_speed"),
@@ -236,12 +236,12 @@ LOBBY = {7: "`GreatSaharaEgyptianTier4` (map 7, tier 4)", 12: "`EastIndiesGerman
          18: "`GreatLakesIroquoisTier3` (AI word, tier 3)", 22: "`EastIndiesDutchTier4` (AI word, tier 4)",
          21: "`EastIndiesIndianTier2` (map 18, tier 2)",
          1: "`GreatSaharaMayaTier4` (AI word, tier 4)", 3: "`GreatSaharaBantuTier4` (map 7, tier 4)",
-         13: "`GreatLakesRussianTier2` (AI word, tier 2)",
+         13: "`GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2)",
          19: "`GreatLakesLakotaTier2` (AI word, tier 2)", 23: "`GreatLakesPersianTier2` (map 14, tier 2)", 14: "`GreatLakesChineseTier1` (map 14, tier 1)",
          9: "`GreatSaharaSpanishTier3` (AI word, tier 3)", 5: "`GreatSaharaGreekTier1` (AI word, tier 1)",
          15: "`GreatSaharaJapaneseTier1` (map 7, tier 1)",
          6: "`EastIndiesRomanTier2` (AI word, tier 2)", 20: "`EastIndiesAmericanTier1` (map 18, tier 1)",
-         4: "the human in every capture", 10: "scored pairs", 11: "scored pairs", 16: "scored pairs"}
+         4: "the human in every capture", 10: "`GreatSaharaFrenchTier4` (AI word, tier 4)", 11: "scored pairs", 16: "scored pairs"}
 FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans", 7: "egyptians",
         8: "turks", 10: "french", 11: "british", 12: "germans", 13: "russians", 14: "chinese",
         16: "koreans", 17: "mongols", 19: "lakota", 21: "indians", 22: "dutch"}
