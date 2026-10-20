@@ -3809,6 +3809,18 @@ says grep the disk first and a window capture only for what the dumps cannot ans
 the ceiling the frame would then carry is one window capture a parting, the long's blocks and a packet before it.
 One reach.
 
+## Loop, filed 2026-10-19 — the forty-sixth tranche's
+
+(3354) **uv's ephemeral environments are the disk's next unbounded cache** (lore's census, 2026-10-19 20:40, checked
+by the commander the same hour): `~/.cache/uv/environments-v2` holds 354,464 environments, `callfn` 838 of them and
+each busy sweep script about 400, so the key varies by more than the script's content (the script's path per worktree
+is the likeliest; not measured). Each is about 0.2–0.5 MB of real bytes beside clones of `libunicorn` (lore's
+estimate: 100–150 GiB in all, about 10 GiB a day while the sweeps run). Free space was 100 GiB at 20:45. `support.rs`'s
+`run_uv` runs `uv run <script>` bare. Candidates: (i) one environment for `tools/emu`, a stable project or venv that
+the runner calls directly, so the key stops varying; (ii) the immediate measure, `uv cache clean` (or `prune`) at a
+rest point between gates, never while a lane's sweep runs. Every environment regenerates. The pass's for (i); (ii) at
+a drain. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
