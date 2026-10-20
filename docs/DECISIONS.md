@@ -7015,4 +7015,7 @@ byte-weighted census column and `--check-backed` with an address-only
 list (`docs/audit/census-backed.txt`), the `reading` brief kind, the
 MSVC 14 reader notes (`tools/ghidra/README.md`), and the sweep rows'
 cache with its receipt and verify mode (`emu_rows`, shared under
-`~/Library/Caches/attrition/emu-cache`, proven on every whole gate).
+`~/Library/Caches/attrition/emu-cache`, proven on every whole gate). (viii) **Deleted on Ramon's word, 2026-10-19**: the
+stale oracle generations — 3.53 million `.oracle` files older than the
+schema's last change — 88 → 110 GiB free; the disk stood at 30 when the
+pass began.
