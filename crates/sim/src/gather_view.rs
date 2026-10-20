@@ -270,7 +270,7 @@ pub(crate) fn action_gather_point_steps<V: GatherView>(
 /// original: no console (the command prints nothing and pings nothing), no
 /// group `armed` flag (a group here is always armed), the group's refresh
 /// slot is empty, and the two wonders beside the Senate have no ident
-/// (`SEAM`; no capture reaches them).
+/// (`SEAM`; not modelled, and unmeasured).
 pub(crate) struct SimGather<'a> {
     pub(crate) sim: &'a mut Sim,
     pub(crate) who: Player,
