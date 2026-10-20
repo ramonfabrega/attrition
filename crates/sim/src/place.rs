@@ -8,8 +8,8 @@
 //! and cities — and returns a [`Blocked`] with the original's own numbering,
 //! so a refused placement can be named the way the interface names it.
 
-use crate::build::{self, BuildDomain, Ident, flags};
-use crate::world::{Cell, Owner, Pos, TILES_PER_CELL, Terrain, UNITS_PER_TILE, tile, vector_dist};
+use crate::build::{self, Ident, flags};
+use crate::world::{Owner, Pos, TILES_PER_CELL, UNITS_PER_TILE, tile, vector_dist};
 use crate::{Player, Sim};
 
 /// `move_x[0..=80]` / `move_y[0..=80]` — the offset spiral read from
@@ -86,10 +86,6 @@ pub enum Blocked {
 /// The regions of the original are capped at 64 land and 64 sea; a region
 /// index at or past this is "not a region" for the per-region counters.
 const REGION_COUNTERS: u16 = 64;
-
-/// The sea-region size below which a body of water is not "a real sea" for
-/// the colonise rule.
-const REAL_SEA_CELLS: i32 = 24;
 
 /// `BuildTypeData::tile_corner@00636440` over a footprint's `x_size` and
 /// `y_size` (`+0x234`, `+0x238`): the tile `pos` falls in, snapped as
@@ -269,7 +265,7 @@ impl Sim {
     /// The ring of width `ring` around a footprint, minus the four outer
     /// corners — what `check_land_adjacent`, `count_mountains_adjacent` and
     /// `count_trees_adjacent` scan.
-    fn ring(&self, ty: usize, corner: Pos, ring: i32) -> Vec<Pos> {
+    pub(crate) fn ring(&self, ty: usize, corner: Pos, ring: i32) -> Vec<Pos> {
         let b = &self.build_types[ty];
         let (x0, y0, x1, y1) = (
             corner.x - ring,
@@ -370,7 +366,7 @@ impl Sim {
         })
     }
 
-    fn built_forts(&self, who: Player) -> impl Iterator<Item = usize> + '_ {
+    pub(crate) fn built_forts(&self, who: Player) -> impl Iterator<Item = usize> + '_ {
         self.buildings.iter().enumerate().filter_map(move |(i, b)| {
             (b.alive
                 && b.active
@@ -384,7 +380,7 @@ impl Sim {
         (0..self.players.len()).map(|p| p as Player)
     }
 
-    fn player_alive(&self, p: Player) -> bool {
+    pub(crate) fn player_alive(&self, p: Player) -> bool {
         !self.defeated[p as usize]
     }
 
@@ -537,8 +533,15 @@ impl Sim {
         })
     }
 
-    /// `BuildTypeData::blocked_location`: the site, and the gather count its
-    /// tail hands back through `param_7`.
+    /// `BuildTypeData::blocked_location@006375b0`: the site, and the gather
+    /// count its tail hands back through `param_7`. By
+    /// [`crate::location::blocked_location_steps`] (swept against the
+    /// original, item 3364; `docs/CITIES.md` §2.6); this builds its view.
+    ///
+    /// **A seam.** The player-less form (`who == None`, the cursor's) skips
+    /// every ownership gate as the original does, but its gather survey
+    /// walks `calc_gather` with `who = −1`, which has no oracle: the view
+    /// answers a positive count there ([`crate::location::SimLocation`]).
     pub fn blocked_location(
         &self,
         who: Option<Player>,
@@ -547,69 +550,36 @@ impl Sim {
         corner: Pos,
         exclude: Option<usize>,
     ) -> (Blocked, i32) {
-        let r = self.blocked_location_verdict(who, ty, pos, corner, exclude);
-        if r != Blocked::Clear {
-            return (r, 0);
-        }
-        self.gather_verdict(who, ty, corner, exclude)
-    }
-
-    /// 2.6.7, `blocked_location@006375b0:679–716` — the last thing the
-    /// function does, and the only place it writes `param_7`.
-    ///
-    /// A **non-flat gather type** surveys what its site would gather, by
-    /// the same `calc_gather` count `max_gatherers` reads
-    /// ([`Sim::site_gather_count`]), and a site with nothing under it is
-    /// refused outright: `NoMountain` for a mine, `NoForest` for a camp,
-    /// `NoResources` for anything else, and the `Taken` pair when the count
-    /// came back negative because every candidate cell was already being
-    /// gathered from. The flat types — farm, oil well, oil platform — and
-    /// every non-gather building skip it and leave the count at zero.
-    ///
-    /// **A seam.** The player-less form (`who == None`, the cursor's) skips
-    /// the survey: the walk's cell-owner test wants a player, and the
-    /// original's `who = −1` behaviour there has no oracle. No caller in
-    /// this crate passes it.
-    fn gather_verdict(
-        &self,
-        who: Option<Player>,
-        ty: usize,
-        corner: Pos,
-        exclude: Option<usize>,
-    ) -> (Blocked, i32) {
-        let b = &self.build_types[ty];
-        if !b.has(flags::GATHER) || b.has(flags::FLAT) {
-            return (Blocked::Clear, 0);
-        }
-        let Some(w) = who else {
-            return (Blocked::Clear, 0);
+        let mut view = crate::location::SimLocation {
+            sim: self,
+            ty,
+            pos,
+            corner,
+            out: None,
         };
-        let n = self.site_gather_count(ty, w, corner, exclude);
-        let camp = b.ident == Ident::Woodcutter;
-        let verdict = if n == 0 {
-            match b.ident {
-                Ident::Mine => Blocked::NoMountain,
-                Ident::Woodcutter => Blocked::NoForest,
-                _ => Blocked::NoResources,
-            }
-        } else if n < 0 {
-            if camp {
-                Blocked::ForestTaken
-            } else {
-                Blocked::MountainTaken
-            }
-        } else {
-            Blocked::Clear
+        let args = crate::location::LocArgs {
+            px: pos.x,
+            py: pos.y,
+            tx: corner.x,
+            ty: corner.y,
+            who: who.map_or(-1, i32::from),
+            exclude: exclude.map_or(-1, |e| i32::try_from(e).expect("a building index")),
+            has_out: true,
         };
-        (verdict, n.max(0))
+        let r = crate::location::blocked_location_steps(&mut view, &args);
+        (Blocked::from_code(r), view.out.unwrap_or(0))
     }
 
     /// `has_preq(COLONIZE_BONUS)`: the bonus row's one prerequisite — the
     /// tree names it in `roles.colonize_preq`; a tree that does not know it
     /// grants it, the way every type outside the tree is ungated
     /// ([`crate::transport`]'s `transport_preq_held` is the same rule for
-    /// the third bonus).
-    fn colonize_preq_held(&self, who: Player) -> bool {
+    /// the third bonus). It is a **technology's** prerequisite rather than a
+    /// nation's bonus: the fourth of `rules.xml`'s `TECHBONUSES`, whose
+    /// `preq0` is Coinage — carried as a nation flag nothing ever set until
+    /// 2026-09-02, which is why no AI in any capture could put a city on a
+    /// second island (`docs/CITIES.md` §2.6.1).
+    pub(crate) fn colonize_preq_held(&self, who: Player) -> bool {
         match self.tech_tree.roles.colonize_preq {
             Some(t) => self
                 .tech_tree
@@ -618,271 +588,10 @@ impl Sim {
         }
     }
 
-    fn blocked_location_verdict(
-        &self,
-        who: Option<Player>,
-        ty: usize,
-        pos: Pos,
-        corner: Pos,
-        exclude: Option<usize>,
-    ) -> Blocked {
-        let b = &self.build_types[ty];
-        let city = build::is_city(&self.build_types, ty);
-        let fort = build::is_fort(&self.build_types, ty);
-        let dock = build::is_dock(&self.build_types, ty);
-        let cell = pos.cell();
-        let reg = self.world.region_of(cell);
-        let mut coastal = false;
-
-        if let Some(w) = who {
-            let n = &self.nation[w as usize];
-            // 2.6.1 Territory.
-            if !city && !fort {
-                if !b.has(flags::TERRITORY_EXEMPT) && !dock {
-                    let r = self.non_friendly_territory(w, ty, corner);
-                    if r >= 3 {
-                        return Blocked::EnemyTerritory;
-                    }
-                    if r == 2 || (r == 1 && !n.lakota) {
-                        return Blocked::NeutralTerritory;
-                    }
-                }
-            } else {
-                if self.in_enemy_territory(w, ty, corner) {
-                    return if self.city_num(w) != 0 {
-                        Blocked::EnemyTerritory
-                    } else {
-                        Blocked::EnemyTerritory2
-                    };
-                }
-                if let Some(reg) = reg
-                    && self.reg_forts(w, reg) == 0
-                    && self.reg_cities(w, reg) == 0
-                    && self.city_num(w) != 0
-                    && self.tuning.first_city_near_coast != 0
-                {
-                    // `has_preq(COLONIZE_BONUS 0x2af)`, and it is a
-                    // **technology's** prerequisite rather than a nation's
-                    // bonus: the fourth of `rules.xml`'s `TECHBONUSES`,
-                    // whose `preq0` is Coinage. Carried as a nation flag
-                    // nothing ever set until 2026-09-02, which is why no
-                    // AI in any capture could put a city on a second
-                    // island (`docs/CITIES.md` §2.6.1).
-                    if !self.colonize_preq_held(w) {
-                        return Blocked::Colonize;
-                    }
-                    let r = self.tuning.first_city_near_coast / 4;
-                    for dy in -r..=r {
-                        for dx in -r..=r {
-                            if vector_dist(dx, dy) > r {
-                                continue;
-                            }
-                            let c = Cell::new(cell.x + dx, cell.y + dy);
-                            if let Some(sr) = self.world.region_of(c)
-                                && self.world.terrain(sr) == Terrain::Sea
-                                && self.world.region_size(sr) > REAL_SEA_CELLS
-                            {
-                                coastal = true;
-                            }
-                        }
-                    }
-                    if !coastal {
-                        return if city {
-                            Blocked::PortCity
-                        } else {
-                            Blocked::PortFort
-                        };
-                    }
-                }
-            }
-            // 2.6.2 City spacing.
-            if city && let Some(reg) = reg {
-                let mut spacing = self.tuning.city_spacing;
-                if self.world.region_size(reg) * 9 / 10 <= self.reg_terr(w, reg) {
-                    spacing -= self.tuning.relax_city_spacing;
-                }
-                let site = self.snap_center(ty, pos).tile();
-                for i in self.players() {
-                    if !self.player_alive(i) {
-                        continue;
-                    }
-                    for u in self.unbuilt_cities(i) {
-                        if (i != w || Some(u) == exclude) && !self.buildings[u].started {
-                            continue;
-                        }
-                        let bp = self.buildings[u].pos;
-                        if self.world.region_of(bp.cell()) == Some(reg)
-                            && vector_dist(bp.tile().x - site.x, bp.tile().y - site.y) <= spacing
-                        {
-                            return Blocked::CityDistance;
-                        }
-                    }
-                    if i == w || self.reg_cities(i, reg) != 0 {
-                        for c in self.cities.iter().filter(|c| c.alive && c.owner == i) {
-                            let cp = c.pos.tile();
-                            if c.reg == Some(reg)
-                                && vector_dist(cp.x - site.x, cp.y - site.y) <= spacing
-                            {
-                                return Blocked::CityDistance;
-                            }
-                        }
-                    }
-                }
-            }
-            // 2.6.3 Fort spacing.
-            if fort && let Some(reg) = reg {
-                let site = self.snap_center(ty, pos).tile();
-                for i in self.players() {
-                    if !self.player_alive(i) || i == w {
-                        continue;
-                    }
-                    let s = if self.is_ally(w, i) {
-                        self.tuning.fort_spacing
-                    } else {
-                        self.tuning.fort_to_enemy_city_spacing
-                    };
-                    for u in self.unbuilt_cities(i) {
-                        let bd = &self.buildings[u];
-                        if bd.started
-                            && self.world.region_of(bd.pos.cell()) == Some(reg)
-                            && vector_dist(bd.pos.tile().x - site.x, bd.pos.tile().y - site.y) <= s
-                        {
-                            return Blocked::FortCityDistance;
-                        }
-                    }
-                    if self.reg_cities(i, reg) != 0 {
-                        for c in self.cities.iter().filter(|c| c.alive && c.owner == i) {
-                            let cp = c.pos.tile();
-                            if c.reg == Some(reg) && vector_dist(cp.x - site.x, cp.y - site.y) <= s
-                            {
-                                return Blocked::FortCityDistance;
-                            }
-                        }
-                    }
-                }
-                for i in self.players() {
-                    if !self.player_alive(i) {
-                        continue;
-                    }
-                    let verdict = if i == w {
-                        Blocked::FortDistance
-                    } else {
-                        Blocked::FortCityDistance
-                    };
-                    for u in self.unbuilt_forts(i) {
-                        let bd = &self.buildings[u];
-                        if i == w && Some(u) == exclude {
-                            continue;
-                        }
-                        if i != w && !bd.started {
-                            continue;
-                        }
-                        if self.world.region_of(bd.pos.cell()) == Some(reg)
-                            && vector_dist(bd.pos.tile().x - site.x, bd.pos.tile().y - site.y)
-                                <= self.tuning.fort_spacing
-                        {
-                            return verdict;
-                        }
-                    }
-                    // Built forts are distance-checked without a region test
-                    // (the cities above have one).
-                    if i == w || self.reg_forts(i, reg) != 0 {
-                        for f in self.built_forts(i) {
-                            let fp = self.buildings[f].pos.tile();
-                            if vector_dist(fp.x - site.x, fp.y - site.y) <= self.tuning.fort_spacing
-                            {
-                                return verdict;
-                            }
-                        }
-                    }
-                }
-            }
-            // 2.6.4 Must belong to a city.
-            if !b.has(flags::NO_CITY) {
-                let Some(c) = self.get_town(w, ty, pos) else {
-                    return if b.has(flags::NEEDS_TOWN) {
-                        Blocked::OutsideTown
-                    } else {
-                        Blocked::OutsideRadius
-                    };
-                };
-                if b.has(flags::ONE_PER_CITY) && self.count_buildings(c, b.ident, false) != 0 {
-                    let site = self.snap_center(ty, pos).tile();
-                    for (ci, other) in self.cities.iter().enumerate() {
-                        if ci == c || !other.alive || other.owner != w {
-                            continue;
-                        }
-                        let op = other.pos.tile();
-                        let r = self
-                            .city_radius(other.owner, self.buildings[other.building].ty)
-                            .min(64);
-                        if vector_dist(op.x - site.x, op.y - site.y) <= r
-                            && self.count_buildings(ci, b.ident, false) == 0
-                        {
-                            return Blocked::OneOther;
-                        }
-                    }
-                    return Blocked::One;
-                }
-                if b.ident == Ident::Farm
-                    && self.count_buildings(c, Ident::Farm, false) >= self.farm_limit(c)
-                {
-                    return Blocked::Farm;
-                }
-                if b.wonder
-                    && b.ident != Ident::RedFort
-                    && self.num_wonders(c, true) > i32::from(n.egyptians)
-                {
-                    return Blocked::Wonder;
-                }
-            }
-        }
-        // 2.6.5 Water and land.
-        let water = self.count_water(ty, corner);
-        if !dock {
-            match b.domain() {
-                BuildDomain::Water if water < b.area() => return Blocked::Land,
-                BuildDomain::Land if water != 0 => return Blocked::Water,
-                _ => {}
-            }
-        } else {
-            let adjacent = self.check_land_adjacent(who, ty, corner);
-            if water < 3 * b.area() / 4 {
-                if water != 0 && adjacent != 0 {
-                    return Blocked::DockTerr;
-                }
-                return Blocked::DockWater;
-            }
-            if adjacent == 1 {
-                return Blocked::DockTerr;
-            }
-            if adjacent == 2 {
-                return Blocked::DockLand;
-            }
-        }
-        // 2.6.6 Clear ground around a city or fort.
-        if city || fort {
-            let ring = if coastal { 1 } else { 2 };
-            for t in self.ring(ty, corner, ring) {
-                let m = self.world.tile_mask(t);
-                if m & tile::OBJECT == tile::OBJECT_MOUNTAIN {
-                    return Blocked::Mountain;
-                }
-            }
-            for t in self.ring(ty, corner, ring) {
-                let m = self.world.tile_mask(t);
-                if m & tile::SURFACE == tile::SURFACE_FOREST {
-                    return Blocked::Forest;
-                }
-            }
-        }
-        Blocked::Clear
-    }
-
     /// `BuildTypeData::non_friendly_territory`: over the footprint's land
     /// tiles, 0 all friendly, 1 some unowned, 2 some foreign-at-peace or
     /// ambiguous, 3 (returned at once) foreign-at-war.
-    fn non_friendly_territory(&self, who: Player, ty: usize, corner: Pos) -> i32 {
+    pub(crate) fn non_friendly_territory(&self, who: Player, ty: usize, corner: Pos) -> i32 {
         let mut r = 0;
         for t in self.footprint(ty, corner) {
             // Off the map and ocean tiles are skipped (item 2247: an
@@ -912,7 +621,7 @@ impl Sim {
     /// player where the placer already has a city anywhere, or a city or fort
     /// in that region. (The "really seen by that owner" clause is visibility,
     /// taken as false.)
-    fn in_enemy_territory(&self, who: Player, ty: usize, corner: Pos) -> bool {
+    pub(crate) fn in_enemy_territory(&self, who: Player, ty: usize, corner: Pos) -> bool {
         for t in self.footprint(ty, corner) {
             if let Owner::Player(p) = self.tile_owner(t)
                 && !friendly_ground(
@@ -944,7 +653,7 @@ impl Sim {
 
     /// `BuildTypeData::check_land_adjacent`: 2 no land around, 0 friendly
     /// land found (or no player), 1 land but all foreign or unowned.
-    fn check_land_adjacent(&self, who: Option<Player>, ty: usize, corner: Pos) -> i32 {
+    pub(crate) fn check_land_adjacent(&self, who: Option<Player>, ty: usize, corner: Pos) -> i32 {
         let mut r = 2;
         for t in self.ring(ty, corner, 1) {
             // Off the map is skipped (item 2247: its mask read zero, land).

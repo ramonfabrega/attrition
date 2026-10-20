@@ -2156,52 +2156,6 @@ impl Sim {
         )
     }
 
-    /// **`Build::activate@00623e20`'s Senate arm** (`docs/CITIES.md` §15):
-    /// a Senate finished, not captured, in a live city of the owner's own
-    /// race, **moves the capital here** when the owner's capital
-    /// (`LeaderData::find_capital`'s first arm, the first live own city
-    /// with `0x10`) holds no finished Senate — `CityData::count_buildings(
-    /// SENATE, 0, 1)`. Every own live city loses `0x10` (with tribe bonus
-    /// `0x17`, only one that is not the founding capital, `0x4000`), this
-    /// one takes it and `founder = who`, and `Region::fix_borders` runs,
-    /// because a capital projects `CAPITAL_TERRITORY_BONUS`.
-    ///
-    /// Drawless: Great Lakes' Senate `1/2024` moves the capital from
-    /// London to Norwich on tick 14528 and spends nothing on it.
-    ///
-    /// SEAM: the arm's head — the government hero trained when
-    /// `gov_hero_frame` is set and none is near (the field is carried since
-    /// item 706, `docs/TECH.md` §"The government patriot") — and
-    /// `senates_built`, which no reader here carries.
-    fn senate_moves_capital(&mut self, b: usize) {
-        let who = self.buildings[b].owner;
-        let Some(c) = self.buildings[b].city.filter(|&c| self.cities[c].alive) else {
-            return;
-        };
-        if self.cities[c].race != Some(who) {
-            return;
-        }
-        let own = |k: usize, s: &Self| s.cities[k].alive && s.cities[k].owner == who;
-        let Some(cap) = (0..self.cities.len()).find(|&k| own(k, self) && self.cities[k].capital)
-        else {
-            return;
-        };
-        if self.count_buildings(cap, Ident::Senate, true) != 0 {
-            return;
-        }
-        let keeps_founding =
-            self.tech_tree
-                .has_tribe_bonus(&self.setup, &self.tech[who as usize], 0x17);
-        for k in 0..self.cities.len() {
-            if own(k, self) && !(keeps_founding && self.cities[k].founding_capital) {
-                self.cities[k].capital = false;
-            }
-        }
-        self.cities[c].capital = true;
-        self.cities[c].founder = who;
-        self.sync_territory();
-    }
-
     /// **The Persians' second capital** — `Build::activate@00623e20`'s city
     /// arm, lines 463–475 and 513–518 (`docs/AI.md` §149): a city that is
     /// not the leader's first, of a leader with tribe bonus `0x17`, takes
@@ -2296,6 +2250,18 @@ impl Sim {
         self.process_queue(b, &mut out);
     }
 
+    /// `ObjectsData::find_unit(…FILTER_GOV_HERO…)`: a government patriot of
+    /// `who` stands somewhere.
+    pub(crate) fn gov_hero_exists(&self, who: Player) -> bool {
+        (0..self.units.len()).any(|u| {
+            self.units[u].alive()
+                && self.units[u].owner == who
+                && self
+                    .unit_tree(u)
+                    .is_some_and(|t| self.tech_tree.kind(t).unit().is_some_and(|x| x.patriot))
+        })
+    }
+
     /// `Build::activate(captured, announce, counted)` — `docs/CITIES.md` §4.
     /// A building type the tree files as a wonder — the test
     /// `Build::activate` and `Build::close` gate the unit-stats flag on.
@@ -2339,17 +2305,15 @@ impl Sim {
         if self.build_types[ty].attack != 0 {
             self.defense_add(who, 1);
         }
-        // Chinese cities are founded as Large Cities.
-        if build::is_city(&self.build_types, ty)
-            && !captured
-            && self.nation[who as usize].chinese
-            && self.tuning.chinese_large_cities != 0
-            && self.build_types[ty].ident != Ident::ForbiddenCity
-            && let Some(town) = self.build_types.iter().position(|t| t.ident == Ident::Town)
-        {
-            self.buildings[b].ty = Some(town);
-            self.buildings[b].combat = Some(self.build_types[town].combat.unwrap_or_default());
-        }
+        // `Build::activate@00623e20`, entry to `Wall::activate`: the library
+        // hand-down and the Chinese Large City founding (`crate::activate`,
+        // item 3364). `Wall::activate` is the rest of this function.
+        crate::activate::activate_head_steps(
+            &mut crate::activate::SimHead { sim: self, b, who },
+            i32::from(captured),
+            0,
+            i32::from(counted),
+        );
         // The `Farms` list is joined at *placement* (`Sim::farms_add`), not
         // here — `Farms::add` runs from `Build::init`. This catches a farm
         // the harness stood up from a dump without going through it.
@@ -2414,12 +2378,14 @@ impl Sim {
             self.sync_pop_cities();
             self.sync_territory();
         } else {
-            if let Some(c) = self.buildings[b].city
-                && self.cities[c].alive
-                && self.building_is(b, Ident::Temple)
-            {
-                self.sync_territory();
-            }
+            // `Build::activate@00623e20`, lines 160-445: the arm the type's
+            // lineage takes after `Wall::activate` — the Temple's border
+            // fix, the Senate's capital move (`crate::activate`, item 3364).
+            crate::activate::activate_arms_steps(
+                &mut crate::activate::SimArms::new(self, b, who),
+                i32::from(captured),
+                0,
+            );
             if build::is_fort(&self.build_types, ty) {
                 self.sync_territory();
             }
@@ -2438,9 +2404,6 @@ impl Sim {
                 .is_some_and(|t| borders.iter().any(|&k| line.get(k) == Some(&t)))
             {
                 self.sync_territory();
-            }
-            if !captured && self.building_is(b, Ident::Senate) {
-                self.senate_moves_capital(b);
             }
         }
         self.update_hits(b);
@@ -4030,14 +3993,7 @@ impl AssimilateView for SimAssimilate<'_> {
     }
     fn gov_hero_found(&mut self, _m: i32) -> bool {
         let who = self.owner();
-        (0..self.sim.units.len()).any(|u| {
-            self.sim.units[u].alive()
-                && self.sim.units[u].owner == who
-                && self
-                    .sim
-                    .unit_tree(u)
-                    .is_some_and(|t| self.sim.tech_tree.kind(t).unit().is_some_and(|x| x.patriot))
-        })
+        self.sim.gov_hero_exists(who)
     }
     fn hero_frame_reached(&mut self, since: i32) -> bool {
         i64::from(since) <= self.sim.frame

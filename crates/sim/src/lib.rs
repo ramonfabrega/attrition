@@ -35,6 +35,7 @@
 //! unearned until something genuinely needs a fraction; anticipating it would
 //! only add rounding the original does not have.
 
+pub mod activate;
 pub mod ai;
 pub mod ai_build;
 pub mod ai_census;
@@ -50,6 +51,7 @@ pub mod ai_units;
 pub mod air;
 pub mod airbase;
 pub mod alarm;
+pub mod alarm_view;
 pub mod anim;
 pub mod army;
 pub mod attack_pos;
@@ -68,6 +70,7 @@ pub mod carry_civ;
 pub mod cast;
 pub mod cast_decoy;
 pub mod cast_transport;
+pub mod castable;
 pub mod cavarch;
 pub mod city;
 pub mod collide;
@@ -101,6 +104,7 @@ pub mod grouppath;
 pub mod heal;
 pub mod holdings;
 pub mod launch;
+pub mod location;
 pub mod market;
 pub mod merchant;
 pub mod mesh;

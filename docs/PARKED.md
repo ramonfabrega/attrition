@@ -8266,19 +8266,19 @@ reading, not a measurement.
   notification, and returns 0/1/2. Needs a crate `Object::take_damage` over a `TakeDamageView` first (a sim
   implementation, and its Random-draw order is a pin risk); then `obj` with ~12 vslot `--stub`s. Split (a) pre-accumulate
   notice, (b) accumulate + city alarm, (c) kill arm + plunder. Sits under att-3356's `Ammo::do_damage`.
-- **3358b. `Group::action_alarm@0070ec30`: no view over city/building/unit-chain/leader state.** The crate's
+- ~~**3358b. `Group::action_alarm@0070ec30`: no view over city/building/unit-chain/leader state.** The crate's
   `alarm.rs` `action_alarm` runs on whole `Sim` (`alarm_bell`, `city_chain`, `cell_chain`, `find_city_at`,
   `group_action_garrison_search`). The original builds a stack `Group` and fans through `Group::add`/`action_garrison`;
   also `SoundGlobal::play`, `Error::report`, a `ScenarioData::ignore_orders` arm. Needs a view trait shared with
   `alarm_bell`/`alarm_all_clear`, stubs for `GroupData::member/add/action_garrison`; no shape is known to spell a
-  callee-built stack group. `alarm.rs`'s own SEAMs are the inputs it would part on first.
-- **3358c. `BuildTypeData::blocked_location@006375b0`: no view trait.** `place.rs` `blocked_location` takes `&Sim`
+  callee-built stack group. `alarm.rs`'s own SEAMs are the inputs it would part on first.~~ Answered by item 3364: `alarm_view.rs` (`AlarmView`, `action_alarm_steps`, `SimAlarm`) and two generator sweeps (`group_action_alarm`, `group_action_alarm_head`); `--stub-write ecx+0xc` and `--tib` spell the callee-built stack group.
+- ~~**3358c. `BuildTypeData::blocked_location@006375b0`: no view trait.** `place.rs` `blocked_location` takes `&Sim`
   (split into `blocked_location_verdict` and `gather_verdict`); `tcoord.rs` covers only `blocked_tcoord_steps`. 14
   callees (`non_friendly_territory`, `has_preq`, `get_town`, `count_water`, `calc_gather` …), ~8 type-predicate vcalls,
   leader rows via `--sparse`. Lacking: a pointer-table-of-lists walk (the `unbuilt_*` lists). Split: territory/colonize
   prefix, spacing (city/fort lists), tail (get_town through wonder checks, water/mountain/tree counts, gather survey).
   Two differences to check when the view exists: the crate skips the gather survey for who = None (a marked seam);
-  `!n.lakota` where the original calls `has_tribe_bonus(0x13)`.
+  `!n.lakota` where the original calls `has_tribe_bonus(0x13)`.~~ Answered by item 3364: `location.rs` (`LocationView`, `blocked_location_steps`, `SimLocation`) and three generator sweeps (`build_type_data_blocked_location{,_tail,_town}`); the pointer-table walk spelled with `--ptrtab`, `--ecx-answer` and `--vtat-image`, no flag lacking.
 - **3358d. `Unit::do_non_flat_gather@005f0170`: port not level, plus `--stub-alloc IDX`.** Crate arms absent: the
   transport arm (`get_tregion` both ends, `can_transport`, `add_move_order`), the worker doober cleanup
   (`+0x86`, `Doober::remove_hold_doobers`), the camp-side vcall `+0x170` with `set_angle` where the crate uses
@@ -8762,13 +8762,15 @@ The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What 
   trees (a `coll_add` assertion at collide.rs:1023); none touched collide.rs and none ran it on the base — the lane gate says
   whether it is the base's.
 
-## Parked by the next landing, slot LH — reserved
+## Parked by item 3364, 2026-10-20 — the nations seat's seventeenth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Swept: `Object::die`, `ObjectsData::find_building`, `SpellTypeData::is_castable`, `BuildTypeData::blocked_location`, `Group::action_alarm`, `Build::activate` (three slices). No shape parked on a generator flag lacking, but:
+
+- **3364a. `Build::activate@00623e20`: four slices not reached.** Swept: head (to `Wall::activate`), the non-city arm to the `is_fort` slot `+0xfc`, the Senate arm (`activate.rs`). Not reached, no generator run yet: the city arm (`flags & 0x20`, `init_city`, `UnbuiltCities`, the Persian second capital), dock/fort init, the per-type free-unit grants, the gather/commerce/high-water blocks (decomp 603–1150) and the tail. `--stop-stub` spelled every slice tried; `announce` is held at 0 so `senate_announce` is unexercised. Next slice: the city arm.
+- **3364b. `Group::action_alarm@0070ec30`: `who` pinned to 0 in the whole-function sweep.** `--answer-by` keeps only the last flag per stub index, so player 1's objects have no data windows; a per-`who` `--answer-by` (repeatable per index) is the flag lacking. `ignore_orders=1` is swept by the head slice only (the group slot `+0x10` clashes with the object's). Two breaks survive, neither proven equivalent: `while u > 0 && room < limit` in the bell's building arm and `idx <= 0` after the chain step; `SimAlarm` is not swept.
+- **3364c. `blocked_location`: residual weak spots.** `.min(0x3f)` (needs distance exactly 64), `city_ty - sy` for `- sx` in the fort-block distance; live leaders only 0, 1, 7; `calc_gather(who = -1)` unswept; `get_queue` always answers 0 in `SimLocation` (the razing refusal is unexercised on the Sim).
+- **3364d. `is_castable`: no `Sim` caller.** `castable.rs`'s `is_castable_steps` has no `SimCastable` view and `Sim::spell_castable` stays the partial reading; the second-spell pass excludes ids 0x286 (the original loops forever) and 0x27e.
+- **3364e. Sim fixes this batch forced, none run against the diff pins** (the lane gate is `--no-widen`): `alarm_bell`/`all_clear` replaced by the steps (run430's bell is the likeliest to move), the Senate government hero, the Temple's dispatch order, `blocked_location`'s Lakota test, head region, colonisation order, `die`'s wrapping hold. The booking gate says whether a pin moved.
 
 ## Parked by item 3365, 2026-10-20 — the Korean word closes
 
