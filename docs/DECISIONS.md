@@ -95,6 +95,7 @@ is append-only and amended in place, as it always was.
 - 81 standing — The forty-third tranche is scored on four lanes at less and slower, the sweep lanes' fan-outs are read as their own, the lane gate is two to four runs a landing and its quote is guarded, a regen keeps every hand item, and twenty-two Loop items become tools, guards, rows, closes or Ramon's
 - 83 standing — The forty-fourth steer: three lanes, two Opus wide on battery words and one Sonnet sweep, a lane gate that widens only on the AI kind, and the fan-out rules move to docs/LOOP.md
 - 84 standing — The forty-fifth tranche is scored on three lanes at three times the price a landing and a third of the price a game, the lane gate reads how far its base has moved, the Loop-line guard is forgiven on a lane, the click-free lane refuses a windowless launch, the hooked audit is red on the address form alone, the held-out unit is the lobby, and seventeen Loop items become tools, rows, closes or Ramon's
+- 85 standing — The forty-sixth tranche is scored on four lanes at less a landing and less a game, the held-out battery runs six of eight whole, the sim lib's cap follows the thread count, the lane gate keeps the paperwork guards and refuses a moved base first, a push under a clear is a draft, the oracle cache is a directory a gc removes, the generator carries a hand block and three more shapes, and twenty Loop items become tools, rows, closes or Ramon's
 - 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
 
 ## 1. Fidelity before divergence
@@ -7019,3 +7020,152 @@ cache with its receipt and verify mode (`emu_rows`, shared under
 stale oracle generations — 3.53 million `.oracle` files older than the
 schema's last change — 88 → 110 GiB free; the disk stood at 30 when the
 pass began.
+
+## 85. The forty-sixth tranche is scored on four lanes at less a landing and less a game, the held-out battery runs six of eight whole, the sim lib's cap follows the thread count, the lane gate keeps the paperwork guards and refuses a moved base first, a push under a clear is a draft, the oracle cache is a directory a gc removes, the generator carries a hand block and three more shapes, and twenty Loop items become tools, rows, closes or Ramon's
+
+*2026-10-20, the forty-sixth pass (the `steer` session, Fable), cleared
+into by the commander at the tranche's drain (`07f9ae76`); unattended
+under entry 61's fence, Ramon present for the steer after. The record
+is `docs/audit/2026-10-20-fable-pass-46.md`; this entry carries the
+decisions.*
+
+**What was measured.** Twenty landings on four lanes — two battery
+words' lanes on Opus 5.5 at `--effort medium`, landing wide, and two
+sweep lanes on Sonnet 5.5 at medium (entry 84), every one of the thirty
+lane sessions' model read off lore and every spawn line's flags off the
+commander's two transcripts — in **16 h 00** from the forty-fifth pass's
+last commit (`000549d4`, 20:22 −05:00) to the twentieth booking
+(`07f9ae76`, 12:21), the drain's whole gate green at 12:45; about three
+and a half hours of it a weekly-limit stall (the commander's last turn
+07:55, Ramon's `attrition` row resuming both stalled lanes by message
+from 11:26 and booking the last two landings). **Ten battery games
+closed**: the Lakota 6071 → 7902 (3345), the French 13422 → 16764
+(3347, whole on 3359), the Persians → 7105 (3355), the Aztecs at Great
+Sahara 9130 → 17554 (3361), the Inca → 24000 (3360), the Koreans → 15944
+(3365), the Spanish at East Indies 9028 → 24000 (3367, 3370), the Dutch
+at Great Sahara 311 → 16109 (3369), the Americans → 24000 (3374), the
+Iroquois at Great Sahara 13757 → 16371 (3375) — ten games by twelve Opus
+landings, each at its game's end with its closing block compared whole.
+The census 1580 → 1619, port 436 → 501, bytes 23.5 → 31.2 % (eight sweep
+batches, forty-one functions). The held-out battery's measured median
+**9284 → 16937** on eight lobbies, six minted this tranche, **five of
+them whole on their first try** (the Russians at Great Sahara 18883, the
+Romans at Great Lakes 7799, the Lakota at Great Sahara 24000, the
+Egyptians at East Indies 14540, the Aztecs at East Indies 24000), the
+Germans at Great Sahara parting at 13582 of 19483; the two kept (the
+Chinese 24000, the Turks 14991) stood, and are re-pinned to the measure.
+**The price: 222.09 USD list for the workers, 11.10 a landing** (295.70
+/ 14.79) — the battery words 16.89 a landing over twelve (19.06), the
+sweeps 2.43 over eight (1.96); **20.27 a game closed** (26); the
+commander's two sessions 27.57; **249.66 in all** (321.41), 252.92 with
+the rescue; the forty-fifth pass's own session 40.70 with its steer and
+waves. **Waiting 127.2 minutes a landing** (96.4): the subagent class
+66.0 (37.1; the second sweep lane's own run), the gate 23.1 (27.7),
+captures 16.3 (21.4; fifty-seven captures, 4.75 a battery landing),
+message 14.1 (the stall). Ten `DEEP` exits (fifteen), each answered;
+twelve of thirty sessions past 300 k (seventeen of thirty-five).
+Twenty-one booking gates, seven whole, fourteen scoped and every one
+widened, **four red**: two whole gates at eight threads on the sim
+lib's 4096 MiB cap with no test failed (Loop 3363; the commander ran
+four more whole gates at four threads on Ramon's word), one scoped on
+the writers guard a lane gate's budget had skipped (Loop 3373), one on
+the commander's own battery-word line; admission 3623.4 s summed,
+longest 160.0 s (2992.4 / 96.1); **six gate ends past the sixteen
+cores** (none of twenty). The lane gates' release step 9.8–21.3 minutes
+on the widened lanes, median 13.2 (10.8); 5.8–16.6 on the `--no-widen`
+sweeps, median 10.6 (14.2). No kill rule tripped; **one blocked
+ending** (3375's `rm` under `~/ron-data`, refused by the classifier, a
+minute on a person's prompt); **no merge backed out at `ccc merge`**
+(two before) — `Base moved:` refused 3360's lane gate first. The
+archives compressed, 112 → 123 GiB free.
+
+**What it means.**
+
+1. **Four lanes closed ten games at less a landing and less a game.**
+   Entry 84's comparison has its second point: 11.10 USD a landing
+   against 14.79, 20.27 a game against 26, in 16 h 00 against 16 h 55,
+   with the second sweep lane adding port +65 for 9.63 USD on a clock
+   nobody else waits on. The pass recommends the roster stands for the
+   forty-seventh tranche and decides nothing (entry 61 §2).
+2. **The held-out battery is the number now.** Five of six lobbies
+   minted this tranche ran whole on their first try, and six of eight
+   stand whole: the port converges on games nobody tuned for, which is
+   what entry 61 named as the sign that minting pairs can stop. The
+   next pass reads the median and the first-try wholes before the
+   landing count.
+3. **The sim lib's cap follows the thread count** (Loop 3363, built):
+   4096 MiB at four threads and 512 MiB a thread past four, 6144 at
+   eight; three whole gates were stopped just over 4096 with no test
+   red, and the whole gate returns to eight threads from this pass's
+   own gate.
+4. **The lane gate keeps the paperwork guards and refuses a moved base
+   first** (Loop 3373, 3366, built): `PAPERWORK_GUARDS` are never
+   skipped by the one-second budget, so a view field a sweep adds is red
+   on the lane and not on the booking; and a lane gate reads `base_moved`
+   before its first step, printing the refusal first with the offline
+   cases now reading a fixture, never the real tree.
+5. **A push under a clear is a draft, never a landing** (Loop 3368,
+   built): `lanewait.py` carries each lane's session uuid poll to poll
+   and prints `DRAFT <lane>` for a push seen with the uuid changed or
+   from a transcript ending on `/clear`; the commander's chain says so.
+6. **The oracle cache is a directory a gc removes** (Loop 3353, built):
+   `.ron-oracle-v1/<generation>/`, the generation the schema's hash, a
+   civilian generation beside it; `oracle::gc` and `rondata --gc-oracle
+   <dir>` remove every generation but the current, the flat layout
+   counting as one. Today's 230,616 flat files, 3.3 GiB, are one stale
+   generation each; the deletion is Ramon's word (entry 84 (iv)).
+7. **The generator carries a hand block and three more shapes** (Loop
+   3013, 3377, built): a `// hand: <name>` … `// end hand` fence inside
+   a generated body is re-inserted on `--regen` at its anchor, and a
+   `--regen` of another overload's sweep is refused; `--tls`, `--outret`
+   and `--table-arg` are the shapes `Balance::compute_modifier` needed,
+   its script and sweep regenerated from one kept line, 600 rows
+   agreeing and two planted mutants failing.
+8. **A function's name is not a capture booking** (Loop 3357, built);
+   **captures a landing is a number** (Loop 3352, built: 4.75 a battery
+   landing, 2.9 overall); **the delegated-reading row is struck** (Loop
+   3351, closed: no lane took it, the battery lanes' subagent class 0.8
+   minutes a landing; the lever is the steer's, below).
+9. **Three Loop lines become brief rows** (`docs/audit/README.md`, "from
+   the forty-sixth pass"): never delete under the archive (3375's
+   block), the moved-base refusal before the offline step (3366), the
+   paperwork guards under `--lane` (3373).
+10. **`tools/emu` runs on one shared uv environment** (Loop 3354,
+    built): the key was the script's path per worktree, measured with
+    `uv run -v`; `uv_command` runs every sweep and `callfn` through
+    `uv run --locked --project tools/emu python <script>`, the receipt
+    cache's key unmoved; the 358,890 stale environments were cleaned at
+    this drain.
+11. **Two stay, five are Ramon's.** 3349 (block coverage) stays for a
+    pass with fewer builds; 3371 stays narrowed to a lane-gate check;
+    2003 stays as the ledger with 3377's reach; 1570, 3118, 3143, 3188,
+    3237 and 3350 are Ramon's with this tranche's numbers appended. The
+    backlog 20 → 9.
+
+**The estimate, written down to be wrong on record**, on the roster
+entry 84 set: twenty landings in under seventeen hours with no stall;
+the Germans at Great Sahara close at 19483 and the Turks at 15503; at
+least four of the six replacements minted run whole on their first
+try and the held-out median passes 18,000; the backed column past 1,650
+and the port-backed past 560; waiting a landing under 120; the subagent
+class under 60; no red booking gate on the sim lib's cap; no kill rule
+tripped; no blocked ending; no merge backed out at `ccc merge`; no
+`DRAFT` line read as a landing; the disk never under 100 GiB.
+
+**The measure for the next pass**: each lane's USD and waiting a
+landing against 11.10 / 127.2 (the battery words 16.89 / 84.8, the
+sweeps 2.43 / 190.9), and USD a game closed against 20.27; the held-out
+median against 16937 and the first-try wholes against five of six; the
+subagent class against 66.0, the gate against 23.1, captures against
+16.3 and captures a battery landing against 4.75; the lane gates'
+release step against 13.2 widened and 10.6 not; the admission's sum
+against 3623.4 s and gate ends past the cores against six; booking gate
+minutes against 351.5, whole against seven, red on the cap against
+three; `DEEP` against ten and sessions over 300 k against twelve;
+blocked endings against one; kill rules against none; merges backed out
+at `ccc merge` against none and `DRAFT` lines printed; the census's
+never against 370, backed against 1619, port against 501, bytes against
+31.2 %, `--hooked` by address against 0; the backlog against
+nine; the disk against 123 GiB; whether the paperwork guards'
+`Lane suite:` line, the early `Base moved:` refusal, the `DRAFT` line
+and the thread-scaled cap fired in the tranche.

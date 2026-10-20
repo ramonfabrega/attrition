@@ -21361,3 +21361,31 @@ brief kind, the archive census, the byte-weighted census and the MSVC
 14 reader notes built in the pass by four Opus subagents; the lab's 14
 GiB of captures deleted on his word; a matching track ruled out by the
 PDB's own build records.
+
+**2026-10-20 — the forty-sixth Fable pass** (the `steer` session, cleared
+into at the drain): the forty-sixth tranche measured — twenty landings on
+four lanes from `000549d4` in 16 h 00, three and a half of them a
+weekly-limit stall Ramon's own row resumed by message; 11.10 USD and
+127.2 minutes waiting a landing against 14.79 / 96.4 — and ten battery
+games closed by twelve Opus landings at 20.27 USD a game closed (26);
+the held-out battery runs six of eight whole, five of the six lobbies
+minted this tranche on their first try, the median 9284 → 16937. The
+census 1580 → 1619, port 436 → 501, bytes 23.5 → 31.2 %. Twenty-one
+booking gates, four red — three the sim lib's 4096 MiB cap at eight
+threads with no test failed, one the writers guard a lane gate's budget
+skipped; no merge backed out, `Base moved:` having refused the one lane
+that would have. Built, red first: the cap follows the thread count;
+the lane gate keeps the paperwork guards and refuses a moved base
+before its offline step; a push under a clear is a `DRAFT` to the
+waiter; the oracle cache is a generation directory with a gc and
+`rondata --gc-oracle`; the generator carries a `// hand:` fence across
+a regen and gained `--tls`, `--outret`, `--table-arg` with
+`compute_modifier` regenerated; a function's name is not a capture
+booking; `tranche.py` counts captures a landing; `tools/emu` runs on one
+shared uv environment where it had one per script path per worktree —
+five Opus
+subagents in their own worktrees for the larger six, merged and gated
+here; the Chinese and the Turks re-pinned to the measure; 3351 closed
+on the measurement, two stay, six Ramon's; 20 → 9. The
+archives compressed, 112 → 123 GiB free. **DECISIONS 85.**
+`docs/audit/2026-10-20-fable-pass-46.md`.

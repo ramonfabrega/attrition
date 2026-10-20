@@ -3781,84 +3781,7 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's.
 
-(3351) **A battery lane that delegates its widening's reading to subagents** (the forty-fifth steer, Ramon): the
-heavy sessions are 250 shell calls at 1.4 k tokens a step and fifteen `DEEP` clears; the sweep lanes run the same
-shape at 150 k peak by fanning out. The frame row (landing: the widening's reading goes to a subagent that returns
-the verdict and the rows, never the greps) rides on the battery kind from the forty-sixth tranche; the next pass
-reads sessions over 300 k against seventeen and USD a game closed against 26, and says whether the row stays. One
-reach. **The forty-sixth pass**: measured and **closed**. The row rode on every battery brief and no lane took it: the battery lanes' subagent class is 0.8 minutes a landing (3369 7.9, 3374 1.5, the other ten none), twelve of twenty-two battery sessions ran past 300 k (seventeen of thirty-five before), twelve `DEEP` clears answered; USD a game closed 20.27 (26). The row is struck from the frame — advice a lane may ignore is not a lever — and the lever is the steer's (DECISIONS 85): the widening's reading as a step of its own kind, or the cap.
-
-(3353) **The oracle cache is the archive's bulk, and every parser edit writes a new generation beside the old**
-(the forty-fifth pass, from `tools/archive_census.py`'s first live run and a by-kind breakdown of `~/ron-golden`):
-`rondata::diff::oracle` caches each decoded frame as `<dump>/.ron-oracle-v1/<hash>.oracle` — 3.2 million files, about
-31 GiB allocated beside the golden dumps and 12 more beside the queue lane's logs, 43 of the archive's 68 — and the key
-hashes eight parser sources (`gamelog.rs`, `leader.rs`, `oracle.rs`, the codecs, the capture readers) that landings
-edit several times a week (two commits on 2026-10-19, six on the 16th), so a generation goes stale whole and nothing
-removes it; the files' names are hashes, so a stale one cannot be told from the outside except by its mtime against
-the schema's last change. Of the rest: 61.5 of 68 GiB is pinned by a fixture or a RUNS section; orphans 1.0,
-ledger-only 1.3, recreatable packets 4.2. Candidates: (i) the cache keys a directory by schema
-(`.ron-oracle-v1/<schema>/`), so a stale generation is a directory and `--gc` removes every one but the current;
-(ii) one file a dump, not a frame (3.2 million files is what the census and the compression pay for); (iii) the
-immediate measure, `.oracle` files older than the schema's last change, counted by `find -newermt`, deletable on
-Ramon's word since every one regenerates. Ramon's, for the deletion; the pass's, for (i) and (ii). One reach.
-
-(3352) **Captures a parting** (the forty-fifth steer, Ramon: the loop is capture-bound where it could be static):
-sixty-seven captures in one tranche, 4.5 a battery landing, each a serial game on one lane and a gigabyte. The frame
-says grep the disk first and a window capture only for what the dumps cannot answer; nobody measures it. Candidate:
-`tranche.py` counts a lane's captures (RUNS sections booked under its item) and the pass reads captures a parting;
-the ceiling the frame would then carry is one window capture a parting, the long's blocks and a packet before it.
-One reach. **The forty-sixth pass**: **built**. `tranche.py` counts a lane's captures — `docs/RUNS.md` sections naming `item N` (`captures_of`, red first) — and prints `captures: N over M items — X a landing`; this tranche **57 captures over 20 items, 2.9 a landing, 4.75 a battery landing** (4.5 before; runs 979–1003). The ceiling is the next pass's to write once a second reading stands. Closed.
-
 ## Loop, filed 2026-10-19 — the forty-sixth tranche's
-
-(3354) **uv's ephemeral environments are the disk's next unbounded cache** (lore's census, 2026-10-19 20:40, checked
-by the commander the same hour): `~/.cache/uv/environments-v2` holds 354,464 environments, `callfn` 838 of them and
-each busy sweep script about 400, so the key varies by more than the script's content (the script's path per worktree
-is the likeliest; not measured). Each is about 0.2–0.5 MB of real bytes beside clones of `libunicorn` (lore's
-estimate: 100–150 GiB in all, about 10 GiB a day while the sweeps run). Free space was 100 GiB at 20:45. `support.rs`'s
-`run_uv` runs `uv run <script>` bare. Candidates: (i) one environment for `tools/emu`, a stable project or venv that
-the runner calls directly, so the key stops varying; (ii) the immediate measure, `uv cache clean` (or `prune`) at a
-rest point between gates, never while a lane's sweep runs. Every environment regenerates. The pass's for (i); (ii) at
-a drain. One reach.
-
-(3357) **The capture-citation guard reads a function's name as a capture booking** (the commander, at 3346's
-booking): `docs_guard::a_capture_booked_on_a_map_cites_the_window_the_disk_holds` takes any open item whose text
-contains `capture` as one that books a capture, so a sweep item that names `Build::check_capture@006276a0` fails
-with "books a capture and names no map". `every_cited_address_names_its_function` meanwhile wants the name beside
-the address, so the queue cannot name the row either way. The pass left the census row out of 3348's booking,
-probably for this reason, and 3356 names it as `Build`'s method at 0x6276a0. Candidate: the guard skips backticked
-text, or a `--kind sweep` item. The pass's. One reach. **The forty-sixth pass**: **built**. `docs_guard::books_a_capture` reads the word `capture` outside backticks only — a function's name or a flag is never a booking — and the guard calls it; `a_function_s_name_in_backticks_is_not_a_capture_booking` was red first on its own fixture. Closed.
-
-(3363) **The whole gate's sim library outgrew its 4096 MiB limit at eight threads** (the commander, the forty-sixth
-tranche's first whole gate, on `fc206a90`): `isolated_tests.py`'s `target_budget` gives the `sim` lib target
-`min(threads, 8)` slots and a hard 4096 MiB, and the run peaked at RSS 4218 and 4249 MiB. The budget stopped the
-workload twice (while `unit_find_repair_spot`'s sweep was running, and again among the soak and sweep tests), so the
-gate exited 1 with `isolated_tests.py`'s 137 and no test failed. The scoped gates and the lane gates (four threads)
-passed on the same tranche's merges. The sweeps added this tranche (`unit_think`, `do_repair`, 12000 rows each) are
-the likeliest growth. Candidates: the `sim` lib's limit sized from its measured row, as the other targets'
-reservation already is; or the 12000-row sweeps moved to their own `sweep_*` target. The pass's. One reach.
-**Second red, and Ramon's word** (2026-10-20): the re-run on `163e8d89` was stopped again (RSS 4262 MiB), and the
-same tree at `--test-threads 4` is green, 6 of 6, release 20.9 minutes. So no test fails; the cap is the whole of
-it. Until the fix lands, this tranche's whole gates run at four threads. Ramon: fixed by the next steer — the
-whole gate back at four threads, the footprint worked down (a few ugly tests, likely), or the cap raised a little,
-since every kill has landed just over it.
-**And the lib grew** (3362's merge, parked 3362g): `action_attack`'s and `find_target`'s sweeps sit in `sweep/mod.rs`,
-the `sim` lib, because their ports use crate internals the standalone targets cannot reach — the brief's row naming a
-`sweep_*` target was read and could not be kept. The scoped gate on that merge ran at four threads. **The forty-sixth pass**: **built**. `isolated_tests.target_budget` gives the `sim` lib 4096 MiB at four threads and 512 MiB a thread past four (6144 at eight), `test_target_budgets_preserve_requested_cpu_width` red first on `(8, 6144)`; the whole gate goes back to eight threads from this pass's own gate, which is the measurement. Closed.
-
-(3366) **A lane gate refused for a moved base reads as a broken tool** (3360's "for the Loop", filed at its merge):
-the refusal is one line at the log's foot, and above it seven of `tools/offline_tests.py`'s `test_release_gate`
-cases fail, because they read the real tree's base. A lane reading the log top-down sees a broken gate first.
-Candidate: the offline cases take a fixture tree, not the real one; or the refusal prints first and the gate exits
-before the offline step. The pass's. One reach. **The forty-sixth pass**: **built** (an Opus subagent, merged `b1580355`). The gate's own reads of the tree take an injected `git`, so no offline case reads the real tree — the seven were reproduced under a fake `git` first and pass under it after; and a lane gate reads `base_moved` before its first step: with a path both sides touched it prints the `Base moved:` line first and exits before the offline step, naming `ccc update` (`test_a_lane_gate_refused_for_a_moved_base_says_so_before_the_offline_step`, red first with the offline step running). Closed.
-
-(3368) **A clear that fires on a lane which pushed a draft exits the waiter as LANDED** (the commander, 2026-10-20):
-att-3365 crossed DEEP at 315k, committed and pushed its draft journal (`2caf3aee`) as answered, and ended its turn
-for the armed clear; the row left `working` for the seconds the clear took, and `lanewait.py` exited `LANDED
-att-3365 … none..2caf3aee` with the row back at `working` under the new session — a commander turn that learned
-nothing, and one that would merge a draft if read at face value. Candidates: a row whose newest transcript ends on
-a `/clear` (the UNCLEARED probe's own read) or whose session uuid changed since the wait began is not a landing; or
-LANDED waits two polls for the row to stay out, as ENDED does. The pass's. One reach. **The forty-sixth pass**: **built** (an Opus subagent, merged `8740edd2`). `lanewait.py` records each lane's session uuid (`ccc list --json`'s `session.sessionId`) at the wait's start and poll to poll: a push seen on the poll the uuid changed, or from a lane whose newest transcript ends on `/clear`, or a `PUSHED` recorded while working with the session changed since, prints one `DRAFT <lane> …` line on stderr and keeps the wait; LANDED fires only with the session unchanged (eight tests, `ADraftUnderAClear`; the unchanged `event()` returned the false LANDED on the incident's shape first). Not closed: a poll that falls between the turn's end and the clear's fire sees neither signal. Closed as built.
 
 (3371) **A probe's `commit -am` swept a lane's uncommitted widening into it** (3367's "for the Loop", filed at its
 merge; parked 3367c): the first session's `RON_PROBE_CAV` probe was committed with `commit -am` and took the
@@ -3867,24 +3790,6 @@ widening. The brief's row 1864 says exactly this, and it was broken anyway: a pr
 does not reach the commit it makes three hours later. Candidates: a `commit-msg` hook that refuses a commit whose
 message says `PROBE` and whose diff touches a path outside the probe's own (`RON_DEBUG_*`, `RON_PROBE_*` sites); or
 `tools/probe.py`, which commits only the hunks behind the probe's variable. The pass's. One reach. **The forty-sixth pass**: stays, narrowed. No hook reaches a lane's worktree by git alone and `tools/probe.py` is a day; the candidate is the lane gate's: red when a commit on the branch whose subject names a probe touches a path with no `RON_PROBE_`/`RON_DEBUG_` site, before the merge. One reach.
-
-(3373) **The lane gate's one-second budget skips the writers guard** (the commander, 3362's booking gate on
-`a59bdbb0`): `rondata::writers::a_field_the_sim_writes_is_read_by_something` is timed at 1.08 s
-(`docs/audit/2026-10-15-suite-timings.txt`), over `LANE_BUDGET_SECONDS`, so `--lane --no-widen` leaves it to the
-booking gate. A sweep lane is the lane most likely to add a view struct's field, and 3362 added two
-(`Find::a13`, `Head::newcity`). The booking gate went red on them, and the second commit `13a66de6` fixed the
-guard's own blind spots: the `#[cfg(test)]` `sweep/` directory is now read as test source, and a destructure is
-not seen as a read (the caller reads by field instead). No kill rule tripped, since the lane gate never ran the
-test. Candidates: the paperwork-shaped guards (`writers::`, `docs_guard`) run in every lane gate whatever their
-time; or the guard's scan cached, so it falls under the budget. The pass's. One reach. **The forty-sixth pass**: **built** (an Opus subagent, merged `b1580355`). `PAPERWORK_GUARDS` (`writers::`, `ledger::`, `docs_guard`, `the_handoff_s_`) are never skipped by the lane budget; the `Lane suite:` line says how many over-budget tests were kept as paperwork and the policy file records `paperwork_kept`; `test_the_paperwork_guards_run_in_every_lane_gate_whatever_their_timing` red first on the writers row at 1.08 s. Closed.
-
-(3377) **The sweep generator lacks three shapes `Balance::compute_modifier` needed** (3372's "for the Loop", filed at
-its merge; parked 3372d): TLS statics, a hidden out-pointer answered back, and a 318 KB (399 × 399) table argument.
-3372 wrote that sweep's script by hand. A hand-written script is a second generator nobody regenerates, so `--regen`
-drops it the way 3362's hand-edited bodies were dropped. 3372 also reports that `--stub-alloc` now exists, so 3362a
-(`PathFinder::astar_path`) and the other four parks of that flag (3282b, 3339a, 3348b, 3358d) can be retried: a
-sweep lane's next batch, not the pass's. Candidates for the three shapes: `sweep_gen.py` flags for each, landed with
-`compute_modifier`'s script regenerated from them. The pass's. One reach.
 
 3370's "for the Loop" says `none` under a heading (`## For the Loop`, then `none` on its own line), and
 `docs_guard::a_journal_s_loop_line_is_filed_or_says_none` reads only the heading's line, so the journal read as
@@ -3956,10 +3861,6 @@ driver off, or the process's output muted) rather than a per-path profile write,
 carries it. Ramon's to discuss at the steer. **The forty-first pass**: not measured — a pass cannot hear the box. The check before any mute is made every launch's: one click-free capture with the prefix's audio driver off (`HKCU\Software\Wine\Drivers`, `Audio=""`), scored by `samegame.py` against its twin, because a device that fails to open can move the load's timing. Ramon's. **The forty-second pass**: not measured — a pass cannot hear the box; the check stands as written. Ramon's. **The forty-third pass**: not measured — a pass cannot hear the box; the check stands as written. Ramon's. **The forty-fourth pass**: not measured — a pass cannot hear the box; the check stands as written. Ramon's. **The forty-fifth pass**: not measured — a pass cannot hear the box; the check stands as written. Ramon's. **The forty-sixth pass**: not measured — a pass cannot hear the box; the check stands as written. Ramon's.
 
 ## Loop, filed 2026-10-17 — the fortieth tranche's
-
-(3013) **A `--regen` whose `--clean-stack` changed resets a hand port to `todo!()`** (parked 3010, filed at its merge): the
-`.rs` did not win, against Loop 2886's built rule. Candidate: the regen keeps a hand port whatever flag changed and says
-so, a test made to fail first; and `--clean-stack 256` the default for a logger of five or more reference arguments. One reach. **The fortieth pass**: one reach; stays — the sweep lane's at its next `--clean-stack` regen; closes at the next pass unreached (DECISIONS 54). **The forty-first pass**: a second reach — 3111 (3104's "for the Loop" line, folded here): a `--regen` dropped the `log.is_empty()` → `"-"` line a recorded-stub sweep with no-call rows needs, three times in one item, and the row's print order (singles, `--outarg` values, `--seq` runs, then the slotbase flag) is nowhere in the generated header. Stays — the shape lane's at its next regen; the candidate is a regen that keeps every hand line and writes the order into the header comment, a test made to fail first. **The forty-second pass**: a third reach — 3182: `--regen` kept an old `--answer-range` under a new `--answers` list until `--fresh`, and `--regen --fresh` on a plain name overwrote another overload's sweep (restored from git). Stays — the shape lane's at its next regen; the candidate adds a refusal of a plain name that matches several overloads. **The forty-third pass**: a fourth reach (3260), **reproduced and built in part** — a `--regen` of 3250's `think_peasant` with one more row kept the port *block* (a one-line call) and dropped the 160 lines of `fn think_peasant_port` and two helpers beside it, so 2792's refusal never fired; `kept_items` carries every top-level item the old test holds and the new lacks over, in place (`test_regen_keeps_a_hand_item_outside_the_port_block`, red first). Not kept: a hand block inside the generated loop (3250's `gate_parted` check against `Sim::think_peasant`); the candidate is a fenced region the regen carries by anchor. Stays — the shape lane's. **The forty-fourth pass**: no reach — no journal of the tranche's eight sweep batches names a regen that reset a hand item. Stays one more (the in-body block), the shape lane's; closes at the next pass unreached. **The forty-fifth pass**: two reaches, read and not run — 3337 and 3339 each note that a `--regen` would drop a hand-written port (`replace_hotunit`, `world_reveal_fog`; `objects_data_find_unit`, `build_type_data_find_friends`), so neither lane regenerated. Stays, the shape lane's; the candidate stands (a fenced region the regen carries by anchor).
 
 Loop 2003's reaches in the fortieth tranche, filed here below its own row (its section is at the size ceiling): 2959 the `process_*` bodies' table windows (2987); 2966 `--regen` without `--fresh` (3002) and a 2-byte `--wbias` (3003); 2990 the sibling port copy (3012) and the `--clean-stack` regen (3013); 3004 the regen's exit (3022, closed by the fortieth pass: the generator exits 2 and the lane's grep read stdout); 3014 `--record-edx`'s ten columns; 3024 `--ecx-int` without `--tame` (3043); 3030 `--answers` (3057); 3038 `--cell-win` on a flag byte (3048); 3044, 3064 and 3049 the help's six spellings (3062); 3058 a regen under a batch (3077). **The fortieth pass built** the batch's un-mutated run and its `\n` rows (3037, 3048) and `blind::` in every kind's lane gate (2989).
 
@@ -8842,11 +8743,11 @@ crate carries no `unit_masks2`. Names no score.
   the build order's `+0xc` owner = the unit's owner is assumed; `FILTER_BUILDREPAIR` is treated as subsumed by the action test.
   Negative `idx`/`uid` on the target-order lookup faults the emulator, so those inline guards are unswept. 3362a's astar_path
   parks on `--stub-alloc`: that flag exists now, and the park is to be re-tried.
-- **3372d. `Balance::compute_modifier@00581cc0`: the script is hand-written** (`sweep_balance_compute_modifier.py`): the generator
+- ~~**3372d. `Balance::compute_modifier@00581cc0`: the script is hand-written** (`sweep_balance_compute_modifier.py`): the generator
   lacks TLS statics (`fs:[0x2c]` `_TSS` guards; `--tib` sets only `fs:[0]`), a hidden out-pointer answered back (`--outarg` writes one
   word at offset 0), and a table argument of 399x399 shorts (a generated row prints every window whole: ~250 MB for 200 rows). The
   old 3282c / 3337a park text on `compute_modifier` is stale. Two breaks unrun (loop nesting, plain vs wrapping multiply).
-  `compute_modifier_with`, `Pack` and `Kind::pack()` were split out of `balance.rs`; `xml_product` and the final multiply now wrap.
+  `compute_modifier_with`, `Pack` and `Kind::pack()` were split out of `balance.rs`; `xml_product` and the final multiply now wrap.~~ **Struck by the forty-sixth pass (Loop 3377, built): `sweep_gen.py --tls`, `--outret` and `--table-arg` are the three shapes, and the script and the sweep are regenerated from one kept `# sweep_gen:` line — 600 rows agree, two planted mutants fail (`62cd6f02`).**
 - **3372e. `Unit::find_build_spot@00603e20`: the second pass.** The original asks the building prefix of the shared result array for
   an action (`+0xa8` on a Build object); the Sim treats those as no action. `Sim` has no worker-stance-type concept
   (`worker_stance` is the unit's `stance`). `find_construct_sites` and `find_units_friendly` are unswept. The 32-break batch was
