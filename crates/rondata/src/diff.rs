@@ -53,6 +53,8 @@ mod floors;
 #[cfg(test)]
 mod french_word;
 #[cfg(test)]
+mod german_sahara_word;
+#[cfg(test)]
 mod german_word;
 #[cfg(test)]
 mod golden;
@@ -110,6 +112,8 @@ mod spanish_word;
 mod third;
 #[cfg(test)]
 mod third_pair;
+#[cfg(test)]
+mod turkish_word;
 mod unit;
 
 #[cfg(test)]

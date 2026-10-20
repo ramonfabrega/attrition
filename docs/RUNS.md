@@ -20242,3 +20242,120 @@ SHA-256 `507c3e1f85fc6c99544794c461a60ec1e436a50a9deb7b34dc2dedce75adaeea`.
 
 **What it holds**: who=1's Pyramids `1/2031` at `construct_hits` 2200 on block 17209 (ours 1101), finished on 17214;
 `run999c_s_word_frame_is_widened_whole` — 879 keys before the free first wonder, 50 after.
+
+## run1004 — the battery's replacement lobby: Great Lakes, the Americans at difficulty 4, a `DUMP_ALL` start (2026-10-20, item 3380, `att-3380`)
+
+`docs/AI.md` §290. **What the disk could not answer**: no dump holds an American game on Great Lakes — the Americans'
+only games are East Indies 1 (a header survey of 564 gamelogs). Entry 72's rule (2) as amended by 84: no map-14 dump
+holds tribes 1, 3, 5, 7, 9, 12, 15, 16, 17, 20, 21, 22; of those held only by closed games the Americans reach the most
+census functions (14; the Spanish and the Dutch 9), and tier 4 is the tier the Turks leave. Named to the commander
+before the capture (att-3378 took the Indians at Great Sahara 3). Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1004`: `--map 14 --end-frame 36 --timeout 1200 --dump-all-start
+--ai-tribe 20 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched 15:10:25, exited 15:16:42 (377 s). `success`, 37 frames, players `(0, 4, 7), (1, 20, 1)`.
+  Filed with `filerun.py run1004 greatlakes-american-diff4-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1004-greatlakes-american-diff4-start.txt`, 150,808,582 bytes,
+SHA-256 `e272034b9fd83aea3d4b4655f098d7009a73e2d1763549d9cec131af29a02bb0`.
+
+Archive `rontrace-run1004.log`, 9,726,112 bytes,
+SHA-256 `d7bc7e5a04b171f393d6826f741863fcf0ff157a1a9e91011cee2e34de297e88`.
+
+## run1004b — the Americans at Great Lakes 4: the draw stream to the game's end (2026-10-20, item 3380, `att-3380`)
+
+`docs/AI.md` §290. run962b's recipe on map 14 with `--ai-tribe 20 --profile DIFFICULTY=4` and run643's four
+`--detail` lines.
+- Pool lane 3. Launched 15:10:33, exited 15:11:33 (60 s). `success`, 6153 frames, **the game ended itself on 6152**
+  (closing block 6153, `ended_early` true). `rngcmp.py rontrace-run1004.log rontrace-run1004b.log`: **37 identical, 0
+  differing**. Filed with `filerun.py run1004b greatlakes-american-diff4-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1004b-greatlakes-american-diff4-24k-trace.txt`, 12,578,890 bytes,
+SHA-256 `6e1efd3bb2f8dc08df480ad6bd99e1cab0df580022e4471158ed3310e658dd02`.
+
+Archive `rontrace-run1004b.log`, 30,959,552 bytes,
+SHA-256 `9a76eb3ada08da0c760dd765361ddba081a645f8978ada57dd2ec38a8ddc2f61`.
+
+**What it holds**: the battery's `GreatLakesAmericanTier4`, **3176 / 3176** of 6152 on its first try (at 0: ours
+`Animal::think_bird+0x82`, theirs `Leader::compute_sites+0x4ac`), pinned in `battery::BATTERY`.
+
+## run1005 — the Turkish word: the word 14991's window, blocks 14985..15241 at `LEADERS=9` (2026-10-20, item 3380, `att-3380`)
+
+`docs/AI.md` §290. **What the disk could not answer**: run898 dumps blocks 0..36 and run898b its setup and closing
+blocks only, so no dump held the Trebuchet `1/70`'s orders on the word's block. `--map 14 --end-frame 15246 --timeout
+7200 --log-window 14985 15241 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 8
+--cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched through the driver at 15:10:26, the pool's lane taken at 15:16:57, exited 15:38:31.
+  `success`, 15247 frames; `rngcmp.py` vs run898b: 15247 identical. Filed with `filerun.py run1005
+  greatlakes-turkish-diff4-window-14985-15242`.
+- Minutes waited on another lane: 6.5 (all three lanes held, one by run1004 and two by att-3378).
+
+Archive `gamelog-run1005-greatlakes-turkish-diff4-window-14985-15242.txt`, 590,874,689 bytes,
+SHA-256 `30497e0ab6068421021dc323d95f1c89aa2f240319ada20e00a5a0b1c9f183e4`.
+
+Archive `rontrace-run1005.log`, 102,083,904 bytes,
+SHA-256 `b00c1a6fae4b8459ff938dac8e1f9a4f95af9ad52ed5279940f93bb4cf941650`.
+
+**What it holds**: on block 14992 the Trebuchet `1/70` holds a `MOVEORDER` to (7368, 29544) under its `ATTACKORDER` on
+Napata `0/2000` — the bombard ring's stand-off at 19 tiles; `run1005_s_word_frame_is_widened_whole` — 57 keys after
+the siege range (the siege units' `mylos` 4 against 7), 53 after the siege sight.
+## run1002 — the battery's replacement lobby `GreatSaharaIndianTier3`: a `DUMP_ALL` start (2026-10-20, item 3378, `att-3378`)
+
+`docs/AI.md` §289. **What the disk could not answer**: no dump holds an Indian game on Great Sahara. A header survey of
+567 gamelogs puts no map-7 dump on the Inca, Romans, Turks, Chinese, Americans or Indians. Entry 72's rule (2) as
+amended by 84: the Romans, Turks and Chinese are held by open battery lobbies and the Americans were att-3380's, so
+of the nations held only by closed games off Great Sahara the Indians (`EastIndiesIndianTier2`, 4 census functions)
+lead the Inca (3). Tier 3 is the tier the Germans leave; the commander relayed the pick before the capture. Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1002`: `--map 7 --end-frame 36 --timeout 1200
+--dump-all-start --ai-tribe 21 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 15:11:42, exited 15:18:03. `success`, 37 frames, `players` tribe 4 and tribe 21.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1002-greatsahara-indian-diff3-start.txt`, 149,610,399 bytes,
+SHA-256 `4697dd18143fc1c3a848f2bdb0265d64a64a7d539276ac00708f61f6b55e01cf`.
+
+Archive `rontrace-run1002.log`, 8,463,456 bytes,
+SHA-256 `3db70d7974f817503a78b62f2cdc75a90120766a7177199c55017a0a3cc8f6fe`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaIndianTier3` start.
+
+## run1002b — `GreatSaharaIndianTier3`'s draw stream (2026-10-20, item 3378, `att-3378`)
+
+`docs/AI.md` §289. run1000b's recipe with `--ai-tribe 21`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=3` and run643's four
+`--detail` lines.
+- Pool lane 3. Launched 15:23:15, exited 15:24:45. `success`, **the game ended itself on 16564** (closing block
+  16565, `ended_early` true). `rngcmp.py rontrace-run1002.log rontrace-run1002b.log`: **37 identical, 0 differing**.
+  Filed with `filerun.py run1002b greatsahara-indian-diff3-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1002b-greatsahara-indian-diff3-24k-trace.txt`, 12,730,317 bytes,
+SHA-256 `14fb1f032612a3da0932f6a6831583640d092c839f1811315c053812e68aa687`.
+
+Archive `rontrace-run1002b.log`, 91,153,440 bytes,
+SHA-256 `e0b6980f3dd14937226df00521ee91ea1445ad852facf792ee12d6b0593ae591`.
+
+**What it holds**: the Indians' first try, **15922 / 15922 of 16564** (at 7: ours `Farms::inc_time+0x1ae`, theirs
+`Object::take_damage+0xe1`). Pinned in `battery::BATTERY`.
+
+## run1003 — the German word at Great Sahara: the word 13582's window, blocks 13576..13832 at `GOODS=3` (2026-10-20, item 3378, `att-3378`)
+
+`docs/AI.md` §289. **What the disk could not answer**: run1000 dumps blocks 0..36 and run1000b its setup and closing
+blocks only, so no dump held who=1's ledger or make list on the word's block. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1003`: `--map 7 --end-frame 13837 --timeout 5400 --log-window 13576
+13832 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 12 --cover cover=0 --profile
+DIFFICULTY=3`.
+- Pool lane 1. Launched 15:10:04, exited 15:29:29. `success`, 13838 frames; `rngcmp.py` vs run1000b: 13838 identical.
+  Filed with `filerun.py run1003 greatsahara-german-diff3-window-13576-13833`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1003-greatsahara-german-diff3-window-13576-13833.txt`, 516,396,779 bytes,
+SHA-256 `bae6c89ada24d613425669a0da6d19c06517ae910f369fa259fba8b29ebe6e4d`.
+
+Archive `rontrace-run1003.log`, 56,600,256 bytes,
+SHA-256 `284c98e1a029c5f2b9754a245f7d3cab14f5df451299ee5524cd1bba16926e6b`.
+
+**What it holds**: on block 13579 who=1's rebuilt make list lists Carpentry (609) at slot 1, `val` 120000, where ours
+listed it at 30000 — a German's industry tech at half price. Test `run1003_s_word_frame_is_widened_whole`: 1039 keys
+on the first try, 26 after the build (the standing family).

@@ -1040,6 +1040,10 @@ pub struct Tuning {
     /// metal gathering lines — with the Hanging Gardens held
     /// (`get_cost@00664090:1270`–`1276`). Ships as 66.
     pub hanging_gardens_industry_discount: i32,
+    /// Percent off an industry technology's price for a German leader, on
+    /// the Hanging Gardens' predicate and after it
+    /// (`get_cost@00664090:1277`–`1281`). Ships as 50.
+    pub german_industry_discount: i32,
     /// Percent faster construction with the President nearby.
     pub thepresident_building_speed: i32,
     /// Percent faster unit training at a building with the President nearby
@@ -1081,6 +1085,12 @@ pub struct Tuning {
     pub aztec_max_light: i32,
     /// Siege engines a Turkish Siege Factory delivers.
     pub turk_free_siege: i32,
+    /// `TURK_SIEGE_RANGE` — tiles a Turkish leader's siege unit adds to its
+    /// range (`UnitData::max_range@0060fe90`'s siege arm, item 3380).
+    pub turk_siege_range: i32,
+    /// `TURK_SIEGE_LOS` — tiles a Turkish leader's siege unit adds to its
+    /// sight (`Unit::update_los@0060e4d0`'s siege arm, item 3380).
+    pub turk_siege_los: i32,
     /// Whether a French Siege Factory delivers a supply wagon, and a French
     /// fort a general.
     pub french_free_supply: i32,
@@ -1592,6 +1602,7 @@ impl Tuning {
         korean_tower_cost: 33,
         hanging_gardens_build_time: 0,
         hanging_gardens_industry_discount: 66,
+        german_industry_discount: 50,
         thepresident_building_speed: 33,
         thepresident_unit_build_speed: 100,
         iroquois_quick_senate: 1,
@@ -1611,6 +1622,8 @@ impl Tuning {
         aztec_barracks_light: 1,
         aztec_max_light: 3,
         turk_free_siege: 2,
+        turk_siege_range: 3,
+        turk_siege_los: 3,
         french_free_supply: 1,
         french_free_general: 1,
         spanish_free_trireme: 1,
@@ -2398,6 +2411,10 @@ impl Tuning {
                 Slot::Value(T.hanging_gardens_industry_discount),
             ),
             (
+                "GERMAN_INDUSTRY_DISCOUNT",
+                Slot::Value(T.german_industry_discount),
+            ),
+            (
                 "THEPRESIDENT_BUILDING_SPEED",
                 Slot::Value(T.thepresident_building_speed),
             ),
@@ -2446,6 +2463,8 @@ impl Tuning {
             ("AZTEC_BARRACKS_LIGHT", Slot::Value(T.aztec_barracks_light)),
             ("AZTEC_MAX_LIGHT", Slot::Value(T.aztec_max_light)),
             ("TURK_FREE_SIEGE", Slot::Value(T.turk_free_siege)),
+            ("TURK_SIEGE_RANGE", Slot::Value(T.turk_siege_range)),
+            ("TURK_SIEGE_LOS", Slot::Value(T.turk_siege_los)),
             ("FRENCH_FREE_SUPPLY", Slot::Value(T.french_free_supply)),
             ("FRENCH_FREE_GENERAL", Slot::Value(T.french_free_general)),
             ("SPANISH_FREE_TRIREME", Slot::Value(T.spanish_free_trireme)),

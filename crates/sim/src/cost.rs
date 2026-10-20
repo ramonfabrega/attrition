@@ -333,6 +333,12 @@ pub struct Modifiers {
     /// [`Modifiers::late_discount`] (item 3332, `docs/AI.md` §269). Zero is
     /// the identity.
     pub industry: i32,
+    /// `get_cost`'s **German industry term** (`:1277`–`1281`), on the same
+    /// industry predicate as [`Modifiers::industry`] and right after it:
+    /// `GERMAN_INDUSTRY_DISCOUNT` off for a leader with
+    /// `has_tribe_bonus(0xc)`, its own `(100 − x) × cost / 100` (item 3378,
+    /// `docs/AI.md` §289). Zero is the identity.
+    pub german_industry: i32,
     /// `get_cost`'s **Greek research arm** (`TypeData::get_cost@00664090`,
     /// `LAB_006667c4`, `:1250`–`1255`): an age or a library epoch priced
     /// for a leader with `has_tribe_bonus(5)` takes `GREEK_RESEARCH_COST`
@@ -732,6 +738,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.industry != 0 {
         cost = (100 - m.industry) * cost / 100;
+    }
+    if m.german_industry != 0 {
+        cost = (100 - m.german_industry) * cost / 100;
     }
     cost = cost * (100 - m.late_discount) / 100;
     if m.monarchy != 0 {
@@ -2113,6 +2122,19 @@ mod tests {
         assert_eq!(price(&Modifiers::default())[Resource::Timber.index()], 250);
         assert_eq!(price(&gardens)[Resource::Timber.index()], 85);
         assert_eq!(price(&gardens)[Resource::Food.index()], 85);
+        // The German term is its own step after the Gardens' (item 3378):
+        // 250 → 125 alone, and 85 → 42 behind them — never a combined 83 %.
+        let german = Modifiers {
+            german_industry: T.german_industry_discount,
+            ..Modifiers::default()
+        };
+        let both = Modifiers {
+            german_industry: T.german_industry_discount,
+            ..gardens
+        };
+        assert_eq!(T.german_industry_discount, 50);
+        assert_eq!(price(&german)[Resource::Timber.index()], 125);
+        assert_eq!(price(&both)[Resource::Timber.index()], 42);
     }
 
     /// The redirect is a recursive call, so it chains. Oil names Metal and

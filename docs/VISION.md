@@ -101,6 +101,12 @@ item 1614 (`docs/AI.md` §172: the coverage pair's General `1/150` sees
 14 on its type's 8); each is an addition to a value whose consumer divides it by
 two, so a term is worth a *fog* cell only when it reaches 2.
 
+**Term 9's Turkish half is built** (item 3380, `docs/AI.md` §290):
+`TURK_SIEGE_LOS` (3) on a siege type of a `has_tribe_bonus(8)` leader,
+after 5's clamp — `GreatLakesTurkishTier4`'s packed Trebuchets and
+Catapults print `mylos 7` in run1005 where the clamp alone gives 4
+(`run1005_s_word_frame_is_widened_whole`). Its two wonder terms are not.
+
 ~~Terms 6–11 are read and not implemented~~ — **term 6 is built** (item
 1354): `LeaderData::get_troops_los_upgrade@006e1110` counts every one of
 `TROOPS_LOS_1..3` held (`TECHBONUSES` rows 61–63: Herbal Lore,
