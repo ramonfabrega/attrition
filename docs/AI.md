@@ -24597,7 +24597,7 @@ row past the standing family is on block 14943: `1/79`'s `path[19].flags`, ours 
 land caravan at sea — under a `TRADEORDER` (home 2, far city 3) with a `MOVEORDER` current. On 14942 both sides pop
 the reached node, take the next, (33952, 21664), flagged `0x20` (`path_flag::ROAD`, `build_road`'s), strip `0x20`
 from every entry (`do_move@005f7b30:437`–`478`, `docs/CARAVAN.md` §10) and push (33944, 21714) with tolerance 0 and
-`| 4`, the region check (§4.4 of `docs/ORDERS.md`). The tile, (176, 112), is a building's (`mask 0x6003`).
+`| 4`, the region check (§4.4 of `docs/ORDERS.md`). The tile, (176, 112), is a building's (its mask's low bits 3).
 
 **Two halves.**
 
