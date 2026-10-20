@@ -5835,6 +5835,57 @@ fn capitalism_gained_after_frame_zero_gifts_its_oil() {
     assert!(sim.holds_capitalism_bonus(1));
 }
 
+/// **A Senate that finishes after its government's patriot has been born
+/// and lost trains another** — `Build::activate@00623e20`'s Senate arm head
+/// (lines 210–225, item 3364): `gov_hero_frame` is set, no patriot of the
+/// owner's stands, the frame has come, `get_gov_hero` names a type. A
+/// captured Senate, or one finished while a patriot stands, trains none.
+#[test]
+fn a_senate_activating_with_no_patriot_left_trains_one() {
+    use crate::tech::{Preq, TechTree, TypeDef, UnitTraits as Traits};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let senate_t = tree.add(TypeDef::building("Senate"));
+    let despotism = tree.add(TypeDef::gov("Despotism", 0, 0).at(senate_t));
+    let patriot = Traits {
+        patriot: true,
+        hero: true,
+        ..Traits::default()
+    };
+    let despot_t = tree.add(TypeDef::unit("The Despot", patriot).needs(0, despotism));
+    tree.roles.gov_bonuses = vec![([Preq::Of(despotism), Preq::None, Preq::None], despotism)];
+    sim.set_tech_tree(tree);
+    sim.build_types[t.senate].tree = Some(senate_t);
+    let despot = sim.add_unit_type(UnitType {
+        tree: Some(despot_t),
+        hits: 109,
+        ..UnitType::default()
+    });
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    for _ in 0..5 {
+        sim.tick();
+    }
+    let despots = |sim: &Sim| {
+        (0..sim.units.len())
+            .filter(|&u| sim.units[u].alive() && sim.units[u].ty == Some(despot))
+            .count()
+    };
+    sim.tech[0].tech[despotism] = true;
+    // Never born: `gov_hero_frame` is -1 and the arm's head is shut.
+    let first = sim.init_build(0, t.senate, tile_pos(36, 32), false);
+    finish(&mut sim, first);
+    assert_eq!(despots(&sim), 0);
+    // Born and lost: the stamp is set, nobody stands, its frame has come.
+    sim.tech[0].gov_hero_frame = 1;
+    let second = sim.init_build(0, t.senate, tile_pos(28, 32), false);
+    finish(&mut sim, second);
+    for _ in 0..40 {
+        sim.tick();
+    }
+    assert_eq!(despots(&sim), 1, "the second Senate trains the patriot");
+}
+
 #[test]
 fn a_senate_that_finishes_a_government_trains_its_patriot_once() {
     use crate::tech::{Preq, TechTree, TypeDef, UnitTraits as Traits};

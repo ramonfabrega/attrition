@@ -186,6 +186,10 @@ mod good_walk_data;
 mod graphicwinxml_get_graphicwinxml;
 #[path = "greatest_common_factor.rs"]
 mod greatest_common_factor;
+#[path = "group_action_alarm.rs"]
+mod group_action_alarm;
+#[path = "group_action_alarm_head.rs"]
+mod group_action_alarm_head;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
 #[path = "group_action_buildmask.rs"]
@@ -608,6 +612,8 @@ mod object_data_say_name;
 mod object_data_support;
 #[path = "object_data_valid_target_const.rs"]
 mod object_data_valid_target_const;
+#[path = "object_die.rs"]
+mod object_die;
 #[path = "object_disband.rs"]
 mod object_disband;
 #[path = "object_eject_contents.rs"]
@@ -692,6 +698,8 @@ mod objects_data_count_nukes_in_flight;
 mod objects_data_find;
 #[path = "objects_data_find_any_building_at.rs"]
 mod objects_data_find_any_building_at;
+#[path = "objects_data_find_building.rs"]
+mod objects_data_find_building;
 #[path = "objects_data_find_building_placed_at.rs"]
 mod objects_data_find_building_placed_at;
 #[path = "objects_data_find_city.rs"]
