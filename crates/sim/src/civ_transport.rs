@@ -175,7 +175,11 @@ pub fn think_civilian_transport_steps<V: CivTransportView>(v: &mut V, colonise: 
         if sea == SEA_LAST + 1 {
             continue;
         }
-        let stride = if size / 0x32 < 0x10 { 0x10 } else { size / 0x32 };
+        let stride = if size / 0x32 < 0x10 {
+            0x10
+        } else {
+            size / 0x32
+        };
         let mut phase = v.index().wrapping_add(v.frame());
         let mut found = false;
         for _ in 0..stride {
@@ -214,7 +218,12 @@ pub fn think_civilian_transport_steps<V: CivTransportView>(v: &mut V, colonise: 
     v.group_add();
     let handle = v.group_push();
     let kind = if v.exploring() { 3 } else { 1 };
-    v.group_move_near(handle, best_cell.x * 0x300 + 0x180, best_cell.y * 0x300 + 0x180, kind);
+    v.group_move_near(
+        handle,
+        best_cell.x * 0x300 + 0x180,
+        best_cell.y * 0x300 + 0x180,
+        kind,
+    );
     if colonise {
         v.bump_xport();
         let r = v.cell_region(best_cell);
@@ -329,7 +338,11 @@ impl CivTransportView for SimCivTransport<'_> {
     /// cargo test (an on-map land unit type of the unit range) stands in for
     /// the bit the original reads here.
     fn rec_flags68(&self) -> i32 {
-        if self.sim.is_cargo(self.u) { 0x80_0000 } else { 0 }
+        if self.sim.is_cargo(self.u) {
+            0x80_0000
+        } else {
+            0
+        }
     }
     fn rec_flags6c(&self) -> i32 {
         0
@@ -476,10 +489,7 @@ impl CivTransportView for SimCivTransport<'_> {
     fn bump_reg_xport(&mut self, slot: i32) {
         let w = self.sim.units[self.u].owner as usize;
         if let Some(r) = self.region(slot)
-            && let Some(n) = self.sim.ai[w]
-                .census
-                .reg_xport_peasants
-                .get_mut(r as usize)
+            && let Some(n) = self.sim.ai[w].census.reg_xport_peasants.get_mut(r as usize)
         {
             *n += 1;
         }
