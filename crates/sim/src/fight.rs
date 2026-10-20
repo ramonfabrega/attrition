@@ -1439,6 +1439,10 @@ impl Sim {
     pub(crate) fn fight_as(&mut self, i: usize, target: Obj, frame: i64, cavarch: bool) {
         let me = Obj::Unit(i);
         let p = self.profile(me);
+        // `local_1c`, `is_in_range`'s out-distance (`fight@005fd4d0:481`),
+        // measured before the cell-centre snap below: the Immortals' arm
+        // reads it at `:784`.
+        let reach = self.attack_dist(me, target);
         // Facing: toward the target — or, for a ship that attacks
         // sideways, a quarter turn off it (`docs/COMBAT.md` §49).
         let (from, to) = (self.units[i].pos, self.pos_of(target));
@@ -1477,7 +1481,23 @@ impl Sim {
             // `Unit::fight@005fd4d0`, before 005feec1 (COMBAT §89).
             let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[i].pos));
             self.set_new_location(i, snap, true);
-            self.swing_anim(i, direct);
+            if p.is(role::IMMORTALS) && reach < 0xc0 {
+                // **The Immortals' special strike** (`fight@005fd4d0:784`
+                // –`:803`; item 3355, `docs/AI.md` §279): inside `0xc0`
+                // the swing is `CHAR_ATTACKSPECIAL` with no roll, and the
+                // blow lands now, once per figure `0 .. guy_mark` — before
+                // `set_attacking`, as `goto LAB_005feec6` has it. The
+                // ranged tail below still runs and launches nothing: the
+                // piece has no release on the special slot. The Persian
+                // word's 6387: `1/10`, 144 from the citizen `0/4`, struck
+                // it for 3 where this crate swung `CHAR_ATTACK2` and threw.
+                self.set_anim(i, anim::ATTACKSPECIAL, false, false);
+                for _ in 0..anim::SQUAD_SIZE {
+                    self.do_damage(me, target, angle, false, 0x100, false, false, frame);
+                }
+            } else {
+                self.swing_anim(i, direct);
+            }
         }
         // `Unit::fight@005fd4d0`'s `LAB_005feec6`, immediately after
         // `set_anim` and before the damage: the strike makes this unit
@@ -1746,11 +1766,13 @@ impl Sim {
     /// - a **target** of type `PATROLBOAT` (`0x185`): the same pair by the
     ///   target's own domain, `param_3 = 0`;
     /// - `is(IMMORTALS)` (`0xa2`) inside `0xc0`: `CHAR_ATTACKSPECIAL`,
-    ///   `param_3 = 0`, with its own per-figure damage;
+    ///   `param_3 = 0`, with its own per-figure damage — taken in
+    ///   [`Sim::fight_as`] ahead of this (item 3355);
     /// - everything else: `CHAR_ATTACK1`, `param_3 = 1`.
     ///
-    /// SEAM: the middle two are not modelled — three elephant types and
-    /// one target type — and neither draws, so the cost is which slot
+    /// SEAM: the patrol-boat arm is not modelled — one target type — nor
+    /// the `unit_flags & 0x400` arm ahead of the Immortals' (`CHAR_
+    /// ATTACKSPECIAL` for a ranged type), and neither draws, so the cost is which slot
     /// plays rather than a word. The `z` arm compares the direct bearing,
     /// `angle` here, against `Unit::fight`'s own attack angle, which is the
     /// heading [`Sim::attack_angle`] has just set. That is the bearing, or
