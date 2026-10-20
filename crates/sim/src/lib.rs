@@ -69,6 +69,7 @@ pub mod cast;
 pub mod cast_decoy;
 pub mod cast_transport;
 pub mod cavarch;
+pub mod check_build_view;
 pub mod city;
 pub mod collide;
 pub mod combat;

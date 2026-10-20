@@ -1490,6 +1490,7 @@ OUTARG = {outarg!r}
 CDECLSTUBS = {cdeclstubs!r}
 STUBWRITE = {stubwrite!r}
 STUBCOPY = {stubcopy!r}
+STUBALLOC = {stuballoc!r}
 STACKCLEAN = {stackclean!r}
 STOPSTUB = {stopstub!r}
 INITCALLS = {initcalls!r}
@@ -2083,6 +2084,10 @@ def main(argv):
         for idx in STUBCOPY:
             h.answers[names[idx]] = copy_answer(h.answers[names[idx]], lambda a_, n_: bytes(uc.mem_read(a_, n_)),
                                                 uc.mem_write, 0x1000)
+        # `--stub-alloc IDX` (parked 3282b, 3339a, 3348b/c, 3372): a stubbed `malloc` answering a fresh
+        # address of the bump heap each call, so a stack-resident `SimpleArray` grows into its own buffer.
+        for idx in STUBALLOC:
+            h.answers[names[idx]] = lambda ecx, args: h.alloc(max(args[0] & 0xFFFFFFFF, 16))
         derefs = [[] for _ in DEREF]
         for (idx, k, n, wr), sink in zip(DEREF, derefs):
             h.answers[names[idx]] = read_arg(h.answers[names[idx]], k, n,
@@ -2401,7 +2406,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                  argrange=(), slotbase=(), module=None, ecx_int=None, answers=(), vtat=None, answer_wins=(),
                  cdecl=False, tib=False, argeq=(), seq=(), answer_range=(), cell_this=(), vtat_also=(), vtat_half=(), alias=(), answer_by=(), vtat_image=(), vtat_keep=(), link_hi=(),
                  place_null=(), sparse=(), ptrarg_null=(), record=(), links=(), outarg=(), stub_cdecl=(),
-                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), clean_stack=0, stop_stub=None, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000):
+                 rows=220, record_order=False, record_edx=False, edx=None, edx_win=None, xmm=(), tame=False, stub_write=(), stub_copy=(), stub_alloc=(), clean_stack=0, stop_stub=None, deref=(), ecx_answer=(), ecx_out=(), ring=(), gtab=(), init_call=(), max_insns=200_000):
     name, va = parse(spec)
     if rows < 200:
         raise ValueError('--rows N is at least the 200 rows the test asks for')
@@ -2666,6 +2671,15 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         if idx not in pcdecl:
             raise ValueError('--stub-copy IDX names a `__cdecl` callee: it needs --stub-cdecl IDX beside it')
         pcopy.append(idx)
+    palloc = []
+    for spec in stub_alloc:
+        try:
+            idx = int(spec, 0)
+        except ValueError:
+            raise ValueError(f'--stub-alloc is IDX, a --stub callee by its order on the line, not {spec!r}') from None
+        if not 0 <= idx < len(pstubs) or pstubs[idx][0] not in ('call', 'iat') or pstubs[idx][2] < 1:
+            raise ValueError('--stub-alloc IDX names a direct callee or import of one argument or more (`malloc`: the size)')
+        palloc.append(idx)
     pecxans = []
     for spec in ecx_answer:
         m_ = re.fullmatch(r'(\d+):(\w+)(?::(\w+))?', spec)
@@ -2709,7 +2723,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
     if tame and pecx is None and pedx is None:
         raise ValueError('--tame holds --ecx-int or --edx to its draw: name one')
     if not (pcells or pat or pptr or pstubs or pplaces or pwbias or pfills or prange or pslot or pansw or peq
-            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or plinkhi or pout or pcdecl or pwrite or pcopy or clean_stack or pecxout or init_call):
+            or pseq or pansr or pthis or palso or phalf or palias or pby or pimg or edx_win or pxmm or psparse or pgtab or plinks or plinkhi or pout or pcdecl or pwrite or pcopy or palloc or clean_stack or pecxout or init_call):
         if pecx is not None:
             raise ValueError('--ecx-int needs a window: the plain obj has no row for it')
         if pedx is not None:
@@ -2772,6 +2786,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         + ([f'the stack {clean_stack} bytes under the call is zeroed before each row'] if clean_stack else [])
         + ([f'the call ends where stub {stop_stub} is first entered (the function is swept to that callee)'] if stop_stub is not None else [])
         + [f'`{int(v, 0):#010x}` run once before the rows (a table builder the startup would have run)' for v in init_call]
+        + [f'stub {idx} answers a fresh bump-heap address of its argument 0 bytes (a `malloc`)' for idx in palloc]
         + [f'stub {idx} copies its argument 2 bytes from argument 1 to argument 0 (a `memcpy`)' for idx in pcopy]
         + [f'stub {idx} lowers `{w}+{o:#x}` ({z} bytes) by one each call' if v == 'dec'
            else f'stub {idx} writes {v} ({z} bytes) at `{w}+{o:#x}` each call' for idx, w, o, z, v in pwrite]
@@ -2814,7 +2829,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    answers=pans, vtat=pvtat, answerwin=pansw, cdecl=cdecl, tib=tib, argeq=peq,
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
-                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
+                                   outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stuballoc=palloc, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
                                    ret=ret if ret == 'xmm0' or ret.startswith('ebp:') else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
@@ -3688,6 +3703,10 @@ def main(argv=None):
     ap.add_argument('--stub-copy', action='append', default=[], metavar='IDX',
                     help='obj: stub IDX, a `__cdecl` callee of three arguments, copies argument 2 bytes from argument 1 '
                          'to argument 0 and answers the destination, as the `memcpy` import thunk would (item 2921, parked 2906)')
+    ap.add_argument('--stub-alloc', action='append', default=[], metavar='IDX',
+                    help='obj: stub IDX, a callee or import of one argument (`malloc`, `call [0xac54f0]`), answers a fresh '
+                         'address of the bump heap a call, argument 0 bytes: a stack-resident `SimpleArray` grows into '
+                         'its own buffer (parked 3282b, 3339a, 3348b, 3372)')
     ap.add_argument('--init-call', action='append', default=[], metavar='VA',
                     help='obj: an argument-less function run once before the rows, so a table the startup builds '
                          '(`circle_init`, `ring_init`) is the original\'s own; its `memcpy` is a --stub-copy stub '
@@ -3976,7 +3995,7 @@ def main(argv=None):
                                                     sparse=args.sparse, ptrarg_null=args.ptrarg_null,
                                                     record=args.record, record_order=args.record_order, record_edx=args.record_edx, links=args.link, link_hi=args.link_hi,
                                                     outarg=args.outarg, stub_cdecl=args.stub_cdecl, rows=args.rows,
-                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy, clean_stack=args.clean_stack, stop_stub=args.stop_stub, init_call=args.init_call, max_insns=args.max_insns,
+                                                    edx=args.edx, edx_win=args.edx_win, xmm=args.xmm, tame=args.tame, stub_write=args.stub_write, stub_copy=args.stub_copy, stub_alloc=args.stub_alloc, clean_stack=args.clean_stack, stop_stub=args.stop_stub, init_call=args.init_call, max_insns=args.max_insns,
                                                     deref=args.deref, ecx_answer=args.ecx_answer, ecx_out=args.ecx_out, ring=args.ring, gtab=args.gtab)
         elif args.shape == 'vcall' and args.base is not None and args.base_call is not None:
             sp, script, tp, test, mod = generate_vcallbase(args.function, item=args.item, slot=args.slot,

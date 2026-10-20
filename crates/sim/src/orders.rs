@@ -7889,85 +7889,36 @@ impl Sim {
     }
 
     /// `Unit::check_build_order` (§5.3): pop the queued build orders, re-add
-    /// the surviving sites least-crowded first, all with the action bit.
+    /// the surviving sites, least crowded first, all with the action bit.
+    ///
+    /// The walk is [`crate::check_build_view::check_build_order_steps`] over
+    /// [`SimCheckBuild`] (item 3372, swept against the original under
+    /// unicorn): a **cursor** walk, not a run of kills (the second reading's
+    /// R3 C2). An intervening transit `MOVE_TO` is stepped over, not removed;
+    /// the loop's own gate is `get_type() == BUILD_AT || get_type() ==
+    /// MOVE_TO`, so a swarm's `EXPLORE_TO` ends the scan; and the site the
+    /// scan **stops** on keeps its order (R3 C5): the `break` jumps out
+    /// before the `repath; kill`, so that site ends the pass with a
+    /// duplicate, which the next `do_build` disposes of through its
+    /// "already finished" branch. After a kill the original re-tails the list
+    /// and resumes from the front.
+    ///
+    /// **The crowd** is the units `Objects::find_units(SEARCH_FRIENDLY, owner,
+    /// UNIT_BUILD_RESPOND_RANGE * 0xc0, 0x200, FILTER_BUILDREPAIR)` returns
+    /// (the sweep forced this: the reading had counted every unit of the
+    /// owner, in reach or not), less this unit itself — the count skips the
+    /// unit doing the counting (`check_build_order@00603470:132` guards the
+    /// whole body on `this_00->o != this->o`; `find_build_spot`'s otherwise
+    /// identical count does *not*; see the audit's R3 F2) — whose action is a
+    /// `BUILD_AT` on the site, issued under this owner.
     fn check_build_order(&mut self, u: usize) {
-        let mut sites = Vec::new();
-        // A **cursor** walk, not a run of kills (the second reading's R3 C2 —
-        // the first reading had this hedged as a stale decompile local; the
-        // listing at `0x6036fd` is a plain `current_node = current_node->prev`
-        // with no call between the flag test and the advance). Three
-        // consequences the earlier code got wrong:
-        //
-        //  * an intervening transit move is **stepped over, not removed**;
-        //  * only a `MOVE_TO` is stepped over — the loop's own gate is
-        //    `get_type() == BUILD_AT || get_type() == MOVE_TO`, so a swarm's
-        //    `EXPLORE_TO` ends the scan;
-        //  * the site the scan **stops** on keeps its order (R3 C5, a finding
-        //    neither reading made): the `break` jumps out before the
-        //    `repath; kill`, so that site ends the pass with a duplicate,
-        //    which the next `do_build` disposes of through its
-        //    "already finished" branch.
-        //
-        // After a kill the original re-tails the list and resumes from the
-        // front, which is what resetting the cursor to 0 reproduces.
-        let mut i = 0usize;
-        while let Some(o) = self.units[u].orders.get(i).copied() {
-            match o.body {
-                Body::Build(b) => {
-                    let live = self
-                        .buildings
-                        .get(b)
-                        .is_some_and(|bd| bd.alive && !bd.active);
-                    if live && self.building_is_city(b) {
-                        sites.push(b);
-                        break;
-                    }
-                    self.repath(u);
-                    self.remove_order_at(u, i);
-                    if live {
-                        sites.push(b);
-                    }
-                    i = 0;
-                }
-                Body::Move(m) if m.kind == MoveKind::MoveTo && !o.has(flag::ACTION) => {
-                    if i + 1 >= self.units[u].orders.len() {
-                        break;
-                    }
-                    i += 1;
-                }
-                _ => break,
-            }
-        }
-        if sites.is_empty() {
-            return;
-        }
-        if sites.len() > 1 {
-            let who = self.units[u].owner;
-            // The count skips the unit doing the counting — `check_build_
-            // order@00603470:132` guards the whole body on
-            // `this_00->o != this->o`. (`find_build_spot`'s otherwise
-            // identical count does *not*; see the audit's R3 F2.)
-            let me = self.units[u].index;
-            let crowd = |sim: &Sim, b: usize| {
-                sim.units
-                    .iter()
-                    .filter(|x| x.owner == who && x.alive() && x.index != me)
-                    .filter(|x| {
-                        x.orders
-                            .iter()
-                            .find(|o| !o.is_transit())
-                            .is_some_and(|o| matches!(o.body, Body::Build(s) if s == b))
-                    })
-                    .count()
-            };
-            let least = (0..sites.len())
-                .min_by_key(|&i| crowd(self, sites[i]))
-                .expect("non-empty");
-            sites.swap(0, least);
-        }
-        for &b in sites.iter().rev() {
-            self.add_build_order(u, b, QueuePos::First, true);
-        }
+        crate::check_build_view::check_build_order_steps(&mut SimCheckBuild {
+            s: self,
+            u,
+            i: 0,
+            found: Vec::new(),
+            site: 0,
+        });
     }
 
     /// `Unit::build_done` (§5.5): what a builder does next.
@@ -8146,25 +8097,38 @@ impl Sim {
     /// everywhere else), read as [`crate::world::World::tregion_alt`].
     fn build_crowd(&self, u: usize, range: i32, sites: &[usize]) -> Vec<i32> {
         let who = self.units[u].owner;
-        let here = self.units[u].pos;
         let mut counts = vec![0i32; sites.len()];
-        let circle = crate::ai_place::circle();
-        let ring = Self::ring_index(range);
-        let live = self.total_units();
-        let tally = |sim: &Self, o: usize, counts: &mut Vec<i32>| {
-            let unit = &sim.units[o];
-            if !unit.alive() || (unit.owner != who && !sim.is_ally(who, unit.owner)) {
-                return;
-            }
-            let Some(i) = sim.action_of(o) else { return };
-            let Body::Build(b) = sim.units[o].orders[i].body else {
-                return;
+        for o in self.find_units_friendly(u, range) {
+            let Some(i) = self.action_of(o) else { continue };
+            let Body::Build(b) = self.units[o].orders[i].body else {
+                continue;
             };
-            if sim.buildings.get(b).is_none_or(|bd| bd.owner != who) {
-                return;
+            if self.buildings.get(b).is_none_or(|bd| bd.owner != who) {
+                continue;
             }
             if let Some(k) = sites.iter().position(|&s| s == b) {
                 counts[k] += 1;
+            }
+        }
+        counts
+    }
+
+    /// `Objects::find_units(SEARCH_FRIENDLY, who, range, 0x200, …)`'s answer
+    /// for unit `u`, in the search's own order: the live units of `u`'s owner
+    /// or an ally that the walk reaches. The filter a caller passes
+    /// (`FILTER_BUILDREPAIR`) is left to the caller's own test of the
+    /// unit's action — subsumed, as [`Self::build_crowd`] says.
+    pub(crate) fn find_units_friendly(&self, u: usize, range: i32) -> Vec<usize> {
+        let who = self.units[u].owner;
+        let here = self.units[u].pos;
+        let mut out = Vec::new();
+        let circle = crate::ai_place::circle();
+        let ring = Self::ring_index(range);
+        let live = self.total_units();
+        let keep = |sim: &Self, o: usize, out: &mut Vec<usize>| {
+            let unit = &sim.units[o];
+            if unit.alive() && (unit.owner == who || sim.is_ally(who, unit.owner)) {
+                out.push(o);
             }
         };
         if circle.radius[ring] <= live {
@@ -8189,7 +8153,7 @@ impl Sim {
                     if self.world.tregion_alt(self.units[o].pos.tile()) != region {
                         continue;
                     }
-                    tally(self, o, &mut counts);
+                    keep(self, o, &mut out);
                 }
             }
         } else {
@@ -8205,10 +8169,10 @@ impl Sim {
                 {
                     continue;
                 }
-                tally(self, o, &mut counts);
+                keep(self, o, &mut out);
             }
         }
-        counts
+        out
     }
 
     /// `Unit::find_build_spot@00603e20` (§5.5) — the search an AI builder
@@ -13530,5 +13494,108 @@ impl GatherSpotView for GatherSpotSim<'_> {
     fn add_gather_order(&mut self, i: i32) {
         self.sim
             .add_gather_order(self.u, i as usize, QueuePos::Last, false);
+    }
+}
+
+/// [`crate::check_build_view::CheckBuildView`] over the live [`Sim`]: the
+/// cursor is an index into the unit's order list, the found list the units
+/// `find_units` walked.
+struct SimCheckBuild<'a> {
+    s: &'a mut Sim,
+    u: usize,
+    /// The cursor: the order's position in the list, front first.
+    i: usize,
+    /// The units `find_units` returned.
+    found: Vec<usize>,
+    /// The site [`Self::target_site`] named.
+    site: usize,
+}
+
+impl SimCheckBuild<'_> {
+    /// The cursor order's site, when it is a build order.
+    fn target(&self) -> Option<usize> {
+        match self.s.units[self.u].orders.get(self.i)?.body {
+            Body::Build(b) => Some(b),
+            _ => None,
+        }
+    }
+}
+
+impl crate::check_build_view::CheckBuildView for SimCheckBuild<'_> {
+    fn orders_present(&mut self) -> bool {
+        !self.s.units[self.u].orders.is_empty()
+    }
+    fn list_present(&mut self) -> bool {
+        !self.s.units[self.u].orders.is_empty()
+    }
+    fn cursor_to_front(&mut self) {
+        self.i = 0;
+    }
+    fn cursor_advance(&mut self) {
+        self.i += 1;
+    }
+    fn has_order(&mut self) -> bool {
+        self.i < self.s.units[self.u].orders.len()
+    }
+    fn order_type(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].orders[self.i].index())
+    }
+    fn order_is_action(&mut self) -> bool {
+        self.s.units[self.u].orders[self.i].has(flag::ACTION)
+    }
+    fn cursor_at_end(&mut self) -> bool {
+        self.i + 1 >= self.s.units[self.u].orders.len()
+    }
+    fn target_exists(&mut self) -> bool {
+        self.target()
+            .is_some_and(|b| self.s.buildings.get(b).is_some_and(|bd| bd.alive))
+    }
+    fn target_finished(&mut self) -> bool {
+        self.target().is_some_and(|b| self.s.buildings[b].active)
+    }
+    fn target_site(&mut self) -> i32 {
+        self.site = self.target().expect("a build order");
+        self.site as i32
+    }
+    fn target_blocks(&mut self) -> bool {
+        self.s.building_is_city(self.site)
+    }
+    fn repath(&mut self) {
+        self.s.repath(self.u);
+    }
+    fn kill_current_order(&mut self) {
+        self.s.remove_order_at(self.u, self.i);
+    }
+    fn add_build_order(&mut self, site: i32) {
+        self.s
+            .add_build_order(self.u, site as usize, QueuePos::First, true);
+    }
+    fn owner(&mut self) -> i32 {
+        i32::from(self.s.units[self.u].owner)
+    }
+    fn find_units(&mut self) {
+        let range = self.s.tuning.unit_build_respond_range * TILE;
+        self.found = self.s.find_units_friendly(self.u, range);
+    }
+    fn found_count(&mut self) -> i32 {
+        self.found.len() as i32
+    }
+    fn found_other(&mut self, j: i32) -> bool {
+        self.s.units[self.found[j as usize]].index != self.s.units[self.u].index
+    }
+    fn found_builds(&mut self, j: i32) -> bool {
+        let o = self.found[j as usize];
+        self.s
+            .action_of(o)
+            .is_some_and(|k| matches!(self.s.units[o].orders[k].body, Body::Build(_)))
+    }
+    fn found_target(&mut self, j: i32) -> (i32, i32) {
+        let o = self.found[j as usize];
+        let k = self.s.action_of(o).expect("an action");
+        let Body::Build(b) = self.s.units[o].orders[k].body else {
+            unreachable!("found_builds said a build order")
+        };
+        // The order's `+0xc` is the owner `add_build_order` was handed: the unit's own.
+        (i32::from(self.s.units[o].owner), b as i32)
     }
 }
