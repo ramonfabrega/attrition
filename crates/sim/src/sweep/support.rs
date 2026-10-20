@@ -61,6 +61,9 @@ fn run_uv(script: &Path, exe: &Path, args: &[String]) -> io::Result<Output> {
 
 /// The cache directory the environment names: `None` for
 /// `RON_EMU_CACHE=off`, else `RON_EMU_CACHE_DIR`, else
+/// `$HOME/Library/Caches/attrition/emu-cache` — shared by every worktree,
+/// since the key carries no path and a lane's gate runs the same scripts
+/// on the same executable (the forty-fifth pass) — else, with no `HOME`,
 /// `<root>/target/emu-cache`.
 pub(crate) fn cache_dir(get: impl Fn(&str) -> Option<String>, root: &Path) -> Option<PathBuf> {
     if get("RON_EMU_CACHE").is_some_and(|v| v.eq_ignore_ascii_case("off")) {
@@ -69,7 +72,15 @@ pub(crate) fn cache_dir(get: impl Fn(&str) -> Option<String>, root: &Path) -> Op
     Some(
         get("RON_EMU_CACHE_DIR")
             .filter(|d| !d.is_empty())
-            .map_or_else(|| root.join("target/emu-cache"), PathBuf::from),
+            .map_or_else(
+                || {
+                    get("HOME").filter(|h| !h.is_empty()).map_or_else(
+                        || root.join("target/emu-cache"),
+                        |h| PathBuf::from(h).join("Library/Caches/attrition/emu-cache"),
+                    )
+                },
+                PathBuf::from,
+            ),
     )
 }
 
@@ -753,6 +764,10 @@ mod tests {
         assert_eq!(
             cache_dir(env(&[]), root),
             Some(PathBuf::from("/r/target/emu-cache"))
+        );
+        assert_eq!(
+            cache_dir(env(&[("HOME", "/Users/x")]), root),
+            Some(PathBuf::from("/Users/x/Library/Caches/attrition/emu-cache"))
         );
         assert_eq!(
             cache_dir(env(&[("RON_EMU_CACHE_DIR", "/c")]), root),

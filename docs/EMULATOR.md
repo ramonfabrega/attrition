@@ -44,8 +44,8 @@ SHA-256 — every `tools/emu/*.py` that is not a `sweep_*.py`
 No path enters the key: moving the install or the checkout keeps every
 entry, and a changed byte in any input is a miss.
 
-The cache is `target/emu-cache/<key>.rows` (`RON_EMU_CACHE_DIR` moves
-it; `RON_EMU_CACHE=off` bypasses it). A file is the receipt as `#` lines —
+The cache is `~/Library/Caches/attrition/emu-cache/<key>.rows`, shared by
+every worktree since the key holds no path (`RON_EMU_CACHE_DIR` moves it; `RON_EMU_CACHE=off` bypasses it). A file is the receipt as `#` lines —
 the key, the executable's path and hash, the script's and each module's
 name and hash, the date, `uv --version`, the Python `uv run` resolves,
 the row count, `# end` — then the rows verbatim; the header is stripped

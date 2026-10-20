@@ -4,8 +4,8 @@
     python3 tools/emu_receipts.py [--cache DIR] [--emu-dir DIR] [--exe PATH] [--verify]
 
 `crates/sim/src/sweep/support.rs`'s `emu_rows` caches each run of a
-`tools/emu/sweep_*.py` script as `<key>.rows` under `target/emu-cache/`
-(or `$RON_EMU_CACHE_DIR`): a `#` header carrying the receipt, then the rows
+`tools/emu/sweep_*.py` script as `<key>.rows` under
+`~/Library/Caches/attrition/emu-cache/` (or `$RON_EMU_CACHE_DIR`; `target/emu-cache/` with no `HOME`): a `#` header carrying the receipt, then the rows
 verbatim. The key is the SHA-256 of a text naming the executable's hash,
 the script's hash, each shared module's name and hash (every `tools/emu/*.py`
 that is not a `sweep_*.py`, plus the `sweep_*.py` the script imports,
@@ -160,7 +160,10 @@ def check(entry, emu_dir, exe=None):
 
 
 def default_cache():
-    return Path(os.environ.get('RON_EMU_CACHE_DIR') or ROOT / 'target/emu-cache')
+    if os.environ.get('RON_EMU_CACHE_DIR'):
+        return Path(os.environ['RON_EMU_CACHE_DIR'])
+    home = os.environ.get('HOME')
+    return Path(home, 'Library/Caches/attrition/emu-cache') if home else ROOT / 'target/emu-cache'
 
 
 def main(argv=None):
