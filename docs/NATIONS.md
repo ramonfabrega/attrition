@@ -57,14 +57,14 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 3 | Bantu | bantu | `bantu` | 5 | `GreatSaharaBantuTier4` (map 7, tier 4) |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
-| 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2) |
+| 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3) |
-| 10 | French | french | `french` | 7 | scored pairs |
+| 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
-| 13 | Russians | russians | `russians` | 10 | `GreatLakesRussianTier2` (AI word, tier 2) |
+| 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
 | 16 | Koreans | koreans | `koreans` | 6 | scored pairs |
@@ -74,7 +74,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4) |
-| 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (map 14, tier 2) |
+| 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
 
 ## 3. The held-out nations, arm by arm
 
@@ -120,7 +120,7 @@ says in its doc comment that only the British and Mongol arms are built,
 | Greeks | an age or an epoch costs 10% less in every good but knowledge | `TypeData::get_cost@00664090` | modelled at lib.rs | `greek_research_cost` |
 | Greeks | a Library or a University costs 66% less | `TypeData::get_cost@00664090` | modelled at city.rs | `greek_library_cost` |
 | Romans | legions train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `roman_legion_fast` |
-| French | siege units train faster | `ObjectData::train_time@006508c0` | not modelled | `french_siege_speed` |
+| French | siege units train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `french_siege_speed` |
 | French | special (general) units train faster, 0 in the rules | `ObjectData::train_time@006508c0` | not modelled | `french_special_speed` |
 | Germans | aircraft train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_air_speed` |
 | Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_submarine_speed` |
@@ -230,7 +230,7 @@ left out; a constant with no reader in the export is dead there too.
 | `FRENCH_SPECIAL_COST` | 0 | TypeData::get_cost | not carried | `french_special_cost` |
 | `FRENCH_SPECIAL_SPEED` | 0 | ObjectData::train_time | not carried | `french_special_speed` |
 | `FRENCH_SIEGE_COST` | 15 | TypeData::get_cost | modelled at lib.rs | `french_siege_cost` |
-| `FRENCH_SIEGE_SPEED` | 25 | ObjectData::train_time | not carried | `french_siege_speed` |
+| `FRENCH_SIEGE_SPEED` | 25 | ObjectData::train_time | modelled at lib.rs | `french_siege_speed` |
 | `FRENCH_SIEGE_MOVE` | 20 | Unit::update_speed | modelled at rares.rs | `french_siege_move` |
 | `FRENCH_FREE_GENERAL` | 1 | Build::activate | modelled at nations.rs | `french_free_general` |
 | `FRENCH_FREE_SUPPLY` | 1 | Build::activate | modelled at nations.rs | `french_free_supply` |
@@ -306,8 +306,8 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_TEMPLE_UPGRADES` | 2 | Leader::gain_tech, LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `korean_temple_upgrades` |
 | `KOREAN_TEMPLE_TAX_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `korean_temple_tax_upgrades` |
 | `KOREAN_MILITIA_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `korean_militia_upgrades` |
-| `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at build.rs | `korean_build_under_fire` |
-| `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at build.rs | `korean_repair` |
+| `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at orders.rs | `korean_build_under_fire` |
+| `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at orders.rs | `korean_repair` |
 | `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | not carried | `korean_tower_cost` |
 | `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | not carried | `mongol_stable_cost` |
 | `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at lib.rs | `mongol_stable_speed` |
@@ -336,7 +336,7 @@ left out; a constant with no reader in the export is dead there too.
 | `LAKOTA_FOOD` | 4 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | modelled at economy.rs | `lakota_food` |
 | `LAKOTA_HERBAL_LORE` | 1 | no reader in the export | not carried | `lakota_herbal_lore` |
 | `LAKOTA_RAZE_SPEED` | 100 | ObjectData::train_time | not carried | `lakota_raze_speed` |
-| `LAKOTA_RAZE_PRICE` | 0 | Build::plunder, Object::disband | modelled at city.rs | `lakota_raze_price` |
+| `LAKOTA_RAZE_PRICE` | 0 | Build::plunder, Object::disband | modelled at disband.rs | `lakota_raze_price` |
 | `LAKOTA_CAV_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `lakota_cav_upgrades` |
 | `LAKOTA_CAV_DMG_BONUS` | 1/3 | Object::do_damage | not carried | `lakota_cav_dmg_bonus` |
 | `AMERICANS_FREE_SCHOLAR` | 1 | Build::activate | modelled at nations.rs | `americans_free_scholar` |
@@ -415,7 +415,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
 | `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |
 | `ObjectData::get_damage@00644130` | 15 | carried at damage.rs | `00644130` |
-| `Object::disband@006455c0` | 0 19 | carried at disband.rs | `006455c0` |
+| `Object::disband@006455c0` | 0 19 | carried at object_disband.rs | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
 | `Object::remove_from_inside@006480f0` | 19 20 | carried at holdings.rs | `006480f0` |
 | `ObjectData::train_time@006508c0` | 5 15 | carried at lib.rs | `006508c0` |

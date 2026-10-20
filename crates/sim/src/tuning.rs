@@ -446,6 +446,11 @@ pub struct Tuning {
     /// Percentage off a French leader's unit trained at the Siege Factory
     /// or Factory line (`TypeData::get_cost`'s nation tail).
     pub french_siege_cost: i32,
+    /// `FRENCH_SIEGE_SPEED` — percentage faster for a French leader's unit
+    /// trained at the Siege Factory or Factory line (`UnitTypeData +0x40`
+    /// `0x1ae`/`0x1af`), `ObjectData::train_time`'s French arm, `t × 100 /
+    /// (k + 100)`.
+    pub french_siege_speed: i32,
     /// Percentage off a Spy or General while the leader holds
     /// `SPIES_GENERALS_CHEAPER` (`TypeData::get_cost`'s nation tail).
     pub spy_general_cost: i32,
@@ -1335,6 +1340,7 @@ impl Tuning {
         french_timber_commerce: 10,
         french_siege_move: 20,
         french_siege_cost: 15,
+        french_siege_speed: 25,
         spy_general_cost: 50,
         german_submarine_cost: 25,
         versailles_units_move: 25,
@@ -1833,6 +1839,7 @@ impl Tuning {
             ),
             ("FRENCH_SIEGE_MOVE", Slot::Value(T.french_siege_move)),
             ("FRENCH_SIEGE_COST", Slot::Value(T.french_siege_cost)),
+            ("FRENCH_SIEGE_SPEED", Slot::Value(T.french_siege_speed)),
             ("SPY_GENERAL_COST", Slot::Value(T.spy_general_cost)),
             (
                 "GERMAN_SUBMARINE_COST",

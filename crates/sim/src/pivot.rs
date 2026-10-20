@@ -79,6 +79,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (137, 4, Node { px: -6, py: -148 }),
     (194, 4, Node { px: 0, py: -96 }),
     (1545, 4, Node { px: -6, py: -148 }),
+    (139, 4, Node { px: 0, py: -148 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -242,11 +243,71 @@ pub struct Release {
 /// Scout `0/0` died on 12835 in the original, a frame before this crate's
 /// round arrived (`docs/AI.md` §244).
 ///
+/// **Piece 139, the French Dragoon** (item 3359): run985b's packet
+/// (`RON_STATE_FRAME=16762` of the battery's French lobby) holds its nine
+/// entries — the `(4, 0, 0)` [`NODES`] reads, `(0.0, −1.48, 31.05)` as
+/// piece 491's, and for each of its four `<RELEASEEVENT>`s (node 0; 866,
+/// 833, 899 and 1266 ms on `CHAR_ATTACKWALK` and `CHAR_ATTACK1`..`3`:
+/// frames 12, 12, 13 and 18) the pivot node's and the release node's. The
+/// `<RESTRICTION name="Dragoon" node="4">` makes it a pivot piece, so its
+/// rounds take this branch, the release turned by the turret as well as the
+/// figure: `1/39`'s two `CHAR_ATTACK2` rounds, (−61, −18) on run982b's
+/// 14677 and (13, −66) on run982d's 16764, are one entry at two turrets,
+/// and no facing-only node fits both (`docs/AI.md` §280).
+///
 /// SEAM: every other pivot piece that releases (the camel archers, the
 /// Mameluke's line, the machine-gun ships). A packet
 /// from a game that fields the type reads each row in a minute
 /// (`tools/recomp/get_position.py … entries <piece>`).
 const RELEASES: &[(i32, i8, u32, Release)] = &[
+    (
+        139,
+        crate::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 139,
+            node: 0,
+            pivot: [58_111, -1_380_116, 31_034_378],
+            at: [-12_961_245, -27_570_284, 11_694_054],
+            float_lands: &[],
+        },
+    ),
+    (
+        139,
+        crate::anim::ATTACK1,
+        12,
+        Release {
+            piece: 139,
+            node: 0,
+            pivot: [4_308_261, -1_638_021, 31_049_999],
+            at: [-3_027_300, -29_267_675, 15_569_523],
+            float_lands: &[],
+        },
+    ),
+    (
+        139,
+        crate::anim::ATTACK2,
+        13,
+        Release {
+            piece: 139,
+            node: 0,
+            pivot: [0, 6_483_696, 34_750_904],
+            at: [-8_452_114, -17_947_832, 20_006_462],
+            float_lands: &[],
+        },
+    ),
+    (
+        139,
+        crate::anim::ATTACK3,
+        18,
+        Release {
+            piece: 139,
+            node: 0,
+            pivot: [0, -1_480_000, 31_049_999],
+            at: [-4_867_605, -28_791_185, 12_283_539],
+            float_lands: &[],
+        },
+    ),
     // **The Tank** (item 3244): run938b's packet (logger frame 630, ch100's
     // lobby) holds piece 194's seven entries — the `(4, 0, 0)` pivot, and for
     // each of its three `<RELEASEEVENT>`s (node 0; `CHAR_ATTACK1` frame 4,
@@ -615,6 +676,47 @@ pub fn release_offset_at(r: &Release, d1: i32, t: i32) -> (i32, i32, i32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **The French Dragoon's rounds leave from its pivot** (item 3359):
+    /// every `1/39` round the French lobby's `AMMO=5` windows print as a
+    /// Dragoon, at the figure's pose on the block before the round's first
+    /// print — `(anim, time, guy x, y, angle, z, sx, sy, sz, turret step)`.
+    /// One turret step per pose fits all of that pose's rounds and no other
+    /// step does: 16763's is the dump's own `turret_angles[0]` (−196608,
+    /// `GUYS=4` on run985b), and 14621..14676's three, bearing on `0/2002`,
+    /// share step −13, which no dump there prints.
+    #[test]
+    fn the_french_dragoon_s_rounds_leave_from_its_pivot() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+        #[rustfmt::skip]
+        let shots = [
+            (ATTACK3, 18, 7944, 30840, -990_642_176, 658, 7797, 30845, 866, -13),
+            (ATTACK1, 12, 7944, 30840, -990_642_176, 658, 7794, 30874, 881, -13),
+            (ATTACK2, 13, 7944, 30840, -990_642_176, 658, 7883, 30822, 920, -13),
+            (ATTACK2, 13, 6792, 31368, -271_515_648, 610, 6805, 31302, 872, -1),
+        ];
+        for (a, t, x, y, f, z, sx, sy, sz, step) in shots {
+            let r = release(139, a, t).expect("every Dragoon release row");
+            let fits: Vec<i32> = (-128..128)
+                .filter(|i| {
+                    let (dx, dy, _) = release_offset(&r, Angle(f), i << 24);
+                    (x + dx, y + dy) == (sx, sy)
+                })
+                .collect();
+            assert_eq!(fits, [step], "anim {a} at ({x}, {y})");
+            assert_eq!(z + release_offset(&r, Angle(f), 0).2, sz, "anim {a} height");
+        }
+        let (dx, dy, _) = release_offset(
+            &release(139, ATTACK2, 13).unwrap(),
+            Angle(-271_515_648),
+            -196_608,
+        );
+        assert_eq!(
+            (6792 + dx, 31368 + dy),
+            (6805, 31302),
+            "the dump's own turret"
+        );
+    }
 
     /// **The dump's own line** (run147, `misc:MISC=10`): `GUY
     /// get_positiong -180 180 -102 -59 1512 7944`, `Guy::set_all_pivots`

@@ -24190,26 +24190,179 @@ battery's floors and every closing state held: no other walk on file throws an `
 Reading-and-packet only: the three rows' `dz` (no dump prints a stone's `sz` against its figure here; run980b's
 `sz` 743 is over the ground, not the figure). Not established: the NA Slinger's later-age and female pieces.
 
-## 278. Reserved for the next item on the AI track
+## 278. The battery's French word: from the first try to the game's end, and an open close
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3347, 2026-10-19, Opus 5.5. Great Sahara, the Nubians (human) against the French at Difficulty 4, seed 12345:
+the lobby item 3343 minted (§276), scored at 13422 of 16,764 on its first try and promoted here to the AI word
+(`diff::french_word`); the Russians at Difficulty 4 (`GreatSaharaRussianTier4`, entry 72's rule (2): the nation held
+only by closed games off Great Sahara whose later ages no trace has run) replace it in the battery, **18883 of 18883**
+on their first try (run981, run981b). Captures run982, run982b, run982c, run982d, every one `rngcmp`-identical to run977b.*
 
-## 279. Reserved for the next item on the AI track
+**Three fixes that moved the word, each its own value diff.**
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+1. **`train_time`'s French siege arm** (`ObjectData::train_time@006508c0:179`–`192`, after the British, before the
+   German): a French leader's unit whose trainer is, by equality, `0x1ae` or `0x1af` takes `FRENCH_SIEGE_SPEED` (25),
+   `t × 100 / (k + 100)`. run982 block 13421: the Siege Factory `1/2026`'s Trebuchet clock 24000 of 30000, born on
+   13422 in theirs (`Guy::init_real+0x52`). **13422 → 13843.** The `is(0x36)` arm (`FRENCH_SPECIAL_SPEED`, 0 in the
+   rules) is parked (3347a).
+2. **The Crossbowman's and the Cavalry Archer's release nodes** (`launch::MEASURED`, pieces 122 and 138, §22's
+   table). 13843 is `Ammo::do_damage`'s roll on `1/39`'s rolling round: theirs left (9401, 30970, 842), ours the guy's
+   (9480, 30936, 614), so at its landing frame ours' arc was at 720 over a ground of 659 and stayed up. Four rows fitted
+   exactly from run982's rounds. **13843 → 14604.** Four more rows (138 `ATTACK1`/`ATTACK2`, the Dragoon 139's
+   `ATTACK1`/`ATTACK3`) are state only; the Dragoon's `ATTACK2` is in no window (3347b).
+3. **A decoy sees from where it stands** (`Object::update_seen@00651b80`'s projection test, its fourth term
+   `unit_masks & 1` at `651cdc`; `docs/VISION.md` §3). 14604: theirs' draw 6 is `Unit::fight+0x9b0` in a `do_job` of
+   its own after `1/39`'s — the captain's re-search roll, taken only on a unit target. Theirs' units were read on
+   run982b's block: the one attacking a unit is the decoy Hussars `1/100` (type 211, `unit_masks` 0x4000f, `mylos` 1
+   on both sides), arriving at (4776, 28344) on 14604 with its attack on the Citizen `0/1` current. Ours called `0/1`
+   unseen — who=1 had no bit at its half-cell (11, 73) — and took the invalid-target branch to the city `0/2000`;
+   theirs rolled, kept `0/1` and pushed a chase move to (4440, 28392) on 14605. The decoy's own-cell arm lights
+   (11, 73) on 14596, when `1/100` steps into it. **14604 → 16764, the game's last frame**; run982b 38 keys, the
+   standing set.
 
-## 280. Reserved for the next item on the AI track
+**The close is open** (closed by §280). `run977b_french_closing_state` walks to run977b's closing block 16765: 130 units, every one
+agreeing, and **four buildings and a city unlinked** — on the last frame theirs' who=1 captures the human's city,
+`0/2000` closing as `1/2058` (damage 1430) with three of its buildings as `1/2059`..`1/2061`, and ours still holds
+`0/2000` at damage 1198, uncaptured. It does not drift: run982c's stride (every twentieth block from 14856) and
+run982d's last blocks (16740..16764, widened whole, 38 standing keys) agree on its damage to **1197 of 1200 through
+block 16764**. The close is the last frame's own hits — ours +1 to 1198, theirs at least +3, through
+`health_level`'s sixth level, which `check_capture` needs. Twenty-two who=1 units hold an attack on `0/2000` on that
+block; which hit differs is a question for a call trace of `Object::do_damage` on frame 16764 or a packet, not a
+dump (parked 3347d).
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Tests.** `cities_tests::a_french_siege_factory_unit_trains_a_quarter_faster` (fails with `0x1af` dropped);
+`launch::tests::run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit` (eight rounds; fails with a
+radius off by one); `vision::tests::a_decoy_sees_from_where_it_stands_and_its_step_lights_its_own_cell` (fails with
+the term dropped); the widenings `run982_…`, `run982b_…`, `run982d_…` and the closing state.
+
+**Coverage.** Diff-backed: the three fixes by the blocks named and the draw stream to 16764. Not established: ~~the
+last frame's hits on the city (the close)~~; the French special arm; ~~the Dragoon's third node~~ — both closed by
+§280: the Dragoon is a pivot piece, and its `CHAR_ATTACK2` round of 16763 is the close.
+
+## 279. The battery's Persian word: two release bays, a captain's search and the Immortals' strike, to the game's end
+
+*Item 3355, 2026-10-19, Opus 5.5. Great Lakes, the Nubians (human) against the Persians at Difficulty 2, seed 12345:
+the lobby item 3345 minted (§277), scored at 6046 of 7105 on its first try and promoted here to the AI word
+(`diff::persian_word`). The Romans at Difficulty 2 (`GreatLakesRomanTier2`, runs 983 and 983b) replace it in the
+battery under entry 72's **rule (2)** as amended by 84: a header survey of all 521 gamelogs holds every nation, so
+rule (1) has no answer; Great Lakes' dumps hold tribes 2, 8, 10, 11, 13, 14, 18, 19 and 23; of the nations on no Great
+Lakes dump and held only by closed games (the open battery's Aztecs, Koreans and Americans out), the Romans reach the
+most census functions (10; the Spanish and the Dutch 9), held only by `EastIndiesRomanTier2`; tier 2 is the one the
+Persians left. First try **7799 / 7799** of 7799: the draw stream agrees to the game's end.*
+
+**Four fixes, each on its own frame.** The word moved 6046 → 6252 → 6323 → 6387 → **7105**, the game's last frame,
+count and sequence. run979 dumps blocks 0..36 and run979b its setup and closing blocks only, so two windows were
+booked: run984 over 6020..6276 and run984d over 6317..6573, both at `GUYS=4` and `AMMO=5`, with two packets (run984b
+at 6011, run984c at 6251). Every capture is `rngcmp`-identical to run979b.
+
+**6046: piece 112's bays.** run984's widening (1282 keys) opens on 6022, where the Scout `0/0` takes a hit in theirs
+(`damage_frame` 6021) and not in ours. run984's `AMMO`: the Immortal `1/16`'s arrow thrown on 6012 leaves from
+(3766, 32893) and flies 10 frames; ours threw from the unit's own square (3768, 33000) in 11. The Immortals are a
+Persian piece with no continent offset, piece 112, and `sim::launch` held no bays for it. run984b's packet holds its
+two `AttachPos` rows, `CHAR_ATTACK2` at 14 and `CHAR_ATTACK3` at 6, and `tools/recomp/get_position.py`'s sweep of each
+is reproduced at all 361 headings by one integer bay: (25067, 104603, dz 178) and (27678, 36793, dz 171), each the
+centroid of its exact region (105 and 115 lattice points). **Value diff**: ours' arrow now leaves (3766, 32893) in 10
+frames. 6046 → 6252; run984 1282 → 271.
+
+**6252: `do_move`'s captain search.** On 6251 the Immortal `1/10` re-searches (`fight`'s one-in-five roll, agreeing).
+Theirs takes the citizen `0/4`; ours kept the fleeing `0/3`, which it scored at 1137 against `0/4`'s 1106. Under
+`step4.py --entry` on run984c's packet, `Object::compare_target@0064e5c0` returns ours' values (10239 and 9960), but
+the packet's `Object +0x3d` (`targeted`, which no dump prints) reads `0/3` 3 and `0/4` 1 where ours had 0 and 0.
+With those counts the distance term puts `0/3` at 1023. The writer is `Unit::do_move@005f7b30:238-250`
+(`005f803f`–`005f80a6`, `docs/COMBAT.md` §37.2's seam): a non-mandatory captain chasing a unit calls
+`find_melee_target(this, −1, &who, 0, 0, word)` on every sixteenth `o + frame`, with the word 1 (`UNITS`), or 2 for a
+siege type. That writes `near` and bumps its winner's `targeted`, and a find in range stands in for `near`. Ours read
+`near` alone and never searched. **Value diff**: ours' `targeted` on 6251 is now 3 and 1, and `1/10` takes `0/4`.
+6252 → 6323; run984 271 → 32.
+
+**6323: piece 1792's bays.** run984d's widening (1136 keys) opens on its standing 31, and the state parts on 6319: the
+citizen `0/3`'s `damage` is 15 in ours against 16 in theirs. The Slingers `1/22` and `1/24` play **piece 1792**,
+`32 + 5 × 0x160`, the Persians' art style. Ours threw their stones at `0/3` from the units' own squares in 6 frames;
+run984d prints (2504, 33053) and (2398, 32523) in 5. run984c's packet holds the piece's three rows, piece 1440's keys
+(§277), and the sweep is reproduced by **piece 1440's own three bays**: the same centroids of the same regions.
+**Value diff**: ours' stones now leave (2504, 33053) and (2398, 32523) in 5. 6323 → 6387; run984d 1136 → 594.
+
+**6387: the Immortals' special strike.** On 6387 the citizen `0/4`'s `damage` is 13 in ours against 17 in theirs.
+The projectiles on 6383..6387 agree on both sides, so the blow is not a missile. Theirs' `1/10` holds `CHAR_
+ATTACKSPECIAL` (14) on 6387 and plays it on 6388, where ours plays `CHAR_ATTACK2`. `Unit::fight@005fd4d0:784`–`:803`:
+for `is(IMMORTALS)` (`0xa2`) whose `local_1c` (`is_in_range`'s out-distance, 144 here) is under `0xc0`, the swing is
+`set_anim(CHAR_ATTACKSPECIAL, 0, 0)`, and `do_damage` lands inline once per figure. The arm then jumps past the
+default `set_anim` to `set_attacking`, and its ranged tail launches nothing. `sim::fight::fight_as` takes the arm
+ahead of `swing_anim`. **Value diff**: `0/4`'s `damage` on 6387 is 17 on both sides. **6387 → 7105**; run984d 594 → 31.
+
+**The close.** `run979b_persian_closing_state` walks to run979b's closing block 7106 and compares 38 units, every
+count 0, no closing field. The lobby is closed.
+
+**What stands.** run984's 32 on 6020 and run984d's 31 on 6317: the standing family (`form` −1 against 9, the leaders'
+`SITE[·].reg` 1 against 0, `aggression[1]`, the army pools `pool:65`/`67` and `group:65..67.held` with no
+`GROUPDATA` printed). Parked by item 3355 (no score): `do_move`'s `c != t` test (3355a), `Unit::fight`'s
+`unit_flags & 0x400` arm (3355b), and the two pieces' later brackets and female slots (3355c).
+
+**Tests.** `launch::tests::run984_s_immortal_arrow_leaves_from_piece_112_s_bays` and
+`run984d_s_persian_stones_leave_from_piece_1792_s_bays` (the dumped launches); `persian_word_first_parting` at 7105,
+which `tools/mutate.py` turns red (exit 101) four ways: piece 112's `CHAR_ATTACK2` row keyed to 15; the captain
+search's phase never met; piece 1792's `CHAR_ATTACK3` row keyed to 17; and the special strike's bound set to 0.
+Also `run984_s_word_frame_is_widened_whole`, `run984d_s_word_frame_is_widened_whole` and the closing state.
+
+**Coverage.** Diff-backed: the four launches' points and flight times, `0/4`'s damage on 6387, the draw stream to
+7105, the close. Packet only: `targeted` on 6251 (no dump prints it), and the bays' `dz`. Reading only: the search's
+word 2 for a siege type, and the special strike's per-figure loop past one figure (`guy_mark` is 1 in this crate).
+
+## 280. The battery's French word closes: the Dragoon releases from its pivot
+
+*Item 3359, 2026-10-19, Opus 5.5. `GreatSaharaFrenchTier4` (§278), at 16764 of 16764 with its close open. Captures
+run985 (a packet; Wine faulted before the first frame, no output) and run985b (`RON_STATE_FRAME=16762`, the packet,
+`rngcmp`-identical to run977b on all 16765 frames).*
+
+**The close's parting is a round, and no widening compared it.** The draw stream agrees to 16764 and every unit at
+the closing block; `0/2000` is 1197 of 1200 with `damage_frac` 14 on both sides through block 16764. run982d's own
+`AMMO=5` records on that block (the ammo blocks are `diff::ammo`'s parser and in no widening, 3347c) hold two who=1
+rounds on the city, and ours (`RON_DEBUG_AMMO`) holds the same two:
+
+| block 16764 | theirs | ours, before |
+|---|---|---|
+| `1/42` (Crossbowman) | `sx, sy` (6768, 30960), `ex, ey` (6411, 30358), 2 of 3 | (6767, 30960), (6411, 30358), 2 of 3 |
+| `1/39` (Dragoon, type 189) | (6805, 31302, 872), (6461, 30325), **1 of 2** | (6792, 31368), (6453, 30329), **1 of 3** |
+
+Theirs' `1/39` round lands on 16764 with `1/42`'s and the city falls on the last frame; ours' lands a frame late,
+past the game's end. Ours' round left from the figure's own square: `(139, CHAR_ATTACK2, 13)` had no row.
+
+**Why no planar node could fit it.** `1/39`'s two `CHAR_ATTACK2` rounds on disk — run982b's 14677 (guy (7944, 30840)
+at −990642176, offset (−61, −18)) and run982d's 16764 (guy (6792, 31368) at −271515648, offset (13, −66)), both from a
+standing figure — are radius 63.6 and 67.3, and a rotation keeps a radius. Their height over the figure is 262 on
+both. The Dragoon has `<RESTRICTION name="Dragoon" node="4">` (`unit_graphics.xml`), so `execute_game_events` hands
+it `get_position`'s **pivot branch** (§55 of `docs/COMBAT.md`; `pivot::release_offset`): the pivot node's entry at the
+figure's degree plus the release node's at the figure's degree **and the turret's**. No packet on disk had built
+piece 139 (`get_position.py … entries 139` on every `frame-snapshot.bin`), so run985b took one: nine `AttachPos`
+rows, `(4, 0, 0)` = (0.0, −1.48, 31.05) as piece 491's, and a pivot and a release entry for each of the four
+`<RELEASEEVENT>`s (frames 12, 12, 13, 18 of `CHAR_ATTACKWALK`, `CHAR_ATTACK1`..`3`). Each height is the pivot's z
+plus the release's, × 4.8: 262, 223 and 208, the dump's own `sz − z` on every round.
+
+**The fix** (`pivot::NODES` and `pivot::RELEASES`, piece 139; the two single-pose `launch::MEASURED` rows 3347
+fitted for 139 retired). `pivot::tests::the_french_dragoon_s_rounds_leave_from_its_pivot`: every Dragoon round the
+French lobby's windows print, at its pose on the block before — 14621's `CHAR_ATTACK3`, 14645's `CHAR_ATTACK1` and
+14676's `CHAR_ATTACK2` at turret step −13 (≈ −18°, bearing on `0/2002`), and 16763's at step −1, the dump's own
+`turret_angles[0]` −196608 (run985b, `GUYS=4`) — each fits exactly one turret step and lands on the dump's point
+and height.
+
+**Value diff, block 16764, after**: ours' `1/39` round (6805, 31302) → (6461, 30325), 1 of 2, accuracy 294,
+`angle` −289800192 — theirs', field for field. **The close: `[0, 0, 0, 4, 0, 1, 0]` → `[0, 0, 0, 0, 0, 0, 0]`**, 130
+units; the word stays 16764 of 16764.
+
+**And three windows of the third pair agree whole** (French East Indies, `third_pair.rs`): run657's `1/90` round of
+17165 (`sx, sy` (6467, 9094), from ours' (6498, 9100)), run661's `1/80` of 17242 ((6611, 8852), from (6603, 8854)),
+and run662's `1/80` of 17309 and `1/90` of 17311 (the latter from (6456, 9240, 186) to (6474, 9179, 448)); run662's
+rows past its word 337 → 298.
+
+**Not established.** `1/42`'s Crossbowman round is 1 off in `sx` (6767 against 6768) and its `angle` (−358154240
+against −358678528) with the same landing and flight (parked 3359a): `launch::MEASURED`'s piece 122 rows are
+single-pose fits and the piece may be a `Bay`'s whole-degree turn. Ours' turret is not compared: no widening reads
+`turret_angles`, and run985b's is the only `GUYS=4` block of the lobby. The Horse Archer's piece 842 (parked 3338a)
+has the same shape — its heights are its pivot's sums too (run973g's rows: 225, 228, 208, the dump's) — and is not
+carried here.
+
+**Coverage.** Diff-backed: the four Dragoon rounds by `the_french_dragoon_s_rounds_leave_from_its_pivot`, the close
+by `run977b_french_closing_state`, the third pair's three windows. Reading-backed: none new; the branch is §55's.
 
 ## 281. Reserved for the next item on the AI track
 
@@ -24219,6 +24372,48 @@ in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
 ## 282. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 283. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 284. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 285. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 286. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 287. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 288. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

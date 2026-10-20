@@ -163,12 +163,20 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the coverage pair's walks and fixture checks: per-record comparisons live in harness.rs (item 1466)",
     ),
     (
+        "diff/french_word.rs",
+        "the battery's French word's walks: it compares no field itself, and its widening is harness.rs's (item 3347)",
+    ),
+    (
         "diff/german_word.rs",
         "the battery word's walks: it compares no field itself, and its widening is harness.rs's (item 2904)",
     ),
     (
         "diff/iroquois_word.rs",
         "the battery's second word's walks: it compares no field itself, and its widening is harness.rs's (item 3107)",
+    ),
+    (
+        "diff/persian_word.rs",
+        "the battery's Persian word's walks: it compares no field itself, and its widening is harness.rs's (item 3355)",
     ),
     (
         "diff/lakota_word.rs",

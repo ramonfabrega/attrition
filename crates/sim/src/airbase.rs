@@ -574,12 +574,10 @@ impl Sim {
     /// 0)` runs on it** (`6ffa47`..`6ffa71`): [`Sim::group_action_launch_flight`]
     /// picks one plane inside and re-points its strike with the action bit.
     /// The general loop after it skips every Airbase under action 3
-    /// (`6ffbcc`).
-    pub(crate) fn gather_launch(&mut self, who: Player, airbases: &[usize], at: Pos, append: bool) {
-        let point = crate::rally::GatherPoint { pos: at, action: 3 };
-        for &b in airbases {
-            self.add_gather_point(b, point, !append);
-        }
+    /// (`6ffbcc`). The points are laid by the steps
+    /// ([`crate::gather_view::action_gather_point_steps`]), member by member;
+    /// this is the flight alone.
+    pub(crate) fn gather_flight(&mut self, who: Player, airbases: &[usize], at: Pos) {
         if airbases.is_empty() {
             return;
         }

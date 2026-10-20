@@ -45,6 +45,8 @@ mod egyptian_word;
 mod endpoint;
 mod floors;
 #[cfg(test)]
+mod french_word;
+#[cfg(test)]
 mod german_word;
 #[cfg(test)]
 mod golden;
@@ -70,6 +72,8 @@ mod mongol_pair;
 #[cfg(test)]
 mod oracle;
 mod order;
+#[cfg(test)]
+mod persian_word;
 mod report;
 #[cfg(test)]
 mod roman_word;

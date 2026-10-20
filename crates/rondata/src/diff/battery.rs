@@ -115,10 +115,18 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the Maya being item 3338's, promoted to the AI word (item 3342,
     // DECISIONS 72, 83): the Russians at Difficulty 2, Great Lakes.
     (14, 13, 2),
+    // The battery's second open lobby once item 3343 closed the Bantu,
+    // promoted to the AI word (item 3347, DECISIONS 72, 83, 84): the French
+    // at Difficulty 4, Great Sahara.
+    (7, 10, 4),
     // The battery's lowest open lobby once item 3343 closed the Bantu,
     // promoted to the AI word (item 3345, DECISIONS 72, 83, 84): the Lakota
     // at Difficulty 2, Great Lakes.
     (14, 19, 2),
+    // The battery's lowest open lobby once item 3345 closed the Lakota,
+    // promoted to the AI word (item 3355, DECISIONS 72, 83, 84): the
+    // Persians at Difficulty 2, Great Lakes.
+    (14, 23, 2),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -137,60 +145,67 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaBantuTier4` (Bantu 3, Difficulty 4, map 7; run972 and
     // run972b, 4 of 23627), minted by item 3338, left the battery on item
     // 3343 for the AI word (`diff::bantu_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3343 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §276; runs 977 and 977b) when the Bantu left for the AI word, so the
-    // held-out set stays eight: Great Sahara, the French at Difficulty 4.
-    // Every nation is in some dump now (item 3342's finding); the French
-    // are held only in a closed pair (the third pair, East Indies and Great
-    // Lakes at Toughest) and never on Great Sahara, the one nation of that
-    // kind once the Lakota went to item 3342's lobby; tier 4 is the tier
-    // Great Sahara's battery lacked once the Bantu left (Aztecs 2, Koreans
-    // 3 remain). The game ends itself on 16764.
+    // `GreatSaharaFrenchTier4` (French 10, Difficulty 4, map 7; run977 and
+    // run977b, 13422 of 16764), minted by item 3343, left the battery on
+    // item 3347 for the AI word (`diff::french_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3347 (DECISIONS 72, 83, 84, `docs/AI.md`
+    // §125, §278; runs 981 and 981b) when the French left for the AI word,
+    // so the held-out set stays eight: Great Sahara, the Russians at
+    // Difficulty 4, by entry 72's rule (2) — a nation held only by closed
+    // games on another map, never on Great Sahara. The Romans and the
+    // Russians tie on reach (10 census functions each, `docs/NATIONS.md`);
+    // the Russians' only game (Great Lakes, closed) ended at 7303 against
+    // the Romans' 18620, so theirs is the nation whose later arms no trace
+    // has run. Tier 4 is the tier the French leave; the Persians are item
+    // 3345's. The game ends itself on 18883.
     Lobby {
-        name: "GreatSaharaFrenchTier4",
+        name: "GreatSaharaRussianTier4",
         map_style: 7,
-        ai_tribe: 10,
+        ai_tribe: 13,
         difficulty: 4,
-        start: "gamelog-run977-greatsahara-french-diff4-start.txt",
+        start: "gamelog-run981-greatsahara-russian-diff4-start.txt",
         long: (
-            "gamelog-run977b-greatsahara-french-diff4-24k-trace.txt",
-            "rontrace-run977b.log",
+            "gamelog-run981b-greatsahara-russian-diff4-24k-trace.txt",
+            "rontrace-run981b.log",
         ),
-        length: 16764,
-        // Item 3343, the first try: ours 14 draws, theirs 19, at 6 ours
-        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-        // `Guy::init_real+0x52`.
-        count: 13422,
-        sequence: 13422,
+        length: 18883,
+        // Item 3347, the first try: the draw stream agrees to the game's
+        // end, count and sequence both at 18883.
+        count: 18883,
+        sequence: 18883,
     },
     // `GreatLakesLakotaTier2` (Lakota 19, Difficulty 2, map 14; run975
     // and run975b, 6071 of 7902), minted by item 3342, left the battery on
     // item 3345 for the AI word (`diff::lakota_word`, DECISIONS 72, 83, 84).
-    // The lobby minted by item 3345 (DECISIONS 72 as amended by 84,
-    // `docs/AI.md` §125, §277; runs 979 and 979b) when the Lakota left for
-    // the AI word, so the held-out set stays eight: Great Lakes, the
-    // Persians at Difficulty 2 — **rule (2)**: rule (1) has no answer (every
-    // nation is in some dump), and of the nations no Great Lakes dump holds
-    // and only closed games hold (the coverage pair on East Indies, the
-    // Persian lobby on Great Sahara), the Persians reach the most census
-    // functions (11, `docs/NATIONS.md`); tier 2 is the tier the Lakota left,
-    // one of the two Great Lakes' battery lacks (Chinese 1 and Turks 4
-    // remain). The game ends itself on 7105.
+    // `GreatLakesPersianTier2` (Persians 23, Difficulty 2, map 14; run979
+    // and run979b, 6046 of 7105), minted by item 3345, left the battery on
+    // item 3355 for the AI word (`diff::persian_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3355 (DECISIONS 72 as amended by 84,
+    // `docs/AI.md` §125, §279; runs 983 and 983b) when the Persians left
+    // for the AI word, so the held-out set stays eight: Great Lakes, the
+    // Romans at Difficulty 2 — **rule (2)**: rule (1) has no answer (a
+    // header survey of every gamelog on disk holds every nation), and of
+    // the nations no Great Lakes dump holds and only closed games hold (the
+    // open battery's Aztecs, Koreans and Americans out), the Romans reach
+    // the most census functions (10, `docs/NATIONS.md`; the Spanish and the
+    // Dutch 9), held only by `EastIndiesRomanTier2`; tier 2 is the tier the
+    // Persians left (Chinese 1 and Turks 4 remain). The game ends itself on
+    // 7799.
     Lobby {
-        name: "GreatLakesPersianTier2",
+        name: "GreatLakesRomanTier2",
         map_style: 14,
-        ai_tribe: 23,
+        ai_tribe: 6,
         difficulty: 2,
-        start: "gamelog-run979-greatlakes-persian-diff2-start.txt",
+        start: "gamelog-run983-greatlakes-roman-diff2-start.txt",
         long: (
-            "gamelog-run979b-greatlakes-persian-diff2-24k-trace.txt",
-            "rontrace-run979b.log",
+            "gamelog-run983b-greatlakes-roman-diff2-24k-trace.txt",
+            "rontrace-run983b.log",
         ),
-        length: 7105,
-        // Item 3345, the first try: ours 5 draws, theirs 4, at 1 ours
-        // `Unit::fight+0x9b0`, theirs `Farms::inc_time+0x1ae`.
-        count: 6046,
-        sequence: 6046,
+        length: 7799,
+        // Item 3355, the first try: count 7799, sequence 7799 — the draw
+        // stream agrees to the game's end.
+        count: 7799,
+        sequence: 7799,
     },
     // The fourth lobby (item 2904, DECISIONS 72), minted when the first
     // left for the AI word so three stay held out: Great Lakes, the Chinese

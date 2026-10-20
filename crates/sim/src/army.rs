@@ -25,7 +25,9 @@ use crate::build::{self, Ident};
 use crate::combat::{Obj, Stance};
 use crate::movement::{self, Angle, find_angle};
 use crate::orders::{MoveKind, QueuePos};
-use crate::world::{Cell, MOVE_49, Owner, Pos, Terrain, UNITS_PER_CELL, cell, vector_dist};
+use crate::world::{Cell, Pos, Terrain, UNITS_PER_CELL, vector_dist};
+#[cfg(test)]
+use crate::world::{Owner, cell};
 use crate::{Player, Sim};
 
 /// Where this module knowingly stands in for the original, in one list.
@@ -242,15 +244,6 @@ const fn raid_factor(level: i32) -> i32 {
         2 => 2,
         3 => 1,
         _ => 3,
-    }
-}
-
-/// The target's cell, one row down — or up on the map's last row — the
-/// fallback muster cell of §12 and §13.
-fn below(c: Cell, height: i32) -> Cell {
-    Cell {
-        x: c.x,
-        y: if c.y < height - 1 { c.y + 1 } else { c.y - 1 },
     }
 }
 
@@ -890,7 +883,7 @@ impl Sim {
     /// `unit_masks & 0x40001 != 0x40001` (twenty-fourth pass, group 1; the
     /// decoy bit is `1`, the computer-control bit `0x40000`,
     /// [`Sim::ai_driven`]).
-    fn army_count_siege(&self, who: Player, slot: usize) -> i32 {
+    pub(crate) fn army_count_siege(&self, who: Player, slot: usize) -> i32 {
         self.army_count(who, slot, |s, u| {
             s.units[u].ty.is_some_and(|t| s.unit_types[t].combat.siege)
                 && !(s.units[u].decoy && s.unit_ai_bit(s.units[u].owner))
@@ -2640,7 +2633,7 @@ impl Sim {
     /// `combat_bonus`), and nothing else in the export writes either, so
     /// the score is a constant: 256 per admissible neighbour, and the
     /// ring's walk order breaks the ties.
-    const LAND_MOVE_RATE: i32 = 0x100;
+    pub(crate) const LAND_MOVE_RATE: i32 = 0x100;
 
     /// `Army::find_muster_spot(o, who, flag)` (§13): the chase over the
     /// target city's damaged buildings; then the ring search — the cells
@@ -2664,232 +2657,9 @@ impl Sim {
     /// muster set. Kept as it is, because `do_mustering` and
     /// `do_defending` act on that 0.
     pub fn find_muster_spot(&mut self, who: Player, slot: usize, target: Obj, flag: bool) -> bool {
-        let w = who as usize;
-        self.armies[w].list[slot].hurry = 0;
-        let tw = self.owner_of(target);
-        let (apos, navy) = {
-            let a = &self.armies[w].list[slot];
-            (a.pos, a.navy)
-        };
-        let ac = apos.cell();
-        let tc = self.pos_of(target).cell();
-        let height = self.world.height();
-        if self.is_ally(who, tw) && !navy {
-            let mut muster: Option<Cell> = None;
-            if let Obj::Building(b) = target {
-                let chain: Vec<usize> = match self.buildings[b].city {
-                    Some(c) => {
-                        let ch = self.city_chain(c);
-                        let at = ch.iter().position(|&x| x == b).unwrap_or(0);
-                        ch[at..].to_vec()
-                    }
-                    None => vec![b],
-                };
-                for m in chain {
-                    let bd = &self.buildings[m];
-                    if !bd.alive || bd.health >= bd.hits {
-                        continue;
-                    }
-                    let bpos = bd.pos;
-                    let enemy = self.nearest_enemy_attacker(who, bpos, 0x900).or_else(|| {
-                        self.units
-                            .iter()
-                            .enumerate()
-                            .find(|(_, u)| {
-                                u.alive()
-                                    && u.on_map
-                                    && !u.is_gaia()
-                                    && self.is_enemy(who, u.owner)
-                                    && u.combat.target == Some(Obj::Building(m))
-                                    && dist(u.pos, bpos) <= 0x1200
-                            })
-                            .map(|(i, _)| i)
-                    });
-                    if let Some(e) = enemy {
-                        let mc = self.units[e].pos.cell();
-                        let a = &mut self.armies[w].list[slot];
-                        a.muster = mc;
-                        a.muster_angle = find_angle(mc.x - tc.x, mc.y - tc.y);
-                        a.hurry = 1;
-                        return true;
-                    }
-                    if muster.is_none() {
-                        muster = Some(bpos.cell());
-                    }
-                }
-            }
-            // No enemy at the chain: a provisional muster — the damaged
-            // building's cell, else the target's, one row down — and on
-            // into the ring search, which overrides it with a best.
-            let m = below(muster.unwrap_or(tc), height);
-            let a = &mut self.armies[w].list[slot];
-            a.muster = m;
-            a.muster_angle = find_angle(m.x - tc.x, m.y - tc.y);
-        }
-        // The ring search. `OBJECT_CITY` is the city centre itself, not a
-        // member.
-        let city = match target {
-            Obj::Building(b) => self.buildings[b]
-                .city
-                .filter(|&c| self.cities[c].building == b)
-                .map(|c| (b, c)),
-            Obj::Unit(_) => None,
-        };
-        let siege = self.army_count_siege(who, slot);
-        let inner = match city {
-            Some((b, c)) if !navy => {
-                if self.building_unassimilated(b) {
-                    4
-                } else {
-                    let mut r = self.radius_of(c) / 4 + 1;
-                    if siege == 0 && who != tw {
-                        r /= 2;
-                    }
-                    r
-                }
-            }
-            _ => 5,
-        };
-        let outer = (inner + (3 * i32::from(navy) + 1) * 2).min(0x40);
-        let walk = if flag { 0x31 } else { 9 };
-        let scored = if navy { 0x19 } else { 9 };
-        let ally = self.is_ally(who, tw);
-        let near = if ally { 4 } else { 2 };
-        // A land army with any transport level may muster in any land
-        // region (`leader_flags & 0x700`, `region < 0x41`).
-        let any_land = !navy && self.transport_level(who) as i32 != 0;
-        let reg = self.armies[w].list[slot].reg;
-        let others: Vec<Cell> = self.armies[w]
-            .list
-            .iter()
-            .enumerate()
-            .filter(|(j, a)| *j != slot && a.valid)
-            .map(|(_, a)| a.muster)
-            .collect();
-        let circle = crate::ai_place::circle();
-        let mut best: Option<(i32, usize, Cell)> = None;
-        // The original's `local_c`: the last in-bounds candidate's verdict.
-        let mut last_valid = false;
-        for i in circle.radius[inner as usize]..circle.radius[outer as usize] {
-            let cand = Cell::new(ac.x + circle.x[i], ac.y + circle.y[i]);
-            if !self.world.contains(cand) {
-                continue;
-            }
-            // Not too near another army of mine — the first that is ends
-            // the candidate's walk before it scores, so it cannot win.
-            let too_near = others
-                .iter()
-                .any(|m| vector_dist((cand.x - m.x).abs(), (cand.y - m.y).abs()) <= near);
-            if !too_near {
-                let mut score = 0;
-                let mut out = false;
-                for (j, &(dx, dy)) in MOVE_49[..walk].iter().enumerate() {
-                    let n = Cell::new(cand.x + dx, cand.y + dy);
-                    if !self.world.contains(n) {
-                        out = true;
-                        break;
-                    }
-                    if !navy {
-                        // The neighbour's own neighbour in the same
-                        // direction: another leader's cell — not mine,
-                        // not an ally's, not the target owner's — is out.
-                        // A `−2` owner is "another leader" to the test.
-                        let nn = Cell::new(n.x + dx, n.y + dy);
-                        if self.world.contains(nn) {
-                            let foreign = match self.world.owner(nn) {
-                                Owner::None => false,
-                                Owner::Ambiguous => true,
-                                Owner::Player(p) => p != who && !self.is_ally(who, p) && p != tw,
-                            };
-                            if foreign {
-                                out = true;
-                                break;
-                            }
-                        }
-                    }
-                    if j >= scored {
-                        continue;
-                    }
-                    let nreg = self.world.region_of(n);
-                    let in_region = nreg == reg
-                        || (any_land
-                            && nreg.is_some_and(|r| self.world.terrain(r) == Terrain::Land));
-                    if !in_region {
-                        out = true;
-                        break;
-                    }
-                    let f = self.world.cell_data(n).flags;
-                    let water = self.world.is_ocean(n);
-                    // The same five tests `WorldData::get_land` runs, which
-                    // is what `World::land_class` is.
-                    let class = self.world.land_class(n);
-                    let admissible = if navy {
-                        water
-                    } else {
-                        !water && class != 5 && class != 4 && class != 3
-                    };
-                    if !admissible {
-                        out = true;
-                        break;
-                    }
-                    if f & cell::BUILDING == 0 {
-                        score += Self::LAND_MOVE_RATE;
-                    } else if navy && j > 8 {
-                        score += 10;
-                    }
-                }
-                last_valid = !out;
-                if !out && score > best.map_or(0, |(s, _, _)| s) {
-                    best = Some((score, i, cand));
-                }
-            }
-            // The early stop: more than 0x28 entries past the best.
-            if let Some((_, bi, _)) = best
-                && i - bi > 0x28
-            {
-                last_valid = true;
-                break;
-            }
-        }
-        if let Some((_, _, m)) = best {
-            let a = &mut self.armies[w].list[slot];
-            a.muster = m;
-            // From the army's point here, not the target's (listing
-            // `6f67aa`; audit B.46).
-            a.muster_angle = find_angle(m.x - ac.x, m.y - ac.y);
-            if let Some((_, c)) = city
-                && who == tw
-                && self.cities[c].alive
-            {
-                self.cities[c].no_muster = false;
-            }
-            return last_valid;
-        }
-        // No cell. A land army at a city centre that is not mine or an
-        // ally's, or that is damaged: the city's cell, one row down.
-        if let Some((b, c)) = city
-            && !navy
-        {
-            let bd = &self.buildings[b];
-            let damaged = bd.health < bd.hits;
-            if !ally || damaged {
-                let m = below(self.cities[c].pos.cell(), height);
-                let a = &mut self.armies[w].list[slot];
-                a.muster = m;
-                a.muster_angle = find_angle(m.x - tc.x, m.y - tc.y);
-                return true;
-            }
-        }
-        // An active, untroubled city centre of my own: the mark §12
-        // divides by 20, and the caller sees the failure.
-        if let Some((_, c)) = city
-            && who == tw
-            && self.cities[c].alive
-            && !self.cities[c].no_heal
-        {
-            self.cities[c].no_muster = true;
-        }
-        last_valid
+        crate::muster::find_muster_spot_steps(&mut crate::muster::SimMuster::new(
+            self, who, slot, target, flag,
+        ))
     }
 
     /// `find_unit(SEARCH_ENEMY, FILTER_COMBAT)`: the nearest enemy unit of
@@ -2898,7 +2668,7 @@ impl Sim {
     /// The search's leader loop stops at eight (`world::PLAYER_SLOTS`), so
     /// gaia's animals are not in its space at all — and asking the diplomacy
     /// question about them is what panicked the first fuzzed seed.
-    fn nearest_enemy_attacker(&self, who: Player, p: Pos, range: i32) -> Option<usize> {
+    pub(crate) fn nearest_enemy_attacker(&self, who: Player, p: Pos, range: i32) -> Option<usize> {
         let mut best: Option<(i32, usize)> = None;
         for (i, u) in self.units.iter().enumerate() {
             if !u.alive() || !u.on_map || u.is_gaia() || !self.is_enemy(who, u.owner) {

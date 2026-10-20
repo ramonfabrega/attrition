@@ -3829,6 +3829,20 @@ the address, so the queue cannot name the row either way. The pass left the cens
 probably for this reason, and 3356 names it as `Build`'s method at 0x6276a0. Candidate: the guard skips backticked
 text, or a `--kind sweep` item. The pass's. One reach.
 
+(3363) **The whole gate's sim library outgrew its 4096 MiB limit at eight threads** (the commander, the forty-sixth
+tranche's first whole gate, on `fc206a90`): `isolated_tests.py`'s `target_budget` gives the `sim` lib target
+`min(threads, 8)` slots and a hard 4096 MiB, and the run peaked at RSS 4218 and 4249 MiB. The budget stopped the
+workload twice (while `unit_find_repair_spot`'s sweep was running, and again among the soak and sweep tests), so the
+gate exited 1 with `isolated_tests.py`'s 137 and no test failed. The scoped gates and the lane gates (four threads)
+passed on the same tranche's merges. The sweeps added this tranche (`unit_think`, `do_repair`, 12000 rows each) are
+the likeliest growth. Candidates: the `sim` lib's limit sized from its measured row, as the other targets'
+reservation already is; or the 12000-row sweeps moved to their own `sweep_*` target. The pass's. One reach.
+**Second red, and Ramon's word** (2026-10-20): the re-run on `163e8d89` was stopped again (RSS 4262 MiB), and the
+same tree at `--test-threads 4` is green, 6 of 6, release 20.9 minutes. So no test fails; the cap is the whole of
+it. Until the fix lands, this tranche's whole gates run at four threads. Ramon: fixed by the next steer — the
+whole gate back at four threads, the footprint worked down (a few ugly tests, likely), or the cap raised a little,
+since every kill has landed just over it.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
@@ -8194,21 +8208,60 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
   1000 against ours 832..576) without a row. A hero's craft is a field `think_hero` reads ("with the mana"). Candidate
   check: no field a `think_*` arm reads stays on the unread list of the newest word's window.
 
-## Parked by the next landing, slot KE — reserved
+## Parked by item 3358, 2026-10-19 — the second sweep lane's second shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Five of six parked, one swept (`Group::action_gather_point`). Every park was judged by the subagent's reading of the
+decompile and the crate; none ran `sweep_gen.py` to an emitted file except `do_cast`'s head slice, so each is a
+reading, not a measurement.
 
-## Parked by the next landing, slot KF — reserved
+- **3358a. `Object::take_damage@00652020`: the crate has no method.** `fight.rs` `take_damage` is a `#[cfg(test)]`
+  wrapper over `take_damage_typed`, which spreads the function over `combat::take`, `close_unit`, `unit_plunder` and
+  `damage_building`. Unmodelled: the `Random::get(0,0xffff)%100<5` flock arm (with `add_flock`'s second draw),
+  `Leader::action_declare`, the AI city-alarm group push, `Caravans::new_danger`, the `param_3==3` non-lethal turn
+  (`Guy::set_angle`/`find_angle`), the rooted-victim `eject_contents`, the Inca refund, the vcall 0x16c attacker
+  notification, and returns 0/1/2. Needs a crate `Object::take_damage` over a `TakeDamageView` first (a sim
+  implementation, and its Random-draw order is a pin risk); then `obj` with ~12 vslot `--stub`s. Split (a) pre-accumulate
+  notice, (b) accumulate + city alarm, (c) kill arm + plunder. Sits under att-3356's `Ammo::do_damage`.
+- **3358b. `Group::action_alarm@0070ec30`: no view over city/building/unit-chain/leader state.** The crate's
+  `alarm.rs` `action_alarm` runs on whole `Sim` (`alarm_bell`, `city_chain`, `cell_chain`, `find_city_at`,
+  `group_action_garrison_search`). The original builds a stack `Group` and fans through `Group::add`/`action_garrison`;
+  also `SoundGlobal::play`, `Error::report`, a `ScenarioData::ignore_orders` arm. Needs a view trait shared with
+  `alarm_bell`/`alarm_all_clear`, stubs for `GroupData::member/add/action_garrison`; no shape is known to spell a
+  callee-built stack group. `alarm.rs`'s own SEAMs are the inputs it would part on first.
+- **3358c. `BuildTypeData::blocked_location@006375b0`: no view trait.** `place.rs` `blocked_location` takes `&Sim`
+  (split into `blocked_location_verdict` and `gather_verdict`); `tcoord.rs` covers only `blocked_tcoord_steps`. 14
+  callees (`non_friendly_territory`, `has_preq`, `get_town`, `count_water`, `calc_gather` …), ~8 type-predicate vcalls,
+  leader rows via `--sparse`. Lacking: a pointer-table-of-lists walk (the `unbuilt_*` lists). Split: territory/colonize
+  prefix, spacing (city/fort lists), tail (get_town through wonder checks, water/mountain/tree counts, gather survey).
+  Two differences to check when the view exists: the crate skips the gather survey for who = None (a marked seam);
+  `!n.lakota` where the original calls `has_tribe_bonus(0x13)`.
+- **3358d. `Unit::do_non_flat_gather@005f0170`: port not level, plus `--stub-alloc IDX`.** Crate arms absent: the
+  transport arm (`get_tregion` both ends, `can_transport`, `add_move_order`), the worker doober cleanup
+  (`+0x86`, `Doober::remove_hold_doobers`), the camp-side vcall `+0x170` with `set_angle` where the crate uses
+  `set_heading(find_angle)`, the `Error::report` "PANCAKE" arms (String allocation: `--stub-alloc` lacking, fourth
+  park on it after 3282b, 3339a, 3348b/c), `Array<TCoordData>::remove`. `vcall` needs a multi-slot form. Slice with
+  `--stop-stub`, the tile-choice tail (~480-705) first, after the port is level. Beside att-3356's `do_gather`.
+- **3358e. `Unit::do_cast@005ebfe0`: port not level; the head slice spells.** Crate `Sim::do_cast(u, CastOrder)`
+  takes an already-typed spell and splits off `do_cast_targeted`; the original derives the spell index from the
+  `UnitOrder*` (vcall +0x7c, `types.list[idx]->is_spell_type` in 0x275..0x2ab, else 0x296) and gates on
+  `pay_cast_costs`. SEAMs in the crate's own doc: the general's `has_general(0,0x162)` extra `spell_time`, and the
+  non-spell-type arm (`current_upgrade` + `set_type`). A head slice emitted with `obj --own 1 --ptrarg 0 --vtat p0+0
+  --stub slot:0x7c:0 --stub 0x676c40:3 --stop-stub 1` (ends at `SpellType::pay_cast_costs`; `--ptrarg` needs `--own
+  1`). Lacking: by-value `String` arguments to `MessageWin::add_feedback`; SEH `ExceptionList` writes unverified. Plan:
+  split the crate head, a `DoCastView`, then slices head / pack-unpack-anim / `get_job_time` tail.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3359, 2026-10-19 — the French close: the Dragoon's pivot
+
+- **3359a — the Crossbowman's round is 1 off.** run982d block 16764: `1/42`'s round on `0/2000` leaves from (6768,
+  30960) at `angle` −358678528 in theirs and (6767, 30960) at −358154240 here, the landing (6411, 30358) and the
+  flight (3) agreeing. `launch::MEASURED`'s piece 122 rows are each one shot at one pose (run982, item 3347), so the
+  bearing is the middle of its exact fits; a second pose, or the piece's `AttachPos` rows (run985b's packet may hold
+  them: `get_position.py … entries 122`), would say whether it is a `Bay`'s whole-degree turn. Names no score: the
+  close compares whole.
+- **3359b — piece 842, the Horse Archer, as the Dragoon** (3338a's open row). run973g's `AttachPos` rows put every
+  dumped round's height at the pivot's z plus the release's, × 4.8 (225, 228, 208), as piece 139's do — the pivot
+  branch, its turret unmodelled in `launch::MEASURED`'s planar rows. Carry it as `pivot::RELEASES` rows when a word
+  parts on a Horse Archer's round.
 
 ## Parked by item 3304, 2026-10-19 — the nations seat's tenth shape batch: all six built
 
@@ -8523,34 +8576,127 @@ The word closed at 7902 and the close compares whole (`docs/AI.md` §277). What 
   1..80, uid 0/1. Not 3346: `cargo test -p sim --lib` showed one failure in the subagent's tree,
   `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other` — the lane gate says whether it is the base's.
 
-## Parked by the next landing, slot LC — reserved
+## Parked by item 3347, 2026-10-19 — the battery's French word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+What the French word's landing (`docs/AI.md` §278) read and did not build:
 
-## Parked by the next landing, slot LD — reserved
+- **3347a — the French special arm.** `ObjectData::train_time@006508c0`'s French branch has a second arm beside the
+  siege one: a type that `is(0x36)` takes `FRENCH_SPECIAL_SPEED`. The rules ship it as 0, so it can change no
+  time; not carried. Build it if a mod or a later rules file sets it.
+- ~~**3347b — the Dragoon's `CHAR_ATTACK2` release node.** Piece 139 (`DRAGOON`, type 189) fires its `ATTACK2` at
+  frame 13 (run982's `1/39` on 14188, 14218, …), past every `AMMO` window on file, so `launch::MEASURED` has no row
+  for it and its round leaves from the unit. Names no score until a word parts on that round; measure it from the
+  first `AMMO` window that holds one.~~ Closed by item 3359 (`docs/AI.md` §280): piece 139 is a pivot piece, and run985b's packet
+  holds all four of its release rows.
+- **3347c — theirs' lingering ammo record.** run982 still prints `1/39`'s first round on 14040 with `flags 1` at
+  `cur_time` 196 of 14; ours closes the record when the round lands. The ammo blocks are `diff::ammo`'s own parser
+  and in no widening, so nothing compares it, and the draw stream agrees past it. Names no score.
+- ~~**3347d — the close: frame 16764, `0/2000`'s last hits.** The French draw stream agrees to the game's end
+  (16764), and run977b's closing block 16765 has four buildings and a city unlinked (`run977b_french_closing_state`):
+  theirs' who=1 captures the human's city on the last frame (`0/2000` → `1/2058`, three of its buildings →
+  `1/2059`..`1/2061`). Its damage is 1197 of 1200 on both sides through block 16764 (run982c, run982d); on 16764
+  ours lands +1 (1198) and theirs at least +3. Twenty-two who=1 units hold an attack on it there. Names the close's
+  score. Next: a call trace of `Object::do_damage` on frame 16764, both sides' hits by
+  attacker, before any reading.~~ Closed by item 3359 (`docs/AI.md` §280): the parting was `1/39`'s Dragoon round, from the
+  unit's square in ours and the pivot in theirs; the close is whole.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3348, 2026-10-19 — the second sweep lane's first shape batch
 
-## Parked by the next landing, slot LE — reserved
+- **3348a. `Unit::do_group_move@005e79a0`: port not level** (second sweep-lane park of the class 3339b). `Sim::do_group_move`
+  (`orders.rs`) is one `&mut Sim` method over `group_move_leader`/`group_move_follower`, each calling ~15 Sim methods directly;
+  a sweep needs a `GroupMoveView` split first. The original's tail also reads an uninitialised `local_30` on an empty path stack
+  (the crate substitutes `mo.dest`), and calls `vector_dist`/`find_angle` with register arguments the decompile dropped. The
+  subagent judged this from reading, no generator run. Successors: the leader arm (`5e7a10`–`5e7c6c`, ~6 callees) as
+  `group_move_leader_steps`; the path unwind (`5e8034`–`5e80c0`) as an `obj` shape with `--ptrarg`.
+- **3348b. `Roads::add_roads@0088f4b0`: `--stub-alloc IDX` lacking** (third park on it after 3282b, 3339a) **and the port is
+  not level**: `Sim::add_roads` (`mesh.rs`) models three of the original's phases; it lacks the `param_1 != 0` block, the last
+  pass (`fixup_lines(0)`, four mask clears, `find_piece`), pass two's `set_diags` branches, the flagged-iterator queue
+  (`set_diags` appends mid-walk) and breaks at `local_3c > 10` where the crate runs 12. Also a `_TSS0` thread-safe-static
+  guard reading `ThreadLocalStoragePointer`. Order: `--stub-alloc` (bump-heap malloc stub), then a `RoadsView`.
+- **3348c. `Unit::find_path@005fb910`: `--stub-alloc IDX` lacking** (as 3348b) **plus a stateful `Stack<PathData>` model**
+  (`push`/`pop`/`peek` moving `length`; no flag does, e.g. `--stack-model LOC:LEN:SIZE:ENTRY`), and the port is not level:
+  `Sim::find_path` (`orders.rs:6679`) does not model the `go_around_building` replay or the recursive return 2. ~15 callees.
+  Alternative: split a `find_path_march` and sweep that. Sits over 3339c's residue.
+- **3348d. `Unit::work@0060d180`: the caravan block and the move-family dispatch** unswept: `LinkListBase::tail/prev` must
+  answer a window pointer in `ecx`, and `--ecx-out IDX:V,..` takes integers only (flag lacking: a pointer form of `--ecx-out`).
+  The post-`update_action` tail (action target tests, `do_job` hand-off, the final find_unit/set_new_location block) is
+  untried. The fresh-latch lines still run early in the crate with the front order's type (SEAM in `orders.rs`); the original
+  runs them after the dispatch.
+- **3348e. `Unit::target_opportunity@005fffc0` past `600108`**: the flee arm, action and spell tests, `on_duty`, the
+  retaliation and the Group-forwarding tail (~25 further callees, the `objects`/`types` tables) untried, not parked on a
+  failure. The inline `is_captain` arm (`o_up >> 15`) is unexercised in the walk sweep (a set bit faults); type windows of
+  walked units alias unit 0's. `SimTopp` and `SimWorkGate` themselves are not driven by their sweeps (only the steps are).
+- **3348f. `Build::check_capture@006276a0`** sits between `add_roads` and `find_path` on the census and was left out of this
+  batch's booking; no parked row explains it (the grep finds only `check_capture_health` and `check_capture_eligible`, other functions): the commander books it next.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3355, 2026-10-19 — the Persians to the game's end
+
+The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What it read and did not build:
+
+- **3355a — `do_move`'s captain retarget keeps a `c != t` test the original has not.** `005f803f`–`005f8216` calls
+  `change_target` with no test that the candidate differs from the current target; `sim::orders`' arm keeps one.
+  `change_target` to the incumbent rewrites the `o_down` chain in place, so the difference is a footprint, not a target.
+  Nothing on any widening parts on it; read `Unit::change_target@005e36c0`'s writes when one does.
+- **3355b — `Unit::fight`'s `unit_flags & 0x400` arm.** Ahead of the Immortals' (`fight@005fd4d0:764`): a type with
+  the flag and a `max_range` swings `CHAR_ATTACKSPECIAL` with no roll, and this crate swings `CHAR_ATTACK1`. It draws
+  nothing; no widening on file names a type with the flag. Grep the install's unit flags for `0x400` when a slot
+  parts on a ranged type's swing.
+- **3355c — piece 112's and piece 1792's later pieces.** Both are the first age bracket's male figure. Their other
+  brackets and female slots (`+0x840`, `+0x18c0`) are on no packet, so `sim::launch` has no bays for them. A packet
+  of a Persian game past the third age that fields both answers them with `tools/recomp/get_position.py`.
 
 ## Parked by the next landing, slot LF — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LL renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

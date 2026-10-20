@@ -19482,6 +19482,64 @@ SHA-256 `fbbb9695db0b47f36373c099fb057a222af0db37d1f68707369104ea1b188680`.
 
 **What it holds**: `run978f_s_word_frame_is_widened_whole`: who=1's Enlightenment Age offered at 9999999 against 3564000 on 15579 and bought on 15583 at 382 food (Sugar, `get_cost`'s rares' tail).
 
+## run981 — the battery's replacement lobby: Great Sahara, the Russians at difficulty 4, a `DUMP_ALL` start (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: the French left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds. By entry 72's rule (2), a nation held only by closed games on another map
+and never on Great Sahara: the Russians (13) and the Romans (10 in the census) tie on reach, and the Russians' only
+game ended itself at 7303, so their later-age arms are the ones no trace has run. Tier 4, the tier the French leave.
+`--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 13 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched 20:19:38 and the game exited at 20:29:50 (612 s). `success`, 37 frames, `map_style 7`, seed
+  12345, players `(0, 4, 7), (1, 13, 1)`. Filed with `filerun.py run981 greatsahara-russian-diff4-start`.
+- Minutes waited on another lane: none (lane 2 was run981b's until 20:19:26).
+
+Archive `gamelog-run981-greatsahara-russian-diff4-start.txt`, 149,586,711 bytes,
+SHA-256 `880c6e1285c13c5a0b7b3530b65f4173e7a497a09a5d7451fc27725d1672731d`.
+
+Archive `rontrace-run981.log`, 8,077,728 bytes,
+SHA-256 `c24aff00f86eb15b0d132b3a0a87a7dc077efc560e4c9d03d18d088e8dc60fad`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaRussianTier4` start.
+
+## run981b — the same lobby, the draw stream to the game's end (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. run977b's recipe with `--ai-tribe 13`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=4` and run643's four
+`--detail` lines.
+- Pool lane 2. Launched 20:17:53 and the game exited at 20:19:26 (93 s). `success`, **the game ended itself on 18883**
+  (closing block 18884, `ended_early` true). `rngcmp.py rontrace-run981.log rontrace-run981b.log`: **37 identical, 0
+  differing**. Filed with `filerun.py run981b greatsahara-russian-diff4-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run981b-greatsahara-russian-diff4-24k-trace.txt`, 12,944,091 bytes,
+SHA-256 `ed941199993a848c1c337d27e324c25f3b4851fb5ab678f40252ed38a8963d29`.
+
+Archive `rontrace-run981b.log`, 104,054,240 bytes,
+SHA-256 `ee96f939067fe7d9712515ec1c32c6ea706130151ec0cff3b57ce27dd4595355`.
+
+**What it holds**: the Russians' first try, **18883 / 18883**: the whole game agrees. Pinned in `battery::BATTERY`.
+
+## run982 — the French word: the words 13422's and 13843's window, blocks 13416..14093 at `AMMO=5` (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: the French word parts on 13422 and run977b holds only its
+setup and closing blocks; the second word, 13843, is a round's launch, and only `AMMO` prints a round. Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run982`: `--map 7 --end-frame 14098 --timeout 5400
+--log-window 13416 14093 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover
+cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 20:24:12 and the game exited at 21:07:58 (2626 s: `AMMO=5` over 678 blocks). `success`, 14099
+  frames, `map_style 7`, seed 12345. `rngcmp.py rontrace-run982.log rontrace-run977b.log`: **14099 identical, 0
+  differing**. Filed with `filerun.py run982 greatsahara-french-diff4-window-13416-14093-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run982-greatsahara-french-diff4-window-13416-14093-ammo.txt`, 1,266,669,796 bytes,
+SHA-256 `14556c5881180c190276f57d7825f56bcf38ef90adb0786a8ac31b564f1099a8`.
+
+Archive `rontrace-run982.log`, 74,094,144 bytes,
+SHA-256 `b260bdb205d79908bed6e3246055398c2733e2d7f35a8e139b2fc549a20375a5`.
+
+**What it holds**: `run982_s_word_frame_is_widened_whole`: the Siege Factory `1/2026`'s Trebuchet clock 24000 of
+30000 on 13421 (the French siege arm), and `1/39`'s rounds — the Crossbowman's and the Cavalry Archer's release nodes
+(`launch::MEASURED` 122, 138, 139), `launch::tests::run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit`.
 ## run979 — the battery's replacement lobby: Great Lakes, the Persians at difficulty 2, a `DUMP_ALL` start (2026-10-19, item 3345, `att-3345`)
 
 `docs/AI.md` §277. **What the disk could not answer**: the Lakota left the battery for the AI word, and the held-out
@@ -19558,3 +19616,200 @@ SHA-256 `2dbe2d5558e0db9d751409dda45c6f44ee8107d4876990036c5a12eac59b3644`.
 
 **What it holds**: seven Lakota Slinger stones' `sx, sy` — `1/18`'s on 6047 from (4962, 30153) in 7 frames, `1/20`'s
 from (4943, 30718) — pinned by `launch::tests::run980b_s_lakota_stones_leave_from_the_na_slinger_s_bays`.
+
+## run983 — the battery's replacement lobby: Great Lakes, the Romans at difficulty 2, a `DUMP_ALL` start (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: the Persians left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds — entry 72's rule (2) as amended by 84: every nation is in some dump, so
+rule (1) has no answer; of the nations on no Great Lakes dump and held only by closed games, the Romans (6) reach the
+most census functions (10), held only by `EastIndiesRomanTier2`, at the tier (2) the Persians left. `--map 14
+--end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 6 --profile DIFFICULTY=2`, through `viadriver.sh` +
+`golden_capture.sh`.
+- Pool lane 1. Launched 21:19:42 and the game exited at 21:28:28 (525 s). `success`, 37 frames, `map_style 14`, seed
+  12345, players `(0, 4, 7), (1, 6, 1)`. Filed with `filerun.py run983 greatlakes-roman-diff2-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run983-greatlakes-roman-diff2-start.txt`, 150,807,176 bytes,
+SHA-256 `9befd2e86fc961d8f2d5a8185700fd5edf1c2bbc129015b2870cb96100785a2d`.
+
+Archive `rontrace-run983.log`, 9,419,168 bytes,
+SHA-256 `adc1928f1643da20512c9df52eaa4ac206b22f31b3d56e74eb4abab1b3392b33`.
+
+**What it holds**: `battery::BATTERY`'s `GreatLakesRomanTier2` start.
+
+## run983b — the same lobby, the draw stream to the game's end (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. run962b's recipe on map 14 with `--ai-tribe 6 --profile DIFFICULTY=2` and run643's four
+`--detail` lines.
+- Pool lane 2. Launched 21:19:42 and the game exited at 21:21:19 (96 s). `success`, 7800 frames, **the game ended
+  itself on 7799** (closing block 7800, `ended_early` true). `rngcmp.py rontrace-run983.log rontrace-run983b.log`:
+  **37 identical, 0 differing**. Filed with `filerun.py run983b greatlakes-roman-diff2-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run983b-greatlakes-roman-diff2-24k-trace.txt`, 12,570,793 bytes,
+SHA-256 `ffcb199243f791437a46d3e0e9402b8dda26712d7fb59c416786a63e26586623`.
+
+Archive `rontrace-run983b.log`, 33,846,592 bytes,
+SHA-256 `af4ecaec4504086b9dda18b93b876d06e7e5d1215e02b6189c4c17ddd774b349`.
+
+**What it holds**: the Romans' first try, **7799 / 7799** of 7799 — the draw stream agrees to the game's end — pinned
+in `battery::BATTERY`.
+
+## run984 — the Persian word: the word 6046's window, blocks 6020..6276 at `GUYS=4` and `AMMO=5` (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: run979 dumps blocks 0..36 and run979b its setup and closing
+blocks only, so no dump held a unit record near 6046. `--map 14 --end-frame 6281 --timeout 5400 --log-window 6020
+6276 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0 --profile
+DIFFICULTY=2`.
+- Pool lane 3. Launched 21:19:45 and the game exited at 21:39:01 (1156 s). `success`, 6282 frames.
+  `rngcmp.py rontrace-run979b.log rontrace-run984.log`: **6282 identical, 0 differing**. Filed with
+  `filerun.py run984 greatlakes-persian-diff2-window-6020-6277-guys4-ammo`. Block 6276 is not printed (256 blocks).
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run984-greatlakes-persian-diff2-window-6020-6277-guys4-ammo.txt`, 466,385,194 bytes,
+SHA-256 `84f62ce52ebd90bcef99abf1ba4fb34b906121d10ad4eba01d4dc3e908688714`.
+
+Archive `rontrace-run984.log`, 30,759,200 bytes,
+SHA-256 `ac4d3fc5540c9430668beb70eb4605fa219a95353c42256bf8ade08ead1d2826`.
+
+**What it holds**: the word 6046's frame, `run984_s_word_frame_is_widened_whole` (1282 keys on the first try, 271
+after piece 112's bays, 32 after `do_move`'s search); the Immortal `1/16`'s arrow thrown on 6012 from (3766, 32893)
+in 10 frames, pinned by `launch::tests::run984_s_immortal_arrow_leaves_from_piece_112_s_bays`.
+
+## run984b — the same game, a state packet at frame 6011 (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: no dump prints a piece's `AttachPos` rows, and piece 112 (the
+Persian Immortals) is on no packet. `RON_STATE_FRAME=6011` with item 597's `plan.h`, `--end-frame 6015 --log-window
+6010 6014 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5`, on the click-free lane.
+- Pool lane 1. Launched 21:44:45 and the game exited at 21:45:16 (31 s). `success`, 6016 frames, `map_style 14`,
+  seed 12345. `rngcmp.py rontrace-run979b.log`: **6016 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run984b/map-14/frame-snapshot.bin`, 800,991,816 bytes,
+SHA-256 `16f186d67028b6b85992c6b19b1c5a7ec7affc53e383ccf16e81b95f311360b5`.
+
+**What it holds**: piece 112's two `AttachPos` rows (`CHAR_ATTACK2` at 14, `CHAR_ATTACK3` at 6), swept at all 361
+headings by `tools/recomp/get_position.py` into `sim::launch::BAYS`. No test reads it.
+
+## run984c — the same game, a state packet at frame 6251 (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: no dump prints `Object +0x3d` (`targeted`), the term that sent
+the Immortal `1/10`'s 6251 re-search to the citizen `0/4`. `RON_STATE_FRAME=6251` with item 597's `plan.h`,
+`--end-frame 6255 --log-window 6249 6254 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5`, on the click-free lane.
+- Pool lane 2. Launched 21:51:36 and the game exited at 21:52:14 (38 s). `success`, 6256 frames, `map_style 14`,
+  seed 12345. `rngcmp.py rontrace-run979b.log`: **6256 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run984c/map-14/frame-snapshot.bin`, 787,614,240 bytes,
+SHA-256 `8f4ee9f55d4878a7ec617a6885ce37479a82b945220f17569bb8811afc87254a`.
+
+**What it holds**: under `tools/recomp/step4.py --entry`, `Object::compare_target@0064e5c0` returns 10239 and 9960 for
+`0/3` and `0/4` (ours' values), and `targeted` reads `0/3` 3, `0/4` 1 — `do_move`'s every-sixteenth search. No test
+reads it.
+
+## run984d — the Persian word: the word 6323's window, blocks 6317..6573 at `GUYS=4` and `AMMO=5` (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: run984 closes on 6276, before the word 6323, and run979b
+prints its setup and closing blocks only. `--map 14 --end-frame 6578 --timeout 5400 --log-window 6317 6573 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0 --profile DIFFICULTY=2`.
+- Pool lane 2. Launched 22:02:05 and the game exited at 22:18:18 (973 s). `success`, 6579 frames.
+  `rngcmp.py rontrace-run979b.log rontrace-run984d.log`: **6579 identical, 0 differing**. Filed with
+  `filerun.py run984d greatlakes-persian-diff2-window-6317-6574-guys4-ammo`. Block 6573 is not printed (256 blocks).
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run984d-greatlakes-persian-diff2-window-6317-6574-guys4-ammo.txt`, 464,848,702 bytes,
+SHA-256 `59eba32eeca00f4c165bc2cad1ac5354b28c3b14996ace6fe0e85db175434acf`.
+
+Archive `rontrace-run984d.log`, 31,664,640 bytes,
+SHA-256 `fdfe77ceec4a63f6e097e47fef9e4deaec95c5763600f3cebe95a1cfcf8fe30e`.
+
+**What it holds**: the word 6323's frame, `run984d_s_word_frame_is_widened_whole` (1136 keys on the first try, 594
+after piece 1792's bays, 31 after the Immortals' special strike); the Slingers `1/22`'s and `1/24`'s stones at `0/3`
+from (2504, 33053) and (2398, 32523) in 5 frames, pinned by
+`launch::tests::run984d_s_persian_stones_leave_from_piece_1792_s_bays`.
+## run982b — the French word: the word 14604's window, blocks 14598..14854 at `AMMO=5` (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: the word moved to 14604, past run982's last block (14093), and
+run977b holds only its setup and closing blocks. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run982b`: `--map 7 --end-frame 14859 --timeout 5400 --log-window 14598 14854` (run982's `--detail`,
+`--ai-tribe`, `--cover`, `--profile`).
+- Pool lane 2. Launched 21:21:31 and the game exited at 21:42:08 (1237 s). `success`, 14860 frames, `map_style 7`,
+  seed 12345. `rngcmp.py rontrace-run982b.log rontrace-run977b.log`: **14860 identical, 0 differing**. Filed with
+  `filerun.py run982b greatsahara-french-diff4-window-14598-14854-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run982b-greatsahara-french-diff4-window-14598-14854-ammo.txt`, 487,342,785 bytes,
+SHA-256 `d666589cb981fd49d536739ed95a90c0a70a87bb0b8ab869ab35f0560299d29b`.
+
+Archive `rontrace-run982b.log`, 78,516,864 bytes,
+SHA-256 `26b0c5bf7143c4f62c04fbe9d9b9c1266bbe59b718ebe6dacc1f4b9842c3f18f`.
+
+**What it holds**: `run982b_s_word_frame_is_widened_whole`: 14604's value diff — the decoy Hussars `1/100`
+(`unit_masks` 0x4000f, `mylos` 1) holding its attack on the Citizen `0/1` with a chase move to (4440, 28392) on 14605,
+where ours had called `0/1` unseen (the decoy's own-cell sight, `docs/VISION.md` §3).
+
+## run982c — the French word: the rest of the game at stride 20, blocks 14855..16765 (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: the word reached the game's end (16764) and the close parts on
+who=1's capture of `0/2000`, whose damage no dump prints between run982b's last block (14854) and the closing block.
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run982c`: `--map 7 --end-frame 16766 --timeout 5400
+--log-window 14855 16765 --stride 20 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 10 --cover
+cover=0 --allow-early-end --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 21:48:44 and the game exited at 21:58:43 (599 s). `success`, **the game ended itself on 16764**
+  (`ended_early` true). `rngcmp.py rontrace-run982c.log rontrace-run977b.log`: **16765 identical, 0 differing**. Filed
+  with `filerun.py run982c greatsahara-french-diff4-window-14855-16765-stride20`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run982c-greatsahara-french-diff4-window-14855-16765-stride20.txt`, 184,967,683 bytes,
+SHA-256 `967a80d2ea71e049b60f4bf72e17730b383b469739c6e7c0b471818893296ad3`.
+
+Archive `rontrace-run982c.log`, 109,543,616 bytes,
+SHA-256 `05382e9d73296b4c7bd3d703839be37afbf57f02dbcfa413ed63f4a8f21e9cc1`.
+
+**What it holds**: `0/2000`'s damage every twentieth block, against `RON_DEBUG_BUILDS`' on the walk: 80 blocks agree
+(block n against our frame n − 1), one timing tear at 16336 aside, to 1197 of 1200 on 16756. Not widened.
+
+## run982d — the French word: the game's last blocks, 16740..16765 at `AMMO=5` (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: run982c's last stride block is 16756 and the capture falls
+between it and the closing block. run982c's line with `--log-window 16740 16765` and no `--stride`, and `AMMO=5`.
+- Pool lane 1. Launched 21:59:35 and the game exited at 22:02:04 (149 s). `success`, the game ended itself on 16764.
+  `rngcmp.py rontrace-run982d.log rontrace-run977b.log`: **16765 identical, 0 differing**. Filed with `filerun.py
+  run982d greatsahara-french-diff4-window-16740-16765-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run982d-greatsahara-french-diff4-window-16740-16765-ammo.txt`, 48,729,763 bytes,
+SHA-256 `c14feaa99fe11ddc421b255b604c1f028792b87d6fd9591e4a4eaf71f63fb0dd`.
+
+Archive `rontrace-run982d.log`, 109,538,176 bytes,
+SHA-256 `038663c47493b19809922f59f4cac188d06e1f63f8f9654eaf82f05d107b9df8`.
+
+**What it holds**: `run982d_s_last_blocks_are_widened_whole`: 38 standing keys and nothing on `0/2000`, damage 1197
+of 1200 through block 16764 on both sides; the capture is the last frame's own hits.
+
+## run985 — the French word: a state packet at frame 16762, the take that died (2026-10-19, item 3359, `att-3359`)
+
+`docs/AI.md` §280. **What the disk could not answer**: no packet on disk builds piece 139, the French Dragoon
+(`get_position.py … entries 139` on every `frame-snapshot.bin` under `~/ron-golden` and `~/ron-data`: run959's has
+the piece with no rows, the rest none), and only its `AttachPos` rows say where its `CHAR_ATTACK2` round leaves.
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run985`: `--map 7 --end-frame 16766 --timeout 3600
+--log-window 16760 16765 --detail end:MISC,UNITS=3,GUYS=4 --ai-tribe 10 --cover cover=0 --allow-early-end --profile
+DIFFICULTY=4 --tracer-def RON_STATE_FRAME=16762 --tracer-def RON_STATE_PLAN=<item 597's plan.h>`.
+- Pool lane 1. Launched 22:47:10; Wine's page fault on read at `7BF21139` (thread 0170) before the first frame,
+  `process failed: 40`, a 768-byte `rontrace.log` and no packet. A dead take; re-run as run985b.
+- Minutes waited on another lane: none.
+
+## run985b — the same line, the packet (2026-10-19, item 3359, `att-3359`)
+
+`docs/AI.md` §280. run985's line into `~/ron-golden/run985b`.
+- Pool lane 1. Launched 22:48:39 and the game exited at 22:49:45 (66 s). `success`, **the game ended itself on 16764**
+  (`ended_early` true). `rngcmp.py` against run977b: **16765 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run985b/map-7/frame-snapshot.bin`, 871,709,848 bytes,
+SHA-256 `7b341bde4dfccc55ab0f8da1966b67dba3cc8f06c081bd939d839e67dc76481e`.
+
+**What it holds**: piece 139's nine `AttachPos` rows (`pos_start` 215, `RData +0x88` 1.0) — the pivot node `(4, 0,
+0)` and, for `CHAR_ATTACKWALK`/12, `CHAR_ATTACK1`/12, `CHAR_ATTACK2`/13 and `CHAR_ATTACK3`/18, the pivot's and the
+release node's — pinned as `pivot::NODES` and `pivot::RELEASES` piece 139; and its `GUYS=4` blocks 16760..16765, whose
+`1/39` reads `turret_angles[0]` −196608 on 16763. Test `pivot::tests::the_french_dragoon_s_rounds_leave_from_its_pivot`.

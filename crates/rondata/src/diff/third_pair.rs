@@ -1898,46 +1898,37 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // release offset (piece 60162, as run657's `1/90` and run661's
             // `1/80`): `1/80`'s round launched on 17309 and `1/90`'s on 17311
             // leave from the unit's square here and the release node there.
-            // From 17321 on, the rounds are the word's parting.
-            let mut want = std::collections::BTreeSet::new();
-            for (field, mine, dumped) in [
-                ("angle", -133758976, -142147584),
-                ("ex", 6315, 6319),
-                ("sx", 6648, 6640),
-                ("sy", 9000, 8853),
-                ("sz", 228, 436),
-                ("v1z", 12225000, -39775002),
-            ] {
-                want.insert((17312, (1, 80, 17309), field, mine, dumped));
-            }
-            for n in 17312..=17315 {
-                for (field, mine, dumped) in [
-                    ("angle", -61276160, -68419584),
-                    ("ex", 6176, 6179),
-                    ("sx", 6456, 6474),
-                    ("sy", 9240, 9179),
-                    ("sz", 186, 448),
-                    ("v1z", 27618750, -24781250),
-                ] {
-                    want.insert((n, (1, 90, 17311), field, mine, dumped));
-                }
-            }
+            // From 17321 on, the rounds are the word's parting. Item 3347's
+            // Dragoon nodes (piece 139) take `1/80`'s to 8 and 1 off in x and
+            // y with its height and climb agreeing; `1/90`'s fires from an
+            // animation frame no window has measured. Item 3359: the
+            // Dragoon's pivot rows (`pivot::RELEASES` piece 139, run985b's
+            // packet) take both whole — `1/80`'s from (6632, 8854) to theirs'
+            // (6640, 8853), and `1/90`'s from (6456, 9240, 186) to (6474,
+            // 9179, 448), its `v1z` and aim with it.
             let before: std::collections::BTreeSet<_> = ammo_differences
                 .iter()
                 .filter(|d| d.0 < 17319)
                 .cloned()
                 .collect();
-            assert_eq!(before, want, "the Dragoons' launches, explicit");
+            assert_eq!(
+                before,
+                std::collections::BTreeSet::new(),
+                "the Dragoons' launches, explicit"
+            );
             // Item 1519: (70, 73, 840) and 344 → (70, 74, 1400) and 442 once
             // `1/115` stood (AI §138): more rounds pair and are compared, and
             // every row past the word is the same release-offset family
             // (`sx`/`sy`/`sz`/`v1z`/`angle` at launch, `ex`/`ey`, a frame of
             // `total_time`) or a round's `presence` a frame early. Item 2609:
             // 1400 → 1540 compared, twenty-two fields a round with the crash's
-            // `rolling` and bank (`docs/AI.md` §228); the rows unmoved.
+            // `rolling` and bank (`docs/AI.md` §228); the rows unmoved. Item
+            // 3347's release nodes (pieces 122, 138, 139): 74 → 71 against
+            // theirs' 70, and 442 → 337 rows. Item 3359, the Dragoon's pivot
+            // rows (piece 139): 337 → 298.
             assert_eq!(
                 (ammo_counts, ammo_differences.len() - before.len()),
-                ((70, 74, 1540), 442),
+                ((70, 71, 1540), 298),
                 "the rounds past the word"
             );
             assert_eq!(
@@ -1951,26 +1942,23 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // three blocks and leaves from another point: ours the unit's
             // square, 100 up, theirs the piece's release node — the same
             // unmeasured Dragoon offset (piece 60162) as run657's `1/90`.
+            // Item 3347's Dragoon nodes (`launch::MEASURED` piece 139, from
+            // the battery's French run982) take it to 8 and 2 off theirs in
+            // x and y (from 37 and 148), with its height and climb agreeing.
+            // Item 3359: the Dragoon's pivot rows (`pivot::RELEASES` piece
+            // 139, run985b's packet) take it whole — `sx, sy` (6611, 8852),
+            // `ex` 6361 and `angle` −131334144 on both sides, 17243..17245
+            // (from ours' (6603, 8854), 6359, −128122880).
             assert_eq!(
                 ammo_counts,
                 (3, 3, 66),
                 "three lifetimes, twenty-two fields each"
             );
-            let mut want = std::collections::BTreeSet::new();
-            for n in 17243..=17245 {
-                for (field, mine, dumped) in [
-                    ("angle", -133758976, -131334144),
-                    ("ex", 6362, 6361),
-                    ("ey", 7290, 7291),
-                    ("sx", 6648, 6611),
-                    ("sy", 9000, 8852),
-                    ("sz", 228, 451),
-                    ("v1z", 12225000, -43525002),
-                ] {
-                    want.insert((n, (1, 80, 17242), field, mine, dumped));
-                }
-            }
-            assert_eq!(ammo_differences, want, "1/80's launch, explicit");
+            assert_eq!(
+                ammo_differences,
+                std::collections::BTreeSet::new(),
+                "1/80's launch, explicit"
+            );
             assert_eq!(
                 ammo_unmodelled,
                 std::collections::BTreeSet::from([(1, 395223114, 0, 0, 0, 60162, 5, 0)]),
@@ -1981,26 +1969,25 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // rounds in flight. `1/90`'s round, launched on 17165, leaves
             // from another point on 17166..17169: `1/90` is one of the
             // three units whose front order the gap 16869..17164 parted
-            // (an attack on Napata in the original, a move in ours).
+            // (an attack on Napata in the original, a move in ours). Item
+            // 3347's Dragoon nodes (`launch::MEASURED` piece 139, from the
+            // battery's French run982) put its height and climb right — `sz` and `v1z` agree —
+            // and move its start to 31 and 6 off theirs in x and y (from 11
+            // and 146), its aim with it. Item 3359: the Dragoon is a pivot
+            // piece (`pivot::RELEASES` piece 139, run985b's packet), and
+            // the round agrees whole — `sx, sy` (6467, 9094), `ex, ey`
+            // (6216, 7336) and `angle` −69140480 on both sides, 17166..17169
+            // (from ours' (6498, 9100), (6220, 7335), −78708736).
             assert_eq!(
                 ammo_counts,
                 (4, 4, 88),
                 "four lifetimes, twenty-two fields each"
             );
-            let mut want = std::collections::BTreeSet::new();
-            for n in 17166..=17169 {
-                for (field, mine, dumped) in [
-                    ("angle", -61276160, -69140480),
-                    ("ex", 6212, 6216),
-                    ("sx", 6456, 6467),
-                    ("sy", 9240, 9094),
-                    ("sz", 186, 394),
-                    ("v1z", 27618750, -13981250),
-                ] {
-                    want.insert((n, (1, 90, 17165), field, mine, dumped));
-                }
-            }
-            assert_eq!(ammo_differences, want, "1/90's launch, explicit");
+            assert_eq!(
+                ammo_differences,
+                std::collections::BTreeSet::new(),
+                "1/90's launch, explicit"
+            );
             assert_eq!(
                 ammo_unmodelled,
                 std::collections::BTreeSet::from([(1, 355165588, 0, 0, 0, 60162, 0, 0)]),

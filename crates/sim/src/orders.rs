@@ -3432,42 +3432,18 @@ impl Sim {
         // `ATTACK`, and the test above reads it *before* that drop — so
         // the frame a unit stops attacking still counts as attacking, and
         // the visibility outlives the order by up to 32 frames.
-        if self.units[u].phase(frame).rem_euclid(32) == 0 {
-            if !self.units[u].attacking {
-                self.units[u].visible = 0;
-            }
-            // And the in-danger latch beside it, on the same tick and
-            // with no latch of its own (`0060d19d`): `unit_masks &= ~4`
-            // sits inside the same `if` as the `visible` clear, one line
-            // below it. [`sim::Unit::in_danger`].
-            self.units[u].in_danger = false;
-        }
-        if self.order_type(u) != index::ATTACK {
-            self.units[u].attacking = false;
-        }
-        // The recharging-melee gate: a recharging melee unit steps only an
-        // order carrying the action bit, and never an ATTACK through here
-        // (ATTACK's own entry gate is `fight`'s). **An animal has none**:
-        // `Animal::work@005d7330` is `do_job` on the front order and the
-        // herd's sighting, and a flock's bird leaves `recharging` at 1 on
-        // every frame it flies (`crate::flock`).
-        //
-        // **And an orderless one steps nothing at all** — `if (order == 0)
-        // return;` is the gate's first arm (`Unit::work@0060d180:79-86`),
-        // so a recharging melee unit with no order reaches neither
-        // `do_idle` nor its `check_idle` until the countdown ends. The
-        // battery word 13054 (`docs/AI.md` §245): the Knight `1/65` ends
-        // its `ATTACK_TO` on 13053 at `recharging` 21 and the original
-        // leaves it standing orderless at `idle` 0, where this crate rolled
-        // its idle and found it a target on 13054.
-        let held = match self.current_order(u).copied() {
-            None => true,
-            Some(o) => o.index() != index::ATTACK && !o.has(flag::ACTION),
-        };
-        if held
-            && !self.units[u].is_gaia()
-            && self.units[u].combat.recharging != 0
-            && self.max_range_of(Obj::Unit(u)) == 0
+        // **The recharging-melee gate** — a recharging melee unit steps only an
+        // order carrying the action bit, never an ATTACK through here, and an
+        // orderless one steps nothing (`:79-86`; the battery word 13054,
+        // `docs/AI.md` §245: the Knight `1/65` stands orderless at `idle` 0
+        // until the countdown ends). A type with `unit_flags & 0x400` ("melee
+        // AND ranged") has no gate (parked 3106). An animal has none:
+        // `Animal::work@005d7330` is its own entry. The steps — the clock,
+        // the latch drop and the gate — are [`crate::work_gate::work_gate_steps`],
+        // swept to the first call after them (item 3348).
+        if crate::work_gate::work_gate_steps(&mut crate::work_gate::SimWorkGate::new(
+            self, u, frame,
+        )) == crate::work_gate::Gate::Return
         {
             return;
         }
@@ -3517,12 +3493,15 @@ impl Sim {
         // carrying the idle latch drops it, and a **fisherman or merchant**
         // marks its owner's economy dirty on the way — it has just left
         // `Leader::calc_gather` step 6's walk ([`crate::rares`]).
-        if self.order_type(u) != index::NONE && self.units[u].idle_latch {
-            self.units[u].idle_latch = false;
-            if self.unit_line_is(u, crate::fish::FISHERMEN) || self.is_merchant(u) {
-                self.economy_changed(self.units[u].owner);
-            }
-        }
+        // The steps are [`crate::work_gate::fresh_latch_steps`] (swept, item
+        // 3348). SEAM: the original runs them after the dispatch, with the
+        // type the dispatch left; this crate runs them here, with the front
+        // order's.
+        let ty = i32::from(self.order_type(u));
+        crate::work_gate::fresh_latch_steps(
+            &mut crate::work_gate::SimWorkGate::new(self, u, frame),
+            ty,
+        );
         // `Unit::work@0060d180:97` — the caravan block, ahead of the
         // dispatch: a linked trade route runs another frame of its road
         // plan, or is ended when the order under it is no longer one
@@ -3547,6 +3526,14 @@ impl Sim {
         // And `update_action` is **unconditional** there (`:283`): every
         // frame's `Unit::work` rewrites `orders_x/y` and `dest_angle`
         // before the dispatch, whatever the order.
+        // `Unit::work@0060d180:0060d77d`, just above it: an open path search
+        // under a head order that is not a move is dropped
+        // ([`crate::work_gate::partial_path_steps`], swept, item 3348).
+        let has_head = self.current_order(u).is_some();
+        crate::work_gate::partial_path_steps(
+            &mut crate::work_gate::SimWorkGate::new(self, u, frame),
+            has_head,
+        );
         let action = self.update_action(u);
         if action.is_some_and(|a| self.units[u].orders[a].index() == index::ATTACK)
             && let Some(t) = self.units[u].combat.target
@@ -5605,9 +5592,43 @@ impl Sim {
                         // `is_captain`: a squad member's target comes
                         // down the chain from here and it decides nothing
                         // itself.
+                        //
+                        // **And on every sixteenth `o + frame` it searches
+                        // first** (`005f803f`–`005f80a6`; item 3355,
+                        // `docs/AI.md` §279): `find_melee_target(this, −1,
+                        // &who, 0, 0, word)` with no add, the word 1
+                        // (`UNITS`) — the target's vslot `+0x1c` is 0 on
+                        // this arm — or 2 for a siege type (`+0x10c`). The
+                        // search writes `near` and bumps its winner's
+                        // `targeted` whatever follows, and a find in range
+                        // stands in for `near` below. The Persian word's
+                        // 6251: the Immortal captains chasing the fleeing
+                        // citizen `0/3` leave it `targeted` 3 and `0/4` 1
+                        // (run984c's packet, `Object +0x3d`), so `1/10`'s
+                        // re-search takes `0/4`; without the search both
+                        // read 0 and it kept `0/3`.
+                        let searched = if !self.units[u].combat.mandatory
+                            && self.units[u].captain
+                            && self.units[u].phase(frame) % 16 == 0
+                        {
+                            let siege = self.units[u].ty.is_some_and(|ty| {
+                                self.unit_types[ty].cols.flag(crate::ai_load::uflags::SIEGE)
+                            });
+                            let word = if siege {
+                                crate::fight::search::BUILDINGS
+                            } else {
+                                crate::fight::search::UNITS
+                            };
+                            self.find_melee_target_with(u, -1, word)
+                        } else {
+                            None
+                        };
                         if !self.units[u].combat.mandatory
                             && self.units[u].captain
-                            && let Some(c) = self.units[u].near
+                            && let Some(near) = self.units[u].near
+                            && let c = searched
+                                .filter(|&f| self.is_in_range(me, f))
+                                .unwrap_or(near)
                             && c != t
                             && self.active(c)
                             && self.is_in_range(me, c)

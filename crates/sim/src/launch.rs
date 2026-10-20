@@ -55,6 +55,91 @@ pub struct Node {
 /// A piece with no row here launches from the unit's own position, which
 /// is what every shot in this crate did before run109.
 const MEASURED: &[(i32, i8, u32, Node)] = &[
+    // **122 is `CROSSBOWMEN`** (unit type 172) **and 138 `CAVARCHERS`**
+    // (type 188, the French Heavy Horse Archer; item 3347, run982 on the
+    // French Great Sahara seed, `AMMO=5` over `[13416, 14093]`): the four
+    // first rounds of who=1's archers on 13822–13839, each the guy's pose on
+    // the block before its first print against the round's `sx, sy, sz` —
+    // `1/41`'s `CHAR_ATTACK2` frame 3, guy (10008, 30984) at −1120927744,
+    // (9943, 30974, 707) over a guy `z` of 573; `1/42`'s `CHAR_ATTACK1`
+    // frame 5, (9624, 31176) at −1057882112, (9540, 31165, 769) over 603;
+    // `1/43`'s `CHAR_ATTACK3` frame 6, (9672, 30984) at −1130299392,
+    // (9596, 30977, 758) over 597; and the Cavalry Archer `1/39`'s
+    // `CHAR_ATTACK3` frame 20, (9480, 30936) at −1535115264, (9401, 30970,
+    // 842) over 614. One shot each: the radius is the only one that fits
+    // and the bearing the middle of its exact fits. Without them the
+    // rounds left from the guy, `1/39`'s flew 14 frames against 13 and was
+    // still airborne where theirs had rolled to the ground on 13843
+    // (`docs/AI.md` §278).
+    (
+        122,
+        crate::anim::ATTACK1,
+        5,
+        Node {
+            bearing: 77_676_544,
+            radius: 84,
+            dz: 166,
+        },
+    ),
+    (
+        122,
+        crate::anim::ATTACK2,
+        3,
+        Node {
+            bearing: 157_679_616,
+            radius: 65,
+            dz: 134,
+        },
+    ),
+    (
+        122,
+        crate::anim::ATTACK3,
+        6,
+        Node {
+            bearing: 123_879_424,
+            radius: 76,
+            dz: 161,
+        },
+    ),
+    (
+        138,
+        crate::anim::ATTACK3,
+        20,
+        Node {
+            bearing: 185_516_032,
+            radius: 85,
+            dz: 228,
+        },
+    ),
+    // The Cavalry Archer's other two, and **139, `DRAGOON`** (type 189, the
+    // line `1/39` upgrades into before 14002), from the same window: `1/39`'s
+    // `CHAR_ATTACK2` frame 16 on 13851, guy (9480, 30936) at −1535115264,
+    // (9388, 30958, 822) over 614; its `CHAR_ATTACK1` frame 18 on 13982,
+    // guy (7944, 30840) at −990642176, (7860, 30861, 883) over 658; and as
+    // a Dragoon from the same pose, `CHAR_ATTACK1` frame 12 on 14002,
+    // (7794, 30874, 881), and `CHAR_ATTACK3` frame 18 on 14039, (7797,
+    // 30845, 866). The Dragoon's own rows went to `pivot::RELEASES` (item
+    // 3359): piece 139 is a pivot piece, and run985b's packet holds them.
+    (
+        138,
+        crate::anim::ATTACK1,
+        18,
+        Node {
+            bearing: -246_988_800,
+            radius: 86,
+            dz: 225,
+        },
+    ),
+    (
+        138,
+        crate::anim::ATTACK2,
+        16,
+        Node {
+            bearing: 304_234_496,
+            radius: 94,
+            dz: 208,
+        },
+    ),
     // **49 is `MUSKETEERS`** (unit type 99; item 3336, run971 on the
     // Egyptian Great Sahara seed, `AMMO=5` over `[20368, 20380]`): the
     // Musketeer's two release events a round of run971 leaves from —
@@ -954,6 +1039,77 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 168,
         },
     ),
+    // **Piece 1792, the Slingers in the Persians' art style** (`32 + 5 ×
+    // 0x160`; item 3355, `docs/AI.md` §279): the Persians'
+    // `UNIT_CONTINENT` is 5. run984c's `RON_STATE_FRAME=6251` packet on
+    // the Persian Great Lakes game holds its three `AttachPos` rows, piece
+    // 1440's keys, and `get_position.py`'s sweep of each is reproduced at
+    // all 361 headings by piece 1440's own three bays — the same centroids
+    // of the same regions (534, 319 and 28 lattice points). Without them
+    // the Persian stones left the unit's own square: the Persian word's
+    // 6323, whose state had parted on 6319 — `1/22`'s stone at the citizen
+    // `0/3` landing a frame late (6 frames against 5).
+    (
+        1792,
+        crate::anim::ATTACK1,
+        21,
+        Bay {
+            right: 71_298,
+            fwd: 69_592,
+            dz: 174,
+        },
+    ),
+    (
+        1792,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: 32_704,
+            fwd: 120_229,
+            dz: 144,
+        },
+    ),
+    (
+        1792,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -47_065,
+            fwd: 114_687,
+            dz: 168,
+        },
+    ),
+    // **Piece 112, the Persians' Immortals** (type 162; item 3355,
+    // `docs/AI.md` §279): a nation's own piece, so no continent offset.
+    // run984b's `RON_STATE_FRAME=6011` packet on the Persian Great Lakes
+    // game holds its two `AttachPos` rows — `CHAR_ATTACK2` at 14 and `3` at
+    // 6, there is no `CHAR_ATTACK1` row — and `tools/recomp/get_position.
+    // py`'s sweep of each is reproduced by these at all 361 headings, x, y
+    // and z; each is the centroid of its exact region (105 and 115 lattice
+    // points). Without them every Immortal's arrow left the unit's own
+    // square: the Persian word's 6046, whose state had parted on 6021 —
+    // `1/16`'s arrow at the Scout `0/0` thrown on 6012 landing a frame late
+    // (11 frames against 10), so `0/0` took no wound and stood.
+    (
+        112,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_067,
+            fwd: 104_603,
+            dz: 178,
+        },
+    ),
+    (
+        112,
+        crate::anim::ATTACK3,
+        6,
+        Bay {
+            right: 27_678,
+            fwd: 36_793,
+            dz: 171,
+        },
+    ),
     // **Piece 33, the Javelineers (type 83): the original's own
     // `get_position`** (item 1194). Its `Spear` leaves node 0 on frame 12
     // of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
@@ -1284,6 +1440,50 @@ mod tests {
             let got: Vec<_> = keys.iter().map(|&k| at(x, y, facing, k)).collect();
             assert!(got.contains(&want), "{want:?} from {got:?}");
         }
+    }
+
+    /// **The Persian Slingers' stones leave from piece 1792's bays** (item
+    /// 3355): run984d's `AMMO` records, the stones `1/22` and `1/24` threw
+    /// at the citizen `0/3` — each from its unit's own square at block
+    /// 6317's facing, `sx, sy` the dump's own.
+    #[test]
+    fn run984d_s_persian_stones_leave_from_piece_1792_s_bays() {
+        for (x, y, facing, want) in [
+            (2616, 33000, -1_092_616_192, Pos::new(2504, 33053)),
+            (2472, 32424, -1_435_041_792, Pos::new(2398, 32523)),
+        ] {
+            let got: Vec<_> = [
+                (crate::anim::ATTACK1, 21),
+                (crate::anim::ATTACK2, 22),
+                (crate::anim::ATTACK3, 16),
+            ]
+            .iter()
+            .map(|&(anim, start)| launch_point(Pos::new(x, y), Angle(facing), 1792, anim, start, 0))
+            .collect();
+            assert!(got.contains(&want), "{want:?} from {got:?}");
+        }
+    }
+
+    /// **The Persian Immortals' arrows leave from piece 112's bays** (item
+    /// 3355): run984's `AMMO` record of the arrow `1/16` threw on 6012 at
+    /// the Scout `0/0` — `sx, sy` (3766, 32893), `total_time` 10 — from
+    /// the unit's own square (3768, 33000) at block 6020's facing.
+    #[test]
+    fn run984_s_immortal_arrow_leaves_from_piece_112_s_bays() {
+        let got: Vec<_> = [(crate::anim::ATTACK2, 14), (crate::anim::ATTACK3, 6)]
+            .iter()
+            .map(|&(anim, start)| {
+                launch_point(
+                    Pos::new(3768, 33000),
+                    Angle(-173_146_112),
+                    112,
+                    anim,
+                    start,
+                    0,
+                )
+            })
+            .collect();
+        assert!(got.contains(&Pos::new(3766, 32893)), "{got:?}");
     }
 
     /// Every launch point run109 measured, reproduced to the unit.
@@ -1984,6 +2184,98 @@ mod tests {
         }
     }
 
+    /// run982's rounds (item 3347): `(piece, anim, starttime, guy x, y, z,
+    /// angle, sx, sy, sz)`, the dump's own columns, reproduced to the unit —
+    /// the four first rounds, then the Cavalry Archer's other two and the
+    /// Dragoon's two (`cf3e7e2c2`).
+    #[test]
+    fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
+        type Round = (i32, i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        const M: &[Round] = &[
+            (
+                122,
+                crate::anim::ATTACK2,
+                3,
+                10008,
+                30984,
+                573,
+                -1_120_927_744,
+                9943,
+                30974,
+                707,
+            ),
+            (
+                122,
+                crate::anim::ATTACK1,
+                5,
+                9624,
+                31176,
+                603,
+                -1_057_882_112,
+                9540,
+                31165,
+                769,
+            ),
+            (
+                122,
+                crate::anim::ATTACK3,
+                6,
+                9672,
+                30984,
+                597,
+                -1_130_299_392,
+                9596,
+                30977,
+                758,
+            ),
+            (
+                138,
+                crate::anim::ATTACK3,
+                20,
+                9480,
+                30936,
+                614,
+                -1_535_115_264,
+                9401,
+                30970,
+                842,
+            ),
+            (
+                138,
+                crate::anim::ATTACK2,
+                16,
+                9480,
+                30936,
+                614,
+                -1_535_115_264,
+                9388,
+                30958,
+                822,
+            ),
+            (
+                138,
+                crate::anim::ATTACK1,
+                18,
+                7944,
+                30840,
+                658,
+                -990_642_176,
+                7860,
+                30861,
+                883,
+            ),
+        ];
+        for &(piece, anim, t, gx, gy, gz, ga, sx, sy, sz) in M {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), piece, anim, t, 0);
+            let z = gz + release_dz(piece, anim, t, 0).unwrap_or(0);
+            assert_eq!(
+                (got.x, got.y, z),
+                (sx, sy, sz),
+                "piece {piece} anim {anim} t {t}"
+            );
+        }
+    }
+
     /// A piece nothing has measured keeps the old behaviour exactly.
     #[test]
     fn an_unmeasured_piece_launches_from_the_unit() {
@@ -2012,6 +2304,9 @@ mod tests {
     /// keys the event walk never reaches. **49**, the Musketeer's two, are
     /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4. **842**, the
     /// Horse Archer's three, are run973e/f's (item 3338): keys 18, 16, 20.
+    /// **122**, the Crossbowman's three, and **138**, the Cavalry Archer's
+    /// `CHAR_ATTACK3`, are run982's (item 3347): keys 5, 3, 6 and 20. The
+    /// Dragoon's, **139**, left for `pivot::RELEASES` (item 3359).
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -2022,12 +2317,18 @@ mod tests {
             vec![
                 (49, crate::anim::ATTACK1, 1),
                 (49, crate::anim::ATTACK3, 4),
+                (122, crate::anim::ATTACK1, 5),
+                (122, crate::anim::ATTACK2, 3),
+                (122, crate::anim::ATTACK3, 6),
                 (127, crate::anim::ATTACK1, 6),
                 (127, crate::anim::ATTACK1, 22),
                 (127, crate::anim::ATTACK2, 4),
                 (127, crate::anim::ATTACK2, 22),
                 (127, crate::anim::ATTACK3, 10),
                 (127, crate::anim::ATTACK3, 24),
+                (138, crate::anim::ATTACK1, 18),
+                (138, crate::anim::ATTACK2, 16),
+                (138, crate::anim::ATTACK3, 20),
                 (384, crate::anim::ATTACK1, 21),
                 (384, crate::anim::ATTACK2, 22),
                 (472, crate::anim::ATTACK1, 12),
