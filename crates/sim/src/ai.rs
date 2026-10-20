@@ -1345,6 +1345,12 @@ pub fn goods_picture(leader: &mut Leader, ledger: &mut Ledger, s: &GoodsSetup) {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn the_barracks_garrison_term_starts_at_zero() {
+        // `remove_from_inside` counts it (item 3372); no reader yet.
+        assert_eq!(Census::default().barracks_garr, 0);
+    }
+
+    #[test]
     fn a_ushort_region_slot_reads_unsigned() {
         // `reg_free_peasants` is a `ushort[64]` and `Leader::produce_building`
         // subtracts one at a site nothing counted: the dump prints 65534
