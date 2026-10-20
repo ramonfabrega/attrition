@@ -4438,7 +4438,9 @@ impl Sim {
                             && let Obj::Unit(ai) = attacker
                         {
                             let lab = |s: &Self, o: Obj| match o {
-                                Obj::Unit(u) => format!("{}/{}", s.units[u].owner, s.units[u].index),
+                                Obj::Unit(u) => {
+                                    format!("{}/{}", s.units[u].owner, s.units[u].index)
+                                }
                                 Obj::Building(b) => format!("b{b}"),
                             };
                             eprintln!(
@@ -4485,10 +4487,18 @@ impl Sim {
             self.bump_targeted(o, 1);
             if std::env::var("RON_DEBUG_BUMPS").is_ok() {
                 let lab = |s: &Self, o: Obj| match o {
-                    Obj::Unit(u) => format!("{}/{} t{}", s.units[u].owner, s.units[u].index, s.units[u].combat.targeted),
+                    Obj::Unit(u) => format!(
+                        "{}/{} t{}",
+                        s.units[u].owner, s.units[u].index, s.units[u].combat.targeted
+                    ),
                     Obj::Building(b) => format!("b{b} t{}", s.buildings[b].targeted),
                 };
-                eprintln!("BUMP f{} {} by {}", self.frame, lab(self, o), lab(self, attacker));
+                eprintln!(
+                    "BUMP f{} {} by {}",
+                    self.frame,
+                    lab(self, o),
+                    lab(self, attacker)
+                );
             }
         }
         // `006498de`: the pair survives only if the nearest candidate the
