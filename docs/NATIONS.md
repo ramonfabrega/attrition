@@ -63,7 +63,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3) |
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
-| 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3); `GreatSaharaGermanTier3` (map 7, tier 3) |
+| 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3); `GreatSaharaGermanTier3` (AI word, tier 3) |
 | 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
