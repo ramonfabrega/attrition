@@ -62,6 +62,8 @@ mod japanese_word;
 #[cfg(test)]
 mod lakota_pair;
 #[cfg(test)]
+mod lakota_word;
+#[cfg(test)]
 mod leader;
 #[cfg(test)]
 mod maya_word;

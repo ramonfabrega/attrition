@@ -45,7 +45,7 @@ No path enters the key: moving the install or the checkout keeps every
 entry, and a changed byte in any input is a miss.
 
 The cache is `~/Library/Caches/attrition/emu-cache/<key>.rows`, shared by
-every worktree since the key holds no path (`RON_EMU_CACHE_DIR` moves it; `RON_EMU_CACHE=off` bypasses it). A file is the receipt as `#` lines —
+every worktree since the key holds no path (`RON_EMU_CACHE_DIR` moves it; `RON_EMU_CACHE=off` bypasses it; a result over `RON_EMU_CACHE_MAX_BYTES`, 16 MiB by default, is returned and never stored — 136 of 1,523 entries held 20 of 22 GiB after one gate). A file is the receipt as `#` lines —
 the key, the executable's path and hash, the script's and each module's
 name and hash, the date, `uv --version`, the Python `uv run` resolves,
 the row count, `# end` — then the rows verbatim; the header is stripped

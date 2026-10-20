@@ -64,17 +64,17 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
-| 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4) |
+| 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
 | 16 | Koreans | koreans | `koreans` | 6 | scored pairs |
 | 17 | Mongols | mongols | `mongols` | 3 | none |
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
-| 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (map 14, tier 2) |
+| 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2) |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4) |
-| 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | none |
+| 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (map 14, tier 2) |
 
 ## 3. The held-out nations, arm by arm
 
@@ -306,8 +306,8 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_TEMPLE_UPGRADES` | 2 | Leader::gain_tech, LeaderData::has_preq, Setup::build_civ_specific | modelled at tech.rs | `korean_temple_upgrades` |
 | `KOREAN_TEMPLE_TAX_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `korean_temple_tax_upgrades` |
 | `KOREAN_MILITIA_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `korean_militia_upgrades` |
-| `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at build.rs | `korean_build_under_fire` |
-| `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at build.rs | `korean_repair` |
+| `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at orders.rs | `korean_build_under_fire` |
+| `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at orders.rs | `korean_repair` |
 | `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | not carried | `korean_tower_cost` |
 | `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | not carried | `mongol_stable_cost` |
 | `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at lib.rs | `mongol_stable_speed` |
@@ -336,7 +336,7 @@ left out; a constant with no reader in the export is dead there too.
 | `LAKOTA_FOOD` | 4 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | modelled at economy.rs | `lakota_food` |
 | `LAKOTA_HERBAL_LORE` | 1 | no reader in the export | not carried | `lakota_herbal_lore` |
 | `LAKOTA_RAZE_SPEED` | 100 | ObjectData::train_time | not carried | `lakota_raze_speed` |
-| `LAKOTA_RAZE_PRICE` | 0 | Build::plunder, Object::disband | modelled at city.rs | `lakota_raze_price` |
+| `LAKOTA_RAZE_PRICE` | 0 | Build::plunder, Object::disband | modelled at disband.rs | `lakota_raze_price` |
 | `LAKOTA_CAV_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `lakota_cav_upgrades` |
 | `LAKOTA_CAV_DMG_BONUS` | 1/3 | Object::do_damage | not carried | `lakota_cav_dmg_bonus` |
 | `AMERICANS_FREE_SCHOLAR` | 1 | Build::activate | modelled at nations.rs | `americans_free_scholar` |
@@ -356,7 +356,7 @@ left out; a constant with no reader in the export is dead there too.
 | `INDIANS_ELEPHANT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `indians_elephant_upgrades` |
 | `DUTCH_FREE_COMMERCE` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `dutch_free_commerce` |
 | `DUTCH_COMMERCE_DISCOUNT` | 10 | TypeData::get_cost | modelled at lib.rs | `dutch_commerce_discount` |
-| `DUTCH_FORT_PLACEMENT` | 0 | BuildTypeData::blocked_tcoord | modelled at place.rs | `dutch_fort_placement` |
+| `DUTCH_FORT_PLACEMENT` | 0 | BuildTypeData::blocked_tcoord | modelled at tcoord.rs | `dutch_fort_placement` |
 | `DUTCH_INTEREST` | 5 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest` |
 | `DUTCH_INTEREST_CAP` | 50 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest_cap` |
 | `DUTCH_FREE_LIGHT_SHIP` | 1 | Build::activate | modelled at nations.rs | `dutch_free_light_ship` |
@@ -415,7 +415,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
 | `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |
 | `ObjectData::get_damage@00644130` | 15 | carried at combat.rs | `00644130` |
-| `Object::disband@006455c0` | 0 19 | not modelled | `006455c0` |
+| `Object::disband@006455c0` | 0 19 | carried at object_disband.rs | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
 | `Object::remove_from_inside@006480f0` | 19 20 | carried at holdings.rs | `006480f0` |
 | `ObjectData::train_time@006508c0` | 5 15 | carried at lib.rs | `006508c0` |

@@ -24,7 +24,16 @@ pub(crate) struct EmuSetup<'a> {
     /// Ask `uv` its version and its Python's for the receipt (off in the
     /// unit tests, whose runner is not `uv`).
     pub(crate) probe: bool,
+    /// The most bytes of rows a result may have and still be stored
+    /// (`RON_EMU_CACHE_MAX_BYTES`; [`DEFAULT_CACHE_CAP`]): the forty-fifth
+    /// pass found 136 of 1,523 entries holding 20.3 of the cache's 21.7 GiB
+    /// after one gate, the largest 1.3 GB of rows. A result over the cap is
+    /// returned and never written; the script runs each time, as before.
+    pub(crate) cap: usize,
 }
+
+/// 16 MiB: keeps 1,387 of 1,523 entries at 1.35 GiB (measured 2026-10-19).
+pub(crate) const DEFAULT_CACHE_CAP: usize = 16 * 1024 * 1024;
 
 /// The rows `tools/emu/<script>` prints for the install's executable, or
 /// `None` (said on stderr) where the install or `uv` is absent. Cached, and
@@ -45,6 +54,9 @@ pub(crate) fn emu_rows(script: &str) -> Option<String> {
         cache: cache_dir(get, Path::new(root)),
         verify: get("RON_VERIFY_EMU").is_some_and(|v| !v.is_empty() && v != "0"),
         probe: true,
+        cap: get("RON_EMU_CACHE_MAX_BYTES")
+            .and_then(|v| v.trim().parse().ok())
+            .unwrap_or(DEFAULT_CACHE_CAP),
     };
     emu_rows_with(script, &setup, run_uv)
 }
@@ -132,6 +144,14 @@ pub(crate) fn emu_rows_with(
         return Some(now);
     }
     let rows = fresh()?;
+    if rows.len() > setup.cap {
+        eprintln!(
+            "emu cache: {script}'s rows ({} bytes) are over the cap ({}); not stored",
+            rows.len(),
+            setup.cap
+        );
+        return Some(rows);
+    }
     if let Err(e) = store(cache, &file, &key, &receipt, &rows, setup.probe) {
         eprintln!("emu cache: cannot write {} ({e})", file.display());
     }
@@ -480,7 +500,9 @@ pub(crate) fn tail_row(line: &str) -> (Vec<i64>, i64, Vec<&str>) {
 
 #[cfg(test)]
 mod tests {
-    use super::{EmuSetup, cache_dir, cache_key, emu_rows_with, sha256, strip_header};
+    use super::{
+        DEFAULT_CACHE_CAP, EmuSetup, cache_dir, cache_key, emu_rows_with, sha256, strip_header,
+    };
     use std::cell::Cell;
     use std::io;
     use std::os::unix::process::ExitStatusExt;
@@ -546,6 +568,7 @@ mod tests {
             cache,
             verify: false,
             probe: false,
+            cap: DEFAULT_CACHE_CAP,
         }
     }
 
@@ -697,6 +720,38 @@ mod tests {
         write(&emu.join("sweep_a.py"), "print('changed')\n");
         emu_rows_with("sweep_a.py", &set, run).expect("rows");
         assert_eq!(calls.get(), 2, "a changed input runs again");
+    }
+
+    #[test]
+    fn a_result_over_the_cap_is_returned_and_not_stored() {
+        let s = Scratch::new("cap");
+        let (emu, exe) = lay_out(&s.0);
+        let cache = s.0.join("cache");
+        let calls = Cell::new(0);
+        let run = |_: &Path, _: &Path, _: &[String]| {
+            calls.set(calls.get() + 1);
+            ok("1 2 -> 3\n4 5 -> 9\n")
+        };
+        let mut set = setup(&emu, &exe, &[], Some(cache.clone()));
+        set.cap = 8;
+        let rows = emu_rows_with("sweep_a.py", &set, run).expect("rows");
+        assert_eq!(
+            rows, "1 2 -> 3\n4 5 -> 9\n",
+            "the rows come back whatever the cap"
+        );
+        let (k, _) = cache_key("sweep_a.py", &set).expect("key");
+        assert!(
+            !cache.join(format!("{k}.rows")).exists(),
+            "over the cap: not stored"
+        );
+        emu_rows_with("sweep_a.py", &set, run).expect("rows");
+        assert_eq!(calls.get(), 2, "uncached, it runs each time");
+        set.cap = DEFAULT_CACHE_CAP;
+        emu_rows_with("sweep_a.py", &set, run).expect("rows");
+        assert!(
+            cache.join(format!("{k}.rows")).exists(),
+            "under the cap: stored"
+        );
     }
 
     #[test]
