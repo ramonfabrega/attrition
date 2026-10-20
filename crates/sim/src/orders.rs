@@ -8925,7 +8925,7 @@ impl Sim {
             let gc = match (t, ga) { (Some(t), Some(g)) => Some(self.guard_check_target(u, &g, t, false)), _ => None };
             let reach = t.map(|t| self.check_target_reaches(u, t, true));
             let lea = match (t, ga) { (Some(t), Some(g)) => Some(format!("{:?}", self.guard_leash(u, &g, t))), _ => None };
-            eprintln!("PROBE3385 f{frame} {}/{} tgt {t:?} at {tp:?} mask {tm:?} valid_const {vt:?} guard {ga:?} check {gc:?} reaches {reach:?} leash {lea:?} rech {} captain {} maxr {}", self.units[u].owner, self.units[u].index, self.units[u].combat.recharging, self.units[u].captain, self.max_range_of(me));
+            eprintln!("PROBE3385 f{frame} {}/{} tgt {t:?} at {tp:?} mask {tm:?} valid_const {vt:?} guard {ga:?} check {gc:?} reaches {reach:?} leash {lea:?} rech {} captain {} maxr {} cap {}/{} cap_orders {:?} cap_tgt {:?}", self.units[u].owner, self.units[u].index, self.units[u].combat.recharging, self.units[u].captain, self.max_range_of(me), self.units[self.squad_captain(u)].owner, self.units[self.squad_captain(u)].index, self.units[self.squad_captain(u)].orders, self.units[self.squad_captain(u)].combat.target);
         }
         // **`do_attack`'s own gate is the type's `attack`, and it is the
         // only aliveness test the function has** (item 463).
