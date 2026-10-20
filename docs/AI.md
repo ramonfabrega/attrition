@@ -24803,12 +24803,61 @@ each row's starttime moved off its event, against `iroquois_sahara_word_first_pa
 `CHAR_ATTACK1` and `CHAR_ATTACK3` failed nothing — the walk's rounds strike on the same frame from either point —
 and are held by the round tests instead.
 
-## 289. Reserved for the next item on the AI track
+## 289. The battery's German word at Great Sahara closes: half price for the industry lines
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3378, 2026-10-20, Opus 5.5. `GreatSaharaGermanTier3` (map 7, human Nubians against the Germans at Difficulty 3,
+seed 12345; runs 1000 and 1000b), promoted out of the battery at 13582 of 19483 (`diff::german_sahara_word`; not
+`diff::german_word`, the closed East Indies game). Capture run1003 (`GOODS=3` over 13576..13832). Its battery place
+went to `GreatSaharaIndianTier3` (runs 1002, 1002b; entry 72's rule (2), below): 15922 of 16564 on its first try.*
+
+**The draw delta on 13582.** Both sides spend 64 draws and part at index 0. `RON_DEBUG_SITES` lines them up: ours
+spends one `Leader::use_market+0x1ed` first (the market's sell branch, `docs/ECONOMY.md` §13) and theirs one more
+`Leader::make_stuff+0x63d` at 54 (a slot's expiry after a `make_this`); the 52 `produce_building`, two
+`make_stuff+0x221`, three `set_anim` and six `Farms` draws are the same. So on this frame theirs bought something
+and ours went to the market. `RON_DEBUG_MAKE=13582` (ours): head `t 417` (a Farm, 96 timber), purse `6 203 120 449
+62 0`, paid.
+
+**The first parted field: block 13579, `leader:MAKE[1].val`.** run1003's widening (1039 keys on the first try): past
+the standing family on 13576, the first row is who=1's make list on block 13579 — the list rebuilt that tick, the
+same on both sides but slot 1, **`t 609` (`CARPENTRY`, 0x261; cat 8, escrowed), `val` 30000 ours against 120000
+theirs**. On 13581 ours has ranked it under the Crossbowmen (172, `val` 88200) and theirs keeps it at 120000; on
+13583 theirs has bought it and the Farm (`tech_frame`, `tech_cat_frame[3]` 13582; `escrow[2:wealth]` 33) and ours,
+its purse short, sold at the market.
+
+**Cause: `GERMAN_INDUSTRY_DISCOUNT`, read and not carried.** `docs/NATIONS.md` §4.2 listed it `not carried`, and
+`Sim::industry_tech_discount`'s comment said so. `TypeData::get_cost@00664090:1270`–`1281`: on the industry
+predicate (`0x260 < t < 0x264`, `0x263 < t < 0x267`, `t − METAL_ALLOYS < 3`: the timber, food and metal gathering
+lines), after the Hanging Gardens' `(100 − 66) × p / 100`, `has_tribe_bonus(0xc)` takes `(100 −
+GERMAN_INDUSTRY_DISCOUNT) × p / 100`, its own truncation, `GERMAN_INDUSTRY_DISCOUNT` 50. A German's Carpentry costs
+half; `research_techs`' affordability terms read the price, and the whole price put the tech at a quarter of the
+original's value. Built: `Tuning::german_industry_discount` (the install's 50), `cost::Modifiers::german_industry`
+right after `industry`, `Sim::german_industry_tech_discount` and the shared `Sim::is_industry_tech`.
+
+**The word: 13582 → 19483, the game's last frame.** Value diff, block 13579 after: `MAKE[1].val` 120000 both sides;
+run1003's widening 1039 → 26 keys, the standing family on 13576 alone. **The close**: run1000b's closing block
+19484, 148 units compared, none apart, no building, city or closing field (`run1000b_german_sahara_closing_state`).
+Every other lobby's `first_parting` holds (28 of 28), the closing states (32) and `diff::german_word` (the East
+Indies Germans, 13519) among them.
+
+**The replacement: `GreatSaharaIndianTier3`, rule (2).** A header survey of 567 gamelogs: no map-7 dump holds the
+Inca (2), Romans (6), Turks (8), Chinese (14), Americans (20) or Indians (21). The Romans, Turks and Chinese are held
+by open battery lobbies and the Americans were att-3380's (the commander's relay); of the nations held only by closed
+games on another map, the Indians (`EastIndiesIndianTier2`) reach 4 census functions and the Inca 3. Tier 3 is the
+tier the Germans leave. run1002 (a `DUMP_ALL` start) and run1002b (the draw stream; the game ends itself on 16564)
+agree on 37 of 37. First try: 15922 of 16564 (ours 9 draws, theirs 10, at 7: ours `Farms::inc_time+0x1ae`, theirs
+`Object::take_damage+0xe1`).
+
+**Not established.** Which of `research_techs`' price-reading terms turned half the price into four times the value
+(`check_income`'s escrow arm, the "knowledge in hand" factor, the coverage term) is not measured; the walk and the
+dump agree after the build, and that is the claim. The metal line (`METAL_ALLOYS`..) and the food line take the
+same arm and no capture on disk shows a German pricing them.
+
+**Coverage.** Diff-backed: `german_sahara_word_first_parting` (the draw stream to 19483), `run1003_s_word_frame_is_
+widened_whole` (block 13579's `val`), `run1000b_german_sahara_closing_state`. Sim tests:
+`ai_research::tests::the_germans_pay_half_for_the_industry_lines` (88 → 44, only the industry lines, only the
+Germans; `check_income`'s escrow arm flips from `0x40` to `0x100`) and
+`cost::tests::the_hanging_gardens_take_two_thirds_off_an_industry_tech` (the German step alone 250 → 125, and 85 →
+42 behind the Gardens, never a combined percentage).
 
 ## 290. Reserved for the next item on the AI track
 

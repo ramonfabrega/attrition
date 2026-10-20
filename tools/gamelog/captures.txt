@@ -10010,3 +10010,10 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   run999c  --end-frame 17470 --timeout 7200 --log-window 17209 17465 (run999's --detail, --ai-tribe, --cover, --profile)   (the word 17215's window)
 # Checks: `rngcmp.py` run998 vs run998b -> 37 identical; run955b vs run999 -> 9638 identical, vs run999b -> 11238, vs run999c -> 17471.
 # ==== TAKEN 2026-10-20, one take each (run998b retaken once by the runner), 05:39-06:47, pool lanes 1-3, through `viadriver.sh tools/explore/golden_capture.sh` ====
+# ==== item 3378: the German word at Great Sahara, its battery replacement and its window (`docs/AI.md` §289; `docs/RUNS.md` run1002..run1003) ====
+#   run1002  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 21 --profile DIFFICULTY=3   (Great Sahara, Indians; start)
+#   run1002b run1000b's line with --ai-tribe 21   (the Indians' draw stream; ended itself on 16564)
+#   run1003  --map 7 --end-frame 13837 --timeout 5400 --log-window 13576 13832 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (the word 13582's window)
+# Checks: `rngcmp.py` run1002 vs run1002b -> 37 identical; run1000b vs run1003 -> 13838 identical.
+# ==== TAKEN 2026-10-20, one take each, 15:10-15:29, pool lanes 1 and 3 ====

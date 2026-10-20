@@ -63,7 +63,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3) |
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
-| 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3); `GreatSaharaGermanTier3` (map 7, tier 3) |
+| 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3); `GreatSaharaGermanTier3` (AI word, tier 3) |
 | 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
@@ -72,7 +72,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3); `GreatSaharaIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (AI word, tier 1) |
-| 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
+| 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (AI word, tier 2); `GreatSaharaIndianTier3` (map 7, tier 3) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
 
@@ -270,7 +270,7 @@ left out; a constant with no reader in the export is dead there too.
 | `GERMAN_MINERS` | 0 | BuildTypeData::calc_gather | not carried | `german_miners` |
 | `GERMAN_HEAVY_INFANTRY` | 0 | Leader::gain_tech | loaded at load.rs | `german_heavy_infantry` |
 | `GERMAN_INDUSTRY_UPGRADES` | 0 | Leader::gain_tech | carried, unread | `german_industry_upgrades` |
-| `GERMAN_INDUSTRY_DISCOUNT` | 50 | TypeData::get_cost | not carried | `german_industry_discount` |
+| `GERMAN_INDUSTRY_DISCOUNT` | 50 | TypeData::get_cost | modelled at lib.rs | `german_industry_discount` |
 | `GERMAN_COMPLETION_BONUS` | 50 | Build::do_bonus | modelled at city.rs | `german_completion_bonus` |
 | `GERMAN_BUILDINGS_EARLY` | 1 | LeaderData::has_preq | modelled at tech.rs | `german_buildings_early` |
 | `GERMAN_INDUSTRY_EARLY` | 1 | LeaderData::special_preq | modelled at tech.rs | `german_industry_early` |
