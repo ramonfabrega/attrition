@@ -8194,13 +8194,47 @@ Six of six swept (`check_upgrade`, `gather_at`, `add_gather_point`, `bank_aircra
   1000 against ours 832..576) without a row. A hero's craft is a field `think_hero` reads ("with the mana"). Candidate
   check: no field a `think_*` arm reads stays on the unread list of the newest word's window.
 
-## Parked by the next landing, slot KE — reserved
+## Parked by item 3358, 2026-10-19 — the second sweep lane's second shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Five of six parked, one swept (`Group::action_gather_point`). Every park was judged by the subagent's reading of the
+decompile and the crate; none ran `sweep_gen.py` to an emitted file except `do_cast`'s head slice, so each is a
+reading, not a measurement.
+
+- **3358a. `Object::take_damage@00652020`: the crate has no method.** `fight.rs` `take_damage` is a `#[cfg(test)]`
+  wrapper over `take_damage_typed`, which spreads the function over `combat::take`, `close_unit`, `unit_plunder` and
+  `damage_building`. Unmodelled: the `Random::get(0,0xffff)%100<5` flock arm (with `add_flock`'s second draw),
+  `Leader::action_declare`, the AI city-alarm group push, `Caravans::new_danger`, the `param_3==3` non-lethal turn
+  (`Guy::set_angle`/`find_angle`), the rooted-victim `eject_contents`, the Inca refund, the vcall 0x16c attacker
+  notification, and returns 0/1/2. Needs a crate `Object::take_damage` over a `TakeDamageView` first (a sim
+  implementation, and its Random-draw order is a pin risk); then `obj` with ~12 vslot `--stub`s. Split (a) pre-accumulate
+  notice, (b) accumulate + city alarm, (c) kill arm + plunder. Sits under att-3356's `Ammo::do_damage`.
+- **3358b. `Group::action_alarm@0070ec30`: no view over city/building/unit-chain/leader state.** The crate's
+  `alarm.rs` `action_alarm` runs on whole `Sim` (`alarm_bell`, `city_chain`, `cell_chain`, `find_city_at`,
+  `group_action_garrison_search`). The original builds a stack `Group` and fans through `Group::add`/`action_garrison`;
+  also `SoundGlobal::play`, `Error::report`, a `ScenarioData::ignore_orders` arm. Needs a view trait shared with
+  `alarm_bell`/`alarm_all_clear`, stubs for `GroupData::member/add/action_garrison`; no shape is known to spell a
+  callee-built stack group. `alarm.rs`'s own SEAMs are the inputs it would part on first.
+- **3358c. `BuildTypeData::blocked_location@006375b0`: no view trait.** `place.rs` `blocked_location` takes `&Sim`
+  (split into `blocked_location_verdict` and `gather_verdict`); `tcoord.rs` covers only `blocked_tcoord_steps`. 14
+  callees (`non_friendly_territory`, `has_preq`, `get_town`, `count_water`, `calc_gather` …), ~8 type-predicate vcalls,
+  leader rows via `--sparse`. Lacking: a pointer-table-of-lists walk (the `unbuilt_*` lists). Split: territory/colonize
+  prefix, spacing (city/fort lists), tail (get_town through wonder checks, water/mountain/tree counts, gather survey).
+  Two differences to check when the view exists: the crate skips the gather survey for who = None (a marked seam);
+  `!n.lakota` where the original calls `has_tribe_bonus(0x13)`.
+- **3358d. `Unit::do_non_flat_gather@005f0170`: port not level, plus `--stub-alloc IDX`.** Crate arms absent: the
+  transport arm (`get_tregion` both ends, `can_transport`, `add_move_order`), the worker doober cleanup
+  (`+0x86`, `Doober::remove_hold_doobers`), the camp-side vcall `+0x170` with `set_angle` where the crate uses
+  `set_heading(find_angle)`, the `Error::report` "PANCAKE" arms (String allocation: `--stub-alloc` lacking, fourth
+  park on it after 3282b, 3339a, 3348b/c), `Array<TCoordData>::remove`. `vcall` needs a multi-slot form. Slice with
+  `--stop-stub`, the tile-choice tail (~480-705) first, after the port is level. Beside att-3356's `do_gather`.
+- **3358e. `Unit::do_cast@005ebfe0`: port not level; the head slice spells.** Crate `Sim::do_cast(u, CastOrder)`
+  takes an already-typed spell and splits off `do_cast_targeted`; the original derives the spell index from the
+  `UnitOrder*` (vcall +0x7c, `types.list[idx]->is_spell_type` in 0x275..0x2ab, else 0x296) and gates on
+  `pay_cast_costs`. SEAMs in the crate's own doc: the general's `has_general(0,0x162)` extra `spell_time`, and the
+  non-spell-type arm (`current_upgrade` + `set_type`). A head slice emitted with `obj --own 1 --ptrarg 0 --vtat p0+0
+  --stub slot:0x7c:0 --stub 0x676c40:3 --stop-stub 1` (ends at `SpellType::pay_cast_costs`; `--ptrarg` needs `--own
+  1`). Lacking: by-value `String` arguments to `MessageWin::add_feedback`; SEH `ExceptionList` writes unverified. Plan:
+  split the crate head, a `DoCastView`, then slices head / pack-unpack-anim / `get_job_time` tail.
 
 ## Parked by the next landing, slot KF — reserved
 
