@@ -11,6 +11,7 @@ list is the pin's.
 import importlib.util
 import os
 import re
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -342,6 +343,89 @@ class PinnedTraces(unittest.TestCase):
         self.assertIn('tools/census.py --top 30 --never --pin', text)
         self.assertNotIn('$(for f in', text,
                          'the loop splits on the archive path\'s spaces (parked 942)')
+
+
+
+class TheBackedList(unittest.TestCase):
+    # A count that holds still can hide a function that stopped being backed
+    # behind one that started. The list is per address; a loss is named, a
+    # gain is silent, and a rename at one address is the same function.
+    SIM = 'e:\\agent\\_work\\2\\s\\main\\game\\unit.cpp'
+
+    def test_the_rows_are_the_simulation_s_backed_functions_by_address(self):
+        names = {0x30: 'Unit::c', 0x10: 'Unit::a', 0x20: 'Unit::b', 0x40: 'Render::d', 0x50: 'Unit::e'}
+        source = {va: self.SIM for va in names}
+        source[0x40] = 'e:\\agent\\_work\\2\\s\\main\\game\\rendersystem.cpp'
+        rows = census.backed_rows(names, source, by_doc={0x20, 0x30}, by_sweep={0x10, 0x30, 0x40})
+        self.assertEqual(rows, [(0x10, 'Unit::a', 'sweep'), (0x20, 'Unit::b', 'doc'),
+                                (0x30, 'Unit::c', 'doc')])
+        self.assertEqual(census.format_backed(rows[0]), '00000010\tUnit::a\tsweep')
+
+    def written(self, tmp, rows):
+        path = Path(tmp, 'census-backed.txt')
+        path.write_text(census.backed_header('2026-10-19', 'abc1234 (worktree-x)', len(rows))
+                        + ''.join(census.format_backed(r) + '\n' for r in rows))
+        return str(path)
+
+    def test_a_written_list_reads_back_by_address(self):
+        rows = [(0x10, 'Unit::a', 'sweep'), (0x20, 'Unit::b', 'doc')]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.written(tmp, rows)
+            text = Path(path).read_text()
+            got = census.read_backed(path)
+        self.assertTrue(text.startswith('#'))
+        self.assertIn('2026-10-19', text)
+        self.assertIn('abc1234 (worktree-x)', text)
+        self.assertIn('--backed-list --write', text)
+        self.assertEqual(got, {0x10: ('Unit::a', 'sweep'), 0x20: ('Unit::b', 'doc')})
+
+    def test_a_line_that_does_not_parse_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp, 'x.txt')
+            path.write_text('00000010\tUnit::a\tsweep\nnot a row\n')
+            with self.assertRaises(SystemExit) as stop:
+                census.read_backed(str(path))
+        self.assertIn(':2', str(stop.exception))
+
+    def check(self, listed, live):
+        import io
+        from contextlib import redirect_stdout
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.written(tmp, listed)
+            out = io.StringIO()
+            with patch.object(census, 'backed_now', return_value=live), \
+                    patch.object(sys, 'argv', ['census.py', '--check-backed', path]), \
+                    redirect_stdout(out), self.assertRaises(SystemExit) as stop:
+                census.main()
+        return stop.exception.code, out.getvalue()
+
+    def test_a_loss_is_named_and_fails(self):
+        listed = [(0x10, 'Unit::a', 'sweep'), (0x20, 'Unit::b', 'doc'), (0x30, 'Unit::c', 'doc')]
+        code, out = self.check(listed, [(0x10, 'Unit::a', 'sweep')])
+        self.assertEqual(code, 1)
+        lost = [l for l in out.splitlines() if l.startswith('lost')]
+        self.assertEqual(lost, ['lost\t00000020\tUnit::b\tdoc', 'lost\t00000030\tUnit::c\tdoc'])
+
+    def test_a_gain_is_silent(self):
+        code, out = self.check([(0x10, 'Unit::a', 'sweep')],
+                               [(0x10, 'Unit::a', 'sweep'), (0x20, 'Unit::b', 'doc')])
+        self.assertEqual(code, 0)
+        self.assertNotIn('Unit::b', out)
+
+    def test_a_rename_at_one_address_is_the_same_function(self):
+        code, out = self.check([(0x10, 'Unit::old_name', 'sweep')], [(0x10, 'Unit::new_name', 'doc')])
+        self.assertEqual(code, 0)
+        self.assertNotIn('old_name', out)
+
+    def test_the_list_flag_prints_the_rows(self):
+        import io
+        from contextlib import redirect_stdout
+        out = io.StringIO()
+        with patch.object(census, 'backed_now', return_value=[(0x10, 'Unit::a', 'sweep')]), \
+                patch.object(census, 'tree_label', return_value='abc1234 (b)'), \
+                patch.object(sys, 'argv', ['census.py', '--backed-list']), redirect_stdout(out):
+            census.main()
+        self.assertIn('00000010\tUnit::a\tsweep', out.getvalue().splitlines())
 
 
 if __name__ == '__main__':
