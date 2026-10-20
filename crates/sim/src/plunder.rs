@@ -432,7 +432,7 @@ impl PlunderView for SimPlunder<'_> {
     }
     fn plunder_scale(&mut self, _who: i32) -> u32 {
         // `Leader::init` sets -1.0 and only a scenario script writes it.
-        (-1.0f32).to_bits()
+        Single::from_i32(-1).bits()
     }
     fn unit_type(&mut self, _who: i32, _index: i32) {}
     fn unit_is_42(&mut self, _who: i32, _index: i32, _ty: ()) -> bool {
