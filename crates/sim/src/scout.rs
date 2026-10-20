@@ -572,6 +572,36 @@ impl Sim {
 
     /// §7 and §8 — one candidate cell: the filter, the draw, the score.
     fn scout_cell(&mut self, u: usize, who: Player, c: Cell, scan: &mut Scan, ring: i32) {
+        let probe = std::env::var("RON_PROBE_SCOUT")
+            .ok()
+            .and_then(|v| v.parse::<i64>().ok())
+            == Some(self.frame);
+        if probe {
+            let t = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
+            let inb = c.x >= 0 && c.y >= 0 && c.x < self.world.width() && c.y < self.world.height();
+            let (reg, seen, own, inv, mask) = if inb {
+                (
+                    format!("{:?}", self.world.region_of(c)),
+                    self.was_really_seen(c, who),
+                    format!("{:?}", self.world.owner(c).player()),
+                    self.invalid_loc(u, t, false, false, false, false, false),
+                    self.world.tile_mask(t),
+                )
+            } else {
+                (String::from("-"), false, String::from("-"), -1, 0)
+            };
+            eprintln!(
+                "  probe scout f{} {}/{} leader {} ring {ring} cell ({}, {}) reg {reg} unit-reg {:?} mask {mask:#x} seen {seen} owner {own} invalid {inv} budget {}",
+                self.frame,
+                who,
+                self.units[u].index,
+                scan.leader,
+                c.x,
+                c.y,
+                self.world.tregion(self.units[u].pos.tile()),
+                scan.budget
+            );
+        }
         let Some(rec) = self.units[u].ty else { return };
         let domain = self.unit_types[rec].kind.domain;
         if c.x < 0 || c.y < 0 || c.x >= self.world.width() || c.y >= self.world.height() {
