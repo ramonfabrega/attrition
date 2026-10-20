@@ -629,6 +629,16 @@ impl Sim {
             self.tech_tree
                 .has_tribe_bonus(&self.setup, p, crate::ai::tribe::DUTCH)
         });
+        let americans = self.tuning.americans_barracks_gather != 0
+            && self.tech.get(w).is_some_and(|p| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::AMERICANS)
+            });
+        let american_units = if americans {
+            self.barracks_units(who) - self.ai[w].census.barracks_garr
+        } else {
+            0
+        };
         let starting = std::array::from_fn(|g| self.starting_good(who, g));
         let capitalism = self.holds_capitalism_bonus(who);
         let lakota_units = if lakota {
@@ -651,6 +661,8 @@ impl Sim {
         h.num_nations = self.players.len() as i32;
         h.lakota = lakota;
         h.lakota_units = lakota_units;
+        h.americans = americans;
+        h.american_units = american_units;
         h.capitalism = capitalism;
         h.romans = self.nation[w].romans;
         h.germans = self.nation[w].germans;
@@ -695,6 +707,34 @@ impl Sim {
     /// scout bit). The sweep also zeroes and recounts `peasants`; the
     /// Stable and garrison counts are read off the units here, which is the
     /// same number at the moment the rate is assembled.
+    /// `barracks_units` (`Leader +0x9f8`): `Leader::track_unit_type@006e0dd0`
+    /// moves it for every armed type (`+0x1e8`) whose trainer
+    /// (`UnitTypeData +0x40`) is the Barracks (`0x1ab`) — the sum of
+    /// `num_units` over them.
+    pub(crate) fn barracks_units(&self, who: Player) -> i32 {
+        let w = who as usize;
+        (0..self.unit_types.len())
+            .filter(|&t| {
+                self.unit_types[t].combat.attack != 0
+                    && self.trainer_ident(t) == Some(crate::build::Ident::Barracks)
+            })
+            .map(|t| self.muster[w].by_type[t])
+            .sum()
+    }
+
+    /// `Unit::init@00612100:629` and `Unit::close@0060ee50:157`'s American
+    /// arm: `has_tribe_bonus(0x14)`, `AMERICANS_BARRACKS_GATHER` set, a
+    /// Barracks type (`+0x40 == 0x1ab`) and not `is(SCOUT, 0)`.
+    pub(crate) fn american_barracks_unit(&self, who: Player, u: usize, ty: usize) -> bool {
+        self.tuning.americans_barracks_gather != 0
+            && self.trainer_ident(ty) == Some(crate::build::Ident::Barracks)
+            && self.tech.get(who as usize).is_some_and(|p| {
+                self.tech_tree
+                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::AMERICANS)
+            })
+            && !self.unit_line_is(u, 0x45)
+    }
+
     pub(crate) fn lakota_food_units(&self, who: Player) -> i32 {
         let w = who as usize;
         let c = &self.ai[w].census;

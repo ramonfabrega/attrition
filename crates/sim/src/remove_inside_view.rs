@@ -145,8 +145,7 @@ pub fn garrison_tail<V: RemoveInsideView>(v: &mut V, delta: i32) {
 /// SEAM: the container's slot `0x20` is not modelled (the view answers true),
 /// the unit record's `+0x68 & 1` is not read (the view answers false), and the
 /// chain words do not exist, so the splice is empty and the unit says it is in
-/// a chain. The Americans' Barracks gather constant is not in the tuning (the
-/// view answers 0): the Barracks arm counts and raises nothing.
+/// a chain.
 pub(crate) struct SimRemoveInside<'a> {
     pub(crate) sim: &'a mut crate::Sim,
     pub(crate) unit: usize,
@@ -205,7 +204,15 @@ impl RemoveInsideView for SimRemoveInside<'_> {
     }
     fn has_tribe_bonus(&mut self, id: i32) -> bool {
         let who = self.sim.units[self.unit].owner as usize;
-        id == BONUS_LAKOTA && self.sim.nation.get(who).is_some_and(|n| n.lakota)
+        match id {
+            BONUS_LAKOTA => self.sim.nation.get(who).is_some_and(|n| n.lakota),
+            BONUS_AMERICANS => self.sim.tech.get(who).is_some_and(|p| {
+                self.sim
+                    .tech_tree
+                    .has_tribe_bonus(&self.sim.setup, p, crate::ai::tribe::AMERICANS)
+            }),
+            _ => false,
+        }
     }
     fn bump(&mut self, which: Garr, delta: i32) {
         let who = self.sim.units[self.unit].owner as usize;
@@ -221,7 +228,7 @@ impl RemoveInsideView for SimRemoveInside<'_> {
         self.sim.tuning.lakota_food
     }
     fn barracks_gather(&mut self) -> i32 {
-        0
+        self.sim.tuning.americans_barracks_gather
     }
     fn set_leader_flag(&mut self) {
         let who = self.sim.units[self.unit].owner;

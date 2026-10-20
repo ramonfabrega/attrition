@@ -2051,7 +2051,9 @@ impl Sim {
     /// building moves one of the leader's garrison counts — a peasant, else
     /// a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout bit),
     /// else a Barracks type (`0x1ab`) — and with `LAKOTA_FOOD` set a Lakota
-    /// leader's `0x2000000` (`docs/AI.md` §219).
+    /// leader's `0x2000000` (`docs/AI.md` §219), with
+    /// `AMERICANS_BARRACKS_GATHER` set an American's for the Barracks arm
+    /// (§292).
     ///
     /// The −1 is [`remove_inside_view::remove_from_inside_steps`] itself, the
     /// whole function swept under the emulator (item 3372); the +1 is its
@@ -2059,9 +2061,7 @@ impl Sim {
     /// test — `insert_inside` is not swept.
     ///
     /// SEAM: the gate's `unit_masks & 1` is not read, nor the container's
-    /// slot `0x20`; the Americans' `AMERICANS_BARRACKS_GATHER` is not in the
-    /// tuning, so the Barracks arm counts (`barracks_garr`) and raises
-    /// nothing.
+    /// slot `0x20`.
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
         use remove_inside_view::{RemoveInsideView, SimRemoveInside};
         let mut view = SimRemoveInside { sim: self, unit: u };
@@ -4661,6 +4661,12 @@ impl Sim {
                     || self.unit_line_is(u, 0x45)
                     || self.trainer_ident(ty) == Some(build::Ident::Stable))
             {
+                self.economy_changed(who);
+            }
+            // `Unit::init@00612100:629-641` (item 3384, `docs/AI.md` §292):
+            // an American Barracks type (`+0x40 == 0x1ab`) that is not a
+            // scout, with `AMERICANS_BARRACKS_GATHER` set, raises it too.
+            if self.american_barracks_unit(who, u, ty) {
                 self.economy_changed(who);
             }
             // `Unit::init` → `Guy::init_real`: the figure's one draw.
