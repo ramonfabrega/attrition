@@ -3878,6 +3878,11 @@ not seen as a read (the caller reads by field instead). No kill rule tripped, si
 test. Candidates: the paperwork-shaped guards (`writers::`, `docs_guard`) run in every lane gate whatever their
 time; or the guard's scan cached, so it falls under the budget. The pass's. One reach.
 
+3370's "for the Loop" says `none` under a heading (`## For the Loop`, then `none` on its own line), and
+`docs_guard::a_journal_s_loop_line_is_filed_or_says_none` reads only the heading's line, so the journal read as
+unfiled. It is recorded here as filed and empty, and the journal is left as its worker wrote it. If the shape
+recurs, the guard should read the next non-blank line.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
