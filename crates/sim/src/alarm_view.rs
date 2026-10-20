@@ -166,7 +166,7 @@ pub trait AlarmView: AlarmHead {
 
 /// `(a + 3) / 4` the way `70ef05` computes it, truncating toward zero.
 fn cells_of(r: i32) -> i32 {
-    (r + 3).wrapping_add((((r + 3) >> 31) & 3) as i32) >> 2
+    (r + 3).wrapping_add(((r + 3) >> 31) & 3) >> 2
 }
 
 /// The first part of the listing, up to and including the group's refresh
@@ -377,5 +377,269 @@ fn bell<V: AlarmView>(v: &mut V, who: i32, c: i32, rang: &mut bool) {
         v.action_garrison(cb, who);
         let flags = v.city_flags(who, c);
         v.set_city_flags(who, c, flags | CITY_BELL);
+    }
+}
+
+/// This crate's [`AlarmView`]: `who`'s buildings `list`, the stack group the
+/// bell builds, and the world as the crate keeps it. A member and a
+/// city-chain building are building indices, a cell's chain and a building's
+/// garrison unit indices; the original's one object index is told apart by
+/// which method asks. Where the crate models less than the original:
+///
+/// - SEAM: the scenario's `ignore_orders` sweep is not modelled (no list, so
+///   the head's loop never runs), nor the group's armed flag (a group here is
+///   always armed), the group's refresh slot, `action_alarm_peasant`, the
+///   console (no sound) or `Error::report` (`obj_slot10` is the member being
+///   alive and the player's own).
+/// - SEAM: a cell's chain holds units only (`Sim::cell_chain`), so the bell's
+///   building-on-the-chain arm (`slot1c`) never runs, and the Citizens inside
+///   such a building are not taken.
+/// - SEAM: the tribe's Citizen substitution (`tribe_can_type`, the type's
+///   slot `+0x68`) is not modelled: the Citizen is `PEASANTS`.
+pub struct SimAlarm<'a> {
+    pub sim: &'a mut crate::Sim,
+    pub who: crate::world::Player,
+    pub list: &'a [usize],
+    pub group: crate::group::Group,
+    /// The building whose garrison `unit_next_civ` walks.
+    pub inside_of: usize,
+}
+
+impl<'a> SimAlarm<'a> {
+    pub fn new(sim: &'a mut crate::Sim, who: crate::world::Player, list: &'a [usize]) -> Self {
+        SimAlarm {
+            sim,
+            who,
+            list,
+            group: crate::group::Group::stack(who),
+            inside_of: 0,
+        }
+    }
+
+    fn first_of_cell(&self, x: i32, y: i32) -> (i32, i32) {
+        match self.sim.cell_chain(crate::Cell::new(x, y)).first() {
+            Some(&u) => (u as i32, i32::from(self.sim.units[u].owner)),
+            None => (-1, -1),
+        }
+    }
+}
+
+impl AlarmHead for SimAlarm<'_> {
+    fn who(&self) -> i32 {
+        i32::from(self.who)
+    }
+    fn group_clear(&mut self) {
+        self.group = crate::group::Group::stack(self.who);
+    }
+    fn ignore_orders(&self) -> bool {
+        false
+    }
+    fn ignoring_count(&self, _who: i32) -> i32 {
+        0
+    }
+    fn ignoring_at(&self, _who: i32, _i: i32) -> i32 {
+        -1
+    }
+    fn drop_ignored(&mut self, _o: i32, _who: i32) {}
+    fn armed(&self) -> bool {
+        true
+    }
+    fn peasant_alarm(&mut self) {}
+    fn refresh(&mut self) {}
+}
+
+impl AlarmView for SimAlarm<'_> {
+    fn mark_economy(&mut self, who: i32) {
+        self.sim.economy_changed(who as crate::world::Player);
+    }
+    fn count(&self) -> i32 {
+        self.list.len() as i32
+    }
+    fn member(&self, i: i32) -> i32 {
+        self.list[i as usize] as i32
+    }
+    fn obj_slot10(&mut self, p: i32, o: i32) -> i32 {
+        let bd = &self.sim.buildings[o as usize];
+        i32::from(bd.alive && i32::from(bd.owner) == p)
+    }
+    fn ignore_always(&self) -> bool {
+        true
+    }
+    fn report_pancake(&mut self) -> bool {
+        false
+    }
+    fn obj_flags8(&self, _p: i32, o: i32) -> i32 {
+        if self.sim.building_is_city(o as usize) {
+            OBJ_CITY
+        } else {
+            0
+        }
+    }
+    fn data_city(&mut self, _p: i32, o: i32) -> i32 {
+        self.sim.buildings[o as usize].city.map_or(-1, |c| c as i32)
+    }
+    fn data_finished(&mut self, _p: i32, o: i32) -> bool {
+        let bd = &self.sim.buildings[o as usize];
+        bd.alive && bd.active
+    }
+    fn data_first_inside(&mut self, _p: i32, o: i32) -> i32 {
+        self.inside_of = o as usize;
+        self.sim.buildings[o as usize]
+            .garrison
+            .first()
+            .map_or(-1, |&u| u as i32)
+    }
+    fn data_inside_player(&mut self, _p: i32, _o: i32) -> i32 {
+        i32::from(self.who)
+    }
+    fn data_next_building(&mut self, _p: i32, o: i32) -> i32 {
+        let Some(c) = self.sim.buildings[o as usize].city else {
+            return -1;
+        };
+        let chain = self.sim.city_chain(c);
+        match chain.iter().position(|&b| b == o as usize) {
+            Some(i) => chain.get(i + 1).map_or(-1, |&b| b as i32),
+            None => -1,
+        }
+    }
+    fn data_first_unit(&mut self, _p: i32, _o: i32) -> i32 {
+        -1
+    }
+    fn data_num_inside(&mut self, _p: i32, o: i32) -> i32 {
+        self.sim.num_inside(o as usize)
+    }
+    fn data_limit(&mut self, _p: i32, o: i32) -> i32 {
+        self.sim.garrison_limit(o as usize)
+    }
+    fn data_type_slot90(&mut self, _p: i32, _o: i32) -> bool {
+        false
+    }
+    fn eject_peasants(&mut self, _p: i32, o: i32) {
+        self.sim.eject_citizens_now(o as usize);
+    }
+    fn obj_alive(&mut self, _p: i32, o: i32) -> bool {
+        self.sim.units[o as usize].alive()
+    }
+    fn obj_bc(&mut self, _p: i32, o: i32) -> bool {
+        self.sim.units[o as usize].on_map
+    }
+    fn obj_slot1c(&mut self, _p: i32, _o: i32) -> bool {
+        false
+    }
+    fn obj_type(&self, _p: i32, o: i32) -> i32 {
+        o
+    }
+    fn obj_tile(&self, _p: i32, o: i32) -> (i32, i32) {
+        let t = self.sim.units[o as usize].pos.tile();
+        (t.x, t.y)
+    }
+    fn obj_chain(&self, _p: i32, o: i32) -> (i32, i32) {
+        match self.sim.units[o as usize].down {
+            Some(d) => (d as i32, i32::from(self.sim.units[d].owner)),
+            None => (-1, -1),
+        }
+    }
+    fn unit_type(&self, _p: i32, u: i32) -> i32 {
+        self.sim.units[u as usize].type_index
+    }
+    fn unit_pop(&self, _p: i32, u: i32) -> i32 {
+        self.sim.control_cost(u as usize)
+    }
+    fn unit_next_inside(&self, _p: i32, _u: i32) -> i32 {
+        -1
+    }
+    fn unit_next_civ(&self, p: i32, u: i32) -> (i32, i32) {
+        let g = &self.sim.buildings[self.inside_of].garrison;
+        match g.iter().position(|&x| x == u as usize) {
+            Some(i) => (g.get(i + 1).map_or(-1, |&n| n as i32), p),
+            None => (-1, p),
+        }
+    }
+    fn unit_is_militia(&mut self, _p: i32, u: i32) -> bool {
+        self.sim.unit_is_index(u as usize, crate::cast::MILITIA)
+    }
+    fn cast_civilian(&mut self, _p: i32, u: i32) {
+        self.sim.cast_civilian(u as usize);
+    }
+    fn unit_order_kind(&mut self, _p: i32, u: i32) -> Option<i32> {
+        let u = u as usize;
+        self.sim
+            .action_of(u)
+            .map(|a| i32::from(self.sim.units[u].orders[a].index()))
+    }
+    fn repath(&mut self, _p: i32, u: i32) {
+        self.sim.repath(u as usize);
+    }
+    fn kill_current_order(&mut self, _p: i32, u: i32) {
+        self.sim.kill_current_order(u as usize);
+    }
+    fn city_flags(&self, _who: i32, c: i32) -> i32 {
+        let city = &self.sim.cities[c as usize];
+        i32::from(city.alive) * CITY_LIVE + i32::from(city.alarm) * CITY_BELL
+    }
+    fn set_city_flags(&mut self, _who: i32, c: i32, v: i32) {
+        self.sim.cities[c as usize].alarm = v & CITY_BELL != 0;
+    }
+    fn city_building(&self, _who: i32, c: i32) -> i32 {
+        self.sim.cities[c as usize].building as i32
+    }
+    fn city_radius(&mut self, _who: i32, c: i32) -> i32 {
+        self.sim.radius_of(c as usize)
+    }
+    fn city_cell(&self, _who: i32, c: i32) -> (i32, i32) {
+        let cell = self.sim.cities[c as usize].pos.cell();
+        (cell.x, cell.y)
+    }
+    fn city_tile(&self, _who: i32, c: i32) -> (i32, i32) {
+        let t = self.sim.cities[c as usize].pos.tile();
+        (t.x, t.y)
+    }
+    fn console_who(&self) -> i32 {
+        -1
+    }
+    fn play(&mut self, _who: i32, _id: i32) {}
+    fn world_wh(&self) -> (i32, i32) {
+        (self.sim.world.width(), self.sim.world.height())
+    }
+    fn cell_first(&self, x: i32, y: i32) -> (i32, i32) {
+        self.first_of_cell(x, y)
+    }
+    fn tribe_can_type(&mut self, _who: i32) -> bool {
+        true
+    }
+    fn type_slot68(&mut self, _who: i32) -> i32 {
+        0
+    }
+    fn can_garrison(&mut self, _k: i32, t: i32) -> bool {
+        let citizen = self.sim.unit_rec_of_index(crate::cast::PEASANTS);
+        citizen
+            .zip(self.sim.buildings[t as usize].ty)
+            .is_some_and(|(ut, bt)| self.sim.can_garrison(ut, bt))
+    }
+    fn find_city_at(&mut self, x: i32, y: i32, who: i32) -> i32 {
+        self.sim
+            .find_city_at(
+                who as crate::world::Player,
+                crate::world::Pos::new(x, y),
+                None,
+            )
+            .map_or(-1, |c| c as i32)
+    }
+    fn get_down(&mut self, x: i32, y: i32) -> (i32, i32) {
+        self.first_of_cell(x, y)
+    }
+    fn group_member(&mut self, u: i32, _who: i32) -> bool {
+        self.group.list.contains(&(u as usize))
+    }
+    fn group_add(&mut self, u: i32, _who: i32) {
+        self.sim.group_add(&mut self.group, u as usize);
+    }
+    fn group_count(&self) -> i32 {
+        self.group.list.len() as i32
+    }
+    fn action_garrison(&mut self, b: i32, _who: i32) {
+        let g = self.group.clone();
+        self.sim
+            .group_action_garrison_search(&g, b as usize, crate::orders::QueuePos::New, true);
     }
 }
