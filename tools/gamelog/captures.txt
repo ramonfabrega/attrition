@@ -9945,6 +9945,19 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 # Checks: `rngcmp.py` run988 vs run988b -> 37 identical; run895b vs run989 -> 9386 identical, vs run989b -> 9137, vs run989c -> 8663,
 # vs run989d -> 17555.
 # ==== TAKEN 2026-10-19/20, one take each, 23:58-00:41, pool lanes 1-3 ====
+# ==== item 3367: the East Indies Spanish word, its battery replacement and its windows (`docs/AI.md` §284; `docs/RUNS.md` run992..run993d) ====
+#   run992   --map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 7 --profile DIFFICULTY=3   (East Indies, Egyptians; start)
+#   run992b  run986b's recipe with --ai-tribe 7 --profile DIFFICULTY=3   (the draw stream; the game ends on 14540)
+#   run993   --map 18 --end-frame 9283 --log-window 9022 9278 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=3   (the word 9028's window)
+#   run993b  --map 18 --end-frame 8966 --log-window 8955 8961 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,WORLD=6
+#            (run993's --ai-tribe, --cover, --profile)   (the danger map on 8959)
+#   run993c  --map 18 --end-frame 13011 --log-window 12750 13006 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5
+#            (run993's --ai-tribe, --cover, --profile)   (the word 12756's window)
+#   run993d  --map 18 --end-frame 15197 --timeout 7200 --log-window 14936 15192 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            (run993's --ai-tribe, --cover, --profile)   (the word 14942's window)
+# Checks: `rngcmp.py` run992 vs run992b -> 37 identical; run986b vs run993 -> 9284 identical, vs run993c -> 13012, vs run993d -> 15198.
+# ==== TAKEN 2026-10-20, one take each, 01:54-03:40, pool lanes 1-3 ====
 # ==== item 3365: the Korean word, its battery replacement and its windows (`docs/AI.md` §283; `docs/RUNS.md` run990..run991d) ====
 #   run990   run988's line with --ai-tribe 22 --profile DIFFICULTY=3   (Great Sahara, Dutch; start)
 #   run990b  run964b's line with --ai-tribe 22   (the Dutch's draw stream; ended itself on 16109)

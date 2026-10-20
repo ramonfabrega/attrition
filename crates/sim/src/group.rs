@@ -400,6 +400,12 @@ pub fn group_move_id(group_id: i32, frame: i64, order_num: i32) -> i64 {
     (i64::from(group_id) + frame * 10) * 100 + i64::from(order_num)
 }
 
+/// The combat stance an option byte `+0xb1` reads as —
+/// `get_combat_stance`'s answer, `None` past the six options.
+pub(crate) fn combat_stance_of(option: u8) -> Option<Stance> {
+    COMBAT_STANCES.get(option as usize).copied()
+}
+
 /// The option index of a stance — `action_stance`'s `s`.
 pub fn stance_option(s: Stance) -> i32 {
     COMBAT_STANCES

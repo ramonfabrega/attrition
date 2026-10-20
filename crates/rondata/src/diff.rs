@@ -98,6 +98,8 @@ mod shutdown;
 #[cfg(test)]
 mod slots;
 #[cfg(test)]
+mod spanish_east_word;
+#[cfg(test)]
 mod spanish_word;
 #[cfg(test)]
 mod third;

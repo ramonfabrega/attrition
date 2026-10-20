@@ -4357,10 +4357,22 @@ impl Sim {
         // `Build::train@0062f9b0:86–101`: when the trainer's stance kind is
         // the type's, the building's own byte overrides the one
         // `Unit::init` was born with — for the whole squad, which is one
-        // object as far as a stance is concerned.
-        let stance = self.trained_stance(who, ty, at);
-        for f in self.squad_members(unit) {
-            self.units[f].stance = stance;
+        // object as far as a stance is concerned. The write is
+        // `Unit::set_stance@00605310`, the byte `+0xb1` alone — and that
+        // byte *is* the combat stance `get_combat_stance` reads, which this
+        // crate keeps again as `combat.stance`, so a combat unit takes both
+        // halves (item 3367: a computer's Bark out of a Dock is byte 0 in
+        // the original, and this crate left it RAID in `combat.stance`).
+        if let Some(stance) = self.trained_stance(ty, at) {
+            let combat = (self.type_stance_type(ty) == crate::stance::StanceType::Combat)
+                .then(|| crate::group::combat_stance_of(stance))
+                .flatten();
+            for f in self.squad_members(unit) {
+                self.units[f].stance = stance;
+                if let Some(c) = combat {
+                    self.units[f].combat.stance = c;
+                }
+            }
         }
         self.go_inside(unit, at);
         // **A scholar trained at a university stays in it** — the `else`

@@ -9918,6 +9918,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3355,
         Some(crate::diff::persian_word::WIDENING_PERSIAN_CLOSING),
     ),
+    // **The battery's East Indies Spanish word** (item 3367, DECISIONS 72,
+    // 83, 84): frame 9028, the battery's first try (item 3360), promoted
+    // here and widened on run993 over 9022..9278 (block 9029). The same item
+    // moved it 9028 → 12756 (the danger pass's `ever_seen`, run993b's
+    // `danger` plane), widened 12756 on run993c over 12750..13006, moved it
+    // 12756 → 14942 (a trained Bark's combat stance, a building find that
+    // does not end the think) and widened 14942 on run993d over
+    // 14936..15192 (block 14943).
+    (
+        "SPANISH_EAST_WORD",
+        crate::diff::spanish_east_word::SPANISH_EAST_WORD,
+        Some("run993d_s_word_frame_is_widened_whole"),
+        3367,
+        Some(crate::diff::spanish_east_word::WIDENING_SPANISH_EAST_FRAME_14942),
+    ),
     // **The battery's Aztec word** (item 3361, DECISIONS 72, 83, 84):
     // frame 9130, the battery's first try (item 2975), promoted here and
     // widened on run989 over 9124..9380 (block 9131). Item 3361 moved it
@@ -10504,6 +10519,21 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's East Indies Spanish word** (DECISIONS 72, 83, 84;
+    // item 3367): East Indies, the Spanish at Difficulty 3 — the held-out
+    // battery's lowest open lobby on the measure of `9e63ec11`, minted by
+    // item 3360 under rule (2); the game does not end itself (the long runs
+    // to 24000). It joins the `Battery word` line first; the closed rows
+    // choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesSpanishTier3",
+        named: "East Indies (Spanish)",
+        word: crate::diff::spanish_east_word::SPANISH_EAST_WORD,
+        length: 24_000,
+        endpoint: None,
+        window: Some("spanish_east_frame_14942_window"),
+    },
     // **The battery's Inca word** (DECISIONS 72, 83, 84; item 3360): East
     // Indies, the Inca at Difficulty 3 — the held-out battery's lowest open
     // lobby on the measure of `3eb2c76c`, minted by item 3335; the game does

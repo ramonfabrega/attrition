@@ -238,12 +238,21 @@ impl crate::Sim {
         }
     }
 
-    /// `BuildData::is_seen(viewer, 0)`, as this crate spells seeing: the
-    /// owner always, and otherwise the ever-seen fog bit at the object's
-    /// own half-cell.
+    /// `BuildData::is_seen(viewer, 0)` — vslot `+0x48`, the one
+    /// `do_danger`'s enemy arm asks — which is [`Sim::build_is_seen`]: the
+    /// building's own `visible` and `ever_seen` bytes, never the fog
+    /// (`BuildData::is_seen@0062e1a0` → `WallData::is_seen@00642bd0`,
+    /// `docs/DANGER.md` §5).
+    ///
+    /// It read the fog through `was_seen` until item 3367, and the two
+    /// answered alike until a Spanish viewer: `build_empire` raises
+    /// `leader_flags & 0x1000` for tribe bonus 9, `was_seen`'s leader arm
+    /// then calls every cell seen, and no human building was ever halved
+    /// for it — the East Indies Spanish's danger row stood at about twice
+    /// the original's around the human's city (run993b, block 8959: half-cell
+    /// (4, 4) ours 125, theirs 60), and its scout chose another cell on 8959.
     fn danger_build_is_seen(&self, b: usize, viewer: Player) -> bool {
-        let bd = &self.buildings[b];
-        bd.owner == viewer || self.was_seen_fog(bd.pos.tile().x >> 1, bd.pos.tile().y >> 1, viewer)
+        self.build_is_seen(b, viewer)
     }
 
     /// `UnitData::is_seen@00607a60(viewer, 0)`, the fog half: the *live*
@@ -391,18 +400,19 @@ mod tests {
         assert!(sim.world.set_fog(vec![0; 32 * 32]), "a 16 x 16 world's fog");
         let b = sim.init_build(0, barracks, tile_pos(8 * 4 + 1, 8 * 4 + 1), false);
         sim.buildings[b].active = true;
+        sim.buildings[b].started = true;
         sim.calc_danger();
         assert_eq!(
             sim.world.danger_half(1, Cell::new(8, 8)),
             25,
             "50, halved once because leader 1 has never seen it"
         );
-        // Light leader 1's bit over the building and the halving goes.
-        let t = sim.buildings[b].pos.tile();
-        sim.world.set_seen(t.x >> 1, t.y >> 1, 1 << 1);
+        // Leader 1's bit in the building's own `ever_seen`, and the halving
+        // goes (`WallData::is_seen@00642bd0`).
+        sim.buildings[b].ever_seen |= 1 << 1;
         sim.calc_danger();
         assert_eq!(sim.world.danger_half(1, Cell::new(8, 8)), 50, "seen");
-        sim.world.set_fog(vec![0; 32 * 32]);
+        sim.buildings[b].ever_seen = 0;
         // At peace it is halved twice; allied, it is *subtracted* at half.
         sim.at_war[0][1] = false;
         sim.at_war[1][0] = false;
@@ -412,6 +422,33 @@ mod tests {
         sim.allied[1][0] = true;
         sim.calc_danger();
         assert_eq!(sim.world.danger_half(1, Cell::new(8, 8)), -25, "an ally's");
+    }
+
+    /// **A building is seen by its own `ever_seen`, not by the fog** (item
+    /// 3367, `BuildData::is_seen@0062e1a0` → `WallData::is_seen@00642bd0`):
+    /// a fog plane lit everywhere — what `was_seen` answers for a Spanish
+    /// leader, whose `leader_flags & 0x1000` calls every cell seen — leaves
+    /// a building the viewer has never seen halved. run993b's block 8959:
+    /// the human's city half-cell (4, 4) is 60 in the original's row for
+    /// the Spanish, and was 125 here.
+    #[test]
+    fn a_lit_fog_does_not_see_a_building_its_ever_seen_byte_has_not() {
+        let (mut sim, _city, barracks) = fx();
+        sim.build_types[barracks].flags |= flags::NO_CITY;
+        assert!(
+            sim.world.set_fog(vec![0xff; 32 * 32]),
+            "a 16 x 16 world's fog"
+        );
+        let b = sim.init_build(0, barracks, tile_pos(8 * 4 + 1, 8 * 4 + 1), false);
+        sim.buildings[b].active = true;
+        sim.buildings[b].started = true;
+        sim.buildings[b].ever_seen = 0;
+        sim.calc_danger();
+        assert_eq!(
+            sim.world.danger_half(1, Cell::new(8, 8)),
+            25,
+            "50, halved: the fog is lit and the building is unseen"
+        );
     }
 
     /// **A unit is seen by the *live* fog, not the ever-seen bit** (item
