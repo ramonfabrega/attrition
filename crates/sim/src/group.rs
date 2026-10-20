@@ -2083,7 +2083,7 @@ impl Sim {
         })
     }
 
-    fn is_special_unit(&self, u: usize) -> bool {
+    pub(crate) fn is_special_unit(&self, u: usize) -> bool {
         self.units[u]
             .ty
             .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SCOUT))
@@ -3590,7 +3590,12 @@ impl Sim {
 
     /// `Group::action_attack(o, whom, mandatory, queue, ignore)` (§10):
     /// three passes by domain, the `ignore` mask, and the `mandatory == 0`
-    /// melee retarget.
+    /// melee retarget — **as the steps of [`crate::attack_view`]** (item
+    /// 3362), which the sweep holds to the original call for call; this is
+    /// the crate's view over them ([`crate::attack_view::SimAttack`]).
+    ///
+    /// The one line that is the crate's own is the target's liveness: the
+    /// original asks only `whom >= 0` (its caller never hands a dead one).
     pub fn group_action_attack(
         &mut self,
         g: &Group,
@@ -3599,129 +3604,29 @@ impl Sim {
         queue: QueuePos,
         ignore: i32,
     ) {
-        if !self.group_is_on_map(g) || !self.active(target) {
+        if !self.active(target) {
             return;
         }
-        // **A group's `QUEUE_FIRST` is not a member's** (`00712490:168`,
-        // item 1012): as in [`Self::group_action_move_to`], the leader's
-        // action-flagged orders are copied aside, every member is halted
-        // under the same `ignore` mask, the attack is issued `QUEUE_NEW`,
-        // and the copies come back behind it as group actions at
-        // `QUEUE_LAST`. The attack-move look's group arm is the caller
-        // (`docs/COMBAT.md` §66): run356's army 0 holds the re-issued
-        // `GROUP_ATTACK_TO`, with a new `id` and its `orig`, under each
-        // member's `ATTACK` on block 4606.
-        if queue == QueuePos::First {
-            let insert = self.group_set_up_insert(g);
-            self.group_action_halt(g, ignore);
-            self.group_action_attack(g, target, mandatory, QueuePos::New, ignore);
-            self.group_finish_insert(g, insert);
-            return;
-        }
-        // **The leader asks first** (`action_attack@00712490:215`): one
-        // `find_attack_pos` a group order, on the group's leader, and
-        // only when `is_in_range` says the leader cannot already shoot
-        // from where it stands. `docs/COMBAT.md` §17.1 step 3 — this is
-        // the `Group::action_attack+0x41a` draw family, and it can never
-        // run longer than one call's budget.
-        if let Some(leader) = self.group_find_leader(g) {
-            let at = self.units[leader].pos;
-            if !self.is_in_range_at(Obj::Unit(leader), at, target) {
-                self.find_attack_pos(leader, target, at, crate::fight::SITE_ATTACK_POS_GROUP);
-            }
-        }
-        let respond = self.tuning.unit_respond_range * 0x240;
-        for pass in [Domain::Land, Domain::Sea, Domain::Air] {
-            for &u in &g.list {
-                if !self.group_member_orderable(u) || self.group_domain(u) != pass {
-                    continue;
-                }
-                if self.ignored(u, ignore) {
-                    continue;
-                }
-                // Already carrying a mandatory ATTACK on this target, out
-                // of range, with fewer than three orders queued — and then
-                // two sub-arms decide (`00712490:390`–`424`). The outer
-                // test is on `get_action`, the intent under the transit
-                // legs, not on the current order's own type; the
-                // simulation keeps the target on the unit rather than on
-                // the attack order (`docs/GROUPS.md` §12), so
-                // `combat.target`/`combat.mandatory` stand in for the
-                // order's `ox`/`whom`/`+0x1c`.
-                if self
-                    .action_of(u)
-                    .is_some_and(|i| self.units[u].orders[i].index() == index::ATTACK)
-                    && self.units[u].combat.mandatory
-                    && self.units[u].combat.target == Some(target)
-                    && self.units[u].orders.len() < 3
-                    && !self.is_in_range(Obj::Unit(u), target)
-                {
-                    // Nothing but the attack: keep it.
-                    if self.units[u].orders.len() == 1 {
-                        continue;
-                    }
-                    // Or a current *move* whose destination already puts
-                    // the target in range: it is marching into the shot.
-                    if let Some(o) = self.current_order(u)
-                        && let Some(dest) = o.move_dest()
-                        && self.is_in_range_at(Obj::Unit(u), dest, target)
-                    {
-                        continue;
-                    }
-                    // Otherwise it falls through and is re-ordered.
-                }
-                // **`mandatory == 0` retargets** (`00712490:456`–`470`,
-                // item 1012): `find_melee_target(u, min(d + 0xc0,
-                // respond), &whom, 0, 0, word)` with the word **1 for a
-                // unit target, 2 for a wall** (the target's vslot
-                // `+0x1c`). What it cannot name falls back to the group's
-                // target. **The arm is under the target's vslot `+0x20`
-                // answering 0** (`00712490:433`–`437`): a `Build` target
-                // takes the other arm, which adds the attack itself with
-                // no search (`action_attack+0xc44`). run369's packet: the
-                // look on 4605 hands the human's city to group 65, and
-                // all eighteen members take it through `+0xc44`, not one
-                // `find_melee_target` between (`docs/COMBAT.md` §68.2).
-                //
-                // The squad head (a follower takes its captain's attack
-                // without a search) is read below; run786's `1/8` and `1/9`
-                // reach it (`docs/GOLDEN.md` §69). Item 1012's kill of it (the
-                // city's `targeted` twelve bumps short) was a city target,
-                // which never reaches the search (`docs/COMBAT.md` §68.2).
-                let build = matches!(target,
-                    Obj::Building(b) if self.buildings[b].index < crate::WALL_BASE);
-                let t = if mandatory || build {
-                    target
-                } else {
-                    let d = crate::world::vector_dist(
-                        (self.units[u].pos.x - self.pos_of(target).x).abs(),
-                        (self.units[u].pos.y - self.pos_of(target).y).abs(),
-                    );
-                    let word = match target {
-                        Obj::Unit(_) => crate::fight::search::UNITS,
-                        Obj::Building(_) => crate::fight::search::BUILDINGS,
-                    };
-                    // **A follower's retarget is its captain's target, and
-                    // no search** (`find_melee_target@005ff9c0:32`–`91`, item
-                    // 1863): the squad head answers before
-                    // `find_nearby_target` runs, so it writes no `near` — run786's
-                    // `1/8` and `1/9` on 774 (`param_4 == 0`, the order is
-                    // added below). A captain or a follower whose captain's
-                    // target is gone searches, and a follower whose captain is
-                    // not attacking finds nothing.
-                    let found = match self.melee_squad_head(u) {
-                        crate::orders::SquadHead::Nothing => None,
-                        crate::orders::SquadHead::Captain(t, _) => Some(t),
-                        crate::orders::SquadHead::Search => {
-                            self.find_melee_target_with(u, (d + 0xc0).min(respond), word)
-                        }
-                    };
-                    found.unwrap_or(target)
-                };
-                self.add_attack_order(u, t, queue, mandatory, true);
-            }
-        }
-        self.bump_order_num(g);
+        let (whom, wwho) = crate::attack_view::obj_key(self, target);
+        let q = match queue {
+            QueuePos::First => crate::attack_view::QUEUE_FIRST,
+            QueuePos::Last => crate::attack_view::QUEUE_LAST,
+            QueuePos::New => crate::attack_view::QUEUE_NEW,
+        };
+        let mut v = crate::attack_view::SimAttack {
+            sim: self,
+            g,
+            target,
+            insert: None,
+        };
+        crate::attack_view::action_attack_steps(
+            &mut v,
+            whom,
+            wwho,
+            i32::from(mandatory),
+            q,
+            ignore,
+        );
     }
 
     // ------------------------------------------------------------------
@@ -3860,7 +3765,7 @@ impl Sim {
         }
     }
 
-    fn bump_order_num(&mut self, g: &Group) {
+    pub(crate) fn bump_order_num(&mut self, g: &Group) {
         if let Some(st) = self.gstate_mut(g) {
             st.order_num += 1;
         }
