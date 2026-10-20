@@ -194,6 +194,10 @@ mod group_action_alarm_head;
 mod group_action_begin;
 #[path = "group_action_buildmask.rs"]
 mod group_action_buildmask;
+#[path = "group_action_form.rs"]
+mod group_action_form;
+#[path = "group_action_form_ins.rs"]
+mod group_action_form_ins;
 #[path = "group_action_garrison.rs"]
 mod group_action_garrison;
 #[path = "group_action_garrison_head.rs"]

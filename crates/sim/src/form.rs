@@ -1086,60 +1086,14 @@ impl Sim {
         queue: QueuePos,
         inserting: bool,
     ) {
-        if !self.group_is_on_map(g) || g.list.is_empty() || form < 0 {
-            return;
-        }
-        let Some(leader) = self.group_find_leader(g) else {
-            return;
+        use crate::form_view::{QUEUE_FIRST, QUEUE_LAST, QUEUE_NEW};
+        let q = match queue {
+            QueuePos::First => QUEUE_FIRST,
+            QueuePos::Last => QUEUE_LAST,
+            QueuePos::New => QUEUE_NEW,
         };
-        if self.is_plane(leader) {
-            return;
-        }
-        if !inserting && matches!(queue, QueuePos::New | QueuePos::First) {
-            if let Some(st) = self.gstate_mut(g) {
-                st.form = -1;
-            }
-            let insert = self.group_set_up_insert(g);
-            self.group_action_halt(g, 0);
-            let queue = if insert.is_empty() {
-                QueuePos::New
-            } else {
-                QueuePos::First
-            };
-            self.group_action_form_at(g, form, rotate, queue, true);
-            self.group_finish_insert(g, insert);
-            return;
-        }
-        for &u in &g.list {
-            if !self.is_plane(u) {
-                self.units[u].form = form as i8;
-            }
-        }
-        if queue == QueuePos::First {
-            return;
-        }
-        let Some(to) = self.group_loc_to(g) else {
-            return;
-        };
-        let (set_angle, angle) = if rotate == 0 {
-            (false, Angle(0))
-        } else {
-            let base = if to == self.group_o(g) {
-                self.group_o_angle(g)
-            } else {
-                self.units[leader].movement.heading
-            };
-            (true, Angle(base.0.wrapping_add(rotate)))
-        };
-        self.group_action_move_to(
-            g,
-            to,
-            QueuePos::Last,
-            set_angle,
-            angle,
-            crate::orders::MoveKind::MoveTo,
-            false,
-        );
+        let mut v = crate::form_view::SimActionForm::new(self, g);
+        crate::form_view::action_form_steps(&mut v, form, rotate, q, i32::from(inserting));
     }
 
     /// Whether the destination cell is water — `compute_form`'s own test,

@@ -280,7 +280,11 @@ impl crate::finish_insert_view::FinishInsertView for SimInsert<'_> {
 
     fn action_trade(&mut self, _a: [i32; 5]) {}
 
-    fn action_form(&mut self, _a: [i32; 5]) {}
+    fn action_form(&mut self, a: [i32; 5]) {
+        // `a[3]` is the leftover `ecx` (parked 3372f): the listing never reads it.
+        let mut v = crate::form_view::SimActionForm::new(&mut *self.sim, self.g);
+        crate::form_view::action_form_steps(&mut v, a[0], a[1], a[2], a[4]);
+    }
 
     fn redo_patrol_order(&mut self, _a: [i32; 2]) {
         if let Some(Body::Patrol(p)) = self.cur.map(|o| o.body) {
