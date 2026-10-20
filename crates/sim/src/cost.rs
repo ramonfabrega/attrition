@@ -2122,6 +2122,19 @@ mod tests {
         assert_eq!(price(&Modifiers::default())[Resource::Timber.index()], 250);
         assert_eq!(price(&gardens)[Resource::Timber.index()], 85);
         assert_eq!(price(&gardens)[Resource::Food.index()], 85);
+        // The German term is its own step after the Gardens' (item 3378):
+        // 250 → 125 alone, and 85 → 42 behind them — never a combined 83 %.
+        let german = Modifiers {
+            german_industry: T.german_industry_discount,
+            ..Modifiers::default()
+        };
+        let both = Modifiers {
+            german_industry: T.german_industry_discount,
+            ..gardens
+        };
+        assert_eq!(T.german_industry_discount, 50);
+        assert_eq!(price(&german)[Resource::Timber.index()], 125);
+        assert_eq!(price(&both)[Resource::Timber.index()], 42);
     }
 
     /// The redirect is a recursive call, so it chains. Oil names Metal and

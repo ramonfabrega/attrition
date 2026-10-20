@@ -270,7 +270,7 @@ left out; a constant with no reader in the export is dead there too.
 | `GERMAN_MINERS` | 0 | BuildTypeData::calc_gather | not carried | `german_miners` |
 | `GERMAN_HEAVY_INFANTRY` | 0 | Leader::gain_tech | loaded at load.rs | `german_heavy_infantry` |
 | `GERMAN_INDUSTRY_UPGRADES` | 0 | Leader::gain_tech | carried, unread | `german_industry_upgrades` |
-| `GERMAN_INDUSTRY_DISCOUNT` | 50 | TypeData::get_cost | not carried | `german_industry_discount` |
+| `GERMAN_INDUSTRY_DISCOUNT` | 50 | TypeData::get_cost | modelled at lib.rs | `german_industry_discount` |
 | `GERMAN_COMPLETION_BONUS` | 50 | Build::do_bonus | modelled at city.rs | `german_completion_bonus` |
 | `GERMAN_BUILDINGS_EARLY` | 1 | LeaderData::has_preq | modelled at tech.rs | `german_buildings_early` |
 | `GERMAN_INDUSTRY_EARLY` | 1 | LeaderData::special_preq | modelled at tech.rs | `german_industry_early` |
