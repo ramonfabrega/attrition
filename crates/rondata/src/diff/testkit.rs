@@ -9987,13 +9987,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The battery's Iroquois word at Great Sahara** (item 3375,
     // DECISIONS 72, 83, 84): frame 13757, the battery's first try (item
     // 3369), promoted here and widened on run1001 over 13751..14007 (block
-    // 13758).
+    // 13758). Item 3375 moved it 13757 → 13810 with `HEAVYARCHERS-NA`'s
+    // release bays (piece 1531, run1001d's packet), and — widened on
+    // run1001c over 13755..14007 (block 13811) — 13810 → 16371, the game's
+    // last frame, with the Cavalry Archers' pivot releases (piece 1546).
+    // The close is compared whole on run994b's own closing block 16372 by
+    // `run994b_iroquois_sahara_closing_state`.
     (
         "IROQUOIS_SAHARA_WORD",
         crate::diff::iroquois_sahara_word::IROQUOIS_SAHARA_WORD,
-        Some("run1001_s_word_frame_is_widened_whole"),
+        Some("run994b_iroquois_sahara_closing_state"),
         3375,
-        Some(crate::diff::iroquois_sahara_word::WIDENING_IROQUOIS_SAHARA_FRAME_13757),
+        Some(crate::diff::iroquois_sahara_word::WIDENING_IROQUOIS_SAHARA_CLOSING),
     ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
@@ -10678,8 +10683,10 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara (Iroquois)",
         word: crate::diff::iroquois_sahara_word::IROQUOIS_SAHARA_WORD,
         length: 16_371,
-        endpoint: None,
-        window: Some("iroquois_sahara_frame_13757_window"),
+        // Closed by item 3375: the draw stream agrees to 16371, and
+        // run994b's closing block 16372 scores the end itself.
+        endpoint: Some("run994b_iroquois_sahara_closing_state"),
+        window: Some("iroquois_sahara_frame_13810_window"),
     },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's

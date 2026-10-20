@@ -37,9 +37,13 @@ pub(crate) const IROQUOIS_SAHARA: Lobby = Lobby {
     // where ours left the guy's (9048, 31128), 9; run1001's block 13757:
     // the Scout `0/0`'s `hits:damage` 16 ours, 21 theirs, and a second
     // `FLEE_TO`; agreeing after). 13810: ours 14 draws, theirs 15, at 10:
-    // ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6`.
-    count: 13810,
-    sequence: 13810,
+    // ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6`. Then
+    // 13810 -> 16371 (+2561), the game's end: the Cavalry Archers' piece
+    // 1546 in `sim::pivot::RELEASES` (run1001d's packet; run1001c's block
+    // 13772: the Scout `0/0`'s `hits:damage` 21 ours, 26 theirs, the rounds
+    // of `1/43` and `1/44` struck a frame late; agreeing after).
+    count: 16371,
+    sequence: 16371,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -162,5 +166,117 @@ fn run1001_s_word_frame_is_widened_whole() {
     // to (7944, 33384)): `1/35`'s round (`HEAVYARCHERS-NA`, piece 1531)
     // struck it on its arrival frame in theirs and the frame after in ours.
     // Built (piece 1531's `CHAR_ATTACK2` release node): 1404 -> 1109.
-    pin_eq!(w.firsts.len(), 1109, "keys that part in the window");
+    // Built (piece 1546's pivot releases, the word at the game's end):
+    // 1109 -> 35 — the standing family on 13751, `1/91`'s `g.angle[0]`
+    // (parked 2995), `1/0`'s `blown` on 13825 (parked 3375a) and
+    // `group:69`/`pool:69` on 13911, `1/54`'s `g.angle[0]` on 13963.
+    pin_eq!(w.firsts.len(), 35, "keys that part in the window");
+}
+
+/// run1001c: the word 13810's window, blocks 13755..14007 at `MISC`,
+/// `UNITS=3`, `GUYS=4` and `AMMO=5` (item 3375) — launched for the rounds
+/// of 13772, it holds the word's own block 13811 as well.
+pub(crate) const RUN1001C: &str =
+    "gamelog-run1001c-greatsahara-iroquois-diff3-window-13755-14008-ammo.txt";
+
+/// The window: block 13755 through 14007; the word 13810's own block is
+/// 13811.
+pub(crate) const WIDENING_IROQUOIS_SAHARA_FRAME_13810: (i64, i64) = (13755, 14007);
+
+pub(crate) fn iroquois_sahara_frame_13810_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[IROQUOIS_SAHARA.start],
+        true,
+        IROQUOIS_SAHARA.long,
+        "run1001c",
+        &[(RUN1001C, WIDENING_IROQUOIS_SAHARA_FRAME_13810.0)],
+        WIDENING_IROQUOIS_SAHARA_FRAME_13810,
+        1,
+        &[13811],
+        true,
+    )
+}
+
+#[test]
+fn run1001c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = iroquois_sahara_frame_13810_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 252, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3375, the first walk (piece 1546's pivot releases built, the
+    // word at the game's end): 67 keys — run1001's 35 less `1/91`'s
+    // `g.angle[0]` standing alike, and 36 `build:extra` rows on 13755 and
+    // 13983 (`UNITS=3` prints no `BUILDS` record, so every building is
+    // this crate's alone). Nothing on the word's block 13811.
+    pin_eq!(w.firsts.len(), 67, "keys that part in the window");
+}
+
+/// The closing state's window: run994b's closing block alone, the long's
+/// last frame 16371 writing it (item 3375).
+pub(crate) const WIDENING_IROQUOIS_SAHARA_CLOSING: (i64, i64) = (16370, 16373);
+
+/// **The lobby's closing state** (item 3375, DECISIONS 55): run994b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+/// The game ends itself on 16371.
+#[test]
+fn run994b_iroquois_sahara_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        crate::testenv::dump(IROQUOIS_SAHARA.long.0),
+        crate::testenv::dump(IROQUOIS_SAHARA.start),
+        trace(IROQUOIS_SAHARA.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Iroquois Sahara closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 16372, "the closing block");
+    pin_eq!(e.compared, 103, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3375, the first walk (piece 1546's pivot releases, the word at
+    // 16371): 103 units compared on block 16372, none apart, no building
+    // or city field-row, no closing field.
 }
