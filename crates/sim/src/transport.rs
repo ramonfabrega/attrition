@@ -943,6 +943,18 @@ impl Sim {
                     self.kill_current_order(u);
                     return;
                 }
+                // `005ecb3a`–`005ecb7e`: **a merchant is re-pieced as the
+                // pack begins** — `scene->recalc_builds = 1` (interface)
+                // and `Unit::update_gpiece`, whose `Guy::update_gpiece`
+                // reads a merchant as packed while its current order is a
+                // pack (`005d8530`, [`Sim::update_gpiece`]). run995's
+                // `1/1` (`MERCHANTDUTCH`) is the diff: on block 311, the
+                // pack's first, its figure 0 is on piece 6348 with
+                // `end_time` 149 in theirs and stayed on the deployed 12
+                // with 3 in ours (item 3369, `docs/AI.md` §285).
+                if self.is_merchant(u) {
+                    self.update_gpiece(u);
+                }
                 // `005ecb7e`: `Unit::set_angle(guy 0's angle)` before the
                 // animation, for **every** packing unit — see the unpack
                 // arm's note (item 1517, `docs/AI.md` §137).

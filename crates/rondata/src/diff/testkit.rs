@@ -9967,6 +9967,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3365,
         Some(crate::diff::korean_word::WIDENING_KOREAN_CLOSING),
     ),
+    // **The battery's Dutch word at Great Sahara** (item 3369, DECISIONS
+    // 72, 83, 84): frame 311, the battery's first try (item 3365),
+    // promoted here and widened on run995 over 305..561 (block 312). Item
+    // 3369 moved it 311 → 15725 with the merchant's `think_attack` leg,
+    // its `go_to_city` tail and the pack's re-piece, and — widened on
+    // run995c over 15719..15975 (block 15726), walked back on run995d over
+    // 15462..15718 — 15725 → 16109, the game's last frame, with an
+    // unpacked merchant's "over time" piece. The close is compared whole
+    // on run990b's own closing block 16110 by
+    // `run990b_dutch_sahara_closing_state`.
+    (
+        "DUTCH_SAHARA_WORD",
+        crate::diff::dutch_sahara_word::DUTCH_SAHARA_WORD,
+        Some("run990b_dutch_sahara_closing_state"),
+        3369,
+        Some(crate::diff::dutch_sahara_word::WIDENING_DUTCH_SAHARA_CLOSING),
+    ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
     // 6065..6321 (block 6072). Item 3345 moved it 6071 → 7902, the game's
@@ -10621,6 +10638,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // run964b's closing block 15945 scores the end itself.
         endpoint: Some("run964b_korean_closing_state"),
         window: Some("korean_frame_15291_window"),
+    },
+    // **The battery's Dutch word at Great Sahara** (DECISIONS 72, 83, 84;
+    // item 3369): Great Sahara, the Dutch at Difficulty 3 — the held-out
+    // battery's lowest open lobby on the measure of `efc5d4c1`, minted by
+    // item 3365 under entry 72's rule (2); the game ends itself on 16109.
+    // It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaDutchTier3",
+        named: "Great Sahara (Dutch)",
+        word: crate::diff::dutch_sahara_word::DUTCH_SAHARA_WORD,
+        length: 16_109,
+        // run990b's closing block 16110 scores the end itself.
+        endpoint: Some("run990b_dutch_sahara_closing_state"),
+        window: Some("dutch_sahara_frame_15725_window"),
     },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's

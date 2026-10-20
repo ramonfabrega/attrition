@@ -20064,3 +20064,50 @@ Pool lane 2, launched 02:31:41, exited 02:32:32; 15263 frames, 15263 identical t
 RON_STATE_FRAME=15256`: a packet of 838,556,840 bytes, kept at `~/ron-golden/run991d/map-7/frame-snapshot.bin`.
 **What it holds**: piece 132's six `AttachPos` rows, swept by `tools/recomp/get_position.py … sweep 132 0 <anim>
 <time>` (the sweeps under `~/ron-data/lab-experiments/2026-10-20-item-3365/`) and fitted into `launch::BAYS`.
+
+## run994 — the battery's replacement lobby `GreatSaharaIroquoisTier3`: the start (2026-10-20, item 3369, `att-3369`)
+
+Pool lane 2, launched 03:17:30, exited 03:27:09; 37 frames, run964's line with `--ai-tribe 18 --profile
+DIFFICULTY=3`. Minted by `docs/DECISIONS.md` entry 72's rule (2) as amended by 84: of the nations on no map-7 dump and
+held only by closed games, the Iroquois and the Germans tie on the census's reach (8); the tie goes to the shorter
+closed game by item 3347's precedent (`GreatLakesIroquoisTier3` 12658, `EastIndiesGermanTier3` 13519); tier 3 is the
+tier the Dutch leave. The first take (03:13) died in its receipt (`extra lifecycle or fault records`, no receipt);
+its directory is kept aside as `~/ron-golden/run994-deadtake1`. `rngcmp.py` against run994b: 37 identical.
+
+## run994b — `GreatSaharaIroquoisTier3`'s draw stream (2026-10-20, item 3369, `att-3369`)
+
+Pool lane 2, launched 03:13:34, exited 03:16:46; run964b's line with `--ai-tribe 18`. **The game ended itself on
+16371** (`ended_early` true), closing block 16372. Scored on its first try: 13757 of 16371 (`battery_floors_hold`;
+ours 13 draws, theirs 11, at 1: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `GameAccess::rnd+0x20 <
+Unit::do_job+0x67`).
+
+## run995 — the Dutch word at Great Sahara: the word 311's window, blocks 305..561 at `GOODS=3` (2026-10-20, item 3369, `att-3369`)
+
+Pool lane 1, launched 03:12:02, exited 03:29:05; 567 frames, 567 identical to run990b. **What it holds**: on block
+310 who=1's Armed Merchant `1/1` (`MERCHANTDUTCH`, type 62), seated on its corner (38592, 20160) by its unpack on
+309 in both, drafted in theirs alone — `group` 64 (ours −1), `form_mod` 50, an `ATTACK_TO` (41304, 17304) with
+offsets (600, 408) — and on 311 a pack cast (spell 655) queued in front of it. Test
+`run995_s_word_frame_is_widened_whole`: 256 blocks, 433 keys on the first try.
+
+## run995b — the Dutch word at Great Sahara: blocks 305..312 at `WORLD=6` (2026-10-20, item 3369, `att-3369`)
+
+Pool lane 2, launched 03:12:05, exited 03:13:23; 317 frames, 317 identical to run990b. Booked beside run995 for the
+tile masks under the Merchant's square, in case its deploy had been refused; run995 showed the deploy seated in both,
+so no test reads it.
+
+## run995c — the Dutch word at Great Sahara: the word 15725's window, blocks 15719..15975 at `GOODS=3` (2026-10-20, item 3369, `att-3369`)
+
+Pool lane 1, launched 03:51:21, exited 04:10:15; 15981 frames, 15981 identical to run990b. Booked because no dump
+on disk held this lobby between block 562 and run990b's closing block 16110. **What it holds**: the window opens
+apart on who=1's Armed Merchant `1/51` (`MERCHANTDUTCH`), on its pack's first frame two after its unpack ended:
+figure 1 walking out to (17597, 25530) from beside the merchant's point (17689, 25362) in theirs, standing on it in
+ours; on the word's block 15726 its `g.end_time[1]` is 150 ours, 60 theirs. Test
+`run995c_s_word_frame_is_widened_whole`: 748 keys on the first try, 34 after the build.
+
+## run995d — the Dutch word at Great Sahara: the walk back, blocks 15462..15718 at `GOODS=3` (2026-10-20, item 3369, `att-3369`)
+
+Pool lane 1, launched 04:16:57, exited 04:34:54; 15724 frames, 15724 identical to run990b. Booked because run995c
+opened apart and no dump held `1/51`'s unpack (15570..15717). **What it holds**: on block 15717, the unpack's last
+frame, theirs re-pieces both of `1/51`'s figures to 50689 (`total_num_unit_pieces − 5`, the Dutch `BUILD_CONTINENT
+1`) and puts them on the merchant's point (17664, 25344); ours put figure 0 on 2124 and left figure 1 on 14796 and
+its offset. Test `run995d_s_walk_back_is_widened_whole`: 32 keys after the build, the standing family on 15462.

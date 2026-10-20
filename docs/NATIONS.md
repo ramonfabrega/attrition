@@ -69,11 +69,11 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
 | 16 | Koreans | koreans | `koreans` | 6 | `GreatSaharaKoreanTier3` (AI word, tier 3); scored pairs |
 | 17 | Mongols | mongols | `mongols` | 3 | none |
-| 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
+| 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3); `GreatSaharaIroquoisTier3` (map 7, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
-| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (map 7, tier 3) |
+| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
 
 ## 3. The held-out nations, arm by arm
@@ -456,7 +456,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::get_building_hp_upgrade@006daee0` | 4 | carried at tech.rs | `006daee0` |
 | `LeaderData::calc_resource_bonuses@006db030` | 13 | carried at economy.rs | `006db030` |
 | `LeaderData::get_farm_limit@006db270` | 7 | modelled at city.rs | `egyptian_farms_per_city_base` |
-| `LeaderData::get_radius@006db790` | 21 | carried at city.rs | `006db790` |
+| `LeaderData::get_radius@006db790` | 21 | carried at capture_view.rs | `006db790` |
 | `LeaderData::has_preq@006db810` | 4 5 6 7 10 12 13 16 | carried at ammo_do_damage.rs | `006db810` |
 | `LeaderData::calc_market_prices@006dc2a0` | 4 13 | carried at ai_make.rs | `006dc2a0` |
 | `Leader::calc_pop_cap@006dc490` | 3 | carried at build_finished_628490.rs | `006dc490` |
@@ -473,7 +473,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::has_tribe_bonus@006e1370` |  +var | carried at borders_is_border_hidden.rs | `006e1370` |
 | `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at lib.rs | `006e3930` |
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
-| `Cities::capture_city@00733380` | 13 23 | carried at build_check_capture.rs | `00733380` |
+| `Cities::capture_city@00733380` | 13 23 | carried at cities_capture_city.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |
 | `City::assimilate@00738e90` | 14 | carried at city.rs | `00738e90` |
 | `Caravan::trade_value@0073d9d0` | 21 | carried at caravan.rs | `0073d9d0` |
