@@ -9967,6 +9967,20 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3365,
         Some(crate::diff::korean_word::WIDENING_KOREAN_CLOSING),
     ),
+    // **The battery's American word at Great Lakes** (item 3384,
+    // DECISIONS 72, 83, 84): frame 3176, the battery's first try (item
+    // 3380), promoted here and widened on run1009 over 3170..3426 (block
+    // 3177). Item 3384 moved it 3176 → 6152, the game's last frame, with
+    // `calc_gather`'s American Barracks gather. The close is compared whole
+    // on run1004b's own closing block 6153 by
+    // `run1004b_american_lakes_closing_state`.
+    (
+        "AMERICAN_LAKES_WORD",
+        crate::diff::american_lakes_word::AMERICAN_LAKES_WORD,
+        Some("run1004b_american_lakes_closing_state"),
+        3384,
+        Some(crate::diff::american_lakes_word::WIDENING_AMERICAN_LAKES_CLOSING),
+    ),
     // **The battery's Turkish word** (item 3380, DECISIONS 72, 83, 84):
     // frame 14991, the battery's measure on `56f23ba5` (item 2975's lobby,
     // moved by item 3160 and the forty-fifth tranche), promoted here and
@@ -10601,6 +10615,22 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's American word at Great Lakes** (DECISIONS 72, 83, 84;
+    // item 3384): Great Lakes, the Americans at Difficulty 4 — the held-out
+    // battery's lowest open lobby on the measure of `689ddb67`, minted by
+    // item 3380 under rule (2); the game ends itself on 6152. It joins the
+    // `Battery word` line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesAmericanTier4",
+        named: "Great Lakes (Americans)",
+        word: crate::diff::american_lakes_word::AMERICAN_LAKES_WORD,
+        length: 6_152,
+        // Closed by item 3384: the draw stream agrees to 6152, and
+        // run1004b's closing block 6153 scores the end itself.
+        endpoint: Some("run1004b_american_lakes_closing_state"),
+        window: Some("american_lakes_frame_3176_window"),
+    },
     // **The battery's Turkish word** (DECISIONS 72, 83, 84; item 3380):
     // Great Lakes, the Turks at Difficulty 4 — the held-out battery's
     // second open lobby on the measure of `56f23ba5`, minted by item 2975;

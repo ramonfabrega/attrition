@@ -30,9 +30,12 @@ pub(crate) const AMERICAN_LAKES: Lobby = Lobby {
     // Item 3380's lobby, its first try: count 3176, sequence 3176 (ours 31
     // draws, theirs 36, at 0: ours `Animal::think_bird+0x82`, theirs
     // `Leader::compute_sites+0x4ac`). Item 3384 promoted it to the AI word
-    // (`docs/AI.md` §292).
-    count: 3176,
-    sequence: 3176,
+    // and moved it 3176 -> 6152, the game's last frame, with
+    // `calc_gather`'s American Barracks gather (`docs/AI.md` §292): theirs'
+    // script placed its second city on 3176, City State done in time
+    // because Written Word was paid on 2776, a tick before ours.
+    count: 6152,
+    sequence: 6152,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -92,4 +95,106 @@ fn american_lakes_word_is_no_other_lobby() {
         assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
+}
+
+/// run1009: the word 3176's window, blocks 3170..3426 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3384). run1004 dumps blocks 0..36 and
+/// run1004b its setup and closing blocks only, so no dump on disk held the
+/// word's block.
+pub(crate) const RUN1009: &str = "gamelog-run1009-greatlakes-american-diff4-window-3170-3427.txt";
+
+/// The window: block 3170 through 3426; the word 3176's own block is 3177.
+pub(crate) const WIDENING_AMERICAN_LAKES_FRAME_3176: (i64, i64) = (3170, 3426);
+
+pub(crate) fn american_lakes_frame_3176_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AMERICAN_LAKES.start],
+        true,
+        AMERICAN_LAKES.long,
+        "run1009",
+        &[(RUN1009, WIDENING_AMERICAN_LAKES_FRAME_3176.0)],
+        WIDENING_AMERICAN_LAKES_FRAME_3176,
+        1,
+        &[3177],
+        true,
+    )
+}
+
+#[test]
+fn run1009_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_lakes_frame_3176_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
+
+/// The closing state's window: run1004b's closing block alone, the long's
+/// last frame 6152 writing it (item 3384).
+pub(crate) const WIDENING_AMERICAN_LAKES_CLOSING: (i64, i64) = (6151, 6154);
+
+/// **The lobby's closing state** (item 3384, DECISIONS 55): run1004b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+/// The game ends itself on 6152.
+#[test]
+fn run1004b_american_lakes_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        crate::testenv::dump(AMERICAN_LAKES.long.0),
+        crate::testenv::dump(AMERICAN_LAKES.start),
+        trace(AMERICAN_LAKES.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "American (Great Lakes) closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 6153, "the closing block");
+    pin_eq!(e.compared, 37, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3384, the first walk (the Americans' Barracks gather, the
+    // word at 6152): 37 units compared on block 6153, none apart, no
+    // building or city field-row, no closing field.
 }
