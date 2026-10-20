@@ -542,6 +542,11 @@ pub struct Holdings {
     /// `CAPITALISM_OIL_PROD × 16` to oil (`docs/ECONOMY.md` step 8).
     pub capitalism: bool,
     pub lakota_units: i32,
+    /// `has_tribe_bonus(0x14)` and the count the Americans' term multiplies
+    /// ([`american_barracks_gather`]): `barracks_units − barracks_garr`,
+    /// the `LeaderData` counts at `+0x9f8` and `+0xa34`.
+    pub americans: bool,
+    pub american_units: i32,
     /// `has_tribe_bonus(6)` and `has_tribe_bonus(0xc)`: the Romans' and the
     /// Germans' flat per-city terms ([`assemble`]).
     pub romans: bool,
@@ -813,6 +818,17 @@ pub fn assemble(t: &Tuning, h: &Holdings) -> [i32; RESOURCES] {
         out[r.index()] = t.basic_gather[r.index()] * RATE_SCALE;
     }
     out[Resource::Food.index()] += lakota_food(t, h);
+    let american = american_barracks_gather(t, h);
+    for r in [
+        Resource::Food,
+        Resource::Timber,
+        Resource::Metal,
+        Resource::Wealth,
+    ] {
+        if h.available[r.index()] {
+            out[r.index()] += american;
+        }
+    }
 
     for city in &h.cities {
         let c = city_rates(t, city);
@@ -1061,6 +1077,19 @@ pub fn lakota_food(t: &Tuning, h: &Holdings) -> i32 {
         return 0;
     }
     h.lakota_units * t.lakota_food * RATE_SCALE
+}
+
+/// `Leader::calc_gather@006ceee0:124–143`, the Americans' Barracks gather:
+/// the leader's Barracks units (`barracks_units`, `+0x9f8`) less those
+/// garrisoned (`barracks_garr`, `+0xa34`), times `AMERICANS_BARRACKS_GATHER`,
+/// in sixteenths — added right after the Lakota's food, before the cities,
+/// to food, timber, metal and wealth, each only while `type_avail` holds it
+/// ([`assemble`]; `docs/AI.md` §292).
+pub fn american_barracks_gather(t: &Tuning, h: &Holdings) -> i32 {
+    if !h.americans {
+        return 0;
+    }
+    h.american_units * t.americans_barracks_gather * RATE_SCALE
 }
 
 /// **The Mongols' food from owned ground**
@@ -1849,6 +1878,27 @@ mod tests {
         assert_eq!(mongol_nomadic_food(&t, &h), 275);
         h.land_size = 0;
         assert_eq!(mongol_nomadic_food(&t, &h), 0);
+    }
+
+    /// **The Americans' Barracks gather** (`docs/AI.md` §292): each
+    /// Barracks unit outside a building pays `2 × 16` sixteenths of food,
+    /// timber, metal and wealth, each only while it is available — and
+    /// nothing for a leader that is not American.
+    #[test]
+    fn an_american_barracks_unit_gathers_two_of_each_available_resource() {
+        let t = Tuning::RON;
+        let mut h = Holdings::new();
+        h.available = [true, true, true, false, false, false];
+        h.american_units = 3;
+        let base = assemble(&t, &h);
+        h.americans = true;
+        assert_eq!(american_barracks_gather(&t, &h), 3 * 2 * RATE_SCALE);
+        let with = assemble(&t, &h);
+        let gained: Vec<i32> = (0..RESOURCES).map(|r| with[r] - base[r]).collect();
+        assert_eq!(gained, [96, 96, 96, 0, 0, 0]);
+        h.available[Resource::Metal.index()] = true;
+        let metal = assemble(&t, &h);
+        assert_eq!(metal[Resource::Metal.index()] - base[Resource::Metal.index()], 96);
     }
 
     /// **The Lakota's food** (`docs/AI.md` §219): run846's who=1 on block
