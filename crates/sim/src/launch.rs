@@ -1317,6 +1317,28 @@ mod tests {
         }
     }
 
+    /// **The Persian Immortals' arrows leave from piece 112's bays** (item
+    /// 3355): run984's `AMMO` record of the arrow `1/16` threw on 6012 at
+    /// the Scout `0/0` — `sx, sy` (3766, 32893), `total_time` 10 — from
+    /// the unit's own square (3768, 33000) at block 6020's facing.
+    #[test]
+    fn run984_s_immortal_arrow_leaves_from_piece_112_s_bays() {
+        let got: Vec<_> = [(crate::anim::ATTACK2, 14), (crate::anim::ATTACK3, 6)]
+            .iter()
+            .map(|&(anim, start)| {
+                launch_point(
+                    Pos::new(3768, 33000),
+                    Angle(-173_146_112),
+                    112,
+                    anim,
+                    start,
+                    0,
+                )
+            })
+            .collect();
+        assert!(got.contains(&Pos::new(3766, 32893)), "{got:?}");
+    }
+
     /// Every launch point run109 measured, reproduced to the unit.
     ///
     /// `(guy x, guy y, guy angle, anim, starttime, sx, sy)` — the dump's
