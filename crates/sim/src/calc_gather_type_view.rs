@@ -395,7 +395,7 @@ fn mine_arm<V: TypeGatherView>(
     *count = 0;
     *rate = 0;
     let (ox, oy) = v.corner_tile(a.tx, a.ty, 0);
-    let (mut mtn, mut cliff, mut dmtn, mut dcliff);
+    let (mut mtn, mut cliff, dmtn, dcliff);
     if !a.list || (v.list_mtn() < 0 && v.list_cliff() < 0) {
         let (wx, wy) = (v.div3(ox >> 8), v.div3(oy >> 8));
         let region = v.get_region(wx, wy, false);
@@ -413,9 +413,8 @@ fn mine_arm<V: TypeGatherView>(
     }
     if mtn < 0 {
         if cliff >= 0 {
-            if dcliff > radius6 {
-                cliff = -1;
-            } else {
+            // A cliff past the reach is dropped (`cliff = -1`), and nothing reads it again.
+            if dcliff <= radius6 {
                 let mut i = 0;
                 while i < v.cliff_len(cliff) {
                     let (px, py) = v.cliff_tile(cliff, i);
@@ -441,9 +440,8 @@ fn mine_arm<V: TypeGatherView>(
                 }
             }
         }
-    } else if dmtn > radius6 {
-        mtn = -1;
-    } else {
+    } else if dmtn <= radius6 {
+        // (A range past the reach is dropped, `mtn = -1`, and nothing reads it again.)
         let mut i = 0;
         while i < v.range_len(mtn) {
             let (ax, ay) = v.range_offset(mtn, i);
@@ -528,10 +526,7 @@ fn camp_arm<V: TypeGatherView>(
             continue;
         }
         let (ax, ay) = (v.div3(ox >> 6), v.div3(oy >> 6));
-        let d = v.vector_dist(
-            cell_tile(x).wrapping_sub(ax),
-            cell_tile(y).wrapping_sub(ay),
-        );
+        let d = v.vector_dist(cell_tile(x).wrapping_sub(ax), cell_tile(y).wrapping_sub(ay));
         if d > radius {
             continue;
         }
@@ -666,9 +661,7 @@ fn camp_arm<V: TypeGatherView>(
             }
         }
         let limit = (*count).min(cap);
-        let access = v
-            .total_gather_access(a.list, ox, oy, a.who)
-            .wrapping_shl(1);
+        let access = v.total_gather_access(a.list, ox, oy, a.who).wrapping_shl(1);
         cap = limit.min(access);
         *count = (*count).min(access);
         acc[g] = cap.wrapping_mul(*rate);

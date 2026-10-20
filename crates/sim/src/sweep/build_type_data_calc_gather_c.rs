@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(8);
@@ -44,11 +49,24 @@ fn the_emulated_original_agrees_on_every_row() {
             // The whole function, drawn for the camp (`--answers 7:0`, slot `+0x60` mostly 0 at first); the
             // function-local static is uninitialised (`--tls 8:-2`, guard `-1`), so the first call
             // constructs it.
-            run(a, m, c, p, &mut log, Cfg { stop: None, first_call: true });
+            run(
+                a,
+                m,
+                c,
+                p,
+                &mut log,
+                Cfg {
+                    stop: None,
+                    first_call: true,
+                },
+            );
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "calc_gather — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "calc_gather — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "calc_gather — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

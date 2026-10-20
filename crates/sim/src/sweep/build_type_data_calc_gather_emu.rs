@@ -17,9 +17,7 @@
 //! **Calls.** The log is `--record-order`'s, one token a call (`s<k>:<ecx>,<args>`), then the 22 `--deref`
 //! columns (`9:0`, `9:1`, `10:0`, ..), each `/`-joined or `-`.
 
-use crate::calc_gather_type_view::{
-    Konst, TypeGatherArgs, TypeGatherView, type_calc_gather_steps,
-};
+use crate::calc_gather_type_view::{Konst, TypeGatherArgs, TypeGatherView, type_calc_gather_steps};
 
 /// The function-local static `MiningList` as the log names it: the guard word at `0xee14a4` is the `--at`
 /// window `c7`, so the list at `0xee14a8` is `c7+0x4`.
@@ -327,8 +325,16 @@ impl TypeGatherView for V<'_> {
         // `corner_tile(tx, ty, &x, &y)` writes both through its arguments (`--outarg 19:2`, `19:3`); the
         // camp's locals are at `ebp - 0x78`/`- 0x74`, the mine's at `- 0x64`/`- 0x60`.
         let (x, y) = (self.a[OUTS], self.a[OUTS + 1]);
-        let (lx, ly) = if site == 1 { (0x78, 0x74) } else { (0x64, 0x60) };
-        self.rec(19, "m+0x0", &[tx.to_string(), ty.to_string(), sp(lx), sp(ly)]);
+        let (lx, ly) = if site == 1 {
+            (0x78, 0x74)
+        } else {
+            (0x64, 0x60)
+        };
+        self.rec(
+            19,
+            "m+0x0",
+            &[tx.to_string(), ty.to_string(), sp(lx), sp(ly)],
+        );
         (x, y)
     }
 
@@ -438,7 +444,11 @@ impl TypeGatherView for V<'_> {
 
     fn get_region(&mut self, cx: i32, cy: i32, second: bool) -> i32 {
         let _ = (cx, cy);
-        let (lx, ly) = if second { (0x12c, 0x128) } else { (0x124, 0x120) };
+        let (lx, ly) = if second {
+            (0x12c, 0x128)
+        } else {
+            (0x124, 0x120)
+        };
         self.rec(39, "c4+0x0", &[sp(lx), sp(ly)]);
         self.answer(39)
     }
@@ -512,7 +522,11 @@ impl TypeGatherView for V<'_> {
             (_, false) => 0x1fc,
             (_, true) => 0x1f8,
         };
-        self.rec(if y { 46 } else { 45 }, "c6+0x4", &[sp(local), mtn.to_string()]);
+        self.rec(
+            if y { 46 } else { 45 },
+            "c6+0x4",
+            &[sp(local), mtn.to_string()],
+        );
         rd32(&self.p[if y { 21 } else { 20 }], 0)
     }
 
@@ -530,14 +544,7 @@ impl TypeGatherView for V<'_> {
 
 /// Runs `type_calc_gather_steps` over a row's windows and writes the result into `p0..p2`, then pushes the
 /// deref columns. A call that ends at the `--stop-stub` leaves the out parameters as far as it got.
-pub fn run(
-    a: &[i32],
-    m: &[u8],
-    c: &[Vec<u8>],
-    p: &mut [Vec<u8>],
-    log: &mut Vec<String>,
-    cfg: Cfg,
-) {
+pub fn run(a: &[i32], m: &[u8], c: &[Vec<u8>], p: &mut [Vec<u8>], log: &mut Vec<String>, cfg: Cfg) {
     assert_eq!(a.len(), COLUMNS, "the row's column layout drifted");
     let mut out = [0i32; 6];
     for (i, o) in out.iter_mut().enumerate() {
@@ -583,7 +590,11 @@ pub fn run(
         log.push("-".to_string());
     }
     for d in derefs {
-        log.push(if d.is_empty() { "-".to_string() } else { d.join("/") });
+        log.push(if d.is_empty() {
+            "-".to_string()
+        } else {
+            d.join("/")
+        });
     }
     for (i, o) in out.iter().enumerate() {
         p[0][4 * i..4 * i + 4].copy_from_slice(&o.to_le_bytes());
