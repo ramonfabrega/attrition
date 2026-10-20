@@ -116,6 +116,7 @@ pub mod plunder;
 pub mod production;
 pub mod rally;
 pub mod rares;
+pub mod remove_inside_view;
 pub mod roads;
 pub mod scout;
 pub mod single;
@@ -2013,42 +2014,26 @@ impl Sim {
     /// `Object::insert_inside@00647e90` (`delta` 1) and
     /// `remove_from_inside@006480f0` (−1): a captain going into or out of a
     /// building moves one of the leader's garrison counts — a peasant, else
-    /// a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout bit)
-    /// — and with `LAKOTA_FOOD` set a Lakota leader's `0x2000000`
-    /// (`docs/AI.md` §219). The chain's fourth arm, `barracks_garr` for a
-    /// Barracks type (`0x1ab`), feeds only the Americans' term, which is not
-    /// built, and is not kept.
+    /// a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout bit),
+    /// else a Barracks type (`0x1ab`) — and with `LAKOTA_FOOD` set a Lakota
+    /// leader's `0x2000000` (`docs/AI.md` §219).
     ///
-    /// SEAM: the gate's `unit_masks & 1` is not read.
+    /// The −1 is [`remove_inside_view::remove_from_inside_steps`] itself, the
+    /// whole function swept under the emulator (item 3372); the +1 is its
+    /// tail alone, [`remove_inside_view::garrison_tail`] behind the captain
+    /// test — `insert_inside` is not swept.
+    ///
+    /// SEAM: the gate's `unit_masks & 1` is not read, nor the container's
+    /// slot `0x20`; the Americans' `AMERICANS_BARRACKS_GATHER` is not in the
+    /// tuning, so the Barracks arm counts (`barracks_garr`) and raises
+    /// nothing.
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
-        let unit = &self.units[u];
-        let who = unit.owner;
-        let Some(t) = unit.ty else { return };
-        if !unit.captain {
-            return;
-        }
-        let trainer = self.trainer_ident(t);
-        let census = &mut self.ai[who as usize].census;
-        let lakota_count = if matches!(self.unit_types[t].worker, orders::Worker::Citizen) {
-            census.peasants_garr += delta;
-            true
-        } else if trainer == Some(build::Ident::Stable) {
-            census.stable_garr += delta;
-            true
-        } else if self.unit_types[t].cols.flag2(ai_load::uflags2::SCOUT) {
-            // `UnitData::is_special@0046cea0`: `unit_flags2 & 0x10`, the
-            // land scout line alone — a Bark (the role word's other `0x10`)
-            // is not one, and a Bark born at a dock raises nothing.
-            census.scout_garr += delta;
-            true
-        } else {
-            false
-        };
-        if lakota_count
-            && self.nation.get(who as usize).is_some_and(|n| n.lakota)
-            && self.tuning.lakota_food != 0
-        {
-            self.economy_changed(who);
+        use remove_inside_view::{RemoveInsideView, SimRemoveInside};
+        let mut view = SimRemoveInside { sim: self, unit: u };
+        if delta < 0 {
+            remove_inside_view::remove_from_inside_steps(&mut view);
+        } else if view.is_captain() {
+            remove_inside_view::garrison_tail(&mut view, delta);
         }
     }
 

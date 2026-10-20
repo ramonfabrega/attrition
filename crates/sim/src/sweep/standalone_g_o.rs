@@ -632,6 +632,8 @@ mod object_los;
 mod object_must_walk;
 #[path = "object_poor_target.rs"]
 mod object_poor_target;
+#[path = "object_remove_from_inside.rs"]
+mod object_remove_from_inside;
 #[path = "object_repair_damage.rs"]
 mod object_repair_damage;
 #[path = "object_replace_hotunit.rs"]
