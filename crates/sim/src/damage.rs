@@ -315,7 +315,7 @@ pub fn get_damage_steps<F: DamageFacts>(
         }
     }
     // 20. Net damage.
-    let mut dmg = base.wrapping_add(5) / 10 - armor;
+    let mut dmg = (base.wrapping_add(5) / 10).wrapping_sub(armor);
     // 21. Overkill.
     if check_overkill && f.attacker_is_ranged() && f.attacker_is_unit() && f.target_is_unit() {
         let df = f.target_damage_frame();
