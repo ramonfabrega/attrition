@@ -328,6 +328,57 @@ pub fn avoid_steps<V: AstarView + ?Sized>(
     )
 }
 
+/// The compass tables (`move_x@00adcaf0` / `move_y@00adc400`, dumped from
+/// the PE). Index 0 is unused; 1–8 are NW, N, NE, E, SE, S, SW, W — odd
+/// diagonal, even cardinal.
+pub const MOVE_X: [i32; 9] = [0, -1, 0, 1, 1, 1, 0, -1, -1];
+pub const MOVE_Y: [i32; 9] = [0, -1, -1, -1, 0, 1, 1, 1, 0];
+
+/// The wheel's direction for its `k`th turn: `k` past 8 wraps to 1.
+pub fn wheel_dir(k: i32) -> usize {
+    if k < 9 { k as usize } else { (k - 8) as usize }
+}
+
+/// The child's position: `stride` along direction `d` from `cur`.
+pub fn child_pos(cur: Pos, d: usize, stride: i32) -> Pos {
+    Pos::new(
+        cur.x.wrapping_add(MOVE_X[d].wrapping_mul(stride)),
+        cur.y.wrapping_add(MOVE_Y[d].wrapping_mul(stride)),
+    )
+}
+
+/// The child's `metric`: one cell along `d` on the grid whose row is `row`.
+pub fn child_metric(cur_metric: i64, d: usize, row: i64) -> i64 {
+    cur_metric + i64::from(MOVE_X[d]) + i64::from(MOVE_Y[d]) * row
+}
+
+/// What the world grid's probe is handed: the first two steps probe
+/// `node + toff − 0x180` — the cell corner when the order is not a move, the
+/// order's own sub-cell offset when it is; later steps the node itself.
+pub fn world_probe(timeout: i32, p: Pos, toff: (i32, i32)) -> Pos {
+    if timeout < 2 {
+        Pos::new(
+            p.x.wrapping_add(toff.0).wrapping_sub(0x180),
+            p.y.wrapping_add(toff.1).wrapping_sub(0x180),
+        )
+    } else {
+        p
+    }
+}
+
+/// The `n`th intermediate probe of a larger unit's diagonal on the unit
+/// grid (`1..=su`): position-unit offsets `n` steps along `d`, and the
+/// memo key built from them — unlike the endpoint's grid offsets
+/// (listing `00684350`..`00684371`).
+pub fn diag_probe(cur: Pos, cur_metric: i64, d: usize, step: i32, row: i64, n: i32) -> (Pos, i64) {
+    let dx = MOVE_X[d].wrapping_mul(step).wrapping_mul(n);
+    let dy = MOVE_Y[d].wrapping_mul(step).wrapping_mul(n);
+    (
+        Pos::new(cur.x.wrapping_add(dx), cur.y.wrapping_add(dy)),
+        cur_metric + i64::from(dx) + i64::from(dy) * row,
+    )
+}
+
 /// `local_60 / 2 + local_7c`: how near the goal ends the search.
 pub fn arrive(tol: i32, stride: i32) -> i32 {
     (tol / 2).wrapping_add(stride)

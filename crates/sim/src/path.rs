@@ -38,8 +38,9 @@ use std::collections::BTreeMap;
 
 use crate::Sim;
 use crate::astar_view::{
-    AstarView, NoDangerView, Stash, SuspendView, Top, arrive, entry_steps, fresh_steps,
-    suspend_steps, top_of_loop,
+    AstarView, MOVE_X, MOVE_Y, NoDangerView, Stash, SuspendView, Top, arrive, child_metric,
+    child_pos, diag_probe, entry_steps, fresh_steps, suspend_steps, top_of_loop, wheel_dir,
+    world_probe,
 };
 use crate::orders::{self, Body, PathData, path_flag};
 use crate::world::{Owner, Pos, TILES_PER_CELL, cell, tile, vector_dist};
@@ -63,12 +64,6 @@ pub struct RefuseProbe {
 pub const STEP_WORLD: i32 = 0x300;
 pub const STEP_TILE: i32 = 0xc0;
 pub const STEP_UNIT: i32 = 0x30;
-
-/// The compass tables (`move_x@00adcaf0` / `move_y@00adc400`, dumped from
-/// the PE). Index 0 is unused; 1–8 are NW, N, NE, E, SE, S, SW, W — odd
-/// diagonal, even cardinal.
-const MOVE_X: [i32; 9] = [0, -1, 0, 1, 1, 1, 0, -1, -1];
-const MOVE_Y: [i32; 9] = [0, -1, -1, -1, 0, 1, 1, 1, 0];
 
 /// A step the cost function refuses.
 pub const REFUSED: i32 = 0x7fff_ffff;
@@ -1170,11 +1165,10 @@ impl Sim {
             let mut k = pref + 1;
             let mut c = 1;
             while c < 9 {
-                let d = if k < 9 { k as usize } else { (k - 8) as usize };
-                let nx = cur.x + MOVE_X[d] * stride;
-                let ny = cur.y + MOVE_Y[d] * stride;
-                let metric = cur.metric + i64::from(MOVE_X[d]) + i64::from(MOVE_Y[d]) * row;
-                let p = Pos::new(nx, ny);
+                let d = wheel_dir(k);
+                let p = child_pos(Pos::new(cur.x, cur.y), d, stride);
+                let (nx, ny) = (p.x, p.y);
+                let metric = child_metric(cur.metric, d, row);
 
                 let valid = match step {
                     STEP_WORLD => {
@@ -1182,12 +1176,7 @@ impl Sim {
                         // — the cell corner when the order is not a move,
                         // the order's own sub-cell offset when it is;
                         // later steps the node itself.
-                        let probe = if cur.timeout < 2 {
-                            Pos::new(nx + toff.0 - 0x180, ny + toff.1 - 0x180)
-                        } else {
-                            p
-                        };
-                        self.valid_wcoord(u, probe, cur.timeout, goal)
+                        self.valid_wcoord(u, world_probe(cur.timeout, p, toff), cur.timeout, goal)
                     }
                     STEP_TILE => {
                         self.invalid_loc(u, p.tile(), false, true, true, true, false) == loc::VALID
@@ -1195,16 +1184,12 @@ impl Sim {
                     _ => {
                         if su > 1 && d & 1 != 0 {
                             (1..=su).all(|n| {
-                                let dx = MOVE_X[d] * step * n;
-                                let dy = MOVE_Y[d] * step * n;
                                 // The original's diagonal memo uses position-unit
                                 // offsets, unlike the endpoint's grid offsets
                                 // (listing 00684350..00684371).
-                                self.valid_ucoord(
-                                    u,
-                                    Pos::new(cur.x + dx, cur.y + dy),
-                                    cur.metric + i64::from(dx) + i64::from(dy) * row,
-                                )
+                                let (q, key) =
+                                    diag_probe(Pos::new(cur.x, cur.y), cur.metric, d, step, row, n);
+                                self.valid_ucoord(u, q, key)
                             })
                         } else {
                             self.valid_ucoord(u, p, metric)

@@ -8,6 +8,14 @@ use support::{emu_rows, row, tail_row};
 // Registered standalone sweeps.
 #[path = "path_finder_add_to_openlist.rs"]
 mod path_finder_add_to_openlist;
+#[path = "path_finder_astar_emu.rs"]
+mod path_finder_astar_emu;
+#[path = "path_finder_astar_probe_tile.rs"]
+mod path_finder_astar_probe_tile;
+#[path = "path_finder_astar_probe_unit.rs"]
+mod path_finder_astar_probe_unit;
+#[path = "path_finder_astar_probe_world.rs"]
+mod path_finder_astar_probe_world;
 #[path = "path_finder_astar_suspend.rs"]
 mod path_finder_astar_suspend;
 #[path = "path_finder_building_danger.rs"]
