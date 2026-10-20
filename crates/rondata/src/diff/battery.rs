@@ -342,6 +342,34 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // and run986b, 9028 of 24000), minted by item 3360 under rule (2), left
     // the battery on item 3367 for the AI word (`diff::spanish_east_word`,
     // DECISIONS 72, 83, 84).
+    // The lobby minted by item 3367 (DECISIONS 72 as amended by 84,
+    // `docs/AI.md` §125, §284; runs 992 and 992b) when the Spanish left for
+    // the AI word, so the held-out set stays eight: East Indies, the
+    // Egyptians at Difficulty 3 — **rule (2)**: rule (1) has no answer
+    // (every nation is in some dump); a header survey of every dump puts
+    // the Egyptians only at Great Sahara 4 and the Iroquois only at Great
+    // Lakes 3, both closed games, both 8 census functions (`docs/NATIONS.md`)
+    // and the widest reach left among nations no East Indies dump holds;
+    // the tie goes to the Egyptians, whose lobby moves both map and tier
+    // off their only game. Tier 3 is the tier the Spanish left; East
+    // Indies' battery then holds tier 1 alone. The game ends itself on
+    // 14540 (closing block 14541).
+    Lobby {
+        name: "EastIndiesEgyptianTier3",
+        map_style: 18,
+        ai_tribe: 7,
+        difficulty: 3,
+        start: "gamelog-run992-eastindies-egyptian-diff3-start.txt",
+        long: (
+            "gamelog-run992b-eastindies-egyptian-diff3-24k-trace.txt",
+            "rontrace-run992b.log",
+        ),
+        length: 14540,
+        // Item 3367, the first try: the draw stream runs whole to the
+        // game's own end, 14540 of 14540.
+        count: 14540,
+        sequence: 14540,
+    },
     // The lobby minted by item 3314 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §263; runs 955 and 955b) when the Romans left for the AI word, so
     // the held-out set stays eight: East Indies, the Americans at
