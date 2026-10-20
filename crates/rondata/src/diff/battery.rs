@@ -140,6 +140,32 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaFrenchTier4` (French 10, Difficulty 4, map 7; run977 and
     // run977b, 13422 of 16764), minted by item 3343, left the battery on
     // item 3347 for the AI word (`diff::french_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3347 (DECISIONS 72, 83, 84, `docs/AI.md`
+    // §125, §278; runs 981 and 981b) when the French left for the AI word,
+    // so the held-out set stays eight: Great Sahara, the Russians at
+    // Difficulty 4, by entry 72's rule (2) — a nation held only by closed
+    // games on another map, never on Great Sahara. The Romans and the
+    // Russians tie on reach (10 census functions each, `docs/NATIONS.md`);
+    // the Russians' only game (Great Lakes, closed) ended at 7303 against
+    // the Romans' 18620, so theirs is the nation whose later arms no trace
+    // has run. Tier 4 is the tier the French leave; the Persians are item
+    // 3345's. The game ends itself on 18883.
+    Lobby {
+        name: "GreatSaharaRussianTier4",
+        map_style: 7,
+        ai_tribe: 13,
+        difficulty: 4,
+        start: "gamelog-run981-greatsahara-russian-diff4-start.txt",
+        long: (
+            "gamelog-run981b-greatsahara-russian-diff4-24k-trace.txt",
+            "rontrace-run981b.log",
+        ),
+        length: 18883,
+        // Item 3347, the first try: the draw stream agrees to the game's
+        // end, count and sequence both at 18883.
+        count: 18883,
+        sequence: 18883,
+    },
     // The lobby minted by item 3342 (DECISIONS 72, 83, `docs/AI.md` §125,
     // §275; runs 975 and 975b) when the Russians left for the AI word, so
     // the held-out set stays eight: Great Lakes, the Lakota at Difficulty 2.

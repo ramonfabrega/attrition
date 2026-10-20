@@ -61,10 +61,10 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3) |
-| 10 | French | french | `french` | 7 | scored pairs |
+| 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
-| 13 | Russians | russians | `russians` | 10 | `GreatLakesRussianTier2` (AI word, tier 2) |
+| 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
 | 16 | Koreans | koreans | `koreans` | 6 | scored pairs |
@@ -120,7 +120,7 @@ says in its doc comment that only the British and Mongol arms are built,
 | Greeks | an age or an epoch costs 10% less in every good but knowledge | `TypeData::get_cost@00664090` | modelled at lib.rs | `greek_research_cost` |
 | Greeks | a Library or a University costs 66% less | `TypeData::get_cost@00664090` | modelled at city.rs | `greek_library_cost` |
 | Romans | legions train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `roman_legion_fast` |
-| French | siege units train faster | `ObjectData::train_time@006508c0` | not modelled | `french_siege_speed` |
+| French | siege units train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `french_siege_speed` |
 | French | special (general) units train faster, 0 in the rules | `ObjectData::train_time@006508c0` | not modelled | `french_special_speed` |
 | Germans | aircraft train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_air_speed` |
 | Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_submarine_speed` |
@@ -230,7 +230,7 @@ left out; a constant with no reader in the export is dead there too.
 | `FRENCH_SPECIAL_COST` | 0 | TypeData::get_cost | not carried | `french_special_cost` |
 | `FRENCH_SPECIAL_SPEED` | 0 | ObjectData::train_time | not carried | `french_special_speed` |
 | `FRENCH_SIEGE_COST` | 15 | TypeData::get_cost | modelled at lib.rs | `french_siege_cost` |
-| `FRENCH_SIEGE_SPEED` | 25 | ObjectData::train_time | not carried | `french_siege_speed` |
+| `FRENCH_SIEGE_SPEED` | 25 | ObjectData::train_time | modelled at lib.rs | `french_siege_speed` |
 | `FRENCH_SIEGE_MOVE` | 20 | Unit::update_speed | modelled at rares.rs | `french_siege_move` |
 | `FRENCH_FREE_GENERAL` | 1 | Build::activate | modelled at nations.rs | `french_free_general` |
 | `FRENCH_FREE_SUPPLY` | 1 | Build::activate | modelled at nations.rs | `french_free_supply` |
