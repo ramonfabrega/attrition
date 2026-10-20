@@ -198,6 +198,10 @@ mod group_action_buildmask;
 mod group_action_garrison;
 #[path = "group_action_garrison_head.rs"]
 mod group_action_garrison_head;
+#[path = "group_action_halt.rs"]
+mod group_action_halt;
+#[path = "group_action_halt_head.rs"]
+mod group_action_halt_head;
 #[path = "group_action_hotkey.rs"]
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
