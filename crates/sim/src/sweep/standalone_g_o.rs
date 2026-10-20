@@ -206,6 +206,8 @@ mod group_action_garrison_head;
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
 mod group_action_queue_up;
+#[path = "group_action_spell.rs"]
+mod group_action_spell;
 #[path = "group_action_trade.rs"]
 mod group_action_trade;
 #[path = "group_action_trade_head.rs"]
