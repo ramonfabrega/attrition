@@ -8826,13 +8826,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LO — reserved
+## Parked by item 3375, 2026-10-20 — the Iroquois word at Great Sahara closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3375a.** `GreatSaharaIroquoisTier3`, run1001c and run1001 block 13825: who=1's `1/0` (`uid 6`) `blown`, ours 1
+against theirs 0 (`unit_masks` 262152, no `0x1000`), with the draw stream agreeing to 16371 and the closing state
+none apart. Names no score (`docs/AI.md` §288).
+
+**3375b.** run1001's `1/91` (from 13751) and `1/54` (from 13963) `g.angle[0]` ours 1431655765 against 0 — parked
+2995's `0x55555555`, on this lobby too. Names no score.
 
 ## Parked by the next landing, slot LP — reserved
 

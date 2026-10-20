@@ -24702,12 +24702,57 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 288. Reserved for the next item on the AI track
+## 288. The battery's Iroquois word at Great Sahara closes: two archers' bow hands, one through its turret
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3375, 2026-10-20, Opus 5.5. `GreatSaharaIroquoisTier3` (map 7, human Nubians against the Iroquois at Difficulty
+3, seed 12345; runs 994 and 994b), promoted out of the battery at 13757 of 16371. Captures run1001 (`GOODS=3` over
+13751..14007), run1001b (`AMMO=5` over 13744..13760), run1001c (`AMMO=5` over 13755..14007), run1001d (a packet at
+13760). Its battery place went to `GreatSaharaGermanTier3` (runs 1000, 1000b; entry 72's rule (2): of the nations on
+no map-7 dump and held only by closed games the Germans reach 8 census functions, the Indians 4, the Inca 3): count
+13585, sequence 13582 of 19483 on its first try.*
+
+**13757 → 13810: `HEAVYARCHERS-NA`'s bow hand.** On 13757 ours spends 13 draws and theirs 11; `RON_DEBUG_SITES`
+puts the difference in two `Guy::set_anim < Unit::do_idle+0x7d` on the human Scout `0/0` (TI 69), which ends a
+`FLEE_TO` at (8616, 31992) in both. run1001's block 13757: theirs' Scout holds a second `FLEE_TO` to (7944, 33384),
+`damage_frame` 13756, `damage_o` 35, `hits:damage` 21 against ours 16 — struck a frame earlier. A probe (reverted
+whole) showed ours runs the same flee, on the same bearing, on 13758. run1001b's block 13750: `1/35` (`HEAVYARCHERS`,
+type 173, piece 1531 `HEAVYARCHERS-NA`) looses its `CHAR_ATTACK2` round from (8976, 31176, 799), `total_time` 8, where
+ours loosed from the figure's own (9048, 31128), 9 — piece 1531 had no release row. run1001d's packet holds its three
+attack `AttachPos` rows; `get_position.py … sweep 1531 0 <anim> <time>` gives each at every whole degree, and an
+integer search fitted a `launch::Bay` to each at the 257 headings `whole_degrees` reaches, x and y. Built: three
+`launch::BAYS` rows. Value diff, block 13757 after: agreeing.
+
+**13810 → 16371, the game's last frame: the Cavalry Archers' pivot releases.** On 13810 ours spends 14 draws,
+theirs 15, at 10 ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6`. run1001's next row is block 13772: the
+Scout `0/0`'s `hits:damage` 21 ours, 26 theirs; theirs wounds it on 13772, 13773 and 13774, 5 each, ours each a frame
+later. The rounds are `1/43` and `1/44` (`CAVARCHERS`, type 188, piece 1546), which had no release row, so they left
+from the figure. The piece is a pivot piece (a `(4, 0, 0)` node; the dump's `node_flags` 15), so its rounds take
+`get_position`'s pivot branch (`docs/COMBAT.md` §55), not a bay. run1001d's packet reads its nine entries: the pivot
+node's `(4, 0, 0)` and three of the four releases are piece 1545's (the Native American Horse Archers, item 3255),
+bit for bit; `CHAR_ATTACK3` releases at frame 20, not 18, from a node of its own, (4.378072, −16.710272, 14.675652).
+Built: `pivot::NODES` and four `pivot::RELEASES` rows for 1546. `get_position.py … pivot 1546 0 <anim> <time> 1` on
+the packet (92,416 cells a row) agrees with the integer form on every cell but two of `CHAR_ATTACK3`'s, its
+`float_lands`; the three rows 1545 shares take 1545's. run1001c holds eleven of the two archers' rounds, three loosed
+walking: every one leaves from the dump's `sx, sy` at the figure's `x, y`, `angle` and `turret_angles[0]` **on the
+block the round is first printed**, not the block before — the walking figure has stepped on. Value diff, block 13772
+after: agreeing; the draw stream agrees to 16371.
+
+**The close.** run994b's closing block 16372: 103 units compared, none apart, no building, city or closing field
+(`run994b_iroquois_sahara_closing_state`). run1001's window 1404 → 1109 → 35; run1001c's 67 (the standing family,
+36 `build:extra` rows its categories print no `BUILDS` for, `1/0`'s `blown` on 13825 — parked 3375a — and parked
+2995's `g.angle[0]`); nothing on either word's block.
+
+**Not established.** Piece 1531's bays are fitted, not read: the sweep is exact at the 257 headings the crate
+reaches, and the other 104 are not checked. Why a moving figure's release reads the release block's pose rather than
+the block before's is measured on three rounds, not read. Piece 1546's `CHAR_ATTACKWALK` and `CHAR_ATTACK1` rows have
+dumped rounds; its other two are backed by the packet alone.
+
+**Coverage.** Diff-backed: both pieces by `iroquois_sahara_word_first_parting` and
+`run1001_s_word_frame_is_widened_whole`; piece 1546 by `run1001c_s_word_frame_is_widened_whole`; the close by
+`run994b_iroquois_sahara_closing_state`. Sim tests: `launch::tests::run1001b_s_heavy_archer_round_leaves_its_release_
+node`, `pivot::tests::run1001c_s_cavalry_archers_loose_through_piece_1546_s_pivot`, and
+`the_original_s_release_agrees_on_every_cell_for_piece_1546` (`$RON_RELEASE_TABLE_1546`, made to fail by emptying a
+`float_lands`).
 
 ## 289. Reserved for the next item on the AI track
 
