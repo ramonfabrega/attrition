@@ -19787,6 +19787,85 @@ SHA-256 `038663c47493b19809922f59f4cac188d06e1f63f8f9654eaf82f05d107b9df8`.
 **What it holds**: `run982d_s_last_blocks_are_widened_whole`: 38 standing keys and nothing on `0/2000`, damage 1197
 of 1200 through block 16764 on both sides; the capture is the last frame's own hits.
 
+## run986 — the battery's replacement lobby: East Indies, the Spanish at difficulty 3, a `DUMP_ALL` start (2026-10-19, item 3360, `att-3360`)
+
+`docs/AI.md` §281. **What the disk could not answer**: the Inca left the battery for the AI word, and the held-out set
+stays eight with a lobby no dump holds — entry 72's rule (2) as amended by 84: every nation is in some dump, so rule
+(1) has no answer; a header survey of 1015 gamelogs puts AI tribes 2, 6, 10, 11, 12, 16, 17, 19, 20, 21, 22 and 23
+on East Indies; of the nations on no East Indies dump and held only by closed games (Maya 2, Bantu 5, Greeks 7,
+Egyptians 8, Spanish 9, Japanese 4, Iroquois 8 census functions; the open battery's nations out), the Spanish (9)
+reach the most, held only by `GreatSaharaSpanishTier3`, at the tier (3) the Inca left. `--map 18 --end-frame 36
+--timeout 1200 --dump-all-start --ai-tribe 9 --profile DIFFICULTY=3`, through `viadriver.sh` + `golden_capture.sh`.
+- Pool lane 1. Launched 23:34:52 and the game exited at 23:44:37 (585 s). `success`, 37 frames, `map_style 18`, seed
+  12345, players `(0, 4, 7), (1, 9, 1)`. Filed with `filerun.py run986 eastindies-spanish-diff3-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run986-eastindies-spanish-diff3-start.txt`, 153,507,261 bytes,
+SHA-256 `c5729355ed790046ea7831dcb000d4089ae17d1f56a417c13c744622690b4367`.
+
+Archive `rontrace-run986.log`, 10,619,296 bytes,
+SHA-256 `3eb3e63e3f0db25fccef4c5df6d7b7d40fad6acc0da066cd3bc05e784ab7438d`.
+
+**What it holds**: `battery::BATTERY`'s `EastIndiesSpanishTier3` start.
+
+## run986b — the same lobby, the draw stream to 24000 (2026-10-19, item 3360, `att-3360`)
+
+`docs/AI.md` §281. run962b's recipe with `--ai-tribe 9 --profile DIFFICULTY=3` and run643's four `--detail` lines.
+- Pool lane 2. Launched 23:34:54 and the game exited at 23:40:40 (346 s). `success`, 24001 frames, `ended_early`
+  false: the game runs to 24000. `rngcmp.py rontrace-run986.log rontrace-run986b.log`: **37 identical, 0 differing**.
+  Filed with `filerun.py run986b eastindies-spanish-diff3-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run986b-eastindies-spanish-diff3-24k-trace.txt`, 13,697,542 bytes,
+SHA-256 `931280b793dff0b4a7ae31585e3ec145a5573e39232df3c2e2090e8f0b31dc77`.
+
+Archive `rontrace-run986b.log`, 247,672,704 bytes,
+SHA-256 `879943a5733f1cf4a56bf443506fe8f6039f2fe1eb5ad8f5639d420a1fa7e48c`.
+
+**What it holds**: the Spanish first try, **9028 / 9028** of 24000 (ours 2 draws, theirs 12, at 0: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`), pinned in
+`battery::BATTERY`.
+
+## run987 — the Inca word: the word 7782's window, blocks 7776..8032 at `LEADERS=9` (2026-10-19, item 3360, `att-3360`)
+
+`docs/AI.md` §281. **What the disk could not answer**: run969 dumps blocks 0..36 and run969b its setup and closing
+blocks only, so no dump held who=1's ledger or market on 7782, where theirs spends a second `use_market` sell pass.
+`--map 18 --end-frame 8037 --timeout 5400 --log-window 7776 8032 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 23:37:02 and the game exited at 23:58:40 (1298 s). `success`, 8038 frames.
+  `rngcmp.py rontrace-run969b.log rontrace-run987.log`: **8038 identical, 0 differing**. Filed with
+  `filerun.py run987 eastindies-inca-diff3-window-7776-8033-leaders`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run987-eastindies-inca-diff3-window-7776-8033-leaders.txt`, 536,256,546 bytes,
+SHA-256 `9c3628033d4a047f38245f7320d7e4f27dea96c42c4f3e76740b631085e9dc4a`.
+
+Archive `rontrace-run987.log`, 51,692,576 bytes,
+SHA-256 `9a55de16c595acbae01d7eb4aaf7e85d1d9caa0806c476a829d187b5ceed1c7f`.
+
+**What it holds**: `run987_s_word_frame_is_widened_whole` — 533 keys on the first try, the window opening on who=1's
+`income[2:wealth]` ours 752 against theirs 912 (sixteen miners at `INCA_WEALTH_PER_MINER`); 49 standing keys after
+`calc_gather`'s Inca arm.
+
+## run987b — the Inca word: the word 16516's window, blocks 16510..16766 at `LEADERS=9` (2026-10-20, item 3360, `att-3360`)
+
+`docs/AI.md` §281. **What the disk could not answer**: run987 closes on 8032 and run969b prints its setup and
+closing blocks only, so no dump held a unit record near 16516, where theirs spends a fourth `Unit::do_idle` draw.
+`--map 18 --end-frame 16771 --timeout 7200 --log-window 16510 16766 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 00:17:06 and the game exited at 00:45:46 (1720 s). `success`, 16772 frames.
+  `rngcmp.py rontrace-run969b.log rontrace-run987b.log`: **16772 identical, 0 differing**. Filed with
+  `filerun.py run987b eastindies-inca-diff3-window-16510-16767-leaders`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run987b-eastindies-inca-diff3-window-16510-16767-leaders.txt`, 612,068,686 bytes,
+SHA-256 `ae7b96343a754b4b22f1ecd5457489d193e5f2477b43aae88d642e572a2abc8f`.
+
+Archive `rontrace-run987b.log`, 115,260,384 bytes,
+SHA-256 `c8cb06ae1c467461a00f50facad4711a4e46d9ae63b597ef2e11cbfcf9a37596`.
+
+**What it holds**: `run987b_s_word_frame_is_widened_whole` — 1994 keys on the first try, the first non-standing row
+the Trebuchet `1/118`'s `g.cur_anim[0]` on 16512, ours 22 against theirs 8.
 ## run985 — the French word: a state packet at frame 16762, the take that died (2026-10-19, item 3359, `att-3359`)
 
 `docs/AI.md` §280. **What the disk could not answer**: no packet on disk builds piece 139, the French Dragoon
@@ -19813,3 +19892,175 @@ SHA-256 `7b341bde4dfccc55ab0f8da1966b67dba3cc8f06c081bd939d839e67dc76481e`.
 0)` and, for `CHAR_ATTACKWALK`/12, `CHAR_ATTACK1`/12, `CHAR_ATTACK2`/13 and `CHAR_ATTACK3`/18, the pivot's and the
 release node's — pinned as `pivot::NODES` and `pivot::RELEASES` piece 139; and its `GUYS=4` blocks 16760..16765, whose
 `1/39` reads `turret_angles[0]` −196608 on 16763. Test `pivot::tests::the_french_dragoon_s_rounds_leave_from_its_pivot`.
+
+## run988 — the Sahara Lakota: the battery replacement's start (2026-10-19, item 3361, `att-3361`)
+
+`docs/AI.md` §282. Great Sahara (`MAP_STYLE 7`), human Nubians against the Lakota (19) at Difficulty 2, seed 12345: the
+lobby DECISIONS 72's rule (2) as amended by 84 names when the Aztecs leave the battery (the Lakota reach 17 census
+functions, the most of the eligible, and no map-7 dump held them).
+- Pool lane 1. Launched 23:58:24, exited 00:07:46. `success`, 37 frames, a `DUMP_ALL` start. `MAP_STYLE 7`,
+  `DIFFICULTY 2`, tribes 4 and 19.
+- Minutes waited on another lane: none.
+
+## run988b — the Sahara Lakota: the draw stream (2026-10-19, item 3361, `att-3361`)
+
+run895b's line with `--ai-tribe 19`. Pool lane 2, launched 23:58:24, exited 00:03:45; 24001 frames, `ended_early`
+false. `rngcmp.py` run988 vs run988b: 37 identical. **First try: 24000 of 24000**, pinned in `battery::BATTERY` as
+`GreatSaharaLakotaTier2`.
+
+## run989 — the Aztec word: the word 9130's window, blocks 9124..9380 at `GUYS=4` (2026-10-20, item 3361, `att-3361`)
+
+Pool lane 3, launched 00:02:52, exited 00:22:18; 9386 frames. `rngcmp.py` against run895b: 9386 identical.
+Test `run989_s_word_frame_is_widened_whole`: 256 blocks, 38 keys, the standing family.
+
+## run989b — the Aztec word: the fog on 9128..9130 at `WORLD=6` (2026-10-20, item 3361, `att-3361`)
+
+Pool lane 3, launched 00:00:50, exited 00:02:38; 9137 frames, 9137 identical to run895b. **What it holds**: `seen2`
+at fog (117, 55) and (119, 53) 0 in theirs, 2 in ours before the fix, the only half-cells that part. Test
+`run989_s_fog_agrees_over_the_birth_and_on_the_word`.
+
+## run989c — the Aztec word: the Horse Archer `1/45`'s birth, 8653..8656 at `WORLD=6` (2026-10-20, item 3361, `att-3361`)
+
+Pool lane 1, launched 00:15:08, exited 00:16:35; 8663 frames, 8663 identical to run895b. **What it holds**: theirs'
+`1/45` comes out at (44184, 19704) with `mylos` 9 and lights neither half-cell.
+
+## run989d — the Aztec word: the word 17394's window, blocks 17388..17554 at `AMMO=5` (2026-10-20, item 3361, `att-3361`)
+
+Pool lane 2, launched 00:24:38, exited 00:41:28; **the game ended itself on 17554** (`ended_early` true), closing
+block 17555. 17555 frames identical to run895b. **What it holds**: who=1's Cataphract decoys `1/72`, `1/74` bleeding
+a point a frame in who=0's Scout `0/0`'s `seen3` disc. Test `run989d_s_word_frame_is_widened_whole`: 167 blocks, 42
+keys after the fix (1133 before).
+## run992 — the battery's replacement lobby: East Indies, the Egyptians at difficulty 3, a `DUMP_ALL` start (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: no dump holds an Egyptian game on East Indies — the Egyptians'
+only game is Great Sahara 4 (a header survey of every gamelog). Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run992`: `--map 18 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 7 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 01:59:02 (a stall relaunch after 300 s), exited 02:05:30. `success`, 37 frames.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run992-eastindies-egyptian-diff3-start.txt`, 153,494,290 bytes,
+SHA-256 `086a598ec537d28a680d33a6dcb8c2a0543f445c3be44c1769503aa29ce89b05`.
+
+Archive `rontrace-run992.log`, 10,155,040 bytes,
+SHA-256 `41a9389f719673c1d5c9c2d0314d45cb0e8fdb6057907975ca04d52d54a9c329`.
+
+## run992b — the Egyptians at East Indies 3: the draw stream to the game's end (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. run986b's recipe with `--ai-tribe 7 --profile DIFFICULTY=3`.
+- Pool lane 2. Launched 01:54:05, exited 01:58:08. `success`; **the game ended itself on 14540**, closing block
+  14541. `rngcmp.py` run992 vs run992b: 37 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run992b-eastindies-egyptian-diff3-24k-trace.txt`, 13,356,335 bytes,
+SHA-256 `28393776402c41aad6dec6d290cd6e421043fb4ac795734be36355447eb6a4e1`.
+
+Archive `rontrace-run992b.log`, 106,760,288 bytes,
+SHA-256 `6c83f95cb6a4fc4f4dbfd9a4114c0e8b3d721935416f1ad64bd73be55f7426a0`.
+
+**What it holds**: the battery's `EastIndiesEgyptianTier3`, 14540 of 14540 on its first try.
+
+## run993 — the East Indies Spanish word: the word 9028's window, blocks 9022..9278 at `LEADERS=9` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run986 dumps blocks 0..36 and run986b its setup and closing
+blocks only, so no dump held the word's block. `--map 18 --end-frame 9283 --log-window 9022 9278 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 01:54:51, exited 02:16:26. `success`, 9284 frames; `rngcmp.py` vs run986b: 9284 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993-eastindies-spanish-diff3-window-9022-9279-leaders.txt`, 548,242,653 bytes,
+SHA-256 `80bbf6474b86a1d940e23067ea25d6b269549241bf9308a2a7f82dc420b2e8b2`.
+
+Archive `rontrace-run993.log`, 66,092,960 bytes,
+SHA-256 `633f8bba518b353a1d1162c0800a68981feb69be80958dfa46b5fc2ec794b985`.
+
+**What it holds**: `run993_s_word_frame_is_widened_whole` — 519 keys on the first try, 49 after the danger fix.
+
+## run993b — the East Indies Spanish word: the danger map over 8955..8961 at `WORLD=6` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run993 starts on 9022, after the Scout `1/0` re-targets on
+8959, and prints no `danger` plane. `--map 18 --end-frame 8966 --log-window 8955 8961 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,WORLD=6` (run993's `--ai-tribe`, `--cover`, `--profile`).
+- Pool lane 1. Launched 02:23:00, exited 02:24:48. `success`, 8967 frames.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993b-eastindies-spanish-diff3-window-8955-8962-world.txt`, 32,632,827 bytes,
+SHA-256 `8b5bf61140820f2891c945239e8ebc5134964aa195e725d28f9f5b7cd0603ef6`.
+
+Archive `rontrace-run993b.log`, 65,177,952 bytes,
+SHA-256 `77fbbb1217da3027162af145bca7cfd2f651344d3738fc11cd973fff376a4b78`.
+
+**What it holds**: block 8959's `danger[1]`, eighteen half-cells around the human's city about double in ours.
+
+## run993c — the East Indies Spanish word: the word 12756's window, blocks 12750..13006 at `AMMO=5` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run993 closes on 9278 and run986b holds no unit record near
+12756, where theirs spends two `Ammo::init` draws. `--map 18 --end-frame 13011 --log-window 12750 13006 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5` (run993's `--ai-tribe`, `--cover`, `--profile`).
+- Pool lane 1. Launched 02:31:09, exited 02:50:42. `success`, 13012 frames; `rngcmp.py` vs run986b: 13012 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993c-eastindies-spanish-diff3-window-12750-13007-ammo.txt`, 577,887,973 bytes,
+SHA-256 `85662af8ee2b22cfdd37d09360f536ecd471f8266fee4be21f51a623e2ea838b`.
+
+Archive `rontrace-run993c.log`, 119,416,064 bytes,
+SHA-256 `76f826feccd2a9909bb1cb8b22aca181f1c04ea32605e252e0abff04cd733bb1`.
+
+**What it holds**: `run993c_s_word_frame_is_widened_whole` — 765 keys on the first try, 61 after the move to 14942;
+the Caravel `1/49`'s `stance 0` on every block.
+
+## run993d — the East Indies Spanish word: the word 14942's window, blocks 14936..15192 at `LEADERS=9` (2026-10-20, item 3367, `att-3367`)
+
+`docs/AI.md` §284. **What the disk could not answer**: run993c closes on 13006 and run986b holds no record near
+14942, where theirs spends 3211 `PathFinder::calc_road_cost` draws. `--map 18 --end-frame 15197 --timeout 7200
+--log-window 14936 15192 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover
+cover=0 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 03:13:54, exited 03:39:54 (1560 s). `success`, 15198 frames; `rngcmp.py` vs run986b: 15198
+  identical. Filed with `filerun.py run993d eastindies-spanish-diff3-window-14936-15193-leaders`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run993d-eastindies-spanish-diff3-window-14936-15193-leaders.txt`, 612,959,977 bytes,
+SHA-256 `eedf4e58d545dcec335cee455f07944472adcd4bfff71a9a85c7896d0ede44b3`.
+
+Archive `rontrace-run993d.log`, 164,149,728 bytes,
+SHA-256 `21d871d352869afaf0ecbd825059fa6a2d99cc8bf4c8998bb929409a84d3cdfe`.
+
+**What it holds**: `run993d_s_word_frame_is_widened_whole` — 1006 keys on the first try; on the word's block 14943
+the Spanish `1/79`'s `path[19].flags`, ours 36 against theirs 4.
+
+## run990 — the battery's replacement lobby `GreatSaharaDutchTier3`: the start (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 1, launched 01:40:21, exited 01:47:07; 37 frames, run988's line with `--ai-tribe 22 --profile
+DIFFICULTY=3`. Minted by `docs/DECISIONS.md` entry 72's rule (2) as amended by 84: a header survey of 538 gamelogs
+found the Dutch on no map-7 dump and held only by a closed game (`EastIndiesDutchTier4`), the most census
+functions of such nations (9); tier 3 is the tier the Koreans leave. `rngcmp.py` against run990b: 37 identical.
+
+## run990b — `GreatSaharaDutchTier3`'s draw stream (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 2, launched 01:35:21, exited 01:39:09; run964b's line with `--ai-tribe 22`. **The game ended itself on
+16109** (`ended_early` true), closing block 16110. Scored on its first try: 311 of 16109 (`battery_floors_hold`).
+
+## run991 — the Korean word: the word 9185's window, blocks 9179..9435 at `GOODS=3` (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 3, launched 01:36:32, exited 01:53:31; 9441 frames, 9441 identical to run964b. **What it holds**: on
+block 9179 who=1's `bucket[2:wealth]` 86 ours against 96 theirs and `bucket[4:metal]` 175 against 192, `income`
+agreeing on every good — the third off a Tower-line building ours charged whole. Test
+`run991_s_word_frame_is_widened_whole`: 256 blocks, 563 keys before the fix, 27 after (the standing family).
+
+## run991b — the Korean word: the word 15291's window, blocks 15285..15541 at `AMMO=5` (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 2, launched 02:03:26, exited 02:22:07; 15547 frames, 15547 identical to run964b. **What it holds**: the
+human Scout `0/0`'s `damage_frame` ours 15275 theirs 15274 — its first wound, by who=1's Royal Hwarang. Test
+`run991b_s_word_frame_is_widened_whole`: 256 blocks, 998 keys before the fix, 80 after.
+
+## run991c — the Korean word: the Hwarang's arrows, 15240..15291 at `AMMO=5` (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 2, launched 02:23:49, exited 02:28:07; 15297 frames, 15297 identical to run964b. **What it holds**:
+`1/74`'s arrow leaves (9264, 30827) with `total_time` 19, where ours left the figure's own (9336, 30840) with 20.
+Test `launch::tests::run991c_s_hwarang_arrows_leave_the_bow_hand` (three dumped rounds).
+
+## run991d — the Korean word: a packet on 15256, piece 132's bays (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 2, launched 02:31:41, exited 02:32:32; 15263 frames, 15263 identical to run964b. `--tracer-def
+RON_STATE_FRAME=15256`: a packet of 838,556,840 bytes, kept at `~/ron-golden/run991d/map-7/frame-snapshot.bin`.
+**What it holds**: piece 132's six `AttachPos` rows, swept by `tools/recomp/get_position.py … sweep 132 0 <anim>
+<time>` (the sweeps under `~/ron-data/lab-experiments/2026-10-20-item-3365/`) and fitted into `launch::BAYS`.

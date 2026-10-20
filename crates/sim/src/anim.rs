@@ -2467,7 +2467,16 @@ impl Sim {
         if self.is_plane(u) || (self.packs(u) && !self.units[u].combat.packed) {
             return;
         }
-        if anim != TURN_LEFT && anim != TURN_RIGHT && anim != ATTACKWALK {
+        // **No turn slot is spared here** (the listing `5d9565`–`5d958a`
+        // reads the plane bit and the pack pair and nothing of `cur_anim`):
+        // a moving figure holding `CHAR_TURN_*` is put back on the walk,
+        // so a push turn (`detect_boat_collision` → `do_turn`) asked for
+        // earlier in the frame never survives a frame the body moves. Only
+        // the standing arms above spare slots 21 and 22. `ATTACKWALK` is
+        // kept because the original asks for it again here (`cavarch_o >=
+        // 0` and the type's `0x200000`), which [`Sim::walk_for`] does not
+        // model. The Inca word at 16516 (item 3360).
+        if anim != ATTACKWALK {
             let walk = self.walk_for(u);
             self.guy_set_anim(u, g, walk, false, true);
         }
@@ -2856,6 +2865,29 @@ mod tests {
             category(WALK),
             "a packed packer's moving figure did not walk"
         );
+    }
+
+    /// **A moving figure on a turn slot is put back on the walk**
+    /// (`Guy::move:176–181`, the listing `5d9565`–`5d958a`; item 3360).
+    /// The moving arm's gate reads the plane bit and the pack pair and
+    /// nothing of `cur_anim`, so a push turn asked for earlier in the frame
+    /// does not survive a frame the body moves. The Inca word's Trebuchet
+    /// `1/118` on 16512 (`docs/ANIM.md` §16).
+    ///
+    /// Written to fail first: with the turn slots spared the figure keeps
+    /// `CHAR_TURN_RIGHT`.
+    #[test]
+    fn a_moving_figure_on_a_turn_slot_is_put_back_on_the_walk() {
+        let mut s = sim_at(12345);
+        for turn in [TURN_LEFT, TURN_RIGHT] {
+            let u = animal(&mut s, 0, 6, -1, turn, 1, 20);
+            s.guy_follow_anim(u, 0, false, false);
+            assert_eq!(
+                category(s.units[u].guys[0].anim),
+                category(WALK),
+                "a moving figure kept its turn slot {turn}"
+            );
+        }
     }
 
     /// **An attack asked of a guy that is still turning costs no draw and

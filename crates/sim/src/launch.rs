@@ -559,6 +559,77 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 159,
         },
     ),
+    // **The Royal Hwarang's piece 132** (`KORYOHWARANG`, unit type 182; item
+    // 3365, `docs/AI.md` §283): the Longbowman's six release events on a
+    // smaller figure (`koryo.bh3`), so piece 127's nodes do not serve it.
+    // run991d's `RON_STATE_FRAME=15256` packet on the Korean Great Sahara
+    // seed holds its six `AttachPos` rows, and `tools/recomp/
+    // get_position.py`'s sweep of each is reproduced by these at all 361
+    // headings, x and y (the fits' own middle, the sweep's degree a half
+    // turn from [`whole_degrees`]). who=1's `1/74` loosed at
+    // the Scout `0/0` on 15256 from (9264, 30827) in run991c where this
+    // crate loosed from the figure's own (9336, 30840): 20 frames against
+    // 19, and the Scout's first wound a frame late.
+    (
+        132,
+        11,
+        6,
+        Bay {
+            right: -3071,
+            fwd: 73432,
+            dz: 167,
+        },
+    ),
+    (
+        132,
+        11,
+        22,
+        Bay {
+            right: -3071,
+            fwd: 73432,
+            dz: 167,
+        },
+    ),
+    (
+        132,
+        12,
+        4,
+        Bay {
+            right: -13756,
+            fwd: 73977,
+            dz: 138,
+        },
+    ),
+    (
+        132,
+        12,
+        22,
+        Bay {
+            right: -3071,
+            fwd: 73432,
+            dz: 167,
+        },
+    ),
+    (
+        132,
+        13,
+        10,
+        Bay {
+            right: 9698,
+            fwd: 61840,
+            dz: 182,
+        },
+    ),
+    (
+        132,
+        13,
+        24,
+        Bay {
+            right: 4247,
+            fwd: 57115,
+            dz: 181,
+        },
+    ),
     // **The Native American Archers' piece 1529** (item 3255, `docs/AI.md`
     // §257): run943c's `RON_STATE_FRAME=10674` packet holds its four
     // `AttachPos` rows (`ARCHERS-NA-AGE0`'s three attack releases and a
@@ -1973,6 +2044,52 @@ mod tests {
         for (anim, time) in [(11, 12), (12, 9), (13, 15)] {
             assert!(
                 bay(1529, anim, time, 0).is_some(),
+                "every attack AttachPos row"
+            );
+        }
+    }
+
+    /// run991c's three Hwarang rounds (item 3365), independent of the
+    /// packet sweep the bays were fitted to: `1/74`'s `ATTACK1` at frame 6
+    /// from (9336, 30840) at −916717568, `1/76`'s from (9288, 30648) at
+    /// −979763200, and `1/75`'s `ATTACK3` at frame 10 from (9240, 30936)
+    /// at −872480768; the dump's `AMMO` leave from (9264, 30827), (9215,
+    /// 30643) and (9183, 30911). No planar [`Node`] fits the two `ATTACK1`
+    /// rounds at once.
+    #[test]
+    fn run991c_s_hwarang_arrows_leave_the_bow_hand() {
+        for (x, y, facing, anim, time, want) in [
+            (
+                9336,
+                30840,
+                -916_717_568,
+                crate::anim::ATTACK1,
+                6,
+                (9264, 30827),
+            ),
+            (
+                9288,
+                30648,
+                -979_763_200,
+                crate::anim::ATTACK1,
+                6,
+                (9215, 30643),
+            ),
+            (
+                9240,
+                30936,
+                -872_480_768,
+                crate::anim::ATTACK3,
+                10,
+                (9183, 30911),
+            ),
+        ] {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 132, anim, time, 0);
+            assert_eq!((at.x, at.y), want);
+        }
+        for (anim, time) in [(11, 6), (11, 22), (12, 4), (12, 22), (13, 10), (13, 24)] {
+            assert!(
+                bay(132, anim, time, 0).is_some(),
                 "every attack AttachPos row"
             );
         }

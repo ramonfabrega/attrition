@@ -24364,33 +24364,217 @@ carried here.
 **Coverage.** Diff-backed: the four Dragoon rounds by `the_french_dragoon_s_rounds_leave_from_its_pivot`, the close
 by `run977b_french_closing_state`, the third pair's three windows. Reading-backed: none new; the branch is §55's.
 
-## 281. Reserved for the next item on the AI track
+## 281. The battery's Inca word: a mine's wealth per miner and a push turn the walk overwrites, to the game's end
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3360, 2026-10-20, Opus 5.5. East Indies, the Nubians (human) against the Inca at Difficulty 3, seed 12345: the
+lobby item 3335 minted, scored at 7782 of 24000 on its first try and promoted here to the AI word
+(`diff::inca_word`). The Spanish at Difficulty 3 (`EastIndiesSpanishTier3`, runs 986 and 986b) replace it in the
+battery under entry 72's **rule (2)** as amended by 84: every nation is in some dump, so rule (1) has no answer; a
+header survey of the 1015 gamelogs puts AI tribes 2, 6, 10, 11, 12, 16, 17, 19, 20, 21, 22, 23 on East Indies; of the
+nations on no East Indies dump and held only by closed games (the open battery's out), the Spanish reach the most
+census functions (9), held only by `GreatSaharaSpanishTier3`; tier 3 is the one the Inca left. First try **9028 /
+9028**: ours 2 draws, theirs 12, at 0, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a
+< Unit::do_idle+0x7d`.*
 
-## 282. Reserved for the next item on the AI track
+**Two fixes, each on its own frame.** The word moved 7782 → 16516 → **24000**, the long's last frame, count and
+sequence. run969 dumps blocks 0..36 and run969b its setup and closing blocks only, so two windows were booked:
+run987 over 7776..8032 and run987b over 16510..16766, both at `GUYS=4`, `LEADERS=9` and `GOODS=3`. Both are
+`rngcmp`-identical to run969b.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**7782: `calc_gather`'s Inca arm.** run987's widening (533 keys) opens on 7776 on who=1's wealth: `income[2:wealth]`
+ours 752, theirs 912, `rate` 47/57, `bucket` 22/37. Sixteen miners at `INCA_WEALTH_PER_MINER` (10): the mine branch
+of `BuildTypeData::calc_gather@00639e40:850`–`856` adds, after the cap, `gatherers × INCA_WEALTH_PER_MINER × 16` of
+wealth beside the metal and outside the enhancer, for a leader with tribe bonus 2 (`economy::Site::miner_wealth`,
+`Tuning::inca_wealth_per_miner`). On 7782 the wealth then covers less of timber's need, and `use_market` spends its
+second sell pass, as theirs does. **Value diff**: `income[2:wealth]` 912/912 on 7776. 7782 → 16516; run987 533 → 49.
 
-## 283. Reserved for the next item on the AI track
+**16516: `Guy::move`'s moving arm spares no turn slot.** Ours 12 draws, theirs 11, at 3; theirs spends a fourth
+`Unit::do_idle` draw. run987b's widening (1994 keys) puts its first non-standing row on 16512: the Trebuchet `1/118`
+(TI 266, packs, packed, no orders, idle), pushed every frame by `1/74` (`collide_o 74`), guy 0's `g.cur_anim[0]` ours
+22 (`CHAR_TURN_RIGHT`), theirs 8 (`CHAR_WALK`). Theirs' angle trails `des_angle` by half the body rate a frame, so
+the push turn runs there too (`detect_boat_collision` → `turn_angles` → `do_turn`, which asks for `CHAR_TURN_*`
+under `guy_flags & 8`, printed 8). What puts theirs back on the walk is `Guy::move@005d9240:176`–`181`: the listing
+`5d9565`–`5d958a` tests the plane bit and the pack pair and calls `set_anim(walk, 0, 1)` without reading `cur_anim`.
+Only the standing arms spare slots 21 and 22. Ours' moving arm spared them as well, from its first writing
+(`3ccdbe3c`, 2026-08-24), and so kept 22 until the push stopped. A blind reader of this session put the gate on the
+standing arm alone; the dump's per-frame angle step killed that reading before anything was built. **Value diff**:
+`1/118`'s `g.cur_anim[0]` on 16512 is 8 on both sides. **16516 → 24000**; run987b 1994 → 48. `docs/ANIM.md` §16.
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The close.** `run969b_inca_closing_state` walks to run969b's closing block 24001 and compares 177 units, none
+apart, no building field-row; one closing field parts, the human's city `0/2000`'s `peasant_dist`, ours 2 against
+theirs 1 (parked 3360a). The lobby is closed.
 
-## 284. Reserved for the next item on the AI track
+**What stands.** run987's 49 and run987b's 48: the standing family (`SITE[·].reg` 65 against 0, `aggression[1]`,
+`form` −1 against 0/9, the army `pool:n` and `group:n.held` with no `GROUPDATA` printed) and, in run987b, `1/46`'s
+`dest_angle` on 16714 (ours 1073741824, theirs −1334181888), which the draw stream never feels (parked 3360b).
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Tests.** `holdings::tests::an_inca_mine_pays_ten_wealth_a_miner` and
+`anim::tests::a_moving_figure_on_a_turn_slot_is_put_back_on_the_walk` (made to fail first with the turn slots spared);
+`inca_word_first_parting` at 24000, which `tools/mutate.py` turned red (exit 101) on the Inca arm two ways (the arm's
+`Resource::Metal` → `Timber`; the per-head multiply dropped); `run987_s_word_frame_is_widened_whole`,
+`run987b_s_word_frame_is_widened_whole` and the closing state.
+
+**Coverage.** Diff-backed: who=1's wealth on 7776, `1/118`'s animation on 16512, the draw stream to 24000, the close.
+Listing-backed: the moving arm's gate (`5d9565`–`5d958a`). Reading only: `Leader::calc_gather:279`'s negative arm
+(dead at 10); and the moving arm's `CHAR_ATTACKWALK` request (`cavarch_o >= 0` and the type's `0x200000`), which
+`Sim::walk_for` does not make. Ours keeps sparing a figure already on `CHAR_ATTACKWALK` in its place (parked 3360c).
+
+## 282. The battery's Aztec word closes: a scout's fog, and a detected decoy's bleed
+
+*Item 3361, 2026-10-20, Opus 5.5. `GreatSaharaAztecTier2` (map 7, human Nubians against the Aztecs at Difficulty 2,
+seed 12345; item 2975's lobby), promoted out of the battery at 9130 of 17554. Captures run989 (`GUYS=4` over
+9124..9380), run989b (`WORLD=6` over 9128..9130), run989c (8653..8656), run989d (`GUYS=4`, `AMMO=5` over
+17388..17554). Its battery place went to `GreatSaharaLakotaTier2` (runs 988, 988b): 24000 of 24000 on its first
+try.*
+
+**9130 → 17394: `come_out`'s inside arm lights no disc.** The draws on 9130 are one Scout's, `1/0`'s
+`think_scout` candidate cells: theirs scores a cell on the tenth ring pair, ours refuses every in-bounds candidate
+as seen. run989b's fog parts at two half-cells only, (117, 55) and (119, 53), `seen2` 0 in theirs and 2 in ours.
+Ours lit both on 8655, when the Horse Archer `1/45` (radius 4) came out of its trainer at (44184, 19704)
+through `come_out_place` → `update_seen`; run989c holds theirs' `1/45` on the same spot with the same `mylos`,
+lighting neither. `Unit::come_out@00617c10`'s listing stores the spot into `+0x10`/`+0x14` before
+`set_new_location(spot, 1, 1)`, so the half-cell test that gates `update_seen` sees no change. A trained unit's
+disc is `Unit::init`'s, at the trainer's snapped centre, which `add_unit` already wrote (its comment credited
+`add_to_world`). Only a gather point's re-placement of a captain lights a disc. Built: `come_out_place`'s `light`,
+the captain's `gather.is_some()`, false for every member. Value diff: run989b's two half-cells agree on every
+block of 9128..9130 and over the birth (`run989_s_fog_agrees_over_the_birth_and_on_the_word`). run989's window
+(256 blocks) keeps the standing family alone, 38 keys.
+
+**17394 → 17554, the game's last frame: a detected decoy bleeds a point a frame.** run989d opened 1133 keys
+apart. On block 17388 who=1's Cataphract decoys `1/72` and `1/74` stand at damage 28 and 67 in theirs and 0 in
+ours, and the Light Horse decoys `1/75` and `1/81` exist in ours alone. They were made by a General's Create Decoys
+and were attacking who=0's Scout `0/0`, a `DETECT` unit. Theirs' `damage` and `mana_burn` step together, a point
+a frame (`1/72`: 28 → 29 and 241 → 242 on 17389; `1/74` closes at its 85th; `1/79` starts on 17397, when it walks
+into the disc), with `attrition` 0 and no attacker. `Unit::process@00610bc0`'s decoy arm (`unit_masks & 1`):
+`mana_burn += 1`, the close at `(general_upgrade + 2) × DECOY_TIME / 2`, and then, on the map, **if
+`seen3[pos / 0x180] & ~ally_mask(owner)` is non-zero, `suffer_attrition(frame % 7 == 0)`**, returning from
+`process` if it kills. `Unit::suffer_attrition@005e1a10`'s argument gates `suffer_graphic_attrition` alone; the
+damage is the ordinary tick (§ "The damage" of `docs/ATTRITION.md`: one whole point for an `uber_size` 1 type).
+A decoy's death there spends no draw (`Unit::close`'s death-animation gate is the decoy bit), which is why theirs'
+`1/75` and `1/81` died before 17388 without parting the stream. Ours had it as a SEAM ("the attrition it takes
+every seventh frame on another's ground"): it read the graphic's gate as the cadence. Built:
+`Sim::decoy_detected` and the arm in `recover_mana`, sharing `suffer_attrition` with the period's bleed. Value
+diff, block 17388, after: `1/72` 28 and `1/74` 67 on both sides, `1/75` and `1/81` gone from both. run989d's
+window drops 1133 → 42 keys, 17388's standing family alone, and the draw stream agrees to 17554.
+
+**The close.** run895b's closing block 17555: 89 units compared, `[0, 0, 0, 0, 0, 0, 0]`, no building, city or
+closing field (`run895b_aztec_closing_state`). Every other lobby's first parting, the battery floors and every
+closing state hold on this tree.
+
+**Not established.** The gather arm's half-cell condition (approximated as always true; no capture holds a
+gather re-placement on this lobby). Whether a decoy's bleed tick should join the frame's attrition events (the
+`AttritionSync`-shaped `Tick` list): ours discards it, and no dump compares that list.
+
+**Coverage.** Diff-backed: the fog by `run989_s_fog_agrees_over_the_birth_and_on_the_word`, the bleed by
+`run989d_s_word_frame_is_widened_whole` and `aztec_word_first_parting`, the close by
+`run895b_aztec_closing_state`. Reading-backed: the gather arm's light (`619381`, `619c08`, `619f86`), which no
+run reaches. Sim tests: `a_detected_decoy_bleeds_a_point_a_frame` (mutations: the arm dropped, the mask's
+complement dropped; both held).
+
+## 283. The battery's Korean word closes: a third off a tower, and the Hwarang's bow hand
+
+*Item 3365, 2026-10-20, Opus 5.5. `GreatSaharaKoreanTier3` (map 7, human Nubians against the Koreans at Difficulty
+3, seed 12345; item 3331's lobby, runs 964 and 964b), promoted out of the battery at 9185 of 15944. Captures run991
+(`GOODS=3` over 9179..9435), run991b (`AMMO=5` over 15285..15541), run991c (15240..15291), run991d (a
+`RON_STATE_FRAME=15256` packet). Its battery place went to `GreatSaharaDutchTier3` (runs 990, 990b; entry 72's rule
+(2) as amended by 84: the Dutch are on no map-7 dump and held only by a closed game, with the most census
+functions of such nations, 9): 311 of 16109 on its first try.*
+
+**9185 → 15291: `get_cost`'s Korean tower step.** The draws on 9185 are who=1's `Leader::use_market+0x1ed` passes:
+ours two (timber and metal both short of the 120 each two Siege Factory slots need), theirs one. run991's block
+9179: who=1's `bucket[2:wealth]` ours 86 theirs 96, `bucket[4:metal]` 175 against 192, `income` agreeing on every
+good — so the difference was a price, not a yield. `TypeData::get_cost@00664090:916`–`922`: for a Tower-line
+building (`is(0x1b7, 0)`) under the Korean bonus (`has_tribe_bonus(0x10)`) the cost is `(100 − KOREAN_TOWER_COST) ×
+cost / 100`, after the wonder tail and before the fort arm. `KOREAN_TOWER_COST` is 33. Built:
+`Tuning::korean_tower_cost`, `cost::Modifiers::korean_tower`, `Sim::korean_tower_discount` (city.rs). Value diff,
+block 9179, after: 96/96 and 192/192. run991's window drops 563 → 27 keys, the standing family.
+
+**15291 → 15944, the game's last frame: the Royal Hwarang looses from its bow hand.** The draws on 15291: theirs
+spend two `Object::take_damage+0xe1` (a building's first wound), ours none. run991b opened 998 keys apart on the
+human Scout `0/0`: `damage_frame` ours 15275, theirs 15274. run991c's `AMMO`: `1/74`'s arrow leaves (9264, 30827)
+with `total_time` 19, where ours left the figure's own (9336, 30840) with 20. The Royal Hwarang (`KORYOHWARANG`,
+type 182) is piece 132 on `koryo.bh3`, the Longbowman's animations on a smaller figure, and piece 127's release
+nodes fit neither of its `ATTACK1` rounds. run991d's packet holds piece 132's six `AttachPos` rows;
+`tools/recomp/get_position.py`'s sweep of each, fitted at all 361 headings by integer search (the sweep's degree a
+half turn from `whole_degrees`), gives `launch::BAYS`' six rows for piece 132. Value diff, run991c: the three dumped
+rounds leave from the original's spots (`run991c_s_hwarang_arrows_leave_the_bow_hand`, which reads the dump, not the
+sweep). run991b's window drops 998 → 80 keys, and the draw stream agrees to 15944.
+
+**The close.** run964b's closing block 15945: 105 units compared, none apart, no building, city or closing field
+(`run964b_korean_closing_state`). Every other lobby's first parting, the battery floors and every closing state
+hold on this tree.
+
+**Not established.** Piece 132's bays are fitted, not read: six rows from one packet, each matched at every heading
+by integer search, and no other Korean figure (the Hwarang's later brackets, a female slot) is on a packet. run991b's
+80 standing keys include two that part with no draw (parked 3365a, 3365b).
+
+**Coverage.** Diff-backed: the tower step by `korean_word_first_parting` and `run991_s_word_frame_is_widened_whole`,
+the bays by `run991c_s_hwarang_arrows_leave_the_bow_hand` and `run991b_s_word_frame_is_widened_whole`, the close by
+`run964b_korean_closing_state`. Sim tests: `cost::tests::a_korean_tower_costs_a_third_less_before_the_fort_arm`.
+Mutations (`tools/mutate.py`): `korean_tower_discount` → 0 drops the word to 9185; piece 132's bays renumbered to 133
+drop it to 15291, break the closing state (`[18, 0, 0, 0, 4, 0, 5]`), run991b's window (998) and the arrow test;
+all held.
+
+## 284. The battery's East Indies Spanish word: a fog the Spanish see whole, a Bark's two stances, and a building find that does not end the think
+
+*Item 3367, 2026-10-20, Opus 5.5. `EastIndiesSpanishTier3` (map 18, human Nubians against the Spanish at Difficulty
+3, seed 12345; item 3360's lobby), promoted out of the battery at 9028 of 24000. Captures run993 (`GUYS=4`,
+`LEADERS=9`, `GOODS=3` over 9022..9278), run993b (`WORLD=6` with the unit, guy, leader, build and city records over
+8955..8961), run993c (`AMMO=5`, `GUYS=4`, `LEADERS=9` over 12750..13006), run993d (the standard window over
+14936..15192). Its battery place went to `EastIndiesEgyptianTier3` (runs 992, 992b) by entry 72's rule (2): 14540 of
+14540, whole, on its first try.*
+
+**The replacement.** Rule (1) has no answer. A header survey of every gamelog puts the Egyptians (7) only at Great
+Sahara 4 and the Iroquois (18) only at Great Lakes 3, both closed games and both eight census functions — the widest
+reach left among the nations no East Indies dump holds. The tie-break is the Egyptians, whose lobby moves both map
+and tier off their only game; tier 3 is the tier the Spanish left. The game ends itself on 14540 (closing block
+14541); `rngcmp` run992 against run992b, 37 of 37 identical.
+
+**9028 → 12756: the danger pass sees a building by its own `ever_seen`** (§5 of `docs/DANGER.md`, which was right).
+`Sim::danger_build_is_seen` read the fog through `was_seen_fog`, and a Spanish leader's `leader_flags & 0x1000`
+(`build_empire`'s explore bonus) lights every cell of it, so no human building was ever halved for the Spanish
+viewer. It is now `Sim::build_is_seen` (`BuildData::is_seen@0062e1a0` → `WallData::is_seen@00642bd0`). Value diff,
+run993b block 8959: `danger[1]` at half-cell (4, 4) ours 125, theirs 60; (3, 5) 60/29; (3, 4) 90/43 — eighteen
+half-cells around the human's city, each about double, none elsewhere. The Scout `1/0` (TI 69) re-targets on 8959
+over the human's city (8, 9) with the same draws both sides; ours scored (9, 8) 179, (7, 11) 148, (6, 8) 200 and
+walked to (5880, 8952); with theirs' danger (9, 8) is 114 against 117 and it walks to (7416, 6648), goes idle on
+9028 and runs `think_scout` again — the booked delta. run993's window 519 → 49 keys.
+
+**12756 → 14942, in two halves that only move together.** On 12756 theirs spends two `Ammo::init` draws, a round
+from the Caravel `1/49` (TI 325, sea, born a Bark out of a Dock on 10369, a Caravel by 11010), fire-on-the-move and
+exploring; its cavarch search on 12751 (`(49 + 12751) % 32 == 0`) took the human's `0/2004` and ours took nothing.
+
+- *A Bark's two stances.* `Unit::init@00612100:598-611` gives a computer's Bark `set_stance(3)`, RAID, and this crate
+  wrote both its byte `+0xb1` and the `combat.stance` it keeps beside it. `Build::train@0062f9b0:86-101` then
+  writes the trainer's byte through `Unit::set_stance@00605310` when the type's stance kind is the trainer's, and
+  nothing when it is not; `Sim::build_train` applied it to the byte alone. `+0xb1` is the byte
+  `get_combat_stance` reads, so in the original the Dock's 0 makes the Bark Aggressive; ours kept RAID, and
+  `compare_target`'s raiding-ship arm (item 2001) left the building alone. Value: run993c prints `1/49` `stance 0`
+  on every block of 12750..13006; ours byte 0, `combat.stance` RAID. Now `build_train` writes both halves, and a
+  type whose kind its trainer does not share keeps what it was born with (`Sim::trained_stance` returns `None`).
+- *That alone moves the word back to 12742*: the Caravel goes idle there, its `think_attack` search takes `0/2004`
+  (radius 4608, the respond floor; distance about 1680), and ours ends the think; theirs runs `think_scout`.
+  `Unit::think_attack@005f5a80` returns 1 only when the find answers `is_unit` (the target's vslot `+0x18`); a
+  building's attack order is added by the search all the same and `think_attack` returns 0, so `Unit::think` goes
+  on to its tail. Ours returned on any find.
+
+With both, the run993c window drops 765 → 61 keys: `1/49` agrees through it, the standing family stands, and
+`0/2004`'s `damage` parts on 12774 (ours 2, theirs 3). Every other lobby's first parting and the battery hold.
+
+**The word 14942.** Ours 8 draws, theirs 3211, at 2: theirs `PathFinder::calc_road_cost+0x46`.
+run993d's window (14936..15192, block 14943), 1006 keys on the first try: past the standing family the first
+row is on the word's own block, the Spanish `1/79`'s `path[19].flags`, ours 36 against theirs 4 — the next item's
+frame and value (`run993d_s_word_frame_is_widened_whole`).
+
+**Not established.** Who lights `0/2004`'s `ever_seen` bit for player 1 in theirs: ours does on 9336 (the Scout
+`1/0` at about 1970 from it), and no dump holds a building record between 8961 and 12750. Whether a building find
+from `think_attack` should also skip `think_attack`'s `go_to_city` tail (not modelled, §4.2 of `docs/ARMY.md`).
+
+**Coverage.** Diff-backed: the danger by `spanish_east_word_first_parting` and run993's widening; the stance and
+the think by `spanish_east_word_first_parting` (mutation: the unit-only return reverted, held) and
+`run993c_s_word_frame_is_widened_whole`. Sim tests: `a_lit_fog_does_not_see_a_building_its_ever_seen_byte_has_not`
+(mutation: the fog read restored, held), `a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance`
+(mutation: the `combat.stance` write dropped, held).
 
 ## 285. Reserved for the next item on the AI track
 

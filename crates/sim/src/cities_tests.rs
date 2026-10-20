@@ -7286,6 +7286,60 @@ fn a_decoy_closes_at_its_age_and_leaves_no_death() {
     assert!(sim.units[g].alive() && sim.units[near].alive());
 }
 
+/// **A decoy an enemy detector has in its disc bleeds a point a frame**
+/// (item 3361; `Unit::process@00610bc0`'s decoy arm, `suffer_attrition`
+/// every frame where `seen3` holds a bit outside the owner's ally mask).
+/// run989d: who=1's Cataphract decoys `1/72` and `1/74` beside who=0's
+/// Scout `0/0`, damage 28 → 29 → 30 on 17388.. with `mana_burn`. Its own
+/// side's bit bleeds nothing, and the death a bleed ends in spends no
+/// draw.
+///
+/// Made to fail with the arm dropped (no bleed), and with the mask's
+/// complement dropped (its own side's bit bleeds).
+#[test]
+fn a_detected_decoy_bleeds_a_point_a_frame() {
+    use crate::orders::spell;
+    let (mut sim, [_, _, general, foot], _) = untargeted_sim();
+    let g = sim.init_unit(0, general, tile_pos(30, 30));
+    let _near = sim.init_unit(0, foot, tile_pos(33, 30));
+    let before = sim.units.len();
+    assert_eq!(press(&mut sim, g, spell::CREATE_DECOY), 1);
+    for _ in 0..100 {
+        sim.tick();
+    }
+    let d = (before..sim.units.len())
+        .find(|&d| sim.units[d].decoy && sim.units[d].alive())
+        .expect("a copy");
+    let (w, h) = (sim.world.width(), sim.world.height());
+    assert!(sim.world.set_fog(vec![0; (w * h * 4) as usize]));
+    let fog = crate::vision::UNITS_PER_FOG;
+    let (fx, fy) = (sim.units[d].pos.x / fog, sim.units[d].pos.y / fog);
+    let frame = sim.frame;
+    // Its own side's bit: no bleed.
+    sim.world.clear_seen();
+    sim.world.set_seen3(fx, fy, 1 << 0);
+    let h = sim.units[d].health;
+    sim.recover_mana(d, frame);
+    assert_eq!(sim.units[d].health, h, "its own detector bleeds nothing");
+    // An enemy's: a point a frame, to the death, with no draw.
+    sim.world.set_seen3(fx, fy, 1 << 1);
+    let worn = |s: &crate::Sim| (s.units[d].health, s.units[d].damage_frac);
+    let w = worn(&sim);
+    sim.recover_mana(d, frame);
+    assert_ne!(worn(&sim), w, "a tick a frame");
+    let (rng, deaths) = (sim.rng, sim.deaths.len());
+    let mut n = 1;
+    while sim.units[d].alive() && n < 2000 {
+        // Held young, so the bleed closes it and never its age.
+        sim.units[d].mana_burn = 0;
+        sim.recover_mana(d, frame + n);
+        n += 1;
+    }
+    assert!(!sim.units[d].alive(), "the bleed closes it");
+    assert_eq!(sim.rng, rng, "a decoy's death spends no draw");
+    assert_eq!(sim.deaths.len(), deaths, "and leaves no death object");
+}
+
 /// **A computer's General standing in its army orders Create Decoys on
 /// the army's spellcaster turn, and the copies join that army** (item
 /// 1302; run346's `1/98`, `spell_time` 1 and `mana_burn` 1,000 on block

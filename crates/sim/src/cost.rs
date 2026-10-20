@@ -378,12 +378,18 @@ pub struct Modifiers {
     /// (`has_tribe_bonus(7)`), after the city tail and the (uncarried) marble
     /// term. Zero is the identity.
     pub egyptian_wonders: i32,
+    /// `get_cost`'s **Korean tower step** (`:916`–`922`, after the wonder
+    /// tail and before the fort arm): a building of the Tower's line
+    /// (`is(0x1b7, 0)`) priced for a leader with `has_tribe_bonus(0x10)`
+    /// takes `KOREAN_TOWER_COST` off, its own `(100 − x) × cost / 100`. Zero
+    /// is the identity (item 3365, `docs/AI.md` §283).
+    pub korean_tower: i32,
     /// `get_cost`'s **fort arm** (`00665e0f`..`00665e8a`): on a type that
     /// `is_fort` (vslot `+0xfc`) or is of the Tower's line (`is(0x1b7, 0)`)
     /// and is not a wonder, `COLOSSEUM_FORT_COST` with the Colosseum held
     /// (`has_wonder(0x212)`) and then `ROMAN_FORT_COST` for a Roman leader
     /// (`has_tribe_bonus(6)`), each its own `(100 − x) × cost / 100` after
-    /// the wonder tail (and the uncarried Korean tower step). Zero is the
+    /// the wonder tail and the Korean tower step. Zero is the
     /// identity (item 3314, `docs/AI.md` §263).
     pub fort: [i32; 2],
     /// `get_cost`'s **Greek Library arm** (`TypeData::get_cost@00664090:966`–`972`,
@@ -695,6 +701,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     }
     if m.egyptian_wonders != 0 {
         cost = (100 - m.egyptian_wonders) * cost / 100;
+    }
+    if m.korean_tower != 0 {
+        cost = (100 - m.korean_tower) * cost / 100;
     }
     for pct in m.fort {
         cost = (100 - pct) * cost / 100;
@@ -1598,6 +1607,36 @@ mod tests {
         assert_eq!(
             price([T.colosseum_fort_cost, T.roman_fort_cost]),
             (100 - 25) * ((100 - 20) * base / 100) / 100
+        );
+    }
+
+    /// `get_cost:916`–`922` (item 3365): a Korean leader's Tower-line
+    /// building loses `KOREAN_TOWER_COST` percent in its own truncating step,
+    /// ahead of the fort arm's.
+    #[test]
+    fn a_korean_tower_costs_a_third_less_before_the_fort_arm() {
+        let tower = Price {
+            kind: Kind::Building,
+            class: RampClass::Building,
+            ..Price::free().with_base(Resource::Metal, 50)
+        };
+        let price = |korean_tower: i32, fort: [i32; 2]| {
+            let m = Modifiers {
+                korean_tower,
+                fort,
+                ..Modifiers::default()
+            };
+            let counts = Counts {
+                of_type: 0,
+                of_group: 0,
+            };
+            cost_of(&T, &tower, Resource::Metal, counts, &m)
+        };
+        let base = price(0, [0, 0]);
+        assert_eq!(price(T.korean_tower_cost, [0, 0]), (100 - 33) * base / 100);
+        assert_eq!(
+            price(T.korean_tower_cost, [T.colosseum_fort_cost, 0]),
+            (100 - 20) * ((100 - 33) * base / 100) / 100
         );
     }
 

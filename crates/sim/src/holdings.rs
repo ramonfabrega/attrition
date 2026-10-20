@@ -456,6 +456,20 @@ impl Sim {
         } else {
             0
         };
+        // `calc_gather:850`–`856`: a mine's wealth per gatherer, for an Inca
+        // leader (item 3360). The branch is the mine's — metal, beside
+        // `german_miners` — and the constant must be positive.
+        let miner_wealth = if resource == Resource::Metal
+            && self.tuning.inca_wealth_per_miner > 0
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[bd.owner as usize],
+                crate::nations::power::INCA,
+            ) {
+            self.tuning.inca_wealth_per_miner
+        } else {
+            0
+        };
         Site {
             resource,
             gatherers,
@@ -466,6 +480,7 @@ impl Sim {
             },
             nation_pct,
             farm_wealth,
+            miner_wealth,
         }
     }
 
@@ -898,6 +913,7 @@ mod tests {
                 level: 1,
                 nation_pct: 0,
                 farm_wealth: 0,
+                miner_wealth: 0,
             }],
             "the farm is a site the moment it is finished, with nobody on it"
         );
@@ -959,6 +975,61 @@ mod tests {
     /// with any gatherer pays `EGYPTIAN_FARM_WEALTH × 16` wealth, flat — not
     /// per gatherer — and an unworked one, or another nation's, nothing
     /// (item 3332).
+    #[test]
+    fn an_inca_mine_pays_ten_wealth_a_miner() {
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        let mine = sim.add_build_type(bt(Ident::Mine, "gaef", 4, 4));
+        // A mountain range the cell east of the mine.
+        for cy in 7..10 {
+            for ty in 0..crate::world::TILES_PER_CELL {
+                for tx in 0..crate::world::TILES_PER_CELL {
+                    let p = Pos::new(44 + tx, cy * crate::world::TILES_PER_CELL + ty);
+                    sim.world.set_tile_bits(
+                        p,
+                        crate::world::tile::OBJECT_MOUNTAIN | crate::gather::GATHERABLE,
+                    );
+                }
+            }
+        }
+        build(&mut sim, 0, t.village, 32, 32);
+        let m = build(&mut sim, 0, mine, 42, 32);
+        let rates = |sim: &mut Sim| {
+            sim.assemble_holdings(0);
+            economy::city_rates(&sim.tuning, &sim.holdings[0].cities[0])
+        };
+        let w = Resource::Wealth.index();
+        let city = rates(&mut sim)[w];
+        sim.set_tribe(0, 2);
+        assert_eq!(rates(&mut sim)[w], city, "an unworked Mine pays nothing");
+        for (i, x) in [40, 42].into_iter().enumerate() {
+            let u = spawn(&mut sim, 0, t.citizen, tile_pos(x, 38));
+            let n = i32::try_from(i + 1).unwrap();
+            sim.add_gather_order(u, m, QueuePos::New, false);
+            for _ in 0..200 {
+                if sim.num_gatherers(m, true, true) == n {
+                    break;
+                }
+                sim.tick();
+            }
+            assert_eq!(sim.num_gatherers(m, true, true), n, "miner {n} arrived");
+            assert_eq!(sim.tuning.inca_wealth_per_miner, 10);
+            assert_eq!(
+                rates(&mut sim)[w] - city,
+                10 * RATE_SCALE * n,
+                "ten wealth a miner, per head"
+            );
+        }
+        let metal = rates(&mut sim)[Resource::Metal.index()];
+        sim.set_tribe(0, 16);
+        assert_eq!(rates(&mut sim)[w], city, "the Koreans' Mine pays no wealth");
+        assert_eq!(
+            rates(&mut sim)[Resource::Metal.index()],
+            metal,
+            "the metal is the same"
+        );
+    }
+
     #[test]
     fn an_egyptian_worked_farm_pays_two_wealth_flat() {
         let mut sim = world_sim();

@@ -85,7 +85,7 @@ class Machine:
     def call(self, entry, stack_args=(), ecx=0, edx=0, max_insns=100_000, xmm=None, ret='eax'):
         """Enter `entry` with `stack_args` pushed (first argument nearest the
         return address) and `ecx`/`edx` set; return `eax` at the sentinel.
-        `ret` is `eax` or `xmm0` (the low 32 bits, a float's bits). `xmm` maps a register number to the 128-bit value to load — a float
+        `ret` is `eax`, `xmm0` (the low 32 bits, a float's bits) or `ebp:OFF` (the dword of the frame at `ebp+OFF`). `xmm` maps a register number to the 128-bit value to load — a float
         argument's bits in the low lane (`sweeplib.xmm_bits`; parked 1867:
         `Guy::set_bank`/`set_pitch` read `xmm1`)."""
         uc = self.uc
@@ -110,6 +110,13 @@ class Machine:
             # A float returned in `xmm0` (item 2537, parked 2534): the low 32 bits.
             from unicorn.x86_const import UC_X86_REG_XMM0
             return uc.reg_read(UC_X86_REG_XMM0) & 0xFFFF_FFFF
+        if isinstance(ret, str) and ret.startswith('ebp:'):
+            # A word of the caller's frame (item 3362, `Cities::capture_city`'s plunder base, a local
+            # the swept slice ends with): the dword at `ebp + OFF` when the call ends, which for a
+            # call stopped at a stub is the function's own frame.
+            from unicorn.x86_const import UC_X86_REG_EBP
+            at = (uc.reg_read(UC_X86_REG_EBP) + int(ret[4:], 0)) & 0xFFFF_FFFF
+            return int.from_bytes(uc.mem_read(at, 4), 'little')
         return uc.reg_read(UC_X86_REG_EAX)
 
 

@@ -130,6 +130,9 @@ pub(crate) mod power {
     /// The Egyptians' Farm wealth is `BuildTypeData::calc_gather`'s
     /// (`Sim::site_of`, item 3332).
     pub const EGYPTIANS: usize = 7;
+    /// The Inca's wealth per miner is `BuildTypeData::calc_gather`'s
+    /// (`Sim::site_of`, item 3360).
+    pub const INCA: usize = 2;
     /// Not `Build::activate`'s: the Persians' caravan is `Build::process`'s
     /// (`Sim::persian_market_caravan`).
     pub const PERSIANS: usize = 23;

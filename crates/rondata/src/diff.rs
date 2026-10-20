@@ -30,6 +30,8 @@ use crate::load::Loaded;
 use sim::{Pos, Sim, Tuning, Unit, World};
 
 #[cfg(test)]
+mod aztec_word;
+#[cfg(test)]
 mod bantu_word;
 #[cfg(test)]
 mod battery;
@@ -54,11 +56,15 @@ mod golden;
 mod greek_word;
 mod harness;
 #[cfg(test)]
+mod inca_word;
+#[cfg(test)]
 mod indian_word;
 #[cfg(test)]
 mod iroquois_word;
 #[cfg(test)]
 mod japanese_word;
+#[cfg(test)]
+mod korean_word;
 #[cfg(test)]
 mod lakota_pair;
 #[cfg(test)]
@@ -91,6 +97,8 @@ mod setup;
 mod shutdown;
 #[cfg(test)]
 mod slots;
+#[cfg(test)]
+mod spanish_east_word;
 #[cfg(test)]
 mod spanish_word;
 #[cfg(test)]

@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-19, **the forty-sixth tranche (commander, Opus): 8 of 20 landed from `000549d4`** (the Lakota, Persians and
-French closed; four sweeps); roster Ramon's (DECISIONS 83, 84). Last whole gate `163e8d89`, at four threads (3363).*
+*2026-10-20, **the forty-sixth tranche (commander, Opus): 13 of 20 landed from `000549d4`** (the Lakota, Persians,
+French, Aztecs, Inca and Koreans closed; the Spanish to 14942; five sweeps); roster Ramon's (DECISIONS 83, 84). Last whole gate `f301a770`, at four threads (3363).*
 
-- **Words**: every pair closed; seventeen battery words closed (`AI_WORDS` holds sixteen). Battery on `3b6c4a2a`: 7782
-  (the Inca, 3360), 9130 (the Aztecs, 3361), 7799, 18883, 24000 (whole), 14991, 9185, 9382 — median 9284. Census 1596, port 459.
-- **Lanes: four live**: 3360 AI (Opus; runs 986, 987, AI §281, JK), 3361 AI (Opus; runs 988, 989, AI §282, KS), 3362
-  the second sweep (Sonnet, LG), 3364 the nations seat (Sonnet, LH). Next 3365, run 990. Pools: GOLDEN §144–148, AI §283–288, park LI–LL.
-- **Fable backlog: 15 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352, 3353, 3354, 3357, 3363); DECISIONS 84.
+- **Words**: every pair closed; twenty battery words closed, the Spanish open at 14942 (`AI_WORDS` holds nineteen). Battery on `af395535`:
+  311 (the Dutch, 3369), 14540 (the Egyptians, whole), 7799, 18883, 24000, 24000 (whole), 14991, 9382 — median 14766. Census 1601, port 471.
+- **Lanes: four live**: 3369 AI (Opus; runs 994, 995, AI §285, LK), 3370 AI (Opus; runs 996, 997, AI §286, LL), 3364
+  the nations seat (Sonnet, LH), 3372 the second sweep (Sonnet, LM). Next 3373, run 998. Pools: GOLDEN §144–148, AI §287–288, park LN–LR.
+- **Fable backlog: 18 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352, 3353, 3354, 3357, 3363, 3366, 3368, 3371); DECISIONS 84.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -28,49 +28,41 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Battery word: GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1596 of 3611 · port 459 · layout 1137
+Battery word: EastIndiesSpanishTier3 w14942 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
+Census: simulation backed 1601 of 3611 · port 471 · layout 1130
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-sixth tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md
-first; 8 of 20 landed from `000549d4`; re-arm `python3 tools/lanewait.py` on att-3360, att-3361, att-3362 and
-att-3364 and carry the chain — a battery word's lane refills by `battery_measure`'s lowest open lobby under entry
+first; 13 of 20 landed from `000549d4`; re-arm `python3 tools/lanewait.py` on att-3369, att-3370, att-3364 and
+att-3372 and carry the chain — a battery word's lane refills by `battery_measure`'s lowest open lobby under entry
 72's rules as amended (DECISIONS 84; the booking says which rule minted the replacement), a sweep lane by the next
 six `port`-marked rows; twenty landings, then clear `steer`.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 83, 84): 3360 and 3361 the battery
-words' (Opus), 3362 and 3364 the sweeps' (Sonnet). **A battery word's lane lands wide**: every fix its widening
-exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed (`AI_WORDS` holds
-sixteen); open: the Inca once 3360 promotes them, the Aztecs once 3361 does. An open word is carried to its end before
+In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 83, 84): 3369 and 3370 the battery
+words' (Opus), 3364 and 3372 the sweeps' (Sonnet). **A battery word's lane lands wide**: every fix its widening
+exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — East Indies (Spanish) at 14942, 3370's; twenty
+closed; open: the Dutch once 3369 promotes them. An open word is carried to its end before
 the next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why.
 
-3360. **The battery's lowest open game, `EastIndiesIncaTier3` at 7782 of 24000** (entry 72: 3355 closed the Persians at
-    7105 and minted the Romans at Great Lakes 2, 7799 whole on the first try; the Russians, Romans and Chinese run whole,
-    so the Inca are the lowest open lobby, by the measure on `3eb2c76c`; minted by 3335): ours 3218 draws against
-    theirs 3219 at index 1 — ours `Leader::make_stuff+0x221`, theirs `Leader::use_market+0x1ed`. Promoted by the
-    recipe — `diff::inca_word` and its `AI_WORDS` pin, the lobby leaving `BATTERY`, a replacement minted (run 986, by
-    entry 72's rules in order, the booking saying which) — **its widening first**: grep the lobby's start and long
-    dumps (runs 969, 969b) for 7782, an East Indies window capture at detail only for what they cannot answer (run
-    987; run88's 7474..7800 is another lobby's game), both directions. Lands wide. AI §281, park JK.
+3369. **The battery's next open game, `GreatSaharaDutchTier3` at 311 of 16109** (entry 72: 3365 closed the Koreans at
+    15944 and minted the Dutch at Great Sahara 3 under rule (2), 311 on the first try; the Spanish are 3367's; the
+    Dutch the lowest open lobby by the measure on `efc5d4c1`): ours 7 draws against theirs 6 at index 1 — ours
+    `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Farms::inc_time+0x1ae`. Promoted by the recipe —
+    `diff::dutch_sahara_word`, its `AI_WORDS` pin, the lobby out of `BATTERY`, a replacement minted (run 994, the rule
+    named) — **its widening first**: grep the start and long dumps (runs 990, 990b) for 311, a Great Sahara window at
+    detail for what they cannot answer (run 995), both directions. Lands wide. AI §285, park LK.
 
-3361. **The battery's next open game, `GreatSaharaAztecTier2` at 9130 of 17554** (entry 72: 3359 closed the French whole;
-    the Inca are 3360's; the Aztecs the lowest open lobby left by the measure on `3b6c4a2a`): ours 90 draws against
-    theirs 87 at index 23 — ours `Unit::think_scout+0x436`, theirs `Unit::think_scout+0x64c`. Promoted by the recipe
-    — `diff::aztec_word` and its `AI_WORDS` pin, the lobby leaving `BATTERY`, a replacement minted (run 988, by entry
-    72's rules in order, the booking saying which) — **its widening first**: grep the lobby's start and long dumps
-    for 9130, a Great Sahara window capture at detail only for what they cannot answer (run 989), both directions.
-    Lands wide. AI §282, park KS.
-
-3362. **The second sweep lane's next shape batch** (DECISIONS 84 (i); the score `Census:` port 447; 3358 swept one and
-    parked five as readings, 3358a–e): `Group::action_attack`, `Balance::type_damage`, `PathFinder::astar_path`,
-    `Cities`'s method at 0x733380 (named so: Loop 3357), `Army::find_target`, `Unit::come_out` (`census.py
-    --unbacked --all --top 4000`, the `port` mark, past 3356's) — each built against the crate's own method where it
-    has one, or parked naming the generator flag it could not spell, a park on a generator run and never a reading
-    alone; the brief names 3364's worktree for `--claimed`. `--kind sweep`, `--no-widen`, park LG.
+3370. **The Spanish word at East Indies, `EastIndiesSpanishTier3` at 14942 of 24000** (3367 promoted it and moved it
+    9028 → 14942: the danger pass's `ever_seen`, `build_train`'s stance byte and `think_attack`'s unit-only return;
+    the Egyptians minted under rule (2), 14540 whole): widened on run993d (1006 keys) — on the word's own block 14943
+    the Spanish `1/79`'s `path[19].flags`, ours 36 against theirs 4, the frame theirs spends 3211
+    `PathFinder::calc_road_cost` draws against ours 8. Carried to its end before the next lobby is promoted; a window
+    capture past 14942 at detail only for what run993d cannot answer (run 996, 997), both directions. Lands wide.
+    AI §286, park LL.
 
 3364. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188; the score `Census:` port 459; 3356 swept all
     six and parked 3356a–f): `Object::die`, `ObjectsData::find_building`, `SpellTypeData::is_castable`,
@@ -78,6 +70,13 @@ the next lobby is promoted (3329 → 3333). Take the first unstarted item unless
     reading parks taken to a generator run, `BuildTypeData::blocked_location` (3358c) and `Group::action_alarm`
     (3358b) — each built against the crate's own method where it has one, or parked on a generator run naming the
     flag it could not spell; the brief names 3362's worktree for `--claimed`. `--kind sweep`, `--no-widen`, park LH.
+
+3372. **The second sweep lane's next shape batch** (DECISIONS 84 (i); the score `Census:` port 471; 3362 swept five and
+    parked `PathFinder::astar_path` on a generator run, 3362a; `--stub-alloc` five parks deep, 3362h):
+    `Unit::suffer_attrition`, `Object::remove_from_inside`, `Unit::check_build_order`, `Balance::compute_modifier`,
+    `Unit::find_build_spot`, `Group::finish_insert` (`census.py --unbacked --all --top 4000`, the `port` mark, past
+    3364's) — each built against the crate's own method where it has one, or parked on a generator run naming the
+    flag it could not spell; the brief names 3364's worktree for `--claimed`. `--kind sweep`, `--no-widen`, park LM.
 
 ## How to maintain this file
 

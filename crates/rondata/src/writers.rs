@@ -1144,6 +1144,27 @@ fn three_views() -> (String, String, String) {
         prod.push('\n');
         tests.push_str(std::str::from_utf8(&t).unwrap_or(""));
     }
+    // `sweep/` is a `#[cfg(test)]` module (`lib.rs`), so every line under it
+    // is test source: a view a sweep records its calls through reads the
+    // arguments the port hands it (item 3362's `Find::a13`, read nowhere
+    // else, was reported as write-only because the walk above stops at
+    // `src/`'s own files).
+    fn tests_under(dir: &std::path::Path, out: &mut String) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        let mut paths: Vec<PathBuf> = entries.map(|e| e.expect("entry").path()).collect();
+        paths.sort();
+        for path in paths {
+            if path.is_dir() {
+                tests_under(&path, out);
+            } else if path.extension().and_then(|e| e.to_str()) == Some("rs") {
+                out.push_str(&std::fs::read_to_string(&path).expect("read"));
+                out.push('\n');
+            }
+        }
+    }
+    tests_under(&sim_dir().join("sweep"), &mut tests);
     let mut harness = String::new();
     fn walk(dir: &std::path::Path, out: &mut String) {
         let Ok(entries) = std::fs::read_dir(dir) else {

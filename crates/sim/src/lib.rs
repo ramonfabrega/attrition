@@ -55,6 +55,7 @@ pub mod alarm_view;
 pub mod anim;
 pub mod army;
 pub mod attack_pos;
+pub mod attack_view;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
@@ -63,6 +64,7 @@ pub mod bribe;
 pub mod build;
 pub mod calc_gather;
 pub mod capture;
+pub mod capture_view;
 pub mod caravan;
 pub mod carry_civ;
 pub mod cast;
@@ -73,6 +75,7 @@ pub mod cavarch;
 pub mod city;
 pub mod collide;
 pub mod combat;
+pub mod come_out_view;
 pub(crate) mod construct;
 pub mod cost;
 pub mod damage;
@@ -124,6 +127,8 @@ pub mod spellcaster;
 pub mod stance;
 pub mod supply;
 pub mod swarm;
+pub mod target_gate;
+pub mod target_score;
 pub mod tcoord;
 pub mod tech;
 pub mod terrain;
@@ -2153,11 +2158,12 @@ impl Sim {
         }
         if self.units[i].alive() && self.units[i].on_map {
             self.chain_add(i);
-            // The third thing `add_to_world` does, and the one that was
-            // missing here: `update_seen(0)`, the whole disc rather than
-            // the ring (`docs/VISION.md` §6). [`Sim::come_out_place`] has
-            // made this call since garrisoning landed; a unit *born* on the
-            // map made none, so its owner's line of sight did not exist
+            // `update_seen(0)`, the whole disc rather than the ring
+            // (`docs/VISION.md` §6). This was long credited to
+            // `add_to_world`; item 3361 read it as `Unit::init`'s own call,
+            // at the trainer's snapped centre — the same disc, so the same
+            // effect — and [`Sim::come_out_place`]'s inside arm lights
+            // none of its own. A unit *born* on the map once made none, so its owner's line of sight did not exist
             // until the unit first crossed a half-cell or the hundredth-
             // frame resync came round. Nothing read the plane closely
             // enough to notice until [`Sim::target_is_seen`]
@@ -4359,10 +4365,22 @@ impl Sim {
         // `Build::train@0062f9b0:86–101`: when the trainer's stance kind is
         // the type's, the building's own byte overrides the one
         // `Unit::init` was born with — for the whole squad, which is one
-        // object as far as a stance is concerned.
-        let stance = self.trained_stance(who, ty, at);
-        for f in self.squad_members(unit) {
-            self.units[f].stance = stance;
+        // object as far as a stance is concerned. The write is
+        // `Unit::set_stance@00605310`, the byte `+0xb1` alone — and that
+        // byte *is* the combat stance `get_combat_stance` reads, which this
+        // crate keeps again as `combat.stance`, so a combat unit takes both
+        // halves (item 3367: a computer's Bark out of a Dock is byte 0 in
+        // the original, and this crate left it RAID in `combat.stance`).
+        if let Some(stance) = self.trained_stance(ty, at) {
+            let combat = (self.type_stance_type(ty) == crate::stance::StanceType::Combat)
+                .then(|| crate::group::combat_stance_of(stance))
+                .flatten();
+            for f in self.squad_members(unit) {
+                self.units[f].stance = stance;
+                if let Some(c) = combat {
+                    self.units[f].combat.stance = c;
+                }
+            }
         }
         self.go_inside(unit, at);
         // **A scholar trained at a university stays in it** — the `else`
@@ -6702,6 +6720,13 @@ impl Sim {
             self.units[i].sheltered = true;
             return None;
         }
+        Some(self.suffer_attrition(i, frame))
+    }
+
+    /// **`Unit::suffer_attrition@005e1a10`**: one tick's damage, for the
+    /// period's bleed above and a detected decoy's
+    /// ([`Sim::recover_mana`]). Its argument gates the graphic alone.
+    pub(crate) fn suffer_attrition(&mut self, i: usize, frame: i64) -> Tick {
         // The damage is sixteenths of a hit point per figure, carried through
         // a fractional accumulator the way `Object::take_damage` carries it,
         // so a lone figure loses one whole point a tick and a figure in a
@@ -6750,13 +6775,13 @@ impl Sim {
             // on the number (`docs/COMBAT.md` §59.3, `docs/GOLDEN.md` §135).
             self.die_by_attrition(i, frame);
         }
-        Some(Tick {
+        Tick {
             unit: i,
             frame,
             sixteenths,
             lost,
             killed,
-        })
+        }
     }
 
     /// [`turning_of`] for a type this simulation holds.
