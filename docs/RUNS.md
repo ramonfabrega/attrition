@@ -19846,3 +19846,23 @@ SHA-256 `9a55de16c595acbae01d7eb4aaf7e85d1d9caa0806c476a829d187b5ceed1c7f`.
 **What it holds**: `run987_s_word_frame_is_widened_whole` — 533 keys on the first try, the window opening on who=1's
 `income[2:wealth]` ours 752 against theirs 912 (sixteen miners at `INCA_WEALTH_PER_MINER`); 49 standing keys after
 `calc_gather`'s Inca arm.
+
+## run987b — the Inca word: the word 16516's window, blocks 16510..16766 at `LEADERS=9` (2026-10-20, item 3360, `att-3360`)
+
+`docs/AI.md` §281. **What the disk could not answer**: run987 closes on 8032 and run969b prints its setup and
+closing blocks only, so no dump held a unit record near 16516, where theirs spends a fourth `Unit::do_idle` draw.
+`--map 18 --end-frame 16771 --timeout 7200 --log-window 16510 16766 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 1. Launched 00:17:06 and the game exited at 00:45:46 (1720 s). `success`, 16772 frames.
+  `rngcmp.py rontrace-run969b.log rontrace-run987b.log`: **16772 identical, 0 differing**. Filed with
+  `filerun.py run987b eastindies-inca-diff3-window-16510-16767-leaders`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run987b-eastindies-inca-diff3-window-16510-16767-leaders.txt`, 612,068,686 bytes,
+SHA-256 `ae7b96343a754b4b22f1ecd5457489d193e5f2477b43aae88d642e572a2abc8f`.
+
+Archive `rontrace-run987b.log`, 115,260,384 bytes,
+SHA-256 `c8cb06ae1c467461a00f50facad4711a4e46d9ae63b597ef2e11cbfcf9a37596`.
+
+**What it holds**: `run987b_s_word_frame_is_widened_whole` — 1994 keys on the first try, the first non-standing row
+the Trebuchet `1/118`'s `g.cur_anim[0]` on 16512, ours 22 against theirs 8.

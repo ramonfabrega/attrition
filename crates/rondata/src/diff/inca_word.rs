@@ -151,3 +151,53 @@ fn run987_s_word_frame_is_widened_whole() {
     // `group:n.held` with no `GROUPDATA` printed, the newborn `g.angle[0]`).
     pin_eq!(w.firsts.len(), 49, "keys that part in the window");
 }
+
+/// run987b: the word 16516's window, blocks 16510..16766 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3360). run987 closes on 8032, before
+/// the word.
+pub(crate) const RUN987B: &str =
+    "gamelog-run987b-eastindies-inca-diff3-window-16510-16767-leaders.txt";
+
+/// The window: block 16510 through 16766; the word 16516's own block is
+/// 16517.
+pub(crate) const WIDENING_INCA_FRAME_16516: (i64, i64) = (16510, 16766);
+
+pub(crate) fn inca_frame_16516_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA.start],
+        true,
+        INCA.long,
+        "run987b",
+        &[(RUN987B, WIDENING_INCA_FRAME_16516.0)],
+        WIDENING_INCA_FRAME_16516,
+        1,
+        &[16517],
+        true,
+    )
+}
+
+#[test]
+fn run987b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_frame_16516_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3360: 1994 keys on the first try. The first after the standing
+    // family: the Trebuchet `1/118` (TI 266), orderless and drifting, takes
+    // its turn animation (22) on 16512 in ours, where theirs keeps 8 until
+    // 16517.
+    pin_eq!(w.firsts.len(), 1994, "keys that part in the window");
+}

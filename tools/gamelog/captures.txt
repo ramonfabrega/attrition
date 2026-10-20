@@ -9922,5 +9922,5 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3   (the word 7782's window)
 #   run987b  --map 18 --end-frame 16771 --timeout 7200 --log-window 16510 16766 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
 #            --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3   (the word 16516's window)
-# Checks: `rngcmp.py` run986 vs run986b -> 37 identical; run969b vs run987 -> 8038 identical.
+# Checks: `rngcmp.py` run986 vs run986b -> 37 identical; run969b vs run987 -> 8038 identical, vs run987b -> 16772 identical.
 # ==== TAKEN 2026-10-19/20, one take each, 23:34-, pool lanes 1-3 ====
