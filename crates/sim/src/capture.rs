@@ -17,7 +17,7 @@
 //! §7.2). [`SimCapture`] builds the chains for the objects near the building
 //! once a call; the crate keeps no chain for buildings.
 //!
-//! **Not established / SEAM.** The crate has no counterpart of a building's
+//! **Not established.** The crate has no counterpart of a building's
 //! `flags & 0x20`, so [`SimCapture::centre`] answers yes for every city and
 //! the village arm (`swap_team`, the console's sound and message, the
 //! hand-over notice) is never entered here; its methods are inert.
@@ -670,11 +670,9 @@ impl Sim {
     pub fn check_capture(&mut self, b: usize, unit: usize) -> bool {
         // A dead captor is the callers' to refuse (the original's captor
         // is a live object by construction), and a city building with no
-        // record behind it has nothing to capture.
-        if !self.units[unit].alive() {
-            return false;
-        }
-        if self.buildings[b].city.is_none() {
+        // record behind it has nothing to capture; both still empty the
+        // garrison first, as the test's own first two lines do.
+        if !self.units[unit].alive() || self.buildings[b].city.is_none() {
             if self.capture_eligible(b) && !self.buildings[b].garrison.is_empty() {
                 self.buildings[b].eject_pending = true;
             }
