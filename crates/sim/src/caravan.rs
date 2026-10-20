@@ -930,6 +930,9 @@ impl Sim {
             return;
         }
         let built = m & tile::OBJECT == tile::OBJECT_BUILDING || m & tile::PLACED != 0;
+        if std::env::var_os("RON_PROBE_ROAD").is_some() {
+            eprintln!("PROBE step u {u} at {at:?} tile {:?} mask {m:#06x} built {built}", at.tile());
+        }
         if !built && m & tile::BLOCKED == 0 {
             return;
         }
@@ -948,6 +951,14 @@ impl Sim {
     /// whose every tile is clear is left alone.
     fn caravan_verify_road(&mut self, who: Player, v: usize) {
         use crate::world::tile;
+        if std::env::var_os("RON_PROBE_ROAD").is_some() {
+            let road = &self.caravans[who as usize].slots[v].road;
+            eprintln!("PROBE verify who {who} v {v} len {}", road.len());
+            for (i, p) in road.iter().enumerate() {
+                let m = self.world.tile_mask(p.to.tile());
+                eprintln!("PROBE  [{i}] {:?} tile {:?} mask {m:#06x} flags {}", p.to, p.to.tile(), p.flags);
+            }
+        }
         let hit = self.caravans[who as usize].slots[v].road.iter().any(|p| {
             let m = self.world.tile_mask(p.to.tile());
             m & tile::PLACED != 0 || m & tile::OBJECT == tile::OBJECT_BUILDING
