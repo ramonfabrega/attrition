@@ -19,7 +19,7 @@ use crate::combat::{Modifiers, Profile, Side, mask, role, shr8};
 use crate::movement::Angle;
 use crate::tuning::Tuning;
 
-/// The rules record's fields the formula reads (`GameAccessConst::constantsc`).
+/// The rules record's fields `ObjectData::get_damage@00644130` reads (`GameAccessConst::constantsc`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Rule {
     RedFortAirDefense,
@@ -141,7 +141,7 @@ const fn half(v: i32) -> i32 {
     v / 2
 }
 
-/// One call of `ObjectData::get_damage`. `angle` is its third argument,
+/// One call of `ObjectData::get_damage@00644130`. `angle` is its third argument,
 /// `splash` the fourth, `check_overkill` the fifth and `dtype` the sixth
 /// (`None` for a null out-pointer); the answer is the net hit in whole hits,
 /// before `scale`. `dtype` is left 2, or 3 for an explosive or bombard
@@ -162,7 +162,9 @@ pub fn get_damage_steps<F: DamageFacts>(
     let mut amask = f.attacker_mask();
     let tmask = f.target_mask();
 
-    // 1. Gunpowder arrows.
+    // 1. Gunpowder arrows. **The write is dead**: nothing after this reads the
+    // archery bit it clears (the sweep, item 3356, mutated the Gunpowder test's
+    // answer and no row parted), so only the calls the test makes are observable.
     if f.attacker_fort_or_city() && f.gunpowder() {
         amask = (amask & !mask::ARCHERY) | mask::GUN;
     }
@@ -235,7 +237,7 @@ pub fn get_damage_steps<F: DamageFacts>(
     }
     if f.attacker_is_building() {
         let redoubt = f.attacker_shot_redoubt();
-        if let Some(d) = dtype.as_deref_mut() {
+        if let Some(d) = dtype {
             *d = if redoubt { 3 } else { 2 };
         }
     }
@@ -391,7 +393,7 @@ pub fn get_damage_steps<F: DamageFacts>(
     dmg
 }
 
-/// The view a [`Profile`] and two [`Side`]s make: every fact the original
+/// The view a [`Profile`] and two [`Side`]s make (`get_damage@00644130`'s callers): every fact the original
 /// reads from a virtual or a record is a field the crate already carries.
 pub struct Reduced<'a> {
     pub t: &'a Tuning,
