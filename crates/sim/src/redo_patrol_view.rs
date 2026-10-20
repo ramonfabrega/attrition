@@ -137,7 +137,7 @@ pub fn redo_patrol_order_steps<V: RedoPatrolView>(v: &mut V) {
 /// member's order list.
 ///
 /// SEAM: the saved order is two points ([`PatrolOrder`]), so `p_word(8)` is 2
-/// and the third-point loop's leaves are never reached; they answer nothing.
+/// and the third-point loop's leaves answer nothing.
 pub struct SimRedoPatrol<'a> {
     pub sim: &'a mut Sim,
     pub g: &'a Group,
