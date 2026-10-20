@@ -21,10 +21,11 @@ use crate::calc_gather_type_view::{
     Konst, TypeGatherArgs, TypeGatherView, type_calc_gather_steps,
 };
 
-/// The consts the log prints for image addresses: the function-local static `MiningList`, its guard, the
-/// `atexit` destructor stub and the error object.
-const STATIC_LIST: i32 = 0x00ee_14a8;
-const STATIC_GUARD: i32 = 0x00ee_14a4;
+/// The function-local static `MiningList` as the log names it: the guard word at `0xee14a4` is the `--at`
+/// window `c7`, so the list at `0xee14a8` is `c7+0x4`.
+const STATIC_LIST: &str = "c7+0x4";
+const STATIC_GUARD: &str = "c7+0x0";
+/// The `atexit` destructor stub's address (`0xab8360`) and the error object (`0xc8d3a8`).
 const STATIC_ATEXIT: i32 = 0x00ab_8360;
 const ERROR_OBJ: i32 = 0x00c8_d3a8;
 
@@ -91,6 +92,7 @@ struct V<'a> {
     turn: [usize; 64],
     deref: [Vec<String>; 22],
     cfg: Cfg,
+    list: bool,
 }
 
 impl V<'_> {
@@ -308,15 +310,17 @@ impl TypeGatherView for V<'_> {
 
     fn static_init(&mut self) {
         if self.cfg.first_call {
-            self.recn(31, "0", &[STATIC_GUARD]);
-            self.recn(30, &STATIC_LIST.to_string(), &[]);
-            self.recn(32, "0", &[STATIC_ATEXIT]);
-            self.recn(33, "0", &[STATIC_GUARD]);
+            // `_Init_thread_header(&guard)` is entered with the guard word (`-1`) still in `ecx`; the
+            // constructor leaves the list in `ecx` for `atexit` and the footer.
+            self.rec(31, "-1", &[STATIC_GUARD.to_string()]);
+            self.rec(30, STATIC_LIST, &[]);
+            self.rec(32, STATIC_LIST, &[STATIC_ATEXIT.to_string()]);
+            self.rec(33, STATIC_LIST, &[STATIC_GUARD.to_string()]);
         }
     }
 
     fn list_clear(&mut self) {
-        self.recn(29, &STATIC_LIST.to_string(), &[]);
+        self.rec(29, STATIC_LIST, &[]);
     }
 
     fn corner_tile(&mut self, tx: i32, ty: i32, site: i32) -> (i32, i32) {
@@ -406,7 +410,7 @@ impl TypeGatherView for V<'_> {
     }
 
     fn list_add(&mut self, tx: i32, ty: i32) {
-        self.recn(27, &STATIC_LIST.to_string(), &[tx, ty]);
+        self.recn(27, STATIC_LIST, &[tx, ty]);
     }
 
     fn list_find(&mut self, tx: i32, ty: i32) -> i32 {
@@ -415,7 +419,7 @@ impl TypeGatherView for V<'_> {
     }
 
     fn total_gather_access(&mut self, own_list: bool, x: i32, y: i32, who: i32) -> i32 {
-        let list = if own_list { "p3+0x0".to_string() } else { STATIC_LIST.to_string() };
+        let list = if own_list { "p3+0x0" } else { STATIC_LIST }.to_string();
         self.rec(
             34,
             "m+0x0",
@@ -437,6 +441,90 @@ impl TypeGatherView for V<'_> {
         let (lx, ly) = if second { (0x12c, 0x128) } else { (0x124, 0x120) };
         self.rec(39, "c4+0x0", &[sp(lx), sp(ly)]);
         self.answer(39)
+    }
+
+    fn mountains_find_nearest(&mut self, ox: i32, oy: i32, region: i32) -> (i32, i32) {
+        self.rec(
+            41,
+            "c6+0x4",
+            &[ox.to_string(), oy.to_string(), region.to_string(), sp(0x8c)],
+        );
+        (self.answer(41), self.a[OUTS + 2])
+    }
+
+    fn cliffs_find_nearest(&mut self, ox: i32, oy: i32, region: i32) -> (i32, i32) {
+        // `get_scary_cliffs()` (stub 40, not recorded: its `ecx` is whatever the caller left) answers the
+        // cliffs object, `find_nearest`'s `this` is four past it.
+        let ecx = self.answer(40).wrapping_add(4).to_string();
+        self.rec(
+            42,
+            &ecx,
+            &[ox.to_string(), oy.to_string(), region.to_string(), sp(0x84)],
+        );
+        (self.answer(42), self.a[OUTS + 3])
+    }
+
+    fn cliff_len(&mut self, cliff: i32) -> i32 {
+        let ecx = self.answer(40).wrapping_add(0x40).to_string();
+        self.recn(1, &ecx, &[cliff]);
+        let obj = rd32(&self.p[16], 0).wrapping_add(0x1c).to_string();
+        self.rec(43, &obj, &[]);
+        self.seq(43)
+    }
+
+    fn cliff_tile(&mut self, cliff: i32, i: i32) -> (i32, i32) {
+        let mut at = [0; 2];
+        for (k, v) in at.iter_mut().enumerate() {
+            let ecx = self.answer(40).wrapping_add(0x40).to_string();
+            self.recn(1, &ecx, &[cliff]);
+            let obj = rd32(&self.p[16], 0).wrapping_add(0x1c).to_string();
+            self.recn(44, &obj, &[i]);
+            *v = rd32(&self.p[19], 4 * k);
+        }
+        (at[0], at[1])
+    }
+
+    fn cliff_gather_size(&mut self, cliff: i32, who: i32) -> i32 {
+        let ecx = self.answer(40).wrapping_add(4).to_string();
+        let list = if self.list { "p3+0x0" } else { "0" }.to_string();
+        self.rec(48, &ecx, &[cliff.to_string(), who.to_string(), list]);
+        self.answer(48)
+    }
+
+    fn range_len(&mut self, mtn: i32) -> i32 {
+        let k = rd32(&self.p[6], 4 * mtn as usize);
+        self.rec(43, &format!("p{}+0x8", 8 + k), &[]);
+        self.seq(43)
+    }
+
+    fn range_offset(&mut self, mtn: i32, i: i32) -> (i32, i32) {
+        let k = rd32(&self.p[6], 4 * mtn as usize) as usize;
+        (
+            rd32(&self.p[12 + 2 * k], 4 * i as usize),
+            rd32(&self.p[13 + 2 * k], 4 * i as usize),
+        )
+    }
+
+    fn mnt_loc(&mut self, mtn: i32, y: bool, site: i32) -> i32 {
+        let local = match (site, y) {
+            (0, false) => 0x1ec,
+            (0, true) => 0x1f4,
+            (_, false) => 0x1fc,
+            (_, true) => 0x1f8,
+        };
+        self.rec(if y { 46 } else { 45 }, "c6+0x4", &[sp(local), mtn.to_string()]);
+        rd32(&self.p[if y { 21 } else { 20 }], 0)
+    }
+
+    fn range_gather_size(&mut self, mtn: i32, x: i32, y: i32, who: i32) -> i32 {
+        let k = rd32(&self.p[6], 4 * mtn as usize);
+        let list = if self.list { "p3+0x0" } else { "0" }.to_string();
+        self.rec(
+            47,
+            &format!("p{}+0x4", 8 + k),
+            &[x.to_string(), y.to_string(), who.to_string(), list],
+        );
+        self.answer(47)
     }
 }
 
@@ -478,6 +566,7 @@ pub fn run(
             turn: [0; 64],
             deref: Default::default(),
             cfg,
+            list: a[12] != 0,
         };
         let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             type_calc_gather_steps(&mut v, &args, &mut out, &mut count, &mut rate);

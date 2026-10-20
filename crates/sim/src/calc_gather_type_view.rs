@@ -175,6 +175,26 @@ pub trait TypeGatherView {
     fn list_cliff(&mut self) -> i32;
     /// `WorldData::get_region(&cx, &cy)`; `second` is the cliff search's call.
     fn get_region(&mut self, cx: i32, cy: i32, second: bool) -> i32;
+    /// `MountainsData::find_nearest(ox, oy, region, &dist)`: the nearest range's index
+    /// and its distance.
+    fn mountains_find_nearest(&mut self, ox: i32, oy: i32, region: i32) -> (i32, i32);
+    /// `get_scary_cliffs()` then `CliffsData::find_nearest(ox, oy, region, &dist)`.
+    fn cliffs_find_nearest(&mut self, ox: i32, oy: i32, region: i32) -> (i32, i32);
+    /// The cliff's tile count: `get_scary_cliffs()`, `ConstArray::operator[](cliff)`, `get_style`.
+    fn cliff_len(&mut self, cliff: i32) -> i32;
+    /// The cliff's tile `i`, in tile coordinates (two walks of the same chain, `x` then `y`).
+    fn cliff_tile(&mut self, cliff: i32, i: i32) -> (i32, i32);
+    /// `CliffsData::gather_size(cliff, who, list)`.
+    fn cliff_gather_size(&mut self, cliff: i32, who: i32) -> i32;
+    /// The mountain range `mtn`'s tile count (`get_style` of its coordinate list).
+    fn range_len(&mut self, mtn: i32) -> i32;
+    /// The range's offset of tile `i` from its location (`x` then `y` arrays).
+    fn range_offset(&mut self, mtn: i32, i: i32) -> (i32, i32);
+    /// `*MountainsData::mnt_loc_x(mtn)` (`y` false) or `_y`; `site` 0 the tile loop's call, 1 the
+    /// gather size's.
+    fn mnt_loc(&mut self, mtn: i32, y: bool, site: i32) -> i32;
+    /// `MountainRangeData::gather_size(x, y, who, list)` of the range `mtn`.
+    fn range_gather_size(&mut self, mtn: i32, x: i32, y: i32, who: i32) -> i32;
 }
 
 /// `(v + (v >> 31 & 0xff)) >> 8` — the listing's signed divide by 256.
@@ -259,7 +279,7 @@ pub fn type_calc_gather_steps<V: TypeGatherView>(
     } else if v.is_type(0x1a4) {
         knowledge_arm(v, a, out, count, rate, &enh, &bonus);
     } else if v.is_type(0x1a3) {
-        mine_arm(v, a, out, count, rate, &bonus);
+        mine_arm(v, a, out, count, rate, &enh, &bonus);
     } else {
         camp_arm(v, a, out, count, rate, &mut acc, &enh, &bonus);
     }
@@ -360,25 +380,121 @@ fn knowledge_arm<V: TypeGatherView>(
     apply_bonus(&mut out[3], rate, bonus[3]);
 }
 
-/// The mine arm (`63a555…63af96`): the nearest mountain range or cliff.
+/// The mine arm (`63a555…63af96`): the nearest mountain range or cliff, its tiles' ownership, then the
+/// wealth and the rate.
 fn mine_arm<V: TypeGatherView>(
     v: &mut V,
     a: &TypeGatherArgs,
-    _out: &mut [i32; 6],
+    out: &mut [i32; 6],
     count: &mut i32,
     rate: &mut i32,
-    _bonus: &[i32; 6],
+    enh: &[i32; 6],
+    bonus: &[i32; 6],
 ) {
-    let _radius6 = v.gather_radius().wrapping_mul(0xc0);
+    let radius6 = v.gather_radius().wrapping_mul(0xc0);
     *count = 0;
     *rate = 0;
     let (ox, oy) = v.corner_tile(a.tx, a.ty, 0);
+    let (mut mtn, mut cliff, mut dmtn, mut dcliff);
     if !a.list || (v.list_mtn() < 0 && v.list_cliff() < 0) {
         let (wx, wy) = (v.div3(ox >> 8), v.div3(oy >> 8));
-        let _region = v.get_region(wx, wy, false);
-        unimplemented!("the mine arm past its first region");
+        let region = v.get_region(wx, wy, false);
+        (mtn, dmtn) = v.mountains_find_nearest(ox, oy, region);
+        let region = v.get_region(wx, wy, true);
+        (cliff, dcliff) = v.cliffs_find_nearest(ox, oy, region);
+    } else {
+        mtn = v.list_mtn();
+        cliff = v.list_cliff();
+        dmtn = 0;
+        dcliff = 0;
     }
-    unimplemented!("the mine arm with a list");
+    if cliff >= 0 && mtn >= 0 && dmtn > dcliff {
+        mtn = -1;
+    }
+    if mtn < 0 {
+        if cliff >= 0 {
+            if dcliff > radius6 {
+                cliff = -1;
+            } else {
+                let mut i = 0;
+                while i < v.cliff_len(cliff) {
+                    let (px, py) = v.cliff_tile(cliff, i);
+                    i += 1;
+                    if v.is_tree_at(px, py) {
+                        continue;
+                    }
+                    let who2 = v.get_who(px >> 2, py >> 2);
+                    if a.who < 0 {
+                        v.report_no_who(0xa18, a.who);
+                    }
+                    if who2 >= 0 && who2 != a.who && !v.is_ally(a.who, who2) {
+                        continue;
+                    }
+                    if !a.list && v.is_gathered_from(px, py) {
+                        cliff = -2;
+                        *count = -1;
+                        break;
+                    }
+                }
+                if cliff >= 0 {
+                    *count = v.cliff_gather_size(cliff, a.who);
+                }
+            }
+        }
+    } else if dmtn > radius6 {
+        mtn = -1;
+    } else {
+        let mut i = 0;
+        while i < v.range_len(mtn) {
+            let (ax, ay) = v.range_offset(mtn, i);
+            i += 1;
+            let px = ax.wrapping_add(v.mnt_loc(mtn, false, 0).wrapping_shl(2));
+            let py = ay.wrapping_add(v.mnt_loc(mtn, true, 0).wrapping_shl(2));
+            if v.is_tree_at(px, py) || !v.is_mountain_at(px, py) {
+                continue;
+            }
+            let who2 = v.get_who(px >> 2, py >> 2);
+            if a.who < 0 {
+                v.report_no_who(0x9ea, a.who);
+            }
+            if who2 >= 0 && who2 != a.who && !v.is_ally(a.who, who2) {
+                continue;
+            }
+            if !a.list && v.is_gathered_from(px, py) {
+                mtn = -2;
+                *count = -1;
+                break;
+            }
+        }
+        if mtn >= 0 {
+            let y = v.mnt_loc(mtn, true, 1);
+            let x = v.mnt_loc(mtn, false, 1);
+            *count = v.range_gather_size(mtn, x, y, a.who);
+        }
+    }
+    if *count != 0 && a.who >= 0 {
+        if v.has_tribe_bonus(a.who, 0xc) {
+            *count = count.wrapping_add(v.konst(Konst::GermanMiners));
+        }
+        if v.has_wonder(a.who, 0x21b) {
+            *count = count.wrapping_add(v.konst(Konst::TajFarms));
+        }
+        if v.has_wonder(a.who, 0x21a) {
+            *count = count.wrapping_add(v.konst(Konst::KremlinFarms));
+        }
+    }
+    *rate = div256(v.konst(Konst::PeasantRate)) << 4;
+    if enh[4] != 100 {
+        *rate = scale(*rate, enh[4], 100);
+    }
+    let c = (*count).max(0);
+    let cap = if c < a.gatherers { c } else { a.gatherers };
+    if a.who >= 0 && v.has_tribe_bonus(a.who, 2) && v.konst(Konst::IncaWealthPerMiner) > 0 {
+        let w = v.konst(Konst::IncaWealthPerMiner);
+        out[2] = out[2].wrapping_add(cap.wrapping_mul(w).wrapping_shl(4));
+    }
+    out[4] = out[4].wrapping_add(rate.wrapping_mul(cap));
+    apply_bonus(&mut out[4], rate, bonus[4]);
 }
 
 /// The camp arm (`63af9b…63bc23`): the circle of cells around the footprint,
@@ -471,6 +587,9 @@ fn camp_arm<V: TypeGatherView>(
                 acc[good as usize] = acc[good as usize].wrapping_add(amount);
                 slots += 1;
             }
+            // The listing leaves the land's four slots after the first one that pays (`63b721`
+            // jumps to the tribe test, not to the next slot).
+            break;
         }
         if v.has_tribe_bonus(a.who, 0x12) {
             acc[0] = acc[0].wrapping_add(slots);
