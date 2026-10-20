@@ -1,9 +1,23 @@
 //! Experimental decoded oracle: source observations only, never a verdict.
+//!
+//! Each decoded frame is cached beside its dump as
+//! `.ron-oracle-v1/<generation>/<key>.oracle`, the generation being the hash
+//! of the parser sources the key already carries ([`generation`],
+//! [`civilian_generation`]). A parser edit therefore leaves its predecessor's
+//! entries as one directory, which [`gc`] removes; the flat
+//! `.ron-oracle-v1/<key>.oracle` layout before generations is never read and
+//! counts as one stale generation. The cache and its gc are the only parts
+//! built outside the tests; the decoder is the tests' alone.
+#[cfg(test)]
 mod codec;
+#[cfg(test)]
 use crate::capture::indexed::IndexedCapture;
+#[cfg(test)]
 use crate::gamelog::{Frame, GroupDump, Log};
+#[cfg(test)]
 use std::collections::BTreeMap;
 
+#[cfg(test)]
 #[derive(Debug, Default, PartialEq, Eq)]
 pub(super) struct Oracle {
     pub(super) frame: Frame,
@@ -12,6 +26,7 @@ pub(super) struct Oracle {
     pub(super) civilian: Option<super::golden::observations::Civilian>,
     pub(super) regions: [Option<BTreeMap<String, i64>>; 2],
 }
+#[cfg(test)]
 impl Oracle {
     fn parse(text: &str, n: i64) -> Self {
         Self::parse_with_regions(text, n, false)
@@ -83,6 +98,7 @@ fn decoded_frame_experiment() {
 
 // Default beside each canonical source; the explicit experiment root must also
 // be outside git because entries contain derived original observations.
+#[cfg(test)]
 pub(super) struct Store {
     enabled: bool,
     include_regions: bool,
@@ -95,6 +111,7 @@ pub(super) struct Store {
     pub(super) misses: usize,
     pub(super) writes: usize,
 }
+#[cfg(test)]
 impl Store {
     pub(super) fn new(enabled: bool) -> Self {
         Self {
@@ -131,15 +148,15 @@ impl Store {
                 civilian_schema()
             ));
         }
-        let directory = self.directory.clone().unwrap_or_else(|| {
-            source
-                .oracle_identity()
-                .0
-                .parent()
-                .unwrap()
-                .join(".ron-oracle-v1")
-        });
-        let path = directory.join(format!("{:016x}.oracle", hash(identity.as_bytes())));
+        let directory = self
+            .directory
+            .clone()
+            .unwrap_or_else(|| source.oracle_identity().0.parent().unwrap().join(CACHE));
+        let generation = match self.civilian {
+            Some(_) => civilian_generation(),
+            None => generation(),
+        };
+        let path = entry_path(&directory, &generation, &identity);
         if read_entry(
             &path,
             &identity,
@@ -201,6 +218,87 @@ fn schema() -> u64 {
         )
     })
 }
+/// The cache directory beside a dump; every generation is a directory in it.
+pub const CACHE: &str = ".ron-oracle-v1";
+/// The generation an entry without civilian observations is written under:
+/// the hash of the parser sources its key carries.
+pub fn generation() -> String {
+    format!("{:016x}", schema())
+}
+/// The generation an entry with civilian observations is written under: its
+/// key carries the civilian readers' sources as well, which change far more
+/// often than the parser's, so they move only these entries.
+pub fn civilian_generation() -> String {
+    format!("{:016x}-{:016x}", schema(), civilian_schema())
+}
+#[cfg(test)]
+fn entry_path(directory: &std::path::Path, generation: &str, identity: &str) -> std::path::PathBuf {
+    directory
+        .join(generation)
+        .join(format!("{:016x}.oracle", hash(identity.as_bytes())))
+}
+/// Removes every generation in `dump_dir`'s cache but the current ones, and
+/// returns how many it removed. `dump_dir` is the directory holding a dump
+/// (its cache is `dump_dir/.ron-oracle-v1`) or that cache itself; one with no
+/// cache has nothing to remove. A generation is a directory whose name is
+/// not [`generation`] or [`civilian_generation`]; the flat entries and torn
+/// temporaries of the layout before generations are together one more. A
+/// symlink, and any file that is neither, are left where they are. It is a
+/// cache: whatever it removes, a read regenerates.
+pub fn gc(dump_dir: &std::path::Path) -> std::io::Result<usize> {
+    let cache = if dump_dir.file_name() == Some(std::ffi::OsStr::new(CACHE)) {
+        dump_dir.to_path_buf()
+    } else {
+        dump_dir.join(CACHE)
+    };
+    let entries = match std::fs::read_dir(&cache) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(0),
+        Err(e) => return Err(e),
+    };
+    let current = [generation(), civilian_generation()];
+    let (mut removed, mut flat) = (0, false);
+    for entry in entries {
+        let entry = entry?;
+        let kind = entry.file_type()?;
+        let name = entry.file_name();
+        let name = name.to_string_lossy();
+        if kind.is_dir() {
+            if !current.iter().any(|c| *c == name) {
+                std::fs::remove_dir_all(entry.path())?;
+                removed += 1;
+            }
+        } else if kind.is_file()
+            && (name.ends_with(".oracle")
+                || (name.starts_with(".oracle-") && name.ends_with(".tmp")))
+        {
+            std::fs::remove_file(entry.path())?;
+            flat = true;
+        }
+    }
+    Ok(removed + usize::from(flat))
+}
+/// [`gc`] on every cache under `root`, never through a symlink (a run
+/// directory links the install): the caches found, and the generations
+/// removed from them.
+pub fn gc_tree(root: &std::path::Path) -> std::io::Result<(usize, usize)> {
+    let (mut caches, mut removed) = (0, 0);
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        if dir.file_name() == Some(std::ffi::OsStr::new(CACHE)) {
+            caches += 1;
+            removed += gc(&dir)?;
+            continue;
+        }
+        for entry in std::fs::read_dir(&dir)? {
+            let entry = entry?;
+            if entry.file_type()?.is_dir() {
+                stack.push(entry.path());
+            }
+        }
+    }
+    Ok((caches, removed))
+}
 fn civilian_schema() -> u64 {
     static SCHEMA: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
     *SCHEMA.get_or_init(|| {
@@ -214,6 +312,7 @@ fn civilian_schema() -> u64 {
         )
     })
 }
+#[cfg(test)]
 fn identity(source: &IndexedCapture, at: usize, include_regions: bool) -> String {
     let (path, length, modified) = source.oracle_identity();
     // Debug path representation is escaped, preserving non-UTF8 paths too.
@@ -223,7 +322,9 @@ fn identity(source: &IndexedCapture, at: usize, include_regions: bool) -> String
         source.frames()[at]
     )
 }
+#[cfg(test)]
 const MAGIC: &[u8; 8] = b"RONORC\0\x01";
+#[cfg(test)]
 fn pack(identity: &str, value: &Oracle) -> Result<Vec<u8>, &'static str> {
     let decoded = codec::encode(value)?;
     let compressed = lz4_flex::compress_prepend_size(&decoded);
@@ -241,11 +342,13 @@ fn pack(identity: &str, value: &Oracle) -> Result<Vec<u8>, &'static str> {
     }
     Ok(bytes)
 }
+#[cfg(test)]
 fn unpack(bytes: &[u8], identity: &str) -> Option<Oracle> {
     let mut value = Oracle::default();
     unpack_into(bytes, identity, &mut Vec::new(), &mut value)?;
     Some(value)
 }
+#[cfg(test)]
 fn unpack_into(
     bytes: &[u8],
     identity: &str,
@@ -275,6 +378,7 @@ fn unpack_into(
     }
     codec::decode_into(decoded, value).ok()
 }
+#[cfg(test)]
 fn read_entry(
     path: &std::path::Path,
     identity: &str,
@@ -291,6 +395,7 @@ fn read_entry(
     file.take(codec::LIMIT as u64 + 1).read_to_end(bytes).ok()?;
     unpack_into(bytes, identity, decoded, value)
 }
+#[cfg(test)]
 fn publish(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<()> {
     use std::io::Write;
     use std::sync::atomic::{AtomicU64, Ordering};
@@ -392,11 +497,7 @@ fn store_preserves_duplicate_frames_source_versions_and_existing_entries() {
     assert_eq!(store.read(&mut source, 1), &second);
     assert_eq!((store.hits, store.misses, store.writes), (2, 2, 2));
     let key = identity(&source, 0, false);
-    let entry = store
-        .directory
-        .as_ref()
-        .unwrap()
-        .join(format!("{:016x}.oracle", hash(key.as_bytes())));
+    let entry = entry_path(store.directory.as_ref().unwrap(), &generation(), &key);
     assert!(publish(&entry, b"must not replace").is_err());
     assert_eq!(store.read(&mut source, 0), &first);
     // This test owns the entry: corrupt it to prove fallback preserves it.
@@ -496,11 +597,186 @@ fn civilian_modes_do_not_alias_and_keep_every_observation() {
         assert_eq!((store.hits, store.misses, store.writes), (1, 1, 1));
         assert_eq!(expected.civilian.is_some(), mode.is_some());
     }
-    assert_eq!(std::fs::read_dir(root.join("cache")).unwrap().count(), 3);
+    assert_eq!(files_under(&root.join("cache")).len(), 3);
     let store = Store::new(true).with_civilian(true);
     crate::gamelog::reads::start();
     assert!(!store.enabled());
     crate::gamelog::reads::stop();
     drop(source);
     std::fs::remove_dir_all(root).unwrap(); // exclusively this test's authored files
+}
+
+#[cfg(test)]
+fn scratch(tag: &str) -> std::path::PathBuf {
+    let root = std::env::temp_dir().join(format!(
+        "ron-oracle-{tag}-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir(&root).unwrap();
+    root
+}
+
+#[cfg(test)]
+fn files_under(root: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut out = Vec::new();
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        for e in std::fs::read_dir(&d).unwrap() {
+            let e = e.unwrap();
+            if e.file_type().unwrap().is_dir() {
+                stack.push(e.path());
+            } else {
+                out.push(e.path().strip_prefix(root).unwrap().to_path_buf());
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+#[test]
+fn gc_removes_every_generation_but_the_current() {
+    let root = scratch("gc");
+    let cache = root.join(CACHE);
+    let stale = cache.join("00000000deadbeef");
+    let current = cache.join(generation());
+    for d in [&stale, &current] {
+        std::fs::create_dir_all(d).unwrap();
+        std::fs::write(d.join("0123456789abcdef.oracle"), b"entry").unwrap();
+    }
+    assert_ne!(stale, current);
+    assert_eq!(gc(&root).unwrap(), 1);
+    assert_eq!(
+        files_under(&cache),
+        [std::path::PathBuf::from(generation()).join("0123456789abcdef.oracle")]
+    );
+    assert_eq!(gc(&root).unwrap(), 0, "a second gc finds nothing stale");
+    std::fs::remove_dir_all(root).unwrap(); // exclusively this test's authored files
+}
+
+#[test]
+fn gc_takes_the_flat_layout_as_one_stale_generation_and_keeps_both_current() {
+    let root = scratch("gc-flat");
+    let cache = root.join(CACHE);
+    for current in [generation(), civilian_generation()] {
+        std::fs::create_dir_all(cache.join(&current)).unwrap();
+        std::fs::write(cache.join(&current).join("a.oracle"), b"kept").unwrap();
+    }
+    assert_ne!(generation(), civilian_generation());
+    std::fs::write(cache.join("0123456789abcdef.oracle"), b"flat").unwrap();
+    std::fs::write(cache.join("fedcba9876543210.oracle"), b"flat").unwrap();
+    std::fs::write(cache.join(".oracle-1-2-3.tmp"), b"torn publish").unwrap();
+    std::fs::write(cache.join("README"), b"not ours").unwrap();
+    std::fs::create_dir_all(cache.join("1111111111111111-2222222222222222")).unwrap();
+    assert_eq!(
+        gc(&root).unwrap(),
+        2,
+        "the flat files and one stale directory"
+    );
+    let mut kept = vec![
+        std::path::PathBuf::from("README"),
+        std::path::PathBuf::from(generation()).join("a.oracle"),
+        std::path::PathBuf::from(civilian_generation()).join("a.oracle"),
+    ];
+    kept.sort();
+    assert_eq!(files_under(&cache), kept);
+    // The cache directory itself is accepted too, and a dump without one is empty.
+    assert_eq!(gc(&cache).unwrap(), 0);
+    assert_eq!(gc(&root.join("absent")).unwrap(), 0);
+    std::fs::remove_dir_all(root).unwrap(); // exclusively this test's authored files
+}
+
+#[test]
+fn cache_path_carries_the_schema_directory_and_ignores_the_flat_layout() {
+    let root = scratch("schema-dir");
+    let path = root.join("capture.txt");
+    let text = "BEGIN GAME\n BEGIN FRAME 3\n  BEGIN UNITDATA\n   BEGIN OBJECT\n    BEGIN SUBOBJECT\n     flags 1\n     o 1\n     who 0\n     x_internal 234\n";
+    std::fs::write(&path, text).unwrap();
+    let mut source = IndexedCapture::open(&path).unwrap();
+    let key = identity(&source, 0, false);
+    // A flat entry of the old layout, valid for this very identity but holding
+    // a different value: a read that looked for it would return it.
+    let wrong = Oracle {
+        frame: Frame {
+            n: 3,
+            ..Frame::default()
+        },
+        ..Oracle::default()
+    };
+    let cache = root.join(CACHE);
+    std::fs::create_dir_all(&cache).unwrap();
+    let flat = cache.join(format!("{:016x}.oracle", hash(key.as_bytes())));
+    std::fs::write(&flat, pack(&key, &wrong).unwrap()).unwrap();
+    let mut store = Store::new(true);
+    store.enabled = true;
+    store.directory = None; // the default: beside the capture
+    let expected = Oracle::parse(text, 3);
+    assert_ne!(expected, wrong);
+    assert_eq!(store.read(&mut source, 0), &expected);
+    assert_eq!((store.hits, store.misses, store.writes), (0, 1, 1));
+    let written = entry_path(&cache, &generation(), &key);
+    assert_eq!(
+        written.parent().unwrap(),
+        cache.join(generation()),
+        "the entry sits in its schema's directory"
+    );
+    assert_eq!(generation(), format!("{:016x}", schema()));
+    assert!(written.is_file());
+    assert_eq!(store.read(&mut source, 0), &expected);
+    assert_eq!((store.hits, store.misses, store.writes), (1, 1, 1));
+    let mut civilian = Store::new(true).with_civilian(false);
+    civilian.enabled = true;
+    civilian.read(&mut source, 0);
+    assert_eq!(civilian.writes, 1);
+    let mut layout = files_under(&cache);
+    layout.retain(|f| f.parent() != Some(std::path::Path::new("")));
+    let dirs: std::collections::BTreeSet<_> = layout
+        .iter()
+        .map(|f| f.parent().unwrap().to_path_buf())
+        .collect();
+    assert_eq!(
+        dirs,
+        [generation(), civilian_generation()]
+            .into_iter()
+            .map(std::path::PathBuf::from)
+            .collect()
+    );
+    assert_eq!(
+        gc(&root).unwrap(),
+        1,
+        "the flat entry is the stale generation"
+    );
+    assert!(!flat.exists());
+    drop(source);
+    std::fs::remove_dir_all(root).unwrap(); // exclusively this test's authored files
+}
+
+#[test]
+fn gc_tree_finds_every_cache_and_never_follows_a_link() {
+    let root = scratch("gc-tree");
+    let stale = |dump: &std::path::Path| {
+        let d = dump.join(CACHE).join("00000000deadbeef");
+        std::fs::create_dir_all(&d).unwrap();
+        std::fs::write(d.join("x.oracle"), b"stale").unwrap();
+    };
+    stale(&root.join("ch1/map-14"));
+    stale(&root.join("logs"));
+    let outside = scratch("gc-tree-outside");
+    stale(&outside);
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(&outside, root.join("ch1/install")).unwrap();
+    assert_eq!(gc_tree(&root).unwrap(), (2, 2));
+    assert!(
+        outside
+            .join(CACHE)
+            .join("00000000deadbeef/x.oracle")
+            .is_file()
+    );
+    assert_eq!(gc_tree(&root).unwrap(), (2, 0));
+    std::fs::remove_dir_all(root).unwrap(); // exclusively this test's authored files
+    std::fs::remove_dir_all(outside).unwrap(); // exclusively this test's authored files
 }

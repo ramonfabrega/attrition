@@ -8,6 +8,7 @@
 //!
 //! ```sh
 //! cargo run -p rondata -- /path/to/Rise\ of\ Nations
+//! cargo run -p rondata -- /path/to/Rise\ of\ Nations --gc-oracle ~/ron-golden
 //! ```
 
 use rondata::{Install, Resource, Scalar, Table};
@@ -17,7 +18,7 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let Some(root) = args.next() else {
         eprintln!(
-            "usage: rondata <install-root> [--gamelog <Logs/gamelog.txt>] [--types <dump>] [--recgame <file.rcx>]"
+            "usage: rondata <install-root> [--gamelog <Logs/gamelog.txt>] [--types <dump>] [--recgame <file.rcx>] [--gc-oracle <dir>]…"
         );
         eprintln!();
         eprintln!("The directory holding riseofnations.exe. No game data is");
@@ -44,10 +45,15 @@ fn main() -> ExitCode {
         eprintln!("--recgame  a .rcx recorded game (docs/RECGAME.md): the header,");
         eprintln!("           lobby and command-package stream are parsed and");
         eprintln!("           summarised.");
+        eprintln!("--gc-oracle  a directory: every decoded-oracle cache under it");
+        eprintln!("           (.ron-oracle-v1, never through a symlink) loses every");
+        eprintln!("           generation but this build's; repeatable. The only flag");
+        eprintln!("           that deletes, and only what a read regenerates.");
         return ExitCode::from(2);
     };
     let mut gamelog: Option<String> = None;
     let mut siblings: Vec<String> = Vec::new();
+    let mut gc_oracle: Vec<String> = Vec::new();
     let mut types: Option<String> = None;
     let mut recgame: Option<String> = None;
     let mut trace: Option<String> = None;
@@ -56,6 +62,13 @@ fn main() -> ExitCode {
         match a.as_str() {
             "--gamelog" => gamelog = args.next(),
             "--sibling" => siblings.extend(args.next()),
+            "--gc-oracle" => match args.next() {
+                Some(dir) => gc_oracle.push(dir),
+                None => {
+                    eprintln!("--gc-oracle takes a directory");
+                    return ExitCode::from(2);
+                }
+            },
             "--types" => types = args.next(),
             "--recgame" => recgame = args.next(),
             "--trace" => trace = args.next(),
@@ -82,6 +95,19 @@ fn main() -> ExitCode {
     if !install.looks_valid() {
         eprintln!("{root}: no Data/rules.xml here — is this the install root?");
         return ExitCode::from(2);
+    }
+    for dir in &gc_oracle {
+        match rondata::diff::oracle::gc_tree(std::path::Path::new(dir)) {
+            Ok((caches, removed)) => println!(
+                "gc-oracle {dir}: {caches} cache(s), {removed} stale generation(s) removed; kept {} and {}",
+                rondata::diff::oracle::generation(),
+                rondata::diff::oracle::civilian_generation()
+            ),
+            Err(e) => {
+                eprintln!("gc-oracle {dir}: {e}");
+                return ExitCode::FAILURE;
+            }
+        }
     }
 
     let result = survey(&install)

@@ -81,8 +81,7 @@ mod leader;
 mod maya_word;
 #[cfg(test)]
 mod mongol_pair;
-#[cfg(test)]
-mod oracle;
+pub mod oracle;
 mod order;
 #[cfg(test)]
 mod persian_word;

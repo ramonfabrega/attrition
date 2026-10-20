@@ -148,7 +148,11 @@ original leader rows; no simulation state or comparison verdict. Exhaustive
 schemas make omitted new owned fields a compile error. Entries are bounded,
 compressed with the existing safe LZ4 dependency, checksummed and strictly
 decoded; invalid entries fall back to source parsing. Publication never replaces
-an existing file. Old generations are retained; there is no automatic pruning.
+an existing file. Entries sit in `.ron-oracle-v1/<generation>/`, the generation
+being the parser fingerprint (item 3353): a parser edit strands its predecessor
+as one directory, and `rondata <install> --gc-oracle <dir>` removes every
+generation but the build's own (the pre-3353 flat entries count as one). Nothing
+prunes automatically.
 The source must remain finalized, as required by the offset reader.
 
 `RON_VERIFY_ORACLE=1` checks warm records against fresh whole-record parsing and

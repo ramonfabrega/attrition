@@ -293,6 +293,19 @@ class Recent(Archive):
     def test_a_cache_directory_in_the_logs_says_so(self):
         self.assertIn('cache', '; '.join(self.by['logs/.ron-oracle-v1']['notes']))
 
+    def test_oracle_generations_are_counted_where_they_sit(self):
+        cache = self.golden / 'ch7' / 'map-14' / '.ron-oracle-v1'
+        write(cache / '00000000deadbeef' / 'a.oracle', 10)
+        write(cache / '00000000deadbeef' / 'b.oracle', 10)
+        write(cache / '1111111111111111' / 'a.oracle', 10)
+        write(cache / '0123456789abcdef.oracle', 10)
+        write(self.logs / '.ron-oracle-v1' / '2222222222222222' / 'c.oracle', 10)
+        rows = ac.census(self.golden, self.logs, self.data, self.refs, now=self.now)
+        by = {r['entry']: '; '.join(r['notes']) for r in rows}
+        self.assertIn('oracle cache: 3 generations', by['ch7'])
+        self.assertIn('oracle cache: 1 generation ', by['logs/.ron-oracle-v1'])
+        self.assertNotIn('oracle cache', by['ch2'])
+
 
 class Cli(Archive):
     def run_main(self, *extra):
