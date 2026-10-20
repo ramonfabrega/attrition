@@ -8645,13 +8645,38 @@ The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What 
   brackets and female slots (`+0x840`, `+0x18c0`) are on no packet, so `sim::launch` has no bays for them. A packet
   of a Persian game past the third age that fields both answers them with `tools/recomp/get_position.py`.
 
-## Parked by the next landing, slot LF — reserved
+## Parked by item 3356, 2026-10-20 — the nations seat's sixteenth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3356a. `Object::eject_contents@0064cd20`: the slot `0x18` clash, and no live caller.** `Object::is_unit` (slot `0x18`, no
+  stack arguments) and `GroupData`'s slot `0x18` (three) share one stubbed vtable, so the selection's `(s, who, 0)` arguments
+  are unrecorded (only its `ecx` is) — the generator lacks a per-object vtable, or a per-`ecx` argument count for one slot.
+  `eject_steps` (`eject.rs`) has no `Sim` caller: the crate's `garrison.rs`, `build.rs`, `city.rs` and `transport.rs` hold
+  approximations on its own model, so a `SimEject` view is owed. `die` and `come_out` are the stubs' answers.
+- **3356b. `Unit::plunder@00605b00` residue.** The `wcscpy_s` arm of `String::reinit == 0` is unreached: the caller's stack
+  `String` has a null data pointer and the original faults at address 8 — the generator lacks a stub that writes a pointer
+  through its `ecx` (an object on the caller's stack). `SimPlunder` carries only the EE Despot arm: `GENERAL_PLUNDER`,
+  `CARAVAN_PLUNDER`, `AZTEC_SLAY_*`, `INCA_REFUND` answer 0 (the SEAM paragraph in `fight.rs` stays). The row text (290 MB) is
+  over the emu cache cap, so the sweep re-emulates (~16 s). `LeaderDataEncrypt::scratch` is not compared.
+- **3356c. `Ammo::do_damage@00678060`: `Sim::land`'s splash is one cell wide of the original's, and the shipped `move_x`/`move_y`
+  is defective beyond ring 7.** The original walks the spiral `0..=radius[k]` inclusive (one cell past the Chebyshev disc:
+  `(-1,-2)` for `radius[1]=9`, `(-(k+1),-(k+1))` for k >= 2); the crate's `splash_cells` takes the exact `(2k+1)^2` disc. Ring 8's
+  last entry is `(-8,-16)` (the crate has it as `MOVE_289[288]`); rings 9 and 10 lack the NE and SW corners, lay the SE corner
+  twice and close on a stray cell, and entry 441 is a stray word that `radius[10]=441` makes the loop read. The sweep lays the
+  table as shipped (`shipped_spiral()`); `Sim::land` is not fixed — a fight-lane item (a pinned diff could move). Six calls
+  (`Achieve::add_event`, `play_sound`, the stale-`ecx` Nuke/sound stubs) are not held in the log.
+- **3356d. `Unit::do_gather@005ef2a0`: the Sim-side view is outside the sweep.** The sweep checks `do_gather_steps`, not
+  `SimDoGather`: ten breaks in the view, seven survived `cargo test -p sim --lib gather` (`gather_max` None as `i32::MAX`, the
+  oil-well counter, the farm grow cell, the `SITE_FARM_CELL` mark, Mine's build type, the repair order's `QueuePos`, the
+  east-facing angle) — for the diff suite to judge. `invalid_farm_cell` is a no-op SEAM (the dialog and the original's `int3`).
+  The six sim changes (AI auto-repair arm, the room check on platforms, the farm region check, the `unit_domain() == 0` guard,
+  scholar before the platform arm, the domain compare) may move a pin.
+- **3356e. `Build::check_capture@006276a0`: the village arm is swept but never entered.** The crate has no `flags & 0x20`, so
+  `SimCapture::centre` answers yes for every city and the village arm's view methods are inert (a `SEAM:` on that method). The
+  octagon tally and the defending buildings' reveal (`visible |= 1 << captor`, `update_local_seen_build`) change behaviour: the
+  run347 / run958f city-capture frames and the vision/fog pins may move.
+- **3356f. `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other`** failed in debug `--lib` in four subagents'
+  trees (a `coll_add` assertion at collide.rs:1023); none touched collide.rs and none ran it on the base — the lane gate says
+  whether it is the base's.
 
 ## Parked by the next landing, slot LG — reserved
 
