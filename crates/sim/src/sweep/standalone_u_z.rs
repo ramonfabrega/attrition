@@ -74,6 +74,8 @@ mod unit_cavarch_fight_written;
 mod unit_change_target;
 #[path = "unit_check_build_order.rs"]
 mod unit_check_build_order;
+#[path = "unit_check_build_order_crowd.rs"]
+mod unit_check_build_order_crowd;
 #[path = "unit_check_build_order_deep.rs"]
 mod unit_check_build_order_deep;
 #[path = "unit_check_build_order_move.rs"]
