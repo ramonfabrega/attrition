@@ -368,8 +368,20 @@ window. The arm's entry, read off the listing: the type is `0x3d`, `0x3e`
 or 400 and not packed; the bracket is 1, or 0 with `build_continent` 6;
 and `build_continent` is 1, 3 or at least 6. The piece is `total − 6` for
 3, `− 5` for 1, `− 4 + (bracket ≠ 0)` for 6, `− 2` for 7, `− 1` for 8.
-Which `<UNIT>` name each of the six slots loads, and so their lengths, is
-the loader's, and it is not read.
+~~Which `<UNIT>` name each of the six slots loads, and so their lengths, is
+the loader's, and it is not read.~~ **Read and built, item 3369**
+(`docs/AI.md` §285): `GraphicPieces::unit_node_from_gpiece@00901c30:174`–
+`198` names the six from six consecutive `internal_strings.xml` entries,
+`total − 6` first — `MERCHANT-KOREAN-AGE3`, `-NEUROPE-AGE3`,
+`-IROQUOIS-AGE0`, `-IROQUOIS-AGE3`, `-COLONIAL-AGE3`, `-EINDIAN-AGE3` —
+which `rondata::artdata::OVER_TIME` matches whole, and the arm is
+`sim::anim::stall_piece`, kept where the art has the piece; a build style
+of 5 forces the unpacked merchant's walks to unit style 1 (`:106`–`108`,
+read only: no capture holds a Turk-built merchant). **Diff-backed** by
+run995d's block 15717 — who=1's Dutch Armed Merchant `1/51`, both figures
+on 50689 at its point on its unpack's last frame — and the draw stream of
+`GreatSaharaDutchTier3` to its last frame; sixteen other windows lost
+their merchant residue with it.
 
 **And a trained unit's tracked crew figure is seated at birth.**
 `Unit::init@00612100:549` is `set_new_location(x, y, 1, 1)`, whose

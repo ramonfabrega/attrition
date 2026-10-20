@@ -810,7 +810,9 @@ fn run928_s_word_frame_is_widened_whole() {
     // first parts on 5627 (`1/22`'s `blown`, ours 1 theirs 0) and 5673
     // (`1/23`'s figure 1, ours (40682, 14692) theirs (40512, 14592)),
     // neither a draw (`docs/AI.md` §253).
-    pin_eq!(w.firsts.len(), 35, "initial run928 baseline");
+    // Item 3369: 35 -> 33, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 33, "initial run928 baseline");
 }
 
 /// run932: the word 5843's window, blocks 5826..6094 at run918's detail
@@ -863,7 +865,9 @@ fn run932_s_word_frame_is_widened_whole() {
     // arm, 41: the standing set, `1/22`'s `blown` (5883), the camp pool
     // (5896) and `SITE[3].reg` (5976). The word moved past the window to
     // 6982 (`docs/AI.md` §253). The move's value diff is this block.
-    pin_eq!(w.firsts.len(), 41, "initial run932 baseline");
+    // Item 3369: 41 -> 32, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 32, "initial run932 baseline");
 }
 
 /// run934: the word 6982's window, blocks 6976..7232 at run932's detail
@@ -919,7 +923,9 @@ fn run934_s_word_frame_is_widened_whole() {
     // nine), the newborn figures' `g.angle[0]` on `1/35`, `1/36` and
     // `1/37` (`Unit::init`'s 0x55555555 against 0, a family standing in
     // other lobbies) and `SITE[1].reg` on 7176. The move's value diff is these two blocks.
-    pin_eq!(w.firsts.len(), 41, "initial run934 baseline");
+    // Item 3369: 41 -> 32, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 32, "initial run934 baseline");
 }
 
 /// run937: the word 7982's window, blocks 7976..8232 at run934's detail
@@ -975,7 +981,9 @@ fn run937_s_word_frame_is_widened_whole() {
     // and 66 (8031), `SITE[2].reg` on 8176. The word moved past the window
     // to 8415 (`docs/AI.md` §255). The move's value diff is blocks 7980 and
     // 7983.
-    pin_eq!(w.firsts.len(), 51, "initial run937 baseline");
+    // Item 3369: 51 -> 42, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 42, "initial run937 baseline");
 }
 
 /// run940: the word 8415's window, blocks 8409..8665 at run937's detail
@@ -1033,7 +1041,9 @@ fn run940_s_word_frame_is_widened_whole() {
     // `g.end_time[1]` on 8416, pools 65 (8416) and 67 (8497), and three
     // `dest_angle`s (8453, 8463). The word moved past the window to 10695
     // (`docs/AI.md` §256). The move's value diff is block 8416.
-    pin_eq!(w.firsts.len(), 61, "initial run940 baseline");
+    // Item 3369: 61 -> 43, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 43, "initial run940 baseline");
 }
 
 /// run943: the word 10695's window, blocks 10689..10945 at run940's detail
@@ -1107,7 +1117,9 @@ fn run943_s_word_frame_is_widened_whole() {
     // sides on 10853); the Peltasts' bays (piece 1442) bring `0/2000`'s
     // `build:damage` to 44 on both on 10870; `set_diags`' corner tail keeps
     // the caravan diagonal (235, 153) (`docs/AI.md` §260).
-    pin_eq!(w.firsts.len(), 47, "run943 with set_diags' corner tail");
+    // Item 3369: 47 -> 29, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 29, "run943 with set_diags' corner tail");
 }
 
 /// run952: the word 11585's window, blocks 11579..11835 at run943's
@@ -1159,7 +1171,9 @@ fn run952_s_word_frame_is_widened_whole() {
     // `damage_frac`, the Scholars `1/71`/`1/73`'s `g.angle[0]` and `1/66`'s
     // second figure. (The widening's block; the word's delta is in
     // `IROQUOIS`'s comment.)
-    pin_eq!(w.firsts.len(), 60, "run952 with the Despot's cut");
+    // Item 3369: 60 -> 33, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 33, "run952 with the Despot's cut");
 }
 
 /// run954: the word 12156's window, blocks 12150..12406 at run952's
@@ -1204,7 +1218,9 @@ fn run954_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 61, "run954 on its first build");
+    // Item 3369: 61 -> 34, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 34, "run954 on its first build");
     // Item 3306: 1118 on the first build, 1088 with the held building's
     // yield (the parting index 1 → 10), and 61 with the yield's skip of
     // the flee arm and the on-duty gate. Block 12150 holds the standing
@@ -1318,7 +1334,9 @@ fn run952b_s_gap_is_widened_whole() {
     // block 11259 (who=1's `bucket[0:food]` 69 against 89: `0/2002` razed
     // beside The Despot, `Build::plunder`'s hero cut). **59** with the cut,
     // 89 on both sides (`docs/AI.md` §261).
-    pin_eq!(w.firsts.len(), 59, "run952b with the Despot's cut");
+    // Item 3369: 59 -> 32, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 32, "run952b with the Despot's cut");
 }
 
 /// **The Despot's Ambush holds its craft** (item 3297, `docs/AI.md`

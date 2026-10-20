@@ -9968,3 +9968,9 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            (run995's --ai-tribe, --cover, --profile)   (the Merchant's square's tile masks)
 # Checks: `rngcmp.py` run994 vs run994b -> 37 identical; run990b vs run995 -> 567 identical, vs run995b -> 317.
 # ==== TAKEN 2026-10-20, 03:12-03:29, pool lanes 1-2 ====
+#   run995c  --map 7 --end-frame 15980 --timeout 5400 --log-window 15719 15975 --allow-early-end
+#            --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 (run995's --ai-tribe, --cover, --profile)   (the word 15725's window)
+#   run995d  --map 7 --end-frame 15723 --timeout 5400 --log-window 15462 15718
+#            --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 (run995's --ai-tribe, --cover, --profile)   (1/51's unpack, walked back)
+# Checks: `rngcmp.py` run990b vs run995c -> 15981 identical, vs run995d -> 15724.
+# ==== TAKEN 2026-10-20, 03:51-04:35, pool lane 1 ====

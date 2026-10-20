@@ -292,7 +292,9 @@ fn run963c_s_word_frame_is_widened_whole() {
     // 0 and 0 (`ARTILLERYGERMAN`, `HOWITZER`), and `1/201`'s `myhits` 172
     // against 212.
     // Item 3336: −4, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
-    pin_eq!(w.firsts.len(), 112, "keys that part in the window");
+    // Item 3369: 112 -> 74, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 74, "keys that part in the window");
 }
 
 /// run963d: the word 23782's window to the trace's last frame, blocks
@@ -342,7 +344,9 @@ fn run963d_s_word_frame_is_widened_whole() {
     // 23987 — close; what stands is run963c's rows from before the window
     // (`num_units[270]`/`[271]`, the merchants' second figures) and the
     // standing set, the last on 23839.
-    pin_eq!(w.firsts.len(), 94, "keys that part in the window");
+    // Item 3369: 94 -> 92, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    pin_eq!(w.firsts.len(), 92, "keys that part in the window");
 }
 
 /// The closing state's window: run917's closing block alone, the long's

@@ -19998,3 +19998,20 @@ offsets (600, 408) — and on 311 a pack cast (spell 655) queued in front of it.
 Pool lane 2, launched 03:12:05, exited 03:13:23; 317 frames, 317 identical to run990b. Booked beside run995 for the
 tile masks under the Merchant's square, in case its deploy had been refused; run995 showed the deploy seated in both,
 so no test reads it.
+
+## run995c — the Dutch word at Great Sahara: the word 15725's window, blocks 15719..15975 at `GOODS=3` (2026-10-20, item 3369, `att-3369`)
+
+Pool lane 1, launched 03:51:21, exited 04:10:15; 15981 frames, 15981 identical to run990b. Booked because no dump
+on disk held this lobby between block 562 and run990b's closing block 16110. **What it holds**: the window opens
+apart on who=1's Armed Merchant `1/51` (`MERCHANTDUTCH`), on its pack's first frame two after its unpack ended:
+figure 1 walking out to (17597, 25530) from beside the merchant's point (17689, 25362) in theirs, standing on it in
+ours; on the word's block 15726 its `g.end_time[1]` is 150 ours, 60 theirs. Test
+`run995c_s_word_frame_is_widened_whole`: 748 keys on the first try, 34 after the build.
+
+## run995d — the Dutch word at Great Sahara: the walk back, blocks 15462..15718 at `GOODS=3` (2026-10-20, item 3369, `att-3369`)
+
+Pool lane 1, launched 04:16:57, exited 04:34:54; 15724 frames, 15724 identical to run990b. Booked because run995c
+opened apart and no dump held `1/51`'s unpack (15570..15717). **What it holds**: on block 15717, the unpack's last
+frame, theirs re-pieces both of `1/51`'s figures to 50689 (`total_num_unit_pieces − 5`, the Dutch `BUILD_CONTINENT
+1`) and puts them on the merchant's point (17664, 25344); ours put figure 0 on 2124 and left figure 1 on 14796 and
+its offset. Test `run995d_s_walk_back_is_widened_whole`: 32 keys after the build, the standing family on 15462.

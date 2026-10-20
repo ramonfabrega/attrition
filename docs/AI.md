@@ -24522,12 +24522,67 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 285. Reserved for the next item on the AI track
+## 285. The battery's Dutch word at Great Sahara closes: a merchant drafted to its city, and its crew on one piece
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3369, 2026-10-20, Opus 5.5. `GreatSaharaDutchTier3` (map 7, human Nubians against the Dutch at Difficulty 3,
+seed 12345; runs 990 and 990b), promoted out of the battery at 311 of 16109. Captures run995 (`GOODS=3` over
+305..561), run995b (`WORLD=6` over 305..312), run995c (15719..15975), run995d (15462..15718). Its battery place went
+to `GreatSaharaIroquoisTier3` (runs 994, 994b; entry 72's rule (2) as amended by 84: of the nations on no map-7 dump
+and held only by closed games the Iroquois and the Germans tie on the census's reach, 8, and the tie goes to the
+shorter closed game by item 3347's precedent): 13757 of 16371 on its first try.*
+
+**311 → 312: the Dutch merchant's `think_attack` leg, and that function's tail.** On 311 ours spends 7 draws and
+theirs 6; at index 1 ours wraps the deployed animation of who=1's Armed Merchant `1/1` (`MERCHANTDUTCH`, type 62),
+whose 149-frame unpack ended on 309 in both. run995's block 310: theirs drafted it — `group` −1 ours, 64 theirs,
+`orders.len` 0/1 (`ATTACK_TO` (41304, 17304), offsets (600, 408)), `form_mod` −1/50 — and on 311 queued a pack in
+front. `Unit::think`'s auto-attack disjunction is `is(0x3e,1) && ((packed && think_merchant) ||
+(!is_packing_or_unpacking && think_attack))`. `think_attack@005f5a80` skips its packed arm for the lineage and its
+army join for the three merchant ids (`5f5d53`–`5f5d94`), finds no melee target, and its tail (`:190`–`239`, listing
+`5f5e75`–`5f5fd8`) sends a unit off its own territory with no army to its best own city in its region: `vector_dist
+/ max(1, danger[who])`, halved for `CITY_UNDER_ATTACK`, strict `<`; `go_to_city@005f79c0` → `go_to(x, y, ATTACK_TO,
+0x240, 0)` (listing `5f7a27`–`5f7a35`) → `push_group`, the group 64. Built: `Sim::think_attack_merchant`,
+`think_attack_tail`, `think_attack_city`, `go_to_city`, `think_attack_home` (army.rs), and the soldier's arm also
+takes the tail when its join answers none (`docs/ARMY.md` §4.2). Value diff, block 310 after: agreeing.
+
+**312 → 15725: a merchant re-pieced as its pack begins.** run995's block 311, the pack's first frame: figure 0's
+`gpiece` 12 ours, 6348 theirs, `end_time` 3/149. `Guy::update_gpiece@005d8530` reads a merchant as packed while its
+current order is a pack (`UnitData::is_packing`), and `do_cast@005ebfe0` (`005ecb3a`) calls `Unit::update_gpiece`
+for a merchant on the pack's first frame. Built: `Sim::update_gpiece`'s merchant arm (anim.rs), `do_cast`'s pack arm
+(transport.rs). Value diff, block 311 after: agreeing.
+
+**15725 → 16109, the game's last frame: an unpacked merchant's "over time" piece.** On 15725 ours spends 9 draws,
+theirs 13; at 4 theirs turns a figure (`Guy::set_anim < Guy::do_turn < Guy::turn_towards`). run995c opened apart on
+who=1's Armed Merchant `1/51`, on its pack's first frame two after its unpack ended: figure 1 walking out to
+(17597, 25530) from beside the merchant's point in theirs, standing on it in ours. run995d walks it back: on 15717,
+the unpack's last frame, theirs re-pieces **both** figures to 50689 and puts them on the merchant's point (17664,
+25344); ours put figure 0 on 2124 and left figure 1 on 14796 and its offset. `get_unit_gpiece@0090c030:104`–`:140`:
+an unpacked merchant id, in age bracket 1 (or 0 under build style 6), of build style 1, 3 or ≥ 6, takes one piece
+from the last six for every figure — `total_num_unit_pieces` (0xc606) less 6 for 3, 5 for 1, `4 − bracket` for 6, 2
+for 7, 1 for 8 — where the art has it, and a build style of 5 forces its walks to unit style 1. The six are named by
+`unit_node_from_gpiece@00901c30:174`–`198` from consecutive `internal_strings.xml` entries (`MERCHANT-KOREAN-AGE3`,
+`-NEUROPE-AGE3`, `-IROQUOIS-AGE0`, `-IROQUOIS-AGE3`, `-COLONIAL-AGE3`, `-EINDIAN-AGE3`). Built:
+`Tribe::build_continent` (the tribe file's `<BUILD_CONTINENT>`), `rondata::artdata::OVER_TIME`, `sim::anim::
+stall_piece` and its arm in `unit_gpiece`; the SEAM it carried is gone and parked 3365b is struck. Value diff, block
+15717 after: agreeing; run995c's window 748 → 34, run995d's 32, both the standing family. Sixteen other windows lost
+their merchant residue with it (run991b 80 → 32, run963c 112 → 74, run954 61 → 34, run952 60 → 33, …); no first
+parting and no closing state moved.
+
+**The close.** run990b's closing block 16110: 86 units compared, none apart, no building, city or closing field
+(`run990b_dutch_sahara_closing_state`). Every other lobby's first parting, the battery floors and every closing state
+hold on this tree.
+
+**Not established.** The tail's head refusals the soldier's arm also leaves out (`get_combat_stance() > 4`, the
+game-semaphore radius `0x2d00`) are not read; the build-style-5 arm and the `− 6` default for a build style past 8
+are read and on no capture; the tail is diff-backed by one merchant's walk alone, and a soldier's tail by none.
+
+**Coverage.** Diff-backed: the merchant leg and the tail by `dutch_sahara_word_first_parting` and
+`run995_s_word_frame_is_widened_whole`; the pack's re-piece by the same; the over-time piece by
+`run995d_s_walk_back_is_widened_whole`, `run995c_s_word_frame_is_widened_whole` and the first parting; the close by
+`run990b_dutch_sahara_closing_state`. Sim tests: `army::tests::think_attack_s_tail_picks_the_city_by_distance_over_
+danger`, `anim::tests::an_unpacked_merchant_s_over_time_piece_is_its_build_style_s`. Mutations (`tools/mutate.py`,
+each against `dutch_sahara_word_first_parting` or the whole module): the pack's re-piece removed, the merchant
+`is_packing` read removed, the tail's walk removed, the merchant leg's tail call removed, the stall arm disabled —
+all held.
 
 ## 286. Reserved for the next item on the AI track
 

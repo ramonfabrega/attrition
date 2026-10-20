@@ -8718,9 +8718,11 @@ part with no draw:
 - **3365a — `1/85`'s `dest_angle` on 15329.** run991b: ours −2147483648, theirs −1351155712; no draw parts, and
   nothing the word reads follows from it. Read who writes `dest_angle` on a unit with no destination when a draw
   parts on `1/85`'s facing.
-- **3365b — who=1's six Merchants re-pieced on 15413.** Both sides re-piece them; theirs puts both figures on
+- ~~**3365b — who=1's six Merchants re-pieced on 15413.** Both sides re-piece them; theirs puts both figures on
   `gpiece` 50688 with the cart snapped onto the merchant's point, ours on 3179 / 15851 with the cart apart. No draw
-  parts. Read the caravan's piece pairing when a draw parts on a Merchant's figure.
+  parts. Read the caravan's piece pairing when a draw parts on a Merchant's figure.~~ **Built, item 3369**: a draw
+  parted on one (the Dutch at Great Sahara, 15725); the piece is the unpacked merchant's "over time" piece by the
+  nation's `BUILD_CONTINENT` (`docs/ANIM.md` §3.4, `docs/AI.md` §285), and run991b's window dropped 80 → 32.
 
 ## Parked by the next landing, slot LJ — reserved
 

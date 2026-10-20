@@ -186,9 +186,11 @@ fn run967_s_word_frame_is_widened_whole() {
     // `SITE[n].reg` and `aggression`, every unit's `form`, who=1's groups'
     // `held` and pools) and `1/16`'s `g.gpiece` from 3056 (ours 11 against
     // 363), and the word moved 2974 → 15782.
+    // Item 3369: 33 -> 31, an unpacked merchant's "over time" piece
+    // (`sim::anim::stall_piece`): its crew on one piece at its point.
     pin_eq!(
         w.firsts.len(),
-        33,
+        31,
         "run967 with the Egyptian farm wealth and the good's ever_seen"
     );
 }
