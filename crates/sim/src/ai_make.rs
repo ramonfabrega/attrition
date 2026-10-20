@@ -633,27 +633,6 @@ impl Sim {
                 *n += c;
             }
         }
-        let probe = std::env::var("RON_DEBUG_MARKET")
-            .ok()
-            .is_some_and(|s| debug_make_wanted(&s, self.frame));
-        if probe {
-            let l = &self.ledgers[w];
-            let prices: Vec<_> = (0..RESOURCES)
-                .map(|g| self.calc_market_prices(who, g))
-                .collect();
-            eprintln!(
-                "PROBE market f{} who {who} gate {} need {need:?} bucket {:?} escrow {:?} income {:?} cap {:?} avail {:?} price {:?} flux {:?} bs {prices:?} commerce {commerce}",
-                self.frame,
-                self.market_gate(who),
-                l.bucket,
-                l.escrow,
-                l.income,
-                l.cap,
-                self.holdings[w].available,
-                self.market.price,
-                self.market.flux,
-            );
-        }
         if !self.market_gate(who) {
             return;
         }
@@ -683,12 +662,6 @@ impl Sim {
                 if sell {
                     self.mark(SITE_MARKET_SELL);
                     let start = usize::try_from(self.rng.get(0, 0xffff) % 6).unwrap_or(0);
-                    if probe {
-                        eprintln!(
-                            "PROBE market f{} who {who} g {g} start {start} bucket {:?}",
-                            self.frame, self.ledgers[w].bucket
-                        );
-                    }
                     for k in 0..RESOURCES {
                         let g2 = (k + start) % RESOURCES;
                         if !self.market_sellable(who, g2, g, &need) {
@@ -698,10 +671,7 @@ impl Sim {
                         // embargo arm aside, which is zero here); the
                         // once-flag clears whether or not it holds.
                         if self.market_gate(who) {
-                            let ok = self.do_sell(who, g2);
-                            if probe {
-                                eprintln!("PROBE market sell g2 {g2} ok {ok}");
-                            }
+                            self.do_sell(who, g2);
                         }
                         once = false;
                     }
