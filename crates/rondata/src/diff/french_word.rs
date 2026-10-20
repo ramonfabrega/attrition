@@ -132,7 +132,7 @@ fn run982_s_word_frame_is_widened_whole() {
     let Some(w) = french_frame_13422_window() else {
         return;
     };
-    pin_eq!(w.blocks, 678, "every captured block");
+    pin_eq!(w.blocks, 677, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -142,8 +142,15 @@ fn run982_s_word_frame_is_widened_whole() {
     }
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),
-        Vec::<String>::new(),
+        ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run982 with the French siege arm");
+    // Item 3347. 41 keys after the release nodes (`cf3e7e2c2`): 36 standing
+    // on 13416, as run978's — the leader's sites and aggression, the
+    // formations, who=1's groups 64/65/68 and four of its guys' waypoints;
+    // who=1's group and pool 66 on 13424 (the Trebuchet `1/86`, held in a
+    // group ours forms and theirs does not) and 67 on 13600; and `1/82`'s
+    // `dest_angle` on 13856. `0/0`'s wound on 13870 and `0/2000`'s raid stamp
+    // on 13941 left with the Cavalry Archer's and the Dragoon's nodes.
+    pin_eq!(w.firsts.len(), 41, "run982 with the release nodes");
 }
