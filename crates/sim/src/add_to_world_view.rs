@@ -25,8 +25,8 @@
 //!
 //! The crate paints the same disc as [`crate::Sim::coll_paint`] and pushes the
 //! chain as [`crate::Sim::chain_add`], but holds one figure a unit and the
-//! chain as unit indices; [`SimAddToWorld`] is therefore not wired into any
-//! production path (see its doc).
+//! chain as unit indices; the steps are therefore not wired into any
+//! production path (no `Sim` adapter exists; only the sweep drives them).
 
 /// What the walk reads and writes, one leaf a method.
 pub trait AddToWorldView {
