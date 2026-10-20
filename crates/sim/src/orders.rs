@@ -9293,6 +9293,9 @@ impl Sim {
     /// 1/5 re-search, range → strike, out of range → the chase inserted in
     /// front.
     pub(crate) fn do_attack_fight(&mut self, u: usize, frame: i64) {
+        if std::env::var_os("RON_PROBE_100").is_some() && (14600..=14606).contains(&frame) && self.units[u].owner == 1 && self.units[u].index == 100 {
+            eprintln!("PROBE f{frame} do_attack_fight 1/100 captain {} cap {} mandatory {} recharging {} target {:?} valid {:?} cur {:?}", self.units[u].captain, self.units[u].combat.captain, self.units[u].combat.mandatory, self.units[u].combat.recharging, self.units[u].combat.target, self.units[u].combat.target.map(|t| self.valid_target(Obj::Unit(u), t)), self.current_order(u).map(|o| (o.flags, o.index())));
+        }
         let Some(Order {
             body: Body::Attack(mut a),
             flags,

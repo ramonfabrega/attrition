@@ -19481,3 +19481,62 @@ Archive `rontrace-run978f.log`, 93,069,120 bytes,
 SHA-256 `fbbb9695db0b47f36373c099fb057a222af0db37d1f68707369104ea1b188680`.
 
 **What it holds**: `run978f_s_word_frame_is_widened_whole`: who=1's Enlightenment Age offered at 9999999 against 3564000 on 15579 and bought on 15583 at 382 food (Sugar, `get_cost`'s rares' tail).
+
+## run981 — the battery's replacement lobby: Great Sahara, the Russians at difficulty 4, a `DUMP_ALL` start (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: the French left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds. By entry 72's rule (2), a nation held only by closed games on another map
+and never on Great Sahara: the Russians (13) and the Romans (10 in the census) tie on reach, and the Russians' only
+game ended itself at 7303, so their later-age arms are the ones no trace has run. Tier 4, the tier the French leave.
+`--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 13 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched 20:19:38 and the game exited at 20:29:50 (612 s). `success`, 37 frames, `map_style 7`, seed
+  12345, players `(0, 4, 7), (1, 13, 1)`. Filed with `filerun.py run981 greatsahara-russian-diff4-start`.
+- Minutes waited on another lane: none (lane 2 was run981b's until 20:19:26).
+
+Archive `gamelog-run981-greatsahara-russian-diff4-start.txt`, 149,586,711 bytes,
+SHA-256 `880c6e1285c13c5a0b7b3530b65f4173e7a497a09a5d7451fc27725d1672731d`.
+
+Archive `rontrace-run981.log`, 8,077,728 bytes,
+SHA-256 `c24aff00f86eb15b0d132b3a0a87a7dc077efc560e4c9d03d18d088e8dc60fad`.
+
+**What it holds**: `battery::BATTERY`'s `GreatSaharaRussianTier4` start.
+
+## run981b — the same lobby, the draw stream to the game's end (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. run977b's recipe with `--ai-tribe 13`: `--map 7 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=4` and run643's four
+`--detail` lines.
+- Pool lane 2. Launched 20:17:53 and the game exited at 20:19:26 (93 s). `success`, **the game ended itself on 18883**
+  (closing block 18884, `ended_early` true). `rngcmp.py rontrace-run981.log rontrace-run981b.log`: **37 identical, 0
+  differing**. Filed with `filerun.py run981b greatsahara-russian-diff4-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run981b-greatsahara-russian-diff4-24k-trace.txt`, 12,944,091 bytes,
+SHA-256 `ed941199993a848c1c337d27e324c25f3b4851fb5ab678f40252ed38a8963d29`.
+
+Archive `rontrace-run981b.log`, 104,054,240 bytes,
+SHA-256 `ee96f939067fe7d9712515ec1c32c6ea706130151ec0cff3b57ce27dd4595355`.
+
+**What it holds**: the Russians' first try, **18883 / 18883**: the whole game agrees. Pinned in `battery::BATTERY`.
+
+## run982 — the French word: the words 13422's and 13843's window, blocks 13416..14093 at `AMMO=5` (2026-10-19, item 3347, `att-3347`)
+
+`docs/AI.md` §278. **What the disk could not answer**: the French word parts on 13422 and run977b holds only its
+setup and closing blocks; the second word, 13843, is a round's launch, and only `AMMO` prints a round. Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run982`: `--map 7 --end-frame 14098 --timeout 5400
+--log-window 13416 14093 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover
+cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 20:24:12 and the game exited at 21:07:58 (2626 s: `AMMO=5` over 678 blocks). `success`, 14099
+  frames, `map_style 7`, seed 12345. `rngcmp.py rontrace-run982.log rontrace-run977b.log`: **14099 identical, 0
+  differing**. Filed with `filerun.py run982 greatsahara-french-diff4-window-13416-14093-ammo`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run982-greatsahara-french-diff4-window-13416-14093-ammo.txt`, 1,266,669,796 bytes,
+SHA-256 `14556c5881180c190276f57d7825f56bcf38ef90adb0786a8ac31b564f1099a8`.
+
+Archive `rontrace-run982.log`, 74,094,144 bytes,
+SHA-256 `b260bdb205d79908bed6e3246055398c2733e2d7f35a8e139b2fc549a20375a5`.
+
+**What it holds**: `run982_s_word_frame_is_widened_whole`: the Siege Factory `1/2026`'s Trebuchet clock 24000 of
+30000 on 13421 (the French siege arm), and `1/39`'s rounds — the Crossbowman's and the Cavalry Archer's release nodes
+(`launch::MEASURED` 122, 138, 139), `launch::tests::run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit`.
