@@ -19930,3 +19930,41 @@ Pool lane 2, launched 00:24:38, exited 00:41:28; **the game ended itself on 1755
 block 17555. 17555 frames identical to run895b. **What it holds**: who=1's Cataphract decoys `1/72`, `1/74` bleeding
 a point a frame in who=0's Scout `0/0`'s `seen3` disc. Test `run989d_s_word_frame_is_widened_whole`: 167 blocks, 42
 keys after the fix (1133 before).
+
+## run990 — the battery's replacement lobby `GreatSaharaDutchTier3`: the start (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 1, launched 01:40:21, exited 01:47:07; 37 frames, run988's line with `--ai-tribe 22 --profile
+DIFFICULTY=3`. Minted by `docs/DECISIONS.md` entry 72's rule (2) as amended by 84: a header survey of 538 gamelogs
+found the Dutch on no map-7 dump and held only by a closed game (`EastIndiesDutchTier4`), the most census
+functions of such nations (9); tier 3 is the tier the Koreans leave. `rngcmp.py` against run990b: 37 identical.
+
+## run990b — `GreatSaharaDutchTier3`'s draw stream (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 2, launched 01:35:21, exited 01:39:09; run964b's line with `--ai-tribe 22`. **The game ended itself on
+16109** (`ended_early` true), closing block 16110. Scored on its first try: 311 of 16109 (`battery_floors_hold`).
+
+## run991 — the Korean word: the word 9185's window, blocks 9179..9435 at `GOODS=3` (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 3, launched 01:36:32, exited 01:53:31; 9441 frames, 9441 identical to run964b. **What it holds**: on
+block 9179 who=1's `bucket[2:wealth]` 86 ours against 96 theirs and `bucket[4:metal]` 175 against 192, `income`
+agreeing on every good — the third off a Tower-line building ours charged whole. Test
+`run991_s_word_frame_is_widened_whole`: 256 blocks, 563 keys before the fix, 27 after (the standing family).
+
+## run991b — the Korean word: the word 15291's window, blocks 15285..15541 at `AMMO=5` (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 2, launched 02:03:26, exited 02:22:07; 15547 frames, 15547 identical to run964b. **What it holds**: the
+human Scout `0/0`'s `damage_frame` ours 15275 theirs 15274 — its first wound, by who=1's Royal Hwarang. Test
+`run991b_s_word_frame_is_widened_whole`: 256 blocks, 998 keys before the fix, 80 after.
+
+## run991c — the Korean word: the Hwarang's arrows, 15240..15291 at `AMMO=5` (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 2, launched 02:23:49, exited 02:28:07; 15297 frames, 15297 identical to run964b. **What it holds**:
+`1/74`'s arrow leaves (9264, 30827) with `total_time` 19, where ours left the figure's own (9336, 30840) with 20.
+Test `launch::tests::run991c_s_hwarang_arrows_leave_the_bow_hand` (three dumped rounds).
+
+## run991d — the Korean word: a packet on 15256, piece 132's bays (2026-10-20, item 3365, `att-3365`)
+
+Pool lane 2, launched 02:31:41, exited 02:32:32; 15263 frames, 15263 identical to run964b. `--tracer-def
+RON_STATE_FRAME=15256`: a packet of 838,556,840 bytes, kept at `~/ron-golden/run991d/map-7/frame-snapshot.bin`.
+**What it holds**: piece 132's six `AttachPos` rows, swept by `tools/recomp/get_position.py … sweep 132 0 <anim>
+<time>` (the sweeps under `~/ron-data/lab-experiments/2026-10-20-item-3365/`) and fitted into `launch::BAYS`.

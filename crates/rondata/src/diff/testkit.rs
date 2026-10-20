@@ -9933,6 +9933,21 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3361,
         Some(crate::diff::aztec_word::WIDENING_AZTEC_CLOSING),
     ),
+    // **The battery's Korean word** (item 3365, DECISIONS 72, 83, 84):
+    // frame 9185, the battery's first try (item 3331), promoted here and
+    // widened on run991 over 9179..9435 (block 9186). Item 3365 moved it
+    // 9185 → 15291 with `get_cost`'s Korean tower step, and — widened on
+    // run991b over 15285..15541 (block 15292) — 15291 → 15944, the game's
+    // last frame, with the Royal Hwarang's release bays (run991c's rounds,
+    // run991d's packet). The close is compared whole on run964b's own
+    // closing block 15945 by `run964b_korean_closing_state`.
+    (
+        "KOREAN_WORD",
+        crate::diff::korean_word::KOREAN_WORD,
+        Some("run964b_korean_closing_state"),
+        3365,
+        Some(crate::diff::korean_word::WIDENING_KOREAN_CLOSING),
+    ),
     // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
     // frame 6071, the battery's first try, widened on run980 over
     // 6065..6321 (block 6072). Item 3345 moved it 6071 → 7902, the game's
@@ -10554,6 +10569,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // run895b's closing block 17555 scores the end itself.
         endpoint: Some("run895b_aztec_closing_state"),
         window: Some("aztec_frame_17394_window"),
+    },
+    // **The battery's Korean word** (DECISIONS 72, 83, 84; item 3365):
+    // Great Sahara, the Koreans at Difficulty 3 — the held-out battery's
+    // next open lobby once item 3361 closed the Aztecs, minted by item 3331;
+    // the game ends itself on 15944. It joins the `Battery word` line
+    // first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaKoreanTier3",
+        named: "Great Sahara (Koreans)",
+        word: crate::diff::korean_word::KOREAN_WORD,
+        length: 15_944,
+        // Closed by item 3365: the draw stream agrees to 15944, and
+        // run964b's closing block 15945 scores the end itself.
+        endpoint: Some("run964b_korean_closing_state"),
+        window: Some("korean_frame_15291_window"),
     },
     // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
     // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's
