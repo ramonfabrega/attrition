@@ -4483,6 +4483,13 @@ impl Sim {
         // `docs/COMBAT.md` §33.
         if let Some((_, o)) = best {
             self.bump_targeted(o, 1);
+            if std::env::var("RON_DEBUG_BUMPS").is_ok() {
+                let lab = |s: &Self, o: Obj| match o {
+                    Obj::Unit(u) => format!("{}/{} t{}", s.units[u].owner, s.units[u].index, s.units[u].combat.targeted),
+                    Obj::Building(b) => format!("b{b} t{}", s.buildings[b].targeted),
+                };
+                eprintln!("BUMP f{} {} by {}", self.frame, lab(self, o), lab(self, attacker));
+            }
         }
         // `006498de`: the pair survives only if the nearest candidate the
         // rings saw is inside `0xf00`, and is cleared otherwise — so an
