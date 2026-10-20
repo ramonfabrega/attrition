@@ -144,7 +144,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     wr(&mut self.p[36], 4 * len as usize, entry);
                     wr(&mut self.c[0], 0x208, len + 1);
                 }
-                fn len(&mut self) -> i32 {
+                fn result_len(&mut self) -> i32 {
                     rd(&self.c[0], 0x208)
                 }
                 fn leader_in_game(&mut self, k: i32) -> bool {

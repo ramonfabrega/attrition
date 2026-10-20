@@ -85,7 +85,7 @@ pub trait FindBuildsView {
     /// Append the object to the result array (growing it first when full).
     fn push(&mut self, player: i32, id: i32);
     /// `objects.len`.
-    fn len(&mut self) -> i32;
+    fn result_len(&mut self) -> i32;
     /// `leaders[k]`'s flag bit 0.
     fn leader_in_game(&mut self, k: i32) -> bool;
     /// `objects+0x184 + 4k`, the count of player `k`'s array.
@@ -147,7 +147,7 @@ pub fn find_builds_steps(v: &mut impl FindBuildsView, a: &FindBuildsArgs) -> i32
                     player = nplayer;
                 }
             }
-            return v.len();
+            return v.result_len();
         }
     }
     for k in 0..8 {
@@ -190,5 +190,241 @@ pub fn find_builds_steps(v: &mut impl FindBuildsView, a: &FindBuildsArgs) -> i32
             }
         }
     }
-    v.len()
+    v.result_len()
+}
+
+/// `Search::valid_search`'s case 1, `SEARCH_FRIENDLY`.
+pub const SEARCH_FRIENDLY: i32 = 1;
+/// `FILTER_CONSTRUCT`, arm 5 of `Search::valid_filter@0067dbb0` (`filter - FILTER_TYPE`
+/// with `FILTER_TYPE` 1): an object that is not active.
+pub const FILTER_CONSTRUCT: i32 = 6;
+
+/// [`FindBuildsView`] over the sim, for `Unit::find_build_spot`'s search
+/// (`Objects::find_builds(SEARCH_FRIENDLY, owner, range, 0x200,
+/// FILTER_CONSTRUCT)`; `docs/ORDERS.md` §5.5).
+///
+/// The sim threads no building into a cell's chain (`docs/QUEUE.md` 48), so
+/// the chain of a cell is its live buildings in descending slot order —
+/// `Object::add_to_world` pushes onto the head — each `(owner, index)` as the
+/// owner's array holds them (`Building::index`, 2000 and up), and the list
+/// walk is the owner's array from 2000. The leaves fold the caller's own
+/// tests in: a player is searchable when it is the searcher's (`site` keeps
+/// only the builder's own sites, so an ally's could never survive the second
+/// pass), `exists` is `alive`, `FILTER_CONSTRUCT` is `!active`, and
+/// `build_masks & 0x20` (under attack) drops a site with it.
+pub struct SimFindBuilds<'a> {
+    s: &'a crate::Sim,
+    who: i32,
+    by_id: std::collections::BTreeMap<(i32, i32), usize>,
+    chain: Vec<usize>,
+    /// The sites found, as building slots, in the original's array order.
+    pub out: Vec<usize>,
+}
+
+impl<'a> SimFindBuilds<'a> {
+    /// A view of `who`'s search over `s`.
+    pub fn new(s: &'a crate::Sim, who: usize) -> Self {
+        let by_id = (0..s.buildings.len())
+            .filter(|&b| s.buildings[b].alive)
+            .map(|b| {
+                (
+                    (
+                        i32::from(s.buildings[b].owner),
+                        i32::from(s.buildings[b].index),
+                    ),
+                    b,
+                )
+            })
+            .collect();
+        Self {
+            s,
+            who: who as i32,
+            by_id,
+            chain: Vec::new(),
+            out: Vec::new(),
+        }
+    }
+
+    fn site(&self, player: i32, id: i32) -> Option<usize> {
+        self.by_id.get(&(player, id)).copied()
+    }
+
+    fn ident(&self, b: usize) -> (i32, i32) {
+        (
+            i32::from(self.s.buildings[b].index),
+            i32::from(self.s.buildings[b].owner),
+        )
+    }
+
+    fn type_size(&self, player: i32, id: i32, y: bool) -> i32 {
+        self.site(player, id)
+            .and_then(|b| self.s.buildings[b].ty)
+            .map_or(0, |t| {
+                let bt = &self.s.build_types[t];
+                if y { bt.y_size } else { bt.x_size }
+            })
+    }
+
+    fn cell_at(&self, index: i32) -> crate::world::Cell {
+        let w = self.s.world.width();
+        crate::world::Cell::new(index % w, index / w)
+    }
+}
+
+impl FindBuildsView for SimFindBuilds<'_> {
+    fn clear_len(&mut self) {
+        self.out.clear();
+    }
+    fn note_search(&mut self, _who: i32) {}
+    fn div3(&mut self, i: i32) -> i32 {
+        i / 3
+    }
+    fn width(&mut self) -> i32 {
+        self.s.world.width()
+    }
+    fn height(&mut self) -> i32 {
+        self.s.world.height()
+    }
+    fn cell_region(&mut self, index: i32) -> i32 {
+        self.s
+            .world
+            .region_of(self.cell_at(index))
+            .map_or(-1, i32::from)
+    }
+    fn cell_head(&mut self, index: i32) -> (i32, i32) {
+        let c = self.cell_at(index);
+        self.chain = self
+            .by_id
+            .values()
+            .copied()
+            .filter(|&b| self.s.buildings[b].pos.cell() == c)
+            .collect();
+        self.chain.sort_unstable_by(|a, b| b.cmp(a));
+        self.chain.first().map_or((-1, -1), |&b| self.ident(b))
+    }
+    fn num_def_builds(&mut self) -> i32 {
+        crate::orders::NUM_DEF_BUILDS as i32
+    }
+    fn circle_radius(&mut self, ring: i32) -> i32 {
+        crate::ai_place::circle().radius[ring.clamp(0, 0x40) as usize] as i32
+    }
+    fn circle_point(&mut self, i: i32) -> (i32, i32) {
+        let c = crate::ai_place::circle();
+        (c.x[i as usize], c.y[i as usize])
+    }
+    fn link(&mut self, player: i32, id: i32) -> (i32, i32) {
+        let here = self.site(player, id);
+        self.chain
+            .iter()
+            .position(|&b| Some(b) == here)
+            .and_then(|k| self.chain.get(k + 1))
+            .map_or((-1, -1), |&b| self.ident(b))
+    }
+    fn valid_search(&mut self, player: i32, _search: i32, _who: i32) -> bool {
+        player == self.who
+    }
+    fn exists(&mut self, player: i32, id: i32) -> bool {
+        self.site(player, id).is_some()
+    }
+    fn valid_filter(&mut self, player: i32, id: i32, _p8: i32, _filter: i32) -> bool {
+        self.site(player, id).is_some_and(|b| {
+            let bd = &self.s.buildings[b];
+            !bd.active && !bd.is_under_attack()
+        })
+    }
+    fn push(&mut self, player: i32, id: i32) {
+        if let Some(b) = self.site(player, id) {
+            self.out.push(b);
+        }
+    }
+    fn result_len(&mut self) -> i32 {
+        self.out.len() as i32
+    }
+    fn leader_in_game(&mut self, k: i32) -> bool {
+        k == self.who
+    }
+    fn count(&mut self, k: i32) -> i32 {
+        self.by_id
+            .keys()
+            .filter(|&&(p, _)| p == k)
+            .map(|&(_, id)| id + 1)
+            .max()
+            .unwrap_or(0)
+            .max(2000)
+    }
+    fn position(&mut self, player: i32, id: i32) -> (i32, i32) {
+        self.site(player, id).map_or((0, 0), |b| {
+            let p = self.s.buildings[b].pos;
+            (p.x ^ POS_KEY, p.y ^ POS_KEY)
+        })
+    }
+    fn reach_x(&mut self, player: i32, id: i32) -> i32 {
+        self.type_size(player, id, false)
+    }
+    fn reach_y(&mut self, player: i32, id: i32) -> i32 {
+        self.type_size(player, id, true)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::world::{Cell, Pos};
+    use crate::{Sim, Tuning, Unit, World};
+
+    /// A land of one region, a builder of player 0 in cell (2, 2), and `n` sites.
+    fn land(sites: &[(u8, i32, i32)]) -> (Sim, usize, Vec<usize>) {
+        let mut world = World::new(8, 8);
+        world.fill_region(
+            crate::world::Terrain::Land,
+            Cell::new(0, 0),
+            Cell::new(7, 7),
+        );
+        world.add_region(crate::world::Terrain::Land);
+        let mut s = Sim::new(Tuning::RON, world, 4);
+        let u = s.add_unit(Unit::new(0, 1, Pos::new(2 * 768 + 100, 2 * 768 + 100), 10));
+        let b = sites
+            .iter()
+            .map(|&(owner, x, y)| {
+                let b = s.add_building(owner, Pos::new(x, y), 1);
+                s.buildings[b].active = false;
+                b
+            })
+            .collect();
+        (s, u, b)
+    }
+
+    #[test]
+    fn a_cell_lists_its_newest_site_first_and_keeps_only_mine_unfinished_and_unattacked() {
+        let c = (2 * 768 + 300, 2 * 768 + 300);
+        let (mut s, u, b) = land(&[
+            (0, c.0, c.1),
+            (0, c.0 + 5, c.1),
+            (1, c.0, c.1 + 5),
+            (0, c.0 + 9, c.1),
+            (0, c.0 + 20, c.1),
+        ]);
+        s.buildings[b[3]].active = true;
+        s.buildings[b[4]].under_attack = 2;
+        // Range 0x300 is ring 1: the circle walk.
+        assert_eq!(s.find_construct_sites(u, 0x300), vec![b[1], b[0]]);
+    }
+
+    #[test]
+    fn a_site_in_another_region_is_not_found() {
+        let (mut s, u, b) = land(&[(0, 2 * 768 + 300, 2 * 768 + 300)]);
+        s.world.set_region(Cell::new(3, 2), 1);
+        s.buildings[b[0]].pos = Pos::new(3 * 768 + 10, 2 * 768 + 10);
+        assert!(s.find_construct_sites(u, 0x300).is_empty());
+        s.world.set_region(Cell::new(3, 2), 0);
+        assert_eq!(s.find_construct_sites(u, 0x300), vec![b[0]]);
+    }
+
+    #[test]
+    fn the_list_walk_measures_the_x_offset_twice_less_the_footprint() {
+        // Range 0x2400 is ring 12, 452 points: past `num_def_builds`, so the list walk.
+        let here = 2 * 768 + 100;
+        // Straight north, 1500 units away: the original never reads the y offset.
+        let (s, u, b) = land(&[(0, here, here + 3 * 768), (0, here + 0x2500, here)]);
+        assert_eq!(s.find_construct_sites(u, 0x2400), vec![b[0]]);
+    }
 }
