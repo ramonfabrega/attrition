@@ -55,6 +55,62 @@ pub struct Node {
 /// A piece with no row here launches from the unit's own position, which
 /// is what every shot in this crate did before run109.
 const MEASURED: &[(i32, i8, u32, Node)] = &[
+    // **122 is `CROSSBOWMEN`** (unit type 172) **and 138 `CAVARCHERS`**
+    // (type 188, the French Heavy Horse Archer; item 3347, run982 on the
+    // French Great Sahara seed, `AMMO=5` over `[13416, 14093]`): the four
+    // first rounds of who=1's archers on 13822–13839, each the guy's pose on
+    // the block before its first print against the round's `sx, sy, sz` —
+    // `1/41`'s `CHAR_ATTACK2` frame 3, guy (10008, 30984) at −1120927744,
+    // (9943, 30974, 707) over a guy `z` of 573; `1/42`'s `CHAR_ATTACK1`
+    // frame 5, (9624, 31176) at −1057882112, (9540, 31165, 769) over 603;
+    // `1/43`'s `CHAR_ATTACK3` frame 6, (9672, 30984) at −1130299392,
+    // (9596, 30977, 758) over 597; and the Cavalry Archer `1/39`'s
+    // `CHAR_ATTACK3` frame 20, (9480, 30936) at −1535115264, (9401, 30970,
+    // 842) over 614. One shot each: the radius is the only one that fits
+    // and the bearing the middle of its exact fits. Without them the
+    // rounds left from the guy, `1/39`'s flew 14 frames against 13 and was
+    // still airborne where theirs had rolled to the ground on 13843
+    // (`docs/AI.md` §278).
+    (
+        122,
+        crate::anim::ATTACK1,
+        5,
+        Node {
+            bearing: 77_676_544,
+            radius: 84,
+            dz: 166,
+        },
+    ),
+    (
+        122,
+        crate::anim::ATTACK2,
+        3,
+        Node {
+            bearing: 157_679_616,
+            radius: 65,
+            dz: 134,
+        },
+    ),
+    (
+        122,
+        crate::anim::ATTACK3,
+        6,
+        Node {
+            bearing: 123_879_424,
+            radius: 76,
+            dz: 161,
+        },
+    ),
+    (
+        138,
+        crate::anim::ATTACK3,
+        20,
+        Node {
+            bearing: 185_516_032,
+            radius: 85,
+            dz: 228,
+        },
+    ),
     // **49 is `MUSKETEERS`** (unit type 99; item 3336, run971 on the
     // Egyptian Great Sahara seed, `AMMO=5` over `[20368, 20380]`): the
     // Musketeer's two release events a round of run971 leaves from —
@@ -1918,6 +1974,72 @@ mod tests {
         }
     }
 
+    /// run982's four first rounds (item 3347): `(piece, anim, starttime,
+    /// guy x, y, z, angle, sx, sy, sz)`, the dump's own columns, reproduced
+    /// to the unit.
+    #[test]
+    fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
+        const M: &[(i32, i8, u32, i32, i32, i32, i32, i32, i32, i32)] = &[
+            (
+                122,
+                crate::anim::ATTACK2,
+                3,
+                10008,
+                30984,
+                573,
+                -1_120_927_744,
+                9943,
+                30974,
+                707,
+            ),
+            (
+                122,
+                crate::anim::ATTACK1,
+                5,
+                9624,
+                31176,
+                603,
+                -1_057_882_112,
+                9540,
+                31165,
+                769,
+            ),
+            (
+                122,
+                crate::anim::ATTACK3,
+                6,
+                9672,
+                30984,
+                597,
+                -1_130_299_392,
+                9596,
+                30977,
+                758,
+            ),
+            (
+                138,
+                crate::anim::ATTACK3,
+                20,
+                9480,
+                30936,
+                614,
+                -1_535_115_264,
+                9401,
+                30970,
+                842,
+            ),
+        ];
+        for &(piece, anim, t, gx, gy, gz, ga, sx, sy, sz) in M {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), piece, anim, t, 0);
+            let z = gz + release_dz(piece, anim, t, 0).unwrap_or(0);
+            assert_eq!(
+                (got.x, got.y, z),
+                (sx, sy, sz),
+                "piece {piece} anim {anim} t {t}"
+            );
+        }
+    }
+
     /// A piece nothing has measured keeps the old behaviour exactly.
     #[test]
     fn an_unmeasured_piece_launches_from_the_unit() {
@@ -1946,6 +2068,8 @@ mod tests {
     /// keys the event walk never reaches. **49**, the Musketeer's two, are
     /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4. **842**, the
     /// Horse Archer's three, are run973e/f's (item 3338): keys 18, 16, 20.
+    /// **122**, the Crossbowman's three, and **138**, the Cavalry Archer's
+    /// `CHAR_ATTACK3`, are run982's (item 3347): keys 5, 3, 6 and 20.
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -1956,12 +2080,16 @@ mod tests {
             vec![
                 (49, crate::anim::ATTACK1, 1),
                 (49, crate::anim::ATTACK3, 4),
+                (122, crate::anim::ATTACK1, 5),
+                (122, crate::anim::ATTACK2, 3),
+                (122, crate::anim::ATTACK3, 6),
                 (127, crate::anim::ATTACK1, 6),
                 (127, crate::anim::ATTACK1, 22),
                 (127, crate::anim::ATTACK2, 4),
                 (127, crate::anim::ATTACK2, 22),
                 (127, crate::anim::ATTACK3, 10),
                 (127, crate::anim::ATTACK3, 24),
+                (138, crate::anim::ATTACK3, 20),
                 (384, crate::anim::ATTACK1, 21),
                 (384, crate::anim::ATTACK2, 22),
                 (472, crate::anim::ATTACK1, 12),

@@ -33,9 +33,14 @@ pub(crate) const FRENCH: Lobby = Lobby {
     // arm (`FRENCH_SIEGE_SPEED`, the Siege Factory `1/2026`'s Trebuchet
     // 30000 → 24000, born on 13422): 13422 → 13843, ours 8 draws, theirs
     // 10, at 5 ours `Farms::inc_time+0x1ae`, theirs
-    // `Ammo::do_damage+0xc59`.
-    count: 13843,
-    sequence: 13843,
+    // `Ammo::do_damage+0xc59`. Item 3347, the Crossbowman's and the
+    // Cavalry Archer's release nodes (`launch::MEASURED`, pieces 122 and
+    // 138; `1/39`'s round from (9401, 30970, 842), not its guy's (9480,
+    // 30936, 614), 13 frames against 14): 13843 → 14604, ours 15 draws,
+    // theirs 16, at 6 ours `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`,
+    // theirs `Unit::fight+0x9b0`.
+    count: 14604,
+    sequence: 14604,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
