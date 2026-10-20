@@ -2985,6 +2985,56 @@ fn a_new_city_s_ai_record_is_nine_open_one_filled() {
     );
 }
 
+/// **An American's first wonder takes one frame of clock** (item 3374,
+/// `docs/CITIES.md` §3.2 (a)): `construct_time@0062d5c0`'s first arm, on
+/// tribe bonus `0x14`, a leader that holds and has built no wonder, not
+/// the Supercollider or the Space Program, and no other player's site of
+/// the same wonder unfinished. run999c's Pyramids `1/2031` stood at
+/// `construct_hits` 2200 on block 17209 against ours' 1101.
+#[test]
+fn an_american_first_wonder_is_instant_unless_a_rival_builds_it() {
+    let mut sim = world_sim();
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let t = install_types(&mut sim);
+    let wonder = |sim: &mut Sim, k: usize| {
+        let mut w = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+        w.ident = Ident::default();
+        w.wonder = true;
+        w.tree = Some(line[k]);
+        sim.add_build_type(w)
+    };
+    let pyramids = wonder(&mut sim, tech::wonder::PYRAMIDS);
+    let collider = wonder(&mut sim, tech::wonder::SUPERCOLLIDER);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let _ = city_at(&mut sim, &t, 1, 56, 56);
+    sim.tech[0].power = Some(crate::nations::power::AMERICANS);
+    let c = sim.place_building(0, collider, tile_pos(32, 25)).unwrap();
+    assert_eq!(
+        sim.construct_time_of(c),
+        sim.buildings[c].constr_time,
+        "never the Supercollider"
+    );
+    sim.buildings[c].alive = false;
+    let p = sim.place_building(0, pyramids, tile_pos(32, 25)).unwrap();
+    let full = sim.buildings[p].constr_time;
+    assert!(full > 1);
+    assert_eq!(sim.construct_time_of(p), 1, "the first wonder");
+    sim.tech[0].power = None;
+    assert_eq!(sim.construct_time_of(p), full, "not American");
+    sim.tech[0].power = Some(crate::nations::power::AMERICANS);
+    let r = sim.place_building(1, pyramids, tile_pos(56, 49)).unwrap();
+    assert_eq!(sim.construct_time_of(p), full, "a rival's unfinished site");
+    finish(&mut sim, r);
+    assert_eq!(sim.construct_time_of(p), 1, "a rival's finished one");
+    finish(&mut sim, p);
+    assert_eq!(sim.construct_time_of(p), full, "one already built");
+}
+
 /// **Tikal's temple bonus is `has_wonder(0x214)`'s** (item 2106): a held,
 /// finished Tikal multiplies a templed city's `TEMPLE_UPGRADE_HP` by
 /// `TIKAL_TEMPLE_HP` (Great Sahara's six templed cities, `myhits` 16250 →

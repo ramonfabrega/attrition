@@ -1705,9 +1705,10 @@ impl Sim {
     /// read live (item 3374): an American leader's wonder — not the
     /// Supercollider or the Space Program — while the leader holds and has
     /// built none (`get_wonders() == 0 && wonders_built == 0`; this crate
-    /// reads both off the census's `wonder_mark`, a high-water mark that
-    /// only an activation raises, or off its active wonders without a
-    /// census) and no other player has the same wonder unfinished
+    /// reads both as the census's `wonder_mark`, a high-water mark that
+    /// only an activation raises, at zero and no active wonder of its own
+    /// standing — the census is the sweep's, a frame behind an activation,
+    /// and a human leader's is never swept) and no other player has the same wonder unfinished
     /// (`WallData::is_active`, flag 4, clear). run999c's who=1 held its
     /// Pyramids site `1/2031` at `construct_hits` 2200 on block 17209,
     /// ours at 1101, and finished it on 17214.
@@ -1733,17 +1734,16 @@ impl Sim {
         }) {
             return false;
         }
-        let none_yet = self.ai.get(who as usize).map_or_else(
-            || {
-                !self.buildings.iter().any(|x| {
-                    x.alive
-                        && x.active
-                        && x.owner == who
-                        && x.ty.is_some_and(|k| self.build_types[k].wonder)
-                })
-            },
-            |a| a.census.wonder_mark == 0,
-        );
+        let none_yet = self
+            .ai
+            .get(who as usize)
+            .is_none_or(|a| a.census.wonder_mark == 0)
+            && !self.buildings.iter().any(|x| {
+                x.alive
+                    && x.active
+                    && x.owner == who
+                    && x.ty.is_some_and(|k| self.build_types[k].wonder)
+            });
         none_yet
             && !self
                 .buildings
