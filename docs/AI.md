@@ -24826,7 +24826,7 @@ engine that packs), which leaves its `AttackTo` group move on 14991 for an `ATTA
 capital at (3168, 30816). It is `find_attack_pos`'s bombard ring (§17 of `docs/COMBAT.md`; a computer's siege engine
 against a building): the cut after the first draw leaves fifteen iterations, so theirs found all fifteen candidates
 clear, and a probe (`RON_PROBE_RING`, reverted whole) showed ours rejecting three of them on forest tiles it holds
-blocked — (29, 144), (28, 144), (21, 141), mask `0xf038`. That was the forest's hypothesis, and the value killed it:
+blocked — (29, 144), (28, 144), (21, 141), all three forest. That was the forest's hypothesis, and the value killed it:
 run1005's block 14992 has `1/70`'s `MOVEORDER` to **(7368, 29544)**, none of ours' sixteen candidates, on the north-east
 corner arc at about 3552 from the corner — 19 tiles' stand-off (`19 × 0xc0 − 0x60`) where ours stood 16's 2976.
 `UnitData::max_range@0060fe90`'s siege arm adds `TURK_SIEGE_RANGE` (3) for a type that `is_siege` (vslot `+0x10c`) of

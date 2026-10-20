@@ -405,7 +405,9 @@ impl Sim {
     ///
     /// SEAM: the same arm's Liberty (`0x219`, `LIBERTY_SIEGE_RANGE`) and
     /// Eiffel (`0x21c`, `EIFFEL_SIEGE_RANGE`) wonders are not carried; no
-    /// capture holds a siege unit of a leader with either.
+    /// capture holds either wonder (scan: `grep -h '^    wonder [0-9]'
+    /// gamelog*.txt`, no wonder held in the 66 of 573 dumps that print
+    /// `WONDERS`).
     fn siege_unit_range(&self, o: Obj) -> i32 {
         let Obj::Unit(u) = o else {
             return 0;
