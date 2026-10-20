@@ -1144,12 +1144,6 @@ impl ScriptHost<'_> {
         // — `economic.bhs`'s population preamble, then its step 24 — gets 0
         // the second time (item 3343: the Bantu word 4376, `docs/AI.md`
         // §276).
-        if std::env::var_os("RON_PROBE_HOST").is_some() {
-            eprintln!(
-                "  research f{} t{t} charges {charges:?} bucket {:?} escrow {:?} paid {paid}",
-                self.sim.frame, self.sim.ledgers[w as usize].bucket, self.sim.ledgers[w as usize].escrow
-            );
-        }
         if !paid || self.sim.researching(w, t) || !self.sim.buildings[b].queue.has_room() {
             return NO;
         }
