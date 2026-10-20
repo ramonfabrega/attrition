@@ -2,7 +2,7 @@
 //! (item 3364): the rows of `tools/emu/sweep_build_type_data_blocked_location*.py`
 //! as a [`LocationView`], answered call by call to
 //! [`blocked_location_steps`]. Shared by the sweep's variants, whose windows
-//! are laid alike (`genflags.py`'s layout, three live leaders of eight, three
+//! are laid alike (`genflags.py`'s layout, three live leaders of eight (0, 1 and 7), three
 //! cities and two forts a leader, two objects a leader, two kinds of three
 //! `get_build` objects).
 //!
@@ -31,6 +31,12 @@
 use crate::location::{Konst, LocArgs, LocationView, blocked_location_steps};
 
 const R: usize = 3;
+/// The leaders that live: slot `k` of the placed records is leader `LIVE[k]`.
+const LIVE: [i32; R] = [0, 1, 7];
+
+fn slot(i: i32) -> usize {
+    LIVE.iter().position(|&p| p == i).expect("a live leader")
+}
 const NC: usize = 3;
 const NF: usize = 2;
 const NO: usize = 2;
@@ -131,7 +137,7 @@ impl Emu<'_> {
         rd(&self.c[4], 4 * i as usize)
     }
     fn list_win(fort: bool, i: i32) -> usize {
-        W_UCITY + 2 * i as usize + usize::from(fort)
+        W_UCITY + 2 * slot(i) + usize::from(fort)
     }
     fn tab_win(fort: bool, i: i32) -> usize {
         (if fort { P_UFORT_TAB } else { P_UCITY_TAB }) + 2 * i as usize
@@ -150,17 +156,17 @@ impl Emu<'_> {
         self.ans(0) != 0
     }
     fn city_rec(i: i32, j: i32) -> usize {
-        W_CITIES + (1 + NC) * i as usize + 1 + j as usize
+        W_CITIES + (1 + NC) * slot(i) + 1 + j as usize
     }
     fn fort_rec(i: i32, j: i32) -> usize {
-        W_FORTS + (1 + NF) * i as usize + 1 + j as usize
+        W_FORTS + (1 + NF) * slot(i) + 1 + j as usize
     }
     fn obj_rec(i: i32, idx: i32) -> usize {
         assert!((0..NO as i32).contains(&idx), "object {idx}");
-        W_OBJS + (1 + NO) * i as usize + 1 + idx as usize
+        W_OBJS + (1 + NO) * slot(i) + 1 + idx as usize
     }
     fn obd(i: i32, idx: i32) -> usize {
-        W_OBJX + 4 * i as usize + 2 * idx as usize + 1
+        W_OBJX + 4 * slot(i) + 2 * idx as usize + 1
     }
     fn finish(&mut self) {
         // `--record-order` prints `-` for a row that called nothing.
