@@ -922,130 +922,25 @@ impl Sim {
             self.do_cast_targeted(u, order);
             return;
         }
-        if !order.paid
-            && let Some(front) = self.units[u].orders.front_mut()
-            && let crate::orders::Body::Cast(c) = &mut front.body
-        {
-            c.paid = true;
-            // `pay_cast_costs@00676c40`: a unit caster's `mana_burn` takes
-            // the craft's `MANA` (`+0x1d0`) — Create Decoys' 1,000 on the
-            // General (`docs/GOLDEN.md` §48); the pack, unpack and
-            // transport crafts ask none.
-            let mana = self.spell(s).map_or(0, |d| d.mana);
-            self.units[u].mana_burn = self.units[u]
-                .mana_burn
-                .saturating_add(i16::try_from(mana).unwrap_or(i16::MAX));
-        }
-        if self.units[u].spell_time == 0 {
-            let packed = self.units[u].combat.packed;
-            let anim = if spell::is_pack(s) {
-                if packed {
-                    self.kill_current_order(u);
-                    return;
-                }
-                // `005ecb3a`–`005ecb7e`: **a merchant is re-pieced as the
-                // pack begins** — `scene->recalc_builds = 1` (interface)
-                // and `Unit::update_gpiece`, whose `Guy::update_gpiece`
-                // reads a merchant as packed while its current order is a
-                // pack (`005d8530`, [`Sim::update_gpiece`]). run995's
-                // `1/1` (`MERCHANTDUTCH`) is the diff: on block 311, the
-                // pack's first, its figure 0 is on piece 6348 with
-                // `end_time` 149 in theirs and stayed on the deployed 12
-                // with 3 in ours (item 3369, `docs/AI.md` §285).
-                if self.is_merchant(u) {
-                    self.update_gpiece(u);
-                }
-                // `005ecb7e`: `Unit::set_angle(guy 0's angle)` before the
-                // animation, for **every** packing unit — see the unpack
-                // arm's note (item 1517, `docs/AI.md` §137).
-                let facing = self.units[u].movement.facing;
-                self.unit_set_angle(u, facing);
-                crate::anim::PACK
-            } else if spell::is_unpack(s) {
-                if !packed {
-                    self.kill_current_order(u);
-                    return;
-                }
-                // **The rare collector's re-seat**, `005eca9c`–`005ecb0d`,
-                // between the packed test and the animation. It is the
-                // last thing `do_cast` does before `set_anim`, and for a
-                // merchant it is three calls: `good_merchant_spot` on the
-                // unit's own tile, which kills the order when it answers
-                // no; `Unit::set_new_location(centre, 1, 1)` onto the
-                // **unit-cell** centre of where it stands
-                // (`div_3_table[(x ^ 0x63637) >> 4] * 0x30 + 0x18`); and
-                // `Unit::set_angle(guy 0's angle)`.
-                //
-                // The point is almost always the one the unit already
-                // holds — a merchant walks to a tile corner and stops on
-                // a cell centre — so what the call is *for* is its third
-                // argument: the crew loop **puts** every tracked figure
-                // on its offset instead of leaving it to walk after the
-                // leader. See [`Sim::set_new_location`].
-                if self.is_rare_collector(u) {
-                    let tile = self.units[u].pos.tile();
-                    if !self.good_merchant_spot(u, tile) {
-                        self.kill_current_order(u);
-                        return;
-                    }
-                    let seat =
-                        crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
-                    self.set_new_location(u, seat, true);
-                }
-                // `005ecbe0`, **outside** the collector's block: both the
-                // collector's arm and everything else's jump here. The
-                // unit's own angle is set to guy 0's — the figure's
-                // *current* angle — and every crew figure's `des_angle` and
-                // `des` are re-derived from it (`crew_des`, no snap). A
-                // Bombard that has just arrived and is still turning to
-                // its march heading unpacks facing where its body points,
-                // not where the unit was going (item 1517: Toughest 15101).
-                let facing = self.units[u].movement.facing;
-                self.unit_set_angle(u, facing);
-                crate::anim::UNPACK
-            } else if self.is_hero_unit(u)
-                && matches!(s, spell::AMBUSH | spell::FORCED_MARCH | spell::RALLY)
-            {
-                // A hero's three crafts of its own (`005eca5b`–`005eca9a`):
-                // an attack slot each, asked with the third argument 0.
-                match s {
-                    spell::AMBUSH => crate::anim::ATTACK1,
-                    spell::FORCED_MARCH => crate::anim::ATTACK2,
-                    _ => crate::anim::ATTACK3,
-                }
-            } else {
-                crate::anim::DEFAULT
+        // The head, the animation and the clock, `crate::do_cast_view`: the
+        // craft the rest acts on, the once-only cost (`pay_cast_costs@00676c40`:
+        // a unit caster's `mana_burn` takes the craft's `MANA` — Create Decoys'
+        // 1,000 on the General, `docs/GOLDEN.md` §48; the pack, unpack and
+        // transport crafts ask none), the pack, unpack, hero and boat
+        // animations (`docs/AI.md` §137, §285), and the clock to the job time.
+        // The captain's wait and everything after it are below.
+        let s = {
+            let mut v = crate::do_cast_view::SimDoCast {
+                sim: &mut *self,
+                u,
+                order,
             };
-            let reroll = !matches!(
-                anim,
-                crate::anim::ATTACK1 | crate::anim::ATTACK2 | crate::anim::ATTACK3
-            );
-            self.mark(crate::anim::SITE_CAST);
-            self.set_anim(u, anim, false, reroll);
-            if s == spell::TRANSPORT {
-                let barge = self.transport_type_for(u);
-                let spot = barge.and_then(|b| {
-                    self.find_nearby_spot_type(
-                        b,
-                        self.units[u].pos,
-                        0,
-                        self.tuning.unit_board_distance,
-                        0,
-                        BOARD_BEARING,
-                    )
-                });
-                if spot.is_none() {
-                    self.kill_current_order(u);
-                    return;
-                }
+            match crate::do_cast_view::do_cast_clock_steps(&mut v) {
+                crate::do_cast_view::DoCastFlow::Due { craft, .. } => craft,
+                crate::do_cast_view::DoCastFlow::Ended
+                | crate::do_cast_view::DoCastFlow::Targeted { .. } => return,
             }
-        }
-        self.cast_blow(u, s, true);
-        self.units[u].spell_time += 1;
-        if self.units[u].spell_time < self.cast_job_time(u, s) {
-            return;
-        }
-        self.cast_blow(u, s, false);
+        };
         // **The member waits on its captain's cast** (`005ecd9c`–`005ecdf0`,
         // item 2077, `docs/AI.md` §207): for `0x28a` alone, a figure that is
         // not a captain whose `get_captain`'s current order is
@@ -1222,7 +1117,7 @@ impl Sim {
     /// caravan, `current_upgrade(TRANSPORTBARGE)` for everything else, each
     /// falling back to its base type — which `TechTree::current_upgrade`
     /// already does by returning what it was given.
-    fn transport_type_for(&self, u: usize) -> Option<usize> {
+    pub(crate) fn transport_type_for(&self, u: usize) -> Option<usize> {
         let base = if self.unit_is(u, ty::CARAVAN) {
             ty::MERCHANTFLEET
         } else {

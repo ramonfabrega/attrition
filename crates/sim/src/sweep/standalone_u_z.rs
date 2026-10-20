@@ -196,6 +196,12 @@ mod unit_do_attack_neg;
 mod unit_do_board;
 #[path = "unit_do_build.rs"]
 mod unit_do_build;
+#[path = "do_cast_emu.rs"]
+mod do_cast_emu;
+#[path = "unit_do_cast_anim.rs"]
+mod unit_do_cast_anim;
+#[path = "unit_do_cast_head.rs"]
+mod unit_do_cast_head;
 #[path = "unit_do_explore_to.rs"]
 mod unit_do_explore_to;
 #[path = "unit_do_flee_to.rs"]
