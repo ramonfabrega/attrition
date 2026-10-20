@@ -108,7 +108,9 @@ fn the_emulated_original_agrees_on_every_row() {
                 fn remove_group(&mut self, id: i32) {
                     self.log.push(format!("s1:m+0x0,{id}"));
                 }
-                fn unit_type_field(&self, _who: i32, unit: i32) -> i32 {
+                fn unit_type_field(&self, who: i32, unit: i32) -> i32 {
+                    // The cell read is `units + who * 0x1c`: the ptrtab sits at the army's own player.
+                    assert_eq!(who, self.who());
                     rd(&self.p[41 + unit as usize], 0x14)
                 }
             }
