@@ -8818,13 +8818,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LN — reserved
+## Parked by item 3374, 2026-10-20 — the American word
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3374a.** The free first wonder (`docs/AI.md` §287) reads the census's `wonder_mark` and the standing wonders for
+`get_wonders`/`wonders_built`; the leader's own `wonders_built` (`+0x854`) is not carried, so a leader whose only
+wonder was destroyed reads "none yet", and the rival scan does not test the rival leader's alive flag
+(`leaders[p] & 1`). No capture on disk reaches either; names no score.
 
 ## Parked by the next landing, slot LO — reserved
 

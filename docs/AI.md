@@ -24695,12 +24695,56 @@ held) and `run993d_s_word_frame_is_widened_whole` (mutation: the pre-strip push,
 (mutation: the landing's hand-back without the boat's clear, held),
 `a_trade_walker_s_region_push_carries_the_stripped_road_flag` (mutation: the pre-strip push, held).
 
-## 287. Reserved for the next item on the AI track
+## 287. The battery's American word closes: three American bonuses the cost and the clock read
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3374, 2026-10-20, Opus 5.5. `EastIndiesAmericanTier1` (map 18, tier 1, the Americans' battery game),
+promoted out of the battery to a scored word at 9382 of 24000. Runs 998 and 998b (the battery's replacement), 999,
+999b and 999c (the word's three windows).*
+
+**The replacement.** Entry 72's rule (2) as amended by 84, agreed with the commander before the capture: of the
+nations no map-18 dump holds, the Aztecs and the Greeks tie at seven census functions once the Iroquois went to
+item 3369; item 3367's tie-break (the lobby moves both map and tier off the nation's only games) gives the Aztecs.
+`EastIndiesAztecTier1` ran 24000 of 24000 on its first try (run998, run998b).
+
+**Three frames, three arms, one predicate each.**
+
+- *9382: an American land unit's upgrade costs a quarter less.* `get_cost@00664090:528`–`531` takes
+  `AMERICANS_UPGRADE_DISCOUNT` (25) off an upgrade when `has_tribe_bonus(0x14)` and the type's `UnitTypeData +0x218`
+  is 0 (land), the step before the Dutch ship arm's. On 9382 theirs spent two `use_market+0x1ed` sell passes and
+  placed no building; ours one, and placed one. Built as `Tuning::americans_upgrade_discount` and
+  `cost::Research::american_land`, set in `Sim::research_modifiers`. The value diff, run999 block 9376: who=1's
+  `bucket[0:food]` ours 87, theirs 107, `bucket[4:metal]` 158 against 178; with the arm both agree. The window 601 → 51.
+- *10982: a government costs an American leader nothing.* `get_cost:1048`–`1053`, right after `TECH_COST_FACTOR`:
+  `TypeData::is_gov_type@004706a0` and `has_tribe_bonus(0x14)` zero the price. On 10982 theirs queued Republic
+  (`num_queued[624]`) and a Dock, two `make_stuff+0x63d` draws, paying only the Dock's timber; ours paid Republic's
+  70 food and 70 metal and made nothing more. Both sides choose the same government (a probe, reverted whole: ours'
+  tree id 623 is column 1, TypeIndex 624). Built in `Sim::tech_price`. The value diff, run999b block 10983: who=1's
+  `bucket[0:food]` 64 against 134, `bucket[4:metal]` 27 against 97, make-list row 8's `val` 5358976 against 53589;
+  with the arm all agree. The window 575 → 55.
+- *17215: the first wonder is built in a frame.* `construct_time@0062d5c0`'s first arm (`docs/CITIES.md` §3.2 (a)):
+  `ClockMods::free_first_wonder`, until now set only by a test (parked 3261c), is set by `Sim::american_free_wonder`
+  — a wonder, neither the Supercollider nor the Space Program, an American leader with no census `wonder_mark` and
+  no wonder of its own standing, and no other player's unfinished site of the same type (`WallData::is_active`,
+  flag 4). The value diff, run999c block 17209: the Pyramids `1/2031`'s `construct_hits` ours 1101, theirs 2200, and
+  who=1's `wonder_mark` 0 against 1 on 17214; with the arm both agree. The window 879 → 50.
+
+With all three the draw stream agrees to the long's last frame, **9382 → 10982 → 17215 → 24000**, and
+`run955b_american_closing_state` walks to run955b's closing block 24001 and compares 79 units with none apart and no
+closing field (the human's `0/4` torn, the dump's own).
+
+**Not established.** The leader's own `wonders_built` (`+0x854`) is not carried; the free first wonder reads the
+census's `wonder_mark` and the standing wonders in its place, so a leader whose only wonder was destroyed reads "none
+yet" here. The rival scan does not test the rival leader's alive flag (`leaders[p] & 1`). Which upgrade block
+9376's 20 food and 20 metal paid for: the arithmetic (a quarter of 80 and 80) is inferred (parked 3374a).
+
+**Coverage.** Diff-backed: all three arms by `american_word_first_parting` (24000) and the three windows'
+`run999_s_word_frame_is_widened_whole` (51), `run999b_…` (55) and `run999c_…` (50); the close by
+`run955b_american_closing_state`. Sim tests: `cost::tests::an_american_land_upgrade_costs_a_quarter_less`,
+`ai_research::tests::an_american_government_is_free`,
+`cities_tests::an_american_first_wonder_is_instant_unless_a_rival_builds_it`. Mutations through `tools/mutate.py`,
+all held by name: `american_land` → 0 (the word, 9382); the cost step dropped (the cost test); the government zero
+dropped (the word, 10982; the government test); `free_first_wonder` unset (the word, 17215); the rival scan
+disabled (the wonder test).
 
 ## 288. Reserved for the next item on the AI track
 
