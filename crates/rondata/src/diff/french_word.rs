@@ -288,7 +288,14 @@ fn run977b_french_closing_state() {
     // 1198, uncaptured. The city's damage parts somewhere past
     // run982b's window, with no draw (run982c, a stride over
     // 14855..16765, is the window that finds it).
-    pin_eq!(e.counts(), [0, 0, 0, 4, 0, 1, 0], "the closing counts");
+    // Item 3359: [0, 0, 0, 4, 0, 1, 0] -> all zeros. The French Dragoon
+    // (piece 139) is a pivot piece, and its rounds leave from the pivot
+    // branch (`pivot::RELEASES`, run985b's packet): `1/39`'s `CHAR_ATTACK2`
+    // round on `0/2000`, block 16764, from (6805, 31302, 872) with
+    // `total_time` 2 in theirs and (6792, 31368) with 3 in ours, now theirs'
+    // own, so it lands on 16764 with `1/42`'s and the city falls on the
+    // last frame on both sides.
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// run982d: the game's last blocks, 16740..16764 at `GUYS=2`, `AMMO=5`

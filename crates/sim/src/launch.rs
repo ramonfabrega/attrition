@@ -118,8 +118,8 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
     // guy (7944, 30840) at −990642176, (7860, 30861, 883) over 658; and as
     // a Dragoon from the same pose, `CHAR_ATTACK1` frame 12 on 14002,
     // (7794, 30874, 881), and `CHAR_ATTACK3` frame 18 on 14039, (7797,
-    // 30845, 866). The Dragoon's `CHAR_ATTACK2` (frame 13) fires on 14188,
-    // past the window, and is not measured.
+    // 30845, 866). The Dragoon's own rows went to `pivot::RELEASES` (item
+    // 3359): piece 139 is a pivot piece, and run985b's packet holds them.
     (
         138,
         crate::anim::ATTACK1,
@@ -137,26 +137,6 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
         Node {
             bearing: 304_234_496,
             radius: 94,
-            dz: 208,
-        },
-    ),
-    (
-        139,
-        crate::anim::ATTACK1,
-        12,
-        Node {
-            bearing: -233_406_464,
-            radius: 153,
-            dz: 223,
-        },
-    ),
-    (
-        139,
-        crate::anim::ATTACK3,
-        18,
-        Node {
-            bearing: -103_956_480,
-            radius: 147,
             dz: 208,
         },
     ),
