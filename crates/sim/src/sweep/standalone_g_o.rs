@@ -608,6 +608,8 @@ mod object_data_say_name;
 mod object_data_support;
 #[path = "object_data_valid_target_const.rs"]
 mod object_data_valid_target_const;
+#[path = "object_die.rs"]
+mod object_die;
 #[path = "object_disband.rs"]
 mod object_disband;
 #[path = "object_eject_contents.rs"]

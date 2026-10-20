@@ -3403,13 +3403,31 @@ impl Sim {
     /// the transport that dies putting its passenger ashore
     /// ([`Sim::disembark`]), attrition, the upgrade's squad trim.
     pub(crate) fn hold_dead_slot(&mut self, i: usize) {
-        let mut hold = Self::CLOSE_HOLD;
-        for p in &self.projectiles {
-            if p.shooter == Obj::Unit(i) {
-                hold = hold.max(Self::NUKE_SPREAD + 1 + p.total_time - p.cur_time);
-            }
-        }
-        self.units[i].hold_frames = hold;
+        // The type's `+0x1fc` gate is a field this crate does not carry (no
+        // shipped type with a round in flight is known to hold it zero), so
+        // it is read as set; `die_hold_steps` takes it for the sweep.
+        let (who, idx) = (self.units[i].owner, self.units[i].index);
+        let ammo: Vec<DieAmmo> = self
+            .projectiles
+            .iter()
+            .filter(|p| p.shooter == Obj::Unit(i))
+            .map(|p| DieAmmo {
+                flags: 1,
+                who: i32::from(who),
+                idx: i32::from(idx),
+                total: p.total_time,
+                cur: p.cur_time,
+            })
+            .collect();
+        let hold = die_hold_steps(
+            u16::try_from(Self::CLOSE_HOLD).expect("0x1e"),
+            who as u8,
+            idx as i16,
+            true,
+            Self::NUKE_SPREAD,
+            &ammo,
+        );
+        self.units[i].hold_frames = i32::from(hold);
     }
 
     /// **`Object::close@00647160`'s hold**: the last write it makes to an
@@ -5840,6 +5858,46 @@ pub(crate) fn set_attack_steps<C, T: Copy, R: Default>(
         can = pivots(cx, g, t);
     }
     can
+}
+
+/// One live record of `GameAccess::objects`' array as `Object::die@00647080`
+/// reads it: the flag byte (`+4`), the shooter pair (`+0x3c` owner, `+0x40`
+/// slot) and the two times (`+0x24` current, `+0x28` total).
+#[derive(Clone, Copy)]
+pub struct DieAmmo {
+    pub flags: u8,
+    pub who: i32,
+    pub idx: i32,
+    pub total: i32,
+    pub cur: i32,
+}
+
+/// **`Object::die@00647080`'s tail** after the `close` it calls through
+/// vslot `+0x150` (which leaves `hold`): when the type's `+0x1fc` is set,
+/// every record with `flags & 3 != 0` whose shooter pair is this object
+/// raises the hold to `nuke + 1 + (total - cur)` (32-bit wrapping, compared
+/// signed); the hold is at least 1, and is stored as a short.
+pub fn die_hold_steps(
+    hold: u16,
+    who: u8,
+    idx: i16,
+    gate: bool,
+    nuke: i32,
+    ammo: &[DieAmmo],
+) -> u16 {
+    let mut v: i32 = 1;
+    if gate {
+        for a in ammo {
+            if a.flags & 3 != 0 && a.idx == i32::from(idx) && a.who == i32::from(who) {
+                let t = nuke
+                    .wrapping_add(1)
+                    .wrapping_add(a.total.wrapping_sub(a.cur));
+                v = v.max(t);
+            }
+        }
+    }
+    v = v.max(i32::from(hold));
+    v as u16
 }
 
 #[cfg(test)]
