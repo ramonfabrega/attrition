@@ -1592,7 +1592,7 @@ const CELL: i32 = 0x300;
 /// `Game::init_data@0058dca0`: `num_def_builds = 200`, the per-player
 /// building slot count, and the threshold `Objects::find_builds` compares
 /// its circle against.
-const NUM_DEF_BUILDS: usize = 200;
+pub(crate) const NUM_DEF_BUILDS: usize = 200;
 /// The 48-unit snap, `div_3_table[v >> 4] * 0x30 + 0x18`.
 ///
 /// Two callers in the original and they are the same arithmetic: every move
@@ -7997,49 +7997,40 @@ impl Sim {
     /// the **newest** object of a cell first. Nothing threads a building
     /// into `chain_heads` here (`docs/QUEUE.md` 48), so the within-cell
     /// half is descending slot order rather than a chain walk.
+    ///
+    /// The walk is [`crate::find_builds_view::find_builds_steps`] over
+    /// [`crate::find_builds_view::SimFindBuilds`]; `sweep::objects_find_builds`
+    /// runs it against the original under the emulator (item 3379). Its list
+    /// walk (past `num_def_builds`' circle) keeps a site when
+    /// `vector_dist(dx - 192 * x_size, dx - 192 * y_size) <= range`, `dx` the
+    /// **x** offset twice: the listing never reads the building's `+0x14`.
     pub(crate) fn find_construct_sites(&self, u: usize, range: i32) -> Vec<usize> {
+        use crate::find_builds_view::{
+            FILTER_CONSTRUCT, FindBuildsArgs, SEARCH_FRIENDLY, SimFindBuilds, find_builds_steps,
+        };
         let who = self.units[u].owner;
         let here = self.units[u].pos;
-        let Some(region) = self.world.region_of(here.cell()) else {
-            return Vec::new();
-        };
-        let mine: Vec<usize> = (0..self.buildings.len())
-            .filter(|&b| {
-                let bd = &self.buildings[b];
-                bd.alive && !bd.active && bd.owner == who && !bd.is_under_attack()
-            })
-            .collect();
-        if mine.is_empty() {
+        // The searcher's own cell has no region: nothing shares it, and the walk
+        // would match other regionless cells (`cell_region` reads them -1).
+        if self.world.region_of(here.cell()).is_none() {
             return Vec::new();
         }
-        let circle = crate::ai_place::circle();
-        let ring = Self::ring_index(range);
-        // The list path, when the circle is dearer than the object arrays.
-        if circle.radius[ring] > NUM_DEF_BUILDS {
-            return mine
-                .into_iter()
-                .filter(|&b| {
-                    let p = self.buildings[b].pos;
-                    self.world.region_of(p.cell()) == Some(region)
-                        && vector_dist(p.x - here.x, p.y - here.y) <= range
-                })
-                .collect();
-        }
-        let c0 = here.cell();
-        let mut out = Vec::new();
-        for i in 0..circle.radius[ring] {
-            let c = crate::world::Cell::new(c0.x + circle.x[i], c0.y + circle.y[i]);
-            if !self.world.contains(c) || self.world.region_of(c) != Some(region) {
-                continue;
-            }
-            out.extend(
-                mine.iter()
-                    .rev()
-                    .filter(|&&b| self.buildings[b].pos.cell() == c)
-                    .copied(),
-            );
-        }
-        out
+        let mut v = SimFindBuilds::new(self, usize::from(who));
+        find_builds_steps(
+            &mut v,
+            &FindBuildsArgs {
+                x: here.x,
+                y: here.y,
+                search: SEARCH_FRIENDLY,
+                who: i32::from(who),
+                range,
+                flags: 0x200,
+                filter: FILTER_CONSTRUCT,
+                p8: 0,
+                cont: 0,
+            },
+        );
+        v.out
     }
 
     /// `Objects::find_units(SEARCH_FRIENDLY, who, range, 0x200, …)`'s answer
