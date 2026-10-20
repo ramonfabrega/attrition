@@ -2272,17 +2272,15 @@ impl Sim {
         if self.build_types[ty].attack != 0 {
             self.defense_add(who, 1);
         }
-        // Chinese cities are founded as Large Cities.
-        if build::is_city(&self.build_types, ty)
-            && !captured
-            && self.nation[who as usize].chinese
-            && self.tuning.chinese_large_cities != 0
-            && self.build_types[ty].ident != Ident::ForbiddenCity
-            && let Some(town) = self.build_types.iter().position(|t| t.ident == Ident::Town)
-        {
-            self.buildings[b].ty = Some(town);
-            self.buildings[b].combat = Some(self.build_types[town].combat.unwrap_or_default());
-        }
+        // `Build::activate@00623e20`, entry to `Wall::activate`: the library
+        // hand-down and the Chinese Large City founding (`crate::activate`,
+        // item 3364). `Wall::activate` is the rest of this function.
+        crate::activate::activate_head_steps(
+            &mut crate::activate::SimHead { sim: self, b, who },
+            i32::from(captured),
+            0,
+            i32::from(counted),
+        );
         // The `Farms` list is joined at *placement* (`Sim::farms_add`), not
         // here — `Farms::add` runs from `Build::init`. This catches a farm
         // the harness stood up from a dump without going through it.

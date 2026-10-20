@@ -35,6 +35,7 @@
 //! unearned until something genuinely needs a fraction; anticipating it would
 //! only add rounding the original does not have.
 
+pub mod activate;
 pub mod ai;
 pub mod ai_build;
 pub mod ai_census;

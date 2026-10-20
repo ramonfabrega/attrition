@@ -160,6 +160,8 @@ mod borders_process_all;
 mod borders_remove_border_region;
 #[path = "borders_save_last_who.rs"]
 mod borders_save_last_who;
+#[path = "build_activate_head.rs"]
+mod build_activate_head;
 #[path = "build_add_attack_order.rs"]
 mod build_add_attack_order;
 #[path = "build_add_gather_point.rs"]
