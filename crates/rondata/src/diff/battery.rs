@@ -389,6 +389,30 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // and run955b, 9382 of 24000), minted by item 3314, left the battery on
     // item 3374 for the AI word (`diff::american_word`, DECISIONS 72, 83,
     // 84).
+    // The lobby minted by item 3374 (DECISIONS 72 rule (2) as amended by
+    // 84, `docs/AI.md` §287; runs 998 and 998b) when the Americans left for
+    // the AI word, so the held-out set stays eight: East Indies, the Aztecs
+    // at Difficulty 1 — no map-18 dump holds them; of the nations held only
+    // by closed games off East Indies the Aztecs and Greeks tie on the
+    // census's reach (7), and the Aztecs' lobby moves both map and tier off
+    // their only games (Great Sahara 2 and 5). The game does not end
+    // itself: the long runs to 24000.
+    Lobby {
+        name: "EastIndiesAztecTier1",
+        map_style: 18,
+        ai_tribe: 0,
+        difficulty: 1,
+        start: "gamelog-run998-eastindies-aztec-diff1-start.txt",
+        long: (
+            "gamelog-run998b-eastindies-aztec-diff1-24k-trace.txt",
+            "rontrace-run998b.log",
+        ),
+        length: 24000,
+        // Item 3374, the first try: the draw stream runs whole to the
+        // long's last frame, 24000 of 24000.
+        count: 24000,
+        sequence: 24000,
+    },
 ];
 
 /// **The measure, read at every pass** (`--ignored`): each lobby walked
