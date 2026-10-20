@@ -84,19 +84,13 @@ pub trait TradeView: GarrisonHead {
 
 /// `Group::action_trade(b, who, c, d, queue)`: `b` the building's index in
 /// `who`'s objects, `queue` in the original's numbering.
-pub fn action_trade_steps<V: TradeView>(
-    v: &mut V,
-    b: i32,
-    who: i32,
-    c: i32,
-    d: i32,
-    queue: i32,
-) {
+pub fn action_trade_steps<V: TradeView>(v: &mut V, b: i32, who: i32, c: i32, d: i32, queue: i32) {
     garrison_head(v);
     if !v.obj_slot0c(who, b) || !v.obj_slot4c(who, b) || !v.data_is_trade(who, b) {
         return;
     }
-    if v.count_type(COUNT_TYPE, TYPE_CARAVAN) == 0 && v.count_type(COUNT_TYPE, TYPE_TRADE_SHIP) == 0 {
+    if v.count_type(COUNT_TYPE, TYPE_CARAVAN) == 0 && v.count_type(COUNT_TYPE, TYPE_TRADE_SHIP) == 0
+    {
         return;
     }
     if queue == 0 {
@@ -128,14 +122,7 @@ pub fn action_trade_steps<V: TradeView>(
 
 /// One member of the walk: the listing's body from `00701f10` to
 /// `0070209a`.
-fn trade_member<V: TradeView>(
-    v: &mut V,
-    p: i32,
-    m: i32,
-    args: [i32; 4],
-    queue: i32,
-    target: i32,
-) {
+fn trade_member<V: TradeView>(v: &mut V, p: i32, m: i32, args: [i32; 4], queue: i32, target: i32) {
     if !v.obj_alive(p, m) || !v.obj_bc(p, m) {
         return;
     }
