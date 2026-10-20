@@ -126,7 +126,7 @@ fn run1009_s_word_frame_is_widened_whole() {
     let Some(w) = american_lakes_frame_3176_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -139,7 +139,13 @@ fn run1009_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3384, the first walk (the Americans' Barracks gather built, the
+    // word at the game's end): 34 keys, the standing family alone — on
+    // 3170 the leaders' `SITE[·].reg` and `aggression`, `form` of eleven
+    // units, the army pools and `group:N.held` with no `GROUPDATA` printed;
+    // `pool:64`/`group:64.held` on 3194 and who=1's `SITE[3].reg` on 3376,
+    // the same two families. Nothing on the word's block 3177.
+    pin_eq!(w.firsts.len(), 34, "keys that part in the window");
 }
 
 /// The closing state's window: run1004b's closing block alone, the long's
