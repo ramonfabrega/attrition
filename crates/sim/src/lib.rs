@@ -84,6 +84,7 @@ pub mod detour;
 pub mod diplomacy;
 pub mod disband;
 pub mod do_attack;
+pub mod do_cast_view;
 pub mod economy;
 pub mod eject;
 pub mod farms;
