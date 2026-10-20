@@ -10254,6 +10254,52 @@ mod tests {
         }
     }
 
+    /// **An idle melee-and-ranged type searches at its second range**
+    /// (`Unit::think_attack@005f5a80:167`–`174`, item 3383, `docs/AI.md`
+    /// §291): a type whose flags carry `0x400` has `max_range` 0 and its
+    /// range in `second_max_range`; `think_attack` swaps the second in for
+    /// its `find_melee_target`, whose radius at a `DEFENSIVE` stance is
+    /// `max(r × 0xc0, unit_defensive_respond_range × 0xc0)` — 1728 at the
+    /// Gun Mahout's 9 against a melee type's 768. A foe 1200 off is found
+    /// with the flag and not without it.
+    #[test]
+    fn an_idle_melee_and_ranged_type_searches_at_its_second_range() {
+        for flagged in [true, false] {
+            let (mut sim, foe_ty) = at_war();
+            sim.nation[0].human = false;
+            sim.lobby.difficulty = 5;
+            let mut ty = crate::UnitType {
+                hits: 100,
+                combat: Profile {
+                    attack: 40,
+                    max_range: 0,
+                    second_max_range: 9,
+                    combat_role: true,
+                    uber_size: 1,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            };
+            if flagged {
+                ty.cols.unit_flags |= crate::ai_load::uflags::MELEE_AND_RANGED;
+            }
+            let ty = sim.add_unit_type(ty);
+            let at = Pos::new(0x1200, 0x1200);
+            let me = put(&mut sim, 0, ty, at);
+            let foe = put(&mut sim, 1, foe_ty, Pos::new(at.x + 1200, at.y));
+            sim.units[me].combat.stance = combat::Stance::Defensive;
+            sim.units[me].idle = 1;
+            sim.think(me, 1);
+            assert_eq!(
+                sim.units[me].combat.target == Some(Obj::Unit(foe)),
+                flagged,
+                "flagged {flagged}: {:?}",
+                sim.units[me].orders
+            );
+            assert_eq!(sim.second_range, None);
+        }
+    }
+
     /// **A mandatory attack chases where a found one re-searches**
     /// (`Unit::fight@005fd4d0:1051`, `5fe108`/`5fe135`; item 2864): a
     /// packer's out-of-range attack carrying `mandatory` (`fight`'s third

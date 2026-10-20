@@ -91,9 +91,10 @@ impl crate::Sim {
     /// non-negative here.
     ///
     /// SEAM: the `ATTACK` action's exemption for a type with `unit_flags &
-    /// 0x400` (the two-mode cavalry archer of `docs/COMBAT.md` §8.5), and
-    /// `cavarch_fight`'s `max_range` swap for it. No shipped `v` type
-    /// carries `k`.
+    /// 0x400` (the two-mode cavalry archer of `docs/COMBAT.md` §8.5).
+    /// `cavarch_fight`'s `max_range` swap for it is built
+    /// ([`Self::with_second_range`], item 3383): the three Indian Mahouts
+    /// carry `k`.
     pub(crate) fn cavarch_head(&mut self, u: usize, frame: i64) {
         if !self.fires_on_move(u) || self.attack_of(Obj::Unit(u)) == 0 {
             return;
