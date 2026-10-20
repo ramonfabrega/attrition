@@ -21,6 +21,13 @@
 
 use crate::collide::{UCELLS_PER_CELL, UNITS_PER_UCELL};
 
+/// `-0x44` at `601425`: `max(0x600, (max_range + 4) × 0xc0)`, the
+/// distance from which a mandatory melee asker with no open slot walks to
+/// the target's cell rather than giving up (`601868`).
+fn melee_far(max_range: i32) -> i32 {
+    ((max_range + 4) * 0xc0).max(0x600)
+}
+
 /// Quarter-tiles to a tile — the `>> 2` `find_open_slots` applies before
 /// asking `invalid_loc` (`600f47`, `600f5e`).
 const UCELLS_PER_UTILE: i32 = 4;
@@ -218,7 +225,9 @@ impl crate::Sim {
                 if let Obj::Unit(t) = target
                     && !self.is_moving(t)
                 {
-                    return self.find_melee_pos(u, t, self.units[u].pos);
+                    return self
+                        .find_melee_pos(u, t, self.units[u].pos)
+                        .or_else(|| self.melee_far_spot(u, t));
                 }
             } else if d < p.min_range * 0xc0 - 6 && !bombard {
                 // SEAM (`6014f1`): the asker is inside its own dead zone
@@ -283,8 +292,66 @@ impl crate::Sim {
     /// guard's head mid-attack is the `ATTACK`: French East Indies' Elite
     /// Pikeman `1/115` on 17318 chased the Village `0/2000` from 1,948
     /// units off, where the original's dropped it and stood on its post.
-    pub(crate) fn attack_pos_refused(&self, u: usize, target: Obj) -> bool {
-        matches!(target, Obj::Building(_)) && self.guard_activity(u).is_some()
+    pub(crate) fn attack_pos_refused(&mut self, u: usize, target: Obj) -> bool {
+        match target {
+            Obj::Building(_) => self.guard_activity(u).is_some(),
+            Obj::Unit(t) => self.melee_slots_refused(u, t),
+        }
+    }
+
+    /// **`find_attack_pos`'s melee `return 0`** (`601803`–`601938`, item
+    /// 3385, `docs/COMBAT.md` §19): a melee asker against a unit standing
+    /// still whose [`Self::find_melee_pos`] finds no open slot gets the
+    /// target's own point in the out-parameters and **0** — unless its
+    /// current `ATTACK` is mandatory (`local_34`, the order's `+0x1c`,
+    /// `601475`) and the target stands at least [`melee_far`] off, where
+    /// it gets [`Self::melee_far_spot`] and 1. `Unit::fight`'s chase
+    /// branches on the 0 (`5fe186`) to [`Sim::chase_refused`], so it is a
+    /// refusal and not the fallback §19 first read it as. run1011d's
+    /// packet (logger frame 13277) walks the Inca Inti Maceman `1/92`
+    /// guarding its post through `find_melee_pos` to `601938` and then
+    /// `find_new_target`, which re-finds the woodcutter `0/3` and kills
+    /// the attack: a lone `GUARD` on block 13278.
+    ///
+    /// The `in range from where it stands` return and the moving
+    /// target's arm come first, as in [`Self::find_attack_pos`]; this is
+    /// asked only after it answered `None`.
+    fn melee_slots_refused(&mut self, u: usize, t: usize) -> bool {
+        let me = Obj::Unit(u);
+        if self.profile(me).max_range != 0 || self.is_moving(t) {
+            return false;
+        }
+        let target = Obj::Unit(t);
+        let d = self.attack_dist(me, target);
+        let range = self.max_range_of(me);
+        if d > (range + 8) * 0xc0 {
+            return false;
+        }
+        self.find_open_slots(u, t).is_empty() && self.melee_far_spot(u, t).is_none()
+    }
+
+    /// `601833`–`60190c`: the mandatory melee asker's spot when no slot
+    /// is open — the target's 768-unit cell centre plus the asker's own
+    /// offset within its cell, each axis `div_3_table[v >> 8] × 0x300 +
+    /// 0x180 + v % 0x300 − 0x180`, through `WorldData::restrict` — when
+    /// `vector_dist(target − asker)` reaches [`melee_far`]; `None` (the
+    /// `return 0`) otherwise and for an asker whose current order is not
+    /// a mandatory `ATTACK`.
+    fn melee_far_spot(&mut self, u: usize, t: usize) -> Option<Pos> {
+        let mandatory = matches!(
+            self.current_order(u).map(|o| &o.body),
+            Some(crate::orders::Body::Attack(_))
+        ) && self.units[u].combat.mandatory;
+        if !mandatory {
+            return None;
+        }
+        let (me, tp) = (self.units[u].pos, self.units[t].pos);
+        if vector_dist(tp.x - me.x, tp.y - me.y) < melee_far(self.max_range_of(Obj::Unit(u))) {
+            return None;
+        }
+        let cell =
+            |v: i32, mine: i32| (v >> 8).div_euclid(3) * 0x300 + 0x180 + mine % 0x300 - 0x180;
+        Some(self.restrict(Pos::new(cell(tp.x, me.x), cell(tp.y, me.y))))
     }
 
     /// **The unit half of `Unit::find_attack_pos@00601280`** — where a
