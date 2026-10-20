@@ -170,6 +170,26 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 178,
         },
     ),
+    // **1531 is `HEAVYARCHERS-NA`** (unit type 173, the Native American
+    // Heavy Archer; item 3375, run1001b on the Iroquois Great Sahara seed,
+    // `AMMO=5` over `[13744, 13760]`): `1/35`'s `CHAR_ATTACK2` round,
+    // released at 666 ms (frame 9), guy (9048, 31128) at −1464008704 over
+    // a guy `z` of 635, first printed on block 13750 at (8976, 31176, 799),
+    // `total_time` 8. One shot: radii 85 and 86 both fit, and 86 is kept,
+    // whose exact fits are the wider; the bearing is the middle of them.
+    // Without it the round left from the guy, flew 9 frames against 8 and
+    // struck the fleeing Scout `0/0` the frame after it had stopped, where
+    // theirs struck it on its arrival frame (`docs/AI.md` §288).
+    (
+        1531,
+        crate::anim::ATTACK2,
+        9,
+        Node {
+            bearing: -10_420_224,
+            radius: 86,
+            dz: 164,
+        },
+    ),
     // **842 is the Horse Archer's piece** (unit type 188, `CAVARCHERS`;
     // item 3338, run973e on the Maya Great Sahara seed, `AMMO=5` over
     // `[12128, 12200]`): `1/56`'s two rounds of the window, both at guy
@@ -2150,6 +2170,25 @@ mod tests {
             ),
             Pos::new(5448, 26856),
             "ATTACK2's frame 7 is not measured: the unit's own position"
+        );
+    }
+
+    /// **Piece 1531, `HEAVYARCHERS-NA`** (item 3375): run1001b's round of
+    /// `1/35`, `CHAR_ATTACK2` at frame 9 — the dump's own columns.
+    #[test]
+    fn run1001b_s_heavy_archer_round_leaves_its_release_node() {
+        let got = launch_point(
+            Pos::new(9048, 31128),
+            Angle(-1_464_008_704),
+            1531,
+            crate::anim::ATTACK2,
+            9,
+            0,
+        );
+        assert_eq!((got.x, got.y), (8976, 31176));
+        assert_eq!(
+            635 + release_dz(1531, crate::anim::ATTACK2, 9, 0).unwrap_or(0),
+            799
         );
     }
 
