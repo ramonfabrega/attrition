@@ -139,6 +139,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // promoted to the AI word (item 3367, DECISIONS 72, 83, 84): the
     // Spanish at Difficulty 3, East Indies.
     (18, 9, 3),
+    // The battery's next open lobby once item 3361 closed the Aztecs, the
+    // Inca being item 3360's, promoted to the AI word (item 3365, DECISIONS
+    // 72, 83, 84): the Koreans at Difficulty 3, Great Sahara.
+    (7, 16, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -311,26 +315,33 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatSaharaJapaneseTier1` (Japanese 15, Difficulty 1, map 7; run960
     // and run960b, 576 of 24000), minted by item 3326, left the battery on
     // item 3331 for the AI word (`diff::japanese_word`, DECISIONS 72, 83).
-    // The lobby minted by item 3331 (DECISIONS 72, 83, `docs/AI.md` §125,
-    // §268; runs 964 and 964b) when the Japanese left for the AI word, so
-    // the held-out set stays eight: Great Sahara, the Koreans at Difficulty
-    // 3 — a nation no dump held, and a tier no battery lobby holds. The game
-    // ends itself on 15944.
+    // `GreatSaharaKoreanTier3` (Koreans 16, Difficulty 3, map 7; run964
+    // and run964b, 9185 of 15944), minted by item 3331, left the battery on
+    // item 3365 for the AI word (`diff::korean_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3365 (DECISIONS 72 as amended by 84, rule
+    // (2); `docs/AI.md` §283; runs 990 and 990b) when the Koreans left for
+    // the AI word, so the held-out set stays eight: Great Sahara, the Dutch
+    // at Difficulty 3 — no map-7 dump held the Dutch, who are held only by
+    // a closed game on another map (`EastIndiesDutchTier4`) and reach the
+    // most census functions of the nations so held (9; the Germans and
+    // Iroquois 8, the Indians 4), at the tier the Koreans leave. The game
+    // ends itself on 16109.
     Lobby {
-        name: "GreatSaharaKoreanTier3",
+        name: "GreatSaharaDutchTier3",
         map_style: 7,
-        ai_tribe: 16,
+        ai_tribe: 22,
         difficulty: 3,
-        start: "gamelog-run964-greatsahara-korean-diff3-start.txt",
+        start: "gamelog-run990-greatsahara-dutch-diff3-start.txt",
         long: (
-            "gamelog-run964b-greatsahara-korean-diff3-24k-trace.txt",
-            "rontrace-run964b.log",
+            "gamelog-run990b-greatsahara-dutch-diff3-24k-trace.txt",
+            "rontrace-run990b.log",
         ),
-        length: 15944,
-        // Item 3331, the first try: ours 14 draws, theirs 13, at 1 ours
-        // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`.
-        count: 9185,
-        sequence: 9185,
+        length: 16109,
+        // Item 3365, the first try: ours 7 draws, theirs 6, at 1: ours
+        // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+        // `Farms::inc_time+0x1ae`.
+        count: 311,
+        sequence: 311,
     },
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on

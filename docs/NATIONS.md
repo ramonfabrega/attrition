@@ -67,13 +67,13 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 13 | Russians | russians | `russians` | 10 | `GreatSaharaRussianTier4` (map 7, tier 4); `GreatLakesRussianTier2` (AI word, tier 2) |
 | 14 | Chinese | chinese | `chinese` | 6 | `GreatLakesChineseTier1` (map 14, tier 1) |
 | 15 | Japanese | japanese | none (read off `has_tribe_bonus`) | 4 | `GreatSaharaJapaneseTier1` (map 7, tier 1) |
-| 16 | Koreans | koreans | `koreans` | 6 | scored pairs |
+| 16 | Koreans | koreans | `koreans` | 6 | `GreatSaharaKoreanTier3` (AI word, tier 3); scored pairs |
 | 17 | Mongols | mongols | `mongols` | 3 | none |
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
-| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4) |
+| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (map 7, tier 3) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
 
 ## 3. The held-out nations, arm by arm
@@ -149,7 +149,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AZTEC_SLAY_CAP` | 60 | Unit::plunder | not carried | `aztec_slay_cap` |
 | `AZTEC_BARRACKS_LIGHT` | 1 | Build::activate | modelled at nations.rs | `aztec_barracks_light` |
 | `AZTEC_MAX_LIGHT` | 3 | Build::activate | modelled at nations.rs | `aztec_max_light` |
-| `AZTEC_PLUNDER` | 100 | Build::plunder, Unit::plunder | modelled at city.rs | `aztec_plunder` |
+| `AZTEC_PLUNDER` | 100 | Build::plunder, Unit::plunder | modelled at plunder.rs | `aztec_plunder` |
 | `AZTEC_FREE_MILITARY` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `aztec_free_military` |
 | `MAYA_GARRISON_ARROWS` | 1 | BuildData::get_base_garrison_arrows | not carried | `maya_garrison_arrows` |
 | `MAYA_BUILDING_TIMBER` | 25 | TypeData::get_cost | modelled at city.rs | `maya_building_timber` |
@@ -308,7 +308,7 @@ left out; a constant with no reader in the export is dead there too.
 | `KOREAN_MILITIA_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `korean_militia_upgrades` |
 | `KOREAN_BUILD_UNDER_FIRE` | 1 | Object::do_damage, Unit::do_build, Unit::do_repair | modelled at orders.rs | `korean_build_under_fire` |
 | `KOREAN_REPAIR` | 50 | Unit::do_repair | modelled at orders.rs | `korean_repair` |
-| `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | not carried | `korean_tower_cost` |
+| `KOREAN_TOWER_COST` | 33 | TypeData::get_cost | modelled at cost.rs | `korean_tower_cost` |
 | `MONGOL_STABLE_COST` | 10 | TypeData::get_cost | not carried | `mongol_stable_cost` |
 | `MONGOL_STABLE_SPEED` | 20 | ObjectData::train_time | modelled at lib.rs | `mongol_stable_speed` |
 | `MONGOL_ATTRITION` | 50 | Leader::calc_anti_attrition | modelled at attrition.rs | `mongol_attrition` |
@@ -457,7 +457,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::calc_resource_bonuses@006db030` | 13 | carried at economy.rs | `006db030` |
 | `LeaderData::get_farm_limit@006db270` | 7 | modelled at city.rs | `egyptian_farms_per_city_base` |
 | `LeaderData::get_radius@006db790` | 21 | carried at city.rs | `006db790` |
-| `LeaderData::has_preq@006db810` | 4 5 6 7 10 12 13 16 | carried at build_data_has_objmask.rs | `006db810` |
+| `LeaderData::has_preq@006db810` | 4 5 6 7 10 12 13 16 | carried at ammo_do_damage.rs | `006db810` |
 | `LeaderData::calc_market_prices@006dc2a0` | 4 13 | carried at ai_make.rs | `006dc2a0` |
 | `Leader::calc_pop_cap@006dc490` | 3 | carried at build_finished_628490.rs | `006dc490` |
 | `Leader::lost_a_city@006dc6d0` | 23 | carried at city.rs | `fn lost_a_city` |
@@ -473,7 +473,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::has_tribe_bonus@006e1370` |  +var | carried at borders_is_border_hidden.rs | `006e1370` |
 | `Leader::init@006e3930` | 0 5 6 13 19 20 22 23 | carried at lib.rs | `006e3930` |
 | `Options::describe@00724460` | 4 22 | not sim | `interface or render side` |
-| `Cities::capture_city@00733380` | 13 23 | carried at holdings.rs | `00733380` |
+| `Cities::capture_city@00733380` | 13 23 | carried at build_check_capture.rs | `00733380` |
 | `City::capture@00736c40` | 23 | carried at city.rs | `00736c40` |
 | `City::assimilate@00738e90` | 14 | carried at city.rs | `00738e90` |
 | `Caravan::trade_value@0073d9d0` | 21 | carried at caravan.rs | `0073d9d0` |

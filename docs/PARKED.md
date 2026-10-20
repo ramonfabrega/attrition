@@ -3849,6 +3849,14 @@ cases fail, because they read the real tree's base. A lane reading the log top-d
 Candidate: the offline cases take a fixture tree, not the real one; or the refusal prints first and the gate exits
 before the offline step. The pass's. One reach.
 
+(3368) **A clear that fires on a lane which pushed a draft exits the waiter as LANDED** (the commander, 2026-10-20):
+att-3365 crossed DEEP at 315k, committed and pushed its draft journal (`2caf3aee`) as answered, and ended its turn
+for the armed clear; the row left `working` for the seconds the clear took, and `lanewait.py` exited `LANDED
+att-3365 … none..2caf3aee` with the row back at `working` under the new session — a commander turn that learned
+nothing, and one that would merge a draft if read at face value. Candidates: a row whose newest transcript ends on
+a `/clear` (the UNCLEARED probe's own read) or whose session uuid changed since the wait began is not a landing; or
+LANDED waits two polls for the row to stay out, as ENDED does. The pass's. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
@@ -8702,13 +8710,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LI — reserved
+## Parked by item 3365, 2026-10-20 — the Korean word closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word closed at 15944 and the close compares whole (`docs/AI.md` §283). Two keys of run991b's 80 standing ones
+part with no draw:
+
+- **3365a — `1/85`'s `dest_angle` on 15329.** run991b: ours −2147483648, theirs −1351155712; no draw parts, and
+  nothing the word reads follows from it. Read who writes `dest_angle` on a unit with no destination when a draw
+  parts on `1/85`'s facing.
+- **3365b — who=1's six Merchants re-pieced on 15413.** Both sides re-piece them; theirs puts both figures on
+  `gpiece` 50688 with the cart snapped onto the merchant's point, ours on 3179 / 15851 with the cart apart. No draw
+  parts. Read the caravan's piece pairing when a draw parts on a Merchant's figure.
 
 ## Parked by item 3367, 2026-10-20 — the East Indies Spanish word, 9028 → 14942
 
@@ -8732,6 +8744,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot LR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot LR renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

@@ -3481,6 +3481,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::spanish_east_word::spanish_east_frame_9028_window(),
         || super::spanish_east_word::spanish_east_frame_12756_window(),
         || super::spanish_east_word::spanish_east_frame_14942_window(),
+        || super::korean_word::korean_frame_9185_window(),
+        || super::korean_word::korean_frame_15291_window(),
         || super::bantu_word::bantu_frame_4_window(),
         || super::bantu_word::bantu_gap_978c_window(),
         || super::bantu_word::bantu_escrow_978d_window(),

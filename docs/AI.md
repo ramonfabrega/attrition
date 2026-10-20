@@ -24471,12 +24471,49 @@ gather re-placement on this lobby). Whether a decoy's bleed tick should join the
 run reaches. Sim tests: `a_detected_decoy_bleeds_a_point_a_frame` (mutations: the arm dropped, the mask's
 complement dropped; both held).
 
-## 283. Reserved for the next item on the AI track
+## 283. The battery's Korean word closes: a third off a tower, and the Hwarang's bow hand
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3365, 2026-10-20, Opus 5.5. `GreatSaharaKoreanTier3` (map 7, human Nubians against the Koreans at Difficulty
+3, seed 12345; item 3331's lobby, runs 964 and 964b), promoted out of the battery at 9185 of 15944. Captures run991
+(`GOODS=3` over 9179..9435), run991b (`AMMO=5` over 15285..15541), run991c (15240..15291), run991d (a
+`RON_STATE_FRAME=15256` packet). Its battery place went to `GreatSaharaDutchTier3` (runs 990, 990b; entry 72's rule
+(2) as amended by 84: the Dutch are on no map-7 dump and held only by a closed game, with the most census
+functions of such nations, 9): 311 of 16109 on its first try.*
+
+**9185 → 15291: `get_cost`'s Korean tower step.** The draws on 9185 are who=1's `Leader::use_market+0x1ed` passes:
+ours two (timber and metal both short of the 120 each two Siege Factory slots need), theirs one. run991's block
+9179: who=1's `bucket[2:wealth]` ours 86 theirs 96, `bucket[4:metal]` 175 against 192, `income` agreeing on every
+good — so the difference was a price, not a yield. `TypeData::get_cost@00664090:916`–`922`: for a Tower-line
+building (`is(0x1b7, 0)`) under the Korean bonus (`has_tribe_bonus(0x10)`) the cost is `(100 − KOREAN_TOWER_COST) ×
+cost / 100`, after the wonder tail and before the fort arm. `KOREAN_TOWER_COST` is 33. Built:
+`Tuning::korean_tower_cost`, `cost::Modifiers::korean_tower`, `Sim::korean_tower_discount` (city.rs). Value diff,
+block 9179, after: 96/96 and 192/192. run991's window drops 563 → 27 keys, the standing family.
+
+**15291 → 15944, the game's last frame: the Royal Hwarang looses from its bow hand.** The draws on 15291: theirs
+spend two `Object::take_damage+0xe1` (a building's first wound), ours none. run991b opened 998 keys apart on the
+human Scout `0/0`: `damage_frame` ours 15275, theirs 15274. run991c's `AMMO`: `1/74`'s arrow leaves (9264, 30827)
+with `total_time` 19, where ours left the figure's own (9336, 30840) with 20. The Royal Hwarang (`KORYOHWARANG`,
+type 182) is piece 132 on `koryo.bh3`, the Longbowman's animations on a smaller figure, and piece 127's release
+nodes fit neither of its `ATTACK1` rounds. run991d's packet holds piece 132's six `AttachPos` rows;
+`tools/recomp/get_position.py`'s sweep of each, fitted at all 361 headings by integer search (the sweep's degree a
+half turn from `whole_degrees`), gives `launch::BAYS`' six rows for piece 132. Value diff, run991c: the three dumped
+rounds leave from the original's spots (`run991c_s_hwarang_arrows_leave_the_bow_hand`, which reads the dump, not the
+sweep). run991b's window drops 998 → 80 keys, and the draw stream agrees to 15944.
+
+**The close.** run964b's closing block 15945: 105 units compared, none apart, no building, city or closing field
+(`run964b_korean_closing_state`). Every other lobby's first parting, the battery floors and every closing state
+hold on this tree.
+
+**Not established.** Piece 132's bays are fitted, not read: six rows from one packet, each matched at every heading
+by integer search, and no other Korean figure (the Hwarang's later brackets, a female slot) is on a packet. run991b's
+80 standing keys include two that part with no draw (parked 3365a, 3365b).
+
+**Coverage.** Diff-backed: the tower step by `korean_word_first_parting` and `run991_s_word_frame_is_widened_whole`,
+the bays by `run991c_s_hwarang_arrows_leave_the_bow_hand` and `run991b_s_word_frame_is_widened_whole`, the close by
+`run964b_korean_closing_state`. Sim tests: `cost::tests::a_korean_tower_costs_a_third_less_before_the_fort_arm`.
+Mutations (`tools/mutate.py`): `korean_tower_discount` → 0 drops the word to 9185; piece 132's bays renumbered to 133
+drop it to 15291, break the closing state (`[18, 0, 0, 0, 4, 0, 5]`), run991b's window (998) and the arrow test;
+all held.
 
 ## 284. The battery's East Indies Spanish word: a fog the Spanish see whole, a Bark's two stances, and a building find that does not end the think
 
