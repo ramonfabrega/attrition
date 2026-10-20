@@ -2424,7 +2424,9 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         # A `bool` in `al` over an `eax` whose upper bytes are a pointer's
         # (`sete al`; item 2336, parked 2327): the low byte alone is held.
         retcode = f'        assert_eq!(got & 0xff, want_eax & 0xff, "{short} — al, row `{{line}}`");'
-    elif ret in ('eax', 'xmm0'):
+    elif ret in ('eax', 'xmm0') or re.fullmatch(r'ebp:-?(0x[0-9a-f]+|\d+)', ret):
+        # `ebp:OFF` (item 3362): the dword of the function's frame at ebp+OFF when the call ends, a
+        # local a swept slice leaves (`Cities::capture_city`'s plunder base); held as eax is.
         retcode = f'        assert_eq!(got, want_eax, "{short} — eax, row `{{line}}`");'
     elif ret.startswith('arg:') and ret[4:].isdigit() and int(ret[4:]) < own:
         # An out-pointer returned (the inlined `String` constructors, parked 2594, item 2604):
@@ -2432,7 +2434,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
         retcode = (f'        assert_eq!(want_eax, i64::from(a[{int(ret[4:])}]), "{short} — eax is the out-pointer, row `{{line}}`");\n'
                    '        let _ = got;')
     else:
-        raise ValueError(f'obj --ret is eax, xmm0, al, none or arg:N (N a stack argument), not {ret!r}')
+        raise ValueError(f'obj --ret is eax, xmm0, al, none, ebp:OFF or arg:N (N a stack argument), not {ret!r}')
     pcells = [_window(c, 0x400) for c in cells]
     # `--at VA:SIZE:LO..HI[/b]` (item 3030, parked 2998): every element of the table drawn from
     # LO..HI — 32-bit words, or signed bytes with `/b` — for an image table the boot builds and
@@ -2812,7 +2814,7 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
                                    seq=pseq, ansrange=pansr, cellthis=pthis, vtalso=palso, vtathalf=phalf, alias=palias, answerby=pby, vtimage=pimg,
                                    sparse=psparse, gtab=pgtab, record=precord, recordorder=record_order, recordedx=record_edx, rowsplit=prowsplit, links=plinks, linkhi=plinkhi,
                                    outarg=pout, cdeclstubs=pcdecl, stubwrite=pwrite, stubcopy=pcopy, stackclean=clean_stack, stopstub=stop_stub, initcalls=[int(v, 0) for v in init_call], maxinsns=max_insns, deref=pderef, ecxanswer=pecxans, ecxout=pecxout, ring=pring, rows=rows,
-                                   ret='xmm0' if ret == 'xmm0' else 'eax')
+                                   ret=ret if ret == 'xmm0' or ret.startswith('ebp:') else 'eax')
     doc = doc or (f'{win} random bytes of object, {own} argument(s), {windoc}; `eax` and every byte of '
                   f'every window after held to the port (`c` the cells and tables, `p` the pointed buffers, '
                   f'the stubs\' answers after the arguments).')

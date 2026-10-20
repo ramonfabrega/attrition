@@ -302,11 +302,10 @@ fn the_emulated_original_agrees_on_every_row() {
                     closes: 0,
                     masks: 0,
                 };
-                capture_city_steps(&mut v, a[0] as u8, a[1] as usize, a[2] as u8);
-                0
+                i64::from(capture_city_steps(&mut v, a[0] as u8, a[1] as usize, a[2] as u8).base)
             }
         };
-        let _ = (got, want_eax);
+        assert_eq!(got, want_eax, "capture_city — eax, row `{line}`");
         assert_eq!(
             log, want_log,
             "capture_city — the recorded calls, row `{line}`"
