@@ -415,6 +415,35 @@ impl Sim {
             + self.mods_of(self.owner_of(o) as usize).range
             + self.british_building_range(o)
             + self.ceo_unit_range(o)
+            + self.siege_unit_range(o)
+    }
+
+    /// **`UnitData::max_range@0060fe90`'s siege arm** (item 3380): a unit
+    /// whose type is `is_siege` (the type's vslot `+0x10c`, the same test
+    /// [`Self::ceo_unit_range`] refuses on) and whose leader
+    /// `has_tribe_bonus(8)` adds `TURK_SIEGE_RANGE`, three tiles.
+    /// `GreatLakesTurkishTier4`'s Trebuchet `1/70` walks its bombard ring
+    /// round Napata `0/2000` on 14991 at a stand-off of 19 tiles' 3552, not
+    /// 16's 2976, and stops at (7368, 29544) in run1005.
+    ///
+    /// SEAM: the same arm's Liberty (`0x219`, `LIBERTY_SIEGE_RANGE`) and
+    /// Eiffel (`0x21c`, `EIFFEL_SIEGE_RANGE`) wonders are not carried; no
+    /// capture holds either wonder (scan: `grep -h '^    wonder [0-9]'
+    /// gamelog*.txt`, no wonder held in the 66 of 573 dumps that print
+    /// `WONDERS`).
+    fn siege_unit_range(&self, o: Obj) -> i32 {
+        let Obj::Unit(u) = o else {
+            return 0;
+        };
+        if !self.is_siege_unit(u) {
+            return 0;
+        }
+        let who = self.units[u].owner as usize;
+        if self.nation[who].turks {
+            self.tuning.turk_siege_range
+        } else {
+            0
+        }
     }
 
     /// **`UnitData::max_range@0060fe90`'s first block** (`docs/AI.md`
@@ -429,8 +458,9 @@ impl Sim {
     /// `attack_dist` 918, past three tiles' 582 and inside five's 966, with
     /// who=1's `1/161` (type 357) 2371 off.
     ///
-    /// SEAM: the siege arm below it (`TURK_SIEGE_RANGE`, the Liberty and
-    /// Eiffel wonders, Napoleon), Ptolemy's general, the rum naval range
+    /// SEAM: of the siege arm below it only `TURK_SIEGE_RANGE` is carried
+    /// (item 3380); the Liberty and Eiffel wonders and Napoleon are not —
+    /// nor Ptolemy's general, the rum naval range
     /// and the obsidian archers are not carried; `is(0x165)` is taken as
     /// the type itself, as the patriot tests of the radius are.
     fn ceo_unit_range(&self, o: Obj) -> i32 {

@@ -8796,13 +8796,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LR — reserved
+## Parked by item 3380, 2026-10-20 — the Turkish word closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3380a.** `GreatLakesTurkishTier4`, run1005 blocks 15081 and 15084: the Basilica Bombards `1/38` and `1/37` (type
+276)'s figures' `g.des_x/y[1]`, `[3]` — ours at the unit's own point (8481, 31807), theirs a step behind (8472,
+31759); `1/38` steps 64 in y on 15081, and both sides agree the block after. The draw stream agrees to 15503 and the
+closing state is none apart. Names no score (`docs/AI.md` §290).
+
+**3380b.** run1005: `1/54`'s `dest_angle` on 15214 (ours −1073741824, theirs −1295384576) and `1/50`'s on 15224
+(−1275002880 against −852099072). Names no score.
 
 ## Parked by the next landing, slot LS — reserved
 

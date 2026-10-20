@@ -139,7 +139,7 @@ HAND = [
     ("Egyptians", "scholars swap food and wealth (gate is 0 in the rules)", "TypeData::get_cost@00664090", "not modelled", "egyptian_scholars_food"),
     ("Egyptians", "granary available early", "LeaderData::has_preq@006db810", "modelled at tech.rs", "egyptian_granary_early"),
     ("Egyptians", "wonders one age early", "LeaderData::special_preq@006d7030", "modelled at tech.rs", "egyptian_wonders_early"),
-    ("Egyptians", "one more wonder per city (placement)", "BuildTypeData::blocked_location@006375b0", "modelled at place.rs", "n.egyptians"),
+    ("Egyptians", "one more wonder per city (placement)", "BuildTypeData::blocked_location@006375b0", "modelled at location.rs", "n.egyptians"),
     ("Egyptians", "the same limit enforced at construction", "Wall::do_construct@006434d0", "modelled at city.rs", "006434d0"),
     ("Egyptians", "farm limit per city", "LeaderData::get_farm_limit@006db270", "modelled at city.rs", "egyptian_farms_per_city_base"),
     ("Egyptians", "food commerce bonus", "Leader::calc_resource_caps@006ce900", "modelled at economy.rs", "egyptian_food_commerce"),
@@ -241,7 +241,7 @@ LOBBY = {0: "`GreatSaharaAztecTier2` (AI word, tier 2); `EastIndiesAztecTier1` (
          9: "`GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3)",
          2: "`EastIndiesIncaTier3` (AI word, tier 3); `GreatSaharaIncaTier3` (map 7, tier 3)", 5: "`GreatSaharaGreekTier1` (AI word, tier 1)",
          15: "`GreatSaharaJapaneseTier1` (map 7, tier 1)",
-         6: "`EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2)", 20: "`EastIndiesAmericanTier1` (AI word, tier 1)",
+         6: "`EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2)", 20: "`EastIndiesAmericanTier1` (AI word, tier 1); `GreatLakesAmericanTier4` (map 14, tier 4)", 8: "`GreatLakesTurkishTier4` (AI word, tier 4)",
          4: "the human in every capture", 10: "`GreatSaharaFrenchTier4` (AI word, tier 4)", 11: "scored pairs", 16: "`GreatSaharaKoreanTier3` (AI word, tier 3); scored pairs"}
 FLAG = {0: "aztecs", 1: "maya", 2: "inca", 3: "bantu", 4: "nubians", 6: "romans", 7: "egyptians",
         8: "turks", 10: "french", 11: "british", 12: "germans", 13: "russians", 14: "chinese",

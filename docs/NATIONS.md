@@ -59,7 +59,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
 | 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (AI word, tier 4), `EastIndiesEgyptianTier3` (map 18, tier 3) |
-| 8 | Turks | turks | `turks` | 7 | none |
+| 8 | Turks | turks | `turks` | 7 | `GreatLakesTurkishTier4` (AI word, tier 4) |
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3) |
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
@@ -71,7 +71,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 17 | Mongols | mongols | `mongols` | 3 | none |
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3); `GreatSaharaIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
-| 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (AI word, tier 1) |
+| 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (AI word, tier 1); `GreatLakesAmericanTier4` (map 14, tier 4) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (AI word, tier 2); `GreatSaharaIndianTier3` (AI word, tier 3) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
@@ -210,8 +210,8 @@ left out; a constant with no reader in the export is dead there too.
 | `EGYPTIAN_FARMS_PER_CITY_BASE` | 7 | LeaderData::get_farm_limit | modelled at city.rs | `egyptian_farms_per_city_base` |
 | `EGYPTIAN_FOOD_COMMERCE` | 10 | Leader::calc_resource_caps | modelled at economy.rs | `egyptian_food_commerce` |
 | `EGYPTIAN_FARM_WEALTH` | 2 | BuildTypeData::calc_gather | modelled at holdings.rs | `egyptian_farm_wealth` |
-| `TURK_SIEGE_RANGE` | 3 | UnitData::max_range | not carried | `turk_siege_range` |
-| `TURK_SIEGE_LOS` | 3 | Unit::update_los | not carried | `turk_siege_los` |
+| `TURK_SIEGE_RANGE` | 3 | UnitData::max_range | modelled at fight.rs | `turk_siege_range` |
+| `TURK_SIEGE_LOS` | 3 | Unit::update_los | modelled at vision.rs | `turk_siege_los` |
 | `TURK_ASSIMILATE` | 200 | Build::process, IFaceSelected::update_progress | modelled at city.rs | `turk_assimilate` |
 | `TURK_CITIZEN` | 33 | TypeData::get_cost | modelled at lib.rs | `turk_citizen` |
 | `TURK_FREE_SIEGE` | 2 | Build::activate | modelled at nations.rs | `turk_free_siege` |
@@ -291,7 +291,7 @@ left out; a constant with no reader in the export is dead there too.
 | `CHINESE_CITIZEN_INSTANT` | 1 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_instant` |
 | `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_creation` |
 | `CHINESE_LARGE_CITY` | 1 | ConquestGame::build_cities, Setup::build_cities | not carried | `chinese_large_city` |
-| `CHINESE_LARGE_CITIES` | 1 | Build::activate, City::assimilate, ConquestGame::build_cities +1 | modelled at city.rs | `chinese_large_cities` |
+| `CHINESE_LARGE_CITIES` | 1 | Build::activate, City::assimilate, ConquestGame::build_cities +1 | modelled at activate.rs | `chinese_large_cities` |
 | `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at damage.rs | `japanese_damage` |
 | `JAPANESE_BARRACKS_COST` | -7 | TypeData::get_cost | not carried | `japanese_barracks_cost` |
 | `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | not carried | `japanese_barracks_speed` |
@@ -417,7 +417,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `ObjectData::get_damage@00644130` | 15 | carried at damage.rs | `00644130` |
 | `Object::disband@006455c0` | 0 19 | carried at object_disband.rs | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
-| `Object::remove_from_inside@006480f0` | 19 20 | carried at holdings.rs | `006480f0` |
+| `Object::remove_from_inside@006480f0` | 19 20 | carried at object_remove_from_inside.rs | `006480f0` |
 | `ObjectData::train_time@006508c0` | 5 15 | carried at lib.rs | `006508c0` |
 | `Object::take_damage@00652020` | 0 2 | carried at fight.rs | `00652020` |
 | `TypeData::get_desc_parsed@006626e0` | 11 | not sim | `interface or render side` |
@@ -456,7 +456,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::get_building_hp_upgrade@006daee0` | 4 | carried at tech.rs | `006daee0` |
 | `LeaderData::calc_resource_bonuses@006db030` | 13 | carried at economy.rs | `006db030` |
 | `LeaderData::get_farm_limit@006db270` | 7 | modelled at city.rs | `egyptian_farms_per_city_base` |
-| `LeaderData::get_radius@006db790` | 21 | carried at capture_view.rs | `006db790` |
+| `LeaderData::get_radius@006db790` | 21 | carried at build_type_data_blocked_location.rs | `006db790` |
 | `LeaderData::has_preq@006db810` | 4 5 6 7 10 12 13 16 | carried at ammo_do_damage.rs | `006db810` |
 | `LeaderData::calc_market_prices@006dc2a0` | 4 13 | carried at ai_make.rs | `006dc2a0` |
 | `Leader::calc_pop_cap@006dc490` | 3 | carried at build_finished_628490.rs | `006dc490` |

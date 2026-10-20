@@ -163,6 +163,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Turks being item 3380's, promoted to the AI word (item 3383,
     // DECISIONS 72, 83, 84): the Indians at Difficulty 3, Great Sahara.
     (7, 21, 3),
+    // The battery's second open lobby on the measure of `56f23ba5`, the
+    // Germans being item 3378's, promoted to the AI word (item 3380,
+    // DECISIONS 72, 83, 84): the Turks at Difficulty 4, Great Lakes.
+    (14, 8, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -310,26 +314,33 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatLakesIroquoisTier3` (Iroquois 18, Difficulty 3, map 14; run897
     // and run897b, 0 of 12658) left the battery on item 3107 for the AI
     // word (`diff::iroquois_word`, DECISIONS 72).
+    // `GreatLakesTurkishTier4` (Turks 8, Difficulty 4, map 14; run898 and
+    // run898b, 14991 of 15503), minted by item 2975, left the battery on
+    // item 3380 for the AI word (`diff::turkish_word`, DECISIONS 72, 83,
+    // 84).
+    // The lobby minted by item 3380 (DECISIONS 72 rule (2) as amended by
+    // 84, `docs/AI.md` §290; runs 1004 and 1004b) when the Turks left for
+    // the AI word, so the held-out set stays eight: Great Lakes, the
+    // Americans at Difficulty 4 — no map-14 dump holds them (a header
+    // survey of 564 gamelogs); of the nations held only by closed games off
+    // Great Lakes the Americans reach the most census functions (14, the
+    // Spanish and Dutch 9), held only by `EastIndiesAmericanTier1`; tier 4
+    // is the tier the Turks leave. The game ends itself on 6152.
     Lobby {
-        name: "GreatLakesTurkishTier4",
+        name: "GreatLakesAmericanTier4",
         map_style: 14,
-        ai_tribe: 8,
+        ai_tribe: 20,
         difficulty: 4,
-        start: "gamelog-run898-greatlakes-turkish-diff4-start.txt",
+        start: "gamelog-run1004-greatlakes-american-diff4-start.txt",
         long: (
-            "gamelog-run898b-greatlakes-turkish-diff4-24k-trace.txt",
-            "rontrace-run898b.log",
+            "gamelog-run1004b-greatlakes-american-diff4-24k-trace.txt",
+            "rontrace-run1004b.log",
         ),
-        length: 15503,
-        // 1440 → 6982 on item 3160 (`get_cost`'s `TURK_CITIZEN` and
-        // `WOOL_CITIZENS_COST` arms, `cost::Modifiers::citizens`). 6982 →
-        // 14991 on the forty-fifth tranche's fixes made for other words
-        // (3326's measure first); re-pinned by the forty-sixth pass: ours
-        // 20 draws, theirs 23, at 12 ours `Guy::set_anim+0x97a <
-        // Guy::inc_time+0x271`, theirs `Unit::find_attack_pos+0xea9 <
-        // Unit::fight+0xcb4`.
-        count: 14991,
-        sequence: 14991,
+        length: 6152,
+        // Item 3380, the first try: ours 31 draws, theirs 36, at 0 ours
+        // `Animal::think_bird+0x82`, theirs `Leader::compute_sites+0x4ac`.
+        count: 3176,
+        sequence: 3176,
     },
     // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
     // run899b, 576 of 18620) left the battery on item 3314 for the AI word
