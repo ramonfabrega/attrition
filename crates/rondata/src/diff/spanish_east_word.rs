@@ -31,9 +31,13 @@ pub(crate) const SPANISH_EAST: Lobby = Lobby {
     // count 9028, sequence 9028 (ours 2 draws, theirs 12, at 0: ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`). Item 3367 promoted it to
-    // the AI word (`docs/AI.md` §284).
-    count: 9028,
-    sequence: 9028,
+    // the AI word (`docs/AI.md` §284). **9028 → 12756** (item 3367): the
+    // danger pass asks a building's own `ever_seen` (`BuildData::is_seen`),
+    // not the fog a Spanish leader sees whole — run993b's block 8959,
+    // `danger[1]` at half-cell (4, 4) ours 125, theirs 60, and the scout
+    // `1/0` chose cell (7, 11) over theirs' (9, 8).
+    count: 12756,
+    sequence: 12756,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -142,5 +146,17 @@ fn run993_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3367: 519 keys on the first try, the window opening with the
+    // Scout `1/0` (TI 69, land) already apart — ours walking an
+    // `ExploreTo` to (5880, 8952), theirs at (7588, 6631) on its way to
+    // (7416, 6648). Walked back: both chose on 8959 with the same draws
+    // over the same three cells around the human's city, and the score's
+    // danger term parted — `danger[1]` at half-cell (4, 4) ours 125,
+    // theirs 60 (run993b), the human's buildings unhalved for a viewer
+    // whose fog `was_seen` lights whole (`leader_flags & 0x1000`, the
+    // Spanish bonus) and whose `ever_seen` bit they do not carry. Built:
+    // `danger_build_is_seen` is `build_is_seen`. 519 → 49, the standing
+    // family alone (`SITE[·].reg`, `form`, `aggression`, the army `pool:n`
+    // and `group:n.held`, the newborn `g.angle[0]`).
+    pin_eq!(w.firsts.len(), 49, "keys that part in the window");
 }
