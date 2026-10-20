@@ -3292,6 +3292,7 @@ impl Sim {
                 science_ahead: self.science_ahead(who, t),
                 democracy: self.democracy_tech_discount(who, t),
                 industry: self.industry_tech_discount(who, t),
+                german_industry: self.german_industry_tech_discount(who, t),
                 greek_research: self.greek_research_discount(who, t),
                 late_discount: if british_taxation {
                     self.tuning.british_taxation_discount
@@ -3316,8 +3317,42 @@ impl Sim {
     /// `ja` on the last), not the knowledge line between them — when the
     /// leader holds the wonder (item 3332: who=1's Metal Alloys, 68 food
     /// and 68 timber where 200 left it unaffordable on Great Sahara's
-    /// 15778). The German term on the same predicate is not carried.
+    /// 15778). The German term on the same predicate is
+    /// [`Sim::german_industry_tech_discount`].
     fn industry_tech_discount(&self, who: Player, t: tech::TypeId) -> i32 {
+        let held = self.wonders_held(who) & (1 << tech::wonder::HANGING_GARDENS) != 0;
+        if held && self.is_industry_tech(t) {
+            self.tuning.hanging_gardens_industry_discount
+        } else {
+            0
+        }
+    }
+
+    /// `get_cost`'s German term on the industry predicate (`006669b0`..,
+    /// `:1277`–`1281`), right after the Hanging Gardens': a German leader
+    /// (`has_tribe_bonus(0xc)`) takes `GERMAN_INDUSTRY_DISCOUNT` off a food,
+    /// timber or metal gathering-line technology, its own truncation. Item
+    /// 3378: run1003's block 13579, who=1's Carpentry (609) listed at `val`
+    /// 120000 by the original and 30000 here — the price `research_techs`
+    /// reads its affordability from was twice the original's.
+    fn german_industry_tech_discount(&self, who: Player, t: tech::TypeId) -> i32 {
+        if self.is_industry_tech(t)
+            && self.tech_tree.has_tribe_bonus(
+                &self.setup,
+                &self.tech[who as usize],
+                crate::nations::power::GERMANS,
+            )
+        {
+            self.tuning.german_industry_discount
+        } else {
+            0
+        }
+    }
+
+    /// `get_cost`'s industry predicate: the food, timber and metal
+    /// gathering lines — `0x261..=0x263`, `0x264..=0x266` and
+    /// `0x26c..=0x26e` — and not the knowledge line between them.
+    fn is_industry_tech(&self, t: tech::TypeId) -> bool {
         const INDUSTRY: [&str; 9] = [
             "Carpentry",
             "Logging Industry",
@@ -3329,12 +3364,7 @@ impl Sim {
             "Cold Casting",
             "Steel",
         ];
-        let held = self.wonders_held(who) & (1 << tech::wonder::HANGING_GARDENS) != 0;
-        if held && INDUSTRY.contains(&self.tech_tree.types[t].name.as_str()) {
-            self.tuning.hanging_gardens_industry_discount
-        } else {
-            0
-        }
+        INDUSTRY.contains(&self.tech_tree.types[t].name.as_str())
     }
 
     /// The highest held Democracy bonus, for non-library technologies

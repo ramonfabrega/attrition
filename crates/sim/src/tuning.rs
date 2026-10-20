@@ -1040,6 +1040,10 @@ pub struct Tuning {
     /// metal gathering lines — with the Hanging Gardens held
     /// (`get_cost@00664090:1270`–`1276`). Ships as 66.
     pub hanging_gardens_industry_discount: i32,
+    /// Percent off an industry technology's price for a German leader, on
+    /// the Hanging Gardens' predicate and after it
+    /// (`get_cost@00664090:1277`–`1281`). Ships as 50.
+    pub german_industry_discount: i32,
     /// Percent faster construction with the President nearby.
     pub thepresident_building_speed: i32,
     /// Percent faster unit training at a building with the President nearby
@@ -1592,6 +1596,7 @@ impl Tuning {
         korean_tower_cost: 33,
         hanging_gardens_build_time: 0,
         hanging_gardens_industry_discount: 66,
+        german_industry_discount: 50,
         thepresident_building_speed: 33,
         thepresident_unit_build_speed: 100,
         iroquois_quick_senate: 1,
@@ -2396,6 +2401,10 @@ impl Tuning {
             (
                 "HANGING_GARDENS_INDUSTRY_DISCOUNT",
                 Slot::Value(T.hanging_gardens_industry_discount),
+            ),
+            (
+                "GERMAN_INDUSTRY_DISCOUNT",
+                Slot::Value(T.german_industry_discount),
             ),
             (
                 "THEPRESIDENT_BUILDING_SPEED",
