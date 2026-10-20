@@ -31,9 +31,14 @@ pub(crate) const PERSIAN: Lobby = Lobby {
     // Item 3345's first try, held by the battery's measure to `a98d672b`:
     // count 6046, sequence 6046 (ours 5 draws, theirs 4, at 1: ours
     // `Unit::fight+0x9b0`, theirs `Farms::inc_time+0x1ae`). Item 3355
-    // promoted it to the AI word (`docs/AI.md` §279).
-    count: 6046,
-    sequence: 6046,
+    // promoted it to the AI word (`docs/AI.md` §279). Item 3355, the
+    // Immortals' release bays (piece 112, `sim::launch`): 6046 → 6252
+    // (run984's `1/16` arrow thrown on 6012 at the Scout `0/0` from (3766,
+    // 32893) in 10 frames); and `do_move`'s captain retarget searching on
+    // every sixteenth `o + frame` (`005f803f`): 6252 → 6323 (run984c's
+    // `targeted` 3 and 1 on `0/3` and `0/4`, so `1/10` takes `0/4`).
+    count: 6323,
+    sequence: 6323,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
