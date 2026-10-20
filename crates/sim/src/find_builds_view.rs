@@ -433,15 +433,38 @@ mod tests {
 
     #[test]
     fn the_circle_walks_nearer_cells_first_and_the_list_walk_slots_in_order() {
-        // Slot order is far, near, far-north; the ring puts the near one first.
-        let sites = [at(12, 8), at(9, 8), at(8, 4)].map(|(x, y)| (0, x, y));
+        // Slot order is east four, east one, south four. The ring puts the near
+        // one first, then the column x = 0 before x = 4.
+        let sites = [at(12, 8), at(9, 8), at(8, 12)].map(|(x, y)| (0, x, y));
         let (s, u, b) = land(&sites);
-        // Range 0xc00 is ring 4 (49 points): the circle walk.
-        let circle = s.find_construct_sites(u, 0xc00);
-        assert_eq!(circle.len(), 3);
-        assert_eq!(circle[0], b[1]);
-        // Range 0x1a00 is ring 9 (254 points, past `num_def_builds`): the list, by slot.
-        assert_eq!(s.find_construct_sites(u, 0x1a00), vec![b[0], b[1], b[2]]);
+        // Range 0xc00 is ring 4 (69 points): the circle walk.
+        assert_eq!(s.find_construct_sites(u, 0xc00), vec![b[1], b[2], b[0]]);
+        // Range 0x1000 is ring 6 (145 points): still the circle, and it reaches
+        // the east-four one the list's x-twice distance (4608 against 4096) would not.
+        assert_eq!(s.find_construct_sites(u, 0x1000), vec![b[1], b[2], b[0]]);
+        // Range 0x1600 is ring 8 (237 points, past `num_def_builds`): the list, by slot.
+        assert_eq!(s.find_construct_sites(u, 0x1600), vec![b[0], b[1], b[2]]);
+    }
+
+    #[test]
+    fn a_site_in_a_cell_without_a_region_is_not_found() {
+        let mut world = World::new(16, 16);
+        world.fill_region(
+            crate::world::Terrain::Land,
+            Cell::new(0, 0),
+            Cell::new(8, 15),
+        );
+        world.fill_region(
+            crate::world::Terrain::Land,
+            Cell::new(10, 0),
+            Cell::new(15, 15),
+        );
+        let mut s = Sim::new(Tuning::RON, world, 4);
+        let u = s.add_unit(Unit::new(0, 1, Pos::new(8 * CELL + 10, 8 * CELL + 10), 10));
+        let (x, y) = at(9, 8);
+        let b = s.add_building(0, Pos::new(x, y), 1);
+        s.buildings[b].active = false;
+        assert!(s.find_construct_sites(u, 0x300).is_empty());
     }
 
     #[test]
