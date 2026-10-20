@@ -7619,10 +7619,11 @@ Four shapes built (change_target, find_army, cast_civilian, resolve_block); two 
 
 ## Parked by item 3145, 2026-10-18 — the Dutch ship-upgrade discount, and its twin
 
-- (3159) The American upgrade discount (`get_cost:524`–`527`, `AMERICANS_UPGRADE_DISCOUNT`, `has_tribe_bonus(0x14)`
+- (3159) ~~The American upgrade discount (`get_cost:524`–`527`, `AMERICANS_UPGRADE_DISCOUNT`, `has_tribe_bonus(0x14)`
 and `+0x218 == 0`, a land unit) sits beside the Dutch one in the same research-arm block and is still
 unbuilt: `city::Nation` carries no `americans` flag and no battery lobby holds an American leader. Names
-no score; the next American lobby's term. The remaining uncarried arms (Mongol stable, Japanese
+no score; the next American lobby's term.~~ **Built by item 3374** (`docs/AI.md` §287): `cost::Research::american_land`,
+the step before the Dutch arm's; the American word 9382 → 10982. The remaining uncarried arms (Mongol stable, Japanese
 barracks and ships, American aircraft, British AA, Nubian merchants, French `train_time`) stand as
 parked 3144 listed them; none belongs to a battery lobby's leader.
 
@@ -8053,8 +8054,9 @@ die-when-emptied step, no `eject_o`/`eject_who` arm (`Unit::come_out` walk), no 
 no argument mask for `--record` (stack-local pointer args). Two further passes equivalent under the draw
 (`offset(node)`/`range(node)`), one starved (`d > 0x8000_0000`).
 
-(3261c) `BuildData::construct_time`: `ClockMods.free_first_wonder` and `.hanging_gardens` have no writer outside tests, so
-`Sim::construct_time_of` never applies the American free first wonder or the Hanging Gardens discount; the original
+(3261c) `BuildData::construct_time`: ~~`ClockMods.free_first_wonder` and~~ `.hanging_gardens` ha~~ve~~s no writer outside tests, so
+`Sim::construct_time_of` never applies ~~the American free first wonder or~~ the Hanging Gardens discount (**the free
+first wonder is read live by item 3374**, `Sim::american_free_wonder`, `docs/AI.md` §287: the American word 17215 → 24000); the original
 derives both per call (rival scan from object 2000 to `objects.field_0x184[p]`). The original divides unsigned
 (`cmova` max with 1); the crate is signed i32 — agree only for hg 0..100, president speed ≥ 0, base ≤ 20M. The
 `param_1 != 0` form has no crate counterpart. `--seq` and `--answer-win` cannot share one stub.

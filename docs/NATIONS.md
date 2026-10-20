@@ -348,7 +348,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AMERICANS_STARTING_FARMS` | 3 | Setup::build_units, Setup::small_city_buildings | not carried | `americans_starting_farms` |
 | `AMERICANS_FREE_SCIENCE` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `americans_free_science` |
 | `AMERICANS_SCIENCE_DISCOUNT` | 0 | TypeData::get_cost | modelled at lib.rs | `americans_science_discount` |
-| `AMERICANS_UPGRADE_DISCOUNT` | 25 | TypeData::get_cost | not carried | `americans_upgrade_discount` |
+| `AMERICANS_UPGRADE_DISCOUNT` | 25 | TypeData::get_cost | modelled at cost.rs | `americans_upgrade_discount` |
 | `AMERICANS_BARRACKS_GATHER` | 2 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | not carried | `americans_barracks_gather` |
 | `INDIANS_CITY_RADIUS` | 4 | Leader::plan_strategy, LeaderData::get_radius | modelled at city.rs | `indians_city_radius` |
 | `INDIANS_CARAVAN` | 15 | Caravan::trade_value | modelled at caravan.rs | `indians_caravan` |
@@ -669,7 +669,12 @@ a pass books against a word, not a fix for the lobby that exposed it.
    (`cost::Research::dutch_ship`, set in `Sim::research_modifiers`). Test
    `a_dutch_ship_upgrade_costs_a_tenth_less`. Not diff-backed. **Battery unmoved**: the Dutch lobby
    (`EastIndiesDutchTier4`) stays at 1567 and all eight lobbies at their pins, median 2270.
-   The American twin (`+0x218 == 0`) is unbuilt (parked).
+   ~~The American twin (`+0x218 == 0`) is unbuilt (parked).~~ **Built, item 3374** (`docs/AI.md` §287):
+   `get_cost:528`–`531`, `has_tribe_bonus(0x14)` and `+0x218 == 0` take `AMERICANS_UPGRADE_DISCOUNT` (25) in the
+   step before the Dutch arm's (`cost::Research::american_land`), and `get_cost:1048`–`1053` makes a government
+   (`is_gov_type`, `0x26f..0x274`) free for an American leader (`Sim::tech_price`). Both diff-backed by the
+   American battery word (run999 block 9376, run999b block 10983). Tests
+   `an_american_land_upgrade_costs_a_quarter_less`, `an_american_government_is_free`.
    **Built, item 3160: the Citizen cost arms.** `get_cost`'s tail, after the Spy/General arm and
    the stable rares and before the Statue of Liberty, on the train and research arms alike: for
    `TypeIndex` `0x32`/`0x33`, `WOOL_CITIZENS_COST` (15) for a player holding Wool (`rare` or
