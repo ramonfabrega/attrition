@@ -170,6 +170,8 @@ mod build_add_gatherer;
 mod build_add_to_city;
 #[path = "build_check_capture.rs"]
 mod build_check_capture;
+#[path = "build_check_capture_garrison.rs"]
+mod build_check_capture_garrison;
 #[path = "build_data_can_make.rs"]
 mod build_data_can_make;
 #[path = "build_data_can_queue.rs"]
