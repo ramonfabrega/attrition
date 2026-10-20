@@ -190,6 +190,10 @@ mod greatest_common_factor;
 mod group_action_alarm;
 #[path = "group_action_alarm_head.rs"]
 mod group_action_alarm_head;
+#[path = "group_action_attack_ground.rs"]
+mod group_action_attack_ground;
+#[path = "group_action_attack_ground_head.rs"]
+mod group_action_attack_ground_head;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
 #[path = "group_action_buildmask.rs"]
@@ -210,6 +214,10 @@ mod group_action_halt_head;
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
 mod group_action_queue_up;
+#[path = "group_action_trade.rs"]
+mod group_action_trade;
+#[path = "group_action_trade_head.rs"]
+mod group_action_trade_head;
 #[path = "group_attack_order_vector_deleting_destructor_vtordisp.rs"]
 mod group_attack_order_vector_deleting_destructor_vtordisp;
 #[path = "group_attack_order_walk_data.rs"]
@@ -276,6 +284,8 @@ mod group_data_valid_target;
 mod group_dbg_jump_to_action;
 #[path = "group_dbg_jump_to_waypoint.rs"]
 mod group_dbg_jump_to_waypoint;
+#[path = "group_distribute_attack.rs"]
+mod group_distribute_attack;
 #[path = "group_equals_group.rs"]
 mod group_equals_group;
 #[path = "group_find_role.rs"]

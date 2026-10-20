@@ -228,6 +228,8 @@ mod unit_do_group_attack_to;
 mod unit_do_group_move_leader;
 #[path = "unit_do_idle.rs"]
 mod unit_do_idle;
+#[path = "unit_do_non_flat_gather_tile.rs"]
+mod unit_do_non_flat_gather_tile;
 #[path = "unit_do_patrol.rs"]
 mod unit_do_patrol;
 #[path = "unit_do_repair.rs"]
