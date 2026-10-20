@@ -290,3 +290,56 @@ fn run977b_french_closing_state() {
     // 14855..16765, is the window that finds it).
     pin_eq!(e.counts(), [0, 0, 0, 4, 0, 1, 0], "the closing counts");
 }
+
+/// run982d: the game's last blocks, 16740..16764 at `GUYS=2`, `AMMO=5`
+/// (item 3347) — the frames before the capture the close parts on.
+pub(crate) const RUN982D: &str =
+    "gamelog-run982d-greatsahara-french-diff4-window-16740-16765-ammo.txt";
+
+/// The window: block 16740 through 16764, the last before the closing one.
+pub(crate) const WIDENING_FRENCH_LAST_BLOCKS: (i64, i64) = (16740, 16764);
+
+pub(crate) fn french_last_blocks_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[FRENCH.start],
+        true,
+        FRENCH.long,
+        "run982d",
+        &[(RUN982D, WIDENING_FRENCH_LAST_BLOCKS.0)],
+        WIDENING_FRENCH_LAST_BLOCKS,
+        1,
+        &[16764],
+        true,
+    )
+}
+
+#[test]
+fn run982d_s_last_blocks_are_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = french_last_blocks_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 25, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3347. **38** keys, every one standing on 16740: the standing set,
+    // who=1's groups and pools 64..67, `1/43`'s defensive point, `1/126`'s
+    // newborn `g.angle[0]`, and who=1's `leftover[2:wealth]` ours 1661
+    // against theirs 1421 (parted between 14854 and 16740, unwidened).
+    // **Nothing parts on `0/2000`**: its damage is 1197 of 1200 on both
+    // sides through block 16764 (run982c's stride agrees from 14856 on, one
+    // timing tear at 16336 aside), so the close's capture is the last
+    // frame's own hits — ours +1 to 1198, theirs at least +3, through the
+    // threshold.
+    pin_eq!(w.firsts.len(), 38, "run982d, the last blocks");
+}

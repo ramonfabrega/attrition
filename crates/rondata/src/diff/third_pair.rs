@@ -1898,15 +1898,16 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // release offset (piece 60162, as run657's `1/90` and run661's
             // `1/80`): `1/80`'s round launched on 17309 and `1/90`'s on 17311
             // leave from the unit's square here and the release node there.
-            // From 17321 on, the rounds are the word's parting.
+            // From 17321 on, the rounds are the word's parting. Item 3347's
+            // Dragoon nodes (piece 139) take `1/80`'s to 8 and 1 off in x and
+            // y with its height and climb agreeing; `1/90`'s fires from an
+            // animation frame no window has measured.
             let mut want = std::collections::BTreeSet::new();
             for (field, mine, dumped) in [
-                ("angle", -133758976, -142147584),
-                ("ex", 6315, 6319),
-                ("sx", 6648, 6640),
-                ("sy", 9000, 8853),
-                ("sz", 228, 436),
-                ("v1z", 12225000, -39775002),
+                ("angle", -139067392, -142147584),
+                ("ex", 6318, 6319),
+                ("sx", 6632, 6640),
+                ("sy", 8854, 8853),
             ] {
                 want.insert((17312, (1, 80, 17309), field, mine, dumped));
             }
@@ -1934,10 +1935,12 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // (`sx`/`sy`/`sz`/`v1z`/`angle` at launch, `ex`/`ey`, a frame of
             // `total_time`) or a round's `presence` a frame early. Item 2609:
             // 1400 → 1540 compared, twenty-two fields a round with the crash's
-            // `rolling` and bank (`docs/AI.md` §228); the rows unmoved.
+            // `rolling` and bank (`docs/AI.md` §228); the rows unmoved. Item
+            // 3347's release nodes (pieces 122, 138, 139): 74 → 71 against
+            // theirs' 70, and 442 → 337 rows.
             assert_eq!(
                 (ammo_counts, ammo_differences.len() - before.len()),
-                ((70, 74, 1540), 442),
+                ((70, 71, 1540), 337),
                 "the rounds past the word"
             );
             assert_eq!(
@@ -1951,6 +1954,9 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // three blocks and leaves from another point: ours the unit's
             // square, 100 up, theirs the piece's release node — the same
             // unmeasured Dragoon offset (piece 60162) as run657's `1/90`.
+            // Item 3347's Dragoon nodes (`launch::MEASURED` piece 139, from
+            // the battery's French run982) take it to 8 and 2 off theirs in
+            // x and y (from 37 and 148), with its height and climb agreeing.
             assert_eq!(
                 ammo_counts,
                 (3, 3, 66),
@@ -1959,13 +1965,10 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             let mut want = std::collections::BTreeSet::new();
             for n in 17243..=17245 {
                 for (field, mine, dumped) in [
-                    ("angle", -133758976, -131334144),
-                    ("ex", 6362, 6361),
-                    ("ey", 7290, 7291),
-                    ("sx", 6648, 6611),
-                    ("sy", 9000, 8852),
-                    ("sz", 228, 451),
-                    ("v1z", 12225000, -43525002),
+                    ("angle", -128122880, -131334144),
+                    ("ex", 6359, 6361),
+                    ("sx", 6603, 6611),
+                    ("sy", 8854, 8852),
                 ] {
                     want.insert((n, (1, 80, 17242), field, mine, dumped));
                 }
@@ -1981,7 +1984,11 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // rounds in flight. `1/90`'s round, launched on 17165, leaves
             // from another point on 17166..17169: `1/90` is one of the
             // three units whose front order the gap 16869..17164 parted
-            // (an attack on Napata in the original, a move in ours).
+            // (an attack on Napata in the original, a move in ours). Item
+            // 3347's Dragoon nodes (`launch::MEASURED` piece 139, from the
+            // battery's French run982) put its height and climb right — `sz` and `v1z` agree —
+            // and move its start to 31 and 6 off theirs in x and y (from 11
+            // and 146), its aim with it.
             assert_eq!(
                 ammo_counts,
                 (4, 4, 88),
@@ -1990,12 +1997,11 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             let mut want = std::collections::BTreeSet::new();
             for n in 17166..=17169 {
                 for (field, mine, dumped) in [
-                    ("angle", -61276160, -69140480),
-                    ("ex", 6212, 6216),
-                    ("sx", 6456, 6467),
-                    ("sy", 9240, 9094),
-                    ("sz", 186, 394),
-                    ("v1z", 27618750, -13981250),
+                    ("angle", -78708736, -69140480),
+                    ("ex", 6220, 6216),
+                    ("ey", 7335, 7336),
+                    ("sx", 6498, 6467),
+                    ("sy", 9100, 9094),
                 ] {
                     want.insert((n, (1, 90, 17165), field, mine, dumped));
                 }
