@@ -4043,9 +4043,6 @@ impl Sim {
         };
         let flags = self.melee_search_flags_with(i, word);
         let found = self.find_nearby_target_as(me, radius, flags, cavarch);
-        if std::env::var_os("RON_PROBE_3383").is_some() && self.units[i].owner == 1 && self.units[i].index == 93 {
-            eprintln!("PROBE3383 f{} 1/93 r {} radius {} flags {:#x} cavarch {} stance {:?} found {:?} at {:?}", self.frame, r, radius, flags, cavarch, st.stance, found, self.units[i].pos);
-        }
         if found.is_none() && self.fires_on_move(i) {
             let n = self.units[i].guys.len().min(crate::anim::SQUAD_SIZE);
             for g in 0..n {
