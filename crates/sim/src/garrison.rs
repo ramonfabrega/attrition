@@ -10,7 +10,7 @@
 use crate::attrition::Domain;
 use crate::build::{self, Ident, flags};
 use crate::combat::Obj;
-use crate::orders::{Body, Coll};
+use crate::orders::Body;
 use crate::world::UNITS_PER_TILE;
 use crate::{Player, Sim};
 
@@ -386,20 +386,17 @@ impl Sim {
         // figure's `+0x40` 90.0. run371's V2 `0/10` is fired on 2701 from
         // (10083, 12346), one 115-step at its 120° heading from the silo
         // `0/2009`'s (9984, 12288).
-        let missile = self
-            .profile(Obj::Unit(captain))
-            .has(crate::combat::mask::MISSILE);
-        let gather = if missile {
-            None
-        } else {
-            self.gather_exit(captain, b)
-        };
-        // **The captain first, then the chain, and each member searches for
-        // itself** (`00617c10:535`). See [`Sim::come_out_spot`].
-        let spot = if missile {
-            Some(self.buildings[b].pos)
-        } else {
-            self.come_out_spot(captain, b, gather.map(|g| g.1))
+        // **One walk, [`crate::come_out_view::come_out_steps`]**: the listing's
+        // first half, from the entry to `set_new_location` (item 3362's
+        // sweep holds it call for call against the original under the
+        // emulator). It is the missile arm, the gather-point block and the
+        // ring in the order the listing runs them; the captain first, then
+        // the chain, each member searching for itself (`00617c10:535`,
+        // [`Sim::come_out_unit_host_spot`]).
+        let (spot, gather) = {
+            let mut view = crate::come_out_view::SimComeOut::building(self, captain, b);
+            let spot = view.run();
+            (spot, view.gather)
         };
         let Some(spot) = spot else {
             return false;
@@ -578,94 +575,6 @@ impl Sim {
             })
     }
 
-    /// One unit's exit spot: the ring around its trainer, swept from due
-    /// south, with everything already on the map in the way.
-    ///
-    /// This is the body of `Unit::come_out` up to `set_new_location` **for a
-    /// captain**. It is per unit rather than per squad because the
-    /// original's own recursion is: after placing itself and adding itself
-    /// to the world, `come_out` re-enters on `o_down` with the "already the
-    /// captain" flag set (`00617c10:535`, `param_1` at `:172`), so every
-    /// member repeats the whole search with its siblings now standing in it
-    /// — but around the **captain**, not the building, which is
-    /// [`Sim::come_out_unit_host_spot`].
-    fn come_out_spot(
-        &mut self,
-        captain: usize,
-        b: usize,
-        bias: Option<crate::movement::Angle>,
-    ) -> Option<crate::Pos> {
-        let bd = &self.buildings[b];
-        let (xs, ys) = bd.ty.map_or((0, 0), |t| {
-            (self.build_types[t].x_size, self.build_types[t].y_size)
-        });
-        // **The boat arm** (`6183b6`: `type->domain == 1`, the unit's own
-        // type, not the building's). A sea unit's ring is the same
-        // footprint term plus its own `big_radius` (`ObjectType +0x244`)
-        // and `BOAT_TRAIN_DISTANCE`, and it runs out to
-        // `BOAT_TRAIN_MAX_DISTANCE` — eight tiles rather than five halves,
-        // because the water a dock has may be that far off. run58's
-        // Fisherman `1/14` is born 192 units further south than a land
-        // unit's ring would put it, which is the `big_radius` term
-        // exactly.
-        let sea = self.unit_domain_of(captain) == crate::attrition::Domain::Sea;
-        let (near, far) = if sea {
-            (
-                self.tuning.boat_train_distance + self.profile(Obj::Unit(captain)).big_radius,
-                self.tuning.boat_train_max_distance,
-            )
-        } else {
-            (
-                self.tuning.unit_train_distance,
-                self.tuning.unit_train_max_distance,
-            )
-        };
-        let ring = (xs + ys) * 0x30 + near;
-        let max = ring
-            + (far
-                - if sea {
-                    self.tuning.boat_train_distance
-                } else {
-                    near
-                });
-        let min = if bd.alive { ring } else { 0 };
-        let pos = bd.pos;
-        let south = bias.unwrap_or(crate::movement::Angle(i32::MIN));
-        // **The two arms are chosen on `block_radius` (`+0x240`), not on
-        // `big_radius`**, which is what the first reading of this function
-        // said (`618457`/`61852c`). A citizen's `BLOCK_RADIUS` is 1, so
-        // every unit run10 trains takes the *second* arm: `FILTER_NOT_ME`
-        // over the ring, then the **same** ring with `nocoll 1`, and a
-        // refusal — the unit stays inside — if even that finds nothing
-        // passable. The `block_radius == 0` arm is the one that doubles
-        // the ring and falls back to the building's own position, and its
-        // filter is `FILTER_ALL`, whose general test is a seam
-        // (`docs/CITIES.md` §11, `docs/ORDERS.md` §10).
-        let spot: Option<crate::Pos> = if self.profile(Obj::Unit(captain)).block_radius == 0 {
-            self.find_nearby_spot_coll(captain, pos, min, max, 0, south, None, Coll::None)
-                .or_else(|| {
-                    self.find_nearby_spot_coll(
-                        captain,
-                        pos,
-                        min * 2,
-                        max * 2,
-                        0,
-                        south,
-                        None,
-                        Coll::None,
-                    )
-                })
-                .unwrap_or(pos)
-                .into()
-        } else {
-            let free = self.find_nearby_spot(captain, pos, min, max, 0, south, None);
-            free.or_else(|| {
-                self.find_nearby_spot_coll(captain, pos, min, max, 0, south, None, Coll::None)
-            })
-        };
-        spot
-    }
-
     /// `come_out`'s **unit-host** arm: the ring around another unit.
     ///
     /// `Unit::come_out` reads its host out of `get_inside`, but at
@@ -703,42 +612,10 @@ impl Sim {
         unit: usize,
         host: usize,
     ) -> Option<crate::Pos> {
-        let centre = self.units[host].pos;
-        let bearing = self.units[host].movement.heading;
-        let ring = self.profile(Obj::Unit(host)).block_radius;
-        let max = ring + self.tuning.unit_disembark_distance;
-        if self.profile(Obj::Unit(unit)).block_radius == 0 {
-            Some(
-                self.find_nearby_spot_coll(unit, centre, ring, max, 0, bearing, None, Coll::None)
-                    .or_else(|| {
-                        self.find_nearby_spot_coll(
-                            unit,
-                            centre,
-                            ring * 2,
-                            max * 2,
-                            0,
-                            bearing,
-                            None,
-                            Coll::None,
-                        )
-                    })
-                    .unwrap_or(centre),
-            )
-        } else {
-            self.find_nearby_spot(unit, centre, ring, max, 0, bearing, None)
-                .or_else(|| {
-                    self.find_nearby_spot_coll(
-                        unit,
-                        centre,
-                        ring,
-                        max,
-                        0,
-                        bearing,
-                        None,
-                        Coll::None,
-                    )
-                })
-        }
+        // The steps' unit-host arm (item 3362): `hostx, hosty` ringed from
+        // the host's `block_radius` out `UNIT_DISEMBARK_DISTANCE`, its heading
+        // the sweep's bearing.
+        crate::come_out_view::SimComeOut::unit_host(self, unit, host).run()
     }
 
     /// The rest of `Unit::come_out` for one unit: out of the building, onto

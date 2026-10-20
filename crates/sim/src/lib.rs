@@ -70,6 +70,7 @@ pub mod cavarch;
 pub mod city;
 pub mod collide;
 pub mod combat;
+pub mod come_out_view;
 pub(crate) mod construct;
 pub mod cost;
 pub mod danger;
