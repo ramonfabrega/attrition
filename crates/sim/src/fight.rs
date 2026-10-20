@@ -4094,8 +4094,8 @@ impl Sim {
     /// Woodcutter's Camp the human left standing is no reason for a
     /// Hoplite on its way to the city to stop (item 997, Great Lakes 4555).
     ///
-    /// SEAM: `do_move`'s own call (`005f7b30`) passes 1 or 2 as the
-    /// caller's word, and this crate has no such call (§37.2).
+    /// `do_move`'s own call (`005f7b30`) passes 1 or 2 as the caller's
+    /// word through [`Sim::find_melee_target_with`] (§37.2, item 3355).
     #[cfg(test)]
     pub(crate) fn melee_search_flags(&self, i: usize) -> u32 {
         self.melee_search_flags_with(i, 0)

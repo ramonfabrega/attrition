@@ -19558,3 +19558,93 @@ SHA-256 `2dbe2d5558e0db9d751409dda45c6f44ee8107d4876990036c5a12eac59b3644`.
 
 **What it holds**: seven Lakota Slinger stones' `sx, sy` — `1/18`'s on 6047 from (4962, 30153) in 7 frames, `1/20`'s
 from (4943, 30718) — pinned by `launch::tests::run980b_s_lakota_stones_leave_from_the_na_slinger_s_bays`.
+
+## run983 — the battery's replacement lobby: Great Lakes, the Romans at difficulty 2, a `DUMP_ALL` start (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: the Persians left the battery for the AI word, and the held-out
+set stays eight with a lobby no dump holds — entry 72's rule (2) as amended by 84: every nation is in some dump, so
+rule (1) has no answer; of the nations on no Great Lakes dump and held only by closed games, the Romans (6) reach the
+most census functions (10), held only by `EastIndiesRomanTier2`, at the tier (2) the Persians left. `--map 14
+--end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 6 --profile DIFFICULTY=2`, through `viadriver.sh` +
+`golden_capture.sh`.
+- Pool lane 1. Launched 21:19:42 and the game exited at 21:28:28 (525 s). `success`, 37 frames, `map_style 14`, seed
+  12345, players `(0, 4, 7), (1, 6, 1)`. Filed with `filerun.py run983 greatlakes-roman-diff2-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run983-greatlakes-roman-diff2-start.txt`, 150,807,176 bytes,
+SHA-256 `9befd2e86fc961d8f2d5a8185700fd5edf1c2bbc129015b2870cb96100785a2d`.
+
+Archive `rontrace-run983.log`, 9,419,168 bytes,
+SHA-256 `adc1928f1643da20512c9df52eaa4ac206b22f31b3d56e74eb4abab1b3392b33`.
+
+**What it holds**: `battery::BATTERY`'s `GreatLakesRomanTier2` start.
+
+## run983b — the same lobby, the draw stream to the game's end (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. run962b's recipe on map 14 with `--ai-tribe 6 --profile DIFFICULTY=2` and run643's four
+`--detail` lines.
+- Pool lane 2. Launched 21:19:42 and the game exited at 21:21:19 (96 s). `success`, 7800 frames, **the game ended
+  itself on 7799** (closing block 7800, `ended_early` true). `rngcmp.py rontrace-run983.log rontrace-run983b.log`:
+  **37 identical, 0 differing**. Filed with `filerun.py run983b greatlakes-roman-diff2-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run983b-greatlakes-roman-diff2-24k-trace.txt`, 12,570,793 bytes,
+SHA-256 `ffcb199243f791437a46d3e0e9402b8dda26712d7fb59c416786a63e26586623`.
+
+Archive `rontrace-run983b.log`, 33,846,592 bytes,
+SHA-256 `af4ecaec4504086b9dda18b93b876d06e7e5d1215e02b6189c4c17ddd774b349`.
+
+**What it holds**: the Romans' first try, **7799 / 7799** of 7799 — the draw stream agrees to the game's end — pinned
+in `battery::BATTERY`.
+
+## run984 — the Persian word: the word 6046's window, blocks 6020..6276 at `GUYS=4` and `AMMO=5` (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: run979 dumps blocks 0..36 and run979b its setup and closing
+blocks only, so no dump held a unit record near 6046. `--map 14 --end-frame 6281 --timeout 5400 --log-window 6020
+6276 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0 --profile
+DIFFICULTY=2`.
+- Pool lane 3. Launched 21:19:45 and the game exited at 21:39:01 (1156 s). `success`, 6282 frames.
+  `rngcmp.py rontrace-run979b.log rontrace-run984.log`: **6282 identical, 0 differing**. Filed with
+  `filerun.py run984 greatlakes-persian-diff2-window-6020-6277-guys4-ammo`. Block 6276 is not printed (256 blocks).
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run984-greatlakes-persian-diff2-window-6020-6277-guys4-ammo.txt`, 466,385,194 bytes,
+SHA-256 `84f62ce52ebd90bcef99abf1ba4fb34b906121d10ad4eba01d4dc3e908688714`.
+
+Archive `rontrace-run984.log`, 30,759,200 bytes,
+SHA-256 `ac4d3fc5540c9430668beb70eb4605fa219a95353c42256bf8ade08ead1d2826`.
+
+**What it holds**: the word 6046's frame, `run984_s_word_frame_is_widened_whole` (1282 keys on the first try, 271
+after piece 112's bays, 32 after `do_move`'s search); the Immortal `1/16`'s arrow thrown on 6012 from (3766, 32893)
+in 10 frames, pinned by `launch::tests::run984_s_immortal_arrow_leaves_from_piece_112_s_bays`.
+
+## run984b — the same game, a state packet at frame 6011 (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: no dump prints a piece's `AttachPos` rows, and piece 112 (the
+Persian Immortals) is on no packet. `RON_STATE_FRAME=6011` with item 597's `plan.h`, `--end-frame 6015 --log-window
+6010 6014 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5`, on the click-free lane.
+- Pool lane 1. Launched 21:44:45 and the game exited at 21:45:16 (31 s). `success`, 6016 frames, `map_style 14`,
+  seed 12345. `rngcmp.py rontrace-run979b.log`: **6016 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run984b/map-14/frame-snapshot.bin`, 800,991,816 bytes,
+SHA-256 `16f186d67028b6b85992c6b19b1c5a7ec7affc53e383ccf16e81b95f311360b5`.
+
+**What it holds**: piece 112's two `AttachPos` rows (`CHAR_ATTACK2` at 14, `CHAR_ATTACK3` at 6), swept at all 361
+headings by `tools/recomp/get_position.py` into `sim::launch::BAYS`. No test reads it.
+
+## run984c — the same game, a state packet at frame 6251 (2026-10-19, item 3355, `att-3355`)
+
+`docs/AI.md` §279. **What the disk could not answer**: no dump prints `Object +0x3d` (`targeted`), the term that sent
+the Immortal `1/10`'s 6251 re-search to the citizen `0/4`. `RON_STATE_FRAME=6251` with item 597's `plan.h`,
+`--end-frame 6255 --log-window 6249 6254 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5`, on the click-free lane.
+- Pool lane 2. Launched 21:51:36 and the game exited at 21:52:14 (38 s). `success`, 6256 frames, `map_style 14`,
+  seed 12345. `rngcmp.py rontrace-run979b.log`: **6256 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run984c/map-14/frame-snapshot.bin`, 787,614,240 bytes,
+SHA-256 `8f4ee9f55d4878a7ec617a6885ce37479a82b945220f17569bb8811afc87254a`.
+
+**What it holds**: under `tools/recomp/step4.py --entry`, `Object::compare_target@0064e5c0` returns 10239 and 9960 for
+`0/3` and `0/4` (ours' values), and `targeted` reads `0/3` 3, `0/4` 1 — `do_move`'s every-sixteenth search. No test
+reads it.
