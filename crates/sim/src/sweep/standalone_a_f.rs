@@ -126,6 +126,8 @@ mod balance_lookup_absolute_name;
 mod balance_return_modifier;
 #[path = "balance_walk_rules_data.rs"]
 mod balance_walk_rules_data;
+#[path = "blocked_location_emu.rs"]
+mod blocked_location_emu;
 #[path = "border_build_border.rs"]
 mod border_build_border;
 #[path = "border_generate_morph_side.rs"]
@@ -286,6 +288,10 @@ mod build_type_data_already_built;
 mod build_type_data_area;
 #[path = "build_type_data_basic_type.rs"]
 mod build_type_data_basic_type;
+#[path = "build_type_data_blocked_location.rs"]
+mod build_type_data_blocked_location;
+#[path = "build_type_data_blocked_location_tail.rs"]
+mod build_type_data_blocked_location_tail;
 #[path = "build_type_data_blocked_site.rs"]
 mod build_type_data_blocked_site;
 #[path = "build_type_data_blocked_tcoord.rs"]

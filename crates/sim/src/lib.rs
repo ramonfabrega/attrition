@@ -123,6 +123,7 @@ pub mod stance;
 pub mod supply;
 pub mod swarm;
 pub mod tcoord;
+pub mod location;
 pub mod tech;
 pub mod terrain;
 pub mod territory;
