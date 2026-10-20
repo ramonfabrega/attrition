@@ -57,7 +57,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 3 | Bantu | bantu | `bantu` | 5 | `GreatSaharaBantuTier4` (map 7, tier 4) |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
-| 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2) |
+| 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3) |
@@ -74,7 +74,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (map 18, tier 1) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (map 18, tier 2) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4) |
-| 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (map 14, tier 2) |
+| 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
 
 ## 3. The held-out nations, arm by arm
 

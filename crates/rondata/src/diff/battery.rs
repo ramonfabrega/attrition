@@ -173,6 +173,33 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatLakesPersianTier2` (Persians 23, Difficulty 2, map 14; run979
     // and run979b, 6046 of 7105), minted by item 3345, left the battery on
     // item 3355 for the AI word (`diff::persian_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3355 (DECISIONS 72 as amended by 84,
+    // `docs/AI.md` §125, §279; runs 983 and 983b) when the Persians left
+    // for the AI word, so the held-out set stays eight: Great Lakes, the
+    // Romans at Difficulty 2 — **rule (2)**: rule (1) has no answer (a
+    // header survey of every gamelog on disk holds every nation), and of
+    // the nations no Great Lakes dump holds and only closed games hold (the
+    // open battery's Aztecs, Koreans and Americans out), the Romans reach
+    // the most census functions (10, `docs/NATIONS.md`; the Spanish and the
+    // Dutch 9), held only by `EastIndiesRomanTier2`; tier 2 is the tier the
+    // Persians left (Chinese 1 and Turks 4 remain). The game ends itself on
+    // 7799.
+    Lobby {
+        name: "GreatLakesRomanTier2",
+        map_style: 14,
+        ai_tribe: 6,
+        difficulty: 2,
+        start: "gamelog-run983-greatlakes-roman-diff2-start.txt",
+        long: (
+            "gamelog-run983b-greatlakes-roman-diff2-24k-trace.txt",
+            "rontrace-run983b.log",
+        ),
+        length: 7799,
+        // Item 3355, the first try: count 7799, sequence 7799 — the draw
+        // stream agrees to the game's end.
+        count: 7799,
+        sequence: 7799,
+    },
     // The fourth lobby (item 2904, DECISIONS 72), minted when the first
     // left for the AI word so three stay held out: Great Lakes, the Chinese
     // at Difficulty 1 — a nation and a difficulty no scored or battery
