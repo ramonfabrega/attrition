@@ -8573,10 +8573,8 @@ impl Sim {
         let b = g.building;
         let who = self.units[u].owner;
         let wood = self.building_ident(b) == Ident::Woodcutter;
-        if g.been_there && !self.buildings[b].gather_bumped {
-            self.buildings[b].recharging += 1;
-            self.buildings[b].gather_bumped = true;
-        }
+        // The recharge bump and the group drop are the swept head
+        // ([`crate::gather_tile::gather_head_steps`], item 3381).
         // **Every call drops the gatherer's group**, a computer's too
         // (`5f0237` `orl $-1`, `5f023e` `movw %ax, 0x80(%ebx)`: both
         // paths from the entry join there, before the `goto_build`
@@ -8585,7 +8583,10 @@ impl Sim {
         // 8369 it is `1/11`'s `group` 65 → −1, the first pool parting
         // once the AI's building groups number the pool
         // (`docs/GROUPS.md` §29).
-        self.units[u].group_ptr = None;
+        crate::gather_tile::gather_head_steps(
+            &mut crate::gather_tile::SimGatherTile { sim: self, u, b },
+            g.been_there,
+        );
         let bpos = self.buildings[b].pos;
         let here = self.units[u].pos;
         let (xs, ys) = self.buildings[b].ty.map_or((1, 1), |t| {
@@ -8801,83 +8802,34 @@ impl Sim {
             self.store_gather(u, g);
             return;
         }
-        // Choose a tile. The stand first (`do_non_flat_gather:512`, whose
+        // Choose a tile: [`crate::gather_tile::gather_tile_steps`], the swept
+        // arm (item 3381) — the stand first (`do_non_flat_gather:512`, whose
         // call is at `005f027a` and whose return address is therefore
-        // `+0x10f` — the listing's three `CHAR_DEFAULT` stands are
-        // `+0x10f`, `+0xb99` and `+0xfd4`, and the decompile's own
-        // `pTVar19 = (TCoord *)0x5f027f` names this one) — the
-        // woodcutters' frame-0 draws on run12 are this call (`docs/ANIM.md`
-        // §4).
-        if !g.been_there {
-            g.been_there = true;
-            self.ledgers[who as usize].dirty = true;
-        }
-        self.mark(crate::anim::SITE_STAND_GATHER);
-        self.set_default_anim(u);
-        // `tx < 0 || ty < 0 || !has_gather_access(tx, ty, who, 1, 0)` — the
-        // held tile is given up and chosen again when the walk into it has
-        // closed (`005f0655`, the `else` arm's `goto LAB_005f02b2`).
-        let stale = match g.tile {
-            None => true,
-            Some(t) => !self.has_gather_access(t, who),
+        // `+0x10f`; the woodcutters' frame-0 draws on run12 are this call,
+        // `docs/ANIM.md` §4), the held tile kept while `has_gather_access`
+        // holds, the list scanned (a tiny range's weight capped at 3 —
+        // East Indies' `1/11` on 10958, item 620), the wait rolled at
+        // `+0x54b`. An empty or walled-in list returns before the roll and
+        // **leaves a stale held tile in place**.
+        let mut o = crate::gather_tile::TileOrder {
+            tx: g.tile.map_or(-1, |t| t.x),
+            ty: g.tile.map_or(-1, |t| t.y),
+            wait: g.wait,
+            goto_build: g.goto_build,
+            dist_mod: g.dist_mod,
+            been_there: g.been_there,
         };
-        if stale {
-            g.tile = None;
-            let btile = bpos.tile();
-            // **A tiny mountain caps the distance weight at 3**
-            // (`005f0170`, the `local_30` clamp before the loop): when the
-            // list is a range's (`MiningList::mtn ≥ 0`, a Mine) and holds
-            // fewer tiles than `MTN_TINY_SIZE`, a Mine's 10 scores as 3,
-            // so the list's order (`i >> 2`) weighs against the distance.
-            // East Indies' `1/11` on 10958 is the case: 46 tiles, and the
-            // cap sends it to (170, 182) where 10 sent it onto `1/6`'s
-            // (173, 183) — item 620, `docs/ORDERS.md` §6.4.
-            let tiny = crate::gather::MOUNTAIN_GATHER[0].0;
-            let dm = if self.building_ident(b) == Ident::Mine
-                && (self.buildings[b].gather_from.len() as i32) < tiny
-            {
-                g.dist_mod.min(3)
-            } else {
-                g.dist_mod
-            };
-            let mut best: Option<(i32, usize)> = None;
-            for i in 0..self.buildings[b].gather_from.len() {
-                let t = self.buildings[b].gather_from[i];
-                // **The candidate is filtered before it is scored**
-                // (`005f0575`): the tile still carries `mask & 0x4000`, and
-                // `has_gather_access` still holds for it. A tile ringed by
-                // its own kind has no orthogonal neighbour to stand on, so
-                // it is never chosen however near the camp it is — which is
-                // exactly what separates player 1's `(213, 92)` from the
-                // nearer `(214, 93)` on run10 (`docs/ORDERS.md` §6.4).
-                if self.world.tile_mask(t) & tile::BLOCKED == 0 || !self.has_gather_access(t, who) {
-                    continue;
-                }
-                let score = vector_dist((t.x - btile.x).abs(), (t.y - btile.y).abs()).max(3) * dm
-                    + (i as i32 >> 2);
-                if best.is_none_or(|(s, _)| score < s) {
-                    best = Some((score, i));
-                }
-            }
-            // Nothing eligible — an empty list, or every tile walled in.
-            // The original returns here (`005f05b0`), before the wait is
-            // rolled, so the worker keeps the camp and takes no draw.
-            let Some((_, at)) = best else {
-                self.store_gather(u, g);
-                return;
-            };
-            let pick = self.buildings[b].gather_from.remove(at);
-            self.buildings[b].gather_from.push(pick);
-            g.tile = Some(pick);
+        let held = (o.tx, o.ty);
+        crate::gather_tile::gather_tile_steps(
+            &mut crate::gather_tile::SimGatherTile { sim: self, u, b },
+            &mut o,
+        );
+        if (o.tx, o.ty) != held {
+            g.tile = Some(Pos::new(o.tx, o.ty));
         }
-        self.mark(SITE_TILE_WAIT);
-        g.wait = 400 + self.rng.roll() % 200;
-        g.goto_build = false;
-        if !wood {
-            g.wait = 1_000_000;
-        }
-        // `:694` / `:700`, the function's last statement either way.
-        self.units[u].carry |= if wood { CARRY_TO_WOOD } else { CARRY_TO_ORE };
+        g.wait = o.wait;
+        g.goto_build = o.goto_build;
+        g.been_there = o.been_there;
         self.store_gather(u, g);
     }
 
