@@ -216,6 +216,12 @@ mod spell_type_cast_supplies;
 mod spell_type_cast_transport;
 #[path = "spell_type_cast_unlock_gate.rs"]
 mod spell_type_cast_unlock_gate;
+#[path = "spell_type_data_is_castable.rs"]
+mod spell_type_data_is_castable;
+#[path = "spell_type_data_is_castable_city.rs"]
+mod spell_type_data_is_castable_city;
+#[path = "spell_type_data_is_castable_world.rs"]
+mod spell_type_data_is_castable_world;
 #[path = "spell_type_pay_cast_costs.rs"]
 mod spell_type_pay_cast_costs;
 #[path = "spell_type_unpay_cast_costs.rs"]
