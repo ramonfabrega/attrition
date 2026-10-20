@@ -144,7 +144,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 fn caravan_plunder(&mut self) -> i32 {
                     rd(&self.c[0], 0x3b4)
                 }
-                fn aztec_slay_bonus(&mut self) -> i32 {
+                fn slay_bonus_of_killer(&mut self) -> i32 {
                     rd(&self.c[0], 0x56c)
                 }
                 fn aztec_slay_cap(&mut self) -> i32 {

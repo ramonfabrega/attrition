@@ -81,7 +81,7 @@ pub trait PlunderView {
     /// `CARAVAN_PLUNDER`.
     fn caravan_plunder(&mut self) -> i32;
     /// `AZTEC_SLAY_BONUS`.
-    fn aztec_slay_bonus(&mut self) -> i32;
+    fn slay_bonus_of_killer(&mut self) -> i32;
     /// `AZTEC_SLAY_CAP`.
     fn aztec_slay_cap(&mut self) -> i32;
     /// `AZTEC_PLUNDER`.
@@ -298,7 +298,7 @@ fn pick<V: PlunderView>(v: &mut V, who: i32, p3: i32, despot: i32) -> (i32, i32)
         slay = v
             .slay_count(who)
             .wrapping_add(1)
-            .wrapping_mul(v.aztec_slay_bonus());
+            .wrapping_mul(v.slay_bonus_of_killer());
         if cap < slay {
             slay = cap;
         }
@@ -394,7 +394,7 @@ impl PlunderView for SimPlunder<'_> {
     fn caravan_plunder(&mut self) -> i32 {
         0
     }
-    fn aztec_slay_bonus(&mut self) -> i32 {
+    fn slay_bonus_of_killer(&mut self) -> i32 {
         0
     }
     fn aztec_slay_cap(&mut self) -> i32 {
