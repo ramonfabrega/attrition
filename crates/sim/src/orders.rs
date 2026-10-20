@@ -8916,17 +8916,6 @@ impl Sim {
             return;
         };
         let me = Obj::Unit(u);
-        if std::env::var("RON_PROBE_3385").is_ok_and(|v| v == format!("{}/{}@{frame}", self.units[u].owner, self.units[u].index)) {
-            let t = self.units[u].combat.target;
-            let tm = t.map(|t| self.world.tile_mask(self.pos_of(t).tile()));
-            let tp = t.map(|t| self.pos_of(t));
-            let vt = t.map(|t| self.valid_target_const(me, t));
-            let ga = self.guard_activity(u);
-            let gc = match (t, ga) { (Some(t), Some(g)) => Some(self.guard_check_target(u, &g, t, false)), _ => None };
-            let reach = t.map(|t| self.check_target_reaches(u, t, true));
-            let lea = match (t, ga) { (Some(t), Some(g)) => Some(format!("{:?}", self.guard_leash(u, &g, t))), _ => None };
-            eprintln!("PROBE3385 f{frame} {}/{} tgt {t:?} at {tp:?} mask {tm:?} valid_const {vt:?} guard {ga:?} check {gc:?} reaches {reach:?} leash {lea:?} rech {} captain {} maxr {}", self.units[u].owner, self.units[u].index, self.units[u].combat.recharging, self.units[u].captain, self.max_range_of(me));
-        }
         // **`do_attack`'s own gate is the type's `attack`, and it is the
         // only aliveness test the function has** (item 463).
         // `Unit::do_attack@005f1b80` tests the target object's `flags & 1`
