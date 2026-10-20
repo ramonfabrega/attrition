@@ -53,14 +53,14 @@ and the battery is never debugged against (`docs/AI.md` §125).
 |---:|---|---|---|---:|---|
 | 0 | Aztecs | aztecs | `aztecs` | 7 | none |
 | 1 | Maya | maya | `maya` | 2 | `GreatSaharaMayaTier4` (AI word, tier 4) |
-| 2 | Inca | inca | `inca` | 3 | none |
+| 2 | Inca | inca | `inca` | 3 | `EastIndiesIncaTier3` (AI word, tier 3) |
 | 3 | Bantu | bantu | `bantu` | 5 | `GreatSaharaBantuTier4` (map 7, tier 4) |
 | 4 | Nubians | nubians | `nubians` | 37 | the human in every capture |
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
 | 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (map 7, tier 4) |
 | 8 | Turks | turks | `turks` | 7 | none |
-| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3) |
+| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (map 18, tier 3) |
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3) |
@@ -156,7 +156,7 @@ left out; a constant with no reader in the export is dead there too.
 | `MAYA_BUILDING_HP` | 25 | Wall::update_hits | modelled at build.rs | `maya_building_hp` |
 | `MAYA_BUILDING_SPEED` | 20 | Wall::update_construct_time | modelled at build.rs | `maya_building_speed` |
 | `INCA_WEALTH_CAP` | 33 | Leader::calc_resource_caps | modelled at economy.rs | `inca_wealth_cap` |
-| `INCA_WEALTH_PER_MINER` | 10 | BuildTypeData::calc_gather, Leader::calc_gather | not carried | `inca_wealth_per_miner` |
+| `INCA_WEALTH_PER_MINER` | 10 | BuildTypeData::calc_gather, Leader::calc_gather | modelled at holdings.rs | `inca_wealth_per_miner` |
 | `INCA_REFUND` | 25 | Object::take_damage, Unit::plunder | not carried | `inca_refund` |
 | `BANTU_CITY_LIMIT` | 1 | Leader::found_cities, LeaderData::get_city_limit | modelled at place.rs | `bantu_city_limit` |
 | `BANTU_POP_CAP` | 100 | Leader::calc_pop_cap | modelled at cost.rs | `bantu_pop_cap` |
@@ -410,7 +410,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `BuildOut::make_options@00629ed0` | 4 | not sim | `interface or render side` |
 | `BuildData::construct_time@0062d5c0` | 20 | modelled at build.rs | `iroquois_quick_senate` |
 | `BuildTypeData::get_building_range@00639990` | 6 | carried at fight.rs | `00639990` |
-| `BuildTypeData::calc_gather@00639e40` |  +var | carried at holdings.rs | `00639e40` |
+| `BuildTypeData::calc_gather@00639e40` |  +var | carried at economy.rs | `00639e40` |
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
 | `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |

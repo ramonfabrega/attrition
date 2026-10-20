@@ -19786,3 +19786,63 @@ SHA-256 `038663c47493b19809922f59f4cac188d06e1f63f8f9654eaf82f05d107b9df8`.
 
 **What it holds**: `run982d_s_last_blocks_are_widened_whole`: 38 standing keys and nothing on `0/2000`, damage 1197
 of 1200 through block 16764 on both sides; the capture is the last frame's own hits.
+
+## run986 — the battery's replacement lobby: East Indies, the Spanish at difficulty 3, a `DUMP_ALL` start (2026-10-19, item 3360, `att-3360`)
+
+`docs/AI.md` §281. **What the disk could not answer**: the Inca left the battery for the AI word, and the held-out set
+stays eight with a lobby no dump holds — entry 72's rule (2) as amended by 84: every nation is in some dump, so rule
+(1) has no answer; a header survey of 1015 gamelogs puts AI tribes 2, 6, 10, 11, 12, 16, 17, 19, 20, 21, 22 and 23
+on East Indies; of the nations on no East Indies dump and held only by closed games (Maya 2, Bantu 5, Greeks 7,
+Egyptians 8, Spanish 9, Japanese 4, Iroquois 8 census functions; the open battery's nations out), the Spanish (9)
+reach the most, held only by `GreatSaharaSpanishTier3`, at the tier (3) the Inca left. `--map 18 --end-frame 36
+--timeout 1200 --dump-all-start --ai-tribe 9 --profile DIFFICULTY=3`, through `viadriver.sh` + `golden_capture.sh`.
+- Pool lane 1. Launched 23:34:52 and the game exited at 23:44:37 (585 s). `success`, 37 frames, `map_style 18`, seed
+  12345, players `(0, 4, 7), (1, 9, 1)`. Filed with `filerun.py run986 eastindies-spanish-diff3-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run986-eastindies-spanish-diff3-start.txt`, 153,507,261 bytes,
+SHA-256 `c5729355ed790046ea7831dcb000d4089ae17d1f56a417c13c744622690b4367`.
+
+Archive `rontrace-run986.log`, 10,619,296 bytes,
+SHA-256 `3eb3e63e3f0db25fccef4c5df6d7b7d40fad6acc0da066cd3bc05e784ab7438d`.
+
+**What it holds**: `battery::BATTERY`'s `EastIndiesSpanishTier3` start.
+
+## run986b — the same lobby, the draw stream to 24000 (2026-10-19, item 3360, `att-3360`)
+
+`docs/AI.md` §281. run962b's recipe with `--ai-tribe 9 --profile DIFFICULTY=3` and run643's four `--detail` lines.
+- Pool lane 2. Launched 23:34:54 and the game exited at 23:40:40 (346 s). `success`, 24001 frames, `ended_early`
+  false: the game runs to 24000. `rngcmp.py rontrace-run986.log rontrace-run986b.log`: **37 identical, 0 differing**.
+  Filed with `filerun.py run986b eastindies-spanish-diff3-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run986b-eastindies-spanish-diff3-24k-trace.txt`, 13,697,542 bytes,
+SHA-256 `931280b793dff0b4a7ae31585e3ec145a5573e39232df3c2e2090e8f0b31dc77`.
+
+Archive `rontrace-run986b.log`, 247,672,704 bytes,
+SHA-256 `879943a5733f1cf4a56bf443506fe8f6039f2fe1eb5ad8f5639d420a1fa7e48c`.
+
+**What it holds**: the Spanish first try, **9028 / 9028** of 24000 (ours 2 draws, theirs 12, at 0: ours
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`), pinned in
+`battery::BATTERY`.
+
+## run987 — the Inca word: the word 7782's window, blocks 7776..8032 at `LEADERS=9` (2026-10-19, item 3360, `att-3360`)
+
+`docs/AI.md` §281. **What the disk could not answer**: run969 dumps blocks 0..36 and run969b its setup and closing
+blocks only, so no dump held who=1's ledger or market on 7782, where theirs spends a second `use_market` sell pass.
+`--map 18 --end-frame 8037 --timeout 5400 --log-window 7776 8032 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 2 --cover cover=0 --profile DIFFICULTY=3`.
+- Pool lane 3. Launched 23:37:02 and the game exited at 23:58:40 (1298 s). `success`, 8038 frames.
+  `rngcmp.py rontrace-run969b.log rontrace-run987.log`: **8038 identical, 0 differing**. Filed with
+  `filerun.py run987 eastindies-inca-diff3-window-7776-8033-leaders`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run987-eastindies-inca-diff3-window-7776-8033-leaders.txt`, 536,256,546 bytes,
+SHA-256 `9c3628033d4a047f38245f7320d7e4f27dea96c42c4f3e76740b631085e9dc4a`.
+
+Archive `rontrace-run987.log`, 51,692,576 bytes,
+SHA-256 `9a55de16c595acbae01d7eb4aaf7e85d1d9caa0806c476a829d187b5ceed1c7f`.
+
+**What it holds**: `run987_s_word_frame_is_widened_whole` — 533 keys on the first try, the window opening on who=1's
+`income[2:wealth]` ours 752 against theirs 912 (sixteen miners at `INCA_WEALTH_PER_MINER`); 49 standing keys after
+`calc_gather`'s Inca arm.
