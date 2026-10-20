@@ -674,53 +674,88 @@ pub fn type_damage(t: &Tuning, a: &Kind, b: &Kind) -> i32 {
     v
 }
 
-/// The 399 `balance.xml` category indices a type belongs to, in the order
+/// What `Balance::return_pack@005821c0` answers for one type: the five words
+/// `compute_modifier` walks (a negative field is absent).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Pack {
+    /// The unit's own row, `TypeIndex − 0x32`.
+    pub ty: i32,
+    /// The siege/fort/city/lookout/tower line.
+    pub line: i32,
+    /// The object class: 0 a building, 1 a unit.
+    pub obj: i32,
+    /// The type's age.
+    pub age: i32,
+    /// The `obj_masks` word.
+    pub flags: u32,
+}
+
+impl Kind {
+    /// The pack `return_pack` fills for this type.
+    pub fn pack(&self) -> Pack {
+        let line = if self.unit {
+            if self.siege { 0 } else { -1 }
+        } else if self.is(line::FORT) {
+            1
+        } else if self.is(line::CITY) {
+            3
+        } else if self.is(line::LOOKOUT) {
+            4
+        } else if self.is(line::TOWER) {
+            2
+        } else {
+            -1
+        };
+        Pack {
+            ty: match (self.unit, self.unit_index) {
+                (true, Some(i)) => i as i32,
+                _ => -1,
+            },
+            line,
+            obj: if self.unit {
+                1
+            } else if self.build {
+                0
+            } else {
+                -1
+            },
+            age: if self.age >= 0 { self.age } else { -1 },
+            flags: self.masks,
+        }
+    }
+}
+
+/// The 399 `balance.xml` category indices a pack belongs to, in the order
 /// `compute_modifier` walks them (§5.1): its own unit row, its line, its
-/// object class, its age, then one per `obj_masks` bit ascending.
-pub fn categories(k: &Kind) -> Vec<usize> {
+/// object class, its age, then one per flag bit ascending.
+pub fn pack_categories(p: &Pack) -> Vec<usize> {
     let mut c = Vec::new();
-    if k.unit
-        && let Some(i) = k.unit_index
-    {
-        c.push(i);
-    }
-    let line = if k.unit {
-        if k.siege { Some(0) } else { None }
-    } else if k.is(line::FORT) {
-        Some(1)
-    } else if k.is(line::CITY) {
-        Some(3)
-    } else if k.is(line::LOOKOUT) {
-        Some(4)
-    } else if k.is(line::TOWER) {
-        Some(2)
-    } else {
-        None
-    };
-    if let Some(l) = line {
-        c.push(0x160 + l);
-    }
-    if k.unit || k.build {
-        c.push(if k.unit { 0x166 } else { 0x165 });
-    }
-    if k.age >= 0 {
-        c.push(0x167 + k.age as usize);
+    for (v, base) in [(p.ty, 0), (p.line, 0x160), (p.obj, 0x165), (p.age, 0x167)] {
+        if v >= 0 {
+            c.push(base + v as usize);
+        }
     }
     for bit in 0..32 {
-        if k.masks & (1 << bit) != 0 {
+        if p.flags & (1 << bit) != 0 {
             c.push(0x16f + bit);
         }
     }
     c
 }
 
+/// The 399 `balance.xml` category indices a type belongs to (§5.1).
+pub fn categories(k: &Kind) -> Vec<usize> {
+    pack_categories(&k.pack())
+}
+
 /// The XML half of one entry: `p = 100; for r in rows: for c in cols: p =
-/// (xml(r, c) * p) / 100`, truncating each step.
+/// (xml(r, c) * p) / 100`, truncating each step. The original multiplies in
+/// 32 bits (`imul`), so a product that overflows wraps.
 pub fn xml_product(rows: &[usize], cols: &[usize], xml: impl Fn(usize, usize) -> i32) -> i32 {
-    let mut p = 100;
+    let mut p = 100i32;
     for &r in rows {
         for &c in cols {
-            p = (xml(r, c) * p) / 100;
+            p = xml(r, c).wrapping_mul(p) / 100;
         }
     }
     p
@@ -729,11 +764,29 @@ pub fn xml_product(rows: &[usize], cols: &[usize], xml: impl Fn(usize, usize) ->
 /// `Balance::compute_modifier(a, b)`: 100 for any gaia type, else
 /// `type_damage × xml_product / 100`.
 pub fn compute_modifier(t: &Tuning, a: &Kind, b: &Kind, xml: impl Fn(usize, usize) -> i32) -> i32 {
-    if a.gaia || b.gaia {
+    compute_modifier_with(
+        a.gaia || b.gaia,
+        &a.pack(),
+        &b.pack(),
+        || type_damage(t, a, b),
+        xml,
+    )
+}
+
+/// [`compute_modifier`] from the two packs and the hardcoded half's answer
+/// (asked only past the gaia gate, after the tables).
+pub fn compute_modifier_with(
+    gaia: bool,
+    a: &Pack,
+    b: &Pack,
+    type_damage: impl FnOnce() -> i32,
+    xml: impl Fn(usize, usize) -> i32,
+) -> i32 {
+    if gaia {
         return 100;
     }
-    let p = xml_product(&categories(a), &categories(b), xml);
-    (type_damage(t, a, b) * p) / 100
+    let p = xml_product(&pack_categories(a), &pack_categories(b), xml);
+    type_damage().wrapping_mul(p) / 100
 }
 
 #[cfg(test)]

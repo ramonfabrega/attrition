@@ -525,6 +525,8 @@ pub struct Census {
     pub peasants_garr: i32,
     pub stable_garr: i32,
     pub scout_garr: i32,
+    /// `barracks_garr` (`+0xa34`): the Americans' term, counted and unread.
+    pub barracks_garr: i32,
     // Territory (step 4).
     pub my_team_terr: i32,
     pub other_team_terr: i32,
@@ -863,6 +865,7 @@ impl Leader {
                 peasants_garr: 0,
                 stable_garr: 0,
                 scout_garr: 0,
+                barracks_garr: 0,
                 my_team_terr: 0,
                 other_team_terr: 0,
                 min_other_team_terr: 0,
@@ -1341,6 +1344,12 @@ pub fn goods_picture(leader: &mut Leader, ledger: &mut Ledger, s: &GoodsSetup) {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn the_barracks_garrison_term_starts_at_zero() {
+        // `remove_from_inside` counts it (item 3372); no reader yet.
+        assert_eq!(Census::default().barracks_garr, 0);
+    }
+
     #[test]
     fn a_ushort_region_slot_reads_unsigned() {
         // `reg_free_peasants` is a `ushort[64]` and `Leader::produce_building`
