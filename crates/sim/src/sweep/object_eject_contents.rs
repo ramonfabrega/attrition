@@ -351,7 +351,11 @@ impl EjectView for Emu<'_> {
         self.seq(3, Q_COME, 4) != 0
     }
     fn die(&mut self, w: i32, s: i32) {
-        let idx = if self.a[F_DIE] != 0 { S_DIE_DIRECT } else { S_DIE_SLOT };
+        let idx = if self.a[F_DIE] != 0 {
+            S_DIE_DIRECT
+        } else {
+            S_DIE_SLOT
+        };
         self.stub(idx, &unit(w, s), &[0, -1, 0]);
         self.dec_heads();
     }
@@ -366,7 +370,11 @@ impl EjectView for Emu<'_> {
         i32::from(i16::from_le_bytes([self.p[d][0x72], self.p[d][0x73]]))
     }
     fn tribe_can_type(&mut self, w: i32) -> bool {
-        self.stub_str(S_TRIBE_CAN, &format!("p{}+0x0", 3 * w), &[format!("p{T42}+0x0")]);
+        self.stub_str(
+            S_TRIBE_CAN,
+            &format!("p{}+0x0", 3 * w),
+            &[format!("p{T42}+0x0")],
+        );
         self.seq(4, Q_TRIBE, 4) != 0
     }
     fn leader_type68(&mut self, w: i32) -> i32 {
@@ -383,7 +391,11 @@ impl EjectView for Emu<'_> {
         self.a[ans(S_CUR_UPGRADE)]
     }
     fn unit_set_type(&mut self, w: i32, s: i32, ty: i32) {
-        let idx = if self.a[F_SET_TYPE] != 0 { S_SET_TYPE_K } else { S_SET_TYPE };
+        let idx = if self.a[F_SET_TYPE] != 0 {
+            S_SET_TYPE_K
+        } else {
+            S_SET_TYPE
+        };
         self.stub(idx, &unit(w, s), &[ty, 0]);
     }
     fn unit_clear_orders(&mut self, w: i32, s: i32) {
@@ -394,14 +406,28 @@ impl EjectView for Emu<'_> {
         let (x, y) = (rd(self.m, 0x10) ^ 0x63637, rd(self.m, 0x14) ^ 0x63637);
         let city = &self.p[(17 + 3 * who + l20) as usize];
         let short = i32::from(i16::from_le_bytes([city[8], city[9]]));
-        self.stub(S_FIND_CITY, &l20.to_string(), &[x, y, 1, w, l20, 0x200, 3, short, who]);
+        self.stub(
+            S_FIND_CITY,
+            &l20.to_string(),
+            &[x, y, 1, w, l20, 0x200, 3, short, who],
+        );
         self.seq(5, Q_CITY, 3)
     }
     fn add_move_order(&mut self, w: i32, s: i32, city: i32) {
         let c = &self.p[(17 + 3 * w + city) as usize];
         let (cx, cy) = (rd(c, 0xc), rd(c, 0x10));
         let slot = format!("p{}+{:#x}", if w == 0 { 6 } else { 11 }, 4 * s);
-        let args = [cx.to_string(), cy.to_string(), "4".into(), "0".into(), "2".into(), "0".into(), slot, "-1".into(), "-1".into()];
+        let args = [
+            cx.to_string(),
+            cy.to_string(),
+            "4".into(),
+            "0".into(),
+            "2".into(),
+            "0".into(),
+            slot,
+            "-1".into(),
+            "-1".into(),
+        ];
         self.stub_str(S_ADD_MOVE, &unit(w, s), &args);
     }
     fn add_strafe_order(&mut self, w: i32, s: i32) {
@@ -447,7 +473,15 @@ impl EjectView for Emu<'_> {
         let mine = rd(self.m, 0x68);
         let b = self.buf(r);
         let f = rd(b, 0x68);
-        wr(b, 0x68, if mine & 0x200 != 0 { f | 0x200 } else { f & !0x200 });
+        wr(
+            b,
+            0x68,
+            if mine & 0x200 != 0 {
+                f | 0x200
+            } else {
+                f & !0x200
+            },
+        );
     }
     fn me_list_len(&mut self) -> i32 {
         rd(self.m, 0xd8)
@@ -492,9 +526,6 @@ impl EjectView for Emu<'_> {
     fn stack_cap(&mut self, w: i32, s: i32) -> i32 {
         rd(self.buf(rec(w, s)), 0xbc)
     }
-    fn stack_grow_arg(&mut self, w: i32, s: i32) -> i32 {
-        i32::from(self.buf(rec(w, s))[0xc4] as i8)
-    }
     fn stack_set_count(&mut self, w: i32, s: i32, n: i32) {
         wr(self.buf(rec(w, s)), 0xc0, n);
     }
@@ -510,7 +541,7 @@ impl EjectView for Emu<'_> {
         }
     }
     fn stack_increase(&mut self, w: i32, s: i32) {
-        let arg = self.stack_grow_arg(w, s);
+        let arg = i32::from(self.buf(rec(w, s))[0xc4] as i8);
         self.stub(S_INC_SIZE, &format!("{}+0xb8", name(rec(w, s))), &[arg]);
     }
     fn stack_push(&mut self, w: i32, s: i32, r: [i32; 4]) {
@@ -520,7 +551,8 @@ impl EjectView for Emu<'_> {
             &["sp-0x58".to_string()],
         );
         let bytes: Vec<u8> = r.iter().flat_map(|v| v.to_le_bytes()).collect();
-        self.derefs.push(bytes.iter().map(|b| format!("{b:02x}")).collect());
+        self.derefs
+            .push(bytes.iter().map(|b| format!("{b:02x}")).collect());
     }
     fn me_reset_move_orders(&mut self) {
         self.stub(S_RESET_MOVE, "m+0x0", &[]);
@@ -541,7 +573,11 @@ impl EjectView for Emu<'_> {
         self.stub_str(S_G_SETUP, g, &[l.to_string()]);
         self.stub(S_G_KILL, g, &[idx, who, 0, 0]);
         self.stub(S_G_ADD, g, &[s, w, 0, 0]);
-        self.stub_str(S_PUSH_GROUP, g, &[who.to_string(), g.to_string(), "1".to_string()]);
+        self.stub_str(
+            S_PUSH_GROUP,
+            g,
+            &[who.to_string(), g.to_string(), "1".to_string()],
+        );
         let at = self.a[ans(S_PUSH_GROUP)] as usize * 0x9d4;
         self.stub_str(S_FINISH_INSERT, &format!("c7+{at:#x}"), &[l.to_string()]);
         self.stub(S_LIST_CLEAR, "sp-0x70", &[]);
@@ -602,10 +638,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(8);
@@ -620,18 +661,33 @@ fn the_emulated_original_agrees_on_every_row() {
                 eject_steps(&mut emu, a[0], a[1], a[2], a[3]);
                 emu.derefs.join("/")
             };
-            log.push(if derefs.is_empty() { "-".to_string() } else { derefs });
+            log.push(if derefs.is_empty() {
+                "-".to_string()
+            } else {
+                derefs
+            });
             want_eax
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "eject_contents — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "eject_contents — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "eject_contents — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "eject_contents — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "eject_contents — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[9 + i], "eject_contents — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[9 + i],
+                "eject_contents — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

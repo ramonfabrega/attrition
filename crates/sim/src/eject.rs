@@ -26,9 +26,9 @@
 //! **What the crate does not carry.** The crate's `eject_contents`s
 //! (`garrison.rs`, `build.rs`, `city.rs`) are approximations on its own data
 //! model; none is this function. There is no `SimEject`, so this module has
-//! no caller in the simulation yet (SEAM: the crate's building ejection is
+//! no caller in the simulation yet: the crate's building ejection is
 //! `garrison.rs::eject_contents`, one squad a frame, and `transport.rs`
-//! models the transport arm in place).
+//! models the transport arm in place.
 
 /// What `Object::eject_contents` reads of the world and the callees it makes.
 /// A passenger or container is named by `(w, s)`: the owner's index and its
@@ -143,10 +143,9 @@ pub trait EjectView {
     fn me_stack_set_count(&mut self, n: i32);
     /// Record `i` of the transport's stack.
     fn me_stack_get(&mut self, i: i32) -> [i32; 4];
-    /// The passenger's `+0xc0`, `+0xbc`, `(char)+0xc4`.
+    /// The passenger's `+0xc0` and `+0xbc` (the stack's count and capacity).
     fn stack_count(&mut self, w: i32, s: i32) -> i32;
     fn stack_cap(&mut self, w: i32, s: i32) -> i32;
-    fn stack_grow_arg(&mut self, w: i32, s: i32) -> i32;
     fn stack_set_count(&mut self, w: i32, s: i32, n: i32);
     fn stack_get(&mut self, w: i32, s: i32, i: i32) -> [i32; 4];
     fn stack_set(&mut self, w: i32, s: i32, i: i32, rec: [i32; 4]);
@@ -297,9 +296,17 @@ fn placed<V: EjectView>(v: &mut V, kill: i32, carry: i32, w: i32, s: i32) {
 fn builder_goes_home<V: EjectView>(v: &mut V, w: i32, s: i32) {
     let l20 = v.data_city();
     if matches!(v.unit_type(w, s), 0x32 | 0x33) {
-        let r = if v.tribe_can_type(w) { 0x42 } else { v.leader_type68(w) };
+        let r = if v.tribe_can_type(w) {
+            0x42
+        } else {
+            v.leader_type68(w)
+        };
         if v.leader_bit(w, r) {
-            let t = if v.tribe_can_type(w) { 0x42 } else { v.leader_type68(w) };
+            let t = if v.tribe_can_type(w) {
+                0x42
+            } else {
+                v.leader_type68(w)
+            };
             let up = v.current_upgrade(w, t);
             v.unit_set_type(w, s, up);
             v.unit_clear_orders(w, s);
