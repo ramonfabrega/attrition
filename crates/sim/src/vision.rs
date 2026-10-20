@@ -294,7 +294,7 @@ impl Sim {
         let pos = unit.pos;
         if r < 4 {
             // A small, ordinary, land unit sees from a half-cell in front of
-            // its own nose. **A decoy does not** (`00651c8c`, the test's
+            // its own nose. **A decoy does not** (`00651cdc`, the test's
             // fourth term, `unit_masks & 1`): it takes the own-cell arm, so
             // a step's ring pass at radius 0 lights the cell it stands in
             // where the projected arm's lights nothing. The battery's French
@@ -1409,6 +1409,28 @@ mod tests {
             (own.0 + 1, own.1),
             "heading east while the body still points west"
         );
+    }
+
+    /// §3: **a decoy does not project** (`unit_masks & 1`, `00651cdc`): it
+    /// takes the own-cell arm, and its step's ring pass at radius 0 is the
+    /// whole one-cell disc — its own cell — where the projected arm's is
+    /// empty. The battery's French decoy Hussars `1/100`, `mylos` 1, lights
+    /// the Citizen `0/1`'s half-cell this way (item 3347).
+    #[test]
+    fn a_decoy_sees_from_where_it_stands_and_its_step_lights_its_own_cell() {
+        let (mut s, u) = fog_sim(1, 0);
+        let own = (fog_of(s.units[u].pos.x), fog_of(s.units[u].pos.y));
+        s.units[u].movement.set_facing(Angle(0x4000_0000));
+        let projected = s.seen_sweep(u, true).unwrap();
+        assert_eq!(projected.centre, (own.0 + 1, own.1));
+        assert_eq!(
+            projected.start, projected.end,
+            "the projected ring pass is empty"
+        );
+        s.units[u].decoy = true;
+        let decoy = s.seen_sweep(u, true).unwrap();
+        assert_eq!(decoy.centre, own);
+        assert_eq!((decoy.start, decoy.end), (0, 1), "its own cell");
     }
 
     /// §3: and a unit with radius four or more does not project — its
