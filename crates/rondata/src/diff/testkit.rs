@@ -9967,6 +9967,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3365,
         Some(crate::diff::korean_word::WIDENING_KOREAN_CLOSING),
     ),
+    // **The battery's American word** (item 3374, DECISIONS 72, 83, 84):
+    // frame 9382, the battery's first try (item 3314), promoted here and
+    // widened on run999 over 9376..9632 (block 9383). Item 3374 moved it
+    // 9382 → 10982 with `get_cost`'s American land-upgrade arm, — widened
+    // on run999b over 10976..11232 (block 10983) — 10982 → 17215 with its
+    // government arm, and — widened on run999c over 17209..17465 (block
+    // 17216) — 17215 → 24000, the long's last frame, with
+    // `construct_time`'s free first wonder. The close is compared whole on
+    // run955b's own closing block 24001 by `run955b_american_closing_state`.
+    (
+        "AMERICAN_WORD",
+        crate::diff::american_word::AMERICAN_WORD,
+        Some("run955b_american_closing_state"),
+        3374,
+        Some(crate::diff::american_word::WIDENING_AMERICAN_CLOSING),
+    ),
     // **The battery's Dutch word at Great Sahara** (item 3369, DECISIONS
     // 72, 83, 84): frame 311, the battery's first try (item 3365),
     // promoted here and widened on run995 over 305..561 (block 312). Item
@@ -10622,6 +10638,22 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // run895b's closing block 17555 scores the end itself.
         endpoint: Some("run895b_aztec_closing_state"),
         window: Some("aztec_frame_17394_window"),
+    },
+    // **The battery's American word** (DECISIONS 72, 83, 84; item 3374):
+    // East Indies, the Americans at Difficulty 1 — the held-out battery's
+    // lowest open lobby on the measure of `13bebf18`, minted by item 3314;
+    // the game does not end itself (the long runs to 24000). It joins the
+    // `Battery word` line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "EastIndiesAmericanTier1",
+        named: "East Indies (Americans)",
+        word: crate::diff::american_word::AMERICAN_WORD,
+        length: 24_000,
+        // Closed by item 3374: the draw stream agrees to 24000, and
+        // run955b's closing block 24001 scores the end itself.
+        endpoint: Some("run955b_american_closing_state"),
+        window: Some("american_frame_17215_window"),
     },
     // **The battery's Korean word** (DECISIONS 72, 83, 84; item 3365):
     // Great Sahara, the Koreans at Difficulty 3 — the held-out battery's

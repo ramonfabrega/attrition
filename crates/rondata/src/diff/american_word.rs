@@ -272,3 +272,60 @@ fn run999c_s_word_frame_is_widened_whole() {
     // finished it. Built: 879 → 50, the standing family alone.
     pin_eq!(w.firsts.len(), 50, "keys that part in the window");
 }
+
+/// The closing state's window: run955b's closing block alone, the long's
+/// last frame 24000 writing it (item 3374).
+pub(crate) const WIDENING_AMERICAN_CLOSING: (i64, i64) = (23999, 24002);
+
+/// **The lobby's closing state** (item 3374, DECISIONS 55): run955b — the
+/// draw stream's own capture, `cover=0` — prints the closing block whole.
+/// The game does not end itself; the long's `!quit` at 24000 closes it.
+#[test]
+fn run955b_american_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(AMERICAN.long.0),
+        dump(AMERICAN.start),
+        trace(AMERICAN.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "American closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 24001, "the closing block");
+    pin_eq!(e.compared, 79, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3374, the first walk (the word at 24000): 79 units compared on
+    // block 24001, none apart, no building field-row, no closing field;
+    // the human's `0/4` is torn (the dump's own n − 1 position).
+}
