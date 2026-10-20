@@ -4930,6 +4930,36 @@ mod flak_tests {
         assert_eq!(s.max_range_of(me), 11, "British, not a tower");
     }
 
+    /// **`max_range`'s Turkish siege term** (item 3380): a Turkish leader's
+    /// siege unit reaches `TURK_SIEGE_RANGE` further; another nation's, or a
+    /// Turkish unit that is not siege, does not. `GreatLakesTurkishTier4`'s
+    /// Trebuchet (16) stands its bombard ring at 19 tiles round Napata.
+    #[test]
+    fn a_turkish_siege_unit_reaches_three_tiles_further() {
+        let mut s = sim();
+        let siege = combat::Profile {
+            domain: Domain::Land,
+            max_range: 16,
+            siege: true,
+            ..combat::Profile::default()
+        };
+        let treb = Obj::Unit(unit(&mut s, 1, Pos::new(8532, 29381), siege));
+        let archer = Obj::Unit(unit(
+            &mut s,
+            1,
+            Pos::new(8000, 29000),
+            combat::Profile {
+                domain: Domain::Land,
+                max_range: 16,
+                ..combat::Profile::default()
+            },
+        ));
+        assert_eq!(s.max_range_of(treb), 16, "not Turkish");
+        s.nation[1].turks = true;
+        assert_eq!(s.max_range_of(treb), 19, "a Turkish siege unit");
+        assert_eq!(s.max_range_of(archer), 16, "Turkish, not siege");
+    }
+
     /// **`Build::process`'s early trigger** (item 1415): a building with no
     /// target runs `do_attack` off its 32-frame phase when `near_o` is in
     /// range.
