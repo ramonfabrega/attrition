@@ -170,3 +170,47 @@ fn run989_s_fog_agrees_over_the_birth_and_on_the_word() {
         );
     }
 }
+
+/// run989: the word 9130's window, blocks 9124..9380 at `GUYS=4` (item
+/// 3361). run895 dumps blocks 0..36 and run895b its setup and closing
+/// blocks only, so no dump on disk held the word's block.
+pub(crate) const RUN989: &str = "gamelog-run989-greatsahara-aztec-diff2-window-9124-9381-guys4.txt";
+
+/// The window: block 9124 through 9380; the word 9130's own block is 9131.
+pub(crate) const WIDENING_AZTEC_FRAME_9130: (i64, i64) = (9124, 9380);
+
+pub(crate) fn aztec_frame_9130_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AZTEC.start],
+        true,
+        AZTEC.long,
+        "run989",
+        &[(RUN989, WIDENING_AZTEC_FRAME_9130.0)],
+        WIDENING_AZTEC_FRAME_9130,
+        1,
+        &[9131],
+        true,
+    )
+}
+
+#[test]
+fn run989_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = aztec_frame_9130_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
