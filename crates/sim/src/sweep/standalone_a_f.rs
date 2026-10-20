@@ -292,6 +292,8 @@ mod build_type_data_basic_type;
 mod build_type_data_blocked_location;
 #[path = "build_type_data_blocked_location_tail.rs"]
 mod build_type_data_blocked_location_tail;
+#[path = "build_type_data_blocked_location_town.rs"]
+mod build_type_data_blocked_location_town;
 #[path = "build_type_data_blocked_site.rs"]
 mod build_type_data_blocked_site;
 #[path = "build_type_data_blocked_tcoord.rs"]
