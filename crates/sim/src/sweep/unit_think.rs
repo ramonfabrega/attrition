@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(6);
@@ -107,7 +112,14 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                     /// The console message: `get_neon`, `add_message` (string offset, position, colour, the player
                     /// twice around two zeros) and the sound.
-                    fn announce(&mut self, neon_ecx: i32, xy: (i32, i32), str_off: i32, lead: i32, snd: i32) {
+                    fn announce(
+                        &mut self,
+                        neon_ecx: i32,
+                        xy: (i32, i32),
+                        str_off: i32,
+                        lead: i32,
+                        snd: i32,
+                    ) {
                         let neon = self.call_s(22, &neon_ecx.to_string(), &[], "sp-0x1c");
                         self.log.push(format!(
                             "s23:c3+0x0,{str_off},{},{},1,{neon},1,{lead},0,0,{lead}",
@@ -174,11 +186,9 @@ fn the_emulated_original_agrees_on_every_row() {
                         // `5f70fd`: the auto-attack arm.
                         let mut hit = false;
                         if cx.is(0x3e, 1) != 0 {
-                            if rd(m, 0x68) & 0x80000 != 0 && cx.call(12, "m+0x0", &[]) != 0 {
-                                hit = true;
-                            } else if cx.call(14, "m+0x0", &[]) == 0 && cx.call(13, "m+0x0", &[]) != 0 {
-                                hit = true;
-                            }
+                            hit = (rd(m, 0x68) & 0x80000 != 0 && cx.call(12, "m+0x0", &[]) != 0)
+                                || (cx.call(14, "m+0x0", &[]) == 0
+                                    && cx.call(13, "m+0x0", &[]) != 0);
                         }
                         if !hit
                             && rd(&p[8], 0x1e8) != 0
@@ -239,17 +249,24 @@ fn the_emulated_original_agrees_on_every_row() {
                                     cx.call(7, "m+0x0", &[])
                                 };
                                 if special != 0 {
-                                    if (m[0xb0] == 1 || phase & 0x1f == 0) && cx.call(25, "m+0x0", &[]) != 0 {
+                                    if (m[0xb0] == 1 || phase & 0x1f == 0)
+                                        && cx.call(25, "m+0x0", &[]) != 0
+                                    {
                                         exit_clear!();
                                     }
                                     let s80 = sh(m, 0x80);
-                                    let grp_ok = s80 < 0 || rd(&c[5], s80 as usize * 0x9d4 + 0xc) == 1;
+                                    let grp_ok =
+                                        s80 < 0 || rd(&c[5], s80 as usize * 0x9d4 + 0xc) == 1;
                                     if m[0xb0] == 1 && grp_ok && rd(m, 0x68) & 0x400_0000 != 0 {
                                         let f = rd(m, 0x68) & 0xfbff_ffffu32 as i32;
                                         wr(m, 0x68, f);
                                         if i32::from(m[9]) == cwho {
                                             let play = rd(&c[2], 0x2a0).wrapping_mul(0x9f0);
-                                            let mem = cx.call(26, &play.to_string(), &[o, i32::from(m[9]), 1]);
+                                            let mem = cx.call(
+                                                26,
+                                                &play.to_string(),
+                                                &[o, i32::from(m[9]), 1],
+                                            );
                                             if mem == 0 {
                                                 cx.announce(neon_ecx, xy, 0x11f44, play, 101);
                                             }
@@ -271,14 +288,19 @@ fn the_emulated_original_agrees_on_every_row() {
                     if cx.is(0x13d, 0) != 0 && cx.call(28, "m+0x0", &[]) != 0 {
                         exit_clear!();
                     }
-                    if (m[0xb0] == 1 || phase & 0x7f == 0) && cx.call(19, "m+0x0", &[]) != 0 && cx.call(12, "m+0x0", &[]) != 0
+                    if (m[0xb0] == 1 || phase & 0x7f == 0)
+                        && cx.call(19, "m+0x0", &[]) != 0
+                        && cx.call(12, "m+0x0", &[]) != 0
                     {
                         exit_clear!();
                     }
                     if rd(&p[2 * who], 0) & 8 != 0 {
                         exit_clear!();
                     }
-                    if rd(&p[8], 0x2d4) != 0 && cx.is(0x15f, 1) == 0 && cx.call(29, "m+0x0", &[]) != 0 {
+                    if rd(&p[8], 0x2d4) != 0
+                        && cx.is(0x15f, 1) == 0
+                        && cx.call(29, "m+0x0", &[]) != 0
+                    {
                         exit_clear!();
                     }
                     let supply = if cx.based(4) {
