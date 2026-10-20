@@ -19813,3 +19813,41 @@ SHA-256 `7b341bde4dfccc55ab0f8da1966b67dba3cc8f06c081bd939d839e67dc76481e`.
 0)` and, for `CHAR_ATTACKWALK`/12, `CHAR_ATTACK1`/12, `CHAR_ATTACK2`/13 and `CHAR_ATTACK3`/18, the pivot's and the
 release node's — pinned as `pivot::NODES` and `pivot::RELEASES` piece 139; and its `GUYS=4` blocks 16760..16765, whose
 `1/39` reads `turret_angles[0]` −196608 on 16763. Test `pivot::tests::the_french_dragoon_s_rounds_leave_from_its_pivot`.
+
+## run988 — the Sahara Lakota: the battery replacement's start (2026-10-19, item 3361, `att-3361`)
+
+`docs/AI.md` §282. Great Sahara (`MAP_STYLE 7`), human Nubians against the Lakota (19) at Difficulty 2, seed 12345: the
+lobby DECISIONS 72's rule (2) as amended by 84 names when the Aztecs leave the battery (the Lakota reach 17 census
+functions, the most of the eligible, and no map-7 dump held them).
+- Pool lane 1. Launched 23:58:24, exited 00:07:46. `success`, 37 frames, a `DUMP_ALL` start. `MAP_STYLE 7`,
+  `DIFFICULTY 2`, tribes 4 and 19.
+- Minutes waited on another lane: none.
+
+## run988b — the Sahara Lakota: the draw stream (2026-10-19, item 3361, `att-3361`)
+
+run895b's line with `--ai-tribe 19`. Pool lane 2, launched 23:58:24, exited 00:03:45; 24001 frames, `ended_early`
+false. `rngcmp.py` run988 vs run988b: 37 identical. **First try: 24000 of 24000**, pinned in `battery::BATTERY` as
+`GreatSaharaLakotaTier2`.
+
+## run989 — the Aztec word: the word 9130's window, blocks 9124..9380 at `GUYS=4` (2026-10-20, item 3361, `att-3361`)
+
+Pool lane 3, launched 00:02:52, exited 00:22:18; 9386 frames. `rngcmp.py` against run895b: 9386 identical.
+Test `run989_s_word_frame_is_widened_whole`: 256 blocks, 38 keys, the standing family.
+
+## run989b — the Aztec word: the fog on 9128..9130 at `WORLD=6` (2026-10-20, item 3361, `att-3361`)
+
+Pool lane 3, launched 00:00:50, exited 00:02:38; 9137 frames, 9137 identical to run895b. **What it holds**: `seen2`
+at fog (117, 55) and (119, 53) 0 in theirs, 2 in ours before the fix, the only half-cells that part. Test
+`run989_s_fog_agrees_over_the_birth_and_on_the_word`.
+
+## run989c — the Aztec word: the Horse Archer `1/45`'s birth, 8653..8656 at `WORLD=6` (2026-10-20, item 3361, `att-3361`)
+
+Pool lane 1, launched 00:15:08, exited 00:16:35; 8663 frames, 8663 identical to run895b. **What it holds**: theirs'
+`1/45` comes out at (44184, 19704) with `mylos` 9 and lights neither half-cell.
+
+## run989d — the Aztec word: the word 17394's window, blocks 17388..17554 at `AMMO=5` (2026-10-20, item 3361, `att-3361`)
+
+Pool lane 2, launched 00:24:38, exited 00:41:28; **the game ended itself on 17554** (`ended_early` true), closing
+block 17555. 17555 frames identical to run895b. **What it holds**: who=1's Cataphract decoys `1/72`, `1/74` bleeding
+a point a frame in who=0's Scout `0/0`'s `seen3` disc. Test `run989d_s_word_frame_is_widened_whole`: 167 blocks, 42
+keys after the fix (1133 before).

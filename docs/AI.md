@@ -24371,12 +24371,57 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 282. Reserved for the next item on the AI track
+## 282. The battery's Aztec word closes: a scout's fog, and a detected decoy's bleed
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3361, 2026-10-20, Opus 5.5. `GreatSaharaAztecTier2` (map 7, human Nubians against the Aztecs at Difficulty 2,
+seed 12345; item 2975's lobby), promoted out of the battery at 9130 of 17554. Captures run989 (`GUYS=4` over
+9124..9380), run989b (`WORLD=6` over 9128..9130), run989c (8653..8656), run989d (`GUYS=4`, `AMMO=5` over
+17388..17554). Its battery place went to `GreatSaharaLakotaTier2` (runs 988, 988b): 24000 of 24000 on its first
+try.*
+
+**9130 → 17394: `come_out`'s inside arm lights no disc.** The draws on 9130 are one Scout's, `1/0`'s
+`think_scout` candidate cells: theirs scores a cell on the tenth ring pair, ours refuses every in-bounds candidate
+as seen. run989b's fog parts at two half-cells only, (117, 55) and (119, 53), `seen2` 0 in theirs and 2 in ours.
+Ours lit both on 8655, when the Horse Archer `1/45` (radius 4) came out of its trainer at (44184, 19704)
+through `come_out_place` → `update_seen`; run989c holds theirs' `1/45` on the same spot with the same `mylos`,
+lighting neither. `Unit::come_out@00617c10`'s listing stores the spot into `+0x10`/`+0x14` before
+`set_new_location(spot, 1, 1)`, so the half-cell test that gates `update_seen` sees no change. A trained unit's
+disc is `Unit::init`'s, at the trainer's snapped centre, which `add_unit` already wrote (its comment credited
+`add_to_world`). Only a gather point's re-placement of a captain lights a disc. Built: `come_out_place`'s `light`,
+the captain's `gather.is_some()`, false for every member. Value diff: run989b's two half-cells agree on every
+block of 9128..9130 and over the birth (`run989_s_fog_agrees_over_the_birth_and_on_the_word`). run989's window
+(256 blocks) keeps the standing family alone, 38 keys.
+
+**17394 → 17554, the game's last frame: a detected decoy bleeds a point a frame.** run989d opened 1133 keys
+apart. On block 17388 who=1's Cataphract decoys `1/72` and `1/74` stand at damage 28 and 67 in theirs and 0 in
+ours, and the Light Horse decoys `1/75` and `1/81` exist in ours alone. They were made by a General's Create Decoys
+and were attacking who=0's Scout `0/0`, a `DETECT` unit. Theirs' `damage` and `mana_burn` step together, a point
+a frame (`1/72`: 28 → 29 and 241 → 242 on 17389; `1/74` closes at its 85th; `1/79` starts on 17397, when it walks
+into the disc), with `attrition` 0 and no attacker. `Unit::process@00610bc0`'s decoy arm (`unit_masks & 1`):
+`mana_burn += 1`, the close at `(general_upgrade + 2) × DECOY_TIME / 2`, and then, on the map, **if
+`seen3[pos / 0x180] & ~ally_mask(owner)` is non-zero, `suffer_attrition(frame % 7 == 0)`**, returning from
+`process` if it kills. `Unit::suffer_attrition@005e1a10`'s argument gates `suffer_graphic_attrition` alone; the
+damage is the ordinary tick (§ "The damage" of `docs/ATTRITION.md`: one whole point for an `uber_size` 1 type).
+A decoy's death there spends no draw (`Unit::close`'s death-animation gate is the decoy bit), which is why theirs'
+`1/75` and `1/81` died before 17388 without parting the stream. Ours had it as a SEAM ("the attrition it takes
+every seventh frame on another's ground"): it read the graphic's gate as the cadence. Built:
+`Sim::decoy_detected` and the arm in `recover_mana`, sharing `suffer_attrition` with the period's bleed. Value
+diff, block 17388, after: `1/72` 28 and `1/74` 67 on both sides, `1/75` and `1/81` gone from both. run989d's
+window drops 1133 → 42 keys, 17388's standing family alone, and the draw stream agrees to 17554.
+
+**The close.** run895b's closing block 17555: 89 units compared, `[0, 0, 0, 0, 0, 0, 0]`, no building, city or
+closing field (`run895b_aztec_closing_state`). Every other lobby's first parting, the battery floors and every
+closing state hold on this tree.
+
+**Not established.** The gather arm's half-cell condition (approximated as always true; no capture holds a
+gather re-placement on this lobby). Whether a decoy's bleed tick should join the frame's attrition events (the
+`AttritionSync`-shaped `Tick` list): ours discards it, and no dump compares that list.
+
+**Coverage.** Diff-backed: the fog by `run989_s_fog_agrees_over_the_birth_and_on_the_word`, the bleed by
+`run989d_s_word_frame_is_widened_whole` and `aztec_word_first_parting`, the close by
+`run895b_aztec_closing_state`. Reading-backed: the gather arm's light (`619381`, `619c08`, `619f86`), which no
+run reaches. Sim tests: `a_detected_decoy_bleeds_a_point_a_frame` (mutations: the arm dropped, the mask's
+complement dropped; both held).
 
 ## 283. Reserved for the next item on the AI track
 
