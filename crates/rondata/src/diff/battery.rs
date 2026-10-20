@@ -155,6 +155,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Dutch being item 3369's, promoted to the AI word (item 3374,
     // DECISIONS 72, 83, 84): the Americans at Difficulty 1, East Indies.
     (18, 20, 1),
+    // The battery's second open lobby on the measure of `56f23ba5`, the
+    // Germans being item 3378's, promoted to the AI word (item 3380,
+    // DECISIONS 72, 83, 84): the Turks at Difficulty 4, Great Lakes.
+    (14, 8, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
@@ -302,27 +306,10 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // `GreatLakesIroquoisTier3` (Iroquois 18, Difficulty 3, map 14; run897
     // and run897b, 0 of 12658) left the battery on item 3107 for the AI
     // word (`diff::iroquois_word`, DECISIONS 72).
-    Lobby {
-        name: "GreatLakesTurkishTier4",
-        map_style: 14,
-        ai_tribe: 8,
-        difficulty: 4,
-        start: "gamelog-run898-greatlakes-turkish-diff4-start.txt",
-        long: (
-            "gamelog-run898b-greatlakes-turkish-diff4-24k-trace.txt",
-            "rontrace-run898b.log",
-        ),
-        length: 15503,
-        // 1440 → 6982 on item 3160 (`get_cost`'s `TURK_CITIZEN` and
-        // `WOOL_CITIZENS_COST` arms, `cost::Modifiers::citizens`). 6982 →
-        // 14991 on the forty-fifth tranche's fixes made for other words
-        // (3326's measure first); re-pinned by the forty-sixth pass: ours
-        // 20 draws, theirs 23, at 12 ours `Guy::set_anim+0x97a <
-        // Guy::inc_time+0x271`, theirs `Unit::find_attack_pos+0xea9 <
-        // Unit::fight+0xcb4`.
-        count: 14991,
-        sequence: 14991,
-    },
+    // `GreatLakesTurkishTier4` (Turks 8, Difficulty 4, map 14; run898 and
+    // run898b, 14991 of 15503), minted by item 2975, left the battery on
+    // item 3380 for the AI word (`diff::turkish_word`, DECISIONS 72, 83,
+    // 84).
     // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
     // run899b, 576 of 18620) left the battery on item 3314 for the AI word
     // (`diff::roman_word`, DECISIONS 72, 83).
