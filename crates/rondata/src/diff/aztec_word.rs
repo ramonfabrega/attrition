@@ -29,9 +29,13 @@ pub(crate) const AZTEC: Lobby = Lobby {
     // Item 2975's lobby, held by the battery's measure to `3b6c4a2a`:
     // count 9130, sequence 9130 (ours 90 draws, theirs 87, at 23: ours
     // `Unit::think_scout+0x436`, theirs `Unit::think_scout+0x64c`). Item
-    // 3361 promoted it to the AI word (`docs/AI.md` §282).
-    count: 9130,
-    sequence: 9130,
+    // 3361 promoted it to the AI word (`docs/AI.md` §282), and moved it
+    // 9130 -> 17394 (+8264): `come_out`'s inside arm lights no disc, so
+    // the scout's two half-cells stay unseen. 17394: ours 18 draws,
+    // theirs 15, at 6: ours `Unit::fight+0x9b0`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+    count: 17394,
+    sequence: 17394,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -199,7 +203,7 @@ fn run989_s_word_frame_is_widened_whole() {
     let Some(w) = aztec_frame_9130_window() else {
         return;
     };
-    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -212,5 +216,12 @@ fn run989_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3361, on the tree that moved the word to 17394: 38 keys, the
+    // standing family alone — `form` −1 against 9, the leaders'
+    // `SITE[·].reg` 1 against 0, `aggression[1]`, the army pools
+    // `pool:64..66` and `group:64..66.held` with no `GROUPDATA` printed,
+    // and the newborn `g.angle[0]` on nine figures. The scout's cell,
+    // the word's draw, parts in no dumped key: its cause was the fog
+    // (run989b's test).
+    pin_eq!(w.firsts.len(), 38, "keys that part in the window");
 }
