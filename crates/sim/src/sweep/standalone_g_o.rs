@@ -554,6 +554,8 @@ mod nuke_out_num_current_nukes;
 mod nuke_out_setup_terrain_terraforming;
 #[path = "nuke_out_update.rs"]
 mod nuke_out_update;
+#[path = "object_add_to_world.rs"]
+mod object_add_to_world;
 #[path = "object_assault_benefit.rs"]
 mod object_assault_benefit;
 #[path = "object_data_armor.rs"]
