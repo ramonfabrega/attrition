@@ -915,49 +915,33 @@ impl Sim {
     /// index at all. `is_rare_collector`'s re-seat is **in** as of item
     /// 210 — step 2's second half.
     pub(crate) fn do_cast(&mut self, u: usize, order: crate::orders::CastOrder) {
-        use crate::orders::spell;
         let s = order.spell;
         if self.spell(s).is_some_and(|d| d.targeted()) {
             // The targeted half, `crate::cast` (item 790).
             self.do_cast_targeted(u, order);
             return;
         }
-        // The head, the animation and the clock, `crate::do_cast_view`: the
-        // craft the rest acts on, the once-only cost (`pay_cast_costs@00676c40`:
-        // a unit caster's `mana_burn` takes the craft's `MANA` — Create Decoys'
+        // The whole untargeted half, `crate::do_cast_view`: the craft the rest
+        // acts on, the once-only cost (`pay_cast_costs@00676c40`: a unit
+        // caster's `mana_burn` takes the craft's `MANA` — Create Decoys'
         // 1,000 on the General, `docs/GOLDEN.md` §48; the pack, unpack and
         // transport crafts ask none), the pack, unpack, hero and boat
-        // animations (`docs/AI.md` §137, §285), and the clock to the job time.
-        // The captain's wait and everything after it are below.
-        let s = {
-            let mut v = crate::do_cast_view::SimDoCast {
-                sim: &mut *self,
-                u,
-                order,
-            };
-            match crate::do_cast_view::do_cast_clock_steps(&mut v) {
-                crate::do_cast_view::DoCastFlow::Due { craft, .. } => craft,
-                crate::do_cast_view::DoCastFlow::Ended
-                | crate::do_cast_view::DoCastFlow::Targeted { .. } => return,
-            }
+        // animations (`docs/AI.md` §137, §285), the clock, the member's wait
+        // on its captain's transport (item 2077, `docs/AI.md` §207: East
+        // Indies' `1/24` on 3835) and the cast itself.
+        let mut v = crate::do_cast_view::SimDoCast {
+            sim: &mut *self,
+            u,
+            order,
         };
-        // **The member waits on its captain's cast** (`005ecd9c`–`005ecdf0`,
-        // item 2077, `docs/AI.md` §207): for `0x28a` alone, a figure that is
-        // not a captain whose `get_captain`'s current order is
-        // `CAST_SPELL` takes its clock back one and returns, paid. The
-        // captain's cast boards the squad a frame later. East Indies'
-        // `1/24` on 3835: its captain `1/23` took its transport on its own
-        // step, ahead of it.
-        if s == spell::TRANSPORT && !self.units[u].captain {
-            let c = self.squad_captain(u);
-            if c != u && self.order_type(c) == crate::orders::index::CAST_SPELL {
-                self.units[u].spell_time -= 1;
-                return;
-            }
-        }
-        self.units[u].spell_time = 0;
-        // `SpellType::cast@00676ce0` — the switch, behind an `is_castable`
-        // that has to answer **3**. The two arms this crate reaches:
+        let _ = crate::do_cast_view::do_cast_clock_steps(&mut v);
+    }
+
+    /// `SpellType::cast@00676ce0`'s untargeted arms this crate carries, behind
+    /// an `is_castable` that has to answer **3**; the caller has cleared the
+    /// clock and clears `paid` and kills the order after (`005ece96`).
+    pub(crate) fn do_cast_effect(&mut self, u: usize, s: i32) {
+        use crate::orders::spell;
         if s == spell::TRANSPORT {
             // `is_castable`'s head (`00675c9f`): a **decoy** (`unit_masks & 1`)
             // answers 0 to every craft but pack and unpack, so
@@ -970,13 +954,8 @@ impl Sim {
                 // `SpellType::cast` doing nothing at all.
                 self.cast_transport(u);
             }
-            // …and the transport order is not killed here: see step 5.
             return;
         }
-        // `do_cast@005ebfe0`'s tail (`005ece96`): `paid` is cleared before
-        // the kill, so a cast that ran its course hands nothing back
-        // ([`Sim::kill_current_order`]'s cast arm).
-        self.clear_cast_paid(u);
         if spell::is_unpack(s) && self.units[u].combat.packed {
             // `is_castable`'s `0x28c`/`0x28e`/`0x290`/`0x292` case: a map
             // unit that is still packed.
@@ -1009,7 +988,6 @@ impl Sim {
                 _ => self.cast_create_decoy(u),
             }
         }
-        self.kill_current_order(u);
     }
 
     /// `SpellType::cast_unpack(o, who)@006709c0` — what the fishing boat's

@@ -123,6 +123,17 @@ pub trait DoCastClock: DoCastHead {
     fn crew_hold_bump(&mut self);
     /// `SpellTypeData::get_job_time(index, owner)` of the row at `craft`.
     fn job_time(&mut self, craft: i32) -> i32;
+    /// The caster's slot `+0xe8`, `is_captain`.
+    fn is_captain(&mut self) -> bool;
+    /// The squad's captain (slot `+0xe4`) holds a `CAST_SPELL` order.
+    fn captain_order_is_cast(&mut self) -> bool;
+    /// `SpellType::cast(index, owner, 0, 0)` of the row at `idx`.
+    fn spell_cast(&mut self, idx: i32);
+    /// The arm for an order whose type is not a spell type: the captain's
+    /// `LeaderData::current_upgrade` re-typing, and the building it stands in.
+    fn non_spell_arm(&mut self, craft: i32);
+    /// The order record's `+0x1c = 0`.
+    fn clear_paid(&mut self);
 }
 
 /// `0x28a`, the transport craft: the one whose berth is asked.
@@ -131,10 +142,9 @@ const TRANSPORT: i32 = 0x28a;
 /// Where the clock leaves the function.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum DoCastFlow {
-    /// The function returned: the order killed, or the clock still running.
+    /// The function returned: the order killed, the clock still running, or
+    /// the cast made.
     Ended,
-    /// The clock reached the craft's job time on `idx`/`craft`.
-    Due { idx: i32, craft: i32 },
     /// The craft is targeted: `crate::cast`'s half.
     Targeted { idx: i32, craft: i32 },
 }
@@ -215,7 +225,30 @@ pub fn do_cast_clock_steps(v: &mut impl DoCastClock) -> DoCastFlow {
     if (t as i16) < (due as i16) {
         return DoCastFlow::Ended;
     }
-    DoCastFlow::Due { idx, craft }
+    // **The member waits on its captain's cast** (`005ecdc7`–`005ece1b`):
+    // for the transport alone, a figure that is not a captain whose
+    // `get_captain`'s current order is `CAST_SPELL` takes its clock back one
+    // and returns, paid.
+    if idx == TRANSPORT && !v.is_captain() && v.captain_order_is_cast() {
+        let t = v.spell_time();
+        v.set_spell_time(t.wrapping_sub(1));
+        return DoCastFlow::Ended;
+    }
+    v.set_spell_time(0);
+    if v.is_spell_type(idx) {
+        v.spell_cast(idx);
+    } else {
+        v.non_spell_arm(craft);
+    }
+    if idx == TRANSPORT {
+        // The transport order is not killed here: the boat's own step ends it.
+        return DoCastFlow::Ended;
+    }
+    // `paid` is cleared before the kill, so a cast that ran its course hands
+    // nothing back (`005ece96`).
+    v.clear_paid();
+    v.kill_current_order();
+    DoCastFlow::Ended
 }
 
 /// The crate's view: the order the unit holds at its head, and the craft's
@@ -347,5 +380,21 @@ impl DoCastClock for SimDoCast<'_> {
     fn crew_hold_bump(&mut self) {}
     fn job_time(&mut self, craft: i32) -> i32 {
         i32::from(self.sim.cast_job_time(self.u, craft))
+    }
+    fn is_captain(&mut self) -> bool {
+        self.sim.units[self.u].captain
+    }
+    fn captain_order_is_cast(&mut self) -> bool {
+        let c = self.sim.squad_captain(self.u);
+        c != self.u && self.sim.order_type(c) == crate::orders::index::CAST_SPELL
+    }
+    fn spell_cast(&mut self, idx: i32) {
+        self.sim.do_cast_effect(self.u, idx);
+    }
+    fn non_spell_arm(&mut self, _craft: i32) {
+        // Not modelled: the captain's `current_upgrade` re-typing.
+    }
+    fn clear_paid(&mut self) {
+        self.sim.clear_cast_paid(self.u);
     }
 }
