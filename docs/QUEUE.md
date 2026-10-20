@@ -21,7 +21,7 @@ words, landing wide, two Sonnet 5.5 medium sweep lanes (his word at this steer, 
   (the Lakota, 3345), 13422 (the French, 3347), 24000, 9130, 14991, 9185, 7782, 9382 — median 9284 (4770). Census 1580, port 436.
 - **Lanes: none live**; unspawned: 3345 AI (runs 979, 980, AI §277, LA), 3347 AI (runs 981, 982, AI §278, LC), 3346
   the nations seat (LB), 3348 the second sweep (LD). Next 3353, run 983. Pools: GOLDEN §144–148, AI §279–282, park LE–LF.
-- **Fable backlog: 11 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352); DECISIONS 84.
+- **Fable backlog: 12 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352, 3353); DECISIONS 84.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

@@ -3788,6 +3788,20 @@ the verdict and the rows, never the greps) rides on the battery kind from the fo
 reads sessions over 300 k against seventeen and USD a game closed against 26, and says whether the row stays. One
 reach.
 
+(3353) **The oracle cache is the archive's bulk, and every parser edit writes a new generation beside the old**
+(the forty-fifth pass, from `tools/archive_census.py`'s first live run and a by-kind breakdown of `~/ron-golden`):
+`rondata::diff::oracle` caches each decoded frame as `<dump>/.ron-oracle-v1/<hash>.oracle` — 3.2 million files, about
+31 GiB allocated beside the golden dumps and 12 more beside the queue lane's logs, 43 of the archive's 68 — and the key
+hashes eight parser sources (`gamelog.rs`, `leader.rs`, `oracle.rs`, the codecs, the capture readers) that landings
+edit several times a week (two commits on 2026-10-19, six on the 16th), so a generation goes stale whole and nothing
+removes it; the files' names are hashes, so a stale one cannot be told from the outside except by its mtime against
+the schema's last change. Of the rest: 61.5 of 68 GiB is pinned by a fixture or a RUNS section; orphans 1.0,
+ledger-only 1.3, recreatable packets 4.2. Candidates: (i) the cache keys a directory by schema
+(`.ron-oracle-v1/<schema>/`), so a stale generation is a directory and `--gc` removes every one but the current;
+(ii) one file a dump, not a frame (3.2 million files is what the census and the compression pay for); (iii) the
+immediate measure, `.oracle` files older than the schema's last change, counted by `find -newermt`, deletable on
+Ramon's word since every one regenerates. Ramon's, for the deletion; the pass's, for (i) and (ii). One reach.
+
 (3352) **Captures a parting** (the forty-fifth steer, Ramon: the loop is capture-bound where it could be static):
 sixty-seven captures in one tranche, 4.5 a battery landing, each a serial game on one lane and a gigabyte. The frame
 says grep the disk first and a window capture only for what the dumps cannot answer; nobody measures it. Candidate:

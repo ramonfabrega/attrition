@@ -7003,4 +7003,16 @@ is a byte-weighted census column and a per-function regression check
 generator's draw-only flags (Loop 3349), and the question whether the
 behavioural diff should credit the large functions it reaches, which
 the census counts as unbacked (Loop 3350, Ramon's — 43.8 % of
-simulation functions are backed and about 23.5 % of their bytes).
+simulation functions are backed and about 23.5 % of their bytes). (vi) **What the
+archive census said on its first run**: 61.5 of 68 GiB allocated is
+pinned, and the bulk is not captures but the oracle cache — 3.2 million
+`.oracle` files, 43 GiB, a new generation every time a parser source
+changes and the old one never removed (Loop 3353); the deletion of a
+stale generation is Ramon's word, keying the cache by schema is the
+pass's build. (vii) **Built in the pass by subagents, merged and gated**:
+the archive census (`tools/archive_census.py`, deletes nothing), the
+byte-weighted census column and `--check-backed` with an address-only
+list (`docs/audit/census-backed.txt`), the `reading` brief kind, the
+MSVC 14 reader notes (`tools/ghidra/README.md`), and the sweep rows'
+cache with its receipt and verify mode (`emu_rows`, shared under
+`~/Library/Caches/attrition/emu-cache`, proven on every whole gate).
