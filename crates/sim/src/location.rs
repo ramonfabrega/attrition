@@ -226,9 +226,10 @@ pub fn blocked_location_steps<V: LocationView>(v: &mut V, a: &LocArgs) -> i32 {
         tx: _,
         ty: _,
         who,
-        exclude,
-        has_out,
+        exclude: _,
+        has_out: _,
     } = *a;
+    let (exclude, has_out) = (a.exclude, a.has_out);
     // `local_20`: the colonisation arm found the sea (`1`).
     let mut coastal = false;
     if who >= 0 {
