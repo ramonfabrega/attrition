@@ -471,6 +471,36 @@ fn goody_ruins_refuse_placement_with_the_players_visibility_verdict() {
     );
 }
 
+/// **`blocked_tcoord`'s seen flag** (item 3346, swept against `0x636db0`):
+/// every refusal but the three that read the tile's contents answers `Seen`
+/// (`0x24`) on a tile `who` has not seen, and the contents arms (a building
+/// tile, `Rare`) answer `Seen` too when the tile is not *really* seen; with
+/// no `who` everything is seen.
+#[test]
+fn blocked_tcoord_answers_seen_for_a_tile_the_leader_has_not_seen() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let at = Pos::new(44, 32);
+    let plain = sim.world.tile_mask(at);
+    sim.world
+        .set_tile_mask(at, plain | tile::RIVER | tile::CITY_RADIUS);
+    assert!(sim.world.set_fog(vec![0; 32 * 32]));
+    sim.lobby.reveal_map = 1;
+    assert_eq!(sim.blocked_tcoord(None, t.farm, at, None), Blocked::River);
+    assert_eq!(
+        sim.blocked_tcoord(Some(0), t.farm, at, None),
+        Blocked::Seen,
+        "unseen: 0x24, not the river"
+    );
+    sim.world.set_tile_mask(at, plain | tile::AS_BUILDING);
+    assert_eq!(sim.blocked_tcoord(None, t.farm, at, None), Blocked::Rare);
+    assert_eq!(
+        sim.blocked_tcoord(Some(0), t.farm, at, None),
+        Blocked::Seen,
+        "unseen: the contents arm answers 0x24 too"
+    );
+}
+
 /// **`blocked_tcoord`'s tile arms, as `0x636db0` has them** (twenty-fourth
 /// pass, group 12; A8 rows 40, 42, 43, 44, 52): a `0x200` tile answers RARE,
 /// not BUILDING; a mountain is the tile's object bits **or** the cell's
@@ -576,6 +606,11 @@ fn a_footprint_more_than_half_unseen_is_refused_seen() {
     // land, it is not `0x24`.
     assert!(sim.world.set_fog(vec![0; 16 * 16 * 4]));
     let dock = sim.add_build_type(bt(Ident::Dock, None, "gb", 4, 4, 150, 400, 0));
+    // `blocked_tcoord` answers `0x24` for any refusal on an unseen tile, and
+    // `blocked_site` returns a first `0x24` before the tally: a dock the
+    // tiles do not refuse (no city radius needed) is what the exemption is
+    // about.
+    sim.build_types[dock].flags |= flags::NO_CITY;
     assert_ne!(sim.blocked_site(Some(0), dock, pos, None), Blocked::Seen);
 }
 
@@ -1413,6 +1448,59 @@ fn two_builders_are_one_and_a_half_builders() {
         280 + 18,
         "the walk, then 42000 / (100 + 50) a frame"
     );
+}
+
+/// `Object::disband(full)` through [`crate::disband::disband_steps`] (item
+/// 3346): a full disband returns the whole price; a finished building
+/// disbanded part-way returns nothing; and a Lakota owner's raze makes the
+/// part-way one full (`LAKOTA_RAZE_PRICE != 0`).
+#[test]
+fn a_full_disband_returns_the_price_and_a_lakota_raze_makes_every_disband_full() {
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    // The goods in front of the tree, so `type_avail` is asked of each.
+    let mut tree = TechTree::new();
+    for name in ["Food", "Timber", "Wealth", "Knowledge", "Metal", "Oil"] {
+        tree.add(TypeDef::good(name));
+    }
+    sim.set_tech_tree(tree);
+    let pos = tile_pos(32, 32);
+    let b = sim.place_building(0, t.village, pos).unwrap();
+    for _ in 0..300 {
+        sim.do_construct(b, 100);
+        sim.buildings[b].helpers = 0;
+    }
+    let price = sim.building_price(0, t.village);
+    assert!(price.iter().any(|&p| p > 0));
+    let before = sim.ledgers[0].bucket;
+    sim.disband_building(b, true);
+    for g in 0..price.len() {
+        assert_eq!(sim.ledgers[0].bucket[g] - before[g], price[g], "good {g}");
+    }
+    let b = sim.place_building(0, t.village, pos).unwrap();
+    finish(&mut sim, b);
+    let before = sim.ledgers[0].bucket;
+    sim.disband_building(b, false);
+    assert!(!sim.buildings[b].alive);
+    assert_eq!(
+        sim.ledgers[0].bucket, before,
+        "a finished building: nothing"
+    );
+    let b = sim.place_building(0, t.village, pos).unwrap();
+    finish(&mut sim, b);
+    sim.nation[0].lakota = true;
+    sim.tuning.lakota_raze_price = 1;
+    let price = sim.building_price(0, t.village);
+    let before = sim.ledgers[0].bucket;
+    sim.disband_building(b, false);
+    for g in 0..price.len() {
+        assert_eq!(
+            sim.ledgers[0].bucket[g] - before[g],
+            price[g],
+            "raze, good {g}"
+        );
+    }
 }
 
 #[test]

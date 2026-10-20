@@ -356,7 +356,7 @@ left out; a constant with no reader in the export is dead there too.
 | `INDIANS_ELEPHANT_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `indians_elephant_upgrades` |
 | `DUTCH_FREE_COMMERCE` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `dutch_free_commerce` |
 | `DUTCH_COMMERCE_DISCOUNT` | 10 | TypeData::get_cost | modelled at lib.rs | `dutch_commerce_discount` |
-| `DUTCH_FORT_PLACEMENT` | 0 | BuildTypeData::blocked_tcoord | modelled at place.rs | `dutch_fort_placement` |
+| `DUTCH_FORT_PLACEMENT` | 0 | BuildTypeData::blocked_tcoord | modelled at tcoord.rs | `dutch_fort_placement` |
 | `DUTCH_INTEREST` | 5 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest` |
 | `DUTCH_INTEREST_CAP` | 50 | Leader::do_gather, Options::describe | modelled at economy.rs | `dutch_interest_cap` |
 | `DUTCH_FREE_LIGHT_SHIP` | 1 | Build::activate | modelled at nations.rs | `dutch_free_light_ship` |
@@ -415,7 +415,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
 | `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |
 | `ObjectData::get_damage@00644130` | 15 | carried at combat.rs | `00644130` |
-| `Object::disband@006455c0` | 0 19 | not modelled | `006455c0` |
+| `Object::disband@006455c0` | 0 19 | carried at disband.rs | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
 | `Object::remove_from_inside@006480f0` | 19 20 | carried at holdings.rs | `006480f0` |
 | `ObjectData::train_time@006508c0` | 5 15 | carried at lib.rs | `006508c0` |

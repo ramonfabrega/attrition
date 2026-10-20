@@ -1014,40 +1014,55 @@ pub const fn refund(cost: i32, construct_time: i32, job_counter_2: i32) -> i32 {
     ((cost as i64) * (left as i64) / (construct_time as i64)) as i32
 }
 
-/// What a repairer needs to know about its target — `Unit::do_repair`.
+/// What `Unit::do_repair@005ee420`'s period asks of its target, in the
+/// machine's own integers (item 3346).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct RepairTarget {
-    /// `helpers` already counted this frame.
+    /// The helper byte (`+0x64`) of the target's record, before this
+    /// repairer is counted.
     pub helpers: i32,
-    /// `construct_time(0)`.
+    /// `construct_time(1)`.
     pub construct_time: i32,
     /// `hits(0)`.
     pub hits: i32,
-    /// A city building; and whether it is a captured one (`race != who`).
+    /// `constants->accel_construct`.
+    pub accel: i32,
+    /// A city building; and whether it is a captured one.
     pub city: bool,
     pub captured: bool,
-    /// `build_masks & 0x20` and `& 0x10`.
+    /// The Koreans' `korean_repair` percent, zero for anyone else (or for a
+    /// Korean the constant is zero for).
+    pub korean_repair: i32,
+    /// `build_masks & 0x20` and `& 0x10`, already zero for a Korean who
+    /// shrugs off fire.
     pub under_attack: bool,
     pub fresh_hit: bool,
 }
 
-/// The repair period, in frames × 256 per hit point.
-pub fn repair_period(t: &Tuning, r: &RepairTarget, korean: bool) -> i64 {
-    let denom = i64::from(r.hits.max(1)) * i64::from(t.accel_construct.max(1));
-    let mut period = i64::from(r.helpers + 1) * ((i64::from(r.construct_time) << 9) / denom);
+/// The repair period, in frames × 256 per hit point — the original's own
+/// `int` arithmetic: an unsigned quotient of `construct_time << 9` over
+/// `hits * accel_construct`, the helpers byte plus one, a city's doubling
+/// and a captured city's second, the Korean percent through a signed
+/// divide, and a shift of two for each of the two fire bits.
+pub fn repair_period(r: &RepairTarget) -> i32 {
+    let q = ((r.construct_time << 9) as u32)
+        .checked_div(r.hits.wrapping_mul(r.accel) as u32)
+        .unwrap_or(0);
+    let mut period = (r.helpers + 1).wrapping_mul(q as i32);
     if r.city {
-        period *= if r.captured { 4 } else { 2 };
-    }
-    if korean && t.korean_repair != 0 {
-        period = i64::from(100 - t.korean_repair) * period / 100;
-    }
-    if !(korean && t.korean_build_under_fire != 0) {
-        if r.under_attack {
-            period <<= 2;
+        period = period.wrapping_shl(1);
+        if r.captured {
+            period = period.wrapping_shl(1);
         }
-        if r.fresh_hit {
-            period <<= 2;
-        }
+    }
+    if r.korean_repair != 0 {
+        period = (100 - r.korean_repair).wrapping_mul(period) / 100;
+    }
+    if r.under_attack {
+        period = period.wrapping_shl(2);
+    }
+    if r.fresh_hit {
+        period = period.wrapping_shl(2);
     }
     period
 }
@@ -1400,34 +1415,41 @@ mod tests {
             helpers: 0,
             construct_time: 60_000,
             hits: 1200,
+            accel: 100,
             ..Default::default()
         };
-        // (60000 << 9) / (1200 × 100) = 256: one hit point a frame, 1200 frames for 1200 hits
+        // (60000 << 9) / (1200 x 100) = 256: one hit point a frame, 1200 frames for 1200 hits
         // against 600 frames to build.
-        let p = repair_period(&t(), &r, false);
+        let p = repair_period(&r);
         assert_eq!(p, 256);
-        assert_eq!(repair_amount(7, p, 1200), 1);
+        assert_eq!(repair_amount(7, i64::from(p), 1200), 1);
         // A city doubles it, a captured city quadruples it.
         let c = RepairTarget { city: true, ..r };
-        assert_eq!(repair_period(&t(), &c, false), 512);
+        assert_eq!(repair_period(&c), 512);
         let c = RepairTarget {
             city: true,
             captured: true,
             ..r
         };
-        assert_eq!(repair_period(&t(), &c, false), 1024);
-        // Under attack, freshly hit: × 16.
+        assert_eq!(repair_period(&c), 1024);
+        // Under attack, freshly hit: x 16.
         let u = RepairTarget {
             under_attack: true,
             fresh_hit: true,
             ..r
         };
-        assert_eq!(repair_period(&t(), &u, false), 4096);
+        assert_eq!(repair_period(&u), 4096);
         // Koreans under fire shrug it off and repair in half the time.
-        assert_eq!(repair_period(&t(), &u, true), 128);
+        let k = RepairTarget {
+            under_attack: false,
+            fresh_hit: false,
+            korean_repair: 50,
+            ..u
+        };
+        assert_eq!(repair_period(&k), 128);
         // A second repairer's own period is longer: harmonic, like builders.
         let two = RepairTarget { helpers: 1, ..r };
-        assert_eq!(repair_period(&t(), &two, false), 512);
+        assert_eq!(repair_period(&two), 512);
         // A period below one repairs everything now.
         assert_eq!(repair_amount(3, 0, 77), 77);
     }

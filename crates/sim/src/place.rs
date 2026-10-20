@@ -350,7 +350,7 @@ impl Sim {
     }
 
     /// A placed, unfinished city of `who` — an `UnbuiltCity` entry.
-    fn unbuilt_cities(&self, who: Player) -> impl Iterator<Item = usize> + '_ {
+    pub(crate) fn unbuilt_cities(&self, who: Player) -> impl Iterator<Item = usize> + '_ {
         self.buildings.iter().enumerate().filter_map(move |(i, b)| {
             (b.alive
                 && !b.active
@@ -360,7 +360,7 @@ impl Sim {
         })
     }
 
-    fn unbuilt_forts(&self, who: Player) -> impl Iterator<Item = usize> + '_ {
+    pub(crate) fn unbuilt_forts(&self, who: Player) -> impl Iterator<Item = usize> + '_ {
         self.buildings.iter().enumerate().filter_map(move |(i, b)| {
             (b.alive
                 && !b.active
@@ -484,8 +484,13 @@ impl Sim {
         (first, slots)
     }
 
-    /// `BuildTypeData::blocked_tcoord`: one tile. The ruins arm reads
-    /// visibility; other refusal messages retain the §11 visibility seam.
+    /// `BuildTypeData::blocked_tcoord@00636db0`: one tile, by
+    /// [`crate::tcoord::blocked_tcoord_steps`] (swept against the original,
+    /// item 3346); this builds its view. A tile the leader has not seen
+    /// answers `Seen` (`0x24`) for every refusal but its three contents
+    /// arms, which answer `Unseen` (`0x23`) once the tile is seen and
+    /// `Seen` when it is not really seen; `None` is the cursor's
+    /// player-less form, which sees everything.
     pub fn blocked_tcoord(
         &self,
         who: Option<Player>,
@@ -493,152 +498,15 @@ impl Sim {
         t: Pos,
         exclude: Option<usize>,
     ) -> Blocked {
-        let b = &self.build_types[ty];
-        if !self.world.tile_in_bounds(t) {
-            return Blocked::OffMap;
-        }
-        let cell = crate::World::cell_of_tile(t);
-        let mask = self.world.tile_mask(t);
-        // CITIES §2.5, item 1444: the signed WData short is flags,
-        // whose high bit denotes goody ruins; it is not the region id.
-        if self.world.cell_data(cell).flags & crate::world::cell::GOODY != 0 {
-            return match who {
-                Some(w) if !self.was_seen_fog(t.x >> 1, t.y >> 1, w) => Blocked::Seen,
-                Some(w) if !self.was_really_seen_fog(t.x >> 1, t.y >> 1, w) => Blocked::Unseen,
-                _ => Blocked::Ruins,
-            };
-        }
-        // A cell with no region is **not** ruins: `0x636db0` has no such
-        // test, and takes the region only in the colonisation arm
-        // (twenty-fourth pass, group 12; A8 row 40).
-        let reg = self.world.region_of(cell);
-        if mask & tile::OBJECT == tile::OBJECT_BUILDING {
-            return Blocked::Building;
-        }
-        let dock = build::is_dock(&self.build_types, ty);
-        if !dock {
-            match b.domain() {
-                BuildDomain::Water => {
-                    // A sea-domain type that is no dock is refused a leader
-                    // with no transport level (`0x636db0`:
-                    // `can_transport(who) == TRANSPORT_NONE`, group 12; A8
-                    // row 42). SEAM: `semaphore[1] & 8` lifts it.
-                    if let Some(w) = who
-                        && self.transport_level(w) == crate::transport::TransportType::None
-                    {
-                        return Blocked::CantTransport;
-                    }
-                    if mask & tile::SURFACE != tile::SURFACE_OCEAN {
-                        return Blocked::Land;
-                    }
-                }
-                BuildDomain::Land => {
-                    if mask & tile::SURFACE == tile::SURFACE_OCEAN {
-                        return Blocked::Water;
-                    }
-                }
-                BuildDomain::Both => {}
-            }
-        }
-        if mask & tile::BLOCKED != 0 {
-            if mask & tile::SURFACE == tile::SURFACE_FOREST {
-                return Blocked::Forest;
-            }
-            // Mountain: the tile's own object bits, **or** the cell's
-            // `WData.flags & 0x10` (`63701f`; group 12, A8 row 43).
-            if mask & tile::OBJECT == tile::OBJECT_MOUNTAIN
-                || self.world.cell_data(cell).flags & crate::world::cell::MOUNTAIN != 0
-            {
-                return Blocked::Mountain;
-            }
-            return Blocked::Rare;
-        }
-        // `TData & 0x200` answers RARE, not BUILDING (`63703d..637050`;
-        // group 12, A8 row 44).
-        if mask & tile::AS_BUILDING != 0 {
-            return Blocked::Rare;
-        }
-        // The cell's rock and oil (`006370b2`, `00637105`): an Oil Well or
-        // Oil Platform (`is(0x1a5)`, `is(0x1a6)`) needs the cell's oil,
-        // and every other type is refused a rock cell. The cell's flags are
-        // the map's (`World::set_oil_at` is the oil bit's only writer, from
-        // the terrain groups and the editor), so this is a fixed map fact
-        // the spiral's `buildings_allowed` also reads — but only on the
-        // candidate's own cell, and a jitter's footprint can reach the next
-        // one (`docs/AI.md` §78).
-        let cell_flags = self.world.cell_data(cell).flags;
-        if build::is(&self.build_types, ty, build::Ident::OilWell)
-            || build::is(&self.build_types, ty, build::Ident::OilPlatform)
-        {
-            if cell_flags & crate::world::cell::OIL == 0 {
-                return Blocked::NoOil;
-            }
-        } else if cell_flags & crate::world::cell::ROCK != 0 {
-            return Blocked::Rock;
-        }
-        if mask & tile::PLACED != 0
-            && let Some(w) = who
-            && self.find_building_placed_at(w, t, exclude).is_some()
-        {
-            return Blocked::Building;
-        }
-        if !b.has(flags::NO_CITY) && mask & tile::CITY_RADIUS == 0 {
-            return Blocked::OutsideRadius;
-        }
-        let city = build::is_city(&self.build_types, ty);
-        let fort = build::is_fort(&self.build_types, ty);
-        if (city || fort)
-            && let Some(w) = who
-            && !self.nation[w as usize].lakota
-        {
-            let dutch_anywhere =
-                fort && self.nation[w as usize].dutch && self.tuning.dutch_fort_placement != 0;
-            if !dutch_anywhere && self.world.owner(cell) == Owner::None {
-                // Unowned ground: only as the first city or fort in this
-                // region — the colonisation foothold.
-                let taken = reg.is_some_and(|reg| {
-                    self.reg_cities(w, reg) != 0
-                        || self.reg_forts(w, reg) != 0
-                        || self
-                            .unbuilt_cities(w)
-                            .chain(self.unbuilt_forts(w))
-                            .any(|i| {
-                                Some(i) != exclude
-                                    && self.world.region_of(self.buildings[i].pos.cell())
-                                        == Some(reg)
-                            })
-                });
-                if taken {
-                    return if fort {
-                        Blocked::NeutralTerritory
-                    } else {
-                        Blocked::Territory
-                    };
-                }
-            }
-        }
-        if b.has(flags::NEED_WALL) {
-            return Blocked::NeedWall;
-        }
-        if mask & tile::RIVER != 0 {
-            return Blocked::River;
-        }
-        // A flat gather type — the Farm, the Oil Well, the Oil Platform —
-        // needs its good on the tile's land (`00637532`: the tile form of
-        // `get_land`, then `LandData::get_amount`), so a Farm is refused
-        // sand, rock, a forest cell and an oil cell.
-        if b.has(flags::GATHER) && b.has(flags::FLAT) {
-            let good = crate::ai_place::gather_good(b.ident).map_or(-1, |g| g as i32);
-            let amount = usize::try_from(self.world.land_class_tile(t))
-                .ok()
-                .and_then(|i| crate::world::LANDS.get(i))
-                .and_then(|l| l.good.iter().position(|&g| g == good).map(|k| l.amount[k]))
-                .unwrap_or(0);
-            if amount == 0 {
-                return Blocked::NoResources;
-            }
-        }
-        Blocked::Clear
+        let mut view = crate::tcoord::SimTcoord { sim: self, ty };
+        let exclude = exclude.map_or(-1, |e| i32::try_from(e).expect("a building index"));
+        Blocked::from_code(crate::tcoord::blocked_tcoord_steps(
+            &mut view,
+            who.map_or(-1, i32::from),
+            t.x,
+            t.y,
+            exclude,
+        ))
     }
 
     /// `WallData::covers_tile`: whether tile `t` is inside the building's
@@ -656,7 +524,7 @@ impl Sim {
 
     /// `ObjectsData::find_building_placed_at`: a placed, not-started building
     /// of `who` whose footprint covers `t`, other than `exclude`.
-    fn find_building_placed_at(
+    pub(crate) fn find_building_placed_at(
         &self,
         who: Player,
         t: Pos,
