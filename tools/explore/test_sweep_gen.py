@@ -1878,6 +1878,92 @@ fn x_port(a: &[i32]) -> i64 {
         # Nothing to keep leaves the new test as it is.
         self.assertEqual(sweep_gen.kept_items(new, new), new)
 
+    def test_regen_keeps_a_fenced_hand_block_inside_the_generated_loop(self):
+        # Loop 3013's fifth reach (the forty-sixth pass): `kept_items` keeps a
+        # hand item outside the generated body, and a hand block *inside* the
+        # generated loop (3250's `gate_parted` check against
+        # `Sim::think_peasant`) was dropped; 3362 lost five hand bodies and
+        # 3337/3339/3372 refused to regenerate. A block fenced `// hand:
+        # <name>` … `// end hand` is carried by its anchor, the generated
+        # code it followed — matched with whitespace ignored, so a `cargo
+        # fmt` that split the anchor's line still finds it.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']
+                self.assertEqual(sweep_gen.main(line), 0)
+                tp = Path(tmp) / 'x_y.rs'
+                text = tp.read_text()
+                # As `cargo fmt` leaves it: the anchor line split in three.
+                one = '        let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");\n'
+                self.assertIn(one, text)
+                split = ('        let (eax, after) = rhs\n'
+                         '            .split_once(" | ")\n            .expect("`<eax> | <after>`");\n')
+                head = ('    let mut n = 0;\n'
+                        '    // hand: gate count\n    let mut gate_parted = 0;\n    // end hand\n')
+                loop = ('        // hand: the crate\'s gate\n'
+                        '        if a.len() > 7 {\n            gate_parted += 1;\n        }\n'
+                        '        // end hand\n')
+                second = '        // hand: a second, same anchor\n        let _ = gate_parted;\n        // end hand\n'
+                tail = '    // hand: the gate\'s assert\n    assert_eq!(gate_parted, 0);\n    // end hand\n'
+                text = text.replace(one, split + loop + second).replace('    let mut n = 0;\n', head)
+                text = text.replace('    assert!(n >= 200', tail + '    assert!(n >= 200')
+                tp.write_text(text)
+                self.assertEqual(sweep_gen.main(line + ['--rows', '300', '--regen']), 0)
+                out = tp.read_text()
+                self.assertIn('range(300)', (Path(tmp) / 'sweep_x_y.py').read_text())
+                self.assertIn(one + loop + second, out, 'at its anchor, the two blocks in their order')
+                self.assertIn(head, out)
+                self.assertIn(tail + '    assert!(n >= 300', out)
+                self.assertEqual(out.count('// hand:'), 4)
+                # A second regen is idempotent: nothing doubles.
+                self.assertEqual(sweep_gen.main(line + ['--rows', '300', '--regen']), 0)
+                self.assertEqual(tp.read_text(), out)
+                # An anchor the new test lacks: the block goes to its item's end, said by name.
+                tp.write_text(out.replace(loop + second, loop + '        let zz = 1; // gone\n' + second))
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    self.assertEqual(sweep_gen.main(line + ['--rows', '301', '--regen']), 0)
+                self.assertIn('a second, same anchor', err.getvalue())
+                self.assertIn(one + loop + '        let a: Vec', tp.read_text())
+                self.assertIn(second + '}\n', tp.read_text())
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
+    def test_a_fence_left_open_is_refused(self):
+        with self.assertRaises(ValueError):
+            sweep_gen.kept_hands('fn a() {\n    // hand: x\n    let v = 1;\n}\n', 'fn a() {\n}\n')
+
+    def test_regen_refuses_a_plain_name_that_is_another_overload_s_sweep(self):
+        # Loop 3013's third reach (3182, the forty-second pass): `--regen
+        # --fresh` on an overload's line with no `--name` wrote over the other
+        # overload's sweep, which shares its snake name (restored by hand).
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20']), 0)
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x20',
+                                                 '--name', 'x_y_b']), 0)
+                drawn = (Path(tmp) / 'sweep_x_y.py').read_text()
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x40',
+                                                     '--regen', '--fresh']), 2)
+                self.assertIn('X::y@00401000', err.getvalue())
+                self.assertIn('--name', err.getvalue())
+                self.assertEqual((Path(tmp) / 'sweep_x_y.py').read_text(), drawn)
+                # Named, the overload's own sweep redraws.
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00402000', '--item', '1', '--win', '0x40',
+                                                 '--name', 'x_y_b', '--regen', '--fresh']), 0)
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
     def test_regen_replaces_an_option_given_in_equals_form_and_never_takes_the_kept_port(self):
         # Loop 2886 (five reaches, the thirty-ninth pass). 2946: `--rows=2400`
         # on the new line left the kept `--rows 1200` merged in after it,

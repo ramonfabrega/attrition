@@ -186,7 +186,18 @@ keeps the line that drew it (`# sweep_gen: [...]`, its last line), so
 `--regen tools/emu/sweep_<snake>.py` — or `--regen <snake>` — redraws it
 with no line at hand (item 2325, parked 2311); a whole line given with
 `--regen` replaces the kept one; a `--regen` with no `--port` keeps the test's
-hand-written port block between the generated halves (item 2368). Without `--port` the test's port is `todo!()`, so the row
+hand-written port block between the generated halves (item 2368), every hand item outside them (Loop 3013,
+`kept_items`), and every hand block inside a generated body fenced as
+
+        // hand: <name>
+        ...
+        // end hand
+
+which goes back after the generated code it followed (whitespace ignored, so a
+`cargo fmt` split matches), or before its item's closing brace, named on stderr,
+when that code is gone (Loop 3013's fifth reach). A `--regen` whose script is
+another overload's (its kept line names another address) is refused: an
+overload names its own module with `--name` (3182). Without `--port` the test's port is `todo!()`, so the row
 fails until the lane writes it — a sweep lands when the two sides agree,
 never when a file exists. `--dry-run` prints both files instead.
 """
@@ -3105,6 +3116,115 @@ def kept_items(old, new):
     return '\n'.join(b for _, b in out)
 
 
+HAND = re.compile(r'^\s*// hand(?::\s*(.*?))?\s*$')
+END_HAND = '// end hand'
+
+
+def _fences(lines):
+    """The hand fences in `lines`: `(first, last, name)`, both lines of the
+    fence included. A fence left open is refused."""
+    out, i = [], 0
+    while i < len(lines):
+        m = HAND.match(lines[i])
+        if not m:
+            i += 1
+            continue
+        j = i + 1
+        while j < len(lines) and lines[j].strip() != END_HAND:
+            j += 1
+        if j == len(lines):
+            raise ValueError(f'`{lines[i].strip()}` has no `{END_HAND}` after it')
+        out.append((i, j, m.group(1) or f'line {i + 1}'))
+        i = j + 1
+    return out
+
+
+def _squash(lines):
+    """`lines` with every whitespace character dropped, and the line each
+    remaining character came from — so an anchor `cargo fmt` split over
+    three lines matches the generator's one."""
+    chars, at = [], []
+    for k, line in enumerate(lines):
+        for c in line:
+            if not c.isspace():
+                chars.append(c)
+                at.append(k)
+    return ''.join(chars), at
+
+
+def kept_hands(old, new):
+    """Loop 3013's fifth reach (the forty-sixth pass): a hand block inside a
+    generated body, fenced `// hand: <name>` … `// end hand`, carried from
+    the old test to the new. Its anchor is the generated code it followed
+    in its item — the shortest tail of the item's text above the fence
+    (whitespace ignored, other fences left out) that the item holds once —
+    and it goes back after that code in the new item, after any fence
+    already placed there. An anchor the new item lacks puts the block
+    before the item's closing brace; an item the new test lacks drops it;
+    each said by name. A fence already in the new text (inside a kept port
+    block or a kept item) is left where it is. Returns `(text, warnings)`."""
+    warnings = []
+    old_items = _items(old)
+    out = new
+    for head, block in old_items:
+        lines = block.split('\n')
+        fences = _fences(lines)
+        if not fences:
+            continue
+        inside = {k for a, b, _ in fences for k in range(a, b + 1)}
+        gen = [ln for k, ln in enumerate(lines) if k not in inside]
+        whole, _ = _squash(gen)
+        for first, last, name in fences:
+            text = '\n'.join(lines[first:last + 1])
+            if text in out:
+                continue
+            above, _ = _squash([ln for k, ln in enumerate(lines[:first]) if k not in inside])
+            key = above
+            for n in (24, 48, 96, 192, 384):
+                if n < len(above) and whole.count(above[-n:]) == 1:
+                    key = above[-n:]
+                    break
+            occ = above.count(key) - 1
+            items = _items(out)
+            idx = next((i for i, (h, _) in enumerate(items) if h == head and h), None)
+            if idx is None:
+                warnings.append(f'hand block `{name}`: its item `{head}` is not in the new test; dropped')
+                continue
+            new_lines = items[idx][1].split('\n')
+            flat, at = _squash(new_lines)
+            pos = -1
+            for _ in range(occ + 1):
+                pos = flat.find(key, pos + 1)
+                if pos < 0:
+                    break
+            if key and pos >= 0:
+                k = at[pos + len(key) - 1] + 1
+                # After the fences already placed at this anchor, in their order.
+                while k < len(new_lines) and HAND.match(new_lines[k]):
+                    while k < len(new_lines) and new_lines[k].strip() != END_HAND:
+                        k += 1
+                    k += 1
+            else:
+                k = max(i for i, ln in enumerate(new_lines) if ln.rstrip() == '}')
+                warnings.append(f'hand block `{name}`: its anchor is not in the new `{head}`; '
+                                "placed at the item's end")
+            new_lines[k:k] = lines[first:last + 1]
+            items[idx] = (items[idx][0], '\n'.join(new_lines))
+            out = '\n'.join(b for _, b in items)
+    return out, warnings
+
+
+def regen_owner(path, function):
+    """Loop 3013's third reach (3182): the function a script at `path`
+    keeps in its line when that is not `function` — an overload's sweep
+    under the same snake name — else None."""
+    line = kept_line(path) if path.exists() else None
+    if not line:
+        return None
+    other = next((a for a in line if NAME.match(a)), None)
+    return other if other and other != function else None
+
+
 SWEEP_FAMILIES = ('a_f', 'g_o', 'p_t', 'u_z')
 REGISTRY_MARKER = '// Registered standalone sweeps.\n'
 REGISTRATION = re.compile(r'#\[path = "([a-z][a-z0-9_]*)\.rs"\]\nmod \1;\n')
@@ -3825,7 +3945,9 @@ def main(argv=None):
                     '(the default for a fresh generation since item 2887; kept so old lines run)')
     ap.add_argument('--no-write-mod', action='store_true', help='leave the registry alone and print the line (item 2887, parked 2872)')
     ap.add_argument('--regen', action='store_true', help='redraw a generated sweep in place: both files rewritten, '
-                    '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298)')
+                    '`mod.rs` left alone; refused when either file is missing (Loop 2003, 2222; item 2298) or the '
+                         'script is another overload\'s (3182); the port block, hand items and `// hand: NAME` … '
+                         '`// end hand` fences inside a generated body are carried (Loop 3013)')
     ap.add_argument('--fwd-gate', metavar='OFF:MASK:VA[:T,T..]',
                     help='obj: a forwarder gated on a byte of gamec, then a call to VA with the caller\'s stale ecx, '
                          '--own arguments and the tail T.. (GroupOut::issue_*; item 2443, parked 2433)')
@@ -4032,10 +4154,15 @@ def main(argv=None):
             return 2
         print(f'# {sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
         return 0
+    owner = regen_owner(sp, args.function) if args.regen else None
+    if owner:
+        print(f'sweep_gen.py: {shown(sp)} is the sweep of `{owner}`, not `{args.function}`; an overload '
+              'names its own module with --name (Loop 3013, 3182)', file=sys.stderr)
+        return 2
+    old_test = tp.read_text() if args.regen and tp.exists() else None
     if args.regen and args.port is None and tp.exists():
         # The test's hand-written port is kept between the generated halves
         # (item 2368: two of 2341's ten restored it by hand from a copy).
-        old_test = tp.read_text()
         todo = f'todo!("the port of {parse(args.function)[0]}")'
         kept = kept_port(old_test, test, todo)
         if kept is not None:
@@ -4051,6 +4178,15 @@ def main(argv=None):
         else:
             print(f'sweep_gen.py: {shown(tp)}: no port block where the new test holds one (its windows '
                   'changed?); the port is `todo!()` again — restore it from git', file=sys.stderr)
+    if old_test is not None:
+        # Fenced hand blocks inside a generated body (Loop 3013's fifth reach).
+        try:
+            test, warned = kept_hands(old_test, test)
+        except ValueError as e:
+            print(f'sweep_gen.py: {shown(tp)}: {e}', file=sys.stderr)
+            return 2
+        for w in warned:
+            print(f'sweep_gen.py: {shown(tp)}: {w}', file=sys.stderr)
     for p in (sp, tp):
         if p.exists() != args.regen:
             print(f'sweep_gen.py: {p} ' + ('is missing; --regen redraws a generated sweep' if args.regen
