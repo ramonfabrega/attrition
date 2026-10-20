@@ -8653,6 +8653,46 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
 - **3348f. `Build::check_capture@006276a0`** sits between `add_roads` and `find_path` on the census and was left out of this
   batch's booking; no parked row explains it (the grep finds only `check_capture_health` and `check_capture_eligible`, other functions): the commander books it next.
 
+## Parked by item 3362, 2026-10-20 — the second sweep lane's third shape batch
+
+- **3362a. `PathFinder::astar_path@00683770`: `--stub-alloc IDX` lacking, a stateful tree/pool model lacking, port not level.**
+  Stands on a generator run: `sweep_gen.py obj --item 3362 --own 3 --win 0x200 --ptrarg 0:0x40 --argset 1:0x30,0xc0,0x10
+  --argset 2:0,1 --max-insns 2000000 PathFinder::astar_path@00683770` emits both files and the module registers, but the first
+  run of the original dies in the prologue: `UC_ERR_READ_UNMAPPED` (fault 0x7f7f7f6e) on the pointer chased from `this+0x54`
+  (the `UnitData`, then `units+0x10`, `GameAccess::world`, the order list at `+0xdc`) — nothing is placed. Placing those is
+  `--place`/`--ptrarg` work; the wall behind it is not: the body `malloc(0x24)`s a `PathNode` when `Recycler<PathNode>::temp_pool`
+  is empty (`--stub-alloc` lacking, as 3282b/3339a/3348b), pushes `Stack<PathData>` (`increase_size`, `peek`; the stateful stack of
+  3348c), and keeps its open/closed sets in five pointer-linked `Tree`/`BRTree` containers swapped with the unit's at `+0x104`
+  (`ordered_insert`, `remove_current`, `find_node_open`, `kill_tree`, `close`, `clear`, and five `Recycler` pools). Stubbing
+  those answers per row cannot reproduce a search; running them needs the trees built in the emulated heap. The crate's side is
+  not level either: `PathFinder::astar_path` (`path.rs:983`) holds `Vec<Node>` and `BTreeMap`s, calls ~15 `self.*` methods
+  directly (`avoid_flags`, `metric_of`, `roll_upath_retry`, …) and has no view trait. Order: a `PathView` over the world/unit
+  reads and an `AstarState` the sweep can seed from the original's trees; or compare the finished path stack only, over a
+  small placed world, with the tree callees run for real under `--stub-alloc`. Slices (`--tail`/`--stop-stub`) do not help
+  until the prologue (`683770`–`683a2d`, containers swapped) is placed. No files left: the emitted pair was removed.
+
+- **3362b. `Unit::come_out@00617c10` past `6186c1`.** Swept as a slice (entry to the `set_new_location@005f8d20` call; 3000 + 1500
+  rows); the tail is untried, not parked on a failure. `SimComeOut` does not model the figures' `+0xd0` word, the leader's
+  `0x2000000` flag, the missile figure's `+0x40`, the Oil Platform barge (`0x1a6`), a gather point on an object, or a unit inside
+  nothing; the sweep lays player 3 only, `param_1 == 1` only, and never the barge success arm (`init_unit` forced negative).
+- **3362c. `Cities::capture_city@00733380` past `City::find_buildings`.** Swept as a slice (1200 rows). Unswept: the failed-swap
+  arm (the original reads `cities[A][-1]`), the allied circle sweep, plunder, close lists, capital handling, the achievements
+  arm (`Get()` through a returned object's slot is not spellable), `get_radius` (its `ecx` window is too wide). Six equivalent
+  survivors are by the view's construction (it ignores the player argument).
+- **3362d. `Army::find_target@006f69b0`: the forts pass and the probe's body.** Two slices agree (5000 + 4000 rows); the group
+  count is held at 0 so the forts loop never runs, and the probe (`6f9df0`) answers -1. Seven breaks were unreached by the
+  draws (navy x10, `frame_attacked + 0x2328`, about x100, `siege == 0 && military >= 4`, `military > 4`, `2 * damage > max`, the last `/ 4`).
+- **3362e. `Group::action_attack@00712490`: arms the stub vtable cannot spell.** The scenario ignore list inside the whole run
+  (slot `+0x10` takes 4 arguments on the Group and 0 elsewhere: a per-object arity for one slot is lacking), `ignore & 1` with
+  `QUEUE_FIRST` (slot `+0xb8`, the same clash), the `ObjectData::is@653790` inline arm, and `Error::report` nonzero.
+- **3362f. `Balance::type_damage@0057fb50`: the inline `TypeIndex` fast paths.** All 1800 rows take the stubbed-call arm
+  (attacker and target sit at table slots 5 and 6); the `is_unit_type`/`is_build_type`/`is_wonder_type`/`get_age` inline arms
+  need `--vtat-keep` on several slots.
+- **3362g. The sweep tests of `action_attack` and `find_target` sit in the `sim` lib.** Their ports use crate internals, so the
+  generator registered them in `sweep/mod.rs` (as `group_action_gather_point`), which Loop 3363's lib memory limit forbids; a
+  `pub` seam for `attack_view`/`target_*` would let them move to a `sweep_*` target.
+- **3362h. `--stub-alloc` is now parked five times** (3282b, 3339a, 3348b, 3358d, 3362a): its own item, never a sixth batch's tail.
+
 ## Parked by item 3355, 2026-10-19 — the Persians to the game's end
 
 The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What it read and did not build:
@@ -8701,14 +8741,6 @@ The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What 
 - **3356f. `collide::tests::attackers_on_a_dead_target_are_hard_to_each_other`** failed in debug `--lib` in four subagents'
   trees (a `coll_add` assertion at collide.rs:1023); none touched collide.rs and none ran it on the base — the lane gate says
   whether it is the base's.
-
-## Parked by the next landing, slot LG — reserved
-
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
 
 ## Parked by the next landing, slot LH — reserved
 
