@@ -61,14 +61,28 @@ pub(crate) fn emu_rows(script: &str) -> Option<String> {
     emu_rows_with(script, &setup, run_uv)
 }
 
-/// The real runner: `uv run <script> <exe> <args…>`.
+/// The real runner: `uv_command(<script>) <exe> <args…>`.
 fn run_uv(script: &Path, exe: &Path, args: &[String]) -> io::Result<Output> {
-    std::process::Command::new("uv")
-        .arg("run")
-        .arg(script)
-        .arg(exe)
-        .args(args)
-        .output()
+    uv_command(script).arg(exe).args(args).output()
+}
+
+/// `uv run --locked --project <emu> python <script>`, `<emu>` the script's
+/// directory (item 3354). A bare `uv run <script>` builds the script's PEP
+/// 723 environment under `~/.cache/uv/environments-v2`, keyed on the
+/// script's path — one a sweep a worktree, 358,890 of them on 2026-10-20 —
+/// where `tools/emu/pyproject.toml`'s project is one `tools/emu/.venv` a
+/// worktree, made by `uv` on the first run (gitignored; `--locked` holds it
+/// to the committed `uv.lock`). Running `python <script>` is what keeps uv
+/// from reading the script's inline metadata, which stays for a person's
+/// bare `uv run`.
+pub(crate) fn uv_command(script: &Path) -> std::process::Command {
+    let emu = script.parent().unwrap_or(Path::new("."));
+    let mut c = std::process::Command::new("uv");
+    c.args(["run", "--locked", "--project"])
+        .arg(emu)
+        .arg("python")
+        .arg(script);
+    c
 }
 
 /// The cache directory the environment names: `None` for
@@ -152,7 +166,14 @@ pub(crate) fn emu_rows_with(
         );
         return Some(rows);
     }
-    if let Err(e) = store(cache, &file, &key, &receipt, &rows, setup.probe) {
+    if let Err(e) = store(
+        cache,
+        &file,
+        &key,
+        &receipt,
+        &rows,
+        setup.probe.then_some(setup.emu_dir),
+    ) {
         eprintln!("emu cache: cannot write {} ({e})", file.display());
     }
     Some(rows)
@@ -184,7 +205,7 @@ fn store(
     key: &str,
     receipt: &[String],
     rows: &str,
-    probe: bool,
+    probe: Option<&Path>,
 ) -> io::Result<()> {
     std::fs::create_dir_all(cache)?;
     let mut head = format!("# {MAGIC}\n# key {key}\n");
@@ -195,8 +216,8 @@ fn store(
     };
     receipt.iter().for_each(|l| line(l));
     line(&format!("date {}", utc_now()));
-    if probe {
-        tool_versions().iter().for_each(|l| line(l));
+    if let Some(emu_dir) = probe {
+        tool_versions(emu_dir).iter().for_each(|l| line(l));
     }
     let n = rows.lines().filter(|l| !l.trim().is_empty()).count();
     line(&format!("rows {n}"));
@@ -209,12 +230,12 @@ fn store(
     std::fs::rename(&tmp, file)
 }
 
-/// `uv --version` and the Python `uv run` resolves by default, once a
-/// process: the receipt's tool lines.
-fn tool_versions() -> &'static [String] {
+/// `uv --version` and the Python of `emu_dir`'s project, the one
+/// [`uv_command`] runs, once a process: the receipt's tool lines.
+fn tool_versions(emu_dir: &Path) -> &'static [String] {
     static V: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
     V.get_or_init(|| {
-        let out = |args: &[&str]| {
+        let out = |args: &[&std::ffi::OsStr]| {
             std::process::Command::new("uv")
                 .args(args)
                 .output()
@@ -228,10 +249,22 @@ fn tool_versions() -> &'static [String] {
                 .unwrap_or_else(|| "unknown".to_string())
         };
         vec![
-            format!("uv {}", out(&["--version"]).trim_start_matches("uv ")),
             format!(
-                "python {} (uv run --no-project)",
-                out(&["run", "--no-project", "python", "--version"]).trim_start_matches("Python ")
+                "uv {}",
+                out(&["--version".as_ref()]).trim_start_matches("uv ")
+            ),
+            format!(
+                "python {} (uv run --project tools/emu)",
+                out(&[
+                    "run".as_ref(),
+                    "--quiet".as_ref(),
+                    "--locked".as_ref(),
+                    "--project".as_ref(),
+                    emu_dir.as_os_str(),
+                    "python".as_ref(),
+                    "--version".as_ref(),
+                ])
+                .trim_start_matches("Python ")
             ),
         ]
     })
@@ -684,6 +717,43 @@ mod tests {
             assert!(text.contains(name), "the receipt names {name}: {text}");
         }
         assert!(!text.contains("sweep_unrelated.py"), "{text}");
+    }
+
+    /// Item 3354: a bare `uv run <script>` builds a PEP 723 environment per
+    /// script *path* under `~/.cache/uv/environments-v2`, so each worktree
+    /// built one per sweep. The runner runs the script on `tools/emu`'s
+    /// project python instead, and the project's own files leave every
+    /// cache key where it was.
+    #[test]
+    fn the_runner_runs_the_shared_project_and_its_files_key_nothing() {
+        let s = Scratch::new("uv");
+        let (emu, exe) = lay_out(&s.0);
+        let script = emu.join("sweep_a.py");
+        let c = super::uv_command(&script);
+        assert_eq!(c.get_program(), "uv");
+        let args: Vec<_> = c.get_args().collect();
+        assert_eq!(
+            args,
+            [
+                "run".as_ref(),
+                "--locked".as_ref(),
+                "--project".as_ref(),
+                emu.as_os_str(),
+                "python".as_ref(),
+                script.as_os_str(),
+            ],
+            "uv run --locked --project <tools/emu> python <script>"
+        );
+
+        let k0 = key(&emu, &exe, &[]);
+        write(&emu.join("pyproject.toml"), "[project]\nname = \"x\"\n");
+        write(&emu.join("uv.lock"), "version = 1\n");
+        write(&emu.join(".venv/bin/python"), "#!/bin/sh\n");
+        assert_eq!(
+            key(&emu, &exe, &[]),
+            k0,
+            "the project's files are not inputs"
+        );
     }
 
     #[test]

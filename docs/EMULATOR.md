@@ -47,7 +47,7 @@ entry, and a changed byte in any input is a miss.
 The cache is `~/Library/Caches/attrition/emu-cache/<key>.rows`, shared by
 every worktree since the key holds no path (`RON_EMU_CACHE_DIR` moves it; `RON_EMU_CACHE=off` bypasses it; a result over `RON_EMU_CACHE_MAX_BYTES`, 16 MiB by default, is returned and never stored — 136 of 1,523 entries held 20 of 22 GiB after one gate). A file is the receipt as `#` lines —
 the key, the executable's path and hash, the script's and each module's
-name and hash, the date, `uv --version`, the Python `uv run` resolves,
+name and hash, the date, `uv --version`, the Python `tools/emu`'s project runs,
 the row count, `# end` — then the rows verbatim; the header is stripped
 before the rows are returned, so no test sees it. A hit skips `uv`; a
 miss runs and writes through a temporary file and a rename. With no
@@ -60,6 +60,18 @@ proven against a fresh run on that schedule. `tools/emu_receipts.py`
 lists the receipts as a table; `--verify` re-hashes each receipt's inputs
 as they are on disk now, rebuilds the key text (the same literal is pinned
 by both sides' tests), and exits 1 naming each stale entry and why.
+
+A miss runs `uv run --locked --project tools/emu python <script>` (item
+3354): one `tools/emu/.venv` a worktree, made by `uv` on the first run
+from `tools/emu/pyproject.toml` and its `uv.lock`. A bare `uv run
+<script>` builds a PEP 723 environment keyed on the script's *path* — the
+same script from a second directory got a second environment, an edited
+copy at one path kept its first (uv 0.11.16, measured 2026-10-20) — so
+every worktree built one per sweep script, 358,890 of them in
+`~/.cache/uv/environments-v2` that day. The scripts keep their inline
+metadata for a person's bare `uv run`, and
+`tools/explore/test_emu_env.py` holds the two declarations equal. The
+project's files are not `.py` and key nothing: no cache entry moved.
 
 ## 2. What it costs, measured
 

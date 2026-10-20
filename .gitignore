@@ -1,5 +1,7 @@
 /target
 __pycache__/
+# tools/emu's shared environment, made by `uv run --project tools/emu` on demand.
+/tools/emu/.venv/
 
 # The user's own copy of the game. No original assets ever enter this repo.
 /game
