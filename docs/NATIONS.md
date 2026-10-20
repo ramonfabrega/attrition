@@ -59,7 +59,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 5 | Greeks | greeks | none (read off `has_tribe_bonus`) | 7 | `GreatSaharaGreekTier1` (AI word, tier 1) |
 | 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (AI word, tier 4), `EastIndiesEgyptianTier3` (map 18, tier 3) |
-| 8 | Turks | turks | `turks` | 7 | `GreatLakesTurkishTier4` (AI word, tier 4) |
+| 8 | Turks | turks | `turks` | 7 | `GreatLakesTurkishTier4` (AI word, tier 4); `GreatSaharaTurkishTier3` (map 7, tier 3) |
 | 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3) |
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
