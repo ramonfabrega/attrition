@@ -204,5 +204,8 @@ fn run993c_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3367, the first try on 12756: 765 keys. The Caravel `1/49` (TI
+    // 325, sea, born a Bark on 10369 out of a Dock) parts first on 12752,
+    // `cavarch_o` ours −2, theirs −1: theirs' 12751 search took `0/2004`.
+    pin_eq!(w.firsts.len(), 765, "keys that part in the window");
 }
