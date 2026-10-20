@@ -77,6 +77,7 @@ pub mod diplomacy;
 pub mod disband;
 pub mod do_attack;
 pub mod economy;
+pub mod eject;
 pub mod farms;
 pub mod fight;
 pub mod fish;

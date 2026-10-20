@@ -608,6 +608,8 @@ mod object_data_support;
 mod object_data_valid_target_const;
 #[path = "object_disband.rs"]
 mod object_disband;
+#[path = "object_eject_contents.rs"]
+mod object_eject_contents;
 #[path = "object_execute_events.rs"]
 mod object_execute_events;
 #[path = "object_fire_ammo.rs"]
