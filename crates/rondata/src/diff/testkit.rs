@@ -9903,6 +9903,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3306,
         Some(crate::diff::iroquois_word::WIDENING_IROQUOIS_CLOSING),
     ),
+    // **The battery's Lakota word** (item 3345, DECISIONS 72, 83, 84):
+    // frame 6071, the battery's first try, widened on run980 over
+    // 6065..6321 (block 6072).
+    (
+        "LAKOTA_WORD",
+        crate::diff::lakota_word::LAKOTA_WORD,
+        Some("run980_s_word_frame_is_widened_whole"),
+        3345,
+        Some(crate::diff::lakota_word::WIDENING_LAKOTA_FRAME_6071),
+    ),
     // **The battery's Bantu word** (item 3343, DECISIONS 72, 83): frame
     // 4, the battery's first try, widened on run978 over 1..256 (block 5).
     // Item 3343 moved it 4 → 3184 with `update_speed`'s Bantu arm, 3184 →
@@ -10414,6 +10424,20 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Lakota word** (DECISIONS 72, 83, 84; item 3345):
+    // Great Lakes, the Lakota at Difficulty 2 — the held-out battery's
+    // lowest open lobby once item 3343 closed the Bantu, minted by item
+    // 3342 under entry 72's rule (2); the game ends itself on 7902. It
+    // joins the `Battery word` line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesLakotaTier2",
+        named: "Great Lakes (Lakota)",
+        word: crate::diff::lakota_word::LAKOTA_WORD,
+        length: 7_902,
+        endpoint: None,
+        window: Some("lakota_frame_6071_window"),
+    },
     // **The battery's Bantu word** (DECISIONS 72, 83; item 3343): Great
     // Sahara, the Bantu at Difficulty 4 — the held-out battery's lowest open
     // lobby once item 3338 closed the Maya; the game ends itself on 23627.
