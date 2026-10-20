@@ -56,9 +56,17 @@ six fields and the road stack; run13's frame 95 is twenty empty ones.
 `Unit::init@00612100:436` calls `Caravans::init_caravan(who, o)` for a
 unit that `is_caravan` — `unit_flags2 & 8` — **and whose type domain is
 land**, which is `UnitTypeData +0x218 == 0`. That second test is what
-keeps the sea-domain Merchant Fleet out: it takes the `Specials` list
-instead and never owns a route. The slot goes in the unit's `+0x86`, the
-union the same field uses for a hero's slot and an animal's herd.
+keeps the sea-domain Merchant Fleet out ~~: it takes the `Specials` list
+instead and never owns a route~~ of a slot of its own. The slot goes in the
+unit's `+0x86`, the union the same field uses for a hero's slot and an
+animal's herd.
+
+**At sea the fleet walks the caravan's route** (item 3370, `docs/AI.md`
+§286): `SpellType::cast_transport@00670db0:117`–`121` gives the boat the
+caravan's `+0x86` and names it in the route's `o` (`+0xa`), and
+`Object::eject_contents@0064cd20:225`–`241` hands both back and sets the
+boat's to −1. So the fleet's `do_move` verifies the route's road (§10) and
+its `do_trade` runs on the route's record.
 
 A caravan is born from a Market's queue, or — for the Persians — from the
 Market itself, with no queue and no price, on its fifteen-frame slot while

@@ -41,8 +41,16 @@ pub(crate) const SPANISH_EAST: Lobby = Lobby {
     // held RAID there), and `think_attack` ends the think only on a unit
     // find — so the Caravel's idle search on 12742 takes `0/2004` and still
     // runs `think_scout`, and its cavarch search takes `0/2004` on 12753.
-    count: 14942,
-    sequence: 14942,
+    // **14942 → 24000, the long's last frame** (item 3370): a caravan's
+    // slot goes with it onto the Merchant Fleet `cast_transport` builds
+    // (`+0x86`, `cast_transport@00670db0:117`–`121`) and back off at
+    // `eject_contents`, so the fleet `1/79` (TI 318, sea), taking a
+    // road-flagged waypoint over a built tile on 14942, verifies its
+    // route's road — 3203 `calc_road_cost` draws theirs, none ours — and
+    // the region check pushes the stripped top (run993d block 14943,
+    // `1/79`'s `path[19].flags` ours 36, theirs 4).
+    count: 24000,
+    sequence: 24000,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -265,6 +273,71 @@ fn run993d_s_word_frame_is_widened_whole() {
     // family (and `0/2000`'s `raid_stamp`, ours 12774 against 12773, parked
     // 3367a's neighbour), the first row is on the word's own block 14943:
     // `1/79`'s `path[19].flags`, ours 36, theirs 4 — the frame theirs spends
-    // 3211 draws in `PathFinder::calc_road_cost`.
-    pin_eq!(w.firsts.len(), 1006, "keys that part in the window");
+    // 3211 draws in `PathFinder::calc_road_cost`. Item 3370 built both
+    // halves (the fleet's caravan slot, the stripped top): 1006 → 61, the
+    // word 14942 → 24000. What stands: the standing family (`SITE[·].reg`,
+    // `aggression[1]`, `form`, the army `pool:n` and `group:n.held`, the
+    // newborn `g.angle[0]`, `0/2000`'s `raid_stamp`) and `1/87`'s
+    // `dest_angle` on 15129 (ours 793640960, theirs 1008795648), which the
+    // draw stream never feels.
+    pin_eq!(w.firsts.len(), 61, "keys that part in the window");
+}
+
+/// The closing state's window: run986b's closing block alone, the long's
+/// last frame 24000 writing it (item 3370).
+pub(crate) const WIDENING_SPANISH_EAST_CLOSING: (i64, i64) = (23999, 24002);
+
+/// **The lobby's closing state** (item 3370, DECISIONS 55): run986b — the
+/// draw stream's own capture, `cover=0` — prints the closing block whole.
+/// The game does not end itself; the long's `!quit` at 24000 closes it.
+#[test]
+fn run986b_spanish_east_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(SPANISH_EAST.long.0),
+        dump(SPANISH_EAST.start),
+        trace(SPANISH_EAST.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Spanish East closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 24001, "the closing block");
+    pin_eq!(e.compared, 160, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    // Item 3370, the first walk (the word at 24000): 160 units compared on
+    // block 24001, none apart, no building field-row; one closing field,
+    // city `0/2000`'s `raid_stamp`, ours 12774 against theirs 12773 — the
+    // human's city, standing since run993c's window (parked 3367a's
+    // neighbour), which the draw stream never feels.
 }

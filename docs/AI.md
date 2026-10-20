@@ -24640,12 +24640,60 @@ each against `dutch_sahara_word_first_parting` or the whole module): the pack's 
 `is_packing` read removed, the tail's walk removed, the merchant leg's tail call removed, the stall arm disabled —
 all held.
 
-## 286. Reserved for the next item on the AI track
+## 286. The battery's East Indies Spanish word closes: a caravan's slot goes to sea with it
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3370, 2026-10-20, Opus 5.5. `EastIndiesSpanishTier3` (map 18, human Nubians against the Spanish at Difficulty
+3, seed 12345), carried from 14942 (§284). No capture: run993d's window (14936..15192) and run986b's closing block
+answered everything; runs 996 and 997 went unused.*
+
+**The frame.** On 14942 ours spends 8 draws and theirs 3211, at index 2 theirs `PathFinder::calc_road_cost+0x46` —
+3203 of them in a row, one road search, between `1/9`'s `do_non_flat_gather` and the frame's guys. run993d's first
+row past the standing family is on block 14943: `1/79`'s `path[19].flags`, ours 36, theirs 4.
+
+**The unit.** `1/79` is a Merchant Fleet (TI 318, type record 268, sea), `uid 164`, carrying `inside_down 35` — a
+land caravan at sea — under a `TRADEORDER` (home 2, far city 3) with a `MOVEORDER` current. On 14942 both sides pop
+the reached node, take the next, (33952, 21664), flagged `0x20` (`path_flag::ROAD`, `build_road`'s), strip `0x20`
+from every entry (`do_move@005f7b30:437`–`478`, `docs/CARAVAN.md` §10) and push (33944, 21714) with tolerance 0 and
+`| 4`, the region check (§4.4 of `docs/ORDERS.md`). The tile, (176, 112), is a building's (its mask's low bits 3).
+
+**Two halves.**
+
+- *The fleet owns its caravan's route.* `do_move`'s check calls `Caravan::verify_road` on
+  `caravans.lists[who][*(short *)(this + 0x86)]`, unchecked. The dump prints `1/79`'s `special 2` and `hero 2` —
+  the same short, printed twice. It is not a `Specials` slot: `SpellType::cast_transport@00670db0:117`–`121` gives
+  the boat the caravan's `+0x86` and names the boat in the route's `o` (`+0xa`), and `Object::eject_contents@0064cd20:
+  225`–`241` gives both back and sets the boat's to −1. So at sea the fleet is the route's walker: its `do_move`
+  verifies the route, whose road stack holds five tiles built on (`mask 0x0103`, tiles (180, 104)..(183, 100)), and
+  `build_road` searches — the 3203 draws. `SimTransport` answered the three calls with stubs (parked 3330c); ours'
+  fleet had no slot and verified nothing. Built both ways: the boarding's three answers read and write
+  `Unit::caravan` and the route's `unit`, and `Sim::disembark` hands them back before the boat closes, so the boat's
+  `Unit::close` closes no route.
+- *The region check pushes the stack's own top.* `do_move:496` pops the entry the strip has just written and pushes
+  it back `pPVar8->flags | 4`, so the node carries 4. Ours pushed the copy it read before the strip, 36.
+
+**The value diff, block 14943**: `1/79` `path[19]` (33944, 21714), `flags` ours 36, theirs 4; with both halves 4.
+With both, the draw stream agrees to the long's last frame, **14942 → 24000**, and run993d's window drops 1006 →
+61 keys: the standing family (`SITE[·].reg`, `aggression[1]`, `form`, the army `pool:n` and `group:n.held`, the
+newborn `g.angle[0]`, `0/2000`'s `raid_stamp`) and `1/87`'s `dest_angle` on 15129 (ours 793640960, theirs
+1008795648), which the draw stream never feels (parked 3370a).
+
+**The close.** `run986b_spanish_east_closing_state` walks to run986b's closing block 24001 and compares 160 units,
+none apart, no building field-row; one closing field, city `0/2000`'s `raid_stamp`, ours 12774 against theirs 12773
+— the human's city, standing since run993c (parked 3367a's neighbour). Every other lobby's first parting holds (23
+of 23), and the battery's floors. The second pair's run544 window drops 51 → 50: `1/40`'s `path[43].flags` on 16074,
+ours 32, theirs 0 — the same stripped top.
+
+**Not established.** Whether a Merchant Fleet takes a `Specials` slot of its own at `Unit::init` before the boarding
+overwrites `+0x86` (`Unit::init@00612100:414`–`431`, `unit_flags2 & 0x10`): nothing reads one, and this crate keeps
+no `Specials` list. `Unit::close`'s `close_caravan` asks `is_caravan` alone, so a fleet that dies at sea closes its
+route; this crate's close does the same through `Unit::caravan`. The caravan's `unit_masks2 & 0x200` that the
+boarding and the landing copy is not carried.
+
+**Coverage.** Diff-backed: both halves by `spanish_east_word_first_parting` (mutation: the boarding's slot stubbed,
+held) and `run993d_s_word_frame_is_widened_whole` (mutation: the pre-strip push, held, 61 → 63); the close by
+`run986b_spanish_east_closing_state`. Sim tests: `a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back`
+(mutation: the landing's hand-back without the boat's clear, held),
+`a_trade_walker_s_region_push_carries_the_stripped_road_flag` (mutation: the pre-strip push, held).
 
 ## 287. Reserved for the next item on the AI track
 

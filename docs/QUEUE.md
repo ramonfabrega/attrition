@@ -18,8 +18,8 @@ French, Aztecs, Inca and Koreans closed; the Spanish to 14942; five sweeps); ros
 - **Words**: every pair closed; twenty battery words closed, the Spanish open at 14942 (`AI_WORDS` holds nineteen). Battery on `af395535`:
   311 (the Dutch, 3369), 14540 (the Egyptians, whole), 7799, 18883, 24000, 24000 (whole), 14991, 9382 — median 14766. Census 1601, port 471.
 - **Lanes: four live**: 3369 AI (Opus; runs 994, 995, AI §285, LK), 3370 AI (Opus; runs 996, 997, AI §286, LL), 3364
-  the nations seat (Sonnet, LH), 3372 the second sweep (Sonnet, LM). Next 3373, run 998. Pools: GOLDEN §144–148, AI §287–288, park LN–LR.
-- **Fable backlog: 18 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352, 3353, 3354, 3357, 3363, 3366, 3368, 3371); DECISIONS 84.
+  the nations seat (Sonnet, LH), 3372 the second sweep (Sonnet, LM). Next 3374, run 998. Pools: GOLDEN §144–148, AI §287–288, park LN–LR.
+- **Fable backlog: 19 Loop items** (1570, 2003, 3013, 3118, 3143, 3188, 3237, 3349, 3350, 3351, 3352, 3353, 3354, 3357, 3363, 3366, 3368, 3371, 3373); DECISIONS 84.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

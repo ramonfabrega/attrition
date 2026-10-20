@@ -1269,9 +1269,10 @@ impl Sim {
     /// its own on the first step.
     ///
     /// SEAMS, all stated: the `MARINES` arm (`unit_masks2 & 0x200` and
-    /// `update_speed`), the caravan's slot hand-over, the console sound, the
-    /// selection group's swap and `replace_hotunit` — none of them is state
-    /// this crate keeps.
+    /// `update_speed`), the console sound, the selection group's swap and
+    /// `replace_hotunit` — none of them is state this crate keeps. ~~The
+    /// caravan's slot hand-over~~ is built (item 3370): the fleet takes
+    /// [`Unit::caravan`] and [`Sim::disembark`] gives it back.
     pub(crate) fn cast_transport(&mut self, u: usize) {
         // The body is `crate::cast_transport::cast_transport_steps` (item
         // 3330), the original's control flow over a view; the Sim answers it.
@@ -1554,6 +1555,23 @@ impl Sim {
             // 3. the damage, back the way it came, on the loop's own
             //    passenger alone.
             self.same_damage(r, boat);
+            // 3a. **a caravan's slot, back the way it came**
+            //    (`eject_contents@0064cd20:225`–`241`, item 3370): when the
+            //    boat `is_caravan`, the passenger takes the boat's `+0x86`,
+            //    the route's `o` (`+0xa`) names the passenger, and the
+            //    boat's goes to −1 — so the boat's death closes no route.
+            if self.units[boat].ty.is_some_and(|t| {
+                self.unit_types[t]
+                    .cols
+                    .flag2(crate::ai_load::uflags2::CARAVAN)
+            }) {
+                let who = self.units[boat].owner as usize;
+                let slot = self.units[boat].caravan.take();
+                self.units[r].caravan = slot;
+                if let Some(van) = slot.and_then(|v| self.caravans[who].slots.get_mut(v)) {
+                    van.unit = Some(r);
+                }
+            }
             // 4. the order list and the path, back the way they came.
             if self.units[r]
                 .ty
@@ -2726,6 +2744,75 @@ mod tests {
         }
     }
 
+    /// **A caravan's route slot goes with it onto the Merchant Fleet and
+    /// back** (item 3370, `docs/AI.md` §286): `cast_transport@00670db0`
+    /// gives the boat the caravan's `+0x86` and names the boat in the
+    /// route's `o`; `eject_contents@0064cd20` gives both back and clears the
+    /// boat's, so the boat's close closes no route. East Indies' fleet
+    /// `1/79` prints `special 2` — its route's slot — and verifies that
+    /// route's road on 14942.
+    ///
+    /// Made to fail by stubbing `SimTransport::set_caravan_slot` (the boat
+    /// owns no route), or by dropping `disembark`'s hand-back (the boat's
+    /// close kills the route).
+    #[test]
+    fn a_caravan_s_route_slot_goes_with_it_onto_the_fleet_and_back() {
+        let mut f = fix();
+        let mut fleet_t = UnitType {
+            hits: 50,
+            moves: 25,
+            ..UnitType::default()
+        };
+        fleet_t.combat.domain = Domain::Sea;
+        fleet_t.combat.block_radius = 48;
+        fleet_t.cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+        let fleet = f.sim.add_unit_type(fleet_t);
+        f.sim.unit_types[fleet].tree = Some(ty::MERCHANTFLEET);
+        f.sim.unit_types[fleet].type_index = ty::MERCHANTFLEET as i32;
+        let caravan = f.sim.add_unit_type(UnitType {
+            hits: 40,
+            ..UnitType::default()
+        });
+        f.sim.unit_types[caravan].tree = Some(ty::CARAVAN);
+        f.sim.unit_types[caravan].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+
+        // A route below it, so the walker's slot is not 0.
+        let other = unit(&mut f.sim, 1, caravan, tile_pos(10, 10));
+        let u = unit(&mut f.sim, 1, caravan, tile_pos(30, 14));
+        f.sim.init_guys(u, Some(caravan));
+        f.sim.units[u].auto_transport = true;
+        assert_eq!(f.sim.units[other].caravan, Some(0));
+        assert_eq!(f.sim.units[u].caravan, Some(1));
+        assert!(!f.sim.set_new_location(u, tile_pos(33, 14), false));
+        let boat = f.sim.units.len();
+        f.sim.work(u, 1);
+        assert_eq!(f.sim.units[boat].ty, Some(fleet), "the fleet");
+        assert_eq!(
+            f.sim.units[boat].caravan,
+            Some(1),
+            "the boat takes the slot"
+        );
+        assert_eq!(
+            f.sim.caravans[1].slots[1].unit,
+            Some(boat),
+            "the route names the boat"
+        );
+
+        assert!(!f.sim.set_new_location(boat, tile_pos(30, 14), false));
+        assert!(!f.sim.units[boat].alive());
+        assert_eq!(f.sim.units[boat].caravan, None, "the boat's is cleared");
+        assert_eq!(f.sim.units[u].caravan, Some(1), "the caravan takes it back");
+        assert_eq!(
+            f.sim.caravans[1].slots[1].unit,
+            Some(u),
+            "the route names it again"
+        );
+        assert!(
+            f.sim.caravans[1].slots[1].alive,
+            "the boat's close closed no route"
+        );
+    }
+
     /// **A passenger that lands as its group's leader toggles the group's
     /// mirror** (item 2193, `docs/AI.md` §214): `come_out`'s turn to the
     /// boat's heading is `Unit::set_angle@00605400`, whose reversing arm
@@ -3447,6 +3534,74 @@ mod tests {
             f.sim.current_move(boat).map(|m| m.waypoint),
             Some(goal),
             "and the barge walks at it"
+        );
+    }
+
+    /// **The region check pushes the stack's own top**, after `do_move`'s
+    /// road check has stripped it (item 3370, `docs/AI.md` §286):
+    /// `do_move@005f7b30:496` pops the entry the strip just wrote and
+    /// pushes it back `| 4`, so a road-flagged waypoint over a built tile in
+    /// another region comes back flagged 4 alone. East Indies' fleet `1/79`
+    /// on 14942: run993d's block 14943 prints `path[19].flags` 4, where
+    /// this crate pushed the copy it read before the strip, 36.
+    ///
+    /// Made to fail by pushing the pre-strip copy: the waypoint keeps
+    /// `ROAD`.
+    #[test]
+    fn a_trade_walker_s_region_push_carries_the_stripped_road_flag() {
+        use crate::orders::{Body, Order, PathData, TradeOrder, path_flag};
+        use crate::world::tile;
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        f.sim.unit_types[b].kind.domain = Domain::Sea;
+        let boat = unit(&mut f.sim, 1, b, tile_pos(40, 14));
+        f.sim.init_guys(boat, Some(b));
+        let goal = tile_pos(28, 14);
+        let m = f.sim.world.tile_mask(goal.tile());
+        f.sim.world.set_tile_mask(goal.tile(), m | tile::PLACED);
+        f.sim.add_move_order(
+            boat,
+            goal,
+            crate::orders::MoveKind::MoveTo,
+            crate::orders::QueuePos::New,
+            false,
+        );
+        f.sim.units[boat].orders[0].flags |= crate::orders::flag::PATHED;
+        f.sim.units[boat].orders.push_back(Order {
+            flags: crate::orders::flag::ACTION,
+            body: Body::Trade(TradeOrder {
+                home: 0,
+                dest: None,
+                started: true,
+                loaded: false,
+            }),
+        });
+        f.sim.units[boat].path = vec![
+            PathData {
+                to: tile_pos(20, 14),
+                tolerance: 96,
+                flags: path_flag::FINAL | path_flag::ROAD,
+            },
+            PathData {
+                to: goal,
+                tolerance: 96,
+                flags: path_flag::ROAD,
+            },
+        ];
+        assert_ne!(
+            f.sim.world.tregion_alt(goal.tile()),
+            f.sim.world.tregion_alt(f.sim.units[boat].pos.tile()),
+            "the waypoint is in another tile region"
+        );
+        f.sim.work(boat, 1);
+        assert_eq!(
+            f.sim.units[boat]
+                .path
+                .iter()
+                .map(|p| p.flags)
+                .collect::<Vec<_>>(),
+            vec![path_flag::FINAL, path_flag::TRANSPORT],
+            "the strip reaches every entry, the pushed top's too"
         );
     }
 
