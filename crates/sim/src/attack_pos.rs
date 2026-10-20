@@ -439,10 +439,11 @@ impl crate::Sim {
     fn find_melee_pos(&mut self, u: usize, t: usize, from: Pos) -> Option<Pos> {
         let slots = self.find_open_slots(u, t);
         if slots.is_empty() {
-            // SEAM (`601178`-`6011a3`): the target's `UnitData::full`
-            // (`+0xac`) takes `+5`, capped at `0x1e` — the "nobody can
-            // get at this one" counter. Nothing in this crate keeps
-            // `full`, and nothing here reads it.
+            // `601178`-`6011a3`: the target's [`crate::Unit::full`] takes
+            // `+5`, capped at `0x1e` — the "nobody can get at this one"
+            // counter the search divides by (item 3385).
+            let f = &mut self.units[t].full;
+            *f = f.saturating_add(5).min(0x1e);
             return None;
         }
         nearest_slot(&slots, from)

@@ -135,6 +135,10 @@ const UNREAD: &[(&str, &str)] = &[
     // `turret_inc`, the fifth, rides the same key unread. Two keys leave;
     // no path does.
     //
+    // **Item 3385 took `full` off both `UNITDATA` paths**: the melee
+    // slot counter `find_nearby_target` divides by, compared in
+    // `widen_block` beside `mana_burn`.
+    //
     // **Item 3306 took `good_obj`, `mana_burn` and `rare` off both
     // `UNITDATA` paths** (Loop 3310): fields `sim::Unit` carries, compared
     // beside `spell_time` in `widen_block`. Three keys leave each; no path
@@ -149,7 +153,7 @@ const UNREAD: &[(&str, &str)] = &[
     ("GAME/FRAME/ANIMALDATA", "aid ox whom"),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA",
-        "air_alt cavarch_uid full gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle waiting",
+        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/ANIMALDATA/UNITDATA/GUY",
@@ -273,7 +277,7 @@ const UNREAD: &[(&str, &str)] = &[
     ),
     (
         "GAME/FRAME/UNITDATA",
-        "air_alt cavarch_uid full gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle waiting",
+        "air_alt cavarch_uid gather_down guy_mark healing hero increment inside_up_who length los_x los_y myarmor num_queued play queue_time size special supply trench_angle waiting",
     ),
     (
         "GAME/FRAME/UNITDATA/GUY",

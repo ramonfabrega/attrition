@@ -37,9 +37,15 @@ pub(crate) const INCA_SAHARA: Lobby = Lobby {
     // agreeing after), and 13250 -> 13282 (+32): the fire on the move's
     // bearing in `find_nearby_target` (run1011's block 13226: `1/72`'s
     // `cavarch_o/who` -1/-1 theirs, the city `0/2000` behind it at 179
-    // degrees off its facing; 2000/0 ours, which struck two frames early).
-    count: 13282,
-    sequence: 13282,
+    // degrees off its facing; 2000/0 ours, which struck two frames early),
+    // and 13282 -> 13313 (+31): `UnitData::full` (run1011's woodcutter
+    // `0/3`: `full` 6 theirs on block 13282, 0 ours, after the Inti
+    // Macemen `1/92` and `1/91` found no open slot round it on 13278 and
+    // 13279 and dropped their attacks — `find_attack_pos`'s melee return
+    // 0, run1011d's packet — so the Heavy Archer `1/99` took `0/4` over
+    // it, `order:target` (0, 4) theirs against (0, 3) ours).
+    count: 13313,
+    sequence: 13313,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`

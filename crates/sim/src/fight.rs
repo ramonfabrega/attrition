@@ -4868,9 +4868,6 @@ impl Sim {
             // weights' join. run835's `0/7` takes the Bark `1/8` at 2,082
             // units over the Trireme `1/6` at 768 on 634.
             //
-            // SEAM: the `idiv` by the target's `full + 1` (`UnitData +0xac`,
-            // `0064f110`) that follows is not carried: `full` is 0 on every
-            // unit of every dump this crate widens.
             if matches!(ap.domain, Domain::Sea)
                 && matches!(tp.domain, Domain::Sea)
                 && ap.is(role::BARK)
@@ -4884,6 +4881,12 @@ impl Sim {
                 {
                     v *= 40;
                 }
+            }
+            // **The target's `full + 1`** (`0064f107`–`0064f11b`, item
+            // 3385): every unit target's score, Bark or not, is divided
+            // by its [`crate::Unit::full`] plus one, `idiv` toward zero.
+            if let Obj::Unit(u) = target {
+                v /= i64::from(self.units[u].full) + 1;
             }
         }
         if v < 0 {

@@ -2111,6 +2111,8 @@ fn widen_block_rows(
                 // coverage driver's unread row. The Despot's `mana_burn`
                 // parted unseen on every block of run943.
                 ("mana_burn", i64::from(un.mana_burn), them.mana_burn),
+                // Item 3385: the melee slot counter the search divides by.
+                ("full", i64::from(un.full), them.full),
                 ("rare", i64::from(un.rare), them.rare),
                 ("good_obj", i64::from(un.good_obj), them.good_obj),
                 ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
@@ -2367,6 +2369,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "start_dist" => ("UnitDump", "start_dist"),
         "spell_time" => ("UnitDump", "spell_time"),
         "mana_burn" => ("UnitDump", "mana_burn"),
+        "full" => ("UnitDump", "full"),
         "rare" => ("UnitDump", "rare"),
         "good_obj" => ("UnitDump", "good_obj"),
         "mylos" => ("UnitDump", "mylos"),
