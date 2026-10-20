@@ -11421,6 +11421,7 @@ pub trait DoRepairView {
 /// §5.6): the gates, the re-swarm of a repairer out of reach, the period
 /// and the amount, the price in whole units of each good (a single-precision
 /// quotient, truncated), and the charge.
+#[allow(clippy::needless_range_loop)]
 pub fn do_repair_steps<V: DoRepairView>(v: &mut V) {
     /// `LAB_005eeb02`: the order dies, and the unit goes on to look for
     /// work — an AI repairer for the next repair, a human one for the site
