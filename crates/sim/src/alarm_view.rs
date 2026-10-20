@@ -23,10 +23,6 @@ pub const CITY_LIVE: i32 = 0x01;
 pub const CITY_BELL: i32 = 0x40;
 /// `Object` flags `+8`: a city building.
 pub const OBJ_CITY: i32 = 0x20;
-/// `eject_contents`'s type argument: `PEASANTS`.
-pub const EJECT_TYPE: i32 = 0x32;
-/// `QUEUE_NEW`.
-pub const QUEUE_NEW: i32 = 2;
 
 /// The head of `Group::action_alarm`: what it asks of the group before the
 /// walk of its members.
@@ -89,7 +85,8 @@ pub trait AlarmView: AlarmHead {
     fn data_limit(&mut self, p: i32, o: i32) -> i32;
     /// Slot `+0xac`, then slot `+0x90` of the data's type.
     fn data_type_slot90(&mut self, p: i32, o: i32) -> bool;
-    /// Slot `+0xac`, then `Object::eject_contents(0, PEASANTS, 0, 0)`.
+    /// Slot `+0xac`, then `Object::eject_contents(0, PEASANTS, 0, 0)`
+    /// (`PEASANTS` is 0x32).
     fn eject_peasants(&mut self, p: i32, o: i32);
     /// `objects[p][o]`'s slot `+8`.
     fn obj_alive(&mut self, p: i32, o: i32) -> bool;
@@ -163,7 +160,7 @@ pub trait AlarmView: AlarmHead {
     fn group_add(&mut self, u: i32, who: i32);
     /// The stack group's count, `+0xc`.
     fn group_count(&self) -> i32;
-    /// `Group::action_garrison(stack, b, who, QUEUE_NEW, 1)`.
+    /// `Group::action_garrison(stack, b, who, QUEUE_NEW, 1)` (`QUEUE_NEW` is 2).
     fn action_garrison(&mut self, b: i32, who: i32);
 }
 
