@@ -5815,13 +5815,21 @@ walks from `(791, 8088)` to `(912, 8096)`. Nothing in the arm is phased
 — the sixteen-frame phase gates only the `find_melee_target` probe, and
 `(9 + 644) % 16 = 13`, so on this frame the candidate is `near_o` alone.
 
-**SEAM**: the `find_melee_target` probe is not implemented. Its own
+~~**SEAM**: the `find_melee_target` probe is not implemented. Its own
 sixth argument (`1` when the target is not a wallbuild and the type's
 `vt+0x10c` answers zero, `2` otherwise) has no counterpart in this
 crate's two-argument helper, and the call re-enters
 `find_nearby_target` — which bumps `targeted` and rewrites `near`, so
 wiring it is a behavioural change of its own rather than an addition.
-No frame of any capture on disk reaches it.
+No frame of any capture on disk reaches it.~~ **Built by item 3355**
+(`docs/AI.md` §279): the Persian Great Lakes game's 6251 reaches it —
+the Immortal captains chasing the citizen `0/3` leave it `targeted` 3
+and `0/4` 1 in run984c's packet, where ours, never searching, had 0 and
+0, and `1/10`'s re-search took `0/3` where theirs took `0/4`. The probe
+runs through `find_melee_target_with` with the word 1 (`UNITS`), or 2
+for a siege type, and a find in range stands in for `near`. This crate
+keeps a `c != t` test before `change_target` that the arm does not
+have (noted, not changed).
 
 ### 37.3 `poor_target` refuses a futile chase, and the conjunct that decides is the speed
 

@@ -309,8 +309,10 @@ class TheLiveTree(unittest.TestCase):
     # instrument widened and not the tree: a plural `SEAMS:` block is a
     # seam now (parked 1240), and three such blocks name a built function —
     # `spellcaster.rs`'s crate doc, `think_civilian_transport`'s and
-    # `do_cast`'s. Each is 1224's to strike, re-word or book.
-    DOORS = 17
+    # `do_cast`'s. Each is 1224's to strike, re-word or book. 17 → 16:
+    # item 3355 built `do_move`'s captain search, whose SEAM in
+    # `melee_search_flags` named the call as missing.
+    DOORS = 16
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)

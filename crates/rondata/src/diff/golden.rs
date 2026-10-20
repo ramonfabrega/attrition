@@ -6054,7 +6054,8 @@ fn chapter_one_hundred_holds_to_the_golden_word() {
 /// unit's path costs tripled on `UnitData::is_fleeing` (3246, 977); a Tank's round at a building
 /// aims at its centre, not the near face (`Ammo::init`'s `is_tank` gate), and a unit dies of
 /// attrition with `dtype` 1 at its share of the squad's hit points (3252: 977 → 2600, the trace's
-/// end, `GOLDEN.md` §135).
+/// end, `GOLDEN.md` §135). Item 3355: the Tank's `near` agrees — `do_move`'s captain search on
+/// every sixteenth `o + frame` writes it (`docs/COMBAT.md` §37.2).
 const WANT_CH100: &[&str] = &[
     "605 0/0 form",
     "605 0/1 form",
@@ -6067,7 +6068,6 @@ const WANT_CH100: &[&str] = &[
     "605 1/3 form",
     "605 1/4 form",
     "605 1/5 form",
-    "1227 0/6 near",
 ];
 
 /// What parts in run933's window, blocks 605–1500: the eleven standing `form` rows
