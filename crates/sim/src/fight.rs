@@ -2834,6 +2834,9 @@ impl Sim {
     /// run943's Citizen `0/3`, killed on 10852 by `1/58` beside The Despot
     /// `1/46`: four draws (oil not yet available) and who=1's metal 44 → 59.
     ///
+    /// The body is [`crate::plunder::plunder_steps`] over [`crate::plunder::SimPlunder`]
+    /// (the original's whole function, swept against it in item 3356).
+    ///
     /// SEAM: the General, caravan and supply-wagon victims
     /// (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec killer's slay bonus
     /// (`AZTEC_SLAY_BONUS`, `param_3`), the Inca refund, and the victim
@@ -2842,7 +2845,6 @@ impl Sim {
         use crate::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
         const SPITAMENES: i32 = 0x16d;
-        const KNOWLEDGE: usize = 3;
         let amount = self.tuning.thedespot_unit_plunder;
         let victim = &self.units[v];
         if !self.is_captain(v) || victim.decoy || self.curr_uber_size(v) != 1 {
@@ -2864,23 +2866,15 @@ impl Sim {
         {
             return;
         }
-        let w = who as usize;
-        let mut pick = None;
-        let mut least = 99_999_999;
-        for g in 0..6 {
-            if g == KNOWLEDGE || !self.holdings[w].available[g] {
-                continue;
-            }
-            self.mark(SITE_UNIT_PLUNDER);
-            let v = self.ledgers[w].bucket[g] + self.rng.roll() % 25;
-            if v < least {
-                least = v;
-                pick = Some(g);
-            }
-        }
-        if let Some(g) = pick {
-            self.ledgers[w].bucket[g] += amount;
-        }
+        // `Unit::plunder(victim, k, who, 0, 1)`: the Extended Edition's arm,
+        // over the crate's own buckets and draws.
+        crate::plunder::plunder_steps(
+            &mut crate::plunder::SimPlunder { sim: self, v },
+            k as i32,
+            i32::from(who),
+            0,
+            1,
+        );
     }
 
     /// **`HeroesData::find_hero@0073a1b0`** behind a leader's per-type count
