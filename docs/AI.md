@@ -24617,9 +24617,11 @@ for 7, 1 for 8 — where the art has it, and a build style of 5 forces its walks
 `-NEUROPE-AGE3`, `-IROQUOIS-AGE0`, `-IROQUOIS-AGE3`, `-COLONIAL-AGE3`, `-EINDIAN-AGE3`). Built:
 `Tribe::build_continent` (the tribe file's `<BUILD_CONTINENT>`), `rondata::artdata::OVER_TIME`, `sim::anim::
 stall_piece` and its arm in `unit_gpiece`; the SEAM it carried is gone and parked 3365b is struck. Value diff, block
-15717 after: agreeing; run995c's window 748 → 34, run995d's 32, both the standing family. Sixteen other windows lost
-their merchant residue with it (run991b 80 → 32, run963c 112 → 74, run954 61 → 34, run952 60 → 33, …); no first
-parting and no closing state moved.
+15717 after: agreeing; run995c's window 748 → 34, run995d's 32, both the standing family. Fifty-two other windows lost
+their merchant residue with it, every one downward — sixteen on the battery's words (run991b 80 → 32, run963c 112 →
+74, run954 61 → 34, …) and thirty-six on the closed pairs' (run490 51 → 35, whose pinned row `11329: ours 2123 theirs
+50689` now agrees; run667 190 → 166, …); the census's port-backed count goes 471 → 473; no first parting and no
+closing state moved.
 
 **The close.** run990b's closing block 16110: 86 units compared, none apart, no building, city or closing field
 (`run990b_dutch_sahara_closing_state`). Every other lobby's first parting, the battery floors and every closing state
