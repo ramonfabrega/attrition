@@ -1018,6 +1018,10 @@ pub struct Tuning {
     /// Colosseum held (`has_wonder(0x212)`, the same arm's first step).
     /// Ships as 20.
     pub colosseum_fort_cost: i32,
+    /// Percent off a Tower-line building's price (`is(0x1b7, 0)`) for a
+    /// Korean leader (`TypeData::get_cost@00664090:916`–`922`, between the
+    /// wonder tail and the fort arm; `docs/AI.md` §283). Ships as 33.
+    pub korean_tower_cost: i32,
     /// Percent off construction time in the Hanging Gardens' city. Ships as zero.
     pub hanging_gardens_build_time: i32,
     /// Percent off an industry technology's price — the food, timber and
@@ -1571,6 +1575,7 @@ impl Tuning {
         roman_fort_speed: 50,
         roman_fort_cost: 25,
         colosseum_fort_cost: 20,
+        korean_tower_cost: 33,
         hanging_gardens_build_time: 0,
         hanging_gardens_industry_discount: 66,
         thepresident_building_speed: 33,
@@ -2361,6 +2366,7 @@ impl Tuning {
             ("ROMAN_FORT_SPEED", Slot::Value(T.roman_fort_speed)),
             ("ROMAN_FORT_COST", Slot::Value(T.roman_fort_cost)),
             ("COLOSSEUM_FORT_COST", Slot::Value(T.colosseum_fort_cost)),
+            ("KOREAN_TOWER_COST", Slot::Value(T.korean_tower_cost)),
             (
                 "HANGING_GARDENS_BUILD_TIME",
                 Slot::Value(T.hanging_gardens_build_time),

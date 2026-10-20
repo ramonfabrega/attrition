@@ -29,9 +29,13 @@ pub(crate) const KOREAN: Lobby = Lobby {
     // Item 3331's lobby, held by the battery's measure to `b91a71a1`:
     // count 9185, sequence 9185 (ours 14 draws, theirs 13, at 1: ours
     // `Leader::use_market+0x1ed`, theirs `Leader::make_stuff+0x221`).
-    // Item 3365 promoted it to the AI word (`docs/AI.md` §283).
-    count: 9185,
-    sequence: 9185,
+    // Item 3365 promoted it to the AI word (`docs/AI.md` §283), and moved
+    // it 9185 -> 15291 (+6106): `get_cost`'s Korean tower step, a third
+    // off a Tower-line building (run991's block 9179: who=1's wealth 86
+    // and metal 175 against 96 and 192). 15291: ours 8 draws, theirs 10,
+    // at 5: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+    count: 15291,
+    sequence: 15291,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -122,7 +126,7 @@ fn run991_s_word_frame_is_widened_whole() {
     let Some(w) = korean_frame_9185_window() else {
         return;
     };
-    pin_eq!(w.blocks, 257, "every captured block");
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -135,5 +139,12 @@ fn run991_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3365: 563 keys on the first try, the window opening apart on
+    // who=1's `bucket[2:wealth]` 86 against 96 and `bucket[4:metal]` 175
+    // against 192, income agreeing on every good: ours had paid its towers
+    // whole. Built (`get_cost`'s Korean tower step): 563 -> 27, the
+    // standing family alone — `form` −1 against 9, the leaders'
+    // `SITE[·].reg` 1 against 0, `aggression[1]`, and the army pools
+    // `pool:64`/`66` and `group:64`/`66.held` with no `GROUPDATA` printed.
+    pin_eq!(w.firsts.len(), 27, "keys that part in the window");
 }
