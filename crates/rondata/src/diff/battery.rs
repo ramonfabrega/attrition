@@ -334,6 +334,32 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // and run994b, 13757 of 16371), minted by item 3369 under rule (2), left
     // the battery on item 3375 for the AI word
     // (`diff::iroquois_sahara_word`, DECISIONS 72, 83, 84).
+    // The lobby minted by item 3375 (DECISIONS 72 as amended by 84, rule
+    // (2); `docs/AI.md` §288; runs 1000 and 1000b) when the Iroquois left
+    // for the AI word, so the held-out set stays eight: Great Sahara, the
+    // Germans at Difficulty 3 — no map-7 dump held the Germans, who are
+    // held only by a closed game on another map (`EastIndiesGermanTier3`)
+    // and reach the most census functions of the nations so held (8; the
+    // Indians 4, the Inca 3), at the tier the Iroquois leave. The game ends
+    // itself on 19483.
+    Lobby {
+        name: "GreatSaharaGermanTier3",
+        map_style: 7,
+        ai_tribe: 12,
+        difficulty: 3,
+        start: "gamelog-run1000-greatsahara-german-diff3-start.txt",
+        long: (
+            "gamelog-run1000b-greatsahara-german-diff3-24k-trace.txt",
+            "rontrace-run1000b.log",
+        ),
+        length: 19483,
+        // Item 3375, the first try: the count parts at 13585; the
+        // sequence at 13582, ours 64 draws, theirs 64, at 0: ours
+        // `Leader::use_market+0x1ed`, theirs
+        // `Leader::produce_building+0xc99`.
+        count: 13585,
+        sequence: 13582,
+    },
     // `EastIndiesIndianTier2` (Indians 21, Difficulty 2, map 18; run962
     // and run962b, 221 of 24000), minted by item 3329, left the battery on
     // item 3335 for the AI word (`diff::indian_word`, DECISIONS 72, 83).
