@@ -22,7 +22,7 @@
 //! the village arm (`swap_team`, the console's sound and message, the
 //! hand-over notice) is never entered here; its methods are inert.
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::combat::Obj;
 use crate::world::{Cell, Pos, vector_dist};
@@ -334,7 +334,7 @@ pub(crate) struct SimCapture<'a> {
     b: usize,
     c: usize,
     cands: Vec<Cand>,
-    heads: HashMap<(i32, i32), usize>,
+    heads: BTreeMap<(i32, i32), usize>,
 }
 
 impl<'a> SimCapture<'a> {
@@ -402,8 +402,8 @@ impl<'a> SimCapture<'a> {
             chained.push(cands.len() - 1);
         }
         // Each cell's chain, in the order the objects were met.
-        let mut heads: HashMap<(i32, i32), usize> = HashMap::new();
-        let mut tails: HashMap<(i32, i32), usize> = HashMap::new();
+        let mut heads: BTreeMap<(i32, i32), usize> = BTreeMap::new();
+        let mut tails: BTreeMap<(i32, i32), usize> = BTreeMap::new();
         for h in chained {
             let q = cands[h].pos.cell();
             let key = (q.x, q.y);
