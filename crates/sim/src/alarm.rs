@@ -13,7 +13,7 @@
 use crate::Sim;
 use crate::group::Group;
 use crate::orders::{QueuePos, index, spell};
-use crate::world::{Cell, Player, Pos, vector_dist};
+use crate::world::{Player, Pos};
 
 impl Sim {
     /// `Group::action_alarm@0070ec30` on the buildings `list` of `who`,
@@ -31,41 +31,18 @@ impl Sim {
     /// run430's income on 889, eight frames after the bell, counts the
     /// Citizens under their GARRISONs out.
     ///
-    /// SEAM: the scenario's `ignore_orders` sweep; the two sounds;
-    /// `action_alarm_peasant@006fd980`, a group of units' alarm.
+    /// The walk is `crate::alarm_view::action_alarm_steps`, swept against the
+    /// original (item 3364); the SEAMs are `SimAlarm`'s: the scenario's
+    /// `ignore_orders` sweep; the two sounds; `action_alarm_peasant@006fd980`,
+    /// a group of units' alarm; a building on a cell's chain.
     pub fn action_alarm(&mut self, who: Player, list: &[usize]) {
-        self.economy_changed(who);
-        let (mut rang, mut cleared) = (false, false);
-        for &b in list {
-            let bd = &self.buildings[b];
-            if !bd.alive || bd.owner != who || !self.building_is_city(b) {
-                continue;
-            }
-            let Some(c) = bd.city else {
-                continue;
-            };
-            if !self.cities[c].alive {
-                continue;
-            }
-            if !self.cities[c].alarm {
-                if cleared {
-                    continue;
-                }
-                rang = true;
-                self.alarm_bell(who, c);
-            } else {
-                if rang {
-                    continue;
-                }
-                cleared = true;
-                self.alarm_all_clear(who, c);
-            }
-        }
+        let mut view = crate::alarm_view::SimAlarm::new(self, who, list);
+        crate::alarm_view::action_alarm_steps(&mut view);
     }
 
     /// `ObjectData::is(ti, 0)` on a unit, `ti` a `TypeIndex`: its lineage
     /// holds the type's tree node.
-    fn unit_is_index(&self, u: usize, ti: i32) -> bool {
+    pub(crate) fn unit_is_index(&self, u: usize, ti: i32) -> bool {
         self.unit_rec_of_index(ti)
             .and_then(|r| self.unit_types[r].tree)
             .is_some_and(|t| self.unit_line_is(u, t))
@@ -73,151 +50,11 @@ impl Sim {
 
     /// `UnitData::control_cost(0)@00609d40`: a decoy 0, else the type's
     /// `POP` (`+0x2f0`).
-    fn control_cost(&self, u: usize) -> i32 {
+    pub(crate) fn control_cost(&self, u: usize) -> i32 {
         if self.units[u].decoy {
             return 0;
         }
         self.units[u].ty.map_or(0, |t| self.unit_types[t].price.pop)
-    }
-
-    /// The bell (`0070ec30`'s `0x40`-clear arm):
-    ///
-    /// ```text
-    /// room   = num_inside(city building), limit = its garrison limit
-    ///          + both of every other member a Citizen can garrison
-    /// r      = CityData::get_radius (tiles);  rc = (r + 3) / 4 (cells)
-    /// for each cell of circle_x/y[..circle_radius[rc]] round the city's
-    ///   cell that find_city_at names this city:
-    ///     its object chain, while room < limit: a unit of who's on the
-    ///     map, a Citizen (0x32/0x33), within vector_dist r in tiles, not
-    ///     yet taken: taken, room += control_cost
-    /// any taken: action_garrison(taken, city building, QUEUE_NEW,
-    ///            search 1); city_flags |= 0x40
-    /// ```
-    ///
-    /// SEAM: a building on the chain, whose Citizens inside are taken too
-    /// (this crate threads units only, `Sim::cell_chain`); the Citizen's
-    /// tribe substitution.
-    fn alarm_bell(&mut self, who: Player, c: usize) {
-        let cb = self.cities[c].building;
-        let mut room = self.num_inside(cb);
-        let mut limit = self.garrison_limit(cb);
-        let citizen = self.unit_rec_of_index(crate::cast::PEASANTS);
-        let mut chain = self.city_chain(c).into_iter();
-        chain.next();
-        for b in chain {
-            let can = citizen
-                .zip(self.buildings[b].ty)
-                .is_some_and(|(ut, bt)| self.can_garrison(ut, bt));
-            if can {
-                room += self.num_inside(b);
-                limit += self.garrison_limit(b);
-            }
-        }
-        let city_tile = self.cities[c].pos.tile();
-        let r = self.radius_of(c);
-        let rc = ((r + 3) / 4).clamp(0, 0x40) as usize;
-        let home = self.cities[c].pos.cell();
-        let circ = crate::ai_place::circle();
-        let mut g = Group::stack(who);
-        for k in 0..circ.radius[rc] {
-            let cell = Cell::new(home.x + circ.x[k], home.y + circ.y[k]);
-            if cell.x < 0
-                || cell.y < 0
-                || cell.x >= self.world.width()
-                || cell.y >= self.world.height()
-            {
-                continue;
-            }
-            let centre = Pos::new(cell.x * 0x300 + 0x180, cell.y * 0x300 + 0x180);
-            if self.find_city_at(who, centre, None) != Some(c) {
-                continue;
-            }
-            for u in self.cell_chain(cell) {
-                if room >= limit {
-                    break;
-                }
-                let unit = &self.units[u];
-                if unit.owner != who || !unit.alive() || !unit.on_map {
-                    continue;
-                }
-                if !matches!(unit.type_index, 0x32 | 0x33) {
-                    continue;
-                }
-                let t = unit.pos.tile();
-                if vector_dist(t.x - city_tile.x, t.y - city_tile.y) > r || g.list.contains(&u) {
-                    continue;
-                }
-                self.group_add(&mut g, u);
-                room += self.control_cost(u);
-            }
-        }
-        if !g.list.is_empty() {
-            self.group_action_garrison_search(&g, cb, QueuePos::New, true);
-            self.cities[c].alarm = true;
-        }
-    }
-
-    /// The all-clear (`0070ec30`'s `0x40`-set arm):
-    ///
-    /// ```text
-    /// for each cell of circle_x/y[..circle_radius[rc]] round the city's
-    ///   cell, its object chain: a unit of who's on the map, a Citizen,
-    ///   within r tiles, whose action is a GARRISON (0x1a): repath,
-    ///   kill_current_order
-    /// for each building of the city's chain that is finished (+8 & 4):
-    ///     every unit inside that is(MILITIA 0x42): cast_civilian
-    ///     eject_contents(0, PEASANTS, 0, 0)
-    /// city_flags &= ~0x40
-    /// ```
-    fn alarm_all_clear(&mut self, who: Player, c: usize) {
-        let city_tile = self.cities[c].pos.tile();
-        let r = self.radius_of(c);
-        let rc = ((r + 3) / 4).clamp(0, 0x40) as usize;
-        let home = self.cities[c].pos.cell();
-        let circ = crate::ai_place::circle();
-        for k in 0..circ.radius[rc] {
-            let cell = Cell::new(home.x + circ.x[k], home.y + circ.y[k]);
-            if cell.x < 0
-                || cell.y < 0
-                || cell.x >= self.world.width()
-                || cell.y >= self.world.height()
-            {
-                continue;
-            }
-            for u in self.cell_chain(cell) {
-                let unit = &self.units[u];
-                if unit.owner != who || !unit.alive() || !unit.on_map {
-                    continue;
-                }
-                if !matches!(unit.type_index, 0x32 | 0x33) {
-                    continue;
-                }
-                let t = unit.pos.tile();
-                if vector_dist(t.x - city_tile.x, t.y - city_tile.y) > r {
-                    continue;
-                }
-                let garrisoning = self
-                    .action_of(u)
-                    .is_some_and(|a| self.units[u].orders[a].index() == index::GARRISON);
-                if garrisoning {
-                    self.repath(u);
-                    self.kill_current_order(u);
-                }
-            }
-        }
-        for b in self.city_chain(c) {
-            if !self.buildings[b].alive || !self.buildings[b].active {
-                continue;
-            }
-            for u in self.buildings[b].garrison.clone() {
-                if self.unit_is_index(u, crate::cast::MILITIA) {
-                    self.cast_civilian(u);
-                }
-            }
-            self.eject_citizens_now(b);
-        }
-        self.cities[c].alarm = false;
     }
 
     /// `Object::eject_contents(0, PEASANTS, 0, 0)@0064cd20` on a building:
@@ -227,7 +64,7 @@ impl Sim {
     /// has an action); one that is not, but `is(MILITIA)`, comes out too
     /// with a Civilian at `QUEUE_FIRST` on the building's point; anything
     /// else stays. A `come_out` that fails ends the walk (`param_1` 0).
-    fn eject_citizens_now(&mut self, b: usize) {
+    pub(crate) fn eject_citizens_now(&mut self, b: usize) {
         let mut i = 0;
         while i < self.buildings[b].garrison.len() {
             let u = self.buildings[b].garrison[i];

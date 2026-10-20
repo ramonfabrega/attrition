@@ -186,6 +186,10 @@ mod good_walk_data;
 mod graphicwinxml_get_graphicwinxml;
 #[path = "greatest_common_factor.rs"]
 mod greatest_common_factor;
+#[path = "group_action_alarm.rs"]
+mod group_action_alarm;
+#[path = "group_action_alarm_head.rs"]
+mod group_action_alarm_head;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
 #[path = "group_action_buildmask.rs"]
