@@ -282,7 +282,7 @@ left out; a constant with no reader in the export is dead there too.
 | `RUSSIAN_BORDERS_PER_AGE` | 1 | World::compute_reg_territory | modelled at territory.rs | `russian_borders_per_age` |
 | `RUSSIAN_COMMUNISM` | 0 | LeaderData::calc_market_prices | carried, unread | `russian_communism` |
 | `RUSSIAN_SPY_COST` | 50 | TypeData::get_cost | modelled at cost.rs | `russian_spy_cost` |
-| `RUSSIAN_COSSACK_DAMAGE` | 25 | ObjectData::get_damage | modelled at combat.rs | `russian_cossack_damage` |
+| `RUSSIAN_COSSACK_DAMAGE` | 25 | ObjectData::get_damage | modelled at damage.rs | `russian_cossack_damage` |
 | `RUSSIAN_PLUNDER_STEAL` | 1 | Build::plunder, Cities::capture_city | modelled at city.rs | `russian_plunder_steal` |
 | `RUSSIAN_FREE_CIVIC` | 1 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `russian_free_civic` |
 | `CHINESE_KNOWLEDGE_UPGRADES` | 0 | Leader::gain_tech | loaded at load.rs | `chinese_knowledge_upgrades` |
@@ -292,7 +292,7 @@ left out; a constant with no reader in the export is dead there too.
 | `CHINESE_CITIZEN_CREATION` | 100 | ObjectData::train_time | modelled at lib.rs | `chinese_citizen_creation` |
 | `CHINESE_LARGE_CITY` | 1 | ConquestGame::build_cities, Setup::build_cities | not carried | `chinese_large_city` |
 | `CHINESE_LARGE_CITIES` | 1 | Build::activate, City::assimilate, ConquestGame::build_cities +1 | modelled at city.rs | `chinese_large_cities` |
-| `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at combat.rs | `japanese_damage` |
+| `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at damage.rs | `japanese_damage` |
 | `JAPANESE_BARRACKS_COST` | -7 | TypeData::get_cost | not carried | `japanese_barracks_cost` |
 | `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | not carried | `japanese_barracks_speed` |
 | `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | not carried | `japanese_ship_cost` |
@@ -414,7 +414,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Wall::update_construct_time@0063d560` | 1 6 11 22 | carried at economy.rs | `0063d560` |
 | `Wall::update_hits@0063f0d0` | 1 4 6 | carried at build.rs | `0063f0d0` |
 | `Wall::do_construct@006434d0` | 7 | carried at construct.rs | `006434d0` |
-| `ObjectData::get_damage@00644130` | 15 | carried at combat.rs | `00644130` |
+| `ObjectData::get_damage@00644130` | 15 | carried at damage.rs | `00644130` |
 | `Object::disband@006455c0` | 0 19 | carried at object_disband.rs | `006455c0` |
 | `Object::insert_inside@00647e90` | 19 20 | carried at holdings.rs | `00647e90` |
 | `Object::remove_from_inside@006480f0` | 19 20 | carried at holdings.rs | `006480f0` |

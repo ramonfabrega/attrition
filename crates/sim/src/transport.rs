@@ -1562,7 +1562,7 @@ impl Sim {
 
     /// `Object::die(boat, 0, −1, 0)` on a transport, from either of its two
     /// callers: [`Sim::disembark`] ashore, and
-    /// [`Sim::transport_into_platform`] at an oil platform. `dtype` 0, so
+    /// [`Sim::boat_dies_into`] at an oil platform. `dtype` 0, so
     /// no death draw and no death object.
     fn transport_dies(&mut self, boat: usize) {
         self.units[boat].health = 0;
@@ -1609,21 +1609,32 @@ impl Sim {
     /// run711 block 1954: the citizen `1/26` `inside_up 2031` (the
     /// `OILPLATFORM` its Freighter `1/37` built), `2031 inside_down 26`, and
     /// no `1/37`; uid 128, born in the gap, holds number 37.
-    pub(crate) fn transport_into_platform(&mut self, boat: usize, b: usize) -> bool {
+    ///
+    /// This is the first step, [`Sim::can_carry_ground`] (`do_gather_steps`
+    /// asks the other three through its view): `ObjectData::can_carry(GROUND)@00646c40`, the type's `carry` (`+0x2d4`)
+    /// is not 0 and the unit is not `is(0x15f)`.
+    pub(crate) fn can_carry_ground(&self, boat: usize) -> bool {
         let carry = self.units[boat]
             .ty
             .is_some_and(|t| self.unit_types[t].cols.carry != 0);
-        if !carry || self.units[boat].type_index == 0x15f {
-            return false;
+        carry && self.units[boat].type_index != 0x15f
+    }
+
+    /// `Unit::same_damage(passenger, boat)` on the head of the boat's
+    /// `inside_down`, when it has one (`5efa4a`).
+    pub(crate) fn boat_same_damage(&mut self, boat: usize) {
+        let head = (0..self.units.len()).find(|&i| self.units[i].inside_unit == Some(boat));
+        if let Some(head) = head {
+            self.same_damage(head, boat);
         }
+    }
+
+    /// `Object::die(boat, 0, −1, 0)` on a boat that is inside the platform
+    /// `b`: the splice and the boat's close.
+    pub(crate) fn boat_dies_into(&mut self, boat: usize, b: usize) {
         let riders: Vec<usize> = (0..self.units.len())
             .filter(|&i| self.units[i].inside_unit == Some(boat))
             .collect();
-        if let Some(&head) = riders.first() {
-            self.same_damage(head, boat);
-        }
-        self.go_inside(boat, b);
-        self.kill_current_order(boat);
         // The splice: each passenger takes the boat's place in the chain.
         let at = self.buildings[b]
             .garrison
@@ -1642,7 +1653,6 @@ impl Sim {
         }
         self.units[boat].inside = None;
         self.transport_dies(boat);
-        true
     }
 
     /// `come_out`'s `set_new_location(·, ·, 1, 1)` on a passenger: out of
@@ -2342,7 +2352,7 @@ mod tests {
         assert_eq!(f.sim.buildings[site].garrison, vec![rider]);
         // A ship with no `carry` is no transport: the arm passes it by.
         let ship = unit(&mut f.sim, 1, f.ship, tile_pos(38, 20));
-        assert!(!f.sim.transport_into_platform(ship, site));
+        assert!(!f.sim.can_carry_ground(ship));
         assert!(f.sim.units[ship].alive());
     }
 

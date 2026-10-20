@@ -366,7 +366,7 @@ impl Sim {
     /// took a Hoplite's blow at 2: 13 whole hits, 69 sixteenths a figure.
     ///
     /// SEAM: the Senator's arm above the halving (`63fab0`–`63fb1f`):
-    /// with a leader whose `+0x59c0` is set, `HeroesData::find_hero` for a
+    /// with a leader whose `+0x59c0` is set, the hero search at `0073a1b0` for a
     /// `THESENATOR` (`0x161`) within `(type +0x234 + +0x238) × 96` adds
     /// `thesenator_build_armor` before the halving. Not modelled; scan:
     /// a building struck in a capture whose `GUY` blocks hold type 353.
@@ -2856,15 +2856,17 @@ impl Sim {
     /// run943's Citizen `0/3`, killed on 10852 by `1/58` beside The Despot
     /// `1/46`: four draws (oil not yet available) and who=1's metal 44 → 59.
     ///
+    /// The body is [`crate::plunder::plunder_steps`] over [`crate::plunder::SimPlunder`]
+    /// (the original's whole function, swept against it in item 3356).
+    ///
     /// SEAM: the General, caravan and supply-wagon victims
-    /// (`GENERAL_PLUNDER`, `CARAVAN_PLUNDER`), the Aztec killer's slay bonus
-    /// (`AZTEC_SLAY_BONUS`, `param_3`), the Inca refund, and the victim
+    /// (their own plunder constants), the Aztec killer's slay bonus
+    /// (the `param_3` of the original), the Inca refund, and the victim
     /// redirect of a type with `+0x2b4 & 0x10` are not carried.
     pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
         use crate::ai_load::uflags2;
         const DESPOT: i32 = 0x160;
         const SPITAMENES: i32 = 0x16d;
-        const KNOWLEDGE: usize = 3;
         let amount = self.tuning.thedespot_unit_plunder;
         let victim = &self.units[v];
         if !self.is_captain(v) || victim.decoy || self.curr_uber_size(v) != 1 {
@@ -2886,23 +2888,15 @@ impl Sim {
         {
             return;
         }
-        let w = who as usize;
-        let mut pick = None;
-        let mut least = 99_999_999;
-        for g in 0..6 {
-            if g == KNOWLEDGE || !self.holdings[w].available[g] {
-                continue;
-            }
-            self.mark(SITE_UNIT_PLUNDER);
-            let v = self.ledgers[w].bucket[g] + self.rng.roll() % 25;
-            if v < least {
-                least = v;
-                pick = Some(g);
-            }
-        }
-        if let Some(g) = pick {
-            self.ledgers[w].bucket[g] += amount;
-        }
+        // `Unit::plunder(victim, k, who, 0, 1)`: the Extended Edition's arm,
+        // over the crate's own buckets and draws.
+        crate::plunder::plunder_steps(
+            &mut crate::plunder::SimPlunder { sim: self, v },
+            k as i32,
+            i32::from(who),
+            0,
+            1,
+        );
     }
 
     /// **`HeroesData::find_hero@0073a1b0`** behind a leader's per-type count

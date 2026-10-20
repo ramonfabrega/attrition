@@ -19866,3 +19866,29 @@ SHA-256 `c8cb06ae1c467461a00f50facad4711a4e46d9ae63b597ef2e11cbfcf9a37596`.
 
 **What it holds**: `run987b_s_word_frame_is_widened_whole` — 1994 keys on the first try, the first non-standing row
 the Trebuchet `1/118`'s `g.cur_anim[0]` on 16512, ours 22 against theirs 8.
+## run985 — the French word: a state packet at frame 16762, the take that died (2026-10-19, item 3359, `att-3359`)
+
+`docs/AI.md` §280. **What the disk could not answer**: no packet on disk builds piece 139, the French Dragoon
+(`get_position.py … entries 139` on every `frame-snapshot.bin` under `~/ron-golden` and `~/ron-data`: run959's has
+the piece with no rows, the rest none), and only its `AttachPos` rows say where its `CHAR_ATTACK2` round leaves.
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run985`: `--map 7 --end-frame 16766 --timeout 3600
+--log-window 16760 16765 --detail end:MISC,UNITS=3,GUYS=4 --ai-tribe 10 --cover cover=0 --allow-early-end --profile
+DIFFICULTY=4 --tracer-def RON_STATE_FRAME=16762 --tracer-def RON_STATE_PLAN=<item 597's plan.h>`.
+- Pool lane 1. Launched 22:47:10; Wine's page fault on read at `7BF21139` (thread 0170) before the first frame,
+  `process failed: 40`, a 768-byte `rontrace.log` and no packet. A dead take; re-run as run985b.
+- Minutes waited on another lane: none.
+
+## run985b — the same line, the packet (2026-10-19, item 3359, `att-3359`)
+
+`docs/AI.md` §280. run985's line into `~/ron-golden/run985b`.
+- Pool lane 1. Launched 22:48:39 and the game exited at 22:49:45 (66 s). `success`, **the game ended itself on 16764**
+  (`ended_early` true). `rngcmp.py` against run977b: **16765 identical, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run985b/map-7/frame-snapshot.bin`, 871,709,848 bytes,
+SHA-256 `7b341bde4dfccc55ab0f8da1966b67dba3cc8f06c081bd939d839e67dc76481e`.
+
+**What it holds**: piece 139's nine `AttachPos` rows (`pos_start` 215, `RData +0x88` 1.0) — the pivot node `(4, 0,
+0)` and, for `CHAR_ATTACKWALK`/12, `CHAR_ATTACK1`/12, `CHAR_ATTACK2`/13 and `CHAR_ATTACK3`/18, the pivot's and the
+release node's — pinned as `pivot::NODES` and `pivot::RELEASES` piece 139; and its `GUYS=4` blocks 16760..16765, whose
+`1/39` reads `turret_angles[0]` −196608 on 16763. Test `pivot::tests::the_french_dragoon_s_rounds_leave_from_its_pivot`.

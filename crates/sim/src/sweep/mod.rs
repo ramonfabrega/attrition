@@ -14,6 +14,7 @@
 mod support;
 pub(crate) use support::{emu_rows, row, tail_row};
 
+mod ammo_do_damage;
 mod build_start;
 mod build_type_get_good;
 mod city_get_empty_trade_routes;
@@ -21,6 +22,7 @@ mod farms_add;
 mod farms_add_animals;
 mod group_action_eject_all;
 mod group_action_eject_all_eject_o;
+mod group_action_gather_point;
 mod group_target_opportunity;
 mod guy_set_all_pivots;
 mod object_has_range;
