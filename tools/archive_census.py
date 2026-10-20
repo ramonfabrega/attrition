@@ -51,7 +51,12 @@ with its total. Notes: `compressible-unsupported` where one file is over
 `recent` where the entry's own mtime is under `--recent-days` (7) old —
 kept off the candidate lists and printed apart, because an unfiled
 capture is most often one whose item has not landed yet (on 2026-10-19,
-121 of 178 orphans were that week's tranche).
+121 of 178 orphans were that week's tranche). `oracle cache: N
+generations` where the entry holds decoded-oracle caches
+(`.ron-oracle-v1/<generation>/…`; the flat layout before generations is
+one more): all but a build's current one or two are stale, and
+`rondata <install> --gc-oracle <dir>` removes them — that flag, not this
+tool, is the one that deletes.
 """
 import argparse
 import importlib.util
@@ -82,6 +87,7 @@ RUST_SPAN = re.compile(
     r'|(?P<str>b?"(?:\\.|[^"\\])*")'
     r"|(?P<chr>'(?:\\.|[^\\'\n])')", re.S)
 PACKET = re.compile(r'frame-snapshot.*\.bin\Z')
+ORACLE_CACHE = '.ron-oracle-v1'
 FAILED = re.compile(r'dead|take\d|failed|stalled|truncated')
 
 
@@ -245,6 +251,32 @@ def walk(root, skip=()):
                 yield e.path
 
 
+def oracle_generations(paths):
+    """How many decoded-oracle generations `paths` hold: each directory
+    directly under a `.ron-oracle-v1` is one, and its flat `*.oracle` files
+    (the layout before generations) together one more."""
+    gens, flat = set(), set()
+    for p in paths:
+        parts = p.split(os.sep)
+        for i, part in enumerate(parts[:-1]):
+            if part != ORACLE_CACHE:
+                continue
+            cache = os.sep.join(parts[:i + 1])
+            if i + 2 < len(parts):
+                gens.add((cache, parts[i + 1]))
+            elif parts[-1].endswith('.oracle'):
+                flat.add(cache)
+    return len(gens) + len(flat)
+
+
+def oracle_notes(paths):
+    n = oracle_generations(paths)
+    if not n:
+        return []
+    return ['oracle cache: %d generation%s (rondata --gc-oracle keeps the current)'
+            % (n, '' if n == 1 else 's')]
+
+
 def notes_for(size):
     notes = []
     if size['largest'] > TWO_GIB:
@@ -317,6 +349,7 @@ def golden_rows(root, refs):
         packets = [p for p in files if PACKET.match(os.path.basename(p))]
         rest = [p for p in files if p not in packets]
         notes = ['failed take?'] if FAILED.search(name) else []
+        notes += oracle_notes(rest)
         row = _row(name, _golden_kind(name), sum_sizes(rest), path, notes)
         _classify(row, refs, [name])
         rows.append(row)
@@ -337,9 +370,11 @@ def log_rows(logs, refs):
         path = os.path.join(logs, name)
         entry = 'logs/' + name
         if os.path.isdir(path) and not os.path.islink(path):
-            row = _row(entry, 'other', sum_sizes(walk(path)), path,
+            files = list(walk(path))
+            row = _row(entry, 'other', sum_sizes(files), path,
                        ['a cache directory in the logs (the readers rebuild it)'
-                        if name.startswith('.') else 'a directory in the logs'])
+                        if name.startswith('.') else 'a directory in the logs']
+                       + oracle_notes(files))
             _classify(row, refs, [name])
             rows.append(row)
             continue
