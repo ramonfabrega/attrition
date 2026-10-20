@@ -98,3 +98,55 @@ fn dutch_sahara_word_is_no_other_lobby() {
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
 }
+
+/// run995: the word 311's window, blocks 305..561 at `GUYS=4`, `LEADERS=9`
+/// and `GOODS=3` (item 3369). run990 dumps blocks 0..36 and run990b its
+/// setup and closing blocks only, so no dump on disk held the word's block.
+pub(crate) const RUN995: &str = "gamelog-run995-greatsahara-dutch-diff3-window-305-562.txt";
+
+/// The window: block 305 through 561; the word 311's own block is 312.
+pub(crate) const WIDENING_DUTCH_SAHARA_FRAME_311: (i64, i64) = (305, 561);
+
+pub(crate) fn dutch_sahara_frame_311_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[DUTCH_SAHARA.start],
+        true,
+        DUTCH_SAHARA.long,
+        "run995",
+        &[(RUN995, WIDENING_DUTCH_SAHARA_FRAME_311.0)],
+        WIDENING_DUTCH_SAHARA_FRAME_311,
+        1,
+        &[312],
+        true,
+    )
+}
+
+#[test]
+fn run995_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = dutch_sahara_frame_311_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3369: 433 keys on the first try, the standing family on 305
+    // (`form` −1 against 9, the leaders' `SITE[·].reg` 1 against 0,
+    // `aggression`, `group:64`/`65.held` and `pool:65` with no `GROUPDATA`
+    // printed) and then, on block 310, the Armed Merchant `1/1`
+    // (`MERCHANTDUTCH`, type 62) drafted into who=1's army in theirs —
+    // `group` −1 against 64, `orders.len` 0 against 1 (`ATTACK_TO`
+    // (41304, 17304)), `form_mod` −1 against 50 — the frame after its
+    // unpack seated it.
+    pin_eq!(w.firsts.len(), 433, "keys that part in the window");
+}
