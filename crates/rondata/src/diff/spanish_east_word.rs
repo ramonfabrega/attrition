@@ -35,9 +35,14 @@ pub(crate) const SPANISH_EAST: Lobby = Lobby {
     // danger pass asks a building's own `ever_seen` (`BuildData::is_seen`),
     // not the fog a Spanish leader sees whole — run993b's block 8959,
     // `danger[1]` at half-cell (4, 4) ours 125, theirs 60, and the scout
-    // `1/0` chose cell (7, 11) over theirs' (9, 8).
-    count: 12756,
-    sequence: 12756,
+    // `1/0` chose cell (7, 11) over theirs' (9, 8). **12756 → 14942**
+    // (item 3367): `Build::train` writes a Dock's byte 0 into the computer
+    // Bark `1/49`'s `combat.stance` too (run993c prints it `stance 0`; ours
+    // held RAID there), and `think_attack` ends the think only on a unit
+    // find — so the Caravel's idle search on 12742 takes `0/2004` and still
+    // runs `think_scout`, and its cavarch search takes `0/2004` on 12753.
+    count: 14942,
+    sequence: 14942,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -207,5 +212,8 @@ fn run993c_s_word_frame_is_widened_whole() {
     // Item 3367, the first try on 12756: 765 keys. The Caravel `1/49` (TI
     // 325, sea, born a Bark on 10369 out of a Dock) parts first on 12752,
     // `cavarch_o` ours −2, theirs −1: theirs' 12751 search took `0/2004`.
-    pin_eq!(w.firsts.len(), 765, "keys that part in the window");
+    // 765 → 61 by the same item's move to 14942: `1/49` agrees through the
+    // window; the standing family stands, and `0/2004`'s `damage` parts on
+    // 12774 (ours 2, theirs 3).
+    pin_eq!(w.firsts.len(), 61, "keys that part in the window");
 }

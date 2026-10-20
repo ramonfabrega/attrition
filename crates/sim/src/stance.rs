@@ -494,4 +494,47 @@ mod tests {
         assert_eq!(build_init_stance(StanceType::Caster, bit4, true, false), 1);
         assert_eq!(init_stance(StanceType::Caster, bit4, true, false), 0);
     }
+
+    /// **A trained combat unit takes the trainer's byte whole** (item 3367,
+    /// `Build::train@0062f9b0:86–101` → `Unit::set_stance@00605310`): the
+    /// byte `+0xb1` is the combat stance `get_combat_stance` reads, so the
+    /// copy this crate keeps in `combat.stance` follows it. A computer's
+    /// Bark out of a Dock printed `stance 0` in run993c and fought RAID
+    /// here. Made to fail with the `combat.stance` write dropped from
+    /// `build_train` (Defensive's byte, Aggressive's stance).
+    #[test]
+    fn a_trained_combat_unit_takes_the_trainer_s_byte_as_its_combat_stance() {
+        let mut s = crate::Sim::new(
+            crate::tuning::Tuning::RON,
+            crate::world::World::new(40, 40),
+            2,
+        );
+        s.leader_options = vec![
+            LeaderOptions {
+                buildings: 1,
+                ..LeaderOptions::default()
+            };
+            2
+        ];
+        let mut t = crate::UnitType::default();
+        t.cols.role = role::MILITARY;
+        let ty = s.add_unit_type(t);
+        assert_eq!(s.type_stance_type(ty), StanceType::Combat);
+        let barracks = s.add_build_type(crate::build::BuildType {
+            ident: crate::build::Ident::Barracks,
+            flags: crate::build::flags::TRAINS,
+            ..crate::build::BuildType::default()
+        });
+        let b = s.add_building(0, crate::Pos::new(5000, 5000), 0);
+        s.buildings[b].ty = Some(barracks);
+        assert_eq!(s.trained_stance(ty, b), Some(s.build_stance(b)));
+        let u = s.build_train(b, ty).unit;
+        let byte = s.units[u].stance;
+        assert_eq!(byte, s.build_stance(b), "the trainer's byte");
+        assert_eq!(
+            Some(s.units[u].combat.stance),
+            crate::group::combat_stance_of(byte),
+            "and the combat stance it reads as"
+        );
+    }
 }
