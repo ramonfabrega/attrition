@@ -142,11 +142,11 @@ pub fn garrison_tail<V: RemoveInsideView>(v: &mut V, delta: i32) {
 /// [`RemoveInsideView`] over a [`crate::Sim`] for the captain `unit` leaving
 /// its building.
 ///
-/// SEAM: the container's slot `0x20` is not modelled (`host_flag` is true), the
-/// unit record's `+0x68 & 1` is not read (`masked` is false), and the chain
-/// words do not exist, so the splice is empty and the unit says it is in a
-/// chain. The Americans' `barracks_gather` constant is not in the tuning
-/// (`barracks_gather` is 0): the Barracks arm counts and raises nothing.
+/// SEAM: the container's slot `0x20` is not modelled (the view answers true),
+/// the unit record's `+0x68 & 1` is not read (the view answers false), and the
+/// chain words do not exist, so the splice is empty and the unit says it is in
+/// a chain. The Americans' Barracks gather constant is not in the tuning (the
+/// view answers 0): the Barracks arm counts and raises nothing.
 pub(crate) struct SimRemoveInside<'a> {
     pub(crate) sim: &'a mut crate::Sim,
     pub(crate) unit: usize,
