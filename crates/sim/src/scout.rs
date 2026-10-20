@@ -495,6 +495,7 @@ impl Sim {
                 scan.leader = leader;
                 let city = self.cities[c].pos.cell();
                 if std::env::var("RON_PROBE_SCOUT").ok().and_then(|v| v.parse::<i64>().ok()) == Some(self.frame) {
+                    for hy in 0..30 { let row: Vec<String> = (0..30).map(|hx| self.world.danger_half(who, Cell::new(hx*2, hy*2)).to_string()).collect(); eprintln!("DANGER {} {}", hy, row.join(" ")); }
                     eprintln!("PROBE f{} city leader{} idx{} cell({},{}) step{} cap{} near{} here{:?}", self.frame, leader, c, city.x, city.y, step, cap, near, self.units[u].pos.cell());
                 }
                 let end = self.scout_rings(u, city, step, cap, &mut scan);
