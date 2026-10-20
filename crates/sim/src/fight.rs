@@ -719,38 +719,6 @@ impl Sim {
                 .is_some_and(|b| b.alive && b.combat.is_some() && (!health || b.health > 0)),
         };
         let ap = self.profile(attacker);
-        if std::env::var_os("RON_PROBE_RANGE").is_some()
-            && let Obj::Unit(u) = attacker
-            && self.units[u].owner == 1
-            && self.units[u].index == 72
-            && matches!(target, Obj::Building(_))
-        {
-            let hp = match target {
-                Obj::Building(b) => (
-                    self.buildings[b].index,
-                    self.buildings[b].health,
-                    self.buildings[b].alive,
-                ),
-                Obj::Unit(_) => (0, 0, false),
-            };
-            eprintln!(
-                "PROBE range 1/72 -> {:?} at ({},{}) tile {:?} mask {:#x} slot {slot} health {hp:?} d {} max {}",
-                target,
-                at.x,
-                at.y,
-                at.tile(),
-                self.world.tile_mask(at.tile()),
-                self.attack_dist_from(
-                    attacker,
-                    Pos::new(
-                        at.x.div_euclid(48) * 48 + 0x18,
-                        at.y.div_euclid(48) * 48 + 0x18
-                    ),
-                    target
-                ),
-                self.max_range_of(attacker)
-            );
-        }
         in_range_steps(
             slot,
             || matches!(target, Obj::Unit(_)),
