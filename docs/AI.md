@@ -24743,16 +24743,21 @@ after: agreeing; the draw stream agrees to 16371.
 2995's `g.angle[0]`); nothing on either word's block.
 
 **Not established.** Piece 1531's bays are fitted, not read: the sweep is exact at the 257 headings the crate
-reaches, and the other 104 are not checked. Why a moving figure's release reads the release block's pose rather than
-the block before's is measured on three rounds, not read. Piece 1546's `CHAR_ATTACKWALK` and `CHAR_ATTACK1` rows have
-dumped rounds; its other two are backed by the packet alone.
+reaches, and the other 104 are not checked; run1001c's eight distinct rounds of `1/36` and `1/37`, all three keys at
+three facings, land on them exactly. Why a moving figure's release reads the release block's pose rather than the
+block before's is measured on three rounds, not read. Piece 1546's `CHAR_ATTACK1` row has no dumped round; it is
+backed by the packet and its sweep alone.
 
 **Coverage.** Diff-backed: both pieces by `iroquois_sahara_word_first_parting` and
 `run1001_s_word_frame_is_widened_whole`; piece 1546 by `run1001c_s_word_frame_is_widened_whole`; the close by
 `run994b_iroquois_sahara_closing_state`. Sim tests: `launch::tests::run1001b_s_heavy_archer_round_leaves_its_release_
 node`, `pivot::tests::run1001c_s_cavalry_archers_loose_through_piece_1546_s_pivot`, and
 `the_original_s_release_agrees_on_every_cell_for_piece_1546` (`$RON_RELEASE_TABLE_1546`, made to fail by emptying a
-`float_lands`).
+`float_lands`), `launch::tests::run1001c_s_heavy_archer_rounds_leave_piece_1531_s_bays`. Mutations (`tools/mutate.py`,
+each row's starttime moved off its event, against `iroquois_sahara_word_first_parting`): 1546's `CHAR_ATTACK1` and
+`CHAR_ATTACK2` and 1531's `CHAR_ATTACK2` held; 1546's `CHAR_ATTACKWALK` and `CHAR_ATTACK3` and 1531's
+`CHAR_ATTACK1` and `CHAR_ATTACK3` failed nothing — the walk's rounds strike on the same frame from either point —
+and are held by the round tests instead.
 
 ## 289. Reserved for the next item on the AI track
 

@@ -2218,6 +2218,32 @@ mod tests {
         }
     }
 
+    /// **Piece 1531's bays against run1001c's rounds** (item 3375): `1/36`
+    /// and `1/37`, the Heavy Archers, at three facings — all three attack
+    /// keys, the figure's `x, y` and `angle` on the release block against
+    /// the round's `sx, sy`. Independent of run1001d's packet sweep the bays
+    /// were fitted to; the walk reaches only `CHAR_ATTACK2`'s.
+    #[test]
+    fn run1001c_s_heavy_archer_rounds_leave_piece_1531_s_bays() {
+        for (anim, time, (gx, gy), facing, (sx, sy)) in [
+            (11, 12, (9096, 30984), -1_696_006_144, (9045, 31055)),
+            (11, 12, (9096, 30984), -673_775_616, (9020, 30939)),
+            (11, 12, (9000, 31320), -565_313_536, (8933, 31262)),
+            (12, 9, (9096, 30984), -673_775_616, (9023, 30938)),
+            (12, 9, (9000, 31320), -565_313_536, (8936, 31262)),
+            (13, 15, (9000, 31320), -1_610_022_912, (8947, 31360)),
+            (13, 15, (9096, 30984), -673_775_616, (9045, 30941)),
+            (13, 15, (9000, 31320), -565_313_536, (8958, 31269)),
+        ] {
+            let got = launch_point(Pos::new(gx, gy), Angle(facing), 1531, anim, time, 0);
+            assert_eq!(
+                (got.x, got.y),
+                (sx, sy),
+                "piece 1531 anim {anim} at {facing}"
+            );
+        }
+    }
+
     /// **Piece 842, the Horse Archer** (item 3338): run973e's two rounds
     /// of `1/56` and run973f's first, `(anim, starttime, guy x, guy y, guy angle, guy z, sx,
     /// sy, sz)` — the dump's own columns.
