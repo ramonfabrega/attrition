@@ -36,8 +36,15 @@ pub(crate) const AMERICAN: Lobby = Lobby {
     // ours `Unit::think_scout+0x941`, theirs `Leader::make_stuff+0x63d`.
     // Value diff, run999 block 9376: who=1's `bucket[0:food]` ours 87,
     // theirs 107, `bucket[4:metal]` 158 against 178 → 107/107, 178/178.
-    count: 10982,
-    sequence: 10982,
+    // Then `get_cost`'s government arm (`:1048`–`1053`, a government costs
+    // an American leader nothing): 10982 → 17215, ours 9 draws, theirs 15,
+    // at 0: ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Value diff, run999b block
+    // 10983: who=1's `bucket[0:food]` ours 64, theirs 134, `bucket[4:metal]`
+    // 27 against 97 (ours paid Republic's 70 and 70), `bucket[1:timber]`
+    // 112 against 12 (theirs queued the Dock beside it) → 134, 97, 12.
+    count: 17215,
+    sequence: 17215,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
