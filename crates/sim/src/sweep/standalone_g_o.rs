@@ -264,6 +264,8 @@ mod group_dbg_jump_to_waypoint;
 mod group_equals_group;
 #[path = "group_find_role.rs"]
 mod group_find_role;
+#[path = "group_finish_insert.rs"]
+mod group_finish_insert;
 #[path = "group_get_num.rs"]
 mod group_get_num;
 #[path = "group_get_num_cap.rs"]
