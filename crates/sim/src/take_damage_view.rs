@@ -308,7 +308,7 @@ pub fn take_damage_arms<V: TakeDamageArms>(v: &mut V, a: &TdArgs, whole: i32) ->
         if !v.this_finished() && whole > 0 && !air {
             let cost = (whole as u32).wrapping_mul(PROGRESS_PER_HIT);
             let cur = v.progress();
-            v.set_progress(if cost < cur { cur - cost } else { 0 });
+            v.set_progress(cur.saturating_sub(cost));
         }
     }
     let who = v.who();
@@ -340,13 +340,10 @@ pub fn take_damage_arms<V: TakeDamageArms>(v: &mut V, a: &TdArgs, whole: i32) ->
 /// A blow from outside on a city building: the victim's data is marked, the
 /// city is marked struck and, for a computer player, its alarm is rung.
 fn wall_notice<V: TakeDamageArms>(v: &mut V, who: i32, p7: i32, p8: i32) {
-    let marked = if p7 < 0 || p8 < 0 {
-        true
-    } else if !v.attacker_peasant(p8, p7) && !v.attacker_obj_is(p8, p7, IS_ATTACKER_WALL) {
-        true
-    } else {
-        v.cell_owner() == p8
-    };
+    let marked = p7 < 0
+        || p8 < 0
+        || (!v.attacker_peasant(p8, p7) && !v.attacker_obj_is(p8, p7, IS_ATTACKER_WALL))
+        || v.cell_owner() == p8;
     if marked {
         v.mark_struck();
     }
