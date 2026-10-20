@@ -96,6 +96,7 @@ pub mod market;
 pub mod merchant;
 pub mod mesh;
 pub mod movement;
+pub mod muster;
 pub mod nations;
 pub mod nuke;
 pub mod orders;

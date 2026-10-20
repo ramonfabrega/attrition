@@ -1703,7 +1703,10 @@ def shape(rng, name, buf):
     for win, off, vals in WBIAS:
         if win != name:
             continue
-        for o in (range(0, len(buf) - 3, 4) if off is None else (off,)):
+        if vals[0] == "flav":
+            vals = ("set", rng.choice(vals[1]))
+        for o in (range(0, len(buf) - 3, 4) if off is None
+                  else range(off[0], len(buf) - 3, off[1]) if isinstance(off, tuple) else (off,)):
             v = wdraw(rng, vals)
             buf[o:o + 4] = (v & 0xFFFFFFFF).to_bytes(4, "little")
 
@@ -2361,7 +2364,8 @@ def _link_hi(spec):
 
 
 def _wbias(spec):
-    """`WIN+OFF:V,V,..` or `WIN+OFF:LO..HI`, OFF `*` for every word, held every row."""
+    """`WIN+OFF:V,V,..` or `WIN+OFF:LO..HI`, OFF `*` for every word, `OFF%STRIDE` for the word at OFF of
+    every STRIDE-byte record (item 3348: a cell array's flags, owner), held every row."""
     loc, vals = spec.rsplit(':', 1)
     win, _, off = loc.partition('+')
     run = re.fullmatch(r'p(\d+)\.\.(\d+)', win)
@@ -2371,10 +2375,15 @@ def _wbias(spec):
                 for w in _wbias(f'p{k}+{off}:{vals}')]
     if not re.fullmatch(r'm|c\d+|p\d+', win):
         raise ValueError(f'a biased window is m, cN or pN, not {win!r}')
-    o = None if off == '*' else int(off, 0)
+    # `OFF%STRIDE` (item 3348): the word at OFF of every STRIDE-byte record of the window.
+    o = None if off == '*' else tuple(int(x, 0) for x in off.split('%')) if '%' in off else int(off, 0)
     if '..' in vals:
         lo, hi = vals.split('..')
         return [(win, o, ('range', int(lo, 0), int(hi, 0)))]
+    if '|' in vals:
+        # `A,A|B,B` (item 3348): a flavour a row and window, one list for every record of it (a world of
+        # land cells or of water cells, so a navy's ring and a land army's both find a spot).
+        return [(win, o, ('flav', [[int(v, 0) for v in part.split(',')] for part in vals.split('|')]))]
     return [(win, o, ('set', [int(v, 0) for v in vals.split(',')]))]
 
 
