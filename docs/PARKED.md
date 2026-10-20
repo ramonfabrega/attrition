@@ -3878,6 +3878,14 @@ not seen as a read (the caller reads by field instead). No kill rule tripped, si
 test. Candidates: the paperwork-shaped guards (`writers::`, `docs_guard`) run in every lane gate whatever their
 time; or the guard's scan cached, so it falls under the budget. The pass's. One reach.
 
+(3377) **The sweep generator lacks three shapes `Balance::compute_modifier` needed** (3372's "for the Loop", filed at
+its merge; parked 3372d): TLS statics, a hidden out-pointer answered back, and a 318 KB (399 × 399) table argument.
+3372 wrote that sweep's script by hand. A hand-written script is a second generator nobody regenerates, so `--regen`
+drops it the way 3362's hand-edited bodies were dropped. 3372 also reports that `--stub-alloc` now exists, so 3362a
+(`PathFinder::astar_path`) and the other four parks of that flag (3282b, 3339a, 3348b, 3358d) can be retried: a
+sweep lane's next batch, not the pass's. Candidates for the three shapes: `sweep_gen.py` flags for each, landed with
+`compute_modifier`'s script regenerated from them. The pass's. One reach.
+
 3370's "for the Loop" says `none` under a heading (`## For the Loop`, then `none` on its own line), and
 `docs_guard::a_journal_s_loop_line_is_filed_or_says_none` reads only the heading's line, so the journal read as
 unfiled. It is recorded here as filed and empty, and the journal is left as its worker wrote it. If the shape
