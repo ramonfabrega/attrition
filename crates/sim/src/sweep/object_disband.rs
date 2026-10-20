@@ -191,7 +191,7 @@ impl DisbandView for Emu<'_> {
     fn set_last_razed(&mut self, who: i32, index: i32) {
         wr(&mut self.c[4], 4 * who as usize, index);
     }
-    fn num_inside(&mut self) -> i32 {
+    fn garrison_count(&mut self) -> i32 {
         self.log.push("s23:m+0x0,0".to_string());
         self.a[ans(23)]
     }

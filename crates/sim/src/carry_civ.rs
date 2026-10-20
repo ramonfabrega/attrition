@@ -56,7 +56,7 @@ pub trait CarryCivView {
     /// The order's birth, up to its `MOVE_TO`: the unit's `0x4000000` bit
     /// cleared, `+0xc0` zeroed, `close_orders(0)`, `clear_partial_path`,
     /// `update_action`; then the order built, queued and `update_action` again.
-    fn move_to(&mut self, to: Pos, angle: Angle);
+    fn order_move_to(&mut self, to: Pos, angle: Angle);
     /// The eject: a one-boat `Group` (`add(index, owner, 0, 0)`) and
     /// `action_eject_all(0, -1, -1, -1)`.
     fn eject_all(&mut self);
@@ -140,7 +140,7 @@ pub fn think_carry_civilian_steps<V: CarryCivView>(v: &mut V, workers: bool) -> 
             (best_cell.x + mx) * 0x300 + 0x180,
             (best_cell.y + my_) * 0x300 + 0x180,
         );
-        v.move_to(to, find_angle(to.x - pos.x, to.y - pos.y));
+        v.order_move_to(to, find_angle(to.x - pos.x, to.y - pos.y));
         return true;
     };
     // On the shore: the sixteen quarter-cells of the boat's own cell, each
@@ -162,7 +162,7 @@ pub fn think_carry_civilian_steps<V: CarryCivView>(v: &mut V, workers: bool) -> 
         return true;
     }
     let to = Pos::new(best_q.0 * 0xc0 + 0x60, best_q.1 * 0xc0 + 0x60);
-    v.move_to(to, find_angle(to.x - pos.x, to.y - pos.y));
+    v.order_move_to(to, find_angle(to.x - pos.x, to.y - pos.y));
     true
 }
 
@@ -274,7 +274,7 @@ impl CarryCivView for SimCarryCiv<'_> {
     fn military(&mut self) -> bool {
         false
     }
-    fn move_to(&mut self, to: Pos, angle: Angle) {
+    fn order_move_to(&mut self, to: Pos, angle: Angle) {
         self.sim.add_move_facing_order(
             self.u,
             to,

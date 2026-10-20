@@ -127,7 +127,7 @@ impl CarryCivView for RowView<'_> {
         self.raw_military = Some(i64::from(self.a[13]));
         self.a[13] != 0
     }
-    fn move_to(&mut self, to: Pos, angle: Angle) {
+    fn order_move_to(&mut self, to: Pos, angle: Angle) {
         let f68 = rd(self.m, 0x68) & 0xfbff_ffffu32 as i32;
         wr(self.m, 0x68, f68);
         wr(self.m, 0xc0, 0);

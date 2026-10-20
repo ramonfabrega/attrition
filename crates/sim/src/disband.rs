@@ -96,8 +96,8 @@ pub trait DisbandView {
     fn plunder(&mut self, a: i32, killer: i32, c: i32, d: i32);
     /// `ScenarioData::last_razed[who] = index`.
     fn set_last_razed(&mut self, who: i32, index: i32);
-    /// `ObjectData::num_inside(this, 0)`.
-    fn num_inside(&mut self) -> i32;
+    /// `ObjectData::garrison_count(this, 0)`.
+    fn garrison_count(&mut self) -> i32;
     /// The short at `+0x28`: the head of the garrison chain.
     fn inside_head(&mut self) -> i32;
     /// `Object::disband(objects[who][s], 0)` on a garrisoned object.
@@ -199,7 +199,7 @@ pub fn disband_steps<V: DisbandView>(v: &mut V, param: i32) {
     if v.in_use() && !v.started() {
         v.close(0, -1, 0);
     } else if !v.is_plain_building() && v.on_map() {
-        if v.num_inside() != 0 {
+        if v.garrison_count() != 0 {
             let mut s = v.inside_head();
             while s >= 0 {
                 v.disband_inside(s);
@@ -341,7 +341,7 @@ impl DisbandView for SimDisband<'_> {
     }
     fn plunder(&mut self, _a: i32, _killer: i32, _c: i32, _d: i32) {}
     fn set_last_razed(&mut self, _who: i32, _index: i32) {}
-    fn num_inside(&mut self) -> i32 {
+    fn garrison_count(&mut self) -> i32 {
         0
     }
     fn inside_head(&mut self) -> i32 {
