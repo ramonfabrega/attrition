@@ -8665,11 +8665,11 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
   (the crate substitutes `mo.dest`), and calls `vector_dist`/`find_angle` with register arguments the decompile dropped. The
   subagent judged this from reading, no generator run. Successors: the leader arm (`5e7a10`–`5e7c6c`, ~6 callees) as
   `group_move_leader_steps`; the path unwind (`5e8034`–`5e80c0`) as an `obj` shape with `--ptrarg`.
-- **3348b. `Roads::add_roads@0088f4b0`: `--stub-alloc IDX` lacking** (third park on it after 3282b, 3339a) **and the port is
+- ~~**3348b. `Roads::add_roads@0088f4b0`: `--stub-alloc IDX` lacking** (third park on it after 3282b, 3339a) **and the port is
   not level**: `Sim::add_roads` (`mesh.rs`) models three of the original's phases; it lacks the `param_1 != 0` block, the last
   pass (`fixup_lines(0)`, four mask clears, `find_piece`), pass two's `set_diags` branches, the flagged-iterator queue
   (`set_diags` appends mid-walk) and breaks at `local_3c > 10` where the crate runs 12. Also a `_TSS0` thread-safe-static
-  guard reading `ThreadLocalStoragePointer`. Order: `--stub-alloc` (bump-heap malloc stub), then a `RoadsView`.
+  guard reading `ThreadLocalStoragePointer`. Order: `--stub-alloc` (bump-heap malloc stub), then a `RoadsView`.~~ Answered by item 3376: `roads_view.rs` (`add_roads_steps`, `SimRoads`) and three sweeps (`roads_add_roads{,_redo,_amb}`, 3400 rows); no `--stub-alloc` was needed and the port is level.
 - **3348c. `Unit::find_path@005fb910`: `--stub-alloc IDX` lacking** (as 3348b) **plus a stateful `Stack<PathData>` model**
   (`push`/`pop`/`peek` moving `length`; no flag does, e.g. `--stack-model LOC:LEN:SIZE:ENTRY`), and the port is not level:
   `Sim::find_path` (`orders.rs:6679`) does not model the `go_around_building` replay or the recursive return 2. ~15 callees.
@@ -8872,13 +8872,13 @@ none apart. Names no score (`docs/AI.md` §288).
 **3375b.** run1001's `1/91` (from 13751) and `1/54` (from 13963) `g.angle[0]` ours 1431655765 against 0 — parked
 2995's `0x55555555`, on this lobby too. Names no score.
 
-## Parked by the next landing, slot LP — reserved
+## Parked by item 3376, 2026-10-20 — the nations seat's eighteenth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3376a. `Object::take_damage@00652020`: slice (c), the kill arm and plunder, is not swept.** Slices (a) (head, flock, `action_declare`) and (b) (accumulate, city alarm, eject) agree on 1500 rows each (`take_damage_view.rs`, not wired to `Sim::take_damage_typed`). The kill arm's generator run, `sweep_gen.py @arms.args --record-edx --name object_take_damage_kill --dry-run`, exits 2: "--record-edx adds `edx` to the --record stubs' calls; a row split or an order keeps its own columns". Flag lacking: a per-stub `--record-edx IDX` that composes with `--record-order` (`find_angle@0x92d130` is fastcall; its dx/dy feed `Guy::set_angle`). Also a slot `+0xe4` answering a negative index reads an unmapped pointer. ~20 stubs in the arm (units' slot `+0xe8` via `--slotbase 0xe8:0x46ceb0`, `new_danger`, `Unit::plunder`, `find_hero`, `disband`, the Inca refund). Unanswered of 3358a: `Caravans::new_danger`, the Inca refund, kill arm/plunder, the `param_3==3` turn, the vcall `0x16c` notification, returns 1 and 2. The crate's `take_damage_typed` is not yet the steps.
+- **3376b. `Unit::do_cast@005ebfe0`: the non-spell-type arm and the targeted half are not swept.** Three slices (head 220, animation 400, tail 400 rows) agree; 3358e's "by-value `String` to `add_feedback`" is false (`--stub 0xa1d590:1` plus `--stub-write 15:ecx+OFF:4:0`). The non-spell arm (`current_upgrade` + `set_type`, `find_building_at`, `go_inside`/`come_out`) is a `SEAM` in the crate and a panic in the sweep view; no generator run was made on it (`--sparse`/`--place` likely spell the leaders/`div_3_table` chain). Two survivors: `craft != NOT_A_SPELL` (starved arm) and `spell_cast(craft)` (equivalent in the tail draw). SEH `ExceptionList` writes still unverified (the sweeps compare windows, not `fs:[0]`).
+- **3376c. `Unit::do_group_move@005e79a0`: the follower arm (`5e7c8c`–`5e8660`) is not swept.** The leader arm and head (8000 rows, `--stop-stub 17`) agree; `Sim::group_move_follower` stays the crate's reading. No generator run was made on the follower arm. Also not driven: a null `get_action` with an attack answer (`--answers 1:0`, action types 0 and 0x15 would), negative unit index, `distribute_attack` (a no-op in `SimGroupMove`), and `world::vector_dist` overflows `i32` on wild coordinates where the original does not (outside the world).
+- **3376d. `Unit::think_civilian_transport` and `Group::action_garrison`: the Sim adapters are weakly tested.** Six of seven mutants on `SimCivTransport` survived the lib's narrow transport tests (land-slot offset, `tregion_alt`, cell owner, `reg_xport`, move kind, leader flags); the exploring arms (`this+0x68 & 0x100`, `think_scout`) and the type flag words are not modelled. `SimGarrison` leaves ignore-orders, console feedback, the editor semaphore and the packing arm unmodelled. The row files (830 MB for transport) exceed the emu cache cap: `RON_EMU_CACHE_MAX_BYTES`.
+- **3376e. Sim fixes this batch forced, none run against the diff pins** (the lane gate is `--no-widen`): `think_civilian_transport` (coastal `tregion_alt`, truncating `%`, wrapping score, double `go_here`, the record test, slot caps 63/62, the failed push), `add_roads` (11 redo rounds not 12; pass three `fixup_lines`/`find_piece` clearing C4; pass two `set_diags` and `fill_cache`), `do_group_move` (the leader's give-up attack arm, `update_action` on the 32nd frame), `do_cast` (hero crafts on the craft; `cast_blow` once not twice; `paid` cleared after the effect), `action_garrison` (`who` the building's owner; the `QUEUE_FIRST` re-entry; member check order). `add_roads` pass three is the likeliest to move a road-derived pin.
 
 ## Parked by the next landing, slot LQ — reserved
 
