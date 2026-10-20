@@ -87,6 +87,7 @@ pub mod friends;
 pub mod gaia;
 pub mod garrison;
 pub mod gather;
+pub mod gather_view;
 pub mod goody;
 pub mod group;
 pub mod group_queue_up;

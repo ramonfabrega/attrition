@@ -172,43 +172,35 @@ const NEUTRAL: Angle = Angle(0x5555_5555);
 
 /// The radius `Group::action_gather_point` asks for a City's Woodcutter
 /// or Mine, and the one `come_out` searches around the head point: `0x600`.
-const REACH: i32 = 0x600;
+pub(crate) const REACH: i32 = 0x600;
 
 impl Sim {
-    /// A member `action_gather_point` walks: alive, a building (always,
-    /// here), and neither a University nor a Missile Silo (`is(0x1a4)`,
-    /// `is(0x208)` at `6ff2a9` and `6ff2f7`).
-    fn gather_member(&self, b: usize) -> bool {
-        let bd = &self.buildings[b];
-        bd.alive
-            && !matches!(
-                self.building_ident(b),
-                Ident::University | Ident::MissileSilo
-            )
-    }
-
     /// `Group::action_gather_point@006ff1b0(x, y, action, add_to_end)` on a
     /// group of `who`'s buildings (`docs/PRODUCTION.md`, "The gather
-    /// point"; run312). Under the emulator and on the capture alike:
+    /// point"; run312). The steps are
+    /// [`crate::gather_view::action_gather_point_steps`]'s (item 3358's
+    /// sweep), over [`crate::gather_view::SimGather`]; under the emulator and
+    /// on the capture alike:
     ///
     /// - `x < 0 || y < 0` is the Clear: `clear_gather` on every member;
     /// - the point is clamped to the world;
     /// - a member whose head point is "inside" turns `add_to_end` off;
-    /// - a group of City centres alone clicking a forest (`TData & 0x30 ==
-    ///   0x30`) or a mountain (`& 3 == 2`) takes its nearest friendly
-    ///   Woodcutter's or Mine's point within `0x600`, the action unchanged;
-    /// - a click on a building tile a member covers is the "inside" point
-    ///   (−1, −1, 0) for every member — and on a Senate the first member's
-    ///   list is cleared instead;
+    /// - an action other than 3, a group of City centres alone clicking a
+    ///   forest (`TData & 0x30 == 0x30`) or a mountain (`& 3 == 2`) takes its
+    ///   nearest friendly Woodcutter's or Mine's point within `0x600`, the
+    ///   action unchanged;
+    /// - an action other than 3 clicking a building tile a member covers is
+    ///   the "inside" point (−1, −1, 0) for every member — and on a Senate
+    ///   the first member's list is cleared instead;
+    /// - action 3: every Airbase takes the point and one plane launches at
+    ///   it;
     /// - each member that trains (`build_flags & 0x80000000`), has a
     ///   garrison limit, or is a Senate takes the point, its list cleared
     ///   first unless `add_to_end`.
     ///
-    /// SEAM: `action` 3 at an Airbase (its own `add_gather_point` and then
-    /// `Group::action_flight` on the building group, `action_launch_flight`;
-    /// the re-ordering of the base's planes is [`Sim::add_gather_point`]'s,
-    /// item 947); the Terracotta Army and the Kremlin beside the
-    /// Senate (wonders with no ident here); `find_building`'s own metric
+    /// SEAM: the Terracotta Army and the Kremlin beside the Senate (wonders
+    /// with no ident here); the console's ping and messages; the group's
+    /// `armed` byte and its first virtual call; `find_building`'s own metric
     /// (the nearest by `vector_dist` here). No capture reaches them.
     pub fn action_gather_point(
         &mut self,
@@ -218,98 +210,20 @@ impl Sim {
         action: i32,
         add_to_end: bool,
     ) {
-        if at.x < 0 || at.y < 0 {
-            for &b in members {
-                if self.gather_member(b) {
-                    self.clear_gather(b);
-                }
-            }
-            return;
-        }
-        let mut at = self.restrict_pos(at);
-        let inside_now = members
-            .iter()
-            .any(|&b| self.gather_member(b) && self.gather_inside(b));
-        let append = add_to_end && !inside_now;
-        let action = action as u8;
-        let tile = at.tile();
-        let mask = self.world.tile_mask(tile);
-        // The City centres' snap (`6ff36c`..`6ff4a6`).
-        if action != 3
-            && !members.is_empty()
-            && members.iter().all(|&b| {
-                self.buildings[b]
-                    .ty
-                    .is_some_and(|t| build::is(&self.build_types, t, Ident::Village))
-            })
-        {
-            let want = if mask & 0x30 == 0x30 {
-                Some(Ident::Woodcutter)
-            } else if mask & 3 == 2 {
-                Some(Ident::Mine)
-            } else {
-                None
-            };
-            if let Some(ident) = want
-                && let Some(w) = self.nearest_friendly_building(who, at, ident, REACH)
-            {
-                at = self.buildings[w].pos;
-            }
-        }
-        // A click on a member's own footprint (`6ff4a6`..`6ff750`).
-        let mut inside = false;
-        if mask & 3 == 3 && !append {
-            for &b in members {
-                if !self.gather_member(b) || !self.covers_tile(b, tile) {
-                    continue;
-                }
-                inside = true;
-                if self.building_ident(b) == Ident::Senate {
-                    if let Some(&first) = members.iter().find(|&&m| self.gather_member(m)) {
-                        self.clear_gather(first);
-                    }
-                    return;
-                }
-                break;
-            }
-        }
-        // The action-3 arm (`6ff34d`..`6ffa71`): every Airbase takes the
-        // point and launches one plane at it ([`Sim::gather_launch`]); the
-        // general loop below skips them (`6ffbcc`).
-        if action == 3 {
-            let airbases: Vec<usize> = members
-                .iter()
-                .copied()
-                .filter(|&b| self.gather_member(b) && self.building_ident(b) == Ident::Airbase)
-                .collect();
-            self.gather_launch(who, &airbases, at, append);
-        }
-        for &b in members {
-            if !self.gather_member(b) || (action == 3 && self.building_ident(b) == Ident::Airbase) {
-                continue;
-            }
-            let Some(t) = self.buildings[b].ty else {
-                continue;
-            };
-            let takes = build::is_training_building(&self.build_types, t)
-                || self.garrison_limit(b) != 0
-                || self.building_ident(b) == Ident::Senate;
-            if !takes {
-                continue;
-            }
-            let (p, new) = if inside {
-                (
-                    GatherPoint {
-                        pos: crate::Pos::new(-1, -1),
-                        action: 0,
-                    },
-                    true,
-                )
-            } else {
-                (GatherPoint { pos: at, action }, !append)
-            };
-            self.add_gather_point(b, p, new);
-        }
+        let mut v = crate::gather_view::SimGather {
+            sim: self,
+            who,
+            members,
+            flight: Vec::new(),
+            at,
+        };
+        crate::gather_view::action_gather_point_steps(
+            &mut v,
+            at.x,
+            at.y,
+            action,
+            i32::from(add_to_end),
+        );
     }
 
     /// `Build::add_gather_point@00622e70(x, y, action, pos)`: `QUEUE_NEW`
@@ -412,7 +326,7 @@ impl Sim {
     /// `ObjectsData::find_building(x, y, SEARCH_FRIENDLY, who, radius, …,
     /// FILTER_TYPE, ident)` as `action_gather_point` asks it: the nearest
     /// live building of `who` or an ally of that lineage within `radius`.
-    fn nearest_friendly_building(
+    pub(crate) fn nearest_friendly_building(
         &self,
         who: Player,
         at: crate::Pos,

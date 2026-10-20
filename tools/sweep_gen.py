@@ -1608,19 +1608,23 @@ def pair_answer(inner, ecx_out):
     return answer
 
 
-def win_write(inner, at, size, v, write, read=None):
+def win_write(inner, at, size, v, write, read=None, rel=False):
     """`--stub-write IDX:WIN+OFF:SIZE:VAL` (item 2346): a stub that writes VAL
     at a window's word each call — a callee that unlinks the head of the
     container its caller loops over (`Object::kill_contents`) — then answers
     as `inner` would."""
     def answer(ecx, args):
-        if v == "dec":
+        # `ecx+OFF` (item 3358, `Group::action_gather_point`): `at` is the offset, the word the
+        # stub's own `ecx` names -- a caller's local (`Group::add` on a stack group).
+        to = (ecx + at) & 0xFFFFFFFF if rel else at
+        if v in ("dec", "inc"):
             # `dec` (item 2749, parked 2734): one less each call, a count a
-            # callee (`remove_current`, `Array::remove`) lowers.
-            w = (int.from_bytes(read(at, size), "little") - 1) & ((1 << 8 * size) - 1)
-            write(at, w.to_bytes(size, "little"))
+            # callee (`remove_current`, `Array::remove`) lowers; `inc` one more
+            # (`Group::add` raising the group's count).
+            w = (int.from_bytes(read(to, size), "little") + (1 if v == "inc" else -1)) & ((1 << 8 * size) - 1)
+            write(to, w.to_bytes(size, "little"))
         else:
-            write(at, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
+            write(to, (v & ((1 << 8 * size) - 1)).to_bytes(size, "little"))
         return inner(ecx, args) if callable(inner) else inner
     return answer
 
@@ -2068,6 +2072,11 @@ def main(argv):
             else:
                 h.answers[names[idx]] = lambda ecx, args, off=off, flag=flag: (ecx + off) & 0xFFFFFFFF if h.r32(ecx + flag) else 0
         for idx, win, off, size, v in STUBWRITE:
+            if win == "ecx":
+                # The word at the stub's own `ecx + OFF` (item 3358).
+                h.answers[names[idx]] = win_write(h.answers[names[idx]], off, size, v, uc.mem_write,
+                                                          lambda a_, n_: bytes(uc.mem_read(a_, n_)), rel=True)
+                continue
             at = this if win == "m" else wins[(0 if win[0] == "c" else nc) + int(win[1:])][0]
             h.answers[names[idx]] = win_write(h.answers[names[idx]], at + off, size, v, uc.mem_write,
                                                       lambda a_, n_: bytes(uc.mem_read(a_, n_)))
@@ -2633,14 +2642,14 @@ def generate_obj(spec, *, item, win, bias, own=0, ret='eax', port=None, argset=(
             pecx = ('set', [int(v, 0) for v in ecx_int.split(',')])
     pwrite = []
     for spec in stub_write:
-        m_ = re.fullmatch(r'(\d+):(m|c\d+|p\d+)\+(\w+):([124]):(-?\w+)', spec)
+        m_ = re.fullmatch(r'(\d+):(m|c\d+|p\d+|ecx)\+(\w+):([124]):(-?\w+)', spec)
         if not m_:
             raise ValueError(f'--stub-write is IDX:WIN+OFF:SIZE:VAL, SIZE 1, 2 or 4, not {spec!r}')
         idx = int(m_.group(1))
         if idx >= len(stubs):
             raise ValueError(f'--stub-write names stub {idx}, and there are {len(stubs)}')
         pwrite.append((idx, m_.group(2), int(m_.group(3), 0), int(m_.group(4)),
-                       'dec' if m_.group(5) == 'dec' else int(m_.group(5), 0)))
+                       m_.group(5) if m_.group(5) in ('dec', 'inc') else int(m_.group(5), 0)))
     if not 0 <= clean_stack <= 0x10000:
         raise ValueError('--clean-stack N is 0..0x10000 bytes under the entry esp')
     pcopy = []
@@ -3670,8 +3679,9 @@ def main(argv=None):
                          '(a caller\'s local the record names only by depth; item 2379, parked 2348); K `@VA` reads '
                          'the absolute cell VA instead, as it stands when the stub is called (item 2513, parked 2509)')
     ap.add_argument('--stub-write', action='append', default=[], metavar='IDX:WIN+OFF:SIZE:VAL',
-                    help='obj: stub IDX writes VAL (SIZE 1, 2 or 4 bytes) at window m, cN or pN\'s word each call: '
-                         'a callee that unlinks the head its caller loops over (item 2346)')
+                    help='obj: stub IDX writes VAL (SIZE 1, 2 or 4 bytes; `dec`/`inc` one less/more) at window m, cN or pN\'s word each call: '
+                         'a callee that unlinks the head its caller loops over (item 2346); `ecx+OFF` the word at the stub\'s '
+                         'own ecx (a caller\'s stack local, `Group::add`\'s group; item 3358)')
     ap.add_argument('--stub-copy', action='append', default=[], metavar='IDX',
                     help='obj: stub IDX, a `__cdecl` callee of three arguments, copies argument 2 bytes from argument 1 '
                          'to argument 0 and answers the destination, as the `memcpy` import thunk would (item 2921, parked 2906)')
