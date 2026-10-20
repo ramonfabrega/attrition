@@ -3781,6 +3781,16 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's.
 
+## Loop, filed 2026-10-20 — the forty-seventh tranche's
+
+(3388) **The `port` mark runs dry: the sweep refill rule needs its next source** (the commander, at 3379's booking):
+after 3379 and 3381 merged (`8fd0850a`), `census.py --unbacked --all` lists eight `port`-marked rows, six of them
+3386's batch; two (`Group::normalize`, `Army::normalize`, newly spelled by 3379) are left for the next refill, and the
+queue's opener says "the next six `port`-marked rows". The 1981 never-backed are 8 `port`, 48 `name` (matched by name
+alone), 473 unmarked, 57 operators, 1160 dead weight, 235 `ui`. The commander filled 3387 with the two and the four
+shortest `name` rows; whether `name` is the next source, or the unmarked 473 by bytes (`--by bytes`, Loop 3350's
+column), or the sweep lanes stand down for the `reading` kind, is the pass's to rule. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-sixth tranche's
 
 (3371) **A probe's `commit -am` swept a lane's uncommitted widening into it** (3367's "for the Loop", filed at its
