@@ -3809,6 +3809,18 @@ says grep the disk first and a window capture only for what the dumps cannot ans
 the ceiling the frame would then carry is one window capture a parting, the long's blocks and a packet before it.
 One reach.
 
+## Loop, filed 2026-10-19 — the forty-sixth tranche's
+
+(3354) **uv's ephemeral environments are the disk's next unbounded cache** (lore's census, 2026-10-19 20:40, checked
+by the commander the same hour): `~/.cache/uv/environments-v2` holds 354,464 environments, `callfn` 838 of them and
+each busy sweep script about 400, so the key varies by more than the script's content (the script's path per worktree
+is the likeliest; not measured). Each is about 0.2–0.5 MB of real bytes beside clones of `libunicorn` (lore's
+estimate: 100–150 GiB in all, about 10 GiB a day while the sweeps run). Free space was 100 GiB at 20:45. `support.rs`'s
+`run_uv` runs `uv run <script>` bare. Candidates: (i) one environment for `tools/emu`, a stable project or venv that
+the runner calls directly, so the key stops varying; (ii) the immediate measure, `uv cache clean` (or `prune`) at a
+rest point between gates, never while a lane's sweep runs. Every environment regenerates. The pass's for (i); (ii) at
+a drain. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-fifth tranche's
 
 Loop 2003's reaches in the forty-fifth tranche, filed here below its own row (its section is at the size ceiling):
@@ -8456,13 +8468,18 @@ The word closed at 23627 and the close compares whole (`docs/AI.md` §276). What
   0x55555555 against theirs 0 (`1/24` on 4467; twelve units on 15576), and two `dest_angle`s on 15624 and 15653;
   positions agree and the close compares whole, so it names no score.
 
-## Parked by the next landing, slot LA — reserved
+## Parked by item 3345, 2026-10-19 — the Lakota to the game's end
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word closed at 7902 and the close compares whole (`docs/AI.md` §277). What it read and did not build:
+
+- **3345a — two Slingers' `order:target` on run980.** `1/12` on 6085 and `1/6` on 6092: ours keeps the citizen `0/2`,
+  theirs takes the city centre `0/2000`. Positions and the draw stream agree past both to 7902, and the close compares
+  whole, so it names no score. Read the Slingers' retarget (`retarget_admits`, `docs/COMBAT.md`) when a widening
+  shows a Slinger's position apart behind it.
+- **3345b — the `NA` Slinger's later pieces.** Piece 1440 is the first age bracket's male figure; its other age
+  brackets (3552, 5664) and its female slot (7776) are not on run954b's packet, so `sim::launch` has no bays for
+  them. A packet of an Iroquois or Lakota game past the third age that fields Slingers answers them with
+  `tools/recomp/get_position.py`.
 
 ## Parked by the next landing, slot LB — reserved
 
