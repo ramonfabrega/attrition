@@ -60,6 +60,7 @@ pub mod bhs;
 pub mod border_pass;
 pub mod bribe;
 pub mod build;
+pub mod build_spot_view;
 pub mod calc_gather;
 pub mod capture;
 pub mod capture_view;

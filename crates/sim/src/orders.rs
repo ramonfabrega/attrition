@@ -8037,7 +8037,7 @@ impl Sim {
     /// the **newest** object of a cell first. Nothing threads a building
     /// into `chain_heads` here (`docs/QUEUE.md` 48), so the within-cell
     /// half is descending slot order rather than a chain walk.
-    fn find_construct_sites(&self, u: usize, range: i32) -> Vec<usize> {
+    pub(crate) fn find_construct_sites(&self, u: usize, range: i32) -> Vec<usize> {
         let who = self.units[u].owner;
         let here = self.units[u].pos;
         let Some(region) = self.world.region_of(here.cell()) else {
@@ -8080,37 +8080,6 @@ impl Sim {
             );
         }
         out
-    }
-
-    /// The builder tally `find_build_spot` takes over
-    /// `Objects::find_units(SEARCH_FRIENDLY, who, range, 0x200,
-    /// FILTER_BUILDREPAIR)`: for every friendly unit the search returns
-    /// whose **action** is a `BUILD_AT` on a site of mine, one on that
-    /// site's slot — and the scan stops at the first slot it matches, so a
-    /// unit is counted once.
-    ///
-    /// The filter itself is subsumed: a unit with a `BUILD_AT` action is
-    /// one `FILTER_BUILDREPAIR` keeps. What is *not* subsumed is the
-    /// search's own reach, so the two paths are both here — and on both
-    /// the region test is the candidate's own **tile** region against the
-    /// searcher's (`get_tregion` at `div_3_table[pos >> 6]`, a `>> 8`
-    /// everywhere else), read as [`crate::world::World::tregion_alt`].
-    fn build_crowd(&self, u: usize, range: i32, sites: &[usize]) -> Vec<i32> {
-        let who = self.units[u].owner;
-        let mut counts = vec![0i32; sites.len()];
-        for o in self.find_units_friendly(u, range) {
-            let Some(i) = self.action_of(o) else { continue };
-            let Body::Build(b) = self.units[o].orders[i].body else {
-                continue;
-            };
-            if self.buildings.get(b).is_none_or(|bd| bd.owner != who) {
-                continue;
-            }
-            if let Some(k) = sites.iter().position(|&s| s == b) {
-                counts[k] += 1;
-            }
-        }
-        counts
     }
 
     /// `Objects::find_units(SEARCH_FRIENDLY, who, range, 0x200, …)`'s answer
@@ -8179,33 +8148,21 @@ impl Sim {
     /// takes the moment a site is finished, and the one an idle builder
     /// takes ahead of the gather search.
     ///
-    /// Range is `UNIT_BUILD_RESPOND_RANGE × 0xc0`, **doubled** on worker
-    /// stance 1 or 2. The candidates are [`Self::find_construct_sites`];
-    /// the choice is the fewest builders already on one, and the first of
-    /// a tie, because the original's min-search is a strict `<` walking up
-    /// from index 0. The winner is a `swarm_around` with `BUILD_AT` and no
-    /// action bit.
+    /// The walk is [`crate::build_spot_view::build_spot_steps`] over
+    /// [`crate::build_spot_view::SimBuildSpot`]; `sweep::unit_find_build_spot` runs it against the
+    /// original under the emulator (item 3372). Range is
+    /// `UNIT_BUILD_RESPOND_RANGE × 0xc0`, **doubled** on worker stance 1 or 2.
+    /// The candidates are [`Self::find_construct_sites`]; the choice is the
+    /// fewest builders already on one, and the first of a tie, because the
+    /// original's min-search is a strict `<` walking up from index 0. The
+    /// winner is a `swarm_around` with `BUILD_AT` and no action bit.
     ///
     /// The original wraps the swarm in a one-member `Group`; every other
     /// swarm call site here is the same single-unit shape (§10).
     pub(crate) fn find_build_spot(&mut self, u: usize) -> bool {
-        let stance = self.units[u].stance;
-        let wide = stance == 1 || stance == 2;
-        let range = self.tuning.unit_build_respond_range * if wide { TILE * 2 } else { TILE };
-        let sites = self.find_construct_sites(u, range);
-        if sites.is_empty() {
-            return false;
-        }
-        let counts = self.build_crowd(u, range, &sites);
-        let mut best = 0;
-        for i in 1..sites.len() {
-            if counts[i] < counts[best] {
-                best = i;
-            }
-        }
-        let site = sites[best];
-        self.swarm_around(u, site, Body::Build(site), false);
-        true
+        crate::build_spot_view::build_spot_steps(&mut crate::build_spot_view::SimBuildSpot::new(
+            self, u,
+        ))
     }
 
     /// `Unit::find_repair_spot@00604320` (`docs/ORDERS.md` §5.10), as the

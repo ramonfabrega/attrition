@@ -228,6 +228,8 @@ mod unit_do_spec_unit_anim;
 mod unit_end_trade_route;
 #[path = "unit_execute_events.rs"]
 mod unit_execute_events;
+#[path = "unit_find_build_spot.rs"]
+mod unit_find_build_spot;
 #[path = "unit_find_garrison_build.rs"]
 mod unit_find_garrison_build;
 #[path = "unit_find_gather_spot.rs"]
