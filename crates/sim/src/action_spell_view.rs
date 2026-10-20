@@ -190,7 +190,11 @@ pub fn action_spell_steps<V: SpellView>(v: &mut V, ty: i32, ox: i32, whom: i32, 
         unreachable!("the aircraft arm is not swept");
     }
     assert!(ty != TYPE_TRANSPORT, "the TRANSPORT arm is not swept");
-    let t = if v.type_is_spell(ty) { ty } else { TYPE_FALLBACK };
+    let t = if v.type_is_spell(ty) {
+        ty
+    } else {
+        TYPE_FALLBACK
+    };
     // The counters the epilogue reads.
     let mut fail = 0;
     let mut laid = 0;
