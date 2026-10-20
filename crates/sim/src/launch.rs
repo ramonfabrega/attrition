@@ -598,6 +598,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
+    // **`HEAVYARCHERS`' piece 123** (unit type 173, the Heavy Archer as the
+    // Inca field it; item 3385, `docs/AI.md` §293): run1011c's
+    // `RON_STATE_FRAME=13225` packet on the Inca's Great Sahara seed holds
+    // its three attack `AttachPos` rows, and `tools/recomp/get_position.py`'s
+    // sweep of each is reproduced at all 361 headings, x and y, by piece
+    // 1531's three bays unchanged — the two pieces' rows are the same
+    // model's. who=1's `1/50` loosed at the Nubians' `0/2002` on 13206 from
+    // (5242, 31906) in run1011 where this crate loosed from the figure's own
+    // (5256, 31992): 12 frames against 11, and the building struck a frame
+    // late.
+    (
+        123,
+        11,
+        12,
+        Bay {
+            right: -1826,
+            fwd: 88743,
+            dz: 163,
+        },
+    ),
+    (
+        123,
+        12,
+        9,
+        Bay {
+            right: 334,
+            fwd: 87412,
+            dz: 164,
+        },
+    ),
+    (
+        123,
+        13,
+        15,
+        Bay {
+            right: 9709,
+            fwd: 66502,
+            dz: 164,
+        },
+    ),
     // **The Royal Hwarang's piece 132** (`KORYOHWARANG`, unit type 182; item
     // 3365, `docs/AI.md` §283): the Longbowman's six release events on a
     // smaller figure (`koryo.bh3`), so piece 127's nodes do not serve it.
@@ -2241,6 +2281,29 @@ mod tests {
                 (sx, sy),
                 "piece 1531 anim {anim} at {facing}"
             );
+        }
+    }
+
+    /// **Piece 123's bays against run1011's rounds** (item 3385, `docs/AI.md`
+    /// §293): the Inca Heavy Archers `1/49`, `1/50` and `1/51` loosing at
+    /// the Nubians' `0/2002`, the figure's `x, y, z` and `angle` on the
+    /// round's first-printed block against its `sx, sy, sz`. Independent of
+    /// run1011c's packet sweep the rows were read from. Made to fail with
+    /// the rows keyed off: the rounds leave the figure's own point.
+    #[test]
+    fn run1011_s_inca_heavy_archer_rounds_leave_piece_123_s_bays() {
+        for (anim, time, (gx, gy, gz), facing, (sx, sy, sz)) in [
+            (13, 15, (6600, 31800, 626), -614_596_608, (6554, 31752, 790)),
+            (12, 9, (6792, 31704, 609), -677_904_384, (6719, 31658, 773)),
+            (12, 9, (5256, 31992, 603), -116_981_760, (5242, 31906, 767)),
+        ] {
+            let got = launch_point(Pos::new(gx, gy), Angle(facing), 123, anim, time, 0);
+            assert_eq!(
+                (got.x, got.y),
+                (sx, sy),
+                "piece 123 anim {anim} at {facing}"
+            );
+            assert_eq!(gz + release_dz(123, anim, time, 0).unwrap_or(0), sz);
         }
     }
 
