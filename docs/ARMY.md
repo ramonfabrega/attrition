@@ -475,16 +475,23 @@ Two readings the listing settles and the decompiler does not:
   flag is "I am standing in my own territory", not "a city was found",
   and the call is the original's own dead code. Its only reader is the
   function's tail — `go_to_city`, which fires when the unit is not at
-  home, joined no army and found no target, and which this crate does not
-  model.
+  home, joined no army and found no target. ~~This crate does not model
+  it.~~ **Built, item 3369** (`Sim::think_attack_tail`; `docs/AI.md`
+  §285): the best own city in the unit's land region by `vector_dist /
+  max(1, danger)`, halved for `CITY_UNDER_ATTACK`, strict `<`, walked to
+  by `go_to(x, y, ATTACK_TO, 0x240, 0)` when farther than `0x480`.
 
 **What this crate carries** (`Sim::think_attack_join_army`, called from
 `Unit::think`'s step 3 in `crates/sim/src/orders.rs`): the whole gate but
-`leader_flags2 & 8` (no capture sets it), `ObjectData::healing` (not a
+`leader_flags2 & 8` (no capture sets it) and `ObjectData::healing` (not a
 field here — it only widens the stay-and-heal arm, and only for a damaged
-unit that is neither foot nor mounted), the merchant-lineage entry arm,
-and the tail's `go_to_city`. `think_attack_s_head_joins_a_military_unit_
-and_leaves_an_armed_citizen` is the unit test.
+unit that is neither foot nor mounted). ~~The merchant-lineage entry
+arm and the tail's `go_to_city`~~ were in that list until item 3369
+built both: `Sim::think_attack_merchant` (the lineage's leg, the melee
+search and then the tail) and `Sim::think_attack_tail`.
+`think_attack_s_head_joins_a_military_unit_and_leaves_an_armed_citizen`
+and `think_attack_s_tail_picks_the_city_by_distance_over_danger` are the
+unit tests.
 
 **What it buys, and what it does not.** With the join, run53's archer
 squad is in leader 1's **army 1** — every army being empty,
@@ -585,7 +592,9 @@ order point where the original leaves it. The mask walk, the `0x480`
 threshold and the `MOVE_TO` arm of `go_to` are read and not run: no
 capture on disk holds a joiner nearer than `0x480` to `get_unit(0)`, and
 `go_to`'s only other caller, `Unit::go_to_city@005f79c0`, is
-`think_attack`'s tail and is not modelled here (§4.2).
+`think_attack`'s tail, ~~not modelled here~~ built by item 3369 (§4.2)
+and diff-backed by run995's block 310: the Dutch Armed Merchant's
+`ATTACK_TO` (41304, 17304) with offsets (600, 408), `group` 64.
 
 ## 5. The frame hook and the cadence
 
