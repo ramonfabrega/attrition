@@ -3791,6 +3791,13 @@ does not reach the commit it makes three hours later. Candidates: a `commit-msg`
 message says `PROBE` and whose diff touches a path outside the probe's own (`RON_DEBUG_*`, `RON_PROBE_*` sites); or
 `tools/probe.py`, which commits only the hunks behind the probe's variable. The pass's. One reach. **The forty-sixth pass**: stays, narrowed. No hook reaches a lane's worktree by git alone and `tools/probe.py` is a day; the candidate is the lane gate's: red when a commit on the branch whose subject names a probe touches a path with no `RON_PROBE_`/`RON_DEBUG_` site, before the merge. One reach.
 
+(3382) **One slow test a pass** (the forty-sixth steer, Ramon): six tests run over 30 s and two of them —
+`diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned` at 202 s and
+`every_key_the_dump_prints_is_read_or_pinned` at 137 s — are 339 of the suite's 3,144 s (`suite_timings.py`,
+2026-10-20). Not a lane (a lane gate is thirteen minutes of CPU a landing for a win of seconds a gate): the pass's,
+bounded — each pass takes the slowest test over 30 s, thirty minutes at most, lands it or writes why not, the two
+coverage pins first (cache the walk per dump, never per window); closes itself when none is over 30 s. One reach.
+
 3370's "for the Loop" says `none` under a heading (`## For the Loop`, then `none` on its own line), and
 `docs_guard::a_journal_s_loop_line_is_filed_or_says_none` reads only the heading's line, so the journal read as
 unfiled. It is recorded here as filed and empty, and the journal is left as its worker wrote it. If the shape

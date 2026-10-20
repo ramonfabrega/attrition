@@ -7135,7 +7135,10 @@ archives compressed, 112 → 123 GiB free.
     `uv run -v`; `uv_command` runs every sweep and `callfn` through
     `uv run --locked --project tools/emu python <script>`, the receipt
     cache's key unmoved; the 358,890 stale environments were cleaned at
-    this drain.
+    this drain — 28,244,119 files, 13.6 TiB apparent, the box 117 → 253
+    GiB free; the tranche's 57 captures are 1.1 GiB allocated after
+    compression, so the disk's eaters were the two caches, never the
+    captures.
 11. **Two stay, five are Ramon's.** 3349 (block coverage) stays for a
     pass with fewer builds; 3371 stays narrowed to a lane-gate check;
     2003 stays as the ledger with 3377's reach; 1570, 3118, 3143, 3188,
@@ -7168,4 +7171,27 @@ never against 370, backed against 1619, port against 501, bytes against
 31.2 %, `--hooked` by address against 0; the backlog against
 nine; the disk against 123 GiB; whether the paperwork guards'
 `Lane suite:` line, the early `Base moved:` refusal, the `DRAFT` line
-and the thread-scaled cap fired in the tranche.
+and the thread-scaled cap fired in the tranche; **the drain's tail**
+— the minutes the last lane ran alone, from the nineteenth booking to
+the twentieth — against 37.
+
+**Ramon's word at this steer, 2026-10-20, in the session.** (i) **The
+roster stands** for the forty-seventh tranche: two Opus 5.5 medium
+battery lanes landing wide, two Sonnet 5.5 medium sweeps. (ii) **The
+`reading` lane holds** one more tranche (six gate ends past the cores).
+(iii) **The weekly limit stays a manual matter**: a stalled loop is
+resumed by hand, and this morning's was a banked reset he claimed on
+purpose. (iv) **One slow test a pass** (Loop 3382, filed): the pass's,
+thirty minutes at most, never a lane. (v) **The twenty-landing stop
+stays** (entry 77): the pass's proposal to refill lanes until the
+twentieth landing and leave the live lanes to the next commander is not
+taken — a fast twentieth and a slow twenty-first would still leave one
+lane alone an hour — and the drain's tail is measured instead (the row
+above); the commander and the pass sharing one worktree is what he is
+iffy about, and the pass's reading is that one live row at a time,
+which the cross-session clear enforces, is what makes it safe. (vi)
+**Measured for him in the session**: the sweep subagents think nothing
+and spend their tool time on cargo; four of 3376's six subagents' 4.5
+hours were the stall; nobody was hurt by the 300 k clear, which if
+anything fires late; the tranche's captures are 1.1 GiB allocated and
+the disk's eaters were uv's and the oracle's caches.

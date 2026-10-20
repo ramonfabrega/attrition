@@ -20,8 +20,8 @@ medium battery lanes landing wide, two Sonnet 5.5 medium sweep lanes; the base i
 - **Words**: every pair closed; twenty-four battery words closed (`AI_WORDS` holds twenty-two). Battery on this tree:
   13582 (the Germans), 14991 (the Turks), 7799, 14540, 18883, 24000 ×3 — six of eight whole, median 16937 (9284). Census 1619, port 501.
 - **Lanes: none live.** Unspawned: 3378 the Germans (Opus; runs 1002, 1003, AI §289, LK), 3380 the Turks (Opus; runs
-  1004, 1005, AI §290, LR), 3379 the nations seat (Sonnet, LQ), 3381 the second sweep (Sonnet, LS). Next 3382, run 1006. Pools: GOLDEN §144–148, AI §291–294, park LT–LX.
-- **Fable backlog: 9 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371); DECISIONS 85.
+  1004, 1005, AI §290, LR), 3379 the nations seat (Sonnet, LQ), 3381 the second sweep (Sonnet, LS). Next 3383, run 1006. Pools: GOLDEN §144–148, AI §291–294, park LT–LX.
+- **Fable backlog: 10 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382); DECISIONS 85.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

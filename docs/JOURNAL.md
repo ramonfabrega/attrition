@@ -21387,5 +21387,8 @@ five Opus
 subagents in their own worktrees for the larger six, merged and gated
 here; the Chinese and the Turks re-pinned to the measure; 3351 closed
 on the measurement, two stay, six Ramon's; 20 → 9. The
-archives compressed, 112 → 123 GiB free. **DECISIONS 85.**
+archives compressed, 112 → 123 GiB free, and uv's cache cleaned at the
+drain — 28.2 million files, 13.6 TiB apparent — 117 → 253. The whole
+gate green at eight threads, the sim lib peaking at 1907 MiB under its
+6144. **DECISIONS 85.**
 `docs/audit/2026-10-20-fable-pass-46.md`.
