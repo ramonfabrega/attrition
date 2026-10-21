@@ -25163,9 +25163,9 @@ printed `relink_squad` on `1/92` at health −13266 under `land` → `do_damage`
 decoy target (§293). `1/90` and `1/91` stood.
 
 **run1015b: the packet names the arm.** `step4.py --entry 65db70` (`Objects::inc_time`) with `--hook 652020` on
-`Object::take_damage`: three calls on the three decoys. `1/92` (`1411a60c`) takes 0x343a (13370) from
-`Object::do_damage+0x159e`. Then `take_damage+0x140c` calls `take_damage` on `1/90` (`1411a32c`) with 0x3421
-(13345), and on `1/91` (`1411a49c`) with 0x340f (13327). `--hook 60eda0`: each `Unit::die` is called from its own
+`Object::take_damage`: three calls on the three decoys. `1/92` (`1411a60c`) takes 13370 from
+`Object::do_damage+0x159e`. Then `take_damage+0x140c` calls `take_damage` on `1/90` (`1411a32c`) with
+13345, and on `1/91` (`1411a49c`) with 13327. `--hook 60eda0`: each `Unit::die` is called from its own
 `take_damage+0x13b3`. `Object::take_damage@00652020:619`–`631`, after `die` (vslot `+0x158`):
 
 ```text
