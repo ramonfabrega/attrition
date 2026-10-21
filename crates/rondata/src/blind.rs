@@ -298,8 +298,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// (`docs/PARKED.md` 2345): `Unit::repath`'s grouped-`GROUP_MOVE` arm,
 /// swept under the emulator with it stubbed, and no trace enters it.
 /// **337** with item 2474's cite of `Console::hurry_action@007c3810`
-/// (`docs/GOLDEN.md` §90): run860's `finish` calls it, but its `cover=0`
-/// trace enters no function.
+/// (`docs/GOLDEN.md` §90): ~~run860's `finish` calls it~~ only `hurry`
+/// (`run_cmd` case `0x51`) and cheat key `0x45` call it, and no capture
+/// has issued either (item 3408, `docs/GOLDEN.md` §144.2).
 /// **338** with item 3058's cite of `TurnControl::end_cannon_time@00956470`
 /// (`docs/journal/2026-10-17-item-3058.md`): swept under the emulator with its
 /// callees stubbed, and no trace ends a cannon time.
