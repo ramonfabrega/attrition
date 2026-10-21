@@ -250,6 +250,12 @@ mod spell_type_data_is_castable;
 mod spell_type_data_is_castable_city;
 #[path = "spell_type_data_is_castable_world.rs"]
 mod spell_type_data_is_castable_world;
+#[path = "spell_type_get_job_time.rs"]
+mod spell_type_get_job_time;
+#[path = "spell_type_get_job_time_siege.rs"]
+mod spell_type_get_job_time_siege;
+#[path = "spell_type_is_valid_target.rs"]
+mod spell_type_is_valid_target;
 #[path = "spell_type_pay_cast_costs.rs"]
 mod spell_type_pay_cast_costs;
 #[path = "spell_type_unpay_cast_costs.rs"]
