@@ -3776,23 +3776,6 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 Loop 2003's reaches in the forty-seventh tranche, filed here below its own row (its section is at the size ceiling): 3397 three idempotence gaps — `--regen` re-inserts a trailing `0` after `// end hand` (`wall_activate`) and a generator file inside the fence splits the item (`find_road`); 3400 no memory laid before a cell record's base (a negative-offset `--ptrtab LOC` or a cell-record margin, 3400's parked row, the shape unspellable); 3403 the `--port todo!()` body re-appended past the fence (Loop 3407, built by the forty-seventh pass). Every batch of the tranche generated whole otherwise.
 
-(3394) **A `tools/check.sh` run that waits for admission is killed in about six seconds, exit 144** (3385's "for the
-Loop", filed at its merge): in 3385's third session every single-test `zsh tools/check.sh test …` that had to wait
-for the host budget died within about six seconds with exit 144, its whole shell with it, even under `nohup`; the lane
-worked around it with `RON_NO_ADMISSION=1`, and its lane gates, admission on, were not killed. Exit 144 is 128 + 16,
-not the budget's SIGKILL (137); beside 3392's SIGTERM'd builds the same evening, the pass reads the two together: who
-signals a waiting child, and whether the admission's own cancel handler (`resource_budget.py`'s SIGINT/SIGTERM
-`cancel`) is reached by a sibling's signal. One reach.
-
-(3392) **Release builds SIGTERM'd from outside for about 25 minutes** (att-3390's status line, 2026-10-20, "rustc
-release builds were SIGTERM'd externally for ~25 min around 19:20-19:45 on this host"; and 3390's "for the Loop",
-filed at its merge: the killed builds left inconsistent rlibs that failed later links, and `cargo clean --release -p
-sim` / `-p rondata` recovered them):
-`tools/resource_budget.py` kills a memory-capped child with SIGKILL (`os.kill(pid, signal.SIGKILL)`, its line 208),
-never SIGTERM, so the sender is not the admission. Candidates to rule out first: a lane's `pkill -f` on a name every
-lane shares (parked 1713), a subagent's cleanup, cargo's own jobserver on a sibling's cancel. A gate's `Gate minutes:`
-in that window are the evidence; the pass reads the lanes' transcripts for the signal's sender. One reach.
-
 ## Loop, filed 2026-10-19 — the forty-sixth tranche's
 
 (3371) **A probe's `commit -am` swept a lane's uncommitted widening into it** (3367's "for the Loop", filed at its
