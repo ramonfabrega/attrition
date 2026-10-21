@@ -401,8 +401,42 @@ impl Sim {
             + self.mods_of(self.owner_of(o) as usize).armor;
         match o {
             Obj::Building(b) if !self.buildings[b].active => armor / 2,
-            _ => armor,
+            Obj::Unit(u) => armor + self.rally_armor(u),
+            Obj::Building(_) => armor,
         }
+    }
+
+    /// **`UnitData::armor@00610160`'s rally arm** (item 3385): a unit that
+    /// is itself a hero, or that `HeroesData::find_hero@0073a1b0` places
+    /// inside one of its owner's heroes' radii, adds `GENERAL_RALLY_ARMOR ×
+    /// (general_upgrade + 1)`. `find_hero` is asked with no mask, no type
+    /// and no reach (vslot `+0x20` is clear for a unit): any active hero
+    /// on the map whose `get_radius × 0xc0` covers the unit's position by
+    /// `vector_dist`. run1011e's packet: the Horse Archer `1/72`'s round on
+    /// the Inti Maceman `1/61` on 13297, `get_damage` 13 at armour 4 (the
+    /// cached `myarmor` 2 and the General's 2) where this crate dealt 15.
+    ///
+    /// SEAM: the arm's named heroes after it — Ptolemy, Darius,
+    /// Wellington, Blücher, Memnon, The Citizen and The Monarch's armour —
+    /// are not carried.
+    fn rally_armor(&self, u: usize) -> i32 {
+        let me = &self.units[u];
+        let rallied = (me.alive() && self.is_hero_unit(u))
+            || (0..self.units.len()).any(|h| {
+                let x = &self.units[h];
+                x.owner == me.owner
+                    && x.alive()
+                    && x.on_map
+                    && self.is_hero_unit(h)
+                    && crate::world::vector_dist(
+                        (x.pos.x - me.pos.x).abs(),
+                        (x.pos.y - me.pos.y).abs(),
+                    ) <= self.hero_radius(h) * 0xc0
+            });
+        if !rallied {
+            return 0;
+        }
+        self.tuning.general_rally_armor * (self.general_upgrade_level(me.owner) + 1)
     }
 
     /// `max_range()` (§4.4): zero stays zero.

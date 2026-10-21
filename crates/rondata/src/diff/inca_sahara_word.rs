@@ -141,7 +141,7 @@ fn run1011_s_word_frame_is_widened_whole() {
     let Some(w) = inca_sahara_frame_13250_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -154,5 +154,11 @@ fn run1011_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // 1901 keys before the bearing fix, 1735 -> 1510 (piece 123's bays)
+    // -> 744 (`full`) -> 34 (a decoy target's step 17) -> 30 (the
+    // General's rally armour: `1/61`'s 105 theirs on block 13298, and the
+    // standing `1/63` 109). Every one of the 30 stands from the window's
+    // first block, 13104: the leaders' `SITE[].reg` and `aggression[1]`,
+    // the units' `form`, and the held groups and pools 64..66.
+    pin_eq!(w.firsts.len(), 30, "keys that part in the window");
 }
