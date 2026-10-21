@@ -25376,7 +25376,7 @@ any section, against the 32 addresses): 25 have a direct call; the five switches
 `.text` (the script host's table); `GoodTypeData::is_flat` and `WallData::hits` three `.rdata` vtable slots each
 and no call; **`Game::is_no_rush` nothing at all** (§218).
 
-**Captures owed.** Every lobby below is one this crate already diffs, and every row but 9b, 11 and 12 is a
+**Captures owed.** Every lobby below is one this crate already diffs, and every row but 9b, 10, 11 and 12 is a
 `cover=0` capture on disk retaken at `cover=1` (`unattended_capture.py --cover cover=1`), so the dump that showed the
 behaviour is the falsifier and the trace is what moves `never`. Fields are the dump's own names.
 
@@ -25391,9 +25391,15 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | 7 | `GreatSaharaBantuTier4` (run978c) | `LEADERS=9` `escrow`, block 2808 | `can_queue` | click-free |
 | 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | `go_to_city` | click-free |
 | 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | `current_age`; (9b) `say_no_war` only once the console's own unit stands in the Lakota's land, the leader's `+0x1f4` stamp 0 | click-free; 9b driven |
-| 10 | any lobby in which a leader's highest wonder closes (the disk scan below) | `LEADERS=9` `wonder_mark` on the close | `close_wonder` | as the lobby |
+| 10 | any lobby in which a leader's highest wonder closes (none on disk: below) | `LEADERS=9` `wonder_mark` on the close | `close_wonder` | as the lobby |
 | 11 | a human and two computers, no teams (none on disk) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6) | click-free, *a prediction* |
 | 12 | a team lobby with a computer ally (none on disk) | `LEADERS=9` `escrow` and the stock on the frame the human cancels the alliance (`CANCEL_ALLIANCE + t`) | `pay_dow`, `action_declare`'s pay arm | driven: a diplomacy click |
+
+**The disk scan** (every dump in the archive, 578 that print a leader): `nukes_in_flight` is 0 in all of them, so
+§158's in-flight term has never been non-zero on a dumped frame; `wonder_mark` reaches 1 or 2 in many games and
+falls in none of the 82 that print it more than once, so no dump shows `close_wonder` lowering it; `leader_flags &
+0x8000` stands in twenty games (run517, run584 at Toughest; the coverage pair from run652) and `& 0x4000` in ten
+(run645, the Islands French run657–665, the third map's coverage from run676) — rows 1–4's fields are on disk.
 
 Rows 1–8 and 9's first half are nine lobbies the click-free lane starts with no human order; together they enter
 **20** of the 32 (`think_supply` is `docs/ARMY.md`'s). The hero of entry 29 §2 is rows 1 and 2.
