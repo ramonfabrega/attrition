@@ -52,7 +52,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // vtable), `p[6]` the object slot `+0xac` answers. `p1` and `p2` are held to 0 or 1.
             // Stubs: 0 `is_castable`, 1 slot `+0xac`, 2 `current_upgrade` (`ecx` the leader's row), 3 slot `+0x80`.
             // `eax` is the last stub's answer; `is_castable`'s when it is not 3.
-            use crate::spell_cast_view::{Arg, Callee, Ecx, SpellCastView, spell_cast_steps};
+            use crate::spell_cast_view::{Callee, Ecx, SpellCastView, spell_cast_steps};
             struct V<'a> {
                 m: &'a [u8],
                 a: &'a [i32],
@@ -63,15 +63,15 @@ fn the_emulated_original_agrees_on_every_row() {
                 fn spell(&self) -> i32 {
                     rd(self.m, 4)
                 }
-                fn is_castable(&mut self, p1: i32, p2: i32) -> i32 {
+                fn is_castable(&mut self, p1: i32, p2: i32) -> (i32, i32) {
                     self.log.push(format!("s0:m+0x0,{p1},{p2},1"));
                     self.eax = self.a[4];
-                    self.a[4]
+                    (self.a[4], 0)
                 }
                 fn is_valid_target(&mut self, _: i32, _: i32, _: i32) -> bool {
                     unreachable!("the first sweep's")
                 }
-                fn call(&mut self, _: Callee, _: Ecx, _: &[Arg]) {
+                fn call(&mut self, _: Callee, _: Ecx, _: &[i32]) {
                     unreachable!("the first sweep's")
                 }
                 fn air_target(&mut self, p1: i32, p2: i32) -> i32 {

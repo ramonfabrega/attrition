@@ -11,8 +11,7 @@
 //! original; the callees stay the crate's own.
 //!
 //! Several arms hand their callee an `ecx` the function never loads: it is
-//! whatever `is_castable` left. [`Ecx::Stale`] names those; the original's
-//! value there is not modelled (the sweep's stub leaves `ecx = this`).
+//! whatever `is_castable` left, which the view answers beside its result.
 
 /// A callee of the switch, by its name in the image.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -76,31 +75,23 @@ pub enum Callee {
 pub enum Ecx {
     /// `this`, the spell type's row.
     This,
-    /// Left by `is_castable`; never loaded by the switch.
-    Stale,
-    /// A stack argument of the function (`counterintel`'s `p2`).
+    /// A value: an argument of the function (`counterintel`'s `p2`), or the
+    /// `ecx` `is_castable` left, which several arms never reload and some
+    /// push as an argument besides.
     Val(i32),
-}
-
-/// A stack argument of a callee.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Arg {
-    /// One of the function's own four, 1-based (`P(1)` is `p1`).
-    P(u8),
-    /// The unloaded `ecx` pushed as an argument.
-    Stale,
 }
 
 /// What the switch asks of the world.
 pub trait SpellCastView {
     /// `[this + 4]`, the spell type's index.
     fn spell(&self) -> i32;
-    /// `SpellTypeData::is_castable(this, p1, p2, 1)`.
-    fn is_castable(&mut self, p1: i32, p2: i32) -> i32;
+    /// `SpellTypeData::is_castable(this, p1, p2, 1)`: its answer, and the `ecx`
+    /// it leaves behind.
+    fn is_castable(&mut self, p1: i32, p2: i32) -> (i32, i32);
     /// `SpellTypeData::is_valid_target(this, p2, p3, p4, 0)`.
     fn is_valid_target(&mut self, p2: i32, p3: i32, p4: i32) -> bool;
     /// One direct callee, entered with `ecx` and the stack arguments in order.
-    fn call(&mut self, callee: Callee, ecx: Ecx, args: &[Arg]);
+    fn call(&mut self, callee: Callee, ecx: Ecx, args: &[i32]);
     /// The airdefense arm's first step: `objects[p2][p1]`'s virtual slot `+0xac`
     /// (no arguments), answering the object the upgrade is handed to.
     fn air_target(&mut self, p1: i32, p2: i32) -> i32;
@@ -110,51 +101,51 @@ pub trait SpellCastView {
     fn air_set(&mut self, target: i32, upgrade: i32, zero: i32);
 }
 
-use Arg::{P, Stale as S};
-
 /// `00676ce0`: the whole switch.
 pub fn spell_cast_steps(v: &mut impl SpellCastView, p: [i32; 4]) {
-    if v.is_castable(p[0], p[1]) != 3 {
+    let [p1, p2, p3, p4] = p;
+    let (r, left) = v.is_castable(p1, p2);
+    if r != 3 {
         return;
     }
     use Callee::*;
-    let (e_this, e_stale) = (Ecx::This, Ecx::Stale);
+    let (this, l) = (Ecx::This, Ecx::Val(left));
     match v.spell() {
-        0x275 => v.call(Bribe, e_this, &[P(1), P(2), P(3), P(4)]),
-        0x276 => v.call(Pilfer, e_stale, &[S, P(2), P(3), P(4)]),
+        0x275 => v.call(Bribe, this, &[p1, p2, p3, p4]),
+        0x276 => v.call(Pilfer, l, &[left, p2, p3, p4]),
         0x277 => {
-            if v.is_valid_target(p[1], p[2], p[3]) {
-                v.call(CounterIntel, Ecx::Val(p[1]), &[P(3), P(4)]);
+            if v.is_valid_target(p2, p3, p4) {
+                v.call(CounterIntel, Ecx::Val(p2), &[p3, p4]);
             }
         }
-        0x278 => v.call(Assimilate, e_this, &[P(1), P(2), P(3), P(4)]),
-        0x27a => v.call(CreateDecoy, e_this, &[P(1), P(2), P(3), S]),
-        0x27b => v.call(Ambush, e_this, &[P(1), P(2)]),
-        0x27c => v.call(March, e_this, &[P(1), P(2)]),
-        0x27d => v.call(Entrench, e_stale, &[P(1), P(2)]),
-        0x27e => v.call(Supplies, e_stale, &[P(1), P(2)]),
-        0x27f => v.call(DoubleAgent, e_stale, &[P(1), P(2), P(3), P(4)]),
-        0x280 | 0x281 => v.call(Sabotage, e_this, &[P(1), P(2), P(3), P(4)]),
-        0x282 => v.call(BlowTread, e_stale, &[S, P(2), P(3), P(4)]),
-        0x284 => v.call(Paradrop, e_this, &[P(1), P(2), P(3), P(4)]),
-        0x285 => v.call(ResearchProject, e_stale, &[S, P(2)]),
-        0x286 => v.call(Depopulate, e_this, &[P(1), P(2)]),
-        0x287 => v.call(MoveCapital, e_stale, &[P(1), P(2), S]),
-        0x288 => v.call(LockGate, e_stale, &[P(1), P(2)]),
-        0x289 => v.call(UnlockGate, e_stale, &[P(1), P(2)]),
-        0x28a => v.call(Transport, e_stale, &[P(1), P(2)]),
-        0x28b | 0x28d | 0x28f | 0x291 => v.call(Pack, e_stale, &[P(1), P(2)]),
-        0x28c | 0x28e | 0x290 | 0x292 => v.call(Unpack, e_stale, &[P(1), P(2)]),
-        0x293 => v.call(Civilian, e_stale, &[P(1), P(2)]),
-        0x294 => v.call(ToArms, e_stale, &[P(1), P(2)]),
-        0x297 => v.call(ImmortalArch, e_stale, &[P(1), P(2)]),
-        0x298 => v.call(ImmortalHinf, e_stale, &[P(1), P(2)]),
+        0x278 => v.call(Assimilate, this, &[p1, p2, p3, p4]),
+        0x27a => v.call(CreateDecoy, this, &[p1, p2, p3, left]),
+        0x27b => v.call(Ambush, this, &[p1, p2]),
+        0x27c => v.call(March, this, &[p1, p2]),
+        0x27d => v.call(Entrench, l, &[p1, p2]),
+        0x27e => v.call(Supplies, l, &[p1, p2]),
+        0x27f => v.call(DoubleAgent, l, &[p1, p2, p3, p4]),
+        0x280 | 0x281 => v.call(Sabotage, this, &[p1, p2, p3, p4]),
+        0x282 => v.call(BlowTread, l, &[left, p2, p3, p4]),
+        0x284 => v.call(Paradrop, this, &[p1, p2, p3, p4]),
+        0x285 => v.call(ResearchProject, l, &[left, p2]),
+        0x286 => v.call(Depopulate, this, &[p1, p2]),
+        0x287 => v.call(MoveCapital, l, &[p1, p2, left]),
+        0x288 => v.call(LockGate, l, &[p1, p2]),
+        0x289 => v.call(UnlockGate, l, &[p1, p2]),
+        0x28a => v.call(Transport, l, &[p1, p2]),
+        0x28b | 0x28d | 0x28f | 0x291 => v.call(Pack, l, &[p1, p2]),
+        0x28c | 0x28e | 0x290 | 0x292 => v.call(Unpack, l, &[p1, p2]),
+        0x293 => v.call(Civilian, l, &[p1, p2]),
+        0x294 => v.call(ToArms, l, &[p1, p2]),
+        0x297 => v.call(ImmortalArch, l, &[p1, p2]),
+        0x298 => v.call(ImmortalHinf, l, &[p1, p2]),
         AIR_DEFENSE => {
-            let t = v.air_target(p[0], p[1]);
-            let up = v.current_upgrade(p[1], AIRDEFENSE_TYPE);
+            let t = v.air_target(p1, p2);
+            let up = v.current_upgrade(p2, AIRDEFENSE_TYPE);
             v.air_set(t, up, 0);
         }
-        0x29a => v.call(Disband, e_stale, &[P(1), P(2)]),
+        0x29a => v.call(Disband, l, &[p1, p2]),
         _ => {}
     }
 }
