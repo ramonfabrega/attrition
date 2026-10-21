@@ -77,6 +77,12 @@ fn the_emulated_original_agrees_on_every_row() {
 }
 
 // hand: view
+/// **The port is this file's; the crate's `Sim::unit_swap_team` (`bribe.rs`) is a namesake.** It
+/// finds the captain by `o_up`, but copies two fields of a guy (`stopped`, `turret`) where the
+/// original copies fifteen words and bytes, copies four named bits of the `+0x68` word where the
+/// original takes the whole word (the inside loop) or all but `0x40000` (the first), does not
+/// carry the `inside_down` chain (a SEAM the module names) and closes through the sim's own
+/// `close_*` steps rather than slot `0x150`; the sweep holds none of that to the crate.
 /// `Unit::swap_team@006118d0` over the row's windows. `m` is `this`; `p0`/`p1` the units table's
 /// two rows' pointer arrays (word 0 the `-1` slot, laid on the row's first unit), `p2`/`p3` the
 /// objects table's, `p4..p7` and `p8..p11` the units of player 0 and 1 (the objects table names
