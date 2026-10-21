@@ -13612,8 +13612,8 @@ calls the wrapper with the `GroupOut` the tracer already builds. That checks the
 | `Options::do_spell@0071d7a0` | `CM` `process_spell`; `U3` Militia | §48, chapter thirty-nine | To Arms button on the Citizen, 625 |
 | `WorldMap::on_right_up@008c7050` | `CM` `process_move_to` form/width; `U3` | §17, chapter nine (+ §42 for :240) | minimap `rclick` plain, ctrl, shift (needs a minimap → tile fit) |
 | `CommandManager::issue_trade@00941960` | `CM` `process_trade`; `U3` `TRADEORDER` | §11, chapter seven + a human Caravan, two cities | `rclick` the Caravan on the second city |
-| `CommandManager::issue_come_out@00942c90`, `CommandPackage::process_come_out@009465d0` | `CM` `process_come_out`; `U3` out of host | §21, chapter thirteen | a new `@comeout`, or the unit's panel button |
-| `CommandManager::issue_attack_ground@009417a0` | `CM` `process_attack_ground` | §7, chapter three | a new `@attackground` |
+| ~~`CommandManager::issue_come_out@00942c90`, `CommandPackage::process_come_out@009465d0`~~ | `CM` `process_come_out`; `U3` out of host | §21, chapter thirteen | ~~a new `@comeout`, or the unit's panel button~~ entered by run1030 on 800 (§145) |
+| ~~`CommandManager::issue_attack_ground@009417a0`~~ | `CM` `process_attack_ground` | §7, chapter three | ~~a new `@attackground`~~ entered by run1029 on 630, with `process_attack_ground` and `Group::action_attack_ground` (§145) |
 | ~~`CommandManager::issue_stance@00941530`, `CommandPackage::process_stance@00949ed0`, `GroupData::get_stance_option@0070bab0`~~ | ~~`CM` `process_stance 2 681`; `U3` `stance` 721–722~~ | ~~§79, chapter sixty-four (run835)~~ | entered by run1025 (item 3424): the first two on 680, `get_stance_option` on 720 |
 | `Console::hurry_action@007c3810` | `BUILDS` `job_counter` +10000 | §91, chapter seventy-four | `hurry` for `finish`, 701 |
 | `BuildQueueData::get_next_non_unit@00630b10` | `BUILDS=7` `0/2007` slot 1 +100/frame from 843 | §92, chapter seventy-five | re-take `chapter75.cmd` (diff-backed on run868, a draw trace) |
@@ -13647,12 +13647,46 @@ own stance button reaches them.
 gates. The three accepted `RESIDUE` rows GOLDEN cites (`MoveOrder::is_fleeing`, `ObjectData::is_in_range`,
 `UnitBalance::next`) are not re-read.
 
-## 145. Reserved for the next item on the rules track
+## 145. Two `@` lines, `@attackground` and `@comeout`, staged at `cover=1` in chapters three's and thirteen's lobbies (item 3425, run1029, run1030)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** Two issuer verbs the DLL lacked (§144.3's last two `CommandManager` rows), and one coverage staging each.
+Neither staging is a chapter: no word is pinned on it. The walk parses both lines and skips them by name, because
+`Group::action_attack_ground`'s ground arm (`sim::attack_ground_view`) is walked but not wired, and
+`Unit::action_come_out@005e20b0` has no port (parked 3425a).
+
+- **`@attackground <who> <x> <y> <o>…`** calls `CommandManager::issue_attack_ground@009417a0(group, x, y, QUEUE_NEW)`:
+  a 5-byte `group` and a 10-byte `attack_ground` (0x09, `[to_x][to_y][queued i8]`). The prologue is `sub esp, 0x10`
+  and the return is `ret 0x10` (listing `9417a0`). It skips the button's peace-tile refusal and the playback gate
+  (§144.2).
+- **`@comeout <who> <o>…`** calls `CommandManager::issue_come_out@00942c90(unit)` once per unit: an 11-byte `come_out`
+  (0x31, `[who i32][o i32][uid i16]`) and **no `group`**, as `@unqueue`. The prologue is `sub esp, 0xc`, the return
+  `ret 4`. The panel's button is `UnitOut::issue_come_out` (`00607be0`), the same bytes inline. A garrisoned captain passes
+  the DLL's refusal 3: off the map, its `flags` still read 1.
+
+**The stagings** (`tools/gamelog/golden/chapter3-attackground.cmd`, `chapter13-comeout.cmd`) are each chapter's lines
+verbatim plus one line, and each is taken with its chapter's own recipe and `--cover cover=1` on the click-free pool.
+
+| run | line | `I_ISSUE` | dump, the issue's block | entered (`NEVER` rows) | twin, first difference |
+|---|---|---|---|---|---|
+| run1029 | `630 @attackground 0 2328 9480 9` | refusal 0, package 10 → 25 | `process_attack_ground 2328 9480 2` (block 631); `0/9`'s `ATTACKGROUNDORDER att_x=2328 att_y=9480` under a deploy `CASTORDER` (632) | `issue_attack_ground`, `process_attack_ground`, `Group::action_attack_ground@00704520` on 630; `TypeData::get_desc_parsed@006626e0` on 511 | run145: `rngcmp` 901 in common, first 659; `samegame` 296 in common, first 631 |
+| run1030 | `800 @comeout 0 7` | refusal 0, package 10 → 21 | `process_come_out 7 801`; `0/7` out at (2712, 14904), `inside_up -1`, the Chariot's `inside_down` −1 (802) | `issue_come_out`, `process_come_out@009465d0` on 800 | run208: `rngcmp` 1,001 in common, first 802; `samegame` 396 in common, first 801 |
+
+The Catapult `0/9` (SIEGE, so `can_attack_ground` answers) also enters `Unit::add_attack_ground_order` on 630 and
+`do_attack_ground` on 631. Neither was on `NEVER`. `Unit::action_come_out` had been entered before. Every trace frame
+before each issue is identical to its `cover=0` twin, and every dump block before it digests the same.
+
+**Unasked: `get_desc_parsed`.** It is a ratified `RESIDUE` row ("tooltip text … no sim caller", the forty-eighth pass).
+run1029 enters it on 511, before any staged line, under `MouseOver::set_good`, `GoodTypeOut::say_level` and
+`String::parse`. That is the resource tooltip the pool's resting cursor raised. Its reason still holds, since it writes
+no sim state, but "no capture can enter it" does not, and `blind::tests::the_residue_is_on_the_blind_list` deletes the
+row. `RESIDUE` goes 80 → 79 (NATIONS §9.3, struck).
+
+**The count.** `blind::NEVER` 354 → 348 on the base, 350 → 344 on the tree merged with item 3424's run1025 and run1026. `issue_attack_ground` and `issue_come_out` move to `ENTERED_BY_THE_DLL_ONLY`,
+and nothing in the image references either (`what_only_the_dll_enters_is_off_the_list_and_unreferenced`).
+
+**Coverage.** Diff-backed on both takes: the two issuers' bytes (`I_ISSUE` package growth) and the two `process_*`
+lines and the order or exit on the following block, each read off the dump. What is reading-only: the issuers' argument
+semantics beyond what those blocks print. And the walk does not yet act on either line (3425a).
 
 ## 146. Reserved for the next item on the rules track
 
