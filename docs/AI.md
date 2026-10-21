@@ -45,7 +45,18 @@ The bits are from the decompile of the switches
 (`enable_production_ai@009ff5e0` clears `0x4`, `disable_combat_ai@009ff860`
 sets `0x8`, `disable_city_ai@009ffbf0` sets `0x10`, `disable_all_unit_ai@
 009ff8e0` sets `0x2`, `disable_unit_ai@009ffa10` sets `0x1000000` on every
-unit of the chain). `leader_flags2` is `LeaderData+0x4` (PDB); `leader_flags`
+unit of the chain). **Each switch's guard** (item 3409, §296; *reading
+alone*): the player is `1..8` (`*param_1 − 1 < 8`, stride `0x6eec`) and its
+`leader_flags & 1` is set, else the switch returns −1 and writes nothing;
+`disable_city_ai` also wants `leader_flags & 2` set and `& 4` clear
+(`:13`; run112's human carries `0x7`, its computer `0x13`), so it never
+shuts a human's city layer; and `disable_unit_ai(who, o)` with no live
+unit `o` and `o < 0` falls to `leader_flags2 |= 2` (`:41`–`:43`), the
+all-units switch — Tutorial 3's `disable_unit_ai( COMPUTER, -1 )`
+(`tut3.bhs:80`) is that arm. Only scenario scripts call them: the
+tutorials, a Chess Exercise and CtW's `ctw_lib.bhs` (the `enable_*`
+trio); no skirmish lobby does, so every capture this crate diffs prints
+`leader_flags2` 0 for these bits. `leader_flags2` is `LeaderData+0x4` (PDB); `leader_flags`
 at `+0x0` has bit 1 = active, bit 2 = computer (`strategy_all`'s `& 3 == 3`),
 bit 4 = human (`docs/audit/2026-08-23-pathfinder.md`).
 
