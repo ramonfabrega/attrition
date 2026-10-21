@@ -146,6 +146,7 @@ pub mod stance;
 pub mod suffer_view;
 pub mod supply;
 pub mod swarm;
+pub mod swarm_around_view;
 pub mod take_damage_view;
 pub mod target_gate;
 pub mod target_score;

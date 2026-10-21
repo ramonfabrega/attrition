@@ -2365,39 +2365,27 @@ impl Sim {
         body: Body,
         action: bool,
     ) {
-        use crate::attrition::Domain;
-        if !self.group_is_on_map(g) || !self.buildings.get(b).is_some_and(|bd| bd.alive) {
+        let Some(who) = self.buildings.get(b).map(|bd| i32::from(bd.owner)) else {
             return;
-        }
-        let kind = if matches!(body, Body::Build(_)) && !self.nation[g.who as usize].human {
-            MoveKind::ExploreTo
-        } else {
-            MoveKind::MoveTo
         };
-        for layer in [Domain::Land, Domain::Sea] {
-            for &u in &g.list {
-                if !self.group_member_orderable(u) {
-                    continue;
-                }
-                let domain = self.units[u]
-                    .ty
-                    .map_or(Domain::Land, |t| self.unit_types[t].kind.domain);
-                // The builders: a Citizen (`0x32`/`0x33`), or a member
-                // that can cast the Civilian (`is_castable(0x293)`, a
-                // Militia), which goes with them and converts on arrival
-                // (`0070ff60`, item 1167, `docs/GOLDEN.md` §49).
-                let builder = self.worker_of(u) == crate::orders::Worker::Citizen
-                    || self.spell_castable(crate::orders::spell::CIVILIAN, u);
-                if domain != layer || !builder {
-                    continue;
-                }
-                if pos == QueuePos::First {
-                    self.swarm_around(u, b, body, action);
-                } else {
-                    self.swarm_around_last(u, b, body, action, kind, pos);
-                }
-            }
-        }
+        let order = if matches!(body, Body::Repair(_)) {
+            crate::swarm_around_view::REPAIR
+        } else {
+            crate::swarm_around_view::BUILD_AT
+        };
+        let queue = match pos {
+            QueuePos::First => 0,
+            QueuePos::Last => 1,
+            QueuePos::New => 2,
+        };
+        crate::swarm_around_view::action_swarm_around_steps(
+            &mut crate::swarm_around_view::SimSwarm::new(self, g),
+            b as i32,
+            who,
+            queue,
+            order,
+            i32::from(action),
+        );
     }
 
     /// `Group::action_build@00707510` (`docs/GOLDEN.md` §26): a player's
