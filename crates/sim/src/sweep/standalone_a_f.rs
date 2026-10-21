@@ -664,6 +664,8 @@ mod command_manager_start;
 mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
+#[path = "command_package_process.rs"]
+mod command_package_process;
 #[path = "command_package_process_accept.rs"]
 mod command_package_process_accept;
 #[path = "command_package_process_alarm.rs"]
@@ -718,6 +720,8 @@ mod command_package_process_come_out;
 mod command_package_process_console_cmd;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
+#[path = "command_package_process_default_arm.rs"]
+mod command_package_process_default_arm;
 #[path = "command_package_process_demand_tribute.rs"]
 mod command_package_process_demand_tribute;
 #[path = "command_package_process_disband.rs"]
