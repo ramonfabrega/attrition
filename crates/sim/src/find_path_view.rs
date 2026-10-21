@@ -1,6 +1,6 @@
 //! **`Unit::find_path@005fb910`** as steps over a [`FindPathView`] (item 3386,
 //! parked 3348c): the straight-line planner every walking unit asks before it
-//! takes a step (`docs/PATHFINDER.md` §4.6, §9).
+//! takes a step (`docs/ORDERS.md` §4.6, `docs/PATHFINDER.md` §9).
 //!
 //! The steps are the listing's, call for call and read for read, in the
 //! listing's order, so that the sweep (`sweep/unit_find_path.rs`) can hold the

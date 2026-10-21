@@ -36,10 +36,15 @@ fn the_emulated_original_agrees_on_every_row() {
             })
             .collect();
         let want_log: Vec<&str> = stripped.iter().map(String::as_str).collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -57,7 +62,10 @@ fn the_emulated_original_agrees_on_every_row() {
             got, want_eax,
             "find_path — eax, ours {log:?}, theirs {want_log:?}, row `{line}`"
         );
-        assert_eq!(log, want_log, "find_path — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "find_path — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         let parts: Vec<String> = (0..m.len())
             .filter(|&i| m[i] != want[0][i])
