@@ -109,12 +109,10 @@ fn the_emulated_original_agrees_on_every_row() {
                     }
                     impl PaintView for View<'_> {
                         fn region(&mut self) -> Option<u16> {
-                            (self.ans >= 0).then(|| {
-                                if self.ans < 0x8000 {
-                                    self.ans as u16
-                                } else {
-                                    0
-                                }
+                            (self.ans >= 0).then_some(if self.ans < 0x8000 {
+                                self.ans as u16
+                            } else {
+                                0
                             })
                         }
                         fn cell_region(&mut self, cell: Pos) -> Option<u16> {
