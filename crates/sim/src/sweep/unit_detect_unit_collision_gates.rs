@@ -191,13 +191,15 @@ impl DetectCollisionView for Rows<'_> {
             unit_cell_of(rd(self.m, 0x14) ^ 0x63637),
         )
     }
-    fn collide_here(&mut self, cell: (i32, i32), _nocoll: bool) -> Option<(i32, i32)> {
+    fn collide_here(&mut self, cell: (i32, i32), nocoll: bool) -> Option<(i32, i32)> {
         let o = i32::from(i16::from_le_bytes([self.m[0xa], self.m[0xb]]));
         let who = i32::from(self.m[9]);
         let size = rd(&self.p[0], 0x248);
         self.log.push(format!(
             "s4:sp-0x34,{o},{who},{},{},{size},sp-0x34,sp-0x3c,{}",
-            cell.0, cell.1, self.a[5]
+            cell.0,
+            cell.1,
+            i32::from(nocoll)
         ));
         (self.a[11] != 0).then_some((self.a[15], self.a[16]))
     }
