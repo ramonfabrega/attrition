@@ -13614,17 +13614,17 @@ calls the wrapper with the `GroupOut` the tracer already builds. That checks the
 | `CommandManager::issue_trade@00941960` | `CM` `process_trade`; `U3` `TRADEORDER` | §11, chapter seven + a human Caravan, two cities | `rclick` the Caravan on the second city |
 | ~~`CommandManager::issue_come_out@00942c90`, `CommandPackage::process_come_out@009465d0`~~ | `CM` `process_come_out`; `U3` out of host | §21, chapter thirteen | ~~a new `@comeout`, or the unit's panel button~~ entered by run1030 on 800 (§145) |
 | ~~`CommandManager::issue_attack_ground@009417a0`~~ | `CM` `process_attack_ground` | §7, chapter three | ~~a new `@attackground`~~ entered by run1029 on 630, with `process_attack_ground` and `Group::action_attack_ground` (§145) |
-| `CommandManager::issue_stance@00941530`, `CommandPackage::process_stance@00949ed0`, `GroupData::get_stance_option@0070bab0` | `CM` `process_stance 2 681`; `U3` `stance` 721–722 | §79, chapter sixty-four (run835) | re-take `chapter64.cmd` at `cover=1` |
+| ~~`CommandManager::issue_stance@00941530`, `CommandPackage::process_stance@00949ed0`, `GroupData::get_stance_option@0070bab0`~~ | ~~`CM` `process_stance 2 681`; `U3` `stance` 721–722~~ | ~~§79, chapter sixty-four (run835)~~ | entered by run1025 (item 3424): the first two on 680, `get_stance_option` on 720 |
 | `Console::hurry_action@007c3810` | `BUILDS` `job_counter` +10000 | §91, chapter seventy-four | `hurry` for `finish`, 701 |
 | `BuildQueueData::get_next_non_unit@00630b10` | `BUILDS=7` `0/2007` slot 1 +100/frame from 843 | §92, chapter seventy-five | re-take `chapter75.cmd` (diff-backed on run868, a draw trace) |
 | `Unit::reset_move_orders@005fd080` | `U3` passengers' `orig_x/orig_y` on 1902 | §55, chapter forty-six (run496) | re-take `chapter46.cmd` |
 | `Unit::swap_team@006118d0`, `SpellType::cast_bribe@00672d00` | `U3` a new who=0 unit, the old `damage`, `form` | §107's parked staging | `@spell 0 629 …` (Bribe) |
-| `SpellType::cast_sabotage@006720e0` | `DEATHS` `1/6` on 807 | §115, chapter ninety-one (run894) | re-take at `cover=1` |
+| ~~`SpellType::cast_sabotage@006720e0`~~ | ~~`DEATHS` `1/6` on 807~~ | ~~§115, chapter ninety-one (run894)~~ | entered by run1026 (item 3424) on 806, `1/6`'s `first_frame` |
 | `Unit::action_unqueue@005e1f20` | `U3` carrier `num_queued`, `queue_time`; `LEADERS` buckets | a carrier with FIGHTERBOMBER | `@spell … 661` (BUILDAIR), then `@unqueue` |
 | `Units::make_valid@0061a960` | `U3` first `0/200` index | ~70 squads for one player | `@queueup` past 200 slots |
 | `ScenarioFuncSet::citizen_repair_order@009f85b0` | `U3` computer Citizens' `MOVEORDER` + `BUILDORDER` | a Nomad lobby (`profile.py STARTING_TOWN=0`), AI on | the computer's city placed |
 
-Three of these would move to `ENTERED_BY_THE_DLL_ONLY`, because nothing in the image references them: `issue_stance`,
+Three of these would move to `ENTERED_BY_THE_DLL_ONLY`, because nothing in the image references them (`issue_stance` did, with run1025): `issue_stance`,
 `issue_attack_ground` and `issue_come_out`. `process_stance` and `get_stance_option` would leave outright, because the game's
 own stance button reaches them.
 
@@ -13681,7 +13681,7 @@ run1029 enters it on 511, before any staged line, under `MouseOver::set_good`, `
 no sim state, but "no capture can enter it" does not, and `blind::tests::the_residue_is_on_the_blind_list` deletes the
 row. `RESIDUE` goes 80 → 79 (NATIONS §9.3, struck).
 
-**The count.** `blind::NEVER` 354 → 348. `issue_attack_ground` and `issue_come_out` move to `ENTERED_BY_THE_DLL_ONLY`,
+**The count.** `blind::NEVER` 354 → 348 on the base, 350 → 344 on the tree merged with item 3424's run1025 and run1026. `issue_attack_ground` and `issue_come_out` move to `ENTERED_BY_THE_DLL_ONLY`,
 and nothing in the image references either (`what_only_the_dll_enters_is_off_the_list_and_unreferenced`).
 
 **Coverage.** Diff-backed on both takes: the two issuers' bytes (`I_ISSUE` package growth) and the two `process_*`
