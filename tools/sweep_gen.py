@@ -3133,8 +3133,10 @@ def kept_line(path):
 
 def _kept_for_regen(argv):
     """`--regen SCRIPT` (or its snake name): the line the script keeps, to
-    be redrawn; None when `argv` is a whole line."""
-    rest = [a for a in argv if a != '--regen']
+    be redrawn; None when `argv` is a whole line. The flags a line never
+    keeps (`--dry-run`, `--reset-port`, …) ride beside the name (Loop 3407:
+    `--regen <snake> --dry-run` was read as a whole line and refused)."""
+    rest = [a for a in argv if a not in NOT_KEPT]
     if '--regen' not in argv or len(rest) != 1 or rest[0].startswith('-'):
         return None
     path = Path(rest[0])
@@ -3302,7 +3304,28 @@ def _squash(lines):
     return ''.join(chars), at
 
 
-def kept_hands(old, new):
+def _drop_port_after(new_lines, k, port, old_after, inside, base):
+    """Loop 3407: delete the generated `port` that starts at `new_lines[k]`
+    (whitespace ignored, whole lines only) when the old item's generated
+    text after the fence (`old_after`, its fences left out) did not start
+    with it — the fence stood where the port does."""
+    want, _ = _squash([port])
+    if not want:
+        return
+    flat, at = _squash(new_lines[k:])
+    if not flat.startswith(want):
+        return
+    before, _ = _squash([ln for j, ln in enumerate(old_after) if base + j not in inside])
+    if before.startswith(want):
+        return
+    end = at[len(want) - 1]
+    # Whole lines: the port is all the line it ends on holds.
+    if len(flat) > len(want) and at[len(want)] == end:
+        return
+    del new_lines[k:k + end + 1]
+
+
+def kept_hands(old, new, port=None):
     """Loop 3013's fifth reach (the forty-sixth pass): a hand block inside a
     generated body, fenced `// hand: <name>` … `// end hand`, carried from
     the old test to the new. Its anchor is the generated code it followed
@@ -3312,7 +3335,15 @@ def kept_hands(old, new):
     already placed there. An anchor the new item lacks puts the block
     before the item's closing brace; an item the new test lacks drops it;
     each said by name. A fence already in the new text (inside a kept port
-    block or a kept item) is left where it is. Returns `(text, warnings)`."""
+    block or a kept item) is left where it is. Returns `(text, warnings)`.
+
+    `port` is the expression the generator wrote in the port's place. A
+    fence that stood in that place in the old test — the port right after
+    it in the new one and not in the old — replaces it, so a regen with
+    `--port todo!()` (or a kept `--port 0`) writes no port body past
+    `// end hand` (Loop 3407: 3403 deleted a stray `todo!()`, 3397 a `0`,
+    after every regen). The anchor ends at the line above the port, so
+    the fence went back before the generated port and the port stayed."""
     warnings = []
     old_items = _items(old)
     out = new
@@ -3359,6 +3390,8 @@ def kept_hands(old, new):
                 warnings.append(f'hand block `{name}`: its anchor is not in the new `{head}`; '
                                 "placed at the item's end")
             new_lines[k:k] = lines[first:last + 1]
+            if port is not None:
+                _drop_port_after(new_lines, k + last + 1 - first, port, lines[last + 1:], inside, last + 1)
             items[idx] = (items[idx][0], '\n'.join(new_lines))
             out = '\n'.join(b for _, b in items)
     return out, warnings
@@ -3867,7 +3900,7 @@ def main(argv=None):
         print(f'sweep_gen.py: {e}', file=sys.stderr)
         return 2
     if line is not None:
-        argv = line + ['--regen']
+        argv = line + ['--regen'] + [a for a in argv if a in NOT_KEPT and a != '--regen']
     else:
         argv = merged_with_kept(argv)
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
@@ -4307,25 +4340,16 @@ def main(argv=None):
     # The script keeps the line that drew it, so `--regen SCRIPT` redraws it
     # after the lane's job directory is gone (item 2325, parked 2311).
     script = script.rstrip('\n') + '\n\n' + KEPT + json.dumps([a for a in argv if a not in NOT_KEPT]) + '\n'
-    if args.dry_run:
-        try:
-            mp = sweep_registry(mod, test)
-            registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
-        except ValueError as e:
-            print(f'sweep_gen.py: {e}', file=sys.stderr)
-            return 2
-        print(f'# {sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
-        return 0
     owner = regen_owner(sp, args.function) if args.regen else None
     if owner:
         print(f'sweep_gen.py: {shown(sp)} is the sweep of `{owner}`, not `{args.function}`; an overload '
               'names its own module with --name (Loop 3013, 3182)', file=sys.stderr)
         return 2
     old_test = tp.read_text() if args.regen and tp.exists() else None
+    todo = f'todo!("the port of {parse(args.function)[0]}")' if old_test is not None else None
     if args.regen and args.port is None and tp.exists():
         # The test's hand-written port is kept between the generated halves
         # (item 2368: two of 2341's ten restored it by hand from a copy).
-        todo = f'todo!("the port of {parse(args.function)[0]}")'
         kept = kept_port(old_test, test, todo)
         if kept is not None:
             test = kept_items(old_test, kept)
@@ -4343,12 +4367,23 @@ def main(argv=None):
     if old_test is not None:
         # Fenced hand blocks inside a generated body (Loop 3013's fifth reach).
         try:
-            test, warned = kept_hands(old_test, test)
+            test, warned = kept_hands(old_test, test, port=args.port or todo)
         except ValueError as e:
             print(f'sweep_gen.py: {shown(tp)}: {e}', file=sys.stderr)
             return 2
         for w in warned:
             print(f'sweep_gen.py: {shown(tp)}: {w}', file=sys.stderr)
+    if args.dry_run:
+        # After the port and the fences are carried, so a dry run prints
+        # what a regen would write (Loop 3407).
+        try:
+            mp = sweep_registry(mod, test)
+            registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        print(f'# {sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
+        return 0
     for p in (sp, tp):
         if p.exists() != args.regen:
             print(f'sweep_gen.py: {p} ' + ('is missing; --regen redraws a generated sweep' if args.regen
