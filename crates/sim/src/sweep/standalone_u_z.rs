@@ -96,6 +96,8 @@ mod unit_come_out_edx;
 mod unit_data_action_type;
 #[path = "unit_data_activity_type.rs"]
 mod unit_data_activity_type;
+#[path = "unit_data_attack.rs"]
+mod unit_data_attack;
 #[path = "unit_data_can_ever_transport.rs"]
 mod unit_data_can_ever_transport;
 #[path = "unit_data_can_garrison.rs"]
