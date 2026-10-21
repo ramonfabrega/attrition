@@ -16,7 +16,6 @@ fn unhex(s: &str) -> Vec<u8> {
         .collect()
 }
 
-
 // **The port is inline: the crate has no `Unit::repair_damage`** (`heal.rs`'s `civilian_heal`
 // is one caller's tail and `Sim::repair_building` is `Build::repair_damage`'s). The windows (see
 // the py's docstring): `m` this; `c0` objects, `c1` game, `c2` gamec, `c3` constants, `c4` console,
@@ -84,7 +83,13 @@ fn int_to_f32_bits(v: i32) -> i32 {
     (sign | ((127 + e) << 23) | mant) as i32
 }
 
-fn repair_damage_port(a: &[i32], m: &mut [u8], c: &[Vec<u8>], p: &mut [Vec<u8>], log: &mut Vec<String>) {
+fn repair_damage_port(
+    a: &[i32],
+    m: &mut [u8],
+    c: &[Vec<u8>],
+    p: &mut [Vec<u8>],
+    log: &mut Vec<String>,
+) {
     const K: i32 = 0x63637;
     let (mut param_1, param_2) = (a[0], a[1]);
     let param_3 = a[2];
@@ -113,7 +118,11 @@ fn repair_damage_port(a: &[i32], m: &mut [u8], c: &[Vec<u8>], p: &mut [Vec<u8>],
         let who = rd(&c[4], 0x298);
         let mut show = owner as i32 == who;
         if !show {
-            log.push(format!("s{S_IS_ALLY}:{},{}", 0xe3a390 + owner as i32 * 0x6eec, tok(who)));
+            log.push(format!(
+                "s{S_IS_ALLY}:{},{}",
+                0xe3a390 + owner as i32 * 0x6eec,
+                tok(who)
+            ));
             show = a[3 + S_IS_ALLY] != 0;
         }
         if show {
@@ -134,7 +143,11 @@ fn repair_damage_port(a: &[i32], m: &mut [u8], c: &[Vec<u8>], p: &mut [Vec<u8>],
         if d > h1 {
             d = hits(m, log);
         }
-        d = if param_1 < d { d.wrapping_sub(param_1) } else { 0 };
+        d = if param_1 < d {
+            d.wrapping_sub(param_1)
+        } else {
+            0
+        };
         wr(m, 0x24, d);
         m[0x3b] = 0;
     }
@@ -164,7 +177,9 @@ fn repair_damage_port(a: &[i32], m: &mut [u8], c: &[Vec<u8>], p: &mut [Vec<u8>],
     if o_down < 0 && c[7][0] == 0 {
         // `Error::report`: the strings, the report, the closes. The two argument slots it
         // is handed unwritten hold the sparkle's leftovers.
-        let sparkled = log.iter().any(|l| l.starts_with(&format!("s{S_UNDERLAYS}:")));
+        let sparkled = log
+            .iter()
+            .any(|l| l.starts_with(&format!("s{S_UNDERLAYS}:")));
         let (g0, g1) = if sparkled { (1, 0) } else { (0, 0) };
         log.push("s3:sp-0x58,11376956".to_string());
         log.push("s4:sp-0x44,11377008".to_string());
@@ -234,7 +249,12 @@ fn repair_damage_port(a: &[i32], m: &mut [u8], c: &[Vec<u8>], p: &mut [Vec<u8>],
     drop(log, &format!("c5+{:#x}", play * 0x9f0), "s19", "0");
     let group = ri16(m, 0x80);
     if group >= 0 {
-        drop(log, &format!("c6+{:#x}", group as usize * 0x9d4), "s20", "0,0");
+        drop(
+            log,
+            &format!("c6+{:#x}", group as usize * 0x9d4),
+            "s20",
+            "0,0",
+        );
     }
     for i in 0..18 {
         drop(log, &format!("p{}+0x0", 2 + owner * 18 + i), "s20", "0,0");
@@ -253,10 +273,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(8);
@@ -272,14 +297,25 @@ fn the_emulated_original_agrees_on_every_row() {
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "repair_damage — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "repair_damage — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "repair_damage — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "repair_damage — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "repair_damage — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[9 + i], "repair_damage — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[9 + i],
+                "repair_damage — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(7);
@@ -73,7 +78,11 @@ fn the_emulated_original_agrees_on_every_row() {
                 if count > 0 {
                     for k in 0..count as usize {
                         let rec = &p[38 + leader];
-                        let (rx, ry, rr) = (rd(rec, 16 * k + 4), rd(rec, 16 * k + 8), rd(rec, 16 * k + 12));
+                        let (rx, ry, rr) = (
+                            rd(rec, 16 * k + 4),
+                            rd(rec, 16 * k + 8),
+                            rd(rec, 16 * k + 12),
+                        );
                         let d = crate::world::vector_dist((tx - rx).abs(), (ty - ry).abs());
                         if d <= rr {
                             free = true;
@@ -110,7 +119,9 @@ fn the_emulated_original_agrees_on_every_row() {
                     if who == target {
                         break 'f 0;
                     }
-                    if rd(&p[6 * leader + 2], 4 * w) == 2 && rd(&p[32 + w], 4 * target as usize) == 2 {
+                    if rd(&p[6 * leader + 2], 4 * w) == 2
+                        && rd(&p[32 + w], 4 * target as usize) == 2
+                    {
                         break 'f 0;
                     }
                     if rd(&p[6 * leader + 5], 4) != 0 || rd(&p[6 * w + 5], 0) != 0 {
@@ -135,16 +146,28 @@ fn the_emulated_original_agrees_on_every_row() {
                         calls[3].push("m+0x0".into());
                         let mut skip = a[4] != 0;
                         if !skip {
-                            skip = if base_flag(0) { ctype(p, 0x2b8) & 0x20 != 0 } else { a[5] != 0 };
+                            skip = if base_flag(0) {
+                                ctype(p, 0x2b8) & 0x20 != 0
+                            } else {
+                                a[5] != 0
+                            };
                         }
                         if !skip {
-                            skip = if base_flag(1) { ctype(p, 0x2b8) & 0x40 != 0 } else { next_cc(&mut seq_taken) };
+                            skip = if base_flag(1) {
+                                ctype(p, 0x2b8) & 0x40 != 0
+                            } else {
+                                next_cc(&mut seq_taken)
+                            };
                         }
                         if !skip {
                             if ctype(p, 0x1e8) == 0 {
                                 break 'f 0;
                             }
-                            if if base_flag(2) { ctype(p, 0x2b8) & 0x10 != 0 } else { a[7] != 0 } {
+                            if if base_flag(2) {
+                                ctype(p, 0x2b8) & 0x10 != 0
+                            } else {
+                                a[7] != 0
+                            } {
                                 break 'f 0;
                             }
                             if if base_flag(3) { a[10] != 0 } else { a[8] != 0 } {
@@ -244,7 +267,11 @@ fn the_emulated_original_agrees_on_every_row() {
                                 };
                                 say(&mut calls, text, 1);
                             }
-                            let v = if b4 && b2 { (grace.wrapping_add(frame).wrapping_sub(900)).max(1) } else { frame };
+                            let v = if b4 && b2 {
+                                (grace.wrapping_add(frame).wrapping_sub(900)).max(1)
+                            } else {
+                                frame
+                            };
                             wr(&mut p[6 * leader + 3], 0, v);
                         }
                         meet(&mut calls, p);
@@ -277,7 +304,11 @@ fn the_emulated_original_agrees_on_every_row() {
                         break 'f 0;
                     }
                     if rd(m, 0x68) & 0x40_0000 == 0
-                        && (if base_flag(1) { ctype(p, 0x2b8) & 0x40 != 0 } else { next_cc(&mut seq_taken) })
+                        && (if base_flag(1) {
+                            ctype(p, 0x2b8) & 0x40 != 0
+                        } else {
+                            next_cc(&mut seq_taken)
+                        })
                     {
                         break 'f 0;
                     }
@@ -298,21 +329,37 @@ fn the_emulated_original_agrees_on_every_row() {
                 };
                 log = calls
                     .iter()
-                    .map(|c| if c.is_empty() { "-".to_string() } else { c.join("/") })
+                    .map(|c| {
+                        if c.is_empty() {
+                            "-".to_string()
+                        } else {
+                            c.join("/")
+                        }
+                    })
                     .collect();
                 ret
             }
-
         };
         assert_eq!(got, want_eax, "process_attrition — eax, row `{line}`");
-        assert_eq!(log, want_log, "process_attrition — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "process_attrition — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "process_attrition — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "process_attrition — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "process_attrition — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[8 + i], "process_attrition — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[8 + i],
+                "process_attrition — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
