@@ -511,7 +511,7 @@ lobbies at 1–4 (tier 1 Chinese, 2 Russians, 3 Germans, 4 Egyptians).
 |---|---|---|---|
 | `LeaderData::get_gather_handicap@006d66a0` | AI income percent by setting: −35, −15, −7, 0, +25, +50; zero for a human | modelled at economy.rs | `fn gather_handicap` |
 | `LeaderData::get_mod_resource_cap@006d65b0` | the production AI's cap ×½ at 0, ×¾ at 1, ×1 above | modelled at ai_types.rs | `006d65b0` |
-| `LeaderData::get_econ_mod@006d6660` | an early return at 0; the export holds no caller | not modelled | `006d6660` |
+| `LeaderData::get_econ_mod@006d6660` | ~~an early return at 0~~ ×½ at 0, ×¾ at 1, ×1 above (§9.1); the export holds no caller | not modelled | `006d6660` |
 | `LeaderData::get_diff@006ec000` | the read itself | modelled at ai_types.rs | `fn ai_difficulty` |
 | `Leader::production_ai_setup@006c83e0` | the stockpile clamp below 3, the `== 2` ×5 term | carried at ai.rs | `006c83e0` |
 | `Leader::research_techs@006c6ba0` | age pacing and epoch quota below 2 (0/1 and 2 differ), the `≥ 4` gather weights | carried at ai_research.rs | `006c6ba0` |
@@ -730,7 +730,8 @@ a pass books against a word, not a fix for the lobby that exposed it.
 - **The multiplayer handicap and `HANDICAPS` rows.** `semaphore[0] & 4`
   is off in every capture.
 - **`Setup::`, `ConquestGame::` and the interface classes' reads of
-  the difficulty,** which are not sim.
+  the difficulty,** which are not sim. ~~Unread~~ The never-entered ones
+  are read in §9 (item 3412), each with what would enter it.
 
 ## 9. The never-entered functions — what would enter each, and what nothing can (item 3412, reading)
 
@@ -753,3 +754,35 @@ written here and the row is left as generated.
 | `CommandPackage::process_sell@009468a0` | The Nubian (4) arm is the market gate `has_tribe_bonus(4) \|\| has_preq(BUY_SELL 0x2ad)` (:51); it lifts the tech, never the Market. Only the human's Sell buttons issue the command: `Options::exec@007188c0:1157–1165` (flags 0, 1, 2 for one lot, 500, all) → `LeaderOut::issue_sell@006d3eb0` → `CommandManager::issue_sell@00942a80` (`'/'`). The computer sells through `do_sell`/`action_sell` directly, no capture has clicked Sell, and the tracer has no `@sell`. **The census's `carried at` is the emulator sweep alone**: `crates/sim` has no `process_sell`, and the harness drops `Command::Sell` as "the market is not modelled" (`rondata/src/input.rs:1189`), stale beside `ai_make.rs`'s `do_sell`, `do_buy` and `calc_market_prices` | the export; the tree | a human Sell whose `LEADERS` buckets move other than `do_sell`'s |
 | `IFaceMarket::on_redraw@00812d20`, `IFaceMarket::setup_selected@008134d0` | Interface only, through vslots `+0xb8` and `+0x4f8` while a Market is selected: the needs-tech or embargo text, and the Buy/Sell buttons per good (Sell at stock ≥ 100, Buy at price ≤ wealth), behind the same Nubian gate. Neither writes sim state | the export | a sim field written by either |
 | `ScenarioFuncSet::buy_good@009fb790`, `sell_good@009fb880`, `can_buy_sell@009fb970`, `find_sell_price@009fb9e0`, `find_buy_price@009fbab0` | Script functions on the one global interface (`init_funcs@009c7570:3466–3477`), so "the scenario trigger set" is the class, not the reason: **no shipped script calls them** but `game/conquest/Alexander/sogdiana.bhs:499`'s `find_sell_price`. Each is one `do_buy`/`do_sell` or one `calc_market_prices@006dc2a0` read (ported at `ai_make.rs:715–767`) behind the Nubian gate, with a 1-based player; `can_buy_sell` omits the embargo test | the export; the install's 365 `.bhs` | a shipped skirmish script calling one |
+| `LeaderData::has_bonus@0047df90`, `LeaderData::has_bonus@006e0b80` | Two byte-identical copies of the Nubian (4) market gate, told apart only by the translation unit a call binds to (`llvm-objdump` call targets). `0047df90`'s one caller is `Options::describe@00724460` (four sites, tooltip text): interface only. `006e0b80`'s is `LeaderData::can_buy_sell@006d53e0`, whose one sim path is the human's Buy (`Options::exec` → `issue_buy` → `process_buy` → `action_buy`); `gain_tech`'s `action_sell` is dead (every good's `<OBS>` is `disable`), and the computer's `use_market` writes the gate inline, carried at `ai_make.rs:521–528` | the listing | a computer buy entering `006e0b80` |
+| `LeaderData::get_econ_mod@006d6660` | **Dead, and not "an early return at 0" as §6 had it**: the listing (`6d6660–6d669c`) returns `0.5` at difficulty 0, `0.75` at 1 and `1.0` above, and `1.0` for a human (`leader_flags & 4`) or under `semaphore[0] & 4` (the floats at `0xb694c0`, `0xb694dc`, `0xb69514`, read off the PE) — `get_mod_resource_cap`'s tier shape. No call and no four-byte pointer to it in the image | the listing; the PE | a trace entering it |
+| `LeaderData::get_vehicle_speed_upgrade@006da8a0` | Counts each of `VEHICLES_FASTER_1..3` (`0x2f8..0x2fa`) `has_preq` answers; its inlined Nubian/`BUY_SELL` arm cannot fire, since `0x2ad` is outside the range. Its one caller is `ObjectData::train_time@006508c0:262`, for a type with mask `0x200000` and not `0x1000`, applied as `(10 − n)/10`. The port (`tech.rs:483`, `lib.rs`) agrees, but asks one stored prerequisite per bonus where the original asks the bonus's whole PREQ list. **Why no pinned trace trains such a type is unestablished** | :262; the export | a `0x200000` unit queued with one upgrade held whose queue time is not ×9/10 |
+| `LeaderOut::warn_resources@006d3650` | Returns unless the leader is the console player (:65), then writes only the flash, a message line and a sound; the Lakota (19) arm is the food-advice string (:370). No sim state; the hook at `action_spell_view.rs:135` and the sweep's recording stub are right to drop it | the export | a sim field written by it |
+| `TypeData::get_desc_parsed@006626e0` | Tooltip text, nine interface and CtW callers; the British (11) arm is the `TAX_1..4` number (:128–146) | the export | a sim caller |
+| `Object::disband@006455c0` (its national arms; the rest is `docs/AI.md`'s) | Lakota (19, :97–108): with `LAKOTA_RAZE_PRICE ≠ 0` a Lakota building disbanded for any reason refunds its whole price — the constant is a gate, not an amount — carried by `disband.rs`'s `SimDisband` for buildings, without the console message. Aztec (0, :144–153): a disbanded unit with `unit_masks & 0x4000` pays `Unit::plunder` to its last damager (`+0xa9`) when that damager is an Aztec; the sweep follows it, the sim disbands no unit, and no writer of `0x4000` was found (unestablished). `SimDisband::price` returns one price for the full arm (last argument −1) and the partial (`orig_type`), a possible disagreement. Every caller is an object's removal — a delete, a captured city, a duplicate wonder, a stranded site, a raze — and no pinned trace takes one | the export; the tree | a Lakota building deleted under its price whose `LEADERS=1` buckets gain less than its whole price |
+
+### 9.2 Captures owed (the forty-eighth pass books from this table)
+
+All at `cover=1`; the frame is the action's. `CM` is `[Misc Logging] COMMANDMANAGER=1`'s `process_*` line; `L1` is
+`[End Frame] LEADERS=1`'s buckets.
+
+| function | ini category · field | lobby | action · frame |
+|---|---|---|---|
+| `CommandPackage::process_sell@009468a0` | `CM` `process_sell`; `L1` `bucket.timber`, `bucket.wealth`; `Game::log_data`'s `market` | a Nubian human (any pair's lobby with the human Nubian) | a Market built, then Sell on timber, ~2000; a tracer `@sell` line is the cheaper route |
+| `LeaderData::has_bonus@006e0b80` | `CM` `process_buy`; `L1` buckets | the same lobby | Buy at the Market before Coinage (`BUY_SELL`), so only the Nubian arm opens the gate |
+| `LeaderData::get_vehicle_speed_upgrade@006da8a0` | `[End Frame] BUILDS=6` queue time | any lobby | a `0x200000`-masked land unit queued with one `VEHICLES_FASTER` held |
+| `Object::disband@006455c0` | `CM` `process_disband`; `L1` buckets | a Lakota human | delete a completed Lakota building; the Aztec arm needs an Aztec damaging a `0x4000` unit that is disbanded |
+
+### 9.3 Residue proposals
+
+**Fourteen**, each with its reason; none is added to `RESIDUE` by this item.
+
+| function | why no skirmish capture reaches it |
+|---|---|
+| `ConquestGame::setup_scenario_bonuses@0078be90`, `ConquestGame::build_cities@00796140`, `ConquestLeader::plan_strategy@0079ea80` | Conquer the World only (`semaphore[2] & 2`), cut from v1 |
+| `ScenarioFuncSet::get_difficulty@009e5320`, `set_capital@00a00220`, `buy_good@009fb790`, `sell_good@009fb880`, `can_buy_sell@009fb970`, `find_sell_price@009fb9e0`, `find_buy_price@009fbab0` | script functions no shipped skirmish script calls; only `game/conquest/*` does |
+| `IFaceMarket::on_redraw@00812d20`, `IFaceMarket::setup_selected@008134d0`, `LeaderData::has_bonus@0047df90`, `TypeData::get_desc_parsed@006626e0` | interface text and buttons; no sim state |
+| `LeaderData::get_econ_mod@006d6660` | no caller and no pointer in the image |
+
+`LeaderOut::warn_resources@006d3650` is not proposed: `Group::action_spell` reaches it in a skirmish, so a capture enters
+it, but it writes no sim state and §9.2 books none for it.
