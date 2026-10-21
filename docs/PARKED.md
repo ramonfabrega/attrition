@@ -9035,13 +9035,26 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MK — reserved
+## Parked by item 3410, 2026-10-21 — the first five never-entered unmarked rows swept
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3410a — `SpellType::cast_pilfer` has no crate method.** The sweep (`spell_type_cast_pilfer.rs`, 1000 rows, 7 of 7 breaks)
+  carries the whole steal as an inline port; the crate only has the `0x276` validity arm. A real `cast_pilfer` would be
+  built from that port. Names no score yet (the cast is never entered in a traced game); `RESIDUE` candidate for 3408.
+- **3410b — `cast_sabotage`'s leader counters, messages and sounds are absent from the crate.** Only
+  `cast_sabotage_building`'s damage and `cast_sniper_unit`'s death exist; the sweep (2500 rows, 6 of 6) ports the rest inline
+  and does not run the crate method, so no crate/original disagreement is claimed. Unswept: `p2 == p4` (caster = target
+  leader), the `IStatsAndAchievements` tail.
+- **3410c — `cast_bribe` is partial in the crate** (`bribe.rs`: the unit arm past its refusals). Refusal gates, city arm,
+  building arm and messages are inline in the two sweeps (main 4000 rows, self-target 400; 11 of 11 breaks); the swap is
+  stubbed at slot 0x94, so `unit_swap_team` is not compared against the original by this sweep.
+- **3410d — `check_meet_ship` and `do_group_attack` are absent from the crate** (the crate has only
+  `do_group_attack_to_tail`); both swept whole with inline ports (800 and 3000 rows). `check_meet_ship`: break M4
+  (`59999 < b` to `60000 < b`) passes as an equivalent boundary; two more breaks were not run. `do_group_attack`: a null
+  `m+0xdc` in the new-order arm faults in the original and is never laid.
+- **3410e — generator notes.** `--regen` re-reads the stored flags and ignores new ones, so widening a draw means a
+  delete and regenerate; place windows cannot sit on stub-answer windows (`--alias WIN+OFF:pN!` is the way round);
+  a `--ptrtab` takes one array window plus N record windows, so `p` numbers are not the naive count; a regeneration once
+  wrote its mod line into `sweep/mod.rs` (reverted).
 
 ## Parked by the next landing, slot ML — reserved
 
