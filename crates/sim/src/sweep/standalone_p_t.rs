@@ -100,6 +100,8 @@ mod region_release;
 mod region_walk_data;
 #[path = "regions_concat.rs"]
 mod regions_concat;
+#[path = "regions_find.rs"]
+mod regions_find;
 #[path = "regions_fix_all_borders.rs"]
 mod regions_fix_all_borders;
 #[path = "regions_get_num_sea.rs"]
