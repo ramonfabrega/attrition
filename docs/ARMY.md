@@ -1330,7 +1330,8 @@ set; then every group with units gets `group.army = army` and
 (§8.5). Callers: `process` (§6 steps 1–2), `Leader::action_ping@006d18a0`
 — a **human ally's ping** on the map: the nearest useful army of an allied
 AI (`find_useful_army`, §15.3) is sent there with `MOVE_TO` and
-`human_frame = 0xa8c` (2,700 frames of obedience).
+`human_frame = 0xa8c` (2,700 frames of obedience), only within 225 frames
+of a help taunt to that ally (§26).
 
 **`stop@006f9180`**: every group's `action_begin` (vslot `+0x14`), then for
 a non-building group `form = −1` and every active on-map unit that is not
@@ -2690,3 +2691,53 @@ availability gate remains unimplemented (§20.4), and no new independent
 blind audit is claimed. The packet validates ranges, anchors and receipt,
 not thread quiescence or atomicity. Evidence and temporary probes remain
 outside git under `~/ron-data/lab-experiments/2026-10-01-item-1435-codex/`.
+
+## 26. The never-entered functions: readings, captures owed, residue proposed (item 3413, 2026-10-21)
+
+*Item 3413, Opus 5.5, a `reading` item (DECISIONS 84, 86). The method is `docs/ORDERS.md` §42's. **Everything here is
+reading-only.***
+
+**The list.** `blind::NEVER` against this document's cites on `3477eb7a`: **5**, one accepted `RESIDUE`
+(`LeaderData::is_human`), so **4**.
+- **Swept, not re-read, 3**: `Unit::go_to_city@005f79c0` (item 2655), `Army::use_scouts@006f49a0` and
+  `use_spies@006f4af0` (3219). `docs/AI.md` §296 owes their captures, in rows 8 and 2.
+- **Read here, 1**: `Leader::action_ping@006d18a0`.
+
+**`Leader::action_ping@006d18a0(x, y, pinger)`** (§14's ping, amended here). Its one caller is
+`CommandPackage::process_ping` (`9454bb`), which calls it on every active leader `L`. The call is made where the
+pinger's `chat_status[L]` is 0 and `L`'s `chat_status[pinger]` is not 2, or where `semaphore.ptr[0] & 0x40` waives
+both. `process_ping`'s one issuer is `CommandManager::issue_ping`, and that one's is `LeaderOut::issue_ping`, the
+human's ping. No pinned trace enters any of the four. On each call:
+- **`:16`–`:21`**: the point is clamped to the world, and `L` takes the ping marker (`receive_ping`). It does not when
+  its `chat_status[pinger]` is 2, unless the semaphore bit is set.
+- **`:22`**: the army arm runs only on the pinger's own call, and only when the pinger is human
+  (`leader_flags & 4`).
+- **`:28`–`:38`**: it then walks every other active leader `A` that is not human and is the pinger's ally. Each `A`
+  must also pass **two taunt tests**. These are what §14 left out:
+  - `A.last_taunt[pinger] == TAUNT_HELP` (16, the PDB's `TauntRequest`; listing `6d1977`).
+  - `frame ≤ A.taunt_frame[pinger] + 225` (`6d1985`–`6d199d`).
+
+  `Leader::process_taunt` is their only writer, at its `:52`–`:53`.
+- **`:36`–`:40`**: then `Armies::find_useful_army(A, x, y, …)` picks an army. That army gets
+  `send_here(x, y, MOVE_TO)` and `human_frame = 0xa8c`.
+- **`:41`–`:63`**: when the pinger is the console's seat, one of four acknowledgements is chosen by `internal_random`
+  and played under `prefs & 0x1000`.
+
+**So a ping moves a computer ally's army only within 225 frames of a "help" taunt the human sent that ally.** A bare
+ping only marks the map. `find_useful_army`'s last two arguments are both `ecx`, the window's end (`6d19a3`–`6d19a4`);
+what it does with them was not read. The crate carries `human_frame` and §6 step 2's countdown, but not the ping.
+
+*Falsifier*: in a team lobby with a computer ally, a human pings with no help taunt before it, and the ally's army
+`human_frame` (`[End Frame]` the army record) leaves 0 within the next few frames. A help taunt then a ping inside 225
+frames that leaves it at 0 also kills the claim.
+
+**Captures owed.**
+
+| function | lobby | action · frame | ini category · field |
+|---|---|---|---|
+| `action_ping` | a team lobby with a computer ally (`docs/AI.md` §296 row 12's, none on disk), driven | the help taunt to the ally, then a ping inside 225 frames; and once a ping with no taunt | the ally army's `human_frame` and its `MOVE_TO` point; `[Misc Logging] COMMANDMANAGER=1`'s `process_ping who x y` |
+| `go_to_city`, `use_scouts`, `use_spies` | `docs/AI.md` §296 rows 8 and 2 | as there | as there |
+
+**Residue proposed: none.**
+
+**Coverage.** Every claim of §26 is reading-only.
