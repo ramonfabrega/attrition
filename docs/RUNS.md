@@ -21352,3 +21352,87 @@ Archive `rontrace-run1026.log`, 11,715,712 bytes,
 SHA-256 `67a0be9aed9be2c33fce5bcf82c3f5840d001b7e02f6a9a7d327aafe4df80d13`.
 
 **What it holds**: `blind::TRACES`' run1026 (item 3424), `NEVER` 356 → 352 with run1025 on its base; 350 on the tree merged with item 3423's run1022 and run1024.
+
+## run1032 — chapter eleven's lobby with a right-click guard and a Move-button follow, driven at `cover=1` on the queue lane to 793 (2026-10-21, item 3427, `att-3427`)
+
+**What the disk could not answer**: no trace on disk enters `GroupOut::issue_guard@007088e0`,
+`GroupOut::issue_follow@00708980` or `Options::picked_spot@00721c40`. Every chapter's `@` line calls the
+`CommandManager` copy, and run30, run47 and run50 right-clicked only the ground (`docs/GOLDEN.md` §144.1). The take is
+`tools/gamelog/captures.txt`'s run1032 stanza through `viadriver.sh tools/gamelog/runqueue.sh - 1032`. It is chapter
+eleven's golden lobby (`cfg: -`, map 14, seed 12345) and its three `add` lines, `616 select 6 who=0`, `616 camera
+16,44`, no `!ffwd`, the per-frame dump from 605 at `end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2` and
+`misc:COMMANDMANAGER=1` (the stanza's new `misc:` key). The clicks came from `tools/gamelog/handdriver.sh`, which
+reads them from `/tmp/ron-runs/hand-1032/cmd` while the game runs. The first was written before the launch: wait for
+block 622, then right-click the viewport's centre (960, 445) on the Supply Wagon `0/7`. The second and third were
+aimed from that click's screenshot: the card's Move button (34, 935), then a pick on the wagon (958, 492). The game
+was then quit through its own menu (Game Menu (1899, 11), Quit Game (960, 694)), which returns to the main menu with
+no confirmation, and the runner settled on the stopped dump.
+- Queue lane (lane 1). Launched 15:39:19, archived 15:45:04. The game runs live at about two frames a second.
+  DLL `399a9791…`, the install's build of 2026-09-29 (no `@` lines, so the queue lane's check let it run). 224 GiB
+  free before. Minutes waited on another lane: none.
+- The dump prints `process_group, new 0 1 625` / `process_guard 625`, and on block 626 a `GUARDORDER` stands. Then
+  `process_group, repeat 0 0 709` / `process_follow 709`, and on block 710 a `FOLLOWORDER`.
+- **6,756 functions entered**. Three are `NEVER` rows: `issue_guard` on 624, `issue_follow` and `picked_spot` on 708.
+  The Move pick reaches `issue_follow` through `picked_spot`'s `OPTION_MOVE_TO` arm, not the Follow button.
+- `rngcmp.py ~/ron-golden/ch11/map-14/rontrace.log rontrace-run1032.log` (the golden twin, `cover=0`): **793 in
+  common, 113 differing, the first 676**, 680 identical. `samegame.py` against the twin's dump: **189 in common, 172
+  differ, the first 621**. The twin's `620 @guard` lands on 621 and this take's click on 625, so every block before
+  the first input that differs agrees.
+
+Archive `gamelog-run1032-ch11-guard-click.txt`, 31,976,128 bytes,
+SHA-256 `afb28a979b6b70e56467282a550f52ccb2181d374256dd81eeaf3d8eebe4982f`.
+
+Archive `rontrace-run1032.log`, 14,476,576 bytes,
+SHA-256 `1f5f44e997c24a3b77aaa11e5e508412637fa208d84ba199f3c18fc12317daf3`.
+
+**What it holds**: `blind::TRACES`' run1032 (item 3427).
+
+## run1033 — chapter thirteen's lobby with a Barracks train click and its Eject button, driven at `cover=1` on the queue lane to 773 (2026-10-21, item 3427, `att-3427`)
+
+**What the disk could not answer**: no trace enters `BuildData::can_queue@0062da00` (parked 3423a: its one caller is
+`GroupOut::issue_queue_up`), `GroupOut::issue_eject_all@00708b90` or `Options::do_eject_all@0071c470`. The take is
+run1032's shape on chapter thirteen's lines: the Barracks `0/2007`, the chariot and the squad, `620` and `640
+@garrison` kept, `700 select 2007 who=0`, `700 camera 14,74`, and `end:` at chapter thirteen's
+`UNITS=3,GUYS=2,BUILDS=7,DEATHS=1,LEADERS=2`. From the block-702 screenshot the driver clicked the card's first
+**Units** button (34, 956) and then the Eject button (158, 1056), then quit through the menu. The first launch refused
+because the install's DLL was older than this tree's `tracer.c` and the stanza has `@` lines. `zsh tools/trace/build.sh
+<install>` rebuilt it (`b8d80339…`), and the second launch ran.
+- Queue lane (lane 1). Launched 15:46:00, archived 15:51:02. Minutes waited on another lane: none.
+- The dump prints `process_queue_up 82 1 737` and then `process_eject_all 749`.
+- **6,738 functions entered**. Three are `NEVER` rows: `can_queue@0062da00` on 736, `issue_eject_all` and
+  `do_eject_all` on 748.
+- `rngcmp.py` against `~/ron-golden/ch13` (`cover=0`): **773 in common, 22 differing, the first 751**, 751 identical.
+  `samegame.py`: **169 in common, 36 differ, the first 737**, which is the train click's block.
+
+Archive `gamelog-run1033-ch13-eject-queue-click.txt`, 37,065,669 bytes,
+SHA-256 `ea498fa460d248d9d1d3177cd8b2556d98dc917b92fda373eb81e2d9e2259ee3`.
+
+Archive `rontrace-run1033.log`, 13,607,712 bytes,
+SHA-256 `bd6861c105efd8cfd2e94830a5b8d2df10ab556cbfb8ff482764766893764f2f`.
+
+**What it holds**: `blind::TRACES`' run1033 (item 3427).
+
+## run1034 — chapter twenty's lobby with the Auto Transport button pressed twice, driven at `cover=1` on the queue lane to 814 (2026-10-21, item 3427, `att-3427`)
+
+**What the disk could not answer**: no trace enters `GroupOut::issue_set_transport@0070ad10` or
+`Options::do_transport@0071c500`. Chapter twenty's `@settransport` calls the manager's copy. The button needs Science
+1 and a Dock (its tooltip, run1032's screenshot), which chapter twenty's `600 library who=0 1` and Dock supply. The
+take uses chapter twenty's lines without the `@` lines, `616 select 7 who=0`, `616 camera 34,189`, and `end:
+UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1` from 595. Every click was written before the launch: the card's Auto
+Transport button (96, 1012) after block 620 and again after 800, the twin's two frames. Then a quit through the menu.
+- Queue lane (lane 1). Launched 15:51:09, archived 15:59:12. DLL `b8d80339…`. Minutes waited on another lane: none.
+- The dump prints `process_set_transport 627` and `process_set_transport 803`. `0/7`'s `unit_masks` reads 8388608
+  (`0x800000`) on block 626 and 0 on 628, then 0 on 802 and 8388608 on 805. That is the twin's off on 620 and on on
+  800, each a few frames later.
+- **6,323 functions entered**. Two are `NEVER` rows: `issue_set_transport` and `do_transport` on 626.
+- `rngcmp.py` against `~/ron-golden/ch20` (`cover=0`): **815 in common, 143 differing, the first 672**, 672
+  identical. `samegame.py`: **211 in common, 194 differ, the first 621**, which is the twin's `620 @settransport`
+  block.
+
+Archive `gamelog-run1034-ch20-transport-click.txt`, 96,757,960 bytes,
+SHA-256 `dd8be4f78c9876c61c714e048a62855903e17f7edb69f4a1e54ecc5a147a5947`.
+
+Archive `rontrace-run1034.log`, 26,022,656 bytes,
+SHA-256 `eabe1f120aea0bcc77967fbc702eb1f0b067719d74cb07b0e12ae4d3cae7cf1d`.
+
+**What it holds**: `blind::TRACES`' run1034 (item 3427).
