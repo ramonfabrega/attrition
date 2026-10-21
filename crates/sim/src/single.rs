@@ -45,6 +45,9 @@ const HIDDEN: u64 = 1 << 23;
 
 impl Single {
     pub const ZERO: Single = Single(0);
+    /// `0x3f000000`, one half — `__real_3f000000@00b694c0`, the multiplier
+    /// of `find_tcoord_z`'s mean and of the terraform's border blend.
+    pub const HALF: Single = Single(0x3f00_0000);
 
     /// A literal, by its bits — the only way a constant enters this module,
     /// because writing one in decimal would be writing a float.

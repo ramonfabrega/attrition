@@ -9967,6 +9967,23 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3365,
         Some(crate::diff::korean_word::WIDENING_KOREAN_CLOSING),
     ),
+    // **The battery's Spanish word at Great Lakes** (item 3390, DECISIONS
+    // 72, 83, 84): frame 8384, the battery's first try (item 3384),
+    // promoted here and moved 8384 → 13496 with the terraform in the
+    // original's singles; widened on run1013 over 13490..13746, run1013b's
+    // gap 8381..13485 at a stride of 16 and run1013c's 13463..13489. Item
+    // 3390 moved it 13496 → 13639 with the Monarch's siege doubling in
+    // `get_speed` and 13639 → 14068, the game's last frame, with the same
+    // arm in `do_cast`'s pack clock. The close is compared whole on
+    // run1008b's own closing block 14069 by
+    // `run1008b_spanish_lakes_closing_state`.
+    (
+        "SPANISH_LAKES_WORD",
+        crate::diff::spanish_lakes_word::SPANISH_LAKES_WORD,
+        Some("run1008b_spanish_lakes_closing_state"),
+        3390,
+        Some(crate::diff::spanish_lakes_word::WIDENING_SPANISH_LAKES_CLOSING),
+    ),
     // **The battery's American word at Great Lakes** (item 3384,
     // DECISIONS 72, 83, 84): frame 3176, the battery's first try (item
     // 3380), promoted here and widened on run1009 over 3170..3426 (block
@@ -10631,6 +10648,22 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 pub(crate) const NEWEST_PAIR: &str = "Battery word";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
+    // **The battery's Spanish word at Great Lakes** (DECISIONS 72, 83, 84;
+    // item 3390): Great Lakes, the Spanish at Difficulty 4 — the held-out
+    // battery's lowest open lobby on the measure of `02005991`, minted by
+    // item 3384 under rule (2); the game ends itself on 14068. It joins the
+    // `Battery word` line first; the closed rows choose nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatLakesSpanishTier4",
+        named: "Great Lakes (Spanish)",
+        word: crate::diff::spanish_lakes_word::SPANISH_LAKES_WORD,
+        length: 14_068,
+        // Closed by item 3390: the draw stream agrees to 14068, and
+        // run1008b's closing block 14069 scores the end itself.
+        endpoint: Some("run1008b_spanish_lakes_closing_state"),
+        window: Some("spanish_lakes_frame_13496_window"),
+    },
     // **The battery's American word at Great Lakes** (DECISIONS 72, 83, 84;
     // item 3384): Great Lakes, the Americans at Difficulty 4 — the held-out
     // battery's lowest open lobby on the measure of `689ddb67`, minted by

@@ -769,9 +769,11 @@ impl Sim {
     /// captain that took one, that reaches it (East Indies' `1/24` on
     /// 3835, `docs/AI.md` §207).
     ///
-    /// SEAMS, all stated: the general's `has_general(0, 0x162)` extra
-    /// `spell_time` step is not modelled; and nor is the whole
-    /// non-spell-type arm, which is
+    /// The Monarch's `has_general(0, 0x162)` extra `spell_time` step, for a
+    /// siege unit's pack or unpack, is **in** as of item 3390
+    /// ([`Sim::near_monarch`]).
+    ///
+    /// SEAMS, all stated: the whole non-spell-type arm, which is
     /// `LeaderData::current_upgrade` + `set_type` and reaches no craft
     /// index at all. `is_rare_collector`'s re-seat is **in** as of item
     /// 210 — step 2's second half.
