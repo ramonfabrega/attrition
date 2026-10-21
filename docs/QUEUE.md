@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): 9 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
-click-free pool (run1037); 3417–3423: `NEVER` 380 → 354 (run1016–run1024); 3431 (Ramon's): Gunpowder and Industrial
-starts pinned, the rubric's ages 4 → 6 of 8; `think_supply` proposed residue (3421a); the Ambush arm diff-backed (3419).*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): 10 of 20 landed from `11da5dd8`, the commander cleared at the
+seam** — 3429: `cover=1` runs on the click-free pool (run1037); 3417–3424: `NEVER` 380 → 350 (run1016–run1026); 3431
+(Ramon's): Gunpowder and Industrial starts, the rubric's ages 4 → 6 of 8; `think_supply` proposed residue (3421a).*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
-  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 354, residue 80, open 300 →
-  274** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
+  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 350, residue 80, open 300 →
+  270** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
   `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3424, att-3425 (pool).** Next 3432, run 1044. Pools: GOLDEN §146–149, AI §300–301, park NA–ND.
+- **Lanes: att-3425, att-3426.** Next 3432, run 1044. Pools: GOLDEN §146–149, AI §300–301, park NA–ND. The last whole gate: 3424's booking.
 - **Fable backlog: 9 Loop items** (3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -36,12 +36,12 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 354 · residue 80 · open 274
+Blind: never 350 · residue 80 · open 270
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): spawn 3417 and 3429 on
-the two Opus lanes (`brief.py --kind coverage`), the Sonnet seats empty; refill from the owed tables as each lands;
-count landings from the forty-eighth pass's commit; at twenty, or at the drain, clear `steer`.**
+**Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): re-arm `tools/lanewait.py
+--stalled-child-after 240` on att-3425 and att-3426; refill from the queue, then its refill order (the briefs' shared
+rules are `t49/common.md` in the job tmp); count landings from `11da5dd81`; at twenty, or at the drain, clear `steer`.**
 
 ## The queue
 
@@ -50,11 +50,6 @@ pinned lobby retaken at **`cover=1` on the click-free pool** (3429's fix, run103
 3427), checked against its `cover=0` twin (`rngcmp.py`, `samegame.py`), pinned into `blind::TRACES`; a function
 not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: GOLDEN §144.3's click
 layer, `@spell` Bribe, the carrier, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
-
-3424. **coverage: two golden chapters retaken at `cover=1`** (GOLDEN §144.3): sixty-four (`CommandManager::issue_stance`
-→ `ENTERED_BY_THE_DLL_ONLY`, `CommandPackage::process_stance`, `GroupData::get_stance_option`; run835) and ninety-one
-(`SpellType::cast_sabotage`; run894); seventy-five's and forty-six's rows were entered by run1020 and run1019. Each
-`chapterN.cmd` line for line, `cover: cover=1`. Runs 1025–1026.
 
 3425. **chapter: two new `@` lines, `@attackground` and `@comeout`** (GOLDEN §144.3; `chapter` kind, GOLDEN §145):
 the tracer DLL calls `CommandManager::issue_attack_ground@009417a0` and `issue_come_out@00942c90` with the manager the
