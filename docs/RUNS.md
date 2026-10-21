@@ -21226,3 +21226,68 @@ Archive `rontrace-run1021.log`, 71,615,584 bytes,
 SHA-256 `f6d15dd286f7a698dfca8b68d0204db37490d0ec90d18a0c079bc342e6363b2a`.
 
 **What it holds**: `blind::TRACES`' run1021 (item 3422), `NEVER` 360 → 358 on its base; 356 on the tree merged with item 3419's run1018.
+
+## run1029 — chapter three's lobby with an `@attackground` on 630, at `cover=1` on the click-free pool to 900 (2026-10-21, item 3425, `att-3425`)
+
+**What the disk could not answer**: no trace on disk calls `CommandManager::issue_attack_ground@009417a0`, because no
+`@` line existed for it, and nothing in the image calls it. `CommandPackage::process_attack_ground@009494a0` and
+`Group::action_attack_ground@00704520` stayed on `NEVER` with it (`docs/GOLDEN.md` §144.3). The take is run145's
+recipe with `--cover cover=1` and the new staging, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/ch3ag` (the directory then renamed `run1029`): `--map 14 --end-frame 900 --log-window 605 900 --timeout
+3600 --detail end:UNITS=3,GUYS=2,AMMO=5,DEATHS=1,LEADERS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail
+misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter3-attackground.cmd --cover cover=1`. The staged
+`rontrace.cmd` is run145's (`37 !ffwd 1`) plus `630 @attackground 0 2328 9480 9`.
+- Pool lane 1 (`~/wine-ron`). Launched 14:38:42, exited 14:41:48: **185.8 s launch to exit**. `success`, lifecycle
+  verified, 901 frames, `last_frame` 900, map 14, seed 12345. DLL `a577b833…`, `-DRON_AUTOSTART`, this tree's
+  `94fb5bf73`. 214 GiB free before. Minutes waited on another lane: none.
+- `issuesmatch.py --none-refused`: the one issue on 630 has refusal 0 and the package goes 10 → 25. The dump prints
+  `process_attack_ground 2328 9480 2` on block 631, and on 632 the Catapult `0/9` holds `ATTACKGROUNDORDER att_x=2328
+  att_y=9480` under a `CASTORDER spell=652`.
+- **6,617 functions entered**. Four are `NEVER` rows: the three asked for, on 630, and `TypeData::get_desc_parsed@
+  006626e0` on 511, a `RESIDUE` row entered by the resource tooltip (`MouseOver::set_good`).
+- `rngcmp.py ~/ron-golden/ch3/map-14/rontrace.log rontrace-run1029.log` (run145, `cover=0`): **901 in common, 240
+  differing, the first 659**, 661 identical. `samegame.py` against run145's dump: **296 in common, 269 differ, the
+  first 631**. Both differences start after the issue.
+- Filed with `filerun.py run1029 chapter3-attackground-cover1-clickfree`.
+
+Archive `gamelog-run1029-chapter3-attackground-cover1-clickfree.txt`, 44,578,161 bytes,
+SHA-256 `c6264e7ce91f9031e01cbe7eaee8a1217aa6bfd1e97e7ead51465cc940ec7f25`.
+
+Archive `rontrace-run1029.log`, 10,662,880 bytes,
+SHA-256 `9c08de225230087d4f071fb390ec5e80ba6e856a3b9fb61c03fe05735457cd8e`.
+
+**What it holds**: `blind::TRACES`' run1029 (item 3425).
+
+## run1030 — chapter thirteen's lobby with an `@comeout` on 800, at `cover=1` on the click-free pool to 1000 (2026-10-21, item 3425, `att-3425`)
+
+**What the disk could not answer**: no trace on disk calls `CommandManager::issue_come_out@00942c90`, and so none
+enters `CommandPackage::process_come_out@009465d0` (`docs/GOLDEN.md` §144.3). The take is run208's recipe with
+`--cover cover=1` and the new staging, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/ch13co`
+(the directory then renamed `run1030`): `--map 14 --end-frame 1000 --log-window 605 1000 --timeout 3600 --detail
+end:UNITS=3,GUYS=2,BUILDS=7,DEATHS=1,LEADERS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail
+misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter13-comeout.cmd --cover cover=1`. The staged
+`rontrace.cmd` is run208's (`37 !ffwd 2`) plus `800 @comeout 0 7`.
+- Pool lane 2 (`~/wine-ron-2`). The runner launched three times:
+  - the first stalled before frame 0 and was killed and relaunched at 300.4 s (parked 762's DXVK stall);
+  - the relaunch died before frame 0 with exit 41 and was retaken 3.3 s later;
+  - the take launched 14:43:50 and exited 14:47:15: **204.6 s launch to exit**, 518.2 s in all.
+
+  `success`, lifecycle verified, 1,001 frames, `last_frame` 1000, map 14, seed 12345. DLL `c8fd77d2…`,
+  `-DRON_AUTOSTART`, `94fb5bf73`. It ran beside run1029, and no minutes were waited on another lane.
+- `issuesmatch.py --none-refused`: the 800 issue has refusal 0 and the package goes 10 → 21, with no `group`. The
+  dump prints `process_come_out 7 801`. On 802 `0/7` stands at (2712, 14904) with `inside_up -1`, and the Chariot
+  `0/6`'s `inside_down` is −1.
+- **6,490 functions entered**, two of them `NEVER` rows, both asked for, on 800.
+- `rngcmp.py ~/ron-golden/ch13/map-14/rontrace.log rontrace-run1030.log` (run208's game, `cover=0`): **1,001 in
+  common, 199 differing, the first 802**, 802 identical. `samegame.py`: **396 in common, 199 differ, the first 801**.
+- Filed with `filerun.py run1030 chapter13-comeout-cover1-clickfree`.
+
+Archive `gamelog-run1030-chapter13-comeout-cover1-clickfree.txt`, 71,956,035 bytes,
+SHA-256 `b32e426681de5526ea10b786db42704efd4cec3c36e661e131a3a95856cf7584`.
+
+Archive `rontrace-run1030.log`, 10,954,880 bytes,
+SHA-256 `fb8c8012ba65f82b0d6ae229cd201c7031452e576073d53d2364523b756f36e0`.
+
+**What it holds**: `blind::TRACES`' run1030 (item 3425). With run1029: `NEVER` 354 → 348, `RESIDUE` 80 → 79.
