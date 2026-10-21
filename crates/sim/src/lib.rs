@@ -35,6 +35,7 @@
 //! unearned until something genuinely needs a fraction; anticipating it would
 //! only add rounding the original does not have.
 
+pub mod action_gather_view;
 pub mod activate;
 pub mod ai;
 pub mod ai_build;
@@ -51,7 +52,6 @@ pub mod ai_units;
 pub mod air;
 pub mod airbase;
 pub mod alarm;
-pub mod action_gather_view;
 pub mod alarm_view;
 pub mod anim;
 pub mod army;

@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(8);
@@ -172,7 +177,12 @@ fn the_emulated_original_agrees_on_every_row() {
                         i32::from(self.p[109][2 * i as usize])
                     }
                     fn get_tregion(&mut self, tx: i32, ty: i32) -> i32 {
-                        let hex = |v: i32| v.to_le_bytes().iter().map(|b| format!("{b:02x}")).collect::<String>();
+                        let hex = |v: i32| {
+                            v.to_le_bytes()
+                                .iter()
+                                .map(|b| format!("{b:02x}"))
+                                .collect::<String>()
+                        };
                         self.log.push("s19:c2+0x0,sp-0x18,sp-0x14".into());
                         self.deref[0].push(hex(tx));
                         self.deref[1].push(hex(ty));
@@ -262,7 +272,11 @@ fn the_emulated_original_agrees_on_every_row() {
                         self.p[uw(p, u)][0x80..0x82].copy_from_slice(&[0xff, 0xff]);
                     }
                     fn add_cast_order(&mut self, p: i32, u: i32, x: i32, y: i32, queue: i32) {
-                        self.rec(20, &format!("p{}+0x0", uw(p, u)), &[-1, -1, x, y, 0x293, queue, 1]);
+                        self.rec(
+                            20,
+                            &format!("p{}+0x0", uw(p, u)),
+                            &[-1, -1, x, y, 0x293, queue, 1],
+                        );
                     }
                     fn add_gather_order(&mut self, p: i32, u: i32, target: i32, queue: i32) {
                         self.rec(21, &format!("p{}+0x0", uw(p, u)), &[target, queue, 1]);
@@ -337,14 +351,25 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "action_gather — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "action_gather — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "action_gather — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "action_gather — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "action_gather — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[9 + i], "action_gather — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[9 + i],
+                "action_gather — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
