@@ -425,6 +425,6 @@ fn the_emulated_original_agrees_on_every_row() {
         }
         n += 1;
     }
-    assert!(n >= 1600, "only {n} rows");
+    assert!(n >= 2400, "only {n} rows");
     eprintln!("Group::action_swarm_around@0070fbe0: {n} rows agree");
 }
