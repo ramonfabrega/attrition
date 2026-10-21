@@ -164,6 +164,8 @@ JOURNAL_QUOTE_GUARD = 'a_journal_quotes_its_lane_verdict_and_gate_minutes'
 LOOP_LINE_GUARD = 'a_journal_s_loop_line_is_filed_or_says_none'
 COMMANDERS_LINES = (
     'the_handoff_s_scoreboard_is_the_floors',
+    # The blind list's line (Loop 3416, the forty-eighth pass).
+    'the_handoff_s_blind_list_is_the_pinned_count',
     'the_handoff_s_golden_line_is_the_pinned_word',
     'the_handoff_s_default_map_is_the_lower_word',
     'the_handoff_s_endpoint_is_the_pinned_counts',
