@@ -442,6 +442,8 @@ mod guy_data_get_render_z;
 mod guy_data_is_corner;
 #[path = "guy_data_walk_data.rs"]
 mod guy_data_walk_data;
+#[path = "guy_process.rs"]
+mod guy_process;
 #[path = "guy_set_angle.rs"]
 mod guy_set_angle;
 #[path = "guy_set_bank.rs"]

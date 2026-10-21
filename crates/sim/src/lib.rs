@@ -7027,9 +7027,11 @@ impl Sim {
         // mark `Unit::set_in_danger` gave it (`docs/ORDERS.md` §22).
         // The flag is guy 0's (`set_in_danger` sets no other), so guy
         // 0's gate is the whole clear: a crew figure has none to drop.
-        if self.units[i].movement.body.avg_speed == 0
-            && (self.frame + i64::from(self.units[i].index)).rem_euclid(64) == 0
-        {
+        if collide::repaint_due(
+            self.frame,
+            self.units[i].index,
+            self.units[i].movement.body.avg_speed,
+        ) {
             self.units[i].guy_flag_0x20 = false;
         }
     }
