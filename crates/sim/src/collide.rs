@@ -17,6 +17,7 @@
 
 use crate::attrition::Domain;
 use crate::combat::Obj;
+use crate::detect_collision_view::{DetectArgs, DetectCollisionView, detect_unit_collision_steps};
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
 use crate::orders::{Body, MoveOrder, Order, PathData, QueuePos, index, path_flag};
 use crate::world::{Cell, Pos, UNITS_PER_CELL, World, tile, vector_dist};
@@ -746,6 +747,346 @@ impl BoatView for SimBoat<'_> {
     }
 }
 
+/// A place in a world cell's chain for [`SimDetect`]: a live unit, a wreck the
+/// original still has on its chain (item 3233, `docs/GOLDEN.md` §131) — the
+/// unit and its place in [`Sim::deaths`] — or the end of the chain.
+#[derive(Clone, Copy, Debug)]
+enum DetectNode {
+    End,
+    Live(usize),
+    Wreck(usize, usize),
+}
+
+/// [`Sim`] behind [`DetectCollisionView`]: the unit `u` asking.
+///
+/// Where the original reads the objects table and a unit's vslots, this reads
+/// the unit's own fields; **the node's `(o, who)` is the unit's `index` and
+/// `owner`**. The wrecks that are still on the original's chain are walked
+/// from the death list after each cell's live chain, because this crate
+/// unlinks a unit at its death and keeps the disc beside it.
+struct SimDetect<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    /// The hit cell `collide_here` answered, which a wreck is tested against.
+    hit: Pos,
+    /// The world cell `get_down` last opened.
+    cell: Cell,
+    /// `set_move_x`'s word, held for `set_move_y`.
+    move_x: i32,
+}
+
+impl<'a> SimDetect<'a> {
+    fn new(sim: &'a mut Sim, u: usize) -> Self {
+        Self {
+            sim,
+            u,
+            hit: Pos::new(0, 0),
+            cell: Cell { x: 0, y: 0 },
+            move_x: 0,
+        }
+    }
+
+    /// The unit a node names.
+    fn unit_of(&self, n: DetectNode) -> usize {
+        match n {
+            DetectNode::Live(i) | DetectNode::Wreck(i, _) => i,
+            DetectNode::End => unreachable!("the end of a chain names no unit"),
+        }
+    }
+
+    /// The first wreck of the open cell from the death list's entry `from`
+    /// that the original's chain would still hold and whose block covers the
+    /// hit cell.
+    fn wreck_from(&self, from: usize) -> DetectNode {
+        let s = &*self.sim;
+        for (di, d) in s.deaths.iter().enumerate().skip(from) {
+            let Some(w) = s
+                .units
+                .iter()
+                .rposition(|x| i32::from(x.owner) == d.who && i32::from(x.index) == d.o)
+            else {
+                continue;
+            };
+            if s.units[w].alive()
+                || !s.units[w].on_map
+                || s.units[w].coll_at.is_some()
+                || s.units[w].pos.cell() != self.cell
+                || !s.units[w].ty.is_some_and(|t| {
+                    s.unit_types[t].cols.unit_flags & crate::ai_load::uflags::BLOCKS_WHILE_DEAD != 0
+                })
+                || !s.unit_is_here(w, self.hit)
+            {
+                continue;
+            }
+            return DetectNode::Wreck(w, di);
+        }
+        DetectNode::End
+    }
+
+    fn acting(&self, v: usize) -> Option<usize> {
+        self.sim
+            .action_of(v)
+            .map(|a| self.sim.units[v].orders[a].index() as usize)
+    }
+}
+
+impl DetectCollisionView for SimDetect<'_> {
+    type Node = DetectNode;
+
+    fn domain(&mut self) -> i32 {
+        match self.sim.units[self.u].kind.domain {
+            Domain::Land => 0,
+            Domain::Sea => 1,
+            Domain::Air => 2,
+        }
+    }
+    fn type_is_siege(&mut self) -> bool {
+        self.sim.is_siege_unit(self.u)
+    }
+    fn is_hero(&mut self) -> bool {
+        self.sim.is_hero_unit(self.u)
+    }
+    fn is_supply(&mut self) -> bool {
+        self.sim.is_supply_unit(self.u)
+    }
+    fn detect_boat_collision(&mut self, x: i32, y: i32) -> bool {
+        self.sim.detect_boat_collision(self.u, Pos::new(x, y), true)
+    }
+    fn path_detour(&mut self) -> bool {
+        self.sim.units[self.u]
+            .path
+            .last()
+            .is_some_and(|t| t.flags & path_flag::DETOUR != 0)
+    }
+    fn is_safe(&mut self) -> bool {
+        self.sim.units[self.u].safe != 0
+    }
+    fn own_cell(&mut self) -> (i32, i32) {
+        let c = ucell(self.sim.units[self.u].pos);
+        (c.x, c.y)
+    }
+    fn collide_here(&mut self, cell: (i32, i32), nocoll: bool) -> Option<(i32, i32)> {
+        let hit = self
+            .sim
+            .collide_here(self.u, Pos::new(cell.0, cell.1), nocoll)?;
+        self.hit = hit;
+        Some((hit.x, hit.y))
+    }
+    fn will_be_corner(&mut self, hit: (i32, i32), cell: (i32, i32)) -> i32 {
+        Sim::corner_of(
+            self.sim.coll_size(self.u),
+            Pos::new(cell.0, cell.1),
+            Pos::new(hit.0, hit.1),
+        )
+    }
+    fn action_type(&mut self) -> i32 {
+        self.acting(self.u).map_or(-1, |i| i as i32)
+    }
+    fn attack_target_exists(&mut self) -> bool {
+        let u = self.u;
+        let Some(a) = self.sim.action_of(u) else {
+            return false;
+        };
+        let Body::Attack(_) = self.sim.units[u].orders[a].body else {
+            return false;
+        };
+        self.sim.units[u]
+            .combat
+            .target
+            .is_some_and(|t| self.sim.obj_alive(t))
+    }
+    fn max_range(&mut self) -> i32 {
+        self.sim.max_range_of(Obj::Unit(self.u))
+    }
+    fn attack_dist(&mut self, x: i32, y: i32) -> i32 {
+        let u = self.u;
+        let t = self.sim.units[u]
+            .combat
+            .target
+            .expect("`attack_target_exists` held");
+        let ext = crate::combat::extent(&self.sim.profile(t), matches!(t, Obj::Building(_)));
+        let mine = crate::combat::extent(&self.sim.profile(Obj::Unit(u)), false);
+        crate::combat::attack_dist(Pos::new(x, y), self.sim.pos_of(t), mine, ext, false)
+    }
+    fn world_size(&mut self) -> (i32, i32) {
+        (self.sim.world.width(), self.sim.world.height())
+    }
+    fn get_down(&mut self, cell: (i32, i32)) -> Option<Self::Node> {
+        self.cell = Cell {
+            x: cell.0,
+            y: cell.1,
+        };
+        let slot = (cell.1 as usize) * (self.sim.world.width() as usize) + (cell.0 as usize);
+        Some(match self.sim.chain_heads[slot] {
+            Some(h) => DetectNode::Live(h),
+            None => self.wreck_from(0),
+        })
+    }
+    fn node_id(&mut self, n: Self::Node) -> (i32, i32) {
+        match n {
+            DetectNode::End => (-1, -1),
+            DetectNode::Live(i) | DetectNode::Wreck(i, _) => (
+                i32::from(self.sim.units[i].index),
+                i32::from(self.sim.units[i].owner),
+            ),
+        }
+    }
+    fn node_next(&mut self, n: Self::Node) -> Self::Node {
+        match n {
+            DetectNode::End => DetectNode::End,
+            DetectNode::Live(i) => match self.sim.units[i].down {
+                Some(d) => DetectNode::Live(d),
+                None => self.wreck_from(0),
+            },
+            DetectNode::Wreck(_, di) => self.wreck_from(di + 1),
+        }
+    }
+    fn node_is_me(&mut self, n: Self::Node) -> bool {
+        matches!(n, DetectNode::Live(i) if i == self.u)
+    }
+    fn node_alive(&mut self, n: Self::Node) -> bool {
+        match n {
+            DetectNode::Live(i) => self.sim.units[i].alive(),
+            _ => true,
+        }
+    }
+    fn node_air(&mut self, n: Self::Node) -> bool {
+        matches!(n, DetectNode::Live(i) if self.sim.is_air(i))
+    }
+    fn node_on_map(&mut self, n: Self::Node) -> bool {
+        match n {
+            DetectNode::Live(i) => self.sim.units[i].on_map,
+            _ => true,
+        }
+    }
+    fn node_is_here(&mut self, n: Self::Node, hit: (i32, i32)) -> bool {
+        match n {
+            DetectNode::Live(i) => self.sim.unit_is_here(i, Pos::new(hit.0, hit.1)),
+            _ => true,
+        }
+    }
+    fn node_action_type(&mut self, n: Self::Node) -> i32 {
+        match n {
+            DetectNode::Live(i) => self.acting(i).map_or(0, |a| a as i32),
+            _ => 0,
+        }
+    }
+    fn is_moving_me(&mut self) -> bool {
+        self.sim.current_order(self.u).is_some_and(Order::is_move)
+    }
+    fn node_is_moving(&mut self, n: Self::Node) -> bool {
+        matches!(n, DetectNode::Live(i) if self.sim.current_order(i).is_some_and(Order::is_move))
+    }
+    fn guard_targets_me(&mut self, n: Self::Node) -> bool {
+        let DetectNode::Live(i) = n else {
+            return false;
+        };
+        self.sim.action_of(i).is_some_and(
+            |a| matches!(self.sim.units[i].orders[a].body, Body::Guard(g) if g.target == self.u),
+        )
+    }
+    fn node_same_owner(&mut self, n: Self::Node) -> bool {
+        let i = self.unit_of(n);
+        self.sim.units[i].owner == self.sim.units[self.u].owner
+    }
+    fn my_block(&mut self) -> i32 {
+        self.sim.coll_size(self.u)
+    }
+    fn node_block(&mut self, n: Self::Node) -> i32 {
+        self.sim.coll_size(self.unit_of(n))
+    }
+    fn groups_shared(&mut self, n: Self::Node) -> bool {
+        let DetectNode::Live(i) = n else {
+            return false;
+        };
+        let (me, other) = (&self.sim.units[self.u], &self.sim.units[i]);
+        // The original asks the one `short`; this crate keeps the owner beside it.
+        me.owner == other.owner && me.group_ptr.is_some() && me.group_ptr == other.group_ptr
+    }
+    fn node_searching(&mut self, n: Self::Node) -> bool {
+        matches!(n, DetectNode::Live(i) if self.sim.units[i].search.is_some())
+    }
+    fn node_front_order(&mut self, n: Self::Node) -> Option<i32> {
+        let DetectNode::Live(i) = n else {
+            return None;
+        };
+        let front = self.sim.units[i].orders.front()?;
+        // The kinds the group arm lets through are `NONE`, `GUARD`, a
+        // `CAST_SPELL` and the move family **of a move body**; any other
+        // order answers a type no row of the arm tests.
+        Some(match (front.index(), &front.body) {
+            (index::NONE | index::GUARD, _) => i32::from(front.index()),
+            (_, Body::Cast(_)) => i32::from(index::CAST_SPELL),
+            (k, Body::Move(_)) if index::is_move_family(k) => i32::from(k),
+            _ => -1,
+        })
+    }
+    fn node_cast_soft(&mut self, n: Self::Node) -> bool {
+        let DetectNode::Live(i) = n else {
+            return false;
+        };
+        matches!(
+            self.sim.units[i].orders.front().map(|f| &f.body),
+            Some(Body::Cast(c)) if matches!(
+                c.spell,
+                crate::orders::spell::PACK
+                    | crate::orders::spell::PACK_MACHINEGUN
+                    | crate::orders::spell::PACK_MERCHANT
+                    | crate::orders::spell::PACK_FISHERMEN
+            )
+        )
+    }
+    fn node_corner(&mut self, n: Self::Node, hit: (i32, i32)) -> i32 {
+        self.sim.guy_corner(self.unit_of(n), Pos::new(hit.0, hit.1))
+    }
+    fn record_hit(&mut self, n: Self::Node) {
+        let other = self.unit_of(n);
+        let (index, owner) = (self.sim.units[other].index, self.sim.units[other].owner);
+        let me = &mut self.sim.units[self.u];
+        me.collide_o = index;
+        me.collide_who = owner as i8;
+        me.collide_guy = 0;
+    }
+    fn front_is_moving(&mut self) -> bool {
+        self.sim.units[self.u]
+            .orders
+            .front_mut()
+            .is_some_and(|f| f.move_mut().is_some())
+    }
+    fn set_move_x(&mut self, x: i32) {
+        self.move_x = x;
+    }
+    fn set_move_y(&mut self, y: i32) {
+        let at = Pos::new(self.move_x, y);
+        if let Some(m) = self.sim.units[self.u]
+            .orders
+            .front_mut()
+            .and_then(|f| f.move_mut())
+        {
+            m.coll = Some(at);
+        }
+    }
+    fn set_half_step(&mut self) {
+        self.sim.units[self.u].half_step = true;
+    }
+    fn clear_collider(&mut self) {
+        self.sim.units[self.u].collide_o = -1;
+        self.sim.units[self.u].collide_who = -1;
+    }
+    fn collide_frame(&mut self) -> i64 {
+        self.sim.units[self.u].collide_frame
+    }
+    fn frame(&mut self) -> i64 {
+        self.sim.frame
+    }
+    fn reset_collide_count(&mut self) {
+        self.sim.units[self.u].collide = 0;
+    }
+    fn clear_wait_flag(&mut self) {
+        self.sim.units[self.u].waiting_on = false;
+    }
+}
+
 /// The body of [`Sim::detect_boat_collision`] over a [`BoatView`].
 pub fn detect_boat_collision_steps<V: BoatView>(v: &mut V, u: usize, at: Pos, mates: bool) -> bool {
     let who = v.owner(u);
@@ -1216,17 +1557,13 @@ impl Sim {
     /// object type's vslot `+0x120` answers 0 — are read as true;
     /// [`Self::coll_paint`] gates air. The region gate there is `coll_paint`'s,
     /// not `kill_guy`'s plain cell region; the two differ on a coastal cell.
-    pub(crate) fn coll_kill_crew(&mut self, u: usize) {
+    /// One figure of the crew loop: `Objects::kill_guy`'s clear around
+    /// figure `i`'s own cell, called for each figure from the squad to the
+    /// old total (`unit_set_type_view`).
+    pub(crate) fn coll_kill_guy(&mut self, u: usize, i: usize) {
         let body = self.units[u].movement.body.pos;
-        let crew: Vec<Pos> = self.units[u]
-            .guys
-            .iter()
-            .skip(crate::anim::SQUAD_SIZE)
-            .map(|g| g.follow.map_or(body, |f| f.body.pos))
-            .collect();
-        for at in crew {
-            self.coll_paint(u, at, false);
-        }
+        let at = self.units[u].guys[i].follow.map_or(body, |f| f.body.pos);
+        self.coll_paint(u, at, false);
     }
 
     /// `Object::remove_from_world`'s half — the clear pass with nowhere to
@@ -1859,9 +2196,14 @@ impl Sim {
     /// ladder and the corner rule, and record the result. `Some(other)` is
     /// a hard collision.
     ///
-    /// The bookkeeping the original does on the way out — clearing
-    /// `collide_o`/`collide_who`, ageing `collide`, clearing the wait flag
-    /// — happens here too, because every path out passes through it.
+    /// **It is [`detect_unit_collision_steps`]** (item 3402,
+    /// `Unit::detect_unit_collision@00617060` swept against the original) run
+    /// over [`SimDetect`], with the arguments the callers leave it: `quick 0`,
+    /// `nocoll 0`, and `top_only 1` — the second arm (§13.2) is the callers',
+    /// [`Self::takes_boat_arm`]. The bookkeeping the original does on the way
+    /// out — clearing `collide_o`/`collide_who`, ageing `collide`, clearing
+    /// the wait flag — happens there too, because every path out passes
+    /// through it.
     pub(crate) fn detect_unit_collision(&mut self, u: usize, at: Pos) -> Option<usize> {
         // The recorder, and it is read-only: `sweep_verdict` walks the
         // same scan this call is about to walk and changes nothing.
@@ -1879,48 +2221,39 @@ impl Sim {
                 w.seen.push((at, v));
             }
         }
-        if self.detect_gates(u) {
-            let c = ucell(at);
-            if c != ucell(self.units[u].pos)
-                && let Some(cell) = self.collide_here(u, c, false)
-                && let Some(other) = self.name_collider(u, at, c, cell)
-            {
-                self.units[u].collide_o = self.units[other].index;
-                self.units[u].collide_who = self.units[other].owner as i8;
-                self.units[u].collide_guy = 0;
-                if let Some(front) = self.units[u].orders.front_mut()
-                    && let Some(m) = front.move_mut()
-                {
-                    m.coll = Some(at);
-                }
-                return Some(other);
-            }
+        // The old walk (`scan_colliders`, which `sweep_verdict` still runs)
+        // is held to the steps on every call a test makes.
+        #[cfg(test)]
+        let (old, half_before) = (self.sweep_verdict(u, at), self.units[u].half_step);
+        let mut view = SimDetect::new(self, u);
+        let (_, hit) = detect_unit_collision_steps(
+            &mut view,
+            DetectArgs {
+                x: at.x,
+                y: at.y,
+                quick: false,
+                boats: true,
+                nocoll: false,
+                top_only: true,
+            },
+        );
+        let hit = hit.map(|n| view.unit_of(n));
+        #[cfg(test)]
+        {
+            let named = hit.map(|o| {
+                (
+                    i32::from(self.units[o].owner),
+                    i32::from(self.units[o].index),
+                )
+            });
+            assert_eq!(named, old.hard, "the steps name what the old walk named");
+            assert_eq!(
+                self.units[u].half_step,
+                half_before || (old.soft && old.hard.is_none()),
+                "the steps set the soft one-shot where the old walk did"
+            );
         }
-        self.units[u].collide_o = -1;
-        self.units[u].collide_who = -1;
-        if self.units[u].collide_frame < self.frame - 5 {
-            self.units[u].collide = 0;
-        }
-        self.units[u].waiting_on = false;
-        None
-    }
-
-    /// §4.3: walk the 3×3 world cells around the proposal and their `down`
-    /// chains for a unit whose block covers `cell`, and decide whether it
-    /// is a hard collision. `None` means soft, or nothing that counts.
-    ///
-    /// The soft one-shot is set **only when the walk ends without a hard
-    /// hit**: `orl $0x100000, 0x68(%ebx)` at `006177f3` is reached by
-    /// falling out of the nine-cell loop and nowhere else, and a hard hit
-    /// returns 1 before it. A soft group-mate seen on the way to a hard
-    /// collider leaves no half step — Great Lakes' word 11806, where
-    /// `1/37` stepped through `1/64` on one (`docs/COLLISION.md` §12).
-    fn name_collider(&mut self, u: usize, at: Pos, at_cell: Pos, cell: Pos) -> Option<usize> {
-        let (hard, soft, _) = self.scan_colliders(u, at, at_cell, cell, &mut |_| {});
-        if soft && hard.is_none() {
-            self.units[u].half_step = true;
-        }
-        hard
+        hit
     }
 
     /// The scan itself, with a sink for **every candidate it reaches**.

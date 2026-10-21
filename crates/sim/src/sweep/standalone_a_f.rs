@@ -276,6 +276,8 @@ mod build_new_library;
 mod build_order_get_type;
 #[path = "build_order_get_type_vtordisp.rs"]
 mod build_order_get_type_vtordisp;
+#[path = "build_plunder.rs"]
+mod build_plunder;
 #[path = "build_process_city.rs"]
 mod build_process_city;
 #[path = "build_process_ejection.rs"]
@@ -416,6 +418,8 @@ mod build_type_data_queue_here;
 mod build_type_data_snap_center;
 #[path = "build_type_mask_me.rs"]
 mod build_type_mask_me;
+#[path = "build_type_place_roads.rs"]
+mod build_type_place_roads;
 #[path = "build_type_restore.rs"]
 mod build_type_restore;
 #[path = "build_type_set_domain.rs"]

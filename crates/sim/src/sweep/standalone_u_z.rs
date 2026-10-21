@@ -196,6 +196,12 @@ mod unit_data_turn_speed;
 mod unit_data_will_be_corner;
 #[path = "unit_detect_boat_collision.rs"]
 mod unit_detect_boat_collision;
+#[path = "unit_detect_unit_collision_attackers.rs"]
+mod unit_detect_unit_collision_attackers;
+#[path = "unit_detect_unit_collision_gates.rs"]
+mod unit_detect_unit_collision_gates;
+#[path = "unit_detect_unit_collision_scan.rs"]
+mod unit_detect_unit_collision_scan;
 #[path = "unit_die.rs"]
 mod unit_die;
 #[path = "unit_do_air_attack_ground.rs"]
@@ -346,10 +352,14 @@ mod unit_set_new_location;
 mod unit_set_rally;
 #[path = "unit_set_type.rs"]
 mod unit_set_type;
+#[path = "unit_set_type_normal.rs"]
+mod unit_set_type_normal;
 #[path = "unit_suffer_attrition.rs"]
 mod unit_suffer_attrition;
 #[path = "unit_supplies_left.rs"]
 mod unit_supplies_left;
+#[path = "unit_swap_team.rs"]
+mod unit_swap_team;
 #[path = "unit_target_opportunity.rs"]
 mod unit_target_opportunity;
 #[path = "unit_think.rs"]
