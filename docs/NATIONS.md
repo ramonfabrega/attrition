@@ -73,7 +73,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
 | 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (AI word, tier 1); `GreatLakesAmericanTier4` (AI word, tier 4) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (AI word, tier 2); `GreatSaharaIndianTier3` (AI word, tier 3) |
-| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3) |
+| 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3); `GreatLakesDutchTier4` (map 14, tier 4) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
 
 ## 3. The held-out nations, arm by arm

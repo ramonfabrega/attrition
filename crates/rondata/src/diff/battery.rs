@@ -334,6 +334,31 @@ pub(crate) const BATTERY: &[Lobby] = &[
     // and run1008b, 8384 of 14068), minted by item 3384 under rule (2), left
     // the battery on item 3390 for the AI word (`diff::spanish_lakes_word`,
     // DECISIONS 72, 83, 84).
+    // The lobby minted by item 3390 (DECISIONS 72 rule (2) as amended by
+    // 84, `docs/AI.md` §294; runs 1012 and 1012b) when the Spanish left for
+    // the AI word, so the held-out set stays eight: Great Lakes, the Dutch
+    // at Difficulty 4 — no map-14 dump holds them (a header survey of 588
+    // gamelogs); their games, `EastIndiesDutchTier4` and
+    // `GreatSaharaDutchTier3`, are both closed, and of the nations held only
+    // by closed games off Great Lakes they reach the most census functions
+    // (9, the Germans 8). Tier 4 is the tier the Spanish leave. The game
+    // ends itself on 6147.
+    Lobby {
+        name: "GreatLakesDutchTier4",
+        map_style: 14,
+        ai_tribe: 22,
+        difficulty: 4,
+        start: "gamelog-run1012-greatlakes-dutch-diff4-start.txt",
+        long: (
+            "gamelog-run1012b-greatlakes-dutch-diff4-24k-trace.txt",
+            "rontrace-run1012b.log",
+        ),
+        length: 6147,
+        // Item 3390, the first try: the draw stream runs whole to the
+        // game's own end, 6147 of 6147.
+        count: 6147,
+        sequence: 6147,
+    },
     // `EastIndiesRomanTier2` (Romans 6, Difficulty 2, map 18; run899 and
     // run899b, 576 of 18620) left the battery on item 3314 for the AI word
     // (`diff::roman_word`, DECISIONS 72, 83).
