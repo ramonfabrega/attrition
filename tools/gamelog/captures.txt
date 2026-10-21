@@ -10066,3 +10066,21 @@ cmd: 500 unmeet who=1
 check: grep -a -m1 -A40 "BEGIN GAME INFO" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016-lakota-peace-cover.txt" | tr -d '\r' | grep -E "^  (MAP_STYLE 18|DIFFICULTY 3|STARTING_RESOURCES 7|RUSH_RULES 10|STARTING_TECHNOLOGY 8|\(int\)seed 12345)$" | tee /dev/stderr | awk 'END{exit !(NR==6)}'
 check: python3 tools/gamelog/rngcmp.py rontrace-run847.log rontrace-run1016.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=601)}'
 check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1016.log" functions 2>/dev/null | grep -E "^005946d0 |^006d0370 " | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+# run1016b: run1016's game again for the field its dump could not print — `treaties[scan]` is written only at
+# `LEADERS>=3` (`LeaderData::log_data@006e5110` raises the detail before the loop; `docs/RUNS.md` run94's tooth),
+# and run1016's `end:` was `LEADERS=1`, so its 601 per-frame records hold none. `cover=0`: the trace is run1016's.
+run: 1016b
+tag: lakota-peace-treaties
+item: 3417
+why: run1016's game at LEADERS=3, to read treaties[1] and treaties[0] bit 0 either side of 500 unmeet who=1
+frames: 600
+mapstyle: 18
+cfg: -
+ffwd: 37 !ffwd 27
+cover: cover=0
+profile: STARTING_TECHNOLOGY=8 STARTING_RESOURCES=7 DIFFICULTY=3 RUSH_RULES=10 XPACK_LAST_TRIBE1=19
+end: MISC,LEADERS=3
+cmd: 500 unmeet who=1
+check: python3 tools/gamelog/rngcmp.py rontrace-run1016.log rontrace-run1016b.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=601)}'
+check: (grep -a -c "treaties\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016b-lakota-peace-treaties.txt" || true) | tee /dev/stderr | awk '{exit !($1>=600*8*2)}'
