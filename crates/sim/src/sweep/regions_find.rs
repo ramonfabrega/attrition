@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -48,8 +53,11 @@ fn the_emulated_original_agrees_on_every_row() {
             let rd16 = |b: &[u8], o: usize| u16::from_le_bytes([b[o], b[o + 1]]);
             let (x0, y0, reg) = (a[0], a[1], a[2]);
             let (w, h, cap) = (rd(&p[0], 0), rd(&p[0], 4), rd(&p[0], 8));
-            let cell = |x: i32, y: i32| (w.wrapping_mul(y).wrapping_add(x) as usize).wrapping_mul(0x1c);
-            let wet = |p4: &[u8], at: usize| rd16(p4, at) & 0x100 == 0 && matches!(p4[at + 2] as i8, 1 | 2);
+            let cell =
+                |x: i32, y: i32| (w.wrapping_mul(y).wrapping_add(x) as usize).wrapping_mul(0x1c);
+            let wet = |p4: &[u8], at: usize| {
+                rd16(p4, at) & 0x100 == 0 && matches!(p4[at + 2] as i8, 1 | 2)
+            };
             wr(&mut p[2], (reg as usize) * 0x88 + 0x14, 0);
             wr(&mut p[3], 0, x0);
             wr(&mut p[3], 4, y0);

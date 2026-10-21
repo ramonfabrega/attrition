@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -38,62 +43,61 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // Hand port, from the function's behaviour: log (stubbed), bounds and empty-tile guard,
-    // `grow_valid` (stub 2) gate, tile and region-list writes, then the border-mask spread.
-    const MX: [i32; 9] = [0, -1, 0, 1, 1, 1, 0, -1, -1];
-    const MY: [i32; 9] = [0, -1, -1, -1, 0, 1, 1, 1, 0];
-    let (reg, x, y) = (a[0] as i32, a[1] as i32, a[2] as i32);
-    let (ww, wh) = (rd(&c[0], 0), rd(&c[0], 4));
-    let tile = |tx: i32, ty: i32| ((ww * ty + tx) * 0x1c) as usize + 4;
-    let rd16 = |b: &[u8], o: usize| i16::from_le_bytes([b[o], b[o + 1]]);
-    if x < 0 || y < 0 || x >= ww || y >= wh {
-        1
-    } else if rd16(&p[0], tile(x, y)) != 0 {
-        1
-    } else if a[5] == 0 {
-        0
-    } else {
-        let t = tile(x, y);
-        p[0][t - 2..t].copy_from_slice(&0i16.to_le_bytes());
-        p[0][t..t + 2].copy_from_slice(&(reg as i16).to_le_bytes());
-        let r = (reg * 0x88) as usize;
-        // the region's vector counts one more (a full one asks its grower first: stub 3)
-        let len = rd(&p[1], r + 0x70);
-        wr(&mut p[1], r + 0x70, len.wrapping_add(1));
-        // the region's point list: the data window p[2] holds the (x, y) pairs
-        let n = rd(&p[1], r + 0x14);
-        let o = (n as usize) * 8;
-        p[2][o..o + 4].copy_from_slice(&x.to_le_bytes());
-        p[2][o + 4..o + 8].copy_from_slice(&y.to_le_bytes());
-        wr(&mut p[1], r + 0x14, n.wrapping_add(1));
-        if p[1][r + 8] & 1 != 0 {
-            for i in 0..9 {
-                let (nx, ny) = (x + MX[i], y + MY[i]);
-                if nx < 0 || ny < 0 || nx >= ww || ny >= wh {
-                    continue;
-                }
-                let u = rd16(&p[0], tile(nx, ny)) as i32;
-                if u == 0 || u == reg {
-                    continue;
-                }
-                let ur = (u * 0x88) as usize;
-                let mine = rd(&p[1], r + 0x24);
-                let mut m = rd(&p[1], ur + 0x24) | mine;
-                m |= 1i32.wrapping_shl(reg as u32 & 31) | 1i32.wrapping_shl(u as u32 & 31);
-                wr(&mut p[1], r + 0x24, mine | m);
-                let theirs = rd(&p[1], ur + 0x24);
-                wr(&mut p[1], ur + 0x24, theirs | m);
-                for k in 0..32usize {
-                    let w = rd(&p[1], k * 0x88 + 0x24);
-                    if w & m != 0 {
-                        wr(&mut p[1], k * 0x88 + 0x24, w | m);
+                // Hand port, from the function's behaviour: log (stubbed), bounds and empty-tile guard,
+                // `grow_valid` (stub 2) gate, tile and region-list writes, then the border-mask spread.
+                const MX: [i32; 9] = [0, -1, 0, 1, 1, 1, 0, -1, -1];
+                const MY: [i32; 9] = [0, -1, -1, -1, 0, 1, 1, 1, 0];
+                let (reg, x, y) = (a[0], a[1], a[2]);
+                let (ww, wh) = (rd(&c[0], 0), rd(&c[0], 4));
+                let tile = |tx: i32, ty: i32| ((ww * ty + tx) * 0x1c) as usize + 4;
+                let rd16 = |b: &[u8], o: usize| i16::from_le_bytes([b[o], b[o + 1]]);
+                if x < 0 || y < 0 || x >= ww || y >= wh || rd16(&p[0], tile(x, y)) != 0 {
+                    1
+                } else if a[5] == 0 {
+                    0
+                } else {
+                    let t = tile(x, y);
+                    p[0][t - 2..t].copy_from_slice(&0i16.to_le_bytes());
+                    p[0][t..t + 2].copy_from_slice(&(reg as i16).to_le_bytes());
+                    let r = (reg * 0x88) as usize;
+                    // the region's vector counts one more (a full one asks its grower first: stub 3)
+                    let len = rd(&p[1], r + 0x70);
+                    wr(&mut p[1], r + 0x70, len.wrapping_add(1));
+                    // the region's point list: the data window p[2] holds the (x, y) pairs
+                    let n = rd(&p[1], r + 0x14);
+                    let o = (n as usize) * 8;
+                    p[2][o..o + 4].copy_from_slice(&x.to_le_bytes());
+                    p[2][o + 4..o + 8].copy_from_slice(&y.to_le_bytes());
+                    wr(&mut p[1], r + 0x14, n.wrapping_add(1));
+                    if p[1][r + 8] & 1 != 0 {
+                        for i in 0..9 {
+                            let (nx, ny) = (x + MX[i], y + MY[i]);
+                            if nx < 0 || ny < 0 || nx >= ww || ny >= wh {
+                                continue;
+                            }
+                            let u = rd16(&p[0], tile(nx, ny)) as i32;
+                            if u == 0 || u == reg {
+                                continue;
+                            }
+                            let ur = (u * 0x88) as usize;
+                            let mine = rd(&p[1], r + 0x24);
+                            let mut m = rd(&p[1], ur + 0x24) | mine;
+                            m |= 1i32.wrapping_shl(reg as u32 & 31)
+                                | 1i32.wrapping_shl(u as u32 & 31);
+                            wr(&mut p[1], r + 0x24, mine | m);
+                            let theirs = rd(&p[1], ur + 0x24);
+                            wr(&mut p[1], ur + 0x24, theirs | m);
+                            for k in 0..32usize {
+                                let w = rd(&p[1], k * 0x88 + 0x24);
+                                if w & m != 0 {
+                                    wr(&mut p[1], k * 0x88 + 0x24, w | m);
+                                }
+                            }
+                        }
                     }
+                    1
                 }
             }
-        }
-        1
-    }
-}
         };
         assert_eq!(got, want_eax, "point — eax, row `{line}`");
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
