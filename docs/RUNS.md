@@ -20453,3 +20453,127 @@ SHA-256 `c778ae735d882b69b1bb67e5b2d23ea92b0667399d524893a9b3c01099ed2f38`.
 **What it holds**: block 16548's Gun Mahout `1/93` (`cavarch_o/who` 0/0 theirs). Test
 `run1007c_s_word_frame_is_widened_whole`: 31 keys after the build — the standing family and five births' `g.angle[0]`
 on 16542.
+
+## run1010 — the battery's replacement lobby `GreatSaharaTurkishTier3`: a `DUMP_ALL` start (2026-10-20, item 3385, `att-3385`)
+
+`docs/AI.md` §293. Entry 72's rule (2): the Turks at Great Sahara, Difficulty 3, minted when the Inca left the
+battery. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1010`: `--map 7 --ai-tribe 8
+--profile DIFFICULTY=3`, a `DUMP_ALL` start over blocks 0..2, `--end-frame 36`.
+- Pool lane 1. Launched 17:33:33, exited 17:48:28. `success`, 37 frames; `rngcmp.py` vs run1010b: 37 identical.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1010-greatsahara-turkish-diff3-start.txt`, 149,587,514 bytes,
+SHA-256 `29c7145bf50eac3014cd877b8d2ac2a35dd625b2f7dc8b1ba43debc01a841bba`.
+
+Archive `rontrace-run1010.log`, 8,947,424 bytes,
+SHA-256 `3bf373f4ea24fc2d0dfdbbcb27f7fdd898c44689102f905496142fb1d2ae4443`.
+
+**What it holds**: the replacement lobby's start sibling.
+
+## run1010b — `GreatSaharaTurkishTier3`'s draw stream (2026-10-20, item 3385, `att-3385`)
+
+`docs/AI.md` §293. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1010b`: `--map 7
+--ai-tribe 8 --profile DIFFICULTY=3 --end-frame 24000`, setup and closing blocks only.
+- Pool lane 3. Launched 17:33:39, exited 17:39:19. `success`, 15854 frames; the game ends itself on 15853 (the receipt's `ended_early`).
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1010b-greatsahara-turkish-diff3-24k-trace.txt`, 12,771,854 bytes,
+SHA-256 `50bd604c1fabfde40d63d0c48ec5a90b98814aea183d614b90e49540d44d63ed`.
+
+Archive `rontrace-run1010b.log`, 72,513,728 bytes,
+SHA-256 `92f949012e62b8a9bdb5a55889b71d976ae20a87c20e1e4ca3f7e872786d3e54`.
+
+**What it holds**: the replacement's long. `battery_measure`: 15853 of 15853 on its first try.
+
+## run1011 — the Inca word at Great Sahara: the word 13250's window, blocks 13104..13360 (2026-10-20, item 3385, `att-3385`)
+
+`docs/AI.md` §293. **What the disk could not answer**: run1006 dumps blocks 0..36 and run1006b its setup and closing
+blocks only, so no dump held the units, rounds or ledgers on the word's block. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1011`: `--map 7 --ai-tribe 2 --profile DIFFICULTY=3 --end-frame 13365
+--log-window 13104 13360 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3,AMMO=5`.
+- Pool lane 3. Launched 17:41:25, exited 18:07:17. `success`, 13366 frames; `rngcmp.py` vs run1006b: 13366 identical.
+  Filed with `filerun.py run1011 greatsahara-inca-diff3-window-13104-13361`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1011-greatsahara-inca-diff3-window-13104-13361.txt`, 542,126,702 bytes,
+SHA-256 `e62c12c658d52c7c90eb7716d0e7c9c88ffc144cff59d0f1e8d14b51b340ac73`.
+
+Archive `rontrace-run1011.log`, 60,952,032 bytes,
+SHA-256 `5925ce4d49afbd9e81298f0d871cb9c5da833878fc8d69600d13216e2e185c1c`.
+
+**What it holds**: the words 13250, 13282 and 13313's blocks. Test `run1011_s_word_frame_is_widened_whole`: 256
+blocks, 30 keys after the builds, every one standing from block 13104.
+
+## run1011b — the Inca word at Great Sahara: the Horse Archer's round, blocks 13100..13130 at `AMMO=5`, and a packet at 13105 (2026-10-20, item 3385, `att-3385`)
+
+`docs/AI.md` §293. **What the disk could not answer**: no dump prints piece 841's release nodes, and run1011 was not
+yet taken. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1011b`: `--end-frame 13135
+--log-window 13100 13130 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5`, the tracer built with `RON_STATE_FRAME=13105` and
+item 597's plan.
+- Pool lane 3. Launched 17:39:29, exited 17:41:13. `success`, 13136 frames; `rngcmp.py` vs run1006b: 13136 identical.
+  Filed with `filerun.py run1011b greatsahara-inca-diff3-window-13100-13136`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1011b-greatsahara-inca-diff3-window-13100-13136.txt`, 15,009,998 bytes,
+SHA-256 `5794d674922bfc1af6decd5bf6960d2ce80681f763dfac403f21c0d1d866898b`.
+
+Archive `rontrace-run1011b.log`, 58,269,088 bytes,
+SHA-256 `7e4faac259034e8b46d03a7197e69489a8bfe867b31ede1742af9b9119091ba9`.
+
+**What it holds**: `1/72`'s round leaving (7563, 31441, 893) on block 13112, and the packet piece 841's nine
+entries were read from.
+
+## run1011c — the Inca word at Great Sahara: a packet at 13225, blocks 13222..13228 at `AMMO=5` (2026-10-20, item 3385, `att-3385`)
+
+`docs/AI.md` §293. **What the disk could not answer**: the value of the fire-on-the-move search on 13226, which no
+dump prints; the listing settled it first. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1011c`: `--end-frame 13230 --log-window 13222 13228 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5`, the
+tracer built with `RON_STATE_FRAME=13225`.
+- Pool lane 1. Launched 18:15:12, exited 18:17:29. `success`, 13231 frames; `rngcmp.py` vs run1006b: 13231 identical.
+  Filed with `filerun.py run1011c greatsahara-inca-diff3-window-13222-13231`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1011c-greatsahara-inca-diff3-window-13222-13231.txt`, 2,959,289 bytes,
+SHA-256 `0d000d5250374720f460134787bcb758409471b61961974d418be7bb970e5f8a`.
+
+Archive `rontrace-run1011c.log`, 58,682,592 bytes,
+SHA-256 `7b4bba3fc38eaf39668e7794b9a83f9d282c804adbc681fde91f9197067fb90c`.
+
+**What it holds**: the packet piece 123's three attack rows were read from.
+
+## run1011d — the Inca word at Great Sahara: a packet at 13277, blocks 13274..13280 at `AMMO=5` (2026-10-20, item 3385, `att-3385`)
+
+`docs/AI.md` §293. **What the disk could not answer**: why the guard `1/92` dropped its `ATTACK` on 13278 — a
+decision inside `Unit::fight` no dump prints. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1011d`: `--end-frame 13282 --log-window 13274 13280 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5`, the
+tracer built with `RON_STATE_FRAME=13277`.
+- Pool lane 1. Launched 18:40:39, exited 18:41:39. `success`, 13283 frames; `rngcmp.py` vs run1006b: 13283 identical.
+  Filed with `filerun.py run1011d window` (a short tag).
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1011d-window.txt`, 2,941,765 bytes,
+SHA-256 `0ee1c4d680629acffe6e65123426b4faa8ba96394b1d115cd6f5a5b81807de3b`.
+
+Archive `rontrace-run1011d.log`, 59,552,224 bytes,
+SHA-256 `5eb72efb1ff37e4333494ae3b9d6c1a0e3a322f603b161b5e2c84b346af2c090`.
+
+**What it holds**: `find_attack_pos`'s melee `return 0` for `1/92` (`unitaddr` `13642ec4`).
+
+## run1011e — the Inca word at Great Sahara: a packet at 13296, blocks 13293..13299 at `AMMO=5` (2026-10-20, item 3385, `att-3385`)
+
+`docs/AI.md` §293. **What the disk could not answer**: how theirs' `1/82` left the dump on 13297 and the amount
+theirs' rounds struck on 13297 — `get_damage`'s value, which no dump prints. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1011e`: `--end-frame 13300 --log-window 13293 13299 --detail
+end:MISC,UNITS=3,GUYS=4,AMMO=5`, the tracer built with `RON_STATE_FRAME=13296`.
+- Pool lane 1. Launched 18:57:05, exited 18:58:22. `success`, 13301 frames; `rngcmp.py` vs run1006b: 13301 identical.
+  Filed with `filerun.py run1011e greatsahara-inca-diff3-window-13293-13300`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1011e-greatsahara-inca-diff3-window-13293-13300.txt`, 2,887,045 bytes,
+SHA-256 `550fc2ab79c42ef85467e10a63fe337c60ce87967bed3fdd5db18a72238b00dc`.
+
+Archive `rontrace-run1011e.log`, 59,701,728 bytes,
+SHA-256 `26575bf76bc11ea10d337bb348833513c860940e8db32b2878efdd43fedf603e`.
+
+**What it holds**: `get_damage` 19688 on the decoy `1/82`, and — the round `1362761c`'s clock poked 11 → 12 —
+13 on `1/61` at armour 4.

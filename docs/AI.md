@@ -24981,12 +24981,96 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 293. Reserved for the next item on the AI track
+## 293. The battery's Inca word at Great Sahara: a horse archer's release, the bearing, the melee refusal, `full`, and the target's decoy and rally armour
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3385, 2026-10-20, Opus 5.5. `GreatSaharaIncaTier3` (map 7, human Nubians against the Inca at Difficulty 3,
+seed 12345; item 3383's lobby, runs 1006 and 1006b), promoted out of the battery at 13126 of 15632
+(`diff::inca_sahara_word`; not `diff::inca_word`, the closed East Indies game). Captures run1011 (`GUYS=4,
+LEADERS=9, GOODS=3, AMMO=5` over 13104..13360), run1011b (`AMMO=5` over 13100..13130 and a `RON_STATE_FRAME=13105`
+packet), and the packets run1011c (13225), run1011d (13277) and run1011e (13296). Its battery place went to
+`GreatSaharaTurkishTier3` (runs 1010, 1010b; entry 72's rule (2), below): 15853 of 15853, whole on its first try.*
+
+**The draw delta on 13126.** Ours 10, theirs 10, parting at index 8: theirs `Object::take_damage+0xe1` (a round
+lands), ours `Farms::inc_time+0x1ae`. `RON_DEBUG_AMMO`: ours' one round in flight is who=1's `1/72` (uid 103,
+`TypeIndex` 187, `HORSEARCHERS`, the Inca Horse Archer, piece 841) at the Nubian city `0/2000`, loosed on 13111 from
+the figure's own (7629, 31482), `total_time` 17; no `pivot` row named piece 841. §291's shape, on the Inca's piece.
+
+**The release: piece 841's own nodes.** run1011b: theirs' round leaves (7563, 31441, 893), `total_time` 16.
+`get_position.py … entries 841` on the packet: nine entries, the pivot node 1545's, four release nodes of its own
+(anim 10 at 18, 11 at 18, 12 at 16, 13 at 18). The four sweeps disagree with the integer form on nine cells, the
+rows' `float_lands`. Built: `pivot::NODES`' row for 841 and four `pivot::RELEASES` rows. **13126 → 13250.** Value
+diff, run1011b block 13112: `sx, sy, sz` (7629, 31482, 652) → (7563, 31441, 893), `total_time` 17 → 16; agreeing.
+
+**13250: the fire on the move's bearing.** Ours 10, theirs 8: ours spends `1/72`'s `Unit::fight+0x824` and `+0x9b0`.
+run1011 block 13226: `1/72`'s `cavarch_o/who` −1/−1 theirs, 2000/0 ours, `recharging` 25 ours. Theirs wrote
+`near_o` 2000 on the search, so the candidate passed the filters and failed later: in `Object::find_nearby_target@
+00648da0` the cavalry archer's arm (`param_4`, the listing `006497b4`–`00649869`) takes `find_angle(o.x − x,
+o.y − y)` less the searcher's `UnitData +0x50`, folded at a half turn: within 30° the score ×4, within 60° ×2,
+past 135° the candidate is skipped, past 90° a signed tenth. `1/72` faced south with the city north of it. Built
+in `Sim::find_nearby_target_as`; the ten-unit counter counts before the skip. **13250 → 13282.**
+
+**13278: the melee refusal.** Theirs drops the guard Inti Maceman `1/92`'s fresh `ATTACK` on the woodcutter `0/3`
+(and `1/91`'s on 13279); ours chased. run1011d's packet: `fight` passes `valid_target` and the guard's
+`check_target`, then `find_attack_pos` (`602e60` → `find_melee_pos`) returns 0 through `601916`/`601938` —
+no open slot round a standing target — and `5fe186` → `5fe3f8`, `find_new_target`, and the kill at
+`fight+0xfd7`. The listing: `-0x34` is the current `ATTACK`'s mandatory byte (`601475`), `-0x44` is `max(0x600,
+(max_range + 4) × 0xc0)` (`601425`), the mandatory asker's far spot. Built: `melee_slots_refused`,
+`melee_far_spot`, `attack_pos_refused` taking a unit target (`docs/COMBAT.md` §19).
+
+**13282: `full`.** `1/99` (a Heavy Archer) took `0/3` ours, `0/4` theirs. The dump prints `full`: `0/3`'s reads 5 on
+13278 and 9 on 13279 and decays by one a frame. `find_melee_pos` adds 5 to a target it finds no slot round
+(`601178`, capped at `0x1e`), `Unit::process` decays it, and `find_nearby_target` divides every unit target's
+score by `full + 1` (`0064f107`–`0064f11b`). Built: `Unit::full` and its reader in the harness. **13282 → 13313**;
+value diff, run1011 block 13282: `0/3`'s `full` 6 theirs, 0 ours; `1/99`'s `order:target` (0, 4) theirs, (0, 3)
+ours; agreeing.
+
+**Piece 123's bays** (no word moved): run1011 block 13216, the Inca Heavy Archers `1/49`–`1/51` (type 173, piece
+123) loosed from the figure's own point in ours; theirs' rounds leave (6554, 31752, 790), (5242, 31906, 767) and
+(6719, 31658, 773). `get_position.py … entries 123` on run1011c's packet: three attack rows, each sweep piece
+1531's three bays unchanged, 361 of 361. Built: `launch::BAYS` rows for 123. run1011's widening 1735 → 1510 keys.
+
+**13297: a decoy target.** Theirs' `1/82` (a General's decoy Light Horse, `TypeIndex` 209, `unit_masks` odd both
+sides) leaves the dump on block 13297. run1011e's packet (`step4.py --entry 65db70` = `Objects::inc_time`): `1/49`'s
+round, its target dead, finds `1/82` through `Ammo::check_hit` (friendly fire); `Object::do_damage(0x52, 1,
+0xd4e40000, 1, …)`, `get_damage` **19688**, `take_damage` `0x19a2` after the uber divide, and `Unit::die`. Ours took
+6 hits: `Sim::target_side` wrote `decoy` false for every unit, so §6 step 17 (armour 0, `max(attack, base) ×
+1000`) never ran on a decoy target. Built: the target's bit. **13313 → 13416.**
+
+**13297: the General's rally armour** (no word moved). `1/72`'s round on the Inti Maceman `1/61` (lands on 13297;
+the packet's round clock poked from 11 to 12 so it lands inside the packet's frame): theirs `get_damage` 13 at
+angle `0xe57f0000`, the same angle ours passes; ours 15 (pct 66, attack 130, flank ×2, `(170 + 5) / 10 − 2`).
+`1/61`'s `myarmor` is 2 both sides; **`UnitData::armor@00610160`** adds `general_rally_armor × (general_upgrade +
+1)` (2, `rules.xml`) when the unit is a hero or `HeroesData::find_hero@0073a1b0(x, y, owner, 0, −1, 0)` finds one
+of the owner's active heroes on the map whose `get_radius × 0xc0` covers it by `vector_dist` — so 17 − 4 = 13.
+Built: `Sim::rally_armor` in `armor_of` for a unit (`docs/COMBAT.md` §4.2), `Tuning::general_rally_armor`. run1011's
+widening 34 → 30 keys: `1/61`'s `hits_left` 105 on block 13298 and the standing `1/63` 109 agree.
+
+**The word: 13416 of 15632.** Ours 112 draws, theirs 108, parting at index 104: ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x1ed`, theirs `Guy::set_anim+0x104b`. It is past run1011's window (13104..13360), so its widening is
+owed: a window capture over 13410..13666 at `GUYS=4,AMMO=5` and the word's `WIDENINGS` row with it.
+
+**The replacement: `GreatSaharaTurkishTier3`, rule (2).** A header survey of 577 gamelogs: no map-7 dump holds tribes
+6, 8, 14 or 20; the Romans, Chinese and Americans are held by open battery lobbies, so rule (2) gave the Turks (8),
+held only by closed games on other maps, at the tier the Inca leave. The commander relayed the pick before the
+capture. run1010 (start, 37 frames) and run1010b (the long; the game ends itself on 15853) agree on 37 of 37;
+`battery_measure`: 15853 of 15853, whole on its first try.
+
+**Not established.** run1011's last 30 parted keys all stand from the window's first block 13104 — the leaders'
+`SITE[].reg` and `aggression[1]`, the units' `form`, and who=1's held groups and pools 64..66 — and part no draw
+inside it; they are not read here. The rally arm's named heroes (Ptolemy, Darius, Wellington, Blücher, Memnon, The
+Citizen, The Monarch) are a `SEAM`. `melee_far_spot` (the mandatory asker's far spot) is built from the listing and
+no walk reaches it. `pivot::NODES`' row for 841 is not held by the walk (the row's removal leaves the word at
+13416; 1545's node is the same point) and is held by its sim test.
+
+**Coverage.** Diff-backed: `inca_sahara_word_first_parting` (the draw stream to 13416),
+`run1011_s_word_frame_is_widened_whole` (256 blocks, 30 keys). Sim tests: `pivot::tests::run1011b_s_inca_horse_
+archer_looses_through_piece_841_s_pivot`, `the_original_s_release_agrees_on_every_cell_for_piece_841`
+(`$RON_RELEASE_TABLE_841`), `launch::tests::run1011_s_inca_heavy_archer_rounds_leave_piece_123_s_bays`,
+`fight::tests::a_decoy_target_dies_to_any_round`, `fight::tests::a_general_rallies_armour_inside_its_radius`.
+Mutations (`tools/mutate.py`), each held: 841's `ATTACKWALK` release removed → 13127; the bearing's skip made a
+tenth → 13250; the melee refusal made `false` → 13284; `full`'s +5 made +0 → 13282; the score's divide by `full +
+1` dropped → 13282; the target's decoy bit dropped → `a_decoy_target_dies_to_any_round` fails; the rally arm
+dropped → its sim test fails and run1011's widening 30 → 34 keys; a piece-123 bay renumbered → 30 → 39 keys.
 
 ## 294. Reserved for the next item on the AI track
 
