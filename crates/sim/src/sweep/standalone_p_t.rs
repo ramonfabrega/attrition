@@ -30,6 +30,8 @@ mod path_finder_data_find_node_open;
 mod path_finder_data_valid_roadcoord;
 #[path = "path_finder_empty_lists.rs"]
 mod path_finder_empty_lists;
+#[path = "path_finder_find_road.rs"]
+mod path_finder_find_road;
 #[path = "path_finder_find_road_restore.rs"]
 mod path_finder_find_road_restore;
 #[path = "path_finder_find_tpath.rs"]
