@@ -470,6 +470,8 @@ mod herds_process;
 mod herds_start_herds;
 #[path = "herds_walk_data.rs"]
 mod herds_walk_data;
+#[path = "hero_data_get_radius.rs"]
+mod hero_data_get_radius;
 #[path = "hero_walk_data.rs"]
 mod hero_walk_data;
 #[path = "heroes_data_find_hero.rs"]
