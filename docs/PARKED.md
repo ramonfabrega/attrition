@@ -9243,7 +9243,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3423, 2026-10-21 — the human's copy of `can_queue`
 
-- **3423a. `BuildData::can_queue@0062da00` is entered only by a human's queue-up: owed by the click layer.** The
+- ~~**3423a. `BuildData::can_queue@0062da00` is entered only by a human's queue-up: owed by the click layer.**~~
+  **Entered by run1033 on 736** (item 3427): a train click on the Barracks' card, `process_queue_up 82 1 737`. The
   image holds two byte-identical copies of `can_queue` (COMDAT twins). `report.py <exe> refs 0062da00 004d2030`:
   `@0062da00`'s one caller is `GroupOut::issue_queue_up+0x26f` (`00708eff`), and `@004d2030`'s is
   `ScenarioFuncSet::research_tech_with_cost+0x14e` (`009ee84e`, the listing's `call 0x4d2030`). The AI's research

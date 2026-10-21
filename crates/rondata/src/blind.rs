@@ -197,6 +197,16 @@ pub const TRACES: &[&str] = &[
     // 1` on 660, at `cover=1` on the click-free pool to 700 (`docs/RUNS.md`
     // run1031), run1031b's game on every frame.
     "rontrace-run1031.log",
+    // Item 3427: the click layer's first pass, driven on the queue lane at
+    // `cover=1` through `tools/gamelog/handdriver.sh` (`docs/RUNS.md`
+    // run1032–run1034; `docs/GOLDEN.md` §144.3): chapter eleven's lobby to
+    // 793 (a right-click guard on 624, a Move-button follow on 708),
+    // chapter thirteen's to 773 (a Barracks train click on 736, its Eject
+    // on 748), chapter twenty's to 814 (Auto Transport on 626 and 801).
+    // Each is its golden twin's game until the first input that differs.
+    "rontrace-run1032.log",
+    "rontrace-run1033.log",
+    "rontrace-run1034.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -469,6 +479,15 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// before Coinage). The DLL calls the leader issuer, the Sell and Buy
 /// buttons' own call (`Options::exec@007188c0:1149`, `:1162`), so neither
 /// issuer is the DLL's only.
+/// **331** with run1032, run1033 and run1034 (item 3427: the click layer's
+/// first pass, driven at `cover=1`; `docs/GOLDEN.md` §144.3):
+/// `GroupOut::issue_guard@007088e0` on 624 (a right-click on an own unit),
+/// `GroupOut::issue_follow@00708980` and `Options::picked_spot@00721c40`
+/// on 708 (the Move button, then a pick on a unit),
+/// `BuildData::can_queue@0062da00` on 736 (a train click, parked 3423a),
+/// `GroupOut::issue_eject_all@00708b90` and `Options::do_eject_all@0071c470`
+/// on 748, and `GroupOut::issue_set_transport@0070ad10` and
+/// `Options::do_transport@0071c500` on 626.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -483,7 +502,7 @@ pub const NEVER: &[u32] = &[
     0x005e_3400, 0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480,
     0x005f_2f30, 0x005f_3260, 0x005f_4720, 0x005f_4730, 0x0060_4550, 0x0060_8850, 0x0060_9a20, 0x0060_a600,
     0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_18d0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50, 0x0061_dc60, 0x0062_2ce0,
-    0x0062_3310, 0x0062_9e70, 0x0062_d430, 0x0062_d5b0, 0x0062_da00, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_0ab0,
+    0x0062_3310, 0x0062_9e70, 0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_0ab0,
     0x0063_3390, 0x0063_89b0, 0x0063_9830, 0x0063_9930, 0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_40c0, 0x0064_50b0, 0x0064_50c0,
     0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80,
     0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70, 0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830,
@@ -493,8 +512,8 @@ pub const NEVER: &[u32] = &[
     0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_3650,
     0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20,
     0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_1cc0, 0x0070_20c0, 0x0070_84c0, 0x0070_8820,
-    0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60, 0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0,
-    0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740, 0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_16b0, 0x0072_1c40,
+    0x0070_8b10, 0x0070_8c60, 0x0070_afc0, 0x0070_b060, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0,
+    0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c740, 0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_16b0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0, 0x0073_c5d0, 0x0073_c5e0,
     0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50, 0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80,
     0x007c_3810, 0x0081_2d20, 0x0081_34d0, 0x0082_c520, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_be90, 0x0089_bea0,
