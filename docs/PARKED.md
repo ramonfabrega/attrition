@@ -9185,13 +9185,18 @@ words and edits nothing here; a refill lands when two remain.
   `LeaderData::get_nukes@006ebe50`. A start-6 capture is the one that could reach the last two. It books only against
   the blind list if one of them is named as its target.
 
-## Parked by the next landing, slot MU — reserved
+## Parked by item 3421, 2026-10-21 — the supply wagon's think has no caller
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3421a. `Unit::think_supply@005f4730` is unreferenced in the image: a `RESIDUE` proposal.** run1020 (Great
+  Sahara, Persians, All Technologies, `cover=1` to 3770) did not enter it, though a supply wagon (type 63) stands in
+  every `GUY` block of run702 and run790. `report.py <exe> refs 005f4730` finds no call, jump or vtable copy; its one
+  hit, an RVA at `006a841c` in `TerrainGroups::place_all`, is the rel32 of `call Mountains::get_range` at `006a841b`
+  (`llvm-objdump`). `Unit::think@005f6e40:308`–`:341` reads `is_supply` (vslot `+0xcc`, `unit_flags & 0x40`) or
+  `is_hero` (`+0xc4`, `& 0x20`) and calls `add_to_army(this)` itself, which is all `think_supply`'s body does
+  (`add_to_army`; return 1). `Unit::think_hero@005f4720` scans dead. Both go to `blind::RESIDUE` as "no reference in
+  the executable" (the live copy: `Unit::think`'s tail), if the commander books it: the row `the_residue_is_on_the_blind_list`
+  checks, and `every_unreferenced_row_is_unreferenced_in_the_image` must accept `think_supply`'s RVA-shaped operand,
+  which the scan prints as "pointer only". It moves `open` by two and `never` by none.
 
 ## Parked by the next landing, slot MV — reserved
 
