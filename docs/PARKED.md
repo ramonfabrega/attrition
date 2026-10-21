@@ -3772,6 +3772,15 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's.
 
+## Loop, filed 2026-10-21 — the forty-eighth tranche's
+
+(3415) **A `reading` item's booking names its functions from the census, never from prose** (3409's "for the Loop",
+filed at its merge): 3409's booking named four functions `docs/AI.md` does not cite, one of them dead in the image,
+and both reading lanes so far counted their document's never-entered set differently from the queue (3408: 54 cited,
+51 net of residue, against the booked 45/28; 3412: 21/18 against 21/19). Candidate: `tools/census.py --pin --never
+--cites docs/<DOC>.md`, printing the count net of `RESIDUE` and the cited-only-here subset, which the pass quotes when
+it books a reading and `brief.py --kind reading` pastes under "This item". The pass's. One reach.
+
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
 Loop 2003's reaches in the forty-seventh tranche, filed here below its own row (its section is at the size ceiling): 3397 three idempotence gaps — `--regen` re-inserts a trailing `0` after `// end hand` (`wall_activate`) and a generator file inside the fence splits the item (`find_road`); 3400 no memory laid before a cell record's base (a negative-offset `--ptrtab LOC` or a cell-record margin, 3400's parked row, the shape unspellable); 3403 the `--port todo!()` body re-appended past the fence (Loop 3407, built by the forty-seventh pass). Every batch of the tranche generated whole otherwise.
@@ -9027,13 +9036,19 @@ words and edits nothing here; a refill lands when two remain.
 - **3408c. `Sim::disembark_squad` (`crates/sim/src/transport.rs:1548`) writes `orig = dest` for every `Body::Move`.** The original writes `orig_x/orig_y := x/y` only for an order whose vslot `0x14` answers. Whether every order the crate files as `Body::Move` (group moves and form changes included) answers that slot, and whether the crate's `dest` is the original's `+0x4/+0x8`, is not established. It books with §144.3's `chapter46.cmd` re-take.
 - **3408d. Stale texts this reading found, none a score.** `crates/sim/src/city.rs:2192`'s doc calls the arm "the console's `finish`", but it is `hurry` (§144.2). `docs/CENSUS.md`'s row for `Unit::do_flee_to` says "pointer only", but it is dead (§144.4). `tools/ghidra/`'s `vtables.txt` lacks `GroupAttackOrder::vftable` (`0xb491fc`) and the minimap's `WorldMap` vftable (`.rdata 0xb54b38` holds the slot): an export gap, to be checked against the export script.
 
-## Parked by the next landing, slot MJ — reserved
+## Parked by item 3409, 2026-10-21 — the AI track's blind readings: a leader bit, a vtable-only predicate, a stale backed list
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3409a. `Sim::process_spells` carries only the March's leader bit.** `Leader::verify_spell_flags@006ce190` drops
+  `leader_flags & 0x4000` (no hero's `unit_masks & 0x2000`) as well as `& 0x8000`, over the hero list to `hero_mark`,
+  and runs on either spell's expiry (`docs/AI.md` §296); the crate keeps `forced_march` alone, checked on a March's
+  expiry, over every live unit of the owner. No reader of the leader's `0x4000` is known in the crate or the
+  original past `verify_spell_flags` itself, so no score moves; §296's row 2 is the capture that would show it.
+- **3409b. `GoodTypeData::is_flat@004780c0`'s residue proposal hangs on an indirect-call scan.** The PE holds no
+  direct call to it, only GoodType's vtable slot `+0x94` three times (§296); whether any `call [reg+0x94]` has a
+  GoodType receiver is not read. `WallData::hits@00642bb0` has the same shape and §142 reads it as reached. A scan
+  of `+0x94` vcalls by receiver type would settle both.
+- **3409c. `docs/audit/census-backed.txt` predates item 3346.** `Object::disband@006455c0` has a sweep
+  (`crates/sim/src/sweep/object_disband.rs`) and the backed list leaves its row blank; the pass's regeneration owes it.
 
 ## Parked by item 3410, 2026-10-21 — the first five never-entered unmarked rows swept
 
@@ -9075,6 +9090,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot MN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MT renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
