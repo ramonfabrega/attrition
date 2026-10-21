@@ -3499,6 +3499,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::indian_sahara_word::indian_sahara_frame_15922_window(),
         || super::indian_sahara_word::indian_sahara_frame_16548_window(),
         || super::inca_sahara_word::inca_sahara_frame_13250_window(),
+        || super::inca_sahara_word::inca_sahara_frame_13416_window(),
         || super::turkish_word::turkish_frame_14991_window(),
         || super::american_lakes_word::american_lakes_frame_3176_window(),
         || super::spanish_lakes_word::spanish_lakes_frame_13496_window(),
