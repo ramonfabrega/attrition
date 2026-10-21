@@ -8880,13 +8880,12 @@ reassembled on its cadence regardless, and no capture's word sits between a Barr
 `close_count` raises for every close path, the original's arm sits on `Unit::close`'s general path only. Names no
 score.
 
-## Parked by the next landing, slot LV — reserved
+## Parked by item 3393, 2026-10-20 — the Inca word at Great Sahara closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3393a. A decoy's overflow into a closed captain slot.** `Object::take_damage@00652020:619`–`631` calls
+  `take_damage` on `get_captain`'s slot whatever its state; `Sim::take_damage_typed`'s decoy arm looks for the
+  captain among the living and stops otherwise (`docs/AI.md` §295). No walk reaches a decoy squad whose captain
+  slot is closed and still named. Names no score.
 
 ## Parked by the next landing, slot LW — reserved
 
