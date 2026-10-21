@@ -52,7 +52,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     m: &'a [u8],
                     c: &'a [Vec<u8>],
                     p: &'a mut [Vec<u8>],
-                    k: [usize; 4],
+                    k: [usize; 5],
                 }
                 fn rd(w: &[u8], o: usize) -> i32 {
                     i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
@@ -110,6 +110,9 @@ fn the_emulated_original_agrees_on_every_row() {
                         i32::from(reg) != rd(self.m, 8)
                     }
                     fn centre_of_gravity(&mut self) -> Pos {
+                        // The original asks once (`local_c`): a second ask is a miss.
+                        assert_eq!(self.k[4], 0, "center_of_gravity asked twice");
+                        self.k[4] += 1;
                         Pos::new(self.a[7] * 0x300 + 0x180, self.a[6] * 0x300 + 0x180)
                     }
                     fn dist_to(&mut self, u: i32, c: Pos) -> i32 {
@@ -122,7 +125,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     m,
                     c,
                     p,
-                    k: [0; 4],
+                    k: [0; 5],
                 };
                 i64::from(army_is_moving(&mut v))
             }
