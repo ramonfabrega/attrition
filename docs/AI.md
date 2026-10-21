@@ -12233,9 +12233,9 @@ holds a unit the other does not (7485).
   escrow too, and neither is modelled. No capture on disk is known to
   reach either. **What each writes** (item 3409, §296; *reading alone*;
   the listing at `6d2baa`–`6d2bcd` settles that the decompile's
-  `0xe3a7f8` is `leaders + 0x468`, `escrow`):
-  - `pay_dow(t, cancel)` prices `DECLARE_WAR + t` (`0x29c`), or
-    `CANCEL_ALLIANCE + t` (`0x2a4`) when `cancel ≠ 0`, through
+  `0xe3a7f8` is `leaders` plus `escrow`'s offset, `escrow`):
+  - `pay_dow(t, cancel)` prices `DECLARE_WAR + t`, or
+    `CANCEL_ALLIANCE + t` when `cancel ≠ 0` (`TypeIndex`), through
     `get_cost` (vslot `+0x78`) per available good, and takes the price
     from both the stock (`+0x6eb8`'s array, `^ 0x8221`) and `escrow`,
     each floored at 0 (`:14`–`:38`). Its one caller,
@@ -12946,22 +12946,7 @@ March and Rally (`0x279`) on `CHAR_ATTACK1..3` — no idle roll, where
 `DURATION_UPGRADE` × 15), `unit_masks |= 0x8000`, `leader_flags |=
 0x8000`; `Caster::process_spells@00739ad0` expires it and
 `Leader::verify_spell_flags@006ce190` drops the leader's bit when no hero
-marches. **Its whole predicate** (item 3409, §296; *reading alone*): it
-runs only from `process_spells:82`, when that call removed an Ambush
-(`0x27b`) or a March (`0x27c`); it walks the leader's heroes to
-`hero_mark` (`+0x420`, a mark, not a count), each live
-(`hero_flags & 1`, `HeroData +0x28`) hero's unit `o` (`+0x26`), and
-drops **two** bits: `leader_flags & 0x4000` when no such unit carries
-`unit_masks & 0x2000` (the Ambush, `:11`–`:24`) and `& 0x8000` when none
-carries `& 0x8000` (the March, `:28`–`:41`). This crate's
-`Sim::process_spells` drops only the March's (`forced_march`), on a
-March's expiry alone, and over every live unit of the owner rather than
-the hero list; the Ambush's leader bit is a `SEAM` in `cast_ambush`.
-*Falsifier*: `LEADERS=9`'s `leader_flags` and `UNITS=3`'s `unit_masks`
-on the hero, on the frame after `frame + duration` of a General's
-Forced March or a Despot's Ambush — the leader's `0x8000` or `0x4000`
-falls there and not before; run470's march (9112) and run943's Ambush
-already print both fields at `cover=0`. The unit bit holds mana recovery (`& 0x2a000`).
+marches (and the Ambush's `0x4000`: §296). The unit bit holds mana recovery (`& 0x2a000`).
 `sim::cast::Sim::cast_march`, `process_spells`.
 
 **What moved**: 8856 → 9323 (the constant's comment has the value diff;
@@ -25354,10 +25339,11 @@ run; the decompile, the listing and the PE.*
 **The list.** `rondata::blind::NEVER` against this document's `name@address` cites, on `5e0b1d15`: **32**, one
 already `RESIDUE` (`World::set_gathered_at@006b46b0`). The booking named functions this document does not cite:
 `Unit::think_hero@005f4720`, `Unit::think_supply@005f4730` and `Army::send_here@006f98a0` are on `NEVER` through
-`docs/ARMY.md` and the journals, each already sweep-backed; `Leader::process@006b88b0` is not on `NEVER`.
+`docs/ARMY.md` and the journals, each already sweep-backed; `Leader::process` is not on `NEVER` but in `RESIDUE`,
+with no reference in the executable — the booking's name for a function the game never runs.
 
 - **Read, 13**, each claim in its own section: the five scenario switches (§1); `Wonders::close_wonder` (§75.3);
-  `Leader::pay_dow` and `Leader::action_respond` (§98.6); `Leader::verify_spell_flags` (§99.13);
+  `Leader::pay_dow` and `Leader::action_respond` (§98.6); `Leader::verify_spell_flags` (below, §99.13's pointer);
   `LeaderData::get_nukes` (§158); `Spline::set_min_seg_length` and `Spline::calc_from_dir` (§174);
   `Game::say_no_war` (§218).
 - **Swept, not re-read, 16**: `BuildQueueData::get_next_helicopter`, `SpellType::cast_march`,
@@ -25367,6 +25353,23 @@ already `RESIDUE` (`World::set_gathered_at@006b46b0`). The booking named functio
   `docs/audit/census-backed.txt`), `SpellType::cast_ambush`, `Army::use_scouts`, `Army::use_spies`, `Army::charge`.
 - **att-3411's sweep, 2**: `Unit::think_carry_idle@005f2f30` and `Unit::think_carry_military@005f3260`; only the
   capture that would enter them is claimed here (row 5).
+
+**`Leader::verify_spell_flags@006ce190`, whole** (§99.13's march; *reading alone*). It
+runs only from `process_spells:82`, when that call removed an Ambush
+(`0x27b`) or a March (`0x27c`); it walks the leader's heroes to
+`hero_mark` (`+0x420`, a mark, not a count), each live
+(`hero_flags & 1`, `HeroData +0x28`) hero's unit `o` (`+0x26`), and
+drops **two** bits: `leader_flags & 0x4000` when no such unit carries
+`unit_masks & 0x2000` (the Ambush, `:11`–`:24`) and `& 0x8000` when none
+carries `& 0x8000` (the March, `:28`–`:41`). This crate's
+`Sim::process_spells` drops only the March's (`forced_march`), on a
+March's expiry alone, and over every live unit of the owner rather than
+the hero list; the Ambush's leader bit is a `SEAM` in `cast_ambush`.
+*Falsifier*: `LEADERS=9`'s `leader_flags` and `UNITS=3`'s `unit_masks`
+on the hero, on the frame after `frame + duration` of a General's
+Forced March or a Despot's Ambush — the leader's `0x8000` or `0x4000`
+falls there and not before; run470's march (9112) and run943's Ambush
+already print both fields at `cover=0`.
 
 **The image's references** (*the PE*: every `E8`/`E9`/`0F 8x`/short jump in `.text` and every absolute pointer in
 any section, against the 32 addresses): 25 have a direct call; the five switches each one absolute pointer in
