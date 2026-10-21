@@ -12,13 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-seventh tranche (commander, Opus): 19 of 20 landed from `56f23ba5`** (the Germans, the
-Indians and the Inca at Great Sahara, the Turks, the Americans and the Spanish at Great Lakes closed; twelve sweeps); the roster is Ramon's (DECISIONS 84, 85): two Opus 5.5 medium battery lanes landing wide, two Sonnet
-5.5 medium sweep lanes — **no battery word is open and the battery is whole, so both battery lanes run as sweeps (Loop 3398)**. Last whole gate `1dc3ad81` (3399's booking); widened since: none; scoped gates `--scope 1dc3ad814`; the drain's gate is whole. Briefs and notes in the commander's job tmp `t47/`.*
+*2026-10-21, **the forty-seventh tranche (commander, Opus): drained, 20 of 20 from `56f23ba5` in 13 h 44** (the
+Germans, the Indians and the Inca at Great Sahara, the Turks, the Americans and the Spanish at Great Lakes closed;
+thirteen sweeps); roster Ramon's (DECISIONS 84, 85). The drain's whole gate is the booking's; the last whole before it `1dc3ad81`.*
 
-- **Words**: every pair closed; thirty battery words closed, none open (`AI_WORDS` holds twenty-eight, every one at its game's end). Battery on `15e001e8`:
-  6147 (the Dutch at Great Lakes, 3390, rule (2)), 7799, 14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368 (Loop 3398). Census 1680, port 563.
-- **Lanes: one live, draining** (19 landed + 1 live = 20, no refill): 3402 the nations seat (Sonnet, MF). **The sweep pool is empty** (3404). Next 3408, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ.
+- **Words**: every pair closed; thirty battery words closed, **none open** (`AI_WORDS` holds twenty-eight, every one at
+  its game's end). Battery on `15e001e8`: 6147 (the Dutch at Great Lakes, 3390, rule (2)), 7799, 14540, 15853, 18883,
+  24000 ×3 — **eight of eight whole**, median 17368. Census 1619 → 1686, port 501 → 568.
+- **Lanes: none live, and nothing unspawned**: no battery lobby is open and **the sweep pool is empty** (3404: no `port`
+  row, the last `name` rows parked as not the simulation's) — what the forty-eighth tranche works on is the pass's
+  (Loop 3398, 3405). Parked for its eye: 3400a, `Sim::attrition_for`'s five predicates fixed false against the
+  original's. Next 3408, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ.
 - **Fable backlog: 19 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382, 3388, 3389, 3392, 3394, 3398, 3401, 3405, 3406, 3407); DECISIONS 85.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -29,31 +33,22 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1680 of 3611 · port 563 · layout 1117
+Census: simulation backed 1686 of 3611 · port 568 · layout 1118
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-seventh tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md
-first; 19 of 20 landed from `56f23ba5`; re-arm `python3 tools/lanewait.py` on att-3402
-and carry the chain — the whole gate at eight threads again (Loop
-3363); no refill (twenty spawned), the drain's gate whole; twenty landings, then clear `steer`.**
+**Opener: the forty-seventh pass (steer, Fable): measure the forty-seventh tranche (twenty landings from `56f23ba5`,
+drained), ratify the marked rows, rule the 19 Loop items — 3398 first: the battery is whole, no word is open and the
+sweep pool is empty, so the queue books nothing (3188, 3237, 3118 and 1570 are Ramon's) — then clear `commander` into
+the forty-eighth tranche on what the pass books.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 84): no battery
-word is open; 3402 the sweep's (Sonnet; Loop 3398). **A battery word's lane lands wide**: every fix its widening
-exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed
-(`AI_WORDS` holds twenty-eight, every word at its game's end; 3393 closed the Inca at 15632); no battery lobby is open (3390, Loop 3398). An open word is carried to its
-end before the next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why.
-
-3402. **The nations seat's next shape batch** (DECISIONS 63 (iv), Loop 3188, 3388, 3398; the score `Census:` port 559; 3396
-    swept six of six, the sim's `supply::general_radius` wrap and `Guy::process`'s paint walk refactored, parked
-    3396a–f): the `port` mark is dry, so the next six shortest `name`-marked past 3397's, 3399's and 3400's —
-    `Build::plunder`, `Unit::swap_team`, `Unit::set_type`, `BuildType::place_roads`, `Map::make`,
-    `Unit::detect_unit_collision` (`MapScenario::make` passed over, the scenario editor cut from v1) — each built
-    against the crate's own method where it has one, or parked on a generator run naming the flag it could not spell.
-    `--kind sweep`, `--no-widen`, park MF.
+In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 84, 85). **No item is booked**: no
+battery word is open — the AI's word is closed, lower map first — closed (`AI_WORDS` holds twenty-eight, every word at
+its game's end; 3393 closed the Inca at 15632) — no battery lobby is open (3390), and the sweep pool is empty (3404).
+The next item is the pass's (Loop 3398).
 
 ## How to maintain this file
 
