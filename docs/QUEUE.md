@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): 3 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
-click-free pool (run1037), so coverage takes the pool, a driven item the queue lane; 3417: run1016, `NEVER` 380 → 376,
-VISION §8's `treaty_off` diff-backed; 3418: run1017 to 15432 on the pool, 376 → 372 (`WallData::hits` parked, 3418a).*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): 4 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
+click-free pool (run1037); 3417: run1016, `NEVER` 380 → 376, VISION §8's `treaty_off` diff-backed; 3418: run1017 to
+15432, 376 → 372; 3431 (Ramon's): Gunpowder and Industrial starts pinned (run1041, run1043), the rubric's ages 4 → 6 of 8.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
   568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 372, residue 80, open 300 →
   292** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
   `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3419, att-3431 (pool).** Next 3432, run 1044. Pools: GOLDEN §145–149, AI §300–301, park MU–MZ, NA–ND.
+- **Lanes: att-3419, att-3420 (pool).** Next 3432, run 1044. Pools: GOLDEN §145–149, AI §300–301, park MV–MZ, NA–ND.
 - **Fable backlog: 9 Loop items** (3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -54,12 +54,6 @@ layer, `@spell` Bribe, the carrier, `make_valid`, the Nomad lobby; ORDERS §42.3
 3419. **coverage: Great Lakes, Iroquois at difficulty 3, at `cover=1` to 10945** (AI §296 row 2; run897b, run943):
 enters `Army::use_scouts`, `use_spies`, `SpellType::cast_ambush` (10689) and `verify_spell_flags`' Ambush arm
 (`leader_flags & 0x4000`, the hero's `unit_masks & 0x2000`). Run 1018.
-
-3431. **coverage: the middle ages** (Ramon's, on the forty-eighth pass's rubric: no pinned dump holds ages 2–6, Medieval
-to Modern; run669 and run679 hold 0 and 7 only): Great Sahara's Toughest lobby at `STARTING_TECHNOLOGY 3` and
-`5` (`--profile`, run650's read-back), each to 6000 at `cover=1` on the pool beside its `cover=0` twin. Names the
-never-entered rows each start can reach before its capture (entry 61 §6), pins both into `blind::TRACES`, and quotes
-`tools/rubric.py --tables 2` on them: the ages they hold. Scoring the sim against them is the pass's. Runs 1040–1043.
 
 3420. **coverage: the coverage pair, East Indies, Persians, All Technologies, at `cover=1` to 3130** (AI §296 row 3;
 run711, run717; TRANSPORT §18.2): enters `Spline::set_min_seg_length` and `calc_from_dir` (3124..3128, `AMMO` `traj 2`),
