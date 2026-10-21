@@ -414,14 +414,14 @@ fn seeker_type<V: SwarmView>(v: &mut V, p: i32, m: i32, b: i32, who: i32) -> i32
 ///   crate issues swarm builders only).
 /// - SEAM: the busy test (`is_busy`, a unit mid-cast or boarding), the
 ///   idle-citizens filter (the site's type's slot `+0x90` is not carried, so
-///   `idle` stays 0), a unit carrying citizens (`count_inside`) and the
+///   `idle` stays 0), a unit carrying citizens (the inside count) and the
 ///   `GATHER` arm's predicate (`is(0x1a4)`; this crate swarms `Build` and
 ///   `Repair` only) answer no; the report of an illegal order is not
 ///   modelled; `BUILD_AT`'s clear of the site's `+0x60 & 0x2000` is not
 ///   either.
 /// - The object's type indices are the original's only where a test reads
 ///   them: a citizen answers `0x32` and every other unit `0x7fff`, the
-///   seeker's type is rebuilt by [`crate::Sim::swarm_ring`] from the
+///   seeker's type is rebuilt by the ring helper in `orders.rs` from the
 ///   member and the site.
 pub struct SimSwarm<'a> {
     pub sim: &'a mut crate::Sim,
