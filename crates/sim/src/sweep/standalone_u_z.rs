@@ -96,6 +96,8 @@ mod unit_come_out_edx;
 mod unit_data_action_type;
 #[path = "unit_data_activity_type.rs"]
 mod unit_data_activity_type;
+#[path = "unit_data_attack.rs"]
+mod unit_data_attack;
 #[path = "unit_data_can_ever_transport.rs"]
 mod unit_data_can_ever_transport;
 #[path = "unit_data_can_garrison.rs"]
@@ -182,6 +184,8 @@ mod unit_data_next_action_type;
 mod unit_data_order_type;
 #[path = "unit_data_recharge.rs"]
 mod unit_data_recharge;
+#[path = "unit_data_speed.rs"]
+mod unit_data_speed;
 #[path = "unit_data_support_cost.rs"]
 mod unit_data_support_cost;
 #[path = "unit_data_transport_type.rs"]
@@ -320,6 +324,10 @@ mod unit_process_inside;
 mod unit_process_onmap;
 #[path = "unit_process_train.rs"]
 mod unit_process_train;
+#[path = "unit_process_attrition.rs"]
+mod unit_process_attrition;
+#[path = "unit_repair_damage.rs"]
+mod unit_repair_damage;
 #[path = "unit_replace_form_id.rs"]
 mod unit_replace_form_id;
 #[path = "unit_resolve_block.rs"]
@@ -356,6 +364,8 @@ mod unit_think_carry_civilian;
 mod unit_think_civilian_transport;
 #[path = "unit_think_hero.rs"]
 mod unit_think_hero;
+#[path = "unit_think_merchant.rs"]
+mod unit_think_merchant;
 #[path = "unit_think_peasant.rs"]
 mod unit_think_peasant;
 #[path = "unit_think_spellcaster.rs"]
@@ -420,6 +430,10 @@ mod unit_update_armor;
 mod unit_update_ceo_position;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
+#[path = "unit_update_hits.rs"]
+mod unit_update_hits;
+#[path = "unit_update_hits_redirect.rs"]
+mod unit_update_hits_redirect;
 #[path = "unit_update_local_seen.rs"]
 mod unit_update_local_seen;
 #[path = "unit_update_order.rs"]
