@@ -6194,6 +6194,58 @@ mod tests {
         let _ = other;
     }
 
+    /// **A decoy target takes `get_damage`'s step 17** (item 3385): armour
+    /// nothing and the blow `max(attack, base) × 1000`, so any round kills
+    /// it. `target_side` wrote `decoy` false for every unit; run1011e's
+    /// packet struck the General's decoy Light Horse `1/82` for 19688 where
+    /// this crate dealt 6. Made to fail with the target's bit dropped.
+    #[test]
+    fn a_decoy_target_dies_to_any_round() {
+        for decoy in [false, true] {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+            let them = put(&mut sim, 0, ty, Pos::new(2016, 2016));
+            sim.units[them].decoy = decoy;
+            let p = round(&sim, me, Some(Obj::Unit(them)), Pos::new(2016, 2016), 0);
+            sim.land(p, 3385);
+            assert_eq!(!sim.units[them].alive(), decoy, "decoy {decoy}: dead");
+        }
+    }
+
+    /// **`UnitData::armor@00610160`'s rally arm** (item 3385): a hero's
+    /// own unit inside its radius, `get_radius × 0xc0` by `vector_dist`,
+    /// and the hero itself, add `GENERAL_RALLY_ARMOR × (general_upgrade +
+    /// 1)`; one tile-unit past the radius, or another player's hero, adds
+    /// nothing. Made to fail with the arm dropped.
+    #[test]
+    fn a_general_rallies_armour_inside_its_radius() {
+        use crate::ai_load::uflags2;
+        let (mut sim, ty) = at_war();
+        sim.unit_types[ty].combat.armor = 2;
+        let mut general = crate::UnitType {
+            type_index: 0x100,
+            hits: 100,
+            ..crate::UnitType::default()
+        };
+        general.cols.unit_flags2 = uflags2::GENERAL;
+        let general = sim.add_unit_type(general);
+        let me = put(&mut sim, 1, ty, Pos::new(9000, 9000));
+        let armour = |s: &Sim| s.armor_of(Obj::Unit(me));
+        assert_eq!(armour(&sim), 2, "no hero");
+        let hero = put(&mut sim, 1, general, Pos::new(9000, 9000));
+        let reach = sim.hero_radius(hero) * 0xc0;
+        sim.units[hero].pos.x += reach;
+        let rally = sim.tuning.general_rally_armor;
+        assert_eq!(rally, 2, "the shipped GENERAL_RALLY_ARMOR");
+        assert_eq!(armour(&sim), 2 + rally, "on the radius");
+        assert_eq!(sim.armor_of(Obj::Unit(hero)), rally, "the hero itself");
+        sim.units[hero].pos.x += 1;
+        assert_eq!(armour(&sim), 2, "one past it");
+        sim.units[hero].pos.x -= 1;
+        sim.units[hero].owner = 0;
+        assert_eq!(armour(&sim), 2, "another player's hero");
+    }
+
     /// **A decoy's round strikes nothing** (`Object::do_damage@0064a480`,
     /// item 1522): the attacker is a unit with `unit_masks & 1`, and the
     /// function returns after its `count < 1` test and before `get_damage`
