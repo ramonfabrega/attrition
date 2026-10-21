@@ -316,6 +316,8 @@ mod group_move_order_is_pathed_vtordisp;
 mod group_move_order_walk_data;
 #[path = "group_move_order_walk_data_vtordisp.rs"]
 mod group_move_order_walk_data_vtordisp;
+#[path = "group_normalize.rs"]
+mod group_normalize;
 #[path = "group_order_walk_data.rs"]
 mod group_order_walk_data;
 #[path = "group_out_issue_alarm.rs"]

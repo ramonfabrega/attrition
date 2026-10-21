@@ -127,6 +127,7 @@ pub mod mesh;
 pub mod movement;
 pub mod muster;
 pub mod nations;
+pub mod normalize_view;
 pub mod nuke;
 pub mod orders;
 pub mod path;
