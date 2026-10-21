@@ -410,13 +410,11 @@ const UNREAD: &[(&str, &str)] = &[
 
 /// A block's path element: its name with a trailing number stripped, so
 /// `FRAME 683` and `FRAME 10277` are one path.
-fn element(name: &str) -> String {
+fn element(name: &str) -> &str {
     let t = name.trim_end();
     match t.rsplit_once(' ') {
-        Some((head, tail)) if !tail.is_empty() && tail.bytes().all(|c| c.is_ascii_digit()) => {
-            head.to_string()
-        }
-        _ => t.to_string(),
+        Some((head, tail)) if !tail.is_empty() && tail.bytes().all(|c| c.is_ascii_digit()) => head,
+        _ => t,
     }
 }
 
@@ -431,8 +429,18 @@ type Paths = BTreeMap<String, (BTreeSet<String>, BTreeSet<String>)>;
 /// (`gamelog::fill`'s both-candidates rule), so the arena says `OBJECT`
 /// carries every `UNITDATA` field that follows it, and a coverage read
 /// off the arena would hold the parser to keys it never printed there.
+///
+/// The windows' frames are gigabytes of text, so the walk allocates per
+/// block and per new key, never per line (Loop 3382): a path is interned
+/// on its parent's id and its element, a key is borrowed from the text,
+/// and the frame's sets are folded into `out` once at the end.
 fn printed(text: &str, out: &mut Paths) {
-    let mut stack: Vec<(usize, String)> = Vec::new();
+    use std::collections::{HashMap, HashSet};
+    let mut child: HashMap<(usize, &str), usize> = HashMap::new();
+    let mut names: Vec<String> = Vec::new();
+    let mut keys: Vec<HashSet<&str>> = Vec::new();
+    // `(indent, path id)`; a root block's parent id is `usize::MAX`.
+    let mut stack: Vec<(usize, usize)> = Vec::new();
     for line in text.lines() {
         let trimmed = line.trim_start_matches(' ');
         if trimmed.is_empty() {
@@ -443,41 +451,52 @@ fn printed(text: &str, out: &mut Paths) {
             stack.pop();
         }
         if let Some(name) = trimmed.strip_prefix("BEGIN ") {
-            stack.push((indent, element(name)));
-            out.entry(path(&stack)).or_default();
-        } else if !stack.is_empty() {
-            let key = trimmed.split(' ').next().unwrap_or("");
-            out.entry(path(&stack))
-                .or_default()
-                .0
-                .insert(key.to_string());
+            let parent = stack.last().map_or(usize::MAX, |&(_, id)| id);
+            let el = element(name);
+            let id = *child.entry((parent, el)).or_insert_with(|| {
+                names.push(match names.get(parent) {
+                    Some(p) => format!("{p}/{el}"),
+                    None => el.to_string(),
+                });
+                keys.push(HashSet::new());
+                names.len() - 1
+            });
+            stack.push((indent, id));
+        } else if let Some(&(_, id)) = stack.last() {
+            keys[id].insert(trimmed.split(' ').next().unwrap_or(""));
         }
     }
-}
-
-fn path(stack: &[(usize, String)]) -> String {
-    stack
-        .iter()
-        .map(|(_, n)| n.as_str())
-        .collect::<Vec<_>>()
-        .join("/")
+    for (name, frame_keys) in names.into_iter().zip(keys) {
+        let set = &mut out.entry(name).or_default().0;
+        for k in frame_keys {
+            if !set.contains(k) {
+                set.insert(k.to_string());
+            }
+        }
+    }
 }
 
 /// The keys the recorder saw asked for on each path, over every node of
 /// the path. Run **after** the recorder has stopped — the walk iterates
 /// fields itself.
-fn read(b: Block<'_>, path: &mut Vec<String>, r: &reads::Reads, out: &mut Paths) {
-    path.push(element(b.name()));
+fn read(b: Block<'_>, path: &mut String, r: &reads::Reads, out: &mut Paths) {
+    let len = path.len();
+    if len > 0 {
+        path.push('/');
+    }
+    path.push_str(element(b.name()));
     if let Some(keys) = r.get(&b.read_key()) {
-        out.entry(path.join("/"))
-            .or_default()
-            .1
-            .extend(keys.iter().cloned());
+        let set = &mut out.entry(path.clone()).or_default().1;
+        for k in keys {
+            if !set.contains(k) {
+                set.insert(k.clone());
+            }
+        }
     }
     for c in b.children() {
         read(c, path, r, out);
     }
-    path.pop();
+    path.truncate(len);
 }
 
 /// Parses one frame's text through every reader the harness runs on a
@@ -524,7 +543,7 @@ fn drive(text: &str, out: &mut Paths) {
     }
     let r = reads::stop();
     printed(text, out);
-    let mut path = Vec::new();
+    let mut path = String::new();
     for root in log.roots() {
         read(root, &mut path, &r, out);
     }
@@ -659,7 +678,7 @@ fn the_recorder_tells_one_object_block_from_another() {
     let r = reads::stop();
     let mut paths = Paths::new();
     printed(text, &mut paths);
-    let mut path = Vec::new();
+    let mut path = String::new();
     read(frame, &mut path, &r, &mut paths);
     let u = unread(&paths);
     let rows: Vec<(String, Vec<String>)> = u

@@ -3,7 +3,6 @@
 # Sum 2,870 s over 988 tests; --stale-only merged. Top 10 = 617 s, top 30 = 939, top 100 = 1423; 421 tests under 1 s.
 # By module: golden 907 s / 281 tests, harness 471 s / 91 tests, coverage 339 s / 4 tests, second 246 s / 35 tests, third_pair 166 s / 48 tests.
 202.00	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
-137.36	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 55.58	diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides
 50.94	diff::harness::tests::run53_s_24000_frames_put_the_ceiling_where_run33_did
 42.20	diff::harness::tests::great_lakes_run163_through_run226_are_widened_whole
@@ -18,6 +17,7 @@
 20.09	diff::second::tests::run588_s_word_frame_is_widened_whole
 19.24	diff::unit::tests::the_suspend_s_stamp_is_a_48_grid_manhattan_on_every_capture
 19.09	diff::golden::chapter_thirty_seven_s_word_frame_is_widened_whole
+19.09	diff::coverage::every_key_the_dump_prints_is_read_or_pinned
 18.98	diff::golden::chapter_thirty_six_s_word_frame_is_widened_whole
 18.66	diff::second::tests::run587_s_projectiles_are_compared_whole
 18.12	diff::shutdown::tests::east_indies_closing_dumps_are_the_original_s
