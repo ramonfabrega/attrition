@@ -1389,6 +1389,18 @@ upgrade 31 anticipated, carrying the grid as singles and the terraform
 in `Single`, stays local to `crate::terrain` and is owed when that
 count first moves.
 
+**Amendment to 31, 2026-10-20 (item 3390): the upgrade is paid.** The
+count that moved was a road node, not a ground read: the Spanish at Great
+Lakes 4 priced one step of frame 7984's road search a climb short (339
+against 342) off a terraformed corner the millionths truncated a unit
+away from the single. `World` now carries `master_land_heights` as
+singles with a per-corner exactness flag (a print that names one single,
+or a terraform whose every input did), and `crate::terrain` and
+`find_tcoord_z` compute in `Single`, as the listing does. The dump's
+millionths remain the load format; nothing in a frame is millionths any
+more. The whole suite stood unmoved but for the Spanish word, 8384 →
+13496 (`docs/ROADS.md` §7.4).
+
 
 ## 32. The oracle runs on free Wine, and a runner is a dependency like any other
 

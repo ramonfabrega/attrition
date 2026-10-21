@@ -26,6 +26,8 @@
 //! The table is filled for negative indices too, with `(i - 2) / 3`, which is
 //! floor division rather than C's truncation. [`Pos::cell`] therefore floors.
 
+use crate::single::Single;
+
 /// A player index.
 ///
 /// The original hardcodes eight players in fixed-size arrays throughout. We do
@@ -294,22 +296,23 @@ pub struct World {
     /// entry 16's clause); empty on a flat world, where every tile is 0.
     tile_z: Vec<i32>,
     /// `TerrainData::master_land_heights` — the **corner** grid
-    /// `find_tcoord_z` reads, `4·xs + 1` columns by `4·ys + 1` rows, in
-    /// exact millionths of a world unit (the scale the dump prints, and
-    /// the one `crate::terrain` does its arithmetic at).
+    /// `find_tcoord_z` reads, `4·xs + 1` columns by `4·ys + 1` rows, as
+    /// the original's own singles: each recovered at load from the
+    /// six-decimal print the dump gives it, and rewritten by
+    /// `crate::terrain` in the original's SSE arithmetic (item 3390,
+    /// `docs/DECISIONS.md` entry 31's owed upgrade).
     ///
     /// [`World::tile_z`] is the pinned per-tile table derived from it; this
     /// is here because a building **re-terraforms** the grid when it is
     /// placed (`TerrainOut::terraform_for_building@00875210`,
     /// `docs/ROADS.md` §7.4), so the table is no longer built once before
     /// the first frame. Empty on a flat world.
-    corner_z: Vec<i64>,
-    /// Per corner, whether [`World::set_corner_z`] has changed it since the
-    /// grid was installed. The terraform works in millionths where the
-    /// original works in singles (`docs/DECISIONS.md` entry 31), so a
-    /// rewritten corner is no longer known to be the original's single —
-    /// [`World::data_z`] reports a read of one. Empty until the first write.
-    corner_rewritten: Vec<bool>,
+    corner_z: Vec<Single>,
+    /// Per corner, whether it is known to be the original's single: its
+    /// print named one single alone ([`Single::from_millionths`]), or a
+    /// terraform wrote it from corners that all were. [`World::data_z`]
+    /// reports a read of one that is not.
+    corner_exact: Vec<bool>,
     /// The map's goods, in the original's own `goods` list order — the
     /// index `WData.down_who` carries when `down` is `−2`.
     goods: Vec<Good>,
@@ -810,7 +813,7 @@ impl World {
             danger: Vec::new(),
             tile_z: Vec::new(),
             corner_z: Vec::new(),
-            corner_rewritten: Vec::new(),
+            corner_exact: Vec::new(),
             sea_map: 0,
             fog: Vec::new(),
             fog_now: Vec::new(),
@@ -1057,34 +1060,29 @@ impl World {
         self.width * TILES_PER_CELL + 1
     }
 
-    /// One corner of `master_land_heights`, in millionths; `None` off the
-    /// grid or on a world with no height table.
-    pub fn corner_z(&self, x: i32, y: i32) -> Option<i64> {
+    fn corner_index(&self, x: i32, y: i32) -> Option<usize> {
         let (w, h) = (self.corner_stride(), self.height * TILES_PER_CELL + 1);
         if self.corner_z.is_empty() || x < 0 || y < 0 || x >= w || y >= h {
             return None;
         }
-        self.corner_z.get((y * w + x) as usize).copied()
+        Some((y * w + x) as usize)
+    }
+
+    /// One corner of `master_land_heights`, the original's single, and
+    /// whether it is known to be exactly the original's; `None` off the
+    /// grid or on a world with no height table.
+    pub fn corner_z(&self, x: i32, y: i32) -> Option<(Single, bool)> {
+        let i = self.corner_index(x, y)?;
+        Some((self.corner_z[i], self.corner_exact[i]))
     }
 
     /// Writes one corner, and nothing else — [`World::retile_z`] is what
     /// carries the change into [`World::tile_z`].
-    pub fn set_corner_z(&mut self, x: i32, y: i32, z: i64) {
-        let (w, h) = (self.corner_stride(), self.height * TILES_PER_CELL + 1);
-        if self.corner_z.is_empty() || x < 0 || y < 0 || x >= w || y >= h {
-            return;
+    pub fn set_corner_z(&mut self, x: i32, y: i32, z: Single, exact: bool) {
+        if let Some(i) = self.corner_index(x, y) {
+            self.corner_z[i] = z;
+            self.corner_exact[i] = exact;
         }
-        let i = (y * w + x) as usize;
-        if self.corner_z[i] == z {
-            // A terraform that leaves a corner where it was leaves it the
-            // single it was loaded as.
-            return;
-        }
-        self.corner_z[i] = z;
-        if self.corner_rewritten.is_empty() {
-            self.corner_rewritten = vec![false; self.corner_z.len()];
-        }
-        self.corner_rewritten[i] = true;
     }
 
     /// `TerrainOut::find_data_z@00866560(x, y, 0)` — the ground's height
@@ -1108,7 +1106,6 @@ impl World {
     /// with no grid answers `(0, true)`, as [`World::tile_z`] does.
     pub fn data_z(&self, x: i32, y: i32) -> (i32, bool) {
         /// `0x3baaaaab`, the single nearest 1/192, at `0xb6943c`.
-        use crate::single::Single;
         const INV_192: Single = Single::from_bits(0x3baa_aaab);
         if self.corner_z.is_empty() {
             return (0, true);
@@ -1121,9 +1118,8 @@ impl World {
         let i0 = (stride * iy + ix) as usize;
         let mut exact = true;
         let mut h = |i: usize| {
-            let (v, unique) = Single::from_millionths(self.corner_z[i]);
-            exact &= unique && !self.corner_rewritten.get(i).copied().unwrap_or(false);
-            v
+            exact &= self.corner_exact[i];
+            self.corner_z[i]
         };
         let row = stride as usize;
         let fx = x - ix * 0xc0;
@@ -1147,16 +1143,17 @@ impl World {
     }
 
     /// Installs the corner grid and derives every tile's height from it.
-    /// The grid is `(4·xs + 1) × (4·ys + 1)` millionths, row-major.
+    /// The grid is `(4·xs + 1) × (4·ys + 1)` millionths, row-major, as the
+    /// dump prints it; each is taken as the single its print names
+    /// ([`Single::from_millionths`]).
     pub fn set_corner_grid(&mut self, h: Vec<i64>) -> bool {
         let (w, ht) = (self.corner_stride(), self.height * TILES_PER_CELL + 1);
         if h.len() != (w * ht) as usize {
             return false;
         }
-        self.corner_z = h;
         // A grid installed whole is the original's own, whatever was
         // written over the one before it.
-        self.corner_rewritten.clear();
+        (self.corner_z, self.corner_exact) = h.into_iter().map(Single::from_millionths).unzip();
         let (tw, th) = (self.width * TILES_PER_CELL, self.height * TILES_PER_CELL);
         for ty in 0..th {
             for tx in 0..tw {
@@ -1168,16 +1165,19 @@ impl World {
 
     /// `TerrainOut::find_tcoord_z@008544a0` for one tile, from the corner
     /// grid: the truncated mean of the two **anti-diagonal** corners, and 0
-    /// where the tile's surface bits say ocean.
+    /// where the tile's surface bits say ocean — in the listing's SSE,
+    /// `cvttss2si((h[y+1][x] + h[y][x+1]) × 0.5)` (`00854525`..`00854538`).
     pub fn retile_z(&mut self, t: Pos) {
-        let (Some(a), Some(b)) = (self.corner_z(t.x, t.y + 1), self.corner_z(t.x + 1, t.y)) else {
+        let (Some((a, _)), Some((b, _))) =
+            (self.corner_z(t.x, t.y + 1), self.corner_z(t.x + 1, t.y))
+        else {
             return;
         };
         let ocean = self.tile_mask(t) & tile::SURFACE == tile::SURFACE_OCEAN;
         let z = if ocean {
             0
         } else {
-            ((a + b) / 2_000_000) as i32
+            a.addss(b).mulss(Single::HALF).to_i32()
         };
         self.set_tile_z(t, z);
     }

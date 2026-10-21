@@ -96,6 +96,8 @@ mod army_do_mustering;
 mod army_engagement;
 #[path = "army_is_engaged.rs"]
 mod army_is_engaged;
+#[path = "army_is_moving.rs"]
+mod army_is_moving;
 #[path = "army_member.rs"]
 mod army_member;
 #[path = "army_member_by_unit.rs"]

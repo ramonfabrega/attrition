@@ -448,6 +448,13 @@ def hooked_by_script(script):
     sm = STUBS_LIST.search(body)
     if sm:
         hooked |= {int(a) for a in re.findall(r"\(\s*'call'\s*,\s*(\d+)", sm.group(1))}
+    # A recursive function's own entry is hooked on its second visit
+    # (`Harness.skip_once`, item 3386): the sweep runs it, it does not answer
+    # for another, so it is never one of the callees subtracted (item 3395:
+    # `Unit::find_path` was swept and still listed unbacked).
+    em = re.search(r"^ENTRY\s*=\s*0x([0-9a-f]+)", body, re.M)
+    if em:
+        hooked.discard(int(em.group(1), 16))
     return hooked
 
 

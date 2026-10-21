@@ -3783,6 +3783,16 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3398) **The held-out battery runs eight of eight whole, and the refill rule names no lobby** (3390's merge,
+`battery_measure` on `15e001e8`: 6147, 7799, 14540, 15853, 18883, 24000 ×3, every one `sequence N of N`; the Dutch at
+Great Lakes, 3390's rule-(2) replacement, whole on its first try): entry 72 as amended by 84 refills a battery lane
+with the lowest *open* lobby, and there is none; the one open word, the Inca at Great Sahara, is 3393's and is near its
+end at 15632. The commander refilled the freed Opus lane as a Sonnet sweep under LOOP.md's "a lane with no word of its
+own is a sweep lane" (3397, as 3229 was) and minted no lobby. For the pass, and Ramon's where it is the finish line:
+entry 61 says the battery is the number that says when minting can stop, and every kept lobby is at its game's end, so
+none can move on fixes made for others; whether to mint lobbies past eight, close the battery track, or move the two
+Opus lanes to another kind (the `reading` kind, entry 84) when 3393 lands. One reach.
+
 (3394) **A `tools/check.sh` run that waits for admission is killed in about six seconds, exit 144** (3385's "for the
 Loop", filed at its merge): in 3385's third session every single-test `zsh tools/check.sh test …` that had to wait
 for the host budget died within about six seconds with exit 144, its whole shell with it, even under `nohup`; the lane
@@ -3792,7 +3802,9 @@ signals a waiting child, and whether the admission's own cancel handler (`resour
 `cancel`) is reached by a sibling's signal. One reach.
 
 (3392) **Release builds SIGTERM'd from outside for about 25 minutes** (att-3390's status line, 2026-10-20, "rustc
-release builds were SIGTERM'd externally for ~25 min around 19:20-19:45 on this host"; unverified by the commander):
+release builds were SIGTERM'd externally for ~25 min around 19:20-19:45 on this host"; and 3390's "for the Loop",
+filed at its merge: the killed builds left inconsistent rlibs that failed later links, and `cargo clean --release -p
+sim` / `-p rondata` recovered them):
 `tools/resource_budget.py` kills a memory-capped child with SIGKILL (`os.kill(pid, signal.SIGKILL)`, its line 208),
 never SIGTERM, so the sender is not the admission. Candidates to rule out first: a lane's `pkill -f` on a name every
 lane shares (parked 1713), a subagent's cleanup, cargo's own jobserver on a sibling's cancel. A gate's `Gate minutes:`
@@ -8950,13 +8962,18 @@ words and edits nothing here; a refill lands when two remain.
 - **3387e. `Animal::work@005d7330`: the crate keeps no per-herd goods seen-mask and no animal order cursor** (`+0xcc/+0xd0/+0xd4/+0xdc`); the port is inline in the sweep's `// hand: port` fence. Player byte 8 and above, herd indices outside -1..6 and goods indices outside 0..7 are not drawn.
 - **3387f. `ObjectData::attack@006469f0`: sim fix, the caravan arm.** `Sim::attack_of` had no caravan arm (vslot `+0xd0` and `has_preq(CARAVAN_ATTACK_BONUS)` replace the attack with the constant, 20); added with tech role `caravan_attack_preq`, tuning `caravan_attack_bonus` and `Slot::Scaled10`. A pin can move only where a caravan whose owner holds the tech is counted through `attack_of`. Open: `has_preq` reads `preq0` only; the other two `PREQ` attributes of `TECHBONUSES` row 14 are ignored and unchecked. Slot `+0x18` (`Buffer::is_pending_load` on units, another slot on buildings) is modelled as `is_unit`.
 
-## Parked by the next landing, slot LY — reserved
+## Parked by item 3390, 2026-10-20 — the Spanish at Great Lakes close: the draw-silent residue
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3390a. run1013's `leader:attack` on 13576** (who=1, ours 269 against theirs 275), the AI leader's attack
+  tally; it parts no draw to the game's end, and the close compares whole. Names no score.
+- **3390b. `dest_angle` on run1013's `1/74` (13710) and `1/78` (13732)**, ours 1073741824 and 671481856 against
+  1251016704 and −70647808, with positions agreeing: the shape run1007's 3383a parked. No draw parts.
+- **3390c. Newborns' `g.angle[0]`** (`1/62` on run1013b's 8557, `1/89` on run1013's 13735), ours 1431655765
+  against 0 on the first block that prints the unit, the standing birth row the Indian word's gap carries.
+- **3390d. run1013b's groups 67 and 68** (`pool:67`/`group:67.held` from 8877, `68` from 9805) and `SITE[2].reg`
+  (9181), and a one-unit `g.des_x` on `1/63` (9773, 42506 against 42507): draw-silent, the close whole.
+- **3390e. `has_general`'s per-type count at `leader +0x56fe`** is not read by `Sim::near_monarch`; a counted
+  Monarch off the map is where it would part. No capture reaches it.
 
 ## Parked by item 3391, 2026-10-20 — the nations seat's twenty-first batch
 
@@ -8967,13 +8984,12 @@ words and edits nothing here; a refill lands when two remain.
 - **3391e. `SpellType::cast` is spread over `do_cast_effect` and `cast_on`.** `spell_cast_view.rs` (unwired) is the switch in one place (`is_castable == 3`, jump table over `spell - 0x275`); many arms pass `is_castable`'s leftover `ecx`, which the sweep draws but never models from the real callee.
 - **3391f. `Herd::create_units` founding is unmodelled.** `herd_create_view.rs` (unwired); `diff/setup.rs:1063` says the harness skips the herds' 44 draws. The sweep's `--outarg` draws one out pair per row, so per-call `find_nearby_spot` coordinates are untested.
 
-## Parked by the next landing, slot MA — reserved
+## Parked by item 3395, 2026-10-20 — the second sweep's seventh batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3395a. `SpellTypeData::get_job_time@00675800` is swept (2000 + 3000 rows, 59 of 59 breaks held) but unwired.** `spell_type_get_job_time_view.rs` holds every arm; `Sim::cast_job_time` has only the siege and machine-gun type arms. The crate loads no `french_entrench`, `antipater_entrench_rate`, `turk_pack`, `napoleon_pack`, no `SPIES_CRAFT_FASTER` preq and no leader short at `+0x59cc` (unnamed in `types.txt`; the view calls it `leader_short_59cc`). Wiring the full function can move the casting pins.
+- **3395b. `SpellTypeData::is_valid_target@006763c0` is swept (5000 rows, 110 + 13 breaks, 9 equivalent) but unwired.** `spell_valid_target_view.rs`'s `is_valid_target_steps` is standalone; `Sim::spell_valid_target` (`cast.rs`) is arm by arm over `Obj` and the leaves (object slots `0x18`..`0x148`, the tile owner) have no crate names yet. Wiring is the likeliest pin mover here.
+- **3395c. `GroupData::count@00711720` has no crate twin.** Swept whole in six slices (`group_data_count_*`, 440 rows each, about 213 breaks, 1 equivalent: REGION `^ 0x63637` → `0x63636`); the crate has only `Army`'s per-kind `army_count_*` closures, so every port is inline.
+- **3395d. Namesakes.** `attack_pos.rs:426 is_moving` is `UnitData::is_moving@00610af0`, not `Army::is_moving@006f5470` (the port is `Sim::army_is_moving`, now run through `army_is_moving_view.rs`; `num_units` vs `units.len()` is the model's one difference). `Wall::update_gpiece@00643070` has no crate twin (`garrison_view.rs`'s `update_gpiece` is `Unit::update_gpiece`); a wall's piece choice is art state, the sweep's port is inline.
 
 ## Parked by the next landing, slot MB — reserved
 

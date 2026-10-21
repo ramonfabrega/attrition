@@ -656,6 +656,45 @@ mod tests {
         assert_eq!(sim.unit_speed(a), 25, "the march has run out");
     }
 
+    /// run1013c's block 13484 (item 3390, `docs/AI.md` §294): a siege unit
+    /// within a Monarch's radius walks at twice its speed —
+    /// `UnitData::get_speed@00608720`'s `has_general(0, 0x162)` and
+    /// `is_siege` — and the group cap still applies after it; a unit not of
+    /// siege, one past the radius, another leader's and a siege unit beside
+    /// a hero who is no Monarch keep their own.
+    #[test]
+    fn a_siege_unit_near_its_monarch_walks_at_double() {
+        let (mut sim, g, _) = ai_general();
+        let at = sim.units[g].pos;
+        let siege = sim.add_unit_type(crate::UnitType::default());
+        sim.unit_types[siege].combat.siege = true;
+        let foot = sim.add_unit_type(crate::UnitType::default());
+        sim.units[g].type_index = 0x162;
+        let reach = sim.hero_radius(g) * 0xc0;
+        let mut o = 40;
+        let mut near = |dx: i32, who: crate::Player, t: usize| {
+            o += 1;
+            let mut u = crate::Unit::new(who, o, crate::Pos::new(at.x + dx, at.y), 20);
+            u.ty = Some(t);
+            u.movement.speed = 24;
+            sim.add_unit(u)
+        };
+        let (a, edge, out, walker, theirs) = (
+            near(768, 1, siege),
+            near(reach, 1, siege),
+            near(reach + 1, 1, siege),
+            near(768, 1, foot),
+            near(768, 0, siege),
+        );
+        assert_eq!(sim.get_speed(a, 1), 48);
+        assert_eq!(sim.get_speed(edge, 1), 48, "the radius is inclusive");
+        assert_eq!(sim.get_speed(out, 1), 24, "one past it");
+        assert_eq!(sim.get_speed(walker, 1), 24, "not of siege");
+        assert_eq!(sim.get_speed(theirs, 1), 24, "another leader's");
+        sim.units[g].type_index = 0x160;
+        assert_eq!(sim.get_speed(a, 1), 24, "a Despot is no Monarch");
+    }
+
     /// Before the coin: a guy standing (`avg_speed` 0) returns 0 with no
     /// draw, and a hero not moving takes the decoy arm — no draw, Create
     /// Decoys with the mana, and nothing while one of its leader's decoy

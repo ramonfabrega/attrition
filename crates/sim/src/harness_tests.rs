@@ -4246,6 +4246,57 @@ fn an_unpack_brings_the_units_angle_to_guy_zero_s_and_the_crew_with_it() {
     assert_eq!(sim.units[unit].guys[0].anim, anim::UNPACK, "and unpacks");
 }
 
+/// **A Monarch halves a siege unit's unpack** (item 3390, `docs/AI.md`
+/// §294): `Unit::do_cast@005ebfe0`'s pack and unpack clock takes a second
+/// `spell_time` step, and every figure's `cur_time` a second tick, for a
+/// siege unit with `has_general(0, 0x162)` — run1013's Bombard `1/114`
+/// reads `spell_time` 2, 4, … 78 from 13601 and is done on 13640. Out of
+/// the Monarch's reach, or not of siege, the clock steps once.
+#[test]
+fn a_monarch_halves_a_siege_unit_s_unpack() {
+    use crate::orders::{Body, QueuePos};
+    let unpack_once = |siege: bool, monarch_at: Pos| {
+        let mut sim = skirmish(0);
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            ..crate::UnitType::default()
+        });
+        sim.unit_types[ty].combat.packs = true;
+        sim.unit_types[ty].combat.siege = siege;
+        let mut u = Unit::new(0, 0, Pos::new(4000, 400), 100);
+        u.ty = Some(ty);
+        u.guys = vec![anim::Guy::fresh(1)];
+        let unit = sim.add_unit(u);
+        make_mobile(&mut sim, unit, movement::Angle::EAST);
+        sim.seat_guys(unit);
+        sim.units[unit].combat.packed = true;
+        let hero = sim.add_unit_type(crate::UnitType::default());
+        sim.unit_types[hero].cols.unit_flags2 = crate::ai_load::uflags2::GENERAL;
+        let mut m = Unit::new(0, 1, monarch_at, 20);
+        m.ty = Some(hero);
+        m.type_index = 0x162;
+        sim.add_unit(m);
+        sim.spells = vec![crate::orders::SpellType::default(); 55];
+        let row =
+            usize::try_from(crate::orders::spell::UNPACK - crate::orders::spell::FIRST).unwrap();
+        sim.spells[row].job_time = 80;
+        sim.add_cast_order_at(unit, crate::orders::spell::UNPACK, QueuePos::New);
+        let Some(Body::Cast(c)) = sim.current_order(unit).map(|o| o.body) else {
+            panic!("a cast order")
+        };
+        sim.do_cast(unit, c);
+        sim.units[unit].spell_time
+    };
+    assert_eq!(
+        unpack_once(true, Pos::new(4200, 400)),
+        2,
+        "beside its Monarch"
+    );
+    assert_eq!(unpack_once(true, Pos::new(40000, 400)), 1, "out of reach");
+    assert_eq!(unpack_once(false, Pos::new(4200, 400)), 1, "not of siege");
+}
+
 /// **The pack arm makes the same call** (`005ecb7e`, item 1517): a unit
 /// that packs sets its angle to guy 0's before `CHAR_PACK`, as the unpack
 /// arm does, and again for every unit — this arm has no collector's block.
