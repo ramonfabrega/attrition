@@ -412,6 +412,10 @@ mod unit_update_armor;
 mod unit_update_ceo_position;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
+#[path = "unit_update_hits.rs"]
+mod unit_update_hits;
+#[path = "unit_update_hits_redirect.rs"]
+mod unit_update_hits_redirect;
 #[path = "unit_update_local_seen.rs"]
 mod unit_update_local_seen;
 #[path = "unit_update_order.rs"]

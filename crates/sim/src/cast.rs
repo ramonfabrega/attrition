@@ -228,51 +228,21 @@ impl Sim {
     /// The Spy's upgrades are carried (item 1585), and the General's
     /// (item 1614).
     pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {
-        let mut hits = self.type_hits(who, rec);
-        let t = &self.unit_types[rec];
-        if self.tuning.iroquois_extra_hits != 0 && self.iroquois_barracks_unit(who, rec) {
-            hits = (self.tuning.iroquois_extra_hits + 100) * hits / 100;
-        }
-        // The Dutch (`0060eab4`..`0060eb98`, item 3329): `+ ages ×
-        // DUTCH_HP_BONUS` on the Dutch kinds, after the Iroquois and before
-        // the Spy. run963b's merchants `1/1`, `1/2` and caravan `1/14` are
-        // 135 on a type of 125 in the Classical age.
-        hits += self.dutch_ages(who, rec) * self.tuning.dutch_hp_bonus;
-        // A Spy's hit points are the upgrade table's entry, not the type's
-        // plus a term (`0060eb98`..`0060ebd8`, `docs/AI.md` §160).
-        if self.is_spy_type(rec) {
-            let level = self.spy_upgrade_level(who).clamp(0, 3) as usize;
-            hits = self.tuning.spy_upgrade_hp[level];
-        }
-        // A hero adds `level² × hits / 2` (`0060ec03`..`0060ec33`): the
-        // coverage pair's General `1/150`, 109 on its type, is 599 with
-        // all three upgrades (`docs/AI.md` §172).
-        if t.cols.flag2(crate::ai_load::uflags2::GENERAL) {
-            let level = self.general_upgrade_level(who);
-            hits += level * level * hits / 2;
-        }
-        let trader = matches!(t.type_index, 0x3d | 0x3e | 400)
-            || t.cols.flag2(crate::ai_load::uflags2::CARAVAN);
-        if trader
-            && self.tuning.nubian_hit_points != 0
-            && self.tech.get(who as usize).is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::NUBIANS)
-            })
-        {
-            hits = (self.tuning.nubian_hit_points + 100) * hits / 100;
-        }
-        // The last term (`0060ecad`): a supply unit adds
-        // `supply_hp_upgrade[get_supply_upgrade]`, the count of the three
-        // upgrade prerequisites its leader holds (`docs/AI.md` §157). The
-        // test is `is_supply`, `+0x2b8 & 0x40` alone (`0060ecc3`): a
-        // government patriot `FROM General` carries both bits and takes
-        // both terms — The Despot is 109 → 599 → 659 (`docs/AI.md` §213).
-        if t.cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO) {
-            let level = self.supply_upgrade_level(who).clamp(0, 3) as usize;
-            hits += self.tuning.supply_hp_upgrade[level];
-        }
-        hits
+        let k = crate::unit_update_hits_view::UnitHitsK {
+            iroquois: self.tuning.iroquois_extra_hits,
+            dutch: self.tuning.dutch_hp_bonus,
+            nubian: self.tuning.nubian_hit_points,
+            spy: self.tuning.spy_upgrade_hp,
+            supply: self.tuning.supply_hp_upgrade,
+            ..Default::default()
+        };
+        let mut v = TypeHits {
+            sim: self,
+            who,
+            rec,
+            stored_hits: 0,
+        };
+        crate::unit_update_hits_view::unit_update_hits(&k, &mut v)
     }
 
     /// **The Dutch kinds' age count** (item 3329, `docs/COMBAT.md` §4):
@@ -310,22 +280,6 @@ impl Sim {
             }
             _ => 0,
         }
-    }
-
-    /// `Unit::update_hits`'s Iroquois predicate (`0060ea36`): tribe bonus
-    /// 0x12, the trainer the Barracks, and the type armed or a Scout.
-    fn iroquois_barracks_unit(&self, who: Player, rec: usize) -> bool {
-        let t = &self.unit_types[rec];
-        let trainer = t
-            .tree
-            .and_then(|i| self.tech_tree.types.get(i))
-            .and_then(|d| d.where_);
-        trainer == Some(crate::nations::ty::BARRACKS)
-            && (t.combat.attack != 0 || t.cols.is(crate::ai_load::role::SCOUT))
-            && self.tech.get(who as usize).is_some_and(|p| {
-                self.tech_tree
-                    .has_tribe_bonus(&self.setup, p, crate::ai::tribe::IROQUOIS)
-            })
     }
 
     /// The unit record whose `TypeIndex` is `ti`, the first when a nation's
@@ -1998,5 +1952,123 @@ mod tests {
         s.tech[1].power = Some(crate::nations::power::FRENCH);
         assert_eq!(s.unit_mana(general), 1200, "(20 + 100) × 1000 / 100");
         assert_eq!(s.unit_mana(filler), 1000, "only a General's pool");
+    }
+}
+
+/// [`crate::unit_update_hits_view::UnitHitsView`] on a unit type of the
+/// port: the unit is its type, always a captain; the marines', Copper and
+/// Bananas terms are the SEAM (no staged nation takes them) and ask false,
+/// and the patch gate is taken as passed (the shipped build is past it).
+struct TypeHits<'a> {
+    sim: &'a Sim,
+    who: Player,
+    rec: usize,
+    stored_hits: i32,
+}
+
+impl TypeHits<'_> {
+    fn t(&self) -> &crate::UnitType {
+        &self.sim.unit_types[self.rec]
+    }
+    fn tribe(&self, n: usize) -> bool {
+        self.sim
+            .tech
+            .get(self.who as usize)
+            .is_some_and(|p| self.sim.tech_tree.has_tribe_bonus(&self.sim.setup, p, n))
+    }
+}
+
+impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
+    fn is_captain(&mut self) -> bool {
+        true
+    }
+    fn redirect(&mut self) -> i32 {
+        0
+    }
+    fn base_hits(&mut self) -> i32 {
+        self.sim.type_hits(self.who, self.rec)
+    }
+    fn is_marine(&mut self) -> bool {
+        false
+    }
+    fn copper_bit(&mut self) -> bool {
+        false
+    }
+    fn type_218(&mut self) -> i32 {
+        0
+    }
+    fn trainer(&mut self) -> i32 {
+        self.t()
+            .tree
+            .and_then(|i| self.sim.tech_tree.types.get(i))
+            .and_then(|d| d.where_)
+            .map_or(0, |w| w as i32)
+    }
+    fn bananas_bit(&mut self) -> bool {
+        false
+    }
+    fn has_tribe(&mut self, n: i32) -> bool {
+        match n {
+            0x12 => self.tribe(crate::ai::tribe::IROQUOIS),
+            0x16 => self.tribe(crate::ai::tribe::DUTCH),
+            4 => self.tribe(crate::ai::tribe::NUBIANS),
+            _ => false,
+        }
+    }
+    fn attack_word(&mut self) -> i32 {
+        self.t().combat.attack as i32
+    }
+    fn is_type(&mut self, n: i32) -> bool {
+        match n {
+            0x45 => self.t().cols.is(crate::ai_load::role::SCOUT),
+            0x3a => self.sim.is_spy_type(self.rec),
+            _ => false,
+        }
+    }
+    fn type_index(&mut self) -> i32 {
+        self.t().type_index as i32
+    }
+    fn is_caravan(&mut self) -> bool {
+        self.t().cols.flag2(crate::ai_load::uflags2::CARAVAN)
+    }
+    fn is_supply(&mut self) -> bool {
+        self.t().cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+    }
+    fn patch_version(&mut self) -> i32 {
+        9
+    }
+    fn is_gov_hero(&mut self) -> bool {
+        self.t()
+            .tree
+            .and_then(|i| self.sim.tech_tree.types.get(i))
+            .and_then(|d| d.kind.unit())
+            .is_some_and(|u| u.patriot)
+    }
+    fn ages_stored(&mut self) -> i32 {
+        self.sim.tech.get(self.who as usize).map_or(0, |p| p.ages) ^ 0x62766
+    }
+    fn spy_upgrade(&mut self) -> i32 {
+        self.sim.spy_upgrade_level(self.who)
+    }
+    fn is_hero(&mut self) -> bool {
+        self.t().cols.flag2(crate::ai_load::uflags2::GENERAL)
+    }
+    fn general_upgrade(&mut self) -> i32 {
+        self.sim.general_upgrade_level(self.who)
+    }
+    fn supply_upgrade(&mut self) -> i32 {
+        self.sim.supply_upgrade_level(self.who).clamp(0, 3)
+    }
+    fn link_of_self(&mut self) -> i32 {
+        -1
+    }
+    fn link_of(&mut self, _i: i32) -> i32 {
+        -1
+    }
+    fn store(&mut self, _at: Option<i32>, h: i32) {
+        self.stored_hits = h;
+    }
+    fn stored(&mut self) -> i32 {
+        self.stored_hits
     }
 }
