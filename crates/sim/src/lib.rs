@@ -123,6 +123,7 @@ pub mod group;
 pub mod group_move;
 pub mod group_queue_up;
 pub mod grouppath;
+pub mod groups_process_view;
 pub mod halt_view;
 pub mod heal;
 pub mod herd_create_view;
