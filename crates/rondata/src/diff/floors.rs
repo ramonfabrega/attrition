@@ -317,6 +317,36 @@ mod tests {
         );
     }
 
+    /// **The handoff's held-out line is the pinned battery** (the forty-eighth
+    /// pass, Ramon's word: the median measured game length, not fidelity, once
+    /// the games ran whole). `Held-out: <W> of <N> whole · shortest <S>`: a
+    /// lobby is whole when its pinned count reaches its game's last frame, and
+    /// the shortest is the shortest whole game — a sample of eight whole says
+    /// less than sixteen would, and the line says how many. Made to fail first
+    /// on a handoff with no such line.
+    #[test]
+    fn the_handoff_s_held_out_line_is_the_pinned_battery() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let whole: Vec<&crate::diff::battery::Lobby> = crate::diff::battery::BATTERY
+            .iter()
+            .filter(|l| l.count >= l.length)
+            .collect();
+        let shortest = whole.iter().map(|l| l.length).min().unwrap_or(0);
+        let want = format!(
+            "Held-out: {} of {} whole \u{b7} shortest {shortest}",
+            whole.len(),
+            crate::diff::battery::BATTERY.len()
+        );
+        let line = q.lines().find(|l| l.starts_with("Held-out:"));
+        assert_eq!(
+            line.map(str::trim_end),
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries `{want}` (the held-out battery, `BATTERY`'s pinned \
+             counts against each game's length), beside the Blind line"
+        );
+    }
+
     fn the_handoff_carries(prefix: &str) {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
