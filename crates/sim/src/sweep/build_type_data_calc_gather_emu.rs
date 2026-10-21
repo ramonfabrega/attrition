@@ -32,8 +32,9 @@ const ANS: usize = 13;
 /// `--outarg` columns.
 const OUTS: usize = 62;
 /// `--seq` runs: the stub, the values a row. Columns follow `OUTS + 4` in this order.
-const SEQS: [(usize, usize); 17] = [
+const SEQS: [(usize, usize); 18] = [
     (8, 24),
+    (2, 6),
     (4, 12),
     (5, 14),
     (9, 12),
@@ -52,7 +53,7 @@ const SEQS: [(usize, usize); 17] = [
     (43, 8),
 ];
 /// The row's column count.
-pub const COLUMNS: usize = 306;
+pub const COLUMNS: usize = 312;
 
 /// The panic payload that ends a call at its `--stop-stub`.
 pub struct Stop;
@@ -152,7 +153,7 @@ impl TypeGatherView for V<'_> {
         self.recn(1, &r0, &[city]);
         let ecx = rd32(&self.p[16], 0).to_string();
         self.recn(2, &ecx, &[good, 100]);
-        self.answer(2)
+        self.seq(2)
     }
 
     fn resource_bonuses(&mut self, who: i32, out: &mut [i32; 6]) {
