@@ -186,6 +186,11 @@ pub const TRACES: &[&str] = &[
     // at `cover=1` on the click-free pool to 1200 (`docs/RUNS.md` run1026),
     // run894's game on every frame.
     "rontrace-run1026.log",
+    // Item 3426: the golden start (map 14, the human Nubian's Market) with
+    // the tracer's `@sell 0 1 0` on 620, `@buy 0 1 0` on 640 and `@sell 0 1
+    // 1` on 660, at `cover=1` on the click-free pool to 700 (`docs/RUNS.md`
+    // run1031), run1031b's game on every frame.
+    "rontrace-run1031.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -435,6 +440,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `GroupData::get_stance_option@0070bab0` on 720 (the `-1` cycle), and
 /// `SpellType::cast_sabotage@006720e0` on 806; `issue_stance` moves to
 /// [`ENTERED_BY_THE_DLL_ONLY`].
+/// **345** with run1031 (item 3426: the human's Market, `docs/NATIONS.md`
+/// §9.2, the tracer's `@sell`/`@buy`): `LeaderOut::issue_sell@006d3eb0`,
+/// `CommandManager::issue_sell@00942a80` and
+/// `CommandPackage::process_sell@009468a0` on 620, `LeaderData::
+/// can_buy_sell@006d53e0` and `has_bonus@006e0b80` on 640 (the Nubian arm,
+/// before Coinage). The DLL calls the leader issuer, the Sell and Buy
+/// buttons' own call (`Options::exec@007188c0:1149`, `:1162`), so neither
+/// issuer is the DLL's only.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -457,7 +470,7 @@ pub const NEVER: &[u32] = &[
     0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0,
     0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0, 0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0,
     0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_3650,
-    0x006d_3eb0, 0x006d_5230, 0x006d_53e0, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_0b80, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20,
+    0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20,
     0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_1cc0, 0x0070_20c0, 0x0070_4520, 0x0070_84c0, 0x0070_8820,
     0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60, 0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0,
     0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740, 0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_16b0, 0x0072_1c40,
@@ -466,7 +479,7 @@ pub const NEVER: &[u32] = &[
     0x007c_3810, 0x0081_2d20, 0x0081_34d0, 0x0082_c520, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_be90, 0x0089_bea0,
     0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190,
     0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_17a0, 0x0094_1960,
-    0x0094_2a80, 0x0094_2c90, 0x0094_3f30, 0x0094_4090, 0x0094_65d0, 0x0094_68a0, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
+    0x0094_2c90, 0x0094_3f30, 0x0094_4090, 0x0094_65d0, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
     0x0094_c1c0, 0x0095_2d90, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930,
     0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880, 0x009f_b970, 0x009f_b9e0,
     0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0, 0x00a0_0220, 0x00a4_69f0,
