@@ -999,3 +999,36 @@ wagon's positions agree too (`docs/PATHFINDER.md` §25, `docs/ORDERS.md`
 §24.9). The bracket is the capture's own and is not narrowed.
 `docs/SUPPLY.md` has the shelter's half.
 
+
+## The never-entered functions — what would enter each, and what nothing can (item 3414, reading)
+
+**How established.** A `reading` item (DECISIONS 84, 86): every function this document cites that `blind::NEVER`
+lists, read off the export, the listing and `report.py <exe> refs`. On the base `6d3ffc37` that is five, all from
+the handicap bullet in "What is not established". `LeaderData::get_handicap@006da740` is accepted residue.
+`Game::run_gamespy@00587060` is read by `docs/GOLDEN.md` §144.4, which proposes it for residue, and is not read
+again. That leaves **three**, read here. **Every claim below rests on a reading alone**, and each row names what
+would kill it.
+
+**Claims**
+
+| function | claim | read at | kills it |
+|---|---|---|---|
+| `Game::run_scenario@005860c0` | The bullet's "clears it" holds: bit 2 is cleared at :74, and again at :97. Seven call sites, none of them a skirmish: `Main::run_game_loop`'s `GAME_LOAD_SCENARIO` (:154), `GAME_SCENARIO_DIRECT` (:169), `GAME_CONQUEST` (:176) and command-line (:332) arms; `Game::run_campaign` (the scenario and tutorial campaigns); and `Game::run_skilltest`. The seventh is `GAME_SOLO` itself (:111–120), which runs `run_scenario(0, 1, 0)` instead of `run_solo` only for a profile that has never played (`played_game == 0`) and never won the first tutorial, when the learn-as-you-play popup answers 0. Every capture's profile has played, so a skirmish here takes `run_solo` | `run_game_loop:111–176, 332`; `refs` | a pinned skirmish trace entering it, or a fresh profile's Quick Battle that does not |
+| `Game::run_editor@00586440` | Clears bit 2 at :58, and sets `semaphore[1] \|= 8` (:67), the bit `blocked_tcoord` and `was_seen`'s callers test (its name is not established). Its one call is `run_game_loop`'s `GAME_EDITOR` arm (:228), the scenario editor | `run_game_loop:227–228`; `refs` | a call from anywhere but the editor arm |
+| `RecordGame::read_package@00952d90` | **A recorded game's playback, and the clear is only at its end**: bit 2's clear at :105 sits on the arm with no file or the file's end reached and `param_4 == 0` (:96), not on entry. Its callers are `CommandManager::process_turn:529/534`, only under `semaphore[0] & 0x10` (:149), which `Game::run_playback@00586ea0:45` sets; and `CommandManager::send_local_package+0x139`, only under `use_mp_playback`. The command line's `-config <file>.rcx` reaches playback (`docs/ORACLE.md`, the option table). The handicap verdict does not move: `run_gamespy` remains the one setter of bit 2 | `read_package:96–118`; `process_turn:149, 528–537`; `refs` | a playback of a recorded game that runs without entering it, or a live game that enters it |
+
+**Captures owed (the forty-eighth pass books from this table)**
+
+| function | ini category · field | lobby | action · frame |
+|---|---|---|---|
+| `RecordGame::read_package@00952d90` | the trace's entry at `cover=1`; `[End Frame] UNITS=3` beside the recording's own capture of the same frames | a game this install recorded (any pinned lobby, so the playback is same-version by construction), started with `-config <file>.rcx` | playback from frame 0; the first frame enters it |
+
+**Residue proposals**
+
+| function | why no skirmish capture reaches it |
+|---|---|
+| `Game::run_scenario@005860c0` | the scenario, campaign, tutorial, skill-test and Conquer the World paths, cut from v1; a skirmish profile that has played takes `run_solo` |
+| `Game::run_editor@00586440` | the scenario editor, cut from v1 |
+
+`read_package` is not proposed. A playback is a capture this install can take, though it is an order source and not a
+rule.

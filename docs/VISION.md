@@ -509,7 +509,8 @@ executable:
   `other < 0 || treaties[other] & 1 == 0`.
 
 `Leader::treaty_off@006d0370` clears bit 0, and its only caller is the
-debug console's `run_cmd`. **Nothing in a game ever clears the bit.**
+debug console's `run_cmd` — the chat cheat `unmeet` (§8's never-entered rows,
+item 3414). **Nothing in a game ever clears the bit.**
 
 ### The loop's own gates, exactly
 
@@ -985,6 +986,24 @@ Ten frames behind, it arrives at 101 where the original arrived at 95 and
 spends its `think_scout` ring draws a frame later. That is
 `docs/MOVEMENT.md`'s stopped-unit instant turn, and the queue books it
 there.
+
+**The never-entered functions this document cites (item 3414, reading).** `blind::NEVER` holds two of them on the base
+`6d3ffc37`, neither in `RESIDUE`; `treaty_off` is cited here alone. **Both claims rest on a reading alone**, and each
+names what would kill it.
+
+| function | claim | read at | kills it |
+|---|---|---|---|
+| `ObjectData::is_dock@004711e0` | §9.2's thunk is the listing: `mov ecx,[ecx+0x18]; mov eax,[ecx]; jmp [eax+0x108]`. It forwards to the type's `BuildTypeData::is_dock@00472a70`, which is `is(DOCK)` (`0x1b0`). Its one call, `Console::execute_at_cursor+0x3c89` (:2192), is the human's right-click on an allied building that takes a garrison. With the profile pref `0x200` clear, the garrison order goes ahead only when the target is a Dock and the selection holds a sea unit (`COUNT_DOMAIN, 1`); otherwise the click falls to the gather and move arms (`LAB_007ca323`). The click enters it whatever it answers. No sim function calls it; the crate needs no port. | the listing; `execute_at_cursor:2170–2214`; `refs` | a `cover=1` driven right-click on the human's own garrisonable building that does not enter `004711e0` |
+| `Leader::treaty_off@006d0370` | Clears bit 0 of `treaties[p]` on both sides: this leader's slot for `p`, and `p`'s slot for this leader (`+8`). Its two calls are `ConsoleWin::run_cmd`'s case `0x30` (:5995, `all`; :6034, one parsed player). `tools/gamelog/console.py table` names command 48 `unmeet`, chat-reachable, with `meet` (47, `treaty_on(·, 1)`) beside it. So `rontrace.cmd` can stage it, and it does not travel the order stream. Bit 1, the hit's, is left as it was. | the export; `console.py table` | after an `unmeet who=1` line, `[End Frame] LEADERS=1` `treaties[1]` (the human's) and the AI's `treaties[0]` still have bit 0 in the next block |
+
+Captures owed, all at `cover=1` (the forty-eighth pass books from these):
+
+| function | ini category · field | lobby | action · frame |
+|---|---|---|---|
+| `Leader::treaty_off@006d0370` | `[End Frame] LEADERS=1` `treaties[·]` | any pinned lobby, after the two leaders have met | a `rontrace.cmd` line `F unmeet who=1`, read at block `F+1` |
+| `ObjectData::is_dock@004711e0` | the trace's entry; `CM` the garrison process line | a water lobby with a human Dock | ships selected, right-click on own Dock (queue lane, `driver:`) |
+
+Residue proposals: **none**. Both are reachable, though neither writes a rule's state through the order stream.
 
 ## 9. `ObjectData::visible` — a unit that attacks you becomes visible to you (item 457, 2026-09-21)
 

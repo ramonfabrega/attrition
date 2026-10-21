@@ -9116,13 +9116,19 @@ is an oracle-agreed module the live sim does not call.
   register-typed calls would make the proposal certain. `copy_order` is the one that matters, since it copies
   whatever order it is handed.
 
-## Parked by the next landing, slot MO — reserved
+## Parked by item 3414, 2026-10-21 — the small documents' never-entered functions read: what the reading could not settle
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3414a. `send_navy`'s frame is not computed.** TRANSPORT §18.2 owes a `cover=1` East Indies capture at the frame
+  where the harness's `find_target` first calls `send_navy`. Nobody has read that frame off the harness. Read it on
+  the long East Indies word before booking. If the harness never calls it there, the lobby is wrong: the row then
+  wants a water lobby at war in a later age (CENSUS row 8).
+- **3414b. What restores `Game::wonders` on a load is not established** (TECH, "What is not established"). The section's
+  "a saved game's load" writer was `Wonder::init`, which has no caller. Saved games are cut from v1, so this names no
+  score.
+- **3414c. A fresh profile's Quick Battle is a scenario.** `Main::run_game_loop:111–120` takes `GAME_SOLO` to
+  `Game::run_scenario(0, 1, 0)` instead of `run_solo` when `played_game == 0`, the first tutorial is unwon and the
+  learn-as-you-play popup answers 0 (ATTRITION, the never-entered functions). That is a hazard for any capture on a
+  rebuilt prefix or a reset profile, not a score.
 
 ## Parked by the next landing, slot MP — reserved
 

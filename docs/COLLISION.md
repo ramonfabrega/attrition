@@ -2281,6 +2281,10 @@ three clauses rests on `get_action@00608450` read against the dump's own
 
 ## 10. What is not established
 
+- **The never-entered functions this document cites (item 3414).** Two are in `blind::NEVER` on the base
+  `6d3ffc37`. `Leader::process@006b88b0` is accepted residue. `Unit::do_form_change@005e8670` is read in
+  `docs/GROUPS.md` §38 (item 3413), which proposes it for `RESIDUE`: no site makes a `CHANGE_FORM` order. It is
+  not read again here.
 - ~~**The snap arm's `invalid_loc` refusal** (§5.4). The same `if` has a
   *free* sub-arm, and its tile refusal at `005fb443` does **not** behave
   like §5's: it jumps to `005fb48e`, which is the accepted step's own

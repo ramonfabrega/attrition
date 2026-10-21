@@ -1258,7 +1258,7 @@ of 4, answers **0** for a wonder type that
 `BuildTypeData::already_built@0063ce10` reports. That function reads
 `Game::wonders[t − 0x20e]` (`Game +0x618`, `int[17]`). The table's writers
 are `Wonders::init_wonder@0073c860`, from `Build::activate`'s wonder arm,
-and `Wonder::init@0073c5e0`; both write `|= 1` and nothing clears it. So a
+~~and `Wonder::init@0073c5e0`~~ — `Wonder::init` has no caller (item 3414, below); it writes `|= 1` and nothing clears it. So a
 wonder anyone has activated is off every leader's list for the rest of the
 game, even after it is destroyed.
 
@@ -1269,11 +1269,20 @@ French East Indies' AI kept the finished Pyramids on its make list, and
 `create_buildings`' wonder arm (`type_avail > 3`) drew one pair per city too
 many on 9781 (`docs/AI.md` §116).
 
-**How confident**: diff-backed by the draw stream, 9781 → 10131. The
-`Wonder::init` writer (a saved game's load) and the never-cleared claim
-are a reading.
+**How confident**: diff-backed by the draw stream, 9781 → 10131. ~~The
+`Wonder::init` writer (a saved game's load)~~ (withdrawn by item 3414: it has no caller; what restores the table on a
+load is not established) and the never-cleared claim are a reading.
 
 ## What is not established
+
+- **`Wonder::init@0073c5e0` is dead (item 3414, reading alone).** `report.py <exe> refs` finds no `call`, `jmp`
+  or `jcc` to it, and no copy of its address or RVA anywhere in the image. The byte before it is the `ret` of
+  `Wonder::close@0073c5d0` (`73c5df`), so nothing falls through into it. Its body (the slot, the frame, the
+  type, `+0xc = 1`, `get_timer`, `Game::wonders[type] |= 1`) is inlined in `Wonders::init_wonder@0073c860:65–84`,
+  which the crate carries (`lib.rs`, `Sim::note_wonders`). The section above named it a saved game's loader; that
+  is withdrawn, and what restores the table on a load is not established. *Kills it*: a trace entering `0073c5e0`.
+  **Proposed for `RESIDUE`**: no reference in the executable. No capture is owed. `Tribe::init@006f0230`, the other
+  `blind::NEVER` function this document cites, is accepted residue.
 
 - **The lobby remaps in `get_preq`** — the Military-level rescaling for
   units, the same-line rescaling for everything else, and the University
