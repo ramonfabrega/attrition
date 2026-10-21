@@ -175,6 +175,10 @@ pub struct Tuning {
     pub kremlin_spy: i32,
     /// Base of a general's aura radius, in tiles.
     pub general_radius: i32,
+    /// `GENERAL_RALLY_ARMOR`: the armour `UnitData::armor@00610160` adds,
+    /// times `general_upgrade + 1`, to a unit inside one of its owner's
+    /// heroes' radii (`docs/COMBAT.md` §4.2). The file's `2 armor`.
+    pub general_rally_armor: i32,
     /// Parmenio's scale on that radius, as 8.8 fixed point. The shipped file
     /// writes `3/2`; the original multiplies and shifts right by eight, which
     /// is what fixes the scale.
@@ -1288,6 +1292,7 @@ impl Tuning {
         terra_cotta_delay: 7,
         kremlin_spy: 30,
         general_radius: 6,
+        general_rally_armor: 2,
         parmenio_radius_adjust: 384,
         parmenio_ambush_time: 768,
         wellington_radius: 200,
@@ -1771,6 +1776,7 @@ impl Tuning {
             ("TERRA_COTTA_DELAY", Slot::Value(T.terra_cotta_delay)),
             ("KREMLIN_SPY", Slot::Value(T.kremlin_spy)),
             ("GENERAL_RADIUS", Slot::Value(T.general_radius)),
+            ("GENERAL_RALLY_ARMOR", Slot::Value(T.general_rally_armor)),
             (
                 "PARMENIO_RADIUS_ADJUST",
                 Slot::Ratio256(T.parmenio_radius_adjust),

@@ -3783,6 +3783,21 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3394) **A `tools/check.sh` run that waits for admission is killed in about six seconds, exit 144** (3385's "for the
+Loop", filed at its merge): in 3385's third session every single-test `zsh tools/check.sh test …` that had to wait
+for the host budget died within about six seconds with exit 144, its whole shell with it, even under `nohup`; the lane
+worked around it with `RON_NO_ADMISSION=1`, and its lane gates, admission on, were not killed. Exit 144 is 128 + 16,
+not the budget's SIGKILL (137); beside 3392's SIGTERM'd builds the same evening, the pass reads the two together: who
+signals a waiting child, and whether the admission's own cancel handler (`resource_budget.py`'s SIGINT/SIGTERM
+`cancel`) is reached by a sibling's signal. One reach.
+
+(3392) **Release builds SIGTERM'd from outside for about 25 minutes** (att-3390's status line, 2026-10-20, "rustc
+release builds were SIGTERM'd externally for ~25 min around 19:20-19:45 on this host"; unverified by the commander):
+`tools/resource_budget.py` kills a memory-capped child with SIGKILL (`os.kill(pid, signal.SIGKILL)`, its line 208),
+never SIGTERM, so the sender is not the admission. Candidates to rule out first: a lane's `pkill -f` on a name every
+lane shares (parked 1713), a subagent's cleanup, cargo's own jobserver on a sibling's cancel. A gate's `Gate minutes:`
+in that window are the evidence; the pass reads the lanes' transcripts for the signal's sender. One reach.
+
 (3389) **A journal's `## For the Loop` heading over `none` reads as unfiled, twice now** (3384's "for the Loop",
 filed at its merge: the heading, a blank line, `none`): `docs_guard::a_journal_s_loop_line_is_filed_or_says_none`
 reads only the heading's own line, so 3384's lane gate was red on it as the commander's line, as 3370's was. 3370's

@@ -326,7 +326,13 @@ citizens with the Cattle bonus) into `myarmor` on every figure of the squad;
 `UnitData::armor` returns `myarmor` plus `general_rally_armor × (general
 upgrade + 1)` when a general (or the unit *is* a hero) is in rally range,
 plus Ptolemy, Darius, Wellington, Blücher, Memnon, The Citizen and The
-Monarch's armour bonuses under the same gating as attack.
+Monarch's armour bonuses under the same gating as attack. **The rally arm is
+built, item 3385** (`Sim::rally_armor`, `docs/AI.md` §293): the unit is a
+hero, or `HeroesData::find_hero@0073a1b0(x, y, owner, 0, −1, 0)` finds one of
+the owner's active heroes on the map whose `get_radius × 0xc0` covers it by
+`vector_dist`. **Diff-backed** on run1011e's packet: the Inti Maceman `1/61`
+took 13 at armour 4 (`myarmor` 2 and the General's 2). The named heroes after
+it are a `SEAM`.
 
 ### 4.3 `hits` — `Unit::update_hits`
 
@@ -718,7 +724,11 @@ tmask  = T.type.obj_masks
 16. **River**: T is a unit and T's `z < 0`: `base = (base * river_modifier) >>
     8`.
 17. **Decoy**: T is a unit with `unit_masks & 1`: `armor = 0`; `base =
-    max(A.attack(), base) * 1000`. Anything kills a decoy.
+    max(A.attack(), base) * 1000`. Anything kills a decoy. ~~This crate's
+    target side carried the bit false for every unit~~ (item 3385,
+    `docs/AI.md` §293): run1011e's packet struck a General's decoy Light
+    Horse for 19688 where this crate dealt 6. **Diff-backed** by the Inca
+    Great Sahara walk (13313 → 13416).
 18. **Unfriendly territory**: T is a building and `WallData::in_unfriendly_
     territory` and the game is not in balance-test mode: `armor = 0`; if T is
     not Build-proper (a wall) or T's type has zero attack: `base *= 4`.
