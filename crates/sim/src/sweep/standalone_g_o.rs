@@ -190,18 +190,34 @@ mod greatest_common_factor;
 mod group_action_alarm;
 #[path = "group_action_alarm_head.rs"]
 mod group_action_alarm_head;
+#[path = "group_action_attack_ground.rs"]
+mod group_action_attack_ground;
+#[path = "group_action_attack_ground_head.rs"]
+mod group_action_attack_ground_head;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
 #[path = "group_action_buildmask.rs"]
 mod group_action_buildmask;
+#[path = "group_action_form.rs"]
+mod group_action_form;
+#[path = "group_action_form_ins.rs"]
+mod group_action_form_ins;
 #[path = "group_action_garrison.rs"]
 mod group_action_garrison;
 #[path = "group_action_garrison_head.rs"]
 mod group_action_garrison_head;
+#[path = "group_action_halt.rs"]
+mod group_action_halt;
+#[path = "group_action_halt_head.rs"]
+mod group_action_halt_head;
 #[path = "group_action_hotkey.rs"]
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
 mod group_action_queue_up;
+#[path = "group_action_trade.rs"]
+mod group_action_trade;
+#[path = "group_action_trade_head.rs"]
+mod group_action_trade_head;
 #[path = "group_attack_order_vector_deleting_destructor_vtordisp.rs"]
 mod group_attack_order_vector_deleting_destructor_vtordisp;
 #[path = "group_attack_order_walk_data.rs"]
@@ -268,6 +284,8 @@ mod group_data_valid_target;
 mod group_dbg_jump_to_action;
 #[path = "group_dbg_jump_to_waypoint.rs"]
 mod group_dbg_jump_to_waypoint;
+#[path = "group_distribute_attack.rs"]
+mod group_distribute_attack;
 #[path = "group_equals_group.rs"]
 mod group_equals_group;
 #[path = "group_find_role.rs"]
@@ -352,6 +370,8 @@ mod group_patrol_order_vector_deleting_destructor_vtordisp;
 mod group_patrol_order_walk_data;
 #[path = "group_patrol_order_walk_data_vtordisp.rs"]
 mod group_patrol_order_walk_data_vtordisp;
+#[path = "group_redo_patrol_order.rs"]
+mod group_redo_patrol_order;
 #[path = "group_report_speed.rs"]
 mod group_report_speed;
 #[path = "group_set_ordered.rs"]
@@ -360,6 +380,8 @@ mod group_set_ordered;
 mod group_set_up_insert;
 #[path = "group_toggle.rs"]
 mod group_toggle;
+#[path = "group_update_positions.rs"]
+mod group_update_positions;
 #[path = "group_walk_data.rs"]
 mod group_walk_data;
 #[path = "groupmoveorder_is_fleeing.rs"]
@@ -542,6 +564,8 @@ mod nuke_out_num_current_nukes;
 mod nuke_out_setup_terrain_terraforming;
 #[path = "nuke_out_update.rs"]
 mod nuke_out_update;
+#[path = "object_add_to_world.rs"]
+mod object_add_to_world;
 #[path = "object_assault_benefit.rs"]
 mod object_assault_benefit;
 #[path = "object_data_armor.rs"]
@@ -744,6 +768,8 @@ mod objects_data_find_unit_with_radius;
 mod objects_data_find_village;
 #[path = "objects_data_make_tree_mask.rs"]
 mod objects_data_make_tree_mask;
+#[path = "objects_find_builds.rs"]
+mod objects_find_builds;
 #[path = "objects_out_sort_objects.rs"]
 mod objects_out_sort_objects;
 #[path = "objects_remove_item.rs"]

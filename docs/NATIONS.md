@@ -60,7 +60,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 6 | Romans | romans | `romans` | 10 | `EastIndiesRomanTier2` (AI word, tier 2), `GreatLakesRomanTier2` (map 14, tier 2) |
 | 7 | Egyptians | egyptians | `egyptians` | 8 | `GreatSaharaEgyptianTier4` (AI word, tier 4), `EastIndiesEgyptianTier3` (map 18, tier 3) |
 | 8 | Turks | turks | `turks` | 7 | `GreatLakesTurkishTier4` (AI word, tier 4); `GreatSaharaTurkishTier3` (map 7, tier 3) |
-| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3) |
+| 9 | Spanish | spanish | none (read off `has_tribe_bonus`) | 9 | `GreatSaharaSpanishTier3` (AI word, tier 3), `EastIndiesSpanishTier3` (AI word, tier 3); `GreatLakesSpanishTier4` (map 14, tier 4) |
 | 10 | French | french | `french` | 7 | `GreatSaharaFrenchTier4` (AI word, tier 4) |
 | 11 | British | british | `british` | 6 | scored pairs |
 | 12 | Germans | germans | `germans` | 8 | `EastIndiesGermanTier3` (AI word, tier 3); `GreatSaharaGermanTier3` (AI word, tier 3) |
@@ -71,7 +71,7 @@ and the battery is never debugged against (`docs/AI.md` §125).
 | 17 | Mongols | mongols | `mongols` | 3 | none |
 | 18 | Iroquois | iroquois | none (read off `has_tribe_bonus`) | 8 | `GreatLakesIroquoisTier3` (AI word, tier 3); `GreatSaharaIroquoisTier3` (AI word, tier 3) |
 | 19 | Lakota | lakota | `lakota` | 17 | `GreatLakesLakotaTier2` (AI word, tier 2); `GreatSaharaLakotaTier2` (map 7, tier 2) |
-| 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (AI word, tier 1); `GreatLakesAmericanTier4` (map 14, tier 4) |
+| 20 | Americans | americans | none (read off `has_tribe_bonus`) | 14 | `EastIndiesAmericanTier1` (AI word, tier 1); `GreatLakesAmericanTier4` (AI word, tier 4) |
 | 21 | Indians | indians | `indians` | 4 | `EastIndiesIndianTier2` (AI word, tier 2); `GreatSaharaIndianTier3` (AI word, tier 3) |
 | 22 | Dutch | dutch | `dutch` | 9 | `EastIndiesDutchTier4` (AI word, tier 4); `GreatSaharaDutchTier3` (AI word, tier 3) |
 | 23 | Persians | persian | none (read off `has_tribe_bonus`) | 11 | `GreatLakesPersianTier2` (AI word, tier 2) |
@@ -270,7 +270,7 @@ left out; a constant with no reader in the export is dead there too.
 | `GERMAN_MINERS` | 0 | BuildTypeData::calc_gather | not carried | `german_miners` |
 | `GERMAN_HEAVY_INFANTRY` | 0 | Leader::gain_tech | loaded at load.rs | `german_heavy_infantry` |
 | `GERMAN_INDUSTRY_UPGRADES` | 0 | Leader::gain_tech | carried, unread | `german_industry_upgrades` |
-| `GERMAN_INDUSTRY_DISCOUNT` | 50 | TypeData::get_cost | modelled at lib.rs | `german_industry_discount` |
+| `GERMAN_INDUSTRY_DISCOUNT` | 50 | TypeData::get_cost | modelled at cost.rs | `german_industry_discount` |
 | `GERMAN_COMPLETION_BONUS` | 50 | Build::do_bonus | modelled at city.rs | `german_completion_bonus` |
 | `GERMAN_BUILDINGS_EARLY` | 1 | LeaderData::has_preq | modelled at tech.rs | `german_buildings_early` |
 | `GERMAN_INDUSTRY_EARLY` | 1 | LeaderData::special_preq | modelled at tech.rs | `german_industry_early` |
@@ -349,7 +349,7 @@ left out; a constant with no reader in the export is dead there too.
 | `AMERICANS_FREE_SCIENCE` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `americans_free_science` |
 | `AMERICANS_SCIENCE_DISCOUNT` | 0 | TypeData::get_cost | modelled at lib.rs | `americans_science_discount` |
 | `AMERICANS_UPGRADE_DISCOUNT` | 25 | TypeData::get_cost | modelled at cost.rs | `americans_upgrade_discount` |
-| `AMERICANS_BARRACKS_GATHER` | 2 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | not carried | `americans_barracks_gather` |
+| `AMERICANS_BARRACKS_GATHER` | 2 | Leader::calc_gather, Object::insert_inside, Object::remove_from_inside +2 | modelled at holdings.rs | `americans_barracks_gather` |
 | `INDIANS_CITY_RADIUS` | 4 | Leader::plan_strategy, LeaderData::get_radius | modelled at city.rs | `indians_city_radius` |
 | `INDIANS_CARAVAN` | 15 | Caravan::trade_value | modelled at caravan.rs | `indians_caravan` |
 | `INDIANS_ELEPHANT_COST` | 15 | TypeData::get_cost | modelled at cost.rs | `indians_elephant_cost` |

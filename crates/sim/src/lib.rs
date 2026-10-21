@@ -36,6 +36,7 @@
 //! only add rounding the original does not have.
 
 pub mod activate;
+pub mod add_to_world_view;
 pub mod ai;
 pub mod ai_build;
 pub mod ai_census;
@@ -54,6 +55,8 @@ pub mod alarm;
 pub mod alarm_view;
 pub mod anim;
 pub mod army;
+pub mod astar_view;
+pub mod attack_ground_view;
 pub mod attack_pos;
 pub mod attack_view;
 pub mod attrition;
@@ -86,28 +89,33 @@ pub mod danger;
 pub mod detour;
 pub mod diplomacy;
 pub mod disband;
+pub mod distribute_attack_view;
 pub mod do_attack;
 pub mod do_cast_view;
 pub mod economy;
 pub mod eject;
 pub mod farms;
 pub mod fight;
+pub mod find_builds_view;
 pub mod finish_insert_view;
 pub mod fish;
 pub mod flag_reads;
 pub mod flock;
 pub mod form;
+pub mod form_view;
 pub mod friends;
 pub mod gaia;
 pub mod garrison;
 pub mod garrison_view;
 pub mod gather;
+pub mod gather_tile;
 pub mod gather_view;
 pub mod goody;
 pub mod group;
 pub mod group_move;
 pub mod group_queue_up;
 pub mod grouppath;
+pub mod halt_view;
 pub mod heal;
 pub mod holdings;
 pub mod launch;
@@ -127,6 +135,7 @@ pub mod plunder;
 pub mod production;
 pub mod rally;
 pub mod rares;
+pub mod redo_patrol_view;
 pub mod remove_inside_view;
 pub mod roads;
 pub mod roads_view;
@@ -147,10 +156,12 @@ pub mod terrain;
 pub mod territory;
 pub mod topp;
 pub mod tpath;
+pub mod trade_view;
 pub mod transport;
 pub mod tuning;
 pub mod type_index;
 pub mod upath;
+pub mod update_positions_view;
 pub mod victory;
 pub mod vision;
 pub mod work_gate;
@@ -2050,7 +2061,9 @@ impl Sim {
     /// building moves one of the leader's garrison counts — a peasant, else
     /// a Stable type (`+0x40 == 0x1ac`), else `is_special` (the scout bit),
     /// else a Barracks type (`0x1ab`) — and with `LAKOTA_FOOD` set a Lakota
-    /// leader's `0x2000000` (`docs/AI.md` §219).
+    /// leader's `0x2000000` (`docs/AI.md` §219), with
+    /// `AMERICANS_BARRACKS_GATHER` set an American's for the Barracks arm
+    /// (§292).
     ///
     /// The −1 is [`remove_inside_view::remove_from_inside_steps`] itself, the
     /// whole function swept under the emulator (item 3372); the +1 is its
@@ -2058,9 +2071,7 @@ impl Sim {
     /// test — `insert_inside` is not swept.
     ///
     /// SEAM: the gate's `unit_masks & 1` is not read, nor the container's
-    /// slot `0x20`; the Americans' `AMERICANS_BARRACKS_GATHER` is not in the
-    /// tuning, so the Barracks arm counts (`barracks_garr`) and raises
-    /// nothing.
+    /// slot `0x20`.
     pub(crate) fn track_garrison(&mut self, u: usize, delta: i32) {
         use remove_inside_view::{RemoveInsideView, SimRemoveInside};
         let mut view = SimRemoveInside { sim: self, unit: u };
@@ -4660,6 +4671,12 @@ impl Sim {
                     || self.unit_line_is(u, 0x45)
                     || self.trainer_ident(ty) == Some(build::Ident::Stable))
             {
+                self.economy_changed(who);
+            }
+            // `Unit::init@00612100:629-641` (item 3384, `docs/AI.md` §292):
+            // an American Barracks type (`+0x40 == 0x1ab`) that is not a
+            // scout, with `AMERICANS_BARRACKS_GATHER` set, raises it too.
+            if self.american_barracks_unit(who, u, ty) {
                 self.economy_changed(who);
             }
             // `Unit::init` → `Guy::init_real`: the figure's one draw.

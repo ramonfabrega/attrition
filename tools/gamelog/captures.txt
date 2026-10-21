@@ -9987,6 +9987,15 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 (run995's --ai-tribe, --cover, --profile)   (1/51's unpack, walked back)
 # Checks: `rngcmp.py` run990b vs run995c -> 15981 identical, vs run995d -> 15724.
 # ==== TAKEN 2026-10-20, 03:51-04:35, pool lane 1 ====
+# ==== item 3384: the American word at Great Lakes, its battery replacement and its windows (`docs/AI.md` §292; `docs/RUNS.md` run1008..run1009b) ====
+#   run1008  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 9 --profile DIFFICULTY=4   (Great Lakes, Spanish; start)
+#   run1008b run1004b's line with --ai-tribe 9   (the Spanish's draw stream; ended itself on 14068)
+#   run1009  --map 14 --end-frame 3431 --timeout 7200 --log-window 3170 3426 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 20 --cover cover=0 --profile DIFFICULTY=4   (the word 3176's window)
+#   run1009b --map 14 --end-frame 2985 --timeout 7200 --log-window 2370 2980 --detail end:MISC,BUILDS=7,LEADERS=9
+#            (run1009's --ai-tribe, --cover, --profile)   (the script's ticks: who=1's purse)
+# Checks: `rngcmp.py` run1008 vs run1008b -> 37 identical; run1004b vs run1009 -> 3432 identical; vs run1009b -> 2986 identical.
+# ==== TAKEN 2026-10-20, one take each, 16:51-17:52, pool lanes 1-2, through `viadriver.sh tools/explore/golden_capture.sh` ====
 # ==== item 3380: the Turkish word, its battery replacement and its window (`docs/AI.md` §290; `docs/RUNS.md` run1004..run1005) ====
 #   run1004  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 20 --profile DIFFICULTY=4   (Great Lakes, Americans; start)
 #   run1004b run962b's recipe on --map 14 with --ai-tribe 20 --profile DIFFICULTY=4   (the Americans' draw stream; ended itself on 6152)
