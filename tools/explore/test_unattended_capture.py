@@ -37,6 +37,31 @@ class RunnerTest(unittest.TestCase):
             trace.write_bytes(b''.join(rows) + b'\x00' * 7)
             self.assertEqual(runner.trace_frames_so_far(trace), 6, 'a torn tail is read up to its last whole record')
 
+    def test_a_default_timeout_extends_to_the_pace_lines_estimate(self):
+        # Loop 3401b (item 3393): run1014's first detail take printed a pace
+        # line past the default 180 s and was killed at it, and the leftover
+        # output refused a retake under its name. A timeout nobody gave
+        # extends itself, once, to the estimate x 1.25 + 60 s; an explicit
+        # one is never changed, and none is ever shortened.
+        self.assertEqual(runner.DEFAULT_TIMEOUT, 180)
+        self.assertEqual(runner.effective_timeout(True, 180, 400), 560, '400 x 1.25 + 60')
+        self.assertEqual(runner.effective_timeout(True, 180, 401), 562, 'rounded up, never short')
+        self.assertEqual(runner.effective_timeout(False, 180, 400), 180, 'an explicit --timeout stands')
+        self.assertEqual(runner.effective_timeout(True, 180, 50), 180, 'a short estimate never shortens it')
+        self.assertEqual(runner.effective_timeout(True, 180, None), 180, 'no estimate yet')
+        self.assertEqual(runner.pace_estimate(60, 120.0, 1260), 2520)
+        self.assertIsNone(runner.pace_estimate(10, 20.0, 1260))
+        said = runner.pace_line(60, 120.0, 1260, 3210, raised_from=180)
+        self.assertEqual(said, 'pace: 60 frames in 120 s (0.5/s); --end-frame 1260 at this pace in about '
+                               '2520 s, --timeout raised to 3210 from the default 180')
+        ap = runner.argparse.ArgumentParser()
+        ap.add_argument('--timeout', type=int, default=None)
+        for argv, want in (([], (180, True)), (['--timeout', '180'], (180, False)),
+                           (['--timeout', '900'], (900, False))):
+            args = ap.parse_args(argv)
+            runner.settle_timeout(args)
+            self.assertEqual((args.timeout, args.timeout_defaulted), want, argv)
+
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name)

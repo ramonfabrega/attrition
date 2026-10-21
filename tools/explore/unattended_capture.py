@@ -163,18 +163,51 @@ def trace_frames_so_far(trace):
     return max(frames) if frames else None
 
 
-def pace_line(frame, seconds, end_frame, timeout):
-    """One line on the capture's pace, once a minute of frames is in (Loop
-    2874: run880 ran at a frame a second and met the hour's cap at 1219 of
-    1260 with no receipt): the frames so far, the rate, the seconds the
-    endpoint lies at on that rate, and whether that is past the timeout.
+DEFAULT_TIMEOUT = 180
+
+
+def settle_timeout(args):
+    """`--timeout` parses to None when not given: mark that, then take the
+    default, so the pace line may raise a timeout nobody chose (Loop 3401b)."""
+    args.timeout_defaulted = args.timeout is None
+    if args.timeout is None:
+        args.timeout = DEFAULT_TIMEOUT
+
+
+def effective_timeout(defaulted, timeout, estimate):
+    """The timeout a take runs to once the pace line has an estimate: a
+    default one extends, once, to the estimate x 1.25 + 60 s (Loop 3401b:
+    run1014's first detail take died at the default 180 s with its pace
+    line's estimate past it, item 3393); an explicit one never changes, and
+    neither is ever shortened."""
+    if not defaulted or estimate is None:
+        return timeout
+    return max(timeout, -(-estimate * 5 // 4) + 60)
+
+
+def pace_estimate(frame, seconds, end_frame):
+    """The seconds from launch the end frame lies at on the pace so far, or
     None under a minute or before the first frame."""
     if not frame or seconds < 60:
         return None
+    return round(end_frame / (frame / seconds))
+
+
+def pace_line(frame, seconds, end_frame, timeout, raised_from=None):
+    """One line on the capture's pace, once a minute of frames is in (Loop
+    2874: run880 ran at a frame a second and met the hour's cap at 1219 of
+    1260 with no receipt): the frames so far, the rate, the seconds the
+    endpoint lies at on that rate, and whether that is past the timeout —
+    or, with `raised_from`, that a default timeout was raised to meet it.
+    None under a minute or before the first frame."""
+    eta = pace_estimate(frame, seconds, end_frame)
+    if eta is None:
+        return None
     rate = frame / seconds
-    eta = round(end_frame / rate)
     line = (f"pace: {frame} frames in {seconds:.0f} s ({rate:.1f}/s); --end-frame {end_frame} at this "
             f"pace in about {eta} s, --timeout {timeout}")
+    if raised_from is not None:
+        return line[:-len(f"--timeout {timeout}")] + f"--timeout raised to {timeout} from the default {raised_from}"
     if eta > timeout:
         line = line[:-len(f", --timeout {timeout}")] + (f", which exceeds --timeout {timeout} — trim the "
                                                         "`end:` set or raise the timeout")
@@ -444,7 +477,8 @@ def capture(args, output, style):
         # run223 each sat for the whole timeout with `wine.log` ending at
         # MoltenVK's VkInstance); it is killed and started once more.
         stall = getattr(args, 'stall_seconds', 0) or 0
-        deadline = launch + args.timeout
+        timeout = args.timeout
+        deadline = launch + timeout
         while True:
             try:
                 report['exit_code'] = process.wait(timeout=5)
@@ -457,7 +491,7 @@ def capture(args, output, style):
                     report['retaken_after_exit_seconds'] = now - launch
                     report['first_take_exit_code'] = report.pop('exit_code')
                     launch = time.monotonic()
-                    deadline = launch + args.timeout
+                    deadline = launch + timeout
                     report['launched_at'] = wall()
                     process = start()
                     continue
@@ -466,9 +500,15 @@ def capture(args, output, style):
                 pass
             now = time.monotonic()
             if 'pace' not in report:
-                said = pace_line(trace_frames_so_far(output/'rontrace.log'), now - launch,
-                                 args.end_frame, args.timeout)
+                frames = trace_frames_so_far(output/'rontrace.log')
+                said = pace_line(frames, now - launch, args.end_frame, timeout)
                 if said:
+                    raised = effective_timeout(getattr(args, 'timeout_defaulted', False), timeout,
+                                               pace_estimate(frames, now - launch, args.end_frame))
+                    if raised != timeout:
+                        said = pace_line(frames, now - launch, args.end_frame, raised, raised_from=timeout)
+                        report['timeout_raised_to'] = timeout = raised
+                        deadline = launch + timeout
                     report['pace'] = said
                     print(said, flush=True)
             verdict = stall_verdict(report, now - launch, stall,
@@ -490,7 +530,7 @@ def capture(args, output, style):
                 raise RuntimeError(f'stalled before frame 0 twice, {stall} s each; '
                                    'a permission prompt or a dead device — see wine-stalled-2.log')
             if now >= deadline:
-                raise subprocess.TimeoutExpired(LAUNCH, args.timeout)
+                raise subprocess.TimeoutExpired(LAUNCH, timeout)
         report['launch_to_exit_seconds'] = time.monotonic()-launch
         report['exited_at'] = wall()
         early = getattr(args, 'allow_early_end', False)
@@ -775,7 +815,9 @@ def main():
                          'and `last_frame` in the receipt (a coverage long; parked 1551, 1529)')
     ap.add_argument('--recording', type=Path, help='play an RCX using its own seed and map; --seed still sets the ini for comparison')
     ap.add_argument('--seed',type=int,default=12345)
-    ap.add_argument('--timeout',type=int,default=180)
+    ap.add_argument('--timeout',type=int,default=None,
+                    help=f'seconds a take may run; the default {DEFAULT_TIMEOUT} extends itself to the '
+                         'pace line\'s estimate x 1.25 + 60 s, an explicit one never does (Loop 3401b)')
     ap.add_argument('--stall-seconds',type=int,default=300,
                     help='relaunch once when no gamelog has appeared by then, and give up when the '
                          'relaunch stalls too (0 disables; parked 762, 1469)')
@@ -814,6 +856,7 @@ def main():
             ap.error('--recording owns the lobby; omit --map, --profile, --ai-tribe, --cmd-file and --cmd-without')
         args.maps = [recording_map]
     args.maps=tuple(args.maps or (14,18))
+    settle_timeout(args)
     signal.signal(signal.SIGTERM, interrupted)
     pinned=os.environ.get('RON_CAPTURE_LANE')
     pool=str(args.install)=='-' and str(args.profile)=='-'
