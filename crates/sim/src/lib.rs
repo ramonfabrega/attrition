@@ -57,6 +57,7 @@ pub mod alarm;
 pub mod alarm_view;
 pub mod anim;
 pub mod army;
+pub mod army_do_defending_view;
 pub mod army_normalize_view;
 pub mod astar_view;
 pub mod attack_ground_view;
