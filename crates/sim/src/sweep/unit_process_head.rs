@@ -238,8 +238,8 @@ fn the_emulated_original_agrees_on_every_row() {
             };
             for k in 0..19 {
                 if matches!(k, 0 | 13 | 14 | 15) {
-                    for r in 0..4 {
-                        log.push(join(&lead[k][r]));
+                    for l in lead[k].iter().take(4) {
+                        log.push(join(l));
                     }
                     log.push("-".to_string());
                 } else {

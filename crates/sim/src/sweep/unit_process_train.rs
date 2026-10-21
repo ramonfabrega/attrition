@@ -187,8 +187,8 @@ fn the_emulated_original_agrees_on_every_row() {
                     v.join("/")
                 }
             };
-            for r in 0..4 {
-                log.push(join(&lead[r]));
+            for l in lead.iter().take(4) {
+                log.push(join(l));
             }
             log.push("-".to_string());
             for t in tok.iter().skip(1) {
