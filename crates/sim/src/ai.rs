@@ -525,7 +525,8 @@ pub struct Census {
     pub peasants_garr: i32,
     pub stable_garr: i32,
     pub scout_garr: i32,
-    /// `barracks_garr` (`+0xa34`): the Americans' term, counted and unread.
+    /// `barracks_garr` (`+0xa34`): the Americans' term, which
+    /// [`crate::economy::american_barracks_gather`] subtracts (item 3384).
     pub barracks_garr: i32,
     // Territory (step 4).
     pub my_team_terr: i32,

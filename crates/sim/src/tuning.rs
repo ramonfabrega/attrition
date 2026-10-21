@@ -379,6 +379,13 @@ pub struct Tuning {
     /// `Leader::calc_gather@006ceee0:116`'s `has_tribe_bonus(0x13)` arm
     /// multiplies the count by it and by 16. Ships as 4 (`docs/AI.md` §219).
     pub lakota_food: i32,
+    /// `AMERICANS_BARRACKS_GATHER` — an American leader's food, timber,
+    /// wealth and metal per Barracks unit outside a building, in whole units
+    /// a second: `Leader::calc_gather@006ceee0:124`'s `has_tribe_bonus(0x14)`
+    /// arm multiplies `barracks_units − barracks_garr` by it and by 16, onto
+    /// each of the four that is available. The file writes "2 each of food,
+    /// timber, metal, and gold", which loads as 2 (`docs/AI.md` §292).
+    pub americans_barracks_gather: i32,
     /// Percent faster creation of a Mongol attacker trained at the Stable
     /// line — `ObjectData::train_time@006508c0`'s Mongol arm. Ships as 20.
     pub mongol_stable_speed: i32,
@@ -1352,6 +1359,7 @@ impl Tuning {
         british_taxation: 100,
         mongol_nomadic_food: 1,
         lakota_food: 4,
+        americans_barracks_gather: 2,
         mongol_stable_speed: 20,
         british_taxation_discount: 50,
         democracy_tech_bonus: [20, 20],
@@ -1816,6 +1824,10 @@ impl Tuning {
             ("BRITISH_TAXATION", Slot::Value(T.british_taxation)),
             ("MONGOL_NOMADIC_FOOD", Slot::Value(T.mongol_nomadic_food)),
             ("LAKOTA_FOOD", Slot::Value(T.lakota_food)),
+            (
+                "AMERICANS_BARRACKS_GATHER",
+                Slot::Value(T.americans_barracks_gather),
+            ),
             ("MONGOL_STABLE_SPEED", Slot::Value(T.mongol_stable_speed)),
             (
                 "BRITISH_TAXATION_DISCOUNT",

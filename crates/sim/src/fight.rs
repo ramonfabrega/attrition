@@ -3222,6 +3222,15 @@ impl Sim {
     /// run867's who=1 kept three shot-down Jet Fighters in `num_units`
     /// (7 against 4), and its next Fighter's ramp ran twelve frames long.
     pub(crate) fn close_count(&mut self, i: usize) {
+        // `Unit::close@0060ee50:157-170`, ahead of the count and ungated by
+        // the squad: an American Barracks unit that is not a scout raises
+        // its leader's `0x2000000` (item 3384, `docs/AI.md` §292).
+        if let Some(ty) = self.units[i].ty {
+            let who = self.units[i].owner;
+            if self.american_barracks_unit(who, i, ty) {
+                self.economy_changed(who);
+            }
+        }
         let u = &self.units[i];
         if u.o_up.is_some() || u.decoy || u.o_down.is_some_and(|d| self.units[d].alive()) {
             return;

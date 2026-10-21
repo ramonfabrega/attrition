@@ -3783,6 +3783,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3389) **A journal's `## For the Loop` heading over `none` reads as unfiled, twice now** (3384's "for the Loop",
+filed at its merge: the heading, a blank line, `none`): `docs_guard::a_journal_s_loop_line_is_filed_or_says_none`
+reads only the heading's own line, so 3384's lane gate was red on it as the commander's line, as 3370's was. 3370's
+note (below) said the guard should read the next non-blank line if the shape recurred; it has. The guard's, a few
+lines, made to fail on 3370's and 3384's journals first. One reach.
+
 (3388) **The `port` mark runs dry: the sweep refill rule needs its next source** (the commander, at 3379's booking):
 after 3379 and 3381 merged (`8fd0850a`), `census.py --unbacked --all` lists eight `port`-marked rows, six of them
 3386's batch; two (`Group::normalize`, `Army::normalize`, newly spelled by 3379) are left for the next refill, and the
@@ -8751,8 +8757,9 @@ crate carries no `unit_masks2`. Names no score.
   `console_who` -1 and nothing else reads it. `play`'s recorded `ecx` in the sweep is an artefact of the stub. Rows over the emu cache cap (~8 s).
 - **3372b. `Object::remove_from_inside@006480f0`: three SEAMs.** The splice words (`inside_up`/`inside_down`) have no crate field (a
   holder is one pointer; the adapter's splice is empty); the container's slot `0x20` (`host_flag` always true); `unit+0x68 & 1`
-  (`masked` always false). The Barracks arm counts `barracks_garr` (`ai.rs`), which nothing reads: `AMERICANS_BARRACKS_GATHER` is not
-  in the tuning. `docs/AI.md` §219 and the "not modelled" paragraphs still say the arm is unbuilt.
+  (`masked` always false). ~~The Barracks arm counts `barracks_garr` (`ai.rs`), which nothing reads: `AMERICANS_BARRACKS_GATHER` is not
+  in the tuning. `docs/AI.md` §219 and the "not modelled" paragraphs still say the arm is unbuilt.~~ Built by item 3384
+  (`docs/AI.md` §292): the tuning carries it, the view answers it, and `calc_gather`'s term reads `barracks_garr`.
 - **3372c. `Unit::check_build_order@00603470`: `--stub-alloc` built; the crowd tally is a sim fix not diff-backed.** The shape had
   parked twice (3282b, 3339a) on `--stub-alloc`; it is now in `sweep_gen.py` (test `test_an_import_stub_may_allocate`, not made to
   fail on purpose once). The crowd now counts only `find_units(SEARCH_FRIENDLY, owner, unit_build_respond_range*0xc0, 0x200,
@@ -8849,13 +8856,14 @@ words and edits nothing here; a refill lands when two remain.
   score; a word that parts on a guard's turn reads them first (`Unit::set_angle`'s callers this crate reaches without
   `unit_set_angle`, brief row 2234).
 
-## Parked by the next landing, slot LU — reserved
+## Parked by item 3384, 2026-10-20 — the American word at Great Lakes closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3384a.** The Americans' `0x2000000` raises (`Unit::init@00612100:629`, `Unit::close@0060ee50:157`, and the Barracks
+arm of `insert_inside`/`remove_from_inside`; `Sim::american_barracks_unit`, `docs/AI.md` §292) are built from the
+reading and held by no walk: `tools/mutate.py` turning them off failed nothing on `american_lakes` (the income is
+reassembled on its cadence regardless, and no capture's word sits between a Barracks birth and the next stamp). Ours'
+`close_count` raises for every close path, the original's arm sits on `Unit::close`'s general path only. Names no
+score.
 
 ## Parked by the next landing, slot LV — reserved
 
