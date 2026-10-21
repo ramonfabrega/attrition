@@ -25,10 +25,15 @@ fn the_emulated_original_agrees_on_every_row() {
     };
     let mut n = 0;
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -102,9 +107,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     fn outside_region(&mut self, u: i32) -> bool {
                         let (x, y) = self.xy(u);
                         let d3 = |v: i32| rd(&self.p[23], 4 * (v >> 8) as usize);
-                        let idx = d3(x)
-                            .wrapping_mul(rd(&self.c[0], 0))
-                            .wrapping_add(d3(y));
+                        let idx = d3(x).wrapping_mul(rd(&self.c[0], 0)).wrapping_add(d3(y));
                         let off = (idx as usize).wrapping_mul(0x1c) + 4;
                         let reg = i16::from_le_bytes([self.p[22][off], self.p[22][off + 1]]);
                         i32::from(reg) != rd(self.m, 8)
