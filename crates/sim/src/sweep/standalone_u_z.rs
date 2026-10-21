@@ -182,6 +182,8 @@ mod unit_data_next_action_type;
 mod unit_data_order_type;
 #[path = "unit_data_recharge.rs"]
 mod unit_data_recharge;
+#[path = "unit_data_speed.rs"]
+mod unit_data_speed;
 #[path = "unit_data_support_cost.rs"]
 mod unit_data_support_cost;
 #[path = "unit_data_transport_type.rs"]

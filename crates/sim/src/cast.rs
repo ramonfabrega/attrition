@@ -1292,20 +1292,26 @@ impl Sim {
     /// for a unit).
     pub(crate) fn near_marching_hero(&self, u: usize) -> bool {
         let unit = &self.units[u];
-        if unit.marching.is_some() && self.is_hero_unit(u) {
-            return true;
-        }
-        let (who, at) = (unit.owner, unit.pos);
-        (0..self.units.len()).any(|h| {
-            let x = &self.units[h];
-            x.owner == who
-                && x.alive()
-                && x.on_map
-                && x.marching.is_some()
-                && self.is_hero_unit(h)
-                && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
-                    <= self.hero_radius(h) * 0xc0
-        })
+        (unit.marching.is_some() && self.is_hero_unit(u)) || self.find_marching_hero(u) >= 0
+    }
+
+    /// `HeroesData::find_hero@0073a1b0(.., 0x8000, -1, 0)` for `u`'s owner
+    /// and point: the first unit (in slot order, the hero list's own) that
+    /// qualifies as [`Sim::near_marching_hero`] lists, `-1` for none.
+    fn find_marching_hero(&self, u: usize) -> i32 {
+        let (who, at) = (self.units[u].owner, self.units[u].pos);
+        (0..self.units.len())
+            .find(|&h| {
+                let x = &self.units[h];
+                x.owner == who
+                    && x.alive()
+                    && x.on_map
+                    && x.marching.is_some()
+                    && self.is_hero_unit(h)
+                    && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
+                        <= self.hero_radius(h) * 0xc0
+            })
+            .map_or(-1, |h| h as i32)
     }
 
     /// `ObjectData::has_general(u, 0, 0x162) >= 0` (`00646b00`), the
@@ -1355,14 +1361,20 @@ impl Sim {
     }
 
     /// `UnitData::speed@0060aae0` — layer two of the speed pipeline
-    /// (`docs/MOVEMENT.md`, "The speed pipeline"): the cached `myspeed`,
-    /// and a type not of the land (`+0x218 != 0`) takes nothing more.
+    /// (`docs/MOVEMENT.md`, "The speed pipeline"): the walk of
+    /// [`crate::unit_speed_view::unit_speed`] over this unit (item 3399,
+    /// swept against the original in `sweep/unit_data_speed.rs`). The cached
+    /// `myspeed`, and a type not of the land (`+0x218 != 0`) takes nothing
+    /// more.
     ///
     /// **Forced March** (`0060ad0x`–`0060ae10`): under the leader's
-    /// `0x8000` and [`Sim::near_marching_hero`], the speed is
-    /// `FORCED_MARCH_SPEED × UNIT_MOVE_SPEED` — 42, no shift on this arm
+    /// `0x8000` and a marching hero ([`Sim::near_marching_hero`]), the speed
+    /// is `FORCED_MARCH_SPEED × UNIT_MOVE_SPEED` — 42, no shift on this arm
     /// (`0060add1`–`0060addc`) — or `myspeed` when that is larger
-    /// (`cmovle`, `0060ae0e`): a march never slows a unit.
+    /// (`cmovle`, `0060ae0e`): a march never slows a unit. **Alexander's
+    /// arm** (the hero or the unit `is(0x166)`/`is(0x167)`) multiplies in
+    /// `ALEXANDER_FORCED_MARCH_SPEED` and shifts out the 8.8 scale
+    /// (`0060ade2`–`0060ae04`).
     ///
     /// **The Iroquois spear** (`0060ab0x`–`0060ad0x`, item 3211): a unit
     /// of the Spearmen line (`is(0xa6, 0)`) standing in a cell whose owner
@@ -1372,47 +1384,26 @@ impl Sim {
     /// the squad before them in their own ground. The march arm compares
     /// against `myspeed`, not this sum, and so replaces it.
     ///
-    /// SEAM: Alexander's arm
-    /// (the hero or the unit `is(0x166)`/`is(0x167)`, `× 384 >> 8`); and
-    /// the hero auras below it — Spitamenes, Blucher, Porus, Charles,
-    /// Napoleon — each behind a leader's power (`+0x59cc`..`+0x59e8`);
-    /// none is carried.
+    /// SEAM: the hero auras below the march — Spitamenes, Blucher, Porus,
+    /// Charles, Napoleon — each behind a leader's power (`+0x59cc`..
+    /// `+0x59e8`); none is carried, nor the constants they scale by.
     pub(crate) fn unit_speed(&self, u: usize) -> i32 {
-        let base = self.units[u].movement.speed;
-        if self.units[u].is_gaia() || self.unit_domain_of(u) != crate::attrition::Domain::Land {
-            return base;
+        if self.units[u].is_gaia() {
+            return self.units[u].movement.speed;
         }
-        let speed = base + self.iroquois_spear_speed(u);
-        if !self.leader_marching(u) || !self.near_marching_hero(u) {
-            return speed;
-        }
-        let march = self.tuning.forced_march_speed * crate::combat::UNIT_MOVE_SPEED;
-        march.max(base)
+        crate::unit_speed_view::unit_speed(&mut LiveSpeed { s: self, u })
     }
 
-    /// [`Sim::unit_speed`]'s spear term: zero off the line or off allied
-    /// ground.
-    fn iroquois_spear_speed(&self, u: usize) -> i32 {
-        const SPEAR: [crate::tech::TypeId; 4] = [0xa6, 0xa7, 0xa8, 0xa9];
+    /// `ObjectData::is(x, strict)` on unit `u`: the lineage test on its
+    /// tree row, false off a tree or a row the tree lacks.
+    fn speed_is(&self, u: usize, x: i32, strict: bool) -> bool {
         let Some(tree) = self.unit_tree(u) else {
-            return 0;
+            return false;
         };
-        let is = |x: crate::tech::TypeId, strict: bool| {
-            self.tech_tree.types.get(x).is_some() && self.tech_tree.is(tree, x, strict)
+        let Ok(x) = crate::tech::TypeId::try_from(x) else {
+            return false;
         };
-        if !is(SPEAR[0], false) {
-            return 0;
-        }
-        let Some(o) = self.world.owner_at(self.units[u].pos).player() else {
-            return 0;
-        };
-        if !self.is_ally(self.units[u].owner, o) {
-            return 0;
-        }
-        SPEAR
-            .iter()
-            .position(|&x| is(x, true))
-            .map_or(0, |k| self.tuning.iroquois_spear_speed[k])
+        self.tech_tree.types.get(x).is_some() && self.tech_tree.is(tree, x, strict)
     }
 
     /// **The tank** — `Unit::process@00610bc0`'s air arm, taken for a type
@@ -1516,6 +1507,70 @@ pub(crate) fn cast_ambush_steps<V: AmbushView>(v: &mut V) {
     v.push_active_spell(start, end);
     v.set_flags();
     v.console_sound();
+}
+
+/// [`Sim`]'s [`UnitSpeedView`](crate::unit_speed_view::UnitSpeedView) over
+/// one unit. The unit's vslot `+0x18` is `Buffer::is_pending_load`, a
+/// constant 1; its own `units` slot carries `0x8000` when it is marching
+/// (`marching`); `find_hero` is [`Sim::find_marching_hero`].
+struct LiveSpeed<'a> {
+    s: &'a Sim,
+    u: usize,
+}
+
+impl crate::unit_speed_view::UnitSpeedView for LiveSpeed<'_> {
+    fn myspeed(&self) -> i32 {
+        self.s.units[self.u].movement.speed
+    }
+    fn not_land(&self) -> bool {
+        self.s.unit_domain_of(self.u) != crate::attrition::Domain::Land
+    }
+    fn is_this(&mut self, x: i32, strict: bool) -> bool {
+        self.s.speed_is(self.u, x, strict)
+    }
+    fn ground_owner(&mut self) -> Option<i32> {
+        self.s
+            .world
+            .owner_at(self.s.units[self.u].pos)
+            .player()
+            .map(i32::from)
+    }
+    fn is_ally(&mut self, other: i32) -> bool {
+        u8::try_from(other).is_ok_and(|o| self.s.is_ally(self.s.units[self.u].owner, o))
+    }
+    fn spear_speed(&self, k: usize) -> i32 {
+        self.s.tuning.iroquois_spear_speed[k]
+    }
+    fn leader_marching(&self) -> bool {
+        self.s.leader_marching(self.u)
+    }
+    fn is_active(&mut self) -> bool {
+        true
+    }
+    fn is_hero(&mut self) -> bool {
+        self.s.is_hero_unit(self.u)
+    }
+    fn own_slot_marching(&mut self) -> bool {
+        self.s.units[self.u].marching.is_some()
+    }
+    fn own_slot(&self) -> i32 {
+        self.u as i32
+    }
+    fn find_hero(&mut self) -> i32 {
+        self.s.find_marching_hero(self.u)
+    }
+    fn hero_is(&mut self, slot: i32, x: i32) -> bool {
+        usize::try_from(slot).is_ok_and(|h| self.s.speed_is(h, x, false))
+    }
+    fn forced_march_speed(&self) -> i32 {
+        self.s.tuning.forced_march_speed
+    }
+    fn alexander_forced_march_speed(&self) -> i32 {
+        self.s.tuning.alexander_forced_march_speed
+    }
+    fn unit_move_speed(&self) -> i32 {
+        crate::combat::UNIT_MOVE_SPEED
+    }
 }
 
 /// [`Sim`]'s [`AmbushView`]: an `ActiveSpell` is `ambushing`; the cloak
