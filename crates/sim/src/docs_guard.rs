@@ -2232,6 +2232,61 @@ fn a_journal_quotes_its_lane_verdict_and_gate_minutes() {
     );
 }
 
+/// A journal's "for the Loop" line: what follows the first mention of the
+/// phrase, its leading punctuation trimmed, or None when the journal has no
+/// such line. When nothing follows on that line — a `## For the Loop`
+/// heading — the line is the next non-blank one (Loop 3389).
+fn loop_line_of(text: &str) -> Option<String> {
+    const PHRASE: &str = "for the loop";
+    let trim = |t: &str| {
+        t.trim_start_matches(|c: char| !c.is_alphanumeric())
+            .trim_end()
+            .to_string()
+    };
+    let mut lines = text.lines();
+    let line = lines.find(|l| l.to_lowercase().contains(PHRASE))?;
+    let at = (0..line.len()).find(|&i| {
+        line.get(i..i + PHRASE.len())
+            .is_some_and(|s| s.eq_ignore_ascii_case(PHRASE))
+    })?;
+    let after = trim(&line[at + PHRASE.len()..]);
+    if !after.is_empty() {
+        return Some(after);
+    }
+    Some(
+        lines
+            .find(|l| !l.trim().is_empty())
+            .map(trim)
+            .unwrap_or_default(),
+    )
+}
+
+#[test]
+fn a_loop_line_under_its_own_heading_is_read_off_the_next_line() {
+    // Loop 3389 (the forty-seventh pass): 3370's and 3384's journals wrote
+    // `## For the Loop` over `none`, the guard read the heading's empty
+    // remainder and called them unfiled, and the commander filed each by
+    // hand. Made to fail first on that shape.
+    assert_eq!(
+        loop_line_of("# 3384\n\n## For the Loop\n\nnone\n").as_deref(),
+        Some("none")
+    );
+    assert_eq!(
+        loop_line_of("## For the Loop\n\nA real finding.\n").as_deref(),
+        Some("A real finding.")
+    );
+    assert_eq!(
+        loop_line_of("Text.\n\nFor the Loop: none.\n").as_deref(),
+        Some("none.")
+    );
+    assert_eq!(loop_line_of("No such line.\n"), None);
+    // And the two journals of the incident, read off the tree.
+    for name in ["2026-10-20-item-3370.md", "2026-10-20-item-3384.md"] {
+        let text = std::fs::read_to_string(docs().join("journal").join(name)).expect("read");
+        assert_eq!(loop_line_of(&text).as_deref(), Some("none"), "{name}");
+    }
+}
+
 #[test]
 fn a_journal_s_loop_line_is_filed_or_says_none() {
     // The parked file wraps its rows, so the phrase is matched with its
@@ -2261,19 +2316,10 @@ fn a_journal_s_loop_line_is_filed_or_says_none() {
             continue;
         }
         let text = std::fs::read_to_string(&path).expect("read");
-        let Some(line) = text
-            .lines()
-            .find(|l| l.to_lowercase().contains("for the loop"))
-        else {
+        let Some(line) = loop_line_of(&text) else {
             continue;
         };
-        let after = line.to_lowercase();
-        let after = after
-            .split_once("for the loop")
-            .map(|(_, a)| a)
-            .unwrap_or("");
-        let after = after.trim_start_matches(|c: char| !c.is_alphanumeric());
-        if after.starts_with("none") {
+        if line.to_lowercase().starts_with("none") {
             continue;
         }
         let filed = format!("{item}'s \"for the Loop\"");
@@ -2283,7 +2329,7 @@ fn a_journal_s_loop_line_is_filed_or_says_none() {
             || records.contains(&filed)
             || records.contains(&filed_curly))
         {
-            unfiled.push(format!("{name}: {}", line.trim()));
+            unfiled.push(format!("{name}: {line}"));
         }
     }
     assert!(
