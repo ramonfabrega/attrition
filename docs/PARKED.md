@@ -3774,12 +3774,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
-(3441) **Two lanes share one tracer DLL and each rebuild refuses the other's takes** (the commander's, at 3436): the queue
-lane and pool lane 1 both load `game/rontrace.dll` (`lanes.sh`:54); a lane's `build.sh` from its own tree leaves the
-other's `@`-line stanzas refused at launch ("the build's tracer.c differs from this tree's"), and 3436 lost four of six
-driven takes to it while 3437 changed `tracer.c` for `@click`. Settled by hand for the drain (3436 rebuilds, takes back to
-back, hands it back). Candidate: a DLL per tree — the capture copies its own build into the staging it already makes —
-or the lane lock carrying the DLL's source hash. Score: driven takes not lost to a sibling's rebuild. One reach.
+(3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
+commander's, at 3436): the queue lane loads `game/rontrace.dll` (`lanes.sh`:54), and 3427 rebuilt it from its own tree at
+15:45; 3436's tree differs in `tracer.c`, so four of its six driven takes refused at launch ("the build's tracer.c differs
+from this tree's"). The pool is immune — `unattended_capture.py`:489 builds into the run's own directory and the game runs
+from there (3437's correction; the commander first filed this as two lanes sharing the DLL, which was wrong). Candidate:
+the queue lane builds per run into its staging as the pool does. Score: driven takes not lost to a stale build. One reach.
 
 (3440) **A hand-rolled wait on a capture outlived the capture** (the commander's, at 3436): 3436 waited on a frame-702
 screenshot with an `until grep` whose bail-out matched lowercase `refus` against the log's `REFUSED`; the queue ended at
