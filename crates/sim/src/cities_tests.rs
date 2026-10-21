@@ -9030,7 +9030,7 @@ fn a_maya_building_costs_a_quarter_less_timber() {
 
 /// **A script that asks for a tech already in research is refused**
 /// (`ScenarioFuncSet::research_tech_with_cost@009ee700` →
-/// `BuildData::can_queue@0062da00` → `could_queue@0062da50` →
+/// `BuildData::can_queue@004d2030` → `could_queue@0062da50` →
 /// `BuildData::can_make@0062db10`, whose tech arm returns 0 on
 /// `LeaderData::researching`). `economic.bhs` asks for The Art of War in its
 /// population preamble and again in its step 24 in the same run; the

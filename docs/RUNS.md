@@ -21106,3 +21106,87 @@ Archive `rontrace-run1020.log`, 156,191,520 bytes,
 SHA-256 `8fb1108d3cf0919fa44273b549ca504c687d6ebf56ee516e15157f879886bb83`.
 
 **What it holds**: `blind::TRACES`' run1020 (item 3421), `NEVER` 363 → 360.
+
+## run1022 — Great Sahara in the successor pair's lobby: the Mongols, All Technologies, at `cover=1` on the click-free pool to 3000, run834's recipe (2026-10-21, item 3423, `att-3423`)
+
+**What the disk could not answer**: every trace of this lobby is `cover=0` (run831's draw stream, run830, run832,
+run834). So `BuildQueueData::get_next_non_caravan@00630c20` stayed on `NEVER`, although run834's block 2996 shows its
+behaviour: the Market's head Caravan is held and the Merchant behind it trains (`docs/AI.md` §211, §296 row 6). This
+run is run834's command with the window and the end moved to the item's frame, plus `--cover cover=1`, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1022`: `--map 7 --end-frame 3000 --timeout 3600
+--log-window 2989 3000 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=1`. The staged
+`rontrace.cmd` is `37 !ffwd 4` and `3000 !quit`.
+- Pool lane 1, launched 13:45:56 and exited 13:47:15: **79.0 s launch to exit** (91.7 s in all). The first take
+  exited 40 and the runner retook it after 4.1 s (`first_take_exit_code` 40). Result `success`, 3,001 frames,
+  `last_frame` 3000, not ended early, map 7, seed 12345, tribes 4 and 17, five settings files restored. 221 GiB
+  was free beforehand. Minutes waited on another lane: none.
+- `rngcmp.py` against run834 (the `cover=0` twin): **3,001 in common, 0 differing, 3,001 identical**. Against run831
+  (the draw stream) the result is the same.
+- `samegame.py` against run834: **11 in common (2989..2999), 0 differ**.
+- `report.py … functions`: 6,906 entered. One is a `NEVER` row, `BuildQueueData::get_next_non_caravan@00630c20` on
+  **2995**, the frame §211 put it on.
+- Filed with `filerun.py run1022 greatsahara-mongol-alltech-window-2989-3000-cover1-clickfree`.
+
+Archive `gamelog-run1022-greatsahara-mongol-alltech-window-2989-3000-cover1-clickfree.txt`, 23,989,478 bytes,
+SHA-256 `d4ee704929100bf0bb6d436695f867ae5d2bcde8f10adc4aebae70999664da60`.
+
+Archive `rontrace-run1022.log`, 101,056,640 bytes,
+SHA-256 `3034c0da135dc1d66457acd8ddf43aed7c14102dbc21c1e5788973813eefabcb`.
+
+**What it holds**: `blind::TRACES`' run1022 (item 3423), `NEVER` 358 → 357.
+
+## run1023 — the Bantu at Great Sahara, difficulty 4, at `cover=1` on the click-free pool to 2810, run978c's recipe (2026-10-21, item 3423, `att-3423`)
+
+**What the disk could not answer**: every trace of this lobby is `cover=0` (run972b, run978–run978f).
+`BuildData::can_queue@0062da00` was booked as entered by the script's research of the Classical Age (run978c block
+2808, `docs/AI.md` §276, §296 row 7). This run is run978c's command with the window cut to its last two stride blocks
+and the end moved to the item's frame, plus `--cover cover=1`: `--map 7 --end-frame 2810 --timeout 3600 --log-window
+2757 2810 --stride 50 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --profile
+DIFFICULTY=4 --cover cover=1`. The staged `rontrace.cmd` is `37 !ffwd 4` and `2810 !quit`.
+- Pool lane 1, launched 13:47:45 and exited 13:48:14: **29.1 s launch to exit** (36.6 s in all). Result `success`,
+  2,811 frames, `last_frame` 2810, seed 12345, tribes 4 and 3, five settings files restored. Minutes waited on another
+  lane: none.
+- `rngcmp.py` against run978c (the `cover=0` twin): **2,811 in common, 0 differing, 2,811 identical**. Against
+  run972b (the draw stream) the result is the same.
+- `samegame.py` against run978c: **2 in common (2758..2808), 0 differ**.
+- `report.py … functions`: 6,511 entered, and **none is a `NEVER` row**. `can_queue@0062da00` is not entered. The
+  script's research calls the byte-identical copy `BuildData::can_queue@004d2030` (`009ee84e`, `call 0x4d2030`), which
+  this trace enters on frame 1. `@0062da00`'s one caller is `GroupOut::issue_queue_up`, a human's click (parked
+  3423a). The run is not pinned into `TRACES`.
+- Filed with `filerun.py run1023 greatsahara-bantu-diff4-window-2757-2810-stride50-cover1-clickfree`.
+
+Archive `gamelog-run1023-greatsahara-bantu-diff4-window-2757-2810-stride50-cover1-clickfree.txt`, 3,147,345 bytes,
+SHA-256 `ac44898140f332fca8cacf1e8508cb4daeb7a32e342fdae24029602e0bbdc920`.
+
+Archive `rontrace-run1023.log`, 16,267,488 bytes,
+SHA-256 `9244e1f38b468ff726ef45f5b417112243679581650b8aaa9e878e74fa97fe96`.
+
+**What it holds**: the copy finding (parked 3423a). Nothing is pinned.
+
+## run1024 — the Dutch at Great Sahara, difficulty 3, at `cover=1` on the click-free pool to 320, run995's recipe (2026-10-21, item 3423, `att-3423`)
+
+**What the disk could not answer**: every trace of this lobby is `cover=0` (run990, run990b, run995–run995d). So
+`Unit::go_to_city@005f79c0` stayed on `NEVER`, although run995's block 310 prints the drafted merchant `1/1` (`group`
+64, `ATTACK_TO` (41304, 17304); `docs/AI.md` §285, §296 row 8). Before the take I checked the end frame against the
+state it waits on: the draft lands on block 310 and the pack on 311, so 320 covers both. This run is run995's command
+with the end moved to 320, plus `--cover cover=1`: `--map 7 --end-frame 320 --timeout 3600 --log-window 305 320
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 22 --profile DIFFICULTY=3 --cover
+cover=1`. The staged `rontrace.cmd` is `37 !ffwd 1` and `320 !quit`.
+- Pool lane 1, launched 13:48:35 and exited 13:49:53: **78.1 s launch to exit** (85.8 s in all). Result `success`, 321
+  frames, `last_frame` 320, seed 12345, tribes 4 and 22, five settings files restored. Minutes waited on another lane:
+  none.
+- `rngcmp.py` against run995 (the `cover=0` twin): **321 in common, 0 differing, 321 identical**. Against run990b (the
+  draw stream) the result is the same.
+- `samegame.py` against run995: **15 in common (305..319), 0 differ**.
+- `report.py … functions`: 6,466 entered. One is a `NEVER` row, `Unit::go_to_city@005f79c0` on **309**, which is the
+  frame block 310 prints.
+- Filed with `filerun.py run1024 greatsahara-dutch-diff3-window-305-320-cover1-clickfree`.
+
+Archive `gamelog-run1024-greatsahara-dutch-diff3-window-305-320-cover1-clickfree.txt`, 23,911,193 bytes,
+SHA-256 `5ed54915532414d62ce3f68864d01993a96e0a44d849a530248b4ebb27be301e`.
+
+Archive `rontrace-run1024.log`, 8,940,608 bytes,
+SHA-256 `4f9700dc41deffd368a9527eafbe38646737572067dbec025fd2341d077cd2cc`.
+
+**What it holds**: `blind::TRACES`' run1024 (item 3423), `NEVER` 357 → 356.

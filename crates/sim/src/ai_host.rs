@@ -1112,7 +1112,7 @@ impl ScriptHost<'_> {
             return NO;
         };
         // `can_queue`: the price through the building, then `could_queue`.
-        // `BuildData::can_queue@0062da00` asks `can_pay_cost(who, −1, city,
+        // `BuildData::can_queue@004d2030` asks `can_pay_cost(who, −1, city,
         // 1)`, the escrow flag set, so the **whole** bucket counts and the
         // reservation does not hold a research back (item 3343: the Bantu
         // word's Classical Age on 2776, 250 food against a purse of 286

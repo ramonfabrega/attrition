@@ -24178,7 +24178,7 @@ the lobby item 3338 minted (§273), scored at 4 of 23,627 on its first try and p
    `Build::queue_up(b, ty, 1)` → `Type::pay_cost`'s fourth argument): run978d block 1577, who=1's `escrow[0:food]` 16
    against 0. State only.
 3. **A script's research is priced against the whole bucket** (`research_tech_with_cost@009ee700` →
-   `BuildData::can_queue@0062da00`'s `can_pay_cost(who, −1, city, 1)`): run978c block 2808, the Classical Age on
+   `BuildData::can_queue@004d2030`'s `can_pay_cost(who, −1, city, 1)`; the copy at `0062da00` is `GroupOut`'s, item 3423): run978c block 2808, the Classical Age on
    2776. **3184 → 4376.**
 4. **A tech already in research is refused** (`could_queue@0062da50` → `BuildData::can_make@0062db10`'s tech arm,
    `LeaderData::researching`). `economic.bhs` asks for The Art of War in its `population >= 23` preamble and again in
@@ -25387,9 +25387,9 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | 3 | `EastIndiesPersianAllTech` (run711, run717) | `AMMO` `traj 2`, `total_time` 13 on `1/49`'s rounds, 3124..3128; `BUILDS=6` the Oil Platform site `1/2048` gone on 2049 | `set_min_seg_length`, `calc_from_dir` (2933), `Object::disband` (1419, §168's site `1/2037`), and unasked `LeaderData::can_transport` (1182), `get_nukes` (780), `send_navy` (2812), `use_spies` (3096), `check_build_order`, `reset_move_orders` (run1019, item 3420) | click-free |
 | 4 | `GreatSaharaPersianAllTech` (run702, run790) | `LEADERS=9` the make list and `nukes_in_flight` on 1985; `BUILDS=6` the Airbase's `BUILDQUEUE` on 3767; the make list's Supply Wagon (`sahara_coverage`) | ~~`get_nukes`~~ (entered on 780 by row 3's run1019), `get_next_helicopter` (3525), and unasked `get_next_non_unit` (3525), `Units::make_valid` (3546) (run1020, item 3421); ~~`think_supply`~~ — entry 29 §2's supply wagon — has no caller: `Unit::think` adds the wagon to its army inline (`:308`–`:341`), parked 3421a | click-free |
 | 5 | `EastIndiesMongolAllTech` (the successor pair) | `UNITS=3` the Freighter `1/72`'s `orders_x/y` (35736, 24984), 2178..2201; an idle empty or soldier-carrying transport's `orders_x/y` | `think_carry` — entry 29 §2's transport — and, if such a boat idles, `think_carry_idle`, `think_carry_military` | click-free |
-| 6 | `GreatSaharaMongolAllTech` (run834) | `BUILDS=6` the queue's Merchant on 2995 | `get_next_non_caravan` | click-free |
-| 7 | `GreatSaharaBantuTier4` (run978c) | `LEADERS=9` `escrow`, block 2808 | `can_queue` | click-free |
-| 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | `go_to_city` | click-free |
+| 6 | `GreatSaharaMongolAllTech` (run834) | `BUILDS=6` the queue's Merchant on 2995 | ~~`get_next_non_caravan`~~ (2995, run1022, item 3423) | click-free |
+| 7 | `GreatSaharaBantuTier4` (run978c) | `LEADERS=9` `escrow`, block 2808 | `can_queue@0062da00`: **not this lobby's** — the script's research (`research_tech_with_cost:74`, `009ee84e`) calls the byte-identical copy `can_queue@004d2030` (entered on frame 1, run1023, item 3423); `@0062da00`'s one caller is `GroupOut::issue_queue_up+0x26f` (`00708eff`), a human's queue-up click (parked 3423a) | click |
+| 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | ~~`go_to_city`~~ (309, the merchant `1/1` drafted on block 310; run1024, item 3423) | click-free |
 | 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | ~~`current_age`~~ (entered on frame 0, run1016, §297); (9b) `say_no_war` only once the console's own unit stands in the Lakota's land, the leader's `+0x1f4` stamp 0 | click-free; 9b driven |
 | 10 | any lobby in which a leader's highest wonder closes (none on disk: below) | `LEADERS=9` `wonder_mark` on the close | `close_wonder` | as the lobby |
 | 11 | a human and two computers, no teams (none on disk) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6) | click-free, *a prediction* |
