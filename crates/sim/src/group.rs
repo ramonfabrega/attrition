@@ -280,7 +280,11 @@ impl crate::finish_insert_view::FinishInsertView for SimInsert<'_> {
 
     fn action_trade(&mut self, _a: [i32; 5]) {}
 
-    fn action_form(&mut self, _a: [i32; 5]) {}
+    fn action_form(&mut self, a: [i32; 5]) {
+        // `a[3]` is the leftover `ecx` (parked 3372f): the listing never reads it.
+        let mut v = crate::form_view::SimActionForm::new(&mut *self.sim, self.g);
+        crate::form_view::action_form_steps(&mut v, a[0], a[1], a[2], a[4]);
+    }
 
     fn redo_patrol_order(&mut self, _a: [i32; 2]) {
         if let Some(Body::Patrol(p)) = self.cur.map(|o| o.body) {
@@ -2279,13 +2283,6 @@ impl Sim {
             .map_or(Domain::Land, |t| self.unit_types[t].combat.domain)
     }
 
-    /// `action_halt`'s and `action_attack`'s shared `ignore` mask (§7):
-    /// `4` siege, `2` special, `1` spy. The simulation has no spy type, so
-    /// bit 1 never matches.
-    fn ignored(&self, u: usize, mask: i32) -> bool {
-        (mask & 4 != 0 && self.is_siege_unit(u)) || (mask & 2 != 0 && self.is_special_unit(u))
-    }
-
     /// `UnitData::is_plane@0046ce40` — `domain == 2 && !(unit_flags & 0x20)`.
     /// There is no altitude test: a plane is skipped whether it is in the
     /// air or on a runway (§7). Bit `f` is `unitrules.xml`'s "flies like a
@@ -2466,21 +2463,11 @@ impl Sim {
         crate::finish_insert_view::finish_insert(&mut v);
     }
 
-    /// `Group::action_halt(mask)` (§7).
+    /// `Group::action_halt(mask)` (§7): the steps of [`crate::halt_view`]
+    /// over this simulation.
     pub fn group_action_halt(&mut self, g: &Group, mask: i32) {
-        // `0070d0c0:29`: the **group's** `form` is cleared once, before any
-        // member is examined, and only for a unit group. No member's
-        // `+0xaa` is touched — and `get_form` reads those bytes, so a halt
-        // does not cost the group the formation its members still carry.
-        if let Some(st) = self.gstate_mut(g) {
-            st.form = -1;
-        }
-        for &u in &g.list {
-            if !self.group_member_orderable(u) || self.ignored(u, mask) {
-                continue;
-            }
-            self.clear_orders(u);
-        }
+        let mut view = crate::halt_view::SimHalt { sim: self, g };
+        crate::halt_view::action_halt_steps(&mut view, mask);
     }
 
     /// `Group::action_stance(s)` (§8). A negative `s` cycles: −1 forward,
@@ -3492,31 +3479,8 @@ impl Sim {
     /// SEAM: the copy of points past the second; see
     /// [`crate::orders::PatrolOrder`].
     pub(crate) fn group_redo_patrol_order(&mut self, g: &Group, p: crate::orders::PatrolOrder) {
-        const MISSILE: u32 = 0x800_0000;
-        for &m in &g.list {
-            if !self.group_member_orderable(m) {
-                continue;
-            }
-            let missile = self.units[m]
-                .ty
-                .is_some_and(|t| self.unit_types[t].combat.obj_masks & MISSILE != 0);
-            if missile {
-                continue;
-            }
-            self.add_patrol_order(
-                m,
-                (p.points[0], p.points[1]),
-                p.id,
-                p.form_id,
-                p.leader,
-                QueuePos::Last,
-            );
-            if let Some(i) = self.update_patrol_order(m, Some(p.id))
-                && let Body::Patrol(x) = &mut self.units[m].orders[i].body
-            {
-                x.waypoint = p.waypoint;
-            }
-        }
+        let mut v = crate::redo_patrol_view::SimRedoPatrol::new(self, g, p);
+        crate::redo_patrol_view::redo_patrol_order_steps(&mut v);
     }
 
     /// §9's anchor score.
@@ -3782,25 +3746,15 @@ impl Sim {
     /// frame of a turn — which is exactly where a follower would otherwise
     /// be walking into its leader.
     pub(crate) fn group_update_positions(&mut self, g: &Group, leader: usize) {
-        let Some(off) = self.gstate(g).map(|st| st.off.clone()) else {
+        if self.gstate(g).is_none() {
             return;
-        };
-        let p = self.units[leader].pos;
-        let theta = match self.current_move(leader) {
-            Some(m) if m.has_waypoint => find_angle(m.waypoint.x - p.x, m.waypoint.y - p.y),
-            _ => self.units[leader].movement.heading,
-        };
-        let curr = Sim::form_update_positions(&off, theta);
-        if let Some(st) = self.gstate_mut(g) {
-            // `update_positions@00713810` loops over `form_num` slots, not
-            // `num`: a member past it keeps the `curr` it was given — a
-            // siege unit's, copied back from the sub-group (item 1493).
-            let n = (st.form_num.max(0) as usize).min(curr.len());
-            if st.curr.len() < curr.len() {
-                st.curr.resize(curr.len(), Pos::new(0, 0));
-            }
-            st.curr[..n].copy_from_slice(&curr[..n]);
         }
+        let mut v = SimUpdatePositions {
+            sim: self,
+            g,
+            u: leader,
+        };
+        crate::update_positions_view::update_positions_steps(&mut v);
     }
 
     /// A follower's target point this frame: the leader's **current**
@@ -4151,6 +4105,49 @@ pub(crate) fn eject_all_wants(
     is_hangar: impl FnOnce() -> bool,
 ) -> bool {
     alive && holds_squad() && !is_hangar()
+}
+
+/// `Group::update_positions`' view over the sim: the leader unit and the
+/// group's slot table (`update_positions_view.rs`).
+struct SimUpdatePositions<'a> {
+    sim: &'a mut Sim,
+    g: &'a Group,
+    u: usize,
+}
+
+impl crate::update_positions_view::UpdatePositionsView for SimUpdatePositions<'_> {
+    fn heading(&mut self) -> i32 {
+        self.sim.units[self.u].movement.heading.0
+    }
+    fn waypoint(&mut self) -> Option<(i32, i32)> {
+        match self.sim.current_move(self.u) {
+            Some(m) if m.has_waypoint => Some((m.waypoint.x, m.waypoint.y)),
+            _ => None,
+        }
+    }
+    fn leader_point(&mut self) -> (i32, i32) {
+        let p = self.sim.units[self.u].pos;
+        (p.x, p.y)
+    }
+    /// `update_positions@00713810` loops over `form_num` slots, not `num`: a
+    /// member past it keeps the `curr` it was given — a siege unit's, copied
+    /// back from the sub-group (item 1493). The table's own length bounds it.
+    fn form_num(&mut self) -> i32 {
+        self.sim
+            .gstate(self.g)
+            .map_or(0, |st| st.form_num.max(0).min(st.off.len() as i32))
+    }
+    fn slot_offset(&mut self, i: usize) -> (i32, i32) {
+        self.sim.gstate(self.g).map_or((0, 0), |st| st.off[i])
+    }
+    fn set_curr(&mut self, i: usize, p: Pos) {
+        if let Some(st) = self.sim.gstate_mut(self.g) {
+            if st.curr.len() <= i {
+                st.curr.resize(i + 1, Pos::new(0, 0));
+            }
+            st.curr[i] = p;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -6413,6 +6410,37 @@ mod tests {
     /// the action bit; a group that walks is halted and the leader's move
     /// replayed to the same point, **with** it. Neither holds a
     /// `CHANGE_FORM`.
+    /// `-1` and `-3` step `get_form_option` forward (modulo 5) and back
+    /// (wrapping below zero to 4); `-2` keeps the leader's own byte and
+    /// sets the group's `form` to `-2` (`form_view.rs`, swept against the
+    /// original). `finish_insert`'s fourth argument is dead (parked 3372f).
+    #[test]
+    fn action_form_steps_the_buttons_and_minus_two_keeps_the_leaders_byte() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 0, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 0, t, Pos::new(0x1200, 0x1000));
+        let g = group_of(0, &[a, b]);
+        for u in [a, b] {
+            s.units[u].form = 1;
+        }
+        s.group_action_form(&g, -1, 0, QueuePos::New);
+        assert_eq!(s.units[a].form, 2, "forward from the majority button");
+        s.group_action_form(&g, -3, 0, QueuePos::New);
+        assert_eq!(s.units[a].form, 1, "back from it");
+        s.units[a].form = 0;
+        s.units[b].form = 0;
+        s.group_action_form(&g, -3, 0, QueuePos::New);
+        assert_eq!(s.units[a].form, 4, "below zero wraps to 4");
+        let leader = s.group_find_leader(&g).expect("a leader");
+        let other = if leader == a { b } else { a };
+        s.units[leader].form = 3;
+        s.units[other].form = 1;
+        s.group_action_form(&g, -2, 0, QueuePos::New);
+        assert_eq!(s.units[a].form, 3);
+        assert_eq!(s.units[b].form, 3, "every member takes the leader's byte");
+    }
+
     #[test]
     fn action_form_writes_the_byte_and_moves_the_group_it_does_not_order_a_form() {
         let mut s = sim();
@@ -6806,6 +6834,62 @@ mod tests {
         );
         s.group_action_halt(&g, 0);
         assert!(s.current_order(m).is_none());
+    }
+
+    /// **`action_halt` skips a member that is dead, off the map or a plane,
+    /// and the mask's 2 bit exempts a special unit** (item 3379,
+    /// `0070d0c0`, swept in `sweep::group_action_halt`; the sweep holds the
+    /// steps, this holds the view over this simulation).
+    #[test]
+    fn action_halt_skips_the_dead_the_absent_and_planes_and_the_mask_exempts_specials() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let mut plane = UnitType {
+            hits: 100,
+            ..UnitType::default()
+        };
+        plane.combat.domain = Domain::Air;
+        let plane = s.add_unit_type(plane);
+        let mut scout = UnitType {
+            hits: 100,
+            ..UnitType::default()
+        };
+        scout.cols.unit_flags2 |= uflags2::SCOUT;
+        let scout = s.add_unit_type(scout);
+        let ground = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        let dead = spawn(&mut s, 1, foot, Pos::new(0x1100, 0x1000));
+        let away = spawn(&mut s, 1, foot, Pos::new(0x1200, 0x1000));
+        let flier = spawn(&mut s, 1, plane, Pos::new(0x1300, 0x1000));
+        let special = spawn(&mut s, 1, scout, Pos::new(0x1400, 0x1000));
+        let all = [ground, dead, away, flier, special];
+        for u in all {
+            s.add_move_order(
+                u,
+                Pos::new(0x4000, 0x4000),
+                MoveKind::MoveTo,
+                QueuePos::New,
+                true,
+            );
+        }
+        s.units[dead].health = 0;
+        s.units[away].on_map = false;
+        let g = group_of(1, &all);
+        s.group_action_halt(&g, 2);
+        assert!(s.current_order(ground).is_none(), "the footman halts");
+        assert!(s.current_order(dead).is_some(), "a dead member is skipped");
+        assert!(
+            s.current_order(away).is_some(),
+            "an absent member is skipped"
+        );
+        assert!(s.current_order(flier).is_some(), "a plane is skipped");
+        assert!(
+            s.current_order(special).is_some(),
+            "the mask's 2 bit exempts a special unit"
+        );
+        s.group_action_halt(&g, 0);
+        assert!(s.current_order(special).is_none(), "mask 0 halts it");
+        assert!(s.current_order(dead).is_some() && s.current_order(away).is_some());
+        assert!(s.current_order(flier).is_some());
     }
 
     /// **A human's 1, 2 or 5 kills an order it was not given** (item 2165,

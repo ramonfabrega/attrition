@@ -3781,6 +3781,29 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's.
 
+## Loop, filed 2026-10-20 — the forty-seventh tranche's
+
+(3392) **Release builds SIGTERM'd from outside for about 25 minutes** (att-3390's status line, 2026-10-20, "rustc
+release builds were SIGTERM'd externally for ~25 min around 19:20-19:45 on this host"; unverified by the commander):
+`tools/resource_budget.py` kills a memory-capped child with SIGKILL (`os.kill(pid, signal.SIGKILL)`, its line 208),
+never SIGTERM, so the sender is not the admission. Candidates to rule out first: a lane's `pkill -f` on a name every
+lane shares (parked 1713), a subagent's cleanup, cargo's own jobserver on a sibling's cancel. A gate's `Gate minutes:`
+in that window are the evidence; the pass reads the lanes' transcripts for the signal's sender. One reach.
+
+(3389) **A journal's `## For the Loop` heading over `none` reads as unfiled, twice now** (3384's "for the Loop",
+filed at its merge: the heading, a blank line, `none`): `docs_guard::a_journal_s_loop_line_is_filed_or_says_none`
+reads only the heading's own line, so 3384's lane gate was red on it as the commander's line, as 3370's was. 3370's
+note (below) said the guard should read the next non-blank line if the shape recurred; it has. The guard's, a few
+lines, made to fail on 3370's and 3384's journals first. One reach.
+
+(3388) **The `port` mark runs dry: the sweep refill rule needs its next source** (the commander, at 3379's booking):
+after 3379 and 3381 merged (`8fd0850a`), `census.py --unbacked --all` lists eight `port`-marked rows, six of them
+3386's batch; two (`Group::normalize`, `Army::normalize`, newly spelled by 3379) are left for the next refill, and the
+queue's opener says "the next six `port`-marked rows". The 1981 never-backed are 8 `port`, 48 `name` (matched by name
+alone), 473 unmarked, 57 operators, 1160 dead weight, 235 `ui`. The commander filled 3387 with the two and the four
+shortest `name` rows; whether `name` is the next source, or the unmarked 473 by bytes (`--by bytes`, Loop 3350's
+column), or the sweep lanes stand down for the `reading` kind, is the pass's to rule. One reach.
+
 ## Loop, filed 2026-10-19 — the forty-sixth tranche's
 
 (3371) **A probe's `commit -am` swept a lane's uncommitted widening into it** (3367's "for the Loop", filed at its
@@ -8741,8 +8764,9 @@ crate carries no `unit_masks2`. Names no score.
   `console_who` -1 and nothing else reads it. `play`'s recorded `ecx` in the sweep is an artefact of the stub. Rows over the emu cache cap (~8 s).
 - **3372b. `Object::remove_from_inside@006480f0`: three SEAMs.** The splice words (`inside_up`/`inside_down`) have no crate field (a
   holder is one pointer; the adapter's splice is empty); the container's slot `0x20` (`host_flag` always true); `unit+0x68 & 1`
-  (`masked` always false). The Barracks arm counts `barracks_garr` (`ai.rs`), which nothing reads: `AMERICANS_BARRACKS_GATHER` is not
-  in the tuning. `docs/AI.md` §219 and the "not modelled" paragraphs still say the arm is unbuilt.
+  (`masked` always false). ~~The Barracks arm counts `barracks_garr` (`ai.rs`), which nothing reads: `AMERICANS_BARRACKS_GATHER` is not
+  in the tuning. `docs/AI.md` §219 and the "not modelled" paragraphs still say the arm is unbuilt.~~ Built by item 3384
+  (`docs/AI.md` §292): the tuning carries it, the view answers it, and `calc_gather`'s term reads `barracks_garr`.
 - **3372c. `Unit::check_build_order@00603470`: `--stub-alloc` built; the crowd tally is a sim fix not diff-backed.** The shape had
   parked twice (3282b, 3339a) on `--stub-alloc`; it is now in `sweep_gen.py` (test `test_an_import_stub_may_allocate`, not made to
   fail on purpose once). The crowd now counts only `find_units(SEARCH_FRIENDLY, owner, unit_build_respond_range*0xc0, 0x200,
@@ -8761,7 +8785,10 @@ crate carries no `unit_masks2`. Names no score.
   run at 3000 rows (the survivor was caught at 12000); the full batch was not rerun at 12000.
 - **3372f. `Group::finish_insert@0070e620`: leftover `ecx`.** Cases `0x12` (`action_form`) and `0x16` (`redo_patrol_order`)
   pass the leftover `ecx` after the accessor vcall as a stack argument (in the emulator, the order's own address, which
-  `action_form` takes as its queue position); the sim's `redo_patrol_order` ignores it. Unchased. The `+0x14` word of a group move's
+  `action_form` takes as its queue position); the sim's `redo_patrol_order` ignores it. Unchased.
+  **Settled by item 3379 (`Group::action_form`'s sweep, `form_view.rs`):** the leftover is the *fourth* of `action_form`'s five
+  stack arguments (`[ebp+0x14]`), which the listing never reads; the queue position is the plain `QUEUE_LAST` (1). 3000 rows ×
+  two sweeps draw it at random and agree. (`redo_patrol_order`'s is dead likewise.) The `+0x14` word of a group move's
   record has no sim field. Branch coverage not re-measured at 800 rows.
 
 ## Parked by item 3374, 2026-10-20 — the American word
@@ -8788,13 +8815,20 @@ none apart. Names no score (`docs/AI.md` §288).
 - **3376d. `Unit::think_civilian_transport` and `Group::action_garrison`: the Sim adapters are weakly tested.** Six of seven mutants on `SimCivTransport` survived the lib's narrow transport tests (land-slot offset, `tregion_alt`, cell owner, `reg_xport`, move kind, leader flags); the exploring arms (`this+0x68 & 0x100`, `think_scout`) and the type flag words are not modelled. `SimGarrison` leaves ignore-orders, console feedback, the editor semaphore and the packing arm unmodelled. The row files (830 MB for transport) exceed the emu cache cap: `RON_EMU_CACHE_MAX_BYTES`.
 - **3376e. Sim fixes this batch forced, none run against the diff pins** (the lane gate is `--no-widen`): `think_civilian_transport` (coastal `tregion_alt`, truncating `%`, wrapping score, double `go_here`, the record test, slot caps 63/62, the failed push), `add_roads` (11 redo rounds not 12; pass three `fixup_lines`/`find_piece` clearing C4; pass two `set_diags` and `fill_cache`), `do_group_move` (the leader's give-up attack arm, `update_action` on the 32nd frame), `do_cast` (hero crafts on the craft; `cast_blow` once not twice; `paid` cleared after the effect), `action_garrison` (`who` the building's owner; the `QUEUE_FIRST` re-entry; member check order). `add_roads` pass three is the likeliest to move a road-derived pin.
 
-## Parked by the next landing, slot LQ — reserved
+## Parked by item 3379, 2026-10-20 — the nations seat's nineteenth shape batch
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot LQ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
+
+- **3379a. `Group::action_form@00707220`: the `loc_to == None` arm is unswept.** Both sweeps (`group_action_form`, `_ins`, 3000 rows each) agree; the `get_loc_to` stub's `--outarg` always writes both coordinates, so the arm never runs. Flag lacking (not confirmed against `_stub`/`--alias` docs by the worker): a stub that skips its out-write on some rows. `SimActionForm::get_form_option` rests on a reading, no sweep of its own; the `OrderList` ctor stub's `list+0x10` constant cannot vary per row (hence two sweeps).
+- **3379b. `SimGarrison::action_halt` (`garrison_view.rs`) is still an empty body.** `Group::action_halt` is swept whole (`halt_view.rs`, 1500 rows; head 400); the Sim has no insert list, so calling halt there without `set_up_insert`/`finish_insert` would drop queued orders. `SimHalt` leaves `unit_busy`, the `+0x68 & 0x100` clear, mask bit 1 and the ignore-orders sweep unmodelled (same gaps as `SimGarrison`).
+- **3379c. `Object::add_to_world` has no Sim adapter.** `add_to_world_view::add_to_world_steps` is swept (4000 rows, 41 of 42 mutants caught); the crate holds one figure a unit and the chain as unit indices, so `Sim::chain_add`/`coll_paint` are not wired to it and `SimRemoveInside::add_to_world` stays an empty gap. Rows are 128 MB, over the emu cache cap: `--rows 2500` would cache.
+- **3379d. `Objects::find_builds@0065a120`: cell chains holding ids below 2000 are diff-unchecked.** The sweep's arrays are laid for ids 2000/2001 only; a second slice with an array window at index 0 would cover units and the `id >= 0` boundary. Sim fix: the list walk (circle over 200 points) measures `vector_dist(dx - 192*x_size, dx - 192*y_size)`, not `vector_dist(dx, dy)`.
+- **3379e. `Sim::group_update_positions` adapter (`SimUpdatePositions`) has no direct test**: 3 of 32 mutants survived (the `has_waypoint` guard, the `.min(off.len())` clamp, the heading `+1`), as in 3376d. `form_num` above 128 and offsets overflowing `x*48` are not driven. The leader unit's cursor refresh (`+0xcc/+0xd0/+0xd4`) is unmodelled and nothing in the Sim reads it.
+- **3379f. Sim fixes this batch forced, none run against the diff pins** (the lane gate is `--no-widen`): `redo_patrol_order` now runs the speed tail of `Group::normalize` (`group_set_speed`) first; `action_form` acts on forms -1/-2/-3 and the plane/unit member predicate (`group_action_form_at`); `find_construct_sites` list walk as in 3379d (the likeliest pin mover: ring 8 and up, range above about 5400, `find_build_spot` after a site completes). `action_halt`, `update_positions`: refactors, no behaviour change; `Sim::ignored` deleted.
 
 ## Parked by item 3380, 2026-10-20 — the Turkish word closes
 
@@ -8829,13 +8863,14 @@ words and edits nothing here; a refill lands when two remain.
   score; a word that parts on a guard's turn reads them first (`Unit::set_angle`'s callers this crate reaches without
   `unit_set_angle`, brief row 2234).
 
-## Parked by the next landing, slot LU — reserved
+## Parked by item 3384, 2026-10-20 — the American word at Great Lakes closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3384a.** The Americans' `0x2000000` raises (`Unit::init@00612100:629`, `Unit::close@0060ee50:157`, and the Barracks
+arm of `insert_inside`/`remove_from_inside`; `Sim::american_barracks_unit`, `docs/AI.md` §292) are built from the
+reading and held by no walk: `tools/mutate.py` turning them off failed nothing on `american_lakes` (the income is
+reassembled on its cadence regardless, and no capture's word sits between a Barracks birth and the next stamp). Ours'
+`close_count` raises for every close path, the original's arm sits on `Unit::close`'s general path only. Names no
+score.
 
 ## Parked by the next landing, slot LV — reserved
 
@@ -8853,13 +8888,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LX — reserved
+## Parked by item 3387, 2026-10-20 — the nations seat's twentieth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3387a. The building attack override is in no crate path.** `BuildData::attack@0062e610` (swept, `build_attack_view.rs`, standalone) adds `general_building_attack*10` for a garrisoned building, `obsidian_archers_attack*10` and `antipater_garrison_attack_bonus*10`; the crate has no leader flag words, no constants for them and no `count_inside` twin, so `Sim::attack_of` applies only the `ObjectData` base to buildings. Wiring it is the likeliest pin mover of the batch.
+- **3387b. `Group::normalize@00711540` is swept but unwired.** `Sim::group_normalize` / `seat_normalize` are namesakes (prune a `Vec<usize>` by `alive`, shift three arrays); the original shifts five and tests object slots `+0x18`/`+0x20`, the group's `id` and `+0x30`. `normalize_view.rs` is the original's walk; whether the namesakes differ on those predicates is unchecked.
+- **3387c. `Army::normalize@006f9b50` is swept but unwired.** `Sim::army_normalize` is a namesake (recounts a unit list; no group slots, `remove_group` early return or slot sort). `army_normalize_view.rs` holds the walk. Negative `num` in the sort and `find_leader` answering -1 read outside the emulator's windows, so the draw keeps them out.
+- **3387d. `SpellTypeData::find_target@00674920`: the crate has no spell search mapping and no console.** `spell_find_view.rs` is the only port, held by the sweep; the three dead stack slots of `Console::find_target` read as zero and the port logs literal zeros (not tested nonzero).
+- **3387e. `Animal::work@005d7330`: the crate keeps no per-herd goods seen-mask and no animal order cursor** (`+0xcc/+0xd0/+0xd4/+0xdc`); the port is inline in the sweep's `// hand: port` fence. Player byte 8 and above, herd indices outside -1..6 and goods indices outside 0..7 are not drawn.
+- **3387f. `ObjectData::attack@006469f0`: sim fix, the caravan arm.** `Sim::attack_of` had no caravan arm (vslot `+0xd0` and `has_preq(CARAVAN_ATTACK_BONUS)` replace the attack with the constant, 20); added with tech role `caravan_attack_preq`, tuning `caravan_attack_bonus` and `Slot::Scaled10`. A pin can move only where a caravan whose owner holds the tech is counted through `attack_of`. Open: `has_preq` reads `preq0` only; the other two `PREQ` attributes of `TECHBONUSES` row 14 are ignored and unchecked. Slot `+0x18` (`Buffer::is_pending_load` on units, another slot on buildings) is modelled as `is_unit`.
 
 ## Parked by the next landing, slot LY — reserved
 

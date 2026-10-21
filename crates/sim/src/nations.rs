@@ -640,13 +640,7 @@ impl Sim {
         }
         let who = self.buildings[b].owner;
         let w = who as usize;
-        let barracks_units: i32 = (0..self.unit_types.len())
-            .filter(|&t| {
-                self.unit_types[t].combat.attack != 0
-                    && self.trainer_ident(t) == Some(crate::build::Ident::Barracks)
-            })
-            .map(|t| self.muster[w].by_type[t])
-            .sum();
+        let barracks_units = self.barracks_units(who);
         // The file's `7` is half a second; any other value is frames.
         let delay = self.tuning.terra_cotta_delay;
         let added = if delay == 7 {

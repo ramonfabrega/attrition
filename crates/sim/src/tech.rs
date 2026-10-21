@@ -337,6 +337,11 @@ pub struct Roles {
     /// (`docs/PRODUCTION.md`, "The missile's other arms"). `None` leaves
     /// the bonus unheld: a tree that does not know the shield raises none.
     pub missile_defense_preq: Option<TypeId>,
+    /// `CARAVAN_ATTACK_BONUS`'s one prerequisite — the technology whose
+    /// ownership is `has_preq(CARAVAN_ATTACK_BONUS)` (`0x2ba`, the 15th of
+    /// `rules.xml`'s `TECHBONUSES`): the gate on `ObjectData::attack`'s
+    /// caravan arm (item 3387). `None` leaves the bonus unheld.
+    pub caravan_attack_preq: Option<TypeId>,
     /// `SPIES_GENERALS_CHEAPER`'s one prerequisite (`0x303`, the 88th
     /// `TECHBONUSES` row) — **Strategy** in the shipped file. Held, it takes
     /// `SPY_GENERAL_COST` off a Spy or a General in `TypeData::get_cost`'s

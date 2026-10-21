@@ -58,6 +58,8 @@ mod animal_think_bird;
 mod animal_think_farm_animal;
 #[path = "animal_update_los.rs"]
 mod animal_update_los;
+#[path = "animal_work.rs"]
+mod animal_work;
 #[path = "armies_diplo_change.rs"]
 mod armies_diplo_change;
 #[path = "armies_emergency.rs"]
@@ -96,6 +98,10 @@ mod army_is_engaged;
 mod army_member;
 #[path = "army_member_by_unit.rs"]
 mod army_member_by_unit;
+#[path = "army_normalize.rs"]
+mod army_normalize;
+#[path = "army_normalize_one.rs"]
+mod army_normalize_one;
 #[path = "army_release_mustering.rs"]
 mod army_release_mustering;
 #[path = "army_remove_group.rs"]
@@ -186,6 +192,8 @@ mod build_add_to_city;
 mod build_check_capture;
 #[path = "build_check_capture_garrison.rs"]
 mod build_check_capture_garrison;
+#[path = "build_data_attack.rs"]
+mod build_data_attack;
 #[path = "build_data_can_make.rs"]
 mod build_data_can_make;
 #[path = "build_data_can_queue.rs"]
