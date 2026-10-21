@@ -246,6 +246,8 @@ mod spell_type_data_is_castable_world;
 mod spell_type_get_job_time;
 #[path = "spell_type_get_job_time_siege.rs"]
 mod spell_type_get_job_time_siege;
+#[path = "spell_type_is_valid_target.rs"]
+mod spell_type_is_valid_target;
 #[path = "spell_type_pay_cast_costs.rs"]
 mod spell_type_pay_cast_costs;
 #[path = "spell_type_unpay_cast_costs.rs"]
