@@ -256,13 +256,14 @@
 /// 1659 -> 1665, the third sweep's first batch, six of six (`Map::point`, `Regions::find`, `Guy::set_new_location`,
 /// `Build::do_attack`, `Wall::activate`, `PathFinder::find_road`); item 3399: 1665 -> 1671, the second sweep's eighth
 /// batch, six of six (`Build::unqueue`, `Caravan::process`, `UnitData::attack`, `Unit::update_hits`, `Army::process`,
-/// `UnitData::speed`).
+/// `UnitData::speed`); item 3400: 1671 -> 1676, the fourth sweep's first batch, five of six (`Unit::think_merchant`,
+/// `BuildType::mask_me`, `Unit::repair_damage`, `Unit::process_attrition`, `Tribe::parse`; `CircleRender::scale` parked).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1671;
+pub const SIMULATION_BACKED: usize = 1676;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
