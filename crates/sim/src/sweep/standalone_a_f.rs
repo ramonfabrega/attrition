@@ -406,6 +406,8 @@ mod build_type_set_domain;
 mod build_type_walk_rules_data;
 #[path = "build_unpay_cost.rs"]
 mod build_unpay_cost;
+#[path = "build_unqueue.rs"]
+mod build_unqueue;
 #[path = "build_update_max_gatherers.rs"]
 mod build_update_max_gatherers;
 #[path = "build_verify_gather_tiles.rs"]
