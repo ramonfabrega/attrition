@@ -20574,7 +20574,10 @@ capture's player holds one.
    rush rule's name (`types +0x87c`, `:18`–`:34`) — and its four callers each hand `msg` to the message window:
    `process_attrition` (the console's unit, the leader's `+0x1f4` stamp 0), `action_declare` (the console's refused
    declaration), `Console::tell_no_war` and `Group::action_launch_flight`. No dump category prints `msg`, so no
-   capture can diff it; it is proposed for `RESIDUE` (§296).
+   capture can diff it; the peace lobby's `cover=1` take enters it beside `current_age` (§296's table).
+   **`Game::is_no_rush@005946c0` is dead in the image** (item 3409; *the PE*): no `call`, `jmp`, `jcc` or
+   absolute pointer anywhere in the executable reaches its six instructions (`rush_rules != 0`, `5946c0`–`5946ce`),
+   so no capture can enter it; §296 proposes it for `RESIDUE`.
 2. **The lobby**: East Indies (`MAP_STYLE 18`), human Nubians (4) against **the Lakota (19)** at `DIFFICULTY 3`,
    `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, **`RUSH_RULES 10`**, seed 12345 — the successor pair's lobby with the
    nation and the rush rules varied. *Diff-backed*: each dump's `GAME INFO` reads them back. `crates/sim` already reads
