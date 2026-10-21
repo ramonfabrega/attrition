@@ -13660,7 +13660,7 @@ Neither staging is a chapter: no word is pinned on it. The walk parses both line
   (§144.2).
 - **`@comeout <who> <o>…`** calls `CommandManager::issue_come_out@00942c90(unit)` once per unit: an 11-byte `come_out`
   (0x31, `[who i32][o i32][uid i16]`) and **no `group`**, as `@unqueue`. The prologue is `sub esp, 0xc`, the return
-  `ret 4`. The panel's button is `UnitOut::issue_come_out@00607be0`, the same bytes inline. A garrisoned captain passes
+  `ret 4`. The panel's button is `UnitOut::issue_come_out` (`00607be0`), the same bytes inline. A garrisoned captain passes
   the DLL's refusal 3: off the map, its `flags` still read 1.
 
 **The stagings** (`tools/gamelog/golden/chapter3-attackground.cmd`, `chapter13-comeout.cmd`) are each chapter's lines
