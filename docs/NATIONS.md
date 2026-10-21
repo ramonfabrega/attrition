@@ -779,7 +779,7 @@ All at `cover=1`; the frame is the action's. `CM` is `[Misc Logging] COMMANDMANA
 
 ### 9.3 Residue proposals
 
-**Fifteen**, each with its reason; none is added to `RESIDUE` by this item.
+**Sixteen**, each with its reason; none is added to `RESIDUE` by this item.
 
 | function | why no skirmish capture reaches it |
 |---|---|
