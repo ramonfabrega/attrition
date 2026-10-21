@@ -169,6 +169,7 @@ pub mod upath;
 pub mod update_positions_view;
 pub mod victory;
 pub mod vision;
+pub mod wall_los_view;
 pub mod work_gate;
 pub mod world;
 pub mod wpath;
