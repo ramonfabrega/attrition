@@ -38,6 +38,10 @@ mod unbuilt_wonder_walk_data;
 mod unbuilt_wonders_add_unbuilt_wonder;
 #[path = "unbuilt_wonders_remove_unbuilt_wonder.rs"]
 mod unbuilt_wonders_remove_unbuilt_wonder;
+#[path = "unit_action_unqueue.rs"]
+mod unit_action_unqueue;
+#[path = "unit_action_unqueue_none.rs"]
+mod unit_action_unqueue_none;
 #[path = "unit_add_attack_ground_order.rs"]
 mod unit_add_attack_ground_order;
 #[path = "unit_add_await_board_order.rs"]
@@ -254,6 +258,12 @@ mod unit_find_melee_pos;
 mod unit_find_nearby_spot;
 #[path = "unit_find_new_bomber_target.rs"]
 mod unit_find_new_bomber_target;
+#[path = "unit_find_path.rs"]
+mod unit_find_path;
+#[path = "unit_find_path_emu.rs"]
+mod unit_find_path_emu;
+#[path = "unit_find_path_pushes.rs"]
+mod unit_find_path_pushes;
 #[path = "unit_find_repair_spot.rs"]
 mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
@@ -538,6 +548,8 @@ mod wall_set_type_dispatch;
 mod wall_swap_team;
 #[path = "wall_update_local_seen.rs"]
 mod wall_update_local_seen;
+#[path = "wall_update_los.rs"]
+mod wall_update_los;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]

@@ -196,6 +196,10 @@ mod group_action_attack_ground;
 mod group_action_attack_ground_head;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
+#[path = "group_action_board_ship.rs"]
+mod group_action_board_ship;
+#[path = "group_action_board_ship_head.rs"]
+mod group_action_board_ship_head;
 #[path = "group_action_buildmask.rs"]
 mod group_action_buildmask;
 #[path = "group_action_form.rs"]
@@ -206,6 +210,12 @@ mod group_action_form_ins;
 mod group_action_garrison;
 #[path = "group_action_garrison_head.rs"]
 mod group_action_garrison_head;
+#[path = "group_action_gather.rs"]
+mod group_action_gather;
+#[path = "group_action_gather_head.rs"]
+mod group_action_gather_head;
+#[path = "group_action_gather_spiral.rs"]
+mod group_action_gather_spiral;
 #[path = "group_action_halt.rs"]
 mod group_action_halt;
 #[path = "group_action_halt_head.rs"]
@@ -214,6 +224,12 @@ mod group_action_halt_head;
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
 mod group_action_queue_up;
+#[path = "group_action_spell.rs"]
+mod group_action_spell;
+#[path = "group_action_swarm_around.rs"]
+mod group_action_swarm_around;
+#[path = "group_action_swarm_around_head.rs"]
+mod group_action_swarm_around_head;
 #[path = "group_action_trade.rs"]
 mod group_action_trade;
 #[path = "group_action_trade_head.rs"]
@@ -422,6 +438,8 @@ mod guy_data_get_render_z;
 mod guy_data_is_corner;
 #[path = "guy_data_walk_data.rs"]
 mod guy_data_walk_data;
+#[path = "guy_set_angle.rs"]
+mod guy_set_angle;
 #[path = "guy_set_bank.rs"]
 mod guy_set_bank;
 #[path = "guy_set_elev_angle.rs"]
@@ -440,6 +458,8 @@ mod guy_turn_towards;
 mod guy_update_gpiece;
 #[path = "guy_update_z.rs"]
 mod guy_update_z;
+#[path = "herd_create_units.rs"]
+mod herd_create_units;
 #[path = "herd_walk_data.rs"]
 mod herd_walk_data;
 #[path = "herds_find_herd.rs"]
@@ -588,6 +608,8 @@ mod object_data_can_carry_pair;
 mod object_data_can_carry_type;
 #[path = "object_data_cargo_inside.rs"]
 mod object_data_cargo_inside;
+#[path = "object_data_count_inside.rs"]
+mod object_data_count_inside;
 #[path = "object_data_get_damage.rs"]
 mod object_data_get_damage;
 #[path = "object_data_get_inside.rs"]

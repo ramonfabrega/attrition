@@ -8609,7 +8609,7 @@ What the French word's landing (`docs/AI.md` §278) read and did not build:
   pass (`fixup_lines(0)`, four mask clears, `find_piece`), pass two's `set_diags` branches, the flagged-iterator queue
   (`set_diags` appends mid-walk) and breaks at `local_3c > 10` where the crate runs 12. Also a `_TSS0` thread-safe-static
   guard reading `ThreadLocalStoragePointer`. Order: `--stub-alloc` (bump-heap malloc stub), then a `RoadsView`.~~ Answered by item 3376: `roads_view.rs` (`add_roads_steps`, `SimRoads`) and three sweeps (`roads_add_roads{,_redo,_amb}`, 3400 rows); no `--stub-alloc` was needed and the port is level.
-- **3348c. `Unit::find_path@005fb910`: `--stub-alloc IDX` lacking** (as 3348b) **plus a stateful `Stack<PathData>` model**
+~~- **3348c. `Unit::find_path@005fb910`: `--stub-alloc IDX` lacking** (as 3348b) **plus a stateful `Stack<PathData>` model**~~ **Struck by item 3386:** swept whole (`find_path_view.rs`, 3000 + 4000 rows, 85 of 89 breaks held, 3 equivalent, 1 starved then fixed); neither flag was needed (`Stack<PathData>` runs natively, `malloc`/`free`/`memcpy` stubbed) and `Sim::find_path` runs `find_path_steps`. The old text below is the dead hypothesis.
   (`push`/`pop`/`peek` moving `length`; no flag does, e.g. `--stack-model LOC:LEN:SIZE:ENTRY`), and the port is not level:
   `Sim::find_path` (`orders.rs:6679`) does not model the `go_around_building` replay or the recursive return 2. ~15 callees.
   Alternative: split a `find_path_march` and sweep that. Sits over 3339c's residue.
@@ -8887,13 +8887,58 @@ score.
   captain among the living and stops otherwise (`docs/AI.md` §295). No walk reaches a decoy squad whose captain
   slot is closed and still named. Names no score.
 
-## Parked by the next landing, slot LW — reserved
+## Parked by item 3386, 2026-10-20 — the second sweep's sixth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3386a. `Group::action_spell@006fe1a0` is swept (default arm only) but unwired.** `action_spell_view.rs` (2000 rows, 91 of 91 breaks
+  held) is standalone: `FinishInsertView::action_spell` in `group.rs` is empty, and `Sim::group_action_spell` (`cast.rs`) models the same
+  arm without `validate_spell`, `can_pay_cost`, the pending-mana / `is_castable == 3` / busy / cost counters or the feedback. Wiring adds
+  refusals and sounds to human-spell captures: the likeliest pin mover of the batch.
+- **3386b. `action_spell`'s aircraft arm** (`unittypes[ty]+0x218 == 2`, asm 6fe5a6..6fe85c) **and TRANSPORT arm** (`ty == 0x28a`, asm
+  6fe43a..6fe9e7) **unswept**: the draw holds the word to 0, 1, 3 and the view panics on 2. They need the leaders table at 0xe3a390 (stride
+  0x6eec) as `--sparse @0xe3a390:0x6eec:2:OFF,SIZE/..` (the 2201/2247 shape), stubs for `num_aircraft_here` (0x645330),
+  `num_aircraft_limit` (0x6454a0), `LeaderData::current_upgrade` / `has_spell` (0x6e0bc0), `find_nearby_spot` (0x61de70, 14 arguments, two
+  out-pointers). No generator run yet, so no exit.
+- **3386c. `action_spell`'s narrower gaps.** The inline `is_unit_type` range test (`type+4` in 0x32..0x19d) is unreached (slot 0xc is shared by
+  the type and the object: lacking a per-window `--slotbase` or `--vtat-image` per type window); `ignore_orders` is held at 0 (as 3381's
+  `action_trade`); the `whom == -1` untargeted press is undrawn (needs `--argset` conditioned on another argument, or `--argeq`); the dead
+  `[ebp-0x38]` feedback arm is omitted.
+- **3386d. `Group::action_gather@00700b90` is swept (3 sweeps: 2000 whole, 400 head, 400 spiral; 96 of 98 breaks held, 2 equivalent) but
+  unwired.** The stub in `group.rs` is empty; wiring needs a scratch `Group` with `add` / `clear` and `Group::action_move_near` (11
+  arguments). It would add gather orders, cast orders and instant garrisons wherever a human clicks a group onto a building. Findings: the
+  chain scan reuses the frame locals `-0x1c`/`-0x20` for the tile object (the next member's `is(0x1a4)` test runs on the last chain object
+  visited), ported faithfully; the decompile's names for the `type_avail` jump table at 0x701764 are wrong (`0x1a1→0, 0x1a2→1, 0x1a3→4,
+  0x1a4→3, 0x1a5/0x1a6→5`). The whole sweep spells group slot 0x10 with 0 arguments although the final call passes four (the generator has
+  no per-object arity for one slot, parked 3362e; the head slice covers the 4-argument calls). The kind-7 order skip in the fallback arm
+  needs call index below 24 and is undrawn; `count_inside` is reached in 30 of 2000 rows.
+- **3386e. `BuildTypeData::calc_gather@00639e40` is swept whole (4 slices: 1500 + 3 x 2500 rows, 67 of 69 breaks held, 2 equivalent) but
+  unwired.** `calc_gather_type_view.rs` is standalone: `gather.rs::gather_slots_raw` holds the count half and `economy::per_gatherer` the rate
+  half and both leave out the nation and wonder terms (German miners, French woodies, Taj and Kremlin farms, Iroquois food, Inca and Egyptian
+  wealth, Japanese). Wiring moves pins; it needs a Sim-backed `TypeGatherView`.
+- **3386f. `calc_gather`'s draw limits** (none a `sweep_gen` flag can spell): `MountainsData`'s `[[P+4]+8]` held at 0; the range index held to
+  0..1 and `d = [[R+4]+0xc]` to 0; the Civilization-Wars bonus bit (`gamec+0x822 & 2`) clear; `Error::report` answered 0 so its `int3` arm is
+  untaken; a `--seq` slot cannot be pinned per call position, which caps mine / camp row density at 20 to 35 percent of a slice (a positional
+  `--seq` would lift it); the `MountainRangeData::gather_size` hand-off with `list` non-null and the cliff gather-size `ecx` are one draw each.
+  The row text is ~36 KB a row, so slices exceed the 16 MiB emu cache cap and re-emulate each run (6 to 12 s a slice).
+- **3386g. `Group::action_board_ship@00700010` is swept whole (1600 rows plus a 400-row head slice, 41 of 44 breaks held, 3 equivalent)
+  but unwired.** `board_ship_view.rs`; `group.rs`'s stub is empty and the crate has no twin for `Unit::add_board_order@005e4d10`,
+  `Unit::add_await_board_order@005e4c80` or `ObjectData::can_carry@006483c0` (each to be swept first). `docs/TRANSPORT.md` §15: no game
+  reaches a BoardOrder, so wiring puts BoardOrders into `finish_insert` replays no capture has. Finding: the stubs leave `ecx` as it was, so
+  the two board calls get a junk fourth argument (the ship unit; for `add_await_board_order` the ship if `clear_orders` just ran, else the
+  member), reproduced by the view's `last_ecx`.
+- **3386h. `Unit::find_path` sim fixes and seams.** Two behaviour changes in `Sim::find_path` (the booking gate's to say if a pin moved):
+  an air-domain type (`type+0x218 == 2`) returns 0 before the goal-on-top-of-us arm (the crate returned 1 and set `avoid`); the march asks
+  `invalid_loc` only when its tile differs from the last tile asked, starting at `(-1,-1)`. Seams: `Stack<PathData>::pop` on an empty path reads a
+  stale slot in the original and pushes it back, the Sim adapter answers `None` (no sweep reaches it); `go_around_building` is stubbed as a fixed
+  push count (1 and 3), not a distribution. Tooling: `Harness.skip_once` in `tools/emu/hooks.py` and one line in the `sweep_gen.py` template
+  stub the function's own entry for a recursive call (a no-op for every other sweep).
+- **3386i. `Group::action_swarm_around@0070fbe0` is swept whole (2400 rows plus a 400-row head slice, 96 whole + 6 head breaks, 2 equivalent, the
+  rest held; the agent's own tally read 98 caught, which does not sum, so the figure is as reported) and wired; its SEAMs in `SimSwarm`.** The scratch group of non-builders (`Group::add`, `action_move_to` at `QUEUE_NEW`), the
+  idle-citizens filter (site type slot +0x90), `is_busy`, the `count_inside` / `inside_down` seeker, the `GATHER` predicate, the illegal-order
+  report and the `+0x60 & 0x2000` clear are swept against the original but no-ops in the Sim. **The formation reset (`form = -1` on every non-First call) is swept but NOT applied to the Sim:** with it `diff::third_pair::run602_s_word_frame_is_widened_whole` parts at frame 981 (group slots `0/0..5` and `1/1..5` `form`: ours -1, theirs 0 and 9; run 602 holds what the clear would erase), so `SimSwarm::set_form` is a no-op, and which later write puts the form back is the open question. Sim fixes (no capture reaches them; a pin could
+  move where one is hit): the `QUEUE_FIRST` insert dance (`group_set_up_insert`, halt,
+  `QUEUE_NEW`, `group_finish_insert`) in place of per-member `swarm_around`; the BUILD_AT exact-tie nudge `-0x30`; a member with no object slot
+  reads the first slot; `movement::find_angle` now wraps (identical in range). Flag lacking: a per-call `--outarg` (the two
+  `find_nearby_spot` calls write the same out pair, so `ox = nx; oy = ny` is unobservable: 2 equivalent mutants).
 
 ## Parked by item 3387, 2026-10-20 — the nations seat's twentieth shape batch
 
@@ -8912,13 +8957,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LZ — reserved
+## Parked by item 3391, 2026-10-20 — the nations seat's twenty-first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3391a. `ObjectData::count_inside` has no crate method.** Swept as the standalone `count_inside_view.rs` (unwired, 37 leaf methods, 18 handled `CountIndex` cases). It is the `count_inside` leaf `build_attack_view.rs` (3387a) and others stub; wiring it with `Sim::attack_of`'s building arm is one booking with 3387a.
+- **3391b. `Wall::update_los` is only partly in `Sim::build_los`.** `wall_los_view.rs` (unwired) is the whole function; `build_los` lacks the fort/tower/colosseum/furs terms, the leader-live gate and the 8-bit wrap, and the crate carries none of the tech bytes (`get_fort_los`, `get_tower_fort_los`), `has_wonder(0x212)`, or the constants block (+0x180, +0x1a8, +0x474, +0x914). The sweep forced one sim fix (an unfinished non-wonder site sees 0, not `1 + x_size/2`); the worker's no-pin claim is a reading of `update_seen_build`'s callers, not a diff run, so the booking gate says. The sweep's slot +0x2c stub is random: Wall's vtable +0x2c is `Window::get_button`, so the wonder test is not exercised through it.
+- **3391c. `follower_des` differs from `Guy::set_angle` at a zero track.** It clamps always; the original only when `dx != 0 || dy != 0`. Reachable only by a `follow` record whose track truncates to (0,0). Also `follower_des`/`sin_component` use unchecked `+=` and `-d` (debug panic near `i32::MAX`, `distance == i32::MIN`; release wraps as the original). Not swept: a crew guy with `+0xa2 == 0` (unbounded recursion on random data), `a1` stride beyond 0/1, a zero-sized world.
+- **3391d. `Unit::action_unqueue` is in no crate path.** `Sim::action_unqueue` is `Build::action_unqueue`; `unit_unqueue_view.rs` (unwired) is the unit arm, which no capture enters (`process_unqueue` SEAM). With a negative upgrade and a nonzero argument the original faults at `types.list[-1]`; callers' contract unverified.
+- **3391e. `SpellType::cast` is spread over `do_cast_effect` and `cast_on`.** `spell_cast_view.rs` (unwired) is the switch in one place (`is_castable == 3`, jump table over `spell - 0x275`); many arms pass `is_castable`'s leftover `ecx`, which the sweep draws but never models from the real callee.
+- **3391f. `Herd::create_units` founding is unmodelled.** `herd_create_view.rs` (unwired); `diff/setup.rs:1063` says the harness skips the herds' 44 draws. The sweep's `--outarg` draws one out pair per row, so per-call `find_nearby_spot` coordinates are untested.
 
 ## Parked by the next landing, slot MA — reserved
 
@@ -8932,6 +8978,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot MB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ME — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ME renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MF renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
