@@ -276,8 +276,18 @@ mod build_new_library;
 mod build_order_get_type;
 #[path = "build_order_get_type_vtordisp.rs"]
 mod build_order_get_type_vtordisp;
+#[path = "build_process_city.rs"]
+mod build_process_city;
 #[path = "build_process_ejection.rs"]
 mod build_process_ejection;
+#[path = "build_process_head.rs"]
+mod build_process_head;
+#[path = "build_process_messages.rs"]
+mod build_process_messages;
+#[path = "build_process_supply.rs"]
+mod build_process_supply;
+#[path = "build_process_wonders.rs"]
+mod build_process_wonders;
 #[path = "build_queue_data_get_job_counter.rs"]
 mod build_queue_data_get_job_counter;
 #[path = "build_queue_data_get_next_helicopter.rs"]
@@ -674,6 +684,8 @@ mod command_manager_start;
 mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
+#[path = "command_package_process.rs"]
+mod command_package_process;
 #[path = "command_package_process_accept.rs"]
 mod command_package_process_accept;
 #[path = "command_package_process_alarm.rs"]
@@ -728,6 +740,8 @@ mod command_package_process_come_out;
 mod command_package_process_console_cmd;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
+#[path = "command_package_process_default_arm.rs"]
+mod command_package_process_default_arm;
 #[path = "command_package_process_demand_tribute.rs"]
 mod command_package_process_demand_tribute;
 #[path = "command_package_process_disband.rs"]

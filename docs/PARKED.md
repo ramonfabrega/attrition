@@ -9072,7 +9072,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MG — reserved
+## Parked by item 3403, 2026-10-21 — the third sweep's second batch
+
+- **3403a** `Build::process` attack band entry (`+0x81 < 0` with `+0x7c >= 0`) reads the objects table at player -1,
+  before the cell record: `sweep_gen.py` places no memory before a cell's base (lacks a negative-offset `--ptrtab LOC`
+  or a cell-record margin); the generator exited 0, the shape is unspellable. Two non-equivalent mutants of that arm
+  survive only by that exclusion.
+- **3403b** `Build::process` wonders slice: the leader `+0x5222` word table is covered 16 bytes, `get_buildings` words 0..7.
+- **3403c** `Unit::process`: the `current_upgrade < 0` training branch (table at index -1) and a composed head-into-tail
+  sweep are unswept; the xmm2/xmm3 float arguments of `Underlays::add` are not recorded.
+- **3403d** `Sim::process_unit` and the `Sim::process_building*` family are not wired to the new sweeps: the sweeps are
+  inline ports of the original, so a crate drift is not caught by them.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot MG renames this heading `## Parked by item N, <date> — <title>`
