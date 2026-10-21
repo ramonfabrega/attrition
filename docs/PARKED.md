@@ -3783,6 +3783,16 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3398) **The held-out battery runs eight of eight whole, and the refill rule names no lobby** (3390's merge,
+`battery_measure` on `15e001e8`: 6147, 7799, 14540, 15853, 18883, 24000 ×3, every one `sequence N of N`; the Dutch at
+Great Lakes, 3390's rule-(2) replacement, whole on its first try): entry 72 as amended by 84 refills a battery lane
+with the lowest *open* lobby, and there is none; the one open word, the Inca at Great Sahara, is 3393's and is near its
+end at 15632. The commander refilled the freed Opus lane as a Sonnet sweep under LOOP.md's "a lane with no word of its
+own is a sweep lane" (3397, as 3229 was) and minted no lobby. For the pass, and Ramon's where it is the finish line:
+entry 61 says the battery is the number that says when minting can stop, and every kept lobby is at its game's end, so
+none can move on fixes made for others; whether to mint lobbies past eight, close the battery track, or move the two
+Opus lanes to another kind (the `reading` kind, entry 84) when 3393 lands. One reach.
+
 (3394) **A `tools/check.sh` run that waits for admission is killed in about six seconds, exit 144** (3385's "for the
 Loop", filed at its merge): in 3385's third session every single-test `zsh tools/check.sh test …` that had to wait
 for the host budget died within about six seconds with exit 144, its whole shell with it, even under `nohup`; the lane
@@ -3792,7 +3802,9 @@ signals a waiting child, and whether the admission's own cancel handler (`resour
 `cancel`) is reached by a sibling's signal. One reach.
 
 (3392) **Release builds SIGTERM'd from outside for about 25 minutes** (att-3390's status line, 2026-10-20, "rustc
-release builds were SIGTERM'd externally for ~25 min around 19:20-19:45 on this host"; unverified by the commander):
+release builds were SIGTERM'd externally for ~25 min around 19:20-19:45 on this host"; and 3390's "for the Loop",
+filed at its merge: the killed builds left inconsistent rlibs that failed later links, and `cargo clean --release -p
+sim` / `-p rondata` recovered them):
 `tools/resource_budget.py` kills a memory-capped child with SIGKILL (`os.kill(pid, signal.SIGKILL)`, its line 208),
 never SIGTERM, so the sender is not the admission. Candidates to rule out first: a lane's `pkill -f` on a name every
 lane shares (parked 1713), a subagent's cleanup, cargo's own jobserver on a sibling's cancel. A gate's `Gate minutes:`
