@@ -10357,3 +10357,56 @@ cmd: 650 camera 14,74
 check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run1049.log
 check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch25/map-14/rontrace.log" rontrace-run1049.log || true)
 check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1049.log" functions 2>/dev/null | grep -E "^00629e70 " || true)
+
+run: 1055
+tag: ch18-build-click-retake
+item: 3436
+why: chapter eighteen's lobby at cover=1, the Citizen 0/6 selected, the Barracks build button (427) and a no-drag drop for GroupOut::issue_build@00708c60 in place of 620's @build; run1046's retake (run1046 ran unattended to 3000 with no click; its `select 6` picked the Small City, so this one selects by a click)
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 600 library who=0 2
+cmd: 610 add citizen who=0 24,184
+cmd: 612 add citizen who=0 24,196
+cmd: 614 add citizen who=0 26,196
+cmd: 616 add citizen who=0 28,196
+cmd: 618 camera 38,178
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch18/map-14/rontrace.log" rontrace-run1055.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1055.log" functions 2>/dev/null | grep -E "^00708c60 " || true)
+
+run: 1056
+tag: ch21-repair-click-retake
+item: 3436
+why: chapter twenty-one's lobby at cover=1, the Citizen 0/6 selected and right-clicked on the damaged Barracks 0/2007 for GroupOut::issue_swarm_around@0070afc0 in place of 780's @repair; run1047's retake (run1047 ran unattended to 3000 with no click)
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 600 library who=0 2
+cmd: 602 library who=1 3
+cmd: 606 add barracks who=0 30,170
+cmd: 610 add bowmen who=1 34,170
+cmd: 760 peace 1
+cmd: 770 add citizen who=0 28,190
+cmd: 772 add citizen who=0 26,192
+cmd: 774 add citizen who=0 28,192
+cmd: 776 add citizen who=0 30,192
+cmd: 778 select 6 who=0
+cmd: 778 camera 30,176
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch21/map-14/rontrace.log" rontrace-run1056.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1056.log" functions 2>/dev/null | grep -E "^0070afc0 " || true)
