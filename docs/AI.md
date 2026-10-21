@@ -12231,7 +12231,37 @@ holds a unit the other does not (7485).
 
 - `Leader::action_respond@006d03c0` and `Leader::pay_dow@006d2b10` write
   escrow too, and neither is modelled. No capture on disk is known to
-  reach either.
+  reach either. **What each writes** (item 3409, §296; *reading alone*;
+  the listing at `6d2baa`–`6d2bcd` settles that the decompile's
+  `0xe3a7f8` is `leaders + 0x468`, `escrow`):
+  - `pay_dow(t, cancel)` prices `DECLARE_WAR + t` (`0x29c`), or
+    `CANCEL_ALLIANCE + t` (`0x2a4`) when `cancel ≠ 0`, through
+    `get_cost` (vslot `+0x78`) per available good, and takes the price
+    from both the stock (`+0x6eb8`'s array, `^ 0x8221`) and `escrow`,
+    each floored at 0 (`:14`–`:38`). Its one caller,
+    `Leader::action_declare@006dab50:98`/`:113`, pays only when its
+    `free` argument is 0, and every automatic caller passes
+    `~(leader_flags >> 2) & 1` (`Object::take_damage`, `Nuke::do_damage`,
+    `action_respond:534`/`:538`) while `Leader::diplomacy` passes 1: **a
+    computer never pays a declaration; a human (`leader_flags & 4`)
+    always does**, and so does the console's own declare
+    (`CommandPackage::process_declare`, `free` 0). A skirmish at war from
+    frame 0 returns at `action_declare`'s `is_enemy` head.
+  - `action_respond(other, 1)` (an accepted offer) takes the offer's
+    tribute per good (`dip[other] +0x6938`) and, for each third leader
+    `k` the treaty sets against (`+0x6968`), `DECLARE_WAR + k`'s price —
+    doubled against an ally, and **zero unless the responder is human**
+    (`× ((leader_flags & 4) ≠ 0)`, `:110`) — from the stock and
+    `escrow`, both floored at 0 (`:157`–`:169`, `:187`–`:200`), adds
+    them to `tributes` (`+0x498`, `:171`, `:201`), and marks the offer
+    agreed (`+0x692c = 1`, `:207`); a good whose stock falls short of
+    tribute plus price stops it before any write (`:119`). It first
+    zeroes `tribute_demanded` (`+0x334`) and `+0x314` for `other` on
+    every call (`:60`–`:61`).
+  *Falsifier*: `LEADERS=9`'s `escrow` and `tributes` on the frame a
+  human accepts a tribute treaty or declares war from peace — the
+  stock and the escrow fall by the same priced amount; on an AI's own
+  declaration neither moves.
 - The script host's `queue_up`/`produce_building` (`ai_host.rs`) pass
   `false`. What the script actions pass is not read.
 - `do_gather`'s knowledge `tech_cost` arm and `ai_speed` scale both the
