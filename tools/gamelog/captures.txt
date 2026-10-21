@@ -10084,3 +10084,22 @@ end: MISC,LEADERS=3
 cmd: 500 unmeet who=1
 check: python3 tools/gamelog/rngcmp.py rontrace-run1016.log rontrace-run1016b.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=601)}'
 check: (grep -a -c "treaties\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016b-lakota-peace-treaties.txt" || true) | tee /dev/stderr | awk '{exit !($1>=600*8*2)}'
+
+# run1016c: the two leaders have not met by 500 — run1016b's `treaties[1]` (leader 0) and `treaties[0]` (leader 1) are
+# 0 on every block 1..601, so run1016's `unmeet` entered `treaty_off` on a clear bit. run848's window has both set on
+# block 1474, together. So the value check is an `unmeet` past 1474: 1480, read 1470..1489 at `LEADERS=3`.
+run: 1016c
+tag: lakota-peace-unmeet-1480
+item: 3417
+why: run1016's lobby with 1480 unmeet who=1, after the leaders meet at 1474, to read treaties bit 0 clear on both sides at block 1481
+frames: 1490
+mapstyle: 18
+cfg: -
+ffwd: 37 !ffwd 27
+cover: cover=0
+profile: STARTING_TECHNOLOGY=8 STARTING_RESOURCES=7 DIFFICULTY=3 RUSH_RULES=10 XPACK_LAST_TRIBE1=19
+end: MISC,LEADERS=3
+frame_window: 1470 1490
+cmd: 1480 unmeet who=1
+check: python3 tools/gamelog/rngcmp.py rontrace-run847.log rontrace-run1016c.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(s>=1481)}'
+check: (grep -a -c "treaties\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016c-lakota-peace-unmeet-1480.txt" || true) | tee /dev/stderr | awk '{exit !($1>=19*8*2)}'
