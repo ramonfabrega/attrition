@@ -18027,7 +18027,16 @@ Each claim is *diff-backed* unless marked.
      `(float)(unit_move_speed × proj_speed)` (`67cd6a`–`67cdcc`, `xmm1`, saved at `91396e` and reloaded at `913a8b`);
    - `calc_spline@00912f00`: capped at `3 × 4.0 = 12`, raised to the degree 2;
    - `generate_bspline@00911820`: one point more than the resolution.
-   So a missile longer than twelve speeds flies 13 frames. The middle point is `5 × speed` along the figure's angle
+   So a missile longer than twelve speeds flies 13 frames. **The control points** (item 3409, §296; *reading
+   alone*): `calc_from_dir(start, mid, end, extra)` appends `start`, `mid`, then `extra` only when its
+   `Vector::length` is non-zero — the degree `+0x60` is 3 with it, 2 without (`:45`–`:62`) — then `end`, sets the
+   resolution (`set_min_seg_length:29`, `(short)(int)(L / speed)` over the polygon's segments) and `+0x48 = 4.0`
+   (`:74`) before `calc_spline`. Both callers in the simulation pass `extra` zeroed — `Ammo::init:694`, and the
+   homing re-aim of item 6 below (`Ammo::inc_time:170`–`:172`, from the round's current point, `mid` twice its
+   offset to the spline's next point, `end` the target's position) — so a round's spline is always the three-point,
+   degree-2 one `combat::missile_flight_time` builds; `calc_nuke_spline` calls `set_min_seg_length` with its own
+   degree. *Falsifier*: `AMMO`'s `total_time` on a missile at under twelve speeds' range (the count then follows `L`,
+   and a fourth point would lengthen it) — no capture on disk fires one that short. The middle point is `5 × speed` along the figure's angle
    for a sea or air shooter (`67cb7d`–`67cb9b`); a building's or land unit's (`+0x218 == 0`, `67c437`–`67c469`) is
    half a stack local at a fixed pitch.
 5. **A missile is not led and never rolls** (`Ammo::init:798`, `:355`–`:360`: `local_30 == 0` in both). *Export-
