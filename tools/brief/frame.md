@@ -336,8 +336,8 @@ Before any reading, in order:
   quote the two lines; your Loop line is mine to file (3277, 3328).
 - **`ccc update att-<n>` takes the ref, never a SHA** (1557);
   `--keep-conflicts` on a conflict, keep both, commit (1161); **a `Base
-  moved:` line is an update and a second gate before your done line,
-  and a refused gate ran nothing** (3341, 3366); a re-pinned
+  moved:` line past the commander's paperwork is an update and a
+  second gate, and a refused gate ran nothing** (3341, 3366, 3401); a re-pinned
   count is the merged tree's (1151); read your run's RUNS section
   (1285); a landing that moves another's word says so (1289).
   **`check.sh` exits as cargo does; never read a pipe's** (3327).

@@ -354,7 +354,8 @@ added these rows, each from the tranche's own receipts.
   out on the battery tables every promotion edits, and each cost an
   update, a resolve and a second gate after "landed"; the lane gate
   reads the base's movement and the paths both sides touched, and
-  refuses the done line while any stands.
+  refuses the done line while any stands but the commander's paperwork
+  (`COMMANDER_PAPERWORK`, Loop 3401: an overlap there merges clean).
 - **A red on the Loop-line guard alone is forgiven on a lane, and the
   line is the commander's to file** (3328; 3314's three lane gates,
   3318's self-filed row, 3322's `none`): the guard asks that a journal's

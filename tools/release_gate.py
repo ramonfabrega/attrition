@@ -298,6 +298,27 @@ def branch_paths(base, run=subprocess.run):
     return out.split()
 
 
+# The commander's paperwork: paths a lane never edits or whose concurrent
+# edits git merges clean, so an overlap on them alone is no reason to gate
+# again. Loop 3401 (the forty-seventh pass): 3393's second to fourth lane
+# gates ended on `Base moved:` and each forced a `ccc update` and another
+# full lane gate (~55 minutes), yet every update merged clean — the third's
+# and fourth's overlap was docs/PARKED.md alone, whose tail the commander's
+# bookings append to while a lane renames its own reserved slot. QUEUE.md
+# and JOURNAL.md are the commander's alone; RUNS.md merges by union
+# (.gitattributes).
+COMMANDER_PAPERWORK = ('docs/QUEUE.md', 'docs/PARKED.md', 'docs/JOURNAL.md', 'docs/RUNS.md')
+
+
+def split_paperwork(overlap):
+    """(blocking, paperwork): an overlap parted into the paths that refuse a
+    lane's done line and the commander's paperwork, which does not (Loop
+    3401)."""
+    overlap = list(overlap or [])
+    paperwork = [p for p in overlap if p in COMMANDER_PAPERWORK]
+    return [p for p in overlap if p not in COMMANDER_PAPERWORK], paperwork
+
+
 def base_moved(base, run=subprocess.run):
     """(commits, overlap): the commits `base` has gained since this branch
     left it, and the paths both sides touched since — what a `ccc merge`
@@ -330,11 +351,19 @@ def base_line(base, commits, overlap):
     last = commits[-1].split(' ', 1)[0]
     line = (f"Base moved: {len(commits)} commit(s) on {base} since this branch left it "
             f"({first}{'..' + last if len(commits) > 1 else ''}); ")
-    if overlap:
-        shown = ', '.join(overlap[:4]) + (', …' if len(overlap) > 4 else '')
-        return line + (f"{len(overlap)} path(s) both sides touched ({shown}): take `ccc update <your ref>` "
+    blocking, paperwork = split_paperwork(overlap)
+    if blocking:
+        shown = ', '.join(blocking[:4]) + (', …' if len(blocking) > 4 else '')
+        return line + (f"{len(blocking)} path(s) both sides touched ({shown}): take `ccc update <your ref>` "
                        "(`--keep-conflicts` on a conflict), gate again, and only then your done line — a "
-                       "landing announced here backs out at `ccc merge` (Loop 3341)")
+                       "landing announced here backs out at `ccc merge` (Loop 3341)"
+                       + (f"; the commander's paperwork ({', '.join(paperwork)}) is no reason of its "
+                          "own (Loop 3401)" if paperwork else ''))
+    if paperwork:
+        return line + (f"the only path(s) both sides touched are the commander's paperwork "
+                       f"({', '.join(paperwork)}): take `ccc update <your ref>` at this gate's exit and "
+                       "land on this verdict if the update is clean, saying which base the gate ran on "
+                       "(Loop 3401)")
     return line + ("no path both sides touched: take `ccc update <your ref>` at this gate's exit and "
                    "land on this verdict if the update is clean, saying which base the gate ran on")
 
@@ -430,11 +459,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # first step too; when both sides touched a path the gate says so
         # first and runs nothing. It is read again after the steps (below),
         # for a base that moves while the gate runs.
+        # Loop 3401: an overlap on the commander's paperwork alone does not
+        # refuse; the line after the steps names it.
         commits, overlap = base_moved(base, run=git)
-        if overlap:
+        blocking, _ = split_paperwork(overlap)
+        if blocking:
             print(base_line(base, commits, overlap), flush=True)
             raise ValueError(f"the base moved under this branch and both sides touched "
-                             f"{', '.join(overlap)}: refused before the offline step, nothing ran; "
+                             f"{', '.join(blocking)}: refused before the offline step, nothing ran; "
                              "take `ccc update <your ref>` and gate again (Loop 3341, item 3366)")
     skips, widened, touched, paperwork = [], [], None, []
     if lane or scope is not None:
@@ -558,9 +590,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
             # the freshest a lane can have before its done line.
             commits, overlap = base_moved(base, run=git)
             print(base_line(base, commits, overlap), flush=True)
-            if overlap:
+            blocking, _ = split_paperwork(overlap)
+            if blocking:
                 raise ValueError(f"the base moved under this branch and both sides touched "
-                                 f"{', '.join(overlap)}: take `ccc update <your ref>` and gate again "
+                                 f"{', '.join(blocking)}: take `ccc update <your ref>` and gate again "
                                  "before your done line (Loop 3341)")
     finally:
         print(minutes_line([step_name(c) for c in commands], seconds), flush=True)
