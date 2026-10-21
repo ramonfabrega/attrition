@@ -544,6 +544,8 @@ mod map_invert_land;
 mod map_is_near_ocean;
 #[path = "map_land_dist.rs"]
 mod map_land_dist;
+#[path = "map_make.rs"]
+mod map_make;
 #[path = "map_scale_by_area.rs"]
 mod map_scale_by_area;
 #[path = "map_scale_by_axis.rs"]
