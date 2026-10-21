@@ -3772,6 +3772,14 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours.
 
+## Loop, filed 2026-10-21 — the forty-ninth tranche's
+
+(3430) **A captures-owed row names the detail level that prints its field** (3417's "for the Loop"): VISION §8's row
+asked `LEADERS=1` for `treaties[1]`, which the logger prints only at `LEADERS>=3`, and the lane spent a retake learning
+it (run1016b, parked 3417b). Candidate: a guard over the captures-owed tables that checks each row's category and level
+against the level the dump's own writer prints the field at (the stanzas already on disk say which), or a brief row
+until it is one. Score: a coverage retake the next tranche does not spend. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-eighth tranche's
 
 Loop 2003's reaches in the forty-eighth tranche, filed here below its own row (its section is at the size ceiling): 3410 four generator notes (3410e) — `--regen` re-reads the stored flags and ignores new ones, so a widened draw is a delete and a regeneration; a place window cannot sit on a stub-answer window (`--alias WIN+OFF:pN!` is the way round); a `--ptrtab` takes one array window plus N record windows, so the `p` numbers are not the naive count; a regeneration once wrote its mod line into `sweep/mod.rs` (reverted). 3411: no generator park, every run exited 0 and no flag was lacking. Both batches generated whole. The forty-eighth pass built none of the four; the ledger stays.
