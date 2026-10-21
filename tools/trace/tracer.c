@@ -200,6 +200,8 @@ enum {
                        * pathfinder's copy (`fill_slots`); src 2 = no live block,
                        * b = the pointer WData holds (0 or ~0), one record only. */
     I_STRIDE = 19, /* `stride=N` took the engine's log window: a = N, b = lo, c = hi */
+    I_CLICK = 20, /* an `@click`, `@rclick` or `@cursor` line (`click.h`) */
+    I_PIN = 21, /* the cursor pin installed or refused (`click.h`) */
 };
 
 typedef struct {
@@ -616,6 +618,10 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@sell <who> <good> <flags>`          a Market's Sell button, through
  *                                         LeaderOut::issue_sell (no group)
  *   `@buy <who> <good> <flags>`           its Buy button, LeaderOut::issue_buy
+ *   `@click <x> <y>`, `@rclick <x> <y>`,  not an issuer: a mouse click at a
+ *   `@cursor <x> <y>`                     client point, through the game's own
+ *                                         handlers, the cursor pinned (item
+ *                                         3437, `click.h`)
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -907,6 +913,9 @@ static int issue_verb(const u16 **t, const char *verb) {
     return 1;
 }
 
+void *memcpy(void *d, const void *s, unsigned n);
+#include "click.h"
+
 /* `@sell`/`@buy`: a leader's market command, no group (item 3426). The
  * issuer's first eleven bytes are `mov eax, [gamec]; push esi; mov esi,
  * ecx; test byte [eax+0x820], ...` in both, off the listing (`6d3eb0`,
@@ -960,6 +969,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u16 *pkg_size = (u16 *)(g_base + RVA_COMMAND_MANAGER + 0x28 + 0x10);
     u32 before = *pkg_size;
     const u16 *t = text;
+    if (issue_verb(&t, "click ")) { click_line(frame, idx, t, 1); return; }
+    if (issue_verb(&t, "rclick ")) { click_line(frame, idx, t, 2); return; }
+    if (issue_verb(&t, "cursor ")) { click_line(frame, idx, t, 0); return; }
     if (issue_verb(&t, "sell ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_SELL, before, pkg_size); return; }
     if (issue_verb(&t, "buy ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_BUY, before, pkg_size); return; }
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
@@ -1605,6 +1617,7 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
             emit(K_INFO, 120, (u32)frame, 3, saved_display, 0, 0);
         }
 #endif
+        if (g_pin_want && g_pin_state < 0) pin_install(frame);
         run_cmds(frame);
 #ifdef RON_CONGESTION_PROBE
         probe_congestion(frame);
@@ -1972,7 +1985,8 @@ static int key_is(const char *p, const char *k) {
 }
 
 /* rontrace.cfg: lines `window=LO-HI` (frames to re-arm at, inclusive; default
- * none), `cover=0|1` (default 1) and `callwin=LO-HI` (frames over which the
+ * none), `cover=0|1` (default 1), `cursor=X,Y` (the cursor pinned at that
+ * resting point from the first frame, `click.h`) and `callwin=LO-HI` (frames over which the
  * proxied call sites log their arguments and answers; **absent means the
  * proxies are not installed at all**, which is what every capture before
  * run55 ran). Anything else is ignored. */
@@ -1998,6 +2012,12 @@ static void read_cfg(void) {
         } else if (key_is(p, "cover")) {
             p += 6;
             g_cover = parse_int(&p);
+        } else if (key_is(p, "cursor")) {
+            p += 7;
+            g_pin_x = parse_int(&p);
+            if (*p == ',') p++;
+            g_pin_y = parse_int(&p);
+            g_pin_want = 1;
         }
         while (*p && *p != '\n') p++;
         while (*p == '\n' || *p == '\r') p++;
@@ -2044,6 +2064,7 @@ static void read_cmds(void) {
         while (*p && *p != '\n' && *p != '\r' && i < CMD_CHARS - 1) c->text[i++] = (u8)*p++;
         while (i > 0 && (c->text[i - 1] == ' ' || c->text[i - 1] == '\t')) i--;
         c->text[i] = 0;
+        if (i && c->from_chat == 2 && pin_wanted_by(c->text)) g_pin_want = 1;
         if (i) g_ncmds++;
         while (*p && *p != '\n') p++;
         while (*p == '\n' || *p == '\r') p++;

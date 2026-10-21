@@ -440,7 +440,8 @@ def capture(args, output, style):
         minute = getattr(args, 'ffwd_minute', None)
         live_session.stage(SimpleNamespace(install=args.install, output=output, profile=args.profile,
                                            end_frame=args.end_frame,
-                                           fast_forward=args.end_frame>37 and minute is None,
+                                           fast_forward=args.end_frame>37 and minute is None
+                                                        and not getattr(args, 'no_ffwd', False),
                                            hide_scene=False, ffwd_minute=minute,
                                            dump_all_start=getattr(args, 'dump_all_start', False),
                                            log_window=getattr(args, 'log_window', None),
@@ -868,6 +869,9 @@ def main():
                     help='drop the staged lines at this frame: a chapter\'s control in one flag '
                          '(Loop 2542); repeatable; a frame with no staged line is refused')
     ap.add_argument('--ffwd-minute',type=int)
+    ap.add_argument('--no-ffwd', action='store_true',
+                    help='no `!ffwd` at frame 37: the game draws throughout, which a click line '
+                         'that picks under the cursor needs (item 3437)')
     ap.add_argument('--dump-all-start', action='store_true',
                     help='full initial dump and WORLD=6, bounded to log window 0 2')
     ap.add_argument('--ai-tribe', type=int, choices=range(24),
