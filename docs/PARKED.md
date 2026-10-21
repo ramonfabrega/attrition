@@ -9095,13 +9095,12 @@ is an oracle-agreed module the live sim does not call.
   `orders.rs` only names AWAIT_BOARD in a comment (`:4118`). A live port wants the animal's los/seen view and the
   await-board order on `Sim`.
 
-## Parked by the next landing, slot MM — reserved
+## Parked by item 3412, 2026-10-21 — NATIONS's never-entered functions read: port gaps and stale texts the reading found
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3412a. `Sim::has_market` (`crates/sim/src/ai_make.rs:496`) asks for an active Market building of mine; `LeaderData::has_market@006d5410` asks `num_buildings[0x16] ≠ 0` and then a city the leader owns with `city_flags & 1` and `& 0x800`** (`docs/NATIONS.md` §9.1). What `0x800` is, and whether any capture holds a Market with no qualifying city, is not established. No score names it until a market capture (§9.2's first rows) is taken.
+- **3412b. `Object::disband`'s two port questions** (§9.1): `SimDisband::price` (`crates/sim/src/disband.rs`) answers the full arm (last argument −1) and the partial (`orig_type`) with one price, and the Aztec plunder arm is the sweep's alone because the sim disbands no unit. Books with §9.2's Lakota delete.
+- **3412c. `get_vehicle_speed_upgrade`'s port asks one stored prerequisite per bonus where the original's `has_preq` asks the bonus's whole PREQ list** (§9.1). Inert while each `VEHICLES_FASTER` has one; books with §9.2's queue-time capture.
+- **3412d. Stale texts, none a score.** `crates/rondata/src/input.rs:1189` skips `Command::Buy`/`Sell` as "the market is not modelled", but `ai_make.rs` carries `do_buy`, `do_sell` and `calc_market_prices`. §5's generated census calls `process_sell` `carried at command_package_process_sell.rs`: that is the emulator sweep, and `crates/sim` has no `process_sell` (§9.1); `tools/nations_census.py`'s `HAND` could say so.
 
 ## Parked by the next landing, slot MN — reserved
 
