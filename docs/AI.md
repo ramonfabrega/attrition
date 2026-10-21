@@ -25088,7 +25088,7 @@ ours; agreeing.
 **13297: a decoy target.** Theirs' `1/82` (a General's decoy Light Horse, `TypeIndex` 209, `unit_masks` odd both
 sides) leaves the dump on block 13297. run1011e's packet (`step4.py --entry 65db70` = `Objects::inc_time`): `1/49`'s
 round, its target dead, finds `1/82` through `Ammo::check_hit` (friendly fire); `Object::do_damage(0x52, 1,
-0xd4e40000, 1, …)`, `get_damage` **19688**, `take_damage` `0x19a2` after the uber divide, and `Unit::die`. Ours took
+0xd4e40000, 1, …)`, `get_damage` **19688**, `take_damage` 6562 whole hits after the uber divide, and `Unit::die`. Ours took
 6 hits: `Sim::target_side` wrote `decoy` false for every unit, so §6 step 17 (armour 0, `max(attack, base) ×
 1000`) never ran on a decoy target. Built: the target's bit. **13313 → 13416.**
 

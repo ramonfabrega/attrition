@@ -10841,7 +10841,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::inca_sahara_word::INCA_SAHARA_WORD,
         length: 15_632,
         endpoint: None,
-        window: None,
+        // run1011's, 13104..13360; the word 13416 is past it, and its own
+        // window is the next item's capture (item 3385).
+        window: Some("inca_sahara_frame_13250_window"),
     },
     // **The battery's Indian word at Great Sahara** (DECISIONS 72, 83, 84;
     // item 3383): Great Sahara, the Indians at Difficulty 3 — the held-out
