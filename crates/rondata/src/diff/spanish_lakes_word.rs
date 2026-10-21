@@ -105,6 +105,52 @@ fn spanish_lakes_word_is_no_other_lobby() {
     }
 }
 
+/// run1013: the word 13496's window, blocks 13490..13746 at `GUYS=4`,
+/// `LEADERS=9` and `GOODS=3` (item 3390). run1008 dumps blocks 0..36 and
+/// run1008b its setup and closing blocks only, so no dump on disk held the
+/// word's block.
+pub(crate) const RUN1013: &str = "gamelog-run1013-greatlakes-spanish-diff4-window-13490-13747.txt";
+
+/// The window: block 13490 through 13746; the word 13496's own block is
+/// 13497.
+pub(crate) const WIDENING_SPANISH_LAKES_FRAME_13496: (i64, i64) = (13490, 13746);
+
+pub(crate) fn spanish_lakes_frame_13496_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_LAKES.start],
+        true,
+        SPANISH_LAKES.long,
+        "run1013",
+        &[(RUN1013, WIDENING_SPANISH_LAKES_FRAME_13496.0)],
+        WIDENING_SPANISH_LAKES_FRAME_13496,
+        1,
+        &[13497],
+        true,
+    )
+}
+
+#[test]
+fn run1013_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_lakes_frame_13496_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+}
+
 /// **The word's road search, node for node** (item 3390): every road
 /// search run1008b's call window prices, from the start to the word 8384,
 /// against ours.
