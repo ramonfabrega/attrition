@@ -13,13 +13,17 @@
 //! number of nodes, and the run62 proxies are what showed it — every node's
 //! price, and every difference a multiple of the climb's `× 3`.
 //!
-//! The arithmetic is the original's in **millionths**, not its `f32`. A
-//! mean divided in `f32` and one divided exactly part on a truncation
+//! The arithmetic is the original's own SSE single precision, done in
+//! integers by [`Single`] (item 3390, `docs/DECISIONS.md` entry 31's owed
+//! upgrade): `addss` in the box's own order, `cvtdq2ps` and `divss` for
+//! the mean, `(h + mean) × 0.5` on the border (`00875210`..`008755c4`).
+//! Until then it was exact millionths, and the two part on a truncation
 //! about three tiles in fifty-eight thousand (`docs/QUEUE.md` item 58);
-//! the sim carries no floats, and the scale the dump prints is the scale
-//! this keeps.
+//! one of them, on the Spanish at Great Lakes, priced a road one climb
+//! short on 7984 (`docs/ROADS.md` §7.4).
 
 use crate::Sim;
+use crate::single::Single;
 use crate::world::{Cell, MOVE_8, OIL, Pos, TILES_PER_CELL, cell, tile};
 
 impl Sim {
@@ -57,45 +61,28 @@ impl Sim {
         let y1 = (cy + h + 2).min(gh - 1);
 
         // Pass one: the mean, over the box **and** the column and row that
-        // close it. A corner at or below zero abandons the terraform.
-        let mut sum: i64 = 0;
-        let mut n: i64 = 0;
-        for y in y0..y1 {
-            match self.world.corner_z(x1, y) {
-                Some(z) if z > 0 => {
-                    sum += z;
-                    n += 1;
+        // close it, summed in the listing's order. A corner at or below zero
+        // abandons the terraform (`comiss` against 0, `jae`).
+        let mut sum = Single::ZERO;
+        let mut n: i32 = 0;
+        let mut exact = true;
+        let column = (y0..y1).map(|y| (x1, y));
+        let row = (x0..x1).map(|x| (x, y1));
+        let inside = (y0..y1).flat_map(|y| (x0..x1).map(move |x| (x, y)));
+        for (x, y) in column.chain(row).chain(inside) {
+            if let Some((z, known)) = self.world.corner_z(x, y) {
+                if !z.gt(Single::ZERO) {
+                    return;
                 }
-                Some(_) => return,
-                None => {}
-            }
-        }
-        for x in x0..x1 {
-            match self.world.corner_z(x, y1) {
-                Some(z) if z > 0 => {
-                    sum += z;
-                    n += 1;
-                }
-                Some(_) => return,
-                None => {}
-            }
-        }
-        for y in y0..y1 {
-            for x in x0..x1 {
-                match self.world.corner_z(x, y) {
-                    Some(z) if z > 0 => {
-                        sum += z;
-                        n += 1;
-                    }
-                    Some(_) => return,
-                    None => {}
-                }
+                sum = sum.addss(z);
+                n += 1;
+                exact &= known;
             }
         }
         if n == 0 {
             return;
         }
-        let mean = sum / n;
+        let mean = sum.divss(Single::from_i32(n));
 
         // Pass two: the write, and its three refusals.
         for y in y0..y1 {
@@ -134,11 +121,15 @@ impl Sim {
                     continue;
                 }
                 let border = y == y0 || y == y1 - 1 || x == x0 || x == x1 - 1;
-                let Some(was) = self.world.corner_z(x, y) else {
+                let Some((was, known)) = self.world.corner_z(x, y) else {
                     continue;
                 };
-                self.world
-                    .set_corner_z(x, y, if border { (was + mean) / 2 } else { mean });
+                let z = if border {
+                    was.addss(mean).mulss(Single::HALF)
+                } else {
+                    mean
+                };
+                self.world.set_corner_z(x, y, z, exact && known);
             }
         }
         // The tiles the moved corners feed — one further out each way,

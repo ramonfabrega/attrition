@@ -31,9 +31,12 @@ pub(crate) const SPANISH_LAKES: Lobby = Lobby {
     // Item 3384's lobby, its first try: count 8384, sequence 8384 (ours
     // 3266 draws, theirs 3271, at 3262: ours `Herd::process+0x17`, theirs
     // `PathFinder::calc_road_cost+0x46`). Item 3390 promoted it to the AI
-    // word (`docs/AI.md` §294).
-    count: 8384,
-    sequence: 8384,
+    // word (`docs/AI.md` §294) and moved it 8384 -> 13496 with the
+    // terraform in the original's singles: one road search on 7984 priced
+    // the step onto (45600, 23520) 339 against 342, a climb one short off a
+    // corner the millionths truncated differently.
+    count: 13496,
+    sequence: 13496,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -100,4 +103,81 @@ fn spanish_lakes_word_is_no_other_lobby() {
         assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
         assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
     }
+}
+
+/// **The word's road search, node for node** (item 3390): every road
+/// search run1008b's call window prices, from the start to the word 8384,
+/// against ours.
+#[test]
+fn run1008b_s_road_search_on_8384_holds_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(sib), Some(tr)) = (
+        dump(SPANISH_LAKES.long.0),
+        dump(SPANISH_LAKES.start),
+        trace(SPANISH_LAKES.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_costs = true;
+    let mut first: Option<String> = None;
+    let mut searched = 0;
+    let mut on_word = (0, 0);
+    while built.sim.frame <= 8384 {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        let theirs = tr.road_nodes(f);
+        if f == 8384 {
+            on_word = (ours.len(), theirs.len());
+        }
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        searched += 1;
+        if first.is_none()
+            && let Some(i) =
+                (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
+        {
+            first = Some(format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            ));
+            if std::env::var("RON_ROAD_NODES").is_ok() {
+                for j in i.saturating_sub(8)..(i + 12).min(ours.len().max(theirs.len())) {
+                    eprintln!(
+                        "  node {j}: ours {:?} theirs {:?}",
+                        ours.get(j),
+                        theirs.get(j)
+                    );
+                }
+            }
+        }
+    }
+    eprintln!("ROAD searched {searched}; first parting {first:?}; on 8384 {on_word:?}");
+    // Item 3390: (3202, 3207) and the first node parting on 7984 (node 855,
+    // the step onto (45600, 23520), ours 339 against theirs 342) until the
+    // terraform carried the original's singles.
+    pin_eq!(
+        on_word,
+        (3207, 3207),
+        "the word's road nodes, ours and theirs"
+    );
+    pin_eq!(first, None, "the first node that parts");
 }
