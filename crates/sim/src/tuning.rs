@@ -48,6 +48,11 @@ pub enum Slot {
     /// `1/2 tile` in the file is 96 here. Combat's `TARGET_RADIUS` is the one
     /// so far; see `docs/COMBAT.md`.
     Ratio192(i32),
+    /// A constant the engine loads times ten, held here already scaled: an
+    /// attack value (the tenths every `ATTACK` column is stored in). `2
+    /// attack` in the file is 20 here; `CARAVAN_ATTACK_BONUS` is the one
+    /// (`Constants::init`, `rondata::dump::Loaded::Scaled10`).
+    Scaled10(i32),
 }
 
 /// Everything the attrition, territory and supply passes read.
@@ -1156,6 +1161,10 @@ pub struct Tuning {
     /// Attack (× 10) and armour the same kinds gain per age
     /// (`ObjectData::attack@006469f0`, `ObjectData::armor@00647db0`).
     pub dutch_attack_bonus: i32,
+    /// An attack (x 10) that **replaces** a caravan's own when its owner
+    /// holds `CARAVAN_ATTACK_BONUS` (`ObjectData::attack@006469f0`, item
+    /// 3387). `2 attack` in the file.
+    pub caravan_attack_bonus: i32,
     /// Percent of a stockpile past its starting grant that a Dutch leader
     /// earns as interest each rate period, every good but knowledge
     /// (`Leader::do_gather@006ce450:117`–`147`).
@@ -1661,6 +1670,7 @@ impl Tuning {
         iroquois_food: 2,
         dutch_hp_bonus: 10,
         dutch_attack_bonus: 1,
+        caravan_attack_bonus: 20,
         dutch_interest: 5,
         dutch_interest_cap: 50,
         nubian_rare: 50,
@@ -2525,6 +2535,10 @@ impl Tuning {
             ("IROQUOIS_FOOD", Slot::Value(T.iroquois_food)),
             ("DUTCH_HP_BONUS", Slot::Value(T.dutch_hp_bonus)),
             ("DUTCH_ATTACK_BONUS", Slot::Value(T.dutch_attack_bonus)),
+            (
+                "CARAVAN_ATTACK_BONUS",
+                Slot::Scaled10(T.caravan_attack_bonus),
+            ),
             ("DUTCH_INTEREST", Slot::Value(T.dutch_interest)),
             ("DUTCH_INTEREST_CAP", Slot::Value(T.dutch_interest_cap)),
             ("NUBIAN_RARE", Slot::Value(T.nubian_rare)),

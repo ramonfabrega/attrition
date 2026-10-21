@@ -707,6 +707,69 @@ mod tests {
         assert_eq!(s.unit_hits(0, rec), hits);
     }
 
+    /// `ObjectData::attack`'s caravan arm (item 3387): a caravan whose owner
+    /// holds `CARAVAN_ATTACK_BONUS`'s prerequisite has its attack
+    /// **replaced** by the constant (20), the Dutch term added on top; a
+    /// caravan without the tech, or a non-caravan with it, keeps its own.
+    #[test]
+    fn a_caravan_with_the_attack_bonus_has_its_attack_replaced() {
+        use crate::combat::Obj;
+        let (mut s, u) = merchant_sim();
+        let rec = s.units[u].ty.unwrap();
+        s.unit_types[rec].combat.attack = 30;
+        let o = Obj::Unit(u);
+        let mut tree = s.tech_tree.clone();
+        let tech = tree.types.len();
+        tree.types.push(crate::tech::TypeDef::new(
+            "Caravan Attack",
+            crate::tech::Kind::Final,
+        ));
+        tree.roles.caravan_attack_preq = Some(tech);
+        s.set_tech_tree(tree);
+        for p in &mut s.tech {
+            p.tech.resize(tech + 1, false);
+        }
+        s.tech[1].tech[tech] = true;
+        assert_eq!(s.attack_of(o), 30, "not a caravan: its own");
+        s.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+        assert_eq!(s.attack_of(o), s.tuning.caravan_attack_bonus, "replaced");
+        assert_eq!(s.tuning.caravan_attack_bonus, 20);
+        s.tech[1].tech[tech] = false;
+        assert_eq!(s.attack_of(o), 30, "no tech: its own");
+        s.tech[1].tech[tech] = true;
+        s.tech[1].ages = 2;
+        s.tech[1].has_city = true;
+        s.tech[1].power = Some(crate::ai::tribe::DUTCH);
+        assert_eq!(s.attack_of(o), 20 + 2 * s.tuning.dutch_attack_bonus * 10);
+    }
+
+    /// The caravan arm's gates, from the other side (item 3387): a tree that
+    /// names no prerequisite, or a player the tree has no row for, holds
+    /// the bonus for nobody; and the Dutch term's kinds are the merchant
+    /// ids and the caravan and supply flags, not a neighbouring id.
+    #[test]
+    fn the_caravan_arm_is_off_without_the_tech_and_the_dutch_kinds_are_exact() {
+        use crate::combat::Obj;
+        let (mut s, u) = merchant_sim();
+        let rec = s.units[u].ty.unwrap();
+        s.unit_types[rec].combat.attack = 30;
+        s.unit_types[rec].cols.unit_flags2 |= crate::ai_load::uflags2::CARAVAN;
+        let o = Obj::Unit(u);
+        assert_eq!(s.tech_tree.roles.caravan_attack_preq, None);
+        assert_eq!(s.attack_of(o), 30, "no role named: no replacement");
+        // Dutch: a neighbouring id is no merchant, a supply flag is one.
+        s.unit_types[rec].cols.unit_flags2 = 0;
+        s.unit_types[rec].type_index = 0x3c;
+        s.tech[1].ages = 2;
+        s.tech[1].has_city = true;
+        s.tech[1].power = Some(crate::ai::tribe::DUTCH);
+        assert_eq!(s.attack_of(o), 30, "0x3c is no merchant");
+        s.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::SUPPLY_OR_HERO;
+        assert_eq!(s.attack_of(o), 30 + 2 * s.tuning.dutch_attack_bonus * 10);
+        s.unit_types[rec].cols.unit_flags2 = crate::ai_load::uflags2::CARAVAN;
+        assert_eq!(s.attack_of(o), 30 + 2 * s.tuning.dutch_attack_bonus * 10);
+    }
+
     /// §2.2's two terms that East Indies cannot separate: the good in the
     /// merchant's **own** region wins from the back of the list, because
     /// `+100` beats the `−10` a position costs.

@@ -234,6 +234,8 @@ mod spell_type_cast_supplies;
 mod spell_type_cast_transport;
 #[path = "spell_type_cast_unlock_gate.rs"]
 mod spell_type_cast_unlock_gate;
+#[path = "spell_type_data_find_target.rs"]
+mod spell_type_data_find_target;
 #[path = "spell_type_data_is_castable.rs"]
 mod spell_type_data_is_castable;
 #[path = "spell_type_data_is_castable_city.rs"]

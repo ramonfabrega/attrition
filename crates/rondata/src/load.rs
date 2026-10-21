@@ -1785,6 +1785,12 @@ pub fn load_tables(
         Some([Preq::Of(t), ..]) => Some(*t),
         _ => None,
     };
+    // `CARAVAN_ATTACK_BONUS` is the 15th (`0x2ba`, the argument `ObjectData::attack@006469f0`
+    // pushes to `has_preq`, read off the swept original's calls in item 3387).
+    tree.roles.caravan_attack_preq = match bonus_preqs.get(14) {
+        Some([Preq::Of(t), ..]) => Some(*t),
+        _ => None,
+    };
     // `SPIES_GENERALS_CHEAPER` is the 88th (`0x303`), Strategy in the
     // shipped file: the gate on `get_cost`'s Spy and General discount.
     tree.roles.spy_general_recover_preq = match bonus_preqs.get(85) {

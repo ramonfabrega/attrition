@@ -316,6 +316,8 @@ mod group_move_order_is_pathed_vtordisp;
 mod group_move_order_walk_data;
 #[path = "group_move_order_walk_data_vtordisp.rs"]
 mod group_move_order_walk_data_vtordisp;
+#[path = "group_normalize.rs"]
+mod group_normalize;
 #[path = "group_order_walk_data.rs"]
 mod group_order_walk_data;
 #[path = "group_out_issue_alarm.rs"]
@@ -570,6 +572,8 @@ mod object_add_to_world;
 mod object_assault_benefit;
 #[path = "object_data_armor.rs"]
 mod object_data_armor;
+#[path = "object_data_attack.rs"]
+mod object_data_attack;
 #[path = "object_data_attack_dist.rs"]
 mod object_data_attack_dist;
 #[path = "object_data_attack_dist_at.rs"]
