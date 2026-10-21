@@ -220,6 +220,10 @@ mod spell_type_cast;
 mod spell_type_cast_air_defense;
 #[path = "spell_type_cast_blow_tread.rs"]
 mod spell_type_cast_blow_tread;
+#[path = "spell_type_cast_bribe.rs"]
+mod spell_type_cast_bribe;
+#[path = "spell_type_cast_bribe_self.rs"]
+mod spell_type_cast_bribe_self;
 #[path = "spell_type_cast_civilian.rs"]
 mod spell_type_cast_civilian;
 #[path = "spell_type_cast_create_decoy.rs"]
