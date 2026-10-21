@@ -3783,6 +3783,13 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3405) **Two `name` rows that are not the simulation's, each parked by a sweep** (3404's "for the Loop", filed at its
+merge): `UnitBalance::next` is the unit-balance shell mode's driver (out of v1; its COM XML callees have no generator
+flag) and `Game::run` is the match lifecycle with no frame loop in it (3404a, 3404b, each on a generator run). The
+lane asks that `tools/census.py` mark the first dead weight and the second `ui`, so `--unbacked` and the 3611
+denominator stop listing them as sweepable; `TimeSync::process` and `MapScenario::make`, passed over by every brief
+this tranche as cut from v1, are the same shape. With them the `name` pool is empty (3404c, Loop 3398). One reach.
+
 (3401) **A lane gate re-run for a clean update that touched only the commander's files, three times in one landing**
 (3393's "for the Loop", filed at its merge): 3393's second to fourth lane gates were red only on the commander's lines
 and each ended on `Base moved:` — the second's overlap five paths after att-3390's merge, the third's and fourth's
