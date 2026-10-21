@@ -3774,6 +3774,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
+(3435) **A driven take parts its `cover=0` twin at its first click, by construction** (3427's "for the Loop"): the coverage
+brief's "a trace that parts its twin is a finding, never a pin" wants a driven clause — the first differing frame is not
+earlier than the first input the take does not share with its twin (`samegame`'s first differ against the stanza's first
+click, or the twin's first dropped `@` line). run1032–run1034 pass it. Candidate: the clause in the frame's coverage row,
+or `samegame.py --from <frame>`. Score: a driven coverage pin that is not argued by hand. One reach.
+
 (3434) **A spawn reads its brief from stdin, and an empty brief makes a draft** (the commander's own, at 3426's refill):
 `brief.py` refused 3428's note (it named run349, which `--runs` did not), the chain's `; echo brief $?;` went on, and
 `ccc spawn … --json - < brief3428.md` made a promptless `draft` row that would have sat until a person looked. Caught in the
