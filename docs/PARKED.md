@@ -3783,6 +3783,17 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3401) **A lane gate re-run for a clean update that touched only the commander's files, three times in one landing**
+(3393's "for the Loop", filed at its merge): 3393's second to fourth lane gates were red only on the commander's lines
+and each ended on `Base moved:` — the second's overlap five paths after att-3390's merge, the third's and fourth's
+`docs/PARKED.md` alone — and every `ccc update` merged clean, yet the lane gated again each time: about 55 minutes on a
+tree whose only overlap was the commander's own bookings. LOOP.md already says a lane lands on its verdict when the
+update is clean; the `Base moved:` line reads as a red, and the lane obeyed the line. The gate's: a moved base whose
+overlap is only `docs/QUEUE.md`, `docs/PARKED.md` or the census pins says so, and the `Lane verdict:` line stands.
+And the same journal: `golden_capture.sh`'s default `--timeout 180` kills a window capture at detail (run1014's first
+take died at 180 s after its pace line), and the leftover output directory refuses a retake under the same name, so
+the retake went to `--golden`; the default should follow the pace line's estimate. One reach.
+
 (3398) **The held-out battery runs eight of eight whole, and the refill rule names no lobby** (3390's merge,
 `battery_measure` on `15e001e8`: 6147, 7799, 14540, 15853, 18883, 24000 ×3, every one `sequence N of N`; the Dutch at
 Great Lakes, 3390's rule-(2) replacement, whole on its first try): entry 72 as amended by 84 refills a battery lane
@@ -3791,7 +3802,10 @@ end at 15632. The commander refilled the freed Opus lane as a Sonnet sweep under
 own is a sweep lane" (3397, as 3229 was) and minted no lobby. For the pass, and Ramon's where it is the finish line:
 entry 61 says the battery is the number that says when minting can stop, and every kept lobby is at its game's end, so
 none can move on fixes made for others; whether to mint lobbies past eight, close the battery track, or move the two
-Opus lanes to another kind (the `reading` kind, entry 84) when 3393 lands. One reach.
+Opus lanes to another kind (the `reading` kind, entry 84) when 3393 lands. **3393 closed the Inca at 15632, so no
+battery word is open anywhere, and its lane was refilled as a sweep too (3400).** And the sweeps' pool drains with it:
+no unbacked row has a `port` consumer, and past 3400's six the `name` mark holds thirteen rows, the shortest 12,745
+bytes (`Build::plunder`), the longest `Game::run`'s 66,803. One reach.
 
 (3394) **A `tools/check.sh` run that waits for admission is killed in about six seconds, exit 144** (3385's "for the
 Loop", filed at its merge): in 3385's third session every single-test `zsh tools/check.sh test …` that had to wait
@@ -9027,6 +9041,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot MF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
