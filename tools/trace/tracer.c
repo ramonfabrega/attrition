@@ -552,7 +552,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-seven group verbs
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-nine group verbs
  * and two leader verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
@@ -609,6 +609,10 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         with QUEUE_NEW
  *   `@stance <who> <s> <o> [<o> ...]`     a stance option, or −1/−2 to
  *                                         cycle, issue_stance
+ *   `@attackground <who> <x> <y> <o> [<o> ...]` internal coordinates,
+ *                                         issue_attack_ground, QUEUE_NEW
+ *   `@comeout <who> <o> [<o> ...]`        units inside a host,
+ *                                         issue_come_out once per unit
  *   `@sell <who> <good> <flags>`          a Market's Sell button, through
  *                                         LeaderOut::issue_sell (no group)
  *   `@buy <who> <good> <flags>`           its Buy button, LeaderOut::issue_buy
@@ -821,6 +825,21 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * panel. `CommandPackage::process_stance@00949ed0` forwards it unchecked to
  * `Group::action_stance@0070d440` at process time.
  *
+ * `@attackground` calls `CommandManager::issue_attack_ground@009417a0(
+ * &command_manager, group, x, y, QUEUE_NEW 2)` and appends a 10-byte
+ * `attack_ground` (type 0x09, `[to_x][to_y][queued i8]`) behind a group of
+ * units, and `@comeout` calls `CommandManager::issue_come_out@00942c90(
+ * &command_manager, unit)` once per unit and appends an 11-byte `come_out`
+ * (type 0x31, `[who i32][o i32][uid i16]`) with **no `group`**, as
+ * `@unqueue` (item 3425, `docs/GOLDEN.md` §145). Nothing in the image calls
+ * either manager method: the game's own attack-ground button goes through
+ * `GroupOut::issue_attack_ground@0070ae60`, which builds the same bytes
+ * inline behind a peace-tile refusal and the playback gate this skips
+ * (§144.2), and the unit panel's through `UnitOut::issue_come_out@00607be0`,
+ * the manager's twin to the byte. `CommandPackage::process_attack_ground@
+ * 009494a0` hands a live group to `Group::action_attack_ground@00704520`;
+ * `process_come_out@009465d0` checks `units[who][o]` is active with that
+ * `uid` and calls `Unit::action_come_out@005e20b0`.
  * `@sell` and `@buy` call `LeaderOut::issue_sell@006d3eb0` and
  * `issue_buy@006d3ef0` on `leaders.list + who` (the pointer at `0xc061e0`,
  * stride `0x6eec`), with the good (0 food, 1 timber, 2 wealth, 3 knowledge,
@@ -948,7 +967,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15
      * `settransport`, 16 `repair`, 17 `buildmask`, 18 `queueup`, 19
      * `unqueue`, 20 `gatherpoint`, 21 `launchpatrol`, 22 `launchpatrolall`,
-     * 23 `launchstrike`, 24 `alarm`, 25 `gather`, 26 `stance`:
+     * 23 `launchstrike`, 24 `alarm`, 25 `gather`, 26 `stance`, 27
+     * `attackground`, 28 `comeout`:
      * the issuer and its prologue (`issue_guard.h`)
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
@@ -990,6 +1010,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "alarm ")    ? 24
                : issue_verb(&t, "gather ")   ? 25
                : issue_verb(&t, "stance ")   ? 26
+               : issue_verb(&t, "attackground ") ? 27
+               : issue_verb(&t, "comeout ")  ? 28
                                              : -1;
     if (verb < 0) { emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0); return; }
     i32 who, x = 0, y = 0, type = 0, ox = 0, whom = 0, ids[ISSUE_MAX];
@@ -1000,11 +1022,12 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * selector; `@queueup`'s type and count ride in `x` and `y`;
      * `@gatherpoint`'s action rides in `type`, after its point;
      * `@alarm` has none, as `@eject`, and `@gather` one, the building's
-     * id, in `x`, as `@stance` its option. */
+     * id, in `x`, as `@stance` its option; `@comeout` has none. */
     if (!issue_int(&t, &who) ||
         (verb == 14 && (!issue_int(&t, &type) || !issue_int(&t, &ox) || !issue_int(&t, &whom))) ||
         ((verb == 15 || verb == 17 || verb == 19 || verb == 25 || verb == 26) && !issue_int(&t, &x)) ||
         (verb != 5 && verb != 15 && verb != 17 && verb != 19 && verb != 24 && verb != 25 && verb != 26 &&
+         verb != 28 &&
          (!issue_int(&t, &x) || !issue_int(&t, &y))) ||
         ((verb == 13 || verb == 20) && !issue_int(&t, &type))) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
@@ -1020,7 +1043,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
     u32 rva = ISSUER_RVA[verb];
-    u32 size = verb == 26  ? 0x05
+    u32 size = verb == 28  ? 0x0b
+               : verb == 27  ? 0x0a
+               : verb == 26  ? 0x05
                : verb == 25  ? 0x09
                : verb == 24  ? 0x01
                : verb >= 21  ? 0x19
@@ -1067,8 +1092,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         }
     }
     /* A fresh group (3 + 2n), the command, and two bytes of slack each;
-     * `@unqueue` is a command a building and no group. */
-    if ((verb == 19 ? before + size * n + 4 : before + 3 + 2 * n + size + 4) > 0x200) {
+     * `@unqueue` is a command a building and no group, `@comeout` one a
+     * unit. */
+    if ((verb == 19 || verb == 28 ? before + size * n + 4 : before + 3 + 2 * n + size + 4) > 0x200) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(4) << 16), before, before, n);
         return;
     }
@@ -1081,7 +1107,18 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb == 26) {
+    if (verb == 28) {
+        /* issue_come_out(unit) once per unit: the unit panel's come-out
+         * button, no group (item 3425). */
+        typedef void(__thiscall *come_out_fn)(void *, void *);
+        for (u32 j = 0; j < n; j++)
+            ((come_out_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), slots[ids[j]]);
+    } else if (verb == 27) {
+        /* issue_attack_ground(group, x, y, QUEUE_NEW 2): the attack-ground
+         * button's pick, unrefused (item 3425). */
+        typedef void(__thiscall *attack_ground_fn)(void *, void *, i32, i32, i32);
+        ((attack_ground_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2);
+    } else if (verb == 26) {
         /* issue_stance(group, s): a stance button (item 2165). */
         typedef void(__thiscall *stance_fn)(void *, void *, i32);
         ((stance_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x);

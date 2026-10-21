@@ -9244,13 +9244,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MZ — reserved
+## Parked by item 3425, 2026-10-21 — the walk's two new issuers
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3425a. The walk skips `@attackground` and `@comeout`: neither has an entry in `rondata::input`.** The DLL issues
+  both, and run1029 and run1030 dump what each does (`docs/GOLDEN.md` §145). `golden.rs` parses the two lines and skips
+  them by name, and the two stagings pin no word. Two things are missing. The first is wiring for
+  `Group::action_attack_ground@00704520`'s ground arm, whose steps are already `sim::attack_ground_view` (item 3381); it
+  needs the group adapter's empty `action_attack_ground` arm filled, and its carrier arm wants `Group::add` and
+  `action_air_attack_ground`. The second is a port of `Unit::action_come_out@005e20b0`: `close_orders`,
+  `clear_partial_path`, `update_action`, the transport arm on types `0x34`/`0x35`, then `come_out(this, 0)`, which
+  `Sim::come_out` holds. Score: none until a chapter pins a word on either staging, so it parks. run1029's block 632
+  (`0/9`'s `ATTACKGROUNDORDER` under a deploy `CASTORDER`) and run1030's block 802 (`0/7` at (2712, 14904)) are the
+  first values such a word would read.
 
 ## Parked by the next landing, slot NA — reserved
 

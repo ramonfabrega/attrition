@@ -785,7 +785,7 @@ All at `cover=1`; the frame is the action's. `CM` is `[Misc Logging] COMMANDMANA
 |---|---|
 | `ConquestGame::setup_scenario_bonuses@0078be90`, `ConquestGame::build_cities@00796140`, `ConquestLeader::plan_strategy@0079ea80`, `ConquestGame::build_conquest_game@00797c40` | Conquer the World only (`semaphore[2] & 2`), cut from v1 |
 | `ScenarioFuncSet::get_difficulty@009e5320`, `set_capital@00a00220`, `buy_good@009fb790`, `sell_good@009fb880`, `can_buy_sell@009fb970`, `find_sell_price@009fb9e0`, `find_buy_price@009fbab0` | script functions no shipped skirmish script calls; only `game/conquest/*` does |
-| `IFaceMarket::on_redraw@00812d20`, `IFaceMarket::setup_selected@008134d0`, `LeaderData::has_bonus@0047df90`, `TypeData::get_desc_parsed@006626e0` | interface text and buttons; no sim state |
+| `IFaceMarket::on_redraw@00812d20`, `IFaceMarket::setup_selected@008134d0`, `LeaderData::has_bonus@0047df90`, ~~`TypeData::get_desc_parsed@006626e0`~~ (entered: run1029 on 511, `MouseOver::set_good`'s resource tooltip under the resting cursor; off `RESIDUE` with item 3425) | interface text and buttons; no sim state |
 | `LeaderData::get_econ_mod@006d6660` | no caller and no pointer in the image |
 
 `LeaderOut::warn_resources@006d3650` is not proposed: an unaffordable press reaches it in a skirmish, so §9.2 owes it a
