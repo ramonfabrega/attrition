@@ -5468,6 +5468,9 @@ impl Sim {
                 best = Some((d, i));
             }
         }
+        if std::env::var("RON_PROBE_3385").is_ok_and(|v| v == format!("{}", self.frame)) {
+            eprintln!("PROBE3385 f{} check_hit landing {:?} best {:?} {:?} size {:?}", self.frame, p.landing, best, best.map(|(_, i)| (self.units[i].owner, self.units[i].index, self.units[i].pos)), best.map(|(_, i)| self.profile(Obj::Unit(i)).target_size));
+        }
         if let Some((d, i)) = best {
             if self.profile(Obj::Unit(i)).target_size < d {
                 // Found, but too small to be where it landed.
