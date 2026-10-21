@@ -97,6 +97,7 @@ is append-only and amended in place, as it always was.
 - 84 standing — The forty-fifth tranche is scored on three lanes at three times the price a landing and a third of the price a game, the lane gate reads how far its base has moved, the Loop-line guard is forgiven on a lane, the click-free lane refuses a windowless launch, the hooked audit is red on the address form alone, the held-out unit is the lobby, and seventeen Loop items become tools, rows, closes or Ramon's
 - 85 standing — The forty-sixth tranche is scored on four lanes at less a landing and less a game, the held-out battery runs six of eight whole, the sim lib's cap follows the thread count, the lane gate keeps the paperwork guards and refuses a moved base first, a push under a clear is a draft, the oracle cache is a directory a gc removes, the generator carries a hand block and three more shapes, and twenty Loop items become tools, rows, closes or Ramon's
 - 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
+- 86 standing — The forty-seventh tranche is scored on four lanes at the loop's cheapest landing, the held-out battery runs eight of eight whole and the battery track stops by its own rule, the forty-eighth tranche is booked on the blind list, two signal reports had one sender and get a guard, the lane gate gates past the commander's paperwork, and nineteen Loop items become tools, rows, closes or Ramon's
 
 ## 1. Fidelity before divergence
 
@@ -7207,3 +7208,151 @@ and spend their tool time on cargo; four of 3376's six subagents' 4.5
 hours were the stall; nobody was hurt by the 300 k clear, which if
 anything fires late; the tranche's captures are 1.1 GiB allocated and
 the disk's eaters were uv's and the oracle's caches.
+
+## 86. The forty-seventh tranche is scored on four lanes at the loop's cheapest landing, the held-out battery runs eight of eight whole and the battery track stops by its own rule, the forty-eighth tranche is booked on the blind list, two signal reports had one sender and get a guard, the lane gate gates past the commander's paperwork, and nineteen Loop items become tools, rows, closes or Ramon's
+
+*2026-10-21, the forty-seventh pass (the `steer` session, Fable), cleared
+into by the commander at the tranche's drain (`ecf0e771`); unattended
+under entry 61's fence. The record is
+`docs/audit/2026-10-21-fable-pass-47.md`; this entry carries the decisions.*
+
+**What was measured.** Twenty landings on four lanes — two battery
+words' lanes on Opus 5.5 at `--effort medium`, landing wide, and two
+sweep lanes on Sonnet 5.5 at medium (entry 84), every one of the
+twenty-seven lane sessions' model read off lore and every spawn line's
+flags off the commander's two transcripts — in **13 h 46** from the
+forty-sixth pass's last commit (`56f23ba5`, 15:03 −05:00) to the
+twentieth booking (`ecf0e771`, 04:49), the drain's whole gate green at
+05:11, no stall. **Six battery games closed**: the Germans at Great
+Sahara 13582 → 19483 (3378), the Turks at Great Lakes 14991 → 15503
+(3380), the Indians at Great Sahara 15922 → 16564 (3383), the Americans
+at Great Lakes 3176 → 6152 (3384), the Spanish at Great Lakes → 14068
+(3390), the Inca at Great Sahara 13126 → 13416 → 15632 (3385, 3393) —
+six games by seven Opus landings, each at its game's end with its
+closing block compared whole; thirteen sweeps backed sixty-seven more
+functions, the census 1619 → 1686, port 501 → 568, bytes 31.2 → 37.1 %.
+The held-out battery on the drain tip: **eight of eight whole** (6147,
+7799, 14540, 15853, 18883, 24000 ×3; median 17368), the two lobbies
+minted this tranche (the Turks at Great Sahara, the Dutch at Great
+Lakes) whole on their first try. **The price: 153.37 USD list for the
+workers, 7.67 a landing** (222.09 / 11.10) — the battery words 17.69 a
+landing over seven (16.89), the sweeps 2.27 over thirteen (2.43);
+**20.64 a game closed** (20.27); the commander's two sessions 25.96;
+**179.33 in all** (249.66); the forty-sixth pass's own session 22.78.
+**Waiting 117.2 minutes a landing** (127.2): the subagent class 66.1
+(66.0; the sweeps' own fan-outs, 101.6 a sweep landing), the gate 34.8
+(23.1), captures 7.1 (16.3; thirty captures, 4.29 a battery landing),
+message 1.5 (14.1). Seven `DEEP` exits (ten), each answered; eight of
+twenty-seven sessions past 300 k (twelve of thirty); one `STALLED`
+(att-3403's subagent, Loop 3406), no `DRAFT`, no blocked ending (one),
+no kill rule tripped, no merge backed out. Twenty booking gates, four
+whole, sixteen scoped, **none red** (four); 332.3 minutes of gate
+(351.5); admission 5261 s summed, longest 152 s (3623 / 160); six gate
+ends past the sixteen cores (six). The lane gates' release step median
+14.6 minutes widened (13.2), 12.3 on the `--no-widen` sweeps (10.6).
+The drain's tail — the nineteenth booking to the twentieth — **54
+minutes** (37). The archives compressed, 216 → 239 GiB free.
+
+**What it means.**
+
+1. **The loop's cheapest landing, and the battery's last.** 7.67 USD a
+   landing on four lanes, the sweeps at 2.27, and six games closed at
+   20.64 each — entry 84's trade holds a third time. And it is the last
+   tranche of its kind as booked: **every battery word is closed and the
+   held-out battery is whole eight of eight**, which entry 61 §6 wrote
+   down in advance as the sign that minting stops. The pass does not
+   reopen it; whether to widen the battery past eight as a measurement
+   is Ramon's (the record, "For Ramon").
+2. **The forty-eighth tranche is booked on decision 29's second
+   counter.** The sim is in lockstep on every game anyone has run;
+   what remains is what no capture does. `rondata::blind::NEVER` holds
+   372 functions documents cite that no trace enters, 35 of them
+   accepted residue, **337 open**. The queue books the `reading` kind
+   (entry 84, held one tranche at Ramon's word) on the two Opus lanes —
+   `docs/GOLDEN.md`'s and `docs/AI.md`'s never-entered functions first
+   (3408, 3409), then NATIONS, ORDERS with GROUPS and ARMY, and the
+   small documents (3412–3414) — each item's product the claims in its
+   document and a **captures-owed table** (ini category, lobby, frame,
+   field) from which capture items are booked, since `never` moves only
+   when a capture runs. The two Sonnet lanes take the last ten rows the
+   census's own rule names — the never-entered, unmarked simulation
+   functions by bytes (3410, 3411: the spells, the transports, the
+   repair, the group attack) — and **after them the sweep source is
+   spent**: the 450 unmarked rows left are functions the crate does not
+   carry, and whether porting them counts is the score's definition
+   (Loop 3237, Ramon's). `docs/LOOP.md`'s lanes clause says so: an idle
+   Opus lane takes a `reading` item, an idle Sonnet lane the rows the
+   pass names or stands empty. The roster — models, effort, four lanes
+   — is unchanged.
+3. **Two signal reports had one sender, and the rule gets teeth.**
+   Loop 3392 ("release builds SIGTERM'd from outside, 25 minutes") and
+   3394 ("`check.sh` dies with exit 144 waiting for admission") were
+   one subagent's `pkill -f "<pattern>" -n`, every eleven seconds for
+   four and a half minutes: macOS `pkill` stops reading options at the
+   first operand, so `-n` became a second pattern and SIGTERM went to
+   every process whose arguments held `-n` — every rustc, every
+   budgeted test, every shell with a `grep -n` (exit 144 is the
+   harness's code for a shell killed by SIGTERM; the admission budget
+   sends only SIGKILL, to its own child's group). The finding is
+   `docs/audit/2026-10-21-signals-3392-3394.md`. Parked 1713's rule had
+   been prose for a month; **`tools/killguard.py`** is the PreToolUse
+   hook that refuses `killall`, `pkill -f` and a `pgrep`/`pkill` with an
+   option after its first operand, four tests red first. **Its one line
+   in `.claude/settings.json` is Ramon's to add**: the classifier
+   refuses a session's edit of its own hooks, and the pass did not
+   route around it.
+4. **The lane gate gates past the commander's paperwork** (Loop 3401,
+   built): an overlap of `docs/QUEUE.md`, `docs/PARKED.md`,
+   `docs/JOURNAL.md` or `docs/RUNS.md` alone no longer refuses before
+   the offline step nor asks for a second gate — 3393 ran three lane
+   gates, fifty-five minutes, on a base whose only overlap was the
+   commander's own bookings, every update clean. A real overlap still
+   refuses and names only itself.
+5. **A default capture timeout follows the pace line** (Loop 3401b,
+   built): `unattended_capture.py`'s `--timeout`, when not given,
+   raises itself to the pace line's estimate plus a margin the first
+   time the line prints; an explicit timeout never changes.
+6. **A regen writes no port past a hand fence** (Loop 3407, built): a
+   fence standing where the port does had its `--port` body — `todo!()`
+   or 3397's `0` — written again after `// end hand`; `--regen <snake>
+   --dry-run` now prints what a regen would write, and the fifteen
+   fenced sweeps on the tree regenerate to five lines of unrelated
+   hand edits.
+7. **The Loop-line guard reads the line under its own heading** (Loop
+   3389, built); **the census marks seven bodies cut from v1** (Loop
+   3405, built: `UnitBalance::next`, `Game::run`, `TimeSync::process`,
+   `MapScenario::make`, the scenario, GameSpy and playback hosts;
+   `cut`, hidden from the sweepable list, the denominator unmoved);
+   **a wait is on what you started, by pid or by its log** (Loop 3406,
+   a brief row and a checklist row); **the key coverage pin 30.8 →
+   19.1 s** (Loop 3382, half: the compared pin's 154 s is the oracle
+   store's per-block decode, shared with every widening, next pass's in
+   `diff::oracle`).
+8. **3349 closes under entry 54** (block coverage for the sweeps: two
+   tranches running reached it and the sweep pool is drained; its text
+   is in the record and its next reach files it again); **3371 stays**
+   one more; **2003's three reaches are filed**; 1570, 3118, 3143,
+   3188, 3237 and 3350 are Ramon's with this tranche's numbers. The
+   backlog 19 → 9.
+
+**The estimate, written down to be wrong on record**, on the booking
+above: twenty landings in under eighteen hours; the five reading items
+land with a captures-owed table each and name at least twenty distinct
+captures between them, at least five of them lobbies the click-free lane
+can start with no human order; `RESIDUE` proposals under thirty; the two
+sweeps land ten of ten; the port column passes 575; a reading landing
+under 12 USD and under 60 minutes waiting; no red booking gate; no kill
+rule; no blocked ending; the kill guard, once wired, refuses nothing a
+lane needed.
+
+**The measure for the next pass**: each lane's USD and waiting a landing
+against 7.67 / 117.2 (readings against the battery words' 17.69 / 85.0,
+the sweeps against 2.27 / 134.5); the reading items' claims, captures
+owed and residue proposals counted, and how many captures the commander
+could book from them; `never` against 373 and the open blind list
+against 337; the census against 1686 / 568 / 37.1 %; the subagent class
+against 66.1, the gate against 34.8; booking gate minutes against 332.3;
+`DEEP` against seven and sessions over 300 k against eight; the drain's
+tail against 54; whether the paperwork-only `Base moved:` line, the
+raised timeout and the kill guard fired; the backlog against nine; the
+disk against 239 GiB.

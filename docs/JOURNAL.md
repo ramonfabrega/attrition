@@ -21392,3 +21392,26 @@ drain — 28.2 million files, 13.6 TiB apparent — 117 → 253. The whole
 gate green at eight threads, the sim lib peaking at 1907 MiB under its
 6144. **DECISIONS 85.**
 `docs/audit/2026-10-20-fable-pass-46.md`.
+
+**2026-10-21 — the forty-seventh Fable pass** (the `steer` session, cleared
+into at the drain): the forty-seventh tranche measured — twenty landings on
+four lanes from `56f23ba5` in 13 h 46, no stall; 7.67 USD and 117.2 minutes
+waiting a landing against 11.10 / 127.2 — six battery games closed by
+seven Opus landings at 20.64 USD a game (20.27); the held-out battery
+whole eight of eight, both lobbies minted this tranche on their first try;
+the census 1619 → 1686, port 501 → 568, bytes 31.2 → 37.1 %. Twenty
+booking gates, none red. The battery track stops by entry 61 §6's own
+rule and the forty-eighth tranche is booked on decision 29's second
+counter, the blind list (337 open): `reading` items on the Opus lanes,
+the last ten sweep rows on the Sonnet lanes, roster unchanged. Two
+signal reports — SIGTERM'd builds, exit 144 — were one subagent's `pkill
+-f <pattern> -n`, read out of the transcripts by an Opus subagent, and
+`tools/killguard.py` is the hook for it, its settings line Ramon's.
+Built, red first: the lane gate gates past the commander's paperwork; a
+default capture timeout follows the pace line; a regen writes no port
+past a hand fence and `--dry-run` prints the carry; the Loop-line guard
+reads under its heading; the census marks seven bodies `cut`; the key
+coverage pin 30.8 → 19.1 s — four Opus subagents in their own worktrees,
+merged here. 3349 closed under entry 54, 3371 stays, 3382 half, six
+Ramon's; 19 → 9. The archives compressed, 216 → 239 GiB. **DECISIONS 86.**
+`docs/audit/2026-10-21-fable-pass-47.md`.

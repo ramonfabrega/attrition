@@ -3791,7 +3791,7 @@ message says `PROBE` and whose diff touches a path outside the probe's own (`RON
 `every_key_the_dump_prints_is_read_or_pinned` at 137 s — are 339 of the suite's 3,144 s (`suite_timings.py`,
 2026-10-20). Not a lane (a lane gate is thirteen minutes of CPU a landing for a win of seconds a gate): the pass's,
 bounded — each pass takes the slowest test over 30 s, thirty minutes at most, lands it or writes why not, the two
-coverage pins first (cache the walk per dump, never per window); closes itself when none is over 30 s. One reach.
+coverage pins first (cache the walk per dump, never per window); closes itself when none is over 30 s. One reach. **The forty-seventh pass**: half built by an Opus subagent in thirty minutes — the key pin 30.8 → 19.1 s (`printed()` interns each path per frame; the pin set byte-identical, two planted breaks red); the compared pin, 154 s today, walks no dump itself: 110 replay windows through `widen_walk`, 98.8 s of it the oracle store's per-block decode at 3.7 ms a block, shared with every widening. Stays: the next pass counts the store's hits and misses per window and profiles `read_entry`, in `diff::oracle`, never in the pin.
 
 3370's "for the Loop" says `none` under a heading (`## For the Loop`, then `none` on its own line), and
 `docs_guard::a_journal_s_loop_line_is_filed_or_says_none` reads only the heading's line, so the journal read as
