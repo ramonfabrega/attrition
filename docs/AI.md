@@ -25383,7 +25383,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | # | lobby, and the capture on disk | ini category · frame · field | enters | lane |
 |---|---|---|---|---|
 | 1 | `GreatSaharaToughest` (run470; run476; run668 to 15432) | `LEADERS=9` `leader_flags & 0x8000` and `UNITS=3` the General's `unit_masks & 0x8000`, 9112 to the march's expiry; `BUILDS=6` the Granary (§99.7); 15275..15432 the charge's `GROUP_ATTACK_TO` and the city's stamp (§142) | `cast_march`, `verify_spell_flags`, `get_enhancing_good`, `Army::charge` (run1017, §298), ~~`WallData::hits`~~ (a wall object's, not a city's: §298) | click-free |
-| 2 | `GreatLakesIroquoisTier3` (run897b, run943) | `UNITS=3` the army's `1/22` (TI 79, land) on 5144; `LEADERS=9` `leader_flags & 0x4000` and `UNITS=3` the Despot's `unit_masks & 0x2000`, 10689..10945 | `use_scouts`, ~~`use_spies`~~ (entered on 3096 by row 3's run1019), `cast_ambush`, `verify_spell_flags`' Ambush arm | click-free |
+| 2 | `GreatLakesIroquoisTier3` (run897b, run943) | `UNITS=3` the army's `1/22` (TI 79, land) on 5144; `LEADERS=9` `leader_flags & 0x4000` and `UNITS=3` the Despot's `unit_masks & 0x2000`, 10689..10945 | ~~`use_scouts`~~ (5144, run1018, §299), ~~`use_spies`~~ (entered on 3096 by row 3's run1019; run1018 fields no Spy), ~~`cast_ambush`~~ (10520), ~~`verify_spell_flags`' Ambush arm~~ (block 10972; §299) | click-free |
 | 3 | `EastIndiesPersianAllTech` (run711, run717) | `AMMO` `traj 2`, `total_time` 13 on `1/49`'s rounds, 3124..3128; `BUILDS=6` the Oil Platform site `1/2048` gone on 2049 | `set_min_seg_length`, `calc_from_dir` (2933), `Object::disband` (1419, §168's site `1/2037`), and unasked `LeaderData::can_transport` (1182), `get_nukes` (780), `send_navy` (2812), `use_spies` (3096), `check_build_order`, `reset_move_orders` (run1019, item 3420) | click-free |
 | 4 | `GreatSaharaPersianAllTech` (run702, run790) | `LEADERS=9` the make list and `nukes_in_flight` on 1985; `BUILDS=6` the Airbase's `BUILDQUEUE` on 3767; the make list's Supply Wagon (`sahara_coverage`) | ~~`get_nukes`~~ (entered on 780 by row 3's run1019), `get_next_helicopter`, and `think_supply` — entry 29 §2's supply wagon | click-free |
 | 5 | `EastIndiesMongolAllTech` (the successor pair) | `UNITS=3` the Freighter `1/72`'s `orders_x/y` (35736, 24984), 2178..2201; an idle empty or soldier-carrying transport's `orders_x/y` | `think_carry` — entry 29 §2's transport — and, if such a boat idles, `think_carry_idle`, `think_carry_military` | click-free |
@@ -25508,12 +25508,55 @@ is not: no lobby enters it until a game constructs a wall object (parked 3418a).
 **What this has *not* established.** Which build types, if any, are made as kind 2, so whether any skirmish ever
 reaches `Wall::Wall` (parked 3418a). The frame `0x8000` falls on, which no dump prints.
 
-## 299. Reserved for the next item on the AI track
+## 299. Great Lakes, the Iroquois at difficulty 3, at `cover=1`: §296 row 2 entered, and the Ambush's leader bit falls (2026-10-21, item 3419)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3419, Opus 5.5, a `coverage` lane (DECISIONS 87): run1018, on the click-free pool.*
+
+**What was taken.** run897b's lobby (map 14, the human Nubians against the Iroquois, `DIFFICULTY 3`, seed 12345,
+`37 !ffwd 27`, `--callwin 0 24000`) at `cover=1`, to the game's own end at 12658. That is past the booking's 10945:
+run943 prints the computer's `leader_flags & 0x4000` set on every block 10689..10945, and run897b's closing block
+12659 prints it clear, so the Ambush's expiry lies between them and a take to 10945 could not reach it. The dump is
+`end:MISC,UNITS=3,LEADERS=9` on 10683..12660, run943's `UNITS` and `LEADERS` levels (`docs/RUNS.md` run1018).
+
+**Against its twins.** `rngcmp.py` against run897b (`cover=0`, the same game to 12658): **12659 in common, 12659
+identical, 0 differing**. Against run943: 10952 of 10952. run943 is also dumped at `BUILDS=7,CITIES=5,GUYS=4`, so
+`samegame.py`'s digest differs on all 257 common blocks from detail alone. Even with `--exclude` for the extra
+records, the `GUY` and building fields still nest inside the unit records. So I compared record by record instead,
+on 10689..10945: the 771 `LEADERDATA` records both dumps print (leaders 0, 1 and 8; run943 also prints 9's) and
+29,209 unit records (`who`, `o`, `x/y/z_internal`, `damage`). **0 differing.**
+
+**What it enters** (`report.py rontrace-run1018.log functions`, each at its first frame). The tracer keeps one
+`HIT` per function, so a later entry is not printed:
+
+| function | first frame | the predicate |
+|---|---|---|
+| `Army::use_scouts@006f49a0` | 5144 | `Army::process`'s `count(COUNT_NON_DECOY_TYPE, 0x45)`: the army's scout (row 2's `1/22`) |
+| `SpellType::cast_march@00671500` | 7960 | not asked for; already off `NEVER` with run1017 (item 3418, frame 9112, §298) |
+| `Leader::verify_spell_flags@006ce190` | 8111 | that march's expiry; already off `NEVER` with run1017 (9263) |
+| `SpellType::cast_ambush@00671610` | 10520 | the Despot's Ambush, whose bits run943 prints from 10689 |
+
+`blind::NEVER` 363 → **361**; run1018 joins `blind::TRACES`.
+
+**`verify_spell_flags`' Ambush arm, diff-backed.** The trace cannot show this second entry, but the dump shows
+what it writes:
+- Who 1's `leader_flags` is 540675 (`0x84003`) on block 10971 and 524291 (`0x80003`) on 10972.
+- On the same block, `1/46`, the only who=1 unit carrying `unit_masks & 0x2000`, goes from 270344 (`0x42008`) to
+  262152 (`0x40008`).
+- The `0x4000` bit is set on every block 10683..10971 and on none 10972..12659.
+- In the decompile, the only leader function holding the mask that clears it (`& 0xffffbfff`) is
+  `verify_spell_flags`.
+
+So §296's falsifier holds as written: the leader's bit falls on the block the hero's mask falls, and not before.
+This crate does not model the drop (parked 3409a; 3419a).
+
+**Not entered: `Army::use_spies@006f4af0`.** run1019 entered it on 3096 (item 3420), so it is already off `NEVER`.
+`Army::process` calls it only when `count(COUNT_NON_DECOY_TYPE, 0x3a)` is non-zero, that is, when an army holds a
+Spy. `num_units[58]` (the Spy, guy type 58) is 0 for every leader on every block run1018 prints (10683..12659) and on
+every block of run940 (8409..8672). This Iroquois never fields a Spy in those windows, and no earlier dump shows one.
+
+**What this has *not* established.** When the Ambush is cast relative to the trace's frame 10520: no dump prints
+10520..10682. Whether `1/46` is the Despot by type: `GUY`'s `type` prints only at `GUYS≥4`, and run1018 is at the
+default.
 
 ## 300. Reserved for the next item on the AI track
 
