@@ -181,6 +181,7 @@ pub mod trade_view;
 pub mod transport;
 pub mod tuning;
 pub mod type_index;
+pub mod unit_set_type_view;
 pub mod unit_unqueue_view;
 pub mod upath;
 pub mod update_positions_view;
