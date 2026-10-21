@@ -12,19 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-eighth tranche (commander, Opus): 6 of 20 landed from `28f48612`** — readings 3408 (GOLDEN §144: 15 residue
-proposals, 34 captures owed), 3409 (AI §296: 7, 12), 3412 (NATIONS §9: 16, 5), 3413 (ORDERS §42, GROUPS §38, ARMY §26:
-2, 9); `NEVER` 372 -> 378; 3410 and 3411 swept five of five each — the sweep source is spent. Last whole
-gate `dbe6667e` (the pass's); widened since: none; scoped gates `--scope dbe6667ec`.*
+*2026-10-21, **the forty-eighth tranche (commander, Opus): drained, 7 landings from `28f48612` in 2 h 40 — the queue's
+whole booking, short of twenty by design** (five readings, two sweeps). The drain's whole gate is the booking's; the last
+whole before it `dbe6667e` (the pass's).*
 
-- **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed). Held-out battery: 6147, 7799,
-  14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368; entry 61 §6's stop rule has fired, so no lobby
-  is promoted and none is minted (Ramon's to reopen). Census 1696 of 3611, port 568, layout 1128; `never` 379, of which
-  35 accepted residue — **the blind list, 343 open, is the score the forty-eighth tranche moves** (DECISIONS 29 §2).
-- **Lanes: one live, the forty-eighth commander's (Opus)**: att-3414 on an Opus lane (`reading` kind,
-  DECISIONS 84, `--tests blind:: --no-widen`); both Sonnet seats stand empty (no sweep source unless Ramon names one). Next 3416, run 1016. Pools: GOLDEN §145–149;
-  AI §297–301; park MO (3414), MP–MT. Parked for the pass's eye: 3400a, 3408a–d.
-- **Fable backlog: 10 Loop items** (3415, 3382, 3371, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 86.
+- **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed). Held-out battery:
+  eight of eight whole, median 17368; entry 61 §6's stop rule has fired (Ramon's to reopen). Census 1686 → 1696 of 3611,
+  port 568, layout 1128 (3410, 3411: the sweep source is spent). **The blind list rose, 337 → 345 open** (`never` 381,
+  `blind::NEVER` 372 → 380, residue 35): a reading cites what it reads, so the counter climbs until its proposals are
+  ratified — **44 residue proposals and 65 captures owed** wait for the pass (GOLDEN §144: 15, 34; AI §296: 7, 12; NATIONS
+  §9: 16, 5; ORDERS §42, GROUPS §38, ARMY §26: 2, 9; TRANSPORT §18, ATTRITION's tail, VISION §8: 4, 5). Loop 3416.
+- **Lanes: none live, and nothing unspawned.** Next 3417, run 1016. Pools: GOLDEN §145–149, AI §297–301, park MP–MT.
+  Parked for the pass's eye: 3400a, 3408a–d, 3409a–c, 3410a–e, 3411a–d, 3412a–d, 3413a–c, 3414a–c.
+- **Fable backlog: 11 Loop items** (3416, 3415, 3382, 3371, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 86.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,22 +39,16 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: continue the forty-eighth tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md first;
-6 of 20 landed from `28f48612`; re-arm `python3 tools/lanewait.py` on the live lanes and carry the chain; a reading lane
-has no refill left and the Sonnet seats stand empty (the queue drains at seven landings); at the drain, the whole gate, then clear `steer`.**
+**Opener: the forty-eighth pass (steer, Fable): measure the forty-eighth tranche (seven landings from `28f48612`,
+drained — the queue's whole booking), ratify the 44 residue proposals and book captures from the 65 owed (Loop 3416), rule
+the 11 Loop items, then clear `commander` into the forty-ninth tranche on what the pass books.**
 
 ## The queue
 
-In dependency order; **the roster is Ramon's** (DECISIONS 84, 85). No battery word is open and the held-out battery is
-whole (entry 61 §6), so the headline is **decision 29's second counter, the blind list** — `blind::NEVER` 378, residue 35,
-**343 open** — and every item names it. A `reading` item lands claims in its document, each with the capture that would
-kill it, and a **captures-owed table** in its coverage section (ini category, lobby, frame, field) from which capture items
-are booked; a function a sweep backs is listed as swept, not re-read; one no capture reaches is proposed for `RESIDUE`.
-
-3414. **reading: the small documents' never-entered functions** — `TRANSPORT.md` (4), `ATTRITION.md` (4),
-`PRODUCTION.md` (3), `VISION.md`, `ECONOMY.md`, `COMBAT.md`, `COLLISION.md`, `TECH.md` (1–2 each). `reading` kind,
-Opus, `--tests blind:: --no-widen`. The last reading item the pass books; a `captures-owed` table with no item behind it
-is the forty-eighth pass's to book.
+In dependency order; **the roster is Ramon's** (DECISIONS 84, 85). **No item is booked**: no battery word is open, the
+sweep source is spent (3411) and every reading the forty-seventh pass booked has landed (3408–3414). The headline is
+**decision 29's second counter, the blind list** — `blind::NEVER` 380, residue 35, **345 open** — and what moves it next
+is the pass's: ratifying the five readings' residue proposals, and booking captures from their captures-owed tables.
 
 ## How to maintain this file
 

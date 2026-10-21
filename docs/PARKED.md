@@ -3774,6 +3774,15 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-eighth tranche's
 
+(3416) **The blind list climbs under a reading tranche** (the forty-eighth commander, at the drain): the score the
+forty-seventh pass booked the tranche on — `blind::NEVER` net of `RESIDUE`, 337 open — ended at 345, because a reading
+adds each never-entered function it newly cites (3409 +1, 3412 +5, 3414 +2) and moves nothing off: its residue proposals
+(44 across five readings) wait on ratification and its captures owed (65) on bookings. So a reading tranche scores
+against its own headline until the pass acts. Candidates: report the counter beside a `proposed` column (the readings'
+§144, §296, NATIONS §9, ORDERS §42, GROUPS §38, ARMY §26, TRANSPORT §18, ATTRITION's tail, VISION §8 rows), or score a
+reading by its proposals and captures owed rather than by `NEVER`. And the tranche drained at seven, the queue's whole
+booking: a pass that books a reading tranche books it twenty deep, or names the drain. The pass's. One reach.
+
 (3415) **A `reading` item's booking names its functions from the census, never from prose** (3409's "for the Loop",
 filed at its merge): 3409's booking named four functions `docs/AI.md` does not cite, one of them dead in the image,
 and both reading lanes so far counted their document's never-entered set differently from the queue (3408: 54 cited,
