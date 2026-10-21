@@ -5331,12 +5331,7 @@ impl Sim {
                 return;
             }
             let angle = p.bearing();
-            let before = match t { Obj::Unit(u) => Some((self.units[u].health, self.units[u].damage_frac)), _ => None };
             self.do_damage(p.shooter, t, angle, true, 0x100, false, false, frame);
-            if std::env::var("RON_PROBE_3385").is_ok_and(|v| v == format!("{}", self.frame)) {
-                let after = match t { Obj::Unit(u) => Some((self.units[u].health, self.units[u].damage_frac, self.units[u].alive())), _ => None };
-                eprintln!("PROBE3385 land shooter {:?} t {:?} before {before:?} after {after:?} acc {} intended {:?}", p.shooter, t, p.accuracy, p.target);
-            }
             return;
         }
         // **The missile arm's shield** (item 1078, `678337`..`67845d`;
