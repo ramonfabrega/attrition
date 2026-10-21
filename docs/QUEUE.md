@@ -21,8 +21,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 339, residue 80 → 79, open 300 →
   260** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
   `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3427, att-3428.** Next 3434, run 1044. Pools: GOLDEN §146–149, AI §300–301, park MY, NC–ND. The last whole gate: 3424's booking.
-- **Fable backlog: 11 Loop items** (3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
+- **Lanes: att-3427, att-3428.** Next 3435, run 1044. Pools: GOLDEN §146–149, AI §300–301, park MY, NC–ND. The last whole gate: 3424's booking.
+- **Fable backlog: 12 Loop items** (3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
