@@ -236,6 +236,8 @@ mod unit_do_form_change;
 mod unit_do_gather;
 #[path = "unit_do_gather_005ef2a0.rs"]
 mod unit_do_gather_005ef2a0;
+#[path = "unit_do_group_attack.rs"]
+mod unit_do_group_attack;
 #[path = "unit_do_group_attack_to.rs"]
 mod unit_do_group_attack_to;
 #[path = "unit_do_group_move_leader.rs"]
