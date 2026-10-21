@@ -2594,7 +2594,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         })
         .collect();
     eprintln!(
-        "  f{frame} {who}/{o} #{} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
+        "  f{frame} {who}/{o} #{} decoy {} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
          danger {} targeted {} stance {}/{:?} coll {}@{} tgt {:?} reach {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
@@ -2604,6 +2604,9 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
             .iter()
             .position(|x| std::ptr::eq(x, u))
             .unwrap_or(usize::MAX),
+        // The dump's `unit_masks & 1` (item 3385: a General's decoy
+        // Light Horse took friendly fire).
+        u8::from(u.decoy),
         u.ty,
         // The type's name beside `TY` (parked 1846): `TY` is this crate's
         // record number and `TI` the dump's `TypeIndex`; 272 read as a

@@ -569,7 +569,11 @@ impl Sim {
                     damage_frame: u.combat.damage_frame,
                     damage_o: u.combat.damage_o,
                     captain: u.combat.captain,
-                    decoy: false,
+                    // `unit_masks & 1`, step 17's arm: anything kills a
+                    // decoy (item 3385: run1011e's packet, `get_damage`
+                    // 19688 on the General's decoy Light Horse `1/82`,
+                    // `take_damage` 0x19a2 after the uber divide).
+                    decoy: u.decoy,
                     rocky: false,
                     tile_owned_by_attacker: self
                         .world
