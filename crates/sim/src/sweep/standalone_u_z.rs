@@ -542,6 +542,8 @@ mod wall_set_type_dispatch;
 mod wall_swap_team;
 #[path = "wall_update_local_seen.rs"]
 mod wall_update_local_seen;
+#[path = "wall_update_los.rs"]
+mod wall_update_los;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]
