@@ -21106,3 +21106,40 @@ Archive `rontrace-run1020.log`, 156,191,520 bytes,
 SHA-256 `8fb1108d3cf0919fa44273b549ca504c687d6ebf56ee516e15157f879886bb83`.
 
 **What it holds**: `blind::TRACES`' run1020 (item 3421), `NEVER` 363 → 360.
+
+## run1021 — the successor pair: East Indies, Mongols, All Technologies, at `cover=1` on the click-free pool to 2210, run785's recipe (2026-10-21, item 3422, `att-3422`)
+
+**What the disk could not answer**: every trace of this lobby is `cover=0` (run774's start, run775's draw stream,
+run776–run789's windows), so `Unit::think_carry` stood on `NEVER` even though run785's packet shows the original
+entering it for the Freighter `1/72` (`docs/AI.md` §195; §296 row 5). I used run785's command without its packet,
+with the window and end moved to 2174..2210 and `--cover cover=1`. That way `samegame.py` has two twin windows:
+run785's (2174..2181) and run780's (2201..2209). Launched through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1021`: `--map 18 --end-frame 2210 --timeout 3600 --log-window 2174 2210 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=1`. The staged `rontrace.cmd` is `37 !ffwd 3` and
+`2210 !quit` (`callwin=0-2210`).
+- Pool lane 1 (`~/wine-ron`). Launched 13:27:36 and exited 13:31:54: **258.3 s launch to exit** (268.1 s in all).
+  The receipt says `success` and lifecycle verified: 2,211 frames, `last_frame` 2210, not ended early, map 18, seed
+  12345, tribes 4 and 17, five settings files restored. DLL `6fc888b3…08a78`, `-DRON_AUTOSTART`. `waitrun.sh` exited
+  0. 223 GiB was free beforehand. Minutes waited on another lane: none.
+- **6,907 functions entered**, two of them `NEVER` rows: `Unit::think_carry@005f2ee0` (asked) and
+  `Unit::think_carry_civilian@005f37c0` (unasked), both on 2178, the idle Freighter `1/72`'s worker arm. The dump
+  shows it at `idle 1` on block 2179, with its `MOVEORDER` to (35736, 24984) from that block on.
+  `think_carry_idle@005f2f30` and `think_carry_military@005f3260` were not entered. All 37 blocks hold three boats,
+  the Freighters `1/72`, `1/76` and `1/81` (TypeIndex 322), and each carries one type-50 unit, so only the worker
+  arm runs. Parked 3422a and 3422b.
+- `rngcmp.py` against run775, the lobby's draw stream: **2,211 in common, 0 differing, 2,211 identical**. Against
+  run780 the result is the same. Against run785 (`~/ron-golden/run785/map-18/rontrace.log`): **2,186 in common, 0
+  differing, 2,186 identical**.
+- `samegame.py` against run780: **9 in common (2201..2209), 0 differ**. Against run785's `gamelog.txt`: **8 in common
+  (2174..2181), 0 differ**. There are 36 numbered `BEGIN FRAME`s, 2174..2209, and the closing 2211. Nothing in this
+  dump parts from its twins, so no residue item.
+- Filed with `filerun.py run1021 eastindies-mongol-alltech-window-2174-2210-cover1-clickfree`.
+
+Archive `gamelog-run1021-eastindies-mongol-alltech-window-2174-2210-cover1-clickfree.txt`, 74,784,061 bytes,
+SHA-256 `974a3ec8bee97367375f1bd5bf9aa0c4d6a51c1cd792e6cb52b9e44cce1cbcbb`.
+
+Archive `rontrace-run1021.log`, 71,615,584 bytes,
+SHA-256 `f6d15dd286f7a698dfca8b68d0204db37490d0ec90d18a0c079bc342e6363b2a`.
+
+**What it holds**: `blind::TRACES`' run1021 (item 3422), `NEVER` 360 → 358 on its base; 356 on the tree merged with item 3419's run1018.
