@@ -21069,7 +21069,40 @@ SHA-256 `deb94bc1414d0938b2ad2fd6dd357e304acc2fc7545b8f86e0d9e8d12bda7023`.
 Archive `rontrace-run1018.log`, 63,105,568 bytes,
 SHA-256 `2e0fd801cb86204365a7a8472f264374381f7fefc20d44c7332d392abd21aeb9`.
 
-**What it holds**: `blind::TRACES`' run1018 (item 3419), `NEVER` 363 → 361 (`Army::use_scouts` 5144,
+**What it holds**: `blind::TRACES`' run1018 (item 3419), `NEVER` 360 → 358 (`Army::use_scouts` 5144,
 `SpellType::cast_ambush` 10520; `cast_march` 7960 and `verify_spell_flags` 8111 were already off). Who 1's
 `leader_flags` `0x4000` and `1/46`'s `unit_masks` `0x2000` fall together on block 10972 (3419a). `num_units[58]` is 0
 on every block, so no Spy.
+## run1020 — Great Sahara in the coverage pair's lobby: the Persians, All Technologies, at `cover=1` on the click-free pool to 3770, run790's recipe (2026-10-21, item 3421, `att-3421`)
+
+**What the disk could not answer**: every trace of this lobby is `cover=0` (run676's draw stream, run677–run790's
+windows), so `BuildQueueData::get_next_helicopter` (run790's Airbase `BUILDQUEUE`, 3767) and `Unit::think_supply`
+(the make list's Supply Wagon; type 63 stands in every `GUY` block of run702 and run790) stood on `NEVER` although the
+dumps show each behaviour (`docs/AI.md` §296 row 4). run790's command with the window and the end moved to the item's
+frame and `--cover cover=1`, so `samegame.py` has a twin window, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1020`: `--map 7 --end-frame 3770 --timeout 3600 --log-window 3761
+3770 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=1`; the staged `rontrace.cmd` is `37 !ffwd 5` and
+`3770 !quit` (`callwin=0-3770`).
+- Pool lane 1 (`~/wine-ron`). Launched 13:03:57, exited 13:05:12: **74.4 s launch to exit** (83.1 s in all; run790
+  at `cover=0` with its 257-block window took 1907 s). `success`, lifecycle verified, 3,771 frames, `last_frame` 3770,
+  not ended early, map 7, seed 12345, tribes 4 and 23, five settings files restored. DLL `68895771…f5be0`,
+  `-DRON_AUTOSTART`. `waitrun.sh` exited 0. 228 GiB free before. Minutes waited on another lane: none.
+- **6,906 functions entered**, three of them `NEVER` rows: `BuildQueueData::get_next_helicopter@00630bb0` on 3525
+  (asked) and two unasked, `BuildQueueData::get_next_non_unit@00630b10` (3525) and `Units::make_valid@0061a960`
+  (3546). `Unit::think_supply@005f4730` is not entered: it has no caller (`report.py <exe> refs`: its one hit, an RVA
+  at `006a841c`, is the rel32 operand of `call Mountains::get_range` at `006a841b`); `Unit::think@005f6e40` adds a
+  supply wagon to its army inline (`:308`–`:341`). Parked under item 3421.
+- `rngcmp.py rontrace-run790.log rontrace-run1020.log` (the `cover=0` twin): **3,771 in common, 0 differing, 3,771
+  identical**; against run676 (the lobby's draw stream) the same, 3,771 / 0 / 3,771.
+- `samegame.py gamelog-run790-… gamelog-run1020-…`: **9 in common (3761..3769), 0 differ**; 10 `BEGIN FRAME`s,
+  3761..3769 and the closing 3771. Nothing in this dump parts its twin, so no residue item.
+- Filed with `filerun.py run1020 greatsahara-persian-alltech-window-3761-3770-cover1-clickfree`.
+
+Archive `gamelog-run1020-greatsahara-persian-alltech-window-3761-3770-cover1-clickfree.txt`, 21,026,887 bytes,
+SHA-256 `cbedb3fe722eb793a1e6ff302aa6af647c3c9c78597721579d8883cc48971578`.
+
+Archive `rontrace-run1020.log`, 156,191,520 bytes,
+SHA-256 `8fb1108d3cf0919fa44273b549ca504c687d6ebf56ee516e15157f879886bb83`.
+
+**What it holds**: `blind::TRACES`' run1020 (item 3421), `NEVER` 363 → 360.
