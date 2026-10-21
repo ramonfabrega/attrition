@@ -1105,7 +1105,10 @@ mod tests {
                     ));
                 }
             } else if status == "not modelled" {
-                for s in &src {
+                // The dead-list pin (`docs_guard::DEAD_CITED`) holds an
+                // address to say a document cites a function the game never
+                // runs; it models nothing (the forty-eighth pass, `get_econ_mod`).
+                for s in src.iter().filter(|s| s.0 != "docs_guard.rs") {
                     if holds(&text(s), w) {
                         bad.push(format!(
                             "line {line}: `not modelled` but {} holds `{w}`",
