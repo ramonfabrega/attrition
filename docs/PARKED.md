@@ -3774,6 +3774,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
+(3433) **A pool lane aborted before frame 0 on Wine's unimplemented `secur32.dll.QueryContextAttributesW`** (3426's "for
+the Loop"): the first run1031b died on pool lane 2 with nothing dumped; the retake on lane 1 ran clean. It is not on record
+in `docs/ORACLE.md` or `docs/RUNS.md`. Candidate: `unattended_capture.py` names the unimplemented import in its refusal and
+retakes once on the other lane, and a second occurrence on one lane says the lane's prefix differs. Score: a coverage
+retake the pool does not spend by hand. One reach.
+
 (3432) **A `RESIDUE` row's "no capture can enter it" is breakable by the click-free pool's resting cursor** (3425's "for
 the Loop"): run1029 entered `TypeData::get_desc_parsed` on 511 through `MouseOver::set_good`, the tooltip the pool's idle
 cursor raised over a resource, and `blind::`'s guard deleted the row (residue 80 → 79). A residue claim is about the

@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): 11 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
-click-free pool (run1037); 3417–3424: `NEVER` 380 → 350 (run1016–run1026); 3431 (Ramon's): the rubric's ages 4 → 6 of 8;
-3425: `@attackground`, `@comeout` (run1029–run1030), both issuers `ENTERED_BY_THE_DLL_ONLY`, 350 → 344, residue 80 → 79.*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): 12 of 20 landed from `11da5dd8`** — 3429: `cover=1` on the pool
+(run1037); 3417–3424, 3425–3426: `NEVER` 380 → 339 (run1016–run1031; `@attackground`, `@comeout`, `@sell`/`@buy`, residue
+80 → 79 on a pool cursor's tooltip); 3431 (Ramon's): the rubric's ages 4 → 6 of 8.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
-  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 344, residue 80 → 79, open 300 →
-  265** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
+  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 339, residue 80 → 79, open 300 →
+  260** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
   `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3426, att-3427.** Next 3433, run 1044. Pools: GOLDEN §146–149, AI §300–301, park NB–ND. The last whole gate: 3424's booking.
-- **Fable backlog: 10 Loop items** (3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
+- **Lanes: att-3427, att-3428.** Next 3434, run 1044. Pools: GOLDEN §146–149, AI §300–301, park MY, NC–ND. The last whole gate: 3424's booking.
+- **Fable backlog: 11 Loop items** (3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,7 +36,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 344 · residue 79 · open 265
+Blind: never 339 · residue 79 · open 260
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): re-arm `tools/lanewait.py
@@ -50,11 +50,6 @@ pinned lobby retaken at **`cover=1` on the click-free pool** (3429's fix, run103
 3427), checked against its `cover=0` twin (`rngcmp.py`, `samegame.py`), pinned into `blind::TRACES`; a function
 not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: GOLDEN §144.3's click
 layer, `@spell` Bribe, the carrier, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
-
-3426. **coverage: the human's Market** (NATIONS §9.2): a Nubian human in any pair's lobby, a Market built, Sell on
-timber and Buy before Coinage (`BUY_SELL`), at `cover=1`: enters `CommandPackage::process_sell`, `LeaderOut::issue_sell`,
-`CommandManager::issue_sell`, `LeaderData::has_bonus@006e0b80` and `can_buy_sell`; `L1` buckets beside `do_sell`'s
-(parked 3412a). A tracer `@sell`/`@buy` line is the cheaper route; else the driven queue lane. Run 1031.
 
 3427. **coverage: the click layer, first pass** (GOLDEN §144.3 rows 1, 2, 4, 6; CENSUS row 3): driven on the queue
 lane in chapters eleven, twelve, thirteen and twenty's lobbies at `cover=1` — `rclick` `0/6` on own `0/7` (620) for
