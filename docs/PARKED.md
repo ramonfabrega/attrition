@@ -8913,13 +8913,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LZ — reserved
+## Parked by item 3391, 2026-10-20 — the nations seat's twenty-first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3391a. `ObjectData::count_inside` has no crate method.** Swept as the standalone `count_inside_view.rs` (unwired, 37 leaf methods, 18 handled `CountIndex` cases). It is the `count_inside` leaf `build_attack_view.rs` (3387a) and others stub; wiring it with `Sim::attack_of`'s building arm is one booking with 3387a.
+- **3391b. `Wall::update_los` is only partly in `Sim::build_los`.** `wall_los_view.rs` (unwired) is the whole function; `build_los` lacks the fort/tower/colosseum/furs terms, the leader-live gate and the 8-bit wrap, and the crate carries none of the tech bytes (`get_fort_los`, `get_tower_fort_los`), `has_wonder(0x212)`, or the constants block (+0x180, +0x1a8, +0x474, +0x914). The sweep forced one sim fix (an unfinished non-wonder site sees 0, not `1 + x_size/2`); the worker's no-pin claim is a reading of `update_seen_build`'s callers, not a diff run, so the booking gate says. The sweep's slot +0x2c stub is random: Wall's vtable +0x2c is `Window::get_button`, so the wonder test is not exercised through it.
+- **3391c. `follower_des` differs from `Guy::set_angle` at a zero track.** It clamps always; the original only when `dx != 0 || dy != 0`. Reachable only by a `follow` record whose track truncates to (0,0). Also `follower_des`/`sin_component` use unchecked `+=` and `-d` (debug panic near `i32::MAX`, `distance == i32::MIN`; release wraps as the original). Not swept: a crew guy with `+0xa2 == 0` (unbounded recursion on random data), `a1` stride beyond 0/1, a zero-sized world.
+- **3391d. `Unit::action_unqueue` is in no crate path.** `Sim::action_unqueue` is `Build::action_unqueue`; `unit_unqueue_view.rs` (unwired) is the unit arm, which no capture enters (`process_unqueue` SEAM). With a negative upgrade and a nonzero argument the original faults at `types.list[-1]`; callers' contract unverified.
+- **3391e. `SpellType::cast` is spread over `do_cast_effect` and `cast_on`.** `spell_cast_view.rs` (unwired) is the switch in one place (`is_castable == 3`, jump table over `spell - 0x275`); many arms pass `is_castable`'s leftover `ecx`, which the sweep draws but never models from the real callee.
+- **3391f. `Herd::create_units` founding is unmodelled.** `herd_create_view.rs` (unwired); `diff/setup.rs:1063` says the harness skips the herds' 44 draws. The sweep's `--outarg` draws one out pair per row, so per-call `find_nearby_spot` coordinates are untested.
 
 ## Parked by the next landing, slot MA — reserved
 
