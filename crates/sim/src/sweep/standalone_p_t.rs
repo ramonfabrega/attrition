@@ -236,6 +236,8 @@ mod spell_type_cast_pack;
 mod spell_type_cast_rally;
 #[path = "spell_type_cast_research_project.rs"]
 mod spell_type_cast_research_project;
+#[path = "spell_type_cast_sabotage.rs"]
+mod spell_type_cast_sabotage;
 #[path = "spell_type_cast_supplies.rs"]
 mod spell_type_cast_supplies;
 #[path = "spell_type_cast_transport.rs"]
