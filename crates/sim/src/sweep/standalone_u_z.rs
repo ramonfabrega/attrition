@@ -500,6 +500,8 @@ mod valid_target_const_p_low;
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
 mod vector_dist_ints;
+#[path = "wall_activate.rs"]
+mod wall_activate;
 #[path = "wall_check_ever_seen.rs"]
 mod wall_check_ever_seen;
 #[path = "wall_data_armor.rs"]

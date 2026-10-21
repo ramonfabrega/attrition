@@ -260,6 +260,8 @@ mod build_data_num_gather;
 mod build_data_num_scholars;
 #[path = "build_data_show_later_tech.rs"]
 mod build_data_show_later_tech;
+#[path = "build_do_attack.rs"]
+mod build_do_attack;
 #[path = "build_find_gather_tiles.rs"]
 mod build_find_gather_tiles;
 #[path = "build_find_target.rs"]
