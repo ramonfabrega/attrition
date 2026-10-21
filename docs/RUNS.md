@@ -20904,3 +20904,41 @@ SHA-256 `3407656cdd6397dd893d77501a5810fe39068f566434f61cf8a5ceef0739dcaa`.
 
 **What it holds**: the click-free pool runs `cover=1`. It enters `Game::current_age@005946d0` and
 `Leader::treaty_off@006d0370`, item 3417's two; the pin is 3417's queue-lane trace, not this one.
+
+## run1017 — Great Sahara at Toughest at `cover=1` on the click-free pool, to the game's end at 15432 (2026-10-21, item 3418, `att-3418`)
+
+**What the disk could not answer**: every trace of this lobby is `cover=0` (run470's draw stream, run471–run668's
+windows), and a `cover=0` trace enters no function, so `cast_march` (9112), `verify_spell_flags`, `get_enhancing_good`
+(the Granary), `Army::charge` and the city's stamp (15377) stood on `NEVER` although the dumps show each behaviour
+(`docs/AI.md` §296 row 1). run668's command, with `--cover cover=1`, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1017`: `--map 7 --end-frame 15432 --timeout 9000 --log-window 15230
+15433 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GROUPS=1 --profile DIFFICULTY=5 --cover cover=1`;
+the staged `rontrace.cmd` is `37 !ffwd 18` and `15432 !quit`, the proxies the lane stages (`callwin=0-15432`).
+- Pool lane 1, taken over a stale lock (att-3417's runner, both pids dead). Launched 11:03:09, exited 11:24:48:
+  **1,299.5 s launch to exit** (1,325.0 s in all; run668 at `cover=0` took 1,219.7 s). `success`, lifecycle verified,
+  15,433 frames, `last_frame` 15432, not ended early, `MAP_STYLE 7`, seed 12345, tribes 4 and 11, five settings files
+  restored. DLL `079d480b…3b2c`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0. 231 GiB free before.
+- **6,888 functions entered.** Of item 3418's five: `get_enhancing_good@00639880` on 5376, `cast_march@00671500` on
+  9112, `verify_spell_flags@006ce190` on 9263, `Army::charge@006f9a90` on 15377; `WallData::hits@00642bb0` not
+  (`docs/AI.md` §298). Also entered: `UnitData::is_gov_hero@0046ce70` on 11882, and `LeaderData::get_vehicle_speed_upgrade@006da8a0` on 8782
+  (run1016, landed first, takes it and `get_enhancing_good` off `NEVER`).
+- `rngcmp.py rontrace-run470.log rontrace-run1017.log` (the `cover=0` twin, the lobby's draw stream): **15,433 in
+  common, 0 differing, 15,433 identical**; against run668 the same, 15,433 / 0 / 15,433.
+- `samegame.py gamelog-run668-greatsahara-toughest-15275.txt gamelog-run1017-…`: **203 in common (15230..15432), 0
+  differ**. The two dumps are one byte apart in size: the column-0 `SYNCPOINT` line's init stamp (2249 against 2956),
+  which `samegame.py` leaves out.
+- The fields §296 row 1 names: the charge's are on this dump's own window, identical to run668's; the march's are in
+  a gap — no dump prints 9038..9317 — and who 1's `leader_flags` is `0x2000013` on run500's last block and `0x800013`
+  on run511's first (9318), `0x8000` clear on both, so the bit's fall inside 9112..9317 fits `verify_spell_flags`' entry
+  on 9263 and no dump prints the frame. Nothing in this dump parts its twin, so no residue item.
+- Filed with `filerun.py run1017 greatsahara-toughest-cover1-clickfree`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1017-greatsahara-toughest-cover1-clickfree.txt`, 539,837,654 bytes,
+SHA-256 `bbe843d6e36e81befa2036b47c8d044c41c0314e69e53b0dcf9354fd642ff0f4`.
+
+Archive `rontrace-run1017.log`, 123,494,208 bytes,
+SHA-256 `d2fdf1e9ebb98ce16de15f58cd4f643256cffa04c0e5e9ca9c44eb23ead6286c`.
+
+**What it holds**: `blind::TRACES`' run1017 (item 3418), `NEVER` 376 → 372 on run1016's list (`get_enhancing_good` and
+`get_vehicle_speed_upgrade` already off with it).
