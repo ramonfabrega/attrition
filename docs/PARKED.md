@@ -3776,22 +3776,6 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 Loop 2003's reaches in the forty-seventh tranche, filed here below its own row (its section is at the size ceiling): 3397 three idempotence gaps — `--regen` re-inserts a trailing `0` after `// end hand` (`wall_activate`) and a generator file inside the fence splits the item (`find_road`); 3400 no memory laid before a cell record's base (a negative-offset `--ptrtab LOC` or a cell-record margin, 3400's parked row, the shape unspellable); 3403 the `--port todo!()` body re-appended past the fence (Loop 3407, built by the forty-seventh pass). Every batch of the tranche generated whole otherwise.
 
-(3407) **`sweep_gen.py --regen` with `--port todo!()` re-appends a stray `todo!()` after the `// end hand` fence**
-(3403's "for the Loop", filed at its merge): the `Unit::process` subagent deleted it after every regen of its four
-slices; the fence survives the regen (Loop 3013, 3377) but the port placeholder is written past it. The generator's: a
-regen that finds a hand fence writes no `--port` body after it. One reach.
-
-(3401) **A lane gate re-run for a clean update that touched only the commander's files, three times in one landing**
-(3393's "for the Loop", filed at its merge): 3393's second to fourth lane gates were red only on the commander's lines
-and each ended on `Base moved:` — the second's overlap five paths after att-3390's merge, the third's and fourth's
-`docs/PARKED.md` alone — and every `ccc update` merged clean, yet the lane gated again each time: about 55 minutes on a
-tree whose only overlap was the commander's own bookings. LOOP.md already says a lane lands on its verdict when the
-update is clean; the `Base moved:` line reads as a red, and the lane obeyed the line. The gate's: a moved base whose
-overlap is only `docs/QUEUE.md`, `docs/PARKED.md` or the census pins says so, and the `Lane verdict:` line stands.
-And the same journal: `golden_capture.sh`'s default `--timeout 180` kills a window capture at detail (run1014's first
-take died at 180 s after its pace line), and the leftover output directory refuses a retake under the same name, so
-the retake went to `--golden`; the default should follow the pace line's estimate. One reach.
-
 (3394) **A `tools/check.sh` run that waits for admission is killed in about six seconds, exit 144** (3385's "for the
 Loop", filed at its merge): in 3385's third session every single-test `zsh tools/check.sh test …` that had to wait
 for the host budget died within about six seconds with exit 144, its whole shell with it, even under `nohup`; the lane
@@ -3808,12 +3792,6 @@ sim` / `-p rondata` recovered them):
 never SIGTERM, so the sender is not the admission. Candidates to rule out first: a lane's `pkill -f` on a name every
 lane shares (parked 1713), a subagent's cleanup, cargo's own jobserver on a sibling's cancel. A gate's `Gate minutes:`
 in that window are the evidence; the pass reads the lanes' transcripts for the signal's sender. One reach.
-
-(3389) **A journal's `## For the Loop` heading over `none` reads as unfiled, twice now** (3384's "for the Loop",
-filed at its merge: the heading, a blank line, `none`): `docs_guard::a_journal_s_loop_line_is_filed_or_says_none`
-reads only the heading's own line, so 3384's lane gate was red on it as the commander's line, as 3370's was. 3370's
-note (below) said the guard should read the next non-blank line if the shape recurred; it has. The guard's, a few
-lines, made to fail on 3370's and 3384's journals first. One reach.
 
 ## Loop, filed 2026-10-19 — the forty-sixth tranche's
 

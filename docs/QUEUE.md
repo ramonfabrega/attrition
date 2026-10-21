@@ -12,18 +12,19 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-seventh tranche (commander, Opus): drained, 20 of 20 from `56f23ba5` in 13 h 44** (the
-Germans, the Indians and the Inca at Great Sahara, the Turks, the Americans and the Spanish at Great Lakes closed;
-thirteen sweeps); roster Ramon's (DECISIONS 84, 85). The drain's whole gate is the booking's; the last whole before it `1dc3ad81`.*
+*2026-10-21, **the forty-seventh pass (steer, Fable): the forty-seventh tranche measured — 20 of 20 from `56f23ba5` in
+13 h 46, 7.67 USD and 117.2 min waiting a landing, six battery games closed, no red booking gate** — and the
+forty-eighth tranche booked on the blind list (DECISIONS 86); roster Ramon's (DECISIONS 84, 85). The pass's whole gate is the booking's.*
 
-- **Words**: every pair closed; thirty battery words closed, **none open** (`AI_WORDS` holds twenty-eight, every one at
-  its game's end). Battery on `15e001e8`: 6147 (the Dutch at Great Lakes, 3390, rule (2)), 7799, 14540, 15853, 18883,
-  24000 ×3 — **eight of eight whole**, median 17368. Census 1619 → 1686, port 501 → 568.
-- **Lanes: none live, and nothing unspawned**: no battery lobby is open and **the sweep pool is empty** (3404: no `port`
-  row, the last `name` rows parked as not the simulation's) — what the forty-eighth tranche works on is the pass's
-  (Loop 3398, 3405). Parked for its eye: 3400a, `Sim::attrition_for`'s five predicates fixed false against the
-  original's. Next 3408, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ.
-- **Fable backlog: 19 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382, 3388, 3389, 3392, 3394, 3398, 3401, 3405, 3406, 3407); DECISIONS 85.
+- **Words**: every pair and all thirty battery words closed, **none open**. Held-out battery on `ecf0e771`: 6147, 7799,
+  14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368; entry 61 §6's stop rule has fired, so no lobby
+  is promoted and none is minted (Ramon's to reopen). Census 1686 of 3611, port 568, layout 1118; `never` 373, of which
+  35 accepted residue — **the blind list, 337 open, is the score the forty-eighth tranche moves** (DECISIONS 29 §2).
+- **Lanes: none live.** Four to spawn: 3408 and 3409 on the two Opus lanes (`reading` kind, DECISIONS 84, `--tests blind::
+  --no-widen`), 3410 and 3411 on the two Sonnet lanes (the last sweep rows the census names; after them the sweep seats
+  stand empty unless Ramon names a source). Next 3415, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ (refill
+  to six at the opening). Parked for the pass's eye: 3400a.
+- **Fable backlog: NN Loop items** (3371, 3392, 3394, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 86.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,17 +39,44 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
-**Opener: the forty-seventh pass (steer, Fable): measure the forty-seventh tranche (twenty landings from `56f23ba5`,
-drained), ratify the marked rows, rule the 19 Loop items — 3398 first: the battery is whole, no word is open and the
-sweep pool is empty, so the queue books nothing (3188, 3237, 3118 and 1570 are Ramon's) — then clear `commander` into
-the forty-eighth tranche on what the pass books.**
+**Opener: continue the forty-eighth tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md first;
+spawn 3408 and 3409 on the Opus lanes as `reading` briefs and 3410 and 3411 on the Sonnet lanes as sweeps, cut off
+`HEAD`; a reading lane refills from 3412–3414 in order; count landings from this pass's commit and stop at twenty.**
 
 ## The queue
 
-In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 84, 85). **No item is booked**: no
-battery word is open — the AI's word is closed, lower map first — closed (`AI_WORDS` holds twenty-eight, every word at
-its game's end; 3393 closed the Inca at 15632) — no battery lobby is open (3390), and the sweep pool is empty (3404).
-The next item is the pass's (Loop 3398).
+In dependency order. **The roster is Ramon's** (DECISIONS 84, 85). No battery word is open and the held-out battery is
+whole (entry 61 §6), so the headline is **decision 29's second counter: the blind list** — `rondata::blind::NEVER`, 372
+pinned, 35 accepted residue, **337 open** — and every item here names it. A `reading` item's product is claims in its
+document, each with the capture that would kill it, and a **captures-owed table** in the document's coverage section
+(ini category, lobby, frame, field) from which capture items are booked; a function a sweep already backs is listed as
+swept, not re-read; a function no capture can reach is proposed for `RESIDUE` with its reason, never added by the lane.
+
+- **3408 — reading: `docs/GOLDEN.md`'s never-entered functions** (45 cited there, 28 only there: the issuer
+  chapters' `Unit::do_*`, `Group::action_*`, `CommandPackage::process_*`, `SpellType::cast_*` families). `reading`
+  kind, Opus; gate `--lane --item 3408 --tests blind:: --no-widen`. Moves: the captures-owed table for the rules track
+  and the residue proposals; `never` moves only when a capture runs.
+- **3409 — reading: `docs/AI.md`'s never-entered functions** (31 cited: `LeaderData`, `Army::use_scouts`/`use_spies`/
+  `send_here`/`charge`, `Leader::process`, `Unit::think_hero`/`think_supply`/`think_carry*`). `reading` kind, Opus; gate
+  `--lane --item 3409 --tests blind:: --no-widen`. The AI track's captures-owed table: a hero, a supply wagon, a
+  transport are what entry 29 §2 names.
+- **3410 — sweep: the first five never-entered unmarked rows, by bytes** — `Unit::check_meet_ship@00604550` (17,274),
+  `SpellType::cast_bribe@00672d00` (16,815), `SpellType::cast_sabotage@006720e0` (12,061), `SpellType::cast_pilfer@00673e80`
+  (8,208), `Unit::do_group_attack@005e75a0` (7,176): each on `blind::NEVER` with no port in the crate, so the sweep is
+  the one oracle a reading of it has. Sonnet, `--no-widen`; moves `port` and gives 3408's claims their oracle.
+- **3411 — sweep: the last five** — `Group::action_repair@007020c0` (6,857), `Unit::think_carry_military@005f3260`
+  (6,158), `Unit::think_carry_idle@005f2f30` (5,148), `AnimalData::is_seen@005d8160` (2,726),
+  `Unit::do_await_board@005ed040` (2,632). Sonnet, `--no-widen`. **After 3410 and 3411 the census's sweep source is
+  spent**: `port` 1, `name` 7 rows all parked or cut, the 450 unmarked rows functions the crate does not carry (Ramon's,
+  3237).
+- **3412 — reading: `docs/NATIONS.md`'s never-entered functions** (21 cited, 19 only there). `reading` kind, Opus,
+  `--tests blind:: --no-widen`; refills an Opus lane when 3408 or 3409 lands.
+- **3413 — reading: `docs/ORDERS.md`, `docs/GROUPS.md` and `docs/ARMY.md`'s never-entered functions** (14, 5 and 6
+  cited). `reading` kind, Opus, `--tests blind:: --no-widen`.
+- **3414 — reading: the small documents' never-entered functions** — `TRANSPORT.md` (4), `ATTRITION.md` (4),
+  `PRODUCTION.md` (3), `VISION.md`, `ECONOMY.md`, `COMBAT.md`, `COLLISION.md`, `TECH.md` (1–2 each). `reading` kind,
+  Opus, `--tests blind:: --no-widen`. The last reading item the pass books; a captures-owed table with no item behind it
+  is the forty-eighth pass's to book.
 
 ## How to maintain this file
 

@@ -230,7 +230,12 @@ only coupling between them is the merge and what the brief reserves.
 above the tranche before — **and takes one away when it does not**; a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
-(DECISIONS 61). **The commander counts landings since the last steering pass — by
+(DECISIONS 61) — **and with no battery word open and the sweep pool
+spent, an Opus lane takes a `reading` item** (entry 84's kind; never
+Sonnet) **and a Sonnet lane the sweep rows the pass names, or stands
+empty** (the forty-seventh pass, DECISIONS 86: the held-out battery ran
+eight of eight whole, every battery word closed, the `port` and `name`
+marks drained). **The commander counts landings since the last steering pass — by
 `git log` from that pass's commit, never from its own last clear — and
 stops at twenty**, writing the handoff and saying the steering pass is
 due; **and a finding it would raise at that pass is filed in
