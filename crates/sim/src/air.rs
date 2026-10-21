@@ -2934,7 +2934,11 @@ mod launch_tests {
                 crate::orders::QueuePos::First,
                 true,
             );
-            assert_eq!(s.units[u].orders.len(), 2, "{mandatory}: a strafe on a patrol");
+            assert_eq!(
+                s.units[u].orders.len(),
+                2,
+                "{mandatory}: a strafe on a patrol"
+            );
             s.land_plane(u);
             assert_eq!(s.units[u].orders.len(), left, "{mandatory}: what is left");
         }
