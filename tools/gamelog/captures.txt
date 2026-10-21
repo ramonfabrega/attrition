@@ -10160,6 +10160,7 @@ cmd: 620 @garrison 0 2007 0 6
 cmd: 640 @garrison 0 2007 0 7
 cmd: 700 select 2007 who=0
 cmd: 700 camera 14,74
+check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run1033.log
 check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch13/map-14/rontrace.log" rontrace-run1033.log || true)
 check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1033.log" functions 2>/dev/null | grep -E "^0062da00 |^00708b90 |^0071c470 " || true)
 
