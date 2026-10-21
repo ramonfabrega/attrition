@@ -3772,6 +3772,15 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's.
 
+## Loop, filed 2026-10-21 — the forty-eighth tranche's
+
+(3415) **A `reading` item's booking names its functions from the census, never from prose** (3409's "for the Loop",
+filed at its merge): 3409's booking named four functions `docs/AI.md` does not cite, one of them dead in the image,
+and both reading lanes so far counted their document's never-entered set differently from the queue (3408: 54 cited,
+51 net of residue, against the booked 45/28; 3412: 21/18 against 21/19). Candidate: `tools/census.py --pin --never
+--cites docs/<DOC>.md`, printing the count net of `RESIDUE` and the cited-only-here subset, which the pass quotes when
+it books a reading and `brief.py --kind reading` pastes under "This item". The pass's. One reach.
+
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
 Loop 2003's reaches in the forty-seventh tranche, filed here below its own row (its section is at the size ceiling): 3397 three idempotence gaps — `--regen` re-inserts a trailing `0` after `// end hand` (`wall_activate`) and a generator file inside the fence splits the item (`find_road`); 3400 no memory laid before a cell record's base (a negative-offset `--ptrtab LOC` or a cell-record margin, 3400's parked row, the shape unspellable); 3403 the `--port todo!()` body re-appended past the fence (Loop 3407, built by the forty-seventh pass). Every batch of the tranche generated whole otherwise.
@@ -9082,6 +9091,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot MN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MT renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
