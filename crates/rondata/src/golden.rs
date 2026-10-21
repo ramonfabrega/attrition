@@ -648,6 +648,21 @@ pub enum Issued {
         stance: i32,
         objects: Vec<i16>,
     },
+    /// `@attackground <who> <x> <y> <o>…` — `issue_attack_ground@009417a0(
+    /// group, x, y, QUEUE_NEW)`: a 10-byte `attack_ground` (0x09,
+    /// `[to_x][to_y][queued i8]`) that nothing in the image issues — the
+    /// button's `GroupOut::issue_attack_ground@0070ae60` builds the same
+    /// bytes inline (item 3425, `docs/GOLDEN.md` §145).
+    AttackGround {
+        who: i32,
+        to: Pos,
+        objects: Vec<i16>,
+    },
+    /// `@comeout <who> <o>…` — `issue_come_out@00942c90(unit)` once per
+    /// unit, an 11-byte `come_out` (0x31, `[who][o][uid i16]`) and no
+    /// `group`: the unit panel's button, whose `UnitOut::issue_come_out@
+    /// 00607be0` is the manager's twin (item 3425, `docs/GOLDEN.md` §145).
+    ComeOut { who: i32, objects: Vec<i16> },
     /// `@buildmask <who> <mask> <b>…` — `issue_buildmask@00941f80(group,
     /// mask, 1)` on a group of the player's own buildings: the repeat
     /// button's 0x80 (`Options::set_air_repeat@0071c740`), item 867,
@@ -751,7 +766,9 @@ impl Issued {
             | Issued::SetTransport { who, objects, .. }
             | Issued::Repair { who, objects, .. }
             | Issued::Gather { who, objects, .. }
-            | Issued::Stance { who, objects, .. } => (*who, objects, false),
+            | Issued::Stance { who, objects, .. }
+            | Issued::AttackGround { who, objects, .. }
+            | Issued::ComeOut { who, objects } => (*who, objects, false),
             Issued::Eject { who, buildings }
             | Issued::Alarm { who, buildings }
             | Issued::Buildmask { who, buildings, .. }
@@ -858,6 +875,8 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             | "alarm"
             | "gather"
             | "stance"
+            | "attackground"
+            | "comeout"
     ) {
         return None;
     }
@@ -906,6 +925,22 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             return None;
         }
         return Some(Issued::Gather { who, ox, objects });
+    }
+    // `@comeout` has no number but `who`, and its objects are units, each
+    // its own command.
+    if verb == "comeout" {
+        let [who, ref objects @ ..] = nums[..] else {
+            return None;
+        };
+        let objects: Vec<i16> = objects
+            .iter()
+            .take(32)
+            .map(|&o| i16::try_from(o).ok())
+            .collect::<Option<_>>()?;
+        if objects.is_empty() || !(0..8).contains(&who) {
+            return None;
+        }
+        return Some(Issued::ComeOut { who, objects });
     }
     // `@stance`'s one number is the option.
     if verb == "stance" {
@@ -1131,6 +1166,7 @@ pub fn parse_issuer(text: &str) -> Option<Issued> {
             objects,
         },
         "amove" => Issued::AttackMove { who, to, objects },
+        "attackground" => Issued::AttackGround { who, to, objects },
         "moveadd" => Issued::MoveAdd { who, to, objects },
         "explore" => Issued::Explore { who, to, objects },
         "flee" => Issued::Flee { who, to, objects },
@@ -1331,6 +1367,15 @@ fn issue(line: &Staged, built: &mut Built, done: &mut Applied) {
             stance,
             objects,
         }) => crate::input::group_stance(built, who, &objects, stance),
+        // `@attackground` and `@comeout` (item 3425, `docs/GOLDEN.md` §145)
+        // are staged for the original's coverage and have no entry here:
+        // `Group::action_attack_ground@00704520`'s ground arm is walked
+        // (`sim::attack_ground_view`) and not wired, and
+        // `Unit::action_come_out@005e20b0` has no port (parked 3425a).
+        Some(Issued::AttackGround { .. } | Issued::ComeOut { .. }) => {
+            done.skip(&word, "an issuer this crate does not act on (parked 3425a)");
+            return;
+        }
         // `@buildmask` is `issue_buildmask@00941f80` on a group of
         // buildings, a `group` and a `buildmask`, whose entry is
         // [`crate::input::group_buildmask`] (item 867, `docs/GOLDEN.md`
@@ -2078,6 +2123,9 @@ mod tests {
         // Chapter twelve: two `@follow` issuer lines and four `@move`s, the
         // follow line (item 714, `docs/GOLDEN.md` §20).
         ("chapter12.cmd", &[]),
+        // Chapter thirteen's lobby and an `@comeout`, a coverage staging
+        // (item 3425, `docs/GOLDEN.md` §145).
+        ("chapter13-comeout.cmd", &[]),
         // Chapter thirteen: two `@garrison` issuer lines and an `@eject`, the
         // garrison line (item 718, `docs/GOLDEN.md` §21).
         ("chapter13.cmd", &[]),
@@ -2134,6 +2182,9 @@ mod tests {
         // `@queueup` of a Biplane at the Airbase, the repeat launch (item
         // 915, `docs/GOLDEN.md` §38).
         ("chapter29.cmd", &[]),
+        // Chapter three's lobby and an `@attackground`, a coverage staging
+        // (item 3425, `docs/GOLDEN.md` §145).
+        ("chapter3-attackground.cmd", &[]),
         ("chapter3.cmd", &[]),
         // Chapter thirty: chapter twenty-eight's cast and five
         // `@gatherpoint` lines (the DLL's verb 20) on two Barracks and the
@@ -2700,6 +2751,25 @@ mod tests {
             })
         );
         assert_eq!(parse_issuer("@stance 0 2"), None);
+        // `@attackground` is `@move`'s fields, `@comeout` `@eject`'s shape
+        // on units (item 3425).
+        assert_eq!(
+            parse_issuer("@attackground 0 2328 9480 9"),
+            Some(Issued::AttackGround {
+                who: 0,
+                to: Pos::new(2328, 9480),
+                objects: vec![9],
+            })
+        );
+        assert_eq!(parse_issuer("@attackground 0 2328 9480"), None);
+        assert_eq!(
+            parse_issuer("@comeout 0 7"),
+            Some(Issued::ComeOut {
+                who: 0,
+                objects: vec![7],
+            })
+        );
+        assert_eq!(parse_issuer("@comeout 0"), None);
     }
 
     /// **An issuer line parses as the DLL reads it** (item 676): the verb,
