@@ -2385,7 +2385,6 @@ impl Sim {
             queue,
             order,
             i32::from(action),
-            0,
         );
     }
 

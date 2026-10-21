@@ -186,8 +186,7 @@ pub trait SwarmView: SwarmHead {
 }
 
 /// `Group::action_swarm_around(b, who, queue, order, action)`: `b` the site's
-/// index in `who`'s objects, `action` the order's action bit. `depth` counts
-/// the `QUEUE_FIRST` re-entries above this call.
+/// index in `who`'s objects, `action` the order's action bit.
 pub fn action_swarm_around_steps<V: SwarmView>(
     v: &mut V,
     b: i32,
@@ -195,7 +194,6 @@ pub fn action_swarm_around_steps<V: SwarmView>(
     queue: i32,
     order: i32,
     action: i32,
-    depth: i32,
 ) {
     if !swarm_head(v, b, who) {
         return;
@@ -205,7 +203,7 @@ pub fn action_swarm_around_steps<V: SwarmView>(
         // and re-issues what it was doing (`finish_insert`).
         v.set_up_insert();
         v.action_halt();
-        action_swarm_around_steps(v, b, who, 2, order, action, depth + 1);
+        action_swarm_around_steps(v, b, who, 2, order, action);
         v.finish_insert();
         v.list_clear();
         return;

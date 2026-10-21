@@ -424,7 +424,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     turn: [0; 36],
                     depth: 0,
                 };
-                action_swarm_around_steps(&mut v, a[0], a[1], a[2], a[3], a[4], 0);
+                action_swarm_around_steps(&mut v, a[0], a[1], a[2], a[3], a[4]);
                 0
             }
         };
