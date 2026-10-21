@@ -178,6 +178,7 @@ pub mod transport;
 pub mod tuning;
 pub mod type_index;
 pub mod unit_unqueue_view;
+pub mod unit_update_hits_view;
 pub mod upath;
 pub mod update_positions_view;
 pub mod victory;
