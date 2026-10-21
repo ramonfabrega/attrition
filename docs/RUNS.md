@@ -21004,3 +21004,40 @@ SHA-256 `3bc2f22b117aad9a76d445ede1bfe23567545124ddedea9b1d9fbf5c193a8c8e`.
 
 **What it holds**: `blind::TRACES`' run1041 and run1043 (item 3431). `NEVER` stays 372. The pinned dumps' ages held
 go from 4 of 8 to 6 of 8; Medieval (2) and Modern (6) are still never held.
+
+## run1019 — the coverage pair: East Indies, Persians, All Technologies, at `cover=1` on the click-free pool to 3150, run717's recipe (2026-10-21, item 3420, `att-3420`)
+
+**What the disk could not answer**: every trace of this lobby is `cover=0` (run652's draw stream, run678–run762's
+windows), so `Spline::set_min_seg_length`, `Spline::calc_from_dir` (run717's `AMMO` `traj 2` rounds, 3124..3128),
+`Object::disband` (§168's Oil Platform sites) and `LeaderData::can_transport` (the AI's Oil Platform before 1182) stood
+on `NEVER` although the dumps show each behaviour (`docs/AI.md` §296 row 3, `docs/TRANSPORT.md` §18.2). run717's
+command with `--cover cover=1`, so `samegame.py` has a twin window, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1019`: `--map 18 --end-frame 3150 --timeout 3600 --log-window 3104
+3142 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8
+--profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=1`; the staged `rontrace.cmd` is `37 !ffwd 4` and
+`3150 !quit` (`callwin=0-3150`). The `AMMO` line is `AMMO=5` (run717's level, which printed `traj` and `total_time`).
+- Pool lane 1 (`~/wine-ron`). Launched 12:35:39, exited 12:40:46: **307.2 s launch to exit** (319.5 s in all; run717
+  at `cover=0` took 334.6 s). `success`, lifecycle verified, 3,151 frames, `last_frame` 3150, not ended early, map 18,
+  seed 12345, tribes 4 and 23, five settings files restored. DLL `cf81c228…60c6`, `-DRON_AUTOSTART`. `waitrun.sh`
+  exited 0. 228 GiB free before. Minutes waited on another lane: none.
+- **6,975 functions entered**, nine of them `NEVER` rows: the four asked — `LeaderData::can_transport@006e0c60` on
+  1182, `Object::disband@006455c0` on 1419 (§168's site `1/2037` on its 128-frame phase, already diff-backed),
+  `Spline::set_min_seg_length@009125e0` and `Spline::calc_from_dir@00913960` on 2933 — and five unasked:
+  `Unit::check_build_order@00603470` (193), `LeaderData::get_nukes@006ebe50` (780), `Unit::reset_move_orders@005fd080`
+  (2458), `Armies::send_navy@006f2c90` (2812), `Army::use_spies@006f4af0` (3096). The trace records a function's first
+  frame, so 2933 and 1419 are earlier calls of the same functions than the frames §296 row 3 named; run717's rounds
+  on 3124..3128 are on this dump, identical to run717's.
+- `rngcmp.py rontrace-run717.log rontrace-run1019.log` (the `cover=0` twin): **3,151 in common, 0 differing, 3,151
+  identical**; against run652 (the lobby's draw stream) the same, 3,151 / 0 / 3,151.
+- `samegame.py gamelog-run717-… gamelog-run1019-…`: **38 in common (3104..3141), 0 differ**. The dumps are one byte
+  apart in size (117,945,395 against 117,945,394), as run1017's from run668. Nothing in this dump parts its twin, so
+  no residue item.
+- Filed with `filerun.py run1019 eastindies-persian-alltech-ammo-3104-3141-cover1-clickfree`.
+
+Archive `gamelog-run1019-eastindies-persian-alltech-ammo-3104-3141-cover1-clickfree.txt`, 117,945,394 bytes,
+SHA-256 `5055745e94c6c58c6bfa73f0e798d0e68467dde9b7c47683879e17734da6e882`.
+
+Archive `rontrace-run1019.log`, 135,826,496 bytes,
+SHA-256 `ce273f2a5efddef1bbf2f4704e5627a61d538762c4c8548af1d1a2da8bb70d18`.
+
+**What it holds**: `blind::TRACES`' run1019 (item 3420), `NEVER` 372 → 363.
