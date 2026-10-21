@@ -63,6 +63,7 @@ pub mod attack_view;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
+pub mod board_ship_view;
 pub mod border_pass;
 pub mod bribe;
 pub mod build;
