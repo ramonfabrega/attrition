@@ -57,6 +57,7 @@ pub mod alarm;
 pub mod alarm_view;
 pub mod anim;
 pub mod army;
+pub mod army_do_defending_view;
 pub mod army_is_moving_view;
 pub mod army_normalize_view;
 pub mod army_process_view;
@@ -125,10 +126,13 @@ pub mod group;
 pub mod group_move;
 pub mod group_queue_up;
 pub mod grouppath;
+pub mod groups_process_view;
 pub mod halt_view;
 pub mod heal;
 pub mod herd_create_view;
+pub mod hero_radius_view;
 pub mod holdings;
+pub mod land_plane_view;
 pub mod launch;
 pub mod location;
 pub mod market;
@@ -7031,9 +7035,11 @@ impl Sim {
         // mark `Unit::set_in_danger` gave it (`docs/ORDERS.md` §22).
         // The flag is guy 0's (`set_in_danger` sets no other), so guy
         // 0's gate is the whole clear: a crew figure has none to drop.
-        if self.units[i].movement.body.avg_speed == 0
-            && (self.frame + i64::from(self.units[i].index)).rem_euclid(64) == 0
-        {
+        if collide::repaint_due(
+            self.frame,
+            self.units[i].index,
+            self.units[i].movement.body.avg_speed,
+        ) {
             self.units[i].guy_flag_0x20 = false;
         }
     }

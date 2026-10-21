@@ -20753,3 +20753,66 @@ SHA-256 `26575bf76bc11ea10d337bb348833513c860940e8db32b2878efdd43fedf603e`.
 
 **What it holds**: `get_damage` 19688 on the decoy `1/82`, and — the round `1362761c`'s clock poked 11 → 12 —
 13 on `1/61` at armour 4.
+
+## run1014 — the Inca word at Great Sahara: the word 13416's window, blocks 13410..13666 (2026-10-20, item 3393, `att-3393`)
+
+`docs/AI.md` §295. **What the disk could not answer**: run1011 ends at block 13359 and run1006b dumps its setup and
+closing blocks only, so no dump held the word's block 13417. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/take2/run1014`: `--map 7 --ai-tribe 2 --profile DIFFICULTY=3 --end-frame 13671 --timeout 7200
+--log-window 13410 13666 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3,AMMO=5`.
+- Pool lane 2. Launched 20:54:09, exited 21:16:46. `success`, 13672 frames; `rngcmp.py` vs run1006b: 13672 identical.
+  Filed with `filerun.py run1014 greatsahara-inca-diff3-window-13410-13667 --golden ~/ron-golden/take2`.
+- Two dead takes first, on lane 2: the first at the default `--timeout 180` (its pace line warned; a traceback and
+  no receipt, its staging left in `~/ron-golden/run1014`), the second refused at once because that directory
+  existed. The retake wrote to `~/ron-golden/take2/run1014`; nothing was deleted.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1014-greatsahara-inca-diff3-window-13410-13667.txt`, 531,554,930 bytes,
+SHA-256 `dcbe6d024bc5b0a85f2ccc71c0dba6ff6870a12da07906d5e19578ddaf4c9185`.
+
+Archive `rontrace-run1014.log`, 63,303,296 bytes,
+SHA-256 `ada8889ab4759dc7145fd6d541f8da01af32236c1ec7f7327d39e186288945dc`.
+
+**What it holds**: the word 13416's block 13417. Test `run1014_s_word_frame_is_widened_whole`: 256 blocks, 26 keys
+after the build, every one standing from block 13410 (the decoys `1/90`, `1/91` were `extra` there before it).
+
+## run1015 — the Inca word at Great Sahara: the gap between run1011 and run1014, blocks 13355..13412 (2026-10-20, item 3393, `att-3393`)
+
+`docs/AI.md` §295. **What the disk could not answer**: run1014's first block holds `1/90` and `1/91` in this crate
+alone, and run1011 ends at 13359 with both at full `myhits`; no dump printed 13360..13409, where they left. Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1015`: `--map 7 --ai-tribe 2 --profile DIFFICULTY=3
+--end-frame 13417 --timeout 7200 --log-window 13355 13412 --detail end:MISC,UNITS=3,BUILDS=7,GUYS=4,LEADERS=9,AMMO=5`.
+- Pool lane 1. Launched 21:24:04, exited 21:30:57. `success`, 13418 frames; `rngcmp.py` vs run1006b: 13418 identical.
+  Filed with `filerun.py run1015 greatsahara-inca-diff3-window-13355-13413`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1015-greatsahara-inca-diff3-window-13355-13413.txt`, 119,492,634 bytes,
+SHA-256 `9d6ebde63dcd4573b7af41c49d8cf5fb4ac4c5568d828fbf859dcf694d66b715`.
+
+Archive `rontrace-run1015.log`, 61,825,888 bytes,
+SHA-256 `708ce5b00930ef496216eb6d58582f9e47ed2eb58a185aa1d2e54be2fbcf5f7d`.
+
+**What it holds**: the decoy squad uid 123, 124, 125 (`1/90`, `1/91`, `1/92`) printed through block 13392 and gone
+on 13393, `damage` unchanged and no round aimed at any of them.
+
+## run1015b — the Inca word at Great Sahara: a packet at 13392, blocks 13389..13395 (2026-10-20, item 3393, `att-3393`)
+
+`docs/AI.md` §295. **What the disk could not answer**: how three decoys of one squad left on one block with only the
+tail struck — the calls inside frame 13392, which no dump prints. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1015b`: `--map 7 --ai-tribe 2 --profile DIFFICULTY=3 --end-frame
+13396 --timeout 7200 --log-window 13389 13395 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --tracer-def
+RON_STATE_FRAME=13392 --tracer-def RON_STATE_PLAN=<item 597's plan.h>`.
+- Pool lane 1. Launched 21:35:33, exited 21:36:30. `success`, 13397 frames; `rngcmp.py` vs run1006b: 13397 identical.
+  Filed with `filerun.py run1015b greatsahara-inca-diff3-window-13389-13396`. The packet stays at
+  `~/ron-golden/run1015b/map-7/frame-snapshot.bin`, 832,982,084 bytes, SHA-256
+  `35c10342fc8f0ab3b879d7517a8e97bfd1f7529a53b63bfa38fd57d5d09558b3`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1015b-greatsahara-inca-diff3-window-13389-13396.txt`, 2,873,990 bytes,
+SHA-256 `81e3b7e2141def24c5a322563c97145e08f0136e6d2a4c3d1e675f4f3ab72044`.
+
+Archive `rontrace-run1015b.log`, 61,743,072 bytes,
+SHA-256 `8c78238e64e0fdb1124fa7b4c8b8a084f394691c7efa918080e221ed3a75d7a4`.
+
+**What it holds**: `step4.py --entry 65db70 --this c0ab70 --hook 652020`: `Object::take_damage` on `1/92` with 13370
+from `Object::do_damage+0x159e`, then on `1/90` with 13345 and on `1/91` with 13327, both from `take_damage+0x140c`.

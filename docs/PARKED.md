@@ -3783,6 +3783,17 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3401) **A lane gate re-run for a clean update that touched only the commander's files, three times in one landing**
+(3393's "for the Loop", filed at its merge): 3393's second to fourth lane gates were red only on the commander's lines
+and each ended on `Base moved:` — the second's overlap five paths after att-3390's merge, the third's and fourth's
+`docs/PARKED.md` alone — and every `ccc update` merged clean, yet the lane gated again each time: about 55 minutes on a
+tree whose only overlap was the commander's own bookings. LOOP.md already says a lane lands on its verdict when the
+update is clean; the `Base moved:` line reads as a red, and the lane obeyed the line. The gate's: a moved base whose
+overlap is only `docs/QUEUE.md`, `docs/PARKED.md` or the census pins says so, and the `Lane verdict:` line stands.
+And the same journal: `golden_capture.sh`'s default `--timeout 180` kills a window capture at detail (run1014's first
+take died at 180 s after its pace line), and the leftover output directory refuses a retake under the same name, so
+the retake went to `--golden`; the default should follow the pace line's estimate. One reach.
+
 (3398) **The held-out battery runs eight of eight whole, and the refill rule names no lobby** (3390's merge,
 `battery_measure` on `15e001e8`: 6147, 7799, 14540, 15853, 18883, 24000 ×3, every one `sequence N of N`; the Dutch at
 Great Lakes, 3390's rule-(2) replacement, whole on its first try): entry 72 as amended by 84 refills a battery lane
@@ -3791,7 +3802,10 @@ end at 15632. The commander refilled the freed Opus lane as a Sonnet sweep under
 own is a sweep lane" (3397, as 3229 was) and minted no lobby. For the pass, and Ramon's where it is the finish line:
 entry 61 says the battery is the number that says when minting can stop, and every kept lobby is at its game's end, so
 none can move on fixes made for others; whether to mint lobbies past eight, close the battery track, or move the two
-Opus lanes to another kind (the `reading` kind, entry 84) when 3393 lands. One reach.
+Opus lanes to another kind (the `reading` kind, entry 84) when 3393 lands. **3393 closed the Inca at 15632, so no
+battery word is open anywhere, and its lane was refilled as a sweep too (3400).** And the sweeps' pool drains with it:
+no unbacked row has a `port` consumer, and past 3400's six the `name` mark holds thirteen rows, the shortest 12,745
+bytes (`Build::plunder`), the longest `Game::run`'s 66,803. One reach.
 
 (3394) **A `tools/check.sh` run that waits for admission is killed in about six seconds, exit 144** (3385's "for the
 Loop", filed at its merge): in 3385's third session every single-test `zsh tools/check.sh test …` that had to wait
@@ -8892,13 +8906,12 @@ reassembled on its cadence regardless, and no capture's word sits between a Barr
 `close_count` raises for every close path, the original's arm sits on `Unit::close`'s general path only. Names no
 score.
 
-## Parked by the next landing, slot LV — reserved
+## Parked by item 3393, 2026-10-20 — the Inca word at Great Sahara closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3393a. A decoy's overflow into a closed captain slot.** `Object::take_damage@00652020:619`–`631` calls
+  `take_damage` on `get_captain`'s slot whatever its state; `Sim::take_damage_typed`'s decoy arm looks for the
+  captain among the living and stops otherwise (`docs/AI.md` §295). No walk reaches a decoy squad whose captain
+  slot is closed and still named. Names no score.
 
 ## Parked by item 3386, 2026-10-20 — the second sweep's sixth batch
 
@@ -8991,13 +9004,14 @@ words and edits nothing here; a refill lands when two remain.
 - **3395c. `GroupData::count@00711720` has no crate twin.** Swept whole in six slices (`group_data_count_*`, 440 rows each, about 213 breaks, 1 equivalent: REGION `^ 0x63637` → `0x63636`); the crate has only `Army`'s per-kind `army_count_*` closures, so every port is inline.
 - **3395d. Namesakes.** `attack_pos.rs:426 is_moving` is `UnitData::is_moving@00610af0`, not `Army::is_moving@006f5470` (the port is `Sim::army_is_moving`, now run through `army_is_moving_view.rs`; `num_units` vs `units.len()` is the model's one difference). `Wall::update_gpiece@00643070` has no crate twin (`garrison_view.rs`'s `update_gpiece` is `Unit::update_gpiece`); a wall's piece choice is art state, the sweep's port is inline.
 
-## Parked by the next landing, slot MB — reserved
+## Parked by item 3396, 2026-10-20 — the nations seat's twenty-second batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3396a. `Army::do_defending` calls `ObjectsData::find_city` with an unestablished `ecx`.** It pushes whatever register `find_besieged_city` left as the fifth argument too (the decompiler prints an uninitialised `this_01`); the sweep's stub leaves `ecx` = the army. `army_do_defending_view.rs` (unwired) is the walk; `Sim::do_defending` (`army.rs`) is the same tree over structured state, compared by eye only, no diff backs it.
+- **3396b. `Groups::process`: the crate's `Sim::groups_process` is a namesake.** It prunes by `frame mod 64` over pool slots; the original steps 8 leaders (`0xe3a390`, stride `0x6eec`) with a cursor wrapping at 63 and inlines `Group::normalize`. `groups_process_view.rs` (unwired). The body slice draws one group at cursor 0 and leader 0; leaders 1-7 are covered only by the driver slice, whose group counts are held at 0. `tools/emu/hooks.py` heap map grew 1 MB to 2 MB for the 512-group table; other sweeps were not re-run against it.
+- **3396c. `Guy::process`: `docs/COLLISION.md` §2.1's `radius[r] = (2r+1)^2` holds only through r = 7.** The original's `move_x`/`move_y` prefix is not a square from r = 8 (offsets reach 16); `spiral(r)` is. Shipped `BLOCK_RADIUS` is 0..7, so nothing reaches it. Also excluded from the draw: a cell block word of -1 and a region of -1/`None` (the crate's `None` passes the gate, the original skips). The refactor (`collide::PaintView`, `paint_walk`, `repaint_due`, `CollGrid::set` made `pub`) is behaviour-neutral by reading; no diff run.
+- **3396d. `HeroData::get_radius`: `supply::general_radius` is the port.** Fix: wrapping `i32` arithmetic and `Patriot::Both` (the original adds both bonuses for a hero in both sets). `Sim::hero_radius` (`cast.rs`) still asks `is` of the type directly, reads Terra Cotta as absent and never produces `Both`.
+- **3396e. `Unit::land_plane`: the crate's is a collapsed port.** `Sim::land_plane` now runs `land_plane_view::land_plane_steps` through an adapter that folds add-spec-anim, the home words and the order's `work` into `Sim::go_inside`; the animal arm is `flockbird_dies`. The adapter's `clear_partial_path` and `update_action` forwards are uncaught by any test (2 breaks held by the sweep at the view level only).
+- **3396f. `CommandManager::start` has no crate twin** (session start: semaphore bits, TimeSync, the game log, splash close, start sound); the port is inline in the sweep. 5 of 59 breaks equivalent (a dead `0x81c` write, a written-back read).
 
 ## Parked by the next landing, slot MC — reserved
 
@@ -9027,6 +9041,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot MF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot MJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot MJ renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

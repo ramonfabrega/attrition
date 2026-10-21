@@ -43,7 +43,7 @@ class Harness:
         self.m = Machine(Image(exe))
         uc = self.m.uc
         uc.mem_map(0, 0x1000)  # fs:0 (the SEH chain) reads linear 0
-        uc.mem_map(HEAP, 0x10_0000)
+        uc.mem_map(HEAP, 0x20_0000)  # 2 MB: Groups::process's table of 512 groups is 1.27 MB (item 3396)
         uc.mem_map(STUBS, 0x1000)  # grown a page at a time by `stub` (Loop 2043)
         self.stub_pages = 1
         self.brk = HEAP

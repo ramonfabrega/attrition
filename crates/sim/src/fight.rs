@@ -2899,6 +2899,11 @@ impl Sim {
                 let u = &mut self.units[i];
                 u.damage_frac = frac;
                 u.health -= lost;
+                // `take_damage@00652020:619`: the whole points past the
+                // figure's share, read before `die` — what a decoy's death
+                // hands on to its captain below.
+                let overflow = u.max_health - u.health - share;
+                let decoy = u.decoy;
                 if matches!(taken, Taken::Died { .. }) {
                     u.health = u.health.min(0);
                     // `take_damage@00652020:607`, before `die` (vslot
@@ -2919,6 +2924,42 @@ impl Sim {
                     self.close_supply_in(i, keep);
                     self.forget(Obj::Unit(i));
                     self.clear_decoy_at_close(i);
+                    // **A decoy's overflow strikes its captain**
+                    // (`take_damage@00652020:619`–`631`, item 3393): after
+                    // `die`, a figure that was a decoy (`unit_masks & 1`,
+                    // read before `close` cleared it) with whole points
+                    // past its share hands them to `get_captain` — the
+                    // chain as `close` re-linked it — unless that is
+                    // itself: `take_damage(overflow, 0, dtype, …, captain,
+                    // who, 0)`, the captain its own attacker. A decoy's
+                    // blow is `get_damage`'s step 17, so the squad goes
+                    // down figure by figure on the one round. run1015b's
+                    // packet: the tail `1/92` takes 13370, `1/90` the
+                    // 13345 past its 39, `1/91` the 13327 past 1/90's.
+                    if decoy && overflow > 0 {
+                        let (c, who) = (self.units[i].combat.captain, self.units[i].owner);
+                        let captain = (c != i32::from(self.units[i].index))
+                            .then(|| {
+                                self.units.iter().position(|u| {
+                                    u.owner == who && i32::from(u.index) == c && u.alive()
+                                })
+                            })
+                            .flatten();
+                        if let Some(k) = captain {
+                            let hit = combat::Sixteenths {
+                                whole: overflow,
+                                frac: 0,
+                            };
+                            self.take_damage_typed(
+                                Obj::Unit(k),
+                                hit,
+                                Obj::Unit(k),
+                                _frame,
+                                dtype,
+                                false,
+                            );
+                        }
+                    }
                 }
                 taken
             }
@@ -6302,6 +6343,43 @@ mod tests {
             let p = round(&sim, me, Some(Obj::Unit(them)), Pos::new(2016, 2016), 0);
             sim.land(p, 3385);
             assert_eq!(!sim.units[them].alive(), decoy, "decoy {decoy}: dead");
+        }
+    }
+
+    /// **A decoy's overflow strikes its captain** (`Object::take_damage
+    /// @00652020:619`–`631`, item 3393): a round on the tail of a decoy
+    /// squad of three takes `get_damage`'s step 17, and the points past each
+    /// figure's share pass up the chain as `close` re-links it, so the whole
+    /// squad falls on the one round — run1015b's Inti Macemen `1/92`,
+    /// `1/90`, `1/91` on 13392. A squad that is no decoy loses no figure to
+    /// the one blow. Made to fail with the arm dropped.
+    #[test]
+    fn a_decoy_squad_falls_to_one_round_on_its_tail() {
+        for decoy in [false, true] {
+            let (mut sim, ty) = at_war();
+            sim.unit_types[ty].combat.uber_size = 3;
+            let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+            let chain: Vec<usize> = (0..3)
+                .map(|k| put(&mut sim, 0, ty, Pos::new(2016 + 48 * k, 2016)))
+                .collect();
+            let head = i32::from(sim.units[chain[0]].index);
+            for (k, &u) in chain.iter().enumerate() {
+                let un = &mut sim.units[u];
+                un.decoy = decoy;
+                un.squad_size = 3;
+                un.captain = k == 0;
+                un.combat.captain = head;
+                un.o_up = (k > 0).then(|| chain[k - 1]);
+                un.o_down = chain.get(k + 1).copied();
+            }
+            let p = round(&sim, me, Some(Obj::Unit(chain[2])), Pos::new(2112, 2016), 0);
+            sim.land(p, 3393);
+            let dead: Vec<bool> = chain.iter().map(|&u| !sim.units[u].alive()).collect();
+            if decoy {
+                assert_eq!(dead, [true, true, true], "the decoy squad falls whole");
+            } else {
+                assert_eq!(dead, [false, false, false], "one blow, no figure down");
+            }
         }
     }
 
