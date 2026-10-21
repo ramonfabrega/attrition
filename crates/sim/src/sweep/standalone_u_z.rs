@@ -316,6 +316,8 @@ mod unit_out_issue_come_out;
 mod unit_out_issue_unqueue;
 #[path = "unit_plunder.rs"]
 mod unit_plunder;
+#[path = "unit_process_attrition.rs"]
+mod unit_process_attrition;
 #[path = "unit_process_head.rs"]
 mod unit_process_head;
 #[path = "unit_process_inside.rs"]
@@ -324,8 +326,6 @@ mod unit_process_inside;
 mod unit_process_onmap;
 #[path = "unit_process_train.rs"]
 mod unit_process_train;
-#[path = "unit_process_attrition.rs"]
-mod unit_process_attrition;
 #[path = "unit_repair_damage.rs"]
 mod unit_repair_damage;
 #[path = "unit_replace_form_id.rs"]
