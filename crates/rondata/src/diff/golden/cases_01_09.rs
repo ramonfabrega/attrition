@@ -4170,7 +4170,7 @@ pub(super) fn chapter_eight_s_word_frame_is_widened_whole() {
     got.sort();
     let mut want: Vec<String> = [
         // Item 3385: `0/7`'s `damage_frac`, `hits:damage`,
-        // `hits:damage_frac` and `hits_left` agree (ITEM3385_CAUSE).
+        // `hits:damage_frac` and `hits_left` agree (the General's rally armour, `Sim::rally_armor`).
         "660 0/-1 leader:treaties[1]",
         "660 1/-1 leader:treaties[0]",
     ]
