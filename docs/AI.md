@@ -9468,7 +9468,17 @@ tests the claim's own unit.
   and ratchets `wonders_held` (+0x858).
 - **`Wonders::close_wonder@0073c7e0`**, called from `Build::close`. It
   clears the entry's bit, then walks the mark down while the entry under
-  it is clear.
+  it is clear. Its whole write set (item 3409, §296; *reading alone*):
+  the entry's `+0xc & 1` cleared, `+0xd` to `0xff` and `o` (`+0x2`,
+  `WonderData`) to −1 (`:10`–`:12`), then `LeaderData::wonder_mark`
+  (`+0x424`) decremented while the entry under it is clear (`:13`–`:21`);
+  it returns −1 either way, and `Build::close` reaches it only when the
+  building's `+0x76` (its wonder slot) is non-negative (`:314`–`:316`).
+  So the mark falls only when the highest standing wonder closes, and
+  falls past every cleared entry under it. *Falsifier*: `LEADERS=9`'s
+  `wonder_mark` on the frame a player's last-activated wonder is razed
+  or captured — the mark drops to one past the next entry still in use;
+  a lower wonder's close leaves it standing.
 
 So the mark is **one past the highest entry in use**, not a count.
 `has_wonder` and `get_wonder_value` walk the list to it.
