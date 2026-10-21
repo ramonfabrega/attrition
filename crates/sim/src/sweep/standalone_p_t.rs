@@ -220,6 +220,10 @@ mod spell_type_cast;
 mod spell_type_cast_air_defense;
 #[path = "spell_type_cast_blow_tread.rs"]
 mod spell_type_cast_blow_tread;
+#[path = "spell_type_cast_bribe.rs"]
+mod spell_type_cast_bribe;
+#[path = "spell_type_cast_bribe_self.rs"]
+mod spell_type_cast_bribe_self;
 #[path = "spell_type_cast_civilian.rs"]
 mod spell_type_cast_civilian;
 #[path = "spell_type_cast_create_decoy.rs"]
@@ -232,10 +236,14 @@ mod spell_type_cast_jam_radar;
 mod spell_type_cast_lock_gate;
 #[path = "spell_type_cast_pack.rs"]
 mod spell_type_cast_pack;
+#[path = "spell_type_cast_pilfer.rs"]
+mod spell_type_cast_pilfer;
 #[path = "spell_type_cast_rally.rs"]
 mod spell_type_cast_rally;
 #[path = "spell_type_cast_research_project.rs"]
 mod spell_type_cast_research_project;
+#[path = "spell_type_cast_sabotage.rs"]
+mod spell_type_cast_sabotage;
 #[path = "spell_type_cast_supplies.rs"]
 mod spell_type_cast_supplies;
 #[path = "spell_type_cast_transport.rs"]

@@ -86,6 +86,8 @@ mod unit_check_build_order_deep;
 mod unit_check_build_order_move;
 #[path = "unit_check_idle.rs"]
 mod unit_check_idle;
+#[path = "unit_check_meet_ship.rs"]
+mod unit_check_meet_ship;
 #[path = "unit_check_target_path.rs"]
 mod unit_check_target_path;
 #[path = "unit_come_out.rs"]
@@ -238,6 +240,8 @@ mod unit_do_form_change;
 mod unit_do_gather;
 #[path = "unit_do_gather_005ef2a0.rs"]
 mod unit_do_gather_005ef2a0;
+#[path = "unit_do_group_attack.rs"]
+mod unit_do_group_attack;
 #[path = "unit_do_group_attack_to.rs"]
 mod unit_do_group_attack_to;
 #[path = "unit_do_group_move_leader.rs"]
