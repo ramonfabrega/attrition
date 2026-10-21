@@ -20942,3 +20942,65 @@ SHA-256 `d2fdf1e9ebb98ce16de15f58cd4f643256cffa04c0e5e9ca9c44eb23ead6286c`.
 
 **What it holds**: `blind::TRACES`' run1017 (item 3418), `NEVER` 376 → 372 on run1016's list (`get_enhancing_good` and
 `get_vehicle_speed_upgrade` already off with it).
+
+## run1040–run1043 — the middle ages: Great Sahara at Toughest at `STARTING_TECHNOLOGY 3` and `5`, each to 6000 at `cover=0` and `cover=1` on the click-free pool (2026-10-21, item 3431, `att-3431`)
+
+**What the disk could not answer**: which ages a pinned dump holds. `tools/rubric.py --tables 2` on the forty-eighth
+pass's tree found none between Medieval and Modern; every pinned trace's dump was Ancient or Classical, with
+Enlightenment (203 pairs) from run1017's closing window and Information (one frame) from run1016. No capture on disk
+holds this lobby at a starting age other than 0, and no `cover=1` trace holds any start of 3 or 5 (run650 is
+`STARTING_TECHNOLOGY 5` on East Indies to 36, `cover=0`).
+
+run668's lobby (`--map 7`, `DIFFICULTY=5`, seed 12345, the human Nubians (4), the computer tribe 11), each run with
+the same command except the starting age and `--cover`. The runner set `37 !ffwd 7` and `6000 !quit`, with
+`callwin=0-6000`. One dump block in sixty from frame 1 to 5941, plus the closing block 6001: 100 blocks.
+
+```
+zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run104N \
+    --map 7 --end-frame 6000 --allow-early-end --timeout 5000 --log-window 0 6001 --stride 60 \
+    --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9 \
+    --profile DIFFICULTY=5 --profile STARTING_TECHNOLOGY=<3|5> [--cover cover=1]
+```
+
+| run | start | cover | lane | launched | launch to exit | frames | functions entered |
+|---|---|---|---|---|---|---|---|
+| run1040 | 3 | 0 | pool 1 | 11:55:31 | 413.5 s | 6,001 | — |
+| run1041 | 3 | 1 | pool 3 | 11:55:31 | 386.5 s | 6,001 | 6,677 |
+| run1042 | 5 | 0 | pool 1 | 12:02:44 | 337.2 s | 6,001 | — |
+| run1043 | 5 | 1 | pool 3 | 12:02:39 | 393.2 s | 6,001 | 6,672 |
+
+- Every receipt: `success`, lifecycle verified, `last_frame` 6000, not ended early, map 7 and seed 12345 verified,
+  five settings files restored. Each dump's `GAME INFO` reads back `STARTING_TECHNOLOGY 3` or `5`. The disk had 231
+  GiB free before. Minutes waited on another lane: none (att-3419 held pool lane 2 throughout).
+- `rngcmp.py rontrace-run1040.log rontrace-run1041.log`: **6,001 in common, 0 differing, 6,001 identical**;
+  run1042 against run1043 the same, 6,001 / 0 / 6,001.
+- `samegame.py` run1040 against run1041: **100 in common (1..5941), 0 differ**; run1042 against run1043 the same,
+  100 / 0. Each twin's two dumps are the same size in bytes (169,620,815; 168,818,004).
+- `NEVER` (372): neither `cover=1` trace enters a row.
+- `rubric.py --tables 2` on each `cover=1` dump alone: run1041 holds Gunpowder (age 3) on all 101 blocks for both
+  players; run1043 holds Industrial (age 5) on all 101. **Neither leader advances an age in 6000 frames.** The age-0 row
+  each also prints is `who` 8 and 9, the two non-player slots: their `leader_flags` are `0x2000007` (active and human
+  set) on every block (parked 3431a).
+- The units on the field (`--tables 3`): run1041 has 10 types (the computer's Arquebusiers, Elite Pikemen and King's
+  Yeomanry), and run1043 has 8 (Commando, Black Watch). Neither has a supply wagon (63–65), an aircraft or a wonder.
+- Filed with `filerun.py run104N greatsahara-toughest-age<3|5>-cover<0|1>`.
+
+Archive `gamelog-run1040-greatsahara-toughest-age3-cover0.txt`, 169,620,815 bytes,
+SHA-256 `12ccd1c46bbbdde60022d01b03c3ef9ad308250f9b42b90e05c84662c3406504`.
+Archive `rontrace-run1040.log`, 28,021,760 bytes,
+SHA-256 `6af075d3566510966d43c9c2256b532a6ae8c3b41938d026cf0f81bbcbe45e27`.
+Archive `gamelog-run1041-greatsahara-toughest-age3-cover1.txt`, 169,620,815 bytes,
+SHA-256 `a5d3c64b6f816ba8b87571b69a374f23b2db895eba815f7975de55e373f2fc03`.
+Archive `rontrace-run1041.log`, 28,026,400 bytes,
+SHA-256 `0f021f072021d0d45e146c41522e4f6d20cc5ab5328b6c904ec2891f7b6e8714`.
+Archive `gamelog-run1042-greatsahara-toughest-age5-cover0.txt`, 168,818,004 bytes,
+SHA-256 `7b2607b3e00dd30b53ba017a1347808a5c546f0edb504c63b34a41038ce3eba3`.
+Archive `rontrace-run1042.log`, 32,369,792 bytes,
+SHA-256 `f58dd39977731cf69e638a27da1e62efba0b4c33302cf70a92e610fe3bceb72c`.
+Archive `gamelog-run1043-greatsahara-toughest-age5-cover1.txt`, 168,818,004 bytes,
+SHA-256 `781e5e8eb39a29117a636a24c7686b19bf6f3b0eec61721cb52cb285c14b1702`.
+Archive `rontrace-run1043.log`, 32,652,128 bytes,
+SHA-256 `3bc2f22b117aad9a76d445ede1bfe23567545124ddedea9b1d9fbf5c193a8c8e`.
+
+**What it holds**: `blind::TRACES`' run1041 and run1043 (item 3431). `NEVER` stays 372. The pinned dumps' ages held
+go from 4 of 8 to 6 of 8; Medieval (2) and Modern (6) are still never held.
