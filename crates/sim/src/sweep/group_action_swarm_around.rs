@@ -53,7 +53,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 // **The port is the crate's own steps**, `crate::swarm_around_view::action_swarm_around_steps`, which
                 // `Sim::group_action_swarm_around` runs over its `SimSwarm`; here the view is the emulated original's windows.
                 use crate::garrison_view::GarrisonHead;
-                use crate::swarm_around_view::{SwarmView, action_swarm_around_steps};
+                use crate::swarm_around_view::{SwarmHead, SwarmView, action_swarm_around_steps};
                 // (stub, offset in `a`, length)
                 const SEQ_AT: [(usize, usize, usize); 17] = [
                     (0, 43, 16),
@@ -157,11 +157,20 @@ fn the_emulated_original_agrees_on_every_row() {
                         self.rec(1, "m+0x0", &[]);
                     }
                 }
-                impl SwarmView for V<'_> {
+                impl SwarmHead for V<'_> {
                     fn scratch_clear(&mut self) {
                         let l = self.local();
                         self.rec(10, &l, &[-1]);
                     }
+                    fn is_on_map(&mut self) -> bool {
+                        self.rec(11, "m+0x0", &[]);
+                        self.seq(11) != 0
+                    }
+                    fn site_exists(&self, who: i32, b: i32) -> bool {
+                        self.p[Self::ow(who, b)][8] & 1 != 0
+                    }
+                }
+                impl SwarmView for V<'_> {
                     fn scratch_add(&mut self, m: i32, p: i32) {
                         let l = self.local();
                         self.rec(21, &l, &[m, p, 0, 0]);
@@ -174,13 +183,6 @@ fn the_emulated_original_agrees_on_every_row() {
                     fn scratch_move_to(&mut self, x: i32, y: i32) {
                         let l = self.local();
                         self.rec(35, &l, &[x, y, 2, 0, 0, 1, 0, -1, -1, 0]);
-                    }
-                    fn is_on_map(&mut self) -> bool {
-                        self.rec(11, "m+0x0", &[]);
-                        self.seq(11) != 0
-                    }
-                    fn site_exists(&self, who: i32, b: i32) -> bool {
-                        self.p[Self::ow(who, b)][8] & 1 != 0
                     }
                     fn set_up_insert(&mut self) {
                         let l = self.stk(0x88);

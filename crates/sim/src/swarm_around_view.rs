@@ -26,11 +26,36 @@ pub const GATHER: i32 = 7;
 /// `OrderIndex::REPAIR`.
 pub const REPAIR: i32 = 0xd;
 
-/// What `Group::action_swarm_around` asks of the group, the world and the
-/// objects.
-pub trait SwarmView: GarrisonHead {
+/// The head of `Group::action_swarm_around`: the scratch group's clear, the
+/// two refusals (the group is off the map, the site is gone), the scenario's
+/// ignore-orders sweep and the group's refresh, which every entry runs, the
+/// `QUEUE_FIRST` re-entry's too.
+pub trait SwarmHead: GarrisonHead {
     /// `Group::clear(local scratch group, -1)`.
     fn scratch_clear(&mut self);
+    /// `GroupData::is_on_map`.
+    fn is_on_map(&mut self) -> bool;
+    /// `objects[who][b]`'s byte `+8 & 1`: the site exists.
+    fn site_exists(&self, who: i32, b: i32) -> bool;
+}
+
+/// The listing up to and including the group's refresh: false where the
+/// entry returns before the sweep.
+pub fn swarm_head<V: SwarmHead>(v: &mut V, b: i32, who: i32) -> bool {
+    v.scratch_clear();
+    if !v.is_on_map() {
+        return false;
+    }
+    if !v.site_exists(who, b) {
+        return false;
+    }
+    garrison_head(v);
+    true
+}
+
+/// What `Group::action_swarm_around` asks of the group, the world and the
+/// objects.
+pub trait SwarmView: SwarmHead {
     /// `Group::add(local scratch group, m, p, 0, 0)`: a member the swarm does
     /// not take, sent to the site afterwards.
     fn scratch_add(&mut self, m: i32, p: i32);
@@ -39,10 +64,6 @@ pub trait SwarmView: GarrisonHead {
     /// `Group::action_move_to(local scratch group, x, y, QUEUE_NEW, 0, 0,
     /// MOVE_TO, 0, -1, -1, 0)`.
     fn scratch_move_to(&mut self, x: i32, y: i32);
-    /// `GroupData::is_on_map`.
-    fn is_on_map(&mut self) -> bool;
-    /// `objects[who][b]`'s byte `+8 & 1`: the site exists.
-    fn site_exists(&self, who: i32, b: i32) -> bool;
     /// `Group::set_up_insert(&list)`: the `QUEUE_FIRST` re-entry's start.
     fn set_up_insert(&mut self);
     /// `Group::action_halt(0)`.
@@ -167,14 +188,9 @@ pub fn action_swarm_around_steps<V: SwarmView>(
     action: i32,
     depth: i32,
 ) {
-    v.scratch_clear();
-    if !v.is_on_map() {
+    if !swarm_head(v, b, who) {
         return;
     }
-    if !v.site_exists(who, b) {
-        return;
-    }
-    garrison_head(v);
     if queue == 0 {
         // The insert dance: the group halts, takes the swarm at `QUEUE_NEW`
         // and re-issues what it was doing (`finish_insert`).
@@ -419,13 +435,8 @@ impl GarrisonHead for SimSwarm<'_> {
     fn refresh(&mut self) {}
 }
 
-impl SwarmView for SimSwarm<'_> {
+impl SwarmHead for SimSwarm<'_> {
     fn scratch_clear(&mut self) {}
-    fn scratch_add(&mut self, _m: i32, _p: i32) {}
-    fn scratch_num(&mut self) -> i32 {
-        0
-    }
-    fn scratch_move_to(&mut self, _x: i32, _y: i32) {}
     fn is_on_map(&mut self) -> bool {
         self.sim.group_is_on_map(self.g)
     }
@@ -435,6 +446,14 @@ impl SwarmView for SimSwarm<'_> {
             .get(b as usize)
             .is_some_and(|bd| bd.alive)
     }
+}
+
+impl SwarmView for SimSwarm<'_> {
+    fn scratch_add(&mut self, _m: i32, _p: i32) {}
+    fn scratch_num(&mut self) -> i32 {
+        0
+    }
+    fn scratch_move_to(&mut self, _x: i32, _y: i32) {}
     fn set_up_insert(&mut self) {
         self.insert = Some(self.sim.group_set_up_insert(self.g));
     }
