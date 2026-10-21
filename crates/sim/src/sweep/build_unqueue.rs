@@ -85,11 +85,11 @@ fn the_emulated_original_agrees_on_every_row() {
 /// `+0x5f56` for type `0x29a`) and age bytes (`+0x67f4`), `p8` the options, `p9`/`p10` the owners'
 /// library tables behind `p11..p26`, `p27` the entries, `p30..p36` the type objects (`0..5`, `0x29a`)
 /// and `p39..p45` the unit records.
-struct Rows<'a> {
-    a: &'a [i32],
-    m: &'a mut [u8],
-    p: &'a mut [Vec<u8>],
-    log: &'a mut Vec<String>,
+pub(super) struct Rows<'a> {
+    pub(super) a: &'a [i32],
+    pub(super) m: &'a mut [u8],
+    pub(super) p: &'a mut [Vec<u8>],
+    pub(super) log: &'a mut Vec<String>,
 }
 
 impl Rows<'_> {
