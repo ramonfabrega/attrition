@@ -148,6 +148,7 @@ pub mod orders;
 pub mod path;
 pub mod pivot;
 pub mod place;
+pub mod place_roads_view;
 pub mod plunder;
 pub mod production;
 pub mod rally;
