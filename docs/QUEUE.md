@@ -16,13 +16,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 2 h 40, the queue's whole booking, 5.07 USD and 38.5 minutes waiting a landing, no red gate — 45 of the readings' 46
 residue proposals ratified, the forty-ninth booked as `cover=1` captures** (DECISIONS 87; `docs/audit/2026-10-21-fable-pass-48.md`).*
 
-- **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed). Held-out battery:
-  eight of eight whole, median 17368; entry 61 §6's stop rule has fired (Ramon's). Census 1696 of 3611, port 568, layout
-  1128 (the sweep source is spent). **The headline is the blind list: `NEVER` 380, residue 35 → 80, open 345 → 300**
-  (`Blind:` is pinned). `never` moves only when a `cover=1` trace enters a function, so the forty-ninth tranche is twelve
-  `coverage` items (the fifth kind) on the two Opus lanes, the queue lane serial; the Sonnet seats stand empty.
-- **Lanes: none live, and nothing unspawned.** Next 3429, run 1037. Pools: GOLDEN §145–149, AI §297–301, park MP–MT
-  and MU–MZ, NA–ND. The commander refills a landed lane from the owed tables in the order the queue's tail gives.
+- **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
+  battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
+  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380, residue 35 → 80, open 345 →
+  300** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
+  `coverage` items (the fifth kind) on the two Opus lanes, the queue lane serial until 3429; the Sonnet seats empty.
+- **Lanes: none live.** Next 3430, run 1040. Pools: GOLDEN §145–149, AI §297–301, park MP–MT, MU–MZ, NA–ND; refills from the owed tables.
 - **Fable backlog: 8 Loop items** (3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -38,8 +37,9 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 380 · residue 80 · open 300
+Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): spawn 3417 and 3418 on
+**Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): spawn 3417 and 3429 on
 the two Opus lanes (`brief.py --kind coverage`), the Sonnet seats empty; refill from the owed tables as each lands;
 count landings from the forty-eighth pass's commit; at twenty, or at the drain, clear `steer`.**
 
@@ -56,6 +56,15 @@ layer, `@spell` Bribe, the carrier, `make_valid`, the Nomad lobby; ORDERS §42.3
 lane still runs (`viadriver.sh`, the mouse, `waitrun.sh`); a lane that will not launch is a permission-shaped block,
 reported, not worked around. Enters `Game::current_age@005946d0` (AI §296 row 9) and `Leader::treaty_off@006d0370`
 (VISION §8: `LEADERS=1` `treaties[1]` bit 0 clear at block 501, both sides). Run 1016.
+
+3429. **coverage: make `cover=1` run on the click-free lane** (Ramon, 2026-10-21; Loop 1570's trial, parked 1047):
+run185 hung before frame 0 on the click-free golden lane at `cover=1` with the callwin proxies (48,173 stubs built,
+`armed`, `attach`, 2,984 startup hits, no `FRAME`), never retried, never read. Reproduce it without proxies on a pool
+lane (`unattended_capture.py --cover cover=1`, 3417's lobby, 600 frames); read `rontrace.log`'s last record and the
+attach order (`docs/ORACLE.md`, "Coverage is back": the stub forest is planted at attach with one thread alive; the
+autostart build is `RON_AUTOSTART`); fix it in `tools/trace/` if it is the DLL's, and prove it with `rngcmp.py` against
+3417's queue-lane trace. Lands either the fix (then every item below may take the pool) or the predicate that stops it.
+Runs 1037–1039. **The frame's "never `cover=1` on the click-free lane" row is yours to retire.**
 
 3418. **coverage: Great Sahara Toughest at `cover=1` to 15432** (AI §296 row 1; run470, run668's lobby): enters
 `SpellType::cast_march`, `Leader::verify_spell_flags` (9112, the march; `LEADERS=9` `leader_flags & 0x8000` falls at
