@@ -3783,6 +3783,13 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3405) **Two `name` rows that are not the simulation's, each parked by a sweep** (3404's "for the Loop", filed at its
+merge): `UnitBalance::next` is the unit-balance shell mode's driver (out of v1; its COM XML callees have no generator
+flag) and `Game::run` is the match lifecycle with no frame loop in it (3404a, 3404b, each on a generator run). The
+lane asks that `tools/census.py` mark the first dead weight and the second `ui`, so `--unbacked` and the 3611
+denominator stop listing them as sweepable; `TimeSync::process` and `MapScenario::make`, passed over by every brief
+this tranche as cut from v1, are the same shape. With them the `name` pool is empty (3404c, Loop 3398). One reach.
+
 (3401) **A lane gate re-run for a clean update that touched only the commander's files, three times in one landing**
 (3393's "for the Loop", filed at its merge): 3393's second to fourth lane gates were red only on the commander's lines
 and each ended on `Base moved:` — the second's overlap five paths after att-3390's merge, the third's and fourth's
@@ -9065,13 +9072,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MH — reserved
+## Parked by item 3404, 2026-10-21 — the second sweep's last batch, two rows parked on generator runs
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3404a. `UnitBalance::next@009b8ac0` (43,058 bytes) is not swept: it is the unit-balance shell mode's driver, out of v1.** Its three callers (`Game::check_victory`, `Setup::build_empire`, `TurnControl::toggle_pause`) reach it only under semaphore byte 1's bit 2, which `Game::run_unit_balance` alone sets (`rondata::blind`'s 0x009b8ac0 row, item 1182); it reads `game/balancerules.txt` through `File`/`XML`, builds `Group`s and calls `Player::quit`. The crate has no `UnitBalance`. `tools/sweep_gen.py --dry-run --item 3404 obj UnitBalance::next@009b8ac0` spells the shape and the emitted driver faults on its first row (`UC_ERR_READ_UNMAPPED`, a 4-byte read at 0x5deec859 from pc 0x9b8b94, a pointer field of `this` (`packets`/`sizes`) drawn random). The flags that would carry it are `--at`/`--sparse` for those tables plus `--stub`s for `File::*`, `XML*` (an `IXMLDOMElement` COM object, which `--stub` cannot answer) and a dozen `Terrain`/`Build` callees; the COM half has no flag. **The census should mark it dead weight** (no match reaches it) — the last `name` row of that kind.
+- **3404b. `Game::run@00584590` (66,803 bytes) is not swept: it is the match's lifecycle, engine from end to end, and holds no frame loop.** `obj` generates, but the first row returns with `esp` 0x7fffff08 against the harness's 0x7fffff00 ("wrong pop") — a vcall into the random `this`. Its bands, in order: (1) `NetDaemon`/`TimeSync`/`SyncPoint` close and the mod `Popup` (net, ui); (2) `Groups`/`SelectGroups`/`HotKeyGroups::clear`, `GameLog::init`, `WorldMap::prep_buffers`, `OptionInfo::init` (ui, log); (3) `SyncFile::sync` and `LoadGame::load_game` (save/load, cut from v1) and `LoadingWin`/`SplashScreen` (ui); (4) the ctw intro and `ConquestStartWin` (Conquer the World, cut); (5) `CommandManager::init`/`start`, `TurnControl::init`, `GameLog::begin_game`, `Leaders::init_production_script`, `GameDaemon::calc_danger`/`update_all_seen`, `RecordGame::write_*`/`read_*` (the only sim-driving band: the match's start — `CommandManager::start` is swept already, 3396f; the rest are one-shot initialisers the crate performs in `Sim::new`/scenario setup, namesakes of none by `Class::method`); (6) the preload pump `GraphicPieces::process_load_over_time_*` (renderer); (7) teardown: `GameLog::end_game`, `ConquestGame::process_results`, `JukeBox::close`, `RecordGame::close`, `ConquestSaveGame::save_game`, `GameMod::unload`. The per-frame step is `Game::do_frame@00591ef0`, a separate row, called through `TurnControl`, not from here. **The census should mark `Game::run` `ui`.** Slicing it for a sweep needs a `--stub` per band's `NetDaemon`/window/COM callee and a harness that answers `Window` vcalls; no flag spells that, and bands (5) alone are one-shot initialisers with nothing to compare to in the crate.
+- **3404c. The sweep pool is empty after this batch.** `census.py --unbacked` past the other lanes' claims leaves only `ui`/dead-weight/cut-from-v1 rows (`TimeSync::process`, `MapScenario::make`, `UnitBalance::next`, `Game::run`, the `run_*` siblings); the commander should decide whether the census marks them out so the score's denominator is honest.
 
 ## Parked by the next landing, slot MI — reserved
 

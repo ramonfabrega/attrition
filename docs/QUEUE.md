@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-20, **the forty-seventh tranche (commander, Opus): 16 of 20 landed from `56f23ba5`** (the Germans, the
-Indians and the Inca at Great Sahara, the Turks, the Americans and the Spanish at Great Lakes closed; nine sweeps); the roster is Ramon's (DECISIONS 84, 85): two Opus 5.5 medium battery lanes landing wide, two Sonnet
-5.5 medium sweep lanes — **no battery word is open and the battery is whole, so both battery lanes run as sweeps (Loop 3398)**. Last whole gate `490d046e` (3390's booking); widened since: 3393, 3396, 3399 — 3399's booking draws the whole gate; scoped gates `--scope 490d046e5` until it is green. Briefs and notes in the commander's job tmp `t47/`.*
+*2026-10-21, **the forty-seventh tranche (commander, Opus): 17 of 20 landed from `56f23ba5`** (the Germans, the
+Indians and the Inca at Great Sahara, the Turks, the Americans and the Spanish at Great Lakes closed; ten sweeps); the roster is Ramon's (DECISIONS 84, 85): two Opus 5.5 medium battery lanes landing wide, two Sonnet
+5.5 medium sweep lanes — **no battery word is open and the battery is whole, so both battery lanes run as sweeps (Loop 3398)**. Last whole gate `1dc3ad81` (3399's booking); widened since: none; scoped gates `--scope 1dc3ad814`; the drain's gate is whole. Briefs and notes in the commander's job tmp `t47/`.*
 
 - **Words**: every pair closed; thirty battery words closed, none open (`AI_WORDS` holds twenty-eight, every one at its game's end). Battery on `15e001e8`:
   6147 (the Dutch at Great Lakes, 3390, rule (2)), 7799, 14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368 (Loop 3398). Census 1671, port 562.
-- **Lanes: four live**: 3400 the fourth sweep (Sonnet, no word of its own, ME), 3403 the third sweep (Sonnet, no word of its
-  own, MG), 3402 the nations seat (Sonnet, MF), 3404 the second sweep (Sonnet, MH). Next 3405, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ.
-- **Fable backlog: 16 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382, 3388, 3389, 3392, 3394, 3398, 3401); DECISIONS 85.
+- **Lanes: three live, draining** (17 landed + 3 live = 20, no refill): 3400 the fourth sweep (Sonnet, no word of its own, ME), 3403
+  the third sweep (Sonnet, no word of its own, MG), 3402 the nations seat (Sonnet, MF). **The sweep pool is empty** (3404). Next 3406, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ.
+- **Fable backlog: 17 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382, 3388, 3389, 3392, 3394, 3398, 3401, 3405); DECISIONS 85.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,15 +36,14 @@ Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-seventh tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md
-first; 13 of 20 landed from `56f23ba5`; re-arm `python3 tools/lanewait.py` on att-3400, att-3403, att-3402 and
-att-3404 and carry the chain — the whole gate at eight threads again (Loop
-3363); no battery lobby is open, so every freed lane refills as a sweep, by the next six `name`-marked rows (Loop 3388,
-3398); twenty landings, then clear `steer`.**
+first; 17 of 20 landed from `56f23ba5`; re-arm `python3 tools/lanewait.py` on att-3400, att-3403 and att-3402
+and carry the chain — the whole gate at eight threads again (Loop
+3363); no refill (twenty spawned), the drain's gate whole; twenty landings, then clear `steer`.**
 
 ## The queue
 
 In dependency order, headline-nearest first. **The roster is Ramon's** (DECISIONS 84): no battery
-word is open; 3400, 3403, 3402 and 3404 the sweeps' (Sonnet; 3400 and 3403 battery lanes with no word of their own, Loop 3398). **A battery word's lane lands wide**: every fix its widening
+word is open; 3400, 3403 and 3402 the sweeps' (Sonnet; 3400 and 3403 battery lanes with no word of their own, Loop 3398). **A battery word's lane lands wide**: every fix its widening
 exposes to the next parting, verified, in one gate. The battery word is the AI's — lower map first — closed
 (`AI_WORDS` holds twenty-eight, every word at its game's end; 3393 closed the Inca at 15632); no battery lobby is open (3390, Loop 3398). An open word is carried to its
 end before the next lobby is promoted (3329 → 3333). Take the first unstarted item unless a better order is clear, and say why.
@@ -70,13 +69,6 @@ end before the next lobby is promoted (3329 → 3333). Take the first unstarted 
     `Unit::process`, `Build::process` (`census.py --unbacked --all --top 4000`) — each built against the crate's own
     method where it has one, or parked on a generator run naming the flag it could not spell. `--kind sweep`,
     `--no-widen`, park MG.
-
-3404. **The second sweep's last batch** (DECISIONS 84 (i), Loop 3188, 3388, 3398; the score `Census:` port 562; 3399 swept
-    six of six, a sim fix in `UnitData::speed`'s forced-march arm, `Unit::update_hits` and `Army::process` through views,
-    parked 3399a–f): the last two `name`-marked rows past 3402's and 3403's, the census's two longest, by slices —
-    `UnitBalance::next`, `Game::run` (`census.py --unbacked --all --top 4000`) — each built against the crate's own
-    method where it has one, or parked on a generator run naming the flag it could not spell; after it the sweep pool is
-    empty. `--kind sweep`, `--no-widen`, park MH.
 
 ## How to maintain this file
 
