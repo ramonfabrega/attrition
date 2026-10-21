@@ -94,18 +94,20 @@ fn the_emulated_original_agrees_on_every_row() {
                     match a[0] {
                         0 => {
                             cnt += i32::from(ask(0, &on, "") != 0);
-                            if a[1] != 0 && ask(3, &on, "") != 0 && (rd(ty, 0x2b4) & 0x10) != 0 {
-                                if let Some(c) = &comp {
-                                    cnt += i32::from(ask(0, c, "") != 0);
-                                }
+                            if a[1] != 0
+                                && ask(3, &on, "") != 0
+                                && (rd(ty, 0x2b4) & 0x10) != 0
+                                && let Some(c) = &comp
+                            {
+                                cnt += i32::from(ask(0, c, "") != 0);
                             }
                         }
                         1 => {
                             cnt += i32::from(ask(1, &on, "") != 0);
-                            if ask(3, &on, "") != 0 {
-                                if let Some(c) = &comp {
-                                    cnt += i32::from(ask(1, c, "") != 0);
-                                }
+                            if ask(3, &on, "") != 0
+                                && let Some(c) = &comp
+                            {
+                                cnt += i32::from(ask(1, c, "") != 0);
                             }
                         }
                         11..=13 => {
@@ -132,12 +134,11 @@ fn the_emulated_original_agrees_on_every_row() {
                                 ok = ask(6, "p25+0x0", &args) != 0;
                             }
                             cnt += i32::from(ok);
-                            if ask(3, &on, "") != 0 {
-                                if let Some(c) = &comp {
-                                    if ask(1, c, "") != 0 || ask(6, "p25+0x0", &args) != 0 {
-                                        cnt += 1;
-                                    }
-                                }
+                            if ask(3, &on, "") != 0
+                                && let Some(c) = &comp
+                                && (ask(1, c, "") != 0 || ask(6, "p25+0x0", &args) != 0)
+                            {
+                                cnt += 1;
                             }
                         }
                         31 => {
