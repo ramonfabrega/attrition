@@ -151,6 +151,59 @@ fn run1013_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 0, "keys that part in the window");
 }
 
+/// run1013b: the gap 8380..13489 at a stride of 16 (item 3390): blocks
+/// 8381, 8397, …, 13485, at run1013's detail; run1008b dumps its setup
+/// and closing blocks only, and run1013 opens on 13490 already parted.
+pub(crate) const RUN1013B: &str =
+    "gamelog-run1013b-greatlakes-spanish-diff4-stride16-8380-13489.txt";
+
+/// The window: block 8381 through 13485, one in sixteen.
+pub(crate) const WIDENING_SPANISH_LAKES_GAP_1013B: (i64, i64) = (8381, 13485);
+
+pub(crate) fn spanish_lakes_gap_1013b_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_LAKES.start],
+        true,
+        SPANISH_LAKES.long,
+        "run1013b",
+        &[(RUN1013B, WIDENING_SPANISH_LAKES_GAP_1013B.0)],
+        WIDENING_SPANISH_LAKES_GAP_1013B,
+        1,
+        &[13485],
+        true,
+    )
+}
+
+#[test]
+fn run1013b_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_lakes_gap_1013b_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 320, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3390: 129 keys. The standing family on 8381 (31); a newborn's
+    // `g.angle[0]` (8557), the groups 67 and 68's pools (8877, 9805),
+    // `SITE[2].reg` (9181), a one-unit `des_x` (9773) — none parts a
+    // draw. Every unit agrees on 13469; on **13485** three Spanish units
+    // part (90 keys): the Bombards `1/113` and `1/114` move half again
+    // ours' speed (`avg_speed[0]` 33 against 22, `x[0]` 8991 against 9025),
+    // and `1/56`'s guard order points 48 apart (theirs (8952, 31032),
+    // ours (9000, 30984)). run1013c owes 13470..13484.
+    pin_eq!(w.firsts.len(), 129, "keys that part in the gap");
+}
+
 /// **The word's road search, node for node** (item 3390): every road
 /// search run1008b's call window prices, from the start to the word 8384,
 /// against ours.
