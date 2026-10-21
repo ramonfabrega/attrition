@@ -196,6 +196,10 @@ mod group_action_attack_ground;
 mod group_action_attack_ground_head;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
+#[path = "group_action_board_ship.rs"]
+mod group_action_board_ship;
+#[path = "group_action_board_ship_head.rs"]
+mod group_action_board_ship_head;
 #[path = "group_action_buildmask.rs"]
 mod group_action_buildmask;
 #[path = "group_action_garrison.rs"]
