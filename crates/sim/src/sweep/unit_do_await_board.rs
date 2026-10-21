@@ -95,10 +95,8 @@ fn the_emulated_original_agrees_on_every_row() {
                         if pl == b && ready(&mut log) {
                             log.push(format!("s4:m+0x0,{idx},{pl}"));
                             if a[5] != 0 && action(&mut log) {
-                                if r32(&p[20], 8) == w {
-                                    if r32(&p[20], 0xc) == b {
-                                        break 'body;
-                                    }
+                                if r32(&p[20], 8) == w && r32(&p[20], 0xc) == b {
+                                    break 'body;
                                 }
                                 log.push("s10:m+0x0,0".into());
                                 break 'body;
