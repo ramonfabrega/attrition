@@ -51,6 +51,7 @@ pub mod ai_units;
 pub mod air;
 pub mod airbase;
 pub mod alarm;
+pub mod action_gather_view;
 pub mod alarm_view;
 pub mod anim;
 pub mod army;
