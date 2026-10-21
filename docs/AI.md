@@ -25346,12 +25346,74 @@ on the decoy bit alone, and this crate builds no arm there. A captain slot that 
 closing block). Packet-backed: the three `take_damage` calls and their amounts (run1015b). Reading alone: the order of
 `die` before the overflow call and the `c != this.o` test, both from the decompile at `:619`–`631`.
 
-## 296. Reserved for the next item on the AI track
+## 296. The blind list's AI functions: the readings, the captures owed and the residue proposed (2026-10-21, item 3409)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3409, Opus 5.5, the first `reading` item on the AI track (DECISIONS 84, 86). No capture, packet or emulator
+run; the decompile, the listing and the PE.*
+
+**The list.** `rondata::blind::NEVER` against this document's `name@address` cites, on `5e0b1d15`: **32**, one
+already `RESIDUE` (`World::set_gathered_at@006b46b0`). The booking named functions this document does not cite:
+`Unit::think_hero@005f4720`, `Unit::think_supply@005f4730` and `Army::send_here@006f98a0` are on `NEVER` through
+`docs/ARMY.md` and the journals, each already sweep-backed; `Leader::process@006b88b0` is not on `NEVER`.
+
+- **Read, 13**, each claim in its own section: the five scenario switches (§1); `Wonders::close_wonder` (§75.3);
+  `Leader::pay_dow` and `Leader::action_respond` (§98.6); `Leader::verify_spell_flags` (§99.13);
+  `LeaderData::get_nukes` (§158); `Spline::set_min_seg_length` and `Spline::calc_from_dir` (§174);
+  `Game::say_no_war` (§218).
+- **Swept, not re-read, 16**: `BuildQueueData::get_next_helicopter`, `SpellType::cast_march`,
+  `GoodTypeData::is_flat`, `Game::is_no_rush`, `Game::current_age`, `Unit::think_carry`, `Unit::go_to_city`,
+  `BuildData::can_queue`, `BuildQueueData::get_next_non_caravan`, `BuildTypeData::get_enhancing_good`,
+  `WallData::hits`, `Object::disband` (`sweep/object_disband.rs`, item 3346, newer than
+  `docs/audit/census-backed.txt`), `SpellType::cast_ambush`, `Army::use_scouts`, `Army::use_spies`, `Army::charge`.
+- **att-3411's sweep, 2**: `Unit::think_carry_idle@005f2f30` and `Unit::think_carry_military@005f3260`; only the
+  capture that would enter them is claimed here (row 5).
+
+**The image's references** (*the PE*: every `E8`/`E9`/`0F 8x`/short jump in `.text` and every absolute pointer in
+any section, against the 32 addresses): 25 have a direct call; the five switches each one absolute pointer in
+`.text` (the script host's table); `GoodTypeData::is_flat` and `WallData::hits` three `.rdata` vtable slots each
+and no call; **`Game::is_no_rush` nothing at all** (§218).
+
+**Captures owed.** Every lobby below is one this crate already diffs, and every row but 9b, 11 and 12 is a
+`cover=0` capture on disk retaken at `cover=1` (`unattended_capture.py --cover cover=1`), so the dump that showed the
+behaviour is the falsifier and the trace is what moves `never`. Fields are the dump's own names.
+
+| # | lobby, and the capture on disk | ini category · frame · field | enters | lane |
+|---|---|---|---|---|
+| 1 | `GreatSaharaToughest` (run470; run476; run668 to 15432) | `LEADERS=9` `leader_flags & 0x8000` and `UNITS=3` the General's `unit_masks & 0x8000`, 9112 to the march's expiry; `BUILDS=6` the Granary (§99.7); 15275..15432 the charge's `GROUP_ATTACK_TO` and the city's stamp (§142) | `cast_march`, `verify_spell_flags`, `get_enhancing_good`, `Army::charge`, `WallData::hits` | click-free |
+| 2 | `GreatLakesIroquoisTier3` (run897b, run943) | `UNITS=3` the army's `1/22` (TI 79, land) on 5144; `LEADERS=9` `leader_flags & 0x4000` and `UNITS=3` the Despot's `unit_masks & 0x2000`, 10689..10945 | `use_scouts`, `use_spies` (a spy in an army), `cast_ambush`, `verify_spell_flags`' Ambush arm | click-free |
+| 3 | `EastIndiesPersianAllTech` (run711, run717) | `AMMO` `traj 2`, `total_time` 13 on `1/49`'s rounds, 3124..3128; `BUILDS=6` the Oil Platform site `1/2048` gone on 2049 | `set_min_seg_length`, `calc_from_dir`, `Object::disband` | click-free |
+| 4 | `GreatSaharaPersianAllTech` (run702, run790) | `LEADERS=9` the make list and `nukes_in_flight` on 1985; `BUILDS=6` the Airbase's `BUILDQUEUE` on 3767; the make list's Supply Wagon (`sahara_coverage`) | `get_nukes`, `get_next_helicopter`, and `think_supply` — entry 29 §2's supply wagon | click-free |
+| 5 | `EastIndiesMongolAllTech` (the successor pair) | `UNITS=3` the Freighter `1/72`'s `orders_x/y` (35736, 24984), 2178..2201; an idle empty or soldier-carrying transport's `orders_x/y` | `think_carry` — entry 29 §2's transport — and, if such a boat idles, `think_carry_idle`, `think_carry_military` | click-free |
+| 6 | `GreatSaharaMongolAllTech` (run834) | `BUILDS=6` the queue's Merchant on 2995 | `get_next_non_caravan` | click-free |
+| 7 | `GreatSaharaBantuTier4` (run978c) | `LEADERS=9` `escrow`, block 2808 | `can_queue` | click-free |
+| 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | `go_to_city` | click-free |
+| 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | `current_age`; (9b) `say_no_war` only once the console's own unit stands in the Lakota's land, the leader's `+0x1f4` stamp 0 | click-free; 9b driven |
+| 10 | any lobby in which a leader's highest wonder closes (the disk scan below) | `LEADERS=9` `wonder_mark` on the close | `close_wonder` | as the lobby |
+| 11 | a human and two computers, no teams (none on disk) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6) | click-free, *a prediction* |
+| 12 | a team lobby with a computer ally (none on disk) | `LEADERS=9` `escrow` and the stock on the frame the human cancels the alliance (`CANCEL_ALLIANCE + t`) | `pay_dow`, `action_declare`'s pay arm | driven: a diplomacy click |
+
+Rows 1–8 and 9's first half are nine lobbies the click-free lane starts with no human order; together they enter
+**22** of the 32. The hero of entry 29 §2 is rows 1 and 2.
+
+**Proposed for `RESIDUE`, 7**, each with its reason:
+
+- `Game::is_no_rush@005946c0` — no reference in the executable (above).
+- `GoodTypeData::is_flat@004780c0` — no call; only GoodType's vtable slot `+0x94` (three `.rdata` entries), and both
+  of `World::gather_at`'s sites inline its body (§24.3). *Lower confidence*: an indirect `+0x94` call on a GoodType
+  receiver would reach it; none is known.
+- `ScenarioFuncSet::enable_production_ai@009ff5e0`, `disable_combat_ai@009ff860`, `disable_all_unit_ai@009ff8e0`,
+  `disable_unit_ai@009ffa10`, `disable_city_ai@009ffbf0` — reached only through the script host's table, called only
+  by scenario scripts (§1), and scenarios are cut from v1; `docs/CENSUS.md` row 10 holds them. A Tutorial 3 load at
+  `cover=1` would enter three (`tut3.bhs:79`–`:80`, `:356`) if the scope changes.
+
+**What this has *not* established.** That the click-free lane's `cover=1` take holds each lobby's word (run906's
+proof is one game); that two computers ever accept each other's offer (row 11); that no indirect call reaches
+`is_flat`; `Leader::action_respond`'s other 400 lines (the tribute consideration, the `set_diplo` cascade), read only
+where they write escrow.
+
+**Coverage.** Every claim of this section and of the amended §1, §75.3, §98.6, §99.13, §158, §174 and §218 is
+*reading alone* — the decompile, the listing at `6d2baa`–`6d2bcd`, and the PE's reference scan — except the fields
+rows 1–8 name, which the `cover=0` captures already print.
 
 ## 297. Reserved for the next item on the AI track
 
