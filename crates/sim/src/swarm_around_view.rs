@@ -495,11 +495,10 @@ impl SwarmView for SimSwarm<'_> {
         }
     }
     fn list_clear(&mut self) {}
-    fn set_form(&mut self) {
-        if let Some(st) = self.sim.gstate_mut(self.g) {
-            st.form = -1;
-        }
-    }
+    // The original's clear is not applied: run 602's frame 981 holds the
+    // group slots' `form` at 9 and 0 where `st.form = -1` read -1 (parked
+    // 3386i). The sweep's view still takes the call.
+    fn set_form(&mut self) {}
     fn leader_flags(&self, p: i32) -> i32 {
         // `leaders[p]`'s flags: bit 2 is the human.
         if self.sim.nation[p as usize].human {

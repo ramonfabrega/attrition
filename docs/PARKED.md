@@ -8927,8 +8927,8 @@ words and edits nothing here; a refill lands when two remain.
 - **3386i. `Group::action_swarm_around@0070fbe0` is swept whole (2400 rows plus a 400-row head slice, 96 whole + 6 head breaks, 2 equivalent, the
   rest held; the agent's own tally read 98 caught, which does not sum, so the figure is as reported) and wired; its SEAMs in `SimSwarm`.** The scratch group of non-builders (`Group::add`, `action_move_to` at `QUEUE_NEW`), the
   idle-citizens filter (site type slot +0x90), `is_busy`, the `count_inside` / `inside_down` seeker, the `GATHER` predicate, the illegal-order
-  report and the `+0x60 & 0x2000` clear are swept against the original but no-ops in the Sim. Sim fixes (no capture reaches them; a pin could
-  move where one is hit): the formation reset (`form = -1`) on every non-First call; the `QUEUE_FIRST` insert dance (`group_set_up_insert`, halt,
+  report and the `+0x60 & 0x2000` clear are swept against the original but no-ops in the Sim. **The formation reset (`form = -1` on every non-First call) is swept but NOT applied to the Sim:** with it `diff::third_pair::run602_s_word_frame_is_widened_whole` parts at frame 981 (group slots `0/0..5` and `1/1..5` `form`: ours -1, theirs 0 and 9; run 602 holds what the clear would erase), so `SimSwarm::set_form` is a no-op, and which later write puts the form back is the open question. Sim fixes (no capture reaches them; a pin could
+  move where one is hit): the `QUEUE_FIRST` insert dance (`group_set_up_insert`, halt,
   `QUEUE_NEW`, `group_finish_insert`) in place of per-member `swarm_around`; the BUILD_AT exact-tie nudge `-0x30`; a member with no object slot
   reads the first slot; `movement::find_angle` now wraps (identical in range). Flag lacking: a per-call `--outarg` (the two
   `find_nearby_spot` calls write the same out pair, so `ox = nx; oy = ny` is unobservable: 2 equivalent mutants).
