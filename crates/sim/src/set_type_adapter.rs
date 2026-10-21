@@ -18,10 +18,11 @@
 //!   it (behind the captain gate), so `leader_totals` and `leader_caras` are
 //!   no-ops.
 //!
-//! SEAM: `is(0x134)` and `is_gov_hero` of the table's unit answer no
-//! ([`crate::Sim::counts_in_muster`]'s own seam), the `+0x6c` flags, the CEO
-//! bit, `is(0x77)`, the vslots `+0x15c`/`+0x160`, `update_armor`/`update_speed`
-//! and the supply tail (`game.version` is not modelled) have no state here.
+//! Not carried by this adapter: the table unit's `is(0x134)` and governor-hero
+//! answers (they read no, as the muster count's own gap does), the `+0x6c`
+//! flags, the CEO bit, `is(0x77)`, the vslots `+0x15c`/`+0x160`, the armor and
+//! speed refreshes the original runs here, and the supply tail
+//! (`game.version` is not modelled): the crate keeps no state for them.
 
 use crate::anim::SQUAD_SIZE;
 use crate::unit_set_type_view::UnitSetTypeView;
