@@ -274,8 +274,14 @@ mod build_new_library;
 mod build_order_get_type;
 #[path = "build_order_get_type_vtordisp.rs"]
 mod build_order_get_type_vtordisp;
+#[path = "build_process_city.rs"]
+mod build_process_city;
 #[path = "build_process_ejection.rs"]
 mod build_process_ejection;
+#[path = "build_process_head.rs"]
+mod build_process_head;
+#[path = "build_process_messages.rs"]
+mod build_process_messages;
 #[path = "build_queue_data_get_job_counter.rs"]
 mod build_queue_data_get_job_counter;
 #[path = "build_queue_data_get_next_helicopter.rs"]
