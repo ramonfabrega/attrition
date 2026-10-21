@@ -60,6 +60,7 @@ pub mod army;
 pub mod army_do_defending_view;
 pub mod army_is_moving_view;
 pub mod army_normalize_view;
+pub mod army_process_view;
 pub mod astar_view;
 pub mod attack_ground_view;
 pub mod attack_pos;
@@ -74,6 +75,7 @@ pub mod build;
 pub mod build_attack_view;
 pub mod build_plunder_view;
 pub mod build_spot_view;
+pub mod build_unqueue_view;
 pub mod calc_gather;
 pub mod calc_gather_type_view;
 pub mod capture;
@@ -186,7 +188,10 @@ pub mod transport;
 pub mod tuning;
 pub mod type_index;
 pub mod unit_set_type_view;
+pub mod unit_attack_view;
+pub mod unit_speed_view;
 pub mod unit_unqueue_view;
+pub mod unit_update_hits_view;
 pub mod upath;
 pub mod update_positions_view;
 pub mod victory;
@@ -5637,7 +5642,7 @@ impl Sim {
     /// and the fleet `1/83`, and its `num_units` has `[268]` 1 and no
     /// `[270]`.
     ///
-    /// SEAM: the `pop == 0` arm's `is(0x134)` and `is_gov_hero` are not
+    /// SEAM: the `pop == 0` arm's `is(0x134)` and the governor-hero test are not
     /// read here, and answer no; `+0x68 & 1` has no state here.
     pub(crate) fn counts_in_muster(&self, u: usize) -> bool {
         let unit = &self.units[u];

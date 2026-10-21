@@ -106,6 +106,8 @@ mod army_member_by_unit;
 mod army_normalize;
 #[path = "army_normalize_one.rs"]
 mod army_normalize_one;
+#[path = "army_process.rs"]
+mod army_process;
 #[path = "army_release_mustering.rs"]
 mod army_release_mustering;
 #[path = "army_remove_group.rs"]
@@ -258,6 +260,8 @@ mod build_data_num_gather;
 mod build_data_num_scholars;
 #[path = "build_data_show_later_tech.rs"]
 mod build_data_show_later_tech;
+#[path = "build_do_attack.rs"]
+mod build_do_attack;
 #[path = "build_find_gather_tiles.rs"]
 mod build_find_gather_tiles;
 #[path = "build_find_target.rs"]
@@ -274,8 +278,18 @@ mod build_order_get_type;
 mod build_order_get_type_vtordisp;
 #[path = "build_plunder.rs"]
 mod build_plunder;
+#[path = "build_process_city.rs"]
+mod build_process_city;
 #[path = "build_process_ejection.rs"]
 mod build_process_ejection;
+#[path = "build_process_head.rs"]
+mod build_process_head;
+#[path = "build_process_messages.rs"]
+mod build_process_messages;
+#[path = "build_process_supply.rs"]
+mod build_process_supply;
+#[path = "build_process_wonders.rs"]
+mod build_process_wonders;
 #[path = "build_queue_data_get_job_counter.rs"]
 mod build_queue_data_get_job_counter;
 #[path = "build_queue_data_get_next_helicopter.rs"]
@@ -404,6 +418,8 @@ mod build_type_data_queue_here;
 mod build_type_data_snap_center;
 #[path = "build_type_place_roads.rs"]
 mod build_type_place_roads;
+#[path = "build_type_mask_me.rs"]
+mod build_type_mask_me;
 #[path = "build_type_restore.rs"]
 mod build_type_restore;
 #[path = "build_type_set_domain.rs"]
@@ -412,6 +428,10 @@ mod build_type_set_domain;
 mod build_type_walk_rules_data;
 #[path = "build_unpay_cost.rs"]
 mod build_unpay_cost;
+#[path = "build_unqueue.rs"]
+mod build_unqueue;
+#[path = "build_unqueue_short.rs"]
+mod build_unqueue_short;
 #[path = "build_update_max_gatherers.rs"]
 mod build_update_max_gatherers;
 #[path = "build_verify_gather_tiles.rs"]
@@ -422,6 +442,8 @@ mod caravan_data_has_city;
 mod caravan_distance;
 #[path = "caravan_link_walk_data.rs"]
 mod caravan_link_walk_data;
+#[path = "caravan_process.rs"]
+mod caravan_process;
 #[path = "caravan_restart_trade_route.rs"]
 mod caravan_restart_trade_route;
 #[path = "caravan_verify_road.rs"]
@@ -666,6 +688,8 @@ mod command_manager_start;
 mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]
 mod command_package_begin_process;
+#[path = "command_package_process.rs"]
+mod command_package_process;
 #[path = "command_package_process_accept.rs"]
 mod command_package_process_accept;
 #[path = "command_package_process_alarm.rs"]
@@ -720,6 +744,8 @@ mod command_package_process_come_out;
 mod command_package_process_console_cmd;
 #[path = "command_package_process_declare.rs"]
 mod command_package_process_declare;
+#[path = "command_package_process_default_arm.rs"]
+mod command_package_process_default_arm;
 #[path = "command_package_process_demand_tribute.rs"]
 mod command_package_process_demand_tribute;
 #[path = "command_package_process_disband.rs"]

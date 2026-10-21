@@ -462,6 +462,8 @@ mod guy_set_angle;
 mod guy_set_bank;
 #[path = "guy_set_elev_angle.rs"]
 mod guy_set_elev_angle;
+#[path = "guy_set_new_location.rs"]
+mod guy_set_new_location;
 #[path = "guy_set_new_z.rs"]
 mod guy_set_new_z;
 #[path = "guy_set_pitch.rs"]
@@ -546,6 +548,8 @@ mod map_is_near_ocean;
 mod map_land_dist;
 #[path = "map_make.rs"]
 mod map_make;
+#[path = "map_point.rs"]
+mod map_point;
 #[path = "map_scale_by_area.rs"]
 mod map_scale_by_area;
 #[path = "map_scale_by_axis.rs"]

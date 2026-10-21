@@ -3783,6 +3783,26 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3407) **`sweep_gen.py --regen` with `--port todo!()` re-appends a stray `todo!()` after the `// end hand` fence**
+(3403's "for the Loop", filed at its merge): the `Unit::process` subagent deleted it after every regen of its four
+slices; the fence survives the regen (Loop 3013, 3377) but the port placeholder is written past it. The generator's: a
+regen that finds a hand fence writes no `--port` body after it. One reach.
+
+(3406) **A `pgrep -f` wait on a tool name every lane runs never exits** (the commander's, 2026-10-21, `lanewait.py`'s
+`STALLED att-3403 50`): a subagent of att-3403 waited 161 minutes in `until ! pgrep -f "mutate.py --batch"; do sleep
+15; done` on a batch that had finished at 01:54 (119 of 119); the pattern matched att-3402's own `mutate.py --batch`
+(pid 30908) and the waiting shell's own command line, which carries the same string, so the loop could not end on any
+host (and 3403's "for the Loop", filed at its merge: the lane's own account of the same wait). The brief's: a wait names its own pid or its own log, never a `pgrep -f` of a shared tool; the checklist row
+would read "wait on what you started, by pid or by file". `tools/mutate.py --batch` could also write a `done` line its
+caller waits on. One reach.
+
+(3405) **Two `name` rows that are not the simulation's, each parked by a sweep** (3404's "for the Loop", filed at its
+merge): `UnitBalance::next` is the unit-balance shell mode's driver (out of v1; its COM XML callees have no generator
+flag) and `Game::run` is the match lifecycle with no frame loop in it (3404a, 3404b, each on a generator run). The
+lane asks that `tools/census.py` mark the first dead weight and the second `ui`, so `--unbacked` and the 3611
+denominator stop listing them as sweepable; `TimeSync::process` and `MapScenario::make`, passed over by every brief
+this tranche as cut from v1, are the same shape. With them the `name` pool is empty (3404c, Loop 3398). One reach.
+
 (3401) **A lane gate re-run for a clean update that touched only the commander's files, three times in one landing**
 (3393's "for the Loop", filed at its merge): 3393's second to fourth lane gates were red only on the commander's lines
 and each ended on `Base moved:` — the second's overlap five paths after att-3390's merge, the third's and fourth's
@@ -9013,29 +9033,41 @@ score.
 - **3396e. `Unit::land_plane`: the crate's is a collapsed port.** `Sim::land_plane` now runs `land_plane_view::land_plane_steps` through an adapter that folds add-spec-anim, the home words and the order's `work` into `Sim::go_inside`; the animal arm is `flockbird_dies`. The adapter's `clear_partial_path` and `update_action` forwards are uncaught by any test (2 breaks held by the sweep at the view level only).
 - **3396f. `CommandManager::start` has no crate twin** (session start: semaphore bits, TimeSync, the game log, splash close, start sound); the port is inline in the sweep. 5 of 59 breaks equivalent (a dead `0x81c` write, a written-back read).
 
-## Parked by the next landing, slot MC — reserved
+## Parked by item 3397, 2026-10-20 — the third sweep's first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Names no score, so parked, not queued.
 
-## Parked by the next landing, slot MD — reserved
+- **`Sim::process_building_combat` (`fight.rs`) has no jam arm.** `Build::do_attack@006228f0`'s sweep
+  (`sweep/build_do_attack.rs`) pins the original's `is_jammed` arm (misfire flag `0x8000`, sound `0x6e`) and
+  its `hits_left` gate; the crate method folds in `Build::process`'s head and models neither. The sweep
+  does not call it (welded to `Sim`, RNG and projectiles). A fix would be a view trait over the arm's reads;
+  whether a pin moves is unmeasured (jam needs a jammer in the lobby).
+- **`Sim::find_road` (`roads.rs`) is the port of `PathFinder::find_road@00688a40`'s `param_6 < 0` arm,
+  but its sweep holds only the original's own part** (endpoint tiles, guards, flags at `+0x88/+0x8c/+0x98`);
+  `astar_caravan_road`, `kill_lists` and `Stack<PathData>::push` are stubbed, and `start_road`/`road_end`
+  were compared to the port by reading, not run. A sweep of the callee `astar_caravan_road@00685990` is the
+  rest.
+- **Generator**: `--regen` re-inserts a trailing `0` after `// end hand` (wall_activate); a generator file
+  that exists is refused as `duplicate standalone module` once registered (do_attack); a `}` at column 0
+  inside the `// hand` fence splits the item (find_road). Three small idempotence gaps in `sweep_gen.py`.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3399, 2026-10-21 — the second sweep's eighth batch
 
-## Parked by the next landing, slot ME — reserved
+- **3399a. `UnitData::attack@006103c0` is swept (2000 rows, 80 of 80 breaks held) but unwired.** `unit_attack_view.rs` holds every arm; `Sim::attack_of` is `ObjectData::attack`'s port with no unit-level bonus. The crate carries no `has_wonder(0x211/0x21e)`, no `has_general` lookups and none of the leader words at `+0x59c2..+0x59e8` / `+0x6da7` / `+0x6dcf`. Wiring it moves every attack value that reaches a wonder or a general, so it can move pins; the likeliest mover is any capture with a Terra Cotta or a hero.
+- **3399b. `UnitData::speed@0060aae0`'s five hero auras are not walked.** The swept walk (`unit_speed_view.rs`, live through `LiveSpeed`) now carries Alexander's forced-march arm (a sim fix; `tuning.rs` says no capture has him, not confirmed against a dump), but Spitamenes, Blucher, Porus, Charles and Napoleon stay the SEAM: the crate has neither the leader power words (`+0x59cc..+0x59e8`) nor their constants, and the sweep holds them at zero. `find_marching_hero` takes the first match in unit-slot order; the original's is hero-list order.
+- **3399c. `Build::unqueue@006207c0` is a namesake of `Queue::unqueue`, swept in two slices (3000 + 2500 rows, 38 of 40 breaks held, 2 equivalent) but unwired.** The library redirect, per-type tallies, AI counters (`+0xa10..0xa24`), age/epoch bytes and `options->rebuild` are done in the crate's callers on different state. The sweep does not draw a negative `p1` or a final entry at or past the queue length (the original faults).
+- **3399d. `Army::process@006f93d0`'s member-copy loop is outside the sweep.** The draw holds the army's group count (`+0x96`) at 0; the crate's flat unit list stands for the groups/units tables. A sweep wants `--sparse` placements for both tables. The live walk gained the original's `valid()` disband gate and the `status & !0x12` write before `find_muster_spot`; no pin should move, the booking gate says.
+- **3399e. `Caravan::process@0073e000` is a 3-instruction gate and tail-jump to `Caravan::build_road@0073db10`** (the decompile file shows `build_road`'s body; `docs/CENSUS.md:536` says the same). Swept inline (220 rows); the crate's twin is `caravan_build_road`, not a `process`. One break (`last = None`) is equivalent by the test's stale-eax fallback.
+- **3399f. `Unit::update_hits@0060e930`: `supply_hp_upgrade[get_supply_upgrade]` is indexed unclamped in the original; the port's view clamps to 0..3**, equivalent while the count is at most 3. The sweep draws 0..3 only. The marine, Copper and Bananas terms are still SEAMs (ask false); the patch version is taken as 9.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ME renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3400, 2026-10-21 — the fourth sweep's first batch
+
+- **3400a. `Unit::process_attrition@005e11a0` is swept (30000 rows, 14 breaks caught, 2 equivalent: `n < cur` → `n <= cur` stores the word's own value, `v >> 8` against the round-toward-zero adjust is hidden by the `max(1)`) against an inline port; the crate's `attrition::process` is a namesake.** It takes a pre-digested `Situation`; `Sim::attrition_for` (`lib.rs`) fixes `in_free_zone`, `mutual_treaty`, `in_war_grace`, `assassin` and `conquest_exempt` to false, where the original reads the free-points table, the leaders' treaty pair, the `0x2b0`/`0x2d0` alliance-break stamps against `ally_to_war_delay`/`ally_to_war_grace`, team style 2 with `get_target`, and `has_conquest_bonus(9)`. A view-trait port of the whole function is the item that would test the sim against it. No generator flag lacking. The `who < 0` read of `leaders[-1]` cannot be varied: no flag lays drawn bytes before an `--at @VA` sparse table (assumed zero image bytes).
+- **3400b. `Unit::repair_damage@0060de10` is swept (4000 rows, 25 breaks caught, 1 equivalent: `<` → `<=` at `d == param_1`); the crate has no `Unit::repair_damage`** (`heal.rs`'s `civilian_heal` models the caller's tail; `orders.rs`, `city.rs`, `sweep/unit_do_repair.rs` are `Build::repair_damage`). Inline port. Unchecked: the `Underlays::add` stub's xmm2/xmm3 and edx (a stub-time register record extended to xmm, `--record-edx` is `ecx`/`edx` only); `Error::report`'s two unwritten argument slots are a hypothesis `(1,0)` if the sparkle ran else `(0,0)` that fits all rows; `Error::report` is answered 0 on every row (a nonzero answer hits the `int3` at `60e0c8`). The emulator rows are about 420 MB, over the 16 MB cache cap, so each run re-runs the emulator (25 s).
+- **3400c. `Unit::think_merchant@005f4740` is swept (9000 rows, 46 breaks, all caught on the final draw); `Sim::think_merchant` (`merchant.rs:67`) is a faithful port of the branches but welded to `Sim`, so the sweep inlines.** The original calls `find_unit_ordered` with `ecx = who` (byte `+9`), and the enemy `find_unit` is handed a leftover `ecx` (= `who`); `merchant_refused` models neither and need not. Flags lacked: **(i)** `--record-edx` is refused with `--record-order`, so `find_angle`'s `edx` (`dy`) is unverified; **(ii)** a `SimpleArray` header on the stack in an `--at` window needed four `--at` windows plus four `--vtat-also` and `--place` (a `--sparse @VA` form was not tried); **(iii)** no tie or lattice bias for window words: five scoring mutants (`score += 100`, `max(1)`, `score0 -= 10`, `score0 = 200`, `k4.min(3)`) survived until hand-tuned `--wbias` lattices.
+- **3400d. `BuildType::mask_me@006312a0` is swept (2400 rows, 34 breaks: 33 caught, 1 equivalent `ax -= 0x60` → `0x30`); the crate's `Sim::mask_building` (`city.rs`) is a namesake** (no Coord pair, object indices, `RegenRoads` argument or mask-template pointer). Inline port. A parity break survived until `div_3_table` was redrawn as `i//3 + (i%3==1)` (`--fill=c2:i//3` made `3d` and `3d+1` indistinguishable). No flag lacking.
+- **3400e. `Tribe::parse@006f0560` is swept (220 rows, 9 of 9 breaks caught); not a rules loader** — it copies Constants fields into the static `parse_numbers` (`0xcc4b50`) and, for Russia, `parse_strings`: tooltip text numbers nothing in the sim reads. No crate twin; inline. Russia is about 23 of 220 rows. The String callees are stubbed and recorded by argument. Census: this row could join the `ui` list (tooltip text); not edited here.
+- **3400f. `CircleRender::scale` is parked, not swept: a renderer float body (ribbon vertices, colours, texture coordinates) filed under simulation by its source file.** It reads `worldc` (`+0x18`/`+0x1c` × `0xc0`) and `TerrainOut::find_data_z` only as bounds and heights and writes no sim state. `sweep_gen.py obj 'CircleRender::scale@<its INDEX address>' --ret none --xmm 1:1..8 --xmm 2:1..8 --cell-win 0x1000:512 --name circle_render_scale --dry-run` exits 0 with a scaffold; the build stops on **four vtable-grow `SimpleArray`s (`render_verts`, `circle_colors`, `render_tex_coords0/1`)**: `--stub-alloc IDX` answers an address but nothing installs it into the array's `+0x10`/`+0x8`, so the flag lacked is a `--stub-install IDX:WIN+OFF`; plus a float test-only oracle with no sim consumer. **The census's `ui` list should take it:** `tools/census.py` `is_ui_body` (~line 730) tests `cls.endswith("Out")`, `UI_BODY` on the short name and `_draw`/`_render` suffixes, so no `*Render*` class matches; a class-name test, e.g. `re.search(r"Render(er|Helper|Control|State|Window)?$", short_class)`, would take `CircleRender` (11), `BorderMorphRender` (9), `BorderSplineRender` (7), `PingStripSplineRender` (5), `RenderHelper` (52), `RenderState` (9), `RenderStateMethod` (6), `RenderTechnique` (2), `RenderControl` (4), `RenderWindow` (3), `IFaceRenderManager` (36), `IFaceRenderIndexing` (1); check what it moves before it lands (Loop 2819's intent).
 
 ## Parked by the next landing, slot MF — reserved
 
@@ -9045,7 +9077,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MG — reserved
+## Parked by item 3403, 2026-10-21 — the third sweep's second batch
+
+- **3403a** `Build::process` attack band entry (`+0x81 < 0` with `+0x7c >= 0`) reads the objects table at player -1,
+  before the cell record: `sweep_gen.py` places no memory before a cell's base (lacks a negative-offset `--ptrtab LOC`
+  or a cell-record margin); the generator exited 0, the shape is unspellable. Two non-equivalent mutants of that arm
+  survive only by that exclusion.
+- **3403b** `Build::process` wonders slice: the leader `+0x5222` word table is covered 16 bytes, `get_buildings` words 0..7.
+- **3403c** `Unit::process`: the `current_upgrade < 0` training branch (table at index -1) and a composed head-into-tail
+  sweep are unswept; the xmm2/xmm3 float arguments of `Underlays::add` are not recorded.
+- **3403d** `Sim::process_unit` and the `Sim::process_building*` family are not wired to the new sweeps: the sweeps are
+  inline ports of the original, so a crate drift is not caught by them.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot MG renames this heading `## Parked by item N, <date> — <title>`
@@ -9053,13 +9095,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MH — reserved
+## Parked by item 3404, 2026-10-21 — the second sweep's last batch, two rows parked on generator runs
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3404a. `UnitBalance::next@009b8ac0` (43,058 bytes) is not swept: it is the unit-balance shell mode's driver, out of v1.** Its three callers (`Game::check_victory`, `Setup::build_empire`, `TurnControl::toggle_pause`) reach it only under semaphore byte 1's bit 2, which `Game::run_unit_balance` alone sets (`rondata::blind`'s 0x009b8ac0 row, item 1182); it reads `game/balancerules.txt` through `File`/`XML`, builds `Group`s and calls `Player::quit`. The crate has no `UnitBalance`. `tools/sweep_gen.py --dry-run --item 3404 obj UnitBalance::next@009b8ac0` spells the shape and the emitted driver faults on its first row (`UC_ERR_READ_UNMAPPED`, a 4-byte read at 0x5deec859 from pc 0x9b8b94, a pointer field of `this` (`packets`/`sizes`) drawn random). The flags that would carry it are `--at`/`--sparse` for those tables plus `--stub`s for `File::*`, `XML*` (an `IXMLDOMElement` COM object, which `--stub` cannot answer) and a dozen `Terrain`/`Build` callees; the COM half has no flag. **The census should mark it dead weight** (no match reaches it) — the last `name` row of that kind.
+- **3404b. `Game::run@00584590` (66,803 bytes) is not swept: it is the match's lifecycle, engine from end to end, and holds no frame loop.** `obj` generates, but the first row returns with `esp` 0x7fffff08 against the harness's 0x7fffff00 ("wrong pop") — a vcall into the random `this`. Its bands, in order: (1) `NetDaemon`/`TimeSync`/`SyncPoint` close and the mod `Popup` (net, ui); (2) `Groups`/`SelectGroups`/`HotKeyGroups::clear`, `GameLog::init`, `WorldMap::prep_buffers`, `OptionInfo::init` (ui, log); (3) `SyncFile::sync` and `LoadGame::load_game` (save/load, cut from v1) and `LoadingWin`/`SplashScreen` (ui); (4) the ctw intro and `ConquestStartWin` (Conquer the World, cut); (5) `CommandManager::init`/`start`, `TurnControl::init`, `GameLog::begin_game`, `Leaders::init_production_script`, `GameDaemon::calc_danger`/`update_all_seen`, `RecordGame::write_*`/`read_*` (the only sim-driving band: the match's start — `CommandManager::start` is swept already, 3396f; the rest are one-shot initialisers the crate performs in `Sim::new`/scenario setup, namesakes of none by `Class::method`); (6) the preload pump `GraphicPieces::process_load_over_time_*` (renderer); (7) teardown: `GameLog::end_game`, `ConquestGame::process_results`, `JukeBox::close`, `RecordGame::close`, `ConquestSaveGame::save_game`, `GameMod::unload`. The per-frame step is `Game::do_frame@00591ef0`, a separate row, called through `TurnControl`, not from here. **The census should mark `Game::run` `ui`.** Slicing it for a sweep needs a `--stub` per band's `NetDaemon`/window/COM callee and a harness that answers `Window` vcalls; no flag spells that, and bands (5) alone are one-shot initialisers with nothing to compare to in the crate.
+- **3404c. The sweep pool is empty after this batch.** `census.py --unbacked` past the other lanes' claims leaves only `ui`/dead-weight/cut-from-v1 rows (`TimeSync::process`, `MapScenario::make`, `UnitBalance::next`, `Game::run`, the `run_*` siblings); the commander should decide whether the census marks them out so the score's denominator is honest.
 
 ## Parked by the next landing, slot MI — reserved
 
