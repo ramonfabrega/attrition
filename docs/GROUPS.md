@@ -1636,7 +1636,8 @@ landing either closes a row or narrows one. Nothing cites it by number, and
      which writes 0 over the bit, and only
      `HotKeyGroups::find_group@00714d00` puts it back. The bit means
      **"this slot is a live control group"**, not "this slot is in the
-     hotkey array".
+     hotkey array" — until a rename, which sets it on every slot
+     `find_group` walks (§38).
 10. In `rondata::diff`:
     `run29_s_mustering_army_is_released_with_no_forming_bit_and_the_tail_s_point`
     — not this document's mechanic, but the one that makes it reachable:
@@ -5015,3 +5016,64 @@ that moved.
 
 §37.1 is diff-backed by run630 and the word. §37.2 is diff-backed by
 run630's 10766.
+
+## 38. The never-entered functions: readings, captures owed, residue proposed (item 3413, 2026-10-21)
+
+*Item 3413, Opus 5.5, a `reading` item (DECISIONS 84, 86). The method is `docs/ORDERS.md` §42's. **Everything here is
+reading-only.***
+
+**The list.** `blind::NEVER` against this document's cites on `3477eb7a`: **9**, four accepted `RESIDUE`, so **5**.
+- **Read here, 2**: `HotKeyGroups::find_group@00714d00`, and `Unit::do_form_change@005e8670`, whose arithmetic item
+  2346's sweep backs. It is read here only for how it could be reached.
+- **Read by GOLDEN §144, pointed at, 3**: `GroupData::get_stance_option@0070bab0`, `Options::do_formation@007215b0` and
+  `CommandPackage::process_stance@00949ed0`. GOLDEN §144.3 owes their captures: chapter sixty-four retaken at
+  `cover=1`, and the formation key.
+
+**`HotKeyGroups::find_group@00714d00(o, who)`** (§1's `priority` row and §12.0, amended here). Its one caller is
+`CommandPackage::process_rename_city` (`944132`). That command's issuers are the rename popup
+(`Popup::on_modal_end@007c13f0`, entered) and the script function `ScenarioFuncSet::rename_city`. The function, by
+line:
+- `:16`: it refuses `who ≥ 8`.
+- `:17`–`:49`: it walks that player's 18 hotkey slots in order (`who × 18 …`, stride `0x9fc`). On **every slot it
+  walks** it writes `priority = 1` (`:22`), then runs `Group::normalize`.
+- `:25`–`:39`: in a slot whose `who` matches and whose object `o` is alive, it looks for `o` in the list. On a match
+  it stamps that slot's `+0x14` with the frame, renames it, and returns the slot.
+- `:52`: with no match it returns −1, after setting the bit on all 18.
+
+**So a rename sets the live bit on every hotkey slot of the renaming player up to and including the one holding the
+renamed object. An empty slot is set too.** §1's reading of `priority` as "this slot is a live control group"
+therefore holds only until the first rename. The crate does not port it. The `iVar3 != -1` test at `:34` is always
+true.
+
+*Falsifier*: a full dump's `HOTKEYGROUPS` block (as run29's) on the frame after a city rename, with `priority 1` on
+slots the player never filled. A rename leaving an emptied slot at 0 kills the claim.
+
+**`Unit::do_form_change@005e8670`, proposed for `RESIDUE`.** Its one call is `do_job`'s `CHANGE_FORM` arm (`617af0`),
+which runs only for a unit whose current order is a `FormOrder`. **No site in the image makes one.** The evidence:
+- `OrdersMemManager::get_obj` has 47 direct calls and no `jmp` or pointer to it. Each `Unit::add_*_order` pushes its
+  own type, and none pushes `0x12` (`CHANGE_FORM`).
+- The calls that pass no immediate are `copy_order`, which copies an existing order, and `fight`, `do_patrol`,
+  `add_flock` and `action_alarm_peasant`, whose types are `ATTACK_GROUND`, `ATTACK_TO`, `AIR_ATTACK_GROUND` and
+  `GARRISON`.
+- `FormOrder::FormOrder` is called only by `get_new_order`. Its callers are `get_obj`, `OrdersMemManager::init` and
+  `OrderList`'s data walk, which restores what a save holds.
+- `do_formation`'s `CHANGE_FORM` is a sound cue (`S_CHANGE_FORMATION`), not an order.
+
+**So `CHANGE_FORM` is a kind no game makes.** `docs/COLLISION.md` §8.1's "the missing kind cannot have cost a frame"
+then holds for every game, not only the ones on disk.
+
+*Lower confidence on one point*: a `get_obj` reached through a register-loaded type (the 47 calls' prefixes were
+read, not each one's full dataflow) would make a `FormOrder`. A trace entering `do_form_change` kills the proposal.
+
+**Captures owed.**
+
+| function | lobby | action · frame | ini category · field |
+|---|---|---|---|
+| `find_group` | any lobby with a human city and a filled hotkey group, driven | rename the city through its panel | a full dump's `HOTKEYGROUPS` `priority` and `stamp`, the frame after; `[Misc Logging] COMMANDMANAGER=1`'s `process_rename_city` |
+| `get_stance_option`, `do_formation`, `process_stance` | GOLDEN §144.3 | as there | as there |
+
+**Residue proposed: 1**, `Unit::do_form_change@005e8670`, for the reason above.
+
+**Coverage.** Every claim of §38 is reading-only. The four `RESIDUE` rows this document cites
+(`PathFinder::find_wpath_army`, `LeaderData::is_human`, `Group::leader_report_speed`, `Group::report_speed`) are not
+re-read.

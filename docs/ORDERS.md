@@ -1767,7 +1767,8 @@ and a packer at 0 out of two adjacent bits of one byte. The only writers are
 `CommandPackage::process_leader_options@009441d0` — a player's click — and
 `ScenarioFuncSet::set_auto_peasant_level@009ff620`, which bounds the value to
 `0..3`, writes `peasants`, and pushes it onto every `0x32`/`0x33` unit and
-every `WORKER`-kind building the player already owns.
+every `WORKER`-kind building the player already owns — the *local* player's
+alone, and only on a change (§42.1).
 
 **And then the trainer overwrites it** — `Build::train@0062f9b0:86–101`:
 
@@ -5729,8 +5730,11 @@ names the unit unprompted — two rows, both `1/51`'s animation clock,
 **What is not established:**
 
 - **Which of the five waits a player actually sees**, and where the
-  option lives in the UI. `OptionsWinGame::do_save@0082c520` writes it
-  and `Options::describe@00724460` names the arms; neither was read.
+  option lives in the UI. ~~`OptionsWinGame::do_save@0082c520` writes it
+  and `Options::describe@00724460` names the arms; neither was read.~~
+  `do_save` is read (§42.1): it sends the option as a command, and one of
+  its boxes can give only 0 or 2. Which controls the window lays out is
+  still open.
 - **Whether the gate's `(idle − 2) % 5` tail is right above 12.** The
   citizen here re-tasks on its *first* pass of the threshold, so the
   window measured never exercises a retry. The expression is §5.9's and
@@ -8043,3 +8047,105 @@ and the draw stream by 1616).
 - The building group's pool slot (§41.1), and whether a later push reuses
   it.
 
+
+## 42. The never-entered functions: readings, captures owed, residue proposed (item 3413, 2026-10-21)
+
+*Item 3413, Opus 5.5, a `reading` item (DECISIONS 84, 86). No capture, packet or emulator run: the decompile, the
+listing (`llvm-objdump`), a reference scan of the PE (every `E8`/`E9`/`0F 8x` in `.text` and every absolute pointer
+in every section), and the coverage of the 21 traces `blind::TRACES` pins. **Everything here is reading-only.***
+
+**The list.** `blind::NEVER` against this document's `name@address` cites on `3477eb7a`: **20**, five accepted
+`RESIDUE`, so **15**. Seven are cited by this document alone.
+
+- **Swept, not re-read, 9**: the crate's emulator sweeps back each function's arithmetic against its port. So each
+  row below gives only the predicate that keeps a trace out, and the capture that would enter it. The nine are
+  `UnitData::has_repeat_air@0046cec0` (item 1705), `Unit::add_think_order@005e3df0` (2314),
+  `do_think_order@005e5bf0` (2287), `Unit::check_build_order@00603470` (3372), `GroupData::get_form_option@0070beb0`
+  (2782), `Group::distribute_attack@00713390` (3381), `CommandPackage::process_attack_ground@009494a0` (2953),
+  `Unit::do_group_attack@005e75a0` and `Unit::check_meet_ship@00604550` (3410; GOLDEN §144.4 proposes the second for
+  residue).
+- **Read by GOLDEN §144, pointed at, 4**: `GroupData::get_stance_option@0070bab0`, `Options::set_air_repeat@0071c740`,
+  `Options::do_rotate@0071dfd0` and `Options::picked_spot@00721c40` (§144.2's rows, §144.3's captures).
+- **Read here, 2**: `OptionsWinGame::do_save@0082c520` and `ScenarioFuncSet::set_auto_peasant_level@009ff620`.
+
+### 42.1 The two read
+
+**`ScenarioFuncSet::set_auto_peasant_level@009ff620`** (§5.10's writer, amended here). The PE has one reference to it,
+an absolute pointer in `ScenarioFuncSet::init_funcs` (`9d2d0c`, the script host's table). In the install it is called
+by `scenario/Tutorial2/tut2.bhs`, `Tutorial3/tut3.bhs` and `Tutorial4/tut4.bhs`, and by no other script. The predicate,
+by line:
+- `:16`: under `semaphore.ptr[0] & 4` it returns −1 and writes nothing.
+- `:20`: the value must be in `0..3`.
+- `:21`: the player is **`console->who`**, the local seat. It is not an argument, so a script cannot set another
+  player's option.
+- `:22`: the push runs **only when the value differs** from `LeaderOptions::list[who].peasants` (`+0x4`).
+- `:26`–`:35`: the push itself: `Unit::set_stance(u, v, 0)` on every active unit of type index `0x32`/`0x33`.
+- `:37`–`:61`: then every active object from index 2000 whose type's vslot `0x138` answers 1 gets `Build +0x7e = v`.
+- `:63`: `peasants` is written whatever the push did.
+
+§5.10's "every `WORKER`-kind building" is that vslot-`0x138`-equals-1 test; the name is not settled here. The crate
+does not port it.
+
+*Falsifier*: a Tutorial 2 load at `cover=1` whose script call leaves a `0x32` unit's `stance` (`UNITS=3`) unchanged
+while `peasants` changes. No random-map capture can reach it.
+
+**`OptionsWinGame::do_save@0082c520`** (§21's open question, struck there). Its one reference is an `.rdata` vtable slot
+(`b355ac`), so it runs when the in-game Options window saves. It has two arms on `gamec->playing`:
+- **Not playing** (`:103`–`:200`): it writes only the profile's `prefs`.
+- **Playing** (`:205`–`:306`): it writes the same controls into the staging record `MiscAccess::my_leader_option`, and
+  `LeaderOptionOut::update` (`006f1a60`, entered by every pinned trace) sends that record as a command. It is sent
+  only while the record's `who` is the −1 staging sentinel; any other `who` raises the "called outside of
+  my_leader_option" error. **So the simulation's `LeaderOptions::list` changes only through
+  `CommandPackage::process_leader_options` on the command's frame, never inside `do_save`.**
+
+The playing arm's fields:
+- **`peasants`**: the `+0xc` value of the first checked radio in control group `0x19014`.
+- **`peasants_wait`**: the `+0x298` value of control `0x19028`. Control `0x19064`, when the window has it, then
+  **overwrites** it with `checked × 2`, so that box can only give 0 or 2.
+- **`buildings`**: from control group `0x19050`.
+- **The mask's bits 1, 3, 4, 0 and 5**: one checkbox each.
+
+Which of these controls the shipped window lays out was not read, so §21's "which of the five waits a player sees"
+stays open on that one point.
+
+*Falsifier*: `[Misc Logging] COMMANDMANAGER=1`'s `process_leader_options` line on the frame after a mid-game Options
+save, with a full dump's leader-option record (`peasants`, `peasants_wait`, as run34's start dump prints them) agreeing
+with the window. A `peasants_wait` change on the save's own frame, before the command, kills the bold claim.
+
+### 42.2 Why no trace enters the rest (the predicate, read at its caller)
+
+| function | the gate that keeps it out | read at |
+|---|---|---|
+| `UnitData::has_repeat_air@0046cec0` | No direct call; six `.rdata` vtable slots. It is vslot `0xf0` of a **unit** home in `land_plane`'s tail (§40.1). `Unit::land_plane` is entered (run318, run326, run336, run365), but only ever onto a building, so the asked slot is `WallData`'s | the PE; §40.1 |
+| `Unit::add_think_order@005e3df0`, `do_think_order@005e5bf0` | The three calls are all in `Unit::do_gather` (`5ef3a6`, `5ef4e8`, `5f009b`), and `do_think_order`'s one call is `do_job`'s `THINK` arm (`617b88`). The three arms, by `do_gather` line: (1) the gatherer arrives first (`been_there` 0) at an own building already at its cap (`num_gatherers ≥ +0x80`, `:89`–`:113`); (2) a Farm (`0x1a1`) with `+0x72 < 0` (`:141`–`:147`); (3) a Woodcutter's Camp or Mine (`0x1a2`/`0x1a3`) over its cap on the gatherer's 128-frame phase (`:157`–`:171`). In 21 traces no gatherer meets any of the three | `do_gather@005ef2a0` |
+| `Unit::check_build_order@00603470` | `do_build`'s tail (`5eedae`, §5.2 steps 2 and 6) needs **another order behind the finished site** (`order_type() != NONE`). The computer's builders hold one site at a time. `Unit::do_build` is entered (run29 from frame 69) and this tail never is | §5.2 |
+| `GroupData::get_form_option@0070beb0` | `Group::action_form`, entered only in run323, calls it only for form −3 (previous) and −1 (next) (`:53`, `:81`). Its other callers are UI: `Options::describe` (entered, run16, run47–49, along an arm that does not ask) and `IFaceOptions::setup_button` | `action_form@00707220` |
+| `Group::distribute_attack@00713390` | `do_group_move`'s leader arm (`:108`–`:137`): the group move is current, `collide != 0` and `collide_o` a valid target, and the **action beneath is `ATTACK` or `GROUP_ATTACK`**. A computer army's `GROUP_ATTACK_TO` with `ATTACK_TO` actions returns at `:126`–`:129` before the call. Its other caller is `do_group_attack` | `do_group_move@005e79a0` |
+| `CommandPackage::process_attack_ground@009494a0` | Only `CommandPackage::process`'s dispatch calls it (`94a939`). Its issuers are `CommandManager::issue_attack_ground` (no reference in the image, GOLDEN §144.2) and the button's inline twin `GroupOut::issue_attack_ground`, which no trace enters | the PE |
+| `Unit::do_group_attack@005e75a0`, `check_meet_ship@00604550` | GOLDEN §144.3, §144.4 | — |
+
+### 42.3 Captures owed (the forty-eighth pass books from this table)
+
+All are at `cover=1`. `CM` is `[Misc Logging] COMMANDMANAGER=1`; `U3` is `[End Frame] UNITS=3`.
+
+| # | function | lobby | action · frame | ini category · field |
+|---|---|---|---|---|
+| 1 | `has_repeat_air` | a lobby with a human Carrier and a Fighter based on it (GOLDEN §144.3's carrier row) | the plane strikes and lands on the carrier | `U3` the plane's `unit_masks & 0x4000000` and its order on the landing frame (§40.1's clear/set arms) |
+| 2 | `add_think_order`, `do_think_order` | any lobby with a human Citizen and an own Woodcutter's Camp at its cap | `@gather` one more Citizen onto it | `U3` the Citizen's head order `THINKORDER` on arrival, then `think_peasant(1)`'s new order on the next frame |
+| 3 | `check_build_order` | §14's check 6 ("two shift-queued sites"), any human lobby | two `@build` sites, the second `QUEUE_LAST` | `U3` the builder's `BUILDORDER` re-added `QUEUE_FIRST` with `flags & 4` on the first site's finishing frame |
+| 4 | `get_form_option` | GOLDEN §22, chapter fourteen | the formation key's next/previous (form −1, −3), not a named form | `CM` `process_form` form −1; `GROUPS` `form` the frame after |
+| 5 | `distribute_attack` | GOLDEN §23, chapter fifteen | a right-click attack by a selected group on a far unit whose leader collides with a valid enemy on the way | `U3` the members' `ATTACKORDER` targets on the collision frame |
+| 6 | `process_attack_ground` | GOLDEN §7, chapter three | a new `@attackground`, or the button (GOLDEN §144.3) | `CM` `process_attack_ground to_x to_y queued` |
+| 7 | `do_save` | any lobby with a human, driven | Options → save mid-game with the idle option changed | §42.1's falsifier |
+| — | `do_group_attack`, `check_meet_ship`, `get_stance_option`, `set_air_repeat`, `do_rotate`, `picked_spot` | GOLDEN §144.3 | as there | as there |
+
+### 42.4 Residue proposed
+
+| function | why no capture can enter it |
+|---|---|
+| `ScenarioFuncSet::set_auto_peasant_level@009ff620` | It is reached only through the script host's table, and only the three tutorials call it. Scenarios are cut from v1. A Tutorial 2 load at `cover=1` would enter it if that scope changes |
+
+**What this has *not* established.** Which controls the in-game Options window lays out (§42.1). Whether
+vslot `0x138` is the stance type. Rows 1, 2 and 5's lobbies are not on disk.
+
+**Coverage.** Every claim of §42, and of the amendments it made to §5.10 and §21, is reading-only.
