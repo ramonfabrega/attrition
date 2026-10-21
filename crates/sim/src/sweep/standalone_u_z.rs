@@ -312,6 +312,14 @@ mod unit_out_issue_come_out;
 mod unit_out_issue_unqueue;
 #[path = "unit_plunder.rs"]
 mod unit_plunder;
+#[path = "unit_process_head.rs"]
+mod unit_process_head;
+#[path = "unit_process_inside.rs"]
+mod unit_process_inside;
+#[path = "unit_process_onmap.rs"]
+mod unit_process_onmap;
+#[path = "unit_process_train.rs"]
+mod unit_process_train;
 #[path = "unit_replace_form_id.rs"]
 mod unit_replace_form_id;
 #[path = "unit_resolve_block.rs"]
