@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): 2 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
-click-free pool (run1037; the autostart refused `g_cover`), so the coverage items take the pool, a driven one the queue
-lane; 3417: the queue lane still launches, run1016 pinned, `NEVER` 380 → 376, VISION §8's `treaty_off` diff-backed.*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): 3 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
+click-free pool (run1037), so coverage takes the pool, a driven item the queue lane; 3417: run1016, `NEVER` 380 → 376,
+VISION §8's `treaty_off` diff-backed; 3418: run1017 to 15432 on the pool, 376 → 372 (`WallData::hits` parked, 3418a).*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
-  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 376, residue 80, open 300 →
-  296** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
+  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 372, residue 80, open 300 →
+  292** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
   `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3418, att-3419 (pool).** Next 3432, run 1044. Pools: GOLDEN §145–149, AI §300–301, park MT, MU–MZ, NA–ND.
+- **Lanes: att-3419, att-3431 (pool).** Next 3432, run 1044. Pools: GOLDEN §145–149, AI §300–301, park MU–MZ, NA–ND.
 - **Fable backlog: 9 Loop items** (3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -36,7 +36,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 376 · residue 80 · open 296
+Blind: never 372 · residue 80 · open 292
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): spawn 3417 and 3429 on
@@ -50,11 +50,6 @@ pinned lobby retaken at **`cover=1` on the click-free pool** (3429's fix, run103
 3427), checked against its `cover=0` twin (`rngcmp.py`, `samegame.py`), pinned into `blind::TRACES`; a function
 not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: GOLDEN §144.3's click
 layer, `@spell` Bribe, the carrier, `make_valid`, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
-
-3418. **coverage: Great Sahara Toughest at `cover=1` to 15432** (AI §296 row 1; run470, run668's lobby): enters
-`SpellType::cast_march`, `Leader::verify_spell_flags` (9112, the march; `LEADERS=9` `leader_flags & 0x8000` falls at
-its expiry — parked 3409a), `BuildTypeData::get_enhancing_good`, `Army::charge` and `WallData::hits` (15275..15432).
-Run 1017.
 
 3419. **coverage: Great Lakes, Iroquois at difficulty 3, at `cover=1` to 10945** (AI §296 row 2; run897b, run943):
 enters `Army::use_scouts`, `use_spies`, `SpellType::cast_ambush` (10689) and `verify_spell_flags`' Ambush arm
