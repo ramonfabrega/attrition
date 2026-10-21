@@ -58,6 +58,8 @@ mod animal_think_bird;
 mod animal_think_farm_animal;
 #[path = "animal_update_los.rs"]
 mod animal_update_los;
+#[path = "animal_work.rs"]
+mod animal_work;
 #[path = "armies_diplo_change.rs"]
 mod armies_diplo_change;
 #[path = "armies_emergency.rs"]
