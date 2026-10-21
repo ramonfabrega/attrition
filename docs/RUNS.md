@@ -21226,3 +21226,65 @@ Archive `rontrace-run1021.log`, 71,615,584 bytes,
 SHA-256 `f6d15dd286f7a698dfca8b68d0204db37490d0ec90d18a0c079bc342e6363b2a`.
 
 **What it holds**: `blind::TRACES`' run1021 (item 3422), `NEVER` 360 → 358 on its base; 356 on the tree merged with item 3419's run1018.
+
+## run1025 — golden chapter sixty-four at `cover=1` on the click-free pool to 820, `chapter64.cmd` line for line (2026-10-21, item 3424, `att-3424`)
+
+**What the disk could not answer**: run835 (`~/ron-golden/ch64/map-14`) is `cover=0`. Its dump logs
+`process_stance 2 681` and `process_stance -1 721`, but its trace enters no function, so
+`CommandManager::issue_stance@00941530`, `CommandPackage::process_stance@00949ed0` and
+`GroupData::get_stance_option@0070bab0` stayed on `NEVER` (`docs/GOLDEN.md` §144.3). The take uses run835's command
+with `--cover cover=1` added, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1025`: `--map 14
+--end-frame 820 --log-window 605 820 --timeout 3600 --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5
+--detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail
+misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter64.cmd --cover cover=1`. The staged `rontrace.cmd` is
+run835's exactly (`37 !ffwd 1`, the five `add`s, `680 @stance 0 2 7`, `720 @stance 0 -1 7`, `820 !quit`;
+`callwin=0-820`).
+- Pool lane 1 (`~/wine-ron`). Launched 14:10:59, exited 14:17:46: **406.7 s launch to exit** (418.5 s in all; run835
+  at `cover=0` took 305.9 s). `success`, lifecycle verified, 821 frames, `last_frame` 820, not ended early, map 14,
+  seed 12345, tribes 4 and 11, five settings files restored. DLL `f6944b84…f5ead8e`, `-DRON_AUTOSTART`. `waitrun.sh`
+  exited 0. 218 GiB free before. Minutes waited on another lane: none (run1026 ran beside it on lane 2).
+- **6,587 functions entered**, three of them `NEVER` rows, all asked: `issue_stance` and `process_stance` on 680,
+  `get_stance_option` on 720 (the `-1` cycle). `issue_stance` moves to `blind::ENTERED_BY_THE_DLL_ONLY`.
+- `rngcmp.py ~/ron-golden/ch64/map-14/rontrace.log rontrace-run1025.log` (run835, the `cover=0` twin): **821 in
+  common, 0 differing, 821 identical**.
+- `samegame.py` against run835's `gamelog.txt`: **216 in common, 0 differ**. The dump logs `process_stance 2 681` and
+  `process_stance -1 721`, as run835's does. Nothing in it parts the twin, so no residue item.
+- Filed with `filerun.py run1025 chapter64-stance-cover1-clickfree`.
+
+Archive `gamelog-run1025-chapter64-stance-cover1-clickfree.txt`, 95,133,431 bytes,
+SHA-256 `d44051d6f68ebae0a04e44ff468c2954347183306c5dd2485ed46c3d3aa1c98d`.
+
+Archive `rontrace-run1025.log`, 10,237,216 bytes,
+SHA-256 `d3e10b660e68ee9cf12f97d1e546e9b587a2f6f0dbf726a04d8e9ec11acb0bb6`.
+
+**What it holds**: `blind::TRACES`' run1025 (item 3424).
+
+## run1026 — golden chapter ninety-one at `cover=1` on the click-free pool to 1200, `chapter91.cmd` line for line (2026-10-21, item 3424, `att-3424`)
+
+**What the disk could not answer**: run894 (`~/ron-golden/ch91/map-14`) is `cover=0`. Its dump shows Hoplite `1/6`
+dying on 807, but its trace enters no function, so `SpellType::cast_sabotage@006720e0` stayed on `NEVER`
+(`docs/GOLDEN.md` §115, §144.3). The take uses run894's command with `--cover cover=1` added, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1026`: `--map 14 --end-frame 1200 --log-window 605 1200 --timeout
+3600 --detail end:UNITS=3,BUILDS=7,DEATHS=1,LEADERS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail
+misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/golden/chapter91.cmd --cover cover=1`. The staged `rontrace.cmd` is
+run894's exactly (`37 !ffwd 2` … `621 @spell 0 631 9 1 25728 24960 7`, `1200 !quit`; `callwin=0-1200`).
+- Pool lane 2 (`~/wine-ron-2`). Launched 14:11:25, exited 14:18:01: **395.1 s launch to exit** (405.8 s in all;
+  run894 took 368.0 s after one relaunch). `success`, lifecycle verified, 1,201 frames, `last_frame` 1200, not ended
+  early, map 14, seed 12345, tribes 4 and 11. DLL `6d6e8533…6cdba28a`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0.
+  Minutes waited on another lane: none.
+- **6,606 functions entered**, one of them a `NEVER` row, asked: `cast_sabotage` on 806. The dump's `DEATH_OBJS`
+  first prints `1/6`'s record on block 807 with `first_frame 806`, in this dump and in run894's alike.
+- `rngcmp.py ~/ron-golden/ch91/map-14/rontrace.log rontrace-run1026.log` (run894, the `cover=0` twin): **1,201 in
+  common, 0 differing, 1,201 identical**.
+- `samegame.py` against run894's `gamelog.txt`: **596 in common, 0 differ**. Nothing parts the twin, so no residue
+  item.
+- Filed with `filerun.py run1026 chapter91-sabotage-cover1-clickfree`.
+
+Archive `gamelog-run1026-chapter91-sabotage-cover1-clickfree.txt`, 95,917,310 bytes,
+SHA-256 `8bf70445b2d6a15367578399cf42289e4da70cf668bd6c2844318c6092a7c999`.
+
+Archive `rontrace-run1026.log`, 11,715,712 bytes,
+SHA-256 `67a0be9aed9be2c33fce5bcf82c3f5840d001b7e02f6a9a7d327aafe4df80d13`.
+
+**What it holds**: `blind::TRACES`' run1026 (item 3424), `NEVER` 356 → 352 with run1025 on its base; 350 on the tree merged with item 3423's run1022 and run1024.

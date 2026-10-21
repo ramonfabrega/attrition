@@ -178,6 +178,14 @@ pub const TRACES: &[&str] = &[
     // pinned: the script's `can_queue` is the copy at `004d2030`.
     "rontrace-run1022.log",
     "rontrace-run1024.log",
+    // Item 3424: golden chapter sixty-four (`chapter64.cmd` line for line)
+    // at `cover=1` on the click-free pool to 820 (`docs/RUNS.md` run1025),
+    // run835's game on every frame.
+    "rontrace-run1025.log",
+    // Item 3424: golden chapter ninety-one (`chapter91.cmd` line for line)
+    // at `cover=1` on the click-free pool to 1200 (`docs/RUNS.md` run1026),
+    // run894's game on every frame.
+    "rontrace-run1026.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -192,6 +200,8 @@ pub const TRACES: &[&str] = &[
 /// game's. Of the other three of 940's eleven, `issue_gather` left with
 /// run431 (item 1167, chapter forty's `@gather`); `issue_attack_ground` and
 /// `issue_come_out` no chapter issues, and they stay on [`NEVER`].
+/// `issue_stance` joined with run1025 (item 3424, chapter sixty-four's
+/// `@stance` under `cover=1`).
 pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
     (
         0x0094_1580,
@@ -228,6 +238,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
     (
         0x0094_1a20,
         "CommandManager::issue_gather: run431, chapter forty's `@gather`",
+    ),
+    (
+        0x0094_1530,
+        "CommandManager::issue_stance: run1025, chapter sixty-four's `@stance`",
     ),
 ];
 
@@ -414,6 +428,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `BuildData::can_queue@0062da00` stays: its one caller is
 /// `GroupOut::issue_queue_up` (a click), and the script's research calls
 /// the identical copy at `004d2030`.
+/// **350** with run1025 and run1026 (item 3424: golden chapters sixty-four
+/// and ninety-one at `cover=1`; `docs/GOLDEN.md` §144.3):
+/// `CommandManager::issue_stance@00941530` and
+/// `CommandPackage::process_stance@00949ed0` on 680,
+/// `GroupData::get_stance_option@0070bab0` on 720 (the `-1` cycle), and
+/// `SpellType::cast_sabotage@006720e0` on 806; `issue_stance` moves to
+/// [`ENTERED_BY_THE_DLL_ONLY`].
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -432,20 +453,20 @@ pub const NEVER: &[u32] = &[
     0x0063_3390, 0x0063_89b0, 0x0063_9830, 0x0063_9930, 0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_40c0, 0x0064_50b0, 0x0064_50c0,
     0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80,
     0x0066_1d70, 0x0066_2670, 0x0066_26e0, 0x0066_3b60, 0x0066_3b70, 0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830,
-    0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_20e0, 0x0067_2d00, 0x0067_3e80, 0x0067_4920,
+    0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_2d00, 0x0067_3e80, 0x0067_4920,
     0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0,
     0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0, 0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0,
     0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_3650,
     0x006d_3eb0, 0x006d_5230, 0x006d_53e0, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_0b80, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20,
     0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_1cc0, 0x0070_20c0, 0x0070_4520, 0x0070_84c0, 0x0070_8820,
-    0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60, 0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0,
+    0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60, 0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0,
     0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740, 0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_16b0, 0x0072_1c40,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0, 0x0073_c5d0, 0x0073_c5e0,
     0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50, 0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80,
     0x007c_3810, 0x0081_2d20, 0x0081_34d0, 0x0082_c520, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_be90, 0x0089_bea0,
     0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190,
-    0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_1530, 0x0094_17a0, 0x0094_1960,
-    0x0094_2a80, 0x0094_2c90, 0x0094_3f30, 0x0094_4090, 0x0094_65d0, 0x0094_68a0, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0, 0x0094_9ed0,
+    0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_17a0, 0x0094_1960,
+    0x0094_2a80, 0x0094_2c90, 0x0094_3f30, 0x0094_4090, 0x0094_65d0, 0x0094_68a0, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_94a0, 0x0094_95c0, 0x0094_9ae0,
     0x0094_c1c0, 0x0095_2d90, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930,
     0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880, 0x009f_b970, 0x009f_b9e0,
     0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0, 0x00a0_0220, 0x00a4_69f0,
