@@ -1518,7 +1518,7 @@ handed to `parse_cmd`. `rontrace.dll` (`tools/trace/tracer.c`,
 `issue_line`) builds a `GroupOut` — `num` at `+0xc`, `who` at `+0x4a`, the
 objects at `+0x8cc`, the three fields `CommandPackage::add_group@0094bb60`
 reads — and calls `CommandManager::issue_move_to@00941720` with a plain
-right-click's arguments: `QUEUE_NEW`, no angle, `MOVE_TO`, form and width
+~~right-click's arguments~~ minimap right-click's arguments (§144.2): `QUEUE_NEW`, no angle, `MOVE_TO`, form and width
 −1, no disembark (`WorldMap::on_right_up@008c7050:203`). It checks the
 issuer's prologue, that `who` is the console's player, that every object is
 a live captain of `who` with that id, and that the package has room, and
@@ -4147,7 +4147,7 @@ whole list, and each is a route:
 | the right-click | `Group::action_swarm_around@0070fbe0`, its `REPAIR` arm, `QUEUE_LAST`, the command's action bit | `CommandPackage::process_swarm_around@00949970` ← `CommandManager::issue_swarm_around@009416b0` ← `GroupOut::issue_swarm_around@0070afc0` ← `Console::execute_at_cursor@007c6630` (a right-click on a damaged, finished building of one's own or an ally's) and `Options::picked_spot@00721c40` (the Repair pick) | a player's, **the chapter's** |
 | the re-entry | the same arm | `Unit::do_repair@005ee420`: a repairer not adjacent kills its order and swarms again at `QUEUE_FIRST` (a halt, the arm at `QUEUE_NEW`, `finish_insert`); `Unit::find_repair_spot@00604320` for a computer's | the order's own step |
 | the replay | the same arm | `Group::finish_insert@0070e620`, cases 6 and `0xd` | a halted group's |
-| the `repair` command | `Group::action_repair@007020c0` | `CommandPackage::process_repair@00948cb0` (command `0x10`, which **nothing issues**: `docs/COMMANDS.md` §6's sweep of every `add_command` caller) and `ScenarioData::issue_order@00996ac0` (the trigger system, cut from v1) | nobody a game reaches |
+| the `repair` command | `Group::action_repair@007020c0` | `CommandPackage::process_repair@00948cb0` (command `0x10`, which **nothing issues**: `docs/COMMANDS.md` §6's sweep of every `add_command` caller) and `ScenarioData::issue_order@00996ac0` (~~the trigger system~~ a scenario file's initial orders, §144.2; cut from v1) | nobody a game reaches |
 | the gatherer's | `Unit::do_gather@005ef2a0` | a computer-driven gatherer (`unit_masks & 0x40000`), difficulty above 1, one frame in 256 (`(o + frame + who) & 0xff == 0`), its building damaged and its city's flag 2 clear, at `QUEUE_NEW` without the action bit | a computer's |
 | the building's call | `Build::process@0061edf0` | a building damaged past half its hits, its owner not human (`leader_flags & 4` clear), difficulty above 1, no enemy capturing it: the idle friendly `PEASANTS` (`0x32`) `find_unit` returns within `0x1e00`, at `QUEUE_NEW` | a computer's |
 | the rally | `Unit::come_out@00617c10` | a unit coming out of a building whose destination object is a building with damage (`+0x24`), `QUEUE_LAST`, no action bit: the gather point's arm, read no further than the call | no command |
@@ -4155,8 +4155,8 @@ whole list, and each is a route:
 `Group::action_repair` is a citizen-only walk (`PEASANTS`/`PEASANTSKOREAN`)
 gated on `Region::is_coast`, with `add_repair_order` at `QUEUE_NEW` or
 `QUEUE_LAST`; no game reaches it. `ScenarioFuncSet::citizen_repair_order@
-009f85b0` calls `action_swarm_around` for the trigger system and is cut
-with it.
+009f85b0` calls `action_swarm_around` ~~for the trigger system and is cut
+with it~~ for the computer's nomad opening (§144.2).
 
 **The issuer's two callers pass the same bytes.** `execute_at_cursor`
 picks `REPAIR` when the building under the cursor is finished (vslot
@@ -12341,7 +12341,7 @@ alone). **Nothing in the sim's rules moved**; the interpreter gained two verbs.
 
 **The verbs built** (§16's "`finish`/`hurry` parsed and unapplied", parked 2438). `run_cmd` case `0x51` is
 `Console::hurry_action@007c3810` over the console's selection (`select_groups`); with `this != 0` (the one-token
-`finish`) a selected **building** that is not active takes vslot `0x1a8`, `Build::activate(0, 1, 1)`, then
+~~`finish`~~ `hurry`, §144.2) a selected **building** that is not active takes vslot `0x1a8`, `Build::activate(0, 1, 1)`, then
 `BuildData::job_counter += 10000`, then `do_queue(0)` (a site with no queue returns at its head, `field_0x82`).
 `golden.rs` carries `Cheat::Select { who, o }` (`select <ob#> [who]`, the one-object form) and `Cheat::Finish`;
 `Sim::cheat_finish` (`city.rs`) is the arm. **Test**: `cities_tests::finish_activates_a_site_and_pays_the_counter`
@@ -13550,12 +13550,102 @@ Ours is grow-only (`Sim::deaths`), so each of the four culled rows is a standing
 
 **Coverage.** Diff-backed: draws, orders and every dumped value to 1500. Reading only: nothing new.
 
-## 144. Reserved for the next item on the rules track
+## 144. The issuer chapters' never-entered functions — what would enter each, and what nothing can (item 3408, reading)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**How established.** The first `reading` item on the rules track (DECISIONS 84, 86): every function this document cites that
+`blind::NEVER` lists, 51 of them once the three accepted `RESIDUE` rows are taken out, read off the export and the listing.
+Four are being swept beside this item (`Unit::check_meet_ship@00604550`, `SpellType::cast_bribe@00672d00`, `cast_sabotage@
+006720e0`, `Group::action_repair@007020c0`), so they are not re-read here and get only the capture that would enter them.
+**Every claim below rests on a reading alone**: no capture, packet or emulator run backs it. Each row names what kills it.
+`CM` is `[Misc Logging] COMMANDMANAGER=1`'s `process_*` line on the issue's frame + 1; `U3` is `[End Frame] UNITS=3`.
+
+### 144.1 Why the issuer chapters left these behind
+
+The chapters' `@` lines call `CommandManager::issue_*` directly (`tools/trace/tracer.c`), so the layer above them, the
+buttons and the right-click, is never entered: `GroupOut::*`, `Options::*`, `BuildOut::issue_unqueue@00629e70`. Six of
+those wrappers (`issue_guard`, `issue_follow`, `issue_set_transport`, `issue_buildmask`, `issue_eject_all`'s own arm,
+`BuildOut::issue_unqueue`) **build the command inline**, a byte-for-byte twin of the manager's, and never call it. Where §19,
+§20, §28, §32 and §34 say a pick "passes through" one, read "issues the same bytes as". A coverage scan of every trace on disk,
+pinned or not, enters none of the eleven `GroupOut`/`BuildOut`/`WorldMap` rows. run30, run47 and run50 right-clicked the main
+view (`Console::on_right_up@007cd3c0`), never one of these.
+
+### 144.2 Claims that amend an earlier section
+
+| claim | read at | kills it |
+|---|---|---|
+| **`WorldMap::on_right_up@008c7050` is the minimap's right-click**, not the main view's: it bumps `accum_minimap_clicks` (:60) and is vslot `+0xf8` of a `WorldMap` vftable `Window::right_up_event` dispatches. §17's "a plain right-click's arguments, form −1, width −1" (:203) is the minimap's. A main-view ground click is `Console::execute_at_cursor@007c6630:2585` with `drag_form = max(0, get_form)` and `drag_form_mod` from `GroupData::get_form_mod_option`, set at the press (`Console::down@007cd8f0:89–100`). §13's and §23's ctrl arm (:199) has the same bytes as the main view's :411. §18's :206 is a minimap click with a plane selected | the listing; `vtables.txt` lacks this vftable (`.rdata 0xb54b38`) | a main-view ground right-click in run30's or run50's package carrying form −1, width −1 |
+| **`Console::hurry_action@007c3810` is `hurry`, not `finish`**: `run_cmd` case `0x51` (`this` 1 for the bare token) and cheat key `0x45` (`this` 0) are its only callers. `finish` is case `0x4f`, inline (§94), so §90's "the one-token `finish`" names the wrong verb, and **no capture has entered it at any cover** | `ConsoleWin::run_cmd@007d6a70:8842`, `Console::exec_keymap@007c2ce0:269` | chapter seventy-four's take with `hurry` for `finish`: the Library's `job_counter` moves 500000, not 10000 |
+| **`ScenarioFuncSet::citizen_repair_order@009f85b0` is reachable in a skirmish**: the computer's nomad opening calls it (`ai/scripts/economic.bhs:398`, `defensive.bhs:433`) on every Citizen once its Small City is placed. §29's "cut with the trigger system" is wrong. Ported at `crates/sim/src/ai_host.rs:1192`. Unestablished gaps: it admits `0x32` and `0x33` (is Korea's citizen the port's `citizen_type`?); it writes `UnitData.group` −1, which the port does not | the export; the install's scripts | a nomad capture whose computer Citizen gains no `BUILDORDER` on the new city at the head (`QUEUE_FIRST`) |
+| **`ScenarioData::issue_order@00996ac0` is a scenario file's initial orders**, applied once at import (`ScenarioRead::import` chunk 6 → `issue_queued_orders`), not the trigger system as §29 says. Cut from v1 with scenario games either way | the export | a random-map trace entering `ScenarioRead::import` |
+| `Options::picked_spot@00721c40`'s Repair pick always passes `QUEUE_NEW`, whatever the keys, and on an undamaged own building with room and gatherers selected it issues `issue_gather` (:668), not a repair. A right-click reaches `picked_spot` only under the profile pref `prefs & 0x20` | :536–727 | a shift-held Repair pick logging queued ≠ 2 in `CM` |
+| `Options::set_air_repeat@0071c740` has a units arm §32 omits: with planes selected it sends an inline command `0x20` (`unitmask 0x200000, set 1`), so it always sets and never toggles. No port | :53–76 | a second press logging `set 0` |
+| `GroupOut::issue_buildmask@00708820` has a second caller: `Options::exec` case `0x40`, mask `0x40`. Its second word is the literal 1 (listing `708855`) | `Options::exec@007188c0:2229` | a `process_buildmask` with a second word other than 1 |
+| `GroupOut::issue_eject_all@00708b90` has an other-player arm (§21 has only the own arm). One selected object of another player → `CommandManager::issue_eject_all(…, who, o, group.who)` | listing `708b90`–`708c55` | an own-arm press whose 0x1a's last three words are not −1 |
+| `GroupOut::issue_swarm_around@0070afc0` also carries `BUILD_AT`: a right-click on an own unfinished site (`execute_at_cursor:1237`) and the Repair pick's :579 | `execute_at_cursor:895` | a right-click on a site appending `REPAIR` |
+| `GroupOut::issue_follow@00708980` is also reached by a Move pick on a unit (`execute_at_cursor:1631`) and by a right-click on a non-allied unit (:2148). It and `issue_guard@007088e0` carry an editor arm, `EditorGroups::add_order`, under `semaphore.ptr[1] & 8` | the export | a Move pick on `0/7` laying a `MOVE_TO` |
+| `Options::do_rotate@0071dfd0`: `form −2`, the angle by key (15°, shift 30°, ctrl 5°, alt 45°), queued **`QUEUE_LAST`, or `QUEUE_FIRST` with alt, never `QUEUE_NEW`** | listing `71dfe3`–`71e030` | an unmodified press logging queued 2 |
+| `Options::do_spell@0071d7a0` refuses To Arms without `has_tech(MILITIA)` and runs `GroupOut::validate_spell`; `@spell` skips both | :102–189 | To Arms logged without the tech |
+| `Unit::swap_team@006118d0`'s unlink loop writes `this->o` and `this->who` (+0xa, +0x9) to each next carried unit. With cargo, the closes start from the last carried unit (§107 has no cargo). The port's walk (`bribe.rs:47`) stops when either chain ends; the original's stops on the old chain only | listing `611fcc`, `611fd4` | a Bribe on a loaded transport closing the old captain first |
+| `Unit::action_unqueue@005e1f20` refunds the type's **current** cost (vslot `0xd8`, `Type::unpay_cost`), not a recorded price as `Build::unqueue` does | :83–85 | a carrier's cancel refunding a price paid under an older upgrade |
+| `CommandManager::issue_attack_ground@009417a0` has neither the peace-tile refusal nor the playback gate of the game's twin, `GroupOut::issue_attack_ground` (`0070ae60`), so `@attackground` would append what the button refuses | :14–23 | — (reading-only; the DLL line is the capture) |
+| `ScenarioFuncSet::toggle_infinite_queue@009f45e0`'s on/off argument is dead: `Group::action_buildmask` never reads it, so the call toggles `0x40` | the export | a scripted `on` leaving a set bit set |
+| `Unit::do_flee_to@005f2480` is dead, not "pointer only" (`docs/CENSUS.md`): `do_job` folds `FLEE_TO` onto `do_move`, and its only four-byte copies are its RVA inside instructions (`5c0ad7`) | listing | a trace entering it |
+
+### 144.3 Captures owed (the forty-eighth pass books from this table)
+
+All at `cover=1`; the frame is the issue's. The `GroupOut`/`Options` rows also take a cheaper DLL route: an `@` variant that
+calls the wrapper with the `GroupOut` the tracer already builds. That checks the gate and the bytes but not the UI predicate.
+
+| function | ini category · field | lobby (staging) | action · frame |
+|---|---|---|---|
+| `GroupOut::issue_guard@007088e0` | `CM` guard; `U3` `0/6`'s `GUARDORDER` | §19, chapter eleven | `rclick` `0/6` on own `0/7` for 620's `@guard` |
+| `GroupOut::issue_follow@00708980` | `CM` follow; `U3` `FOLLOWORDER` | §20, chapter twelve | Follow button + pick on `0/7`, 620 |
+| `GroupOut::issue_flight@00708b10` | `CM` flight; `U3` `STRAFEORDER` | §25, chapter seventeen | `rclick` the planes on `0/2007` (640), on `1/2006` (620) |
+| `GroupOut::issue_eject_all@00708b90`, `Options::do_eject_all@0071c470` | `CM` `process_eject_all`; `U3` garrison out | §21, chapter thirteen | Eject button on `0/2007`, 900 |
+| `GroupOut::issue_build@00708c60` | `CM` `process_build` queued 2; `BUILDS=6` site | §26, chapter eighteen | build button 427 + no-drag drop |
+| `GroupOut::issue_set_transport@0070ad10`, `Options::do_transport@0071c500` | `CM` `process_set_transport`; `U3` mask `0x800000` | §28, chapter twenty | transport button on `0/7`, 620 |
+| `GroupOut::issue_swarm_around@0070afc0`, `Options::picked_spot@00721c40` | `CM` `process_swarm_around` `REPAIR` | §29, chapter twenty-one | `rclick` `0/6` on `0/2007`, 780; then the Repair pick |
+| `GroupOut::issue_attack@0070b060` | `CM` `process_attack`; `U3` `ATTACKORDER` | §23, chapter fifteen | `rclick` `0/6 0/9` on `1/6`, 734 |
+| `GroupOut::issue_buildmask@00708820`, `Options::set_air_repeat@0071c740` | `CM` `process_buildmask`; `BUILDS` mask `0x80` | §32, chapter twenty-three | repeat button on `0/2007`, 1440 |
+| `BuildOut::issue_unqueue@00629e70` | `CM` `process_unqueue`; `BUILDS=6` queue | §34, chapter twenty-five | cancel (option `0xa6`) on the queued Hoplite |
+| `Options::do_rotate@0071dfd0`, `do_formation@007215b0` | `CM` `process_form`; `GROUPS` `form` | §22, chapter fourteen | `bindkey.py` letter by `osascript` (run52's recipe) |
+| `Options::do_spell@0071d7a0` | `CM` `process_spell`; `U3` Militia | §48, chapter thirty-nine | To Arms button on the Citizen, 625 |
+| `WorldMap::on_right_up@008c7050` | `CM` `process_move_to` form/width; `U3` | §17, chapter nine (+ §42 for :240) | minimap `rclick` plain, ctrl, shift (needs a minimap → tile fit) |
+| `CommandManager::issue_trade@00941960` | `CM` `process_trade`; `U3` `TRADEORDER` | §11, chapter seven + a human Caravan, two cities | `rclick` the Caravan on the second city |
+| `CommandManager::issue_come_out@00942c90`, `CommandPackage::process_come_out@009465d0` | `CM` `process_come_out`; `U3` out of host | §21, chapter thirteen | a new `@comeout`, or the unit's panel button |
+| `CommandManager::issue_attack_ground@009417a0` | `CM` `process_attack_ground` | §7, chapter three | a new `@attackground` |
+| `CommandManager::issue_stance@00941530`, `CommandPackage::process_stance@00949ed0`, `GroupData::get_stance_option@0070bab0` | `CM` `process_stance 2 681`; `U3` `stance` 721–722 | §79, chapter sixty-four (run835) | re-take `chapter64.cmd` at `cover=1` |
+| `Console::hurry_action@007c3810` | `BUILDS` `job_counter` +10000 | §91, chapter seventy-four | `hurry` for `finish`, 701 |
+| `BuildQueueData::get_next_non_unit@00630b10` | `BUILDS=7` `0/2007` slot 1 +100/frame from 843 | §92, chapter seventy-five | re-take `chapter75.cmd` (diff-backed on run868, a draw trace) |
+| `Unit::reset_move_orders@005fd080` | `U3` passengers' `orig_x/orig_y` on 1902 | §55, chapter forty-six (run496) | re-take `chapter46.cmd` |
+| `Unit::swap_team@006118d0`, `SpellType::cast_bribe@00672d00` | `U3` a new who=0 unit, the old `damage`, `form` | §107's parked staging | `@spell 0 629 …` (Bribe) |
+| `SpellType::cast_sabotage@006720e0` | `DEATHS` `1/6` on 807 | §115, chapter ninety-one (run894) | re-take at `cover=1` |
+| `Unit::action_unqueue@005e1f20` | `U3` carrier `num_queued`, `queue_time`; `LEADERS` buckets | a carrier with FIGHTERBOMBER | `@spell … 661` (BUILDAIR), then `@unqueue` |
+| `Units::make_valid@0061a960` | `U3` first `0/200` index | ~70 squads for one player | `@queueup` past 200 slots |
+| `ScenarioFuncSet::citizen_repair_order@009f85b0` | `U3` computer Citizens' `MOVEORDER` + `BUILDORDER` | a Nomad lobby (`profile.py STARTING_TOWN=0`), AI on | the computer's city placed |
+
+Three of these would move to `ENTERED_BY_THE_DLL_ONLY`, because nothing in the image references them: `issue_stance`,
+`issue_attack_ground` and `issue_come_out`. `process_stance` and `get_stance_option` would leave outright, because the game's
+own stance button reaches them.
+
+### 144.4 Residue proposals
+
+| function | why no capture can enter it |
+|---|---|
+| `CommandManager::set_mp_playback@0093ee70` | multiplayer replay playback: a `prefs2` path read under `netsys` before `ReplayWin` |
+| `Game::run_gamespy@00587060` | the GameSpy online lobby, `run_game_loop`'s `GAME_GAMESPY_*` arms |
+| `CommandPackage::process_repair@00948cb0`, `Group::action_repair@007020c0` | no `add_command` site in the image writes type `0x10` (102 sites read); its other caller is `ScenarioData::issue_order` |
+| `CommandPackage::process_board_ship@00948e00`, `Group::action_board_ship@00700010`, `Unit::add_board_order@005e4d10`, `add_await_board_order@005e4c80`, `do_board@005ed1f0`, `check_meet_ship@00604550` | no site writes type `0x0f`, and the rest live under the `BoardOrder` only `action_board_ship` makes. `process_board_ship`'s sync line is mislabelled `process_set_transport` |
+| `ScenarioData::issue_order@00996ac0` | a scenario file's initial orders; no capture loads a scenario |
+| `ScenarioFuncSet::toggle_infinite_queue@009f45e0` | one script caller, `scenario/Custom/capture/capture.bhs` |
+| `ScenarioFuncSet::repeat_orders_enable@009f99e0`, `repeat_orders_disable@009f9ad0` | no script in the install calls either |
+| `Unit::do_flee_to@005f2480` | no reference: `do_job` sends `FLEE_TO` to `do_move` |
+| `Wall::Wall@0063e390` | `num_def_walls` is only written 0, and no `find_free` call asks for the wall range |
+| `GroupAttackOrder::log_data@00485140` | nothing asks `get_obj(GROUP_ATTACK)`, so no list holds one to print |
+
+**Coverage.** Everything in §144 is reading-only; `Game::run_gamespy` and `set_mp_playback` were read only as far as their
+gates. The three accepted `RESIDUE` rows GOLDEN cites (`MoveOrder::is_fleeing`, `ObjectData::is_in_range`,
+`UnitBalance::next`) are not re-read.
 
 ## 145. Reserved for the next item on the rules track
 
