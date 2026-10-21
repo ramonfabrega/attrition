@@ -20569,7 +20569,12 @@ capture's player holds one.
    entered; `lakota_raze_price`), the AI's `create_buildings`, `create_units`, `production_ai_setup` and `calc_gather`,
    `Build::plunder` and `LeaderData::can_see_borders`. Not the battery's Germans, Russians or Egyptians (§125's battery
    is never debugged against). **These are predictions**: the click-free lane runs `cover=0`, so the census cannot say
-   it entered any of them.
+   it entered any of them. **`say_no_war` writes no simulation state** (item 3409, §296; *reading alone*): its
+   whole body sets the global `msg` — one string for `rush_rules > 8`, another for 8, else a third parsed with the
+   rush rule's name (`types +0x87c`, `:18`–`:34`) — and its four callers each hand `msg` to the message window:
+   `process_attrition` (the console's unit, the leader's `+0x1f4` stamp 0), `action_declare` (the console's refused
+   declaration), `Console::tell_no_war` and `Group::action_launch_flight`. No dump category prints `msg`, so no
+   capture can diff it; it is proposed for `RESIDUE` (§296).
 2. **The lobby**: East Indies (`MAP_STYLE 18`), human Nubians (4) against **the Lakota (19)** at `DIFFICULTY 3`,
    `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, **`RUSH_RULES 10`**, seed 12345 — the successor pair's lobby with the
    nation and the rush rules varied. *Diff-backed*: each dump's `GAME INFO` reads them back. `crates/sim` already reads
