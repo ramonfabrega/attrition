@@ -96,6 +96,7 @@ pub mod economy;
 pub mod eject;
 pub mod farms;
 pub mod fight;
+pub mod find_path_view;
 pub mod finish_insert_view;
 pub mod fish;
 pub mod flag_reads;

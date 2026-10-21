@@ -254,6 +254,12 @@ mod unit_find_melee_pos;
 mod unit_find_nearby_spot;
 #[path = "unit_find_new_bomber_target.rs"]
 mod unit_find_new_bomber_target;
+#[path = "unit_find_path.rs"]
+mod unit_find_path;
+#[path = "unit_find_path_emu.rs"]
+mod unit_find_path_emu;
+#[path = "unit_find_path_pushes.rs"]
+mod unit_find_path_pushes;
 #[path = "unit_find_repair_spot.rs"]
 mod unit_find_repair_spot;
 #[path = "unit_get_speed.rs"]
