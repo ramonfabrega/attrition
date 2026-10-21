@@ -8881,13 +8881,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LX — reserved
+## Parked by item 3387, 2026-10-20 — the nations seat's twentieth shape batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3387a. The building attack override is in no crate path.** `BuildData::attack@0062e610` (swept, `build_attack_view.rs`, standalone) adds `general_building_attack*10` for a garrisoned building, `obsidian_archers_attack*10` and `antipater_garrison_attack_bonus*10`; the crate has no leader flag words, no constants for them and no `count_inside` twin, so `Sim::attack_of` applies only the `ObjectData` base to buildings. Wiring it is the likeliest pin mover of the batch.
+- **3387b. `Group::normalize@00711540` is swept but unwired.** `Sim::group_normalize` / `seat_normalize` are namesakes (prune a `Vec<usize>` by `alive`, shift three arrays); the original shifts five and tests object slots `+0x18`/`+0x20`, the group's `id` and `+0x30`. `normalize_view.rs` is the original's walk; whether the namesakes differ on those predicates is unchecked.
+- **3387c. `Army::normalize@006f9b50` is swept but unwired.** `Sim::army_normalize` is a namesake (recounts a unit list; no group slots, `remove_group` early return or slot sort). `army_normalize_view.rs` holds the walk. Negative `num` in the sort and `find_leader` answering -1 read outside the emulator's windows, so the draw keeps them out.
+- **3387d. `SpellTypeData::find_target@00674920`: the crate has no spell search mapping and no console.** `spell_find_view.rs` is the only port, held by the sweep; the three dead stack slots of `Console::find_target` read as zero and the port logs literal zeros (not tested nonzero).
+- **3387e. `Animal::work@005d7330`: the crate keeps no per-herd goods seen-mask and no animal order cursor** (`+0xcc/+0xd0/+0xd4/+0xdc`); the port is inline in the sweep's `// hand: port` fence. Player byte 8 and above, herd indices outside -1..6 and goods indices outside 0..7 are not drawn.
+- **3387f. `ObjectData::attack@006469f0`: sim fix, the caravan arm.** `Sim::attack_of` had no caravan arm (vslot `+0xd0` and `has_preq(CARAVAN_ATTACK_BONUS)` replace the attack with the constant, 20); added with tech role `caravan_attack_preq`, tuning `caravan_attack_bonus` and `Slot::Scaled10`. A pin can move only where a caravan whose owner holds the tech is counted through `attack_of`. Open: `has_preq` reads `preq0` only; the other two `PREQ` attributes of `TECHBONUSES` row 14 are ignored and unchecked. Slot `+0x18` (`Buffer::is_pending_load` on units, another slot on buildings) is modelled as `is_unit`.
 
 ## Parked by the next landing, slot LY — reserved
 
