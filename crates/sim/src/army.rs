@@ -2036,33 +2036,11 @@ impl Sim {
         count != 0 && count > n / 4
     }
 
-    /// `Army::is_moving`: more than a sixth of the units either standing
-    /// outside the region or walking near the centre of gravity.
+    /// `Army::is_moving@006f5470`: more than a sixth of the units either
+    /// standing outside the region or walking near the centre of gravity
+    /// (the walk is [`crate::army_is_moving_view::army_is_moving`]).
     pub fn army_is_moving(&self, who: Player, slot: usize) -> bool {
-        let w = who as usize;
-        let a = &self.armies[w].list[slot];
-        let mut cog: Option<Pos> = None;
-        let mut count = 0;
-        for &u in &a.units {
-            let unit = &self.units[u];
-            if !unit.alive() || !unit.on_map {
-                continue;
-            }
-            let Some(o) = unit.orders.front() else {
-                continue;
-            };
-            if !o.is_move() {
-                if self.world.region_of(unit.pos.cell()) != a.reg {
-                    count += 1;
-                }
-                continue;
-            }
-            let c = *cog.get_or_insert_with(|| cell_centre(self.army_centre_of_gravity(who, slot)));
-            if dist(unit.pos, c) <= 0xf00 {
-                count += 1;
-            }
-        }
-        count > a.num_units / 6
+        crate::army_is_moving_view::army_is_moving(&mut SimIsMoving { s: self, who, slot })
     }
 
     /// `Army::engagement`'s seed (§11): which member's attack the army
@@ -3925,6 +3903,45 @@ impl TransView for TransSim<'_> {
     fn muster_fallback(&mut self, _c: usize) {}
     fn set_marching(&mut self) {
         self.army().status = status::MARCHING;
+    }
+}
+
+/// [`crate::army_is_moving_view::ArmyIsMovingView`] over one army of the sim.
+struct SimIsMoving<'a> {
+    s: &'a Sim,
+    who: Player,
+    slot: usize,
+}
+
+impl crate::army_is_moving_view::ArmyIsMovingView for SimIsMoving<'_> {
+    fn count(&self) -> i32 {
+        self.s.armies[self.who as usize].list[self.slot].num_units
+    }
+    fn unit(&mut self, i: i32) -> i32 {
+        let a = &self.s.armies[self.who as usize].list[self.slot];
+        a.units.get(i as usize).map_or(-1, |&u| u as i32)
+    }
+    fn is_active(&mut self, u: i32) -> bool {
+        self.s.units[u as usize].alive()
+    }
+    fn is_on_map(&mut self, u: i32) -> bool {
+        self.s.units[u as usize].on_map
+    }
+    fn head_is_move(&mut self, u: i32) -> Option<bool> {
+        self.s.units[u as usize]
+            .orders
+            .front()
+            .map(crate::orders::Order::is_move)
+    }
+    fn outside_region(&mut self, u: i32) -> bool {
+        let reg = self.s.armies[self.who as usize].list[self.slot].reg;
+        self.s.world.region_of(self.s.units[u as usize].pos.cell()) != reg
+    }
+    fn centre_of_gravity(&mut self) -> Pos {
+        cell_centre(self.s.army_centre_of_gravity(self.who, self.slot))
+    }
+    fn dist_to(&mut self, u: i32, c: Pos) -> i32 {
+        dist(self.s.units[u as usize].pos, c)
     }
 }
 
