@@ -18,8 +18,8 @@
 //!   it (behind the captain gate), so `leader_totals` and `leader_caras` are
 //!   no-ops.
 //!
-//! Not carried by this adapter: the table unit's `is(0x134)` and governor-hero
-//! answers (they read no, as the muster count's own gap does), the `+0x6c`
+//! Not carried by this adapter: the table unit's `is(0x134)` (read yes, the
+//! crate's old count) and governor-hero answers (no, as the muster count's gap), the `+0x6c`
 //! flags, the CEO bit, `is(0x77)`, the vslots `+0x15c`/`+0x160`, the armor and
 //! speed refreshes the original runs here, and the supply tail
 //! (`game.version` is not modelled): the crate keeps no state for them.
@@ -70,8 +70,12 @@ impl UnitSetTypeView for SimSetType<'_> {
     fn type_pop(&mut self) -> i32 {
         self.cur().map_or(0, |t| self.sim.unit_types[t].price.pop)
     }
+    /// Answers yes so a captain is counted whatever its population, as this
+    /// crate always did: answering no narrowed the count to populated types
+    /// and moved the Spanish Lakes widening's parting keys (38 -> 40,
+    /// `run1013`); the original's own answer is not drawn by any capture.
     fn table_unit_is_134(&mut self) -> bool {
-        false
+        true
     }
     fn table_unit_is_gov_hero(&mut self) -> bool {
         false
