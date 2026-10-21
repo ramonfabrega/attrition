@@ -1510,7 +1510,7 @@ far as anything read goes they are as dead as `calc_support`.
   `scenario/Tutorial3`, `Tutorial4`, `Custom/skirmish` and `Custom/missile` call it; no `game/ai/scripts/*.bhs`
   does. *Kills it*: a shipped skirmish script calling it. **Proposed for `RESIDUE`**: scenario and Conquer the
   World scripts only, cut from v1. No capture is owed.
-  `ObjectData::is_dock@004711e0`, which §6 cites for slot `+0x108`, is read in `docs/VISION.md` §8's
+  `ObjectData::is_dock@004711e0`, which "The wealth slot, and the thirty it pays" cites for slot `+0x108`, is read in `docs/VISION.md` §8's
   never-entered rows.
 - **`escrow_rate`.** What sets it. `escrow` itself is no longer open:
   `docs/COSTS.md` reads it in `Type::pay_cost` as a soft reservation that
