@@ -260,13 +260,15 @@
 /// `BuildType::mask_me`, `Unit::repair_damage`, `Unit::process_attrition`, `Tribe::parse`; `CircleRender::scale` parked); item 3403: 1676 -> 1680, the third
 /// sweep's second batch, by slices (`CommandPackage::process`, `Unit::process`, `Build::process`); item 3402: 1680 ->
 /// 1686, the nations seat's twenty-third batch, six of six (`Build::plunder`, `BuildType::place_roads`,
-/// `Unit::swap_team`, `Unit::set_type`, `Map::make`, `Unit::detect_unit_collision`).
+/// `Unit::swap_team`, `Unit::set_type`, `Map::make`, `Unit::detect_unit_collision`); item 3410: 1686 -> 1691, the
+/// forty-eighth tranche's first sweep, five of five (`Unit::check_meet_ship`, `SpellType::cast_bribe`,
+/// `SpellType::cast_sabotage`, `SpellType::cast_pilfer`, `Unit::do_group_attack`).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1686;
+pub const SIMULATION_BACKED: usize = 1691;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a

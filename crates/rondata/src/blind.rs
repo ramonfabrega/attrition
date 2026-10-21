@@ -310,6 +310,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **372** with item 3387's cite of `SpellTypeData::find_target@00674920`
 /// (`docs/PARKED.md` 3387d): swept under the emulator with `Console::find_target`
 /// stubbed, and no pinned trace casts a spell search.
+/// **373** with item 3409's cite of `Leader::action_declare@006dab50`
+/// (`docs/AI.md` §98.6): `pay_dow`'s one caller, which a skirmish at war
+/// from frame 0 leaves at its `is_enemy` head, and no pinned trace enters.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -332,7 +335,7 @@ pub const NEVER: &[u32] = &[
     0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0,
     0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0, 0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0,
     0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006c_e190, 0x006d_0370, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_3650,
-    0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_a8a0, 0x006e_0b80, 0x006e_0c60, 0x006e_be50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20,
+    0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_a8a0, 0x006d_ab50, 0x006e_0b80, 0x006e_0c60, 0x006e_be50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20,
     0x006f_0230, 0x006f_2c90, 0x006f_49a0, 0x006f_4af0, 0x006f_98a0, 0x006f_9a90, 0x0070_0010, 0x0070_1cc0, 0x0070_20c0, 0x0070_4520, 0x0070_84c0, 0x0070_8820,
     0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60, 0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0,
     0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740, 0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_1c40,
