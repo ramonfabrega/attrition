@@ -17,7 +17,7 @@ fn unhex(s: &str) -> Vec<u8> {
 }
 
 /// `SpellTypeData::get_job_time@00675800`, run by `tools/emu/sweep_spell_type_get_job_time.py` under unicorn
-/// (tools/emu): 16 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 sparse table 0 (2 rows × 1 slice(s), row-major), p2..p5 sparse table 1 (1 rows × 4 slice(s), row-major), p6..p11 the place(s), in flag order; 56 random bytes at 0x00c0ab84; 56 random bytes at 0x00c0aec0; callee 0x006e1370 (1 args) stubbed; callee 0x006db810 (1 args) stubbed; callee 0x00646b00 (2 args) stubbed; vtable slot +0x8 (0 args) stubbed; vtable slot +0x18 (0 args) stubbed; vtable slot +0xb8 (2 args) stubbed; vtable slot +0x60 (2 args) stubbed; vtable slot +0x10c (0 args) stubbed; the word at `c0+a[1]*0x1c` points at 8 random bytes less `a[0]*4` (placed); the word at `p6+0` points at 32 random bytes less `0` (placed); the word at `p7+0x18` points at 16 random bytes less `0` (placed); the word at `c1+a[1]*0x1c` points at 8 random bytes less `a[0]*4` (placed); the word at `p9+0` points at 32 random bytes less `0` (placed); the word at `p10+0x18` points at 16 random bytes less `0` (placed); slot +0xb8 laid as 0x00653790 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [-1, 0, 5] (90%); stub 3 answered from [0, 1] (90%); stub 4 answered from [0, 1] (90%); stub 5 answered from [0, 1] (90%); stub 6 answered from [0, 1] (90%); stub 7 answered from [0, 1] (90%); the stubbed vtable laid at `p7+0`; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 5 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 6 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 7 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 2 rows 0x6eec apart at `0xc061e0`, slices +0x59cc:0x4 (`p` windows after the pointed buffers, before the places); 1 rows 0xbc0 apart at `0xc061e4`, slices +0x670:0x4, +0x6b8:0x4, +0xb9c:0x4, +0xbac:0x4 (`p` windows after the pointed buffers, before the places); the stubbed vtable laid at `p8+0` as well as at `this`; the stubbed vtable laid at `p10+0` as well as at `this`; the stubbed vtable laid at `p11+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2000 rows (an arm few rows reach).
+/// (tools/emu): 16 random bytes of object, 2 argument(s), `p` windows in order: p0..p1 sparse table 0 (2 rows × 1 slice(s), row-major), p2..p5 sparse table 1 (1 rows × 4 slice(s), row-major), p6..p11 the place(s), in flag order; 56 random bytes at 0x00c0ab84; 56 random bytes at 0x00c0aec0; callee 0x006e1370 (1 args) stubbed; callee 0x006db810 (1 args) stubbed; callee 0x00646b00 (2 args) stubbed; vtable slot +0x8 (0 args) stubbed; vtable slot +0x18 (0 args) stubbed; vtable slot +0xb8 (2 args) stubbed; vtable slot +0x60 (2 args) stubbed; vtable slot +0x10c (0 args) stubbed; the word at `c0+a[1]*0x1c` points at 8 random bytes less `a[0]*4` (placed); the word at `p6+0` points at 32 random bytes less `0` (placed); the word at `p7+0x18` points at 16 random bytes less `0` (placed); the word at `c1+a[1]*0x1c` points at 8 random bytes less `a[0]*4` (placed); the word at `p9+0` points at 32 random bytes less `0` (placed); the word at `p10+0x18` points at 16 random bytes less `0` (placed); slot +0xb8 laid as 0x00653790 or its stub, a flag after the answers; stub 0 answered from [0, 1] (90%); stub 1 answered from [0, 1] (90%); stub 2 answered from [-1, 0, 5] (90%); stub 3 answered from [0, 1] (90%); stub 4 answered from [0, 1] (90%); stub 5 answered from [0, 1] (90%); stub 6 answered from [0, 1] (90%); stub 7 answered from [0, 1] (90%); the stubbed vtable laid at `p7+0`; stub 5 answers 3 values in call order, printed after the answers; stub 6 answers 3 values in call order, printed after the answers; stub 0 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); stub 1 records its `ecx` and arguments, a window's pointer by its name, after ` # `, split by the rows of sparse table 0 (a token a row, `ecx` `r+OFF`, then the calls outside it); stub 2 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 3 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 4 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 5 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 6 records its `ecx` and arguments, a window's pointer by its name, after ` # `; stub 7 records its `ecx` and arguments, a window's pointer by its name, after ` # `; the recorded calls one token a call, in call order, each headed `sIDX:` (the callee); 2 rows 0x6eec apart at `0xc061e0`, slices +0x59cc:0x4 (`p` windows after the pointed buffers, before the places); 1 rows 0xbc0 apart at `0xc061e4`, slices +0x670:0x4, +0x6b8:0x4, +0xb9c:0x4, +0xbac:0x4 (`p` windows after the pointed buffers, before the places); the stubbed vtable laid at `p8+0` as well as at `this`; the stubbed vtable laid at `p10+0` as well as at `this`; the stubbed vtable laid at `p11+0` as well as at `this`; `eax` and every byte of every window after held to the port (`c` the cells and tables, `p` the pointed buffers, the stubs' answers after the arguments). 2000 rows (an arm few rows reach).
 #[test]
 fn the_emulated_original_agrees_on_every_row() {
     let Some(rows) = super::emu_rows("sweep_spell_type_get_job_time.py") else {
@@ -45,9 +45,9 @@ fn the_emulated_original_agrees_on_every_row() {
         let got: i64 = {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
-            // `a`: unit, who | the stubs' answers `a[2..10]` (0 `has_tribe_bonus`, 1 `has_preq`, 2 `has_general`,
+            // `a`: unit, who | the stubs' answers `a[2..10]` (5 and 6 by call in `a[10..16]`) (0 `has_tribe_bonus`, 1 `has_preq`, 2 `has_general`,
             // 3/4 the objects row's slots `+0x8`/`+0x18`, 5 the slot `+0xb8` stubbed, 6 the type's `+0x60` under
-            // the real `is`, 7 the type's `+0x10c`) | the slotbase flag `a[10]` (1: slot `+0xb8` is
+            // the real `is`, 7 the type's `+0x10c`) | the slotbase flag `a[16]` (1: slot `+0xb8` is
             // `ObjectData::is`). `p0`/`p1` the leaders' shorts at `+0x59cc`, `p2..p5` the constants (`turk_pack`,
             // `french_entrench`, `antipater_entrench_rate`, `napoleon_pack`), `p7`/`p8` the objects row and its
             // type, `p10`/`p11` the units row and its type; `m` the craft (`+4` its index, `+8` `JOB_TIME`).
@@ -60,6 +60,8 @@ fn the_emulated_original_agrees_on_every_row() {
                 a: &'a [i32],
                 p: &'a [Vec<u8>],
                 log: &'a mut Vec<String>,
+                // Calls so far of the slot `+0xb8` stub (0) and the type's `+0x60` stub (1).
+                turn: [usize; 2],
             }
             impl V<'_> {
                 fn ans(&self, k: usize) -> i32 {
@@ -68,12 +70,16 @@ fn the_emulated_original_agrees_on_every_row() {
                 fn leader(who: i32) -> String {
                     format!("r{who}+0x0")
                 }
-                // `ObjectData::is`: the real thunk (`a[10]`) calls the type's slot `+0x60`, else the slot
-                // itself is called on the object.
+                // `ObjectData::is`: the real thunk (the flag `a[16]`) calls the type's slot `+0x60`, else the
+                // slot itself is called on the object. Each stub answers by call (`--seq`, three values: stub 5
+                // at `a[10..13]`, stub 6 at `a[13..16]`, the last repeated).
                 fn is(&mut self, obj: usize, ty: usize, t: i32, strict: i32) -> bool {
-                    let (k, w) = if self.a[10] != 0 { (6, ty) } else { (5, obj) };
+                    let (k, w) = if self.a[16] != 0 { (6, ty) } else { (5, obj) };
                     self.log.push(format!("s{k}:p{w}+0x0,{t},{strict}"));
-                    self.ans(k) != 0
+                    let j = &mut self.turn[k - 5];
+                    let v = self.a[10 + 3 * (k - 5) + (*j).min(2)];
+                    *j += 1;
+                    v != 0
                 }
                 fn word(&self, w: usize) -> i32 {
                     i32::from_le_bytes(self.p[w][0..4].try_into().expect("four bytes"))
@@ -131,6 +137,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 a,
                 p,
                 log: &mut log,
+                turn: [0; 2],
             };
             let r = i64::from(get_job_time(&mut v, rd(m, 4), rd(m, 8), a[0], a[1]));
             if log.is_empty() {
