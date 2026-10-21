@@ -9031,13 +9031,14 @@ Names no score, so parked, not queued.
   that exists is refused as `duplicate standalone module` once registered (do_attack); a `}` at column 0
   inside the `// hand` fence splits the item (find_road). Three small idempotence gaps in `sweep_gen.py`.
 
-## Parked by the next landing, slot MD — reserved
+## Parked by item 3399, 2026-10-21 — the second sweep's eighth batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3399a. `UnitData::attack@006103c0` is swept (2000 rows, 80 of 80 breaks held) but unwired.** `unit_attack_view.rs` holds every arm; `Sim::attack_of` is `ObjectData::attack`'s port with no unit-level bonus. The crate carries no `has_wonder(0x211/0x21e)`, no `has_general` lookups and none of the leader words at `+0x59c2..+0x59e8` / `+0x6da7` / `+0x6dcf`. Wiring it moves every attack value that reaches a wonder or a general, so it can move pins; the likeliest mover is any capture with a Terra Cotta or a hero.
+- **3399b. `UnitData::speed@0060aae0`'s five hero auras are not walked.** The swept walk (`unit_speed_view.rs`, live through `LiveSpeed`) now carries Alexander's forced-march arm (a sim fix; `tuning.rs` says no capture has him, not confirmed against a dump), but Spitamenes, Blucher, Porus, Charles and Napoleon stay the SEAM: the crate has neither the leader power words (`+0x59cc..+0x59e8`) nor their constants, and the sweep holds them at zero. `find_marching_hero` takes the first match in unit-slot order; the original's is hero-list order.
+- **3399c. `Build::unqueue@006207c0` is a namesake of `Queue::unqueue`, swept in two slices (3000 + 2500 rows, 38 of 40 breaks held, 2 equivalent) but unwired.** The library redirect, per-type tallies, AI counters (`+0xa10..0xa24`), age/epoch bytes and `options->rebuild` are done in the crate's callers on different state. The sweep does not draw a negative `p1` or a final entry at or past the queue length (the original faults).
+- **3399d. `Army::process@006f93d0`'s member-copy loop is outside the sweep.** The draw holds the army's group count (`+0x96`) at 0; the crate's flat unit list stands for the groups/units tables. A sweep wants `--sparse` placements for both tables. The live walk gained the original's `valid()` disband gate and the `status & !0x12` write before `find_muster_spot`; no pin should move, the booking gate says.
+- **3399e. `Caravan::process@0073e000` is a 3-instruction gate and tail-jump to `Caravan::build_road@0073db10`** (the decompile file shows `build_road`'s body; `docs/CENSUS.md:536` says the same). Swept inline (220 rows); the crate's twin is `caravan_build_road`, not a `process`. One break (`last = None`) is equivalent by the test's stale-eax fallback.
+- **3399f. `Unit::update_hits@0060e930`: `supply_hp_upgrade[get_supply_upgrade]` is indexed unclamped in the original; the port's view clamps to 0..3**, equivalent while the count is at most 3. The sweep draws 0..3 only. The marine, Copper and Bananas terms are still SEAMs (ask false); the patch version is taken as 9.
 
 ## Parked by the next landing, slot ME — reserved
 

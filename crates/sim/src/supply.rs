@@ -480,7 +480,8 @@ impl crate::Sim {
         })
     }
 
-    /// Count every held supply-upgrade prerequisite, not a leading run.
+    /// `LeaderData::get_supply_upgrade@006e0880`: count every held
+    /// supply-upgrade prerequisite, not a leading run.
     pub(crate) fn supply_upgrade_level(&self, who: Player) -> i32 {
         let p = &self.tech[who as usize];
         self.tech_tree

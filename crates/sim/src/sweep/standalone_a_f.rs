@@ -106,6 +106,8 @@ mod army_member_by_unit;
 mod army_normalize;
 #[path = "army_normalize_one.rs"]
 mod army_normalize_one;
+#[path = "army_process.rs"]
+mod army_process;
 #[path = "army_release_mustering.rs"]
 mod army_release_mustering;
 #[path = "army_remove_group.rs"]
@@ -410,6 +412,10 @@ mod build_type_set_domain;
 mod build_type_walk_rules_data;
 #[path = "build_unpay_cost.rs"]
 mod build_unpay_cost;
+#[path = "build_unqueue.rs"]
+mod build_unqueue;
+#[path = "build_unqueue_short.rs"]
+mod build_unqueue_short;
 #[path = "build_update_max_gatherers.rs"]
 mod build_update_max_gatherers;
 #[path = "build_verify_gather_tiles.rs"]
@@ -420,6 +426,8 @@ mod caravan_data_has_city;
 mod caravan_distance;
 #[path = "caravan_link_walk_data.rs"]
 mod caravan_link_walk_data;
+#[path = "caravan_process.rs"]
+mod caravan_process;
 #[path = "caravan_restart_trade_route.rs"]
 mod caravan_restart_trade_route;
 #[path = "caravan_verify_road.rs"]
