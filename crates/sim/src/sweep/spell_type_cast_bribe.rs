@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(7);
@@ -41,212 +46,223 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // `a` = the four arguments (p1 the caster's slot, p2 the caster's player, p3 the target's slot, p4 its owner), then
-    // the stubs' answers (a[4 + k] stub k, in line order), then slot 0x18's two answers in call order (a[31], a[32]).
-    // `c` = the cells: c0 objects, c1 console, c2 message window, c3 game, c4 world, c5 div_3_table, c6 the string
-    // base. `p` = p0..p19 the leaders' slices (row r: flags, team, diplomacy, bribe counter, colour), p20..p23
-    // leadersc's diplomacy, p24 the victim's object array, p25 the target, p26 the caster's object array, p27..p30 its
-    // objects, p31 the victim's unit array, p32 the target unit, p33 the caster's city array, p34..p37 the cities,
-    // p38 the world's owner table, p39..p43 slot 0xac's answers, p44 the neon colour.
-    let (p1, p2, p3, p4) = (a[0], a[1], a[2], a[3]);
-    let (u2, u3, u4) = (p2 as usize, p3 as usize, p4 as usize);
-    let ans = |k: usize| a[4 + k];
-    let s18 = [a[31], a[32]];
-    let who = rd(&c[1], 0x298);
-    let base = rd(&c[6], 0);
-    let msg = 15558448i32;
-    let white = 13161068i32;
-    let red = 13161032i32;
-    let row = format!("p{}+0x0", u2 * 5);
-    let o = rd(&p[25], 0);
-    let _ = o;
-    let xo = rd(&p[25], 0x10) ^ 0x63637;
-    let yo = rd(&p[25], 0x14) ^ 0x63637;
-    let unpay = |log: &mut Vec<String>| log.push(format!("s0:m+0x0,{p1},{p2}"));
-    // The refusal's message: copied into a stack String (its last word the unpay call's return address), shown to
-    // the console's player.
-    let refuse = |log: &mut Vec<String>, off: i32, ret: i32| {
-        unpay(log);
-        if p2 == who {
-            log.push(format!("s10:sp-0xac,{}", base.wrapping_add(off)));
-            log.push(format!("s9:c2+0x0,0,0,0,0,{ret},-1,{red}"));
-            log.push("s2:c2+0x0,64".to_string());
-        }
-    };
-    'done: {
-        let team = rd(&p[u2 * 5 + 1], 0);
-        let diplo = rd(&p[u2 * 5 + 2], 4 * u4);
-        let mut cond1 = p4 == team;
-        if !cond1 && diplo == 2 {
-            cond1 = rd(&p[20 + u4], 4 * team as usize) == 2;
-        }
-        let ts = c[3][0x24];
-        let flags4 = p[u4 * 5][0];
-        if cond1 && (ts == 0 || ts == 8 || ts == 0xb || flags4 & 2 != 0) {
-            unpay(&mut log);
-            break 'done;
-        }
-        log.push("s20:p25+0x0".to_string());
-        if s18[0] != 0 {
-            log.push("s1:p25+0x0,0,357".to_string());
-            if ans(1) >= 0 {
-                unpay(&mut log);
-                break 'done;
+                // `a` = the four arguments (p1 the caster's slot, p2 the caster's player, p3 the target's slot, p4 its owner), then
+                // the stubs' answers (a[4 + k] stub k, in line order), then slot 0x18's two answers in call order (a[31], a[32]).
+                // `c` = the cells: c0 objects, c1 console, c2 message window, c3 game, c4 world, c5 div_3_table, c6 the string
+                // base. `p` = p0..p19 the leaders' slices (row r: flags, team, diplomacy, bribe counter, colour), p20..p23
+                // leadersc's diplomacy, p24 the victim's object array, p25 the target, p26 the caster's object array, p27..p30 its
+                // objects, p31 the victim's unit array, p32 the target unit, p33 the caster's city array, p34..p37 the cities,
+                // p38 the world's owner table, p39..p43 slot 0xac's answers, p44 the neon colour.
+                let (p1, p2, p4) = (a[0], a[1], a[3]);
+                let (u2, u4) = (p2 as usize, p4 as usize);
+                let ans = |k: usize| a[4 + k];
+                let s18 = [a[31], a[32]];
+                let who = rd(&c[1], 0x298);
+                let base = rd(&c[6], 0);
+                let msg = 15558448i32;
+                let white = 13161068i32;
+                let red = 13161032i32;
+                let row = format!("p{}+0x0", u2 * 5);
+                let o = rd(&p[25], 0);
+                let _ = o;
+                let xo = rd(&p[25], 0x10) ^ 0x63637;
+                let yo = rd(&p[25], 0x14) ^ 0x63637;
+                let unpay = |log: &mut Vec<String>| log.push(format!("s0:m+0x0,{p1},{p2}"));
+                // The refusal's message: copied into a stack String (its last word the unpay call's return address), shown to
+                // the console's player.
+                let refuse = |log: &mut Vec<String>, off: i32, ret: i32| {
+                    unpay(log);
+                    if p2 == who {
+                        log.push(format!("s10:sp-0xac,{}", base.wrapping_add(off)));
+                        log.push(format!("s9:c2+0x0,0,0,0,0,{ret},-1,{red}"));
+                        log.push("s2:c2+0x0,64".to_string());
+                    }
+                };
+                'done: {
+                    let team = rd(&p[u2 * 5 + 1], 0);
+                    let diplo = rd(&p[u2 * 5 + 2], 4 * u4);
+                    let mut cond1 = p4 == team;
+                    if !cond1 && diplo == 2 {
+                        cond1 = rd(&p[20 + u4], 4 * team as usize) == 2;
+                    }
+                    let ts = c[3][0x24];
+                    let flags4 = p[u4 * 5][0];
+                    if cond1 && (ts == 0 || ts == 8 || ts == 0xb || flags4 & 2 != 0) {
+                        unpay(&mut log);
+                        break 'done;
+                    }
+                    log.push("s20:p25+0x0".to_string());
+                    if s18[0] != 0 {
+                        log.push("s1:p25+0x0,0,357".to_string());
+                        if ans(1) >= 0 {
+                            unpay(&mut log);
+                            break 'done;
+                        }
+                    }
+                    log.push("s20:p25+0x0".to_string());
+                    if s18[1] != 0 {
+                        // A unit.
+                        if who == p2 {
+                            log.push("s2:p25+0x0,353".to_string());
+                            log.push(format!("s3:{msg},{}", base.wrapping_add(0x109f0)));
+                            log.push("s4:sp-0x48".to_string());
+                            log.push("s22:p32+0x0,sp-0x48".to_string());
+                            log.push(format!("s5:{msg},sp-0x5c,sp-0x48"));
+                            log.push(format!("s3:{msg},{}", ans(5)));
+                            log.push("s7:sp-0x5c".to_string());
+                            log.push(format!(
+                                "s8:c2+0x0,{msg},{xo},{yo},0,{white},1,p24+0x0,0,0,p24+0x0"
+                            ));
+                            log.push("s7:sp-0x48".to_string());
+                        } else if who == p4 {
+                            log.push("s2:p25+0x0,358".to_string());
+                            log.push(format!("s3:{msg},{}", base.wrapping_add(0x10a04)));
+                            log.push("s4:sp-0x5c".to_string());
+                            log.push("s22:p32+0x0,sp-0x5c".to_string());
+                            log.push(format!("s14:{row},sp-0x84"));
+                            log.push(format!("s6:{msg},sp-0x70,{},sp-0x5c", ans(14)));
+                            log.push(format!("s3:{msg},{}", ans(6)));
+                            log.push("s7:sp-0x70".to_string());
+                            log.push("s7:sp-0x84".to_string());
+                            let col = p[u2 * 5 + 4][0] as i32;
+                            log.push(format!("s15:{},sp-0x40", 0xe39ce0 + 100 * col));
+                            let neon = p[44][..12].to_vec();
+                            c[2][0x580..0x58c].copy_from_slice(&neon);
+                            log.push(format!(
+                                "s8:c2+0x0,{msg},{xo},{yo},1,{white},-1,p24+0x0,0,0,p24+0x0"
+                            ));
+                            log.push("s7:sp-0x5c".to_string());
+                        }
+                        let cnt = rd(&p[u2 * 5 + 3], 0).wrapping_add(1);
+                        wr(&mut p[u2 * 5 + 3], 0, cnt);
+                        log.push(format!("s23:p32+0x0,{p2}"));
+                        break 'done;
+                    }
+                    if rd(&p[25], 8) & 0x20 != 0 {
+                        // A city.
+                        log.push(format!("s12:{row},{p4}"));
+                        if ans(12) == 0 || flags4 & 2 != 0 {
+                            refuse(&mut log, 0x10a68, 6764253);
+                            break 'done;
+                        }
+                        log.push(format!("s13:{row}"));
+                        if ans(13) == 0 {
+                            refuse(&mut log, 0x10a68, 6764253);
+                            break 'done;
+                        }
+                        log.push("s21:p25+0x0".to_string());
+                        let city = i16::from_le_bytes([p[39][0x72], p[39][0x73]]) as i32;
+                        if city < 0 {
+                            unpay(&mut log);
+                            break 'done;
+                        }
+                        if p2 == who {
+                            log.push("s2:p25+0x0,20".to_string());
+                            log.push(format!("s3:{msg},{}", base.wrapping_add(0x10a7c)));
+                            log.push(format!("s5:{msg},sp-0x84,p{}+0x90", 34 + city));
+                            log.push(format!("s3:{msg},{}", ans(5)));
+                            log.push("s7:sp-0x84".to_string());
+                            let q = &p[27 + p1 as usize];
+                            let (x, y) = (rd(q, 0x10) ^ 0x63637, rd(q, 0x14) ^ 0x63637);
+                            log.push(format!("s8:c2+0x0,{msg},{x},{y},0,{white},-1,{y},0,0,{y}"));
+                        }
+                        log.push("s21:p25+0x0".to_string());
+                        let city2 = i16::from_le_bytes([p[40][0x72], p[40][0x73]]) as i32;
+                        log.push(format!("s16:12622176,{p2},{city2},{p4}"));
+                        break 'done;
+                    }
+                    // A building: the tile's owner must be the caster.
+                    let w = rd(&c[4], 0);
+                    let d3 = |v: i32| rd(&c[5], 4 * (v >> 8) as usize);
+                    let idx = w.wrapping_mul(d3(yo)).wrapping_add(d3(xo));
+                    let owner = p[38][(idx as usize) * 28 + 0xf] as i8 as i32;
+                    if owner != p2 {
+                        refuse(&mut log, 0x10a18, 6763814);
+                        break 'done;
+                    }
+                    log.push(format!("s11:{row},{p4}"));
+                    if ans(11) == 0 {
+                        log.push(format!("s12:{row},{p4}"));
+                        let mut ok = ans(12) != 0 && flags4 & 2 == 0;
+                        if ok {
+                            log.push(format!("s13:{row}"));
+                            ok = ans(13) != 0;
+                        }
+                        if !ok {
+                            refuse(&mut log, 0x10a2c, 6762833);
+                            break 'done;
+                        }
+                    }
+                    if who == p2 {
+                        log.push(format!("s2:{row},353"));
+                        log.push(format!("s3:{msg},{}", base.wrapping_add(0x10a40)));
+                        log.push("s4:sp-0x5c".to_string());
+                        log.push("s22:p25+0x0,sp-0x5c".to_string());
+                        log.push(format!("s5:{msg},sp-0x84,sp-0x5c"));
+                        log.push(format!("s3:{msg},{}", ans(5)));
+                        log.push("s7:sp-0x84".to_string());
+                        log.push(format!(
+                            "s8:c2+0x0,{msg},{xo},{yo},0,{white},1,p24+0x0,0,0,p24+0x0"
+                        ));
+                        log.push("s7:sp-0x5c".to_string());
+                    } else if who == p4 {
+                        log.push(format!("s2:{row},358"));
+                        log.push(format!("s3:{msg},{}", base.wrapping_add(0x10a54)));
+                        log.push("s4:sp-0x5c".to_string());
+                        log.push("s22:p25+0x0,sp-0x5c".to_string());
+                        log.push(format!("s14:{row},sp-0x70"));
+                        log.push(format!("s6:{msg},sp-0x84,{},sp-0x5c", ans(14)));
+                        log.push(format!("s3:{msg},{}", ans(6)));
+                        log.push("s7:sp-0x84".to_string());
+                        log.push("s7:sp-0x70".to_string());
+                        let col = p[u2 * 5 + 4][0] as i32;
+                        log.push(format!("s15:{},sp-0x40", 0xe39ce0 + 100 * col));
+                        let neon = p[44][..12].to_vec();
+                        c[2][0x580..0x58c].copy_from_slice(&neon);
+                        log.push(format!(
+                            "s8:c2+0x0,{msg},{xo},{yo},1,{white},-1,p24+0x0,0,0,p24+0x0"
+                        ));
+                        log.push("s7:sp-0x5c".to_string());
+                    }
+                    // The building changes hands: asked what it is, then handed over.
+                    log.push("s21:p25+0x0".to_string());
+                    let u = if p[39][..4] == 0xb42174i32.to_le_bytes() {
+                        (p[39][8] & 4) as i32
+                    } else {
+                        log.push("s24:p39+0x0".to_string());
+                        ans(24)
+                    };
+                    log.push("s21:p25+0x0".to_string());
+                    log.push(format!("s23:p40+0x0,{p2}"));
+                    let q = (ans(23) as usize) & 3;
+                    log.push("s21:p25+0x0".to_string());
+                    log.push("s25:p41+0x0,0,-1,0".to_string());
+                    if u == 0 {
+                        log.push("s17:c3+0x0".to_string());
+                        if ans(17) > 3 {
+                            log.push(format!("s21:p{}+0x0", 27 + q));
+                            log.push("s18:p42+0x0,1,3".to_string());
+                            log.push(format!("s21:p{}+0x0", 27 + q));
+                            log.push("s19:p43+0x0,1".to_string());
+                            break 'done;
+                        }
+                    }
+                    log.push(format!("s21:p{}+0x0", 27 + q));
+                    log.push("s26:p42+0x0,0,1,0".to_string());
+                    log.push(format!("s21:p{}+0x0", 27 + q));
+                    log.push("s18:p43+0x0,1,2".to_string());
+                }
+                if log.is_empty() {
+                    log.push("-".to_string());
+                }
+                0
             }
-        }
-        log.push("s20:p25+0x0".to_string());
-        if s18[1] != 0 {
-            // A unit.
-            if who == p2 {
-                log.push("s2:p25+0x0,353".to_string());
-                log.push(format!("s3:{msg},{}", base.wrapping_add(0x109f0)));
-                log.push("s4:sp-0x48".to_string());
-                log.push("s22:p32+0x0,sp-0x48".to_string());
-                log.push(format!("s5:{msg},sp-0x5c,sp-0x48"));
-                log.push(format!("s3:{msg},{}", ans(5)));
-                log.push("s7:sp-0x5c".to_string());
-                log.push(format!("s8:c2+0x0,{msg},{xo},{yo},0,{white},1,p24+0x0,0,0,p24+0x0"));
-                log.push("s7:sp-0x48".to_string());
-            } else if who == p4 {
-                log.push("s2:p25+0x0,358".to_string());
-                log.push(format!("s3:{msg},{}", base.wrapping_add(0x10a04)));
-                log.push("s4:sp-0x5c".to_string());
-                log.push("s22:p32+0x0,sp-0x5c".to_string());
-                log.push(format!("s14:{row},sp-0x84"));
-                log.push(format!("s6:{msg},sp-0x70,{},sp-0x5c", ans(14)));
-                log.push(format!("s3:{msg},{}", ans(6)));
-                log.push("s7:sp-0x70".to_string());
-                log.push("s7:sp-0x84".to_string());
-                let col = p[u2 * 5 + 4][0] as i32;
-                log.push(format!("s15:{},sp-0x40", 0xe39ce0 + 100 * col));
-                let neon = p[44][..12].to_vec();
-                c[2][0x580..0x58c].copy_from_slice(&neon);
-                log.push(format!("s8:c2+0x0,{msg},{xo},{yo},1,{white},-1,p24+0x0,0,0,p24+0x0"));
-                log.push("s7:sp-0x5c".to_string());
-            }
-            let cnt = rd(&p[u2 * 5 + 3], 0).wrapping_add(1);
-            wr(&mut p[u2 * 5 + 3], 0, cnt);
-            log.push(format!("s23:p32+0x0,{p2}"));
-            break 'done;
-        }
-        if rd(&p[25], 8) & 0x20 != 0 {
-            // A city.
-            log.push(format!("s12:{row},{p4}"));
-            if ans(12) == 0 || flags4 & 2 != 0 {
-                refuse(&mut log, 0x10a68, 6764253);
-                break 'done;
-            }
-            log.push(format!("s13:{row}"));
-            if ans(13) == 0 {
-                refuse(&mut log, 0x10a68, 6764253);
-                break 'done;
-            }
-            log.push("s21:p25+0x0".to_string());
-            let city = i16::from_le_bytes([p[39][0x72], p[39][0x73]]) as i32;
-            if city < 0 {
-                unpay(&mut log);
-                break 'done;
-            }
-            if p2 == who {
-                log.push("s2:p25+0x0,20".to_string());
-                log.push(format!("s3:{msg},{}", base.wrapping_add(0x10a7c)));
-                log.push(format!("s5:{msg},sp-0x84,p{}+0x90", 34 + city));
-                log.push(format!("s3:{msg},{}", ans(5)));
-                log.push("s7:sp-0x84".to_string());
-                let q = &p[27 + p1 as usize];
-                let (x, y) = (rd(q, 0x10) ^ 0x63637, rd(q, 0x14) ^ 0x63637);
-                log.push(format!("s8:c2+0x0,{msg},{x},{y},0,{white},-1,{y},0,0,{y}"));
-            }
-            log.push("s21:p25+0x0".to_string());
-            let city2 = i16::from_le_bytes([p[40][0x72], p[40][0x73]]) as i32;
-            log.push(format!("s16:12622176,{p2},{city2},{p4}"));
-            break 'done;
-        }
-        // A building: the tile's owner must be the caster.
-        let w = rd(&c[4], 0);
-        let d3 = |v: i32| rd(&c[5], 4 * (v >> 8) as usize);
-        let idx = w.wrapping_mul(d3(yo)).wrapping_add(d3(xo));
-        let owner = p[38][(idx as usize) * 28 + 0xf] as i8 as i32;
-        if owner != p2 {
-            refuse(&mut log, 0x10a18, 6763814);
-            break 'done;
-        }
-        log.push(format!("s11:{row},{p4}"));
-        if ans(11) == 0 {
-            log.push(format!("s12:{row},{p4}"));
-            let mut ok = ans(12) != 0 && flags4 & 2 == 0;
-            if ok {
-                log.push(format!("s13:{row}"));
-                ok = ans(13) != 0;
-            }
-            if !ok {
-                refuse(&mut log, 0x10a2c, 6762833);
-                break 'done;
-            }
-        }
-        if who == p2 {
-            log.push(format!("s2:{row},353"));
-            log.push(format!("s3:{msg},{}", base.wrapping_add(0x10a40)));
-            log.push("s4:sp-0x5c".to_string());
-            log.push("s22:p25+0x0,sp-0x5c".to_string());
-            log.push(format!("s5:{msg},sp-0x84,sp-0x5c"));
-            log.push(format!("s3:{msg},{}", ans(5)));
-            log.push("s7:sp-0x84".to_string());
-            log.push(format!("s8:c2+0x0,{msg},{xo},{yo},0,{white},1,p24+0x0,0,0,p24+0x0"));
-            log.push("s7:sp-0x5c".to_string());
-        } else if who == p4 {
-            log.push(format!("s2:{row},358"));
-            log.push(format!("s3:{msg},{}", base.wrapping_add(0x10a54)));
-            log.push("s4:sp-0x5c".to_string());
-            log.push("s22:p25+0x0,sp-0x5c".to_string());
-            log.push(format!("s14:{row},sp-0x70"));
-            log.push(format!("s6:{msg},sp-0x84,{},sp-0x5c", ans(14)));
-            log.push(format!("s3:{msg},{}", ans(6)));
-            log.push("s7:sp-0x84".to_string());
-            log.push("s7:sp-0x70".to_string());
-            let col = p[u2 * 5 + 4][0] as i32;
-            log.push(format!("s15:{},sp-0x40", 0xe39ce0 + 100 * col));
-            let neon = p[44][..12].to_vec();
-            c[2][0x580..0x58c].copy_from_slice(&neon);
-            log.push(format!("s8:c2+0x0,{msg},{xo},{yo},1,{white},-1,p24+0x0,0,0,p24+0x0"));
-            log.push("s7:sp-0x5c".to_string());
-        }
-        // The building changes hands: asked what it is, then handed over.
-        log.push("s21:p25+0x0".to_string());
-        let u = if p[39][..4] == 0xb42174i32.to_le_bytes() {
-            (p[39][8] & 4) as i32
-        } else {
-            log.push("s24:p39+0x0".to_string());
-            ans(24)
-        };
-        log.push("s21:p25+0x0".to_string());
-        log.push(format!("s23:p40+0x0,{p2}"));
-        let q = (ans(23) as usize) & 3;
-        log.push("s21:p25+0x0".to_string());
-        log.push("s25:p41+0x0,0,-1,0".to_string());
-        if u == 0 {
-            log.push("s17:c3+0x0".to_string());
-            if ans(17) > 3 {
-                log.push(format!("s21:p{}+0x0", 27 + q));
-                log.push("s18:p42+0x0,1,3".to_string());
-                log.push(format!("s21:p{}+0x0", 27 + q));
-                log.push("s19:p43+0x0,1".to_string());
-                break 'done;
-            }
-        }
-        log.push(format!("s21:p{}+0x0", 27 + q));
-        log.push("s26:p42+0x0,0,1,0".to_string());
-        log.push(format!("s21:p{}+0x0", 27 + q));
-        log.push("s18:p43+0x0,1,2".to_string());
-    }
-    if log.is_empty() {
-        log.push("-".to_string());
-    }
-    0
-}
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "cast_bribe — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "cast_bribe — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "cast_bribe — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

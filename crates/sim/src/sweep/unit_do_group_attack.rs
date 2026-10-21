@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -138,12 +143,12 @@ fn the_emulated_original_agrees_on_every_row() {
                             if let Some((x, y)) = target {
                                 if x >= 0 && y >= 0 {
                                     log.push(format!("s8:m+0x0,{x},{y},m+0x0,0"));
-                                    if a[9] != 0 {
-                                        wr(&mut p[23], 0x40, x);
-                                        wr(&mut p[23], 0x44, y);
-                                        log.push(format!("s11:m+0x0,{x},{y},1,1,0"));
-                                        fought = true;
-                                    }
+                                }
+                                if x >= 0 && y >= 0 && a[9] != 0 {
+                                    wr(&mut p[23], 0x40, x);
+                                    wr(&mut p[23], 0x44, y);
+                                    log.push(format!("s11:m+0x0,{x},{y},1,1,0"));
+                                    fought = true;
                                 }
                             }
                             if !fought {
@@ -188,14 +193,25 @@ fn the_emulated_original_agrees_on_every_row() {
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "do_group_attack — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "do_group_attack — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "do_group_attack — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "do_group_attack — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "do_group_attack — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "do_group_attack — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "do_group_attack — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
