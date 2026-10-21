@@ -252,13 +252,15 @@
 /// second sweep's seventh batch, six of six (`SpellTypeData::get_job_time`, `SpellTypeData::is_valid_target`,
 /// `GroupData::count`, `Army::is_moving`, `Wall::update_gpiece`, and `Unit::find_path`, the census's own miscount);
 /// item 3396: 1653 -> 1659, the nations seat's twenty-second batch, six of six (`Army::do_defending`,
-/// `HeroData::get_radius`, `Groups::process`, `Unit::land_plane`, `CommandManager::start`, `Guy::process`).
+/// `HeroData::get_radius`, `Groups::process`, `Unit::land_plane`, `CommandManager::start`, `Guy::process`); item 3397:
+/// 1659 -> 1665, the third sweep's first batch, six of six (`Map::point`, `Regions::find`, `Guy::set_new_location`,
+/// `Build::do_attack`, `Wall::activate`, `PathFinder::find_road`).
 /// **The commander re-pins this constant in the booking commit** (Loop 2367,
 /// the thirty-fourth pass): it is the two sweep lanes' shared pin, seven of
 /// thirteen merges backed out on it, and the lane gate forgives its red
 /// (`release_gate.py`'s `COMMANDERS_LINES`); a lane reports the count
 /// `tools/census.py --layers` measures on its tree.
-pub const SIMULATION_BACKED: usize = 1659;
+pub const SIMULATION_BACKED: usize = 1665;
 /// Of those, the **port-backed**: a document's coverage section diffs the
 /// function, or `crates/sim` spells its own `Class::method` outside
 /// `sweep/` — a consumer this crate runs. The rest are **layout-backed**: a
