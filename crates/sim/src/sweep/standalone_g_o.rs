@@ -254,6 +254,8 @@ mod group_compute_speed;
 mod group_data_can_transport;
 #[path = "group_data_count_attack.rs"]
 mod group_data_count_attack;
+#[path = "group_data_count_gather.rs"]
+mod group_data_count_gather;
 #[path = "group_data_count_peasants.rs"]
 mod group_data_count_peasants;
 #[path = "group_data_count_region.rs"]
