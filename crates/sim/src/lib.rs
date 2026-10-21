@@ -156,6 +156,7 @@ pub mod remove_inside_view;
 pub mod roads;
 pub mod roads_view;
 pub mod scout;
+mod set_type_adapter;
 pub mod single;
 pub mod site_recruit;
 pub mod spell_cast_view;
@@ -4958,7 +4959,7 @@ impl Sim {
     /// The order is the original's: the leader's counters come **off** for
     /// the old type before the swap (`6130d1`'s `track_unit_type(·, −1,
     /// ·)` and the two running totals), the record and the derived stats
-    /// change, the guys are re-initialised ([`Sim::reinit_guys`]), and the
+    /// change, the guys are re-initialised ([`Sim::reinit_guys_begin`]), and the
     /// counters go **on** for the new one. Only a captain is counted, the
     /// same rule `Objects::init_unit` follows for a squad.
     ///
@@ -4968,7 +4969,7 @@ impl Sim {
     /// damage. This crate stores the complement, so the subtraction is
     /// explicit.
     ///
-    /// The tail's `update_gpiece` is [`Sim::reinit_guys`]' piece write, and
+    /// The tail's `update_gpiece` is [`Sim::reinit_guys_begin`]' piece write, and
     /// each `init_real` re-pieces its guy before it reads the flags, so a
     /// converted guy's `guy_flags & 8` is the new piece's
     /// ([`crate::anim::Guy::flag_piece`]).
@@ -4982,44 +4983,15 @@ impl Sim {
         if old == rec {
             return;
         }
-        let who = self.units[u].owner;
-        // `set_type`'s crew loop kills every figure past the old
-        // `squad_size` before the type is swapped: `kill_guy` clears the
-        // old disc around each (`docs/AI.md` §120).
-        self.coll_kill_crew(u);
-        // A decoy's type is no count of the leader's: both of `set_type`'s
-        // `track_unit_type` calls sit behind `(unit_masks & 1) == 0`
-        // (decompile lines 62 and 273). run346's decoy Peltasts took the
-        // age's upgrade after 11637, and ours took `num_units` to −2
-        // (run508's block 12577, item 1302).
-        let captain = self.units[u].captain && !self.units[u].decoy;
-        if captain {
-            self.track_unit_type(who, old, -1);
-        }
-        let damage = self.units[u].max_health - self.units[u].health;
-        let hits = self.unit_hits(who, rec);
-        {
-            let unit = &mut self.units[u];
-            unit.ty = Some(rec);
-            unit.max_health = hits;
-            unit.health = (hits - damage).max(1);
-        }
-        self.units[u].kind = self.unit_types[rec].kind;
-        self.units[u].type_index = self.unit_types[rec].type_index;
-        self.units[u].movement.speed = self.type_speed(who, rec);
-        // `Unit::set_type@00612fa0:235`: `update_hits`, then `update_los`,
-        // `update_armor` and `update_speed` on the new type.
-        self.update_los(u);
-        self.units[u].movement.turning = self.turning_for(rec);
-        self.reinit_guys(u, rec);
-        if captain {
-            self.track_unit_type(who, rec, 1);
-        }
-        // The tail's `Guy::set_new_location(guy, x, y, 1)` over the squad
-        // (`61368b`): guy 0's, with `param_3` set, writes each crew
-        // figure's destination from the new piece's track and puts it
-        // there (`005d86f0`) — or, trackless, on guy 0's own point.
-        self.seat_guys(u);
+        // The steps are `unit_set_type_view::set_type_steps`, the walk the
+        // sweep `unit_set_type_normal` holds to the original's bytes; the
+        // adapter says what this crate keeps of each.
+        let mut view = set_type_adapter::SimSetType::new(self, u, rec);
+        unit_set_type_view::set_type_steps(
+            &mut view,
+            rec as i32,
+            unit_set_type_view::SET_TYPE_NORMAL,
+        );
     }
 
     /// The squad a captain heads, captain first — `o_down` walked.

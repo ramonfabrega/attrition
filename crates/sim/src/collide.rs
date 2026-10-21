@@ -1216,17 +1216,13 @@ impl Sim {
     /// object type's vslot `+0x120` answers 0 — are read as true;
     /// [`Self::coll_paint`] gates air. The region gate there is `coll_paint`'s,
     /// not `kill_guy`'s plain cell region; the two differ on a coastal cell.
-    pub(crate) fn coll_kill_crew(&mut self, u: usize) {
+    /// One figure of the crew loop: `Objects::kill_guy`'s clear around
+    /// figure `i`'s own cell, called for each figure from the squad to the
+    /// old total (`unit_set_type_view`).
+    pub(crate) fn coll_kill_guy(&mut self, u: usize, i: usize) {
         let body = self.units[u].movement.body.pos;
-        let crew: Vec<Pos> = self.units[u]
-            .guys
-            .iter()
-            .skip(crate::anim::SQUAD_SIZE)
-            .map(|g| g.follow.map_or(body, |f| f.body.pos))
-            .collect();
-        for at in crew {
-            self.coll_paint(u, at, false);
-        }
+        let at = self.units[u].guys[i].follow.map_or(body, |f| f.body.pos);
+        self.coll_paint(u, at, false);
     }
 
     /// `Object::remove_from_world`'s half — the clear pass with nowhere to

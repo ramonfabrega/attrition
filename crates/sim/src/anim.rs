@@ -1180,15 +1180,24 @@ impl Sim {
     ///
     /// SEAM: `init_real`'s `+0x20..+0x3c` turret zeroing and its
     /// `reset_pivots` — no converted type here has a pivot.
-    pub(crate) fn reinit_guys(&mut self, u: usize, ty: usize) {
+    /// The first half of the re-init (the in-danger mark goes, the stack is cut
+    /// to the new type's count); returns the count. `Unit::set_type`'s view
+    /// calls it from its type swap, then [`Sim::reinit_guy`] a guy at a time
+    /// (`unit_set_type_view`, `set_type_adapter`).
+    pub(crate) fn reinit_guys_begin(&mut self, u: usize, ty: usize) -> usize {
         self.units[u].guy_flag_0x20 = false;
-        let unit = &self.units[u];
-        let (who, o) = (unit.owner, unit.index);
-        let packed = unit.combat.packed;
         let count =
             usize::try_from(self.unit_types[ty].combat.crew_size + SQUAD_SIZE as i32).unwrap_or(0);
         self.units[u].guys.truncate(count);
-        for n in 0..count {
+        count
+    }
+
+    /// One figure of the re-init: `0 .. count`, in order.
+    pub(crate) fn reinit_guy(&mut self, u: usize, ty: usize, n: usize) {
+        let unit = &self.units[u];
+        let (who, o) = (unit.owner, unit.index);
+        let packed = unit.combat.packed;
+        {
             let piece = self.piece_of(who, ty, o, n as u8, packed).unwrap_or(-1);
             self.mark(SITE_INIT_REAL);
             let p = self.rng.roll() % 100;
