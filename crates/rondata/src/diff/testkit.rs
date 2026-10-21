@@ -10059,6 +10059,22 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3378,
         Some(crate::diff::german_sahara_word::WIDENING_GERMAN_SAHARA_CLOSING),
     ),
+    // **The battery's Inca word at Great Sahara** (items 3385 and 3393,
+    // DECISIONS 72, 83, 84): frame 13126, the battery's first try (item
+    // 3383), promoted by item 3385 and moved to 13416 on run1011's window
+    // (13104..13360). Item 3393 widened 13416 on run1014 over
+    // 13410..13666 (block 13417) and moved it 13416 → 15632, the game's
+    // last frame, with a decoy's overflow striking its captain (run1015's
+    // gap blocks 13355..13412, run1015b's packet at 13392). The close is
+    // compared whole on run1006b's own closing block 15633 by
+    // `run1006b_inca_sahara_closing_state`.
+    (
+        "INCA_SAHARA_WORD",
+        crate::diff::inca_sahara_word::INCA_SAHARA_WORD,
+        Some("run1006b_inca_sahara_closing_state"),
+        3393,
+        Some(crate::diff::inca_sahara_word::WIDENING_INCA_SAHARA_CLOSING),
+    ),
     // **The battery's Indian word at Great Sahara** (item 3383, DECISIONS
     // 72, 83, 84): frame 15922, the battery's first try (item 3378),
     // promoted here and widened on run1007 over 15916..16172 (block 15923).
@@ -10840,10 +10856,11 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara (Inca)",
         word: crate::diff::inca_sahara_word::INCA_SAHARA_WORD,
         length: 15_632,
-        endpoint: None,
-        // run1011's, 13104..13360; the word 13416 is past it, and its own
-        // window is the next item's capture (item 3385).
-        window: Some("inca_sahara_frame_13250_window"),
+        // Closed by item 3393: the draw stream agrees to 15632, and
+        // run1006b's closing block 15633 scores the end itself.
+        endpoint: Some("run1006b_inca_sahara_closing_state"),
+        // run1014's, 13410..13666, the word 13416's own (item 3393).
+        window: Some("inca_sahara_frame_13416_window"),
     },
     // **The battery's Indian word at Great Sahara** (DECISIONS 72, 83, 84;
     // item 3383): Great Sahara, the Indians at Difficulty 3 — the held-out
