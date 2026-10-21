@@ -294,6 +294,8 @@ mod unit_kill_current_action;
 mod unit_kill_current_path;
 #[path = "unit_kill_group_order.rs"]
 mod unit_kill_group_order;
+#[path = "unit_land_plane.rs"]
+mod unit_land_plane;
 #[path = "unit_modify_group_order.rs"]
 mod unit_modify_group_order;
 #[path = "unit_must_walk.rs"]
