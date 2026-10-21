@@ -192,6 +192,8 @@ mod build_add_to_city;
 mod build_check_capture;
 #[path = "build_check_capture_garrison.rs"]
 mod build_check_capture_garrison;
+#[path = "build_data_attack.rs"]
+mod build_data_attack;
 #[path = "build_data_can_make.rs"]
 mod build_data_can_make;
 #[path = "build_data_can_queue.rs"]
