@@ -282,6 +282,10 @@ mod build_process_ejection;
 mod build_process_head;
 #[path = "build_process_messages.rs"]
 mod build_process_messages;
+#[path = "build_process_supply.rs"]
+mod build_process_supply;
+#[path = "build_process_wonders.rs"]
+mod build_process_wonders;
 #[path = "build_queue_data_get_job_counter.rs"]
 mod build_queue_data_get_job_counter;
 #[path = "build_queue_data_get_next_helicopter.rs"]

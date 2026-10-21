@@ -48,9 +48,8 @@ fn the_emulated_original_agrees_on_every_row() {
             // hand: port
             // `Build::process@0061edf0`'s head, `Wall::process` to the call of `do_queue`. The crate's parts
             // of it: `Sim::process_building` (the ejection and the launch, in `Objects::process_all`'s order),
-            // `process_building_combat` (the `do_attack` gate, `fight.rs`; its turn is not modelled: the
-            // building never turns in the sim) and nothing for the `0x200` city-flag toggles (the city's
-            // `+4` word is `CityFlags` there, but `Sim::process_building` never touches it).
+            // `process_building_combat` (the `do_attack` gate, `fight.rs`); the turn toward the target
+            // and the `0x200` city-flag toggles have no counterpart found in the crate.
             // Window map: m the building; p0 the game's frame; p1 the options' `rebuild` word; units of
             // player K array p2+5K, records p3+5K+i; cities of player K array p17+5K, records p18+5K+i;
             // p32 the building's type. **Domain** (asserted): `+0x81 >= 0`, `+0x36` of a range test in 0..2,

@@ -50,8 +50,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // (`Sim::process_building`, `process_building_combat`, `process_building_tail`, `nations::
             // {kremlin_spy, persian_market_caravan, terra_cotta_army}`, `gather::gather_region_building`,
             // `roads::regen_roads_due`) and every one reads a `Sim`; the console's two reminders
-            // (`TextBubble` and `MessageWin::add_event`) are not modelled at all (a renderer's, `docs/
-            // DECISIONS.md` entry 12 note), nor are the leader's two stamps `+0x6ec0` and `+0x6ec4` (only
+            // (`TextBubble` and `MessageWin::add_event`) have no counterpart in the sim (the interface's), nor are the leader's two stamps `+0x6ec0` and `+0x6ec4` (only
             // the sweep carries them). So the whole of this slice is inline: the head to `do_queue`, then the
             // two reminders (frame & 255 == 0). Window map: m the building; leader row r's slices p(7r+s):
             // 0 flags, 1 `+8`, 2 units `+0x3f8`, 3 `+0x940`, 4 queued word `+0x5a98`, 5 team colour byte
