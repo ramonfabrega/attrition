@@ -38,6 +38,10 @@ mod unbuilt_wonder_walk_data;
 mod unbuilt_wonders_add_unbuilt_wonder;
 #[path = "unbuilt_wonders_remove_unbuilt_wonder.rs"]
 mod unbuilt_wonders_remove_unbuilt_wonder;
+#[path = "unit_action_unqueue.rs"]
+mod unit_action_unqueue;
+#[path = "unit_action_unqueue_none.rs"]
+mod unit_action_unqueue_none;
 #[path = "unit_add_attack_ground_order.rs"]
 mod unit_add_attack_ground_order;
 #[path = "unit_add_await_board_order.rs"]
@@ -546,6 +550,8 @@ mod wall_swap_team;
 mod wall_update_gpiece;
 #[path = "wall_update_local_seen.rs"]
 mod wall_update_local_seen;
+#[path = "wall_update_los.rs"]
+mod wall_update_los;
 #[path = "wcoord_data_walk_data.rs"]
 mod wcoord_data_walk_data;
 #[path = "wcoord_get_tcorner.rs"]

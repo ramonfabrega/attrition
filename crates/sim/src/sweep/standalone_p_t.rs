@@ -210,6 +210,10 @@ mod special_data_get_radius;
 mod special_walk_data;
 #[path = "specials_data_find_special.rs"]
 mod specials_data_find_special;
+#[path = "spell_type_cast.rs"]
+mod spell_type_cast;
+#[path = "spell_type_cast_air_defense.rs"]
+mod spell_type_cast_air_defense;
 #[path = "spell_type_cast_blow_tread.rs"]
 mod spell_type_cast_blow_tread;
 #[path = "spell_type_cast_civilian.rs"]
