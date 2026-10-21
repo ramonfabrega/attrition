@@ -895,6 +895,61 @@ class GateTests(unittest.TestCase):
             self.assertEqual(len(calls), 6)
             self.assertIn('no path both sides touched', said)
 
+    def test_a_moved_base_whose_only_overlap_is_the_commander_s_paperwork_gates_and_lands(self):
+        # Loop 3401 (the forty-seventh pass): 3393's second to fourth lane
+        # gates ended on `Base moved:`, each forced a `ccc update` and
+        # another full lane gate (~55 minutes), and every update merged
+        # clean: the third's and fourth's overlap was docs/PARKED.md alone,
+        # whose tail the commander's bookings append to while the lane
+        # renames its own reserved slot. The commander's paperwork does not
+        # refuse; any other path still does. Made to fail first.
+        commits = ['c2729a5 Book 3337', '4a8c010 Book 3338']
+        line = gate.base_line('worktree-replan-pdb', commits, ['docs/PARKED.md'])
+        self.assertIn("commander's paperwork (docs/PARKED.md)", line)
+        self.assertIn('land on this verdict', line)
+        self.assertNotIn('gate again', line)
+        # (a) Before the offline step: PARKED.md alone, the gate runs all six.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=commits,
+                                          theirs=['docs/PARKED.md', 'docs/QUEUE.md'],
+                                          ours=['docs/PARKED.md', 'crates/sim/src/city.rs']))
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertEqual(len(calls), 6)
+            self.assertIn("commander's paperwork (docs/PARKED.md)", said)
+            self.assertIn('land on this verdict', said)
+        # The re-read after the steps follows the same rule.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed, \
+                 patch.object(gate, 'base_moved', side_effect=[([], []), (commits, ['docs/PARKED.md'])]):
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD, git=UNMOVED)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertIn('Gate steps: 6 of 6 ran', said)
+            self.assertIn('land on this verdict', said)
+        # (b) PARKED.md beside a real path still refuses, for the real path.
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed, self.assertRaises(ValueError) as refused:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, tests=WORD,
+                          git=git_fixture(commits=commits,
+                                          theirs=['docs/PARKED.md', 'crates/rondata/src/diff/battery.rs'],
+                                          ours=['docs/PARKED.md', 'crates/rondata/src/diff/battery.rs']))
+            lines=[str(c.args[0]) for c in printed.call_args_list if c.args]
+            self.assertEqual(calls, [])
+            moved=[line for line in lines if line.startswith('Base moved:')]
+            self.assertEqual(len(moved), 1)
+            self.assertIn('1 path(s) both sides touched (crates/rondata/src/diff/battery.rs)', moved[0])
+            self.assertIn('gate again', moved[0])
+            self.assertIn('battery.rs', str(refused.exception))
+            self.assertNotIn('PARKED', str(refused.exception))
+            self.assertIn('before the offline step', str(refused.exception))
+
     # Item 3373: `writers::a_field_the_sim_writes_is_read_by_something` timed
     # at 1.08 s, over the lane budget, so `--lane --no-widen` left it to the
     # booking gate, and 3362's booking gate went red on it after a green
