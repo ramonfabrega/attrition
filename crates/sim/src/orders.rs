@@ -7731,6 +7731,40 @@ impl Sim {
         self.barge_type(self.units[u].owner)
     }
 
+    /// One ring query of `Group::action_swarm_around`'s member arm
+    /// (`UnitType::find_nearby_spot`, `0070fbe0:7103e6`/`710472`): the
+    /// member's own type, or the barge a citizen swarming water is
+    /// searched as ([`Self::swarm_seeker_type`]), around `centre`.
+    /// [`crate::swarm_around_view::SimSwarm`] asks it once for the first
+    /// spot and once for the build's nudged one.
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn swarm_ring(
+        &self,
+        u: usize,
+        b: usize,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        step: i32,
+        angle: Angle,
+    ) -> Option<Pos> {
+        let seeker = match self.swarm_seeker_type(u, b) {
+            Some(t) => Seeker::TypeFor(t, u),
+            None => Seeker::Unit(u),
+        };
+        self.spot_sweep(
+            seeker,
+            centre,
+            min,
+            max,
+            step,
+            angle,
+            Some(b),
+            Coll::Pairwise,
+            false,
+        )
+    }
+
     /// `Group::action_swarm_around` for one unit: the approach move in
     /// front, then the order re-queued with the same action bit.
     ///
