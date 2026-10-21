@@ -2171,8 +2171,13 @@ impl Sim {
             if self.on_river(unit.pos, at) {
                 speed /= 2;
             }
-            // SEAM: `has_general(0, 0x162)` doubles a siege type's speed;
-            // no capture has a general.
+            // `has_general(0, 0x162)` and the type's `is_siege` (vslot
+            // `+0x10c`, `UnitTypeData::is_siege@00470460`, `unit_flags &
+            // 0x20000`) double it, `006087b0`-`006087d8`: a siege unit
+            // within a Monarch's radius (item 3390).
+            if self.is_siege_unit(u) && self.near_monarch(u) {
+                speed *= 2;
+            }
         }
         // **The group cap**, `00608789`-`006087a7`: with flag 0, a unit
         // that is in a group and has **no action order** — `get_action`

@@ -34,9 +34,13 @@ pub(crate) const SPANISH_LAKES: Lobby = Lobby {
     // word (`docs/AI.md` §294) and moved it 8384 -> 13496 with the
     // terraform in the original's singles: one road search on 7984 priced
     // the step onto (45600, 23520) 339 against 342, a climb one short off a
-    // corner the millionths truncated differently.
-    count: 13496,
-    sequence: 13496,
+    // corner the millionths truncated differently. **13496 -> 13639** with
+    // the Monarch's siege doubling (`UnitData::get_speed`'s
+    // `has_general(0, 0x162)` arm): run1013c's Bombards `1/113` and `1/114`
+    // stepped 49 on 13484 against ours' 24, `x[0]` 9025 against 9042; both
+    // read 9025 on the built tree.
+    count: 13639,
+    sequence: 13639,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -148,7 +152,11 @@ fn run1013_s_word_frame_is_widened_whole() {
         Vec::<String>::new(),
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "keys that part in the window");
+    // Item 3390: 3488 keys on the march's parting (13490, the Spanish army
+    // 1/26..1/114); **3488 -> 1151** with the Monarch's siege doubling: the
+    // standing family on 13490 (34), then 13576 and 13601, and the word's
+    // own parting from 13640.
+    pin_eq!(w.firsts.len(), 1151, "keys that part in the window");
 }
 
 /// run1013b: the gap 8380..13489 at a stride of 16 (item 3390): blocks
@@ -200,8 +208,62 @@ fn run1013b_s_gap_is_widened_whole() {
     // part (90 keys): the Bombards `1/113` and `1/114` move half again
     // ours' speed (`avg_speed[0]` 33 against 22, `x[0]` 8991 against 9025),
     // and `1/56`'s guard order points 48 apart (theirs (8952, 31032),
-    // ours (9000, 30984)). run1013c owes 13470..13484.
-    pin_eq!(w.firsts.len(), 129, "keys that part in the gap");
+    // ours (9000, 30984)). run1013c owes 13470..13484. **129 -> 39** with
+    // the Monarch's siege doubling (run1013c's 13484): the 90 close.
+    pin_eq!(w.firsts.len(), 39, "keys that part in the gap");
+}
+
+/// run1013c: the army's parting, blocks 13463..13489 at run1013's detail
+/// (item 3390); run1013b reads every unit agreeing on 13469 and three
+/// Spanish units parted on 13485.
+pub(crate) const RUN1013C: &str =
+    "gamelog-run1013c-greatlakes-spanish-diff4-window-13463-13489.txt";
+
+/// The window: block 13463 through 13489.
+pub(crate) const WIDENING_SPANISH_LAKES_MARCH_1013C: (i64, i64) = (13463, 13489);
+
+pub(crate) fn spanish_lakes_march_1013c_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_LAKES.start],
+        true,
+        SPANISH_LAKES.long,
+        "run1013c",
+        &[(RUN1013C, WIDENING_SPANISH_LAKES_MARCH_1013C.0)],
+        WIDENING_SPANISH_LAKES_MARCH_1013C,
+        1,
+        &[13485],
+        true,
+    )
+}
+
+#[test]
+fn run1013c_s_march_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_lakes_march_1013c_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 26, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3390: 260 keys — the standing family on 13463 (34), and from
+    // **13484** the Bombards `1/113` and `1/114` (TI 267, group 65,
+    // `GROUPATTACKTO`) stepping 49 against ours' 24 (`g.last_speed[0]`),
+    // `x[0]` 9025 against 9042, `myspeed` 23 both sides: the figures'
+    // uncapped `get_speed` doubled, the unit's capped one not. The Spanish
+    // Monarch (TI 354, `0x162`) is in range: `UnitData::get_speed`'s
+    // `has_general(0, 0x162)` arm, which this crate left a SEAM. **260 ->
+    // 34** with it built (`Sim::near_monarch`).
+    pin_eq!(w.firsts.len(), 34, "keys that part in the window");
 }
 
 /// **The word's road search, node for node** (item 3390): every road
