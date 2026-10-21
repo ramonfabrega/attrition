@@ -2912,6 +2912,46 @@ mod launch_tests {
         }
     }
 
+    /// **A strafe with no target goes as `land_plane` finds it** (item 3396,
+    /// `005e9950`): `clear_orders` for a `mandatory` one, which takes the patrol
+    /// under it too, `kill_current_order` for the rest, which leaves the patrol.
+    /// Made to fail with the two swapped, and with the path left standing at a
+    /// base that does not repeat (the last pair of rows).
+    #[test]
+    fn a_targetless_strafe_goes_by_its_mandatory_byte() {
+        for (mandatory, left) in [(true, 0), (false, 1)] {
+            let mut s = sim();
+            let (base, _) = base_and_target(&mut s);
+            s.buildings[base].repeat_air = true;
+            let u = fighter_inside(&mut s, base, 400);
+            s.come_out(u);
+            s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+            s.add_strafe_order(
+                u,
+                None,
+                Some(base),
+                mandatory,
+                crate::orders::QueuePos::First,
+                true,
+            );
+            assert_eq!(s.units[u].orders.len(), 2, "{mandatory}: a strafe on a patrol");
+            s.land_plane(u);
+            assert_eq!(s.units[u].orders.len(), left, "{mandatory}: what is left");
+        }
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.come_out(u);
+        s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+        s.units[u].path.push(crate::orders::PathData {
+            to: Pos::new(0, 0),
+            tolerance: 0,
+            flags: 0,
+        });
+        s.land_plane(u);
+        assert!(s.units[u].path.is_empty(), "no repeat: the path goes");
+    }
+
     /// **A computer's base sends its plane over a city under attack**
     /// (`Object::do_launch@0064f3b0`'s sortie, item 1182, `docs/GOLDEN.md`
     /// §50): on `(frame + id) % 32 == 0` a plane inside a computer's base
