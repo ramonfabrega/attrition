@@ -28,8 +28,8 @@
  *    `GetCursorPos`, `ScreenToClient` on the window at +0x45c and the same
  *    scale (`d3dgl` 0x1000c470). The refresh's one caller is
  *    `Window::update_cursor@00a502e0`; the getter's fifteen include
- *    `Console::get_mouse_loc@007cb630` and `Window::get_mouse_pos@00a54170`
- *    — what a hover, a tooltip and a pick under the cursor read.
+ *    `Window::get_mouse_pos@00a54170` (which of them a hover reads is not
+ *    established).
  *
  * So the DLL drives the first door with the original handlers, called at the
  * top of the stanza's `do_frame` like every other `@` line, and pins the
