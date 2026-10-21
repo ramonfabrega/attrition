@@ -1329,6 +1329,11 @@ buildings join the chain, which is why §8 does not claim it.
 
 **The captures that would settle them** are in §9.
 
+**The never-entered functions this document cites (item 3414).** Two are in `blind::NEVER` on the base
+`6d3ffc37`. `Leader::process@006b88b0` is accepted residue. `Unit::do_form_change@005e8670` is read in
+`docs/GROUPS.md` §38 (item 3413), which proposes it for `RESIDUE`: no site makes a `CHANGE_FORM` order. It is
+not read again here.
+
 ## 8.1 The docs-versus-code pass, 2026-09-05
 
 `docs/audit/2026-09-05-collision-vs-code.md` (Opus reader, Opus

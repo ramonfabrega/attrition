@@ -4608,7 +4608,8 @@ which no run on disk executes.
   `chapter_two_s_first_attack_orders_are_the_dump_s` went from six of nine
   rows to **nine of nine**. Two corrections to the sentence struck above.
   The `+0x10c` gate is **`ObjectTypeData::is_siege`** — settled from the
-  PDB type record and `ObjectData::is_dock@004711e0`'s thunk, VISION §9.2 —
+  PDB type record and `ObjectData::is_dock@004711e0`'s thunk, VISION §9.2 (its
+  callers and its capture: VISION §8's never-entered rows, item 3414) —
   and it gates one of `Unit::fight`'s two call sites, not the write. And
   the writer list of two was short by three: `Build::do_attack` and
   `Build::do_missile_launch` write the field too, so §31.3's "no building
