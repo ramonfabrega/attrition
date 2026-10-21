@@ -2811,6 +2811,24 @@ entered by run53, run54 and run906, 152 never** — run906 alone enters
 `report.py … blind docs/ <logs>` is the command, and it accepts as many
 logs as there are.
 
+**On the click-free lane too (2026-10-21, item 3429).** run185 and both
+chapter-thirty-five takes "hung before frame 0" at `cover=1`; each trace
+holds `INFO 174 1` beside `armed` and `attach` — the autostart's own
+refusal of `g_cover` (`live_autostart.h`), so the menu waited for a click
+the click-free lane never makes, and the runner's timeout ended it. No
+stub, proxy or thread was at fault. The driver is now two halves around
+`arm_all`: `check_autostart` reads the shipped bytes before any stub is
+planted, and `install_autostart` patches after it and before the flusher
+starts, so every code write is still on attach's one thread. Its jmps go
+over the stubs' at `TopMenu::main_menu@0059bf70` and
+`TopMenu::sub_menu@0059c030` (the functions it replaces, never entered
+on this lane) and at `System::modal_idle@005994a0`, whose original it
+now calls through the coverage stub, so the idle loop is still recorded;
+`INFO 175`'s second word is 1 when it is. run1037 is the proof: the peace
+pair's lobby at `cover=1` with the proxies, 601 frames in 45 s on pool
+lane 1, rngcmp against its `cover=0` twin run847 **601 identical, 0
+differing** (`docs/RUNS.md`).
+
 ## The click-free lane needs a window, and it is not DXVK (2026-09-18, item 363)
 
 `tools/explore/unattended_capture.py` needs no TCC grant and no human at the

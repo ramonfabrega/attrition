@@ -52,8 +52,11 @@ regression compiles the real wrapper, runs it under Unicorn on 256 authored
 states, and checks all integer registers, flags, and 256 bytes of native
 arguments. A deliberately wrong argument offset is rejected.
 
-Every patch site is byte-checked before any driver patch, the preferred image
-base is required, and coverage instrumentation is excluded. The driver is
+Every patch site is byte-checked before any driver patch and the preferred image
+base is required. Coverage instrumentation was excluded here until item 3429
+(2026-10-21), and that refusal was the whole of the click-free lane's
+`cover=1` "hang"; the check now runs before the stubs are planted and the
+patches after them (`docs/ORACLE.md`, "Coverage is back"). The driver is
 absent from the default tracer build. INFO 170..175 describe selection, modal
 entry, Start dispatch/return, refusal, and installation. INFO 176..177 retain
 bounded exception context/stack words and continue the original exception

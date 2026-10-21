@@ -1,5 +1,6 @@
 /* Opt-in, one-match menu driver. Calls the original Start handler from the
  * setup modal's idle loop; no input events, simulation writes, or worker thread.
+ * It runs beside `cover=1` (check_autostart, below).
  * Reading/byte evidence and limitations: docs/lab/2026-09-09-autostart.md.
  */
 IMPORT(void, ExitProcess, (u32));
@@ -107,7 +108,16 @@ static i32 auto_different(const void *a, const void *b, u32 n) {
 #ifdef RON_STARTUP_PROBE
 #include "live_startup_probe.h"
 #endif
-static void install_autostart(void) {
+/* Two halves, because coverage plants its stubs between them (tracer.c's
+ * DllMain): the check reads the shipped bytes before `arm_all` overwrites
+ * any entry, and the install patches after it, still on attach's one thread.
+ * Under `cover=1` the install's jmps replace `arm_all`'s at the two menu
+ * entries (the functions the driver replaces, so no copy of them runs) and at
+ * `System::modal_idle`, whose original is then reached through its coverage
+ * stub, so the idle loop is still recorded. The refusal of `cover=1` that
+ * stood here left the menu waiting for a click no one made: run185 and both
+ * chapter-thirty-five takes (`INFO 174 1`, no `FRAME`; item 3429). */
+static i32 check_autostart(void) {
     AddVectoredExceptionHandler(1, (void *)auto_fault);
 #ifdef RON_REPLAY
     /* The assignment call and playback menu result are build-specific too.
@@ -118,7 +128,7 @@ static void install_autostart(void) {
     if (g_base != 0x400000 ||
         auto_different((void *)(g_base+0x1c6970), replay_assign, sizeof replay_assign) ||
         auto_different((void *)(g_base+0x19b5c0), replay_result, sizeof replay_result)) {
-        emit(K_INFO, 174, 5, 0, 0, 0, 0); flush(); return;
+        emit(K_INFO, 174, 5, 0, 0, 0, 0); flush(); return 0;
     }
 #endif
     static const u8 menu[] = {0x55,0x8b,0xec,0x64,0xa1,0,0,0,0};
@@ -126,7 +136,7 @@ static void install_autostart(void) {
     static const u8 modal[] = {0xff,0x90,0xc0,3,0,0};
     static const u8 current[] = {0x89,0x35,0xa0,0xb3,0xca,0};
     /* Validate every patch before modifying any of them. */
-    if (g_cover || g_base != 0x400000 ||
+    if (g_base != 0x400000 ||
         auto_different((void *)(g_base+0x19bf70), menu, sizeof menu) ||
         auto_different((void *)(g_base+0x19c030), menu, sizeof menu) ||
         auto_different((void *)(g_base+0x1994a0), idle, sizeof idle) ||
@@ -134,19 +144,28 @@ static void install_autostart(void) {
         auto_different((void *)(g_base+0x1c7cd2), current, sizeof current)) {
         emit(K_INFO, 174, 1, g_cover, g_base, 0, 0);
         flush();
-        return;
+        return 0;
     }
-    u8 *tramp = VirtualAlloc(0, 32, 0x3000, PAGE_READWRITE);
-    if (!tramp) { emit(K_INFO, 174, 2, 0, 0, 0, 0); flush(); return; }
-    memcpy(tramp, idle, sizeof idle);
-    tramp[6] = 0xe9;
-    *(u32 *)(tramp+7) = g_base+0x1994a6 - ((u32)tramp+11);
-    u32 old;
-    if (!VirtualProtect(tramp, 32, PAGE_EXECUTE_READ, &old)) {
-        emit(K_INFO, 174, 3, 0, 0, 0, 0); flush(); return;
+    return 1;
+}
+static void install_autostart(void) {
+    const Entry *cov = g_stubs ? cover_entry(0x1994a0) : 0;
+    if (cov) {
+        auto_idle_original = (void (*)(void))(g_stubs + STUB_BYTES * (u32)(cov - g_funcs));
+    } else {
+        static const u8 idle[] = {0x55,0x8b,0xec,0x83,0xe4,0xf8};
+        u8 *tramp = VirtualAlloc(0, 32, 0x3000, PAGE_READWRITE);
+        if (!tramp) { emit(K_INFO, 174, 2, 0, 0, 0, 0); flush(); return; }
+        memcpy(tramp, idle, sizeof idle);
+        tramp[6] = 0xe9;
+        *(u32 *)(tramp+7) = g_base+0x1994a6 - ((u32)tramp+11);
+        u32 old;
+        if (!VirtualProtect(tramp, 32, PAGE_EXECUTE_READ, &old)) {
+            emit(K_INFO, 174, 3, 0, 0, 0, 0); flush(); return;
+        }
+        FlushInstructionCache(GetCurrentProcess(), tramp, 32);
+        auto_idle_original = (void (*)(void))tramp;
     }
-    FlushInstructionCache(GetCurrentProcess(), tramp, 32);
-    auto_idle_original = (void (*)(void))tramp;
     auto_branch(0x19bf70, (u32)auto_menu, 0xe9);
     auto_branch(0x19c030, (u32)auto_submenu, 0xe9);
     auto_branch(0x1994a0, (u32)auto_idle, 0xe9);
@@ -155,5 +174,6 @@ static void install_autostart(void) {
 #ifdef RON_STARTUP_PROBE
     install_startup_probe();
 #endif
-    emit(K_INFO, 175, 1, 0, 0, 0, 0);
+    FlushInstructionCache(GetCurrentProcess(), (void *)(g_base + TEXT_RVA), TEXT_SIZE);
+    emit(K_INFO, 175, 1, cov ? 1 : 0, 0, 0, 0);
 }

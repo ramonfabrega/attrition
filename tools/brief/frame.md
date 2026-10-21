@@ -131,7 +131,7 @@ Before any reading, in order:
   **`--end-frame` is the game's last frame when the window reaches it**
   (1529); a self-ending lobby takes `--allow-early-end` (1551); **a word
   at a lobby's last frame: the long's closing block first** (3086).
-- **Never `cover=1` on the click-free lane** (1047); `@` lines run on
+- **`cover=1` runs on the click-free pool** (3429); `@` lines run on
   your tree's DLL (936); a new pair names its `GAME INFO` line (979, 992).
 - **Launch through `viadriver.sh golden_capture.sh`, never your shell —
   the tool refuses a `Background` launch** (3334); **wait with
@@ -288,13 +288,13 @@ Before any reading, in order:
 
 ## coverage-item
 
-- **You take one pinned lobby's `cover=1` trace on the queue lane**
-  (3416): a `tools/gamelog/captures.txt` block of run461's shape —
-  `cover: cover=1`, the lobby's own `cfg:`, `ffwd:`, `end:` and `cmd:`
+- **You take one pinned lobby's `cover=1` trace** (3416): on the
+  click-free pool, `golden_capture.sh … --cover cover=1` with the
+  lobby's own lines (3429: run1037, 601 frames in 45 s); or on the queue
+  lane, a `tools/gamelog/captures.txt` block of run461's shape —
+  `cover: cover=1`, the lobby's `cfg:`, `ffwd:`, `end:` and `cmd:`
   lines, `frames:` the item's, `item:` yours — run by `runqueue.sh`
-  through `viadriver.sh` and waited on with `waitrun.sh`. **Never
-  `cover=1` on the click-free lane** (1047): it hung at startup once, and
-  the pool trial is Ramon's, not yours.
+  through `viadriver.sh`; either waited on with `waitrun.sh`.
 - **The trace is checked against its `cover=0` twin before it is
   pinned**: `rngcmp.py` (identical frames, none differing) and
   `samegame.py` on the twin's window; a trace that parts its twin is a
