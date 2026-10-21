@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(2);
@@ -41,217 +46,228 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             // Window layout. `m` the craft row (`+0x4` the index, `+0x1c8` the flags); `c[0]` the world cell's record
-// (`+0` the width, `+0x134` the tiles, `p[20]`); `p[0]` the out-pointer's word (null when `a[3]` is 0);
-// `p[1 + k]` the leaders' first words (`0xe3a390 + 0x6eec * k`); `p[4 + 4 * pl + ox]` the `objects[pl][ox]`,
-// `p[12 + 4 * pl + ox]` the `units[pl][ox]`; `p[19]` the division table (`0xcae5fc`), `p[20]` the tiles;
-// `p[21 + 3 * pl + ox]` the type record of an object, `p[27 + 3 * pl + ox]` of a unit. `a`: the four
-// arguments, the stubs' single answers (`a[4..26]`), every stub's four call-order answers (`a[26 + 4 * k]`),
-// then the two image-slot flags (`a[114]` slot `0xb8` as `ObjectData::is`, `a[115]` slot `0x148` as
-// `has_objmask`: the base laid, so the call goes to the type record's slot).
-//
-// **The port is the crate's own steps**, `crate::spell_valid_target_view::is_valid_target_steps`, over a view
-// of the emulated original's windows. The crate's `Sim::spell_valid_target` is a different shape of the same
-// arms (see that module's head).
-use crate::spell_valid_target_view::{Table, ValidTargetView, is_valid_target_steps};
-fn rd32(w: &[u8], o: usize) -> i32 {
-    i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
-}
-struct V<'a> {
-    a: &'a [i32],
-    m: &'a [u8],
-    c: &'a [Vec<u8>],
-    p: &'a mut [Vec<u8>],
-    log: &'a mut Vec<String>,
-    turn: [usize; 22],
-}
-impl V<'_> {
-    fn seq(&mut self, k: usize) -> i32 {
-        let i = self.turn[k].min(3);
-        self.turn[k] += 1;
-        self.a[26 + 4 * k + i]
-    }
-    fn rec(&mut self, k: usize, ecx: &str, args: &[i32]) {
-        let mut t = format!("s{k}:{ecx}");
-        for v in args {
-            t.push_str(&format!(",{v}"));
-        }
-        self.log.push(t);
-    }
-    fn ow(w: i32, o: i32) -> usize {
-        4 + 4 * w as usize + o as usize
-    }
-    fn uw(w: i32, o: i32) -> usize {
-        12 + 4 * w as usize + o as usize
-    }
-    fn tw(w: i32, o: i32) -> usize {
-        21 + 3 * w as usize + o as usize
-    }
-    fn utw(w: i32, o: i32) -> usize {
-        27 + 3 * w as usize + o as usize
-    }
-    fn at(w: usize) -> String {
-        format!("p{w}+0x0")
-    }
-    fn leader(who: i32) -> String {
-        format!("r{who}+0x0")
-    }
-    fn is_based(&self) -> bool {
-        self.a[114] != 0
-    }
-    fn mask_based(&self) -> bool {
-        self.a[115] != 0
-    }
-}
-impl ValidTargetView for V<'_> {
-    fn flags(&self) -> i32 {
-        rd32(self.m, 0x1c8)
-    }
-    fn spell(&self) -> i32 {
-        rd32(self.m, 4)
-    }
-    fn set_out(&mut self, code: i32) {
-        if self.a[3] != 0 {
-            self.p[0][..4].copy_from_slice(&code.to_le_bytes());
-        }
-    }
-    fn is_unit(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(8, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(8) != 0
-    }
-    fn is_building(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(9, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(9) != 0
-    }
-    fn has_objmask(&mut self, table: Table, whom: i32, ox: i32) -> bool {
-        let (obj, ty) = match table {
-            Table::Objects => (Self::ow(whom, ox), Self::tw(whom, ox)),
-            Table::Units => (Self::uw(whom, ox), Self::utw(whom, ox)),
-        };
-        if self.mask_based() {
-            self.rec(21, &Self::at(ty), &[0x20_0000]);
-            self.seq(21) != 0
-        } else {
-            self.rec(10, &Self::at(obj), &[0x20_0000]);
-            self.seq(10) != 0
-        }
-    }
-    fn is_enemy(&mut self, who: i32, whom: i32) -> bool {
-        self.rec(0, &Self::leader(who), &[whom]);
-        self.seq(0) != 0
-    }
-    fn is_ally(&mut self, who: i32, whom: i32) -> bool {
-        self.rec(1, &Self::leader(who), &[whom]);
-        self.seq(1) != 0
-    }
-    fn is_peace(&mut self, who: i32, whom: i32) -> bool {
-        self.rec(2, &Self::leader(who), &[whom]);
-        self.seq(2) != 0
-    }
-    fn is_active_build(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(3, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(3) != 0
-    }
-    fn object_is_city(&self, whom: i32, ox: i32) -> bool {
-        self.p[Self::ow(whom, ox)][8] & 0x20 != 0
-    }
-    fn slot_dc(&mut self, whom: i32, ox: i32, arg: i32) -> bool {
-        self.rec(11, &Self::at(Self::ow(whom, ox)), &[arg]);
-        self.seq(11) != 0
-    }
-    fn has_general(&mut self, whom: i32, ox: i32) -> i32 {
-        self.rec(4, &Self::at(Self::ow(whom, ox)), &[0, 0x165]);
-        self.seq(4)
-    }
-    fn slot_c8(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(12, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(12) != 0
-    }
-    fn slot_20(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(13, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(13) != 0
-    }
-    fn is_type(&mut self, whom: i32, ox: i32, ty: i32) -> bool {
-        if self.is_based() {
-            self.rec(20, &Self::at(Self::tw(whom, ox)), &[ty, 0]);
-            self.seq(20) != 0
-        } else {
-            self.rec(18, &Self::at(Self::ow(whom, ox)), &[ty, 0]);
-            self.seq(18) != 0
-        }
-    }
-    fn slot_120(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(14, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(14) != 0
-    }
-    fn slot_c4(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(15, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(15) != 0
-    }
-    fn slot_d0(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(16, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(16) != 0
-    }
-    fn slot_cc(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(17, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(17) != 0
-    }
-    fn is_worker(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(5, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(5) != 0
-    }
-    fn is_merchant(&mut self, whom: i32, ox: i32) -> bool {
-        self.rec(6, &Self::at(Self::ow(whom, ox)), &[]);
-        self.seq(6) != 0
-    }
-    fn type_domain(&self, whom: i32, ox: i32) -> i32 {
-        rd32(&self.p[Self::tw(whom, ox)], 0x218)
-    }
-    fn teams_locked(&mut self, who: i32) -> bool {
-        self.rec(7, &Self::leader(who), &[]);
-        self.seq(7) != 0
-    }
-    fn leader_bit2(&self, whom: i32) -> bool {
-        self.p[1 + whom as usize][0] & 2 != 0
-    }
-    fn tile_owner(&mut self, whom: i32, ox: i32) -> i32 {
-        let obj = &self.p[Self::ow(whom, ox)];
-        let (x, y) = (rd32(obj, 0x10), rd32(obj, 0x14));
-        let div3 = &self.p[19];
-        let yi = ((y ^ 0x63637) >> 8) as usize;
-        let xi = ((x ^ 0x63637) >> 8) as usize;
-        let idx = rd32(div3, 4 * yi)
-            .wrapping_mul(rd32(&self.c[0], 0))
-            .wrapping_add(rd32(div3, 4 * xi));
-        i32::from(self.p[20][28 * idx as usize + 0xf] as i8)
-    }
-    fn slot_48(&mut self, who: i32, whom: i32, ox: i32) -> bool {
-        self.rec(19, &Self::at(Self::ow(whom, ox)), &[who, 0]);
-        self.seq(19) != 0
-    }
-}
-let mut v = V {
-    a,
-    m: &*m,
-    c: &*c,
-    p: &mut *p,
-    log: &mut log,
-    turn: [0; 22],
-};
-let r = is_valid_target_steps(&mut v, a[0], a[1], a[2]);
-if log.is_empty() {
-    log.push("-".to_string());
-}
-i64::from(r)
+            // (`+0` the width, `+0x134` the tiles, `p[20]`); `p[0]` the out-pointer's word (null when `a[3]` is 0);
+            // `p[1 + k]` the leaders' first words (`0xe3a390 + 0x6eec * k`); `p[4 + 4 * pl + ox]` the `objects[pl][ox]`,
+            // `p[12 + 4 * pl + ox]` the `units[pl][ox]`; `p[19]` the division table (`0xcae5fc`), `p[20]` the tiles;
+            // `p[21 + 3 * pl + ox]` the type record of an object, `p[27 + 3 * pl + ox]` of a unit. `a`: the four
+            // arguments, the stubs' single answers (`a[4..26]`), every stub's four call-order answers (`a[26 + 4 * k]`),
+            // then the two image-slot flags (`a[114]` slot `0xb8` as `ObjectData::is`, `a[115]` slot `0x148` as
+            // `has_objmask`: the base laid, so the call goes to the type record's slot).
+            //
+            // **The port is the crate's own steps**, `crate::spell_valid_target_view::is_valid_target_steps`, over a view
+            // of the emulated original's windows. The crate's `Sim::spell_valid_target` is a different shape of the same
+            // arms (see that module's head).
+            use crate::spell_valid_target_view::{Table, ValidTargetView, is_valid_target_steps};
+            fn rd32(w: &[u8], o: usize) -> i32 {
+                i32::from_le_bytes(w[o..o + 4].try_into().expect("four bytes"))
+            }
+            struct V<'a> {
+                a: &'a [i32],
+                m: &'a [u8],
+                c: &'a [Vec<u8>],
+                p: &'a mut [Vec<u8>],
+                log: &'a mut Vec<String>,
+                turn: [usize; 22],
+            }
+            impl V<'_> {
+                fn seq(&mut self, k: usize) -> i32 {
+                    let i = self.turn[k].min(3);
+                    self.turn[k] += 1;
+                    self.a[26 + 4 * k + i]
+                }
+                fn rec(&mut self, k: usize, ecx: &str, args: &[i32]) {
+                    let mut t = format!("s{k}:{ecx}");
+                    for v in args {
+                        t.push_str(&format!(",{v}"));
+                    }
+                    self.log.push(t);
+                }
+                fn ow(w: i32, o: i32) -> usize {
+                    4 + 4 * w as usize + o as usize
+                }
+                fn uw(w: i32, o: i32) -> usize {
+                    12 + 4 * w as usize + o as usize
+                }
+                fn tw(w: i32, o: i32) -> usize {
+                    21 + 3 * w as usize + o as usize
+                }
+                fn utw(w: i32, o: i32) -> usize {
+                    27 + 3 * w as usize + o as usize
+                }
+                fn at(w: usize) -> String {
+                    format!("p{w}+0x0")
+                }
+                fn leader(who: i32) -> String {
+                    format!("r{who}+0x0")
+                }
+                fn is_based(&self) -> bool {
+                    self.a[114] != 0
+                }
+                fn mask_based(&self) -> bool {
+                    self.a[115] != 0
+                }
+            }
+            impl ValidTargetView for V<'_> {
+                fn flags(&self) -> i32 {
+                    rd32(self.m, 0x1c8)
+                }
+                fn spell(&self) -> i32 {
+                    rd32(self.m, 4)
+                }
+                fn set_out(&mut self, code: i32) {
+                    if self.a[3] != 0 {
+                        self.p[0][..4].copy_from_slice(&code.to_le_bytes());
+                    }
+                }
+                fn is_unit(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(8, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(8) != 0
+                }
+                fn is_building(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(9, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(9) != 0
+                }
+                fn has_objmask(&mut self, table: Table, whom: i32, ox: i32) -> bool {
+                    let (obj, ty) = match table {
+                        Table::Objects => (Self::ow(whom, ox), Self::tw(whom, ox)),
+                        Table::Units => (Self::uw(whom, ox), Self::utw(whom, ox)),
+                    };
+                    if self.mask_based() {
+                        self.rec(21, &Self::at(ty), &[0x20_0000]);
+                        self.seq(21) != 0
+                    } else {
+                        self.rec(10, &Self::at(obj), &[0x20_0000]);
+                        self.seq(10) != 0
+                    }
+                }
+                fn is_enemy(&mut self, who: i32, whom: i32) -> bool {
+                    self.rec(0, &Self::leader(who), &[whom]);
+                    self.seq(0) != 0
+                }
+                fn is_ally(&mut self, who: i32, whom: i32) -> bool {
+                    self.rec(1, &Self::leader(who), &[whom]);
+                    self.seq(1) != 0
+                }
+                fn is_peace(&mut self, who: i32, whom: i32) -> bool {
+                    self.rec(2, &Self::leader(who), &[whom]);
+                    self.seq(2) != 0
+                }
+                fn is_active_build(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(3, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(3) != 0
+                }
+                fn object_is_city(&self, whom: i32, ox: i32) -> bool {
+                    self.p[Self::ow(whom, ox)][8] & 0x20 != 0
+                }
+                fn slot_dc(&mut self, whom: i32, ox: i32, arg: i32) -> bool {
+                    self.rec(11, &Self::at(Self::ow(whom, ox)), &[arg]);
+                    self.seq(11) != 0
+                }
+                fn has_general(&mut self, whom: i32, ox: i32) -> i32 {
+                    self.rec(4, &Self::at(Self::ow(whom, ox)), &[0, 0x165]);
+                    self.seq(4)
+                }
+                fn slot_c8(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(12, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(12) != 0
+                }
+                fn slot_20(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(13, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(13) != 0
+                }
+                fn is_type(&mut self, whom: i32, ox: i32, ty: i32) -> bool {
+                    if self.is_based() {
+                        self.rec(20, &Self::at(Self::tw(whom, ox)), &[ty, 0]);
+                        self.seq(20) != 0
+                    } else {
+                        self.rec(18, &Self::at(Self::ow(whom, ox)), &[ty, 0]);
+                        self.seq(18) != 0
+                    }
+                }
+                fn slot_120(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(14, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(14) != 0
+                }
+                fn slot_c4(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(15, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(15) != 0
+                }
+                fn slot_d0(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(16, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(16) != 0
+                }
+                fn slot_cc(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(17, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(17) != 0
+                }
+                fn is_worker(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(5, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(5) != 0
+                }
+                fn is_merchant(&mut self, whom: i32, ox: i32) -> bool {
+                    self.rec(6, &Self::at(Self::ow(whom, ox)), &[]);
+                    self.seq(6) != 0
+                }
+                fn type_domain(&self, whom: i32, ox: i32) -> i32 {
+                    rd32(&self.p[Self::tw(whom, ox)], 0x218)
+                }
+                fn teams_locked(&mut self, who: i32) -> bool {
+                    self.rec(7, &Self::leader(who), &[]);
+                    self.seq(7) != 0
+                }
+                fn leader_bit2(&self, whom: i32) -> bool {
+                    self.p[1 + whom as usize][0] & 2 != 0
+                }
+                fn tile_owner(&mut self, whom: i32, ox: i32) -> i32 {
+                    let obj = &self.p[Self::ow(whom, ox)];
+                    let (x, y) = (rd32(obj, 0x10), rd32(obj, 0x14));
+                    let div3 = &self.p[19];
+                    let yi = ((y ^ 0x63637) >> 8) as usize;
+                    let xi = ((x ^ 0x63637) >> 8) as usize;
+                    let idx = rd32(div3, 4 * yi)
+                        .wrapping_mul(rd32(&self.c[0], 0))
+                        .wrapping_add(rd32(div3, 4 * xi));
+                    i32::from(self.p[20][28 * idx as usize + 0xf] as i8)
+                }
+                fn slot_48(&mut self, who: i32, whom: i32, ox: i32) -> bool {
+                    self.rec(19, &Self::at(Self::ow(whom, ox)), &[who, 0]);
+                    self.seq(19) != 0
+                }
+            }
+            let mut v = V {
+                a,
+                m: &*m,
+                c: &*c,
+                p: &mut *p,
+                log: &mut log,
+                turn: [0; 22],
+            };
+            let r = is_valid_target_steps(&mut v, a[0], a[1], a[2]);
+            if log.is_empty() {
+                log.push("-".to_string());
+            }
+            i64::from(r)
         };
         assert_eq!(got, want_eax, "is_valid_target — eax, row `{line}`");
-        assert_eq!(log, want_log, "is_valid_target — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "is_valid_target — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "is_valid_target — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "is_valid_target — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "is_valid_target — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[3 + i], "is_valid_target — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[3 + i],
+                "is_valid_target — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
