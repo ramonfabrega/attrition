@@ -19,8 +19,8 @@ Indians at Great Sahara, the Turks and the Americans at Great Lakes closed; thre
 - **Words**: every pair closed; twenty-eight battery words closed (`AI_WORDS` holds twenty-six). Battery on `02005991`:
   8384 (the Spanish at Great Lakes, 3390), 13126 (the Inca at Great Sahara, 3385), 7799, 14540, 18883, 24000 ×3 — six of eight whole, median 16711. Census 1636, port 520.
 - **Lanes: four live**: 3385 the Inca (Opus; runs 1010, 1011, AI §293, LV), 3390 the Spanish (Opus; runs 1012,
-  1013, AI §294, LY), 3391 the nations seat (Sonnet, LZ), 3386 the second sweep (Sonnet, LW). Next 3392, run 1014. Pools: GOLDEN §144–148, AI §295–299, park MA–MB.
-- **Fable backlog: 12 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382, 3388, 3389); DECISIONS 85.
+  1013, AI §294, LY), 3391 the nations seat (Sonnet, LZ), 3386 the second sweep (Sonnet, LW). Next 3393, run 1014. Pools: GOLDEN §144–148, AI §295–299, park MA–MB.
+- **Fable backlog: 13 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382, 3388, 3389, 3392); DECISIONS 85.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
