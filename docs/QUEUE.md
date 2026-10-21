@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): 4 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
-click-free pool (run1037); 3417: run1016, `NEVER` 380 → 376, VISION §8's `treaty_off` diff-backed; 3418: run1017 to
-15432, 376 → 372; 3431 (Ramon's): Gunpowder and Industrial starts pinned (run1041, run1043), the rubric's ages 4 → 6 of 8.*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): 5 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
+click-free pool (run1037); 3417, 3418: `NEVER` 380 → 372 (run1016, run1017); 3431 (Ramon's): Gunpowder and Industrial
+starts pinned, the rubric's ages 4 → 6 of 8; 3420: run1019, all four asked and five unasked entered, 372 → 363.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
-  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 372, residue 80, open 300 →
-  292** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
+  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 363, residue 80, open 300 →
+  283** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
   `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3419, att-3420 (pool).** Next 3432, run 1044. Pools: GOLDEN §145–149, AI §300–301, park MV–MZ, NA–ND.
+- **Lanes: att-3419, att-3421 (pool).** Next 3432, run 1044. Pools: GOLDEN §145–149, AI §300–301, park MU, MW–MZ, NA–ND.
 - **Fable backlog: 9 Loop items** (3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -36,7 +36,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 372 · residue 80 · open 292
+Blind: never 363 · residue 80 · open 283
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): spawn 3417 and 3429 on
@@ -55,14 +55,9 @@ layer, `@spell` Bribe, the carrier, `make_valid`, the Nomad lobby; ORDERS §42.3
 enters `Army::use_scouts`, `use_spies`, `SpellType::cast_ambush` (10689) and `verify_spell_flags`' Ambush arm
 (`leader_flags & 0x4000`, the hero's `unit_masks & 0x2000`). Run 1018.
 
-3420. **coverage: the coverage pair, East Indies, Persians, All Technologies, at `cover=1` to 3130** (AI §296 row 3;
-run711, run717; TRANSPORT §18.2): enters `Spline::set_min_seg_length` and `calc_from_dir` (3124..3128, `AMMO` `traj 2`),
-`Object::disband` (the Oil Platform site `1/2048` on 2049) and `LeaderData::can_transport` (the AI's Oil Platform
-`1/2031` before 1182). Run 1019.
-
 3421. **coverage: Great Sahara, Persians, All Technologies, at `cover=1` to 3770** (AI §296 row 4; run702, run790):
-enters `LeaderData::get_nukes` (1985, `nukes_in_flight`), `BuildQueueData::get_next_helicopter` (the Airbase's queue,
-3767) and `Unit::think_supply` (the make list's Supply Wagon; entry 29 §2). Run 1020.
+enters `BuildQueueData::get_next_helicopter` (the Airbase's queue, 3767) and `Unit::think_supply` (the make list's
+Supply Wagon; entry 29 §2); `get_nukes` was entered by 3420's run1019. Run 1020.
 
 3422. **coverage: the successor pair, East Indies, Mongols, All Technologies, at `cover=1` to 2210** (AI §296 row 5):
 enters `Unit::think_carry` (the Freighter `1/72`, 2178..2201; entry 29 §2's transport) and, if an empty or
