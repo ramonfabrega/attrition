@@ -25382,7 +25382,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 
 | # | lobby, and the capture on disk | ini category · frame · field | enters | lane |
 |---|---|---|---|---|
-| 1 | `GreatSaharaToughest` (run470; run476; run668 to 15432) | `LEADERS=9` `leader_flags & 0x8000` and `UNITS=3` the General's `unit_masks & 0x8000`, 9112 to the march's expiry; `BUILDS=6` the Granary (§99.7); 15275..15432 the charge's `GROUP_ATTACK_TO` and the city's stamp (§142) | `cast_march`, `verify_spell_flags`, `get_enhancing_good`, `Army::charge`, `WallData::hits` | click-free |
+| 1 | `GreatSaharaToughest` (run470; run476; run668 to 15432) | `LEADERS=9` `leader_flags & 0x8000` and `UNITS=3` the General's `unit_masks & 0x8000`, 9112 to the march's expiry; `BUILDS=6` the Granary (§99.7); 15275..15432 the charge's `GROUP_ATTACK_TO` and the city's stamp (§142) | `cast_march`, `verify_spell_flags`, `get_enhancing_good`, `Army::charge` (run1017, §298), ~~`WallData::hits`~~ (a wall object's, not a city's: §298) | click-free |
 | 2 | `GreatLakesIroquoisTier3` (run897b, run943) | `UNITS=3` the army's `1/22` (TI 79, land) on 5144; `LEADERS=9` `leader_flags & 0x4000` and `UNITS=3` the Despot's `unit_masks & 0x2000`, 10689..10945 | `use_scouts`, `use_spies` (a spy in an army), `cast_ambush`, `verify_spell_flags`' Ambush arm | click-free |
 | 3 | `EastIndiesPersianAllTech` (run711, run717) | `AMMO` `traj 2`, `total_time` 13 on `1/49`'s rounds, 3124..3128; `BUILDS=6` the Oil Platform site `1/2048` gone on 2049 | `set_min_seg_length`, `calc_from_dir`, `Object::disband` | click-free |
 | 4 | `GreatSaharaPersianAllTech` (run702, run790) | `LEADERS=9` the make list and `nukes_in_flight` on 1985; `BUILDS=6` the Airbase's `BUILDQUEUE` on 3767; the make list's Supply Wagon (`sahara_coverage`) | `get_nukes`, `get_next_helicopter`, and `think_supply` — entry 29 §2's supply wagon | click-free |
@@ -25431,12 +25431,40 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 298. Reserved for the next item on the AI track
+## 298. §296's row 1 at `cover=1`: Great Sahara at Toughest enters four of its five, and `WallData::hits` is a wall's (2026-10-21, item 3418)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3418, Opus 5.5, a `coverage` item: run1017, run470's game at `cover=1` on the click-free pool to 15432, the
+game's own end (`docs/RUNS.md` run1017). Its draw stream is run470's and run668's on all 15,433 frames, and its
+dump is run668's on all 203 blocks of 15230..15432.*
+
+**Entered** (*diff-backed* now: `blind::TRACES`' run1017, `report.py … functions`), each at its first frame:
+
+| function | first frame | the behaviour the dump already showed |
+|---|---|---|
+| `BuildTypeData::get_enhancing_good@00639880` | 5376 | the Granary (§99.7) |
+| `LeaderData::get_vehicle_speed_upgrade@006da8a0` | 8782 | not named by row 1; `docs/PRODUCTION.md`'s "no traced game trains a tank, siege or vehicle unit" is answered by this game |
+| `SpellType::cast_march@00671500` | 9112 | the General's Forced March (§99.13) |
+| `Leader::verify_spell_flags@006ce190` | 9263 | the march's expiry (§99.13, §296) |
+| `UnitData::is_gov_hero@0046ce70` | 11882 | not named by row 1 (`docs/CENSUS.md`, the `0x400_0000` flag) |
+| `Army::charge@006f9a90` | 15377 | the charge from the city at its ceiling (§142) |
+
+`verify_spell_flags` enters on 9263, the frame after the march's walk 9112..9262 (§99.15). That is the expiry
+§99.13 calls "9368" and no walk held. No dump prints 9038..9317. Who 1's `leader_flags` is `0x2000013` on
+run500's last block and `0x800013` on run511's first (9318), with `0x8000` clear on both. So the drop happens
+inside the gap, and the trace puts the call on 9263. Parked 3409a stands: only §296's row 2 (an Ambush) would show
+the `0x4000` arm.
+
+**Not entered: `WallData::hits@00642bb0`** (*the PE and the trace*). It is the `+0x11c` slot of `Wall::vftable`
+(`00b42cf8`), `WallOut::vftable` (`00b42eb4`) and `WallData::vftable` (`00b43054`) and nothing else. Its only reach
+is a `hits` dispatch on an object whose most-derived class is `Wall`: kind 2 of `ObjectsArray::get_new_data@006450d0`,
+built by `Wall::Wall@0063e390`. §142's predicate, `damage >= hits(0)` on the struck city, dispatches on `0/2000`, a
+Village (TypeIndex 414, a `Build`, kind 1), and lands in `BuildData::hits@0062e740`, which run1017 enters on frame 0.
+`Wall::Wall` is on `NEVER` too, and no pinned trace enters it, so no traced game holds a kind-2 object. §142's
+"`WallData::hits`/`BuildData::hits`" is right as a pair. §296 row 1's claim that this lobby enters `WallData::hits`
+is not: no lobby enters it until a game constructs a wall object (parked 3418a).
+
+**What this has *not* established.** Which build types, if any, are made as kind 2, so whether any skirmish ever
+reaches `Wall::Wall` (parked 3418a). The frame `0x8000` falls on, which no dump prints.
 
 ## 299. Reserved for the next item on the AI track
 

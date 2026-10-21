@@ -9137,13 +9137,16 @@ words and edits nothing here; a refill lands when two remain.
   human's clicks reach in the setup window; a queue-lane trace can. A `NEVER` row in the menu or setup code is the
   queue lane's to enter. No such row is known to the blind list today.
 
-## Parked by the next landing, slot MR — reserved
+## Parked by item 3418, 2026-10-21 — Great Sahara at Toughest at `cover=1`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3418a. `WallData::hits@00642bb0` is a wall object's, and no traced game builds one.** It is only the `+0x11c`
+  slot of `Wall`'s, `WallOut`'s and `WallData`'s vtables. A city's `hits(0)` (§142) dispatches to
+  `BuildData::hits@0062e740`, which run1017 enters on frame 0. Reaching `WallData::hits` takes a kind-2 object
+  (`ObjectsArray::get_new_data@006450d0` case 2, `Wall::Wall@0063e390`, also on `NEVER`), and no pinned trace builds
+  one (`docs/AI.md` §298). The reading owed: which callers of `Objects::find_free@0065ad60` ask for kind 2 (from
+  `Setup::build_cities`, `Objects::init_build`, `Unit::repair_damage` …), and for which build types. Two outcomes:
+  either a lobby is named that builds one, or both functions are proposed for `RESIDUE` with 3409b's shape. No
+  score moves until a capture enters them.
 
 ## Parked by the next landing, slot MS — reserved
 
