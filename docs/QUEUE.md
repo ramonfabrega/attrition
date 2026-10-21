@@ -12,18 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-seventh pass (steer, Fable): the forty-seventh tranche measured — 20 of 20 from `56f23ba5` in
-13 h 46, 7.67 USD and 117.2 min waiting a landing, six battery games closed, no red booking gate** — and the
-forty-eighth tranche booked on the blind list (DECISIONS 86); roster Ramon's (DECISIONS 84, 85). The pass's whole gate is the booking's.*
+*2026-10-21, **the forty-eighth tranche (commander, Opus): 1 of 20 landed from `28f48612`** — 3408 read GOLDEN's
+never-entered functions (47 read, 15 proposed for residue, 34 captures owed in §144.3; `never` unchanged). Last whole
+gate `dbe6667e` (the pass's); widened since: none; scoped gates `--scope dbe6667ec`.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed). Held-out battery: 6147, 7799,
   14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368; entry 61 §6's stop rule has fired, so no lobby
   is promoted and none is minted (Ramon's to reopen). Census 1686 of 3611, port 568, layout 1118; `never` 373, of which
   35 accepted residue — **the blind list, 337 open, is the score the forty-eighth tranche moves** (DECISIONS 29 §2).
-- **Lanes: four live, the forty-eighth commander's (Opus)**: att-3408 and att-3409 on the Opus lanes (`reading` kind,
+- **Lanes: four live, the forty-eighth commander's (Opus)**: att-3409 and att-3412 on the Opus lanes (`reading` kind,
   DECISIONS 84, `--tests blind:: --no-widen`), att-3410 and att-3411 on the Sonnet lanes (the last sweep rows the census
-  names; after them the sweep seats stand empty unless Ramon names a source). Next 3415, run 1016. Pools, refilled to six:
-  GOLDEN §144 (3408), §145–149; AI §296 (3409), §297–301; park MI–ML (3408–3411), MM–MN. Parked for the pass's eye: 3400a.
+  names; after them the sweep seats stand empty unless Ramon names a source). Next 3415, run 1016. Pools: GOLDEN
+  §145–149; AI §296 (3409), §297–301; park MJ–MM (3409–3412), MN. Parked for the pass's eye: 3400a, 3408a–d.
 - **Fable backlog: 9 Loop items** (3382, 3371, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 86.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -40,8 +40,8 @@ Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-eighth tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md first;
-spawn 3408 and 3409 on the Opus lanes as `reading` briefs and 3410 and 3411 on the Sonnet lanes as sweeps, cut off
-`HEAD`; a reading lane refills from 3412–3414 in order; count landings from this pass's commit and stop at twenty.**
+1 of 20 landed from `28f48612`; re-arm `python3 tools/lanewait.py` on the live lanes and carry the chain; a reading lane
+refills from 3413–3414 in order, a sweep seat stands empty; stop at twenty, then clear `steer`.**
 
 ## The queue
 
@@ -50,11 +50,6 @@ whole (entry 61 §6), so the headline is **decision 29's second counter, the bli
 **337 open** — and every item names it. A `reading` item lands claims in its document, each with the capture that would
 kill it, and a **captures-owed table** in its coverage section (ini category, lobby, frame, field) from which capture items
 are booked; a function a sweep backs is listed as swept, not re-read; one no capture reaches is proposed for `RESIDUE`.
-
-3408. **reading: `docs/GOLDEN.md`'s never-entered functions** (45 cited there, 28 only there: the issuer
-chapters' order, group-action, command-package and spell-cast families). `reading`
-kind, Opus; gate `--lane --item 3408 --tests blind:: --no-widen`. Moves: the `captures-owed` table for the rules track
-and the residue proposals; `never` moves only when a run enters them.
 
 3409. **reading: `docs/AI.md`'s never-entered functions** (31 cited: `LeaderData`, `Army::use_scouts`/`use_spies`/
 `send_here`/`charge`, `Leader::process`, `Unit::think_hero`/`think_supply`/`think_carry*`). `reading` kind, Opus; gate
