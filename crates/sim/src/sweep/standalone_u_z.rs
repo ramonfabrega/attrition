@@ -316,6 +316,10 @@ mod unit_out_issue_come_out;
 mod unit_out_issue_unqueue;
 #[path = "unit_plunder.rs"]
 mod unit_plunder;
+#[path = "unit_process_attrition.rs"]
+mod unit_process_attrition;
+#[path = "unit_repair_damage.rs"]
+mod unit_repair_damage;
 #[path = "unit_replace_form_id.rs"]
 mod unit_replace_form_id;
 #[path = "unit_resolve_block.rs"]
@@ -352,6 +356,8 @@ mod unit_think_carry_civilian;
 mod unit_think_civilian_transport;
 #[path = "unit_think_hero.rs"]
 mod unit_think_hero;
+#[path = "unit_think_merchant.rs"]
+mod unit_think_merchant;
 #[path = "unit_think_peasant.rs"]
 mod unit_think_peasant;
 #[path = "unit_think_spellcaster.rs"]
