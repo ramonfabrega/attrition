@@ -21,8 +21,8 @@ recorded game's playback; residue 80 → 79 on a pool cursor's tooltip); 3431 (R
   568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 329, residue 80 → 79, open 300 →
   250** (`Blind:` pinned); `never` moves only on a `cover=1` trace: `coverage` items on two Opus lanes, Sonnet empty.
 - **Lanes: att-3436, att-3437; the tranche drains at sixteen** (Ramon's pit stop: no refill after these two, then `steer`,
-  with 3437's parity in hand — Loop 3439). Next 3440, run 1055. Pools: GOLDEN §146–149, AI §300–301, park ND–NH. The last whole gate: 3427's booking.
-- **Fable backlog: 14 Loop items** (3439, 3435, 3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
+  with 3437's parity in hand — Loop 3439). Next 3442, run 1057. Pools: GOLDEN §146–149, AI §300–301, park ND–NH. The last whole gate: 3427's booking.
+- **Fable backlog: 16 Loop items** (3441, 3440, 3439, 3435, 3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -56,7 +56,7 @@ layer's third pass (on the pool if 3437 lands parity), the carrier, the Nomad lo
 `rclick` `0/6 0/9` on `1/6` (734) for `GroupOut::issue_attack`, the planes' `rclick` for `issue_flight`, build button
 427 and a drop for `issue_build`, `rclick` `0/6` on `0/2007` (780) for `issue_swarm_around`, the repeat button (1440)
 for `issue_buildmask` and `Options::set_air_repeat`, cancel `0xa6` for `BuildOut::issue_unqueue`; `CM`'s `process_*`
-on the frame after each. Runs 1044–1049.
+on the frame after each. Runs 1044–1049, 1055–1056.
 
 3437. **coverage: the pool's `@click`, the click layer without the cursor** (GOLDEN §144.3; Ramon's priority: the queue
 lane retires where the pool reaches): a tracer `@click`/`@rclick` line posts the game's own mouse messages to its window

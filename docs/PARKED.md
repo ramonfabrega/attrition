@@ -3774,6 +3774,21 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
+(3441) **Two lanes share one tracer DLL and each rebuild refuses the other's takes** (the commander's, at 3436): the queue
+lane and pool lane 1 both load `game/rontrace.dll` (`lanes.sh`:54); a lane's `build.sh` from its own tree leaves the
+other's `@`-line stanzas refused at launch ("the build's tracer.c differs from this tree's"), and 3436 lost four of six
+driven takes to it while 3437 changed `tracer.c` for `@click`. Settled by hand for the drain (3436 rebuilds, takes back to
+back, hands it back). Candidate: a DLL per tree — the capture copies its own build into the staging it already makes —
+or the lane lock carrying the DLL's source hash. Score: driven takes not lost to a sibling's rebuild. One reach.
+
+(3440) **A hand-rolled wait on a capture outlived the capture** (the commander's, at 3436): 3436 waited on a frame-702
+screenshot with an `until grep` whose bail-out matched lowercase `refus` against the log's `REFUSED`; the queue ended at
+18:05, two takes (run1046, run1047) ran unattended to 3000 with no clicks and spent their numbers, and the wait would not
+have exited. `lanewait.py`'s `--stalled-child-after 240` could not see it inside four hours. CLAUDE.md already names
+`waitrun.sh`; the driven lane's per-take screenshot wait has no tool. Candidate: `handdriver.sh wait <run> <frame>` that
+exits on the runner's banner and refusal lines as `waitrun.sh` does. Score: a driven lane that does not sit on a dead
+wait. One reach.
+
 (3439) **The tranche is capture-locked, and Ramon called the pass early** (2026-10-21, in the commander's session): the
 queue lane and the pool exclude each other, so while a driven item holds the queue lane the pool lane waits, and two
 Opus lanes ran single-threaded on captures with nothing else to do. Ramon's words for the loop: **a capture is never
