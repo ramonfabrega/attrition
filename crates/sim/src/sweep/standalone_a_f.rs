@@ -416,6 +416,8 @@ mod caravan_data_has_city;
 mod caravan_distance;
 #[path = "caravan_link_walk_data.rs"]
 mod caravan_link_walk_data;
+#[path = "caravan_process.rs"]
+mod caravan_process;
 #[path = "caravan_restart_trade_route.rs"]
 mod caravan_restart_trade_route;
 #[path = "caravan_verify_road.rs"]
