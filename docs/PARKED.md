@@ -9087,13 +9087,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MN — reserved
+## Parked by item 3413, 2026-10-21 — the orders, groups and army blind readings: a rename's live bit, a ping's taunt gate, an order kind nobody makes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3413a. A rename sets `priority` on hotkey slots the crate leaves at 0.** `HotKeyGroups::find_group@00714d00`
+  writes `priority = 1` on every slot of the renaming player that it walks, empty ones included (`docs/GROUPS.md` §38).
+  The crate ports neither the rename nor `find_group`. No pinned lobby renames a city, so no score moves. §38's
+  capture is the check.
+- **3413b. The crate carries no ping.** `Leader::action_ping@006d18a0` sends a computer ally's army only inside 225
+  frames of a `TAUNT_HELP` from the pinger (`docs/ARMY.md` §26). The crate has `human_frame` and its countdown but
+  no writer of it past 0. This matters only to a driven team lobby, and none is pinned.
+- **3413c. `do_form_change`'s residue proposal rests on prefix bytes.** Each of the 47 `get_obj` calls was read for
+  its pushed type, and six of them through the decompile (`docs/GROUPS.md` §38). A dataflow pass over the six
+  register-typed calls would make the proposal certain. `copy_order` is the one that matters, since it copies
+  whatever order it is handed.
 
 ## Parked by the next landing, slot MO — reserved
 
