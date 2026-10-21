@@ -192,6 +192,10 @@ mod unit_data_turn_speed;
 mod unit_data_will_be_corner;
 #[path = "unit_detect_boat_collision.rs"]
 mod unit_detect_boat_collision;
+#[path = "unit_detect_unit_collision_gates.rs"]
+mod unit_detect_unit_collision_gates;
+#[path = "unit_detect_unit_collision_scan.rs"]
+mod unit_detect_unit_collision_scan;
 #[path = "unit_die.rs"]
 mod unit_die;
 #[path = "unit_do_air_attack_ground.rs"]

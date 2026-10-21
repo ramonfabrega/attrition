@@ -95,6 +95,7 @@ pub mod cost;
 pub mod count_inside_view;
 pub mod damage;
 pub mod danger;
+pub mod detect_collision_view;
 pub mod detour;
 pub mod diplomacy;
 pub mod disband;
