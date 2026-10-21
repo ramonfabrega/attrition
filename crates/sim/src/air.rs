@@ -1912,43 +1912,7 @@ impl Sim {
     }
 
     fn land_plane(&mut self, u: usize) {
-        let Some(home) = self.current_air(u).and_then(|a| a.home) else {
-            return;
-        };
-        // **Every air order lands with `returning` cleared** (`+0x18` of
-        // the `AirOrder`, `005e9950`), and only a strafe with no live
-        // target goes: run265's Fighter comes home under its patrol and
-        // is inside on 1385 with the patrol still on its stack.
-        self.set_returning(u, false);
-        let mut killed = false;
-        if let Some(sf) = self.current_strafe(u)
-            && sf.target.is_none()
-        {
-            if sf.mandatory {
-                self.clear_orders(u);
-            } else {
-                self.kill_current_order(u);
-            }
-            killed = true;
-        }
-        // **The home's vslot `0xf0`** (`005e9a43`): `WallData::has_repeat_air
-        // @00472410`, `build_masks & 0x80` (`docs/ORDERS.md` §40). Set, the
-        // stack stays and, unless the strafe above went, the order it holds
-        // loses its action bit (`update_order(this)->flags &= ~4`);
-        // clear, the path and every order go. run265's Airbase reads 4232:
-        // the Fighter is inside on 1385 and the Bomber on 1489 each with
-        // its `AIRPATROLORDER`, flags 0.
-        if self.buildings[home].repeat_air {
-            if !killed && let Some(o) = self.units[u].orders.front_mut() {
-                o.flags &= !crate::orders::flag::ACTION;
-            }
-        } else {
-            self.units[u].path.clear();
-            self.close_orders(u);
-            self.clear_partial_path(u);
-            self.update_action(u);
-        }
-        self.go_inside(u, home);
+        crate::land_plane_view::land_plane_steps(&mut SimLand { sim: self, u });
     }
 
     fn current_strafe(&self, u: usize) -> Option<crate::orders::StrafeOrder> {
@@ -2400,6 +2364,94 @@ pub(crate) fn flying_high_by(
 ) -> bool {
     fixed_wing && on_map() && !low()
 }
+/// [`crate::land_plane_view::LandPlaneView`] over the sim (item 3396): the
+/// walk `Unit::land_plane@005e9950` makes, on a plane.
+///
+/// **Not modelled**: the `SpecialAnimOrder` the original adds, the home words it
+/// writes into it and the landing sound are not modelled as such: the order
+/// is run at once by the `work` at the function's tail (`docs/ORDERS.md`
+/// §33.5), which is [`Sim::go_inside`], and a sound is the renderer's.
+/// `is_animal` answers false: a flock's bird lands in `flock.rs`
+/// (`flockbird_dies`) and the callers that hold one route it there.
+struct SimLand<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+}
+
+impl crate::land_plane_view::LandPlaneView for SimLand<'_> {
+    type Home = usize;
+
+    fn is_animal(&mut self) -> bool {
+        false
+    }
+    fn die_slot_is_unit_die(&mut self) -> bool {
+        true
+    }
+    fn object_die(&mut self) {}
+    fn call_die_slot(&mut self) {}
+
+    fn air_home(&mut self) -> Option<usize> {
+        self.sim.current_air(self.u).and_then(|a| a.home)
+    }
+    fn clear_returning(&mut self) {
+        self.sim.set_returning(self.u, false);
+    }
+    fn is_strafe(&mut self) -> bool {
+        self.sim.current_strafe(self.u).is_some()
+    }
+    fn strafe_has_target(&mut self) -> bool {
+        self.sim
+            .current_strafe(self.u)
+            .is_some_and(|sf| sf.target.is_some())
+    }
+    fn strafe_mandatory(&mut self) -> bool {
+        self.sim
+            .current_strafe(self.u)
+            .is_some_and(|sf| sf.mandatory)
+    }
+    fn clear_orders(&mut self) {
+        self.sim.clear_orders(self.u);
+    }
+    fn kill_current_order(&mut self) {
+        self.sim.kill_current_order(self.u);
+    }
+    fn repeat_air(&mut self, home: usize) -> bool {
+        self.sim.buildings[home].repeat_air
+    }
+    fn clear_order_action_bit(&mut self) {
+        if let Some(o) = self.sim.units[self.u].orders.front_mut() {
+            o.flags &= !crate::orders::flag::ACTION;
+        }
+    }
+    fn clear_path_state(&mut self) {
+        self.sim.units[self.u].path.clear();
+    }
+    fn close_orders(&mut self) {
+        self.sim.close_orders(self.u);
+    }
+    fn clear_partial_path(&mut self) {
+        self.sim.clear_partial_path(self.u);
+    }
+    fn update_action(&mut self) {
+        self.sim.update_action(self.u);
+    }
+    fn is_helicopter(&mut self) -> bool {
+        false
+    }
+    fn home_slot_34(&mut self, _home: usize) -> i32 {
+        0
+    }
+    fn add_spec_anim_order(&mut self, _home: usize, _data1: i32, _data2: i32) {}
+    fn set_special_home(&mut self, _home: usize) {}
+    fn home_visible(&mut self, _home: usize) -> bool {
+        false
+    }
+    fn play_landing_sound(&mut self, _home: usize) {}
+    fn go_inside(&mut self, home: usize) {
+        self.sim.go_inside(self.u, home);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2858,6 +2910,50 @@ mod launch_tests {
                 assert!(s.units[u].orders.is_empty(), "no repeat: closed");
             }
         }
+    }
+
+    /// **A strafe with no target goes as `land_plane` finds it** (item 3396,
+    /// `005e9950`): `clear_orders` for a `mandatory` one, which takes the patrol
+    /// under it too, `kill_current_order` for the rest, which leaves the patrol.
+    /// Made to fail with the two swapped, and with the path left standing at a
+    /// base that does not repeat (the last pair of rows).
+    #[test]
+    fn a_targetless_strafe_goes_by_its_mandatory_byte() {
+        for (mandatory, left) in [(true, 0), (false, 1)] {
+            let mut s = sim();
+            let (base, _) = base_and_target(&mut s);
+            s.buildings[base].repeat_air = true;
+            let u = fighter_inside(&mut s, base, 400);
+            s.come_out(u);
+            s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+            s.add_strafe_order(
+                u,
+                None,
+                Some(base),
+                mandatory,
+                crate::orders::QueuePos::First,
+                true,
+            );
+            assert_eq!(
+                s.units[u].orders.len(),
+                2,
+                "{mandatory}: a strafe on a patrol"
+            );
+            s.land_plane(u);
+            assert_eq!(s.units[u].orders.len(), left, "{mandatory}: what is left");
+        }
+        let mut s = sim();
+        let (base, _) = base_and_target(&mut s);
+        let u = fighter_inside(&mut s, base, 400);
+        s.come_out(u);
+        s.add_air_patrol_order(u, Pos::new(21120, 16512), Some(base), true);
+        s.units[u].path.push(crate::orders::PathData {
+            to: Pos::new(0, 0),
+            tolerance: 0,
+            flags: 0,
+        });
+        s.land_plane(u);
+        assert!(s.units[u].path.is_empty(), "no repeat: the path goes");
     }
 
     /// **A computer's base sends its plane over a city under attack**

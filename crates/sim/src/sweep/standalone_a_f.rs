@@ -88,6 +88,8 @@ mod army_charge;
 mod army_count;
 #[path = "army_data_select.rs"]
 mod army_data_select;
+#[path = "army_do_defending.rs"]
+mod army_do_defending;
 #[path = "army_do_mustering.rs"]
 mod army_do_mustering;
 #[path = "army_engagement.rs"]
@@ -656,6 +658,8 @@ mod command_manager_issue_unitmask;
 mod command_manager_issue_unqueue_unit;
 #[path = "command_manager_issue_unqueue_wall.rs"]
 mod command_manager_issue_unqueue_wall;
+#[path = "command_manager_start.rs"]
+mod command_manager_start;
 #[path = "command_package_add_command.rs"]
 mod command_package_add_command;
 #[path = "command_package_begin_process.rs"]

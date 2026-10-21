@@ -422,6 +422,10 @@ mod groupmoveorder_is_pathed;
 mod groups_copy_group;
 #[path = "groups_data_find_group_const.rs"]
 mod groups_data_find_group_const;
+#[path = "groups_process_body.rs"]
+mod groups_process_body;
+#[path = "groups_process_driver.rs"]
+mod groups_process_driver;
 #[path = "groups_walk_data.rs"]
 mod groups_walk_data;
 #[path = "guard_order_get_guard_order.rs"]
@@ -450,6 +454,8 @@ mod guy_data_get_render_z;
 mod guy_data_is_corner;
 #[path = "guy_data_walk_data.rs"]
 mod guy_data_walk_data;
+#[path = "guy_process.rs"]
+mod guy_process;
 #[path = "guy_set_angle.rs"]
 mod guy_set_angle;
 #[path = "guy_set_bank.rs"]
@@ -484,6 +490,8 @@ mod herds_process;
 mod herds_start_herds;
 #[path = "herds_walk_data.rs"]
 mod herds_walk_data;
+#[path = "hero_data_get_radius.rs"]
+mod hero_data_get_radius;
 #[path = "hero_walk_data.rs"]
 mod hero_walk_data;
 #[path = "heroes_data_find_hero.rs"]
