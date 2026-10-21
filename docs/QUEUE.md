@@ -12,17 +12,18 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-eighth tranche (commander, Opus): 5 of 20 landed from `28f48612`** — readings 3408 (GOLDEN §144: 15 residue
-proposals, 34 captures owed), 3409 (AI §296: 7, 12) and 3412 (NATIONS §9: 16, 5); `NEVER` 372 -> 378; 3410 and 3411 swept five of five each — the sweep source is spent. Last whole
+*2026-10-21, **the forty-eighth tranche (commander, Opus): 6 of 20 landed from `28f48612`** — readings 3408 (GOLDEN §144: 15 residue
+proposals, 34 captures owed), 3409 (AI §296: 7, 12), 3412 (NATIONS §9: 16, 5), 3413 (ORDERS §42, GROUPS §38, ARMY §26:
+2, 9); `NEVER` 372 -> 378; 3410 and 3411 swept five of five each — the sweep source is spent. Last whole
 gate `dbe6667e` (the pass's); widened since: none; scoped gates `--scope dbe6667ec`.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed). Held-out battery: 6147, 7799,
   14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368; entry 61 §6's stop rule has fired, so no lobby
   is promoted and none is minted (Ramon's to reopen). Census 1696 of 3611, port 568, layout 1128; `never` 379, of which
   35 accepted residue — **the blind list, 343 open, is the score the forty-eighth tranche moves** (DECISIONS 29 §2).
-- **Lanes: two live, the forty-eighth commander's (Opus)**: att-3413 and att-3414 on the Opus lanes (`reading` kind,
+- **Lanes: one live, the forty-eighth commander's (Opus)**: att-3414 on an Opus lane (`reading` kind,
   DECISIONS 84, `--tests blind:: --no-widen`); both Sonnet seats stand empty (no sweep source unless Ramon names one). Next 3416, run 1016. Pools: GOLDEN §145–149;
-  AI §297–301; park MN, MO (3413, 3414), MP–MT. Parked for the pass's eye: 3400a, 3408a–d.
+  AI §297–301; park MO (3414), MP–MT. Parked for the pass's eye: 3400a, 3408a–d.
 - **Fable backlog: 10 Loop items** (3415, 3382, 3371, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 86.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -39,7 +40,7 @@ Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-eighth tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md first;
-5 of 20 landed from `28f48612`; re-arm `python3 tools/lanewait.py` on the live lanes and carry the chain; a reading lane
+6 of 20 landed from `28f48612`; re-arm `python3 tools/lanewait.py` on the live lanes and carry the chain; a reading lane
 has no refill left and the Sonnet seats stand empty (the queue drains at seven landings); at the drain, the whole gate, then clear `steer`.**
 
 ## The queue
@@ -49,9 +50,6 @@ whole (entry 61 §6), so the headline is **decision 29's second counter, the bli
 **343 open** — and every item names it. A `reading` item lands claims in its document, each with the capture that would
 kill it, and a **captures-owed table** in its coverage section (ini category, lobby, frame, field) from which capture items
 are booked; a function a sweep backs is listed as swept, not re-read; one no capture reaches is proposed for `RESIDUE`.
-
-3413. **reading: `docs/ORDERS.md`, `docs/GROUPS.md` and `docs/ARMY.md`'s never-entered functions** (14, 5 and 6
-cited). `reading` kind, Opus, `--tests blind:: --no-widen`.
 
 3414. **reading: the small documents' never-entered functions** — `TRANSPORT.md` (4), `ATTRITION.md` (4),
 `PRODUCTION.md` (3), `VISION.md`, `ECONOMY.md`, `COMBAT.md`, `COLLISION.md`, `TECH.md` (1–2 each). `reading` kind,
