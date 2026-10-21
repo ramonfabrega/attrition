@@ -318,6 +318,8 @@ mod unit_process_head;
 mod unit_process_inside;
 #[path = "unit_process_onmap.rs"]
 mod unit_process_onmap;
+#[path = "unit_process_train.rs"]
+mod unit_process_train;
 #[path = "unit_replace_form_id.rs"]
 mod unit_replace_form_id;
 #[path = "unit_resolve_block.rs"]
