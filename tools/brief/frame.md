@@ -261,9 +261,9 @@ Before any reading, in order:
 ## reading-item
 
 - **You read the never-entered functions your document cites**, by
-  `Class::method@ADDR`: the list under "This item", else `python3
-  tools/census.py --pin --never` and `report.py <log> blind docs/` on
-  the base (DECISIONS 84); one function's claims at a time, committed
+  `Class::method@ADDR`: the list under "This item" — the commander's
+  `census.py --pin --never --cites docs/<DOC>.md` line (3415) — read
+  again on the base (DECISIONS 84); one function's claims at a time, committed
   as they land.
 - **A claim carries its falsifier**: the predicate or the formula, the
   address it is read at, and the capture that would kill it — the ini
@@ -285,6 +285,31 @@ Before any reading, in order:
 - **Your gate is `--tests blind:: --no-widen`**, the line under Landing:
   no widening, no `first_parting`. You move no word: a draw delta and
   a value diff are a word lane's rows.
+
+## coverage-item
+
+- **You take one pinned lobby's `cover=1` trace on the queue lane**
+  (3416): a `tools/gamelog/captures.txt` block of run461's shape —
+  `cover: cover=1`, the lobby's own `cfg:`, `ffwd:`, `end:` and `cmd:`
+  lines, `frames:` the item's, `item:` yours — run by `runqueue.sh`
+  through `viadriver.sh` and waited on with `waitrun.sh`. **Never
+  `cover=1` on the click-free lane** (1047): it hung at startup once, and
+  the pool trial is Ramon's, not yours.
+- **The trace is checked against its `cover=0` twin before it is
+  pinned**: `rngcmp.py` (identical frames, none differing) and
+  `samegame.py` on the twin's window; a trace that parts its twin is a
+  finding for the journal, never a pin.
+- **The landing is the pin**: the run joins `blind::TRACES` with a
+  comment naming the item, the lobby and the last frame; the gate's
+  `blind::` re-pins `NEVER`; each function the item names is reported
+  entered or not by `report.py <log> functions`, and one the trace did
+  not enter says why in the journal and parks the predicate it read.
+- **`docs/RUNS.md` takes the run's section** (frames, seed, lane,
+  minutes, what the disk could not answer), and the dump field the owed
+  table names is read beside the trace; a value that parts the twin's
+  dump books a residue item, in the parked file, for the commander.
+- **Your gate is `--tests blind:: --no-widen`**, the line under
+  Landing. You move no word: a draw delta is a word lane's row.
 
 ## build
 

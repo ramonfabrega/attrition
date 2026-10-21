@@ -98,6 +98,7 @@ is append-only and amended in place, as it always was.
 - 85 standing — The forty-sixth tranche is scored on four lanes at less a landing and less a game, the held-out battery runs six of eight whole, the sim lib's cap follows the thread count, the lane gate keeps the paperwork guards and refuses a moved base first, a push under a clear is a draft, the oracle cache is a directory a gc removes, the generator carries a hand block and three more shapes, and twenty Loop items become tools, rows, closes or Ramon's
 - 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
 - 86 standing — The forty-seventh tranche is scored on four lanes at the loop's cheapest landing, the held-out battery runs eight of eight whole and the battery track stops by its own rule, the forty-eighth tranche is booked on the blind list, two signal reports had one sender and get a guard, the lane gate gates past the commander's paperwork, and nineteen Loop items become tools, rows, closes or Ramon's
+- 87 standing — The forty-eighth tranche is scored on five readings and two sweeps at the loop's cheapest and shortest landing, forty-five residue rows are ratified and the blind list falls 345 → 300, the forty-ninth tranche is booked as `cover=1` captures on the queue lane under a fifth brief kind, the queue carries a pinned `Blind:` line, and eleven Loop items become tools, rows, closes or Ramon's
 
 ## 1. Fidelity before divergence
 
@@ -7356,3 +7357,153 @@ against 66.1, the gate against 34.8; booking gate minutes against 332.3;
 tail against 54; whether the paperwork-only `Base moved:` line, the
 raised timeout and the kill guard fired; the backlog against nine; the
 disk against 239 GiB.
+
+## 87. The forty-eighth tranche is scored on five readings and two sweeps at the loop's cheapest and shortest landing, forty-five residue rows are ratified and the blind list falls 345 → 300, the forty-ninth tranche is booked as `cover=1` captures on the queue lane under a fifth brief kind, the queue carries a pinned `Blind:` line, and eleven Loop items become tools, rows, closes or Ramon's
+
+*2026-10-21, the forty-eighth pass (the `steer` session, Fable), cleared
+into by the commander at the tranche's drain (`1f1137b5f`); unattended
+under entry 61's fence. The record is
+`docs/audit/2026-10-21-fable-pass-48.md`; this entry carries the
+decisions.*
+
+**What was measured.** Seven landings on four lanes — five `reading`
+items on Opus 5.5 at `--effort medium` (3408, 3409, 3412, 3413, 3414),
+two sweeps on Sonnet 5.5 at medium (3410, 3411), every lane session's
+model read off lore and every spawn line's flags off the commander's
+transcript — in **2 h 55** from the forty-seventh pass's last commit
+(`dbe6667e`, 05:46 −05:00) to the seventh booking (`1f1137b5f`, 08:41),
+the drain's whole gate green at 09:02; the queue's whole booking, so the
+tranche drained at seven by design (13 h 46 for twenty before). **No
+word moved and none was open**; the census 1686 → 1696, port 568, layout
+1118 → 1128, bytes 37.1 → 37.9 %, and the sweep source is spent. **The
+blind list climbed at the drain, 337 → 345 open** (`blind::NEVER` 372 →
+380: a reading cites what it reads), with 46 residue proposals and 65
+captures owed across nine documents' tables for this pass. **The price:
+35.50 USD list for the workers, 5.07 a landing** (153.37 / 7.67) — the
+readings 6.21 a landing over five, the sweeps 2.23 over two (2.27); the
+commander's one session 5.81; **41.31 in all** (179.33); the
+forty-seventh pass's own session 17.71 (22.78). **Waiting 38.5 minutes a
+landing** (117.2): the gate 21.7 (34.8), the subagent class 14.0 (66.1),
+script 1.9, capture 0.5, message 0.3; no capture ran. No `DEEP` exit
+(seven), no session past 300 k (eight of twenty-seven; the peak 295 k,
+3409), no `STALLED`, no `DRAFT`, no blocked ending, no kill rule, no
+merge backed out. Seven booking gates, one whole, six scoped, **none
+red**; 92.9 minutes of gate (332.3); admission 238 s summed, longest 24
+s (5261 / 152); one gate end past the sixteen cores (six). The lane
+gates' release step median 13.2 minutes on `--no-widen` (12.3); the
+paperwork-only `Base moved:` clause (Loop 3401) landed four lanes on
+their first verdict after a clean update. The archives were already
+compressed (75 s, 236 GiB free).
+
+**What it means.**
+
+1. **The cheapest and shortest tranche, and it measured the reading
+   kind.** 5.07 USD and 38.5 minutes a landing on a tranche that moved
+   no score, because a reading's product is paperwork — claims, a
+   captures-owed table, residue proposals — and the counter it is booked
+   on moves only when the pass acts on them. The five readings read 59
+   functions, pointed at 15 more, swept 28 beside them, proposed 46 for
+   residue and owed 65 captures; 3409 at 10.05 USD was the dearest and
+   its one "for the Loop" became a tool (3415, below).
+2. **Forty-five residue rows are ratified** (`rondata::blind::RESIDUE`
+   35 → 80; `docs/CENSUS.md`, "The blind list, ranked"): Conquer the
+   World, the scenario, campaign, tutorial and editor paths, GameSpy and
+   multiplayer playback, and every script function only scenario or
+   conquest scripts call (cut from v1, `CLAUDE.md`); the repair, board-ship
+   and form order kinds no `add_command` site in the image issues (eight
+   functions, two of them swept by 3410 and 3411); the dead `Game::is_no_rush`,
+   `LeaderData::get_econ_mod` and `Wonder::init`, each re-read by
+   `report.py refs` this pass; and the interface's four — the Market
+   window's two, the tooltip's `has_bonus` copy and `get_desc_parsed`.
+   Every row names its document and section, every address was checked
+   on `NEVER` and the three "no reference" rows against the PE by the
+   existing guard (`UNREFERENCED` 27 → 30, the three citing documents
+   pinned). **One is not accepted**: `GoodTypeData::is_flat@004780c0`
+   hangs on a `+0x94` dispatch scan by receiver nobody has run (parked
+   3409b) and `WallData::hits` has the same shape and is reached. The
+   open blind list is **300**.
+3. **The forty-ninth tranche is `cover=1` captures, on the queue lane,
+   under a fifth brief kind.** `never` moves only when a trace enters a
+   function, and every trace on `blind::TRACES` at `cover=1` ran on the
+   queue lane (run398–run461); `cover=1` on the click-free build hung at
+   startup once (run185, parked 1047) and the pool trial is Ramon's
+   (1570). So the kind is `coverage` (`tools/brief.py`, `tools/brief/frame.md`
+   `## coverage-item`; `docs/LOOP.md`, "The brief" and the lanes clause):
+   one pinned lobby retaken at `cover=1` by run461's recipe, checked
+   against its `cover=0` twin with `rngcmp.py` and `samegame.py`, pinned
+   into `TRACES`, `NEVER` re-pinned by the gate's `blind::`, each named
+   function reported entered or not. Twelve items are booked
+   (3417–3428), by yield and dependency: the peace pair's short lobby
+   first, because it is also the proof that the queue lane still runs
+   (a lane that will not launch is a permission-shaped block, reported);
+   then Toughest, the Iroquois, the three All-Technologies lobbies and
+   three short Sahara retakes (AI §296 rows 1–9, twenty functions
+   between them), four golden chapters retaken (GOLDEN §144.3), two new
+   `@` lines (`chapter` kind), the human's Market (NATIONS §9.2), the
+   click layer's first four rows, and a recorded game's playback
+   (ATTRITION). The refill order after them is in the queue's tail. The
+   two Opus lanes take them; **the Sonnet seats stand empty** (entry
+   86's lanes clause: no sweep row is left), and seating Sonnet on
+   `coverage` items is a roster change, Ramon's (the record, "For
+   Ramon"). The queue lane is one and serial, so two lanes alternate on
+   it; the pool stays free for nothing this tranche.
+4. **The queue carries a pinned `Blind:` line** (Loop 3416, built):
+   `Blind: never <N> · residue <R> · open <N−R>`, read against
+   `blind::NEVER` and `blind::RESIDUE` by
+   `rondata::diff::floors::the_handoff_s_blind_list_is_the_pinned_count`,
+   red first on a handoff with no line. A reading tranche's climb is
+   answered at its drain by the pass's ratification, and the score the
+   next commander writes is the one the pin reads. The rest of 3416 —
+   book a reading tranche twenty deep or name the drain — is ruled: a
+   reading tranche is booked to what its documents hold and the drain is
+   named in the queue, as this one was.
+5. **A reading is booked from the census's own count** (Loop 3415,
+   built by an Opus subagent): `tools/census.py --pin --never --cites
+   docs/<DOC>.md` prints each document's never-entered cites net of
+   `RESIDUE`, marks the ones cited only there, and ends on the line the
+   booking quotes; the frame's reading-item row names it. Its first run
+   on the drained tree read GOLDEN 54/51/22, AI 36/35/11, NATIONS
+   26/26/20, ORDERS 20/15/3, GROUPS 9/5/0, ARMY 5/4/0, TRANSPORT 4/2/1,
+   ATTRITION 6/5/0, VISION 2/2/1 — GOLDEN's 54/51 is lane 3408's own
+   count, not the 45/28 that was booked.
+6. **Loop 3371 closes under entry 54**, two tranches running unreached
+   and no probe commit in the third; its text is kept in the record.
+   Loop 2003 takes 3410's four generator notes as a reach. **Six stay
+   Ramon's** with this tranche's numbers appended (3350, 3237, 3188,
+   3143, 3118, 1570); 3382 is the record's. The backlog 11 → 8.
+7. **Housekeeping the pass could and could not do.** `docs/audit/census-backed.txt`
+   regenerated at 1696 rows (parked 3409c). One agent worktree of the
+   forty-seventh pass stands locked to a pid that is now a `claude
+   bg-spare`, nothing unmerged on its branch; its unlock-and-remove was
+   refused by the auto-mode classifier and goes to Ramon.
+
+**Against entry 86's estimate**: twenty landings in under eighteen
+hours — **not met**, seven landings were the whole booking (2 h 55); the
+five readings land captures-owed tables naming at least twenty distinct
+captures — met (65), at least five of them click-free lobbies — met
+(nine, AI §296 rows 1–9); `RESIDUE` proposals under thirty — **missed**
+(46); the two sweeps land ten of ten — met; the port column past 575 —
+**missed** (568: every sweep asserted an inline port, Loop 3237); a
+reading landing under 12 USD and under 60 minutes waiting — met (6.21,
+32.1; the dearest 10.05); no red booking gate — met; no kill rule — met;
+no blocked ending — met; the kill guard refuses nothing a lane needed —
+not wired, no incident. Seven of ten, one unmeasured.
+
+**The estimate, written down to be wrong on record**, on the booking
+above: 3417 lands on the queue lane without a permission-shaped block
+and its trace matches its twin on every frame; the twelve items land
+in under twenty hours and take **at least thirty** functions off
+`NEVER` (open 300 → under 270); a coverage landing under 8 USD and
+under 90 minutes waiting (the queue lane serial, two lanes alternating);
+at most two named functions per item unentered, each with its
+predicate parked; no trace parts its twin; no red booking gate; no
+kill rule; no blocked ending; the Sonnet seats empty throughout.
+
+**The measure for the next pass**: each coverage landing's USD and
+waiting against 5.07 / 38.5 (and against the battery words' 17.69 /
+85.0); the open blind list against 300 and `never` against 381;
+functions entered per capture; whether the queue lane launched on the
+first try and whether any trace parted its twin; the capture class
+against 0.5 and the gate against 21.7; booking gate minutes against
+92.9; `DEEP` against zero; the drain's tail against 31; the backlog
+against eight; the disk against 236 GiB.

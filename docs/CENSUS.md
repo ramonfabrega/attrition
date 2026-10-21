@@ -656,7 +656,7 @@ is 29 of the 151, and 122 are open** (29 of 225 and 196 open before item
 934). Rows 9 to 11 (61) are the residue
 DECISIONS 29 asks to be accepted function by function, and `NEVER` is
 where each is. **After item 1011: `RESIDUE` is 31 of the 145, and 114
-are open.** **After item 1019: 31 of the 143, and 112 open.**
+are open.** **After item 1019: 31 of the 143, and 112 open.** **After the forty-eighth pass (2026-10-21): `RESIDUE` is 80 of the 380, and 300 are open** — forty-five of the five readings' forty-six proposals ratified (GOLDEN §144.4, AI §296, NATIONS §9.3, ORDERS §42.4, GROUPS §38, ATTRITION's tail, ECONOMY's `base_rate`, TECH's `Wonder::init`): most of rows 9 and 10 — the board, repair and form kinds no issuer makes, the shell's other modes, Conquer the World and the script functions only its scripts call — the dead `is_no_rush`, `get_econ_mod` and `Wonder::init`, and the interface's four; `GoodTypeData::is_flat` stays open until a `+0x94` dispatch scan by receiver (parked 3409b), and the click layer (row 3), the hero and transport rows (row 8) and the human's Market are what the forty-ninth tranche's `cover=1` captures take.
 
 ## The census by layer, and the backed column (2026-10-07, item 1467)
 

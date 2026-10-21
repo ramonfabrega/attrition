@@ -21415,3 +21415,23 @@ coverage pin 30.8 → 19.1 s — four Opus subagents in their own worktrees,
 merged here. 3349 closed under entry 54, 3371 stays, 3382 half, six
 Ramon's; 19 → 9. The archives compressed, 216 → 239 GiB. **DECISIONS 86.**
 `docs/audit/2026-10-21-fable-pass-47.md`.
+
+**2026-10-21 — the forty-eighth Fable pass** (the `steer` session, cleared
+into at the drain): the forty-eighth tranche measured — seven landings on
+four lanes from `28f48612` in 2 h 55, the queue's whole booking, drained
+by design; 5.07 USD and 38.5 minutes waiting a landing against 7.67 /
+117.2 — five readings at 6.21 a landing and two sweeps at 2.23; no word
+open or moved, the census 1686 → 1696 and the sweep source spent; seven
+booking gates, none red, no `DEEP`. The readings' 46 residue proposals
+ratified but one (`is_flat`, parked 3409b): `RESIDUE` 35 → 80, the open
+blind list 345 → 300, every row naming its document; the queue carries a
+pinned `Blind:` line (3416, built). The forty-ninth tranche is booked as
+twelve `cover=1` captures on the queue lane — the fifth brief kind,
+`coverage` — from the readings' owed tables, the peace pair's short lobby
+first as the lane's own proof; the Sonnet seats stand empty, and seating
+them is Ramon's. Built, red first: `census.py --cites` (3415, an Opus
+subagent) and the `Blind:` guard; the dead-list pin re-pinned at 30 with
+its three citing documents; `census-backed.txt` regenerated. 3371 closed
+under entry 54, 2003 took 3410's reach, six Ramon's; 11 → 8. One stale
+agent worktree's removal refused by the classifier, Ramon's. **DECISIONS
+87.** `docs/audit/2026-10-21-fable-pass-48.md`.

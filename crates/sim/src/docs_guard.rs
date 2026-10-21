@@ -1430,7 +1430,7 @@ fn a_function_a_booking_names_is_in_the_export() {
 
 /// How many of `rondata::blind::RESIDUE`'s rows say "no reference in the
 /// executable" — the dead list's length, pinned so a new row is a decision.
-const UNREFERENCED: usize = 27;
+const UNREFERENCED: usize = 30;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
@@ -1452,6 +1452,12 @@ const EMULATOR_ONLY: &[u32] = &[];
 /// (parked 967). Each is a claim about the live inlined copy or about
 /// nothing, and parked 970 owes the reading that says which.
 const DEAD_CITED: &[(&str, u32)] = &[
+    // The forty-eighth pass's three (DECISIONS 87): the readings read each
+    // dead and said so in the citing document — `Game::is_no_rush` (AI
+    // §218, §296), `LeaderData::get_econ_mod` (NATIONS §9.1), `Wonder::init`
+    // (TECH, what is not established) — and each row is the claim that the
+    // game never runs it.
+    ("AI.md", 0x005946c0),
     ("AI.md", 0x006b46b0),
     ("ARMY.md", 0x006ec170),
     ("CARAVAN.md", 0x0073e000),
@@ -1464,6 +1470,7 @@ const DEAD_CITED: &[(&str, u32)] = &[
     ("DANGER.md", 0x006b22e0),
     ("ECONOMY.md", 0x006b88b0),
     ("ECONOMY.md", 0x006d6e80),
+    ("NATIONS.md", 0x006d6660),
     ("GROUPS.md", 0x00683730),
     ("GROUPS.md", 0x006ec170),
     ("GROUPS.md", 0x007137f0),
@@ -1480,6 +1487,7 @@ const DEAD_CITED: &[(&str, u32)] = &[
     ("RUNS.md", 0x00688310),
     ("RUNS.md", 0x006d6740),
     ("RUNS.md", 0x0092fc50),
+    ("TECH.md", 0x0073c5e0),
     ("TRANSPORT.md", 0x0065cfd0),
     ("TRANSPORT.md", 0x006d5230),
 ];

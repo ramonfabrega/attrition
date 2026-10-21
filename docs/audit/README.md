@@ -315,6 +315,26 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-eighth pass
+
+The forty-eighth tranche (DECISIONS 87): seven landings on four lanes in
+2 h 40 — the queue's whole booking, five readings and two sweeps; 5.07
+USD and 38.5 minutes waiting a landing; no red gate, no `DEEP`, no
+stall. The pass added the fifth kind, `coverage`, and these rows.
+
+- **A reading's booking counts its functions with `tools/census.py
+  --pin --never --cites docs/<DOC>.md`, never from prose** (3415; 3409's
+  "for the Loop"): 3409's booking named four functions its document
+  does not cite, one dead in the image, and 3408 and 3412 each counted
+  their set differently from the queue; the line's three numbers are
+  the booking's.
+- **A coverage capture is one pinned lobby at `cover=1` on the queue
+  lane, checked against its `cover=0` twin and pinned into
+  `blind::TRACES`** (3416): `never` moves only when a trace enters a
+  function, and a reading tranche climbed 337 → 345 open because it
+  cited what it read and entered nothing; never `cover=1` on the
+  click-free lane (1047).
+
 ## The brief checklist, from the forty-seventh pass
 
 The forty-seventh tranche (DECISIONS 86): twenty landings on four lanes

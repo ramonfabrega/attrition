@@ -291,6 +291,32 @@ mod tests {
         );
     }
 
+    /// **The blind line is the pinned list** (Loop 3416, the forty-eighth
+    /// pass): the board's number for the coverage track, `Blind: never <N>
+    /// · residue <R> · open <N−R>`, read against `blind::NEVER` and
+    /// `blind::RESIDUE` — a reading tranche climbed 337 → 345 open with no
+    /// line to say what it had proposed, and the ratification that moved it
+    /// 345 → 300 moved a number no guard read. Made to fail first on a
+    /// handoff with no such line.
+    #[test]
+    fn the_handoff_s_blind_list_is_the_pinned_count() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
+        let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let never = crate::blind::NEVER.len();
+        let residue = crate::blind::RESIDUE.len();
+        let want = format!(
+            "Blind: never {never} \u{b7} residue {residue} \u{b7} open {}",
+            never - residue
+        );
+        let line = q.lines().find(|l| l.starts_with("Blind:"));
+        assert_eq!(
+            line.map(str::trim_end),
+            Some(want.as_str()),
+            "docs/QUEUE.md's handoff carries `{want}` (the blind list, `blind::NEVER` net of \
+             `blind::RESIDUE`), beside the Census line"
+        );
+    }
+
     fn the_handoff_carries(prefix: &str) {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");

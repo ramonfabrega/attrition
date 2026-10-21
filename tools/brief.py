@@ -55,9 +55,14 @@ KINDS = {
     # naming the capture that would falsify it. No capture, no packet, no
     # build rows: its section says what a claim carries.
     'reading': ('opening', 'booked', 'lanes', 'reading-item', 'landing'),
+    # A coverage lane (the forty-eighth pass, Loop 3416): one pinned lobby
+    # retaken at `cover=1` on the queue lane, checked against its `cover=0`
+    # twin and pinned into `blind::TRACES`, so the functions a reading's
+    # captures-owed table names leave `blind::NEVER`. No word moves.
+    'coverage': ('opening', 'lanes', 'capture', 'coverage-item', 'landing'),
 }
 TRACKS = {'residue': 'the AI track', 'chapter': 'the rules track', 'sweep': 'the sweep track',
-          'reading': 'the reading track'}
+          'reading': 'the reading track', 'coverage': 'the coverage track'}
 # The lane gate's filters every word lane runs (parked 1623): a widening
 # puts its window in the coverage driver, so `coverage::` is a word's own.
 # And every lobby's `first_parting` (parked 1910, 2000, the thirty-first
@@ -75,9 +80,12 @@ ALWAYS_TESTS = {'residue': ('coverage::', 'first_parting', 'battery_floors', 'bl
                 # A reading moves no word and no sweep; its one pin is the
                 # blind list it re-pins when it cites a never-entered
                 # function (DECISIONS 84).
-                'reading': ('blind::',)}
+                'reading': ('blind::',),
+                # A coverage capture moves the blind list alone; its word
+                # check is `rngcmp.py` against the twin, a script, not a test.
+                'coverage': ('blind::',)}
 # The kinds whose lane gate names no filter of its own: no word moves.
-NO_WORD = ('sweep', 'reading')
+NO_WORD = ('sweep', 'reading', 'coverage')
 # Rows of the checklist that are the commander's to follow in composing, or
 # the pass's, and say nothing to a worker.
 NOT_A_BRIEF_S = frozenset()
@@ -254,7 +262,7 @@ def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read
         out += ['```']
     titles = {'before-reading': 'Before any reading', 'reading': 'Reading the original',
               'capture': 'A capture or a packet', 'chapter': 'A chapter', 'sweep': 'The sweep',
-              'reading-item': 'A reading item',
+              'reading-item': 'A reading item', 'coverage-item': 'A coverage capture',
               'build': 'Build', 'landing': 'Landing'}
     for name in KINDS[kind]:
         if name in ('opening', 'booked', 'lanes'):

@@ -71,7 +71,11 @@ candidate row. **The fourth kind is `reading`** (entry 84), beside
 functions its document cites into claims that each name their
 falsifying capture, and gates on `python3 tools/release_gate.py
 ~/code/fun/attrition/game --test-threads 4 --lane --item <N> --tests
-blind:: --no-widen`.
+blind:: --no-widen`. **The fifth is `coverage`** (entry 87): a lane
+that retakes one pinned lobby at `cover=1` on the queue lane, checks the
+trace against its `cover=0` twin and pins it into `blind::TRACES`, so
+the functions a reading's captures-owed table names leave `NEVER`; it
+gates on the same line.
 
 ## The worker's landing
 
@@ -231,8 +235,8 @@ above the tranche before — **and takes one away when it does not**; a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool
-spent, an Opus lane takes a `reading` item** (entry 84's kind; never
-Sonnet) **and a Sonnet lane the sweep rows the pass names, or stands
+spent, an Opus lane takes a `reading` or a `coverage` item** (entries 84
+and 87; never Sonnet) **and a Sonnet lane the sweep rows the pass names, or stands
 empty** (the forty-seventh pass, DECISIONS 86: the held-out battery ran
 eight of eight whole, every battery word closed, the `port` and `name`
 marks drained). **The commander counts landings since the last steering pass — by

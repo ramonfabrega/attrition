@@ -392,6 +392,19 @@ pub const RESIDUE: &[(u32, &str)] = &[
          dispatches; the image's one call or jmp through +0x1ac is a Window thunk",
     ),
     (
+        0x0047_df90,
+        "LeaderData::has_bonus (the 0047df90 copy): the tooltip's \
+         byte-identical copy of the Nubian market gate, called only from \
+         Options::describe; the sim's copy, has_bonus@006e0b80, stays open \
+         (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x0048_5140,
+        "GroupAttackOrder::log_data: reached only through its vtordisp thunk's \
+         jmp, and nothing asks get_obj(GROUP_ATTACK), so no order list holds \
+         one to print (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
         0x0048_89a0,
         "MoveOrder::is_fleeing: reached only through vslot +0x28 of the move \
          orders' vtables (its two vtordisp thunks), and no instruction \
@@ -399,9 +412,33 @@ pub const RESIDUE: &[(u32, &str)] = &[
          the live predicate is UnitData::is_fleeing@0046efa0 (item 1182)",
     ),
     (
+        0x0058_60c0,
+        "Game::run_scenario: the scenario, campaign, tutorial, skill-test and \
+         Conquer the World paths, cut from v1; a skirmish profile that has \
+         played takes run_solo (docs/ATTRITION.md, the never-entered functions; \
+         parked 3414c; the forty-eighth pass)",
+    ),
+    (
+        0x0058_6440,
+        "Game::run_editor: run_game_loop's GAME_EDITOR arm, the scenario \
+         editor, cut from v1 (docs/ATTRITION.md, the never-entered functions; \
+         the forty-eighth pass)",
+    ),
+    (
+        0x0058_7060,
+        "Game::run_gamespy: the GameSpy online lobby, run_game_loop's \
+         GAME_GAMESPY_* arms, cut from v1 (docs/GOLDEN.md §144.4; the \
+         forty-eighth pass)",
+    ),
+    (
         0x0059_30c0,
         "Game::action_cheat_ai_toggle: no reference in the executable; \
          CommandPackage::process_cheat_ai_toggle flips ai_off inline",
+    ),
+    (
+        0x0059_46c0,
+        "Game::is_no_rush: no reference in the executable (docs/AI.md §218, \
+         §296; report.py refs reads it dead; the forty-eighth pass)",
     ),
     (
         0x005a_ac70,
@@ -416,6 +453,45 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "Guy::set_pivot_angle: no call and no absolute reference in the \
          executable; Unit::move_step's cavalry-archer arm carries it inline \
          (item 1117, docs/COMBAT.md §85.2)",
+    ),
+    (
+        0x005e_4c80,
+        "Unit::add_await_board_order: lives under the BoardOrder only \
+         Group::action_board_ship makes, whose command no site issues \
+         (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x005e_4d10,
+        "Unit::add_board_order: lives under the BoardOrder only \
+         Group::action_board_ship makes, whose command no site issues \
+         (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x005e_8670,
+        "Unit::do_form_change: do_job's CHANGE_FORM arm, run only on a \
+         FormOrder, which no site in the image makes — none of get_obj's 47 \
+         calls pushes 0x12 (docs/GROUPS.md §38; six register-typed calls read \
+         by prefix, parked 3413c; the forty-eighth pass)",
+    ),
+    (
+        0x005e_d1f0,
+        "Unit::do_board: lives under the BoardOrder only \
+         Group::action_board_ship makes, whose command no site issues \
+         (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x005f_2480,
+        "Unit::do_flee_to: no call or jump — do_job folds FLEE_TO onto do_move \
+         — and the image's four copies of its RVA are immediates inside \
+         SetupWin instructions (docs/GOLDEN.md §144.2, §144.4; the forty-eighth \
+         pass)",
+    ),
+    (
+        0x0060_4550,
+        "Unit::check_meet_ship: lives under the BoardOrder only \
+         Group::action_board_ship makes, whose command no site issues; item \
+         3410's sweep backs its arithmetic (docs/GOLDEN.md §144.4; the \
+         forty-eighth pass)",
     ),
     (
         0x0060_8850,
@@ -447,6 +523,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "BuildType::set_domain: no reference in the executable",
     ),
     (
+        0x0063_e390,
+        "Wall::Wall: its only references are the per-kind constructor tables \
+         (ObjectsArray::get_new_data, Objects::find_free, Objects::init); \
+         num_def_walls is only ever written 0 and no find_free call asks for \
+         the wall range (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
         0x0064_e4a0,
         "ObjectData::is_in_range: entered, and no instrument sees it — the \
          tracer cannot hook it (rontrace.funcs.excluded.txt, a branch target \
@@ -457,6 +540,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x0065_cfd0,
         "ObjectsData::find_dock: no reference in the executable",
+    ),
+    (
+        0x0066_26e0,
+        "TypeData::get_desc_parsed: tooltip text, nine interface and Conquer \
+         the World callers, no sim caller (docs/NATIONS.md §9.1, §9.3; the \
+         forty-eighth pass)",
     ),
     (
         0x0068_3730,
@@ -496,6 +585,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "LeaderData::locked_transport: no reference in the executable",
     ),
     (
+        0x006d_6660,
+        "LeaderData::get_econ_mod: no reference in the executable \
+         (docs/NATIONS.md §9.1: the listing answers 0.5, 0.75 or 1.0 by \
+         difficulty, dead; the forty-eighth pass)",
+    ),
+    (
         0x006d_6740,
         "LeaderData::get_handicap_level: no reference in the executable",
     ),
@@ -514,6 +609,19 @@ pub const RESIDUE: &[(u32, &str)] = &[
     ),
     (0x006f_0230, "Tribe::init: no reference in the executable"),
     (
+        0x0070_0010,
+        "Group::action_board_ship: the board-ship command's action, whose \
+         command no site issues (type 0x0f), and the one maker of the \
+         BoardOrder (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x0070_20c0,
+        "Group::action_repair: the repair command's action, which no \
+         add_command site issues (type 0x10) but ScenarioData::issue_order; \
+         item 3411's sweep backs its arithmetic (docs/GOLDEN.md §144.4; the \
+         forty-eighth pass)",
+    ),
+    (
         0x0071_37f0,
         "Group::leader_report_speed: no reference in the executable; its three \
          statements stand inline in Unit::do_group_move",
@@ -523,10 +631,51 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "Group::report_speed: no reference in the executable",
     ),
     (
+        0x0073_c5e0,
+        "Wonder::init: no reference in the executable (docs/TECH.md, what is \
+         not established: its body is inlined in Wonders::init_wonder and the \
+         byte before it is Wonder::close's ret; the forty-eighth pass)",
+    ),
+    (
         0x0073_e000,
         "Caravan::process: no reference in the executable (its address's one \
          copy is a coincidence inside .reloc's fixup entries); its body, \
          `if (making_road) build_road()`, stands inline in Unit::work",
+    ),
+    (
+        0x0078_be90,
+        "ConquestGame::setup_scenario_bonuses: Conquer the World only (its one \
+         caller is build_conquest_game, under semaphore[2] & 2), cut from v1 \
+         (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x0079_6140,
+        "ConquestGame::build_cities: Conquer the World only \
+         (Setup::build_empire takes it under semaphore[2] & 2), cut from v1 \
+         (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x0079_7c40,
+        "ConquestGame::build_conquest_game: Conquer the World's start, cut from \
+         v1 (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x0079_ea80,
+        "ConquestLeader::plan_strategy: the campaign map's turn, from \
+         ConquestWin::post_turn_processing, cut from v1 (docs/NATIONS.md §9.1, \
+         §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x0081_2d20,
+        "IFaceMarket::on_redraw: interface only, the Market window's text \
+         through vslot +0xb8; writes no sim state (docs/NATIONS.md §9.1, §9.3; \
+         the forty-eighth pass)",
+    ),
+    (
+        0x0081_34d0,
+        "IFaceMarket::setup_selected: interface only, the Market window's Buy \
+         and Sell buttons through vslot +0x4f8; writes no sim state \
+         (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
     ),
     (
         0x0092_fc50,
@@ -534,8 +683,33 @@ pub const RESIDUE: &[(u32, &str)] = &[
          has no ARMY key",
     ),
     (
+        0x0093_ee70,
+        "CommandManager::set_mp_playback: multiplayer replay playback, a prefs2 \
+         path read under netsys before ReplayWin opens; no skirmish capture \
+         reaches it (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x0094_8cb0,
+        "CommandPackage::process_repair: no add_command site in the image \
+         writes type 0x10 (102 sites read); the command's other issuer is \
+         ScenarioData::issue_order, a scenario file's initial orders \
+         (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x0094_8e00,
+        "CommandPackage::process_board_ship: no add_command site in the image \
+         writes type 0x0f; its sync line is mislabelled process_set_transport \
+         (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
         0x0094_c1c0,
         "CommandPackage::clear: no reference in the executable",
+    ),
+    (
+        0x0099_6ac0,
+        "ScenarioData::issue_order: a scenario file's initial orders, applied \
+         once at ScenarioRead::import, not the trigger system; no capture loads \
+         a scenario (docs/GOLDEN.md §144.2, §144.4; the forty-eighth pass)",
     ),
     (
         0x009b_8ac0,
@@ -543,6 +717,104 @@ pub const RESIDUE: &[(u32, &str)] = &[
          Setup::build_empire, TurnControl::toggle_pause) reach it only under \
          game semaphore byte 1's bit 2, which Game::run_unit_balance alone \
          sets — the GAME_UNIT_BALANCE shell mode, not a match (item 1182)",
+    ),
+    (
+        0x009e_5320,
+        "ScenarioFuncSet::get_difficulty: a script getter no shipped skirmish \
+         script calls; only game/conquest/* and ctw_lib.bhs do (docs/NATIONS.md \
+         §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x009f_45e0,
+        "ScenarioFuncSet::toggle_infinite_queue: a script function with one \
+         caller in the install, scenario/Custom/capture/capture.bhs; scenarios \
+         are cut from v1 (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x009f_99e0,
+        "ScenarioFuncSet::repeat_orders_enable: a script function no script in \
+         the install calls (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x009f_9ad0,
+        "ScenarioFuncSet::repeat_orders_disable: a script function no script in \
+         the install calls (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x009f_b790,
+        "ScenarioFuncSet::buy_good: a script function no shipped skirmish \
+         script calls (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x009f_b880,
+        "ScenarioFuncSet::sell_good: a script function no shipped skirmish \
+         script calls (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x009f_b970,
+        "ScenarioFuncSet::can_buy_sell: a script function no shipped skirmish \
+         script calls (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x009f_b9e0,
+        "ScenarioFuncSet::find_sell_price: a script function no shipped \
+         skirmish script calls; its one caller in the install is \
+         game/conquest/Alexander/sogdiana.bhs (docs/NATIONS.md §9.1, §9.3; the \
+         forty-eighth pass)",
+    ),
+    (
+        0x009f_bab0,
+        "ScenarioFuncSet::find_buy_price: a script function no shipped skirmish \
+         script calls (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+    ),
+    (
+        0x009f_bb80,
+        "ScenarioFuncSet::set_base_rate: a script function called only by \
+         game/conquest/* and four scenario/* scripts, never an AI script \
+         (docs/ECONOMY.md, base_rate; the forty-eighth pass)",
+    ),
+    (
+        0x009f_f5e0,
+        "ScenarioFuncSet::enable_production_ai: a scenario switch reached only \
+         through the script host's table and called only by scenario scripts, \
+         cut from v1 (docs/AI.md §1, §296; docs/CENSUS.md row 10; the \
+         forty-eighth pass)",
+    ),
+    (
+        0x009f_f620,
+        "ScenarioFuncSet::set_auto_peasant_level: reached only through the \
+         script host's table, and only the three tutorials call it; scenarios \
+         are cut from v1 (docs/ORDERS.md §42.1, §42.4; the forty-eighth pass)",
+    ),
+    (
+        0x009f_f860,
+        "ScenarioFuncSet::disable_combat_ai: a scenario switch reached only \
+         through the script host's table and called only by scenario scripts, \
+         cut from v1 (docs/AI.md §1, §296; the forty-eighth pass)",
+    ),
+    (
+        0x009f_f8e0,
+        "ScenarioFuncSet::disable_all_unit_ai: a scenario switch reached only \
+         through the script host's table and called only by scenario scripts, \
+         cut from v1 (docs/AI.md §1, §296; the forty-eighth pass)",
+    ),
+    (
+        0x009f_fa10,
+        "ScenarioFuncSet::disable_unit_ai: a scenario switch reached only \
+         through the script host's table and called only by scenario scripts, \
+         cut from v1 (docs/AI.md §1, §296; the forty-eighth pass)",
+    ),
+    (
+        0x009f_fbf0,
+        "ScenarioFuncSet::disable_city_ai: a scenario switch reached only \
+         through the script host's table and called only by scenario scripts, \
+         cut from v1 (docs/AI.md §1, §296; the forty-eighth pass)",
+    ),
+    (
+        0x00a0_0220,
+        "ScenarioFuncSet::set_capital: a script setter no shipped skirmish \
+         script calls; only seventeen game/conquest/* scripts do \
+         (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
     ),
     (
         0x00a4_69f0,
