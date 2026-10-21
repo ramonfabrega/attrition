@@ -50,6 +50,17 @@ class FileRun(unittest.TestCase):
             filerun.map_dir(self.golden, 'run999')
         self.assertEqual(filerun.main(['run999', 'x', '--golden', str(self.golden), '--logs', str(self.logs)]), 2)
 
+    def test_a_playback_s_dump_is_its_gamelog_p(self):
+        # Item 3428: a recorded game's playback writes `gamelog_p.txt`.
+        d = self.golden / 'run1036' / 'map-18'
+        d.mkdir(parents=True)
+        (d / 'gamelog_p.txt').write_text(' MAP_STYLE 18\n')
+        (d / 'rontrace.log').write_bytes(b'RONT')
+        pairs = filerun.plan(self.golden, self.logs, 'run1036', 'playback')
+        self.assertEqual(pairs[0][0].name, 'gamelog_p.txt')
+        (d / 'gamelog.txt').write_text(' MAP_STYLE 18\n')
+        self.assertEqual(filerun.plan(self.golden, self.logs, 'run1036', 'playback')[0][0].name, 'gamelog.txt')
+
     def test_a_dry_run_writes_nothing(self):
         out = io.StringIO()
         filerun.file_run(self.golden, self.logs, 'run893c', 't', dry_run=True, out=out)
