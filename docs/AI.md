@@ -25398,7 +25398,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 **The disk scan** (every dump in the archive, 578 that print a leader): `nukes_in_flight` is 0 in all of them, so
 §158's in-flight term has never been non-zero on a dumped frame; `wonder_mark` reaches 1 or 2 in many games and
 falls in none of the 82 that print it more than once, so no dump shows `close_wonder` lowering it; `leader_flags &
-0x8000` stands in twenty games (run517, run584 at Toughest; the coverage pair from run652) and `& 0x4000` in ten
+0x8000` stands in 38 dumps (run517, run584 at Toughest; the coverage pair from run652) and `& 0x4000` in 16
 (run645, the Islands French run657–665, the third map's coverage from run676) — rows 1–4's fields are on disk.
 
 Rows 1–8 and 9's first half are nine lobbies the click-free lane starts with no human order; together they enter
