@@ -2899,6 +2899,11 @@ impl Sim {
                 let u = &mut self.units[i];
                 u.damage_frac = frac;
                 u.health -= lost;
+                // `take_damage@00652020:619`: the whole points past the
+                // figure's share, read before `die` — what a decoy's death
+                // hands on to its captain below.
+                let overflow = u.max_health - u.health - share;
+                let decoy = u.decoy;
                 if matches!(taken, Taken::Died { .. }) {
                     u.health = u.health.min(0);
                     // `take_damage@00652020:607`, before `die` (vslot
@@ -2919,6 +2924,42 @@ impl Sim {
                     self.close_supply_in(i, keep);
                     self.forget(Obj::Unit(i));
                     self.clear_decoy_at_close(i);
+                    // **A decoy's overflow strikes its captain**
+                    // (`take_damage@00652020:619`–`631`, item 3393): after
+                    // `die`, a figure that was a decoy (`unit_masks & 1`,
+                    // read before `close` cleared it) with whole points
+                    // past its share hands them to `get_captain` — the
+                    // chain as `close` re-linked it — unless that is
+                    // itself: `take_damage(overflow, 0, dtype, …, captain,
+                    // who, 0)`, the captain its own attacker. A decoy's
+                    // blow is `get_damage`'s step 17, so the squad goes
+                    // down figure by figure on the one round. run1015b's
+                    // packet: the tail `1/92` takes 13370, `1/90` the
+                    // 13345 past its 39, `1/91` the 13327 past 1/90's.
+                    if decoy && overflow > 0 {
+                        let (c, who) = (self.units[i].combat.captain, self.units[i].owner);
+                        let captain = (c != i32::from(self.units[i].index))
+                            .then(|| {
+                                self.units.iter().position(|u| {
+                                    u.owner == who && i32::from(u.index) == c && u.alive()
+                                })
+                            })
+                            .flatten();
+                        if let Some(k) = captain {
+                            let hit = combat::Sixteenths {
+                                whole: overflow,
+                                frac: 0,
+                            };
+                            self.take_damage_typed(
+                                Obj::Unit(k),
+                                hit,
+                                Obj::Unit(k),
+                                _frame,
+                                dtype,
+                                false,
+                            );
+                        }
+                    }
                 }
                 taken
             }
