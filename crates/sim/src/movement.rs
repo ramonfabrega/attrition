@@ -172,7 +172,8 @@ pub const fn find_angle(dx: i32, dy: i32) -> Angle {
     let y_dominant = a <= b;
 
     let t = lo.wrapping_mul(0x4000).wrapping_div(hi);
-    let corrected = 0x2800 - ((0x1333i32.wrapping_sub(t).wrapping_abs().wrapping_mul(0xb00)) >> 14);
+    const BIAS: i32 = 0x1333;
+    let corrected = 0x2800 - ((BIAS.wrapping_sub(t).wrapping_abs().wrapping_mul(0xb00)) >> 14);
     let m = corrected.wrapping_mul(t) & !0x3fff;
     let q = m.wrapping_mul(4);
 

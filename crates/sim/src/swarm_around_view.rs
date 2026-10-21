@@ -412,8 +412,8 @@ fn seeker_type<V: SwarmView>(v: &mut V, p: i32, m: i32, b: i32, who: i32) -> i32
 /// - SEAM: the scratch group is not modelled. The members the swarm does not
 ///   take (not a citizen, carrying none, no Civilian to cast) are gathered
 ///   by the original and sent `MOVE_TO` the site at `QUEUE_NEW`; here they
-///   are left alone, as the member arm always has (no capture on file
-///   swarms a mixed group).
+///   are left alone, as the member arm always has (the orders this
+///   crate issues swarm builders only).
 /// - SEAM: the busy test (`is_busy`, a unit mid-cast or boarding), the
 ///   idle-citizens filter (the site's type's slot `+0x90` is not carried, so
 ///   `idle` stays 0), a unit carrying citizens (`count_inside`) and the
