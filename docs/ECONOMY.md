@@ -1502,6 +1502,16 @@ far as anything read goes they are as dead as `calc_support`.
   remaining half, in hand.
 - ~~**`base_rate`.**~~ `ScenarioFuncSet::set_base_rate` is its only writer, and
   it stores `value << 4`. Scenario-script only; zero in a skirmish.
+  **Read by item 3414** (reading alone): `ScenarioFuncSet::set_base_rate@009fbb80` is
+  script function `set_base_rate` (`init_funcs:3480`, three arguments). It has no native caller, only the pointer
+  `refs` finds. It takes a 1-based player and a type name, matched by `String ==` over the 0x326 types (:13–23).
+  It writes `leaders[p].base_rate[t] = value << 4` (`+0x4b0`) only for `p < 8`, `leader_flags & 3 == 3` and
+  `t < 6`, the six goods, and returns 1, else −1 (:25–30). In the install, only `game/conquest/*`,
+  `scenario/Tutorial3`, `Tutorial4`, `Custom/skirmish` and `Custom/missile` call it; no `game/ai/scripts/*.bhs`
+  does. *Kills it*: a shipped skirmish script calling it. **Proposed for `RESIDUE`**: scenario and Conquer the
+  World scripts only, cut from v1. No capture is owed.
+  `ObjectData::is_dock@004711e0`, which §6 cites for slot `+0x108`, is read in `docs/VISION.md` §8's
+  never-entered rows.
 - **`escrow_rate`.** What sets it. `escrow` itself is no longer open:
   `docs/COSTS.md` reads it in `Type::pay_cost` as a soft reservation that
   ordinary spending may not touch and abandons entirely the moment it needs to,
