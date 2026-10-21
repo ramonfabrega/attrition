@@ -202,6 +202,12 @@ mod group_action_buildmask;
 mod group_action_garrison;
 #[path = "group_action_garrison_head.rs"]
 mod group_action_garrison_head;
+#[path = "group_action_gather.rs"]
+mod group_action_gather;
+#[path = "group_action_gather_head.rs"]
+mod group_action_gather_head;
+#[path = "group_action_gather_spiral.rs"]
+mod group_action_gather_spiral;
 #[path = "group_action_hotkey.rs"]
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
