@@ -722,9 +722,25 @@ lists** — run12's frame-0 heights have p0's city on its own plateau — so the
 harness puts it back after standing the roster up (`start_of_game`'s tail);
 flattening flat ground is not the identity when the border blends.
 
-The arithmetic is in **millionths**, the scale the dump prints, not the
+~~The arithmetic is in **millionths**, the scale the dump prints, not the
 original's `f32`. The two part on a truncation on three tiles in 58,081
-(`docs/QUEUE.md` item 58), none of them near any search measured so far.
+(`docs/QUEUE.md` item 58), none of them near any search measured so far.~~
+**Since item 3390 the arithmetic is the original's own singles**
+(`crate::single::Single`): the listing (`00875210`..`008755c4`) is SSE
+scalar throughout — `addss` over the box in the order above, `cvtdq2ps`
+and `divss` for the mean, `addss`/`mulss 0.5` for the border — and
+`find_tcoord_z` is `cvttss2si((h[y+1][x] + h[y][x+1]) × 0.5)`
+(`00854525`..`00854538`). `World` carries the grid as singles, each
+recovered at load from its six-decimal print, with a per-corner flag that
+says whether it is known exactly. What moved it: on the Spanish at Great
+Lakes 4 (run1008b), the Spanish road search of frame 7984 priced its 855th
+node, the step west onto (45600, 23520), **339 against the original's
+342** — one unit of climb, `× 3` — because the millionths mean of frame
+5382's terraform truncated a corner of tile (237, 122) or its parent a
+unit away from the single. With the singles, all 38 of run1008b's road
+searches to 8384 are the original's node for node, 3207 against 3207 on
+8384 (`run1008b_s_road_search_on_8384_holds_node_for_node`), and the word
+moves 8384 → 13496.
 
 ### 7.6 The terraform runs at **placement**, not at start — run72
 
@@ -754,8 +770,9 @@ the diff is `run72_s_road_nodes_are_where_great_lakes_word_parts`:
 
 ### 7.5 What is still not established here
 
-- The `f32` residue above: the exact-millionths mean and the original's
-  `f32` mean differ on three corners of run13's grid.
+- ~~The `f32` residue above: the exact-millionths mean and the original's
+  `f32` mean differ on three corners of run13's grid.~~ Built in singles,
+  item 3390 (§7.4).
 - `Terrain::object_placed`'s other arms — this models the
   `terraform_for_building` call it makes for a building being placed;
   `prep_terrain_lighting`, `calculate_norms`, `calculate_tangents` and
