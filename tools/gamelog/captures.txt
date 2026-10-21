@@ -19,6 +19,8 @@
 #               default (`-config check.ini` on 14, none elsewhere)
 #   end:        `[End Frame]` detail, setlog.py's `end:` list
 #   start:      `[Start Game]` detail, setlog.py's `start:` list
+#   misc:       `[Misc Logging]` detail, setlog.py's `misc:` list — the golden
+#               chapters' `COMMANDMANAGER=1` (item 3427); absent means none
 #   dump_all:   DUMP_ALL, default 0
 #   window:     "LO HI" for a DUMP_ALL window instead of the cheap dump
 #   cover:      rontrace.cfg's body, default `cover=1`. `cover=1` runs on
@@ -10104,3 +10106,34 @@ cmd: 1480 unmeet who=1
 check: python3 tools/gamelog/rngcmp.py rontrace-run847.log rontrace-run1016c.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(s>=1481)}'
 check: (grep -a -c "treaties\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016c-lakota-peace-unmeet-1480.txt" || true) | tee /dev/stderr | awk '{exit !($1>=19*8*2)}'
 # ==== TAKEN 2026-10-21, one take each, 10:38-10:52, the queue lane (run1016's first launch refused rc 75: lane 1 held by a pool take) ====
+
+# ==== item 3427: the click layer, first pass (GOLDEN §144.3 rows 1, 2, 4, 6; parked 3423a) ====
+# The chapters' `@` lines call `CommandManager::issue_*` and never the layer above it (GOLDEN §144.1), so
+# these four takes drop the `@` lines and click instead, through `handdriver.sh`: a driver whose clicks are
+# appended to `/tmp/ron-runs/hand-<run>/cmd` while the game runs, aimed from its own screenshots. Each
+# stanza is the chapter's golden lobby (`cfg: -`, map 14, seed 12345) and its `add` lines, so the take is
+# its `cover=0` twin's game until the first driven line; `select` and `camera` are `rontrace.cmd` lines on
+# a fixed frame, the clicks are not. `ffwd: -` because a driven take must draw (run47), `frames:` long
+# enough for the clicks at the queue lane's live pace, the dump windowed from the twin's 605.
+run: 1032
+tag: ch11-guard-click
+item: 3427
+why: chapter eleven's lobby at cover=1, `rclick` 0/6 on own 0/7 for GroupOut::issue_guard@007088e0 in place of 620's @guard
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=2,DEATHS=1,LEADERS=2
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 610 add chariot who=0 16,36
+cmd: 612 add supply who=0 16,44
+cmd: 614 add hoplite who=0 36,152
+cmd: 616 select 6 who=0
+cmd: 616 camera 16,44
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch11/map-14/rontrace.log" rontrace-run1032.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1032.log" functions 2>/dev/null | grep -E "^007088e0 |^009478a0 " || true)
