@@ -37,6 +37,8 @@ SUITES = (
     'test_census',
     'test_queueledger',
     'test_release_gate',
+    'test_census_marks',  # the forty-seventh pass, Loop 3405
+    'test_killguard',  # the forty-seventh pass, Loop 3392/3394
     'test_reap_agents',
     'test_memcap',
     'test_isolated_tests',
