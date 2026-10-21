@@ -418,6 +418,8 @@ mod trade_order_walk_data;
 mod trade_order_walk_data_vtordisp;
 #[path = "tribe_get_name.rs"]
 mod tribe_get_name;
+#[path = "tribe_parse.rs"]
+mod tribe_parse;
 #[path = "tribe_set_pseudonym.rs"]
 mod tribe_set_pseudonym;
 #[path = "tribe_walk_data.rs"]
