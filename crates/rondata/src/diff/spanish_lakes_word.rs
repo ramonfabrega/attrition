@@ -38,9 +38,14 @@ pub(crate) const SPANISH_LAKES: Lobby = Lobby {
     // the Monarch's siege doubling (`UnitData::get_speed`'s
     // `has_general(0, 0x162)` arm): run1013c's Bombards `1/113` and `1/114`
     // stepped 49 on 13484 against ours' 24, `x[0]` 9025 against 9042; both
-    // read 9025 on the built tree.
-    count: 13639,
-    sequence: 13639,
+    // read 9025 on the built tree. **13639 -> 14068**, the game's end, with
+    // the same arm in `Unit::do_cast`'s pack clock: run1013's Bombard
+    // `1/114` unpacks (spell 652) from 13600, theirs' `spell_time` climbing
+    // by two (78 on 13639, done on 80) against ours' one, so ours still
+    // played `CHAR_UNPACK` on 13639 (`Guy::set_anim+0x104b`) where theirs'
+    // `Guy::inc_time` ended it. Both read the cast popped on 13640.
+    count: 14068,
+    sequence: 14068,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -155,8 +160,12 @@ fn run1013_s_word_frame_is_widened_whole() {
     // Item 3390: 3488 keys on the march's parting (13490, the Spanish army
     // 1/26..1/114); **3488 -> 1151** with the Monarch's siege doubling: the
     // standing family on 13490 (34), then 13576 and 13601, and the word's
-    // own parting from 13640.
-    pin_eq!(w.firsts.len(), 1151, "keys that part in the window");
+    // own parting from 13640. **1151 -> 38** with the Monarch's arm in the
+    // pack clock (`1/114`'s unpack, `spell_time` 1 against 2 on 13601):
+    // the standing family, 13576's `leader:attack` (269 against 275), two
+    // `dest_angle` rows (`1/74` 13710, `1/78` 13732) and a newborn's
+    // `g.angle[0]` (`1/89`, 13735), none parting a draw.
+    pin_eq!(w.firsts.len(), 38, "keys that part in the window");
 }
 
 /// run1013b: the gap 8380..13489 at a stride of 16 (item 3390): blocks
@@ -341,4 +350,61 @@ fn run1008b_s_road_search_on_8384_holds_node_for_node() {
         "the word's road nodes, ours and theirs"
     );
     pin_eq!(first, None, "the first node that parts");
+}
+
+/// The closing state's window: run1008b's closing block alone, the long's
+/// last frame 14068 writing it (item 3390).
+pub(crate) const WIDENING_SPANISH_LAKES_CLOSING: (i64, i64) = (14067, 14070);
+
+/// **The lobby's closing state** (item 3390, DECISIONS 55): run1008b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+/// The game ends itself on 14068.
+#[test]
+fn run1008b_spanish_lakes_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        dump(SPANISH_LAKES.long.0),
+        dump(SPANISH_LAKES.start),
+        trace(SPANISH_LAKES.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Spanish (Great Lakes) closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 14069, "the closing block");
+    pin_eq!(e.compared, 110, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3390, the first walk (the Monarch's siege doubling and cast
+    // clock, the word at 14068): 110 units compared on block 14069, none
+    // apart, no building or city field-row, no closing field.
 }
