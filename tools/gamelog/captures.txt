@@ -10045,3 +10045,24 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   run1013c --end-frame 13491 --timeout 5400 --log-window 13463 13489 (run1013's --detail, --ai-tribe, --cover, --profile)   (the army's parting, 13469..13485)
 # Checks: `rngcmp.py` run1008b vs run1013 -> 13752 identical, vs run1013b -> 13492, vs run1013c -> 13492.
 # ==== TAKEN 2026-10-20, one take each, 19:58-21:12, pool lane 1, through `viadriver.sh tools/explore/golden_capture.sh` ====
+
+# ==== item 3417: the peace pair's lobby at `cover=1` (`docs/AI.md` §297; `docs/RUNS.md` run1016) ====
+# run847's lobby on the queue lane, the first `cover=1` take there since run461: East Indies, the Lakota in slot 1
+# (`XPACK_LAST_TRIBE1=19`, `profile.py`'s one-block field), `DIFFICULTY 3`, All Technologies, Deathmatch resources,
+# `RUSH_RULES 10`; run847's `!ffwd 27` at 37; `LEADERS=1` for `treaties[·]` at block 501 after the `unmeet`.
+# The twin is run847 (`cover=0`, click-free lane): frames 0..500 must agree; the `unmeet` is the only input.
+run: 1016
+tag: lakota-peace-cover
+item: 3417
+why: the blind list for the peace pair — run847's lobby at cover=1 on the queue lane to 600, with 500 unmeet who=1, to enter Game::current_age@005946d0 and Leader::treaty_off@006d0370
+frames: 600
+mapstyle: 18
+cfg: -
+ffwd: 37 !ffwd 27
+cover: cover=1
+profile: STARTING_TECHNOLOGY=8 STARTING_RESOURCES=7 DIFFICULTY=3 RUSH_RULES=10 XPACK_LAST_TRIBE1=19
+end: MISC,LEADERS=1
+cmd: 500 unmeet who=1
+check: grep -a -m1 -A40 "BEGIN GAME INFO" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016-lakota-peace-cover.txt" | tr -d '\r' | grep -E "^  (MAP_STYLE 18|DIFFICULTY 3|STARTING_RESOURCES 7|RUSH_RULES 10|STARTING_TECHNOLOGY 8|\(int\)seed 12345)$" | tee /dev/stderr | awk 'END{exit !(NR==6)}'
+check: python3 tools/gamelog/rngcmp.py rontrace-run847.log rontrace-run1016.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=601)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1016.log" functions 2>/dev/null | grep -E "^005946d0 |^006d0370 " | tee /dev/stderr | awk 'END{exit !(NR==2)}'
