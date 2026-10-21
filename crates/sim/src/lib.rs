@@ -152,6 +152,7 @@ pub mod scout;
 pub mod single;
 pub mod site_recruit;
 pub mod spell_find_view;
+pub mod spell_valid_target_view;
 pub mod spellcaster;
 pub mod stance;
 pub mod suffer_view;
