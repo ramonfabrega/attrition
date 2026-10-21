@@ -10045,3 +10045,62 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #   run1013c --end-frame 13491 --timeout 5400 --log-window 13463 13489 (run1013's --detail, --ai-tribe, --cover, --profile)   (the army's parting, 13469..13485)
 # Checks: `rngcmp.py` run1008b vs run1013 -> 13752 identical, vs run1013b -> 13492, vs run1013c -> 13492.
 # ==== TAKEN 2026-10-20, one take each, 19:58-21:12, pool lane 1, through `viadriver.sh tools/explore/golden_capture.sh` ====
+
+# ==== item 3417: the peace pair's lobby at `cover=1` (`docs/AI.md` §297; `docs/RUNS.md` run1016) ====
+# run847's lobby on the queue lane, the first `cover=1` take there since run461: East Indies, the Lakota in slot 1
+# (`XPACK_LAST_TRIBE1=19`, `profile.py`'s one-block field), `DIFFICULTY 3`, All Technologies, Deathmatch resources,
+# `RUSH_RULES 10`; run847's `!ffwd 27` at 37; `LEADERS=1` for `treaties[·]` at block 501 after the `unmeet`.
+# The twin is run847 (`cover=0`, click-free lane): frames 0..500 must agree; the `unmeet` is the only input.
+run: 1016
+tag: lakota-peace-cover
+item: 3417
+why: the blind list for the peace pair — run847's lobby at cover=1 on the queue lane to 600, with 500 unmeet who=1, to enter Game::current_age@005946d0 and Leader::treaty_off@006d0370
+frames: 600
+mapstyle: 18
+cfg: -
+ffwd: 37 !ffwd 27
+cover: cover=1
+profile: STARTING_TECHNOLOGY=8 STARTING_RESOURCES=7 DIFFICULTY=3 RUSH_RULES=10 XPACK_LAST_TRIBE1=19
+end: MISC,LEADERS=1
+cmd: 500 unmeet who=1
+check: grep -a -m1 -A40 "BEGIN GAME INFO" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016-lakota-peace-cover.txt" | tr -d '\r' | grep -E "^  (MAP_STYLE 18|DIFFICULTY 3|STARTING_RESOURCES 7|RUSH_RULES 10|STARTING_TECHNOLOGY 8|\(int\)seed 12345)$" | tee /dev/stderr | awk 'END{exit !(NR==6)}'
+check: python3 tools/gamelog/rngcmp.py rontrace-run847.log rontrace-run1016.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=601)}'
+check: python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1016.log" functions 2>/dev/null | grep -E "^005946d0 |^006d0370 " | tee /dev/stderr | awk 'END{exit !(NR==2)}'
+
+# run1016b: run1016's game again for the field its dump could not print — `treaties[scan]` is written only at
+# `LEADERS>=3` (`LeaderData::log_data@006e5110` raises the detail before the loop; `docs/RUNS.md` run94's tooth),
+# and run1016's `end:` was `LEADERS=1`, so its 601 per-frame records hold none. `cover=0`: the trace is run1016's.
+run: 1016b
+tag: lakota-peace-treaties
+item: 3417
+why: run1016's game at LEADERS=3, to read treaties[1] and treaties[0] bit 0 either side of 500 unmeet who=1
+frames: 600
+mapstyle: 18
+cfg: -
+ffwd: 37 !ffwd 27
+cover: cover=0
+profile: STARTING_TECHNOLOGY=8 STARTING_RESOURCES=7 DIFFICULTY=3 RUSH_RULES=10 XPACK_LAST_TRIBE1=19
+end: MISC,LEADERS=3
+cmd: 500 unmeet who=1
+check: python3 tools/gamelog/rngcmp.py rontrace-run1016.log rontrace-run1016b.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(d==0 && s>=601)}'
+check: (grep -a -c "treaties\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016b-lakota-peace-treaties.txt" || true) | tee /dev/stderr | awk '{exit !($1>=600*8*2)}'
+
+# run1016c: the two leaders have not met by 500 — run1016b's `treaties[1]` (leader 0) and `treaties[0]` (leader 1) are
+# 0 on every block 1..601, so run1016's `unmeet` entered `treaty_off` on a clear bit. run848's window has both set on
+# block 1474, together. So the value check is an `unmeet` past 1474: 1480, read 1470..1489 at `LEADERS=3`.
+run: 1016c
+tag: lakota-peace-unmeet-1480
+item: 3417
+why: run1016's lobby with 1480 unmeet who=1, after the leaders meet at 1474, to read treaties bit 0 clear on both sides at block 1481
+frames: 1490
+mapstyle: 18
+cfg: -
+ffwd: 37 !ffwd 27
+cover: cover=0
+profile: STARTING_TECHNOLOGY=8 STARTING_RESOURCES=7 DIFFICULTY=3 RUSH_RULES=10 XPACK_LAST_TRIBE1=19
+end: MISC,LEADERS=3
+frame_window: 1470 1490
+cmd: 1480 unmeet who=1
+check: python3 tools/gamelog/rngcmp.py rontrace-run847.log rontrace-run1016c.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(s>=1481)}'
+check: (grep -a -c "treaties\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016c-lakota-peace-unmeet-1480.txt" || true) | tee /dev/stderr | awk '{exit !($1>=19*8*2)}'
+# ==== TAKEN 2026-10-21, one take each, 10:38-10:52, the queue lane (run1016's first launch refused rc 75: lane 1 held by a pool take) ====

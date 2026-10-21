@@ -9117,13 +9117,17 @@ is an oracle-agreed module the live sim does not call.
   learn-as-you-play popup answers 0 (ATTRITION, the never-entered functions). That is a hazard for any capture on a
   rebuilt prefix or a reset profile, not a score.
 
-## Parked by the next landing, slot MP — reserved
+## Parked by item 3417, 2026-10-21 — the peace pair at `cover=1`: an unmodelled cheat, and an owed table's wrong level
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3417a. The sim has no `treaty_off`, and run1016c is its diff.** `Sim::treaty_on` writes the met bit
+  (`crates/sim/src/vision.rs`), but nothing clears it, and the console's `unmeet` (`ConsoleWin::run_cmd` case `0x30`) is
+  not an input the harness takes. run1016c (`1480 unmeet who=1`) clears bit 0 on both sides at 1481, and the two
+  leaders meet again at 1488. Which writer re-sets it is not established: the dump prints the bit, not who wrote it
+  (`docs/AI.md` §297). It is a cheat path that no pinned word plays, so it names no score.
+- **3417b. An owed row named a detail that prints nothing.** `docs/VISION.md` §8's captures-owed row asked for
+  `[End Frame] LEADERS=1` `treaties[·]`, but `treaties[scan]` is written only at `LEADERS≥3` (run94's tooth, `docs/RUNS.md`).
+  The row is fixed. Other owed tables that name `LEADERS=1` for a `LEADERDATA` field below the loop are unaudited.
+  A grep of `docs/` for `LEADERS=1` beside `treaties`, `diplos` or `agree` would settle it; that costs minutes and moves no score.
 
 ## Parked by item 3429, 2026-10-21 — `cover=1` on the click-free pool: what the fix leaves
 

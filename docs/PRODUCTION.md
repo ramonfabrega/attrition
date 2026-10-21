@@ -2106,7 +2106,8 @@ damage 0 [destroyed]; 3218, `0/6` gone [alive]; 3240, `0/8` at 56 and
 - **The never-entered functions this document cites (item 3414).** Four are in `blind::NEVER` on the base
   `6d3ffc37`, and none is read again here. `ObjectData::is_in_range@0064e4a0` is accepted residue.
   `LeaderData::get_vehicle_speed_upgrade@006da8a0` is read in `docs/NATIONS.md` §9.1, and its capture is in §9.2:
-  a `0x200000` unit queued with one `VEHICLES_FASTER` held. `GroupOut::issue_buildmask@00708820` and
+  a `0x200000` unit queued with one `VEHICLES_FASTER` held. ~~Never entered~~: run1016 enters it on frame 582 (item 3417,
+  `docs/AI.md` §297). `GroupOut::issue_buildmask@00708820` and
   `WorldMap::on_right_up@008c7050` are read in `docs/GOLDEN.md` §144.2, with captures in §144.3: the Airbase's
   repeat button, and the minimap's right-click.
 - **Nine of `train_time`'s ten national arms**, and everything after them.
