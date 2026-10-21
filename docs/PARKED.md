@@ -3783,6 +3783,13 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3392) **Release builds SIGTERM'd from outside for about 25 minutes** (att-3390's status line, 2026-10-20, "rustc
+release builds were SIGTERM'd externally for ~25 min around 19:20-19:45 on this host"; unverified by the commander):
+`tools/resource_budget.py` kills a memory-capped child with SIGKILL (`os.kill(pid, signal.SIGKILL)`, its line 208),
+never SIGTERM, so the sender is not the admission. Candidates to rule out first: a lane's `pkill -f` on a name every
+lane shares (parked 1713), a subagent's cleanup, cargo's own jobserver on a sibling's cancel. A gate's `Gate minutes:`
+in that window are the evidence; the pass reads the lanes' transcripts for the signal's sender. One reach.
+
 (3389) **A journal's `## For the Loop` heading over `none` reads as unfiled, twice now** (3384's "for the Loop",
 filed at its merge: the heading, a blank line, `none`): `docs_guard::a_journal_s_loop_line_is_filed_or_says_none`
 reads only the heading's own line, so 3384's lane gate was red on it as the commander's line, as 3370's was. 3370's
