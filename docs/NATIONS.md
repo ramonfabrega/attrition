@@ -730,7 +730,7 @@ a pass books against a word, not a fix for the lobby that exposed it.
 - **The multiplayer handicap and `HANDICAPS` rows.** `semaphore[0] & 4`
   is off in every capture.
 - **`Setup::`, `ConquestGame::` and the interface classes' reads of
-  the difficulty,** which are not sim. ~~Unread~~ The never-entered ones
+  the difficulty,** which are not sim. The never-entered ones
   are read in §9 (item 3412), each with what would enter it.
 
 ## 9. The never-entered functions — what would enter each, and what nothing can (item 3412, reading)
@@ -757,7 +757,7 @@ written here and the row is left as generated.
 | `LeaderData::has_bonus@0047df90`, `LeaderData::has_bonus@006e0b80` | Two byte-identical copies of the Nubian (4) market gate, told apart only by the translation unit a call binds to (`llvm-objdump` call targets). `0047df90`'s one caller is `Options::describe@00724460` (four sites, tooltip text): interface only. `006e0b80`'s is `LeaderData::can_buy_sell@006d53e0`, whose one sim path is the human's Buy (`Options::exec` → `issue_buy` → `process_buy` → `action_buy`); `gain_tech`'s `action_sell` is dead (every good's `<OBS>` is `disable`), and the computer's `use_market` writes the gate inline, carried at `ai_make.rs:521–528` | the listing | a computer buy entering `006e0b80` |
 | `LeaderData::get_econ_mod@006d6660` | **Dead, and not "an early return at 0" as §6 had it**: the listing (`6d6660–6d669c`) returns `0.5` at difficulty 0, `0.75` at 1 and `1.0` above, and `1.0` for a human (`leader_flags & 4`) or under `semaphore[0] & 4` (the floats at `0xb694c0`, `0xb694dc`, `0xb69514`, read off the PE) — `get_mod_resource_cap`'s tier shape. No call and no four-byte pointer to it in the image | the listing; the PE | a trace entering it |
 | `LeaderData::get_vehicle_speed_upgrade@006da8a0` | Counts each of `VEHICLES_FASTER_1..3` (`0x2f8..0x2fa`) `has_preq` answers; its inlined Nubian/`BUY_SELL` arm cannot fire, since `0x2ad` is outside the range. Its one caller is `ObjectData::train_time@006508c0:262`, for a type with mask `0x200000` and not `0x1000`, applied as `(10 − n)/10`. The port (`tech.rs:483`, `lib.rs`) agrees, but asks one stored prerequisite per bonus where the original asks the bonus's whole PREQ list. **Why no pinned trace trains such a type is unestablished** | :262; the export | a `0x200000` unit queued with one upgrade held whose queue time is not ×9/10 |
-| `LeaderOut::warn_resources@006d3650` | Returns unless the leader is the console player (:65), then writes only the flash, a message line and a sound; the Lakota (19) arm is the food-advice string (:370). No sim state; the hook at `action_spell_view.rs:135` and the sweep's recording stub are right to drop it | the export | a sim field written by it |
+| `LeaderOut::warn_resources@006d3650` | Called when a press cannot be paid: `Options::exec@007188c0:1677` (a build or train button), `Options::do_declare_war@007216b0:121` and `Group::action_spell:685`. Returns unless the leader is the console player (:65), then writes only the flash, a message line and a sound; the Lakota (19) arm is the food-advice string (:370). No sim state; the hook at `action_spell_view.rs:135` and the sweep's recording stub are right to drop it | the export | a sim field written by it |
 | `TypeData::get_desc_parsed@006626e0` | Tooltip text, nine interface and CtW callers; the British (11) arm is the `TAX_1..4` number (:128–146) | the export | a sim caller |
 | `Object::disband@006455c0` (its national arms; the rest is `docs/AI.md`'s) | Lakota (19, :97–108): with `LAKOTA_RAZE_PRICE ≠ 0` a Lakota building disbanded for any reason refunds its whole price — the constant is a gate, not an amount — carried by `disband.rs`'s `SimDisband` for buildings, without the console message. Aztec (0, :144–153): a disbanded unit with `unit_masks & 0x4000` pays `Unit::plunder` to its last damager (`+0xa9`) when that damager is an Aztec; the sweep follows it, the sim disbands no unit, and no writer of `0x4000` was found (unestablished). `SimDisband::price` returns one price for the full arm (last argument −1) and the partial (`orig_type`), a possible disagreement. Every caller is an object's removal — a delete, a captured city, a duplicate wonder, a stranded site, a raze — and no pinned trace takes one | the export; the tree | a Lakota building deleted under its price whose `LEADERS=1` buckets gain less than its whole price |
 
@@ -771,6 +771,7 @@ All at `cover=1`; the frame is the action's. `CM` is `[Misc Logging] COMMANDMANA
 | `CommandPackage::process_sell@009468a0` | `CM` `process_sell`; `L1` `bucket.timber`, `bucket.wealth`; `Game::log_data`'s `market` | a Nubian human (any pair's lobby with the human Nubian) | a Market built, then Sell on timber, ~2000; a tracer `@sell` line is the cheaper route |
 | `LeaderData::has_bonus@006e0b80` | `CM` `process_buy`; `L1` buckets | the same lobby | Buy at the Market before Coinage (`BUY_SELL`), so only the Nubian arm opens the gate |
 | `LeaderData::get_vehicle_speed_upgrade@006da8a0` | `[End Frame] BUILDS=6` queue time | any lobby | a `0x200000`-masked land unit queued with one `VEHICLES_FASTER` held |
+| `LeaderOut::warn_resources@006d3650` | the message line (no sim field) | any lobby | the human presses a train button it cannot afford |
 | `Object::disband@006455c0` | `CM` `process_disband`; `L1` buckets | a Lakota human | delete a completed Lakota building; the Aztec arm needs an Aztec damaging a `0x4000` unit that is disbanded |
 
 ### 9.3 Residue proposals
@@ -784,5 +785,5 @@ All at `cover=1`; the frame is the action's. `CM` is `[Misc Logging] COMMANDMANA
 | `IFaceMarket::on_redraw@00812d20`, `IFaceMarket::setup_selected@008134d0`, `LeaderData::has_bonus@0047df90`, `TypeData::get_desc_parsed@006626e0` | interface text and buttons; no sim state |
 | `LeaderData::get_econ_mod@006d6660` | no caller and no pointer in the image |
 
-`LeaderOut::warn_resources@006d3650` is not proposed: `Group::action_spell` reaches it in a skirmish, so a capture enters
-it, but it writes no sim state and §9.2 books none for it.
+`LeaderOut::warn_resources@006d3650` is not proposed: an unaffordable press reaches it in a skirmish, so §9.2 owes it a
+capture, though it writes no sim state.
