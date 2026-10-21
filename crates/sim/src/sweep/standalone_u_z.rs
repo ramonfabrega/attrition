@@ -214,6 +214,8 @@ mod unit_do_attack;
 mod unit_do_attack_ground;
 #[path = "unit_do_attack_neg.rs"]
 mod unit_do_attack_neg;
+#[path = "unit_do_await_board.rs"]
+mod unit_do_await_board;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
 #[path = "unit_do_build.rs"]
