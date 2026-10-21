@@ -252,6 +252,8 @@ mod group_can_activate;
 mod group_compute_speed;
 #[path = "group_data_can_transport.rs"]
 mod group_data_can_transport;
+#[path = "group_data_count_peasants.rs"]
+mod group_data_count_peasants;
 #[path = "group_data_count_units.rs"]
 mod group_data_count_units;
 #[path = "group_data_equals_group_const.rs"]
