@@ -143,6 +143,14 @@ pub const TRACES: &[&str] = &[
     // the click-free pool to 15432, the game's own last frame
     // (`docs/RUNS.md` run1017), run470's game on every frame.
     "rontrace-run1017.log",
+    // Item 3431: the middle ages, Great Sahara at Toughest (run470's lobby)
+    // at `STARTING_TECHNOLOGY 3` and `5`, each at `cover=1` on the click-free
+    // pool to 6000 (`docs/RUNS.md` run1041, run1043), its `cover=0` twin's
+    // game (run1040, run1042) on every frame. They enter no `NEVER` row;
+    // they are pinned for the ages their dumps hold, Gunpowder and
+    // Industrial, which no other pinned trace's dump holds (`docs/RUBRIC.md`).
+    "rontrace-run1041.log",
+    "rontrace-run1043.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked

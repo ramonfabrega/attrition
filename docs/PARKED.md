@@ -9168,13 +9168,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MT — reserved
+## Parked by item 3431, 2026-10-21 — the middle ages
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3431a. `rubric.py`'s table 2 counts the two non-player slots as an active human in Ancient.** Every block of
+  run1041 and run1043 prints `LEADERDATA` for `who` 8 and 9 with `leader_flags` `0x2000007` (bits 0x1 and 0x4 set)
+  and `ages_get()` 0. `walk` keys on the flags alone, so the age-0 row's `human` column counts these two slots on
+  every pinned frame: 101 per start-3 or start-5 dump, where no player is in Ancient. The fix is one predicate,
+  `who < 8` or the receipt's `players`, plus a line in `docs/RUBRIC.md` §2. It moves no score. The age-0 count across
+  the pinned dumps (17,239) is inflated by it, and "ages held" is not, since 8 and 9 sit at 0 only.
+- **3431b. Medieval (2) and Modern (6) are still never held, and a start-N lobby holds only age N for 6000
+  frames.** At Toughest on Great Sahara, neither leader advances an age by 5941 from a start of 3 or 5 (run1041,
+  run1043). So each missing age costs one start of its own: `STARTING_TECHNOLOGY 2` and `6`, run1041's recipe
+  otherwise. The never-entered rows a later start was predicted to reach need units neither take fielded: a
+  supply wagon (63–65) for `Unit::think_supply@005f4730` and `SpellType::cast_supplies@006714c0`; a razed wonder
+  for `Wonders::close_wonder@0073c7e0`; Modern air or silos for `BuildQueueData::get_next_helicopter@00630bb0` and
+  `LeaderData::get_nukes@006ebe50`. A start-6 capture is the one that could reach the last two. It books only against
+  the blind list if one of them is named as its target.
 
 ## Parked by the next landing, slot MU — reserved
 
