@@ -2048,6 +2048,52 @@ fn x_port(a: &[i32]) -> i64 {
                 sweep_gen.EMU = ROOT / 'tools/emu'
                 sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_regen_writes_no_port_after_a_fence_that_stands_where_the_port_does(self):
+        # Loop 3407 (the forty-seventh pass): 3403's `Unit::process` slices
+        # fenced their whole port as `// hand: port` … `// end hand` in the
+        # port's own place and regenerated with `--port todo!()`; the fence
+        # went back after its anchor (the line above the port) and the
+        # generated `todo!()` stayed after it, deleted by hand on every
+        # regen. 3397's `wall_activate` kept `--port 0` on its line, and the
+        # same regen left a trailing `0` past the fence. A fence standing
+        # where the port stands replaces it; one placed before a port the
+        # old test also held after it keeps that port.
+        port_at = '            let _ = (&a, &m);\n'
+        body = ('            // hand: port\n            let v = a[0] as i64;\n'
+                '            v + 1\n            // end hand\n')
+        for port, regen in (('todo!()', ['--port', 'todo!()']), ('0', ['--port', '0']),
+                            ('todo!()', []), ('0', None)):
+            with self.subTest(port=port, regen=regen), tempfile.TemporaryDirectory() as tmp:
+                sweep_gen.EMU = Path(tmp)
+                sweep_gen.SWEEP = Path(tmp)
+                (Path(tmp) / 'mod.rs').write_text('')
+                try:
+                    line = ['obj', 'X::y@00401000', '--item', '1', '--win', '0x20', '--port', port]
+                    self.assertEqual(sweep_gen.main(line), 0)
+                    tp = Path(tmp) / 'x_y.rs'
+                    text = tp.read_text()
+                    drawn = port_at + '            ' + port + '\n        };\n'
+                    self.assertIn(drawn, text)
+                    text = text.replace(drawn, port_at + body + '        };\n')
+                    tp.write_text(text)
+                    # `None`: the kept line's own `--port` (3397's `--regen wall_activate`).
+                    argv = ['--regen', 'x_y'] if regen is None else [a for a in line if a not in ('--port', port)] + regen + ['--regen']
+                    for _ in range(2):  # and idempotent
+                        self.assertEqual(sweep_gen.main(argv), 0)
+                        out = tp.read_text()
+                        self.assertIn(port_at + body + '        };\n', out, 'no port body after `// end hand`')
+                        self.assertEqual(out, text)
+                    # A fence placed before a port the old test also holds keeps that port.
+                    setup = '            // hand: setup\n            let _w = 1;\n            // end hand\n'
+                    tp.write_text(text.replace(port_at + body, port_at + setup + '            ' + port + '\n'))
+                    if regen is not None and not regen:
+                        continue  # no `--port`: `kept_port` carries the block whole
+                    self.assertEqual(sweep_gen.main(argv), 0)
+                    self.assertIn(port_at + setup + '            ' + port + '\n        };\n', tp.read_text())
+                finally:
+                    sweep_gen.EMU = ROOT / 'tools/emu'
+                    sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
     def test_a_fence_left_open_is_refused(self):
         with self.assertRaises(ValueError):
             sweep_gen.kept_hands('fn a() {\n    // hand: x\n    let v = 1;\n}\n', 'fn a() {\n}\n')

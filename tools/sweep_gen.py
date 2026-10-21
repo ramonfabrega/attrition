@@ -3302,7 +3302,28 @@ def _squash(lines):
     return ''.join(chars), at
 
 
-def kept_hands(old, new):
+def _drop_port_after(new_lines, k, port, old_after, inside, base):
+    """Loop 3407: delete the generated `port` that starts at `new_lines[k]`
+    (whitespace ignored, whole lines only) when the old item's generated
+    text after the fence (`old_after`, its fences left out) did not start
+    with it — the fence stood where the port does."""
+    want, _ = _squash([port])
+    if not want:
+        return
+    flat, at = _squash(new_lines[k:])
+    if not flat.startswith(want):
+        return
+    before, _ = _squash([ln for j, ln in enumerate(old_after) if base + j not in inside])
+    if before.startswith(want):
+        return
+    end = at[len(want) - 1]
+    # Whole lines: the port is all the line it ends on holds.
+    if len(flat) > len(want) and at[len(want)] == end:
+        return
+    del new_lines[k:k + end + 1]
+
+
+def kept_hands(old, new, port=None):
     """Loop 3013's fifth reach (the forty-sixth pass): a hand block inside a
     generated body, fenced `// hand: <name>` … `// end hand`, carried from
     the old test to the new. Its anchor is the generated code it followed
@@ -3312,7 +3333,15 @@ def kept_hands(old, new):
     already placed there. An anchor the new item lacks puts the block
     before the item's closing brace; an item the new test lacks drops it;
     each said by name. A fence already in the new text (inside a kept port
-    block or a kept item) is left where it is. Returns `(text, warnings)`."""
+    block or a kept item) is left where it is. Returns `(text, warnings)`.
+
+    `port` is the expression the generator wrote in the port's place. A
+    fence that stood in that place in the old test — the port right after
+    it in the new one and not in the old — replaces it, so a regen with
+    `--port todo!()` (or a kept `--port 0`) writes no port body past
+    `// end hand` (Loop 3407: 3403 deleted a stray `todo!()`, 3397 a `0`,
+    after every regen). The anchor ends at the line above the port, so
+    the fence went back before the generated port and the port stayed."""
     warnings = []
     old_items = _items(old)
     out = new
@@ -3359,6 +3388,8 @@ def kept_hands(old, new):
                 warnings.append(f'hand block `{name}`: its anchor is not in the new `{head}`; '
                                 "placed at the item's end")
             new_lines[k:k] = lines[first:last + 1]
+            if port is not None:
+                _drop_port_after(new_lines, k + last + 1 - first, port, lines[last + 1:], inside, last + 1)
             items[idx] = (items[idx][0], '\n'.join(new_lines))
             out = '\n'.join(b for _, b in items)
     return out, warnings
@@ -4322,10 +4353,10 @@ def main(argv=None):
               'names its own module with --name (Loop 3013, 3182)', file=sys.stderr)
         return 2
     old_test = tp.read_text() if args.regen and tp.exists() else None
+    todo = f'todo!("the port of {parse(args.function)[0]}")' if old_test is not None else None
     if args.regen and args.port is None and tp.exists():
         # The test's hand-written port is kept between the generated halves
         # (item 2368: two of 2341's ten restored it by hand from a copy).
-        todo = f'todo!("the port of {parse(args.function)[0]}")'
         kept = kept_port(old_test, test, todo)
         if kept is not None:
             test = kept_items(old_test, kept)
@@ -4343,7 +4374,7 @@ def main(argv=None):
     if old_test is not None:
         # Fenced hand blocks inside a generated body (Loop 3013's fifth reach).
         try:
-            test, warned = kept_hands(old_test, test)
+            test, warned = kept_hands(old_test, test, port=args.port or todo)
         except ValueError as e:
             print(f'sweep_gen.py: {shown(tp)}: {e}', file=sys.stderr)
             return 2
