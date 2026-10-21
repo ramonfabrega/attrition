@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(0);
@@ -41,20 +46,23 @@ fn the_emulated_original_agrees_on_every_row() {
             let (a, m, c, p) = (&a[..], &mut m[..], &mut c[..], &mut p[..]);
             let _ = (&a, &m, &c, &p);
             {
-    // The self-target arm (`param_2 == param_4`): the refund through slot 0xd8, then the unit's counter at +0x96
-    // (a short) is lowered by the smaller of itself and `this+0x1d0`.
-    let (p1, p2) = (a[0], a[1]);
-    log.push(format!("s0:m+0x0,{p2},{p1},-1"));
-    let sh = i16::from_le_bytes([p[1][0x96], p[1][0x97]]) as i32;
-    let lim = rd(m, 0x1d0);
-    let take = if lim < sh { lim } else { sh };
-    let v = (sh as u16).wrapping_sub(take as u16);
-    p[1][0x96..0x98].copy_from_slice(&v.to_le_bytes());
-    0
-}
+                // The self-target arm (`param_2 == param_4`): the refund through slot 0xd8, then the unit's counter at +0x96
+                // (a short) is lowered by the smaller of itself and `this+0x1d0`.
+                let (p1, p2) = (a[0], a[1]);
+                log.push(format!("s0:m+0x0,{p2},{p1},-1"));
+                let sh = i16::from_le_bytes([p[1][0x96], p[1][0x97]]) as i32;
+                let lim = rd(m, 0x1d0);
+                let take = if lim < sh { lim } else { sh };
+                let v = (sh as u16).wrapping_sub(take as u16);
+                p[1][0x96..0x98].copy_from_slice(&v.to_le_bytes());
+                0
+            }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "cast_bribe — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "cast_bribe — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "cast_bribe — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {

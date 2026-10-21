@@ -6,8 +6,6 @@ mod support;
 use support::{emu_rows, row, tail_row};
 
 // Registered standalone sweeps.
-#[path = "unit_check_meet_ship.rs"]
-mod unit_check_meet_ship;
 #[path = "unbuilt_cities_add_unbuilt_city.rs"]
 mod unbuilt_cities_add_unbuilt_city;
 #[path = "unbuilt_cities_remove_unbuilt_city.rs"]
@@ -88,6 +86,8 @@ mod unit_check_build_order_deep;
 mod unit_check_build_order_move;
 #[path = "unit_check_idle.rs"]
 mod unit_check_idle;
+#[path = "unit_check_meet_ship.rs"]
+mod unit_check_meet_ship;
 #[path = "unit_check_target_path.rs"]
 mod unit_check_target_path;
 #[path = "unit_come_out.rs"]

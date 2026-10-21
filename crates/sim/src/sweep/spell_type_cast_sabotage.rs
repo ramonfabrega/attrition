@@ -86,10 +86,7 @@ impl Bytes<'_> {
         self.call(format!("s5:15558448,p30+{off}"));
         self.call(format!("s6:p19+0x0,sp-{to:#x}"));
         self.call(format!("s6:p20+0x0,sp-{co:#x}"));
-        self.call(format!(
-            "s7:{},sp-{no:#x}",
-            0xe3a390 + p2 * 0x6eec
-        ));
+        self.call(format!("s7:{},sp-{no:#x}", 0xe3a390 + p2 * 0x6eec));
         let nm = self.ans(7);
         self.call(format!("s8:15558448,sp-{po:#x},sp-{to:#x},sp-{co:#x},{nm}"));
         let r = self.ans(8);
@@ -200,9 +197,7 @@ fn cast_sabotage_steps(v: &mut Bytes) {
         dmg = dmg.max(rd(&v.p[28], 0x3f4));
     }
     v.call("s18:p19+0x0".into());
-    v.call(format!(
-        "s20:p33+0x0,{dmg},0,3,-1,1,1431655765,-1,-1,0"
-    ));
+    v.call(format!("s20:p33+0x0,{dmg},0,3,-1,1,1431655765,-1,-1,0"));
     if v.ans(20) != 0 {
         v.bump(p2, 3, 0, 1);
         v.score();
@@ -227,10 +222,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(1);
@@ -249,14 +249,25 @@ fn the_emulated_original_agrees_on_every_row() {
             0
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "cast_sabotage — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "cast_sabotage — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
         assert_eq!(m, want[0], "cast_sabotage — this's bytes, row `{line}`");
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "cast_sabotage — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "cast_sabotage — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[2 + i], "cast_sabotage — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[2 + i],
+                "cast_sabotage — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
