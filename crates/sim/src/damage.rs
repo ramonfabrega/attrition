@@ -318,9 +318,6 @@ pub fn get_damage_steps<F: DamageFacts>(
     }
     // 20. Net damage.
     let mut dmg = (base.wrapping_add(5) / 10).wrapping_sub(armor);
-    if std::env::var("RON_PROBE_3385").is_ok() {
-        eprintln!("PROBE3385 pct {pct} attack {attack} armor {armor} base {base} dmg20 {dmg} angle {angle} az {} tz {} frame {}", f.attacker_z(), f.target_z(), f.frame());
-    }
     // 21. Overkill.
     if check_overkill && f.attacker_is_ranged() && f.attacker_is_unit() && f.target_is_unit() {
         let df = f.target_damage_frame();
@@ -392,9 +389,6 @@ pub fn get_damage_steps<F: DamageFacts>(
     // 28. Recapture.
     if f.target_is_build() && f.target_build_active() && f.recapturable_city() {
         dmg = shr8(f.rule(Rule::RecaptureCityModifier).wrapping_mul(dmg));
-    }
-    if std::env::var("RON_PROBE_3385").is_ok() {
-        eprintln!("PROBE3385 final {dmg}");
     }
     dmg
 }
