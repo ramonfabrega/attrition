@@ -70,6 +70,7 @@ record!(UnitDump {
     start_dist: Option<i64>,
     spell_time: Option<i64>,
     mana_burn: Option<i64>,
+    full: Option<i64>,
     rare: Option<i64>,
     good_obj: Option<i64>,
     uid: Option<i64>,

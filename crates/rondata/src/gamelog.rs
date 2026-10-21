@@ -2179,6 +2179,9 @@ pub struct UnitDump {
     /// `think_hero` reads "with the mana". Read since item 3306 (Loop 3310):
     /// it stood unread while The Despot's parted on every block of run943.
     pub mana_burn: Option<i64>,
+    /// `UnitData::full` (`+0xac`) — the "nobody can reach it" counter the
+    /// target search divides by. Read since item 3385.
+    pub full: Option<i64>,
     /// `UnitData::rare` (`+0x54`) — the good `calc_gather` last found, `-1`
     /// when it looked and found none (item 3306).
     pub rare: Option<i64>,
@@ -3408,6 +3411,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         start_dist: b.int("start_dist"),
         spell_time: b.int("spell_time"),
         mana_burn: b.int("mana_burn"),
+        full: b.int("full"),
         rare: b.int("rare"),
         good_obj: b.int("good_obj"),
         uid: obj.and_then(|o| o.int("uid")),

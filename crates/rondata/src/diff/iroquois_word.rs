@@ -1173,7 +1173,8 @@ fn run952_s_word_frame_is_widened_whole() {
     // `IROQUOIS`'s comment.)
     // Item 3369: 60 -> 33, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 33, "run952 with the Despot's cut");
+    // Item 3385: 33 -> 31 (the General's rally armour, `Sim::rally_armor`).
+    pin_eq!(w.firsts.len(), 31, "run952 with the Despot's cut");
 }
 
 /// run954: the word 12156's window, blocks 12150..12406 at run952's
@@ -1223,7 +1224,8 @@ fn run954_s_word_frame_is_widened_whole() {
     // Item 3375: 34 -> 33, the Cavalry Archers' piece 1546 in
     // `sim::pivot::RELEASES`: block 12231's `0/2000` `build:damage`, ours
     // 902 against theirs 904, agrees.
-    pin_eq!(w.firsts.len(), 33, "run954 on its first build");
+    // Item 3385: 33 -> 31 (the General's rally armour, `Sim::rally_armor`).
+    pin_eq!(w.firsts.len(), 31, "run954 on its first build");
     // Item 3306: 1118 on the first build, 1088 with the held building's
     // yield (the parting index 1 → 10), and 61 with the yield's skip of
     // the flee arm and the on-duty gate. Block 12150 holds the standing
@@ -1339,7 +1341,8 @@ fn run952b_s_gap_is_widened_whole() {
     // 89 on both sides (`docs/AI.md` §261).
     // Item 3369: 59 -> 32, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 32, "run952b with the Despot's cut");
+    // Item 3385: 32 -> 30 (the General's rally armour, `Sim::rally_armor`).
+    pin_eq!(w.firsts.len(), 30, "run952b with the Despot's cut");
 }
 
 /// **The Despot's Ambush holds its craft** (item 3297, `docs/AI.md`
