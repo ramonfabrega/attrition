@@ -9206,13 +9206,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MW — reserved
+## Parked by item 3422, 2026-10-21 — the boat's two other arms
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3422a. `Unit::think_carry_military@005f3260`: a soldier-carrying boat that idles.** run1021 (the successor pair,
+  `cover=1` to 2210) entered `think_carry` and `think_carry_civilian` on 2178, but not this. Every boat in its dump,
+  2174..2210, is a Freighter (TypeIndex 322: `1/72`, `1/76`, `1/81`), each carrying one type-50 unit. So
+  `count_inside(COUNT_WORKERS)` is non-zero and `think_carry` takes its worker arm at `+0x14`. The military function
+  is reached by `think_carry`'s `jcc` at `+0x38` when a boat carries an attacker and no worker. It is also reached by
+  `think_carry_civilian(0)+0x39d`, a `count_inside(COUNT_TYPE, 0x45)` boat that finds no region (`report.py <exe>
+  refs 005f3260`). The cheapest staging on disk is the peace pair. Its Freighter `1/225` carries the Flamethrower
+  `1/185` (army 1), stands idle at 3 in ours, and holds a `MOVEORDER` in theirs from 5976 on (`docs/AI.md` §235,
+  run879). A `cover=1` take of that lobby to 6232 would enter it. The successor pair's own BMP `1/28` lands from a
+  boat on 4363 (§214), so a take of this lobby to its end, 5056, is the second candidate. Moves `never` by one.
+- **3422b. `Unit::think_carry_idle@005f2f30`: a boat with neither a worker, a type-`0x45` unit nor an attacker
+  aboard.** That is `think_carry`'s `+0x3e` `jmp`. No dump this item read holds such a boat. Every carrier on
+  2174..2210 carries a worker. The predicate is written here so that a dump scan can name a lobby before anyone books
+  a capture for it.
 
 ## Parked by the next landing, slot MX — reserved
 
