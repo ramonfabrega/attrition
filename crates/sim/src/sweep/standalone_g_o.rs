@@ -224,6 +224,10 @@ mod group_action_halt_head;
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
 mod group_action_queue_up;
+#[path = "group_action_repair.rs"]
+mod group_action_repair;
+#[path = "group_action_repair_head.rs"]
+mod group_action_repair_head;
 #[path = "group_action_spell.rs"]
 mod group_action_spell;
 #[path = "group_action_swarm_around.rs"]
