@@ -438,6 +438,8 @@ mod guy_data_get_render_z;
 mod guy_data_is_corner;
 #[path = "guy_data_walk_data.rs"]
 mod guy_data_walk_data;
+#[path = "guy_set_angle.rs"]
+mod guy_set_angle;
 #[path = "guy_set_bank.rs"]
 mod guy_set_bank;
 #[path = "guy_set_elev_angle.rs"]
@@ -456,6 +458,8 @@ mod guy_turn_towards;
 mod guy_update_gpiece;
 #[path = "guy_update_z.rs"]
 mod guy_update_z;
+#[path = "herd_create_units.rs"]
+mod herd_create_units;
 #[path = "herd_walk_data.rs"]
 mod herd_walk_data;
 #[path = "herds_find_herd.rs"]
@@ -604,6 +608,8 @@ mod object_data_can_carry_pair;
 mod object_data_can_carry_type;
 #[path = "object_data_cargo_inside.rs"]
 mod object_data_cargo_inside;
+#[path = "object_data_count_inside.rs"]
+mod object_data_count_inside;
 #[path = "object_data_get_damage.rs"]
 mod object_data_get_damage;
 #[path = "object_data_get_inside.rs"]
