@@ -9044,13 +9044,29 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot ML — reserved
+## Parked by item 3411, 2026-10-21 — the last five sweep rows: five swept, none wired
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ML renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+No generator park: every `sweep_gen.py` run exited 0 and no flag was lacking. What parks is wiring — each port
+is an oracle-agreed module the live sim does not call.
+
+- **3411a** `Unit::think_carry_idle@005f2f30` — `carry_idle.rs` (`CarryIdleView`, `think_carry_idle_steps`) agrees
+  on 3000 rows, unwired: `SimCarry::idle` in `transport.rs` still answers `false`. Wiring needs the leader's city
+  list in the original's order, a `CityData::get_building(DOCK)` test, and a mapping of the 16-argument
+  `UnitType::find_nearby_spot` onto `Sim::find_nearby_spot`. The original hands `get_building` two stale stack
+  words beside `DOCK` (the `is_coast` return address, the city's region).
+- **3411b** `Unit::think_carry_military@005f3260` — `carry_mil.rs` (`CarryMilView`, `think_carry_military_steps`)
+  agrees on 2000 rows, unwired. `think_carry_army` (`transport.rs:644`) is a **namesake**: the army arm only, with
+  SEAMs for the eject, the no-army nearest-city search and the region-centre arms, and no target table or tail order
+  build. Wiring needs a view over armies, groups, cities, objects and leaders' region marks. Its emulator output is
+  ~200 MB for 2000 rows, past the 16 MiB emu-cache cap, so the test reruns the original each time (~12 s); cap it at
+  1500 rows to cache it. Its `RowView` is not inside a `// hand:` fence, so a `--regen` drops it.
+- **3411c** `Group::action_repair@007020c0` — `repair_view.rs` (`RepairView`, `action_repair_steps`) agrees on
+  2000 rows plus a 400-row head slice, unwired: the `repair` command (type `0x10`) is issued by nothing a game reaches
+  (GOLDEN §49), so there is no caller to wire it to.
+- **3411d** `AnimalData::is_seen@005d8160` and `Unit::do_await_board@005ed040` — swept against inline ports, no
+  module: the crate has no `AnimalData::is_seen` (the animal's `ObjectData` seen path is not a call into it) and
+  `orders.rs` only names AWAIT_BOARD in a comment (`:4118`). A live port wants the animal's los/seen view and the
+  await-board order on `Sim`.
 
 ## Parked by the next landing, slot MM — reserved
 
