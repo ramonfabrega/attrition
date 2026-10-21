@@ -3778,7 +3778,7 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 asked `LEADERS=1` for `treaties[1]`, which the logger prints only at `LEADERS>=3`, and the lane spent a retake learning
 it (run1016b, parked 3417b). Candidate: a guard over the captures-owed tables that checks each row's category and level
 against the level the dump's own writer prints the field at (the stanzas already on disk say which), or a brief row
-until it is one. Score: a coverage retake the next tranche does not spend. One reach. **3419's "for the Loop"**, the same family: a booking's end frame is checked against the dumps for when the state it waits on expires — 3419's 10945 stopped before the Ambush expired, and the lane ran to the game's own end (12658) to see it.
+until it is one. Score: a coverage retake the next tranche does not spend. One reach. **3419's "for the Loop"**, the same family: a booking's end frame is checked against the dumps for when the state it waits on expires — 3419's 10945 stopped before the Ambush expired, and the lane ran to the game's own end (12658) to see it. **3423's "for the Loop"**, the same family: a booking that names a decompile function checks `report.py refs` for a same-named twin first — `BuildData::can_queue` has two byte-identical copies, the script's research calls `004d2030` (entered on frame 1) and the booked `0062da00` only a human's queue-up click reaches (3423a).
 
 ## Loop, filed 2026-10-21 — the forty-eighth tranche's
 
@@ -9223,13 +9223,18 @@ words and edits nothing here; a refill lands when two remain.
   2174..2210 carries a worker. The predicate is written here so that a dump scan can name a lobby before anyone books
   a capture for it.
 
-## Parked by the next landing, slot MX — reserved
+## Parked by item 3423, 2026-10-21 — the human's copy of `can_queue`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3423a. `BuildData::can_queue@0062da00` is entered only by a human's queue-up: owed by the click layer.** The
+  image holds two byte-identical copies of `can_queue` (COMDAT twins). `report.py <exe> refs 0062da00 004d2030`:
+  `@0062da00`'s one caller is `GroupOut::issue_queue_up+0x26f` (`00708eff`), and `@004d2030`'s is
+  `ScenarioFuncSet::research_tech_with_cost+0x14e` (`009ee84e`, the listing's `call 0x4d2030`). The AI's research
+  takes the second, which run1023 (the Bantu at difficulty 4, `cover=1` to 2810) enters on frame 1. So §296 row 7
+  booked a click-free lobby for a function that no AI lobby reaches. No click-free capture can enter it. The trace
+  that does is a human's queue-up through `GroupOut` (a group selected, a unit or tech queued from the panel), which
+  is the click layer's lane (3427's kind). It moves `never` by one there. `docs/AI.md` §276's and two `sim` comments'
+  cite of `@0062da00` for the script path now name `@004d2030`. The journals of 2309 and 3343 still cite the click
+  copy, so it stays cited and on `NEVER`.
 
 ## Parked by the next landing, slot MY — reserved
 
