@@ -20,10 +20,10 @@ forty-eighth tranche booked on the blind list (DECISIONS 86); roster Ramon's (DE
   14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368; entry 61 §6's stop rule has fired, so no lobby
   is promoted and none is minted (Ramon's to reopen). Census 1686 of 3611, port 568, layout 1118; `never` 373, of which
   35 accepted residue — **the blind list, 337 open, is the score the forty-eighth tranche moves** (DECISIONS 29 §2).
-- **Lanes: none live.** Four to spawn: 3408 and 3409 on the two Opus lanes (`reading` kind, DECISIONS 84, `--tests blind::
-  --no-widen`), 3410 and 3411 on the two Sonnet lanes (the last sweep rows the census names; after them the sweep seats
-  stand empty unless Ramon names a source). Next 3415, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ (refill
-  to six at the opening). Parked for the pass's eye: 3400a.
+- **Lanes: four live, the forty-eighth commander's (Opus)**: att-3408 and att-3409 on the Opus lanes (`reading` kind,
+  DECISIONS 84, `--tests blind:: --no-widen`), att-3410 and att-3411 on the Sonnet lanes (the last sweep rows the census
+  names; after them the sweep seats stand empty unless Ramon names a source). Next 3415, run 1016. Pools, refilled to six:
+  GOLDEN §144 (3408), §145–149; AI §296 (3409), §297–301; park MI–ML (3408–3411), MM–MN. Parked for the pass's eye: 3400a.
 - **Fable backlog: 9 Loop items** (3382, 3371, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 86.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
