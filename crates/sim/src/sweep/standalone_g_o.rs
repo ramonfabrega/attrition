@@ -440,6 +440,8 @@ mod guy_turn_towards;
 mod guy_update_gpiece;
 #[path = "guy_update_z.rs"]
 mod guy_update_z;
+#[path = "herd_create_units.rs"]
+mod herd_create_units;
 #[path = "herd_walk_data.rs"]
 mod herd_walk_data;
 #[path = "herds_find_herd.rs"]

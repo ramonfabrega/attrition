@@ -119,6 +119,7 @@ pub mod group_queue_up;
 pub mod grouppath;
 pub mod halt_view;
 pub mod heal;
+pub mod herd_create_view;
 pub mod holdings;
 pub mod launch;
 pub mod location;
