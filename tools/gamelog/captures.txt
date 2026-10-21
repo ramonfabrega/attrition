@@ -10033,3 +10033,15 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --ai-tribe 12 --cover cover=0 --profile DIFFICULTY=3   (the word 13582's window)
 # Checks: `rngcmp.py` run1002 vs run1002b -> 37 identical; run1000b vs run1003 -> 13838 identical.
 # ==== TAKEN 2026-10-20, one take each, 15:10-15:29, pool lanes 1 and 3 ====
+# ==== item 3390: the Spanish word at Great Lakes' battery replacement (`docs/AI.md` §294; `docs/RUNS.md` run1012, run1012b) ====
+#   run1012  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 22 --profile DIFFICULTY=4   (Great Lakes, Dutch; start)
+#   run1012b run1008b's line with --ai-tribe 22   (the Dutch's draw stream; ended itself on 6147)
+# Checks: `rngcmp.py` run1012 vs run1012b -> 37 identical.
+# ==== TAKEN 2026-10-20, one take each, 18:57-19:03, pool lanes 2 and 3, through `viadriver.sh tools/explore/golden_capture.sh` ====
+# ==== item 3390: the Spanish word at Great Lakes, its windows (`docs/AI.md` §294; `docs/RUNS.md` run1013..run1013c) ====
+#   run1013  --map 14 --end-frame 13751 --timeout 7200 --log-window 13490 13746 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3
+#            --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=4   (the word 13496's window)
+#   run1013b --end-frame 13491 --timeout 5400 --log-window 8380 13489 --stride 16 (run1013's --detail, --ai-tribe, --cover, --profile)   (the gap, one in sixteen)
+#   run1013c --end-frame 13491 --timeout 5400 --log-window 13463 13489 (run1013's --detail, --ai-tribe, --cover, --profile)   (the army's parting, 13469..13485)
+# Checks: `rngcmp.py` run1008b vs run1013 -> 13752 identical, vs run1013b -> 13492, vs run1013c -> 13492.
+# ==== TAKEN 2026-10-20, one take each, 19:58-21:12, pool lane 1, through `viadriver.sh tools/explore/golden_capture.sh` ====

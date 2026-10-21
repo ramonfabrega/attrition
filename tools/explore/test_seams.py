@@ -311,8 +311,10 @@ class TheLiveTree(unittest.TestCase):
     # `spellcaster.rs`'s crate doc, `think_civilian_transport`'s and
     # `do_cast`'s. Each is 1224's to strike, re-word or book. 17 → 16:
     # item 3355 built `do_move`'s captain search, whose SEAM in
-    # `melee_search_flags` named the call as missing.
-    DOORS = 16
+    # `melee_search_flags` named the call as missing. 16 → 15: item 3390
+    # built `do_cast`'s Monarch step (`Sim::near_monarch`), and its
+    # `SEAMS:` block no longer names it as missing.
+    DOORS = 15
 
     def test_the_seams_a_door_outlived_are_the_pinned_count(self):
         self.assertEqual(len(seams.doors()), self.DOORS)

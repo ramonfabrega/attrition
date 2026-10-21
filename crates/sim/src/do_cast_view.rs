@@ -371,13 +371,26 @@ impl DoCastClock for SimDoCast<'_> {
         spot.is_none()
     }
     fn unit_type_gate(&mut self) -> bool {
-        // Not modelled: the General's `has_general(0, 0x162)` clock step.
-        false
+        // The type's vslot `+0x10c`, `UnitTypeData::is_siege@00470460`
+        // (`unit_flags & 0x20000`; the PDB's `LF_ONEMETHOD` names the
+        // slot), item 3390.
+        self.sim.is_siege_unit(self.u)
     }
     fn has_general_162(&mut self) -> i32 {
-        -1
+        // A Monarch in reach (`Sim::near_monarch`); the index it answers
+        // is read only for its sign.
+        if self.sim.near_monarch(self.u) { 0 } else { -1 }
     }
-    fn crew_hold_bump(&mut self) {}
+    fn crew_hold_bump(&mut self) {
+        // `005ecd5b`-`005ecd8f`: every figure's `cur_time` one up, and
+        // back one when it reaches `end_time` (the `<=` is unsigned).
+        for g in &mut self.sim.units[self.u].guys {
+            g.cur_time = g.cur_time.wrapping_add(1);
+            if g.end_time <= g.cur_time {
+                g.cur_time = g.cur_time.wrapping_sub(1);
+            }
+        }
+    }
     fn job_time(&mut self, craft: i32) -> i32 {
         i32::from(self.sim.cast_job_time(self.u, craft))
     }
