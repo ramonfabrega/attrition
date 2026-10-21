@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-20, **the forty-seventh tranche (commander, Opus): 13 of 20 landed from `56f23ba5`** (the Germans, the
 Indians and the Inca at Great Sahara, the Turks, the Americans and the Spanish at Great Lakes closed; six sweeps); the roster is Ramon's (DECISIONS 84, 85): two Opus 5.5 medium battery lanes landing wide, two Sonnet
-5.5 medium sweep lanes — **no battery word is open and the battery is whole, so both battery lanes run as sweeps (Loop 3398)**. Last whole gate `490d046e` (3390's booking); widened since: none; scoped gates `--scope 490d046e5`. Briefs and notes in the commander's job tmp `t47/`.*
+5.5 medium sweep lanes — **no battery word is open and the battery is whole, so both battery lanes run as sweeps (Loop 3398)**. Last whole gate `490d046e` (3390's booking); widened since: 3393; scoped gates `--scope 490d046e5`. Briefs and notes in the commander's job tmp `t47/`.*
 
 - **Words**: every pair closed; thirty battery words closed, none open (`AI_WORDS` holds twenty-eight, every one at its game's end). Battery on `15e001e8`:
   6147 (the Dutch at Great Lakes, 3390, rule (2)), 7799, 14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368 (Loop 3398). Census 1653, port 557.
