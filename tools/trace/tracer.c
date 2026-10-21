@@ -2000,7 +2000,7 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
         }
         install_hooks();
 #ifdef RON_AUTOSTART
-        install_autostart();
+        i32 autostart = check_autostart();
 #endif
         if (g_cw_hi >= g_cw_lo) {
             g_calls = 1;
@@ -2019,8 +2019,13 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
             if (!g_nfuncs) emit(K_INFO, I_NOFUNCS, 0, 0, 0, 0, 0);
             u32 armed = arm_all();
             emit(K_INFO, I_ARMED, (u32)-1, armed, 0, 0, 0);
-            CreateThread(0, 0, (void *)flusher, 0, 0, 0);
         }
+#ifdef RON_AUTOSTART
+        /* After `arm_all`, before the flusher: its jmps go over the stubs'
+         * at the entries it replaces, on the one thread (live_autostart.h). */
+        if (autostart) install_autostart();
+#endif
+        if (g_cover) CreateThread(0, 0, (void *)flusher, 0, 0, 0);
         emit(K_INFO, I_ATTACH, g_base, g_nfuncs, (u32)g_win_lo, (u32)g_win_hi, g_cover);
         emit(K_INFO, I_CMDS, g_ncmds, 0, 0, 0, 0);
         flush();
