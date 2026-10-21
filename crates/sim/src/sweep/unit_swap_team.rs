@@ -52,6 +52,7 @@ fn the_emulated_original_agrees_on_every_row() {
                 p,
                 log: &mut log,
                 turn: [0; 3],
+                steps: Default::default(),
             };
             i64::from(st.run())
             // end hand
@@ -92,6 +93,7 @@ struct SwapTeam<'a> {
     p: &'a mut [Vec<u8>],
     log: &'a mut Vec<String>,
     turn: [usize; 3],
+    steps: std::cell::Cell<usize>,
 }
 
 /// A window of the port: `this` or `p<n>`.
@@ -105,6 +107,8 @@ impl SwapTeam<'_> {
     const K: i32 = 0x63637;
 
     fn b(&self, w: Win) -> &[u8] {
+        self.steps.set(self.steps.get() + 1);
+        assert!(self.steps.get() < 50_000, "the port ran away");
         match w {
             Win::This => self.m,
             Win::P(n) => &self.p[n],
@@ -151,6 +155,12 @@ impl SwapTeam<'_> {
         };
         Win::P(20 + 2 * (n - 4) + g as usize)
     }
+    /// One call recorded; a port that runs away is a failed row, not a hung test (the log of a
+    /// real row is under thirty tokens).
+    fn say(&mut self, token: String) {
+        assert!(self.log.len() < 400, "the port ran away");
+        self.log.push(token);
+    }
     fn seq(&mut self, k: usize) -> i32 {
         let (lo, len) = [(12, 8), (20, 8), (28, 4)][k];
         let at = self.turn[k].min(len - 1);
@@ -163,19 +173,20 @@ impl SwapTeam<'_> {
         if self.a[32] == 1 {
             (self.r16(w, 0x8e) as u16) >> 15 != 0
         } else {
-            self.log.push(format!("s0:{}", Self::name(w)));
+            self.say(format!("s0:{}", Self::name(w)));
             self.seq(0) != 0
         }
     }
     /// `UnitData::get_captain`, the image's: up the `o_up` chain to a captain, its own index.
     fn image_get_captain(&self, mut w: Win) -> i32 {
-        loop {
+        for _ in 0..16 {
             let up = self.r16(w, 0x8e);
             if up < 0 {
                 return self.r16(w, 0xa);
             }
             w = Self::unit(self.team(w), up);
         }
+        panic!("the o_up chain does not end")
     }
     /// Slot `0xe4` of the unit in `w`; `swap_team` inlines the image's own.
     fn get_captain(&mut self, w: Win) -> i32 {
@@ -187,7 +198,7 @@ impl SwapTeam<'_> {
                 self.image_get_captain(Self::unit(self.team(w), up))
             }
         } else {
-            self.log.push(format!("s1:{}", Self::name(w)));
+            self.say(format!("s1:{}", Self::name(w)));
             self.seq(1)
         }
     }
@@ -196,12 +207,10 @@ impl SwapTeam<'_> {
     fn init_unit(&mut self, at: Win) -> i32 {
         let who = self.a[0];
         let ty = self.r32(Win::P(36), 4);
-        self.log
-            .push(format!("s5:{},{ty}", 0xe3a390 + who * 0x6eec));
+        self.say(format!("s5:{},{ty}", 0xe3a390 + who * 0x6eec));
         let upgrade = self.a[1 + 5];
         let (x, y) = (self.r32(at, 0x10) ^ Self::K, self.r32(at, 0x14) ^ Self::K);
-        self.log
-            .push(format!("s6:c0+0x0,{who},{upgrade},{x},{y},-1,-1,-1"));
+        self.say(format!("s6:c0+0x0,{who},{upgrade},{x},{y},-1,-1,-1"));
         self.seq(2)
     }
     /// The guys of the old unit copied onto the new one's, `update_gpiece` on each.
@@ -223,7 +232,7 @@ impl SwapTeam<'_> {
             for (o, v) in words {
                 wr(self.bm(ng), o, v);
             }
-            self.log.push(format!("s9:{}", Self::name(ng)));
+            self.say(format!("s9:{}", Self::name(ng)));
             g += 1;
         }
     }
@@ -266,8 +275,8 @@ impl SwapTeam<'_> {
         let this = Win::This;
         if !self.is_captain(this) {
             let cap = Self::unit(self.team(this), self.r16(this, 0x8e));
-            self.log.push(format!("s3:{}", Self::name(cap)));
-            self.log.push(format!("s4:p37+0x0,{who}"));
+            self.say(format!("s3:{}", Self::name(cap)));
+            self.say(format!("s4:p37+0x0,{who}"));
             return self.a[1 + 4];
         }
         let (t, i) = (self.team(this), self.index(this));
@@ -280,10 +289,10 @@ impl SwapTeam<'_> {
                 self.copy_common(o, w);
                 self.flags_masks(o, w, false);
                 if self.b(w)[8] & 1 == 0 {
-                    self.log.push(format!("s7:{}", Self::name(w)));
+                    self.say(format!("s7:{}", Self::name(w)));
                 } else {
                     let (x, y) = (self.r32(o, 0x10) ^ Self::K, self.r32(o, 0x14) ^ Self::K);
-                    self.log.push(format!("s8:{},{x},{y},1,1", Self::name(w)));
+                    self.say(format!("s8:{},{x},{y},1,1", Self::name(w)));
                 }
                 self.guys(o, w);
                 oi = self.r16(o, 0x90);
@@ -315,7 +324,7 @@ impl SwapTeam<'_> {
                         self.copy_common(o, w);
                         self.flags_masks(o, w, true);
                         if self.b(w)[8] & 1 == 0 {
-                            self.log.push(format!("s7:{}", Self::name(w)));
+                            self.say(format!("s7:{}", Self::name(w)));
                         }
                         self.guys(o, w);
                         ni = self.r16(w, 0x90);
@@ -326,7 +335,7 @@ impl SwapTeam<'_> {
                     };
                     let top = Self::unit(who, last);
                     let cap = self.get_captain(top);
-                    self.log.push(format!(
+                    self.say(format!(
                         "s10:{},{n},{who},0",
                         Self::name(Self::unit(who, cap))
                     ));
@@ -346,7 +355,7 @@ impl SwapTeam<'_> {
             self.bm(child)[0x82] = 0xff;
             self.bm(child)[0x83] = 0xff;
             self.bm(child)[0xb4] = 0xff;
-            self.log.push(format!("s2:{},0,-1,0", Self::name(cur)));
+            self.say(format!("s2:{},0,-1,0", Self::name(cur)));
             let old_team = b1;
             self.m[0xa] = sv as u8;
             self.m[0xb] = (sv >> 8) as u8;
@@ -358,7 +367,7 @@ impl SwapTeam<'_> {
         let (ft, mut fi) = (self.team(this), self.index(this));
         loop {
             let u = Self::unit(ft, fi);
-            self.log.push(format!("s2:{},0,-1,0", Self::name(u)));
+            self.say(format!("s2:{},0,-1,0", Self::name(u)));
             if self.is_captain(u) {
                 return n;
             }
