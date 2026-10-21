@@ -14,7 +14,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 *2026-10-20, **the forty-seventh tranche (commander, Opus): 10 of 20 landed from `56f23ba5`** (the Germans and the
 Indians at Great Sahara, the Turks and the Americans at Great Lakes closed; the Inca at Great Sahara open at 13416; five sweeps); the roster is Ramon's (DECISIONS 84, 85): two Opus 5.5 medium battery lanes landing wide, two Sonnet
-5.5 medium sweep lanes. Last whole gate `a17aadbc`.*
+5.5 medium sweep lanes. Last whole gate `a17aadbc`; widened since: 3384, 3385 — the next widened merge draws the whole gate; scoped gates `--scope a17aadbc8`. Briefs and notes in the commander's job tmp `t47/`.*
 
 - **Words**: every pair closed; twenty-eight battery words closed, the Inca at Great Sahara open at 13416 of 15632 (`AI_WORDS` holds twenty-seven). Battery on `cfced244`:
   8384 (the Spanish at Great Lakes, 3390), 7799, 14540, 15853, 18883, 24000 ×3 — seven of eight whole, median 17368. Census 1647, port 551.
