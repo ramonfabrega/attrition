@@ -12946,7 +12946,22 @@ March and Rally (`0x279`) on `CHAR_ATTACK1..3` — no idle roll, where
 `DURATION_UPGRADE` × 15), `unit_masks |= 0x8000`, `leader_flags |=
 0x8000`; `Caster::process_spells@00739ad0` expires it and
 `Leader::verify_spell_flags@006ce190` drops the leader's bit when no hero
-marches. The unit bit holds mana recovery (`& 0x2a000`).
+marches. **Its whole predicate** (item 3409, §296; *reading alone*): it
+runs only from `process_spells:82`, when that call removed an Ambush
+(`0x27b`) or a March (`0x27c`); it walks the leader's heroes to
+`hero_mark` (`+0x420`, a mark, not a count), each live
+(`hero_flags & 1`, `HeroData +0x28`) hero's unit `o` (`+0x26`), and
+drops **two** bits: `leader_flags & 0x4000` when no such unit carries
+`unit_masks & 0x2000` (the Ambush, `:11`–`:24`) and `& 0x8000` when none
+carries `& 0x8000` (the March, `:28`–`:41`). This crate's
+`Sim::process_spells` drops only the March's (`forced_march`), on a
+March's expiry alone, and over every live unit of the owner rather than
+the hero list; the Ambush's leader bit is a `SEAM` in `cast_ambush`.
+*Falsifier*: `LEADERS=9`'s `leader_flags` and `UNITS=3`'s `unit_masks`
+on the hero, on the frame after `frame + duration` of a General's
+Forced March or a Despot's Ambush — the leader's `0x8000` or `0x4000`
+falls there and not before; run470's march (9112) and run943's Ambush
+already print both fields at `cover=0`. The unit bit holds mana recovery (`& 0x2a000`).
 `sim::cast::Sim::cast_march`, `process_spells`.
 
 **What moved**: 8856 → 9323 (the constant's comment has the value diff;
