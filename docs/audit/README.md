@@ -201,12 +201,15 @@ three measurements of its own.
   its document's struck text (1028's packet frame), a lobby path
   against `docs/ORACLE.md` (972's `-config`). A parked row is the
   previous item's wording, never a citation.
-- **A capture names its lane with its cover** (1047): `cover=1` with
+- ~~**A capture names its lane with its cover** (1047): `cover=1` with
   the golden lane's call proxies never starts on the click-free lane,
   which `docs/RUNS.md` had recorded at run185, and the stall guard's
   relaunch sits at the menu — two hung takes, 81 minutes. An issuer
   chapter that wants both splits as 1011 did: the chapter at `cover=0`
-  click-free, the blind list at `cover=1` on the queue lane. **And a
+  click-free, the blind list at `cover=1` on the queue lane.~~ Retired
+  by item 3429: the hang was the autostart declining `cover=1` (`INFO
+  174 1` in every dead take), so the menu waited for a click; the
+  driver now runs beside the stubs, and the pool takes `cover=1`. **And a
   `cover=1` batch is ranked by the `NEVER` rows each staging names**
   (1033): three of 1011's four captures entered nothing new.
 - **A staged gate's brief asks for every entry to the block that holds
@@ -332,8 +335,8 @@ stall. The pass added the fifth kind, `coverage`, and these rows.
   lane, checked against its `cover=0` twin and pinned into
   `blind::TRACES`** (3416): `never` moves only when a trace enters a
   function, and a reading tranche climbed 337 → 345 open because it
-  cited what it read and entered nothing; never `cover=1` on the
-  click-free lane (1047).
+  cited what it read and entered nothing; the click-free pool takes
+  `cover=1` as well as the queue lane (3429).
 
 ## The brief checklist, from the forty-seventh pass
 

@@ -9125,13 +9125,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MQ — reserved
+## Parked by item 3429, 2026-10-21 — `cover=1` on the click-free pool: what the fix leaves
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3429a. A driver refusal is read only at the end.** run185 sat out the runner's 3,600 s and each chapter-thirty-five
+  take its 300 s stall guard and a relaunch at the menu, with `INFO 174` on disk from attach: `autostart_receipt.py`
+  rejects a refusal, but only when the game has exited. The `cover=1` refusal is gone; the byte-check refusals (`174`
+  codes 1–5) remain, and a stall watcher that read `rontrace.log` for `174` would end such a take in seconds. Lane
+  minutes, no score.
+- **3429b. A click-free `cover=1` trace never enters the menu's own functions.** The driver replaces
+  `TopMenu::main_menu@0059bf70` and `TopMenu::sub_menu@0059c030`, so a pool trace cannot enter them, nor anything a
+  human's clicks reach in the setup window; a queue-lane trace can. A `NEVER` row in the menu or setup code is the
+  queue lane's to enter. No such row is known to the blind list today.
 
 ## Parked by the next landing, slot MR — reserved
 
