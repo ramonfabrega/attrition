@@ -161,6 +161,10 @@ pub const TRACES: &[&str] = &[
     // run790's recipe (`docs/RUNS.md` run1020), run790's and run676's game
     // on every frame.
     "rontrace-run1020.log",
+    // Item 3419: Great Lakes, the Iroquois at difficulty 3 (run897b's lobby)
+    // at `cover=1` on the click-free pool to 12658, the game's own last
+    // frame (`docs/RUNS.md` run1018), run897b's game on every frame.
+    "rontrace-run1018.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -378,6 +382,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `BuildQueueData::get_next_non_unit@00630b10` (3525) and
 /// `Units::make_valid@0061a960` (3546). `Unit::think_supply@005f4730` has
 /// no caller (`Unit::think` adds a supply wagon to its army inline).
+/// **358** with run1018 (item 3419: Great Lakes, the Iroquois at difficulty
+/// 3, at `cover=1` to 12658; `docs/AI.md` §296 row 2, §299):
+/// `Army::use_scouts@006f49a0` on 5144 and `SpellType::cast_ambush@00671610`
+/// on 10520 (it enters run1017's `cast_march` and `verify_spell_flags` too,
+/// on 7960 and 8111, and the Ambush's leader bit falls on block 10972).
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -396,12 +405,12 @@ pub const NEVER: &[u32] = &[
     0x0063_3390, 0x0063_89b0, 0x0063_9830, 0x0063_9930, 0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_40c0, 0x0064_50b0, 0x0064_50c0,
     0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30, 0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80,
     0x0066_1d70, 0x0066_2670, 0x0066_26e0, 0x0066_3b60, 0x0066_3b70, 0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830,
-    0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_1610, 0x0067_20e0, 0x0067_2d00, 0x0067_3e80, 0x0067_4920,
+    0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_20e0, 0x0067_2d00, 0x0067_3e80, 0x0067_4920,
     0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0,
     0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0, 0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0,
     0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_3650,
     0x006d_3eb0, 0x006d_5230, 0x006d_53e0, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_0b80, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20,
-    0x006f_0230, 0x006f_49a0, 0x006f_98a0, 0x0070_0010, 0x0070_1cc0, 0x0070_20c0, 0x0070_4520, 0x0070_84c0, 0x0070_8820,
+    0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_1cc0, 0x0070_20c0, 0x0070_4520, 0x0070_84c0, 0x0070_8820,
     0x0070_88e0, 0x0070_8980, 0x0070_8b10, 0x0070_8b90, 0x0070_8c60, 0x0070_ad10, 0x0070_afc0, 0x0070_b060, 0x0070_bab0, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0,
     0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_c470, 0x0071_c500, 0x0071_c740, 0x0071_d7a0, 0x0071_dfd0, 0x0072_15b0, 0x0072_16b0, 0x0072_1c40,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0, 0x0073_c5d0, 0x0073_c5e0,

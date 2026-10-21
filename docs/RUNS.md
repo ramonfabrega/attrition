@@ -21042,6 +21042,37 @@ SHA-256 `ce273f2a5efddef1bbf2f4704e5627a61d538762c4c8548af1d1a2da8bb70d18`.
 
 **What it holds**: `blind::TRACES`' run1019 (item 3420), `NEVER` 372 → 363.
 
+## run1018 — Great Lakes, Iroquois at difficulty 3, at `cover=1` on the click-free pool, to the game's own end (2026-10-21, item 3419, `att-3419`)
+
+`docs/AI.md` §299. **What the disk could not answer**: no `cover=1` trace of the lobby exists, so §296 row 2's four
+functions stood on `NEVER`. run943 prints who 1's `leader_flags & 0x4000` set on every block 10689..10945, and
+run897b's closing block 12659 prints it clear. No dump prints a block between, so the Ambush's expiry, the frame
+`verify_spell_flags`' Ambush arm writes, was on no file. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1018`: `--map 14 --end-frame 24000 --allow-early-end --timeout 10800 --ai-tribe 18 --profile
+DIFFICULTY=3 --ffwd-minute 27 --cover cover=1 --callwin 0 24000 --log-window 10683 12660 --detail
+end:MISC,UNITS=3,LEADERS=9`, run897b's recipe otherwise.
+- Pool lane 2 (att-3418's run1017 held lane 1). Launched 11:17:08, exited 12:55:51: 5,923 s launch to exit, most of it
+  the 1,977 dumped blocks. `success`, lifecycle verified, **the game ended itself, last frame 12658**, 12,659 frames,
+  `MAP_STYLE 14`, seed 12345, players (0,4,7),(1,18,1), five settings files restored. DLL `610329b0…8788a`,
+  `-DRON_AUTOSTART`. 233 GiB free before.
+- `rngcmp.py rontrace-run897b.log rontrace-run1018.log` (the `cover=0` twin): **12659 in common, 0 differing, 12659
+  identical**; against run943 10952 of 10952.
+- `samegame.py` against run943: 257 blocks in common (10689..10945), all 257 differing. The cause is detail, since
+  run943 adds `BUILDS=7,CITIES=5,GUYS=4` fields inside the unit records. Compared record by record instead, every
+  `LEADERDATA` both dumps print (771) and every unit's position and damage (29,209): 0 differing.
+- Filed with `filerun.py run1018 greatlakes-iroquois-diff3-cover1-window-10683-12659`.
+- Minutes waited on another lane: none (the pool gave lane 2 at once).
+
+Archive `gamelog-run1018-greatlakes-iroquois-diff3-cover1-window-10683-12659.txt`, 3,291,280,258 bytes,
+SHA-256 `deb94bc1414d0938b2ad2fd6dd357e304acc2fc7545b8f86e0d9e8d12bda7023`.
+
+Archive `rontrace-run1018.log`, 63,105,568 bytes,
+SHA-256 `2e0fd801cb86204365a7a8472f264374381f7fefc20d44c7332d392abd21aeb9`.
+
+**What it holds**: `blind::TRACES`' run1018 (item 3419), `NEVER` 360 → 358 (`Army::use_scouts` 5144,
+`SpellType::cast_ambush` 10520; `cast_march` 7960 and `verify_spell_flags` 8111 were already off). Who 1's
+`leader_flags` `0x4000` and `1/46`'s `unit_masks` `0x2000` fall together on block 10972 (3419a). `num_units[58]` is 0
+on every block, so no Spy.
 ## run1020 — Great Sahara in the coverage pair's lobby: the Persians, All Technologies, at `cover=1` on the click-free pool to 3770, run790's recipe (2026-10-21, item 3421, `att-3421`)
 
 **What the disk could not answer**: every trace of this lobby is `cover=0` (run676's draw stream, run677–run790's
