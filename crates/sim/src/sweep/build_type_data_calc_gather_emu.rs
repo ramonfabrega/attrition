@@ -579,10 +579,10 @@ pub fn run(a: &[i32], m: &[u8], c: &[Vec<u8>], p: &mut [Vec<u8>], log: &mut Vec<
         let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             type_calc_gather_steps(&mut v, &args, &mut out, &mut count, &mut rate);
         }));
-        if let Err(e) = r {
-            if !e.is::<Stop>() {
-                std::panic::resume_unwind(e);
-            }
+        if let Err(e) = r
+            && !e.is::<Stop>()
+        {
+            std::panic::resume_unwind(e);
         }
         derefs = std::mem::take(&mut v.deref);
     }
