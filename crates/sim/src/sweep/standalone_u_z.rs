@@ -330,6 +330,8 @@ mod unit_set_new_location;
 mod unit_set_rally;
 #[path = "unit_set_type.rs"]
 mod unit_set_type;
+#[path = "unit_set_type_normal.rs"]
+mod unit_set_type_normal;
 #[path = "unit_suffer_attrition.rs"]
 mod unit_suffer_attrition;
 #[path = "unit_supplies_left.rs"]
