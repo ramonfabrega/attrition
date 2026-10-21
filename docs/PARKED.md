@@ -3774,6 +3774,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
+(3434) **A spawn reads its brief from stdin, and an empty brief makes a draft** (the commander's own, at 3426's refill):
+`brief.py` refused 3428's note (it named run349, which `--runs` did not), the chain's `; echo brief $?;` went on, and
+`ccc spawn … --json - < brief3428.md` made a promptless `draft` row that would have sat until a person looked. Caught in the
+same turn by `ccc list`, removed and respawned. Candidate: `brief.py --spawn` that spawns only on its own exit 0, or LOOP's
+chain spelling the spawn as `[ -s brief ] && ccc spawn`. Score: a lane that does not stand empty after a refill. One reach.
+
 (3433) **A pool lane aborted before frame 0 on Wine's unimplemented `secur32.dll.QueryContextAttributesW`** (3426's "for
 the Loop"): the first run1031b died on pool lane 2 with nothing dumped; the retake on lane 1 ran clean. It is not on record
 in `docs/ORACLE.md` or `docs/RUNS.md`. Candidate: `unattended_capture.py` names the unimplemented import in its refusal and
