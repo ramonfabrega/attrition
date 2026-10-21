@@ -359,7 +359,10 @@ fn unpack_into(
         return None;
     }
     let end = bytes.len() - 8;
-    if hash(&bytes[..end]) != u64::from_le_bytes(bytes[end..].try_into().ok()?) {
+    let t = profile::now();
+    let sum = hash(&bytes[..end]);
+    profile::add(&profile::HASH_NS, t);
+    if sum != u64::from_le_bytes(bytes[end..].try_into().ok()?) {
         return None;
     }
     let n = u32::from_le_bytes(bytes[8..12].try_into().ok()?) as usize;
@@ -372,12 +375,82 @@ fn unpack_into(
     if size > codec::LIMIT {
         return None;
     }
+    let t = profile::now();
     decoded.resize(size, 0);
     if lz4_flex::decompress_into(&compressed[4..], decoded).ok()? != size {
         return None;
     }
-    codec::decode_into(decoded, value).ok()
+    profile::add(&profile::LZ4_NS, t);
+    profile::DECODED_BYTES.fetch_add(size as u64, std::sync::atomic::Ordering::Relaxed);
+    let t = profile::now();
+    let decoded = codec::decode_into(decoded, value).ok();
+    profile::add(&profile::DECODE_NS, t);
+    decoded
 }
+/// `RON_PROFILE_ORACLE`: the store's process-wide counters, printed by
+/// [`profile_report`]. Off, each costs one relaxed load.
+#[cfg(test)]
+pub(super) mod profile {
+    use std::sync::atomic::{AtomicU64, Ordering::Relaxed};
+    pub(super) static READS: AtomicU64 = AtomicU64::new(0);
+    pub(super) static FILE_BYTES: AtomicU64 = AtomicU64::new(0);
+    pub(super) static DECODED_BYTES: AtomicU64 = AtomicU64::new(0);
+    pub(super) static IO_NS: AtomicU64 = AtomicU64::new(0);
+    pub(super) static HASH_NS: AtomicU64 = AtomicU64::new(0);
+    pub(super) static LZ4_NS: AtomicU64 = AtomicU64::new(0);
+    pub(super) static DECODE_NS: AtomicU64 = AtomicU64::new(0);
+    pub(super) static UNIQUE: std::sync::Mutex<
+        Option<std::collections::HashSet<std::path::PathBuf>>,
+    > = std::sync::Mutex::new(None);
+    pub(super) fn on() -> bool {
+        static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        *ON.get_or_init(|| std::env::var_os("RON_PROFILE_ORACLE").is_some())
+    }
+    pub(super) fn add(counter: &AtomicU64, since: Option<std::time::Instant>) {
+        if let Some(t) = since {
+            counter.fetch_add(t.elapsed().as_nanos() as u64, Relaxed);
+        }
+    }
+    pub(super) fn now() -> Option<std::time::Instant> {
+        on().then(std::time::Instant::now)
+    }
+}
+/// One line of [`profile`]'s totals, when `RON_PROFILE_ORACLE` is set.
+#[cfg(test)]
+pub(super) fn profile_report() {
+    use std::sync::atomic::Ordering::Relaxed;
+    if !profile::on() {
+        return;
+    }
+    let ms = |c: &std::sync::atomic::AtomicU64| c.load(Relaxed) / 1_000_000;
+    let unique = profile::UNIQUE
+        .lock()
+        .unwrap()
+        .as_ref()
+        .map_or(0, |u| u.len());
+    eprintln!(
+        "oracle profile: entry reads={} unique entries={unique} file bytes={} decompressed bytes={} io={}ms hash={}ms lz4={}ms decode={}ms",
+        profile::READS.load(Relaxed),
+        profile::FILE_BYTES.load(Relaxed),
+        profile::DECODED_BYTES.load(Relaxed),
+        ms(&profile::IO_NS),
+        ms(&profile::HASH_NS),
+        ms(&profile::LZ4_NS),
+        ms(&profile::DECODE_NS),
+    );
+}
+/// **Measured, Loop 3382 (2026-10-21, `RON_PROFILE_ORACLE`, the coverage
+/// pin `every_parsed_field_is_compared_by_the_instrument_or_pinned`)**: 159
+/// walks, 38,665 entry reads, 38,665 distinct entries — no walk rereads a
+/// block another walk read, so an in-process decoded LRU would hit nothing,
+/// and a verified-once hash skip would skip nothing. Warm: 1.60 GB read
+/// (io 0.97 s), FNV 1.47 s, lz4 1.66 s to 9.73 GB, decode 2.96 s — 7.1 s of
+/// the test's 101 s, 0.18 ms a block; the rest is the walks' own ticks and
+/// comparisons. Cold (a new [`generation`], i.e. after any edit to a file
+/// [`schema`] hashes): every read misses, parses the text and publishes a
+/// 1.6 GB generation, and the test took 232 s — ~3.4 ms a block, the
+/// "3.7 ms a block" the forty-seventh pass measured. The lever is how often
+/// the generation turns over, not this function.
 #[cfg(test)]
 fn read_entry(
     path: &std::path::Path,
@@ -387,12 +460,24 @@ fn read_entry(
     value: &mut Oracle,
 ) -> Option<()> {
     use std::io::Read;
+    use std::sync::atomic::Ordering::Relaxed;
+    if profile::on() {
+        profile::READS.fetch_add(1, Relaxed);
+        profile::UNIQUE
+            .lock()
+            .unwrap()
+            .get_or_insert_with(Default::default)
+            .insert(path.to_path_buf());
+    }
+    let t = profile::now();
     let file = std::fs::File::open(path).ok()?;
     if file.metadata().ok()?.len() > codec::LIMIT as u64 {
         return None;
     }
     bytes.clear();
     file.take(codec::LIMIT as u64 + 1).read_to_end(bytes).ok()?;
+    profile::add(&profile::IO_NS, t);
+    profile::FILE_BYTES.fetch_add(bytes.len() as u64, Relaxed);
     unpack_into(bytes, identity, decoded, value)
 }
 #[cfg(test)]

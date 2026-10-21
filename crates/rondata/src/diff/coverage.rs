@@ -3548,6 +3548,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         }
     }
     let seen = compared::stop();
+    super::oracle::profile_report();
     // **A window is one line** (parked 1959, the thirty-first pass): 1905
     // and 1868 each added a binding and a slot to a 49-tuple pattern, both
     // merged clean, and the destructuring came out one `Some(_)` short — a
