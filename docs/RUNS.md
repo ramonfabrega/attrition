@@ -6374,7 +6374,9 @@ banner. So **`cover=1` on the click-free golden lane**, with its `callwin`
 proxies, is not a combination any capture had run before, and it hangs at
 startup. run906's `cover=1` ran on the older lane with no proxies. Not
 retried: the census's entered column is the Loop's question (692), and an
-hour of the single lane was already spent.
+hour of the single lane was already spent. **Read at item 3429**: the
+trace's `INFO 174 1` is the autostart declining `cover=1`, not a hang;
+run1037 is the fix's proof.
 ## run202 — Great Lakes' word 15383, past run196's last block (2026-09-24, item 711)
 
 **What it is.** run196's line, unchanged,
@@ -20816,3 +20818,35 @@ SHA-256 `8c78238e64e0fdb1124fa7b4c8b8a084f394691c7efa918080e221ed3a75d7a4`.
 
 **What it holds**: `step4.py --entry 65db70 --this c0ab70 --hook 652020`: `Object::take_damage` on `1/92` with 13370
 from `Object::do_damage+0x159e`, then on `1/90` with 13345 and on `1/91` with 13327, both from `take_damage+0x140c`.
+
+## run1037 — the peace pair's lobby at `cover=1` on the click-free pool, to 600 (2026-10-21, item 3429, `att-3429`)
+
+**What the disk could not answer**: no click-free trace at `cover=1` reaches frame 0 — run185 and both chapter-thirty-five
+takes (`~/ron-golden/ch35.dead-20260928-0154`, `-0308`) end at 2,984 startup `HIT`s, and each holds `INFO 174 1`, the
+autostart declining `g_cover`. Run on this tree's DLL after the fix (`check_autostart` before `arm_all`,
+`install_autostart` after it; `docs/ORACLE.md`, "Coverage is back"). Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1037`: `--map 18 --end-frame 600 --timeout 2400 --ai-tribe 19 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10 --cover cover=1
+--log-window 0 601 --detail end:MISC --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --cmd-file <500 unmeet who=1>`. The proxies were left as the lane stages them (`callwin=0-600`),
+the configuration run185 died in.
+- Pool lane 1. Launched 10:37:20, exited 10:38:06: **45.2 s launch to exit**. `success`, lifecycle verified (`INFO`
+  175 with the idle stub chained, 170, 171, 172, 173, 170), 601 frames, `MAP_STYLE 18`, seed 12345, tribes 4 and 19,
+  five settings files restored. DLL `64fe1d08…be13c`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0. 238 GiB free before.
+- **6,581 functions entered**, 19,526 proxied calls; `System::modal_idle@005994a0` among them (through its stub), the
+  two menu entries the driver replaces not. The `500 unmeet who=1` line ran on frame 500.
+- `rngcmp.py rontrace-run847.log rontrace-run1037.log` (its `cover=0` twin, the lobby's draw stream): **601 in
+  common, 0 differing, 601 identical**. `samegame.py` has nothing to compare (0 in common): neither dump prints a frame
+  block inside 0..600. The 146 `CHECKSUM` records both print agree on every category but `Rules` (45) and two
+  `SYNCPOINT` lines — and `Rules` differs between run846 and run847 too, the same lobby both at `cover=0`.
+- Filed with `filerun.py run1037 eastindies-lakota-peace-cover1-clickfree`.
+- Minutes waited on another lane: none (att-3417's queue-lane take was refused while this held lane 1, and relaunched).
+
+Archive `gamelog-run1037-eastindies-lakota-peace-cover1-clickfree.txt`, 11,070,278 bytes,
+SHA-256 `4e3af59d7c68cbf35a2bb05619baabfccbadaf5544989dfdc1ea3f6f70a2f120`.
+
+Archive `rontrace-run1037.log`, 12,084,576 bytes,
+SHA-256 `3407656cdd6397dd893d77501a5810fe39068f566434f61cf8a5ceef0739dcaa`.
+
+**What it holds**: the click-free pool runs `cover=1`. It enters `Game::current_age@005946d0` and
+`Leader::treaty_off@006d0370`, item 3417's two; the pin is 3417's queue-lane trace, not this one.
