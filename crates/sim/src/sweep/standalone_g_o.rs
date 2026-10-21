@@ -208,6 +208,8 @@ mod group_action_hotkey;
 mod group_action_queue_up;
 #[path = "group_action_swarm_around.rs"]
 mod group_action_swarm_around;
+#[path = "group_action_swarm_around_head.rs"]
+mod group_action_swarm_around_head;
 #[path = "group_action_trade.rs"]
 mod group_action_trade;
 #[path = "group_action_trade_head.rs"]
