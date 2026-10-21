@@ -400,6 +400,8 @@ mod build_type_data_num_preq;
 mod build_type_data_queue_here;
 #[path = "build_type_data_snap_center.rs"]
 mod build_type_data_snap_center;
+#[path = "build_type_place_roads.rs"]
+mod build_type_place_roads;
 #[path = "build_type_restore.rs"]
 mod build_type_restore;
 #[path = "build_type_set_domain.rs"]
