@@ -10043,5 +10043,5 @@ check: python3 tools/gamelog/rngcmp.py rontrace-run469.log rontrace-run470.log |
 #            --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=4   (the word 13496's window)
 #   run1013b --end-frame 13491 --timeout 5400 --log-window 8380 13489 --stride 16 (run1013's --detail, --ai-tribe, --cover, --profile)   (the gap, one in sixteen)
 #   run1013c --end-frame 13491 --timeout 5400 --log-window 13463 13489 (run1013's --detail, --ai-tribe, --cover, --profile)   (the army's parting, 13469..13485)
-# Checks: `rngcmp.py` run1008b vs run1013 -> 13752 identical, vs run1013b -> 13492.
-# ==== TAKEN 2026-10-20, one take each, 19:58-21:04 and from 21:08, pool lane 1, through `viadriver.sh tools/explore/golden_capture.sh` ====
+# Checks: `rngcmp.py` run1008b vs run1013 -> 13752 identical, vs run1013b -> 13492, vs run1013c -> 13492.
+# ==== TAKEN 2026-10-20, one take each, 19:58-21:12, pool lane 1, through `viadriver.sh tools/explore/golden_capture.sh` ====

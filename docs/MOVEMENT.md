@@ -1190,8 +1190,10 @@ frames, every unit, nobody off the original's point. Great Lakes' word
 the order scale and this halving; three arms remain seams, each for want of
 an input rather than a reading. `unit_masks & 0x10` is set and cleared
 inside one frame so no dump can print it, and this crate's
-`target_opportunity` is the retaliation alone. `has_general(0, 0x162)`'s
-siege doubling has no general in any capture. The group cap has its
+`target_opportunity` is the retaliation alone. ~~`has_general(0, 0x162)`'s
+siege doubling has no general in any capture~~: `0x162` is THEMONARCH, not a
+General, and the doubling is built by item 3390 (`Sim::near_monarch`,
+`docs/AI.md` §294). The group cap has its
 arithmetic (`movement::group_capped`, made to fail once) and no group speed
 to feed it.
 

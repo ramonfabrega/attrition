@@ -8889,13 +8889,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot LY — reserved
+## Parked by item 3390, 2026-10-20 — the Spanish at Great Lakes close: the draw-silent residue
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3390a. run1013's `leader:attack` on 13576** (who=1, ours 269 against theirs 275), the AI leader's attack
+  tally; it parts no draw to the game's end, and the close compares whole. Names no score.
+- **3390b. `dest_angle` on run1013's `1/74` (13710) and `1/78` (13732)**, ours 1073741824 and 671481856 against
+  1251016704 and −70647808, with positions agreeing: the shape run1007's 3383a parked. No draw parts.
+- **3390c. Newborns' `g.angle[0]`** (`1/62` on run1013b's 8557, `1/89` on run1013's 13735), ours 1431655765
+  against 0 on the first block that prints the unit, the standing birth row the Indian word's gap carries.
+- **3390d. run1013b's groups 67 and 68** (`pool:67`/`group:67.held` from 8877, `68` from 9805) and `SITE[2].reg`
+  (9181), and a one-unit `g.des_x` on `1/63` (9773, 42506 against 42507): draw-silent, the close whole.
+- **3390e. `has_general`'s per-type count at `leader +0x56fe`** is not read by `Sim::near_monarch`; a counted
+  Monarch off the map is where it would part. No capture reaches it.
 
 ## Parked by the next landing, slot LZ — reserved
 

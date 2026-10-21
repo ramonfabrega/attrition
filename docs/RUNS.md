@@ -20587,6 +20587,8 @@ SHA-256 `1812e6b6cc094158bb799fb1be09d2a7c55a94f326284f137cf2ea9ac6d2099f`.
 
 **What it holds**: the word's window. Test `run1013_s_word_frame_is_widened_whole`: the Spanish army's positions and
 headings (1/26..1/114) already part on its first block, 13490 — the march parted before the window (run1013b).
+3488 keys, **38** with the Monarch's two arms (`docs/AI.md` §294): the Bombard `1/114`'s unpack from 13600 is the
+word 13639 (`spell_time` by two, 78 on 13639), and what stands parts no draw.
 
 ## run1013b — the Spanish word at Great Lakes: the gap 8380..13489 at a stride of 16 (2026-10-20, item 3390, `att-3390`)
 
@@ -20608,4 +20610,23 @@ SHA-256 `ebe1e01dae6a72584e03d762bcedc96551b1323875696afc06b3125f7bd1c769`.
 **What it holds**: the gap. Test `run1013b_s_gap_is_widened_whole`, 320 blocks, 129 keys: the standing family and
 five draw-silent rows to 9805; every unit agrees on 13469, and on 13485 the Bombards `1/113` and `1/114` (TI 267,
 group 65, `GROUPATTACKTO`) move twice ours' step (`last_speed[0]` 49 against 24) and the Knight `1/56` guarding
-`1/114` follows them.
+`1/114` follows them. **39** with the Monarch's siege doubling (run1013c).
+
+## run1013c — the Spanish word at Great Lakes: the army's parting, blocks 13463..13489 (2026-10-20, item 3390, `att-3390`)
+
+`docs/AI.md` §294. **What the disk could not answer**: run1013b prints 13469 (every unit agreeing) and 13485 (three
+Spanish units parted) and nothing between; run1013 opens on 13490. run1013's recipe, `--end-frame 13491 --timeout
+5400 --log-window 13463 13489`.
+- Pool lane 1. Launched 21:08:53, exited 21:11:53. `success`, 13492 frames; `rngcmp.py` vs run1008b: 13492
+  identical. Filed with `filerun.py run1013c greatlakes-spanish-diff4-window-13463-13489`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1013c-greatlakes-spanish-diff4-window-13463-13489.txt`, 59,997,158 bytes,
+SHA-256 `de5d28ccf6c500cbe27d684a00a05065bdfbc217ca92be6fe7c98595e5fecad6`.
+
+Archive `rontrace-run1013c.log`, 103,413,312 bytes,
+SHA-256 `3edb8edbd05e3e22b47e483a8c37f28390e6e8f19139fe5624948905c370e132`.
+
+**What it holds**: the army's parting. Test `run1013c_s_march_is_widened_whole`, 26 blocks, 260 keys: on **13484**
+the Bombards `1/113` and `1/114` step 49 against ours' 24 with `myspeed` 23 both sides — the Monarch's siege
+doubling in `UnitData::get_speed`. **34** with it built: the standing family.
