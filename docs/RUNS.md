@@ -20530,6 +20530,106 @@ SHA-256 `c778ae735d882b69b1bb67e5b2d23ea92b0667399d524893a9b3c01099ed2f38`.
 `run1007c_s_word_frame_is_widened_whole`: 31 keys after the build — the standing family and five births' `g.angle[0]`
 on 16542.
 
+## run1012 — the battery's replacement lobby: Great Lakes, the Dutch at difficulty 4, a `DUMP_ALL` start (2026-10-20, item 3390, `att-3390`)
+
+`docs/AI.md` §294. **What the disk could not answer**: no dump holds a Dutch game on Great Lakes — the Dutch's only
+games are East Indies 4 and Great Sahara 3, both closed (a header survey of 588 gamelogs). Entry 72's rule (2) as
+amended by 84: of the nations no map-14 dump holds and only closed games hold, the Dutch reach the most census
+functions (9; the Germans 8), at tier 4, the tier the Spanish leave. Named to the commander before the capture and
+relayed back (att-3385 holds the Turks at Great Sahara 3). Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1012`: `--map 14 --end-frame 36 --timeout 1200 --dump-all-start
+--ai-tribe 22 --profile DIFFICULTY=4`.
+- Pool lane 2. Launched 18:57:20, exited 19:03:25 (364 s). `success`, 37 frames, players `(0, 4, 7), (1, 22, 1)`.
+  Filed with `filerun.py run1012 greatlakes-dutch-diff4-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1012-greatlakes-dutch-diff4-start.txt`, 150,921,495 bytes,
+SHA-256 `b673b0f5b9a0a258b2cea7738b175646b744a596d83b6472c8db8f77075e8f58`.
+
+Archive `rontrace-run1012.log`, 9,469,536 bytes,
+SHA-256 `882de0c14e779a877e09c0b138172751ca583636c3b132698e93a694712258ff`.
+
+## run1012b — the Dutch at Great Lakes 4: the draw stream to the game's end (2026-10-20, item 3390, `att-3390`)
+
+`docs/AI.md` §294. run1008b's recipe with `--ai-tribe 22` (`--map 14 --end-frame 24000 --timeout 7200 --log-window 0
+24001 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --allow-early-end --profile DIFFICULTY=4` and run643's four
+`--detail` lines).
+- Pool lane 3. Launched 18:57:20, exited 18:58:42 (82 s). `success`, 6148 frames, **the game ended itself on
+  6147** (closing block 6148, `ended_early` true). `rngcmp.py rontrace-run1012.log rontrace-run1012b.log`: **37
+  identical, 0 differing**. Filed with `filerun.py run1012b greatlakes-dutch-diff4-24k-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1012b-greatlakes-dutch-diff4-24k-trace.txt`, 12,625,645 bytes,
+SHA-256 `7b0516814daae984ee78f056ef80302618fe9436fb43649ca7416f1e45e07f2d`.
+
+Archive `rontrace-run1012b.log`, 33,299,968 bytes,
+SHA-256 `f5783d7ff60390402df2419d75afe5ee82a233adde902b9e4ab18a5c632a7f14`.
+
+**What it holds**: the battery's `GreatLakesDutchTier4`, **6147 / 6147** of 6147 on its first try — the draw stream
+runs whole to the game's own end — pinned in `battery::BATTERY`.
+
+## run1013 — the Spanish word at Great Lakes: the word 13496's window, blocks 13490..13746 at `GOODS=3` (2026-10-20, item 3390, `att-3390`)
+
+`docs/AI.md` §294. **What the disk could not answer**: run1008 dumps blocks 0..36 and run1008b its setup and closing
+blocks only, so no dump held the units, orders or ledgers on the word's block. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1013`: `--map 14 --end-frame 13751 --timeout 7200 --log-window 13490
+13746 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover cover=0 --profile
+DIFFICULTY=4`.
+- Pool lane 1. Launched 19:58:26, exited 20:30:05. `success`, 13752 frames; `rngcmp.py` vs run1008b: 13752 identical.
+  Filed with `filerun.py run1013 greatlakes-spanish-diff4-window-13490-13747`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1013-greatlakes-spanish-diff4-window-13490-13747.txt`, 578,876,971 bytes,
+SHA-256 `e55a2207ca9e12cbf5f1d3d11c5bc0a53cfd55d203603e8fc2db5ff1a38dbece`.
+
+Archive `rontrace-run1013.log`, 105,200,672 bytes,
+SHA-256 `1812e6b6cc094158bb799fb1be09d2a7c55a94f326284f137cf2ea9ac6d2099f`.
+
+**What it holds**: the word's window. Test `run1013_s_word_frame_is_widened_whole`: the Spanish army's positions and
+headings (1/26..1/114) already part on its first block, 13490 — the march parted before the window (run1013b).
+3488 keys, **38** with the Monarch's two arms (`docs/AI.md` §294): the Bombard `1/114`'s unpack from 13600 is the
+word 13639 (`spell_time` by two, 78 on 13639), and what stands parts no draw.
+
+## run1013b — the Spanish word at Great Lakes: the gap 8380..13489 at a stride of 16 (2026-10-20, item 3390, `att-3390`)
+
+`docs/AI.md` §294. **What the disk could not answer**: run1013 opens on 13490 with the army already parted, and
+run1008b dumps nothing between its setup and closing blocks. run1013's recipe over the gap, one block in sixteen:
+`--map 14 --end-frame 13491 --timeout 5400 --log-window 8380 13489 --stride 16 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 20:32:53, exited 21:03:55. `success`, 13492 frames (blocks 8381, 8397, …, 13485 and the
+  closing 13492); `rngcmp.py` vs run1008b: 13492 identical. Filed with `filerun.py run1013b
+  greatlakes-spanish-diff4-stride16-8380-13489`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1013b-greatlakes-spanish-diff4-stride16-8380-13489.txt`, 688,578,230 bytes,
+SHA-256 `942245e80426d03292401253b6f2248178715ef233accd8fb84607e8b182abd7`.
+
+Archive `rontrace-run1013b.log`, 103,371,072 bytes,
+SHA-256 `ebe1e01dae6a72584e03d762bcedc96551b1323875696afc06b3125f7bd1c769`.
+
+**What it holds**: the gap. Test `run1013b_s_gap_is_widened_whole`, 320 blocks, 129 keys: the standing family and
+five draw-silent rows to 9805; every unit agrees on 13469, and on 13485 the Bombards `1/113` and `1/114` (TI 267,
+group 65, `GROUPATTACKTO`) move twice ours' step (`last_speed[0]` 49 against 24) and the Knight `1/56` guarding
+`1/114` follows them. **39** with the Monarch's siege doubling (run1013c).
+
+## run1013c — the Spanish word at Great Lakes: the army's parting, blocks 13463..13489 (2026-10-20, item 3390, `att-3390`)
+
+`docs/AI.md` §294. **What the disk could not answer**: run1013b prints 13469 (every unit agreeing) and 13485 (three
+Spanish units parted) and nothing between; run1013 opens on 13490. run1013's recipe, `--end-frame 13491 --timeout
+5400 --log-window 13463 13489`.
+- Pool lane 1. Launched 21:08:53, exited 21:11:53. `success`, 13492 frames; `rngcmp.py` vs run1008b: 13492
+  identical. Filed with `filerun.py run1013c greatlakes-spanish-diff4-window-13463-13489`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1013c-greatlakes-spanish-diff4-window-13463-13489.txt`, 59,997,158 bytes,
+SHA-256 `de5d28ccf6c500cbe27d684a00a05065bdfbc217ca92be6fe7c98595e5fecad6`.
+
+Archive `rontrace-run1013c.log`, 103,413,312 bytes,
+SHA-256 `3edb8edbd05e3e22b47e483a8c37f28390e6e8f19139fe5624948905c370e132`.
+
+**What it holds**: the army's parting. Test `run1013c_s_march_is_widened_whole`, 26 blocks, 260 keys: on **13484**
+the Bombards `1/113` and `1/114` step 49 against ours' 24 with `myspeed` 23 both sides — the Monarch's siege
+doubling in `UnitData::get_speed`. **34** with it built: the standing family.
 ## run1010 — the battery's replacement lobby `GreatSaharaTurkishTier3`: a `DUMP_ALL` start (2026-10-20, item 3385, `att-3385`)
 
 `docs/AI.md` §293. Entry 72's rule (2): the Turks at Great Sahara, Difficulty 3, minted when the Inca left the

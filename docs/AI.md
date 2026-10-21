@@ -25128,12 +25128,72 @@ tenth → 13250; the melee refusal made `false` → 13284; `full`'s +5 made +0 �
 1` dropped → 13282; the target's decoy bit dropped → `a_decoy_target_dies_to_any_round` fails; the rally arm
 dropped → its sim test fails and run1011's widening 30 → 34 keys; a piece-123 bay renumbered → 30 → 39 keys.
 
-## 294. Reserved for the next item on the AI track
+## 294. The battery's Spanish word at Great Lakes closes: the terraform in singles, and a Monarch's siege doubled
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3390, 2026-10-20, Opus 5.5. `GreatLakesSpanishTier4` (map 14, human Nubians against the Spanish at Difficulty
+4, seed 12345; item 3384's lobby, runs 1008 and 1008b), promoted out of the battery at 8384 of 14068
+(`diff::spanish_lakes_word`; not `diff::spanish_word` or `diff::spanish_east_word`, the closed Great Sahara and East
+Indies games). Captures run1013 (`GOODS=3` over 13490..13746), run1013b (the gap 8380..13489 at a stride of 16) and
+run1013c (13463..13489). Its battery place went to `GreatLakesDutchTier4` (runs 1012, 1012b; entry 72's rule (2),
+below): 6147 of 6147 on its first try. The word closes at the game's end, 14068, and the close is compared whole.*
+
+**The replacement, rule (2).** A header survey of 588 gamelogs: no map-14 dump holds the Dutch (22), whose only
+games (`EastIndiesDutchTier4`, `GreatSaharaDutchTier3`) are both closed; of the nations no map-14 dump holds and only
+closed games hold, the Dutch reach the most census functions (9; the Germans 8), at tier 4, the tier the Spanish
+leave. Named to the commander before the capture (att-3385 held the Turks at Great Sahara 3). run1012 and run1012b
+agree on 37 frames; the game ends itself on 6147, whole on its first try.
+
+**8384 → 13496: the terraform in the original's singles.** On 8384 ours drew 3266 against theirs' 3271, parting at
+3262: ours `Herd::process+0x17`, theirs `PathFinder::calc_road_cost+0x46` — one road search, ours 3202
+`calc_road_cost` against 3207. `run1008b_s_road_search_on_8384_holds_node_for_node` walks every road search to the
+word node for node and found the first node parting on **7984**, node 855, the step west onto (45600, 23520): cost
+ours 339, theirs 342, one unit of climb (`× 3`). Ours' map around tile (237, 122) changes once over the whole game,
+frame 5382's terraform (53 → 69 and 46 → 55). The listing of `terraform_for_building@00875210` is SSE single (`addss`
+in box order, `cvtdq2ps`/`divss`, `(h + mean) × 0.5`) and `find_tcoord_z@008544a0` is `cvttss2si((h[y+1][x] +
+h[y][x+1]) × 0.5)`; ours kept exact millionths, the upgrade DECISIONS 31 had named as owed. `World` now carries the
+corner grid as `Single` with a per-corner exactness flag (`corner_exact`), `crate::terrain` and `retile_z` in
+`Single` (`docs/ROADS.md` §7.4, §7.5). Value diff: all 38 road searches to 8384 node for node, 3207 against 3207 on
+8384. Sim test `terrain::tests::a_terraform_lands_on_the_original_s_singles` (the host's `f32` as oracle).
+
+**13496 → 13639: a siege unit beside its Monarch walks at double.** On 13496 ours drew 44 against 41, at 35 ours
+`Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6` for the Bombard `1/114` (TI 267, packed,
+`GROUPATTACKTO` in group 65) turning onto a detour node theirs never reached. run1013 opened with the Spanish army's
+positions already parted (3488 keys on 13490); run1013b put every unit agreeing on 13469 and three parted on 13485;
+run1013c named **13484**: the Bombards `1/113` and `1/114` step 49 against ours' 24 (`g.last_speed[0]`, every
+figure), `x[0]` 9025 against 9042, while `myspeed` reads 23 on both sides — the figures' uncapped
+`GuyData::get_speed` doubled, the unit's group-capped one not. `UnitData::get_speed@00608720`'s land arm doubles the
+speed on `has_general(0, 0x162) >= 0` and the type's vslot `+0x10c`, which the PDB's `LF_ONEMETHOD` names
+`is_siege` (`UnitTypeData::is_siege@00470460`, `unit_flags & 0x20000`). `has_general(0, 0x162)` reads the leader's
+count of type `0x162` and asks `HeroesData::find_hero@0073a1b0` for one of the owner's heroes of that type within
+`get_radius × 0xc0` of the unit's own point: `0x162` is THEMONARCH (354), and the Spanish field one. No General is on
+the field (the type tally of 13485), so the arm this crate had left as "no capture has a general" was live.
+Built: `Sim::near_monarch` (`cast.rs`), the doubling in `Sim::get_speed_at` before the group cap. Value diff:
+run1013c 260 → 34 keys (the standing family), run1013b 129 → 39, run1013 3488 → 1151; both Bombards read 9025 on
+13484. Sim test `spellcaster::tests::a_siege_unit_near_its_monarch_walks_at_double`; mutation (`speed *= 1`) fails
+it and `run1013c_s_march_is_widened_whole`.
+
+**13639 → 14068: the same Monarch halves the unpack.** On 13639 ours drew 7 against 6, at 4 ours
+`Guy::set_anim+0x104b`, theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. run1013's `1/114` pushes a `CASTORDER`
+(spell 652, the unpack) on 13600 and pays on 13601; theirs' `spell_time` reads 0, 2, 4, … 78 on 13639 and the cast
+pops on 13640, where ours' climbed by one and still played `CHAR_UNPACK`. `Unit::do_cast@005ebfe0`'s pack and unpack
+clock asks the same pair — `is_siege` and `has_general(0, 0x162)` — for an extra `spell_time` step and a second tick
+of every figure's `cur_time` (`+0x74`, backed off at `end_time`, `+0x78`). `crate::do_cast_view` had the arm's hooks
+already, answering "no general"; `SimDoCast` now answers them (`unit_type_gate`, `has_general_162`,
+`crew_hold_bump`). Value diff: run1013 1151 → 38 keys. Sim test
+`harness_tests::a_monarch_halves_a_siege_unit_s_unpack`; mutation (`has_general_162` → −1) fails it and the word
+(back to 13639).
+
+**The close (entry 55).** The draw stream runs to 14068 of 14068. `run1008b_spanish_lakes_closing_state`: block
+14069, 110 units compared, none apart, no building or city field-row, no closing field. What stands on the windows is
+draw-silent: the standing family, run1013's `leader:attack` on 13576 (269 against 275), two `dest_angle` rows
+(`1/74` 13710, `1/78` 13732), newborns' `g.angle[0]` (`1/62` 8557, `1/89` 13735), the groups 67 and 68's pools and
+`SITE[2].reg` (run1013b) — parked under item 3390's heading.
+
+**What is not established.** `has_general`'s per-type count at `leader +0x56fe` (its early `return −1` on a zero)
+is not read, as in `Sim::president_near_building`; `find_hero` finds none either without a live Monarch, and a
+counted Monarch off the map is the case it would part on. `is(0x162)` is the type itself, as in `Sim::hero_radius`.
+The Monarch's own arm (`u` itself a hero of type `0x162`) is built and reached by no capture, a Monarch being no
+siege unit. The shipped XML's other readers of `0x162` (the Monarch's own radius bonuses) are not read here.
 
 ## 295. Reserved for the next item on the AI track
 

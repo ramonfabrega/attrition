@@ -1308,6 +1308,42 @@ impl Sim {
         })
     }
 
+    /// `ObjectData::has_general(u, 0, 0x162) >= 0` (`00646b00`), the
+    /// question `UnitData::get_speed@00608720` asks before it doubles a
+    /// siege unit (item 3390): `u` is itself a hero of type THEMONARCH
+    /// (`0x162`), or `HeroesData::find_hero@0073a1b0` finds one of its
+    /// owner's — the hero record active, its unit active and on the map,
+    /// `is(0x162)`, and `vector_dist(|dx|, |dy|) − 0 ≤ get_radius × 0xc0`
+    /// from `u`'s own point (`has_general` hands `find_hero` the unit's
+    /// `+0x10`/`+0x14`, never the virtual's point; the `− 0` is a
+    /// building's footprint). `param_1` is 0, so no mask is asked.
+    /// run1013c's Spanish Bombards `1/113` and `1/114` step 49 on 13484
+    /// against ours' 24, `myspeed` 23 (the group's cap) both sides.
+    ///
+    /// SEAM: the leader's per-type count at `+0x56fe` (the early `return
+    /// -1` on a zero) is not read, as in
+    /// [`Sim::president_near_building`]; `find_hero` finds none either
+    /// without a live Monarch. `is(0x162)` is taken as the type itself, as
+    /// in [`Sim::hero_radius`].
+    pub(crate) fn near_monarch(&self, u: usize) -> bool {
+        const MONARCH: i32 = 0x162;
+        let unit = &self.units[u];
+        if unit.type_index == MONARCH && self.is_hero_unit(u) {
+            return true;
+        }
+        let (who, at) = (unit.owner, unit.pos);
+        (0..self.units.len()).any(|h| {
+            let x = &self.units[h];
+            x.owner == who
+                && x.type_index == MONARCH
+                && x.alive()
+                && x.on_map
+                && self.is_hero_unit(h)
+                && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
+                    <= self.hero_radius(h) * 0xc0
+        })
+    }
+
     /// Whether `u`'s leader has a hero on a Forced March —
     /// `LeaderData::leader_flags & 0x8000`, [`Sim::forced_march`]. Gaia's
     /// is never set.
