@@ -159,7 +159,16 @@ pub trait SwarmView: SwarmHead {
     /// `Unit::add_move_facing_order(units[p][m], x, y, angle, kind, 0, queue,
     /// 0, -1, -1, -1, 0)`, `x`/`y` in the `div_3_table`'s units.
     #[allow(clippy::too_many_arguments)]
-    fn add_move_facing(&mut self, p: i32, m: i32, x: i32, y: i32, angle: i32, kind: i32, queue: i32);
+    fn add_move_facing(
+        &mut self,
+        p: i32,
+        m: i32,
+        x: i32,
+        y: i32,
+        angle: i32,
+        kind: i32,
+        queue: i32,
+    );
     /// `Unit::add_cast_order(units[p][m], -1, -1, x, y, 0x293, QUEUE_LAST,
     /// action)`.
     fn add_cast(&mut self, p: i32, m: i32, x: i32, y: i32, action: i32);
@@ -235,7 +244,21 @@ pub fn action_swarm_around_steps<V: SwarmView>(
         let mut i = 0;
         loop {
             let m = v.member(i);
-            swarm_member(v, p, m, b, who, queue, order, action, (bx, by), radius, kind, idle, layer);
+            swarm_member(
+                v,
+                p,
+                m,
+                b,
+                who,
+                queue,
+                order,
+                action,
+                (bx, by),
+                radius,
+                kind,
+                idle,
+                layer,
+            );
             i += 1;
             if i >= v.members() {
                 break;
@@ -304,18 +327,26 @@ fn swarm_member<V: SwarmView>(
     let (mx, my) = v.m_pos(p, m);
     let sweep_angle = v.find_angle(mx.wrapping_sub(bx), my.wrapping_sub(by));
     let seeker = seeker_type(v, p, m, b, who);
-    let Some((mut ox, mut oy)) = v.find_nearby_spot(
-        0, seeker, bx, by, radius, 0, -1, sweep_angle, m, p, b, who,
-    ) else {
+    let Some((mut ox, mut oy)) =
+        v.find_nearby_spot(0, seeker, bx, by, radius, 0, -1, sweep_angle, m, p, b, who)
+    else {
         return;
     };
     let facing = v.find_angle(bx.wrapping_sub(ox), by.wrapping_sub(oy));
     if order == BUILD_AT {
-        let cx = if ox > bx { ox.wrapping_add(0x30) } else { ox.wrapping_sub(0x30) };
-        let cy = if oy > by { oy.wrapping_add(0x30) } else { oy.wrapping_sub(0x30) };
-        if let Some((nx, ny)) = v.find_nearby_spot(
-            1, seeker, cx, cy, 0, 0, 0, sweep_angle, m, p, b, who,
-        ) {
+        let cx = if ox > bx {
+            ox.wrapping_add(0x30)
+        } else {
+            ox.wrapping_sub(0x30)
+        };
+        let cy = if oy > by {
+            oy.wrapping_add(0x30)
+        } else {
+            oy.wrapping_sub(0x30)
+        };
+        if let Some((nx, ny)) =
+            v.find_nearby_spot(1, seeker, cx, cy, 0, 0, 0, sweep_angle, m, p, b, who)
+        {
             ox = nx;
             oy = ny;
         }
@@ -534,7 +565,10 @@ impl SwarmView for SimSwarm<'_> {
     fn m_domain(&self, _p: i32, m: i32) -> i32 {
         use crate::attrition::Domain;
         let u = &self.sim.units[m as usize];
-        match u.ty.map_or(Domain::Land, |t| self.sim.unit_types[t].kind.domain) {
+        match u
+            .ty
+            .map_or(Domain::Land, |t| self.sim.unit_types[t].kind.domain)
+        {
             Domain::Land => 0,
             Domain::Sea => 1,
             _ => 2,
@@ -571,9 +605,9 @@ impl SwarmView for SimSwarm<'_> {
         true
     }
     fn site_domain(&self, _who: i32, b: i32) -> i32 {
-        let water = self.sim.buildings[b as usize].ty.is_some_and(|t| {
-            self.sim.build_types[t].domain() == crate::build::BuildDomain::Water
-        });
+        let water = self.sim.buildings[b as usize]
+            .ty
+            .is_some_and(|t| self.sim.build_types[t].domain() == crate::build::BuildDomain::Water);
         i32::from(water)
     }
     fn m_is_peasant(&mut self, _p: i32, m: i32) -> bool {

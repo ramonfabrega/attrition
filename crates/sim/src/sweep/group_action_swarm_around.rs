@@ -27,10 +27,15 @@ fn the_emulated_original_agrees_on_every_row() {
     for line in rows.lines().filter(|l| !l.trim().is_empty()) {
         let (line, calls) = line.split_once(" # ").expect("`<row> # <calls>`");
         let want_log: Vec<&str> = calls.split_whitespace().collect();
-        let (lhs, rhs) = line.split_once(" -> ").expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
+        let (lhs, rhs) = line
+            .split_once(" -> ")
+            .expect("a row is `<args…> | <windows> -> <eax> | <windows>`");
         let (args, before) = lhs.split_once(" | ").expect("`<args> | <before>`");
         let (eax, after) = rhs.split_once(" | ").expect("`<eax> | <after>`");
-        let a: Vec<i32> = args.split_whitespace().map(|s| s.parse().expect("an integer")).collect();
+        let a: Vec<i32> = args
+            .split_whitespace()
+            .map(|s| s.parse().expect("an integer"))
+            .collect();
         let mut wins: Vec<Vec<u8>> = before.trim().split(';').map(unhex).collect();
         let mut m = wins.remove(0);
         let mut p: Vec<Vec<u8>> = wins.split_off(6);
@@ -377,10 +382,18 @@ fn the_emulated_original_agrees_on_every_row() {
                         );
                     }
                     fn add_build(&mut self, p: i32, m: i32, b: i32, who: i32, action: i32) {
-                        self.rec(28, &format!("p{}+0x0", Self::uw(p, m)), &[b, who, 1, action]);
+                        self.rec(
+                            28,
+                            &format!("p{}+0x0", Self::uw(p, m)),
+                            &[b, who, 1, action],
+                        );
                     }
                     fn add_repair(&mut self, p: i32, m: i32, b: i32, who: i32, action: i32) {
-                        self.rec(29, &format!("p{}+0x0", Self::uw(p, m)), &[b, who, 1, action]);
+                        self.rec(
+                            29,
+                            &format!("p{}+0x0", Self::uw(p, m)),
+                            &[b, who, 1, action],
+                        );
                     }
                     fn clear_site_2000(&mut self, who: i32, b: i32) {
                         self.rec(3, &format!("p{}+0x0", Self::ow(who, b)), &[]);
@@ -416,14 +429,28 @@ fn the_emulated_original_agrees_on_every_row() {
             }
         };
         let _ = (got, want_eax);
-        assert_eq!(log, want_log, "action_swarm_around — the recorded calls, row `{line}`");
+        assert_eq!(
+            log, want_log,
+            "action_swarm_around — the recorded calls, row `{line}`"
+        );
         let want: Vec<Vec<u8>> = after.trim().split(';').map(unhex).collect();
-        assert_eq!(m, want[0], "action_swarm_around — this's bytes, row `{line}`");
+        assert_eq!(
+            m, want[0],
+            "action_swarm_around — this's bytes, row `{line}`"
+        );
         for (i, w) in c.iter().enumerate() {
-            assert_eq!(w, &want[1 + i], "action_swarm_around — window c[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[1 + i],
+                "action_swarm_around — window c[{i}], row `{line}`"
+            );
         }
         for (i, w) in p.iter().enumerate() {
-            assert_eq!(w, &want[7 + i], "action_swarm_around — window p[{i}], row `{line}`");
+            assert_eq!(
+                w,
+                &want[7 + i],
+                "action_swarm_around — window p[{i}], row `{line}`"
+            );
         }
         n += 1;
     }
