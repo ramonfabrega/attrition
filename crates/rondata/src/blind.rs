@@ -165,6 +165,11 @@ pub const TRACES: &[&str] = &[
     // at `cover=1` on the click-free pool to 12658, the game's own last
     // frame (`docs/RUNS.md` run1018), run897b's game on every frame.
     "rontrace-run1018.log",
+    // Item 3422: the successor pair's lobby (East Indies, the Mongols, All
+    // Technologies) at `cover=1` on the click-free pool to 2210, run785's
+    // recipe with the window moved (`docs/RUNS.md` run1021), run775's,
+    // run780's and run785's game on every frame.
+    "rontrace-run1021.log",
     // Item 3423: two short Great Sahara retakes at `cover=1` on the
     // click-free pool (`docs/RUNS.md` run1022, run1024): the Mongols, All
     // Technologies, to 3000 (run834's and run831's game on every frame),
@@ -395,7 +400,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `Army::use_scouts@006f49a0` on 5144 and `SpellType::cast_ambush@00671610`
 /// on 10520 (it enters run1017's `cast_march` and `verify_spell_flags` too,
 /// on 7960 and 8111, and the Ambush's leader bit falls on block 10972).
-/// **356** with run1022 and run1024 (item 3423: two Great Sahara retakes
+/// **356** with run1021 (item 3422: the successor pair's lobby at `cover=1`
+/// to 2210; `docs/AI.md` §296 row 5): `Unit::think_carry@005f2ee0` and,
+/// unasked, `Unit::think_carry_civilian@005f37c0`, both on 2178, the idle
+/// Freighter `1/72`'s walk. `think_carry_idle@005f2f30` and
+/// `think_carry_military@005f3260` stay: every boat to 2210 carries a
+/// worker.
+/// **354** with run1022 and run1024 (item 3423: two Great Sahara retakes
 /// at `cover=1`; `docs/AI.md` §296 rows 6 and 8):
 /// `BuildQueueData::get_next_non_caravan@00630c20` on 2995, the Mongols'
 /// Merchant behind a held Caravan, and `Unit::go_to_city@005f79c0` on
@@ -414,8 +425,8 @@ pub const NEVER: &[u32] = &[
     0x0058_33a0, 0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0,
     0x0058_60c0, 0x0058_6440, 0x0058_6ea0, 0x0058_7060, 0x0059_2b00, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660, 0x0059_46c0,
     0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_8160, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_1f20, 0x005e_2bb0, 0x005e_3310,
-    0x005e_3400, 0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_2ee0,
-    0x005f_2f30, 0x005f_3260, 0x005f_37c0, 0x005f_4720, 0x005f_4730, 0x0060_4550, 0x0060_8850, 0x0060_9a20, 0x0060_a600,
+    0x005e_3400, 0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480,
+    0x005f_2f30, 0x005f_3260, 0x005f_4720, 0x005f_4730, 0x0060_4550, 0x0060_8850, 0x0060_9a20, 0x0060_a600,
     0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_18d0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50, 0x0061_dc60, 0x0062_2ce0,
     0x0062_3310, 0x0062_9e70, 0x0062_d430, 0x0062_d5b0, 0x0062_da00, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_0ab0,
     0x0063_3390, 0x0063_89b0, 0x0063_9830, 0x0063_9930, 0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_40c0, 0x0064_50b0, 0x0064_50c0,
