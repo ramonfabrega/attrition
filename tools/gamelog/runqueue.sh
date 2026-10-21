@@ -97,7 +97,7 @@ cp "$SCEN" "$SNAP"
 typeset -a summary cmds checks covers
 summary=()
 run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-endd=""; startt=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""; profile=""; checkini=""
+endd=""; startt=""; miscd=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""; profile=""; checkini=""
 # `poll_max` was the one key not reset between stanzas, so a stanza after
 # run53 inherited its 900 and the default was unreachable for the rest of the
 # file — a leak that can only ever make a run wait longer, but a leak.
@@ -106,7 +106,7 @@ cmds=(); checks=(); covers=()
 
 reset_stanza() {
   run=""; tag=""; item=""; why=""; frames=""; mapstyle=""; cfg=""
-  endd=""; startt=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""; profile=""; checkini=""
+  endd=""; startt=""; miscd=""; dumpall=""; window=""; fwindow=""; driver=""; settle=""; ffwd=""; profile=""; checkini=""
   pollmax=""
   cmds=(); checks=(); covers=()
 }
@@ -139,6 +139,7 @@ flush() {
     pass=()
     if [ -n "$endd" ];    then pass+=("DETAIL_END=$endd"); fi
     if [ -n "$startt" ];  then pass+=("DETAIL_START=$startt"); fi
+    if [ -n "$miscd" ];   then pass+=("DETAIL_MISC=$miscd"); fi
     if [ -n "$dumpall" ]; then pass+=("DUMP_ALL=$dumpall"); fi
     if [ -n "$window" ];  then pass+=("WINDOW=$window"); fi
     if [ -n "$fwindow" ]; then pass+=("FRAME_WINDOW=$fwindow"); fi
@@ -213,6 +214,7 @@ while IFS= read -r line || [ -n "$line" ]; do
     cfg) cfg=$val ;;
     end) endd=$val ;;
     start) startt=$val ;;
+    misc) miscd=$val ;;
     dump_all) dumpall=$val ;;
     window) window=$val ;;
     frame_window) fwindow=$val ;;

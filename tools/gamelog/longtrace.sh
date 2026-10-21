@@ -37,6 +37,8 @@
 #
 #   DETAIL_END    setlog.py's `end:` list      (default run10's)
 #   DETAIL_START  setlog.py's `start:` list    (default run10's)
+#   DETAIL_MISC   setlog.py's `misc:` list, `[Misc Logging]` — `COMMANDMANAGER=1`
+#                 prints each `process_*` line (default none; item 3427)
 #   DUMP_ALL      setlog.py's first argument   (default 0)
 #   CMD_EXTRA     newline-separated `rontrace.cmd` lines inserted before the
 #                 `!quit` — the scenario's cheats (default none)
@@ -163,7 +165,7 @@ python3 "$W/tools/fuzz/seedini.py" 12345
 DETAIL_END=${DETAIL_END:-MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,DEATHS=1,LEADERS=1}
 DETAIL_START=${DETAIL_START:-MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1}
 python3 "$W/tools/gamelog/setlog.py" "${DUMP_ALL:-0}" \
-  "end:$DETAIL_END" "start:$DETAIL_START"
+  "end:$DETAIL_END" "start:$DETAIL_START" ${DETAIL_MISC:+"misc:$DETAIL_MISC"}
 # `frames` is the cheap window — the per-frame dump at the `[End Frame]`
 # thresholds, which runs at full speed. `WINDOW="LO HI"` asks for the
 # expensive one instead: `stage` turns DUMP_ALL on across [LO, HI), which is
