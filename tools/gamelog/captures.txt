@@ -10103,3 +10103,4 @@ frame_window: 1470 1490
 cmd: 1480 unmeet who=1
 check: python3 tools/gamelog/rngcmp.py rontrace-run847.log rontrace-run1016c.log | tee /dev/stderr | awk '/^differing frames:/{d=$3+0} /^identical frames:/{s=$3+0} END{exit !(s>=1481)}'
 check: (grep -a -c "treaties\[scan\]" "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/gamelog-run1016c-lakota-peace-unmeet-1480.txt" || true) | tee /dev/stderr | awk '{exit !($1>=19*8*2)}'
+# ==== TAKEN 2026-10-21, one take each, 10:38-10:52, the queue lane (run1016's first launch refused rc 75: lane 1 held by a pool take) ====

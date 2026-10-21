@@ -20816,3 +20816,58 @@ SHA-256 `8c78238e64e0fdb1124fa7b4c8b8a084f394691c7efa918080e221ed3a75d7a4`.
 
 **What it holds**: `step4.py --entry 65db70 --this c0ab70 --hook 652020`: `Object::take_damage` on `1/92` with 13370
 from `Object::do_damage+0x159e`, then on `1/90` with 13345 and on `1/91` with 13327, both from `take_damage+0x140c`.
+
+## run1016 — the peace pair's lobby at `cover=1` on the queue lane, to 600, with `500 unmeet who=1` (2026-10-21, item 3417, `att-3417`)
+
+`docs/AI.md` §297. **What the disk could not answer**: the peace pair's traces (run846..849) are all `cover=0`, so
+none says whether `Game::current_age@005946d0` (§296 row 9) or `Leader::treaty_off@006d0370` (`docs/VISION.md` §8)
+is entered, and no queue-lane `cover=1` take had run since run461. The stanza is `run: 1016` in
+`tools/gamelog/captures.txt`: `mapstyle: 18`, `cfg: -`, `ffwd: 37 !ffwd 27`, `cover: cover=1`, `profile:
+STARTING_TECHNOLOGY=8 STARTING_RESOURCES=7 DIFFICULTY=3 RUSH_RULES=10 XPACK_LAST_TRIBE1=19`, `end: MISC,LEADERS=1`,
+`cmd: 500 unmeet who=1`. The queue lane, through `viadriver.sh tools/gamelog/runqueue.sh - 1016` and `waitrun.sh`. The
+first launch, at 10:37:22, refused with rc 75: lane 1 was held by att-3429's pool take, which had taken it two seconds
+earlier. The second ran 10:38:31–10:41:58 with no human input, and the cursor reached every lobby button. The tracer
+build is 2026-09-29's, and its `tracer.c` differs from this tree's (`stamp.py`); no `@` line rides on it. Seed 12345.
+Minutes waited on another lane: under one.
+
+| check | result |
+|---|---|
+| `GAME INFO` | `MAP_STYLE 18`, `DIFFICULTY 3`, `STARTING_RESOURCES 7`, `RUSH_RULES 10`, `STARTING_TECHNOLOGY 8`, `(int)seed 12345` |
+| `rngcmp.py` vs run847 | 601 in common, **601 identical, 0 differing** |
+| `report.py … functions` | `Game::current_age` f0, `Leader::treaty_off` f500 |
+
+It leaves `NEVER`: 380 → 376 (`crates/rondata/src/blind.rs`), with `get_enhancing_good` (f7) and
+`get_vehicle_speed_upgrade` (f582).
+
+Archive `gamelog-run1016-lakota-peace-cover.txt`, 11,420,596 bytes,
+SHA-256 `6e7aa5b7a480fb3ddcb704e019f295fc3ea291dae99a344f132192827bd3df01`.
+
+Archive `rontrace-run1016.log`, 10,575,968 bytes,
+SHA-256 `b3de0fc1721c7cba94016b9d97319abf57dd3536b220d0140772d02b78813af4`.
+
+## run1016b — run1016's game at `LEADERS=3`, for `treaties` (2026-10-21, item 3417, `att-3417`)
+
+**Disk gap**: `treaties[scan]` is written only at `LEADERS≥3` (run94's tooth), and run1016's per-frame records are
+`LEADERS=1`. run1016's stanza with `cover: cover=0` and `end: MISC,LEADERS=3`, queue lane, 10:43:11–10:46:57.
+`rngcmp.py` vs run1016: **601 identical, 0 differing**; 19,264 `treaties[scan]` lines. **What it holds**: leader 0's
+`treaties[1]` and leader 1's `treaties[0]` are 0 on every block 1..601. The leaders have not met by 500, so run1016's
+`unmeet` cleared a clear bit.
+
+Archive `gamelog-run1016b-lakota-peace-treaties.txt`, 29,093,956 bytes,
+SHA-256 `fd041bc94a8daef508db50b8caa3b5ab28fe6da2e599991ec7c414400d4226f9`.
+
+Archive `rontrace-run1016b.log`, 10,227,136 bytes,
+SHA-256 `e093a2da520649008a8454c001e2be13efe0e2971923cb6457cdafdb0d2695ed`.
+
+## run1016c — the `unmeet` after the leaders meet: `1480 unmeet who=1`, blocks 1470..1489 (2026-10-21, item 3417, `att-3417`)
+
+**Disk gap**: run848's window has both met bits set on block 1474, and no dump holds an `unmeet` after it. run1016b's
+stanza to 1490 with `frame_window: 1470 1490` and `cmd: 1480 unmeet who=1`, queue lane, 10:48:12–10:51:38.
+`rngcmp.py` vs run847: **1491 identical, 0 differing**. **What it holds**: bit 0 set on both sides on 1474, **clear on
+both on 1481**, and set on both again on 1488.
+
+Archive `gamelog-run1016c-lakota-peace-unmeet-1480.txt`, 11,708,303 bytes,
+SHA-256 `8e38e39fe1a797c6283b21cf457d628518184fcb7bd3ebe24d51b94418729289`.
+
+Archive `rontrace-run1016c.log`, 11,796,160 bytes,
+SHA-256 `93cec0df4cb93c11b25ed6148a274df0ebee88c40ea8aa26279472071ad11ca0`.
