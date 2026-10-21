@@ -359,6 +359,15 @@ pub struct Unit {
     /// (`docs/GOLDEN.md` §27). SEAM: an aircraft's burn — `do_strafe`'s
     /// `bombing_mana_cost` and `process`'s air recharge — is not carried.
     pub mana_burn: i16,
+    /// **`UnitData::full`** (`+0xac`, a signed byte): "nobody can get at
+    /// this one". `Unit::find_melee_pos@006010b0` adds 5 to the *target's*
+    /// when it finds no open slot round it, capped at `0x1e`; `Unit::
+    /// process@00610bc0` takes one off a frame at its head; and
+    /// `Object::find_nearby_target`'s score of a unit divides by `full + 1`
+    /// (`0064f110`). Item 3385: run1011's woodcutter `0/3` reads 5, 9, 8 …
+    /// from block 13278 as two Inti Macemen fail to reach it, and the
+    /// Heavy Archer `1/99` takes the citizen `0/4` over it on 13282.
+    pub full: i8,
     /// **`UnitData::cavarch_o`/`cavarch_who` (`+0xa2`/`+0xa8`)** and the
     /// uid beside them (`+0xa6`) — a caster's target, written by
     /// `Group::action_spell` and again by each frame of `do_cast`'s
@@ -1039,6 +1048,7 @@ impl Unit {
             stance: 1,
             spell_time: 0,
             mana_burn: 0,
+            full: 0,
             cast_target: None,
             cavarch_who: 0,
             cavarch_idle: false,
@@ -6593,6 +6603,11 @@ impl Sim {
                 );
             }
             return;
+        }
+        // `Unit::process@00610bc0`'s head counts `full` down with the
+        // reload and the wait (`:63`–`65`), inside or out.
+        if self.units[i].full != 0 {
+            self.units[i].full -= 1;
         }
         // `Unit::process@00610bc0`'s head, a caster's arm: a hero's
         // spells run out, then a point of craft back (`crate::cast`),
