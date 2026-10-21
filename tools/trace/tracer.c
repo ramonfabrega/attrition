@@ -552,7 +552,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * A line whose text starts with `@` is not a cheat: it is an order, put into
  * the local player's `CommandPackage` through the original's own issuer, so
  * the turn pump processes it exactly as it processes a click (item 676,
- * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-seven verbs:
+ * `docs/GOLDEN.md` §17; `docs/DECISIONS.md` 41 §1 and 49). Twenty-seven group verbs
+ * and two leader verbs:
  *
  *   `@move <who> <x> <y> <o> [<o> ...]`   internal coordinates, object ids
  *   `@patrol <who> <x> <y> <o> [<o> ...]` the same, through issue_patrol
@@ -608,6 +609,9 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         with QUEUE_NEW
  *   `@stance <who> <s> <o> [<o> ...]`     a stance option, or −1/−2 to
  *                                         cycle, issue_stance
+ *   `@sell <who> <good> <flags>`          a Market's Sell button, through
+ *                                         LeaderOut::issue_sell (no group)
+ *   `@buy <who> <good> <flags>`           its Buy button, LeaderOut::issue_buy
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -817,6 +821,20 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * panel. `CommandPackage::process_stance@00949ed0` forwards it unchecked to
  * `Group::action_stance@0070d440` at process time.
  *
+ * `@sell` and `@buy` call `LeaderOut::issue_sell@006d3eb0` and
+ * `issue_buy@006d3ef0` on `leaders.list + who` (the pointer at `0xc061e0`,
+ * stride `0x6eec`), with the good (0 food, 1 timber, 2 wealth, 3 knowledge,
+ * 4 metal, 5 oil) and the flags `Options::exec@007188c0:1143`–`1165`
+ * passes: 0 one lot, 1 five (the 500 button), 2 all. The leader issuer is
+ * the button's own call, so it and `CommandManager::issue_sell@00942a80`/
+ * `issue_buy@00942a30` are both entered; it plays the market sound, skips
+ * the command when `gamec->semaphore[0] & 0x10`, and appends a 13-byte
+ * `sell` (type 0x2f) or `buy` (0x2e), `[who][good][flags]`, with no group
+ * (item 3426, `docs/NATIONS.md` §9.2). `CommandPackage::process_sell@
+ * 009468a0` asks the Nubian gate and the Market at process time, and
+ * `process_buy` → `Leader::action_buy` → `LeaderData::can_buy_sell@
+ * 006d53e0` → `has_bonus@006e0b80`.
+ *
  * Refusals, each an I_ISSUE with the refusal in b's high half and nothing
  * issued: 1 no console or
  * `who` is not the console's player (`process_group` hands another player's
@@ -870,10 +888,61 @@ static int issue_verb(const u16 **t, const char *verb) {
     return 1;
 }
 
+/* `@sell`/`@buy`: a leader's market command, no group (item 3426). The
+ * issuer's first eleven bytes are `mov eax, [gamec]; push esi; mov esi,
+ * ecx; test byte [eax+0x820], ...` in both, off the listing (`6d3eb0`,
+ * `6d3ef0`); under `cover=1` the five-byte `mov` is the displaced
+ * instruction the stub copies. Refusals as `issue_line`'s: 3 is the
+ * leader's slot not holding `who` at +8. */
+#define RVA_LEADERS 0x8061e0u /* GameAccessConst::leadersc, VA 0xc061e0 (Leader *list) */
+#define LEADER_STRIDE 0x6eecu
+#define RVA_LEADEROUT_ISSUE_SELL 0x2d3eb0u
+#define RVA_LEADEROUT_ISSUE_BUY 0x2d3ef0u
+static const u8 MARKET_PROLOGUE[ISSUE_PROLOGUE] = {0xa1, 0xe8, 0x61, 0xc0, 0x00, 0x56,
+                                                   0x8b, 0xf1, 0xf6, 0x80, 0x20};
+
+static void market_line(i32 frame, u32 idx, const u16 *t, u32 rva, u32 before, const u16 *pkg_size) {
+    i32 who, good, flags;
+    if (!issue_int(&t, &who) || !issue_int(&t, &good) || !issue_int(&t, &flags) || who < 0 || who > 7 ||
+        good < 0 || good > 5) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
+        return;
+    }
+    u8 *console = *(u8 **)(g_base + RVA_CONSOLE);
+    if (!console || *(i32 *)(console + CONSOLE_PLAY_OFF) != who) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(1) << 16), before, before, 0);
+        return;
+    }
+    const Entry *cov = g_stubs ? cover_entry(rva) : 0;
+    u32 stub = cov ? (u32)(g_stubs + STUB_BYTES * (u32)(cov - g_funcs)) : 0;
+    if (!issuer_is_shipped((const u8 *)(g_base + rva), g_base + rva, MARKET_PROLOGUE, ISSUE_PROLOGUE, stub,
+                           cov ? cov->code : 0, cov ? cov->orig_len : 0, cov ? cov->code_len : 0,
+                           cov ? cov->nfix : 0)) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(2) << 16), before, before, 0);
+        return;
+    }
+    u8 *list = *(u8 **)(g_base + RVA_LEADERS);
+    u8 *leader = list ? list + (u32)who * LEADER_STRIDE : 0;
+    if (!leader || *(i32 *)(leader + 8) != who) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(3) << 16), before, (u32)who, 0);
+        return;
+    }
+    if (before + 0x0d + 4 > 0x200) {
+        emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(4) << 16), before, before, 0);
+        return;
+    }
+    typedef void(__thiscall *market_fn)(void *, i32, i32);
+    ((market_fn)(g_base + rva))(leader, good, flags);
+    u32 after = *pkg_size;
+    emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, 1);
+}
+
 static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u16 *pkg_size = (u16 *)(g_base + RVA_COMMAND_MANAGER + 0x28 + 0x10);
     u32 before = *pkg_size;
     const u16 *t = text;
+    if (issue_verb(&t, "sell ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_SELL, before, pkg_size); return; }
+    if (issue_verb(&t, "buy ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_BUY, before, pkg_size); return; }
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
      * `eject`, 6 `form`, 7 `attack`, 8 `amove`, 9 `explore`, 10 `flee`,
      * 11 `flight`, 12 `strike`, 13 `build`, 14 `spell`, 15
