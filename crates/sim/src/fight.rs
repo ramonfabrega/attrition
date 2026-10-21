@@ -3319,6 +3319,9 @@ impl Sim {
     /// down the whole chain here, dead slots included, because a dead slot's
     /// `get_captain` walks to the new head as well.
     pub(crate) fn relink_squad(&mut self, i: usize) {
+        if std::env::var_os("RON_PROBE_3393").is_some() && self.units[i].owner == 1 && (88..=93).contains(&self.units[i].index) {
+            eprintln!("PROBE3393 f{} relink 1/{} health {} decoy {}\n{}", self.frame, self.units[i].index, self.units[i].health, self.units[i].decoy, std::backtrace::Backtrace::force_capture());
+        }
         let (up, down) = (self.units[i].o_up, self.units[i].o_down);
         let head = up.is_none();
         if let Some(a) = up {
