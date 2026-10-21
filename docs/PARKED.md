@@ -3783,6 +3783,14 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-20 — the forty-seventh tranche's
 
+(3406) **A `pgrep -f` wait on a tool name every lane runs never exits** (the commander's, 2026-10-21, `lanewait.py`'s
+`STALLED att-3403 50`): a subagent of att-3403 waited 161 minutes in `until ! pgrep -f "mutate.py --batch"; do sleep
+15; done` on a batch that had finished at 01:54 (119 of 119); the pattern matched att-3402's own `mutate.py --batch`
+(pid 30908) and the waiting shell's own command line, which carries the same string, so the loop could not end on any
+host. The brief's: a wait names its own pid or its own log, never a `pgrep -f` of a shared tool; the checklist row
+would read "wait on what you started, by pid or by file". `tools/mutate.py --batch` could also write a `done` line its
+caller waits on. One reach.
+
 (3405) **Two `name` rows that are not the simulation's, each parked by a sweep** (3404's "for the Loop", filed at its
 merge): `UnitBalance::next` is the unit-balance shell mode's driver (out of v1; its COM XML callees have no generator
 flag) and `Game::run` is the match lifecycle with no frame loop in it (3404a, 3404b, each on a generator run). The

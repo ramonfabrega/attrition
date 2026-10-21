@@ -19,8 +19,8 @@ Indians and the Inca at Great Sahara, the Turks, the Americans and the Spanish a
 - **Words**: every pair closed; thirty battery words closed, none open (`AI_WORDS` holds twenty-eight, every one at its game's end). Battery on `15e001e8`:
   6147 (the Dutch at Great Lakes, 3390, rule (2)), 7799, 14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368 (Loop 3398). Census 1676, port 562.
 - **Lanes: two live, draining** (18 landed + 2 live = 20, no refill): 3403
-  the third sweep (Sonnet, no word of its own, MG), 3402 the nations seat (Sonnet, MF). **The sweep pool is empty** (3404). Next 3406, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ.
-- **Fable backlog: 17 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382, 3388, 3389, 3392, 3394, 3398, 3401, 3405); DECISIONS 85.
+  the third sweep (Sonnet, no word of its own, MG), 3402 the nations seat (Sonnet, MF). **The sweep pool is empty** (3404). Next 3407, run 1016. Pools: GOLDEN §144–148, AI §296–299, park MI–MJ.
+- **Fable backlog: 18 Loop items** (1570, 2003, 3118, 3143, 3188, 3237, 3349, 3350, 3371, 3382, 3388, 3389, 3392, 3394, 3398, 3401, 3405, 3406); DECISIONS 85.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
