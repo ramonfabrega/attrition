@@ -21536,3 +21536,68 @@ Archive `rontrace-run1036.log`, 10,212,256 bytes,
 SHA-256 `3a848a94d902c67e615c2dada8a3ebfd68702dd5b4edaf33b7de0cb397b9215c`.
 
 **What it holds**: `blind::TRACES`' run1036 (item 3428), `NEVER` 339 → 337 on its base, 331 → 329 merged after item 3427.
+
+## run1050 — run1032's take on the click-free pool, its hand clicks as `@rclick`/`@click` lines, to 800 (2026-10-21, item 3437, `att-3437`)
+
+**What the disk could not answer**: whether the click layer's functions can be entered with no macOS cursor. Every
+trace that enters `GroupOut::issue_guard@007088e0`, `issue_follow@00708980` or `Options::picked_spot@00721c40` is
+run1032, a queue-lane take driven by `cliclick`. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1050`: `--map 14 --end-frame 800 --log-window 605 801 --timeout 2400 --detail
+end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/coverage/click3437-ch11.cmd --cover cover=1 --no-ffwd`. The
+script is run1032's stanza line for line plus `624 @rclick 960 445`, `704 @click 34 935` and `708 @click 958 492`, run1032's
+three hand clicks on the frames its trace entered them (`tools/trace/click.h`). `--no-ffwd` (new) keeps the game
+drawing, as run1032's `ffwd: -` did.
+- Pool lane 1 (taken over att-3436's stale lock). Launched 18:05:52, exited 18:08:11: **139.1 s launch to exit**, 7.0
+  frames a second. `success`, lifecycle verified, 801 frames, `MAP_STYLE 14`, seed 12345. DLL `a9af62ee…`,
+  `-DRON_AUTOSTART`, this tree's `f6440a1db`. 225 GiB free before.
+- `INFO 21` on frame 0: the pin installed (273 renderer vftable entries copied, scale `0x3f800000`, resting point 700,300).
+  Three `INFO 20`, none refused; **2,389 window-procedure mouse events dropped by frame 624**, 2,410 by 708: the
+  pool's resting cursor feeds the game a stream of events nobody chose (Loop 3432).
+- The dump prints `process_group, new 0 1 625` / `process_guard 625` and `process_group, repeat 0 0 709` /
+  `process_follow 709`, as run1032's does.
+- **6,554 functions entered**. `issue_guard`, `CommandPackage::process_guard`, `SysMessageHandler::OnRButtonDown`/`Up`
+  and `Console::execute_at_cursor` on 624; `Options::exec` and `OnLButtonDown`/`Up` on 704; `issue_follow` and
+  `picked_spot` on 708 — run1032's frames, row for row. No `NEVER` row: not pinned.
+- `rngcmp.py rontrace-run1032.log` (the driven take): **793 in common, 0 differing**, 793 identical.
+  `samegame.py gamelog-run1032-ch11-guard-click.txt`: **189 in common (1..792), 0 differing**. Against the `cover=0`
+  twin (`~/ron-golden/ch11`): rngcmp 801 in common, 121 differing, the first 676; samegame 197 in common, 180
+  differing, the first 621 — run1032's own parting (676, 621), the twin's `620 @guard` dropped for the click.
+- Filed with `filerun.py run1050 ch11-guard-follow-atclick`. Minutes waited on another lane: 62 (att-3436's queue-lane
+  takes, 17:03–18:05).
+
+Archive `gamelog-run1050-ch11-guard-follow-atclick.txt`, 32,744,043 bytes,
+SHA-256 `4e429451142379dd81f98aace4f6b7f934297564f66f4889c699bda345637cad`.
+
+Archive `rontrace-run1050.log`, 14,799,488 bytes,
+SHA-256 `d906ea8e387fb240d37ac4e2c848d33efeead7908c0f836b0f11d643992825aa`.
+
+**What it holds**: run1032's game, draw for draw and block for block, with no cursor.
+
+## run1051 — run1033's take on the click-free pool, its hand clicks as `@click` lines, to 780 (2026-10-21, item 3437, `att-3437`)
+
+**What the disk could not answer**: as run1050, for `BuildData::can_queue@0062da00`, `GroupOut::issue_eject_all@00708b90`
+and `Options::do_eject_all@0071c470`, which only run1033 (driven) enters. run1050's line with `--end-frame 780
+--log-window 605 781 --detail end:UNITS=3,GUYS=2,BUILDS=7,DEATHS=1,LEADERS=2 --cmd-file
+tools/gamelog/coverage/click3437-ch13.cmd`: run1033's stanza line for line (its two `@garrison` lines kept) plus `736
+@click 34 956` (the Barracks' first train button) and `748 @click 158 1056` (Eject).
+- Pool lane 1. Launched 18:08:44, exited 18:11:16: **152.2 s launch to exit**. `success`, lifecycle verified, 781
+  frames, `MAP_STYLE 14`, seed 12345. DLL `d41fa188…`, `-DRON_AUTOSTART`, the same tree.
+- `INFO 21` installed as run1050's; both `@garrison` lines issued (`INFO 17`, package 10 → 28); both `INFO 20` ran.
+- The dump prints `process_garrison 2007 0 2 621`, `641`, `process_queue_up 82 1 737` and `process_eject_all 749`, as
+  run1033's does.
+- **6,525 functions entered**. `can_queue`, `Options::exec` and `OnLButtonDown`/`Up` on 736; `issue_eject_all` and
+  `do_eject_all` on 748 — run1033's frames. No `NEVER` row: not pinned.
+- `rngcmp.py rontrace-run1033.log`: **773 in common, 0 differing**. `samegame.py
+  gamelog-run1033-ch13-eject-queue-click.txt`: **169 in common (1..772), 0 differing**. Against the `cover=0` twin
+  (`~/ron-golden/ch13`): rngcmp 781 in common, 30 differing, the first 751; samegame 177 in common, 44 differing, the
+  first 737 — the train click's own block, run1033's parting.
+- Filed with `filerun.py run1051 ch13-queue-eject-atclick`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1051-ch13-queue-eject-atclick.txt`, 38,129,132 bytes,
+SHA-256 `c9bc6d7fe29777b504d896f67254ba436c35884f61b2c89eeec51b3ca922c036`.
+
+Archive `rontrace-run1051.log`, 14,739,584 bytes,
+SHA-256 `e026b1d1e5c91ae7b6d5c2ba0dce30103efd132294d1a2eea1e2955e34e82986`.
+
+**What it holds**: run1033's game, draw for draw and block for block, with no cursor.

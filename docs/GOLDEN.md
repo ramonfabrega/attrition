@@ -13624,6 +13624,19 @@ calls the wrapper with the `GroupOut` the tracer already builds. That checks the
 | `Units::make_valid@0061a960` | `U3` first `0/200` index | ~70 squads for one player | `@queueup` past 200 slots |
 | `ScenarioFuncSet::citizen_repair_order@009f85b0` | `U3` computer Citizens' `MOVEORDER` + `BUILDORDER` | a Nomad lobby (`profile.py STARTING_TOWN=0`), AI on | the computer's city placed |
 
+**The click rows need no cursor (item 3437).** A rontrace `@click X Y`/`@rclick X Y` line (`tools/trace/click.h`) calls
+the game's own `SysMessageHandler` mouse slots at the top of its frame, with the renderer's cursor cache pinned to the
+point and the window procedure's own mouse events dropped, so a row above is taken on the click-free pool with the
+driven take's screen points (`golden_capture.sh … --cover cover=1 --no-ffwd`). Parity with item 3427's driven takes:
+
+| driven take | pool take | the rows, entered on | rngcmp vs the driven take | samegame vs its dump |
+|---|---|---|---|---|
+| run1032 (ch11) | run1050 | `issue_guard` 624; `Options::exec` 704; `issue_follow`, `picked_spot` 708 | 793 in common, 0 differing | 189 in common, 0 differing |
+| run1033 (ch13) | run1051 | `can_queue@0062da00` 736; `issue_eject_all`, `do_eject_all` 748 | 773 in common, 0 differing | 169 in common, 0 differing |
+
+Each pool take is its driven take's game, so the open rows' `rclick`/button/pick actions are `@` lines with the
+points a screenshot of the lobby gives; the `bindkey.py` row is a key, which a click line does not send.
+
 Three of these would move to `ENTERED_BY_THE_DLL_ONLY`, because nothing in the image references them (`issue_stance` did, with run1025): `issue_stance`,
 `issue_attack_ground` and `issue_come_out`. `process_stance` and `get_stance_option` would leave outright, because the game's
 own stance button reaches them.
