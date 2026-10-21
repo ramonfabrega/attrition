@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-eighth pass (steer, Fable): the forty-eighth tranche measured — 7 landings from `28f48612` in
-2 h 40, the queue's whole booking, 5.07 USD and 38.5 minutes waiting a landing, no red gate — 45 of the readings' 46
-residue proposals ratified, the forty-ninth booked as `cover=1` captures** (DECISIONS 87; `docs/audit/2026-10-21-fable-pass-48.md`).*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): 1 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
+click-free pool (run1037, 601 frames, `rngcmp` 0 differing against run847 and 3417's run1016; the autostart refused
+`g_cover`, now checked before `arm_all`), so the coverage items take the pool and only a driven one the queue lane.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
   568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380, residue 35 → 80, open 345 →
   300** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
-  `coverage` items (the fifth kind) on the two Opus lanes, the queue lane serial until 3429; the Sonnet seats empty.
-- **Lanes: none live.** Next 3430, run 1040. Pools: GOLDEN §145–149, AI §297–301, park MP–MT, MU–MZ, NA–ND; refills from the owed tables.
+  `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
+- **Lanes: att-3417 (queue lane), att-3418 (pool).** Next 3430, run 1040. Pools: GOLDEN §145–149, AI §299–301, park MS–MT, MU–MZ, NA–ND.
 - **Fable backlog: 8 Loop items** (3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -46,8 +46,8 @@ count landings from the forty-eighth pass's commit; at twenty, or at the drain, 
 ## The queue
 
 In dependency order; **the roster is Ramon's** (DECISIONS 84, 85). Every item is a `coverage` capture (DECISIONS 87): one
-pinned lobby retaken at **`cover=1` on the queue lane** (run461's recipe in `captures.txt`; never the click-free lane,
-parked 1047), checked against its `cover=0` twin (`rngcmp.py`, `samegame.py`), pinned into `blind::TRACES`; a function
+pinned lobby retaken at **`cover=1` on the click-free pool** (3429's fix, run1037; the queue lane only for what the mouse drives,
+3427), checked against its `cover=0` twin (`rngcmp.py`, `samegame.py`), pinned into `blind::TRACES`; a function
 not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: GOLDEN §144.3's click
 layer, `@spell` Bribe, the carrier, `make_valid`, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
 
@@ -56,15 +56,6 @@ layer, `@spell` Bribe, the carrier, `make_valid`, the Nomad lobby; ORDERS §42.3
 lane still runs (`viadriver.sh`, the mouse, `waitrun.sh`); a lane that will not launch is a permission-shaped block,
 reported, not worked around. Enters `Game::current_age@005946d0` (AI §296 row 9) and `Leader::treaty_off@006d0370`
 (VISION §8: `LEADERS=1` `treaties[1]` bit 0 clear at block 501, both sides). Run 1016.
-
-3429. **coverage: make `cover=1` run on the click-free lane** (Ramon, 2026-10-21; Loop 1570's trial, parked 1047):
-run185 hung before frame 0 on the click-free golden lane at `cover=1` with the callwin proxies (48,173 stubs built,
-`armed`, `attach`, 2,984 startup hits, no `FRAME`), never retried, never read. Reproduce it without proxies on a pool
-lane (`unattended_capture.py --cover cover=1`, 3417's lobby, 600 frames); read `rontrace.log`'s last record and the
-attach order (`docs/ORACLE.md`, "Coverage is back": the stub forest is planted at attach with one thread alive; the
-autostart build is `RON_AUTOSTART`); fix it in `tools/trace/` if it is the DLL's, and prove it with `rngcmp.py` against
-3417's queue-lane trace. Lands either the fix (then every item below may take the pool) or the predicate that stops it.
-Runs 1037–1039. **The frame's "never `cover=1` on the click-free lane" row is yours to retire.**
 
 3418. **coverage: Great Sahara Toughest at `cover=1` to 15432** (AI §296 row 1; run470, run668's lobby): enters
 `SpellType::cast_march`, `Leader::verify_spell_flags` (9112, the march; `LEADERS=9` `leader_flags & 0x8000` falls at
