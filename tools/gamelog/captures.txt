@@ -10187,3 +10187,173 @@ cmd: 616 select 7 who=0
 cmd: 616 camera 34,189
 check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch20/map-14/rontrace.log" rontrace-run1034.log || true)
 check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1034.log" functions 2>/dev/null | grep -E "^0070ad10 |^0071c500 " || true)
+
+# ==== item 3436: the click layer, second pass (GOLDEN §144.3: issue_attack, issue_flight, issue_build, issue_swarm_around, issue_buildmask/set_air_repeat, BuildOut::issue_unqueue) ====
+# 3427's shape: each stanza is the chapter's golden lobby and its lines up to the one a click replaces, then a `select`
+# and a `camera` on a fixed frame and `handdriver.sh`'s clicks, aimed from the run's own screenshots. A kept `@` line
+# takes `issuesmatch.py --none-refused`; the take parts its `cover=0` twin at its first click (Loop 3435).
+run: 1044
+tag: ch15-attack-click
+item: 3436
+why: chapter fifteen's lobby at cover=1, `rclick` 0/6 0/9 on the enemy Chariot 1/6 for GroupOut::issue_attack@0070b060 in place of 734's @attack
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 610 add hoplite who=0 12,84
+cmd: 612 add hoplite who=0 18,84
+cmd: 614 add chariot who=1 16,64
+cmd: 620 @move 0 3192 10752 6 9
+cmd: 700 select 6 who=0
+cmd: 700 select 9 who=0 +
+cmd: 700 camera 16,58
+check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run1044.log
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch15/map-14/rontrace.log" rontrace-run1044.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1044.log" functions 2>/dev/null | grep -E "^0070b060 " || true)
+
+run: 1045
+tag: ch17-flight-click
+item: 3436
+why: chapter seventeen's lobby at cover=1, the Fighter 0/6 selected and right-clicked on its own Airbase 0/2007 for GroupOut::issue_flight@00708b10 in place of 640's @flight
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 630 select 6 who=0
+cmd: 630 camera 60,72
+check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run1045.log
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch17/map-14/rontrace.log" rontrace-run1045.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1045.log" functions 2>/dev/null | grep -E "^00708b10 " || true)
+
+run: 1046
+tag: ch18-build-click
+item: 3436
+why: chapter eighteen's lobby at cover=1, the Citizen 0/6 selected, the Barracks build button (427) and a no-drag drop for GroupOut::issue_build@00708c60 in place of 620's @build
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 600 library who=0 2
+cmd: 610 add citizen who=0 24,184
+cmd: 612 add citizen who=0 24,196
+cmd: 614 add citizen who=0 26,196
+cmd: 616 add citizen who=0 28,196
+cmd: 618 select 6 who=0
+cmd: 618 camera 38,178
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch18/map-14/rontrace.log" rontrace-run1046.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1046.log" functions 2>/dev/null | grep -E "^00708c60 " || true)
+
+run: 1047
+tag: ch21-repair-click
+item: 3436
+why: chapter twenty-one's lobby at cover=1, the Citizen 0/6 selected and right-clicked on the damaged Barracks 0/2007 for GroupOut::issue_swarm_around@0070afc0 in place of 780's @repair
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 600 library who=0 2
+cmd: 602 library who=1 3
+cmd: 606 add barracks who=0 30,170
+cmd: 610 add bowmen who=1 34,170
+cmd: 760 peace 1
+cmd: 770 add citizen who=0 28,190
+cmd: 772 add citizen who=0 26,192
+cmd: 774 add citizen who=0 28,192
+cmd: 776 add citizen who=0 30,192
+cmd: 778 select 6 who=0
+cmd: 778 camera 30,176
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch21/map-14/rontrace.log" rontrace-run1047.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1047.log" functions 2>/dev/null | grep -E "^0070afc0 " || true)
+
+run: 1048
+tag: ch23-airrepeat-click
+item: 3436
+why: chapter twenty-three's lobby at cover=1, the Airbase 0/2007 selected and its repeat button for Options::set_air_repeat@0071c740 and GroupOut::issue_buildmask@00708820 in place of 1440's @buildmask
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1,AMMO=5
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 600 library who=0 6
+cmd: 606 add airbase who=0 60,72
+cmd: 610 add fighter who=0 60,84
+cmd: 612 add bomber who=0 52,84
+cmd: 614 add bomber who=0 68,84
+cmd: 616 add barracks who=1 110,86
+cmd: 620 @strike 0 2006 1 7 8
+cmd: 640 @flight 0 2007 0 6
+cmd: 660 @flight 0 2007 0 7 8
+cmd: 664 @strike 0 2006 1 7 8
+cmd: 766 @strike 0 2006 1 6
+cmd: 770 select 2007 who=0
+cmd: 770 camera 60,72
+check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run1048.log
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch23/map-14/rontrace.log" rontrace-run1048.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1048.log" functions 2>/dev/null | grep -E "^0071c740 |^00708820 " || true)
+
+run: 1049
+tag: ch25-unqueue-click
+item: 3436
+why: chapter twenty-five's lobby at cover=1, the Barracks 0/2007 selected with its queue in, a cancel on the queued Hoplite (Options::exec's option 0xa6) for BuildOut::issue_unqueue@00629e70 in place of 700's @unqueue
+frames: 3000
+mapstyle: 14
+cfg: -
+ffwd: -
+cover: cover=1
+driver: tools/gamelog/handdriver.sh
+end: UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1
+start: MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+misc: COMMANDMANAGER=1
+frame_window: 605 3000
+cmd: 0 !ai off
+cmd: 606 add barracks who=0 14,74
+cmd: 610 add chariot who=0 20,60
+cmd: 614 add hoplite who=0 10,90
+cmd: 620 @queueup 0 132 2 2007
+cmd: 640 @queueup 0 170 1 2007
+cmd: 650 select 2007 who=0
+cmd: 650 camera 14,74
+check: python3 tools/gamelog/issuesmatch.py --none-refused rontrace-run1049.log
+check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch25/map-14/rontrace.log" rontrace-run1049.log || true)
+check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1049.log" functions 2>/dev/null | grep -E "^00629e70 " || true)
