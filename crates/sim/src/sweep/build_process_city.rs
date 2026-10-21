@@ -85,7 +85,7 @@ fn the_emulated_original_agrees_on_every_row() {
                         sh[n - k] = v.clone();
                     }
                 }
-                if n + 1 <= 4 {
+                if n < 4 {
                     sh[n + 1] = ret.to_string();
                 }
             }
