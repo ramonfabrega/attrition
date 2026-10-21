@@ -5666,7 +5666,7 @@ impl Sim {
     /// and the fleet `1/83`, and its `num_units` has `[268]` 1 and no
     /// `[270]`.
     ///
-    /// SEAM: the `pop == 0` arm's `is(0x134)` and `is_gov_hero` are not
+    /// SEAM: the `pop == 0` arm's `is(0x134)` and the governor-hero test are not
     /// read here, and answer no; `+0x68 & 1` has no state here.
     pub(crate) fn counts_in_muster(&self, u: usize) -> bool {
         let unit = &self.units[u];
