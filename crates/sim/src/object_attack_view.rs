@@ -34,7 +34,7 @@ pub trait ObjectAttackView {
     /// Slot `+0xcc`: `UnitData::is_supply`.
     fn is_supply(&mut self) -> bool;
     /// Slot `+0xc8`: `UnitData::is_gov_hero`.
-    fn is_gov_hero(&mut self) -> bool;
+    fn gov_hero_slot(&mut self) -> bool;
     /// The owner's age count.
     fn ages(&mut self) -> i32;
 }
@@ -50,7 +50,7 @@ pub fn object_attack_steps<V: ObjectAttackView>(v: &mut V) -> i32 {
     }
     let id = v.type_index();
     let kind = id == 0x3d || id == 0x3e || id == 400 || v.is_caravan() || v.is_supply();
-    if !kind || v.is_gov_hero() {
+    if !kind || v.gov_hero_slot() {
         return attack;
     }
     attack.wrapping_add(

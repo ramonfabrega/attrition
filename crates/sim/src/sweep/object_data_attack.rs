@@ -96,7 +96,7 @@ fn the_emulated_original_agrees_on_every_row() {
                     self.log.push("s4:m+0x0".into());
                     self.a[4] != 0
                 }
-                fn is_gov_hero(&mut self) -> bool {
+                fn gov_hero_slot(&mut self) -> bool {
                     self.log.push("s5:m+0x0".into());
                     self.a[5] != 0
                 }

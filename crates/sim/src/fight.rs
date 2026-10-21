@@ -6032,7 +6032,7 @@ impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
                 .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
         })
     }
-    fn is_gov_hero(&mut self) -> bool {
+    fn gov_hero_slot(&mut self) -> bool {
         self.rec().is_some_and(|r| {
             self.sim.unit_types[r]
                 .tree
