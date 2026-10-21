@@ -272,6 +272,8 @@ mod build_new_library;
 mod build_order_get_type;
 #[path = "build_order_get_type_vtordisp.rs"]
 mod build_order_get_type_vtordisp;
+#[path = "build_plunder.rs"]
+mod build_plunder;
 #[path = "build_process_ejection.rs"]
 mod build_process_ejection;
 #[path = "build_queue_data_get_job_counter.rs"]
