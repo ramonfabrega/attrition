@@ -9027,13 +9027,19 @@ words and edits nothing here; a refill lands when two remain.
 - **3408c. `Sim::disembark_squad` (`crates/sim/src/transport.rs:1548`) writes `orig = dest` for every `Body::Move`.** The original writes `orig_x/orig_y := x/y` only for an order whose vslot `0x14` answers. Whether every order the crate files as `Body::Move` (group moves and form changes included) answers that slot, and whether the crate's `dest` is the original's `+0x4/+0x8`, is not established. It books with §144.3's `chapter46.cmd` re-take.
 - **3408d. Stale texts this reading found, none a score.** `crates/sim/src/city.rs:2192`'s doc calls the arm "the console's `finish`", but it is `hurry` (§144.2). `docs/CENSUS.md`'s row for `Unit::do_flee_to` says "pointer only", but it is dead (§144.4). `tools/ghidra/`'s `vtables.txt` lacks `GroupAttackOrder::vftable` (`0xb491fc`) and the minimap's `WorldMap` vftable (`.rdata 0xb54b38` holds the slot): an export gap, to be checked against the export script.
 
-## Parked by the next landing, slot MJ — reserved
+## Parked by item 3409, 2026-10-21 — the AI track's blind readings: a leader bit, a vtable-only predicate, a stale backed list
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3409a. `Sim::process_spells` carries only the March's leader bit.** `Leader::verify_spell_flags@006ce190` drops
+  `leader_flags & 0x4000` (no hero's `unit_masks & 0x2000`) as well as `& 0x8000`, over the hero list to `hero_mark`,
+  and runs on either spell's expiry (`docs/AI.md` §296); the crate keeps `forced_march` alone, checked on a March's
+  expiry, over every live unit of the owner. No reader of the leader's `0x4000` is known in the crate or the
+  original past `verify_spell_flags` itself, so no score moves; §296's row 2 is the capture that would show it.
+- **3409b. `GoodTypeData::is_flat@004780c0`'s residue proposal hangs on an indirect-call scan.** The PE holds no
+  direct call to it, only GoodType's vtable slot `+0x94` three times (§296); whether any `call [reg+0x94]` has a
+  GoodType receiver is not read. `WallData::hits@00642bb0` has the same shape and §142 reads it as reached. A scan
+  of `+0x94` vcalls by receiver type would settle both.
+- **3409c. `docs/audit/census-backed.txt` predates item 3346.** `Object::disband@006455c0` has a sweep
+  (`crates/sim/src/sweep/object_disband.rs`) and the backed list leaves its row blank; the pass's regeneration owes it.
 
 ## Parked by item 3410, 2026-10-21 — the first five never-entered unmarked rows swept
 

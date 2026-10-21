@@ -45,7 +45,18 @@ The bits are from the decompile of the switches
 (`enable_production_ai@009ff5e0` clears `0x4`, `disable_combat_ai@009ff860`
 sets `0x8`, `disable_city_ai@009ffbf0` sets `0x10`, `disable_all_unit_ai@
 009ff8e0` sets `0x2`, `disable_unit_ai@009ffa10` sets `0x1000000` on every
-unit of the chain). `leader_flags2` is `LeaderData+0x4` (PDB); `leader_flags`
+unit of the chain). **Each switch's guard** (item 3409, §296; *reading
+alone*): the player is `1..8` (`*param_1 − 1 < 8`, stride `0x6eec`) and its
+`leader_flags & 1` is set, else the switch returns −1 and writes nothing;
+`disable_city_ai` also wants `leader_flags & 2` set and `& 4` clear
+(`:13`; run112's human carries `0x7`, its computer `0x13`), so it never
+shuts a human's city layer; and `disable_unit_ai(who, o)` with no live
+unit `o` and `o < 0` falls to `leader_flags2 |= 2` (`:41`–`:43`), the
+all-units switch — Tutorial 3's `disable_unit_ai( COMPUTER, -1 )`
+(`tut3.bhs:80`) is that arm. Only scenario scripts call them: the
+tutorials, a Chess Exercise and CtW's `ctw_lib.bhs` (the `enable_*`
+trio); no skirmish lobby does, so every capture this crate diffs prints
+`leader_flags2` 0 for these bits. `leader_flags2` is `LeaderData+0x4` (PDB); `leader_flags`
 at `+0x0` has bit 1 = active, bit 2 = computer (`strategy_all`'s `& 3 == 3`),
 bit 4 = human (`docs/audit/2026-08-23-pathfinder.md`).
 
@@ -9457,7 +9468,17 @@ tests the claim's own unit.
   and ratchets `wonders_held` (+0x858).
 - **`Wonders::close_wonder@0073c7e0`**, called from `Build::close`. It
   clears the entry's bit, then walks the mark down while the entry under
-  it is clear.
+  it is clear. Its whole write set (item 3409, §296; *reading alone*):
+  the entry's `+0xc & 1` cleared, `+0xd` to `0xff` and `o` (`+0x2`,
+  `WonderData`) to −1 (`:10`–`:12`), then `LeaderData::wonder_mark`
+  (`+0x424`) decremented while the entry under it is clear (`:13`–`:21`);
+  it returns −1 either way, and `Build::close` reaches it only when the
+  building's `+0x76` (its wonder slot) is non-negative (`:314`–`:316`).
+  So the mark falls only when the highest standing wonder closes, and
+  falls past every cleared entry under it. *Falsifier*: `LEADERS=9`'s
+  `wonder_mark` on the frame a player's last-activated wonder is razed
+  or captured — the mark drops to one past the next entry still in use;
+  a lower wonder's close leaves it standing.
 
 So the mark is **one past the highest entry in use**, not a count.
 `has_wonder` and `get_wonder_value` walk the list to it.
@@ -12210,7 +12231,37 @@ holds a unit the other does not (7485).
 
 - `Leader::action_respond@006d03c0` and `Leader::pay_dow@006d2b10` write
   escrow too, and neither is modelled. No capture on disk is known to
-  reach either.
+  reach either. **What each writes** (item 3409, §296; *reading alone*;
+  the listing at `6d2baa`–`6d2bcd` settles that the decompile's
+  `0xe3a7f8` is `leaders` plus `escrow`'s offset, `escrow`):
+  - `pay_dow(t, cancel)` prices `DECLARE_WAR + t`, or
+    `CANCEL_ALLIANCE + t` when `cancel ≠ 0` (`TypeIndex`), through
+    `get_cost` (vslot `+0x78`) per available good, and takes the price
+    from both the stock (`+0x6eb8`'s array, `^ 0x8221`) and `escrow`,
+    each floored at 0 (`:14`–`:38`). Its one caller,
+    `Leader::action_declare@006dab50:98`/`:113`, pays only when its
+    `free` argument is 0, and every automatic caller passes
+    `~(leader_flags >> 2) & 1` (`Object::take_damage`, `Nuke::do_damage`,
+    `action_respond:534`/`:538`) while `Leader::diplomacy` passes 1: **a
+    computer never pays a declaration; a human (`leader_flags & 4`)
+    always does**, and so does the console's own declare
+    (`CommandPackage::process_declare`, `free` 0). A skirmish at war from
+    frame 0 returns at `action_declare`'s `is_enemy` head.
+  - `action_respond(other, 1)` (an accepted offer) takes the offer's
+    tribute per good (`dip[other] +0x6938`) and, for each third leader
+    `k` the treaty sets against (`+0x6968`), `DECLARE_WAR + k`'s price —
+    doubled against an ally, and **zero unless the responder is human**
+    (`× ((leader_flags & 4) ≠ 0)`, `:110`) — from the stock and
+    `escrow`, both floored at 0 (`:157`–`:169`, `:187`–`:200`), adds
+    them to `tributes` (`+0x498`, `:171`, `:201`), and marks the offer
+    agreed (`+0x692c = 1`, `:207`); a good whose stock falls short of
+    tribute plus price stops it before any write (`:119`). It first
+    zeroes `tribute_demanded` (`+0x334`) and `+0x314` for `other` on
+    every call (`:60`–`:61`).
+  *Falsifier*: `LEADERS=9`'s `escrow` and `tributes` on the frame a
+  human accepts a tribute treaty or declares war from peace — the
+  stock and the escrow fall by the same priced amount; on an AI's own
+  declaration neither moves.
 - The script host's `queue_up`/`produce_building` (`ai_host.rs`) pass
   `false`. What the script actions pass is not read.
 - `do_gather`'s knowledge `tech_cost` arm and `ai_speed` scale both the
@@ -12895,7 +12946,7 @@ March and Rally (`0x279`) on `CHAR_ATTACK1..3` — no idle roll, where
 `DURATION_UPGRADE` × 15), `unit_masks |= 0x8000`, `leader_flags |=
 0x8000`; `Caster::process_spells@00739ad0` expires it and
 `Leader::verify_spell_flags@006ce190` drops the leader's bit when no hero
-marches. The unit bit holds mana recovery (`& 0x2a000`).
+marches (and the Ambush's `0x4000`: §296). The unit bit holds mana recovery (`& 0x2a000`).
 `sim::cast::Sim::cast_march`, `process_spells`.
 
 **What moved**: 8856 → 9323 (the constant's comment has the value diff;
@@ -17192,7 +17243,7 @@ table's column and held every unit six levels behind the player's seven. Built: 
 is reading-only: no capture prices a research by it.
 
 **3. `get_nukes`** (`LeaderData::get_nukes@006ebe50`). The nuke arm of `missile_value` counts the leader's **Nuclear Missiles** (`0x13b`'s line, queued and held; none without `tech.ptr[0x27] & 8`) against its silos and the
-others', not the type being offered: a queued ICBM (`0x13c`, no `FROM`) is not a nuke there. `Sim::get_nukes`, `Sim::nuke_standing`; held by `the_nuke_count_is_the_nuclear_missile_line`. The in-flight count the original subtracts is zero here.
+others', not the type being offered: a queued ICBM (`0x13c`, no `FROM`) is not a nuke there. `Sim::get_nukes`, `Sim::nuke_standing`; held by `the_nuke_count_is_the_nuclear_missile_line`. The in-flight count the original subtracts is zero here. **Read against the port** (item 3409, §296; *reading alone*): the whole body is `tech.ptr[0x27] & 8 ? get_units(0x13b, 0) + get_queued(0x13b, num_queued[0x13b]) − nukes_in_flight : 0`, unclamped, so the count goes negative only if `nukes_in_flight` (`LeaderData +0xa3c`) outruns the line; the port agrees on every term but the last. *Falsifier*: `LEADERS=9` prints `nukes_in_flight`; a frame on which it is non-zero while the computer's `missile_value` prices a silo's offer — no capture on disk holds one (§296's table).
 
 **4. The computer's silo fires** (`Object::do_launch@0064f3b0`, the branch past `64fdcd`). Every 128 frames, phased by the silo's `o`, the missile at the chain's head is given an air attack on the enemy city of best
 value in its reach, and then waits for the silo's `recharging` (30) as the human's does. Great Sahara's Persian silo `1/2017` orders on 1951 (`(1951 + 2017) % 128 == 0`) and the missile leaves on **1983**; before this the silo stood idle in ours,
@@ -17961,7 +18012,16 @@ Each claim is *diff-backed* unless marked.
      `(float)(unit_move_speed × proj_speed)` (`67cd6a`–`67cdcc`, `xmm1`, saved at `91396e` and reloaded at `913a8b`);
    - `calc_spline@00912f00`: capped at `3 × 4.0 = 12`, raised to the degree 2;
    - `generate_bspline@00911820`: one point more than the resolution.
-   So a missile longer than twelve speeds flies 13 frames. The middle point is `5 × speed` along the figure's angle
+   So a missile longer than twelve speeds flies 13 frames. **The control points** (item 3409, §296; *reading
+   alone*): `calc_from_dir(start, mid, end, extra)` appends `start`, `mid`, then `extra` only when its
+   `Vector::length` is non-zero — the degree `+0x60` is 3 with it, 2 without (`:45`–`:62`) — then `end`, sets the
+   resolution (`set_min_seg_length:29`, `(short)(int)(L / speed)` over the polygon's segments) and `+0x48 = 4.0`
+   (`:74`) before `calc_spline`. Both callers in the simulation pass `extra` zeroed — `Ammo::init:694`, and the
+   homing re-aim of item 6 below (`Ammo::inc_time:170`–`:172`, from the round's current point, `mid` twice its
+   offset to the spline's next point, `end` the target's position) — so a round's spline is always the three-point,
+   degree-2 one `combat::missile_flight_time` builds; `calc_nuke_spline` calls `set_min_seg_length` with its own
+   degree. *Falsifier*: `AMMO`'s `total_time` on a missile at under twelve speeds' range (the count then follows `L`,
+   and a fourth point would lengthen it) — no capture on disk fires one that short. The middle point is `5 × speed` along the figure's angle
    for a sea or air shooter (`67cb7d`–`67cb9b`); a building's or land unit's (`+0x218 == 0`, `67c437`–`67c469`) is
    half a stack local at a fixed pitch.
 5. **A missile is not led and never rolls** (`Ammo::init:798`, `:355`–`:360`: `local_30 == 0` in both). *Export-
@@ -20494,7 +20554,15 @@ capture's player holds one.
    entered; `lakota_raze_price`), the AI's `create_buildings`, `create_units`, `production_ai_setup` and `calc_gather`,
    `Build::plunder` and `LeaderData::can_see_borders`. Not the battery's Germans, Russians or Egyptians (§125's battery
    is never debugged against). **These are predictions**: the click-free lane runs `cover=0`, so the census cannot say
-   it entered any of them.
+   it entered any of them. **`say_no_war` writes no simulation state** (item 3409, §296; *reading alone*): its
+   whole body sets the global `msg` — one string for `rush_rules > 8`, another for 8, else a third parsed with the
+   rush rule's name (`types +0x87c`, `:18`–`:34`) — and its four callers each hand `msg` to the message window:
+   `process_attrition` (the console's unit, the leader's `+0x1f4` stamp 0), `action_declare` (the console's refused
+   declaration), `Console::tell_no_war` and `Group::action_launch_flight`. No dump category prints `msg`, so no
+   capture can diff it; the peace lobby's `cover=1` take enters it beside `current_age` (§296's table).
+   **`Game::is_no_rush@005946c0` is dead in the image** (item 3409; *the PE*): no `call`, `jmp`, `jcc` or
+   absolute pointer anywhere in the executable reaches its six instructions (`rush_rules != 0`, `5946c0`–`5946ce`),
+   so no capture can enter it; §296 proposes it for `RESIDUE`.
 2. **The lobby**: East Indies (`MAP_STYLE 18`), human Nubians (4) against **the Lakota (19)** at `DIFFICULTY 3`,
    `STARTING_TECHNOLOGY 8`, `STARTING_RESOURCES 7`, **`RUSH_RULES 10`**, seed 12345 — the successor pair's lobby with the
    nation and the rush rules varied. *Diff-backed*: each dump's `GAME INFO` reads them back. `crates/sim` already reads
@@ -25263,12 +25331,98 @@ on the decoy bit alone, and this crate builds no arm there. A captain slot that 
 closing block). Packet-backed: the three `take_damage` calls and their amounts (run1015b). Reading alone: the order of
 `die` before the overflow call and the `c != this.o` test, both from the decompile at `:619`–`631`.
 
-## 296. Reserved for the next item on the AI track
+## 296. The blind list's AI functions: the readings, the captures owed and the residue proposed (2026-10-21, item 3409)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3409, Opus 5.5, the first `reading` item on the AI track (DECISIONS 84, 86). No capture, packet or emulator
+run; the decompile, the listing and the PE.*
+
+**The list.** `rondata::blind::NEVER` against this document's `name@address` cites, on `5e0b1d15`: **32**, one
+already `RESIDUE` (`World::set_gathered_at@006b46b0`). The booking named functions this document does not cite:
+`Unit::think_hero@005f4720`, `Unit::think_supply@005f4730` and `Army::send_here@006f98a0` are on `NEVER` through
+`docs/ARMY.md` and the journals, each already sweep-backed; `Leader::process` is not on `NEVER` but in `RESIDUE`,
+with no reference in the executable — the booking's name for a function the game never runs.
+
+- **Read, 13**, each claim in its own section: the five scenario switches (§1); `Wonders::close_wonder` (§75.3);
+  `Leader::pay_dow` and `Leader::action_respond` (§98.6); `Leader::verify_spell_flags` (below, §99.13's pointer);
+  `LeaderData::get_nukes` (§158); `Spline::set_min_seg_length` and `Spline::calc_from_dir` (§174);
+  `Game::say_no_war` (§218).
+- **Swept, not re-read, 16**: `BuildQueueData::get_next_helicopter`, `SpellType::cast_march`,
+  `GoodTypeData::is_flat`, `Game::is_no_rush`, `Game::current_age`, `Unit::think_carry`, `Unit::go_to_city`,
+  `BuildData::can_queue`, `BuildQueueData::get_next_non_caravan`, `BuildTypeData::get_enhancing_good`,
+  `WallData::hits`, `Object::disband` (`sweep/object_disband.rs`, item 3346, newer than
+  `docs/audit/census-backed.txt`), `SpellType::cast_ambush`, `Army::use_scouts`, `Army::use_spies`, `Army::charge`.
+- **att-3411's sweep, 2**: `Unit::think_carry_idle@005f2f30` and `Unit::think_carry_military@005f3260`; only the
+  capture that would enter them is claimed here (row 5).
+
+**`Leader::verify_spell_flags@006ce190`, whole** (§99.13's march; *reading alone*). It
+runs only from `process_spells:82`, when that call removed an Ambush
+(`0x27b`) or a March (`0x27c`); it walks the leader's heroes to
+`hero_mark` (`+0x420`, a mark, not a count), each live
+(`hero_flags & 1`, `HeroData +0x28`) hero's unit `o` (`+0x26`), and
+drops **two** bits: `leader_flags & 0x4000` when no such unit carries
+`unit_masks & 0x2000` (the Ambush, `:11`–`:24`) and `& 0x8000` when none
+carries `& 0x8000` (the March, `:28`–`:41`). This crate's
+`Sim::process_spells` drops only the March's (`forced_march`), on a
+March's expiry alone, and over every live unit of the owner rather than
+the hero list; the Ambush's leader bit is a `SEAM` in `cast_ambush`.
+*Falsifier*: `LEADERS=9`'s `leader_flags` and `UNITS=3`'s `unit_masks`
+on the hero, on the frame after `frame + duration` of a General's
+Forced March or a Despot's Ambush — the leader's `0x8000` or `0x4000`
+falls there and not before; run470's march (9112) and run943's Ambush
+already print both fields at `cover=0`.
+
+**The image's references** (*the PE*: every `E8`/`E9`/`0F 8x`/short jump in `.text` and every absolute pointer in
+any section, against the 32 addresses): 25 have a direct call; the five switches each one absolute pointer in
+`.text` (the script host's table); `GoodTypeData::is_flat` and `WallData::hits` three `.rdata` vtable slots each
+and no call; **`Game::is_no_rush` nothing at all** (§218).
+
+**Captures owed.** Every lobby below is one this crate already diffs, and every row but 9b, 10, 11 and 12 is a
+`cover=0` capture on disk retaken at `cover=1` (`unattended_capture.py --cover cover=1`), so the dump that showed the
+behaviour is the falsifier and the trace is what moves `never`. Fields are the dump's own names.
+
+| # | lobby, and the capture on disk | ini category · frame · field | enters | lane |
+|---|---|---|---|---|
+| 1 | `GreatSaharaToughest` (run470; run476; run668 to 15432) | `LEADERS=9` `leader_flags & 0x8000` and `UNITS=3` the General's `unit_masks & 0x8000`, 9112 to the march's expiry; `BUILDS=6` the Granary (§99.7); 15275..15432 the charge's `GROUP_ATTACK_TO` and the city's stamp (§142) | `cast_march`, `verify_spell_flags`, `get_enhancing_good`, `Army::charge`, `WallData::hits` | click-free |
+| 2 | `GreatLakesIroquoisTier3` (run897b, run943) | `UNITS=3` the army's `1/22` (TI 79, land) on 5144; `LEADERS=9` `leader_flags & 0x4000` and `UNITS=3` the Despot's `unit_masks & 0x2000`, 10689..10945 | `use_scouts`, `use_spies` (a spy in an army), `cast_ambush`, `verify_spell_flags`' Ambush arm | click-free |
+| 3 | `EastIndiesPersianAllTech` (run711, run717) | `AMMO` `traj 2`, `total_time` 13 on `1/49`'s rounds, 3124..3128; `BUILDS=6` the Oil Platform site `1/2048` gone on 2049 | `set_min_seg_length`, `calc_from_dir`, `Object::disband` | click-free |
+| 4 | `GreatSaharaPersianAllTech` (run702, run790) | `LEADERS=9` the make list and `nukes_in_flight` on 1985; `BUILDS=6` the Airbase's `BUILDQUEUE` on 3767; the make list's Supply Wagon (`sahara_coverage`) | `get_nukes`, `get_next_helicopter`, and `think_supply` — entry 29 §2's supply wagon | click-free |
+| 5 | `EastIndiesMongolAllTech` (the successor pair) | `UNITS=3` the Freighter `1/72`'s `orders_x/y` (35736, 24984), 2178..2201; an idle empty or soldier-carrying transport's `orders_x/y` | `think_carry` — entry 29 §2's transport — and, if such a boat idles, `think_carry_idle`, `think_carry_military` | click-free |
+| 6 | `GreatSaharaMongolAllTech` (run834) | `BUILDS=6` the queue's Merchant on 2995 | `get_next_non_caravan` | click-free |
+| 7 | `GreatSaharaBantuTier4` (run978c) | `LEADERS=9` `escrow`, block 2808 | `can_queue` | click-free |
+| 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | `go_to_city` | click-free |
+| 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | `current_age`; (9b) `say_no_war` only once the console's own unit stands in the Lakota's land, the leader's `+0x1f4` stamp 0 | click-free; 9b driven |
+| 10 | any lobby in which a leader's highest wonder closes (none on disk: below) | `LEADERS=9` `wonder_mark` on the close | `close_wonder` | as the lobby |
+| 11 | a human and two computers, no teams (none on disk) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6) | click-free, *a prediction* |
+| 12 | a team lobby with a computer ally (none on disk) | `LEADERS=9` `escrow` and the stock on the frame the human cancels the alliance (`CANCEL_ALLIANCE + t`) | `pay_dow`, `action_declare`'s pay arm | driven: a diplomacy click |
+
+**The disk scan** (every dump in the archive, 578 that print a leader): `nukes_in_flight` is 0 in all of them, so
+§158's in-flight term has never been non-zero on a dumped frame; `wonder_mark` reaches 1 or 2 in many games and
+falls in none of the 82 that print it more than once, so no dump shows `close_wonder` lowering it; `leader_flags &
+0x8000` stands in 38 dumps (run517, run584 at Toughest; the coverage pair from run652) and `& 0x4000` in 16
+(run645, the Islands French run657–665, the third map's coverage from run676) — rows 1–4's fields are on disk.
+
+Rows 1–8 and 9's first half are nine lobbies the click-free lane starts with no human order; together they enter
+**20** of the 32 (`think_supply` is `docs/ARMY.md`'s). The hero of entry 29 §2 is rows 1 and 2.
+
+**Proposed for `RESIDUE`, 7**, each with its reason:
+
+- `Game::is_no_rush@005946c0` — no reference in the executable (above).
+- `GoodTypeData::is_flat@004780c0` — no call; only GoodType's vtable slot `+0x94` (three `.rdata` entries), and both
+  of `World::gather_at`'s sites inline its body (§24.3). *Lower confidence*: an indirect `+0x94` call on a GoodType
+  receiver would reach it; none is known.
+- `ScenarioFuncSet::enable_production_ai@009ff5e0`, `disable_combat_ai@009ff860`, `disable_all_unit_ai@009ff8e0`,
+  `disable_unit_ai@009ffa10`, `disable_city_ai@009ffbf0` — reached only through the script host's table, called only
+  by scenario scripts (§1), and scenarios are cut from v1; `docs/CENSUS.md` row 10 holds them. A Tutorial 3 load at
+  `cover=1` would enter three (`tut3.bhs:79`–`:80`, `:356`) if the scope changes.
+
+**What this has *not* established.** That the click-free lane's `cover=1` take holds each lobby's word (run906's
+proof is one game); that two computers ever accept each other's offer (row 11); that no indirect call reaches
+`is_flat`; `Leader::action_respond`'s other 400 lines (the tribute consideration, the `set_diplo` cascade), read only
+where they write escrow.
+
+**Coverage.** Every claim of this section and of the amended §1, §75.3, §98.6, §99.13, §158, §174 and §218 is
+*reading alone* — the decompile, the listing at `6d2baa`–`6d2bcd`, and the PE's reference scan — except the fields
+rows 1–8 name, which the `cover=0` captures already print.
 
 ## 297. Reserved for the next item on the AI track
 
