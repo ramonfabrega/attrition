@@ -3778,7 +3778,7 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 asked `LEADERS=1` for `treaties[1]`, which the logger prints only at `LEADERS>=3`, and the lane spent a retake learning
 it (run1016b, parked 3417b). Candidate: a guard over the captures-owed tables that checks each row's category and level
 against the level the dump's own writer prints the field at (the stanzas already on disk say which), or a brief row
-until it is one. Score: a coverage retake the next tranche does not spend. One reach.
+until it is one. Score: a coverage retake the next tranche does not spend. One reach. **3419's "for the Loop"**, the same family: a booking's end frame is checked against the dumps for when the state it waits on expires — 3419's 10945 stopped before the Ambush expired, and the lane ran to the game's own end (12658) to see it.
 
 ## Loop, filed 2026-10-21 — the forty-eighth tranche's
 
