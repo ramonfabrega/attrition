@@ -3774,6 +3774,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
+(3432) **A `RESIDUE` row's "no capture can enter it" is breakable by the click-free pool's resting cursor** (3425's "for
+the Loop"): run1029 entered `TypeData::get_desc_parsed` on 511 through `MouseOver::set_good`, the tooltip the pool's idle
+cursor raised over a resource, and `blind::`'s guard deleted the row (residue 80 → 79). A residue claim is about the
+game's inputs; the pool adds one nobody chose. Candidate: the pool parks its cursor off the map at autostart, or the
+residue table names the interface rows a hover reaches. Score: the `residue` count stays a claim about the game. One reach.
+
 (3430) **A captures-owed row names the detail level that prints its field** (3417's "for the Loop"): VISION §8's row
 asked `LEADERS=1` for `treaties[1]`, which the logger prints only at `LEADERS>=3`, and the lane spent a retake learning
 it (run1016b, parked 3417b). Candidate: a guard over the captures-owed tables that checks each row's category and level
