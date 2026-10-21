@@ -464,7 +464,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `LeaderData::get_caravan_limit@006dca50` | 4 | carried at ai_units.rs | `006dca50` |
 | `Leader::gain_tech@006dcb60` | 5 6 7 8 9 10 11 12 13 14 16 17 18 19 20 21 23 | carried at lib.rs | `006dcb60` |
 | `LeaderData::get_general_upgrade@006e0830` | 4 | carried at cast_decoy.rs | `006e0830` |
-| `LeaderData::get_supply_upgrade@006e0880` | 4 | not modelled | `006e0880` |
+| `LeaderData::get_supply_upgrade@006e0880` | 4 | carried at supply.rs | `006e0880` |
 | `LeaderData::calc_rare@006e08d0` | 4 15 | carried at economy.rs | `006e08d0` |
 | `LeaderData::has_bonus@006e0b80` | 4 | not modelled | `006e0b80` |
 | `LeaderData::get_spy_upgrade@006e1090` | 4 | carried at supply.rs | `006e1090` |
