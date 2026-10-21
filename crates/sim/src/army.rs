@@ -1389,59 +1389,10 @@ impl Sim {
         }
     }
 
-    /// `Army::process` (§5–§6).
+    /// `Army::process@006f93d0` (§5–§6): the walk of
+    /// [`crate::army_process_view::army_process`] over this army's slot.
     pub fn army_process(&mut self, who: Player, slot: usize, bypass: bool) {
-        let w = who as usize;
-        {
-            let a = &mut self.armies[w].list[slot];
-            if a.human_frame != 0 {
-                a.human_frame -= 1;
-            }
-        }
-        let frame = self.frame;
-        if !bypass {
-            let s = self.armies[w].list[slot].phase();
-            if (frame - 30 + s) % 128 == 0 {
-                if self.defeated[w] {
-                    return;
-                }
-                self.army_normalize(who, slot);
-                if self.armies[w].list[slot].num_captains == 0 {
-                    return;
-                }
-                // The spellcasters' turn (`6f9441`–`6f9489`): the
-                // generals behind `num_standard` and a non-decoy
-                // `is(GENERAL)`, then the spies behind a non-decoy
-                // `is(SPY)` and the scouts behind a non-decoy
-                // `is(SCOUT)`, each behind its own count (item 3186).
-                if self.armies[w].list[slot].num_standard != 0
-                    && self.army_count(who, slot, |s, u| {
-                        !s.units[u].decoy && s.unit_line_is(u, GENERAL)
-                    }) != 0
-                {
-                    self.use_generals(who, slot);
-                }
-                if self.army_count(who, slot, |s, u| {
-                    !s.units[u].decoy && s.unit_line_is(u, SPY)
-                }) != 0
-                {
-                    self.use_spies(who, slot);
-                }
-                if self.army_count(who, slot, |s, u| {
-                    !s.units[u].decoy && s.unit_line_is(u, SCOUT)
-                }) != 0
-                {
-                    self.use_scouts(who, slot);
-                }
-            }
-            if (frame + s) % 256 != 0 {
-                return;
-            }
-        }
-        if self.defeated[w] {
-            return;
-        }
-        self.army_tick(who, slot);
+        crate::army_process_view::army_process(&mut SimProcess { s: self, who, slot }, bypass);
     }
 
     /// `Army::use_generals@006f4c30`: every member of the army's groups,
@@ -1486,126 +1437,6 @@ impl Sim {
             |s, u| s.unit_is_special(u),
             |s, u| s.think_spellcaster(u),
         );
-    }
-
-    // ---- the tick (§6) ----
-
-    fn army_tick(&mut self, who: Player, slot: usize) {
-        let w = who as usize;
-        self.army_normalize(who, slot);
-        // 1. Disband: the survivors walk home, then the slot is freed
-        //    either way.
-        {
-            let a = &self.armies[w].list[slot];
-            if a.num_standard < 1 && a.status & status::MUSTERING == 0 {
-                if let Some(c) = self
-                    .cities_of(who)
-                    .into_iter()
-                    .find(|&c| self.cities[c].alive)
-                {
-                    let p = self.cities[c].pos;
-                    self.send_here(who, slot, p, MoveKind::MoveTo);
-                }
-                self.close_army(who, slot);
-                return;
-            }
-        }
-        // 2. A human's ping: the AI stands aside while the countdown runs.
-        if self.armies[w].list[slot].human_frame != 0 {
-            let p = self.armies[w].list[slot].pos;
-            self.send_here(who, slot, p, MoveKind::AttackTo);
-            return;
-        }
-        // 3. Merge into a stronger army of the same region.
-        {
-            let a = &self.armies[w].list[slot];
-            if a.num_standard < (a.num_captains - a.num_decoys) / 2 {
-                let reg = a.reg;
-                let into = (0..SLOTS).find(|&k| {
-                    let b = &self.armies[w].list[k];
-                    b.valid
-                        && !b.navy
-                        && b.reg == reg
-                        && b.num_standard > 4
-                        && (b.num_captains - b.num_decoys) / 2 <= b.num_standard
-                });
-                if let Some(k) = into {
-                    let units: Vec<usize> = self.armies[w].list[slot]
-                        .units
-                        .iter()
-                        .rev()
-                        .copied()
-                        .collect();
-                    for u in units {
-                        self.army_add_unit(who, k, u);
-                    }
-                    self.close_army(who, slot);
-                    return;
-                }
-            }
-        }
-        // 4. The muster point walks halfway to the target.
-        if !self.army_is_moving(who, slot) && !self.army_is_engaged(who, slot) {
-            let (target, navy, st0) = {
-                let a = &self.armies[w].list[slot];
-                (a.target, a.navy, a.status)
-            };
-            let mut st = st0 & !(status::FORMING | status::MARCHING);
-            if let Some(t) = target {
-                let tw = self.owner_of(t);
-                if !self.is_enemy(who, tw) || navy {
-                    self.find_muster_spot(who, slot, t, false);
-                } else {
-                    let tc = self.pos_of(t).cell();
-                    let a = &mut self.armies[w].list[slot];
-                    a.muster = Cell {
-                        x: (tc.x + a.muster.x) / 2,
-                        y: (tc.y + a.muster.y) / 2,
-                    };
-                }
-                st |= status::FORMING | status::MARCHING;
-            }
-            self.armies[w].list[slot].status = st;
-        }
-        // 5. Nothing but the forming and no-target bits → marching.
-        {
-            let a = &mut self.armies[w].list[slot];
-            if a.status & (status::FORMING | status::NO_TARGET) == a.status {
-                a.status = status::MARCHING;
-            }
-        }
-        // 6. Dispatch, each `if` independent (§6).
-        if self.armies[w].list[slot].status & status::MUSTERING != 0 {
-            self.army_set_stance(who, slot, Stance::Defensive);
-            self.do_mustering(who, slot);
-        }
-        if self.armies[w].list[slot].valid
-            && self.armies[w].list[slot].status & status::DEFENDING != 0
-        {
-            self.army_set_stance(who, slot, Stance::Defensive);
-            self.do_defending(who, slot);
-        }
-        if self.armies[w].list[slot].valid
-            && self.armies[w].list[slot].status & status::MARCHING != 0
-        {
-            self.army_set_stance(who, slot, Stance::Aggressive);
-            self.do_marching(who, slot);
-        }
-        if self.armies[w].list[slot].valid {
-            if self.armies[w].list[slot].status & status::FORMING != 0 {
-                self.do_forming(who, slot);
-            } else if self.army_is_engaged(who, slot) {
-                self.engagement(who, slot);
-            }
-        }
-        if self.armies[w].list[slot].valid
-            && self.armies[w].list[slot].status & status::TRANSPORTING != 0
-        {
-            self.do_transporting(who, slot);
-        }
-        if self.armies[w].list[slot].valid && self.armies[w].list[slot].navy {
-            self.army_set_stance(who, slot, Stance::Raid);
-        }
     }
 
     // ---- mustering (§7) ----
@@ -3903,6 +3734,193 @@ impl TransView for TransSim<'_> {
     fn muster_fallback(&mut self, _c: usize) {}
     fn set_marching(&mut self) {
         self.army().status = status::MARCHING;
+    }
+}
+
+/// [`crate::army_process_view::ArmyProcessView`] over one army of the sim.
+struct SimProcess<'a> {
+    s: &'a mut Sim,
+    who: Player,
+    slot: usize,
+}
+
+impl SimProcess<'_> {
+    fn a(&self) -> &Army {
+        &self.s.armies[self.who as usize].list[self.slot]
+    }
+    fn am(&mut self) -> &mut Army {
+        &mut self.s.armies[self.who as usize].list[self.slot]
+    }
+}
+
+impl crate::army_process_view::ArmyProcessView for SimProcess<'_> {
+    fn human_frame(&self) -> i32 {
+        self.a().human_frame
+    }
+    fn set_human_frame(&mut self, v: i32) {
+        self.am().human_frame = v;
+    }
+    fn frame(&self) -> i32 {
+        self.s.frame as i32
+    }
+    fn phase(&self) -> i32 {
+        self.a().phase() as i32
+    }
+    fn defeated(&self) -> bool {
+        self.s.defeated[self.who as usize]
+    }
+    fn num_captains(&self) -> i32 {
+        self.a().num_captains
+    }
+    fn num_standard(&self) -> i32 {
+        self.a().num_standard
+    }
+    fn num_decoys(&self) -> i32 {
+        self.a().num_decoys
+    }
+    fn valid(&self) -> bool {
+        self.a().valid
+    }
+    fn status(&self) -> i32 {
+        self.a().status
+    }
+    fn set_status(&mut self, s: i32) {
+        self.am().status = s;
+    }
+    fn navy(&self) -> bool {
+        self.a().navy
+    }
+    fn reg(&self) -> i32 {
+        self.a().reg.map_or(-1, i32::from)
+    }
+    fn ping_pos(&self) -> Pos {
+        self.a().pos
+    }
+    fn muster(&self) -> (i32, i32) {
+        let m = self.a().muster;
+        (m.x, m.y)
+    }
+    fn set_muster(&mut self, x: i32, y: i32) {
+        self.am().muster = Cell { x, y };
+    }
+    fn has_target(&self) -> bool {
+        self.a().target.is_some()
+    }
+    fn target_owner(&self) -> i32 {
+        self.a()
+            .target
+            .map_or(-1, |t| i32::from(self.s.owner_of(t)))
+    }
+    fn target_cell(&mut self) -> (i32, i32) {
+        let t = self.a().target.expect("a target");
+        let c = self.s.pos_of(t).cell();
+        (c.x, c.y)
+    }
+    fn city_count(&self) -> i32 {
+        self.s.cities_of(self.who).len() as i32
+    }
+    fn set_scan(&mut self, _i: i32) {}
+    fn city_alive(&mut self, i: i32) -> bool {
+        let c = self.s.cities_of(self.who)[i as usize];
+        self.s.cities[c].alive
+    }
+    fn city_pos(&mut self, i: i32) -> Pos {
+        let c = self.s.cities_of(self.who)[i as usize];
+        self.s.cities[c].pos
+    }
+    fn peer(&mut self, k: usize) -> crate::army_process_view::Peer {
+        let b = &self.s.armies[self.who as usize].list[k];
+        crate::army_process_view::Peer {
+            valid: b.valid,
+            navy: b.navy,
+            reg: b.reg.map_or(-1, i32::from),
+            num_captains: b.num_captains,
+            num_standard: b.num_standard,
+            num_decoys: b.num_decoys,
+        }
+    }
+    fn normalize(&mut self) {
+        self.s.army_normalize(self.who, self.slot);
+    }
+    fn count_type(&mut self, ty: i32) -> i32 {
+        use crate::army_process_view::{COUNT_GENERAL, COUNT_SPY};
+        let line = match ty {
+            COUNT_GENERAL => GENERAL,
+            COUNT_SPY => SPY,
+            _ => SCOUT,
+        };
+        self.s.army_count(self.who, self.slot, |s, u| {
+            !s.units[u].decoy && s.unit_line_is(u, line)
+        })
+    }
+    fn use_generals(&mut self) {
+        self.s.use_generals(self.who, self.slot);
+    }
+    fn use_spies(&mut self) {
+        self.s.use_spies(self.who, self.slot);
+    }
+    fn use_scouts(&mut self) {
+        self.s.use_scouts(self.who, self.slot);
+    }
+    fn send_here(&mut self, p: Pos, kind: i32) {
+        let kind = if kind == crate::army_process_view::ATTACK_TO {
+            MoveKind::AttackTo
+        } else {
+            MoveKind::MoveTo
+        };
+        self.s.send_here(self.who, self.slot, p, kind);
+    }
+    fn close(&mut self) {
+        self.s.close_army(self.who, self.slot);
+    }
+    fn merge_into(&mut self, k: usize) {
+        let units: Vec<usize> = self.a().units.iter().rev().copied().collect();
+        for u in units {
+            self.s.army_add_unit(self.who, k, u);
+        }
+    }
+    fn is_moving(&mut self) -> bool {
+        self.s.army_is_moving(self.who, self.slot)
+    }
+    fn is_engaged(&mut self) -> bool {
+        // A closed slot (`valid` cleared by a callee) has no units to engage.
+        self.a().valid && self.s.army_is_engaged(self.who, self.slot)
+    }
+    fn is_enemy(&mut self, owner: i32) -> bool {
+        self.s.is_enemy(self.who, owner as Player)
+    }
+    fn find_muster_spot(&mut self) {
+        let t = self.a().target.expect("a target");
+        self.s.find_muster_spot(self.who, self.slot, t, false);
+    }
+    fn set_stance(&mut self, code: i32) {
+        if !self.a().valid {
+            return;
+        }
+        let st = match code {
+            0 => Stance::Aggressive,
+            1 => Stance::Defensive,
+            _ => Stance::Raid,
+        };
+        self.s.army_set_stance(self.who, self.slot, st);
+    }
+    fn do_mustering(&mut self) {
+        self.s.do_mustering(self.who, self.slot);
+    }
+    fn do_defending(&mut self) {
+        self.s.do_defending(self.who, self.slot);
+    }
+    fn do_marching(&mut self) {
+        self.s.do_marching(self.who, self.slot);
+    }
+    fn do_forming(&mut self, _ran: bool) {
+        self.s.do_forming(self.who, self.slot);
+    }
+    fn engagement(&mut self) {
+        self.s.engagement(self.who, self.slot);
+    }
+    fn do_transporting(&mut self) {
+        self.s.do_transporting(self.who, self.slot);
     }
 }
 

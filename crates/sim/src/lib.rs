@@ -59,6 +59,7 @@ pub mod anim;
 pub mod army;
 pub mod army_is_moving_view;
 pub mod army_normalize_view;
+pub mod army_process_view;
 pub mod astar_view;
 pub mod attack_ground_view;
 pub mod attack_pos;
