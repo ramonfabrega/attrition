@@ -104,6 +104,8 @@ mod army_member_by_unit;
 mod army_normalize;
 #[path = "army_normalize_one.rs"]
 mod army_normalize_one;
+#[path = "army_process.rs"]
+mod army_process;
 #[path = "army_release_mustering.rs"]
 mod army_release_mustering;
 #[path = "army_remove_group.rs"]
