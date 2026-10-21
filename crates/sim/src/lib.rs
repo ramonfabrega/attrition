@@ -83,6 +83,7 @@ pub mod capture_view;
 pub mod caravan;
 pub mod carry_civ;
 pub mod carry_idle;
+pub mod carry_mil;
 pub mod cast;
 pub mod cast_decoy;
 pub mod cast_transport;

@@ -374,6 +374,8 @@ mod unit_think_carry;
 mod unit_think_carry_civilian;
 #[path = "unit_think_carry_idle.rs"]
 mod unit_think_carry_idle;
+#[path = "unit_think_carry_military.rs"]
+mod unit_think_carry_military;
 #[path = "unit_think_civilian_transport.rs"]
 mod unit_think_civilian_transport;
 #[path = "unit_think_hero.rs"]
