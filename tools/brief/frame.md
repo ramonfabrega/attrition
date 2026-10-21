@@ -254,6 +254,9 @@ Before any reading, in order:
   (3022). **A batch runs the un-mutated command first and refuses a
   tree it does not pass** (3037); **a break that spans two lines
   writes `\n` in its OLD and NEW** (3048).
+- **A wait is on what you started, by its pid or its own log, never a
+  `pgrep -f` of a shared tool's name** — it matches a sibling's run and
+  its own shell (3406: 161 minutes on a finished batch).
 
 ## reading-item
 
@@ -311,8 +314,7 @@ Before any reading, in order:
 - **A command the worktree guard refuses runs from
   `$CLAUDE_JOB_DIR/tmp/`**, no `timeout` (1537); a `&&`-chain edit is
   python or `sed -i ''` (2628); **`no verdict (error)` is an outage: a
-  Monitor, five minutes to an hour**; a human's need: one line to me
-  (1315).
+  Monitor, five minutes to an hour**; a human's need: one line (1315).
 
 ## landing
 

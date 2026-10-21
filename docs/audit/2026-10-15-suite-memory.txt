@@ -1,4 +1,4 @@
-# Every rondata release test's peak resident set alone, 2026-10-20, tools/suite_timings.py (tree ec83cad3).
+# Every rondata release test's peak resident set alone, 2026-10-21, tools/suite_timings.py (tree ecf0e771).
 # /usr/bin/time -l, one test per process, --test-threads 1; MiB then the test; -1 when unread.
 866	diff::golden::run875_start_seen3_plane_is_compared_cell_for_cell
 811	diff::dutch_word::run963c_s_word_frame_is_widened_whole
@@ -40,20 +40,31 @@
 553	diff::indian_word::indian_word_first_parting
 552	diff::egyptian_word::egyptian_word_first_parting
 549	diff::american_word::american_word_first_parting
+549	diff::spanish_lakes_word::run1008b_s_road_search_on_8384_holds_node_for_node
 543	diff::roman_word::run899b_s_road_search_on_18026_holds_node_for_node
 539	diff::french_word::run977b_french_closing_state
 535	diff::golden::chapter_eighty_staging_reaches_the_stealth_arm
+532	diff::turkish_word::run898b_turkish_closing_state
+530	diff::spanish_lakes_word::run1008b_spanish_lakes_closing_state
 530	diff::indian_word::run970_s_word_frame_is_widened_whole
 530	diff::french_word::french_word_first_parting
+528	diff::turkish_word::turkish_word_first_parting
+528	diff::spanish_lakes_word::spanish_lakes_word_first_parting
+528	diff::spanish_lakes_word::run1013_s_word_frame_is_widened_whole
 514	diff::aztec_word::run989_s_fog_agrees_over_the_birth_and_on_the_word
 512	diff::greek_word::run957b_greek_closing_state
 508	diff::dutch_sahara_word::run990b_dutch_sahara_closing_state
 506	diff::roman_word::run899b_roman_closing_state
+506	diff::indian_sahara_word::run1007_s_word_frame_is_widened_whole
 503	diff::dutch_sahara_word::dutch_sahara_word_first_parting
 502	diff::roman_word::roman_word_first_parting
 501	diff::greek_word::greek_word_first_parting
+499	diff::indian_sahara_word::run1002b_indian_sahara_closing_state
 498	diff::german_word::run643_german_closing_state
+495	diff::german_sahara_word::run1000b_german_sahara_closing_state
 494	diff::spanish_word::run958f_s_word_frame_is_widened_whole
+492	diff::indian_sahara_word::indian_sahara_word_first_parting
+488	diff::german_sahara_word::german_sahara_word_first_parting
 483	diff::dutch_sahara_word::run995_s_word_frame_is_widened_whole
 479	diff::greek_word::run961_s_word_frame_is_widened_whole
 478	diff::german_word::german_word_first_parting
@@ -66,6 +77,9 @@
 464	diff::japanese_word::japanese_word_first_parting
 461	diff::spanish_word::run958_s_word_frame_is_widened_whole
 461	diff::spanish_word::run958d_s_word_frame_is_widened_whole
+460	diff::inca_sahara_word::run1006b_inca_sahara_closing_state
+457	diff::inca_sahara_word::inca_sahara_word_first_parting
+457	diff::inca_sahara_word::run1011_s_word_frame_is_widened_whole
 456	diff::egyptian_word::run967g_s_word_frame_is_widened_whole
 455	diff::iroquois_sahara_word::run994b_iroquois_sahara_closing_state
 453	diff::iroquois_sahara_word::iroquois_sahara_word_first_parting
@@ -75,6 +89,7 @@
 449	diff::maya_word::run966b_maya_closing_state
 447	diff::aztec_word::aztec_word_first_parting
 443	diff::maya_word::maya_word_first_parting
+443	diff::spanish_lakes_word::run1013b_s_gap_is_widened_whole
 442	diff::iroquois_word::run897b_iroquois_closing_state
 442	diff::iroquois_word::run946_s_road_elements_at_10842_are_ours
 442	diff::american_word::run999c_s_word_frame_is_widened_whole
@@ -91,8 +106,10 @@
 433	diff::french_word::run982b_s_word_frame_is_widened_whole
 431	diff::french_word::run982_s_word_frame_is_widened_whole
 431	diff::american_word::run999b_s_word_frame_is_widened_whole
+430	diff::turkish_word::run1005_s_word_frame_is_widened_whole
 429	diff::golden::chapter_ninety_one_s_window_is_widened_whole
 429	diff::american_word::run999_s_word_frame_is_widened_whole
+429	diff::spanish_lakes_word::run1013c_s_march_is_widened_whole
 428	diff::maya_word::run973_s_word_frame_is_widened_whole
 427	diff::french_word::run982d_s_last_blocks_are_widened_whole
 426	diff::golden::chapter_ninety_three_s_window_is_widened_whole
@@ -144,10 +161,12 @@
 400	diff::golden::chapter_eighty_s_window_is_widened_whole
 400	diff::golden::chapter_eighty_w_window_is_widened_whole
 399	diff::golden::chapter_eighty_holds_to_the_golden_word
+395	diff::indian_sahara_word::run1007c_s_word_frame_is_widened_whole
 394	diff::roman_word::run956b_s_word_frame_is_widened_whole
 394	diff::greek_word::run961d_s_word_frame_is_widened_whole
 392	diff::roman_word::run956c_s_gap_is_widened_whole
 389	diff::persian_word::run979b_persian_closing_state
+386	diff::german_sahara_word::run1003_s_word_frame_is_widened_whole
 383	diff::german_word::run912_s_gap_is_widened_whole
 380	diff::greek_word::run961c_s_gap_is_widened_whole
 379	diff::greek_word::run961b_s_word_frame_is_widened_whole
@@ -160,12 +179,16 @@
 369	diff::german_word::run891_s_word_frame_is_widened_whole
 369	diff::german_word::run893c_s_word_frame_is_widened_whole
 366	diff::german_word::run893_s_site_sweep_is_widened_whole
+364	diff::american_lakes_word::run1004b_american_lakes_closing_state
+364	diff::american_lakes_word::american_lakes_word_first_parting
 364	diff::german_word::run886_s_word_frame_is_widened_whole
 364	diff::russian_word::russian_word_first_parting
 364	diff::russian_word::run644_russian_closing_state
 363	diff::korean_word::run991_s_word_frame_is_widened_whole
 355	diff::persian_word::run984_s_word_frame_is_widened_whole
+349	diff::american_lakes_word::run1009_s_word_frame_is_widened_whole
 348	diff::aztec_word::run989d_s_word_frame_is_widened_whole
+344	diff::inca_sahara_word::run1014_s_word_frame_is_widened_whole
 344	diff::maya_word::run973c_s_gap_is_widened_whole
 343	diff::iroquois_sahara_word::run1001c_s_word_frame_is_widened_whole
 338	diff::maya_word::run973d_s_word_frame_is_widened_whole
@@ -198,11 +221,16 @@
 260	diff::roman_word::roman_word_is_no_other_lobby
 260	diff::american_word::american_word_is_no_other_lobby
 257	diff::russian_word::run976_s_word_frame_is_widened_whole
+256	diff::spanish_lakes_word::spanish_lakes_word_is_no_other_lobby
+255	diff::turkish_word::turkish_word_is_no_other_lobby
 255	diff::iroquois_word::iroquois_word_is_no_other_lobby
 254	diff::persian_word::persian_word_is_no_other_lobby
 254	diff::russian_word::russian_word_is_no_other_lobby
 254	diff::bantu_word::bantu_word_is_no_other_lobby
 254	diff::lakota_word::lakota_word_is_no_other_lobby
+254	diff::american_lakes_word::american_lakes_word_is_no_other_lobby
+253	diff::inca_sahara_word::inca_sahara_word_is_no_other_lobby
+253	diff::german_sahara_word::german_sahara_word_is_no_other_lobby
 253	diff::french_word::french_word_is_no_other_lobby
 252	diff::egyptian_word::egyptian_word_is_no_other_lobby
 252	diff::spanish_word::spanish_word_is_no_other_lobby
@@ -212,6 +240,7 @@
 252	diff::dutch_sahara_word::dutch_sahara_word_is_no_other_lobby
 252	diff::iroquois_sahara_word::iroquois_sahara_word_is_no_other_lobby
 252	diff::aztec_word::aztec_word_is_no_other_lobby
+252	diff::indian_sahara_word::indian_sahara_word_is_no_other_lobby
 251	diff::japanese_word::japanese_word_is_no_other_lobby
 47	load::tests::an_elephant_counts_toward_a_horse_archer_s_ramp
 47	load::tests::the_wonder_gated_free_tech_blocks_are_loaded

@@ -679,6 +679,8 @@ def rank_unbacked(entries, backed, port, spelled=(), claimed=(), by="shortest"):
             mark = "skip"
         elif is_ui_body(name):
             mark = "ui"
+        elif is_cut(name):
+            mark = "cut"
         elif snake(short) in port and name in spelled:
             mark = "port"
         elif snake(short) in port:
@@ -731,6 +733,27 @@ def is_ui_body(name):
     return cls.endswith("Out") or bool(UI_BODY.match(short)) or short.endswith(("_draw", "_render"))
 
 
+# A simulation-layer body that is out of v1 by CLAUDE.md's own cut — a shell
+# mode's driver, the match lifecycle, the scenario, GameSpy and multiplayer
+# playback hosts — whose `name` mark bought two parks in one tranche (3404a,
+# 3404b; Loop 3405, the forty-seventh pass). Marked `cut` and left off the
+# sweepable list like `ui`; the layer and the denominator do not move (the
+# score's definition is Ramon's, Loop 3237).
+CUT_FROM_V1 = frozenset((
+    "UnitBalance::next",            # the unit-balance shell mode's driver (3404a)
+    "Game::run",                    # the match lifecycle, no frame loop in it (3404b)
+    "TimeSync::process",            # passed over by every brief of the tranche as cut
+    "MapScenario::make",            # the scenario editor's map
+    "Game::run_scenario",           # the scenario host
+    "Game::run_gamespy",            # GameSpy
+    "CommandManager::set_mp_playback",  # multiplayer playback
+))
+
+
+def is_cut(name):
+    return name in CUT_FROM_V1
+
+
 BARE_CITE = re.compile(r"(?<![A-Za-z0-9_:])([a-z_][a-z0-9_]*)@(00[0-9a-f]{6})")
 
 
@@ -762,9 +785,10 @@ def cited_bare(src, by_name=None):
 
 def worth_sweeping(rows):
     """The rows the sweep wants: not `skip`, not `operator` (parked 1722),
-    not a `ui` body (Loop 2819), not a function a sibling lane's tree
-    already cites (`claimed`, Loop 2926)."""
-    return [r for r in rows if r[3] not in ("skip", "operator", "ui", "claimed")]
+    not a `ui` body (Loop 2819), not a body cut from v1 (`cut`, Loop 3405),
+    not a function a sibling lane's tree already cites (`claimed`, Loop
+    2926)."""
+    return [r for r in rows if r[3] not in ("skip", "operator", "ui", "cut", "claimed")]
 
 
 def claimed_in(dirs, by_name):
@@ -805,7 +829,8 @@ def unbacked(index, docs, sim_src, pdb, top, show_all=False, claimed_dirs=(), by
           f"{marks.get('operator', 0)} operators, {marks.get('skip', 0)} dead weight "
           f"(destructors, close/init/clear, loggers, initializers), {marks.get('ui', 0)} renderer, input, "
           f"sound, cheat or editor bodies (`ui`, Loop 2819"
-          f"{'; shown' if show_all else '; hidden, --all shows them'})"
+          f"{'; shown' if show_all else '; hidden, --all shows them'}), {marks.get('cut', 0)} cut from v1 "
+          f"(`cut`, Loop 3405{'; shown' if show_all else '; hidden'})"
           + (f", {marks.get('claimed', 0)} claimed by a sibling lane's tree (--claimed, Loop 2926"
              f"{'; shown' if show_all else '; hidden'})" if claimed_dirs else "")
           + f"; the {min(top, len(shown))} {'largest' if by == 'bytes' else 'shortest'} shown (--top"

@@ -315,6 +315,22 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-seventh pass
+
+The forty-seventh tranche (DECISIONS 86): twenty landings on four lanes
+in 13 h 46 from the pass's last commit to the twentieth booking, no
+stall; 7.67 USD and 117.2 minutes waiting a landing (11.10 / 127.2), six
+battery games closed and the held-out battery whole eight of eight; no
+red booking gate; seven `DEEP` answered, one `STALLED`. The pass added
+this row, from the tranche's own receipt.
+
+- **A wait is on what you started, by its pid or its own log, never a
+  `pgrep -f` of a tool name every lane runs** (3406; 3403's "for the
+  Loop"): a subagent's `until ! pgrep -f "mutate.py --batch"` matched a
+  sibling lane's batch and the waiting shell's own command line, and
+  stood 161 minutes on a batch that had finished — the commander's
+  `STALLED` exit found it, no rule did.
+
 ## The brief checklist, from the forty-sixth pass
 
 The forty-sixth tranche (DECISIONS 85): twenty landings on four lanes
