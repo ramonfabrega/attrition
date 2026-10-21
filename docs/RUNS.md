@@ -20567,3 +20567,45 @@ SHA-256 `f5783d7ff60390402df2419d75afe5ee82a233adde902b9e4ab18a5c632a7f14`.
 
 **What it holds**: the battery's `GreatLakesDutchTier4`, **6147 / 6147** of 6147 on its first try — the draw stream
 runs whole to the game's own end — pinned in `battery::BATTERY`.
+
+## run1013 — the Spanish word at Great Lakes: the word 13496's window, blocks 13490..13746 at `GOODS=3` (2026-10-20, item 3390, `att-3390`)
+
+`docs/AI.md` §294. **What the disk could not answer**: run1008 dumps blocks 0..36 and run1008b its setup and closing
+blocks only, so no dump held the units, orders or ledgers on the word's block. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1013`: `--map 14 --end-frame 13751 --timeout 7200 --log-window 13490
+13746 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover cover=0 --profile
+DIFFICULTY=4`.
+- Pool lane 1. Launched 19:58:26, exited 20:30:05. `success`, 13752 frames; `rngcmp.py` vs run1008b: 13752 identical.
+  Filed with `filerun.py run1013 greatlakes-spanish-diff4-window-13490-13747`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1013-greatlakes-spanish-diff4-window-13490-13747.txt`, 578,876,971 bytes,
+SHA-256 `e55a2207ca9e12cbf5f1d3d11c5bc0a53cfd55d203603e8fc2db5ff1a38dbece`.
+
+Archive `rontrace-run1013.log`, 105,200,672 bytes,
+SHA-256 `1812e6b6cc094158bb799fb1be09d2a7c55a94f326284f137cf2ea9ac6d2099f`.
+
+**What it holds**: the word's window. Test `run1013_s_word_frame_is_widened_whole`: the Spanish army's positions and
+headings (1/26..1/114) already part on its first block, 13490 — the march parted before the window (run1013b).
+
+## run1013b — the Spanish word at Great Lakes: the gap 8380..13489 at a stride of 16 (2026-10-20, item 3390, `att-3390`)
+
+`docs/AI.md` §294. **What the disk could not answer**: run1013 opens on 13490 with the army already parted, and
+run1008b dumps nothing between its setup and closing blocks. run1013's recipe over the gap, one block in sixteen:
+`--map 14 --end-frame 13491 --timeout 5400 --log-window 8380 13489 --stride 16 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,GOODS=3 --ai-tribe 9 --cover cover=0 --profile DIFFICULTY=4`.
+- Pool lane 1. Launched 20:32:53, exited 21:03:55. `success`, 13492 frames (blocks 8381, 8397, …, 13485 and the
+  closing 13492); `rngcmp.py` vs run1008b: 13492 identical. Filed with `filerun.py run1013b
+  greatlakes-spanish-diff4-stride16-8380-13489`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1013b-greatlakes-spanish-diff4-stride16-8380-13489.txt`, 688,578,230 bytes,
+SHA-256 `942245e80426d03292401253b6f2248178715ef233accd8fb84607e8b182abd7`.
+
+Archive `rontrace-run1013b.log`, 103,371,072 bytes,
+SHA-256 `ebe1e01dae6a72584e03d762bcedc96551b1323875696afc06b3125f7bd1c769`.
+
+**What it holds**: the gap. Test `run1013b_s_gap_is_widened_whole`, 320 blocks, 129 keys: the standing family and
+five draw-silent rows to 9805; every unit agrees on 13469, and on 13485 the Bombards `1/113` and `1/114` (TI 267,
+group 65, `GROUPATTACKTO`) move twice ours' step (`last_speed[0]` 49 against 24) and the Knight `1/56` guarding
+`1/114` follows them.
