@@ -2,7 +2,7 @@
 r"""census.py — the executable as the denominator.
 
     census.py [--index INDEX.tsv] [--docs docs/] [--top N] [--never] [--cites DOC ...] [--pin] [<rontrace.log> ...]
-    census.py --layers [--json]
+    census.py --layers [--json] [--pin [--entered-top N]]
     census.py --unbacked [--by shortest|bytes] [--top N] [--all] [--claimed DIR]
     census.py --backed-list [--write PATH]
     census.py --check-backed PATH
@@ -99,6 +99,20 @@ count weighs a two-line getter as much as a pathfinder, and the
 bytes (the pass's reader: 43.8 % of the functions, about 23.5 % of the
 bytes). `--unbacked --by bytes` lists largest-first; the default stays
 shortest-first.
+
+**The entered column** (Loop 3350, the forty-eighth pass). `--layers
+--pin` (or `--layers <rontrace.log> …`) adds four columns per layer —
+`entered`, the functions a given coverage trace entered (`entered_in |
+hooked_in`, the set `--pin --never` measures the blind list against),
+`ent unbacked`, those of them not backed, and the same two by bytes —
+writes the by-source-file line as `file:functions/entered`, prints a
+`Census entered: simulation <E> of <N> functions · <A> entered and
+unbacked · <eb> of <t> bytes` line after the `Census bytes:` line, and
+ends on the `--entered-top` (20) largest entered-and-unbacked simulation
+functions with their source file. It is joined to nothing: `backed` is
+not changed by it. Without traces nothing is added — the table, both
+lines and the JSON are byte-for-byte what they were; `--json` with traces
+adds `entered_layers` and four `simulation_entered*` keys.
 
 **The backed list.** `--backed-list` prints every backed simulation
 function, one per line, by address: `ADDR<tab>Class::method<tab>by`,
@@ -571,6 +585,12 @@ def layers(index, docs, sim_src, pdb):
     """The census by layer: {layer: {functions, backed, doc, sweep, port,
     bytes, backed_bytes}}, the simulation layer's files, the unknowns'
     sources, and the note saying what `bytes` measures."""
+    return layers_entered(index, docs, sim_src, pdb, None)[:4]
+
+
+def layers_entered(index, docs, sim_src, pdb, entered):
+    """`layers`' four, and a fifth: `entered_rows` on the same inputs for
+    `entered` (a set of addresses a trace entered), or None when it is."""
     entries = index_entries(index)
     names = {va: name for va, name, _, _, _ in entries}
     sizes = {va: size for va, _, _, size, _ in entries}
@@ -581,7 +601,59 @@ def layers(index, docs, sim_src, pdb):
     by_doc = doc_backed(docs, by_name) & names.keys()
     by_sweep = sweep_backed(sim_src, by_name, os.path.join(HERE, "emu")) & names.keys()
     rows, sim_files, unknown = layer_rows(names, sizes, source, by_doc, by_sweep, port_spellings(sim_src))
-    return rows, sim_files, unknown, size_note(Counter(e[4] for e in entries))
+    ent = None if entered is None else entered_rows(names, sizes, source, by_doc, by_sweep, entered)
+    return rows, sim_files, unknown, size_note(Counter(e[4] for e in entries)), ent
+
+
+def entered_rows(names, sizes, source, by_doc, by_sweep, entered):
+    """The `entered` column (Loop 3350, the forty-eighth pass): per layer,
+    the functions a pinned coverage trace entered — `entered_in | hooked_in`,
+    the set `--pin --never` measures the blind list against — and those of
+    them not backed, by count and by bytes; the simulation layer's entered
+    count per source file; and the entered-and-unbacked simulation
+    functions as `(bytes, va, name, file)`, largest first. Joined to
+    nothing: `backed` is not changed by it (DECISIONS 29 is Ramon's)."""
+    out, files, unbacked = {}, Counter(), []
+    for va, path in source.items():
+        lay = layer_of(path)
+        r = out.setdefault(lay, dict(EMPTY_ENTERED))
+        if va not in entered:
+            continue
+        size = sizes.get(va, 0)
+        is_backed = va in by_doc or va in by_sweep
+        r["entered"] += 1
+        r["entered_bytes"] += size
+        if not is_backed:
+            r["entered_unbacked"] += 1
+            r["entered_unbacked_bytes"] += size
+        if lay == "simulation":
+            file = path.rsplit("\\", 1)[-1]
+            files[file] += 1
+            if not is_backed:
+                unbacked.append((size, va, names.get(va, "?"), file))
+    unbacked.sort(key=lambda u: (-u[0], u[1]))
+    return {"layers": out, "files": files, "unbacked": unbacked}
+
+
+EMPTY_ENTERED = {"entered": 0, "entered_unbacked": 0, "entered_bytes": 0, "entered_unbacked_bytes": 0}
+
+
+def census_entered_line(entered, functions, unbacked, entered_bytes, total_bytes):
+    """The `Census bytes:` line's sibling for the `entered` column, printed
+    after it, never folded into it: the guard's parse of `Census:` and the
+    byte line are unchanged."""
+    return (f"Census entered: simulation {entered} of {functions} functions · {unbacked} entered and "
+            f"unbacked · {entered_bytes} of {total_bytes} bytes")
+
+
+def print_entered_unbacked(ent, top=20):
+    """The `top` largest entered-and-unbacked simulation functions — what an
+    `audit` definition of backed would credit first; information only."""
+    rows = ent["unbacked"]
+    print(f"# the {min(top, len(rows))} largest of {len(rows)} entered-and-unbacked simulation functions, "
+          "by bytes (information: `backed` is not changed by it)")
+    for i, (size, _va, name, file) in enumerate(rows[:top], 1):
+        print(f"{i:5} {size:7}  {name}  {file}")
 
 
 def layer_rows(names, sizes, source, by_doc, by_sweep, spelled):
@@ -900,35 +972,63 @@ def unbacked(index, docs, sim_src, pdb, top, show_all=False, claimed_dirs=(), by
 EMPTY_ROW = {"functions": 0, "backed": 0, "doc": 0, "sweep": 0, "port": 0, "bytes": 0, "backed_bytes": 0}
 
 
-def print_layers(rows, sim_files, unknown, as_json, size_note="bytes: " + SIZE_HOW["decompile"]):
+def print_layers(rows, sim_files, unknown, as_json, size_note="bytes: " + SIZE_HOW["decompile"],
+                 entered=None):
+    """The table, the two files lines and the board's lines; with `entered`
+    (`entered_rows`' dict, Loop 3350) four columns more, `file:n/e` in the
+    by-source-file line and a `Census entered:` line after the byte line.
+    Without it the output is what it was before the column existed."""
     import json
     sim = rows.get("simulation", EMPTY_ROW)
+    ent_sim = {**EMPTY_ENTERED, **(entered["layers"].get("simulation", {}) if entered else {})}
     if as_json:
-        print(json.dumps({"layers": rows, "simulation_backed": sim["backed"],
-                          "simulation_port_backed": sim["port"],
-                          "simulation_functions": sim["functions"],
-                          "simulation_bytes": sim.get("bytes", 0),
-                          "simulation_backed_bytes": sim.get("backed_bytes", 0),
-                          "bytes_source": size_note}, indent=1, sort_keys=True))
+        doc = {"layers": rows, "simulation_backed": sim["backed"],
+               "simulation_port_backed": sim["port"],
+               "simulation_functions": sim["functions"],
+               "simulation_bytes": sim.get("bytes", 0),
+               "simulation_backed_bytes": sim.get("backed_bytes", 0),
+               "bytes_source": size_note}
+        if entered is not None:
+            doc.update({"entered_layers": entered["layers"],
+                        **{"simulation_" + k: v for k, v in ent_sim.items()}})
+        print(json.dumps(doc, indent=1, sort_keys=True))
         return
     print(f"# {size_note}")
+    if entered is not None:
+        print("# entered: a pinned coverage trace entered it (`entered_in | hooked_in`, as `--pin --never`); "
+              "ent unbacked: entered and not backed (Loop 3350, joined to nothing)")
+    ehead = (f" {'entered':>8} {'ent unbacked':>12} {'ent bytes':>10} {'ent unb bytes':>13}"
+             if entered is not None else "")
     print(f"{'layer':12} {'functions':>9} {'backed':>7} {'by doc':>7} {'by sweep':>8} {'port':>6} {'layout':>7} "
-          f"{'share':>7} {'bytes':>10} {'backed bytes':>12} {'byte share':>10}")
+          f"{'share':>7} {'bytes':>10} {'backed bytes':>12} {'byte share':>10}" + ehead)
     for lay in ("simulation", "AI", "engine", "interface", "unknown"):
         r = {**EMPTY_ROW, **rows.get(lay, {})}
         share = f"{100 * r['backed'] / r['functions']:.1f}%" if r["functions"] else "-"
         bshare = f"{100 * r['backed_bytes'] / r['bytes']:.1f}%" if r["bytes"] else "-"
+        ecols = ""
+        if entered is not None:
+            e = {**EMPTY_ENTERED, **entered["layers"].get(lay, {})}
+            ecols = (f" {e['entered']:8} {e['entered_unbacked']:12} {e['entered_bytes']:10} "
+                     f"{e['entered_unbacked_bytes']:13}")
         print(f"{lay:12} {r['functions']:9} {r['backed']:7} {r['doc']:7} {r['sweep']:8} {r['port']:6} "
-              f"{r['backed'] - r['port']:7} {share:>7} {r['bytes']:10} {r['backed_bytes']:12} {bshare:>10}")
+              f"{r['backed'] - r['port']:7} {share:>7} {r['bytes']:10} {r['backed_bytes']:12} {bshare:>10}"
+              + ecols)
     print()
-    print("# simulation, by source file (rule 5's default — a misfiled file shows here)")
-    print(" ".join(f"{f}:{n}" for f, n in sim_files.most_common()))
+    if entered is None:
+        print("# simulation, by source file (rule 5's default — a misfiled file shows here)")
+        print(" ".join(f"{f}:{n}" for f, n in sim_files.most_common()))
+    else:
+        print("# simulation, by source file, as functions/entered (rule 5's default — a misfiled file shows here)")
+        print(" ".join(f"{f}:{n}/{entered['files'].get(f, 0)}" for f, n in sim_files.most_common()))
     print()
     print("# unknown, by where the source sits")
     print(" ".join(f"{f}:{n}" for f, n in unknown.most_common()))
     print()
     print(census_line(sim["backed"], sim["port"], sim["functions"]))
     print(census_bytes_line(sim.get("backed_bytes", 0), sim.get("bytes", 0)))
+    if entered is not None:
+        print(census_entered_line(ent_sim["entered"], sim["functions"], ent_sim["entered_unbacked"],
+                                  ent_sim["entered_bytes"], sim.get("bytes", 0)))
 
 
 def census_line(backed, port, functions):
@@ -1059,6 +1159,9 @@ def main():
                     help="the census by layer with the backed column and the byte-weighted one, and the "
                          "board's number (item 1467) with its `Census bytes:` twin")
     ap.add_argument("--json", action="store_true", help="with --layers: the same as JSON")
+    ap.add_argument("--entered-top", type=int, default=20, metavar="N",
+                    help="--layers with traces (--pin or logs): the N largest entered-and-unbacked "
+                         "simulation functions after the board's lines (Loop 3350; 0 for none)")
     ap.add_argument("--unbacked", action="store_true",
                     help="the never-backed simulation functions, shortest decompile first, "
                          "with a port-consumer mark (parked 1703, 1725); --top rows")
@@ -1087,8 +1190,15 @@ def main():
     if a.cites and not a.never:
         ap.error("--cites goes with --never")
     if a.layers:
-        rows, sim_files, unknown, note = layers(a.index, a.docs, a.sim_src, a.pdb)
-        print_layers(rows, sim_files, unknown, a.json, size_note=note)
+        # The `entered` column needs traces (`--pin`, or logs given); with
+        # none the table, the lines and the JSON are what they were.
+        logs = (pinned_logs() if a.pin else []) + a.logs
+        seen = (entered_in(logs, a.index) | hooked_in(logs, a.index)) if logs else None
+        rows, sim_files, unknown, note, ent = layers_entered(a.index, a.docs, a.sim_src, a.pdb, seen)
+        print_layers(rows, sim_files, unknown, a.json, size_note=note, entered=ent)
+        if ent is not None and not a.json and a.entered_top:
+            print()
+            print_entered_unbacked(ent, a.entered_top)
         return
     if a.unbacked:
         unbacked(a.index, a.docs, a.sim_src, a.pdb, a.top, a.all, a.claimed, a.by)
