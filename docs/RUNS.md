@@ -21352,3 +21352,62 @@ Archive `rontrace-run1026.log`, 11,715,712 bytes,
 SHA-256 `67a0be9aed9be2c33fce5bcf82c3f5840d001b7e02f6a9a7d327aafe4df80d13`.
 
 **What it holds**: `blind::TRACES`' run1026 (item 3424), `NEVER` 356 → 352 with run1025 on its base; 350 on the tree merged with item 3423's run1022 and run1024.
+
+## run1031 — the human's Market at `cover=1` on the click-free pool to 700: the golden start with the tracer's `@sell` and `@buy` (2026-10-21, item 3426, `att-3426`)
+
+**What the disk could not answer**: no capture had pressed Sell or Buy for a human, so
+`LeaderOut::issue_sell@006d3eb0`, `CommandManager::issue_sell@00942a80`, `CommandPackage::process_sell@009468a0`,
+`LeaderData::can_buy_sell@006d53e0` and `LeaderData::has_bonus@006e0b80` stayed on `NEVER` (`docs/NATIONS.md` §9.2),
+and the tracer had no `@sell`. Item 3426 adds `@sell <who> <good> <flags>` and `@buy …`, which call the leader issuer
+the Market's buttons call (`Options::exec@007188c0:1149`, `:1162`). The golden start (map 14, seed 12345, the human
+Nubian, tribe 4, against tribe 11, AI off) already holds a Market: `num_buildings[0x16]` is 1 in the `LEADERS=9`
+start dump. The script is `tools/gamelog/coverage/market3426.cmd`: `605 resource who=0 all +1000`, `620 @sell 0 1 0`
+(one lot of timber), `640 @buy 0 1 0`, `660 @sell 0 1 1` (the 500 button), `700 !quit`. The take:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1031 --map 14 --end-frame 700 --log-window 600 700
+--timeout 3600 --detail end:LEADERS=2,BUILDS=7,CITIES=5 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail
+misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/coverage/market3426.cmd --cover cover=1`.
+- Pool lane 1 (`~/wine-ron`). Launched 15:02:09, exited 15:03:24: **75.1 s launch to exit**. `success`, lifecycle
+  verified, 701 frames, `last_frame` 700, not ended early. DLL `6a0311ec…`, the tree's at `46401fef7`. 214 GiB free
+  before. Minutes waited on another lane: none.
+- The three `@` lines issued (`I_ISSUE` refusal 0, package 0xa → 0x17, one 13-byte command each). The dump logs
+  `process_sell 1 621`, `process_buy 1 641` and `process_sell 1 661`.
+- `LEADERS=2` buckets for who 0 (food, timber, wealth): block 621 `1254 1241 1113`, block 622 `1254 1141 1167` (one
+  lot sold: timber −100, wealth +54); block 641 `1256 1142 1168`, block 642 `1256 1242 1107` (one lot bought: timber
+  +100, wealth −61); block 661 `1258 1243 1107`, block 662 `1258 743 1357` (flags 1, five lots: timber −500, wealth
+  +250).
+- `CITIES=5`: the human's city prints `city_flags` 18449 (`0x4811`, with `0x800`), and the British city prints 16401
+  (`0x4011`, without it). The British `num_buildings[0x16]` is 0.
+- **6,430 functions entered**, five of them `NEVER` rows, all asked: `issue_sell`, `CommandManager::issue_sell` and
+  `process_sell` on 620; `can_buy_sell` and `has_bonus@006e0b80` on 640.
+- `rngcmp.py` against run1031b (the `cover=0` twin): **701 in common, 0 differing, 701 identical**. `samegame.py`
+  against run1031b's `gamelog.txt`: **101 in common (1..699), 0 differ**. Nothing parts the twin, so there is no
+  residue item.
+- Filed with `filerun.py run1031 market-sell-buy-cover1-clickfree`.
+
+Archive `gamelog-run1031-market-sell-buy-cover1-clickfree.txt`, 15,770,458 bytes,
+SHA-256 `d1c2eb9c25984535ccd43d3b8693196fb99d1b06a3776d638d5516638c2a7b15`.
+
+Archive `rontrace-run1031.log`, 10,424,160 bytes,
+SHA-256 `b52beacbe9f46ee94e917d9225bbf9c9c51e343363dcecf1eaf67387a749a25a`.
+
+**What it holds**: `blind::TRACES`' run1031 (item 3426), `NEVER` 350 → 345.
+
+## run1031b — run1031's twin at `cover=0` on the click-free pool to 700 (2026-10-21, item 3426, `att-3426`)
+
+This is run1031's line with `--cover cover=0`. **The first take stalled.** It went to pool lane 2 (`~/wine-ron-2`),
+launched 15:02:05 beside run1031, and stalled before frame 0 twice, 300 s each. Its `wine-stalled.log` ends on
+`wine: Call from 7BC3A438 to unimplemented function secur32.dll.QueryContextAttributesW, aborting`, a Wine abort
+rather than a consent dialog. Nothing else in the repo records that line. The output was kept as
+`~/ron-golden/run1031b-stalled`.
+- The retake went to pool lane 1, launched 15:13:05 and exited 15:13:56: **50.8 s launch to exit**. `success`,
+  lifecycle verified, 701 frames, `last_frame` 700. DLL `18e45d3f…`. The dump logs the same three `process_*` lines.
+- Filed with `filerun.py run1031b market-sell-buy-cover0-clickfree`.
+
+Archive `gamelog-run1031b-market-sell-buy-cover0-clickfree.txt`, 15,770,458 bytes,
+SHA-256 `9c4eb0aa07fc891af563fab6d21e71d104c8be5b5bcf01f68e74d986cc9ee947`.
+
+Archive `rontrace-run1031b.log`, 10,334,560 bytes,
+SHA-256 `6211577e73f3071c7878112034be71643d2f3d65fcf437461d13a1cde29a2574`.
+
+**What it holds**: run1031's twin.
