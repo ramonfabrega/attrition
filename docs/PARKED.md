@@ -3778,7 +3778,7 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 asked `LEADERS=1` for `treaties[1]`, which the logger prints only at `LEADERS>=3`, and the lane spent a retake learning
 it (run1016b, parked 3417b). Candidate: a guard over the captures-owed tables that checks each row's category and level
 against the level the dump's own writer prints the field at (the stanzas already on disk say which), or a brief row
-until it is one. Score: a coverage retake the next tranche does not spend. One reach.
+until it is one. Score: a coverage retake the next tranche does not spend. One reach. **3419's "for the Loop"**, the same family: a booking's end frame is checked against the dumps for when the state it waits on expires — 3419's 10945 stopped before the Ambush expired, and the lane ran to the game's own end (12658) to see it.
 
 ## Loop, filed 2026-10-21 — the forty-eighth tranche's
 
@@ -9160,13 +9160,13 @@ is an oracle-agreed module the live sim does not call.
   either a lobby is named that builds one, or both functions are proposed for `RESIDUE` with 3409b's shape. No
   score moves until a capture enters them.
 
-## Parked by the next landing, slot MS — reserved
+## Parked by item 3419, 2026-10-21 — Great Lakes, the Iroquois at `cover=1`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3419a. 3409a's capture is on disk: run1018 shows the Ambush's leader bit fall.** Who 1's `leader_flags` goes
+  from `0x84003` to `0x80003` on block 10972, the same block on which `1/46`'s `unit_masks` loses `0x2000`
+  (`0x42008` → `0x40008`), the Ambush cast on trace frame 10520 (`docs/AI.md` §299). The crate's `process_spells`
+  still drops only the March's bit (3409a). No reader of the leader's `0x4000` is known past `verify_spell_flags`,
+  so no score moves. If one is found, run1018's blocks 10971..10972 are its first test.
 
 ## Parked by item 3431, 2026-10-21 — the middle ages
 
