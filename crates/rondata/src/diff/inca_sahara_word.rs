@@ -48,8 +48,18 @@ pub(crate) const INCA_SAHARA: Lobby = Lobby {
     // (run1011e's packet: the General's decoy Light Horse `1/82`, struck
     // by friendly fire on 13297, `get_damage` 19688 theirs and 6 hits
     // ours, `target_side` having written `decoy` false for every unit).
-    count: 13416,
-    sequence: 13416,
+    // Item 3393 moved it 13416 -> 15632 (+2216), the game's end: a decoy's
+    // overflow strikes its captain (`take_damage@00652020:619`-`631`).
+    // On 13392 a friendly round kills the decoy Inti Maceman `1/92`, the
+    // tail of the squad 1/90 -> 1/91 -> 1/92; theirs hands the 13345
+    // points past its share to `1/90` and the 13327 past that to `1/91`
+    // (run1015b's packet), so all three leave the dump on block 13393
+    // (run1015). Ours closed `1/92` alone, and `1/90`, `1/91` stood
+    // (`extra` on run1014's first block 13410) until one's attack wrap
+    // spent a draw on 13416 (`Guy::set_anim+0x97a < Guy::inc_time+0x1ed`
+    // at index 104, and the bird's coins re-thrown on the shifted seeds).
+    count: 15632,
+    sequence: 15632,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
@@ -161,4 +171,113 @@ fn run1011_s_word_frame_is_widened_whole() {
     // first block, 13104: the leaders' `SITE[].reg` and `aggression[1]`,
     // the units' `form`, and the held groups and pools 64..66.
     pin_eq!(w.firsts.len(), 30, "keys that part in the window");
+}
+
+/// run1014: the word 13416's window, blocks 13410..13666 at the same
+/// detail as run1011 (item 3393). run1011 ends at block 13360, and run1006b
+/// dumps its setup and closing blocks only, so no dump on disk held the
+/// word's block.
+pub(crate) const RUN1014: &str = "gamelog-run1014-greatsahara-inca-diff3-window-13410-13667.txt";
+
+/// The window: block 13410 through 13666; the word 13416's own block is
+/// 13417.
+pub(crate) const WIDENING_INCA_SAHARA_FRAME_13416: (i64, i64) = (13410, 13666);
+
+pub(crate) fn inca_sahara_frame_13416_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA_SAHARA.start],
+        true,
+        INCA_SAHARA.long,
+        "run1014",
+        &[(RUN1014, WIDENING_INCA_SAHARA_FRAME_13416.0)],
+        WIDENING_INCA_SAHARA_FRAME_13416,
+        1,
+        &[13417],
+        true,
+    )
+}
+
+#[test]
+fn run1014_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_sahara_frame_13416_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3393, the first try: 28 keys — the standing family on 13410
+    // (the leaders' `SITE[].reg` and `aggression[1]`, the units' `form`,
+    // the held groups and pools 64..66; 26 keys) and the decoy Inti
+    // Macemen `1/90` and `1/91` as `extra`, which theirs had closed on
+    // 13392 — then every unit row from the word's block 13417 on. Built
+    // (a decoy's overflow strikes its captain): 26, the 13410 rows alone.
+    pin_eq!(w.firsts.len(), 26, "keys that part in the window");
+}
+
+/// The closing state's window: run1006b's closing block alone, the long's
+/// last frame 15632 writing it (item 3393).
+pub(crate) const WIDENING_INCA_SAHARA_CLOSING: (i64, i64) = (15631, 15634);
+
+/// **The lobby's closing state** (item 3393, DECISIONS 55): run1006b — the
+/// draw stream's own capture, `cover=0` — prints its closing block whole.
+/// The game ends itself on 15632.
+#[test]
+fn run1006b_inca_sahara_closing_state() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (
+        crate::testenv::dump(INCA_SAHARA.long.0),
+        crate::testenv::dump(INCA_SAHARA.start),
+        trace(INCA_SAHARA.long.1),
+    ) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = start_log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Inca Sahara closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 15633, "the closing block");
+    pin_eq!(e.compared, 91, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    // Item 3393, the first walk (a decoy's overflow, the word at 15632):
+    // 91 units compared on block 15633, none apart, no building or city
+    // field-row, no closing field.
 }

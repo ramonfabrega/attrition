@@ -1483,7 +1483,9 @@ object fired: total_time − cur_time + nuke_effect[0x108] + 1)` — **the slot
 is held until its last shot has landed**, so that a dead archer's arrow
 still hits. The ammo is matched on its **shooter** (`Ammo +0x3c`/`+0x40`),
 which is the same pair `Ammo::inc_time`'s per-frame bump reads and the
-correction §9.2 carries. A `UnitData` in the chain dies alone; `Unit::die_uber` (the
+correction §9.2 carries. A `UnitData` in the chain dies alone — **except a decoy**, whose
+`take_damage` hands the points past its share to its captain after `die` (`:619`–`631`, `docs/AI.md` §295), so a
+decoy squad falls whole to `get_damage`'s step 17; `Unit::die_uber` (the
 whole squad) is a separate call from the scripting and disband paths, not
 from combat. Death of a non-captain figure does nothing to the others
 except through `curr_uber_size` (§7.3); death of the captain is handled by

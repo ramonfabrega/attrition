@@ -25195,12 +25195,73 @@ counted Monarch off the map is the case it would part on. `is(0x162)` is the typ
 The Monarch's own arm (`u` itself a hero of type `0x162`) is built and reached by no capture, a Monarch being no
 siege unit. The shipped XML's other readers of `0x162` (the Monarch's own radius bonuses) are not read here.
 
-## 295. Reserved for the next item on the AI track
+## 295. The battery's Inca word at Great Sahara closes: a decoy's overflow strikes its captain
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3393, 2026-10-20, Opus 5.5. `GreatSaharaIncaTier3` (§293's lobby, `diff::inca_sahara_word`), carried from
+13416 to the game's last frame, 15632. Captures run1014 (the word's window, 13410..13666 at §293's detail),
+run1015 (the gap 13355..13412 at `UNITS=3, BUILDS=7, GUYS=4, LEADERS=9, AMMO=5`) and the packet run1015b
+(`RON_STATE_FRAME=13392`).*
+
+**The draw delta on 13416.** Ours 112, theirs 108, parting at index 104. Both spend the same 104: the birds'
+`think_bird` (0..89), a `Unit::fight+0x824`, the wraps, and at 103 an attack roll `Guy::set_anim+0xf2f`. Ours then
+spends one more attack-category wrap, `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, and five wing-beat coins
+(`Guy::set_anim+0x104b`, `docs/SYNC.md` §3) where theirs spends two. A bird's coin re-throws while its clock
+overruns the flap's length, so three extra coins are what one draw of shifted seeds buys. The frame's one extra
+event is the attack wrap.
+
+**run1014's widening says whose.** On the window's first block, 13410, besides §293's standing family (26 keys),
+two rows: `1/90` and `1/91` are `extra`, held by this crate alone. They are Inti Macemen (`TypeIndex` 92, `TY` 42,
+land) and **decoys** (`unit_masks & 1`, `RON_DEBUG_UNIT`'s `decoy 1`), uid 123 and 124, of the decoy squad
+`1/90 → 1/91 → 1/92` (`o_down` 91, 92). From 13417 every unit row parts. run1011 ends at block 13359 with all three
+at full `myhits` 118 (`damage` 21, 27 and 14) and `mana_burn` 2228. Their age closes them at `(general_upgrade + 2) ×
+DECOY_TIME / 2` = 2500, which is 13631, so expiry is not what removed them.
+
+**run1015: all three leave on one block.** Uid 123, 124 and 125 are printed through block 13392 and gone on 13393,
+`damage` unchanged and no round aimed at any of them. Theirs' rounds round `1/92` (4584, 30024) are who=1's archers
+at the human's `0/4` (friendly fire, §293's shape). Ours closes `1/92` on 13392 alone: a probe (reverted whole)
+printed `relink_squad` on `1/92` at health −13266 under `land` → `do_damage`, which is `get_damage`'s step 17 on a
+decoy target (§293). `1/90` and `1/91` stood.
+
+**run1015b: the packet names the arm.** `step4.py --entry 65db70` (`Objects::inc_time`) with `--hook 652020` on
+`Object::take_damage`: three calls on the three decoys. `1/92` (`1411a60c`) takes 13370 from
+`Object::do_damage+0x159e`. Then `take_damage+0x140c` calls `take_damage` on `1/90` (`1411a32c`) with
+13345, and on `1/91` (`1411a49c`) with 13327. `--hook 60eda0`: each `Unit::die` is called from its own
+`take_damage+0x13b3`. `Object::take_damage@00652020:619`–`631`, after `die` (vslot `+0x158`):
+
+```text
+overflow = this.damage − share            ; whole points past the figure's share (local_c)
+die(dtype, gpiece, angle)
+if the figure was a decoy (unit_masks & 1, read before die):
+    if overflow > 0:
+        c = get_captain()                 ; vslot +0xe4, the chain as close re-linked it
+        if c >= 0 and c != this.o:
+            units[who][c].take_damage(overflow, 0, dtype, gpiece, param_5, angle, c, who, 0)
+```
+
+The numbers close it: `1/92` 14 + 13370 − 39 = 13345, `1/90` 21 + 13345 − 39 = 13327. `1/91` is then its own
+captain (the dying head hands the squad down, and the last figure is the head), so the chain stops there. The
+captain is passed as its own attacker, so the plunder's ally gate refuses it. **Built**:
+`Sim::take_damage_typed`'s decoy arm (`fight.rs`), recursive, the captain found by `combat.captain` among the
+living. **13416 → 15632**, the game's end.
+
+**The value diff**, run1015 block 13393: `1/90` (uid 123) and `1/91` (uid 124) present ours, gone theirs →
+gone both; run1014 block 13410's two `extra` rows leave. Our healths on 13392: −13266, −13248, −13235.
+
+**The close** (DECISIONS 55): `run1006b_inca_sahara_closing_state`, run1006b's closing block 15633: 91 units
+compared, none apart, no building, city or closing field. run1014's widening: 26 keys, every one standing from 13410.
+
+**Mutations** (`tools/mutate.py`): the arm's condition made false → held, exit 101; `inca_sahara_word_first_parting`,
+`run1006b_inca_sahara_closing_state` and `run1014_s_word_frame_is_widened_whole` fail, the word back at 13416. The
+same mutation fails `fight::tests::a_decoy_squad_falls_to_one_round_on_its_tail`.
+
+**What is not established.** Which decoy spends ours' extra `+0x1ed` wrap on 13416 is not attributed (`1/90` was
+mid-attack on `0/2002`; the arm removes both). The overflow arm on a squad that is no decoy: the original gates it
+on the decoy bit alone, and this crate builds no arm there. A captain slot that is already closed: the original calls
+`take_damage` on it regardless, and this crate looks only among the living. No walk reaches either.
+
+**Coverage.** Diff-backed: the arm (run1006b's draw stream to 15632, run1015's block 13393, run1014's window, the
+closing block). Packet-backed: the three `take_damage` calls and their amounts (run1015b). Reading alone: the order of
+`die` before the overflow call and the `c != this.o` test, both from the decompile at `:619`–`631`.
 
 ## 296. Reserved for the next item on the AI track
 
