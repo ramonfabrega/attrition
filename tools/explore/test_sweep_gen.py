@@ -2094,6 +2094,36 @@ fn x_port(a: &[i32]) -> i64 {
                     sweep_gen.EMU = ROOT / 'tools/emu'
                     sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
 
+    def test_a_dry_run_regen_by_name_prints_the_carried_test_and_writes_nothing(self):
+        # Loop 3407's check (the forty-seventh pass): `--regen <snake>
+        # --dry-run` was read as a whole line (the snake form wanted
+        # `--regen` alone) and refused, and `--dry-run` printed the test
+        # before the port and the hand fences were carried — so a dry run
+        # could not show what a regen would write.
+        with tempfile.TemporaryDirectory() as tmp:
+            sweep_gen.EMU = Path(tmp)
+            sweep_gen.SWEEP = Path(tmp)
+            (Path(tmp) / 'mod.rs').write_text('')
+            try:
+                self.assertEqual(sweep_gen.main(['obj', 'X::y@00401000', '--item', '1', '--win', '0x20',
+                                                 '--port', '0']), 0)
+                tp, sp = Path(tmp) / 'x_y.rs', Path(tmp) / 'sweep_x_y.py'
+                fenced = '            // hand: port\n            a[0] as i64\n            // end hand\n'
+                text = tp.read_text().replace('            0\n        };\n', fenced + '        };\n')
+                tp.write_text(text)
+                script = sp.read_text()
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    self.assertEqual(sweep_gen.main(['--regen', 'x_y', '--dry-run']), 0)
+                self.assertEqual(tp.read_text(), text, '--dry-run writes nothing')
+                self.assertEqual(sp.read_text(), script)
+                printed = out.getvalue()
+                self.assertIn(text.rstrip('\n'), printed, 'the test a regen would write: the fence carried, no port after it')
+                self.assertNotIn('--dry-run', sweep_gen.kept_line(sp))
+            finally:
+                sweep_gen.EMU = ROOT / 'tools/emu'
+                sweep_gen.SWEEP = ROOT / 'crates/sim/src/sweep'
+
     def test_a_fence_left_open_is_refused(self):
         with self.assertRaises(ValueError):
             sweep_gen.kept_hands('fn a() {\n    // hand: x\n    let v = 1;\n}\n', 'fn a() {\n}\n')

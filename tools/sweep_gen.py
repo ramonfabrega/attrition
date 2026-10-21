@@ -3133,8 +3133,10 @@ def kept_line(path):
 
 def _kept_for_regen(argv):
     """`--regen SCRIPT` (or its snake name): the line the script keeps, to
-    be redrawn; None when `argv` is a whole line."""
-    rest = [a for a in argv if a != '--regen']
+    be redrawn; None when `argv` is a whole line. The flags a line never
+    keeps (`--dry-run`, `--reset-port`, …) ride beside the name (Loop 3407:
+    `--regen <snake> --dry-run` was read as a whole line and refused)."""
+    rest = [a for a in argv if a not in NOT_KEPT]
     if '--regen' not in argv or len(rest) != 1 or rest[0].startswith('-'):
         return None
     path = Path(rest[0])
@@ -3898,7 +3900,7 @@ def main(argv=None):
         print(f'sweep_gen.py: {e}', file=sys.stderr)
         return 2
     if line is not None:
-        argv = line + ['--regen']
+        argv = line + ['--regen'] + [a for a in argv if a in NOT_KEPT and a != '--regen']
     else:
         argv = merged_with_kept(argv)
     ap = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
@@ -4338,15 +4340,6 @@ def main(argv=None):
     # The script keeps the line that drew it, so `--regen SCRIPT` redraws it
     # after the lane's job directory is gone (item 2325, parked 2311).
     script = script.rstrip('\n') + '\n\n' + KEPT + json.dumps([a for a in argv if a not in NOT_KEPT]) + '\n'
-    if args.dry_run:
-        try:
-            mp = sweep_registry(mod, test)
-            registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
-        except ValueError as e:
-            print(f'sweep_gen.py: {e}', file=sys.stderr)
-            return 2
-        print(f'# {sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
-        return 0
     owner = regen_owner(sp, args.function) if args.regen else None
     if owner:
         print(f'sweep_gen.py: {shown(sp)} is the sweep of `{owner}`, not `{args.function}`; an overload '
@@ -4380,6 +4373,17 @@ def main(argv=None):
             return 2
         for w in warned:
             print(f'sweep_gen.py: {shown(tp)}: {w}', file=sys.stderr)
+    if args.dry_run:
+        # After the port and the fences are carried, so a dry run prints
+        # what a regen would write (Loop 3407).
+        try:
+            mp = sweep_registry(mod, test)
+            registered = mod if mp.name == 'mod.rs' else registration(mod).rstrip()
+        except ValueError as e:
+            print(f'sweep_gen.py: {e}', file=sys.stderr)
+            return 2
+        print(f'# {sp}\n{script}\n# {tp}\n{test}\n# {mp}\n{registered}')
+        return 0
     for p in (sp, tp):
         if p.exists() != args.regen:
             print(f'sweep_gen.py: {p} ' + ('is missing; --regen redraws a generated sweep' if args.regen
