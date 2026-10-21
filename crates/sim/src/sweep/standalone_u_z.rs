@@ -216,6 +216,8 @@ mod unit_do_attack;
 mod unit_do_attack_ground;
 #[path = "unit_do_attack_neg.rs"]
 mod unit_do_attack_neg;
+#[path = "unit_do_await_board.rs"]
+mod unit_do_await_board;
 #[path = "unit_do_board.rs"]
 mod unit_do_board;
 #[path = "unit_do_build.rs"]
@@ -374,6 +376,10 @@ mod unit_think_caravan;
 mod unit_think_carry;
 #[path = "unit_think_carry_civilian.rs"]
 mod unit_think_carry_civilian;
+#[path = "unit_think_carry_idle.rs"]
+mod unit_think_carry_idle;
+#[path = "unit_think_carry_military.rs"]
+mod unit_think_carry_military;
 #[path = "unit_think_civilian_transport.rs"]
 mod unit_think_civilian_transport;
 #[path = "unit_think_hero.rs"]

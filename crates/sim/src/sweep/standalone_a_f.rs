@@ -48,6 +48,8 @@ mod ammo_out_set_shooter_vis;
 mod ammo_process;
 #[path = "angle_diff.rs"]
 mod angle_diff;
+#[path = "animal_data_is_seen.rs"]
+mod animal_data_is_seen;
 #[path = "animal_data_valid_target_const.rs"]
 mod animal_data_valid_target_const;
 #[path = "animal_data_walk_data_vt.rs"]

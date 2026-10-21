@@ -12,18 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-eighth tranche (commander, Opus): 3 of 20 landed from `28f48612`** — readings 3408 (GOLDEN §144: 15 residue
-proposals, 34 captures owed) and 3409 (AI §296: 7, 12; `NEVER` 372 -> 373); 3410 swept five of five. Last whole
+*2026-10-21, **the forty-eighth tranche (commander, Opus): 4 of 20 landed from `28f48612`** — readings 3408 (GOLDEN §144: 15 residue
+proposals, 34 captures owed) and 3409 (AI §296: 7, 12; `NEVER` 372 -> 373); 3410 and 3411 swept five of five each — the sweep source is spent. Last whole
 gate `dbe6667e` (the pass's); widened since: none; scoped gates `--scope dbe6667ec`.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed). Held-out battery: 6147, 7799,
   14540, 15853, 18883, 24000 ×3 — **eight of eight whole**, median 17368; entry 61 §6's stop rule has fired, so no lobby
-  is promoted and none is minted (Ramon's to reopen). Census 1691 of 3611, port 568, layout 1123; `never` 374, of which
+  is promoted and none is minted (Ramon's to reopen). Census 1696 of 3611, port 568, layout 1128; `never` 374, of which
   35 accepted residue — **the blind list, 338 open, is the score the forty-eighth tranche moves** (DECISIONS 29 §2).
-- **Lanes: three live, the forty-eighth commander's (Opus)**: att-3412 and att-3413 on the Opus lanes (`reading` kind,
-  DECISIONS 84, `--tests blind:: --no-widen`), att-3411 on a Sonnet lane (the census's last sweep rows); 3410's seat
-  stands empty, as 3411's will (no sweep source unless Ramon names one). Next 3416, run 1016. Pools: GOLDEN §145–149;
-  AI §297–301; park ML–MN (3411–3413), refilled MO–MT. Parked for the pass's eye: 3400a, 3408a–d.
+- **Lanes: two live, the forty-eighth commander's (Opus)**: att-3412 and att-3413 on the Opus lanes (`reading` kind,
+  DECISIONS 84, `--tests blind:: --no-widen`); both Sonnet seats stand empty (no sweep source unless Ramon names one). Next 3416, run 1016. Pools: GOLDEN §145–149;
+  AI §297–301; park MM–MN (3412–3413), MO–MT. Parked for the pass's eye: 3400a, 3408a–d.
 - **Fable backlog: 10 Loop items** (3415, 3382, 3371, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 86.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -34,13 +33,13 @@ Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
-Census: simulation backed 1691 of 3611 · port 568 · layout 1123
+Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 
 **Opener: continue the forty-eighth tranche from docs/QUEUE.md's handoff — commander, Opus: read docs/LOOP.md first;
-3 of 20 landed from `28f48612`; re-arm `python3 tools/lanewait.py` on the live lanes and carry the chain; a reading lane
+4 of 20 landed from `28f48612`; re-arm `python3 tools/lanewait.py` on the live lanes and carry the chain; a reading lane
 refills from 3414, a sweep seat stands empty; stop at twenty, then clear `steer`.**
 
 ## The queue
@@ -50,12 +49,6 @@ whole (entry 61 §6), so the headline is **decision 29's second counter, the bli
 **338 open** — and every item names it. A `reading` item lands claims in its document, each with the capture that would
 kill it, and a **captures-owed table** in its coverage section (ini category, lobby, frame, field) from which capture items
 are booked; a function a sweep backs is listed as swept, not re-read; one no capture reaches is proposed for `RESIDUE`.
-
-3411. **sweep: the last five** — `Group::action_repair@007020c0` (6,857), `Unit::think_carry_military@005f3260`
-(6,158), `Unit::think_carry_idle@005f2f30` (5,148), `AnimalData::is_seen@005d8160` (2,726),
-`Unit::do_await_board@005ed040` (2,632). Sonnet, `--no-widen`. **After 3410 and 3411 the census's sweep source is
-spent**: `port` 1, `name` 7 rows all parked or cut, the 450 unmarked rows functions the crate does not carry (Ramon's,
-3237).
 
 3412. **reading: `docs/NATIONS.md`'s never-entered functions** (21 cited, 19 only there). `reading` kind, Opus,
 `--tests blind:: --no-widen`; refills an Opus lane when 3408 or 3409 lands.
