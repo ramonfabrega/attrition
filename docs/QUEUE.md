@@ -19,10 +19,10 @@ recorded game's playback; residue 80 → 79 on a pool cursor's tooltip); 3431 (R
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
   568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 329, residue 80 → 79, open 300 →
-  250** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
-  `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3436, att-3437.** Next 3439, run 1055. Pools: GOLDEN §146–149, AI §300–301, park ND–NH. The last whole gate: 3427's booking.
-- **Fable backlog: 13 Loop items** (3435, 3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
+  250** (`Blind:` pinned); `never` moves only on a `cover=1` trace: `coverage` items on two Opus lanes, Sonnet empty.
+- **Lanes: att-3436, att-3437; the tranche drains at sixteen** (Ramon's pit stop: no refill after these two, then `steer`,
+  with 3437's parity in hand — Loop 3439). Next 3440, run 1055. Pools: GOLDEN §146–149, AI §300–301, park ND–NH. The last whole gate: 3427's booking.
+- **Fable backlog: 14 Loop items** (3439, 3435, 3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -40,8 +40,8 @@ Blind: never 329 · residue 79 · open 250
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): re-arm `tools/lanewait.py
---stalled-child-after 240` on att-3425 and att-3426; refill from the queue, then its refill order (the briefs' shared
-rules are `t49/common.md` in the job tmp); count landings from `11da5dd81`; at twenty, or at the drain, clear `steer`.**
+--stalled-child-after 240` on att-3436 and att-3437; merge and book each, **no refill** (the drain at sixteen); at the
+second, the whole gate, the handoff, then clear `steer` (Ramon joins the pass).**
 
 ## The queue
 

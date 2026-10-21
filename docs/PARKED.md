@@ -3774,6 +3774,16 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
+(3439) **The tranche is capture-locked, and Ramon called the pass early** (2026-10-21, in the commander's session): the
+queue lane and the pool exclude each other, so while a driven item holds the queue lane the pool lane waits, and two
+Opus lanes ran single-threaded on captures with nothing else to do. Ramon's words for the loop: **a capture is never
+stopped halfway** — reprioritising stops *future* captures only — and **a question that wants a cold look waits for the
+pass or calls it early, "like a pit stop"**. So the tranche drains at sixteen (3436, 3437), and 3437 — the pool's `@click`,
+retiring the real cursor where the pool reaches — was booked ahead of the refill order on his word. For the pass: the lane
+count and kind once the click layer leaves the queue lane (two pool lanes ran at once in 3426), a non-capture lane so a
+long capture list is not the tranche's only thread, and the two rules into LOOP. Ramon joins this pass. Score: landings an
+hour while captures queue. One reach.
+
 (3435) **A driven take parts its `cover=0` twin at its first click, by construction** (3427's "for the Loop"): the coverage
 brief's "a trace that parts its twin is a finding, never a pin" wants a driven clause — the first differing frame is not
 earlier than the first input the take does not share with its twin (`samegame`'s first differ against the stanza's first
