@@ -196,6 +196,10 @@ mod group_action_attack_ground;
 mod group_action_attack_ground_head;
 #[path = "group_action_begin.rs"]
 mod group_action_begin;
+#[path = "group_action_board_ship.rs"]
+mod group_action_board_ship;
+#[path = "group_action_board_ship_head.rs"]
+mod group_action_board_ship_head;
 #[path = "group_action_buildmask.rs"]
 mod group_action_buildmask;
 #[path = "group_action_form.rs"]
@@ -206,6 +210,12 @@ mod group_action_form_ins;
 mod group_action_garrison;
 #[path = "group_action_garrison_head.rs"]
 mod group_action_garrison_head;
+#[path = "group_action_gather.rs"]
+mod group_action_gather;
+#[path = "group_action_gather_head.rs"]
+mod group_action_gather_head;
+#[path = "group_action_gather_spiral.rs"]
+mod group_action_gather_spiral;
 #[path = "group_action_halt.rs"]
 mod group_action_halt;
 #[path = "group_action_halt_head.rs"]
@@ -214,6 +224,12 @@ mod group_action_halt_head;
 mod group_action_hotkey;
 #[path = "group_action_queue_up.rs"]
 mod group_action_queue_up;
+#[path = "group_action_spell.rs"]
+mod group_action_spell;
+#[path = "group_action_swarm_around.rs"]
+mod group_action_swarm_around;
+#[path = "group_action_swarm_around_head.rs"]
+mod group_action_swarm_around_head;
 #[path = "group_action_trade.rs"]
 mod group_action_trade;
 #[path = "group_action_trade_head.rs"]

@@ -35,6 +35,8 @@
 //! unearned until something genuinely needs a fraction; anticipating it would
 //! only add rounding the original does not have.
 
+pub mod action_gather_view;
+pub mod action_spell_view;
 pub mod activate;
 pub mod add_to_world_view;
 pub mod ai;
@@ -63,12 +65,14 @@ pub mod attack_view;
 pub mod attrition;
 pub mod balance;
 pub mod bhs;
+pub mod board_ship_view;
 pub mod border_pass;
 pub mod bribe;
 pub mod build;
 pub mod build_attack_view;
 pub mod build_spot_view;
 pub mod calc_gather;
+pub mod calc_gather_type_view;
 pub mod capture;
 pub mod capture_view;
 pub mod caravan;
@@ -99,6 +103,7 @@ pub mod eject;
 pub mod farms;
 pub mod fight;
 pub mod find_builds_view;
+pub mod find_path_view;
 pub mod finish_insert_view;
 pub mod fish;
 pub mod flag_reads;
@@ -152,6 +157,7 @@ pub mod stance;
 pub mod suffer_view;
 pub mod supply;
 pub mod swarm;
+pub mod swarm_around_view;
 pub mod take_damage_view;
 pub mod target_gate;
 pub mod target_score;

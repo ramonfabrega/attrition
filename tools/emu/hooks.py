@@ -53,6 +53,9 @@ class Harness:
         self.hooked = dict(callees)
         self.next_stub = STUBS
         self.marks = set()
+        # Addresses whose next entry runs the real code: a recursive function's own entry,
+        # stubbed for its recursive call and let through once for the harness's (item 3386).
+        self.skip_once = set()
         uc.hook_add(UC_HOOK_CODE, self._on_code, begin=STUBS, end=STUBS + STUB_PAGES_MAX * 0x1000 - 1)
         for a in callees:
             uc.hook_add(UC_HOOK_CODE, self._on_code, begin=a, end=a)
@@ -109,6 +112,9 @@ class Harness:
 
     def _on_code(self, uc, addr, size, _):
         if addr not in self.hooked:
+            return
+        if addr in self.skip_once:
+            self.skip_once.discard(addr)
             return
         # A fourth element marks a `__cdecl` callee (item 2325: `memcpy`, an
         # import): its arguments are read, and the caller pops them.
