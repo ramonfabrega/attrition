@@ -410,6 +410,10 @@ mod groupmoveorder_is_pathed;
 mod groups_copy_group;
 #[path = "groups_data_find_group_const.rs"]
 mod groups_data_find_group_const;
+#[path = "groups_process_body.rs"]
+mod groups_process_body;
+#[path = "groups_process_driver.rs"]
+mod groups_process_driver;
 #[path = "groups_walk_data.rs"]
 mod groups_walk_data;
 #[path = "guard_order_get_guard_order.rs"]
