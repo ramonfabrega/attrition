@@ -1609,8 +1609,6 @@ pub(crate) const fn snapped(p: Pos) -> Pos {
     )
 }
 
-/// `find_path`'s "far and reachable: the pathfinder's job" rule, world cells.
-const STRAIGHT_LINE_CELLS: i32 = 4;
 /// The working-the-tile radius of a woodcutter or miner.
 const AT_TILE: i32 = 0x140;
 /// The oil-well stance offset.
@@ -6174,7 +6172,7 @@ impl Sim {
                 // `5f8c5d`, `docs/GROUPS.md` §32): `peek`, then the order's
                 // `dest_x`/`dest_y` and the unit's `+0x60` tolerance from
                 // the top. A detour `find_path` just pushed and verified
-                // (`go_around_building`, [`Sim::detour_verified`]) is the
+                // (`go_around_building`, [`crate::find_path_view`]) is the
                 // top now, so it is what the step walks at — not the world
                 // entry under it. Great Lakes' `1/40` walked past its own
                 // detour for seventeen frames without this (item 795).
@@ -6657,139 +6655,16 @@ impl Sim {
         }
     }
 
-    /// `Unit::find_path` (§4.6): 0 = walk straight, 1 = plan. The written
-    /// `2` ("abort") is dead code in the original — nothing produces it at
-    /// the base case — so it is not modelled.
+    /// `Unit::find_path` (§4.6): 0 = walk straight, 1 = plan, 2 = abort (a
+    /// recursive call's answer passed up; nothing produces it at the base).
     ///
-    /// The march, per the settled third reading (`docs/PATHFINDER.md` §9):
-    /// the angle is recomputed from the current remainder every iteration,
-    /// each component is clamped to its axis' remainder, and the exits are
-    /// `manh <= speed` (the loop condition), a grown remainder, and a
-    /// remainder within one *actual clamped step* on both axes (`<=`). A
-    /// no-progress step is unreachable with `speed >= 3`, so the interim
-    /// guard of 2026-08-22 is retired; the soak that found the hang stands
-    /// guard over this rewrite.
+    /// The body is [`crate::find_path_view::find_path_steps`], the original's
+    /// flow over a view, which the emulator sweep also runs (item 3386); the
+    /// march, the pull-back and the detour's replay are described there and
+    /// in `docs/PATHFINDER.md` §9.
     fn find_path(&mut self, u: usize, mo: &mut MoveOrder, goal: Pos) -> u8 {
-        // `5fb96f`: a type that flies like a helicopter (`+0x2b4 & 0x20`)
-        // takes `jne 5fbf4c` to the `xor eax, eax` return — straight, with
-        // no walkability test, no `path_recursion` and no march (item
-        // 1048: run371's `0/12` flies one waypoint to P_h on 2675).
-        if self.is_helicopter(u) {
-            return 0;
-        }
-        let here = self.units[u].pos;
-        // `5fb96f`..: a unit standing on a tile that now refuses it is moved
-        // to the nearest spot that does not, and the call answers "plan".
-        if self.invalid_loc(u, here.tile(), true, false, false, false, false) != 0 {
-            let spot = self
-                .find_nearby_spot(u, here, 0, -1, 0, Angle(0x5555_5555), None)
-                .unwrap_or(here);
-            self.set_new_location(u, spot, true);
-            return 1;
-        }
-        let mut goal = goal;
-        if goal == here {
-            return 0;
-        }
-        let cells = (goal.cell().x - here.cell().x).abs() + (goal.cell().y - here.cell().y).abs();
-        if cells > STRAIGHT_LINE_CELLS
-            && self.invalid_loc(u, goal.tile(), true, true, false, false, false) == 0
-        {
-            return 1;
-        }
-        self.units[u].path_recursion = self.units[u].path_recursion.saturating_add(1);
-        // `find_path`'s own `(*+0x17c)(x, y, 0)` and its `< 4 → 3` floor,
-        // the same virtual the step takes ([`Sim::get_speed`]).
-        let speed = self.get_speed(u, 0).max(3);
-        // THE PULL-BACK (§4.6, `005fbaa6`-`005fbb56`), and it is what item 28
-        // was: a goal whose own tile refuses is walked *back toward us* one
-        // step at a time until it does not, and the waypoint and the path's
-        // top follow it wherever they are the goal. So a woodcutter sent at
-        // a forest tile is really sent at the last open point short of it,
-        // and the march that follows never enters the tile that would have
-        // asked `go_around_building` for a detour. The sim had no pull-back,
-        // marched into the forest, and paid `do_move`'s grid draw for a
-        // detour the original never needed.
-        //
-        // The step is `sinx/cosx` of the bearing to the goal, taken once and
-        // then only ever clamped down — never re-aimed, unlike the march's.
-        let ang = find_angle(goal.x - here.x, goal.y - here.y);
-        let mut back_x = movement::sin_component(ang, speed);
-        let mut back_y = movement::cos_component(ang, speed);
-        while self.invalid_loc(u, goal.tile(), false, false, false, false, false) != 0 {
-            let (dx, dy) = (goal.x - here.x, goal.y - here.y);
-            if dx.abs() < back_x.abs() {
-                back_x = dx;
-            }
-            if dy.abs() < back_y.abs() {
-                back_y = -dy;
-            }
-            if mo.waypoint == goal {
-                mo.waypoint = Pos::new(mo.waypoint.x - back_x, mo.waypoint.y + back_y);
-            }
-            if let Some(top) = self.units[u].path.last_mut()
-                && top.to == goal
-            {
-                top.to = Pos::new(top.to.x - back_x, top.to.y + back_y);
-            }
-            goal = Pos::new(goal.x - back_x, goal.y + back_y);
-            // `sinx` and `cosx` of a bearing are never both zero at speed
-            // >= 3, so this only fires once both have been clamped to a
-            // remainder of zero — the goal has arrived at us.
-            if back_x == 0 && back_y == 0 {
-                break;
-            }
-        }
-        // The goal walked all the way back onto us: there is nowhere to go,
-        // and the cell is marked so the pathfinder does not offer it again.
-        if goal == here {
-            self.units[u].avoid = Some(goal);
-            return 1;
-        }
-        let mut at = here;
-        let (mut dx, mut dy) = (goal.x - at.x, goal.y - at.y);
-        let mut manh = dx.abs() + dy.abs();
-        let mut prev = manh;
-        while speed < manh {
-            if prev < manh {
-                return 0;
-            }
-            prev = manh;
-            let ang = find_angle(dx, dy);
-            let mut sx = movement::sin_component(ang, speed);
-            let mut cy = movement::cos_component(ang, speed);
-            if dx.abs() < sx.abs() {
-                sx = dx;
-            }
-            if dy.abs() < cy.abs() {
-                cy = -dy;
-            }
-            let next = Pos::new(at.x + sx, at.y - cy);
-            if next.tile() != at.tile()
-                && self.invalid_loc(u, next.tile(), false, false, false, false, false) != 0
-            {
-                // Blocked. `go_around_building` walks the blocking tile's
-                // edge and pushes a detour; a recursive `find_path` on its
-                // first point is what decides whether the detour counts.
-                // Ten deep, the original stops asking.
-                if self.units[u].path_recursion < 10 {
-                    let n0 = self.units[u].path.len();
-                    self.go_around_building(u, mo, at, ang, speed);
-                    if self.units[u].path_recursion != 10 && self.detour_verified(u, mo, goal, n0) {
-                        return 0;
-                    }
-                }
-                return 1;
-            }
-            at = next;
-            dx = goal.x - at.x;
-            dy = goal.y - at.y;
-            if dx.abs() <= sx.abs() && dy.abs() <= cy.abs() {
-                return 0;
-            }
-            manh = dx.abs() + dy.abs();
-        }
-        0
+        let mut view = SimFindPath { sim: self, u, mo };
+        crate::find_path_view::find_path_steps(&mut view, goal) as u8
     }
 
     /// `Unit::go_around_building@005fc350` (§4.6) — the answer to a
@@ -6838,94 +6713,6 @@ impl Sim {
         // (item 3330).
         let mut view = crate::detour::SimDetour { sim: self, u, mo };
         crate::detour::go_around_building_steps(&mut view, last, ang, spd);
-    }
-
-    /// `find_path`'s acceptance of a detour (§4.6), and the half of it that
-    /// is not `go_around_building`'s.
-    ///
-    /// The pushed waypoints are lifted off one at a time — any that lands
-    /// exactly on the unit is dropped and the next one down takes its place
-    /// as the candidate — and the candidate is then verified by a
-    /// **recursive `find_path`**. Six degenerate cases refuse before the
-    /// recursion: the candidate or the entry below it being the unit's own
-    /// position or the position the last plan was made at, a unit already
-    /// standing where it last planned, and a candidate equal to the goal we
-    /// could not reach.
-    ///
-    /// On a verified line the detour goes back on the stack in its original
-    /// order, each entry's "turn in place" bit recomputed against the one
-    /// that will sit above it — set when exactly one of the two is on
-    /// water, so that a leg crossing the shore turns before it walks.
-    fn detour_verified(&mut self, u: usize, mo: &mut MoveOrder, goal: Pos, n0: usize) -> bool {
-        let here = self.units[u].pos;
-        let Some(top) = self.units[u].path.last().copied() else {
-            return false;
-        };
-        let n1 = self.units[u].path.len();
-        // `w` is the candidate to verify; `below` the entry under it.
-        let mut w = top.to;
-        let mut below = top.to;
-        let mut saved: Vec<PathData> = Vec::new();
-        let mut i = n0;
-        while i < n1 {
-            let Some(e) = self.units[u].path.pop() else {
-                break;
-            };
-            below = e.to;
-            if w == here && i + 1 < n1 {
-                if let Some(p) = self.units[u].path.last().copied() {
-                    w = p.to;
-                    below = p.to;
-                }
-            } else {
-                saved.push(e);
-            }
-            i += 1;
-        }
-        let planned_at = mo.last.unwrap_or(Pos::new(-1, -1));
-        if w == here
-            || w == planned_at
-            || below == here
-            || below == planned_at
-            || here == planned_at
-            || goal == w
-        {
-            return false;
-        }
-        // The `2` arm here is the original's dead code (§4.6): nothing
-        // produces it at the base case, so a non-zero return is "plan".
-        if self.find_path(u, mo, w) != 0 {
-            return false;
-        }
-        if !self.units[u].line_ok {
-            while let Some(e) = saved.pop() {
-                if let Some(f) = self.units[u].path.pop() {
-                    let f = self.shore_flagged(f, e.to);
-                    self.units[u].path.push(f);
-                }
-                self.units[u].path.push(e);
-            }
-            mo.last = Some(here);
-            if let Some(t) = self.units[u].path.pop() {
-                let t = self.shore_flagged(t, here);
-                self.units[u].path.push(t);
-            }
-            self.units[u].line_ok = true;
-        }
-        true
-    }
-
-    /// `TURN_FIRST` set on `e` exactly when it and `other` are on opposite
-    /// sides of the shore — the `(mask & 0x30) == 0x20` test, water against
-    /// everything else.
-    fn shore_flagged(&self, mut e: PathData, other: Pos) -> PathData {
-        let wet = |p: Pos| self.world.is_tocean(p.tile());
-        if wet(e.to) == wet(other) {
-            e.flags &= !path_flag::TURN_FIRST;
-        } else {
-            e.flags |= path_flag::TURN_FIRST;
-        }
-        e
     }
 
     /// The unit step and its arrival (§4.5): `move_step` through
@@ -7729,6 +7516,40 @@ impl Sim {
             return None;
         }
         self.barge_type(self.units[u].owner)
+    }
+
+    /// One ring query of `Group::action_swarm_around`'s member arm
+    /// (`UnitType::find_nearby_spot`, `0070fbe0:7103e6`/`710472`): the
+    /// member's own type, or the barge a citizen swarming water is
+    /// searched as ([`Self::swarm_seeker_type`]), around `centre`.
+    /// [`crate::swarm_around_view::SimSwarm`] asks it once for the first
+    /// spot and once for the build's nudged one.
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn swarm_ring(
+        &self,
+        u: usize,
+        b: usize,
+        centre: Pos,
+        min: i32,
+        max: i32,
+        step: i32,
+        angle: Angle,
+    ) -> Option<Pos> {
+        let seeker = match self.swarm_seeker_type(u, b) {
+            Some(t) => Seeker::TypeFor(t, u),
+            None => Seeker::Unit(u),
+        };
+        self.spot_sweep(
+            seeker,
+            centre,
+            min,
+            max,
+            step,
+            angle,
+            Some(b),
+            Coll::Pairwise,
+            false,
+        )
     }
 
     /// `Group::action_swarm_around` for one unit: the approach move in
@@ -9795,6 +9616,139 @@ pub(crate) fn chain_gatherers(
         .into_iter()
         .filter(|&u| !(skip_decoys && decoy(u)) && gathering(u))
         .count() as i32
+}
+
+/// [`Sim`] behind [`crate::find_path_view::FindPathView`].
+struct SimFindPath<'a> {
+    sim: &'a mut Sim,
+    u: usize,
+    mo: &'a mut MoveOrder,
+}
+
+impl crate::find_path_view::FindPathView for SimFindPath<'_> {
+    fn helicopter(&mut self) -> bool {
+        self.sim.is_helicopter(self.u)
+    }
+    fn here(&mut self) -> Pos {
+        self.sim.units[self.u].pos
+    }
+    fn invalid_loc(&mut self, at: Pos, ignore_buildings: bool, fog_relax: bool) -> bool {
+        self.sim.invalid_loc(
+            self.u,
+            at.tile(),
+            ignore_buildings,
+            fog_relax,
+            false,
+            false,
+            false,
+        ) != 0
+    }
+    fn relocate(&mut self) {
+        let here = self.sim.units[self.u].pos;
+        let spot = self
+            .sim
+            .find_nearby_spot(self.u, here, 0, -1, 0, Angle(0x5555_5555), None)
+            .unwrap_or(here);
+        self.sim.set_new_location(self.u, spot, true);
+    }
+    fn order_begin(&mut self) {}
+    fn cells_apart(&mut self, to: Pos) -> i32 {
+        let here = self.sim.units[self.u].pos;
+        (to.cell().x - here.cell().x).abs() + (to.cell().y - here.cell().y).abs()
+    }
+    fn speed(&mut self) -> i32 {
+        // `find_path`'s own `(*+0x17c)(x, y, 0)`, the same virtual the step
+        // takes ([`Sim::get_speed`]).
+        self.sim.get_speed(self.u, 0)
+    }
+    fn angle(&mut self, dx: i32, dy: i32) -> i32 {
+        find_angle(dx, dy).0
+    }
+    fn sin(&mut self, angle: i32, distance: i32) -> i32 {
+        movement::sin_component(Angle(angle), distance)
+    }
+    fn cos(&mut self, angle: i32, distance: i32) -> i32 {
+        movement::cos_component(Angle(angle), distance)
+    }
+    fn bump_recursion(&mut self) {
+        let r = &mut self.sim.units[self.u].path_recursion;
+        *r = r.saturating_add(1);
+    }
+    fn recursion(&mut self) -> u8 {
+        self.sim.units[self.u].path_recursion
+    }
+    fn waypoint(&mut self) -> Pos {
+        self.mo.waypoint
+    }
+    fn set_waypoint(&mut self, to: Pos) {
+        self.mo.waypoint = to;
+    }
+    fn last_plan(&mut self) -> Pos {
+        self.mo.last.unwrap_or(Pos::new(-1, -1))
+    }
+    fn set_last_plan(&mut self, to: Pos) {
+        self.mo.last = Some(to);
+    }
+    fn path_len(&mut self) -> i32 {
+        self.sim.units[self.u].path.len() as i32
+    }
+    fn path_pop(&mut self) -> Option<crate::find_path_view::PathEntry> {
+        self.sim.units[self.u]
+            .path
+            .pop()
+            .map(|e| crate::find_path_view::PathEntry {
+                to: e.to,
+                tolerance: e.tolerance,
+                flags: u32::from(e.flags),
+            })
+    }
+    fn path_push(&mut self, e: crate::find_path_view::PathEntry) {
+        self.sim.units[self.u].path.push(PathData {
+            to: e.to,
+            tolerance: e.tolerance,
+            flags: e.flags as u8,
+        });
+    }
+    fn path_peek(&mut self) -> crate::find_path_view::PathEntry {
+        let e = self.sim.units[self.u]
+            .path
+            .last()
+            .copied()
+            .unwrap_or(PathData {
+                to: Pos::new(0, 0),
+                tolerance: 0,
+                flags: 0,
+            });
+        crate::find_path_view::PathEntry {
+            to: e.to,
+            tolerance: e.tolerance,
+            flags: u32::from(e.flags),
+        }
+    }
+    fn set_avoid(&mut self, at: Pos) {
+        self.sim.units[self.u].avoid = Some(at);
+    }
+    fn domain(&mut self) -> i32 {
+        self.sim.units[self.u]
+            .ty
+            .map_or(0, |t| self.sim.unit_types[t].combat.domain as i32)
+    }
+    fn go_around(&mut self, at: Pos, angle: i32, speed: i32) {
+        self.sim
+            .go_around_building(self.u, self.mo, at, Angle(angle), speed);
+    }
+    fn recurse(&mut self, to: Pos) -> i32 {
+        i32::from(self.sim.find_path(self.u, self.mo, to))
+    }
+    fn line_ok(&mut self) -> bool {
+        self.sim.units[self.u].line_ok
+    }
+    fn set_line_ok(&mut self) {
+        self.sim.units[self.u].line_ok = true;
+    }
+    fn shore_between(&mut self, a: Pos, b: Pos) -> bool {
+        self.sim.world.is_tocean(a.tile()) != self.sim.world.is_tocean(b.tile())
+    }
 }
 
 #[cfg(test)]

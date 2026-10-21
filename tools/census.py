@@ -475,6 +475,16 @@ def hooked_in_sweeps(src, emu_dir, by_name=None):
                 cited |= named(chunk, by_name)
             for m in SCRIPT.finditer(chunk):
                 hooked = hooked_by_script(os.path.join(emu_dir, m.group(1)))
+                # A recursive function's own entry is hooked on its second
+                # visit (`Harness.skip_once`, item 3386): the sweep runs it,
+                # it does not answer for another.
+                sp = os.path.join(emu_dir, m.group(1))
+                em = None
+                if os.path.isfile(sp):
+                    with open(sp, errors="replace") as sf:
+                        em = re.search(r"^ENTRY\s*=\s*0x([0-9a-f]+)", sf.read(), re.M)
+                if em:
+                    hooked.discard(int(em.group(1), 16))
                 for addr in sorted(hooked & cited):
                     out.append((os.path.relpath(p, src), m.group(1), addr))
     return out

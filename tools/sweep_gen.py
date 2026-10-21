@@ -2223,6 +2223,9 @@ def main(argv):
         # after the harness's own): a function too large to sweep whole is swept to a chosen callee,
         # and the port stops at the same call. `emu_stop` was tried and runs on past the hook.
         stopped[0] = False
+        # A recursive function stubs its own entry (item 3386): the harness's call runs it once.
+        if ENTRY in h.hooked:
+            h.skip_once.add(ENTRY)
         if STOPSTUB is not None:
             inner_stop = h.answers[names[STOPSTUB]]
 
