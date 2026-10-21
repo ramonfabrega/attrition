@@ -25393,7 +25393,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | 12 | a team lobby with a computer ally (none on disk) | `LEADERS=9` `escrow` and the stock on the frame the human cancels the alliance (`CANCEL_ALLIANCE + t`) | `pay_dow`, `action_declare`'s pay arm | driven: a diplomacy click |
 
 Rows 1–8 and 9's first half are nine lobbies the click-free lane starts with no human order; together they enter
-**22** of the 32. The hero of entry 29 §2 is rows 1 and 2.
+**20** of the 32 (`think_supply` is `docs/ARMY.md`'s). The hero of entry 29 §2 is rows 1 and 2.
 
 **Proposed for `RESIDUE`, 7**, each with its reason:
 
