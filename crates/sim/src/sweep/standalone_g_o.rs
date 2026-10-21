@@ -444,6 +444,8 @@ mod guy_set_angle;
 mod guy_set_bank;
 #[path = "guy_set_elev_angle.rs"]
 mod guy_set_elev_angle;
+#[path = "guy_set_new_location.rs"]
+mod guy_set_new_location;
 #[path = "guy_set_new_z.rs"]
 mod guy_set_new_z;
 #[path = "guy_set_pitch.rs"]
