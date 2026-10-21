@@ -8984,13 +8984,12 @@ words and edits nothing here; a refill lands when two remain.
 - **3391e. `SpellType::cast` is spread over `do_cast_effect` and `cast_on`.** `spell_cast_view.rs` (unwired) is the switch in one place (`is_castable == 3`, jump table over `spell - 0x275`); many arms pass `is_castable`'s leftover `ecx`, which the sweep draws but never models from the real callee.
 - **3391f. `Herd::create_units` founding is unmodelled.** `herd_create_view.rs` (unwired); `diff/setup.rs:1063` says the harness skips the herds' 44 draws. The sweep's `--outarg` draws one out pair per row, so per-call `find_nearby_spot` coordinates are untested.
 
-## Parked by the next landing, slot MA — reserved
+## Parked by item 3395, 2026-10-20 — the second sweep's seventh batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3395a. `SpellTypeData::get_job_time@00675800` is swept (2000 + 3000 rows, 59 of 59 breaks held) but unwired.** `spell_type_get_job_time_view.rs` holds every arm; `Sim::cast_job_time` has only the siege and machine-gun type arms. The crate loads no `french_entrench`, `antipater_entrench_rate`, `turk_pack`, `napoleon_pack`, no `SPIES_CRAFT_FASTER` preq and no leader short at `+0x59cc` (unnamed in `types.txt`; the view calls it `leader_short_59cc`). Wiring the full function can move the casting pins.
+- **3395b. `SpellTypeData::is_valid_target@006763c0` is swept (5000 rows, 110 + 13 breaks, 9 equivalent) but unwired.** `spell_valid_target_view.rs`'s `is_valid_target_steps` is standalone; `Sim::spell_valid_target` (`cast.rs`) is arm by arm over `Obj` and the leaves (object slots `0x18`..`0x148`, the tile owner) have no crate names yet. Wiring is the likeliest pin mover here.
+- **3395c. `GroupData::count@00711720` has no crate twin.** Swept whole in six slices (`group_data_count_*`, 440 rows each, about 213 breaks, 1 equivalent: REGION `^ 0x63637` → `0x63636`); the crate has only `Army`'s per-kind `army_count_*` closures, so every port is inline.
+- **3395d. Namesakes.** `attack_pos.rs:426 is_moving` is `UnitData::is_moving@00610af0`, not `Army::is_moving@006f5470` (the port is `Sim::army_is_moving`, now run through `army_is_moving_view.rs`; `num_units` vs `units.len()` is the model's one difference). `Wall::update_gpiece@00643070` has no crate twin (`garrison_view.rs`'s `update_gpiece` is `Unit::update_gpiece`); a wall's piece choice is art state, the sweep's port is inline.
 
 ## Parked by the next landing, slot MB — reserved
 
