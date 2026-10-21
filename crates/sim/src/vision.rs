@@ -423,8 +423,12 @@ impl Sim {
                 .get(bd.owner as usize)
                 .map_or(0, |t| t.epoch[crate::tech::Line::Science.index()]);
             ty.los + epoch * ty.science_los
-        } else {
+        } else if ty.wonder {
+            // Vslot `+0x2c`, `BuildData::is_wonder`: the one unfinished
+            // site `Wall::update_los` gives sight (item 3391's sweep).
             1
+        } else {
+            return 0;
         };
         los += ty.x_size / 2;
         los
@@ -1236,12 +1240,16 @@ mod tests {
         assert!(s.has_met(1, 0), "a started building is");
     }
 
-    /// §2.1's head: an unstarted building sees nothing, and a started but
-    /// unfinished one sees `1 + x_size / 2` — never its type's `LOS`.
+    /// §2.1's head: an unstarted building sees nothing, an unfinished
+    /// ordinary one nothing, and an unfinished wonder `1 + x_size / 2` —
+    /// never its type's `LOS`.
     #[test]
     fn an_unfinished_building_sees_one_plus_half_its_footprint() {
         let (mut s, b) = fog_build(12, 0, 7);
         s.buildings[b].active = false;
+        assert_eq!(s.build_los(b), 0, "an ordinary site: `is_wonder` is 0");
+        let t = s.buildings[b].ty.expect("typed");
+        s.build_types[t].wonder = true;
         assert_eq!(s.build_los(b), 4);
         s.buildings[b].started = false;
         assert_eq!(s.build_los(b), 0);
