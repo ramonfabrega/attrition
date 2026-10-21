@@ -146,6 +146,7 @@ pub mod roads_view;
 pub mod scout;
 pub mod single;
 pub mod site_recruit;
+pub mod spell_cast_view;
 pub mod spell_find_view;
 pub mod spellcaster;
 pub mod stance;
