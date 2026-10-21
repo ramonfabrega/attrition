@@ -67,15 +67,14 @@ pub fn unit_speed<V: UnitSpeedView>(v: &mut V) -> i32 {
         return base;
     }
     let mut speed = base;
-    if v.is_this(0xa6, false) {
-        if let Some(o) = v.ground_owner() {
-            if v.is_ally(o) {
-                for k in 0..4 {
-                    if v.is_this(0xa6 + k as i32, true) {
-                        speed = speed.wrapping_add(v.spear_speed(k));
-                        break;
-                    }
-                }
+    if v.is_this(0xa6, false)
+        && let Some(o) = v.ground_owner()
+        && v.is_ally(o)
+    {
+        for k in 0..4 {
+            if v.is_this(0xa6 + k as i32, true) {
+                speed = speed.wrapping_add(v.spear_speed(k));
+                break;
             }
         }
     }

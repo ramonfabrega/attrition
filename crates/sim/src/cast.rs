@@ -2016,7 +2016,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
         }
     }
     fn attack_word(&mut self) -> i32 {
-        self.t().combat.attack as i32
+        self.t().combat.attack
     }
     fn is_type(&mut self, n: i32) -> bool {
         match n {
@@ -2026,7 +2026,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
         }
     }
     fn type_index(&mut self) -> i32 {
-        self.t().type_index as i32
+        self.t().type_index
     }
     fn is_caravan(&mut self) -> bool {
         self.t().cols.flag2(crate::ai_load::uflags2::CARAVAN)
