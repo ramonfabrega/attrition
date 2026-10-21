@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 r"""census.py — the executable as the denominator.
 
-    census.py [--index INDEX.tsv] [--docs docs/] [--top N] [--never] [--pin] [<rontrace.log> ...]
+    census.py [--index INDEX.tsv] [--docs docs/] [--top N] [--never] [--cites DOC ...] [--pin] [<rontrace.log> ...]
     census.py --layers [--json]
     census.py --unbacked [--by shortest|bytes] [--top N] [--all] [--claimed DIR]
     census.py --backed-list [--write PATH]
@@ -29,6 +29,14 @@ trace entered, grouped by class, largest group first — and a `never` count
 on the total line. It is `report.py`'s `blind` verb grouped, and the
 measurement `rondata::blind`'s guard pins; `docs/CENSUS.md`'s "The blind
 list, ranked" is written from it (item 923).
+
+`--never --cites DOC` (repeatable; Loop 3415) then prints, per document,
+the blind list's functions that document itself cites, each as
+`Class::method@addr` with a mark — `residue` for a row of
+`rondata::blind::RESIDUE` (read from `blind.rs`), `only here` for one no
+other `docs/**/*.md` cites — and ends on the line a pass quotes when it
+books a reading item: `cites DOC: N never, M net of residue, K only here`
+(K counts within M). Those lines repeat together after the last block.
 
 **`--layers`: the census by layer, with the backed column** (item 1467,
 parked since DECISIONS 41; DECISIONS 63 (iv) makes it the sweep lane's
@@ -172,12 +180,18 @@ def index_entries(index, sizes=True):
     return out
 
 
-def cited_in(docs):
-    out = set()
+def cited_per_doc(docs):
+    """`{realpath: set of addresses}` — each `docs/**/*.md` file's own
+    cites, by the same `CITE` (Loop 3415); `cited_in` is their union."""
+    out = {}
     for p in glob.glob(os.path.join(docs, "**", "*.md"), recursive=True):
         with open(p, errors="replace") as f:
-            out |= {int(m.group(1), 16) for m in CITE.finditer(f.read())}
+            out[os.path.realpath(p)] = {int(m.group(1), 16) for m in CITE.finditer(f.read())}
     return out
+
+
+def cited_in(docs):
+    return set().union(*cited_per_doc(docs).values())
 
 
 def entered_in(logs, index):
@@ -239,6 +253,47 @@ def pinned_logs(archive=ARCHIVE):
     if missing:
         sys.exit("pinned and not in %s: %s" % (archive, " ".join(missing)))
     return logs
+
+
+def residue_addrs(pin=PIN):
+    """The addresses of `rondata::blind::RESIDUE`, read from the source:
+    each row's first element, `0x00ab_cdef` with underscores allowed. An
+    address inside a row's reason string is not a row."""
+    with open(pin) as f:
+        text = f.read()
+    body = text[text.index("pub const RESIDUE"):]
+    body = body[body.index("= &[") + 4:body.index("\n];")]
+    return {int(m.group(1).replace("_", ""), 16)
+            for m in re.finditer(r'\(\s*0x([0-9a-fA-F_]+)\s*,\s*"', body)}
+
+
+def doc_never(doc, per_doc, name_of, seen, residue):
+    """`--cites DOC` (Loop 3415): `(rows, N, M, K)` for one document —
+    `rows` its never-entered cites as `(addr, name, mark)` by address, the
+    blind list's own rule (in the export, not in `seen`); `mark` is
+    `residue` for a `RESIDUE` row, `only here` for one no other document
+    under `docs/` cites, else `-`. N counts the rows, M the rows net of
+    residue, K of those M the `only here`. Exits naming a document the
+    walk did not find."""
+    key = os.path.realpath(doc)
+    if key not in per_doc:
+        sys.exit(f"--cites {doc}: not a document under the docs walk")
+    others = set().union(*(v for k, v in per_doc.items() if k != key))
+    rows = []
+    for v in sorted(per_doc[key]):
+        if v not in name_of or v in seen:
+            continue
+        mark = "residue" if v in residue else ("only here" if v not in others else "-")
+        rows.append((v, name_of[v], mark))
+    n = len(rows)
+    m = sum(1 for r in rows if r[2] != "residue")
+    k = sum(1 for r in rows if r[2] == "only here")
+    return rows, n, m, k
+
+
+def cites_line(doc, n, m, k):
+    """The line a pass quotes when it books a reading item."""
+    return f"cites {doc}: {n} never, {m} net of residue, {k} only here"
 
 
 # **The layer table** (item 1467): the rule is the module docstring's.
@@ -995,6 +1050,9 @@ def main():
     ap.add_argument("--docs", default=os.path.join(HERE, "..", "docs"))
     ap.add_argument("--top", type=int, default=40)
     ap.add_argument("--never", action="store_true")
+    ap.add_argument("--cites", action="append", default=[], metavar="DOC",
+                    help="with --never: DOC's never-entered cites net of RESIDUE, `only here` marking "
+                         "those no other document cites, ending on the line a booking quotes (Loop 3415)")
     ap.add_argument("--pin", action="store_true",
                     help="read the traces rondata::blind::TRACES pins, from $RON_GAMELOG_DIR")
     ap.add_argument("--layers", action="store_true",
@@ -1026,6 +1084,8 @@ def main():
     a = ap.parse_args()
     if a.write and not a.backed_list:
         ap.error("--write goes with --backed-list")
+    if a.cites and not a.never:
+        ap.error("--cites goes with --never")
     if a.layers:
         rows, sim_files, unknown, note = layers(a.index, a.docs, a.sim_src, a.pdb)
         print_layers(rows, sim_files, unknown, a.json, size_note=note)
@@ -1118,6 +1178,21 @@ def main():
         for c in sorted(groups, key=lambda c: (-len(groups[c]), c)):
             print(f"{c:28} {len(groups[c]):4}  " + " ".join(name_of[v].split("::")[-1] for v in groups[c]))
         never = f"  never {len(blind)}"
+        if a.cites:
+            per_doc = cited_per_doc(a.docs)
+            residue = residue_addrs()
+            lines = []
+            for doc in a.cites:
+                rows, n, m, k = doc_never(doc, per_doc, name_of, seen, residue)
+                print()
+                print(f"# {doc} — cited there, in the export, entered by no given trace")
+                for v, name, mark in rows:
+                    print(f"{name}@{v:08x}  {mark}")
+                lines.append(cites_line(doc, n, m, k))
+                print(lines[-1])
+            print()
+            for line in lines:
+                print(line)
     print()
     print(f"functions {sum(total.values())}  classes {len(total)}  cited {len(cited)} in "
           f"{len(cited_by)} classes  entered {e_all}{never}  (logs: {len(a.logs)})")
