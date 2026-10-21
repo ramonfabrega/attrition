@@ -43,9 +43,13 @@ pub(crate) const INCA_SAHARA: Lobby = Lobby {
     // Macemen `1/92` and `1/91` found no open slot round it on 13278 and
     // 13279 and dropped their attacks — `find_attack_pos`'s melee return
     // 0, run1011d's packet — so the Heavy Archer `1/99` took `0/4` over
-    // it, `order:target` (0, 4) theirs against (0, 3) ours).
-    count: 13313,
-    sequence: 13313,
+    // it, `order:target` (0, 4) theirs against (0, 3) ours), and 13313
+    // -> 13416 (+103): a decoy target takes `get_damage`'s step 17
+    // (run1011e's packet: the General's decoy Light Horse `1/82`, struck
+    // by friendly fire on 13297, `get_damage` 19688 theirs and 6 hits
+    // ours, `target_side` having written `decoy` false for every unit).
+    count: 13416,
+    sequence: 13416,
 };
 
 /// The lobby's word as the handoff's `Battery word:` line and `AI_WORDS`
