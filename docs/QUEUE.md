@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): 1 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
-click-free pool (run1037, 601 frames, `rngcmp` 0 differing against run847 and 3417's run1016; the autostart refused
-`g_cover`, now checked before `arm_all`), so the coverage items take the pool and only a driven one the queue lane.*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): 2 of 20 landed from `11da5dd8`** — 3429: `cover=1` runs on the
+click-free pool (run1037; the autostart refused `g_cover`), so the coverage items take the pool, a driven one the queue
+lane; 3417: the queue lane still launches, run1016 pinned, `NEVER` 380 → 376, VISION §8's `treaty_off` diff-backed.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
-  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380, residue 35 → 80, open 345 →
-  300** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
+  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 376, residue 80, open 300 →
+  296** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
   `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3417 (queue lane), att-3418 (pool).** Next 3430, run 1040. Pools: GOLDEN §145–149, AI §299–301, park MS–MT, MU–MZ, NA–ND.
-- **Fable backlog: 8 Loop items** (3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
+- **Lanes: att-3418, att-3419 (pool).** Next 3432, run 1044. Pools: GOLDEN §145–149, AI §300–301, park MT, MU–MZ, NA–ND.
+- **Fable backlog: 9 Loop items** (3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,7 +36,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 380 · residue 80 · open 300
+Blind: never 376 · residue 80 · open 296
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): spawn 3417 and 3429 on
@@ -51,12 +51,6 @@ pinned lobby retaken at **`cover=1` on the click-free pool** (3429's fix, run103
 not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: GOLDEN §144.3's click
 layer, `@spell` Bribe, the carrier, `make_valid`, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
 
-3417. **coverage: the peace pair's lobby (East Indies, Lakota, `RUSH_RULES 10`) at `cover=1` to 600, with a
-`rontrace.cmd` line `500 unmeet who=1`** — the first `cover=1` capture since run461, so it also says whether the queue
-lane still runs (`viadriver.sh`, the mouse, `waitrun.sh`); a lane that will not launch is a permission-shaped block,
-reported, not worked around. Enters `Game::current_age@005946d0` (AI §296 row 9) and `Leader::treaty_off@006d0370`
-(VISION §8: `LEADERS=1` `treaties[1]` bit 0 clear at block 501, both sides). Run 1016.
-
 3418. **coverage: Great Sahara Toughest at `cover=1` to 15432** (AI §296 row 1; run470, run668's lobby): enters
 `SpellType::cast_march`, `Leader::verify_spell_flags` (9112, the march; `LEADERS=9` `leader_flags & 0x8000` falls at
 its expiry — parked 3409a), `BuildTypeData::get_enhancing_good`, `Army::charge` and `WallData::hits` (15275..15432).
@@ -65,6 +59,12 @@ Run 1017.
 3419. **coverage: Great Lakes, Iroquois at difficulty 3, at `cover=1` to 10945** (AI §296 row 2; run897b, run943):
 enters `Army::use_scouts`, `use_spies`, `SpellType::cast_ambush` (10689) and `verify_spell_flags`' Ambush arm
 (`leader_flags & 0x4000`, the hero's `unit_masks & 0x2000`). Run 1018.
+
+3431. **coverage: the middle ages** (Ramon's, on the forty-eighth pass's rubric: no pinned dump holds ages 2–6, Medieval
+to Modern; run669 and run679 hold 0 and 7 only): Great Sahara's Toughest lobby at `STARTING_TECHNOLOGY 3` and
+`5` (`--profile`, run650's read-back), each to 6000 at `cover=1` on the pool beside its `cover=0` twin. Names the
+never-entered rows each start can reach before its capture (entry 61 §6), pins both into `blind::TRACES`, and quotes
+`tools/rubric.py --tables 2` on them: the ages they hold. Scoring the sim against them is the pass's. Runs 1040–1043.
 
 3420. **coverage: the coverage pair, East Indies, Persians, All Technologies, at `cover=1` to 3130** (AI §296 row 3;
 run711, run717; TRANSPORT §18.2): enters `Spline::set_min_seg_length` and `calc_from_dir` (3124..3128, `AMMO` `traj 2`),

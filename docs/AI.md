@@ -25390,7 +25390,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | 6 | `GreatSaharaMongolAllTech` (run834) | `BUILDS=6` the queue's Merchant on 2995 | `get_next_non_caravan` | click-free |
 | 7 | `GreatSaharaBantuTier4` (run978c) | `LEADERS=9` `escrow`, block 2808 | `can_queue` | click-free |
 | 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | `go_to_city` | click-free |
-| 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | `current_age`; (9b) `say_no_war` only once the console's own unit stands in the Lakota's land, the leader's `+0x1f4` stamp 0 | click-free; 9b driven |
+| 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | ~~`current_age`~~ (entered on frame 0, run1016, §297); (9b) `say_no_war` only once the console's own unit stands in the Lakota's land, the leader's `+0x1f4` stamp 0 | click-free; 9b driven |
 | 10 | any lobby in which a leader's highest wonder closes (none on disk: below) | `LEADERS=9` `wonder_mark` on the close | `close_wonder` | as the lobby |
 | 11 | a human and two computers, no teams (none on disk) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6) | click-free, *a prediction* |
 | 12 | a team lobby with a computer ally (none on disk) | `LEADERS=9` `escrow` and the stock on the frame the human cancels the alliance (`CANCEL_ALLIANCE + t`) | `pay_dow`, `action_declare`'s pay arm | driven: a diplomacy click |
@@ -25424,12 +25424,54 @@ where they write escrow.
 *reading alone* — the decompile, the listing at `6d2baa`–`6d2bcd`, and the PE's reference scan — except the fields
 rows 1–8 name, which the `cover=0` captures already print.
 
-## 297. Reserved for the next item on the AI track
+## 297. The peace pair's lobby at `cover=1`: §296 row 9 entered, and the queue lane runs (2026-10-21, item 3417)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What was taken.** run847's lobby on the queue lane (`tools/gamelog/captures.txt`, `run: 1016`): East Indies, the
+Lakota in slot 1, `DIFFICULTY 3`, All Technologies, Deathmatch resources, `RUSH_RULES 10`, seed 12345, run847's `37
+!ffwd 27`, `cover=1`, to 600, with one input, `500 unmeet who=1`. The queue lane had no hook for the AI's nation, so
+`tools/gamelog/profile.py` now takes `XPACK_LAST_TRIBE1=N`, the one field it writes outside the two game blocks, under
+the same one-computer-in-slot-1 assertion the click-free lane's `set_ai_tribe` makes. `GAME INFO` reads back all six of
+the lobby's lines. It is the first `cover=1` take on the queue lane since run461: `viadriver.sh`, the cursor and
+`waitrun.sh` all worked on the first launch the lane was free for (`docs/RUNS.md` run1016).
+
+**Against its twin.** `rngcmp.py rontrace-run847.log rontrace-run1016.log`: 601 frames in common, **601 identical, 0
+differing**. run1016b (the same game at `cover=0`, `end: MISC,LEADERS=3`) is the same 601 frames as run1016, and
+run1016c (to 1490, `1480 unmeet who=1`) is 1491 frames identical with run847. Neither `unmeet` touches the draw stream
+before the capture ends. att-3429's pool-lane take of the same lobby, run1037, is also 601 of 601 against run1016.
+
+**What it enters.** `report.py rontrace-run1016.log functions`:
+
+| function | first frame | the predicate |
+|---|---|---|
+| `Game::current_age@005946d0` | 0 | row 9: `RUSH_RULES 10` from the first frame |
+| `Leader::treaty_off@006d0370` | 500 | the `unmeet` line; `ConsoleWin::run_cmd` case `0x30` |
+| `BuildTypeData::get_enhancing_good@00639880` | 7 | not asked for (row 1 names it on another lobby) |
+| `LeaderData::get_vehicle_speed_upgrade@006da8a0` | 582 | not asked for (`docs/NATIONS.md` §9.2's row) |
+
+`blind::NEVER` 380 → **376**; run1016 joins `blind::TRACES`.
+
+**`treaty_off`'s value, read beside the trace.** `treaties[scan]` is written only at `LEADERS≥3` (the detail
+`LeaderData::log_data@006e5110` raises before the loop; `docs/RUNS.md` run94), so run1016's `LEADERS=1` dump holds none.
+That is why run1016b exists. It shows that **the two leaders have not met by 500**: leader 0's `treaties[1]` and leader
+1's `treaties[0]` are 0 on every block 1..601, so run1016's `unmeet` cleared a bit that was already clear. run848's
+window puts their meeting at block **1474**, both sides at once. run1016c moves the `unmeet` to 1480 and reads 1470..1490:
+
+| block | leader 0 `treaties[0..1]` | leader 1 `treaties[0..1]` |
+|---|---|---|
+| 1470 | 1, 0 | 0, 1 |
+| 1474 | 1, **1** | **1**, 1 |
+| 1481 | 1, **0** | **0**, 1 |
+| 1488 | 1, **1** | **1**, 1 |
+
+So `docs/VISION.md` §8's claim is now **diff-backed**: bit 0 clears on both sides on the block after the line. The
+leaders then meet again seven blocks later.
+
+**Row 9b** (`say_no_war`, driven) is not entered and was not asked for: it needs the console's own unit standing in the
+Lakota's land, and this capture issues no order.
+
+**What this has not established.** Whether the 1488 re-meet is the same building-in-sight path as the 1474 meeting:
+the dump prints the bit, not its writer, and the sim has no `treaty_off` to replay it (parked, item 3417's slot). Nothing
+beyond frame 1490 of an `unmeet` game.
 
 ## 298. §296's row 1 at `cover=1`: Great Sahara at Toughest enters four of its five, and `WallData::hits` is a wall's (2026-10-21, item 3418)
 
@@ -25437,12 +25479,12 @@ the heading and writes the section.
 game's own end (`docs/RUNS.md` run1017). Its draw stream is run470's and run668's on all 15,433 frames, and its
 dump is run668's on all 203 blocks of 15230..15432.*
 
-**Entered** (*diff-backed* now: `blind::TRACES`' run1017, `report.py … functions`), each at its first frame:
+**Entered** (*diff-backed* now: `blind::TRACES`' run1017, `report.py … functions`), each at its first frame; `NEVER` 376 → 372:
 
 | function | first frame | the behaviour the dump already showed |
 |---|---|---|
 | `BuildTypeData::get_enhancing_good@00639880` | 5376 | the Granary (§99.7) |
-| `LeaderData::get_vehicle_speed_upgrade@006da8a0` | 8782 | not named by row 1; `docs/PRODUCTION.md`'s "no traced game trains a tank, siege or vehicle unit" is answered by this game |
+| `LeaderData::get_vehicle_speed_upgrade@006da8a0` | 8782 | not named by row 1; off `NEVER` already with run1016 (item 3417, frame 582), as is `get_enhancing_good` (frame 7) |
 | `SpellType::cast_march@00671500` | 9112 | the General's Forced March (§99.13) |
 | `Leader::verify_spell_flags@006ce190` | 9263 | the march's expiry (§99.13, §296) |
 | `UnitData::is_gov_hero@0046ce70` | 11882 | not named by row 1 (`docs/CENSUS.md`, the `0x400_0000` flag) |
@@ -25456,7 +25498,7 @@ the `0x4000` arm.
 
 **Not entered: `WallData::hits@00642bb0`** (*the PE and the trace*). It is the `+0x11c` slot of `Wall::vftable`
 (`00b42cf8`), `WallOut::vftable` (`00b42eb4`) and `WallData::vftable` (`00b43054`) and nothing else. Its only reach
-is a `hits` dispatch on an object whose most-derived class is `Wall`: kind 2 of `ObjectsArray::get_new_data@006450d0`,
+is a `hits` dispatch on an object whose most-derived class is `Wall`: kind 2 of `ObjectsArray::get_new_data`,
 built by `Wall::Wall@0063e390`. §142's predicate, `damage >= hits(0)` on the struck city, dispatches on `0/2000`, a
 Village (TypeIndex 414, a `Build`, kind 1), and lands in `BuildData::hits@0062e740`, which run1017 enters on frame 0.
 `Wall::Wall` is on `NEVER` too, and no pinned trace enters it, so no traced game holds a kind-2 object. §142's

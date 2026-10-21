@@ -770,7 +770,7 @@ All at `cover=1`; the frame is the action's. `CM` is `[Misc Logging] COMMANDMANA
 |---|---|---|---|
 | `CommandPackage::process_sell@009468a0` | `CM` `process_sell`; `L1` `bucket.timber`, `bucket.wealth`; `Game::log_data`'s `market` | a Nubian human (any pair's lobby with the human Nubian) | a Market built, then Sell on timber, ~2000; a tracer `@sell` line is the cheaper route |
 | `LeaderData::has_bonus@006e0b80` | `CM` `process_buy`; `L1` buckets | the same lobby | Buy at the Market before Coinage (`BUY_SELL`), so only the Nubian arm opens the gate |
-| `LeaderData::get_vehicle_speed_upgrade@006da8a0` | `[End Frame] BUILDS=6` queue time | any lobby | a `0x200000`-masked land unit queued with one `VEHICLES_FASTER` held |
+| ~~`LeaderData::get_vehicle_speed_upgrade@006da8a0`~~ | `[End Frame] BUILDS=6` queue time | any lobby | a `0x200000`-masked land unit queued with one `VEHICLES_FASTER` held — **entered** on frame 582 of run1016, the peace pair's lobby (item 3417, `docs/AI.md` §297), unasked; the queue-time field is not read |
 | `LeaderOut::warn_resources@006d3650` | the message line (no sim field) | any lobby | the human presses a train button it cannot afford |
 | `Options::do_declare_war@007216b0` | `L1` the diplomacy state; `CM` | any lobby with the computer allied or at peace | the human's declaration of war (`afford_dow`; :119 warns when it cannot be paid) |
 | `LeaderOut::issue_sell@006d3eb0`, `CommandManager::issue_sell@00942a80` | as `process_sell` | as `process_sell` | the Sell press above |

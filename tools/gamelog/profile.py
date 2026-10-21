@@ -17,10 +17,17 @@ before it calls this (the `PROFILE` hook, a stanza's `profile:` key) and
 copies it back when the take ends; a take that dies first leaves the copy
 at `$RON_TMP/Player.dat.run<N>` for the hand that restores the INIs. The
 run's own `GAME INFO` block (`STARTING_TOWN 3`) is the read-back.
+
+`XPACK_LAST_TRIBE1=N` is the one field outside the game blocks: the first
+computer's nation (19 the Lakota), written once, read back from the start
+dump's `LEADERS` `tribe` (item 3417's peace-pair lobby).
 """
 import os
 import re
 import sys
+
+# Fields the profile carries once, outside the two game blocks.
+ONE_BLOCK = ("XPACK_LAST_TRIBE1",)
 
 B = os.path.expanduser(
     "~/ron-data"
@@ -36,8 +43,18 @@ def main():
     t = open(p, "rb").read().decode("utf-8", "replace")
     for pair in pairs:
         key, val = pair.split("=")
-        t, n = re.subn(r'<%s value="-?\d+"/>' % key, '<%s value="%s"/>' % (key, val), t)
-        assert n >= 2, "profile: %d <%s value=…/> (want <SOLO> and <MULTI>)" % (n, key)
+        if key in ONE_BLOCK:
+            # The AI's nation, as the click-free lane's `--ai-tribe` writes it
+            # (`set_ai_tribe` in `tools/explore/unattended_capture.py`): one
+            # field, and only under one computer in slot 1 (item 3417).
+            assert 0 <= int(val) < 24, "profile: %s wants a nation 0..23" % key
+            assert re.findall(r'<LAST_SLOT1 value="(-?\d+)"/>', t) == ["1"], \
+                "profile: %s wants exactly one computer in player slot 1" % key
+            t, n = re.subn(r'<%s value="-?\d+"/>' % key, '<%s value="%s"/>' % (key, val), t)
+            assert n == 1, "profile: %d <%s value=…/> (want one)" % (n, key)
+        else:
+            t, n = re.subn(r'<%s value="-?\d+"/>' % key, '<%s value="%s"/>' % (key, val), t)
+            assert n >= 2, "profile: %d <%s value=…/> (want <SOLO> and <MULTI>)" % (n, key)
         print("profile: %s=%s in %d blocks" % (key, val, n))
     open(p, "wb").write(t.encode())
     return 0

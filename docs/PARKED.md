@@ -3772,6 +3772,14 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours.
 
+## Loop, filed 2026-10-21 — the forty-ninth tranche's
+
+(3430) **A captures-owed row names the detail level that prints its field** (3417's "for the Loop"): VISION §8's row
+asked `LEADERS=1` for `treaties[1]`, which the logger prints only at `LEADERS>=3`, and the lane spent a retake learning
+it (run1016b, parked 3417b). Candidate: a guard over the captures-owed tables that checks each row's category and level
+against the level the dump's own writer prints the field at (the stanzas already on disk say which), or a brief row
+until it is one. Score: a coverage retake the next tranche does not spend. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-eighth tranche's
 
 Loop 2003's reaches in the forty-eighth tranche, filed here below its own row (its section is at the size ceiling): 3410 four generator notes (3410e) — `--regen` re-reads the stored flags and ignores new ones, so a widened draw is a delete and a regeneration; a place window cannot sit on a stub-answer window (`--alias WIN+OFF:pN!` is the way round); a `--ptrtab` takes one array window plus N record windows, so the `p` numbers are not the naive count; a regeneration once wrote its mod line into `sweep/mod.rs` (reverted). 3411: no generator park, every run exited 0 and no flag was lacking. Both batches generated whole. The forty-eighth pass built none of the four; the ledger stays.
@@ -9117,13 +9125,17 @@ is an oracle-agreed module the live sim does not call.
   learn-as-you-play popup answers 0 (ATTRITION, the never-entered functions). That is a hazard for any capture on a
   rebuilt prefix or a reset profile, not a score.
 
-## Parked by the next landing, slot MP — reserved
+## Parked by item 3417, 2026-10-21 — the peace pair at `cover=1`: an unmodelled cheat, and an owed table's wrong level
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3417a. The sim has no `treaty_off`, and run1016c is its diff.** `Sim::treaty_on` writes the met bit
+  (`crates/sim/src/vision.rs`), but nothing clears it, and the console's `unmeet` (`ConsoleWin::run_cmd` case `0x30`) is
+  not an input the harness takes. run1016c (`1480 unmeet who=1`) clears bit 0 on both sides at 1481, and the two
+  leaders meet again at 1488. Which writer re-sets it is not established: the dump prints the bit, not who wrote it
+  (`docs/AI.md` §297). It is a cheat path that no pinned word plays, so it names no score.
+- **3417b. An owed row named a detail that prints nothing.** `docs/VISION.md` §8's captures-owed row asked for
+  `[End Frame] LEADERS=1` `treaties[·]`, but `treaties[scan]` is written only at `LEADERS≥3` (run94's tooth, `docs/RUNS.md`).
+  The row is fixed. Other owed tables that name `LEADERS=1` for a `LEADERDATA` field below the loop are unaudited.
+  A grep of `docs/` for `LEADERS=1` beside `treaties`, `diplos` or `agree` would settle it; that costs minutes and moves no score.
 
 ## Parked by item 3429, 2026-10-21 — `cover=1` on the click-free pool: what the fix leaves
 
@@ -9142,7 +9154,7 @@ words and edits nothing here; a refill lands when two remain.
 - **3418a. `WallData::hits@00642bb0` is a wall object's, and no traced game builds one.** It is only the `+0x11c`
   slot of `Wall`'s, `WallOut`'s and `WallData`'s vtables. A city's `hits(0)` (§142) dispatches to
   `BuildData::hits@0062e740`, which run1017 enters on frame 0. Reaching `WallData::hits` takes a kind-2 object
-  (`ObjectsArray::get_new_data@006450d0` case 2, `Wall::Wall@0063e390`, also on `NEVER`), and no pinned trace builds
+  (`ObjectsArray::get_new_data` case 2, `Wall::Wall@0063e390`, also on `NEVER`), and no pinned trace builds
   one (`docs/AI.md` §298). The reading owed: which callers of `Objects::find_free@0065ad60` ask for kind 2 (from
   `Setup::build_cities`, `Objects::init_build`, `Unit::repair_damage` …), and for which build types. Two outcomes:
   either a lobby is named that builds one, or both functions are proposed for `RESIDUE` with 3409b's shape. No
