@@ -19,7 +19,7 @@ use crate::attrition::Domain;
 use crate::combat::Obj;
 use crate::movement::{Angle, cos_component, find_angle, sin_component};
 use crate::orders::{Body, MoveOrder, Order, PathData, QueuePos, index, path_flag};
-use crate::world::{Cell, Pos, UNITS_PER_CELL, tile, vector_dist};
+use crate::world::{Cell, Pos, UNITS_PER_CELL, World, tile, vector_dist};
 
 /// The distance `Unit::detect_boat_collision` measures between two circle
 /// centres (`5fabf3`–`5fac63`): the longer leg plus the shorter one's
@@ -471,6 +471,70 @@ pub(crate) fn chain_hit_steps<O: Copy>(
     false
 }
 
+/// **`Guy::process@005e0230`'s sixty-fourth-frame gate** (`:57-62`, and the
+/// flag clear at `:120` under the same test): the guy has stopped
+/// (`avg_speed == 0`, `+0x84`) and `frame + (short)object index` is a
+/// multiple of 64 - the signed remainder's zero, which is the Euclidean one
+/// (item 3396).
+pub const fn repaint_due(frame: i64, index: i16, avg_speed: i32) -> bool {
+    avg_speed == 0 && (frame + index as i64).rem_euclid(64) == 0
+}
+
+/// What the repaint walk reads and writes ([`paint_walk`]): the figure's own
+/// tile region, the region of a world cell, and one bit of the occupancy.
+/// [`SimPaint`] is the simulation's; `sweep::guy_process` lays the emulated
+/// original's block windows behind the same methods (item 3396).
+pub trait PaintView {
+    /// `WorldData::get_tregion` of the figure's own tile; `None` asks no
+    /// region (the original's negative answer).
+    fn region(&mut self) -> Option<u16>;
+    /// The region of the world cell `cell`, `None` where it has none.
+    fn cell_region(&mut self, cell: Pos) -> Option<u16>;
+    /// Set (`on`) or clear the unit cell `p`'s bit, if it is on the map.
+    fn mark(&mut self, p: Pos, on: bool);
+}
+
+/// **The disc walk** `Sim::coll_paint` and `Guy::process`'s repaint make:
+/// every offset of [`spiral`]`(size)` around the unit cell `c`, marked when
+/// its world cell's region is the figure's own, or the figure's has none.
+pub fn paint_walk<V: PaintView>(v: &mut V, size: i32, c: Pos, on: bool) {
+    let region = v.region();
+    for (dx, dy) in spiral(size) {
+        let p = Pos::new(c.x + dx, c.y + dy);
+        let ok = match region {
+            None => true,
+            Some(r) => v
+                .cell_region(Pos::new(
+                    p.x.div_euclid(UCELLS_PER_CELL),
+                    p.y.div_euclid(UCELLS_PER_CELL),
+                ))
+                .is_none_or(|cr| cr == r),
+        };
+        if ok {
+            v.mark(p, on);
+        }
+    }
+}
+
+/// [`PaintView`] over the simulation's world and flat grid.
+struct SimPaint<'a> {
+    world: &'a World,
+    coll: &'a mut CollGrid,
+    region: Option<u16>,
+}
+
+impl PaintView for SimPaint<'_> {
+    fn region(&mut self) -> Option<u16> {
+        self.region
+    }
+    fn cell_region(&mut self, cell: Pos) -> Option<u16> {
+        self.world.region_of(Cell::new(cell.x, cell.y))
+    }
+    fn mark(&mut self, p: Pos, on: bool) {
+        self.coll.set(p.x, p.y, on);
+    }
+}
+
 /// `CollBlock`, flattened: one bit per unit cell over the whole map.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct CollGrid {
@@ -513,7 +577,7 @@ impl CollGrid {
             .is_some_and(|i| self.bits[i / 64] & (1u64 << (i % 64)) != 0)
     }
 
-    pub(crate) fn set(&mut self, x: i32, y: i32, on: bool) {
+    pub fn set(&mut self, x: i32, y: i32, on: bool) {
         if let Some(i) = self.index(x, y) {
             if on {
                 self.bits[i / 64] |= 1u64 << (i % 64);
@@ -1123,10 +1187,11 @@ impl Sim {
         // `avg_speed` (`GuyData +0x84`) is `Guy::move`'s running quarter of
         // `last_speed`, so it reaches zero a few frames after the unit stops
         // and is non-zero for every frame of a walk.
-        if self.units[u].movement.body.avg_speed != 0 {
-            return;
-        }
-        if (self.frame + i64::from(self.units[u].index)).rem_euclid(64) != 0 {
+        if !repaint_due(
+            self.frame,
+            self.units[u].index,
+            self.units[u].movement.body.avg_speed,
+        ) {
             return;
         }
         let at = self.units[u].coll_at.unwrap_or(self.units[u].pos);
@@ -1237,12 +1302,16 @@ impl Sim {
         // (`docs/TRANSPORT.md` §6.4). The plain form made a barge fill its
         // own cell, and only a land unit was ever near enough to notice.
         let region = self.world.tregion_alt(at.tile());
-        for (dx, dy) in spiral(size) {
-            let p = Pos::new(c.x + dx, c.y + dy);
-            if self.coll_region_ok(region, p) {
-                self.coll.set(p.x, p.y, on);
-            }
-        }
+        paint_walk(
+            &mut SimPaint {
+                world: &self.world,
+                coll: &mut self.coll,
+                region,
+            },
+            size,
+            c,
+            on,
+        );
     }
 
     /// `CollCheck::move_unit(from, to, size)`: clear the cells around

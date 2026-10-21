@@ -9004,29 +9004,41 @@ score.
 - **3395c. `GroupData::count@00711720` has no crate twin.** Swept whole in six slices (`group_data_count_*`, 440 rows each, about 213 breaks, 1 equivalent: REGION `^ 0x63637` → `0x63636`); the crate has only `Army`'s per-kind `army_count_*` closures, so every port is inline.
 - **3395d. Namesakes.** `attack_pos.rs:426 is_moving` is `UnitData::is_moving@00610af0`, not `Army::is_moving@006f5470` (the port is `Sim::army_is_moving`, now run through `army_is_moving_view.rs`; `num_units` vs `units.len()` is the model's one difference). `Wall::update_gpiece@00643070` has no crate twin (`garrison_view.rs`'s `update_gpiece` is `Unit::update_gpiece`); a wall's piece choice is art state, the sweep's port is inline.
 
-## Parked by the next landing, slot MB — reserved
+## Parked by item 3396, 2026-10-20 — the nations seat's twenty-second batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3396a. `Army::do_defending` calls `ObjectsData::find_city` with an unestablished `ecx`.** It pushes whatever register `find_besieged_city` left as the fifth argument too (the decompiler prints an uninitialised `this_01`); the sweep's stub leaves `ecx` = the army. `army_do_defending_view.rs` (unwired) is the walk; `Sim::do_defending` (`army.rs`) is the same tree over structured state, compared by eye only, no diff backs it.
+- **3396b. `Groups::process`: the crate's `Sim::groups_process` is a namesake.** It prunes by `frame mod 64` over pool slots; the original steps 8 leaders (`0xe3a390`, stride `0x6eec`) with a cursor wrapping at 63 and inlines `Group::normalize`. `groups_process_view.rs` (unwired). The body slice draws one group at cursor 0 and leader 0; leaders 1-7 are covered only by the driver slice, whose group counts are held at 0. `tools/emu/hooks.py` heap map grew 1 MB to 2 MB for the 512-group table; other sweeps were not re-run against it.
+- **3396c. `Guy::process`: `docs/COLLISION.md` §2.1's `radius[r] = (2r+1)^2` holds only through r = 7.** The original's `move_x`/`move_y` prefix is not a square from r = 8 (offsets reach 16); `spiral(r)` is. Shipped `BLOCK_RADIUS` is 0..7, so nothing reaches it. Also excluded from the draw: a cell block word of -1 and a region of -1/`None` (the crate's `None` passes the gate, the original skips). The refactor (`collide::PaintView`, `paint_walk`, `repaint_due`, `CollGrid::set` made `pub`) is behaviour-neutral by reading; no diff run.
+- **3396d. `HeroData::get_radius`: `supply::general_radius` is the port.** Fix: wrapping `i32` arithmetic and `Patriot::Both` (the original adds both bonuses for a hero in both sets). `Sim::hero_radius` (`cast.rs`) still asks `is` of the type directly, reads Terra Cotta as absent and never produces `Both`.
+- **3396e. `Unit::land_plane`: the crate's is a collapsed port.** `Sim::land_plane` now runs `land_plane_view::land_plane_steps` through an adapter that folds add-spec-anim, the home words and the order's `work` into `Sim::go_inside`; the animal arm is `flockbird_dies`. The adapter's `clear_partial_path` and `update_action` forwards are uncaught by any test (2 breaks held by the sweep at the view level only).
+- **3396f. `CommandManager::start` has no crate twin** (session start: semaphore bits, TimeSync, the game log, splash close, start sound); the port is inline in the sweep. 5 of 59 breaks equivalent (a dead `0x81c` write, a written-back read).
 
-## Parked by the next landing, slot MC — reserved
+## Parked by item 3397, 2026-10-20 — the third sweep's first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Names no score, so parked, not queued.
 
-## Parked by the next landing, slot MD — reserved
+- **`Sim::process_building_combat` (`fight.rs`) has no jam arm.** `Build::do_attack@006228f0`'s sweep
+  (`sweep/build_do_attack.rs`) pins the original's `is_jammed` arm (misfire flag `0x8000`, sound `0x6e`) and
+  its `hits_left` gate; the crate method folds in `Build::process`'s head and models neither. The sweep
+  does not call it (welded to `Sim`, RNG and projectiles). A fix would be a view trait over the arm's reads;
+  whether a pin moves is unmeasured (jam needs a jammer in the lobby).
+- **`Sim::find_road` (`roads.rs`) is the port of `PathFinder::find_road@00688a40`'s `param_6 < 0` arm,
+  but its sweep holds only the original's own part** (endpoint tiles, guards, flags at `+0x88/+0x8c/+0x98`);
+  `astar_caravan_road`, `kill_lists` and `Stack<PathData>::push` are stubbed, and `start_road`/`road_end`
+  were compared to the port by reading, not run. A sweep of the callee `astar_caravan_road@00685990` is the
+  rest.
+- **Generator**: `--regen` re-inserts a trailing `0` after `// end hand` (wall_activate); a generator file
+  that exists is refused as `duplicate standalone module` once registered (do_attack); a `}` at column 0
+  inside the `// hand` fence splits the item (find_road). Three small idempotence gaps in `sweep_gen.py`.
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+## Parked by item 3399, 2026-10-21 — the second sweep's eighth batch
+
+- **3399a. `UnitData::attack@006103c0` is swept (2000 rows, 80 of 80 breaks held) but unwired.** `unit_attack_view.rs` holds every arm; `Sim::attack_of` is `ObjectData::attack`'s port with no unit-level bonus. The crate carries no `has_wonder(0x211/0x21e)`, no `has_general` lookups and none of the leader words at `+0x59c2..+0x59e8` / `+0x6da7` / `+0x6dcf`. Wiring it moves every attack value that reaches a wonder or a general, so it can move pins; the likeliest mover is any capture with a Terra Cotta or a hero.
+- **3399b. `UnitData::speed@0060aae0`'s five hero auras are not walked.** The swept walk (`unit_speed_view.rs`, live through `LiveSpeed`) now carries Alexander's forced-march arm (a sim fix; `tuning.rs` says no capture has him, not confirmed against a dump), but Spitamenes, Blucher, Porus, Charles and Napoleon stay the SEAM: the crate has neither the leader power words (`+0x59cc..+0x59e8`) nor their constants, and the sweep holds them at zero. `find_marching_hero` takes the first match in unit-slot order; the original's is hero-list order.
+- **3399c. `Build::unqueue@006207c0` is a namesake of `Queue::unqueue`, swept in two slices (3000 + 2500 rows, 38 of 40 breaks held, 2 equivalent) but unwired.** The library redirect, per-type tallies, AI counters (`+0xa10..0xa24`), age/epoch bytes and `options->rebuild` are done in the crate's callers on different state. The sweep does not draw a negative `p1` or a final entry at or past the queue length (the original faults).
+- **3399d. `Army::process@006f93d0`'s member-copy loop is outside the sweep.** The draw holds the army's group count (`+0x96`) at 0; the crate's flat unit list stands for the groups/units tables. A sweep wants `--sparse` placements for both tables. The live walk gained the original's `valid()` disband gate and the `status & !0x12` write before `find_muster_spot`; no pin should move, the booking gate says.
+- **3399e. `Caravan::process@0073e000` is a 3-instruction gate and tail-jump to `Caravan::build_road@0073db10`** (the decompile file shows `build_road`'s body; `docs/CENSUS.md:536` says the same). Swept inline (220 rows); the crate's twin is `caravan_build_road`, not a `process`. One break (`last = None`) is equivalent by the test's stale-eax fallback.
+- **3399f. `Unit::update_hits@0060e930`: `supply_hp_upgrade[get_supply_upgrade]` is indexed unclamped in the original; the port's view clamps to 0..3**, equivalent while the count is at most 3. The sweep draws 0..3 only. The marine, Copper and Bananas terms are still SEAMs (ask false); the patch version is taken as 9.
 
 ## Parked by the next landing, slot ME — reserved
 

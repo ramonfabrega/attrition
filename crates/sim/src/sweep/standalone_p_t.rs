@@ -30,6 +30,8 @@ mod path_finder_data_find_node_open;
 mod path_finder_data_valid_roadcoord;
 #[path = "path_finder_empty_lists.rs"]
 mod path_finder_empty_lists;
+#[path = "path_finder_find_road.rs"]
+mod path_finder_find_road;
 #[path = "path_finder_find_road_restore.rs"]
 mod path_finder_find_road_restore;
 #[path = "path_finder_find_tpath.rs"]
@@ -100,6 +102,8 @@ mod region_release;
 mod region_walk_data;
 #[path = "regions_concat.rs"]
 mod regions_concat;
+#[path = "regions_find.rs"]
+mod regions_find;
 #[path = "regions_fix_all_borders.rs"]
 mod regions_fix_all_borders;
 #[path = "regions_get_num_sea.rs"]

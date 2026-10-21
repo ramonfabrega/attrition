@@ -68,6 +68,9 @@ pub const fn supply_radius(t: &Tuning, upgrades: i32, terra_cotta: bool) -> i32 
 pub enum Patriot {
     Military,
     Economic,
+    /// Both rosters at once: no shipped type is in both, but the original tests
+    /// the two sets independently and adds each bonus it finds.
+    Both,
 }
 
 /// Everything a general's aura radius depends on.
@@ -102,24 +105,30 @@ pub struct General {
 /// stores it as 8.8 fixed point — 384. That is the one number in this module
 /// inferred rather than read; two independent facts agree on it.
 pub const fn general_radius(t: &Tuning, g: &General) -> i32 {
-    let mut r = t.general_radius * (g.upgrades + 3) / 2;
+    // The original's arithmetic wraps at 32 bits (item 3396).
+    let mut r = t.general_radius.wrapping_mul(g.upgrades.wrapping_add(3)) / 2;
     if g.parmenio {
-        r = r * t.parmenio_radius_adjust / 256;
+        r = r.wrapping_mul(t.parmenio_radius_adjust) / 256;
     }
     if g.wellington {
-        r = r * t.wellington_radius / 100;
+        r = r.wrapping_mul(t.wellington_radius) / 100;
     }
     if g.kutosov {
-        r = r * t.kutosov_radius / 100;
+        r = r.wrapping_mul(t.kutosov_radius) / 100;
     }
     if g.terra_cotta {
-        r += t.terra_cotta_range;
+        r = r.wrapping_add(t.terra_cotta_range);
     }
     // The original tests the military and economic patriot sets separately.
     // A hero belongs to one of them, so an `Option` says the same thing.
     match g.patriot {
-        Some(Patriot::Military) => r += t.mil_patriot_radius_bonus,
-        Some(Patriot::Economic) => r += t.econ_patriot_radius_bonus,
+        Some(Patriot::Military) => r = r.wrapping_add(t.mil_patriot_radius_bonus),
+        Some(Patriot::Economic) => r = r.wrapping_add(t.econ_patriot_radius_bonus),
+        Some(Patriot::Both) => {
+            r = r
+                .wrapping_add(t.mil_patriot_radius_bonus)
+                .wrapping_add(t.econ_patriot_radius_bonus);
+        }
         None => {}
     }
     r
@@ -471,7 +480,8 @@ impl crate::Sim {
         })
     }
 
-    /// Count every held supply-upgrade prerequisite, not a leading run.
+    /// `LeaderData::get_supply_upgrade@006e0880`: count every held
+    /// supply-upgrade prerequisite, not a leading run.
     pub(crate) fn supply_upgrade_level(&self, who: Player) -> i32 {
         let p = &self.tech[who as usize];
         self.tech_tree

@@ -96,6 +96,8 @@ mod unit_come_out_edx;
 mod unit_data_action_type;
 #[path = "unit_data_activity_type.rs"]
 mod unit_data_activity_type;
+#[path = "unit_data_attack.rs"]
+mod unit_data_attack;
 #[path = "unit_data_can_ever_transport.rs"]
 mod unit_data_can_ever_transport;
 #[path = "unit_data_can_garrison.rs"]
@@ -182,6 +184,8 @@ mod unit_data_next_action_type;
 mod unit_data_order_type;
 #[path = "unit_data_recharge.rs"]
 mod unit_data_recharge;
+#[path = "unit_data_speed.rs"]
+mod unit_data_speed;
 #[path = "unit_data_support_cost.rs"]
 mod unit_data_support_cost;
 #[path = "unit_data_transport_type.rs"]
@@ -294,6 +298,8 @@ mod unit_kill_current_action;
 mod unit_kill_current_path;
 #[path = "unit_kill_group_order.rs"]
 mod unit_kill_group_order;
+#[path = "unit_land_plane.rs"]
+mod unit_land_plane;
 #[path = "unit_modify_group_order.rs"]
 mod unit_modify_group_order;
 #[path = "unit_must_walk.rs"]
@@ -416,6 +422,10 @@ mod unit_update_armor;
 mod unit_update_ceo_position;
 #[path = "unit_update_gpiece.rs"]
 mod unit_update_gpiece;
+#[path = "unit_update_hits.rs"]
+mod unit_update_hits;
+#[path = "unit_update_hits_redirect.rs"]
+mod unit_update_hits_redirect;
 #[path = "unit_update_local_seen.rs"]
 mod unit_update_local_seen;
 #[path = "unit_update_order.rs"]
@@ -496,6 +506,8 @@ mod valid_target_const_p_low;
 mod vector_dist_coords;
 #[path = "vector_dist_ints.rs"]
 mod vector_dist_ints;
+#[path = "wall_activate.rs"]
+mod wall_activate;
 #[path = "wall_check_ever_seen.rs"]
 mod wall_check_ever_seen;
 #[path = "wall_data_armor.rs"]

@@ -57,8 +57,10 @@ pub mod alarm;
 pub mod alarm_view;
 pub mod anim;
 pub mod army;
+pub mod army_do_defending_view;
 pub mod army_is_moving_view;
 pub mod army_normalize_view;
+pub mod army_process_view;
 pub mod astar_view;
 pub mod attack_ground_view;
 pub mod attack_pos;
@@ -72,6 +74,7 @@ pub mod bribe;
 pub mod build;
 pub mod build_attack_view;
 pub mod build_spot_view;
+pub mod build_unqueue_view;
 pub mod calc_gather;
 pub mod calc_gather_type_view;
 pub mod capture;
@@ -124,10 +127,13 @@ pub mod group;
 pub mod group_move;
 pub mod group_queue_up;
 pub mod grouppath;
+pub mod groups_process_view;
 pub mod halt_view;
 pub mod heal;
 pub mod herd_create_view;
+pub mod hero_radius_view;
 pub mod holdings;
+pub mod land_plane_view;
 pub mod launch;
 pub mod location;
 pub mod market;
@@ -177,7 +183,10 @@ pub mod trade_view;
 pub mod transport;
 pub mod tuning;
 pub mod type_index;
+pub mod unit_attack_view;
+pub mod unit_speed_view;
 pub mod unit_unqueue_view;
+pub mod unit_update_hits_view;
 pub mod upath;
 pub mod update_positions_view;
 pub mod victory;
@@ -5657,7 +5666,7 @@ impl Sim {
     /// and the fleet `1/83`, and its `num_units` has `[268]` 1 and no
     /// `[270]`.
     ///
-    /// SEAM: the `pop == 0` arm's `is(0x134)` and `is_gov_hero` are not
+    /// SEAM: the `pop == 0` arm's `is(0x134)` and the governor-hero test are not
     /// read here, and answer no; `+0x68 & 1` has no state here.
     pub(crate) fn counts_in_muster(&self, u: usize) -> bool {
         let unit = &self.units[u];
@@ -7026,9 +7035,11 @@ impl Sim {
         // mark `Unit::set_in_danger` gave it (`docs/ORDERS.md` §22).
         // The flag is guy 0's (`set_in_danger` sets no other), so guy
         // 0's gate is the whole clear: a crew figure has none to drop.
-        if self.units[i].movement.body.avg_speed == 0
-            && (self.frame + i64::from(self.units[i].index)).rem_euclid(64) == 0
-        {
+        if collide::repaint_due(
+            self.frame,
+            self.units[i].index,
+            self.units[i].movement.body.avg_speed,
+        ) {
             self.units[i].guy_flag_0x20 = false;
         }
     }
