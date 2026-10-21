@@ -86,6 +86,7 @@ pub mod combat;
 pub mod come_out_view;
 pub(crate) mod construct;
 pub mod cost;
+pub mod count_inside_view;
 pub mod damage;
 pub mod danger;
 pub mod detour;

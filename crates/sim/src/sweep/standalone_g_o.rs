@@ -588,6 +588,8 @@ mod object_data_can_carry_pair;
 mod object_data_can_carry_type;
 #[path = "object_data_cargo_inside.rs"]
 mod object_data_cargo_inside;
+#[path = "object_data_count_inside.rs"]
+mod object_data_count_inside;
 #[path = "object_data_get_damage.rs"]
 mod object_data_get_damage;
 #[path = "object_data_get_inside.rs"]
