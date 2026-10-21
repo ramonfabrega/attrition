@@ -2367,7 +2367,7 @@ pub(crate) fn flying_high_by(
 /// [`crate::land_plane_view::LandPlaneView`] over the sim (item 3396): the
 /// walk `Unit::land_plane@005e9950` makes, on a plane.
 ///
-/// **SEAM**: the `SpecialAnimOrder` the original adds, the home words it
+/// **Not modelled**: the `SpecialAnimOrder` the original adds, the home words it
 /// writes into it and the landing sound are not modelled as such: the order
 /// is run at once by the `work` at the function's tail (`docs/ORDERS.md`
 /// §33.5), which is [`Sim::go_inside`], and a sound is the renderer's.

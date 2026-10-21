@@ -51,7 +51,7 @@ fn the_emulated_original_agrees_on_every_row() {
             // `collide::paint_walk` over a `PaintView` (`Sim::coll_paint`'s too), and the three
             // gates between them (`+0x218` not air, `guy_num < squad_size`, `coll_size != 0`) have
             // no counterpart: `Sim::coll_repaint` reads them off a `Sim` (`coll_paint`'s size and air;
-            // `squad_size` is its SEAM). The gates are therefore inline here, and so is the block
+            // `squad_size` is noted there as not carried). The gates are therefore inline here, and so is the block
             // structure the crate flattens: a block's `+8` word zeroed on every mark, a null block
             // allocated by `World::new_coll_block` (stubbed, one answer window a call, the last
             // repeated), the bit `(x & 15) * 16 + (y & 15)` at `+0xc`. `Guy::move` is stubbed.
