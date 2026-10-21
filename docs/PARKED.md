@@ -9012,13 +9012,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MC — reserved
+## Parked by item 3397, 2026-10-20 — the third sweep's first batch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Names no score, so parked, not queued.
+
+- **`Sim::process_building_combat` (`fight.rs`) has no jam arm.** `Build::do_attack@006228f0`'s sweep
+  (`sweep/build_do_attack.rs`) pins the original's `is_jammed` arm (misfire flag `0x8000`, sound `0x6e`) and
+  its `hits_left` gate; the crate method folds in `Build::process`'s head and models neither. The sweep
+  does not call it (welded to `Sim`, RNG and projectiles). A fix would be a view trait over the arm's reads;
+  whether a pin moves is unmeasured (jam needs a jammer in the lobby).
+- **`Sim::find_road` (`roads.rs`) is the port of `PathFinder::find_road@00688a40`'s `param_6 < 0` arm,
+  but its sweep holds only the original's own part** (endpoint tiles, guards, flags at `+0x88/+0x8c/+0x98`);
+  `astar_caravan_road`, `kill_lists` and `Stack<PathData>::push` are stubbed, and `start_road`/`road_end`
+  were compared to the port by reading, not run. A sweep of the callee `astar_caravan_road@00685990` is the
+  rest.
+- **Generator**: `--regen` re-inserts a trailing `0` after `// end hand` (wall_activate); a generator file
+  that exists is refused as `duplicate standalone module` once registered (do_attack); a `}` at column 0
+  inside the `// hand` fence splits the item (find_road). Three small idempotence gaps in `sweep_gen.py`.
 
 ## Parked by the next landing, slot MD — reserved
 
