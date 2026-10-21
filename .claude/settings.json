@@ -8,6 +8,11 @@
             "type": "command",
             "command": "g=\"${CLAUDE_PROJECT_DIR:-$PWD}/tools/pollguard.py\"; [ -f \"$g\" ] || exit 0; python3 \"$g\"",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "g=\"${CLAUDE_PROJECT_DIR:-$PWD}/tools/killguard.py\"; [ -f \"$g\" ] || exit 0; python3 \"$g\"",
+            "timeout": 10
           }
         ]
       }
