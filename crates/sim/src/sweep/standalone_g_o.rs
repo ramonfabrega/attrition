@@ -572,6 +572,8 @@ mod object_add_to_world;
 mod object_assault_benefit;
 #[path = "object_data_armor.rs"]
 mod object_data_armor;
+#[path = "object_data_attack.rs"]
+mod object_data_attack;
 #[path = "object_data_attack_dist.rs"]
 mod object_data_attack_dist;
 #[path = "object_data_attack_dist_at.rs"]

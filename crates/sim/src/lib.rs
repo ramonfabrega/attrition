@@ -131,6 +131,7 @@ pub mod muster;
 pub mod nations;
 pub mod normalize_view;
 pub mod nuke;
+pub mod object_attack_view;
 pub mod orders;
 pub mod path;
 pub mod pivot;
