@@ -7507,3 +7507,17 @@ first try and whether any trace parted its twin; the capture class
 against 0.5 and the gate against 21.7; booking gate minutes against
 92.9; `DEEP` against zero; the drain's tail against 31; the backlog
 against eight; the disk against 236 GiB.
+
+**Amended the same day, with Ramon** (the record, "With Ramon, before
+the clear"): the kill guard's hook wired on his word; **3429 booked**
+beside 3417 — `cover=1` on the click-free lane, Loop 1570's trial, and
+the Sonnet seats' seating waits on it; the held-out battery's number is
+the whole count and the shortest game, pinned as `Held-out:`; 3350's
+`entered` column built and measured (2388 of 3611 functions, 81.9 % of
+bytes entered by a pinned trace, against 37.9 % backed — a column, joined
+to nothing); and `tools/rubric.py` with `docs/RUBRIC.md`, the scorecard
+by mechanic, age and unit type: 36 of 112 source groups at 100 %, **ages
+held 2 of 8, unit types seen 30 of 364** on the traces' own dumps. The
+rubric is the content view beside the function view, and its first
+reading says the late ages are what no capture holds; the next pass
+checks it against the diffs' pinned dump set before any booking moves.

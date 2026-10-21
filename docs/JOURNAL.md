@@ -21433,5 +21433,10 @@ them is Ramon's. Built, red first: `census.py --cites` (3415, an Opus
 subagent) and the `Blind:` guard; the dead-list pin re-pinned at 30 with
 its three citing documents; `census-backed.txt` regenerated. 3371 closed
 under entry 54, 2003 took 3410's reach, six Ramon's; 11 → 8. One stale
-agent worktree's removal refused by the classifier, Ramon's. **DECISIONS
-87.** `docs/audit/2026-10-21-fable-pass-48.md`.
+agent worktree's removal refused by the classifier, Ramon's. With Ramon,
+the same day: the kill guard wired, 3429 booked (`cover=1` on the
+click-free lane), the held-out line pinned as whole count and shortest
+game, 3350's `entered` column measured (81.9 % of the simulation's bytes
+entered by a pinned trace), and `tools/rubric.py` built — 36 of 112
+source groups at 100 %, ages held 2 of 8, unit types seen 30 of 364.
+**DECISIONS 87.** `docs/audit/2026-10-21-fable-pass-48.md`.
