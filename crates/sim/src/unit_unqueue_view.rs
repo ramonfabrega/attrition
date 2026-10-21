@@ -3,8 +3,8 @@
 //!
 //! The crate has no port of this. `Sim::action_unqueue` (`production.rs`) is
 //! `Build::action_unqueue@00620280`, the *building's* cancel; the unit arm of
-//! `CommandPackage::process_unqueue` is a `SEAM` in `rondata::input::unqueue`
-//! ("no capture cancels either"). This view is therefore **standalone**
+//! `CommandPackage::process_unqueue` is left open in `rondata::input::unqueue`
+//! (the unit arm is not modelled). This view is therefore **standalone**
 //! (nothing in `Sim` calls it) and the sweep is its only caller; whether
 //! wiring it moves a diff pin is not established.
 //!
