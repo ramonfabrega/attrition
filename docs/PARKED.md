@@ -9028,13 +9028,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot MJ — reserved
+## Parked by item 3409, 2026-10-21 — the AI track's blind readings: a leader bit, a vtable-only predicate, a stale backed list
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3409a. `Sim::process_spells` carries only the March's leader bit.** `Leader::verify_spell_flags@006ce190` drops
+  `leader_flags & 0x4000` (no hero's `unit_masks & 0x2000`) as well as `& 0x8000`, over the hero list to `hero_mark`,
+  and runs on either spell's expiry (`docs/AI.md` §296); the crate keeps `forced_march` alone, checked on a March's
+  expiry, over every live unit of the owner. No reader of the leader's `0x4000` is known in the crate or the
+  original past `verify_spell_flags` itself, so no score moves; §296's row 2 is the capture that would show it.
+- **3409b. `GoodTypeData::is_flat@004780c0`'s residue proposal hangs on an indirect-call scan.** The PE holds no
+  direct call to it, only GoodType's vtable slot `+0x94` three times (§296); whether any `call [reg+0x94]` has a
+  GoodType receiver is not read. `WallData::hits@00642bb0` has the same shape and §142 reads it as reached. A scan
+  of `+0x94` vcalls by receiver type would settle both.
+- **3409c. `docs/audit/census-backed.txt` predates item 3346.** `Object::disband@006455c0` has a sweep
+  (`crates/sim/src/sweep/object_disband.rs`) and the backed list leaves its row blank; the pass's regeneration owes it.
 
 ## Parked by the next landing, slot MK — reserved
 
