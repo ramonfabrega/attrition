@@ -334,6 +334,8 @@ mod unit_set_type;
 mod unit_suffer_attrition;
 #[path = "unit_supplies_left.rs"]
 mod unit_supplies_left;
+#[path = "unit_swap_team.rs"]
+mod unit_swap_team;
 #[path = "unit_target_opportunity.rs"]
 mod unit_target_opportunity;
 #[path = "unit_think.rs"]
