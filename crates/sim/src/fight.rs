@@ -347,13 +347,17 @@ impl Sim {
 
     /// `attack()` — the type's, plus the player's flat modifier (§4.1).
     ///
-    /// The base is `ObjectData::attack@006469f0`'s, and its Dutch term
-    /// (item 3329) is inside it: a Dutch kind ([`Sim::dutch_ages`]) adds
-    /// `ages × DUTCH_ATTACK_BONUS × 10` **before** `UnitData::attack`'s
-    /// zero test, so an armed merchant of an age past the first is a
-    /// combatant on a type with no attack.
+    /// The base is `ObjectData::attack@006469f0`'s
+    /// ([`crate::object_attack_view::object_attack_steps`], swept: item
+    /// 3387). Its caravan arm replaces a caravan's attack with
+    /// `CARAVAN_ATTACK_BONUS` once its owner holds that bonus's
+    /// prerequisite, and its Dutch term (item 3329) is inside it: a Dutch
+    /// kind ([`Sim::dutch_ages`]) adds `ages × DUTCH_ATTACK_BONUS × 10`
+    /// **before** `UnitData::attack`'s zero test, so an armed merchant of
+    /// an age past the first is a combatant on a type with no attack.
     pub fn attack_of(&self, o: Obj) -> i32 {
-        let base = self.profile(o).attack + self.dutch_term(o) * 10;
+        let base =
+            crate::object_attack_view::object_attack_steps(&mut SimObjectAttack { sim: self, o });
         if base == 0 {
             return 0;
         }
@@ -401,8 +405,42 @@ impl Sim {
             + self.mods_of(self.owner_of(o) as usize).armor;
         match o {
             Obj::Building(b) if !self.buildings[b].active => armor / 2,
-            _ => armor,
+            Obj::Unit(u) => armor + self.rally_armor(u),
+            Obj::Building(_) => armor,
         }
+    }
+
+    /// **`UnitData::armor@00610160`'s rally arm** (item 3385): a unit that
+    /// is itself a hero, or that `HeroesData::find_hero@0073a1b0` places
+    /// inside one of its owner's heroes' radii, adds `GENERAL_RALLY_ARMOR ×
+    /// (general_upgrade + 1)`. `find_hero` is asked with no mask, no type
+    /// and no reach (vslot `+0x20` is clear for a unit): any active hero
+    /// on the map whose `get_radius × 0xc0` covers the unit's position by
+    /// `vector_dist`. run1011e's packet: the Horse Archer `1/72`'s round on
+    /// the Inti Maceman `1/61` on 13297, `get_damage` 13 at armour 4 (the
+    /// cached `myarmor` 2 and the General's 2) where this crate dealt 15.
+    ///
+    /// SEAM: the arm's named heroes after it — Ptolemy, Darius,
+    /// Wellington, Blücher, Memnon, The Citizen and The Monarch's armour —
+    /// are not carried.
+    fn rally_armor(&self, u: usize) -> i32 {
+        let me = &self.units[u];
+        let rallied = (me.alive() && self.is_hero_unit(u))
+            || (0..self.units.len()).any(|h| {
+                let x = &self.units[h];
+                x.owner == me.owner
+                    && x.alive()
+                    && x.on_map
+                    && self.is_hero_unit(h)
+                    && crate::world::vector_dist(
+                        (x.pos.x - me.pos.x).abs(),
+                        (x.pos.y - me.pos.y).abs(),
+                    ) <= self.hero_radius(h) * 0xc0
+            });
+        if !rallied {
+            return 0;
+        }
+        self.tuning.general_rally_armor * (self.general_upgrade_level(me.owner) + 1)
     }
 
     /// `max_range()` (§4.4): zero stays zero.
@@ -569,7 +607,11 @@ impl Sim {
                     damage_frame: u.combat.damage_frame,
                     damage_o: u.combat.damage_o,
                     captain: u.combat.captain,
-                    decoy: false,
+                    // `unit_masks & 1`, step 17's arm: anything kills a
+                    // decoy (item 3385: run1011e's packet, `get_damage`
+                    // 19688 on the General's decoy Light Horse `1/82`,
+                    // `take_damage` 0x19a2 after the uber divide).
+                    decoy: u.decoy,
                     rocky: false,
                     tile_owned_by_attacker: self
                         .world
@@ -4501,6 +4543,40 @@ impl Sim {
                         if halve {
                             score /= 2;
                         }
+                        // `local_44` counts a unit candidate here, above the
+                        // bearing's skip (`0064979a`), and the ten-unit stop
+                        // below is reached only by one that was scored.
+                        if is_unit {
+                            unit_candidates += 1;
+                        }
+                        // **The fire on the move looks ahead** (`param_4`,
+                        // `006497b4`–`00649869`; item 3385, `docs/AI.md`
+                        // §293): the bearing to the candidate,
+                        // `find_angle(o.x − x, o.y − y)` off the two raw
+                        // points (the listing's `ecx`/`edx`; Ghidra prints
+                        // `unaff_EDI, unaff_ESI`), less the searcher's own
+                        // `UnitData +0x50`, folded at a half turn. Within
+                        // 30° the score is quadrupled, within 60° doubled;
+                        // past 135° the candidate is passed over (`ja
+                        // 006498a1`), and past 90° a signed tenth.
+                        if cavarch && let Obj::Unit(me) = attacker {
+                            let to = self.pos_of(o);
+                            let bearing = find_angle(to.x - at.x, to.y - at.y);
+                            let mut off =
+                                bearing.0.wrapping_sub(self.units[me].movement.facing.0) as u32;
+                            if off > 0x8000_0000 {
+                                off = !off;
+                            }
+                            if off < 0x1555_5555 {
+                                score <<= 2;
+                            } else if off < 0x2aaa_aaaa {
+                                score *= 2;
+                            } else if off > 0x6000_0000 {
+                                continue;
+                            } else if off > 0x4000_0000 {
+                                score /= 10;
+                            }
+                        }
                         if score == 0 && value != 0 {
                             score = 1;
                         }
@@ -4511,11 +4587,8 @@ impl Sim {
                         if score > best.map_or(0, |(b, _)| b) {
                             best = Some((score, o));
                         }
-                        if is_unit {
-                            unit_candidates += 1;
-                            if unit_candidates > 10 && best.is_some() {
-                                break 'rings;
-                            }
+                        if unit_candidates > 10 && best.is_some() {
+                            break 'rings;
                         }
                     }
                 }
@@ -4846,9 +4919,6 @@ impl Sim {
             // weights' join. run835's `0/7` takes the Bark `1/8` at 2,082
             // units over the Trireme `1/6` at 768 on 634.
             //
-            // SEAM: the `idiv` by the target's `full + 1` (`UnitData +0xac`,
-            // `0064f110`) that follows is not carried: `full` is 0 on every
-            // unit of every dump this crate widens.
             if matches!(ap.domain, Domain::Sea)
                 && matches!(tp.domain, Domain::Sea)
                 && ap.is(role::BARK)
@@ -4862,6 +4932,12 @@ impl Sim {
                 {
                     v *= 40;
                 }
+            }
+            // **The target's `full + 1`** (`0064f107`–`0064f11b`, item
+            // 3385): every unit target's score, Bark or not, is divided
+            // by its [`crate::Unit::full`] plus one, `idiv` toward zero.
+            if let Obj::Unit(u) = target {
+                v /= i64::from(self.units[u].full) + 1;
             }
         }
         if v < 0 {
@@ -5962,6 +6038,86 @@ pub fn die_hold_steps(
     v as u16
 }
 
+/// [`crate::object_attack_view::ObjectAttackView`] over the crate's [`Sim`]: the object's type record and
+/// owner. A building answers false on the unit slots (`+0x18`, `+0xd0`, `+0xcc`, `+0xc8`).
+struct SimObjectAttack<'a> {
+    sim: &'a Sim,
+    o: Obj,
+}
+
+impl SimObjectAttack<'_> {
+    fn rec(&self) -> Option<usize> {
+        match self.o {
+            Obj::Unit(u) => self.sim.units[u].ty,
+            Obj::Building(_) => None,
+        }
+    }
+    fn owner(&self) -> usize {
+        self.sim.owner_of(self.o) as usize
+    }
+}
+
+impl crate::object_attack_view::ObjectAttackView for SimObjectAttack<'_> {
+    fn type_attack(&mut self) -> i32 {
+        self.sim.profile(self.o).attack
+    }
+    fn is_caravan(&mut self) -> bool {
+        self.rec().is_some_and(|r| {
+            self.sim.unit_types[r]
+                .cols
+                .flag2(crate::ai_load::uflags2::CARAVAN)
+        })
+    }
+    fn has_caravan_preq(&mut self) -> bool {
+        // A tree that does not name the bonus's prerequisite holds it for nobody.
+        match (
+            self.sim.tech_tree.roles.caravan_attack_preq,
+            self.sim.tech.get(self.owner()),
+        ) {
+            (Some(t), Some(p)) => self.sim.tech_tree.has_tech(&self.sim.setup, p, t),
+            _ => false,
+        }
+    }
+    fn caravan_attack_bonus(&mut self) -> i32 {
+        self.sim.tuning.caravan_attack_bonus
+    }
+    fn has_dutch_bonus(&mut self) -> bool {
+        self.sim.tech.get(self.owner()).is_some_and(|p| {
+            self.sim
+                .tech_tree
+                .has_tribe_bonus(&self.sim.setup, p, crate::ai::tribe::DUTCH)
+        })
+    }
+    fn dutch_attack_bonus(&mut self) -> i32 {
+        self.sim.tuning.dutch_attack_bonus
+    }
+    fn is_unit(&mut self) -> bool {
+        matches!(self.o, Obj::Unit(_))
+    }
+    fn type_index(&mut self) -> i32 {
+        self.rec().map_or(0, |r| self.sim.unit_types[r].type_index)
+    }
+    fn is_supply(&mut self) -> bool {
+        self.rec().is_some_and(|r| {
+            self.sim.unit_types[r]
+                .cols
+                .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+        })
+    }
+    fn gov_hero_slot(&mut self) -> bool {
+        self.rec().is_some_and(|r| {
+            self.sim.unit_types[r]
+                .tree
+                .and_then(|i| self.sim.tech_tree.types.get(i))
+                .and_then(|d| d.kind.unit())
+                .is_some_and(|u| u.patriot)
+        })
+    }
+    fn ages(&mut self) -> i32 {
+        self.sim.tech.get(self.owner()).map_or(0, |p| p.ages)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -6129,6 +6285,58 @@ mod tests {
         assert_eq!(struck, vec![Obj::Building(mine)], "the target alone");
         assert!(!sim.hits[0].splash, "at the full count");
         let _ = other;
+    }
+
+    /// **A decoy target takes `get_damage`'s step 17** (item 3385): armour
+    /// nothing and the blow `max(attack, base) × 1000`, so any round kills
+    /// it. `target_side` wrote `decoy` false for every unit; run1011e's
+    /// packet struck the General's decoy Light Horse `1/82` for 19688 where
+    /// this crate dealt 6. Made to fail with the target's bit dropped.
+    #[test]
+    fn a_decoy_target_dies_to_any_round() {
+        for decoy in [false, true] {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+            let them = put(&mut sim, 0, ty, Pos::new(2016, 2016));
+            sim.units[them].decoy = decoy;
+            let p = round(&sim, me, Some(Obj::Unit(them)), Pos::new(2016, 2016), 0);
+            sim.land(p, 3385);
+            assert_eq!(!sim.units[them].alive(), decoy, "decoy {decoy}: dead");
+        }
+    }
+
+    /// **`UnitData::armor@00610160`'s rally arm** (item 3385): a hero's
+    /// own unit inside its radius, `get_radius × 0xc0` by `vector_dist`,
+    /// and the hero itself, add `GENERAL_RALLY_ARMOR × (general_upgrade +
+    /// 1)`; one tile-unit past the radius, or another player's hero, adds
+    /// nothing. Made to fail with the arm dropped.
+    #[test]
+    fn a_general_rallies_armour_inside_its_radius() {
+        use crate::ai_load::uflags2;
+        let (mut sim, ty) = at_war();
+        sim.unit_types[ty].combat.armor = 2;
+        let mut general = crate::UnitType {
+            type_index: 0x100,
+            hits: 100,
+            ..crate::UnitType::default()
+        };
+        general.cols.unit_flags2 = uflags2::GENERAL;
+        let general = sim.add_unit_type(general);
+        let me = put(&mut sim, 1, ty, Pos::new(9000, 9000));
+        let armour = |s: &Sim| s.armor_of(Obj::Unit(me));
+        assert_eq!(armour(&sim), 2, "no hero");
+        let hero = put(&mut sim, 1, general, Pos::new(9000, 9000));
+        let reach = sim.hero_radius(hero) * 0xc0;
+        sim.units[hero].pos.x += reach;
+        let rally = sim.tuning.general_rally_armor;
+        assert_eq!(rally, 2, "the shipped GENERAL_RALLY_ARMOR");
+        assert_eq!(armour(&sim), 2 + rally, "on the radius");
+        assert_eq!(sim.armor_of(Obj::Unit(hero)), rally, "the hero itself");
+        sim.units[hero].pos.x += 1;
+        assert_eq!(armour(&sim), 2, "one past it");
+        sim.units[hero].pos.x -= 1;
+        sim.units[hero].owner = 0;
+        assert_eq!(armour(&sim), 2, "another player's hero");
     }
 
     /// **A decoy's round strikes nothing** (`Object::do_damage@0064a480`,

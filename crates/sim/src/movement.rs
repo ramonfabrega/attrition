@@ -154,7 +154,7 @@ pub const fn angle_to_degrees(a: Angle) -> i32 {
 pub const fn find_angle(dx: i32, dy: i32) -> Angle {
     // The original negates dy immediately: the stored y axis points south and
     // the angle is measured the other way.
-    let cy = -dy;
+    let cy = dy.wrapping_neg();
     if dx == 0 {
         return if cy > 0 { Angle::NORTH } else { Angle::SOUTH };
     }
@@ -162,15 +162,20 @@ pub const fn find_angle(dx: i32, dy: i32) -> Angle {
         return if dx > 0 { Angle::EAST } else { Angle::WEST };
     }
 
-    let (a, b) = (dx.abs(), cy.abs());
+    // Every step wraps as the original's 32-bit arithmetic does: a leg of
+    // 2^17 or more overflows the scaled ratio, and `|i32::MIN|` is itself
+    // (item 3386: `Group::action_swarm_around` hands it the difference of
+    // two arbitrary words).
+    let (a, b) = (dx.wrapping_abs(), cy.wrapping_abs());
     let (hi, lo) = if b < a { (a, b) } else { (b, a) };
     // True when |dx| <= |dy| — the y-dominant half of the octant pair.
     let y_dominant = a <= b;
 
-    let t = (lo * 0x4000) / hi;
-    let corrected = 0x2800 - (((0x1333 - t).abs() * 0xb00) >> 14);
-    let m = (corrected * t) & !0x3fff;
-    let q = m * 4;
+    let t = lo.wrapping_mul(0x4000).wrapping_div(hi);
+    const BIAS: i32 = 0x1333;
+    let corrected = 0x2800 - ((BIAS.wrapping_sub(t).wrapping_abs().wrapping_mul(0xb00)) >> 14);
+    let m = corrected.wrapping_mul(t) & !0x3fff;
+    let q = m.wrapping_mul(4);
 
     // Octant placement. Reads as a table because it is one: eight cases, by
     // the sign of each axis and by which one dominates. A half turn is
@@ -180,13 +185,13 @@ pub const fn find_angle(dx: i32, dy: i32) -> Angle {
     const QUARTER: i32 = 0x4000_0000;
     Angle(match (dx > 0, cy > 0, y_dominant) {
         (false, false, true) => q.wrapping_add(HALF),
-        (false, false, false) => -q - QUARTER,
-        (false, true, true) => -q,
-        (false, true, false) => q - QUARTER,
+        (false, false, false) => q.wrapping_neg().wrapping_sub(QUARTER),
+        (false, true, true) => q.wrapping_neg(),
+        (false, true, false) => q.wrapping_sub(QUARTER),
         (true, true, true) => q,
-        (true, true, false) => QUARTER - q,
-        (true, false, true) => (-q).wrapping_add(HALF),
-        (true, false, false) => q + QUARTER,
+        (true, true, false) => QUARTER.wrapping_sub(q),
+        (true, false, true) => q.wrapping_neg().wrapping_add(HALF),
+        (true, false, false) => q.wrapping_add(QUARTER),
     })
 }
 

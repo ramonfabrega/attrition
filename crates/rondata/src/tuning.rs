@@ -78,6 +78,21 @@ pub fn drift(rules: &Rules) -> Vec<Drift> {
                     });
                 }
             }
+            Slot::Scaled10(ours) => {
+                // `2 attack` in the file, 20 in memory: the written integer
+                // times ten (`dump::Loaded::Scaled10`).
+                let theirs = rules
+                    .constant(name)
+                    .map(Scalar::written_int)
+                    .map(|v| v.wrapping_mul(10));
+                if theirs != Some(ours) {
+                    out.push(Drift {
+                        name,
+                        ours: ours.to_string(),
+                        theirs: theirs.map(|v| v.to_string()),
+                    });
+                }
+            }
             Slot::Ratio192(ours) => {
                 // `get_fraction(name, 0xc0)`: a length in position units.
                 let theirs = rules.constant(name).map(|s| s.fraction(192));

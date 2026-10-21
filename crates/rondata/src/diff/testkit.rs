@@ -10861,6 +10861,23 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         endpoint: Some("run1000b_german_sahara_closing_state"),
         window: Some("german_sahara_frame_13582_window"),
     },
+    // **The battery's Inca word at Great Sahara** (DECISIONS 72, 83, 84;
+    // item 3385): Great Sahara, the Inca at Difficulty 3 — the held-out
+    // battery's lowest open lobby on the measure of `60438302`, minted by
+    // item 3383 under entry 72's rule (2); the game ends itself on 15632.
+    // It joins the `Battery word` line first; the closed rows choose
+    // nothing.
+    AiWord {
+        line: "Battery word",
+        map: "GreatSaharaIncaTier3",
+        named: "Great Sahara (Inca)",
+        word: crate::diff::inca_sahara_word::INCA_SAHARA_WORD,
+        length: 15_632,
+        endpoint: None,
+        // run1011's, 13104..13360; the word 13416 is past it, and its own
+        // window is the next item's capture (item 3385).
+        window: Some("inca_sahara_frame_13250_window"),
+    },
     // **The battery's Indian word at Great Sahara** (DECISIONS 72, 83, 84;
     // item 3383): Great Sahara, the Indians at Difficulty 3 — the held-out
     // battery's lowest open lobby on the measure of `bb82188d`, minted by
