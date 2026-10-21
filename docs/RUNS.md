@@ -21411,3 +21411,45 @@ Archive `rontrace-run1031b.log`, 10,334,560 bytes,
 SHA-256 `6211577e73f3071c7878112034be71643d2f3d65fcf437461d13a1cde29a2574`.
 
 **What it holds**: run1031's twin.
+
+## run1036 — run349's recording played back at `cover=1` on the click-free pool, 0..262 (2026-10-21, item 3428, `att-3428`)
+
+**What the disk could not answer**: no pinned trace plays a recording back, so `Game::run_playback@00586ea0` and
+`RecordGame::read_package@00952d90` stayed on `NEVER` (`docs/ATTRITION.md`, "The never-entered functions"). run900
+played one on this lane, but at `cover=0`, and it was an external 2017 recording with no capture of its own. The
+recording here is run349's own: the game writes one per match to `~/Documents/My Games/Rise of Nations/Recorded
+Games/` (942 files there). `Playback - 2026.09.27 14'35'49 (Sun).rcx` was opened at run349's start (14:36) and closed
+at its dump's last write (14:53). Its header gives seed 12345 and map 18. `rondata --recgame` finds 296 commands in 263
+packages, frames 0..262: 262 `camera`, 33 `player_speed` and one `leader_options` on frame 0. Copied, SHA-256
+`f60dfdc7…6948387`, to `~/ron-golden/recordings/run349-eastindies.rcx` and beside the dumps in `Logs\` under its own
+name. **The pool takes it**: `unattended_capture.py --recording` with `--cover` builds `-DRON_AUTOSTART -DRON_REPLAY`.
+The replay arm patches nothing `arm_all` stubs; it only checks bytes inside `SetupWin::exec` and
+`TopMenu::check_result`, and returns 13 from the menu that item 3429 already chains. The take:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1036 --recording
+~/ron-golden/recordings/run349-eastindies.rcx --end-frame 262 --cover cover=1 --log-window 0 251 --detail end:UNITS=3
+--timeout 2400 --stall-seconds 120`.
+- Pool lane 1 (`~/wine-ron`). Launched 15:59:25, exited 16:01:45: **139.4 s launch to exit**. `success`, lifecycle
+  verified, 263 frames, `last_frame` 262, not ended early, seed 12345, `MAP_STYLE 18`, tribes 4 and 11, five settings
+  restored. DLL `5cb5a334…`. 226 GiB free before. Minutes waited on another lane: 5.3 (att-3427's queue-lane
+  capture held lane 1).
+- **6,139 functions entered**, two of them `NEVER` rows, both asked: `Game::run_playback` and `RecordGame::read_package`,
+  each on `f-1`, the records before the first `FRAME`. `process_turn` and the whole read path were entered on `f-1`
+  too (`read_header`, `read_rules`, `read_random_game_info`); `finalize` and `close` on 262.
+  `CommandManager::send_local_package` was not entered, so `read_package`'s caller is `process_turn`. `Game::run_solo`
+  was not entered either.
+- `rngcmp.py` against run349 (the twin, `cover=0`, the live game the recording was made from): **263 in common, 0
+  differing, 263 identical**. `samegame.py` against `gamelog-run349-islands-toughest-open.txt`, excluding the
+  thirteen categories run349 printed and this run did not (`BUILDDATA`, `BUILDQUEUE`, `CITIES`, `CITY`,
+  `DIPLOMACY`, `GOOD`, `GROUPDATA`, `LEADERDATA`, `MAKEOBJECT`, `PERSONALITY`, `SITE`, `WALLDATA`, `WORLD`) and
+  `GUY`, with `--drop ox --drop whom --drop aid` (run349's `GUYS=4`): **250 in common (1..250), 0 differ**. The
+  playback is the live game on every unit record. The guys and the excluded records are unchecked, not checked and
+  equal. Nothing parts the twin, so there is no residue item.
+- Filed with `filerun.py run1036 eastindies-playback-of-run349`, which now takes a playback's `gamelog_p.txt`.
+
+Archive `gamelog-run1036-eastindies-playback-of-run349.txt`, 44,056,989 bytes,
+SHA-256 `c800c73a131b1aa33cce38ca30369f8bb847c0f6011641e74b6bafcf2a1588c0`.
+
+Archive `rontrace-run1036.log`, 10,212,256 bytes,
+SHA-256 `3a848a94d902c67e615c2dada8a3ebfd68702dd5b4edaf33b7de0cb397b9215c`.
+
+**What it holds**: `blind::TRACES`' run1036 (item 3428), `NEVER` 339 → 337.

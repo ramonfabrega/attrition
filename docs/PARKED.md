@@ -9277,13 +9277,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NB — reserved
+## Parked by item 3428, 2026-10-21 — the playback's end and the recordings corpus
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3428a. `read_package`'s clear at the recording's end stays a reading.** run1036 quit on frame 262, the
+  recording's last package, so the arm at `read_package:96–105` never ran: with no file, or at the file's end
+  with `param_4 == 0`, it clears bit 2. `docs/ATTRITION.md`'s claim on it is still a reading. A playback run one
+  frame past the last package would test it: `--end-frame 263` or more on run1036's line, with `[End Frame]
+  LEADERS` beside it for the handicap bit. run900 notes that an automatic shutdown at EOF is not established.
+  Names no score.
+- **3428b. Every capture since 2026-08-26 has its own recording.** `~/Documents/My Games/Rise of Nations/Recorded
+  Games/` holds 942 `.rcx` files, one per match, under a timestamp and not a run number. run1036 matched run349 to
+  its file by the file's open and close times against the run's section. Each recording is a `cover=1` playback
+  twin of its own capture, with no lobby to restage. A tool that names each file's run (from the header's seed and
+  map plus the time window) would turn the corpus into a pool of twins. Names no score.
 
 ## Parked by the next landing, slot NC — reserved
 

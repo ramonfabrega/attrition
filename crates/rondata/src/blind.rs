@@ -197,6 +197,11 @@ pub const TRACES: &[&str] = &[
     // 1` on 660, at `cover=1` on the click-free pool to 700 (`docs/RUNS.md`
     // run1031), run1031b's game on every frame.
     "rontrace-run1031.log",
+    // Item 3428: a recorded game's playback at `cover=1` on the click-free
+    // pool, `-config input.rcx` from frame 0 to 262, the recording's last
+    // package (`docs/RUNS.md` run1036): run349's own recording (East Indies,
+    // run346's lobby), run349's game on every frame.
+    "rontrace-run1036.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -469,6 +474,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// before Coinage). The DLL calls the leader issuer, the Sell and Buy
 /// buttons' own call (`Options::exec@007188c0:1149`, `:1162`), so neither
 /// issuer is the DLL's only.
+/// **337** with run1036 (item 3428: run349's recording played back at
+/// `cover=1`, `docs/ATTRITION.md`'s owed capture): `Game::run_playback@
+/// 00586ea0` and `RecordGame::read_package@00952d90`, both before the first
+/// `FRAME` record, on `process_turn`'s playback arm; nothing else.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -478,7 +487,7 @@ pub const NEVER: &[u32] = &[
     0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0047_f2b0, 0x0047_fff0, 0x0048_43e0, 0x0048_45c0,
     0x0048_49a0, 0x0048_5140, 0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390,
     0x0058_33a0, 0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0,
-    0x0058_60c0, 0x0058_6440, 0x0058_6ea0, 0x0058_7060, 0x0059_2b00, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660, 0x0059_46c0,
+    0x0058_60c0, 0x0058_6440, 0x0058_7060, 0x0059_2b00, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660, 0x0059_46c0,
     0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_8160, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_1f20, 0x005e_2bb0, 0x005e_3310,
     0x005e_3400, 0x005e_3df0, 0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_5bf0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480,
     0x005f_2f30, 0x005f_3260, 0x005f_4720, 0x005f_4730, 0x0060_4550, 0x0060_8850, 0x0060_9a20, 0x0060_a600,
@@ -501,7 +510,7 @@ pub const NEVER: &[u32] = &[
     0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190,
     0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_1960,
     0x0094_3f30, 0x0094_4090, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_95c0, 0x0094_9ae0,
-    0x0094_c1c0, 0x0095_2d90, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930,
+    0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930,
     0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880, 0x009f_b970, 0x009f_b9e0,
     0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0, 0x00a0_0220, 0x00a4_69f0,
 ];
