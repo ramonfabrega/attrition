@@ -3865,6 +3865,13 @@ and `disable_city_ai` as "called only by scenario scripts"; a `!eval disable_cit
 restates those rows on "cut from v1" alone, or strikes them for a coverage line. Score: `Blind:` residue a claim a capture
 cannot break. One reach.
 
+(3474) **The park pool turns red on the first landing when it holds one slot per live lane** (3464's "for the Loop"): the
+base held exactly two reserved headings, LK and MV, each assigned to a live lane; 3464's first gate on `190c08a2f` went red
+on its own `the_park_pool_holds_two_unassigned_headings` when renaming MV left one, and stopped before `guard`. The guard
+counts headings, not unassigned ones, so it passed the booking that assigned the last two. Candidate: the guard subtracts
+the slots the queue's `park <A>` words assign, so a booking that leaves fewer than two free is the red one. Score: no lane
+gate spent on the commander's pool. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
