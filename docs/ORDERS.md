@@ -8144,7 +8144,7 @@ All are at `cover=1`. `CM` is `[Misc Logging] COMMANDMANAGER=1`; `U3` is `[End F
 
 | # | function | lobby | action · frame | ini category · field |
 |---|---|---|---|---|
-| 1 | `has_repeat_air` | a lobby with a human Carrier and a Fighter based on it (GOLDEN §144.3's carrier row) | the plane strikes and lands on the carrier | `U3` the plane's `unit_masks & 0x4000000` and its order on the landing frame (§40.1's clear/set arms) |
+| 1 | ~~`has_repeat_air`~~ | a lobby with a human Carrier and a Fighter based on it (GOLDEN §144.3's carrier row) | the plane strikes and lands on the carrier; entered by run1066 on 831 (item 3446, GOLDEN §147), the carrier's `Object::do_launch` before the strike's launch; the plane does not land by 1300, so the landing arm stays unread (parked 3446a) | `U3` the plane's `unit_masks & 0x4000000` and its order on the landing frame (§40.1's clear/set arms) |
 | 2 | `add_think_order`, `do_think_order` | any lobby with a human Citizen and an own Woodcutter's Camp at its cap | `@gather` one more Citizen onto it | `U3` the Citizen's head order `THINKORDER` on arrival, then `think_peasant(1)`'s new order on the next frame |
 | 3 | `check_build_order` | §14's check 6 ("two shift-queued sites"), any human lobby | two `@build` sites, the second `QUEUE_LAST` | `U3` the builder's `BUILDORDER` re-added `QUEUE_FIRST` with `flags & 4` on the first site's finishing frame |
 | 4 | ~~`get_form_option`~~ | GOLDEN §22, chapter fourteen | ~~the formation key's next/previous (form −1, −3), not a named form~~ entered by run1057 on 800 (item 3442, GOLDEN §146): OPTION_FORM's key, form −1 (no key reaches −3: option `0x14` is button-only) | `CM` `process_form -1 0 2 801`; `GROUPS` group 0's `form` 3 → 4 on 802 |

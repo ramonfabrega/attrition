@@ -635,6 +635,10 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         issue_attack_ground, QUEUE_NEW
  *   `@comeout <who> <o> [<o> ...]`        units inside a host,
  *                                         issue_come_out once per unit
+ *   `@unqueueunit <who> <o> [<o> ...]`    units with a queue of their own
+ *                                         (a carrier's planes),
+ *                                         issue_unqueue's UnitOut overload
+ *                                         once per unit
  *   `@sell <who> <good> <flags>`          a Market's Sell button, through
  *                                         LeaderOut::issue_sell (no group)
  *   `@buy <who> <good> <flags>`           its Buy button, LeaderOut::issue_buy
@@ -870,6 +874,15 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  * 009494a0` hands a live group to `Group::action_attack_ground@00704520`;
  * `process_come_out@009465d0` checks `units[who][o]` is active with that
  * `uid` and calls `Unit::action_come_out@005e20b0`.
+ * `@unqueueunit` calls `CommandManager::issue_unqueue@00942ce0(
+ * &command_manager, unit, 0)` once per unit — the `UnitOut` overload, which
+ * `UnitOut::issue_unqueue@00607bc0`, a carrier's cancel button, calls
+ * behind the semaphore test — and appends the same 15-byte `unqueue`
+ * (type 0x30) with `p` 0 and no `group` (item 3446, `docs/GOLDEN.md`
+ * §147). `CommandPackage::process_unqueue@009466f0` asks the object's
+ * vslot `0x1c`; on a unit it checks `units[who][o]` is active with that
+ * `uid` and calls `Unit::action_unqueue@005e1f20(1)`, which drops one
+ * plane of the carrier's `num_queued` and refunds its current price.
  * `@sell` and `@buy` call `LeaderOut::issue_sell@006d3eb0` and
  * `issue_buy@006d3ef0` on `leaders.list + who` (the pointer at `0xc061e0`,
  * stride `0x6eec`), with the good (0 food, 1 timber, 2 wealth, 3 knowledge,
@@ -1044,7 +1057,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * `settransport`, 16 `repair`, 17 `buildmask`, 18 `queueup`, 19
      * `unqueue`, 20 `gatherpoint`, 21 `launchpatrol`, 22 `launchpatrolall`,
      * 23 `launchstrike`, 24 `alarm`, 25 `gather`, 26 `stance`, 27
-     * `attackground`, 28 `comeout`:
+     * `attackground`, 28 `comeout`, 29 `unqueueunit`:
      * the issuer and its prologue (`issue_guard.h`)
      * and its command's size. A guard's two numbers are the charge's `ox`
      * and `whom`, a follow's the leader's, a garrison's the building's, an
@@ -1072,6 +1085,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "repair ")   ? 16
                : issue_verb(&t, "buildmask ") ? 17
                : issue_verb(&t, "queueup ")  ? 18
+               : issue_verb(&t, "unqueueunit ") ? 29
                : issue_verb(&t, "unqueue ")  ? 19
                : issue_verb(&t, "gatherpointadd ") ? (gather_add = 1, 20)
                : issue_verb(&t, "gatherpoint ") ? 20
@@ -1098,12 +1112,13 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * selector; `@queueup`'s type and count ride in `x` and `y`;
      * `@gatherpoint`'s action rides in `type`, after its point;
      * `@alarm` has none, as `@eject`, and `@gather` one, the building's
-     * id, in `x`, as `@stance` its option; `@comeout` has none. */
+     * id, in `x`, as `@stance` its option; `@comeout` and
+     * `@unqueueunit` have none. */
     if (!issue_int(&t, &who) ||
         (verb == 14 && (!issue_int(&t, &type) || !issue_int(&t, &ox) || !issue_int(&t, &whom))) ||
         ((verb == 15 || verb == 17 || verb == 19 || verb == 25 || verb == 26) && !issue_int(&t, &x)) ||
         (verb != 5 && verb != 15 && verb != 17 && verb != 19 && verb != 24 && verb != 25 && verb != 26 &&
-         verb != 28 &&
+         verb != 28 && verb != 29 &&
          (!issue_int(&t, &x) || !issue_int(&t, &y))) ||
         ((verb == 13 || verb == 20) && !issue_int(&t, &type))) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(5) << 16), before, before, 0);
@@ -1119,7 +1134,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     /* 8, 9 and 10 are issue_move_to with another `orders` byte. */
     i32 move_kind = verb == 8 ? 2 : verb == 9 ? 3 : verb == 10 ? 4 : 1;
     u32 rva = ISSUER_RVA[verb];
-    u32 size = verb == 28  ? 0x0b
+    u32 size = verb == 29  ? 0x0f
+               : verb == 28  ? 0x0b
                : verb == 27  ? 0x0a
                : verb == 26  ? 0x05
                : verb == 25  ? 0x09
@@ -1168,9 +1184,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         }
     }
     /* A fresh group (3 + 2n), the command, and two bytes of slack each;
-     * `@unqueue` is a command a building and no group, `@comeout` one a
-     * unit. */
-    if ((verb == 19 || verb == 28 ? before + size * n + 4 : before + 3 + 2 * n + size + 4) > 0x200) {
+     * `@unqueue` is a command a building and no group, `@comeout` and
+     * `@unqueueunit` one a unit. */
+    if ((verb == 19 || verb >= 28 ? before + size * n + 4 : before + 3 + 2 * n + size + 4) > 0x200) {
         emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(4) << 16), before, before, n);
         return;
     }
@@ -1183,7 +1199,13 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         emit(K_INFO, I_ISSUE_UNIT, (u32)frame, (u32)ids[j] | (u32)who << 16, *(u16 *)(unit + 0x30),
              *(u32 *)(unit + 0x10) ^ 0x63637u, *(u32 *)(unit + 0x14) ^ 0x63637u);
     }
-    if (verb == 28) {
+    if (verb == 29) {
+        /* issue_unqueue(unit, 0) once per unit: a carrier's cancel, the
+         * UnitOut overload, no group (item 3446). */
+        typedef void(__thiscall *unqueue_unit_fn)(void *, void *, i32);
+        for (u32 j = 0; j < n; j++)
+            ((unqueue_unit_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), slots[ids[j]], 0);
+    } else if (verb == 28) {
         /* issue_come_out(unit) once per unit: the unit panel's come-out
          * button, no group (item 3425). */
         typedef void(__thiscall *come_out_fn)(void *, void *);

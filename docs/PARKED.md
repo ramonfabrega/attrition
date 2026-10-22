@@ -9270,7 +9270,8 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3422, 2026-10-21 — the boat's two other arms
 
-- **3422a. `Unit::think_carry_military@005f3260`: a soldier-carrying boat that idles.** run1021 (the successor pair,
+- ~~**3422a. `Unit::think_carry_military@005f3260`: a soldier-carrying boat that idles.**~~ **Entered by run1066 on
+  770** (item 3446, `docs/GOLDEN.md` §147): a who=1 Hoplite squad walked into the sea in the coverage pair's lobby. run1021 (the successor pair,
   `cover=1` to 2210) entered `think_carry` and `think_carry_civilian` on 2178, but not this. Every boat in its dump,
   2174..2210, is a Freighter (TypeIndex 322: `1/72`, `1/76`, `1/81`), each carrying one type-50 unit. So
   `count_inside(COUNT_WORKERS)` is non-zero and `think_carry` takes its worker arm at `+0x14`. The military function
@@ -9280,8 +9281,8 @@ words and edits nothing here; a refill lands when two remain.
   `1/185` (army 1), stands idle at 3 in ours, and holds a `MOVEORDER` in theirs from 5976 on (`docs/AI.md` §235,
   run879). A `cover=1` take of that lobby to 6232 would enter it. The successor pair's own BMP `1/28` lands from a
   boat on 4363 (§214), so a take of this lobby to its end, 5056, is the second candidate. Moves `never` by one.
-- **3422b. `Unit::think_carry_idle@005f2f30`: a boat with neither a worker, a type-`0x45` unit nor an attacker
-  aboard.** That is `think_carry`'s `+0x3e` `jmp`. No dump this item read holds such a boat. Every carrier on
+- ~~**3422b. `Unit::think_carry_idle@005f2f30`: a boat with neither a worker, a type-`0x45` unit nor an attacker
+  aboard.**~~ **Entered by run1066 on 793** (item 3446, §147): a who=1 General's barge. That is `think_carry`'s `+0x3e` `jmp`. No dump this item read holds such a boat. Every carrier on
   2174..2210 carries a worker. The predicate is written here so that a dump scan can name a lobby before anyone books
   a capture for it.
 
@@ -9391,13 +9392,17 @@ words and edits nothing here; a refill lands when two remain.
   capital stands in slot 10, but every slot already read `priority 1`. GROUPS §38's bit claim needs a slot emptied to
   0 first, which is a group filled and then emptied. Names no score.
 
-## Parked by the next landing, slot NF — reserved
+## Parked by item 3446, 2026-10-22 — the carrier's landing
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3446a. `Unit::land_plane@005e9950`'s carrier arm (`docs/ORDERS.md` §40.1, §42.3 row 1) is not read: the plane
+  never lands.** run1066 entered `UnitData::has_repeat_air@0046cec0` on 831. That is the carrier's own vslot-`0xf0`
+  ask in `Object::do_launch` before the strike's launch (a reading off the frame; the trace records no caller). The
+  plane `0/15` left the carrier on 861 with a `STRAFEORDER`, holds an `AIRPATROLORDER` from 1021, and is still out on
+  1300. Its `unit_masks` is 0 on every block 828..1300, so the landing's clear of `0x4000000` (or its set-arm `flags &=
+  ~4`) is on no dump. The take that would read it is the same staging run past the plane's fuel. Either a longer end
+  frame, or a `@flight 0 14 0 15` home after the strike, whose `MOVE_TO` to its own carrier lands it. **Score**: none on
+  `NEVER` (`has_repeat_air` is off). It is a value row for §40.1's carrier arm, and it is filed so a lane that reaches
+  for it knows the staging.
 
 ## Parked by item 3447, 2026-10-22 — the Nomad lobby
 

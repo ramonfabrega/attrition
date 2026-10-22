@@ -22175,6 +22175,45 @@ SHA-256 `2144faf431633dd42eeb6b81aaed7b7410315710d9aeb0247f56302944406f3f`.
 
 **What it holds**: the human's declaration of war through the window, refused, and run848's game on every block.
 
+## run1066 — the coverage pair: East Indies, Persians, All Technologies, the carrier staged at `cover=1` on the click-free pool to 1300 (2026-10-22, item 3446, `att-3446`)
+
+**What the disk could not answer**: no trace of any lobby enters `Unit::action_unqueue@005e1f20`,
+`UnitData::has_repeat_air@0046cec0`, `Unit::think_carry_idle@005f2f30` or `think_carry_military@005f3260`. No dump holds
+a unit with a queue of its own (`num_queued` is 0 in every unit record of every other gamelog in the archive, a `grep` of 2026-10-22), and every boat run1021 dumps carries a
+worker (parked 3422a, 3422b). Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1066`: `--map 18
+--end-frame 1300 --timeout 5400 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --log-window 594 1300 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --cmd-file
+tools/gamelog/coverage/carrier3446.cmd --cover cover=1`. The detail is run672's without its `GROUPS=1`, so `samegame.py`
+has a twin window. The staged `rontrace.cmd` is `37 !ffwd 1`, the file's fifteen lines, and `1300 !quit`.
+- **Two recons first, unfiled**: `~/ron-golden/recon3446-1` (to 620, the `add` lines alone, for the object ids) and
+  `recon3446-2` (to 1400, every line but the strike; it entered three of the four rows on the same frames as below).
+- Pool lane 1 (`~/wine-ron`). Launched 02:11:45, exited 02:53:48: **2,522.5 s launch to exit** (2,562.0 s in all), most
+  of it the 707 dumped blocks. `success`, lifecycle verified, 1,301 frames, `last_frame` 1300, not ended early, map
+  18, seed 12345, tribes 4 and 23, five settings files restored. DLL `203ee7ff…81d2`, `-DRON_AUTOSTART`, this tree's
+  `@unqueueunit` build. 218 GiB free before. Minutes waited on another lane: none.
+- **6,932 functions entered**. The four `NEVER` rows: `Unit::action_unqueue` (620), `think_carry_military` (770),
+  `think_carry_idle` (793), `UnitData::has_repeat_air` (831). Also `CommandManager::issue_unqueue@00942ce0`,
+  `CommandPackage::process_unqueue` (620) and `issue_flight`, `process_flight`, `Group::action_flight` (830).
+- **The values** (`docs/GOLDEN.md` §147's table):
+  - the carrier `0/14`'s `num_queued` 1 on 614, 2 on 616 and 1 on 622;
+  - leader 0's `air_queued` 2 → 1 on 622;
+  - barge `1/19` (the squad) and `1/20` (the General) take `MOVEORDER`s on 771 and 794;
+  - the plane `0/15` is out on 861 and does not land by 1300 (parked 3446a).
+- `rngcmp.py rontrace-run652.log rontrace-run1066.log` (the lobby's `cover=0` draw stream): **1,301 in common, 603
+  identical, 698 differing, the first 603**. Against `rontrace-run672.log`: 843 in common, 603 identical, the first 603.
+  The first unshared input is the 600 `resource` line.
+- `samegame.py gamelog-run672-… gamelog-run1066-… --from 600`: **240 in common (594..833), 233 differing, the first
+  601**, the same game on the 6 blocks before 600. Nothing parts the twin before the staging.
+- Filed with `filerun.py run1066 eastindies-persian-alltech-carrier-window-594-1300-cover1`. run1067, the brief's
+  second number, was not used.
+
+Archive `gamelog-run1066-eastindies-persian-alltech-carrier-window-594-1300-cover1.txt`, 1,337,945,920 bytes,
+SHA-256 `d13f6483af387b84af0d41534aeb3257126450dfca43aed430ba064f62cf2ec4`.
+
+Archive `rontrace-run1066.log`, 28,604,160 bytes,
+SHA-256 `e5bca9adb0f76fde465314f57c8d171fe700f385e85716c4b073752c49c0e434`.
+
+**What it holds**: `blind::TRACES`' run1066 (item 3446), `NEVER` 309 → 305.
 ## run1068 — the Nomad lobby at `cover=1` on the click-free pool, AI on, to 600 (2026-10-22, item 3447, `att-3447`)
 
 **What the disk could not answer**: no dump on disk has `STARTING_TOWN 0`, the Nomad start. The only `STARTING_TOWN`
