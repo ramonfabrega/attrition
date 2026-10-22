@@ -9863,13 +9863,27 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OD — reserved
+## Parked by item 3495, 2026-10-22 — a held Shift asks the group patrol's getter, never the plain one
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3495a) **`@hold <vk> <until-frame>` stays unbuilt: the row it was booked
+for is unreachable** (item 3495). `PatrolOrder::get_patrol_order@004843e0`
+is entered only by the `jmp` of its vtordisp thunk 0x48387c, whose one home
+is `PatrolOrder::vftable` (0xb48aec, slots +0x5c and +0xc8; `report.py <exe>
+refs`). No order is ever a `PatrolOrder` by its own type: its constructor
+`@00483720` is called only by `GroupPatrolOrder@00481fe0` and
+`AirPatrolOrder@004843f0`, each re-pointing the vptr at its own vftable, and
+neither the constructor nor `~PatrolOrder@004838f0` dispatches a virtual;
+`get_new_order@00730550` builds the two derived kinds alone. So
+`UnitOut::draw_orders@006075f0`'s +0x5c on chapter ten's patrol (a
+`GroupPatrolOrder`, `docs/GOLDEN.md` §18) is 0x482dac, a thunk to
+`lea eax, [ecx-0x5c]; ret` at 0x482dc0 (the export folds it under
+`FormOrder::get_form_order`), and on a plane's `AirPatrolOrder` 0x4843bc.
+Neither is cited, so a held-Shift take moves no `NEVER` row; the row went to
+`blind::RESIDUE` instead (open 68 → 67). The verb's design is 3442a's, and
+its scores are 3442a's: `WorldMap::on_right_up`'s ctrl/shift arms and a
+queued formation. The exe's `GetKeyState` IAT slot is VA 0xac53e8
+(`GetAsyncKeyState` 0xac53e0), read off the import table of the shipped
+image. **Score**: none until 3442a's rows are booked.
 
 ## Parked by item 3497, 2026-10-22 — the pool's defaults: the console mirror off and the cursor pinned
 

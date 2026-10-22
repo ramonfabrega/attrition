@@ -914,6 +914,17 @@ pub const RESIDUE: &[(u32, &str)] = &[
          (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
     ),
     (
+        0x0048_43e0,
+        "PatrolOrder::get_patrol_order: reached only through its vtordisp \
+         thunk's jmp (0048387c), whose one home is PatrolOrder::vftable \
+         (+0x5c, +0xc8), and no PatrolOrder is ever the object's own type: \
+         its constructor's two callers are GroupPatrolOrder@00481fe0 and \
+         AirPatrolOrder@004843f0, which re-point the vptr at vftables whose \
+         +0x5c is another thunk, and neither its constructor nor its \
+         destructor dispatches; a held-Shift draw_orders on a player's patrol \
+         asks GroupPatrolOrder's (item 3495)",
+    ),
+    (
         0x0048_5140,
         "GroupAttackOrder::log_data: reached only through its vtordisp thunk's \
          jmp, and nothing asks get_obj(GROUP_ATTACK), so no order list holds \
