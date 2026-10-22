@@ -3831,6 +3831,12 @@ Signposts/Mountains/TerrainVis/TerrainMap getters. Most are cited only by the 20
 208 → 93 and coverage items are booked against the 93. The scan's output is the commander's scratch, not on file. Score:
 `Blind:` open counts what a capture can enter. One reach.
 
+(3466) **A booking named a `CM` line the logger never writes** (3456's "for the Loop"): 3456 booked the ping's evidence as
+`COMMANDMANAGER=1`'s `process_ping` line, and that line goes to the SyncLogger's memory, never the gamelog (ARMY §26, struck);
+the take entered `action_ping` by trace alone. Candidate: a brief that cites a dumped field as a take's evidence names the
+writer that prints it (the `quiet field` rule, a booking's row of the brief checklist), so 3460's `CM process_declare` and
+3461's `CM process_halt` are checked before their captures. Score: a booked field a take can read. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
