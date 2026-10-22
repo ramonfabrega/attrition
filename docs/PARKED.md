@@ -9366,13 +9366,22 @@ words and edits nothing here; a refill lands when two remain.
   the pool's `--profile TEAM_STYLE=N` stages it, is not read. **Score**: `NEVER`'s `say_no_war` row, a new lobby with its
   own `cover=0` twin (two runs).
 
-## Parked by the next landing, slot NE — reserved
+## Parked by item 3445, 2026-10-22 — `hurry`, a rename and a save on the pool
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3445a. The queue lane refused Accessibility on 2026-10-22 at 00:56.** A handdriver scout (`viadriver.sh
+  runqueue.sh - 3445`, screenshots of Napata's card, its rename popup and the in-game Options window) stopped with
+  "Accessibility is off — a synthetic move did not land". The stanza was taken back out of `captures.txt`, and the
+  item's points were read from data and run1032's screenshot instead. The commander took the refusal to Ramon; the
+  remedy is a human's grant. Names no score.
+- **3445b. `process_leader_options` is not dated.** run1065 changes who=0's `peasants` from 0 to 3 (Idle) through
+  `OptionsWinGame::do_save` on 702, and the whole dumps show 0 on 700/701 and 3 on 712/713. `COMMANDMANAGER=1` prints
+  no `process_leader_options` line, so the frame the command lands on is between 702 and 712 and not known. `@dumpall`
+  on each frame 702–712 would date it; ORDERS §42.1 cites this row. Names no score.
+- **3445c. A filled hotkey group needs ctrl+digit, which is a `GetKeyState` pin.** Ctrl+digit is not a keymap action,
+  so `@key` cannot send it: the modifier is read through `GetKeyState` (parked 3442a). No trace on disk fills a hotkey
+  group from the human side. run1064's rename reached `HotKeyGroups::find_group@00714d00` without one, since the
+  capital stands in slot 10, but every slot already read `priority 1`. GROUPS §38's bit claim needs a slot emptied to
+  0 first, which is a group filled and then emptied. Names no score.
 
 ## Parked by the next landing, slot NF — reserved
 

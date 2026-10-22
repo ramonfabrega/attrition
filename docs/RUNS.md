@@ -21991,6 +21991,121 @@ SHA-256 `6ec40a85516b0513af06804b41993ecbc8f5e166b2d7590de522441d3cffbde1`.
 
 **What it holds**: the first human trade route on disk, `Group::action_trade` from 650 (parked 3443a).
 
+## run1063a — chapter seventy-four's own lines at `cover=1` on the click-free pool, its 701 `finish`, to 760 (2026-10-22, item 3445, `att-3445`)
+
+**What the disk could not answer**: whether chapter seventy-four's 701 `finish` enters `Console::hurry_action@007c3810`.
+No trace on disk carries chapter seventy-four at `cover=1`. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1063a --map 14 --end-frame 760 --cover cover=1 --no-ffwd`, run864's lines as the command file (`0 !ai
+off`, `600 age who=0 8`, `601 resource who=0 all +50000`, `640 @queueup 0 572 1 2005`, `700 select 2005 who=0`, `701
+finish`). Log window 600–760, detail `end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1`, `start:` and
+`misc:COMMANDMANAGER=1` as the receipt has them.
+- Pool lane 1. Launched 00:56:20, exited 00:59:57: **216.6 s launch to exit**. `success`, 761 frames, `MAP_STYLE 14`,
+  seed 12345, DLL `debc5e37`. One take. It was filed as `run1063-take1` first and renamed run1063a when run1063 took
+  `hurry`.
+- **6,491 functions entered**. Not `hurry_action`: `finish` is `run_cmd` case 0x4f, the job counter +500000 (GOLDEN
+  §94); only `hurry` is case 0x51 (`report.py <exe> refs 007c3810`: `run_cmd+0x52b8` and `exec_keymap`). `NEVER` row:
+  `BuildQueue::set_job_counter@00630ab0` on 701.
+- `rngcmp.py` against run864: **761 in common, 0 differing**. `samegame.py`: **161 in common (1..759), 0 differing**.
+- Filed with `filerun.py run1063a ch74-finish`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1063a-ch74-finish.txt`, 51,679,242 bytes,
+SHA-256 `aa45181ecdc591803d3d1dfc3f9e6d84187541684db6929af094e709ef794cc4`.
+
+Archive `rontrace-run1063a.log`, 17,005,312 bytes,
+SHA-256 `53fc9a43e1d02137e2578d097f458bf2626ef188aebcea4b786b87a72ea638af`.
+
+**What it holds**: run864's game at `cover=1`, frame for frame, and `set_job_counter` from the `finish` cheat.
+
+## run1063 — chapter seventy-four's lobby with 701 `hurry` in place of `finish`, to 960 (2026-10-22, item 3445, `att-3445`)
+
+**What the disk could not answer**: whether `hurry` enters `Console::hurry_action@007c3810`, and what it writes. run1063a
+showed `finish` does not. Through run1063a's line with `--end-frame 960` and `--cmd-file
+tools/gamelog/coverage/hurry3445-ch74.cmd`: run864's lines with `701 hurry`. Log window 600–960.
+- Pool lane 2. Launched 01:04:56, exited 01:10:22: **326.1 s launch to exit**. `success`, 961 frames, `MAP_STYLE 14`,
+  seed 12345, DLL `3994aab3`. One take.
+- **6,469 functions entered**, `hurry_action` on 701. `NEVER` row: `hurry_action`.
+- `rngcmp.py` against run864: **761 in common, 0 differing**. `samegame.py … --from 701`: **161 in common, 58
+  differing, the first 702**, and the same game before 701.
+- The value diff on 702 is one line in 13,797: the Library `0/2005`'s `job_counter`, **10000** against run864's
+  500000. The research completes on 701 in both. It agrees with `city.rs`'s `cheat_finish` (10000) and
+  `cheat_finish_all` (500000).
+- Filed with `filerun.py run1063 ch74-hurry`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1063-ch74-hurry.txt`, 102,882,765 bytes,
+SHA-256 `1781ba88f891b6d3bfbea49bce2746a87f324c313f231a43072a63fdc278e6de`.
+
+Archive `rontrace-run1063.log`, 9,840,416 bytes,
+SHA-256 `79c1236c4c207ea2e4b8919d075fe3f829b534d8bc0ae816ce56ea3b077693aa`.
+
+**What it holds**: `hurry_action` on a human's Library, and its 10000 against `finish`'s 500000 on 702.
+
+## run1065 — chapter seventy-four's lobby with Options saved mid-game, Auto Citizen set to Idle, to 960 (2026-10-22, item 3445, `att-3445`)
+
+**What the disk could not answer**: whether a mid-game Options save enters `OptionsWinGame::do_save@0082c520`, and
+what the leader-option record holds after it (ORDERS §42.1's falsifier). No trace on disk saves Options in a game.
+Through run1063's line with `--cmd-file tools/gamelog/coverage/save3445-ch74.cmd`: run864's lines to 640, `700
+@dumpall`, the Game Menu at `702 @click 1899 11`, then `@after` lines: Options (959, 455) at 3 s, Idle (602, 318) at
+9 s, OK (691, 768) at 11 s, Return to Game (959, 414) at 14 s; Escapes and a second Return from 20 s; `712
+@dumpall`. The Options points are read off `Data/optionswin.xml` (880×600, centred at (520, 240)); the menu points
+are run1032's driven screenshot.
+- Pool lane 1. The log opened at 01:05 and waited 17 minutes for a lane. Launched 01:22:13, exited 01:32:20:
+  **607.5 s launch to exit**. `success`, 961 frames, `MAP_STYLE 14`, seed 12345, DLL `83c497b0`. One take.
+- **6,749 functions entered**. On 702: `OptionsWinGame::do_save` and `OptionsWinGame::on_check_clicked`, under
+  `OptionsWin::on_button_clicked` and `OptionsWin::do_save@00829d30`, with `OptionsWinPlayer::do_save`. `NEVER` row:
+  `OptionsWinGame::do_save`.
+- who=0's `peasants` is 0 in the whole dumps on 700/701 and 3 (Idle) on 712/713; `peasants_wait` is 2 throughout.
+  `COMMANDMANAGER=1` prints no `process_leader_options` line, so the command's frame is not dated (parked 3445b).
+- The game resumed by 707: the Return line ran there and hit the map. The Escapes ran at 712.
+- `rngcmp.py` against run864: **761 in common, 0 differing**. `samegame.py … --from 700`: **161 in common, 60
+  differing, the first 700** (the `@dumpall` block, and run864's `select` at 700), and the same game before 700.
+- The save wrote lane 1's profile, `~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/PlayerProfile/Player.dat`
+  (`lanes.sh:55`). The receipt says `settings_restored: true`, `restored_files: 5`; `verify_restored` compares each
+  restored file to its backup byte for byte.
+- Filed with `filerun.py run1065 ch74-save-options`. Minutes waited on another lane: 17.
+
+Archive `gamelog-run1065-ch74-save-options.txt`, 224,922,172 bytes,
+SHA-256 `d436f4d146f4eb696a9efab099afc68f9ac13abf4710c36f123c0d0311f88199`.
+
+Archive `rontrace-run1065.log`, 15,394,272 bytes,
+SHA-256 `ca60b96a8aff639fcee299aef97c7eb9e2de85468c6af74a775d79a2a33c3544`.
+
+**What it holds**: the first mid-game Options save on disk, and the leader-option record either side of it.
+
+## run1064 — chapter seventy-four's lobby with Napata renamed through its card on 706, to 960 (2026-10-22, item 3445, `att-3445`)
+
+**What the disk could not answer**: whether a city rename enters `HotKeyGroups::find_group@00714d00` (GROUPS §38), and
+what it writes to `HOTKEYGROUPS`. No trace on disk renames a city. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1064 --map 14 --end-frame 960 --log-window 600 960 --timeout 1500 --detail
+end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail
+misc:COMMANDMANAGER=1 --cover cover=1 --no-ffwd --cmd-file tools/gamelog/coverage/rename3445-ch74.cmd`: run864's lines
+to 640, `700 select 2000 who=0`, `705 @dumpall`, then on 706 the card's rename cell (`@click 222 935`, cell (3,0) on
+3443's geometry), the letters of `Kerma` as `@key` + `@char` pairs and Return as `@key 13` + `@char 13`, with an
+`@after 8000` Escape behind it, and `708 @dumpall`.
+- **Take 1** (`~/ron-golden/run1064-take1`, lane 3) sent `@key 13` alone. The popup opened (`Options::exec`,
+  `BasePop::edit`, `EditBox::set_text` on 706) and took the letters, but Return never closed it: a key-down stops in
+  `EditBox::on_key_click`, and the default button is reached only through `Window::on_char@00a54ec0`'s
+  `key_click_event(ch, latest_virtual)`. The game held on 707 and the take timed out at 2400 s. Not filed.
+- **Take 2**: pool lane 1. Launched 01:48:44, exited 01:58:11: **566.5 s launch to exit**. `success`, 961 frames,
+  `MAP_STYLE 14`, seed 12345, DLL `5bd49a87`.
+- **6,686 functions entered**. On 706: `Popup::on_key_click`, `CommandManager::issue_rename_city`,
+  `CommandPackage::process_rename_city` and `find_group`, with `Popup::on_modal_end` and `BasePop::on_modal_end`.
+  `NEVER` rows: `process_rename_city` and `find_group`. The city reads `Kerma` from 708. `COMMANDMANAGER=1` prints no
+  `process_rename_city` line.
+- `HOTKEYGROUPS`, 162 slots, 705 against 708: one field moves. Slot 10 of who=0 (`num 1`, `list[scan] 2000`) goes
+  from `stamp 0` to `stamp 707`. Every slot reads `priority 1` on both, so the bit claim is untested (GROUPS §38).
+  run1065's dump has the capital in slot 10 too, with no selection.
+- `rngcmp.py` against run864: **761 in common, 0 differing**. `samegame.py … --from 700`: **161 in common (1..759), 58
+  differing, the first 702**, and the same game before 700.
+- Filed with `filerun.py run1064 ch74-rename`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1064-ch74-rename.txt`, 224,922,589 bytes,
+SHA-256 `aa3b48de0b3b7284ff4d4c1af604a504f1bfb79c4868202b58a2211197f48a1e`.
+
+Archive `rontrace-run1064.log`, 14,178,848 bytes,
+SHA-256 `148a6865b8a68c034af73d4172dcef340479b5a31312fe8a3e47ec30bad91dba`.
+
+**What it holds**: the first city rename on disk, and `find_group`'s stamp on the capital's standing slot.
 ## run1061 — chapter nine's lobby with a plain right-click on the minimap, `@rclick` at `cover=1` on the click-free pool, to 800 (2026-10-22, item 3444, `att-3444`)
 
 **What the disk could not answer**: no trace enters `WorldMap::on_right_up@008c7050`, the minimap's right-click
