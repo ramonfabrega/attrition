@@ -9332,13 +9332,17 @@ is an oracle-agreed module the live sim does not call.
   checks, and `every_unreferenced_row_is_unreferenced_in_the_image` must accept `think_supply`'s RVA-shaped operand,
   which the scan prints as "pointer only". It moves `open` by two and `never` by none.
 
-## Parked by the next landing, slot MV — reserved
+## Parked by item 3464, 2026-10-22 — two console reports
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3464a. A `!` line cannot aim the cursor-reading commands, and `@cursor` does not change that.** The tracer calls
+  `ConsoleWin::parse_cmd@007d6470` with `no_mouse = 1` (`tools/trace/tracer.c`, the line loop). `parse_cmd` refreshes
+  `mouse_coord_x/y` through `TerrainOut::get_mouse_coords` only when `no_mouse` is 0, so `!cursor` and `!region`
+  read the field's stale value whatever `@cursor` pins. On run1084, `!cursor tinfo` passed `WorldData::valid` and
+  entered `World::get_wdata` on 600. Which cell it read is not dumped; the cell does not matter to the entry, and
+  run169's packet measured the field at (0, 6) (item 652). Note also that `!cursor`'s other keyword arms write the
+  world: two `loc_str_array_orig` keywords (+0x44d4, +0x44e8) reach `World::set_road_at` and `RoadsPieces::find_map`,
+  and `clifftest` reaches `Cliffs::place_cliff`. A take that wants those arms is a sim change, not a report. Names no
+  score.
 
 ## Parked by item 3422, 2026-10-21 — the boat's two other arms
 
