@@ -3774,6 +3774,14 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3488) **Every pool lane's `rise2.ini` sets `StartReveal=1`, and no repo tool writes it** (3481's "for the Loop"; parked
+3481a): lane 1's `~/ron-data/AppData/…/rise2.ini`, lanes 2–3's `~/ron-capture-lane-N/AppData`, every `settings-backup` back to
+ch19. `Game::solo_checks@00588110` ORs it into `gamec->semaphore` bit 1 on every take, so each of the 67 functions that test
+`semaphore & 0x42` takes its revealed arm and every draw-side `is_seen` behind them is skipped on every pool capture — 3472
+booked a herd on that and entered nothing; 3481's `5405 reveal 0` entered `AnimalData::is_seen` and moved no draw. Candidate:
+the runner writes the setting it means (a staged `StartReveal` per take, the default stated and tested), and the 67 are
+scanned for open blind rows behind the test, each a `reveal 0` line. Score: `Blind:` open, what a pool take can enter. One reach.
+
 (3487) **`poolshot.py <run>` waits on a gamelog the pool never writes there** (3479's "for the Loop"): it resolves
 `~/ron-golden/<run>` and waits on its `gamelog.txt`, but a pool take writes under `map-<N>/`; recon3479-1 lost all three
 photographs to that, a 30-minute wait. Candidate: the tool takes the one `map-*` directory as `filerun.py` does, with a test.
