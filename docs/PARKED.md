@@ -3774,6 +3774,11 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3499) **The commander and the steer messaged each other live** (Ramon, 2026-10-22, for the next steer to discuss): "you and
+steer were messaging each other... that is not allowed... e.g. you revived a dead cached conversation with 300k tokens for a status
+message you are never supposed to send. you do not communicate 'live' with steer. file it and next steer we will discuss and not
+launch commander instantly". One reach: the pass's.
+
 (3498) **Pool lane 1 stalls about 0.9 s every 32 frames in AI-on lobbies, whatever the pref** (parked 3484b; the steer):
 run1105b/1106b (3484's swapped scratch, unfiled) cost a take 9–30 s. Candidate: a lane names its cause in an hour (a `sample` of
 the game's threads across one stall, beside the AI's 32-frame cadence) or it stays the pass's. Score: the pool's frames a second.
@@ -9840,13 +9845,28 @@ archive. Score: none. One reach.
   removed, so nothing was diffed. Killed by: keeping both saves of a pair and finding the difference outside the
   walked state (a header string, a time stamp).
 
-## Parked by the next landing, slot OB — reserved
+## Parked by item 3493, 2026-10-22 — the diagonal-transition sweep
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3493a) **No concrete map style enters `TerrainOut::check_for_diagonal`.** Twelve `--map N --end-frame 36` takes at
+`cover=1`, run1117–1128, cover styles 6, 10, 11, 12, 13, 15, 16, 17, 19, 20, 22 and 9 (Himalayas, which the booking's list
+left out). With 3480's five (7, 8, 14, 18, 21), that is every concrete style; 0–5 are the random pickers. Each take is
+lane 1, about 21–26 s in all, seed 12345, two players at the runner's default size. Each enters
+`create_transition_renderables@00862c60` on −1 and never the arm, and none of the twelve enters a `NEVER` row
+(`WorldData::is_valid@00471170` stays on it). The predicate is 3480a's, re-read on the decompile
+(`create_transition_renderables@00862c60.c:85-95`, `local_20 == 0` after the three `check_*` passes), and
+`create_transition_renderables` is `check_for_diagonal`'s only caller in the export. So at the start of a game, the
+map generator never lists a cell whose shift-6 word all three passes empty. Two routes are left, both untried, and both
+cost more than a take:
+- a lobby off the runner's default: another map size, more players, or another seed;
+- a mid-game rebuild that lists such a cell. `create_transition_renderables` has three callers in the export:
+  `Terrain::init`, `spot_update_land` and `spot_update_land_batch`. The last two are also callers of
+  `mark_trans_flags@008625a0`, which writes the list at `+0x6700`. `Terrain::object_placed@00850c40` reaches
+  `spot_update_land` and is entered on −1 (run1115, the start's buildings). Every `cover=1` trace that later places a
+  building has gone through that rebuild and still never entered the arm. So the rebuild route needs a placement
+  that leaves a corner-only contact, and which placement does is not read. The other callers of `spot_update_land`
+  are `convert_beach_to_sandy` and `check_and_set_halfland_wcoord`.
+
+Names no score until a reading names a lobby or a placement: one reach.
 
 ## Parked by the next landing, slot OC — reserved
 

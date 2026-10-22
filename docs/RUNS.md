@@ -23654,3 +23654,190 @@ SHA-256 `7eded39592be59814a2960041a8994d9cc857edbd35f95e25b14cebae07730d4`.
 
 Archive `rontrace-run1116.log`, 11,617,376 bytes,
 SHA-256 `7c2265cf19d2d0587a0b7433945ec3b339ba46b84cf55f4f17498e70ff5cabba`.
+
+## run1117 — Old World (style 6) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+**What the disk could not answer**: which map style, if any, has a listed transition cell with no shift-6 edge left
+after `check_fills` (parked 3480a). Styles 7, 14, 18, 21 and 8 were spent. This is the sweep of the eleven styles left in
+the booking. A mid-game `mapgen` faults (3480b), so each take is its own launch. `tools/gamelog/coverage/diagonal3493-sweep.cmd`
+(`0 !ai off`), launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1117 --map 6 --end-frame 36
+--timeout 900 --detail end:LEADERS=2,BUILDS=7,CITIES=5,UNITS=3 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --cmd-file
+tools/gamelog/coverage/diagonal3493-sweep.cmd --cover cover=1 --cursor 1400,1000 --console-log 0`. Runs 1118–1128 are this
+line with their own run and `--map`. 207 GiB free before.
+- Pool lane 1. Launched 17:24:51, exited 17:25:05: **23.4 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 6, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1117 oldworld-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1117-oldworld-cover1-clickfree-diagonal.txt`, 11,890,492 bytes,
+SHA-256 `3aff5c6d35a17e024eda85160c35def3aac07bb87f6760a33afdc8531c1c6294`.
+
+Archive `rontrace-run1117.log`, 8,878,336 bytes,
+SHA-256 `a93e84551a6816fb48039ce9a3d2cb7f0c7affdb418d86e59a77334102360fc0`.
+
+## run1118 — Southwest Mesa (style 10) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 10`.
+- Pool lane 1. Launched 17:25:30, exited 17:25:46: **23.4 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 10, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1118 southwestmesa-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1118-southwestmesa-cover1-clickfree-diagonal.txt`, 12,122,265 bytes,
+SHA-256 `c2099f9c7569f74338bbd7d1a9a23251fa46d01b6065a828da88933ad4f46a1d`.
+
+Archive `rontrace-run1118.log`, 8,704,064 bytes,
+SHA-256 `30c10445cdee2371013d9381d7bd723592d06cb1792d66f217e01e390627858f`.
+
+## run1119 — African Watering Hole (style 11) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 11`.
+- Pool lane 1. Launched 17:26:10, exited 17:26:23: **20.7 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 11, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1119 africanwateringhole-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1119-africanwateringhole-cover1-clickfree-diagonal.txt`, 12,426,300 bytes,
+SHA-256 `23fa5e6c49042d37f681360f1aeb5190f2af79e2f2516280f34eb53d3a961a6b`.
+
+Archive `rontrace-run1119.log`, 8,445,024 bytes,
+SHA-256 `4a6a25d208e5df482f0de8c8b3be018e91e4df724e75ccbcc9e5c0834cbd9771`.
+
+## run1120 — Mediterranean (style 12) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 12`.
+- Pool lane 1. Launched 17:26:54, exited 17:27:09: **25.8 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 12, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1120 mediterranean-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1120-mediterranean-cover1-clickfree-diagonal.txt`, 15,081,431 bytes,
+SHA-256 `ec300703f299fd45f040d608bb0a23d0b72ebaae6cdb09c9ff4771b6fc5cd927`.
+
+Archive `rontrace-run1120.log`, 8,872,224 bytes,
+SHA-256 `4f05661200a5f4e6ccac400dc54ab9c21b4f37c9740d95e85865a42ead6f6be3`.
+
+## run1121 — Australian Outback (style 13) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 13`.
+- Pool lane 1. Launched 17:27:31, exited 17:27:47: **23.1 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 13, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1121 australianoutback-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1121-australianoutback-cover1-clickfree-diagonal.txt`, 14,337,900 bytes,
+SHA-256 `1bd89cb04f91089a44238065040cb30cab0790f77404a2bd538d74d9a26c0915`.
+
+Archive `rontrace-run1121.log`, 8,990,144 bytes,
+SHA-256 `6ff21e38cdc4421c01d9225d0b3a4cbcec87de64b6863ed7fddd7004e3c9fcf9`.
+
+## run1122 — Warring States (style 15) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 15`.
+- Pool lane 1. Launched 17:28:12, exited 17:28:27: **23.4 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 15, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1122 warringstates-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1122-warringstates-cover1-clickfree-diagonal.txt`, 14,818,115 bytes,
+SHA-256 `48009be1be786749e5479a1d7c3c3d8a6b144b0478a488df36b3943f6acce743`.
+
+Archive `rontrace-run1122.log`, 8,951,776 bytes,
+SHA-256 `e5d8462fe34c7308ba88ea5af09586c7909cb25486202af442913075f8f4496a`.
+
+## run1123 — New World (style 16) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 16`.
+- Pool lane 1. Launched 17:28:52, exited 17:29:06: **21.3 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 16, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1123 newworld-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1123-newworld-cover1-clickfree-diagonal.txt`, 17,270,344 bytes,
+SHA-256 `f6c6a9551ef64fc29ef2235fa03e528c94465bee67a4385396d5185eda510041`.
+
+Archive `rontrace-run1123.log`, 13,521,888 bytes,
+SHA-256 `1d29bc5b691b88a376b18a19c111fb9245f098e5334cd0458d52d139af06d39f`.
+
+## run1124 — Colonial Powers (style 17) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 17`.
+- Pool lane 1. Launched 17:29:33, exited 17:29:45: **20.7 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 17, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1124 colonialpowers-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1124-colonialpowers-cover1-clickfree-diagonal.txt`, 14,100,442 bytes,
+SHA-256 `2a8dfc8d5d832321db2eaf8785b013b55253c4f970d8685dbc336b82634a51bf`.
+
+Archive `rontrace-run1124.log`, 8,753,056 bytes,
+SHA-256 `179db1cd3570ac75ae0ff86a7128fbd36f88fc95ba83ac554cb21fed35c59de8`.
+
+## run1125 — East Meets West (style 19) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 19`.
+- Pool lane 1. Launched 17:30:13, exited 17:30:28: **23.2 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 19, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1125 eastmeetswest-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1125-eastmeetswest-cover1-clickfree-diagonal.txt`, 15,116,938 bytes,
+SHA-256 `c675338432b0aea4ba65f6ecfd68063704586c9b6cc96d837239ca50fa8b1abc`.
+
+Archive `rontrace-run1125.log`, 8,720,000 bytes,
+SHA-256 `61d1593706c6d1adf493c9e2962dbc36d7b576ed08f56c5229fcbea168881517`.
+
+## run1126 — Atlantic Sea Power (style 20) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 20`.
+- Pool lane 1. Launched 17:30:53, exited 17:31:06: **20.4 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 20, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1126 atlanticseapower-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1126-atlanticseapower-cover1-clickfree-diagonal.txt`, 14,997,188 bytes,
+SHA-256 `fbb105888e1f8e0d8dd3a14a7c706cdce79817ab84aa4c5ff8e0c4fbbc668c78`.
+
+Archive `rontrace-run1126.log`, 8,662,752 bytes,
+SHA-256 `245a5811610e1d2cc20fb66884d963346518f2e61ccfd0c1a2dc46f252d4d593`.
+
+## run1127 — British Isles (style 22) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 22`.
+- Pool lane 1. Launched 17:31:34, exited 17:31:50: **23.6 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 22, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1127 britishisles-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1127-britishisles-cover1-clickfree-diagonal.txt`, 15,512,149 bytes,
+SHA-256 `2da16bbc1289a80faf4222b17581b4609c5984b829287302538ec07a399d6600`.
+
+Archive `rontrace-run1127.log`, 9,108,160 bytes,
+SHA-256 `435ed90aeb0c4836ad07f0744339006f0fd60fb98ab7c04ed6e6b98010cccfbe`.
+
+## run1128 — Himalayas (style 9) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3493, `att-3493`)
+
+run1117's line, at `--map 9`. Himalayas is not in the booking's list. It is the one concrete style (styles 0–5 are random pickers) that no take had used, so it took the twin's reserved run, because nothing was owed a twin.
+- Pool lane 1. Launched 17:32:59, exited 17:33:15: **24.2 s** in all. `success`, lifecycle verified,
+  `map_verified`, map style 9, 37 frames, `last_frame` 36, seed 12345. The receipt's `console_log` is 0, and `staged.cursor` is
+  `1400,1000`. Minutes waited on another lane: none.
+- 00a70db0 f-1     __unwindfunclet$?rethrow_exception@std@@YAXVexception_ptr@1@@Z$0. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and `is_valid@00471170` are not**,
+  and no `NEVER` row is entered. Filed with `filerun.py run1128 himalayas-cover1-clickfree-diagonal`. No twin was taken, and nothing is pinned.
+
+Archive `gamelog-run1128-himalayas-cover1-clickfree-diagonal.txt`, 12,184,122 bytes,
+SHA-256 `f402fce12de492aaebadd8dfeb98e43753a4347139783796b15b32239f020422`.
+
+Archive `rontrace-run1128.log`, 11,209,952 bytes,
+SHA-256 `ed24cfda1d842d6141ac807253b7fd29727b1b497e85b4d52f077cb417413ac9`.

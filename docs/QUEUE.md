@@ -12,7 +12,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-first tranche (commander, Opus): ten of twenty landed from `a17dfdb6`** on two Opus lanes on the pool;
+*2026-10-22, **the fifty-first tranche (commander, Opus): eleven of twenty landed from `a17dfdb6`** on two Opus lanes on the pool;
 the steer's three decisions in (3484–3486), the queue lane retired (3485), the console mirror measured ~40× and flipped by 3497.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
@@ -20,9 +20,9 @@ the steer's three decisions in (3484–3486), the queue lane retired (3485), the
 - **Amended with Ramon** (DECISIONS 89): the queue lane retired (3485; 1570 closed — a need for it again is a steer); after this tranche the
   headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); 3484 measured the mirror's flip safe; 3497 flips it.
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
-- **Lanes: two live** (3493, 3497); two booked (3494, 3495). Next 3499, run 1134. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
-  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c.
-- **Fable backlog: 19 Loop items** (3498, 3496, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
+- **Lanes: two live** (3494, 3497); one booked (3495). Next 3499, run 1134. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
+  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c, 3493a.
+- **Fable backlog: 20 Loop items** (3499, 3498, 3496, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -40,8 +40,8 @@ Blind: never 250 · residue 182 · open 68
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3493 and 3497 live on the two Opus lanes
-(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order (3494, 3495), then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
+**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3494 and 3497 live on the two Opus lanes
+(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill with 3495, then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
 
@@ -58,13 +58,6 @@ the receipt's `staged` records both, so a take that opts out is visible. The jou
 `schema()`) to say it ignores those lines, or widens it; `docs/ORACLE.md`'s runbook gains one line (a dumped frame 2.7–3.3 s → 0.06–0.09 s,
 run1103–1108, 3484). No game is run beyond one smoke take on the golden start (Great Lakes, map 14, run1084's line) if a test cannot
 show the receipt. One commit; the gate whole (`release_gate.py`, no `--tests`). Run 1133; park OE.
-
-3493. **coverage: the diagonal-transition sweep** (parked 3480a's candidate; D5): one `--map N --end-frame 36` take at `cover=1` a style
-no capture has used — N in {6, 10, 11, 12, 13, 15, 16, 17, 19, 20, 22}, ~50 s each; Great Lakes (14; run350 spans its 0..251), 7, 18, 21 and 8 are spent — stopping at
-the first that enters `TerrainOut::check_for_diagonal` and through it `WorldData::is_valid@00471170` (a listed cell whose
-shift-6 edge word is 0 after `check_fills`: a corner-only contact); that style then gets its twin. Cheaper first if the lab is free:
-a `RON_STATE_FRAME=0` packet counting such cells (edge arrays `+0x499c`/`+0x49a0`, list `+0x6700`) names the style before any take.
-A mid-game `!mapgen` faults (3480b), so each take is a launch. Runs 1117–1128; park OB.
 
 3494. **coverage: a resource counter's tooltip** (parked 3463a's hook; D4): the golden start (Great Lakes, map 14) at `cover=1` with a
 twin, `--no-ffwd --end-frame 640`, `600 @cursor 70 33` (run1082's food counter) and a new opt-in tracer hook that re-asserts the pinned
