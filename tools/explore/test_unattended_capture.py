@@ -196,6 +196,34 @@ class RunnerTest(unittest.TestCase):
             with self.assertRaises(ValueError):runner.set_ai_tribe(profile,10)
             self.assertEqual(path.read_bytes(),bad)
 
+    def test_a_bound_key_is_written_into_the_empty_keys_and_nothing_else(self):
+        # Item 3442: `--bindkey` writes bindkey.py's element into the lane's
+        # staged profile; anything but one empty <KEYS/> or a known action is
+        # refused before a byte is written.
+        install=self.root/'install';(install/'data').mkdir(parents=True)
+        (install/'data'/'playerprofile.xml').write_text(
+            '<KEY enum="FORM_E_RIGHT" dependent="0"></KEY><KEY enum="OPTION_FORM"></KEY>')
+        profile=self.root/'profile';(profile/'PlayerProfile').mkdir(parents=True)
+        path=profile/'PlayerProfile'/'Player.dat'
+        original=b'<ROOT><MAP_STYLE value="14"/><KEYS/></ROOT>'
+        path.write_bytes(original)
+        runner.bind_keys(profile,install,['FORM_E_RIGHT=120','OPTION_FORM=122'])
+        self.assertEqual(path.read_bytes(),
+            b'<ROOT><MAP_STYLE value="14"/><KEYS>'
+            b'<KEY enum="FORM_E_RIGHT" dependent="-1"><INPUT key="120" mouse="0" ctrl="0" shift="0" alt="0"/></KEY>'
+            b'<KEY enum="OPTION_FORM" dependent="-1"><INPUT key="122" mouse="0" ctrl="0" shift="0" alt="0"/></KEY>'
+            b'</KEYS></ROOT>')
+        for bad,pairs in ((original.replace(b'<KEYS/>',b'<KEYS></KEYS>'),['FORM_E_RIGHT=120']),
+                          (original,['FORM_E_LEFT=120']),
+                          (original,['FORM_E_RIGHT=120','FORM_E_RIGHT=121']),
+                          (original,['FORM_E_RIGHT=0'])):
+            path.write_bytes(bad)
+            with self.assertRaises(ValueError):runner.bind_keys(profile,install,pairs)
+            self.assertEqual(path.read_bytes(),bad)
+        path.write_bytes(original)
+        runner.bind_keys(profile,install,[])
+        self.assertEqual(path.read_bytes(),original)
+
     def test_nation_receipt_reads_players_instead_of_trusting_the_profile(self):
         log=self.root/'game.log'
         good=('  BEGIN PLAYER\n   flags 7\n   tribe 4\n   who 0\n  Player\n'

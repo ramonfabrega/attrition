@@ -202,6 +202,7 @@ enum {
     I_STRIDE = 19, /* `stride=N` took the engine's log window: a = N, b = lo, c = hi */
     I_CLICK = 20, /* an `@click`, `@rclick` or `@cursor` line (`click.h`) */
     I_PIN = 21, /* the cursor pin installed or refused (`click.h`) */
+    I_KEY = 22, /* an `@key` or `@char` line (`key.h`) */
 };
 
 typedef struct {
@@ -622,6 +623,10 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *   `@cursor <x> <y>`                     client point, through the game's own
  *                                         handlers, the cursor pinned (item
  *                                         3437, `click.h`)
+ *   `@key <vk>`, `@char <c>`              not an issuer: a key pressed and
+ *                                         released, or its `WM_CHAR`,
+ *                                         through the game's own handler
+ *                                         (item 3442, `key.h`)
  *
  * calls `CommandManager::issue_move_to@00941720(&command_manager, group, x,
  * y, QUEUE_NEW 2, set_angle 0, angle 0, MOVE_TO 1, form -1, width -1,
@@ -915,6 +920,7 @@ static int issue_verb(const u16 **t, const char *verb) {
 
 void *memcpy(void *d, const void *s, unsigned n);
 #include "click.h"
+#include "key.h"
 
 /* `@sell`/`@buy`: a leader's market command, no group (item 3426). The
  * issuer's first eleven bytes are `mov eax, [gamec]; push esi; mov esi,
@@ -972,6 +978,8 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     if (issue_verb(&t, "click ")) { click_line(frame, idx, t, 1); return; }
     if (issue_verb(&t, "rclick ")) { click_line(frame, idx, t, 2); return; }
     if (issue_verb(&t, "cursor ")) { click_line(frame, idx, t, 0); return; }
+    if (issue_verb(&t, "key ")) { key_line(frame, idx, t, 0); return; }
+    if (issue_verb(&t, "char ")) { key_line(frame, idx, t, 1); return; }
     if (issue_verb(&t, "sell ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_SELL, before, pkg_size); return; }
     if (issue_verb(&t, "buy ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_BUY, before, pkg_size); return; }
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5

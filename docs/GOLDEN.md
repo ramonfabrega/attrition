@@ -13608,7 +13608,7 @@ calls the wrapper with the `GroupOut` the tracer already builds. That checks the
 | ~~`GroupOut::issue_attack@0070b060`~~ | `CM` `process_attack`; `U3` `ATTACKORDER` | §23, chapter fifteen | ~~`rclick` `0/6 0/9` on `1/6`, 734~~ entered by run1044 on 736 (item 3436): `process_attack 6 1 0 2 737`; a right-click on 714, while `1/6` was out of sight, was a move ("you can't really see this target! Moving instead") |
 | ~~`GroupOut::issue_buildmask@00708820`, `Options::set_air_repeat@0071c740`~~ | `CM` `process_buildmask`; `BUILDS` mask `0x80` | §32, chapter twenty-three | ~~repeat button on `0/2007`, 1440~~ entered by run1048 on 788 (item 3436): `process_buildmask 789`, `build_masks` 4232 → 4104 |
 | ~~`BuildOut::issue_unqueue@00629e70`~~ | `CM` `process_unqueue`; `BUILDS=6` queue | §34, chapter twenty-five | ~~cancel (option `0xa6`) on the queued Hoplite~~ entered by run1049 on 876 (item 3436): a click on the Hoplite in training, `process_unqueue 2007 0 877` |
-| `Options::do_rotate@0071dfd0`, `do_formation@007215b0` | `CM` `process_form`; `GROUPS` `form` | §22, chapter fourteen | `bindkey.py` letter by `osascript` (run52's recipe) |
+| ~~`Options::do_rotate@0071dfd0`, `do_formation@007215b0`~~ | `CM` `process_form`; `GROUPS` `form` | §22, chapter fourteen | ~~`bindkey.py` letter by `osascript` (run52's recipe)~~ entered by run1057 on 740 and 860 (item 3442, §146): three bound keys as `@key` lines, `process_form 3 741`, `-1 801`, `-2 … 861`; group 0's `form` 3 on 742, 4 on 802 |
 | ~~`Options::do_spell@0071d7a0`~~ | `CM` `process_spell`; `U3` Militia | §48, chapter thirty-nine | ~~To Arms button on the Citizen, 625~~ entered by run1058 on 624 (item 3443): a click on 620 hit an empty cell (`UnitOut::make_options`, which adds the spells, first on 621), and the press on 624 is To Arms' `grid_x` 4 on row 1. `process_spell 660 0 0 625`, `0/6` a Militia with `rare 50`, `form 0` on 630, run422's four frames later |
 | `WorldMap::on_right_up@008c7050` | `CM` `process_move_to` form/width; `U3` | §17, chapter nine (+ §42 for :240) | minimap `rclick` plain, ctrl, shift (needs a minimap → tile fit) |
 | ~~`CommandManager::issue_trade@00941960`~~ | `CM` `process_trade`; `U3` `TRADEORDER` | §11, chapter seven + a human Caravan, two cities | ~~`rclick` the Caravan on the second city~~ entered by run1060 on 650 (item 3443), with `Group::action_trade@00701cc0`: a Small City at (40, 160) on 640, `process_trade 2007 0 -1 -1 2 651`, `0/7`'s `TRADEORDER` (`ox 2007`, `oxx 2000`) on 652 |
@@ -13702,12 +13702,83 @@ and nothing in the image references either (`what_only_the_dll_enters_is_off_the
 lines and the order or exit on the following block, each read off the dump. What is reading-only: the issuers' argument
 semantics beyond what those blocks print. And the walk does not yet act on either line (3425a).
 
-## 146. Reserved for the next item on the rules track
+## 146. The pool's keystroke: `@key`, and chapter fourteen's formation keys (item 3442)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**Result: parity on every row the item names, and better than run52's.** The tracer's `@key <vk>` line sends a key
+from inside the game's process: no macOS keyboard, focus or TCC grant. Three keys bound in the lane's staged profile
+reached their actions in chapter fourteen's lobby (run1057, `docs/RUNS.md`):
+
+- `Options::do_formation@007215b0` on 740 (FORM_E_RIGHT);
+- `GroupData::get_form_option@0070beb0` on 800 (OPTION_FORM's "next", form −1);
+- `Options::do_rotate@0071dfd0` on 860 (OPTION_RIGHT).
+
+`CM` prints `process_form 3 741`, `-1 801` and `-2 … 861`. `GROUPS` puts the formation in group 0's `form` on the
+frame after: 3 on 742, 4 on 802. run52's keystroke never reached its action (the chat box opened), so this is the
+first capture of a bound key taken as itself. Four rows leave `NEVER`, 319 → 315 on the tree merged with 3438 (`get_unit@0070cc90` with
+`do_rotate`).
+
+**The reading** (the decompile export, `d3dgl.dll`'s listing, the PDB's `keymap_options` and `KeyMapType`).
+
+- **The window procedure** is `d3dgl`'s, as for the mouse (§144.3, `tools/trace/click.h`).
+  - `WM_KEYDOWN` reaches 0x10012750, which folds the numpad digits onto '0'–'9' and the numpad's decimal point onto the period. It calls
+    `Window::message_handler`'s slot +0xc, `SysMessageHandler::OnKey@00549450(vk, 1)`.
+  - `WM_KEYUP` calls the same slot with 0.
+  - `WM_CHAR` calls +0x10, `OnChar@00549510(ch & 0xffff)`.
+- **`OnKey`** ORs the modifiers in itself from `GetKeyState`: shift 0x10000, ctrl 0x20000, alt 0x40000. It passes the
+  key to `Window::get_key_window@00a4f5b0`'s window at vslot +0x3ec (`Window::on_key@00a54ef0` → `key_down_event`).
+- **In a game, the chain runs on:** `Console::on_key_down@007cc210` → `KeyMap::lookup@007d4780(options, options->mode,
+  key, 0)` → `Console::exec_keymap@007c2ce0` → `Options::exec(keymap_options[k][0], [k][1])`.
+- **Two branches skip the lookup's answer.** F1–F8 (0x70–0x77) are `on_key_down`'s player-view keys. Any other key the
+  lookup misses still reaches `exec_keymap(KEYMAP_NONE)`, which does nothing.
+- **The formation rows.** `keymap_options` (`.rdata` 0x6e5f70, 461 rows of two shorts) maps FORM_LINE through
+  FORM_E_LEFT (171–175) to option `0x13` with forms 0–4. OPTION_FORM (170) maps to `0x13` with −1, and
+  OPTION_LEFT/RIGHT (167, 168) to `0x15`/`0x16`, `do_rotate`.
+- **Where the arms are.** Option `0x14`, `do_formation(−3)` ("the previous one"), has no key (parked 3442c).
+  `get_form_option` is `Group::action_form@00707220`'s, for −1 and −3, so it runs on `process_form`'s frame, never the
+  key's.
+- **The FORM entries are gated on a selection.** `KeyMap::lookup` returns them only with a selected, non-building group
+  (the entry's selection test −3). So a key needs a selection first, and run1057 makes it with chapter thirteen's
+  console `select`.
+- **The executable's other key reads.**
+  - `GetKeyState(0x10/0x11/0x12)` in `OnKey`, `Options::exec`, `do_formation` and `do_rotate`;
+  - `GetAsyncKeyState` behind `ron::GetKeyStateAsync` (scrolling, `map_click`, the editor).
+
+  A modifier is therefore one IAT slot of the executable's own `GetKeyState`, the same small step 3444's minimap
+  ctrl/shift needs. It is not built: no row here holds a key (parked 3442a).
+
+**The shape, and why.**
+
+- **`@key` calls the shipped slot directly**, down then up, at the top of the line's `do_frame`, as `click.h` calls
+  the mouse slots. Nothing is installed: no vftable swap and no pin, so a capture with only key lines runs every other
+  byte as before. A posted `WM_KEYDOWN` would land on whichever pump turn ran next, a wall-clock frame.
+- **`@char <c>`** sends the `WM_CHAR` a printable key adds. An F-key makes none, so no line here sends one.
+- **Before the press, the line asks `KeyMap::lookup`** what the key reaches, the same read-only call `on_key_down`
+  makes, and `INFO 22` prints the answer. That is how take 1's failure was read in a minute, not guessed.
+- **The binding reaches the lane** through `unattended_capture.py --bindkey ACTION=VK`. It writes `bindkey.py`'s
+  element into the lane's own `Player.dat`, under the same staged backup as the map style, and the restore takes it
+  out. The template (`~/ron-capture-lanes/template`, `<KEYS/>`) is never touched.
+- **The keys are F13–F16** (VK 124–127). The shipped defaults are not in any file (`data/playerprofile.xml` carries
+  only the names), and no default plausibly binds a key most keyboards lack. The lookup record confirmed each.
+
+**The check.** Against run210, the chapter's `cover=0` twin, the first unshared input is the 736 select.
+
+- `rngcmp`: 1,151 in common, 744 identical, the first differing frame 743.
+- A detail-aware block comparison over 730–760 (run210's records and keys only): 11 identical, the first differing
+  741, F14's own `process_form`.
+- `samegame.py --from 736` cannot answer across `GUYS=2` and `GUYS=4` (`docs/RUNS.md` run1057).
+
+No part comes before the first unshared input.
+
+**What is not established.**
+
+- Why OPTION_ALL_MILITARY looked up `KEYMAP_NONE` in options mode 0 (parked 3442b).
+- `OnChar`'s path into a window's `on_char`, which no line here sends.
+- A key held with a modifier.
+- The form −3 arm.
+
+**Coverage.** Every claim of the run is diff-backed by run1057's `INFO 22`, `CM` and `GROUPDATA`. The reading of the
+window procedure and of `keymap_options` is backed by the bytes it cites; the gates in `KeyMap::lookup` are a reading
+the run confirms only for the arm it took.
 
 ## 147. Reserved for the next item on the rules track
 

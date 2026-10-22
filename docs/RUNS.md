@@ -21797,6 +21797,67 @@ SHA-256 `86026106f80288f92807bdf7ce6c0dfb9fd3a1277ec5e48b05dd408fc2f68608`.
 
 **What it holds**: run1034's game, draw for draw and block for block, with no cursor.
 
+## run1057 — chapter fourteen's lobby with its second formation command sent as three bound keys, `@key` at `cover=1` on the click-free pool to 1150 (2026-10-21, item 3442, `att-3442`)
+
+**What the disk could not answer**: no capture on disk holds a keystroke the game took as its bound action. run50's and
+run52's `osascript` presses opened the chat box (run52), so `Options::do_formation@007215b0`, `Options::do_rotate@0071dfd0`
+and `GroupData::get_form_option@0070beb0` sat on `NEVER`. run323 (chapter fourteen at `cover=1`) enters `issue_form`
+and `action_form` through the DLL's `@form`, which calls the issuer under the UI, never the options.
+
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1057`: `--map 14 --end-frame 1150 --log-window
+730 1110 --timeout 3000 --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/key3442-ch14.cmd --cover cover=1 --no-ffwd --bindkey FORM_E_RIGHT=125 --bindkey
+OPTION_FORM=126 --bindkey OPTION_RIGHT=127`. The stanza is run210's (`chapter14.cmd`) with its `740 @form` dropped, then:
+
+- `736 select 6 who=0`;
+- `740 @key 125` (F14 → FORM_E_RIGHT);
+- `800 @key 126` (F15 → OPTION_FORM, "next");
+- `860 @key 127` (F16 → OPTION_RIGHT).
+
+`GUYS=4` beside `GROUPS=1` is run215's detail, the one that prints the 512-slot pool. run210's `GUYS=2` and run323's
+`GROUPS=1` alone each printed none.
+
+Pool lane 1, seed 12345, 1,151 frames, 23:25:48–23:35:02 (554 s from launch to exit). The receipt reads `success: true`,
+the bindings and five restored settings files. **Second take.** The first (`~/ron-golden/run1057-take1`, 23:14–23:23,
+the same lines with `736 @key 124` bound to OPTION_ALL_MILITARY in place of the `select`) looked that key up as
+`KEYMAP_NONE` in options mode 0. Nothing was selected, so F14 and F15 looked up nothing. F16 found OPTION_RIGHT, and
+`do_rotate` refused at `can_activate` (parked 3442b).
+
+- `INFO 22` (`key.h`), each line run with refusal 0 in options mode 0. 740: VK 125 → `KeyMap::lookup` 174 (FORM_E_RIGHT).
+  800: 126 → 170 (OPTION_FORM). 860: 127 → 168 (OPTION_RIGHT).
+- The dump: `process_group, new 0 1 741`; `process_form 3 0 2 741`; `process_form -1 0 2 801`;
+  `process_form -2 178956970 1 861` (the rotation step `0xaaaaaaa`, queued 1 because alt is not held).
+- `GROUPDATA` id 0 (`num` 3, the selected squad):
+  - `form` 3 on 742 (Echelon Right);
+  - `form` 4 on 802 (`get_form_option` answered 3, and `(3 + 1) % 5`);
+  - `o_angle` 1,156,775,936 → 1,335,732,906 on 862 (+178,956,970).
+- **6,522 functions entered**, the key path first on 740:
+  - `SysMessageHandler::OnKey`, `Window::get_key_window`, `Window::on_key` and `key_down_event`;
+  - `Console::on_key_down`, `KeyMap::lookup` and `exec_keymap`;
+  - `Options::exec` and `do_formation`, then `GroupOut::issue_form`.
+
+  `get_form_option` is on 800 and `do_rotate` on 860. `OnChar` is not entered: an F-key makes no `WM_CHAR`.
+- Four rows leave `NEVER` (319 → 315 on the tree merged with 3438): `do_formation`, `get_form_option`, `do_rotate` and `GroupData::get_unit@0070cc90`
+  (the rotation's −2 arm under `action_form`).
+- `rngcmp.py rontrace-run1057.log ~/ron-golden/ch14/map-14/rontrace.log` (run210, the `cover=0` twin): **1,151 in
+  common, 744 identical, 407 differing, the first 743**. That is after the first unshared input, the 736 select.
+- `samegame.py … --from 736`, against the same twin, exits 1 on 621. Its digest cannot answer at a different detail.
+  - 621 and 701 sit outside run1057's window and print the CM lines alone, which match run210's.
+  - `GUYS=4` adds fields inside the GUY records that `--exclude GUY` does not reach at their depth.
+
+  So a scratch comparison drops `GROUPDATA` and every (record, key) pair run210 never prints. Blocks 730–760: **31 in
+  common, 11 identical (730–740), the first differing 741**, F14's own `process_form` frame.
+- Filed with `filerun.py run1057 ch14-formation-keys`. Minutes waited on another lane: 0.
+
+Archive `gamelog-run1057-ch14-formation-keys.txt`, 165,898,732 bytes,
+SHA-256 `27adbeeb6de7cf02d21f0e9bffca0249279a843d15fde28cbd7c3c528497ffa6`.
+
+Archive `rontrace-run1057.log`, 24,771,968 bytes,
+SHA-256 `9a20493515b65ed566cfcc2e3494683ec10e9f8d56325c9635e01eafa1e69b88`.
+
+**What it holds**: the click layer's keystroke. run210's game to the select, then three keys the game took as their
+bound actions.
 ## run1054 — golden chapter eighty-five at `cover=1` on the click-free pool to 1260, `chapter85.cmd` line for line (2026-10-21, item 3438, `att-3438`)
 
 **What the disk could not answer**: run880 (`~/ron-golden/ch85/map-14`) is `cover=0`. Its dump shows the Bribe's swap on
