@@ -9813,13 +9813,30 @@ archive. Score: none. One reach.
   `end_game` for the two bits when the sim models a defeat. Score: none.
   One reach.
 
-## Parked by the next landing, slot OA — reserved
+## Parked by item 3492, 2026-10-22 — the engine's own save and reload
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3492a — the original's own save and reload is not identity: one guy's animation draw is lost.** run1115 and its
+  twin run1116 (`--rise AutoSaveLoad=650`) against run1084 (the same lines, no reload): `rngcmp` 701 in common, 47
+  differing, first 654 (harness word 653). On trace frame 653, run1084 makes one `game` draw from `Guy::set_anim+0x104b
+  < Guy::inc_time+0x271 < Unit::inc_time+0x3e` and run1115 makes none (`report.py … sites 653 654`; the `Surf::inc_time`
+  draws are `rng@0xeb697c`, not the game stream). The dumped records (`end:LEADERS=2,BUILDS=7,CITIES=5`) agree through
+  699 except for two things that are not state: every empty array's four header lines (`length 0`, `size 5|10`,
+  `increment -1`, `flags 0`) are missing after the reload, and block 650 gains `speed set:  2` (the reload resets the
+  speed `37 !ffwd 1` set). Which guy, and which field (an anim timer `Guy::walk_data` does not write, or one it
+  writes and the load re-derives), is not read: `GUYS` is not in the window. No port reads a save, so nothing books.
+  Killed by: a take with `GUYS=4` over 645–655 on both sides where every guy's anim fields agree on 650.
+- **3492b — `!cursor tinfo` can fault: the twin's first take died on 600 in `TerrainOut::get_road_data`.**
+  `run1116-fault600` (kept under `~/ron-golden`, not filed): the first launch stalled 300 s before frame 0 and was
+  relaunched. The relaunch faulted twice on frame 600 at EIP `0x00874518`, reading address `0x66`, which is a null cell
+  pointer plus 0x66. The caller is `ConsoleWin::run_cmd` (the return is `0x007d85e3`). Exit 5, 601 frames. The retake
+  ran clean. `!cursor` reads `mouse_coord_x/y` stale (parked 3464a), so a stale coordinate off the map faults. Every
+  take that reuses `console3464-start.cmd`'s `600 !cursor tinfo` carries that hazard. Killed by: the stale coordinate
+  read on a faulting take and found on the map.
+- **3492c — the take's and the twin's saves differ by 9 bytes, and their state does not.** `autosaveload.svx` was
+  318,315 bytes on run1115 (`cover=1`, SHA-256 `97cfafa2…`) and 318,306 on run1116 (`cover=0`, `394908fb…`). The two
+  runs have 701 identical RNG frames and identical dumps, and their output paths are the same length. Both files are
+  removed, so nothing was diffed. Killed by: keeping both saves of a pair and finding the difference outside the
+  walked state (a header string, a time stamp).
 
 ## Parked by the next landing, slot OB — reserved
 
