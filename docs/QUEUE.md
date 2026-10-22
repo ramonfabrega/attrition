@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the fiftieth tranche (commander, Opus): 9 of 20 landed from `a479f1bf`** — `NEVER` 321 → 290: 3438 Bribe, **3442 the
-pool's `@key`**, 3443 clicks, 3444 minimap/war, 3445 `hurry`/rename/save, 3447 Nomad, 3446 carrier, 3448 orders, 3453 `say_no_war`.*
+*2026-10-21, **the fiftieth tranche (commander, Opus): 10 of 20 landed from `a479f1bf`** — `NEVER` 321 → 289: 3438 Bribe, **3442 the
+pool's `@key`**, 3443 clicks, 3444 minimap/war, 3445 hurry/rename/save, 3447 Nomad, 3446 carrier, 3448 orders, 3453, 3454 a wonder.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 290 (321 at the base), residue 81, open 209** (`Blind:` pinned); it moves by trace, on the pool.
+  `NEVER` 289 (321 at the base), residue 81, open 208** (`Blind:` pinned); it moves by trace, on the pool.
 - **The pool carries the click layer** (3437's `@click`, 3442's `@key`; `docs/LOOP.md`, "The brief"): the queue lane holds no
   click-layer need and no lobby (3447 started the Nomad one) — only the menu's own code (3429b); retiring it is Ramon's (1570).
-- **Lanes: att-3454, att-3455.** Next 3460, run 1078. Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through NH
-  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a, 3445a–c, 3446a, 3447a–b, 3448a, 3453a.
+- **Lanes: att-3455, att-3456.** Next 3460, run 1078. Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through NH
+  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a, 3445a–c, 3446a, 3447a–b, 3448a, 3453a, 3454a.
 - **Fable backlog: 19 Loop items** (3459, 3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -35,7 +35,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 290 · residue 81 · open 209
+Blind: never 289 · residue 81 · open 208
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
@@ -50,12 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rcli
 twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
 explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: booked below as 3453–3455 and 3455's fallback;
 3414a's `send_navy` left `NEVER` on run1019 (3420); `hits`/`Wall::Wall` take no `@` line (GOLDEN §144.4's `RESIDUE` row, the pass's).
-
-3454. **coverage: a wonder's close** (AI §75.3, §296 row 10; parked 3431b): chapter seven's lobby at `cover=1`, `!ai off`; console
-`add <wonder> who=0 x,y` (complete at once, `init_wonder` raises `wonder_mark`), then `die <o>,0`: `Build::close` →
-`Wonders::close_wonder@0073c7e0` when the wonder slot `+0x76` ≥ 0; `LEADERS=9` `wonder_mark` (+0x424) down one on the die
-frame, `BUILDS=6` the record gone. Whether `add` honours one-per-player, and whether `die` reaches `Object::die`, the take says.
-Run 1074; park NJ.
 
 3455. **coverage: the disband walk and the Dock's right-click** (ARMY §6, §14; VISION §8): the coverage pair's lobby at
 `cover=1`, AI on; `add` human soldiers on a computer army's path once it has left muster, so its standard line dies:
