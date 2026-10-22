@@ -741,7 +741,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// bound OPTION_SPY_BRIBE key (`keymap_options[0x179]` = option 4, 629).
 /// **278** with run1084 (item 3464: the golden start, CENSUS row 840):
 /// `World::get_wdata@0046d220` on 600 (`!cursor tinfo`, console case 0x3d)
-/// and `WorldData::is_forest@006b5560` on 602 (`!startareas`, case 0x60).
+/// and `WorldData::is_forest@006b5560` on 602 (`!startareas`, case 0x60);
+/// **279** on the tree merged with `b41737e50`, whose Loop 3473 cites
+/// `Compiler::eval_command@009befe0`, which no trace enters.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -768,7 +770,7 @@ pub const NEVER: &[u32] = &[
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_99e0,
+    0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009b_efe0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_99e0,
     0x009f_9ad0, 0x009f_b790, 0x009f_b880, 0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860,
     0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0, 0x00a0_0220, 0x00a4_69f0,
 ];

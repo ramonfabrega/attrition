@@ -9344,22 +9344,6 @@ is an oracle-agreed module the live sim does not call.
   and `clifftest` reaches `Cliffs::place_cliff`. A take that wants those arms is a sim change, not a report. Names no
   score.
 
-## Parked by the next landing, slot NO — reserved
-
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
-
-## Parked by the next landing, slot NP — reserved
-
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
-
 ## Parked by item 3422, 2026-10-21 — the boat's two other arms
 
 - ~~**3422a. `Unit::think_carry_military@005f3260`: a soldier-carrying boat that idles.**~~ **Entered by run1066 on

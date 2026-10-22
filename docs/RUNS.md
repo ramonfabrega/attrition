@@ -22793,4 +22793,4 @@ SHA-256 `9b87a4894cc9de7f34b1b0539eeb90c1f040c264a2f299ebeea54ec1300e6dea`.
 Archive `rontrace-run1084.log`, 10,021,120 bytes,
 SHA-256 `8c77e4dee0b36e2529f0134a4c2fd646f9c1bfe3f1cdcea4a43be033b4cb1b01`.
 
-**What it holds**: `blind::TRACES`' run1084 (item 3464), `NEVER` 280 → 278. Run 1085 was not used.
+**What it holds**: `blind::TRACES`' run1084 (item 3464), `NEVER` 280 → 278 (279 on the tree merged with `b41737e50`, whose Loop 3473 cites `Compiler::eval_command`). Run 1085 was not used.
