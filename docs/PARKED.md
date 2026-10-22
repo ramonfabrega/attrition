@@ -3774,6 +3774,23 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3490) **`CLAUDE.md`'s wait bullet still names the queue lane** (3485's "for the Loop"): Conventions, "it keys on the runner's own
+banner and exit on the queue lane and on the receipt lines on the click-free lane"; 3485's replacement: "it keys on the receipt lines the
+click-free runner prints and on a capture script's `=== captured: ` line". `CLAUDE.md` is the main thread's (a lane's edit is refused).
+Also 3485's: Loop 3441 (the queue lane's shared tracer DLL) and 3440 (a hand-rolled wait on a queue take) are moot with the lane gone —
+the pass's to close, 3440 after reading its body. One reach: the pass's.
+
+(3489) **A brief's whole-gate line for a no-test lane cannot run** (3485's journal, "The gate"): the commander's note gave
+`release_gate.py … --lane --item 3485` with no `--tests`, and `--lane` refuses without them (exit 2, "a lane gate names its word's
+tests"); the lane ran the unflagged booking gate instead, which forgives nothing, so it was red on the commander's lines with no
+`Lane verdict:`. Candidate: `--lane` takes a whole mode (every test, the forgiveness kept), or `brief.py` refuses a note that names a lane
+gate without `--tests`. Score: a no-test lane's gate that runs as briefed. One reach.
+
+Loop 3482's reaches in the fifty-first tranche: the second drafting subagent (`~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-52.md`)
+reads `FollowOrder::get_follow_order@00486c60` as a residue candidate with no capture — the tracer excludes it (four bytes, one of 47
+exclusions) and its thunk jumps to it unconditionally, entered on run1032 at 708 — and names eight residue candidates with a reason
+under its `## Not drafted`; the pass's to ratify.
+
 **3483's "for the Loop"** — the pool's dumped frames are 95 % `OutputDebugStringW` (`AllowLogs_ToConsole`, default 1,
 absent from the lanes' `rise.ini`), about 36× faster with `--console-log 0` and the same dump: booked at its merge as 3484, rebooked
 with the steer (the flip measured byte-identical and the debug stream's readers named before the default moves).
@@ -9805,6 +9822,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot OE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OK renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
