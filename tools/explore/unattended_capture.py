@@ -447,6 +447,24 @@ def staged_callwin(output):
     return None
 
 
+# Item 3497 (the steer, on 3484's measure; Loop 3496): the pool's defaults.
+# The mirror off leaves the dump byte-identical after the header and the draw
+# stream identical on three lobbies (run1103-1108), and a dumped frame goes
+# from 2.7-3.3 s to 0.06-0.09 s; the cursor pin is clean against its unpinned
+# twin on the same three (Loop 3432). `--console-log 1` and `--cursor none`
+# restore the old take, and the receipt's `staged` says which ran.
+DEFAULT_CONSOLE_LOG = 0
+DEFAULT_CURSOR = '1400,1000'
+
+
+def cursor_arg(text):
+    if text == 'none':
+        return None
+    if not re.fullmatch(r'\d+,\d+', text):
+        raise argparse.ArgumentTypeError("takes X,Y in client pixels, or `none`")
+    return text
+
+
 def wall():
     return time.strftime('%Y-%m-%dT%H:%M:%S%z')
 
@@ -492,6 +510,7 @@ def capture(args, output, style):
                             'callwin': staged_callwin(output),
                             'stride': getattr(args, 'stride', None),
                             'cursor': getattr(args, 'cursor', None),
+                            'console_log': getattr(args, 'console_log', None),
                             'dumptime': getattr(args, 'dumptime', None),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
@@ -878,7 +897,7 @@ def interrupted(signum, frame):
     raise InterruptedError(f'capture interrupted by signal {signum}')
 
 
-def main():
+def parser():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('install',type=Path,help="the install, or `-` for the pool's (item 1569)")
     ap.add_argument('output',type=Path)
@@ -903,11 +922,13 @@ def main():
     ap.add_argument('--log-window',type=int,nargs=2,metavar=('START','END'))
     ap.add_argument('--detail',action='append',metavar='SECTION:CAT[=N],...')
     ap.add_argument('--cover')
-    ap.add_argument('--cursor', metavar='X,Y',
-                    help='pin the resting cursor at a client point (rontrace.cfg cursor=X,Y; Loop 3432)')
+    ap.add_argument('--cursor', metavar='X,Y|none', type=cursor_arg, default=DEFAULT_CURSOR,
+                    help='pin the resting cursor at a client point (rontrace.cfg cursor=X,Y; Loop 3432); '
+                         f'default {DEFAULT_CURSOR}, `none` leaves it unpinned (item 3497)')
     ap.add_argument('--console-log', type=int, choices=(0, 1), dest='console_log',
+                    default=DEFAULT_CONSOLE_LOG,
                     help="rise.ini AllowLogs_ToConsole: 0 stops every log line's OutputDebugStringW "
-                         "mirror (item 3483); absent leaves the profile's (the engine's default is 1)")
+                         "mirror (item 3483), the default since item 3497; 1 restores it (the engine's default)")
     ap.add_argument('--dumptime', metavar='N[,MASK]',
                     help='the dump clock: rontrace.cfg dumptime=N, dumpsites=MASK (tools/trace/dumptime.h; item 3483)')
     ap.add_argument('--stride', type=int, metavar='N',
@@ -935,6 +956,11 @@ def main():
     ap.add_argument('--bindkey', action='append', dest='bindkeys', metavar='ACTION=VK',
                     help="bind a keymap action to a virtual-key code in the lane's staged profile, "
                          "repeatable (bindkey.py's element; restored with the profile; item 3442)")
+    return ap
+
+
+def main():
+    ap=parser()
     args=ap.parse_args()
     if any(not re.fullmatch(r'[A-Z_0-9]+=-?\d+', p) for p in args.lobby or []):
         ap.error('--profile takes KEY=N')

@@ -9845,13 +9845,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OE — reserved
+## Parked by item 3497, 2026-10-22 — the pool's defaults: the console mirror off and the cursor pinned
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3497a) **Only the pool's runner flipped; the stage's own command line did
+not** (item 3497). `unattended_capture.py` now stages
+`AllowLogs_ToConsole=0` and `cursor=1400,1000` unless told
+`--console-log 1` or `--cursor none`, and its receipt's `staged` carries
+`console_log` and `cursor` on every take. `live_session.py stage`, run by
+hand, keeps no cursor default and writes no `AllowLogs_ToConsole`, as the
+item asked ("nothing else's default moves"). A receipt from before 3497
+has no `staged.console_log`; its top-level `console_log` is `null` there,
+which meant the profile's value (the engine's default, 1). Whether the
+hand stage follows the pool is a pass's call.
 
 ## Parked by the next landing, slot OF — reserved
 

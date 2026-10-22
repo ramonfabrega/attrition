@@ -395,6 +395,58 @@ class RunnerTest(unittest.TestCase):
         self.assertEqual(receipt['staged']['stride'],4)
         self.assertEqual(receipt['staged']['rontrace.cmd'],['0 !ai off','2000 !quit'])
 
+    def test_the_mirror_off_and_the_cursor_pin_are_the_pools_defaults(self):
+        # Item 3497 (the steer, on 3484's measure; Loop 3496): a take that
+        # names neither runs with AllowLogs_ToConsole=0 and the cursor at
+        # 1400,1000; `--console-log 1` and `--cursor none` are the old take.
+        ap=runner.parser()
+        args=ap.parse_args(['-','out','-'])
+        self.assertEqual((args.console_log,args.cursor),(0,'1400,1000'))
+        args=ap.parse_args(['-','out','-','--console-log','1','--cursor','none'])
+        self.assertEqual((args.console_log,args.cursor),(1,None))
+        args=ap.parse_args(['-','out','-','--cursor','10,20'])
+        self.assertEqual(args.cursor,'10,20')
+        with patch('sys.stderr'),self.assertRaises(SystemExit):
+            ap.parse_args(['-','out','-','--cursor','1400 1000'])
+
+    def staged_take(self,name,argv):
+        # The runner up to its tracer build, from the parser's own args: what
+        # reaches rise.ini, the stage and the receipt.
+        output=self.root/name;output.mkdir()
+        profile=self.root/(name+'-profile');profile.mkdir()
+        (profile/'rise.ini').write_text('Seed (0 for random)=1\r\nAllowLogs_ToConsole=7\r\n'
+                                        if name.endswith('old') else 'Seed (0 for random)=1\r\n')
+        args=runner.parser().parse_args([str(self.root),str(output),str(profile),*argv])
+        args.end_frame=36;args.timeout=60
+        staged={}
+        with patch.object(runner.live_session,'require_closed'), \
+             patch.object(runner.live_session,'stage',side_effect=lambda a:staged.update(vars(a))), \
+             patch.object(runner,'set_map'),patch.object(runner,'mute'), \
+             patch.object(runner,'set_lobby'),patch.object(runner,'set_ai_tribe'), \
+             patch.object(runner,'bind_keys'), \
+             patch.object(runner.subprocess,'run',side_effect=ValueError('stop at the build')), \
+             patch.object(runner.live_session,'restore'), \
+             patch.object(runner,'verify_restored',return_value=5):
+            with self.assertRaisesRegex(ValueError,'stop at the build'):runner.capture(args,output,14)
+        return (staged,(profile/'rise.ini').read_text(),
+                json.loads((output/'receipt.json').read_text())['staged'])
+
+    def test_the_default_take_stages_both_and_its_receipt_says_so(self):
+        staged,rise,receipt=self.staged_take('new',[])
+        self.assertEqual(staged['cursor'],'1400,1000')
+        self.assertIn('AllowLogs_ToConsole=0\n',rise)
+        self.assertEqual((receipt['console_log'],receipt['cursor']),(0,'1400,1000'))
+        # An existing key is rewritten in place, never appended twice.
+        staged,rise,receipt=self.staged_take('kept-old',[])
+        self.assertEqual(rise.count('AllowLogs_ToConsole='),1)
+        self.assertIn('AllowLogs_ToConsole=0',rise)
+
+    def test_an_opted_out_take_is_the_old_take_and_its_receipt_says_so(self):
+        staged,rise,receipt=self.staged_take('optout',['--console-log','1','--cursor','none'])
+        self.assertIsNone(staged['cursor'])
+        self.assertIn('AllowLogs_ToConsole=1\n',rise)
+        self.assertEqual((receipt['console_log'],receipt['cursor']),(1,None))
+
     def test_the_receipt_stamps_the_launch_and_the_exit_by_the_wall_clock(self):
         # Item 1568: runs 685 and 686 ran on two lanes at once, and their
         # overlap was read off file mtimes — the receipt had seconds and no
