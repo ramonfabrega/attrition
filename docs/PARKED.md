@@ -3855,7 +3855,9 @@ lister and a zsh shooter launched through `viadriver.sh`, which waits for the ta
 whose pid's command line names the take's output directory, and runs `screencapture -x -o -l <id>`. Its three traps: a
 paused `cover=0` trace keeps growing, so a quiet trace is no signal; the gamelog's lines end in CR; Wine's command line
 carries the output directory with backslashes. Candidate: it graduates into `tools/explore/` (the third reach is the rule's).
-Score: a take that needs a screen point spends no recon on the shooter. One reach.
+Score: a take that needs a screen point spends no recon on the shooter. One reach. **3463's "for the Loop"**: rebuilt a
+third time (3444, 3460, 3463), and a fourth trap — `sips --cropOffset` ignores the offset on this macOS and crops the
+centre, so a corner crop needs another tool.
 
 (3473) **The console's `!eval` reaches the script host's whole table, so five `RESIDUE` rows stand on a wrong reason** (the
 commander's drafting subagent, on `f13107352`): `Compiler::eval_command@009befe0` runs one BHS expression against every
