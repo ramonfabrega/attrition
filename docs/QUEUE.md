@@ -22,7 +22,7 @@ the steer's three decisions in (3484–3486), the queue lane retired (3485), the
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
 - **Lanes: two live** (3493, 3497); two booked (3494, 3495). Next 3499, run 1134. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
   For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c.
-- **Fable backlog: 19 Loop items** (3498, 3496, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
+- **Fable backlog: 20 Loop items** (3499, 3498, 3496, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
