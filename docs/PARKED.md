@@ -9406,7 +9406,8 @@ words and edits nothing here; a refill lands when two remain.
   `Game::war_allowed` refusal through `Game::say_no_war@00592b00`, the confirmation popup) sits behind that test, so no
   lobby with `TEAM_STYLE 1` reaches them by this window. Which lobby setting writes team style 0, 8 or 11, and whether
   the pool's `--profile TEAM_STYLE=N` stages it, is not read. **Score**: `NEVER`'s `say_no_war` row, a new lobby with its
-  own `cover=0` twin (two runs).
+  own `cover=0` twin (two runs). **Answered** by item 3460: `--profile TEAM_STYLE=0` stages it (`GAME INFO`
+  `TEAM_STYLE 0`), and run1078 passes the test and takes the paid arm on 910; the other arms are 3460a.
 
 ## Parked by item 3445, 2026-10-22 — `hurry`, a rename and a save on the pool
 
@@ -9487,7 +9488,8 @@ that. Score: none until a pinned lobby does. run1070's 686–687 is the value di
   - **3444a's lobby with team style 0**, whose diplomacy arms both reach it.
 
   `pay_dow` stays behind `param_3` 0, which only a human's declaration passes (`CommandPackage::process_declare`).
-  **Score**: `NEVER`'s `action_declare` row (one run).
+  **Score**: `NEVER`'s `action_declare` row (one run). **Answered** by item 3460: run1078, in the second lobby, enters
+  `action_declare` and `pay_dow` on 910 through the diplomacy window.
 
 ## Parked by item 3454, 2026-10-22 — a wonder's close, by console
 
@@ -9520,13 +9522,19 @@ words and edits nothing here; a refill lands when two remain.
   three-player game, or one at higher difficulty, is the next take. Read `Leader::diplomacy`'s offer predicate
   against run1077's leader record first, before booking that game.
 
-## Parked by the next landing, slot NM — reserved
+## Parked by item 3460, 2026-10-22 — a paid declaration at `TEAM_STYLE 0`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3460a. `Options::do_declare_war`'s other arms past the team-style test are still unread.** run1078 (the coverage
+  pair's lobby, `--profile TEAM_STYLE=0`) took the paid arm on 910: `afford_dow` passed (the stock 100000 up),
+  `war_allowed` passed (`RUSH_RULES 0`), popup 0 and Return, `issue_declare`, `pay_dow(1, 0)`. Not taken: the warn arm
+  (:121, `afford_dow` 0, the same staging without the `resource` line and the stock under the price), the window's
+  `say_no_war` arm (:126, the same lobby plus `--profile RUSH_RULES=10` before the rush rules' age), and the alliance
+  cancel (`pay_dow(t, 1)`, popup 1: `ally 1` first, then Declare). Score: none on `NEVER` (`say_no_war`, `pay_dow` and
+  `action_declare` are off); fidelity rows for NATIONS §9.2 and AI §98.6. One reach each, `cover=0`.
+- **3460b. AI §98.6's "the stock and the escrow fall by the same amount" is unread.** run1078's leader 0 holds `escrow`
+  0 on every block 896..960, so `pay_dow`'s escrow write is its floor. A human's escrow may never be non-zero (the
+  escrow is the AI's bucket split, §98.2), and then the half is moot. Read `escrow`'s writers for a human before
+  booking a take. Names no score.
 
 ## Parked by the next landing, slot NN — reserved
 
