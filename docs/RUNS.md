@@ -22064,7 +22064,7 @@ SHA-256 `2144faf431633dd42eeb6b81aaed7b7410315710d9aeb0247f56302944406f3f`.
 
 **What the disk could not answer**: no trace of any lobby enters `Unit::action_unqueue@005e1f20`,
 `UnitData::has_repeat_air@0046cec0`, `Unit::think_carry_idle@005f2f30` or `think_carry_military@005f3260`. No dump holds
-a carrier with a queue (`num_queued` is 0 in every unit record run1019 prints), and every boat run1021 dumps carries a
+a unit with a queue of its own (`num_queued` is 0 in every unit record of every other gamelog in the archive, a `grep` of 2026-10-22), and every boat run1021 dumps carries a
 worker (parked 3422a, 3422b). Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1066`: `--map 18
 --end-frame 1300 --timeout 5400 --ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile
 DIFFICULTY=5 --log-window 594 1300 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --cmd-file
