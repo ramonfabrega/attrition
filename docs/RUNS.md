@@ -23193,3 +23193,84 @@ SHA-256 `179fb812919d81609acfa81f8761066d0ae3f9100506222386381deec84d62dd`.
 
 Archive `rontrace-run1099.log`, 9,488,640 bytes,
 SHA-256 `dbb80f43761230b0f3c3e193ed469b4fe7c6fcf6844d895d463d959f971311e0`.
+
+## run1100 — run1090's lobby, a packet at 5408: the herd's gate (2026-10-22, item 3481, `att-3481`)
+
+**What the disk could not answer**: which of `ObjectsOut::sort_all@00657320`'s gates keeps herd 9 (objects 28–30 of
+who 8, run1090's 5408) from vtable +0x48. +0x20 and +0x44 are COMDAT-folded getters, and no dump prints their return
+values (parked 3472a). Run through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1100 --map 14
+--end-frame 5412 --log-window 5404 5411 --timeout 3600 --ffwd-minute 6 --profile PLAYERS=2 --detail end:UNITS=3,LEADERS=9
+--cmd-file <herd3472-team.cmd's lines to 5408> --tracer-def RON_STATE_FRAME=5408 --tracer-def RON_STATE_PLAN=<item 597's
+plan.h>`. The command file holds `100 ally 1`, `5404 explore all`, `5406 camera 186,190` and `5408 @dumpall`.
+- **The first launch refused** before the lane was taken: the staging's 5410/5411/5420 lines were past the 5412 quit.
+- Pool lane 2, seed 12345, `MAP_STYLE 14`, the same three PLAYER records as run1090. Launched 14:33:31, exited 14:39:38:
+  **367 s**. `success`, 5413 frames. `rngcmp.py` against run1091 gives **5413 in common, 0 differing**. Minutes waited
+  on another lane: none.
+- The packet is kept at `~/ron-golden/run1100/map-14/frame-snapshot.bin`, 793,320,388 bytes,
+  SHA-256 `a96954eea652ec448bab14f83dba9da8625bca5fd74b28657f56f7081ea6c4b4`.
+- **`step4.py --entry 657320 --this c0ab70`**: 9,670 instructions. The `terrain_fog` walk (hooked at `0x65775e`) visits
+  251 cells, and 14 objects are walked (`0x657780`). Objects 0x1c–0x1e of who 8 are among them.
+  - For every walked object, +0x20 returns 0 (`0x65779f`), +0x44's `+0x86` is not −1 (`0x657b5c` is reached on all 14),
+    and `is_active` and `is_on_map` return 1 (`0x657b71`, `0x657b85`).
+  - At `0x657b9c`, `dl` (`gamec->semaphore[0]`) is **0x0a**. `& 0x42` is nonzero, so the jump goes to the insert at
+    `0x657bec` and never to the +0x48 call at `0x657bc9`. All 14 are inserted.
+  - With `--poke e386e0=08` (bit 1 clear), `AnimalData::is_seen@005d8160` is entered 12 times and returns 1, and
+    `UnitData::is_seen@00607a60` is entered for who 0's objects.
+- **Bit 1 is the lane profile's `StartReveal=1`**: `Game::solo_checks@00588110` reads it from `rise2.ini` and ORs in 2.
+  Twelve packets on disk (run785 to run1001d, maps 7, 14 and 18) read the same 0x0a.
+
+Archive `gamelog-run1100-greatlakes-team-herd-packet-5408.txt`, 75,073,011 bytes,
+SHA-256 `c1285b853d28989cf75666a112ac828eb445e5e1bc186d51c4eea7c10ee79a77`.
+
+Archive `rontrace-run1100.log`, 34,828,224 bytes,
+SHA-256 `97223ca0a07d82c95779619b093f00d5aa3216f00c9548f47c14887ea53441d4`.
+
+**What it holds**: the state that admits herd 9 to the on-screen list without asking `is_seen`.
+
+## run1109 — run1090's lobby at `cover=1` on the click-free pool with `reveal 0`, to 5420 (2026-10-22, item 3481, `att-3481`)
+
+**What the disk could not answer**: whether clearing semaphore bit 1 enters `AnimalData::is_seen@005d8160` in a running
+game. No trace on disk was taken with the bit clear. Run through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1109 --map 14 --end-frame 5420 --log-window 5400 5421 --timeout 3600 --ffwd-minute 6 --profile PLAYERS=2
+--detail end:UNITS=3,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cover cover=1 --cmd-file
+tools/gamelog/coverage/herd3481-reveal.cmd`. The file holds `100 ally 1`, `5404 explore all`, `5405 reveal 0`,
+`5406 camera 186,190` and `5410 @dumpall`.
+- **A first pair is kept aside, unfiled**: `~/ron-golden/run1109-take0` and `run1110-take0`. A shell loop mis-split its
+  arguments, so both were staged with `cover=` empty and neither is a coverage trace.
+- Pool lane 1, seed 12345, `MAP_STYLE 14`, the same three PLAYER records. Launched 14:55:25, exited 14:59:06: **221 s**.
+  `success`, 5421 frames. DLL `14cc448d…`. 215 GiB free before. Minutes waited on another lane: none.
+- **6,898 functions entered.** `ConsoleWin::parse_binary` and `tell_reveal` on 5405. **`AnimalData::is_seen@005d8160`
+  on 5406**, the first drawn frame after the line. `blind::NEVER` 255 → 254. No other row moves.
+- The dump beside it: the 5410 `@dumpall` agrees with run1110's (below).
+- Filed with `filerun.py run1109 greatlakes-team-herd-reveal`.
+
+Archive `gamelog-run1109-greatlakes-team-herd-reveal.txt`, 102,815,345 bytes,
+SHA-256 `d6cbdd7389cad844d898afdd787b73340a87bd80957f29c5a465d5ca55ba2bef`.
+
+Archive `rontrace-run1109.log`, 35,158,752 bytes,
+SHA-256 `25fa6f433de6d0c0ac2edc15e6c40e39147e251c1cca5ac711bfb384c2116162`.
+
+**What it holds**: the first take with the pool's start reveal cleared. An animal under the camera reaches `is_seen`.
+
+## run1110 — run1109's `cover=0` twin (2026-10-22, item 3481, `att-3481`)
+
+The same command file and arguments at `--cover cover=0`, on pool lane 2. Launched 14:50:25, exited 14:54:06 (221 s).
+5421 frames, the same three PLAYER records. Both takes send `5405 reveal 0`, so no input is unshared and there is no
+`--from`.
+- `rngcmp.py` on the traces: **5421 in common, 0 differing, 5421 identical**.
+- `samegame.py` bare: **21 in common** (5400..5420), **2 differing**: the 5410 `@dumpall` block and the one after it.
+- With run1077's `--exclude MESSAGEWIN --exclude COMMANDMANAGER` and its six wall-clock `--drop`s: **21 in common,
+  0 differing**.
+- **Against run1091** (run1090's twin, which never sent `reveal 0`):
+  - `rngcmp` gives **5421 in common, 0 differing**.
+  - `samegame` with the same excludes gives 21 in common and 6 differing (5408–5412 and 5420). Those are where the two
+    staging files put their `@dumpall` blocks (5408, 5411 and 5420 there, 5410 here), plus the block after each.
+  - With `--from 5405`: "same game before frame 5405".
+  - So the line moves no draw.
+- Filed with `filerun.py run1110 greatlakes-team-herd-reveal-cover0`.
+
+Archive `gamelog-run1110-greatlakes-team-herd-reveal-cover0.txt`, 102,815,342 bytes,
+SHA-256 `99b4eef250a4387e9c3058a51010af71de78927a2b3c0313368be1a63d395845`.
+
+Archive `rontrace-run1110.log`, 34,889,440 bytes,
+SHA-256 `afcd60ef4c6875fda7fbe9855a44fe5ac555b3f980cfc7221afef64734167d2d`.

@@ -9586,7 +9586,9 @@ divergence. Names no score.
   +0x20 and +0x44 are COMDAT-folded getters (`vtables.txt` names both `Window::get_button`), so the reading cannot
   say which gate refuses. **The packet that settles it**: `RON_STATE_FRAME=5408` on run1090's staging, then
   `step4.py` on `sort_all` with +0x20, +0x44 and the `terrain_fog` cell walk hooked for objects 28–30. Until then
-  `is_seen` stays on `NEVER`.
+  `is_seen` stays on `NEVER`. **Answered by item 3481**: none of the five gates refuses. Herd 9 passes them all and
+  is inserted. `semaphore & 0x42` skips the +0x48 call, because the lane's `StartReveal=1` sets bit 1. run1109's
+  `reveal 0` enters `is_seen` on 5406 (parked 3481a).
 - **3472b. `add hoplite who=0 184,190` returned 1 and placed nothing.** run1090-take1, 5404: `parse_cmd` returned
   1 (`INFO cmd 0x151c … 1`). `ConsoleWin::parse_type`, `parse_coord`, `Console::find_cam_vec` and
   `TerrainOut::convert_mouse_to_terrain` were first entered on 5404, which is `ConsoleWin::run_cmd@007d6a70`'s unit
@@ -9653,13 +9655,32 @@ list, which names a style before any take; or one `--map N --end-frame 36` take 
 Issuing `mapgen` from `Game::loop` (an `@after` console verb, which the tracer lacks) is untried. Names no score: a
 staging note for the loop.
 
-## Parked by the next landing, slot NV — reserved
+## Parked by item 3481, 2026-10-22 — the herd's gate, by packet
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3481a) **Every pool take starts with the map revealed, and `semaphore & 0x42` skips whatever it gates.** Each lane's
+profile `rise2.ini` sets `StartReveal=1`:
+- lane 1: `~/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/rise2.ini`;
+- lanes 2 and 3: the same path under `~/ron-capture-lane-N/AppData`;
+- every `settings-backup` back to ch19.
+
+Nothing in the repo writes the key. `Game::solo_checks@00588110` reads it, the second of three `rise2.ini` prefs, and
+ORs 2 into `gamec->semaphore[0]`. Twelve packets on disk, on maps 7, 14 and 18, all read 0x0a.
+
+67 functions in the export test `semaphore[0] & 0x42`. These include:
+- `sort_all`, `sort_guys`, `sort_goods` and `sort_items`;
+- `ObjectsOut::draw_underlays`, `draw_overlays`, `draw_weathering`, `draw_shadows`, `draw_deaths` and
+  `pop_all_zoomed_in`;
+- `FarmsOut::draw`, `Signposts::draw_all`, `RiverDoobers::add_for_render` and `GraphicPieces::emit_destroy_particle`;
+- `Console::left_click`, `find_good`, `find_item` and `find_target_daemon`;
+- `MouseOver::describe`, `LeaderData::can_see_borders` and `StatWin::setup_normal_entries`.
+
+Most of them skip a per-who `is_seen`/fog test while the bit holds. run1109 cleared it with `5405 reveal 0`. Over its
+16 drawn frames one `NEVER` row moved (`AnimalData::is_seen`), and `rngcmp` against run1091 (no `reveal 0`) has 5421
+frames identical. So the line moves no draw, and on one short window it hid nothing else that is cited.
+
+Candidate: a staging rule that a draw-side or pick-side booking whose callee sits behind `& 0x42` sends `reveal 0`.
+Or `StartReveal=0` in the lane profiles, a steer's call, since it changes every later take's frame-0 state against
+the archive's twins. Score: none named until a booked row is found behind the gate; the commander's to weigh.
 
 ## Parked by the next landing, slot NW — reserved
 

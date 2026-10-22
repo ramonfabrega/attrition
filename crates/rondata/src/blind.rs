@@ -404,6 +404,16 @@ pub const TRACES: &[&str] = &[
     // `disable_type_by_tribe` on 704 for `Tribes::find`. Its `cover=0` twin
     // is run1093 (rngcmp 721 identical, 0 differing; `docs/RUNS.md` run1092).
     "rontrace-run1092.log",
+    // Item 3481: the team lobby (run1090's, `--profile PLAYERS=2`) at
+    // `cover=1` on the click-free pool to 5420
+    // (`tools/gamelog/coverage/herd3481-reveal.cmd`): `5405 reveal 0` clears
+    // `gamec->semaphore` bit 1, which every pool lane's `StartReveal=1` sets
+    // through `Game::solo_checks`. With the bit clear, `sort_all` calls vtable
+    // +0x48, and `AnimalData::is_seen` is entered on 5406 under `camera
+    // 186,190` on herd 9. The packet run1100 named the gate. The `cover=0`
+    // twin is run1110 (rngcmp 5421 identical, 0 differing; `docs/RUNS.md`
+    // run1109).
+    "rontrace-run1109.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -797,6 +807,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `base_rate[0]` 80 from block 683, `leader_flags2` 8 and 10 from 697 and
 /// 699, who 1's 16 from 703 — and `Tribes::find@006ef2d0` on 704
 /// (`disable_type_by_tribe` on two names that match nothing).
+/// **254** with run1109 (item 3481: the team lobby, herd 9 under `camera
+/// 186,190`): `AnimalData::is_seen@005d8160` on 5406, once `5405 reveal 0`
+/// cleared the semaphore bit that the lane profile's `StartReveal=1` sets.
+/// `ObjectsOut::sort_all` skips vtable +0x48 while `semaphore & 0x42` holds
+/// (the packet run1100, `docs/RUNS.md`).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -805,7 +820,7 @@ pub const NEVER: &[u32] = &[
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
     0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0,
     0x0058_60c0, 0x0058_6440, 0x0058_7060, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660,
-    0x0059_46c0, 0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_8160, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_2bb0, 0x005e_3310,
+    0x0059_46c0, 0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_2bb0, 0x005e_3310,
     0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_4550,
     0x0060_8850, 0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50,
     0x0061_dc60, 0x0062_2ce0, 0x0062_3310, 0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_3390, 0x0063_89b0, 0x0063_9830,
