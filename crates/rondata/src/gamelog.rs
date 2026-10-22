@@ -4718,8 +4718,7 @@ BEGIN GAME
         );
         let (a, b) = (Log::parse(&a), Log::parse(&b));
         assert!(
-            a.preamble.iter().any(|f| *f == ("Sys", "Memory 6094850"))
-                && a.preamble.len() == b.preamble.len(),
+            a.preamble.contains(&("Sys", "Memory 6094850")) && a.preamble.len() == b.preamble.len(),
             "the lines are read, as preamble fields: {:?}",
             a.preamble
         );
