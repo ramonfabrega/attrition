@@ -3879,6 +3879,12 @@ but HELP for 0x3c frames, so run1086's first take, which ended 20 frames short, 
 that books a taunt's effect sets its end frame at the taunt's frame plus 0x3c and names the queue — a row of the coverage
 frame. Score: a taunt take that enters on its first try. One reach.
 
+(3476) **A draw-side booking named the walker, not the list's filler** (3472's "for the Loop"): 3472 booked
+`AnimalData::is_seen` through `ObjectsOut::sort_guys`'s vtable +0x48 walk, but `sort_all`, which fills the on-screen list
+and calls the same slot, refused the animals first — so the gates checked against the dump were the walker's, not the
+filler's (3472a). Candidate: a booking that names a draw-side call names the list's filler and its gates, each checked
+against a dumped field, before the capture — a row of the coverage frame. Score: a draw-side take that enters. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the

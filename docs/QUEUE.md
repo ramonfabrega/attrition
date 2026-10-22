@@ -12,16 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the fiftieth tranche (commander, Opus): 19 of 20 landed from `a479f1bf`** — `NEVER` 321 → 273: 3438 Bribe, **3442 the
-pool's `@key`**, 3443, 3444, 3445, 3447, 3446, 3448, 3453, 3454, 3456 a ping, 3455 a disband, 3461 halt, 3460 `pay_dow`, 3462, 3464, 3463, 3470 `action_respond`, 3471 `!eval`.*
+*2026-10-22, **the fiftieth tranche (commander, Opus): drained at twenty from `a479f1bf` in 13 h 06**, two Opus lanes on the pool.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 273 (321 at the base), residue 81, open 192** (`Blind:` pinned; Loop 3473's citation added one); it moves by trace, on the pool;
-  **115 of the 208 open rows (at 3454) have no reference in the image** (Loop 3465, a `RESIDUE` proposal for the pass).
-- **The pool carries the click layer** (`@click`, `@key`): the queue lane keeps only the menu's code (3429b); its retirement is Ramon's (1570).
-- **Lanes: att-3472 (the twentieth); none booked.** Next 3476, run 1092; the pool's profile sets `PLAYERS` (3456) and `TEAM_STYLE` (3460). Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through MV
-  and refilled NO–NT at 3470's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3461a, 3460a–b (3444a, 3453a answered by run1078), 3462a–b (3462a a `RESIDUE` proposal), 3464a, 3463a–b, 3470a, 3471a–b (3471a a `RESIDUE` proposal).
-- **Fable backlog: 27 Loop items** (3475, 3474, 3473, 3469, 3468, 3467, 3466, 3465, 3459, 3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
+  `NEVER` 321 → 273, residue 81, open 240 → 192** (`Blind:` pinned; Loop 3473's own citation added one) — the pool's `@key`
+  (3442), the three-player lobby (`--profile PLAYERS=2`, 3456), `TEAM_STYLE=0` (3460) and the console's `!eval` (3471).
+- **For the pass's `RESIDUE` ruling**: 115 of the open rows have no reference in the image (Loop 3465); 3462a (`cast_pilfer`,
+  `cast_supplies` have no caster), 3471a (`process_console_cmd` refused by `add_command`'s size), and Loop 3473 (`!eval` reaches
+  the five AI toggles a `RESIDUE` row calls script-only). 3472 entered no row: the herd fails a `sort_all` gate (3472a).
+- **Lanes: none live; none booked.** Next 3477, run 1092. Pools: GOLDEN §150–154, AI §300–301, park NR–NT. The queue lane's retirement is Ramon's (1570).
+  Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b (3444a, 3453a answered), 3461a, 3462a–b, 3463a–b, 3464a, 3470a, 3471a–b, 3472a–b.
+- **Fable backlog: 28 Loop items** (3476, 3475, 3474, 3473, 3469, 3468, 3467, 3466, 3465, 3459, 3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,22 +40,16 @@ Blind: never 273 · residue 81 · open 192
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fiftieth tranche from this handoff — commander (Opus): att-3472, the twentieth, is live (`lanewait.py`); merge
-and book it, gate it whole (the drain), then the fiftieth pass.**
+**Opener: the fiftieth pass (steer, Fable): measure the fiftieth tranche (twenty from `a479f1bf`), rule the 28 Loop items —
+3465, 3473 and the `RESIDUE` proposals 3462a, 3471a first: what open counts — book the fifty-first's items, clear `commander`.**
 
 ## The queue
 
 In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). Every item is a `coverage` capture (DECISIONS 87, 88): one
 pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rclick` line (3437), checked against its `cover=0`
 twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
-explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: booked below as 3453–3455 and 3455's fallback;
+explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: none booked — the pass books the fifty-first's;
 3414a's `send_navy` left `NEVER` on run1019 (3420); `hits`/`Wall::Wall` take no `@` line (GOLDEN §144.4's `RESIDUE` row, the pass's).
-
-3472. **coverage: a herd on screen** (NATIONS §5.1): run1077's lobby at `cover=1` beside its twin; herd 9 is on disk at tile
-(186, 190) on 5412. `add hoplite who=0 184,190` (sight first), `camera 186,190`, `@dumpall`, `@click` the camera centre: a drawn
-frame with an animal on the on-screen list enters `AnimalData::is_seen@005d8160` through `ObjectsOut::sort_guys` (vtable +0x48),
-the click a second route through `Console::left_click` — which no pool take has entered. Trace only. What fills the
-on-screen list is unread. Runs 1090–1091; park NQ.
 
 ## How to maintain this file
 
