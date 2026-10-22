@@ -396,6 +396,14 @@ pub const TRACES: &[&str] = &[
     // command never fits `add_command`'s 0x200. Its `cover=0` twin is
     // run1089 (rngcmp 701 identical; `docs/RUNS.md` run1088).
     "rontrace-run1088.log",
+    // Item 3477: the golden start (run1084's lines to 660,
+    // `console3464-start.cmd`) at `cover=1` on the click-free pool to 720,
+    // the cursor pinned at (1400, 1000) (Loop 3432), then one `!eval` a
+    // frame pair from 670 (`tools/gamelog/coverage/eval3477.cmd`): the
+    // seventeen `ScenarioFuncSet` rows, each on its own line's frame, and
+    // `disable_type_by_tribe` on 704 for `Tribes::find`. Its `cover=0` twin
+    // is run1093 (rngcmp 721 identical, 0 differing; `docs/RUNS.md` run1092).
+    "rontrace-run1092.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -783,6 +791,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// on 610 (`!eval rand_real()`), `ScenarioFuncSet::set_bonus_cap@009fbd60` on
 /// 620 (leader 0's `bonus_cap[2]` 200 from block 621) and
 /// `ObjectData::in_a_ship@006440c0` on 630 (`!eval is_on_transport(1, 15)`).
+/// **255** with run1092 (item 3477: the golden start, the script host's
+/// seventeen `ScenarioFuncSet` rows through `!eval` from 670, `docs/AI.md`
+/// §296's struck proposal), each on its line's frame — who 0's
+/// `base_rate[0]` 80 from block 683, `leader_flags2` 8 and 10 from 697 and
+/// 699, who 1's 16 from 703 — and `Tribes::find@006ef2d0` on 704
+/// (`disable_type_by_tribe` on two names that match nothing).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -802,16 +816,14 @@ pub const NEVER: &[u32] = &[
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
-    0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
+    0x006e_c170, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_5320, 0x009f_45e0, 0x009f_99e0,
-    0x009f_9ad0, 0x009f_b790, 0x009f_b880, 0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_f5e0, 0x009f_f620, 0x009f_f860,
-    0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0, 0x00a0_0220, 0x00a4_69f0,
+    0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no

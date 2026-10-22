@@ -25424,7 +25424,7 @@ Rows 1–8 and 9's first half are nine lobbies the click-free lane starts with n
   `ScenarioFuncSet` is registered in every skirmish (run1088 entered `set_bonus_cap` and `rand_real` that way), so a
   `!eval disable_city_ai(1)` line enters them — a capture can break the claim, so the five rows left `RESIDUE` with the
   twelve other `ScenarioFuncSet` rows that rested on "no script calls it", and the fifty-first tranche's `!eval` item
-  takes them.
+  takes them. **Entered**: run1092 (item 3477) entered all seventeen, each on its own `!eval` line's frame (`docs/RUNS.md` run1092).
 
 **What this has *not* established.** That the click-free lane's `cover=1` take holds each lobby's word (run906's
 proof is one game); that two computers ever accept each other's offer (row 11); that no indirect call reaches

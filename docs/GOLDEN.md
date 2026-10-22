@@ -13656,8 +13656,8 @@ own stance button reaches them.
 | `CommandPackage::process_repair@00948cb0`, `Group::action_repair@007020c0` | no `add_command` site in the image writes type `0x10` (102 sites read); its other caller is `ScenarioData::issue_order` |
 | `CommandPackage::process_board_ship@00948e00`, `Group::action_board_ship@00700010`, `Unit::add_board_order@005e4d10`, `add_await_board_order@005e4c80`, `do_board@005ed1f0`, `check_meet_ship@00604550` | no site writes type `0x0f`, and the rest live under the `BoardOrder` only `action_board_ship` makes. `process_board_ship`'s sync line is mislabelled `process_set_transport` |
 | `ScenarioData::issue_order@00996ac0` | a scenario file's initial orders; no capture loads a scenario |
-| `ScenarioFuncSet::toggle_infinite_queue@009f45e0` | ~~one script caller, `scenario/Custom/capture/capture.bhs`~~ struck by the fiftieth pass (Loop 3473): the console's `!eval` reaches every `ScenarioFuncSet` function in a skirmish; off `RESIDUE`, the fifty-first tranche's `!eval` item |
-| `ScenarioFuncSet::repeat_orders_enable@009f99e0`, `repeat_orders_disable@009f9ad0` | ~~no script in the install calls either~~ struck by the fiftieth pass, as the row above |
+| `ScenarioFuncSet::toggle_infinite_queue@009f45e0` | ~~one script caller, `scenario/Custom/capture/capture.bhs`~~ struck by the fiftieth pass (Loop 3473): the console's `!eval` reaches every `ScenarioFuncSet` function in a skirmish; off `RESIDUE`; entered by run1092 on 686 (item 3477) |
+| `ScenarioFuncSet::repeat_orders_enable@009f99e0`, `repeat_orders_disable@009f9ad0` | ~~no script in the install calls either~~ struck by the fiftieth pass, as the row above; entered by run1092 on 688 and 690 (item 3477) |
 | `Unit::do_flee_to@005f2480` | no reference: `do_job` sends `FLEE_TO` to `do_move` |
 | `Wall::Wall@0063e390` | `num_def_walls` is only written 0, and no `find_free` call asks for the wall range |
 | `GroupAttackOrder::log_data@00485140` | nothing asks `get_obj(GROUP_ATTACK)`, so no list holds one to print |
