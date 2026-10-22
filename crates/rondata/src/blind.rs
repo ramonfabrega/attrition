@@ -386,6 +386,16 @@ pub const TRACES: &[&str] = &[
     // `action_offer` and `Leader::action_respond`. rngcmp against run1087
     // 701 identical, 0 differing (`docs/RUNS.md` run1086).
     "rontrace-run1086.log",
+    // Item 3471: the coverage pair's lobby (run1080's) at `cover=1` on the
+    // click-free pool to 700 (`tools/gamelog/coverage/eval3471.cmd`), the
+    // console's `eval` and `netcmd`: `!eval rand_real()` on 610 (its draw
+    // record, through `Compiler::eval_command`), `!eval set_bonus_cap(1,
+    // "Wealth", 200)` on 620 (leader 0's `bonus_cap[2]` 0 -> 200 on block
+    // 621), `!eval is_on_transport(1, 15)` on 630 (`in_a_ship`). The plain
+    // `netcmd` on 640 enters `issue_console_cmd` only: its 0x209-byte
+    // command never fits `add_command`'s 0x200. Its `cover=0` twin is
+    // run1089 (rngcmp 701 identical; `docs/RUNS.md` run1088).
+    "rontrace-run1088.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -768,6 +778,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **277** with run1086 (item 3470: the team lobby's food taunt to a
 /// computer ally, `docs/AI.md` §296 row 11): `Leader::action_respond@006d03c0`
 /// on 661.
+/// **273** with run1088 (item 3471: the coverage pair's lobby, the console):
+/// `Compiler::eval_command@009befe0` and `MathUtilFuncSet::rand_real@009e18b0`
+/// on 610 (`!eval rand_real()`), `ScenarioFuncSet::set_bonus_cap@009fbd60` on
+/// 620 (leader 0's `bonus_cap[2]` 200 from block 621) and
+/// `ObjectData::in_a_ship@006440c0` on 630 (`!eval is_on_transport(1, 15)`).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -780,7 +795,7 @@ pub const NEVER: &[u32] = &[
     0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_4550,
     0x0060_8850, 0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50,
     0x0061_dc60, 0x0062_2ce0, 0x0062_3310, 0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_3390, 0x0063_89b0, 0x0063_9830,
-    0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_40c0, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30,
+    0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50,
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
@@ -794,8 +809,8 @@ pub const NEVER: &[u32] = &[
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009b_efe0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_99e0,
-    0x009f_9ad0, 0x009f_b790, 0x009f_b880, 0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860,
+    0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_5320, 0x009f_45e0, 0x009f_99e0,
+    0x009f_9ad0, 0x009f_b790, 0x009f_b880, 0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_f5e0, 0x009f_f620, 0x009f_f860,
     0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0, 0x00a0_0220, 0x00a4_69f0,
 ];
 
