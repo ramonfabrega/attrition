@@ -8831,13 +8831,21 @@ part with no draw:
 - (3367c) **A probe's `commit -am` swept the uncommitted run993c widening into it** (`4540cffa`/`eaca2003`; the
   brief's row 1864 says exactly this). The revert conflicted and was resolved keeping the widening; for the Loop.
 
-## Parked by the next landing, slot LK — reserved
+## Parked by item 3463, 2026-10-22 — a human ahead in age, and the food counter's hover
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot LK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3463a. A pinned `@cursor` on the food counter raises no tooltip.** In run1082, thirty `@cursor` lines (9910..9939,
+  game (70,33)/(71,33)) and a still pin to 9990 enter `IFaceResources::on_spot_move` and `check_mouse_accept` on 9910.
+  They never enter `Options::describe` (either overload), so `Game::is_turbo_resources@0043ecb0` and
+  `LeaderData::resource_cap_get@0046ee80` stay on `NEVER`. The window-only photographs at 9925 and 9965 show no
+  tooltip and an empty help box. **The predicate, read and not run:** `on_spot_move` writes `mouseover->type |= 0x200`
+  and `t = good` from the line's one `OnMouseMove`, at the top of `do_frame`. `Scene::render@008b3270:161-162` sets
+  `region = MOUSEOVER_OTHER` and `type = 0` before `describe_mouseover` (:517). So `MouseOver::describe@007d09b0` reads
+  type 0, which no case of its switch takes, and returns. What re-sets the type inside a hand-held game's render is
+  unread. The test is a tracer hook that re-sends the pinned `OnMouseMove` at `Scene::describe_mouseover@008b47e0`'s
+  entry, on run1082's lines. Score: `NEVER`, two rows and every `Options::describe` case behind a hover.
+- **3463b. The computer's stock falls to 450 of each good on block 9978.** In run1082, leader 1's five buckets read
+  100466/100332/100080/100242/100127 on 9977 and 450 each on 9978, the block after `prod_script_run` 1 → 0. The
+  writer is unread (the script's end, or a cap pass). Names no score.
 
 ## Parked by item 3370, 2026-10-20 — the East Indies Spanish word closes
 
