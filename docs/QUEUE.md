@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the fiftieth tranche (commander, Opus): 18 of 20 landed from `a479f1bf`** — `NEVER` 321 → 277: 3438 Bribe, **3442 the
-pool's `@key`**, 3443, 3444, 3445, 3447, 3446, 3448, 3453, 3454, 3456 a ping, 3455 a disband, 3461 halt, 3460 `pay_dow`, 3462, 3464, 3463, 3470 `action_respond`.*
+*2026-10-21, **the fiftieth tranche (commander, Opus): 19 of 20 landed from `a479f1bf`** — `NEVER` 321 → 273: 3438 Bribe, **3442 the
+pool's `@key`**, 3443, 3444, 3445, 3447, 3446, 3448, 3453, 3454, 3456 a ping, 3455 a disband, 3461 halt, 3460 `pay_dow`, 3462, 3464, 3463, 3470 `action_respond`, 3471 `!eval`.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 277 (321 at the base), residue 81, open 196** (`Blind:` pinned; Loop 3473's citation added one); it moves by trace, on the pool;
+  `NEVER` 273 (321 at the base), residue 81, open 192** (`Blind:` pinned; Loop 3473's citation added one); it moves by trace, on the pool;
   **115 of the 208 open rows (at 3454) have no reference in the image** (Loop 3465, a `RESIDUE` proposal for the pass).
 - **The pool carries the click layer** (`@click`, `@key`): the queue lane keeps only the menu's code (3429b); its retirement is Ramon's (1570).
-- **Lanes: att-3471, att-3472 (the twentieth); none booked.** Next 3476, run 1092; the pool's profile sets `PLAYERS` (3456) and `TEAM_STYLE` (3460). Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through MV
-  and refilled NO–NT at 3470's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3461a, 3460a–b (3444a, 3453a answered by run1078), 3462a–b (3462a a `RESIDUE` proposal), 3464a, 3463a–b, 3470a.
+- **Lanes: att-3472 (the twentieth); none booked.** Next 3476, run 1092; the pool's profile sets `PLAYERS` (3456) and `TEAM_STYLE` (3460). Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through MV
+  and refilled NO–NT at 3470's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3461a, 3460a–b (3444a, 3453a answered by run1078), 3462a–b (3462a a `RESIDUE` proposal), 3464a, 3463a–b, 3470a, 3471a–b (3471a a `RESIDUE` proposal).
 - **Fable backlog: 27 Loop items** (3475, 3474, 3473, 3469, 3468, 3467, 3466, 3465, 3459, 3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -35,13 +35,12 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 277 · residue 81 · open 196
+Blind: never 273 · residue 81 · open 192
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fiftieth tranche from this handoff — commander (Opus): att-3471 and att-3472 are live (`lanewait.py` on
-both), the twentieth spawned; merge and book each, gate the first `--scope 0cb29c2f2` and the last whole (the drain), then the
-fiftieth pass.**
+**Opener: continue the fiftieth tranche from this handoff — commander (Opus): att-3472, the twentieth, is live (`lanewait.py`); merge
+and book it, gate it whole (the drain), then the fiftieth pass.**
 
 ## The queue
 
@@ -50,14 +49,6 @@ pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rcli
 twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
 explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: booked below as 3453–3455 and 3455's fallback;
 3414a's `send_navy` left `NEVER` on run1019 (3420); `hits`/`Wall::Wall` take no `@` line (GOLDEN §144.4's `RESIDUE` row, the pass's).
-
-3471. **coverage: the console's `eval` and `netcmd`** (ORACLE; the economy and attrition audits; item 652): run1080's coverage-
-pair lobby at `cover=1` beside a twin, with `--detail misc:COMMANDMANAGER=2` on both. `!eval rand_real()`:
-`MathUtilFuncSet::rand_real@009e18b0` (its kind-4 draw record); `!eval set_bonus_cap(1, "Wealth", 200)`:
-`ScenarioFuncSet::set_bonus_cap@009fbd60` (`LEADERS=9` `bonus_cap` 0 → 200); `!eval is_on_transport(1, 15)`:
-`ObjectData::in_a_ship@006440c0` (trace only); a plain `netcmd resource who=0 food +1000`:
-`CommandPackage::process_console_cmd@00943f30` (`CM` `process_command_cmd` at level 2 only; the food bucket +1000).
-`eval` is in `run_cmd`'s first switch, so its lines need `!`; whether the tracer keeps `"` and `(` is unread. Runs 1088–1089; park NP.
 
 3472. **coverage: a herd on screen** (NATIONS §5.1): run1077's lobby at `cover=1` beside its twin; herd 9 is on disk at tile
 (186, 190) on 5412. `add hoplite who=0 184,190` (sight first), `camera 186,190`, `@dumpall`, `@click` the camera centre: a drawn
