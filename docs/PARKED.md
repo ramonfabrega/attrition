@@ -3774,6 +3774,15 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3496) **The console mirror's flip is measured safe for the pool's default** (3484's "for the Loop"; DECISIONS 89's amendment,
+3483a, 3484a): on three lobbies (run1103/1104 the golden start, 1105/1106 the coverage pair, 1107/1108 the team lobby)
+`--console-log 0` leaves `gamelog.txt` byte-identical after its header (lines 1–3: SYNCPOINT timings, memory, CPU speed) and the
+draw stream identical, nothing in `tools/` reads the mirror (`WINEDEBUG=-all` already discarded it), and a dumped frame goes from
+2.7–3.3 s to 0.06–0.09 s. With the mirror off, the CRT formatting is 66–75 % of what is left, about 0.05 s (3484a): the
+byte-identical writer is not worth an item. Candidate: the pool runner's default becomes `--console-log 0`, with its test, and the
+cursor pin with it — 3477, 3478 and 3484's three lobbies are clean takes against their twins, past Loop 3432's three. Score: the
+pool's frames a second and the capture class's minutes. One reach: the pass's, per the amendment.
+
 (3490) **`CLAUDE.md`'s wait bullet still names the queue lane** (3485's "for the Loop"): Conventions, "it keys on the runner's own
 banner and exit on the queue lane and on the receipt lines on the click-free lane"; 3485's replacement: "it keys on the receipt lines the
 click-free runner prints and on a capture script's `=== captured: ` line". `CLAUDE.md` is the main thread's (a lane's edit is refused).
