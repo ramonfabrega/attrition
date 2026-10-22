@@ -13,7 +13,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 ## Where things stand
 
 *2026-10-21, **the forty-ninth tranche (commander, Opus): drained at sixteen from `11da5dd8` in 9 h — early, on Ramon's pit
-stop** (Loop 3439: two Opus lanes ran single-threaded on the capture lock). The drain's whole gate is 3436's booking.*
+stop** (Loop 3439: two Opus lanes ran single-threaded on the capture lock). The drain's whole gate is its second commit's.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list: `NEVER` 380 → 321,
   residue 80 → 79, open 300 → 242** (`Blind:` pinned): `@` lines on the pool, two driven click passes, a playback.
