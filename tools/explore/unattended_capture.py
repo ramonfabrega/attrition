@@ -91,6 +91,45 @@ def set_lobby(profile, pairs):
     path.write_bytes(text.encode('utf-8'))
 
 
+# A `rise.ini` key `--rise` may set, with the value every take writes when
+# it is not given (item 3492; Loop 3488's rule): a take never inherits the
+# last one's, whatever the restore did. `AutoSaveLoad` is
+# `Game::auto_save_load`, read by `Game::solo_checks@00588110` at
+# `int_str_array +0xdc8c`; `Game::do_frame` saves and reloads the game on
+# every frame it divides, so 0 is off.
+RISE_DEFAULTS = {'AutoSaveLoad': 0}
+def set_rise(profile, pairs):
+    """Write every `RISE_DEFAULTS` key into the profile's `rise.ini`, a
+    `KEY=N` in `pairs` over its default; the values written."""
+    values = dict(RISE_DEFAULTS)
+    for pair in pairs:
+        key, value = pair.split('=')
+        if key not in RISE_DEFAULTS:
+            raise ValueError(f'--rise {key}: not a key with a stated default ({", ".join(RISE_DEFAULTS)})')
+        values[key] = int(value)
+    path = profile / 'rise.ini'
+    text = path.read_text()
+    for key, value in values.items():
+        text = live_session.key(text, key, value)
+    path.write_text(text)
+    return values
+
+
+def save_files(output):
+    return set(output.glob('*.svx'))
+
+
+def remove_new_saves(output, before):
+    """Remove the saves a take added beside its executable — `AutoSaveLoad`'s
+    `autosaveload.svx` lands in the launch's working directory, the run's own
+    (run1115) — and name each with its size and digest."""
+    removed = []
+    for path in sorted(save_files(output) - before):
+        removed.append({'path': str(path), 'bytes': path.stat().st_size, 'sha256': sha(path)})
+        path.unlink(missing_ok=True)
+    return removed
+
+
 def bind_keys(profile, install, pairs):
     # `tools/gamelog/bindkey.py`'s element, written into the lane's own
     # profile (item 3442): `<KEY enum=ACTION dependent="-1"><INPUT key=VK
@@ -480,6 +519,7 @@ def capture(args, output, style):
     launch_args = LAUNCH_ARGS + (['-config', 'input.rcx'] if playback else [])
     staged = False
     process = None
+    saves_before = None
     started = time.monotonic()
     try:
         require_closed()
@@ -542,6 +582,9 @@ def capture(args, output, style):
             else:
                 text = text.rstrip('\r\n') + ('\r\n' if '\r\n' in text else '\n') + line + '\n'
             rise.write_text(text)
+        report['rise'] = set_rise(args.profile, getattr(args, 'rise', None) or [])
+        if report['rise']['AutoSaveLoad']:
+            saves_before = save_files(output)
         env = os.environ.copy()
         report['startup_probe'] = getattr(args, 'startup_probe', False)
         env['TRACER_DEFS'] = ('-DRON_AUTOSTART'
@@ -659,6 +702,8 @@ def capture(args, output, style):
                 except subprocess.TimeoutExpired:
                     os.killpg(process.pid, signal.SIGKILL)
                     process.wait(timeout=10)
+            if saves_before is not None:
+                report['saves_removed'] = remove_new_saves(output, saves_before)
             if staged:
                 require_closed()
                 live_session.restore(output)
@@ -929,6 +974,9 @@ def parser():
                     default=DEFAULT_CONSOLE_LOG,
                     help="rise.ini AllowLogs_ToConsole: 0 stops every log line's OutputDebugStringW "
                          "mirror (item 3483), the default since item 3497; 1 restores it (the engine's default)")
+    ap.add_argument('--rise', action='append', metavar='KEY=N',
+                    help='a rise.ini key, repeatable; every take writes each key its default '
+                         f'unless given ({", ".join(f"{k}={v}" for k, v in RISE_DEFAULTS.items())}; item 3492)')
     ap.add_argument('--dumptime', metavar='N[,MASK]',
                     help='the dump clock: rontrace.cfg dumptime=N, dumpsites=MASK (tools/trace/dumptime.h; item 3483)')
     ap.add_argument('--stride', type=int, metavar='N',
@@ -964,6 +1012,9 @@ def main():
     args=ap.parse_args()
     if any(not re.fullmatch(r'[A-Z_0-9]+=-?\d+', p) for p in args.lobby or []):
         ap.error('--profile takes KEY=N')
+    if any(not re.fullmatch(r'[A-Za-z_0-9]+=\d+', p) or p.split('=')[0] not in RISE_DEFAULTS
+           for p in args.rise or []):
+        ap.error(f'--rise takes KEY=N, KEY one of {", ".join(RISE_DEFAULTS)}')
     if any(not re.fullmatch(r'[A-Za-z_0-9]+=\d+', p) for p in args.bindkeys or []):
         ap.error('--bindkey takes ACTION=VK')
     if args.recording is not None:

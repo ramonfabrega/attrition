@@ -431,6 +431,13 @@ pub const TRACES: &[&str] = &[
     // The `cover=0` twin is run1114 (rngcmp 641 identical, 0 differing;
     // `docs/RUNS.md` run1113).
     "rontrace-run1113.log",
+    // Item 3492: the golden start (run1084's lines, `console3464-start.cmd`)
+    // at `cover=1` on the click-free pool to 700 with `--rise
+    // AutoSaveLoad=650`: `Game::do_frame` saves and reloads the game when the
+    // frame becomes 650, through `WalkDataGame::walk_data` and the goods' and
+    // items' +0x7c walkers. Its `cover=0` twin is run1116 (rngcmp 701
+    // identical, 0 differing; `docs/RUNS.md` run1115).
+    "rontrace-run1115.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -835,6 +842,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **252** with run1113 (item 3491: the team lobby, a defeated computer's
 /// chair): `Game::is_tournament@0043ec90` on 604, once `be 2` put the
 /// console on a player `is_over` and `reveal 0` cleared `semaphore & 0x42`.
+/// **250** with run1115 (item 3492: the golden start with `AutoSaveLoad=650`):
+/// `Good::walk_data@0066e5d0` and `Item::walk_data@00677150` on 649's
+/// do_frame, the save's and the reload's +0x7c walkers.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -849,8 +859,8 @@ pub const NEVER: &[u32] = &[
     0x0061_dc60, 0x0062_2ce0, 0x0062_3310, 0x0062_d430, 0x0062_d5b0, 0x0062_e2f0, 0x0063_0590, 0x0063_06b0, 0x0063_3390, 0x0063_89b0, 0x0063_9830,
     0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
-    0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50,
-    0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
+    0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_fd40, 0x0066_fd50,
+    0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
