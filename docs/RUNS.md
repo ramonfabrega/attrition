@@ -22174,3 +22174,47 @@ Archive `rontrace-run1062.log`, 31,383,488 bytes,
 SHA-256 `2144faf431633dd42eeb6b81aaed7b7410315710d9aeb0247f56302944406f3f`.
 
 **What it holds**: the human's declaration of war through the window, refused, and run848's game on every block.
+
+## run1068 — the Nomad lobby at `cover=1` on the click-free pool, AI on, to 600 (2026-10-22, item 3447, `att-3447`)
+
+**What the disk could not answer**: no dump on disk has `STARTING_TOWN 0`, the Nomad start. The only `STARTING_TOWN`
+lobbies are run316's 3 and the default 2. So no dump holds the computer's nomad step 2
+(`ai/scripts/economic.bhs:398`), and no trace enters `ScenarioFuncSet::citizen_repair_order@009f85b0`. It was also
+not known whether the autostart could start this lobby at all (parked 1570). Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1068 --map 18 --end-frame 600 --timeout 2400 --profile
+STARTING_TOWN=0 --cover cover=1 --log-window 0 601 --detail end:UNITS=3,GUYS=4,BUILDS=7,CITIES=5,LEADERS=5,DEATHS=1
+--detail misc:COMMANDMANAGER=1`, with no command file (the AI on).
+- Pool lane 2. Launched 02:23:53, exited 02:36:51: **777.3 s launch to exit**. `success`, lifecycle verified, 601
+  frames, `MAP_STYLE 18`, `STARTING_TOWN 0` in `GAME INFO`, seed 12345, tribes 4 (who=0) and 11 (who=1). DLL
+  `3d7f684f…0072`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0. 218 GiB free before the take.
+- **6,189 functions entered**. `citizen_repair_order` on 376 (`f376`). `NEVER` row: `citizen_repair_order`.
+- `rngcmp.py` against run1068b (its `cover=0` twin): **601 in common, 0 differing, 601 identical**. `samegame.py`:
+  **600 in common (1..600), 0 differing**.
+- `U3` read beside it (GOLDEN §148): the computer's three Citizens go from `[BUILD 1/2000]` on 376 to `[BUILD 1/2000,
+  EXPLORE_TO]` on 377, bottom first. `group` goes 66, 67, 64 → 66, 65, 64. Every Citizen is `GUY` `type 50`.
+- Filed with `filerun.py run1068 eastindies-nomad-cover1-clickfree`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1068-eastindies-nomad-cover1-clickfree.txt`, 246,955,637 bytes,
+SHA-256 `ea4d68b1529c1c857df3e6db4e0c2b00e180a2dcfd7463c2e6c7a0d9a604c4ec`.
+
+Archive `rontrace-run1068.log`, 10,685,696 bytes,
+SHA-256 `3e39b905875998be58725e6c326f09e4983bfeb84087b9e82e88e70fcdc9d7c0`.
+
+**What it holds**: the first Nomad start on disk, and the computer's nomad step 2 (`citizen_repair_order`) on 376.
+
+## run1068b — the Nomad lobby's `cover=0` twin, to 600 (2026-10-22, item 3447, `att-3447`)
+
+**What the disk could not answer**: run1068 had no `cover=0` twin, because no Nomad game is on disk. This is run1068's
+line with `--cover cover=0`, launched beside it.
+- Pool lane 3. Launched 02:23:57, exited 02:36:48: **771.2 s launch to exit**. `success`, lifecycle verified, 601
+  frames, `MAP_STYLE 18`, seed 12345, tribes 4 and 11. DLL `c016baf6…8839`. `waitrun.sh` exited 0.
+- The same game as run1068 on every frame (above).
+- Filed with `filerun.py run1068b eastindies-nomad-cover0-clickfree`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1068b-eastindies-nomad-cover0-clickfree.txt`, 246,955,636 bytes,
+SHA-256 `bae8fad8ff357bd152d15eb624a28d6c1a7dfac29a9c5b8ec1be968d08cc9b77`.
+
+Archive `rontrace-run1068b.log`, 10,487,616 bytes,
+SHA-256 `7f053a43503214469d79fc5f813c32057827cc25ed4e18229217276a48997aaa`.
+
+**What it holds**: the Nomad lobby's draw stream at `cover=0`, the twin run1068 is checked against.
