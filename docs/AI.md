@@ -9467,18 +9467,13 @@ tests the claim's own unit.
   `Game::wonders[t − 0x20e] |= 1`, which `already_built` reads (§75.6),
   and ratchets `wonders_held` (+0x858).
 - **`Wonders::close_wonder@0073c7e0`**, called from `Build::close`. It
-  clears the entry's bit, then walks the mark down while the entry under
-  it is clear. Its whole write set (item 3409, §296; *reading alone*):
-  the entry's `+0xc & 1` cleared, `+0xd` to `0xff` and `o` (`+0x2`,
-  `WonderData`) to −1 (`:10`–`:12`), then `LeaderData::wonder_mark`
-  (`+0x424`) decremented while the entry under it is clear (`:13`–`:21`);
-  it returns −1 either way, and `Build::close` reaches it only when the
-  building's `+0x76` (its wonder slot) is non-negative (`:314`–`:316`).
-  So the mark falls only when the highest standing wonder closes, and
-  falls past every cleared entry under it. *Falsifier*: `LEADERS=9`'s
-  `wonder_mark` on the frame a player's last-activated wonder is razed
-  or captured — the mark drops to one past the next entry still in use;
-  a lower wonder's close leaves it standing.
+  clears the entry's bit (`+0xc & 1`; `+0xd` to `0xff`, `o` to −1,
+  `:10`–`:12`), then decrements `wonder_mark` while the entry under it is
+  clear (`:13`–`:21`), and returns −1. `Build::close` reaches it only when
+  the building's wonder slot (`+0x76`, `BUILDS`' `wonder`) is ≥ 0
+  (`:314`–`:316`). **Diff-backed** (run1074, item 3454): two Pyramids
+  `add`ed in slots 0 and 1 put the mark at 2; the lower's `die` on 660
+  leaves it at 2, the higher's on 670 drops it to 0 on block 671.
 
 So the mark is **one past the highest entry in use**, not a count.
 `has_wonder` and `get_wonder_value` walk the list to it.
@@ -9583,9 +9578,9 @@ runway's 502.
   scaled by it. No capture on file has a hard AI.~~ **Built by item 1481**
   (§124): the hard French AI's Pyramids doubled its Tikal on 14784, and
   the type's own `WONDER_VAL` doubled it again.
-- **A close.** No capture on file loses a wonder, so the entry that
-  `close_wonder` clears and the walk-down are the reading and the unit
-  test alone. A captured wonder's entry is not read: `Build::swap_team`
+- ~~**A close.** No capture on file loses a wonder.~~ run1074 does
+  (§75.3), by console; the harness does not diff it (parked 3454a). A
+  captured wonder's entry is not read: `Build::swap_team`
   and `check_capture` do not touch the list.
 - **Two activations on one frame** take entries in building order here.
   The original's order is its objects' order. No capture has two.
@@ -25391,7 +25386,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | 7 | `GreatSaharaBantuTier4` (run978c) | `LEADERS=9` `escrow`, block 2808 | `can_queue@0062da00`: **not this lobby's** — the script's research (`research_tech_with_cost:74`, `009ee84e`) calls the byte-identical copy `can_queue@004d2030` (entered on frame 1, run1023, item 3423); `@0062da00`'s one caller is `GroupOut::issue_queue_up+0x26f` (`00708eff`), a human's queue-up click (parked 3423a) | click |
 | 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | ~~`go_to_city`~~ (309, the merchant `1/1` drafted on block 310; run1024, item 3423) | click-free |
 | 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | ~~`current_age`~~ (entered on frame 0, run1016, §297); (9b) `say_no_war` only once the console's own unit stands in the Lakota's land, the leader's `+0x1f4` stamp 0 | click-free; 9b driven |
-| 10 | any lobby in which a leader's highest wonder closes (none on disk: below) | `LEADERS=9` `wonder_mark` on the close | `close_wonder` | as the lobby |
+| 10 | ~~any lobby in which a leader's highest wonder closes~~ chapter seven's, by console (run1074, item 3454, §75.3) | `LEADERS=9` `wonder_mark` on the close | ~~`close_wonder`~~ (660) | click-free |
 | 11 | a human and two computers, no teams (none on disk) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6) | click-free, *a prediction* |
 | 12 | a team lobby with a computer ally (none on disk) | `LEADERS=9` `escrow` and the stock on the frame the human cancels the alliance (`CANCEL_ALLIANCE + t`) | `pay_dow`, `action_declare`'s pay arm | driven: a diplomacy click |
 
