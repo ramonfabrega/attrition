@@ -23,11 +23,9 @@
 # (lane 1 is the reference and needs none). `RON_CAPTURE_LANE=N` pins a
 # lane — for a test, and for the admission run itself.
 #
-# **The queue lane** (`runqueue.sh`, `longtrace.sh`, `cliclick`) owns the
-# cursor and finds the game's window by title, so it runs on lane 1 alone
-# and never beside a pool game: `winelaunch.sh`'s `ron_lane_take` refuses
-# it while any pool lane is held, and refuses a pool take while it holds
-# lane 1.
+# The queue lane (`runqueue.sh`) ran on lane 1 alone and the pool and it
+# excluded each other; it retired with item 3485 (2026-10-22), and a need
+# for it again is a steer, never a lane's redirect.
 #
 # `RON_WINEPREFIX` set by hand still wins over the lane's (the lock tests
 # set it); `RON_INSTALL` and `RON_PROFILE` win only on lane 1, so an
@@ -64,8 +62,7 @@ ron_lane_paths () {
 RON_CAPTURE_LANE=${RON_CAPTURE_LANE:-1}
 ron_lane_paths "$RON_CAPTURE_LANE" || { return 64 2>/dev/null || exit 64 }
 # Every lane's prefix up to the cap, for a reader that must tell one
-# lane's game from another's (`live_session.require_closed`) and for the
-# queue lane's refusal.
+# lane's game from another's (`live_session.require_closed`).
 RON_LANE_PREFIXES=($RON_LANES_ROOT/wine-ron)
 for (( _n = 2; _n <= RON_LANES_MAX; _n++ )); do RON_LANE_PREFIXES+=($RON_LANES_ROOT/wine-ron-$_n); done
 unset _n

@@ -102,7 +102,7 @@ _perm_who() {
   if [ -x "$app/Contents/MacOS/RonDriver" ]; then
     echo "  This machine has $app for exactly this."
     echo "  Grant that once and it survives every Claude Code update:"
-    echo "    zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - <item>"
+    echo "    zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh …"
   else
     echo "  Build the fixed-path launcher and grant that instead, once:"
     echo "    zsh tools/gamelog/rondriver/build.sh"

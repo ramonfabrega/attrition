@@ -2933,7 +2933,10 @@ census row is what that looks like when nobody books it.
    actually reaches — the viadriver log — and on the runner's life, and
    exits 0 / 1 / 2 on ok / FAILED / no banner. Made to fail first on the
    banner-less case, the one item 571 sat in for two hours. Named in
-   `CLAUDE.md`'s wait bullet, `viadriver.sh` and `docs/ORACLE.md`.
+   `CLAUDE.md`'s wait bullet, `viadriver.sh` and `docs/ORACLE.md`. *(Amended by item 3485,
+   2026-10-22: the queue lane retired and the banner arm with it; the
+   waiter keys on the click-free receipts and a capture script's
+   `=== captured: ` line.)*
 3. **The golden-line guard reads every pinned word** (parked 638): a
    verdict function over eleven names — `ch1`–`ch8`, `restage`, `ch7b`,
    `ch7b-control` — and, with nothing open, the line leads with `every

@@ -19,8 +19,8 @@ lowered when the rate fell: lanes share one box, and a starved game is the
 failure a slow box produces — the stall relaunch trips on wall-clock
 timeouts before anything reads as wrong.
 
-A line is `epoch instant verb lane pid rest…`; verbs `take` (rest: `pool`
-or `queue`), `release`, `waited` (lane 0, the pool's, in lane 1's log;
+A line is `epoch instant verb lane pid rest…`; verbs `take` (rest: `pool`,
+or `hand` — `queue` in a log before item 3485), `release`, `waited` (lane 0, the pool's, in lane 1's log;
 rest: seconds) and `capture` (rest:
 `frames=`, `launched=`, `exited=`, `success=`, `out=`). A take on a lane
 closes that lane's open interval — a runner that died never released.

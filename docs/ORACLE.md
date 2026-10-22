@@ -1872,9 +1872,9 @@ arguments and grew the hooks a queue of captures needs — `DETAIL_END` and
 for the right-clicks the cheat channel cannot issue. Every one defaults to
 exactly what the script did before it existed, so an unset environment still
 reproduces run33 and run39. `captures.txt` holds one stanza per owed
-capture and `runqueue.sh` walks it **one at a time**, skipping any stanza
+capture ~~and `runqueue.sh` walks it **one at a time**, skipping any stanza
 whose archive already exists, so an interrupted queue resumes rather than
-restarts.
+restarts~~ *(struck by item 3485, 2026-10-22: the queue lane retired — `runqueue.sh` and `handdriver.sh` left the tree; a need for it again is a steer)*.
 
 **Run numbers start at 42, and the reason is a trap worth naming.** 40 and
 41 are taken by two `census` captures from 2026-08-30 that no run section
@@ -2035,20 +2035,19 @@ filter for `kTCCServiceAccessibility` or `kTCCServicePostEvent` and read
 `tools/gamelog/rondriver/` builds `~/bin/RonDriver.app`: a fixed-path bundle
 whose only job is to be the responsible process for a capture.
 `tools/gamelog/viadriver.sh` runs one through it —
-
-```
-zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 197
-```
-
-— and `open -a` is what makes it work: LaunchServices launches the bundle,
+~~`zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 197`~~
+*(struck by item 3485, 2026-10-22: the queue lane retired — `runqueue.sh` and `handdriver.sh` left the tree; a need for it again is a steer)*; the pool's launch is `viadriver.sh
+tools/explore/golden_capture.sh …` —
+and `open -a` is what makes it work: LaunchServices launches the bundle,
 so the bundle, rather than whatever spawned the script, is responsible, and
 every child inherits that. `viadriver.sh` itself returns at once, so **the
 session waits with `tools/gamelog/waitrun.sh <the log viadriver printed>`**
-under its background lane: the runner's summary banner goes to its stdout,
-which is that log and never the `runqueue-<ts>.log` beside it, and item 571
+under its background lane: ~~the runner's summary banner goes to its stdout,
+which is that log and never the `runqueue-<ts>.log` beside it,~~ *(struck by item 3485, 2026-10-22: the queue lane retired — `runqueue.sh` and `handdriver.sh` left the tree; a need for it again is a steer)* the
+runner's verdict goes to its stdout, which is that log, and item 571
 watched the wrong one for two hours after its capture had finished (parked
-656, the thirteenth pass). On the click-free lane the runner prints no
-banner and one JSON receipt per map instead, and the same script reads
+656, the thirteenth pass). On the click-free lane the runner prints ~~no
+banner and~~ one JSON receipt per map ~~instead~~, and the same script reads
 those once the runner has exited (the fourteenth pass; four items had
 found it exiting 2 there). The launcher **spawns and waits**; an `exec`
 would replace its image with `/bin/zsh` and hand the attribution back to the
@@ -2189,9 +2188,9 @@ second lane can no longer clear a running game's log on its way to
 being refused, and the minute in which a script archives its log after
 the game's exit is covered too. `longtrace.sh` also copies the profile
 and `check.ini` aside on every capture and puts both back wherever it
-restores the INIs (parked 987), and `runqueue.sh` walks a copy of the
+restores the INIs (parked 987)~~, and `runqueue.sh` walks a copy of the
 scenario file taken at its start (parked 984): a stanza appended while
-it runs waits for the next run. On the click-free lane the runner also
+it runs waits for the next run~~ *(struck by item 3485, 2026-10-22: the queue lane retired — `runqueue.sh` and `handdriver.sh` left the tree; a need for it again is a steer)*. On the click-free lane the runner also
 relaunches once when no gamelog has appeared by `--stall-seconds` (300;
 parked 762, DXVK's device setup stalled twice), and its receipt refuses a
 capture that asked for `GROUPS` and printed no `GROUPDATA`
@@ -3023,13 +3022,13 @@ The admission run is a game: run `lane.sh` through `viadriver.sh`, or let
 a pool runner (already under RonDriver) call it; `waitrun.sh` knows it as
 a runner.
 
-**The queue lane and the pool exclude each other.** The queue lane
+~~**The queue lane and the pool exclude each other.** The queue lane
 (`runqueue.sh`, `longtrace.sh`, `startcapture.sh`, `cliclick`) owns the
 cursor and finds the game's window by title, so a second game's window is
 one it could click. The runner's takes carry `RON_LANE_POOL=1` and write a
 holder line starting `pool `; `ron_lane_take` without it refuses (75)
 while any pool lane is held, and a pool take refuses while lane 1 is held
-by anything but the pool. The queue lane runs on lane 1 alone.
+by anything but the pool. The queue lane runs on lane 1 alone.~~ *(struck by item 3485, 2026-10-22: the queue lane retired — `runqueue.sh` and `handdriver.sh` left the tree; a need for it again is a steer; the lock refuses a take on its own lane alone, `tools/explore/test_capture_lanes.py`'s `OnlyTheLanesOwnLockRefuses`)*
 
 **What the pool records.** Each lane's `.lane.log`, beside its lock:
 `take` and `release` from `ron_lane_take`/`ron_lane_release`, a `capture`
@@ -3067,6 +3066,6 @@ slow each other measurably; three long traces at once are not measured.
   writing; lane N ignores `RON_INSTALL` and `RON_PROFILE`.
 - The receipt stamps `launched_at` and `exited_at` by the wall clock.
 
-**What stays one**: the queue lane, above. `waitrun.sh` judges a
+~~**What stays one**: the queue lane, above.~~ *(struck by item 3485, 2026-10-22: the queue lane retired — `runqueue.sh` and `handdriver.sh` left the tree; a need for it again is a steer)* `waitrun.sh` judges a
 click-free log once no runner of any lane is alive, so a lane's waiter may
 outlast its own run by another lane's.

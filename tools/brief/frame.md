@@ -293,13 +293,10 @@ Before any reading, in order:
   lobby's own lines (run1037, 601 frames in 45 s); **a click is an `@click
   X Y`/`@rclick X Y` line** (3437, `tools/trace/click.h`), the point a
   screenshot of the lobby gives, with `--no-ffwd` when a pick needs the
-  drawn scene; the queue lane (run461's `captures.txt` shape, `runqueue.sh`
-  through `viadriver.sh`) only for what no `@` line sends — a key, the
-  menu's own code (3429b) — and the brief says so; either is waited on
-  with `waitrun.sh`.
+  drawn scene; waited on with `waitrun.sh`.
 - **A take that needs a screen point photographs itself** (3469, 3451):
   `poolshot.py <run> <frame>` after a `pause 1` line on the frame,
-  window-only; never the queue lane's `handdriver.sh` scout.
+  window-only.
 - **Before the take, three checks** (3430; 3417, 3419, 3423's retakes):
   the detail level that prints each owed field is the level the dump's
   writer prints it at (a stanza on disk says which; `LEADERS=1` printed no
