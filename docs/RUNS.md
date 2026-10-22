@@ -23841,3 +23841,50 @@ SHA-256 `f402fce12de492aaebadd8dfeb98e43753a4347139783796b15b32239f020422`.
 
 Archive `rontrace-run1128.log`, 11,209,952 bytes,
 SHA-256 `ed24cfda1d842d6141ac807253b7fd29727b1b497e85b4d52f077cb417413ac9`.
+## run1134 — the golden start at `cover=1` on the click-free pool: the script host's `disable_type_by_tribe` and `train_unit`, to 690: `TypeData::type_graft` entered (2026-10-22, item 3501, `att-3501`)
+
+**What the disk could not answer**: no trace enters `TypeData::type_graft@00472a50`, the `+0x68` slot of every non-unit
+type's `Type` sub-table, which `LeaderData::get_graft` calls only when `tribe_can_type` is 0. No shipped building's
+`TRIBE_MASK` clears a tribe the pinned lobbies play, and run1092's `disable_type_by_tribe` matched no name. Before staging,
+`+0x68` was read off the image (Loop 3500): the `Type` sub-tables of `BuildTypeData` (0xb428d4), `BuildTypeOut`
+(0xb42a2c) and `BuildType` (0xb42b94) all hold 0x00472a50. The slot is a direct pointer (`report.py <exe> refs`).
+The launch line was `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1134 --map 14 --end-frame 690
+--log-window 664 690 --timeout 3600 --detail end:LEADERS=2 --cmd-file tools/gamelog/coverage/graft3501-start.cmd
+--cover cover=1`, with the pool's defaults (receipt `staged`: `cursor` `1400,1000`, `console_log` 0). Its lines were
+`0 !ai off`, `670 !eval disable_type_by_tribe("Barracks", "Nubians")`, `672 !eval train_unit(1, 1, "Hoplites")`, and
+the fallback pair on 676/678 spelling the tribe `"nubians"`.
+- Pool lane 1 (`~/wine-ron`). Launched 18:52:49, exited 18:53:06: **17.2 s launch to exit**. `success`, settings
+  restored (5 files), lifecycle verified, 691 frames, `last_frame` 690, not ended early, map 14, seed 12345, PLAYER
+  records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). DLL `fe31d5f4…`, `-DRON_AUTOSTART`. 200 GiB free
+  before. Minutes waited on another lane: none.
+- **6,360 functions entered; one `NEVER` row, `TypeData::type_graft@00472a50`, on 672**, the first spelling's frame.
+  On 670: `disable_type_by_tribe` and `Tribes::find`. On 672: `train_unit`, `get_type_index`, `find_build` and
+  **`LeaderData::get_graft@0047df40`**. That is the byte-identical copy `train_unit` calls (`call 0x47df40` at
+  0x9f40ca and 0x9f4206). `get_graft@006e30f0`, `tribe_can_type@006d9380` and `current_upgrade@006e3140` were first
+  entered before frame 0 (`f-1`). Their entry on 672 is not a first entry, so `functions` does not list it. The
+  graft could only dispatch `+0x68` with the bit clear, so `Tribes::find` matched the English name `"Nubians"`. The
+  676/678 pair was not needed.
+- **The dump**: `LEADERS=2` prints no field the lines move, as E1 predicted. Across 664..689 who 0's and who 1's
+  blocks differ only in `leftover`, `bucket` and `score` ticks, and nothing changes on 671 or 673. `find_build` finds
+  no Barracks on the golden start, so nothing is queued.
+- **The twin is identical**: `rngcmp.py` against run1135, **691 in common, 0 differing, 691 identical**.
+  `samegame.py`: **26 in common (664..689), 0 differing**. Every input is shared, so there is no `--from`.
+- Filed with `filerun.py run1134 golden-type-graft-cover1-clickfree`.
+
+Archive `gamelog-run1134-golden-type-graft-cover1-clickfree.txt`, 270,377 bytes,
+SHA-256 `235086874fd9aa74ad59cbbfce4b5dfd9196e49332f6b50a6fedad3c0822b416`.
+
+Archive `rontrace-run1134.log`, 9,759,648 bytes,
+SHA-256 `4a93c9f60ec0b018e744581f4a2d230a41ee9251c0d76aeb53732ef123706226`.
+## run1135 — run1134's `cover=0` twin (2026-10-22, item 3501, `att-3501`)
+
+The same command line and command file at `--cover cover=0`, in `~/ron-golden/run1135`. Pool lane 2 (`~/wine-ron-2`).
+Launched 18:52:55, exited 18:53:09: **13.7 s launch to exit**. `success`, 691 frames, `last_frame` 690, seed 12345,
+the same two PLAYER records, `cursor` `1400,1000`, `console_log` 0. DLL `c3f52b7a…`. Filed with `filerun.py run1135
+golden-type-graft-cover0-clickfree`.
+
+Archive `gamelog-run1135-golden-type-graft-cover0-clickfree.txt`, 270,378 bytes,
+SHA-256 `5f186348ff2edc991d64a2a5989b2f3c142370f43c2d4726b776173733af73d8`.
+
+Archive `rontrace-run1135.log`, 9,551,936 bytes,
+SHA-256 `1049037f940a33bd7296c05c3e2f54a686e54c3d8bd5f15a0c972da9bd634fcb`.

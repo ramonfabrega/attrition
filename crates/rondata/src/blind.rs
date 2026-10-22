@@ -438,6 +438,15 @@ pub const TRACES: &[&str] = &[
     // items' +0x7c walkers. Its `cover=0` twin is run1116 (rngcmp 701
     // identical, 0 differing; `docs/RUNS.md` run1115).
     "rontrace-run1115.log",
+    // Item 3501: the golden start at `cover=1` on the click-free pool to 690
+    // (`tools/gamelog/coverage/graft3501-start.cmd`): `670 !eval
+    // disable_type_by_tribe("Barracks", "Nubians")` clears the human's tribe
+    // bit on Barracks, and `672 !eval train_unit(1, 1, "Hoplites")` grafts
+    // the unit's `where` through `LeaderData::get_graft@0047df40`, whose
+    // `+0x68` on the Barracks enters `TypeData::type_graft` on 672. Its
+    // `cover=0` twin is run1135 (rngcmp 691 identical, 0 differing;
+    // `docs/RUNS.md` run1134).
+    "rontrace-run1134.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -845,11 +854,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **250** with run1115 (item 3492: the golden start with `AutoSaveLoad=650`):
 /// `Good::walk_data@0066e5d0` and `Item::walk_data@00677150` on 649's
 /// do_frame, the save's and the reload's +0x7c walkers.
+/// **249** with run1134 (item 3501: the golden start, the script host's
+/// `disable_type_by_tribe` and `train_unit`): `TypeData::type_graft@00472a50`
+/// on 672, `get_graft`'s `+0x68` on a Barracks the Nubians may not build.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
     0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_22f0, 0x0047_2370,
-    0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
+    0x0047_2420, 0x0047_2a40, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
     0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0,
     0x0058_60c0, 0x0058_6440, 0x0058_7060, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660,
