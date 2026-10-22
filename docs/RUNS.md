@@ -22428,6 +22428,100 @@ SHA-256 `97c1ea0bf0eab2f99a1cb5648d5cc7eef94c0c1b20f1658988894e437686a164`.
 
 **What it holds**: a human builder's two-site queue, and `check_build_order`'s re-add on the first site's finish.
 
+## run1075 — the coverage pair: East Indies, Persians, All Technologies, human Battleships on the navy's path at `cover=1` on the click-free pool, 2034..2820 (2026-10-22, item 3455, `att-3455`)
+
+**What the disk could not answer**: no trace of any lobby enters `Army::send_here@006f98a0`, and no dump of this lobby
+holds an `ARMY` record past run651's start (`ARMY` prints only in a whole dump). A recon first, unfiled:
+`~/ron-golden/recon3455-1`, the natural lobby to 2110 with `@dumpall` on 700..2100 (pool lane 1, 1,106.8 s). It shows
+the land army 0 still mustering on 2100 (status 0x11; 36 units, 15 standard), and the navy, army 2 (group 72, six
+ships, all standard), released on its 2040 tick (status 0x11 → 0x12, target `1/2000`, muster cell (46, 58)). Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1075 --map 18 --end-frame 2820 --timeout 5400 --ai-tribe
+23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --log-window 2034 2821
+--detail end:MISC,UNITS=3,LEADERS=9 --cmd-file tools/gamelog/coverage/disband3455-navy.cmd --cover cover=1`: eleven
+who=0 Battleships on 2050..2053 on the ships' 2100 positions and their muster cell, `@dumpall` on 2040 and around the
+navy's ticks 2296, 2552 and 2808.
+- Pool lane 1. Launched 05:10:06, exited 06:14:00: **3,834.0 s launch to exit**. `success`, 2,821 frames, `last_frame`
+  2820, map 18, seed 12345, tribes 4 and 23. DLL `81db26c5…`, `-DRON_AUTOSTART`. 209 GiB free before. Minutes waited
+  on another lane: none.
+- **A miss.** 7,216 functions entered and no `NEVER` row. The Battleships lost (11 on 2055, 8 on 2297, 3 on 2553, none
+  on 2809), while army 2 grew to 9, 11 and 15 ships on 2297, 2553 and 2809 (`num_standard` the same), so `num_standard
+  < 1` never held. The land army 0 left muster on its 2300 tick (status 0x11 → 2, region 11 → 1; `do_transporting` first
+  entered on 2300). An army 4 was opened and closed on 2548 (`Army::close` first entered
+  there; parked 3455a).
+- `rngcmp.py rontrace-run652.log rontrace-run1075.log`: **2,821 in common, 2,051 identical, 770 differing, the first
+  2051**. `samegame.py` against run711 (blocks 1954..2210) answers nothing on its own: this take's detail leaves out
+  `BUILDS`, `CITIES` and `GUYS`, nested `GUY` blocks included, which `--exclude` does not reach. With those three
+  dropped at any depth (a scratch digest): **176 in common (2034..2209), 161 differing, the first 2040**. 2040 and 2041
+  are the `@dumpall` block's own; 2042..2050 are the same game; the staging parts it from 2051.
+- Filed with `filerun.py run1075 eastindies-persian-alltech-navy-battleships-window-2034-2820-cover1`.
+
+Archive `gamelog-run1075-eastindies-persian-alltech-navy-battleships-window-2034-2820-cover1.txt`, 1,934,037,264 bytes,
+SHA-256 `ec2c224875650e5f995471356d0935ef59f3409bf7b7a8ca4aea5a9788f05cd4`.
+
+Archive `rontrace-run1075.log`, 101,890,432 bytes,
+SHA-256 `0f3dff7163d1ab62d41d8ef9cbe73c16fc96ce5cacdef35fc641af7a889c29c0`.
+
+**What it holds**: the land army's release under attack (2300) and the navy's growth past a lost fight. Not in
+`blind::TRACES`: it enters no `NEVER` row.
+
+## run1075b — the coverage pair: the navy's nine ships killed by console before its 2296 tick, at `cover=1` on the click-free pool, 2277..2560 (2026-10-22, item 3455, `att-3455`)
+
+**What the disk could not answer**: run1075's Battleships could not kill the navy. run714 (the twin's blocks
+2283..2539) holds group 72 whole on 2283: who=1 ships 49, 51, 59, 61, 71, 75, 76, 84, 87. Through run1075's line with
+`--end-frame 2560 --log-window 2277 2561 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9` (run714's
+detail) and `--cmd-file tools/gamelog/coverage/disband3455-die.cmd`: `die o,1` on each of the nine on 2284, `@dumpall`
+on 2296, 2297, 2552 and 2553.
+- Pool lane 1. Launched 06:16:54, exited 06:43:46: **1,611.6 s launch to exit**. `success`, 2,561 frames, `last_frame`
+  2560, map 18, seed 12345. DLL `3e78a502…`, `-DRON_AUTOSTART`. Minutes waited on another lane: none.
+- **7,153 functions entered**. `NEVER` row: **`Army::send_here@006f98a0` on 2296**, with `Army::remove_group` and
+  `Army::close` that frame (both first entered there in this trace).
+- The values: group 72 holds nine units on 2283 and 2284 and none from 2285 on. Army 2 is not in the 2297 whole dump.
+  It is there in run1075's 2297 dump with status 0x12, and an `ARMY` record prints only for a valid army. Slot 2 holds a
+  new army by 2553 (status 0x11, region 10, city 3), and the navy is army 3 (region 65, two ships). No survivor took
+  the `MOVE_TO`: the line was all standard (parked 3455a).
+- `rngcmp.py rontrace-run652.log rontrace-run1075b.log`: **2,561 in common, 2,297 identical, 264 differing, the first
+  2297**. The deaths draw nothing until the disband's frame. `samegame.py gamelog-run714-… gamelog-run1075b-… --from
+  2284`: **257 in common (2283..2539), 255 differing, the first 2285**, the `die` lines' own block. The same game on the
+  one common block before 2284 (run714 starts on 2283), and on every draw before 2297.
+- Filed with `filerun.py run1075b eastindies-persian-alltech-navy-disband-window-2277-2560-cover1`.
+
+Archive `gamelog-run1075b-eastindies-persian-alltech-navy-disband-window-2277-2560-cover1.txt`, 846,909,479 bytes,
+SHA-256 `9076fdcbfb83204819d1b86880f43cf0d5690db4df765b38aa242d44eff98e7c`.
+
+Archive `rontrace-run1075b.log`, 80,657,632 bytes,
+SHA-256 `019c38444adf198522bdc9ef8418744a8e134a2e1a6a837fe7ce69f685f73ce6`.
+
+**What it holds**: `blind::TRACES`' run1075b (item 3455), the disband arm of `Army::process` (`docs/ARMY.md` §6 step
+1).
+
+## run1076 — the coverage pair: a human Trireme right-clicked onto the human's own Dock, at `cover=1` on the click-free pool, 594..700 (2026-10-22, item 3455, `att-3455`)
+
+**What the disk could not answer**: no trace enters `ObjectData::is_dock@004711e0`. Its one call is the human's
+right-click on an allied garrisonable building (`docs/VISION.md` §8). Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1076 --map 18 --end-frame 700 --timeout 2400 --ai-tribe 23 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --log-window 594 701 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cmd-file
+tools/gamelog/coverage/dock3455-rclick.cmd --cover cover=1 --no-ffwd`. The lines are 3446's Dock (`add dock who=0
+13,37`, `0/2007`) and a Trireme on its sea cell (`0/14`), `select 14 who=0` and `camera 13,37` on 606, and `@rclick
+960 445` on 615 (3443's mapping of the camera's tile).
+- Pool lane 2. Launched 05:10:06, exited 05:17:57: **470.5 s launch to exit**. `success`, 701 frames, map 18, seed
+  12345, tribes 4 and 23. DLL `81db26c5…`. Minutes waited on another lane: none.
+- **6,705 functions entered**. `NEVER` row: **`ObjectData::is_dock` on 615**, with `Console::execute_at_cursor`,
+  `GroupOut::issue_garrison`, `Group::action_garrison`, `CommandPackage::process_garrison` (615) and
+  `Unit::do_garrison` (616).
+- The values: `CM` `process_garrison 2007 0 2 616`; U3 `0/14` holds group 1 and `inside_up` 2007 from 617.
+- `rngcmp.py` against run652: **701 in common, 601 identical, 100 differing, the first 601**; against run672 the same.
+  `samegame.py gamelog-run672-… gamelog-run1076-… --from 600`: **107 in common (594..700), 100 differing, the first
+  601**, the same game on the 6 blocks before 600.
+- Filed with `filerun.py run1076 eastindies-persian-alltech-dock-rclick-window-594-700-cover1`.
+
+Archive `gamelog-run1076-eastindies-persian-alltech-dock-rclick-window-594-700-cover1.txt`, 195,105,132 bytes,
+SHA-256 `cce23e5f34d22c58b33151a8640c0913856dcc13cae9e2a7453b3f5d49b3e919`.
+
+Archive `rontrace-run1076.log`, 20,268,832 bytes,
+SHA-256 `623fb5083f9c32746569ca7bd570468facec8a63b3b7ae8d8f15e8eb2fb4de3d`.
+
+**What it holds**: `blind::TRACES`' run1076 (item 3455), the Dock's right-click (`docs/VISION.md` §8).
 ## run1074 — chapter seven's lobby with two Pyramids added and razed by console, to 920 (2026-10-22, item 3454, `att-3454`)
 
 **What the disk could not answer**: whether a wonder's close enters `Wonders::close_wonder@0073c7e0` and lowers

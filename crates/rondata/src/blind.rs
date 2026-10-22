@@ -309,6 +309,17 @@ pub const TRACES: &[&str] = &[
     // `Wonders::close_wonder` on 660; `wonder_mark` 2 -> 2 -> 0. run141's
     // game to 640 (`docs/RUNS.md`).
     "rontrace-run1074.log",
+    // Item 3455: the coverage pair's lobby (East Indies, the Persians, All
+    // Technologies) at `cover=1` on the click-free pool, AI on. run1075b to
+    // 2560 kills the computer's navy (army 2, group 72, nine ships) by
+    // console `die` on 2284 (`tools/gamelog/coverage/disband3455-die.cmd`):
+    // its 2296 tick disbands it, `Army::send_here` on 2296; run652's draw
+    // stream on every frame before 2297 (rngcmp 2297 identical). run1076 to
+    // 700 right-clicks a human Trireme onto the human's own Dock
+    // (`dock3455-rclick.cmd`): `ObjectData::is_dock` on 615; run652's game
+    // before 601 (rngcmp 601 identical; `docs/RUNS.md`).
+    "rontrace-run1075b.log",
+    "rontrace-run1076.log",
     // Item 3456: the team lobby on the click-free pool, Great Lakes (map 14)
     // with `--profile PLAYERS=2` (a human and two computers), `ally 1` on
     // 100, `!ffwd 6`; a help taunt to the ally on 5410 (`--bindkey
@@ -684,14 +695,20 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **288** with run1077 (item 3456: the team lobby, `docs/ARMY.md` §26):
 /// `Leader::action_ping@006d18a0` on 5422, a human's ping 11 frames after a
 /// help taunt to the computer ally.
-/// **286** with run1078 (item 3460: the coverage pair's lobby at
+/// **286** with run1075b and run1076 (item 3455, `docs/ARMY.md` §6 and
+/// `docs/VISION.md` §8): `Army::send_here@006f98a0` on 2296, the disband
+/// arm of `Army::process` for the computer's navy whose nine ships died on
+/// 2284 (army 2's record gone from the 2297 whole dump); and
+/// `ObjectData::is_dock@004711e0` on 615, the human's Trireme right-clicked
+/// onto the human's own Dock (`process_garrison 2007 0 2 616`).
+/// **284** with run1078 (item 3460: the coverage pair's lobby at
 /// `TEAM_STYLE 0`, `docs/AI.md` §296 row 12): `Leader::action_declare@006dab50`
 /// and `Leader::pay_dow@006d2b10` on 910, a human's declaration through the
 /// diplomacy window, paid (the third good's `bucket` 640 down on block 912).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0046_fb10, 0x0047_03f0, 0x0047_0430,
-    0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_11e0, 0x0047_22f0, 0x0047_2370,
+    0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_22f0, 0x0047_2370,
     0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
     0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0,
@@ -707,7 +724,7 @@ pub const NEVER: &[u32] = &[
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0,
     0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
-    0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_20c0, 0x0070_84c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
+    0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_84c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,

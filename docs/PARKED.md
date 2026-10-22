@@ -3837,6 +3837,12 @@ the take entered `action_ping` by trace alone. Candidate: a brief that cites a d
 writer that prints it (the `quiet field` rule, a booking's row of the brief checklist), so 3460's `CM process_declare` and
 3461's `CM process_halt` are checked before their captures. Score: a booked field a take can read. One reach.
 
+(3467) **A staging that adds soldiers to kill a computer's army loses to an All Technologies Toughest computer** (3455's
+"for the Loop"): run1075's booked staging (human Battleships on the navy's path) missed because the Persians' navy won;
+run1075b killed the navy's nine ships by console `die`, with the ids read off the `cover=0` twin's own window, and entered
+`Army::send_here` on 2296. Candidate: a booking that needs an army dead names `die` on ids from the twin, never an added
+force, against that lobby — a row of the coverage frame. Score: a disband take that enters on its first try. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
@@ -9500,13 +9506,18 @@ that. Score: none until a pinned lobby does. run1070's 686–687 is the value di
   (641–671, chapter seven's lobby with the console lines staged) would make the close diff-backed in this crate
   rather than in the dump alone. It names no score, so it parks.
 
-## Parked by the next landing, slot NK — reserved
+## Parked by item 3455, 2026-10-22 — the disband's survivors
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3455a. The disband's `MOVE_TO` to the survivors (`docs/ARMY.md` §6 step 1, §14) is not read: the army that
+  disbanded had none.** run1075b's navy, army 2, lost all nine ships of group 72 to console `die` on 2284, and its
+  2296 tick entered `Army::send_here@006f98a0` with no unit left to order: a navy's line is all standard (9 of 9). A
+  survivor is a non-standard captain (a spellcaster, a Supply Wagon, a decoy, an AA gun; §3.3), and only the land army
+  holds those (army 0: 45 units, 29 captains, 17 standard on 2297). It leaves muster only when released: run1075's
+  eleven human Battleships on 2050 (they lost to the navy, which grew 6 → 15) did release it on its 2300 tick (status
+  0x11 → 2, region 11 → 1, `do_transporting` on 2300). The take that would read it is run1075's staging to 2300, then
+  `die` on army 0's standard captains before its 2556 tick, read off a 2300..2556 window; run1075 also opened and
+  closed an army 4 on 2548, unread. **Score**: none on `NEVER` (`send_here` is off). It is a value row for §6 step
+  1's survivors, filed so a lane that reaches for it has the staging.
 
 ## Parked by item 3456, 2026-10-22 — the team lobby: a ping and a help taunt to a computer ally
 

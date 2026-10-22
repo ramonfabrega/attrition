@@ -1001,7 +1001,7 @@ Captures owed, all at `cover=1` (the forty-eighth pass books from these):
 | function | ini category · field | lobby | action · frame |
 |---|---|---|---|
 | ~~`Leader::treaty_off@006d0370`~~ | `[End Frame] LEADERS≥3` `treaties[·]` (`LEADERS=1` prints none) | any pinned lobby, after the two leaders have met | a `rontrace.cmd` line `F unmeet who=1`, read at block `F+1` — **entered and diff-backed** (item 3417, `docs/AI.md` §297): run1016 enters it at 500; run1016c's `1480 unmeet who=1` clears bit 0 on both sides at 1481, the leaders having met at 1474 |
-| `ObjectData::is_dock@004711e0` | the trace's entry; `CM` the garrison process line | a water lobby with a human Dock | ships selected, right-click on own Dock (queue lane, `driver:`) |
+| ~~`ObjectData::is_dock@004711e0`~~ | the trace's entry; `CM` the garrison process line | a water lobby with a human Dock | ships selected, right-click on own Dock — **entered** (item 3455, `docs/RUNS.md` run1076): the coverage pair's lobby on the pool, `add dock who=0 13,37` (`0/2007`) and a Trireme `0/14`, `select 14`, `camera 13,37`, `@rclick 960 445` on 615; `is_dock`, `GroupOut::issue_garrison` and `CommandPackage::process_garrison` on 615, `CM` `process_garrison 2007 0 2 616`, U3 `0/14` `inside_up` 2007 from 617 |
 
 Residue proposals: **none**. Both are reachable, though neither writes a rule's state through the order stream.
 
