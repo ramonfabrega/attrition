@@ -422,6 +422,15 @@ pub const TRACES: &[&str] = &[
     // twin is run1110 (rngcmp 5421 identical, 0 differing; `docs/RUNS.md`
     // run1109).
     "rontrace-run1109.log",
+    // Item 3491: the team lobby (run1086's, `--profile PLAYERS=2`) with no
+    // `ally` line, `--no-ffwd`, at `cover=1` on the click-free pool to 640
+    // (`tools/gamelog/coverage/tournament3491-team.cmd`): `600 !eval
+    // defeat(3)` defeats leader 2 through `ScenarioFuncSet::defeat` without a
+    // quit, `602 be 2` moves the console to the defeated chair and `604 reveal
+    // 0` clears semaphore bit 1, so `Game::is_tournament` is entered on 604.
+    // The `cover=0` twin is run1114 (rngcmp 641 identical, 0 differing;
+    // `docs/RUNS.md` run1113).
+    "rontrace-run1113.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -823,9 +832,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// cleared the semaphore bit that the lane profile's `StartReveal=1` sets.
 /// `ObjectsOut::sort_all` skips vtable +0x48 while `semaphore & 0x42` holds
 /// (the packet run1100, `docs/RUNS.md`).
+/// **252** with run1113 (item 3491: the team lobby, a defeated computer's
+/// chair): `Game::is_tournament@0043ec90` on 604, once `be 2` put the
+/// console on a player `is_over` and `reveal 0` cleared `semaphore & 0x42`.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
-    0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
+    0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
     0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_22f0, 0x0047_2370,
     0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
