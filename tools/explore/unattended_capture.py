@@ -91,6 +91,34 @@ def set_lobby(profile, pairs):
     path.write_bytes(text.encode('utf-8'))
 
 
+def bind_keys(profile, install, pairs):
+    # `tools/gamelog/bindkey.py`'s element, written into the lane's own
+    # profile (item 3442): `<KEY enum=ACTION dependent="-1"><INPUT key=VK
+    # .../></KEY>` in `<KEYS>`, which `KeyMap::load_entry@007d43d0` reads
+    # (run51 photographed it read). Same file as set_map, so the staged
+    # `PlayerProfile` backup restores it and the template is never touched.
+    if not pairs:
+        return
+    with open(install / 'data' / 'playerprofile.xml', encoding='utf-8', errors='replace') as fh:
+        known = set(re.findall(r'<KEY enum="([A-Za-z_0-9]+)"', fh.read()))
+    path = profile / 'PlayerProfile' / 'Player.dat'
+    text = path.read_bytes().decode('utf-8')
+    entries, seen = '', set()
+    for pair in pairs:
+        action, vk = pair.split('=')
+        if action not in known:
+            raise ValueError(f'{action} is not a bindable action in {install}/data/playerprofile.xml')
+        if action in seen or not 0 < int(vk) <= 0xff:
+            raise ValueError(f'--bindkey {pair}: one key per action, a virtual-key code 1..255')
+        seen.add(action)
+        entries += (f'<KEY enum="{action}" dependent="-1">'
+                    f'<INPUT key="{int(vk)}" mouse="0" ctrl="0" shift="0" alt="0"/></KEY>')
+    text, n = re.subn(r'<KEYS/>', lambda _: f'<KEYS>{entries}</KEYS>', text)
+    if n != 1:
+        raise ValueError(f'expected one empty <KEYS/> in the profile, found {n}')
+    path.write_bytes(text.encode('utf-8'))
+
+
 def set_ai_tribe(profile, tribe):
     """Select the first computer slot's nation, under the staged profile backup."""
     if tribe is None:
@@ -475,6 +503,8 @@ def capture(args, output, style):
         set_lobby(args.profile, report['lobby'])
         report['ai_tribe_requested'] = getattr(args, 'ai_tribe', None)
         set_ai_tribe(args.profile, report['ai_tribe_requested'])
+        report['bindkey'] = getattr(args, 'bindkeys', None) or []
+        bind_keys(args.profile, args.install, report['bindkey'])
         rise = args.profile / 'rise.ini'
         rise.write_text(live_session.key(rise.read_text(), 'Seed (0 for random)', args.seed))
         env = os.environ.copy()
@@ -879,9 +909,14 @@ def main():
     ap.add_argument('--profile', action='append', dest='lobby', metavar='KEY=N',
                     help="a lobby field in the profile's <SOLO>/<MULTI> blocks, repeatable "
                          "(the queue lane's `profile:` key; e.g. DIFFICULTY=5)")
+    ap.add_argument('--bindkey', action='append', dest='bindkeys', metavar='ACTION=VK',
+                    help="bind a keymap action to a virtual-key code in the lane's staged profile, "
+                         "repeatable (bindkey.py's element; restored with the profile; item 3442)")
     args=ap.parse_args()
     if any(not re.fullmatch(r'[A-Z_0-9]+=-?\d+', p) for p in args.lobby or []):
         ap.error('--profile takes KEY=N')
+    if any(not re.fullmatch(r'[A-Za-z_0-9]+=\d+', p) for p in args.bindkeys or []):
+        ap.error('--bindkey takes ACTION=VK')
     if args.recording is not None:
         args.recording = args.recording.resolve(strict=True)
         args.recording_seed, recording_map = recording_identity(args.recording)

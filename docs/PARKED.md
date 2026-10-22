@@ -9262,13 +9262,25 @@ words and edits nothing here; a refill lands when two remain.
   cite of `@0062da00` for the script path now name `@004d2030`. The journals of 2309 and 3343 still cite the click
   copy, so it stays cited and on `NEVER`.
 
-## Parked by the next landing, slot MY — reserved
+## Parked by item 3442, 2026-10-21 — the keystroke's modifiers and the two keys that did not land
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3442a. A modifier is a `GetKeyState` hook, and the same small step for the minimap's ctrl/shift (3444).** `@key`
+  sends no modifier: `SysMessageHandler::OnKey@00549450` ORs shift/ctrl/alt in from `GetKeyState(0x10/0x11/0x12)`, and
+  `Options::exec@007188c0`, `do_formation@007215b0` (QUEUE_LAST on shift, QUEUE_FIRST on alt) and `do_rotate@0071dfd0`
+  (the 45°/30°/10° steps) read the same three. Every read is the executable's own `GetKeyState` import, so a modifier is
+  one IAT slot of the exe's (not another module's, as the cursor was) answering a pinned high byte for the line's
+  frame. `GetAsyncKeyState` sits behind `ron::GetKeyStateAsync` alone. Not built: no row of this item needed
+  it. **Score**: GOLDEN §144.3's minimap row (`WorldMap::on_right_up`'s ctrl/shift arms) and a queued formation.
+- **3442b. `KEYMAP_OPTION_ALL_MILITARY` (254) looked up `KEYMAP_NONE` in options mode 0.** run1057's first take
+  (`~/ron-golden/run1057-take1`) bound it to F13 (124) beside F14–F16. Its `INFO 22` on 736 reads −1, and F16's
+  OPTION_RIGHT on 860 read 168 in the same mode, so the binding loaded and the entry's `active_mode` or
+  `type_selected` gate refused it. Which one is not read (`KeyMapEntry` +0x8 and +0x14 are written outside the export's
+  functions). The second take selected through the console instead. **Score**: none; a key that selects is a
+  click-layer convenience, never a `NEVER` row known.
+- **3442c. Form −3 ("the previous one") has no key.** Of all 461 `keymap_options` rows, the formation's are 167 and 168 (`0x15/−1`, `0x16/−1`)
+  and 170–175 (`0x13` with −1, 0, 1, 2, 3 and 4). No row is option `0x14`, the only caller of `do_formation(−3)`. So
+  `Group::action_form@00707220`'s −3 arm is a button's (the formation button's other click), an `@click` on the
+  command card. `get_form_option` is off `NEVER` by the −1 arm. **Score**: none until a `NEVER` row needs the −3 arm.
 
 ## Parked by item 3425, 2026-10-21 — the walk's two new issuers
 
