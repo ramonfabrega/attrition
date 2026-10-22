@@ -351,6 +351,15 @@ pub const TRACES: &[&str] = &[
     // open sea, `is_tocean` on 660 (`process_move_to 642 9474`). run652's
     // game before 601 (rngcmp 601 identical; `docs/RUNS.md` run1080).
     "rontrace-run1080.log",
+    // Item 3462: golden chapter eighty-five's lobby (run880's game) at
+    // `cover=1` on the click-free pool to 1260
+    // (`tools/gamelog/coverage/spy3462-ch85.cmd`): the second Spy `0/7`
+    // selected and F13 bound to OPTION_SPY_BRIBE, the pick clicked on 1112,
+    // `find_target` entered (it found no target: no second `process_spell
+    // 629`); Pilfer and Restock Supplies asked by `@spell` and refused by
+    // `is_castable`'s head (both `FROM None`). run880's game before 1107
+    // (rngcmp 1,109 identical; `docs/RUNS.md` run1081).
+    "rontrace-run1081.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -719,6 +728,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `TEAM_STYLE 0`, `docs/AI.md` §296 row 12): `Leader::action_declare@006dab50`
 /// and `Leader::pay_dow@006d2b10` on 910, a human's declaration through the
 /// diplomacy window, paid (the third good's `bucket` 640 down on block 912).
+/// **280** with run1081 (item 3462: golden chapter eighty-five's lobby):
+/// `SpellTypeData::find_target@00674920` on 1112, the Bribe pick armed by a
+/// bound OPTION_SPY_BRIBE key (`keymap_options[0x179]` = option 4, 629).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -734,7 +746,7 @@ pub const NEVER: &[u32] = &[
     0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_40c0, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50,
-    0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_4920, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
+    0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0,
     0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
