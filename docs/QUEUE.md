@@ -16,12 +16,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 blind list scanned and ratified 192 → 91; the fifty-first booked against what a capture can enter.** `docs/audit/2026-10-22-fable-pass-50.md`; DECISIONS 89.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 273, residue 81 → 182, open 192 → 91** (`Blind:` pinned; 115 dead by reference scan, Loop 3465; 3462a, 3471a; 3473's seventeen).
+  `NEVER` 273 → 255, residue 182, open 91 → 73** (3477's `!eval` take, eighteen rows; 3478 entered none, parked 3478a).
 - **Amended with Ramon** (DECISIONS 89): the queue lane retires (3485; 1570 closes — a need for it again is a steer); after this tranche the
   headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); the fast logger is 3484, off.
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
-- **Lanes: none live; eight booked** (3477–3481, 3483–3485). Next 3487, run 1102, then 1109. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
-  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b.
+- **Lanes: two live** (3479, 3480); four booked (3481, 3483–3485). Next 3487, run 1102, then 1109. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
+  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a.
 - **Fable backlog: 14 Loop items** (3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 89.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -36,12 +36,12 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 273 · residue 182 · open 91
+Blind: never 255 · residue 182 · open 73
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fifty-first tranche from this handoff — commander (Opus): spawn 3477 and 3478 on the two Opus lanes
-(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order (3479–3481, 3483–3485), then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
+**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3479 and 3480 live on the two Opus lanes
+(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order (3481, 3483–3485), then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
 
@@ -50,21 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool** — a click an `@click` lin
 `!`-prefixed (3471), a screen point off `poolshot.py` — checked against its `cover=0` twin (`rngcmp.py`; `samegame.py --from`), pinned
 into `blind::TRACES`; a function not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the
 commander's drafting subagent on `t51/draft-items-51.md`'s `## Not drafted` rows that name a reading, one item a staging it yields.
-
-3477. **coverage: the seventeen `ScenarioFuncSet` rows through `!eval`** (AI §296's struck proposal, GOLDEN §144.4, NATIONS §9.3;
-Loop 3473; 3471's route): the golden start (map 14, the Nubian human with a Market; run1084's line) at `cover=1` on the pool with
-a new `cover=0` twin, `console3464-start.cmd`'s lines to 660, then one `!eval` a frame pair from 670 — `get_difficulty()`,
-`can_buy_sell(1)`, `find_buy_price(1, "Food")`, `find_sell_price(1, "Food")`, `buy_good(1, "Food")`, `sell_good(1, "Timber")`,
-`set_base_rate(1, "Food", 5)`, `set_capital(1, "Napata")`, `toggle_infinite_queue(1, 2000, 1)`, `repeat_orders_enable(1, 0)`,
-`repeat_orders_disable(1, 0)`, `set_auto_peasant_level(2)`, then the five AI toggles, last — and `disable_type_by_tribe("NoSuchType",
-"NoSuchTribe")` on 704 for `Tribes::find@006ef2d0`: each entered on its line's frame (`LEADERS=2`: who 0's `base_rate[0]` 0 → 80,
-`leader_flags2` 0 → 8 → 10, who 1's → 16; the buckets on the buy and sell). Stages `cursor=X,Y` off the map (3432). Runs 1092–1093; park NR.
-
-3478. **coverage: a goody box under the camera** (GOODY §1, §7.2; 3476's rule — the filler first): the golden start at `cover=1`
-on the pool with a twin, `--no-ffwd --end-frame 640`; `600 explore all`, `602 camera 6,110` (cell (1, 27), run1084's `WORLD=6`
-dump), `630 camera 34,214` (cell (8, 53)): enters `ItemOut::draw_overlays@00677590` on the first drawn frame after 602, from
-`ObjectsOut::draw_overlays`'s slot +0x5c walk gated on `ItemData::is_seen` (trace only; a `GoodOut` took the route on run1090's
-5411); if no Item reaches `sort_all`'s tree, the predicate parks beside 3472a. Runs 1094–1095; park NS.
 
 3479. **coverage: the param console's field edit** (four `on_field_change` rows): the golden start at `cover=1`, `--no-ffwd`,
 `--bindkey SYSTEM_TOGGLE_PARAM_CONSOLE=123`; `600 keys 1` (console command 17, cheat keys on), `602 @key 123`, two `@click`s on the

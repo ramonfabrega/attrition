@@ -3774,6 +3774,10 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+Loop 3432's reaches in the fifty-first tranche, filed here (its own section is the forty-ninth's): **3477's "for the Loop"** —
+the cursor pin off the map (`--cursor 1400,1000`, the pool runner's option from 3477) has its first clean take, run1092 against its
+twin run1093 0 of 721 differing; 3478's run1094/1095 is the second, 641 of 641 identical. One more makes it the pool's default.
+
 (3486) **A retirement mechanism for unused tools, docs and clauses** (Ramon, the fiftieth steer): the tree holds every tool and
 clause it ever grew — the queue lane was the first one retired by hand (3485). Candidate: a pass tool, `tools/retire.py`, that lists each
 `tools/` script, each `docs/*.md` section and each LOOP/frame clause that nothing in the tree, the briefs since N tranches or the last ten
