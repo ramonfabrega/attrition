@@ -9,8 +9,9 @@ session. A lane is named as `ccc list` names it. The exits:
 
     0  LANDED <lane> <branch> <old>..<new>   origin's ref of the lane's branch moved
                                              and the row is out of `working`, its
-                                             session unchanged (a push under a
-                                             clear is a DRAFT on stderr; item 3368)
+                                             session unchanged and no clear armed
+                                             (a push under a clear is a DRAFT on
+                                             stderr; item 3368, Loop 3458)
     3  ENDED <lane> <state> — <detail>       the row left `working` and stayed out;
                                              the row's own status line follows
     4  QUIET <lanes> <minutes>               nothing in --quiet-after minutes
@@ -88,9 +89,15 @@ working whose session has since moved, is printed on stderr as `DRAFT
 on; LANDED fires only for a push whose session is the one the previous
 poll saw. The uuid is compared poll to poll, never to the wait's start:
 a lane cleared at DEEP with nothing pushed lands under its new session.
-Not closed: a poll that falls after the old turn ended and before the
-clear has fired sees neither tell (the armed clear itself, `ccc clear
---json`, is not read here).
+
+And the armed clear itself is asked before a LANDED (Loop 3458, the
+fiftieth pass): att-3446 pushed its draft on a DEEP answer and the waiter
+printed `LANDED att-3446`, its poll falling after the old turn ended and
+before the clear fired, where neither tell above can see. So a landing is
+first put to `ccc clear <lane> --status --json`; an armed clear makes it
+`DRAFT <lane> … — pushed under an armed clear` on stderr, and the wait
+goes on. A ccc that is missing, fails or answers unparseably is no clear,
+and the landing stands as before.
 """
 import os
 import argparse
@@ -117,7 +124,7 @@ def ends_on_clear(tail):
 
 
 def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, sessions=None,
-          cleared=None, drafts=None):
+          cleared=None, drafts=None, armed=None):
     """The first event among the lanes, as (exit code, line), or None.
 
     `watch` maps a lane to {'branch', 'tip', 'still'} and is updated in
@@ -140,6 +147,10 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
     session has since moved, is a draft under a clear (item 3368): it
     goes in `drafts` (when given), its tip is remembered, and it never
     lands. An unknown uuid, either side, is read as unchanged.
+
+    `armed`, when given, is asked of a lane just before it would land
+    (`armed_clear`, Loop 3458): True makes the landing a draft under an
+    armed clear, recorded and watched past.
     """
     sessions = sessions or {}
     cleared = cleared or set()
@@ -173,6 +184,12 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
                 if notes is not None:
                     notes.append(f"PUSHED {moved}")
                 continue
+            if armed is not None and armed(lane):
+                seen['tip'] = tip
+                seen.pop('pushed', None)
+                if drafts is not None:
+                    drafts.append(f"DRAFT {moved} — pushed under an armed clear; watching on")
+                continue
             return 0, f"LANDED {moved}"
     for lane, seen in watch.items():
         state = states.get(lane)
@@ -182,6 +199,12 @@ def event(watch, states, tips, minutes, quiet_after, notes=None, details=None, s
         seen['still'] += 1
         if seen['still'] >= STILL:
             if seen.get('pushed'):
+                if armed is not None and armed(lane):
+                    line = seen.pop('pushed')
+                    seen['still'] = 0
+                    if drafts is not None:
+                        drafts.append(f"DRAFT {line} — pushed under an armed clear; watching on")
+                    continue
                 return 0, f"LANDED {seen['pushed']}"
             detail = (details or {}).get(lane)
             tail = f" — {detail}" if detail else ''
@@ -522,6 +545,25 @@ def rows_for(lanes, wait, interval, roster_fn=None, sleep_fn=time.sleep):
         waited += step
 
 
+def armed_clear(lane, run=subprocess.run):
+    """Whether `ccc clear <lane> --status --json` says a clear is armed on
+    the lane and not yet fired (ccc 0.1.40: `{ref, armed, …}`). A missing
+    ccc, a non-zero exit or an answer that does not parse is no clear, so
+    the waiter lands as it did before the question was asked (Loop 3458)."""
+    try:
+        out = run(['ccc', 'clear', lane, '--status', '--json'], capture_output=True, text=True,
+                  check=False, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    if out.returncode != 0:
+        return False
+    try:
+        answer = json.loads(out.stdout)
+    except ValueError:
+        return False
+    return isinstance(answer, dict) and answer.get('armed') is True
+
+
 def origin_tip(cwd, branch):
     out = subprocess.run(['git', 'rev-parse', '--verify', '-q', f'refs/remotes/origin/{branch}'],
                          cwd=cwd, capture_output=True, text=True, check=False)
@@ -625,7 +667,7 @@ def main(argv=None):
         cleared = {lane for lane, tail in tails.items() if ends_on_clear(tail)}
         notes, drafts = [], []
         found = event(watch, states, tips, (time.monotonic() - started) / 60, args.quiet_after, notes,
-                      details, sessions, cleared, drafts)
+                      details, sessions, cleared, drafts, armed_clear)
         for note in notes:
             print(note, flush=True)
         for draft in drafts:
