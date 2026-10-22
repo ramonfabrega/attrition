@@ -9639,13 +9639,33 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NQ — reserved
+## Parked by item 3472, 2026-10-22 — a herd on screen
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3472a. A herd under the camera is never on the on-screen list.** run1090 (item 3472; run1077's lobby at
+  `cover=1`, `explore all` on 5404, `camera 186,190` on 5406, `@click 960 445` on 5410): herd 9 (objects 28–30 of
+  who 8) stands at tile (186, 190) with `visible 0` on 5408, 5411 and 5420. The click picks herd 9's own Good 37
+  (185, 189): `MouseOver::set_good` on 5410, `IFaceSelected::draw_good_name` and `GoodOut::draw_overlays` on 5411.
+  So the camera is on the herd. But no `AnimalOut` draw and no `AnimalData::is_seen@005d8160` is entered in the
+  whole run, and the first take (run1090-take1, without `explore all`) is the same. `ObjectsOut::sort_all@00657320`
+  calls vtable +0x48 itself, and so does `sort_guys@00656b00`. So the animals fail one of `sort_all`'s gates before
+  +0x48:
+  - the cell's presence in `terrain_fog_x/y`;
+  - vtable +0x20 returning 0;
+  - the `who ≥ 8` arm, `(+0x44)()->+0x86 != -1`, or the render scalability byte `section_render + 0xb`;
+  - `is_active` (+0x8) or `is_on_map` (+0xbc).
+
+  +0x20 and +0x44 are COMDAT-folded getters (`vtables.txt` names both `Window::get_button`), so the reading cannot
+  say which gate refuses. **The packet that settles it**: `RON_STATE_FRAME=5408` on run1090's staging, then
+  `step4.py` on `sort_all` with +0x20, +0x44 and the `terrain_fog` cell walk hooked for objects 28–30. Until then
+  `is_seen` stays on `NEVER`.
+- **3472b. `add hoplite who=0 184,190` returned 1 and placed nothing.** run1090-take1, 5404: `parse_cmd` returned
+  1 (`INFO cmd 0x151c … 1`). `ConsoleWin::parse_type`, `parse_coord`, `Console::find_cam_vec` and
+  `TerrainOut::convert_mouse_to_terrain` were first entered on 5404, which is `ConsoleWin::run_cmd@007d6a70`'s unit
+  arm. Yet 5408 holds the same 316 subobjects as run1077's 5412, and the human holds objects 0–5 only. The lane's
+  `rise2.ini` has `Console Coord Mode=2`, and the map is 60 × 60 cells. So `UnitType::find_nearby_spot@0061de70`
+  found no spot within 0xc00 of (184, 190), or `Objects::init_unit` refused. Which one is unread. Its only refusals
+  are off the map, water (`& 0x30 == 0x20`) and a `0x4000` cell flag. A staging that wants a unit near a herd should
+  add it where the human already stands and walk it there.
 
 ## Parked by the next landing, slot NR — reserved
 

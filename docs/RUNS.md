@@ -22912,3 +22912,64 @@ SHA-256 `61f309a42f1ffc04a3bf4658b715e5099fd3bd7cee2f83d9a99d1d7231395ca4`.
 
 Archive `rontrace-run1087.log`, 10,552,160 bytes,
 SHA-256 `f951d70f4b6a162d360f0fc410a732c00e0a35b380a2165c2bac119810073c58`.
+
+## run1090 — the team lobby at `cover=1` on the click-free pool: the camera on herd 9 and a click at its centre, to 5660 (2026-10-22, item 3472, `att-3472`)
+
+**What the disk could not answer**: whether a drawn frame with an animal under the camera enters
+`AnimalData::is_seen@005d8160` through `ObjectsOut::sort_guys`'s vtable +0x48 call. run1077's block 5412 has herd 9
+(`HERD` `cx 46 cy 47`, `good_o 37`) as objects 28–30 of who 8 at tile (186, 190), `visible 0`. No trace on disk
+enters `is_seen`, and none put the camera on a herd. Run through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1090 --map 14 --end-frame 5660 --log-window 5400 5661 --timeout 3600 --ffwd-minute 6 --profile
+PLAYERS=2 --detail end:UNITS=3,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cover cover=1 --cmd-file
+tools/gamelog/coverage/herd3472-team.cmd`. The file:
+- `100 ally 1`;
+- `5404 explore all`;
+- `5406 camera 186,190`;
+- `5410 @click 960 445`, the view's centre;
+- `@dumpall` on 5408, 5411 and 5420.
+
+- **A first take is kept aside**: `~/ron-golden/run1090-take1` (lane 1, 1537 s) and its twin `run1091-take1` (lane
+  2, 1415 s; the runner retook it after a first exit of 41). These are unfiled. It had `5404 add hoplite who=0
+  184,190` in place of `explore all`. `parse_cmd` returned 1, but nothing was placed: 316 subobjects on 5408, the
+  same as run1077's 5412, and the human holds objects 0–5 only. That is parked 3472b. Its trace is the same as this
+  one's: `Console::left_click` on 5410, `is_seen` not entered. `rngcmp` gives 5661 in common, 0 differing. `samegame`
+  with run1077's excludes gives 261 in common, 0 differing.
+- Pool lane 1, seed 12345, `MAP_STYLE 14`. PLAYER records are who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 11)
+  and who 2 (flags 1, tribe 2). Launched 10:43:05, exited 11:06:49: **1424 s**. `success`, 5661 frames, one take.
+  DLL `f4ef8370…`. 192 GiB free before. Minutes waited on another lane: none.
+- **6,909 functions entered.**
+  - 5404: `ConsoleWin::tell_explore`.
+  - 5406: `ConsoleWin::parse_coord` and `say_coord`.
+  - 5407: new terrain is streamed (`TerrainVis::move_stream_bucket`, `SurfWave::draw`).
+  - 5410: `Console::left_click@007c3bc0`, through `on_left_up`, `Console::find_target` and `MouseOver::set_good`.
+  - 5411: `IFaceSelected::draw_good_name` and `GoodOut::draw_overlays`. The click picked herd 9's Good 37 at
+    (185, 189), so the camera was on the herd.
+  - **`AnimalData::is_seen` is not entered**, and no `AnimalOut` draw is entered in the whole run. No `NEVER` row
+    is entered, so the run is not pinned (parked 3472a).
+- The dump beside it: objects 28–30 of who 8 at (186, 190), `visible 0` and `mylos 0`, on 5408, 5411 and 5420.
+
+Archive `gamelog-run1090-greatlakes-team-herd.txt`, 701,572,729 bytes,
+SHA-256 `384c0c609d15b706165482cb775901fbe80b57ce17a037a1a01f944d119a63b0`.
+
+Archive `rontrace-run1090.log`, 35,371,328 bytes,
+SHA-256 `03d6a3bc1c3198caf6eb0b6fe6c817bf92b75822375917034ab910d905fcf070`.
+
+**What it holds**: the first take with the camera on a herd and a click on it. The click reaches the herd's Good,
+and none of its animals reaches the on-screen list.
+
+## run1091 — run1090's `cover=0` twin (2026-10-22, item 3472, `att-3472`)
+
+The same command file and arguments at `--cover cover=0`, on pool lane 2 (`~/wine-ron-2`). Launched 10:43:08,
+exited 11:04:17 (1268 s). 5661 frames, DLL `79eff834…`, the same three PLAYER records.
+- `rngcmp.py` on the traces: **5661 in common, 0 differing, 5661 identical**.
+- `samegame.py` bare: 261 in common (5400..5660), **6 differing**. These are the three `@dumpall` blocks and the
+  block after each.
+- With run1077's `--exclude MESSAGEWIN --exclude COMMANDMANAGER` and its six wall-clock `--drop`s: **261 in common,
+  0 differing**. Both takes send every input, so no input is unshared and there is no `--from`.
+- Filed with `filerun.py run1090 greatlakes-team-herd` and `filerun.py run1091 greatlakes-team-herd-cover0`.
+
+Archive `gamelog-run1091-greatlakes-team-herd-cover0.txt`, 701,572,716 bytes,
+SHA-256 `117cd75e72c8e23bdc509d0f25ff4636f75913fbf37f15736c3247c464a87acd`.
+
+Archive `rontrace-run1091.log`, 35,507,072 bytes,
+SHA-256 `38e133565b8eb2c97db8da7573a9f7645cd738713bda24fc10043a2f3227b5fb`.
