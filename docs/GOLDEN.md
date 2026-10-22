@@ -13618,7 +13618,7 @@ calls the wrapper with the `GroupOut` the tracer already builds. That checks the
 | `Console::hurry_action@007c3810` | `BUILDS` `job_counter` +10000 | §91, chapter seventy-four | `hurry` for `finish`, 701 |
 | `BuildQueueData::get_next_non_unit@00630b10` | `BUILDS=7` `0/2007` slot 1 +100/frame from 843 | §92, chapter seventy-five | re-take `chapter75.cmd` (diff-backed on run868, a draw trace) |
 | `Unit::reset_move_orders@005fd080` | `U3` passengers' `orig_x/orig_y` on 1902 | §55, chapter forty-six (run496) | re-take `chapter46.cmd` |
-| `Unit::swap_team@006118d0`, `SpellType::cast_bribe@00672d00` | `U3` a new who=0 unit, the old `damage`, `form` | §107's parked staging | `@spell 0 629 …` (Bribe) |
+| ~~`Unit::swap_team@006118d0`, `SpellType::cast_bribe@00672d00`~~ | ~~`U3` a new who=0 unit, the old `damage`, `form`~~ | ~~§107's parked staging~~ | entered by run1054 (item 3438) on 1212; `0/8`..`0/10` on 1213 carry `1/6`..`1/8`'s `damage 0`, `form 0` in both dumps |
 | ~~`SpellType::cast_sabotage@006720e0`~~ | ~~`DEATHS` `1/6` on 807~~ | ~~§115, chapter ninety-one (run894)~~ | entered by run1026 (item 3424) on 806, `1/6`'s `first_frame` |
 | `Unit::action_unqueue@005e1f20` | `U3` carrier `num_queued`, `queue_time`; `LEADERS` buckets | a carrier with FIGHTERBOMBER | `@spell … 661` (BUILDAIR), then `@unqueue` |
 | `Units::make_valid@0061a960` | `U3` first `0/200` index | ~70 squads for one player | `@queueup` past 200 slots |
@@ -13714,7 +13714,7 @@ reached their actions in chapter fourteen's lobby (run1057, `docs/RUNS.md`):
 
 `CM` prints `process_form 3 741`, `-1 801` and `-2 … 861`. `GROUPS` puts the formation in group 0's `form` on the
 frame after: 3 on 742, 4 on 802. run52's keystroke never reached its action (the chat box opened), so this is the
-first capture of a bound key taken as itself. Four rows leave `NEVER`, 321 → 317 (`get_unit@0070cc90` with
+first capture of a bound key taken as itself. Four rows leave `NEVER`, 319 → 315 on the tree merged with 3438 (`get_unit@0070cc90` with
 `do_rotate`).
 
 **The reading** (the decompile export, `d3dgl.dll`'s listing, the PDB's `keymap_options` and `KeyMapType`).
@@ -13741,7 +13741,7 @@ first capture of a bound key taken as itself. Four rows leave `NEVER`, 321 → 3
   console `select`.
 - **The executable's other key reads.**
   - `GetKeyState(0x10/0x11/0x12)` in `OnKey`, `Options::exec`, `do_formation` and `do_rotate`;
-  - `GetAsyncKeyState` behind `ron::GetKeyStateAsync@00a427f0` (scrolling, `map_click`, the editor).
+  - `GetAsyncKeyState` behind `ron::GetKeyStateAsync` (scrolling, `map_click`, the editor).
 
   A modifier is therefore one IAT slot of the executable's own `GetKeyState`, the same small step 3444's minimap
   ctrl/shift needs. It is not built: no row here holds a key (parked 3442a).

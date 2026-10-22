@@ -21838,7 +21838,7 @@ the same lines with `736 @key 124` bound to OPTION_ALL_MILITARY in place of the 
   - `Options::exec` and `do_formation`, then `GroupOut::issue_form`.
 
   `get_form_option` is on 800 and `do_rotate` on 860. `OnChar` is not entered: an F-key makes no `WM_CHAR`.
-- Four rows leave `NEVER` (321 → 317): `do_formation`, `get_form_option`, `do_rotate` and `GroupData::get_unit@0070cc90`
+- Four rows leave `NEVER` (319 → 315 on the tree merged with 3438): `do_formation`, `get_form_option`, `do_rotate` and `GroupData::get_unit@0070cc90`
   (the rotation's −2 arm under `action_form`).
 - `rngcmp.py rontrace-run1057.log ~/ron-golden/ch14/map-14/rontrace.log` (run210, the `cover=0` twin): **1,151 in
   common, 744 identical, 407 differing, the first 743**. That is after the first unshared input, the 736 select.
@@ -21858,3 +21858,38 @@ SHA-256 `9a20493515b65ed566cfcc2e3494683ec10e9f8d56325c9635e01eafa1e69b88`.
 
 **What it holds**: the click layer's keystroke. run210's game to the select, then three keys the game took as their
 bound actions.
+## run1054 — golden chapter eighty-five at `cover=1` on the click-free pool to 1260, `chapter85.cmd` line for line (2026-10-21, item 3438, `att-3438`)
+
+**What the disk could not answer**: run880 (`~/ron-golden/ch85/map-14`) is `cover=0`. Its dump shows the Bribe's swap on
+block 1213 (`1/6`..`1/8` closed, `0/8`..`0/10` born under who 0), but its trace enters no function, so
+`SpellType::cast_bribe@00672d00` and `Unit::swap_team@006118d0` stayed on `NEVER` (`docs/GOLDEN.md` §108, §144.3). The take is
+run880's recipe with `--cover cover=1`, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1054`: `--map 14
+--end-frame 1260 --log-window 1100 1260 --timeout 3600 --detail end:UNITS=3,BUILDS=7,DEATHS=1,LEADERS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/golden/chapter85.cmd --cover cover=1`. The `end:` set is trimmed to run1026's (no `WORLD=6` or
+`CITIES=5`): run880's full set ran out the lane's hour at 1219, and `UNITS=3` prints the owed `damage` and `form`. The staged
+`rontrace.cmd` is run880's byte for byte (`0 !ai off`, `37 !ffwd 2` … `1112 @spell 0 629 10 1 23600 19200 7`, `1260 !quit`),
+so the take shares every input with its twin and has no `--from` frame.
+- Pool lane 1 (`~/wine-ron`). Launched 23:06:13, exited 23:08:08: **114.9 s launch to exit** (124.6 s in all; the
+  runner's `pace:` 18.9 frames a second). `success`, lifecycle verified, 1,261 frames, `last_frame` 1260, not ended
+  early, map 14, seed 12345, tribes 4 and 11. DLL `f5ba5cb8…0e652`, `-DRON_AUTOSTART`. `waitrun.sh` exited 0.
+  Minutes waited on another lane: none.
+- **6,586 functions entered**, two of them `NEVER` rows, both asked: `Unit::swap_team` and `SpellType::cast_bribe`, each
+  first on 1212.
+- `rngcmp.py ~/ron-golden/ch85/map-14/rontrace.log …/run1054/map-14/rontrace.log` (run880, the `cover=0` twin): **1,220 in
+  common, 0 differing, 1,220 identical**.
+- `samegame.py` against run880's `gamelog.txt`, `--exclude WORLD --exclude CITIES --exclude CITY` (the categories the
+  trimmed `end:` set drops): **121 in common (1..1219), 0 differ**. Bare, every block differs, which is the detail level and
+  not the game. Nothing parts the twin, so no residue item.
+- The owed `U3` read beside the trace: on block 1212 `1/6`, `1/7`, `1/8` (uid 12–14) stand at `damage 0`, `form 0`, `myhits 120`,
+  and on 1213 `0/8`, `0/9`, `0/10` (uid 15–17) stand at the same positions with `damage 0`, `form 0`, `myhits 120`. Both
+  dumps match field for field. The targets were never hurt, so `damage` cannot tell a copy from a fresh unit (parked 3438a).
+- Filed with `filerun.py run1054 chapter85-bribe-cover1-clickfree`.
+
+Archive `gamelog-run1054-chapter85-bribe-cover1-clickfree.txt`, 35,396,512 bytes,
+SHA-256 `aca1afaa77517fbad59296d01bfcd0d942e034de700a9fd9b087041033b885a5`.
+
+Archive `rontrace-run1054.log`, 11,092,640 bytes,
+SHA-256 `310c1468e987b6248080a687533819922e18b29a0d4414cd2136a750056a59c2`.
+
+**What it holds**: `blind::TRACES`' run1054 (item 3438), `NEVER` 321 → 319. It also carries the game past run880's 1219, to 1260.

@@ -9269,7 +9269,7 @@ words and edits nothing here; a refill lands when two remain.
   `Options::exec@007188c0`, `do_formation@007215b0` (QUEUE_LAST on shift, QUEUE_FIRST on alt) and `do_rotate@0071dfd0`
   (the 45°/30°/10° steps) read the same three. Every read is the executable's own `GetKeyState` import, so a modifier is
   one IAT slot of the exe's (not another module's, as the cursor was) answering a pinned high byte for the line's
-  frame. `GetAsyncKeyState` sits behind `ron::GetKeyStateAsync@00a427f0` alone. Not built: no row of this item needed
+  frame. `GetAsyncKeyState` sits behind `ron::GetKeyStateAsync` alone. Not built: no row of this item needed
   it. **Score**: GOLDEN §144.3's minimap row (`WorldMap::on_right_up`'s ctrl/shift arms) and a queued formation.
 - **3442b. `KEYMAP_OPTION_ALL_MILITARY` (254) looked up `KEYMAP_NONE` in options mode 0.** run1057's first take
   (`~/ron-golden/run1057-take1`) bound it to F13 (124) beside F14–F16. Its `INFO 22` on 736 reads −1, and F16's
@@ -9317,13 +9317,14 @@ words and edits nothing here; a refill lands when two remain.
   twin of its own capture, with no lobby to restage. A tool that names each file's run (from the header's seed and
   map plus the time window) would turn the corpus into a pool of twins. Names no score.
 
-## Parked by the next landing, slot NC — reserved
+## Parked by item 3438, 2026-10-21 — Bribe's copied `damage` on an undamaged target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3438a. The bribed unit's `damage` is copied, and no dump has tested it.** run1054 and run880 both bribe `1/6`..`1/8`
+  at `damage 0`, `myhits 120`, and `0/8`..`0/10` are born at `damage 0`. A copy and a fresh unit print the same thing.
+  `crates/sim/src/bribe.rs` carries `max_health - health` and `damage_frac` across (its module line 16, a reading of
+  `Unit::swap_team@006118d0`). A staging that hurts the target before 1212 would test the copy, for example a who=0
+  archer's `@attack` on `1/6` from 1150. The check is `U3` `damage` and `damage_frac` on block 1213 against 1212's.
+  Names no score.
 
 ## Parked by the next landing, slot ND — reserved
 
@@ -9361,6 +9362,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot NH renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NI — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NI renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NJ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NJ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NK — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NK renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NL — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NN renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
