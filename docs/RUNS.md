@@ -22771,3 +22771,83 @@ SHA-256 `a83e82b16569a33431536eb3f9bcc0bd2dd4a46b0cc1cb27557db070c22b1395`.
 
 Archive `rontrace-run1083.log`, 40,875,200 bytes,
 SHA-256 `dffe61457b1aadb8e248f307b163998bc56b676bf144363be02c61c92f16aedf`.
+## run1081 — golden chapter eighty-five's lobby at `cover=1` on the click-free pool: the Spy's Bribe by key and pick, Pilfer and Restock Supplies asked, to 1260 (2026-10-22, item 3462, `att-3462`)
+
+**What the disk could not answer**: no trace enters `SpellTypeData::find_target@00674920`. Its one caller is
+`Options::picked_spot`'s OPTION_SPELL arm, a pick on the map after a spell button or key. Every Bribe on disk (run880,
+run1054) is the DLL's `@spell`, which skips the pick. `SpellType::cast_pilfer@00673e80` and
+`SpellType::cast_supplies@006714c0` are on no trace either, and no dump holds either craft cast. The take is
+run1054's recipe with three changes: the second Spy's `@spell` is replaced by a key and a click, a Supply Wagon is
+added, and two `@spell` lines are appended. It was launched through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1081 --map 14 --end-frame 1260 --log-window 1100 1260 --timeout 3600 --detail
+end:UNITS=3,BUILDS=7,DEATHS=1,LEADERS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/spy3462-ch85.cmd --cover cover=1 --no-ffwd --bindkey OPTION_SPY_BRIBE=124`.
+- Pool lane 1 (`~/wine-ron`). Launched 07:58:58, exited 08:01:53: **175.6 s launch to exit** (185.0 s in all; the
+  runner's `pace:` 5.7 frames a second). `success`, settings restored (5 files), lifecycle verified, 1,261 frames,
+  `last_frame` 1260, not ended early, map 14, seed 12345, tribes 4 and 11. DLL `0f8c7324…60`, `-DRON_AUTOSTART`. 197 GiB
+  free before. Minutes waited on another lane: none.
+- **6,622 functions entered.** One is a `NEVER` row: `SpellTypeData::find_target` on 1112. The key's chain is
+  `KeyMap::lookup`, `Console::exec_keymap`, both `Options::exec` and `Options::do_spell`, all on 1110. The click's is
+  `Options::picked_spot`, `Console::find_target` and `Console::find_target_daemon` on 1112. `cast_pilfer` and
+  `cast_supplies` were not entered (parked 3462a).
+- The values: `CM` printed `process_spell 629 6 1 1113` (the first Spy's `@spell`) and no second 629. The pick found no
+  target (parked 3462b), and `1/10..12` stay who=1 to 1259. The first Bribe swaps `1/6..8` on 1212 as before, into
+  `0/9..11`, one higher than in run1054 because the wagon is `0/8`. On 1231 `CM` printed `process_spell 630 2000 1 1231`,
+  and on 1233 `process_spell 638 0 0 1233`. No cast followed either. `LEADERS=2` `resources`: who=0 640/480/160/0/0/0
+  and who=1 640/480/0/0/0/0, both the same on 1230, 1232 and 1234. `0/8`'s `UNITS=3` `mana_burn` is 0 on each.
+- The first unshared input is 1106 (the select, the camera and the wagon's `add`). `rngcmp.py` against run880 (the
+  `cover=0` twin): **1,220 in common, 1,109 identical, 111 differing, the first 1107**. Against run1054: **1,261 in
+  common, 1,109 identical, 152 differing, the first 1107**. `samegame.py --from 1100` against run1054: **161 in common
+  (1..1259), 153 differing, the first 1107**. Against run880, with `--exclude WORLD --exclude CITIES --exclude CITY`:
+  **121 in common (1..1219), 113 differing, the first 1107**. Nothing parts either twin before 1106, so there is no
+  residue item.
+- Filed with `filerun.py run1081 chapter85-spy-pick-cover1-clickfree`.
+
+Archive `gamelog-run1081-chapter85-spy-pick-cover1-clickfree.txt`, 35,501,265 bytes,
+SHA-256 `278de5ffc2456547d979cb7e49cfefa5130ae97e80cd80a7d100798d16170c99`.
+
+Archive `rontrace-run1081.log`, 18,635,328 bytes,
+SHA-256 `4c372a12ed602d1de53f8363236e29ef5e6120d4d702cf67ff368ddec3c98a6f`.
+
+**What it holds**: `blind::TRACES`' run1081 (item 3462), `NEVER` 281 → 280 (283 → 282 on its base; 3460's two landed first).
+
+## run1084 — the golden start at `cover=1` on the click-free pool with `!cursor tinfo` and `!startareas` before run1031's lines, to 700 (2026-10-22, item 3464, `att-3464`)
+
+**What the disk could not answer**: no trace enters `World::get_wdata@0046d220` or `WorldData::is_forest@006b5560`
+(CENSUS row 840). `report.py <exe> refs` finds `get_wdata`'s one call in `ConsoleWin::run_cmd` case 0x3d (`!cursor`),
+behind its `tinfo` keyword (`int_str_array` +0x8ebc, entry 1827) and `WorldData::valid`. `is_forest` has three
+callers: `BuildTypeData::calc_gather`, `Console::execute_at_cursor` and case 0x60 (`!startareas`), which walks every
+leader with flag bit 1 over its start circle. Neither has a byte-identical twin. No line on disk sent either. The take
+is run1031's own script (`market3426.cmd`) with `600 !cursor tinfo` and `602 !startareas` added
+(`tools/gamelog/coverage/console3464-start.cmd`), so run1031b is the `cover=0` twin for the whole window. It was
+launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1084 --map 14 --end-frame 700
+--log-window 600 700 --timeout 3600 --detail end:LEADERS=2,BUILDS=7,CITIES=5 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/console3464-start.cmd --cover cover=1`.
+- Pool lane 2 (`~/wine-ron-2`). Launched 08:27:11, exited 08:28:11: **59.7 s launch to exit** (71.2 s in all; the
+  first take exited 5 and was retaken after 2.9 s). `success`, settings restored (5 files), lifecycle verified, 701
+  frames, `last_frame` 700, not ended early, map 14, seed 12345, tribes 4 and 11. DLL `cf8dc71c…`, `-DRON_AUTOSTART`.
+  200 GiB free before. Minutes waited on another lane: none.
+- **6,426 functions entered.** Two are `NEVER` rows: `get_wdata` on 600 and `is_forest` on 602. `ConsoleWin::say_coord`
+  and `TerrainOut::get_coord_info` were also entered on 600. The tracer's `I_CMD` records show `parse_cmd` returned 1
+  for both lines (lines 2 and 3, frames 0x258 and 0x25a).
+- **No `@cursor`.** The tracer calls `parse_cmd` with `no_mouse = 1`, and `parse_cmd` refreshes `mouse_coord_x/y` only
+  when `no_mouse` is 0. So `!cursor` reads the field's stale value whatever cursor is pinned. A pin would have been an
+  input the twin does not share and could not have reached the coordinate (parked 3464a).
+- **Where the reports print**: both cases append to `ConsoleWin::text` (`ConsLinkList::add`), the console window's
+  own list. Nothing reaches the gamelog. The dump's 570 lines matching `forest` are `WORLD=6`'s cell flags, and
+  run1031b holds the same 570.
+- **Neither line writes sim state.** `rngcmp.py` against run1031b (the `cover=0` twin): **701 in common, 0 differing,
+  701 identical**. `samegame.py --from 600` against run1031b's `gamelog.txt`: **101 in common (1..699), 0 differ; same
+  game before 600**. The archived dump is 15,770,458 bytes, run1031's size. Nothing parts the twin, so there is no
+  residue item.
+- Filed with `filerun.py run1084 golden-console-reports-cover1-clickfree`.
+
+Archive `gamelog-run1084-golden-console-reports-cover1-clickfree.txt`, 15,770,458 bytes,
+SHA-256 `9b87a4894cc9de7f34b1b0539eeb90c1f040c264a2f299ebeea54ec1300e6dea`.
+
+Archive `rontrace-run1084.log`, 10,021,120 bytes,
+SHA-256 `8c77e4dee0b36e2529f0134a4c2fd646f9c1bfe3f1cdcea4a43be033b4cb1b01`.
+
+**What it holds**: `blind::TRACES`' run1084 (item 3464), `NEVER` 280 → 278 (279 on the tree merged with `b41737e50`, whose Loop 3473 cites `Compiler::eval_command`). Run 1085 was not used.

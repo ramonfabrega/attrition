@@ -351,6 +351,15 @@ pub const TRACES: &[&str] = &[
     // open sea, `is_tocean` on 660 (`process_move_to 642 9474`). run652's
     // game before 601 (rngcmp 601 identical; `docs/RUNS.md` run1080).
     "rontrace-run1080.log",
+    // Item 3462: golden chapter eighty-five's lobby (run880's game) at
+    // `cover=1` on the click-free pool to 1260
+    // (`tools/gamelog/coverage/spy3462-ch85.cmd`): the second Spy `0/7`
+    // selected and F13 bound to OPTION_SPY_BRIBE, the pick clicked on 1112,
+    // `find_target` entered (it found no target: no second `process_spell
+    // 629`); Pilfer and Restock Supplies asked by `@spell` and refused by
+    // `is_castable`'s head (both `FROM None`). run880's game before 1107
+    // (rngcmp 1,109 identical; `docs/RUNS.md` run1081).
+    "rontrace-run1081.log",
     // Item 3463: the first pair's East Indies lobby (DIFFICULTY 0, AI on)
     // at `cover=1` on the click-free pool, `--ffwd-minute 11`, to 10100
     // (`tools/gamelog/coverage/agetip3463-eastindies.cmd`): `age who=0 3`
@@ -361,6 +370,14 @@ pub const TRACES: &[&str] = &[
     // tooltip (parked 3463a). Its `cover=0` twin is run1083
     // (`docs/RUNS.md` run1082).
     "rontrace-run1082.log",
+    // Item 3464: the golden start (run1031's lines, `market3426.cmd`) at
+    // `cover=1` on the click-free pool to 700, with `600 !cursor tinfo`
+    // (`run_cmd` case 0x3d, `World::get_wdata` on 600) and `602
+    // !startareas` (case 0x60, `WorldData::is_forest` on 602) before the
+    // twin's first input (`tools/gamelog/coverage/console3464-start.cmd`).
+    // Neither writes sim state: rngcmp against run1031b 701 identical, 0
+    // differing (`docs/RUNS.md` run1084).
+    "rontrace-run1084.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -729,12 +746,20 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `TEAM_STYLE 0`, `docs/AI.md` §296 row 12): `Leader::action_declare@006dab50`
 /// and `Leader::pay_dow@006d2b10` on 910, a human's declaration through the
 /// diplomacy window, paid (the third good's `bucket` 640 down on block 912).
-/// **280** with run1082 (item 3463: the first pair's East Indies lobby,
+/// **280** with run1081 (item 3462: golden chapter eighty-five's lobby):
+/// `SpellTypeData::find_target@00674920` on 1112, the Bribe pick armed by a
+/// bound OPTION_SPY_BRIBE key (`keymap_options[0x179]` = option 4, 629).
+/// **278** with run1084 (item 3464: the golden start, CENSUS row 840):
+/// `World::get_wdata@0046d220` on 600 (`!cursor tinfo`, console case 0x3d)
+/// and `WorldData::is_forest@006b5560` on 602 (`!startareas`, case 0x60);
+/// **279** on the tree merged with `b41737e50`, whose Loop 3473 cites
+/// `Compiler::eval_command@009befe0`, which no trace enters.
+/// **278** with run1082 (item 3463: the first pair's East Indies lobby,
 /// `docs/AI.md` §2.14): `Leaders::best_human_age_stamp@006b81e0` on 9979,
 /// the computer's age techs paced against a human three ages ahead.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
-    0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
+    0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
     0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_22f0, 0x0047_2370,
     0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
@@ -747,9 +772,9 @@ pub const NEVER: &[u32] = &[
     0x0063_e390, 0x0063_fa30, 0x0064_2bb0, 0x0064_2d90, 0x0064_40c0, 0x0064_50b0, 0x0064_50c0, 0x0064_52f0, 0x0064_6c00, 0x0064_6c10, 0x0064_6c30,
     0x0064_7150, 0x0064_86a0, 0x0064_e4a0, 0x0065_8190, 0x0065_b850, 0x0065_cfd0, 0x0066_1b80, 0x0066_1d70, 0x0066_2670, 0x0066_3b60, 0x0066_3b70,
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50,
-    0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_4920, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
+    0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
-    0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0,
+    0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_88b0, 0x006d_03c0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
@@ -758,7 +783,7 @@ pub const NEVER: &[u32] = &[
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
-    0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_99e0,
+    0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009b_efe0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_99e0,
     0x009f_9ad0, 0x009f_b790, 0x009f_b880, 0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860,
     0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0, 0x00a0_0220, 0x00a4_69f0,
 ];

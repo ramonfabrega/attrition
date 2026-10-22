@@ -3857,6 +3857,21 @@ paused `cover=0` trace keeps growing, so a quiet trace is no signal; the gamelog
 carries the output directory with backslashes. Candidate: it graduates into `tools/explore/` (the third reach is the rule's).
 Score: a take that needs a screen point spends no recon on the shooter. One reach.
 
+(3473) **The console's `!eval` reaches the script host's whole table, so five `RESIDUE` rows stand on a wrong reason** (the
+commander's drafting subagent, on `f13107352`): `Compiler::eval_command@009befe0` runs one BHS expression against every
+registered function set, and `ScenarioFuncSet`/`MathUtilFuncSet` are registered in every skirmish (`init_funcs` entered on
+frame −1 by run1077). AI §296 proposed `enable_production_ai`, `disable_combat_ai`, `disable_all_unit_ai`, `disable_unit_ai`
+and `disable_city_ai` as "called only by scenario scripts"; a `!eval disable_city_ai(2)` would enter one. Candidate: the pass
+restates those rows on "cut from v1" alone, or strikes them for a coverage line. Score: `Blind:` residue a claim a capture
+cannot break. One reach.
+
+(3474) **The park pool turns red on the first landing when it holds one slot per live lane** (3464's "for the Loop"): the
+base held exactly two reserved headings, LK and MV, each assigned to a live lane; 3464's first gate on `190c08a2f` went red
+on its own `the_park_pool_holds_two_unassigned_headings` when renaming MV left one, and stopped before `guard`. The guard
+counts headings, not unassigned ones, so it passed the booking that assigned the last two. Candidate: the guard subtracts
+the slots the queue's `park <A>` words assign, so a booking that leaves fewer than two free is the red one. Score: no lane
+gate spent on the commander's pool. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
@@ -7139,7 +7154,8 @@ Every row is a candidate from `docs/NATIONS.md` §7, a supposition booked with t
   the five fields (`score_combat`, `units_killed`, `buildings_razed`, `deaths_current_frame`, `kills_current_frame`); `LEADERS=2` prints none of them and the compared pin
   lists them unread, so no diff can see them. Names no score.
 - (3016) **Pilfer** (`0x276`): `cast_pilfer@00673e80` (a goods steal, one `Random::get` draw) and its validity arm are read and the arm built, but `FROM None` means no
-  unit is given the cast, so no chapter stages it; who calls it in the original is not found. Names no score.
+  unit is given the cast, so no chapter stages it; who calls it in the original is not found. Names no score. **Answered by item 3462**: no caster can pass
+  `is_castable`'s head on the shipped data (`FROM`/`FROM2` −1, `ObjectTypeData::is(-1, 0)` is 0); run1081's `@spell 0 630` was processed on 1231 and never cast (parked 3462a).
 - (3017) **A Stockade's border bleeds a lone Commando dead mid-cast** (150-frame job, 12 hp / 25 frames): the walk found it before the capture; Sabotage on a
   vehicle (`dtype` 3, the boom) needs a staged vehicle for who=1 and is not covered. **Booked as chapter 93 (3018) at the merge.**
 
@@ -8507,13 +8523,23 @@ Nothing parked: the word closed (`docs/AI.md` §265).
   23982 it holds `[269]` 1 beside two living `ARTILLERY` (TypeIndex 269), so the first reading is the writers of
   `num_units` on an upgrade, by offset. Returns when a word's frame reaches a count of the Artillery line.
 
-## Parked by the next landing, slot KS — reserved
+## Parked by item 3462, 2026-10-22 — the Spy's panel pick, Pilfer and Supplies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot KS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3462a. `SpellType::cast_pilfer@00673e80` and `SpellType::cast_supplies@006714c0` have no caster on the shipped
+  data: a `RESIDUE` proposal for the pass.** Pilfer Resources (630) and Restock Supplies (638) are `FROM None` and
+  `FROM2 None` in `craftrules.xml`, so `Types::object_key` gives −1 for both. `SpellTypeData::is_castable@00675bc0`'s
+  head asks `is(FROM)`, `is(FROM2)`, the tribe's substitute and `get_graft(FROM2)`. Each is `ObjectTypeData::is(-1, 0)`,
+  which is 0, and get_graft returns a negative unchanged. The two exempt ids are 0x29a and 0x28a, so it answers 0 for
+  every caster. `SpellType::cast@00676ce0` needs 3 before its switch, and it is each arm's only caller
+  (`report.py <exe> refs`). run1081 asked both: `process_spell 630 2000 1 1231` (Spy `0/6` on who=1's capital) and
+  `process_spell 638 0 0 1233` (the Supply Wagon `0/8`). Neither arm was entered. Both leaders' `resources` (`LEADERS=2`)
+  are unchanged across 1231, and `0/8`'s `mana_burn` (`UNITS=3`) is 0 throughout. A modded `FROM` would reach them, which
+  is a divergence from the shipped game and not coverage. Names no score.
+- **3462b. run1081's pick found no target.** `find_target` was entered on 1112. With `camera 125,104` and the click on
+  the view's centre (960, 445), it found none of the Hoplites `1/10..12` (tile 122.8–123.5, 101.4–102.2 on 1112). No
+  second `process_spell 629` came, and they stay who=1 to 1259. The point a unit draws at under a `camera` is not
+  established (3443's mapping was a city, 3461's landed about 2.6 tiles short on open sea). A window photograph at the
+  line's frame would settle it, if a word ever needs a picked Bribe's values. Names no score.
 
 ## Parked by item 3336, 2026-10-19 — the Egyptian word 20031 → 20380, the game's end
 
@@ -9036,7 +9062,7 @@ score.
 - **3387a. The building attack override is in no crate path.** `BuildData::attack@0062e610` (swept, `build_attack_view.rs`, standalone) adds `general_building_attack*10` for a garrisoned building, `obsidian_archers_attack*10` and `antipater_garrison_attack_bonus*10`; the crate has no leader flag words, no constants for them and no `count_inside` twin, so `Sim::attack_of` applies only the `ObjectData` base to buildings. Wiring it is the likeliest pin mover of the batch.
 - **3387b. `Group::normalize@00711540` is swept but unwired.** `Sim::group_normalize` / `seat_normalize` are namesakes (prune a `Vec<usize>` by `alive`, shift three arrays); the original shifts five and tests object slots `+0x18`/`+0x20`, the group's `id` and `+0x30`. `normalize_view.rs` is the original's walk; whether the namesakes differ on those predicates is unchecked.
 - **3387c. `Army::normalize@006f9b50` is swept but unwired.** `Sim::army_normalize` is a namesake (recounts a unit list; no group slots, `remove_group` early return or slot sort). `army_normalize_view.rs` holds the walk. Negative `num` in the sort and `find_leader` answering -1 read outside the emulator's windows, so the draw keeps them out.
-- **3387d. `SpellTypeData::find_target@00674920`: the crate has no spell search mapping and no console.** `spell_find_view.rs` is the only port, held by the sweep; the three dead stack slots of `Console::find_target` read as zero and the port logs literal zeros (not tested nonzero).
+- **3387d. `SpellTypeData::find_target@00674920`: the crate has no spell search mapping and no console.** (Entered by run1081's Bribe pick on 1112, item 3462; the port's standing is unchanged.) `spell_find_view.rs` is the only port, held by the sweep; the three dead stack slots of `Console::find_target` read as zero and the port logs literal zeros (not tested nonzero).
 - **3387e. `Animal::work@005d7330`: the crate keeps no per-herd goods seen-mask and no animal order cursor** (`+0xcc/+0xd0/+0xd4/+0xdc`); the port is inline in the sweep's `// hand: port` fence. Player byte 8 and above, herd indices outside -1..6 and goods indices outside 0..7 are not drawn.
 - **3387f. `ObjectData::attack@006469f0`: sim fix, the caravan arm.** `Sim::attack_of` had no caravan arm (vslot `+0xd0` and `has_preq(CARAVAN_ATTACK_BONUS)` replace the attack with the constant, 20); added with tech role `caravan_attack_preq`, tuning `caravan_attack_bonus` and `Slot::Scaled10`. A pin can move only where a caravan whose owner holds the tech is counted through `attack_of`. Open: `has_preq` reads `preq0` only; the other two `PREQ` attributes of `TECHBONUSES` row 14 are ignored and unchecked. Slot `+0x18` (`Buffer::is_pending_load` on units, another slot on buildings) is modelled as `is_unit`.
 
@@ -9303,7 +9329,7 @@ is an oracle-agreed module the live sim does not call.
   frames.** At Toughest on Great Sahara, neither leader advances an age by 5941 from a start of 3 or 5 (run1041,
   run1043). So each missing age costs one start of its own: `STARTING_TECHNOLOGY 2` and `6`, run1041's recipe
   otherwise. The never-entered rows a later start was predicted to reach need units neither take fielded: a
-  supply wagon (63–65) for `Unit::think_supply@005f4730` and `SpellType::cast_supplies@006714c0`; ~~a razed wonder
+  supply wagon (63–65) for `Unit::think_supply@005f4730` and ~~`SpellType::cast_supplies@006714c0`~~ (no caster on the shipped data: item 3462, parked 3462a); ~~a razed wonder
   for `Wonders::close_wonder@0073c7e0`~~ (entered by run1074's console `die`, item 3454); Modern air or silos for `BuildQueueData::get_next_helicopter@00630bb0` and
   `LeaderData::get_nukes@006ebe50`. A start-6 capture is the one that could reach the last two. It books only against
   the blind list if one of them is named as its target.
@@ -9321,13 +9347,17 @@ is an oracle-agreed module the live sim does not call.
   checks, and `every_unreferenced_row_is_unreferenced_in_the_image` must accept `think_supply`'s RVA-shaped operand,
   which the scan prints as "pointer only". It moves `open` by two and `never` by none.
 
-## Parked by the next landing, slot MV — reserved
+## Parked by item 3464, 2026-10-22 — two console reports
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot MV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3464a. A `!` line cannot aim the cursor-reading commands, and `@cursor` does not change that.** The tracer calls
+  `ConsoleWin::parse_cmd@007d6470` with `no_mouse = 1` (`tools/trace/tracer.c`, the line loop). `parse_cmd` refreshes
+  `mouse_coord_x/y` through `TerrainOut::get_mouse_coords` only when `no_mouse` is 0, so `!cursor` and `!region`
+  read the field's stale value whatever `@cursor` pins. On run1084, `!cursor tinfo` passed `WorldData::valid` and
+  entered `World::get_wdata` on 600. Which cell it read is not dumped; the cell does not matter to the entry, and
+  run169's packet measured the field at (0, 6) (item 652). Note also that `!cursor`'s other keyword arms write the
+  world: two `loc_str_array_orig` keywords (+0x44d4, +0x44e8) reach `World::set_road_at` and `RoadsPieces::find_map`,
+  and `clifftest` reaches `Cliffs::place_cliff`. A take that wants those arms is a sim change, not a report. Names no
+  score.
 
 ## Parked by item 3422, 2026-10-21 — the boat's two other arms
 
@@ -9577,3 +9607,51 @@ no move and its `orders_x/y` did not change. `Group::action_halt`'s `close_order
 `HaltCommand` row) is unread on a dump. Staging: run1080's lines with `606 @move 0 7680 8448 15`; the value is the
 squad's U3 `orders_x/y` before and after 621. Score: none named (`action_halt` is entered); a value row for ORDERS'
 halt. One reach.
+
+## Parked by the next landing, slot NO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
