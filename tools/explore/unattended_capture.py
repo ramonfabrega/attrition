@@ -478,6 +478,7 @@ def capture(args, output, style):
                                            callwin=getattr(args, 'callwin', None),
                                            stride=getattr(args, 'stride', None),
                                            cursor=getattr(args, 'cursor', None),
+                                           dumptime=getattr(args, 'dumptime', None),
                                            cmd_file=getattr(args, 'cmd_file', None)))
         # The receipt carries what was staged, so a run's window and detail are
         # read back from the run rather than from the command that asked for it.
@@ -491,6 +492,7 @@ def capture(args, output, style):
                             'callwin': staged_callwin(output),
                             'stride': getattr(args, 'stride', None),
                             'cursor': getattr(args, 'cursor', None),
+                            'dumptime': getattr(args, 'dumptime', None),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
                                             if (output/'rontrace.cmd').is_file() else None}
@@ -509,6 +511,18 @@ def capture(args, output, style):
         bind_keys(args.profile, args.install, report['bindkey'])
         rise = args.profile / 'rise.ini'
         rise.write_text(live_session.key(rise.read_text(), 'Seed (0 for random)', args.seed))
+        # Item 3483: `AllowLogs_ToConsole` (Log::init@00a3baa0, default 1) sets
+        # every log's flag 2, which mirrors each line through String::printf to
+        # OutputDebugStringW — 95 % of a dumped frame under Wine (run1101j).
+        report['console_log'] = getattr(args, 'console_log', None)
+        if report['console_log'] is not None:
+            text = rise.read_text()
+            line = f'AllowLogs_ToConsole={report["console_log"]}'
+            if re.search(r'^AllowLogs_ToConsole=', text, re.M):
+                text = live_session.key(text, 'AllowLogs_ToConsole', report['console_log'])
+            else:
+                text = text.rstrip('\r\n') + ('\r\n' if '\r\n' in text else '\n') + line + '\n'
+            rise.write_text(text)
         env = os.environ.copy()
         report['startup_probe'] = getattr(args, 'startup_probe', False)
         env['TRACER_DEFS'] = ('-DRON_AUTOSTART'
@@ -891,6 +905,11 @@ def main():
     ap.add_argument('--cover')
     ap.add_argument('--cursor', metavar='X,Y',
                     help='pin the resting cursor at a client point (rontrace.cfg cursor=X,Y; Loop 3432)')
+    ap.add_argument('--console-log', type=int, choices=(0, 1), dest='console_log',
+                    help="rise.ini AllowLogs_ToConsole: 0 stops every log line's OutputDebugStringW "
+                         "mirror (item 3483); absent leaves the profile's (the engine's default is 1)")
+    ap.add_argument('--dumptime', metavar='N[,MASK]',
+                    help='the dump clock: rontrace.cfg dumptime=N, dumpsites=MASK (tools/trace/dumptime.h; item 3483)')
     ap.add_argument('--stride', type=int, metavar='N',
                     help='dump one block in N of --log-window, a long gap at a fraction of its cost '
                          '(the tracer rewrites the engine window each frame; Loop 3085)')

@@ -23,3 +23,5 @@ ExitProcess@4
 VirtualQueryEx@16
 GetSystemInfo@4
 GetTickCount@0
+QueryPerformanceCounter@4
+QueryPerformanceFrequency@4
