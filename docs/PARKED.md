@@ -9283,13 +9283,13 @@ words and edits nothing here; a refill lands when two remain.
   (`0/9`'s `ATTACKGROUNDORDER` under a deploy `CASTORDER`) and run1030's block 802 (`0/7` at (2712, 14904)) are the
   first values such a word would read.
 
-## Parked by the next landing, slot NA — reserved
+## Parked by item 3443, 2026-10-22 — the first human trade route on disk
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3443a. run1060 is a diff source for `Group::action_trade@00701cc0`, which this crate does not wire.**
+  `crates/sim/src/trade_view.rs` writes the steps (item 3381) and says "Not wired": `FinishInsertView::action_trade` is
+  an empty stub. run1060 enters it on 650, from a human Caravan's right-click on a second city. Its dump carries `0/7`'s
+  `TRADEORDER` from 652 to 910 (`ox 2007`, `oxx 2000`, `started 1`, a `MOVEORDER` to (7800, 30840)), with `GOODS=3` and
+  `CITIES=5` beside it. Wiring `action_trade` could be pinned against it frame for frame. Names no score.
 
 ## Parked by item 3428, 2026-10-21 — the playback's end and the recordings corpus
 

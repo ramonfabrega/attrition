@@ -21832,3 +21832,100 @@ Archive `rontrace-run1054.log`, 11,092,640 bytes,
 SHA-256 `310c1468e987b6248080a687533819922e18b29a0d4414cd2136a750056a59c2`.
 
 **What it holds**: `blind::TRACES`' run1054 (item 3438), `NEVER` 321 → 319. It also carries the game past run880's 1219, to 1260.
+
+## run1058 — chapter thirty-nine's lobby at `cover=1` on the pool, To Arms pressed on the Citizen's card, to 880 (2026-10-22, item 3443, `att-3443`)
+
+**What the disk could not answer**: whether the To Arms button enters `Options::do_spell@0071d7a0`. Every trace that
+casts To Arms (run422, run423) does it through the DLL's `@spell`, so no trace on disk enters the button's own path.
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1058 --map 14 --end-frame 880 --log-window 605
+881 --timeout 2400 --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cover cover=1 --no-ffwd --cmd-file tools/gamelog/coverage/click3443-ch39-toarms.cmd`. The script is `chapter39.cmd`
+with `620 @spell … 6` replaced by `618 select 6 who=0`, `620 @click 286 976` and `624 @click 286 976`.
+- Third take. The first (`~/ron-golden/run1058-take1`, 531 s, lane 1) clicked (286, 935), the card's (4,0). That is the
+  Citizen's Alarm bell (`OPTION_ALARM_PEASANT`): `Options::do_alarm`, `Group::action_alarm` and `process_alarm` on 620,
+  no `do_spell`, and no `NEVER` row. A spell's cell is its `grid_x` on row 1 (`UnitOut::make_options@00615fc0`). The
+  second (`run1058-take2`, 419 s) clicked (286, 976) on 620 alone and hit an empty cell: `UnitOut::make_options`, which
+  adds the spells, first ran on 621. The third keeps 620's click and presses again on 624.
+- Pool lane 1. Launched 23:58:59, exited 00:05:54: **414.6 s launch to exit**. `success`, lifecycle verified, 881
+  frames, `MAP_STYLE 14`, seed 12345. DLL `61e9b457…`, `-DRON_AUTOSTART`, this tree's `e2396563b`. 222 GiB free before.
+- `INFO 21` installed; both `INFO 20` ran. The dump prints `process_spell 660 0 0 625`, then the twin's other four at
+  641, 661, 701 and 721.
+- **6,563 functions entered**. `Options::do_spell` and `CommandPackage::process_spell` on 624; `cast_to_arms` on 629.
+  `NEVER` rows: `do_spell` alone.
+- **U3, `0/6`** (Citizen A), against run422's: `CASTORDER` and `spell_time 1` on 626 (run422: 622); a Militia with
+  `rare 50`, `form 0`, `mylos 6`, `myhits 50`, `damage 0` on 630 (run422: 626). Every field is run422's, four frames
+  later, because the press is on 624 and not 620.
+- `rngcmp.py` against the `cover=0` twin (`~/ron-golden/ch39`, run422): **881 in common, 254 differing, the first
+  626**, 627 identical. `samegame.py … --from 618`: **277 in common (1..880), 260 differing, the first 621**: the twin's
+  dropped `620 @spell` (its `process_spell 621`). Same game before 618, the first unshared input.
+- Filed with `filerun.py run1058 ch39-toarms-atclick`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1058-ch39-toarms-atclick.txt`, 124,719,418 bytes,
+SHA-256 `5675d0ed20340f3bf84634cc461cf31ad64fc1082fb87a5e5c243d20dbd16d3c`.
+
+Archive `rontrace-run1058.log`, 17,273,984 bytes,
+SHA-256 `9302e56319af47a32bb442f15710dc902fa37fbd0268859155df7244c2b01b69`.
+
+**What it holds**: To Arms through the card's own button, run422's conversion four frames later.
+
+## run1059 — run1051's stanza with who=0 drained before the train click, to 780 (2026-10-22, item 3443, `att-3443`)
+
+**What the disk could not answer**: whether an unaffordable press enters `LeaderOut::warn_resources@006d3650`. No
+trace on disk does: every queued unit in a capture was paid. The command is run1051's line, with `--cover cover=1
+--no-ffwd --cmd-file tools/gamelog/coverage/click3443-ch13-warn.cmd` and the output `~/ron-golden/run1059`. It is
+run1051's stanza line for line plus `730 resource who=0 all -1000`.
+- Third take. The first (`run1059-take1`, 234 s, lane 2) wrote `resource who=0 all 0`. It ran (returned 1) but changed
+  nothing: who=0's buckets were 264/248/116 on 729 and 731. So `process_queue_up 82 1 737` was paid, as run1051's was.
+  The second (`run1059-deadtake2`) died at launch, a Wine page fault at frame 0 before any staged line, with a
+  traceback and no receipt.
+- Pool lane 2. Launched 23:59:20, exited 00:02:00: **160.0 s launch to exit**. `success`, 781 frames, `MAP_STYLE 14`,
+  seed 12345, the same DLL.
+- `L` buckets of who=0: 264, 248, 116 on 729, and **0, 0, 0 on 731 and 737**, so `-1000` clamps to zero.
+- **6,518 functions entered**. `GroupOut::issue_queue_up` and `LeaderOut::warn_resources` on 736. **No
+  `process_queue_up`**: the refusal returns before `CommandManager::issue_queue_up`. `process_eject_all 749` as
+  run1051. `NEVER` rows: `warn_resources` alone.
+- `rngcmp.py` against run1051 (`rontrace-run1051.log`): **781 in common, 0 differing**: the drain and the refusal draw
+  nothing. `samegame.py gamelog-run1051-ch13-queue-eject-atclick.txt --from 730`: **177 in common (1..780), 50
+  differing, the first 731**, the `resource` line's block. Against the `cover=0` twin (`~/ron-golden/ch13`): rngcmp 781
+  in common, 30 differing, the first 751, run1051's own; samegame `--from 700`, 177 in common, 50 differing, the first
+  731.
+- Filed with `filerun.py run1059 ch13-warn-resources-atclick`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1059-ch13-warn-resources-atclick.txt`, 38,128,522 bytes,
+SHA-256 `11205ab07d6d12a658defcb440316e7f13480b50f6443e27dd3bbec7bfb875d6`.
+
+Archive `rontrace-run1059.log`, 17,013,856 bytes,
+SHA-256 `2d9b3254e10cb7c2dca16f868f967185cbfa1400a055f642e8cda372fb3e8fc9`.
+
+**What it holds**: an unaffordable train press, refused at the button with no command.
+
+## run1060 — chapter seven's lobby with a second city, the Caravan right-clicked onto it, to 910 (2026-10-22, item 3443, `att-3443`)
+
+**What the disk could not answer**: whether a Caravan's right-click on a city enters `CommandManager::issue_trade@
+00941960`. No trace on disk trades on a human order. run141's Caravan `0/7` took no order at all, with Napata who=0's
+only city. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1060 --map 14 --end-frame 910
+--log-window 605 911 --timeout 2400 --detail end:UNITS=3,GUYS=2,BUILDS=7,CITIES=5,GOODS=3,LEADERS=2` with run1058's
+`start:`, `misc:`, `--cover cover=1 --no-ffwd` and `--cmd-file tools/gamelog/coverage/click3443-ch7-trade.cmd`. It is
+`chapter7.cmd` plus `640 add small_city who=0 40,160` (chapter seventy-three's), `642 select 7 who=0`, `642 camera
+40,160` and `650 @rclick 960 445`, the city's tile at the camera's centre (run1032's mapping).
+- Pool lane 3. Launched 23:39:45, exited 23:45:14: **329.1 s launch to exit**. `success`, 911 frames, `MAP_STYLE 14`,
+  seed 12345, the same DLL. One take.
+- The dump prints `process_trade 2007 0 -1 -1 2 651`. **U3 `0/7` on 652** carries a `TRADEORDER` (`ox 2007`, the new
+  city; `whom 0`; `oxx 2000`, Napata; `whose 0`; `started 1`) over a `MOVEORDER` to (7800, 30840). The twin's dump has
+  no `TRADEORDER` at all.
+- **6,571 functions entered**. `execute_at_cursor`, `verify_trade`, `GroupOut::issue_trade`,
+  `CommandManager::issue_trade` and `process_trade` on 650, with `Group::action_trade@00701cc0`. `NEVER` rows:
+  `issue_trade` and `action_trade`.
+- `rngcmp.py` against the `cover=0` twin (`~/ron-golden/ch7`, run141): **911 in common, 259 differing, the first
+  652**, 652 identical, so the Small City alone draws nothing. `samegame.py … --from 640`: **307 in common (1..910),
+  270 differing, the first 641**, the city's block. Same game before 640, the first unshared input.
+- Filed with `filerun.py run1060 ch7-trade-atrclick`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1060-ch7-trade-atrclick.txt`, 61,306,835 bytes,
+SHA-256 `352f51040dafc6191a0bff5d18cb0d8586c54dd2973bd9b1fe2934db926d5684`.
+
+Archive `rontrace-run1060.log`, 19,365,280 bytes,
+SHA-256 `6ec40a85516b0513af06804b41993ecbc8f5e166b2d7590de522441d3cffbde1`.
+
+**What it holds**: the first human trade route on disk, `Group::action_trade` from 650 (parked 3443a).

@@ -743,7 +743,7 @@ The ones that stage a scenario:
 | `age` | `[who] <n>` | `Leader::set_age` |
 | `military` / `civic` / `commerce` / `science` | `[who] <n>` | `Leader::set_epoch` for that category |
 | `library` | `[who] <n>` | all four epochs **and** the age |
-| `resource` | `[who] [goodtype\|all] [+\|-]amount` | `bucket_set` |
+| `resource` | `[who] [goodtype\|all] [+\|-]amount` — an amount of 0 changes nothing, and a subtraction clamps at 0 (run1059) | `bucket_set` |
 | `die` | `[o[,who] \| select]` | kills |
 | `damage` | `(o[,who]\|select) [+\|-]n` | writes the damage field, clamped to max hits |
 | `move` | `(o\|select) (x,y\|cursor)` — **no `,who`**: `move 10,0 190,60` read `0` as the x and `190` as the y and put the unit at tile (0, 190) (run16) | `find_nearby_spot` + `set_new_location` |
