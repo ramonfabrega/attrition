@@ -297,6 +297,9 @@ Before any reading, in order:
   through `viadriver.sh`) only for what no `@` line sends — a key, the
   menu's own code (3429b) — and the brief says so; either is waited on
   with `waitrun.sh`.
+- **A take that needs a screen point photographs itself** (3469, 3451):
+  `poolshot.py <run> <frame>` after a `pause 1` line on the frame,
+  window-only; never the queue lane's `handdriver.sh` scout.
 - **Before the take, three checks** (3430; 3417, 3419, 3423's retakes):
   the detail level that prints each owed field is the level the dump's
   writer prints it at (a stanza on disk says which; `LEADERS=1` printed no
