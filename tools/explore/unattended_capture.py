@@ -128,7 +128,7 @@ def remove_new_saves(before):
     """Remove the files a take added under `SAVES`; their paths."""
     added = sorted(save_files() - before)
     for path in added:
-        path.unlink()
+        path.unlink(missing_ok=True)
     return [str(p) for p in added]
 
 
