@@ -9778,13 +9778,17 @@ them — the runner that walked the file left with it. Candidate: a lint
 that a `driver:` names a file in the tree, scoped to stanzas without an
 archive. Score: none. One reach.
 
-## Parked by the next landing, slot NZ — reserved
+## Parked by item 3491, 2026-10-22 — `is_tournament` from a defeated computer's chair
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3491a — a defeated leader's `leader_flags` carry two bits D1 did not
+  read.** run1113's who 2 reads `leader_flags` 19 on block 600 and 34078801
+  (0x2080051) from 601. The low byte is the predicted 81 (`Leader::defeat`'s
+  `& ~2 | 0x40`), and 0x2000000 and 0x80000 are set besides, by
+  `Leader::defeat_by` or `Player::end_game`, whose writes D1 left unread.
+  The 598 dump also reads who 2 at 0x800013 where block 600 reads 19, and
+  run1114 shares every value. Candidate: read `defeat_by@006d1c80` and
+  `end_game` for the two bits when the sim models a defeat. Score: none.
+  One reach.
 
 ## Parked by the next landing, slot OA — reserved
 
