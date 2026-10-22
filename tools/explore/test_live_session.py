@@ -75,6 +75,17 @@ class SessionTest(unittest.TestCase):
         module.restore(self.output)
         self.assert_restored()
 
+    def test_a_hover_is_staged_in_the_tracer_cfg_only_when_asked(self):
+        # Item 3494: the hover re-assert is opt-in (`tools/trace/hover.h`).
+        self.args.end_frame = 640
+        self.args.cursor = '1400,1000'
+        self.args.hover = True
+        module.stage(self.args)
+        self.assertEqual((self.output/'rontrace.cfg').read_text(),
+                         'cover=0\ncallwin=0-640\ncursor=1400,1000\nhover=1\n')
+        module.restore(self.output)
+        self.assert_restored()
+
     def test_a_cursor_takes_two_integers(self):
         self.args.end_frame = 720
         self.args.cursor = '1400 1000'

@@ -63,6 +63,7 @@ SUITES = (
     'test_births',
     'test_recomp_flags',
     'test_hooks_stubs',
+    'test_hover_hook',  # item 3494
     'test_suite_timings',
     'test_buildat',
     'test_emu_receipts',

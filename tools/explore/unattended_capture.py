@@ -518,6 +518,7 @@ def capture(args, output, style):
                                            callwin=getattr(args, 'callwin', None),
                                            stride=getattr(args, 'stride', None),
                                            cursor=getattr(args, 'cursor', None),
+                                           hover=getattr(args, 'hover', False),
                                            dumptime=getattr(args, 'dumptime', None),
                                            cmd_file=getattr(args, 'cmd_file', None)))
         # The receipt carries what was staged, so a run's window and detail are
@@ -532,6 +533,7 @@ def capture(args, output, style):
                             'callwin': staged_callwin(output),
                             'stride': getattr(args, 'stride', None),
                             'cursor': getattr(args, 'cursor', None),
+                            'hover': getattr(args, 'hover', False),
                             'dumptime': getattr(args, 'dumptime', None),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
@@ -950,6 +952,8 @@ def main():
     ap.add_argument('--cover')
     ap.add_argument('--cursor', metavar='X,Y',
                     help='pin the resting cursor at a client point (rontrace.cfg cursor=X,Y; Loop 3432)')
+    ap.add_argument('--hover', action='store_true',
+                    help='re-send a click line\'s pinned hover at describe_mouseover (rontrace.cfg hover=1; item 3494)')
     ap.add_argument('--console-log', type=int, choices=(0, 1), dest='console_log',
                     help="rise.ini AllowLogs_ToConsole: 0 stops every log line's OutputDebugStringW "
                          "mirror (item 3483); absent leaves the profile's (the engine's default is 1)")
