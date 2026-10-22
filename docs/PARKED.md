@@ -9688,13 +9688,26 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NW — reserved
+## Parked by item 3483, 2026-10-22 — where a dumped frame's seconds go
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3483a — 3484 as booked buys at most 0.1 s of a 2.6 s dumped frame; the 95 % is a debugger mirror the gamelog
+  never sees.** run1101, run1111 and run1112 (`tools/trace/dumptime.h`): `OutputDebugStringW` takes 94.8–95.8 % of
+  every dumped frame, one call a line (53,464 at `UNITS=3,LEADERS=9`). The executable's whole file path is about
+  0.25 s under load and 0.07 s quiet (run1101k): the walkers, `Log::say`'s own code, `__stdio_common_vfwprintf`,
+  `fputwc`, `fflush` and `WriteFile`. `Log::say@00a3ab00` mirrors each line through `String::printf@00a1d520` to
+  `kernel32_OutputDebugStringW_Ptr` when the log's flag 2 is set. `Log::init@00a3baa0` sets that flag from the pref
+  `AllowLogs_ToConsole` (the wide string at 0xb1abb8; `Prefs::get` default 1), which the pool's `rise.ini` does not
+  carry. **run1101k** (`unattended_capture.py --console-log 0`, rise.ini `AllowLogs_ToConsole=0`) runs a dumped
+  frame in **0.073 s against 3.82 s**, and the take in 15.7 s launch to exit against 64.8 s. Its gamelog matches
+  run1101j's except three header lines (two `SYNCPOINT` load timings and `Sys Memory`, which differ between any two
+  takes). So the fast writer 3484 books is not worth an item in that shape. Two zero-code replacements: the pool
+  stages `--console-log 0` by default, checked by `samegame.py` and a header-masked `cmp` against an unhooked twin
+  on 3484's three lobbies; or 3484's `fastlog=1` becomes that one pref. Either is the steer's call: it changes what
+  every take stages. Killed by: a lobby whose dump differs beyond the header lines with the pref off.
+- **3483b — the clock's own cost is below the load's noise.** run1101's `dumptime=2` untimed dumped frames average
+  6.93 s against the timed 6.21 s, both under three parallel takes and the gate's sweeps. On a quieter host,
+  run1101d's untimed frames (2.388–2.405 s) sit within 0.005 s of its timed ones (2.393–2.409 s). The calibration
+  puts one timed call at 21–26 ns, about 0.01 s across a dumped frame's ~440,000 stubbed calls. Nothing books.
 
 ## Parked by the next landing, slot NX — reserved
 

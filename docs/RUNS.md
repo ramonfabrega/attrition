@@ -23253,3 +23253,80 @@ SHA-256 `179fb812919d81609acfa81f8761066d0ae3f9100506222386381deec84d62dd`.
 
 Archive `rontrace-run1099.log`, 9,488,640 bytes,
 SHA-256 `dbb80f43761230b0f3c3e193ed469b4fe7c6fcf6844d895d463d959f971311e0`.
+
+## run1101 — the golden start at `cover=1` on the click-free pool with the dump clock, `UNITS=3,LEADERS=9` over 600–605, even frames timed (2026-10-22, item 3483, `att-3483`)
+
+**What the disk could not answer**: where a dumped frame's seconds go. The pool's receipts give seconds a take and
+the gamelog gives bytes a block, but nothing on disk times a function, so nothing splits the dump's writer from its
+walkers or from the CRT. The clock is `tools/trace/dumptime.h` (`rontrace.cfg` `dumptime=`, the runner's
+`--dumptime N`): stubs on `GameLog::begin_frame@00932a70`, `end_frame@009329d0`, `full_dump@00930380`,
+`dump_units@00930020`, `dump_leaders@009302d0`, `Log::say@00a3ab00`/`@00a3ae30`/`@00a3b160`,
+`NetDaemon::process_all@00951300`, `String::printf@00a1d520` and `GameLog::check_accept@009309a0`. Swapped pointers on
+the executable's IAT slots for `__stdio_common_vfwprintf`, `fputwc`, `fflush`, `fclose` and `fputws`, on ucrtbase's
+`WriteFile` import, and on `kernel32_OutputDebugStringW_Ptr` (VA 0xc8dc4c). Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1101 --map 14 --end-frame 606 --log-window 600 605 --timeout 3600
+--detail end:UNITS=3,LEADERS=9 --cursor 1400,1000 --cmd-file tools/gamelog/coverage/dumptime3483.cmd --cover cover=1
+--dumptime 2` (`0 !ai off`, `606 !quit`).
+- Pool lane 1 (`~/wine-ron`). Launched 15:35:35, exited 15:36:39: **63.8 s launch to exit**. Run1111 and run1112
+  ran beside it on lanes 2 and 3, under the commander's gate sweeps. `success`, settings restored (5 files),
+  lifecycle verified, 607 frames, `last_frame` 606, not ended early, map 14, seed 12345. DLL `4960b6af…`,
+  `-DRON_AUTOSTART`. 210 GiB free before. Minutes waited on another lane: none.
+- **Five dumped blocks (600–604), 1.531 MB each.** Frames 600 and 602 are timed, and 599, 601 and 603 run the same
+  stubs with the clock off. A timed frame is 6.21 s, of which `OutputDebugStringW` takes **5.92 s (95.4 %)**:
+  53,464 calls, one a line. `__stdio_common_vfwprintf` takes 0.108 s, `Log::say`'s own code 0.062,
+  `String::printf` 0.034, `fputwc` 0.031 (166,786 indent spaces), the walkers 0.022 and `WriteFile` 0.021
+  (1,084 calls, 1.531 MB). The rest of the frame is 0.004 s. The untimed frames average 6.93 s: the three takes
+  in parallel make the seconds noisy, and the clock's cost is the calibration's 22 ns a timed call.
+- **Twin**: `rngcmp.py` against run1084 (the same seed and map, `cover=1`, no cursor pin): **607 in common, 0
+  differing, 607 identical**. The pin at 1400,1000 parts nothing. `samegame.py` against run1112: **2 in common
+  (601..603), 0 differ**.
+- **The scratch takes** (`~/ron-golden/run1101a`…`k`, to frame 40, window 30–36, not filed). The first run1101
+  (moved to `run1101-dead-frame0`) and run1101a/b died at frame 0. A 64-byte stub slot put each exit thunk's `ret`
+  on the next stub's first byte. Run1101e/f/h/i stalled before frame 0: a `VirtualProtect` on `.data` at the first
+  frame. Run1101d validated the 80-byte slot and run1101j the plain store. **run1101k is run1101j with
+  `--console-log 0`** (rise.ini `AllowLogs_ToConsole=0`): a dumped frame is **0.073 s** against 3.82 s, and 15.7 s
+  launch to exit against 64.8 s. The two gamelogs differ in three header lines only (two `SYNCPOINT` load timings
+  and `Sys Memory`).
+- Filed with `filerun.py run1101 golden-dumptime-units3-leaders9-window-600-605-cover1`. Not pinned (the item's word).
+
+Archive `gamelog-run1101-golden-dumptime-units3-leaders9-window-600-605-cover1.txt`, 7,658,826 bytes,
+SHA-256 `ac0f83ac63322dbe9e78cc76e1f41572befe02e3936f9079051f594223f0ce57`.
+
+Archive `rontrace-run1101.log`, 9,598,880 bytes,
+SHA-256 `883cd76bae668920dd6ae8eb4741dffc5d418646e4a70c609978dfda2e45e886`.
+
+## run1111 — run1101's line at `LEADERS=9` alone, every frame timed (2026-10-22, item 3483, `att-3483`)
+
+**What the disk could not answer**: how much of run1101's split is the units' walk. Launched as run1101 with
+`--detail end:LEADERS=9 --dumptime 1`.
+- Pool lane 2 (`~/wine-ron-2`). Launched 15:35:54, exited 15:36:40: **46.1 s launch to exit**. `success`, 607 frames,
+  `last_frame` 606, not ended early, map 14, seed 12345, DLL `4960b6af…`. Minutes waited on another lane: none.
+- **Five dumped blocks of 1.450 MB**: `UNITS=3` adds 81 KB, and 48,607 of run1101's 53,464 lines are the leaders'.
+  A frame is 5.38 s. `OutputDebugStringW` takes 5.10 s (94.8 %), `vfwprintf` 0.110, `say` 0.057, `String::printf`
+  0.032, `fputwc` 0.028, `WriteFile` 0.027 and the walkers 0.018.
+- **Twin**: `rngcmp.py` against run1084: **607 in common, 0 differing, 607 identical**.
+- Filed with `filerun.py run1111 golden-dumptime-leaders9-window-600-605-cover1`. Not pinned.
+
+Archive `gamelog-run1111-golden-dumptime-leaders9-window-600-605-cover1.txt`, 7,249,871 bytes,
+SHA-256 `62bfdd3e4e5c0889e0bdec3151786c92e66cb024781496ce566d87f65cdc2b23`.
+
+Archive `rontrace-run1111.log`, 9,709,568 bytes,
+SHA-256 `3335c4b1fce4418dc0ad87d301917cf3f5651ae99ac0e8b1842d69de8467c4bb`.
+
+## run1112 — run1101's line at `stride=2`, every frame timed (2026-10-22, item 3483, `att-3483`)
+
+**What the disk could not answer**: whether a strided window costs its kept blocks only. Launched as run1101 with
+`--stride 2 --dumptime 1`.
+- Pool lane 3 (`~/wine-ron-3`). Launched 15:35:35, exited 15:36:22: **46.7 s launch to exit**. `success`, 607 frames,
+  `last_frame` 606, not ended early, map 14, seed 12345, DLL `4960b6af…`. Minutes waited on another lane: none.
+- **Three dumped blocks (600, 602, 604) of 1.531 MB**, at 6.96 s a frame (`OutputDebugStringW` 95.8 %). The frames
+  between take 0.004–0.007 s: a frame the stride skips costs what an undumped frame does.
+- **Twin**: `rngcmp.py` against run1084: **607 in common, 0 differing, 607 identical**. `samegame.py` against
+  run1101: 2 in common, 0 differ.
+- Filed with `filerun.py run1112 golden-dumptime-units3-leaders9-stride2-window-600-605-cover1`. Not pinned.
+
+Archive `gamelog-run1112-golden-dumptime-units3-leaders9-stride2-window-600-605-cover1.txt`, 4,596,148 bytes,
+SHA-256 `797fcca2475eb03d3ef67891b6a8be750209a4c52ec98bd4a0b066bfe7eb33d9`.
+
+Archive `rontrace-run1112.log`, 9,690,400 bytes,
+SHA-256 `429034096175e9e8bccaf874867c48cff7c025ec3fbdce48737d8b60c262000a`.
