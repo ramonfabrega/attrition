@@ -23132,3 +23132,64 @@ SHA-256 `fc90de243fc54343e6ecb6c7e3280c46d3df1bb27ea20e34d531482710a2fa71`.
 
 Archive `rontrace-run1095.log`, 13,553,696 bytes,
 SHA-256 `9bc1eb057732ba9d3c0a34b07d9e4c1da596482fa18941502657c40f9679e4a9`.
+
+## run1096 — the golden start at `cover=1` on the click-free pool: the param console opened by F12 and two Returns in its modal loop, to 640 (2026-10-22, item 3479, `att-3479`)
+
+**What the disk could not answer**: whether a Return in the param console reaches an object's `on_field_change`
+(slot +0xc). No pinned trace opens the window. `Console::exec_keymap` case 0x1e needs `cheat_keys` and a key bound to
+SYSTEM_TOGGLE_PARAM_CONSOLE, which ships unbound (`data/playerprofile.xml:90`). No staging on disk sends either:
+`grep -l "keys 1\|PARAM_CONSOLE" tools/gamelog/coverage/*.cmd` finds only this item's `param3479.cmd`. Which objects register is on disk:
+run1094's frame −1 enters `BorderSpline::registration`, `Nuke::registration` (through
+`NukeOut::setup_parameter_win_data`) and `CircleRender::registration`, and never Storm's. Launched through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1096 --map 14 --end-frame 640 --log-window 600 640
+--timeout 3600 --no-ffwd --detail end:LEADERS=2,BUILDS=7,CITIES=5,UNITS=3 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/param3479.cmd --cover cover=1 --cursor 1400,1000 --bindkey
+SYSTEM_TOGGLE_PARAM_CONSOLE=123`. The lines are `0 !ai off`, `600 keys 1`, then on 602 five `@after` lines: Return at
+4 s, a click on the category combo (380, 31) at 8 s, Nuke's pulldown row (380, 137) at 12 s, Return at 16 s,
+Escape at 20 s. `602 @key 123` comes last: the window's `exec` is a nested modal loop entered inside that line.
+- Pool lane 2 (`~/wine-ron-2`). Launched 14:25:31, exited 14:27:27: **116.1 s launch to exit**. `success`, settings
+  restored (5 files), lifecycle verified, 641 frames, `last_frame` 640, not ended early, map 14, seed 12345, tribes 4
+  and 11. DLL `c56b12ea…`, `-DRON_AUTOSTART`. 216 GiB free before. Minutes waited on another lane: none.
+- **Every line ran on 602**, from `Game::loop` while the window held the frame. The `I_AFTER` records run lines 2–6
+  in order. Both Returns' `I_KEY` records read action 0x60, and the Escape's 0x6b. `@key 123`'s record lands last
+  (action **0x1e**, SYSTEM_TOGGLE_PARAM_CONSOLE), because the line returns only when the window closes.
+- **6,446 functions entered; one `NEVER` row: `Nuke::on_field_change@00925cb0` on 602.** On 602 the trace also enters
+  `Console::exec_keymap`, `ParamRegisterWindow::exec`, `on_key_down`, `on_change_edit_box@009345e0` and
+  `on_combobox_select`, `Light::on_field_change` (the first Return, on Lights/Sun) and the `PullDown` set.
+  `BorderSpline` and `CircleRender` are not taken: the controls are built once, for Sun, and a Return on an object
+  with a plain-int parameter faults in `EditBox::get_text` (recon3479-3; parked 3479b). Storm has no registration
+  path (parked 3479a). Pinned in `blind::TRACES`: `NEVER` 255 → 254.
+- **The twin, run1102** (the same line at `--cover cover=0`; every input is shared, so there is no `--from`):
+  `rngcmp.py` **641 in common, 0 differing, 641 identical**; `samegame.py` **41 in common (1..639), 0 differ; same
+  game over every common frame**. No record differs. The gamelogs differ in four header lines only (two
+  `SYNCPOINT` load timings, `Sys Memory`, `CPU speed`). Neither Return writes a field: Sun's and Nuke's parameters
+  are Scrolls and combos, and `on_change_edit_box` writes only edit boxes. The take clicks (two `@click`s), and the
+  click moves the pinned cursor in both runs alike (`click.h`: a click leaves the cursor where it clicked), so the
+  pin and the clicks part nothing.
+- Three unfiled recons came first, under `~/ron-golden/recon3479-1..3`:
+  - recon3479-1 shows the window is modal. Its two Escapes after the window's own opened the Game Menu, and it ran to
+    its timeout.
+  - recon3479-2 photographed the window and the category pulldown (`poolshot.py` on `map-14/`).
+  - recon3479-3 faulted on the Splines Return.
+- Filed with `filerun.py run1096 golden-paramconsole-cover1-clickfree` and `filerun.py run1102
+  golden-paramconsole-cover0-clickfree`.
+
+Archive `gamelog-run1096-golden-paramconsole-cover1-clickfree.txt`, 15,975,583 bytes,
+SHA-256 `efa36ad13a142d4483568a23d0965ddfdf17312331974e3e1434c252b1ca8c9c`.
+
+Archive `rontrace-run1096.log`, 15,814,272 bytes,
+SHA-256 `f7aff15b728e999cb2a83f529743b014d84f17eda1dc6db03ab6618835003b0c`.
+
+## run1102 — run1096's `cover=0` twin (2026-10-22, item 3479, `att-3479`)
+
+The same staging at `--cover cover=0`. Pool lane 2, launched 14:27:56 and exited 14:29:56: 119.3 s, `success`, 641
+frames, DLL `a14da218…`. Its first launch, on lane 3, faulted at start-up before frame 0, outside the executable
+(EIP 0x7bf21139, no `@` line run). It is kept, renamed `~/ron-golden/run1102-dead1`. The comparison is in run1096's
+section.
+
+Archive `gamelog-run1102-golden-paramconsole-cover0-clickfree.txt`, 15,975,582 bytes,
+SHA-256 `53bfbd3c6541ff6b714bdc9b7df0a13cfbf5702d878b51e47d9e2304b40890bd`.
+
+Archive `rontrace-run1102.log`, 15,603,424 bytes,
+SHA-256 `6a7f80bcbefc9eec9e7f66784085d55097357add308743a7a55e9851cf622439`.

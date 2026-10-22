@@ -404,6 +404,14 @@ pub const TRACES: &[&str] = &[
     // `disable_type_by_tribe` on 704 for `Tribes::find`. Its `cover=0` twin
     // is run1093 (rngcmp 721 identical, 0 differing; `docs/RUNS.md` run1092).
     "rontrace-run1092.log",
+    // Item 3479: the golden start at `cover=1` on the click-free pool to 640,
+    // the param console bound to F12 (`--bindkey
+    // SYSTEM_TOGGLE_PARAM_CONSOLE=123`) and opened after `600 keys 1`; inside
+    // its modal loop, `@after` lines send a Return on Lights/Sun, pick Nuke off
+    // the category pulldown and send a Return on it
+    // (`tools/gamelog/coverage/param3479.cmd`). Its `cover=0` twin is run1102
+    // (`docs/RUNS.md` run1096).
+    "rontrace-run1096.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -797,6 +805,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `base_rate[0]` 80 from block 683, `leader_flags2` 8 and 10 from 697 and
 /// 699, who 1's 16 from 703 — and `Tribes::find@006ef2d0` on 704
 /// (`disable_type_by_tribe` on two names that match nothing).
+/// **254** with run1096 (item 3479: the golden start, the param console):
+/// `Nuke::on_field_change@00925cb0` on 602, a Return in the window's modal
+/// loop with Nuke picked off its category pulldown.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -821,7 +832,7 @@ pub const NEVER: &[u32] = &[
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
-    0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
+    0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
     0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
     0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
 ];
