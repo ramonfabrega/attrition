@@ -9397,13 +9397,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NG — reserved
+## Parked by item 3447, 2026-10-22 — the Nomad lobby
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3447a) **`citizen_repair_order`'s `0x33` arm** (GOLDEN §148, gap 1). run1068's six Citizens are all `GUY` `type 50`
+(`0x32`): Nubians and British. Which nation's Citizen has base type `0x33` is not established, and nothing has
+compared it against the port's `citizen_type()`. Score: a `NEVER`-neutral fidelity row. It needs the Nomad lobby
+(run1068's line) with `--ai-tribe` set to that nation, read on the computer's step-2 frame. One reach.
+
+(3447b) **The port's `citizen_repair_order` pushes no group** (GOLDEN §148, gap 2; `crates/sim/src/ai_host.rs:1192`).
+The original clears `UnitData.group` to −1, `Group::add`s the Citizen into a fresh group, `push_group`s it and swarms
+from the pushed group. On run1068's block 377 the computer's `1/1` reads `group 65` where block 376 read 67, and
+`1/0` (66) and `1/2` (64) read back their old indices. The port leaves the placement's group. Nothing pins the
+Nomad lobby as a word, so no score reads it yet. It books when a Nomad pair is minted, or a pinned lobby's computer
+reaches step 2 (`STARTING_TOWN 0` only).
 
 ## Parked by the next landing, slot NH — reserved
 

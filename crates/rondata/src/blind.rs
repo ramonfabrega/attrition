@@ -269,6 +269,12 @@ pub const TRACES: &[&str] = &[
     "rontrace-run1063.log",
     "rontrace-run1064.log",
     "rontrace-run1065.log",
+    // Item 3447: the Nomad lobby (`--map 18 --profile STARTING_TOWN=0`, AI
+    // on, Nubians against a British computer) at `cover=1` on the
+    // click-free pool, to 600; `ScenarioFuncSet::citizen_repair_order` on
+    // 376, the computer's nomad step 2 (`economic.bhs:398`). Its `cover=0`
+    // twin run1068b on every frame (rngcmp 601 identical; `docs/RUNS.md`).
+    "rontrace-run1068.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -598,6 +604,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **304** with run1064 (item 3445, `docs/GROUPS.md` §38): the city rename
 /// on 706, `CommandPackage::process_rename_city@00944090` and
 /// `HotKeyGroups::find_group@00714d00`.
+/// **303** with run1068 (item 3447: the Nomad lobby on the pool,
+/// `docs/GOLDEN.md` §148): `ScenarioFuncSet::citizen_repair_order@009f85b0`
+/// on 376, the computer's three Citizens re-sent to their Small City.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cec0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0046_fb10, 0x0047_03f0,
@@ -627,7 +636,7 @@ pub const NEVER: &[u32] = &[
     0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30,
     0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_95c0,
     0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820,
-    0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880,
+    0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880,
     0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0,
     0x00a0_0220, 0x00a4_69f0,
 ];
