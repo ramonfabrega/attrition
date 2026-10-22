@@ -296,6 +296,12 @@ pub const TRACES: &[&str] = &[
     "rontrace-run1069.log",
     "rontrace-run1070.log",
     "rontrace-run1071.log",
+    // Item 3453: the peace pair's lobby at `cover=1` on the click-free pool
+    // to its own end at 6853, a who=0 Hoplite squad added in the Lakota's
+    // land on 1386 (`tools/gamelog/coverage/nowar3453-peace.cmd`,
+    // `docs/RUNS.md` run1072); `Game::say_no_war` on 1392. run847's game on
+    // every frame before 1387 (rngcmp 1387 identical).
+    "rontrace-run1072.log",
     // Item 3454: chapter seven's lobby (map 14, run141's to 920) at
     // `cover=1` on the click-free pool, by console lines alone: two Pyramids
     // `add`ed complete on 640 and 645 (`0/2007`, `0/2008`, wonder slots 0
@@ -646,7 +652,11 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `Unit::add_think_order@005e3df0` on 621 and `do_think_order@005e5bf0`
 /// on 622 with the think order's own `walk_data`, `clear` and `get_type`;
 /// `Group::distribute_attack@00713390` on 686 with both `kill_group_move`s.
-/// **290** with run1074 (item 3454: chapter seven's lobby, `docs/AI.md`
+/// **290** with run1072 (item 3453: the peace pair's lobby, `docs/AI.md`
+/// §296 row 9b): `Game::say_no_war@00592b00` on 1392, through
+/// `Unit::process_attrition` for the human's squad in the Lakota's land
+/// before the peace ends (leader 0's `attrition_stamp` 0 → 1392).
+/// **289** with run1074 (item 3454: chapter seven's lobby, `docs/AI.md`
 /// §75.3): `Wonders::close_wonder@0073c7e0` on 660, a console `die` on the
 /// lower of two Pyramids.
 #[rustfmt::skip]
@@ -656,7 +666,7 @@ pub const NEVER: &[u32] = &[
     0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
     0x0058_33b0, 0x0058_33c0, 0x0058_33d0, 0x0058_3400, 0x0058_3410, 0x0058_3420, 0x0058_3450, 0x0058_3470, 0x0058_3480, 0x0058_3490, 0x0058_34a0,
-    0x0058_60c0, 0x0058_6440, 0x0058_7060, 0x0059_2b00, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660,
+    0x0058_60c0, 0x0058_6440, 0x0058_7060, 0x0059_30c0, 0x0059_3f70, 0x0059_4480, 0x0059_4630, 0x0059_4640, 0x0059_4650, 0x0059_4660,
     0x0059_46c0, 0x0059_47e0, 0x005a_ac70, 0x005a_bc70, 0x005d_8160, 0x005d_86a0, 0x005d_86b0, 0x005d_8fb0, 0x005d_8fc0, 0x005e_2bb0, 0x005e_3310,
     0x005e_4c80, 0x005e_4d10, 0x005e_5be0, 0x005e_75a0, 0x005e_8670, 0x005e_d040, 0x005e_d1f0, 0x005f_2480, 0x005f_4720, 0x005f_4730, 0x0060_4550,
     0x0060_8850, 0x0060_9a20, 0x0060_a600, 0x0060_a6e0, 0x0060_a800, 0x0060_a810, 0x0060_fde0, 0x0061_d740, 0x0061_daf0, 0x0061_db10, 0x0061_dc50,
