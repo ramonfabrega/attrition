@@ -1477,6 +1477,8 @@ static u32 WINAPI flusher(void *arg) {
 
 /* ---- coverage ---------------------------------------------------------- */
 
+#include "dumptime.h"
+
 /* A hooked or proxied entry carries its own `jmp` already, and the copy a
  * coverage stub runs would be that jmp. A proxied function therefore has no
  * HIT record — its CALL/RET records are the stronger evidence anyway. */
@@ -1488,7 +1490,7 @@ static int is_hook_site(u32 rva) {
     if (g_calls)
         for (u32 i = 0; i < NCALLS; i++)
             if (rva >= CALLS[i].rva && rva < CALLS[i].rva + CALLS[i].len) return 1;
-    return 0;
+    return dt_is_site(rva);
 }
 
 /* `lock cmpxchg8b` n bytes at offset `at` of the 8-byte word `w`. */
@@ -1700,6 +1702,7 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
             g_in_window = in;
             if (in) armed = g_nstubs; /* the stubs recording this frame */
         }
+        dt_frame(frame);
         emit(K_FRAME, (u32)frame, seed, armed, caller, 0, 0);
         flush();
         if (g_stride > 1) {
@@ -2125,6 +2128,17 @@ static void read_cfg(void) {
         } else if (key_is(p, "stride")) {
             p += 7;
             g_stride = parse_int(&p);
+        } else if (key_is(p, "dumptime")) {
+            p += 9;
+            g_dt_mode = parse_int(&p);
+        } else if (key_is(p, "dumpsites")) {
+            p += 10;
+            g_dt_mask = 0;
+            for (;; p++) {
+                u32 h = *p >= '0' && *p <= '9' ? (u32)(*p - '0') : *p >= 'a' && *p <= 'f' ? (u32)(*p - 'a' + 10) : 99;
+                if (h == 99) break;
+                g_dt_mask = g_dt_mask << 4 | h;
+            }
         } else if (key_is(p, "cover")) {
             p += 6;
             g_cover = parse_int(&p);
@@ -2251,6 +2265,7 @@ i32 WINAPI DllMain(void *inst, u32 reason, void *reserved) {
             return 1;
         }
         install_hooks();
+        dt_install();
 #ifdef RON_AUTOSTART
         i32 autostart = check_autostart();
 #endif
