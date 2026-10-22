@@ -3798,6 +3798,12 @@ its copy). Its first grab was desktop-wide (deleted; `screen-capture-hygiene`). 
 <frame>`, window-only by construction, with a test that refuses a desktop grab; the coverage frame's row names it. Score:
 a click take that never needs the queue lane. Second reach (3443, 3444): graduates on the third.
 
+(3452) **A modal window stops `do_frame`, so no frame-keyed `@` line reaches a window its own click opened** (3445's "for
+the Loop"): the rename popup and the in-game menu held the solo game's frame, so 3445 sent the popup's input with `@after`;
+a popup's Return and Escape need `@key` **and** `@char` — the key-down alone stops in the edit box. Candidate: the coverage
+frame's row says a menu or popup stanza names `@after` and pairs `@key` with `@char` for Return and Escape. Score: a menu
+take not spent on a frozen frame. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the

@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the fiftieth tranche (commander, Opus): 4 of 20 landed from `a479f1bf`** — `NEVER` 321 → 309 on 3438 (Bribe),
-**3442 (the pool's `@key`, `tools/trace/key.h`)**, 3443 (three clicks) and 3444 (the minimap, the declare-war click).*
+*2026-10-21, **the fiftieth tranche (commander, Opus): 5 of 20 landed from `a479f1bf`** — `NEVER` 321 → 304 on 3438 (Bribe),
+**3442 (the pool's `@key`)**, 3443 (three clicks), 3444 (the minimap, declare war) and 3445 (`hurry`, a rename, a save).*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 309 (321 at the base), residue 81, open 228** (`Blind:` pinned); it moves by trace, on the pool.
+  `NEVER` 304 (321 at the base), residue 81, open 223** (`Blind:` pinned); it moves by trace, on the pool.
 - **The pool carries the click layer** (3437's `@click`, 3442's `@key`; `docs/LOOP.md`, "The brief"): the queue lane holds no
   click-layer need — only the menu's own code (3429b) and a lobby the autostart cannot start; its retirement is 1570's, Ramon's.
-- **Lanes: att-3445, att-3446.** Next 3452, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
-  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a.
-- **Fable backlog: 15 Loop items** (3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
+- **Lanes: att-3446, att-3447.** Next 3453, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
+  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a, 3445a–c.
+- **Fable backlog: 16 Loop items** (3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,7 +35,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 309 · residue 81 · open 228
+Blind: never 304 · residue 81 · open 223
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
@@ -50,12 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rcli
 twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
 explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the team lobby (AI §296 rows 11–12, ARMY §26's
 `action_ping`; 1570's other half), `close_wonder`, `say_no_war`, 3414a's `send_navy`, `hits`, `send_here`, `is_dock`, 3444's park.
-
-3445. **coverage: `hurry`, a rename and a save** (GOLDEN §91, §144.3; GROUPS §38; ORDERS §42.3 row 7) — after 3442:
-`Console::hurry_action@007c3810`'s queue arm — chapter seventy-four retaken at `cover=1` on the pool, its `hurry` verb at 701;
-`HotKeyGroups::find_group@00714d00` — rename the human's city through its panel (`@click` the name, `@key` the letters;
-`HOTKEYGROUPS priority`/`stamp` the frame after, `CM process_rename_city`); `OptionsWinGame::do_save@0082c520` — Options →
-save mid-game with the idle option changed, by `@click` on the in-game menu (ORDERS §42.1's falsifier). Runs 1063–1065; park NE.
 
 3446. **coverage: the carrier** (GOLDEN §144.3's carrier row; ORDERS §42.3 row 1; AI §296 row 5): an All-Technologies water
 lobby (the coverage pair's) staged by `@` lines — a Dock, a Carrier (type 351) queued, `@spell … 661` (BUILDAIR) for a Fighter
