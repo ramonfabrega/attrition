@@ -246,6 +246,16 @@ pub const TRACES: &[&str] = &[
     "rontrace-run1058.log",
     "rontrace-run1059.log",
     "rontrace-run1060.log",
+    // Item 3444: chapter nine's lobby (GOLDEN §17) at `cover=1` on the
+    // click-free pool to 800, run180's lines with the chariot's `620 @move`
+    // replaced by a plain `@rclick` on the minimap (`docs/RUNS.md` run1061);
+    // run180's game on every block before 621.
+    "rontrace-run1061.log",
+    // Item 3444: the peace pair's lobby at `cover=1` on the click-free pool
+    // to 1560, the diplomacy window opened by a bound key on 1480 and its
+    // Declare button clicked on 1484 (`docs/RUNS.md` run1062); run847's
+    // game on every frame both hold (rngcmp 1561 identical).
+    "rontrace-run1062.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -561,6 +571,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// button), and `CommandManager::issue_trade@00941960` with, unasked,
 /// `Group::action_trade@00701cc0` on 650 (a Caravan's right-click on a
 /// second city).
+/// **310** with run1061 (item 3444: chapter nine's lobby, `docs/GOLDEN.md`
+/// §144.3): `WorldMap::on_right_up@008c7050` on 620, a plain right-click
+/// on the minimap, issued as `process_move_to` form −1, width −1.
+/// **309** with run1062 (item 3444: the peace pair's lobby, `docs/NATIONS.md`
+/// §9.2): `Options::do_declare_war@007216b0` on 1484, the diplomacy window's
+/// Declare button, refused at the team-style test (`TEAM_STYLE 1`).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cec0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0046_fb10, 0x0047_03f0,
@@ -583,11 +599,11 @@ pub const NEVER: &[u32] = &[
     0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_5230, 0x006d_6660, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_20c0,
     0x0070_84c0, 0x0070_f8a0, 0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00,
-    0x0072_16b0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880,
+    0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880,
     0x0073_bb20, 0x0073_c1b0, 0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060,
     0x0074_1a40, 0x0074_1d50, 0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x007c_3810, 0x0081_2d20, 0x0081_34d0, 0x0082_c520, 0x0084_2050,
     0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060,
-    0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30,
+    0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30,
     0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30, 0x0094_4090, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_95c0,
     0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820,
     0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880,
