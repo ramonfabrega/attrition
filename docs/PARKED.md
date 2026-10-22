@@ -3774,6 +3774,11 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3499) **The commander and the steer messaged each other live** (Ramon, 2026-10-22, for the next steer to discuss): "you and
+steer were messaging each other... that is not allowed... e.g. you revived a dead cached conversation with 300k tokens for a status
+message you are never supposed to send. you do not communicate 'live' with steer. file it and next steer we will discuss and not
+launch commander instantly". One reach: the pass's.
+
 (3498) **Pool lane 1 stalls about 0.9 s every 32 frames in AI-on lobbies, whatever the pref** (parked 3484b; the steer):
 run1105b/1106b (3484's swapped scratch, unfiled) cost a take 9–30 s. Candidate: a lane names its cause in an hour (a `sample` of
 the game's threads across one stall, beside the AI's 32-frame cadence) or it stays the pass's. Score: the pool's frames a second.
