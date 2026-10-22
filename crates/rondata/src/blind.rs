@@ -237,6 +237,15 @@ pub const TRACES: &[&str] = &[
     // the group selected by `736 select 6 who=0` (`docs/RUNS.md` run1057);
     // run210's game on every frame before 736 (rngcmp 742 identical).
     "rontrace-run1057.log",
+    // Item 3443: three clicks on the click-free pool. Chapter thirty-nine's
+    // lobby to 880 with Citizen A's To Arms pressed on its card (624;
+    // run1058), run1051's chapter-thirteen stanza to 780 with who=0's
+    // buckets drained before the train click (736; run1059), and chapter
+    // seven's lobby to 910 with a Small City and the Caravan right-clicked
+    // onto it (650; run1060).
+    "rontrace-run1058.log",
+    "rontrace-run1059.log",
+    "rontrace-run1060.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -545,6 +554,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `GroupData::get_unit@0070cc90` (the rotation's −2 arm) on 860.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
+/// **311** with run1058, run1059 and run1060 (item 3443: three clicks on
+/// the pool, `docs/GOLDEN.md` §144.3, `docs/NATIONS.md` §9.2):
+/// `Options::do_spell@0071d7a0` on 624 (To Arms on a Citizen's card),
+/// `LeaderOut::warn_resources@006d3650` on 736 (an unaffordable train
+/// button), and `CommandManager::issue_trade@00941960` with, unasked,
+/// `Group::action_trade@00701cc0` on 650 (a Caravan's right-click on a
+/// second city).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cec0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0046_fb10, 0x0047_03f0,
@@ -564,15 +580,15 @@ pub const NEVER: &[u32] = &[
     0x0066_fd50, 0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_4920, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370,
     0x0067_e600, 0x0067_e700, 0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80,
     0x006b_1ba0, 0x006b_22e0, 0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560,
-    0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_3650, 0x006d_5230, 0x006d_6660, 0x006d_6740,
-    0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_1cc0, 0x0070_20c0,
-    0x0070_84c0, 0x0070_f8a0, 0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_d7a0,
+    0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_5230, 0x006d_6660, 0x006d_6740,
+    0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_20c0,
+    0x0070_84c0, 0x0070_f8a0, 0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00,
     0x0072_16b0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880,
     0x0073_bb20, 0x0073_c1b0, 0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060,
     0x0074_1a40, 0x0074_1d50, 0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x007c_3810, 0x0081_2d20, 0x0081_34d0, 0x0082_c520, 0x0084_2050,
     0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060,
     0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30,
-    0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_1960, 0x0094_3f30, 0x0094_4090, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_95c0,
+    0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30, 0x0094_4090, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_95c0,
     0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820,
     0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880,
     0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0,
