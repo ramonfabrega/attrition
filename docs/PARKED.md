@@ -3789,6 +3789,15 @@ frames passing after the `select`) is not established. Candidate: the frame's co
 on an empty cell first and the press four frames later; 3445's brief carries it as a note. Score: a button take not spent
 on an empty cell. One reach.
 
+(3451) **A pool take can photograph itself, and no tool does it** (3444's "for the Loop"): the briefs say "the points off a
+screenshot", and the pool had no screenshot — 3445 reached for the queue lane's `handdriver.sh` scout and met RonDriver's
+Accessibility refusal (00:56, 2026-10-22). 3444's scratch shooter: a console `pause 1` line on the frame, then a shooter
+through `viadriver.sh` that waits for the trace to go quiet and grabs the game window alone (`CGWindowListCopyWindowInfo`,
+`screencapture -l`); the game's own `SYSTEM_SCREENSHOT` writes nothing under DXVK (`D3D11GLSys::capture_screen` discards
+its copy). Its first grab was desktop-wide (deleted; `screen-capture-hygiene`). Candidate: `tools/explore/poolshot.py <run>
+<frame>`, window-only by construction, with a test that refuses a desktop grab; the coverage frame's row names it. Score:
+a click take that never needs the queue lane. Second reach (3443, 3444): graduates on the third.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
@@ -9346,13 +9355,16 @@ words and edits nothing here; a refill lands when two remain.
   archer's `@attack` on `1/6` from 1150. The check is `U3` `damage` and `damage_frac` on block 1213 against 1212's.
   Names no score.
 
-## Parked by the next landing, slot ND — reserved
+## Parked by item 3444, 2026-10-22 — the declaration's arms past the team-style test
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ND renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3444a. `Options::do_declare_war`'s `afford_dow` (:119), `say_no_war` (:126) and popup arms need a lobby whose team
+  style lets a declaration through.** run1062 clicked the diplomacy window's Declare button on 1484 in the peace pair's
+  lobby, and the shared tail at :96–:113 refused it: `TEAM_STYLE 1` is not 0, 8 or 11, and `LeaderData::is_neutral`
+  answers 0 unless the team style is 7 and the target's player is on team 8. Every arm past it (the warn at :121, the
+  `Game::war_allowed` refusal through `Game::say_no_war@00592b00`, the confirmation popup) sits behind that test, so no
+  lobby with `TEAM_STYLE 1` reaches them by this window. Which lobby setting writes team style 0, 8 or 11, and whether
+  the pool's `--profile TEAM_STYLE=N` stages it, is not read. **Score**: `NEVER`'s `say_no_war` row, a new lobby with its
+  own `cover=0` twin (two runs).
 
 ## Parked by item 3445, 2026-10-22 — `hurry`, a rename and a save on the pool
 

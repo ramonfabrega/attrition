@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the fiftieth tranche (commander, Opus): 3 of 20 landed from `a479f1bf`** — `NEVER` 321 → 311 on
-3438 (Bribe, run1054), **3442 (the pool's `@key`, `tools/trace/key.h`; run1057)** and 3443 (three clicks, run1058–run1060).*
+*2026-10-21, **the fiftieth tranche (commander, Opus): 4 of 20 landed from `a479f1bf`** — `NEVER` 321 → 309 on 3438 (Bribe),
+**3442 (the pool's `@key`, `tools/trace/key.h`)**, 3443 (three clicks) and 3444 (the minimap, the declare-war click).*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 311 (321 at the base), residue 81, open 230** (`Blind:` pinned); it moves by trace, on the pool.
+  `NEVER` 309 (321 at the base), residue 81, open 228** (`Blind:` pinned); it moves by trace, on the pool.
 - **The pool carries the click layer** (3437's `@click`, 3442's `@key`; `docs/LOOP.md`, "The brief"): the queue lane holds no
   click-layer need — only the menu's own code (3429b) and a lobby the autostart cannot start; its retirement is 1570's, Ramon's.
-- **Lanes: att-3444, att-3445.** Next 3451, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
-  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a.
-- **Fable backlog: 14 Loop items** (3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
+- **Lanes: att-3445, att-3446.** Next 3452, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
+  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a.
+- **Fable backlog: 15 Loop items** (3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,7 +35,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 311 · residue 81 · open 230
+Blind: never 309 · residue 81 · open 228
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
@@ -50,13 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rcli
 twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
 explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the team lobby (AI §296 rows 11–12, ARMY §26's
 `action_ping`; 1570's other half), `close_wonder`, `say_no_war`, 3414a's `send_navy`, `hits`, `send_here`, `is_dock`, 3444's park.
-
-3444. **coverage: the minimap and the diplomacy window** (GOLDEN §144.3; NATIONS §9.2): `WorldMap::on_right_up@008c7050` —
-chapter nine's lobby (§17), a plain `@rclick` on the minimap (`CM process_move_to` form/width; the minimap → tile fit read off
-the screenshot and the cell the order lands on); the ctrl and shift forms need a key-state pin (`GetKeyState`, the exe's own
-import) — parked, not taken; `Options::do_declare_war@007216b0` — the peace pair's lobby (`RUSH_RULES 10`, the computer at
-peace), the diplomacy window's declare-war click (`L1` the diplomacy state; `afford_dow`'s warn arm at :119 when unpaid).
-Runs 1061–1062; park ND.
 
 3445. **coverage: `hurry`, a rename and a save** (GOLDEN §91, §144.3; GROUPS §38; ORDERS §42.3 row 7) — after 3442:
 `Console::hurry_action@007c3810`'s queue arm — chapter seventy-four retaken at `cover=1` on the pool, its `hurry` verb at 701;

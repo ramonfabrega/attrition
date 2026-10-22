@@ -22106,3 +22106,71 @@ Archive `rontrace-run1064.log`, 14,178,848 bytes,
 SHA-256 `148a6865b8a68c034af73d4172dcef340479b5a31312fe8a3e47ec30bad91dba`.
 
 **What it holds**: the first city rename on disk, and `find_group`'s stamp on the capital's standing slot.
+## run1061 — chapter nine's lobby with a plain right-click on the minimap, `@rclick` at `cover=1` on the click-free pool, to 800 (2026-10-22, item 3444, `att-3444`)
+
+**What the disk could not answer**: no trace enters `WorldMap::on_right_up@008c7050`, the minimap's right-click
+(`docs/GOLDEN.md` §144.3), and the minimap's point → world fit was on no page. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1061`: `--map 14 --end-frame 800 --log-window 605 801 --timeout 2400
+--detail end:UNITS=3,GUYS=2,DEATHS=1,LEADERS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:COMMANDMANAGER=1 --cmd-file tools/gamelog/coverage/minimap3444-ch9.cmd --cover cover=1 --no-ffwd`: run180's
+lines with `616 select 6 who=0` and the chariot's `620 @move` replaced by `620 @rclick 433 1021`.
+- **The point.** A recon take of the same lobby, paused by `620 pause 1`, was captured as its own window (a scratch
+  shooter under RonDriver: `CGWindowListCopyWindowInfo` for the game's window, then `screencapture -l`). The game's own
+  screenshot key is no help here: `SYSTEM_SCREENSHOT`, bound and sent by `@key`, makes `.\ScreenShots\` and writes nothing,
+  because `D3D11GLSys::capture_screen` in `d3dgl.dll` copies the back buffer to a staging texture and releases it. The
+  diamond in game coordinates: top (483,911), right (645,988), bottom (483,1066), left (326,988).
+- Pool lane 2. Launched 00:41:12, exited 00:43:48: **156.0 s launch to exit**. `success`, 801 frames, `MAP_STYLE 14`,
+  seed 12345. DLL `16d64d3c…`, `-DRON_AUTOSTART`. 221 GiB free before.
+- `INFO 21` on frame 0 (the pin, as run1050's); one `INFO 20` on 620, not refused. The dump prints `process_group, new 0
+  1 621`, **`process_move_to 24677 39605 2 0 0 1 0`**, **`process_move_to_2 -1 -1`**: `MOVE_TO`, form and width −1, the
+  :203 arm. Block 622: `0/6`'s `orders_x 24696`, `orders_y 39624` and its `MOVEORDER` `x`/`y` the same (run180: 12672,
+  7296), cell (32, 51). The fit put (433,1021) at (25530, 40140), top corner world (0,0), x toward the right corner, y
+  toward the left: one cell off, a pixel of the diamond being about 290 world units.
+- **6,489 functions entered**. `SysMessageHandler::OnRButtonDown`/`Up`, `WorldMap::on_right_down`,
+  `WorldMap::on_right_up`, `ctrl_key` and `GroupOut::issue_move_to` on 620. `NEVER` row: `on_right_up`.
+- `rngcmp.py rontrace-run180` (`~/ron-golden/ch9`, the `cover=0` twin): **801 in common, 102 differing, the first 694**,
+  699 identical. `samegame.py … --from 616`: **197 in common (1..800), 180 differing, the first 621**, the click's
+  issue block, where the twin's `@move` sent (12672, 7296); 12 in common before 616, all identical. No part before the
+  first unshared input.
+- Filed with `filerun.py run1061 ch9-minimap-rclick`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1061-ch9-minimap-rclick.txt`, 33,398,066 bytes,
+SHA-256 `b5ce5d3695d144e287b350c14da228addd55f02d14efb6f7039196e62ce92b24`.
+
+Archive `rontrace-run1061.log`, 17,122,176 bytes,
+SHA-256 `be652934a89978cbaee31a44eb071885efb3afd5e0f5f528c5524500be685fe6`.
+
+**What it holds**: the first minimap order on disk, and the minimap's fit.
+
+## run1062 — the peace pair's lobby with the diplomacy window's Declare button clicked, `@key` and `@click` at `cover=1` on the click-free pool, to 1560 (2026-10-22, item 3444, `att-3444`)
+
+**What the disk could not answer**: no trace enters `Options::do_declare_war@007216b0` (`docs/NATIONS.md` §9.2), and
+which of its arms a human's click takes in this lobby. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1062`: `--map 18 --end-frame 1560 --timeout 3600 --ai-tribe 19 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3 --profile RUSH_RULES=10 --log-window 1474 1561 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --cmd-file tools/gamelog/coverage/declare3444-peace.cmd --cover cover=1
+--no-ffwd --bindkey OPTION_DIPLO=129`: `1480 @key 129`, `1484 @click 954 367`. The detail is run848's, so its dump is
+the twin's at the same levels.
+- **The point.** Two paused recon takes of this lobby, captured as windows like run1061's: at 316 the window lists
+  Sitting Bull as "Not Encountered" with no Declare control; at 1484, after the leaders meet on 1474 (run1016c), the
+  row carries a Declare button at window (954,398), game (954,367).
+- Pool lane 1. Launched 01:14:48, exited 01:21:55: **427.1 s launch to exit**. `success`, 1561 frames, `MAP_STYLE 18`,
+  seed 12345. DLL `893de828…`, `-DRON_AUTOSTART`.
+- `INFO 22` on 1480 (the key reached its action, 0x81 → 100); `INFO 20` on 1484, not refused.
+- **6,715 functions entered**. `Console::exec_keymap` and `IFaceDiplo::on_redraw` on 1480;
+  `SysMessageHandler::OnLButtonDown`/`Up`, `IFaceDiplo::on_button_clicked`, `Options::do_declare_war` and
+  `MessageWin::add_feedback` on 1484. `LeaderData::afford_dow` (hooked) is not entered. Block 1485: leader 0's
+  `diplos[1]` 1, every stamp 0, `TEAM_STYLE 1` in `GAME INFO`. The declaration is refused at the team-style test
+  (`docs/NATIONS.md` §9.2's row; parked 3444a). `NEVER` row: `do_declare_war`.
+- `rngcmp.py rontrace-run847` (the `cover=0` twin): **1561 in common, 0 differing**, 1561 identical; against
+  `rontrace-run848` the same. `samegame.py gamelog-run848-… --from 1480`: **87 in common (1474..1560), 0 differing**, 6
+  before 1480. The refused click writes no sim state: run848's game block for block.
+- Filed with `filerun.py run1062 eastindies-lakota-peace-declare-click`. Minutes waited on another lane: none.
+
+Archive `gamelog-run1062-eastindies-lakota-peace-declare-click.txt`, 162,441,880 bytes,
+SHA-256 `f499c7627305cff7d52074192ed1fbd25ebe64d6dddb9b7723efdd4125b8310e`.
+
+Archive `rontrace-run1062.log`, 31,383,488 bytes,
+SHA-256 `2144faf431633dd42eeb6b81aaed7b7410315710d9aeb0247f56302944406f3f`.
+
+**What it holds**: the human's declaration of war through the window, refused, and run848's game on every block.
