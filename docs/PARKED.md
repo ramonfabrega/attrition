@@ -9305,13 +9305,14 @@ words and edits nothing here; a refill lands when two remain.
   twin of its own capture, with no lobby to restage. A tool that names each file's run (from the header's seed and
   map plus the time window) would turn the corpus into a pool of twins. Names no score.
 
-## Parked by the next landing, slot NC — reserved
+## Parked by item 3438, 2026-10-21 — Bribe's copied `damage` on an undamaged target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3438a. The bribed unit's `damage` is copied, and no dump has tested it.** run1054 and run880 both bribe `1/6`..`1/8`
+  at `damage 0`, `myhits 120`, and `0/8`..`0/10` are born at `damage 0`. A copy and a fresh unit print the same thing.
+  `crates/sim/src/bribe.rs` carries `max_health - health` and `damage_frac` across (its module line 16, a reading of
+  `Unit::swap_team@006118d0`). A staging that hurts the target before 1212 would test the copy, for example a who=0
+  archer's `@attack` on `1/6` from 1150. The check is `U3` `damage` and `damage_frac` on block 1213 against 1212's.
+  Names no score.
 
 ## Parked by the next landing, slot ND — reserved
 
