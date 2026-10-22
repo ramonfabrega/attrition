@@ -3850,6 +3850,13 @@ whole capture and the lane was left staged — 3461 restored it by hand through 
 Candidate: on an unattributed pid the cleanup retries `game_prefix` for a few seconds before it refuses. Score: no pool take
 lost to a neighbour's launch. One reach.
 
+(3469) **The pool's window-only photograph has been rebuilt twice** (3460's "for the Loop"; 3444's first): a Swift window
+lister and a zsh shooter launched through `viadriver.sh`, which waits for the take's paused frame, finds the `wine` window
+whose pid's command line names the take's output directory, and runs `screencapture -x -o -l <id>`. Its three traps: a
+paused `cover=0` trace keeps growing, so a quiet trace is no signal; the gamelog's lines end in CR; Wine's command line
+carries the output directory with backslashes. Candidate: it graduates into `tools/explore/` (the third reach is the rule's).
+Score: a take that needs a screen point spends no recon on the shooter. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
