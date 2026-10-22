@@ -3774,6 +3774,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3500) **A vtable-slot booking names the receiver's own most-derived vftable** (3495's "for the Loop"): the second
+drafting's D3 named `PatrolOrder::vftable`'s +0x5c for a unit whose order is a `GroupPatrolOrder` (+0x5c 0x482dac → 0x482dc0),
+and no `PatrolOrder` is constructed as its own type, so the item was a residue row and its hook unbuilt. Candidate: a drafting
+reads the slot off the object's own vftable on the image (`report.py refs` on the slot's thunk) before a staging is written.
+Score: a booked capture's rows reachable. One reach.
+
 (3499) **The commander and the steer messaged each other live** (Ramon, 2026-10-22, for the next steer to discuss): "you and
 steer were messaging each other... that is not allowed... e.g. you revived a dead cached conversation with 300k tokens for a status
 message you are never supposed to send. you do not communicate 'live' with steer. file it and next steer we will discuss and not
