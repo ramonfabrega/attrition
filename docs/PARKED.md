@@ -3820,6 +3820,23 @@ Loop"): a shift-queued `@buildadd`, or any `@build`, on the golden start fails s
 Candidate: a brief that stages a site on the golden start names its `library` line, as chapter eighteen's does — a row of
 the coverage frame. Score: a staged site that is built. One reach.
 
+(3465) **115 of the 208 open blind rows have no reference in the image** (the commander's drafting subagent, on `18c640a38`):
+`tools/trace/report.py <exe> refs -` over `NEVER` minus `RESIDUE`: 115 dead, 39 called, 54 reached only through a pointer.
+Families: `GameAccessConst::get_scary_*` (14); `Game::is_team_game`, `is_raining`, `is_deathmatch`, `is_infinite`, `is_nomad`,
+`is_never_war`, `is_sandbox`; 18 of 24 `*::walk_data` (Wonder, Fort, OilWell, Supply, Hero, Caster, Herd, Herds, Lands,
+CaravanLink, the Unbuilt* three, Search, PathFinder, W/TCoordData, Cliff — a `@dumpall` walk enters the containers, and the
+element walks are inlined in them, run1065); `cast_jam_radar`, `cast_rally`, `Wonder::close`, `Supply::deplete`; the
+Signposts/Mountains/TerrainVis/TerrainMap getters. Most are cited only by the 2026-10-13 sweep journals (1694–1942), after the
+09-27 scan that built `RESIDUE`. Candidate: the pass ratifies them into `RESIDUE` by family, each with the scan's line, so open
+208 → 93 and coverage items are booked against the 93. The scan's output is the commander's scratch, not on file. Score:
+`Blind:` open counts what a capture can enter. One reach.
+
+(3466) **A booking named a `CM` line the logger never writes** (3456's "for the Loop"): 3456 booked the ping's evidence as
+`COMMANDMANAGER=1`'s `process_ping` line, and that line goes to the SyncLogger's memory, never the gamelog (ARMY §26, struck);
+the take entered `action_ping` by trace alone. Candidate: a brief that cites a dumped field as a take's evidence names the
+writer that prints it (the `quiet field` rule, a booking's row of the brief checklist), so 3460's `CM process_declare` and
+3461's `CM process_halt` are checked before their captures. Score: a booked field a take can read. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
@@ -9258,8 +9275,8 @@ is an oracle-agreed module the live sim does not call.
   frames.** At Toughest on Great Sahara, neither leader advances an age by 5941 from a start of 3 or 5 (run1041,
   run1043). So each missing age costs one start of its own: `STARTING_TECHNOLOGY 2` and `6`, run1041's recipe
   otherwise. The never-entered rows a later start was predicted to reach need units neither take fielded: a
-  supply wagon (63–65) for `Unit::think_supply@005f4730` and `SpellType::cast_supplies@006714c0`; a razed wonder
-  for `Wonders::close_wonder@0073c7e0`; Modern air or silos for `BuildQueueData::get_next_helicopter@00630bb0` and
+  supply wagon (63–65) for `Unit::think_supply@005f4730` and `SpellType::cast_supplies@006714c0`; ~~a razed wonder
+  for `Wonders::close_wonder@0073c7e0`~~ (entered by run1074's console `die`, item 3454); Modern air or silos for `BuildQueueData::get_next_helicopter@00630bb0` and
   `LeaderData::get_nukes@006ebe50`. A start-6 capture is the one that could reach the last two. It books only against
   the blind list if one of them is named as its target.
 
@@ -9472,13 +9489,14 @@ that. Score: none until a pinned lobby does. run1070's 686–687 is the value di
   `pay_dow` stays behind `param_3` 0, which only a human's declaration passes (`CommandPackage::process_declare`).
   **Score**: `NEVER`'s `action_declare` row (one run).
 
-## Parked by the next landing, slot NJ — reserved
+## Parked by item 3454, 2026-10-22 — a wonder's close, by console
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3454a. run1074's wonder close is on disk and in no harness window.** The dump shows `wonder_mark` 0 → 1 (block
+  641), → 2 (646), 2 on 661 after the lower Pyramids' `die` on 660, and 0 on 671 after the higher's on 670 (AI
+  §75.3), and `BUILDS` drops each record on the block after its `die`. `Sim::note_wonders` derives the walk-down
+  from the buildings (§75.4), but nothing compares it with these frames: a harness test on run1074's window
+  (641–671, chapter seven's lobby with the console lines staged) would make the close diff-backed in this crate
+  rather than in the dump alone. It names no score, so it parks.
 
 ## Parked by item 3455, 2026-10-22 — the disband's survivors
 
@@ -9493,13 +9511,19 @@ words and edits nothing here; a refill lands when two remain.
   closed an army 4 on 2548, unread. **Score**: none on `NEVER` (`send_here` is off). It is a value row for §6 step
   1's survivors, filed so a lane that reaches for it has the staging.
 
-## Parked by the next landing, slot NL — reserved
+## Parked by item 3456, 2026-10-22 — the team lobby: a ping and a help taunt to a computer ally
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3456a. The ping's army arm needs an ally with a manned army.** run1077 entered `Leader::action_ping@006d18a0` on
+  5422, 11 frames after the help taunt (leader 1's `last_taunt[0]` 16, `taunt_frame[0]` 5411), and both taunt tests
+  passed: `Armies::find_useful_army` was entered. But every army of both computers reads `num_captains 0` on 5412,
+  5423 and 5703 (difficulty 0, minute six), so it returns −1. `Army::send_here@006f98a0`'s ping arm, `human_frame`
+  0xa8c and the ally's `MOVE_TO` stay unreached, and so does ARMY §26's falsifier (a ping with no taunt moves nothing).
+  A retake needs the ally's army to hold a captain at the ping: a later frame, `--profile DIFFICULTY=…`, or `add`ed
+  soldiers for who=1. Whether a console unit joins an army is not read. `send_here` is also 3455's word.
+- **3456b. Row 11's offer is not made by 5710.** run1077's computers made no offer to each other: every `offers` and
+  `counteroffer` is 0 on 5703, and `Leader::action_respond` is not entered. AI §296 row 11 stays a prediction. A longer
+  three-player game, or one at higher difficulty, is the next take. Read `Leader::diplomacy`'s offer predicate
+  against run1077's leader record first, before booking that game.
 
 ## Parked by the next landing, slot NM — reserved
 

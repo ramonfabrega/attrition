@@ -302,6 +302,13 @@ pub const TRACES: &[&str] = &[
     // `docs/RUNS.md` run1072); `Game::say_no_war` on 1392. run847's game on
     // every frame before 1387 (rngcmp 1387 identical).
     "rontrace-run1072.log",
+    // Item 3454: chapter seven's lobby (map 14, run141's to 920) at
+    // `cover=1` on the click-free pool, by console lines alone: two Pyramids
+    // `add`ed complete on 640 and 645 (`0/2007`, `0/2008`, wonder slots 0
+    // and 1), then `die 2007,0` on 660 and `die 2008,0` on 670.
+    // `Wonders::close_wonder` on 660; `wonder_mark` 2 -> 2 -> 0. run141's
+    // game to 640 (`docs/RUNS.md`).
+    "rontrace-run1074.log",
     // Item 3455: the coverage pair's lobby (East Indies, the Persians, All
     // Technologies) at `cover=1` on the click-free pool, AI on. run1075b to
     // 2560 kills the computer's navy (army 2, group 72, nine ships) by
@@ -313,6 +320,16 @@ pub const TRACES: &[&str] = &[
     // before 601 (rngcmp 601 identical; `docs/RUNS.md`).
     "rontrace-run1075b.log",
     "rontrace-run1076.log",
+    // Item 3456: the team lobby on the click-free pool, Great Lakes (map 14)
+    // with `--profile PLAYERS=2` (a human and two computers), `ally 1` on
+    // 100, `!ffwd 6`; a help taunt to the ally on 5410 (`--bindkey
+    // OPTION_CHAT_ALLIES`, "11", Return: leader 1's `last_taunt[0]` 16,
+    // `taunt_frame[0]` 5411) and pings on 5422 and 5702 (`--bindkey
+    // OPTION_PING`, `@click 960 540`): `Leader::action_ping` on 5422. No
+    // army of either computer has a captain, so `find_useful_army` finds
+    // none and `send_here` is not called. To 5710
+    // (`tools/gamelog/coverage/ping3456-team.cmd`, `docs/RUNS.md` run1077).
+    "rontrace-run1077.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -660,7 +677,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// §296 row 9b): `Game::say_no_war@00592b00` on 1392, through
 /// `Unit::process_attrition` for the human's squad in the Lakota's land
 /// before the peace ends (leader 0's `attrition_stamp` 0 → 1392).
-/// **288** with run1075b and run1076 (item 3455, `docs/ARMY.md` §6 and
+/// **289** with run1074 (item 3454: chapter seven's lobby, `docs/AI.md`
+/// §75.3): `Wonders::close_wonder@0073c7e0` on 660, a console `die` on the
+/// lower of two Pyramids.
+/// **288** with run1077 (item 3456: the team lobby, `docs/ARMY.md` §26):
+/// `Leader::action_ping@006d18a0` on 5422, a human's ping 11 frames after a
+/// help taunt to the computer ally.
+/// **286** with run1075b and run1076 (item 3455, `docs/ARMY.md` §6 and
 /// `docs/VISION.md` §8): `Army::send_here@006f98a0` on 2296, the disband
 /// arm of `Army::process` for the computer's navy whose nine ships died on
 /// 2284 (army 2's record gone from the 2297 whole dump); and
@@ -684,10 +707,10 @@ pub const NEVER: &[u32] = &[
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_4920, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0,
-    0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50,
+    0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_2b10, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50,
     0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_84c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
-    0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
+    0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
     0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,

@@ -22522,3 +22522,96 @@ Archive `rontrace-run1076.log`, 20,268,832 bytes,
 SHA-256 `623fb5083f9c32746569ca7bd570468facec8a63b3b7ae8d8f15e8eb2fb4de3d`.
 
 **What it holds**: `blind::TRACES`' run1076 (item 3455), the Dock's right-click (`docs/VISION.md` §8).
+## run1074 — chapter seven's lobby with two Pyramids added and razed by console, to 920 (2026-10-22, item 3454, `att-3454`)
+
+**What the disk could not answer**: whether a wonder's close enters `Wonders::close_wonder@0073c7e0` and lowers
+`wonder_mark`. Of the 82 dumps that print `wonder_mark` more than once, it falls in none (AI §296), and no trace
+loses a wonder. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1074 --map 14 --end-frame 920
+--log-window 634 921 --timeout 3000 --detail end:UNITS=3,GUYS=2,BUILDS=7,CITIES=5,GOODS=3,LEADERS=9` with run1060's
+`start:` and `misc:`, `--cover cover=1` and `--cmd-file tools/gamelog/coverage/wonder3454-ch7.cmd`. That file is
+`chapter7.cmd` plus `640 add pyramids who=0 40,160`, `645 add pyramids who=0 48,160`, `660 die 2007,0` and `670 die
+2008,0`. No `@` line, so no `--no-ffwd`.
+- Pool lane 1, seed 12345, `MAP_STYLE 14`. Launched 04:17:29, exited 04:32:30: **900.7 s launch to exit**, against
+  run1060's 329 s, because of `LEADERS=9` on every block. `success`, lifecycle verified, 921 frames, one take. DLL
+  `2d0deff1…`. No minutes waited. 207 GiB free before.
+- **6,502 functions entered**. `Wonders::init_wonder` on 640, `Object::die`, `Build::close` and
+  `Wonders::close_wonder` on 660. `Build::activate` was entered before the first `FRAME` record (`f-1`, the
+  lobby's own buildings), and it is `init_wonder`'s only caller. The `NEVER` row is `close_wonder`.
+- The dump beside it (AI §75.3): the Pyramids is `0/2007` from block 641 (`wonder 0`, `orig_type 526`), with who=0's
+  `wonder_mark` 0 → 1. The second is `0/2008` from 646 (`wonder 1`), with the mark → 2, so **`add` does not hold a
+  wonder to one per player**. On 661 `2007`'s record is gone and the mark stays at **2**. On 671 `2008`'s is gone
+  and the mark is **0**, past the cleared entry 0.
+- `rngcmp.py` on the traces against the `cover=0` twin (`~/ron-golden/ch7`, run141): **921 in common, 0 differing,
+  921 identical**. Neither wonder draws a random. `samegame.py … --from 640` bare: 288 in common, 287 differing,
+  the first 634, the window's first block. That is the detail: the take's `LEADERS=9` against run141's 2. With
+  `--exclude LEADERDATA --drop leader_flags --drop leader_flags2`: **288 in common (1..920), 280 differing, the
+  first 641**, the first Pyramids' block, and **the same game before 640** (7 common frames before it). The
+  excluded leader record is unchecked, not checked and equal.
+- Filed with `filerun.py run1074 ch7-wonder-close`.
+
+Archive `gamelog-run1074-ch7-wonder-close.txt`, 469,508,525 bytes,
+SHA-256 `4b0f51c5881cc41675521019c83da4b5e64efc28ce054320af244dc8bed1201d`.
+
+Archive `rontrace-run1074.log`, 10,574,016 bytes,
+SHA-256 `53ea2b25c5bbc3c4c78c605ac48ad64aad68159248634736f9eece8170908ee1`.
+
+**What it holds**: a wonder's close at both ends of the mark. A lower entry's close leaves `wonder_mark` standing,
+and the highest's walks it down past every cleared entry.
+
+## run1077 — the team lobby: a human and two computers, one allied by console, a help taunt and two pings, to 5710 (2026-10-22, item 3456, `att-3456`)
+
+**What the disk could not answer**: whether a human's ping enters `Leader::action_ping@006d18a0`, and whether a help
+taunt passes its two taunt tests (ARMY §26). No capture on disk holds three players. Every pinned lobby has `PLAYERS
+1`, and no trace holds a ping or a taunt. Run through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1077
+--map 14 --end-frame 5710 --log-window 5400 5711 --timeout 3600 --ffwd-minute 6 --profile PLAYERS=2 --bindkey
+OPTION_CHAT_ALLIES=125 --bindkey OPTION_PING=126 --detail end:UNITS=3,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cover
+cover=1 --cmd-file tools/gamelog/coverage/ping3456-team.cmd`. The file:
+- `100 ally 1`;
+- on 5410, F14 (the chat to allies), "11" (`@key 49`/`@char 49` twice) and Return (`@key 13`, `@char 13`);
+- F15 (the ping) on 5420 and 5700, each followed two frames later by `@click 960 540`;
+- `@dumpall` on 5412, 5423, 5430 and 5703.
+
+`!ffwd 6` stops at 5400, so the scene is drawn for the pick.
+- Pool lane 3, seed 12345, `MAP_STYLE 14`. The receipt's PLAYER records are who 0 (flags 7, tribe 4), who 1 (flags 1,
+  tribe 11) and who 2 (flags 1, tribe 2). Launched 05:14:59, exited 05:41:50: **1611 s launch to exit**. `success`,
+  5711 frames, one take. DLL `887dad65…`. No minutes waited; 208 GiB free before.
+- **6,953 functions entered.** `LeaderOut::issue_chat`, `Taunts::check_for_order` and `SysMessageHandler::OnChar` on
+  5410, then `Leader::process_taunt` on 5411. On 5422: `Options::picked_spot`, `LeaderOut::issue_ping`,
+  `CommandManager::issue_ping`, `CommandPackage::process_ping`, `Leader::receive_ping`, `Leader::action_ping` and
+  `Armies::find_useful_army`. `Army::send_here` and `Leader::action_respond` are not entered. The `NEVER` row is
+  `action_ping`.
+- The dump beside it. On 5412 leader 1 has `last_taunt[0]` **16** and `taunt_frame[0]` **5411**. Leaders 0 and 1 read
+  `diplos` 2 to each other, and leader 2 reads 0 to both and holds no taunt. The human's message window carries
+  `{<Allies> (Taunt 11) Little help here...}` at frame 5411, and two ping markers at (44539, 42235), frames 5423 and
+  5703. That marker dates the second ping, which draws nothing for the trace to date. Every `ARMY` record of who 1 and
+  who 2 reads `num_units 0`, `num_captains 0`, status 17 and `human_frame 0` on 5412, 5423 and 5703. On 5703 every
+  `offers` and `counteroffer` is 0 and `treaty` is −1. `process_ping`'s line goes to `SyncLogger::logToMemory`, not
+  to the gamelog.
+- The `cover=0` twin, `~/ron-golden/run1077-twin`, has the same command file. Pool lane 2, 05:45:09 to 06:11:16 (1567
+  s), 5711 frames, DLL `78026b53…`, the same three PLAYER records.
+  - `rngcmp.py` on the traces: **5711 in common, 0 differing, 5711 identical**.
+  - `samegame.py` bare: 311 in common (5400..5710), **8 differing**: the four `@dumpall` blocks and the block after
+    each. The parts are the wall-clock fields (`turn_control`, `frame_*`, `COMMANDMANAGER`'s `data[scan]`) and the
+    human's `MESSAGEWIN`: its `metric`/`ping_stamp`, and the ping markers at (44528, 42224) in the twin. The scene
+    pick lands 11 world units off between the takes. No state moved, since no army was sent.
+  - With `--exclude MESSAGEWIN --exclude COMMANDMANAGER --drop turn_control --drop frame_timing_clock --drop
+    frame_base_time --drop frame_average --drop last_frame_time --drop expected_last_frame_time`: **311 in common, 0
+    differing**, the same game. Both send every input, so no input is unshared and there is no `--from`. The excluded
+    records are unchecked, not checked and equal.
+- Filed with `filerun.py run1077 greatlakes-team-ping` and `filerun.py run1077-twin greatlakes-team-ping-cover0`.
+
+Archive `gamelog-run1077-greatlakes-team-ping.txt`, 862,335,507 bytes,
+SHA-256 `7ec69d860211bbf0385519ce854cb7bb03d44add8b255d2040d3cc964bda8dce`.
+
+Archive `rontrace-run1077.log`, 35,985,760 bytes,
+SHA-256 `701eed31261568848b17071a73dc873c23c88fb62af056f38195f09fe49c9cd7`.
+
+Archive `gamelog-run1077-twin-greatlakes-team-ping-cover0.txt`, 862,335,497 bytes,
+SHA-256 `b90d3d3986ef3a4d4fd48da77b6c1f5c6a661179c9902105f5cf505ef9ae4a29`.
+
+Archive `rontrace-run1077-twin.log`, 36,020,032 bytes,
+SHA-256 `70714da975b154cbc829cc22e36524f400a1d2cad5b3b979daf5dc1fe6d8179b`.
+
+**What it holds**: the pool's first three-player lobby, and a help taunt that reaches only the ally as `TAUNT_HELP`.
+Then a ping that passes both taunt tests and finds no army to send: at difficulty 0 neither computer's army has a
+captain by minute six.

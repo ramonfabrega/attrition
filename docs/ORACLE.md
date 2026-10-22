@@ -736,7 +736,7 @@ The ones that stage a scenario:
 
 | `cheat …` | syntax | what it does |
 |---|---|---|
-| `add` / `insert` | `[#] [NEW] typename [who=RED] [x,y]` | places units or a building **at the mouse cursor**. Without `NEW` a building is **completed instantly**; with `NEW` it is left as a construction site. Count capped at 300 |
+| `add` / `insert` | `[#] [NEW] typename [who=RED] [x,y]` | places units or a building **at the mouse cursor**. Without `NEW` a building is **completed instantly**; with `NEW` it is left as a construction site. Count capped at 300. A wonder is not held to one per player: run1074 stood two Pyramids for who=0, wonder slots 0 and 1 (item 3454) |
 | `be` | `[who]` | switches the viewpoint every other cheat defaults to |
 | `war` / `peace` / `ally` | `[who \| All]` | `Leader::set_diplo(…, 0 / 1 / 2)` |
 | `tech` | `[who] [techname\|all] [on\|off\|show]` | `gain_tech` / `lose_tech` |
@@ -2901,6 +2901,13 @@ window whose blocks come back empty because `end:UNIT=3` was a typo.
 is 0..23; the receipt requires the initial PLAYER records to show that
 nation as AI player 1 and human Nubians as player 0. This is the current
 pair's fixed-human contract, not a general multiplayer lobby editor.
+
+**A third seat is `--profile PLAYERS=2`** (item 3456, run1077). `PLAYERS` is GameInfo option 3
+(`gameinfo_strings + 3`). It is 1 in both of the profile's game blocks in every lobby pinned before this, and the
+lane's profile already holds a computer in every one of `LAST_SLOT1..7`. So `set_lobby` writing 2 starts a human and
+two computers, with no runner change. The receipt's PLAYER records read who 0 (flags 7, tribe 4), who 1 (tribe 11) and
+who 2 (tribe 2). Each computer's nation is the profile's own; `--ai-tribe` still sets slot 1's only. This is the
+click-free half of 1570: the queue lane's last named lobby starts here.
 
 `--dump-all-start` sets `InitialDump=1`, `DUMP_ALL=1` and Start Game
 `WORLD=6`, Misc Logging `CHECKSUM=2` and `check_all_level=14`, with a
