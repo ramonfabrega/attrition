@@ -309,6 +309,16 @@ pub const TRACES: &[&str] = &[
     // `Wonders::close_wonder` on 660; `wonder_mark` 2 -> 2 -> 0. run141's
     // game to 640 (`docs/RUNS.md`).
     "rontrace-run1074.log",
+    // Item 3456: the team lobby on the click-free pool, Great Lakes (map 14)
+    // with `--profile PLAYERS=2` (a human and two computers), `ally 1` on
+    // 100, `!ffwd 6`; a help taunt to the ally on 5410 (`--bindkey
+    // OPTION_CHAT_ALLIES`, "11", Return: leader 1's `last_taunt[0]` 16,
+    // `taunt_frame[0]` 5411) and pings on 5422 and 5702 (`--bindkey
+    // OPTION_PING`, `@click 960 540`): `Leader::action_ping` on 5422. No
+    // army of either computer has a captain, so `find_useful_army` finds
+    // none and `send_here` is not called. To 5710
+    // (`tools/gamelog/coverage/ping3456-team.cmd`, `docs/RUNS.md` run1077).
+    "rontrace-run1077.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -659,6 +669,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **289** with run1074 (item 3454: chapter seven's lobby, `docs/AI.md`
 /// §75.3): `Wonders::close_wonder@0073c7e0` on 660, a console `die` on the
 /// lower of two Pyramids.
+/// **288** with run1077 (item 3456: the team lobby, `docs/ARMY.md` §26):
+/// `Leader::action_ping@006d18a0` on 5422, a human's ping 11 frames after a
+/// help taunt to the computer ally.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0046_fb10, 0x0047_03f0, 0x0047_0430,
@@ -677,7 +690,7 @@ pub const NEVER: &[u32] = &[
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_4920, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0,
-    0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50,
+    0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_2b10, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740, 0x006d_ab50,
     0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_20c0, 0x0070_84c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
