@@ -183,6 +183,7 @@ def stage(args):
     minute = getattr(args, 'ffwd_minute', None)
     stride = getattr(args, 'stride', None)
     cursor = getattr(args, 'cursor', None)
+    hover = getattr(args, 'hover', False)
     dumptime = getattr(args, 'dumptime', None)
     if dumptime is not None and not re.fullmatch(r'[12](,[0-9a-f]{1,8})?', str(dumptime)):
         raise ValueError('--dumptime takes 1 (every frame timed) or 2 (even frames timed), '
@@ -275,6 +276,9 @@ def stage(args):
                                              # pinned at a chosen point (`click.h`), so a hover
                                              # nobody chose is not an input.
                                              + (f'cursor={cursor}\n' if cursor else '')
+                                             # Item 3494: the pinned hover re-sent at
+                                             # `describe_mouseover` (`tools/trace/hover.h`).
+                                             + ('hover=1\n' if hover else '')
                                              # Item 3483: the dump clock (`tools/trace/dumptime.h`).
                                              + (f'dumptime={str(dumptime).split(",")[0]}\n' if dumptime else '')
                                              + (f'dumpsites={str(dumptime).split(",")[1]}\n'
@@ -318,6 +322,8 @@ def main():
     s.add_argument('--cover', help="rontrace.cfg's first line; default cover=0")
     s.add_argument('--cursor', metavar='X,Y',
                    help="rontrace.cfg's cursor=X,Y: the resting cursor pinned there (click.h; Loop 3432)")
+    s.add_argument('--hover', action='store_true',
+                   help="rontrace.cfg's hover=1: a click line's pinned hover re-sent at describe_mouseover (hover.h; item 3494)")
     s.add_argument('--dumptime', metavar='N[,MASK]',
                    help="rontrace.cfg's dumptime=N (and dumpsites=MASK): the dump clock (tools/trace/dumptime.h; item 3483)")
     s.add_argument('--stride', type=int, metavar='N',
