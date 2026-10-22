@@ -3815,6 +3815,11 @@ having moved, and the clear had not fired yet; the row then ended `blocked`, whi
 woke it. Candidate: the waiter reads `ccc clear <lane> --status` and calls a push under an armed clear `DRAFT`. Score: no
 commander turn spent on a false landing. One reach.
 
+(3459) **A `@build` of a building the age does not allow is processed and dropped without a message** (3448's "for the
+Loop"): a shift-queued `@buildadd`, or any `@build`, on the golden start fails silently when the age lacks the building.
+Candidate: a brief that stages a site on the golden start names its `library` line, as chapter eighteen's does — a row of
+the coverage frame. Score: a staged site that is built. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
