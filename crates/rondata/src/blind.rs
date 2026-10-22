@@ -368,6 +368,14 @@ pub const TRACES: &[&str] = &[
     // Neither writes sim state: rngcmp against run1031b 701 identical, 0
     // differing (`docs/RUNS.md` run1084).
     "rontrace-run1084.log",
+    // Item 3470: run1077's team lobby (`--profile PLAYERS=2`, `ally 1`) at
+    // `cover=1` on the click-free pool to 700, with `resource who=1 all
+    // +100000` and the food and timber taunts to allies on 600 and 620
+    // (`tools/gamelog/coverage/taunt3470-team.cmd`): `receive_taunt` queues
+    // each for 60 frames, and on 661 `Leader::process_taunt` case 1 takes
+    // `action_offer` and `Leader::action_respond`. rngcmp against run1087
+    // 701 identical, 0 differing (`docs/RUNS.md` run1086).
+    "rontrace-run1086.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -743,7 +751,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `World::get_wdata@0046d220` on 600 (`!cursor tinfo`, console case 0x3d)
 /// and `WorldData::is_forest@006b5560` on 602 (`!startareas`, case 0x60);
 /// **279** on the tree merged with `b41737e50`, whose Loop 3473 cites
-/// `Compiler::eval_command@009befe0`, which no trace enters.
+/// `Compiler::eval_command@009befe0`, which no trace enters; **278** with
+/// run1086 (item 3470: the team lobby's food taunt to a computer ally,
+/// `docs/AI.md` §296 row 11): `Leader::action_respond@006d03c0` on 661.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -762,7 +772,7 @@ pub const NEVER: &[u32] = &[
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
-    0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
+    0x006b_81e0, 0x006b_88b0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,
