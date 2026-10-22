@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): drained at sixteen from `11da5dd8` in 9 h — early, on Ramon's pit
-stop** (Loop 3439: two Opus lanes ran single-threaded on the capture lock). The drain's whole gate is its second commit's.*
+*2026-10-21, **the forty-ninth pass (steer, Fable), with Ramon: the forty-ninth tranche measured — sixteen landings from
+`11da5dd8` in 8 h 57 on two Opus lanes, drained early on his pit stop — and the click layer's third pass booked on the pool.**
+Record `docs/audit/2026-10-21-fable-pass-49.md`; DECISIONS 88.*
 
-- **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list: `NEVER` 380 → 321,
-  residue 80 → 79, open 300 → 242** (`Blind:` pinned): `@` lines on the pool, two driven click passes, a playback.
-- **3437: the pool's `@click` (`tools/trace/click.h`) is the driven lane draw for draw** — run1050–run1052 against
-  run1032–run1034, 0 differing — so the queue lane retires wherever `@click` reaches; the click layer's third pass is the
-  pool's (GOLDEN §144.3's rows still in `NEVER`), and a pool lane count past two is the pass's to weigh with Ramon.
-- **Lanes: none live; 3438 (Bribe) booked, unspawned.** Next 3442, run 1057. Pools: GOLDEN §146–149, AI §300–301, park MY,
-  NA, ND–NH. Parked for the pass's eye: 3421a, 3423a (struck by 3427), 3425a, 3428a–b.
-- **Fable backlog: 16 Loop items** (3441, 3440, 3439, 3435, 3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
+- **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
+  `NEVER` 321 (380 at the base), residue 81 (3421a ratified), open 240** (`Blind:` pinned); it moves by trace, on the pool.
+- **The pool carries the click layer** (3437's `@click`; `docs/LOOP.md`, "The brief"): every open row of GOLDEN §144.3 is an `@`
+  line or a key; 3442 builds `@key`, and then the queue lane is a tool for the menu's own code (1570, Ramon's).
+- **Lanes: none live; 3438 and 3442–3448 booked, unspawned.** Next 3449, run 1072. Pools: GOLDEN §149, AI §300–301; the park
+  pool is assigned through NH — refill it (six headings) at the first landing. Parked for the pass's eye: 3425a, 3428a–b.
+- **Fable backlog: 12 Loop items** (3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,25 +36,72 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 321 · residue 79 · open 242
+Blind: never 321 · residue 81 · open 240
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the forty-ninth pass (steer, Fable), with Ramon: measure the forty-ninth tranche (sixteen landings from
-`11da5dd8`, drained early on Ramon's pit stop), rule the 16 Loop items — 3439 first: the lanes' count and kind now that
-`@click` (3437) retires the queue lane — book the click layer's third pass on the pool, then clear `commander`.**
+**Opener: continue the fiftieth tranche from this handoff — commander (Opus): spawn 3438 and 3442 on the two Opus lanes
+(`python3 tools/brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`), both on the click-free pool;
+refill from the queue in order; twenty landings or Ramon's word, then the fiftieth pass.**
 
 ## The queue
 
-In dependency order; **the roster is Ramon's** (DECISIONS 84, 85). Every item is a `coverage` capture (DECISIONS 87): one
-pinned lobby retaken at **`cover=1` on the click-free pool** (3429's fix, run1037; the queue lane only for what the mouse drives,
-3427), checked against its `cover=0` twin (`rngcmp.py`, `samegame.py`), pinned into `blind::TRACES`; a function
-not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: GOLDEN §144.3's click
-layer's third pass (on the pool by `@click`, 3437), the carrier, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
+In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). Every item is a `coverage` capture (DECISIONS 87, 88): one
+pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rclick` line (3437), checked against its `cover=0`
+twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
+explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the team lobby (AI §296 rows 11–12, ARMY §26's
+`action_ping`; 1570's other half), `close_wonder`, `say_no_war`, 3414a's `send_navy`, `hits`, `send_here`, `is_dock`, 3444's park.
 
 3438. **coverage: `@spell` Bribe** (GOLDEN §144.3, §108): chapter eighty-five retaken at `cover=1` on the pool —
 `chapter85.cmd` line for line, the cloaked Spy's `@spell 0 629` at 1112 after its burn reaches 0; its twin is run880:
 enters `SpellType::cast_bribe@00672d00` and `Unit::swap_team@006118d0` on the cast's frame; `U3` a new who=0 unit with the
 old `damage` and `form`. Run 1054.
+
+3442. **coverage: `@key`, the pool's keystroke** (GOLDEN §144.3's `bindkey.py` row; ORDERS §42.3 row 4; 1570's last click-layer
+need): a tracer `@key` line through `SysMessageHandler::OnKey` (+0xc) and `OnChar` (+0x10) as 3437 built `@click`
+(`tools/trace/click.h` already copies the handler's vftable), the key bound by `bindkey.py FORM_E_RIGHT` in the pool's staged
+profile; chapter fourteen's lobby (§22) at `cover=1`: `Options::do_rotate@0071dfd0`, `do_formation@007215b0`,
+`GroupData::get_form_option@0070beb0` (the next/previous key, form −1/−3) on the key's frame; `CM process_form`, `GROUPS form`
+the frame after; parity with run52's keystroke. Run 1057; GOLDEN §146; park MY.
+
+3443. **coverage: three clicks the pool takes now** (GOLDEN §144.3; NATIONS §9.2): `Options::do_spell@0071d7a0` — the To Arms
+button on a Citizen, chapter thirty-nine's lobby (§48), `@click` at 625 (`CM process_spell`, `U3` Militia);
+`LeaderOut::warn_resources@006d3650` — a train button the human cannot afford, any lobby (the message line; no sim field);
+`CommandManager::issue_trade@00941960` — chapter seven's lobby (§11) with a human Caravan and two cities, `@rclick` the Caravan
+on the second city (`CM process_trade`, `U3 TRADEORDER`). Each take `--no-ffwd`, the points off a screenshot; `samegame
+--from` the first click. Runs 1058–1060; park NA.
+
+3444. **coverage: the minimap and the diplomacy window** (GOLDEN §144.3; NATIONS §9.2): `WorldMap::on_right_up@008c7050` —
+chapter nine's lobby (§17), a plain `@rclick` on the minimap (`CM process_move_to` form/width; the minimap → tile fit read off
+the screenshot and the cell the order lands on); the ctrl and shift forms need a key-state pin (`GetKeyState`, the exe's own
+import) — parked, not taken; `Options::do_declare_war@007216b0` — the peace pair's lobby (`RUSH_RULES 10`, the computer at
+peace), the diplomacy window's declare-war click (`L1` the diplomacy state; `afford_dow`'s warn arm at :119 when unpaid).
+Runs 1061–1062; park ND.
+
+3445. **coverage: `hurry`, a rename and a save** (GOLDEN §91, §144.3; GROUPS §38; ORDERS §42.3 row 7) — after 3442:
+`Console::hurry_action@007c3810`'s queue arm — chapter seventy-four retaken at `cover=1` on the pool, its `hurry` verb at 701;
+`HotKeyGroups::find_group@00714d00` — rename the human's city through its panel (`@click` the name, `@key` the letters;
+`HOTKEYGROUPS priority`/`stamp` the frame after, `CM process_rename_city`); `OptionsWinGame::do_save@0082c520` — Options →
+save mid-game with the idle option changed, by `@click` on the in-game menu (ORDERS §42.1's falsifier). Runs 1063–1065; park NE.
+
+3446. **coverage: the carrier** (GOLDEN §144.3's carrier row; ORDERS §42.3 row 1; AI §296 row 5): an All-Technologies water
+lobby (the coverage pair's) staged by `@` lines — a Dock, a Carrier (type 351) queued, `@spell … 661` (BUILDAIR) for a Fighter
+Bomber (308), then `@unqueue` — enters `Unit::action_unqueue@005e1f20` (`U3` the carrier's `num_queued`, `queue_time`);
+`has_repeat_air` when the plane strikes and lands (`U3` `unit_masks & 0x4000000`); `Unit::think_carry_idle@005f2f30` and
+`think_carry_military@005f3260` on an idle and a soldier-carrying transport (`U3` `orders_x/y`). The staging's frames are the
+item's to read off its first take. Runs 1066–1067; GOLDEN §147; park NF.
+
+3447. **coverage: the Nomad lobby** (GOLDEN §144.3's `citizen_repair_order` row; 1570's named lobby, on the pool by
+`--profile STARTING_TOWN=0`, AI on): `ScenarioFuncSet::citizen_repair_order@009f85b0` on the frame the computer's Small City
+is placed (`ai/scripts/economic.bhs:398`): `U3` the computer Citizens' `MOVEORDER` + `BUILDORDER` at the head (`QUEUE_FIRST`);
+~600 frames; `ai_host.rs:1192`'s two gaps (types `0x32`/`0x33`, `group` −1) read beside the dump. If the autostart cannot
+start it, that is 1570's finding, reported with the refusal. Run 1068; GOLDEN §148; park NG.
+
+3448. **coverage: ORDERS §42.3 rows 2, 3 and 5**: `Unit::add_think_order`/`do_think_order` — `@gather` one more Citizen onto an
+own Woodcutter's Camp at its cap (`U3` the Citizen's head `THINKORDER` on arrival, `think_peasant(1)`'s order the next frame);
+`check_build_order` — two `@build` sites, the second `QUEUE_LAST` (§14 check 6; `U3 BUILDORDER` re-added `QUEUE_FIRST` with
+`flags & 4` on the first site's finishing frame); `Group::distribute_attack@00713390` — chapter fifteen's lobby, `@rclick`
+attack by a selected group on a far unit whose leader collides with a valid enemy on the way (`U3` the members' `ATTACKORDER`
+targets on the collision frame). Runs 1069–1071; park NH.
 
 ## How to maintain this file
 

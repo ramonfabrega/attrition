@@ -288,13 +288,27 @@ Before any reading, in order:
 
 ## coverage-item
 
-- **You take one pinned lobby's `cover=1` trace** (3416): on the
-  click-free pool, `golden_capture.sh … --cover cover=1` with the
-  lobby's own lines (3429: run1037, 601 frames in 45 s); or on the queue
-  lane, a `tools/gamelog/captures.txt` block of run461's shape —
-  `cover: cover=1`, the lobby's `cfg:`, `ffwd:`, `end:` and `cmd:`
-  lines, `frames:` the item's, `item:` yours — run by `runqueue.sh`
-  through `viadriver.sh`; either waited on with `waitrun.sh`.
+- **You take one pinned lobby's `cover=1` trace on the click-free
+  pool** (3416, 3429): `golden_capture.sh … --cover cover=1` with the
+  lobby's own lines (run1037, 601 frames in 45 s); **a click is an `@click
+  X Y`/`@rclick X Y` line** (3437, `tools/trace/click.h`), the point a
+  screenshot of the lobby gives, with `--no-ffwd` when a pick needs the
+  drawn scene; the queue lane (run461's `captures.txt` shape, `runqueue.sh`
+  through `viadriver.sh`) only for what no `@` line sends — a key, the
+  menu's own code (3429b) — and the brief says so; either is waited on
+  with `waitrun.sh`.
+- **Before the take, three checks** (3430; 3417, 3419, 3423's retakes):
+  the detail level that prints each owed field is the level the dump's
+  writer prints it at (a stanza on disk says which; `LEADERS=1` printed no
+  `treaties`); the end frame is past the frame the state you wait on
+  expires on, read off the dumps; and a booked function has no
+  byte-identical twin (`report.py <exe> refs`: `can_queue` has two, and
+  the script's research calls the other).
+- **A take that sends an input its twin does not share parts the twin
+  there by construction** (3435): check it with `samegame.py … --from F`,
+  F the first unshared input (the stanza's first click, or the twin's
+  first dropped `@` line), and say so for each run; a part *before* F is
+  the finding.
 - **The trace is checked against its `cover=0` twin before it is
   pinned**: `rngcmp.py` (identical frames, none differing) and
   `samegame.py` on the twin's window; a trace that parts its twin is a

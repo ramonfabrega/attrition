@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""samegame.py A B — are two dumps of the same game, frame for frame?
+"""samegame.py A B [--from F] — are two dumps of the same game, frame for frame?
 
     samegame.py gamelog-run10-world6-long.txt gamelog-run33-longtrace.txt
+    samegame.py gamelog-run1032-ch11.txt gamelog-run241-ch11.txt --from 624
 
 Both names are taken relative to the archive directory (`RON_GAMELOG_DIR`,
 or the bottle's `Logs`). Each `BEGIN FRAME n` block is reduced to a digest
@@ -33,6 +34,16 @@ by default. Excluding the category that moved asks the question that is
 still worth asking: is everything the two runs *do* record in common
 identical, frame for frame. It is a weaker claim than a bare run and should
 be read as one — the excluded record is unchecked, not checked and equal.
+
+`--from F` is the driven clause (Loop 3435, the forty-ninth pass): a take
+that sends an input its twin does not share — a click, an `@` line the twin
+dropped — parts the twin at that input by construction, so "0 differing" is
+the wrong question for it. `--from F` asserts the two games were the same
+*before* F: a first difference at F or later is expected and exit 0 (the
+line `same game before frame F`); one before F is exit 1 and named
+(`differs before frame F: first N`). F is the take's first unshared input —
+`samegame`'s question, read against the stanza's first click or the twin's
+first dropped `@` line.
 
 `--drop KEY` drops every line whose first token is KEY, wherever it sits.
 It exists because `--exclude` is a **record** and the smallest thing a
@@ -104,10 +115,14 @@ def digests(path, exclude=(), drop=()):
 
 
 def main():
-    args, exclude, drop = [], [], []
+    args, exclude, drop, since = [], [], [], None
     it = iter(sys.argv[1:])
     for a in it:
-        if a == "--exclude":
+        if a == "--from":
+            since = int(next(it))
+        elif a.startswith("--from="):
+            since = int(a.split("=", 1)[1])
+        elif a == "--exclude":
             exclude.append(next(it))
         elif a.startswith("--exclude="):
             exclude.append(a.split("=", 1)[1])
@@ -133,6 +148,14 @@ def main():
              common[0] if common else -1, common[-1] if common else -1))
     differ = [n for n in common if da[n] != db[n]]
     print("differ: %d; first: %s" % (len(differ), differ[:8]))
+    if since is not None:
+        early = [n for n in differ if n < since]
+        if early:
+            print("differs before frame %d: first %d" % (since, early[0]))
+            return 1
+        print("same game before frame %d (%d common frames before it)"
+              % (since, sum(1 for n in common if n < since)))
+        return 0
     if differ:
         return 1
     print("same game over every common frame")

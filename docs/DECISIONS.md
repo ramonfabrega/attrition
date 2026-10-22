@@ -98,6 +98,7 @@ is append-only and amended in place, as it always was.
 - 85 standing — The forty-sixth tranche is scored on four lanes at less a landing and less a game, the held-out battery runs six of eight whole, the sim lib's cap follows the thread count, the lane gate keeps the paperwork guards and refuses a moved base first, a push under a clear is a draft, the oracle cache is a directory a gc removes, the generator carries a hand block and three more shapes, and twenty Loop items become tools, rows, closes or Ramon's
 - 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
 - 86 standing — The forty-seventh tranche is scored on four lanes at the loop's cheapest landing, the held-out battery runs eight of eight whole and the battery track stops by its own rule, the forty-eighth tranche is booked on the blind list, two signal reports had one sender and get a guard, the lane gate gates past the commander's paperwork, and nineteen Loop items become tools, rows, closes or Ramon's
+- 88 standing — The forty-ninth tranche is scored on two Opus lanes at sixteen `cover=1` landings drained early on a pit stop, the blind list falls 300 → 240 open, the click layer moves to the pool and the queue lane keeps only what no `@` line sends, two residue rows are ratified, the oracle cache key reads the parser and codec only, and sixteen Loop items become tools, rows, closes or Ramon's
 - 87 standing — The forty-eighth tranche is scored on five readings and two sweeps at the loop's cheapest and shortest landing, forty-five residue rows are ratified and the blind list falls 345 → 300, the forty-ninth tranche is booked as `cover=1` captures on the queue lane under a fifth brief kind, the queue carries a pinned `Blind:` line, and eleven Loop items become tools, rows, closes or Ramon's
 
 ## 1. Fidelity before divergence
@@ -7521,3 +7522,151 @@ held 2 of 8, unit types seen 30 of 364** on the traces' own dumps. The
 rubric is the content view beside the function view, and its first
 reading says the late ages are what no capture holds; the next pass
 checks it against the diffs' pinned dump set before any booking moves.
+
+## 88. The forty-ninth tranche is scored on two Opus lanes at sixteen `cover=1` landings drained early on a pit stop, the blind list falls 300 → 240 open, the click layer moves to the pool and the queue lane keeps only what no `@` line sends, two residue rows are ratified, the oracle cache key reads the parser and codec only, and sixteen Loop items become tools, rows, closes or Ramon's
+
+*2026-10-21, the forty-ninth pass (the `steer` session, Fable), cleared
+into by the commander at the tranche's drain (`a54dddaf2`); with Ramon,
+who asked for the usual and a chat before the commander is cleared. The
+record is `docs/audit/2026-10-21-fable-pass-49.md`; this entry carries
+the decisions.*
+
+**What was measured.** Sixteen landings on two lanes — every one a
+`coverage` item on Opus 5.5 at `--effort medium`, the Sonnet seats empty
+(entry 87), every lane session's model read off lore and every spawn
+line's flags off the commander's two transcripts — in **8 h 57** from the
+forty-eighth pass's last commit (`11da5dd8`, 10:28 −05:00) to the
+sixteenth booking (`31a413287`, 19:25), the drain's whole gate green at
+19:49; **drained at sixteen on Ramon's word** (Loop 3439), the tranche's
+two lanes having run single-threaded on the capture lock. **No word moved
+and none was open.** **The blind list fell by trace: `NEVER` 380 → 321,
+residue 80 → 79, open 300 → 242** — three driven click passes and the
+pool's `@click`, two new `@` lines, twelve retakes by recipe and a
+playback, thirty-four captures in all, fourteen on the queue lane; the
+census backed 1696 unmoved, port 568, layout 1128, bytes 37.9 %;
+`entered` 2388 → 2471 functions (81.9 → 84.3 % of bytes); the rubric's
+ages held 2 → 8 of 8 and unit types seen 30 → 70 of 364. **The price:
+89.43 USD list for the workers, 5.59 a landing** (35.50 / 5.07), 3437
+the dearest at 12.39 and 3420 the cheapest at 2.03; the commander's two
+sessions 17.29; **106.72 in all** (41.31); the forty-eighth pass's own
+session 31.43 (17.71), the pass and its four "with Ramon" builds.
+**Waiting 47.2 minutes a landing** (38.5): the gate 19.3 (21.7), **the
+capture 13.7** (0.5), the message 8.1, script 5.4; the three longest
+waits were a long game on a shared pool (3419, 134.9), a dead wait on a
+refused driven take (3436, 159.3; Loop 3440) and the lane lock between
+the queue lane and the pool (3437, 127.4). One `DEEP` (3437 at 300 k,
+landed at 306 k without a clear), no `STALLED`, no `DRAFT`, no blocked
+ending, no kill rule, no merge backed out. Sixteen booking gates, six
+whole, ten scoped, **one red** — the drain's first, on a journal's gate
+quote citing a never-entered function in name@address form; 242.7 minutes
+of gate (92.9); admission 98 s summed, longest 2.3 s (238 / 24); one gate
+end past the sixteen cores. The pool held **three lanes at once with no
+wait at the cap**, median 9.3 frames a wall second over 23 captures, the
+one long game beside two others at 2.1. The archives compressed 223 → 232
+GiB free.
+
+**What it means.**
+
+1. **The blind list moves by trace, and the tranche that moved it most
+   was the one that captured most.** Fifty-nine functions left `NEVER`
+   in a day on thirty-four captures at 5.59 USD a landing, against a
+   reading tranche that climbed eight and a sweep tranche that moved the
+   port count and nothing on the blind list. The lever the forty-eighth
+   pass named — a `cover=1` capture — held, and 3429 moved it off the
+   queue lane on its first item: `cover=1` runs on the click-free pool
+   (run1037 against run847 and run1016, 0 differing), so the captures ran
+   three at once where entry 87 had them serial.
+2. **The click layer belongs to the pool.** Item 3437's `@click`/`@rclick`
+   lines (`tools/trace/click.h`) call the game's own `SysMessageHandler`
+   mouse slots at the frame top with the renderer's cursor cache pinned,
+   and retook 3427's three driven games draw for draw and block for block
+   (rngcmp 793/773/815 in common, 0 differing). The forty-ninth tranche
+   paid the cost of the other shape — 3427 and 3436's eleven `cliclick`
+   takes on the queue lane, the lane lock that held 3437 for 111 minutes,
+   the dead wait that spent run1046 and run1047 — and the pass moves the
+   kind: **a `coverage` item is a `cover=1` take on the click-free pool,
+   a click an `@click` line, the queue lane only for what no `@` line
+   sends** (`docs/LOOP.md`, "The brief"; the frame's `## coverage-item`).
+   What no `@` line sends today is a key, the menu's own code (parked
+   3429b) and a lobby the autostart cannot start, which forty-nine
+   tranches have not named. The handler's `OnKey`/`OnChar` slots (+0xc,
+   +0x10) sit beside the mouse slots, so `@key` is booked first (3442);
+   1570's retirement of the queue lane is Ramon's when it lands.
+3. **The pit stop is a rule.** Ramon drained the tranche at sixteen
+   because two Opus lanes stood on one capture lock with nothing else to
+   do, and said two things the loop keeps (`docs/LOOP.md`, "The lanes"):
+   **a capture that is running is never stopped halfway** — a
+   reprioritisation stops *future* captures only — and **a question that
+   wants a cold look waits for the pass or calls it early**. The lane
+   count and kind for the fiftieth tranche are his (the record, "For
+   Ramon"): the pass recommends two Opus `coverage` lanes on the pool,
+   the measured floor, and if a third lane a non-capture one on 3425a's
+   two ports.
+4. **A driven or `@click` take is checked from its first unshared input**
+   (Loop 3435, built): `samegame.py --from F` asserts the two games were
+   the same before F and exits 0 when the difference is at F or later,
+   because fourteen takes of this tranche parted their twins at the first
+   click or the twin's first dropped `@` line by construction, and three
+   journals argued "0 differing" by hand. The frame's row and the
+   checklist's name it.
+5. **Two residue rows are ratified** (parked 3421a): `Unit::think_supply`
+   and `Unit::think_hero` are unreferenced in the image — `report.py refs`
+   dead and "pointer only" (the one hit an RVA-shaped rel32 inside
+   `TerrainGroups::place_all`), the live copy `Unit::think`'s own tail —
+   so `RESIDUE` 79 → 81, `UNREFERENCED` 30 → 32, their three citing lines
+   pinned in `DEAD_CITED`; the existing guard passed as written. The open
+   blind list is **240**.
+6. **The oracle cache key reads the parser and the codec only** (Loop
+   3382, an Opus subagent in the pass's half hour): `schema()` keeps each
+   of its eight files' parser and codec items and drops tests, comments
+   and `leader.rs`'s crate side; red first on the whole-file key; an
+   assert added in a test left the generation warm at 114.6 s where the
+   old key regenerated it (232 s cold). Fifty-seven of the ninety-six
+   key-touching commits since 09-21 would still turn it, so the next lever
+   is `gamelog.rs`'s non-parser readers; the slowest test over 30 s is
+   still this pin, and 3382 stays.
+7. **Three more Loop items become rows or clauses**: 3430's three checks
+   before a coverage take (the owed field's print level, the state's
+   expiry frame, a same-named twin) are the frame's row; 3434's empty
+   brief is the chain's `[ -s brief.md ] && ccc spawn` spelling; 3439 is
+   ruled above. 3441 and 3440 stay dormant with the queue lane, 3433 waits
+   on a second occurrence, 3432's `cursor=` key is measured as a default
+   by the first pool brief; 2003 took no reach. **Six stay Ramon's** with
+   this tranche's numbers appended (3350, 3237, 3188, 3143, 3118, 1570).
+   The backlog 16 → 12.
+8. **The bookings** are the click layer's third pass on the pool, seven
+   items beside 3438: `@key` (3442), the To Arms, train and trade clicks
+   (3443), the minimap and the declaration of war (3444), `hurry`, a
+   rename and a save (3445), the carrier (3446), the Nomad lobby by
+   `--profile STARTING_TOWN=0` (3447) and ORDERS §42.3's three rows
+   (3448); runs 1057–1071; GOLDEN §146–148. The park pool is assigned
+   through NH and is refilled at the first landing.
+
+**Against entry 87's estimate**: 3417 on the queue lane without a block,
+matching its twin — met; the twelve items in under twenty hours — met;
+thirty off `NEVER` and open under 270 — met (59; 242); a coverage landing
+under 8 USD and 90 minutes — met on the mean, **missed on four landings'
+price and three landings' waiting**; at most two named functions per item
+unentered, parked — met; no trace parts its twin — met where inputs are
+shared, by construction otherwise (now the `--from` clause); no red
+booking gate — **missed** (the drain's first); no kill rule — met; no
+blocked ending — met; the Sonnet seats empty — met. Eight of ten.
+
+**The estimate, written down to be wrong on record**, on the booking
+above and two Opus pool lanes: 3442 lands `@key` with the three formation
+functions entered on the key's frame and parity with run52; the seven
+items land in under twelve hours with no queue-lane take and no lane
+waiting on the lock; **at least twenty** functions off `NEVER` (open 240
+→ at most 220); a coverage landing under 7 USD and under 45 minutes
+waiting (no capture lock, no driven take); the pool's `cursor=` key
+measured on three takes with 0 differing; no red booking gate; no kill
+rule; no blocked ending; the Nomad lobby starts on the pool, or 1570
+gets its named lobby.
+
+**The measure for the next pass**: each coverage landing's USD and
+waiting against 5.59 / 47.2; the open blind list against 240 and `never`
+against 321; functions entered per capture; whether any take needed the
+queue lane; the capture class against 13.7 and the gate against 19.3;
+booking gate minutes against 242.7 (a drain's two whole gates among
+them); `DEEP` against one; the backlog against twelve; the disk against
+232 GiB; the pool's peak lanes and rate against 3 and 9.3.

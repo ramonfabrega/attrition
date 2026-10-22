@@ -686,6 +686,22 @@ pub const RESIDUE: &[(u32, &str)] = &[
          pass)",
     ),
     (
+        0x005f_4720,
+        "Unit::think_hero: no reference in the executable (parked 3421a, the \
+         forty-ninth pass; `report.py refs` scans dead, the byte before is \
+         padding); the live copy is Unit::think@005f6e40's tail, which reads \
+         is_hero (vslot +0xc4, unit_flags & 0x20) and calls add_to_army itself",
+    ),
+    (
+        0x005f_4730,
+        "Unit::think_supply: no reference in the executable (parked 3421a, the \
+         forty-ninth pass; run1020's supply wagon never entered it): its one hit \
+         is the RVA-shaped rel32 of `call Mountains::get_range` at 006a841b, \
+         inside TerrainGroups::place_all; the live copy is Unit::think@005f6e40's \
+         tail, which reads is_supply (vslot +0xcc, unit_flags & 0x40) and calls \
+         add_to_army itself",
+    ),
+    (
         0x0060_4550,
         "Unit::check_meet_ship: lives under the BoardOrder only \
          Group::action_board_ship makes, whose command no site issues; item \

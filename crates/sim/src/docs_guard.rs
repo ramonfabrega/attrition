@@ -1430,7 +1430,7 @@ fn a_function_a_booking_names_is_in_the_export() {
 
 /// How many of `rondata::blind::RESIDUE`'s rows say "no reference in the
 /// executable" — the dead list's length, pinned so a new row is a decision.
-const UNREFERENCED: usize = 30;
+const UNREFERENCED: usize = 32;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
@@ -1458,6 +1458,12 @@ const DEAD_CITED: &[(&str, u32)] = &[
     // (TECH, what is not established) — and each row is the claim that the
     // game never runs it.
     ("AI.md", 0x005946c0),
+    // The forty-ninth pass's two (parked 3421a, DECISIONS 88): `Unit::think_hero`
+    // and `Unit::think_supply`, cited by AI §296 as `NEVER` rows; each is dead
+    // in the image and its body is inlined in `Unit::think`'s tail.
+    ("AI.md", 0x005f4720),
+    ("AI.md", 0x005f4730),
+    ("RUNS.md", 0x005f4730),
     ("AI.md", 0x006b46b0),
     ("ARMY.md", 0x006ec170),
     ("CARAVAN.md", 0x0073e000),

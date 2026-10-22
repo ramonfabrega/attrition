@@ -72,10 +72,14 @@ functions its document cites into claims that each name their
 falsifying capture, and gates on `python3 tools/release_gate.py
 ~/code/fun/attrition/game --test-threads 4 --lane --item <N> --tests
 blind:: --no-widen`. **The fifth is `coverage`** (entry 87): a lane
-that retakes one pinned lobby at `cover=1` on the queue lane, checks the
-trace against its `cover=0` twin and pins it into `blind::TRACES`, so
-the functions a reading's captures-owed table names leave `NEVER`; it
-gates on the same line.
+that retakes one pinned lobby at `cover=1` **on the click-free pool**
+(entry 88: `cover=1` runs there since 3429, and a click is an `@click`
+line since 3437, so the queue lane is only for what no `@` line sends —
+a key until `@key` lands, the menu's own code), checks the
+trace against its `cover=0` twin — `samegame.py --from` the first
+unshared input, where the take sends one — and pins it into
+`blind::TRACES`, so the functions a reading's captures-owed table names
+leave `NEVER`; it gates on the same line.
 
 ## The worker's landing
 
@@ -126,7 +130,10 @@ spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 **The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
 --no-ff`, the booking commit, **the spawn that refills the lane, cut off
-that commit**, the gate to a file — **`--scope <the tip the last whole
+that commit** — `python3 tools/brief.py … > brief.md && [ -s brief.md ]
+&& ccc spawn … - < brief.md`, because a brief the tool refused (exit 2,
+nothing on stdout) fed to `ccc spawn -` makes a promptless `draft` row
+that sits until a person looks (Loop 3434, entry 88) — the gate to a file — **`--scope <the tip the last whole
 gate ran on> --test-threads 8` on a merge, and the whole gate, no
 `--scope`, every third landing whose merge widened and at the drain**
 (the thirty-fifth steer, DECISIONS 72: a scoped gate runs the timed
@@ -242,7 +249,12 @@ eight of eight whole, every battery word closed, the `port` and `name`
 marks drained). **The commander counts landings since the last steering pass — by
 `git log` from that pass's commit, never from its own last clear — and
 stops at twenty**, writing the handoff and saying the steering pass is
-due; **and a finding it would raise at that pass is filed in
+due — **or sooner, on the user's word, as a pit stop** (Loop 3439, entry
+88: the forty-ninth drained at sixteen): **a capture that is running is
+never stopped halfway** — a reprioritisation stops *future* captures
+only, because a game cut short spends its run number and its lane for
+nothing — **and a question that wants a cold look waits for the pass or
+calls it early**, never a worker's mid-item redirect; **and a finding it would raise at that pass is filed in
 `docs/PARKED.md`'s Loop section in the turn it is noticed**, the
 handoff's `Fable backlog:` count moving with it — a finding narrated in
 chat has told nobody (parked 509), **and a journal's own "for the Loop"

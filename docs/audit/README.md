@@ -318,6 +318,30 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the forty-ninth pass
+
+The forty-ninth tranche (DECISIONS 88): sixteen landings on two Opus
+lanes in 8 h 57 from the base to the sixteenth booking, drained early
+on Ramon's pit stop; 5.59 USD and 47.2 minutes waiting a landing; one
+red booking gate (the drain's first, on a gate quote's name@address
+cite), one `DEEP`, no stall; `NEVER` 380 → 321. The pass added these
+rows, each from the tranche's own receipts.
+
+- **A click is an `@click`/`@rclick` line on the pool, and the queue lane
+  is only for what no `@` line sends** (3437; 3427's and 3436's eleven
+  driven takes): the pool's `@click` retook 3427's three driven games
+  draw for draw and block for block, and the queue lane's exclusion
+  with the pool cost 3437 111 minutes waiting and 3436 two takes to a
+  dead wait (Loop 3440).
+- **Before a coverage take: the owed field's print level, the state's
+  expiry frame and a same-named twin** (3430; 3417, 3419 and 3423's retakes): three
+  lanes each spent a retake on one of these, and the brief's row is
+  cheaper than the capture.
+- **A take with an unshared input is checked with `samegame.py --from F`**
+  (3435; 3427's "for the Loop"): a driven or `@click` take parts its twin
+  at its first click by construction, and "0 differing" was being
+  argued by hand in three journals.
+
 ## The brief checklist, from the forty-eighth pass
 
 The forty-eighth tranche (DECISIONS 87): seven landings on four lanes in

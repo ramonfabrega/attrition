@@ -21440,3 +21440,25 @@ game, 3350's `entered` column measured (81.9 % of the simulation's bytes
 entered by a pinned trace), and `tools/rubric.py` built — 36 of 112
 source groups at 100 %, ages held 2 of 8, unit types seen 30 of 364.
 **DECISIONS 87.** `docs/audit/2026-10-21-fable-pass-48.md`.
+
+**2026-10-21 — the forty-ninth Fable pass** (the `steer` session, cleared
+into at the drain, with Ramon): the forty-ninth tranche measured — sixteen
+`cover=1` landings on two Opus lanes from `11da5dd8` in 8 h 57, drained at
+sixteen on Ramon's pit stop; 5.59 USD and 47.2 minutes waiting a landing
+against 5.07 / 38.5, the capture class 13.7 of it; `NEVER` 380 → 321 on
+thirty-four captures, open 300 → 242; the census and the words unmoved,
+`entered` 81.9 → 84.3 % of bytes, the rubric's ages 2 → 8 of 8 and unit
+types 30 → 70; sixteen booking gates, one red (the drain's first, a gate
+quote's cite), one `DEEP`. Ratified 3421a: `think_supply` and `think_hero`
+to `RESIDUE` (79 → 81), the open blind list 240. The click layer moves to
+the pool — `@click` (3437) retook the driven games draw for draw, so a
+`coverage` item is a pool take and the queue lane only what no `@` line
+sends — and the fiftieth tranche is booked as the click layer's third pass
+there: `@key` first (3442), then six more (3443–3448). Built, red first:
+`samegame.py --from F` (3435), the frame's three checks before a take
+(3430), the chain's `[ -s brief ]` (3434), the pit-stop rules in LOOP
+(3439), and the oracle cache key narrowed to the parser and codec (3382,
+an Opus subagent: a test edit leaves the pin warm at 115 s). 3439, 3435,
+3434 and 3430 leave; six Ramon's; 16 → 12. The lanes for the fiftieth are
+Ramon's, at the chat before the clear. **DECISIONS 88.**
+`docs/audit/2026-10-21-fable-pass-49.md`.
