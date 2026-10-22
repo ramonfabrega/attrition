@@ -253,8 +253,32 @@ class TheClosedGameIsTheLane_s(unittest.TestCase):
     PREFIXES = ['/h/wine-ron', '/h/wine-ron-2']
 
     def check(self, lsof, prefix):
-        with patch.object(live_session.subprocess, 'run', side_effect=fake(lsof)):
+        with patch.object(live_session.subprocess, 'run', side_effect=fake(lsof)), \
+             patch.object(live_session.time, 'sleep'):
             live_session.require_closed(prefix, self.PREFIXES)
+
+    def test_a_launch_lsof_cannot_read_yet_is_read_again(self):
+        # Loop 3468 (item 3461): run1080's restore refused on run1078's game,
+        # launched the same second into the other lane, because `lsof` could
+        # not yet read its prefix and an unattributed game is a human's. The
+        # prefix is read again before the refusal.
+        reads = iter([None, None, '/h/wine-ron-2'])
+        sleeps = []
+        with patch.object(live_session.subprocess, 'run', side_effect=fake('')), \
+             patch.object(live_session, 'game_prefix', side_effect=lambda pid, prefixes: next(reads)), \
+             patch.object(live_session.time, 'sleep', side_effect=sleeps.append):
+            live_session.require_closed('/h/wine-ron', self.PREFIXES)
+        self.assertEqual(sleeps, [live_session.PREFIX_RETRY_SECONDS] * 2)
+
+    def test_a_game_still_unattributed_after_the_retries_refuses(self):
+        calls = []
+        def never(pid, prefixes):
+            calls.append(pid)
+        with patch.object(live_session.subprocess, 'run', side_effect=fake('')), \
+             patch.object(live_session, 'game_prefix', side_effect=never), \
+             patch.object(live_session.time, 'sleep'), self.assertRaises(RuntimeError):
+            live_session.require_closed('/h/wine-ron', self.PREFIXES)
+        self.assertEqual(len(calls), 1 + live_session.PREFIX_RETRIES)
 
     def test_another_lane_s_game_is_let_be(self):
         self.check('p501\nn/h/wine-ron-2/drive_c/windows/syswow64/d3d11.dll\n', '/h/wine-ron')

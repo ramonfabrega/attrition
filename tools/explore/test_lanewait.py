@@ -181,6 +181,69 @@ class ADraftUnderAClear(unittest.TestCase):
                          (0, 'LANDED a worktree-a 11111111..22222222'))
 
 
+class AnArmedClearIsADraft(unittest.TestCase):
+    """Loop 3458 (the fiftieth pass): att-3446 pushed its draft on a DEEP
+    answer and ended its turn for the armed clear; the waiter polled in the
+    gap after the turn ended and before the clear fired, saw neither tell
+    (the session unmoved, no `/clear` in the transcript) and printed
+    `LANDED att-3446`. Before a LANDED the armed clear itself is asked
+    (`ccc clear <lane> --status --json`); an armed one makes it a draft."""
+
+    def watching(self):
+        watch = watching(a='1' * 40)
+        watch['a']['session'] = 's1'
+        return watch
+
+    def test_a_push_by_a_stopped_row_under_an_armed_clear_is_a_draft(self):
+        watch, drafts, asked = self.watching(), [], []
+        found = lanewait.event(watch, {'a': 'idle'}, {'a': '2' * 40}, 5, 100, sessions={'a': 's1'},
+                               drafts=drafts, armed=lambda lane: asked.append(lane) or True)
+        self.assertIsNone(found)
+        self.assertEqual(asked, ['a'])
+        self.assertEqual(drafts, ['DRAFT a worktree-a 11111111..22222222 — pushed under an armed clear; '
+                                  'watching on'])
+        # The ref is recorded: the clear fires, the new session works on.
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 6, 100,
+                                         sessions={'a': 's2'}, armed=lambda lane: False))
+
+    def test_a_push_noted_while_working_then_stopped_under_an_armed_clear_is_a_draft(self):
+        watch, notes, drafts = self.watching(), [], []
+        self.assertIsNone(lanewait.event(watch, {'a': 'working'}, {'a': '2' * 40}, 5, 100, notes,
+                                         sessions={'a': 's1'}, armed=lambda lane: True))
+        self.assertEqual(notes, ['PUSHED a worktree-a 11111111..22222222'])
+        for minute in (6, 7):
+            self.assertIsNone(lanewait.event(watch, {'a': 'idle'}, {'a': '2' * 40}, minute, 100,
+                                             sessions={'a': 's1'}, drafts=drafts, armed=lambda lane: True))
+        self.assertEqual(drafts, ['DRAFT a worktree-a 11111111..22222222 — pushed under an armed clear; '
+                                  'watching on'])
+
+    def test_no_armed_clear_still_lands(self):
+        watch, drafts = self.watching(), []
+        self.assertEqual(lanewait.event(watch, {'a': 'done'}, {'a': '2' * 40}, 5, 100, sessions={'a': 's1'},
+                                        drafts=drafts, armed=lambda lane: False),
+                         (0, 'LANDED a worktree-a 11111111..22222222'))
+        self.assertEqual(drafts, [])
+
+    def test_the_status_is_read_from_ccc_and_any_failure_is_no_clear(self):
+        import subprocess
+
+        def answer(stdout, code=0):
+            def run(command, **kwargs):
+                self.assertEqual(command, ['ccc', 'clear', 'att-1', '--status', '--json'])
+                return subprocess.CompletedProcess(command, code, stdout=stdout, stderr='')
+            return run
+
+        def missing(command, **kwargs):
+            raise FileNotFoundError('ccc')
+
+        self.assertTrue(lanewait.armed_clear('att-1', answer('{"armed": true, "ref": "att-1"}')))
+        self.assertFalse(lanewait.armed_clear('att-1', answer('{"armed": false, "ref": "att-1"}')))
+        self.assertFalse(lanewait.armed_clear('att-1', answer('{"armed": true}', code=1)))
+        self.assertFalse(lanewait.armed_clear('att-1', answer('not json')))
+        self.assertFalse(lanewait.armed_clear('att-1', answer('[]')))
+        self.assertFalse(lanewait.armed_clear('att-1', missing))
+
+
 class StateOf(unittest.TestCase):
     def test_a_running_turn_is_working_whatever_the_row_says(self):
         # Parked 1572: a lane's self-written `blocked` stranded the waiter.
@@ -194,10 +257,6 @@ class StateOf(unittest.TestCase):
         self.assertEqual(lanewait.state_of({'state': 'done', 'status': 'busy'}, {}), 'done')
         self.assertEqual(lanewait.state_of({'state': 'done'}), 'done')
         self.assertIsNone(lanewait.state_of({}))
-
-if __name__ == '__main__':
-    unittest.main()
-
 
 class SecondRowOnATree(unittest.TestCase):
     # Parked 1671: the commander gave a racer its second landing with
@@ -379,3 +438,7 @@ class TheRosterIsAwaited(unittest.TestCase):
     def test_a_roster_that_does_not_answer_is_none(self):
         rows, missing = lanewait.rows_for(['a'], 60, 5, roster_fn=lambda: None, sleep_fn=lambda s: None)
         self.assertIsNone(rows)
+
+
+if __name__ == '__main__':
+    unittest.main()

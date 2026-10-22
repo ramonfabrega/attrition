@@ -40,6 +40,14 @@ else
   cargo test -q "${PROFILE[@]}" -p sim docs_guard
 fi
 cargo test -q "${PROFILE[@]}" -p sim no_float
+# The blind list (Loop 3449, the fiftieth pass): `blind::` reads every
+# `name@address` citation under docs/, a journal's included, and 3442's
+# booking gate was red on it alone — its journal, written after its lane
+# gate, quoted the earlier red by `name@address`, and this reflex, the one
+# a lane runs after writing the quote, never ran it. It skips itself
+# without the Ghidra export or the kept traces; with them it is ~2 s in
+# debug, so `RON_DIFF_DEBUG` lets it past the debug door (`testenv::dump`).
+RON_DIFF_DEBUG=1 cargo test -q "${PROFILE[@]}" -p rondata blind::tests::the_blind_list_is_the_pinned_residue
 if [ -z "$RON_LANE" ]; then cargo test -q "${PROFILE[@]}" -p rondata the_handoff; fi
 python3 tools/queueledger.py
 for f in "$@"; do

@@ -19,6 +19,7 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import time
 
 NAMES = ('rise.ini', 'rise2.ini', 'gamelog.ini')
 # setlog.py's section spelling, so one vocabulary covers both lanes.
@@ -26,6 +27,11 @@ SECTIONS = {'end': '[End Frame]', 'start': '[Start Game]', 'misc': '[Misc Loggin
             'endgame': '[End Game]', 'startframe': '[Start Frame]'}
 DEFAULT_DETAIL = ('end:UNITS=3', 'misc:COMMANDMANAGER=1')
 DEFAULT_WINDOW = (18, 36)
+# Loop 3468: a game in its first second maps nothing `lsof` can read yet, so an
+# unattributed one is read again this many times, this far apart, before it
+# is called a human's.
+PREFIX_RETRIES = 6
+PREFIX_RETRY_SECONDS = 0.5
 
 
 def parse_detail(specs):
@@ -105,12 +111,22 @@ def require_closed(prefix=None, prefixes=()):
     is that lane's and is let be; one in this prefix, or one no lane's
     prefix accounts for (a human's, or a read `lsof` could not make), still
     refuses. With none, any game refuses, as it always did.
+
+    A game no prefix accounts for is read again `PREFIX_RETRIES` times,
+    `PREFIX_RETRY_SECONDS` apart, before it refuses (Loop 3468): a sibling
+    lane's game in its first second maps nothing `lsof` can read yet, and
+    run1080's restore refused on run1078's launch of the same second.
     """
     result = subprocess.run(['ps', '-axo', 'pid=,comm='], capture_output=True, text=True, check=True)
     games = [line.split(None, 1)[0] for line in result.stdout.splitlines()
              if 'riseofnations' in line.lower()]
     for pid in games:
         owner = None if prefix is None else game_prefix(pid, prefixes)
+        for _ in range(PREFIX_RETRIES if prefix is not None and owner is None else 0):
+            time.sleep(PREFIX_RETRY_SECONDS)
+            owner = game_prefix(pid, prefixes)
+            if owner is not None:
+                break
         if owner is None or owner == str(prefix).rstrip('/'):
             raise RuntimeError('close the original game before staging/restoring'
                                + (f' (pid {pid}, lane prefix {owner})' if owner else ''))

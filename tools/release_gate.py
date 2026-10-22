@@ -195,6 +195,12 @@ COMMANDERS_LINES = (
     # cannot write before the gate is forgiven on a lane and held at the
     # booking gate; the verdict says what to add.
     JOURNAL_QUOTE_GUARD,
+    # Not forgiven, and not this one's to forgive (Loop 3449): the quote
+    # this forgiveness waits for is written after the lane gate, and a
+    # quote that cites a red by `name@address` is a citation
+    # `blind::tests::the_blind_list_is_the_pinned_residue` reads — 3442's
+    # booking gate was red on it alone. `blind::` is the worker's own red;
+    # `tools/guard.sh`, the reflex run after the quote, runs it.
     # The journal's Loop line (Loop 3328, the forty-fifth pass): the guard
     # asks that a journal's "for the Loop" line be filed in the parked
     # file by number, and only the commander files it, at the merge — a
