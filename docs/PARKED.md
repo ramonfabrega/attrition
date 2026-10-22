@@ -3782,6 +3782,13 @@ dropped the address. `tools/guard.sh` after the quote (Loop 3277) runs the paper
 lane gate's journal-quote forgiveness re-runs `blind::tests` on the quoting commit, or `guard.sh` carries `blind::` when the
 item is `coverage`. Score: a booking gate not red on a lane's own prose. One reach.
 
+(3450) **A pool button pressed right after a `select` can hit an empty cell** (3443's "for the Loop"): run1058's second
+take pressed on 620, when the card still held the group's options — `UnitOut::make_options`, which adds the unit's spells,
+first ran on 621 — and a second press on 624 hit To Arms. What builds the options (the 620 click reaching the window, or
+frames passing after the `select`) is not established. Candidate: the frame's coverage rows say a button press is a click
+on an empty cell first and the press four frames later; 3445's brief carries it as a note. Score: a button take not spent
+on an empty cell. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
