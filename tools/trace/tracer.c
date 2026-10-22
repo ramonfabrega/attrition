@@ -2131,6 +2131,14 @@ static void read_cfg(void) {
         } else if (key_is(p, "dumptime")) {
             p += 9;
             g_dt_mode = parse_int(&p);
+        } else if (key_is(p, "dumpsites")) {
+            p += 10;
+            g_dt_mask = 0;
+            for (;; p++) {
+                u32 h = *p >= '0' && *p <= '9' ? (u32)(*p - '0') : *p >= 'a' && *p <= 'f' ? (u32)(*p - 'a' + 10) : 99;
+                if (h == 99) break;
+                g_dt_mask = g_dt_mask << 4 | h;
+            }
         } else if (key_is(p, "cover")) {
             p += 6;
             g_cover = parse_int(&p);

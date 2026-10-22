@@ -60,7 +60,8 @@
  *   I_DUMPSITE  a = site, b = the VA hooked (code entry or IAT slot),
  *               c = 0 installed, 1 the bytes are not the shipped prologue,
  *               2 no IAT slot found, 3 `RON_STATE_FRAME` holds the entry,
- *               4 the slot points inside the executable (not bound);
+ *               4 the slot points inside the executable (not bound),
+ *               5 left out by `dumpsites=`;
  *               d = kind (0 code, 1 the exe's IAT, 2 ucrtbase's IAT),
  *               e = the stub
  *
@@ -80,8 +81,8 @@ IMPORT(i32, QueryPerformanceFrequency, (u64 *));
 #define I_DUMPSITE 28
 #define I_DUMPCAL 29
 
-#define DT_STUB 64 /* bytes a site: the entry stub, then the exit thunk at +40 */
-#define DT_THUNK 40
+#define DT_STUB 80 /* bytes a site: the entry stub (38 at most), then the exit thunk (25) at +48 */
+#define DT_THUNK 48
 #define DT_DEPTH 64
 #define DT_CAL 100000
 
@@ -132,6 +133,7 @@ typedef struct {
 } DtFrame;
 
 static i32 g_dt_mode; /* rontrace.cfg `dumptime=` */
+static u32 g_dt_mask = ~0u; /* rontrace.cfg `dumpsites=` (hex): the sites installed, bit = site */
 static i32 g_dt_on; /* the clock runs this frame */
 static u32 g_dt_tid; /* do_frame's thread, read at the first frame */
 static u8 *g_dt_page;
@@ -278,7 +280,7 @@ static int dt_in_exe(u32 p) {
 static int dt_is_site(u32 rva) {
     if (!g_dt_mode) return 0;
     for (u32 i = 0; i < DT_CALSITE; i++)
-        if (DT_SITES[i].kind == 0 && rva + 0x400000u >= DT_SITES[i].va && rva + 0x400000u < DT_SITES[i].va + DT_SITES[i].len)
+        if (DT_SITES[i].kind == 0 && (g_dt_mask >> i & 1) && rva + 0x400000u >= DT_SITES[i].va && rva + 0x400000u < DT_SITES[i].va + DT_SITES[i].len)
             return 1;
     return 0;
 }
@@ -301,7 +303,9 @@ static void dt_install(void) {
         const DtSite *s = &DT_SITES[i];
         u32 why = 0, va = s->va ? s->va + rebase : 0;
         u8 *stub = g_dt_page + DT_STUB * i;
-        if (s->kind == 0) {
+        if (!(g_dt_mask >> i & 1)) {
+            why = 5;
+        } else if (s->kind == 0) {
             u8 *t = (u8 *)va;
 #ifdef RON_STATE_FRAME
             if (i == DT_END_FRAME) why = 3;

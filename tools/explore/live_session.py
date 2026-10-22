@@ -184,8 +184,9 @@ def stage(args):
     stride = getattr(args, 'stride', None)
     cursor = getattr(args, 'cursor', None)
     dumptime = getattr(args, 'dumptime', None)
-    if dumptime is not None and dumptime not in (1, 2):
-        raise ValueError('--dumptime takes 1 (every frame timed) or 2 (even frames timed)')
+    if dumptime is not None and not re.fullmatch(r'[12](,[0-9a-f]{1,8})?', str(dumptime)):
+        raise ValueError('--dumptime takes 1 (every frame timed) or 2 (even frames timed), '
+                         'and optionally ,MASK: the sites installed, hex (dumptime.h)')
     if cursor is not None and not re.fullmatch(r'\d+,\d+', cursor):
         raise ValueError('--cursor takes X,Y in client pixels')
     if not 36 <= end <= 24000 or (fast and end <= 37):
@@ -275,7 +276,9 @@ def stage(args):
                                              # nobody chose is not an input.
                                              + (f'cursor={cursor}\n' if cursor else '')
                                              # Item 3483: the dump clock (`tools/trace/dumptime.h`).
-                                             + (f'dumptime={dumptime}\n' if dumptime else ''))
+                                             + (f'dumptime={str(dumptime).split(",")[0]}\n' if dumptime else '')
+                                             + (f'dumpsites={str(dumptime).split(",")[1]}\n'
+                                                if dumptime and ',' in str(dumptime) else ''))
         if fast:
             minute = (end + 899) // 900
         # The channel runs lines in file order and clamps a frame below its
@@ -315,8 +318,8 @@ def main():
     s.add_argument('--cover', help="rontrace.cfg's first line; default cover=0")
     s.add_argument('--cursor', metavar='X,Y',
                    help="rontrace.cfg's cursor=X,Y: the resting cursor pinned there (click.h; Loop 3432)")
-    s.add_argument('--dumptime', type=int, choices=(1, 2),
-                   help="rontrace.cfg's dumptime=N: the dump clock (tools/trace/dumptime.h; item 3483)")
+    s.add_argument('--dumptime', metavar='N[,MASK]',
+                   help="rontrace.cfg's dumptime=N (and dumpsites=MASK): the dump clock (tools/trace/dumptime.h; item 3483)")
     s.add_argument('--stride', type=int, metavar='N',
                    help='dump one block in N of --log-window (the tracer rewrites the window; Loop 3085)')
     s.add_argument('--callwin', type=int, nargs=2, metavar=('LO', 'HI'),

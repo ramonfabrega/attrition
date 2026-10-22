@@ -893,8 +893,8 @@ def main():
     ap.add_argument('--cover')
     ap.add_argument('--cursor', metavar='X,Y',
                     help='pin the resting cursor at a client point (rontrace.cfg cursor=X,Y; Loop 3432)')
-    ap.add_argument('--dumptime', type=int, choices=(1, 2),
-                    help='the dump clock: rontrace.cfg dumptime=N (tools/trace/dumptime.h; item 3483)')
+    ap.add_argument('--dumptime', metavar='N[,MASK]',
+                    help='the dump clock: rontrace.cfg dumptime=N, dumpsites=MASK (tools/trace/dumptime.h; item 3483)')
     ap.add_argument('--stride', type=int, metavar='N',
                     help='dump one block in N of --log-window, a long gap at a fraction of its cost '
                          '(the tracer rewrites the engine window each frame; Loop 3085)')
