@@ -251,9 +251,13 @@ pub const TRACES: &[&str] = &[
     // `701 finish` (`run_cmd` case 0x4f), run864's game on every frame; run1063
     // takes `701 hurry` (case 0x51, `Console::hurry_action`) to 960; run1065
     // to 960 saves the Options window mid-game (the Game Menu at 702, its
-    // clicks on `@after` lines, `OptionsWinGame::do_save` on 702).
+    // clicks on `@after` lines, `OptionsWinGame::do_save` on 702); run1064
+    // to 960 renames Napata `0/2000` through its card on 706 (`@key` and
+    // `@char` into the popup's edit box, Return as both), and
+    // `process_rename_city` calls `HotKeyGroups::find_group`.
     "rontrace-run1063a.log",
     "rontrace-run1063.log",
+    "rontrace-run1064.log",
     "rontrace-run1065.log",
 ];
 
@@ -575,6 +579,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// §42.1): `BuildQueue::set_job_counter@00630ab0` on 701 (`finish`, case
 /// 0x4f), `Console::hurry_action@007c3810` on 701 (`hurry`, case 0x51), and
 /// `OptionsWinGame::do_save@0082c520` on 702 (the Options window's OK).
+/// **306** with run1064 (item 3445, `docs/GROUPS.md` §38): the city rename
+/// on 706, `CommandPackage::process_rename_city@00944090` and
+/// `HotKeyGroups::find_group@00714d00`.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cec0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0046_fb10, 0x0047_03f0,
@@ -596,13 +603,13 @@ pub const NEVER: &[u32] = &[
     0x006b_1ba0, 0x006b_22e0, 0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560,
     0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_5230, 0x006d_6660, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_20c0,
-    0x0070_84c0, 0x0070_f8a0, 0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00,
+    0x0070_84c0, 0x0070_f8a0, 0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0,
     0x0072_16b0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880,
     0x0073_bb20, 0x0073_c1b0, 0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060,
     0x0074_1a40, 0x0074_1d50, 0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050,
     0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060,
     0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80, 0x008c_6db0, 0x008c_7050, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_5cb0, 0x0092_8f30,
-    0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30, 0x0094_4090, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_95c0,
+    0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30, 0x0094_8cb0, 0x0094_8e00, 0x0094_9140, 0x0094_95c0,
     0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820,
     0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880,
     0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0,

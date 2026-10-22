@@ -5048,6 +5048,18 @@ true.
 *Falsifier*: a full dump's `HOTKEYGROUPS` block (as run29's) on the frame after a city rename, with `priority 1` on
 slots the player never filled. A rename leaving an emptied slot at 0 kills the claim.
 
+**run1064 (item 3445) enters it, and tests the stamp but not the bit.** The run renames Napata `0/2000` on its card on
+706. `CommandManager::issue_rename_city`, `CommandPackage::process_rename_city` and `find_group` are all entered on
+706, and the city reads `Kerma` from 708. `@dumpall` makes 705/706 and 708/709 whole dumps:
+- **The match arm is diff-backed.** Slot 10 of who=0 holds the city before the rename (`num 1`, `buildings 1`,
+  `list[scan] 2000`, `stamp 0` on 705). On 708 it reads `stamp 707`, the frame the command ran. No other field of the
+  162 slots changes. The capital stands in slot 10 without any hotkey press: run1065, which never selects it, holds
+  the same, and who=1's slot 28 holds one object too. So a rename always finds its city's slot, and "a filled hotkey
+  group" was never needed to reach the arm.
+- **The `priority` claim is still a reading.** Every slot of every player reads `priority 1` on 705 already, before the
+  rename, so nothing was at 0 for the walk to set. The falsifier needs a slot at 0 first: a group filled and then
+  emptied (run29's slot 28), which takes ctrl+digit (parked 3445c).
+
 **`Unit::do_form_change@005e8670`, proposed for `RESIDUE`.** Its one call is `do_job`'s `CHANGE_FORM` arm (`617af0`),
 which runs only for a unit whose current order is a `FormOrder`. **No site in the image makes one.** The evidence:
 - `OrdersMemManager::get_obj` has 47 direct calls and no `jmp` or pointer to it. Each `Unit::add_*_order` pushes its
@@ -5069,7 +5081,7 @@ read, not each one's full dataflow) would make a `FormOrder`. A trace entering `
 
 | function | lobby | action · frame | ini category · field |
 |---|---|---|---|
-| `find_group` | any lobby with a human city and a filled hotkey group, driven | rename the city through its panel | a full dump's `HOTKEYGROUPS` `priority` and `stamp`, the frame after; `[Misc Logging] COMMANDMANAGER=1`'s `process_rename_city` |
+| `find_group` | ~~any lobby with a human city and a filled hotkey group, driven~~ run1064 enters it (above); still owed: a lobby with a slot emptied to `priority 0`, for the bit | rename the city through its panel | a full dump's `HOTKEYGROUPS` `priority` and `stamp`, the frame after; `COMMANDMANAGER=1` prints no `process_rename_city` line |
 | `get_stance_option`, `do_formation`, `process_stance` | GOLDEN §144.3 | as there | as there |
 
 **Residue proposed: 1**, `Unit::do_form_change@005e8670`, for the reason above.
