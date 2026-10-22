@@ -23026,3 +23026,66 @@ SHA-256 `117cd75e72c8e23bdc509d0f25ff4636f75913fbf37f15736c3247c464a87acd`.
 
 Archive `rontrace-run1091.log`, 35,507,072 bytes,
 SHA-256 `38e133565b8eb2c97db8da7573a9f7645cd738713bda24fc10043a2f3227b5fb`.
+
+## run1092 — the golden start at `cover=1` on the click-free pool: the seventeen `ScenarioFuncSet` rows through `!eval`, the cursor pinned off the map, to 720 (2026-10-22, item 3477, `att-3477`)
+
+**What the disk could not answer**: no trace enters the seventeen `ScenarioFuncSet` rows the fiftieth pass struck from
+`RESIDUE` (Loop 3473; AI §296, GOLDEN §144.4, NATIONS §9.3) or `Tribes::find@006ef2d0`. run1088 showed the route:
+`!eval` (`run_cmd` case 0x15) runs one BHS expression against every registered function set. No line on disk sends
+any of the seventeen. `report.py <exe> refs` gives each one `init_funcs` pointer and no twin. `Tribes::find`'s only
+caller without a `conquest_game` test is `disable_type_by_tribe`. The take is run1084's lines to 660, then one `!eval`
+a frame pair from 670 to 704 (`tools/gamelog/coverage/eval3477.cmd`). It was launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1092 --map 14 --end-frame 720 --log-window 600 720 --timeout 3600
+--detail end:LEADERS=2,BUILDS=7,CITIES=5,UNITS=3 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/eval3477.cmd --cover cover=1 --cursor 1400,1000`.
+- Pool lane 1 (`~/wine-ron`). Launched 13:13:21, exited 13:14:59: **98.1 s launch to exit**. `success`, settings
+  restored (5 files), lifecycle verified, 721 frames, `last_frame` 720, not ended early, map 14, seed 12345, PLAYER
+  records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11). DLL `76bc6817…`, `-DRON_AUTOSTART`. 224 GiB free
+  before. Minutes waited on another lane: none.
+- **The cursor pin** (`--cursor`, new with this item: `rontrace.cfg`'s `cursor=X,Y`, `tools/trace/click.h`): one
+  `I_PIN` record on frame 0, installed (refusal 0, 273 renderer entries copied), at (1400, 1000), scale 1.0. That is
+  the empty right half of the bottom panel. The twin carries the same record.
+- **6,445 functions entered.** All eighteen booked functions were entered, each on its own line's frame: `get_difficulty` 670,
+  `can_buy_sell` 672, `find_buy_price` 674, `find_sell_price` 676, `buy_good` 678, `sell_good` 680, `set_base_rate`
+  682, `set_capital` 684, `toggle_infinite_queue` 686, `repeat_orders_enable` 688, `repeat_orders_disable` 690,
+  `set_auto_peasant_level` 692, `enable_production_ai` 694, `disable_combat_ai` 696, `disable_all_unit_ai` 698,
+  `disable_unit_ai` 700, `disable_city_ai` 702, `Tribes::find` 704.
+- **The fields, against the drafting predictions** (`LEADERS=2`, `UNITS=3`, `CITIES=5`):
+  - Block 679: who 0's food `bucket` 1259 → 1359 and wealth 1358 → 1276 (`buy_good`). Block 681: timber 744 → 645 and
+    wealth 1276 → 1320 (`sell_good`). Each includes one tick of income.
+  - Block 683: who 0's `base_rate[0]` 0 → 80.
+  - Napata's `city_flags` stays 18449 over 680..690 (`set_capital`).
+  - Block 693: six units' `stance` 0 → 2 (65 `stance` lines; 58 at 0, 7 at 1 before; 52, 7 and 6 after).
+  - Block 697: who 0's `leader_flags2` 0 → 8. Block 699: → 10. 695 stays 0. Block 701: the frame's first `UNITDATA`
+    (`down_who 0`, `uid 7`) `unit_masks` 0 → 16777216, so `+0x68` is `unit_masks`. Block 703: who 1's `leader_flags2`
+    0 → 16.
+  - **Not predicted**: the economy's dirty bit (`leader_flags & 0x2000000`; `docs/ORDERS.md`) is raised on who 0 for
+    block 696 alone and on who 1 for blocks 696..703. run1084 shows neither to 699. Its writer is not named (parked 3477a).
+- **Against the twin, run1093**: `rngcmp` **721 in common, 721 identical, 0 differing**; `samegame` **121 in common
+  (1..719), 0 differing**. **Against run1084** (the same lines to 660, no pin, no `UNITS=3`): `rngcmp` 701 in common,
+  701 identical, 0 differing. The `LEADERDATA`, `CITY` and `BUILDDATA` blocks agree on all 70 frames 600..669 (280,
+  140 and 910 blocks). The first record that parts is block 679's food `bucket` (1359 against 1259), which is `buy_good`'s.
+  `samegame` over whole blocks parts on 600 because of the `UNITS=3` this take adds.
+- Filed with `filerun.py run1092 golden-scenario-eval-cover1-clickfree`.
+
+Archive `gamelog-run1092-golden-scenario-eval-cover1-clickfree.txt`, 26,472,325 bytes,
+SHA-256 `065787047029588fe538f3e095bdb5cd70d4781a18dc3b12e8ead5658497c150`.
+
+Archive `rontrace-run1092.log`, 9,900,832 bytes,
+SHA-256 `9293d16d98afca2bb33a739f1e761341108756edf9fdfa0e6c572d9c77181e6a`.
+
+**What it holds**: `blind::TRACES`' run1092 (item 3477), `NEVER` 273 → 255.
+
+## run1093 — run1092's `cover=0` twin (2026-10-22, item 3477, `att-3477`)
+
+The same command line and command file at `--cover cover=0`, with the same `--cursor 1400,1000`, in
+`~/ron-golden/run1093`. Pool lane 2 (`~/wine-ron-2`). Launched 13:13:25, exited 13:14:50: **84.8 s launch to exit**.
+`success`, 721 frames, seed 12345, the same two PLAYER records, the same `I_PIN` record. DLL `93335202…`. Filed with
+`filerun.py run1093 golden-scenario-eval-cover0-clickfree`.
+
+Archive `gamelog-run1093-golden-scenario-eval-cover0-clickfree.txt`, 26,472,325 bytes,
+SHA-256 `edc0fa48d2456fe0d05dc151271dc4cff06c6588c2c8edfb7134f2c28e3ed20d`.
+
+Archive `rontrace-run1093.log`, 9,490,528 bytes,
+SHA-256 `15caa546ad029ffcab6e60945c278d47d19ee8365b9c589b2e4654b11fb90784`.

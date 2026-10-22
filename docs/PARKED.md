@@ -9592,13 +9592,15 @@ divergence. Names no score.
   are off the map, water (`& 0x30 == 0x20`) and a `0x4000` cell flag. A staging that wants a unit near a herd should
   add it where the human already stands and walk it there.
 
-## Parked by the next landing, slot NR — reserved
+## Parked by item 3477, 2026-10-22 — the seventeen `ScenarioFuncSet` rows through `!eval`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3477a) **The economy's dirty bit rises under the `!eval` toggles, and its writer is not named.** run1092 (`docs/RUNS.md`)
+raises `leader_flags & 0x2000000` on who 0 for block 696 alone and on who 1 for blocks 696..703. run1084, the same lines
+to 660 without the `!eval`s, shows neither to 699. None of the five AI toggles writes `leader_flags` (each writes
+`+4`, `leader_flags2`). The candidates are `set_auto_peasant_level`'s stance change on 692 re-planning a gather
+(`GATHER` raises the bit, `docs/ORDERS.md`) and the market writes on 678/680, for who 1. The take and its twin agree,
+so this is no residue. Score: none named. It is a value a packet at `RON_STATE_FRAME=695` with the writer watched
+would name, if a word ever needs it.
 
 ## Parked by the next landing, slot NS — reserved
 
