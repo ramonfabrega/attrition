@@ -3772,6 +3772,23 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's.
 
+## Loop, filed 2026-10-22 — the fiftieth tranche's
+
+(3449) **A lane's gate-quote commit can cite what its gate never saw** (the commander's, at 3442's booking): 3442 gated on
+`787e27779`, then wrote its journal's gate section in `2762beecc`, quoting its own earlier red by the function's
+`name@address`; `blind::`'s guard reads the journals, so the quote put a cited, never-entered function on the blind list
+(316 against 315 pinned) and the booking gate was red on `the_blind_list_is_the_pinned_residue` alone — the second commit
+dropped the address. `tools/guard.sh` after the quote (Loop 3277) runs the paperwork guards, not `blind::`. Candidate: the
+lane gate's journal-quote forgiveness re-runs `blind::tests` on the quoting commit, or `guard.sh` carries `blind::` when the
+item is `coverage`. Score: a booking gate not red on a lane's own prose. One reach.
+
+(3450) **A pool button pressed right after a `select` can hit an empty cell** (3443's "for the Loop"): run1058's second
+take pressed on 620, when the card still held the group's options — `UnitOut::make_options`, which adds the unit's spells,
+first ran on 621 — and a second press on 624 hit To Arms. What builds the options (the 620 click reaching the window, or
+frames passing after the `select`) is not established. Candidate: the frame's coverage rows say a button press is a click
+on an empty cell first and the press four frames later; 3445's brief carries it as a note. Score: a button take not spent
+on an empty cell. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
@@ -9298,13 +9315,13 @@ words and edits nothing here; a refill lands when two remain.
   (`0/9`'s `ATTACKGROUNDORDER` under a deploy `CASTORDER`) and run1030's block 802 (`0/7` at (2712, 14904)) are the
   first values such a word would read.
 
-## Parked by the next landing, slot NA — reserved
+## Parked by item 3443, 2026-10-22 — the first human trade route on disk
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3443a. run1060 is a diff source for `Group::action_trade@00701cc0`, which this crate does not wire.**
+  `crates/sim/src/trade_view.rs` writes the steps (item 3381) and says "Not wired": `FinishInsertView::action_trade` is
+  an empty stub. run1060 enters it on 650, from a human Caravan's right-click on a second city. Its dump carries `0/7`'s
+  `TRADEORDER` from 652 to 910 (`ox 2007`, `oxx 2000`, `started 1`, a `MOVEORDER` to (7800, 30840)), with `GOODS=3` and
+  `CITIES=5` beside it. Wiring `action_trade` could be pinned against it frame for frame. Names no score.
 
 ## Parked by item 3428, 2026-10-21 — the playback's end and the recordings corpus
 
