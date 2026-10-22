@@ -9618,13 +9618,24 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NP — reserved
+## Parked by item 3471, 2026-10-22 — the console's `eval` and `netcmd`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3471a) **`CommandPackage::process_console_cmd@00943f30` cannot be entered by the shipped build**: a `RESIDUE`
+proposal for the pass. Its one caller is `CommandPackage::process`'s case `'N'`. The one writer of an `'N'` command is
+`CommandManager::issue_console_cmd@00940fd0`, which calls `add_command(&local_package, cmd, 0x209)` (`push 0x209` at
+`00941048`). `CommandPackage::add_command@0094bae0` returns 0 when `size + len > 0x200` (`cmp $0x200` at `0094baf8`),
+and `size` is never negative. So every `netcmd` is dropped before it is packaged. run1088 entered
+`issue_console_cmd` on 640 and printed no `process_command_cmd` line at `COMMANDMANAGER=2`. Even if it were
+packaged, `run_cmd` case 0xf issues `local_48`, which is the args' first token (`TokenString::tokenize` on `" ,\t"`,
+`String::search` is `wcscspn`), so `netcmd resource who=0 food +1000` would have replicated only the bare `resource`.
+Score: blind, `NEVER` open → residue (one row). One reach: the pass's.
+
+(3471b) **`ScenarioFuncSet::set_bonus_cap` bounds the type index at 0x32, not 6**: `set_base_rate` refuses
+`uVar3 >= 6`, but `set_bonus_cap` takes any `types.list` index below 50 into `bonus_cap[7]` at `+0x918`. A
+scenario's `set_bonus_cap(who, "<a unit name in the first fifty>", n)` writes past the array into
+`move_orders_issued`, `column_orders_issued`, `active` and on. run1088's `"Wealth"` (index 2) wrote in bounds. Not a
+skirmish path. A port of the scripting layer either mirrors the overrun or refuses it, and that is a deliberate
+divergence. Names no score.
 
 ## Parked by the next landing, slot NQ — reserved
 

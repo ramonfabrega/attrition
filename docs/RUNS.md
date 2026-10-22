@@ -22851,3 +22851,57 @@ Archive `rontrace-run1084.log`, 10,021,120 bytes,
 SHA-256 `8c77e4dee0b36e2529f0134a4c2fd646f9c1bfe3f1cdcea4a43be033b4cb1b01`.
 
 **What it holds**: `blind::TRACES`' run1084 (item 3464), `NEVER` 280 → 278 (279 on the tree merged with `b41737e50`, whose Loop 3473 cites `Compiler::eval_command`). Run 1085 was not used.
+
+## run1088 — the coverage pair: the console's `eval` and `netcmd`, at `cover=1` on the click-free pool, 594..700 (2026-10-22, item 3471, `att-3471`)
+
+**What the disk could not answer**: no trace enters `Compiler::eval_command@009befe0`,
+`MathUtilFuncSet::rand_real@009e18b0`, `ScenarioFuncSet::set_bonus_cap@009fbd60`, `ObjectData::in_a_ship@006440c0` or
+`CommandPackage::process_console_cmd@00943f30`, and no gamelog in the archive holds a `process_command_cmd` line. The
+first four sit behind the console's `eval` (`run_cmd` case 0x15, the console-only switch). The last sits behind
+`netcmd` (case 0xf). `report.py <exe> refs` gives each one caller or pointer, and none of them has a byte-identical twin.
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1088 --map 18 --end-frame 700 --timeout 2400
+--ai-tribe 23 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --log-window 594
+701 --detail end:MISC,UNITS=3,LEADERS=9 --detail misc:COMMANDMANAGER=2 --cmd-file
+tools/gamelog/coverage/eval3471.cmd --cover cover=1`. That is run1080's lobby, without `--no-ffwd` and without the keys.
+- Pool lane 1 (`~/wine-ron`). Launched 09:43:39, exited 09:50:19: **400.7 s launch to exit**. `success`, 701 frames,
+  `last_frame` 700, seed 12345, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 23). DLL
+  `62156b0e…`, `-DRON_AUTOSTART`. 194 GiB free before. Minutes waited on another lane: none.
+- **6,655 functions entered.** These are the four `NEVER` rows:
+  - `Compiler::eval_command` on 610, with `Compiler::eval_run`;
+  - `MathUtilFuncSet::rand_real` on 610, a trampolined function. Its `rand_real` draw record is draw 0 of 610, under
+    `ScriptFuncSet::call_func+0x401 < Compiler::eval_run+0x24a < Compiler::eval_command+0x12c`;
+  - `ScenarioFuncSet::set_bonus_cap` on 620;
+  - `ScenarioFuncSet::is_on_transport` and `ObjectData::in_a_ship` on 630.
+
+  The `!` lines reached `run_cmd`'s first switch, and the tracer kept `"` and `(` as written. The plain `netcmd`
+  on 640 entered `CommandManager::issue_console_cmd` and no `process_console_cmd`, and printed no `process_command_cmd`
+  line. The 0x209-byte command does not fit `add_command`'s 0x200 limit (parked 3471a).
+- The values. Leader 0 (who 0) has `bonus_cap[scan]` 0, 0, 0 on block 620, then the third slot (Wealth,
+  `types.list[2]`) is **200 from block 621**. `in_a_ship`'s return is on no dump: the Hoplite `0/15` is on land.
+  The food bucket did not move, because nothing was processed.
+- Against the twin run1089 (the same command file at `cover=0`, so every input is shared), `rngcmp.py`: **701 in
+  common, 701 identical, 0 differing**. `samegame.py gamelog-run1089-… gamelog-run1088-… --from 600`: **182 in
+  common (1..700), 0 differing**. Against run1080, `rngcmp`: 701 in common, 608 identical, first differing 605. That
+  is after run1080's `604 add general`, the first input this take does not share.
+- Filed with `filerun.py run1088 eastindies-persian-alltech-console-eval-netcmd-window-594-700-cover1`.
+
+Archive `gamelog-run1088-eastindies-persian-alltech-console-eval-netcmd-window-594-700-cover1.txt`, 178,057,005 bytes,
+SHA-256 `d3271f20710be8dd4ae0b8d9fa7910aec61bf853337d4eed8f7a2daaa9d4d54b`.
+
+Archive `rontrace-run1088.log`, 16,442,880 bytes,
+SHA-256 `4e201e4b3dd68925fc40f7b484eadb23fdace23e5f3df820b0f2a8fe5bb2f667`.
+
+**What it holds**: `blind::TRACES`' run1088 (item 3471), `NEVER` 278 → 274.
+
+## run1089 — run1088's `cover=0` twin (2026-10-22, item 3471, `att-3471`)
+
+The same command line and command file at `--cover cover=0`, `~/ron-golden/run1089`. Pool lane 2 (`~/wine-ron-2`).
+Launched 09:44:04, exited 09:50:25: **381.2 s launch to exit**. `success`, 701 frames, seed 12345, the same two
+PLAYER records. DLL `7ab826ef…`. Filed with `filerun.py run1089
+eastindies-persian-alltech-console-eval-netcmd-window-594-700-cover0`.
+
+Archive `gamelog-run1089-eastindies-persian-alltech-console-eval-netcmd-window-594-700-cover0.txt`, 178,057,003 bytes,
+SHA-256 `b8492f6d8ca185ef7d637fce3a1107c6c3ea171174d65711b9d5f378597a0888`.
+
+Archive `rontrace-run1089.log`, 16,253,312 bytes,
+SHA-256 `b5dcb54e99ab4314d7577c8f5d9e1eb3dd05aabad34f1af5c4480c5d00fb7354`.
