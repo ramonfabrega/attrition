@@ -3804,6 +3804,17 @@ a popup's Return and Escape need `@key` **and** `@char` — the key-down alone s
 frame's row says a menu or popup stanza names `@after` and pairs `@key` with `@char` for Return and Escape. Score: a menu
 take not spent on a frozen frame. One reach.
 
+(3457) **A carrier's build line is the plane's unit type, not 661** (3446's "for the Loop"): GOLDEN §144.3's row and the
+queue's item both wrote `@spell … 661`, which takes the spell arm and queues nothing; the cancel is `@unqueueunit`, not
+`@unqueue` (3446 built it). Candidate: a booking that names a craft for a unit-type button reads `Options::do_spell`'s
+substitution first — a row of the brief checklist. Score: a booked staging that queues what it names. One reach.
+
+(3458) **The waiter said `LANDED` for a draft pushed before its clear** (the commander's, at 3446): att-3446 pushed its draft
+(`84f26c7d1`) on a `DEEP` answer and `lanewait.py` exited `LANDED att-3446` — its `DRAFT` arm (Loop 3368) keys on the session
+having moved, and the clear had not fired yet; the row then ended `blocked`, which takes no clear (1671), and a message
+woke it. Candidate: the waiter reads `ccc clear <lane> --status` and calls a push under an armed clear `DRAFT`. Score: no
+commander turn spent on a false landing. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
