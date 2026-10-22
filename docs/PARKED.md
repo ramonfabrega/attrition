@@ -3772,6 +3772,16 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's.
 
+## Loop, filed 2026-10-22 — the fiftieth tranche's
+
+(3449) **A lane's gate-quote commit can cite what its gate never saw** (the commander's, at 3442's booking): 3442 gated on
+`787e27779`, then wrote its journal's gate section in `2762beecc`, quoting its own earlier red by the function's
+`name@address`; `blind::`'s guard reads the journals, so the quote put a cited, never-entered function on the blind list
+(316 against 315 pinned) and the booking gate was red on `the_blind_list_is_the_pinned_residue` alone — the second commit
+dropped the address. `tools/guard.sh` after the quote (Loop 3277) runs the paperwork guards, not `blind::`. Candidate: the
+lane gate's journal-quote forgiveness re-runs `blind::tests` on the quoting commit, or `guard.sh` carries `blind::` when the
+item is `coverage`. Score: a booking gate not red on a lane's own prose. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the

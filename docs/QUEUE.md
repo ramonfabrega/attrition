@@ -19,9 +19,9 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
   `NEVER` 315 (321 at the base), residue 81, open 234** (`Blind:` pinned); it moves by trace, on the pool.
 - **The pool carries the click layer** (3437's `@click`, 3442's `@key`; `docs/LOOP.md`, "The brief"): the queue lane holds no
   click-layer need — only the menu's own code (3429b) and a lobby the autostart cannot start; its retirement is 1570's, Ramon's.
-- **Lanes: att-3443, att-3444.** Next 3449, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
+- **Lanes: att-3443, att-3444.** Next 3450, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
   and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c.
-- **Fable backlog: 12 Loop items** (3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
+- **Fable backlog: 13 Loop items** (3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
