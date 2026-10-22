@@ -3821,7 +3821,9 @@ retake the pool does not spend by hand. One reach.
 the Loop"): run1029 entered `TypeData::get_desc_parsed` on 511 through `MouseOver::set_good`, the tooltip the pool's idle
 cursor raised over a resource, and `blind::`'s guard deleted the row (residue 80 → 79). A residue claim is about the
 game's inputs; the pool adds one nobody chose. Candidate: the pool parks its cursor off the map at autostart, or the
-residue table names the interface rows a hover reaches. Score: the `residue` count stays a claim about the game. One reach.
+residue table names the interface rows a hover reaches. Score: the `residue` count stays a claim about the game. One reach. **3437's "for the Loop"**, the same row: the pool's resting cursor feeds about three mouse events a frame (2,389 by
+run1050's frame 624); `@cursor` (`tools/trace/click.h`) pins the position the game reads, so a staged `cursor=X,Y` in
+`rontrace.cfg` would hold it for every pool take — this row's candidate as one key.
 
 (3430) **A captures-owed row names the detail level that prints its field** (3417's "for the Loop"): VISION §8's row
 asked `LEADERS=1` for `treaties[1]`, which the logger prints only at `LEADERS>=3`, and the lane spent a retake learning
