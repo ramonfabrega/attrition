@@ -200,23 +200,104 @@ fn hash(bytes: &[u8]) -> u64 {
         (h ^ u64::from(*b)).wrapping_mul(0x100000001b3)
     })
 }
+/// The sources an entry's value is a function of: the parser that turns a
+/// frame's text into an [`Oracle`] (`gamelog.rs`, `leader.rs`'s dump side,
+/// `indexed.rs`'s `frame_from_log`), the codec that writes it
+/// (`oracle/codec.rs`, `owned_codec.rs`, this file's `pack`), and the
+/// readers that hand the parser its text (`indexed.rs`, `source.rs`,
+/// `archive.rs`). Each is read through [`keyed`], not whole.
+const SCHEMA_SOURCES: &[(&str, &str)] = &[
+    ("gamelog.rs", include_str!("../gamelog.rs")),
+    ("leader.rs", include_str!("leader.rs")),
+    ("oracle.rs", include_str!("oracle.rs")),
+    ("oracle/codec.rs", include_str!("oracle/codec.rs")),
+    ("owned_codec.rs", include_str!("../capture/owned_codec.rs")),
+    ("indexed.rs", include_str!("../capture/indexed.rs")),
+    ("source.rs", include_str!("../capture/source.rs")),
+    ("archive.rs", include_str!("../capture/archive.rs")),
+];
+/// The civilian readers' sources, read the same way.
+const CIVILIAN_SOURCES: &[(&str, &str)] = &[
+    ("golden.rs", include_str!("golden.rs")),
+    (
+        "golden/observations.rs",
+        include_str!("golden/observations.rs"),
+    ),
+    ("ammo.rs", include_str!("ammo.rs")),
+];
 fn schema() -> u64 {
     static SCHEMA: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
-    *SCHEMA.get_or_init(|| {
-        hash(
-            concat!(
-                include_str!("../gamelog.rs"),
-                include_str!("leader.rs"),
-                include_str!("oracle.rs"),
-                include_str!("oracle/codec.rs"),
-                include_str!("../capture/owned_codec.rs"),
-                include_str!("../capture/indexed.rs"),
-                include_str!("../capture/source.rs"),
-                include_str!("../capture/archive.rs")
-            )
-            .as_bytes(),
-        )
-    })
+    *SCHEMA.get_or_init(|| schema_of(SCHEMA_SOURCES))
+}
+fn schema_of(sources: &[(&str, &str)]) -> u64 {
+    let mut text = String::new();
+    for (_, source) in sources {
+        text.push_str(&keyed(source));
+    }
+    hash(text.as_bytes())
+}
+/// The column-0 items in a keyed source that no entry's value depends on:
+/// `leader.rs`'s crate side ([`super::leader::rows`],
+/// [`super::leader::region_rows`]) and its widening ledger, which change on
+/// nearly every widening and never touch what [`super::leader::theirs`]
+/// reads off a block.
+const CONSUMERS: &[&str] = &[
+    "pub(crate) fn rows(",
+    "pub(crate) fn region_rows(",
+    "pub(crate) const UNMODELLED:",
+];
+/// A source as the generation key reads it (Loop 3382): every line but
+/// blank ones, comments, `#[test]` functions, `mod …tests` modules and the
+/// [`CONSUMERS`]. None of these can change a parsed [`Oracle`] or its bytes,
+/// and before this an edit to any of them turned a 1.6 GB generation over
+/// — the compared coverage pin went from 121 s warm to 232 s cold. An
+/// item is skipped from its first line to the next column-0 line that
+/// closes it (`}`, `]`, `)`), or to its own header when that is one line;
+/// rustfmt is what makes column 0 a reliable item boundary.
+fn keyed(source: &str) -> String {
+    let mut out = String::with_capacity(source.len());
+    // 0: keeping; 1: after `#[test]`, before the item's header; 2: in a
+    // skipped item's body.
+    let mut skip = 0u8;
+    for line in source.lines() {
+        let line = line.trim_end();
+        let column0 = !line.is_empty() && !line.starts_with(char::is_whitespace);
+        match skip {
+            1 if column0 && !line.starts_with('#') && !line.starts_with("//") => {
+                skip = if line.ends_with('}') || line.ends_with(';') {
+                    0
+                } else {
+                    2
+                };
+                continue;
+            }
+            1 => continue,
+            2 => {
+                if column0 && line.starts_with(['}', ']', ')']) {
+                    skip = 0;
+                }
+                continue;
+            }
+            _ => {}
+        }
+        if line == "#[test]" {
+            skip = 1;
+            continue;
+        }
+        if (line.starts_with("mod ") && line.ends_with("tests {"))
+            || CONSUMERS.iter().any(|c| line.starts_with(c))
+        {
+            skip = 2;
+            continue;
+        }
+        let code = line.trim_start();
+        if code.is_empty() || code.starts_with("//") {
+            continue;
+        }
+        out.push_str(line);
+        out.push('\n');
+    }
+    out
 }
 /// The cache directory beside a dump; every generation is a directory in it.
 pub const CACHE: &str = ".ron-oracle-v1";
@@ -301,16 +382,7 @@ pub fn gc_tree(root: &std::path::Path) -> std::io::Result<(usize, usize)> {
 }
 fn civilian_schema() -> u64 {
     static SCHEMA: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
-    *SCHEMA.get_or_init(|| {
-        hash(
-            concat!(
-                include_str!("golden.rs"),
-                include_str!("golden/observations.rs"),
-                include_str!("ammo.rs")
-            )
-            .as_bytes(),
-        )
-    })
+    *SCHEMA.get_or_init(|| schema_of(CIVILIAN_SOURCES))
 }
 #[cfg(test)]
 fn identity(source: &IndexedCapture, at: usize, include_regions: bool) -> String {
@@ -864,4 +936,74 @@ fn gc_tree_finds_every_cache_and_never_follows_a_link() {
     assert_eq!(gc_tree(&root).unwrap(), (2, 0));
     std::fs::remove_dir_all(root).unwrap(); // exclusively this test's authored files
     std::fs::remove_dir_all(outside).unwrap(); // exclusively this test's authored files
+}
+
+/// Loop 3382: an edit to a test, a comment, or `leader.rs`'s crate side
+/// leaves the generation where it was; an edit to the parser or the codec
+/// turns it over.
+#[test]
+fn the_schema_key_moves_on_the_parser_and_the_codec_only() {
+    let leader = include_str!("leader.rs");
+    let codec = include_str!("oracle/codec.rs");
+    let key = |l: &str, c: &str| schema_of(&[("leader.rs", l), ("oracle/codec.rs", c)]);
+    let base = key(leader, codec);
+    let rows = "pub(crate) fn rows(loaded: &crate::load::Loaded, built: &Built, who: usize) -> Vec<Row> {\n";
+    let theirs =
+        "pub(crate) fn theirs(block: &Block<'_>) -> std::collections::BTreeMap<String, i64> {\n";
+    assert!(leader.contains(rows) && leader.contains(theirs));
+    let consumer = leader.replace(rows, &format!("{rows}    let _crate_side = 1;\n"));
+    let commented = leader.replace(theirs, &format!("{theirs}    // a note, no code\n"));
+    let tested = format!("{leader}\n#[test]\nfn added() {{\n    assert!(true);\n}}\n");
+    let one_line = format!("{leader}\n#[test]\nfn empty() {{}}\n");
+    let unmodelled = leader.replace(
+        "    (\"score\", \"no score is kept\"),\n",
+        "    (\"score\", \"no score is kept\"),\n    (\"extra\", \"a ledger line\"),\n",
+    );
+    assert_ne!(unmodelled, leader);
+    for (what, edited) in [
+        ("rows", &consumer),
+        ("a comment", &commented),
+        ("a test", &tested),
+        ("a one-line test", &one_line),
+        ("UNMODELLED", &unmodelled),
+    ] {
+        assert_eq!(key(edited, codec), base, "an edit to {what} moved the key");
+    }
+    let parser = leader.replace(theirs, &format!("{theirs}    let _parser = 1;\n"));
+    assert_ne!(key(&parser, codec), base, "a parser edit must move the key");
+    let after_test = format!("{one_line}\nfn after() {{}}\n");
+    assert_ne!(
+        key(&after_test, codec),
+        base,
+        "code after a test is still keyed"
+    );
+    let wire = codec.replacen(
+        "use std::collections::BTreeMap;\n",
+        "use std::collections::BTreeMap;\nconst _WIRE: u8 = 1;\n",
+        1,
+    );
+    assert_ne!(wire, codec);
+    assert_ne!(key(leader, &wire), base, "a codec edit must move the key");
+    // What the real sources keep: the parser's entry points, never the
+    // crate side or a test.
+    let kept = keyed(leader);
+    assert!(
+        kept.contains("pub(crate) fn theirs(") && kept.contains("pub(crate) fn region_theirs(")
+    );
+    assert!(
+        !kept.contains("fn rows(")
+            && !kept.contains("fn region_rows(")
+            && !kept.contains("mod tests")
+    );
+    let kept = keyed(include_str!("../gamelog.rs"));
+    for entry in [
+        "fn parse_eager(",
+        "pub fn groups(",
+        "fn leader_block(",
+        "pub(crate) mod reads {",
+    ] {
+        assert!(kept.contains(entry), "gamelog.rs keeps {entry}");
+    }
+    assert!(keyed(include_str!("oracle.rs")).contains("fn pack("));
+    assert!(!keyed(include_str!("oracle.rs")).contains("fn the_schema_key_moves"));
 }
