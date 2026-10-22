@@ -226,6 +226,12 @@ pub const TRACES: &[&str] = &[
     "rontrace-run1049.log",
     "rontrace-run1055.log",
     "rontrace-run1056.log",
+    // Item 3442: chapter fourteen's lobby (GOLDEN §22) at `cover=1` on the
+    // click-free pool to 1150, run210's lines with its `740 @form` sent as
+    // three bound keys through the tracer's `@key` (`tools/trace/key.h`) and
+    // the group selected by `736 select 6 who=0` (`docs/RUNS.md` run1057);
+    // run210's game on every frame before 736 (rngcmp 742 identical).
+    "rontrace-run1057.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -523,6 +529,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `BuildTypeData::is_civilian@00639930` beside it, and
 /// `GroupOut::issue_swarm_around@0070afc0` on 796 (a Citizen's
 /// right-click on its own Barracks).
+/// **317** with run1057 (item 3442: the pool's keystroke, `@key` through
+/// `SysMessageHandler::OnKey`, three keys bound by `--bindkey`):
+/// `Options::do_formation@007215b0` on 740 (FORM_E_RIGHT),
+/// `GroupData::get_form_option@0070beb0` on 800 (OPTION_FORM's "next",
+/// under `Group::action_form`), and `Options::do_rotate@0071dfd0` with
+/// `GroupData::get_unit@0070cc90` (the rotation's −2 arm) on 860.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
 #[rustfmt::skip]
@@ -546,8 +558,8 @@ pub const NEVER: &[u32] = &[
     0x006b_1ba0, 0x006b_22e0, 0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560,
     0x006b_5590, 0x006b_76a0, 0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_18a0, 0x006d_2b10, 0x006d_3650, 0x006d_5230, 0x006d_6660, 0x006d_6740,
     0x006d_6e80, 0x006d_a740, 0x006d_ab50, 0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x006f_98a0, 0x0070_0010, 0x0070_1cc0, 0x0070_20c0,
-    0x0070_84c0, 0x0070_beb0, 0x0070_cc90, 0x0070_f8a0, 0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_d7a0, 0x0071_dfd0,
-    0x0072_15b0, 0x0072_16b0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880,
+    0x0070_84c0, 0x0070_f8a0, 0x0071_23f0, 0x0071_3390, 0x0071_37f0, 0x0071_3bb0, 0x0071_4d00, 0x0071_d7a0,
+    0x0072_16b0, 0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880,
     0x0073_bb20, 0x0073_c1b0, 0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_c7e0, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060,
     0x0074_1a40, 0x0074_1d50, 0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x007c_3810, 0x0081_2d20, 0x0081_34d0, 0x0082_c520, 0x0084_2050,
     0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0, 0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060,
