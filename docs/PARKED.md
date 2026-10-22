@@ -9489,13 +9489,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NL — reserved
+## Parked by item 3456, 2026-10-22 — the team lobby: a ping and a help taunt to a computer ally
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3456a. The ping's army arm needs an ally with a manned army.** run1077 entered `Leader::action_ping@006d18a0` on
+  5422, 11 frames after the help taunt (leader 1's `last_taunt[0]` 16, `taunt_frame[0]` 5411), and both taunt tests
+  passed: `Armies::find_useful_army` was entered. But every army of both computers reads `num_captains 0` on 5412,
+  5423 and 5703 (difficulty 0, minute six), so it returns −1. `Army::send_here@006f98a0`'s ping arm, `human_frame`
+  0xa8c and the ally's `MOVE_TO` stay unreached, and so does ARMY §26's falsifier (a ping with no taunt moves nothing).
+  A retake needs the ally's army to hold a captain at the ping: a later frame, `--profile DIFFICULTY=…`, or `add`ed
+  soldiers for who=1. Whether a console unit joins an army is not read. `send_here` is also 3455's word.
+- **3456b. Row 11's offer is not made by 5710.** run1077's computers made no offer to each other: every `offers` and
+  `counteroffer` is 0 on 5703, and `Leader::action_respond` is not entered. AI §296 row 11 stays a prediction. A longer
+  three-player game, or one at higher difficulty, is the next take. Read `Leader::diplomacy`'s offer predicate
+  against run1077's leader record first, before booking that game.
 
 ## Parked by the next landing, slot NM — reserved
 

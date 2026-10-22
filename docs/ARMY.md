@@ -2735,9 +2735,19 @@ frames that leaves it at 0 also kills the claim.
 
 | function | lobby | action · frame | ini category · field |
 |---|---|---|---|
-| `action_ping` | a team lobby with a computer ally (`docs/AI.md` §296 row 12's, none on disk), driven | the help taunt to the ally, then a ping inside 225 frames; and once a ping with no taunt | the ally army's `human_frame` and its `MOVE_TO` point; `[Misc Logging] COMMANDMANAGER=1`'s `process_ping who x y` |
+| ~~`action_ping`~~ entered on 5422 by run1077 (item 3456, below) | a team lobby with a computer ally (`docs/AI.md` §296 row 12's, none on disk), driven | the help taunt to the ally, then a ping inside 225 frames; and once a ping with no taunt | the ally army's `human_frame` and its `MOVE_TO` point; ~~`[Misc Logging] COMMANDMANAGER=1`'s `process_ping who x y`~~ (`process_ping` writes that line only to `SyncLogger::logToMemory`, never to the gamelog: no dump prints it) |
 | `go_to_city`, `use_scouts`, `use_spies` | `docs/AI.md` §296 rows 8 and 2 | as there | as there |
 
 **Residue proposed: none.**
 
-**Coverage.** Every claim of §26 is reading-only.
+**run1077** (item 3456, `docs/RUNS.md`). Great Lakes with `--profile PLAYERS=2`, so a human and two computers; `ally
+1` on 100. A help taunt to the ally on 5410: the chat to allies, "11" (`help_here`, id `HELP`), then Return. Pings on
+5422 and 5702, both on screen point (960, 540). On 5411 leader 1's `last_taunt[0]` is **16** and `taunt_frame[0]` is
+**5411**. Leader 2 is at war with both and stays at 0. `Taunts::check_for_order`, `Leader::process_taunt`,
+`receive_ping`, `action_ping` and `Armies::find_useful_army` are entered, so both taunt tests passed on 5422. **The army
+arm still cannot run here.** Every army of both computers reads `num_captains 0` (status 17, no groups) on 5412, 5423
+and 5703. So `find_useful_army` returns −1, `send_here` is not called and `human_frame` stays 0. The falsifier owes a
+lobby whose ally has a manned army: a later frame, or a difficulty above 0.
+
+**Coverage.** The taunt write (`last_taunt`, `taunt_frame`) is dump-backed by run1077. The army arm, and a ping with no
+taunt moving nothing, are reading-only.

@@ -2902,6 +2902,13 @@ is 0..23; the receipt requires the initial PLAYER records to show that
 nation as AI player 1 and human Nubians as player 0. This is the current
 pair's fixed-human contract, not a general multiplayer lobby editor.
 
+**A third seat is `--profile PLAYERS=2`** (item 3456, run1077). `PLAYERS` is GameInfo option 3
+(`gameinfo_strings + 3`). It is 1 in both of the profile's game blocks in every lobby pinned before this, and the
+lane's profile already holds a computer in every one of `LAST_SLOT1..7`. So `set_lobby` writing 2 starts a human and
+two computers, with no runner change. The receipt's PLAYER records read who 0 (flags 7, tribe 4), who 1 (tribe 11) and
+who 2 (tribe 2). Each computer's nation is the profile's own; `--ai-tribe` still sets slot 1's only. This is the
+click-free half of 1570: the queue lane's last named lobby starts here.
+
 `--dump-all-start` sets `InitialDump=1`, `DUMP_ALL=1` and Start Game
 `WORLD=6`, Misc Logging `CHECKSUM=2` and `check_all_level=14`, with a
 required `[0,2)` log window. It refuses a wider or later
