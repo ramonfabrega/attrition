@@ -3820,6 +3820,17 @@ Loop"): a shift-queued `@buildadd`, or any `@build`, on the golden start fails s
 Candidate: a brief that stages a site on the golden start names its `library` line, as chapter eighteen's does — a row of
 the coverage frame. Score: a staged site that is built. One reach.
 
+(3465) **115 of the 208 open blind rows have no reference in the image** (the commander's drafting subagent, on `18c640a38`):
+`tools/trace/report.py <exe> refs -` over `NEVER` minus `RESIDUE`: 115 dead, 39 called, 54 reached only through a pointer.
+Families: `GameAccessConst::get_scary_*` (14); `Game::is_team_game`, `is_raining`, `is_deathmatch`, `is_infinite`, `is_nomad`,
+`is_never_war`, `is_sandbox`; 18 of 24 `*::walk_data` (Wonder, Fort, OilWell, Supply, Hero, Caster, Herd, Herds, Lands,
+CaravanLink, the Unbuilt* three, Search, PathFinder, W/TCoordData, Cliff — a `@dumpall` walk enters the containers, and the
+element walks are inlined in them, run1065); `cast_jam_radar`, `cast_rally`, `Wonder::close`, `Supply::deplete`; the
+Signposts/Mountains/TerrainVis/TerrainMap getters. Most are cited only by the 2026-10-13 sweep journals (1694–1942), after the
+09-27 scan that built `RESIDUE`. Candidate: the pass ratifies them into `RESIDUE` by family, each with the scan's line, so open
+208 → 93 and coverage items are booked against the 93. The scan's output is the commander's scratch, not on file. Score:
+`Blind:` open counts what a capture can enter. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
