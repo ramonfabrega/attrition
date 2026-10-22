@@ -23132,3 +23132,64 @@ SHA-256 `fc90de243fc54343e6ecb6c7e3280c46d3df1bb27ea20e34d531482710a2fa71`.
 
 Archive `rontrace-run1095.log`, 13,553,696 bytes,
 SHA-256 `9bc1eb057732ba9d3c0a34b07d9e4c1da596482fa18941502657c40f9679e4a9`.
+
+## run1097 — the golden start at `cover=1` on the click-free pool, regenerated mid-game by `!mapstyle`/`!mapgen`: a native fault inside the first `mapgen` (2026-10-22, item 3480, `att-3480`)
+
+**What the disk could not answer**: no trace enters `TerrainOut::check_for_diagonal@008595f0` or the `int` overload
+`WorldData::is_valid@00471170`. `create_transition_renderables@00862c60` is entered on frame −1 by every pool take, and
+every capture on disk is map 7, 14 or 18 (and 9, uncovered). No line on disk sends `mapstyle` or `mapgen`. The take is
+`tools/gamelog/coverage/mapgen3480-start.cmd`: `0 !ai off`, then `!mapstyle N` and `!mapgen quick` for styles 21, 13, 20
+and 11 on 5/6, 15/16, 25/26 and 33/34, each `mapgen` preceded by `@after 2000 key 19` under `--bindkey OPTION_PAUSE=19`.
+Every `mapgen` ends in `TurnControl::set_pause(1)` (`run_cmd@007d6a70.c:4354`), and a bare `mapgen` seeds from
+`timeGetTime()` (`:4292`). It was launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1097
+--map 14 --end-frame 40 --log-window 0 40 --timeout 900 --detail end:LEADERS=2,BUILDS=7,CITIES=5,UNITS=3 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --cmd-file
+tools/gamelog/coverage/mapgen3480-start.cmd --cover cover=1 --cursor 1400,1000 --bindkey OPTION_PAUSE=19`.
+- Pool lane 2 (`~/wine-ron-2`). Launched 13:51:47, exited 13:52:31: 44.3 s, **exit code 5**, `success: false`. The
+  receipt refused on `extra lifecycle or fault records`; settings restored (5 files). **Frames 0..6 only**, no
+  `gamelog.txt`. `wine-died.log`: `Unhandled page fault on read access to 00004ECD`.
+- The trace: `I_CMD` for lines 0 (`!ai off`) and 1 (`!mapstyle 21`), the `I_AFTER` queue of line 2 on frame 6, then
+  native-fault records (INFO 176/177/178; the first names 0x657093, inside `ObjectsOut::sort_trees@00656c70`). There is
+  **no `I_CMD` for line 3**: the fault is inside `mapgen`'s own `parse_cmd`, issued from `do_frame`'s head. Mid-game
+  `mapgen` is refused on this channel.
+- 5,896 functions entered. `Setup::build_game` and `create_transition_renderables` are entered on −1.
+  `check_for_diagonal` and `is_valid@00471170` are not. A cover stub records a first entry only, so whether
+  `mapgen` re-entered `create_transition_renderables` before the fault is not told. No `NEVER` row is entered.
+- Not filed: there is no dump. `rontrace.log` stays under `~/ron-golden/run1097/map-14`, 8,602,720 bytes, SHA-256
+  `d5ee4cbb8a55084d7f3ec1543f0096bcb843a1a6a9e40dfb7c63e2398cd52bb5`.
+
+## run1098 — Nile Delta (style 21) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3480, `att-3480`)
+
+**What the disk could not answer**: as run1097. This is the fallback, one `--map N` take a style, because a mid-game
+`mapgen` faults. `tools/gamelog/coverage/diagonal3480-style.cmd` (`0 !ai off`), launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1098 --map 21 --end-frame 36 --timeout 900 --detail
+end:LEADERS=2,BUILDS=7,CITIES=5,UNITS=3 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--cmd-file tools/gamelog/coverage/diagonal3480-style.cmd --cover cover=1 --cursor 1400,1000`. The runner refuses
+`--end-frame` below 36, so the booked `--end-frame 5` is 36.
+- Pool lane 2. Launched 13:54:26, exited 13:55:16: **50.2 s**. `success`, lifecycle verified, `map_verified`, map
+  style 21, 37 frames, `last_frame` 36, seed 12345, PLAYER who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 11).
+  223 GiB free before. Minutes waited on another lane: none.
+- 6,302 functions entered. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and
+  `is_valid@00471170` are not**, and no `NEVER` row is.
+- No twin was taken, because the three reserved runs went to styles. Nothing is pinned.
+
+Archive `gamelog-run1098-niledelta-cover1-clickfree-diagonal.txt`, 14,067,581 bytes,
+SHA-256 `7d022aa645cbf8a07033861251ad2328a24855ea40b2be6999937343a00556c9`.
+
+Archive `rontrace-run1098.log`, 8,779,360 bytes,
+SHA-256 `91986993fa28084e574d6320a4fc75cfb315180f531747dc00b970772df0d119`.
+
+## run1099 — Amazon Rainforest (style 8) at `cover=1` on the click-free pool, to 36: `check_for_diagonal` not entered (2026-10-22, item 3480, `att-3480`)
+
+**What the disk could not answer**: as run1098. This is a tileset no trace has drawn (`jungle`, `tropical`,
+`tropical_wet`; `mapstyles/AMAZON.xml`). It is run1098's command with `--map 8` and output `~/ron-golden/run1099`.
+- Pool lane 2. Launched 13:56:16, exited 13:56:59: **43.6 s**. `success`, lifecycle verified, map style 8, 37
+  frames, `last_frame` 36, seed 12345. Minutes waited on another lane: none.
+- 6,293 functions entered. `create_transition_renderables` is entered on −1. **`check_for_diagonal` and
+  `is_valid@00471170` are not**, and no `NEVER` row is. No twin, nothing pinned.
+
+Archive `gamelog-run1099-amazon-cover1-clickfree-diagonal.txt`, 12,289,580 bytes,
+SHA-256 `179fb812919d81609acfa81f8761066d0ae3f9100506222386381deec84d62dd`.
+
+Archive `rontrace-run1099.log`, 9,488,640 bytes,
+SHA-256 `dbb80f43761230b0f3c3e193ed469b4fe7c6fcf6844d895d463d959f971311e0`.
