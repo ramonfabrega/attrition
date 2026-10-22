@@ -22319,3 +22319,111 @@ Archive `rontrace-run1073.log`, 196,763,264 bytes,
 SHA-256 `ec481d9c4dc96fef889f60127c30678b82d9e680fcbface461611d0df401d4c8`.
 
 **What it holds**: restored peace after a no-rush game's five minutes, which this lobby's computer keeps.
+## run1069 — the golden start, eight Citizens `@gather`ed onto a Woodcutter's Camp at its cap, `cover=1` on the click-free pool to 1350 (2026-10-22, item 3448, `att-3448`)
+
+**What the disk could not answer**: no trace enters `Unit::add_think_order@005e3df0` or `do_think_order@005e5bf0`.
+Their three calls are in `Unit::do_gather`, and in 21 traces no gatherer reaches an own building past its cap
+(`docs/ORDERS.md` §42.2). No dump prints `gather_max`, so the take sends more Citizens than any cap.
+
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1069`: `--map 14 --end-frame 1350 --log-window
+605 1350 --timeout 3600 --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/think3448-start.cmd --cover cover=1`. The lines: `!ai off`, `600 resource`, nine
+Citizens `0/6`..`0/14` added 602..618, `620 @gather 0 2001 6 … 13`, `630 @build` a Lookout (521) by `0/14` and `632
+@buildadd` (the DLL's new QUEUE_LAST verb) a Barracks (427) behind it.
+
+- Pool lane 1, seed 12345. Launched 03:09:22, exited 03:28:26: **1,144.1 s launch to exit**. `success`, lifecycle
+  verified, 1,351 frames. DLL `c0bc57c0…`, `-DRON_AUTOSTART`. 210 GiB free before the take; no minutes waited.
+- **6,512 functions entered**. `add_think_order` on 621 and `do_think_order` on 622, with `UnitOrder::walk_data`,
+  `UnitOrder::clear` and `ThinkOrder::get_type` (621): five `NEVER` rows. `check_build_order` is not entered.
+- `rngcmp.py` against run215 (`~/ron-golden/ch15`, chapter fifteen at `cover=0`, the same lobby to 610): **646 in
+  common, 606 identical, 645 differing, the first 603**, after the first unshared input (600, 602). `samegame.py
+  --from 600`: **646 in common (1..1249), 645 differing, the first 605; same game before 600** (the window opens at
+  605 in both).
+- `U3` read beside it (`docs/ORDERS.md` §42.3 row 2): `process_gather 2001 2 621`. On 622, `0/9`..`0/13` hold
+  `[GATHERORDER 2001 (flags 4, been_there 0), MOVEORDER]` and `0/6`, `0/7`, `0/8` hold **`THINKORDER` flags 4**. On
+  623 the three hold no order, `idle` 0, then 1 on 624: `think_peasant(1)` found no job. With `0/2`, six gather.
+- The Barracks site is never placed: `process_build 7296 36864 … 427 1 633` is processed, and no `0/2008` follows. The
+  golden start lacks the Library that chapter eighteen adds first, so `action_build`'s `type_avail(type, 1) == 4` test
+  refuses it in silence (run1071 below).
+- Filed with `filerun.py run1069 golden-thinkorder-cover1-clickfree`.
+
+Archive `gamelog-run1069-golden-thinkorder-cover1-clickfree.txt`, 314,917,570 bytes,
+SHA-256 `454a872be5e7a62e2213fd03fe844f52626e2f66dc522ff128f9ee64156e6e89`.
+
+Archive `rontrace-run1069.log`, 11,383,872 bytes,
+SHA-256 `e9a06f2c4b3f830c0dc0b5b01ae67411704e6f2a79eeafe2edf087ca6c95dd51`.
+
+**What it holds**: the first think order on disk. `do_gather`'s at-the-cap arm on three human Citizens, and
+`think_peasant(1)` returning no order.
+
+## run1070 — chapter fifteen's cast `@gather`ed onto a camp with a shift-queued attack behind it, `cover=1` on the click-free pool to 1250 (2026-10-22, item 3448, `att-3448`)
+
+**What the disk could not answer**: no trace enters `Group::distribute_attack@00713390`. A player's attack makes no
+group move (`Group::action_attack`), and every command's move carries the action bit, so `do_group_move`'s leader
+never has an `ATTACK` action beneath it (`docs/ORDERS.md` §42.2). The one group move a player's order makes without
+the bit is `Group::action_gather`'s walk for members that cannot gather (`:462`).
+
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1070`: `--map 14 --end-frame 1250 --log-window
+605 1250`, run1069's detail, `--cmd-file tools/gamelog/coverage/distribute3448-ch15.cmd --cover cover=1`. The lines are
+run215's cast (`0/6` and `0/9` Hoplite squads, Chariot `1/6`) to 614, then four who=1 Supply Wagons `1/7`..`1/10` at
+cells (13..19, 100), `630 @gather 0 2001 6 9` and `632 @attackadd 0 6 1 6 9` (the DLL's new QUEUE_LAST verb).
+
+- Pool lane 2, seed 12345. Launched 03:09:27, exited 03:27:12: **1,064.5 s launch to exit**. `success`, lifecycle
+  verified, 1,251 frames. DLL `5a18582a…`. No minutes waited.
+- **6,606 functions entered**. `Group::distribute_attack`, `Group::kill_group_move` and `Unit::kill_group_move` on
+  686: three `NEVER` rows. `Unit::do_group_move` from 631.
+- `rngcmp.py` against run215: **646 in common, 617 identical, 634 differing, the first 617**, after the first
+  unshared input (616). `samegame.py --from 616`: **646 in common (1..1249), 633 differing, the first 617; same game
+  before 616**.
+- `U3` read beside it (`docs/ORDERS.md` §42.3 row 5): `process_gather 2001 2 631`, `process_attack 6 1 0 1 633`. On
+  634..686 each of the six holds, bottom first, `[ATTACKORDER ox 6 whom 1 (flags 4, mandatory 1), MOVEORDER (flags
+  0), MOVEORDER+GROUPORDER (flags 1, no action bit)]`, `group 1`. On 687 the group move is gone from all six. Each
+  keeps `ATTACKORDER ox 6 whom 1`, so `distribute_attack` gave every member the leader's own target. The leader `0/9`
+  reads `collide 1`, `collide_o 9`, `collide_who 1`: the third Supply Wagon.
+- Filed with `filerun.py run1070 golden-distribute-cover1-clickfree`.
+
+Archive `gamelog-run1070-golden-distribute-cover1-clickfree.txt`, 291,486,133 bytes,
+SHA-256 `f440bf7ee0eae44e61a64f87fbeb2feb21b3ef98798f191633eac603f4a8ad76`.
+
+Archive `rontrace-run1070.log`, 11,713,952 bytes,
+SHA-256 `8e25f8215e1f36fa640b688c84dfea4b5d1241633220dd4e9d4aa59dd2a11d57`.
+
+**What it holds**: the first group move without its action bit with an attack behind it, and a leader's collision
+handing the group the attack (`distribute_attack`).
+
+## run1071 — the golden start with a Library, a Lookout and a shift-queued Siege Factory, `cover=1` on the click-free pool to 1150 (2026-10-22, item 3448, `att-3448`)
+
+**What the disk could not answer**: no capture holds a human builder with a second site queued behind its first.
+`Unit::check_build_order@00603470` left `NEVER` with run1019 (item 3420) on a computer's builder at 193. No dump
+shows the human arm's re-add (`docs/ORDERS.md` §5.3, §14 check 6).
+
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1071`: `--map 14 --end-frame 1150 --log-window
+605 1150`, run1069's detail, `--cmd-file tools/gamelog/coverage/buildlast3448-start.cmd --cover cover=1`. The lines:
+`!ai off`, `600 library who=0 2`, `602 resource`, Citizens `0/6` and `0/7` (604, 606), `630 @build 0 7296 34176 521
+6` (a Lookout) and `632 @buildadd 0 7296 36864 430 6 7` (a Siege Factory, chapter eighteen's point, QUEUE_LAST).
+
+- **Second take.** The first, `~/ron-golden/run1071-take1` (lane 1, 03:30:38–03:42:06, 687.4 s, 1,151 frames, not
+  filed), had no `library` line. Like run1069's Barracks, its Siege Factory was processed (`process_build … 430 1
+  633`) and never placed: `action_build` refuses at `type_avail(type, 1) == 4` without a word. Chapter eighteen's
+  `600 library who=0 2` is what makes the site available.
+- Pool lane 1, seed 12345. Launched 03:43:03, exited 03:54:08: **665.5 s launch to exit**. `success`, lifecycle
+  verified, 1,151 frames. DLL `48afc5df…`. No minutes waited.
+- **6,509 functions entered**. `check_build_order` on 861. It enters no `NEVER` row.
+- `rngcmp.py` against run215: **546 in common, 605 identical, 546 differing, the first 605**, after the first unshared
+  input (600). `samegame.py --from 600`: **546 in common (1..1149), 545 differing, the first 605; same game before
+  600**.
+- `U3` read beside it (`docs/ORDERS.md` §42.3 row 3): the Siege Factory is `0/2008` from 634. `0/6` holds, in
+  execution order, `[BUILD 2007, MOVEORDER (flags 0) to (7224, 36408), BUILD 2008]` to 861. On 862 the Lookout reads
+  170 of 170, flags 71, and `0/6` holds **one `BUILDORDER 0/2008` flags 4**: the re-add at `QUEUE_FIRST`, with the
+  action bit. On 863 `do_build`'s swarm puts a `MOVEORDER` in front of it. The stepped-over move did not survive
+  (parked 3448a).
+- Filed with `filerun.py run1071 golden-buildlast-cover1-clickfree`.
+
+Archive `gamelog-run1071-golden-buildlast-cover1-clickfree.txt`, 222,603,093 bytes,
+SHA-256 `e3aa0188bb264264fb66d4c9e310463d35211942b6559fda01be292fb0bb5910`.
+
+Archive `rontrace-run1071.log`, 10,732,768 bytes,
+SHA-256 `97c1ea0bf0eab2f99a1cb5648d5cc7eef94c0c1b20f1658988894e437686a164`.
+
+**What it holds**: a human builder's two-site queue, and `check_build_order`'s re-add on the first site's finish.

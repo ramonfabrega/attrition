@@ -601,6 +601,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         enemy, issue_flight with ATTACK
  *   `@build <who> <x> <y> <type> <o> [<o> ...]` a building's `TypeIndex`
  *                                         placed at the point, issue_build
+ *   `@buildadd`, `@attackadd`             `@build` and `@attack` at
+ *                                         QUEUE_LAST, the shift-click
  *   `@spell <who> <type> <ox> <whom> <x> <y> <o> [<o> ...]` a craft's
  *                                         `TypeIndex` cast on the target
  *                                         picked at the point, issue_spell
@@ -1065,6 +1067,10 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * the rotation; an eject has none. `@gatherpointadd` is verb 20 with
      * `add_to_end` 1 (item 955), the shift-click that appends a point. */
     i32 gather_add = 0, launch_ctrl = 0, launch_alt = 0, launch_move = 0, move_add = 0;
+    /* `@attackadd` and `@buildadd` (item 3448): verbs 7 and 13 at QUEUE_LAST,
+     * the shift-click's queue (`Options::picked_spot@00721c40:527` for a
+     * site, `Console::execute_at_cursor`'s `local_3c` for an attack). */
+    i32 queue_add = 0;
     i32 verb = issue_verb(&t, "move ")       ? 0
                : issue_verb(&t, "moveadd ")  ? (move_add = 1, 0)
                : issue_verb(&t, "patrol ")   ? 1
@@ -1074,12 +1080,14 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "eject ")    ? 5
                : issue_verb(&t, "form ")     ? 6
                : issue_verb(&t, "attack ")   ? 7
+               : issue_verb(&t, "attackadd ") ? (queue_add = 1, 7)
                : issue_verb(&t, "amove ")    ? 8
                : issue_verb(&t, "explore ")  ? 9
                : issue_verb(&t, "flee ")     ? 10
                : issue_verb(&t, "flight ")   ? 11
                : issue_verb(&t, "strike ")   ? 12
                : issue_verb(&t, "build ")    ? 13
+               : issue_verb(&t, "buildadd ") ? (queue_add = 1, 13)
                : issue_verb(&t, "spell ")    ? 14
                : issue_verb(&t, "settransport ") ? 15
                : issue_verb(&t, "repair ")   ? 16
@@ -1281,10 +1289,10 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                                    x, y);
     } else if (verb == 13) {
         /* issue_build(group, x, y, x2 = x, y2 = y, type, QUEUE_NEW 2):
-         * an unmodified drop with no drag. */
+         * an unmodified drop with no drag; QUEUE_LAST 1 for `@buildadd`. */
         typedef void(__thiscall *build_fn)(void *, void *, i32, i32, i32, i32, i32, i32);
         ((build_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, x, y,
-                                   type, 2);
+                                   type, queue_add ? 1 : 2);
     } else if (verb >= 11) {
         /* issue_flight(group, ox, whom, orders, shift 0, ctrl 0, alt 0):
          * MOVE_TO (1) for `@flight`, ATTACK (10) for `@strike`. */
@@ -1298,9 +1306,10 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         ((eject_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, 0, -1, -1, -1);
     } else if (verb == 7) {
         /* issue_attack(group, ox, whom, ignore 0, QUEUE_NEW 2): a
-         * right-click on an enemy. */
+         * right-click on an enemy; QUEUE_LAST 1 for `@attackadd`. */
         typedef void(__thiscall *attack_fn)(void *, void *, i32, i32, i32, i32);
-        ((attack_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 0, 2);
+        ((attack_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 0,
+                                    queue_add ? 1 : 2);
     } else if (verb && verb < 8) {
         /* issue_patrol(group, x, y, queue), issue_guard(group, ox, whom,
          * queue), issue_follow(group, ox, whom, queue) and

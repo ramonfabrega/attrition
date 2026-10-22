@@ -3815,6 +3815,11 @@ having moved, and the clear had not fired yet; the row then ended `blocked`, whi
 woke it. Candidate: the waiter reads `ccc clear <lane> --status` and calls a push under an armed clear `DRAFT`. Score: no
 commander turn spent on a false landing. One reach.
 
+(3459) **A `@build` of a building the age does not allow is processed and dropped without a message** (3448's "for the
+Loop"): a shift-queued `@buildadd`, or any `@build`, on the golden start fails silently when the age lacks the building.
+Candidate: a brief that stages a site on the golden start names its `library` line, as chapter eighteen's does — a row of
+the coverage frame. Score: a staged site that is built. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
@@ -9429,13 +9434,23 @@ from the pushed group. On run1068's block 377 the computer's `1/1` reads `group 
 Nomad lobby as a word, so no score reads it yet. It books when a Nomad pair is minted, or a pinned lobby's computer
 reaches step 2 (`STARTING_TOWN 0` only).
 
-## Parked by the next landing, slot NH — reserved
+## Parked by item 3448, 2026-10-22 — the think order, a shift-queued site and `distribute_attack`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3448a) **`check_build_order` drops the move it should step over** (`docs/ORDERS.md` §5.3, §42.3 row 3). On run1071's
+block 861 the Citizen `0/6` holds, in execution order, `[BUILD 0/2007, MOVEORDER (flags 0) to (7224, 36408), BUILD
+0/2008]`. The Lookout finishes on 862 and `check_build_order` runs on 861's trace frame. Block 862 holds one
+`BUILDORDER 0/2008` flags 4, and the move is gone. §5.3 reads a move without the action bit as "stepped over, not
+removed", which would leave `[BUILD 2008, MOVE]`. Either the pop's `repath` or the walk's kill takes the move as well;
+the listing at `0x6036df`–`0x6036fd` is where to read. Nothing has run the port's `check_build_order_steps` on run1071.
+Score: none yet (the golden start is not a word); it books when a pinned lobby's builder holds two queued sites, or
+as a fidelity row against run1071's 861–863. One reach.
+
+(3448b) **The port's `distribute_attack` is empty, and now a capture enters it** (parked 3381b;
+`crates/sim/src/group_move.rs:320`). run1070's six Hoplites hold `[ATTACK 1/6, MOVE, group move (flags 1)]` from 634
+to 686. On 687 every member has dropped the group move and kept `ATTACKORDER ox 6 whom 1`, and the leader `0/9` reads
+`collide_o 9`, `collide_who 1`. The only player order that reaches the arm is `action_gather`'s walk for
+non-gatherers (action 0) with a shift-queued attack behind it (`docs/ORDERS.md` §42.2), and no pinned lobby issues
+that. Score: none until a pinned lobby does. run1070's 686–687 is the value diff to wire against.
 
 ## Parked by item 3453, 2026-10-22 — `say_no_war` in the peace lobby
 
