@@ -16,12 +16,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 pool's `@key`**, 3443 clicks, 3444 minimap/war, 3445 hurry/rename/save, 3447 Nomad, 3446 carrier, 3448 orders, 3453, 3454 a wonder.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 289 (321 at the base), residue 81, open 208** (`Blind:` pinned); it moves by trace, on the pool.
-- **The pool carries the click layer** (3437's `@click`, 3442's `@key`; `docs/LOOP.md`, "The brief"): the queue lane holds no
-  click-layer need and no lobby (3447 started the Nomad one) — only the menu's own code (3429b); retiring it is Ramon's (1570).
-- **Lanes: att-3455, att-3456.** Next 3460, run 1078. Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through NH
+  `NEVER` 289 (321 at the base), residue 81, open 208** (`Blind:` pinned); it moves by trace, on the pool;
+  **115 of the 208 open rows have no reference in the image** (Loop 3465, a `RESIDUE` proposal for the pass).
+- **The pool carries the click layer** (`@click`, `@key`): the queue lane keeps only the menu's code (3429b); its retirement is Ramon's (1570).
+- **Lanes: att-3455, att-3456; 3460–3464 booked.** Next 3466, run 1086. Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through NH
   and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a, 3445a–c, 3446a, 3447a–b, 3448a, 3453a, 3454a.
-- **Fable backlog: 19 Loop items** (3459, 3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
+- **Fable backlog: 20 Loop items** (3465, 3459, 3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -39,9 +39,9 @@ Blind: never 289 · residue 81 · open 208
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fiftieth tranche from this handoff — commander (Opus): spawn 3438 and 3442 on the two Opus lanes
-(`python3 tools/brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`), both on the click-free pool;
-refill from the queue in order; twenty landings or Ramon's word, then the fiftieth pass.**
+**Opener: continue the fiftieth tranche from this handoff — commander (Opus): att-3455 and att-3456 are live (`lanewait.py` on
+both); merge, book, refill from the queue in order (3460 first; `python3 tools/brief.py --kind coverage …`, `--model
+'claude-opus-5-5[1m]' --effort medium`), gate `--scope c6fcd3550`; twenty landings or Ramon's word, then the fiftieth pass.**
 
 ## The queue
 
@@ -62,6 +62,34 @@ two computers, one allied by `ally 1`; a help taunt (`--bindkey OPTION_CHAT_ALLI
 `@key 13`), then a ping (`--bindkey OPTION_PING`, `@key`, `@click`): `Leader::action_ping@006d18a0`, `send_here`'s ping arm
 (`CM process_ping`; the army's `human_frame` under `@dumpall`); `action_respond`, `pay_dow` if the human cancels the alliance.
 The second computer's profile key is unread; a refusal to start is 1570's evidence. Run 1077; park NL.
+
+3460. **coverage: the Diplomacy team style, a paid declaration** (AI §98.6, §296 row 12; parked 3444a, 3453a): the coverage pair's
+lobby plus `--profile TEAM_STYLE=0` (a key the profile loader reads; 0 is Diplomacy in `rules.xml`), a new `cover=0` twin and a
+`cover=1` take; `resource who=0 all +100000`, `peace 1` if it starts at war, 3444's diplomacy-window shape (`@key`, `@click`
+Declare, `@key 13`+`@char 13`): `Leader::action_declare@006dab50` → `Leader::pay_dow@006d2b10` (`CM process_declare`;
+`LEADERS=9` `diplos[1]` 1 → 0, `escrow`; `GAME INFO` `TEAM_STYLE 0`). Runs 1078–1079; park NM.
+
+3461. **coverage: two keys and a carrier's right-click** (CENSUS row 820; the R6 and GROUPS audits): 3446's carrier lobby at
+`cover=1`; `add general who=0`; a squad selected, `--bindkey OPTION_HALT`, `@key`: `CommandPackage::process_halt@00949140`
+(`CM process_halt`); `OPTION_CYCLE_GENERAL`, `@key`: `GroupsData::find_group_const@007084c0`; the carrier selected, `@rclick`
+open sea: `WorldData::is_tocean@0046fb10` (`U3` `orders_x/y`). `process_siege_attack` waits on 3442a's alt pin. Run 1080; park NN.
+
+3462. **coverage: the Spy's panel pick, Pilfer and Supplies** (parked 3016, 3431b, 3387d): chapter eighty-five's lobby (run1054's
+line); the second Spy by `--bindkey OPTION_SPY_BRIBE`, `@key`, `@click` the target: `SpellTypeData::find_target@00674920` (if
+Bribe's `+0x1c8 & 8` is clear); `@spell 0 630` (Pilfer) on a who=1 building: `SpellType::cast_pilfer@00673e80` (`L1` both
+buckets); a supply wagon `add`ed, `@spell 0 638` on a who=0 unit at a city: `cast_supplies@006714c0` (`U3` `mana_burn` 0). Run
+1081; park KS.
+
+3463. **coverage: a human ahead in age, and the resource tooltip** (AI §2.14; CENSUS row 534): the first pair's East Indies lobby
+(`DIFFICULTY 0`, AI on) at `cover=1`; `age who=0 3` and `resource who=1 all +100000`, so the computer prices below the human:
+`Leaders::best_human_age_stamp@006b81e0` (`LEADERS=9` `age_stamp`, `ages`); a pinned `@cursor` on the food counter:
+`Game::is_turbo_resources@0043ecb0`, `LeaderData::resource_cap_get@0046ee80` (trace only) — whether it raises the tooltip
+is unread. Runs 1082–1083; park LK.
+
+3464. **coverage: two console reports** (CENSUS row 840): riding 3463's take or the golden start beside its twin; `@cursor` on a
+land cell, `!cursor` (`run_cmd` case `0x3d`): `World::get_wdata@0046d220`; `!startareas` (case `0x60`):
+`WorldData::is_forest@006b5560`; neither writes sim state, so `rngcmp`/`samegame --from` the line's frame show 0 differing.
+Runs 1084–1085; park MV.
 
 ## How to maintain this file
 
