@@ -19,8 +19,8 @@
  * That, not a direct `on_spot_move` call with its last arguments, because
  * it is the path the `@cursor` line itself took: the same window lookup,
  * the same spot test, and no second hook to capture arguments with. It is
- * harmless to `describe`'s gate: `IFaceMainBase::on_mouse_move@00811210`
- * stamps `last_move` only when the point changes, and `same_as_before`
+ * harmless to `describe`'s gate: `IFaceMainBase`'s `on_mouse_move` stamps
+ * `last_move` only when the point changes (run1129 never enters it), and `same_as_before`
  * holds for an unchanged good, so the second drawn frame describes.
  *
  * Off by default: without the key the site is not hooked and every byte
