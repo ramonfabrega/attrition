@@ -3789,6 +3789,15 @@ frames passing after the `select`) is not established. Candidate: the frame's co
 on an empty cell first and the press four frames later; 3445's brief carries it as a note. Score: a button take not spent
 on an empty cell. One reach.
 
+(3451) **A pool take can photograph itself, and no tool does it** (3444's "for the Loop"): the briefs say "the points off a
+screenshot", and the pool had no screenshot — 3445 reached for the queue lane's `handdriver.sh` scout and met RonDriver's
+Accessibility refusal (00:56, 2026-10-22). 3444's scratch shooter: a console `pause 1` line on the frame, then a shooter
+through `viadriver.sh` that waits for the trace to go quiet and grabs the game window alone (`CGWindowListCopyWindowInfo`,
+`screencapture -l`); the game's own `SYSTEM_SCREENSHOT` writes nothing under DXVK (`D3D11GLSys::capture_screen` discards
+its copy). Its first grab was desktop-wide (deleted; `screen-capture-hygiene`). Candidate: `tools/explore/poolshot.py <run>
+<frame>`, window-only by construction, with a test that refuses a desktop grab; the coverage frame's row names it. Score:
+a click take that never needs the queue lane. Second reach (3443, 3444): graduates on the third.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
