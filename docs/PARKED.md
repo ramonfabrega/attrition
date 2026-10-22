@@ -9539,10 +9539,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NN — reserved
+## Parked by item 3461, 2026-10-22 — two keys and a carrier's right-click
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3461a) **The halt landed on an idle squad**: run1080's `606 @move 0 7680 8448 15 16 17` was refused (refusal 3,
+object 16: `@move` names captains, and a squad's members are not), so the squad that `process_halt 621` halted held
+no move and its `orders_x/y` did not change. `Group::action_halt`'s `close_orders(0)` on a walking group (R6's
+`HaltCommand` row) is unread on a dump. Staging: run1080's lines with `606 @move 0 7680 8448 15`; the value is the
+squad's U3 `orders_x/y` before and after 621. Score: none named (`action_halt` is entered); a value row for ORDERS'
+halt. One reach.
