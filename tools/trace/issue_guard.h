@@ -16,9 +16,10 @@
  * 21, `launchstrikectrl`/`launchstrikealt` and `launchmove` 23, with ctrl,
  * alt or MOVE_TO in the call and the same issuer (item 1009). 24 `alarm`
  * and 25 `gather` (item 1167). 26 `stance` (item 2165). 27
- * `attackground` and 28 `comeout` (item 3425). */
+ * `attackground` and 28 `comeout` (item 3425). 29 `unqueueunit` (item
+ * 3446): the `UnitOut` overload of issue_unqueue, a carrier's cancel. */
 
-#define ISSUE_VERBS 29
+#define ISSUE_VERBS 30
 #define ISSUE_PROLOGUE 11
 
 #define RVA_ISSUE_MOVE_TO 0x541720u
@@ -44,6 +45,7 @@
 #define RVA_ISSUE_STANCE 0x541530u
 #define RVA_ISSUE_ATTACK_GROUND 0x5417a0u
 #define RVA_ISSUE_COME_OUT 0x542c90u
+#define RVA_ISSUE_UNQUEUE_UNIT 0x542ce0u /* the UnitOut overload, VA 0x942ce0 */
 
 static const u32 ISSUER_RVA[ISSUE_VERBS] = {
     RVA_ISSUE_MOVE_TO,   RVA_ISSUE_PATROL,        RVA_ISSUE_GUARD,        RVA_ISSUE_FOLLOW,
@@ -53,7 +55,7 @@ static const u32 ISSUER_RVA[ISSUE_VERBS] = {
     RVA_ISSUE_SWARM_AROUND, RVA_ISSUE_BUILDMASK,  RVA_ISSUE_QUEUE_UP,     RVA_ISSUE_UNQUEUE,
     RVA_ISSUE_GATHER_POINT, RVA_ISSUE_LAUNCH_PATROL, RVA_ISSUE_LAUNCH_PATROL, RVA_ISSUE_FLIGHT,
     RVA_ISSUE_ALARM,     RVA_ISSUE_GATHER,        RVA_ISSUE_STANCE,       RVA_ISSUE_ATTACK_GROUND,
-    RVA_ISSUE_COME_OUT};
+    RVA_ISSUE_COME_OUT,  RVA_ISSUE_UNQUEUE_UNIT};
 
 /* `sub esp, 0x18` for issue_move_to's 0x1c-byte command, `0x10` for
  * issue_patrol's, issue_guard's, issue_follow's, issue_garrison's and
@@ -82,7 +84,10 @@ static const u32 ISSUER_RVA[ISSUE_VERBS] = {
  * 0x10`, for its 10-byte one (type 0x09, `[to_x i32][to_y i32][queued
  * i8]`), and issue_come_out's `sub esp, 0xc`, for its 11-byte one (type
  * 0x31, `[who i32][o i32][uid i16]`) — item 3425, off the listing
- * (`9417a0`, `942c90`). */
+ * (`9417a0`, `942c90`). The `UnitOut` issue_unqueue's is the `WallOut`
+ * one's to the byte, `sub esp, 0x10` for the same 15-byte command, and
+ * it returns `ret 8` too; it writes `p` 0 whatever its second argument —
+ * item 3446, off the listing (`942ce0`). */
 static const u8 ISSUER_PROLOGUE_BYTES[ISSUE_VERBS][ISSUE_PROLOGUE] = {
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x18, 0xb9, 0x60, 0xff, 0xe8, 0x00},
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
@@ -112,7 +117,8 @@ static const u8 ISSUER_PROLOGUE_BYTES[ISSUE_VERBS][ISSUE_PROLOGUE] = {
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x0c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x08, 0xb9, 0x60, 0xff, 0xe8, 0x00},
     {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00},
-    {0x55, 0x8b, 0xec, 0x83, 0xec, 0x0c, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
+    {0x55, 0x8b, 0xec, 0x83, 0xec, 0x0c, 0xb9, 0x60, 0xff, 0xe8, 0x00},
+    {0x55, 0x8b, 0xec, 0x83, 0xec, 0x10, 0xb9, 0x60, 0xff, 0xe8, 0x00}};
 
 /* Is the issuer at `va`, whose first bytes are `live`, the shipped build's
  * `want`? `stub` is the coverage stub `arm_all` planted over the entry, 0
