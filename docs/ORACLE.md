@@ -2909,6 +2909,10 @@ two computers, with no runner change. The receipt's PLAYER records read who 0 (f
 who 2 (tribe 2). Each computer's nation is the profile's own; `--ai-tribe` still sets slot 1's only. This is the
 click-free half of 1570: the queue lane's last named lobby starts here.
 
+**The Diplomacy team style is `--profile TEAM_STYLE=0`** (item 3460, run1078). `TEAM_STYLE` is in both game blocks too
+(1 in every pinned lobby), so the same write reaches it, and `GAME INFO` reads `TEAM_STYLE 0`. At 0 the leaders start
+at peace, and the diplomacy window's Declare passes `Options::do_declare_war`'s team-style test.
+
 `--dump-all-start` sets `InitialDump=1`, `DUMP_ALL=1` and Start Game
 `WORLD=6`, Misc Logging `CHECKSUM=2` and `check_all_level=14`, with a
 required `[0,2)` log window. It refuses a wider or later
