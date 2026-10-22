@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-first tranche (commander, Opus): twelve of twenty landed from `a17dfdb6`** on two Opus lanes on the pool;
+*2026-10-22, **the fifty-first tranche (commander, Opus): thirteen of twenty landed from `a17dfdb6`** on two Opus lanes on the pool;
 the steer's three decisions in (3484–3486), the queue lane retired (3485), the console mirror measured ~40× and flipped (3497).*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 273 → 250, residue 182, open 91 → 68** (3477's `!eval`, eighteen; 3479, 3481, 3491 one each; 3492's save-and-reload two).
+  `NEVER` 273 → 250, residue 182 → 183, open 91 → 67** (3477's `!eval`, eighteen; 3479, 3481, 3491 one each; 3492's save-and-reload two; 3495 a residue row).
 - **Amended with Ramon** (DECISIONS 89): the queue lane retired (3485; 1570 closed — a need for it again is a steer); after this tranche the
   headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); 3484 measured the mirror's flip safe; 3497 flipped it.
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
-- **Lanes: two live** (3494, 3495); none booked. Next 3499, run 1134. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
-  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c, 3493a, 3497a.
-- **Fable backlog: 18 Loop items** (3499, 3498, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
+- **Lanes: one live** (3494); none booked — the second lane waits on the third drafting (`t51/draft-items-53.md`). Next 3501, run 1134. Pools: GOLDEN §149–154, AI §300–301, park OF–OK.
+  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c, 3493a, 3495a, 3497a.
+- **Fable backlog: 19 Loop items** (3500, 3499, 3498, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,11 +36,11 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 250 · residue 182 · open 68
+Blind: never 250 · residue 183 · open 67
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3494 and 3495 live on the two Opus lanes
+**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3494 live on one of the two Opus lanes, the other refilled from `t51/draft-items-53.md`
 (`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
@@ -57,13 +57,6 @@ hover at `Scene::describe_mouseover@008b47e0`'s entry — `Scene::render@008b327
 `on_spot_move`'s `type |= 0x200` never reaches `MouseOver::describe` (3463a): enters `MouseOver::describe@007d09b0` case 0x200 →
 `Options::describe@00724460` → `Game::is_turbo_resources@0043ecb0` and `LeaderData::resource_cap_get@0046ee80`, whose only caller it is.
 The hook in `rontrace.cfg`, with a test. Runs 1129–1130; park OC.
-
-3495. **coverage: a patrol's waypoints under a held Shift** (parked 3442a's `GetKeyState` pin; D3): chapter ten's lobby
-(`tools/gamelog/golden/chapter10.cmd`, run319's: Great Lakes, map 14, `!ai off`) at `cover=1` with a twin, `--no-ffwd --end-frame 640`, the
-file's lines to 620, `622 select 6`, and a new `@hold 16 640` (the exe's `GetKeyState` IAT slot answers 0x8000 for VK_SHIFT on those
-frames, with a test): `UnitOut::draw_orders@006075f0` runs only while Shift is down (`:21-23`) and calls the order's +0x5c — on a patrol
-the `vtordisp` thunk at 0x48387c, a `jmp` to `PatrolOrder::get_patrol_order@004843e0` — on the first drawn frame after 624. `@click` on
-the chariot if `select 6` does not select it. Runs 1131–1132; park OD.
 
 ## How to maintain this file
 
