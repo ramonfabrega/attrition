@@ -17,6 +17,9 @@ timed callees' taken off):
     putwc    fputwc: the indent, a space a call
     flush    fflush (and fclose, fputws if any ran)
     write    ucrtbase's WriteFile, inclusive: the syscall
+    accept   GameLog::check_accept, Log::say's vslot +0x2c
+    sprintf  String::printf: the line rendered again, for the debugger
+    debug    OutputDebugStringW (through `kernel32_OutputDebugStringW_Ptr`)
     rest     the frame's seconds outside every timed site: the simulation,
              the render, the tracer
 
@@ -33,9 +36,10 @@ K_INFO = 5
 I_DUMPCLOCK, I_DUMPTIME, I_DUMPEXCL, I_DUMPSITE, I_DUMPCAL = 25, 26, 27, 28, 29
 SITES = ['begin_frame', 'end_frame', 'full_dump', 'dump_units', 'dump_leaders',
          'say_int', 'say_ulong', 'say_float', 'process_all',
-         'vfwprintf', 'fputwc', 'fflush', 'fclose', 'fputws', 'WriteFile']
+         'vfwprintf', 'fputwc', 'fflush', 'fclose', 'fputws', 'WriteFile',
+         'String::printf', 'check_accept', 'OutputDebugStringW']
 GROUPS = {'walk': {0, 1, 2, 3, 4}, 'net': {8}, 'say': {5, 6, 7}, 'printf': {9}, 'putwc': {10},
-          'flush': {11, 12, 13}, 'write': {14}}
+          'flush': {11, 12, 13}, 'write': {14}, 'sprintf': {15}, 'accept': {16}, 'debug': {17}}
 
 
 def read(path):
@@ -108,7 +112,7 @@ def main(argv):
         print(f'calibration: {c["n"]} calls, direct {c["direct"]} ticks, stubbed {c["stubbed"]} ticks: '
               f'{(c["stubbed"] - c["direct"]) / c["n"]:.1f} ticks ({(c["stubbed"] - c["direct"]) / c["n"] * sec * 1e9:.0f} ns) '
               f'a timed call; QPC {freq} Hz; {1 / sec / 1e6 if sec else 0:.1f} M ticks a second')
-    cols = ['walk', 'net', 'say', 'printf', 'putwc', 'flush', 'write', 'rest']
+    cols = ['walk', 'net', 'say', 'accept', 'sprintf', 'debug', 'printf', 'putwc', 'flush', 'write', 'rest']
     print(f'{"frame":>6} {"on":>2} {"seconds":>8} {"MB written":>10} {"block MB":>8} '
           + ' '.join(f'{c:>7}' for c in cols) + '   calls')
     for r in rows:

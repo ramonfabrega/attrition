@@ -62,7 +62,8 @@
  *               2 no IAT slot found, 3 `RON_STATE_FRAME` holds the entry,
  *               4 the slot points inside the executable (not bound),
  *               5 left out by `dumpsites=`;
- *               d = kind (0 code, 1 the exe's IAT, 2 ucrtbase's IAT),
+ *               d = kind (0 code, 1 the exe's IAT, 2 ucrtbase's IAT, 3 a
+ *               pointer the game fills, swapped at the first frame),
  *               e = the stub
  *
  * and once, on the first frame:
@@ -88,7 +89,7 @@ IMPORT(i32, QueryPerformanceFrequency, (u64 *));
 
 typedef struct {
     u32 va; /* a code site's entry, or the exe IAT slot's VA; 0 for ucrtbase's */
-    u8 kind; /* 0 code, 1 the exe's IAT, 2 ucrtbase's IAT (by import name) */
+    u8 kind; /* 0 code, 1 the exe's IAT, 2 ucrtbase's IAT (by import name), 3 a late pointer */
     u8 len; /* displaced prologue bytes (code) */
     u8 expect[10];
 } DtSite;
@@ -97,6 +98,7 @@ enum {
     DT_BEGIN_FRAME, DT_END_FRAME, DT_FULL_DUMP, DT_DUMP_UNITS, DT_DUMP_LEADERS,
     DT_SAY_INT, DT_SAY_ULONG, DT_SAY_FLOAT, DT_PROCESS_ALL,
     DT_VFWPRINTF, DT_FPUTWC, DT_FFLUSH, DT_FCLOSE, DT_FPUTWS, DT_WRITEFILE,
+    DT_STRING_PRINTF, DT_CHECK_ACCEPT, DT_DEBUGSTRING,
     DT_CALSITE, DT_NSITES
 };
 
@@ -125,6 +127,15 @@ static const DtSite DT_SITES[DT_CALSITE] = {
     {0xac55cc, 1, 0, {0}}, /* fclose */
     {0xac5610, 1, 0, {0}}, /* fputws */
     {0, 2, 0, {0}},        /* ucrtbase.dll's WriteFile */
+    /* String::printf@00a1d520 (Log::say's second rendering of the line, for
+     * the debugger): push ebp; mov ebp,esp; push esi; push edi */
+    {0xa1d520, 0, 5, {0x55, 0x8b, 0xec, 0x56, 0x57}},
+    /* GameLog::check_accept@009309a0 (Log::say's vslot +0x2c): push -1; push 0xaa4d0c */
+    {0x9309a0, 0, 10, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x0c, 0x4d, 0xaa, 0x00}},
+    /* `kernel32_OutputDebugStringW_Ptr` (VA 0xc8dc4c), the pointer Log::say
+     * calls when the log's flags carry 2: written by the game after attach,
+     * so swapped at the first frame (kind 3). */
+    {0xc8dc4c, 3, 0, {0}},
 };
 
 typedef struct {
@@ -318,6 +329,8 @@ static void dt_install(void) {
                 *(u32 *)(t + 1) = (u32)stub - ((u32)t + 5);
                 for (u32 j = 5; j < s->len; j++) t[j] = 0xcc; /* never executed */
             }
+        } else if (s->kind == 3) {
+            continue; /* `dt_late`, at the first frame */
         } else {
             u32 *slot = s->kind == 1 ? (u32 *)va : dt_iat_slot((u8 *)GetModuleHandleA("ucrtbase.dll"), "WriteFile");
             if (!slot) why = 2;
@@ -367,12 +380,32 @@ static void dt_calibrate(void) {
     emit(K_INFO, I_DUMPCAL, DT_CAL, (u32)(b - a), (u32)(c - b), (u32)freq, (u32)(t1 - t0));
 }
 
+/* The kind-3 sites: a pointer the game fills after attach, swapped at the
+ * first frame (refusal 4 if it is still unset there). */
+static void dt_late(void) {
+    for (u32 i = 0; i < DT_CALSITE; i++) {
+        const DtSite *s = &DT_SITES[i];
+        if (s->kind != 3) continue;
+        u32 why = 0, *slot = (u32 *)(s->va + g_base - 0x400000u);
+        u8 *stub = g_dt_page + DT_STUB * i;
+        if (!(g_dt_mask >> i & 1)) why = 5;
+        else if (!*slot || dt_in_exe(*slot)) why = 4;
+        if (!why) {
+            g_dt_orig[i] = *slot;
+            dt_build(i, 0, 0, 0);
+            dt_swap(slot, (u32)stub);
+        }
+        emit(K_INFO, I_DUMPSITE, i, (u32)slot, why, s->kind, (u32)stub);
+    }
+}
+
 /* At `do_frame`'s entry: the frame that ended, then the clock for this one. */
 static void dt_frame(i32 frame) {
     if (!g_dt_mode || !g_dt_page) return;
     u64 q = dt_qpc(), t = dt_tsc();
     if (!g_dt_tid) {
         g_dt_tid = rd_fs(0x24);
+        dt_late();
         dt_calibrate();
     } else {
         u64 dt = t - g_dt_t;
