@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the fiftieth tranche (commander, Opus): 12 of 20 landed from `a479f1bf`** — `NEVER` 321 → 286: 3438 Bribe, **3442 the
-pool's `@key`**, 3443 clicks, 3444 minimap/war, 3445 hurry/rename/save, 3447 Nomad, 3446, 3448, 3453, 3454, 3456 a ping, 3455 a disband.*
+*2026-10-21, **the fiftieth tranche (commander, Opus): 13 of 20 landed from `a479f1bf`** — `NEVER` 321 → 283: 3438 Bribe, **3442 the
+pool's `@key`**, 3443 clicks, 3444 minimap/war, 3445, 3447 Nomad, 3446, 3448, 3453, 3454, 3456 a ping, 3455 a disband, 3461 halt.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 286 (321 at the base), residue 81, open 205** (`Blind:` pinned); it moves by trace, on the pool;
+  `NEVER` 283 (321 at the base), residue 81, open 202** (`Blind:` pinned); it moves by trace, on the pool;
   **115 of the 208 open rows (at 3454) have no reference in the image** (Loop 3465, a `RESIDUE` proposal for the pass).
 - **The pool carries the click layer** (`@click`, `@key`): the queue lane keeps only the menu's code (3429b); its retirement is Ramon's (1570).
-- **Lanes: att-3460, att-3461; 3462–3464 booked.** Next 3468, run 1086; the pool starts three players (3456, `--profile PLAYERS=2`). Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through NH
-  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a, 3445a–c, 3446a, 3447a–b, 3448a, 3453a, 3454a, 3455a, 3456a–b.
-- **Fable backlog: 22 Loop items** (3467, 3466, 3465, 3459, 3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
+- **Lanes: att-3460, att-3462; 3463–3464 booked.** Next 3469, run 1086; the pool starts three players (3456, `--profile PLAYERS=2`). Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through NH
+  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a, 3445a–c, 3446a, 3447a–b, 3448a, 3453a, 3454a, 3455a, 3456a–b, 3461a.
+- **Fable backlog: 23 Loop items** (3468, 3467, 3466, 3465, 3459, 3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,13 +35,13 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 286 · residue 81 · open 205
+Blind: never 283 · residue 81 · open 202
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fiftieth tranche from this handoff — commander (Opus): att-3460 and att-3461 are live (`lanewait.py` on
-both); merge, book, refill from the queue in order (3462 first; `python3 tools/brief.py --kind coverage …`, `--model
-'claude-opus-5-5[1m]' --effort medium`), gate `--scope c6fcd3550`; twenty landings or Ramon's word, then the fiftieth pass.**
+**Opener: continue the fiftieth tranche from this handoff — commander (Opus): att-3460 and att-3462 are live (`lanewait.py` on
+both); merge, book, refill from the queue in order (3463 first; `python3 tools/brief.py --kind coverage …`, `--model
+'claude-opus-5-5[1m]' --effort medium`), gate `--scope e86e2b200`; twenty landings or Ramon's word, then the fiftieth pass.**
 
 ## The queue
 
@@ -56,11 +56,6 @@ lobby plus `--profile TEAM_STYLE=0` (a key the profile loader reads; 0 is Diplom
 `cover=1` take; `resource who=0 all +100000`, `peace 1` if it starts at war, 3444's diplomacy-window shape (`@key`, `@click`
 Declare, `@key 13`+`@char 13`): `Leader::action_declare@006dab50` → `Leader::pay_dow@006d2b10` (`CM process_declare`;
 `LEADERS=9` `diplos[1]` 1 → 0, `escrow`; `GAME INFO` `TEAM_STYLE 0`). Runs 1078–1079; park NM.
-
-3461. **coverage: two keys and a carrier's right-click** (CENSUS row 820; the R6 and GROUPS audits): 3446's carrier lobby at
-`cover=1`; `add general who=0`; a squad selected, `--bindkey OPTION_HALT`, `@key`: `CommandPackage::process_halt@00949140`
-(`CM process_halt`); `OPTION_CYCLE_GENERAL`, `@key`: `GroupsData::find_group_const@007084c0`; the carrier selected, `@rclick`
-open sea: `WorldData::is_tocean@0046fb10` (`U3` `orders_x/y`). `process_siege_attack` waits on 3442a's alt pin. Run 1080; park NN.
 
 3462. **coverage: the Spy's panel pick, Pilfer and Supplies** (parked 3016, 3431b, 3387d): chapter eighty-five's lobby (run1054's
 line); the second Spy by `--bindkey OPTION_SPY_BRIBE`, `@key`, `@click` the target: `SpellTypeData::find_target@00674920` (if

@@ -3843,6 +3843,13 @@ run1075b killed the navy's nine ships by console `die`, with the ids read off th
 `Army::send_here` on 2296. Candidate: a booking that needs an army dead names `die` on ids from the twin, never an added
 force, against that lobby — a row of the coverage frame. Score: a disband take that enters on its first try. One reach.
 
+(3468) **A pool lane's restore refuses on a sibling's launch** (3461's "for the Loop"): `unattended_capture.py`'s cleanup
+calls `require_closed`, which counts a game whose prefix `lsof` cannot yet read (a launch in its first second) as a human's;
+run1080's lane 2 exited the same second att-3460's run1078 launched in lane 3, so its receipt read `success: false` on a
+whole capture and the lane was left staged — 3461 restored it by hand through the runner's own calls (five files checked).
+Candidate: on an unattributed pid the cleanup retries `game_prefix` for a few seconds before it refuses. Score: no pool take
+lost to a neighbour's launch. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
