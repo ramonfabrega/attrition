@@ -8106,11 +8106,25 @@ The playing arm's fields:
 - **The mask's bits 1, 3, 4, 0 and 5**: one checkbox each.
 
 Which of these controls the shipped window lays out was not read, so §21's "which of the five waits a player sees"
-stays open on that one point.
+stays open on that one point. *Item 3445 read the layout, `Data/optionswin.xml`'s `GAMEPANE`: an Auto Citizen group
+of four `auto_peasants` checkboxes (Idle `id 3`, Build 2, Gather 0, Build and Gather 1), an Auto Citizen Delay slider
+`auto_peasants_timing` (0–5), and six `building_stances` boxes. Which of these is control `0x19014`, `0x19028` or
+`0x19064` was not traced.*
 
 *Falsifier*: `[Misc Logging] COMMANDMANAGER=1`'s `process_leader_options` line on the frame after a mid-game Options
 save, with a full dump's leader-option record (`peasants`, `peasants_wait`, as run34's start dump prints them) agreeing
 with the window. A `peasants_wait` change on the save's own frame, before the command, kills the bold claim.
+
+*Run (item 3445, run1065).* The save was made through the Game Menu at 702, with Idle checked and OK pressed (the
+clicks are `@after` lines, `tools/trace/README.md`). It enters `OptionsWinGame::do_save@0082c520` on 702, inside
+`OptionsWin::do_save@00829d30`. That walks all six panes' `+0x4ec` slot (`OptionsWinPlayer::do_save` ran too) and
+then `PlayerProfile::save`. The record agrees with the window: who=0's `peasants` is 0 in the whole dumps on 700 and
+701 and **3** (Idle) on 712 and 713, and `peasants_wait` is 2 throughout. **Not settled**:
+- `COMMANDMANAGER=1` prints no `process_leader_options` line at all, so the command's frame is not on the dump.
+- No whole dump falls between 702 and 712, so a change on the save's own frame is neither seen nor excluded.
+
+A whole dump on 703 (`@dumpall`), or a `window=` cover cfg that dates `process_leader_options`, would settle it
+(parked 3445b).
 
 ### 42.2 Why no trace enters the rest (the predicate, read at its caller)
 
@@ -8136,7 +8150,7 @@ All are at `cover=1`. `CM` is `[Misc Logging] COMMANDMANAGER=1`; `U3` is `[End F
 | 4 | ~~`get_form_option`~~ | GOLDEN §22, chapter fourteen | ~~the formation key's next/previous (form −1, −3), not a named form~~ entered by run1057 on 800 (item 3442, GOLDEN §146): OPTION_FORM's key, form −1 (no key reaches −3: option `0x14` is button-only) | `CM` `process_form -1 0 2 801`; `GROUPS` group 0's `form` 3 → 4 on 802 |
 | 5 | `distribute_attack` | GOLDEN §23, chapter fifteen | a right-click attack by a selected group on a far unit whose leader collides with a valid enemy on the way | `U3` the members' `ATTACKORDER` targets on the collision frame |
 | 6 | `process_attack_ground` | GOLDEN §7, chapter three | a new `@attackground`, or the button (GOLDEN §144.3) | `CM` `process_attack_ground to_x to_y queued` |
-| 7 | `do_save` | any lobby with a human, driven | Options → save mid-game with the idle option changed | §42.1's falsifier |
+| 7 | ~~`do_save`~~ | any lobby with a human, driven | ~~Options → save mid-game with the idle option changed~~ entered by run1065 on 702 (item 3445, chapter seventy-four's lobby, the Game Menu's Options, Idle, OK) | §42.1's falsifier: the record agrees (`peasants` 0 → 3), and the command's frame is not dated |
 | — | `do_group_attack`, `check_meet_ship`, `get_stance_option`, `set_air_repeat`, `do_rotate`, `picked_spot` | GOLDEN §144.3 | as there | as there |
 
 ### 42.4 Residue proposed
