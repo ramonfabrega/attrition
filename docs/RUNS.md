@@ -21601,3 +21601,32 @@ Archive `rontrace-run1051.log`, 14,739,584 bytes,
 SHA-256 `e026b1d1e5c91ae7b6d5c2ba0dce30103efd132294d1a2eea1e2955e34e82986`.
 
 **What it holds**: run1033's game, draw for draw and block for block, with no cursor.
+
+## run1052 — run1034's take on the click-free pool, its hand clicks as `@click` lines, to 830 (2026-10-21, item 3437, `att-3437`)
+
+**What the disk could not answer**: as run1050, for `GroupOut::issue_set_transport@0070ad10` and
+`Options::do_transport@0071c500`, which only run1034 (driven) enters. run1050's line with `--end-frame 830
+--log-window 595 831 --detail end:UNITS=3,GUYS=4,BUILDS=7,LEADERS=2,GROUPS=1 --cmd-file
+tools/gamelog/coverage/click3437-ch20.cmd`: run1034's stanza line for line plus `626 @click 96 1012` and `802 @click 96
+1012`, `0/7`'s Auto Transport button twice.
+- Pool lane 1 (taken over att-3436's stale lock after its queue run). Launched 19:00:09, exited 19:05:45: **336.3 s
+  launch to exit**. `success`, 831 frames, `MAP_STYLE 14`, seed 12345. DLL `473e254f…`, `-DRON_AUTOSTART`, this tree. 219
+  GiB free before.
+- `INFO 21` installed as run1050's; both `INFO 20` ran (2,353 and 2,397 mouse events dropped by 626 and 802).
+- The dump prints `process_set_transport 627` and `process_set_transport 803`, as run1034's does.
+- **6,539 functions entered**. `issue_set_transport`, `do_transport`, `Options::exec` and `OnLButtonDown`/`Up` on 626,
+  run1034's frame. No `NEVER` row: not pinned.
+- `rngcmp.py rontrace-run1034.log`: **815 in common, 0 differing**. `samegame.py
+  gamelog-run1034-ch20-transport-click.txt`: **221 in common (1..814), 0 differing**. Against the `cover=0` twin
+  (`~/ron-golden/ch20`): rngcmp 831 in common, 159 differing, the first 672; samegame 227 in common, 210 differing, the
+  first 621 — run1034's parting (672, 621), the twin's `620 @settransport` dropped for the click.
+- Filed with `filerun.py run1052 ch20-transport-atclick`. Minutes waited on another lane: 49 (att-3436's six-stanza
+  queue run, 18:11–19:00).
+
+Archive `gamelog-run1052-ch20-transport-atclick.txt`, 102,606,129 bytes,
+SHA-256 `55dd5742b0146c86bf36aea6dda3c79cc328eacb822c11f082c4d21942e54289`.
+
+Archive `rontrace-run1052.log`, 14,197,024 bytes,
+SHA-256 `86026106f80288f92807bdf7ce6c0dfb9fd3a1277ec5e48b05dd408fc2f68608`.
+
+**What it holds**: run1034's game, draw for draw and block for block, with no cursor.

@@ -13633,6 +13633,7 @@ driven take's screen points (`golden_capture.sh … --cover cover=1 --no-ffwd`).
 |---|---|---|---|---|
 | run1032 (ch11) | run1050 | `issue_guard` 624; `Options::exec` 704; `issue_follow`, `picked_spot` 708 | 793 in common, 0 differing | 189 in common, 0 differing |
 | run1033 (ch13) | run1051 | `can_queue@0062da00` 736; `issue_eject_all`, `do_eject_all` 748 | 773 in common, 0 differing | 169 in common, 0 differing |
+| run1034 (ch20) | run1052 | `issue_set_transport`, `do_transport` 626; `process_set_transport` 627, 803 | 815 in common, 0 differing | 221 in common, 0 differing |
 
 Each pool take is its driven take's game, so the open rows' `rclick`/button/pick actions are `@` lines with the
 points a screenshot of the lobby gives; the `bindkey.py` row is a key, which a click line does not send.
