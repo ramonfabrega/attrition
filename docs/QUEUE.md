@@ -20,7 +20,7 @@ blind list scanned and ratified 192 → 91; the fifty-first booked against what 
   refs -`) — 115 dead, ratified by family (Loop 3465); 3462a, 3471a accepted; seventeen `ScenarioFuncSet` rows `!eval` reaches struck (3473).
 - **What a capture can still enter**: 74 called or pointed-at rows and the 17 struck — 3477 takes eighteen in one `!eval` take; the
   drafting subagent's reading of all 91 is `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482 holds its `## Not drafted` 67).
-- **Lanes: none live; five booked** (3477–3481). Next 3483, run 1101. Pools: GOLDEN §149–154, AI §300–301, park NW–NX; 1570 is Ramon's.
+- **Lanes: none live; six booked** (3477–3481, 3483). Next 3484, run 1102. Pools: GOLDEN §149–154, AI §300–301, park NX–NY; 1570 is Ramon's.
   For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b.
 - **Fable backlog: 13 Loop items** (3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 89.
 
@@ -85,6 +85,14 @@ lobby, `camera 186,190` on 5406), then `step4.py` on `ObjectsOut::sort_all` with
 hooked for objects 28–30: names which of the five gates refuses herd 9, so `AnimalData::is_seen@005d8160`'s staging is written
 from the answer — the gate in the journal; the staging taken in the same item if it is a `camera`/`explore`/`ai` line, else parked
 for the commander. Run 1100; park NV.
+
+3483. **coverage: where a dumped frame's seconds go** (Ramon, the fiftieth steer; the pool's median 2.1 frames a second): the
+tracer times, inside one dumped frame, the engine's `Log::say` writer against the dump walkers (`GameLog::dump_units` and its siblings) against the
+per-category `fflush` — entry/exit stamps on the three, emitted as info records — on the golden start (Great Lakes, map 14) at
+`cover=1`, `--log-window 600 605` at `UNITS=3,LEADERS=9` (run1084's line and categories, ~60 s a take), then the same at
+`LEADERS=9` alone and at `stride=2`: the journal names the split in seconds and bytes a frame, and whether a byte-identical
+replacement writer in the tracer is worth an item (the dump's bytes are the oracle, so a writer is checked by `cmp` against the
+twin). No simulation change; the trace is not pinned. Run 1101; park NW.
 
 ## How to maintain this file
 

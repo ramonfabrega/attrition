@@ -7794,8 +7794,11 @@ GiB free.
    still enter, drafted by an Opus subagent from the 91: the eighteen
    `!eval` rows in one take (3477), a goody box under the camera (3478),
    the param console's field edit (3479), a diagonal terrain transition
-   (3480) and 3472a's packet for the herd's gate (3481); runs 1092–1100,
-   park NR–NV. The subagent drew four, not ten, and its reading of the
+   (3480), 3472a's packet for the herd's gate (3481) and, with Ramon, a
+   timing probe inside one dumped frame (3483: the pool's rate is the
+   megabytes a dumped frame, 1.4–9.5 MB and 2–20 s each, `cover=1` a
+   tenth of it; a faster byte-identical writer in the tracer waits on
+   the split); runs 1092–1101, park NR–NW. The subagent drew four, not ten, and its reading of the
    other 67 rows — residue candidates with reasons, readings, a packet
    — is Loop 3482 for the next pass; the refill is the commander's
    drafting subagent on the rows that name a reading. The backlog 28 →
