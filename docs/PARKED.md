@@ -9452,13 +9452,25 @@ to 686. On 687 every member has dropped the group move and kept `ATTACKORDER ox 
 non-gatherers (action 0) with a shift-queued attack behind it (`docs/ORDERS.md` §42.2), and no pinned lobby issues
 that. Score: none until a pinned lobby does. run1070's 686–687 is the value diff to wire against.
 
-## Parked by the next landing, slot NI — reserved
+## Parked by item 3453, 2026-10-22 — `say_no_war` in the peace lobby
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3453a. `Leader::action_declare@006dab50` is not entered in the peace lobby, and no input this lobby takes reaches
+  it.** run1072 ran the lobby to its own end at 6853. The peace ends on 4500 through `Leader::set_diplo` (`diplos` 0
+  both ways, the twin's closing block too), not through a declaration. run1073 restored it with `4600 peace 1`
+  (`diplos` 1 both ways from 4601 to 4900), and the computer kept it to 5300. `Leader::diplomacy`'s two `free`-1
+  calls (:1061 the elimination arm, :1501–1511 behind the rush-rules arm's `LAB_006be54c`) both sit behind
+  `TEAM_STYLE` 0, 8 or 11 (or 7 with a team-8 player). That is 3444a's gate, and `GAME INFO` reads `TEAM_STYLE 1`.
+  The booking's "`@attack` a Lakota building" does not reach `Object::take_damage`'s arm (:110–131) either: it needs
+  an attacker whose type carries `obj_masks & 0x8000000` (`is_missile`, not `NUCLEARMISSILE` 315), after
+  `war_allowed`, on a building of a computer leader (`flags & 4` 0) standing in its own land, not yet an enemy. A
+  soldier is no missile. Two takes would enter it:
+  - **In this lobby**: `peace 1` after 4500, then a who=0 `CRUISEMISSILE` (314) out of a staged Missile Silo
+    (chapter thirty-five's `@queueup` and `@launchstrike` shape, GOLDEN §44) onto a Lakota building in cells (37..56,
+    42..58). Whether `issue_flight` takes a strike on a non-enemy is not read.
+  - **3444a's lobby with team style 0**, whose diplomacy arms both reach it.
+
+  `pay_dow` stays behind `param_3` 0, which only a human's declaration passes (`CommandPackage::process_declare`).
+  **Score**: `NEVER`'s `action_declare` row (one run).
 
 ## Parked by the next landing, slot NJ — reserved
 
