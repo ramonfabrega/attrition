@@ -196,6 +196,42 @@ class RunnerTest(unittest.TestCase):
             with self.assertRaises(ValueError):runner.set_ai_tribe(profile,10)
             self.assertEqual(path.read_bytes(),bad)
 
+    def test_a_rise_key_is_written_on_every_take_with_its_default(self):
+        # Item 3492 (Loop 3488's rule): `--rise AutoSaveLoad=650` writes the
+        # key; a take without it writes the stated default, so a later take
+        # on the lane never inherits a 650; a key with no stated default is
+        # refused before a byte is written.
+        profile=self.root/'profile';profile.mkdir()
+        rise=profile/'rise.ini'
+        original='[RISE OF NATIONS]\nAllowLogs=1\nAutoSaveLoad=0\nSeed (0 for random)=12345\n'
+        rise.write_text(original)
+        self.assertEqual(runner.set_rise(profile,['AutoSaveLoad=650']),{'AutoSaveLoad':650})
+        self.assertEqual(rise.read_text(),original.replace('AutoSaveLoad=0','AutoSaveLoad=650'))
+        self.assertEqual(runner.set_rise(profile,[]),{'AutoSaveLoad':0})
+        self.assertEqual(rise.read_text(),original)
+        rise.write_text(original.replace('AutoSaveLoad=0','AutoSaveLoad=650'))
+        runner.set_rise(profile,[])
+        self.assertEqual(rise.read_text(),original)
+        for pairs in (['StartReveal=1'],['AllowLogs=0']):
+            with self.assertRaises(ValueError):runner.set_rise(profile,pairs)
+            self.assertEqual(rise.read_text(),original)
+        rise.write_text('[RISE OF NATIONS]\nAllowLogs=1\n')
+        with self.assertRaises(ValueError):runner.set_rise(profile,[])
+
+    def test_a_take_removes_only_the_saves_it_added(self):
+        # Item 3492: `AutoSaveLoad`'s save lands under the user's Documents;
+        # the runner removes what the take added and names it.
+        saves=self.root/'Saves';(saves/'AutoSaves').mkdir(parents=True)
+        old=saves/'AutoSaves'/'kept.rns';old.write_text('x')
+        with patch.object(runner,'SAVES',saves):
+            before=runner.save_files()
+            new=saves/'auto.rns';new.write_text('y')
+            self.assertEqual(runner.remove_new_saves(before),[str(new)])
+        self.assertFalse(new.exists())
+        self.assertTrue(old.exists())
+        with patch.object(runner,'SAVES',self.root/'missing'):
+            self.assertEqual(runner.remove_new_saves(runner.save_files()),[])
+
     def test_a_bound_key_is_written_into_the_empty_keys_and_nothing_else(self):
         # Item 3442: `--bindkey` writes bindkey.py's element into the lane's
         # staged profile; anything but one empty <KEYS/> or a known action is
