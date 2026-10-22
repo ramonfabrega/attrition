@@ -3874,6 +3874,11 @@ counts headings, not unassigned ones, so it passed the booking that assigned the
 the slots the queue's `park <A>` words assign, so a booking that leaves fewer than two free is the red one. Score: no lane
 gate spent on the commander's pool. One reach.
 
+(3475) **A taunt's effect lands sixty frames after the taunt** (3470's "for the Loop"): `receive_taunt` queues every taunt
+but HELP for 0x3c frames, so run1086's first take, which ended 20 frames short, missed `action_respond`. Candidate: a brief
+that books a taunt's effect sets its end frame at the taunt's frame plus 0x3c and names the queue — a row of the coverage
+frame. Score: a taunt take that enters on its first try. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
