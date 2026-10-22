@@ -9346,13 +9346,16 @@ words and edits nothing here; a refill lands when two remain.
   archer's `@attack` on `1/6` from 1150. The check is `U3` `damage` and `damage_frac` on block 1213 against 1212's.
   Names no score.
 
-## Parked by the next landing, slot ND — reserved
+## Parked by item 3444, 2026-10-22 — the declaration's arms past the team-style test
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ND renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3444a. `Options::do_declare_war`'s `afford_dow` (:119), `say_no_war` (:126) and popup arms need a lobby whose team
+  style lets a declaration through.** run1062 clicked the diplomacy window's Declare button on 1484 in the peace pair's
+  lobby, and the shared tail at :96–:113 refused it: `TEAM_STYLE 1` is not 0, 8 or 11, and `LeaderData::is_neutral`
+  answers 0 unless the team style is 7 and the target's player is on team 8. Every arm past it (the warn at :121, the
+  `Game::war_allowed` refusal through `Game::say_no_war@00592b00`, the confirmation popup) sits behind that test, so no
+  lobby with `TEAM_STYLE 1` reaches them by this window. Which lobby setting writes team style 0, 8 or 11, and whether
+  the pool's `--profile TEAM_STYLE=N` stages it, is not read. **Score**: `NEVER`'s `say_no_war` row, a new lobby with its
+  own `cover=0` twin (two runs).
 
 ## Parked by the next landing, slot NE — reserved
 
