@@ -360,6 +360,16 @@ pub const TRACES: &[&str] = &[
     // `is_castable`'s head (both `FROM None`). run880's game before 1107
     // (rngcmp 1,109 identical; `docs/RUNS.md` run1081).
     "rontrace-run1081.log",
+    // Item 3463: the first pair's East Indies lobby (DIFFICULTY 0, AI on)
+    // at `cover=1` on the click-free pool, `--ffwd-minute 11`, to 10100
+    // (`tools/gamelog/coverage/agetip3463-eastindies.cmd`): `age who=0 3`
+    // on 9905 (the human's `ages_get()` 3 from block 9906) and the
+    // computer's stock 100000 up on 9906; `Leaders::best_human_age_stamp`
+    // on 9979, the first `research_techs` after leader 1's script ends on
+    // 9977. The `@cursor` lines on the food counter (9910..9990) raise no
+    // tooltip (parked 3463a). Its `cover=0` twin is run1083
+    // (`docs/RUNS.md` run1082).
+    "rontrace-run1082.log",
     // Item 3464: the golden start (run1031's lines, `market3426.cmd`) at
     // `cover=1` on the click-free pool to 700, with `600 !cursor tinfo`
     // (`run_cmd` case 0x3d, `World::get_wdata` on 600) and `602
@@ -744,6 +754,9 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// and `WorldData::is_forest@006b5560` on 602 (`!startareas`, case 0x60);
 /// **279** on the tree merged with `b41737e50`, whose Loop 3473 cites
 /// `Compiler::eval_command@009befe0`, which no trace enters.
+/// **278** with run1082 (item 3463: the first pair's East Indies lobby,
+/// `docs/AI.md` §2.14): `Leaders::best_human_age_stamp@006b81e0` on 9979,
+/// the computer's age techs paced against a human three ages ahead.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -762,7 +775,7 @@ pub const NEVER: &[u32] = &[
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
     0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
-    0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
+    0x006b_88b0, 0x006d_03c0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,
     0x0073_c5d0, 0x0073_c5e0, 0x0073_c780, 0x0073_e000, 0x0073_ebc0, 0x0073_f650, 0x0074_0030, 0x0074_0060, 0x0074_1a40, 0x0074_1d50,

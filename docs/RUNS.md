@@ -22714,6 +22714,63 @@ SHA-256 `24df0f6050c7c60725978eaf82418f2d5e080f92893cd497a19454c88b207966`.
 
 **What it holds**: `blind::TRACES`' run1080 (item 3461), `NEVER` 286 → 283.
 
+## run1082 — the first pair's East Indies lobby: a human three ages ahead, and a pinned cursor on the food counter, at `cover=1` on the click-free pool, 9900..10100 (2026-10-22, item 3463, `att-3463`)
+
+**What the disk could not answer**: no trace enters `Leaders::best_human_age_stamp@006b81e0` (AI §2.14's human pacing),
+`Game::is_turbo_resources@0043ecb0` or `LeaderData::resource_cap_get@0046ee80` (CENSUS row 534). The pacing needs a human at least one
+age above the age tech the computer weighs (`a <= h - 1`), and no capture stages one. No trace enters
+`Options::describe`. And no dump prints `age_stamp` (`LEADERS=9` has no such key; `ages_get()` it does). Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1082 --map 18 --end-frame 10100 --timeout 5400 --profile
+DIFFICULTY=0 --ffwd-minute 11 --log-window 9900 10101 --detail end:MISC,LEADERS=9 --cmd-file
+tools/gamelog/coverage/agetip3463-eastindies.cmd --cover cover=1`: `!ffwd 11` on 37, so the game fast-forwards to 9900
+and draws from there. Then `9905 age who=0 3` and `9906 resource who=1 all +100000`, thirty `@cursor` lines on the food
+counter (9910..9939, alternating (70,33) and (71,33)), the pin held there to 9990, and `9990 @cursor 700 300`.
+- **Two recons first, unfiled.** `~/ron-golden/recon3463-1` (`--no-ffwd`, the two lines on 600/601 and a 50-point
+  `@cursor` sweep of the top bar 610..910, to 1300) entered neither `research_techs` nor `Options::describe`. The
+  computer's build-order script blocks `production_ai`'s step 4 until it ends: `prod_script_run` 1 → 0 on 9977 in
+  run139. `~/ron-golden/recon3463-2` (this command's `--ffwd-minute 11` shape, to 10100) entered `best_human_age_stamp`
+  on 9979. Its window-only photograph at 9930 (`screencapture -l` on the take's own `wine` window, 1920×1080) puts the
+  food counter at game (70,33), the resources window's second row.
+- Pool lane 1 (`~/wine-ron`), seed 12345, `MAP_STYLE 18`, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1,
+  tribe 11). Launched 08:56:21, exited 09:04:36: **494.9 s launch to exit**. `success`, 10,101 frames. DLL
+  `61da5311…`, `-DRON_AUTOSTART`. 195 GiB free before. Minutes waited on another lane: none.
+- **6,701 functions entered.** `Leader::research_techs`, `Leaders::max_human_age` and `Leaders::best_human_age_stamp` on
+  9979; `Leader::produce_tech` on 9983. `IFaceResources::on_spot_move` and `check_mouse_accept` on 9910. Not
+  entered: either `Options::describe`, `is_turbo_resources`, `resource_cap_get`. The one `NEVER` row is
+  `best_human_age_stamp`.
+- **The dump.**
+  - The human's `ages_get()` is 0 on 9905 and 3 from block 9906, and two of its buckets go 0 → 100.
+  - The computer's `ages_get()` is 1 on every block 9900..10100.
+  - The computer's five buckets go 451/322/118/236/125 → 100452/100322/100118/100237/100125 on block 9907, then to 450
+    each on 9978 (parked 3463b).
+  - Block 9984: `tech_frame` 7776 → 9983, three `tech_cat_frame` rows → 9983, seven `num_queued` rows 0 → 1,
+    `production_step` 8 → 9. Library-line techs and units, not an age.
+- **The hover raises no tooltip.** The photographs at 9925, 9965 and 9995 show no tooltip and an empty help box (parked
+  3463a has the predicate). The pin installed (`INFO 21`, resting point 700,300).
+- `rngcmp.py` against run1083, the `cover=0` twin: **10,101 in common, 0 differing, 10,101 identical**. `samegame.py`:
+  **201 in common (9900..10100), 0 differing**. Both send every input, so there is no `--from`.
+- Frames 9991..10100 carry no line: a quiet stretch for item 3464's console reports.
+- Filed with `filerun.py run1082 eastindies-diff0-humanage-foodhover-window-9900-10100-cover1`.
+
+Archive `gamelog-run1082-eastindies-diff0-humanage-foodhover-window-9900-10100-cover1.txt`, 291,403,023 bytes,
+SHA-256 `d00967b11def74d5da3d1cacad7851aeb5da827db17e95aaf14a38de3a715515`.
+
+Archive `rontrace-run1082.log`, 41,085,472 bytes,
+SHA-256 `6e128abe06402945eb9eb1b439a96a14f632bfa81814f2e63dc640331a8797cb`.
+
+**What it holds**: `blind::TRACES`' run1082 (item 3463), `NEVER` 281 → 280.
+
+## run1083 — run1082's `cover=0` twin (2026-10-22, item 3463, `att-3463`)
+
+The same command line and command file at `--cover cover=0`, `~/ron-golden/run1083`. Pool lane 1, launched 09:05:49,
+exited 09:15:25 (**575.7 s launch to exit**). `success`, 10,101 frames, seed 12345, the same two PLAYER records. DLL
+`24f22b3f…`. Filed with `filerun.py run1083 eastindies-diff0-humanage-foodhover-window-9900-10100-cover0`.
+
+Archive `gamelog-run1083-eastindies-diff0-humanage-foodhover-window-9900-10100-cover0.txt`, 291,403,025 bytes,
+SHA-256 `a83e82b16569a33431536eb3f9bcc0bd2dd4a46b0cc1cb27557db070c22b1395`.
+
+Archive `rontrace-run1083.log`, 40,875,200 bytes,
+SHA-256 `dffe61457b1aadb8e248f307b163998bc56b676bf144363be02c61c92f16aedf`.
 ## run1081 — golden chapter eighty-five's lobby at `cover=1` on the click-free pool: the Spy's Bribe by key and pick, Pilfer and Restock Supplies asked, to 1260 (2026-10-22, item 3462, `att-3462`)
 
 **What the disk could not answer**: no trace enters `SpellTypeData::find_target@00674920`. Its one caller is
