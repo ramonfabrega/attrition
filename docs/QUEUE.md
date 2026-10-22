@@ -20,7 +20,7 @@ the steer's three decisions in (3484–3486), the queue lane retired (3485), the
 - **Amended with Ramon** (DECISIONS 89): the queue lane retired (3485; 1570 closed — a need for it again is a steer); after this tranche the
   headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); 3484 measured the mirror's flip safe; 3497 flipped it.
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
-- **Lanes: one live** (3494); none booked — the second lane waits on the third drafting (`t51/draft-items-53.md`). Next 3501, run 1134. Pools: GOLDEN §149–154, AI §300–301, park OF–OK.
+- **Lanes: two live** (3494, 3501); one booked (3502); a fourth drafting reads `kill_group_order` (`t51/draft-items-54.md`). Next 3503, run 1138. Pools: GOLDEN §149–154, AI §300–301, park OF–OK.
   For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c, 3493a, 3495a, 3497a.
 - **Fable backlog: 19 Loop items** (3500, 3499, 3498, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
 
@@ -40,8 +40,8 @@ Blind: never 250 · residue 183 · open 67
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3494 live on one of the two Opus lanes, the other refilled from `t51/draft-items-53.md`
-(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
+**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3494 and 3501 live on the two Opus lanes
+(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill with 3502, then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
 
@@ -57,6 +57,18 @@ hover at `Scene::describe_mouseover@008b47e0`'s entry — `Scene::render@008b327
 `on_spot_move`'s `type |= 0x200` never reaches `MouseOver::describe` (3463a): enters `MouseOver::describe@007d09b0` case 0x200 →
 `Options::describe@00724460` → `Game::is_turbo_resources@0043ecb0` and `LeaderData::resource_cap_get@0046ee80`, whose only caller it is.
 The hook in `rontrace.cfg`, with a test. Runs 1129–1130; park OC.
+
+3501. **coverage: `TypeData::type_graft` on a building the script host took from the human's tribe** (the thirteen type-vtable slots'
+one route; E1 of `t51/draft-items-53.md`): the golden start (Great Lakes, map 14) at `cover=1` with a twin, the pool's defaults,
+`--end-frame 690 --log-window 664 690 --detail end:LEADERS=2`, `0 !ai off`, `670 !eval disable_type_by_tribe("Barracks", "Nubians")`,
+`672 !eval train_unit(1, 1, "Hoplites")` and a `676`/`678` pair spelling the tribe `"nubians"`: `train_unit` → `LeaderData::get_graft`
+on the unit's `where` finds `tribe_can_type` 0 and dispatches `+0x68` on the `BuildType`. Runs 1134–1135; park OF.
+
+3502. **coverage: the siege attack, an Alt-right-click with a catapult selected** (3442a's held modifier; E2 of `t51/draft-items-53.md`):
+a new `@hold <vk> <until-frame>` (the exe's `GetKeyState` IAT slot 0xac53e8, 3495a, answering 0x8000 on those frames, with a test),
+then the golden start at `cover=1` with a twin, `--no-ffwd --end-frame 640`, `age`, `add catapult who=0 4,41`, `add barracks who=1 10,41`,
+`select 6`, `camera 10,41`, `610 @hold 18 616`, `612 @rclick 960 445`: `Console::execute_at_cursor@007c6630.c:328-401` issues
+`GroupOut::issue_siege_attack` only under Alt, and its command type 5 is `CommandPackage::process`'s one call of the row. Runs 1136–1137; park OG.
 
 ## How to maintain this file
 
