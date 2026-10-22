@@ -219,18 +219,20 @@ class RunnerTest(unittest.TestCase):
         with self.assertRaises(ValueError):runner.set_rise(profile,[])
 
     def test_a_take_removes_only_the_saves_it_added(self):
-        # Item 3492: `AutoSaveLoad`'s save lands under the user's Documents;
-        # the runner removes what the take added and names it.
-        saves=self.root/'Saves';(saves/'AutoSaves').mkdir(parents=True)
-        old=saves/'AutoSaves'/'kept.rns';old.write_text('x')
-        with patch.object(runner,'SAVES',saves):
-            before=runner.save_files()
-            new=saves/'auto.rns';new.write_text('y')
-            self.assertEqual(runner.remove_new_saves(before),[str(new)])
+        # Item 3492: `AutoSaveLoad`'s save lands in the launch's working
+        # directory (run1115's `autosaveload.svx`); the runner removes what
+        # the take added and names it with its digest.
+        output=self.root/'map-14';output.mkdir()
+        kept=output/'kept.svx';kept.write_text('x')
+        other=output/'rontrace.log'
+        before=runner.save_files(output)
+        new=output/'autosaveload.svx';new.write_text('y');other.write_text('z')
+        removed=runner.remove_new_saves(output,before)
+        self.assertEqual([r['path'] for r in removed],[str(new)])
+        self.assertEqual(removed[0]['bytes'],1)
         self.assertFalse(new.exists())
-        self.assertTrue(old.exists())
-        with patch.object(runner,'SAVES',self.root/'missing'):
-            self.assertEqual(runner.remove_new_saves(runner.save_files()),[])
+        self.assertTrue(kept.exists() and other.exists())
+        self.assertEqual(runner.remove_new_saves(output,runner.save_files(output)),[])
 
     def test_a_bound_key_is_written_into_the_empty_keys_and_nothing_else(self):
         # Item 3442: `--bindkey` writes bindkey.py's element into the lane's

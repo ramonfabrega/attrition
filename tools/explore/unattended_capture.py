@@ -98,11 +98,6 @@ def set_lobby(profile, pairs):
 # `int_str_array +0xdc8c`; `Game::do_frame` saves and reloads the game on
 # every frame it divides, so 0 is off.
 RISE_DEFAULTS = {'AutoSaveLoad': 0}
-# Where `AutoSaveLoad`'s save lands (the prefix's `Documents` is the
-# user's): the runner removes what a take adds under it.
-SAVES = Path.home() / 'Documents' / 'My Games' / 'Rise of Nations' / 'Saves'
-
-
 def set_rise(profile, pairs):
     """Write every `RISE_DEFAULTS` key into the profile's `rise.ini`, a
     `KEY=N` in `pairs` over its default; the values written."""
@@ -120,16 +115,19 @@ def set_rise(profile, pairs):
     return values
 
 
-def save_files():
-    return {p for p in SAVES.rglob('*') if p.is_file()} if SAVES.is_dir() else set()
+def save_files(output):
+    return set(output.glob('*.svx'))
 
 
-def remove_new_saves(before):
-    """Remove the files a take added under `SAVES`; their paths."""
-    added = sorted(save_files() - before)
-    for path in added:
+def remove_new_saves(output, before):
+    """Remove the saves a take added beside its executable — `AutoSaveLoad`'s
+    `autosaveload.svx` lands in the launch's working directory, the run's own
+    (run1115) — and name each with its size and digest."""
+    removed = []
+    for path in sorted(save_files(output) - before):
+        removed.append({'path': str(path), 'bytes': path.stat().st_size, 'sha256': sha(path)})
         path.unlink(missing_ok=True)
-    return [str(p) for p in added]
+    return removed
 
 
 def bind_keys(profile, install, pairs):
@@ -567,7 +565,7 @@ def capture(args, output, style):
             rise.write_text(text)
         report['rise'] = set_rise(args.profile, getattr(args, 'rise', None) or [])
         if report['rise']['AutoSaveLoad']:
-            saves_before = save_files()
+            saves_before = save_files(output)
         env = os.environ.copy()
         report['startup_probe'] = getattr(args, 'startup_probe', False)
         env['TRACER_DEFS'] = ('-DRON_AUTOSTART'
@@ -686,7 +684,7 @@ def capture(args, output, style):
                     os.killpg(process.pid, signal.SIGKILL)
                     process.wait(timeout=10)
             if saves_before is not None:
-                report['saves_removed'] = remove_new_saves(saves_before)
+                report['saves_removed'] = remove_new_saves(output, saves_before)
             if staged:
                 require_closed()
                 live_session.restore(output)
