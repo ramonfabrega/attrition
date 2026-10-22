@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-first tranche (commander, Opus): thirteen of twenty landed from `a17dfdb6`** on two Opus lanes on the pool;
+*2026-10-22, **the fifty-first tranche (commander, Opus): fourteen of twenty landed from `a17dfdb6`** on two Opus lanes on the pool;
 the steer's three decisions in (3484–3486), the queue lane retired (3485), the console mirror measured ~40× and flipped (3497).*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 273 → 250, residue 182 → 183, open 91 → 67** (3477's `!eval`, eighteen; 3479, 3481, 3491 one each; 3492's save-and-reload two; 3495 a residue row).
+  `NEVER` 273 → 248, residue 182 → 183, open 91 → 65** (3477's `!eval`, eighteen; 3479, 3481, 3491 one each; 3492's save-and-reload two; 3494's hover two; 3495 a residue row).
 - **Amended with Ramon** (DECISIONS 89): the queue lane retired (3485; 1570 closed — a need for it again is a steer); after this tranche the
   headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); 3484 measured the mirror's flip safe; 3497 flipped it.
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
-- **Lanes: two live** (3494, 3501); one booked (3502); a fourth drafting reads `kill_group_order` (`t51/draft-items-54.md`). Next 3503, run 1138. Pools: GOLDEN §149–154, AI §300–301, park OF–OK.
-  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c, 3493a, 3495a, 3497a.
+- **Lanes: two live** (3501, 3502); none booked; a fourth drafting reads `kill_group_order` (`t51/draft-items-54.md`). Next 3503, run 1138. Pools: GOLDEN §149–154, AI §300–301, park OF–OK.
+  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c, 3493a, 3494a–b, 3495a, 3497a.
 - **Fable backlog: 19 Loop items** (3500, 3499, 3498, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -36,12 +36,12 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 250 · residue 183 · open 67
+Blind: never 248 · residue 183 · open 65
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3494 and 3501 live on the two Opus lanes
-(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill with 3502, then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
+**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3501 and 3502 live on the two Opus lanes
+(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill by the refill order (`t51/draft-items-54.md` next); twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
 
@@ -50,13 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool** — a click an `@click` lin
 `!`-prefixed (3471), a screen point off `poolshot.py` — checked against its `cover=0` twin (`rngcmp.py`; `samegame.py --from`), pinned
 into `blind::TRACES`; a function not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the
 commander's drafting subagent on `t51/draft-items-51.md`'s `## Not drafted` rows that name a reading, one item a staging it yields.
-
-3494. **coverage: a resource counter's tooltip** (parked 3463a's hook; D4): the golden start (Great Lakes, map 14) at `cover=1` with a
-twin, `--no-ffwd --end-frame 640`, `600 @cursor 70 33` (run1082's food counter) and a new opt-in tracer hook that re-asserts the pinned
-hover at `Scene::describe_mouseover@008b47e0`'s entry — `Scene::render@008b3270.c:161-162` zeroes `mouseover->type` before it, so
-`on_spot_move`'s `type |= 0x200` never reaches `MouseOver::describe` (3463a): enters `MouseOver::describe@007d09b0` case 0x200 →
-`Options::describe@00724460` → `Game::is_turbo_resources@0043ecb0` and `LeaderData::resource_cap_get@0046ee80`, whose only caller it is.
-The hook in `rontrace.cfg`, with a test. Runs 1129–1130; park OC.
 
 3501. **coverage: `TypeData::type_graft` on a building the script host took from the human's tribe** (the thirteen type-vtable slots'
 one route; E1 of `t51/draft-items-53.md`): the golden start (Great Lakes, map 14) at `cover=1` with a twin, the pool's defaults,
