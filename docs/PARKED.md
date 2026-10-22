@@ -9621,13 +9621,35 @@ row, "a vtable slot no instruction dispatches on an Item", after a blind second 
 image's `call [reg+0x5c]` sites whose receiver can be an `items` entry). Score: `Blind:` open 91 → 90, residue 182 →
 183. One reach.
 
-## Parked by the next landing, slot NT — reserved
+## Parked by item 3479, 2026-10-22 — the param console's field edit
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3479a) **`Storm::on_field_change@00842050` has no registration path** (one reading, the image's references): the
+slot is reached only through `ParamRegisterWindow::on_change_edit_box@009345e0` or `on_combobox_select@00934550`
+calling +0xc on an object that `ParamRegisterWindow::registration@00935360` filed. Of the export's 28 functions that
+call `registration`, only `StormOut::registration` (0x842070) names a Storm. `report.py <exe> refs` reads that function
+as **dead**: no call, jump or copy of its address anywhere in the image. `Storm::registration` (0x842060,
+`Storm::vftable` +0x8) is an empty `ret`. On disk: run1094 and run1096 enter the frame −1 registrations of the other three objects
+(`BorderSpline`, `Nuke`, `CircleRender`), and no trace enters either Storm registration. Candidate: a `RESIDUE` row,
+"no object of the class is ever registered with the window". Score: `Blind:` open 72 → 71, residue 182 → 183. One
+reach.
+
+(3479b) **`BorderSpline::on_field_change@004a1ca0` and `CircleRender::on_field_change@008c6db0` are reached only
+through a fault** (bytes and one take). `ParamRegisterWindow::process@00934c90` builds the window's controls only
+while the control array (+0xdd4) is empty (`jne` at 0x934cd2). Nothing empties it but `close@00934a50`, which runs
+at teardown and drops every registration. So the controls are built once, for the object on screen at the first
+opening. That object is always Lights/Sun: every registration leaves `cur_cat = cur_obj = 0`, and Sun has twelve
+Scrolls. After a category change, `on_change_edit_box` gives control *i* to `EditBox::get_text` (0x42a4d0) for every
+unconstrained parameter (`register_variable@00a39f90`, a plain int). BorderSpline registers ten such ints and
+CircleRender three, so the Return hands a Scroll to `get_text` before the +0xc call. recon3479-3 (unfiled) did this
+for Splines/BorderSpline and faulted in `String::String` under `get_text` (trace records 176–178 at 0xa1d631, called
+from 0x42a4ff). Nuke has no plain int, and run1096 entered it. Candidate: two `RESIDUE` rows, "the shipped window
+reaches the slot only by faulting". A packet can falsify this, if any opening order builds the controls for a
+non-Sun object first. Score: `Blind:` open 71 → 69, residue 183 → 185. One reach.
+
+(3479c) **`ComboBox` pulldowns and `PullDown::*` are entered by the pool's `@click` inside a modal window**
+(run1096, recons 1–3: `PullDown::show`, `on_left_down`, `on_left_up`, `on_modal_end` on 602). This is a fact for the
+next lane that drives a debug window, not a score: the pulldown's rows are 18 px apart, starting 16 px below its
+combo. It parks rather than queues.
 
 ## Parked by item 3480, 2026-10-22 — a diagonal terrain transition
 
