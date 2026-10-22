@@ -9480,13 +9480,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NK — reserved
+## Parked by item 3455, 2026-10-22 — the disband's survivors
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3455a. The disband's `MOVE_TO` to the survivors (`docs/ARMY.md` §6 step 1, §14) is not read: the army that
+  disbanded had none.** run1075b's navy, army 2, lost all nine ships of group 72 to console `die` on 2284, and its
+  2296 tick entered `Army::send_here@006f98a0` with no unit left to order: a navy's line is all standard (9 of 9). A
+  survivor is a non-standard captain (a spellcaster, a Supply Wagon, a decoy, an AA gun; §3.3), and only the land army
+  holds those (army 0: 45 units, 29 captains, 17 standard on 2297). It leaves muster only when released: run1075's
+  eleven human Battleships on 2050 (they lost to the navy, which grew 6 → 15) did release it on its 2300 tick (status
+  0x11 → 2, region 11 → 1, `do_transporting` on 2300). The take that would read it is run1075's staging to 2300, then
+  `die` on army 0's standard captains before its 2556 tick, read off a 2300..2556 window; run1075 also opened and
+  closed an army 4 on 2548, unread. **Score**: none on `NEVER` (`send_here` is off). It is a value row for §6 step
+  1's survivors, filed so a lane that reaches for it has the staging.
 
 ## Parked by the next landing, slot NL — reserved
 

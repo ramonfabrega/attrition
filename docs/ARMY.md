@@ -647,7 +647,12 @@ In order, each an early return:
    (below `city_num`) — none → `close()`; found →
    `send_here(city.x, city.y, MOVE_TO)` (§14), then `close()` anyway. The
    survivors walk home and the slot is freed; the army's group is not,
-   and stays in the pool with `army −1` (§22).
+   and stays in the pool with `army −1` (§22). **Entered** (item 3455,
+   `docs/RUNS.md` run1075b): the coverage pair's navy, army 2 (released on
+   its 2040 tick), loses its nine ships to console `die` on 2284; its 2296
+   tick enters `remove_group`, `send_here` and `close`, and its record is
+   gone from the 2297 whole dump. Its line was all standard (9 of 9), so no
+   survivor took the `MOVE_TO`; that half is unread (parked 3455a).
 2. **A human's ping.** If `human_frame != 0`: `send_here(x, y, ATTACK_TO)`
    and return — the AI is suppressed while the countdown runs (§14,
    `Leader::action_ping`).
@@ -1503,7 +1508,7 @@ hoplites captured the capital at **13125** (`Cities::capture_city`,
 `find_aggressive_army` **12024**; `emergency` and `Army::close`
 **12129**; `march_to_target` **12280**; `do_transporting` 12796;
 `remove_group` 13466; `do_defending`, `find_besieged_city` **15100**.
-Still never: `engagement`, `send_here`, `charge`, `use_scouts`,
+Still never: `engagement`, ~~`send_here`~~ (entered, item 3455, §6), `charge`, `use_scouts`,
 `use_spies`, `find_waiting_unit`, `find_useful_army`, `find_city`,
 `diplo_change`, `send_navy`.
 
