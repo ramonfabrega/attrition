@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the fiftieth tranche (commander, Opus): 1 of 20 landed from `a479f1bf`** — 3438: chapter eighty-five's Bribe
-at `cover=1` on the pool (run1054, run880's game on every frame both hold), `NEVER` 321 → 319.*
+*2026-10-21, **the fiftieth tranche (commander, Opus): 2 of 20 landed from `a479f1bf`** — 3438: Bribe at `cover=1` (run1054),
+`NEVER` 321 → 319; **3442: the pool's `@key`** (`tools/trace/key.h`, `--bindkey`; run1057), `NEVER` 319 → 315.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 319 (321 at the base), residue 81, open 238** (`Blind:` pinned); it moves by trace, on the pool.
-- **The pool carries the click layer** (3437's `@click`; `docs/LOOP.md`, "The brief"): every open row of GOLDEN §144.3 is an `@`
-  line or a key; 3442 builds `@key`, and then the queue lane is a tool for the menu's own code (1570, Ramon's).
-- **Lanes: att-3442, att-3443.** Next 3449, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
-  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a.
+  `NEVER` 315 (321 at the base), residue 81, open 234** (`Blind:` pinned); it moves by trace, on the pool.
+- **The pool carries the click layer** (3437's `@click`, 3442's `@key`; `docs/LOOP.md`, "The brief"): the queue lane holds no
+  click-layer need — only the menu's own code (3429b) and a lobby the autostart cannot start; its retirement is 1570's, Ramon's.
+- **Lanes: att-3443, att-3444.** Next 3449, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
+  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c.
 - **Fable backlog: 12 Loop items** (3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -35,7 +35,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 319 · residue 81 · open 238
+Blind: never 315 · residue 81 · open 234
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
@@ -50,13 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rcli
 twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
 explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the team lobby (AI §296 rows 11–12, ARMY §26's
 `action_ping`; 1570's other half), `close_wonder`, `say_no_war`, 3414a's `send_navy`, `hits`, `send_here`, `is_dock`, 3444's park.
-
-3442. **coverage: `@key`, the pool's keystroke** (GOLDEN §144.3's `bindkey.py` row; ORDERS §42.3 row 4; 1570's last click-layer
-need): a tracer `@key` line through `SysMessageHandler::OnKey` (+0xc) and `OnChar` (+0x10) as 3437 built `@click`
-(`tools/trace/click.h` already copies the handler's vftable), the key bound by `bindkey.py FORM_E_RIGHT` in the pool's staged
-profile; chapter fourteen's lobby (§22) at `cover=1`: `Options::do_rotate@0071dfd0`, `do_formation@007215b0`,
-`GroupData::get_form_option@0070beb0` (the next/previous key, form −1/−3) on the key's frame; `CM process_form`, `GROUPS form`
-the frame after; parity with run52's keystroke. Run 1057; GOLDEN §146; park MY.
 
 3443. **coverage: three clicks the pool takes now** (GOLDEN §144.3; NATIONS §9.2): `Options::do_spell@0071d7a0` — the To Arms
 button on a Citizen, chapter thirty-nine's lobby (§48), `@click` at 625 (`CM process_spell`, `U3` Militia);
