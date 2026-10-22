@@ -3837,6 +3837,12 @@ the take entered `action_ping` by trace alone. Candidate: a brief that cites a d
 writer that prints it (the `quiet field` rule, a booking's row of the brief checklist), so 3460's `CM process_declare` and
 3461's `CM process_halt` are checked before their captures. Score: a booked field a take can read. One reach.
 
+(3467) **A staging that adds soldiers to kill a computer's army loses to an All Technologies Toughest computer** (3455's
+"for the Loop"): run1075's booked staging (human Battleships on the navy's path) missed because the Persians' navy won;
+run1075b killed the navy's nine ships by console `die`, with the ids read off the `cover=0` twin's own window, and entered
+`Army::send_here` on 2296. Candidate: a booking that needs an army dead names `die` on ids from the twin, never an added
+force, against that lobby — a row of the coverage frame. Score: a disband take that enters on its first try. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
