@@ -16,13 +16,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 blind list scanned and ratified 192 → 91; the fifty-first booked against what a capture can enter.** `docs/audit/2026-10-22-fable-pass-50.md`; DECISIONS 89.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 273 → 254, residue 182, open 91 → 72** (3477's `!eval` take, eighteen rows; 3479 `Nuke`; 3478, 3480 none: 3478a, 3480a).
+  `NEVER` 273 → 253, residue 182, open 91 → 71** (3477's `!eval`, eighteen rows; 3479 `Nuke`; 3481 the herd; 3478, 3480 none).
 - **Amended with Ramon** (DECISIONS 89): the queue lane retires (3485; 1570 closes — a need for it again is a steer); after this tranche the
   headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); the fast logger is 3484, off.
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
-- **Lanes: two live** (3481, 3483); two booked (3484, 3485). Next 3488, run 1113 (1109–1110 3481's, 1111–1112 3483's). Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
-  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b.
-- **Fable backlog: 15 Loop items** (3487, 3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 89.
+- **Lanes: two live** (3483, 3485); one booked (3484, after 3483). Next 3489, run 1113 (1111–1112 are 3483's). Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
+  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a.
+- **Fable backlog: 16 Loop items** (3488, 3487, 3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 89.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,12 +36,12 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 254 · residue 182 · open 72
+Blind: never 253 · residue 182 · open 71
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3481 and 3483 live on the two Opus lanes
-(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order (3484, 3485), then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
+**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3483 and 3485 live on the two Opus lanes
+(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order (3484), then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
 
@@ -50,12 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool** — a click an `@click` lin
 `!`-prefixed (3471), a screen point off `poolshot.py` — checked against its `cover=0` twin (`rngcmp.py`; `samegame.py --from`), pinned
 into `blind::TRACES`; a function not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the
 commander's drafting subagent on `t51/draft-items-51.md`'s `## Not drafted` rows that name a reading, one item a staging it yields.
-
-3481. **coverage: the herd's gate, by packet** (parked 3472a; EMULATOR §8): `RON_STATE_FRAME=5408` on run1090's staging (the team
-lobby, `camera 186,190` on 5406), then `step4.py` on `ObjectsOut::sort_all` with +0x20, +0x44 and the `terrain_fog` cell walk
-hooked for objects 28–30: names which of the five gates refuses herd 9, so `AnimalData::is_seen@005d8160`'s staging is written
-from the answer — the gate in the journal; the staging taken in the same item if it is a `camera`/`explore`/`ai` line, else parked
-for the commander. Run 1100; park NV.
 
 3483. **coverage: where a dumped frame's seconds go** (Ramon, the fiftieth steer; the pool's median 2.1 frames a second): the
 tracer times, inside one dumped frame, the engine's `Log::say` writer against the dump walkers (`GameLog::dump_units` and its siblings) against the
