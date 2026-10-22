@@ -3815,7 +3815,9 @@ ch19. `Game::solo_checks@00588110` ORs it into `gamec->semaphore` bit 1 on every
 `semaphore & 0x42` takes its revealed arm and every draw-side `is_seen` behind them is skipped on every pool capture — 3472
 booked a herd on that and entered nothing; 3481's `5405 reveal 0` entered `AnimalData::is_seen` and moved no draw. Candidate:
 the runner writes the setting it means (a staged `StartReveal` per take, the default stated and tested), and the 67 are
-scanned for open blind rows behind the test, each a `reveal 0` line. Score: `Blind:` open, what a pool take can enter. One reach.
+scanned for open blind rows behind the test, each a `reveal 0` line. Score: `Blind:` open, what a pool take can enter. One reach. **3492's "for the Loop"**: `RISE_DEFAULTS` in `unattended_capture.py`
+(3492's `--rise KEY=N`, every key written on every take with its default) is where `StartReveal` joins — `rise.ini` keys only;
+`rise2.ini` needs a second table.
 
 (3487) **`poolshot.py <run>` waits on a gamelog the pool never writes there** (3479's "for the Loop"): it resolves
 `~/ron-golden/<run>` and waits on its `gamelog.txt`, but a pool take writes under `map-<N>/`; recon3479-1 lost all three
