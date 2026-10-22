@@ -3787,7 +3787,9 @@ screenshot with an `until grep` whose bail-out matched lowercase `refus` against
 have exited. `lanewait.py`'s `--stalled-child-after 240` could not see it inside four hours. CLAUDE.md already names
 `waitrun.sh`; the driven lane's per-take screenshot wait has no tool. Candidate: `handdriver.sh wait <run> <frame>` that
 exits on the runner's banner and refusal lines as `waitrun.sh` does. Score: a driven lane that does not sit on a dead
-wait. One reach.
+wait. One reach. **3436's "for the Loop"**, the same row from the lane's side: a driven wait breaks on the runner's `REFUSED`, no-window
+and summary lines, or `handdriver.sh` ends a game whose cmd file stays silent for N minutes; the dead wait cost 98 lane
+minutes.
 
 (3439) **The tranche is capture-locked, and Ramon called the pass early** (2026-10-21, in the commander's session): the
 queue lane and the pool exclude each other, so while a driven item holds the queue lane the pool lane waits, and two

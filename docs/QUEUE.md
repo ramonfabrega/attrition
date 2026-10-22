@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): 15 of 20 landed from `11da5dd8`** — 3417–3428: `NEVER` 380 → 329
-(run1016–run1036); **3437: the pool's `@click` (`tools/trace/click.h`), the click layer without the cursor — run1050–run1052
-are run1032–run1034 draw for draw**, so the queue lane retires where `@click` reaches; 3431 (Ramon's): the rubric's ages 4 → 6.*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): drained at sixteen from `11da5dd8` in 9 h — early, on Ramon's pit
+stop** (Loop 3439: two Opus lanes ran single-threaded on the capture lock). The drain's whole gate is 3436's booking.*
 
-- **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
-  battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
-  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 329, residue 80 → 79, open 300 →
-  250** (`Blind:` pinned); `never` moves only on a `cover=1` trace: `coverage` items on two Opus lanes, Sonnet empty.
-- **Lane: att-3436; the tranche drains at sixteen** (Ramon's pit stop: no refill, then `steer` with 3437's parity in
-  hand — Loop 3439). Next 3442, run 1057. Pools: GOLDEN §146–149, AI §300–301, park MY, ND–NH. The last whole gate: 3427's booking.
+- **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list: `NEVER` 380 → 321,
+  residue 80 → 79, open 300 → 242** (`Blind:` pinned): `@` lines on the pool, two driven click passes, a playback.
+- **3437: the pool's `@click` (`tools/trace/click.h`) is the driven lane draw for draw** — run1050–run1052 against
+  run1032–run1034, 0 differing — so the queue lane retires wherever `@click` reaches; the click layer's third pass is the
+  pool's (GOLDEN §144.3's rows still in `NEVER`), and a pool lane count past two is the pass's to weigh with Ramon.
+- **Lanes: none live; 3438 (Bribe) booked, unspawned.** Next 3442, run 1057. Pools: GOLDEN §146–149, AI §300–301, park MY,
+  NA, ND–NH. Parked for the pass's eye: 3421a, 3423a (struck by 3427), 3425a, 3428a–b.
 - **Fable backlog: 16 Loop items** (3441, 3440, 3439, 3435, 3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -36,12 +36,12 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 329 · residue 79 · open 250
+Blind: never 321 · residue 79 · open 242
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): re-arm `tools/lanewait.py
---stalled-child-after 240` on att-3436 and att-3437; merge and book each, **no refill** (the drain at sixteen); at the
-second, the whole gate, the handoff, then clear `steer` (Ramon joins the pass).**
+**Opener: the forty-ninth pass (steer, Fable), with Ramon: measure the forty-ninth tranche (sixteen landings from
+`11da5dd8`, drained early on Ramon's pit stop), rule the 16 Loop items — 3439 first: the lanes' count and kind now that
+`@click` (3437) retires the queue lane — book the click layer's third pass on the pool, then clear `commander`.**
 
 ## The queue
 
@@ -50,13 +50,6 @@ pinned lobby retaken at **`cover=1` on the click-free pool** (3429's fix, run103
 3427), checked against its `cover=0` twin (`rngcmp.py`, `samegame.py`), pinned into `blind::TRACES`; a function
 not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: GOLDEN §144.3's click
 layer's third pass (on the pool by `@click`, 3437), the carrier, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
-
-3436. **coverage: the click layer, second pass** (GOLDEN §144.3): driven on the queue lane by `tools/gamelog/handdriver.sh`
-(3427) at `cover=1` in chapters fifteen, seventeen, eighteen, twenty-one, twenty-three and twenty-five's lobbies —
-`rclick` `0/6 0/9` on `1/6` (734) for `GroupOut::issue_attack`, the planes' `rclick` for `issue_flight`, build button
-427 and a drop for `issue_build`, `rclick` `0/6` on `0/2007` (780) for `issue_swarm_around`, the repeat button (1440)
-for `issue_buildmask` and `Options::set_air_repeat`, cancel `0xa6` for `BuildOut::issue_unqueue`; `CM`'s `process_*`
-on the frame after each. Runs 1044–1049, 1055–1056.
 
 3438. **coverage: `@spell` Bribe** (GOLDEN §144.3, §108): chapter eighty-five retaken at `cover=1` on the pool —
 `chapter85.cmd` line for line, the cloaked Spy's `@spell 0 629` at 1112 after its burn reaches 0; its twin is run880:
