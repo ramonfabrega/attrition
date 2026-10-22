@@ -13625,7 +13625,7 @@ calls the wrapper with the `GroupOut` the tracer already builds. That checks the
 | `Unit::reset_move_orders@005fd080` | `U3` passengers' `orig_x/orig_y` on 1902 | §55, chapter forty-six (run496) | re-take `chapter46.cmd` |
 | ~~`Unit::swap_team@006118d0`, `SpellType::cast_bribe@00672d00`~~ | ~~`U3` a new who=0 unit, the old `damage`, `form`~~ | ~~§107's parked staging~~ | entered by run1054 (item 3438) on 1212; `0/8`..`0/10` on 1213 carry `1/6`..`1/8`'s `damage 0`, `form 0` in both dumps |
 | ~~`SpellType::cast_sabotage@006720e0`~~ | ~~`DEATHS` `1/6` on 807~~ | ~~§115, chapter ninety-one (run894)~~ | entered by run1026 (item 3424) on 806, `1/6`'s `first_frame` |
-| `Unit::action_unqueue@005e1f20` | `U3` carrier `num_queued`, `queue_time`; `LEADERS` buckets | a carrier with FIGHTERBOMBER | `@spell … 661` (BUILDAIR), then `@unqueue` |
+| ~~`Unit::action_unqueue@005e1f20`~~ | `U3` carrier `num_queued`, `queue_time`; `LEADERS` buckets | a carrier with FIGHTERBOMBER | ~~`@spell … 661` (BUILDAIR), then `@unqueue`~~ entered by run1066 on 620 (item 3446, §147): `@spell 0 308 …` twice, `@unqueueunit`, `num_queued` 2 → 1 on 622 |
 | `Units::make_valid@0061a960` | `U3` first `0/200` index | ~70 squads for one player | `@queueup` past 200 slots |
 | ~~`ScenarioFuncSet::citizen_repair_order@009f85b0`~~ | ~~`U3` computer Citizens' `MOVEORDER` + `BUILDORDER`~~ | ~~a Nomad lobby (`profile.py STARTING_TOWN=0`), AI on~~ | entered by run1068 on 376 (§148) |
 
@@ -13785,12 +13785,74 @@ No part comes before the first unshared input.
 window procedure and of `keymap_options` is backed by the bytes it cites; the gates in `KeyMap::lookup` are a reading
 the run confirms only for the arm it took.
 
-## 147. Reserved for the next item on the rules track
+## 147. The carrier, staged at `cover=1` in the coverage pair's lobby: a cancel, a launch and two boats (item 3446, run1066)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** One coverage take, not a chapter: no word is pinned on it. The lobby is the coverage pair's (map 18,
+human Nubians against the Persians, All Technologies, Toughest, AI on; run651/run652's game). The staging is
+`tools/gamelog/coverage/carrier3446.cmd`, console and `@` lines from 600. It enters the four `NEVER` rows §144.3's
+carrier row, ORDERS §42.3 row 1 and AI §296 row 5 name. `NEVER` 309 → 305.
+
+**One new verb, `@unqueueunit <who> <o>…`** (`tools/trace/tracer.c`, `issue_guard.h` verb 29). `@unqueue` names
+buildings and calls `CommandManager::issue_unqueue@00942c40`, the `WallOut` overload. A carrier's queue is its own
+(`num_queued`, `queue_time`), and its cancel button is `UnitOut::issue_unqueue` (`00607bc0`). That button calls the other
+overload, `issue_unqueue@00942ce0`, behind the semaphore test. The new verb calls `00942ce0(unit, 0)` once per unit.
+Its prologue is the `WallOut` one's to the byte (`sub esp, 0x10`, `ret 8`), and it writes the same 15-byte `unqueue`
+(0x30) with `p` 0 and no group. `CommandPackage::process_unqueue@009466f0` asks the object's vslot `0x1c`. On a unit it
+checks `units[who][o]` for the `uid` and calls `Unit::action_unqueue(1)`. The other verbs the staging used were
+already there: `@queueup`, `@spell`, `@move` under `be 1`, and `@strike`.
+
+**BUILDAIR rides on the plane's type.** The carrier's build button passes a unit type to `Options::do_spell@0071d7a0`.
+That function substitutes BUILDAIR (661) only to find the spellcaster, and `target_spell` issues the type it was
+given. So the wire carries the aircraft type: `@spell 0 308 -1 -1 0 0 14`, FIGHTERBOMBER. `Group::action_spell@006fe1a0`
+takes its carrier arm on a unit type whose `+0x218` is 2. That arm asks `is_castable(spelltypes[661])`, then
+`num_queued < 10` and `num_aircraft_here < num_aircraft_limit`. It pays for `current_upgrade(FIGHTERBOMBER)` and
+increments the unit's `+0xa0`, the leader's per-type queue count and `air_queued`. A `@spell … 661` would take the
+spell arm and queue nothing.
+
+| frame | line | dump, the next block (run1066) | entered (`NEVER` rows) |
+|---|---|---|---|
+| 602, 604 | `add dock who=0 13,37`, `add aircraft_carrier who=0 6,37` | Dock `0/2007` (2496, 7104); Carrier `0/14` (1272, 7224), `unit_masks` `0x200000`, empty | — |
+| 610 | `@queueup 0 351 1 2007` | the Dock's Carrier `0/16` out on 828 with seven planes `0/17`..`0/23` inside | (`Build::train` → `action_unqueue(0)` on 828; already entered on 620) |
+| 612, 614 | `@spell 0 308 -1 -1 0 0 14` twice | `0/14` `num_queued` 0 → 1 (614) → 2 (616); `queue_time` +100 a frame | — |
+| 620 | `@unqueueunit 0 14` | `0/14` `num_queued` 2 → 1 (622), `queue_time` 900, not reset; leader 0 `air_queued` 2 → 1, the type's `num_queued[scan]` 2 → 1 | `Unit::action_unqueue@005e1f20`, `process_unqueue`, `issue_unqueue@00942ce0` on 620 |
+| 622, 624 | `be 1`, `@move 1 24960 34176 15`, `@move 1 24960 35712 18`, `be 0` | the squad `1/15`..`17` aboard barge `1/19` (626); the General `1/18` aboard `1/20` (638) | — |
+| — | (the barges reach their points) | `1/19` at (24960, 34176) on 770, then a `MOVEORDER` to `orders_x/y` (34968, 36504) on 771; `1/20` at (24960, 35712) on 793, then a `MOVEORDER` to (43416, 40584) on 794 | `Unit::think_carry_military@005f3260` on 770, `think_carry_idle@005f2f30` on 793 |
+| 830 | `@strike 0 2025 1 15` | the trained plane `0/15` (inside `0/14` from 817) holds a `STRAFEORDER` from 832, is out on 861, holds an `AIRPATROLORDER` from 1021; the Barracks `1/2025`'s `myhits` 1560 → 1040 on 1183 | `UnitData::has_repeat_air@0046cec0` on 831 |
+
+**Which caller asked `has_repeat_air`, and which did not.** On 831 the strike's `process_flight` had run (830). The
+plane was still inside the carrier, and it left on 861. The vslot-`0xf0` call on an object in that window is
+`Object::do_launch@0064f3b0`'s, the home asking its own repeat flag before it launches a plane that holds an order.
+The carrier's `unit_masks` carries `0x200000` from its `add`, so the strafe is kept. **The landing arm is not
+reached**: `Unit::land_plane@005e9950`'s tail (ORDERS §40.1) asks the same slot, but `0/15` does not land by 1300 and
+its `unit_masks` stays 0 on every block. ORDERS §42.3 row 1's `0x4000000` value is therefore not read (parked 3446a).
+The attribution to `do_launch` is a reading. The trace records first entries, not callers.
+
+**The two boats.** `think_carry`'s three counts (§296 row 5) split the barges. `1/19` carries attackers
+(`count_inside(COUNT_ATTACK)`: a captain whose type has `+0x1e8`), and that sends it to `think_carry_military`. `1/20`
+carries a General, which is not a worker, not a Scout (0x45) and has no attack, so it goes to `think_carry_idle`.
+Each walks off its point on the block after the function's frame. The idle boat's destination is the nearest of its
+own cities on a coast region with a Dock.
+
+**Against the twins** (the first unshared input is 600, the `resource` line):
+
+- `rngcmp.py rontrace-run652.log rontrace-run1066.log`: **1301 in common, 603 identical, 698 differing, the first
+  603**. Against run672: 843 in common, 603 identical, the first 603.
+- `samegame.py` against run672 (`gamelog-run672-…-window-577-833`), `--from 600`: **240 in common (594..833), 233
+  differing, the first 601**, the 600 line's own block. The 6 common blocks before 600 are the same game.
+
+No part comes before 600.
+
+**What is not established.**
+- The carrier's landing arm (3446a).
+- Whether `do_launch` is the 831 caller rather than another vslot-`0xf0` site entered that frame. Only the frame and
+  the slot back it.
+- The refund's value: the buckets move on 622, but gathering moves them on every block.
+- Why a console-added carrier carries `0x200000` set.
+
+**Coverage.** Diff-backed on run1066's dump: the queue counts on 614, 616 and 622, the leader's `air_queued`, the
+barges' boarding and their orders on 771 and 794, the strike's order on 832, and the entries by `report.py
+functions`. What is reading-only: the BUILDAIR substitution, `process_unqueue`'s unit arm, `think_carry`'s split, and
+the 831 caller.
 
 ## 148. The Nomad lobby on the pool: `citizen_repair_order` (item 3447, run1068)
 
@@ -13839,6 +13901,41 @@ caller, which has the same body on the defensive personality's script.
 reading of gap 2 rests on the export (`citizen_repair_order@009f85b0`) and the dumped `group` values.
 
 ## 149. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 150. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 151. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 152. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 153. Reserved for the next item on the rules track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 154. Reserved for the next item on the rules track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

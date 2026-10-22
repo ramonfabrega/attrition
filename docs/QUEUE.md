@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the fiftieth tranche (commander, Opus): 6 of 20 landed from `a479f1bf`** — `NEVER` 321 → 303: 3438 Bribe,
-**3442 the pool's `@key`**, 3443 three clicks, 3444 minimap and war, 3445 `hurry`/rename/save, 3447 the Nomad lobby.*
+*2026-10-21, **the fiftieth tranche (commander, Opus): 7 of 20 landed from `a479f1bf`** — `NEVER` 321 → 299: 3438 Bribe,
+**3442 the pool's `@key`**, 3443 three clicks, 3444 minimap and war, 3445 `hurry`/rename/save, 3447 Nomad, 3446 the carrier.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 303 (321 at the base), residue 81, open 222** (`Blind:` pinned); it moves by trace, on the pool.
+  `NEVER` 299 (321 at the base), residue 81, open 218** (`Blind:` pinned); it moves by trace, on the pool.
 - **The pool carries the click layer** (3437's `@click`, 3442's `@key`; `docs/LOOP.md`, "The brief"): the queue lane holds no
   click-layer need and no lobby (3447 started the Nomad one) — only the menu's own code (3429b); retiring it is Ramon's (1570).
-- **Lanes: att-3446, att-3448.** Next 3453, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
-  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a, 3445a–c, 3447a–b.
-- **Fable backlog: 16 Loop items** (3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
+- **Lanes: att-3448, att-3453.** Next 3459, run 1078. Pools: GOLDEN §150–154, AI §300–301; the park pool is assigned through NH
+  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3444a, 3445a–c, 3446a, 3447a–b.
+- **Fable backlog: 18 Loop items** (3458, 3457, 3452, 3451, 3450, 3449, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -35,7 +35,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 303 · residue 81 · open 222
+Blind: never 299 · residue 81 · open 218
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
@@ -48,15 +48,8 @@ refill from the queue in order; twenty landings or Ramon's word, then the fiftie
 In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). Every item is a `coverage` capture (DECISIONS 87, 88): one
 pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rclick` line (3437), checked against its `cover=0`
 twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
-explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the team lobby (AI §296 rows 11–12, ARMY §26's
-`action_ping`; 1570's other half), `close_wonder`, `say_no_war`, 3414a's `send_navy`, `hits`, `send_here`, `is_dock`, 3444's park.
-
-3446. **coverage: the carrier** (GOLDEN §144.3's carrier row; ORDERS §42.3 row 1; AI §296 row 5): an All-Technologies water
-lobby (the coverage pair's) staged by `@` lines — a Dock, a Carrier (type 351) queued, `@spell … 661` (BUILDAIR) for a Fighter
-Bomber (308), then `@unqueue` — enters `Unit::action_unqueue@005e1f20` (`U3` the carrier's `num_queued`, `queue_time`);
-`has_repeat_air` when the plane strikes and lands (`U3` `unit_masks & 0x4000000`); `Unit::think_carry_idle@005f2f30` and
-`think_carry_military@005f3260` on an idle and a soldier-carrying transport (`U3` `orders_x/y`). The staging's frames are the
-item's to read off its first take. Runs 1066–1067; GOLDEN §147; park NF.
+explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: booked below as 3453–3455 and 3455's fallback;
+3414a's `send_navy` left `NEVER` on run1019 (3420); `hits`/`Wall::Wall` take no `@` line (GOLDEN §144.4's `RESIDUE` row, the pass's).
 
 3448. **coverage: ORDERS §42.3 rows 2, 3 and 5**: `Unit::add_think_order`/`do_think_order` — `@gather` one more Citizen onto an
 own Woodcutter's Camp at its cap (`U3` the Citizen's head `THINKORDER` on arrival, `think_peasant(1)`'s order the next frame);
@@ -64,6 +57,31 @@ own Woodcutter's Camp at its cap (`U3` the Citizen's head `THINKORDER` on arriva
 `flags & 4` on the first site's finishing frame); `Group::distribute_attack@00713390` — chapter fifteen's lobby, `@rclick`
 attack by a selected group on a far unit whose leader collides with a valid enemy on the way (`U3` the members' `ATTACKORDER`
 targets on the collision frame). Runs 1069–1071; park NH.
+
+3453. **coverage: `say_no_war` in the peace lobby** (AI §218, §296 row 9b; parked 3444a; NATIONS §9.2): EastIndiesLakotaPeace at
+`cover=1` beside its twin; before 4500 (a) `@move` a human soldier into Lakota land (`Unit::process_attrition:204` →
+`Game::say_no_war@00592b00`; `U3` halted at the border), or (b) a soldier's `@rclick` on a Lakota unit (`Console::tell_no_war`);
+after 4500 (c) `peace 1`, then `@attack` a Lakota building in its land (`Leader::action_declare@006dab50`, `free` 1; `LEADERS=9`
+`diplos` back to 0). `say_no_war` writes only `msg`: the trace entry is the evidence. A `TEAM_STYLE=0` lobby only if (a) and (b)
+miss. Runs 1072–1073; park NI.
+
+3454. **coverage: a wonder's close** (AI §75.3, §296 row 10; parked 3431b): chapter seven's lobby at `cover=1`, `!ai off`; console
+`add <wonder> who=0 x,y` (complete at once, `init_wonder` raises `wonder_mark`), then `die <o>,0`: `Build::close` →
+`Wonders::close_wonder@0073c7e0` when the wonder slot `+0x76` ≥ 0; `LEADERS=9` `wonder_mark` (+0x424) down one on the die
+frame, `BUILDS=6` the record gone. Whether `add` honours one-per-player, and whether `die` reaches `Object::die`, the take says.
+Run 1074; park NJ.
+
+3455. **coverage: the disband walk and the Dock's right-click** (ARMY §6, §14; VISION §8): the coverage pair's lobby at
+`cover=1`, AI on; `add` human soldiers on a computer army's path once it has left muster, so its standard line dies:
+`Army::process:64–82` → `Army::send_here@006f98a0` (`U3` the survivors' `MOVE_TO`; `valid` 0 under `@dumpall`) — a prediction,
+the army may merge or close first; and ships selected, `@rclick` on the human's own Dock: `execute_at_cursor:2186` →
+`ObjectData::is_dock@004711e0` (`CM` the garrison line). Runs 1075–1076; park NK.
+
+3456. **coverage: the team lobby** (AI §296 rows 11–12; ARMY §26's `action_ping`; parked 3413b; 1570's other half): a human and
+two computers, one allied by `ally 1`; a help taunt (`--bindkey OPTION_CHAT_ALLIES`, `@key`, `@char` the `TAUNT_HELP` number,
+`@key 13`), then a ping (`--bindkey OPTION_PING`, `@key`, `@click`): `Leader::action_ping@006d18a0`, `send_here`'s ping arm
+(`CM process_ping`; the army's `human_frame` under `@dumpall`); `action_respond`, `pay_dow` if the human cancels the alliance.
+The second computer's profile key is unread; a refusal to start is 1570's evidence. Run 1077; park NL.
 
 ## How to maintain this file
 
