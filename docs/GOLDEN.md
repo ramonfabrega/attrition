@@ -12383,7 +12383,12 @@ building's queue is non-empty — a library's being the owner's first library's 
 index 0 (or, when its counter already equals its own `train_time`, `get_next_non_unit`'s) takes **the head's train
 time**: listing `7c3a33`..`7c3a4b`, `cmpl $0, this; movl $10000; cmovne train_time`. The console's form (`this != 0`)
 adds the train time; the keymap's `this == 0` form (`exec_keymap` case `0x45`) adds 10000 (parked 2502 corrects 2475's
-wording). Then `do_queue(0)` runs at once. `hurry [n]` parses to the same verb as `finish`.
+wording). Then `do_queue(0)` runs at once. ~~`hurry [n]` parses to the same verb as `finish`~~ — **no** (§94): only `hurry` is
+`run_cmd` case `0x51`. `finish` is case `0x4f`, which adds 500000 (`BuildQueue::set_job_counter`). So run864's
+`701 finish` never entered `hurry_action`. run1063a, the same lines at `cover=1`, enters `set_job_counter` on 701 and not `hurry_action`.
+It is run864's game on all 161 dumped frames. run1063, with `701 hurry`, enters `hurry_action` on 701. Its one
+value part from run864 on 702 is the Library `0/2005`'s own `job_counter`: **10000** against run864's 500000. The
+research completes on 701 in both.
 
 **The staging**: chapter 73's with the wonder and the city out: `age who=0 8`, `resource who=0 all +50000`, The Art of
 War queued at the Library `0/2005` on 640, `select 2005` on 700, `finish` on 701. The walk (`RON_STAGE_ALL=1`) empties
@@ -12396,9 +12401,9 @@ research on 701 as this crate does.
 **The unit arm is not reached** (parked 2501): `is(0x15f)`, an Aircraft Carrier, `+0x64 += 10000`; no carrier
 production counter here, and a carrier is beyond map 14's three-line staging (a Harbor, water, an age).
 
-**Census rows reached.** `Console::hurry_action@007c3810` (the queue arm), `BuildQueueData::get_next_non_unit` (the
-held-head path is unit-tested only, parked 2503), `Build::do_queue@0061e410` on a research head; the count is the
-commander's pin.
+**Census rows reached.** ~~`Console::hurry_action@007c3810` (the queue arm)~~ — run864's `finish` did not reach it, and
+run1063's `hurry` does (item 3445) — `BuildQueueData::get_next_non_unit` (the held-head path is unit-tested only, parked
+2503), `Build::do_queue@0061e410` on a research head; the count is the commander's pin.
 
 **What is not established.** The held head (parked 2503), the unit arm (parked 2501), the library type test's redirect from
 a non-first library (the code redirects; no capture has two libraries). The battery (576 / 6566 / 2974) is on the gate's
@@ -13574,8 +13579,8 @@ view (`Console::on_right_up@007cd3c0`), never one of these.
 | claim | read at | kills it |
 |---|---|---|
 | **`WorldMap::on_right_up@008c7050` is the minimap's right-click**, not the main view's: it bumps `accum_minimap_clicks` (:60) and is vslot `+0xf8` of a `WorldMap` vftable `Window::right_up_event` dispatches. §17's "a plain right-click's arguments, form −1, width −1" (:203) is the minimap's. A main-view ground click is `Console::execute_at_cursor@007c6630:2585` with `drag_form = max(0, get_form)` and `drag_form_mod` from `GroupData::get_form_mod_option`, set at the press (`Console::down@007cd8f0:89–100`). §13's and §23's ctrl arm (:199) has the same bytes as the main view's :411. §18's :206 is a minimap click with a plane selected | the listing; `vtables.txt` lacks this vftable (`.rdata 0xb54b38`) | a main-view ground right-click in run30's or run50's package carrying form −1, width −1 |
-| **`Console::hurry_action@007c3810` is `hurry`, not `finish`**: `run_cmd` case `0x51` (`this` 1 for the bare token) and cheat key `0x45` (`this` 0) are its only callers. `finish` is case `0x4f`, inline (§94), so §90's "the one-token `finish`" names the wrong verb, and **no capture has entered it at any cover** | `ConsoleWin::run_cmd@007d6a70:8842`, `Console::exec_keymap@007c2ce0:269` | chapter seventy-four's take with `hurry` for `finish`: the Library's `job_counter` moves 500000, not 10000 |
-| **`ScenarioFuncSet::citizen_repair_order@009f85b0` is reachable in a skirmish**: the computer's nomad opening calls it (`ai/scripts/economic.bhs:398`, `defensive.bhs:433`) on every Citizen once its Small City is placed. §29's "cut with the trigger system" is wrong. Ported at `crates/sim/src/ai_host.rs:1192`. Unestablished gaps: it admits `0x32` and `0x33` (is Korea's citizen the port's `citizen_type`?); it writes `UnitData.group` −1, which the port does not | the export; the install's scripts | a nomad capture whose computer Citizen gains no `BUILDORDER` on the new city at the head (`QUEUE_FIRST`) |
+| **`Console::hurry_action@007c3810` is `hurry`, not `finish`**: `run_cmd` case `0x51` (`this` 1 for the bare token) and cheat key `0x45` (`this` 0) are its only callers. `finish` is case `0x4f`, inline (§94), so §90's "the one-token `finish`" names the wrong verb, and ~~**no capture has entered it at any cover**~~ run1063 enters it (item 3445, §91) | `ConsoleWin::run_cmd@007d6a70:8842`, `Console::exec_keymap@007c2ce0:269` | chapter seventy-four's take with `hurry` for `finish`: the Library's `job_counter` moves 500000, not 10000 |
+| **`ScenarioFuncSet::citizen_repair_order@009f85b0` is reachable in a skirmish**: the computer's nomad opening calls it (`ai/scripts/economic.bhs:398`, `defensive.bhs:433`) on every Citizen once its Small City is placed. §29's "cut with the trigger system" is wrong. Ported at `crates/sim/src/ai_host.rs:1192`. Its two gaps, `0x32`/`0x33` and `group` −1, are read in §148 | the export; the install's scripts | a nomad capture whose computer Citizen gains no `BUILDORDER` on the new city at the head (`QUEUE_FIRST`); run1068 |
 | **`ScenarioData::issue_order@00996ac0` is a scenario file's initial orders**, applied once at import (`ScenarioRead::import` chunk 6 → `issue_queued_orders`), not the trigger system as §29 says. Cut from v1 with scenario games either way | the export | a random-map trace entering `ScenarioRead::import` |
 | `Options::picked_spot@00721c40`'s Repair pick always passes `QUEUE_NEW`, whatever the keys, and on an undamaged own building with room and gatherers selected it issues `issue_gather` (:668), not a repair. A right-click reaches `picked_spot` only under the profile pref `prefs & 0x20` | :536–727 | a shift-held Repair pick logging queued ≠ 2 in `CM` |
 | `Options::set_air_repeat@0071c740` has a units arm §32 omits: with planes selected it sends an inline command `0x20` (`unitmask 0x200000, set 1`), so it always sets and never toggles. No port | :53–76 | a second press logging `set 0` |
@@ -13615,14 +13620,14 @@ calls the wrapper with the `GroupOut` the tracer already builds. That checks the
 | ~~`CommandManager::issue_come_out@00942c90`, `CommandPackage::process_come_out@009465d0`~~ | `CM` `process_come_out`; `U3` out of host | §21, chapter thirteen | ~~a new `@comeout`, or the unit's panel button~~ entered by run1030 on 800 (§145) |
 | ~~`CommandManager::issue_attack_ground@009417a0`~~ | `CM` `process_attack_ground` | §7, chapter three | ~~a new `@attackground`~~ entered by run1029 on 630, with `process_attack_ground` and `Group::action_attack_ground` (§145) |
 | ~~`CommandManager::issue_stance@00941530`, `CommandPackage::process_stance@00949ed0`, `GroupData::get_stance_option@0070bab0`~~ | ~~`CM` `process_stance 2 681`; `U3` `stance` 721–722~~ | ~~§79, chapter sixty-four (run835)~~ | entered by run1025 (item 3424): the first two on 680, `get_stance_option` on 720 |
-| `Console::hurry_action@007c3810` | `BUILDS` `job_counter` +10000 | §91, chapter seventy-four | `hurry` for `finish`, 701 |
+| ~~`Console::hurry_action@007c3810`~~ | `BUILDS` `job_counter` +10000 | §91, chapter seventy-four | ~~`hurry` for `finish`, 701~~ entered by run1063 on 701 (item 3445): `0/2005`'s `job_counter` 10000 on 702 (run864's `finish` 500000) |
 | `BuildQueueData::get_next_non_unit@00630b10` | `BUILDS=7` `0/2007` slot 1 +100/frame from 843 | §92, chapter seventy-five | re-take `chapter75.cmd` (diff-backed on run868, a draw trace) |
 | `Unit::reset_move_orders@005fd080` | `U3` passengers' `orig_x/orig_y` on 1902 | §55, chapter forty-six (run496) | re-take `chapter46.cmd` |
 | ~~`Unit::swap_team@006118d0`, `SpellType::cast_bribe@00672d00`~~ | ~~`U3` a new who=0 unit, the old `damage`, `form`~~ | ~~§107's parked staging~~ | entered by run1054 (item 3438) on 1212; `0/8`..`0/10` on 1213 carry `1/6`..`1/8`'s `damage 0`, `form 0` in both dumps |
 | ~~`SpellType::cast_sabotage@006720e0`~~ | ~~`DEATHS` `1/6` on 807~~ | ~~§115, chapter ninety-one (run894)~~ | entered by run1026 (item 3424) on 806, `1/6`'s `first_frame` |
 | ~~`Unit::action_unqueue@005e1f20`~~ | `U3` carrier `num_queued`, `queue_time`; `LEADERS` buckets | a carrier with FIGHTERBOMBER | ~~`@spell … 661` (BUILDAIR), then `@unqueue`~~ entered by run1066 on 620 (item 3446, §147): `@spell 0 308 …` twice, `@unqueueunit`, `num_queued` 2 → 1 on 622 |
 | `Units::make_valid@0061a960` | `U3` first `0/200` index | ~70 squads for one player | `@queueup` past 200 slots |
-| `ScenarioFuncSet::citizen_repair_order@009f85b0` | `U3` computer Citizens' `MOVEORDER` + `BUILDORDER` | a Nomad lobby (`profile.py STARTING_TOWN=0`), AI on | the computer's city placed |
+| ~~`ScenarioFuncSet::citizen_repair_order@009f85b0`~~ | ~~`U3` computer Citizens' `MOVEORDER` + `BUILDORDER`~~ | ~~a Nomad lobby (`profile.py STARTING_TOWN=0`), AI on~~ | entered by run1068 on 376 (§148) |
 
 **The click rows need no cursor (item 3437).** A rontrace `@click X Y`/`@rclick X Y` line (`tools/trace/click.h`) calls
 the game's own `SysMessageHandler` mouse slots at the top of its frame, with the renderer's cursor cache pinned to the
@@ -13849,12 +13854,51 @@ barges' boarding and their orders on 771 and 794, the strike's order on 832, and
 functions`. What is reading-only: the BUILDAIR substitution, `process_unqueue`'s unit arm, `think_carry`'s split, and
 the 831 caller.
 
-## 148. Reserved for the next item on the rules track
+## 148. The Nomad lobby on the pool: `citizen_repair_order` (item 3447, run1068)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**What it is.** §144.3's `citizen_repair_order` row, taken on the click-free pool. The lobby is `--map 18 --profile
+STARTING_TOWN=0`, with the AI on and no command file: human Nubians (tribe 4) against a British computer (tribe 11),
+seed 12345, 601 frames at `cover=1` (run1068), and its `cover=0` twin run1068b. **The autostart starts the Nomad
+lobby.** The `GAME INFO` block reads `STARTING_TOWN 0`, so this lobby was not one the autostart could not start, and
+1570 has no lobby of that kind named.
+
+**What the run establishes** (`U3` blocks 374–380, `docs/RUNS.md` run1068):
+
+- `ScenarioFuncSet::citizen_repair_order@009f85b0` is entered on trace frame 376 (`report.py … functions`: `f376`),
+  and block 377 is the first dump to show it. It comes from the nomad script's step 2 (`ai/scripts/economic.bhs:398`):
+  the Small City `1/2000` (uid 3) was placed and started, and is still inactive.
+- **All three of the computer's Citizens are re-sent, the approach at the head.** On block 376 each holds one order,
+  `BUILDORDER` on `1/2000` (`flags 4`, uid 3), from the placement. On block 377 each holds `[BUILD 1/2000, EXPLORE_TO
+  (x, y)]`, bottom first, as the dump lists a stack. So the head is the approach move and the build is under it, with
+  `flags 4` (the action bit): `action_swarm_around(…, QUEUE_FIRST, BUILD_AT, 1)` after `clear_orders`. The three
+  approach points are `1/0` (40008, 40344), `1/1` (39192, 40824) and `1/2` (39000, 39288). `1/0` and `1/2` have
+  consumed the move by block 378, and `1/1` is still walking on 379.
+- **The move's class is `EXPLORE_TO` (type 3), not `MOVE_TO`.** The dump prints `EXPLORETOORDER` around its
+  `MOVEORDER` base. That is the computer's `BUILD_AT` swarm class that `orders.rs`'s `swarm_around` already gives
+  (`MoveKind::ExploreTo` for a non-human). §144.3's "`MOVEORDER` + `BUILDORDER`" names the base record, and the
+  run is the first diff of that arm.
+- **Gap 1, the `0x32`/`0x33` predicate.** Every Citizen in the game prints `GUY` `type 50` (`0x32`): the human's
+  three and the computer's three. The `0x33` arm is not reached in this lobby. No British or Nubian Citizen carries
+  it, and which nation's does is not established (§144.3's reading asked whether it is Korea's; parked 3447a). The port's `citizen_type()` (the tree's first unit type)
+  is not compared by this run.
+- **Gap 2, `UnitData.group` −1.** The −1 is transient. The function stores 0xffff at `+0x80`, then `Group::add`s the
+  unit into a fresh local `Group` and `Groups::push_group`s it, and the swarm is issued from the pushed group. At the
+  frame boundary no Citizen reads `group -1`. Block 376 has `1/0` 66, `1/1` 67, `1/2` 64. Block 377 has 66, **65**,
+  64: each Citizen stands in a pushed group of its own index, and `1/1`'s moved 67 → 65. The port's
+  `citizen_repair_order` pushes no group, so its `group` stays where the placement left it (parked 3447b). No word
+  reads this lobby, so the difference parks.
+- `unit_masks` bit `0x2` changes on `1/0` (set) and `1/2` (cleared) across 376 → 377. `num_queued` is 0 and `idle`
+  is 0 on every Citizen throughout.
+
+**The twin.** `rngcmp.py` run1068b → run1068: 601 in common, 0 differing, 601 identical. `samegame.py`: 600 in
+common (1..600), 0 differing. There is no input to compare from, so the comparison runs from frame 1.
+
+**What is not established.** The `0x33` arm (3447a). Whether `push_group` reuses the freed index (66 and 64 read
+back unchanged) or allocates afresh: `GROUPDATA` printed no block (`groupdata_blocks 0`). `defensive.bhs:433`'s
+caller, which has the same body on the defensive personality's script.
+
+**Coverage.** The four bullets above are diff-backed by run1068's `U3` blocks against run1068b. The `push_group`
+reading of gap 2 rests on the export (`citizen_repair_order@009f85b0`) and the dumped `group` values.
 
 ## 149. Reserved for the next item on the rules track
 

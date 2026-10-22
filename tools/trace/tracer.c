@@ -121,6 +121,7 @@ IMPORT(u32, GetCurrentThreadId, (void));
 IMPORT(void, OutputDebugStringA, (const char *));
 IMPORT(HANDLE, CreateThread, (void *, u32, void *, void *, u32, u32 *));
 IMPORT(void, Sleep, (u32));
+IMPORT(u32, GetTickCount, (void));
 
 #define GENERIC_READ 0x80000000u
 #define GENERIC_WRITE 0x40000000u
@@ -171,6 +172,7 @@ enum {
     K_CALL = 7, /* a proxied call's entry:  a = site, b = this, c..f = args 0..3 */
     K_RET = 8, /* and its return:          a = site, b = eax,  c..e = args 4..6,
                 * f = the byte behind arg7 where the site names one, else ~0 */
+    K_LOOP = 11, /* Game::loop entry: no record; runs the due `@after` lines (9, 10: RON_STATE_FRAME) */
 };
 
 enum {
@@ -203,6 +205,11 @@ enum {
     I_CLICK = 20, /* an `@click`, `@rclick` or `@cursor` line (`click.h`) */
     I_PIN = 21, /* the cursor pin installed or refused (`click.h`) */
     I_KEY = 22, /* an `@key` or `@char` line (`key.h`) */
+    I_AFTER = 24, /* an `@after MS <line>` line: a = frame, b = line index | refusal << 16 (0
+                   * queued; 5 the text did not parse; 6 the queue is full), c = MS, d = the
+                   * tick it is due at; and again when it runs: b = line index | 1 << 24, c =
+                   * the tick, d = the Game::loop entries since the first `@after` was queued */
+    I_DUMPALL = 23, /* an `@dumpall` line: a = frame, b = line index, c = the flag before, d = 1 set / 0 cleared */
 };
 
 typedef struct {
@@ -221,6 +228,11 @@ static const HookSite HOOKS[] = {
 #endif
     /* Game::do_frame@00591ef0: push ebp; mov ebp,esp; push -1; push 0xa83e41 */
     {0x191ef0, 10, K_FRAME, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0x41, 0x3e, 0xa8, 0x00}},
+    /* Game::loop@00591570: push ebp; mov ebp,esp; push -1; push 0xa83df9. Installed only
+     * when a command file carries an `@after` line (item 3445): in a solo game a modal
+     * window (the Game Menu, the Options window, a popup) stops `do_frame`, and this is
+     * the entry that still runs while it is up. */
+    {0x191570, 10, K_LOOP, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0xf9, 0x3d, 0xa8, 0x00}},
     /* Random::get@00a39cf0: push ebp; mov ebp,esp; push ecx; imul eax,[ecx],0x19660d */
     {0x639cf0, 10, K_GETF, {0x55, 0x8b, 0xec, 0x51, 0x69, 0x01, 0x0d, 0x66, 0x19, 0x00}},
     /* Random::get@00a39d70: push ebp; mov ebp,esp; push -1; push 0xab22d0 */
@@ -493,6 +505,13 @@ static i32 g_cw_lo = -1, g_cw_hi = -2; /* the call proxies log when lo <= frame 
 static i32 g_stride = 0, g_stride_lo = -1, g_stride_hi = -1, g_stride_read = 0;
 #define RVA_LOG_START_FRAME 0xab13d4u /* game_log.log_start_frame, VA 0xeb13d4 */
 #define RVA_LOG_END_FRAME 0xab13d8u /* game_log.log_end_frame (+0x78) */
+/* game_log.do_dump_all (+0x54), the argument `begin_frame@00932a70` and
+ * `end_frame@009329d0` pass to `full_dump` on every logged frame: non-zero
+ * takes `dump_all`, the whole state, `HOTKEYGROUPS` among it (item 3445). */
+#define RVA_LOG_DUMP_ALL 0xab13b4u
+static i32 g_loop_want; /* a command line is `@after`: install the Game::loop hook */
+static i32 g_dumpall_until = -1; /* the frame `@dumpall`'s flag is cleared at, or -1 */
+static i32 g_dumpall_saved;
 static i32 g_calls = 0; /* proxies installed (only when a callwin was given) */
 
 /* The coverage table, one record per listed function (`funcs.py`). */
@@ -984,6 +1003,14 @@ static void market_line(i32 frame, u32 idx, const u16 *t, u32 rva, u32 before, c
     emit(K_INFO, I_ISSUE, (u32)frame, idx | ((u32)(after > before ? 0 : 6) << 16), before, after, 1);
 }
 
+#define LOOPQ_MAX 32
+typedef struct {
+    u32 due, idx;
+    const u16 *text; /* into g_cmds, past `after MS ` */
+} LoopLine;
+static LoopLine g_loopq[LOOPQ_MAX];
+static u32 g_nloopq, g_loopq_next, g_loops;
+
 static void issue_line(i32 frame, u32 idx, const u16 *text) {
     u16 *pkg_size = (u16 *)(g_base + RVA_COMMAND_MANAGER + 0x28 + 0x10);
     u32 before = *pkg_size;
@@ -993,6 +1020,35 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     if (issue_verb(&t, "cursor ")) { click_line(frame, idx, t, 0); return; }
     if (issue_verb(&t, "key ")) { key_line(frame, idx, t, 0); return; }
     if (issue_verb(&t, "char ")) { key_line(frame, idx, t, 1); return; }
+    if (issue_verb(&t, "after ")) {
+        /* `@after MS <line>`: queue <line> (any `@` line, without its `@`) for the
+         * first `Game::loop` entry MS milliseconds from now (item 3445). A modal
+         * window stops `do_frame` in a solo game, so a line keyed on a frame
+         * cannot reach a window it opened; this one can, while the game is held.
+         * Wall-clock, because a window animates in on the renderer's clock. */
+        i32 k = 0, why = 0;
+        if (!issue_int(&t, &k) || k < 0) why = 5;
+        else if (g_nloopq >= LOOPQ_MAX) why = 6;
+        while (*t == ' ' || *t == '\t') t++;
+        if (!why && !*t) why = 5;
+        if (!why) {
+            LoopLine *q = &g_loopq[g_nloopq++];
+            q->due = GetTickCount() + (u32)k, q->idx = idx, q->text = t;
+        }
+        emit(K_INFO, I_AFTER, (u32)frame, idx | ((u32)why << 16), (u32)k, GetTickCount() + (u32)k, 0);
+        return;
+    }
+    if (issue_verb(&t, "dumpall")) {
+        /* `@dumpall`: this frame's logger block is a whole dump (item 3445).
+         * Set at the top of `do_frame`, before `begin_frame`, and cleared at
+         * the next frame's top, so exactly this block's two dumps take it. */
+        i32 *flag = (i32 *)(g_base + RVA_LOG_DUMP_ALL);
+        if (g_dumpall_until < 0) g_dumpall_saved = *flag;
+        emit(K_INFO, I_DUMPALL, (u32)frame, idx, (u32)*flag, 1, 0);
+        *flag = 1;
+        g_dumpall_until = frame + 1;
+        return;
+    }
     if (issue_verb(&t, "sell ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_SELL, before, pkg_size); return; }
     if (issue_verb(&t, "buy ")) { market_line(frame, idx, t, RVA_LEADEROUT_ISSUE_BUY, before, pkg_size); return; }
     /* 0 `move`, 1 `patrol`, 2 `guard`, 3 `follow`, 4 `garrison`, 5
@@ -1417,7 +1473,9 @@ static u32 WINAPI flusher(void *arg) {
  * HIT record — its CALL/RET records are the stronger evidence anyway. */
 static int is_hook_site(u32 rva) {
     for (u32 i = 0; i < NHOOKS; i++)
-        if (rva >= HOOKS[i].rva && rva < HOOKS[i].rva + HOOKS[i].len) return 1;
+        if ((HOOKS[i].kind != K_LOOP || g_loop_want) && rva >= HOOKS[i].rva &&
+            rva < HOOKS[i].rva + HOOKS[i].len)
+            return 1;
     if (g_calls)
         for (u32 i = 0; i < NCALLS; i++)
             if (rva >= CALLS[i].rva && rva < CALLS[i].rva + CALLS[i].len) return 1;
@@ -1610,6 +1668,18 @@ static void capsule_request_copy(u8 *package);
 #endif
 
 static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
+    if (kind == K_LOOP) {
+        if (g_loopq_next >= g_nloopq) return;
+        g_loops++;
+        u32 now = GetTickCount();
+        while (g_loopq_next < g_nloopq && (i32)(now - g_loopq[g_loopq_next].due) >= 0) {
+            LoopLine *q = &g_loopq[g_loopq_next++];
+            emit(K_INFO, I_AFTER, (u32)g_frame, q->idx | (1u << 24), now, g_loops, 0);
+            issue_line(g_frame, q->idx, q->text);
+            flush();
+        }
+        return;
+    }
     if (kind == K_FRAME) {
         i32 frame = *(i32 *)(ecx + GAME_FRAME_OFF);
         g_frame = frame;
@@ -1648,6 +1718,12 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
         }
 #endif
         if (g_pin_want && g_pin_state < 0) pin_install(frame);
+        if (g_dumpall_until >= 0 && frame >= g_dumpall_until) {
+            i32 *flag = (i32 *)(g_base + RVA_LOG_DUMP_ALL);
+            emit(K_INFO, I_DUMPALL, (u32)frame, 0xffff, (u32)*flag, 0, 0);
+            *flag = g_dumpall_saved;
+            g_dumpall_until = -1;
+        }
         run_cmds(frame);
 #ifdef RON_CONGESTION_PROBE
         probe_congestion(frame);
@@ -1962,6 +2038,7 @@ static void install_hooks(void) {
     u32 used = 0;
     for (u32 i = 0; i < NHOOKS; i++) {
         const HookSite *h = &HOOKS[i];
+        if (h->kind == K_LOOP && !g_loop_want) continue;
         u8 *t = (u8 *)(g_base + h->rva);
         int ok = 1;
         for (u32 j = 0; j < h->len; j++)
@@ -2094,7 +2171,16 @@ static void read_cmds(void) {
         while (*p && *p != '\n' && *p != '\r' && i < CMD_CHARS - 1) c->text[i++] = (u8)*p++;
         while (i > 0 && (c->text[i - 1] == ' ' || c->text[i - 1] == '\t')) i--;
         c->text[i] = 0;
-        if (i && c->from_chat == 2 && pin_wanted_by(c->text)) g_pin_want = 1;
+        if (i && c->from_chat == 2) {
+            const u16 *t = c->text;
+            if (issue_verb(&t, "after ")) {
+                i32 k;
+                g_loop_want = 1;
+                issue_int(&t, &k);
+                while (*t == ' ' || *t == '\t') t++;
+            }
+            if (pin_wanted_by(t)) g_pin_want = 1;
+        }
         if (i) g_ncmds++;
         while (*p && *p != '\n') p++;
         while (*p == '\n' || *p == '\r') p++;
