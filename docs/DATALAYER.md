@@ -140,7 +140,8 @@ the workspace's `forbid(unsafe_code)` — no `allow(unsafe_code)` anywhere in
 chunk is a `Box<[T]>`. The mapping had been bought with a hand-rolled
 `unsafe extern "C"` mmap behind a **safe** `read()` and `from_utf8_unchecked`
 on top, and the hazard that keeps `memmap2::Mmap::map` an `unsafe fn` is
-live in this repo rather than theoretical: `tools/gamelog/runqueue.sh`
+live in this repo rather than theoretical: ~~`tools/gamelog/runqueue.sh`~~
+`tools/gamelog/longtrace.sh` (item 3485 retired `runqueue.sh`)
 renames `gamelog.txt` over an archive name, and the capture lane runs beside
 the suite by design. On this tree the release gate went from **8,358 MiB to
 9,921 MiB** of the 20 GiB ceiling, 243 tests green either way and 281 s

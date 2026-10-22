@@ -1,4 +1,4 @@
-"""`tools/gamelog/waitrun.sh` reads the log the banner lands in (parked
+"""`tools/gamelog/waitrun.sh` reads the log the verdict lands in (parked
 656) — and a runner that died (the twenty-fifth pass, item 1503).
 
 run659's first take printed a Python traceback from `autostart_receipt.py`
@@ -7,7 +7,8 @@ other lane's runner, so the lane waited on a capture that was not its own.
 These run the script on authored logs with a runner pattern nothing on the
 box matches: a traceback with no receipt after it is exit 2 at once; a
 traceback an earlier map printed, with a later receipt, is judged by the
-receipt; the banner and the receipts keep their verdicts.
+receipt; the receipts keep their verdicts (the queue lane's banner left
+with item 3485).
 """
 import os
 import re
@@ -90,16 +91,10 @@ class Waitrun(unittest.TestCase):
         self.assertEqual(self.run_it(TRACEBACK + RECEIPT_OK)[0], 0)
         self.assertEqual(self.run_it(TRACEBACK + RECEIPT_BAD)[0], 1)
 
-    def test_the_banner_keeps_its_verdict(self):
-        code, out, _ = self.run_it('=== the queue, as it went ===\nrun1: checks passed\n')
-        self.assertEqual(code, 0)
-        self.assertIn('checks passed', out)
-        self.assertEqual(self.run_it('=== the queue, as it went ===\nrun1: checks FAILED\n')[0], 1)
-
-    def test_a_silent_log_with_no_runner_is_a_dead_queue(self):
+    def test_a_silent_log_with_no_runner_is_a_dead_runner(self):
         code, _, err = self.run_it('Staged: /x/map-7\n')
         self.assertEqual(code, 2)
-        self.assertIn('holds no banner', err)
+        self.assertIn('holds no verdict', err)
 
 
 class TheRunnerList(unittest.TestCase):

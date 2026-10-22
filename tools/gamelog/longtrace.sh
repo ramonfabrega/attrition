@@ -32,8 +32,8 @@
 # **The inputs are overridable, so one implementation serves a queue of
 # captures** (item 90). Every hook below defaults to exactly what this script
 # did before they existed, so an unset environment reproduces run33/run39 byte
-# for byte; `tools/gamelog/captures.txt` is the scenario file that sets them and
-# `runqueue.sh` the driver that walks it.
+# for byte; `tools/gamelog/captures.txt` is the scenario file that sets them,
+# and `runqueue.sh` walked it until item 3485 retired the queue lane.
 #
 #   DETAIL_END    setlog.py's `end:` list      (default run10's)
 #   DETAIL_START  setlog.py's `start:` list    (default run10's)

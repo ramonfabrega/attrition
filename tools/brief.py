@@ -56,7 +56,7 @@ KINDS = {
     # build rows: its section says what a claim carries.
     'reading': ('opening', 'booked', 'lanes', 'reading-item', 'landing'),
     # A coverage lane (the forty-eighth pass, Loop 3416): one pinned lobby
-    # retaken at `cover=1` on the queue lane, checked against its `cover=0`
+    # retaken at `cover=1` on the click-free pool, checked against its `cover=0`
     # twin and pinned into `blind::TRACES`, so the functions a reading's
     # captures-owed table names leave `blind::NEVER`. No word moves.
     'coverage': ('opening', 'lanes', 'capture', 'coverage-item', 'landing'),
