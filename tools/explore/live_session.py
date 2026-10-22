@@ -182,6 +182,9 @@ def stage(args):
     cmd_file = getattr(args, 'cmd_file', None)
     minute = getattr(args, 'ffwd_minute', None)
     stride = getattr(args, 'stride', None)
+    cursor = getattr(args, 'cursor', None)
+    if cursor is not None and not re.fullmatch(r'\d+,\d+', cursor):
+        raise ValueError('--cursor takes X,Y in client pixels')
     if not 36 <= end <= 24000 or (fast and end <= 37):
         raise ValueError('end-frame must be 36..24000; fast-forward requires at least 38')
     if args.hide_scene and end != 36:
@@ -263,7 +266,11 @@ def stage(args):
         # a few frames says so rather than paying for the whole run.
         cw = f'{callwin[0]}-{callwin[1]}' if callwin else f'0-{end}'
         (output / 'rontrace.cfg').write_text(f'{cover}\ncallwin={cw}\n'
-                                             + (f'stride={stride}\n' if stride else ''))
+                                             + (f'stride={stride}\n' if stride else '')
+                                             # Loop 3432 (item 3477): the pool's resting cursor
+                                             # pinned at a chosen point (`click.h`), so a hover
+                                             # nobody chose is not an input.
+                                             + (f'cursor={cursor}\n' if cursor else ''))
         if fast:
             minute = (end + 899) // 900
         # The channel runs lines in file order and clamps a frame below its
@@ -301,6 +308,8 @@ def main():
     s.add_argument('--detail', action='append', metavar='SECTION:CAT[=N],...',
                    help="setlog.py's spelling, repeatable; default " + ' '.join(DEFAULT_DETAIL))
     s.add_argument('--cover', help="rontrace.cfg's first line; default cover=0")
+    s.add_argument('--cursor', metavar='X,Y',
+                   help="rontrace.cfg's cursor=X,Y: the resting cursor pinned there (click.h; Loop 3432)")
     s.add_argument('--stride', type=int, metavar='N',
                    help='dump one block in N of --log-window (the tracer rewrites the window; Loop 3085)')
     s.add_argument('--callwin', type=int, nargs=2, metavar=('LO', 'HI'),

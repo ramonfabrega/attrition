@@ -66,6 +66,21 @@ class SessionTest(unittest.TestCase):
         module.restore(self.output)
         self.assert_restored()
 
+    def test_a_cursor_is_staged_in_the_tracer_cfg(self):
+        # Loop 3432 (item 3477): the pool's resting cursor pinned off the map.
+        self.args.end_frame = 720
+        self.args.cursor = '1400,1000'
+        module.stage(self.args)
+        self.assertEqual((self.output/'rontrace.cfg').read_text(), 'cover=0\ncallwin=0-720\ncursor=1400,1000\n')
+        module.restore(self.output)
+        self.assert_restored()
+
+    def test_a_cursor_takes_two_integers(self):
+        self.args.end_frame = 720
+        self.args.cursor = '1400 1000'
+        with self.assertRaises(ValueError):
+            module.stage(self.args)
+
     def test_a_stride_needs_a_window_and_a_step_past_one(self):
         self.args.end_frame = 1200
         for window, stride in ((None, 16), ([37, 1114], 1), ([37, 1114], 0)):

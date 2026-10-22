@@ -477,6 +477,7 @@ def capture(args, output, style):
                                            cover=getattr(args, 'cover', None),
                                            callwin=getattr(args, 'callwin', None),
                                            stride=getattr(args, 'stride', None),
+                                           cursor=getattr(args, 'cursor', None),
                                            cmd_file=getattr(args, 'cmd_file', None)))
         # The receipt carries what was staged, so a run's window and detail are
         # read back from the run rather than from the command that asked for it.
@@ -489,6 +490,7 @@ def capture(args, output, style):
                             'cover': getattr(args, 'cover', None) or 'cover=0',
                             'callwin': staged_callwin(output),
                             'stride': getattr(args, 'stride', None),
+                            'cursor': getattr(args, 'cursor', None),
                             'tracer_defs': getattr(args, 'tracer_defs', None),
                             'rontrace.cmd': (output/'rontrace.cmd').read_text().splitlines()
                                             if (output/'rontrace.cmd').is_file() else None}
@@ -887,6 +889,8 @@ def main():
     ap.add_argument('--log-window',type=int,nargs=2,metavar=('START','END'))
     ap.add_argument('--detail',action='append',metavar='SECTION:CAT[=N],...')
     ap.add_argument('--cover')
+    ap.add_argument('--cursor', metavar='X,Y',
+                    help='pin the resting cursor at a client point (rontrace.cfg cursor=X,Y; Loop 3432)')
     ap.add_argument('--stride', type=int, metavar='N',
                     help='dump one block in N of --log-window, a long gap at a fraction of its cost '
                          '(the tracer rewrites the engine window each frame; Loop 3085)')
