@@ -393,7 +393,10 @@ static void dt_late(void) {
         if (!why) {
             g_dt_orig[i] = *slot;
             dt_build(i, 0, 0, 0);
-            dt_swap(slot, (u32)stub);
+            /* `.data` is writable: a plain aligned store, no VirtualProtect —
+             * one here, with the game's threads up, stalled every take before
+             * frame 0's record (run1101e, f, h, i). */
+            __atomic_store_n(slot, (u32)stub, __ATOMIC_SEQ_CST);
         }
         emit(K_INFO, I_DUMPSITE, i, (u32)slot, why, s->kind, (u32)stub);
     }
