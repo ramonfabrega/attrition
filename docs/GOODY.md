@@ -184,6 +184,7 @@ unit taking the same ruins, since step 2 leaves the item linked.
 | Frame 0 consumes without paying | reading |
 | The four guards | reading; only the animal guard is exercised by a capture, and only negatively |
 | The cell's object chain and the goody *item* | read, **not modelled** — queue item 48 |
+| A box is drawn by `ItemOut::draw@00677710` (slot +0x58, `pop_all_zoomed_in` over `sort_items`' tree `objects +0x2dc`), never by `ItemOut::draw_overlays@00677590` (+0x5c): its cell's `down -3` keeps it out of `sort_all`'s render tree | trace — run1094 (item 3478): `ItemOut::draw` and `GraphicPieces::draw_item` entered on 602 under `camera 6,110`, `draw_overlays` not entered; the cell's `down -3 down_who 1` on the start's `WORLD=6` |
 
 ## 6. What is not established
 
