@@ -20544,7 +20544,7 @@ capture's player holds one.
    each caller's branch needs, the lobby setting with the most simulation readers no trace has set is **`RUSH_RULES`**:
    `Game::war_allowed@00594670` is entered, and every one of its arms past `rush_rules == 0` is not. It calls
    `Game::current_age@005946d0` (never entered) and its time arm reads the `rush_rules` table's minutes × 900. Its readers
-   are `Unit::process_attrition` (the human's `Game::say_no_war@00592b00`, never entered), `PathFinder::calc_cost`,
+   are `Unit::process_attrition` (the human's `Game::say_no_war@00592b00`, entered on 1392 of run1072), `PathFinder::calc_cost`,
    `Army::release_mustering`, `Leader::diplomacy`, `Leader::gain_tech`, `Wall::process`, `Group::action_launch_flight`,
    `UnitTypeData::can_attack_ground`, `Nuke::do_damage`, `Leader::create_units`, `Leader::create_buildings`,
    `Leader::upgrade_units` and `Game::do_frame`'s peace-end frame; `Game::is_no_rush@005946c0` is on the blind list. With
@@ -20559,7 +20559,7 @@ capture's player holds one.
    rush rule's name (`types +0x87c`, `:18`–`:34`) — and its four callers each hand `msg` to the message window:
    `process_attrition` (the console's unit, the leader's `+0x1f4` stamp 0), `action_declare` (the console's refused
    declaration), `Console::tell_no_war` and `Group::action_launch_flight`. No dump category prints `msg`, so no
-   capture can diff it; the peace lobby's `cover=1` take enters it beside `current_age` (§296's table).
+   capture can diff it; run1072 enters it (item 3453), and its caller's `attrition_stamp` write is the value.
    **`Game::is_no_rush@005946c0` is dead in the image** (item 3409; *the PE*): no `call`, `jmp`, `jcc` or
    absolute pointer anywhere in the executable reaches its six instructions (`rush_rules != 0`, `5946c0`–`5946ce`),
    so no capture can enter it; §296 proposes it for `RESIDUE`.
@@ -25390,7 +25390,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | 6 | `GreatSaharaMongolAllTech` (run834) | `BUILDS=6` the queue's Merchant on 2995 | ~~`get_next_non_caravan`~~ (2995, run1022, item 3423) | click-free |
 | 7 | `GreatSaharaBantuTier4` (run978c) | `LEADERS=9` `escrow`, block 2808 | `can_queue@0062da00`: **not this lobby's** — the script's research (`research_tech_with_cost:74`, `009ee84e`) calls the byte-identical copy `can_queue@004d2030` (entered on frame 1, run1023, item 3423); `@0062da00`'s one caller is `GroupOut::issue_queue_up+0x26f` (`00708eff`), a human's queue-up click (parked 3423a) | click |
 | 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | ~~`go_to_city`~~ (309, the merchant `1/1` drafted on block 310; run1024, item 3423) | click-free |
-| 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | ~~`current_age`~~ (entered on frame 0, run1016, §297); (9b) `say_no_war` only once the console's own unit stands in the Lakota's land, the leader's `+0x1f4` stamp 0 | click-free; 9b driven |
+| 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | ~~`current_age`~~ (entered on frame 0, run1016, §297); ~~(9b) `say_no_war`~~ (1392, run1072, item 3453: the console's Hoplites in the Lakota's land, leader 0's `attrition_stamp` 0 → 1392) | click-free |
 | 10 | any lobby in which a leader's highest wonder closes (none on disk: below) | `LEADERS=9` `wonder_mark` on the close | `close_wonder` | as the lobby |
 | 11 | a human and two computers, no teams (none on disk) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6) | click-free, *a prediction* |
 | 12 | a team lobby with a computer ally (none on disk) | `LEADERS=9` `escrow` and the stock on the frame the human cancels the alliance (`CANCEL_ALLIANCE + t`) | `pay_dow`, `action_declare`'s pay arm | driven: a diplomacy click |
@@ -25466,8 +25466,7 @@ window puts their meeting at block **1474**, both sides at once. run1016c moves 
 So `docs/VISION.md` §8's claim is now **diff-backed**: bit 0 clears on both sides on the block after the line. The
 leaders then meet again seven blocks later.
 
-**Row 9b** (`say_no_war`, driven) is not entered and was not asked for: it needs the console's own unit standing in the
-Lakota's land, and this capture issues no order.
+**Row 9b** (`say_no_war`) is run1072's (item 3453), not this capture's, which issues no order.
 
 **What this has not established.** Whether the 1488 re-meet is the same building-in-sight path as the 1474 meeting:
 the dump prints the bit, not its writer, and the sim has no `treaty_off` to replay it (parked, item 3417's slot). Nothing

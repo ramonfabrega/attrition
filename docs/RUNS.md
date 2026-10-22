@@ -22257,3 +22257,65 @@ Archive `rontrace-run1068b.log`, 10,487,616 bytes,
 SHA-256 `7f053a43503214469d79fc5f813c32057827cc25ed4e18229217276a48997aaa`.
 
 **What it holds**: the Nomad lobby's draw stream at `cover=0`, the twin run1068 is checked against.
+
+## run1072 — the peace pair's lobby with a human Hoplite squad in the Lakota's land before the peace ends, at `cover=1` on the click-free pool, to the game's end at 6853 (2026-10-22, item 3453, `att-3453`)
+
+**What the disk could not answer**: no trace enters `Game::say_no_war@00592b00` (`docs/AI.md` §296 row 9b). Every
+dump of this lobby has leader 0's `attrition_stamp` at 0, and no capture puts a human unit in the Lakota's land. Through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1072`: `--map 18 --end-frame 7000 --allow-early-end
+--timeout 5400 --ai-tribe 19 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3
+--profile RUSH_RULES=10 --log-window 1378 1635 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --cmd-file
+tools/gamelog/coverage/nowar3453-peace.cmd --cover cover=1`, which stages `1386 add hoplite who=0 158,166` and
+`1388 @move 0 34176 35712 14 15 16`. The window and the detail are run848's.
+- **The cells** come from run846's block-2 `WORLD` record (60×60, row-major in y). The Lakota's land is cells
+  (37..56, 42..58), around Maka Sica at (39264, 40032).
+- Pool lane 2 (`~/wine-ron-2`). Launched 03:34:25, exited 03:51:28: **1,022.8 s launch to exit**. `success`, 6,854
+  frames, **the game ended itself at 6853** (the twin at 6822), map 18, seed 12345, tribes 4 and 19. DLL `3f019bfe…`,
+  `-DRON_AUTOSTART`. 213 GiB free before. Minutes waited on another lane: none.
+- **The squad**: `0/14..16` (`HOPLITES`) on block 1387 at (31128, 32904), (31272, 32904) and (31176, 33048). That is
+  cell (40, 42), already the Lakota's land. **The `@move` was refused**: `INFO 17` refusal 3 on 1388, object 15, a
+  squad member and not its captain. The squad never moved, and it stood in the Lakota's land without a walk.
+- **7,053 functions entered**. `Game::say_no_war` and `Leader::meet` on 1392 (the twin's leaders meet on 1474).
+  `Leader::set_diplo` on 4500, the peace's end. `Leader::action_declare`, `pay_dow` and `LeaderData::afford_dow` are
+  not entered.
+- **The value**: leader 0's `attrition_stamp` on block 1393 is **1392** here and 0 in run848. `process_attrition`
+  writes it after the `say_no_war` arm (:204, then the stamp).
+- `rngcmp.py rontrace-run847.log rontrace-run1072.log`: **6,823 in common, 1,387 identical, 5,436 differing, the
+  first 1387**. `samegame.py gamelog-run848-… --from 1386`: **257 in common (1378..1634), 248 differing, the first
+  1387**, with all 8 blocks before 1386 identical. Nothing parts before the add.
+- Filed with `filerun.py run1072 eastindies-lakota-peace-nowar`.
+
+Archive `gamelog-run1072-eastindies-lakota-peace-nowar.txt`, 480,819,726 bytes,
+SHA-256 `9ba2e4ff124ac4de7e5154732e71f90cec6c323b1d9b6587d2d1e9732c9417c8`.
+
+Archive `rontrace-run1072.log`, 280,335,808 bytes,
+SHA-256 `a6daad043dc061796c1d91ac7f621dcffc7c44a3d39e16c29a764681c59b60ec`.
+
+**What it holds**: the human's first attrition warning in a no-rush game, with `say_no_war`'s message and the stamp.
+
+## run1073 — the peace pair's lobby with peace restored after 4500, at `cover=1` on the click-free pool, to 5300 (2026-10-22, item 3453, `att-3453`)
+
+**What the disk could not answer**: whether this lobby's computer re-declares war through `Leader::action_declare@
+006dab50` (`free` 1) when peace is restored after the rush rules' five minutes. run1072 shows the peace ending by
+`Leader::set_diplo` on 4500 with no declaration. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1073`: run1072's lobby, `--end-frame 5300 --allow-early-end --log-window 4594 4900 --detail
+end:MISC,LEADERS=9 --cmd-file tools/gamelog/coverage/redeclare3453-peace.cmd --cover cover=1`, which stages
+`4600 peace 1`.
+- Pool lane 2. Launched 03:53:45, exited 04:05:41: **716.2 s launch to exit**. `success`, 5,301 frames, not ended
+  early. DLL `f4ac380f…`. Minutes waited on another lane: none.
+- `diplos` of leader 0 toward 1, and of 1 toward 0, read 0 through 4600 and **1 from 4601 to 4900**. No declaration
+  follows. `Leader::diplomacy` (entered on 0) never calls `action_declare`, and neither are `pay_dow` and `afford_dow`.
+  Its rush-rules arm (:1305, then `LAB_006be54c`) and its elimination arm (:1052–1061) both need `TEAM_STYLE` 0, 8 or 11
+  (or 7 with a player on team 8), and this lobby's `GAME INFO` reads `TEAM_STYLE 1` (parked 3453a).
+- `rngcmp.py rontrace-run847.log rontrace-run1073.log`: **5,301 in common, 4,601 identical, 700 differing, the first
+  4601**. No twin dump holds 4594..4900, so `samegame` has no window. No `NEVER` row is entered beyond run1072's, so
+  the run does not join `blind::TRACES`.
+- Filed with `filerun.py run1073 eastindies-lakota-peace-repeace`.
+
+Archive `gamelog-run1073-eastindies-lakota-peace-repeace.txt`, 443,993,198 bytes,
+SHA-256 `2cb305b93e26218f8936379c6a27c46a59164efa02c7138d941d090b2617f99f`.
+
+Archive `rontrace-run1073.log`, 196,763,264 bytes,
+SHA-256 `ec481d9c4dc96fef889f60127c30678b82d9e680fcbface461611d0df401d4c8`.
+
+**What it holds**: restored peace after a no-rush game's five minutes, which this lobby's computer keeps.
