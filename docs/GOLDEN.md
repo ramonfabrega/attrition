@@ -13618,7 +13618,7 @@ calls the wrapper with the `GroupOut` the tracer already builds. That checks the
 | `Console::hurry_action@007c3810` | `BUILDS` `job_counter` +10000 | §91, chapter seventy-four | `hurry` for `finish`, 701 |
 | `BuildQueueData::get_next_non_unit@00630b10` | `BUILDS=7` `0/2007` slot 1 +100/frame from 843 | §92, chapter seventy-five | re-take `chapter75.cmd` (diff-backed on run868, a draw trace) |
 | `Unit::reset_move_orders@005fd080` | `U3` passengers' `orig_x/orig_y` on 1902 | §55, chapter forty-six (run496) | re-take `chapter46.cmd` |
-| `Unit::swap_team@006118d0`, `SpellType::cast_bribe@00672d00` | `U3` a new who=0 unit, the old `damage`, `form` | §107's parked staging | `@spell 0 629 …` (Bribe) |
+| ~~`Unit::swap_team@006118d0`, `SpellType::cast_bribe@00672d00`~~ | ~~`U3` a new who=0 unit, the old `damage`, `form`~~ | ~~§107's parked staging~~ | entered by run1054 (item 3438) on 1212; `0/8`..`0/10` on 1213 carry `1/6`..`1/8`'s `damage 0`, `form 0` in both dumps |
 | ~~`SpellType::cast_sabotage@006720e0`~~ | ~~`DEATHS` `1/6` on 807~~ | ~~§115, chapter ninety-one (run894)~~ | entered by run1026 (item 3424) on 806, `1/6`'s `first_frame` |
 | `Unit::action_unqueue@005e1f20` | `U3` carrier `num_queued`, `queue_time`; `LEADERS` buckets | a carrier with FIGHTERBOMBER | `@spell … 661` (BUILDAIR), then `@unqueue` |
 | `Units::make_valid@0061a960` | `U3` first `0/200` index | ~70 squads for one player | `@queueup` past 200 slots |
