@@ -9258,8 +9258,8 @@ is an oracle-agreed module the live sim does not call.
   frames.** At Toughest on Great Sahara, neither leader advances an age by 5941 from a start of 3 or 5 (run1041,
   run1043). So each missing age costs one start of its own: `STARTING_TECHNOLOGY 2` and `6`, run1041's recipe
   otherwise. The never-entered rows a later start was predicted to reach need units neither take fielded: a
-  supply wagon (63–65) for `Unit::think_supply@005f4730` and `SpellType::cast_supplies@006714c0`; a razed wonder
-  for `Wonders::close_wonder@0073c7e0`; Modern air or silos for `BuildQueueData::get_next_helicopter@00630bb0` and
+  supply wagon (63–65) for `Unit::think_supply@005f4730` and `SpellType::cast_supplies@006714c0`; ~~a razed wonder
+  for `Wonders::close_wonder@0073c7e0`~~ (entered by run1074's console `die`, item 3454); Modern air or silos for `BuildQueueData::get_next_helicopter@00630bb0` and
   `LeaderData::get_nukes@006ebe50`. A start-6 capture is the one that could reach the last two. It books only against
   the blind list if one of them is named as its target.
 
@@ -9472,13 +9472,14 @@ that. Score: none until a pinned lobby does. run1070's 686–687 is the value di
   `pay_dow` stays behind `param_3` 0, which only a human's declaration passes (`CommandPackage::process_declare`).
   **Score**: `NEVER`'s `action_declare` row (one run).
 
-## Parked by the next landing, slot NJ — reserved
+## Parked by item 3454, 2026-10-22 — a wonder's close, by console
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3454a. run1074's wonder close is on disk and in no harness window.** The dump shows `wonder_mark` 0 → 1 (block
+  641), → 2 (646), 2 on 661 after the lower Pyramids' `die` on 660, and 0 on 671 after the higher's on 670 (AI
+  §75.3), and `BUILDS` drops each record on the block after its `die`. `Sim::note_wonders` derives the walk-down
+  from the buildings (§75.4), but nothing compares it with these frames: a harness test on run1074's window
+  (641–671, chapter seven's lobby with the console lines staged) would make the close diff-backed in this crate
+  rather than in the dump alone. It names no score, so it parks.
 
 ## Parked by the next landing, slot NK — reserved
 

@@ -22427,3 +22427,39 @@ Archive `rontrace-run1071.log`, 10,732,768 bytes,
 SHA-256 `97c1ea0bf0eab2f99a1cb5648d5cc7eef94c0c1b20f1658988894e437686a164`.
 
 **What it holds**: a human builder's two-site queue, and `check_build_order`'s re-add on the first site's finish.
+
+## run1074 — chapter seven's lobby with two Pyramids added and razed by console, to 920 (2026-10-22, item 3454, `att-3454`)
+
+**What the disk could not answer**: whether a wonder's close enters `Wonders::close_wonder@0073c7e0` and lowers
+`wonder_mark`. Of the 82 dumps that print `wonder_mark` more than once, it falls in none (AI §296), and no trace
+loses a wonder. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1074 --map 14 --end-frame 920
+--log-window 634 921 --timeout 3000 --detail end:UNITS=3,GUYS=2,BUILDS=7,CITIES=5,GOODS=3,LEADERS=9` with run1060's
+`start:` and `misc:`, `--cover cover=1` and `--cmd-file tools/gamelog/coverage/wonder3454-ch7.cmd`. That file is
+`chapter7.cmd` plus `640 add pyramids who=0 40,160`, `645 add pyramids who=0 48,160`, `660 die 2007,0` and `670 die
+2008,0`. No `@` line, so no `--no-ffwd`.
+- Pool lane 1, seed 12345, `MAP_STYLE 14`. Launched 04:17:29, exited 04:32:30: **900.7 s launch to exit**, against
+  run1060's 329 s, because of `LEADERS=9` on every block. `success`, lifecycle verified, 921 frames, one take. DLL
+  `2d0deff1…`. No minutes waited. 207 GiB free before.
+- **6,502 functions entered**. `Wonders::init_wonder` on 640, `Object::die`, `Build::close` and
+  `Wonders::close_wonder` on 660. `Build::activate` was entered before the first `FRAME` record (`f-1`, the
+  lobby's own buildings), and it is `init_wonder`'s only caller. The `NEVER` row is `close_wonder`.
+- The dump beside it (AI §75.3): the Pyramids is `0/2007` from block 641 (`wonder 0`, `orig_type 526`), with who=0's
+  `wonder_mark` 0 → 1. The second is `0/2008` from 646 (`wonder 1`), with the mark → 2, so **`add` does not hold a
+  wonder to one per player**. On 661 `2007`'s record is gone and the mark stays at **2**. On 671 `2008`'s is gone
+  and the mark is **0**, past the cleared entry 0.
+- `rngcmp.py` on the traces against the `cover=0` twin (`~/ron-golden/ch7`, run141): **921 in common, 0 differing,
+  921 identical**. Neither wonder draws a random. `samegame.py … --from 640` bare: 288 in common, 287 differing,
+  the first 634, the window's first block. That is the detail: the take's `LEADERS=9` against run141's 2. With
+  `--exclude LEADERDATA --drop leader_flags --drop leader_flags2`: **288 in common (1..920), 280 differing, the
+  first 641**, the first Pyramids' block, and **the same game before 640** (7 common frames before it). The
+  excluded leader record is unchecked, not checked and equal.
+- Filed with `filerun.py run1074 ch7-wonder-close`.
+
+Archive `gamelog-run1074-ch7-wonder-close.txt`, 469,508,525 bytes,
+SHA-256 `4b0f51c5881cc41675521019c83da4b5e64efc28ce054320af244dc8bed1201d`.
+
+Archive `rontrace-run1074.log`, 10,574,016 bytes,
+SHA-256 `53ea2b25c5bbc3c4c78c605ac48ad64aad68159248634736f9eece8170908ee1`.
+
+**What it holds**: a wonder's close at both ends of the mark. A lower entry's close leaves `wonder_mark` standing,
+and the highest's walks it down past every cleared entry.

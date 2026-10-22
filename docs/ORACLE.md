@@ -736,7 +736,7 @@ The ones that stage a scenario:
 
 | `cheat …` | syntax | what it does |
 |---|---|---|
-| `add` / `insert` | `[#] [NEW] typename [who=RED] [x,y]` | places units or a building **at the mouse cursor**. Without `NEW` a building is **completed instantly**; with `NEW` it is left as a construction site. Count capped at 300 |
+| `add` / `insert` | `[#] [NEW] typename [who=RED] [x,y]` | places units or a building **at the mouse cursor**. Without `NEW` a building is **completed instantly**; with `NEW` it is left as a construction site. Count capped at 300. A wonder is not held to one per player: run1074 stood two Pyramids for who=0, wonder slots 0 and 1 (item 3454) |
 | `be` | `[who]` | switches the viewpoint every other cheat defaults to |
 | `war` / `peace` / `ally` | `[who \| All]` | `Leader::set_diplo(…, 0 / 1 / 2)` |
 | `tech` | `[who] [techname\|all] [on\|off\|show]` | `gain_tech` / `lose_tech` |
