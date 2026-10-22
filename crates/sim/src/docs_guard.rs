@@ -723,20 +723,89 @@ fn the_handoff_counts_the_loop_backlog() {
 /// lands when two remain. Failed first on 2026-10-13 with no pool.
 #[test]
 fn the_park_pool_holds_two_unassigned_headings() {
-    let text = read("PARKED.md");
-    let free: Vec<&str> = text
-        .lines()
-        .filter(|l| {
-            l.starts_with("## Parked by the next landing, slot ") && l.ends_with(" — reserved")
-        })
-        .collect();
+    let parked = read("PARKED.md");
+    let queue = read("QUEUE.md");
+    let free = free_park_slots(&parked, &queue);
+    let assigned = assigned_park_slots(&queue);
     assert!(
         free.len() >= 2,
-        "docs/PARKED.md holds {} unassigned park heading(s), fewer than two; append `## Parked by the \
-         next landing, slot <A> — reserved` sections at the file's end, each with a paragraph, past \
-         the last one a live lane holds (parked 1812)",
-        free.len()
+        "docs/PARKED.md holds {} unassigned park heading(s) ({}), fewer than two once the queue's \
+         open items' assignments ({}) are taken out; append `## Parked by the next landing, slot \
+         <A> — reserved` sections at the file's end, each with a paragraph, past the last one a \
+         live lane holds (parked 1812, Loop 3474)",
+        free.len(),
+        free.join(", "),
+        if assigned.is_empty() {
+            "none".to_string()
+        } else {
+            assigned.join(", ")
+        }
     );
+}
+
+/// The slots the queue's open items assign: every `park <A>` token (two
+/// capitals) in an open item of the `## The queue` section. A booking
+/// assigns a slot in those words, and the slot's heading stays `— reserved`
+/// until the lane renames it, so a reserved heading the queue has handed
+/// out is not free (Loop 3474).
+fn assigned_park_slots(queue: &str) -> Vec<String> {
+    let Some(start) = queue.find("\n## The queue") else {
+        return Vec::new();
+    };
+    let body = &queue[start + 1..];
+    let end = body[1..].find("\n## ").map_or(body.len(), |i| i + 1);
+    let mut out = Vec::new();
+    for (_, item) in open_item_texts(&body[..end]) {
+        let b = item.as_bytes();
+        let mut i = 0;
+        while let Some(at) = item[i..].find("park ") {
+            let at = i + at;
+            let s = at + "park ".len();
+            if (at == 0 || !b[at - 1].is_ascii_alphanumeric())
+                && s + 2 <= b.len()
+                && b[s].is_ascii_uppercase()
+                && b[s + 1].is_ascii_uppercase()
+                && (s + 2 == b.len() || !b[s + 2].is_ascii_alphanumeric())
+            {
+                let slot = item[s..s + 2].to_string();
+                if !out.contains(&slot) {
+                    out.push(slot);
+                }
+            }
+            i = s;
+        }
+    }
+    out
+}
+
+/// The reserved park headings in `parked` that the queue's open items have
+/// not assigned (Loop 3474: the guard once counted an assigned slot free).
+fn free_park_slots(parked: &str, queue: &str) -> Vec<String> {
+    let assigned = assigned_park_slots(queue);
+    parked
+        .lines()
+        .filter_map(|l| {
+            l.strip_prefix("## Parked by the next landing, slot ")?
+                .strip_suffix(" — reserved")
+        })
+        .map(str::to_string)
+        .filter(|slot| !assigned.contains(slot))
+        .collect()
+}
+
+/// Two reserved headings, one assigned by an open item's `park NA.`,
+/// leave one free; a `park NB` outside the queue section assigns nothing.
+/// Made red first on 2026-10-22 against the old count, which called both
+/// free.
+#[test]
+fn an_assigned_park_slot_is_not_free() {
+    let parked = "# Parked\n\n## Parked by the next landing, slot NA — reserved\n\npara\n\n\
+                  ## Parked by the next landing, slot NB — reserved\n\npara\n";
+    let queue = "# Queue\n\n- the handoff's park NB is not a booking.\n\n## The queue\n\nIntro.\n\n\
+                 3500. **coverage: a thing** runs; park NA.\n\n## How to maintain this file\n\n\
+                 4000. **not an item** park NB.\n";
+    assert_eq!(assigned_park_slots(queue), vec!["NA".to_string()]);
+    assert_eq!(free_park_slots(parked, queue), vec!["NB".to_string()]);
 }
 
 /// **An item number is minted once, and in its file's form** (parked 461,
