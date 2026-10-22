@@ -23841,3 +23841,52 @@ SHA-256 `f402fce12de492aaebadd8dfeb98e43753a4347139783796b15b32239f020422`.
 
 Archive `rontrace-run1128.log`, 11,209,952 bytes,
 SHA-256 `ed24cfda1d842d6141ac807253b7fd29727b1b497e85b4d52f077cb417413ac9`.
+
+## run1129 — the golden start at `cover=1` on the click-free pool, the food counter's hover re-sent at `describe_mouseover`, to 640 (2026-10-22, item 3494, `att-3494`)
+
+**What the disk could not answer**: no trace enters `Game::is_turbo_resources` or `LeaderData::resource_cap_get`
+(CENSUS row 534), and none enters `Options::describe` through `MouseOver::describe` case 0x200. run1082's thirty
+`@cursor` lines on the food counter entered `IFaceResources::on_spot_move` and no `describe` (parked 3463a):
+`Scene::render@008b3270.c:161-162` zeroes `mouseover->type` before `Scene::describe_mouseover@008b47e0` (`:517`). The
+take adds a tracer hook, `--hover` (`rontrace.cfg` `hover=1`, `tools/trace/hover.h`), that re-sends the pinned
+`OnMouseMove` at `describe_mouseover`'s entry. Through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1129 --map 14 --no-ffwd --end-frame 640 --log-window 600 640 --timeout 3600 --cmd-file
+tools/gamelog/coverage/hover3494-start.cmd --cover cover=1 --cursor 1400,1000 --console-log 0 --hover`: one line,
+`600 @cursor 70 33` (run1082's point), the pin held there to 640. 3497's defaults had not merged, so `--console-log 0`
+and `--cursor 1400,1000` are explicit.
+- Pool lane 1 (`~/wine-ron`), seed 12345, map 14, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe
+  11). Launched 18:00:43, exited 18:01:44: **60.9 s launch to exit**. `success`, 641 frames, `last_frame` 640. DLL
+  `1dc2ee2d…`, `-DRON_AUTOSTART`; the hook at 0x4b47e0 installed (`I_HOOKED`). 208 GiB free before. Minutes waited
+  on another lane: none.
+- **The hook's records** (`I_HOVER`, one per frame 600..640, 41): `mouseover->type` 0 before each re-send and 0x200
+  after, `t` 0 (food), 195 re-sends in all — the drawn frames, about five per sim frame.
+- **6,535 functions entered.** On 600: `IFaceResources::on_spot_move` and `check_mouse_accept`, both `Options::describe`
+  overloads (`@00724420`, `@00724460`), **`Game::is_turbo_resources@0043ecb0`** and
+  **`LeaderData::resource_cap_get@0046ee80`** — the two `NEVER` rows. `describe_mouseover` itself has no coverage stub
+  under the hook (`is_hook_site`); its `I_HOVER` records stand for it.
+- `rngcmp.py` against run1130, the `cover=0` twin: **641 in common, 0 differing, 641 identical**. `samegame.py`: **40
+  in common (600..639), 0 differing**. Both send every input and the hook, so there is no `--from`.
+- No photograph: `poolshot.py` was pointed at the run directory rather than `map-14` (Loop 3487) and never saw its
+  frame; stopped.
+- Filed with `filerun.py run1129 golden-foodhover-cover1-clickfree`.
+
+Archive `gamelog-run1129-golden-foodhover-cover1-clickfree.txt`, 3,411,224 bytes,
+SHA-256 `a7151ca07b7065a2885b1eef5f25585e8f7f16b6cf3d608877c9245e70f459f4`.
+
+Archive `rontrace-run1129.log`, 16,992,736 bytes,
+SHA-256 `e465b5dbbf1f2614988e7422e37bf42ddc9f9a6525402aa2f5d95e74a7faac01`.
+
+**What it holds**: `blind::TRACES`' run1129 (item 3494), `NEVER` 250 → 248.
+
+## run1130 — run1129's `cover=0` twin (2026-10-22, item 3494, `att-3494`)
+
+The same command line, command file and `--hover` at `--cover cover=0`, in `~/ron-golden/run1130`. Pool lane 2
+(`~/wine-ron-2`). Launched 18:00:45, exited 18:01:41: **55.5 s launch to exit**. `success`, 641 frames, seed 12345,
+the same two PLAYER records, the same `I_PIN` record; 41 `I_HOVER` records, 0 → 0x200 on each, 162 re-sends. DLL
+`61f64a1d…`. Filed with `filerun.py run1130 golden-foodhover-cover0-clickfree`.
+
+Archive `gamelog-run1130-golden-foodhover-cover0-clickfree.txt`, 3,411,224 bytes,
+SHA-256 `e24431a53964961147bb2d9366473b4b4bff550c76507d0390afd57827a34e07`.
+
+Archive `rontrace-run1130.log`, 14,010,144 bytes,
+SHA-256 `fda94e1f7080be3fb4d019a5bee4e9a1f5de1a21e965ee13da96c421e61d71fc`.
