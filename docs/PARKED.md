@@ -3770,9 +3770,22 @@ bytes; the 200 largest are 45 % of the bytes and 25 of them backed; `--unbacked`
 drive `Unit::think`, `do_move`, `find_path` every frame against the original's logger, and the census credits none of
 it. Candidate: an `audit` column — a function a document marks diff-backed that a pinned trace entered — counted
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
-Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's.
+Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's. **The fiftieth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2471 → 2537 functions, 9,607,787 → 9,745,971 bytes (85.5 %) on the tranche's 53 pool captures (`Census entered: simulation 2537 of 3611 functions · 1396 entered and unbacked`); the definition yours. Ramon's.
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
+
+(3482) **Sixty-seven of the 91 open blind rows name no staging, each for a reason** (the fiftieth pass's drafting subagent,
+`~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md`, `## Not drafted`; the scan beside it): residue candidates — the three CPU
+detection rows (host state: `cpunormspeed` runs on frame −1 without `cpuspeed`), `do_group_attack`/`do_await_board`/`process_move_near`
+(no issuer, CENSUS row 9), `find_town_at` (`NEEDS_TOWN` unused), `check_sea_map` and the editor's two (cut from v1),
+`end_cannon_time` (multiplayer, `semaphore & 4`), `GatherPoint::walk_data` (inlined under a vtable guard), the `Wall`-vtable-only
+slots (`hits`, `construct_time`, `can_make`: no wall is ever made), the `support`/`support_cost` slots (no caller through +0x13c),
+`Object`-base-only `los`/`hits`; readings — the thirteen type-vtable slots whose `.text` references are devirtualization guards
+(one grep per slot for an unguarded call), `Build`'s slots (`is_sea_trade`, `WallOut::draw`, `is_under_attack`, `execute_events`,
+`most_shots`), the three order thunks and `get_follow_order`, `kill_group_order`'s stance gate, `is_tournament`'s `be <who>` route
+(`defeat` quits under `-automation`), `is_on_screen`'s nineteen guards; and three owed elsewhere — 3463a's hover hook,
+3472a's packet (3481), the siege attack's held modifier (3442a). Candidate: the next pass ratifies the candidates with a
+reading each and books the readings as `reading` items. Score: `Blind:` open counts what a capture can enter. One reach.
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
@@ -9593,6 +9606,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot NT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NX renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

@@ -21466,3 +21466,24 @@ asked for the rubric at every steer against the one before: built as
 queue's pinned `Rubric:` line (ages 2 → 8 of 8, unit types 30 → 70 of
 364 this tranche). **DECISIONS 88.**
 `docs/audit/2026-10-21-fable-pass-49.md`.
+
+**2026-10-22 — the fiftieth Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the fiftieth tranche measured — twenty
+`cover=1` landings on two Opus lanes from `a479f1bf` in 13 h 08, every
+one on the click-free pool; 7.40 USD and 52.0 minutes waiting a landing
+against 5.59 / 47.2, the capture class 25.3 of it on a pool that held
+three lanes at once; `NEVER` 321 → 273 on 53 captures, open 240 → 192;
+the census and the words unmoved, unit types seen 70 → 74. The pass
+scanned the 192 open rows for references: 115 dead, ratified into
+`RESIDUE` by family; 3462a's two casters and 3471a's console package
+accepted; seventeen `ScenarioFuncSet` rows the console's `!eval` reaches
+struck — `Blind: never 273 · residue 182 · open 91`. Built: the pool's
+window-only photograph (`poolshot.py`), the park-pool guard that
+subtracts assigned slots, the pool cleanup's prefix retry, the waiter's
+armed-clear `DRAFT`, the reflex's blind pin; eight lanes' lines as rows
+of the coverage frame; the oracle key's reader lever measured and not
+landed (32 of 33 revisions still turn it). Booked: five coverage items
+against what a capture can still enter, the `!eval` take first; the 67
+rows no item stages filed with their reasons (Loop 3482). The queue
+lane's retirement recommended to Ramon. **DECISIONS 89.**
+`docs/audit/2026-10-22-fable-pass-50.md`.

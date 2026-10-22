@@ -98,6 +98,7 @@ is append-only and amended in place, as it always was.
 - 85 standing — The forty-sixth tranche is scored on four lanes at less a landing and less a game, the held-out battery runs six of eight whole, the sim lib's cap follows the thread count, the lane gate keeps the paperwork guards and refuses a moved base first, a push under a clear is a draft, the oracle cache is a directory a gc removes, the generator carries a hand block and three more shapes, and twenty Loop items become tools, rows, closes or Ramon's
 - 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
 - 86 standing — The forty-seventh tranche is scored on four lanes at the loop's cheapest landing, the held-out battery runs eight of eight whole and the battery track stops by its own rule, the forty-eighth tranche is booked on the blind list, two signal reports had one sender and get a guard, the lane gate gates past the commander's paperwork, and nineteen Loop items become tools, rows, closes or Ramon's
+- 89 standing — The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter
 - 88 standing — The forty-ninth tranche is scored on two Opus lanes at sixteen `cover=1` landings drained early on a pit stop, the blind list falls 300 → 240 open, the click layer moves to the pool and the queue lane keeps only what no `@` line sends, two residue rows are ratified, the oracle cache key reads the parser and codec only, and sixteen Loop items become tools, rows, closes or Ramon's
 - 87 standing — The forty-eighth tranche is scored on five readings and two sweeps at the loop's cheapest and shortest landing, forty-five residue rows are ratified and the blind list falls 345 → 300, the forty-ninth tranche is booked as `cover=1` captures on the queue lane under a fifth brief kind, the queue carries a pinned `Blind:` line, and eleven Loop items become tools, rows, closes or Ramon's
 
@@ -7777,13 +7778,28 @@ GiB free.
    booked field's writer, `die` on the twin's ids, a taunt's +0x3c, a
    draw-side booking's filler — each from a take that was spent once
    finding it.
-6. MEANS_3382
+6. **The oracle cache key is spent as a lever** (Loop 3382, an Opus
+   subagent's half hour): a key that drops `gamelog.rs`'s readers was
+   built, red first, and replayed over the 33 `gamelog.rs` revisions
+   since 09-21 — 32 turned the old key and 32 turn the new one, because
+   the edits were parser widenings that change the stored bytes. Not
+   landed; the next lever is the walk outside the store, ~105 s of the
+   pin's ~120 s warm.
 7. **The rest**: 3441 and 3440 stay dormant with the queue lane; 3433
    waits on a second occurrence (none in 53 captures); 3432's `cursor=`
    key was not run and the fifty-first's first item carries it; 2003
    took no reach; six stay Ramon's (3350, 3237, 3188, 3143, 3118, 1570)
-   with this tranche's numbers appended. The backlog 28 → BACKLOG_AFTER.
-8. BOOKINGS_SUMMARY
+   with this tranche's numbers appended.
+8. **The bookings** are five `coverage` items against what a capture can
+   still enter, drafted by an Opus subagent from the 91: the eighteen
+   `!eval` rows in one take (3477), a goody box under the camera (3478),
+   the param console's field edit (3479), a diagonal terrain transition
+   (3480) and 3472a's packet for the herd's gate (3481); runs 1092–1100,
+   park NR–NV. The subagent drew four, not ten, and its reading of the
+   other 67 rows — residue candidates with reasons, readings, a packet
+   — is Loop 3482 for the next pass; the refill is the commander's
+   drafting subagent on the rows that name a reading. The backlog 28 →
+   13.
 
 **Against entry 88's estimate**: `@key` with the three formation
 functions on the key's frame and parity with run52 — met; the seven
@@ -7795,7 +7811,17 @@ takes — **missed, not run**; no red booking gate — **missed** (3442's);
 no kill rule — met; no blocked ending — **missed** (3446's draft
 session); the Nomad lobby on the pool — met. Five of nine.
 
-ESTIMATE
+**The estimate, written down to be wrong on record**, on the booking
+above and two Opus pool lanes: 3477 lands with at least sixteen of its
+eighteen entered on their lines' frames and `base_rate[0]` 80 on 683
+(`NEVER` 273 → at most 257, open 91 → at most 75); the five items land
+in under eight hours; a coverage landing under 7 USD and under 50
+minutes waiting; `cursor=X,Y` measured on 3477's take with 0 differing
+against its twin; no red booking gate (the reflex now runs the blind
+pin); no kill rule; no blocked ending; the commander's drafting
+subagent books at least three more items from the `## Not drafted`
+readings before the lanes run dry; the next pass's reference scan
+finds no dead row among the 91.
 
 **The measure for the next pass**: each coverage landing's USD and
 waiting against 7.40 / 52.0; the open blind list against 91 and `never`
@@ -7803,5 +7829,5 @@ against 273, with the `!eval` item's seventeen the first expected move;
 the pool's cap wait against 17.9 minutes and its median rate against
 2.1; the capture class against 25.3 and the gate against 15.5; booking
 gate minutes against 289.9; `DEEP` against three; the backlog against
-BACKLOG_AFTER; the disk against 225 GiB; whether the reference scan at the
+13; the disk against 225 GiB; whether the reference scan at the
 next pass finds a dead row among the 91.
