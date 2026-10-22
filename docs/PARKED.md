@@ -8830,6 +8830,8 @@ part with no draw:
   type 0, which no case of its switch takes, and returns. What re-sets the type inside a hand-held game's render is
   unread. The test is a tracer hook that re-sends the pinned `OnMouseMove` at `Scene::describe_mouseover@008b47e0`'s
   entry, on run1082's lines. Score: `NEVER`, two rows and every `Options::describe` case behind a hover.
+  **Answered by item 3494**: the hook is `--hover` (`tools/trace/hover.h`), and run1129 enters both rows on 600;
+  parked 3494a keeps the hand-held re-setter, still unread.
 - **3463b. The computer's stock falls to 450 of each good on block 9978.** In run1082, leader 1's five buckets read
   100466/100332/100080/100242/100127 on 9977 and 450 each on 9978, the block after `prod_script_run` 1 → 0. The
   writer is unread (the script's end, or a cap pass). Names no score.
@@ -9861,13 +9863,16 @@ cost more than a take:
 
 Names no score until a reading names a lobby or a placement: one reach.
 
-## Parked by the next landing, slot OC — reserved
+## Parked by item 3494, 2026-10-22 — the food counter's hover, re-sent
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3494a. What re-sets a hand-held game's hover after `Scene::render` zeroes it is still unread.** run1129's
+  `--hover` hook (`tools/trace/hover.h`) stands in for it by re-sending the pinned `OnMouseMove` at
+  `Scene::describe_mouseover@008b47e0`'s entry, and with it `MouseOver::describe` takes case 0x200 on every frame
+  600..640. Whether the shipped renderer re-sends a resting cursor's move each frame (the pin drops the window
+  procedure's own mouse events, `click.h`) or a draw pass re-runs the spot test is not read. Names no score.
+- **3494b. The re-send count is wall-clock, not sim.** run1129 re-sent 195 times and its twin run1130 162 over the
+  same 41 frames: `describe_mouseover` runs once per drawn frame. The sim did not part (rngcmp 641 identical); a take
+  whose hover reaches sim state through the tooltip (none known) would have to be checked against that. Names no score.
 
 ## Parked by item 3495, 2026-10-22 — a held Shift asks the group patrol's getter, never the plain one
 

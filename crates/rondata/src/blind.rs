@@ -438,6 +438,14 @@ pub const TRACES: &[&str] = &[
     // items' +0x7c walkers. Its `cover=0` twin is run1116 (rngcmp 701
     // identical, 0 differing; `docs/RUNS.md` run1115).
     "rontrace-run1115.log",
+    // Item 3494: the golden start (map 14), `--no-ffwd`, at `cover=1` on the
+    // click-free pool to 640 (`tools/gamelog/coverage/hover3494-start.cmd`):
+    // `600 @cursor 70 33` pins the cursor on the food counter, and `--hover`
+    // (`rontrace.cfg` `hover=1`, `tools/trace/hover.h`) re-sends the pinned
+    // `OnMouseMove` at `Scene::describe_mouseover`'s entry, after
+    // `Scene::render` has zeroed `mouseover->type`. Its `cover=0` twin is
+    // run1130 (rngcmp 641 identical, 0 differing; `docs/RUNS.md` run1129).
+    "rontrace-run1129.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -845,9 +853,13 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **250** with run1115 (item 3492: the golden start with `AutoSaveLoad=650`):
 /// `Good::walk_data@0066e5d0` and `Item::walk_data@00677150` on 649's
 /// do_frame, the save's and the reload's +0x7c walkers.
+/// **248** with run1129 (item 3494: the golden start, the food counter's
+/// hover re-sent at `describe_mouseover`): `Game::is_turbo_resources@0043ecb0`
+/// and `LeaderData::resource_cap_get@0046ee80` on 600, through
+/// `MouseOver::describe` case 0x200 and `Options::describe@00724460`.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
-    0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
+    0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
     0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_22f0, 0x0047_2370,
     0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,

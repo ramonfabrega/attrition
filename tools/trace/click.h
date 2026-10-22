@@ -68,6 +68,9 @@
 #define GS_VT_MAX 512
 #define MSG_VT_SLOTS 20 /* +0x0 .. +0x4c */
 #define FLOAT_ONE 0x3f800000u
+#define RVA_MOUSEOVER 0x806230u /* MiscAccess::mouseover, VA 0xc06230 (MouseOver *) */
+#define MOUSEOVER_TYPE 0x4u
+#define MOUSEOVER_T 0x48u
 
 static i32 g_pin_want, g_pin_state = -1; /* -1 not tried, 0 installed, > 0 refused */
 static i32 g_pin_x = 700, g_pin_y = 300;
@@ -162,6 +165,7 @@ static void click_line(i32 frame, u32 idx, const u16 *t, i32 kind) {
         typedef void(__thiscall *h3_fn)(void *, i32, i32, i32);
         void *h = (void *)(g_base + RVA_MSG_HANDLER);
         g_pin_x = x, g_pin_y = y;
+        g_hover_moved = 1;
         pin_refresh(g_gs);
         ((h2_fn)g_msg_orig[0x14 / 4])(h, x, y);
         if (kind) {

@@ -173,6 +173,7 @@ enum {
     K_RET = 8, /* and its return:          a = site, b = eax,  c..e = args 4..6,
                 * f = the byte behind arg7 where the site names one, else ~0 */
     K_LOOP = 11, /* Game::loop entry: no record; runs the due `@after` lines (9, 10: RON_STATE_FRAME) */
+    K_HOVER = 12, /* Scene::describe_mouseover entry: no record of its own; `hover.h` */
 };
 
 enum {
@@ -210,6 +211,7 @@ enum {
                    * tick it is due at; and again when it runs: b = line index | 1 << 24, c =
                    * the tick, d = the Game::loop entries since the first `@after` was queued */
     I_DUMPALL = 23, /* an `@dumpall` line: a = frame, b = line index, c = the flag before, d = 1 set / 0 cleared */
+    I_HOVER = 30, /* the pinned hover re-sent at `describe_mouseover` (`hover.h`); 25..29 are `dumptime.h`'s */
 };
 
 typedef struct {
@@ -233,6 +235,9 @@ static const HookSite HOOKS[] = {
      * window (the Game Menu, the Options window, a popup) stops `do_frame`, and this is
      * the entry that still runs while it is up. */
     {0x191570, 10, K_LOOP, {0x55, 0x8b, 0xec, 0x6a, 0xff, 0x68, 0xf9, 0x3d, 0xa8, 0x00}},
+    /* Scene::describe_mouseover@008b47e0: push esi; mov esi,ecx; lea ecx,[esi+0x104]. Installed
+     * only under `hover=1` in rontrace.cfg (item 3494, `hover.h`). */
+    {0x4b47e0, 9, K_HOVER, {0x56, 0x8b, 0xf1, 0x8d, 0x8e, 0x04, 0x01, 0x00, 0x00}},
     /* Random::get@00a39cf0: push ebp; mov ebp,esp; push ecx; imul eax,[ecx],0x19660d */
     {0x639cf0, 10, K_GETF, {0x55, 0x8b, 0xec, 0x51, 0x69, 0x01, 0x0d, 0x66, 0x19, 0x00}},
     /* Random::get@00a39d70: push ebp; mov ebp,esp; push -1; push 0xab22d0 */
@@ -953,6 +958,10 @@ static int issue_verb(const u16 **t, const char *verb) {
 }
 
 void *memcpy(void *d, const void *s, unsigned n);
+/* `hover.h`'s state: the key, a click line has moved the pin, the records. */
+static i32 g_hover_want, g_hover_moved, g_hover_frame = -1;
+static u32 g_hover_sends;
+#include "hover.h"
 #include "click.h"
 #include "key.h"
 
@@ -1484,7 +1493,8 @@ static u32 WINAPI flusher(void *arg) {
  * HIT record — its CALL/RET records are the stronger evidence anyway. */
 static int is_hook_site(u32 rva) {
     for (u32 i = 0; i < NHOOKS; i++)
-        if ((HOOKS[i].kind != K_LOOP || g_loop_want) && rva >= HOOKS[i].rva &&
+        if ((HOOKS[i].kind != K_LOOP || g_loop_want) && (HOOKS[i].kind != K_HOVER || g_hover_want) &&
+            rva >= HOOKS[i].rva &&
             rva < HOOKS[i].rva + HOOKS[i].len)
             return 1;
     if (g_calls)
@@ -1688,6 +1698,21 @@ static void __cdecl on_hook(u32 kind, u32 ecx, u32 ebp, u32 caller, u32 arg0) {
             emit(K_INFO, I_AFTER, (u32)g_frame, q->idx | (1u << 24), now, g_loops, 0);
             issue_line(g_frame, q->idx, q->text);
             flush();
+        }
+        return;
+    }
+    if (kind == K_HOVER) {
+        if (!hover_due(g_hover_want, g_pin_state, g_hover_moved)) return;
+        typedef void(__thiscall *h2_fn)(void *, i32, i32);
+        u8 *mo = *(u8 **)(g_base + RVA_MOUSEOVER);
+        u32 before = mo ? *(u32 *)(mo + MOUSEOVER_TYPE) : ~0u;
+        ((h2_fn)g_msg_orig[0x14 / 4])((void *)(g_base + RVA_MSG_HANDLER), g_pin_x, g_pin_y);
+        g_hover_sends++;
+        if (g_hover_frame != g_frame) {
+            g_hover_frame = g_frame;
+            u32 after = mo ? *(u32 *)(mo + MOUSEOVER_TYPE) : ~0u;
+            emit(K_INFO, I_HOVER, (u32)g_frame, g_hover_sends, (u32)g_pin_x | (u32)g_pin_y << 16,
+                 (before & 0xffff) | after << 16, mo ? *(u32 *)(mo + MOUSEOVER_T) : ~0u);
         }
         return;
     }
@@ -2051,6 +2076,7 @@ static void install_hooks(void) {
     for (u32 i = 0; i < NHOOKS; i++) {
         const HookSite *h = &HOOKS[i];
         if (h->kind == K_LOOP && !g_loop_want) continue;
+        if (h->kind == K_HOVER && !g_hover_want) continue;
         u8 *t = (u8 *)(g_base + h->rva);
         int ok = 1;
         for (u32 j = 0; j < h->len; j++)
@@ -2105,7 +2131,8 @@ static int key_is(const char *p, const char *k) {
 
 /* rontrace.cfg: lines `window=LO-HI` (frames to re-arm at, inclusive; default
  * none), `cover=0|1` (default 1), `cursor=X,Y` (the cursor pinned at that
- * resting point from the first frame, `click.h`) and `callwin=LO-HI` (frames over which the
+ * resting point from the first frame, `click.h`), `hover=1` (the pinned hover re-sent at
+ * `describe_mouseover`, `hover.h`; default off) and `callwin=LO-HI` (frames over which the
  * proxied call sites log their arguments and answers; **absent means the
  * proxies are not installed at all**, which is what every capture before
  * run55 ran). Anything else is ignored. */
@@ -2142,6 +2169,7 @@ static void read_cfg(void) {
         } else if (key_is(p, "cover")) {
             p += 6;
             g_cover = parse_int(&p);
+        } else if (hover_cfg(p, &g_hover_want)) {
         } else if (key_is(p, "cursor")) {
             p += 7;
             g_pin_x = parse_int(&p);
