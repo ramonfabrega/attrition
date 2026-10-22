@@ -21436,6 +21436,172 @@ Archive `rontrace-run1034.log`, 26,022,656 bytes,
 SHA-256 `eabe1f120aea0bcc77967fbc702eb1f0b067719d74cb07b0e12ae4d3cae7cf1d`.
 
 **What it holds**: `blind::TRACES`' run1034 (item 3427).
+## run1044 — chapter fifteen's lobby with a right-click attack on the enemy Chariot, driven at `cover=1` on the queue lane to 749 (2026-10-21, item 3436, `att-3436`)
+
+**What the disk could not answer**: no trace enters `GroupOut::issue_attack@0070b060`. Chapter fifteen's `734 @attack`
+calls the manager's copy (GOLDEN §144.3). The take is chapter fifteen's lines with `620 @move` kept and `734 @attack`
+dropped, plus `700 select 6 who=0`, `700 select 9 who=0 +` and `700 camera 16,58`, at the twin's `end:`/`start:` and
+`misc: COMMANDMANAGER=1` from 605. The driver is `tools/gamelog/handdriver.sh`, and its clicks were aimed from the
+run's own screenshots.
+- Queue lane (lane 1). DLL `d6ef5de1…`, rebuilt from this tree. Minutes waited on another lane: none (the lane was
+  free at 18:11).
+- The first right-click on `1/6` (714) was answered "You are cheating--you can't really see this target! Moving
+  instead." and gave `process_move_to 3045 12306 2 …` on 717. The second (734) gave **`process_attack 6 1 0 2 737`**,
+  the twin's line two frames later, and `ATTACKORDER`s on 738.
+- **6,782 functions entered**. One is a `NEVER` row: `issue_attack` on 736.
+- `issuesmatch.py --none-refused`: 1 issue record, 0 refused. `rngcmp.py` against `~/ron-golden/ch15` (`cover=0`,
+  run215): **749 in common, 17 differing, the first 732**, 732 identical. `samegame.py`: **145 in common, 32 differ,
+  the first 717**, the first click's move block, after its first input (714).
+
+Archive `gamelog-run1044-ch15-attack-click.txt`, 69,179,861 bytes,
+SHA-256 `6d00a6e68a620d9b848281a35a78c33a730b79d9d0c64b8dd96c158482d5cdf3`.
+
+Archive `rontrace-run1044.log`, 13,737,312 bytes,
+SHA-256 `ad73723a60f71048da6c60f42acff0d90a38ff6cba10249335324fa381e533c0`.
+
+**What it holds**: `blind::TRACES`' run1044 (item 3436).
+
+## run1045 — chapter seventeen's lobby with the Fighter right-clicked on its own Airbase, driven at `cover=1` on the queue lane to 673 (2026-10-21, item 3436, `att-3436`)
+
+**What the disk could not answer**: no trace enters `GroupOut::issue_flight@00708b10`. Chapter seventeen's `@flight`
+and `@strike` call the manager's copy. The take is chapter seventeen's lines to `620 @strike` (kept), `640 @flight`
+dropped, plus `630 select 6 who=0` and `630 camera 60,72`, at the twin's details from 605.
+- Queue lane (lane 1). DLL `d6ef5de1…`. Minutes waited on another lane: none.
+- The console's `select` and `camera` reached the screen a few frames late: the first shot (633) still showed the
+  start view, and the second (645) showed the Fighter selected. A right-click on the Airbase (656) gave
+  **`process_flight 657`**, and a `STRAFEORDER` and an `AIRORDER` on 658.
+- **6,377 functions entered**. One is a `NEVER` row: `issue_flight` on 656.
+- `issuesmatch.py --none-refused`: 1 issue record, 0 refused. `rngcmp.py` against `~/ron-golden/ch17` (run223):
+  **673 in common, 21 differing, the first 643**, 652 identical. `samegame.py`: **69 in common, 32 differ, the first
+  641**, the twin's `640 @flight` block.
+
+Archive `gamelog-run1045-ch17-flight-click.txt`, 37,889,137 bytes,
+SHA-256 `3a2b95cb2cb31bd65750e930dc579d44606a85c8d00bc046cbdaa957cda3f6b7`.
+
+Archive `rontrace-run1045.log`, 25,872,416 bytes,
+SHA-256 `3edbda834c4028a4adf2017db51b28da8d483bdc9c3a7207be448c03a367f011`.
+
+**What it holds**: `blind::TRACES`' run1045 (item 3436).
+
+## run1046 — chapter eighteen's lobby, unclicked, on the queue lane to 3000: spent (2026-10-21, item 3436, `att-3436`)
+
+The first launch's run1044, run1045, run1048 and run1049 refused before launch: the install's DLL was another tree's
+build, and those stanzas keep `@` lines. run1046 and run1047 have no `@` line, so they ran. My wait watched run1044's
+driver file, so neither game received a click. Each ran to its `frames: 3000` (16:27–17:14). It drops the twin's `620
+@build`, so it parts run241 at the first frame after that: `rngcmp.py` **1451 in common, 808 differing, the first
+643**. **6,678 functions entered**, none of them a target. Its `select 6 who=0` at 618 showed the Small City at 620:
+the console lags the screen by a few frames (run1045), so it is no evidence `select` failed. Retaken as run1055. Not
+pinned.
+
+Archive `gamelog-run1046-ch18-build-click.txt`, 939,913,137 bytes,
+SHA-256 `baa2d961fd76f87331f5099070ea310c48759bfa08d464a00a30fdd1d3de0367`.
+
+Archive `rontrace-run1046.log`, 15,283,936 bytes,
+SHA-256 `fdbcf5a8b3965e22b6986acc044206bd27c0c76eb4301b4b3eb003820e824f77`.
+
+**What it holds**: nothing pinned; spent (item 3436).
+
+## run1047 — chapter twenty-one's lobby, unclicked, on the queue lane to 3000: spent (2026-10-21, item 3436, `att-3436`)
+
+run1046's launch, the next stanza (17:14–18:05). It drops the twin's `780 @repair`: `rngcmp.py` against run255
+**1301 in common, 494 differing, the first 803**. **6,843 functions entered**, none of them a target. Retaken as
+run1056. Not pinned.
+
+Archive `gamelog-run1047-ch21-repair-click.txt`, 988,625,698 bytes,
+SHA-256 `f7278d8848839ca3ae1c7a685b4321398c1c3b96574376351e76eeacb3359cc2`.
+
+Archive `rontrace-run1047.log`, 15,283,840 bytes,
+SHA-256 `b2e9cae7723bc53e29c35a8cfa45292bc6f2e453370485fdf28ea216d61f9ceb`.
+
+**What it holds**: nothing pinned; spent (item 3436).
+
+## run1048 — chapter twenty-three's lobby with the Airbase's repeat button, driven at `cover=1` on the queue lane to 801 (2026-10-21, item 3436, `att-3436`)
+
+**What the disk could not answer**: no trace enters `Options::set_air_repeat@0071c740` or
+`GroupOut::issue_buildmask@00708820`. Chapter twenty-three's `1440 @buildmask` calls the manager's copy. The take is
+chapter twenty-three's lines through `766 @strike` (all five `@` lines kept), plus `770 select 2007 who=0` and `770
+camera 60,72`. The button was pressed at 788 rather than 1440, since the bit toggles whenever it is pressed.
+- Queue lane (lane 1). Its first launch (18:28) died before its window ("waitwin: riseofnations.exe died before its
+  window", nothing archived). It was relaunched at 18:52 and archived at 18:59. DLL `d6ef5de1…`. Minutes waited on
+  another lane: none.
+- The repeat button (96, 1056) at 788 gave **`process_buildmask 789`**. The Airbase's `build_masks` is 4232 on 787
+  and 4104 on 790, `0x80` off. That is the emulator's 4232 → 4104 (GOLDEN, `Options::set_air_repeat`'s paragraph).
+- **6,796 functions entered**. Two are `NEVER` rows: `set_air_repeat` and `issue_buildmask` on 788.
+- `issuesmatch.py --none-refused`: 5 issue records, 0 refused. `rngcmp.py` against `~/ron-golden/ch23` (run281):
+  **801 in common, 0 differing**, 801 identical. `samegame.py`: **197 in common, 12 differ, the first 789**, the
+  click's own block.
+
+Archive `gamelog-run1048-ch23-airrepeat-click.txt`, 88,802,946 bytes,
+SHA-256 `9617daadf633f7c6ba2fe4fbc35b148cb68aad16901d699113aa0962f92a7344`.
+
+Archive `rontrace-run1048.log`, 13,643,712 bytes,
+SHA-256 `fcbb6d1915801630605a012deb32446a29316b736be5d7a75a0647dbfcbe1d5f`.
+
+**What it holds**: `blind::TRACES`' run1048 (item 3436).
+
+## run1049 — chapter twenty-five's lobby with a cancel on the Barracks' Hoplite, driven at `cover=1` on the queue lane to 889 (2026-10-21, item 3436, `att-3436`)
+
+**What the disk could not answer**: no trace enters `BuildOut::issue_unqueue@00629e70`. Chapter twenty-five's
+`@unqueue` calls the manager's building overload. The take keeps chapter twenty-five's `620 @queueup 0 132 2 2007`
+and `640 @queueup 0 170 1 2007`, drops the rest, and adds `650 select 2007 who=0` and `650 camera 14,74`.
+- Queue lane (lane 1). DLL `d6ef5de1…`. Minutes waited on another lane: none. The game ran unclicked from 652 to 865
+  while I was driving run1048's failed launch, a pause that cost frames and nothing else.
+- A left-click on the Hoplite in training on the Barracks' panel (823, 971) at 876 gave **`process_unqueue 2007 0
+  877`**. `queue[scan].type 132` stands on 876 and is gone on 878.
+- **6,715 functions entered**. One is a `NEVER` row: `issue_unqueue` on 876.
+- `issuesmatch.py --none-refused`: 2 issue records, 0 refused. `rngcmp.py` against `~/ron-golden/ch25` (run292):
+  **889 in common, 29 differing, the first 856**, 860 identical. `samegame.py`: **285 in common, 188 differ, the first
+  701**, the twin's `700 @unqueue` block.
+
+Archive `gamelog-run1049-ch25-unqueue-click.txt`, 123,565,366 bytes,
+SHA-256 `cd1a4216c2488c050033c365b13199b9cf064b56fa361aa0866a03fda1c08168`.
+
+Archive `rontrace-run1049.log`, 13,677,536 bytes,
+SHA-256 `fdfb0dd00b7e82d81c70f3d4d4067ade196ab9f2d049f594a33d924022b87c17`.
+
+**What it holds**: `blind::TRACES`' run1049 (item 3436).
+
+## run1055 — chapter eighteen's lobby with the Barracks build button and a drop, driven at `cover=1` on the queue lane to 713 (2026-10-21, item 3436, `att-3436`)
+
+**What the disk could not answer**: no trace enters `GroupOut::issue_build@00708c60` (run1046 was spent unclicked).
+The take is chapter eighteen's lines without its two `@build` lines and with `618 camera 38,178`. The Citizen was
+selected by a click on the map.
+- Queue lane (lane 1). DLL `d6ef5de1…`. Minutes waited on another lane: none.
+- The clicks were a Citizen on the map (the second try landed), the card's Military Buildings button (96, 976, the
+  second press opened it), its Barracks (34, 935) and a drop at the screen's centre (960, 452), all on 700. That gave
+  **`process_build 6913 33793 6913 33793 427 2 701`**, the GOLDEN row's "queued 2", and a `BUILDORDER` on 702.
+- **6,756 functions entered**. Two are `NEVER` rows: `issue_build` on 700 and, unasked, `BuildTypeData::
+  is_civilian@00639930` beside it. `Options::picked_spot`, already entered, carries the drop.
+- `rngcmp.py` against `~/ron-golden/ch18` (run241): **713 in common, 70 differing, the first 643**, 643 identical.
+  `samegame.py`: **109 in common, 92 differ, the first 621**, the twin's `620 @build` block.
+
+Archive `gamelog-run1055-ch18-build-click-retake.txt`, 52,963,814 bytes,
+SHA-256 `98b90897aee0b7eb6a21f5bb115738618c0e22c7f257303ef2c9e5bcd9e2feb5`.
+
+Archive `rontrace-run1055.log`, 13,593,920 bytes,
+SHA-256 `5f0b76cf9c994de101d04c41a9c94e0f466f94775636ec8d7cff7562f3579e27`.
+
+**What it holds**: `blind::TRACES`' run1055 (item 3436).
+
+## run1056 — chapter twenty-one's lobby with a Citizen's right-click on its own Barracks, driven at `cover=1` on the queue lane to 813 (2026-10-21, item 3436, `att-3436`)
+
+**What the disk could not answer**: no trace enters `GroupOut::issue_swarm_around@0070afc0` (run1047 was spent
+unclicked). The take is chapter twenty-one's lines without its two `@repair` lines, plus `778 select 6 who=0` and
+`778 camera 30,176`.
+- Queue lane (lane 1). DLL `d6ef5de1…`. Minutes waited on another lane: none.
+- A right-click on the Barracks `0/2007` at 796 gave **`process_swarm_around 2007 0 2 13 797`** and a `REPAIRORDER`
+  on 798.
+- **6,476 functions entered**. One is a `NEVER` row: `issue_swarm_around` on 796.
+- `rngcmp.py` against `~/ron-golden/ch21` (run255): **813 in common, 2 differing, the first 805**, 811 identical.
+  `samegame.py`: **209 in common, 32 differ, the first 781**, the twin's `780 @repair` block.
+
+Archive `gamelog-run1056-ch21-repair-click-retake.txt`, 93,786,448 bytes,
+SHA-256 `bfc7683de2899065c019596d0ce6c4ec99c6cf3d8a9e1d1019e12061ed0ef769`.
+
+Archive `rontrace-run1056.log`, 26,673,728 bytes,
+SHA-256 `b8420e45e88aa80f6ebad127738966e506a73eeace23d2364f5074f1ee2b3710`.
+
+**What it holds**: `blind::TRACES`' run1056 (item 3436).
 ## run1031 — the human's Market at `cover=1` on the click-free pool to 700: the golden start with the tracer's `@sell` and `@buy` (2026-10-21, item 3426, `att-3426`)
 
 **What the disk could not answer**: no capture had pressed Sell or Buy for a human, so
