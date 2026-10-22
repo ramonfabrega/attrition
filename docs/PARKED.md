@@ -3784,14 +3784,9 @@ run1105b/1106b (3484's swapped scratch, unfiled) cost a take 9–30 s. Candidate
 the game's threads across one stall, beside the AI's 32-frame cadence) or it stays the pass's. Score: the pool's frames a second.
 One reach.
 
-(3496) **The console mirror's flip is measured safe for the pool's default** (3484's "for the Loop"; DECISIONS 89's amendment,
-3483a, 3484a): on three lobbies (run1103/1104 the golden start, 1105/1106 the coverage pair, 1107/1108 the team lobby)
-`--console-log 0` leaves `gamelog.txt` byte-identical after its header (lines 1–3: SYNCPOINT timings, memory, CPU speed) and the
-draw stream identical, nothing in `tools/` reads the mirror (`WINEDEBUG=-all` already discarded it), and a dumped frame goes from
-2.7–3.3 s to 0.06–0.09 s. With the mirror off, the CRT formatting is 66–75 % of what is left, about 0.05 s (3484a): the
-byte-identical writer is not worth an item. Candidate: the pool runner's default becomes `--console-log 0`, with its test, and the
-cursor pin with it — 3477, 3478 and 3484's three lobbies are clean takes against their twins, past Loop 3432's three. Score: the
-pool's frames a second and the capture class's minutes. One reach: the pass's, per the amendment. **The steer, the same day**: flip both now — booked as 3497.
+(3496) closed 2026-10-22 by item 3497 (3484's "for the Loop"): **the pool's defaults are the console mirror off and the cursor pinned** —
+`unattended_capture.py` writes `--console-log 0` and `--cursor 1400,1000` unless given `--console-log 1` or `--cursor none`, and the
+receipt's `staged` carries both; the header lines the mirror changes land in `Log::preamble` (`gamelog.rs`, a test).
 
 (3490) **`CLAUDE.md`'s wait bullet still names the queue lane** (3485's "for the Loop"): Conventions, "it keys on the runner's own
 banner and exit on the queue lane and on the receipt lines on the click-free lane"; 3485's replacement: "it keys on the receipt lines the
@@ -3828,10 +3823,6 @@ scanned for open blind rows behind the test, each a `reveal 0` line. Score: `Bli
 `~/ron-golden/<run>` and waits on its `gamelog.txt`, but a pool take writes under `map-<N>/`; recon3479-1 lost all three
 photographs to that, a 30-minute wait. Candidate: the tool takes the one `map-*` directory as `filerun.py` does, with a test.
 Score: a photograph a take does not lose. One reach.
-
-Loop 3432's reaches in the fifty-first tranche, filed here (its own section is the forty-ninth's): **3477's "for the Loop"** —
-the cursor pin off the map (`--cursor 1400,1000`, the pool runner's option from 3477) has its first clean take, run1092 against its
-twin run1093 0 of 721 differing; 3478's run1094/1095 is the second, 641 of 641 identical. One more makes it the pool's default.
 
 (3486) **A retirement mechanism for unused tools, docs and clauses** (Ramon, the fiftieth steer): the tree holds every tool and
 clause it ever grew — the queue lane was the first one retired by hand (3485). Candidate: a pass tool, `tools/retire.py`, that lists each
@@ -3877,13 +3868,9 @@ in `docs/ORACLE.md` or `docs/RUNS.md`. Candidate: `unattended_capture.py` names 
 retakes once on the other lane, and a second occurrence on one lane says the lane's prefix differs. Score: a coverage
 retake the pool does not spend by hand. One reach. **The forty-ninth pass**: stays, one occurrence — the pool already retakes a take that died before frame 0 (`exit_verdict` → `retake`) and relaunches a stall once; what is missing is the name (`wine-stalled.log`'s last line in the refusal) and the lane choice. Built on the second occurrence, with the two logs beside each other. **The fiftieth pass**: stays — no second occurrence in the tranche's 53 pool captures (`secur32` in no run1054–run1091 log); built on the second, as ruled.
 
-(3432) **A `RESIDUE` row's "no capture can enter it" is breakable by the click-free pool's resting cursor** (3425's "for
-the Loop"): run1029 entered `TypeData::get_desc_parsed` on 511 through `MouseOver::set_good`, the tooltip the pool's idle
-cursor raised over a resource, and `blind::`'s guard deleted the row (residue 80 → 79). A residue claim is about the
-game's inputs; the pool adds one nobody chose. Candidate: the pool parks its cursor off the map at autostart, or the
-residue table names the interface rows a hover reaches. Score: the `residue` count stays a claim about the game. One reach. **3437's "for the Loop"**, the same row: the pool's resting cursor feeds about three mouse events a frame (2,389 by
-run1050's frame 624); `@cursor` (`tools/trace/click.h`) pins the position the game reads, so a staged `cursor=X,Y` in
-`rontrace.cfg` would hold it for every pool take — this row's candidate as one key. **The forty-ninth pass**: stays — the key exists (`cursor=X,Y`, 3437) and is unmeasured as a default: the fiftieth tranche's first pool coverage brief stages it off the map and reads `rngcmp`/`samegame` against the twin; three clean takes make it the pool's default, in `unattended_capture.py`, with a test. **The fiftieth pass**: stays — no pool brief of the fiftieth tranche staged `cursor=X,Y` (the booking did not carry it); the fifty-first's first item stages it and reads `rngcmp`/`samegame` against its twin, and the queue's item says so.
+(3432) closed 2026-10-22 by item 3497 (3425's, 3437's and 3477's "for the Loop"): **the pool parks its cursor off the map by default** — `--cursor 1400,1000`
+on every take unless `--cursor none` (five clean takes against their twins: 3477, 3478, 3484's three lobbies), so a residue
+claim is about the game's inputs again.
 
 ## Loop, filed 2026-10-21 — the forty-eighth tranche's
 
@@ -9889,13 +9876,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OE — reserved
+## Parked by item 3497, 2026-10-22 — the pool's defaults: the console mirror off and the cursor pinned
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3497a) **Only the pool's runner flipped; the stage's own command line did
+not** (item 3497). `unattended_capture.py` now stages
+`AllowLogs_ToConsole=0` and `cursor=1400,1000` unless told
+`--console-log 1` or `--cursor none`, and its receipt's `staged` carries
+`console_log` and `cursor` on every take. `live_session.py stage`, run by
+hand, keeps no cursor default and writes no `AllowLogs_ToConsole`, as the
+item asked ("nothing else's default moves"). A receipt from before 3497
+has no `staged.console_log`; its top-level `console_log` is `null` there,
+which meant the profile's value (the engine's default, 1). Whether the
+hand stage follows the pool is a pass's call.
 
 ## Parked by the next landing, slot OF — reserved
 

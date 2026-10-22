@@ -4695,6 +4695,46 @@ BEGIN GAME
     }
 
     #[test]
+    fn the_header_lines_two_takes_differ_on_reach_no_reader() {
+        // Item 3497 (3484's raw `cmp`): two takes of one lobby differ before
+        // the first block only on the two `SYNCPOINT` load timings and, on
+        // some, `Sys Memory` and `CPU speed` (run1103 against run1104). They
+        // land in the preamble as fields, and the preamble's one reader,
+        // `checksums_in`, keys on `CHECKSUM`/`FILE`/`LINE`/`game_random`.
+        let header = |sync: [u32; 2], memory: u32, cpu: u32| {
+            format!(
+                "Save Name:\nspeed set:  2\n\
+                 SYNCPOINT:SYNC ENTER. FINISHED INITING COMMANDMANAGER AND TURN_CONTROL {}\n\
+                 Sending sync signal 0\n\
+                 SYNCPOINT:SYNC ENTER. CLOSE LOADING WINDOW SYNC {}\n \
+                 Sys Memory {memory}\n CPU speed {cpu}\n\
+                 CHECKSUM 1\n  FILE game.cpp\n  LINE 7\ngame_random seed 99\n{SAMPLE}",
+                sync[0], sync[1]
+            )
+        };
+        let (a, b) = (
+            header([2620, 2628], 6094850, 999),
+            header([2368, 2380], 462848002, 1000),
+        );
+        let (a, b) = (Log::parse(&a), Log::parse(&b));
+        assert!(
+            a.preamble.contains(&("Sys", "Memory 6094850")) && a.preamble.len() == b.preamble.len(),
+            "the lines are read, as preamble fields: {:?}",
+            a.preamble
+        );
+        assert_eq!(a.checksums(), b.checksums());
+        assert_eq!(a.checksums().len(), 1, "the record around them still reads");
+        let unheaded = |l: &Log<'_>| {
+            spelled(l)
+                .lines()
+                .filter(|s| !s.starts_with('!'))
+                .collect::<Vec<_>>()
+                .join("\n")
+        };
+        assert_eq!(unheaded(&a), unheaded(&b));
+    }
+
+    #[test]
     fn blocks_nest_by_indent_and_close_on_dedent() {
         let log = Log::parse(SAMPLE);
         let game = log.game().unwrap();
