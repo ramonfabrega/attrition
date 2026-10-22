@@ -3774,6 +3774,11 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3498) **Pool lane 1 stalls about 0.9 s every 32 frames in AI-on lobbies, whatever the pref** (parked 3484b; the steer):
+run1105b/1106b (3484's swapped scratch, unfiled) cost a take 9–30 s. Candidate: a lane names its cause in an hour (a `sample` of
+the game's threads across one stall, beside the AI's 32-frame cadence) or it stays the pass's. Score: the pool's frames a second.
+One reach.
+
 (3496) **The console mirror's flip is measured safe for the pool's default** (3484's "for the Loop"; DECISIONS 89's amendment,
 3483a, 3484a): on three lobbies (run1103/1104 the golden start, 1105/1106 the coverage pair, 1107/1108 the team lobby)
 `--console-log 0` leaves `gamelog.txt` byte-identical after its header (lines 1–3: SYNCPOINT timings, memory, CPU speed) and the
@@ -3781,7 +3786,7 @@ draw stream identical, nothing in `tools/` reads the mirror (`WINEDEBUG=-all` al
 2.7–3.3 s to 0.06–0.09 s. With the mirror off, the CRT formatting is 66–75 % of what is left, about 0.05 s (3484a): the
 byte-identical writer is not worth an item. Candidate: the pool runner's default becomes `--console-log 0`, with its test, and the
 cursor pin with it — 3477, 3478 and 3484's three lobbies are clean takes against their twins, past Loop 3432's three. Score: the
-pool's frames a second and the capture class's minutes. One reach: the pass's, per the amendment.
+pool's frames a second and the capture class's minutes. One reach: the pass's, per the amendment. **The steer, the same day**: flip both now — booked as 3497.
 
 (3490) **`CLAUDE.md`'s wait bullet still names the queue lane** (3485's "for the Loop"): Conventions, "it keys on the runner's own
 banner and exit on the queue lane and on the receipt lines on the click-free lane"; 3485's replacement: "it keys on the receipt lines the
@@ -9796,13 +9801,17 @@ them — the runner that walked the file left with it. Candidate: a lint
 that a `driver:` names a file in the tree, scoped to stanzas without an
 archive. Score: none. One reach.
 
-## Parked by the next landing, slot NZ — reserved
+## Parked by item 3491, 2026-10-22 — `is_tournament` from a defeated computer's chair
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3491a — a defeated leader's `leader_flags` carry two bits D1 did not
+  read.** run1113's who 2 reads `leader_flags` 19 on block 600 and 34078801
+  (0x2080051) from 601. The low byte is the predicted 81 (`Leader::defeat`'s
+  `& ~2 | 0x40`), and 0x2000000 and 0x80000 are set besides, by
+  `Leader::defeat_by` or `Player::end_game`, whose writes D1 left unread.
+  The 598 dump also reads who 2 at 0x800013 where block 600 reads 19, and
+  run1114 shares every value. Candidate: read `defeat_by@006d1c80` and
+  `end_game` for the two bits when the sim models a defeat. Score: none.
+  One reach.
 
 ## Parked by item 3492, 2026-10-22 — the engine's own save and reload
 

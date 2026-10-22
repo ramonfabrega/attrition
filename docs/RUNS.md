@@ -23411,6 +23411,57 @@ SHA-256 `99b4eef250a4387e9c3058a51010af71de78927a2b3c0313368be1a63d395845`.
 Archive `rontrace-run1110.log`, 34,889,440 bytes,
 SHA-256 `afcd60ef4c6875fda7fbe9855a44fe5ac555b3f980cfc7221afef64734167d2d`.
 
+## run1113 — the team lobby at `cover=1` on the click-free pool, no `ally`: a defeated computer's chair with `reveal 0`, to 640 (2026-10-22, item 3491, `att-3491`)
+
+**What the disk could not answer**: whether `Game::is_tournament@0043ec90` is entered on a drawn frame. Every one of its
+50 call sites needs `semaphore & 0x42` clear and `Player::is_over(console->play)`. No pinned take has had both on a
+drawn frame: run1109 cleared the bit, and the pool's own quit makes the console player `is_over` only on its last
+frame, after which nothing is drawn. Run through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1113
+--map 14 --end-frame 640 --log-window 598 640 --timeout 3600 --profile PLAYERS=2 --no-ffwd --detail
+end:UNITS=3,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cover cover=1 --cursor 1400,1000 --cmd-file
+tools/gamelog/coverage/tournament3491-team.cmd`. The file holds `598 @dumpall`, `600 !eval defeat(3)`, `602 be 2`,
+`604 reveal 0`, `606 @dumpall` and `620 @dumpall`, with no `ally` line.
+- Pool lane 1, seed 12345, `MAP_STYLE 14`, the three PLAYER records of run1086 (who 0 flags 7, tribe 4; who 1 flags 1,
+  tribe 11; who 2 flags 1, tribe 2). Launched 16:13:45, exited 16:27:54: **850 s launch to exit** for 641 drawn frames,
+  with run1114 beside it. The runner's pace line is 8.6 frames/s. `success`, 641 frames, `last_frame` 640, not ended
+  early. DLL `8ae5154f…`. 211 GiB free before. Minutes waited on another lane: none.
+- **6,741 functions entered.** On 600: `ScenarioFuncSet::defeat`, `Leader::defeat`, `Leader::defeat_by`,
+  `Player::lose` and `Game::check_victory`, with no `EndGameWin::exec`. On 602: `ConsoleWin::parse_who`,
+  `ConsoleWin::say_who` and the first `GameLog::say`, which is the accept arm of `run_cmd` case 0x2b (the refusal
+  prints and logs nothing). On 604: `ConsoleWin::parse_binary`, `tell_reveal` and **`Game::is_tournament@0043ec90`**.
+  `CommandManager::issue_quit` on 640 is the pool's quit. `blind::NEVER` 253 → 252.
+- The dump beside it. Who 2's `leader_flags` read 19 on block 600 and **34078801** (0x2080051) from 601 to 640. The low
+  byte is D1's predicted 81 (`& ~2 | 0x40`), and 0x2000000 and 0x80000 are set besides (parked 3491a). The PLAYER
+  record of who 2 reads `flags 1` in the 598 dump and **`flags 129`** in the 606 and 620 dumps, as predicted. Who 0 and
+  who 1 are unchanged apart from who 1's 0x2000000 on 625–631, which run1114 shares. No dumped record differs from the
+  twin.
+- Filed with `filerun.py run1113 greatlakes-team-tournament-cover1-clickfree`.
+
+Archive `gamelog-run1113-greatlakes-team-tournament-cover1-clickfree.txt`, 263,085,382 bytes,
+SHA-256 `5fed8cf856e3aef3650ff6805ffcc7bccb11c2ed7d6de286ec0b88da6bb0b729`.
+
+Archive `rontrace-run1113.log`, 16,231,040 bytes,
+SHA-256 `97c2638932be1f528f822c386f4f80c29b329b846f46fc8eecedf187e9c495fe`.
+
+**What it holds**: `blind::TRACES`' run1113 (item 3491), the first drawn frames with the console on a player
+`is_over` and the start reveal cleared.
+
+## run1114 — run1113's `cover=0` twin (2026-10-22, item 3491, `att-3491`)
+
+The same command file and arguments at `--cover cover=0`, on pool lane 2 (`~/wine-ron-2`). Launched 16:13:45, exited
+16:27:52 (847 s). `success`, 641 frames, `last_frame` 640, the same three PLAYER records. Both takes send every line,
+so no input is unshared and there is no `--from`.
+- `rngcmp.py` on the traces: **641 in common, 0 differing, 641 identical**.
+- `samegame.py` bare: 42 in common (598..639), **6 differing**: the three `@dumpall` blocks and the block after each.
+  With run1077's `--exclude MESSAGEWIN --exclude COMMANDMANAGER` and its six wall-clock `--drop`s: **42 in common, 0
+  differing**. The excluded records are unchecked, not checked and found equal.
+- Filed with `filerun.py run1114 greatlakes-team-tournament-cover0`.
+
+Archive `gamelog-run1114-greatlakes-team-tournament-cover0.txt`, 263,085,383 bytes,
+SHA-256 `895135529fc48a8efc44a4592d6042cf48dc84dfa627216c827bde6b007eed78`.
+
+Archive `rontrace-run1114.log`, 15,113,376 bytes,
+SHA-256 `b1836e13656688246d16c5957639d6d12b73627f90618196ae83cd5924bde6cb`.
 ## run1103 — the golden start with the console mirror off (`--console-log 0`), the dump clock on, 600–605 (2026-10-22, item 3484, `att-3484`)
 
 **What the disk could not answer**: whether `AllowLogs_ToConsole=0` leaves the dump and the draw stream as they are
@@ -23583,7 +23634,7 @@ SHA-256 `bfd2fab28d5c2465f2700fdb10ca905dfcea0596cf18c82dae04b25dafb5d7b0`.
 Archive `rontrace-run1115.log`, 11,821,664 bytes,
 SHA-256 `d6383558bd92e1c4fc3f68e3b7e891723f113123539bebe5747d5cf0c6ded475`.
 
-**What it holds**: `blind::TRACES`' run1115 (item 3492), `NEVER` 253 → 251.
+**What it holds**: `blind::TRACES`' run1115 (item 3492), `NEVER` 253 → 251 (252 → 250 on the tree merged with item 3491's run1113).
 
 ## run1116 — run1115's `cover=0` twin (2026-10-22, item 3492, `att-3492`)
 
