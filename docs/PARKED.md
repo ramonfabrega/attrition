@@ -9651,13 +9651,29 @@ non-Sun object first. Score: `Blind:` open 71 → 69, residue 183 → 185. One r
 next lane that drives a debug window, not a score: the pulldown's rows are 18 px apart, starting 16 px below its
 combo. It parks rather than queues.
 
-## Parked by the next landing, slot NU — reserved
+## Parked by item 3480, 2026-10-22 — a diagonal terrain transition
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3480a) **`TerrainOut::check_for_diagonal` is entered on none of five styles.** The styles are 7, 14 and 18 on
+disk, and 21 Nile Delta (run1098) and 8 Amazon Rainforest (run1099), each `cover=1` from frame −1. The `int` overload
+`WorldData::is_valid@00471170` is not entered either. The predicate, read from the decompile:
+`create_transition_renderables@00862c60.c:85-95` walks the cell list at `+0x6700` (count `+0x6708`). It builds three
+12-bit edge words with `build_trans_flags@00864160` at shifts 6, 3 and 0: 3-bit fields out of the edge arrays `+0x499c`
+and `+0x49a0`. It runs `check_blocks`, `check_connects` and `check_fills` (`check_fills@0085b2c0` clears a bit for each
+neighbour on a different land type), and calls `check_for_diagonal` only when the shift-6 word is still 0. The listing
+shows that test as an integer `testl`/`jne` at 0x862d9a. So the arm needs a listed cell with no shift-6 edge left: a
+corner-only contact. What puts a cell on `+0x6700` is not read (`mark_trans_flags@008625a0` is the candidate).
+Candidates: a packet at frame 0 (`RON_STATE_FRAME=0`) that counts such cells offline from the two edge arrays and the
+list, which names a style before any take; or one `--map N --end-frame 36` take for each style left (6, 10, 11, 12, 13,
+15, 16, 17, 19, 20, 22; ~50 s each, plus a twin for whichever one enters). Score: `Blind:` open 73 → 72 and `NEVER`
+255 → 254 when entered (`is_valid@00471170` is the row; `check_for_diagonal` is not in `NEVER`). One reach.
+
+(3480b) **A mid-game `!mapgen` faults on the click-free channel** (run1097): the fault is native, inside the first
+`mapgen`'s own `parse_cmd`, issued from the tracer's `do_frame` head hook. The fault record names 0x657093, inside
+`ObjectsOut::sort_trees@00656c70`. There is no `I_CMD` for the line and no dump. `run_cmd` case 0x5b also ends in
+`TurnControl::set_pause(1)` (`run_cmd@007d6a70.c:4354`), so a line keyed on a frame cannot unpause it, and a bare
+`mapgen` seeds from `timeGetTime()` (`:4292`). Any later item that wants a regenerated map takes `--map N` at launch.
+Issuing `mapgen` from `Game::loop` (an `@after` console verb, which the tracer lacks) is untried. Names no score: a
+staging note for the loop.
 
 ## Parked by the next landing, slot NV — reserved
 
