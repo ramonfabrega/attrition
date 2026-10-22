@@ -3857,6 +3857,14 @@ paused `cover=0` trace keeps growing, so a quiet trace is no signal; the gamelog
 carries the output directory with backslashes. Candidate: it graduates into `tools/explore/` (the third reach is the rule's).
 Score: a take that needs a screen point spends no recon on the shooter. One reach.
 
+(3473) **The console's `!eval` reaches the script host's whole table, so five `RESIDUE` rows stand on a wrong reason** (the
+commander's drafting subagent, on `f13107352`): `Compiler::eval_command@009befe0` runs one BHS expression against every
+registered function set, and `ScenarioFuncSet`/`MathUtilFuncSet` are registered in every skirmish (`init_funcs` entered on
+frame −1 by run1077). AI §296 proposed `enable_production_ai`, `disable_combat_ai`, `disable_all_unit_ai`, `disable_unit_ai`
+and `disable_city_ai` as "called only by scenario scripts"; a `!eval disable_city_ai(2)` would enter one. Candidate: the pass
+restates those rows on "cut from v1" alone, or strikes them for a coverage line. Score: `Blind:` residue a claim a capture
+cannot break. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
@@ -9580,3 +9588,51 @@ no move and its `orders_x/y` did not change. `Group::action_halt`'s `close_order
 `HaltCommand` row) is unread on a dump. Staging: run1080's lines with `606 @move 0 7680 8448 15`; the value is the
 squad's U3 `orders_x/y` before and after 621. Score: none named (`action_halt` is entered); a value row for ORDERS'
 halt. One reach.
+
+## Parked by the next landing, slot NO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
