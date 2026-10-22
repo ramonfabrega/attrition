@@ -12252,7 +12252,13 @@ holds a unit the other does not (7485).
     agreed (`+0x692c = 1`, `:207`); a good whose stock falls short of
     tribute plus price stops it before any write (`:119`). It first
     zeroes `tribute_demanded` (`+0x334`) and `+0x314` for `other` on
-    every call (`:60`–`:61`).
+    every call (`:60`–`:61`). **Run** (item 3470, run1086): entered on
+    661 from a food taunt to a computer ally (`process_taunt` case 1,
+    `action_offer(0, FOOD, stock/3)`, `action_respond(0, 1)`); the
+    ally's food `bucket` falls 100009 → 66673 and the human's rises
+    258 → 17260, while every `tributes` and `escrow` slot of both reads
+    0 on 658 and 661 — so the stock moved by a path whose `+0x498` add
+    the dump does not show (parked 3470a).
   *Falsifier*: `LEADERS=9`'s `escrow` and `tributes` on the frame a
   human accepts a tribute treaty or declares war from peace — the
   stock and the escrow fall by the same priced amount; on an AI's own
@@ -25392,7 +25398,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | 8 | `GreatSaharaDutchTier3` (§285) | `UNITS=3` the drafted merchant's `orders_x/y` | ~~`go_to_city`~~ (309, the merchant `1/1` drafted on block 310; run1024, item 3423) | click-free |
 | 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | ~~`current_age`~~ (entered on frame 0, run1016, §297); ~~(9b) `say_no_war`~~ (1392, run1072, item 3453: the console's Hoplites in the Lakota's land, leader 0's `attrition_stamp` 0 → 1392) | click-free |
 | 10 | ~~any lobby in which a leader's highest wonder closes~~ chapter seven's, by console (run1074, item 3454, §75.3) | `LEADERS=9` `wonder_mark` on the close | ~~`close_wonder`~~ (660) | click-free |
-| 11 | a human and two computers, no teams (none on disk; run1077, item 3456, is a human and two computers with `ally 1` and starts on the pool with `--profile PLAYERS=2`) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6): **not entered by run1077** to 5710; on 5703 every leader's `offers` and `counteroffer` are 0, `agree` 0, `treaty` −1 (no offer was made) | click-free, *a prediction* |
+| 11 | a human and two computers, no teams (none on disk; run1077, item 3456, is a human and two computers with `ally 1` and starts on the pool with `--profile PLAYERS=2`) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6): **entered by run1086** (item 3470) on 661, from a human's food taunt to the ally (`process_taunt` case 1, queued 60 frames by `receive_taunt`), not from an offer between computers; who 1's food `bucket` 100009 → 66673 (a third), the human's 258 → 17260; `tributes`, `escrow`, `offers`, `agree` all 0 on 658 and 661 | click-free, run (the taunt's caller; the computer-to-computer offer is still a prediction) |
 | 12 | the coverage pair's lobby with `--profile TEAM_STYLE=0` (run1078, item 3460; twin run1079): leaders at peace from the start | `LEADERS=9` on block 912: `diplos[1]` 1 → 0, `dow[1]` 0 → 1, the third good's `bucket` 120134 → 119494 (−640), `escrow` 0 → 0 (the floor); `CM process_declare 1 0 911` | ~~`pay_dow`, `action_declare`'s pay arm~~ (910, a human's declaration of war through the diplomacy window; the alliance cancel arm not taken) | click-free |
 
 **The disk scan** (every dump in the archive, 578 that print a leader): `nukes_in_flight` is 0 in all of them, so

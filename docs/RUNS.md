@@ -22891,7 +22891,7 @@ SHA-256 `d3271f20710be8dd4ae0b8d9fa7910aec61bf853337d4eed8f7a2daaa9d4d54b`.
 Archive `rontrace-run1088.log`, 16,442,880 bytes,
 SHA-256 `4e201e4b3dd68925fc40f7b484eadb23fdace23e5f3df820b0f2a8fe5bb2f667`.
 
-**What it holds**: `blind::TRACES`' run1088 (item 3471), `NEVER` 278 → 274.
+**What it holds**: `blind::TRACES`' run1088 (item 3471), `NEVER` 278 → 274 (277 → 273 on the tree merged with 3470's run1086).
 
 ## run1089 — run1088's `cover=0` twin (2026-10-22, item 3471, `att-3471`)
 
@@ -22905,3 +22905,63 @@ SHA-256 `b8492f6d8ca185ef7d637fce3a1107c6c3ea171174d65711b9d5f378597a0888`.
 
 Archive `rontrace-run1089.log`, 16,253,312 bytes,
 SHA-256 `b5dcb54e99ab4314d7577c8f5d9e1eb3dd05aabad34f1af5c4480c5d00fb7354`.
+## run1086 — the team lobby at `cover=1` on the click-free pool: a food and a timber taunt to the computer ally, to 700 (2026-10-22, item 3470, `att-3470`)
+
+**What the disk could not answer**: no trace enters `Leader::action_respond@006d03c0` (AI §296 row 11, §98.6). run1077
+sent only a help taunt, and its computers made no offer by 5710 (parked 3456b). No capture on disk sends a resource
+taunt. `Leader::process_taunt@006b8cc0` case 1 offers `stock/3` only when the ally's food is over 0x95, and who 1's
+food read 19 on run1077's 5412. The take is run1077's lobby without its minute-six fast-forward
+(`tools/gamelog/coverage/taunt3470-team.cmd`): `100 ally 1`, `100 resource who=1 all +100000`, then on 600 F14
+(OPTION_CHAT_ALLIES), "4" (`NEED_FOOD`) and Return. On 620 the same with "5" (`NEED_TIMBER`). `@dumpall` runs on 658,
+661, 670, 678, 681 and 690. Run through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1086 --map 14
+--end-frame 700 --log-window 655 700 --timeout 3600 --profile PLAYERS=2 --bindkey OPTION_CHAT_ALLIES=125 --detail
+end:UNITS=3,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cover cover=1 --cmd-file
+tools/gamelog/coverage/taunt3470-team.cmd`.
+- **A first take ended on 640**, with `@dumpall` on 598–630. It is kept as `~/ron-golden/run1086-to640`, unfiled, with
+  its twin `run1087-to640`. It entered `Leader::receive_taunt@006b8bf0` on 600 and never `process_taunt`.
+  `receive_taunt` queues every taunt but TAUNT_HELP for `frame + 0x3c`, and `Leader::process_taunts` runs a queued
+  taunt only on that exact frame. run1077's help taunt is queued for its own frame, which is why it was processed the
+  next block. The staging above is the retake.
+- Pool lane 1 (`~/wine-ron`), seed 12345, `MAP_STYLE 14`. PLAYER records: who 0 (flags 7, tribe 4), who 1 (flags 1,
+  tribe 11) and who 2 (flags 1, tribe 2). Launched 09:24:09, exited 09:39:19: **910 s launch to exit** for 701
+  frames, with three pool takes running at once. The runner's pace line is 11.0 frames/s. `success`, 701 frames,
+  `last_frame` 700, not ended early. DLL `04627351…`. 193 GiB free before. Minutes waited on another lane: none.
+- **6,825 functions entered.** On 600: `LeaderOut::issue_chat`, `Taunts::check_for_order`,
+  `CommandPackage::process_chat`, `Leader::receive_chat` and `Leader::receive_taunt`. On 661: `Leader::process_taunt`,
+  `LeaderData::is_neutral`, `Leader::action_clear_all`, `Leader::action_offer`, `Leader::action_respond`,
+  `Leader::consider_tribute`, `Leader::clear_agree` and `Leader::chat_to_local`. The `NEVER` row is `action_respond`.
+  Both leaders' `type_avail(FOOD)` was 4, since the offer is made only past both tests. Timber passed both too, on 681.
+- The dump beside it. On 661 who 1 holds `last_taunt[0]` 1, `taunt_frame[0]` 661 and `gift_stamp[0]` 661. Its food
+  `bucket` falls 100009 → 66673, a third (the `stock/3` offer), and the human's rises 258 → 17260. On 681 who 1 holds
+  `last_taunt[0]` 2, `taunt_frame[0]` 681 and `gift_stamp[0]` 681. Its timber falls 100003 → 66669 and the human's
+  rises 245 → 17246. The second taunt came 20 frames after the first and was not refused. Every `tributes`, `escrow`,
+  `offers` and `counteroffer` slot of leaders 0 and 1 reads 0 on 658, 661, 678 and 681, with `agree` and `any_offer`
+  0 and `treaty` −1. Leader 0's `agendas[1]` reads 4 from 661. Parked 3470a.
+- Filed with `filerun.py run1086 greatlakes-team-taunt-cover1-clickfree`.
+
+Archive `gamelog-run1086-greatlakes-team-taunt-cover1-clickfree.txt`, 450,844,941 bytes,
+SHA-256 `e0a3d46ebf495f26648c4a0253a59d926cbd75eaa5863995e8e706a27ed54040`.
+
+Archive `rontrace-run1086.log`, 10,442,944 bytes,
+SHA-256 `d992759ddf943e7bcf0d43a31a8137977ea071547bb815a17cfe9438157b2a20`.
+
+**What it holds**: `blind::TRACES`' run1086 (item 3470), `NEVER` 278 → 277 on the tree merged with item 3463's run1082: a computer ally's gift on a human's
+resource taunt, food and then timber, through `action_offer` and `action_respond`.
+
+## run1087 — run1086's `cover=0` twin (2026-10-22, item 3470, `att-3470`)
+
+The same command file and arguments at `--cover cover=0`, on pool lane 2 (`~/wine-ron-2`). Launched 09:24:08, exited
+09:39:28 (920 s). `success`, 701 frames, `last_frame` 700, the same three PLAYER records.
+- `rngcmp.py` on the traces: **701 in common, 0 differing, 701 identical**.
+- `samegame.py` bare: 45 in common (655..699), **12 differing**: the six `@dumpall` blocks and the block after each,
+  as run1077's. With `--exclude MESSAGEWIN --exclude COMMANDMANAGER --drop turn_control --drop frame_timing_clock
+  --drop frame_base_time --drop frame_average --drop last_frame_time --drop expected_last_frame_time`: **45 in common,
+  0 differing**. Both takes send every input, so no input is unshared and there is no `--from`. The excluded records
+  are unchecked, not checked and found equal.
+- Filed with `filerun.py run1087 greatlakes-team-taunt-cover0`.
+
+Archive `gamelog-run1087-greatlakes-team-taunt-cover0.txt`, 450,844,972 bytes,
+SHA-256 `61f309a42f1ffc04a3bf4658b715e5099fd3bd7cee2f83d9a99d1d7231395ca4`.
+
+Archive `rontrace-run1087.log`, 10,552,160 bytes,
+SHA-256 `f951d70f4b6a162d360f0fc410a732c00e0a35b380a2165c2bac119810073c58`.

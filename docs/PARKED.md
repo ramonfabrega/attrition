@@ -3874,6 +3874,11 @@ counts headings, not unassigned ones, so it passed the booking that assigned the
 the slots the queue's `park <A>` words assign, so a booking that leaves fewer than two free is the red one. Score: no lane
 gate spent on the commander's pool. One reach.
 
+(3475) **A taunt's effect lands sixty frames after the taunt** (3470's "for the Loop"): `receive_taunt` queues every taunt
+but HELP for 0x3c frames, so run1086's first take, which ended 20 frames short, missed `action_respond`. Candidate: a brief
+that books a taunt's effect sets its end frame at the taunt's frame plus 0x3c and names the queue — a row of the coverage
+frame. Score: a taunt take that enters on its first try. One reach.
+
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
 (3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
@@ -9610,13 +9615,21 @@ no move and its `orders_x/y` did not change. `Group::action_halt`'s `close_order
 squad's U3 `orders_x/y` before and after 621. Score: none named (`action_halt` is entered); a value row for ORDERS'
 halt. One reach.
 
-## Parked by the next landing, slot NO — reserved
+## Parked by item 3470, 2026-10-22 — a resource taunt to a computer ally
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3470a. The ally's gift moved its stock, and no dumped `tributes` or `escrow` moved.** run1086 (item 3470):
+  `Leader::process_taunt@006b8cc0` case 1 → `action_offer` → `Leader::action_respond@006d03c0` on 661, and again
+  for timber (case 2) on 681. Who 1's food `bucket` goes 100009 → 66673 on 661 (−33336, a third), and its timber
+  100003 → 66669 on 681. The human's food goes 258 → 17260 and timber 245 → 17246, about +17001 each, half of what
+  left the ally. Every `tributes`, `escrow`, `offers` and `counteroffer` slot of leaders 0 and 1 reads 0, `agree` and
+  `any_offer` 0 and `treaty` −1, on 658, 661, 678 and 681. AI §98.6 reads `action_respond:171`/`:201` as adding the
+  tribute to `tributes` (+0x498), so either the stock moved by another arm or something clears the field before the
+  end-frame dump. Separately, `gift_stamp[0]` (who 1) reads 661, then 681. The second taunt came 20 frames after the
+  first, so `:81-85`'s 4500-frame refusal was skipped. That means `teams_locked ≠ 0` and `is_neutral` was 0 (it was
+  entered), so `:90` did not write the stamp. `Leader::consider_tribute@006d1360:12`, entered on 661, writes
+  `leaders[param_1].gift_stamp[this->who]` and is the reading's candidate. The cheap check is a packet at
+  `RON_STATE_FRAME=660` with `step4.py` on who 1's `Leader::process` and the writes to +0x498, +0x468, +0x194 and
+  the stocks watched. Names no score (`action_respond` is off `NEVER`); a value row for AI §98.6's escrow falsifier.
 
 ## Parked by item 3471, 2026-10-22 — the console's `eval` and `netcmd`
 
