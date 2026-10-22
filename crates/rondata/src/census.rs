@@ -309,6 +309,12 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 pub const RUBRIC_UNIT_TYPES_SEEN: usize = 70;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
+// The rubric's parts are counts of their totals (checked at compile time).
+const _: () = assert!(
+    RUBRIC_AGES_HELD <= 8
+        && RUBRIC_GROUPS_FULL <= RUBRIC_GROUPS
+        && RUBRIC_UNIT_TYPES_SEEN <= RUBRIC_UNIT_TYPES
+);
 
 #[cfg(test)]
 mod tests {

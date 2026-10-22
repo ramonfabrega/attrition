@@ -336,12 +336,6 @@ mod tests {
             crate::census::RUBRIC_UNIT_TYPES_SEEN,
             crate::census::RUBRIC_UNIT_TYPES
         );
-        assert!(
-            crate::census::RUBRIC_AGES_HELD <= 8
-                && crate::census::RUBRIC_GROUPS_FULL <= crate::census::RUBRIC_GROUPS
-                && crate::census::RUBRIC_UNIT_TYPES_SEEN <= crate::census::RUBRIC_UNIT_TYPES,
-            "the rubric's parts are counts of their totals"
-        );
         let line = q.lines().find(|l| l.starts_with("Rubric:"));
         assert_eq!(
             line.map(str::trim_end),
