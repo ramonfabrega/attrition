@@ -23462,3 +23462,132 @@ SHA-256 `895135529fc48a8efc44a4592d6042cf48dc84dfa627216c827bde6b007eed78`.
 
 Archive `rontrace-run1114.log`, 15,113,376 bytes,
 SHA-256 `b1836e13656688246d16c5957639d6d12b73627f90618196ae83cd5924bde6cb`.
+## run1103 — the golden start with the console mirror off (`--console-log 0`), the dump clock on, 600–605 (2026-10-22, item 3484, `att-3484`)
+
+**What the disk could not answer**: whether `AllowLogs_ToConsole=0` leaves the dump and the draw stream as they are
+outside the golden start's first 40 frames (run1101j/k), and what a dumped frame costs with it off. The pref is read
+once, in `Log::init@00a3baa0`. Launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1103
+--map 14 --end-frame 606 --log-window 600 605 --timeout 3600 --detail end:UNITS=3,LEADERS=9 --cursor 1400,1000
+--cmd-file tools/gamelog/coverage/dumptime3483.cmd --cover cover=1 --dumptime 1 --console-log 0`.
+- Pool lane 2. Launched 16:00:38, exited 16:00:52: **13.6 s launch to exit**. The first take exited 9 before frame 0
+  with an empty gamelog, and the runner retook it 3.3 s in (`first_take_exit_code` 9). `success`, 607 frames,
+  `last_frame` 606, seed 12345. DLL `bcbd7e2a…`. 211 GiB free before. Minutes waited on another lane: none.
+- **A dumped frame is 0.064 s** (frames 599–603, 1.531 MB each, `dumptime.py`). `OutputDebugStringW` is called 0
+  times and `String::printf` 0 times. `__stdio_common_vfwprintf` takes 0.040 s and `fputwc` 0.007 s, which is 75 % of
+  the frame. `Log::say` takes 0.006 s, `WriteFile` 0.003 s and the walkers 0.002 s.
+- Twin run1104 (below).
+- Filed with `filerun.py run1103 golden-console-log0-window-600-605`. Not pinned (the item's word).
+
+Archive `gamelog-run1103-golden-console-log0-window-600-605.txt`, 7,658,822 bytes,
+SHA-256 `e03c10911222c6c5f445280d0682a005f398bc2d61c4b38db4ab7ce3825b441e`.
+
+Archive `rontrace-run1103.log`, 9,750,784 bytes,
+SHA-256 `a8b4cc438d7445747a16024918c5280abe89002417ed7deccd82396602d13d05`.
+
+## run1104 — run1103's twin at the default mirror (2026-10-22, item 3484, `att-3484`)
+
+run1103's line without `--console-log`, so `rise.ini` carries no `AllowLogs_ToConsole` (default 1). Pool lane 1.
+Launched 16:00:35, exited 16:01:08: **32.5 s launch to exit**. `success`, 607 frames, seed 12345, the same DLL.
+- **A dumped frame is 2.707 s**, of which `OutputDebugStringW` takes 2.584 s. `String::printf` (the mirror's
+  formatting) takes 0.012 s, `vfwprintf` 0.054 s and `fputwc` 0.013 s.
+- **`cmp` against run1103**: the first differing byte is char 100, on line 3, in the header. Four header lines differ:
+  the two `SYNCPOINT` load timings, `Sys Memory` and `CPU speed` (999 against 1000). **From the first ` BEGIN FRAME`
+  the files are 7,656,541 bytes each and identical** (five blocks each).
+- `rngcmp.py` run1103 against run1104: **607 in common, 0 differing, 607 identical**. `samegame.py`: **5 in common
+  (600..604), 0 differ**. run1103 against the unhooked run1084: **607 in common, 0 differing, 607 identical**.
+- Filed with `filerun.py run1104 golden-console-log1-window-600-605`.
+
+Archive `gamelog-run1104-golden-console-log1-window-600-605.txt`, 7,658,825 bytes,
+SHA-256 `84f52286ca415092f9fa5b8c94d11a588e2aa966ae01fbd54e4146c2462a8b54`.
+
+Archive `rontrace-run1104.log`, 9,789,408 bytes,
+SHA-256 `8cc36bf94db40b1983efaef1d6e09bdc723d2b0c02aaa8d10206609e88d01566`.
+
+## run1105 — the coverage pair's lobby with the console mirror off, 606–611 (2026-10-22, item 3484, `att-3484`)
+
+**What the disk could not answer**: the same question as run1103, in run1088's lobby (map 18, Persian against Inca,
+All Technologies, AI on), with a console `game_random` draw in the window. Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1105 --map 18 --end-frame 612 --timeout 2400 --ai-tribe 23 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --log-window 606 611 --detail
+end:MISC,UNITS=3,LEADERS=9 --detail misc:COMMANDMANAGER=2 --cursor 1400,1000 --cmd-file
+tools/gamelog/coverage/console3484-pair.cmd --cover cover=1 --dumptime 1 --console-log 0`. The command file is
+eval3471.cmd's lines up to 610: `600 add aircraft_carrier`, `602 add hoplite` and `610 !eval rand_real()`.
+- Pool lane 1. Launched 16:02:57, exited 16:03:22: **25.2 s launch to exit**. `success`, 613 frames, `last_frame`
+  612, seed 12345, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 23). DLL `6327b0d3…`.
+- **A dumped frame is 0.085 s** (frames 605–609, 1.664 MB each). `OutputDebugStringW` is called 0 times.
+  `vfwprintf` and `fputwc` take 0.058 s, which is 68 % of the frame.
+- **Eleven frames outside the window take about 0.9 s each** (0, 5, 12, 31, then every 32 frames from 335 to 591).
+  The rest of this take's frames add up to 13.69 s, against 4.83 s for run1106. That is lane 1, not the pref: see
+  run1105b below.
+- Filed with `filerun.py run1105 eastindies-persian-alltech-console-log0-window-606-611`.
+
+Archive `gamelog-run1105-eastindies-persian-alltech-console-log0-window-606-611.txt`, 8,327,593 bytes,
+SHA-256 `c48031960de6b51dfd5331e7487bad1488ae2aacdf9eafba4b898896340e1bf6`.
+
+Archive `rontrace-run1105.log`, 13,477,664 bytes,
+SHA-256 `98014a7d3d0157fe778ae4e246e6bda3305275e95e55360c7601414b84f67739`.
+
+## run1106 — run1105's twin at the default mirror (2026-10-22, item 3484, `att-3484`)
+
+run1105's line without `--console-log`. Pool lane 2. Launched 16:02:57, exited 16:03:26: **29.7 s launch to exit**.
+`success`, 613 frames, seed 12345, the same two PLAYER records and the same DLL.
+- **A dumped frame is 2.811 s**, of which `OutputDebugStringW` takes 2.681 s.
+- **`cmp` against run1105**: the first differing byte is char 99, on line 3. Two header lines differ: the two
+  `SYNCPOINT` timings (`Sys Memory` 15695874 on both). **From the first ` BEGIN FRAME` the files are 8,325,317
+  bytes each and identical** (81 blocks each).
+- `rngcmp.py` run1105 against run1106: **613 in common, 0 differing, 613 identical**. `samegame.py`: **81 in common
+  (1..610), 0 differ**. run1105 against run1088: **613 in common, 0 differing, 613 identical**, so the cursor pin
+  and the shorter command file move no draw up to 612.
+- **The scratch pair run1105b/run1106b** (`~/ron-golden`, not filed) is the same two lines launched the other way
+  round, so that the mirror-off take lands on lane 2. run1105b (lane 2, `--console-log 0`) takes 14.9 s. A dumped
+  frame is 0.072 s, the rest adds up to 4.88 s, and no frame after 0 is slow. run1106b (lane 1, default) takes
+  34.1 s, and its 0.9 s frames fall on 223, 255, 351, 383 and 415. rngcmp run1105b against run1105: 613 identical.
+  So the 32-frame stall goes with lane 1 (parked 3484b).
+- Filed with `filerun.py run1106 eastindies-persian-alltech-console-log1-window-606-611`.
+
+Archive `gamelog-run1106-eastindies-persian-alltech-console-log1-window-606-611.txt`, 8,327,593 bytes,
+SHA-256 `ddf0a6b1b4c4562ea1284d015e4b83496352daab7e9af53222979783c527d24a`.
+
+Archive `rontrace-run1106.log`, 13,295,456 bytes,
+SHA-256 `839ea8753524bb85d8031df401e2d17bb1c071576a465c25e2c71231e9010716`.
+
+## run1107 — the team lobby with the console mirror off, 5405–5411 (2026-10-22, item 3484, `att-3484`)
+
+**What the disk could not answer**: the same question in run1090's three-player lobby (Great Lakes, map 14,
+`--profile PLAYERS=2`, fast-forwarded to minute 6). Launched through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1107 --map 14 --end-frame 5412 --log-window 5405 5411 --timeout 3600 --ffwd-minute 6 --profile
+PLAYERS=2 --detail end:UNITS=3,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cursor 1400,1000 --cmd-file
+tools/gamelog/coverage/console3484-team.cmd --cover cover=1 --dumptime 1 --console-log 0`. The command file is
+herd3472-team.cmd's `100 ally 1`, `5404 explore all` and `5406 camera 186,190`, without the click or the `@dumpall`s.
+- Pool lane 1. Launched 16:03:52, exited 16:05:01: **69.6 s launch to exit**. `success`, 5413 frames, `last_frame`
+  5412, seed 12345, PLAYER records who 0 (flags 7, tribe 4), who 1 (flags 1, tribe 11) and who 2 (flags 1, tribe 2).
+  DLL `ff70197f…`.
+- **A dumped frame is 0.091 s** (frames 5404–5409, 1.981 MB each). `vfwprintf` and `fputwc` take 0.060 s, which is
+  66 % of the frame.
+- **Lane 1's 0.9 s frames are on every 32nd frame from 239 into the 1200s**, 37 in all, and the rest adds up to
+  54.17 s against run1108's 24.63 s. This is why the take ran longer than its twin (parked 3484b).
+- Filed with `filerun.py run1107 greatlakes-team-console-log0-window-5405-5411`.
+
+Archive `gamelog-run1107-greatlakes-team-console-log0-window-5405-5411.txt`, 11,890,469 bytes,
+SHA-256 `e2316b927890a14b9c8222dc7af1de3103cb575a227e4e8361cd6e40c39a7b27`.
+
+Archive `rontrace-run1107.log`, 37,223,552 bytes,
+SHA-256 `28c2e943fec68358bde96f9ed2cbe752a2b8ad8dd91a17cf5feaa6176f5a549b`.
+
+## run1108 — run1107's twin at the default mirror (2026-10-22, item 3484, `att-3484`)
+
+run1107's line without `--console-log`. Pool lane 2. Launched 16:03:52, exited 16:04:45: **53.8 s launch to exit**.
+`success`, 5413 frames, seed 12345, the same three PLAYER records and the same DLL.
+- **A dumped frame is 3.344 s**, of which `OutputDebugStringW` takes 3.178 s.
+- **`cmp` against run1107**: the first differing byte is char 99, on line 3. Three header lines differ: the two
+  `SYNCPOINT` timings and `Sys Memory`. **From the first ` BEGIN FRAME` the files are 11,887,749 bytes each and
+  identical** (six blocks each).
+- `rngcmp.py` run1107 against run1108: **5413 in common, 0 differing, 5413 identical**. `samegame.py`: **6 in common
+  (5405..5410), 0 differ**. run1107 against run1090: **5413 in common, 0 differing, 5413 identical**.
+- Filed with `filerun.py run1108 greatlakes-team-console-log1-window-5405-5411`.
+
+Archive `gamelog-run1108-greatlakes-team-console-log1-window-5405-5411.txt`, 11,890,471 bytes,
+SHA-256 `a0813876fdf711abd9100b70262a6f27f05c14ed9ba7d610deb5d80683dd0507`.
+
+Archive `rontrace-run1108.log`, 37,372,704 bytes,
+SHA-256 `86c16b1dcb23e08d7cec868f8eae8deb787847a015f4803b3cea9c684fd15880`.

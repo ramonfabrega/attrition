@@ -3774,6 +3774,15 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3496) **The console mirror's flip is measured safe for the pool's default** (3484's "for the Loop"; DECISIONS 89's amendment,
+3483a, 3484a): on three lobbies (run1103/1104 the golden start, 1105/1106 the coverage pair, 1107/1108 the team lobby)
+`--console-log 0` leaves `gamelog.txt` byte-identical after its header (lines 1–3: SYNCPOINT timings, memory, CPU speed) and the
+draw stream identical, nothing in `tools/` reads the mirror (`WINEDEBUG=-all` already discarded it), and a dumped frame goes from
+2.7–3.3 s to 0.06–0.09 s. With the mirror off, the CRT formatting is 66–75 % of what is left, about 0.05 s (3484a): the
+byte-identical writer is not worth an item. Candidate: the pool runner's default becomes `--console-log 0`, with its test, and the
+cursor pin with it — 3477, 3478 and 3484's three lobbies are clean takes against their twins, past Loop 3432's three. Score: the
+pool's frames a second and the capture class's minutes. One reach: the pass's, per the amendment.
+
 (3490) **`CLAUDE.md`'s wait bullet still names the queue lane** (3485's "for the Loop"): Conventions, "it keys on the runner's own
 banner and exit on the queue lane and on the receipt lines on the click-free lane"; 3485's replacement: "it keys on the receipt lines the
 click-free runner prints and on a capture script's `=== captured: ` line". `CLAUDE.md` is the main thread's (a lane's edit is refused).
@@ -9747,13 +9756,22 @@ the archive's twins. Score: none named until a booked row is found behind the ga
   run1101d's untimed frames (2.388–2.405 s) sit within 0.005 s of its timed ones (2.393–2.409 s). The calibration
   puts one timed call at 21–26 ns, about 0.01 s across a dumped frame's ~440,000 stubbed calls. Nothing books.
 
-## Parked by the next landing, slot NX — reserved
+## Parked by item 3484, 2026-10-22 — the console mirror off, byte-identical on three lobbies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3484a — with the mirror off, the formatting is two thirds of a dumped frame, but only 0.05 s.** run1103, run1105
+  and run1107 (`--console-log 0`, `dumptime.py`): a dumped frame is 0.064, 0.085 and 0.091 s. `__stdio_common_vfwprintf`
+  plus `fputwc` is 0.047, 0.058 and 0.060 s of that (75, 68 and 66 %). `String::printf` is called 0 times, because it
+  only fed the mirror. So the booking's condition for building the byte-identical writer (more than a fifth of the
+  frame still in the formatting) is met as a share. As seconds, the writer's ceiling is about 0.05 s a dumped frame,
+  or 5 s across a hundred-frame window, against the 2.6–3.2 s a frame the flip already took off. Whether that earns
+  3483a's sequel is the steer's call. Nothing is built. Killed by: a window whose dumped frames, mirror off, are
+  dominated by something other than the CRT's two imports.
+- **3484b — pool lane 1 stalls about 0.9 s every 32 frames in an AI-on lobby; the pref does not.** run1105 (lane 1)
+  has eleven such frames from 335 to 591, run1107 (lane 1) has 37 from 239 into the 1200s, and the scratch run1106b
+  (lane 1, default mirror) has them on 223–415. run1106, run1108 and run1105b (lane 2, either pref) have none after
+  frame 0. Neither golden-start take has them (AI off). The stall costs a lane-1 take 9–30 s: run1107 took 69.6 s
+  against run1108's 53.8 s. The cause is not read. `dumptime.py`'s `rest` column holds it, so it is outside the
+  gamelog's writers. Names no score. Killed by: a lane-2 take with the same 32-frame stall.
 
 ## Parked by item 3485, 2026-10-22 — the queue lane retired
 

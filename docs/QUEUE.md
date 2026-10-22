@@ -18,11 +18,11 @@ blind list scanned and ratified 192 → 91; the fifty-first booked against what 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
   `NEVER` 273 → 253, residue 182, open 91 → 71** (3477's `!eval`, eighteen rows; 3479 `Nuke`; 3481 the herd; 3478, 3480 none).
 - **Amended with Ramon** (DECISIONS 89): the queue lane retired (3485; 1570 closed — a need for it again is a steer); after this tranche the
-  headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); the console mirror's flip is 3484.
+  headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); 3484 measured the mirror's flip safe (Loop 3496).
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
-- **Lanes: two live** (3484, 3491); four booked (3492–3495, drafted in `t51/draft-items-52.md`). Next 3496, run 1133. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
-  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3485a–b.
-- **Fable backlog: 17 Loop items** (3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
+- **Lanes: two live** (3491, 3492); three booked (3493–3495, drafted in `t51/draft-items-52.md`). Next 3497, run 1133. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
+  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b.
+- **Fable backlog: 18 Loop items** (3496, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -40,8 +40,8 @@ Blind: never 253 · residue 182 · open 71
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3484 and 3491 live on the two Opus lanes
-(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order (3492–3495), then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
+**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3491 and 3492 live on the two Opus lanes
+(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order (3493–3495), then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
 
@@ -50,15 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool** — a click an `@click` lin
 `!`-prefixed (3471), a screen point off `poolshot.py` — checked against its `cover=0` twin (`rngcmp.py`; `samegame.py --from`), pinned
 into `blind::TRACES`; a function not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the
 commander's drafting subagent on `t51/draft-items-51.md`'s `## Not drafted` rows that name a reading, one item a staging it yields.
-
-3484. **coverage: the gamelog's console mirror off, byte-identical** (Ramon, the fiftieth steer; 3483's split, parked 3483a; the steer,
-rebooked at 3483's merge): a dumped frame is 95 % `Log::say`'s `OutputDebugStringW` mirror (`rise.ini` `AllowLogs_ToConsole`, default 1,
-absent from the lanes' ini), 3.82 s → 0.073 s with the runner's `--console-log 0` (3483); the byte-identical writer as first booked buys at
-most 0.1 s and parks as 3483a's sequel unless the flip leaves more than a fifth of the frame in the formatting. On three lobbies — the golden
-start (Great Lakes, map 14, run1084 the disk's answer for its bytes), the coverage pair, run1090's team lobby — a take at `--console-log 0`
-beside a twin at 1: `cmp` on `gamelog.txt` and `rngcmp`/`samegame` on the trace, both 0 differing, the seconds a dumped frame beside; the
-journal names everything in the tree that reads the debug stream (the tracer, the pool's stall detector, `waitrun.sh`'s banners) before the
-default can flip — opt-in, default unchanged until a pass flips it. No simulation change; the trace not pinned. Runs 1103–1108; park NX.
 
 3491. **coverage: `is_tournament` from a defeated computer's chair** (3481a's arm; the second drafting's D1): the team lobby (run1086's:
 Great Lakes, map 14, `--profile PLAYERS=2`, three free-for-all teams) at `cover=1` with a new twin, `--no-ffwd --end-frame 640`, **no**
