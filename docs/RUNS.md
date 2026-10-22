@@ -22291,3 +22291,39 @@ SHA-256 `8e25f8215e1f36fa640b688c84dfea4b5d1241633220dd4e9d4aa59dd2a11d57`.
 
 **What it holds**: the first group move without its action bit with an attack behind it, and a leader's collision
 handing the group the attack (`distribute_attack`).
+
+## run1071 — the golden start with a Library, a Lookout and a shift-queued Siege Factory, `cover=1` on the click-free pool to 1150 (2026-10-22, item 3448, `att-3448`)
+
+**What the disk could not answer**: no capture holds a human builder with a second site queued behind its first.
+`Unit::check_build_order@00603470` left `NEVER` with run1019 (item 3420) on a computer's builder at 193. No dump
+shows the human arm's re-add (`docs/ORDERS.md` §5.3, §14 check 6).
+
+Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1071`: `--map 14 --end-frame 1150 --log-window
+605 1150`, run1069's detail, `--cmd-file tools/gamelog/coverage/buildlast3448-start.cmd --cover cover=1`. The lines:
+`!ai off`, `600 library who=0 2`, `602 resource`, Citizens `0/6` and `0/7` (604, 606), `630 @build 0 7296 34176 521
+6` (a Lookout) and `632 @buildadd 0 7296 36864 430 6 7` (a Siege Factory, chapter eighteen's point, QUEUE_LAST).
+
+- **Second take.** The first, `~/ron-golden/run1071-take1` (lane 1, 03:30:38–03:42:06, 687.4 s, 1,151 frames, not
+  filed), had no `library` line. Like run1069's Barracks, its Siege Factory was processed (`process_build … 430 1
+  633`) and never placed: `action_build` refuses at `type_avail(type, 1) == 4` without a word. Chapter eighteen's
+  `600 library who=0 2` is what makes the site available.
+- Pool lane 1, seed 12345. Launched 03:43:03, exited 03:54:08: **665.5 s launch to exit**. `success`, lifecycle
+  verified, 1,151 frames. DLL `48afc5df…`. No minutes waited.
+- **6,509 functions entered**. `check_build_order` on 861. It enters no `NEVER` row.
+- `rngcmp.py` against run215: **546 in common, 605 identical, 546 differing, the first 605**, after the first unshared
+  input (600). `samegame.py --from 600`: **546 in common (1..1149), 545 differing, the first 605; same game before
+  600**.
+- `U3` read beside it (`docs/ORDERS.md` §42.3 row 3): the Siege Factory is `0/2008` from 634. `0/6` holds, in
+  execution order, `[BUILD 2007, MOVEORDER (flags 0) to (7224, 36408), BUILD 2008]` to 861. On 862 the Lookout reads
+  170 of 170, flags 71, and `0/6` holds **one `BUILDORDER 0/2008` flags 4**: the re-add at `QUEUE_FIRST`, with the
+  action bit. On 863 `do_build`'s swarm puts a `MOVEORDER` in front of it. The stepped-over move did not survive
+  (parked 3448a).
+- Filed with `filerun.py run1071 golden-buildlast-cover1-clickfree`.
+
+Archive `gamelog-run1071-golden-buildlast-cover1-clickfree.txt`, 222,603,093 bytes,
+SHA-256 `e3aa0188bb264264fb66d4c9e310463d35211942b6559fda01be292fb0bb5910`.
+
+Archive `rontrace-run1071.log`, 10,732,768 bytes,
+SHA-256 `97c1ea0bf0eab2f99a1cb5648d5cc7eef94c0c1b20f1658988894e437686a164`.
+
+**What it holds**: a human builder's two-site queue, and `check_build_order`'s re-add on the first site's finish.

@@ -283,9 +283,13 @@ pub const TRACES: &[&str] = &[
     // soldiers' group move, no action bit) with a shift-queued `@attackadd`
     // on the Chariot behind it: the leader collides with a Supply Wagon and
     // `Group::distribute_attack` runs on 686. Both are run215's game to their
-    // first unshared input (`docs/RUNS.md`).
+    // first unshared input (`docs/RUNS.md`). run1071 to 1150 is the same
+    // start with a Library: a Lookout and, shift-queued (`@buildadd`), a
+    // Siege Factory, and `check_build_order` on 861, the human arm (run1019
+    // took it off the list on a computer's builder).
     "rontrace-run1069.log",
     "rontrace-run1070.log",
+    "rontrace-run1071.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
