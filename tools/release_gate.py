@@ -168,6 +168,8 @@ COMMANDERS_LINES = (
     'the_handoff_s_blind_list_is_the_pinned_count',
     # The held-out battery's line (the forty-eighth pass).
     'the_handoff_s_held_out_line_is_the_pinned_battery',
+    # The rubric's line (the forty-ninth pass, Ramon's: the steer's pin).
+    'the_handoff_s_rubric_is_the_pinned_scorecard',
     'the_handoff_s_golden_line_is_the_pinned_word',
     'the_handoff_s_default_map_is_the_lower_word',
     'the_handoff_s_endpoint_is_the_pinned_counts',

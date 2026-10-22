@@ -2,7 +2,9 @@
 r"""rubric.py — a steering pass's holistic scorecard of how much of the
 original's simulation this port has verified.
 
-    rubric.py [--tables 1,2,3] [--limit N] [--dumps PATH ...] [--top N] [--json]
+    rubric.py [--tables 1,2,3] [--limit N] [--dumps PATH ...] [--top N]
+    rubric.py --record "the fiftieth pass"     # at a steer: append the ledger's row, print it against the last
+    rubric.py --delta                           # the last two ledger rows as a table, reading no dump
 
 Three tables, each from data the tree (or the machine's own archive) already
 holds, and a one-line `Rubric:` summary at the end. It is a measurement
@@ -333,6 +335,75 @@ def install_dir(pdb):
     return os.path.dirname(os.path.dirname(os.path.abspath(pdb)))
 
 
+LEDGER = os.path.join(HERE, "..", "docs", "audit", "rubric.tsv")
+LEDGER_COLUMNS = ("date", "pass", "groups_full", "groups", "backed", "functions", "byte_share",
+                  "ages_held", "ages_never", "types_seen", "types", "dumps")
+
+
+def ledger_row(date, label, mech, per_age, seen, total_types, dumps):
+    """One pass's rubric as a ledger row (Ramon, the forty-ninth steer: the
+    rubric is shown at every steering pass against the pass before, never
+    computed per landing). `mech` is `mechanics_summary`'s dict; `per_age`
+    `walk`'s; `seen`/`total_types` table 3's two counts."""
+    held = [x for x in range(8) if per_age[x]["any"]]
+    never = ",".join(str(x) for x in range(8) if x not in held) or "none"
+    return dict(date=date, **{"pass": label}, groups_full=mech["full"], groups=mech["groups"],
+                backed=mech["backed"], functions=mech["functions"], byte_share=round(mech["byte_share"], 1),
+                ages_held=len(held), ages_never=never, types_seen=seen, types=total_types, dumps=dumps)
+
+
+def read_ledger(path):
+    """The ledger's rows, oldest first; a missing file is no rows."""
+    if not os.path.isfile(path):
+        return []
+    rows = []
+    with open(path) as f:
+        header = None
+        for line in f:
+            line = line.rstrip("\n")
+            if not line or line.startswith("#"):
+                continue
+            cells = line.split("\t")
+            if header is None:
+                header = cells
+                continue
+            row = dict(zip(header, cells))
+            for k in ("groups_full", "groups", "backed", "functions", "ages_held", "types_seen", "types", "dumps"):
+                row[k] = int(row[k])
+            row["byte_share"] = float(row["byte_share"])
+            rows.append(row)
+    return rows
+
+
+def append_ledger(path, row):
+    new = not os.path.isfile(path)
+    with open(path, "a") as f:
+        if new:
+            f.write("# tools/rubric.py --record <pass>: one row per steering pass, oldest first (DECISIONS 88)\n")
+            f.write("\t".join(LEDGER_COLUMNS) + "\n")
+        f.write("\t".join(str(row[c]) for c in LEDGER_COLUMNS) + "\n")
+
+
+def delta_table(prev, cur):
+    """The steer's table: this pass against the one before, one line a
+    number, the previous value in the last column — the shape the pass's
+    record uses for waiting a landing."""
+    def cell(row, k):
+        if row is None:
+            return "-"
+        v = row[k]
+        return f"{v:.1f}" if isinstance(v, float) else str(v)
+    lines = [f"rubric: {cur['pass']} against {prev['pass'] if prev else 'no earlier pass'}",
+             f"{'what':<34}{'now':>14}{'before':>14}"]
+    for label, k in (("source groups at 100 %", "groups_full"), ("of groups", "groups"),
+                     ("functions backed", "backed"), ("of functions", "functions"),
+                     ("bytes backed, %", "byte_share"), ("ages held, of 8", "ages_held"),
+                     ("ages never held", "ages_never"), ("unit types seen", "types_seen"),
+                     ("of unit types", "types"), ("dumps read", "dumps")):
+        lines.append(f"{label:<34}{cell(cur, k):>14}{cell(prev, k):>14}")
+    return "\n".join(lines)
+
+
 def main():
     ap = argparse.ArgumentParser(description="A steering pass's holistic scorecard: by mechanic, by age, "
                                              "by unit type. The module docstring has the rules.")
@@ -345,13 +416,28 @@ def main():
     ap.add_argument("--sim-src", default=os.path.join(HERE, "..", "crates", "sim", "src"))
     ap.add_argument("--pdb", default=census.default_pdb(HERE))
     ap.add_argument("--archive", default=census.ARCHIVE)
+    ap.add_argument("--record", metavar="PASS", help="append this run as PASS's row to the ledger "
+                    "(docs/audit/rubric.tsv) and print the table against the row before; all three tables")
+    ap.add_argument("--ledger", default=LEDGER)
+    ap.add_argument("--delta", action="store_true", help="print the ledger's last row against the one before, "
+                    "reading nothing")
     a = ap.parse_args()
+    if a.delta:
+        rows = read_ledger(a.ledger)
+        if not rows:
+            print(f"no rows in {a.ledger}")
+            return 1
+        print(delta_table(rows[-2] if len(rows) > 1 else None, rows[-1]))
+        return 0
     tables = {int(t) for t in a.tables.split(",") if t.strip()}
+    if a.record:
+        tables = {1, 2, 3}
     parts = []
+    mech = seen = nrules = None
     if 1 in tables:
         rows = mechanics_now(a.index, a.docs, a.sim_src, a.pdb)
         print_mechanics(rows, a.top)
-        s = mechanics_summary(rows)
+        s = mech = mechanics_summary(rows)
         parts.append(f"mechanics {s['full']} of {s['groups']} source groups at 100 % "
                      f"(backed {s['backed']} of {s['functions']} fns, {s['byte_share']:.1f}% of bytes)")
         print()
@@ -388,10 +474,22 @@ def main():
                     with open(tdump, "rb") as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
                         ages = loaded_ages(mm)
                 seen, never = print_types(rules, ages, types)
+                nrules = len(rules)
                 parts.append(f"unit types seen {seen} of {len(rules)} ({never} never)" + partial)
             print()
     print("Rubric: " + " · ".join(parts))
+    if a.record:
+        if mech is None or seen is None or a.limit:
+            print("--record needs all three tables whole (no --limit, unitrules.xml present)")
+            return 1
+        import datetime
+        row = ledger_row(datetime.date.today().isoformat(), a.record, mech, per_age, seen, nrules, len(paths))
+        before = read_ledger(a.ledger)
+        append_ledger(a.ledger, row)
+        print()
+        print(delta_table(before[-1] if before else None, row))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

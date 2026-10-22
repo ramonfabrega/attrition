@@ -21460,5 +21460,9 @@ there: `@key` first (3442), then six more (3443–3448). Built, red first:
 (3439), and the oracle cache key narrowed to the parser and codec (3382,
 an Opus subagent: a test edit leaves the pin warm at 115 s). 3439, 3435,
 3434 and 3430 leave; six Ramon's; 16 → 12. The lanes for the fiftieth are
-Ramon's, at the chat before the clear. **DECISIONS 88.**
+Ramon's, at the chat before the clear — where he kept two Opus lanes and
+asked for the rubric at every steer against the one before: built as
+`rubric.py --record` with a ledger (`docs/audit/rubric.tsv`) and the
+queue's pinned `Rubric:` line (ages 2 → 8 of 8, unit types 30 → 70 of
+364 this tranche). **DECISIONS 88.**
 `docs/audit/2026-10-21-fable-pass-49.md`.

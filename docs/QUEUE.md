@@ -12,9 +12,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth pass (steer, Fable), with Ramon: the forty-ninth tranche measured — sixteen landings from
-`11da5dd8` in 8 h 57 on two Opus lanes, drained early on his pit stop — and the click layer's third pass booked on the pool.**
-Record `docs/audit/2026-10-21-fable-pass-49.md`; DECISIONS 88.*
+*2026-10-21, **the forty-ninth pass (steer, Fable), with Ramon: sixteen landings from `11da5dd8` in 8 h 57 on two Opus lanes,
+drained early on his pit stop; the click layer's third pass booked on the pool.** `docs/audit/2026-10-21-fable-pass-49.md`; DECISIONS 88.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
   `NEVER` 321 (380 at the base), residue 81 (3421a ratified), open 240** (`Blind:` pinned); it moves by trace, on the pool.
@@ -37,6 +36,7 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 321 · residue 81 · open 240
+Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: continue the fiftieth tranche from this handoff — commander (Opus): spawn 3438 and 3442 on the two Opus lanes
@@ -105,9 +105,8 @@ targets on the collision frame). Runs 1069–1071; park NH.
 
 ## How to maintain this file
 
-- **End of session:** rewrite "Where things stand" from scratch, headline
-  first and whether it moved; delete finished items — their story is in
-  `docs/journal/`. Shorten only what you touch; never widen a line to beat a count.
+- **End of session:** rewrite "Where things stand" from scratch, headline first and whether it moved; delete
+  finished items — their story is in `docs/journal/`. Shorten only what you touch; never widen a line to beat a count.
 - **A residue item is booked by its frame and its draw delta** (DECISIONS 42); a mechanism in its title is the previous
   item's hypothesis, not a build order, and an absence it cites ("ours has no X") names the probe that showed it (Loop 2704).
 - **A finding parks by default.** `docs/PARKED.md` takes what names no
@@ -126,7 +125,8 @@ targets on the collision frame). Runs 1069–1071; park NH.
 - **The floors and these lines move together** — `FLOORS`, `LONG_WORD_*`,
   `GOLDEN_WORD_*`, `ENDPOINTS`, `AI_WORDS` with `Scoreboard:`, `Long captures:`,
   `Golden:` (`<name> closed`, or `every chapter closed` first), `Endpoint <frame>:`,
-  `Second pair:`, `Third map:`, `Census:`, `Fable backlog: N Loop items` and `lower map first — <map>` — read
+  `Second pair:`, `Third map:`, `Census:`, `Blind:`, `Rubric:` (the steer's, from `rubric.py --record`; never a
+  booking's), `Fable backlog: N Loop items` and `lower map first — <map>` — read
   literally and **never wrapped**, or the count guard matches this line
   instead (twice, 09-19). The length guard counts every line to the next `## `.
 - **A capture is a draw-stream trace first, detail on demand** (DECISIONS 41): whole length at `cover=0`, then a

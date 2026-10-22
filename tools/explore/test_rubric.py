@@ -113,3 +113,41 @@ class ByAgeAndType(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TheLedger(unittest.TestCase):
+    """The forty-ninth pass (Ramon): the rubric is shown at every steering
+    pass against the pass before, never computed per landing — a row a pass
+    in `docs/audit/rubric.tsv`, and `--delta` the table."""
+
+    def row(self, label, held=(0, 1), seen=30):
+        mech = dict(full=36, groups=112, backed=1696, functions=3611, byte_share=37.94)
+        per_age = {x: {"any": x in held} for x in range(8)}
+        return rubric.ledger_row('2026-10-21', label, mech, per_age, seen, 364, 58)
+
+    def test_a_row_names_the_ages_never_held(self):
+        r = self.row('the forty-eighth pass')
+        self.assertEqual((r['ages_held'], r['ages_never'], r['byte_share']), (2, '2,3,4,5,6,7', 37.9))
+        self.assertEqual(self.row('x', held=range(8))['ages_never'], 'none')
+
+    def test_the_ledger_round_trips_and_the_delta_reads_the_last_two(self):
+        import tempfile, os
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, 'rubric.tsv')
+            self.assertEqual(rubric.read_ledger(path), [])
+            rubric.append_ledger(path, self.row('the forty-eighth pass'))
+            rubric.append_ledger(path, self.row('the forty-ninth pass', held=range(8), seen=70))
+            rows = rubric.read_ledger(path)
+            self.assertEqual([r['pass'] for r in rows], ['the forty-eighth pass', 'the forty-ninth pass'])
+            self.assertEqual(rows[1]['types_seen'], 70)
+            table = rubric.delta_table(rows[0], rows[1])
+        self.assertIn('the forty-ninth pass against the forty-eighth pass', table)
+        line = [l for l in table.splitlines() if l.startswith('unit types seen')][0]
+        self.assertEqual(line.split()[-2:], ['70', '30'])
+        line = [l for l in table.splitlines() if l.startswith('ages never held')][0]
+        self.assertEqual(line.split()[-2:], ['none', '2,3,4,5,6,7'])
+
+    def test_a_first_row_has_no_earlier_pass(self):
+        table = rubric.delta_table(None, self.row('the forty-ninth pass'))
+        self.assertIn('against no earlier pass', table)
+        self.assertTrue(all(l.split()[-1] == '-' for l in table.splitlines()[2:]))

@@ -285,6 +285,31 @@ pub const SIMULATION_PORT_BACKED: usize = 568;
 /// `game\` file the layer rule files under simulation.
 pub const SIMULATION_FUNCTIONS: usize = 3611;
 
+/// **The rubric** (`tools/rubric.py`, `docs/RUBRIC.md`; the forty-eighth
+/// pass with Ramon, pinned by the forty-ninth, DECISIONS 88): the content
+/// view beside the function view — how many of the PDB's simulation source
+/// groups are wholly backed, how many of the eight ages a pinned trace's dump
+/// has held a leader in, and how many of `unitrules.xml`'s unit types have
+/// appeared in one. The queue's `Rubric:` line carries the six numbers and
+/// `rondata::diff::floors::the_handoff_s_rubric_is_the_pinned_scorecard`
+/// reads it against these; **the steering pass re-pins them, never a
+/// booking** (Ramon: no minutes added to a landing) — `tools/rubric.py
+/// --record "<the pass>"` reads the traces' dumps once (89 s), appends the
+/// pass's row to `docs/audit/rubric.tsv` and prints the row against the pass
+/// before, the table the record carries. The forty-ninth tranche moved
+/// the ages 2 → 8 (item 3431's Gunpowder and Industrial starts, the long
+/// Toughest and Iroquois games) and the unit types 30 → 70 on thirty-four
+/// captures; the groups stayed at 36 (no sweep and no document landing).
+pub const RUBRIC_GROUPS_FULL: usize = 36;
+/// The PDB's simulation source groups (a header with the `.cpp` of its stem).
+pub const RUBRIC_GROUPS: usize = 112;
+/// Ages a pinned trace's dump has held an active leader in, of eight.
+pub const RUBRIC_AGES_HELD: usize = 8;
+/// Unit types seen in a pinned trace's dump, of `unitrules.xml`'s 364.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 70;
+/// `unitrules.xml`'s records.
+pub const RUBRIC_UNIT_TYPES: usize = 364;
+
 #[cfg(test)]
 mod tests {
     use super::*;

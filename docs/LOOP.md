@@ -324,7 +324,12 @@ backgrounded** — `afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
 `~/ron-golden`, six minutes and 19 GiB on 2026-10-17, never beside a
 gate (DECISIONS 77) — **and its table of the tranche's gates is
 `python3 tools/gates.py <the commander's job tmp> --since <the last
-pass's gate log>`** (DECISIONS 80). **It never moves what is the user's**: the
+pass's gate log>`** (DECISIONS 80), **and its rubric is `python3
+tools/rubric.py --record "<the pass>"`** — the content view (ages held,
+unit types seen, source groups wholly backed) as a row in
+`docs/audit/rubric.tsv` and a table against the pass before, in the
+record beside the clock; the queue's `Rubric:` line is the pass's to
+re-pin and never a booking's (Ramon, the forty-ninth steer, DECISIONS 88). **It never moves what is the user's**: the
 roster, the lane count past the one-a-tranche rule, the phase, the finish
 line, the thesis, a hard constraint, or anything a decision entry
 reserves. Those it writes as recommendations at the top of its record,

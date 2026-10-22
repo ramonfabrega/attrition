@@ -7670,3 +7670,15 @@ queue lane; the capture class against 13.7 and the gate against 19.3;
 booking gate minutes against 242.7 (a drain's two whole gates among
 them); `DEEP` against one; the backlog against twelve; the disk against
 232 GiB; the pool's peak lanes and rate against 3 and 9.3.
+
+**Amended the same day, with Ramon** (the record, "With Ramon, before the
+clear"): **the roster stays at two Opus 5.5 lanes** — no Sonnet trial while
+Opus does the job; **the rubric is shown at every steering pass against the
+pass before, never computed per landing**: `tools/rubric.py --record "<the
+pass>"` keeps one row a pass in `docs/audit/rubric.tsv` and prints the
+delta table the record carries (this pass: ages held 2 → 8 of 8, unit types
+seen 30 → 70 of 364, groups at 100 % 36 of 112 unmoved, on 58 → 83 dumps);
+the queue's `Rubric:` line is pinned (`the_handoff_s_rubric_is_the_pinned_scorecard`,
+`census::RUBRIC_*`) and is the steer's to re-pin, with the lane gate
+forgiving it as a commander's line; `docs/LOOP.md`'s pass fence names the
+run beside the gates table.
