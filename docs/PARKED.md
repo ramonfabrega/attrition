@@ -3774,6 +3774,11 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3487) **`poolshot.py <run>` waits on a gamelog the pool never writes there** (3479's "for the Loop"): it resolves
+`~/ron-golden/<run>` and waits on its `gamelog.txt`, but a pool take writes under `map-<N>/`; recon3479-1 lost all three
+photographs to that, a 30-minute wait. Candidate: the tool takes the one `map-*` directory as `filerun.py` does, with a test.
+Score: a photograph a take does not lose. One reach.
+
 Loop 3432's reaches in the fifty-first tranche, filed here (its own section is the forty-ninth's): **3477's "for the Loop"** —
 the cursor pin off the map (`--cursor 1400,1000`, the pool runner's option from 3477) has its first clean take, run1092 against its
 twin run1093 0 of 721 differing; 3478's run1094/1095 is the second, 641 of 641 identical. One more makes it the pool's default.
