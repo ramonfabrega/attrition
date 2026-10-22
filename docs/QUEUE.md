@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth pass (steer, Fable), with Ramon: sixteen landings from `11da5dd8` in 8 h 57 on two Opus lanes,
-drained early on his pit stop; the click layer's third pass booked on the pool.** `docs/audit/2026-10-21-fable-pass-49.md`; DECISIONS 88.*
+*2026-10-21, **the fiftieth tranche (commander, Opus): 1 of 20 landed from `a479f1bf`** — 3438: chapter eighty-five's Bribe
+at `cover=1` on the pool (run1054, run880's game on every frame both hold), `NEVER` 321 → 319.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 321 (380 at the base), residue 81 (3421a ratified), open 240** (`Blind:` pinned); it moves by trace, on the pool.
+  `NEVER` 319 (321 at the base), residue 81, open 238** (`Blind:` pinned); it moves by trace, on the pool.
 - **The pool carries the click layer** (3437's `@click`; `docs/LOOP.md`, "The brief"): every open row of GOLDEN §144.3 is an `@`
   line or a key; 3442 builds `@key`, and then the queue lane is a tool for the menu's own code (1570, Ramon's).
-- **Lanes: none live; 3438 and 3442–3448 booked, unspawned.** Next 3449, run 1072. Pools: GOLDEN §149, AI §300–301; the park
-  pool is assigned through NH — refill it (six headings) at the first landing. Parked for the pass's eye: 3425a, 3428a–b.
+- **Lanes: att-3442, att-3443.** Next 3449, run 1072. Pools: GOLDEN §149, AI §300–301; the park pool is assigned through NH
+  and refilled NI–NN at 3438's booking. Parked for the pass's eye: 3425a, 3428a–b, 3438a.
 - **Fable backlog: 12 Loop items** (3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 88.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -35,7 +35,7 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 321 · residue 81 · open 240
+Blind: never 319 · residue 81 · open 238
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 70 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
@@ -50,11 +50,6 @@ pinned lobby at **`cover=1` on the click-free pool**, a click an `@click`/`@rcli
 twin (`rngcmp.py`; `samegame.py --from` the first unshared input), pinned into `blind::TRACES`; a function not entered is
 explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the team lobby (AI §296 rows 11–12, ARMY §26's
 `action_ping`; 1570's other half), `close_wonder`, `say_no_war`, 3414a's `send_navy`, `hits`, `send_here`, `is_dock`, 3444's park.
-
-3438. **coverage: `@spell` Bribe** (GOLDEN §144.3, §108): chapter eighty-five retaken at `cover=1` on the pool —
-`chapter85.cmd` line for line, the cloaked Spy's `@spell 0 629` at 1112 after its burn reaches 0; its twin is run880:
-enters `SpellType::cast_bribe@00672d00` and `Unit::swap_team@006118d0` on the cast's frame; `U3` a new who=0 unit with the
-old `damage` and `form`. Run 1054.
 
 3442. **coverage: `@key`, the pool's keystroke** (GOLDEN §144.3's `bindkey.py` row; ORDERS §42.3 row 4; 1570's last click-layer
 need): a tracer `@key` line through `SysMessageHandler::OnKey` (+0xc) and `OnChar` (+0x10) as 3437 built `@click`
