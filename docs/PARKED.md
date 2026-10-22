@@ -9631,7 +9631,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3480, 2026-10-22 — a diagonal terrain transition
 
-(3480a) **`TerrainOut::check_for_diagonal@008595f0` is entered on none of five styles.** The styles are 7, 14 and 18 on
+(3480a) **`TerrainOut::check_for_diagonal` is entered on none of five styles.** The styles are 7, 14 and 18 on
 disk, and 21 Nile Delta (run1098) and 8 Amazon Rainforest (run1099), each `cover=1` from frame −1. The `int` overload
 `WorldData::is_valid@00471170` is not entered either. The predicate, read from the decompile:
 `create_transition_renderables@00862c60.c:85-95` walks the cell list at `+0x6700` (count `+0x6708`). It builds three

@@ -23135,7 +23135,7 @@ SHA-256 `9bc1eb057732ba9d3c0a34b07d9e4c1da596482fa18941502657c40f9679e4a9`.
 
 ## run1097 — the golden start at `cover=1` on the click-free pool, regenerated mid-game by `!mapstyle`/`!mapgen`: a native fault inside the first `mapgen` (2026-10-22, item 3480, `att-3480`)
 
-**What the disk could not answer**: no trace enters `TerrainOut::check_for_diagonal@008595f0` or the `int` overload
+**What the disk could not answer**: no trace enters `TerrainOut::check_for_diagonal` or the `int` overload
 `WorldData::is_valid@00471170`. `create_transition_renderables@00862c60` is entered on frame −1 by every pool take, and
 every capture on disk is map 7, 14 or 18 (and 9, uncovered). No line on disk sends `mapstyle` or `mapgen`. The take is
 `tools/gamelog/coverage/mapgen3480-start.cmd`: `0 !ai off`, then `!mapstyle N` and `!mapgen quick` for styles 21, 13, 20
