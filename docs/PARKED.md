@@ -3774,6 +3774,10 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+**3483's "for the Loop"** — the pool's dumped frames are 95 % `OutputDebugStringW` (`AllowLogs_ToConsole`, default 1,
+absent from the lanes' `rise.ini`), about 36× faster with `--console-log 0` and the same dump: booked at its merge as 3484, rebooked
+with the steer (the flip measured byte-identical and the debug stream's readers named before the default moves).
+
 (3488) **Every pool lane's `rise2.ini` sets `StartReveal=1`, and no repo tool writes it** (3481's "for the Loop"; parked
 3481a): lane 1's `~/ron-data/AppData/…/rise2.ini`, lanes 2–3's `~/ron-capture-lane-N/AppData`, every `settings-backup` back to
 ch19. `Game::solo_checks@00588110` ORs it into `gamec->semaphore` bit 1 on every take, so each of the 67 functions that test
