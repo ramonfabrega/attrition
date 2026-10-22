@@ -212,6 +212,8 @@ enum {
                    * the tick, d = the Game::loop entries since the first `@after` was queued */
     I_DUMPALL = 23, /* an `@dumpall` line: a = frame, b = line index, c = the flag before, d = 1 set / 0 cleared */
     I_HOVER = 30, /* the pinned hover re-sent at `describe_mouseover` (`hover.h`); 25..29 are `dumptime.h`'s */
+    I_HOLD = 31, /* an `@hold` line (`hold.h`) */
+    I_HOLD_ASKED = 32, /* the first held `GetKeyState` answer of a frame (`hold.h`) */
 };
 
 typedef struct {
@@ -965,6 +967,54 @@ static u32 g_hover_sends;
 #include "click.h"
 #include "key.h"
 
+#include "hold.h"
+/* `hold.h`'s state: the spans, the import the loader bound, the answers. */
+static HoldSpan g_holds[HOLD_MAX];
+static u32 g_nholds, g_hold_asks, g_hold_slot;
+static i32 g_hold_state = -1, g_hold_asked_frame = -1; /* -1 not tried, 0 installed, > 0 refused */
+typedef short(WINAPI *getkeystate_fn)(i32);
+static getkeystate_fn g_hold_real;
+#define RVA_GETKEYSTATE_IAT 0x6c53e8u /* USER32!GetKeyState, VA 0xac53e8 */
+
+static short WINAPI hold_get_key_state(i32 vk) {
+    if (hold_held(g_holds, g_nholds, vk, g_frame)) {
+        g_hold_asks++;
+        if (g_hold_asked_frame != g_frame) {
+            g_hold_asked_frame = g_frame;
+            emit(K_INFO, I_HOLD_ASKED, (u32)g_frame, (u32)vk, g_hold_asks, 0, 0);
+        }
+        return (short)0x8000;
+    }
+    return g_hold_real(vk);
+}
+
+static void hold_install(void) {
+    u32 old = 0;
+    g_hold_slot = hold_import_slot((const u8 *)g_base, "USER32.dll", "GetKeyState");
+    u32 *slot = (u32 *)(g_base + RVA_GETKEYSTATE_IAT);
+    if (g_hold_slot != RVA_GETKEYSTATE_IAT) g_hold_state = 2;
+    else if (!VirtualProtect(slot, 4, PAGE_READWRITE, &old)) g_hold_state = 3;
+    else {
+        g_hold_real = (getkeystate_fn)*slot;
+        *slot = (u32)(void *)hold_get_key_state;
+        VirtualProtect(slot, 4, old, &old);
+        g_hold_state = 0;
+    }
+}
+
+/* An `@hold` line; `t` is past the verb. */
+static void hold_line(i32 frame, u32 idx, const u16 *t) {
+    i32 vk = 0, until = 0, why = 0;
+    if (!issue_int(&t, &vk) || !issue_int(&t, &until) || !hold_valid(vk, frame, until)) why = 5;
+    else if (g_nholds >= HOLD_MAX) why = 6;
+    else {
+        if (g_hold_state < 0) hold_install();
+        why = g_hold_state;
+    }
+    if (!why) g_holds[g_nholds++] = (HoldSpan){vk, frame, until};
+    emit(K_INFO, I_HOLD, (u32)frame, idx | ((u32)why << 16), (u32)vk | (u32)until << 16, g_hold_slot, g_hold_asks);
+}
+
 /* `@sell`/`@buy`: a leader's market command, no group (item 3426). The
  * issuer's first eleven bytes are `mov eax, [gamec]; push esi; mov esi,
  * ecx; test byte [eax+0x820], ...` in both, off the listing (`6d3eb0`,
@@ -1031,6 +1081,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
     if (issue_verb(&t, "cursor ")) { click_line(frame, idx, t, 0); return; }
     if (issue_verb(&t, "key ")) { key_line(frame, idx, t, 0); return; }
     if (issue_verb(&t, "char ")) { key_line(frame, idx, t, 1); return; }
+    if (issue_verb(&t, "hold ")) { hold_line(frame, idx, t); return; }
     if (issue_verb(&t, "after ")) {
         /* `@after MS <line>`: queue <line> (any `@` line, without its `@`) for the
          * first `Game::loop` entry MS milliseconds from now (item 3445). A modal
