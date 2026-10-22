@@ -22673,3 +22673,43 @@ SHA-256 `4659efb42cc73cd2b9416dd79b1fe72c26503e7bc872b55126bb1331639a74cc`.
 
 Archive `rontrace-run1079.log`, 19,785,984 bytes,
 SHA-256 `3f910920dc1ff7992b4ae710e7852495b4f0f3be612b7d94fb321687c124be17`.
+## run1080 — the coverage pair: two bound keys and a carrier's right-click, at `cover=1` on the click-free pool, 594..760 (2026-10-22, item 3461, `att-3461`)
+
+**What the disk could not answer**: no trace enters `CommandPackage::process_halt@00949140`,
+`GroupsData::find_group_const@007084c0` or `WorldData::is_tocean@0046fb10`, and no gamelog in the archive holds a
+`process_halt` line (a `grep` of 2026-10-22). Their callers are a human's: `Options::do_halt` behind a halt key,
+`Options::do_cycle_general` behind the cycle-general key, and `Console::execute_at_cursor`'s arm for a selection of
+Carriers alone (type 0x15f) (`report.py <exe> refs`: each has those callers alone, and no byte-identical twin). Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1080 --map 18 --end-frame 760 --timeout 2400 --ai-tribe 23 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --log-window 594 761 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --detail misc:COMMANDMANAGER=1 --cmd-file
+tools/gamelog/coverage/halt3461.cmd --cover cover=1 --no-ffwd --bindkey OPTION_HALT=124 --bindkey
+OPTION_CYCLE_GENERAL=125`. These are run1076's settings and detail.
+- Pool lane 2. Launched 07:14:19, exited 07:25:52: **692.2 s launch to exit**. 761 frames, `last_frame` 760, not ended
+  early, map 18, seed 12345, tribes 4 and 23. DLL `5dde3761…`, `-DRON_AUTOSTART`. 202 GiB free before. **The
+  runner's restore refused** (`cleanup_error`: "close the original game"). att-3460's run1078 started in lane 3 at
+  07:25:59, and `require_closed` could not yet name its prefix. So the receipt says `success: false` and
+  `settings_restored: false`. I restored by hand through the same calls (`live_session.require_closed(prefix=lane 2)`,
+  `restore`, `verify_restored`: five files) once `game_prefix` named lane 3. Minutes waited on another lane: none.
+- **6,719 functions entered**. The three `NEVER` rows are `process_halt` (620), `find_group_const` (640) and
+  `is_tocean` (660). Also entered: `KeyMap::lookup`, `Options::do_halt`, `GroupOut::issue_halt` (620),
+  `Options::do_cycle_general` (640), `Console::execute_at_cursor`, `GroupOut::issue_move_to`,
+  `CommandManager::issue_move_to` and `CommandPackage::process_move_to` (660). The trace's `I_KEY` records: 620's
+  VK 124 looked up action 158 and 640's VK 125 looked up 258 (`keymap_strings[0x102]`, OPTION_CYCLE_GENERAL), both
+  in mode 0. 606's `@move` was refused (refusal 3, object 16, not a captain) and issued nothing.
+- The values: `CM` `process_group, new 0 1 621` then `process_halt 621`, and `0/15..17` have `group` 1 from 622. The
+  squad was idle, so its orders did not move. On 661 `CM` printed `process_move_to 642 9474 2 0 0 1 0`, and the Carrier
+  `0/14`'s U3 `orders_x/y` go (1272, 7224) → (648, 9480) on 662, `group` 0: cell (0, 12), `OCEAN` in run651's
+  `WORLD`.
+- `rngcmp.py` against run652: **761 in common, 601 identical, 160 differing, the first 601**. Against run672 the
+  result is the same. `samegame.py gamelog-run672-… gamelog-run1080-… --from 600`: **167 in common (594..760), 160
+  differing, the first 601**, the same game on the 6 blocks before 600.
+- Filed with `filerun.py run1080 eastindies-persian-alltech-halt-keys-carrier-rclick-window-594-760-cover1`.
+
+Archive `gamelog-run1080-eastindies-persian-alltech-halt-keys-carrier-rclick-window-594-760-cover1.txt`, 304,907,286
+bytes, SHA-256 `da014279e962f810be56f85b01afca677391eab94e7467128ca3de195ae904d3`.
+
+Archive `rontrace-run1080.log`, 20,390,112 bytes,
+SHA-256 `24df0f6050c7c60725978eaf82418f2d5e080f92893cd497a19454c88b207966`.
+
+**What it holds**: `blind::TRACES`' run1080 (item 3461), `NEVER` 286 → 283.
