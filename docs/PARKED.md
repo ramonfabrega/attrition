@@ -3774,6 +3774,31 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
+(3441) **The queue lane runs on the install's one tracer DLL, built by whichever lane last ran `build.sh`** (the
+commander's, at 3436): the queue lane loads `game/rontrace.dll` (`lanes.sh`:54), and 3427 rebuilt it from its own tree at
+15:45; 3436's tree differs in `tracer.c`, so four of its six driven takes refused at launch ("the build's tracer.c differs
+from this tree's"). The pool is immune — `unattended_capture.py`:489 builds into the run's own directory and the game runs
+from there (3437's correction; the commander first filed this as two lanes sharing the DLL, which was wrong). Candidate:
+the queue lane builds per run into its staging as the pool does. Score: driven takes not lost to a stale build. One reach.
+
+(3440) **A hand-rolled wait on a capture outlived the capture** (the commander's, at 3436): 3436 waited on a frame-702
+screenshot with an `until grep` whose bail-out matched lowercase `refus` against the log's `REFUSED`; the queue ended at
+18:05, two takes (run1046, run1047) ran unattended to 3000 with no clicks and spent their numbers, and the wait would not
+have exited. `lanewait.py`'s `--stalled-child-after 240` could not see it inside four hours. CLAUDE.md already names
+`waitrun.sh`; the driven lane's per-take screenshot wait has no tool. Candidate: `handdriver.sh wait <run> <frame>` that
+exits on the runner's banner and refusal lines as `waitrun.sh` does. Score: a driven lane that does not sit on a dead
+wait. One reach.
+
+(3439) **The tranche is capture-locked, and Ramon called the pass early** (2026-10-21, in the commander's session): the
+queue lane and the pool exclude each other, so while a driven item holds the queue lane the pool lane waits, and two
+Opus lanes ran single-threaded on captures with nothing else to do. Ramon's words for the loop: **a capture is never
+stopped halfway** — reprioritising stops *future* captures only — and **a question that wants a cold look waits for the
+pass or calls it early, "like a pit stop"**. So the tranche drains at sixteen (3436, 3437), and 3437 — the pool's `@click`,
+retiring the real cursor where the pool reaches — was booked ahead of the refill order on his word. For the pass: the lane
+count and kind once the click layer leaves the queue lane (two pool lanes ran at once in 3426), a non-capture lane so a
+long capture list is not the tranche's only thread, and the two rules into LOOP. Ramon joins this pass. Score: landings an
+hour while captures queue. One reach.
+
 (3435) **A driven take parts its `cover=0` twin at its first click, by construction** (3427's "for the Loop"): the coverage
 brief's "a trace that parts its twin is a finding, never a pin" wants a driven clause — the first differing frame is not
 earlier than the first input the take does not share with its twin (`samegame`'s first differ against the stanza's first
@@ -9290,13 +9315,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NB — reserved
+## Parked by item 3428, 2026-10-21 — the playback's end and the recordings corpus
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3428a. `read_package`'s clear at the recording's end stays a reading.** run1036 quit on frame 262, the
+  recording's last package, so the arm at `read_package:96–105` never ran: with no file, or at the file's end
+  with `param_4 == 0`, it clears bit 2. `docs/ATTRITION.md`'s claim on it is still a reading. A playback run one
+  frame past the last package would test it: `--end-frame 263` or more on run1036's line, with `[End Frame]
+  LEADERS` beside it for the handicap bit. run900 notes that an automatic shutdown at EOF is not established.
+  Names no score.
+- **3428b. Every capture since 2026-08-26 has its own recording.** `~/Documents/My Games/Rise of Nations/Recorded
+  Games/` holds 942 `.rcx` files, one per match, under a timestamp and not a run number. run1036 matched run349 to
+  its file by the file's open and close times against the run's section. Each recording is a `cover=1` playback
+  twin of its own capture, with no lobby to restage. A tool that names each file's run (from the header's seed and
+  map plus the time window) would turn the corpus into a pool of twins. Names no score.
 
 ## Parked by the next landing, slot NC — reserved
 
@@ -9310,6 +9341,38 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot ND renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NE renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NF — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NF renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NG — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NG renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NH — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NH renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

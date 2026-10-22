@@ -5,7 +5,7 @@ under the harness's names, from the runner's output directory.
     python3 tools/gamelog/filerun.py run893c eastindies-german-diff3-window-6579-6837
     python3 tools/gamelog/filerun.py run893c <tag> --map 18 --dry-run
 
-`~/ron-golden/<run>/map-<N>/gamelog.txt` becomes
+`~/ron-golden/<run>/map-<N>/gamelog.txt` (a playback's `gamelog_p.txt`) becomes
 `<Logs>/gamelog-<run>-<tag>.txt` and `rontrace.log` beside it
 `<Logs>/rontrace-<run>.log` — the names `crates/rondata` pins (Loop 2933,
 2904's line: every journal copied the two by hand under the archive's
@@ -49,7 +49,12 @@ def map_dir(golden, run, style=None):
 def plan(golden, logs, run, tag, style=None):
     """`[(source, destination)]` for the dump and the trace."""
     d = map_dir(golden, run, style)
-    pairs = [(d / 'gamelog.txt', logs / f'gamelog-{run}-{tag}.txt'),
+    # A recorded game's playback writes `gamelog_p.txt` (`GameLog::init`;
+    # `docs/RECGAME.md` §7), and a run holds one or the other (item 3428).
+    dump = d / 'gamelog.txt'
+    if not dump.is_file() and (d / 'gamelog_p.txt').is_file():
+        dump = d / 'gamelog_p.txt'
+    pairs = [(dump, logs / f'gamelog-{run}-{tag}.txt'),
              (d / 'rontrace.log', logs / f'rontrace-{run}.log')]
     for src, _ in pairs:
         if not src.is_file():

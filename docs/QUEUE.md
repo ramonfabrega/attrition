@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-21, **the forty-ninth tranche (commander, Opus): 13 of 20 landed from `11da5dd8`** — 3429: `cover=1` on the pool
-(run1037); 3417–3427: `NEVER` 380 → 331 (run1016–run1034; `@attackground`, `@comeout`, `@sell`/`@buy`, the click layer's
-first pass driven by `handdriver.sh`; residue 80 → 79 on a pool cursor's tooltip); 3431 (Ramon's): the rubric's ages 4 → 6.*
+*2026-10-21, **the forty-ninth tranche (commander, Opus): 14 of 20 landed from `11da5dd8`** — 3429: `cover=1` on the pool
+(run1037); 3417–3428: `NEVER` 380 → 329 (run1016–run1036; `@` lines, the click layer's first pass by `handdriver.sh`, a
+recorded game's playback; residue 80 → 79 on a pool cursor's tooltip); 3431 (Ramon's): the rubric's ages 4 → 6.*
 
 - **Words**: every pair and all thirty battery words closed, **none open** (lower map first — closed); the held-out
   battery eight of eight whole (`Held-out:` pinned; entry 61 §6's stop rule fired, Ramon's). Census 1696 of 3611, port
-  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 331, residue 80 → 79, open 300 →
-  252** (`Blind:` pinned); `never` moves only when a `cover=1` trace enters a function, so the forty-ninth is thirteen
-  `coverage` items (the fifth kind) on the two Opus lanes; the Sonnet seats empty (Ramon's, on 3429's result).
-- **Lanes: att-3428, att-3436.** Next 3437, run 1050. Pools: GOLDEN §146–149, AI §300–301, park MY, NA, NC–ND. The last whole gate: 3424's booking.
-- **Fable backlog: 13 Loop items** (3435, 3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
+  568, layout 1128, the sweep source spent. **The headline is the blind list: `NEVER` 380 → 329, residue 80 → 79, open 300 →
+  250** (`Blind:` pinned); `never` moves only on a `cover=1` trace: `coverage` items on two Opus lanes, Sonnet empty.
+- **Lanes: att-3436, att-3437; the tranche drains at sixteen** (Ramon's pit stop: no refill after these two, then `steer`,
+  with 3437's parity in hand — Loop 3439). Next 3442, run 1057. Pools: GOLDEN §146–149, AI §300–301, park ND–NH. The last whole gate: 3427's booking.
+- **Fable backlog: 16 Loop items** (3441, 3440, 3439, 3435, 3434, 3433, 3432, 3430, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 87.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,33 +36,38 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 331 · residue 79 · open 252
+Blind: never 329 · residue 79 · open 250
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: continue the forty-ninth tranche from docs/QUEUE.md's handoff — commander (Opus): re-arm `tools/lanewait.py
---stalled-child-after 240` on att-3425 and att-3426; refill from the queue, then its refill order (the briefs' shared
-rules are `t49/common.md` in the job tmp); count landings from `11da5dd81`; at twenty, or at the drain, clear `steer`.**
+--stalled-child-after 240` on att-3436 and att-3437; merge and book each, **no refill** (the drain at sixteen); at the
+second, the whole gate, the handoff, then clear `steer` (Ramon joins the pass).**
 
 ## The queue
 
 In dependency order; **the roster is Ramon's** (DECISIONS 84, 85). Every item is a `coverage` capture (DECISIONS 87): one
 pinned lobby retaken at **`cover=1` on the click-free pool** (3429's fix, run1037; the queue lane only for what the mouse drives,
 3427), checked against its `cover=0` twin (`rngcmp.py`, `samegame.py`), pinned into `blind::TRACES`; a function
-not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: `@spell` Bribe, GOLDEN
-§144.3's click layer's third pass, the carrier, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
-
-3428. **coverage: a recorded game's playback at `cover=1`** (ATTRITION's tail): a pinned lobby this install recorded —
-East Indies, the first pair's; run349 (0..251) holds its frames at `cover=0` and no trace holds a playback's entry —
-started with `-config <file>.rcx` from frame 0 (`docs/ORACLE.md`'s option table; `unattended_capture.py --recording`
-is the pool's form, so the queue lane's launch line takes the option): enters `RecordGame::read_package@00952d90` and
-`Game::run_playback@00586ea0` on the first frame; `U3` beside the recording's own capture. Run 1036.
+not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: GOLDEN §144.3's click
+layer's third pass (on the pool if 3437 lands parity), the carrier, the Nomad lobby; ORDERS §42.3; NATIONS §9.2; GROUPS §38; ARMY §26; 3414a.
 
 3436. **coverage: the click layer, second pass** (GOLDEN §144.3): driven on the queue lane by `tools/gamelog/handdriver.sh`
 (3427) at `cover=1` in chapters fifteen, seventeen, eighteen, twenty-one, twenty-three and twenty-five's lobbies —
 `rclick` `0/6 0/9` on `1/6` (734) for `GroupOut::issue_attack`, the planes' `rclick` for `issue_flight`, build button
 427 and a drop for `issue_build`, `rclick` `0/6` on `0/2007` (780) for `issue_swarm_around`, the repeat button (1440)
 for `issue_buildmask` and `Options::set_air_repeat`, cancel `0xa6` for `BuildOut::issue_unqueue`; `CM`'s `process_*`
-on the frame after each. Runs 1044–1049.
+on the frame after each. Runs 1044–1049, 1055–1056.
+
+3437. **coverage: the pool's `@click`, the click layer without the cursor** (GOLDEN §144.3; Ramon's priority: the queue
+lane retires where the pool reaches): a tracer `@click`/`@rclick` line posts the game's own mouse messages to its window
+from inside the process and pins the cursor the game reads to the stanza's point (holding the resting cursor still too,
+Loop 3432); 3427's rows retaken on the pool at `cover=1` with `@click` for `handdriver.sh`'s clicks — the same functions
+on the same frames as run1032–run1034, or the row that parts named. Runs 1050–1053.
+
+3438. **coverage: `@spell` Bribe** (GOLDEN §144.3, §108): chapter eighty-five retaken at `cover=1` on the pool —
+`chapter85.cmd` line for line, the cloaked Spy's `@spell 0 629` at 1112 after its burn reaches 0; its twin is run880:
+enters `SpellType::cast_bribe@00672d00` and `Unit::swap_team@006118d0` on the cast's frame; `U3` a new who=0 unit with the
+old `damage` and `form`. Run 1054.
 
 ## How to maintain this file
 
