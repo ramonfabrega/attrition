@@ -23540,3 +23540,66 @@ SHA-256 `a0813876fdf711abd9100b70262a6f27f05c14ed9ba7d610deb5d80683dd0507`.
 
 Archive `rontrace-run1108.log`, 37,372,704 bytes,
 SHA-256 `86c16b1dcb23e08d7cec868f8eae8deb787847a015f4803b3cea9c684fd15880`.
+
+## run1115 — the golden start at `cover=1` on the click-free pool with the engine's own save and reload on 650 (`--rise AutoSaveLoad=650`), to 700 (2026-10-22, item 3492, `att-3492`)
+
+**What the disk could not answer**: no pinned trace had saved a game. `union.txt` holds no `WalkDataGame::walk_data`,
+`SaveGame::save_game` or `LoadGame::verify_load`, so the goods' and items' +0x7c walkers (`Good::walk_data@0066e5d0`,
+`Item::walk_data@00677150`) were `NEVER` rows. The switch is `Game::auto_save_load`. `Game::solo_checks@00588110` reads
+it off `rise.ini` (`AutoSaveLoad`, `int_str_array +0xdc8c`), and every lane's ini holds `AutoSaveLoad=0`. Nothing in
+the runner wrote the key, so the runner gained `--rise KEY=N`. Every take writes each key it knows, giving it the
+stated default (`AutoSaveLoad=0`) when the flag is absent. The take is run1084's line with that flag plus
+`--cursor 1400,1000 --console-log 0`: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1115 --map 14
+--end-frame 700 --log-window 600 700 --timeout 3600 --detail end:LEADERS=2,BUILDS=7,CITIES=5 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/console3464-start.cmd --cover cover=1 --rise AutoSaveLoad=650 --cursor 1400,1000
+--console-log 0`.
+- Pool lane 1 (`~/wine-ron`). Launched 16:50:02, exited 16:50:20: **18.0 s launch to exit** (26.7 s in all). `success`,
+  settings restored (5 files), lifecycle verified, 701 frames, `last_frame` 700, map 14, seed 12345, tribes 4 and 11,
+  receipt `rise: {AutoSaveLoad: 650}`, `console_log: 0`. DLL `4468c97d…`. 207 GiB free before. Minutes waited on
+  another lane: none.
+- **6,546 functions entered, 288 of them first on 649.** On that frame `Game::do_frame` increments the frame to 650 and
+  calls `SaveGame::save_game`, then `LoadGame::load_game`. The trace enters `SaveGame::save_game`, `do_save` and
+  `verify_save`, then `LoadGame::load_game`, `do_load` and `verify_load`, then `WalkDataGame::walk_data`,
+  `Objects::walk_data`, `PtrArray<Good>::walk_data` and `PtrArray<Item>::walk_data`, and through +0x7c **`Good::walk_data`**
+  and **`Item::walk_data`**. The reload's teardown runs `Good::~Good` and `Item::~Item`.
+- **The save lands in the launch's working directory**: `run1115/map-14/autosaveload.svx`, 318,315 bytes, SHA-256
+  `97cfafa2d11e47d6e1ea06f90f504e72cd364a59151983501769938cee4b5d10`. Nothing goes under `Documents/My Games`. This
+  take ran before the runner learned that, so the file was removed by hand after the take. The runner now removes a new
+  `*.svx` in the output directory and names it in the receipt (`saves_removed`; run1116).
+- **The twin is identical**: `rngcmp.py` against run1116, **701 in common, 0 differing, 701 identical**. `samegame.py`
+  on the two dumps: **101 in common (1..699), 0 differ**.
+- **The reload parts the game it reloads** (parked 3492a). Against run1084 (the same lines, no reload, no cursor pin,
+  mirror on): `rngcmp`, **701 in common, 47 differing, first 654 (harness word 653), 654 identical**. `samegame.py --from
+  650`: **101 in common, 50 differ, first 650; same game before 650 (51 common frames)**. The 650 block's difference is
+  not state: every empty array's four header lines are missing after the load, and `speed set:  2` is printed. With
+  those set aside, every dumped line agrees through 699. The RNG part is one `game` draw on trace frame 653
+  (`Guy::set_anim+0x104b < Guy::inc_time+0x271`) that run1084 makes and run1115 does not.
+- Filed with `filerun.py run1115 golden-autosaveload-650-cover1-clickfree`.
+
+Archive `gamelog-run1115-golden-autosaveload-650-cover1-clickfree.txt`, 15,735,524 bytes,
+SHA-256 `bfd2fab28d5c2465f2700fdb10ca905dfcea0596cf18c82dae04b25dafb5d7b0`.
+
+Archive `rontrace-run1115.log`, 11,821,664 bytes,
+SHA-256 `d6383558bd92e1c4fc3f68e3b7e891723f113123539bebe5747d5cf0c6ded475`.
+
+**What it holds**: `blind::TRACES`' run1115 (item 3492), `NEVER` 253 → 251.
+
+## run1116 — run1115's `cover=0` twin (2026-10-22, item 3492, `att-3492`)
+
+The same line at `--cover cover=0`, with `--rise AutoSaveLoad=650 --cursor 1400,1000 --console-log 0` as run1115.
+- **The first take died** (`~/ron-golden/run1116-fault600`, kept, not filed). Its launch stalled 300 s before frame 0
+  and was relaunched. The relaunch faulted twice on frame 600 under `!cursor tinfo`, in `TerrainOut::get_road_data` at
+  EIP `0x00874518`, reading address 0x66, with the caller `ConsoleWin::run_cmd`. It exited 5 after 601 frames, and the
+  receipt reads `extra lifecycle or fault records` (parked 3492b).
+- **The retake**: pool lane 1, launched 16:57:50, exited 16:58:05, **15.8 s launch to exit** (23.8 s in all). `success`,
+  settings restored (5 files), 701 frames, `last_frame` 700. The runner removed its save,
+  `run1116/map-14/autosaveload.svx`, 318,306 bytes, SHA-256 `394908fb50550ee4f755d0f2051484a7a58fe75faf6c7b746c51c46222cb58cf`.
+  That is 9 bytes fewer than run1115's, with the state identical (parked 3492c).
+- Filed with `filerun.py run1116 golden-autosaveload-650-cover0-clickfree`.
+
+Archive `gamelog-run1116-golden-autosaveload-650-cover0-clickfree.txt`, 15,735,525 bytes,
+SHA-256 `7eded39592be59814a2960041a8994d9cc857edbd35f95e25b14cebae07730d4`.
+
+Archive `rontrace-run1116.log`, 11,617,376 bytes,
+SHA-256 `7c2265cf19d2d0587a0b7433945ec3b339ba46b84cf55f4f17498e70ff5cabba`.
