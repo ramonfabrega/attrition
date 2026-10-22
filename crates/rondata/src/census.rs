@@ -306,7 +306,7 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// Ages a pinned trace's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Unit types seen in a pinned trace's dump, of `unitrules.xml`'s 364.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 70;
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 74;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 // The rubric's parts are counts of their totals (checked at compile time).

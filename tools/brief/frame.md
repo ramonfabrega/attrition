@@ -324,6 +324,33 @@ Before any reading, in order:
   dump books a residue item, in the parked file, for the commander.
 - **Your gate is `--tests blind:: --no-widen`**, the line under
   Landing. You move no word: a draw delta is a word lane's row.
+- **A button pressed right after a `select` can hit an empty cell**
+  (3450; 3443's run1058): the card's options are built the frame
+  after the select (`UnitOut::make_options`), so a press follows its
+  `select` by four frames, or the stanza says why not.
+- **A menu or popup stanza names `@after`, and pairs `@key` with
+  `@char` for Return and Escape** (3452; 3445): a modal window stops
+  `do_frame`, so no frame-keyed `@` line reaches a window its own
+  click opened.
+- **A unit-type button's craft is the unit type, never the spell id**
+  (3457; 3446): `Options::do_spell` substitutes — a carrier's build
+  line is the plane's type, and its cancel is `@unqueueunit`.
+- **A site staged on the golden start names its `library` line**
+  (3459; 3448): a `@build` of a building the age does not allow is
+  processed and dropped without a message.
+- **A dumped field named as a take's evidence names the writer that
+  prints it** (3466; 3456): `COMMANDMANAGER=1`'s `process_ping` goes
+  to the SyncLogger, never the gamelog — the quiet-field rule.
+- **A take that needs a computer's army dead kills it by console `die`
+  on ids read off the twin's window** (3467; 3455), never by an added
+  force against an All-Technologies Toughest computer.
+- **A taunt's effect is booked at the taunt's frame plus 0x3c**
+  (3475; 3470): `receive_taunt` queues every taunt but HELP for sixty
+  frames, and the first take ended twenty short.
+- **A draw-side booking names the list's filler and its gates**
+  (3476; 3472): `sort_all` fills the on-screen list and refuses before
+  the walker's slot; each gate is checked against a dumped field
+  before the capture.
 
 ## build
 

@@ -841,9 +841,10 @@ pub const NEVER: &[u32] = &[
 pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x0047_0e50,
-        "Build::finished (the thunk to Build::finished@00628490): a vtable slot, \
-         +0x1ac of Build, BuildOut, BuildData and Wall, that no instruction \
-         dispatches; the image's one call or jmp through +0x1ac is a Window thunk",
+        "Build::finished (the thunk to Build::finished@00628490): a vtable \
+         slot, +0x1ac of Build, BuildOut, BuildData and Wall, that no \
+         instruction dispatches; the image's one call or jmp through +0x1ac is \
+         a Window thunk",
     ),
     (
         0x0047_df90,
@@ -864,6 +865,90 @@ pub const RESIDUE: &[(u32, &str)] = &[
          orders' vtables (its two vtordisp thunks), and no instruction \
          dispatches that slot on an order (docs/ORDERS.md §1.3, two readings); \
          the live predicate is UnitData::is_fleeing@0046efa0 (item 1182)",
+    ),
+    (
+        0x0058_3380,
+        "GameAccessConst::get_scary_scenario_editor: a GameAccessConst getter \
+         inlined at every use; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_3390,
+        "GameAccessConst::get_scary_iface_main: a GameAccessConst getter \
+         inlined at every use; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_33a0,
+        "GameAccessConst::get_scary_camera: a GameAccessConst getter inlined at \
+         every use; no reference in the executable (the fiftieth pass's scan \
+         over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_33b0,
+        "GameAccessConst::get_scary_fog: a GameAccessConst getter inlined at \
+         every use; no reference in the executable (the fiftieth pass's scan \
+         over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_33c0,
+        "GameAccessConst::get_scary_console: a GameAccessConst getter inlined \
+         at every use; no reference in the executable (the fiftieth pass's scan \
+         over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_33d0,
+        "GameAccessConst::get_scary_iface_current: a GameAccessConst getter \
+         inlined at every use; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_3400,
+        "GameAccessConst::get_scary_terrain: a GameAccessConst getter inlined \
+         at every use; no reference in the executable (the fiftieth pass's scan \
+         over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_3410,
+        "GameAccessConst::get_scary_options: a GameAccessConst getter inlined \
+         at every use; no reference in the executable (the fiftieth pass's scan \
+         over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_3420,
+        "GameAccessConst::get_scary_doobers: a GameAccessConst getter inlined \
+         at every use; no reference in the executable (the fiftieth pass's scan \
+         over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_3450,
+        "GameAccessConst::get_scary_select_group: a GameAccessConst getter \
+         inlined at every use; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_3470,
+        "GameAccessConst::get_scary_scene: a GameAccessConst getter inlined at \
+         every use; no reference in the executable (the fiftieth pass's scan \
+         over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_3480,
+        "GameAccessConst::get_scary_message_win: a GameAccessConst getter \
+         inlined at every use; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_3490,
+        "GameAccessConst::get_scary_graphic_pieces: a GameAccessConst getter \
+         inlined at every use; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0058_34a0,
+        "GameAccessConst::get_scary_console_who: a GameAccessConst getter \
+         inlined at every use; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
     ),
     (
         0x0058_60c0,
@@ -890,9 +975,51 @@ pub const RESIDUE: &[(u32, &str)] = &[
          CommandPackage::process_cheat_ai_toggle flips ai_off inline",
     ),
     (
+        0x0059_3f70,
+        "Game::is_team_game: a Game rule getter inlined at every use; no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0059_4480,
+        "Game::is_raining: a Game rule getter inlined at every use; no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0059_4630,
+        "Game::is_deathmatch: a Game rule getter inlined at every use; no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0059_4640,
+        "Game::is_infinite: a Game rule getter inlined at every use; no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0059_4650,
+        "Game::is_nomad: a Game rule getter inlined at every use; no reference \
+         in the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0059_4660,
+        "Game::is_never_war: a Game rule getter inlined at every use; no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
         0x0059_46c0,
         "Game::is_no_rush: no reference in the executable (docs/AI.md §218, \
          §296; report.py refs reads it dead; the forty-eighth pass)",
+    ),
+    (
+        0x0059_47e0,
+        "Game::is_sandbox: a Game rule getter inlined at every use; no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
     ),
     (
         0x005a_ac70,
@@ -903,10 +1030,38 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "Setup::build_leader: no reference in the executable",
     ),
     (
+        0x005d_86a0,
+        "Guy::set_pitch: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x005d_86b0,
+        "Guy::set_bank: the out-of-line copy of a function the compiler inlined \
+         at every use, or one nothing calls; no reference in the executable \
+         (the fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop \
+         3465)",
+    ),
+    (
+        0x005d_8fb0,
+        "Guy::set_elev_angle: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x005d_8fc0,
         "Guy::set_pivot_angle: no call and no absolute reference in the \
          executable; Unit::move_step's cavalry-archer arm carries it inline \
          (item 1117, docs/COMBAT.md §85.2)",
+    ),
+    (
+        0x005e_2bb0,
+        "Unit::kill_current_action: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x005e_4c80,
@@ -919,6 +1074,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "Unit::add_board_order: lives under the BoardOrder only \
          Group::action_board_ship makes, whose command no site issues \
          (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x005e_5be0,
+        "Unit::do_spec_unit_anim: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x005e_8670,
@@ -950,11 +1112,11 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x005f_4730,
         "Unit::think_supply: no reference in the executable (parked 3421a, the \
-         forty-ninth pass; run1020's supply wagon never entered it): its one hit \
-         is the RVA-shaped rel32 of `call Mountains::get_range` at 006a841b, \
-         inside TerrainGroups::place_all; the live copy is Unit::think@005f6e40's \
-         tail, which reads is_supply (vslot +0xcc, unit_flags & 0x40) and calls \
-         add_to_army itself",
+         forty-ninth pass; run1020's supply wagon never entered it): its one \
+         hit is the RVA-shaped rel32 of `call Mountains::get_range` at \
+         006a841b, inside TerrainGroups::place_all; the live copy is \
+         Unit::think@005f6e40's tail, which reads is_supply (vslot +0xcc, \
+         unit_flags & 0x40) and calls add_to_army itself",
     ),
     (
         0x0060_4550,
@@ -968,9 +1130,65 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "UnitData::can_gather: no reference in the executable",
     ),
     (
+        0x0060_9a20,
+        "UnitData::supplies_left: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x0060_a600,
-        "UnitData::turn_speed: no reference in the executable; the live copy \
-         is GuyData::turn_speed",
+        "UnitData::turn_speed: no reference in the executable; the live copy is \
+         GuyData::turn_speed",
+    ),
+    (
+        0x0060_a6e0,
+        "UnitData::is_blown: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0060_a810,
+        "UnitData::is_entrenched: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0061_d740,
+        "UnitTypeData::get_relative_value: the out-of-line copy of a function \
+         the compiler inlined at every use, or one nothing calls; no reference \
+         in the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0061_daf0,
+        "UnitTypeData::get_underlay_circle_radius: the out-of-line copy of a \
+         function the compiler inlined at every use, or one nothing calls; no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0061_db10,
+        "UnitTypeData::get_circle_radius: the out-of-line copy of a function \
+         the compiler inlined at every use, or one nothing calls; no reference \
+         in the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0061_dc50,
+        "UnitTypeData::is_spellcaster: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0061_dc60,
+        "UnitTypeData::needs_packing: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x0062_2ce0,
@@ -985,12 +1203,40 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "BuildData::num_scholars: no reference in the executable",
     ),
     (
+        0x0062_d5b0,
+        "BuildData::is_infinite: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x0063_0590,
         "BuildData::max_gatherers: no reference in the executable",
     ),
     (
+        0x0063_06b0,
+        "BuildQueueData::get_size: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x0063_3390,
         "BuildType::set_domain: no reference in the executable",
+    ),
+    (
+        0x0063_89b0,
+        "BuildTypeData::area: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0063_9830,
+        "BuildTypeData::is_embassy: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x0063_e390,
@@ -1000,16 +1246,181 @@ pub const RESIDUE: &[(u32, &str)] = &[
          the wall range (docs/GOLDEN.md §144.4; the forty-eighth pass)",
     ),
     (
+        0x0064_6c10,
+        "ObjectData::has_range: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0064_86a0,
+        "ObjectData::assault_benefit: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x0064_e4a0,
         "ObjectData::is_in_range: entered, and no instrument sees it — the \
          tracer cannot hook it (rontrace.funcs.excluded.txt, a branch target \
          inside the displaced range); Unit::do_air_attack_ground+0x92 calls it \
-         on every missile step past its first three tests, and run372's \
-         strike on 2701 fires only past its answer (item 1182)",
+         on every missile step past its first three tests, and run372's strike \
+         on 2701 fires only past its answer (item 1182)",
+    ),
+    (
+        0x0065_b850,
+        "Objects::remove_item: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x0065_cfd0,
         "ObjectsData::find_dock: no reference in the executable",
+    ),
+    (
+        0x0066_3b60,
+        "Type::set_graph_name: a type-table accessor inlined at every use, or \
+         one nothing calls; no reference in the executable (the fiftieth pass's \
+         scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_3b70,
+        "Type::set_type_name: a type-table accessor inlined at every use, or \
+         one nothing calls; no reference in the executable (the fiftieth pass's \
+         scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_3b90,
+        "Type::set_help_name: a type-table accessor inlined at every use, or \
+         one nothing calls; no reference in the executable (the fiftieth pass's \
+         scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_9100,
+        "get_unique_types2: a type-table accessor inlined at every use, or one \
+         nothing calls; no reference in the executable (the fiftieth pass's \
+         scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_9110,
+        "get_type_count2: a type-table accessor inlined at every use, or one \
+         nothing calls; no reference in the executable (the fiftieth pass's \
+         scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_9120,
+        "get_unique_types: a type-table accessor inlined at every use, or one \
+         nothing calls; no reference in the executable (the fiftieth pass's \
+         scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_9130,
+        "get_type_count: a type-table accessor inlined at every use, or one \
+         nothing calls; no reference in the executable (the fiftieth pass's \
+         scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_d810,
+        "TechType::restore: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_d830,
+        "TechType::backup: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_fd40,
+        "GoodTypeData::avail_drop: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_fd50,
+        "GoodTypeData::avail_ctw: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0067_14c0,
+        "SpellType::cast_supplies: Restock Supplies (638) is FROM None and \
+         FROM2 None in craftrules.xml, so SpellTypeData::is_castable@00675bc0 \
+         answers 0 for every caster at its head and SpellType::cast@00676ce0, \
+         the arm's only caller, never reaches its switch; run1081 asked it \
+         (process_spell 638 on 1233) and the wagon's mana_burn stayed 0 (parked \
+         3462a; the fiftieth pass)",
+    ),
+    (
+        0x0067_14f0,
+        "SpellType::cast_jam_radar: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0067_1600,
+        "SpellType::cast_rally: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0067_3e80,
+        "SpellType::cast_pilfer: Pilfer Resources (630) is FROM None and FROM2 \
+         None in craftrules.xml, so SpellTypeData::is_castable@00675bc0 answers \
+         0 for every caster at its head and SpellType::cast@00676ce0, the arm's \
+         only caller, never reaches its switch; run1081 asked it (process_spell \
+         630 on 1231) and neither leader's resources moved (parked 3462a; the \
+         fiftieth pass)",
+    ),
+    (
+        0x0067_7df0,
+        "ItemTypeData::snap_center: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0067_d370,
+        "Ammo::process: the out-of-line copy of a function the compiler inlined \
+         at every use, or one nothing calls; no reference in the executable \
+         (the fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop \
+         3465)",
+    ),
+    (
+        0x0067_e600,
+        "Search::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0067_e700,
+        "Lands::walk_data: an element's dump walk, inlined into its container's \
+         walk, which a `@dumpall` line enters (run1065); no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0068_1b20,
+        "WCoordData::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0068_1c50,
+        "TCoordData::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
     ),
     (
         0x0068_3730,
@@ -1022,13 +1433,63 @@ pub const RESIDUE: &[(u32, &str)] = &[
          PathFinder::astar_path",
     ),
     (
+        0x0068_9cb0,
+        "PathFinder::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0068_a1b0,
+        "MapFairness::point_lowers_highest: a terrain-side getter or builder \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x0069_5050,
         "MapGrass::make_continents: map style 23 (BLANK_MAP), which only \
-         ScenarioEditor::generate_map asks Map::new_map for; the lobby's styles stop at 22",
+         ScenarioEditor::generate_map asks Map::new_map for; the lobby's styles \
+         stop at 22",
+    ),
+    (
+        0x006b_1ba0,
+        "World::get_was_seen: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x006b_22e0,
         "World::clear_danger: no reference in the executable",
+    ),
+    (
+        0x006b_2390,
+        "WorldData::is_dead_build: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x006b_2510,
+        "WorldData::get_who2: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x006b_3020,
+        "WorldData::is_coast: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x006b_3960,
+        "WorldData::get_region2: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x006b_4230,
@@ -1036,8 +1497,36 @@ pub const RESIDUE: &[(u32, &str)] = &[
          (Wall::mark_behind_tiles, Mountains::add_mountain) carry it inline",
     ),
     (
+        0x006b_4290,
+        "World::get_seen: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x006b_46b0,
         "World::set_gathered_at: no reference in the executable",
+    ),
+    (
+        0x006b_4880,
+        "WorldData::is_impassable: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x006b_5590,
+        "WorldData::is_mountains: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x006b_76a0,
+        "World::adjust_fog: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x006b_88b0,
@@ -1064,12 +1553,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
     ),
     (
         0x006d_a740,
-        "LeaderData::get_handicap: all four callers gate on game semaphore bit 2, \
-         the multiplayer flag; the capture lanes are solo",
+        "LeaderData::get_handicap: all four callers gate on game semaphore bit \
+         2, the multiplayer flag; the capture lanes are solo",
     ),
     (
         0x006e_c170,
-        "LeaderData::is_human: no reference in the executable (inlined at every use)",
+        "LeaderData::is_human: no reference in the executable (inlined at every \
+         use)",
     ),
     (0x006f_0230, "Tribe::init: no reference in the executable"),
     (
@@ -1086,6 +1576,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          forty-eighth pass)",
     ),
     (
+        0x0070_f8a0,
+        "GroupData::get_speed: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x0071_37f0,
         "Group::leader_report_speed: no reference in the executable; its three \
          statements stand inline in Unit::do_group_move",
@@ -1095,16 +1592,135 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "Group::report_speed: no reference in the executable",
     ),
     (
+        0x0073_6470,
+        "CityData::get_trade_routes: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_69c0,
+        "CaravanLink::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_8180,
+        "CityData::pop_growth: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_9ab0,
+        "Caster::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_9e20,
+        "Hero::walk_data: an element's dump walk, inlined into its container's \
+         walk, which a `@dumpall` line enters (run1065); no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_b540,
+        "Supply::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_b5d0,
+        "Supply::deplete: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_b880,
+        "UnbuiltCity::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_bb20,
+        "UnbuiltFort::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_c1b0,
+        "UnbuiltWonder::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_c5d0,
+        "Wonder::close: the out-of-line copy of a function the compiler inlined \
+         at every use, or one nothing calls; no reference in the executable \
+         (the fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop \
+         3465)",
+    ),
+    (
         0x0073_c5e0,
         "Wonder::init: no reference in the executable (docs/TECH.md, what is \
          not established: its body is inlined in Wonders::init_wonder and the \
          byte before it is Wonder::close's ret; the forty-eighth pass)",
     ),
     (
+        0x0073_c780,
+        "Wonder::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
         0x0073_e000,
         "Caravan::process: no reference in the executable (its address's one \
-         copy is a coincidence inside .reloc's fixup entries); its body, \
-         `if (making_road) build_road()`, stands inline in Unit::work",
+         copy is a coincidence inside .reloc's fixup entries); its body, `if \
+         (making_road) build_road()`, stands inline in Unit::work",
+    ),
+    (
+        0x0073_ebc0,
+        "Fort::walk_data: an element's dump walk, inlined into its container's \
+         walk, which a `@dumpall` line enters (run1065); no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0073_f650,
+        "OilWell::walk_data: an element's dump walk, inlined into its \
+         container's walk, which a `@dumpall` line enters (run1065); no \
+         reference in the executable (the fiftieth pass's scan over the 192 \
+         open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0074_0060,
+        "SpecialData::get_radius: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0074_1a40,
+        "Herd::walk_data: an element's dump walk, inlined into its container's \
+         walk, which a `@dumpall` line enters (run1065); no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0074_1d50,
+        "Herds::walk_data: an element's dump walk, inlined into its container's \
+         walk, which a `@dumpall` line enters (run1065); no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x0078_be90,
@@ -1142,15 +1758,163 @@ pub const RESIDUE: &[(u32, &str)] = &[
          (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
     ),
     (
+        0x0084_b8d0,
+        "Terrain::convert_errant_sandy: a terrain-side getter or builder \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0089_7a50,
+        "Signposts::cur_y: a terrain-side getter or builder inlined at every \
+         use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0089_7a60,
+        "Signposts::cur_x: a terrain-side getter or builder inlined at every \
+         use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0089_7bc0,
+        "Signposts::get_num: a terrain-side getter or builder inlined at every \
+         use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0089_7e20,
+        "Signposts::add: a terrain-side getter or builder inlined at every use, \
+         or one nothing calls; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0089_be90,
+        "MountainsOut::mnt_locs: a terrain-side getter or builder inlined at \
+         every use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0089_bea0,
+        "MountainsOut::mnt_ranges: a terrain-side getter or builder inlined at \
+         every use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0089_beb0,
+        "MountainsOut::mnt_types: a terrain-side getter or builder inlined at \
+         every use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0089_d3a0,
+        "Mountains::tileset_texture_load: a terrain-side getter or builder \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x008a_4040,
+        "Cliff::walk_data: an element's dump walk, inlined into its container's \
+         walk, which a `@dumpall` line enters (run1065); no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x008a_4060,
+        "Cliff::average_neighbor_norms: a terrain-side getter or builder \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x008a_60c0,
+        "Cliff::render: a terrain-side getter or builder inlined at every use, \
+         or one nothing calls; no reference in the executable (the fiftieth \
+         pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x008b_0060,
+        "TerrainVis::get_verts_per_bucket: a terrain-side getter or builder \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x008b_13b0,
+        "TerrainVis::wcoord_was_cached: a terrain-side getter or builder \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x008b_2a80,
+        "TerrainVis::set_base_source_pool: a terrain-side getter or builder \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x008d_1830,
+        "WorldMapFog::get_fog_lookup: a terrain-side getter or builder inlined \
+         at every use, or one nothing calls; no reference in the executable \
+         (the fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop \
+         3465)",
+    ),
+    (
+        0x008d_9190,
+        "FarmsData::get_wheat_status: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x008d_92d0,
+        "Farms::add_animals: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0092_8f30,
+        "NukeOut::update: the out-of-line copy of a function the compiler \
+         inlined at every use, or one nothing calls; no reference in the \
+         executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0092_d0b0,
+        "angle_diff: the out-of-line copy of a function the compiler inlined at \
+         every use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
         0x0092_fc50,
         "GameLog::dump_armies: no reference in the executable, and gamelog.ini \
          has no ARMY key",
+    ),
+    (
+        0x0093_a140,
+        "SyncPoint::on_player_deleted: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
     ),
     (
         0x0093_ee70,
         "CommandManager::set_mp_playback: multiplayer replay playback, a prefs2 \
          path read under netsys before ReplayWin opens; no skirmish capture \
          reaches it (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x0094_3f30,
+        "CommandPackage::process_console_cmd: its one writer, \
+         CommandManager::issue_console_cmd@00940fd0, packages a 0x209-byte \
+         command and CommandPackage::add_command@0094bae0 refuses any that \
+         would pass 0x200, so every netcmd is dropped before it is packaged; \
+         run1088 entered issue_console_cmd on 640 and printed no \
+         process_command_cmd line at COMMANDMANAGER=2 (parked 3471a; the \
+         fiftieth pass)",
     ),
     (
         0x0094_8cb0,
@@ -1170,115 +1934,50 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "CommandPackage::clear: no reference in the executable",
     ),
     (
+        0x0095_4c60,
+        "TimeSync::test_accept_ping: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0095_6ac0,
+        "TurnControl::is_cannon_time: the out-of-line copy of a function the \
+         compiler inlined at every use, or one nothing calls; no reference in \
+         the executable (the fiftieth pass's scan over the 192 open rows, \
+         2026-10-22, Loop 3465)",
+    ),
+    (
         0x0099_6ac0,
         "ScenarioData::issue_order: a scenario file's initial orders, applied \
          once at ScenarioRead::import, not the trigger system; no capture loads \
          a scenario (docs/GOLDEN.md §144.2, §144.4; the forty-eighth pass)",
     ),
     (
+        0x009b_32f0,
+        "TerrainMap::river_point: a terrain-side getter or builder inlined at \
+         every use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x009b_3320,
+        "TerrainMap::start_river: a terrain-side getter or builder inlined at \
+         every use, or one nothing calls; no reference in the executable (the \
+         fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x009b_5ec0,
+        "TerrainMap::get_terrain_type: a terrain-side getter or builder inlined \
+         at every use, or one nothing calls; no reference in the executable \
+         (the fiftieth pass's scan over the 192 open rows, 2026-10-22, Loop \
+         3465)",
+    ),
+    (
         0x009b_8ac0,
         "UnitBalance::next: its three callers (Game::check_victory, \
          Setup::build_empire, TurnControl::toggle_pause) reach it only under \
-         game semaphore byte 1's bit 2, which Game::run_unit_balance alone \
-         sets — the GAME_UNIT_BALANCE shell mode, not a match (item 1182)",
-    ),
-    (
-        0x009e_5320,
-        "ScenarioFuncSet::get_difficulty: a script getter no shipped skirmish \
-         script calls; only game/conquest/* and ctw_lib.bhs do (docs/NATIONS.md \
-         §9.1, §9.3; the forty-eighth pass)",
-    ),
-    (
-        0x009f_45e0,
-        "ScenarioFuncSet::toggle_infinite_queue: a script function with one \
-         caller in the install, scenario/Custom/capture/capture.bhs; scenarios \
-         are cut from v1 (docs/GOLDEN.md §144.4; the forty-eighth pass)",
-    ),
-    (
-        0x009f_99e0,
-        "ScenarioFuncSet::repeat_orders_enable: a script function no script in \
-         the install calls (docs/GOLDEN.md §144.4; the forty-eighth pass)",
-    ),
-    (
-        0x009f_9ad0,
-        "ScenarioFuncSet::repeat_orders_disable: a script function no script in \
-         the install calls (docs/GOLDEN.md §144.4; the forty-eighth pass)",
-    ),
-    (
-        0x009f_b790,
-        "ScenarioFuncSet::buy_good: a script function no shipped skirmish \
-         script calls (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
-    ),
-    (
-        0x009f_b880,
-        "ScenarioFuncSet::sell_good: a script function no shipped skirmish \
-         script calls (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
-    ),
-    (
-        0x009f_b970,
-        "ScenarioFuncSet::can_buy_sell: a script function no shipped skirmish \
-         script calls (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
-    ),
-    (
-        0x009f_b9e0,
-        "ScenarioFuncSet::find_sell_price: a script function no shipped \
-         skirmish script calls; its one caller in the install is \
-         game/conquest/Alexander/sogdiana.bhs (docs/NATIONS.md §9.1, §9.3; the \
-         forty-eighth pass)",
-    ),
-    (
-        0x009f_bab0,
-        "ScenarioFuncSet::find_buy_price: a script function no shipped skirmish \
-         script calls (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
-    ),
-    (
-        0x009f_bb80,
-        "ScenarioFuncSet::set_base_rate: a script function called only by \
-         game/conquest/* and four scenario/* scripts, never an AI script \
-         (docs/ECONOMY.md, base_rate; the forty-eighth pass)",
-    ),
-    (
-        0x009f_f5e0,
-        "ScenarioFuncSet::enable_production_ai: a scenario switch reached only \
-         through the script host's table and called only by scenario scripts, \
-         cut from v1 (docs/AI.md §1, §296; docs/CENSUS.md row 10; the \
-         forty-eighth pass)",
-    ),
-    (
-        0x009f_f620,
-        "ScenarioFuncSet::set_auto_peasant_level: reached only through the \
-         script host's table, and only the three tutorials call it; scenarios \
-         are cut from v1 (docs/ORDERS.md §42.1, §42.4; the forty-eighth pass)",
-    ),
-    (
-        0x009f_f860,
-        "ScenarioFuncSet::disable_combat_ai: a scenario switch reached only \
-         through the script host's table and called only by scenario scripts, \
-         cut from v1 (docs/AI.md §1, §296; the forty-eighth pass)",
-    ),
-    (
-        0x009f_f8e0,
-        "ScenarioFuncSet::disable_all_unit_ai: a scenario switch reached only \
-         through the script host's table and called only by scenario scripts, \
-         cut from v1 (docs/AI.md §1, §296; the forty-eighth pass)",
-    ),
-    (
-        0x009f_fa10,
-        "ScenarioFuncSet::disable_unit_ai: a scenario switch reached only \
-         through the script host's table and called only by scenario scripts, \
-         cut from v1 (docs/AI.md §1, §296; the forty-eighth pass)",
-    ),
-    (
-        0x009f_fbf0,
-        "ScenarioFuncSet::disable_city_ai: a scenario switch reached only \
-         through the script host's table and called only by scenario scripts, \
-         cut from v1 (docs/AI.md §1, §296; the forty-eighth pass)",
-    ),
-    (
-        0x00a0_0220,
-        "ScenarioFuncSet::set_capital: a script setter no shipped skirmish \
-         script calls; only seventeen game/conquest/* scripts do \
-         (docs/NATIONS.md §9.1, §9.3; the forty-eighth pass)",
+         game semaphore byte 1's bit 2, which Game::run_unit_balance alone sets \
+         — the GAME_UNIT_BALANCE shell mode, not a match (item 1182)",
     ),
     (
         0x00a4_69f0,

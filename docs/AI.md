@@ -25416,10 +25416,15 @@ Rows 1–8 and 9's first half are nine lobbies the click-free lane starts with n
 - `GoodTypeData::is_flat@004780c0` — no call; only GoodType's vtable slot `+0x94` (three `.rdata` entries), and both
   of `World::gather_at`'s sites inline its body (§24.3). *Lower confidence*: an indirect `+0x94` call on a GoodType
   receiver would reach it; none is known.
-- `ScenarioFuncSet::enable_production_ai@009ff5e0`, `disable_combat_ai@009ff860`, `disable_all_unit_ai@009ff8e0`,
+- ~~`ScenarioFuncSet::enable_production_ai@009ff5e0`, `disable_combat_ai@009ff860`, `disable_all_unit_ai@009ff8e0`,
   `disable_unit_ai@009ffa10`, `disable_city_ai@009ffbf0` — reached only through the script host's table, called only
   by scenario scripts (§1), and scenarios are cut from v1; `docs/CENSUS.md` row 10 holds them. A Tutorial 3 load at
-  `cover=1` would enter three (`tut3.bhs:79`–`:80`, `:356`) if the scope changes.
+  `cover=1` would enter three (`tut3.bhs:79`–`:80`, `:356`) if the scope changes.~~ **Struck by the fiftieth pass
+  (Loop 3473)**: the console's `!eval` runs one BHS expression against every registered function set, and
+  `ScenarioFuncSet` is registered in every skirmish (run1088 entered `set_bonus_cap` and `rand_real` that way), so a
+  `!eval disable_city_ai(1)` line enters them — a capture can break the claim, so the five rows left `RESIDUE` with the
+  twelve other `ScenarioFuncSet` rows that rested on "no script calls it", and the fifty-first tranche's `!eval` item
+  takes them.
 
 **What this has *not* established.** That the click-free lane's `cover=1` take holds each lobby's word (run906's
 proof is one game); that two computers ever accept each other's offer (row 11); that no indirect call reaches

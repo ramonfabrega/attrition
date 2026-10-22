@@ -318,6 +318,35 @@ The rows continue; the first section's opening paragraph applies.
   line): `memcap.sh <gib> <command…>`, `12` for one filter and `20` for
   the suite — the frame once said "under `tools/memcap.sh`" and one run
   came of the bare form, refused by the usage line.~~
+## The brief checklist, from the fiftieth pass
+
+The fiftieth tranche (DECISIONS 89): twenty landings on two Opus lanes
+in 13 h 06 from the base to the drain, every one a `coverage` take on
+the click-free pool; 7.40 USD and 52.0 minutes waiting a landing; one
+red booking gate (3442's gate quote), three `DEEP`, no stall; `NEVER`
+321 → 273, and the pass's ratification took the open list 192 → 91. The
+pass added these rows, each from a lane's own "for the Loop" line.
+
+- **A button pressed right after a `select` can hit an empty cell**
+  (3450; 3443's run1058): the second take pressed on 620 while the
+  card still held the group's options.
+- **A menu or popup stanza names `@after`, and pairs `@key` with
+  `@char`** (3452; 3445): the rename popup and the in-game menu held
+  the solo game's frame.
+- **A unit-type button's craft is the unit type** (3457; 3446): the
+  chapter's row and the item both wrote `@spell … 661`, which queued
+  nothing.
+- **A site on the golden start names its `library` line** (3459;
+  3448): a disallowed `@build` is dropped silently.
+- **A booked field names its writer** (3466; 3456): `process_ping`
+  never reaches the gamelog.
+- **An army is killed by `die` on the twin's ids** (3467; 3455):
+  the booked Battleships lost to the Persians' navy.
+- **A taunt's effect lands at +0x3c** (3475; 3470): the first take
+  ended twenty frames short.
+- **A draw-side booking names the list's filler** (3476; 3472): the
+  gates checked were the walker's, not `sort_all`'s.
+
 ## The brief checklist, from the forty-ninth pass
 
 The forty-ninth tranche (DECISIONS 88): sixteen landings on two Opus

@@ -1430,7 +1430,7 @@ fn a_function_a_booking_names_is_in_the_export() {
 
 /// How many of `rondata::blind::RESIDUE`'s rows say "no reference in the
 /// executable" — the dead list's length, pinned so a new row is a decision.
-const UNREFERENCED: usize = 32;
+const UNREFERENCED: usize = 147;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
@@ -1464,6 +1464,11 @@ const DEAD_CITED: &[(&str, u32)] = &[
     ("AI.md", 0x005f4720),
     ("AI.md", 0x005f4730),
     ("RUNS.md", 0x005f4730),
+    // The fiftieth pass's one (Loop 3465, DECISIONS 89): the scan over the
+    // 192 open blind rows found 115 dead, and `Wonder::close` is the only
+    // one a top-level document cites — TECH's reading already says nothing
+    // falls through into it; the live copy is `Wonders::close_wonder`.
+    ("TECH.md", 0x0073c5d0),
     ("AI.md", 0x006b46b0),
     ("ARMY.md", 0x006ec170),
     ("CARAVAN.md", 0x0073e000),
