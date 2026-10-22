@@ -7834,3 +7834,17 @@ the pool's cap wait against 17.9 minutes and its median rate against
 gate minutes against 289.9; `DEEP` against three; the backlog against
 13; the disk against 225 GiB; whether the reference scan at the
 next pass finds a dead row among the 91.
+
+**Amended the same day, with Ramon**: the queue lane retires (3485;
+parked 1570 closes — a need for it again is a steer, never a lane's
+redirect); the headline after the fifty-first tranche moves from the
+blind list to the rubric (unit types seen 74 of 364, the late ages' air
+and sea; lobbies booked for the rubric, the blind list's open rows kept
+as a floor and scanned at every pass); and the byte-identical logger is
+spiked as a lane item (3484) after 3483's split, opt-in and default off.
+Loop 3486 files the retirement mechanism the queue lane's retirement
+asked for. Ramon's words: "we should never have to use queue lane
+again"; "if something needs a queue lane again, it probably means we
+early steer"; "we need a mechanism to retire/clean up unused
+tools/docs"; "I'm ok with removing blind list for the rubric"; "we
+should spike out the byte-identical logger".

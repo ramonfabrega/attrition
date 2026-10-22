@@ -3774,6 +3774,12 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
+(3486) **A retirement mechanism for unused tools, docs and clauses** (Ramon, the fiftieth steer): the tree holds every tool and
+clause it ever grew — the queue lane was the first one retired by hand (3485). Candidate: a pass tool, `tools/retire.py`, that lists each
+`tools/` script, each `docs/*.md` section and each LOOP/frame clause that nothing in the tree, the briefs since N tranches or the last ten
+passes' records names, so a pass compresses the tree the way `docs_guard` bounds a section — and the queue's `Fable backlog:` count moves
+with it. Score: the tree's size against what the loop reads. One reach: the pass's.
+
 (3482) **Sixty-seven of the 91 open blind rows name no staging, each for a reason** (the fiftieth pass's drafting subagent,
 `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md`, `## Not drafted`; the scan beside it): residue candidates — the three CPU
 detection rows (host state: `cpunormspeed` runs on frame −1 without `cpuspeed`), `do_group_attack`/`do_await_board`/`process_move_near`
@@ -9646,6 +9652,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot NY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot NZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot NZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OC renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OD — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OD renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot OE — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot OE renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

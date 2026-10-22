@@ -16,13 +16,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 blind list scanned and ratified 192 → 91; the fifty-first booked against what a capture can enter.** `docs/audit/2026-10-22-fable-pass-50.md`; DECISIONS 89.*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 273, residue 81 → 182, open 192 → 91** (`Blind:` pinned): the pass scanned the open rows for references (`report.py <exe>
-  refs -`) — 115 dead, ratified by family (Loop 3465); 3462a, 3471a accepted; seventeen `ScenarioFuncSet` rows `!eval` reaches struck (3473).
-- **What a capture can still enter**: 74 called or pointed-at rows and the 17 struck — 3477 takes eighteen in one `!eval` take; the
-  drafting subagent's reading of all 91 is `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482 holds its `## Not drafted` 67).
-- **Lanes: none live; six booked** (3477–3481, 3483). Next 3484, run 1102. Pools: GOLDEN §149–154, AI §300–301, park NX–NY; 1570 is Ramon's.
+  `NEVER` 273, residue 81 → 182, open 192 → 91** (`Blind:` pinned; 115 dead by reference scan, Loop 3465; 3462a, 3471a; 3473's seventeen).
+- **Amended with Ramon** (DECISIONS 89): the queue lane retires (3485; 1570 closes — a need for it again is a steer); after this tranche the
+  headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); the fast logger is 3484, off.
+- **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
+- **Lanes: none live; eight booked** (3477–3481, 3483–3485). Next 3487, run 1102, then 1109. Pools: GOLDEN §149–154, AI §300–301, park NZ–OE.
   For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b.
-- **Fable backlog: 13 Loop items** (3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 89.
+- **Fable backlog: 14 Loop items** (3486, 3482, 3441, 3440, 3433, 3432, 3382, 2003, 3350, 3237, 3188, 3143, 3118, 1570); DECISIONS 89.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -41,7 +41,7 @@ Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 o
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: continue the fifty-first tranche from this handoff — commander (Opus): spawn 3477 and 3478 on the two Opus lanes
-(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order, then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
+(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill in order (3479–3481, 3483–3485), then by the refill order; twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
 
@@ -93,6 +93,21 @@ per-category `fflush` — entry/exit stamps on the three, emitted as info record
 `LEADERS=9` alone and at `stride=2`: the journal names the split in seconds and bytes a frame, and whether a byte-identical
 replacement writer in the tracer is worth an item (the dump's bytes are the oracle, so a writer is checked by `cmp` against the
 twin). No simulation change; the trace is not pinned. Run 1101; park NW.
+
+3484. **coverage: a byte-identical fast writer for the gamelog, in the tracer, opt-in** (Ramon, the fiftieth steer; takes 3483's split):
+the pool's rate is the megabytes a dumped frame (1.4–9.5 MB and 2–20 s each on run1082/1086/1090; `cover=1` a tenth of it), each field one
+wide `fwprintf` of an engine `String` through Wine's text-mode conversion. A `rontrace.cfg` key `fastlog=1`, default off, hooks the game_log's
+writes — at whichever of `Log::say`'s formatting, the `fwprintf`/`fputwc` imports or the per-category `fflush` 3483's split names — and writes
+the same bytes through one large buffer and `WriteFile`: byte-identical by `cmp` of `gamelog.txt` against an unhooked twin on three lobbies (the
+golden start, Great Lakes map 14, run1084 the disk's answer for its bytes; the coverage pair; run1090's team lobby), the seconds a dumped frame
+beside. No simulation change; the trace not pinned; the default stays off until a pass flips it. Runs 1103–1108; park NX.
+
+3485. **retire the queue lane** (Ramon, 2026-10-22; closes parked 1570): `tools/gamelog/runqueue.sh`, `handdriver.sh` and the queue lane's arm
+of `lanes.sh` leave the tree, with the lane lock's exclusion against the pool and every test that stages the queue lane (`test_capture_lanes.py`'s
+queue rows, the `RON_LANE` arms); `docs/ORACLE.md`'s queue-lane sections are struck in place and point here; the queue-lane clauses of
+`docs/LOOP.md` and `tools/brief/frame.md` are removed outright (machinery, amended in place), LOOP's brief clause gaining "a need for the queue
+lane again is a steer, never a lane's redirect". No game is run; the gate whole (`release_gate.py`, no `--tests`), since the lane tests move.
+Not before 3477 and 3478 are spawned; a third item on a lane. Park NY.
 
 ## How to maintain this file
 
