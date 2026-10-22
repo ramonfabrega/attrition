@@ -170,9 +170,11 @@ class ThePool(unittest.TestCase):
         self.assertRegex(self.log(1), r' waited 0 \d+ \d+\n')
 
 
-class TheQueueLaneAndThePool(unittest.TestCase):
-    """The queue lane finds the game's window by title (item 1569): it never
-    runs beside a pool game, and the pool never beside it."""
+class OnlyTheLanesOwnLockRefuses(unittest.TestCase):
+    """The queue lane retired (item 3485, 2026-10-22; parked 1570): item
+    1569's exclusion — a pool take refused while lane 1 was held by
+    anything but the pool, a non-pool take refused while any pool lane was
+    held — went with it. A take is refused by its own lane's lock alone."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
@@ -187,21 +189,24 @@ class TheQueueLaneAndThePool(unittest.TestCase):
             env['RON_LANE_POOL'] = '1'
         return shell(f'source {ROOT}/tools/gamelog/winelaunch.sh; ron_lane_take {pid}', **env)
 
-    def test_the_queue_lane_refuses_while_a_pool_lane_is_held(self):
+    def test_a_hand_take_beside_a_pool_lane_is_not_refused(self):
         self.assertEqual(self.take(2, self.sleeper.pid, pool=True).returncode, 0)
         done = self.take(1, os.getpid(), pool=False)
-        self.assertEqual(done.returncode, 75, done.stderr)
-        self.assertIn('a pool lane is held', done.stderr)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertRegex(Path(self.root, 'wine-ron/.lane.log').read_text(), r' take 1 \d+ hand\n')
 
-    def test_a_pool_take_refuses_while_the_queue_lane_holds_lane_one(self):
+    def test_a_pool_take_beside_a_hand_held_lane_one_is_not_refused(self):
         self.assertEqual(self.take(1, self.sleeper.pid, pool=False).returncode, 0)
         done = self.take(2, os.getpid(), pool=True)
-        self.assertEqual(done.returncode, 75, done.stderr)
-        self.assertIn('the queue lane holds', done.stderr)
+        self.assertEqual(done.returncode, 0, done.stderr)
 
     def test_pool_lanes_take_beside_each_other(self):
         self.assertEqual(self.take(1, self.sleeper.pid, pool=True).returncode, 0)
         self.assertEqual(self.take(2, os.getpid(), pool=True).returncode, 0)
+
+    def test_the_lane_s_own_lock_still_refuses(self):
+        self.assertEqual(self.take(1, self.sleeper.pid, pool=True).returncode, 0)
+        self.assertEqual(self.take(1, os.getpid(), pool=True).returncode, 75)
 
 
 class TheWaiter(unittest.TestCase):

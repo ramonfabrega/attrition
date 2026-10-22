@@ -74,12 +74,12 @@ falsifying capture, and gates on `python3 tools/release_gate.py
 blind:: --no-widen`. **The fifth is `coverage`** (entry 87): a lane
 that retakes one pinned lobby at `cover=1` **on the click-free pool**
 (entry 88: `cover=1` runs there since 3429, and a click is an `@click`
-line since 3437, so the queue lane is only for what no `@` line sends —
-a key until `@key` lands, the menu's own code), checks the
+line since 3437), checks the
 trace against its `cover=0` twin — `samegame.py --from` the first
 unshared input, where the take sends one — and pins it into
 `blind::TRACES`, so the functions a reading's captures-owed table names
-leave `NEVER`; it gates on the same line.
+leave `NEVER`; it gates on the same line. **A need for the queue lane
+again is a steer, never a lane's redirect** (item 3485, DECISIONS 89).
 
 ## The worker's landing
 

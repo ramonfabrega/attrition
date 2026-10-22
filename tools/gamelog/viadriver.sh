@@ -2,7 +2,7 @@
 # viadriver.sh <script> [args...] — run a capture outside Claude Code's process
 # tree, so its macOS permissions survive the next Claude Code update.
 #
-#   zsh tools/gamelog/viadriver.sh tools/gamelog/runqueue.sh - 197
+#   zsh tools/gamelog/viadriver.sh tools/explore/golden_capture.sh …
 #
 # Everything the capture needs — `cliclick`'s synthetic clicks (Accessibility),
 # `screencapture` (Screen Recording), `osascript`'s window queries (Automation)
@@ -16,10 +16,11 @@
 #
 # The run is detached: `open` returns as soon as LaunchServices has the app.
 # Wait on it with `waitrun.sh <the log this prints>` under the harness's
-# background lane — it blocks until `runqueue.sh`'s summary banner lands in
-# that log, or the runner dies without one, and exits with the verdict. The
-# banner goes to the runner's stdout, which is this log and never the
-# `runqueue-<ts>.log` beside it (item 571 watched the wrong one for two hours).
+# background lane — it blocks until the runner's verdict (its receipts, or a
+# capture script's `=== captured: ` line) lands in that log, or the runner
+# dies without one, and exits with the verdict. The verdict goes to the
+# runner's stdout, which is this log and never one beside it (item 571
+# watched the wrong one for two hours).
 set -e
 
 APP=${RONDRIVER_APP:-$HOME/bin/RonDriver.app}

@@ -26,7 +26,6 @@ SUITES = (
     'test_census_layers',
     'test_viadriver',
     'test_waitwin',
-    'test_runqueue',
     'test_startcapture',
     'test_brief',
     'test_gates',

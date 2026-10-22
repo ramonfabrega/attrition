@@ -91,5 +91,41 @@ class TheWaiterReadsItsBanner(unittest.TestCase):
         self.assertIn('gamelog/startcapture.sh', default.group(1))
 
 
+
+class LongtraceLobbyIsPutBack(unittest.TestCase):
+    """`longtrace.sh`'s half of parked 987, moved here from
+    `test_runqueue.py` when item 3485 retired the queue lane's runner:
+    `mapstyle.py` writes the profile and `check.ini`, and the script puts
+    both back wherever it restores the INIs."""
+
+    def code(self):
+        text = (ROOT / 'tools/gamelog/longtrace.sh').read_text()
+        return [(i + 1, l) for i, l in enumerate(text.split('\n'))
+                if not l.lstrip().startswith('#')]
+
+    def test_the_lobby_is_saved_before_the_first_write_to_it(self):
+        code = self.code()
+        save = next((i for i, l in code if re.match(r'\s*save_lobby\b', l)), None)
+        write = next(i for i, l in code if 'mapstyle.py' in l)
+        self.assertIsNotNone(save, 'longtrace.sh never saves the lobby')
+        self.assertLess(save, write)
+
+    def test_every_restore_of_the_inis_restores_the_lobby(self):
+        code = self.code()
+        restores = [n for n, (i, l) in enumerate(code) if 'window.py" restore' in l]
+        self.assertGreaterEqual(len(restores), 2)
+        for n in restores:
+            self.assertRegex(code[n + 1][1], r'^\s*restore_lobby\b',
+                             f'line {code[n][0]} restores the INIs and not the lobby')
+
+    def test_the_save_is_not_conditional(self):
+        body = (ROOT / 'tools/gamelog/longtrace.sh').read_text()
+        fn = re.search(r'^save_lobby \(\) \{\n(.*?)^\}', body, re.S | re.M)
+        self.assertIsNotNone(fn)
+        self.assertNotIn('if ', fn.group(1))
+        self.assertIn('Player.dat', fn.group(1))
+        self.assertIn('check.ini', fn.group(1))
+
+
 if __name__ == '__main__':
     unittest.main()

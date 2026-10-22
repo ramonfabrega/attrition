@@ -4070,23 +4070,11 @@ Loop 2003's reaches, continued from the row above (the section stood at 15,999 o
 
 ## Loop, filed 2026-10-06 — the twenty-sixth tranche's
 
-(1570) **Retire the queue lane** (the twenty-sixth pass, with Ramon,
-2026-10-07, at 1568's landing): the click-free lane is pooled now
-(1569) and the mouse lane is the one lane that cannot join it — it owns
-the cursor and finds its window by title, so it must not run beside a
-pool game (1568's finding, documented and not guarded until 1569's
-exclusion). Two things keep it alive: `cover=1` never runs on the
-click-free build (1047), and the autostart cannot start every lobby.
-Whether that is a timing problem at the autostart or two tracer builds
-that do not combine is not known. Score: a `cover=1` capture and a
-lobby the autostart could not start, both on a pool lane with no
-cursor; then the queue lane goes and the pool is the only lane. One
-reach; the suite lane's after 1569. **The twenty-seventh pass**: stays — a capture trial (`cover=1` on a pool lane, a lobby the autostart cannot start) the user books; no lane ran it this tranche. **The twenty-eighth pass**: stays — the user's capture trial; no lane ran it in the race, which took no lane but the four arms. **The twenty-ninth pass**: stays — the user's capture trial; no lane ran it. **The thirtieth pass**: stays — the user's capture trial; no lane ran it. **The thirty-first pass**: stays — the user's capture trial; no lane ran it. **The thirty-second pass**: stays — the user's capture trial; no lane ran it. **The thirty-third pass**: stays — the user's capture trial; no lane ran it. **The thirty-fourth pass**: stays — the user's capture trial; no lane ran it. **The thirty-fifth pass**: stays — the user's capture trial; no lane ran it. **The thirty-sixth pass**: stays — the user's capture trial; no lane ran it. **The thirty-seventh pass**: stays — the user's capture trial; no lane ran it. **The thirty-eighth pass**: stays — the user's capture trial; no lane ran it. **The thirty-ninth and fortieth passes**: stays — the user's capture trial; no lane ran it. **The forty-first pass**: stays — the user's capture trial; no lane ran it. **The forty-second pass**: stays — the user's capture trial; no lane ran it. **The forty-third pass**: stays — the user's capture trial; no lane ran it. **The forty-fourth pass**: stays; the click-free lane carried every capture of the tranche (run944–952b). Ramon's. **The forty-fifth pass**: stays; the click-free lane carried every capture of the tranche (sixty-seven, run954–978f). Ramon's. **The forty-sixth pass**: stays — the user's capture trial; no lane ran it. **The forty-seventh pass**: stays — the user's capture trial; no lane ran it, the tranche's thirty captures all on the click-free lane. **The forty-eighth pass**: the forty-ninth tranche is `cover=1` captures, and the frame sends every one to the queue lane (run461's recipe), because run185's hang on the click-free build is the last word on `cover=1` there (parked 1047). A worker who needs the pool for a `cover=1` take is told the trial is yours. Ramon's. **The same day, with Ramon**: the trial is booked as item 3429, beside 3417; the queue lane's retirement is still yours, on 3429's result. **The forty-ninth tranche, 3429's "for the Loop"**: `cover=1` runs on the click-free pool (run1037, 601 frames, `rngcmp` 0 differing against run847 and run1016); retiring the queue lane now waits only on a lobby the autostart cannot start. **The forty-ninth pass**: `@click` (3437) retook 3427's three driven games on the pool draw for draw, so the queue lane is left with a key (`bindkey.py`'s `FORM_*`: `Options::do_rotate`, `do_formation`, `GroupData::get_form_option`), the menu's own code (3429b, no `NEVER` row known) and a lobby the autostart cannot start (none named in forty-nine tranches; the Nomad lobby is `--profile STARTING_TOWN=0` on the pool). The fiftieth tranche books `@key` through `SysMessageHandler::OnKey` (+0xc) and `OnChar` (+0x10) the way 3437 built `@click`; when it lands, the pass recommends the queue lane retires to a tool for the menu's code, its captures.txt shape kept. Ramon's. **3442's "for the Loop"**: `@key` landed (run1057: three `--bindkey` keys at 740, 800, 860 enter `do_formation`,
-`get_form_option`, `do_rotate`); the queue lane holds no click-layer need — what a key does, the pool does — and is left
-with the menu's own code (3429b) and a lobby the autostart cannot start. A modifier key is one `GetKeyState` IAT hook
-(3442a), the step 3444 needs. Ramon's. **3447's "for the Loop"**: the Nomad lobby is not one the autostart cannot start — run1068 and run1068b
-(`--profile STARTING_TOWN=0`, AI on) both ran 601 frames on the pool; the queue lane's one remaining reason is the menu's own
-code (3429b), and no lobby the autostart refuses is named. Ramon's. **The fiftieth pass**: `@key` landed on the pool (3442, run1057: the three formation functions on the key's frame, parity with run52) and the Nomad lobby started there (3447, run1068), so the queue lane's one remaining reason is the menu's own code (3429b), which names no `NEVER` row; 3445's handdriver scout met an Accessibility refusal (3445a) and no take needed the lane. **The pass recommends the lane retires now** — `runqueue.sh`/`handdriver.sh` kept as tools for the menu's code, the lane lock's exclusion with the pool dropped; the retirement is yours. Ramon's.
+(1570) closed 2026-10-22 by item 3485: **the queue lane retired** —
+Ramon's word at the fiftieth steer (DECISIONS 89): `runqueue.sh` and
+`handdriver.sh` left the tree with their tests, the lane lock no longer
+tells the pool from any other take, `waitrun.sh` reads no queue banner, and
+a need for the queue lane again is a steer, never a lane's redirect.
 
 ## Loop, filed 2026-10-05 — the twenty-fourth pass's own
 
@@ -9759,13 +9747,28 @@ the archive's twins. Score: none named until a booked row is found behind the ga
   against run1108's 53.8 s. The cause is not read. `dumptime.py`'s `rest` column holds it, so it is outside the
   gamelog's writers. Names no score. Killed by: a lane-2 take with the same 32-frame stall.
 
-## Parked by the next landing, slot NY — reserved
+## Parked by item 3485, 2026-10-22 — the queue lane retired
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3485a) **The hand launchers now run beside the pool unrefused**
+(item 3485): with the queue lane's exclusion gone, `ron_lane_take`
+refuses only on its own lane's lock, so `longtrace.sh`,
+`startcapture.sh`, `live.sh`, `runwin.sh`, `roadcapture.sh`,
+`censuswindow.sh` and `tools/fuzz/{run,gate}.sh` — lane-1 launchers, the
+`cliclick` ones finding the game's window by title — would start beside a
+pool game, and a title-matched click could land in the pool's window. No
+item calls them (the frame sends every capture to the pool); they stay
+in the tree because `captures.txt`'s stanzas and the census name them.
+Candidate: each retires with the queue lane, or refuses while a pool lane
+is held, as the queue lane did. Score: none until a hand launch is
+booked — a steer's, per LOOP's brief clause. One reach.
+
+(3485b) **`captures.txt` keeps eleven `driver: tools/gamelog/handdriver.sh`
+stanzas** (items 3427 and 3436's driven takes): the file is a ledger and
+its stanzas are history; the driver they name has left the tree, so a
+stanza re-run as written would fail at its first click. Nothing re-runs
+them — the runner that walked the file left with it. Candidate: a lint
+that a `driver:` names a file in the tree, scoped to stanzas without an
+archive. Score: none. One reach.
 
 ## Parked by the next landing, slot NZ — reserved
 

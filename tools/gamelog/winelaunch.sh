@@ -172,31 +172,13 @@ _ron_lane_write () {
   done
 }
 
-# **The pool and the queue lane exclude each other** (item 1569). The
-# click-free runner's takes carry `RON_LANE_POOL=1` and mark their holder
-# `pool`; any other take is the queue lane's (or a hand's), which owns the
-# cursor and finds the game's window by title — so it refuses while any
-# pool lane is held, and a pool take refuses while lane 1 is held by
-# anything but the pool. A lock is read by `_ron_lane_holder --any` on its
-# own path, so the check costs a few `kill -0`s.
-_ron_other_lane_held () {
-  # Prints the first lock in `RON_LANE_PREFIXES` other than this one that
-  # a live pid holds — with $1 = pool, only one whose holder is not the
-  # pool's; with $1 = any, any holder.
-  local prefix lock line held
-  for prefix in $RON_LANE_PREFIXES; do
-    lock=$prefix/.lane.lock
-    [[ "$lock" == "$RON_LANE_LOCK" ]] && continue
-    [[ -r "$lock" ]] || continue
-    held=$(RON_LANE_LOCK=$lock _ron_lane_holder --any) || continue
-    line=$(sed -n 2p "$lock")
-    if [[ "$1" == any || "$line" != pool\ * ]]; then
-      print -r -- "$lock ($line, pid $held)"
-      return 0
-    fi
-  done
-  return 1
-}
+# **The pool no longer excludes the queue lane** (item 3485, 2026-10-22).
+# Item 1569 had the click-free runner's takes and every other take refuse
+# each other, because the queue lane (`runqueue.sh`) owned the cursor and
+# found the game's window by title; the queue lane retired with item 3485,
+# so a take is refused only by its own lane's lock. The pool's takes still
+# carry `RON_LANE_POOL=1` and mark their holder `pool `, which is what
+# `tools/gamelog/lanes.py` counts.
 
 _ron_lane_log () {
   # One line beside the lock, `.lane.log`: epoch, instant, verb, lane, pid,
@@ -212,20 +194,10 @@ ron_lane_take () {
   # its game lives (parked 1234, the twenty-first pass: run467's game had
   # exited, the lane read `stale`, and another lane's long trace launched
   # while the runner's `finally` was still putting the profile back).
-  local other
-  if [[ -n "${RON_LANE_POOL:-}" ]]; then
-    if other=$(RON_LANE_PREFIXES=($RON_LANE_PREFIXES[1]) _ron_other_lane_held queue); then
-      print -u2 "ron_lane_take: the queue lane holds $other; a pool lane waits for it."
-      return 75
-    fi
-  elif other=$(_ron_other_lane_held any); then
-    print -u2 "ron_lane_take: a pool lane is held, $other; the queue lane finds the game's window by title and never runs beside one."
-    return 75
-  fi
   _ron_lane_free || return 75
   RON_LANE_TAKEN=${1:-$$}
   _ron_lane_write "$RON_LANE_TAKEN" "$RON_LANE_TAKEN"
-  _ron_lane_log take "$RON_LANE_TAKEN" "${${RON_LANE_POOL:+pool}:-queue}"
+  _ron_lane_log take "$RON_LANE_TAKEN" "${${RON_LANE_POOL:+pool}:-hand}"
 }
 
 ron_lane_release () {

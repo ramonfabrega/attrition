@@ -356,8 +356,8 @@ red booking gate (the drain's first, on a gate quote's name@address
 cite), one `DEEP`, no stall; `NEVER` 380 → 321. The pass added these
 rows, each from the tranche's own receipts.
 
-- **A click is an `@click`/`@rclick` line on the pool, and the queue lane
-  is only for what no `@` line sends** (3437; 3427's and 3436's eleven
+- **A click is an `@click`/`@rclick` line on the pool~~, and the queue lane
+  is only for what no `@` line sends~~** *(Amended by item 3485, 2026-10-22: the queue lane retired; a need for it again is a steer.)* (3437; 3427's and 3436's eleven
   driven takes): the pool's `@click` retook 3427's three driven games
   draw for draw and block for block, and the queue lane's exclusion
   with the pool cost 3437 111 minutes waiting and 3436 two takes to a
@@ -384,12 +384,12 @@ stall. The pass added the fifth kind, `coverage`, and these rows.
   does not cite, one dead in the image, and 3408 and 3412 each counted
   their set differently from the queue; the line's three numbers are
   the booking's.
-- **A coverage capture is one pinned lobby at `cover=1` on the queue
-  lane, checked against its `cover=0` twin and pinned into
+- **A coverage capture is one pinned lobby at `cover=1` on ~~the queue
+  lane~~ the click-free pool, checked against its `cover=0` twin and pinned into
   `blind::TRACES`** (3416): `never` moves only when a trace enters a
   function, and a reading tranche climbed 337 → 345 open because it
   cited what it read and entered nothing; the click-free pool takes
-  `cover=1` as well as the queue lane (3429).
+  `cover=1` as well as the queue lane (3429). *(Amended by item 3485, 2026-10-22: the queue lane retired; a need for it again is a steer.)*
 
 ## The brief checklist, from the forty-seventh pass
 
@@ -1147,8 +1147,8 @@ struck (`tools/brief/frame.md` at 12,989 of 13,000).
 - **No brief names a click-free lane** (1568, 1569, parked 1139): the
   runner takes the first free lane of the pool, grows one to
   `RON_LANES_MAX` and waits at the cap; the receipt names the lane, and a
-  brief reserves only the run range. `RON_CAPTURE_LANE` is a test's. The
-  queue lane and the pool exclude each other; `tools/gamelog/lanes.py
+  brief reserves only the run range. `RON_CAPTURE_LANE` is a test's. ~~The
+  queue lane and the pool exclude each other;~~ *(Amended by item 3485, 2026-10-22: the queue lane retired; a need for it again is a steer.)* `tools/gamelog/lanes.py
   --since <the pass's commit>` is the number the pass moves the cap on —
   peak lanes, minutes waited at the cap, frames per wall second.
 

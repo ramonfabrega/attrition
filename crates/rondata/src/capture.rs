@@ -15,8 +15,9 @@
 //! and keeps that signature on purpose, because a `MAP_PRIVATE` mapping of
 //! a file is undefined behaviour the moment another process rewrites or
 //! truncates it under the `&[u8]` Rust believes is frozen. That hazard is
-//! live in this repo rather than theoretical: `tools/gamelog/runqueue.sh`
-//! renames `gamelog.txt` over an archive name, `tools/gamelog/captures.txt`
+//! live in this repo rather than theoretical: `tools/gamelog/longtrace.sh`
+//! renames `gamelog.txt` over an archive name (as `runqueue.sh` did until
+//! item 3485 retired it), `tools/gamelog/captures.txt`
 //! warns in its own header that re-using a run number silently overwrites
 //! an existing archive, and a capture runs concurrently with the test
 //! suite by design. The module made it worse than memmap2 would have: the
