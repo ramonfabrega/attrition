@@ -329,7 +329,15 @@ tools/rubric.py --record "<the pass>"`** — the content view (ages held,
 unit types seen, source groups wholly backed) as a row in
 `docs/audit/rubric.tsv` and a table against the pass before, in the
 record beside the clock; the queue's `Rubric:` line is the pass's to
-re-pin and never a booking's (Ramon, the forty-ninth steer, DECISIONS 88). **It never moves what is the user's**: the
+re-pin and never a booking's (Ramon, the forty-ninth steer, DECISIONS 88). **And its blind list's open rows are scanned for references** —
+`tools/trace/report.py <exe> refs -` over `blind::NEVER` net of
+`RESIDUE` — **and the dead ratified by family, each row with the scan's
+reason**, because 115 of 192 open rows were out-of-line copies no
+capture could enter and three tranches had booked captures against the
+list without knowing it (Loop 3465, the fiftieth pass, DECISIONS 89); a
+residue row is a claim no capture can break, and one the console's
+`!eval` or an `@` line can reach is struck, never restated on scope
+(Loop 3473). **It never moves what is the user's**: the
 roster, the lane count past the one-a-tranche rule, the phase, the finish
 line, the thesis, a hard constraint, or anything a decision entry
 reserves. Those it writes as recommendations at the top of its record,

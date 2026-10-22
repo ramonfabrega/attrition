@@ -7682,3 +7682,126 @@ the queue's `Rubric:` line is pinned (`the_handoff_s_rubric_is_the_pinned_scorec
 `census::RUBRIC_*`) and is the steer's to re-pin, with the lane gate
 forgiving it as a commander's line; `docs/LOOP.md`'s pass fence names the
 run beside the gates table.
+
+## 89. The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter
+
+*2026-10-22, the fiftieth pass (the `steer` session, Fable), cleared
+into by the commander at the tranche's drain (`46e55244a`), unattended.
+The record is `docs/audit/2026-10-22-fable-pass-50.md`; this entry
+carries the decisions.*
+
+**What was measured.** Twenty landings on two lanes — every one a
+`coverage` take on the click-free pool, on Opus 5.5 at `--effort medium`,
+the Sonnet seats empty (entries 87, 88), every lane session's model read
+off lore — in **13 h 08** from the forty-ninth pass's last commit
+(`a479f1bf`, 22:23 −05:00 on 10-21) to the twentieth booking
+(`46e55244a`, 11:31 on 10-22), the drain's whole gate green. **No word
+moved and none was open.** **The blind list fell by trace: `NEVER` 321 →
+273, open 240 → 192** — the pool's `@key`, three driven-click chapters
+retaken by `@` lines, the three-player and `TEAM_STYLE=0` lobbies, the
+console's `!eval`; 53 pool captures, no queue-lane take; the census
+backed 1696 unmoved, port 568, layout 1128, bytes 37.9 %; `entered` 8071
+→ 8290 functions over 83 → 111 logs; the rubric's unit types seen 70 →
+74, ages held 8 of 8. **The price: 148.03 USD list for the workers, 7.40
+a landing** (5.59), 3445 the dearest at 16.06 over two sessions and 3438
+the cheapest at 2.55; the commander's two sessions 18.84; **166.87 in
+all** (106.72); the forty-ninth pass's own session 28.62. **Waiting 52.0
+minutes a landing** (47.2 a session before): the capture 25.3 a session
+(13.7), the gate 15.5 (19.3) — fifteen of twenty-one booking gates
+scoped; the three longest waits were long games on a full pool (3455
+121.1 at 0.7 frames a second beside two others, 3444 77.4, 3460 73.4).
+Three `DEEP` (3445, 3446, 3448, each landed from a second session), one
+`DRAFT` read correctly, one false `LANDED` (3446, Loop 3458), one
+blocked ending (3446's draft session), no `STALLED`, no kill rule, no
+merge backed out. Twenty-one booking gates, six whole, fifteen scoped,
+**one red** (3442's gate quote citing a never-entered function in
+name@address form, Loop 3449); 289.9 minutes of gate (242.7); admission
+118 s summed, longest 3.7 s; two gate ends past the sixteen cores. The
+pool held **three lanes at once and waited 17.9 minutes at the cap**,
+median 2.1 frames a wall second (9.3). The archives compressed 213 → 225
+GiB free.
+
+**What it means.**
+
+1. **The open blind list was three-fifths unenterable, and the pass
+   scanned instead of booking.** `report.py <exe> refs -` over the 192
+   open rows (Loop 3465, the drafting subagent's finding re-run on the
+   drained tree) found **115 dead** — no call, jump or address copy in
+   the image: `GameAccessConst::get_scary_*` and `Game::is_*` getters
+   inlined at every use, eighteen `*::walk_data` element walks inlined
+   into their containers', the terrain-side getters, the type-table
+   accessors and sixty-one single rows, almost all cited only by the
+   2026-10-13 sweep journals. They are `RESIDUE` by family, each row
+   with the scan's reason, verified row by row against the install by
+   `every_unreferenced_row_is_unreferenced_in_the_image`; `UNREFERENCED`
+   32 → 147, one `DEAD_CITED` row (TECH's `Wonder::close`). With 3462a's
+   two casters (`is_castable` answers 0 for a `FROM None` spell; run1081
+   asked both) and 3471a's `process_console_cmd` (`add_command` refuses
+   the 0x209-byte package; run1088 printed nothing), **residue 81 → 199,
+   open 192 → 74**. The lever for the headline is no longer "a capture a
+   row": it is the 74, and a scan at every pass (`docs/LOOP.md`'s fence).
+2. **A residue row is a claim no capture can break, and seventeen
+   were not** (Loop 3473). The console's `!eval` runs a BHS expression
+   against every registered function set, `ScenarioFuncSet` is registered
+   in every skirmish, and run1088 entered `set_bonus_cap` that way; so
+   the five AI toggles the forty-eighth pass accepted as "called only by
+   scenario scripts, cut from v1" and the twelve other `ScenarioFuncSet`
+   rows on the same reason **leave `RESIDUE`** — not restated on scope,
+   which is a claim about the project and not about the capture — and
+   the fifty-first tranche's first item is one `!eval` take that enters
+   all seventeen. **`Blind: never 273 · residue 182 · open 91`.** AI
+   §296, GOLDEN §144.4 and NATIONS §9.3 are struck in place.
+3. **The pool photographs itself** (Loops 3469, 3451: three lanes
+   rebuilt the shooter): `tools/explore/poolshot.py <run> <frame>`,
+   window-only by construction, through `viadriver.sh`, with the four
+   traps on record in its docstring and three tests red first. The
+   queue lane's last click-layer reason went with 3442's `@key`, and the
+   Nomad lobby started on the pool (3447); its one remaining reason is
+   the menu's own code, which names no `NEVER` row. **The pass
+   recommends the queue lane retires** (1570); the retirement is
+   Ramon's.
+4. **Four of the tranche's receipts are guards and tools** (an Opus
+   subagent, each red first): the park-pool guard subtracts the slots
+   the queue assigns (3474: a lane's first gate was red on the
+   commander's own pool); a pool lane's cleanup reads an unattributed
+   game again before refusing (3468: a sibling's launch in its first
+   second cost a whole take's receipt); the lane waiter asks `ccc clear
+   --status` before a `LANDED` (3458: a draft pushed under an armed clear
+   read as landed); and the reflex runs the blind pin (3449: a journal's
+   gate quote put a never-entered function on the list after the lane's
+   gate, +1 s a reflex).
+5. **Eight lanes' "for the Loop" lines are rows of the coverage frame**
+   (3450, 3452, 3457, 3459, 3466, 3467, 3475, 3476): a button four
+   frames after its `select`, `@after` and `@key`+`@char` for a popup, a
+   unit-type button's craft, a golden-start site's `library` line, a
+   booked field's writer, `die` on the twin's ids, a taunt's +0x3c, a
+   draw-side booking's filler — each from a take that was spent once
+   finding it.
+6. MEANS_3382
+7. **The rest**: 3441 and 3440 stay dormant with the queue lane; 3433
+   waits on a second occurrence (none in 53 captures); 3432's `cursor=`
+   key was not run and the fifty-first's first item carries it; 2003
+   took no reach; six stay Ramon's (3350, 3237, 3188, 3143, 3118, 1570)
+   with this tranche's numbers appended. The backlog 28 → BACKLOG_AFTER.
+8. BOOKINGS_SUMMARY
+
+**Against entry 88's estimate**: `@key` with the three formation
+functions on the key's frame and parity with run52 — met; the seven
+items in under twelve hours with no queue-lane take — met (5 h 52);
+twenty off `NEVER` and open under 220 — met (48; 192); a coverage
+landing under 7 USD and 45 minutes — **missed on the mean** (7.40 /
+52.0), met on eleven and eight of twenty; the `cursor=` key on three
+takes — **missed, not run**; no red booking gate — **missed** (3442's);
+no kill rule — met; no blocked ending — **missed** (3446's draft
+session); the Nomad lobby on the pool — met. Five of nine.
+
+ESTIMATE
+
+**The measure for the next pass**: each coverage landing's USD and
+waiting against 7.40 / 52.0; the open blind list against 91 and `never`
+against 273, with the `!eval` item's seventeen the first expected move;
+the pool's cap wait against 17.9 minutes and its median rate against
+2.1; the capture class against 25.3 and the gate against 15.5; booking
+gate minutes against 289.9; `DEEP` against three; the backlog against
+BACKLOG_AFTER; the disk against 225 GiB; whether the reference scan at the
+next pass finds a dead row among the 91.
