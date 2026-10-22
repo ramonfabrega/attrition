@@ -554,13 +554,14 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// `GroupData::get_unit@0070cc90` (the rotation's −2 arm) on 860.
 /// `docs/CENSUS.md`'s "The blind list, ranked" groups it by the staging
 /// that would enter each family.
-/// **311** with run1058, run1059 and run1060 (item 3443: three clicks on
+/// **312** with run1058, run1059 and run1060 (item 3443: three clicks on
 /// the pool, `docs/GOLDEN.md` §144.3, `docs/NATIONS.md` §9.2):
 /// `Options::do_spell@0071d7a0` on 624 (To Arms on a Citizen's card),
 /// `LeaderOut::warn_resources@006d3650` on 736 (an unaffordable train
 /// button), and `CommandManager::issue_trade@00941960` with, unasked,
 /// `Group::action_trade@00701cc0` on 650 (a Caravan's right-click on a
-/// second city).
+/// second city). The one row added is `ron::GetKeyStateAsync@00a427f0`,
+/// cited in that form by item 3442's journal and entered by no trace.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0043_ec90, 0x0043_ecb0, 0x0046_cec0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0046_fb10, 0x0047_03f0,
@@ -592,7 +593,7 @@ pub const NEVER: &[u32] = &[
     0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20, 0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820,
     0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x009e_18b0, 0x009e_5320, 0x009f_45e0, 0x009f_85b0, 0x009f_99e0, 0x009f_9ad0, 0x009f_b790, 0x009f_b880,
     0x009f_b970, 0x009f_b9e0, 0x009f_bab0, 0x009f_bb80, 0x009f_bd60, 0x009f_f5e0, 0x009f_f620, 0x009f_f860, 0x009f_f8e0, 0x009f_fa10, 0x009f_fbf0,
-    0x00a0_0220, 0x00a4_69f0,
+    0x00a0_0220, 0x00a4_27f0, 0x00a4_69f0,
 ];
 
 /// The blind list's accepted residue: functions on [`NEVER`] that no
