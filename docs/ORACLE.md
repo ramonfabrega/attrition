@@ -3069,3 +3069,9 @@ slow each other measurably; three long traces at once are not measured.
 ~~**What stays one**: the queue lane, above.~~ *(struck by item 3485, 2026-10-22: the queue lane retired — `runqueue.sh` and `handdriver.sh` left the tree; a need for it again is a steer)* `waitrun.sh` judges a
 click-free log once no runner of any lane is alive, so a lane's waiter may
 outlast its own run by another lane's.
+
+**A take stages the console mirror off and the cursor pinned** (item 3497;
+the opt-outs `--console-log 1` and `--cursor none`, the receipt's `staged`
+names both): with `AllowLogs_ToConsole=0` a dumped frame goes from 2.7–3.3
+s to 0.06–0.09 s, the dump byte-identical after the header and the draw
+stream identical (run1103–run1108, item 3484).
