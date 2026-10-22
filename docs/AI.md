@@ -12225,8 +12225,8 @@ holds a unit the other does not (7485).
 ### 98.6 What this has *not* established
 
 - `Leader::action_respond@006d03c0` and `Leader::pay_dow@006d2b10` write
-  escrow too, and neither is modelled. No capture on disk is known to
-  reach either. **What each writes** (item 3409, §296; *reading alone*;
+  escrow too, and neither is modelled. ~~No capture on disk is known to
+  reach either~~: run1078 enters `pay_dow` (below). **What each writes** (item 3409, §296; *reading alone*;
   the listing at `6d2baa`–`6d2bcd` settles that the decompile's
   `0xe3a7f8` is `leaders` plus `escrow`'s offset, `escrow`):
   - `pay_dow(t, cancel)` prices `DECLARE_WAR + t`, or
@@ -12256,7 +12256,12 @@ holds a unit the other does not (7485).
   *Falsifier*: `LEADERS=9`'s `escrow` and `tributes` on the frame a
   human accepts a tribute treaty or declares war from peace — the
   stock and the escrow fall by the same priced amount; on an AI's own
-  declaration neither moves.
+  declaration neither moves. **Run** (item 3460, run1078 and its twin
+  run1079, §296 row 12): a human's declaration from peace, `CM
+  process_declare 1 0 911`; on block 912 leader 0's good-2 `bucket`
+  falls 640 (120134 → 119494), the other five do not move, and
+  `escrow` reads 0 before and after, so the escrow half is the floor
+  and the "same amount" half stays unread.
 - The script host's `queue_up`/`produce_building` (`ai_host.rs`) pass
   `false`. What the script actions pass is not read.
 - `do_gather`'s knowledge `tech_cost` arm and `ai_speed` scale both the
@@ -25388,7 +25393,7 @@ behaviour is the falsifier and the trace is what moves `never`. Fields are the d
 | 9 | `EastIndiesLakotaPeace` (the peace pair, `RUSH_RULES 10`) | `GAME INFO` the rush rules; any frame before 4500 (a predicate, no field) | ~~`current_age`~~ (entered on frame 0, run1016, §297); ~~(9b) `say_no_war`~~ (1392, run1072, item 3453: the console's Hoplites in the Lakota's land, leader 0's `attrition_stamp` 0 → 1392) | click-free |
 | 10 | ~~any lobby in which a leader's highest wonder closes~~ chapter seven's, by console (run1074, item 3454, §75.3) | `LEADERS=9` `wonder_mark` on the close | ~~`close_wonder`~~ (660) | click-free |
 | 11 | a human and two computers, no teams (none on disk; run1077, item 3456, is a human and two computers with `ally 1` and starts on the pool with `--profile PLAYERS=2`) | `LEADERS=9` `agree`, `treaty`, `tributes` on the frame one computer accepts the other's offer | `action_respond` (a computer's price term is zero, §98.6): **not entered by run1077** to 5710; on 5703 every leader's `offers` and `counteroffer` are 0, `agree` 0, `treaty` −1 (no offer was made) | click-free, *a prediction* |
-| 12 | a team lobby with a computer ally (run1077's is `TEAM_STYLE 1`, which the team-style test is read to refuse: item 3460's `TEAM_STYLE=0` lobby) | `LEADERS=9` `escrow` and the stock on the frame the human cancels the alliance (`CANCEL_ALLIANCE + t`) | `pay_dow`, `action_declare`'s pay arm | driven: a diplomacy click |
+| 12 | the coverage pair's lobby with `--profile TEAM_STYLE=0` (run1078, item 3460; twin run1079): leaders at peace from the start | `LEADERS=9` on block 912: `diplos[1]` 1 → 0, `dow[1]` 0 → 1, the third good's `bucket` 120134 → 119494 (−640), `escrow` 0 → 0 (the floor); `CM process_declare 1 0 911` | ~~`pay_dow`, `action_declare`'s pay arm~~ (910, a human's declaration of war through the diplomacy window; the alliance cancel arm not taken) | click-free |
 
 **The disk scan** (every dump in the archive, 578 that print a leader): `nukes_in_flight` is 0 in all of them, so
 §158's in-flight term has never been non-zero on a dumped frame; `wonder_mark` reaches 1 or 2 in many games and

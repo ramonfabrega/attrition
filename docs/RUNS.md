@@ -22615,6 +22615,64 @@ SHA-256 `70714da975b154cbc829cc22e36524f400a1d2cad5b3b979daf5dc1fe6d8179b`.
 **What it holds**: the pool's first three-player lobby, and a help taunt that reaches only the ally as `TAUNT_HELP`.
 Then a ping that passes both taunt tests and finds no army to send: at difficulty 0 neither computer's army has a
 captain by minute six.
+
+## run1078 — the coverage pair's lobby at `TEAM_STYLE 0`, a human's paid declaration of war through the diplomacy window, `cover=1` on the click-free pool, to 960 (2026-10-22, item 3460, `att-3460`)
+
+**What the disk could not answer**: no trace enters `Leader::action_declare@006dab50` or `Leader::pay_dow@006d2b10`
+(AI §296 row 12, parked 3444a and 3453a). Every lobby on disk is `TEAM_STYLE 1`, whose team-style test refuses the
+window's Declare (run1062), and no dump holds a human's declaration. Through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1078 --map 18 --end-frame 960 --timeout 3600 --ai-tribe 23 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --profile TEAM_STYLE=0 --ffwd-minute 1
+--log-window 896 961 --detail end:MISC,LEADERS=9 --detail misc:COMMANDMANAGER=1 --bindkey OPTION_DIPLO=129 --cmd-file
+tools/gamelog/coverage/declare3460-diplomacy.cmd --cover cover=1`: `900 meet who=1`, `901 resource who=0 all +100000`,
+`905 @key 129`, then on 910 `@click 955 366`, `@key 13`, `@char 13`, and an Escape pair on `@after 8000`.
+- **`--profile TEAM_STYLE=0` takes.** `TEAM_STYLE` is a lobby field in both of the lane profile's game blocks, so
+  `set_lobby`'s write reaches it with no runner change; `GAME INFO` reads `TEAM_STYLE 0`. At team style 0 the
+  leaders start at peace: leader 0's `diplos[1]` and leader 1's `diplos[0]` read 1 on 896, so there is no `peace 1`
+  line. They have not met (`treaties[1]` 0), so there is a `meet` line.
+- **Three recons first, unfiled** (`~/ron-golden/recon3460-1..3`, `cover=0`, paused by a console `pause 1` on 910). The
+  third gave a window-only capture of the game at 911 (`screencapture -l` on the take's own `wine` window, matched by
+  its pid's command line). The window shows Cyrus the Great at peace with a red Declare button at game (955,366),
+  3444's point.
+- Pool lane 3, seed 12345, `MAP_STYLE 18`, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe 23).
+  Launched 07:20:50 and waited about five minutes for a lane; started 07:25:59, exited 07:28:28, **148.9 s launch to
+  exit**. `success`, 961 frames. DLL `47b20354…`, `-DRON_AUTOSTART`. 202 GiB free before.
+- **6,692 functions entered.** On 905: `Console::exec_keymap`, `IFaceDiplo::on_redraw`. On 910:
+  `SysMessageHandler::OnLButtonDown`/`Up`, `Options::do_declare_war`, `LeaderData::afford_dow`,
+  `LeaderData::cost_factor_dow`, `TypeData::is_declare_war`, `Game::war_allowed`, `SysMessageHandler::OnChar`,
+  `Popup::on_key_click`, `Popup::on_button_clicked`, `CommandManager::issue_declare`,
+  `CommandPackage::process_declare`, `Leader::action_declare`, `Leader::pay_dow`, `Leader::set_diplo` and
+  `Armies::diplo_change`. `INFO 22` on 905 (0x81 → 0x64) and on 910 (Return); `INFO 20` on 910. The two `NEVER`
+  rows are `action_declare` and `pay_dow`.
+- **The dump.** `COMMANDMANAGER=1` prints `process_declare 1 0 911`: whom 1, treaty 0, `game.frame` 911. The line is
+  `CommandPackage::process_declare`'s `Log::say` at `GLOG_COMMANDMANAGER` detail 1, beside its `SyncLogger` line. On
+  block 912, leader 0 has `diplos[1]` 1 → 0 and `dow[1]` 0 → 1. Leader 1 has `diplos[0]` 1 → 0. Leader 0's third
+  good's `bucket` goes 120134 → 119494 (−640), and the other five buckets do not move. `escrow` reads 0 on every block
+  896..960.
+- The two `@after` Escape lines (`INFO 24`) ran on 913, after the popup had closed, in this take and its twin alike.
+- `rngcmp.py` against run1079, the `cover=0` twin: **961 in common, 0 differing, 961 identical**. `samegame.py`:
+  **65 in common (896..960), 0 differing**. Both send every input, so no input is unshared and there is no `--from`.
+- Filed with `filerun.py run1078 eastindies-persian-diplomacy-declare`. Minutes waited on another lane: about five.
+
+Archive `gamelog-run1078-eastindies-persian-diplomacy-declare.txt`, 94,271,212 bytes,
+SHA-256 `6edec897bd76a80744a0597645181bae26bdb3d18fb9c7c5435e958e4e035633`.
+
+Archive `rontrace-run1078.log`, 20,008,544 bytes,
+SHA-256 `52be7a36cb7b09886e50ac518e010550bcec67de73464d30d021b01df360839c`.
+
+## run1079 — run1078's `cover=0` twin (2026-10-22, item 3460, `att-3460`)
+
+The same command line and command file at `--cover cover=0`, `~/ron-golden/run1079`. Pool lane 3, launched 07:16:32,
+started 07:16:39, exited 07:20:09 (**210.0 s launch to exit**). `success`, 961 frames, seed 12345, the same two PLAYER
+records. DLL `6723a475…`. It was taken first, to check that Return confirms popup 0. It prints `process_declare 1 0
+911` and the same block-912 values as run1078. Filed with `filerun.py run1079
+eastindies-persian-diplomacy-declare-cover0`.
+
+Archive `gamelog-run1079-eastindies-persian-diplomacy-declare-cover0.txt`, 94,271,213 bytes,
+SHA-256 `4659efb42cc73cd2b9416dd79b1fe72c26503e7bc872b55126bb1331639a74cc`.
+
+Archive `rontrace-run1079.log`, 19,785,984 bytes,
+SHA-256 `3f910920dc1ff7992b4ae710e7852495b4f0f3be612b7d94fb321687c124be17`.
 ## run1080 — the coverage pair: two bound keys and a carrier's right-click, at `cover=1` on the click-free pool, 594..760 (2026-10-22, item 3461, `att-3461`)
 
 **What the disk could not answer**: no trace enters `CommandPackage::process_halt@00949140`,
@@ -22695,4 +22753,4 @@ SHA-256 `278de5ffc2456547d979cb7e49cfefa5130ae97e80cd80a7d100798d16170c99`.
 Archive `rontrace-run1081.log`, 18,635,328 bytes,
 SHA-256 `4c372a12ed602d1de53f8363236e29ef5e6120d4d702cf67ff368ddec3c98a6f`.
 
-**What it holds**: `blind::TRACES`' run1081 (item 3462), `NEVER` 283 → 282.
+**What it holds**: `blind::TRACES`' run1081 (item 3462), `NEVER` 281 → 280 (283 → 282 on its base; 3460's two landed first).
