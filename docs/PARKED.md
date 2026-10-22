@@ -9600,13 +9600,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot NS — reserved
+## Parked by item 3478, 2026-10-22 — a goody box under the camera
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot NS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3478a) **`ItemOut::draw_overlays@00677590` is reached by no walker** (beside 3472a; one reading, the trace's negative):
+the item's own vtable slot +0x5c is dispatched by `ObjectsOut::draw_overlays@00655120` only on (who, o) entries of the
+objects table — the render tree `objects +0x224`, the guys list `+0x2a8` and the select list — and on `goods` (the
+selected good, `target_o`). An Item lives in `items` alone (`Objects::init_item@00653e00` mallocs it there), and its
+cell holds `down -3` (0xfffd) with `down_who` its index, which `sort_all@00657320`'s cell walk refuses at `while (down
+>= 0)`; `sort_items@006569a0` puts it in `objects +0x2dc`, and `pop_all_zoomed_in@00655e70` calls only +0x58 there. No
+walker of `items` calls +0x5c (`grep items._16_4_` over the export). On disk: the start's `WORLD=6` cell (1, 27) `down
+-3 down_who 1` and (8, 53) `down -3 down_who 5` (run1094, run1084), and run1094's 602 enters `ItemOut::draw` and
+`GraphicPieces::draw_item@008e7300` under `camera 6,110` and never `draw_overlays` (640 frames). Candidate: a `RESIDUE`
+row, "a vtable slot no instruction dispatches on an Item", after a blind second reading of the +0x5c dispatchers (the
+image's `call [reg+0x5c]` sites whose receiver can be an `items` entry). Score: `Blind:` open 91 → 90, residue 182 →
+183. One reach.
 
 ## Parked by the next landing, slot NT — reserved
 

@@ -23026,3 +23026,47 @@ SHA-256 `117cd75e72c8e23bdc509d0f25ff4636f75913fbf37f15736c3247c464a87acd`.
 
 Archive `rontrace-run1091.log`, 35,507,072 bytes,
 SHA-256 `38e133565b8eb2c97db8da7573a9f7645cd738713bda24fc10043a2f3227b5fb`.
+
+## run1094 — the golden start at `cover=1` on the click-free pool with the camera on two goody boxes, to 640 (2026-10-22, item 3478, `att-3478`)
+
+**What the disk could not answer**: whether a drawn frame with a goody box under the camera enters
+`ItemOut::draw_overlays@00677590`. No pinned trace's camera framed a box: the default camera sits on the human's start,
+and no staging file on disk carries a `camera` line on a box (`grep -l camera tools/gamelog/coverage/*.cmd`:
+herd3472-team only). The boxes are on disk: the start's `WORLD=6` block (run1084's, and this run's own) has 22 cells
+with `down -3`, the nearest (1, 27) `down_who 1` and (8, 53) `down_who 5`. Launched through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1094 --map 14 --end-frame 640 --log-window 600 640 --timeout 3600
+--no-ffwd --detail end:LEADERS=2,BUILDS=7,CITIES=5,UNITS=3 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/goody3478-start.cmd --cover cover=1 --cursor 1400,1000`: `0 !ai off`, `600 explore
+all`, `602 camera 6,110`, `630 camera 34,214` (a cell's centre in quarter cells is `4c + 2`), the cursor pinned off the
+map (Loop 3432).
+- Pool lane 1 (`~/wine-ron`). Launched 13:15:26, exited 13:16:59: **93.0 s launch to exit**. `success`, settings
+  restored (5 files), lifecycle verified, 641 frames, `last_frame` 640, not ended early, map 14, seed 12345, tribes 4 and
+  11. DLL `84ba3489…`, `-DRON_AUTOSTART`. 224 GiB free before. Minutes waited on another lane: none.
+- **6,405 functions entered; no `NEVER` row.** `ConsoleWin::tell_explore` on 600; `ConsoleWin::parse_coord`,
+  `ItemOut::draw@00677710` and `GraphicPieces::draw_item@008e7300` on 602; `ObjectsOut::draw_overlays`, `sort_all`,
+  `sort_items` and `ItemData::is_seen` from frame 0. **`ItemOut::draw_overlays` is not entered**: a box is drawn by
+  slot +0x58 off `sort_items`' tree, and its cell's `down -3` keeps it out of `sort_all`'s render tree, the only tree
+  `draw_overlays` walks for +0x5c (parked 3478a). Not pinned.
+- **The twin, run1095** (the same line at `--cover cover=0`, every input shared, so no `--from`): pool lane 2
+  (`~/wine-ron-2`), launched 13:15:32, exited 13:17:04, 91.9 s, `success`, 641 frames. `rngcmp.py`: **641 in common,
+  0 differing, 641 identical**. `samegame.py`: **41 in common (1..639), 0 differ; same game over every common frame**.
+  Nothing parts, so there is no residue item. The second clean `cursor=X,Y` take against its twin (Loop 3432).
+- Filed with `filerun.py run1094 golden-goody-camera-cover1-clickfree` and `filerun.py run1095
+  golden-goody-camera-cover0-clickfree`.
+
+Archive `gamelog-run1094-golden-goody-camera-cover1-clickfree.txt`, 15,955,824 bytes,
+SHA-256 `66319e3b8958ec646389ff60f97b9c34b95189f346fe5715300100f3de6a568e`.
+
+Archive `rontrace-run1094.log`, 17,193,536 bytes,
+SHA-256 `93f59960e3c2d58d7893823ec91601d4c1e46b7cfffa5b890f500b0d54601b6c`.
+
+## run1095 — run1094's `cover=0` twin (2026-10-22, item 3478, `att-3478`)
+
+The same staging at `--cover cover=0`, on pool lane 2; its receipt and its comparison are in run1094's section.
+
+Archive `gamelog-run1095-golden-goody-camera-cover0-clickfree.txt`, 15,955,824 bytes,
+SHA-256 `fc90de243fc54343e6ecb6c7e3280c46d3df1bb27ea20e34d531482710a2fa71`.
+
+Archive `rontrace-run1095.log`, 13,553,696 bytes,
+SHA-256 `9bc1eb057732ba9d3c0a34b07d9e4c1da596482fa18941502657c40f9679e4a9`.
