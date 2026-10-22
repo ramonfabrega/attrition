@@ -360,6 +360,14 @@ pub const TRACES: &[&str] = &[
     // `is_castable`'s head (both `FROM None`). run880's game before 1107
     // (rngcmp 1,109 identical; `docs/RUNS.md` run1081).
     "rontrace-run1081.log",
+    // Item 3464: the golden start (run1031's lines, `market3426.cmd`) at
+    // `cover=1` on the click-free pool to 700, with `600 !cursor tinfo`
+    // (`run_cmd` case 0x3d, `World::get_wdata` on 600) and `602
+    // !startareas` (case 0x60, `WorldData::is_forest` on 602) before the
+    // twin's first input (`tools/gamelog/coverage/console3464-start.cmd`).
+    // Neither writes sim state: rngcmp against run1031b 701 identical, 0
+    // differing (`docs/RUNS.md` run1084).
+    "rontrace-run1084.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -731,9 +739,12 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **280** with run1081 (item 3462: golden chapter eighty-five's lobby):
 /// `SpellTypeData::find_target@00674920` on 1112, the Bribe pick armed by a
 /// bound OPTION_SPY_BRIBE key (`keymap_options[0x179]` = option 4, 629).
+/// **278** with run1084 (item 3464: the golden start, CENSUS row 840):
+/// `World::get_wdata@0046d220` on 600 (`!cursor tinfo`, console case 0x3d)
+/// and `WorldData::is_forest@006b5560` on 602 (`!startareas`, case 0x60).
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
-    0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_d220, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
+    0x0043_ec90, 0x0043_ecb0, 0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_ee80, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
     0x0047_0570, 0x0047_0680, 0x0047_0760, 0x0047_07a0, 0x0047_0800, 0x0047_0e50, 0x0047_0f30, 0x0047_1170, 0x0047_22f0, 0x0047_2370,
     0x0047_2420, 0x0047_2a40, 0x0047_2a50, 0x0047_2cb0, 0x0047_6aa0, 0x0047_70d0, 0x0047_80c0, 0x0047_df90, 0x0048_43e0, 0x0048_49a0, 0x0048_5140,
     0x0048_5a40, 0x0048_5a60, 0x0048_6c60, 0x0048_89a0, 0x004a_1ca0, 0x0054_cea0, 0x0054_cf90, 0x0054_d100, 0x0058_3380, 0x0058_3390, 0x0058_33a0,
@@ -748,7 +759,7 @@ pub const NEVER: &[u32] = &[
     0x0066_3b90, 0x0066_9100, 0x0066_9110, 0x0066_9120, 0x0066_9130, 0x0066_d810, 0x0066_d830, 0x0066_d850, 0x0066_e5d0, 0x0066_fd40, 0x0066_fd50,
     0x0067_14c0, 0x0067_14f0, 0x0067_1600, 0x0067_3e80, 0x0067_7150, 0x0067_7590, 0x0067_7df0, 0x0067_d370, 0x0067_e600, 0x0067_e700,
     0x0068_1b20, 0x0068_1c50, 0x0068_3730, 0x0068_8310, 0x0068_9cb0, 0x0068_a1b0, 0x0068_d1a0, 0x0069_5050, 0x006b_1b80, 0x006b_1ba0, 0x006b_22e0,
-    0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5560, 0x006b_5590, 0x006b_76a0,
+    0x006b_2390, 0x006b_2510, 0x006b_3020, 0x006b_3960, 0x006b_4230, 0x006b_4290, 0x006b_46b0, 0x006b_4880, 0x006b_5590, 0x006b_76a0,
     0x006b_81e0, 0x006b_88b0, 0x006d_03c0, 0x006d_5230, 0x006d_6660, 0x006d_6740, 0x006d_6e80, 0x006d_a740,
     0x006e_c170, 0x006e_f2d0, 0x006e_fb20, 0x006f_0230, 0x0070_0010, 0x0070_20c0, 0x0070_f8a0, 0x0071_37f0, 0x0071_3bb0,
     0x0072_ff60, 0x0073_6470, 0x0073_69c0, 0x0073_8180, 0x0073_9ab0, 0x0073_9e20, 0x0073_b540, 0x0073_b5d0, 0x0073_b880, 0x0073_bb20, 0x0073_c1b0,

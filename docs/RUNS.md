@@ -22754,3 +22754,43 @@ Archive `rontrace-run1081.log`, 18,635,328 bytes,
 SHA-256 `4c372a12ed602d1de53f8363236e29ef5e6120d4d702cf67ff368ddec3c98a6f`.
 
 **What it holds**: `blind::TRACES`' run1081 (item 3462), `NEVER` 281 → 280 (283 → 282 on its base; 3460's two landed first).
+
+## run1084 — the golden start at `cover=1` on the click-free pool with `!cursor tinfo` and `!startareas` before run1031's lines, to 700 (2026-10-22, item 3464, `att-3464`)
+
+**What the disk could not answer**: no trace enters `World::get_wdata@0046d220` or `WorldData::is_forest@006b5560`
+(CENSUS row 840). `report.py <exe> refs` finds `get_wdata`'s one call in `ConsoleWin::run_cmd` case 0x3d (`!cursor`),
+behind its `tinfo` keyword (`int_str_array` +0x8ebc, entry 1827) and `WorldData::valid`. `is_forest` has three
+callers: `BuildTypeData::calc_gather`, `Console::execute_at_cursor` and case 0x60 (`!startareas`), which walks every
+leader with flag bit 1 over its start circle. Neither has a byte-identical twin. No line on disk sent either. The take
+is run1031's own script (`market3426.cmd`) with `600 !cursor tinfo` and `602 !startareas` added
+(`tools/gamelog/coverage/console3464-start.cmd`), so run1031b is the `cover=0` twin for the whole window. It was
+launched through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1084 --map 14 --end-frame 700
+--log-window 600 700 --timeout 3600 --detail end:LEADERS=2,BUILDS=7,CITIES=5 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/console3464-start.cmd --cover cover=1`.
+- Pool lane 2 (`~/wine-ron-2`). Launched 08:27:11, exited 08:28:11: **59.7 s launch to exit** (71.2 s in all; the
+  first take exited 5 and was retaken after 2.9 s). `success`, settings restored (5 files), lifecycle verified, 701
+  frames, `last_frame` 700, not ended early, map 14, seed 12345, tribes 4 and 11. DLL `cf8dc71c…`, `-DRON_AUTOSTART`.
+  200 GiB free before. Minutes waited on another lane: none.
+- **6,426 functions entered.** Two are `NEVER` rows: `get_wdata` on 600 and `is_forest` on 602. `ConsoleWin::say_coord`
+  and `TerrainOut::get_coord_info` were also entered on 600. The tracer's `I_CMD` records show `parse_cmd` returned 1
+  for both lines (lines 2 and 3, frames 0x258 and 0x25a).
+- **No `@cursor`.** The tracer calls `parse_cmd` with `no_mouse = 1`, and `parse_cmd` refreshes `mouse_coord_x/y` only
+  when `no_mouse` is 0. So `!cursor` reads the field's stale value whatever cursor is pinned. A pin would have been an
+  input the twin does not share and could not have reached the coordinate (parked 3464a).
+- **Where the reports print**: both cases append to `ConsoleWin::text` (`ConsLinkList::add`), the console window's
+  own list. Nothing reaches the gamelog. The dump's 570 lines matching `forest` are `WORLD=6`'s cell flags, and
+  run1031b holds the same 570.
+- **Neither line writes sim state.** `rngcmp.py` against run1031b (the `cover=0` twin): **701 in common, 0 differing,
+  701 identical**. `samegame.py --from 600` against run1031b's `gamelog.txt`: **101 in common (1..699), 0 differ; same
+  game before 600**. The archived dump is 15,770,458 bytes, run1031's size. Nothing parts the twin, so there is no
+  residue item.
+- Filed with `filerun.py run1084 golden-console-reports-cover1-clickfree`.
+
+Archive `gamelog-run1084-golden-console-reports-cover1-clickfree.txt`, 15,770,458 bytes,
+SHA-256 `9b87a4894cc9de7f34b1b0539eeb90c1f040c264a2f299ebeea54ec1300e6dea`.
+
+Archive `rontrace-run1084.log`, 10,021,120 bytes,
+SHA-256 `8c77e4dee0b36e2529f0134a4c2fd646f9c1bfe3f1cdcea4a43be033b4cb1b01`.
+
+**What it holds**: `blind::TRACES`' run1084 (item 3464), `NEVER` 280 → 278. Run 1085 was not used.
