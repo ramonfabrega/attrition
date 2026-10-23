@@ -25969,17 +25969,9 @@ All three are one game by `rngcmp.py`: run1148 against run1149, 37 of 37 frames 
 260 of 260.
 
 **First try: frame 8 of 5841.** `russian_modern_pair_first_parting` walks run1149 from run1148. **The sequence parts
-on frame 8** and the count on 11. On frame 8 both sides spend 18 draws, and the multiset agrees, but the order does
-not (`RON_DEBUG_SITES`):
-
-| index | 0, 1 | 2 | 3 | 4 | 5 | 6 | 7..9 | 10..17 |
-|---|---|---|---|---|---|---|---|---|
-| ours | `make_stuff+0x221` ×2 | `produce_building+0x1805` | `make_stuff+0x63d` | `produce_building+0x1805` | `make_stuff+0x63d` | `make_stuff+0x63d` | `make_stuff+0x63d` | the same eight |
-| theirs | `make_stuff+0x221` ×2 | `make_stuff+0x63d` | `make_stuff+0x63d` | `produce_building+0x1805` | `make_stuff+0x63d` | `produce_building+0x1805` | `make_stuff+0x63d` | the same eight |
-
-The eight shared draws are `Guy::set_anim` < `Unit::move_step` ×3, one `Unit::resolve_unit_collision`, and four
-`Farms::inc_time`. In words: theirs makes one more make-list roll before each building placement. The seeds on
-theirs' side run from `f737bafd` (index 0) to `a280e288` (index 17).
+on frame 8** and the count on 11: both sides spend 18 draws and the multiset agrees, but theirs makes one more
+make-list roll (`make_stuff+0x63d`) before each `produce_building+0x1805` placement (`RON_DEBUG_SITES`; item 3508's
+journal has the table).
 
 **The value diff: the state parts on block 5** (frame 4), two blocks before any draw parts.
 `russian_modern_pair_run1149b_s_word_frame_is_widened_whole` walks run1149b from run1148 over 256 blocks and finds
@@ -25987,18 +25979,9 @@ theirs' side run from `f737bafd` (index 0) to `a280e288` (index 17).
 65 against 0), `aggression`, every unit's `form`, and group 65's `held` and pool. Block 4 parts no key. The first
 key that is not standing is who=1's make list on block 5:
 
-| slot | ours | theirs |
-|---|---|---|
-| `MAKE[0]` | t 558 (Barter), cat 4, val 5040003 | **t 551 (Written Word), cat 8, val 9999999** |
-| `MAKE[1]` | t 572 (The Art of War), cat 10, val 3066003 | t 558, cat 4, val 5040003 |
-| `MAKE[2]` | t 566 (Empire), cat 9, val 420000 | t 572, cat 10, val 3066003 |
-| `MAKE[3]` | t −1 | t 566, cat 9, val 420000, escrow 1 |
-| `MAKE[8]` (the research slot, cat 8) | t 551, **val 1620003** | t 551, **val 9999999** |
-
-The technologies are TypeIndex 544 + the `techrules.xml` record counted from 0 (`COINAGE` 559 and `EMPIRE` 566 anchor it, §15). The
-two sides price the same technology in the same slot, Written Word, at different values. Ours prices it at 1620003,
-which puts it below the head's 5040003. Theirs prices it at 9999999, so it sorts to the head and every later entry
-sits one slot on. On the word's block 9, building `1/2005`'s research queue is in the same order as each side's list:
+Theirs' head is Written Word (t 551, cat 8, val 9999999) and every later entry sits one slot on; ours prices the
+same technology in the research slot `MAKE[8]` at 1620003, below Barter's 5040003 (item 3508's journal has the table).
+The technologies are TypeIndex 544 + the `techrules.xml` record counted from 0 (`COINAGE` 559 and `EMPIRE` 566 anchor it, §15). On the word's block 9, building `1/2005`'s research queue is in the same order as each side's list:
 ours 558, 572, 551, 566 against theirs 551, 558, 566, 572 (costs and goods with them), and who=1's `MAKE[10].val` is
 ours 3066003 against theirs 30660.
 
@@ -26118,8 +26101,19 @@ non-mandatory attack on the citizen `0/5` for `0/2004` and fires on 3921; ours k
 and the target stands `melee_far` or more off; ours answered 1 with the target's point. **Built**:
 `Sim::chase_tail_refused` (`attack_pos.rs`, `a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far`);
 the mandatory far arm is a seam (3520b). **The word moves 3921 → 4097**: ours 104 draws against 103, index 94,
-`Guy::move+0x19f` (`1/154`) against `Guy::inc_time+0x271`. run1161b's widening: 167 → 126 keys. run1166b (blocks
-4092..4348, 7517 keys) parts 1749 keys on its head, so the state parted in 3934..4091, which no dump prints.
+`Guy::move+0x19f` (`1/154`) against `Guy::inc_time+0x271`. run1161b's widening: 167 → 126 keys.
+
+**Item 3522: a land member's slot across the sea sweeps as the barge.** run1168 (blocks 3928..4098) first parts on
+block 4091. On frame 4090 army 1 takes an `ATTACKTO` off (8010, 2873) on both sides, and slot 0, the Spy `1/111`'s,
+lies at sea (tile (44, 5), an ocean tile). Theirs sends every re-placed member to slot 0's point (8568, 984). Ours sent
+fourteen (the T34s, AA Batteries, Scout Car and Katyusha, `big_radius` 96) to the shore at (8664, 1368), which their
+own type's wider ring reached. `action_move_near`'s different-region arm (`705c0f`–`705c9b`) asks `invalid_loc(1, 1,
+0, 0, 0)` of slot 0's tile, and for a land member under a leader that `can_transport` it sweeps as
+`current_upgrade(TRANSPORTBARGE)`, whose first candidate is slot 0's own sea point. **Built**: `Sim::region_spot_type`
+(`a_land_member_whose_slot_zero_is_at_sea_sweeps_as_the_leader_s_barge`); the passenger arm is a seam (3522b). **The
+word moves 4097 → 4207**: ours 3279 draws against 3284, index 3272, `Guy::inc_time+0x271` against
+`PathFinder::calc_road_cost+0x46`. run1168's widening goes 1881 → 114 keys (the standing families). run1166b's goes
+7517 → 576: who=1's reassembly on 4104 (3522a), then on 4210 the scouts `1/26`, `1/30` and `1/31`'s move points.
 
 **What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. ~~Which field of who=1's economy parts first in 3601..3676~~ (item 3516, above: three, from block 2187). ~~Why the count parts on
 11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing

@@ -24644,3 +24644,24 @@ SHA-256 `35c45dd4fb6a35e8b37eb5109c4b46349c53fce1f1be8a01245c76905623845e`.
 **What it holds**: `japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole` (256 blocks, 2956 keys; five
 inexact height reads, `GROUND_INEXACT`): the next word's window. The state parts before 3668 (who=1's food and wealth
 income, 80 apart each).
+
+## run1168 — the Russians at a held Modern age, East Indies: the gap before the word 4097, blocks 3928..4098 (2026-10-23, item 3522, `att-3522`)
+
+**Disk gap**: run1161b ends at 3933 and run1166b starts at 4092, and run1166b already parts 1749 keys on its head,
+so the state parted in 3934..4091, which no dump printed. `--map 18 --end-frame 4098 --timeout 3600 --log-window
+3928 4098 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 13 --profile STARTING_TECHNOLOGY=6
+--profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`.
+- Pool lane 1. Launched 05:31:21, exited 05:32:03 (42.0 s launch to exit). `success`: 4099 frames, last frame 4098.
+  `rngcmp.py` against run1149: **4099 frames in common, 0 differing**. Filed with `filerun.py run1168
+  eastindies-russian-modern-window-3928-4098`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1168-eastindies-russian-modern-window-3928-4098.txt`, 380,494,561 bytes,
+SHA-256 `9e47557bcd557d0daa459827699073d4a96ea11bf70f4ae51e3478e2144a5c3f`.
+
+Archive `rontrace-run1168.log`, 125,462,944 bytes,
+SHA-256 `621de64d14b1d832bda7c9c3670331d8710030ee45ad97bf1593e47f1dfb8905`.
+
+**What it holds**: `russian_modern_pair_run1168_s_gap_is_widened_whole`. It compares 170 blocks and finds 1881 keys.
+The state first parts on block 4091: army 1's `ATTACKTO` sends fourteen members to (8664, 1368) in ours against
+(8568, 984) in theirs. After item 3522's build it finds 114, the standing families.
