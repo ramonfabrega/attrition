@@ -70,9 +70,15 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // (174, 238) at 156 against theirs' 78 on 4206 — `was_seen`'s doubling.
     // Frame 5651: ours 71 draws against 73, index 52 — ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52
-    // < Unit::init`, a birth.
-    count: 5651,
-    sequence: 5651,
+    // < Unit::init`, a birth. Item 3527: 5651 → 5816 for both. who=1's
+    // Redoubt `1/2034` trains a Spy with its Kremlin `1/2021` standing, and
+    // `train_time` returns `ACCEL_TRAIN × 5 − 1` for the Spy line under the
+    // Kremlin: theirs' `queue[0].job_counter` stops at 499 on block 5651 and
+    // `1/261` is born on 5652; ours priced it 12000 and read 500. Frame
+    // 5816: ours 53 draws against 55, index 30 — ours `Unit::do_move+0xe84`,
+    // theirs `Unit::fight+0x9b0`.
+    count: 5816,
+    sequence: 5816,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -405,8 +411,10 @@ fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
     // against 5, `queued` 1 against 0) — the word 5651's birth,
     // `Guy::init_real < Unit::init < Objects::init_unit`. On 5654 the
     // scouts `1/26`, `1/30` and `1/31` take different groups and move
-    // points.
-    pin_eq!(w.firsts.len(), 2268, "run1170 baseline");
+    // points. Item 3527: 2268 → 510 keys. The Spy's job is the Kremlin's
+    // `ACCEL_TRAIN × 5 − 1` (`train_time@006508c0:344`–`354`): both sides
+    // read 499 on 5651 and `1/261` is born on 5652 on both.
+    pin_eq!(w.firsts.len(), 510, "run1170 baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
@@ -725,4 +733,46 @@ fn russian_modern_pair_s_road_search_on_4207_holds_node_for_node() {
         "the word's road nodes, ours and theirs"
     );
     pin_eq!(first, None, "the first node that parts");
+}
+
+/// The window: run1149's own hundredths across the gap before the word
+/// 5651's window — blocks 4349 through 5644 hold only 4401..5601.
+pub(crate) const WIDENING_RUSSIAN_MODERN_GAP_5651: (i64, i64) = (4349, 5644);
+
+/// **The gap before the word 5651's window**: run1149's hundredths walked
+/// from run1148's start with the recorder on (item 3527).
+pub(crate) fn russian_modern_gap_5651_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1149",
+        &[(RUSSIAN_MODERN.long.0, WIDENING_RUSSIAN_MODERN_GAP_5651.0)],
+        WIDENING_RUSSIAN_MODERN_GAP_5651,
+        1,
+        &[],
+        true,
+    )
+}
+
+/// **The gap before the word 5651's window, widened** (item 3527).
+#[test]
+fn russian_modern_pair_run1149_s_gap_before_5651_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_gap_5651_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 13, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 3527, the first walk: 252 keys, every one a standing family
+    // (`form`, `SITE[i].reg`, the groups' `held` and pool, a building's
+    // `build:extra`) or a figure's `mirror`. The long prints `UNITDATA` and
+    // `GUYDATA` alone, so no leader row is compared here.
+    pin_eq!(w.firsts.len(), 252, "run1149 gap baseline");
 }

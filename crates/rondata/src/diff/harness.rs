@@ -4645,6 +4645,7 @@ pub(crate) mod tests {
             debug_armies(&built, n);
             debug_leader(&built, n);
             debug_ammo(&built, n);
+            debug_builds(&built, n);
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
             let (fr, rows) = widen_block(&built, frame, players, n, &mut here);
             compared += rows;
