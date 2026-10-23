@@ -574,3 +574,70 @@ fn russian_modern_pair_run1162e_s_wealth_is_widened_whole() {
     // `dest_angle` on `1/34` (3379) and `1/70` (3401).
     pin_eq!(w.firsts.len(), 106, "run1162e baseline");
 }
+
+/// **The word's road search, node for node** (item 3524): every road search
+/// run1149's call window prices, from the start to the word 4207, against
+/// ours.
+#[test]
+fn russian_modern_pair_s_road_search_on_4207_holds_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let p = &RUSSIAN_MODERN;
+    let (Some(path), Some(sib), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1)) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_costs = true;
+    let mut first: Option<String> = None;
+    let mut searched = 0;
+    let mut on_word = (0, 0);
+    while built.sim.frame <= 4207 {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        let theirs = tr.road_nodes(f);
+        if f == 4207 {
+            on_word = (ours.len(), theirs.len());
+        }
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        searched += 1;
+        if first.is_none()
+            && let Some(i) =
+                (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
+        {
+            first = Some(format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            ));
+            if std::env::var("RON_ROAD_NODES").is_ok() {
+                for j in i.saturating_sub(8)..(i + 12).min(ours.len().max(theirs.len())) {
+                    eprintln!(
+                        "  node {j}: ours {:?} theirs {:?}",
+                        ours.get(j),
+                        theirs.get(j)
+                    );
+                }
+            }
+        }
+    }
+    eprintln!("ROAD searched {searched}; first parting {first:?}; on 4207 {on_word:?}");
+    pin_eq!(on_word, (0, 0), "the word's road nodes, ours and theirs");
+    pin_eq!(first, None, "the first node that parts");
+}
