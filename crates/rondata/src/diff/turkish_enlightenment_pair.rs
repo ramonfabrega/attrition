@@ -197,3 +197,48 @@ fn turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole() {
     // 307). The 440 keys of block 2555 are past the word.
     pin_eq!(w.firsts.len(), 2651, "run1159b baseline");
 }
+
+/// run1186: the walk back from the word 2501, blocks 1395..1502 at
+/// run1159b's detail (item 3543) — the long's stride has the Citizen
+/// `1/20` agreeing on 1401 and parted by 1501.
+pub(crate) const RUN1186: &str =
+    "gamelog-run1186-greatsahara-turkish-enlightenment-window-1395-1502.txt";
+
+/// The window: block 1395 through 1502.
+pub(crate) const WIDENING_TURKISH_ENLIGHTENMENT_GAP_1186: (i64, i64) = (1395, 1502);
+
+pub(crate) fn turkish_enlightenment_gap_1186_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[TURKISH_ENLIGHTENMENT.start],
+        true,
+        TURKISH_ENLIGHTENMENT.long,
+        "run1186",
+        &[(RUN1186, WIDENING_TURKISH_ENLIGHTENMENT_GAP_1186.0)],
+        WIDENING_TURKISH_ENLIGHTENMENT_GAP_1186,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn turkish_enlightenment_pair_run1186_s_walk_back_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = turkish_enlightenment_gap_1186_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 107, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 61, "run1186 baseline");
+}
