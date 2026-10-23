@@ -59,8 +59,6 @@ pub mod ty {
     pub const BIPLANE: TypeId = 0x11f;
     /// `BOMBER`, the Americans' from an Airbase, in the Modern age.
     pub const BOMBER: TypeId = 0x130;
-    /// `MODERN_AGE`, the bomber's own gate.
-    pub const MODERN_AGE: TypeId = 0x225;
     /// `FISHERMEN`, the British ones from a Dock.
     pub const FISHERMEN: TypeId = 0x13d;
     /// `BARK`, the Dutch light ship.
@@ -274,6 +272,10 @@ impl Sim {
     }
 }
 
+/// The Modern age's place in [`crate::tech::TechTree::ages`], Classical
+/// first: the sixth age tech, `MODERN_AGE` (`0x225`) in the original.
+const MODERN: usize = 5;
+
 impl Sim {
     /// **`Build::activate@00623e20:603–1150` — the high-water mark, and the
     /// nation's free units.**
@@ -375,10 +377,16 @@ impl Sim {
         } else if t == Some(ty::AIRBASE) {
             let fighters = self.tuning.german_free_fighter;
             self.free_train(b, power::GERMANS, ty::BIPLANE, fighters, true);
-            // The American bomber wants the Modern age as well as the base.
-            let modern =
+            // The American bomber wants the Modern age as well as the base:
+            // `has_tech(MODERN_AGE)`, the original's `0x225`. The tree lays
+            // the techs out at `543 + i` where the original's `TypeIndex` is
+            // `0x220 + i` (`rondata::load`'s table), so the age is asked for
+            // by its place in the ladder, never by the original's number —
+            // `0x225` here is the Information Age (item 3509).
+            let modern = self.tech_tree.ages[MODERN].is_some_and(|a| {
                 self.tech_tree
-                    .has_tech(&self.setup, &self.tech[who as usize], ty::MODERN_AGE);
+                    .has_tech(&self.setup, &self.tech[who as usize], a)
+            });
             let bombers = if modern {
                 self.tuning.americans_free_bomber
             } else {

@@ -186,6 +186,9 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The Russians at a held Modern age, East Indies (item 3508, DECISIONS
     // 90): the first pair to hold one age.
     (18, 13, 5),
+    // The Americans at a held Modern age, Great Sahara (item 3509,
+    // DECISIONS 90): the land map's held-age pair.
+    (7, 20, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

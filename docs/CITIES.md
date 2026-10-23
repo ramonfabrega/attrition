@@ -986,8 +986,15 @@ pins the chain, the single count, the second Barracks paying again and the
 rebuild paying nothing. All twenty-five constants are re-derived from
 `rules.xml` by `cargo run -p rondata`.
 
+**The American Airbase arm is diff-backed too** (item 3509, `docs/AI.md`
+§302): the land map's held Modern pair pays `1/45`, a `BOMBER`, inside the
+Airbase `1/2022` on the frame it completes, and the pair's word runs 1995 →
+4488 on it. The gate asks the tree for `ages[5]`. The tree's techs sit at
+`543 + i` against the original's `0x220 + i`, so the original's
+`MODERN_AGE` (`0x225`) used as a tree id named the Information Age.
+
 **Not established.** Every other arm rests on the reading alone — no capture
-on disk has a Roman, Aztec, Turkish, French, Spanish, Dutch, American,
+on disk has a Roman, Aztec, Turkish, French, Spanish, Dutch,
 German, Mongol or Korean leader. Nor is the `param_3` gate's second clause
 modelled: the original also wants `(semaphore[1] & 0x10) == 0 &&
 (semaphore[2] & 2) == 0`, or `ScenarioData::building_unit_bonus`, and what
