@@ -242,9 +242,12 @@ Stockade… is not.
 `t`'s `tribe_mask`, else `0` — with one early `0`: a unit with `unit_flags &
 0x1000000` when the lobby's "No Unique Units" flag (`info.flags & 8`) is on or
 the player's tribe is a barbarian tribe. `LeaderData::get_graft(t)` is `t` when
-`tribe_can_type(t)`, otherwise `UnitTypeData::type_graft(who)`: the tribe's
+`tribe_can_type(t)`, otherwise `t`'s vtable `+0x68` on `who`: for a unit
+`UnitTypeData::type_graft(who)`, the tribe's
 `graft[352]` table, one replacement per unit type, which is how Hoplites become
-Hypaspists for the Greeks. Every walk along `from`/`jump` in this document
+Hypaspists for the Greeks; for any other type `TypeData::type_graft@00472a50`,
+`t` itself (run1134, item 3501: a Barracks whose Nubian bit the script host's
+`disable_type_by_tribe` cleared, grafted by `ScenarioFuncSet::train_unit`). Every walk along `from`/`jump` in this document
 grafts each step.
 
 ---
