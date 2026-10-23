@@ -172,8 +172,14 @@ fn run1155_chinese_industrial_pair_closing_state() {
     // `1/107` by (114, −9) and `1/73` by (−73, 72). run1155 prints units
     // on every hundredth block only, so where they first part is not
     // walked here.
+    //
+    // Item 3540: **none off**. run1184 (4201..4468) walks the parting back
+    // to block 4345: the Flamethrowers `1/84` and `1/129` (TypeIndex 131)
+    // keep an attack on the dead building `0/2004` in ours where theirs
+    // drops it under `fight`'s emplaced-weapon latch, and on 4346 theirs'
+    // group sends both on; every later position follows from it.
     pin_eq!(e.compared, 165, "units compared");
-    pin_eq!(e.counts(), [14, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// run1155b: the word 3007's window, blocks 3001..3257 at the long's
@@ -318,4 +324,67 @@ fn chinese_industrial_pair_run1175_s_word_frame_is_widened_whole() {
     // 3258's standing rows are all that part: `form` on 22 units, the
     // ten `SITE[i].reg`, `aggression[1]`, and five groups' `held`/pool.
     pin_eq!(w.firsts.len(), 43, "run1175 baseline");
+}
+
+/// run1184: the pair's last blocks, 4201..4468 at the long's detail — from
+/// run1155's last hundredth block whose units agree to the game's closing
+/// block (item 3540).
+pub(crate) const RUN1184: &str =
+    "gamelog-run1184-greatsahara-chinese-industrial-window-4201-4468.txt";
+
+/// The window: block 4201 through the closing block 4468.
+pub(crate) const WIDENING_CHINESE_INDUSTRIAL_CLOSING: (i64, i64) = (4201, 4468);
+
+/// **The pair's last blocks**: run1184 walked from run1154's start with
+/// the recorder on. The word is the game's last frame (item 3540).
+pub(crate) fn chinese_industrial_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[CHINESE_INDUSTRIAL.start],
+        true,
+        CHINESE_INDUSTRIAL.long,
+        "run1184",
+        &[(RUN1184, WIDENING_CHINESE_INDUSTRIAL_CLOSING.0)],
+        WIDENING_CHINESE_INDUSTRIAL_CLOSING,
+        1,
+        &[4468],
+        true,
+    )
+}
+
+#[test]
+fn chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = chinese_industrial_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 267, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 3540, the first walk: **239** keys. Block 4201 carries the
+    // standing rows (`form`, `SITE[i].reg`, `aggression[1]`, groups'
+    // `held`/pool) and who=1's economy, parted before the window: `rare`
+    // and `rare_owned` ours 11608000 against theirs 1148168000, and
+    // `income` for wealth, knowledge and metal ours 3814/1200/1040 against
+    // 4454/1520/1360. **The first position rows are block 4346's**: on 4345
+    // the Flamethrowers `1/84` and `1/129` (TypeIndex 131, land, group 65)
+    // hold one order in theirs, the `GUARDORDER` (kind 12), against ours'
+    // two, an `ATTACKORDER` (kind 10) on the human's building `0/2004`
+    // over it. `0/2004` (damage 397 of 400 on block 4343) is gone on 4344
+    // on both sides; theirs drops the attack on 4345 with `recharging` 23
+    // and 12, ours kept it to the reload's end, and on 4346 theirs' group
+    // hands both an `ATTACKTOORDER` to (9528, 27336) and (9672, 27240),
+    // where ours stands.
+    //
+    // Then **81** with the emplaced weapon's latch (`Unit::fight@005fd4d0:
+    // 94`–`102`, `docs/ORDERS.md` §7.12): no unit's position parts in the
+    // window. What stands is block 4201's rows, `dest_angle` on `1/138`
+    // (4203), `1/110` (4342) and `1/75` (4343), who=1's `escrow`/food
+    // economy (4213, 4376–4379) and `mylos` ours 4 against theirs 16 on
+    // five of who=1's units from 4376.
+    pin_eq!(w.firsts.len(), 81, "run1184 baseline");
 }
