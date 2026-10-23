@@ -164,8 +164,12 @@ fn run1151_american_modern_pair_closing_state() {
     // `damage_frame` 4531) from the Armored Car `1/80` (TypeIndex 218) and
     // the `FLEEORDER` that follows; ours lands
     // neither, and no draw parts. No building or city field-row.
+    // Item 3518: one off -> none. `1/80`'s round on 4526 left from the car's
+    // own square, 2549 from its landing, and flew 7 frames; run1164's packet
+    // holds theirs at t 2/6 from (9412, 31822), the turret's release node
+    // (piece 168's rows in `sim::pivot`). It lands on 4531 now.
     pin_eq!(e.compared, 175, "units compared");
-    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// **The American Airbase pays a Bomber in the Modern age** (item 3509):
@@ -340,7 +344,10 @@ fn american_modern_pair_run1151c_s_word_frame_is_widened_whole() {
     // keys stand on 4482 (the families run1151b's block 1990 already
     // carries), group 66 ours alone on 4508, and `0/5`'s blow on 4532 (ours
     // `hits_left` 85, theirs 49), which the draw stream does not see.
-    pin_eq!(w.firsts.len(), 97, "run1151c baseline");
+    // Item 3518: 97 -> 76, the car's round leaving from its turret. The 74
+    // standing on 4482 and group 66's two keys on 4508 are what is left;
+    // `0/5` parts nothing.
+    pin_eq!(w.firsts.len(), 76, "run1151c baseline");
 }
 
 /// **The long's stride, walked back from the word 4488** (item 3517): run1151
