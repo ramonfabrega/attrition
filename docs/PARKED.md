@@ -10070,13 +10070,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OW — reserved
+## Parked by item 3522, 2026-10-23 — the barge's sweep round slot 0
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3522a. who=1's reassembly parts again on block 4104.** run1166b's widening after item 3522: `gather_stamp` ours
+  4095 against theirs 4103, `income[0]` 2800 against 2480, `income[1]` 2320 against 1840, `income[2]` 4685 against
+  4602, then the escrows (4105, 4106) and `bucket[2]` (4125) one off. It is 3520a's family: theirs reassembles
+  who=1's city on frame 4103 and ours on 4095. It stood under item 3520's build too, and the word moved past it on
+  army 1's order alone (`docs/AI.md` §304). **Score**: none until a word's frame names who=1's economy.
+- **3522b. A loaded boat's passenger type is a seam in the different-region arm.** `705c0f`–`705c9b`: after
+  `invalid_loc` refuses slot 0 to a member, a sea member (`+0x218 == 1`) with `num_inside(0) != 0` sweeps as its
+  first passenger's type (`units[+0x3e].list[+0x28]`'s `+0x18`). `Sim::region_spot_type` takes the member's own type
+  there. No capture on file puts a loaded boat in an army's move. **Score**: none until a word's frame names one.
 
 ## Parked by the next landing, slot OX — reserved
 
