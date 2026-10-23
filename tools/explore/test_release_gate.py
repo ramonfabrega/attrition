@@ -999,5 +999,67 @@ class GateTests(unittest.TestCase):
         self.assertGreater(len(skips), 400)
 
 
+class WholeLaneGate(unittest.TestCase):
+    """Loop 3489 (the fifty-first pass): a lane whose item moves no test —
+    a retirement, a tooling item — had no lane gate that ran as briefed:
+    `--lane` without `--tests` is refused, so it ran the unflagged booking
+    gate, which forgives nothing. `--lane --whole` runs every test, the
+    timed ones included, and keeps the lane's forgiveness and verdict."""
+
+    release_command = GateTests.release_command
+    lane_run = GateTests.lane_run
+
+    def test_a_whole_lane_gate_runs_every_timed_test(self):
+        # Not widened (a tools/ path), and still nothing skipped.
+        command, policy = self.release_command(touched=['tools/retire.py'], lane=True, whole=True)
+        self.assertNotIn('--skip', command)
+        self.assertEqual(policy['lane']['skipped'], 0)
+        self.assertTrue(policy['lane']['whole'])
+        self.assertEqual(policy['lane']['tests'], [])
+        self.assertFalse(policy['verify_caches'])
+        # The worded lane gate is unchanged: it skips.
+        command, policy = self.release_command(touched=['tools/retire.py'], lane=True, tests=WORD)
+        self.assertIn('--skip', command)
+        self.assertFalse(policy['lane']['whole'])
+
+    def test_a_whole_lane_gate_forgives_the_commander_s_lines_and_prints_its_verdict(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+            calls, run = self.lane_run(RELEASE_LOG)
+            with patch('builtins.print') as printed:
+                gate.gate(path, report_dir=path/'report', run=run, lane=True, whole=True, git=UNMOVED)
+            said='\n'.join(str(c.args[0]) for c in printed.call_args_list if c.args)
+            self.assertEqual([gate.step_name(c) for c, _ in calls],
+                             ['offline','clippy','fmt','survey','release','guard'])
+            self.assertIn("Lane verdict: red only on the commander's lines (2)", said)
+            self.assertIn('Lane suite: every test, the timed ones included (--whole', said)
+            release = next(c for c, _ in calls if '--release' in c)
+            self.assertNotIn('--skip', release)
+
+    def test_whole_refuses_with_tests_with_no_widen_and_without_lane(self):
+        for kw, says in (({'whole': True}, '--whole is a lane gate'),
+                         ({'lane': True, 'whole': True, 'tests': WORD}, '--whole runs every test'),
+                         ({'lane': True, 'whole': True, 'no_widen': True}, '--whole runs every test'),
+                         ({'lane': True}, '--whole')):
+            with self.subTest(**kw), tempfile.TemporaryDirectory() as tmp:
+                path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
+                with patch('builtins.print'), self.assertRaises(ValueError) as caught:
+                    gate.gate(path, report_dir=path/'report', run=lambda *a, **k: self.fail('ran'),
+                              git=UNMOVED, **kw)
+                self.assertIn(says, str(caught.exception))
+                self.assertIn('Loop 3489', str(caught.exception))
+
+    def test_the_command_line_refuses_whole_before_anything_runs(self):
+        script = Path(gate.__file__)
+        for argv, says in ((['--whole'], '--whole is a lane gate'),
+                           (['--lane', '--whole', '--tests', 'x'], '--whole runs every test')):
+            with self.subTest(argv=argv), tempfile.TemporaryDirectory() as tmp:
+                done = subprocess.run([sys.executable, str(script), tmp, *argv],
+                                      capture_output=True, text=True, timeout=60)
+                self.assertEqual(done.returncode, 2, done.stderr)
+                self.assertIn(says, done.stderr)
+                self.assertNotIn('Gate pid', done.stdout)
+
+
 if __name__ == '__main__':
     unittest.main()
