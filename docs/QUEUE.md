@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-second tranche (commander, Opus): 8 of 20 landed from `05f6df2a`** — the Germans whole first try (3506), the Aztecs at 4382 (3507) and whole on `get_cost`'s domain arm (3514), the Russians at 8 (3508) 3682 on Written Word's ×30 (3515) and 3778 on the cavalry archer captain's re-search (3516), the Americans 1995 → 4488 on the free Bomber's age gate (3509) and whole on the guard re-issue's sorted list (3517), one Citizen off at the close; the renderer starts this weekend (DECISIONS 90).*
+*2026-10-22, **the fifty-second tranche (commander, Opus): 9 of 20 landed from `05f6df2a`** — the Germans whole first try (3506), the Aztecs at 4382 (3507) and whole on `get_cost`'s domain arm (3514), the Russians at 8 (3508) 3682 on Written Word's ×30 (3515) and 3778 on the cavalry archer captain's re-search (3516), the Americans 1995 → 4488 on the free Bomber's age gate (3509) whole on the guard re-issue's sorted list (3517) and at the close on the Scout Car's piece-168 pivot (3518); the renderer starts this weekend (DECISIONS 90).*
 
 - **Words**: one open, the Russians at 3778 of 5,841 (lower map first — East Indies (Russians, Modern)); held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
   4–7 held, nations the computer has not played, each scored by its first try — frames before divergence; the Germans whole (4175, 3506), the Aztecs whole (4565, 3514), the Russians 3778 of 5,841, Modern held (3508, 3515, 3516), the Americans whole, 4548 (3509, 3517). **The rubric reads lockstep
   games only** (DECISIONS 90): bytes 77.0 %, ages 7 of 8 (Modern never), unit types 131 of 302. **The blind list is a floor**: 247 · 208 · 39.
 - **The fifty-first tranche** (DECISIONS 90): eighteen `cover=1` landings on two Opus lanes in 8 h 05, 5.45 USD and 30.9 minutes waiting
   a landing, no red gate, two `DEEP`, one blocked ending; the pool 2.1 → 24.5 frames a second, mirror off (3484, 3497); open 91 → 39.
-- **Lanes: 3519, 3518 live; four more booked** (3510–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
+- **Lanes: 3519, 3510 live; three more booked** (3511–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
   parting, a divergence spawning residue items on that word (the AI track's shape). Refill: a parting's residue first, then the next
   age and nation off `rubric.py --tables 3`. Next 3520, run 1166. Pools: GOLDEN §149–154, AI §303, §305, park OU–OX.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 90.
@@ -55,10 +55,6 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). **Every i
 `Ammo::init+0xcd9`, a round launched; 3516's walk-back on run1161b, AI §304): the state parts first on block 3723 — Citizen `0/5`
 `hits_left` 66 against 62 and fleeing in theirs, as if a Cruiser round lands at 3722 in theirs only. 3518's blow is the same shape.
 Run 1165; amend §304 in place; park OT.
-
-3518. **The American closing, frame 4531: one unit off of 175, no draw delta** (3517's `run1151_american_modern_pair_closing_state`,
-AI §302): the human's Citizen `0/5` (TI 50) takes a 36-point blow, `damage_frame` 4531, from the Armored Car `1/80` in theirs only.
-Run 1164; amend §302 in place; park OS.
 
 3510. **The Japanese at a held Industrial age, East Indies** (`--map 18 --ai-tribe 15`, Difficulty 5, ages 5/5): `RIFLEMEN`, `MACHINEGUN`,
 `ANTITANKRIFLE`, the five `LIGHTTANK`s, `ARTILLERY`, `SIEGEMORTAR`, `AAGUN`, the `BIPLANE`s, `DESTROYER`, `SUBMARINE`, `DREADNOUGHT`;
