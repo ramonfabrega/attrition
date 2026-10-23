@@ -124,8 +124,8 @@ says in its doc comment that only the British and Mongol arms are built,
 | French | special (general) units train faster, 0 in the rules | `ObjectData::train_time@006508c0` | not modelled | `french_special_speed` |
 | Germans | aircraft train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_air_speed` |
 | Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_submarine_speed` |
-| Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | modelled at lib.rs (item 3510) | `japanese_barracks_speed` |
-| Japanese | carriers train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs (item 3510) | `japanese_carrier_speed` |
+| Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | modelled at lib.rs | `japanese_barracks_speed` |
+| Japanese | carriers train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `japanese_carrier_speed` |
 | Japanese | a Farm costs 50% less | `TypeData::get_cost@00664090` | modelled at city.rs | `japanese_farms_cheaper` |
 | Japanese | a farmer gathers 25% more food (calc_gather's flat branch) | `BuildTypeData::calc_gather@00639e40` | modelled at holdings.rs | `japanese_fishing_boats` |
 | Indians | a building's support ramp zeroed, halved rounding up for a wonder or a defence | `TypeData::get_cost@00664090` | modelled at cost.rs | `indian_ramp` |
