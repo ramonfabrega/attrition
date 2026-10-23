@@ -358,7 +358,7 @@ Before any reading, in order:
   `PatrolOrder` is ever constructed as its own type.
 - **A rubric lobby dumps `end:UNITS=3,GUYS=2` on a stride to the game's
   end, and its journal names the unit types new to the ledger** (3506;
-  DECISIONS 90): the rubric counts `GUY` blocks of the pinned traces'
+  DECISIONS 90): the rubric counts `GUY` blocks of lockstep games'
   dumps and nothing else, so a take without `GUYS` moves no type; run
   `tools/rubric.py --tables 3` on your tree after the pin and re-pin
   `census::RUBRIC_UNIT_TYPES_SEEN` with the count in its comment; the

@@ -412,7 +412,7 @@ tranche's own receipts.
 - **A rubric lobby dumps `end:UNITS=3,GUYS=2` on a stride and names the
   unit types new to the ledger** (3506; DECISIONS 90): the headline is
   the rubric's unit types seen from this tranche on, and the rubric
-  counts `GUY` blocks of the pinned traces' dumps only.
+  counts `GUY` blocks of lockstep games' dumps only.
 
 ## The brief checklist, from the forty-seventh pass
 

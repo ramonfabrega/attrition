@@ -15,8 +15,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 *2026-10-22, **the fifty-first pass (steer, Fable), with Ramon: the fifty-first tranche scored, the fifty-second booked as a late-age battery of new pairs**; the renderer starts this weekend (DECISIONS 90).*
 
 - **Words**: all closed, none open (lower map first — closed); held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
-  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence — and the rubric reads the
-  dumps of games in lockstep (DECISIONS 90: lockstep bytes, unit types seen 74 of 364). **The blind list is a floor**: 247 · 208 · 39.
+  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence. **The rubric reads lockstep
+  games only** (DECISIONS 90): bytes 77.0 %, ages 7 of 8 (Modern never), unit types 128 of 302. **The blind list is a floor**: 247 · 208 · 39.
 - **The fifty-first tranche** (DECISIONS 90): eighteen `cover=1` landings on two Opus lanes in 8 h 05, 5.45 USD and 30.9 minutes waiting
   a landing, no red gate, two `DEEP`, one blocked ending; the pool 2.1 → 24.5 frames a second, mirror off (3484, 3497); open 91 → 39.
 - **Lanes: none live; eight booked** (3506–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
@@ -37,7 +37,7 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 247 · residue 208 · open 39
-Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
+Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.0 % · ages held 7 of 8 · unit types seen 128 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: the fifty-second tranche (commander, Opus) — eight late-age pairs booked from `3e89bc846`'s pass; take 3506 and 3507 on two Opus

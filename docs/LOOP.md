@@ -80,12 +80,14 @@ unshared input, where the take sends one — and pins it into
 `blind::TRACES`, so the functions a reading's captures-owed table names
 leave `NEVER`; it gates on the same line. **A need for the queue lane
 again is a steer, never a lane's redirect** (item 3485, DECISIONS 89).
-**A rubric lobby is a `coverage` item** (DECISIONS 90): a lobby taken
-for the unit types it puts on the map, `end:UNITS=3,GUYS=2` dumped on a
-stride to the game's end, pinned into `blind::TRACES` like any trace;
-the worker runs `tools/rubric.py --tables 3` on its tree, names the
-types new to the ledger in its journal and re-pins
-`census::RUBRIC_UNIT_TYPES_SEEN`, and the commander writes the queue's
+**A late-age pair is a `residue` item that stands a word up** (DECISIONS
+90): the Mongol pair's shape — its own start and long at `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride, the age held and read back,
+`diff::<name>_pair` pinned at its first parting — scored by its first
+try, its partings residue items on that word. **The rubric reads lockstep
+games only**: the worker runs `tools/rubric.py` on its tree once the
+word is pinned, names the types new to the ledger in its journal and
+re-pins `census::RUBRIC_*`, and the commander writes the queue's
 `Rubric:` line at the booking as it writes `Blind:` — the pass's
 `--record` row stays the pass's.
 
