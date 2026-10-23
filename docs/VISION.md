@@ -180,9 +180,21 @@ Three consequences worth stating:
   `mylos 0` from the frame it is placed (frame 2, `flags 1`) through the
   frame it is started (70, `flags 3`) — because nothing *calls*
   `update_los` in between — and at **8** from the frame it activates.
-- The fort, tower, colosseum and furs terms are read and not carried; none
-  can fire in any capture on disk. Every one of them is an addition to a
-  value §3 halves, so a term is worth a fog cell only when it reaches 2.
+- ~~The fort, tower, colosseum and furs terms are read and not carried; none
+  can fire in any capture on disk.~~ **The tower term is carried** (item
+  3543, `docs/AI.md` §307): run1186b's Turkish tower `1/2012` (TypeIndex
+  441, `LOS 14`, `X_SIZE 2`) is `mylos 19`. The term is
+  `tower_fort_range[i + 3]` with `i = get_tower_fort_los()` in 1..4, read
+  as `movb 0x1b4(%ecx,%eax,4)`: past `TOWER_FORT_RANGE`'s four entries,
+  `TOWER_FORT_LOS[i − 1]` (0, 2, 4, 6). `get_tower_fort_los@006daf80`
+  tests the leader's `tech` mask byte 8 (`+0x6c20`), bits `0x10`/`0x8`/
+  `0x4`. `has_tech` indexes the mask by `TypeIndex`, so the bits are
+  units 68/67/66 (`PARTISAN`, `MINUTEMAN`, `MILITIA`), answering 4/3/2,
+  else 1. A fort takes its own term instead (`FORT_UPGRADE_LOS[i − 1]`,
+  `movb 0x190(…)`, `i` from `has_preq(FORTLOS2..4)`), and that term, the
+  colosseum's and the furs' are still not carried (parked 3543b). Every
+  one of them is an addition to a value §3 halves, so a term is worth a
+  fog cell only when it reaches 2.
 - `type->x_size` is the footprint in **tiles**, the same field the block
   mask is sized by, and the division is C's — toward zero.
 

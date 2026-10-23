@@ -4,10 +4,10 @@
 //! original's windows (`docs/VISION.md` §2.1).
 //!
 //! Not wired: [`crate::Sim::build_los`] carries the finished building's
-//! `LOS + epoch * SCIENCE_LOS + x_size / 2` and none of the fort, tower,
-//! colosseum and furs terms, which need tech bits, a wonder test and the
-//! constants block the crate does not model. This is the whole function, so
-//! the sweep pins what the crate would have to carry.
+//! `LOS + epoch * SCIENCE_LOS + x_size / 2` and the tower term (item 3543),
+//! and none of the fort, colosseum and furs terms, which need tech bits, a
+//! wonder test and constants the crate does not model. This is the whole
+//! function, so the sweep pins what the crate would have to carry.
 //!
 //! Every sum is in the **byte** the original keeps at `+0x3c`: the products
 //! and the additions wrap at 8 bits, and the answer is that byte
