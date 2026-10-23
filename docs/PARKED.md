@@ -9921,13 +9921,13 @@ consumed with `field_0x88 == 0`, the `% 5` cadence) while `repaths[0] ≥ 3`, so
   package, would enter it. Whether forged input counts as staging is the steer's to say. **Score**: one open blind
   row.
 
-## Parked by the next landing, slot OJ — reserved
+## Parked by item 3507, 2026-10-22 — the Aztecs at All Technologies, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3507a. Difficulty 3 does not lengthen the All Technologies game on Great Sahara.** run1147 (the Aztecs,
+  Difficulty 3) ended itself on 4565, and run652 (Difficulty 5) on 4730. The booking's premise, that a lower
+  difficulty lets the game run past the computer's first attack, does not hold for this lobby (`docs/AI.md` §301).
+  For the refill: a held-age pair that wants a longer game varies something other than the difficulty, or lives
+  with the length. **Score**: none; the length of the late-age pairs' games.
 
 ## Parked by the next landing, slot OK — reserved
 
