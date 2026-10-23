@@ -9977,13 +9977,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OQ — reserved
+## Parked by item 3514, 2026-10-23 — the Space Program halves the Aztecs' ICBM, and the pair is whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3514a. The booked hypothesis, killed: neither the make list's missile arm nor a nuke cap.** 3507 booked "the
+  missile arm with a missile already in the Silo, against a nuke cap". The price probe on 4382 put the ramp's inputs
+  equal on both sides: `num_units[266]` 3, `num_queued` 0 before the purchase, `nukes_used` 2. Ours' make list held
+  the ICBM at `MAKE[3]` and could not pay its 1224 knowledge from 1100. With the domain arm, the same entry pays 872
+  and the pair is whole, so no missile or cap predicate is involved (`docs/AI.md` §301). **Score**: none; the kill.
+- **3514b. The domain arm's sea and Aluminium steps rest on a reading and a unit test.** `ANGKOR_SHIPS` on a sea unit
+  and `ALUMINUM_AIR_COST` on an air unit are built beside the Space Program's step. No walk holds them: each mutation
+  is caught only by `the_space_program_halves_an_aircraft_and_angkor_wat_takes_a_quarter_off_a_ship`. A capture with
+  Angkor Wat held and a ship priced, or Aluminium and an aircraft, would diff them. The Terra Cotta clause's nested
+  `ANGKOR_SHIPS` on land units (`docs/COSTS.md`, Wonders) is not built. **Score**: none while no word reaches it.
+- **3514c. run1147b's residue past the word is the attrition family.** 308 keys, none on 4383. 92 stand on 4376,
+  then `attrition` (ours 6 against theirs 24) from `1/93` on 4388, with its `damage_frac`/`hits:damage`/`hits_left`
+  (180 against 181), `sheltered`, four `mirror`s and two pools. This is 3506b's family on the Germans' closing window,
+  and the closing comparison reports none of it. **Score**: none while the pair is whole.
 
 ## Parked by the next landing, slot OR — reserved
 

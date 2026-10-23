@@ -528,7 +528,18 @@ shape carries no information and the predicates do:
   those **land** units, on top of the correct one that the sea domain gets a
   few lines later. `ANGKOR_SHIPS` ships as 25%, so this one is live: an Angkor
   Wat owner buys barracks, stable and auto-plant units a quarter off, which no
-  description of the wonder mentions.
+  description of the wonder mentions. **The domain arm is built, item 3514**
+  (`docs/AI.md` §301; `Sim::domain_cost_discounts`, `Modifiers::domain`):
+  on `UnitTypeData +0x218`, a sea unit takes `ANGKOR_SHIPS` with
+  `has_wonder(0x217)`; an air unit takes `ALUMINUM_AIR_COST` (15%) with
+  Aluminium (`rare` byte 3 bit 0), then `SPACE_AIR_COST` (50%) with
+  `has_wonder(0x21e)`. Each is its own truncating step after the Citizen
+  arms and before Despotism, in the tail the train and research arms share.
+  Only the Space Program is diff-backed: the Aztecs' Silo queues an ICBM on
+  run1147b's 4383 at 872 knowledge and 942 oil, `(750 × 50 % × 95 % + 525)
+  × 99 %`. The sea and Aluminium steps rest on the reading and a unit test.
+  The nested land-unit `ANGKOR_SHIPS` inside Terra Cotta's clause is not
+  built.
 - **Rare resources that are not.** Salt on barracks units does not read
   `SALT_BARRACKS_COST`, which ships as 15%. The code multiplies by a literal
   nine tenths, so Salt is worth 10% and the constant is decoration. **Built
