@@ -2856,21 +2856,6 @@ impl Sim {
             // and a loaded boat's passenger type; and the same-region
             // `invalid_loc` arm, which a computer's unit (`unit_masks &
             // 0x40000`) skips.
-            if std::env::var("RON_PROBE_3522").is_ok() && self.frame == 4090 && g.who == 1 {
-                let s0 = self.restrict_pos(slots.to[0]);
-                eprintln!(
-                    "PROBE3522 to {:?} from {:?} i {i} u 1/{} ty {:?} raw {:?} slot {:?} r {:?} s0 {:?} r0 {:?}",
-                    to,
-                    from,
-                    self.units[u].index,
-                    self.units[u].ty,
-                    slots.to[i],
-                    slot,
-                    self.world.tregion_alt(slot.tile()),
-                    s0,
-                    self.world.tregion_alt(s0.tile())
-                );
-            }
             if i > 0 {
                 let s0 = self.restrict_pos(slots.to[0]);
                 if self.world.tregion_alt(slot.tile()) != self.world.tregion_alt(s0.tile()) {
@@ -2882,35 +2867,6 @@ impl Sim {
                             self.find_nearby_spot_type(t, s0, 0, -1, 0, Angle(0x5555_5555))
                         })
                         .unwrap_or(s0);
-                    if std::env::var("RON_PROBE_3522").is_ok() && self.frame == 4090 && g.who == 1 {
-                        let raw = self.units[u].ty.and_then(|t| {
-                            self.find_nearby_spot_type(t, s0, 0, -1, 0, Angle(0x5555_5555))
-                        });
-                        eprintln!("PROBE3522 spot 1/{} -> {:?} raw {:?}", self.units[u].index, slot, raw);
-                        if let Some(t) = self.units[u].ty {
-                            let p = self.unit_types[t].combat;
-                            eprintln!("PROBE3522   big {} block {} dom {:?}", p.big_radius, p.block_radius, p.domain);
-                            for c in [Pos::new(8568, 984), Pos::new(8664, 1368)] {
-                                let near: Vec<_> = (0..self.units.len())
-                                    .filter(|&o| {
-                                        let v = &self.units[o];
-                                        v.owner < 8 && v.alive() && v.on_map
-                                            && crate::world::vector_dist(c.x - v.pos.x, c.y - v.pos.y)
-                                                <= self.profile(Obj::Unit(o)).big_radius + p.block_radius
-                                    })
-                                    .map(|o| (self.units[o].owner, self.units[o].index, self.units[o].ty, self.units[o].pos))
-                                    .collect();
-                                eprintln!(
-                                    "PROBE3522   c {:?} tile {:?} inb {} mask {:#06x} near {:?}",
-                                    c,
-                                    c.tile(),
-                                    self.world.tile_in_bounds(c.tile()),
-                                    self.world.tile_mask(c.tile()),
-                                    near
-                                );
-                            }
-                        }
-                    }
                     // Written back into the table (`param_9 + 0x514`,
                     // `+0x714`), which §6.7's translation reads next.
                     slots.to[i] = slot;
