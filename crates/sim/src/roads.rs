@@ -717,23 +717,7 @@ impl Sim {
     /// territory whose `seen2` bit is clear, and the original calls it
     /// seen because the owner holds a city in the cell's region.
     fn road_was_seen(&self, t: Pos, who: Player) -> bool {
-        let r = self.was_seen_fog(t.x >> 1, t.y >> 1, who);
-        if std::env::var("RON_PROBE_3524").is_ok() && t.x == 174 && t.y == 238 {
-            let cell = Cell::new(t.x >> 3, t.y >> 3);
-            let reg = self.world.region_of(cell);
-            let owner = self.world.owner(cell);
-            let rc: Vec<_> = (0..2u8)
-                .map(|o| reg.map(|r| (self.leader_reg_cities(o, r), self.reg_forts(o, r))))
-                .collect();
-            eprintln!(
-                "PROBE3524 f{} tile {:?} who {who} seen {r} owner {owner:?} region {reg:?} reg_cities/forts {rc:?} seen2 {:?} every {}",
-                self.frame,
-                (t.x, t.y),
-                self.world.seen2(t.x >> 1, t.y >> 1),
-                self.sees_every_cell(who)
-            );
-        }
-        r
+        self.was_seen_fog(t.x >> 1, t.y >> 1, who)
     }
 }
 
