@@ -48,7 +48,7 @@
     },
     "blind::tests::the_blind_list_is_the_pinned_residue": {
       "elapsed": 0.11618437498691492,
-      "rss_bytes": 224444416
+      "rss_bytes": 1068974080
     },
     "blind::tests::the_issuer_guard_reads_through_the_coverage_jmp": {
       "elapsed": 0.36631800000031944,
