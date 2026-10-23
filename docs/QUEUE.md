@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 7 of 20 landed; 3533 and 3534 live (DECISIONS 91).*
+*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 8 of 20 landed; 3534 and 3512 live (DECISIONS 91).*
 
 - **Words**: none open (lower map first — closed): the Japanese whole at 4,547, its closing block whole (3539); the Chinese at 4,467, none off (3538, 3540);
   held-out eight of eight. **The late ages**: six pairs stood up, all six whole on real sim work (the Chinese 3538, the Japanese 3539); **the rubric, lockstep**:
-  ages 8 of 8, types 128 → 152 of 302, **bytes 77.0 → 77.1 %** (the whole pairs traced at `cover=0`; the twins move tenths: 77.04 → 77.09 → 77.1, 3531, 3532; Loop 3541). Blind: 0 of 39 dead.
+  ages 8 of 8, types 128 → 152 of 302, **bytes 77.0 → 77.1 %** (the whole pairs traced at `cover=0`; the twins move tenths: 77.04 → 77.09 → 77.17 → 77.18, 3531–3533; Loop 3541). Blind: 0 of 39 dead.
 - **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
   30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
-- **Lanes: two live, Opus 5.5 at medium** (3533 the Americans' twin, 3534 the Russians' twin); **three booked** (3512, 3513, 3535):
-  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3542, run 1185. Pools: GOLDEN §149–154, AI §306–310, park PM–PP.
+- **Lanes: two live, Opus 5.5 at medium** (3534 the Russians' twin, 3512 the British at Enlightenment); **two booked** (3513, 3535):
+  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3542, run 1185. Pools: GOLDEN §149–154, AI §307–310, park PM–PP.
 - **Fable backlog: 12 Loop items** (3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -50,9 +50,6 @@ frame and draw delta, the AI track's); **a whole pair's `cover=1` twin** — the
 `cover=0` long (`rngcmp.py`; `samegame.py`), pinned into `blind::TRACES` so `rubric.py`'s lockstep bytes and `blind::NEVER` read it; **a late-age pair
 stood up** (`mongol_pair.rs`'s shape: own `DUMP_ALL` start and `cover=0` long, `end:UNITS=3,GUYS=2` on `--stride 100`, the walk seeded from the start (3506a),
 the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pair::assert_lobby`, `diff::<name>_pair` at its first parting, a scoreboard line). Opus; a word's gate `--tests <pair>:: blind::`, a twin's `--tests blind:: --no-widen`.
-
-3533. **coverage: the Americans' Modern twin** (`GreatSaharaAmericanModern`, whole at 4548 on run1150/1151): as 3531, against run1151; the
-Airbase's free Bomber (§302) and the Armored Scout Car's turret (3518) in a lockstep trace. Run 1178; park PG.
 
 3534. **coverage: the Russians' Modern twin** (`EastIndiesRussianModern`, whole at 5841 on run1148/1149): as 3531, against run1149; the
 Cruiser's, Dreadnought's and Destroyer's turrets (3519, 3523, 3525) and the Kremlin's Spy (3527) in a lockstep trace. Run 1179; park PH.
