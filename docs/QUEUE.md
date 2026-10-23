@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-second pass (steer, Fable): the fifty-second tranche scored, the fifty-third booked**; the commander waits on Ramon's conversation (DECISIONS 91).*
+*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 0 of 20 landed; 3530 and 3529 live (DECISIONS 91).*
 
 - **Words**: two open, the Chinese at 3017 of 4,467 (lower map first — Great Sahara (Chinese, Industrial)) and the Japanese at 4434 of 4,547;
   held-out eight of eight. **The late ages**: six pairs stood up, four whole on real sim work (2,449 lines in `crates/sim`); **the rubric, lockstep**:
   ages 8 of 8, types 128 → 152 of 302, **bytes 77.0 % unmoved** (the whole pairs traced at `cover=0`; their twins booked, 3531–3534). Blind: 0 of 39 dead.
 - **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
   30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
-- **Lanes: none live; nine booked** (3530, 3529, 3531–3534, 3512, 3513, 3535): open words, then twins, then pairs; refill a parting's residue,
-  then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3537, run 1182. Pools: GOLDEN §149–154, AI §306–310, park PJ–PP.
-- **Fable backlog: 10 Loop items** (3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
+- **Lanes: two live, Opus 5.5 at medium** (3530 `d9196c50`, 3529 `871a0b06`); **seven booked** (3531–3534, 3512, 3513, 3535):
+  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3538, run 1182. Pools: GOLDEN §149–154, AI §306–310, park PJ–PP.
+- **Fable backlog: 11 Loop items** (3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
