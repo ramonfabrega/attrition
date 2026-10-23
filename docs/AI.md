@@ -26008,38 +26008,15 @@ is left is block 3677's standing families, the groups' `held` and pool, `form`, 
 `order:kind` ours 1 against theirs 10, two orders against one, and `pos` (3281, 9092) against (3192, 9096). That the
 reassembly on 3808 is on the word's chain is the next item's hypothesis, not a finding.
 
-**Item 3520: `find_attack_pos`'s unit tail returns 0.** The word's draws are frame 3921, but the state parts on
-frame 3920 (block 3921, since a block prints the frame before it). On theirs, `1/25` (the Cruiser, TypeIndex 329, sea)
-drops its non-mandatory attack on the citizen `0/5` (TypeIndex 50, land, fleeing at 24 a frame) and takes a fresh
-attack on the building `0/2004`: `ox` 5 → 2004, `in_range 0`, `new_ord 1`, `unit_masks2` 4 → 20. On frame 3921 it
-fires, and that frame's index 0 is the jam roll (`air::SITE_JAM_ROLL`, an `ANTI_AIR` shooter). Ours keeps `0/5` and
-pushes a chase to the citizen's own point (`order:kind` 1). Both sides spend the captain's roll on 3920 (8901, `% 5`
-= 1). **run1166**, a packet at logger frame 3920, runs `Unit::process@00610bc0` on `1/25` under `step4.py --hook`:
-- `local_14` is 0 (the Bark arm refuses a citizen), and `poor_target(0/5)` answers 0 at `5fdeda`, so the captain
-  does not re-search;
-- the type is not `+0x2b8 & 4`, so no packer re-search either, and `find_attack_pos` (`5fe17f`) returns **0** at
-  `601604`;
-- `fight` takes the refused arm at `5fe3f8`, and `find_new_target`'s `check_target` reaches `0/2004`.
-
-The 0 comes from the unit tail at `602b9f`–`602c1e`. When the sweep finds no spot for a unit target, the target's
-point goes into the out-parameters, and the call returns 0 unless the current attack is mandatory (`[ebp-0x34]`,
-`602be5`) and the target stands `melee_far` or more off (`602c1e`). This crate read that `None` as "1, with the target's
-point", the building ring walk's answer. **Built**: `Sim::chase_tail_refused` (`crates/sim/src/attack_pos.rs`), asked
-by `attack_pos_refused` for a unit target, so `fight`'s chase and the siege arm both take `chase_refused`
-(`a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far`). The mandatory far arm
-(`find_nearby_spot`, then the domain gates) stays a seam (parked 3520b). With the refusal mutated out
-(`tools/mutate.py`), `russian_modern_pair_first_parting` falls back to 3921. No other lobby's `first_parting`
-moved.
-
-**The word moves 3921 → 4097** for both the count and the sequence: ours 104 draws against 103, index 94, ours
-`Guy::set_anim+0x97a < Guy::move+0x19f` (`1/154`) against theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. **The
-value diff**: run1161b's widening goes from 167 keys to 126, and on block 3921 `1/25` now reads `order:kind` 10 and `ox`
-2004 on both sides. The Cruiser parts nothing on the window. who=1's reassembly on block 3808 still stands (block 3807
-agrees, so it first parts there). It is not on this word's chain, and it parks (3520a). **run1166b** widens the new
-word over blocks 4092..4348 (`russian_modern_pair_run1166b_s_word_frame_is_widened_whole`, 7517 keys). Its head,
-block 4092, already parts 1749 keys: 1487 path stacks, 84 orders, the standing families, and positions from one unit
-off (`1/112`) to 46 off (`1/146`, `order:kind` 2 against 21). So the state parted in 3934..4091, and no dump prints a
-block there. Which field parts first in that gap is the next item's question.
+**Item 3520: `find_attack_pos`'s unit tail returns 0.** On frame 3920 theirs' `1/25` drops its
+non-mandatory attack on the citizen `0/5` for `0/2004` and fires on 3921; ours kept `0/5`. run1166's packet runs
+`Unit::process@00610bc0`: no captain or packer re-search, and `find_attack_pos` returns 0 at `601604`. Its unit tail
+(`602b9f`–`602c1e`) returns 0 for a unit target the sweep found no spot for, unless the attack is mandatory (`602be5`)
+and the target stands `melee_far` or more off; ours answered 1 with the target's point. **Built**:
+`Sim::chase_tail_refused` (`attack_pos.rs`, `a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far`);
+the mandatory far arm is a seam (3520b). **The word moves 3921 → 4097**: ours 104 draws against 103, index 94,
+`Guy::move+0x19f` (`1/154`) against `Guy::inc_time+0x271`. run1161b's widening: 167 → 126 keys. run1166b (blocks
+4092..4348, 7517 keys) parts 1749 keys on its head, so the state parted in 3934..4091, which no dump prints.
 
 **What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. ~~Which field of who=1's economy parts first in 3601..3676~~ (item 3516, above: three, from block 2187). ~~Why the count parts on
 11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing
