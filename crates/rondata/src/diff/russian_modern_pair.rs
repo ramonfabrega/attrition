@@ -52,9 +52,17 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // citizen `0/5` and `find_new_target` takes the building `0/2004`, as
     // theirs does. Frame 4097: ours 104 draws against 103, index 94 — ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a
-    // < Guy::inc_time+0x271`.
-    count: 4097,
-    sequence: 4097,
+    // < Guy::inc_time+0x271`. Item 3522: 4097 → 4207 for both. On 4090
+    // army 1's `ATTACKTO` slot 0 (the Spy's) lies at sea, and a land member
+    // whose slot is in another region sweeps round it as the leader's
+    // barge (`705c0f`–`705c9b`), so the barge's first candidate, slot 0's
+    // own point (8568, 984), stands for the whole army; ours swept each
+    // member's own type, and a T34's wider ring reached the shore at
+    // (8664, 1368) (run1168's block 4091). Frame 4207: ours 3279 draws
+    // against 3284, index 3272 — ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
+    count: 4207,
+    sequence: 4207,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -312,7 +320,16 @@ fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
     // No dump prints a block in 3934..4091. The word 4097's draw at index
     // 94: ours `Guy::set_anim+0x97a < Guy::move+0x19f` (`1/154`), theirs a
     // sound roll on the sound stream and then `Guy::inc_time+0x271`.
-    pin_eq!(w.firsts.len(), 7517, "run1166b baseline");
+    // Item 3522: 7517 → 576. Block 4092's orders, paths and positions are
+    // gone: army 1's `ATTACKTO` on 4090 aims every member at slot 0's sea
+    // point (8568, 984), the barge's spot (run1168). What is left is the
+    // standing families on the head, then **who=1's reassembly on block
+    // 4104** — `gather_stamp` ours 4095 against theirs 4103, `income[0]`
+    // 2800 against 2480, `income[1]` 2320 against 1840 (parked 3520a's
+    // family) — and on 4210, two blocks past the word 4207's block 4208,
+    // the scouts `1/26`, `1/30` and `1/31` take different move points
+    // (`1/26` (25080, 32760) against (21240, 45048)).
+    pin_eq!(w.firsts.len(), 576, "run1166b baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
@@ -360,7 +377,16 @@ fn russian_modern_pair_run1168_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 1881, "run1168 baseline");
+    // Item 3522, the first walk: 1881 keys. Through block 4090 only the
+    // standing families part (block 3928's 105, groups 85 and 93's `held`
+    // and pool, `form` on `1/160`, `SITE[7].reg`). **The state first parts
+    // on block 4091** (frame 4090): army 1 (group 67) takes an `ATTACKTO`
+    // off (8010, 2873), and fourteen members — the T34s, the AA Batteries,
+    // the Scout Car `1/136`, the Katyusha `1/123` — carry `order:move` ours
+    // (8664, 1368) against theirs (8568, 984), `1/146` `order:kind` ours 2
+    // against theirs 21, and 878 path keys with them. The fix (the barge's
+    // sweep round slot 0): 1881 → 114, the standing families alone.
+    pin_eq!(w.firsts.len(), 114, "run1168 baseline");
 }
 
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one

@@ -2851,18 +2851,27 @@ impl Sim {
             // run630's 10766: its slot's tile is coastal water (region2 0)
             // and slot 0's is region 12, and its order aims at the group's
             // own point there (item 1458, `docs/GROUPS.md` §37).
-            // SEAM: the `TRANSPORTBARGE` footprint (a land member whose
-            // slot 0 is invalid for it, under a leader that can transport)
-            // and a loaded boat's passenger type; and the same-region
-            // `invalid_loc` arm, which a computer's unit (`unit_masks &
-            // 0x40000`) skips.
+            //
+            // **The sweep asks a barge where slot 0 will not hold the
+            // member** (`705c0f`–`705c9b`, item 3522): when `invalid_loc(1,
+            // 1, 0, 0, 0)` refuses slot 0's tile to a land member and its
+            // leader `can_transport`, the type swept is the leader's
+            // `current_upgrade(TRANSPORTBARGE)`, so the ring's first
+            // candidate — slot 0's own ocean point — stands. Russian East
+            // Indies' army 1 on 4090: slot 0 is the Spy's, in the sea off
+            // (8010, 2873), and a T34's own ring reached the shore at
+            // (8664, 1368) where the original's whole army aims at
+            // (8568, 984) (run1168's block 4091, `docs/AI.md` §304).
+            // SEAM: a loaded boat's passenger type (a sea member with
+            // `num_inside`); and the same-region `invalid_loc` arm, which a
+            // computer's unit (`unit_masks & 0x40000`) skips.
             if i > 0 {
                 let s0 = self.restrict_pos(slots.to[0]);
                 if self.world.tregion_alt(slot.tile()) != self.world.tregion_alt(s0.tile()) {
                     // The type's sweep with `not_o`/`not_who` −1: nothing
                     // is exempt, the member itself included.
-                    slot = self.units[u]
-                        .ty
+                    slot = self
+                        .region_spot_type(u, s0)
                         .and_then(|t| {
                             self.find_nearby_spot_type(t, s0, 0, -1, 0, Angle(0x5555_5555))
                         })
@@ -2993,6 +3002,23 @@ impl Sim {
         // run31 measures §6.4's displacement.
         self.record_form(g, &slots, to);
         self.record_move(g, to, angle, form, queue);
+    }
+
+    /// The type `action_move_near`'s different-region arm sweeps for member
+    /// `u` round slot 0's point `s0` (`705c0f`–`705c9b`): the member's own,
+    /// unless slot 0's tile is `invalid_loc(1, 1, 0, 0, 0)` for it and its
+    /// type is of the land domain (`+0x218 == 0`) under a leader that
+    /// `can_transport` — then the leader's `current_upgrade(TRANSPORTBARGE)`.
+    pub(crate) fn region_spot_type(&self, u: usize, s0: Pos) -> Option<usize> {
+        let own = self.units[u].ty?;
+        let who = self.units[u].owner;
+        if self.unit_types[own].combat.domain == Domain::Land
+            && self.invalid_loc(u, s0.tile(), true, true, false, false, false) != 0
+            && self.transport_level(who) != crate::transport::TransportType::None
+        {
+            return self.barge_type(who).or(Some(own));
+        }
+        Some(own)
     }
 
     /// `Group::action_move_near@00704990`'s keep (`:410`–`440`, `:727`–

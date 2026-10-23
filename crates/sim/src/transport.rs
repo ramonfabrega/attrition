@@ -2137,6 +2137,60 @@ mod tests {
         b
     }
 
+    /// **`action_move_near`'s different-region arm sweeps as the leader's
+    /// barge** (`705c0f`–`705c9b`, item 3522, `docs/AI.md` §304): a land
+    /// member whose slot 0 lies on the sea, under a leader that can
+    /// transport, asks `current_upgrade(TRANSPORTBARGE)` for a spot round
+    /// slot 0, and the barge's ring stands on slot 0's own point. Without
+    /// transport, or with slot 0 on land, the member's own type sweeps.
+    #[test]
+    fn a_land_member_whose_slot_zero_is_at_sea_sweeps_as_the_leader_s_barge() {
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let mut tank = UnitType {
+            hits: 200,
+            ..UnitType::default()
+        };
+        tank.combat.big_radius = 96;
+        tank.combat.block_radius = 96;
+        let tank = f.sim.add_unit_type(tank);
+        let u = unit(&mut f.sim, 1, tank, tile_pos(4, 4));
+        let sea = tile_pos(40, 16);
+        let land = tile_pos(20, 16);
+        assert_eq!(
+            f.sim.region_spot_type(u, sea),
+            Some(tank),
+            "no transport: the member's own type"
+        );
+        f.sim.transport[1].military = true;
+        assert_eq!(
+            f.sim.region_spot_type(u, sea),
+            Some(b),
+            "slot 0 at sea under transport: the barge"
+        );
+        assert_eq!(
+            f.sim.region_spot_type(u, land),
+            Some(tank),
+            "slot 0 on land holds the member"
+        );
+        let snapped = Pos::new(
+            sea.x.div_euclid(0x30) * 0x30 + 0x18,
+            sea.y.div_euclid(0x30) * 0x30 + 0x18,
+        );
+        assert_eq!(
+            f.sim
+                .find_nearby_spot_type(b, sea, 0, -1, 0, crate::movement::Angle(0x5555_5555)),
+            Some(snapped),
+            "the barge's first candidate is slot 0's own point"
+        );
+        assert_ne!(
+            f.sim
+                .find_nearby_spot_type(tank, sea, 0, -1, 0, crate::movement::Angle(0x5555_5555)),
+            Some(snapped),
+            "the tank's own ring cannot stand at sea"
+        );
+    }
+
     /// §9.3 and `num_waterhalf`: the shore column is the land side of the
     /// waterline, and the sea column is the water side.
     #[test]
