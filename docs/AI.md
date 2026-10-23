@@ -25696,7 +25696,7 @@ with them. All of these now agree.
 and the Aluminium step. No capture holds either with a ship or an aircraft priced. The nested land-unit
 `ANGKOR_SHIPS` inside Terra Cotta's clause (`docs/COSTS.md`, Wonders) is not built.
 
-## 302. The Americans at a held Modern age, Great Sahara: the Airbase's free Bomber, 1995 → 4488 of 4548, and whole (2026-10-23, items 3509, 3517)
+## 302. The Americans at a held Modern age, Great Sahara: the Airbase's free Bomber, 1995 → 4488 of 4548, and whole (2026-10-23, items 3509, 3517, 3518)
 
 *Item 3509, Opus 5.5, the AI track (DECISIONS 90): run1150, run1151, run1151b and run1151c, on the click-free pool.*
 
@@ -25800,10 +25800,39 @@ ours alone on 4508, then the Citizen `0/5`. **The closing block 4549**
 (TypeIndex 50, land), by (19, 16), and `Closing fields: none`. On block 4532 theirs carries a 36-point blow on it
 (`hits_left` 49 against 85, `damage_frame` 4531) from the Armored Car `1/80` (TypeIndex 218, land, `damage_o` 80,
 `damage_who` 1), a member of army 1/0 on its group attack, and the `FLEEORDER` to (7848, 28248) that
-follows. Ours lands neither, and no draw parts. Mutations (`tools/mutate.py`): with the re-issue given the caller's
+follows. ~~Ours lands neither, and no draw parts.~~ Ours' round lands a frame late, on a Citizen already fleeing
+(item 3518, below). Mutations (`tools/mutate.py`): with the re-issue given the caller's
 copy again, `american_modern_pair_first_parting`, both widenings and the closing state exit 101, and so does the
 unit test, alone. The booked direction (`move_step` against `do_idle` at 4488) was downstream of the offsets, and
 the kill is parked as 3517a.
+
+**The closing whole: the Armored Scout Car fires from its turret** (item 3518, run1164). The blow on `0/5` is an
+ordinary round, not the drawless arm 3517 booked (parked 3518a). `1/80` (TypeIndex 218, `ARMOREDSCOUTCAR`, land)
+is on army 1/0's group attack-to. From block 4497 theirs' `cavarch_o`/`cavarch_uid` name `0/5` (uid 12); from 4528
+they name `0/10`. Ours' figure piece is 168, `TankDestroyer`'s `ARMOREDCAR-DEFAULT`, whose one `CHAR_ATTACKWALK`
+release is at frame 1 (133 ms). On 4496 that release is held on both sides by the turret gate (`node_flags`). On
+4526 it fires on both at the cavarch target, with the same scatter draws, landing at (8371, 29688). **The value
+diff is the round's own**, on run1164's packet at logger frame 4528 (`Ammo::vftable` `0xb45418`, `AmmoData`'s
+layout): theirs is `1/80 → 0/5`, `flags 0x6`, launched from **(9412, 31822, 727)**, **t 2/6**. Ours launched from
+the car's own square (9484, 31981), 2549 from the landing against theirs' 2374, so `sqrtf(d²) / 350` gave 7 frames
+against 6. Theirs lands on 4531 (`damage_frame` 4531, 36 points). Ours' round came due on 4532, the frame `0/5`
+took its danger flee, and it struck nothing. **The cause**: piece 168 is a restricted
+piece (a turret on node 4), and `sim::pivot` had no rows for it. Its round took `launch::launch_point`'s unmeasured
+branch, the unit's own square. **Built**: run1164's packet reads piece 168's nine `AttachPos` entries
+(`get_position.py … entries 168`, `RData +0x88` 0.95). They give `NODES` (168, 4: (0, 1.79)), `RDATA_SCALE` (168,
+19/20), and four `RELEASES` rows (`CHAR_ATTACKWALK` 1, `CHAR_ATTACK1` 1, `CHAR_ATTACK2` 11, `CHAR_ATTACK3` 12).
+Their twelve `float_lands` cells come from the unicorn sweep of the pivot branch over all 361 × 256 cells
+(`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_168`, the tables outside git under
+`~/ron-data/lab-experiments/2026-10-23-item-3518/`). Ours' round now leaves from (9412, 31822) at t 1/6. **The move**:
+the closing state goes from one unit off to **none of 175** (counts `[0; 7]`, `Closing fields: none`), and run1151c's
+keys go 97 → 76: the 74 standing on 4482 and group 66's two on 4508. Mutation (`tools/mutate.py`, the
+`CHAR_ATTACKWALK` row's time 1 → 99): the closing state and run1151c's widening exit 101.
+
+**What 3518 has not established.** The other American armour pieces (`ARMOREDCAR-NA`, `ARMOREDCAR2`, the
+`GREYHOUND`) have no rows and still fire from their own square (parked 3518b). Neither has the turret angle on 4526:
+no dump prints `turret_angles`, so the release's `(d₁, t)` cell is diff-backed only through the launch point the
+packet holds. Nor is why ours' late round struck nothing on 4532, with `0/5` still on its square in ours. The fix
+removes the case, and the arm is unread.
 
 ## 303. Reserved for the next item on the AI track
 

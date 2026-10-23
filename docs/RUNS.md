@@ -24504,3 +24504,26 @@ from (2999, 7827, 134) to (5115, 8950, 111) at t 3/7, and one from (2956, 7931, 
 both `flags 0x6`. It also holds piece 279's 39 `AttachPos` entries (`get_position.py … entries 279`) and its three
 pivot sweeps, which are kept outside git under `~/ron-data/lab-experiments/2026-10-23-item-3519/`.
 `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_279` reads them (`RON_RELEASE_TABLE_279`).
+
+## run1164 — the Americans at a held Modern age, Great Sahara: a packet at logger frame 4528, the Armored Scout Car's round in flight (2026-10-23, item 3518, `att-3518`)
+
+`docs/AI.md` §302. **What the disk could not answer**: where `1/80`'s round on 4526 leaves from and how long it
+flies. run1151c prints the release (`recharging`, `cavarch_o`) and the blow on `0/5` at 4531, but no capture
+writes an `AMMO` record, and ours' round lands a frame later. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1164 --map 7 --end-frame 4532 --timeout 3600 --log-window 4526 4531 --detail end:MISC,UNITS=3,GUYS=2
+--ai-tribe 20 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=3 --cover cover=0 --tracer-def RON_STATE_FRAME=4528 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 03:07:49, exited 03:08:19 (30.3 s). `success`, 4533 frames, `map_style 7`,
+  players `(0,4,7),(1,20,1)`. `rngcmp.py` against run1151: **4533 frames in common, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1164/map-7/frame-snapshot.bin`, 902,582,748 bytes,
+SHA-256 `067258ba31de07619da7b10745feb1823bf58a65cc605356c7363f83833ae03d`. The window's dump and trace stay in
+the capture directory. Nothing reads them, since run1151c already holds those blocks.
+
+**What it holds**: the live `Ammo` objects (`Ammo::vftable` `0xb45418`). `1/80`'s is bound for `0/5`, launched
+from (9412, 31822, 727), landing at (8371, 29688, 705), t 2/6, `flags 0x6`. It also holds piece 168's nine
+`AttachPos` entries (`get_position.py … entries 168`) and its four pivot sweeps, which are kept outside git under
+`~/ron-data/lab-experiments/2026-10-23-item-3518/`. `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_168`
+reads them (`RON_RELEASE_TABLE_168`).

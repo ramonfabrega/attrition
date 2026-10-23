@@ -9775,12 +9775,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run1151c over 4482..4549 (block 4489). Item 3517: whole at 4548, the
     // game's last frame — the state parted on 4479, walked back on run1163
     // over 4396..4482 — its closing block 4549 the window's last and scored
-    // by `run1151_american_modern_pair_closing_state`.
+    // by `run1151_american_modern_pair_closing_state`. Item 3518: the
+    // closing whole, 175 units and none off — the Armored Scout Car's round
+    // on 4526 leaves from its turret (run1164's packet), read on the same
+    // window's block 4532.
     (
         "AMERICAN_MODERN_PAIR_WORD",
         crate::diff::american_modern_pair::AMERICAN_MODERN_PAIR_WORD,
         Some("american_modern_pair_run1151c_s_word_frame_is_widened_whole"),
-        3517,
+        3518,
         Some(crate::diff::american_modern_pair::WIDENING_AMERICAN_MODERN_FRAME_4488),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
@@ -11247,7 +11250,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Americans at a held Modern age, Great Sahara (item 3509): first
     // try 1995, the Airbase's free Bomber; 4488 with the gate on the tree's
     // Modern Age, of a game that ends itself on 4548. Whole by item 3517,
-    // its closing state compared.
+    // its closing state compared; the closing whole by item 3518.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaAmericanModern",
