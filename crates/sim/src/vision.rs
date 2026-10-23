@@ -1329,6 +1329,41 @@ mod tests {
         assert!(s.has_met(1, 0), "a started building is");
     }
 
+    /// §2.1's tower term (item 3543): a finished Tower-line building that
+    /// is not a fort sees `TOWER_FORT_LOS[get_tower_fort_los − 1]` past
+    /// `LOS + x_size / 2`, and `get_tower_fort_los` is the highest of the
+    /// three unit bits held. The Turks' tower `1/2012` (`LOS 14`, `X_SIZE
+    /// 2`) is 19 in run1186 with the second bit, 15 here without the term.
+    /// A fort takes none of it (its own term is not carried), nor does an
+    /// unfinished tower.
+    #[test]
+    fn a_tower_sees_further_with_each_tower_fort_los_bit() {
+        use crate::build::Ident;
+        use crate::tech::{TechTree, TypeDef, UnitTraits};
+        let (mut s, b) = fog_build(14, 0, 2);
+        let mut tree = TechTree::new().with_tuning(&Tuning::RON);
+        let bits = ["Militia", "Minuteman", "Partisan"]
+            .map(|n| tree.add(TypeDef::unit(n, UnitTraits::default())));
+        tree.roles.tower_fort_los_units = bits.map(Some);
+        s.set_tech_tree(tree);
+        let t = s.buildings[b].ty.expect("typed");
+        assert_eq!(s.build_los(b), 15, "not a tower");
+        s.build_types[t].ident = Ident::Tower;
+        assert_eq!(s.build_los(b), 15, "no bit: get_tower_fort_los 1, entry 0");
+        for (k, want) in [(0, 17), (1, 19), (2, 21)] {
+            s.tech[0].tech[bits[k]] = true;
+            assert_eq!(s.build_los(b), want, "bit {k}");
+        }
+        s.tech[0].tech[bits[2]] = false;
+        assert_eq!(s.build_los(b), 19, "the Turks' 1/2012");
+        assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(9));
+        s.buildings[b].active = false;
+        assert_eq!(s.build_los(b), 0, "an unfinished tower");
+        s.buildings[b].active = true;
+        s.build_types[t].ident = Ident::Fort;
+        assert_eq!(s.build_los(b), 15, "a fort");
+    }
+
     /// §2.1's head: an unstarted building sees nothing, an unfinished
     /// ordinary one nothing, and an unfinished wonder `1 + x_size / 2` —
     /// never its type's `LOS`.
