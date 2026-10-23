@@ -218,6 +218,33 @@ class RunnerTest(unittest.TestCase):
         rise.write_text('[RISE OF NATIONS]\nAllowLogs=1\n')
         with self.assertRaises(ValueError):runner.set_rise(profile,[])
 
+    def test_a_rise2_key_is_written_on_every_take_with_its_default(self):
+        # Loop 3488: every pool lane's rise2.ini sets `StartReveal=1`
+        # (`Game::solo_checks@00588110` ORs it into `gamec->semaphore` bit 1)
+        # and no repo tool wrote it. Every take writes RISE2_DEFAULTS — the
+        # observed 1, so no take's behaviour changes — and `--rise2 KEY=N`
+        # over it; a key with no stated default is refused before a write.
+        self.assertEqual(runner.RISE2_DEFAULTS, {'StartReveal': 1})
+        # rise2.ini is in the staged backup set the restore verifies.
+        self.assertIn('rise2.ini', runner.live_session.NAMES)
+        profile=self.root/'profile2';profile.mkdir()
+        rise2=profile/'rise2.ini'
+        original='[RISE OF NATIONS]\nEditorMode=0\nStartReveal=1\nCheatsAllowed=0\n'
+        rise2.write_text(original)
+        self.assertEqual(runner.set_rise2(profile,['StartReveal=0']),{'StartReveal':0})
+        self.assertEqual(rise2.read_text(),original.replace('StartReveal=1','StartReveal=0'))
+        # The next take without the flag never inherits the 0.
+        self.assertEqual(runner.set_rise2(profile,[]),{'StartReveal':1})
+        self.assertEqual(rise2.read_text(),original)
+        for pairs in (['AutoSaveLoad=0'],['EditorMode=1']):
+            with self.assertRaises(ValueError):runner.set_rise2(profile,pairs)
+            self.assertEqual(rise2.read_text(),original)
+        rise2.write_text('[RISE OF NATIONS]\nEditorMode=0\n')
+        with self.assertRaises(ValueError):runner.set_rise2(profile,[])
+        # The parser takes the flag, repeatable, as --rise is.
+        args=runner.parser().parse_args(['-','out','-','--rise2','StartReveal=0'])
+        self.assertEqual(args.rise2,['StartReveal=0'])
+
     def test_a_take_removes_only_the_saves_it_added(self):
         # Item 3492: `AutoSaveLoad`'s save lands in the launch's working
         # directory (run1115's `autosaveload.svx`); the runner removes what
@@ -455,6 +482,8 @@ class RunnerTest(unittest.TestCase):
         # A real profile carries `AutoSaveLoad` (item 3492's `set_rise`).
         (profile/'rise.ini').write_text('Seed (0 for random)=1\r\nAutoSaveLoad=0\r\n'
                                         + ('AllowLogs_ToConsole=7\r\n' if name.endswith('old') else ''))
+        # And `StartReveal` in rise2.ini (Loop 3488's `set_rise2`).
+        (profile/'rise2.ini').write_text('[RISE OF NATIONS]\nStartReveal=1\n')
         args=runner.parser().parse_args([str(self.root),str(output),str(profile),*argv])
         args.end_frame=36;args.timeout=60
         staged={}
@@ -479,6 +508,17 @@ class RunnerTest(unittest.TestCase):
         staged,rise,receipt=self.staged_take('kept-old',[])
         self.assertEqual(rise.count('AllowLogs_ToConsole='),1)
         self.assertIn('AllowLogs_ToConsole=0',rise)
+
+    def test_a_take_stages_rise2_and_its_receipt_says_so(self):
+        # Loop 3488: the receipt's `staged` carries the rise.ini and rise2.ini
+        # keys the take wrote, the defaults when no flag names one.
+        staged,rise,receipt=self.staged_take('reveal',[])
+        self.assertEqual(receipt['rise2'],{'StartReveal':1})
+        self.assertEqual(receipt['rise'],{'AutoSaveLoad':0})
+        staged,rise,receipt=self.staged_take('noreveal',['--rise2','StartReveal=0'])
+        self.assertEqual(receipt['rise2'],{'StartReveal':0})
+        self.assertEqual((self.root/'noreveal-profile'/'rise2.ini').read_text(),
+                         '[RISE OF NATIONS]\nStartReveal=0\n')
 
     def test_an_opted_out_take_is_the_old_take_and_its_receipt_says_so(self):
         staged,rise,receipt=self.staged_take('optout',['--console-log','1','--cursor','none'])
@@ -508,6 +548,7 @@ class RunnerTest(unittest.TestCase):
              patch.object(runner,'verify_restored',return_value=5), \
              patch.dict(runner.HELD,{'lane':2,'prefix':'/h/wine-ron-2'}):
             (self.root/'rise.ini').write_text('Seed (0 for random)=1\n')
+            (self.root/'rise2.ini').write_text('StartReveal=1\n')  # a staged profile's (Loop 3488)
             with self.assertRaises(Exception):runner.capture(args,output,7)
         receipt=json.loads((output/'receipt.json').read_text())
         self.assertRegex(receipt['launched_at'],r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4}$')

@@ -98,21 +98,42 @@ def set_lobby(profile, pairs):
 # `int_str_array +0xdc8c`; `Game::do_frame` saves and reloads the game on
 # every frame it divides, so 0 is off.
 RISE_DEFAULTS = {'AutoSaveLoad': 0}
-def set_rise(profile, pairs):
-    """Write every `RISE_DEFAULTS` key into the profile's `rise.ini`, a
-    `KEY=N` in `pairs` over its default; the values written."""
-    values = dict(RISE_DEFAULTS)
+# The `rise2.ini` keys `--rise2` may set, the same rule (Loop 3488): every
+# pool lane's rise2.ini carried `StartReveal=1` and no repo tool wrote it.
+# `StartReveal` is read by `Game::solo_checks@00588110`, which ORs it into
+# `gamec->semaphore` bit 1. The default is the value the lanes held, so no
+# take's behaviour changes; rise2.ini is in `live_session.NAMES`, the staged
+# backup the restore verifies.
+RISE2_DEFAULTS = {'StartReveal': 1}
+
+
+def set_ini(profile, name, defaults, pairs, flag):
+    """Write every `defaults` key into the profile's `name`, a `KEY=N` in
+    `pairs` over its default; the values written. A key with no stated
+    default, or one the file does not carry once, is refused before a
+    byte is written."""
+    values = dict(defaults)
     for pair in pairs:
         key, value = pair.split('=')
-        if key not in RISE_DEFAULTS:
-            raise ValueError(f'--rise {key}: not a key with a stated default ({", ".join(RISE_DEFAULTS)})')
+        if key not in defaults:
+            raise ValueError(f'{flag} {key}: not a key with a stated default ({", ".join(defaults)})')
         values[key] = int(value)
-    path = profile / 'rise.ini'
+    path = profile / name
     text = path.read_text()
     for key, value in values.items():
         text = live_session.key(text, key, value)
     path.write_text(text)
     return values
+
+
+def set_rise(profile, pairs):
+    """`RISE_DEFAULTS` into the profile's `rise.ini` (item 3492)."""
+    return set_ini(profile, 'rise.ini', RISE_DEFAULTS, pairs, '--rise')
+
+
+def set_rise2(profile, pairs):
+    """`RISE2_DEFAULTS` into the profile's `rise2.ini` (Loop 3488)."""
+    return set_ini(profile, 'rise2.ini', RISE2_DEFAULTS, pairs, '--rise2')
 
 
 def save_files(output):
@@ -585,6 +606,10 @@ def capture(args, output, style):
                 text = text.rstrip('\r\n') + ('\r\n' if '\r\n' in text else '\n') + line + '\n'
             rise.write_text(text)
         report['rise'] = set_rise(args.profile, getattr(args, 'rise', None) or [])
+        report['rise2'] = set_rise2(args.profile, getattr(args, 'rise2', None) or [])
+        # Loop 3488: the staged record carries both files' keys as written.
+        report['staged']['rise'] = report['rise']
+        report['staged']['rise2'] = report['rise2']
         if report['rise']['AutoSaveLoad']:
             saves_before = save_files(output)
         env = os.environ.copy()
@@ -981,6 +1006,9 @@ def parser():
     ap.add_argument('--rise', action='append', metavar='KEY=N',
                     help='a rise.ini key, repeatable; every take writes each key its default '
                          f'unless given ({", ".join(f"{k}={v}" for k, v in RISE_DEFAULTS.items())}; item 3492)')
+    ap.add_argument('--rise2', action='append', metavar='KEY=N',
+                    help='a rise2.ini key, repeatable; every take writes each key its default '
+                         f'unless given ({", ".join(f"{k}={v}" for k, v in RISE2_DEFAULTS.items())}; Loop 3488)')
     ap.add_argument('--dumptime', metavar='N[,MASK]',
                     help='the dump clock: rontrace.cfg dumptime=N, dumpsites=MASK (tools/trace/dumptime.h; item 3483)')
     ap.add_argument('--stride', type=int, metavar='N',
@@ -1019,6 +1047,9 @@ def main():
     if any(not re.fullmatch(r'[A-Za-z_0-9]+=\d+', p) or p.split('=')[0] not in RISE_DEFAULTS
            for p in args.rise or []):
         ap.error(f'--rise takes KEY=N, KEY one of {", ".join(RISE_DEFAULTS)}')
+    if any(not re.fullmatch(r'[A-Za-z_0-9]+=\d+', p) or p.split('=')[0] not in RISE2_DEFAULTS
+           for p in args.rise2 or []):
+        ap.error(f'--rise2 takes KEY=N, KEY one of {", ".join(RISE2_DEFAULTS)}')
     if any(not re.fullmatch(r'[A-Za-z_0-9]+=\d+', p) for p in args.bindkeys or []):
         ap.error('--bindkey takes ACTION=VK')
     if args.recording is not None:
