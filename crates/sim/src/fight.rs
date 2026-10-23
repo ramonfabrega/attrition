@@ -4623,11 +4623,17 @@ impl Sim {
                         // 30° the score is quadrupled, within 60° doubled;
                         // past 135° the candidate is passed over (`ja
                         // 006498a1`), and past 90° a signed tenth.
+                        // **`+0x50` is `UnitData::angle`, this crate's
+                        // `heading`, not the figure's facing** (item 3530,
+                        // `docs/AI.md` §305): the Armored Car `1/23`'s body
+                        // lags its heading by 30° on run1155b's 3016, which
+                        // puts the Citizen `0/11` at ×2 where facing put it
+                        // at ×4, and theirs keeps `0/3`.
                         if cavarch && let Obj::Unit(me) = attacker {
                             let to = self.pos_of(o);
                             let bearing = find_angle(to.x - at.x, to.y - at.y);
                             let mut off =
-                                bearing.0.wrapping_sub(self.units[me].movement.facing.0) as u32;
+                                bearing.0.wrapping_sub(self.units[me].movement.heading.0) as u32;
                             if off > 0x8000_0000 {
                                 off = !off;
                             }

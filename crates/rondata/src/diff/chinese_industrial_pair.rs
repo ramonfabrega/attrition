@@ -37,8 +37,15 @@ pub(crate) const CHINESE_INDUSTRIAL: Pair = Pair {
     // 31152, 750) and flies 6, as theirs' does (run1155c's packet). Ours
     // 19 draws against 17, index 0 — ours `Unit::fight+0x9b0`, theirs
     // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6`.
-    count: 3017,
-    sequence: 3017,
+    // Item 3530: 3017 -> 3271, the fire on the move's bearing taken off
+    // `UnitData +0x50` (`heading`) rather than the figure's facing: on
+    // 3016 the car `1/23` keeps the Citizen `0/3` and fires (`recharging`
+    // 30), as theirs does, where ours re-found `0/11` (`cavarch_o` 11
+    // against 3 on block 3017). Ours 20 draws against 21, index 3 — ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+    count: 3271,
+    sequence: 3271,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -171,5 +178,14 @@ fn chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole() {
     // against theirs 3 — ours' new attack-walk cycle of 3016 is on the
     // human's Citizen `0/11`, theirs' on `0/3` — and `recharging` ours 0
     // against theirs 30 (`docs/AI.md` section 305).
-    pin_eq!(w.firsts.len(), 1026, "run1155b baseline");
+    //
+    // Then **89** with the fire on the move's bearing off the heading
+    // (item 3530): block 3017's three rows agree at theirs' values
+    // (`cavarch_o` 3, `recharging` 30), and the first rows past block
+    // 3001's 49 standing ones are group 68's `held`/pool on 3026 (the
+    // standing family) and, on 3180, city `0/2000`'s `raid_stamp` ours
+    // 3177 against theirs 3179 and the building `0/2004`'s `damage` ours
+    // 24 against 31 — a blow ours does not land. The word 3271 is past the
+    // window.
+    pin_eq!(w.firsts.len(), 89, "run1155b baseline");
 }

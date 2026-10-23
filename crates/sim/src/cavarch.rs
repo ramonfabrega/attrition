@@ -442,6 +442,42 @@ mod tests {
         }
     }
 
+    /// **The fire on the move's bearing is off the unit's heading, not its
+    /// figure's facing** (`find_nearby_target@00648da0`'s `param_4` arm
+    /// reads `UnitData +0x50`, `angle`; item 3530, `docs/AI.md` §305). Two
+    /// like foes at one distance, one on the heading and one on the facing
+    /// a quarter turn away: the search takes the one on the heading (×4
+    /// against ×1), whichever way the body points.
+    #[test]
+    fn the_fire_on_the_move_bears_off_the_heading_not_the_facing() {
+        use crate::movement::find_angle;
+        for swap in [false, true] {
+            let (mut sim, ty) = field(true);
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let east = put(&mut sim, 0, ty, Pos::new(4200, 3000));
+            let south = put(&mut sim, 0, ty, Pos::new(3000, 4200));
+            sim.add_move_order(
+                me,
+                Pos::new(9000, 3000),
+                MoveKind::AttackTo,
+                QueuePos::New,
+                false,
+            );
+            let (to_e, to_s) = (find_angle(1200, 0), find_angle(0, 1200));
+            let (heading, facing) = if swap { (to_s, to_e) } else { (to_e, to_s) };
+            sim.units[me].movement.heading = heading;
+            sim.units[me].movement.facing = facing;
+            let frame = 64 - i64::from(sim.units[me].index);
+            sim.cavarch_head(me, frame);
+            let want = if swap { south } else { east };
+            assert_eq!(
+                sim.units[me].cast_target,
+                Some(Obj::Unit(want)),
+                "the foe on the heading"
+            );
+        }
+    }
+
     /// **A Bark captain keeps a target that is not combat, and re-searches
     /// one that is** (`fight@005fd4d0:394`–`400`'s `local_14`, item 3516):
     /// the other way round from any other captain. run1161b's Cruiser
