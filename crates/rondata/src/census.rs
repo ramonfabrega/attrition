@@ -344,7 +344,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// (57), the Leopard Tank (259) and the Tornado (297). The fifty-second
 /// pass: 131 -> 152 on the Aztec, American and Russian pairs whole
 /// (`rubric.py --record`, 107 lockstep dumps), and ages held 7 -> 8.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 152;
+/// Item 3512: 152 -> 158, read by `rubric.py` on the base `3d8b36822` and
+/// on this tree alike — the Japanese and Chinese pairs whole (3538, 3539);
+/// the British pair, open at 4587, adds none.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 158;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

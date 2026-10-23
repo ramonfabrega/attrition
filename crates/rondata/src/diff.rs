@@ -43,6 +43,8 @@ mod aztec_word;
 mod bantu_word;
 #[cfg(test)]
 mod battery;
+#[cfg(test)]
+mod british_enlightenment_pair;
 mod build;
 #[cfg(test)]
 mod chinese_industrial_pair;
