@@ -8003,3 +8003,28 @@ against 19.7 a session; booking gate minutes against 242.4; `DEEP`
 against two; the backlog against 9; the disk against 206 GiB; whether
 `ENDING_TECHNOLOGY` held; whether any message crossed between the two
 rows.
+
+**Amended the same day, with Ramon** (the steer, at the pass's end):
+**the fifty-second tranche is a late-age battery of new pairs, not a
+coverage tranche** — every early-age word is closed and the oracle has
+checked the first ages only, so eight pairs are booked (3506–3513), ages
+4 to 7 held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and nations the
+computer has not played, each stood up as the Mongol pair was (its own
+start and long at `cover=0`, `diff::<name>_pair`, the word pinned at its
+first parting) and scored by its first try; a parting is a residue item
+on that word, which is where sim work comes from; eight whole is the sim
+done as far as the oracle can tell. **The rubric's definition is
+lockstep**: a unit type and a function count when they stood, or ran, in
+a game whose word stands at its full length — `tools/rubric.py`'s tables
+2 and 3 read those dumps, a fourth table gives the share of simulation
+bytes the original executed inside a lockstep game, and the
+Conquer-the-World and scenario-only records leave table 3's denominator
+where the install's own data marks them (`docs/RUBRIC.md`). **The
+renderer starts this weekend**, not this tranche. **And the two rows'
+one channel is `ccc clear <row> --then`** — never a message: the fiftieth
+pass's commander woke the resting steer at 300 k tokens of context for a
+status line, and a message to a resting row re-reads its whole context.
+Ramon's words: "our goal on rubric is to get a realistic metric on how
+we're doing … if we're progressing towards 1:1 sim and how much"; "are we
+done with sim mechanics? is it time to start lobby/render work?"; "the
+commander and steer should never msg each other… ccc clear is fine".

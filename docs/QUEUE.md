@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-first pass (steer, Fable): the fifty-first tranche scored, the fifty-second booked on the rubric; the commander waits on Ramon's word** (Loop 3499, DECISIONS 90).*
+*2026-10-22, **the fifty-first pass (steer, Fable), with Ramon: the fifty-first tranche scored, the fifty-second booked as a late-age battery of new pairs**; the renderer starts this weekend (DECISIONS 90).*
 
-- **Words**: all closed, none open (lower map first — closed); held-out eight of eight. **The headline is the rubric: unit types seen
-  74 of 364** (DECISIONS 89, 90), unmoved this tranche; the 290 never seen are `rubric.py --tables 3`'s table by domain and age. **The
-  blind list is a floor**: 247 · 208 · 39, every open row referenced in the image (0 of 39 dead), scanned at every pass.
+- **Words**: all closed, none open (lower map first — closed); held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
+  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence — and the rubric reads the
+  dumps of games in lockstep (DECISIONS 90: lockstep bytes, unit types seen 74 of 364). **The blind list is a floor**: 247 · 208 · 39.
 - **The fifty-first tranche** (DECISIONS 90): eighteen `cover=1` landings on two Opus lanes in 8 h 05, 5.45 USD and 30.9 minutes waiting
   a landing, no red gate, two `DEEP`, one blocked ending; the pool 2.1 → 24.5 frames a second, mirror off (3484, 3497); open 91 → 39.
-- **Lanes: none live; six booked** (3506–3511), one lobby an item — an age held and a nation the computer has not played; the refill
-  is the drafting subagent on the never-seen table, most never-seen types at an age first. Next 3512, run 1156. Pools: GOLDEN
-  §149–154, AI §300–301, park OO–OR. **For Ramon**: the record's first section — the rubric's three open definitions, 3499's rule, the launch.
+- **Lanes: none live; eight booked** (3506–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
+  parting, a divergence spawning residue items on that word (the AI track's shape). Refill: a parting's residue first, then the next
+  age and nation off `rubric.py --tables 3`. Next 3514, run 1160. Pools: GOLDEN §149–154, AI §300–301, park OQ–OR.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 90.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -40,45 +40,48 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-second tranche (commander, Opus) — six rubric lobbies booked from `3e89bc846`'s pass; take 3506 and 3507 on two Opus
-lanes (`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`), refill in order then by the rule; twenty landings or Ramon's word.**
+**Opener: the fifty-second tranche (commander, Opus) — eight late-age pairs booked from `3e89bc846`'s pass; take 3506 and 3507 on two Opus
+lanes (`brief.py --kind residue …`, `--model 'claude-opus-5-5[1m]' --effort medium`), refill in order then by the rule; twenty landings or Ramon's word.**
 
 ## The queue
 
-In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). Every item is a `coverage` capture on the click-free pool at `cover=1`
-with a `cover=0` twin (`rngcmp.py`; `samegame.py --from`), pinned into `blind::TRACES`, **taken for the unit types it puts on the map**
-(DECISIONS 90): the coverage pair's lobby (run651's recipe: `--map 18`, `STARTING_RESOURCES=7`, `DIFFICULTY=5`, `--ffwd-minute 27`, `--allow-early-end`),
-the age `--profile STARTING_TECHNOLOGY=A --profile ENDING_TECHNOLOGY=A` read back from `GAME INFO` and `ages_get()`, `end:UNITS=3,GUYS=2` on `--stride 100`
-to the game's end; the journal names the types new to the ledger (`rubric.py --tables 3`) and re-pins `census::RUBRIC_UNIT_TYPES_SEEN`. Opus; gate `--tests blind:: --no-widen`.
+In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). **Every item stands up one late-age pair** (DECISIONS 90; `mongol_pair.rs`'s shape,
+1466 and 1728's stand-ups): its own `DUMP_ALL` start and long draw-stream trace at `cover=0` on the pool to the game's end (`--allow-early-end`,
+`--ffwd-minute 27`, `end:UNITS=3,GUYS=2` on `--stride 100` so the rubric reads it), `--map M --ai-tribe N --profile DIFFICULTY=D --profile STARTING_RESOURCES=7
+--profile STARTING_TECHNOLOGY=A --profile ENDING_TECHNOLOGY=A`, both read back from `GAME INFO` (`Pair` gains `ending_technology`; the age's `ages_get()` in the
+stanza); `diff::<name>_pair` pinned at its first parting or whole, the word frame widened, a scoreboard line; a parting is a residue item on that word. Opus; gate `--tests <pair>:: blind::`.
 
-3506. **coverage: the Germans' Information-age line** (`--ai-tribe 12`, `STARTING_TECHNOLOGY=8`, the All-Technologies lobby that
-reached age 7 on run652): the twenty never-seen German records are the lever — `INFANTRYGER`, `MG42`, `BAZOOKAGERMAN`, `PANZER`,
-`TIGERTANK`, `HUMMEL`, `FLAKGUNGERMAN`, `ME109`, `LEOPARDTANK`, `TORNADO`, the `GERMAN` riflemen, machine gun and anti-tank rifle — with
-the age-7 sea and air an island map draws (`TYPHOON`, `HIND`, `STEALTHBOMBER`, `CRUISEMISSILE`, `MIRAGE`); the journal says which ages
-the computer trained from, since a held age 7 may skip the age-5 and -6 records. Runs 1144–1145; park OF.
+3506. **The Germans at All Technologies, East Indies** (`--map 18 --ai-tribe 12`, Difficulty 5, `STARTING_TECHNOLOGY=8`; run652's lobby with
+the nation varied): the age-7 line on an island map — the twenty never-seen German records (`INFANTRYGER`, `MG42`, `PANZER`, `TIGERTANK`,
+`HUMMEL`, `ME109`, `LEOPARDTANK`, `TORNADO`), the sea and air of age 7 (`TYPHOON`, `HIND`, `STEALTHBOMBER`, `CRUISEMISSILE`). First try to the
+game's end; the `Pair` field and its read-back land here first. Runs 1144–1145; park OF.
 
-3507. **coverage: the Russians at a held Modern age** (`--ai-tribe 13`, `STARTING_TECHNOLOGY=6 ENDING_TECHNOLOGY=6`): the age-6 line
-nobody has seen — `T34`, `KATYUSHA`, `REDGUARD`, `MEDIUMTANK`, `HVYMACHINEGUN`, `BAZOOKA`, `HOWITZER`, `FLAKGUN`, `ARMOREDCAR`, `INFANTRY`,
-`HELICOPTER`, `FIGHTERBOMBER`, `V2ROCKET`, `NUCLEARMISSILE`, `CRUISER`, `BATTLESHIP`, `PTBOAT` — thirty-six land, eleven air and three sea
-records at age 6. If `ENDING_TECHNOLOGY` is not honoured (the read-back says), the item lands what age 6 showed before the computer
-left it and parks the cap. Runs 1146–1147; park OJ.
+3507. **The Aztecs at All Technologies, Great Sahara** (`--map 7 --ai-tribe 0`, Difficulty 3): the land line at age 7 on the land map — the
+Jaguar infantry (`JAGUARASSAULTINF`, `JAGINFANTRY`), `ABRAM`, `HUMVEE`, `DRAGON`, `AVENGER`'s kin, nuclear and cruise missiles; a lower difficulty
+so the game runs past the computer's first attack (run652 ended on 4730 at Difficulty 5). Runs 1146–1147; park OJ.
 
-3508. **coverage: the Americans at a held Industrial age** (`--ai-tribe 20`, `STARTING_TECHNOLOGY=5 ENDING_TECHNOLOGY=5`): `RIFLEMEN`,
-`MACHINEGUN`, `ANTITANKRIFLE`, `LIGHTTANK` and its four variants, `ARTILLERY`, `SIEGEMORTAR`, `AAGUN`, `GREYHOUND`, `MARINERIFLEMEN`, the
-`BIPLANE`s, `DESTROYER`, `SUBMARINE`, `DREADNOUGHT` — twenty-four land, two air, three sea at age 5. Runs 1148–1149; park OK.
+3508. **The Russians at a held Modern age, East Indies** (`--map 18 --ai-tribe 13`, Difficulty 5, `STARTING_TECHNOLOGY=6 ENDING_TECHNOLOGY=6`):
+fifty age-6 records never seen — `T34`, `KATYUSHA`, `REDGUARD`, `MEDIUMTANK`, `HVYMACHINEGUN`, `BAZOOKA`, `HOWITZER`, `FLAKGUN`, `HELICOPTER`,
+`FIGHTERBOMBER`, `V2ROCKET`, `NUCLEARMISSILE`, `CRUISER`, `BATTLESHIP`, `PTBOAT`. If the read-back says `ENDING_TECHNOLOGY` is not honoured,
+the pair lands at the age it reached and the cap parks. Runs 1148–1149; park OK.
 
-3509. **coverage: the British at a held Enlightenment age** (`--ai-tribe 11`, `STARTING_TECHNOLOGY=4 ENDING_TECHNOLOGY=4`):
-`HIGHLANDER`, `MUSKETEERS`/`Red Coats`, `FUSILIER`, `MORTAR`, `RIFLEHORSE`, `HORSEGUARDGREN`, `JUNKERS`, `SLOOP`, `CLIPPER`, `MANOWAR`,
-`MORTARSHIP`, `HEAVYFIRESHIP` — twenty-five land and six sea records at age 4. Runs 1150–1151; park OL.
+3509. **The Americans at a held Modern age, Great Sahara** (`--map 7 --ai-tribe 20`, Difficulty 3, ages 6/6): `SHERMAN`, `MARINEINFANTRY`,
+`P40`/`MUSTANG`, `ARMOREDCAR`, `TIGERTANK`'s generic kin, `LANCASTERBOMBER` if the line allows, on the land map. Runs 1150–1151; park OL.
 
-3510. **coverage: the Japanese at a held Gunpowder age** (`--ai-tribe 15`, `STARTING_TECHNOLOGY=3 ENDING_TECHNOLOGY=3`): `SAMURAI`,
-`DRAGOON`, `BOMBARD`, `MUSKETHORSE`, `HORSEGRENADIER`, `HEAVYKNIGHT`, `CORVETTE`, `FLUYT`, `FIRESHIP`, `FRIGATE`, `SIEGESHIP`,
-`BOMBARDSHIP`, `IRONCLAD`, `TRANSPORTGALLEON` — twenty-seven land and nine sea records at age 3. Runs 1152–1153; park OM.
+3510. **The Japanese at a held Industrial age, East Indies** (`--map 18 --ai-tribe 15`, Difficulty 5, ages 5/5): `RIFLEMEN`, `MACHINEGUN`,
+`ANTITANKRIFLE`, the five `LIGHTTANK`s, `ARTILLERY`, `SIEGEMORTAR`, `AAGUN`, the `BIPLANE`s, `DESTROYER`, `SUBMARINE`, `DREADNOUGHT`;
+`FIGHTERZERO` and `CHIHA` if age 6 is reached. Runs 1152–1153; park OM.
 
-3511. **coverage: the Persians at a held Medieval age** (`--ai-tribe 23`, `STARTING_TECHNOLOGY=2 ENDING_TECHNOLOGY=2`; the
-All-Technologies Persians trained none of their early line): `ATHANATOI`, `ATHANATOIBOW`, `HEAVYARCHERS`, `CROSSBOWMEN`,
-`HEAVYCAVARCHER`, `HEAVYCHARIOT`, `ARMEDSUPPLYWAGON`, `CARAVEL`, `BRIG`, `HEAVYFIRERAFT`, `GALLEON` — thirty-five land and four sea
-records at age 2, and the age-1 line if the computer starts below the cap. Runs 1154–1155; park ON.
+3511. **The Chinese at a held Industrial age, Great Sahara** (`--map 7 --ai-tribe 14`, Difficulty 3, ages 5/5): `MANCHURIFLEMEN`, the
+age-5 land line on the land map, `FIRELANCES`' heirs if the start carries them. Runs 1154–1155; park ON.
+
+3512. **The British at a held Enlightenment age, East Indies** (`--map 18 --ai-tribe 11`, Difficulty 5, ages 4/4): `HIGHLANDER`, the Red
+Coats (`MUSKETEERS`), `FUSILIER`, `MORTAR`, `RIFLEHORSE`, `HORSEGUARDGREN`, `SLOOP`, `CLIPPER`, `MANOWAR`, `MORTARSHIP`, `HEAVYFIRESHIP` —
+twenty-five land and six sea records at age 4. Runs 1156–1157; park OO.
+
+3513. **The Turks at a held Enlightenment age, Great Sahara** (`--map 7 --ai-tribe 8`, Difficulty 3, ages 4/4): `JANISSARYROYAL`,
+`BASILICACANNON`, `CAMELCORPS`, `DONCOSSACK`'s kin, `JUNKERS`, `ROYALGUARD`; the Persians at Medieval (ages 2/2, `ATHANATOI`, `CARAVEL`,
+`BRIG`) is the refill's first lobby after these. Runs 1158–1159; park OP.
 
 ## How to maintain this file
 

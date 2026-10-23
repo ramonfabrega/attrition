@@ -336,7 +336,11 @@ the commander runs is written into the parked file for the next pass or
 sent by Ramon himself, never relayed by the steer's row, and a question
 the commander has for the steer is a Loop row, not a message — the
 fiftieth pass answered three mid-tranche and each answer revived a
-300 k-token conversation for a status line nobody had asked for. **Nor
+300 k-token conversation for a status line nobody had asked for. **The
+one channel between the rows is `ccc clear <row> --then "<opener>"`**,
+which starts a fresh session; a message to a resting row re-reads its
+whole context, and the pass's record reads `lore thread commander steer`
+since the base to say none crossed. **Nor
 does the pass launch the commander on the turn it finishes when the
 opener says it does not**: it ends with its report, and the launch is
 Ramon's word.
