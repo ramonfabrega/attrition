@@ -608,6 +608,23 @@ fn russian_modern_pair_s_road_search_on_4207_holds_node_for_node() {
         built.tick();
         let ours = std::mem::take(&mut built.sim.road_marks);
         let theirs = tr.road_nodes(f);
+        if std::env::var("RON_PROBE_3524").is_ok() {
+            let wd = &built.sim.world;
+            for who in 0..2i64 {
+                if (who * 25 + f + 12) % 200 == 0 {
+                    let mut n = 0;
+                    for k in 0..wd.reg_ys() {
+                        for i in 0..wd.reg_xs() {
+                            if wd.seen2(4 * i + 3, 4 * k + 3).unwrap_or(0) & (1 << who) != 0 {
+                                n += 1;
+                            }
+                        }
+                    }
+                    eprintln!("EXPLORED f{f} who {who} {n}");
+                }
+            }
+            eprintln!("SEEN87 f{f} {:?}", wd.seen2(87, 119));
+        }
         if f == 4207 {
             on_word = (ours.len(), theirs.len());
         }
