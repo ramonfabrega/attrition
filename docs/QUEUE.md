@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-second tranche (commander, Opus): 11 of 20 landed from `05f6df2a`** — the Germans whole first try (3506), the Aztecs at 4382 (3507) and whole on `get_cost`'s domain arm (3514), the Russians at 8 (3508) 3682 on Written Word's ×30 (3515) 3778 on the cavalry archer captain's re-search (3516) and 3921 on the Cruiser's turret rows (3519), the Americans 1995 → 4488 on the free Bomber's age gate (3509) whole on the guard re-issue's sorted list (3517) and at the close on the Scout Car's piece-168 pivot (3518), the Japanese at Industrial 1351 → 3674 on the Barracks' price and pace (3510); the renderer starts this weekend (DECISIONS 90).*
+*2026-10-22, **the fifty-second tranche (commander, Opus): 12 of 20 landed from `05f6df2a`** — the Germans whole first try (3506), the Aztecs at 4382 (3507) and whole on `get_cost`'s domain arm (3514), the Russians at 8 (3508) 3682 on Written Word's ×30 (3515) 3778 on the cavalry archer captain's re-search (3516) and 3921 on the Cruiser's turret rows (3519) and 4097 on `find_attack_pos`'s unit tail (3520), the Americans 1995 → 4488 on the free Bomber's age gate (3509) whole on the guard re-issue's sorted list (3517) and at the close on the Scout Car's piece-168 pivot (3518), the Japanese at Industrial 1351 → 3674 on the Barracks' price and pace (3510); the renderer starts this weekend (DECISIONS 90).*
 
-- **Words**: two open, the Japanese at 3674 of 4,547 (lower map first — East Indies (Japanese, Industrial)) and the Russians at 3921 of 5,841; held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
-  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence; the Germans whole (4175, 3506), the Aztecs whole (4565, 3514), the Russians 3921 of 5,841, Modern held (3508, 3515, 3516, 3519), the Americans whole, 4548 (3509, 3517), the Japanese 3674 of 4,547, Industrial held (3510). **The rubric reads lockstep
+- **Words**: two open, the Japanese at 3674 of 4,547 (lower map first — East Indies (Japanese, Industrial)) and the Russians at 4097 of 5,841; held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
+  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence; the Germans whole (4175, 3506), the Aztecs whole (4565, 3514), the Russians 4097 of 5,841, Modern held (3508, 3515, 3516, 3519, 3520), the Americans whole, 4548 (3509, 3517), the Japanese 3674 of 4,547, Industrial held (3510). **The rubric reads lockstep
   games only** (DECISIONS 90): bytes 77.0 %, ages 7 of 8 (Modern never), unit types 131 of 302. **The blind list is a floor**: 247 · 208 · 39.
 - **The fifty-first tranche** (DECISIONS 90): eighteen `cover=1` landings on two Opus lanes in 8 h 05, 5.45 USD and 30.9 minutes waiting
   a landing, no red gate, two `DEEP`, one blocked ending; the pool 2.1 → 24.5 frames a second, mirror off (3484, 3497); open 91 → 39.
-- **Lanes: 3520, 3521 live; three more booked** (3511–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
+- **Lanes: 3521, 3522 live; three more booked** (3511–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
   parting, a divergence spawning residue items on that word (the AI track's shape). Refill: a parting's residue first, then the next
-  age and nation off `rubric.py --tables 3`. Next 3522, run 1168. Pools: GOLDEN §149–154, AI §305, §306, park OW–PD.
+  age and nation off `rubric.py --tables 3`. Next 3523, run 1169. Pools: GOLDEN §149–154, AI §305, §306, park OX–PD.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 90.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w3921 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w3674 of 4,547
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w4097 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w3674 of 4,547
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -51,15 +51,15 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). **Every i
 --profile DIFFICULTY=D --profile STARTING_RESOURCES=7 --profile STARTING_TECHNOLOGY=A --profile ENDING_TECHNOLOGY=A`, both read back by
 `Pair::assert_lobby` (the age's `ages_get()` in the stanza); `diff::<name>_pair` pinned at its first parting or whole, the word frame widened, a scoreboard line; a parting is a residue item on that word. Opus; gate `--tests <pair>:: blind::`.
 
-3520. **The Russian word, frame 3921: ours 95 draws against 97, index 0** (ours `Unit::think_scout+0x941`, theirs `GameAccess::rnd
-< Unit::do_attack`; 3519's widening on run1161b, AI §304): the Cruiser `1/25` reads `order:kind` 1 against 10 on block 3921; the
-first non-standing row before it is who=1's reassembly on block 3808 (`gather_stamp` 3791 against 3807). Run 1166; amend §304 in
-place; park OU.
-
 3521. **The Japanese word, frame 3674: ours 73 draws against 94, index 0** (theirs `Unit::think_scout+0x941`; 3510's widening
 on run1153c, AI §303): ours holds `1/121` alone, with Citizen `1/10` inside it; the state parts before block 3668 — who=1's food
 income 1440 against 1520 and wealth 1752 against 1832. Walk it back to the frame it first parts. Run 1167; amend §303 in place;
 park OV.
+
+3522. **The Russian word, frame 4097: ours 104 draws against 103, index 94** (ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
+`1/154`; theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`; 3520's widening on run1166b, AI §304): run1166b parts 1749 keys on its
+head block 4092 — `1/146` at (36504, 43272) against (36550, 43262), `order:kind` 2 against 21 — so the state parts in 3934..4091,
+which no dump prints. Run 1168; amend §304 in place; park OW.
 
 3511. **The Chinese at a held Industrial age, Great Sahara** (`--map 7 --ai-tribe 14`, Difficulty 3, ages 5/5): `MANCHURIFLEMEN`, the
 age-5 land line on the land map, `FIRELANCES`' heirs if the start carries them. Runs 1154–1155; park ON.
