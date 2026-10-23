@@ -25934,13 +25934,37 @@ Barracks `0/2004` takes 11, city `0/2000`'s `raid_stamp` is 3769, and both leade
 theirs 3. **The direction is theirs**: a who=1 strike on the human that ours does not make. Which unit struck is
 the next item's first question.
 
+**Item 3523 (2026-10-23, Opus 5.5): the Dreadnought fires from its two turrets, 3769 → 3816.** run1169 (a packet at
+logger frame 3769). *The strikers*: on the block before the blow, `1/66` (`DESTROYER`, 328, sea) and `1/74`, `1/75`
+(**`DREADNOUGHT`, 348, sea**, piece 298) hold `ATTACKORDER` on `0/5`, `in_range 1`. Both sides make the same seven
+rounds on the same frames (the Dreadnoughts' two a release, 3757..3761; the Destroyer's on 3770..3775). *The rounds*
+(`tools/recomp/ammo.py`, new): theirs' leave from the turrets — `1/74`'s of 3758 from (2885, 11948, 121), 12 frames,
+landing on 3769 — where ours' left from the hull's own square and `1/74`'s flew 13, landing on 3770. *The cause*:
+piece 298 has two `<RESTRICTION name="Dreadnought">` (node 4 `−135..135`, node 5 `45..−45`) and four
+`<RELEASEEVENT>`s, and `sim::pivot` had no row for it. The packet's 14 entries (`get_position.py … entries 298`)
+give pivots `(4,0,0)` (0.0, −84.88, 21.05) and `(5,0,0)` (0.0, 100.36, 12.26), `RData +0x88` 0.9, and releases
+node 0 on frame 1 from pivot 4 and node 1 on frame 4 from pivot 5, on `CHAR_ATTACK1` and `CHAR_ATTACK2` with
+different bits each. Built as `NODES`, `RDATA_SCALE` and four `RELEASES` rows; the oracle
+(`the_original_s_release_agrees_on_every_cell_for_piece_298`) agrees on 369,664 cells. Mutated through
+`tools/mutate.py`: the `RELEASES` rows out, the walk falls back to 3769; the `NODES` rows out, the walk holds and
+run1153c reads 702 against 692.
+
+**The value diff, on the word's frame** (run1153c, block 3770): nothing parts. `0/5`'s `hits_left` 57 and
+`damage_frame` 3769, `0/2004`'s 11, and both leaders' `treaties` 3 agree on both sides; run1153c drops to **692**
+keys. The missed rounds' arc step now reads two corners not known to be the original's single, (4497, 9547) on
+3771 and (4533, 9315) on 3772, and the walk agrees through both; they are pinned in `GROUND_INEXACT` (parked 3523a).
+
+**The next word, 3816**: ours 159 draws against 160, index 90 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`,
+theirs `Unit::fight+0x9b0`. The state parts first on block 3808: `0/5` is struck again, theirs on 3804 (`raid_stamp`
+3804, `hits_left` 35) and ours on 3807 (3807, 32). Who struck on 3804 is the next item's first question.
+
 **What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
 ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
 alone). `JAPANESE_DAMAGE`'s arm in `damage.rs` reads `Modifiers::japanese_level`, which nothing writes (parked 3510a).
 
 **Coverage.** Diff-backed: the Barracks cost arm (run1153b's 1345 queues), the Barracks speed arm (the walk's 1351),
 the Japanese boats' quarter on a fish (run1153c's 3668 income, item 3521), the civilian carrier's shore eject (run1153c's
-3674 landing, item 3521). Reading only: the ship-cost and carrier arms, and the per-tier shape for a non-negative
+3674 landing, item 3521), the Dreadnought's two turrets (run1153c's 3770 blow, item 3523). Reading only: the ship-cost and carrier arms, and the per-tier shape for a non-negative
 constant; `boat_eject_all`'s air refusal and its kept-cargo case (a passenger `come_out` refuses), which no capture
 reaches.
 

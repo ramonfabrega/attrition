@@ -24482,6 +24482,30 @@ found 194 keys. **The state parts on block 4479**: every escort of army 1/0's gu
 `GUARDORDER` `dx`/`dy` (96 keys). For example, `1/19` is ours (0, 1020) against theirs (−2160, 720). Theirs had laid
 the escort out over the list `Group::sort` left. After item 3517's fix the walk finds 80 keys, and blocks 4479 and 4480
 part nothing.
+## run1169 — the Japanese at a held Industrial age, East Indies: a packet at logger frame 3769, the Dreadnoughts' rounds in flight (2026-10-23, item 3523, `att-3523`)
+
+`docs/AI.md` §303. **What the disk could not answer**: where who=1's four rounds in flight on 3769 leave from and how
+long they fly. run1153c prints the blow on `0/5` (block 3770), but no capture writes an `AMMO` record, and no packet
+of this lobby existed. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1169 --map 18 --end-frame 3770
+--timeout 3600 --log-window 3765 3770 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 15 --profile STARTING_TECHNOLOGY=5
+--profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0 --tracer-def
+RON_STATE_FRAME=3769 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 06:27:30, exited 06:27:55 (25.2 s). `success`, 3771 frames, `map_style 18`,
+  players `(0,4,7),(1,15,1)`. The packet's header reads frame 3769, trace frame 3768.
+- `rngcmp.py` against run1153: **3771 frames in common, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1169/map-18/frame-snapshot.bin`, 947,396,732 bytes,
+SHA-256 `2065ae344190e0d6b27e756ac77efe94c1786cd69c7a809e3676eb96185e58f4`. The window's dump and trace stay in
+the capture directory. Nothing reads them, since run1153c already holds those blocks.
+
+**What it holds**: the live `Ammo` objects (`tools/recomp/ammo.py`). The Dreadnoughts `1/75` and `1/74` have four
+rounds bound for `0/5`, all `flags 0x6`, `splash 1`: `1/75`'s from (3951, 13024, 121) at t 12/15 and (4723, 13106,
+83) at 9/15, and `1/74`'s from (2885, 11948, 121) at **11/12** and (3564, 12310, 83) at 8/12. It also holds piece
+298's 14 `AttachPos` entries (`get_position.py … entries 298`) and its four pivot sweeps, kept outside git under
+`~/ron-data/lab-experiments/2026-10-23-item-3523/sweeps/`.
+`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_298` reads them (`RON_RELEASE_TABLE_298`).
+
 ## run1165 — the Russians at a held Modern age, East Indies: a packet at logger frame 3719, the Cruiser's rounds in flight (2026-10-23, item 3519, `att-3519`)
 
 `docs/AI.md` §304. **What the disk could not answer**: where `1/25`'s rounds on 3716 and 3718 leave from, and how long
