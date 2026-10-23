@@ -24374,6 +24374,89 @@ SHA-256 `c714f406b99d5eca62ef1ee619e3b2a2b98a2bc39f7d2fb222a4bdc1287bb948`.
 keys. On block 3677 who=1's wealth has already parted (`income[2]` ours 3816 against theirs 4000). On block 3682
 Cruiser `1/25` has `recharging` ours 0 against theirs 25.
 
+## run1162 — the Russians at a held Modern age, East Indies: the leader records to the word, blocks 259..3682 on a stride of 20 (2026-10-23, item 3516, `att-3516`)
+
+**Disk gap**: no dump printed a leader record in 260..3676 — run1149 has none, and run1149b ends at 259 — so the
+first parted economy field before run1161b's block 3677 was unreadable. `--map 18 --end-frame 3682 --timeout 3600
+--log-window 259 3682 --stride 20 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 13
+--profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--cover cover=0`.
+- Pool lane 1. Launched 01:58:38, exited 01:59:19 (40.9 s). `success`: 3683 frames, last frame 3682. `rngcmp.py`
+  against run1149: **3683 frames in common, 0 differing**. Filed with `filerun.py run1162
+  eastindies-russian-modern-stride-259-3682`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1162-eastindies-russian-modern-stride-259-3682.txt`, 334,018,327 bytes,
+SHA-256 `535db7249c64aa31ec6040f21789d3f5a489ecfcc1ee1039e77c46dc1b09a78b`.
+
+Archive `rontrace-run1162.log`, 109,466,368 bytes,
+SHA-256 `d642aadb1273e753feac1762f06caaa9a2d623e9c6fb3296df7698cc292a7b7e`.
+
+**What it holds**: `russian_modern_pair_run1162_s_gap_is_widened_whole`, 172 blocks. It dates who=1's first parted
+bucket (timber and metal, 20 over) to 2180..2200, who=0's `other_team_terr` to 2600..2620, and who=1's wealth
+`income` to 3380..3400. After item 3516's builds, 121 keys: the standing families and `dest_angle` on `1/34`, `1/70`
+and `1/130`.
+
+## run1162b — a dead take of run1162c's window (2026-10-23, item 3516, `att-3516`)
+
+The same launch line as run1162c. Pool lane 1. Wine page-faulted at startup and exited 40, leaving a 704-byte trace
+and no receipt. Nothing filed; relaunched as run1162c.
+- Minutes waited on another lane: none.
+
+## run1162c — the Russians at a held Modern age, East Indies: the timber parting's window, blocks 2174..2210 (2026-10-23, item 3516, `att-3516`)
+
+**Disk gap**: run1162's stride dates who=1's bucket parting to 2180..2200 and no dump prints the blocks between.
+`--map 18 --end-frame 2210 --timeout 3600 --log-window 2174 2210 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9`, the lobby as run1162's.
+- Pool lane 1. Launched 02:02:54, exited 02:04:10 (76.4 s). `success`: 2211 frames, last frame 2210. `rngcmp.py`
+  against run1149: **2211 frames in common, 0 differing**. Filed with `filerun.py run1162c
+  eastindies-russian-modern-window-2174-2210`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1162c-eastindies-russian-modern-window-2174-2210.txt`, 70,143,835 bytes,
+SHA-256 `a8bb48bfac7612d2d92a207159f6f806452b8d77a2552537e348b452834effb5`.
+
+Archive `rontrace-run1162c.log`, 34,778,368 bytes,
+SHA-256 `396dd78a2bff0c9732d04c2df466643a10c5f59a06bc5fcebda4c77eb531b749`.
+
+**What it holds**: block 2187, who=1's site `1/2038` (type 422) disbanded: theirs refunds 160 timber and 110 metal,
+the price after the close (`AI.md` §304). Pinned at 90 keys after the builds, all standing families.
+
+## run1162d — the Russians at a held Modern age, East Indies: the territory parting's window, blocks 2596..2622 (2026-10-23, item 3516, `att-3516`)
+
+**Disk gap**: run1162's stride dates who=0's `other_team_terr` parting to 2600..2620. `--map 18 --end-frame 2622
+--timeout 3600 --log-window 2596 2622`, the detail and lobby as run1162c's.
+- Pool lane 1. Launched 02:13:04, exited 02:13:30 (26.2 s). `success`: 2623 frames, last frame 2622. `rngcmp.py`
+  against run1149: **2623 frames in common, 0 differing**. Filed with `filerun.py run1162d
+  eastindies-russian-modern-window-2596-2622`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1162d-eastindies-russian-modern-window-2596-2622.txt`, 52,879,877 bytes,
+SHA-256 `6535baace981573d04c1c0bca4f6b4c9b64ac9f7715b9e2b716ac46d9cfc1a1b`.
+
+Archive `rontrace-run1162d.log`, 45,585,312 bytes,
+SHA-256 `5e515eb34ff0037f1362bcdd0fc65036377ccb4556af4db468ff189affec3050`.
+
+**What it holds**: block 2601, who=0's `other_team_terr` ours 462 against theirs 437, who=1's land `territory`
+(`AI.md` §304). Pinned at 94 keys after the builds, all standing families.
+
+## run1162e — the Russians at a held Modern age, East Indies: the wealth parting's window, blocks 3376..3402 (2026-10-23, item 3516, `att-3516`)
+
+**Disk gap**: run1162's stride dates who=1's wealth `income` parting to 3380..3400. `--map 18 --end-frame 3402
+--timeout 3600 --log-window 3376 3402`, the detail and lobby as run1162c's.
+- Pool lane 1. Launched 02:14:17, exited 02:14:42 (25.5 s). `success`: 3403 frames, last frame 3402. `rngcmp.py`
+  against run1149: **3403 frames in common, 0 differing**. Filed with `filerun.py run1162e
+  eastindies-russian-modern-window-3376-3402`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1162e-eastindies-russian-modern-window-3376-3402.txt`, 57,457,284 bytes,
+SHA-256 `4a2b822dc3086fa46f75d35d88d9085fb74da76dd0c30fcb40c156e1b3bb935e`.
+
+Archive `rontrace-run1162e.log`, 91,678,848 bytes,
+SHA-256 `87d81970f46ea7cc8cc56d6064b4f3b2d385c37ecab6e6f414a1181fb7aaeb7c`.
+
+**What it holds**: block 3384, who=1's wealth `income` ours 3183 against theirs 3448, the CEO's city at
+`THECEO_PRODUCTION_BONUS` (`AI.md` §304). Pinned at 106 keys after the builds, all standing families.
 ## run1163 — the Americans at a held Modern age, Great Sahara: the walk back from the word 4488, blocks 4396..4482 (2026-10-23, item 3517, `att-3517`)
 
 **What the disk could not answer**: where the Bazooka squad's guard orders part. The long's stride

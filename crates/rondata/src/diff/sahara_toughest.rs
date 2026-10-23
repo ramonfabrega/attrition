@@ -2579,7 +2579,7 @@ mod tests {
         pin_eq!(
             by.iter().map(|(b, n)| (*b, *n)).collect::<Vec<_>>(),
             [
-                (9759, 30),
+                (9759, 28),
                 (9765, 1),
                 (9781, 1),
                 (9782, 1),
@@ -2598,7 +2598,7 @@ mod tests {
         // Item 1354, the troops term and the `mylos` cache: 262 → 114.
         // Item 1377, who=1's `defense` standing on 9759 no more: 114 → 113.
         // Item 1461: 110 → 95; a tracked crew figure steps on `GuyData::get_speed` (`docs/MOVEMENT.md`, "The crew's speed").
-        pin_eq!(w.firsts.len(), 39, "every key parted on run529");
+        pin_eq!(w.firsts.len(), 37, "every key parted on run529");
     }
 
     /// **The gap 9038..9317, widened whole** (item 1318):

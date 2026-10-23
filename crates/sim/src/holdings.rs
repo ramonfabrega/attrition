@@ -308,6 +308,31 @@ impl Sim {
             .is_some_and(|t| build::is(&self.build_types, t, ident))
     }
 
+    /// **The city a leader's CEO stands in** — `calc_city_resources@006d5530:166`
+    /// –`195` (item 3516). Gated on the leader's count of the `0x165` type
+    /// (`+0x59c8`, the muster's, as [`Sim::ceo_unit_range`] reads it) and on
+    /// its heroes; then the first hero on the map that is the `0x165` type
+    /// ends the walk, and `ObjectsData::find_city_at` at its position is the
+    /// city. `is(0x165, 1)` is taken as the type itself, as the patriot tests
+    /// of the radius are, and the heroes list as unit order.
+    pub(crate) fn ceo_city(&self, who: Player) -> Option<usize> {
+        const CEO: i32 = 0x165;
+        let counted = self
+            .unit_types
+            .iter()
+            .position(|t| t.type_index == CEO)
+            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .is_some_and(|&n| n != 0);
+        if !counted {
+            return None;
+        }
+        let h = (0..self.units.len()).find(|&h| {
+            let x = &self.units[h];
+            x.owner == who && x.alive() && x.on_map && x.type_index == CEO && self.is_hero_unit(h)
+        })?;
+        self.find_city_at(who, self.units[h].pos, None)
+    }
+
     /// One city, as income sees it — `City::calc_gather` and the part of
     /// `LeaderData::calc_city_resources` that reads the city rather than the
     /// leader.
@@ -353,6 +378,7 @@ impl Sim {
         out.temple = any(Ident::Temple);
         out.university = any(Ident::University);
         out.library = any(Ident::Library);
+        out.ceo = self.ceo_city(self.cities[c].owner) == Some(c);
 
         // `City::calc_gather@00737c60`'s four bytes ([`economy::calc_gather_steps`],
         // item 2368's sweep): the flags `0x200` / `0x400` are the granary and
@@ -925,6 +951,42 @@ mod tests {
             guard += 1;
             assert!(guard < 200, "the worker never arrived");
         }
+    }
+
+    /// **The CEO's city is the one its owner's counted, on-map `0x165`
+    /// hero stands in** (`calc_city_resources@006d5530:166`–`195`, item
+    /// 3516): no city while the leader's count is 0, none for a hero off
+    /// the map or not a general, none for another player's; otherwise the
+    /// city at its position, which the city's income then reads.
+    #[test]
+    fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
+        use crate::ai_load::uflags2;
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        let b = build(&mut sim, 0, t.village, 32, 32);
+        let c = sim.buildings[b].city.expect("a finished city");
+        let mut ceo = UnitType {
+            type_index: 0x165,
+            hits: 50,
+            ..UnitType::default()
+        };
+        ceo.cols.unit_flags2 = uflags2::GENERAL;
+        let ceo = sim.add_unit_type(ceo);
+        let h = spawn(&mut sim, 0, ceo, tile_pos(33, 33));
+        sim.units[h].type_index = 0x165;
+        sim.units[h].on_map = true;
+        assert_eq!(sim.ceo_city(0), None, "a hero the leader does not count");
+        sim.muster[0].by_type[ceo] = 1;
+        assert_eq!(sim.ceo_city(0), Some(c));
+        assert!(sim.city_holdings(c, Levels::BASE).ceo);
+        sim.units[h].on_map = false;
+        assert_eq!(sim.ceo_city(0), None, "off the map");
+        sim.units[h].on_map = true;
+        sim.unit_types[ceo].cols.unit_flags2 = 0;
+        assert_eq!(sim.ceo_city(0), None, "not a hero");
+        sim.unit_types[ceo].cols.unit_flags2 = uflags2::GENERAL;
+        sim.muster[1].by_type[ceo] = 1;
+        assert_eq!(sim.ceo_city(1), None, "another player's hero");
     }
 
     // ------------------------------------------------------------------
