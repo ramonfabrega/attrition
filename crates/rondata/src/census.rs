@@ -325,12 +325,17 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// It adds four simulation functions no other lockstep trace enters, 9,298
 /// bytes — `Game::popwin_timer`, `Game::wonder_timer`, `Unit::resolve_block`,
 /// `Ammo::init_crash` — 8,782,939 -> 8,792,237, 77.09 % -> 77.17 %.
-/// Item 3534: 771 -> 772 with the Russian pair's twin run1179 (114 traces),
-/// the first lockstep trace of an age-6 game. It adds four simulation
-/// functions no other lockstep trace enters, 10,629 bytes —
+/// Item 3533: 771 -> 771 with the American pair's twin run1178 (114
+/// traces), the first lockstep trace of an age-6 game, landed after 3532.
+/// One simulation function no other lockstep trace enters, 1,246 bytes —
+/// `Unit::update_ceo_position` (its `Ammo::init_crash` 3532 had already
+/// added) — 8,792,237 -> 8,793,483, 77.17 % -> 77.18 %.
+/// Item 3534: 771 -> 772 with the Russian pair's twin run1179 (115
+/// traces), the sea map's age-6 line, landed after 3533. Three simulation
+/// functions no other lockstep trace enters, 9,383 bytes —
 /// `Unit::change_target`, `Unit::think_carry_military`,
-/// `Unit::update_ceo_position`, `AmmoOut::dirt_splash` — 8,792,237 ->
-/// 8,802,866, 77.17 % -> 77.27 %.
+/// `AmmoOut::dirt_splash` (its `Unit::update_ceo_position` 3533 had already
+/// added) — 8,793,483 -> 8,802,866, 77.18 % -> 77.27 %.
 pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 772;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;

@@ -475,11 +475,17 @@ pub const TRACES: &[&str] = &[
     // run1177): run1147's game on every frame (rngcmp 4566 identical, 0
     // differing) — the land map's age-7 line.
     "rontrace-run1177.log",
+    // Item 3533: the American late-age pair's long lobby (Great Sahara, the
+    // Americans, `DIFFICULTY 3`, a held Modern age; run1151's recipe) at
+    // `cover=1` on the click-free pool, to the game's own end at 4548
+    // (`docs/RUNS.md` run1178): run1151's game on every frame (rngcmp 4549
+    // identical, 0 differing) — the first lockstep trace of an age-6 game.
+    "rontrace-run1178.log",
     // Item 3534: the Russian late-age pair's long lobby (East Indies, the
     // Russians, a held Modern age; run1149's recipe) at `cover=1` on the
     // click-free pool, to the game's own end at 5841 (`docs/RUNS.md`
     // run1179): run1149's game on every frame (rngcmp 5842 identical, 0
-    // differing) — the first lockstep trace of an age-6 game.
+    // differing) — the sea map's age-6 line.
     "rontrace-run1179.log",
 ];
 

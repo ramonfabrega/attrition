@@ -24900,6 +24900,42 @@ SHA-256 `412fe339d01ec88e5fca4a3c2ce375c5d580b74d04b0cc53ee11a76f958b373c`.
 **What it holds**: the German pair's game on every frame under `cover=1`, the first lockstep trace of an age-7 game
 (`blind::TRACES`).
 
+## run1178 — the American late-age pair's long lobby at `cover=1` on the click-free pool, to the game's end at 4548: the pair's lockstep twin (2026-10-23, item 3533, `att-3533`)
+
+**What the disk could not answer**: the pair's captures (run1150, run1151, run1151b, run1151c) are `cover=0`, which
+enters nothing but the hooks, so no lockstep trace of an age-6 game existed (`docs/DECISIONS.md` entry 91 §2).
+run1151's recipe exactly, at `cover=1`: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1178 --map 7
+--end-frame 24000 --timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=1
+--callwin 0 24000 --ai-tribe 20 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile STARTING_TECHNOLOGY=6 --profile
+ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`. No `@` line and no click: every input is
+shared, so there is no `--from`.
+
+- Pool lane 1 (`~/wine-ron`). Launched 16:04:38, exited 16:05:28: **50.2 s launch to exit** (run1151 at `cover=0`:
+  28.0 s). `success`, 4,549 frames, **the game ended itself at 4548** (`ended_early`, closing frame 4549), map 7
+  verified, seed 12345, tribes 4 and 20. DLL `bda2f467…`, `-DRON_AUTOSTART`. 185 GiB free before. Minutes waited on
+  another lane: none.
+- `rngcmp.py rontrace-run1151.log rontrace-run1178.log`: **4,549 in common, 0 differing, 4,549 identical**.
+  `samegame.py gamelog-run1151-… gamelog-run1178-…`: **46 in common (1..4501, the stride's blocks), 0 differing**.
+- **6,968 functions entered** (`report.py … functions`), 2,022 of them in the simulation layer. **None is new to
+  `blind::TRACES`**, so `blind::NEVER` is unchanged. Over the other 112 lockstep traces it adds two simulation
+  functions, 7,148 bytes: `Ammo::init_crash@0067b800` and `Unit::update_ceo_position@005f96b0` (770 → 771 tenths,
+  8,782,939 → 8,790,087). Item 3532's twin run1177 landed first and already adds `Ammo::init_crash`, so on the merged
+  tree run1178 adds `Unit::update_ceo_position` alone, 1,246 bytes: `rubric.py --tables 4` reads **lockstep bytes
+  77.1 %** (8,793,483 of 11,392,782; 2,235 of 3,611 functions; 114 traces), 771 → 771 tenths (77.17 % → 77.18 %).
+- The item's mechanics, entered: `Build::activate@00623e20` and `Guy::init_real@005db6b0` (the Airbase's free
+  Bomber, `docs/AI.md` §302), `GraphicPieces::get_position@0090b750` and `Guy::set_all_pivots@005d8bc0` (the
+  Armored Scout Car's turret release, item 3518).
+- Filed with `filerun.py run1178 greatsahara-american-modern-cover`.
+
+Archive `gamelog-run1178-greatsahara-american-modern-cover.txt`, 23,089,071 bytes,
+SHA-256 `7642eb25f232262feaecc74420759301cb6b2f1406b0f0de19e8e06037d4bc8c`.
+
+Archive `rontrace-run1178.log`, 94,842,368 bytes,
+SHA-256 `0e018da0926b9856e985cce67dec4b4d7b3b03a5e0bb28c5c00df3ae6770d4a4`.
+
+**What it holds**: the American pair's game on every frame under `cover=1`, the first lockstep trace of an age-6 game
 ## run1177 — the Aztec late-age pair's long lobby at `cover=1` on the click-free pool, to the game's end at 4565: the pair's lockstep twin (2026-10-23, item 3532, `att-3532`)
 
 **What the disk could not answer**: the pair's captures (run1146, run1147, run1147b) are `cover=0`, which enters
@@ -24956,10 +24992,10 @@ shared and there is no `--from`.
   The two gamelogs differ only on 48 lines: the `Rules` stamp on 45 `CHECKSUM` blocks (267268396 against 3208917823,
   the run-to-run stamp run1177's section records), `Sys Memory` and two `SYNCPOINT` wall times.
 - **7,021 functions entered** (`report.py … functions`), 1,833 of them first on a frame. **None is new to
-  `blind::TRACES`**, so `blind::NEVER` is unchanged at 247. Over the other 113 lockstep traces it adds four simulation
-  functions, 10,629 bytes: `Unit::change_target`, `Unit::think_carry_military`, `Unit::update_ceo_position` and
+  `blind::TRACES`**, so `blind::NEVER` is unchanged at 247. Over the other 114 lockstep traces (run1178 among them) it
+  adds three simulation functions, 9,383 bytes: `Unit::change_target`, `Unit::think_carry_military` and
   `AmmoOut::dirt_splash`. `rubric.py --tables 4` reads **lockstep bytes 77.2 %** (8,802,866 of 11,392,782; 2,238 of
-  3,611 functions; 114 traces): 771 → 772 tenths.
+  3,611 functions; 115 traces): 771 → 772 tenths.
 - Filed with `filerun.py run1179 eastindies-russian-modern-cover`.
 
 Archive `gamelog-run1179-eastindies-russian-modern-cover.txt`, 44,377,944 bytes,
@@ -24968,5 +25004,5 @@ SHA-256 `7b583847908088d369fa12592f1ed827adbb3733a67fda16b6dbf0db2cbd4f45`.
 Archive `rontrace-run1179.log`, 279,125,248 bytes,
 SHA-256 `768d95462cb8fd2ce52367038706d5434440c18737ae31ff738d85d1a50f7207`.
 
-**What it holds**: the Russian pair's game on every frame under `cover=1`, the first lockstep trace of an age-6 game
-(`blind::TRACES`).
+**What it holds**: the Russian pair's game on every frame under `cover=1`, the sea map's lockstep trace of an age-6
+game (`blind::TRACES`).
