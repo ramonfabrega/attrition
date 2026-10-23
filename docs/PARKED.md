@@ -10237,11 +10237,11 @@ words and edits nothing here; a refill lands when two remain.
   long. A packet from a game that fields the piece answers each (`get_position.py … entries <piece>`).
   **Score**: none until a word parts on one of their rounds.
 
-(3538) **The Chinese word 4467's closing block is not widened.** The word closed at 4467, the game's last frame, and
+(3538) closed 2026-10-23 by item 3538: booked as 3540 by the commander. **The Chinese word 4467's closing block is not widened.** The word closed at 4467, the game's last frame, and
 `run1155_chinese_industrial_pair_closing_state` scores block 4468: 165 units compared, 14 off by position and nothing
 else (`1/107` by (114, −9), `1/73` by (−73, 72), `0/8` by (0, 28)). run1175's window ends on 3522, and run1155 prints
 units on every hundredth block only, so no dump holds the blocks where the 14 part. A window walked back from 4468 at
-the long's detail is the widening the word owes. **Score**: the closing counts, `[14, 0, 0, 0, 0, 0, 0]`.
+the long's detail is the widening the word owes. **Score**: the closing counts, `[14, 0, 0, 0, 0, 0, 0]`. **Booked as 3540** (the fifty-third commander).
 
 ## Parked by the next landing, slot PK — reserved
 
