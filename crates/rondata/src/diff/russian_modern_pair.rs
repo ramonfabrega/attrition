@@ -412,8 +412,9 @@ fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
 /// (item 3524).
 pub(crate) const RUN1170: &str = "gamelog-run1170-eastindies-russian-modern-window-5645-5841.txt";
 
-/// The window: block 5645 through 5841; the word 5651's own block is 5652.
-pub(crate) const WIDENING_RUSSIAN_MODERN_FRAME_5651: (i64, i64) = (5645, 5841);
+/// The window: block 5645 through the closing block 5842; the word 5651's
+/// own block is 5652, and the word whole at 5841 (item 3527) sits inside it.
+pub(crate) const WIDENING_RUSSIAN_MODERN_FRAME_5651: (i64, i64) = (5645, 5842);
 
 /// **The word 5651's window**: run1170 walked from run1148's start with the
 /// recorder on (item 3524).
