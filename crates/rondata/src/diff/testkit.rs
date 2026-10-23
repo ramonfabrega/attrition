@@ -7333,6 +7333,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2229: 873 -> 877, the walk past 4637 to the word 4671.
     // Item 2259: 877 -> 923, the walk past 4671 to the word 4946.
     ("mongol_pair_first_parting", 923),
+    // The Japanese Industrial pair (item 3523): the Dreadnought's rounds
+    // leave from its turrets now, and round A's arc from `1/75` comes down
+    // past the word over two corners not known to be the original's single,
+    // (4497, 9547) on 3771 and (4533, 9315) on 3772.
+    ("japanese_industrial_pair_first_parting", 2),
     // The first late-age pair (item 3506): the Germans at All
     // Technologies, East Indies, walked from run1144 to the game's end on
     // run1145b; its closing state walks the same.
@@ -9801,12 +9806,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (block 1352); **3674** with the Japanese Barracks arms of `get_cost`
     // and `train_time`, widened on run1153c over 3668..3924 (block 3675);
     // **3769** with the Japanese boats' quarter and `think_carry_civilian`'s
-    // shore eject (item 3521), the same window (block 3770).
+    // shore eject (item 3521), the same window (block 3770); **3816** with
+    // the Dreadnought's two turrets (item 3523), the same window (block
+    // 3817).
     (
         "JAPANESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL_PAIR_WORD,
         Some("japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole"),
-        3521,
+        3523,
         Some(crate::diff::japanese_industrial_pair::WIDENING_JAPANESE_INDUSTRIAL_FRAME_3674),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
