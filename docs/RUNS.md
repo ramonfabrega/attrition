@@ -24689,3 +24689,25 @@ SHA-256 `621de64d14b1d832bda7c9c3670331d8710030ee45ad97bf1593e47f1dfb8905`.
 **What it holds**: `russian_modern_pair_run1168_s_gap_is_widened_whole`. It compares 170 blocks and finds 1881 keys.
 The state first parts on block 4091: army 1's `ATTACKTO` sends fourteen members to (8664, 1368) in ours against
 (8568, 984) in theirs. After item 3522's build it finds 114, the standing families.
+
+## run1170 — the Russians at a held Modern age, East Indies: the word 5651's window, blocks 5645..5841 (2026-10-23, item 3524, `att-3524`)
+
+**Disk gap**: the word 5651 (item 3524's build) lies past every window on disk — run1166b ends at 4348, and run1149
+dumps every hundredth block. `--map 18 --end-frame 5841 --allow-early-end --timeout 3600 --log-window 5645 5841
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 13 --profile STARTING_TECHNOLOGY=6 --profile
+ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`.
+- Pool lane 1. Launched 07:00:07, exited 07:01:05 (57.7 s launch to exit). `success`: 5842 frames, the game's last
+  frame 5841. `rngcmp.py` against run1149: **5842 frames in common, 0 differing**. Filed with `filerun.py run1170
+  eastindies-russian-modern-window-5645-5841`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1170-eastindies-russian-modern-window-5645-5841.txt`, 518,936,940 bytes,
+SHA-256 `fc5b649273f7cacfbf029e694dd1800e3f22242fd0dfb005bf3084c5a476417a`.
+
+Archive `rontrace-run1170.log`, 279,400,000 bytes,
+SHA-256 `75178d5bbc297da71d2d5dd178b4f2fbfd56135fc839f9ed90ef2ea0de8264a7`.
+
+**What it holds**: `russian_modern_pair_run1170_s_word_frame_is_widened_whole`. It compares 196 blocks and finds 2268
+keys. Block 5645 already parts 162 — the standing families and who=1's buckets one or two off — and on the word's eve,
+block 5651, the building `1/2034`'s `queue[0].job_counter` reads ours 500 against theirs 499; block 5652 holds theirs'
+new unit `1/261` alone.

@@ -10100,13 +10100,22 @@ on block 2960, ours (the arm off) 40 short of theirs in each. It moves no word: 
 singles share. The walk agrees through both to 3808, so the nearest single was not the choice that mattered there;
 they are pinned (`GROUND_INEXACT`, 2). Not booked: it names no score.
 
-## Parked by the next landing, slot OY — reserved
+## Parked by item 3524, 2026-10-23 — the CEO's two tiles of sight
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3524a. The nuke flash's 4×4 block is missing in ours by 3920.** run1166's packet (`World +0x160`, logger frame
+  3920): fog half-cells (109..112, 97..100) read 255 in theirs and 2 in ours — `set_seen2(…, 0xff)`, the flash of
+  who=1's nuke on ~3745. No word's frame reads those cells yet. **Score**: none until a word names a sampled cell
+  in the block or a unit's sight test of it.
+- **3524b. who=1's `explored` reads 483 in ours against 482 on the 3563 recount.** `Leader::check_explore@006bc860`'s
+  sample: ours lit a sampled cell a recount early and the two converge by 3763. **Score**: none; the word passed it.
+- **3524c. `explored` is printed and nothing compares it.** `LEADERDATA explored`, `check_explore`'s recount, is in
+  `leader.rs`'s unread list ("a seam"); it printed item 3524's parting (535 against 536 on block 4164) and no diff
+  saw it. Carrying the recount and reading the field would make the next fog parting a diff rather than a probe.
+  **Score**: none directly — a sub-score instrument for every word whose chain reaches fog.
+- **3524d. Ptolemy's term in `UnitData::los@006100c0`** (`leader +0x59d2`, `+0x2c8 & 0x420`, `has_general(0,
+  0x16a)`, `PTOLEMY_LOS_BONUS`) is a SEAM in `Sim::unit_data_los`. No capture on disk fields him (scan: no `type 362` in
+  748 dumps). **Score**: none
+  until a lobby fields the Egyptians' hero.
 
 ## Parked by the next landing, slot OZ — reserved
 

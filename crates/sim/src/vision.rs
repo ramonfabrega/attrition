@@ -295,14 +295,35 @@ impl Sim {
     // §3, §4 — the disc
     // ------------------------------------------------------------------
 
+    /// **`UnitData::los@006100c0`**: the cache `update_los` wrote
+    /// (`mylos`, `+0x3c`), and the CEO's term on top of it — a non-siege
+    /// unit near its owner's `0x165` hero sees `THECEO_UNIT_LOS` (two
+    /// tiles, one fog cell of radius) further ([`Sim::near_own_ceo`], the
+    /// same block `UnitData::max_range` reaches with). The Russians' T34s
+    /// beside their CEO light the East Indies' last fog row, (89, 119) and
+    /// (90, 119), by frame 3920, where the bare cache left them dark
+    /// (run1166's packet; `docs/AI.md` §304, item 3524).
+    ///
+    /// SEAM: the first term, Ptolemy's (`leader +0x59d2`, a type with
+    /// `+0x2c8 & 0x420`, `has_general(0, 0x16a)`, `PTOLEMY_LOS_BONUS`), is
+    /// not carried; no capture on disk fields him (scan: `grep -lac '^    type
+    /// 362$' gamelog*.txt`, none of 748 dumps; the same pattern finds the CEO,
+    /// type 357, 784 times in run1170).
+    pub(crate) fn unit_data_los(&self, u: usize) -> i32 {
+        let mut los = self.units[u].mylos;
+        if self.near_own_ceo(u) {
+            los += self.tuning.theceo_unit_los;
+        }
+        los
+    }
+
     /// The centre, radius and index range `Object::update_seen` would walk
     /// for this unit, or `None` when it reveals nothing.
     ///
     /// Split out from [`Sim::update_seen`] so the arithmetic can be tested
     /// without a fog grid.
     pub fn seen_sweep(&self, u: usize, ring_pass: bool) -> Option<Sweep> {
-        // `UnitData::los@006100c0` reads the cache `update_los` wrote.
-        let los = self.units[u].mylos;
+        let los = self.unit_data_los(u);
         if los == 0 {
             return None;
         }
@@ -964,6 +985,41 @@ mod tests {
         let b = s.add_building(0, at, 0);
         s.buildings[b].ty = Some(t);
         (s, b)
+    }
+
+    /// **`UnitData::los@006100c0`'s CEO term** (item 3524): a non-siege
+    /// unit whose leader counts a `0x165` and stands within the hero's
+    /// radius sees `THECEO_UNIT_LOS` (2) past its cached `mylos`; out of
+    /// reach, a siege unit, or a leader whose muster counts no CEO, it sees
+    /// the cache bare. Made to fail with the term dropped.
+    #[test]
+    fn a_unit_beside_its_own_ceo_sees_two_tiles_further() {
+        let (mut s, u) = fog_sim(8, 0);
+        s.units[u].mylos = 8;
+        let ceo = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            los: 8,
+            type_index: 0x165,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[ceo].cols.unit_flags2 |= crate::ai_load::uflags2::GENERAL;
+        let at = s.units[u].pos;
+        let mut h = crate::Unit::new(0, 1, Pos::new(at.x + 0x300, at.y), 20);
+        h.ty = Some(ceo);
+        h.type_index = 0x165;
+        let h = s.add_unit(h);
+        assert_eq!(s.unit_data_los(u), 8, "the muster counts no CEO");
+        s.muster[0].by_type[ceo] = 1;
+        assert_eq!(s.unit_data_los(u), 10, "beside the CEO");
+        assert_eq!(s.seen_sweep(u, false).map(|w| w.radius), Some(5));
+        let far = s.hero_radius(h) * 0xc0 + 0x300;
+        s.units[h].pos = Pos::new(at.x + far, at.y);
+        assert_eq!(s.unit_data_los(u), 8, "out of the hero's radius");
+        s.units[h].pos = Pos::new(at.x + 0x300, at.y);
+        let t = s.units[u].ty.unwrap();
+        s.unit_types[t].combat.siege = true;
+        assert_eq!(s.unit_data_los(u), 8, "a siege unit");
     }
 
     /// §2.1: a building's `mylos` is its type's `LOS`, plus the science

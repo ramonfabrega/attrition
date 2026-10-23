@@ -198,6 +198,10 @@ pub struct Tuning {
     /// unit near its owner's `0x165` hero adds to its reach
     /// (`UnitData::max_range@0060fe90`, `docs/AI.md` §236).
     pub theceo_unit_range: i32,
+    /// `THECEO_UNIT_LOS`, written `2 tile bonus`: the tiles a non-siege
+    /// unit near its owner's `0x165` hero adds to its sight
+    /// (`UnitData::los@006100c0`, item 3524).
+    pub theceo_unit_los: i32,
     /// `THECEO_PRODUCTION_BONUS`, written `50% better in one city`: the
     /// percentage `LeaderData::calc_city_resources@006d5530` lays on all six
     /// goods of the city its owner's first on-map `0x165` hero stands in
@@ -1332,6 +1336,7 @@ impl Tuning {
         mil_patriot_radius_bonus: 3,
         econ_patriot_radius_bonus: 1,
         theceo_unit_range: 2,
+        theceo_unit_los: 2,
         theceo_production_bonus: 50,
         forced_march_speed: 42,
         alexander_forced_march_speed: 384,
@@ -1836,6 +1841,7 @@ impl Tuning {
                 Slot::Value(T.econ_patriot_radius_bonus),
             ),
             ("THECEO_UNIT_RANGE", Slot::Value(T.theceo_unit_range)),
+            ("THECEO_UNIT_LOS", Slot::Value(T.theceo_unit_los)),
             (
                 "THECEO_PRODUCTION_BONUS",
                 Slot::Value(T.theceo_production_bonus),
