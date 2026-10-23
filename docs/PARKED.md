@@ -10051,13 +10051,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OV — reserved
+## Parked by item 3521, 2026-10-23 — the Japanese boats' quarter and the civilian carrier's shore eject
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3521a) **`Sim::boat_eject_all`'s two arms no capture reaches** (3521; `docs/AI.md` §303): the air refusal (`can_carry(AIR)`,
+`is(0x1bf|0x15f|0x208, 1)`) and a passenger whose `come_out` refuses, which leaves the barge alive and loaded. Both are
+written from `Group::action_eject_all@00710b40` and `eject_contents@0064cd20` alone. A carrier that reaches its shore, or a
+crowded landing, would test them. Not booked: it names no score.
+
+(3521b) **The income's first parting, 2959, is a probe's and not a dump's** (3521): the long prints no leader record
+between 1601 and 3668. A `LEADERS=9` window over 2953..3209 would make the frame a diff: who=1's food and wealth income
+on block 2960, ours (the arm off) 40 short of theirs in each. It moves no word: the arm already closes the 3668 rows.
 
 ## Parked by the next landing, slot OW — reserved
 
