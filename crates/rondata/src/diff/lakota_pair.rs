@@ -19,6 +19,7 @@ pub(crate) const LAKOTA: Pair = Pair {
     ai_tribe: 19,
     difficulty: 3,
     starting_technology: 8,
+    ending_technology: 7,
     starting_resources: 7,
     start: "gamelog-run846-eastindies-lakota-peace-start.txt",
     long: (

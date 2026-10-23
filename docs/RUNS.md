@@ -24061,3 +24061,63 @@ SHA-256 `ee0292fe579012c8c22b8a020d1740b6a92cd429e7ad60992a4bf7ae041bac1e`.
 
 Archive `rontrace-run1137.log`, 16,015,744 bytes,
 SHA-256 `f5bcde2baab26c6d507ea09c9601d4e58ce92c1546e969c97bd4caa5806db759`.
+
+## run1144 — the German late-age pair: East Indies, the Germans, Toughest, All Technologies, the `DUMP_ALL` start (2026-10-22, item 3506, `att-3506`)
+
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1144 --map 18 --end-frame 36 --timeout 1200 --dump-all-start
+--cover cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=8 --profile ENDING_TECHNOLOGY=7 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`. Click-free lane 1 from the pool; `success`, 37 frames, 22.0 s launch to exit, five files restored,
+seed 12345, tribes 4 and 12. `GAME INFO` reads back `MAP_STYLE 18`, `DIFFICULTY 5`, `STARTING_TECHNOLOGY 8`,
+`ENDING_TECHNOLOGY 7`, `STARTING_RESOURCES 7` (`german_alltech_pair_captures_say_their_lobby`). No wait for the lane.
+
+Archive `gamelog-run1144-eastindies-german-alltech-start.txt`, 153,845,749 bytes,
+SHA-256 `89dace6b12c463ce22b807aa7af0ce63cf6b6674d20ec284a462290a81422990`.
+
+Archive `rontrace-run1144.log`, 10,101,408 bytes,
+SHA-256 `1899a0823413233d2180128e6de6461ef0ea028aaa0bbf565dd1d5ad2f3ac9a9`.
+
+## run1145 — the German late-age pair: the strided long for the rubric, to the game's end (2026-10-22, item 3506)
+
+The queue's recipe: `--map 18 --end-frame 24000 --timeout 2400 --log-window 0 24001 --ffwd-minute 27 --cover cover=0
+--callwin 0 24000 --allow-early-end --detail end:UNITS=3,GUYS=2 --stride 100` and run1144's lobby. Click-free lane 2;
+`success`. **The game ended itself at frame 4175** (4176 frames, `ended_early`), 25.4 s launch to exit. `rngcmp.py`
+against run1144: 37 in common, 0 differing. **It carries no frame-0 state** (no `WORLD`, leader or unit records before
+block 1; parked 3506a), so the pair's walk reads run1145b; this take is the rubric's `GUYS` on every hundredth block.
+
+Archive `gamelog-run1145-eastindies-german-alltech-trace.txt`, 22,617,903 bytes,
+SHA-256 `6d82c3d503aa131da776700f1cdd51861764b56c8488a28d66d5a3a4009ab2ef`.
+
+Archive `rontrace-run1145.log`, 190,883,808 bytes,
+SHA-256 `cee790ded6427ff7fa91c5804521623b8107bea6f12d972d853714d8c054b4f3`.
+
+## run1145b — the German late-age pair: the draw stream to the game's end, run831's detail lines (2026-10-22, item 3506)
+
+run831's recipe on run1144's lobby: `--map 18 --end-frame 24000 --timeout 2400 --allow-early-end --log-window 0 24001
+--ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 12 --detail end:MISC --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2 --detail
+endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` (the bare recipe without `--detail` is refused, Loop
+2199). Click-free lane 1; `success`, 4176 frames, the game ended at 4175, 25.3 s launch to exit (333.1 s total, most of it
+waiting for a lane). `rngcmp.py` against run1145: **4176 in common, 0 differing**. **Whole on its first try**:
+`german_alltech_pair_first_parting` walks count and sequence to 4175, and
+`run1145b_german_alltech_pair_closing_state` compares block 4176's 298 units whole (`docs/AI.md` §300).
+
+Archive `gamelog-run1145b-eastindies-german-alltech-trace.txt`, 14,400,377 bytes,
+SHA-256 `b91678e496bf68b35d24219625c63231d1ba7be81df51cd73fedf9398c843b8f`.
+
+Archive `rontrace-run1145b.log`, 190,899,136 bytes,
+SHA-256 `38bdf7762a01fb3cf1e29c0fa12a415f3e66d430db829cf5df9c7a71d0868b5e`.
+
+## run1145c — the German late-age pair's last blocks, 4169..4176, to the game's end (2026-10-22, item 3506)
+
+**Disk gap**: run1145b's dumps hold the start and the closing block only, and the word 4175 is the game's last frame.
+run844's recipe with the window moved to six blocks before the word's block 4176: `--map 18 --end-frame 4175
+--allow-early-end --timeout 3600 --log-window 4169 4176 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 12` and the lobby's profile, `--cover cover=0`. Click-free lane 1; `success`, 4176 frames, 24.4 s launch to
+exit. Eight `BEGIN FRAME`s, 4169..4176. `rngcmp.py` against run1145b: **4176 in common, 0 differing**.
+`run1145c_s_closing_frame_is_widened_whole`. Filed with `filerun.py run1145c eastindies-german-alltech-window-4169-4176`.
+
+Archive `gamelog-run1145c-eastindies-german-alltech-window-4169-4176.txt`, 18,202,596 bytes,
+SHA-256 `07c72227cb61b4b90016c8a46eaa17a1e946096790be44746ff1b3f00fd9d5c7`.
+
+Archive `rontrace-run1145c.log`, 190,919,296 bytes,
+SHA-256 `93b3f3aa6031fee40d90d4e668f9ad2d49a4513b4834188229fec33b13d3fdee`.

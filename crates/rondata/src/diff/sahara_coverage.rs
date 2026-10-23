@@ -18,6 +18,7 @@ pub(crate) const SAHARA_COVERAGE: Pair = Pair {
     ai_tribe: 23,
     difficulty: 5,
     starting_technology: 8,
+    ending_technology: 7,
     starting_resources: 7,
     start: "gamelog-run675-greatsahara-persian-alltech-start.txt",
     long: (
@@ -306,32 +307,7 @@ fn sahara_coverage_captures_say_their_lobby() {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().expect("an initial state");
-        let info = |key: &str| {
-            init.game_info
-                .iter()
-                .find(|(k, _)| *k == key)
-                .and_then(|(_, v)| v.parse::<i32>().ok())
-        };
-        assert_eq!(info("MAP_STYLE"), Some(p.map_style), "{name}");
-        assert_eq!(info("DIFFICULTY"), Some(p.difficulty), "{name}");
-        assert_eq!(
-            info("STARTING_TECHNOLOGY"),
-            Some(p.starting_technology),
-            "{name}"
-        );
-        assert_eq!(
-            info("STARTING_RESOURCES"),
-            Some(p.starting_resources),
-            "{name}"
-        );
-        assert_eq!(info("GAME_RULES"), Some(1), "{name}");
-        let tribes: Vec<_> = init
-            .leaders
-            .iter()
-            .filter(|l| l.who < 2)
-            .map(|l| (l.who, l.tribe))
-            .collect();
-        assert_eq!(tribes, [(0, 4), (1, i64::from(p.ai_tribe))], "{name}");
+        p.assert_lobby(&init, name);
     }
     let Some(path) = dump(p.long.0) else {
         return;

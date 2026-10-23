@@ -9823,13 +9823,27 @@ has no `staged.console_log`; its top-level `console_log` is `null` there,
 which meant the profile's value (the engine's default, 1). Whether the
 hand stage follows the pool is a pass's call.
 
-## Parked by the next landing, slot OF — reserved
+## Parked by item 3506, 2026-10-22 — the German late-age pair: a strided long carries no initial state
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3506a. A long taken with `--stride N` has no frame-0 state, so the pair's walk cannot start from it.** The queue's
+  recipe put `end:UNITS=3,GUYS=2` on `--stride 100` on the long itself. run1145, taken that way, prints `GAME INFO`, the
+  `GAME` block, block 1, every hundredth block after it and the closing block 4176, but none of the `WORLD`, `LEADERDATA`
+  or unit records run775 and run831 print before their first `BEGIN FRAME`. `unattended_capture.py` hands the engine no
+  log window when `--stride` is set (`log_window=None`, line 708), and the tracer opens one only from `Game::do_frame`'s
+  first entry on (`tools/trace/stride.h`), so the start-of-game dump is never written. `third::walk_from` reads the
+  long's `initial()`, and on run1145 it parts at frame 0 (ours 144 draws against 198) on that alone, with the lobby
+  read-back's tribes empty. run1145b, the same game (`rngcmp.py`: 4176 of 4176 identical) on run831's detail lines with
+  no stride, is the walk's long. 3507's lane took the start take's initial state instead (commander's word, run1147).
+  Either fix serves: the walk borrows the initial state from the `DUMP_ALL` start, or the long stays unstrided and the
+  rubric's strided take is a third capture, as here. The next pairs' briefs carry both takes. **Score**: none; the recipe.
+- **3506b. The pair's closing window holds the families the Mongol pair's did, standing from its first block.** run1145c
+  (4169..4176) has 185 keys, 183 of them standing on 4169: who=1's `form` (ours -1, theirs 9 or 0) and `mirror` (ours 0,
+  theirs 1); the leaders' `SITE[i].reg` (ours 65, theirs 0); who=0's `aggression[1]` (ours 0, theirs 1, parked 2385's
+  writer); and six who=1 units' `attrition` (ours 6, theirs 24) with their wounds (`1/20`: `hits_left` 258 against 264).
+  run844's first walk named the same `attrition`/`damage_frac` family on 4941 (`1/20`, ours 6 against 0). The closing
+  comparison (`run1145b_german_alltech_pair_closing_state`) reports none of them: 298 units, `Closing fields: none`.
+  **Score**: none while the word is whole. A booking that wants the closing state's fields reads `attrition` first, since it
+  is the namesake (`docs/ATTRITION.md`).
 
 ## Parked by item 3502, 2026-10-22 — a held Alt through the exe's own GetKeyState import
 
