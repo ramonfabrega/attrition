@@ -40,6 +40,7 @@ SUITES = (
     'test_census_cites',  # the forty-eighth pass, Loop 3415
     'test_samegame',  # the forty-ninth pass, Loop 3435
     'test_poolshot',  # the fiftieth pass, Loop 3469/3451
+    'test_retire',  # the fifty-first pass, Loop 3486 (tools/, the script's own directory)
     'test_killguard',  # the forty-seventh pass, Loop 3392/3394
     'test_reap_agents',
     'test_memcap',
