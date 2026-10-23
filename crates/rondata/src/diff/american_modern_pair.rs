@@ -279,3 +279,40 @@ fn american_modern_pair_run1151c_s_word_frame_is_widened_whole() {
     // 65, theirs -1; `docs/AI.md` section 302).
     pin_eq!(w.firsts.len(), 2419, "run1151c baseline");
 }
+
+/// **The long's stride, walked back from the word 4488** (item 3517): run1151
+/// dumps `UNITS=3,GUYS=2` every hundredth block, and run1151c's window opens
+/// on 188 standing rows, so the state parted somewhere in 2247..4481 and only
+/// the stride's blocks are on disk there.
+pub(crate) const WIDENING_AMERICAN_MODERN_STRIDE: (i64, i64) = (2201, 4481);
+
+pub(crate) fn american_modern_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AMERICAN_MODERN.start],
+        true,
+        AMERICAN_MODERN.long,
+        "run1151 stride",
+        &[(AMERICAN_MODERN.long.0, WIDENING_AMERICAN_MODERN_STRIDE.0)],
+        WIDENING_AMERICAN_MODERN_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn american_modern_pair_the_long_s_stride_walks_back_from_4488() {
+    let _pins = Pins::hold();
+    let Some(w) = american_modern_stride_window() else {
+        return;
+    };
+    eprintln!("stride blocks {}", w.blocks);
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    eprintln!("stride firsts {}", w.firsts.len());
+}
