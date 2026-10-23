@@ -25959,47 +25959,30 @@ theirs `Unit::fight+0x9b0`. The state parts first on block 3808: `0/5` is struck
 3804, `hits_left` 35) and ours on 3807 (3807, 32). Who struck on 3804 is the next item's first question.
 
 **Item 3525 (2026-10-23, Opus 5.5): the Destroyer's three turrets, and a captain's retarget onto its own target,
-3816 → 4343.** run1171 (the new word's window). *The striker*: the 3804 booking was a reading of `raid_stamp`, which
-both sides stamp on 3804. The blow that parts is the Destroyer **`1/66` (`DESTROYER`, 328, sea, piece 278)**'s
-third round. Its three rounds leave on 3795, 3797 and 3800 on both sides (`Ammo::init` in theirs' trace,
-`RON_DEBUG_AMMO` in ours). Theirs' splashes land on 3802, 3804 and **3808**; ours' third landed on **3807**, at
-(5163, 8506), and struck `0/5` (block 3808: `hits_left` ours 32, theirs 35). *The cause, first*: piece 278 has three
-`<RESTRICTION name="Destroyer">` (nodes 4, 5, 6; the stern's `50..−50`) and nine `<RELEASEEVENT>`s, node 0, 1 and 2
-on frames 10, 12 and 15 of `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2`. `sim::pivot` had no row for it.
-run1169's packet holds its 39 entries (`get_position.py … entries 278`): pivots `(4,0,0)` (0.0, −56.97, 13.57),
-`(5,0,0)` (0.0, −36.95, 21.0) and `(6,0,0)` (0.0, 107.74, 9.68), `RData +0x88` 0.9. The release nodes are the
-Cruiser's (§304), bit for bit, and are the same on all three anims. Built as `NODES`, `RDATA_SCALE` and nine
-`RELEASES` rows. The oracle (`the_original_s_release_agrees_on_every_cell_for_piece_278`, three sweeps) agrees on
-831,744 cells, with four float-land cells. The stern turret's round now leaves from (2487, 9443), flies 9 and lands
-on 3808. Block 3808 agrees whole, and the word does not move.
+3816 → 4343.** run1171; the walk is the journal's. *The blow*: the Destroyer `1/66` (`DESTROYER`, 328, sea, piece
+278) fires on 3795, 3797 and 3800 on both sides; theirs' third lands on 3808, ours' left the hull's square and
+landed on 3807 (block 3808: `0/5 hits_left` ours 32, theirs 35). Piece 278 has three `<RESTRICTION
+name="Destroyer">` (nodes 4–6) and `sim::pivot` had no row: run1169's packet gives pivots (0.0, −56.97), (0.0,
+−36.95) and (0.0, 107.74), `RData +0x88` 0.9, and the Cruiser's release nodes bit for bit on all three anims. Built
+as `NODES`, `RDATA_SCALE` and nine `RELEASES` rows; the oracle agrees on 831,744 cells. Block 3808 then agrees; the
+word does not move.
 
-*The word, by its record.* On the word's block 3816 `1/66` stands at (2764, 8930) on its `ATTACKORDER`
-(`in_range` 1) in theirs and fires (`recharging` 25 on 3817). Ours had sailed on to (2832, 8916) under the
-`MOVEORDER` it pushed on 3810, when the fleeing `0/5` left its reach. Both pushed that move alike. **Theirs popped
-it on 3815; the direction is ours.** A probe (`RON_PROBE_3525`, committed and reverted whole) printed
-`do_move`'s chase kill on 3815: `chase_target_flees` true, in range at the `0x90` margin false, in plain reach true.
-`flanking@0092cfe0` answers non-zero for any `e ≤ 0xd5555555`, so theirs also jumps past the kill. The pop is
-**the captain's retarget** (`005f803f`–`005f8216`, `docs/COMBAT.md` §37.2): `near` is `0/5` (the dump's `near
-0/5`), in plain reach, and the listing writes `in_range` 1 and calls `change_target(0/5 → 0/5)`, which pops every
-order above the action. **Nothing in the block compares the candidate with the action's own target**; this crate
-had a `c != t` conjunct since item 479. It is gone. Mutated through `tools/mutate.py`: with `c != t` back, the walk
-falls to 3816 exactly; with piece 278's releases out, the walk holds 4343 and run1153c reads 156 against 151.
+*The word*: on block 3816 theirs' `1/66` stands at (2764, 8930) on its `ATTACKORDER` and fires; ours sailed on to
+(2832, 8916) under the chase move both pushed on 3810. A probe (`RON_PROBE_3525`, reverted whole) read 3815's
+chase kill as theirs must: `chase_target_flees` true (`flanking@0092cfe0` is non-zero to `0xd5555555`), so the pop is
+**the captain's retarget** (`005f803f`–`005f8216`, `docs/COMBAT.md` §37.2) with `near` `0/5` in plain reach:
+`change_target(0/5 → 0/5)` pops the move. Nothing there compares the candidate with the target; this crate's `c !=
+t` (item 479) is gone. Mutated: `c != t` back, the walk falls to 3816; piece 278's releases out, run1153c reads 156.
 
 **The value diff, on the word's frame** (run1153c, block 3816): `1/66 pos` ours (2832, 8916) against theirs (2764,
-8930), `order:kind` 1 against 10, `orders.len` 3 against 2; and on 3817 `recharging` 0 against 25. With both builds
-every one agrees at theirs' values. run1153c goes **692 → 151** keys: the standing families, and `1/82`'s repath on
-3813 (`LIGHTTANK`, 239, land; parked 3525a), which parts nothing after it. Every other lobby's `first_parting` and
-the battery floors hold.
+8930), `order:kind` 1 against 10; on 3817 `recharging` 0 against 25. All agree after; run1153c **692 → 151** keys,
+the standing families and `1/82`'s repath on 3813 (parked 3525a).
 
 **The next word, 4343**: ours 17 draws against 15, index 1 — ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a
-< Unit::do_idle+0x7d`. run1171 (4338..4548, to the closing block; 1306 keys) opens with only the standing families
-(109 rows on 4338, no unit field). **The state parts on 4343**: who=1's Light Tank `1/49` (`LIGHTTANK`, 239, land,
-group 65) is on an `ATTACKORDER` on the human's city `0/2000` with `in_range` 1 and `near` `0/3`. In theirs it
-pushes a `MOVEORDER` to (6360, 8568) on 4342 (`unitorder.flags` 0) and keeps `0/2000`. In ours its reach to the
-city reads false on 4342, and it takes `0/3` on 4343 (`g.ox[0]` 3 against 2000) and fires (`recharging` 40 on
-4344). The current order is the attack, so `do_move`'s retarget arm does not run. **The direction is theirs** (a
-push ours does not make), and ours' retarget is what ours does instead. Which arm pushes the move, and which
-retargets ours, is the next item's first question.
+< Unit::do_idle+0x7d`. run1171 (4338..4548, 1306 keys) opens on the standing families alone. On 4343 who=1's Light
+Tank `1/49` (`LIGHTTANK`, 239, land), on an `ATTACKORDER` on city `0/2000` with `near` `0/3`: theirs pushes a
+`MOVEORDER` to (6360, 8568) on 4342 and keeps `0/2000`; ours reads the city out of reach on 4342 and takes `0/3`
+on 4343 and fires. **The direction is theirs**; which arm pushes is the next item's first question.
 
 **What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
 ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
