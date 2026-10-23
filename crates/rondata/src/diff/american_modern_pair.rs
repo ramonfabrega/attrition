@@ -316,3 +316,43 @@ fn american_modern_pair_the_long_s_stride_walks_back_from_4488() {
     }
     eprintln!("stride firsts {}", w.firsts.len());
 }
+
+/// run1163: the walk back from the word 4488, blocks 4396..4482 at
+/// run1151c's detail (item 3517) — the long's stride has the Bazooka squad
+/// agreeing on 4401 and run1151c opens with its guard orders apart.
+pub(crate) const RUN1163: &str = "gamelog-run1163-greatsahara-american-modern-window-4396-4482.txt";
+
+/// The window: block 4396 through 4482.
+pub(crate) const WIDENING_AMERICAN_MODERN_GAP_1163: (i64, i64) = (4396, 4482);
+
+pub(crate) fn american_modern_gap_1163_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[AMERICAN_MODERN.start],
+        true,
+        AMERICAN_MODERN.long,
+        "run1163",
+        &[(RUN1163, WIDENING_AMERICAN_MODERN_GAP_1163.0)],
+        WIDENING_AMERICAN_MODERN_GAP_1163,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_modern_gap_1163_window() else {
+        return;
+    };
+    eprintln!("run1163 blocks {}", w.blocks);
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    eprintln!("run1163 missing {:?}", w.missing);
+    eprintln!("run1163 firsts {}", w.firsts.len());
+}
