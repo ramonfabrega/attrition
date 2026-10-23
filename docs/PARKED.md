@@ -3774,6 +3774,14 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fifty-second tranche's
 
+(3526) **A `DEEP` answer's clear refuses on a lane's uncommitted work** (the commander, at 3523 and 3524): `ccc clear <lane>
+--then …` answers "has N uncommitted changes; commit the bank first", so the chain's one-turn answer — the line to the lane,
+then the arm — arms nothing when the lane is mid-edit, and the commander's line has already said "armed". Both times the arm
+went in after the lane's draft push (an idle subscription, then the arm). Four of six lanes this tranche went `DEEP` at
+303–323 k within two hours of their spawn, so the shape is the common one. Candidate: the answer's line says "I arm it at your
+push", and `lanewait.py` arms the clear itself on that lane's `DRAFT` line. Score: a `DEEP` answer that needs no second turn.
+One reach.
+
 - (3506c) **3506's "for the Loop"** (the journal's line, filed at its merge): the late-age recipe's strided long carries no
 frame-0 state and cannot seed the walk. Settled at the booking: the queue's recipe seeds the walk from the start take (3506a,
 3507's way), and the refill briefs say so; no tool owed.
