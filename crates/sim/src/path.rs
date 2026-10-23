@@ -832,6 +832,21 @@ impl Sim {
             base *= 3;
         }
 
+        if std::env::var("RON_PROBE_3543").is_ok()
+            && (1376..=1380).contains(&self.frame)
+            && step == STEP_WORLD
+            && (to.cell().x == 53 || to.cell().x == 54)
+            && (16..=18).contains(&to.cell().y)
+        {
+            let c = to.cell();
+            let d = self.world.cell_data(c);
+            eprintln!(
+                "P3543 f{} u{} who{} from({},{}) to({},{}) cell({},{}) seen {} base {} extra {} dir {} depth {} danger {} owner {:?} blocked {} solid {} flags {:#x} cost {}",
+                self.frame, u, who, from.x, from.y, to.x, to.y, c.x, c.y, seen, base, extra, dir, depth,
+                self.world.danger_half(who, c), self.world.owner(c), d.blocked, d.solid, d.flags,
+                base * 32 / 256 + extra + (dir as i32 & 1) * 8
+            );
+        }
         (base * 32 / 256 + extra + (dir as i32 & 1) * 8, embarks)
     }
 
