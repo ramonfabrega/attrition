@@ -11,7 +11,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     name: "EastIndiesRussianModern",
@@ -76,9 +76,14 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // Kremlin: theirs' `queue[0].job_counter` stops at 499 on block 5651 and
     // `1/261` is born on 5652; ours priced it 12000 and read 500. Frame
     // 5816: ours 53 draws against 55, index 30 — ours `Unit::do_move+0xe84`,
-    // theirs `Unit::fight+0x9b0`.
-    count: 5816,
-    sequence: 5816,
+    // theirs `Unit::fight+0x9b0`. Item 3527: 5816 -> whole, 5841, the
+    // game's last frame. The Cruiser `1/25` chases the fleeing Special
+    // Forces `0/0` under a move; on 5815, its sixteenth frame, the
+    // captain's search answers `0/0`, the target itself, in reach, and
+    // `do_move`'s retarget (`005f80a6`–`005f820a`, no `c != t`) kills the
+    // move over the attack.
+    count: 5841,
+    sequence: 5841,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -105,6 +110,56 @@ fn russian_modern_pair_first_parting() {
     pin_eq!(w.last, p.length, "the game's last frame");
     pin_eq!(w.count, p.count, "the draw count's first parting");
     pin_eq!(w.sequence, p.sequence, "the draw sequence's first parting");
+}
+
+/// **The pair's closing state**: run1149's closing dump, block 5842,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3527).
+#[test]
+fn run1149_russian_modern_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &RUSSIAN_MODERN;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Russian pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 5842, "the closing block");
+    // Item 3527, the draw stream whole: 271 units compared and none off;
+    // no building or city field-row.
+    pin_eq!(e.compared, 271, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// Both captures say their lobby from their own `GAME INFO` and `PLAYER`
@@ -413,8 +468,14 @@ fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
     // scouts `1/26`, `1/30` and `1/31` take different groups and move
     // points. Item 3527: 2268 → 510 keys. The Spy's job is the Kremlin's
     // `ACCEL_TRAIN × 5 − 1` (`train_time@006508c0:344`–`354`): both sides
-    // read 499 on 5651 and `1/261` is born on 5652 on both.
-    pin_eq!(w.firsts.len(), 510, "run1170 baseline");
+    // read 499 on 5651 and `1/261` is born on 5652 on both. Then 510 →
+    // 179 with `do_move`'s retarget on its own target: the Cruiser `1/25`
+    // drops its move on 5815 as theirs does. What is left is 166 standing
+    // keys, who=1's economy from the head (the buckets, `leftover`, and
+    // `free_peasants`/`gatherers` 5 against 6 on 5778), who=0's
+    // `aggression[1]`, and the Special Forces `0/0`'s blow on 5786
+    // (`hits_left` 88 against 79), which no draw follows (parked 3527a).
+    pin_eq!(w.firsts.len(), 179, "run1170 baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
