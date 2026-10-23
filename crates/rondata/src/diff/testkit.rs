@@ -9864,14 +9864,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // round at `0/4` a frame late, which run1155b's test now reads agreeing
     // (89 → 53, the standing rows) as run1175's does (1024 → 43). The
     // closing block 4468 is scored by `run1155_chinese_industrial_pair_
-    // closing_state`, 14 off, and no window holds it yet: the closing
-    // block's widening is owed (parked 3538).
+    // closing_state`, 14 off. Item 3540 widens the last blocks on run1184
+    // over 4201..4468 (the word's block 4468 is the closing block), and
+    // with the emplaced weapon's latch the closing state is none off.
     (
         "CHINESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
-        None,
-        3538,
-        None,
+        Some("chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole"),
+        3540,
+        Some(crate::diff::chinese_industrial_pair::WIDENING_CHINESE_INDUSTRIAL_CLOSING),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
@@ -11370,7 +11371,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // rows; 3271 with the fire on the move's bearing off the heading (item
     // 3530), widened on run1175; of a game that ends itself on 4467. Whole
     // by item 3538, the Anti-tank Rifle's launch rows; its closing state
-    // compared, 14 off.
+    // compared, 14 off, and none off with item 3540's emplaced latch,
+    // widened on run1184.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaChineseIndustrial",
@@ -11378,7 +11380,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
         length: 4_467,
         endpoint: Some("run1155_chinese_industrial_pair_closing_state"),
-        window: Some("chinese_industrial_frame_3271_window"),
+        window: Some("chinese_industrial_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
