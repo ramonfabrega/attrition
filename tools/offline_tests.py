@@ -65,6 +65,7 @@ SUITES = (
     'test_hooks_stubs',
     'test_hover_hook',  # item 3494
     'test_issue_queue',  # item 3504
+    'test_hold_hook',  # item 3502
     'test_suite_timings',
     'test_buildat',
     'test_emu_receipts',

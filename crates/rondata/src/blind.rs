@@ -455,6 +455,13 @@ pub const TRACES: &[&str] = &[
     // `cover=0` twin is run1135 (rngcmp 691 identical, 0 differing;
     // `docs/RUNS.md` run1134).
     "rontrace-run1134.log",
+    // Item 3502: the golden start (map 14), `--no-ffwd`, at `cover=1` on the
+    // click-free pool to 640 (`tools/gamelog/coverage/siege3502-althold.cmd`):
+    // a catapult (o 6) right-clicked onto who 1's Barracks (o 2006) on 612
+    // with `610 @hold 18 616` (`tools/trace/hold.h`) answering VK_MENU held
+    // through the exe's `GetKeyState` import. Its `cover=0` twin is run1137
+    // (rngcmp 641 identical, 0 differing; `docs/RUNS.md` run1136).
+    "rontrace-run1136.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
@@ -869,6 +876,10 @@ pub const ENTERED_BY_THE_DLL_ONLY: &[(u32, &str)] = &[
 /// **247** with run1134 (item 3501: the golden start, the script host's
 /// `disable_type_by_tribe` and `train_unit`): `TypeData::type_graft@00472a50`
 /// on 672, `get_graft`'s `+0x68` on a Barracks the Nubians may not build.
+/// **246** with run1136 (item 3502: the golden start, a catapult's
+/// Alt-right-click on a Barracks): `CommandPackage::process_siege_attack@00949ae0`
+/// on 612, the type-5 command `GroupOut::issue_siege_attack` built under a
+/// held Alt.
 #[rustfmt::skip]
 pub const NEVER: &[u32] = &[
     0x0046_cef0, 0x0046_ed60, 0x0046_ed70, 0x0046_f370, 0x0047_03f0, 0x0047_0430,
@@ -894,7 +905,7 @@ pub const NEVER: &[u32] = &[
     0x0078_be90, 0x0079_6140, 0x0079_7c40, 0x0079_ea80, 0x0081_2d20, 0x0081_34d0, 0x0084_2050, 0x0084_b8d0, 0x0089_7a50, 0x0089_7a60, 0x0089_7bc0,
     0x0089_7e20, 0x0089_be90, 0x0089_bea0, 0x0089_beb0, 0x0089_d3a0, 0x008a_4040, 0x008a_4060, 0x008a_60c0, 0x008b_0060, 0x008b_13b0, 0x008b_2a80,
     0x008c_6db0, 0x008d_1830, 0x008d_9190, 0x008d_92d0, 0x0092_8f30, 0x0092_d0b0, 0x0092_fc50, 0x0093_a140, 0x0093_ee70, 0x0094_3f30,
-    0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_9ae0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
+    0x0094_8cb0, 0x0094_8e00, 0x0094_95c0, 0x0094_c1c0, 0x0095_4c60, 0x0095_6470, 0x0095_6ac0, 0x0099_6ac0, 0x0099_bc20,
     0x009a_adc0, 0x009b_32f0, 0x009b_3320, 0x009b_4820, 0x009b_4930, 0x009b_5ec0, 0x009b_8ac0, 0x00a4_69f0,
 ];
 
