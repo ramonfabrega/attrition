@@ -24734,3 +24734,92 @@ SHA-256 `75178d5bbc297da71d2d5dd178b4f2fbfd56135fc839f9ed90ef2ea0de8264a7`.
 keys. Block 5645 already parts 162 — the standing families and who=1's buckets one or two off — and on the word's eve,
 block 5651, the building `1/2034`'s `queue[0].job_counter` reads ours 500 against theirs 499; block 5652 holds theirs'
 new unit `1/261` alone.
+
+## run1154 — the Chinese at a held Industrial age, Great Sahara: the `DUMP_ALL` start (2026-10-23, item 3511, `att-3511`)
+
+`docs/AI.md` §305. The American pair's lobby, with the nation and the age varied, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1154 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 14 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3`.
+- Pool lane 1. Launched 09:20:36, exited 09:21:07 (30.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 14, five files restored. `GAME INFO` reads back
+  `MAP_STYLE 7`, `DIFFICULTY 3`, `STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5` and `STARTING_RESOURCES 7`. Filed
+  with `filerun.py run1154 greatsahara-chinese-industrial-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1154-greatsahara-chinese-industrial-start.txt`, 149,933,404 bytes,
+SHA-256 `aa6d61966b305591ad91d544a8b5ab951943df992400d37a36ae2f45687cff64`.
+
+Archive `rontrace-run1154.log`, 8,262,816 bytes,
+SHA-256 `9ef258c66a111107d5be52430cd79b1e34c8aef36300177992b7f39d2cf2355a`.
+
+**What it holds**: the start of `chinese_industrial_pair::CHINESE_INDUSTRIAL`, and the walk's initial state.
+
+## run1155 — the Chinese at a held Industrial age, Great Sahara: the draw stream to the game's end (2026-10-23, item 3511, `att-3511`)
+
+`docs/AI.md` §305. 3507's run1147 recipe with this lobby: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 14
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1154's
+lobby.
+- Pool lane 2, beside run1154. Launched 09:20:40, exited 09:21:09 (28.5 s launch to exit). `success`. **The game
+  ended itself on 4467** (closing block 4468, `ended_early`). `GAME INFO` reads back as run1154's. `rngcmp.py`
+  against run1154: 37 frames identical. Filed with `filerun.py run1155 greatsahara-chinese-industrial-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1155-greatsahara-chinese-industrial-trace.txt`, 23,939,355 bytes,
+SHA-256 `86ea807cd468886080f3eb69c286c8fbbd6d54bad79acb878f02b4d62e440c67`.
+
+Archive `rontrace-run1155.log`, 88,982,816 bytes,
+SHA-256 `c176a021211bc992160a1f355f4a925715ad2bb1d8ed994b1b6c404d895deed1`.
+
+**What it holds**: the pair's first try. `chinese_industrial_pair_first_parting` walks it from run1154. The first
+try parts on **frame 3007 of 4467** (count and sequence): ours 27 draws, theirs 30, index 12, theirs
+`Ammo::init+0xcd9`, an Armored Car's round. Item 3511 takes it to **3017**: ours 19 against 17, index 0.
+
+## run1155b — the Chinese at a held Industrial age, Great Sahara: the word 3007's window, blocks 3001..3257 (2026-10-23, item 3511, `att-3511`)
+
+**Disk gap**: run1154 holds only the first blocks, and run1155 every hundredth block at `UNITS`/`GUYS` detail, so no
+dump held the word's block 3008 or a leader record near it. `--map 7 --end-frame 3257 --timeout 3600 --log-window
+3001 3257 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --profile STARTING_TECHNOLOGY=5
+--profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`.
+- Pool lane 1. Launched 09:24:52, exited 09:25:35 (43.0 s launch to exit). `success`: 3258 frames, last frame
+  3257. `rngcmp.py` against run1155: **3258 frames in common, 0 differing**. Filed with `filerun.py run1155b
+  greatsahara-chinese-industrial-window-3001-3257`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1155b-greatsahara-chinese-industrial-window-3001-3257.txt`, 523,036,492 bytes,
+SHA-256 `e8afed2a1459a1df9a2f26c07a62864bd9202614ad397ae791b73fbd742cd061`.
+
+Archive `rontrace-run1155b.log`, 43,865,184 bytes,
+SHA-256 `7269c57359c1073bdf25bdad07b73eac52d283302c8acbb3e83fa02baa645e28`.
+
+**What it holds**: `chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole`, the words 3007 (block 3008)
+and 3017 (block 3018).
+
+## run1155c — the Chinese at a held Industrial age, Great Sahara: a packet at logger frame 3003, the Armored Cars' rounds in flight (2026-10-23, item 3511, `att-3511`)
+
+`docs/AI.md` §305. **What the disk could not answer**: where the Armored Cars' rounds of 3001 leave from and how
+long they fly. run1155b prints the blow on `0/3` (block 3002) but no capture writes an `AMMO` record, and ours'
+blow lands a frame later. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1155c --map 7 --end-frame
+3006 --timeout 3600 --log-window 3001 3005 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 14 --profile
+STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover
+cover=0 --tracer-def RON_STATE_FRAME=3003 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- The first take (`--end-frame 3004 --log-window 3001 3003`, 09:31:05–09:31:30 on lane 1, `success`) logged blocks
+  3001 and 3002 only — the window's upper bound is exclusive — and wrote no packet. Its directory is kept as
+  `~/ron-golden/run1155c-nopacket`.
+- The retake: pool lane 1, seed 12345. Launched 09:32:37, exited 09:33:05 (27.2 s). `success`, 3007 frames,
+  `map_style 7`, players `(0,4,7),(1,14,1)`. The packet's header reads frame 3003, trace frame 3002. `rngcmp.py`
+  against run1155: **3007 frames in common, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1155c/map-7/frame-snapshot.bin`, 894,193,684 bytes,
+SHA-256 `71e78f191024e62df0910a9e7fada0764d8320c81a51e64a7929f69bb2b78db1`. The window's dump and trace stay in
+the capture directory. Nothing reads them, since run1155b already holds those blocks.
+
+**What it holds**: the live `Ammo` objects (`tools/recomp/ammo.py`). `1/23`'s round is bound for `0/3`, launched from
+(9569, 31152, 750), landing at (7122, 30513, 753), t 2/6, `flags 0x16`. `1/52`'s is launched from (8817, 30322,
+788), landing at (7169, 30512, 753), t 2/4, `flags 0x6`. It also holds piece 166's 73 `AttachPos` entries
+(`get_position.py … entries 166`) and its thirty-two pivot sweeps, kept outside git under
+`~/ron-data/lab-experiments/2026-10-23-item-3511/sweeps/`.
+`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_166` reads them (`RON_RELEASE_TABLE_166`).

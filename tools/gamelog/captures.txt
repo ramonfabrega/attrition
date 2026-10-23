@@ -10433,3 +10433,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1153b --map 18 --end-frame 1601 --log-window 1345 1601 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0   (the word 1351's window)
 #   run1153c --map 18 --end-frame 3924 --log-window 3668 3924 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0   (the word 3674's window)
 # Checks: `rngcmp.py` run1152 vs run1153 -> 37 identical; run1153 vs run1153b -> 1602 identical; run1153 vs run1153c -> 3925 identical.
+# ==== item 3511: the Chinese at a held Industrial age, Great Sahara (`docs/AI.md` §305; `docs/RUNS.md` run1154, run1155, run1155b, run1155c) ====
+#   run1154  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 14 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3   (start)
+#   run1155  run1147's line with --ai-tribe 14 and run1154's lobby   (the draw stream; ended itself on 4467)
+#   run1155b --map 7 --end-frame 3257 --log-window 3001 3257 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --cover cover=0   (the word 3007's window)
+#   run1155c --map 7 --end-frame 3006 --log-window 3001 3005 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 14 --cover cover=0 --tracer-def RON_STATE_FRAME=3003 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h   (the packet, logger frame 3003)
+# Checks: `rngcmp.py` run1154 vs run1155 -> 37 identical; run1155 vs run1155b -> 3258 identical; run1155 vs run1155c -> 3007 identical.

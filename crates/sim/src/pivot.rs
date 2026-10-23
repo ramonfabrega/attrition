@@ -83,6 +83,12 @@ pub struct Node {
 /// frame 4528, the American Modern lobby) reads its `(4, 0, 0)` entry as
 /// `(0.0, 1.79, 30.92)` (`0x3fe51eba`), `RData +0x88` 0.95.
 ///
+/// **Piece 166, the Armored Car** (item 3511, unit type 216, the Asian
+/// set's `armcar.bh3`): run1155c's packet (logger frame 3003, the Chinese
+/// Industrial lobby) reads its `(4, 0, 0)` entry as `(0.0, 11.14, 28.07)`
+/// (`0x41323d70`), `RData +0x88` 1.1 — one `<RESTRICTION
+/// name="ArmoredCar">`, a full circle.
+///
 /// **Piece 279, the Cruiser** (item 3519, unit type 329): run1165's packet
 /// (logger frame 3719, the Russian Modern lobby) reads its three pivots,
 /// `(4, 0, 0)` `(0.0, −91.65, 25.95)`, `(5, 0, 0)` `(0.0, −65.48, 34.09)`
@@ -116,6 +122,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (841, 4, Node { px: -6, py: -148 }),
     (139, 4, Node { px: 0, py: -148 }),
     (168, 4, Node { px: 0, py: 179 }),
+    (166, 4, Node { px: 0, py: 1114 }),
     (279, 4, Node { px: 0, py: -9165 }),
     (279, 5, Node { px: 0, py: -6548 }),
     (279, 6, Node { px: 0, py: 10528 }),
@@ -138,6 +145,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (194, (9, 10)),
     (279, (9, 10)),
     (168, (19, 20)),
+    (166, (11, 10)),
     (298, (9, 10)),
     (278, (9, 10)),
 ];
@@ -726,6 +734,440 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             node: 0,
             pivot: [0, -960_000, 31_920_000],
             at: [-351_471, -42_550_259, 1_908_175],
+            float_lands: &[],
+        },
+    ),
+    // **The Armored Car, piece 166** (unit type 216, the Chinese and the
+    // Asian set's `armcar.bh3`; item 3511, `docs/AI.md` §305): run1155c's
+    // packet (logger frame 3003 of the Chinese Industrial lobby) holds the
+    // piece's seventy-three entries — the `(4, 0, 0)` pivot and, for each
+    // of its nine `<RELEASEEVENT>`s on node 0 (frames 3, 9, 12, 17, 20, 22,
+    // 24 and 29 twice, `starttime / 67`) on each of four anims, the pivot
+    // node's and the release node's; the two events on 29 carry the same
+    // bits. The car `1/23`'s round on 3001 leaves from `(9569, 31152,
+    // 750)`, not its square `(9617, 31210)`, and flies 6 frames, not 7.
+    (
+        166,
+        crate::anim::ATTACKWALK,
+        3,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [-613_426, 11_139_999, 28_061_401],
+            at: [-175, -19_048_059, 5_388],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACKWALK,
+        9,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [-1_095_403, 11_139_999, 28_042_585],
+            at: [14_944, -19_058_464, -299_030],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [-788_691, 11_139_999, 28_055_786],
+            at: [8_712, -19_057_268, -242_453],
+            float_lands: &[
+                (18, 21, -49, 20),
+                (60, 91, 0, -121),
+                (150, 91, 121, 0),
+                (240, 91, 0, 121),
+                (330, 91, -121, 0),
+            ],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACKWALK,
+        17,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_059_999, -469_999],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACKWALK,
+        20,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [876_323, 11_139_999, 28_052_454],
+            at: [733, -19_047_443, 17_534],
+            float_lands: &[
+                (89, 198, 155, 32),
+                (132, 197, 92, 129),
+                (149, 90, 112, 0),
+                (215, 18, 42, -15),
+                (222, 197, -129, 92),
+                (312, 197, -92, -129),
+            ],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACKWALK,
+        22,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [1_095_403, 11_139_999, 28_042_585],
+            at: [-10_835, -19_056_625, -216_995],
+            float_lands: &[(38, 248, 137, -15), (308, 248, -15, -137)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACKWALK,
+        24,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [1_051_587, 11_139_999, 28_044_735],
+            at: [-445, -19_048_820, -9_926],
+            float_lands: &[(281, 222, -117, -97)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACKWALK,
+        29,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_058_563, -304_922],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK1,
+        3,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_048_038, 6_250],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK1,
+        9,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_058_460, -299_170],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK1,
+        12,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_057_262, -242_228],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK1,
+        17,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_059_999, -469_999],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK1,
+        20,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_047_424, 18_330],
+            float_lands: &[(89, 260, 78, 97)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK1,
+        22,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_056_622, -216_919],
+            float_lands: &[
+                (24, 243, 124, -59),
+                (66, 117, 59, -124),
+                (66, 291, 59, 76),
+                (114, 69, 59, -76),
+                (114, 243, 59, 124),
+                (156, 117, 124, 59),
+                (156, 291, -76, 59),
+                (204, 69, 76, 59),
+                (204, 243, -124, 59),
+                (230, 105, -2, 128),
+                (246, 117, -59, 124),
+                (246, 291, -59, -76),
+                (294, 69, -59, 76),
+                (294, 243, -59, -124),
+                (336, 117, -124, -59),
+                (336, 291, 76, -59),
+            ],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK1,
+        24,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_048_805, -9_279],
+            float_lands: &[(134, 191, 100, 123)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK1,
+        29,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_058_563, -304_922],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK2,
+        3,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [-437_479, 11_183_747, 28_008_846],
+            at: [1_895_208, -18_952_995, 80_376],
+            float_lands: &[(93, 38, -23, -57), (273, 38, 23, 57)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK2,
+        9,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [-700_925, 11_139_999, 28_058_773],
+            at: [3_150_493, -18_796_585, -198_864],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK2,
+        12,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [-481_925, 11_139_999, 28_064_692],
+            at: [2_204_829, -18_929_413, -194_298],
+            float_lands: &[(52, 31, -53, -14)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK2,
+        17,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-685_474, -19_047_649, -469_999],
+            float_lands: &[
+                (7, 198, 52, -148),
+                (83, 212, 148, 38),
+                (97, 198, 148, 52),
+                (168, 87, 110, 35),
+                (173, 212, -38, 148),
+                (187, 198, -52, 148),
+                (192, 63, 85, 35),
+                (263, 212, -148, -38),
+                (277, 198, -148, -52),
+                (353, 212, 38, -148),
+            ],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK2,
+        20,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [569_435, 11_139_999, 28_062_588],
+            at: [-2_461_267, -18_886_921, 80_650],
+            float_lands: &[(131, 31, 23, -58), (150, 51, 74, -36), (311, 31, -23, 58)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK2,
+        22,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [744_776, 11_139_999, 28_057_323],
+            at: [-3_223_725, -18_781_982, -107_924],
+            float_lands: &[(188, 149, 10, 155), (278, 149, -155, 10)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK2,
+        24,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [700_016, 11_183_750, 28_002_007],
+            at: [-3_139_843, -18_786_903, 127_499],
+            float_lands: &[(268, 83, -60, 98)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK2,
+        29,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-464_580, -19_052_887, -305_227],
+            float_lands: &[(71, 60, -18, -87), (161, 60, 87, -18), (341, 60, -87, 18)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK3,
+        3,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-988_832, -19_022_318, 5_621],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK3,
+        9,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-3_447_998, -18_743_118, -299_459],
+            float_lands: &[(188, 48, 84, 18)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK3,
+        12,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-3_447_889, -18_741_932, -242_613],
+            float_lands: &[(137, 107, 137, 16), (223, 21, 56, 16)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK3,
+        17,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-3_451_576, -18_744_328, -469_999],
+            float_lands: &[(101, 56, 35, -87), (198, 121, 33, 142)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK3,
+        20,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-3_446_998, -18_732_191, 17_504],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK3,
+        22,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-3_447_831, -18_741_299, -217_348],
+            float_lands: &[(128, 32, 29, -62), (232, 288, -63, -62)],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK3,
+        24,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [-3_147_239, -18_786_549, -9_783],
+            float_lands: &[],
+        },
+    ),
+    (
+        166,
+        crate::anim::ATTACK3,
+        29,
+        Release {
+            piece: 166,
+            node: 0,
+            pivot: [0, 11_139_999, 28_069_998],
+            at: [0, -19_058_563, -304_922],
             float_lands: &[],
         },
     ),
@@ -1634,6 +2076,49 @@ mod tests {
         }
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 166** (item
+    /// 3511): `tools/recomp/get_position.py … pivot 166 0 <anim> <time> 1`
+    /// on run1155c's packet for its thirty-two rows — four anims, eight
+    /// release frames each. `$RON_RELEASE_TABLE_166` is the directory
+    /// holding `pivot-166-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-23-item-3511/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_166() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_166") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_166 (item 3511's oracle, run1155c)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for slot in [
+            crate::anim::ATTACKWALK,
+            crate::anim::ATTACK1,
+            crate::anim::ATTACK2,
+            crate::anim::ATTACK3,
+        ] {
+            for time in [3, 9, 12, 17, 20, 22, 24, 29] {
+                let path = format!("{dir}/pivot-166-a{slot}-t{time}.txt");
+                let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_166");
+                let r = release(166, slot, time).expect("the row");
+                for line in table.lines() {
+                    let f: Vec<i32> = line
+                        .split_whitespace()
+                        .take(6)
+                        .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                        .collect();
+                    if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                        off.push(format!(
+                            "a{slot} t{time}: ({}, {}, {}, {}) z {}",
+                            f[0], f[2], f[3], f[4], f[5]
+                        ));
+                    }
+                    rows += 1;
+                }
+            }
+        }
+        assert!(rows >= 32 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:#?}", off.len());
     }
 
     /// **The original's pivot branch on every cell, for piece 1546** (item

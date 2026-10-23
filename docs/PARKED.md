@@ -9970,13 +9970,18 @@ words and edits nothing here; a refill lands when two remain.
   it: `waitrun.sh` reported a traceback (`extra lifecycle or fault records`) and no receipt. The hand retake ran
   clean. **Score**: none; a lane's cost, one retake.
 
-## Parked by the next landing, slot ON — reserved
+## Parked by item 3511, 2026-10-23 — the Chinese at a held Industrial age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ON renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3511a. A packet's `--log-window` must reach past its `RON_STATE_FRAME`.** run1155c's first take asked for
+  `--log-window 3001 3003` with the packet at 3003. The window's upper bound is exclusive, so the logger never
+  ended frame 3003, the snapshot hook never ran, and the runner still reported `success` with no
+  `frame-snapshot.bin` and no line saying so. run1164's recipe has four frames of margin and the retake took run1164's
+  margins. **Score**: none; a lane's cost, one retake. A runner check that refuses a `RON_STATE_FRAME` at or past the
+  window's end would make it a guard.
+- **3511b. The booked units were not the parting's.** The booking named `MANCHURIFLEMEN` and the `FIRELANCES`
+  line. The first parting is who=1's Armored Cars (`ARMOREDCAR`, 216), and the word 3017 the same cars' target
+  pick. run1155's stride blocks print who=1's Manchu Riflemen (TypeIndex 117, land) in 960 `GUY` rows, and no Fire
+  Lance (96, 97). Neither booked type parts first. **Score**: none until a word parts on one.
 
 ## Parked by the next landing, slot OO — reserved
 

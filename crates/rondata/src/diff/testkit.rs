@@ -9848,6 +9848,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3525,
         Some(crate::diff::japanese_industrial_pair::WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343),
     ),
+    // **The land map's held Industrial pair** (item 3511): the Chinese at
+    // a held Industrial age, Great Sahara — 3007 first try (theirs' two
+    // Armored Car rounds against ours' one), widened on run1155b over
+    // 3001..3257 (block 3008); **3017** with the Armored Car's (piece 166)
+    // turret rows, in the same window (block 3018).
+    (
+        "CHINESE_INDUSTRIAL_PAIR_WORD",
+        crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
+        Some("chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole"),
+        3511,
+        Some(crate::diff::chinese_industrial_pair::WIDENING_CHINESE_INDUSTRIAL_FRAME_3007),
+    ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
     // Lakota food term, widened on run849 over 1978..2235 (block 1985);
@@ -11336,6 +11348,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_547,
         endpoint: None,
         window: Some("japanese_industrial_frame_4343_window"),
+    },
+    // The Chinese at a held Industrial age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 5), Great Sahara (item 3511): first try 3007, the
+    // Armored Cars' rounds from the hull; 3017 with piece 166's turret
+    // rows, of a game that ends itself on 4467.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaChineseIndustrial",
+        named: "Great Sahara (Chinese, Industrial)",
+        word: crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
+        length: 4_467,
+        endpoint: None,
+        window: Some("chinese_industrial_frame_3007_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
