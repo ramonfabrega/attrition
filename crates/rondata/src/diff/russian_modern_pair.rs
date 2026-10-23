@@ -61,8 +61,18 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // (8664, 1368) (run1168's block 4091). Frame 4207: ours 3279 draws
     // against 3284, index 3272 — ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
-    count: 4207,
-    sequence: 4207,
+    // Item 3524: 4207 → 5651 for both. `UnitData::los` adds
+    // `THECEO_UNIT_LOS` (two tiles) for a non-siege unit near its owner's
+    // CEO, so the T34s beside who=1's CEO light the map's last fog row:
+    // (89, 119) and (90, 119) by 3920 (run1166's packet) and (87, 119) by
+    // 4163 (who=1's `explored` 535 → 536 on block 4164). Ours left (87,
+    // 119) dark, and the word's caravan road priced the step onto tile
+    // (174, 238) at 156 against theirs' 78 on 4206 — `was_seen`'s doubling.
+    // Frame 5651: ours 71 draws against 73, index 52 — ours
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs `Guy::init_real+0x52
+    // < Unit::init`, a birth.
+    count: 5651,
+    sequence: 5651,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -329,7 +339,59 @@ fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
     // family) — and on 4210, two blocks past the word 4207's block 4208,
     // the scouts `1/26`, `1/30` and `1/31` take different move points
     // (`1/26` (25080, 32760) against (21240, 45048)).
-    pin_eq!(w.firsts.len(), 576, "run1166b baseline");
+    // Item 3524: 576 → 146. The scouts `1/26`, `1/30` and `1/31` agree on
+    // 4210 (their move points are `think_scout`'s unseen cells, and the CEO's
+    // two tiles of sight lit them); what is left is the standing families
+    // and who=1's reassembly on block 4104 (3522a).
+    pin_eq!(w.firsts.len(), 146, "run1166b baseline");
+}
+
+/// run1170: the word 5651's window, blocks 5645..5841 at the long's detail —
+/// six blocks before the word's block 5652, and on to the game's last frame
+/// (item 3524).
+pub(crate) const RUN1170: &str = "gamelog-run1170-eastindies-russian-modern-window-5645-5841.txt";
+
+/// The window: block 5645 through 5841; the word 5651's own block is 5652.
+pub(crate) const WIDENING_RUSSIAN_MODERN_FRAME_5651: (i64, i64) = (5645, 5841);
+
+/// **The word 5651's window**: run1170 walked from run1148's start with the
+/// recorder on (item 3524).
+pub(crate) fn russian_modern_frame_5651_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1170",
+        &[(RUN1170, WIDENING_RUSSIAN_MODERN_FRAME_5651.0)],
+        WIDENING_RUSSIAN_MODERN_FRAME_5651,
+        1,
+        &[5652],
+        true,
+    )
+}
+
+/// **The word 5651's frame, widened whole** (item 3524): every dumped
+/// record on run1170's blocks, both directions.
+#[test]
+fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_frame_5651_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1170 baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
@@ -638,6 +700,10 @@ fn russian_modern_pair_s_road_search_on_4207_holds_node_for_node() {
         }
     }
     eprintln!("ROAD searched {searched}; first parting {first:?}; on 4207 {on_word:?}");
-    pin_eq!(on_word, (0, 0), "the word's road nodes, ours and theirs");
+    // Item 3524: (3200, 3205), and the first node parting on 4206 (node
+    // 868, the diagonal onto (33504, 45792), tile (174, 238): ours 156
+    // against theirs 78, `was_seen`'s doubling of fog cell (87, 119)) until
+    // `UnitData::los` carried the CEO's two tiles.
+    pin_eq!(on_word, (3205, 3205), "the word's road nodes, ours and theirs");
     pin_eq!(first, None, "the first node that parts");
 }
