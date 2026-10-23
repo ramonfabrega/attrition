@@ -1,6 +1,7 @@
 # tools/rubric.py --record <pass>: one row per steering pass, oldest first (DECISIONS 88)
-date	pass	groups_full	groups	backed	functions	byte_share	ages_held	ages_never	types_seen	types	dumps
-2026-10-21	the forty-eighth pass	36	112	1696	3611	37.9	2	2,3,4,5,6,7	30	364	58
-2026-10-21	the forty-ninth pass	36	112	1696	3611	37.9	8	none	70	364	83
-2026-10-22	the fiftieth pass	36	112	1696	3611	37.9	8	none	74	364	112
-2026-10-22	the fifty-first pass	36	112	1696	3611	37.9	8	none	74	364	120
+date	pass	groups_full	groups	backed	functions	byte_share	ages_held	ages_never	types_seen	types	dumps	types_source	lockstep_entered	lockstep_functions	lockstep_bytes
+2026-10-21	the forty-eighth pass	36	112	1696	3611	37.9	2	2,3,4,5,6,7	30	364	58				
+2026-10-21	the forty-ninth pass	36	112	1696	3611	37.9	8	none	70	364	83				
+2026-10-22	the fiftieth pass	36	112	1696	3611	37.9	8	none	74	364	112				
+2026-10-22	the fifty-first pass	36	112	1696	3611	37.9	8	none	74	364	120				
+2026-10-22	the fifty-first pass, lockstep	36	112	1696	3611	37.9	7	6	128	302	99	lockstep	2227	3611	77.0

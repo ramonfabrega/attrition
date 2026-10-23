@@ -303,17 +303,40 @@ pub const SIMULATION_FUNCTIONS: usize = 3611;
 pub const RUBRIC_GROUPS_FULL: usize = 36;
 /// The PDB's simulation source groups (a header with the `.cpp` of its stem).
 pub const RUBRIC_GROUPS: usize = 112;
-/// Ages a pinned trace's dump has held an active leader in, of eight.
-pub const RUBRIC_AGES_HELD: usize = 8;
-/// Unit types seen in a pinned trace's dump, of `unitrules.xml`'s 364.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 74;
+/// **Lockstep since the fifty-first pass** (Ramon, 2026-10-22: the rubric
+/// answers how close the port is to a 1:1 sim). The ages and the unit types
+/// below are read from the dumps of **lockstep games** only — a game whose
+/// pinned word (`FLOORS`' long words, `AI_WORDS`, `battery::BATTERY`) stands
+/// at the game's own length, with the `cover=1` twins `blind::TRACES` says
+/// are that game on every frame (`tools/rubric.py --sources` lists them); on
+/// the pass's tree every pinned word is whole, 49 games and 99 runs. The
+/// definition before it read every pinned coverage trace's dump
+/// (`--traces`): 8 ages and 74 types.
+///
+/// Simulation bytes a lockstep game's trace entered, in tenths of a percent
+/// of the simulation layer's (`census.py --layers`' functions, the decompile
+/// file's size): table 4, `entered_in | hooked_in` over the whole games'
+/// `rontrace` logs. The scored captures are `cover=0`, so the twins carry it.
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 770;
+/// Ages a lockstep game's dump has held an active leader in, of eight.
+pub const RUBRIC_AGES_HELD: usize = 7;
+/// Skirmish unit types seen in a lockstep game's dump.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 128;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
+/// Records no skirmish trains: `TRIBE_MASK` all zero, so
+/// `LeaderData::tribe_can_type` answers 0 for every nation (`docs/TECH.md`,
+/// "Nation variants"), and not gaia (the types dump's loaded `age` −1, the
+/// map's animals) — the `CTWE`/`CTWW` variants, the named heroes, the
+/// barbarian and scenario records (`docs/RUBRIC.md`, "The denominator").
+pub const RUBRIC_UNIT_TYPES_EXCLUDED: usize = 62;
 // The rubric's parts are counts of their totals (checked at compile time).
 const _: () = assert!(
     RUBRIC_AGES_HELD <= 8
         && RUBRIC_GROUPS_FULL <= RUBRIC_GROUPS
-        && RUBRIC_UNIT_TYPES_SEEN <= RUBRIC_UNIT_TYPES
+        && RUBRIC_UNIT_TYPES_EXCLUDED <= RUBRIC_UNIT_TYPES
+        && RUBRIC_UNIT_TYPES_SEEN <= RUBRIC_UNIT_TYPES - RUBRIC_UNIT_TYPES_EXCLUDED
+        && RUBRIC_LOCKSTEP_BYTES_TENTHS <= 1000
 );
 
 #[cfg(test)]
