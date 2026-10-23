@@ -11,7 +11,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const TURKISH_ENLIGHTENMENT: Pair = Pair {
     name: "GreatSaharaTurkishEnlightenment",
@@ -33,8 +33,15 @@ pub(crate) const TURKISH_ENLIGHTENMENT: Pair = Pair {
     // Guy::do_turn+0x4a < Unit::move_step+0x3b6`, theirs `Guy::set_anim+0x97a
     // < Unit::do_idle+0x7d`: ours turns a unit on a move where theirs idles
     // it (`docs/AI.md` section 307).
-    count: 2501,
-    sequence: 2501,
+    // Item 3543: 2501 -> 3812, the game's last frame — `Wall::update_los`'s
+    // tower term (`sim::vision`). The Village's builder, the Citizen `1/20`
+    // (TypeIndex 50), had planned its walk to the site on tick 1377 through
+    // (41832, 13128) where theirs went by (41064, 13128): the step north of
+    // it, cell (54, 16), was unseen in ours — the fog rim of who=1's tower
+    // `1/2012` (TypeIndex 441), which sees 19 tiles in theirs and 15 in
+    // ours (run1186b's packet: 29 half-cells of `seen2` lit in theirs only).
+    count: 3812,
+    sequence: 3812,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -134,6 +141,56 @@ fn turkish_enlightenment_pair_is_no_other_lobby() {
     assert_eq!(ours, (Some(4), Some(4), Some(7)), "this pair's lobby");
 }
 
+/// **The pair's closing state**: run1159's closing dump, block 3813,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3543).
+#[test]
+fn run1159_turkish_enlightenment_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &TURKISH_ENLIGHTENMENT;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Turkish pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 3813, "the closing block");
+    // Item 3543, the draw stream whole: 184 units compared and none off —
+    // no position, field, torn, unlinked or extra row.
+    pin_eq!(e.compared, 184, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
 /// run1159b: the word 2501's window, blocks 2495..2751 at the long's
 /// detail — six blocks before the word's block 2502 and 250 after (item
 /// 3513).
@@ -195,7 +252,7 @@ fn turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole() {
     // the long's block 1401 at (40885, 14504) and has parted by 1501, ours
     // (41596, 12371) against theirs (41524, 12335) (`docs/AI.md` section
     // 307). The 440 keys of block 2555 are past the word.
-    pin_eq!(w.firsts.len(), 2651, "run1159b baseline");
+    pin_eq!(w.firsts.len(), 49, "run1159b baseline");
 }
 
 /// run1186: the walk back from the word 2501, blocks 1395..1502 at
@@ -240,5 +297,5 @@ fn turkish_enlightenment_pair_run1186_s_walk_back_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 61, "run1186 baseline");
+    pin_eq!(w.firsts.len(), 51, "run1186 baseline");
 }
