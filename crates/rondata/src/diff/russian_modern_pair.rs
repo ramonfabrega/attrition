@@ -45,9 +45,16 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // turrets (run1165's packet), so `1/25`'s first round on 3716 flies 7
     // frames, not 8, and lands on `0/5` at 3722 as theirs does. Frame 3921:
     // ours 95 draws against 97, index 0 — ours `Unit::think_scout+0x941`,
-    // theirs `GameAccess::rnd+0x20 < Unit::do_attack`.
-    count: 3921,
-    sequence: 3921,
+    // theirs `GameAccess::rnd+0x20 < Unit::do_attack`. Item 3520: 3921 →
+    // 4097 for both. `find_attack_pos` returns 0 for a unit target its
+    // sweep found no spot for, under a non-mandatory attack (run1166's
+    // packet), so on 3920 the Cruiser `1/25` drops its chase of the fleeing
+    // citizen `0/5` and `find_new_target` takes the building `0/2004`, as
+    // theirs does. Frame 4097: ours 104 draws against 103, index 94 — ours
+    // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a
+    // < Guy::inc_time+0x271`.
+    count: 4097,
+    sequence: 4097,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -242,7 +249,70 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     // 1840 against 2160), which stood under item 3516's build too. **The
     // word 3921's own block 3921**: the Cruiser `1/25` reads `order:kind`
     // ours 1 against theirs 10, `pos` (3281, 9092) against (3192, 9096).
-    pin_eq!(w.firsts.len(), 167, "run1161b baseline");
+    // Item 3520: 167 → 126. `find_attack_pos`'s unit tail returns 0 under
+    // a non-mandatory attack (run1166's packet), so on 3920 the Cruiser
+    // drops its chase of `0/5` and takes the building `0/2004`, and block
+    // 3921 reads `order:kind` 10 and `ox` 2004 on both sides; the Cruiser
+    // parts nothing on the window. What is left is the standing families,
+    // groups 73, 91, 92 and 93's `held` and pool, `form` on `1/122`,
+    // `1/145`, `1/155`, and who=1's reassembly on block 3808.
+    pin_eq!(w.firsts.len(), 126, "run1161b baseline");
+}
+
+/// run1166b: the word 4097's window, blocks 4092..4348 at the long's detail —
+/// six blocks before the word's block 4098 and 250 after (item 3520).
+pub(crate) const RUN1166B: &str = "gamelog-run1166b-eastindies-russian-modern-window-4092-4348.txt";
+
+/// The window: block 4092 through 4348; the word 4097's own block is 4098.
+pub(crate) const WIDENING_RUSSIAN_MODERN_FRAME_4097: (i64, i64) = (4092, 4348);
+
+/// **The word 4097's window**: run1166b walked from run1148's start with
+/// the recorder on (item 3520).
+pub(crate) fn russian_modern_frame_4097_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1166b",
+        &[(RUN1166B, WIDENING_RUSSIAN_MODERN_FRAME_4097.0)],
+        WIDENING_RUSSIAN_MODERN_FRAME_4097,
+        1,
+        &[4098],
+        true,
+    )
+}
+
+/// **The word 4097's frame, widened whole** (item 3520): every dumped
+/// record on run1166b's blocks, both directions.
+#[test]
+fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_frame_4097_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3520, the first walk: 7517 keys. **The state parted before the
+    // window**: block 4092 already parts 1749 keys — 1487 of them path
+    // stacks, 84 orders, the standing families (`SITE[i].reg` ours 65
+    // against 0, the groups' `held` and pool, `form`), and positions a unit
+    // off (`1/112` (39829, 42954) against (39829, 42953)) or more (`1/146`
+    // `order:kind` 2 against 21, (36504, 43272) against (36550, 43262)).
+    // No dump prints a block in 3934..4091. The word 4097's draw at index
+    // 94: ours `Guy::set_anim+0x97a < Guy::move+0x19f` (`1/154`), theirs a
+    // sound roll on the sound stream and then `Guy::inc_time+0x271`.
+    pin_eq!(w.firsts.len(), 7517, "run1166b baseline");
 }
 
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one

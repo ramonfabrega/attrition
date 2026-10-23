@@ -26111,6 +26111,16 @@ is left is block 3677's standing families, the groups' `held` and pool, `form`, 
 `order:kind` ours 1 against theirs 10, two orders against one, and `pos` (3281, 9092) against (3192, 9096). That the
 reassembly on 3808 is on the word's chain is the next item's hypothesis, not a finding.
 
+**Item 3520: `find_attack_pos`'s unit tail returns 0.** On frame 3920 theirs' `1/25` drops its
+non-mandatory attack on the citizen `0/5` for `0/2004` and fires on 3921; ours kept `0/5`. run1166's packet runs
+`Unit::process@00610bc0`: no captain or packer re-search, and `find_attack_pos` returns 0 at `601604`. Its unit tail
+(`602b9f`–`602c1e`) returns 0 for a unit target the sweep found no spot for, unless the attack is mandatory (`602be5`)
+and the target stands `melee_far` or more off; ours answered 1 with the target's point. **Built**:
+`Sim::chase_tail_refused` (`attack_pos.rs`, `a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far`);
+the mandatory far arm is a seam (3520b). **The word moves 3921 → 4097**: ours 104 draws against 103, index 94,
+`Guy::move+0x19f` (`1/154`) against `Guy::inc_time+0x271`. run1161b's widening: 167 → 126 keys. run1166b (blocks
+4092..4348, 7517 keys) parts 1749 keys on its head, so the state parted in 3934..4091, which no dump prints.
+
 **What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. ~~Which field of who=1's economy parts first in 3601..3676~~ (item 3516, above: three, from block 2187). ~~Why the count parts on
 11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing
 families on block 3 (shared with 3506b). What the game put on the map: the rubric counts lockstep games only
