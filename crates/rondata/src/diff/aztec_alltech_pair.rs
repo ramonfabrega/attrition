@@ -11,7 +11,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::{dump, install};
+use crate::testenv::dump;
 
 pub(crate) const AZTEC_ALLTECH: Pair = Pair {
     name: "GreatSaharaAztecAllTech",
