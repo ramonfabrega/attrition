@@ -9858,12 +9858,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // turret rows, in the same window (block 3018). **3271** with the fire
     // on the move's bearing off the heading (item 3530), past run1155b's
     // last block: widened on run1175 over 3258..3522 (block 3272), and
-    // run1155b's test keeps 3017's value diff (block 3017 agrees).
+    // run1155b's test keeps 3017's value diff (block 3017 agrees). Item
+    // 3538: whole at 4467, the game's last frame, with the Anti-tank
+    // Rifle's (piece 1143) launch rows — the state had parted on 3243, its
+    // round at `0/4` a frame late, which run1155b's test now reads agreeing
+    // (89 → 53, the standing rows) as run1175's does (1024 → 43). The
+    // closing block 4468 is scored by `run1155_chinese_industrial_pair_
+    // closing_state`, 14 off, and no window holds it yet.
     (
         "CHINESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
         Some("chinese_industrial_pair_run1175_s_word_frame_is_widened_whole"),
-        3530,
+        3538,
         Some(crate::diff::chinese_industrial_pair::WIDENING_CHINESE_INDUSTRIAL_FRAME_3271),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
@@ -11361,14 +11367,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 5), Great Sahara (item 3511): first try 3007, the
     // Armored Cars' rounds from the hull; 3017 with piece 166's turret
     // rows; 3271 with the fire on the move's bearing off the heading (item
-    // 3530), widened on run1175; of a game that ends itself on 4467.
+    // 3530), widened on run1175; of a game that ends itself on 4467. Whole
+    // by item 3538, the Anti-tank Rifle's launch rows; its closing state
+    // compared, 14 off.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaChineseIndustrial",
         named: "Great Sahara (Chinese, Industrial)",
         word: crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
         length: 4_467,
-        endpoint: None,
+        endpoint: Some("run1155_chinese_industrial_pair_closing_state"),
         window: Some("chinese_industrial_frame_3271_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
