@@ -45,9 +45,16 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // turrets (run1165's packet), so `1/25`'s first round on 3716 flies 7
     // frames, not 8, and lands on `0/5` at 3722 as theirs does. Frame 3921:
     // ours 95 draws against 97, index 0 — ours `Unit::think_scout+0x941`,
-    // theirs `GameAccess::rnd+0x20 < Unit::do_attack`.
-    count: 3921,
-    sequence: 3921,
+    // theirs `GameAccess::rnd+0x20 < Unit::do_attack`. Item 3520: 3921 →
+    // 4097 for both. `find_attack_pos` returns 0 for a unit target its
+    // sweep found no spot for, under a non-mandatory attack (run1166's
+    // packet), so on 3920 the Cruiser `1/25` drops its chase of the fleeing
+    // citizen `0/5` and `find_new_target` takes the building `0/2004`, as
+    // theirs does. Frame 4097: ours 104 draws against 103, index 94 — ours
+    // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a
+    // < Guy::inc_time+0x271`.
+    count: 4097,
+    sequence: 4097,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -242,7 +249,14 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     // 1840 against 2160), which stood under item 3516's build too. **The
     // word 3921's own block 3921**: the Cruiser `1/25` reads `order:kind`
     // ours 1 against theirs 10, `pos` (3281, 9092) against (3192, 9096).
-    pin_eq!(w.firsts.len(), 167, "run1161b baseline");
+    // Item 3520: 167 → 126. `find_attack_pos`'s unit tail returns 0 under
+    // a non-mandatory attack (run1166's packet), so on 3920 the Cruiser
+    // drops its chase of `0/5` and takes the building `0/2004`, and block
+    // 3921 reads `order:kind` 10 and `ox` 2004 on both sides; the Cruiser
+    // parts nothing on the window. What is left is the standing families,
+    // groups 73, 91, 92 and 93's `held` and pool, `form` on `1/122`,
+    // `1/145`, `1/155`, and who=1's reassembly on block 3808.
+    pin_eq!(w.firsts.len(), 126, "run1161b baseline");
 }
 
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one

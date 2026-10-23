@@ -295,8 +295,34 @@ impl crate::Sim {
     pub(crate) fn attack_pos_refused(&mut self, u: usize, target: Obj) -> bool {
         match target {
             Obj::Building(_) => self.guard_activity(u).is_some(),
-            Obj::Unit(t) => self.melee_slots_refused(u, t),
+            Obj::Unit(t) => self.melee_slots_refused(u, t) || self.chase_tail_refused(u, t),
         }
+    }
+
+    /// **`find_attack_pos`'s unit tail returns 0** (`602b9f`–`602c1e`, item
+    /// 3520, `docs/AI.md` §304): a unit target the sweep found no spot for
+    /// gets the target's own point in the out-parameters, and then **0**
+    /// unless the current attack is mandatory (`local_38`, `[ebp-0x34]`,
+    /// `602be5`) and the target stands at least [`melee_far`] off
+    /// (`602c1e`). `Unit::fight`'s chase branches on the 0 (`5fe186`) to
+    /// [`Sim::chase_refused`]. run1166's packet (logger frame 3920) walks
+    /// the Russians' Cruiser `1/25`, holding a non-mandatory attack on the
+    /// fleeing citizen `0/5`, through `601604`'s `return 0` and then
+    /// `find_new_target`, which finds the building `0/2004`; this crate
+    /// walked at the citizen's own point.
+    ///
+    /// SEAM: the mandatory far arm (`602c24`–`602dc2`): `find_nearby_spot`
+    /// around the target and the domain gates after it (a sea asker, and a
+    /// land asker against a sea target, return 0). It keeps this crate's
+    /// walk at the target's point.
+    fn chase_tail_refused(&mut self, u: usize, t: usize) -> bool {
+        let mandatory = matches!(
+            self.current_order(u).map(|o| &o.body),
+            Some(crate::orders::Body::Attack(_))
+        ) && self.units[u].combat.mandatory;
+        let (me, tp) = (self.units[u].pos, self.units[t].pos);
+        !mandatory
+            || vector_dist(tp.x - me.x, tp.y - me.y) < melee_far(self.max_range_of(Obj::Unit(u)))
     }
 
     /// **`find_attack_pos`'s melee `return 0`** (`601803`–`601938`, item
