@@ -9974,13 +9974,25 @@ consumed with `field_0x88 == 0`, the `% 5` cadence) while `repaths[0] ≥ 3`, so
 (`:658-700`) comes before any further take. **Not `blind::RESIDUE`**: every predicate is a state the game holds.
 **Score**: `NEVER` (`Unit::kill_group_order`, `Group::kill_group_order`) when staged.
 
-## Parked by the next landing, slot OI — reserved
+## Parked by item 3505, 2026-10-22 — the four read residue candidates a blind reading kept open
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3505a. `ObjectTypeOut::draw@004703f0` turns on what `falling_build_type` holds.** `ObjectsOut::pop_all_zoomed_in`
+  line 121 dispatches `unittypes[i]->+0x140` for a falling building whose type is not a build type. Both readings
+  missed the site (`docs/audit/2026-10-22-residue-3505.md` (2)). It enters this row only if a non-build, non-unit
+  type is ever appended. The appender is inlined in a function the export does not name. Read the writes to
+  `GraphicPieces +0x7e4` (grep the listing for the offset off `MiscAccess::graphic_pieces`). **Score**: one open
+  blind row.
+- **3505b. `GoodTypeData::is_flat@004780c0` is reachable, unstaged.** `Leader::produce_building`'s `6e2312 call
+  [eax+0x94]` on `goodtypes[i]`, unguarded, in the AI's site scoring for a building of the `is(0x1bb)` class other
+  than 0x1a2, after `World::gather_at`, on each good with a non-zero amount. A coverage capture that makes an AI
+  site one should enter it. Name the 0x1bb class first by its type record. **Score**: one open blind row.
+- **3505c. `TypeData::is_item_type@00470760`: the Scenario Editor's resources page.** `Options::draw_cursor_follows`
+  line 85 and `mouse_move` line 125 call `types.list[cur_rare]->+0x20` unguarded, with a non-good rare selected and
+  the cursor over the map. The editor is cut from v1, but the pool could stage it. **Score**: one open blind row.
+- **3505d. `CommandPackage::process_move_near@009495c0`: command type 8 has no builder, but `process` dispatches
+  whatever byte a played-back recorded game carries.** A hand-edited `.rec`, or a tracer line that writes a type-8
+  package, would enter it. Whether forged input counts as staging is the steer's to say. **Score**: one open blind
+  row.
 
 ## Parked by the next landing, slot OJ — reserved
 

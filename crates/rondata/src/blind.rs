@@ -938,11 +938,105 @@ pub const NEVER: &[u32] = &[
 /// 2026-09-27, item 940").
 pub const RESIDUE: &[(u32, &str)] = &[
     (
+        0x0046_ed60,
+        "OrderList::get_new_data: its one home is OrderList::vftable +0x4, and \
+         nothing dispatches through a list's own vptr; the save and load walker \
+         OrderList::walk_data inlines it (two readings, item 3505)",
+    ),
+    (
+        0x0046_ed70,
+        "OrderList::get_data_type: its one home is OrderList::vftable +0x0, and \
+         nothing dispatches through a list's own vptr; OrderList::walk_data \
+         inlines it, calling the order's +0x10 itself (two readings, item 3505)",
+    ),
+    (
+        0x0046_f370,
+        "SubObject::swap_team: live only as Good's and Item's +0x94, and every \
+         object dispatch of +0x94 (Unit::swap_team, Leader::defeat_by, \
+         City::find_buildings, Cities::capture_city, the bribe and assimilate \
+         spells, the scenario functions) draws its receiver from the per-player \
+         lists, which hold no Good or Item (two readings, item 3505)",
+    ),
+    (
+        0x0047_0430,
+        "ObjectTypeData::is_upgrade: Type +0x128 of the object types, and every \
+         +0x128 dispatch is on an object or a window, never a type (two readings, \
+         item 3505)",
+    ),
+    (
+        0x0047_0570,
+        "TypeData::is_specialty_type: Type +0x4c of every type vftable, no other \
+         reference, and every +0x4c dispatch is on an object, an order or a \
+         window, never a type (two readings, item 3505)",
+    ),
+    (
+        0x0047_0680,
+        "TypeData::is_gov_hero_type: Type +0x30 of every type vftable, never \
+         overridden; its one guard, in LeaderData::type_avail, always takes the \
+         inline arm, and no unguarded +0x30 dispatch has a type receiver (two \
+         readings, item 3505)",
+    ),
+    (
+        0x0047_07a0,
+        "TypeData::is_gaia_type: Type +0x18 of every type vftable, never \
+         overridden; its guards, in Balance::compute_modifier and \
+         Balance::return_pack, always take the inline arm, and no unguarded +0x18 \
+         dispatch has a type receiver (two readings, item 3505)",
+    ),
+    (
+        0x0047_0800,
+        "TypeData::is_good_type: Type +0x8 of every type vftable, never \
+         overridden, so its 24 guards always take the inline arm; the unguarded \
+         +0x8 calls are COM releases and objects, never a type (two readings, \
+         item 3505)",
+    ),
+    (
         0x0047_0e50,
         "Build::finished (the thunk to Build::finished@00628490): a vtable \
          slot, +0x1ac of Build, BuildOut, BuildData and Wall, that no \
          instruction dispatches; the image's one call or jmp through +0x1ac is \
          a Window thunk",
+    ),
+    (
+        0x0047_22f0,
+        "WallData::is_sea_trade: Build's and Wall's +0x28; \
+         Console::find_target_daemon guard-inlines it, and Group::action_trade's \
+         one unguarded +0x28 call runs only when is_trade answers 0 on the \
+         destination whose is_trade already answered non-zero at the function's \
+         head (+0xb0 is get_graphicwinxml, return this; the type is static) (two \
+         readings, item 3505)",
+    ),
+    (
+        0x0047_2370,
+        "WallOut::draw (the zero-argument wrapper): Build's and Wall's +0x58, and \
+         ObjectsOut::pop_all_zoomed_in draws a building by a direct call to the \
+         one-argument WallOut::draw at 0x655fb0; the +0x58 object dispatches, in \
+         sort_guys, see units and animals only (two readings, item 3505)",
+    ),
+    (
+        0x0047_2420,
+        "WallData::is_under_attack: Build's and Wall's +0x188, and every object \
+         dispatch of +0x188 is guarded by it (Unit::do_repair, Unit::do_build) or \
+         by an exact Build::vftable test, so the inline arm always runs; the rest \
+         are units and animals (two readings, item 3505)",
+    ),
+    (
+        0x0047_2a40,
+        "BuildTypeData::is_mine: BuildType +0x98, and no +0x98 dispatch has a \
+         build-type receiver (orders, windows, objects) (two readings, item 3505)",
+    ),
+    (
+        0x0047_6aa0,
+        "ObjectTypeData::get_stance_type: four bytes, Type +0x138 of the object, \
+         good and item types; every +0x138 dispatch is on a unit's or a \
+         building's type, which override it; its folded twin at Profile::vftable \
+         +0x94 is never dispatched (two readings, item 3505)",
+    ),
+    (
+        0x0047_70d0,
+        "TypeData::avail: +0x8c of the tech, bonus and spell types (the object \
+         types override it), and every +0x8c dispatch is on an order, an animal, \
+         a texture or the lobby, never a type (two readings, item 3505)",
     ),
     (
         0x0047_df90,
@@ -967,6 +1061,28 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "GroupAttackOrder::log_data: reached only through its vtordisp thunk's \
          jmp, and nothing asks get_obj(GROUP_ATTACK), so no order list holds \
          one to print (docs/GOLDEN.md §144.4; the forty-eighth pass)",
+    ),
+    (
+        0x0048_5a40,
+        "GroupMoveOrder::is_fleeing: reached only through its vtordisp thunk's \
+         jmp, at +0x28 of GroupMoveOrder and GroupAttackToOrder, and no \
+         instruction dispatches +0x28 on an order; UnitData::is_fleeing asks \
+         +0x10 (two readings, item 3505; the MoveOrder::is_fleeing row's slot)",
+    ),
+    (
+        0x0048_5a60,
+        "GroupOrder::clear: reached only through its vtordisp thunk's jmp, whose \
+         one home is the abstract GroupOrder::vftable +0x4 (+0x10 is purecall); \
+         its constructors and destructors install it transiently and dispatch \
+         nothing while it is the vptr (two readings, item 3505)",
+    ),
+    (
+        0x0048_6c60,
+        "FollowOrder::get_follow_order: entered, and no instrument sees it: four \
+         bytes (lea eax,[ecx-0x24]; ret), the tracer's 'next entry under 5 bytes \
+         away' (rontrace.funcs.excluded.txt); its one predecessor, the vtordisp \
+         thunk at 00486c64, ends in an unconditional jmp to it and is entered by \
+         run321 on 620 and run1032 on 708 (item 3505)",
     ),
     (
         0x0048_89a0,
@@ -1319,6 +1435,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0062_e2f0,
+        "BuildData::most_shots: Build's +0x1bc, dispatched only inside \
+         BuildData::get_most_shots and get_garrison_arrows, which are virtual on \
+         Build alone, so their guard always takes the inline arm (two readings, \
+         item 3505)",
+    ),
+    (
         0x0063_0590,
         "BuildData::max_gatherers: no reference in the executable",
     ),
@@ -1362,6 +1485,19 @@ pub const RESIDUE: &[(u32, &str)] = &[
          2026-10-22, Loop 3465)",
     ),
     (
+        0x0064_6c30,
+        "ObjectData::recharge: Build's and Wall's +0x134; its two object \
+         dispatches, Build::do_attack and Object::do_launch, are guarded by an \
+         exact Build::vftable test on a receiver that is always a Build, and no \
+         Wall receiver is dispatched (two readings, item 3505)",
+    ),
+    (
+        0x0064_7150,
+        "Object::execute_events: one byte (ret), Build's and Wall's +0x154, \
+         dispatched only by Objects::inc_time's loop over the unit indices, which \
+         holds units and animals, both overriding it (two readings, item 3505)",
+    ),
+    (
         0x0064_86a0,
         "ObjectData::assault_benefit: the out-of-line copy of a function the \
          compiler inlined at every use, or one nothing calls; no reference in \
@@ -1386,6 +1522,19 @@ pub const RESIDUE: &[(u32, &str)] = &[
     (
         0x0065_cfd0,
         "ObjectsData::find_dock: no reference in the executable",
+    ),
+    (
+        0x0066_1b80,
+        "ObjectTypeData::isnt: Type +0xf8 of every object type, and its one type \
+         dispatch, ObjectData::isnt's guard, always takes the inline arm (two \
+         readings, item 3505)",
+    ),
+    (
+        0x0066_1d70,
+        "ObjectTypeData::blocked_site: Type +0x11c of the object types, and every \
+         +0x11c dispatch is on an object (the hit-points slot) or a window; the \
+         22 blocked_site calls are BuildTypeData::blocked_site's, direct (two \
+         readings, item 3505)",
     ),
     (
         0x0066_3b60,
@@ -1442,6 +1591,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
          inlined at every use, or one nothing calls; no reference in the \
          executable (the fiftieth pass's scan over the 192 open rows, \
          2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0066_d850,
+        "Good::inc_time: one byte (ret), Good's +0xa0 only, and \
+         Objects::inc_time's goods loop skips the call on an exact Good::vftable \
+         test; goods are in no other list (two readings, item 3505)",
     ),
     (
         0x0066_fd40,
@@ -1670,6 +1825,13 @@ pub const RESIDUE: &[(u32, &str)] = &[
         "LeaderData::is_human: no reference in the executable (inlined at every \
          use)",
     ),
+    (
+        0x006e_fb20,
+        "Tribes::walk_data: its one home is Tribes::vftable +0x0, the one \
+         instance is the tribes global, and nothing dispatches its slot 0; the \
+         save and load walker WalkDataGame::walk_data walks tribes.list inline \
+         (two readings, item 3505)",
+    ),
     (0x006f_0230, "Tribe::init: no reference in the executable"),
     (
         0x0070_0010,
@@ -1809,6 +1971,12 @@ pub const RESIDUE: &[(u32, &str)] = &[
          container's walk, which a `@dumpall` line enters (run1065); no \
          reference in the executable (the fiftieth pass's scan over the 192 \
          open rows, 2026-10-22, Loop 3465)",
+    ),
+    (
+        0x0074_0030,
+        "Special::walk_data: no reference in the executable; Specials::walk_data \
+         inlines it, for the save, the load and the checksums (two readings, item \
+         3505)",
     ),
     (
         0x0074_0060,
