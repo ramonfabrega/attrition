@@ -40,9 +40,14 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // Bark arm of the captain's re-search on 3681 and keeps the citizen
     // `0/5`, where ours re-found `0/11` and held its fire. Frame 3778: ours
     // 467 draws against 469, index 457 — ours `Guy::set_anim+0x97a <
-    // Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`.
-    count: 3778,
-    sequence: 3778,
+    // Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`. Item 3519: 3778 →
+    // 3921 for both. The Cruiser's (piece 279) rounds leave from its three
+    // turrets (run1165's packet), so `1/25`'s first round on 3716 flies 7
+    // frames, not 8, and lands on `0/5` at 3722 as theirs does. Frame 3921:
+    // ours 95 draws against 97, index 0 — ours `Unit::think_scout+0x941`,
+    // theirs `GameAccess::rnd+0x20 < Unit::do_attack`.
+    count: 3921,
+    sequence: 3921,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -228,8 +233,16 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     // block 3723**: the citizen `0/5` reads `hits_left` ours 66 against
     // theirs 62 (`damage` 19 against 23) and flees on theirs (`order:kind`
     // 4 against 7, two orders), and the city `0/2000`'s `raid_stamp` reads
-    // 3700 against 3722.
-    pin_eq!(w.firsts.len(), 769, "run1161b baseline");
+    // 3700 against 3722. Item 3519: 769 → 167. The Cruiser `1/25`'s rounds
+    // leave from its turrets, and the citizen `0/5` and the city part
+    // nothing on the window. What is left before the word is the standing
+    // families (block 3677's 103, groups 73, 91, 92 and 93's `held` and
+    // pool, `form` on `1/122`, `1/145`, `1/155`) and who=1's reassembly on
+    // block 3808 (`gather_stamp` ours 3791 against theirs 3807, `income[0]`
+    // 1840 against 2160), which stood under item 3516's build too. **The
+    // word 3921's own block 3921**: the Cruiser `1/25` reads `order:kind`
+    // ours 1 against theirs 10, `pos` (3281, 9092) against (3192, 9096).
+    pin_eq!(w.firsts.len(), 167, "run1161b baseline");
 }
 
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one
