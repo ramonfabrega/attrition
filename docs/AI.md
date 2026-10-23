@@ -26080,13 +26080,11 @@ lands a frame late.** `RON_DEBUG_AMMO` shows ours' first round, launched on 3716
 
 The Cruiser is a pivot piece with three `<RESTRICTION name="Cruiser">` rows (nodes 4, 5 and 6), and `sim::pivot` had
 no row for piece 279. Its turrets therefore bore from the hull, and its rounds left through `launch::launch_point`'s
-unmeasured branch. `get_position.py … entries 279` on run1165 reads the piece's 39 `AttachPos` entries. On `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2` (the bits are the same on all three),
+unmeasured branch. On `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2` (the bits are the same on all three),
 there is one release per turret: node 0 on frame 10, node 1 on 12 and node 2 on 15. `get_position@0090b750` bears
 each release from pivot `(node & 3) + 4`. **Built** (`crates/sim/src/pivot.rs`): `NODES` (279, 4/5/6), `RDATA_SCALE`
-(279, 9/10), and nine `RELEASES` rows. Their 32 `float_lands` cells come from the unicorn sweep of the pivot branch
-(`get_position.py … pivot 279 <node> 10 <time> 3`, 92,416 cells a turret), and
-`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_279` checks all 831,744 cells
-(`RON_RELEASE_TABLE_279`, outside git). **The two halves carry different things.** Without the `RELEASES` rows the
+(279, 9/10), and nine `RELEASES` rows. `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_279` checks the sweep's cells (item 3519's
+journal). **The two halves carry different things.** Without the `RELEASES` rows the
 word holds at 3921 (190 keys); without the `NODES` rows it falls back to 3778 (751). So the turrets' bearings (their node bits, and the release they gate) are
 what put theirs' `Ammo::init` on 3778. The release rows are what move the blow on 3722.
 
@@ -26131,39 +26129,19 @@ the CEO's gives a non-siege unit whose leader counts a `0x165` and that `has_gen
 tiles). **Built**: `Sim::unit_data_los` over `Sim::near_own_ceo`, the block `max_range` shares
 (`a_unit_beside_its_own_ceo_sees_two_tiles_further`); Ptolemy's term is a seam (3524d). **The word moves 4207 →
 5651**: ours 71 draws against 73, index 52, `Guy::set_anim+0x97a` against `Guy::init_real+0x52 < Unit::init` — a
-birth. run1166b: 576 → 146 keys. run1170 (5645..5841) parts 162 on its head, the standing families and who=1's
-buckets; on block 5651, building `1/2034`'s `queue[0].job_counter` is ours 500 against theirs 499.
+birth. run1166b: 576 → 146 keys. run1170 (5645..5841) parts on its head (who=1's buckets).
 
-**Item 3527: the Kremlin's Spy, then the pair whole.** run1149's own hundredths over 4349..5644
-(`russian_modern_pair_run1149_s_gap_before_5651_is_widened_whole`) agree on every unit but the standing families
-and `mirror`; the long prints no leader record there. The parted field on the word's eve is the job, not the
-economy: theirs' Redoubt `1/2034` trains its Spy (TypeIndex 58) 0, 100, … 400, **499** over 5646..5651 and `1/261`
-is born on 5652; ours priced it 12000 (`RON_DEBUG_BUILDS`, now on the widening walk). `train_time@006508c0:344`–`354`,
-the train block's last step: a type with `is(0x3a, 1)` whose leader `has_wonder(0x21a)` returns `ACCEL_TRAIN × 5 −
-1` from the whole function. who=1's Kremlin `1/2021` was 55 % built on 3680 and stands on 5645. **Built**:
-`Sim::kremlin_trains_fast`, taken first in `Sim::queue_target` (`a_held_kremlin_trains_a_spy_in_five_frames`);
-`INSTANT_UNIT_BONUS`'s arm stays a seam (3527c). **The word moves 5651 → 5816**: ours 53 draws against 55, index 30,
-`Unit::do_move+0xe84` against `Unit::fight+0x9b0`. run1170: 2268 → 510 keys.
-
-**5816 → whole: a captain's retarget on its own target.** The Cruiser `1/25` chases the fleeing Special Forces `0/0`
-(uid 7) under a move to (3432, 7944). On 5815, `(25 + 5815) % 16 == 0`, theirs' captain search answers `0/0` (`near`
-0/2004 → 0/0) and the move is gone on block 5816 (`order:kind` 10, `in_range` 1); ours walked on to (3398, 8147),
-the flee clause (`5f7fbe`) refusing the kill as it should. The retarget's conjunction at `005f80a6`–`005f820a` asks
-`near`, the search, `active`, `is_in_range`, `poor_target`, a unit and the Bark admission, and **no `c != t`**: a
-captain whose candidate is the target itself still sets `in_range` and calls `change_target`, which kills the walk
-over the attack. Ours had carried the clause since item 479; it is gone. **The pair is whole, 5841 of 5,841**, and
-`run1149_russian_modern_pair_closing_state` compares block 5842: 271 units, none off. run1170: 510 → 179 keys (166
-standing; who=1's economy, 3527b; `0/0`'s blow on 5786, 3527a). The same clause held the Japanese word on 3816
-(§303): there `1/66` read `order:kind` 1 against 10 and `pos` (2832, 8916) against (2764, 8930), and run1153c goes
-from 572 non-standing keys to 36.
+**Item 3527: the Kremlin's Spy, then the pair whole.** Theirs' Redoubt `1/2034` trains a Spy to **499** and
+`1/261` is born on 5652; ours priced it 12000. `train_time@006508c0:344`–`354` returns `ACCEL_TRAIN × 5 − 1` for
+`is(0x3a, 1)` under `has_wonder(0x21a)`, and who=1's Kremlin `1/2021` stands: `Sim::kremlin_trains_fast`. **5651 →
+5816**: the Cruiser `1/25`, chasing the fleeing `0/0` under a move, drops the move on 5815 in theirs, its captain's
+search answering the target itself. The retarget at `005f80a6`–`005f820a` has **no `c != t`**; ours' clause (item
+479) is gone. **Whole, 5841 of 5,841**; the closing block 5842: 271 units, none off. run1170: 179 keys (3527a, b).
 
 **What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. ~~Which field of who=1's economy parts first in 3601..3676~~ (item 3516, above: three, from block 2187). ~~Why the count parts on
 11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing
-families on block 3 (shared with 3506b). What the game put on the map: the rubric counts lockstep games only
-(DECISIONS 90), and this pair parts on frame 8, so `RUBRIC_UNIT_TYPES_SEEN` does not move. On the captures,
-`rubric.py --tables 3` sees 29 skirmish types, among them `REDGUARD`, `T34`, `KATYUSHA`, `FLAKGUN`, `BAZOOKA`,
-`P40`, the Helicopter, `NUCLEARMISSILE`, the Cruiser and the Battleship. The booking's `MEDIUMTANK`,
-`HVYMACHINEGUN`, `HOWITZER`, `FIGHTERBOMBER`, `V2ROCKET` and `PTBOAT` were not seen.
+families on block 3 (shared with 3506b). What the game put on the map: `rubric.py --tables 3` sees 29 skirmish types
+on the captures (item 3527's journal names them).
 
 ## 305. Reserved for the next item on the AI track
 
