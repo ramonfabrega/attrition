@@ -10439,3 +10439,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1155b --map 7 --end-frame 3257 --log-window 3001 3257 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --cover cover=0   (the word 3007's window)
 #   run1155c --map 7 --end-frame 3006 --log-window 3001 3005 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 14 --cover cover=0 --tracer-def RON_STATE_FRAME=3003 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h   (the packet, logger frame 3003)
 # Checks: `rngcmp.py` run1154 vs run1155 -> 37 identical; run1155 vs run1155b -> 3258 identical; run1155 vs run1155c -> 3007 identical.
+# ==== item 3530: the Chinese word 3271 (`docs/AI.md` §305; `docs/RUNS.md` run1175) ====
+#   run1175  --map 7 --end-frame 3522 --log-window 3258 3522 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --cover cover=0   (the word 3271's window; run1154's lobby)
+# Checks: `rngcmp.py` run1155 vs run1175 -> 3523 identical.

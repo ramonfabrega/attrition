@@ -37,8 +37,15 @@ pub(crate) const CHINESE_INDUSTRIAL: Pair = Pair {
     // 31152, 750) and flies 6, as theirs' does (run1155c's packet). Ours
     // 19 draws against 17, index 0 — ours `Unit::fight+0x9b0`, theirs
     // `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6`.
-    count: 3017,
-    sequence: 3017,
+    // Item 3530: 3017 -> 3271, the fire on the move's bearing taken off
+    // `UnitData +0x50` (`heading`) rather than the figure's facing: on
+    // 3016 the car `1/23` keeps the Citizen `0/3` and fires (`recharging`
+    // 30), as theirs does, where ours re-found `0/11` (`cavarch_o` 11
+    // against 3 on block 3017). Ours 20 draws against 21, index 3 — ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+    count: 3271,
+    sequence: 3271,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -171,5 +178,66 @@ fn chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole() {
     // against theirs 3 — ours' new attack-walk cycle of 3016 is on the
     // human's Citizen `0/11`, theirs' on `0/3` — and `recharging` ours 0
     // against theirs 30 (`docs/AI.md` section 305).
-    pin_eq!(w.firsts.len(), 1026, "run1155b baseline");
+    //
+    // Then **89** with the fire on the move's bearing off the heading
+    // (item 3530): block 3017's three rows agree at theirs' values
+    // (`cavarch_o` 3, `recharging` 30), and the first rows past block
+    // 3001's 49 standing ones are group 68's `held`/pool on 3026 (the
+    // standing family) and, on 3180, city `0/2000`'s `raid_stamp` ours
+    // 3177 against theirs 3179 and the building `0/2004`'s `damage` ours
+    // 24 against 31 — a blow ours does not land. The word 3271 is past the
+    // window.
+    pin_eq!(w.firsts.len(), 89, "run1155b baseline");
+}
+
+/// run1175: the word 3271's window, blocks 3258..3522 at the long's
+/// detail — from run1155b's last block to 250 past the word's block 3272
+/// (item 3530).
+pub(crate) const RUN1175: &str =
+    "gamelog-run1175-greatsahara-chinese-industrial-window-3258-3522.txt";
+
+/// The window: block 3258 through 3522; the word 3271's own block is 3272.
+pub(crate) const WIDENING_CHINESE_INDUSTRIAL_FRAME_3271: (i64, i64) = (3258, 3522);
+
+/// **The word 3271's window**: run1175 walked from run1154's start with
+/// the recorder on (item 3530).
+pub(crate) fn chinese_industrial_frame_3271_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[CHINESE_INDUSTRIAL.start],
+        true,
+        CHINESE_INDUSTRIAL.long,
+        "run1175",
+        &[(RUN1175, WIDENING_CHINESE_INDUSTRIAL_FRAME_3271.0)],
+        WIDENING_CHINESE_INDUSTRIAL_FRAME_3271,
+        1,
+        &[3272],
+        true,
+    )
+}
+
+#[test]
+fn chinese_industrial_pair_run1175_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = chinese_industrial_frame_3271_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 264, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // **1024** on the first walk (item 3530). Block 3258 carries the
+    // standing rows and the state run1155b's last blocks had already
+    // parted (`0/4`'s position, `1/41`'s path); on 3270 city `0/2000`'s
+    // `raid_stamp` ours 3267 against theirs 3269 and the building
+    // `0/2002`'s `damage` ours 25 against 33. **The word's own rows**: on
+    // block 3271 the `ATRIFLE` `1/42` (TypeIndex 137, land, group 64, on
+    // an attack-to) holds a move to ours (8472, 30360) against theirs
+    // (8136, 30120), `path:length` 14 against 8, and on 3272 theirs
+    // collides with the Armored Car `1/52` (`collide_o` 52, `collide` 2)
+    // where ours does not (−1, 1) — theirs' `Unit::move_step+0x823` stop.
+    pin_eq!(w.firsts.len(), 1024, "run1175 baseline");
 }

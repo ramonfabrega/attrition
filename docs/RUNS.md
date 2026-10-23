@@ -24823,3 +24823,25 @@ the capture directory. Nothing reads them, since run1155b already holds those bl
 (`get_position.py … entries 166`) and its thirty-two pivot sweeps, kept outside git under
 `~/ron-data/lab-experiments/2026-10-23-item-3511/sweeps/`.
 `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_166` reads them (`RON_RELEASE_TABLE_166`).
+
+## run1175 — the Chinese at a held Industrial age, Great Sahara: the word 3271's window, blocks 3258..3522 (2026-10-23, item 3530, `att-3530`)
+
+**Disk gap**: item 3530 moved the word 3017 → 3271, past run1155b's last block (3257), and run1155 prints only every
+hundredth block, so no dump held the word's block 3272. `--map 7 --end-frame 3522 --timeout 3600 --log-window 3258
+3522 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --profile STARTING_TECHNOLOGY=5
+--profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`, through
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1175`. The window opens on the block after run1155b's
+last, so the two abut.
+- Pool lane 1. Launched 13:11:44, exited 13:12:26 (42.6 s launch to exit). `success`: 3523 frames, last frame
+  3522, `ended_early` false. `rngcmp.py` against run1155: **3523 frames in common, 0 differing**. Filed with
+  `filerun.py run1175 greatsahara-chinese-industrial-window-3258-3522`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1175-greatsahara-chinese-industrial-window-3258-3522.txt`, 557,415,893 bytes,
+SHA-256 `70669862728ba16554fddbc7a9db9b8bf7556a3594c2b649d11b0b5f415ea9f6`.
+
+Archive `rontrace-run1175.log`, 52,460,640 bytes,
+SHA-256 `8b210e4ca2b5f32b39ad66da709973773c75ee60bf278eb67b8181ce72877b14`.
+
+**What it holds**: `chinese_industrial_pair_run1175_s_word_frame_is_widened_whole` (264 blocks, 1024 keys), the
+word 3271 (block 3272).

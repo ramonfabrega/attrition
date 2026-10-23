@@ -10173,13 +10173,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot PD — reserved
+## Parked by item 3530, 2026-10-23 — the Chinese word 3017: the fire on the move's bearing
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3530a. Theirs lands blows on the human's buildings that ours does not.** Ahead of the word 3271, by state: run1155b's
+  block 3180 reads the building `0/2004`'s `damage` ours 24 against theirs 31 (`damage_frac` 9 against 14), with city
+  `0/2000`'s `raid_stamp` ours 3177 against 3179; run1175's block 3270 reads `0/2002`'s `damage` ours 25 against 33 and
+  the stamp 3267 against 3269. No draw parts on either frame. **Score**: none until a word parts on it; the word 3271 is
+  `1/42`'s stop against `1/52`. The `raid_stamp` lag is the standing `0/2000` row run1155b's block 3001 already carried.
+- **3530b. The bomber's fall reads the figure's facing where its comment cites `UnitData +0x50`.** `fight.rs`'s bomb
+  arm (`Ammo::init`'s `is(0x130)`, `0x67c289`) projects the landing one tile along "the shooter's own heading (`ecx =
+  UnitData +0x50`)" and reads `movement.facing`; `+0x50` is `angle`, this crate's `heading` (item 3530's slip on
+  the fire on the move, item 3385's build). A flier's body and heading may agree; nothing here measured it.
+  **Score**: none until a word parts on a bomb's landing.
 
 ## Parked by the next landing, slot PE — reserved
 
