@@ -20,8 +20,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 - **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
   30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
 - **Lanes: two live, Opus 5.5 at medium** (3542 the British word 4587, 3543 the Turkish word 2501); **one booked** (3535):
-  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3545, run 1187. Pools: GOLDEN §149–154, AI §308–310, park PN–PP.
-- **Fable backlog: 13 Loop items** (3544, 3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
+  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3547, run 1187. Pools: GOLDEN §149–154, AI §308–310, park PN–PP.
+- **Fable backlog: 15 Loop items** (3546, 3545, 3544, 3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000

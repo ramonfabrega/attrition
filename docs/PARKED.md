@@ -3774,6 +3774,20 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-23 — the fifty-third tranche's
 
+(3545) **A pass's subagent worktree blocked a booking gate until a person removed it** (the fifty-third commander, at the
+tenth booking): `release_gate.py` refuses on an `agent-*` worktree past six hours, and the fifty-second pass's Opus subagent
+(`agent-ac7fff88107d1e948`, tip `c70f409af`, merged as `207458207`, clean) was locked by a live `claude bg-spare` process. The
+commander's `git worktree remove -f -f` was denied by the classifier (a live holder's lock), and Ramon ran it by hand.
+Candidate: the pass removes its subagents' worktrees at their merge, or the gate's refusal names the merged-and-clean case as
+safe to prune. Score: a booking gate that needs no person. One reach: the pass's.
+
+(3546) **`test_waitrun`'s runner fixture is timing-dependent under load** (the fifty-third commander, the same gate):
+`test_a_log_whose_every_staged_map_has_its_receipt_is_judged_while_another_runner_lives` keeps a fixture runner alive with
+`sleep 20` across three waits, the last expecting a 4 s timeout; at a host load near 14 the sleep ended before the last wait
+and the waiter exited on no runner, so the whole gate went red on `67ca395a9`. Alone, three runs of three passed (load 9).
+Candidate: the fixture runner sleeps until killed (`sleep 600`, killed in `finally`). Score: a booking gate red on nothing.
+One reach: the pass's.
+
 (3544) **3513's "for the Loop"** (the journal's line, filed at its merge; parked 3513a): a late-age pair minted on a battery
 lobby's `(map, nation, difficulty)` shares the held-out game's triple — the Turks' Enlightenment pair is `(7, 8, 3)`, the
 held-out `GreatSaharaTurkishTier3`'s, ages 0–7 there and 4/4 here — so the pair stays out of `battery::SCORED_LOBBIES`. Whether
