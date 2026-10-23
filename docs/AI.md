@@ -25696,7 +25696,7 @@ with them. All of these now agree.
 and the Aluminium step. No capture holds either with a ship or an aircraft priced. The nested land-unit
 `ANGKOR_SHIPS` inside Terra Cotta's clause (`docs/COSTS.md`, Wonders) is not built.
 
-## 302. The Americans at a held Modern age, Great Sahara: the Airbase's free Bomber, 1995 → 4488 of 4548 (2026-10-23, item 3509)
+## 302. The Americans at a held Modern age, Great Sahara: the Airbase's free Bomber, 1995 → 4488 of 4548, and whole (2026-10-23, items 3509, 3517)
 
 *Item 3509, Opus 5.5, the AI track (DECISIONS 90): run1150, run1151, run1151b and run1151c, on the click-free pool.*
 
@@ -25765,8 +25765,45 @@ showed the Bazooka (139), `HVYMACHINEGUN`, the Flamethrower, the Howitzer, `FLAK
 `NUCLEARMISSILE` and `SPECIALFORCES`.
 
 **What this has *not* established.** Why ours prices the Airbase's aircraft above theirs from 2186 (3509a), or what
-sets `MAKE[2].val` apart on 2184. Where the Bazooka squad's guard orders part, somewhere in 2247..4481. The
-`AIRBASE` arm's German half (`GERMAN_FREE_FIGHTER`), which rests on the reading alone.
+sets `MAKE[2].val` apart on 2184. ~~Where the Bazooka squad's guard orders part, somewhere in 2247..4481.~~ On
+block 4479: see below (item 3517). The `AIRBASE` arm's German half (`GERMAN_FREE_FIGHTER`), which rests on the
+reading alone.
+
+**The walk back** (item 3517, run1163). The long's stride, widened from 2201 to 4401
+(`american_modern_pair_the_long_s_stride_walks_back_from_4488`, 23 blocks, 116 keys), parts nothing on the squad:
+on 4401 `1/21` guards `1/99` from (9672, 31992) on both sides. run1163 fills 4396..4482
+(`american_modern_pair_run1163_s_walk_back_is_widened_whole`), and **the state parts on block 4479**. On that block
+every escort of army 1/0's guard on `1/99` (TypeIndex 139 Bazookas and the Flamethrowers, land) holds a different
+`GUARDORDER` `dx`/`dy`, 96 keys. The guard's `guard_x`/`guard_y` (10152, 31416) and target agree. Examples: `1/19`
+is ours (0, 1020) against theirs (−2160, 720), `1/22` ours (432, 1020) against theirs (0, 420), and `1/65` ours
+(0, 720) against theirs (2160, 1020). Read as slots, the two layouts are one list in two orders. Theirs lays out
+`1/28`'s squad first and the squads `1/19`–`1/21` and `1/22`–`1/24` last. Ours lays out `1/19`'s first.
+
+**The cause: `finish_insert` re-issued the guard over the list as it stood before the move sorted it.** On 4478 army
+1/0's charge (`army_charge` → `group_action_move_to`, `QUEUE_FIRST`) saves the leader's guard aside
+(`set_up_insert`), halts, moves at `QUEUE_NEW`, and replays the guard (`finish_insert` → `action_guard`). The
+army's list held `1/21` and `1/24` second and third. Those are the tails of the squads `1/19` and `1/22`, added
+on 1409 and 1417 without their captains. The move's layout runs `Form::categorize`'s `Group::sort` on the army's
+own record (`seat_sort`). That kills each stray squad and re-adds it whole at the end, and it clears the re-added
+tails' pointers. In the dump, `1/21`'s and `1/24`'s `group` go 64 → −1 on 4479 on both sides. The original's
+`this` is that same record, so `action_guard` builds the escort from the sorted list. Ours handed `finish_insert`
+the caller's copy, taken before the sort, so `action_guard`'s `group_add` put the squad `1/19` first and every
+slot moved. `RON_DEBUG_ARMIES` puts the sort on 4478 in ours as well, after the escort was laid out. **Built**:
+the `QUEUE_FIRST` arm re-reads a seated group's list after the recursive move. A group on the stack keeps its
+own list. `group::tests::a_queue_first_guard_is_laid_out_over_the_sorted_list` checks the escort an unsorted army
+gets against the one a pre-sorted army gets.
+
+**The move: 4488 → 4548 of 4548**, by the count and the sequence alike, so **the draw stream is whole**. run1163's
+keys fall 194 → 80, and blocks 4479 and 4480 part nothing. run1151c's fall 2419 → 97: 74 stand on 4482, group 66
+ours alone on 4508, then the Citizen `0/5`. **The closing block 4549**
+(`run1151_american_modern_pair_closing_state`) compares 175 units. One is off: the human's Citizen `0/5`
+(TypeIndex 50, land), by (19, 16), and `Closing fields: none`. On block 4532 theirs carries a 36-point blow on it
+(`hits_left` 49 against 85, `damage_frame` 4531) from the Armored Car `1/80` (TypeIndex 218, land, `damage_o` 80,
+`damage_who` 1), a member of army 1/0 on its group attack, and the `FLEEORDER` to (7848, 28248) that
+follows. Ours lands neither, and no draw parts. Mutations (`tools/mutate.py`): with the re-issue given the caller's
+copy again, `american_modern_pair_first_parting`, both widenings and the closing state exit 101, and so does the
+unit test, alone. The booked direction (`move_step` against `do_idle` at 4488) was downstream of the offsets, and
+the kill is parked as 3517a.
 
 ## 303. Reserved for the next item on the AI track
 

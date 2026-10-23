@@ -24457,3 +24457,28 @@ SHA-256 `87d81970f46ea7cc8cc56d6064b4f3b2d385c37ecab6e6f414a1181fb7aaeb7c`.
 
 **What it holds**: block 3384, who=1's wealth `income` ours 3183 against theirs 3448, the CEO's city at
 `THECEO_PRODUCTION_BONUS` (`AI.md` §304). Pinned at 106 keys after the builds, all standing families.
+## run1163 — the Americans at a held Modern age, Great Sahara: the walk back from the word 4488, blocks 4396..4482 (2026-10-23, item 3517, `att-3517`)
+
+**What the disk could not answer**: where the Bazooka squad's guard orders part. The long's stride
+(`american_modern_pair_the_long_s_stride_walks_back_from_4488`, blocks 2201..4401) has `1/21` guarding `1/99` from
+(9672, 31992) on both sides on 4401, and run1151c opens on 4482 with the orders apart. No dump holds 4402..4481.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1163 --map 7 --end-frame 4548 --allow-early-end
+--timeout 3600 --log-window 4396 4482 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 20
+--profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3
+--cover cover=0`.
+- Pool lane 1. Launched 02:23:34, exited 02:24:05 (30.2 s launch to exit; the first take exited 5 and was retaken
+  after 3.6 s). `success`: 4549 frames, last frame 4548, 87 `BEGIN FRAME`s. `rngcmp.py` against run1151: **4549 frames
+  in common, 0 differing**. Filed with `filerun.py run1163 greatsahara-american-modern-window-4396-4482`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1163-greatsahara-american-modern-window-4396-4482.txt`, 182,841,031 bytes,
+SHA-256 `ce6275eb0432eb94a8bb6b0f06e6081e662c4bde03fbb5449e78d136dba021b1`.
+
+Archive `rontrace-run1163.log`, 95,207,296 bytes,
+SHA-256 `693e3862e3972624c5ed70a784a0252995edbb1f570e355041b3b234acdd0260`.
+
+**What it holds**: `american_modern_pair_run1163_s_walk_back_is_widened_whole`, 86 blocks. On the first walk it
+found 194 keys. **The state parts on block 4479**: every escort of army 1/0's guard on `1/99` has a different
+`GUARDORDER` `dx`/`dy` (96 keys). For example, `1/19` is ours (0, 1020) against theirs (−2160, 720). Theirs had laid
+the escort out over the list `Group::sort` left. After item 3517's fix the walk finds 80 keys, and blocks 4479 and 4480
+part nothing.

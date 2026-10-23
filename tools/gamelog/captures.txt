@@ -10421,3 +10421,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1151b --map 7 --end-frame 2246 --log-window 1990 2246 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 20 --cover cover=0   (the word 1995's window)
 #   run1151c --map 7 --end-frame 4548 --allow-early-end --log-window 4482 4549 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 20 --cover cover=0   (the word 4488's window)
 # Checks: `rngcmp.py` run1150 vs run1151 -> 37 identical; run1151 vs run1151b -> 2247 identical; run1151 vs run1151c -> 4549 identical.
+# ==== item 3517: the American word 4488's walk back (`docs/AI.md` §302; `docs/RUNS.md` run1163) ====
+#   run1163  --map 7 --end-frame 4548 --allow-early-end --log-window 4396 4482 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 20 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0   (the walk back, 4396..4482)
+# Checks: `rngcmp.py` run1151 vs run1163 -> 4549 identical.
