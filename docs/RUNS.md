@@ -24527,3 +24527,35 @@ from (9412, 31822, 727), landing at (8371, 29688, 705), t 2/6, `flags 0x6`. It a
 `AttachPos` entries (`get_position.py … entries 168`) and its four pivot sweeps, which are kept outside git under
 `~/ron-data/lab-experiments/2026-10-23-item-3518/`. `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_168`
 reads them (`RON_RELEASE_TABLE_168`).
+
+## run1166 — the Russians at a held Modern age, East Indies: a packet at logger frame 3920, the Cruiser's re-target (2026-10-23, item 3520, `att-3520`)
+
+`docs/AI.md` §304. **What the disk could not answer**: why theirs' Cruiser `1/25` drops its attack on `0/5` on frame
+3920 and takes `0/2004`. run1161b prints the outcome on block 3921 (`ox` 2004, `new_ord 1`) but not which arm of
+`fight` chose it, and both sides spend the same captain's roll. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1166 --map 18 --end-frame 3922 --timeout 3600 --log-window 3919 3921 --detail end:MISC,UNITS=3,GUYS=2
+--ai-tribe 13 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --cover cover=0 --tracer-def RON_STATE_FRAME=3920 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 04:33:46, exited 04:34:15 (29.3 s). `success`, 3923 frames, `map_style 18`,
+  players `(0,4,7),(1,13,1)`. The packet's header reads frame 3920.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1166/map-18/frame-snapshot.bin`, 915,345,936 bytes,
+SHA-256 `2d96ec401c64442eddb1896961e0b790e6fbe7f53066594fdf8fe12227930a15`. The window's dump and trace stay in
+the capture directory. Nothing reads them, since run1161b already holds those blocks.
+
+**What it holds**: `1/25` at `0x14c82c7c` (`unitaddr.py … 3192 9096`). `step4.py --entry 610bc0 --this 14c82c7c
+--hook …` runs its `process`. The captain's roll answers 8901 at `5fde80`, `poor_target` answers 0 at `5fdeda`,
+`find_attack_pos` returns 0 through `601604` (the unit tail, `602be5`), and then `find_new_target`'s `check_target`
+reaches `0/2004`.
+
+## run1166b — the Russians at a held Modern age, East Indies: the word 4097's window, blocks 4092..4348 (2026-10-23, item 3520, `att-3520`)
+
+**Disk gap**: run1149 dumps every hundredth block and no leader record, and run1161b ends at 3933, so no dump held
+the word's block 4098. `--map 18 --end-frame 4348 --timeout 3600 --log-window 4092 4348 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9`, the lobby as run1166's.
+- Pool lane 1. Launched 04:40:03, exited 04:41:01 (58.0 s). `success`: 4349 frames, last frame 4348. `rngcmp.py`
+  against run1149: **4349 frames in common, 0 differing**. Filed with `filerun.py run1166b
+  eastindies-russian-modern-window-4092-4348`.
+- Minutes waited on another lane: none.
