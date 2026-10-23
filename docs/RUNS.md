@@ -24482,3 +24482,25 @@ found 194 keys. **The state parts on block 4479**: every escort of army 1/0's gu
 `GUARDORDER` `dx`/`dy` (96 keys). For example, `1/19` is ours (0, 1020) against theirs (−2160, 720). Theirs had laid
 the escort out over the list `Group::sort` left. After item 3517's fix the walk finds 80 keys, and blocks 4479 and 4480
 part nothing.
+## run1165 — the Russians at a held Modern age, East Indies: a packet at logger frame 3719, the Cruiser's rounds in flight (2026-10-23, item 3519, `att-3519`)
+
+`docs/AI.md` §304. **What the disk could not answer**: where `1/25`'s rounds on 3716 and 3718 leave from, and how long
+they fly. run1161b prints the blow on `0/5` (block 3723), but no capture writes an `AMMO` record. Piece 279's
+`AttachPos` entries are empty on run1161's and run1164's packets (`pos_num` 0; no Cruiser was built yet), and no older
+packet reads. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1165 --map 18 --end-frame 3720 --timeout
+3600 --log-window 3715 3720 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 13 --profile STARTING_TECHNOLOGY=6 --profile
+ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0 --tracer-def
+RON_STATE_FRAME=3719 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 03:29:52, exited 03:30:22 (29.6 s). `success`, 3721 frames, `map_style 18`,
+  players `(0,4,7),(1,13,1)`. The packet's header reads frame 3719, trace frame 3718.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1165/map-18/frame-snapshot.bin`, 942,428,580 bytes,
+SHA-256 `e4e2b496a3f4bedc6ad5c38a7a589049682f78b85684423ee17e20a9d26636ed`. The window's dump and trace stay in
+the capture directory. Nothing reads them, since run1161b already holds those blocks.
+
+**What it holds**: the live `Ammo` objects (`Ammo::vftable` `0xb45418`). `1/25` has two rounds bound for `0/5`: one
+from (2999, 7827, 134) to (5115, 8950, 111) at t 3/7, and one from (2956, 7931, 166) to (5108, 8948, 111) at t 1/7,
+both `flags 0x6`. It also holds piece 279's 39 `AttachPos` entries (`get_position.py … entries 279`) and its three
+pivot sweeps, which are kept outside git under `~/ron-data/lab-experiments/2026-10-23-item-3519/`.
+`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_279` reads them (`RON_RELEASE_TABLE_279`).
