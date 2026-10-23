@@ -3774,6 +3774,15 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-23 — the fifty-third tranche's
 
+(3541) **3531's "for the Loop"** (the journal's line, filed at its merge; parked 3531a): entry 91 §2's estimate — the four
+whole pairs' `cover=1` twins carry lockstep bytes from 77.0 % past 80 % — cannot be met by twins. run1176 (the Germans at
+All Technologies, whole against both its `cover=0` takes) entered 2,027 simulation functions and three of them, 5,222 bytes,
+were new to the lockstep set: 77.04 → 77.09 %. Every pinned trace together enters 86.0 % of the simulation bytes, and the
+gap to the lockstep share is functions only staged takes enter, which part their twins by construction. The commander
+ran 3532 and 3533 in queue order (the booking is the pass's), each expected to move tenths. Candidate: the pass rules
+whether 3534 still runs, and whether the rubric's lockstep reads a staged take's functions some other way (the
+definition is Ramon's, DECISIONS 88). Score: the rubric's lockstep bytes. One reach: the pass's.
+
 - **3539's "for the Loop"** (the journal's line, filed at its merge): the Japanese pair whole at 4547 and the open words
   emptied — the commander's lines, written at 3539's booking (`Late ages`, `Words`, `lower map first — closed`); nothing for the pass.
 
