@@ -25999,7 +25999,8 @@ Built in `building_under`. Mutated: `Sim::active` back, the walk falls to 4443; 
 carry. Block 4459, the first row before: `1/28 g.ox[0]` ours 3 against 11, `recharging` 0 against 40; both agree now.
 run1171 **895 → 115** keys, all standing families (4338's 109, `form` on 4351–4352, groups 70 and 84 `held` and pool on
 4357 and 4491). The closing block 4548 compares whole: 165 units, no field-row
-(`run1153_japanese_industrial_pair_closing_state`).
+(`run1153_japanese_industrial_pair_closing_state`). On the Americans' run1163, block 4396's `0/2000 damage_frac` (ours 4,
+theirs 14) agrees too: 80 → 79.
 
 **What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
 ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
