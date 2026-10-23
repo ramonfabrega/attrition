@@ -843,6 +843,18 @@ impl Sim {
                 }
             }
             std::fs::write(&out, b).unwrap();
+            for bi in 0..self.buildings.len() {
+                let bd = &self.buildings[bi];
+                if bd.pos.x == 43584 && bd.pos.y == 15936 {
+                    let ty = bd.ty.map(|r| &self.build_types[r]);
+                    eprintln!(
+                        "P3543B b{} who{} {:?} los {:?} science_los {:?} x_size {:?} active {} started {} build_los {} sweep {:?} sci_epoch {:?}",
+                        bi, bd.owner, ty.map(|t| &t.ident), ty.map(|t| t.los), ty.map(|t| t.science_los), ty.map(|t| t.x_size),
+                        bd.active, bd.started, self.build_los(bi), self.build_sweep(bi),
+                        self.tech.get(bd.owner as usize).map(|t| t.epoch[crate::tech::Line::Science.index()])
+                    );
+                }
+            }
         }
         if std::env::var("RON_PROBE_3543").is_ok()
             && (1376..=1380).contains(&self.frame)
