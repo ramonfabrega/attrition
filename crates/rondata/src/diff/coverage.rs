@@ -3434,6 +3434,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::russian_modern_pair::russian_modern_frame_4097_window(),
         || super::american_modern_pair::american_modern_frame_4488_window(),
         || super::american_modern_pair::american_modern_gap_1163_window(),
+        || super::japanese_industrial_pair::japanese_industrial_frame_1351_window(),
+        || super::japanese_industrial_pair::japanese_industrial_frame_3674_window(),
         || super::sahara_mongol::sahara_mongol_frame_2995_window(),
         || super::lakota_pair::lakota_frame_1384_window(),
         || super::lakota_pair::lakota_frame_1984_window(),

@@ -189,6 +189,9 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The Americans at a held Modern age, Great Sahara (item 3509,
     // DECISIONS 90): the land map's held-age pair.
     (7, 20, 3),
+    // The Japanese at a held Industrial age, East Indies (item 3510,
+    // DECISIONS 90).
+    (18, 15, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
