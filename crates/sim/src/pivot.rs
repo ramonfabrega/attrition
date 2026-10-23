@@ -83,6 +83,12 @@ pub struct Node {
 /// frame 4528, the American Modern lobby) reads its `(4, 0, 0)` entry as
 /// `(0.0, 1.79, 30.92)` (`0x3fe51eba`), `RData +0x88` 0.95.
 ///
+/// **Piece 279, the Cruiser** (item 3519, unit type 329): run1165's packet
+/// (logger frame 3719, the Russian Modern lobby) reads its three pivots,
+/// `(4, 0, 0)` `(0.0, −91.65, 25.95)`, `(5, 0, 0)` `(0.0, −65.48, 34.09)`
+/// and `(6, 0, 0)` `(0.0, 105.28, 25.47)` (`0xc2b74ccc`, `0xc282f5c2`,
+/// `0x42d28f5c`), `RData +0x88` 0.9 — one per `<RESTRICTION name="Cruiser">`.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -98,6 +104,9 @@ const NODES: &[(i32, i32, Node)] = &[
     (841, 4, Node { px: -6, py: -148 }),
     (139, 4, Node { px: 0, py: -148 }),
     (168, 4, Node { px: 0, py: 179 }),
+    (279, 4, Node { px: 0, py: -9165 }),
+    (279, 5, Node { px: 0, py: -6548 }),
+    (279, 6, Node { px: 0, py: 10528 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -107,7 +116,12 @@ const SCALE: (i64, i64) = (48, 10);
 /// `guy_scale` by (`90b7ad`; `local_28` in the decompile), as a rational:
 /// 1.0 for the Chariot's piece 145 and **0.8** for the Bomb Vessel's 296
 /// (`0x3f4ccccd`, run486's packet). A piece with no row is 1.0.
-const RDATA_SCALE: &[(i32, (i64, i64))] = &[(296, (4, 5)), (194, (9, 10)), (168, (19, 20))];
+const RDATA_SCALE: &[(i32, (i64, i64))] = &[
+    (296, (4, 5)),
+    (194, (9, 10)),
+    (279, (9, 10)),
+    (168, (19, 20)),
+];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
 fn scale(piece: i32) -> (i64, i64) {
@@ -237,6 +251,47 @@ pub struct Release {
     pub float_lands: &'static [(i32, i32, i32, i32)],
 }
 
+/// Piece 279's [`Release::float_lands`], one list per turret (item 3519):
+/// the three anims' entries are the same bits, so one sweep a node.
+const FLOAT_LANDS_279_N0: &[(i32, i32, i32, i32)] = &[
+    (31, 14, -245, 394),
+    (59, 222, -272, 202),
+    (69, 21, -438, 151),
+    (108, 44, -418, -178),
+    (121, 14, -394, -245),
+    (198, 44, 178, -418),
+    (203, 6, 179, -428),
+    (211, 14, 245, -394),
+    (233, 156, 296, -171),
+    (239, 222, 272, -202),
+    (249, 21, 438, -151),
+    (282, 38, 439, 128),
+    (301, 14, 394, 245),
+    (329, 222, 202, 272),
+];
+const FLOAT_LANDS_279_N1: &[(i32, i32, i32, i32)] = &[
+    (21, 24, -139, 310),
+    (111, 24, -310, -139),
+    (185, 72, 83, -304),
+    (185, 134, 74, -245),
+    (201, 24, 139, -310),
+    (291, 24, 310, 139),
+];
+const FLOAT_LANDS_279_N2: &[(i32, i32, i32, i32)] = &[
+    (25, 280, 242, -389),
+    (38, 207, 324, -394),
+    (115, 280, 389, 242),
+    (128, 207, 394, 324),
+    (167, 105, 163, 434),
+    (205, 280, -242, 389),
+    (218, 207, -324, 394),
+    (242, 240, -453, 194),
+    (257, 105, -434, 163),
+    (267, 260, -476, -26),
+    (308, 207, -394, -324),
+    (354, 42, -76, -399),
+];
+
 /// `(piece, anim, starttime frame) → release`. **Measured, not derived**:
 /// run147's packet holds piece 145's nine `AttachPos` entries, the
 /// `(4, 0, 0)` [`NODES`] reads and, for each of the Chariot's four
@@ -278,6 +333,124 @@ pub struct Release {
 /// from a game that fields the type reads each row in a minute
 /// (`tools/recomp/get_position.py … entries <piece>`).
 const RELEASES: &[(i32, i8, u32, Release)] = &[
+    // **The Cruiser, piece 279** (unit type 329; item 3519, `docs/AI.md`
+    // §304): run1165's packet (logger frame 3719 of the Russian Modern
+    // lobby) holds the piece's thirty-nine entries — its three pivots at
+    // `(anim 0, time 0)` and, on `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and
+    // `CHAR_ATTACK2` alike (the bits are the same on all three), a release
+    // from each turret: node 0 on frame 10 from pivot 4, node 1 on 12 from
+    // pivot 5, node 2 on 15 from pivot 6. The Cruiser `1/25`'s rounds on
+    // 3716 and 3718 leave from `(2999, 7827, 134)` and `(2956, 7931, 166)`,
+    // where this crate's left from the hull's own square and flew a frame
+    // longer.
+    (
+        279,
+        crate::anim::ATTACKWALK,
+        10,
+        Release {
+            piece: 279,
+            node: 0,
+            pivot: [-725_785, -91_649_994, 25_939_827],
+            at: [2_844_275, -15_566_139, 5_294_392],
+            float_lands: FLOAT_LANDS_279_N0,
+        },
+    ),
+    (
+        279,
+        crate::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 279,
+            node: 1,
+            pivot: [-1_157_794, -65_479_996, 34_070_297],
+            at: [2_388_635, -13_228_996, 4_566_563],
+            float_lands: FLOAT_LANDS_279_N1,
+        },
+    ),
+    (
+        279,
+        crate::anim::ATTACKWALK,
+        15,
+        Release {
+            piece: 279,
+            node: 2,
+            pivot: [-763_241, 105_279_999, 25_458_538],
+            at: [2_406_699, -13_229_012, 4_556_934],
+            float_lands: FLOAT_LANDS_279_N2,
+        },
+    ),
+    (
+        279,
+        crate::anim::ATTACK1,
+        10,
+        Release {
+            piece: 279,
+            node: 0,
+            pivot: [-725_785, -91_649_994, 25_939_827],
+            at: [2_844_275, -15_566_139, 5_294_392],
+            float_lands: FLOAT_LANDS_279_N0,
+        },
+    ),
+    (
+        279,
+        crate::anim::ATTACK1,
+        12,
+        Release {
+            piece: 279,
+            node: 1,
+            pivot: [-1_157_794, -65_479_996, 34_070_297],
+            at: [2_388_635, -13_228_996, 4_566_563],
+            float_lands: FLOAT_LANDS_279_N1,
+        },
+    ),
+    (
+        279,
+        crate::anim::ATTACK1,
+        15,
+        Release {
+            piece: 279,
+            node: 2,
+            pivot: [-763_241, 105_279_999, 25_458_538],
+            at: [2_406_699, -13_229_012, 4_556_934],
+            float_lands: FLOAT_LANDS_279_N2,
+        },
+    ),
+    (
+        279,
+        crate::anim::ATTACK2,
+        10,
+        Release {
+            piece: 279,
+            node: 0,
+            pivot: [-725_785, -91_649_994, 25_939_827],
+            at: [2_844_275, -15_566_139, 5_294_392],
+            float_lands: FLOAT_LANDS_279_N0,
+        },
+    ),
+    (
+        279,
+        crate::anim::ATTACK2,
+        12,
+        Release {
+            piece: 279,
+            node: 1,
+            pivot: [-1_157_794, -65_479_996, 34_070_297],
+            at: [2_388_635, -13_228_996, 4_566_563],
+            float_lands: FLOAT_LANDS_279_N1,
+        },
+    ),
+    (
+        279,
+        crate::anim::ATTACK2,
+        15,
+        Release {
+            piece: 279,
+            node: 2,
+            pivot: [-763_241, 105_279_999, 25_458_538],
+            at: [2_406_699, -13_229_012, 4_556_934],
+            float_lands: FLOAT_LANDS_279_N2,
+        },
+    ),
     (
         139,
         crate::anim::ATTACKWALK,
@@ -1046,6 +1219,50 @@ mod tests {
             }
         }
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 279** (item
+    /// 3519): `tools/recomp/get_position.py … pivot 279 <node> 10 <time> 3`
+    /// on run1165's packet, one sweep a turret (the three anims' entries
+    /// are the same bits), checked against all nine rows.
+    /// `$RON_RELEASE_TABLE_279` is the directory holding
+    /// `pivot-279-n<node>-a10-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-23-item-3519/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_279() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_279") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_279 (item 3519's oracle, run1165)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (node, time) in [(0, 10), (1, 12), (2, 15)] {
+            let path = format!("{dir}/pivot-279-n{node}-a10-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_279");
+            for slot in [
+                crate::anim::ATTACKWALK,
+                crate::anim::ATTACK1,
+                crate::anim::ATTACK2,
+            ] {
+                let r = release(279, slot, time).expect("the row");
+                assert_eq!(r.node, node);
+                for line in table.lines() {
+                    let f: Vec<i32> = line
+                        .split_whitespace()
+                        .take(6)
+                        .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                        .collect();
+                    if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                        off.push(format!(
+                            "n{node} a{slot} ({}, {}, {}, {}) z {}",
+                            f[0], f[2], f[3], f[4], f[5]
+                        ));
+                    }
+                    rows += 1;
+                }
+            }
+        }
+        assert!(rows >= 9 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 

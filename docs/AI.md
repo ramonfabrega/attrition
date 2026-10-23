@@ -25975,6 +25975,39 @@ against 7); the city `0/2000`'s `raid_stamp` reads 3700 against 3722. Then `1/25
 next item's hypothesis, not a finding. run1162's gap widening goes 132 → 121 keys: the standing families and
 `dest_angle` on `1/34` (3379), `1/70` (3401) and `1/130` (3640).
 
+**Item 3519: the Cruiser fires from its three turrets.** The shooter is the Cruiser `1/25` (TypeIndex 329, sea, figure
+piece 279), holding an attack on the citizen `0/5` (uid 12, TypeIndex 50, land). **The round lands on both sides; ours
+lands a frame late.** `RON_DEBUG_AMMO` shows ours' first round, launched on 3716, leaving from the hull's own square
+(2808, 8184) with `total_time` 8, so it lands on 3723. run1165, a packet at logger frame 3719, holds theirs' live
+`Ammo` objects (`Ammo::vftable` `0xb45418`, read as `AmmoData`). Theirs' 3716 round is bound for the same landing
+(5115, 8950), but it leaves from **(2999, 7827, 134)** at `t 3/7`, and its 3718 round leaves from (2956, 7931, 166) at
+`t 1/7`. So theirs' round flies 7 frames and lands on 3722. Ours' round, flying 8, misses that frame and arrives on
+3723, which is the `hits_left` 66 against 62 on block 3723. The draws on the launch frames agree.
+
+The Cruiser is a pivot piece with three `<RESTRICTION name="Cruiser">` rows (nodes 4, 5 and 6), and `sim::pivot` had
+no row for piece 279. Its turrets therefore bore from the hull, and its rounds left through `launch::launch_point`'s
+unmeasured branch. `get_position.py … entries 279` on run1165 reads the piece's 39 `AttachPos` entries and
+`RData +0x88` 0.9. The three pivots at `(anim 0, time 0)` are `(0.0, −91.65, 25.95)`, `(0.0, −65.48, 34.09)` and
+`(0.0, 105.28, 25.47)`. On `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2` (the bits are the same on all three),
+there is one release per turret: node 0 on frame 10, node 1 on 12 and node 2 on 15. `get_position@0090b750` bears
+each release from pivot `(node & 3) + 4`. **Built** (`crates/sim/src/pivot.rs`): `NODES` (279, 4/5/6), `RDATA_SCALE`
+(279, 9/10), and nine `RELEASES` rows. Their 32 `float_lands` cells come from the unicorn sweep of the pivot branch
+(`get_position.py … pivot 279 <node> 10 <time> 3`, 92,416 cells a turret), and
+`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_279` checks all 831,744 cells
+(`RON_RELEASE_TABLE_279`, outside git). **The two halves carry different things.** With the `RELEASES` rows out, the
+rounds fly 8 again and the widening reads 190 keys, but the word holds at 3921. With the `NODES` rows out, the word
+falls back to 3778 and the widening to 751. So the turrets' bearings (their node bits, and the release they gate) are
+what put theirs' `Ammo::init` on 3778. The release rows are what move the blow on 3722.
+
+**The word moves 3778 → 3921** for both the count and the sequence: ours 95 draws against 97, index 0, ours
+`Unit::think_scout+0x941` against theirs `GameAccess::rnd+0x20 < Unit::do_attack`. **The value diff, walked back on
+run1161b** (769 → 167 keys): the citizen `0/5` and the city `0/2000` part nothing on the window. Before the word, what
+is left is block 3677's standing families, the groups' `held` and pool, `form`, and **who=1's reassembly on block
+3808**: `gather_stamp` ours 3791 against theirs 3807, and `income[0]` 1840 against 2160. That row stood under item
+3516's build too, behind leader rows that parted on 3782. On the word's own block 3921, the Cruiser `1/25` reads
+`order:kind` ours 1 against theirs 10, two orders against one, and `pos` (3281, 9092) against (3192, 9096). That the
+reassembly on 3808 is on the word's chain is the next item's hypothesis, not a finding.
+
 **What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. ~~Which field of who=1's economy parts first in 3601..3676~~ (item 3516, above: three, from block 2187). ~~Why the count parts on
 11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing
 families on block 3 (shared with 3506b). What the game put on the map: the rubric counts lockstep games only

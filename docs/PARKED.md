@@ -10027,13 +10027,17 @@ words and edits nothing here; a refill lands when two remain.
   packet from a game that fields the type reads each row with `get_position.py … entries <piece>`. **Score**: none
   until a word parts on one.
 
-## Parked by the next landing, slot OT — reserved
+## Parked by item 3519, 2026-10-23 — the Cruiser fires from its three turrets
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3519a. The booked shape, corrected: the round lands on both sides.** 3516 read block 3723 as "a Cruiser round lands
+  on `0/5` at 3722 in theirs only". It lands in ours too, a frame later. Ours' 3716 round flew 8 frames from the
+  hull's square, and theirs flew 7 from its turret (run1165's packet). The same shape as 3518's Armored Scout Car,
+  on another piece (`docs/AI.md` §302, §304). **Score**: none; the correction.
+- **3519b. The other naval pivot pieces have no rows.** `unit_graphics.xml` restricts the Destroyer, Battleship,
+  Dreadnought, Super, Advanced and Missile Cruiser lines (`<RESTRICTION>` rows 42715–42782), and `sim::pivot` carries
+  none of their `NODES` or `RELEASES`. On each of them, the turrets bear from the hull and the rounds leave from the
+  unit's square. A packet from a game that fields the type reads each piece in a minute (`get_position.py … entries`,
+  then `pivot … <count>`). **Score**: none until a word's frame names one.
 
 ## Parked by the next landing, slot OU — reserved
 
