@@ -25806,7 +25806,45 @@ draws against 14, index 0, ours `Unit::fight+0x9b0` against theirs `Unit::do_mov
 
 The direction and the first parted field before 3677 are the next item's question.
 
-**What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. Which field of who=1's economy parts first in 3601..3676. ~~Why the count parts on
+**Item 3516: the economy whole, and the Bark's re-search.** run1162 (blocks 259..3682 on a stride of 20, every
+leader record) closes the disk gap, and run1162c, d and e are the windows it dated. All four are one game with run1149
+by `rngcmp.py`. Three economy partings come first, in order, and none of them moved the word:
+1. **Block 2187: a disband prices after the close.** who=1's site `1/2038` (type 422) is disbanded, and theirs
+   refunds 160 timber and 110 metal against ours' 180 and 130. `Object::disband@006455c0` reaches `close` (vslot
+   `0x150`, line 181) or `die` (`0x158`) before either price read (`0x78`, lines 211 and 221), so the site no longer
+   counts in its own type's ramp; theirs' `num_queued[422]` goes 3 → 2 across the frame. `SimDisband::price` now asks
+   `building_price` when the steps ask it (`a_disband_refunds_the_price_without_itself_in_the_ramp`). Parked 3346c(2).
+2. **Block 2601: the census's territory is land.** who=0's `other_team_terr` read ours 462 against theirs 437.
+   `get_team_terr@006d62e0` sums `LeaderData::territory` (`+0x9d8`), the land count the border pass leaves; ours
+   counted every owned cell, sea included. `territory_of` reads `Holdings::territory`
+   (`the_census_territory_is_the_land_count_not_the_owned_cells`).
+3. **Block 3384: the CEO's city.** who=1's wealth `income` read ours 3183 against theirs 3448 on the first
+   reassembly after its Capitalism CEO (type `0x165`) appears. `calc_city_resources@006d5530:166`–`195`: gated on the
+   leader's count of `0x165` (`+0x59c8`) and on its heroes, the first on-map `0x165` hero ends the walk, and every good
+   of `find_city_at` its position is scaled by `(THECEO_PRODUCTION_BONUS + 100) / 100` — after the trade and the
+   building walk, before `CITY_GATHER` and the flats. +265 is 50 % of 530. Carried as `Tuning::theceo_production_bonus`,
+   `economy::City::ceo` and `Sim::ceo_city` (`the_ceo_s_city_takes_half_again_before_the_flats`,
+   `the_ceo_s_city_is_where_a_counted_on_map_hero_stands`). `is(0x165, 1)` is taken as the type itself and the heroes
+   list as unit order; the Forbidden City's percentage beside it stays a gap.
+
+**Frame 3681: a Bark captain keeps a target that is not combat.** The Cruiser `1/25` (TypeIndex 329, `unit_masks2` 4)
+holds the citizen `0/5`, valid and in range on ours. Both sides spend the captain's roll (`fight+0x9b0`, `% 5` = 4);
+theirs keeps `0/5` and fires (`recharging` 0 → 25), ours re-searched and found `0/11` (352 against 210 on the search's
+score). `fight@005fd4d0:394`–`400`'s `local_14`: with `unit_masks2 & 4` the captain re-searches only a target whose
+role has `0x10000` and whose type lacks `unit_flags & 0x2000`. The attack order's arm had it since item 2165;
+`cavarch_fight_body` kept only the non-Bark half. Both now ask `Sim::captain_research_admits`
+(`a_bark_captain_firing_on_the_move_keeps_a_target_that_is_not_combat`). **The word moves 3682 → 3778** for both the
+count and the sequence: ours 467 draws against 469, index 457, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`
+against theirs `Ammo::init+0xcd9` then `+0xd0b` — a round launched.
+
+**The value diff, walked back on run1161b** (929 → 769 keys): the state first parts on **block 3723**. The citizen
+`0/5` reads `hits_left` ours 66 against theirs 62, `damage` 19 against 23, and flees on theirs (`order:kind` 4
+against 7); the city `0/2000`'s `raid_stamp` reads 3700 against 3722. Then `1/25`'s heading parts on 3732, and
+`1/26`'s move destinations from 3780. That a Cruiser round lands on `0/5` at 3722 on theirs and not on ours is the
+next item's hypothesis, not a finding. run1162's gap widening goes 132 → 121 keys: the standing families and
+`dest_angle` on `1/34` (3379), `1/70` (3401) and `1/130` (3640).
+
+**What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. ~~Which field of who=1's economy parts first in 3601..3676~~ (item 3516, above: three, from block 2187). ~~Why the count parts on
 11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing
 families on block 3 (shared with 3506b). What the game put on the map: the rubric counts lockstep games only
 (DECISIONS 90), and this pair parts on frame 8, so `RUBRIC_UNIT_TYPES_SEEN` does not move. On the captures,

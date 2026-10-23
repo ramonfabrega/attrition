@@ -8547,8 +8547,8 @@ The word closed at 7902 and the close compares whole (`docs/AI.md` §277). What 
   `leaders[who].word0 |= 0x80000` (the crate clears carry only); the comment at `orders.rs` ~4437 is stale.
 - **3346c. `Object::disband@006455c0`: three holes.** (1) The garrison recursion cannot be stubbed — the function's own
   entry is the sweep's entry, so `this+0x28` is held negative; `--stub` on the function's own entry (or a call-site hook)
-  is the flag `sweep_gen.py` lacks. (2) Price order: the crate takes prices before the close, the original after;
-  wonder / city / oil ramps may differ; unchecked. (3) A started wall takes `Random::get(0,0xffff)` + `die(r%3+1)`; the
+  is the flag `sweep_gen.py` lacks. ~~(2) Price order: the crate takes prices before the close, the original after;
+  wonder / city / oil ramps may differ; unchecked.~~ (item 3516: the price is read after the close; `docs/AI.md` §304.) (3) A started wall takes `Random::get(0,0xffff)` + `die(r%3+1)`; the
   crate has no wall as a building, `SimDisband` answers plain. Also held out: the `SubObject::time` arm of slot `0xa4`
   (collides with the order objects' slot `0x6c`), the Lakota message arm (UI), `who` 0..1.
 - **3346d. `BuildTypeData::blocked_tcoord@00636db0` seams.** `semaphore[1] & 8` is not carried (`sem8()` false); a tile
