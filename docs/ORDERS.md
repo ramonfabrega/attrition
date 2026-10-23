@@ -2834,15 +2834,19 @@ the call, `docs/COMBAT.md` §8.5).
   clear, invalid, or the order has flag `0x10`. A `recharging` unit with a
   good target returns 0 unless `new_ord` (§7.1). `set_new_location` to the
   quarter-tile centre.
-- **Invalid target** (`valid_target == 0`): a mandatory order on a unit tries
+- **Invalid target** (`valid_target == 0`): first **the capture approach**
+  (`005fd8d1`–`005fda9b`, `Sim::capture_approach`, item 3528): the out-word
+  set, a mandatory order or `unit_masks & 0x40000`, a land unit with
+  `get_capture_value` or a computer's siege unit, beyond
+  `city_capture_radius × 0xc0` → `add_move_order(find_nearby_spot(midpoint,
+  0, 0x180), QUEUE_FIRST, 0)` over the attack (siege: `Army::charge`),
+  return. Otherwise a mandatory order on a unit tries
   the target's **captain** — valid → the order's `ox` is rewritten and the
   function continues (a squad member died, the squad lives). Otherwise: if
   `waiting < 5` and the owner's "targets lost this frame" counter (`leaders
   +0x9f4`) is over 10 → `waiting += 2`, return (a throttle — the army does not
   re-search on one frame); else **`find_new_target(0, 0)`** (rewrites or kills
-  the order), `+0x9f4 += 1`. A capturable city beyond `city_capture_radius ×
-  0xc0` under a mandatory/army order → `add_move_order(halfway, QUEUE_FIRST,
-  0)`.
+  the order), `+0x9f4 += 1`.
 - **Opportunity check** (`docs/COMBAT.md` §8.2 step 0): an AI captain rolls;
   `check_target` fails → kill, `find_melee_target(−1)`.
 - **The 1/5 re-search** (not mandatory, not recharging, captain, unit
