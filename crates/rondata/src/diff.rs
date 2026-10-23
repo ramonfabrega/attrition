@@ -34,6 +34,8 @@ mod american_lakes_word;
 #[cfg(test)]
 mod american_word;
 #[cfg(test)]
+mod aztec_alltech_pair;
+#[cfg(test)]
 mod aztec_word;
 #[cfg(test)]
 mod bantu_word;

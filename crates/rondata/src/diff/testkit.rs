@@ -10460,6 +10460,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         1528,
         Some(crate::diff::sahara_toughest::WIDENING_GREAT_SAHARA_TOUGHEST_15275),
     ),
+    // **The Aztecs at All Technologies, Great Sahara** (item 3507, DECISIONS
+    // 90): a late-age pair's first try, frame 4382 on run1147, walked from
+    // run1146's start; widened on run1147b over 4376..4566 (block 4383),
+    // which runs to the game's closing block.
+    (
+        "AZTEC_ALLTECH_WORD",
+        crate::diff::aztec_alltech_pair::AZTEC_ALLTECH_WORD,
+        Some("aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole"),
+        3507,
+        Some(crate::diff::aztec_alltech_pair::WIDENING_AZTEC_ALLTECH_FRAME_4382),
+    ),
 ];
 
 /// **A test that holds several pins reports every one that moved** (parked
@@ -10689,8 +10700,11 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 /// lobby is promoted; it is one game, so its line holds one row. **Two
 /// since item 3107**: the Germans closed at 13519 on item 3086 and the
 /// battery's next lowest lobby, the Iroquois, joins the line first; the
-/// closed row chooses nothing.
-pub(crate) const NEWEST_PAIR: &str = "Battery word";
+/// closed row chooses nothing. **The late-age pairs since item 3507**
+/// (DECISIONS 90): the late-age pairs are the headline and the battery is
+/// closed; the Germans closed whole on their first try (item 3506), and the
+/// Aztecs at All Technologies on Great Sahara are the line's first open row.
+pub(crate) const NEWEST_PAIR: &str = "Late ages";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
     // **The battery's Spanish word at Great Lakes** (DECISIONS 72, 83, 84;
@@ -11182,6 +11196,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_175,
         endpoint: Some("run1145b_german_alltech_pair_closing_state"),
         window: None,
+    },
+    // **The Aztecs at All Technologies, Great Sahara** (DECISIONS 90, item
+    // 3507): the line's second late-age pair, human Nubians against the Aztecs at Difficulty
+    // 3, `STARTING_TECHNOLOGY 8`; the game ends itself on 4565.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaAztecAllTech",
+        named: "Great Sahara (Aztecs)",
+        word: crate::diff::aztec_alltech_pair::AZTEC_ALLTECH_WORD,
+        length: 4_565,
+        endpoint: None,
+        window: Some("aztec_alltech_frame_4382_window"),
     },
     // The Russians at a held Modern age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 6), East Indies (item 3508): the sequence parts

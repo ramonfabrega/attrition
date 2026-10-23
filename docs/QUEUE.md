@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-second tranche (commander, Opus): 1 of 20 landed from `05f6df2a`** — the Germans whole first try (3506); the renderer starts this weekend (DECISIONS 90).*
+*2026-10-22, **the fifty-second tranche (commander, Opus): 2 of 20 landed from `05f6df2a`** — the Germans whole first try (3506), the Aztecs part at 4382 (3507); the renderer starts this weekend (DECISIONS 90).*
 
-- **Words**: all closed, none open (lower map first — closed); held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
-  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence; the Germans whole (4175, 3506). **The rubric reads lockstep
+- **Words**: one open, the Aztecs at 4382 of 4,565 (lower map first — Great Sahara (Aztecs)); held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
+  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence; the Germans whole (4175, 3506), the Aztecs 4382 of 4,565 (3507). **The rubric reads lockstep
   games only** (DECISIONS 90): bytes 77.0 %, ages 7 of 8 (Modern never), unit types 131 of 302. **The blind list is a floor**: 247 · 208 · 39.
 - **The fifty-first tranche** (DECISIONS 90): eighteen `cover=1` landings on two Opus lanes in 8 h 05, 5.45 USD and 30.9 minutes waiting
   a landing, no red gate, two `DEEP`, one blocked ending; the pool 2.1 → 24.5 frames a second, mirror off (3484, 3497); open 91 → 39.
-- **Lanes: 3507, 3508 live; five more booked** (3509–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
+- **Lanes: 3514, 3508 live; five more booked** (3509–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
   parting, a divergence spawning residue items on that word (the AI track's shape). Refill: a parting's residue first, then the next
-  age and nation off `rubric.py --tables 3`. Next 3514, run 1160. Pools: GOLDEN §149–154, AI §302–305, park OQ–OR.
+  age and nation off `rubric.py --tables 3`. Next 3515, run 1161. Pools: GOLDEN §149–154, AI §302–305 (§304 3508's), park OR–OX.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 90.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4382 of 4,565
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -51,9 +51,10 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). **Every i
 --profile DIFFICULTY=D --profile STARTING_RESOURCES=7 --profile STARTING_TECHNOLOGY=A --profile ENDING_TECHNOLOGY=A`, both read back by
 `Pair::assert_lobby` (the age's `ages_get()` in the stanza); `diff::<name>_pair` pinned at its first parting or whole, the word frame widened, a scoreboard line; a parting is a residue item on that word. Opus; gate `--tests <pair>:: blind::`.
 
-3507. **The Aztecs at All Technologies, Great Sahara** (`--map 7 --ai-tribe 0`, Difficulty 3): the land line at age 7 on the land map — the
-Jaguar infantry (`JAGUARASSAULTINF`, `JAGINFANTRY`), `ABRAM`, `HUMVEE`, `DRAGON`, `AVENGER`'s kin, nuclear and cruise missiles; a lower difficulty
-so the game runs past the computer's first attack (run652 ended on 4730 at Difficulty 5). Runs 1146–1147; park OJ.
+3514. **The Aztec word, frame 4382: ours 607 draws against 567, index 9** (`Leader::produce_building+0x1805` against `make_stuff+0x63d`;
+3507's widening on run1147b, AI §301): theirs' Missile Silo `1/2010` queues a Nuclear ICBM (316) that ours escrows (`num_queued[266]`
+0 against 1). The hypothesis to kill first is 3507's — the make list's missile arm with a missile already in the Silo, against a nuke
+cap. Run 1160; amend §301 in place; park OQ.
 
 3508. **The Russians at a held Modern age, East Indies** (`--map 18 --ai-tribe 13`, Difficulty 5, `STARTING_TECHNOLOGY=6 ENDING_TECHNOLOGY=6`):
 fifty age-6 records never seen — `T34`, `KATYUSHA`, `REDGUARD`, `MEDIUMTANK`, `HVYMACHINEGUN`, `BAZOOKA`, `HOWITZER`, `FLAKGUN`, `HELICOPTER`,

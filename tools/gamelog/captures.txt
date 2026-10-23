@@ -10410,3 +10410,8 @@ cmd: 778 select 6 who=0
 cmd: 778 camera 30,176
 check: (python3 tools/gamelog/rngcmp.py "$HOME/ron-golden/ch21/map-14/rontrace.log" rontrace-run1056.log || true)
 check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft Games/Rise of Nations/Logs/rontrace-run1056.log" functions 2>/dev/null | grep -E "^0070afc0 " || true)
+# ==== item 3507: the Aztecs at All Technologies, Great Sahara (`docs/AI.md` §301; `docs/RUNS.md` run1146, run1147, run1147b) ====
+#   run1146  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 0 --profile STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3   (start)
+#   run1147  run831's line with --ai-tribe 0, --stride 100 and --detail end:MISC,UNITS=3,GUYS=2   (the draw stream; ended itself on 4565)
+#   run1147b --map 7 --end-frame 4565 --allow-early-end --log-window 4376 4566 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 0 --cover cover=0   (the word 4382's window)
+# Checks: `rngcmp.py` run1146 vs run1147 -> 37 identical; run1147 vs run1147b -> 4566 identical.

@@ -25612,12 +25612,52 @@ records; the rubric counts presence, and no reading was made of the build choice
 window (parked 3506b): the walk compares them, but the word does not gate on them, and no item reads them. Table 4's
 bytes: the scored captures are `cover=0`, and no `cover=1` twin of this game was taken.
 
-## 301. Reserved for the next item on the AI track
+## 301. The Aztecs at All Technologies, Great Sahara: a late-age pair's first try parts on 4382 of 4565 (2026-10-22, item 3507)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby** (DECISIONS 90): `MAP_STYLE 7`, human Nubians (4) against the **Aztecs (0)** at **Difficulty 3**,
+`STARTING_TECHNOLOGY 8`, `ENDING_TECHNOLOGY 7`, `STARTING_RESOURCES 7`, seed 12345. This is §211's Great Sahara Mongol
+lobby with the nation varied. Both captures read it back from `GAME INFO` (`Pair::assert_lobby`, item 3506's).
+Captures: run1146 (the `DUMP_ALL` start), run1147 (the draw stream at `cover=0`, `end:MISC,UNITS=3,GUYS=2` one block
+in a hundred, to the game's end), and run1147b (the word's window). Module: `diff::aztec_alltech_pair`.
+
+**The game ended itself on 4565** (closing block 4566), even at Difficulty 3. run652 ended on 4730 at Difficulty 5.
+So the booking's premise, that a lower difficulty lets the game run past the computer's first attack, does not hold
+for this lobby (parked 3507a).
+
+**The first try: frame 4382 of 4565**, by the count and the sequence alike. Ours draws 607 times against theirs'
+567, and they first differ at index 9: ours `Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`.
+Frames 0..4381 agree draw for draw.
+
+**The value diff on the word's frame** (run1147b, block 4383, `aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole`):
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| leader 1 | `MAKE[3].t` | 316 | −1 |
+| leader 1 | `MAKE[4].t` | 423 | −1 |
+| leader 1 | `MAKE[5].t` | −1 | 50 |
+| leader 1 | `bucket[3:knowledge]` | 1100 | 228 |
+| leader 1 | `bucket[5:oil]` | 9006 | 8064 |
+| leader 1 | `escrow[3:knowledge]` / `escrow[5:oil]` | 145 / 17 | 0 / 0 |
+| leader 1 | `num_queued[266]` | 0 | 1 |
+| Missile Silo `1/2010` (type 520) | `queue:queued` | 0 | 1 |
+| Granary site `1/2081` (type 423) | `build:x_internal` | 42720 | 42912 |
+| Citizen `1/31` (type 50, Land) | `orders_x` / `order:move.dest_x` | 42168 / 42168 | 42360 / 41592 |
+
+So theirs' Silo `1/2010` queues a **Nuclear ICBM** (type 316, `unitrules.xml` record 266, Air) on 4382. Its queue
+entry costs 872 knowledge and 942 oil, and the bucket drops by exactly that: 1100 − 872 = 228. Ours had the same
+1100 knowledge, but it holds the ICBM on `MAKE[3]` with an escrow and sites the Granary instead, at another x.
+The Citizen `1/31` sent to that site follows from it. The direction: **theirs acted**, with a queue entry that ours
+did not make. The Silo's `inside_down` is 164 in theirs' block, so a unit is inside it (§222's `do_queue` silo
+return is about a missile inside a Silo).
+
+**Standing on the window's first block, 4376**: 92 keys, the leader's `SITE[0..9].reg`, `popwin_timer`/`popwin_stamp`,
+`aggression[1]`, groups 64..74's `held` and pools, 24 units' `mirror`, 13 `form`s, and `hits_left`/`hits:damage`/
+`attrition` on five who=1 units (ours 218 against 227). The state parted before the draws did. The strided long
+holds every hundredth block, so the walk back has those blocks to read.
+
+**What this has *not* established.** Why ours escrows rather than queues: the make list's purchase arm for a
+missile at a Silo that already holds one, or a nuke cap (`LeaderData::get_nukes`), is the next item's hypothesis,
+not a finding. Nor is it established whether the standing `SITE` and `hits_left` rows feed the decision.
 
 ## 302. Reserved for the next item on the AI track
 
