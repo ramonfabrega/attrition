@@ -510,7 +510,7 @@ impl Sim {
         let mut base = self.ai[w].census.pop.wrapping_mul(200) / cities.max(1);
         base = shr8(mul(base, self.ai[w].infra_mod));
 
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} base0 {}", self.frame, who, t, base); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} base0 {}", self.frame, who, t, base); }
         // *(The `starting_resources == 7 && starting_technology == 8` lobby's
         // branch stands in [`Sim::research_techs`], before this call — item
         // 1496.)*
@@ -604,13 +604,13 @@ impl Sim {
             _ => {}
         }
 
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} base_pre_knowledge {}", self.frame, who, t, base); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} base_pre_knowledge {}", self.frame, who, t, base); }
         // Knowledge comfortably in hand.
         if self.knowledge_cost(who, t) < self.ledgers[w].bucket[KNOWLEDGE] - 100 {
             base = mul(base, 10);
         }
 
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} base_pre_weights {}", self.frame, who, t, base); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} base_pre_weights {}", self.frame, who, t, base); }
         // The eleven weights against the census.
         let ai = self.tech_ai_weights(t);
         let facts = WeightFacts {
@@ -625,7 +625,7 @@ impl Sim {
         };
         let mut val = mul(weight_total(&ai, &facts), base);
 
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} val_pre_cat {}", self.frame, who, t, val); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} val_pre_cat {}", self.frame, who, t, val); }
         // The category.
         match cat {
             0 => {
@@ -677,7 +677,7 @@ impl Sim {
             }
         }
 
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} val_pre_race {}", self.frame, who, t, val); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} val_pre_race {}", self.frame, who, t, val); }
         // The Tech Race.
         if self.lobby.victory == 9 {
             val = mul(val, if matches!(kind, Kind::Age(_)) { 9 } else { 3 });
@@ -731,7 +731,7 @@ impl Sim {
             }
         }
 
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} val_pre_recency {}", self.frame, who, t, val); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} val_pre_recency {}", self.frame, who, t, val); }
         // The two recency factors — both pinned constants in practice.
         let f1 = recency(
             self.frame_delta(self.ai[w].tech_frame),
@@ -752,7 +752,7 @@ impl Sim {
             val = mul(val, 2);
         }
 
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} val_pre_coverage {}", self.frame, who, t, val); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} val_pre_coverage {}", self.frame, who, t, val); }
         // Coverage: the goods the price is in that the leader can neither
         // gather nor reach.
         let cost = self.tech_tree.types[t].cost;
@@ -776,11 +776,11 @@ impl Sim {
         if !no_wonder {
             val /= 2;
         }
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} val_pre_income {}", self.frame, who, t, val); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} val_pre_income {}", self.frame, who, t, val); }
         let income = self.check_income(who, t, 0x400, None, no_wonder, -1, 1, 0);
         val = income_scaled(income, val);
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} income {}", self.frame, who, t, income); }
-        if std::env::var("RON_DEBUG_TECH").is_ok_and(|v| v == "all" || v.parse::<usize>().ok() == Some(t)) { eprintln!("TECHDBG f{} who{} t{} final {}", self.frame, who, t, val); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} income {}", self.frame, who, t, income); }
+        if std::env::var("RON_DEBUG_TECH").ok().and_then(|v| v.parse::<usize>().ok()) == Some(t) { eprintln!("TECHDBG f{} who{} t{} final {}", self.frame, who, t, val); }
         Some((val, slot))
     }
 
