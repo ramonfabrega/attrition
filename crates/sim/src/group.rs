@@ -2573,11 +2573,29 @@ impl Sim {
         // `EXPLORE_TO` carries no action bit, so nothing is saved, and its
         // order list comes out of `Unit::get_goody_box` holding the new
         // explore alone (`docs/GOODY.md` §7.3).
+        //
+        // **And the re-issue reads the group as the move left it** (item
+        // 3517): the original's `this` is the army's own record, and the
+        // move's `Form::categorize` has just `Group::sort`ed it — a squad
+        // listed by its follower killed and re-added whole at the end — so
+        // `finish_insert`'s `action_guard` lays the escort out over the
+        // sorted list. Great Sahara's Americans, frame 4478: army 1/0 listed
+        // `1/21` and `1/24` (the tails of the squads `1/19` and `1/22`)
+        // second and third, and the escort on `1/99` took its slots in the
+        // stale order — every member's `GUARDORDER` `dx`/`dy` parted.
         if queue == QueuePos::First {
+            let stack = Self::seat_of_group(g).is_some_and(|seat| *self.seat_list(seat) != g.list);
             let insert = self.group_set_up_insert(g);
             self.group_action_halt(g, 0);
             self.group_action_move_to(g, to, QueuePos::New, set_angle, angle, kind, action);
-            self.group_finish_insert(g, insert);
+            let now = match Self::seat_of_group(g) {
+                Some(seat) if !stack => Group {
+                    list: self.seat_list(seat).clone(),
+                    ..g.clone()
+                },
+                _ => g.clone(),
+            };
+            self.group_finish_insert(&now, insert);
             return;
         }
 
@@ -5951,6 +5969,76 @@ mod tests {
                 "a guard behind the move"
             );
         }
+    }
+
+    /// **`finish_insert` re-issues the guard over the list the move
+    /// sorted** (item 3517). The original's `this` is the army's own
+    /// record: the `QUEUE_FIRST` arm's recursive move runs
+    /// `Form::categorize`'s `Group::sort` on it, and `finish_insert`'s
+    /// `action_guard` then lays the escort out over the sorted list. An
+    /// army that lists a squad's follower ahead of the rest — Great
+    /// Sahara's army 1/0 listed `1/21` second, the tail of `1/19`'s squad —
+    /// has the squad re-added at the end, and every escort's guard offset
+    /// is its slot in that order. So the guard comes out as it does for the
+    /// same army listed in the sorted order to begin with.
+    ///
+    /// **Made to fail on purpose** by re-issuing over the caller's copy
+    /// of the list: the squad takes the first slots, and every offset
+    /// moves.
+    #[test]
+    fn a_queue_first_guard_is_laid_out_over_the_sorted_list() {
+        let guards = |sorted: bool| {
+            let mut s = sim();
+            let t = fighter(&mut s);
+            s.unit_types[t].combat.x_spacing = 0xc0;
+            s.unit_types[t].combat.y_spacing = 0xc0;
+            let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+            let b = spawn(&mut s, 1, t, Pos::new(0x1100, 0x1000));
+            let c = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+            let cap = spawn(&mut s, 1, t, Pos::new(0x1300, 0x1000));
+            let sub = spawn(&mut s, 1, t, Pos::new(0x1330, 0x1000));
+            let ward = spawn(&mut s, 1, t, Pos::new(0x2000, 0x1000));
+            s.units[sub].captain = false;
+            s.units[sub].o_up = Some(cap);
+            s.units[cap].o_down = Some(sub);
+            let slot = s.init_army(1, None);
+            for u in [a, b, c, cap, sub] {
+                s.army_add_unit(1, slot, u);
+            }
+            // The follower listed second, its captain not at all: the
+            // list `Group::sort` finds a stray in.
+            s.armies[1].list[slot].units = if sorted {
+                vec![a, b, c, cap, sub]
+            } else {
+                vec![a, sub, b, c]
+            };
+            let g = s.army_group(1, slot);
+            for &m in &g.list {
+                s.add_guard_order(m, ward, 0, 0, QueuePos::New);
+            }
+            s.group_action_move_to(
+                &g,
+                Pos::new(0x4000, 0x4000),
+                QueuePos::First,
+                false,
+                Angle(0),
+                MoveKind::AttackTo,
+                true,
+            );
+            [a, b, c, cap, sub].map(|u| {
+                s.units[u].orders.iter().find_map(|o| match o.body {
+                    Body::Guard(x) => Some((x.dx, x.dy)),
+                    _ => None,
+                })
+            })
+        };
+        let sorted = guards(true);
+        assert!(sorted.iter().all(Option::is_some), "every member guards");
+        assert_eq!(
+            guards(false),
+            sorted,
+            "the escort laid out over the list the move sorted"
+        );
     }
 
     /// **A move to where the group already stands takes the leader's own

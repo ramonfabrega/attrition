@@ -11,7 +11,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const AMERICAN_MODERN: Pair = Pair {
     name: "GreatSaharaAmericanModern",
@@ -38,8 +38,13 @@ pub(crate) const AMERICAN_MODERN: Pair = Pair {
     // ours 44 draws against 43, index 29 — ours `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d`.
-    count: 4488,
-    sequence: 4488,
+    // Item 3517: 4488 -> whole. The state parted on block 4479 (run1163):
+    // army 1/0's charge re-issued its guard on `1/99` from the list as it
+    // stood before the move's `Group::sort`, so every escort's
+    // `GUARDORDER` `dx`/`dy` took a stale slot (`1/19` ours (0, 1020),
+    // theirs (-2160, 720)); `finish_insert` now reads the sorted list.
+    count: 4548,
+    sequence: 4548,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -107,6 +112,59 @@ fn american_modern_pair_is_no_other_lobby() {
             .iter()
             .any(|l| (l.map_style, l.ai_tribe, l.difficulty) == triple)
     );
+}
+
+/// **The pair's closing state**: run1151's closing dump, block 4549,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3517).
+#[test]
+fn run1151_american_modern_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &AMERICAN_MODERN;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "American pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4549, "the closing block");
+    // Item 3517, the draw stream whole: 175 units compared, one off — the
+    // human's Citizen `0/5` (TypeIndex 50, land) by (19, 16). On block 4532
+    // theirs carries a 36-point blow on it (`hits_left` 49 against 85,
+    // `damage_frame` 4531) and the `FLEEORDER` that follows; ours lands
+    // neither, and no draw parts. No building or city field-row.
+    pin_eq!(e.compared, 175, "units compared");
+    pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// **The American Airbase pays a Bomber in the Modern age** (item 3509):
@@ -277,7 +335,11 @@ fn american_modern_pair_run1151c_s_word_frame_is_widened_whole() {
     // ours 17, theirs 18, `path[12].to` ours (9720, 31848), theirs (9576,
     // 31752)), then `1/21`'s `collide_o` on the word's block 4489 (ours
     // 65, theirs -1; `docs/AI.md` section 302).
-    pin_eq!(w.firsts.len(), 2419, "run1151c baseline");
+    // Item 3517: 2419 -> 97, the escort laid out over the sorted list. 74
+    // keys stand on 4482 (the families run1151b's block 1990 already
+    // carries), group 66 ours alone on 4508, and `0/5`'s blow on 4532 (ours
+    // `hits_left` 85, theirs 49), which the draw stream does not see.
+    pin_eq!(w.firsts.len(), 97, "run1151c baseline");
 }
 
 /// **The long's stride, walked back from the word 4488** (item 3517): run1151
@@ -306,7 +368,7 @@ fn american_modern_pair_the_long_s_stride_walks_back_from_4488() {
     let Some(w) = american_modern_stride_window() else {
         return;
     };
-    eprintln!("stride blocks {}", w.blocks);
+    pin_eq!(w.blocks, 23, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -314,7 +376,21 @@ fn american_modern_pair_the_long_s_stride_walks_back_from_4488() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    eprintln!("stride firsts {}", w.firsts.len());
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3517: 116 keys, and none on the Bazooka squad `1/21`, `1/41`,
+    // `1/65`: its guard orders agree on 4401 (`1/21` guarding `1/99` from
+    // (9672, 31992) on both sides). 74 stand on 2201 (every unit's `form`,
+    // groups 64 and 66 ours alone, the `build:extra` rows a `UNITS=3`
+    // stride prints no building for, `1/14`'s `g.angle[0]`); the rest are
+    // the aircraft's `mirror` (`1/45` on 3101 on), `1/45`'s and `1/105`'s
+    // `order:air.mandatory` on 3501, ours' later groups and `1/140`'s
+    // `g.z[0]` on 4401 (a Mustang in the Airbase `1/105`, ours 0 against
+    // 398).
+    pin_eq!(w.firsts.len(), 116, "the stride's baseline");
 }
 
 /// run1163: the walk back from the word 4488, blocks 4396..4482 at
@@ -345,7 +421,7 @@ fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
     let Some(w) = american_modern_gap_1163_window() else {
         return;
     };
-    eprintln!("run1163 blocks {}", w.blocks);
+    pin_eq!(w.blocks, 86, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -353,6 +429,21 @@ fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    eprintln!("run1163 missing {:?}", w.missing);
-    eprintln!("run1163 firsts {}", w.firsts.len());
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3517, the first walk: 194 keys. 75 stand on 4396, the families
+    // the stride carries; then `1/144`'s `dest_angle` on 4397 and ours'
+    // groups 69 and 67 (4426, 4446). **The state parts on block 4479**:
+    // every escort of army 1/0's guard on `1/99` re-issued with another
+    // `GUARDORDER` `dx`/`dy` (96 keys: `1/19` ours (0, 1020), theirs (-2160,
+    // 720); `1/65` ours (0, 720), theirs (2160, 1020)), and `1/21`'s
+    // `guard_x`/`guard_y` on 4480 (ours (9192, 30936), theirs (8808,
+    // 33096)). Theirs laid the escort out over the list `Group::sort` had
+    // just left, the squads `1/19` and `1/22` re-added at its end; ours
+    // over the list before it. 194 -> 80 with `finish_insert` reading the
+    // sorted list: 4479 and 4480 part nothing (`docs/AI.md` section 302).
+    pin_eq!(w.firsts.len(), 80, "run1163 baseline");
 }
