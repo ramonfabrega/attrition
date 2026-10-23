@@ -25,7 +25,7 @@
 //! **Seams**, each named at its definition: the eleven weights;
 //! `leader_flags & 8` (a human the AI is driving); the `age_stamp` and
 //! human-alive predicates; `village_num`; `get_mod_resource_cap`;
-//! `types[0x2ae]`'s many-landmasses predicate; `get_gov`'s bonus test; a
+//! `get_gov`'s bonus test; a
 //! building's "is upgrading" vslot; and `Build::queue_up`'s escrow argument.
 //! (The `starting_resources == 7 && starting_technology == 8` lobby's
 //! hard-coded branch is built — [`Sim::tech_race_shield`], item 1496.)
@@ -303,12 +303,15 @@ impl Sim {
         best
     }
 
-    /// **Seam** — `types[0x2ae]` (`TRANSPORT_BONUS`) asked whether it needs
-    /// this tech, which multiplies an epoch tech by 30 on a many-landmass
-    /// map. The tree carries no bonus types, so nothing needs it.
-    const fn transport_bonus_needs(&self, t: TypeId) -> bool {
-        let _ = t;
-        false
+    /// `types[0x2ae]->find_preq(t)` (`TRANSPORT_BONUS`, vslot `+0xdc`,
+    /// `Type::find_preq@00668380`), which multiplies an epoch tech by 30 on
+    /// a many-landmass map (`research_techs` `6c71a2`–`6c71c9`). `find_preq`
+    /// reads slot 0 as written, so the bonus needs its `preq0` — Written
+    /// Word in the shipped `rules.xml`, the tree's `roles.transport_preq`.
+    /// Its slots 1 and 2 (the lobby's age remaps) are empty in the shipped
+    /// row and not carried (`docs/AI.md` §304; item 3515, run1161's packet).
+    fn transport_bonus_needs(&self, t: TypeId) -> bool {
+        self.tech_tree.roles.transport_preq == Some(t)
     }
 
     /// **Seam** — `LeaderData::get_gov() < 0`, which the original answers by
@@ -1797,6 +1800,29 @@ mod tests {
         sim.tech[1].epoch[Line::Science.index()] = 1;
         let (ahead, _) = value(&mut sim, 1, t.science1).expect("valued");
         assert_eq!(level, mul(ahead, 10));
+    }
+
+    #[test]
+    fn the_transport_bonus_s_prerequisite_is_worth_thirty_times_on_a_sea_map() {
+        // `TRANSPORT_BONUS`'s `find_preq` (`6c71a2`–`6c71c9`): run1161's
+        // packet prices Written Word at base 600000 where this crate read
+        // 20000 (item 3515, `docs/AI.md` §304).
+        let (mut sim, t) = sim();
+        city(&mut sim, &t, 1, 5, 5);
+        let temple_id = sim.build_types[t.temple].tree.expect("a tree entry");
+        sim.tech_tree.types[t.science1].where_ = Some(temple_id);
+        building(&mut sim, 1, t.temple, 12, 5);
+        small(&mut sim, 1);
+        sim.lobby.difficulty = 3;
+        sim.world.set_sea_map(2);
+        let (plain, _) = value(&mut sim, 1, t.science1).expect("valued");
+        sim.tech_tree.roles.transport_preq = Some(t.science1);
+        let (needed, _) = value(&mut sim, 1, t.science1).expect("valued");
+        assert_eq!(needed, mul(plain, 30));
+        // One landmass class or fewer: no multiplier.
+        sim.world.set_sea_map(1);
+        let (dry, _) = value(&mut sim, 1, t.science1).expect("valued");
+        assert_eq!(dry, plain);
     }
 
     #[test]
