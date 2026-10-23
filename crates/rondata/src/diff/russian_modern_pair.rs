@@ -624,32 +624,6 @@ fn russian_modern_pair_s_road_search_on_4207_holds_node_for_node() {
                 }
             }
             eprintln!("SEEN87 f{f} {:?}", wd.seen2(87, 119));
-            if let Ok(fog) = std::env::var("RON_FOG")
-                && let Some((at, file)) = fog.split_once(':')
-                && (at.parse::<i64>().unwrap() - f).abs() <= 2
-            {
-                let text = std::fs::read_to_string(file).unwrap();
-                let mut lines = text.lines();
-                let dims: Vec<i32> = lines
-                    .next()
-                    .unwrap()
-                    .split(' ')
-                    .map(|v| v.parse().unwrap())
-                    .collect();
-                let hex = lines.next().unwrap();
-                let mut diffs = Vec::new();
-                for fy in 0..dims[1] {
-                    for fx in 0..dims[0] {
-                        let i = (fy * dims[0] + fx) as usize * 2;
-                        let theirs = u8::from_str_radix(&hex[i..i + 2], 16).unwrap();
-                        let ours = wd.seen2(fx, fy).unwrap_or(0);
-                        if ours != theirs {
-                            diffs.push((fx, fy, ours, theirs));
-                        }
-                    }
-                }
-                eprintln!("FOG f{f} {} differ: {:?}", diffs.len(), &diffs[..diffs.len().min(60)]);
-            }
         }
         if f == 4207 {
             on_word = (ours.len(), theirs.len());
