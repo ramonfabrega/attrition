@@ -391,6 +391,29 @@ stall. The pass added the fifth kind, `coverage`, and these rows.
   cited what it read and entered nothing; the click-free pool takes
   `cover=1` as well as the queue lane (3429). *(Amended by item 3485, 2026-10-22: the queue lane retired; a need for it again is a steer.)*
 
+## The brief checklist, from the fifty-first pass
+
+The fifty-first tranche (DECISIONS 90): eighteen `cover=1` landings on
+two Opus lanes in 8 h 05 from the base to the drain, 5.45 USD and 30.9
+minutes waiting a landing (7.40 / 52.0), no red booking gate, two `DEEP`
+answered, one blocked ending. The pass added these rows, from the
+tranche's own receipts.
+
+- **A booking that reaches a function through a vtable slot names the
+  receiver's own most-derived vftable, read off the image** (3500;
+  3495's "for the Loop"): the second drafting's D3 named
+  `PatrolOrder::vftable`'s +0x5c for a unit whose order is a
+  `GroupPatrolOrder`, so the item was a residue row and its hook unbuilt.
+- **A done line follows the push and quotes origin's tip** (3503, the
+  commander's): 3494, 3495 and 3501 each sent their done line with the
+  tip on the local branch only; `lanewait.py`'s `LANDED` keys on origin,
+  so without the line nobody would have woken, and a reaped worktree
+  would have taken the only copy.
+- **A rubric lobby dumps `end:UNITS=3,GUYS=2` on a stride and names the
+  unit types new to the ledger** (3506; DECISIONS 90): the headline is
+  the rubric's unit types seen from this tranche on, and the rubric
+  counts `GUY` blocks of the pinned traces' dumps only.
+
 ## The brief checklist, from the forty-seventh pass
 
 The forty-seventh tranche (DECISIONS 86): twenty landings on four lanes

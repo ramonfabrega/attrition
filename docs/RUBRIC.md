@@ -90,3 +90,36 @@ has a leader past the Classical age; thirty unit types have ever stood in
 a pinned dump. The first table's 36 groups at 100 % hold 407 functions,
 131 backed and 276 dead weight, `ui` or operators; four of them have no
 backed function at all, and `gameaccess` (114) is the only one past 22.
+
+## The headline
+
+From the fifty-second tranche the queue's headline is table 3's count —
+**unit types seen, of 364** — with the blind list's open rows kept as a
+floor (`docs/DECISIONS.md` entry 89, amended with Ramon; entry 90). What
+moves it is a `coverage` item that takes a lobby for the units it puts on
+the map: a nation the computer has not played at a tech level that lets
+it train its line, `end:UNITS=3,GUYS=2` dumped on a stride to the game's
+end, pinned into `blind::TRACES` like any trace. The worker runs
+`tools/rubric.py --tables 3` on its tree after the pin, names the types new
+to the ledger in its journal and re-pins `census::RUBRIC_UNIT_TYPES_SEEN`;
+the commander writes the queue's `Rubric:` line at the booking, as it
+writes `Blind:`; the pass's `--record` row stays the pass's.
+
+Three things the count does not say, each a decision rather than a
+measurement, and each Ramon's: whether a type the chat cheat `add` puts on
+the map counts (it would saturate the table in one take; the table was
+built to read what the game trains); whether the Conquer-the-World and
+scenario-only types (the `CTWE`/`CTWW` variants, the named heroes 358–376,
+the barbarian and `BOUDICEAN` records) are a ceiling below 364, as the
+census marks `cut`; and whether "seen" should become "trained" (a
+`Leader::create_units` for the type in a pinned dump) once presence is
+cheap. Until those are answered, the count is read as written: presence
+in a pinned dump, by any route the pool stages without a cheat that
+creates the unit.
+
+The human is tribe 4 in every capture (`docs/NATIONS.md`): the runner's
+`--ai-tribe` sets the first computer slot only, so a nation's line is seen
+when a computer plays it. The never-seen table of 2026-10-22 (290 types)
+is, by domain: Air 26 (ages 5–7 and the three gaia birds), Sea 29 (every
+age), Land 235 — of which the Information and Modern ages hold 60, the
+nation variants most of the rest.

@@ -467,8 +467,8 @@ and makes the eventual diff mechanical rather than a translation exercise.
   alive for: a no-op turn held open to wait gains no information and costs
   a full context read each time. **A detached capture is waited on with
   `tools/gamelog/waitrun.sh <viadriver log>`** in that background lane —
-  it keys on the runner's own banner and exit on the queue lane and on
-  the receipt lines on the click-free lane, and a wait keyed on any
+  it keys on the receipt lines the click-free runner prints and on a
+  capture script's `=== captured: ` line, and a wait keyed on any
   other file has sat for two hours on a finished capture (parked 656)
   — **and with the Bash tool's `timeout: 3600000`, past the capture's
   length** — the tool's argument, never a `timeout` command, which

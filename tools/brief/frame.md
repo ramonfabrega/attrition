@@ -351,6 +351,18 @@ Before any reading, in order:
   (3476; 3472): `sort_all` fills the on-screen list and refuses before
   the walker's slot; each gate is checked against a dumped field
   before the capture.
+- **A booking that reaches a function through a vtable slot names the
+  receiver's own most-derived vftable, read off the image** (3500;
+  3495): `report.py <exe> refs` on the slot's thunk, before a staging is
+  written — chapter ten's patrol is a `GroupPatrolOrder`, and no
+  `PatrolOrder` is ever constructed as its own type.
+- **A rubric lobby dumps `end:UNITS=3,GUYS=2` on a stride to the game's
+  end, and its journal names the unit types new to the ledger** (3506;
+  DECISIONS 90): the rubric counts `GUY` blocks of the pinned traces'
+  dumps and nothing else, so a take without `GUYS` moves no type; run
+  `tools/rubric.py --tables 3` on your tree after the pin and re-pin
+  `census::RUBRIC_UNIT_TYPES_SEEN` with the count in its comment; the
+  `Rubric:` line is the commander's.
 
 ## build
 
@@ -401,7 +413,7 @@ Before any reading, in order:
   its exit; quote `Lane verdict:`, `Gate steps:` and `Gate minutes:`
   (969, 3224); its verdict: a second commit.
   **A red on the journal-quote or Loop-line guard alone is forgiven**:
-  quote the two lines; your Loop line is mine to file (3277, 3328).
+  quote the lines; your Loop line is mine to file (3277, 3328).
 - **`ccc update att-<n>` takes the ref, never a SHA** (1557);
   `--keep-conflicts` on a conflict, keep both, commit (1161); **a `Base
   moved:` line past the commander's paperwork is an update and a
@@ -416,8 +428,8 @@ Before any reading, in order:
   consts `repin.py --write` rewrites (1767, 2071).
 - **The constants and widenings are yours to pin; the queue's lines
   are mine**: say what books and parks, the next word by frame and delta.
-- **When you are done, send me one line** — `ToolSearch("select:SendMessage")`, then `SendMessage` to `commander` (1412): your tip
-  SHA, a non-empty `git log <base>..<branch>`, `Lane verdict:` and
+- **When you are done and pushed, send me one line** (1412; 3503) — `SendMessage` (via `ToolSearch`) to `commander`: your tip
+  SHA on origin, a non-empty `git log <base>..<branch>`, `Lane verdict:` and
   `Gate steps:` (1406); **then end the turn done, never needing
   input**: a `blocked` row never takes the clear (1671); at ninety
   minutes unlanded: your step and what runs.

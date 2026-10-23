@@ -7684,7 +7684,10 @@ delta table the record carries (this pass: ages held 2 → 8 of 8, unit types
 seen 30 → 70 of 364, groups at 100 % 36 of 112 unmoved, on 58 → 83 dumps);
 the queue's `Rubric:` line is pinned (`the_handoff_s_rubric_is_the_pinned_scorecard`,
 `census::RUBRIC_*`) and is the steer's to re-pin, with the lane gate
-forgiving it as a commander's line; `docs/LOOP.md`'s pass fence names the
+forgiving it as a commander's line (amended by entry 90: from the
+fifty-second tranche the headline is the rubric's unit types, so the
+worker re-pins `RUBRIC_UNIT_TYPES_SEEN` and the commander writes the line
+at a booking, as for `Blind:`; the `--record` row stays the pass's); `docs/LOOP.md`'s pass fence names the
 run beside the gates table.
 
 ## 89. The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter

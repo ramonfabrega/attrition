@@ -80,6 +80,14 @@ unshared input, where the take sends one — and pins it into
 `blind::TRACES`, so the functions a reading's captures-owed table names
 leave `NEVER`; it gates on the same line. **A need for the queue lane
 again is a steer, never a lane's redirect** (item 3485, DECISIONS 89).
+**A rubric lobby is a `coverage` item** (DECISIONS 90): a lobby taken
+for the unit types it puts on the map, `end:UNITS=3,GUYS=2` dumped on a
+stride to the game's end, pinned into `blind::TRACES` like any trace;
+the worker runs `tools/rubric.py --tables 3` on its tree, names the
+types new to the ledger in its journal and re-pins
+`census::RUBRIC_UNIT_TYPES_SEEN`, and the commander writes the queue's
+`Rubric:` line at the booking as it writes `Blind:` — the pass's
+`--record` row stays the pass's.
 
 ## The worker's landing
 
@@ -128,7 +136,13 @@ spawn" is a reap that does not happen. `docs/DECISIONS.md` entry 34.
 
 ## The commander's chain
 
-**The commander's chain is ccc's, and it is one line.** `ccc merge <ref>
+**The commander's chain is ccc's, and it is one line.** **A done line is
+checked against origin before anything is merged** — `git ls-remote
+origin refs/heads/<the lane's branch>` prints the tip the line names,
+or the lane is told to push and the waiter's `LANDED` is waited for
+(Loop 3503: three lanes of the fifty-first tranche sent their done line
+with the tip on the local branch only, `ccc merge` read the local ref,
+and a reaped worktree would have held the only copy) — then `ccc merge <ref>
 --no-ff`, the booking commit, **the spawn that refills the lane, cut off
 that commit** — `python3 tools/brief.py … > brief.md && [ -s brief.md ]
 && ccc spawn … - < brief.md`, because a brief the tool refused (exit 2,
@@ -314,7 +328,18 @@ first) or a tree the harness or ccc cut — those are `ccc rm`'s (parked
 removed them). One of the two is
 live at a time and only the live one edits the worktree; the `attrition`
 row is the user's, where a steer with the user happens, and it edits
-nothing there while a commander's lanes are out.
+nothing there while a commander's lanes are out. **And the two rows never
+message each other** (Loop 3499, Ramon, 2026-10-22): the pass's product
+is the committed tree and the opener it arms, and the commander's is the
+handoff it writes before the clear; a decision taken with Ramon while
+the commander runs is written into the parked file for the next pass or
+sent by Ramon himself, never relayed by the steer's row, and a question
+the commander has for the steer is a Loop row, not a message — the
+fiftieth pass answered three mid-tranche and each answer revived a
+300 k-token conversation for a status line nobody had asked for. **Nor
+does the pass launch the commander on the turn it finishes when the
+opener says it does not**: it ends with its report, and the launch is
+Ramon's word.
 
 **An unattended pass has a fence.** It measures the tranche, ratifies the
 marked rows, rules the Loop items, builds the loop's tools and guards,

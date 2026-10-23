@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-first tranche (commander, Opus): drained at eighteen from `a17dfdb6`**, the drafting source spent; **the pass is due**.*
+*2026-10-22, **the fifty-first pass (steer, Fable): the fifty-first tranche scored, the fifty-second booked on the rubric; the commander waits on Ramon's word** (Loop 3499, DECISIONS 90).*
 
-- **Words**: all closed, none open (lower map first — closed); held-out eight of eight. **The headline, the blind list: `NEVER` 273 → 247, residue 182 → 208, open 91 → 39**
-  — captures entered 30 (3477's `!eval` eighteen; 3492, 3494 two; 3479, 3481, 3491, 3501, 3502 one), residue 26 (3505's blind second reading
-  25, 3505a–d left open; 3495 one), `Group::kill_group_order` newly listed (3504a: `Unit::kill_group_order` reachable, unstaged).
-- **For the pass** (DECISIONS 89): the headline moves to the rubric (unit types 74 of 364; the 39 open rows a floor), their readings in
-  `t51/draft-items-5{1..4}.md` and `docs/audit/2026-10-22-residue-3505.md`; tooling: the pool's mirror off and cursor pinned (3497), `--hover`,
-  `@hold`, `@repairins`, `--rise`; three lanes landed unpushed (Loop 3503); the editor's rows ask whether the autostart may launch the editor.
-- **Lanes: none live**; nothing booked. Next 3506, run 1144. Pools: GOLDEN §149–154, AI §300–301, park OF, OJ, OK.
-  For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c, 3493a, 3494a–b, 3495a, 3497a, 3502a–b, 3504a, 3505a–d.
-- **Fable backlog: 20 Loop items** (3503, 3500, 3499, 3498, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
+- **Words**: all closed, none open (lower map first — closed); held-out eight of eight. **The headline is the rubric: unit types seen
+  74 of 364** (DECISIONS 89, 90), unmoved this tranche; the 290 never seen are `rubric.py --tables 3`'s table by domain and age. **The
+  blind list is a floor**: 247 · 208 · 39, every open row referenced in the image (0 of 39 dead), scanned at every pass.
+- **The fifty-first tranche** (DECISIONS 90): eighteen `cover=1` landings on two Opus lanes in 8 h 05, 5.45 USD and 30.9 minutes waiting
+  a landing, no red gate, two `DEEP`, one blocked ending; the pool 2.1 → 24.5 frames a second, mirror off (3484, 3497); open 91 → 39.
+- **Lanes: none live; six booked** (3506–3511), one lobby an item — an age held and a nation the computer has not played; the refill
+  is the drafting subagent on the never-seen table, most never-seen types at an age first. Next 3512, run 1156. Pools: GOLDEN
+  §149–154, AI §300–301, park OO–OR. **For Ramon**: the record's first section — the rubric's three open definitions, 3499's rule, the launch.
+- **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 90.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -40,16 +40,45 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-first pass (steer, Fable) — the fifty-first tranche drained at eighteen from `a17dfdb6`; read this handoff, Loop 3499 first, and
-the backlog; the headline's move to the rubric is the pass's to book (DECISIONS 89).**
+**Opener: the fifty-second tranche (commander, Opus) — six rubric lobbies booked from `3e89bc846`'s pass; take 3506 and 3507 on two Opus
+lanes (`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`), refill in order then by the rule; twenty landings or Ramon's word.**
 
 ## The queue
 
-In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). Every item is a `coverage` capture (DECISIONS 87–89): one
-pinned lobby at **`cover=1` on the click-free pool** — a click an `@click` line (3437), a key `@key` (3442), a console line plain or
-`!`-prefixed (3471), a screen point off `poolshot.py` — checked against its `cover=0` twin (`rngcmp.py`; `samegame.py --from`), pinned
-into `blind::TRACES`; a function not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the
-commander's drafting subagent on `t51/draft-items-51.md`'s `## Not drafted` rows that name a reading, one item a staging it yields.
+In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). Every item is a `coverage` capture on the click-free pool at `cover=1`
+with a `cover=0` twin (`rngcmp.py`; `samegame.py --from`), pinned into `blind::TRACES`, **taken for the unit types it puts on the map**
+(DECISIONS 90): the coverage pair's lobby (run651's recipe: `--map 18`, `STARTING_RESOURCES=7`, `DIFFICULTY=5`, `--ffwd-minute 27`, `--allow-early-end`),
+the age `--profile STARTING_TECHNOLOGY=A --profile ENDING_TECHNOLOGY=A` read back from `GAME INFO` and `ages_get()`, `end:UNITS=3,GUYS=2` on `--stride 100`
+to the game's end; the journal names the types new to the ledger (`rubric.py --tables 3`) and re-pins `census::RUBRIC_UNIT_TYPES_SEEN`. Opus; gate `--tests blind:: --no-widen`.
+
+3506. **coverage: the Germans' Information-age line** (`--ai-tribe 12`, `STARTING_TECHNOLOGY=8`, the All-Technologies lobby that
+reached age 7 on run652): the twenty never-seen German records are the lever — `INFANTRYGER`, `MG42`, `BAZOOKAGERMAN`, `PANZER`,
+`TIGERTANK`, `HUMMEL`, `FLAKGUNGERMAN`, `ME109`, `LEOPARDTANK`, `TORNADO`, the `GERMAN` riflemen, machine gun and anti-tank rifle — with
+the age-7 sea and air an island map draws (`TYPHOON`, `HIND`, `STEALTHBOMBER`, `CRUISEMISSILE`, `MIRAGE`); the journal says which ages
+the computer trained from, since a held age 7 may skip the age-5 and -6 records. Runs 1144–1145; park OF.
+
+3507. **coverage: the Russians at a held Modern age** (`--ai-tribe 13`, `STARTING_TECHNOLOGY=6 ENDING_TECHNOLOGY=6`): the age-6 line
+nobody has seen — `T34`, `KATYUSHA`, `REDGUARD`, `MEDIUMTANK`, `HVYMACHINEGUN`, `BAZOOKA`, `HOWITZER`, `FLAKGUN`, `ARMOREDCAR`, `INFANTRY`,
+`HELICOPTER`, `FIGHTERBOMBER`, `V2ROCKET`, `NUCLEARMISSILE`, `CRUISER`, `BATTLESHIP`, `PTBOAT` — thirty-six land, eleven air and three sea
+records at age 6. If `ENDING_TECHNOLOGY` is not honoured (the read-back says), the item lands what age 6 showed before the computer
+left it and parks the cap. Runs 1146–1147; park OJ.
+
+3508. **coverage: the Americans at a held Industrial age** (`--ai-tribe 20`, `STARTING_TECHNOLOGY=5 ENDING_TECHNOLOGY=5`): `RIFLEMEN`,
+`MACHINEGUN`, `ANTITANKRIFLE`, `LIGHTTANK` and its four variants, `ARTILLERY`, `SIEGEMORTAR`, `AAGUN`, `GREYHOUND`, `MARINERIFLEMEN`, the
+`BIPLANE`s, `DESTROYER`, `SUBMARINE`, `DREADNOUGHT` — twenty-four land, two air, three sea at age 5. Runs 1148–1149; park OK.
+
+3509. **coverage: the British at a held Enlightenment age** (`--ai-tribe 11`, `STARTING_TECHNOLOGY=4 ENDING_TECHNOLOGY=4`):
+`HIGHLANDER`, `MUSKETEERS`/`Red Coats`, `FUSILIER`, `MORTAR`, `RIFLEHORSE`, `HORSEGUARDGREN`, `JUNKERS`, `SLOOP`, `CLIPPER`, `MANOWAR`,
+`MORTARSHIP`, `HEAVYFIRESHIP` — twenty-five land and six sea records at age 4. Runs 1150–1151; park OL.
+
+3510. **coverage: the Japanese at a held Gunpowder age** (`--ai-tribe 15`, `STARTING_TECHNOLOGY=3 ENDING_TECHNOLOGY=3`): `SAMURAI`,
+`DRAGOON`, `BOMBARD`, `MUSKETHORSE`, `HORSEGRENADIER`, `HEAVYKNIGHT`, `CORVETTE`, `FLUYT`, `FIRESHIP`, `FRIGATE`, `SIEGESHIP`,
+`BOMBARDSHIP`, `IRONCLAD`, `TRANSPORTGALLEON` — twenty-seven land and nine sea records at age 3. Runs 1152–1153; park OM.
+
+3511. **coverage: the Persians at a held Medieval age** (`--ai-tribe 23`, `STARTING_TECHNOLOGY=2 ENDING_TECHNOLOGY=2`; the
+All-Technologies Persians trained none of their early line): `ATHANATOI`, `ATHANATOIBOW`, `HEAVYARCHERS`, `CROSSBOWMEN`,
+`HEAVYCAVARCHER`, `HEAVYCHARIOT`, `ARMEDSUPPLYWAGON`, `CARAVEL`, `BRIG`, `HEAVYFIRERAFT`, `GALLEON` — thirty-five land and four sea
+records at age 2, and the age-1 line if the computer starts below the cap. Runs 1154–1155; park ON.
 
 ## How to maintain this file
 
@@ -73,8 +102,8 @@ commander's drafting subagent on `t51/draft-items-51.md`'s `## Not drafted` rows
 - **The floors and these lines move together** — `FLOORS`, `LONG_WORD_*`,
   `GOLDEN_WORD_*`, `ENDPOINTS`, `AI_WORDS` with `Scoreboard:`, `Long captures:`,
   `Golden:` (`<name> closed`, or `every chapter closed` first), `Endpoint <frame>:`,
-  `Second pair:`, `Third map:`, `Census:`, `Blind:`, `Rubric:` (the steer's, from `rubric.py --record`; never a
-  booking's), `Fable backlog: N Loop items` and `lower map first — <map>` — read
+  `Second pair:`, `Third map:`, `Census:`, `Blind:`, `Rubric:` (the worker re-pins `RUBRIC_UNIT_TYPES_SEEN`, the commander writes it; DECISIONS 90),
+  `Fable backlog: N Loop items` and `lower map first — <map>` — read
   literally and **never wrapped**, or the count guard matches this line
   instead (twice, 09-19). The length guard counts every line to the next `## `.
 - **A capture is a draw-stream trace first, detail on demand** (DECISIONS 41): whole length at `cover=0`, then a
