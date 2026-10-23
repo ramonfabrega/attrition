@@ -5439,40 +5439,6 @@ impl Sim {
         }
         if p.splash_area == 0 {
             let Some(t) = target else {
-                if std::env::var_os("RON_PROBE_3539").is_some() {
-                    eprintln!(
-                        "PROBE3539 f{frame} landing {:?} tile {:?} shooter {:?}",
-                        p.landing,
-                        p.landing.tile(),
-                        p.shooter
-                    );
-                    for (b, bd) in self.buildings.iter().enumerate() {
-                        let d = vector_dist(bd.pos.x - p.landing.x, bd.pos.y - p.landing.y);
-                        if d > 2000 {
-                            continue;
-                        }
-                        let (corner, xs, ys) = match bd.ty {
-                            Some(ty) => (
-                                self.tile_corner(ty, bd.pos),
-                                self.build_types[ty].x_size,
-                                self.build_types[ty].y_size,
-                            ),
-                            None => (bd.pos.tile(), 0, 0),
-                        };
-                        eprintln!(
-                            "PROBE3539   b{b} {}/{} pos {:?} d {d} alive {} active {} covers {} corner {:?} size {}x{}",
-                            bd.owner,
-                            bd.index,
-                            bd.pos,
-                            bd.alive,
-                            self.active(Obj::Building(b)),
-                            self.covers_tile(b, p.landing.tile()),
-                            corner,
-                            xs,
-                            ys
-                        );
-                    }
-                }
                 // A shot into the ground: two draws for where it punctures
                 // (§39). Marked per draw, because the original spends them
                 // at two addresses.
