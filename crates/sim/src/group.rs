@@ -3399,9 +3399,10 @@ impl Sim {
     /// [`Sim::eject_contents`], one squad a frame from the head.
     ///
     /// SEAMS: `back_to_work`'s type filter (`0x32`, the citizens) and the
-    /// immediate path it takes; the two types (`0x140`, `0x13e`) that die
-    /// when emptied; the `eject_o`/`eject_who` arm that pulls one player's
-    /// units out of another's building.
+    /// immediate path it takes; the `eject_o`/`eject_who` arm that pulls one
+    /// player's units out of another's building. A group of one boat, with
+    /// the two types (`0x140`, `0x13e`) that die when emptied, is
+    /// [`Sim::boat_eject_all`] (item 3521).
     pub fn action_eject_all(
         &mut self,
         who: Player,

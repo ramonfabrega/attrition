@@ -18980,7 +18980,7 @@ whose `UnitTypeData +0x2d4` (`CARRY`) is non-zero and that is not strictly `AIRC
   eight neighbours) in the region** → `MOVE_TO` the chosen cell **plus `MOVE[d]`** with `d` the **last** `coast_here` answer of the whole
   search, whichever region produced it (`move_x[local_48]`; nothing resets it) — the merchant's inlined `add_move_order(…, QUEUE_NEW)`;
   **a neighbour in the region** → the sixteen quarter-cells of the boat's cell scored against that neighbour's centre, the nearest walked to,
-  or, when the boat stands in it, `Group::action_eject_all` (**SEAM**: the boat answers yes and keeps its cargo).
+  or, when the boat stands in it, `Group::action_eject_all` (~~**SEAM**: the boat answers yes and keeps its cargo~~ built, item 3521: `Sim::boat_eject_all`, §303).
 - The listing settles two things the export hides: `find_angle`'s arguments are `(x − ux, y − uy)` to the **unsnapped** centre (§4.3), and
   the two direction tables (`0xadc400`, `0xadcaf0`) are `MOVE_Y`, `MOVE_X` (`ai_place`), read off the packet.
 
@@ -23751,7 +23751,7 @@ arm's constant zeroed at its setter against `japanese_word_first_parting` (576 a
 application line deleted against its own test (exit 101). Every other lobby's `first_parting` (11),
 `battery_floors_hold`, `closing_state` (15) and `sahara_coverage` (15) held.
 
-**Not established.** `calc_rare@006e08d0:65`'s Japanese term (`JAPANESE_FISHING_BOATS` on fishermen at a rare) and
+**Not established.** ~~`calc_rare@006e08d0:65`'s Japanese term (`JAPANESE_FISHING_BOATS` on fishermen at a rare)~~ (built, item 3521, §303) and
 `get_cost`'s barracks and ship arms (`JAPANESE_BARRACKS_COST`, `JAPANESE_SHIP_COST`) and `train_time`'s
 (`JAPANESE_BARRACKS_SPEED`, `JAPANESE_CARRIER_SPEED`) are not carried; this lobby at Difficulty 1 never reaches them
 in a way the draw stream can see (parked 3331a).
@@ -24119,7 +24119,7 @@ cell's ocean tile, the only wanted region an island across the sea; mutated back
 `run970e_s_word_frame_is_widened_whole` re-pinned 929 → 56.
 
 **Coverage.** Diff-backed: the predicate's region by run970e's block 14595 and the draw stream to 24000. Not
-established: the shore arm's `Group::action_eject_all` and `think_carry_idle` remain the stated seams in
+established: ~~the shore arm's `Group::action_eject_all` and~~ (built, item 3521, §303) `think_carry_idle` remain the stated seams in
 `transport.rs`; no capture on file reaches a carrying boat that stands in its chosen region.
 
 ## 275. The Russians to the game's end: a mate in the chaser's block holds a chase on a unit (2026-10-19, item 3342)
@@ -25892,12 +25892,56 @@ theirs 1520, wealth 1752 against 1832** (80 each, `rate` 90 against 95 and 68 ag
 the walk back from 3668 is the next item's first step; a hypothesis only: an income term worth 5 a minute in two
 goods at once.
 
+**Item 3521 (2026-10-23, Opus 5.5): the word 3674 walked, two arms built, 3674 → 3769.** No capture: the disk
+answered both partings.
+
+*The income, walked back.* who=1 holds four Fishermen on 3668 (`FISHERMEN`, 317, sea), and two stand on fish
+(`rare 6`, `1/113` and `1/120`). The long's stride blocks place the first one on fish: `1/113` is born by 2901 and on
+fish (`rare 6`) by 3001; `1/120` joins it by 3401. No leader record is dumped between 1601 and 3668, so the
+income's first parted frame lies after the first boat's arrival, between 2901 and 3001; the dump cannot name it
+nearer. `LeaderData::calc_rare@006e08d0`'s water arm (`006e0a34`..`006e0a4c`) loads `esi =
+Constants +0x7ac` (`japanese_fishing_boats`, 25) for a leader with `has_tribe_bonus(0xf)`. It adds that to the food
+slot beside `FISHERMEN_BONUS`, and to every other slot as the `extra` term. A fish pays 10 food and 10 wealth (160
+sixteenths each), so each boat is 40 a half short and two boats are the booked 80. `economy::calc_rare` takes the
+tribe test (`japanese`); before this the Nubians' arm was the only `extra` the function carried. With it every income row on 3668
+agrees (1520, 1832), and run1153c's widening goes 2956 → 2946. **The word does not move on it**: the parting at
+3674 is not the income's.
+
+*The word, by its record.* `1/121` is a **`TRANSPORTFREIGHTER` (TypeIndex 322, sea)**. who=1's Citizen `1/10`
+(TypeIndex 50, land) walks to (37236, 26520), casts spell 650 on 3666 (`cast_transport`, §6.2 of
+`docs/TRANSPORT.md`), and the Freighter sails to (37272, 26520), arriving on 3673 with its order list empty. **Theirs
+then ejects**: on block 3674 `1/10` stands at (37416, 26280) with `orders_x/y` its boarding point (37236, 26520), and
+`1/121` is gone. Ours' Freighter stood there loaded. The arm is `Unit::think_carry@005f2ee0` → `count_inside(COUNT_WORKERS)`
+→ `think_carry_civilian(this, 1)@005f37c0`. That function walks to the quarter-cell of its own cell nearest the
+shore cell, and when it already stands in that quarter-cell it builds a one-boat `Group` and calls
+`Group::action_eject_all(0, −1, −1, −1)@00710b40`. That call's `param_2 < 0` arm gives the boat, when it is alive,
+holds anything and is not `can_carry(AIR)` (`is(0x1bf|0x15f|0x208, 1)`), `Object::eject_contents(0, −1, 0, 1)`:
+`disembark`'s steps with **`param_3 = 0`**, so the passenger keeps its own empty list (`eject_contents:254`). Then a
+boat of the `TRANSPORTBARGE` or `MERCHANTFLEET` lineage with nothing left inside dies. The eject had been a stated
+seam (`SimCarryCiv::eject_all`, parked 3346e). It is `Sim::boat_eject_all` now (`crates/sim/src/transport.rs`),
+sharing `disembark`'s loop through `eject_riders(boat, carry)`.
+
+**The value diff, on the word's frame** (run1153c, block 3674): `1/10 pos` ours (37236, 26520) against theirs
+(37416, 26280), `inside` 121 against −1, and `1/121` held by ours alone. With the eject both sides agree: ours'
+`1/10` lands at (37416, 26280) on 3674 and steps to (37413, 26256) on 3676, theirs' two points. run1153c drops to
+**955** keys.
+
+**The next word, 3769**: ours 14 draws against 15, index 14, theirs `Object::take_damage+0xe1`. On block 3770,
+in run1153c's window, theirs' human Citizen `0/5` (TypeIndex 50, land, gathering at `0/2004`) has been struck
+for 8 on 3769 (`hits_left` ours 65, theirs 57; `damage_frame` 3769) and flees (`FLEEORDER` to (5448, 7992)). The
+Barracks `0/2004` takes 11, city `0/2000`'s `raid_stamp` is 3769, and both leaders' `treaties` read ours 1 against
+theirs 3. **The direction is theirs**: a who=1 strike on the human that ours does not make. Which unit struck is
+the next item's first question.
+
 **What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
 ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
 alone). `JAPANESE_DAMAGE`'s arm in `damage.rs` reads `Modifiers::japanese_level`, which nothing writes (parked 3510a).
 
-**Coverage.** Diff-backed: the Barracks cost arm (run1153b's 1345 queues), the Barracks speed arm (the walk's 1351).
-Reading only: the ship-cost and carrier arms, and the per-tier shape for a non-negative constant.
+**Coverage.** Diff-backed: the Barracks cost arm (run1153b's 1345 queues), the Barracks speed arm (the walk's 1351),
+the Japanese boats' quarter on a fish (run1153c's 3668 income, item 3521), the civilian carrier's shore eject (run1153c's
+3674 landing, item 3521). Reading only: the ship-cost and carrier arms, and the per-tier shape for a non-negative
+constant; `boat_eject_all`'s air refusal and its kept-cargo case (a passenger `come_out` refuses), which no capture
+reaches.
 
 ## 304. The Russians at a held Modern age, East Indies: the first held-age pair, parting on frame 8 (2026-10-23, item 3508)
 

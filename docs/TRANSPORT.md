@@ -627,8 +627,19 @@ right after the think it died in: a boat standing on its `des` on the walk
 with `stopped` set pays the arrival stand on its last frame — a draw no dump
 shows. East Indies' `1/56` on 8519 (the journal, item 1191).
 
+**The other landing: a boat that already stands at its shore** (item 3521,
+`docs/AI.md` §303). `think_carry_civilian@005f37c0` (a worker or a scout
+aboard) ends, when the boat stands in its quarter-cell nearest the shore
+cell, in a one-boat `Group` and `Group::action_eject_all(0, −1, −1,
+−1)@00710b40`: `eject_contents(0, −1, 0, 1)`, so this time **`param_3 = 0`**
+and the passenger keeps its own (empty) list, and then a boat of the
+`TRANSPORTBARGE` or `MERCHANTFLEET` lineage with nothing left inside dies.
+A boat that `can_carry(AIR)` is skipped. run1153c: the Freighter `1/121`
+stands at (37272, 26520) on 3673, and on 3674 its Citizen `1/10` is ashore at
+(37416, 26280), the ring of the table above. `Sim::boat_eject_all`.
+
 `crates/sim/src/transport.rs`'s `disembark` is steps 1–4 in the original's
-own order. What is **not** established: step 5's `is(0x45)` clause and the
+own order, and `boat_eject_all` the same loop without step 4. What is **not** established: step 5's `is(0x45)` clause and the
 `leader_options` bit (the crate's `auto_transport` is never cleared by
 boarding, so the passenger keeps the flag either way and no capture
 separates them); and the placement's own fallbacks, which no capture has

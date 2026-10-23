@@ -1015,8 +1015,14 @@ pub fn resource_bonuses(t: &Tuning, wonders: u32, russians: bool, out: &mut [i32
 /// Nubian Merchant on Dye pays 240 knowledge where 160 is the good's own
 /// (`docs/GOLDEN.md` §54). `nubian` is that tribe test.
 ///
-/// **Seam.** The Japanese fishing-boat bonus on the two water goods, and
-/// the Porcelain Tower's term: the wonder layer is not modelled.
+/// On the two water goods `extra` is instead **`JAPANESE_FISHING_BOATS`
+/// for a leader with tribe bonus `0xf`** (`006e0a34`..`006e0a4c`: `esi =
+/// Constants +0x7ac`), on the food slot beside the fishermen's term and on
+/// every other slot alike (item 3521, `docs/AI.md` §303). `japanese` is
+/// that tribe test.
+///
+/// **Seam.** The Porcelain Tower's term: the wonder layer is not modelled.
+#[allow(clippy::too_many_arguments)]
 pub fn calc_rare(
     t: &Tuning,
     good_index: usize,
@@ -1025,6 +1031,7 @@ pub fn calc_rare(
     merchants: usize,
     ally: bool,
     nubian: bool,
+    japanese: bool,
 ) -> [i32; RESOURCES] {
     let mut out = [0; RESOURCES];
     let mut scale = [100; RESOURCES];
@@ -1045,7 +1052,13 @@ pub fn calc_rare(
     } else {
         0
     };
-    let extra = if !water && ally && nubian {
+    let extra = if water {
+        if japanese {
+            t.japanese_fishing_boats
+        } else {
+            0
+        }
+    } else if ally && nubian {
         t.nubian_rare
     } else {
         0
