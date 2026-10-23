@@ -105,5 +105,65 @@ class FrameWait(unittest.TestCase):
         self.assertIsNone(poolshot.FrameWatch().feed(b'  BEGIN UNITDATA\r\nEND FRAME 3\r'))
 
 
+class PoolGamelog(unittest.TestCase):
+    """(d) a click-free pool take writes `<run>/map-<N>/gamelog.txt`, one
+    `map-*` per take, and never `<run>/gamelog.txt` (Loop 3487: recon3479-1
+    waited 30 minutes on the bare path and lost three photographs)."""
+
+    def run_dir(self, tmp, *maps, bare=None):
+        run = Path(tmp) / 'recon3479-1'
+        run.mkdir()
+        for name, log in maps:
+            (run / name).mkdir()
+            if log:
+                (run / name / log).write_bytes(b'BEGIN FRAME 911\r')
+        if bare:
+            (run / bare).write_bytes(b'BEGIN FRAME 911\r')
+        return run
+
+    def test_gamelog_resolves_the_one_map_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.run_dir(tmp, ('map-18', 'gamelog.txt'))
+            self.assertEqual(poolshot.gamelog_of(run), run / 'map-18' / 'gamelog.txt')
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.run_dir(tmp, ('map-7', 'gamelog_p.txt'))
+            self.assertEqual(poolshot.gamelog_of(run), run / 'map-7' / 'gamelog_p.txt')
+        # A bare `<run>/gamelog.txt` (a windowed capture's) still wins.
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.run_dir(tmp, bare='gamelog.txt')
+            self.assertEqual(poolshot.gamelog_of(run), run / 'gamelog.txt')
+        # The map directory exists before the game writes its gamelog: not yet.
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.run_dir(tmp, ('map-18', None))
+            self.assertIsNone(poolshot.gamelog_of(run))
+
+    def test_gamelog_refuses_two_map_dirs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.run_dir(tmp, ('map-18', 'gamelog.txt'), ('map-3', 'gamelog.txt'))
+            with self.assertRaises(poolshot.Refused) as e:
+                poolshot.gamelog_of(run)
+            self.assertIn('2 map directories', str(e.exception))
+            self.assertIn('map-18', str(e.exception))
+            self.assertIn('--map', str(e.exception))
+            self.assertEqual(poolshot.gamelog_of(run, style=3), run / 'map-3' / 'gamelog.txt')
+            with self.assertRaises(poolshot.Refused):
+                poolshot.gamelog_of(run, style=9)
+
+    def test_frame_wait_reads_the_map_dirs_gamelog(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.run_dir(tmp, ('map-18', 'gamelog.txt'))
+            self.assertEqual(poolshot.wait_frame(run, 911, timeout=5, poll=0.01), 911)
+
+    def test_frame_wait_refuses_when_no_gamelog_appears(self):
+        # No map directory and no bare gamelog: refused within `appear`
+        # seconds, naming where a pool take writes, not after the timeout.
+        with tempfile.TemporaryDirectory() as tmp:
+            run = self.run_dir(tmp)
+            with self.assertRaises(poolshot.Refused) as e:
+                poolshot.wait_frame(run, 911, timeout=60, poll=0.01, appear=0.05)
+            self.assertIn('map-', str(e.exception))
+            self.assertIn('no map-* directory', str(e.exception))
+
+
 if __name__ == '__main__':
     unittest.main()

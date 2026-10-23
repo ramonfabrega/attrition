@@ -10,7 +10,11 @@ in its staging — `911 pause 1` — or draws a still enough frame unpaused
 <frame>` (or later), finds the game window, and photographs that window
 alone with `screencapture -x -o -l <id>`, run through
 `tools/gamelog/viadriver.sh` so it runs under RonDriver.app's Screen
-Recording grant. It writes `<run>-<frame>.png` beside the run directory (or
+Recording grant. The gamelog is `<run>/gamelog.txt` for a windowed capture and
+`<run>/map-<N>/gamelog.txt` for a pool take — the one `map-*`, or the one
+`--map N` names; two without `--map` refuse, and no gamelog within
+`--appear` seconds refuses (Loop 3487). It writes `<run>-<frame>.png`
+beside the run directory (or
 `--out`) and prints the window id, its owner pid and the path.
 
 Graduated from three lanes' scratch shooters (items 3444, 3460, 3463), and
@@ -192,18 +196,59 @@ class FrameWatch:
         return self.last is not None and self.last >= frame
 
 
-def gamelog_of(run_dir):
-    for name in ('gamelog.txt', 'gamelog_p.txt'):
-        if (run_dir / name).exists():
-            return run_dir / name
+LOGS = ('gamelog.txt', 'gamelog_p.txt')
+
+
+def map_dirs(run_dir, style=None):
+    """The take's `map-<N>` directories under `run_dir` — the one `--map`
+    names, or every `map-*` — mirroring `tools/gamelog/filerun.py`'s
+    `map_dir` (Loop 3487)."""
+    if style is not None:
+        d = run_dir / f'map-{style}'
+        if not d.is_dir():
+            raise Refused(f'no {d}')
+        return [d]
+    return sorted(p for p in run_dir.glob('map-*') if p.is_dir())
+
+
+def gamelog_of(run_dir, style=None):
+    """The take's gamelog, or None while the game has not written one yet.
+
+    A bare `<run>/gamelog.txt` (or a playback's `gamelog_p.txt`) is a
+    windowed capture's and is read first; a click-free pool take writes
+    `<run>/map-<N>/gamelog.txt`, one `map-*` per take (Loop 3487: a wait
+    on the bare path sat 30 minutes and lost three photographs). Two
+    `map-*` directories without `--map` refuse, as filerun.py's do."""
+    if style is None:
+        for name in LOGS:
+            if (run_dir / name).exists():
+                return run_dir / name
+    maps = map_dirs(run_dir, style)
+    if len(maps) > 1:
+        raise Refused(f'{run_dir} holds {len(maps)} map directories '
+                      f'({", ".join(p.name for p in maps)}); name one with --map')
+    for d in maps:
+        for name in LOGS:
+            if (d / name).exists():
+                return d / name
     return None
 
 
-def wait_frame(run_dir, frame, timeout, poll=1.0):
+def wait_frame(run_dir, frame, timeout, poll=1.0, style=None, appear=120.0):
+    """Wait for `BEGIN FRAME <frame>` (or later) in the take's gamelog.
+    Refused when no gamelog has appeared after `appear` seconds — the
+    take's directory is wrong, not slow — rather than after `timeout`."""
     watch, offset, gamelog = FrameWatch(), 0, None
-    deadline = time.monotonic() + timeout
+    start = time.monotonic()
+    deadline = start + timeout
     while time.monotonic() < deadline:
-        gamelog = gamelog or gamelog_of(run_dir)
+        gamelog = gamelog or gamelog_of(run_dir, style)
+        if gamelog is None and time.monotonic() - start >= appear:
+            maps = map_dirs(run_dir, style)
+            where = (f'{maps[0]} holds no gamelog.txt' if maps else
+                     f'{run_dir} holds no map-* directory and no gamelog.txt')
+            raise Refused(f'no gamelog after {appear:g} s: {where} (a click-free pool take '
+                          f'writes <run>/map-<N>/gamelog.txt; Loop 3487)')
         if gamelog is not None:
             with gamelog.open('rb') as f:
                 f.seek(offset)
@@ -280,13 +325,19 @@ def main(argv=None):
     ap.add_argument('--lane', type=int, help='only the window of this pool lane\'s game')
     ap.add_argument('--timeout', type=float, default=1800, help='seconds to wait for the frame')
     ap.add_argument('--settle', type=float, default=2.0, help='seconds after the frame before the shot')
+    ap.add_argument('--map', type=int, metavar='N', help='the map-N directory when the run holds several')
+    ap.add_argument('--appear', type=float, default=120.0,
+                    help='seconds for the take\'s gamelog to appear before refusing')
     args = ap.parse_args(argv)
 
     run_dir = resolve_run(args.run)
     out = (args.out or run_dir.parent / f'{run_dir.name}-{args.frame}.png').expanduser().resolve()
     if out.exists():
         raise SystemExit(f'poolshot: {out} exists; name another with --out (nothing under the archive is deleted)')
-    seen = wait_frame(run_dir, args.frame, args.timeout)
+    try:
+        seen = wait_frame(run_dir, args.frame, args.timeout, style=args.map, appear=args.appear)
+    except Refused as e:
+        raise SystemExit(f'poolshot refuses: {e}')
     time.sleep(args.settle)
     cmdlines, parent = process_table()
     pids = descendants(lane_pid(args.lane), parent) if args.lane else None

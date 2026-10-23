@@ -28,6 +28,10 @@ The lane gate's release step runs:
     those, and the whole suite, are the booking gate's. A worker whose
     landing reads a new key passes `--tests coverage::` and runs them.
 
+A lane whose item moves no test (a retirement, a tooling item) gates with
+`--lane --whole` in place of `--tests`: every test, the timed ones
+included, with the lane's forgiveness and `Lane verdict:` (Loop 3489).
+
 The worker's own full run, measured on the tree after its last `ccc
 update`, is still owed before the gate (the brief's "measure" rows); the
 lane gate is the confirmation of the word and the paperwork, not the
@@ -430,15 +434,37 @@ def memory_cap_gib(test_threads):
     return 20 if test_threads <= 4 else 40
 
 
+# Loop 3489 (the fifty-first pass): a lane whose item moves no test — a
+# retirement, a tooling item — had no lane gate that ran as briefed: `--lane`
+# without `--tests` is refused, so it ran the unflagged booking gate, which
+# forgives nothing. `--lane --whole` runs every test, the timed ones
+# included, with the lane's forgiveness of the commander's lines and its
+# `Lane verdict:`; the caches' verifiers stay the booking gate's.
+def check_whole(*, lane, tests, whole, no_widen):
+    """The `--whole` refusals, read before anything runs or prints."""
+    if not whole:
+        return
+    if not lane:
+        raise ValueError('--whole is a lane gate\'s (--lane --whole): the booking gate is already '
+                         'the whole suite (Loop 3489)')
+    if tests:
+        raise ValueError('--whole runs every test, so it names no --tests: a lane with a word '
+                         'gates with --tests (Loop 3489)')
+    if no_widen:
+        raise ValueError('--whole runs every test, the timed ones included; --no-widen would '
+                         'skip them (Loop 3489)')
+
+
 def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, run=run_logged,
          lane=False, tests=None, item=None, base='worktree-replan-pdb', scope=None, isolated=None,
-         no_widen=False, git=subprocess.run):
+         no_widen=False, whole=False, git=subprocess.run):
     # `git` runs the gate's own reads of the tree (`branch_paths`,
     # `base_moved`); the offline cases hand it a fixture so none reads the
     # tree the gate runs in (item 3366).
     # Parked 1713: two lanes `pkill -f release_gate.py`'d every gate on the
     # box to stop their own; a gate names its pid first so it can be killed
     # by it.
+    check_whole(lane=lane, tests=tests, whole=whole, no_widen=no_widen)
     print(f"Gate pid: {os.getpid()} — kill this gate by its pid, never by `pkill -f` on a "
           'name every lane shares (parked 1713)', flush=True)
     if type(test_threads) is not int or test_threads not in WIDTHS:
@@ -455,9 +481,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # gate ran and the done line went out without it.
         raise ValueError(f'no docs/journal/<date>-item-{item}.md in the tree: a landing writes '
                          'its journal before it gates (parked 1699)')
-    if lane and not tests:
+    if lane and not tests and not whole:
         raise ValueError("a lane gate names its word's tests: --tests FILTER [FILTER ...] "
-                         '(the widening, the pinned walk); the full suite is the booking gate\'s')
+                         '(the widening, the pinned walk); a lane whose item moves no test '
+                         'gates with --lane --whole (Loop 3489)')
     if tests and not lane:
         raise ValueError('--tests is a lane gate\'s; the booking gate runs the whole suite')
     if no_widen and not lane:
@@ -489,7 +516,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         # at four threads (6–26 minutes, median 18.9) while fifteen of the
         # twenty moved no pin. The AI lane's brief widens; a sweep's or a
         # chapter's says `--no-widen`, and the booking gate holds the pins.
-        if not widened or no_widen:
+        if (not widened or no_widen) and not whole:
             timings = TIMINGS.read_text()
             skips = lane_skips(timings, tests)
             paperwork = lane_paperwork(timings)
@@ -515,14 +542,14 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     # the on-disk caches' verifiers: each cached oracle frame and setup record
     # is compared with a fresh parse, so a schema hash that missed a parser's
     # file is caught on that schedule and not by a wrong floor (DECISIONS 75).
-    whole = scope is None and not lane
-    if whole:
+    booking_whole = scope is None and not lane
+    if booking_whole:
         env['RON_VERIFY_ORACLE'] = '1'
         env['RON_VERIFY_SETUP_OBSERVATIONS'] = '1'
         env['RON_VERIFY_EMU'] = '1'
     policy ={'schema': 1, 'release_test_threads': test_threads,
               'test_allocator': allocator_policy(env),
-              'verify_caches': whole,
+              'verify_caches': booking_whole,
               'memory_cap_gib': 32 if isolated else min(32, memory_cap_gib(test_threads)),
               'shared_admission': {'global_cpu_slots': HOST_CPU_SLOTS, 'global_reserved_mib': HOST_MEMORY_MIB,
                                    'cargo_build_jobs': 8, 'all_phases': True,
@@ -538,6 +565,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                            'timings': str(TIMINGS.relative_to(ROOT))}
     if lane:
         policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)), 'no_widen': bool(no_widen),
+                          'whole': bool(whole),
                           'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
                           'paperwork_kept': len(paperwork), 'base': base, 'widened': widened}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
@@ -576,7 +604,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                 if widened else
                 f"{len(skips)} timed tests left to the next whole gate" +
                 (f"; {scope} is not a ref here, so nothing widened" if touched is None else ''))), flush=True)
-    if lane and widened and no_widen:
+    if lane and whole:
+        print("Lane suite: every test, the timed ones included (--whole, a lane whose item moves no "
+              "test; Loop 3489); the commander's lines forgiven as on any lane", flush=True)
+    elif lane and widened and no_widen:
         print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
               f"booking gate by the brief's --no-widen, though the branch touches {len(widened)} path(s) "
               f"that can move a pin ({widened[0]}{', …' if len(widened) > 1 else ''}); the booking gate "
@@ -839,6 +870,9 @@ def main():
     parser.add_argument('--no-widen', action='store_true',
                         help="with --lane: leave the timed tests to the booking gate even on a branch that can "
                              "move a pin — the sweep and chapter kinds' (DECISIONS 83); the AI lane widens")
+    parser.add_argument('--whole', action='store_true',
+                        help="with --lane, in place of --tests: every test, the timed ones included, with "
+                             "the lane's forgiveness and verdict — a lane whose item moves no test (Loop 3489)")
     parser.add_argument('--item', type=int, metavar='N',
                         help='with --lane: the item; the gate refuses a tree with no '
                              'docs/journal/*-item-N.md (parked 1699)')
@@ -851,10 +885,12 @@ def main():
                              'timed test (Loop 2415); default: worktree-replan-pdb')
     args = parser.parse_args()
     try:
+        check_whole(lane=args.lane, tests=args.tests, whole=args.whole, no_widen=args.no_widen)
         refuse_stale_agent_worktrees(stale_agent_worktrees_now(), lane=args.lane)
         gate(args.install, report_dir=args.report_dir, require_fixtures=args.require_fixtures,
              test_threads=args.test_threads, lane=args.lane, tests=args.tests, item=args.item,
-             base=args.base, scope=args.scope, isolated=args.isolated, no_widen=args.no_widen)
+             base=args.base, scope=args.scope, isolated=args.isolated, no_widen=args.no_widen,
+             whole=args.whole)
     except ValueError as exc:
         parser.error(str(exc))
 

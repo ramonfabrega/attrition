@@ -136,6 +136,23 @@ class ABriefIsComposed(unittest.TestCase):
         # but the blind list: the fast suite and `blind::`, no widening.
         self.assertIn('--tests blind:: --no-widen`', self.compose(1131, 'reading', tests=[]))
 
+    def test_a_note_s_lane_gate_without_tests_or_whole_is_refused(self):
+        # Loop 3489: `--lane --item N` with no `--tests` is refused by the
+        # gate (exit 2), so a note that briefs it hands the lane a gate that
+        # cannot run, and the lane ran the booking gate instead.
+        for bad in ('The gate: `python3 tools/release_gate.py ~/game --lane --item 3486`.',
+                    'Gate with `python3 tools/release_gate.py ~/game --test-threads 4\n  --lane --item 3486`, backgrounded.',
+                    'gate: python3 tools/release_gate.py ~/game --lane --item 3486'):
+            with self.subTest(note=bad), self.assertRaises(ValueError) as caught:
+                self.compose(1133, note=bad)
+            self.assertIn('Loop 3489', str(caught.exception))
+            self.assertIn('--whole', str(caught.exception))
+        for good in ('The gate: `python3 tools/release_gate.py ~/game --lane --whole --item 3486`.',
+                     'Gate with `python3 tools/release_gate.py ~/game --lane --item 3486\n  --tests poolshot::`.',
+                     'No gate flag named here; a lane-gate is the frame\'s.'):
+            with self.subTest(note=good):
+                self.assertIn('## This item', self.compose(1133, note=good))
+
     def test_the_item_is_the_queue_s_own_words(self):
         text = self.compose(1133)
         self.assertIn("1133. **Great Sahara's word: frame 8, ours 6 draws against 7** (1066),\n"

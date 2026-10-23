@@ -197,11 +197,31 @@ def reserved_once(item, runs, note, briefs):
                                  "a run number is reserved once (Loop 3176)")
 
 
+LANE_FLAG = re.compile(r'(?<![\w-])--lane(?![\w-])')
+
+
+def note_gates_run(note):
+    """Loop 3489: `release_gate.py --lane` with neither `--tests` nor
+    `--whole` is refused by the gate (exit 2), so a note that briefs one
+    hands the lane a gate that cannot run — and a lane whose item moved no
+    test ran the booking gate, which forgives nothing. A gate line is read
+    as one inline code span (which may wrap) or, outside code, one line."""
+    spans = re.findall(r'`([^`]+)`', note)
+    spans += re.sub(r'`[^`]*`', ' ', note).splitlines()
+    for span in spans:
+        if LANE_FLAG.search(span) and '--tests' not in span and '--whole' not in span:
+            line = ' '.join(span.split())
+            raise ValueError(f"the note's gate `{line}` names --lane with neither --tests nor --whole, "
+                             'and the gate refuses it (exit 2): a lane whose item moves no test gates '
+                             'with --lane --whole (Loop 3489)')
+
+
 def compose(item, kind, *, queue, frame, base, model, runs, sections: list, read, note, tests=(),
             park=None, seams=None, briefs=None):
     if kind not in KINDS:
         raise ValueError(f'no such kind of brief: {kind}; one of {sorted(KINDS)}')
     reserved_once(item, runs, note, briefs)
+    note_gates_run(note)
     tests = filters(kind, tests)
     items = open_items_text(queue)
     if item not in items:
