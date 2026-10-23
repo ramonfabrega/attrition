@@ -9769,12 +9769,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The land map's held Modern pair** (item 3509): the Americans at a
     // held Modern age, Great Sahara — 1995 first try (the Airbase's free
     // Bomber), 4488 with the gate on the tree's Modern Age; widened on
-    // run1151c over 4482..4549 (block 4489).
+    // run1151c over 4482..4549 (block 4489). Item 3517: whole at 4548, the
+    // game's last frame — the state parted on 4479, walked back on run1163
+    // over 4396..4482 — its closing block 4549 the window's last and scored
+    // by `run1151_american_modern_pair_closing_state`.
     (
         "AMERICAN_MODERN_PAIR_WORD",
         crate::diff::american_modern_pair::AMERICAN_MODERN_PAIR_WORD,
         Some("american_modern_pair_run1151c_s_word_frame_is_widened_whole"),
-        3509,
+        3517,
         Some(crate::diff::american_modern_pair::WIDENING_AMERICAN_MODERN_FRAME_4488),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
@@ -11239,14 +11242,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Americans at a held Modern age, Great Sahara (item 3509): first
     // try 1995, the Airbase's free Bomber; 4488 with the gate on the tree's
-    // Modern Age, of a game that ends itself on 4548.
+    // Modern Age, of a game that ends itself on 4548. Whole by item 3517,
+    // its closing state compared.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaAmericanModern",
         named: "Great Sahara (Americans, Modern)",
         word: crate::diff::american_modern_pair::AMERICAN_MODERN_PAIR_WORD,
         length: 4_548,
-        endpoint: None,
+        endpoint: Some("run1151_american_modern_pair_closing_state"),
         window: Some("american_modern_frame_4488_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
