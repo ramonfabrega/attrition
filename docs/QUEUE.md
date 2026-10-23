@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 3 of 20 landed; 3539 and 3540 live (DECISIONS 91).*
+*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 4 of 20 landed; 3539 and 3531 live (DECISIONS 91).*
 
-- **Words**: one open, the Japanese at 4443 of 4,547 (lower map first — East Indies (Japanese, Industrial)); the Chinese whole at 4,467 (3538);
+- **Words**: one open, the Japanese at 4443 of 4,547 (lower map first — East Indies (Japanese, Industrial)); the Chinese whole at 4,467, its closing state none off (3538, 3540);
   held-out eight of eight. **The late ages**: six pairs stood up, five whole on real sim work (the Chinese at 4,467, 3538); **the rubric, lockstep**:
   ages 8 of 8, types 128 → 152 of 302, **bytes 77.0 % unmoved** (the whole pairs traced at `cover=0`; their twins booked, 3531–3534). Blind: 0 of 39 dead.
 - **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
   30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
-- **Lanes: two live, Opus 5.5 at medium** (3539 the Japanese word 4443, 3540 the Chinese closing state); **seven booked** (3531–3534, 3512, 3513, 3535):
+- **Lanes: two live, Opus 5.5 at medium** (3539 the Japanese word 4443, 3531 the Germans' twin); **six booked** (3532–3534, 3512, 3513, 3535):
   open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3541, run 1185. Pools: GOLDEN §149–154, AI §306–310, park PM–PP.
 - **Fable backlog: 11 Loop items** (3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
@@ -55,11 +55,6 @@ the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pa
 `AmmoOut::explode`; 3529's value diff on run1171, AI §303): the Light Tank `1/28`'s round of 4434 at the Citizen `0/3`, whose target
 dies in flight; the round lands on 4443 on both sides, and ours punctures the ground where theirs bursts and does not. The dump
 parts nothing before block 4459. Run 1183; amend §303 in place; park PK.
-
-3540. **The Chinese closing state, block 4468: 14 units off by position and nothing else** (`run1155_chinese_industrial_pair_closing_state`,
-`[14, 0, 0, 0, 0, 0, 0]`; 3538's parked row (3538), AI §305): the pair ran whole to 4467 and its last block parts on `1/107` by (114, −9),
-`1/73` by (−73, 72) and `0/8` by (0, 28); run1155 prints units every hundredth block, so the item's first job is a window walked back
-from 4468 at the long's detail — the widening the closing owes — then the first unit's parting. Run 1184; amend §305 in place; park PL.
 
 3531. **coverage: the Germans' All-Technologies twin** (`EastIndiesGermanAllTech`, whole at 4175 on run1144/1145; DECISIONS 91): the pair's
 long lobby at `cover=1` on the pool, `--allow-early-end`, checked against run1145 (`rngcmp.py` none differing; `samegame.py` whole), pinned into

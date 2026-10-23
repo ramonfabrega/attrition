@@ -24845,3 +24845,26 @@ SHA-256 `8b210e4ca2b5f32b39ad66da709973773c75ee60bf278eb67b8181ce72877b14`.
 
 **What it holds**: `chinese_industrial_pair_run1175_s_word_frame_is_widened_whole` (264 blocks, 1024 keys), the
 word 3271 (block 3272).
+
+## run1184 — the Chinese at a held Industrial age, Great Sahara: the closing window, blocks 4201..4468 (2026-10-23, item 3540, `att-3540`)
+
+**Disk gap**: the word closed at 4467 (item 3538), and `run1155_chinese_industrial_pair_closing_state` scored block
+4468 at 14 units off by position. run1175 ends on 3522, and run1155 prints units only every hundredth block. Walked
+from run1154's start, run1155's own dumps agree on every unit's position through block 4201, and 13 of who=1's units
+are off by 4401. No dump held the blocks between. `--map 7 --end-frame 4467 --allow-early-end --timeout 3600
+--log-window 4201 4468 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --profile
+STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover
+cover=0`, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1184`.
+- Pool lane 1. Launched 14:39:09, exited 14:40:02 (52.6 s launch to exit). `success`: 4468 frames, last frame 4467,
+  closing frame 4468, 268 `BEGIN FRAME`s. `rngcmp.py` against run1155: **4468 frames in common, 0 differing**.
+  Filed with `filerun.py run1184 greatsahara-chinese-industrial-window-4201-4468`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1184-greatsahara-chinese-industrial-window-4201-4468.txt`, 563,038,742 bytes,
+SHA-256 `93ea492feab429dead52cd7ddf0628d72ea3d4849c9e08009e1b65a61a332004`.
+
+Archive `rontrace-run1184.log`, 88,787,040 bytes,
+SHA-256 `2ea57baca8d70af99b1dd161aa304e4614446ee5ba50fae866ffd6ecc495685d`.
+
+**What it holds**: `chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole` (267 blocks, 239 → 81 keys),
+the word 4467's closing block 4468.

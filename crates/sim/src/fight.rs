@@ -9160,6 +9160,46 @@ mod tests {
         assert_eq!(sim.units[me].unit_masks2, 0);
     }
 
+    /// **An emplaced weapon drops a dead target's order at once, reload or
+    /// not** (item 3540, `docs/ORDERS.md` §7.12). `Unit::fight@005fd4d0:
+    /// 94`–`102`: the type's `unit_flags2 & 1` (the machine gun and
+    /// flamethrower lineages) and an invalid target set `local_1c`, which
+    /// walks past the reload gate to `:196`'s kill. run1184's Flamethrowers
+    /// `1/84` and `1/129` drop their attack on the dead building `0/2004`
+    /// with `recharging` 23 and 12. The same unit without the bit keeps
+    /// the order, as §7.12's raiders do. Made to fail on purpose by
+    /// clearing the latch.
+    #[test]
+    fn an_emplaced_weapon_drops_a_dead_target_s_order_while_recharging() {
+        for emplaced in [true, false] {
+            let (mut sim, ty) = at_war();
+            if emplaced {
+                sim.unit_types[ty].cols.unit_flags2 |= crate::ai_load::uflags2::EMPLACED;
+            }
+            let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+            let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+            sim.units[me].combat.stance = Stance::HoldFire;
+            sim.add_attack_order(
+                me,
+                Obj::Unit(foe),
+                crate::orders::QueuePos::First,
+                true,
+                false,
+            );
+            sim.units[me].combat.recharging = 12;
+            sim.units[foe].health = 0;
+            sim.forget(Obj::Unit(foe));
+            sim.units[me].combat.recharging -= 1;
+            sim.work(me, 0);
+            assert_eq!(
+                sim.units[me].orders.is_empty(),
+                emplaced,
+                "emplaced {emplaced}: {:?}",
+                sim.units[me].orders
+            );
+        }
+    }
+
     /// **A recharging melee unit with no order steps nothing**:
     /// `Unit::work@0060d180:79-86`'s gate returns for a non-`ATTACK` unit
     /// with `recharging` (`+0xae`) above nought and no range (`+0x1fc`)

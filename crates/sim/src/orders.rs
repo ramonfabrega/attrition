@@ -8790,7 +8790,29 @@ impl Sim {
         // returns for *every* recharging unit. Nothing on disk has a
         // recharging unit enter `fight`, which is what a capture would
         // have to carry to refuse them (item 336).
-        if state.recharging == 0 {
+        //
+        // **The emplaced weapon's latch** (item 3540, `docs/ORDERS.md`
+        // §7.12): `Unit::fight@005fd4d0:94`–`102`. `local_1c` is set when
+        // the type's `unit_flags2 & 1` ([`uflags2::EMPLACED`], the machine
+        // gun and flamethrower lineages) is set **and** the order's target
+        // fails `Object::valid_target` (or its `uid` no longer matches);
+        // the latch walks past the reload gate, so such a unit drops a dead
+        // target's order on the next frame whatever its `recharging`.
+        // run1184's Flamethrowers `1/84` and `1/129` (TypeIndex 131) drop
+        // their attack on the human's dead building `0/2004` on block 4345
+        // with `recharging` 23 and 12. The latch's other half — the
+        // current order's [`flag::FIGHT_REENTRY`] on a valid target — is a
+        // SEAM: it would enter the strike arms while recharging, and no
+        // capture has an emplaced weapon there.
+        let emplaced = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::EMPLACED));
+        let latch = emplaced
+            && match self.units[u].combat.target {
+                Some(t) => !self.valid_target(me, t),
+                None => true,
+            };
+        if state.recharging == 0 || latch {
             let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
             self.set_new_location(u, snap, true);
         }
@@ -8808,7 +8830,7 @@ impl Sim {
         // from its attack-move's look on 773 while recharging 13. On 774
         // it stands with its heading unchanged and rolls the idle, and
         // that roll is the chapter's word (`docs/ORDERS.md` §22).
-        if state.recharging != 0 {
+        if state.recharging != 0 && !latch {
             if a.new_ord
                 && let Some(target) = self.units[u].combat.target
                 && let Some(g0) = self.units[u].guys.first()
@@ -8829,11 +8851,10 @@ impl Sim {
         // not fire. Item 329 gave the bit its real writer
         // ([`flag::FIGHT_REENTRY`]) and its real readers, both in `fight`.
         //
-        // SEAM: `fight`'s head does reach the validity question while
-        // recharging, through `local_1c` — the re-entry latch, which
-        // needs `UnitType +0x2b8 & 1` *and* an invalid target — and that
-        // row of §7.11's table is unmodelled. It only ever makes the kill
-        // **earlier**, and no capture on disk has a unit in it.
+        // ~~SEAM: `fight`'s head does reach the validity question while
+        // recharging, through `local_1c` … unmodelled~~ — item 3540 built
+        // its invalid-target half (`latch` above); run1184 has two
+        // Flamethrowers in it.
         // **The follower takes its captain's target here, before the
         // validity test — and that is how two of three bowmen strike on
         // the frame the third spends searching** (item 502,

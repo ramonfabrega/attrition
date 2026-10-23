@@ -10237,11 +10237,11 @@ words and edits nothing here; a refill lands when two remain.
   long. A packet from a game that fields the piece answers each (`get_position.py … entries <piece>`).
   **Score**: none until a word parts on one of their rounds.
 
-(3538) closed 2026-10-23 by item 3538: booked as 3540 by the commander. **The Chinese word 4467's closing block is not widened.** The word closed at 4467, the game's last frame, and
+~~(3538) closed 2026-10-23 by item 3538: booked as 3540 by the commander. **The Chinese word 4467's closing block is not widened.** The word closed at 4467, the game's last frame, and
 `run1155_chinese_industrial_pair_closing_state` scores block 4468: 165 units compared, 14 off by position and nothing
 else (`1/107` by (114, −9), `1/73` by (−73, 72), `0/8` by (0, 28)). run1175's window ends on 3522, and run1155 prints
 units on every hundredth block only, so no dump holds the blocks where the 14 part. A window walked back from 4468 at
-the long's detail is the widening the word owes. **Score**: the closing counts, `[14, 0, 0, 0, 0, 0, 0]`. **Booked as 3540** (the fifty-third commander).
+the long's detail is the widening the word owes. **Score**: the closing counts, `[14, 0, 0, 0, 0, 0, 0]`. **Booked as 3540** (the fifty-third commander).~~ Answered by item 3540: run1184 widens 4201..4468, and the closing state is none off.
 
 ## Parked by item 3539, 2026-10-23 — a missed round strikes a city at its ceiling
 
@@ -10256,13 +10256,20 @@ early.
 (3539). The sim test `a_missed_round_strikes_a_city_at_its_ceiling` holds it; no capture lands an unaimed round on
 a site. Not booked: no score names it.
 
-## Parked by the next landing, slot PL — reserved
+## Parked by item 3540, 2026-10-23 — the Chinese closing state: the emplaced weapon's latch
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3540a. who=1's economy parts before block 4201 on the Chinese pair, and no dump holds where.** On run1184's first
+  block, `rare` and `rare_owned` read ours `11608000` against theirs `1148168000` (the AI owns a different set of
+  rares). `income` for wealth, knowledge and metal reads ours 3814/1200/1040 against 4454/1520/1360, and `MAKE[1].val`
+  ours 95 against 100. Food follows on 4376. run1175 ends on 3522 with no leader row standing, and run1155 prints no
+  `LEADERS`, so the leader parts somewhere in 3523..4201. **Score**: none. The closing state compares units, and it is
+  none off.
+- **3540b. `mylos` ours 4 against theirs 16 on five of who=1's units, and `dest_angle` on three, in run1184.**
+  `1/67`, `1/80`, `1/81`, `1/112` and `1/113` from block 4376, and `dest_angle` on `1/138` (4203), `1/110` (4342) and
+  `1/75` (4343). No position follows from them in the window. **Score**: none.
+- **3540c. `fight`'s latch on `FIGHT_REENTRY`.** `Unit::fight@005fd4d0:94`–`102` sets `local_1c` for an emplaced type
+  whose current order carries `flags & 0x10` even on a valid target. Item 3540 built only the invalid-target half.
+  **Score**: none until a capture has an emplaced weapon re-enter `fight` while recharging.
 
 ## Parked by the next landing, slot PM — reserved
 
