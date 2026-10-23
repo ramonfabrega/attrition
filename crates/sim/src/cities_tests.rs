@@ -3308,10 +3308,18 @@ fn the_space_program_halves_an_aircraft_and_angkor_wat_takes_a_quarter_off_a_shi
     assert_eq!(sim.price_of(0, air)[kn.index()], 318);
     // The same standing wonder, retyped: `wonders_held` reads its type.
     sim.buildings[w].ty = Some(angkor);
-    assert_eq!(sim.domain_cost_discounts(0, air), [15, 0], "the Space Program gone");
+    assert_eq!(
+        sim.domain_cost_discounts(0, air),
+        [15, 0],
+        "the Space Program gone"
+    );
     assert_eq!(sim.domain_cost_discounts(0, sea), [25, 0]);
     assert_eq!(sim.price_of(0, sea)[kn.index()], 562, "750 less a quarter");
-    assert_eq!(sim.domain_cost_discounts(0, land), [0, 0], "land takes neither");
+    assert_eq!(
+        sim.domain_cost_discounts(0, land),
+        [0, 0],
+        "land takes neither"
+    );
 }
 
 #[test]
