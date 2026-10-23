@@ -26191,7 +26191,7 @@ search answering the target itself. The retarget at `005f80a6`–`005f820a` has 
 families on block 3 (shared with 3506b). What the game put on the map: `rubric.py --tables 3` sees 29 skirmish types
 on the captures (item 3527's journal names them).
 
-## 305. The Chinese at a held Industrial age, Great Sahara: the Armored Car's turret and its bearing, 3007 → 3017 → 3271 of 4467 (2026-10-23, items 3511 and 3530)
+## 305. The Chinese at a held Industrial age, Great Sahara: the Armored Car's turret, its bearing and the rifle's muzzle, 3007 → 3017 → 3271 → 4467 of 4467 (2026-10-23, items 3511, 3530 and 3538)
 
 *Item 3511, Opus 5.5, the AI track (DECISIONS 90): run1154, run1155, run1155b and run1155c, on the click-free pool.*
 
@@ -26292,6 +26292,38 @@ ours (8472, 30360) against theirs (8136, 30120), `path:length` 14 against 8; on 
 Car `1/52` (`collide_o` 52, `collide` 2) where ours reads −1 and 1. Block 3258 carries what run1155b's last
 blocks had parted (`0/4`'s position, `1/41`'s path); the first new rows are 3270's, the city's `raid_stamp` again
 and the building `0/2002`'s `damage` ours 25 against 33.
+
+**Item 3538: the word was the state of 3243, and the Anti-tank Rifle's muzzle.** The draw delta on 3271 (ours 20,
+theirs 21, index 3) is theirs' `1/42`'s stop against the Armored Car `1/52`, which ours does not reach. **The direction
+is theirs**: on frame 3270 (block 3271) theirs replaces `1/42`'s chase move under its `ATTACK` on the Citizen `0/4` —
+`MOVEORDER` (8472, 30360), `off` (24, 408), `coll` (8784, 30527) becomes (8136, 30120), `off` (456, 168), `coll` (0, 0),
+a fresh order — and steps 28 along it, where ours walks on along its waypoints. No draw marks it: 3270 agrees. It is
+`o + frame ≡ 0 (mod 16)` for `o` 42, the chase review's phase (`check_target_path@005e22d0` re-aims through
+`find_attack_pos` and `add_move_order` unless the target is in reach of the move's goal); that arm is the reading, not
+probed. **What it read differed**: `0/4` (TypeIndex 50) stood one step behind theirs from block 3243, (7026, 29393)
+against (7005, 29378) on 3258. Walked back on run1155b: on block 3243 theirs carries a 12-point blow on `0/4`
+(`hits:damage` ours 30 against 42, `damage_o` 41, `damage_frame` 3242) and the `FLEEORDER` it starts, where ours has
+neither. **The shooter is the `ATRIFLE` `1/41`** (TypeIndex 137, land), whose round ours (`RON_DEBUG_AMMO`) launches
+on 3239 from the unit's own square (8808, 30648), 1,823 from its landing, and flies 5 frames at `PROJ_SPEED` 350,
+striking on 3243. The draws agree through 3270, so the launch frame is theirs'. Blocks 3180 (`0/2004`, `1/49`'s round)
+and 3204 (`0/13`, `1/31`'s) are the same shape (3530a): every late round is a rifle's.
+
+**Built** (`crates/sim/src/launch.rs`): piece **1143** (`87 + 3 × 0x160`, the Asian art style) in `BAYS`. run1155c's
+packet (`get_position.py … entries 1143`) holds three `AttachPos` rows, node 0 at 18 of `CHAR_ATTACK1`, 4 of `2` and
+16 of `3`, scale 1.0; each row's sweep is reproduced at all 361 headings, x and y, by the centroid of its exact
+region (62, 160 and 57 lattice points): `right` 17 058, 4 863 and −2 310, `fwd` 180 195, 179 398 and 161 815 (in
+thousandths), `dz` 60, 63 and 83. The muzzle stands some 180 units ahead of the figure, so the round flies 4 frames.
+`launch::tests::run1155c_s_rifle_rounds_leave_from_piece_1143_s_bays` reads the sweep at four facings.
+
+**The word moves 3271 → 4467, the game's last frame**, by the count and the sequence; every other lobby's
+`first_parting` holds and `battery_floors` is green. The value diff: block 3243's `0/4` `hits:damage` agrees at 42,
+and with it 3180's `0/2004` and 3204's `0/13`. run1155b goes **89 → 53** and run1175 **1024 → 43**: what stands is the
+windows' first-block standing families (`form`, `SITE[i].reg`, `aggression[1]`, groups' `held` and pools), and
+`1/42`'s block 3271 agrees, `path:length` 8. Mutated through `tools/mutate.py` (piece 1143's rows re-keyed): the walk
+goes back to 3271, the windows to 89 and 1024. **The closing state** (`run1155_chinese_industrial_pair_closing_state`,
+block 4468): 165 units compared, **14 off** by position and nothing else — `0/8` by (0, 28) and thirteen of who=1's, the
+largest `1/107` by (114, −9) — against 112 off without the rows. Where they part is not walked: run1155 prints units on
+every hundredth block only. The gunpowder line's other pieces have no rows (3538a).
 
 ## 306. Reserved for the next item on the AI track
 

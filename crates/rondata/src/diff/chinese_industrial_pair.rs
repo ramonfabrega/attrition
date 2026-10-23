@@ -11,7 +11,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const CHINESE_INDUSTRIAL: Pair = Pair {
     name: "GreatSaharaChineseIndustrial",
@@ -44,8 +44,15 @@ pub(crate) const CHINESE_INDUSTRIAL: Pair = Pair {
     // against 3 on block 3017). Ours 20 draws against 21, index 3 — ours
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
-    count: 3271,
-    sequence: 3271,
+    // Item 3538: 3271 -> 4467, the game's last frame — the Anti-tank
+    // Rifle's (piece 1143) launch rows (`sim::launch`). The state had
+    // parted on 3243: `1/41`'s round at the Citizen `0/4` left from the
+    // unit's own square, flew 5 frames against 4 and struck on 3243
+    // against theirs' 3242, so `0/4` fled a frame late, stood a step
+    // nearer `1/42`'s chase goal on 3270, and `1/42`'s review kept its
+    // move where theirs' re-aimed it at (8136, 30120).
+    count: 4467,
+    sequence: 4467,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -113,6 +120,60 @@ fn chinese_industrial_pair_is_no_other_lobby() {
             .iter()
             .any(|l| (l.map_style, l.ai_tribe, l.difficulty) == triple)
     );
+}
+
+/// **The pair's closing state**: run1155's closing dump, block 4468,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3538).
+#[test]
+fn run1155_chinese_industrial_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &CHINESE_INDUSTRIAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Chinese pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4468, "the closing block");
+    // Item 3538, the draw stream whole: 165 units compared, 14 off by
+    // position and nothing else — no field row, none torn, unlinked or
+    // extra. Who=0's `0/8` by (0, 28) and thirteen of who=1's, the largest
+    // `1/107` by (114, −9) and `1/73` by (−73, 72). run1155 prints units
+    // on every hundredth block only, so where they first part is not
+    // walked here.
+    pin_eq!(e.compared, 165, "units compared");
+    pin_eq!(e.counts(), [14, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// run1155b: the word 3007's window, blocks 3001..3257 at the long's
@@ -187,7 +248,16 @@ fn chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole() {
     // 3177 against theirs 3179 and the building `0/2004`'s `damage` ours
     // 24 against 31 — a blow ours does not land. The word 3271 is past the
     // window.
-    pin_eq!(w.firsts.len(), 89, "run1155b baseline");
+    //
+    // Then **53** with the Anti-tank Rifle's launch rows (item 3538): the
+    // rifles' rounds leave from the muzzle, some 180 units ahead of the
+    // figure, and land a frame sooner. Block 3180's `0/2004` (`1/49`'s
+    // round), block 3204's `0/13` (`1/31`'s) and block 3243's `0/4`
+    // (`1/41`'s: `hits:damage` ours 30 against 42 before, now 42) agree,
+    // and with them `0/4`'s flight of 3243 and `1/41`'s path of 3256. What
+    // stands is block 3001's 49 standing rows and groups 68's and 70's
+    // `held`/pool.
+    pin_eq!(w.firsts.len(), 53, "run1155b baseline");
 }
 
 /// run1175: the word 3271's window, blocks 3258..3522 at the long's
@@ -239,5 +309,13 @@ fn chinese_industrial_pair_run1175_s_word_frame_is_widened_whole() {
     // (8136, 30120), `path:length` 14 against 8, and on 3272 theirs
     // collides with the Armored Car `1/52` (`collide_o` 52, `collide` 2)
     // where ours does not (−1, 1) — theirs' `Unit::move_step+0x823` stop.
-    pin_eq!(w.firsts.len(), 1024, "run1175 baseline");
+    //
+    // Then **43** with the Anti-tank Rifle's launch rows (item 3538): the
+    // walk was the state of 3243. `0/4`'s flight now leaves on theirs'
+    // frame, so on 3270 `1/42`'s chase review (`check_target_path`, the
+    // sixteen-frame phase) finds `0/4` out of reach of the move's goal and
+    // re-aims at (8136, 30120), `path:length` 8, as theirs does. Block
+    // 3258's standing rows are all that part: `form` on 22 units, the
+    // ten `SITE[i].reg`, `aggression[1]`, and five groups' `held`/pool.
+    pin_eq!(w.firsts.len(), 43, "run1175 baseline");
 }
