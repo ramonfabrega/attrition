@@ -299,3 +299,61 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // `1/82`'s path on 3813 (parked 3525a).
     pin_eq!(w.firsts.len(), 151, "run1153c baseline");
 }
+
+/// run1171: the word 4343's window, blocks 4338..4548 — six blocks before
+/// the word's block 4344 and on to the game's closing block (item 3525).
+pub(crate) const RUN1171: &str =
+    "gamelog-run1171-eastindies-japanese-industrial-window-4338-4548.txt";
+
+/// The window: block 4338 through the closing block 4548; the word 4343's
+/// own block is 4344.
+pub(crate) const WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343: (i64, i64) = (4338, 4548);
+
+/// **The word 4343's window**: run1171 walked from run1152's start with
+/// the recorder on (item 3525).
+pub(crate) fn japanese_industrial_frame_4343_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[JAPANESE_INDUSTRIAL.start],
+        true,
+        JAPANESE_INDUSTRIAL.long,
+        "run1171",
+        &[(RUN1171, WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343.0)],
+        WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343,
+        1,
+        &[4344],
+        true,
+    )
+}
+
+#[test]
+fn japanese_industrial_pair_run1171_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_industrial_frame_4343_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 210, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3525, the first walk: 1306 keys. Block 4338 carries 109
+    // standing rows, all of the standing families run1153c's window already
+    // carries — `form`, `SITE[i].reg`, `aggression[1]`, who=1's groups'
+    // `held` and pools — and no unit field. **The state parts on the
+    // word's frame**: on block 4343 who=1's Light Tank `1/49` (TypeIndex
+    // 239, land, group 65), on an `ATTACKORDER` on the human's city
+    // `0/2000` with `in_range` 1 and `near` `0/3`, holds a `MOVEORDER` to
+    // (6360, 8568) in theirs (pushed on 4342, `unitorder.flags` 0) and
+    // none in ours, whose target is `0/3` from 4343 (`g.ox[0]` ours 3,
+    // theirs 2000 on 4344, and `recharging` ours 40: ours fires); `docs/AI.md`
+    // section 303.
+    pin_eq!(w.firsts.len(), 1306, "run1171 baseline");
+}
