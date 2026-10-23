@@ -98,7 +98,8 @@ is append-only and amended in place, as it always was.
 - 85 standing — The forty-sixth tranche is scored on four lanes at less a landing and less a game, the held-out battery runs six of eight whole, the sim lib's cap follows the thread count, the lane gate keeps the paperwork guards and refuses a moved base first, a push under a clear is a draft, the oracle cache is a directory a gc removes, the generator carries a hand block and three more shapes, and twenty Loop items become tools, rows, closes or Ramon's
 - 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
 - 86 standing — The forty-seventh tranche is scored on four lanes at the loop's cheapest landing, the held-out battery runs eight of eight whole and the battery track stops by its own rule, the forty-eighth tranche is booked on the blind list, two signal reports had one sender and get a guard, the lane gate gates past the commander's paperwork, and nineteen Loop items become tools, rows, closes or Ramon's
-- 90 standing — The fifty-first tranche is scored on two Opus lanes at eighteen `cover=1` landings in 8 h 05 at the loop's cheapest and fastest, the blind list closes to a floor of thirty-nine referenced rows, the headline moves to the rubric's unit types and six lobbies are booked for it, the pass and the commander stop messaging each other, and eleven Loop items become rules, rows, tools or closes
+- 91 standing — The fifty-second tranche is scored on two Opus lanes at twenty landings in 11 h 25 on six late-age pairs, the sim moves for the first time in five tranches and four pairs run whole, the rubric reads ages 8 of 8 and unit types 152 of 302 with lockstep bytes unmoved, the fifty-third tranche is booked on the open words and the whole pairs' twins, the drain's clear is named its last act, and the lane rule's trip is a recommendation to hold
+- 90 amended in place — The fifty-first tranche is scored on two Opus lanes at eighteen `cover=1` landings in 8 h 05 at the loop's cheapest and fastest, the blind list closes to a floor of thirty-nine referenced rows, the headline moves to the rubric's unit types and six lobbies are booked for it, the pass and the commander stop messaging each other, and eleven Loop items become rules, rows, tools or closes
 - 89 amended in place — The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter
 - 88 amended by 90 — The forty-ninth tranche is scored on two Opus lanes at sixteen `cover=1` landings drained early on a pit stop, the blind list falls 300 → 240 open, the click layer moves to the pool and the queue lane keeps only what no `@` line sends, two residue rows are ratified, the oracle cache key reads the parser and codec only, and sixteen Loop items become tools, rows, closes or Ramon's
 - 87 standing — The forty-eighth tranche is scored on five readings and two sweeps at the loop's cheapest and shortest landing, forty-five residue rows are ratified and the blind list falls 345 → 300, the forty-ninth tranche is booked as `cover=1` captures on the queue lane under a fifth brief kind, the queue carries a pinned `Blind:` line, and eleven Loop items become tools, rows, closes or Ramon's
@@ -8028,3 +8029,131 @@ Ramon's words: "our goal on rubric is to get a realistic metric on how
 we're doing … if we're progressing towards 1:1 sim and how much"; "are we
 done with sim mechanics? is it time to start lobby/render work?"; "the
 commander and steer should never msg each other… ccc clear is fine".
+
+## 91. The fifty-second tranche is scored on two Opus lanes at twenty landings in 11 h 25 on six late-age pairs, the sim moves for the first time in five tranches and four pairs run whole, the rubric reads ages 8 of 8 and unit types 152 of 302 with lockstep bytes unmoved, the fifty-third tranche is booked on the open words and the whole pairs' twins, the drain's clear is named its last act, and the lane rule's trip is a recommendation to hold
+
+*2026-10-23, the fifty-second pass (the `steer` session, Fable), reached
+by the commander's message at the drain (`9c05822ea`) on Ramon's own
+instruction after the commander halted without the steer's clear (Loop
+3536); Ramon's word that he talks to the pass before the next commander.
+The record is `docs/audit/2026-10-23-fable-pass-52.md`; this entry
+carries the decisions.*
+
+**What was measured.** Twenty landings on two lanes — every one an AI
+track item on a late-age pair, Opus 5.5 at `--effort medium`, every lane
+session's model read off lore — in **11 h 25** from the base
+(`05f6df2a`, 23:01 −05:00 on 10-22) to the twentieth booking
+(`9c05822ea`, 10:26 on 10-23), the drain's whole gate green. **Six
+late-age pairs stood up and four run whole**: the Germans at All
+Technologies first try (4175); the Aztecs 4382 → 4565 (the Space Program
+halves the ICBM); the Americans 1995 → 4548 (the Airbase's free Bomber,
+the Armored Scout Car's turret); the Russians at a held Modern age 8 →
+5841 over eight items (the Cruiser's, Dreadnought's and Destroyer's
+turrets, `find_attack_pos`'s unit tail, the Kremlin's Spy, a captain's
+retarget); the Japanese at Industrial open at 4434 of 4547 (the
+Barracks' price and pace, the boats' quarter, the carrier's shore eject,
+`fight`'s capture approach), the Chinese at Industrial open at 3017 of
+4467 (the Armored Car's turret). **2,449 lines in `crates/sim`** across
+21 files, `pivot.rs` +1,151 of them — the first sim change since the
+forty-seventh tranche. **The rubric, lockstep: ages held 7 → 8 of 8,
+unit types seen 128 → 152 of 302, lockstep bytes 77.0 % unmoved** — the
+whole pairs were traced at `cover=0`, which enters nothing but hooks.
+The blind list unmoved at 247 · 208 · 39, the scan finding none dead;
+the census backed 1696 unmoved (the census counts a document's cites
+and a sweep's, and 2,449 sim lines moved neither). **The price: 185.28
+USD list for the workers, 9.26 a landing** (98.03 / 5.45), 3516 the
+dearest at 16.87 over two sessions; the commander's sessions 18.28;
+**203.56 in all** (115.97). **Waiting 38.9 minutes a landing** (30.9):
+the gate 23.0 of 26.8 a session (19.7), the capture 0.9 (5.2); twenty
+booking gates, seven whole, thirteen scoped and every one widened,
+**none red**, 356.8 minutes of gate (242.4); **admission 1,180.7 s
+summed, longest 25.9 s** (119.4 / 0.9); three gate ends past the
+sixteen cores. **Nine `DEEP`** (two the tranche before), each landed from
+a second session whose cost was a second gate; no `STALLED`, no kill
+rule, no merge backed out. The pool held two lanes, waited nothing at
+the cap, median **99.2 frames a wall second** (24.5). The archives
+compressed 170 → 194 GiB free.
+
+**What it means.**
+
+1. **The late-age battery was the right call, and it is not done.** Entry
+   90 said eight whole would mean the sim done as far as the oracle can
+   tell; four of six diverged, in the mechanics no early-age game
+   reaches — turrets, air bases, the Space Program, naval boarding,
+   the capture approach — and the lanes ported them. Two words are open
+   and two pairs plus the Persians are unstarted; the fifty-third
+   tranche runs them (3529, 3530, 3512, 3513, 3535), a parting's
+   residue first.
+2. **A whole pair's `cover=1` twin is what moves lockstep bytes** (the
+   rubric's one blind spot, found on its first tranche): a `cover=0`
+   trace records the draw stream and enters no function, so the
+   lockstep share is carried by the nine `cover=1` twins of the early
+   words alone, and read 77.0 % through a tranche that changed 2,449 sim
+   lines. The fifty-third tranche books the four whole pairs' twins
+   (3531–3534) as `coverage` items — the pair's long lobby at `cover=1`,
+   checked against the `cover=0` long, pinned into `blind::TRACES`, the
+   worker re-pinning `RUBRIC_LOCKSTEP_BYTES_TENTHS` — and the frame and
+   checklist carry the rule. The definition stands.
+3. **The lane rule tripped and the pass recommends against it.** Entry
+   61 §5 removes a lane when the waiting a landing rises more than a
+   fifth (30.9 → 38.9, +26 %). The rise is the gate — 86 % of the waiting,
+   seven whole gates of 24–26 minutes beside thirteen widened scoped
+   ones, two lanes queuing at the admission door 1,180 s in all — and
+   the nine `DEEP` second sessions, each a second gate; the capture is
+   nothing and the pool idle. A lane fewer would halve the throughput
+   to save gate minutes a cheaper gate saves better. **Recommendation:
+   hold two lanes**; the levers are Loop 3526 (built: the waiter arms
+   the `DEEP` clear at the lane's draft push) and the gate's cost
+   (Loop 3382, the sim's ticks). Ramon's.
+4. **The drain's clear is the chain's last act and the only one** (Loop
+   3536): the commander stopped at twenty with its handoff written and
+   its gate green and did not run `ccc clear steer --then`, reading the
+   opener's "never message the steer row" as "never clear it"; the
+   handoff sat 36 minutes until Ramon asked what had stopped it and had
+   the commander message the steer — which re-read a 300 k-token
+   context, the thing the rule exists to prevent. With Ramon: **the
+   fence's clause is rewritten to the precise rule** — the rows hand over
+   by `ccc clear <row> --then` and a clear is not a message; lanes message
+   the commander, as they must; nobody messages the steer row and the
+   steer messages nobody — and the broad "never message each other"
+   leaves, since it was the thing misread; a `PreToolUse` hook was
+   considered and dropped (lanes' messages to the commander are the
+   loop's own signal). The chain names the clear as the drain's last act,
+   the opener names the verb, and a guard that refuses to call a tranche
+   drained with nothing armed is the row's candidate.
+5. **The rest**: 3526 built (an Opus 5.5 subagent, below); 3498 and 3433
+   stay unmeasured and unrepeated; 2003 took no reach; five stay Ramon's
+   (3350, 3237, 3188, 3143, 3118) with the tranche's numbers; 3506c
+   settled at the booking. The backlog 10 → 10.
+
+6. **Loop 3526 is a tool, and not the one the brief named**: a `DRAFT`
+   trigger can never fire when the arm was refused, so `lanewait.py
+   --arm-after-push <lane>` takes the lane's next push as the draft and
+   arms `ccc clear <lane> --then` itself, `ARMED` or `ARM-REFUSED` on
+   stdout, once; the chain's `DEEP` answer names it. `retire.py` gains
+   `--doc` and `--no-ledgers` and reads 173 of 1,216 sections unnamed
+   with the ledgers out. Loop 3382's thirty minutes measured the pin at
+   102 s, 60 s of it the sim's ticks, and landed nothing.
+
+**Against entry 90's estimate**: `ENDING_TECHNOLOGY` held on the
+read-back — met; the six pairs in under six hours — **missed** (11 h 25,
+four diverged); unit types 74 → at least 150 — met (152, lockstep); a
+landing under 5.50 USD and 35 minutes — **missed** (9.26 / 38.9); the
+pool over 15 frames a second — met (99.2); no red booking gate — met; no
+blocked ending — met as reported; no message between the rows —
+**missed at the drain**; no dead row among the 39 — met. Six of nine.
+
+**The estimate, written down to be wrong on record**, on nine items and
+two Opus lanes: the four twins land and lockstep bytes 77.0 → above
+80 %; the Japanese and the Chinese words close; the British, the Turks
+and the Persians stand up with at most one parting each before 2000; a
+landing under 8 USD and under 35 minutes waiting; `DEEP` under five with
+3526 built; no red booking gate; the drain ends with `ccc clear steer
+--then` armed and no message between the rows; the scan finds no dead
+row among the 39.
+
+**The measure for the next pass**: lockstep bytes against 77.0, unit
+types against 152, ages 8 of 8 held; each landing's USD and waiting
+against 9.26 / 38.9; the gate class against 23.0 a session and the
+admission against 1,180 s; `DEEP` against nine; whether the drain armed
+the clear; the backlog against 10; the disk against 194 GiB.

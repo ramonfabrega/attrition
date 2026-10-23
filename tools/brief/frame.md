@@ -363,6 +363,12 @@ Before any reading, in order:
   `tools/rubric.py --tables 3` on your tree after the pin and re-pin
   `census::RUBRIC_UNIT_TYPES_SEEN` with the count in its comment; the
   `Rubric:` line is the commander's.
+- **A whole pair's `cover=1` twin is what moves lockstep bytes** (3531;
+  DECISIONS 91): a `cover=0` trace enters nothing but its hooks, so the
+  four whole late-age pairs moved the share not at all; the twin is the
+  pair's own long lobby retaken at `cover=1`, checked against the
+  `cover=0` long, and `rubric.py --tables 4` re-pins
+  `census::RUBRIC_LOCKSTEP_BYTES_TENTHS` once it is in `blind::TRACES`.
 
 ## build
 

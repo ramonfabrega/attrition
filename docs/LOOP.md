@@ -229,10 +229,14 @@ lane's draft journal, pushed for its `DEEP` answer, exited the waiter
 sixteen of the twenty-ninth tranche's `LANDED` exits came after the
 lane's own line, each a whole-context turn that learned nothing (parked
 1695). **And a `DEEP <lane> <ctx>k` exit is answered in its turn**: one
-line to the lane — journal as a draft, commit, end the turn — and `ccc
-clear <lane> --then "continue item <N> from the journal"`, armed by the
-commander, since a lane's own arm is refused (DECISIONS 61) and five
-sessions over 300 k took none (parked 1637, 1638). **And a `STALLED
+line to the lane — journal as a draft, commit, push, end the turn — and
+the waiter re-armed with `--arm-after-push <lane>`, which arms `ccc
+clear <lane> --then "continue item <N> from the journal"` at that lane's
+next push and prints `ARMED` or `ARM-REFUSED` (Loop 3526: `ccc clear`
+refuses a lane with uncommitted work, so an arm in the answer's own
+turn failed twice and the commander's line had already said "armed");
+a lane's own arm is refused (DECISIONS 61) and five sessions over 300 k
+took none (parked 1637, 1638). **And a `STALLED
 <lane> <min>` exit is answered in its turn**: one line to the lane —
 the gate or capture it waited on has exited; read its log and land —
 because a lost exit notice leaves a row `working` at `tempo=idle` with
@@ -317,7 +321,11 @@ commander's row into the next tranche — `ccc clear commander --then
 "<the queue's opener>"`, armed with the tree committed — and the
 commander, at twenty landings, with its handoff written, its gate green
 and its lanes drained, ends by clearing the pass's row the same way:
-`ccc clear steer --then "<the opener>"`. **The two rows are permanent
+`ccc clear steer --then "<the opener>"`. **That clear is the drain's last
+act and the only one; a drain that stops without it is a stall** (Loop
+3536: the fifty-second tranche's commander halted at twenty reading
+"never message the steer row" as "never clear it", and the handoff waited
+36 minutes for a person). The opener the pass writes names the verb. **The two rows are permanent
 and `spawn --replace` is not used**: a cross-session clear fires (ccc
 measured it, 2026-10-07, `docs/DECISIONS.md` entry 64 (iv)) when the
 target's tree is committed at the arm and at the fire, the target is at
@@ -330,22 +338,15 @@ first) or a tree the harness or ccc cut — those are `ccc rm`'s (parked
 removed them). One of the two is
 live at a time and only the live one edits the worktree; the `attrition`
 row is the user's, where a steer with the user happens, and it edits
-nothing there while a commander's lanes are out. **And the two rows never
-message each other** (Loop 3499, Ramon, 2026-10-22): the pass's product
-is the committed tree and the opener it arms, and the commander's is the
-handoff it writes before the clear; a decision taken with Ramon while
-the commander runs is written into the parked file for the next pass or
-sent by Ramon himself, never relayed by the steer's row, and a question
-the commander has for the steer is a Loop row, not a message — the
-fiftieth pass answered three mid-tranche and each answer revived a
-300 k-token conversation for a status line nobody had asked for. **The
-one channel between the rows is `ccc clear <row> --then "<opener>"`**,
-which starts a fresh session; a message to a resting row re-reads its
-whole context, and the pass's record reads `lore thread commander steer`
-since the base to say none crossed. **Nor
-does the pass launch the commander on the turn it finishes when the
-opener says it does not**: it ends with its report, and the launch is
-Ramon's word.
+nothing there while a commander's lanes are out. **The two rows hand over by `ccc clear <row> --then
+"<opener>"` and by nothing else; a clear is not a message.** Lanes
+message the commander, as they must; **nobody messages the steer row**,
+and the steer messages nobody — its product is the committed tree and
+the opener it arms, and a decision taken with Ramon while a commander
+runs is Ramon's to send or waits for the next pass (Loop 3499: the one
+time it happened, a relayed decision came back hours later as a status
+line that re-read a 300 k-token context; Loop 3536: "never message" was
+once read as "never clear", and a drain stopped).
 
 **An unattended pass has a fence.** It measures the tranche, ratifies the
 marked rows, rules the Loop items, builds the loop's tools and guards,

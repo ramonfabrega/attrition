@@ -319,11 +319,13 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// `rontrace` logs. The scored captures are `cover=0`, so the twins carry it.
 pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 770;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
-pub const RUBRIC_AGES_HELD: usize = 7;
+pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->
 /// 131, the German pair whole on run1145b — the General `GENERALGERMAN`
-/// (57), the Leopard Tank (259) and the Tornado (297).
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 131;
+/// (57), the Leopard Tank (259) and the Tornado (297). The fifty-second
+/// pass: 131 -> 152 on the Aztec, American and Russian pairs whole
+/// (`rubric.py --record`, 107 lockstep dumps), and ages held 7 -> 8.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 152;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

@@ -12,17 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-second tranche (commander, Opus): drained at twenty from `05f6df2a`**, every lane refilled; **the pass is due**.*
+*2026-10-23, **the fifty-second pass (steer, Fable): the fifty-second tranche scored, the fifty-third booked**; the commander waits on Ramon's conversation (DECISIONS 91).*
 
 - **Words**: two open, the Chinese at 3017 of 4,467 (lower map first — Great Sahara (Chinese, Industrial)) and the Japanese at 4434 of 4,547;
-  held-out eight of eight. **The headline, the late ages**: six pairs stood up (3506–3511), four whole — the Germans first try, the Aztecs,
-  the Americans, **the Russians at Modern 8 → 5841** over eight items; the Japanese 1351 → 4434 over five; the Chinese 3007 → 3017.
-- **For the pass**: `ages held` reads 7 of 8, Modern never, and the Russians are whole at Modern (`rubric.py --record`); 3512–3513 unstarted.
-  Twenty landings, two Opus lanes, 11 h 20, 185 USD (`tranche.py`, lore's list price of 2026-10-23), 38.0 minutes waiting a landing (30.9
-  before: over a fifth up), 38 captures, no red gate, nine `DEEP` (Loop 3526). Parked rows in `docs/PARKED.md` under items 3506–3528.
-- **Lanes: none live; four booked** (3530, 3529, 3512–3513), the AI track's shape. Next 3531, run 1176.
-  Pools: GOLDEN §149–154, AI §306–310, park PE–PJ.
-- **Fable backlog: 10 Loop items** (3526, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 90.
+  held-out eight of eight. **The late ages**: six pairs stood up, four whole on real sim work (2,449 lines in `crates/sim`); **the rubric, lockstep**:
+  ages 8 of 8, types 128 → 152 of 302, **bytes 77.0 % unmoved** (the whole pairs traced at `cover=0`; their twins booked, 3531–3534). Blind: 0 of 39 dead.
+- **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
+  30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
+- **Lanes: none live; nine booked** (3530, 3529, 3531–3534, 3512, 3513, 3535): open words, then twins, then pairs; refill a parting's residue,
+  then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3537, run 1182. Pools: GOLDEN §149–154, AI §306–310, park PJ–PP.
+- **Fable backlog: 10 Loop items** (3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -38,18 +37,19 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 247 · residue 208 · open 39
-Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.0 % · ages held 7 of 8 · unit types seen 131 of 302
+Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.0 % · ages held 8 of 8 · unit types seen 152 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-second pass (steer, Fable) — the tranche drained at twenty from `05f6df2a`; this handoff, Loop 3526, the backlog.**
+**Opener: the fifty-third tranche (commander, Opus) — nine items booked from `9c05822ea`'s pass; take 3530 and 3529 on two Opus lanes (`brief.py --kind
+residue …` for a word, `--kind coverage …` for a twin; `claude-opus-5-5[1m]` at medium), refill in order then by the rule; at twenty or Ramon's word, `ccc clear steer --then "<opener>"`.**
 
 ## The queue
 
-In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). **Every item stands up one late-age pair** (DECISIONS 90; `mongol_pair.rs`'s shape,
-1466 and 1728's stand-ups): its own `DUMP_ALL` start and long draw-stream trace at `cover=0` on the pool to the game's end (`--allow-early-end`,
-`--ffwd-minute 27`, `end:UNITS=3,GUYS=2` on `--stride 100` for the rubric, the walk seeded from the start: 3506a), `--map M --ai-tribe N
---profile DIFFICULTY=D --profile STARTING_RESOURCES=7 --profile STARTING_TECHNOLOGY=A --profile ENDING_TECHNOLOGY=A`, both read back by
-`Pair::assert_lobby` (the age's `ages_get()` in the stanza); `diff::<name>_pair` pinned at its first parting or whole, the word frame widened, a scoreboard line; a parting is a residue item on that word. Opus; gate `--tests <pair>:: blind::`.
+In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88, 91). Three shapes (DECISIONS 90, 91): **a residue item on an open word** (its
+frame and draw delta, the AI track's); **a whole pair's `cover=1` twin** — the pair's long lobby retaken at `cover=1` on the pool, checked against its
+`cover=0` long (`rngcmp.py`; `samegame.py`), pinned into `blind::TRACES` so `rubric.py`'s lockstep bytes and `blind::NEVER` read it; **a late-age pair
+stood up** (`mongol_pair.rs`'s shape: own `DUMP_ALL` start and `cover=0` long, `end:UNITS=3,GUYS=2` on `--stride 100`, the walk seeded from the start (3506a),
+the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pair::assert_lobby`, `diff::<name>_pair` at its first parting, a scoreboard line). Opus; a word's gate `--tests <pair>:: blind::`, a twin's `--tests blind:: --no-widen`.
 
 3530. **The Chinese word, frame 3017: ours 19 draws against 17, index 0** (ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
 Guy::do_turn+0x4a`; 3511's widening on run1155b, AI §305): the Armored Car `1/23`'s `cavarch_o` reads ours 11 against theirs 3 on
@@ -60,13 +60,30 @@ Unit::die+0x19`; 3528's value diff on run1171, AI §303): the human's Citizen `0
 row is block 4411, `0/3 hits_left` 44 against 34 — 160 sixteenths from the Dreadnought `1/54` (348, sea, group 66) at (1896, 9384)
 that ours never makes. Run 1174; amend §303 in place; park PC.
 
+3531. **coverage: the Germans' All-Technologies twin** (`EastIndiesGermanAllTech`, whole at 4175 on run1144/1145; DECISIONS 91): the pair's
+long lobby at `cover=1` on the pool, `--allow-early-end`, checked against run1145 (`rngcmp.py` none differing; `samegame.py` whole), pinned into
+`blind::TRACES`; the journal names the functions it entered that no trace had (`report.py <log> functions` against `NEVER`) and re-pins
+`census::RUBRIC_LOCKSTEP_BYTES_TENTHS` off `rubric.py --tables 4` — the first lockstep trace of an age-7 game. Run 1176; park PE.
+
+3532. **coverage: the Aztecs' All-Technologies twin** (`GreatSaharaAztecAllTech`, whole at 4565 on run1146/1147): as 3531, against
+run1147; the land map's age-7 line, the Space Program's halved ICBM (3514) in the trace. Run 1177; park PF.
+
+3533. **coverage: the Americans' Modern twin** (`GreatSaharaAmericanModern`, whole at 4548 on run1150/1151): as 3531, against run1151; the
+Airbase's free Bomber (§302) and the Armored Scout Car's turret (3518) in a lockstep trace. Run 1178; park PG.
+
+3534. **coverage: the Russians' Modern twin** (`EastIndiesRussianModern`, whole at 5841 on run1148/1149): as 3531, against run1149; the
+Cruiser's, Dreadnought's and Destroyer's turrets (3519, 3523, 3525) and the Kremlin's Spy (3527) in a lockstep trace. Run 1179; park PH.
+
 3512. **The British at a held Enlightenment age, East Indies** (`--map 18 --ai-tribe 11`, Difficulty 5, ages 4/4): `HIGHLANDER`, the Red
 Coats (`MUSKETEERS`), `FUSILIER`, `MORTAR`, `RIFLEHORSE`, `HORSEGUARDGREN`, `SLOOP`, `CLIPPER`, `MANOWAR`, `MORTARSHIP`, `HEAVYFIRESHIP` —
-twenty-five land and six sea records at age 4. Runs 1156–1157; park OO.
+fifteen land and one sea record never seen at age 4. Runs 1156–1157; park OO.
 
 3513. **The Turks at a held Enlightenment age, Great Sahara** (`--map 7 --ai-tribe 8`, Difficulty 3, ages 4/4): `JANISSARYROYAL`,
-`BASILICACANNON`, `CAMELCORPS`, `DONCOSSACK`'s kin, `JUNKERS`, `ROYALGUARD`; the Persians at Medieval (ages 2/2, `ATHANATOI`, `CARAVEL`,
-`BRIG`) is the refill's first lobby after these. Runs 1158–1159; park OP.
+`BASILICACANNON`, `CAMELCORPS`, `JUNKERS`, `ROYALGUARD`, `MANCHUMUSKETEERS`' kin. Runs 1158–1159; park OP.
+
+3535. **The Persians at a held Medieval age, East Indies** (`--map 18 --ai-tribe 23`, Difficulty 5, ages 2/2; the All-Technologies Persians
+trained none of their early line): `ATHANATOI`, `ATHANATOIBOW`, `IMPI`'s and `FIRELANCES`' generic kin, `LEGIONELITE`, `BRIG` — sixteen land and
+one sea record never seen at age 2, and the age-1 line (nineteen) if the computer starts below the cap. Runs 1180–1181; park PI.
 
 ## How to maintain this file
 

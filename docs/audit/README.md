@@ -391,6 +391,20 @@ stall. The pass added the fifth kind, `coverage`, and these rows.
   cited what it read and entered nothing; the click-free pool takes
   `cover=1` as well as the queue lane (3429). *(Amended by item 3485, 2026-10-22: the queue lane retired; a need for it again is a steer.)*
 
+## The brief checklist, from the fifty-second pass
+
+The fifty-second tranche (DECISIONS 91): twenty landings on two Opus
+lanes in 11 h 25, six late-age pairs stood up and four closed on real
+simulation work, 9.26 USD and 38.9 minutes waiting a landing (5.45 /
+30.9), no red booking gate, nine `DEEP`. The pass added this row.
+
+- **A whole pair's `cover=1` twin is what moves lockstep bytes** (3531;
+  the pass's reading of `rubric.py --record`): the four whole late-age
+  pairs were traced at `cover=0`, which enters nothing but its hooks, so
+  the rubric's lockstep share stood at 77.0 % through a tranche that
+  changed 2,449 lines of the sim; the twin at `cover=1` is the take that
+  counts.
+
 ## The brief checklist, from the fifty-first pass
 
 The fifty-first tranche (DECISIONS 90): eighteen `cover=1` landings on
