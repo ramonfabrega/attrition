@@ -11,7 +11,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const AZTEC_ALLTECH: Pair = Pair {
     name: "GreatSaharaAztecAllTech",
@@ -31,8 +31,12 @@ pub(crate) const AZTEC_ALLTECH: Pair = Pair {
     // Item 3507, first try: frame 4382 by the count and the sequence, ours
     // 607 draws against 567, index 9: ours `Leader::produce_building+0x1805`,
     // theirs `Leader::make_stuff+0x63d` (`docs/AI.md` section 301).
-    count: 4382,
-    sequence: 4382,
+    // Item 3514: whole, 4382 -> 4565. `get_cost`'s domain arm prices the
+    // Silo `1/2010`'s Nuclear ICBM at 872/942 with the Space Program held
+    // (ours charged 1224/1366 and escrowed it), and the draw stream agrees
+    // to the game's last frame; the closing block 4566 compares whole.
+    count: 4565,
+    sequence: 4565,
 };
 
 /// The pair's word as the handoff's line and `AI_WORDS` carry it.
@@ -97,6 +101,56 @@ fn aztec_alltech_pair_captures_say_their_lobby() {
     );
 }
 
+/// **The pair's closing state**: run1147's closing dump, block 4566,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3514).
+#[test]
+fn run1147_aztec_alltech_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &AZTEC_ALLTECH;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Aztec pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4566, "the closing block");
+    // Item 3514, the pair whole: 263 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 263, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
 /// run1147b: the word 4382's window, blocks 4376..4566 at the long's detail
 /// — six blocks before the word's block 4383, and on to the game's closing
 /// block 4566 (item 3507).
@@ -141,6 +195,11 @@ fn aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // The word 4382's block is 4383. Item 3507, first try.
-    pin_eq!(w.firsts.len(), 2415, "run1147b baseline");
+    // The word 4382's block is 4383. Item 3507, first try: 2415.
+    // Item 3514: 2415 -> 308, the Silo's ICBM queued on 4383 on both sides
+    // (`num_queued[316]` 1, `bucket[3:knowledge]` 228, `bucket[5:oil]`
+    // 8064) and the word whole at 4565, whose block 4566 closes the window.
+    // 92 keys stand on 4376 as before; the first later row is `1/93`'s
+    // `attrition` on 4388 (ours 6 against 24), the family parked 3506b.
+    pin_eq!(w.firsts.len(), 308, "run1147b baseline");
 }

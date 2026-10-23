@@ -10453,12 +10453,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Aztecs at All Technologies, Great Sahara** (item 3507, DECISIONS
     // 90): a late-age pair's first try, frame 4382 on run1147, walked from
     // run1146's start; widened on run1147b over 4376..4566 (block 4383),
-    // which runs to the game's closing block.
+    // which runs to the game's closing block. Item 3514: whole at 4565,
+    // the game's last frame, its closing block 4566 the window's last and
+    // scored by `run1147_aztec_alltech_pair_closing_state`.
     (
         "AZTEC_ALLTECH_WORD",
         crate::diff::aztec_alltech_pair::AZTEC_ALLTECH_WORD,
         Some("aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole"),
-        3507,
+        3514,
         Some(crate::diff::aztec_alltech_pair::WIDENING_AZTEC_ALLTECH_FRAME_4382),
     ),
 ];
@@ -11189,14 +11191,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // **The Aztecs at All Technologies, Great Sahara** (DECISIONS 90, item
     // 3507): the line's second late-age pair, human Nubians against the Aztecs at Difficulty
-    // 3, `STARTING_TECHNOLOGY 8`; the game ends itself on 4565.
+    // 3, `STARTING_TECHNOLOGY 8`; the game ends itself on 4565. Whole by
+    // item 3514, its closing state compared.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaAztecAllTech",
         named: "Great Sahara (Aztecs)",
         word: crate::diff::aztec_alltech_pair::AZTEC_ALLTECH_WORD,
         length: 4_565,
-        endpoint: None,
+        endpoint: Some("run1147_aztec_alltech_pair_closing_state"),
         window: Some("aztec_alltech_frame_4382_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
