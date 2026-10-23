@@ -7333,6 +7333,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2229: 873 -> 877, the walk past 4637 to the word 4671.
     // Item 2259: 877 -> 923, the walk past 4671 to the word 4946.
     ("mongol_pair_first_parting", 923),
+    // The first late-age pair (item 3506): the Germans at All
+    // Technologies, East Indies, walked from run1144 to the game's end on
+    // run1145b; its closing state walks the same.
+    ("german_alltech_pair_first_parting", 1585),
+    ("run1145b_german_alltech_pair_closing_state", 1585),
     // The peace pair walked to its word (item 2423): 858 reads in the walk
     // past 3479 to the word 4544, where it read none before.
     // Item 2460: 858 -> 1080, the walk past 4544 to the word 4859.
