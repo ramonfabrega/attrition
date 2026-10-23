@@ -9880,6 +9880,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3540,
         Some(crate::diff::chinese_industrial_pair::WIDENING_CHINESE_INDUSTRIAL_CLOSING),
     ),
+    // **The land map's held Enlightenment pair** (item 3513): the Turks at
+    // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
+    // unit on a move where theirs idles it), widened on run1159b over
+    // 2495..2751 (block 2502).
+    (
+        "TURKISH_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT_PAIR_WORD,
+        Some("turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole"),
+        3513,
+        Some(crate::diff::turkish_enlightenment_pair::WIDENING_TURKISH_ENLIGHTENMENT_FRAME_2501),
+    ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
     // Lakota food term, widened on run849 over 1978..2235 (block 1985);
@@ -11388,6 +11399,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_467,
         endpoint: Some("run1155_chinese_industrial_pair_closing_state"),
         window: Some("chinese_industrial_closing_window"),
+    },
+    // The Turks at a held Enlightenment age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 4), Great Sahara (item 3513): first try 2501, ours
+    // turning a unit on a move where theirs idles it, of a game that ends
+    // itself on 3812; widened on run1159b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaTurkishEnlightenment",
+        named: "Great Sahara (Turks, Enlightenment)",
+        word: crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT_PAIR_WORD,
+        length: 3_812,
+        endpoint: None,
+        window: Some("turkish_enlightenment_frame_2501_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

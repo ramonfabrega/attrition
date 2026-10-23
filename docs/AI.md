@@ -26357,12 +26357,76 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 307. Reserved for the next item on the AI track
+## 307. The Turks at a held Enlightenment age, Great Sahara: a Village three frames late, 2501 of 3812 (2026-10-23, item 3513)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3513, Opus 5.5, the AI track (DECISIONS 90): run1158, run1159 and run1159b, on the click-free pool.*
+
+**The lobby.** The Chinese pair's (§305: Great Sahara, `MAP_STYLE 7`, human Nubians against a computer at
+Difficulty 3, seed 12345, `STARTING_RESOURCES 7`), with the nation varied to the **Turks (8)** and the age **held
+at Enlightenment**: `STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`. Both captures read it back through
+`Pair::assert_lobby` (`turkish_enlightenment_pair_captures_say_their_lobby`). **The game ends itself at 3812**
+(closing block 3813).
+
+**The triple is a held-out lobby's.** `(7, 8, 3)` is also `battery::BATTERY`'s `GreatSaharaTurkishTier3` (item
+3385, run1010b), which plays every age from the first (`STARTING_TECHNOLOGY 0`, `ENDING_TECHNOLOGY 7`) on
+`STARTING_RESOURCES 1`. So the pair stays out of `battery::SCORED_LOBBIES`, whose triples the battery's identity
+test refuses. `turkish_enlightenment_pair_is_no_other_lobby` instead asserts that `GreatSaharaTurkishTier3` is the
+one battery lobby on the triple, and reads both lobbies' ages and resources off their own `GAME INFO`.
+
+**The captures.** run1158 is the `DUMP_ALL` start. run1159 is the long, 3507's run1147 recipe (`end:UNITS=3,GUYS=2`
+on `--stride 100`), walked from run1158's initial state (3506a); the two traces' 37 common frames are identical.
+run1159b (2495..2751) is the word's window, booked because the stride leaves block 2502 undumped. Its 2752
+frames are `rngcmp.py`-identical to run1159.
+
+**First try: frame 2501 of 3812**, by the count and the sequence. Ours spends 12 draws and theirs 13. They part at
+index 0: theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_idle+0x7d` (seed `344c6034`), ours
+`Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6`. After that one draw the two streams run in
+step: the turn's three draws, two more `do_idle`, `Guy::inc_time`, `Guy::set_anim+0x104b` and five
+`Farms::inc_time`. **Theirs idles one unit that ours does not.**
+
+**The units, by `TypeIndex` and domain.** The idler is who=1's **Citizen `1/20` (TypeIndex 50, land)**, the builder
+on a `BUILDORDER` at **`1/2020`, a Village (TypeIndex 414, uid 41)** at (36960, 3168). None of the units the
+booking names (`JANISSARYROYAL`, `BASILICACANNON`, `CAMELCORPS`, `JUNKERS`, `ROYALGUARD`, `MANCHUMUSKETEERS`) is
+in the parting.
+
+**The value diff** (run1159b walked from run1158, 2651 keys). Block 2495 carries 47 standing rows: the ten
+`SITE[i].reg`, `aggression[1]`, every unit's `form`, and who=1's groups 64–66 ours alone. It also carries the
+Village three frames behind: `construct_hits` **ours 1181 against theirs 1187**, `job_counter` **ours 59100
+against 59400** of `constr_time` 60000. On the word's block 2501 theirs completes it: `build:city` ours −1 against
+theirs 2, `ever_seen_completed` 0 against 2, `regen_roads` 0 against 1, and who=1's `city_num` 2 against 3,
+`pop` 4 against 5, `defense` 3 against 4. Theirs' `1/20` drops its order (`orders.len` ours 1, theirs 0), and on
+2502 it is `idle` in theirs (0 against 1). That is theirs' index-0 `do_idle` draw.
+
+**Walked back.** Theirs' Village prints `frame_started 1901` and a clock exactly 100 a frame from it (59400 on
+block 2495 is 594 frames). `frame_started` is on `coverage.rs`'s unread list, so ours' agreement there is
+unmeasured. Ours' clock (`RON_DEBUG_BUILDS=1895-2500`) stands at 0 through 1903 and takes its first 100 on 1904,
+then runs 100 a frame without a stall to 59700 on 2500. Ours' `1/20` (`RON_DEBUG_UNIT`) reaches the site at
+(37224, 3912) on 1904. Theirs' is there by block 1901, where the long prints it at the site with only the
+`BUILDORDER` left. **The builder arrives three frames late.** The Citizen agrees on the long's stride block 1401
+at (40885, 14504). By 1501 it has parted: ours (41596, 12371) against theirs (41524, 12335), then (52, 54) apart on
+1601, (45, 59) on 1701 and (0, 75) on 1801 (y 6309 against 6234). The long dumps every hundredth block, so the frame it
+first parts on lies in 1402..1501 and is not on disk.
+
+**The direction** is the walk's, not the build's: the Village's work rate agrees (100 a frame on both sides), and
+what differs is when its one builder gets there. The next item's hypothesis is a slower walk by ours' `1/20` in
+1401..1501, read on a window over those blocks.
+
+**What is pinned.** `diff::turkish_enlightenment_pair` (run1158, run1159, run1159b):
+`turkish_enlightenment_pair_first_parting` (2501 and 2501 of 3812), `…_captures_say_their_lobby`,
+`…_is_no_other_lobby`, and `…_run1159b_s_word_frame_is_widened_whole` (256 blocks, 2651 keys; its window is in
+the coverage driver). An `AI_WORDS` row on `Late ages` (`GreatSaharaTurkishEnlightenment`), and the word in
+`testkit::WIDENINGS`.
+
+**The rubric.** The pair's dumps field fifteen skirmish types. Two are new to the lockstep ledger: **Royal
+Janissaries (113, `JANISSARYROYAL`)** and **Basilica Cannon (277, `BASILICACANNON`)**. The rubric reads lockstep
+games only, so they count once the pair is whole. The lockstep measure on this tree reads 158 of 302 types
+against the pinned 152; the six are other landings' (3538, 3539), and re-pinning them is the pass's
+(`census::RUBRIC_UNIT_TYPES_SEEN`'s comment). `CAMELCORPS`, `JUNKERS`, `ROYALGUARD` and `MANCHUMUSKETEERS`' kin
+are not in this game.
+
+**What is not established.** The frame in 1402..1501 where `1/20` first parts, and on which field. Whether ours'
+`frame_started` is 1901 (the field is unread). Whether anything other than the builder's walk feeds the three
+frames.
 
 ## 308. Reserved for the next item on the AI track
 
