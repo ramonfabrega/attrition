@@ -1060,9 +1060,23 @@ impl Sim {
     /// so the call is the capture path's, not the attack's. The attempt may
     /// change the city's owner, so the call is a mutation (item 1535).
     pub fn valid_target(&mut self, attacker: Obj, target: Obj) -> bool {
+        self.valid_target_out(attacker, target, None)
+    }
+
+    /// [`Self::valid_target`] with the original's fourth argument, the
+    /// out-word: 1 when the target is a capture-eligible city building and
+    /// the capture the call tried did not take. `Unit::fight@005fd4d0:196`
+    /// is the one caller in this crate that reads it — its capture
+    /// approach (item 3528, `docs/ORDERS.md` §7.2).
+    pub(crate) fn valid_target_out(
+        &mut self,
+        attacker: Obj,
+        target: Obj,
+        out: Option<&mut i32>,
+    ) -> bool {
         valid_target_steps(
             self,
-            None,
+            out,
             |s| s.valid_target_const(attacker, target),
             |s| matches!(target, Obj::Building(b) if s.capture_eligible(b)),
             |s| s.profile(attacker).has(mask::MISSILE),

@@ -8686,6 +8686,59 @@ impl Sim {
     // The attack order — §7.2
     // ------------------------------------------------------------------
 
+    /// **`fight`'s capture approach** (`Unit::fight@005fd4d0`,
+    /// `005fd8d1`–`005fda9b`; `docs/ORDERS.md` §7.2). `Object::valid_target`
+    /// refused the target and said, through its out-word, that the target is
+    /// a capture-eligible city building the call's own capture did not
+    /// take. Under a mandatory order, or on a computer's unit (`unit_masks &
+    /// 0x40000`), a **land** unit (type `+0x218 == 0`) that can capture
+    /// (`UnitData::get_capture_value`, vslot `+0xec`, non-zero) — or a
+    /// computer's siege unit (type vslot `+0x10c`), which counts nothing —
+    /// further than `city_capture_radius × 0xc0` from the city, centre to
+    /// centre (`vector_dist` at `005fd99c`), asks `find_nearby_spot(0, 0x180,
+    /// 0, 0x55555555, FILTER_NOT_ME)` round the **midpoint** of the two
+    /// centres (each half `(a + b) / 2`, truncated) and walks there:
+    /// `add_move_order(spot, 1, 0, QUEUE_FIRST, 0)`, the attack kept under
+    /// it. The siege case then drags its army onto the city
+    /// (`Army::charge(ox, whom)`). Answers whether it walked, which is
+    /// `fight`'s `return 0`; otherwise the refusal goes on to
+    /// `find_new_target` as before.
+    ///
+    /// run1171's `1/49` (`LIGHTTANK`, 239, land), on an `ATTACKORDER` on
+    /// Napata `0/2000` reduced on 4341, is 3107 from the city on 4342 and
+    /// walks to (6360, 8568), the spot round (6372, 8556).
+    pub(crate) fn capture_approach(&mut self, u: usize, target: Obj, mandatory: bool) -> bool {
+        let ai = self.unit_ai_bit(self.units[u].owner);
+        if !mandatory && !ai {
+            return false;
+        }
+        let siege = ai && self.is_siege_unit(u);
+        let unit = &self.units[u];
+        if unit.kind.domain != crate::attrition::Domain::Land {
+            return false;
+        }
+        let can_capture = !unit.decoy && !self.is_siege_unit(u);
+        if !can_capture && !siege {
+            return false;
+        }
+        let (m, t) = (unit.pos, self.pos_of(target));
+        if vector_dist((m.x - t.x).abs(), (m.y - t.y).abs())
+            <= self.tuning.city_capture_radius * 0xc0
+        {
+            return false;
+        }
+        let mid = Pos::new((t.x + m.x) / 2, (t.y + m.y) / 2);
+        let Some(spot) = self.find_nearby_spot(u, mid, 0, 0x180, 0, Angle(0x5555_5555), None)
+        else {
+            return false;
+        };
+        self.add_move_order(u, spot, MoveKind::MoveTo, QueuePos::First, false);
+        if siege && let Some(slot) = self.army_of(u) {
+            self.army_charge(self.units[u].owner, slot, target);
+        }
+        true
+    }
+
     /// `Unit::do_attack` → `fight`'s order-management half, on the existing
     /// attack step: the target check, the reload gate with `new_ord`, the
     /// 1/5 re-search, range → strike, out of range → the chase inserted in
@@ -8835,7 +8888,14 @@ impl Sim {
             self.kill_current_order(u);
             return;
         };
-        if !self.valid_target(me, target) {
+        let mut capturable = 0;
+        if !self.valid_target_out(me, target, Some(&mut capturable)) {
+            // **The capture approach** (item 3528, `docs/ORDERS.md` §7.2):
+            // `Unit::fight@005fd4d0`, `005fd8d1`–`005fda9b`, the first arm
+            // under the refused target, ahead of `find_new_target`.
+            if capturable != 0 && self.capture_approach(u, target, state.mandatory) {
+                return;
+            }
             // `find_new_target`: the order dropped, then
             // `find_melee_target(−1, NULL, 0, 1, 0)`, **whose head is the
             // squad's** (item 1089, `docs/COMBAT.md` §79). A follower takes

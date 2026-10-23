@@ -25984,6 +25984,22 @@ Tank `1/49` (`LIGHTTANK`, 239, land), on an `ATTACKORDER` on city `0/2000` with 
 `MOVEORDER` to (6360, 8568) on 4342 and keeps `0/2000`; ours reads the city out of reach on 4342 and takes `0/3`
 on 4343 and fires. **The direction is theirs**; which arm pushes is the next item's first question.
 
+**Item 3528 (2026-10-23, Opus 5.5): `fight`'s capture approach, 4343 → 4434** (no capture; the walk is the
+journal's). Napata `0/2000` is reduced on 4341, so `valid_target` refuses it to `1/49` on 4342 with its out-word
+set. `Unit::fight@005fd4d0`'s first arm under the refusal (`005fd8d1`–`005fda9b`, `docs/ORDERS.md` §7.2) takes
+a mandatory order or `unit_masks & 0x40000`, and a land unit with `get_capture_value` or a computer's siege unit.
+Past `city_capture_radius × 0xc0`, that unit walks at `QUEUE_FIRST` to `find_nearby_spot(0, 0x180)` round the
+midpoint (6372, 8556): theirs' (6360, 8568). Built as `Sim::capture_approach`. Mutated: arm off, the walk
+falls to 4343; spot round the city, run1171 reads 1362.
+
+**The value diff, on the word's frame** (run1171, block 4343): `1/49 orders.len` ours 2 against 3, `orders_x/y`
+(6504, 10104) against (6360, 8568); on 4344 `pos` (6504, 10104) against (6500, 10065), `g.ox[0]` 3 against 2000.
+All agree after, to 4467; run1171 **1362 → 922** keys.
+
+**The next word, 4434**: ours 15 draws against 16, index 15, theirs `Unit::close+0xcb6 < Object::die+0x29`: the
+human's Citizen `0/3` (50, land) dies. On block 4411 `0/3 hits_left` reads ours 44 against theirs 34, from theirs'
+blow of 4410 by `1/54` (`DREADNOUGHT`, 348, sea). Why ours makes no such blow is the next item's first question.
+
 **What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
 ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
 alone). `JAPANESE_DAMAGE`'s arm in `damage.rs` reads `Modifiers::japanese_level`, which nothing writes (parked 3510a).
@@ -25991,8 +26007,9 @@ alone). `JAPANESE_DAMAGE`'s arm in `damage.rs` reads `Modifiers::japanese_level`
 **Coverage.** Diff-backed: the Barracks cost arm (run1153b's 1345 queues), the Barracks speed arm (the walk's 1351),
 the Japanese boats' quarter on a fish (run1153c's 3668 income, item 3521), the civilian carrier's shore eject (run1153c's
 3674 landing, item 3521), the Dreadnought's two turrets (run1153c's 3770 blow, item 3523), the Destroyer's three
-turrets (run1153c's 3808 blow, item 3525), the captain's retarget onto its own target (the walk's 3816, item 3525). Reading only: the ship-cost and carrier arms, and the per-tier shape for a non-negative
-constant; `boat_eject_all`'s air refusal and its kept-cargo case (a passenger `come_out` refuses), which no capture
+turrets (run1153c's 3808 blow, item 3525), the captain's retarget onto its own target (the walk's 3816, item 3525),
+`fight`'s capture approach (the walk's 4343, item 3528). Reading only: the capture approach's mandatory and siege
+arms (parked 3528a); the ship-cost and carrier arms, and the per-tier shape for a non-negative constant; `boat_eject_all`'s air refusal and its kept-cargo case (a passenger `come_out` refuses), which no capture
 reaches.
 
 ## 304. The Russians at a held Modern age, East Indies: the first held-age pair, parting on frame 8 (2026-10-23, item 3508)
