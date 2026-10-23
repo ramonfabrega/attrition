@@ -24527,3 +24527,89 @@ from (9412, 31822, 727), landing at (8371, 29688, 705), t 2/6, `flags 0x6`. It a
 `AttachPos` entries (`get_position.py … entries 168`) and its four pivot sweeps, which are kept outside git under
 `~/ron-data/lab-experiments/2026-10-23-item-3518/`. `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_168`
 reads them (`RON_RELEASE_TABLE_168`).
+
+## run1152 — the Japanese at a held Industrial age, East Indies: the `DUMP_ALL` start (2026-10-23, item 3510, `att-3510`)
+
+`docs/AI.md` §303. The coverage pair's lobby, with the nation and the age varied, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1152 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 2. Launched 03:58:44, exited 03:59:09 (24.4 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 15, five files restored. `GAME INFO` reads back
+  `MAP_STYLE 18`, `DIFFICULTY 5`, `STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5` and `STARTING_RESOURCES 7`. Filed
+  with `filerun.py run1152 eastindies-japanese-industrial-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1152-eastindies-japanese-industrial-start.txt`, 153,802,337 bytes,
+SHA-256 `a08ef2f98705b546b287e3d1632dfb8f86e78cdf026a74c79794f24809e56bf4`.
+
+Archive `rontrace-run1152.log`, 10,121,216 bytes,
+SHA-256 `08dcbbc55e8c723b9541bf68e95650297c610b4f58f6499c838525a0d06b183f`.
+
+**What it holds**: the start of `japanese_industrial_pair::JAPANESE_INDUSTRIAL`, and the walk's initial state.
+
+## run1153 — the Japanese at a held Industrial age, East Indies: the draw stream to the game's end (2026-10-23, item 3510, `att-3510`)
+
+`docs/AI.md` §303. 3507's run1147 recipe with this lobby: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 15
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1152's
+lobby.
+- The first take, on lane 1 beside run1152, died at startup on a Wine page fault (`wine-died.log`: a read of
+  `0x00004ECD` at `0x7BF21139`); the runner printed a traceback (`extra lifecycle or fault records`) and no receipt.
+  Its directory is kept as `~/ron-golden/run1153-dead-pagefault` (parked 3510b).
+- The retake: pool lane 1, launched 03:59:53, exited 04:00:25 (32.4 s launch to exit). `success`. **The game ended
+  itself on 4547** (closing block 4548, `ended_early`). `GAME INFO` reads back as run1152's. `rngcmp.py` against
+  run1152: 37 frames identical. Filed with `filerun.py run1153 eastindies-japanese-industrial-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1153-eastindies-japanese-industrial-trace.txt`, 33,305,784 bytes,
+SHA-256 `3970e515dfd34fe5fccbf4186c4e1546a05d172c67f5cd8c3ae710bd12e9acf9`.
+
+Archive `rontrace-run1153.log`, 99,012,992 bytes,
+SHA-256 `dc9ef9ee4396907fb65131f749228b5e0223fe13be45cf0cbf3af3fe0a238d52`.
+
+**What it holds**: the pair's first try. `japanese_industrial_pair_first_parting` walks it from run1152. The first
+try parts on **frame 1351 of 4547** (count and sequence): ours 5 draws, theirs 12, index 0, theirs
+`Guy::init_real+0x52`, three Riflemen out of a Barracks. Item 3510 takes it to **3674**: ours 73 against 94, index 0.
+
+## run1153b — the Japanese at a held Industrial age, East Indies: the word 1351's window, blocks 1345..1601 (2026-10-23, item 3510, `att-3510`)
+
+**Disk gap**: run1152 holds only the first blocks, and run1153 every hundredth block at `UNITS`/`GUYS` detail, so no
+dump held the word's block 1352 or any building's queue. `--map 18 --end-frame 1601 --timeout 3600 --log-window 1345
+1601 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --profile STARTING_TECHNOLOGY=5
+--profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`.
+- Pool lane 1. Launched 04:04:08, exited 04:04:41 (33.9 s launch to exit). `success`: 1602 frames, last frame 1601.
+  `rngcmp.py` against run1153: **1602 frames in common, 0 differing**. Filed with `filerun.py run1153b
+  eastindies-japanese-industrial-window-1345-1601`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1153b-eastindies-japanese-industrial-window-1345-1601.txt`, 477,168,020 bytes,
+SHA-256 `dc50e7a42dd826d51312fcba6ca3e5a2ca4bd945cb2cc37b07beb82df3ce2ab6`.
+
+Archive `rontrace-run1153b.log`, 19,399,328 bytes,
+SHA-256 `1de5f551fbe008f170743276902f7cc4f956d7826e6ef4193e69662b00de7c9f`.
+
+**What it holds**: `japanese_industrial_pair_run1153b_s_word_frame_is_widened_whole` (256 blocks): the Barracks'
+Riflemen priced ours 80/70 against theirs 68/60 on 1345, the Japanese Barracks arm of `get_cost`.
+
+## run1153c — the Japanese at a held Industrial age, East Indies: the word 3674's window, blocks 3668..3924 (2026-10-23, item 3510, `att-3510`)
+
+**Disk gap**: no dump held the word's block 3675; run1153's stride blocks print no leader record. Booked after the
+Barracks arms moved the word. `--map 18 --end-frame 3924 --timeout 3600 --log-window 3668 3924 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --profile STARTING_TECHNOLOGY=5 --profile
+ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`.
+- Pool lane 1. Launched 04:14:17, exited 04:15:41 (83.2 s launch to exit). `success`: 3925 frames, last frame 3924.
+  `rngcmp.py` against run1153: **3925 frames in common, 0 differing**. Filed with `filerun.py run1153c
+  eastindies-japanese-industrial-window-3668-3924`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1153c-eastindies-japanese-industrial-window-3668-3924.txt`, 595,457,887 bytes,
+SHA-256 `3737b40f2fa4d5dc32b664e481f771c11e5e7a58e52cd46eff0c28612b9dda7f`.
+
+Archive `rontrace-run1153c.log`, 77,426,848 bytes,
+SHA-256 `35c45dd4fb6a35e8b37eb5109c4b46349c53fce1f1be8a01245c76905623845e`.
+
+**What it holds**: `japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole` (256 blocks, 2956 keys; five
+inexact height reads, `GROUND_INEXACT`): the next word's window. The state parts before 3668 (who=1's food and wealth
+income, 80 apart each).

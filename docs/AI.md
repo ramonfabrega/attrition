@@ -25834,12 +25834,70 @@ no dump prints `turret_angles`, so the release's `(d₁, t)` cell is diff-backed
 packet holds. Nor is why ours' late round struck nothing on 4532, with `0/5` still on its square in ours. The fix
 removes the case, and the arm is unread.
 
-## 303. Reserved for the next item on the AI track
+## 303. The Japanese at a held Industrial age, East Indies: the Barracks' price and pace, 1351 → 3674 of 4547 (2026-10-23, item 3510)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3510, Opus 5.5, the AI track (DECISIONS 90): run1152, run1153, run1153b and run1153c, on the click-free pool.*
+
+**The lobby.** The coverage pair's (§127: East Indies, `MAP_STYLE 18`, human Nubians against a computer at Toughest,
+seed 12345, `STARTING_RESOURCES 7`) with the nation varied to the **Japanese (15)** and the age **held at
+Industrial**: `STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5`. Both captures read it back through `Pair::assert_lobby`
+(`japanese_industrial_pair_captures_say_their_lobby`). **The game ends itself at 4547** (closing block 4548).
+
+**The captures.** run1152 is the `DUMP_ALL` start; run1153 the long, 3507's run1147 recipe (`end:UNITS=3,GUYS=2` on
+`--stride 100`), walked from run1152's initial state (3506a): 37 frames identical between the two. run1153's first
+launch died at startup on a Wine page fault (`wine-died.log`, read at `0x00004ECD`), no receipt, and was retaken
+whole. run1153b (1345..1601) and run1153c (3668..3924) are the two words' windows, each `rngcmp.py`-identical to
+run1153 over every frame they share.
+
+**First try: frame 1351 of 4547**, by the count and the sequence. Ours spends 5 draws and theirs 12; they part at
+index 0 on theirs' `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`, three times: a birth.
+`births.py` names them on the long's block 1401 as `1/19`, `1/20`, `1/21`, **`RIFLEMAN` (TypeIndex 100, land)**, and
+three more, `1/22`..`1/24`, on 1359 (run1153b).
+
+Theirs' twelve, in order: `Guy::init_real+0x52 < Unit::init` ×3, `Guy::set_anim+0x97a < Guy::inc_time` ×3,
+`Guy::set_anim+0x104b` ×2, `Farms::inc_time+0x1ae` ×4. Ours' five open on `Guy::set_anim+0x104b`.
+
+**The value diff** (run1153b walked from run1152, 708 keys). **The state parts before the window**: on block 1345
+who=1's Barracks `1/2013` prices its Riflemen queue `queue[0].cost` **ours 80/70 against theirs 68/60**, and
+`1/2017` 79/69 against 67/59, with every later slot alike; the food, timber and metal buckets part with them
+(ours 18487 food against 18581). On the word's block 1352 theirs' `1/19`..`1/21` are out of `1/2013`
+(`num_units[50]` ours 0, theirs 1; `queue:queued` ours 4, theirs 3).
+
+**The cause: the Japanese arms of `get_cost` and `train_time`, neither carried.**
+- `TypeData::get_cost@00664090:236`–`257`, after the French arm and before the German: a leader with
+  `has_tribe_bonus(0xf)`, a unit whose trainer (`UnitTypeData +0x40`) is **by equality** the Barracks (`0x1ab`):
+  `JAPANESE_BARRACKS_COST` (−7) is negative, so the price is `(100 + tier × k) × cost / 100`, the tier `min(ages,
+  epoch[0])` — the same tier as the free-unit ladders (`docs/CITIES.md` §4.3). At tier 2: `86 × 80 / 100 = 68`,
+  `86 × 70 / 100 = 60`, `86 × 85 / 100 = 73`. A unit trained at the Dock, Anchorage or Shipyard (`0x1b0`..`0x1b2`,
+  the `else if`) takes `(100 − JAPANESE_SHIP_COST) × cost / 100`, 10 as shipped. A non-negative barracks constant
+  takes the ship's shape.
+- `ObjectData::train_time@006508c0:118`–`139`, after the Mongol stable arm: the same Barracks equality takes `t ×
+  100 / (k' + 100)`, `k' = −JAPANESE_BARRACKS_SPEED × tier` (10 a tier), and a unit of the Aircraft Carrier's
+  lineage (`UnitTypeData::is(0x15f, 0)`) `JAPANESE_CARRIER_SPEED` (33).
+
+Both are built: `Sim::nation_unit_discount` and `Sim::train_tail` (`crates/sim/src/lib.rs`), the four constants in
+`Tuning`. Each was mutated off through `tools/mutate.py` and held: the cost arm's mutation fails its direct test
+(`japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier`) and both widenings; the speed arm's fails
+the first parting and both widenings. **The speed arm alone moves the word**; the cost arm moves the value diff.
+
+**The word moves 1351 → 3674**: ours 73 draws against 94, index 0, theirs `Unit::think_scout+0x941 <
+Unit::think_peasant+0x2ac < Unit::think+0x362`. run1153b drops to 61 keys, every one a standing family the other
+late-age pairs carry (`SITE[i].reg` ours 65 against 0, `aggression`, `form`, groups' `held` and pool).
+
+**The next word, 3674** (run1153c, 2956 keys). On the word's block 3675 ours holds a unit `1/121` alone and who=1's
+Citizen `1/10` is inside it (`inside` 121 against −1); theirs' `1/10` stands at (37416, 26280) and re-scouts. **The
+direction is ours.** The state parts before the window: on block 3668 who=1's income is **food ours 1440 against
+theirs 1520, wealth 1752 against 1832** (80 each, `rate` 90 against 95 and 68 against 73), with `leftover`,
+`escrow[2]` and the make list's values beside them. The long prints no leader record between its stride blocks, so
+the walk back from 3668 is the next item's first step; a hypothesis only: an income term worth 5 a minute in two
+goods at once.
+
+**What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
+ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
+alone). `JAPANESE_DAMAGE`'s arm in `damage.rs` reads `Modifiers::japanese_level`, which nothing writes (parked 3510a).
+
+**Coverage.** Diff-backed: the Barracks cost arm (run1153b's 1345 queues), the Barracks speed arm (the walk's 1351).
+Reading only: the ship-cost and carrier arms, and the per-tier shape for a non-negative constant.
 
 ## 304. The Russians at a held Modern age, East Indies: the first held-age pair, parting on frame 8 (2026-10-23, item 3508)
 
@@ -26017,6 +26075,13 @@ families on block 3 (shared with 3506b). What the game put on the map: the rubri
 `HVYMACHINEGUN`, `HOWITZER`, `FIGHTERBOMBER`, `V2ROCKET` and `PTBOAT` were not seen.
 
 ## 305. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
+
+## 306. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
 never touch adjacent lines (parked 1741): the booking assigns it by number

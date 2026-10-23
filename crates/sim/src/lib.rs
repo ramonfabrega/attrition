@@ -2743,12 +2743,31 @@ impl Sim {
     /// there on 6580, and with a wealth bucket of 39 offered it at a
     /// quarter (`docs/AI.md` §242). The nations' arms are exclusive by
     /// tribe, so one answer per type is the tail's product. The Mongol,
-    /// Japanese, American, British, Nubian and Roman arms of the
-    /// same tail are not modelled.
+    /// American, British, Nubian and Roman arms of the same tail are not
+    /// modelled.
+    ///
+    /// **The Japanese arm** (`get_cost:236`–`257`, after the French and
+    /// before the German): a Japanese leader's (`has_tribe_bonus(0xf)`)
+    /// unit whose trainer is, by equality, the Barracks (`0x1ab`) takes
+    /// `JAPANESE_BARRACKS_COST` — negative, so per tier, `(100 + tier × k) ×
+    /// cost / 100` with the tier `min(ages, epoch[0])` — and one trained at
+    /// a Dock, Anchorage or Shipyard (`0x1b0`..`0x1b2`) takes
+    /// `JAPANESE_SHIP_COST` off. The Japanese Industrial pair's Barracks
+    /// `1/2013` prices its Rifleman 68/60 there on 1345, 80/70 here before
+    /// item 3510 (`docs/AI.md` §303).
     pub fn nation_unit_discount(&self, who: Player, ty: usize) -> i32 {
         let french = self.nation[who as usize].french;
         if french && matches!(self.trainer_where(ty), Some(0x1ae | 0x1af)) {
             return self.tuning.french_siege_cost;
+        }
+        if self.japanese(who) {
+            let trainer = self.trainer_where(ty);
+            if trainer == Some(nations::ty::BARRACKS) {
+                return self.japanese_per_tier(who, self.tuning.japanese_barracks_cost);
+            }
+            if trainer.is_some_and(|t| nations::ty::DOCKS.contains(&t)) {
+                return self.tuning.japanese_ship_cost;
+            }
         }
         if self.nation[who as usize].germans
             && self.unit_types[ty].tree.is_some_and(|t| {
@@ -2775,6 +2794,28 @@ impl Sim {
             return self.tuning.spy_general_cost;
         }
         0
+    }
+
+    /// `has_tribe_bonus(0xf)`: the Japanese, read off the tree as
+    /// [`Self::refresh_nation_powers`] leaves them.
+    fn japanese(&self, who: Player) -> bool {
+        self.tech_tree.has_tribe_bonus(
+            &self.setup,
+            &self.tech[who as usize],
+            nations::power::JAPANESE,
+        )
+    }
+
+    /// A Japanese constant as both its readers take it: `k` as written when
+    /// it is not negative, and `−k × min(ages, epoch[0])` when it is ("per
+    /// age" in the rules) — `get_cost:241`–`251` and `train_time:123`–`131`.
+    fn japanese_per_tier(&self, who: Player, k: i32) -> i32 {
+        if k < 0 {
+            let p = &self.tech[who as usize];
+            -k * p.epoch[0].min(p.ages)
+        } else {
+            k
+        }
     }
 
     /// `get_cost:299`–`305`: a Russian leader's unit of the Spy's lineage
@@ -3931,7 +3972,8 @@ impl Sim {
     /// speed-upgrade step after it (item 1365).
     ///
     /// **Of the national arms only the British, the German (item 2974), the
-    /// Chinese citizen (item 3092) and the Mongol are here**, and that is a scope claim rather
+    /// Chinese citizen (item 3092), the Japanese (item 3510) and the Mongol
+    /// are here**, and that is a scope claim rather
     /// than an oversight: the block's nine other arms are inert in every
     /// capture on disk, so each would be a predicate no diff could check,
     /// and the audit's standing lesson is that predicates are exactly where
@@ -3939,9 +3981,8 @@ impl Sim {
     /// British on both East Indies captures, and `BRITISH_SHIP_SPEED` is
     /// what the AI's Dock clock is measured against.
     ///
-    /// The arms that come *before* it in the original — the lobby handicap,
-    /// The President, the Japanese barracks and carrier, the Chinese
-    /// citizen — are absent from the captures: the handicap is zero on
+    /// The arms that come *before* it in the original — the lobby handicap
+    /// and The President — are absent from the captures: the handicap is zero on
     /// both players and the rest are other nations' powers, so starting
     /// the tail here is exact rather than approximate. **The Mongol stable
     /// arm is built** (item 1744), first of the block. Of the ones
@@ -3962,6 +4003,28 @@ impl Sim {
                 .is_some_and(|w| self.tech_tree.is(w, nations::ty::STABLES[0], false))
         {
             tail.push(production::Adjust::Faster(self.tuning.mongol_stable_speed));
+        }
+        // **The Japanese arms** (`train_time@006508c0:118`–`139`, after the
+        // Mongol and before the Chinese): a Japanese leader's unit whose
+        // trainer is the Barracks (`0x1ab`) by equality takes
+        // `JAPANESE_BARRACKS_SPEED` per tier, `t × 100 / (−k × tier +
+        // 100)`; a unit of the Aircraft Carrier's lineage (`is(0x15f, 0)`)
+        // `JAPANESE_CARRIER_SPEED`. The Japanese Industrial pair's
+        // Riflemen leave Barracks `1/2013` on 1351 there (item 3510,
+        // `docs/AI.md` §303).
+        if self.japanese(who) {
+            if self.trainer_where(ty) == Some(nations::ty::BARRACKS) {
+                tail.push(production::Adjust::Faster(
+                    self.japanese_per_tier(who, self.tuning.japanese_barracks_speed),
+                ));
+            }
+            if self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(0x15f).is_some() && self.tech_tree.is(t, 0x15f, false)
+            }) {
+                tail.push(production::Adjust::Faster(
+                    self.tuning.japanese_carrier_speed,
+                ));
+            }
         }
         // **The Chinese citizen arm** (`train_time@006508c0:140`–`159`,
         // after the Japanese arms and before the British): a Chinese
