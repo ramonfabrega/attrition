@@ -238,6 +238,13 @@ pub struct Modifiers {
     /// own truncating step after the Spy/General arm ([`Modifiers::discount`])
     /// and the stable rares, before the Statue of Liberty.
     pub citizens: [i32; 2],
+    /// `get_cost`'s **domain arm** (`UnitTypeData +0x218`, the pre-ramp
+    /// tail after the Citizen arms and before Despotism, on the train and
+    /// research arms alike): a sea unit takes Angkor Wat's `ANGKOR_SHIPS`;
+    /// an air unit takes Aluminium's `ALUMINUM_AIR_COST`, then the Space
+    /// Program's `SPACE_AIR_COST` — each its own `(100 − x) × cost / 100`,
+    /// in that order. Zero is the identity (item 3514, `docs/AI.md` §301).
+    pub domain: [i32; 2],
     /// Percentage off the scaled base, before the ramp.
     pub discount: i32,
     /// Horses', Rubber's and then Sulphur's (a Siege Factory unit's) percentage off a Stable or Auto Plant
@@ -633,6 +640,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
         cost = (100 - pct) * cost / 100;
     }
     for pct in m.citizens {
+        cost = (100 - pct) * cost / 100;
+    }
+    for pct in m.domain {
         cost = (100 - pct) * cost / 100;
     }
     if m.despotism != 0 {

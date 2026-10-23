@@ -3254,6 +3254,74 @@ fn a_held_supercollider_finishes_a_research_job_on_its_next_tick() {
     );
 }
 
+/// `TypeData::get_cost@00664090`'s domain arm (item 3514, `docs/AI.md`
+/// §301): Angkor Wat takes `ANGKOR_SHIPS` off a sea unit; Aluminium then the
+/// Space Program take `ALUMINUM_AIR_COST` and `SPACE_AIR_COST` off an air
+/// unit, each truncating; a land unit takes neither. The Aztecs' ICBM on
+/// run1147b's 4383 is 750 knowledge halved to 375 by the Space Program.
+///
+/// Made to fail once with the Space Program's step removed.
+#[test]
+fn the_space_program_halves_an_aircraft_and_angkor_wat_takes_a_quarter_off_a_ship() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    sim.set_tech_tree(tree);
+    let wonder = |sim: &mut Sim, k: usize| {
+        let mut w = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+        w.ident = Ident::default();
+        w.wonder = true;
+        w.tree = Some(line[k]);
+        sim.add_build_type(w)
+    };
+    let space = wonder(&mut sim, tech::wonder::SPACE_PROGRAM);
+    let angkor = wonder(&mut sim, tech::wonder::ANGKOR_WAT);
+    let kn = economy::Resource::Knowledge;
+    let unit_in = |sim: &mut Sim, domain: attrition::Domain| {
+        let mut u = citizen_type(t.village);
+        u.price = cost::Price {
+            class: cost::RampClass::Military,
+            pop: 1,
+            ..cost::Price::free().with_base(kn, 75)
+        };
+        u.combat.domain = domain;
+        sim.add_unit_type(u)
+    };
+    let air = unit_in(&mut sim, attrition::Domain::Air);
+    let sea = unit_in(&mut sim, attrition::Domain::Sea);
+    let land = unit_in(&mut sim, attrition::Domain::Land);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    assert_eq!(sim.domain_cost_discounts(0, air), [0, 0], "nothing held");
+    assert_eq!(sim.price_of(0, air)[kn.index()], 750);
+    let w = sim.place_building(0, space, tile_pos(32, 25)).unwrap();
+    finish(&mut sim, w);
+    assert_eq!(sim.domain_cost_discounts(0, air), [0, 50]);
+    assert_eq!(sim.price_of(0, air)[kn.index()], 375, "750 halved");
+    assert_eq!(sim.domain_cost_discounts(0, sea), [0, 0], "not a ship's");
+    sim.ledgers[0].rare |= 1 << (economy::ALUMINUM - economy::BASE_RARE);
+    assert_eq!(sim.domain_cost_discounts(0, air), [15, 50]);
+    // `(100 − 15) × 750 / 100 = 637`, then `50 × 637 / 100 = 318`.
+    assert_eq!(sim.price_of(0, air)[kn.index()], 318);
+    // The same standing wonder, retyped: `wonders_held` reads its type.
+    sim.buildings[w].ty = Some(angkor);
+    assert_eq!(
+        sim.domain_cost_discounts(0, air),
+        [15, 0],
+        "the Space Program gone"
+    );
+    assert_eq!(sim.domain_cost_discounts(0, sea), [25, 0]);
+    assert_eq!(sim.price_of(0, sea)[kn.index()], 562, "750 less a quarter");
+    assert_eq!(
+        sim.domain_cost_discounts(0, land),
+        [0, 0],
+        "land takes neither"
+    );
+}
+
 #[test]
 fn a_garrisoned_city_is_emptied_rather_than_captured() {
     let mut sim = world_sim();

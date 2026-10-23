@@ -600,6 +600,18 @@ pub struct Tuning {
     /// holds Uranium — `get_cost`'s pre-ramp tail (`:416`–`420`;
     /// `docs/AI.md` §167). Ships as `5%`.
     pub uranium_nuke_cost: i32,
+    /// Percentage off a sea unit's price while the player holds Angkor
+    /// Wat — `get_cost`'s domain arm (`+0x218 == 1`, the pre-ramp tail
+    /// after the Citizen arms; `docs/AI.md` §301). Ships as `25%`.
+    pub angkor_ships: i32,
+    /// Percentage off an air unit's price when the player holds Aluminium
+    /// — the same arm's air branch (`+0x218 == 2`), ahead of the Space
+    /// Program's. Ships as `15%`.
+    pub aluminum_air_cost: i32,
+    /// Percentage off an air unit's price while the player holds the
+    /// Space Program — the air branch's second step (`has_wonder(0x21e)`;
+    /// `docs/AI.md` §301). Ships as `50%`.
+    pub space_air_cost: i32,
     /// Percentage off a Bomber-line type's price while the player holds
     /// the Statue of Liberty — `get_cost`'s pre-ramp tail (`00664dfc`;
     /// `docs/AI.md` §204). Ships as `33% cheaper`.
@@ -1442,6 +1454,9 @@ impl Tuning {
         sulphur_siege_cost: 20,
         wine_unit_upgrades: 20,
         uranium_nuke_cost: 5,
+        angkor_ships: 25,
+        aluminum_air_cost: 15,
+        space_air_cost: 50,
         liberty_bombers: 33,
         liberty_missiles: 0,
         liberty_units: 0,
@@ -2080,6 +2095,9 @@ impl Tuning {
             ("SULPHUR_SIEGE_COST", Slot::Value(T.sulphur_siege_cost)),
             ("WINE_UNIT_UPGRADES", Slot::Value(T.wine_unit_upgrades)),
             ("URANIUM_NUKE_COST", Slot::Value(T.uranium_nuke_cost)),
+            ("ANGKOR_SHIPS", Slot::Value(T.angkor_ships)),
+            ("ALUMINUM_AIR_COST", Slot::Value(T.aluminum_air_cost)),
+            ("SPACE_AIR_COST", Slot::Value(T.space_air_cost)),
             ("LIBERTY_BOMBERS", Slot::Value(T.liberty_bombers)),
             ("LIBERTY_MISSILES", Slot::Value(T.liberty_missiles)),
             ("LIBERTY_UNITS", Slot::Value(T.liberty_units)),

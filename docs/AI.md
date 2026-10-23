@@ -25655,9 +25655,46 @@ return is about a missile inside a Silo).
 `attrition` on five who=1 units (ours 218 against 227). The state parted before the draws did. The strided long
 holds every hundredth block, so the walk back has those blocks to read.
 
-**What this has *not* established.** Why ours escrows rather than queues: the make list's purchase arm for a
+**What this has *not* established.** ~~Why ours escrows rather than queues: the make list's purchase arm for a
 missile at a Silo that already holds one, or a nuke cap (`LeaderData::get_nukes`), is the next item's hypothesis,
-not a finding. Nor is it established whether the standing `SITE` and `hits_left` rows feed the decision.
+not a finding.~~ It was the price: see below (item 3514). Nor is it established whether the standing `SITE` and
+`hits_left` rows feed any decision. None moved a draw to the game's end.
+
+**The cause: the Space Program halves an aircraft's price** (item 3514). A probe of ours' `price_with` on 4382,
+reverted whole, found the ICBM priced at **1224 knowledge and 1366 oil**. With 1100 knowledge after the Democracy
+purchase, the make list's entry `MAKE[3]` (t 316, `e1`) could not pay and kept its escrow. The ramp's inputs agree on
+both sides: `num_units[266]` 3 in theirs' `LEADERDATA` and in ours' muster, `num_queued` 0 before the purchase, and
+`nukes_used` 2, counted twice for the ICBM (§167). That is count 7, so the ramp is 525 on each support slot. The
+two prices solve with the ramp equal: theirs' gap between oil and knowledge is 70, which is 150 × 47 %, against
+ours' 142. So theirs' base is halved and then takes Uranium's 5 %: 750 → 375 → 356 and 900 → 450 → 427, plus 525,
+then the late 99 %, gives **872 and 942**, which is the bucket's drop to the unit. The halving is
+`TypeData::get_cost@00664090`'s **domain arm** (`:357`–`375`). It tests `UnitTypeData +0x218`: a sea unit (`1`) takes
+`ANGKOR_SHIPS` with `has_wonder(0x217)`; an air unit (`2`) takes `ALUMINUM_AIR_COST` with Aluminium (`rare` byte 3
+bit 0), and then `SPACE_AIR_COST` (50 %) with `has_wonder(0x21e)`, the Space Program. Each step truncates on its
+own, after the Citizen arms and ahead of Despotism, Liberty and Uranium, in the tail the train and research arms
+share. None of the three steps was built. Built: `Sim::domain_cost_discounts` (`lib.rs`), `Modifiers::domain`
+(`cost.rs`), `Tuning::{angkor_ships, aluminum_air_cost, space_air_cost}`, `economy::ALUMINUM`.
+
+**The move: 4382 → 4565 of 4565**, by the count and the sequence alike, so the pair is **whole**. The closing
+block 4566 (`run1147_aztec_alltech_pair_closing_state`) compares 263 units: counts `[0; 7]`, `Closing fields: none`.
+**The value diff on the word's block 4383** (run1147b): leader 1's `num_queued[316]` is 1 on both sides, the Silo
+`1/2010`'s `queue:queued` 1 on both, `bucket[3:knowledge]` 228 and `bucket[5:oil]` 8064 on both. The make list,
+the Granary site's x and the Citizen `1/31`'s orders no longer part. The widening's keys fall **2415 → 308**. The 92
+standing on 4376 are unchanged. The first later row is `1/93`'s `attrition` on 4388, ours 6 against theirs 24, the
+family 3506b parks for the Germans' closing window. The rest are that family's `damage_frac`/`hits_left` and
+`sheltered`, four `mirror`s and two pools. Mutations (`tools/mutate.py`): with the Space step removed,
+`aztec_alltech_pair_first_parting` exits 101, back at 4382 on the same draws, and
+`the_space_program_halves_an_aircraft_and_angkor_wat_takes_a_quarter_off_a_ship` exits 101. The Angkor and Aluminium
+steps are each held by the unit test alone.
+
+**And the peace pair's windows.** The Lakota pair holds a Space Program as well (§233). Its six windows from run866
+to run883 lose 8 to 24 keys each (run866 137 → 121), all on who=1's Airbase queues. On run866's 5383, `1/2005`,
+`1/2032` and `1/2037` price their aircraft at 97–108, against theirs' 52–64, and the wealth and oil buckets part
+with them. All of these now agree.
+
+**Coverage.** Diff-backed: the Space Program step (the ICBM's 872/942, and the Lakota Airbases' queues). Reading-only: the sea step (Angkor Wat)
+and the Aluminium step. No capture holds either with a ship or an aircraft priced. The nested land-unit
+`ANGKOR_SHIPS` inside Terra Cotta's clause (`docs/COSTS.md`, Wonders) is not built.
 
 ## 302. Reserved for the next item on the AI track
 
