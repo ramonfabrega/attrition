@@ -26004,20 +26004,17 @@ seed 12345, `STARTING_RESOURCES 7`) with the nation varied to the **Russians (13
 `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`. It is the first pair to hold one age. Both captures read the lobby back
 from their own `GAME INFO` through `Pair::assert_lobby` (`russian_modern_pair_captures_say_their_lobby`).
 
-**`ENDING_TECHNOLOGY` is honoured.** `rubric.py --tables 2` on run1148 and run1149 puts the computer at age 6
-(Modern) on every leader record it reads, from frame 0 to the game's end, and at 7 on none. So nothing about the cap
-parks.
+**`ENDING_TECHNOLOGY` is honoured**: `rubric.py --tables 2` puts the computer at age 6 on every leader record of
+run1148 and run1149, and at 7 on none.
 
 **The captures.**
 - run1148 is the `DUMP_ALL` start.
 - run1149 is the long to the game's end: `end:UNITS=3,GUYS=2` on `--stride 100`, with 3507's `start:` and
   `endgame:` detail lines. **The game ends itself at 5841** (closing block 5842). The walk is seeded from run1148's
   initial state (3506a).
-- run1149b is the word's window, blocks 3..259. No dump on disk held block 9: run1148 has blocks 1, 36 and 37, and
-  run1149 has every hundredth block.
+- run1149b is the word's window, blocks 3..259.
 
-All three are one game by `rngcmp.py`: run1148 against run1149, 37 of 37 frames identical; run1149 against run1149b,
-260 of 260.
+All three are one game by `rngcmp.py` (`docs/RUNS.md`).
 
 **First try: frame 8 of 5841.** `russian_modern_pair_first_parting` walks run1149 from run1148. **The sequence parts
 on frame 8** and the count on 11: both sides spend 18 draws and the multiset agrees, but theirs makes one more
@@ -26035,10 +26032,6 @@ same technology in the research slot `MAKE[8]` at 1620003, below Barter's 504000
 The technologies are TypeIndex 544 + the `techrules.xml` record counted from 0 (`COINAGE` 559 and `EMPIRE` 566 anchor it, §15). On the word's block 9, building `1/2005`'s research queue is in the same order as each side's list:
 ours 558, 572, 551, 566 against theirs 551, 558, 566, 572 (costs and goods with them), and who=1's `MAKE[10].val` is
 ours 3066003 against theirs 30660.
-
-**The next word was frame 8** (item 3508), ours 18 draws against 18, index 2. The hypothesis to kill first was that
-theirs' Written Word value **wraps** into the original's 9999999 guard and ours' does not. It survives as the
-mechanism, and the cause is one step back.
 
 **Item 3515: `TRANSPORT_BONUS`'s prerequisite is worth ×30 on a sea map.** run1161 is a packet at logger frame 4
 (`RON_STATE_FRAME=4`, 804 MB). `step4.py --entry 6c6ba0 --this 00e4127c` runs who=1's `Leader::research_techs` on it
@@ -26064,15 +26057,8 @@ Word at 9999999 on both sides), and what is left is the standing families: block
 draws against 14, index 0, ours `Unit::fight+0x9b0` against theirs `Unit::do_move+0xe84`.
 
 **The word 3682, widened on run1161b** (blocks 3677..3933, `russian_modern_pair_run1161b_s_word_frame_is_widened_whole`,
-929 keys):
-- **The state parts first before the window.** On block 3677, who=1's wealth reads `income[2]` ours 3816 against
-  theirs 4000, `rate[2]` 238 against 250 and `over_cap[2]` 0 against 1, and the timber and metal buckets run 40
-  over. No dump prints a leader record in 3601..3676.
-- **The word's eve, block 3682**: Cruiser `1/25` (TypeIndex 329, `EXPLORETOORDER`, near `0/2004`) has `recharging`
-  ours 0 against theirs 25 and `cavarch_o` 11 against 5.
-- From block 3684, who=1's units `1/26`, `1/30` and `1/31` take different move destinations.
-
-The direction and the first parted field before 3677 are the next item's question.
+929 keys): the state parted before the window (who=1's wealth on block 3677), and on 3682 the Cruiser `1/25`
+(TypeIndex 329) reads `recharging` ours 0 against theirs 25.
 
 **Item 3516: the economy whole, and the Bark's re-search.** run1162 (blocks 259..3682 on a stride of 20, every
 leader record) closes the disk gap, and run1162c, d and e are the windows it dated. All four are one game with run1149
@@ -26107,9 +26093,7 @@ against theirs `Ammo::init+0xcd9` then `+0xd0b` — a round launched.
 
 **The value diff, walked back on run1161b** (929 → 769 keys): the state first parts on **block 3723**. The citizen
 `0/5` reads `hits_left` ours 66 against theirs 62, `damage` 19 against 23, and flees on theirs (`order:kind` 4
-against 7); the city `0/2000`'s `raid_stamp` reads 3700 against 3722. Then `1/25`'s heading parts on 3732, and
-`1/26`'s move destinations from 3780. That a Cruiser round lands on `0/5` at 3722 on theirs and not on ours is the
-next item's hypothesis, not a finding. run1162's gap widening goes 132 → 121 keys: the standing families and
+against 7); the city `0/2000`'s `raid_stamp` reads 3700 against 3722. run1162's gap widening goes 132 → 121 keys: the standing families and
 `dest_angle` on `1/34` (3379), `1/70` (3401) and `1/130` (3640).
 
 **Item 3519: the Cruiser fires from its three turrets.** The shooter is the Cruiser `1/25` (TypeIndex 329, sea, figure
@@ -26123,17 +26107,14 @@ lands a frame late.** `RON_DEBUG_AMMO` shows ours' first round, launched on 3716
 
 The Cruiser is a pivot piece with three `<RESTRICTION name="Cruiser">` rows (nodes 4, 5 and 6), and `sim::pivot` had
 no row for piece 279. Its turrets therefore bore from the hull, and its rounds left through `launch::launch_point`'s
-unmeasured branch. `get_position.py … entries 279` on run1165 reads the piece's 39 `AttachPos` entries and
-`RData +0x88` 0.9. The three pivots at `(anim 0, time 0)` are `(0.0, −91.65, 25.95)`, `(0.0, −65.48, 34.09)` and
-`(0.0, 105.28, 25.47)`. On `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2` (the bits are the same on all three),
+unmeasured branch. `get_position.py … entries 279` on run1165 reads the piece's 39 `AttachPos` entries. On `CHAR_ATTACKWALK`, `CHAR_ATTACK1` and `CHAR_ATTACK2` (the bits are the same on all three),
 there is one release per turret: node 0 on frame 10, node 1 on 12 and node 2 on 15. `get_position@0090b750` bears
 each release from pivot `(node & 3) + 4`. **Built** (`crates/sim/src/pivot.rs`): `NODES` (279, 4/5/6), `RDATA_SCALE`
 (279, 9/10), and nine `RELEASES` rows. Their 32 `float_lands` cells come from the unicorn sweep of the pivot branch
 (`get_position.py … pivot 279 <node> 10 <time> 3`, 92,416 cells a turret), and
 `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_279` checks all 831,744 cells
-(`RON_RELEASE_TABLE_279`, outside git). **The two halves carry different things.** With the `RELEASES` rows out, the
-rounds fly 8 again and the widening reads 190 keys, but the word holds at 3921. With the `NODES` rows out, the word
-falls back to 3778 and the widening to 751. So the turrets' bearings (their node bits, and the release they gate) are
+(`RON_RELEASE_TABLE_279`, outside git). **The two halves carry different things.** Without the `RELEASES` rows the
+word holds at 3921 (190 keys); without the `NODES` rows it falls back to 3778 (751). So the turrets' bearings (their node bits, and the release they gate) are
 what put theirs' `Ammo::init` on 3778. The release rows are what move the blow on 3722.
 
 **The word moves 3778 → 3921** for both the count and the sequence: ours 95 draws against 97, index 0, ours
@@ -26165,6 +26146,20 @@ own type's wider ring reached. `action_move_near`'s different-region arm (`705c0
 word moves 4097 → 4207**: ours 3279 draws against 3284, index 3272, `Guy::inc_time+0x271` against
 `PathFinder::calc_road_cost+0x46`. run1168's widening goes 1881 → 114 keys (the standing families). run1166b's goes
 7517 → 576: who=1's reassembly on 4104 (3522a), then on 4210 the scouts `1/26`, `1/30` and `1/31`'s move points.
+
+**Item 3524: the CEO's two tiles of sight.** Theirs' extra draws on 4207 are one caravan-road search (who=1), which
+agrees node for node to 4206's node 868 (`russian_modern_pair_s_road_search_on_4207_holds_node_for_node`): the step
+onto tile (174, 238), an ocean tile, costs ours 156 against theirs 78, `was_seen`'s doubling (`docs/ROADS.md` §5.2):
+fog cell (87, 119) is lit for who=1 on theirs only. `Leader::check_explore@006bc860` samples that cell: theirs'
+`explored` is 535 on block 3964 and 536 on 4164, ours' recount 535. run1166's packet (`World +0x160`, frame 3920)
+has (89, 119) and (90, 119) lit on theirs only, and no who=1 object's `mylos` reaches the row.
+`UnitData::los@006100c0`, what `update_seen` and `do_follow` read (vslot `+0x128`), adds two hero terms to `mylos`;
+the CEO's gives a non-siege unit whose leader counts a `0x165` and that `has_general(0, 0x165)` `THECEO_UNIT_LOS` (2
+tiles). **Built**: `Sim::unit_data_los` over `Sim::near_own_ceo`, the block `max_range` shares
+(`a_unit_beside_its_own_ceo_sees_two_tiles_further`); Ptolemy's term is a seam (3524d). **The word moves 4207 →
+5651**: ours 71 draws against 73, index 52, `Guy::set_anim+0x97a` against `Guy::init_real+0x52 < Unit::init` — a
+birth. run1166b: 576 → 146 keys. run1170 (5645..5841) parts 162 on its head, the standing families and who=1's
+buckets; on block 5651, building `1/2034`'s `queue[0].job_counter` is ours 500 against theirs 499.
 
 **What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. ~~Which field of who=1's economy parts first in 3601..3676~~ (item 3516, above: three, from block 2187). ~~Why the count parts on
 11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing

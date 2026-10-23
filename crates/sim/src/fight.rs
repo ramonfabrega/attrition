@@ -502,12 +502,26 @@ impl Sim {
     /// and the obsidian archers are not carried; `is(0x165)` is taken as
     /// the type itself, as the patriot tests of the radius are.
     fn ceo_unit_range(&self, o: Obj) -> i32 {
-        const CEO: i32 = 0x165;
         let Obj::Unit(u) = o else {
             return 0;
         };
+        if self.near_own_ceo(u) {
+            self.tuning.theceo_unit_range
+        } else {
+            0
+        }
+    }
+
+    /// The CEO block `UnitData::max_range@0060fe90` and
+    /// `UnitData::los@006100c0` share: the unit is not `is_siege` (the
+    /// type's vslot `+0x10c`), its leader counts a `0x165` (`+0x59c8`), and
+    /// `has_general(0, 0x165)` — it is the `0x165` hero itself, or one of its
+    /// owner's stands active and on the map within the hero's
+    /// `get_radius × 0xc0` (`vector_dist`).
+    pub(crate) fn near_own_ceo(&self, u: usize) -> bool {
+        const CEO: i32 = 0x165;
         if self.is_siege_unit(u) {
-            return 0;
+            return false;
         }
         let who = self.units[u].owner;
         let counted = self
@@ -517,10 +531,10 @@ impl Sim {
             .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
             .is_some_and(|&n| n != 0);
         if !counted {
-            return 0;
+            return false;
         }
         let at = self.units[u].pos;
-        let near = self.units[u].type_index == CEO && self.is_hero_unit(u)
+        self.units[u].type_index == CEO && self.is_hero_unit(u)
             || (0..self.units.len()).any(|h| {
                 let x = &self.units[h];
                 x.owner == who
@@ -530,12 +544,7 @@ impl Sim {
                     && self.is_hero_unit(h)
                     && crate::world::vector_dist((x.pos.x - at.x).abs(), (x.pos.y - at.y).abs())
                         <= self.hero_radius(h) * 0xc0
-            });
-        if near {
-            self.tuning.theceo_unit_range
-        } else {
-            0
-        }
+            })
     }
 
     /// **`BuildTypeData::get_building_range@00639990`'s first block**

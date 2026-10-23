@@ -7289,6 +7289,15 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3524: the Russian pair walked past 4207 to its word 5651 reads
+    // 91 inexact corners.
+    ("russian_modern_pair_first_parting", 91),
+    // And run1170's window past the word 5651, to the game's last frame:
+    // 131 reads.
+    (
+        "russian_modern_pair_run1170_s_word_frame_is_widened_whole",
+        131,
+    ),
     // Item 2627: run874, the Helicopter's flight to a Barracks reads eight
     // inexact corners, in the walk and in the widening alike.
     ("chapter_seventy_eight_holds_to_the_golden_word", 8),
@@ -9783,12 +9792,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // tail of `find_attack_pos`), widened on run1166b over 4092..4348
     // (block 4098). **4207** after item 3522 (the barge's sweep round slot
     // 0, run1168's gap over 3928..4098), in run1166b's window (block 4208).
+    // **5651** after item 3524 (the CEO's two tiles of sight in
+    // `UnitData::los`), widened on run1170 over 5645..5841 (block 5652).
     (
         "RUSSIAN_MODERN_PAIR_WORD",
         crate::diff::russian_modern_pair::RUSSIAN_MODERN_PAIR_WORD,
-        Some("russian_modern_pair_run1166b_s_word_frame_is_widened_whole"),
-        3522,
-        Some(crate::diff::russian_modern_pair::WIDENING_RUSSIAN_MODERN_FRAME_4097),
+        Some("russian_modern_pair_run1170_s_word_frame_is_widened_whole"),
+        3524,
+        Some(crate::diff::russian_modern_pair::WIDENING_RUSSIAN_MODERN_FRAME_5651),
     ),
     // **The land map's held Modern pair** (item 3509): the Americans at a
     // held Modern age, Great Sahara — 1995 first try (the Airbase's free
@@ -11278,7 +11289,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 6), East Indies (item 3508): the sequence parted
     // on frame 8, the computer's first make-list pass; 3682 after item 3515;
     // 3778 after item 3516; 3921 after item 3519; 4097 after item 3520;
-    // 4207 after item 3522.
+    // 4207 after item 3522; 5651 after item 3524.
     AiWord {
         line: "Late ages",
         map: "EastIndiesRussianModern",
@@ -11286,7 +11297,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::russian_modern_pair::RUSSIAN_MODERN_PAIR_WORD,
         length: 5_841,
         endpoint: None,
-        window: Some("russian_modern_frame_4097_window"),
+        window: Some("russian_modern_frame_5651_window"),
     },
     // The Americans at a held Modern age, Great Sahara (item 3509): first
     // try 1995, the Airbase's free Bomber; 4488 with the gate on the tree's
