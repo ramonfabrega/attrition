@@ -24061,3 +24061,66 @@ SHA-256 `ee0292fe579012c8c22b8a020d1740b6a92cd429e7ad60992a4bf7ae041bac1e`.
 
 Archive `rontrace-run1137.log`, 16,015,744 bytes,
 SHA-256 `f5bcde2baab26c6d507ea09c9601d4e58ce92c1546e969c97bd4caa5806db759`.
+
+## run1146 — the Aztecs at All Technologies, Great Sahara: the `DUMP_ALL` start (2026-10-22, item 3507, `att-3507`)
+
+`docs/AI.md` §301. run832's recipe with the nation varied: through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1146`, `--map 7 --end-frame 36 --timeout 1200 --dump-all-start --ai-tribe 0 --profile
+STARTING_TECHNOLOGY=8 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`.
+- Pool lane 1, `cover=0`. Launched 23:07:34, exited 23:07:59 (24.3 s launch to exit). `success`, 37 frames, 3370
+  `GROUPDATA` blocks on frame 1, seed 12345, players tribe 4 and tribe 0, five files restored. Filed with
+  `filerun.py run1146 greatsahara-aztec-alltech-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1146-greatsahara-aztec-alltech-start.txt`, 149,939,240 bytes,
+SHA-256 `1fff99b4a5610f4075f9374eadc4567f952f2c7a2299c427d00c0366b0194c97`.
+
+Archive `rontrace-run1146.log`, 8,468,096 bytes,
+SHA-256 `2010a3c56fc36a211af20506fb5ec604786b6ab395cb5d9bd2de5d6027800a43`.
+
+**What it holds**: `aztec_alltech_pair::AZTEC_ALLTECH`'s start.
+
+## run1147 — the Aztecs at All Technologies, Great Sahara: the draw stream to the game's end (2026-10-22, item 3507, `att-3507`)
+
+`docs/AI.md` §301. run831's recipe with the nation varied and the rubric's stride: `--map 7 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 0 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3`.
+- Pool lane 2. Launched 23:07:57, exited 23:08:25 (27.1 s launch to exit). `success`. **The game ended itself on 4565**
+  (closing block 4566, `ended_early`). 47 blocks: 1, 101, …, 4501 and 4566. `GAME INFO` reads back `MAP_STYLE 7`,
+  `DIFFICULTY 3`, `STARTING_TECHNOLOGY 8`, `ENDING_TECHNOLOGY 7`, `STARTING_RESOURCES 7`. `rngcmp.py` against run1146:
+  37 identical, 0 differing. Filed with `filerun.py run1147 greatsahara-aztec-alltech-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1147-greatsahara-aztec-alltech-trace.txt`, 30,046,145 bytes,
+SHA-256 `b33badea5f412bec9edaa09ee7a64d31dd8a3f1d89c49696720b3e66826f407f`.
+
+Archive `rontrace-run1147.log`, 177,477,280 bytes,
+SHA-256 `16ede4eab3f6dcbe6d863fc4fd5a315988f4037ae8546c3b8bb105b5836df197`.
+
+**What it holds**: the pair's first try. `aztec_alltech_pair_first_parting` walks it from run1146 and parts on
+**frame 4382 of 4565**, by the count and the sequence alike: ours 607 draws, theirs 567, index 9 (ours
+`Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`).
+
+## run1147b — the Aztecs at All Technologies, Great Sahara: the word 4382's window, blocks 4376..4566 (2026-10-22, item 3507, `att-3507`)
+
+**Disk gap**: run1146 holds only the first blocks, and run1147 every hundredth block (4301 and 4401), so no dump held
+the word's block 4383. `--map 7 --end-frame 4565 --allow-early-end --timeout 3600 --log-window 4376 4566 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 0 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`.
+- Pool lane 1. Launched 23:10:53, exited 23:11:42 (48.8 s launch to exit). `success`, 4566
+  frames, last frame 4565, closing frame 4566. 191 `BEGIN FRAME`s, 4376..4566. `rngcmp.py` against run1147: **4566 in
+  common, 0 differing**. Filed with `filerun.py run1147b greatsahara-aztec-alltech-window-4376-4566`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1147b-greatsahara-aztec-alltech-window-4376-4566.txt`, 613,384,964 bytes,
+SHA-256 `26093dd48e1d29a80c628853fa26d589b7e7c1d6c542db4f5f4fed18ae5132ec`.
+
+Archive `rontrace-run1147b.log`, 177,187,648 bytes,
+SHA-256 `fccfc1cbf581059032c117d0699103fe5fa6de3370697015cc86aa92387daae1`.
+
+**What it holds**: `aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole`. 190 blocks compared, and 2415 keys
+part, 92 of them standing on 4376. On the word's block 4383, theirs' Missile Silo `1/2010` queues a Nuclear ICBM and
+ours does not (§301's table).

@@ -3533,6 +3533,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::french_word::french_frame_13422_window(),
         || super::french_word::french_frame_14604_window(),
         || super::french_word::french_last_blocks_window(),
+        || super::aztec_alltech_pair::aztec_alltech_frame_4382_window(),
     ];
     let mut missing = false;
     let mut closing_blocks = 0;
