@@ -320,8 +320,13 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// Item 3531: 770 -> 770 with the German pair's twin run1176 (110 traces),
 /// the first lockstep trace of an age-7 game. It enters 2,027 simulation
 /// functions and only three no other lockstep trace does, 5,222 bytes —
-/// 8,777,717 -> 8,782,939 of 11,392,782, 77.04 % -> 77.09 %.
-pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 770;
+/// 8,777,717 -> 8,782,939 of 11,392,782, 77.04 % -> 77.09 %. Item 3533:
+/// 770 -> 771 with the American pair's twin run1178 (113 traces), the first
+/// lockstep trace of an age-6 game. Two simulation functions no other
+/// lockstep trace enters, 7,148 bytes — `Ammo::init_crash` and
+/// `Unit::update_ceo_position` — 8,782,939 -> 8,790,087 of 11,392,782,
+/// 77.09 % -> 77.15 %.
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 771;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->
