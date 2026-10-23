@@ -26060,7 +26060,7 @@ the mandatory far arm is a seam (3520b). **The word moves 3921 → 4097**: ours 
 
 **Item 3522: a land member's slot across the sea sweeps as the barge.** run1168 (blocks 3928..4098) first parts on
 block 4091. On frame 4090 army 1 takes an `ATTACKTO` off (8010, 2873) on both sides, and slot 0, the Spy `1/111`'s,
-lies at sea (tile (44, 5), mask `0x0420`). Theirs sends every re-placed member to slot 0's point (8568, 984). Ours sent
+lies at sea (tile (44, 5), an ocean tile). Theirs sends every re-placed member to slot 0's point (8568, 984). Ours sent
 fourteen (the T34s, AA Batteries, Scout Car and Katyusha, `big_radius` 96) to the shore at (8664, 1368), which their
 own type's wider ring reached. `action_move_near`'s different-region arm (`705c0f`–`705c9b`) asks `invalid_loc(1, 1,
 0, 0, 0)` of slot 0's tile, and for a land member under a leader that `can_transport` it sweeps as
