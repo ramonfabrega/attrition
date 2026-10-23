@@ -286,7 +286,9 @@ impl CarryCivView for SimCarryCiv<'_> {
             false,
         );
     }
-    /// SEAM: `Group::action_eject_all(one-boat group, 0, -1, -1, -1)` is
-    /// stated and not modelled; the boat keeps its cargo.
-    fn eject_all(&mut self) {}
+    /// `Group::action_eject_all(one-boat group, 0, -1, -1, -1)`:
+    /// [`Sim::boat_eject_all`] (item 3521).
+    fn eject_all(&mut self) {
+        self.sim.boat_eject_all(self.u);
+    }
 }

@@ -1195,6 +1195,55 @@ impl Sim {
     /// (`005f8fd8`); this crate kills the boat regardless. No staging has
     /// crowded a shore enough to refuse a ring.
     pub(crate) fn disembark(&mut self, boat: usize) {
+        self.eject_riders(boat, true);
+        self.transport_dies(boat);
+    }
+
+    /// **`Group::action_eject_all(0, −1, −1, −1)@00710b40` on a one-boat
+    /// group** — `think_carry_civilian`'s eject, when the boat stands in the
+    /// quarter-cell nearest its shore (item 3521, `docs/AI.md` §303). With
+    /// `param_2 < 0` the walk takes each member (the boat alone here):
+    /// alive (`+8 & 1`), `num_inside(1) > 0` and not
+    /// `can_carry(AIR)@00646c40` — `is(0x1bf, 1)`, `is(0x15f, 1)` or
+    /// `is(0x208, 1)` — gives `eject_contents(0, −1, 0, 1)`: the
+    /// [`Sim::disembark`] steps with **`param_3 = 0`**, so the passenger
+    /// keeps its own empty list rather than the boat's. Then a boat that
+    /// `is(TRANSPORTBARGE)` or `is(MERCHANTFLEET)` with nothing left inside
+    /// (`num_inside(0) == 0`) dies, `Object::die(boat, 0, −1, 0)`.
+    ///
+    /// run1153c: who=1's Freighter `1/121` (`TRANSPORTFREIGHTER`, 322) stands
+    /// at (37272, 26520) on 3673; on 3674 the Citizen `1/10` is ashore at
+    /// (37416, 26280) with its boarding point for `orders_x/y`, and `1/121`
+    /// is gone.
+    ///
+    /// The buildings group's arm, from the console's command, is
+    /// [`Sim::action_eject_all`].
+    pub(crate) fn boat_eject_all(&mut self, boat: usize) {
+        if !self.units[boat].alive() || !self.units[boat].on_map {
+            return;
+        }
+        if !(0..self.units.len()).any(|i| self.units[i].inside_unit == Some(boat)) {
+            return;
+        }
+        let air = self.unit_tree(boat).is_some_and(|ut| {
+            [0x1bf, 0x15f, 0x208]
+                .into_iter()
+                .any(|t| self.tech_tree.is(ut, t, true))
+        });
+        if air {
+            return;
+        }
+        self.eject_riders(boat, false);
+        let barge = self.unit_line_is(boat, ty::TRANSPORTBARGE)
+            || self.unit_line_is(boat, ty::MERCHANTFLEET);
+        if barge && !(0..self.units.len()).any(|i| self.units[i].inside_unit == Some(boat)) {
+            self.transport_dies(boat);
+        }
+    }
+
+    /// `Object::eject_contents(boat, 0, −1, carry, 1)@0064cd20`'s loop:
+    /// steps 1–4 of [`Sim::disembark`], step 4 on `carry` (`param_3`) alone.
+    fn eject_riders(&mut self, boat: usize, carry: bool) {
         let bearing = self.units[boat].movement.heading;
         let riders: Vec<usize> = (0..self.units.len())
             .filter(|&i| self.units[i].inside_unit == Some(boat))
@@ -1308,7 +1357,11 @@ impl Sim {
                     van.unit = Some(r);
                 }
             }
-            // 4. the order list and the path, back the way they came.
+            // 4. the order list and the path, back the way they came —
+            //    `if (param_3 != 0)` (`eject_contents@0064cd20:254`).
+            if !carry {
+                continue;
+            }
             if self.units[r]
                 .ty
                 .is_some_and(|t| self.unit_types[t].combat.uber_size == 1)
@@ -1323,7 +1376,6 @@ impl Sim {
                 self.disembark_squad(boat, r);
             }
         }
-        self.transport_dies(boat);
     }
 
     /// `Object::die(boat, 0, −1, 0)` on a transport, from either of its two

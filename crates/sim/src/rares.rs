@@ -161,6 +161,11 @@ impl Sim {
                     &self.tech[who as usize],
                     crate::ai::tribe::NUBIANS,
                 ),
+                self.tech_tree.has_tribe_bonus(
+                    &self.setup,
+                    &self.tech[who as usize],
+                    crate::nations::power::JAPANESE,
+                ),
             );
             let share = crowd + 1;
             for (i, r) in rate.iter().enumerate() {
@@ -1151,7 +1156,16 @@ mod tests {
     fn a_fish_pays_ten_of_each_of_its_two_goods() {
         let t = Tuning::RON;
         let g = good_table();
-        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 0, false, false);
+        let out = economy::calc_rare(
+            &t,
+            economy::FISH,
+            &g[economy::FISH],
+            0,
+            0,
+            false,
+            false,
+            false,
+        );
         assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE);
         assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE);
         assert_eq!(out[Resource::Timber.index()], 0);
@@ -1163,10 +1177,59 @@ mod tests {
     fn the_fishermen_bonus_reaches_the_food_half_alone() {
         let t = Tuning::RON;
         let g = good_table();
-        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 2, 0, false, false);
+        let out = economy::calc_rare(
+            &t,
+            economy::FISH,
+            &g[economy::FISH],
+            2,
+            0,
+            false,
+            false,
+            false,
+        );
         assert_eq!(t.fishermen_bonus[2], 100);
         assert_eq!(out[Resource::Food.index()], 20 * RATE_SCALE);
         assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE);
+    }
+
+    /// **A Japanese boat on a fish pays a quarter more of both halves**
+    /// (`JAPANESE_FISHING_BOATS`, `calc_rare`'s water arm, `006e0a4c`):
+    /// added to the food slot beside the fishermen's term, and to the wealth
+    /// slot without a merchant level. Two boats are block 3668's 80 in each
+    /// of food and wealth (run1153c, item 3521). Not on a land good.
+    #[test]
+    fn a_japanese_boat_on_a_fish_pays_a_quarter_more_of_each_half() {
+        let t = Tuning::RON;
+        let g = good_table();
+        let out = economy::calc_rare(
+            &t,
+            economy::FISH,
+            &g[economy::FISH],
+            0,
+            0,
+            false,
+            false,
+            true,
+        );
+        assert_eq!(t.japanese_fishing_boats, 25);
+        assert_eq!(out[Resource::Food.index()], 200);
+        assert_eq!(out[Resource::Wealth.index()], 200);
+        let both = economy::calc_rare(
+            &t,
+            economy::FISH,
+            &g[economy::FISH],
+            2,
+            1,
+            false,
+            false,
+            true,
+        );
+        assert_eq!(both[Resource::Food.index()], (100 + 25 + 100) * 160 / 100);
+        assert_eq!(both[Resource::Wealth.index()], (120 + 25) * 160 / 100);
+        let mut g = g;
+        g[20].bonus = [(Some(Resource::Metal), 10), (None, 0)];
+        let land = economy::calc_rare(&t, 20, &g[20], 0, 0, true, false, true);
+        assert_eq!(land[Resource::Metal.index()], 160, "a land rare");
     }
 
     /// **The merchants bonus replaces the 100, and on a water good it
@@ -1175,7 +1238,16 @@ mod tests {
     fn the_merchants_bonus_reaches_a_fish_s_other_half() {
         let t = Tuning::RON;
         let g = good_table();
-        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 1, false, false);
+        let out = economy::calc_rare(
+            &t,
+            economy::FISH,
+            &g[economy::FISH],
+            0,
+            1,
+            false,
+            false,
+            false,
+        );
         assert_eq!(t.merchants_bonus[1], 120);
         assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE);
         assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE * 120 / 100);
@@ -1188,7 +1260,16 @@ mod tests {
     fn friendly_ground_lets_the_merchants_bonus_reach_food() {
         let t = Tuning::RON;
         let g = good_table();
-        let out = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 1, true, false);
+        let out = economy::calc_rare(
+            &t,
+            economy::FISH,
+            &g[economy::FISH],
+            0,
+            1,
+            true,
+            false,
+            false,
+        );
         assert_eq!(out[Resource::Food.index()], 10 * RATE_SCALE * 120 / 100);
         assert_eq!(out[Resource::Wealth.index()], 10 * RATE_SCALE * 120 / 100);
     }
@@ -1200,7 +1281,7 @@ mod tests {
         let t = Tuning::RON;
         let mut g = good_table();
         g[20].bonus = [(Some(Resource::Metal), 10), (None, 0)];
-        let out = economy::calc_rare(&t, 20, &g[20], 3, 0, false, false);
+        let out = economy::calc_rare(&t, 20, &g[20], 3, 0, false, false, false);
         assert_eq!(out[Resource::Metal.index()], 10 * RATE_SCALE);
     }
 
@@ -1216,14 +1297,23 @@ mod tests {
             (Some(Resource::Wealth), 10),
             (Some(Resource::Knowledge), 10),
         ];
-        let home = economy::calc_rare(&t, 10, &g[10], 0, 0, true, true);
+        let home = economy::calc_rare(&t, 10, &g[10], 0, 0, true, true, false);
         assert_eq!(home[Resource::Knowledge.index()], 240);
         assert_eq!(home[Resource::Wealth.index()], 240);
-        let abroad = economy::calc_rare(&t, 10, &g[10], 0, 0, false, true);
+        let abroad = economy::calc_rare(&t, 10, &g[10], 0, 0, false, true, false);
         assert_eq!(abroad[Resource::Knowledge.index()], 160, "abroad");
-        let other = economy::calc_rare(&t, 10, &g[10], 0, 0, true, false);
+        let other = economy::calc_rare(&t, 10, &g[10], 0, 0, true, false, false);
         assert_eq!(other[Resource::Knowledge.index()], 160, "not Nubian");
-        let fish = economy::calc_rare(&t, economy::FISH, &g[economy::FISH], 0, 0, true, true);
+        let fish = economy::calc_rare(
+            &t,
+            economy::FISH,
+            &g[economy::FISH],
+            0,
+            0,
+            true,
+            true,
+            false,
+        );
         assert_eq!(fish[Resource::Wealth.index()], 10 * RATE_SCALE, "a fish");
     }
 
