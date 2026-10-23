@@ -2051,6 +2051,20 @@ impl Sim {
     /// slots 1 and 2, and the first to come down on 683 takes `1/8` while
     /// the second finds it dead and rolls on.
     pub(crate) fn add_ammo(&mut self, mut p: combat::Projectile) {
+        if std::env::var("RON_PROBE_3518").is_ok()
+            && let combat::Obj::Unit(s) = p.shooter
+            && self.units[s].owner == 1
+            && self.units[s].index == 80
+        {
+            eprintln!(
+                "PROBE3518 add_ammo frame {} total {} land {:?} target {:?}\n{}",
+                self.frame,
+                p.total_time,
+                p.landing,
+                p.target,
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
         let live: Vec<u32> = self.projectiles.iter().map(|q| q.slot).collect();
         let slot = lowest_free_slot(&live);
         p.slot = slot;
