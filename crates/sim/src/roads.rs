@@ -675,7 +675,7 @@ impl Sim {
         };
         let this = &*self;
         let alliance = |a: Player, b: Player| if this.allied_with(a, b) { 2 } else { 0 };
-        road_cost_steps(
+        let out = road_cost_steps(
             &SHIPPED_WEIGHTS,
             avoid_sea,
             !dir.is_multiple_of(2),
@@ -705,7 +705,21 @@ impl Sim {
             },
             || this.world.tile_z(t),
             |_, _| this.road_was_seen(t, who.0),
-        )
+        );
+        if std::env::var("RON_PROBE_3524").is_ok() && t.x == 174 && t.y == 238 {
+            eprintln!(
+                "PROBE3524 cost f{} p {:?} from {:?} parent_z {parent_z} who {who:?} dir {dir} roll {roll} cell {:?} owner {owner} mask {:#x} pmask {:#x} flags {:#x} z {} -> {out:?}",
+                self.frame,
+                (p.x, p.y),
+                (from.x, from.y),
+                (c.x, c.y),
+                self.world.tile_mask(t),
+                self.world.tile_mask(from.tile()),
+                self.world.cell_data(c).flags,
+                self.world.tile_z(t)
+            );
+        }
+        out
     }
 
     /// `WorldData::was_seen@006b53f0` at the tile's fog cell — the one
