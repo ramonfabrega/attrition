@@ -44,6 +44,8 @@ mod bantu_word;
 #[cfg(test)]
 mod battery;
 mod build;
+#[cfg(test)]
+mod chinese_industrial_pair;
 mod city;
 mod corrections;
 #[cfg(test)]

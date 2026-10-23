@@ -26187,12 +26187,73 @@ search answering the target itself. The retarget at `005f80a6`–`005f820a` has 
 families on block 3 (shared with 3506b). What the game put on the map: `rubric.py --tables 3` sees 29 skirmish types
 on the captures (item 3527's journal names them).
 
-## 305. Reserved for the next item on the AI track
+## 305. The Chinese at a held Industrial age, Great Sahara: the Armored Car's turret, 3007 → 3017 of 4467 (2026-10-23, item 3511)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3511, Opus 5.5, the AI track (DECISIONS 90): run1154, run1155, run1155b and run1155c, on the click-free pool.*
+
+**The lobby.** The American pair's (§302: Great Sahara, `MAP_STYLE 7`, human Nubians against a computer at
+Difficulty 3, seed 12345, `STARTING_RESOURCES 7`) with the nation varied to the **Chinese (14)** and the age **held
+at Industrial**: `STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5`. Both captures read it back through
+`Pair::assert_lobby` (`chinese_industrial_pair_captures_say_their_lobby`). **The game ends itself at 4467**
+(closing block 4468).
+
+**The captures.** run1154 is the `DUMP_ALL` start; run1155 the long, 3507's run1147 recipe (`end:UNITS=3,GUYS=2`
+on `--stride 100`), walked from run1154's initial state (3506a): 37 frames identical between the two. run1155b
+(3001..3257) is the word's window, 3258 frames `rngcmp.py`-identical to run1155. run1155c is a packet at logger
+frame 3003 (its first take logged no frame past 3002, since `--log-window`'s upper bound is exclusive, and wrote
+no packet).
+
+**First try: frame 3007 of 4467**, by the count and the sequence. Ours spends 27 draws and theirs 30; they part at
+index 12 on theirs' `Ammo::init+0xcd9 < Objects::add_ammo+0x119 < GraphicEvents::execute_game_events+0x40d`,
+ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Theirs launches two rounds on 3007 (four `Ammo::init` draws,
+`+0xcd9` and `+0xd0b` each) and ours one. Theirs' launches from 3001 to 3010 fall on 3001 (two), 3003, 3004 (two),
+3005, 3006, 3007 (two), 3008 and 3010; ours' (`RON_DEBUG_AMMO`) agree to 3006.
+
+**The units.** The shooters are who=1's three **Armored Cars (`ARMOREDCAR`, TypeIndex 216, land)**, `1/23`, `1/44`
+and `1/52`, of group 64, on attack-to orders under their guard on `1/22`. Ours' figure is **piece 166**, the Asian
+set's `armcar.bh3`, on `CHAR_ATTACKWALK` (30 frames). Its nine `<RELEASEEVENT>`s are all on node 0 at 266, 666, 866,
+1165, 1397, 1500, 1665, 1980 and 1998 ms. By `starttime / 67` that is frames 3, 9, 12, 17, 20, 22, 24, 29 and 29.
+Only the first is a damaging `InvisibleAmmo Withpuff`; the rest are `NoDamage Tracer`s. The target is the human's
+Citizen **`0/3` (TypeIndex 50, land)**, fleeing to (6072, 30648). `<RESTRICTION name="ArmoredCar" node="4"
+minangle="-180" maxangle="180">` makes the piece a pivot.
+
+**The value diff** (run1155b walked from run1154, 1121 keys). **The state parts before the window**: block 3001
+carries 50 standing rows (`SITE[i].reg`, `aggression[1]`, `form`, who=1's groups' `held` and pools) and **city
+`0/2000`'s `raid_stamp` ours 2996 against theirs 2995**. On block 3002 `0/3`'s `damage` reads **ours 13/8 against
+theirs 15/11** (`hits_left` 52 against 50), and on 3003 the two agree again. **Ours' blow lands a frame late.** The
+word's own block 3008 parts nothing first.
+
+**The cause: piece 166 had no `pivot::RELEASES` rows.** Ours' release fell through to `launch::launch_point`,
+whose unmeasured branch is the unit's own square. run1155c's packet (`tools/recomp/ammo.py`) holds two live rounds
+bound for `0/3`:
+
+| shooter | theirs' launch | ours' launch | landing | theirs' clock |
+|---|---|---|---|---|
+| `1/23` | (9569, 31152, 750) | (9617, 31210) | (7122, 30513, 753) | t 2/**6**, ours 7 |
+| `1/52` | (8817, 30322, 788) | (8852, 30346) | (7169, 30512, 753) | t 2/4 |
+
+**Built** (`crates/sim/src/pivot.rs`), 3518's shape on piece 166. From run1155c's packet, `get_position.py …
+entries 166` reads 73 entries, `RData +0x88` 1.1. `NODES` gets `(166, 4, (0, 11.14))` and `RDATA_SCALE` gets
+`(166, 11/10)`. `RELEASES` gets thirty-two rows: `CHAR_ATTACKWALK`, `CHAR_ATTACK1`, `CHAR_ATTACK2` and
+`CHAR_ATTACK3`, each at frames 3, 9, 12, 17, 20, 22, 24 and 29. The two events on 29 carry the same bits. Unlike the
+ships' pivots, the pivot node's entry moves with the clock: x runs −1.10 to 1.10 across the attack-walk. Thirty-two
+sweeps (`pivot 166 0 <anim> <time> 1`, 2,957,312 cells, outside git under
+`~/ron-data/lab-experiments/2026-10-23-item-3511/sweeps/`) name 61 `float_lands` cells in 18 of the rows.
+`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_166` (`RON_RELEASE_TABLE_166`) then agrees
+on every cell.
+
+**The word moves 3007 → 3017**, by the count and the sequence: ours 19 draws against 17, index 0, ours
+`Unit::fight+0x9b0` against theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a < Unit::move_step+0x3b6`. run1155b drops
+to **1026** keys. Block 3001 holds only the 49 standing rows, and 3002 agrees.
+
+**The next word, 3017** (block 3018, in run1155b's window). On block 3017 the car `1/23`'s `cavarch_o` and `g.ox[0]`
+read **ours 11 against theirs 3**, and `recharging` reads ours 0 against theirs 30. Theirs' trace on 3016 draws
+`Unit::fight+0x9b0 < Unit::cavarch_fight+0x5e < Unit::do_move+0xa4`, and ours spends the same draw (the frame
+agrees). Theirs keeps the Citizen `0/3` and opens a new attack cycle at it. Ours takes the Citizen `0/11` and, on
+3017, spends a second `fight` draw where theirs moves. `0/3` first parts on 3023 and `0/11` on 3030, so both
+candidates agree when the choice is made. **The direction is ours: a cavalry-archer target pick that differs on
+agreeing inputs.** A hypothesis only, for the next item: `cavarch_fight`'s candidate list or its order, given the
+same roll.
 
 ## 306. Reserved for the next item on the AI track
 

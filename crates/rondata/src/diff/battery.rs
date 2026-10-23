@@ -192,6 +192,8 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The Japanese at a held Industrial age, East Indies (item 3510,
     // DECISIONS 90).
     (18, 15, 5),
+    // The Chinese at a held Industrial age, Great Sahara (item 3511).
+    (7, 14, 3),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
