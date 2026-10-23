@@ -9932,13 +9932,39 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OH — reserved
+## Parked by item 3504, 2026-10-22 — `Unit::kill_group_order`: reachable but unstaged
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3504a) **`Unit::kill_group_order@005e3310` is reachable but unstaged** (item 3504; runs 1138–1142, and the unfiled
+sweeps the journal names). The only route is `Group::kill_group_order@00710aa0` ← `Unit::find_new_target@005ff6a0:71`
+← `Unit::do_move@005f7b30:105` ← `Unit::do_group_move@005e79a0:85`, the leader arm. **The predicate, as the takes
+narrowed it**: the leader's head is a group order (`find_new_target:63`, `+0x2c`, and `group ≥ 0`; otherwise `:65`
+takes `kill_current_order`). Its action is an `ATTACK` with `mandatory 0`. It enters `do_move` with a suspended
+search already stashed (`openlist`, `UnitData +0x104`, non-zero), on a frame where `(frame − collide_frame) % 4 == 0`
+with the difference positive, and `repaths[who] != 0`. **The bind is the stash.** `do_move`'s suspended block
+returns 0 on every other path (`:171-178`), and a 0 makes `do_group_move` ungroup the leader that same frame
+(`LAB_005e7c6c`, `:437-444`). So the stash must be made by a `do_move` call that returned non-zero, and the
+very next frame must fall on the 4-frame beat. What the takes showed:
+- **Staged and diff-read**: the `@repairins` verb (`tools/trace/queue.h`, host-tested) inserts a no-bit `GroupMoveOrder`
+  over the acquired `mandatory 0` attack (run1139, 743). Sweep 4's Chariot stance and hop beat the leader arm's
+  32-frame `kill_group_move` (run1139's killer) and `check_target_path`'s moving-target repath (run1140's), and the walk
+  runs 743 → ~965–998 to the jam.
+- **The REPAIR swarm's walking local group is the first squad only** (`0/6`, `0/7`, `0/8`). Every other squad of the
+  attack group walks alone (`MOVEORDER flags 1`), so the leader is `0/6` in every cast, with phase `(f + 6) % 32`.
+  A larger attack group only adds who=0 walkers.
+- **A collision ungroups the leader whatever the pressure**. Its first collision converts the head to `MOVEORDER flags 1`
+  on the same frame, at 3–6 who=0 collisions a frame (v4, v5) and at 12–16 (run1141). `start_dist` stays 0.
+- **Pressure alone suspends nothing**. With up to 19 who=0 collisions a frame for 150 frames and no obstacle, the
+  leader neither collides nor re-plans, and walks grouped to 1093 (run1142). The re-plan branch that calls
+  `find_upath` under the `500 / repaths²` limit (`do_move:600-665`) is not reached on a plain grouped walk.
+- `find_new_target` was entered in five takes (v5-960 1025, v6-970 1008, v7 998/1007, run1141 993, v11b 972), always
+  by ungrouped units on `:65`.
+
+**What would stage it**: a grouped leader whose own `do_move` reaches the `:600-665` re-plan (a path-stack waypoint
+consumed with `field_0x88 == 0`, the `% 5` cadence) while `repaths[0] ≥ 3`, so that `find_upath` suspends and
+`do_move` returns non-zero. The suspension frame S must also satisfy `(S + 1 − collide_frame) % 4 == 0`, so
+`S ≡ 2 mod 4` for a leader that never collided. Reading which `do_move` return follows a suspended `find_upath`
+(`:658-700`) comes before any further take. **Not `blind::RESIDUE`**: every predicate is a state the game holds.
+**Score**: `NEVER` (`Unit::kill_group_order`, `Group::kill_group_order`) when staged.
 
 ## Parked by the next landing, slot OI — reserved
 
