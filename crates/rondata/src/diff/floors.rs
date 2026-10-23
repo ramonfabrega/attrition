@@ -320,21 +320,32 @@ mod tests {
     /// **The handoff's rubric line is the pinned scorecard** (the forty-ninth
     /// pass, Ramon's word: the rubric is the table a pass presents, not a
     /// number a pass runs for itself). `Rubric: mechanics <F> of <G> at 100 %
-    /// · ages held <A> of 8 · unit types seen <U> of <T>`, read against
-    /// `census::RUBRIC_*`, which the steering pass re-pins from
-    /// `tools/rubric.py --record` (never a booking: Ramon, no minutes added
-    /// to a landing). Made to fail first on a handoff with no such line.
+    /// · lockstep bytes <P> % · ages held <A> of 8 · unit types seen <U> of
+    /// <T>`, read against `census::RUBRIC_*`, which the steering pass re-pins
+    /// from `tools/rubric.py --record` (never a booking: Ramon, no minutes
+    /// added to a landing). **Lockstep since the fifty-first pass** (Ramon,
+    /// 2026-10-22: how close the port is to a 1:1 sim): the ages and the
+    /// types are read from the dumps of games whose word stands at the
+    /// game's length, `<P>` is the share of simulation bytes their traces
+    /// entered, in tenths, and `<T>` is the skirmish types,
+    /// `unitrules.xml`'s records less those no nation's `TRIBE_MASK` names.
+    /// Made to fail first on a handoff with no such line, and again on the
+    /// line without `lockstep bytes`.
     #[test]
     fn the_handoff_s_rubric_is_the_pinned_scorecard() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../docs/QUEUE.md");
         let q = std::fs::read_to_string(path).expect("docs/QUEUE.md");
+        let tenths = crate::census::RUBRIC_LOCKSTEP_BYTES_TENTHS;
         let want = format!(
-            "Rubric: mechanics {} of {} at 100 % \u{b7} ages held {} of 8 \u{b7} unit types seen {} of {}",
+            "Rubric: mechanics {} of {} at 100 % \u{b7} lockstep bytes {}.{} % \u{b7} ages held {} of 8 \
+             \u{b7} unit types seen {} of {}",
             crate::census::RUBRIC_GROUPS_FULL,
             crate::census::RUBRIC_GROUPS,
+            tenths / 10,
+            tenths % 10,
             crate::census::RUBRIC_AGES_HELD,
             crate::census::RUBRIC_UNIT_TYPES_SEEN,
-            crate::census::RUBRIC_UNIT_TYPES
+            crate::census::RUBRIC_UNIT_TYPES - crate::census::RUBRIC_UNIT_TYPES_EXCLUDED
         );
         let line = q.lines().find(|l| l.starts_with("Rubric:"));
         assert_eq!(
