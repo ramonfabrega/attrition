@@ -107,6 +107,10 @@ pub struct Node {
 /// (`0xc263e147`, `0xc213cccd`, `0x42d77ae1`), `RData +0x88` 0.9 — one per
 /// `<RESTRICTION name="Destroyer">`, the stern's `50..−50` on 6.
 ///
+/// **Piece 189, the Light Tank** (item 3529, unit type 239): run1169's
+/// packet reads its `(4, 0, 0)` entry as `(0.0, −3.96, 37.31)`
+/// (`0xc07d70a7`), `RData +0x88` 0.9 — one `<RESTRICTION>`, the turret.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -131,6 +135,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (278, 4, Node { px: 0, py: -5697 }),
     (278, 5, Node { px: 0, py: -3695 }),
     (278, 6, Node { px: 0, py: 10774 }),
+    (189, 4, Node { px: 0, py: -396 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -148,6 +153,7 @@ const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (166, (11, 10)),
     (298, (9, 10)),
     (278, (9, 10)),
+    (189, (9, 10)),
 ];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
@@ -319,6 +325,16 @@ const FLOAT_LANDS_279_N2: &[(i32, i32, i32, i32)] = &[
     (354, 42, -76, -399),
 ];
 
+/// Piece 189's [`Release::float_lands`], one list per anim (item 3529).
+const FLOAT_LANDS_189_A11: &[(i32, i32, i32, i32)] = &[(35, 193, 82, -72), (305, 193, -72, -82)];
+const FLOAT_LANDS_189_A12: &[(i32, i32, i32, i32)] = &[
+    (14, 262, 114, 26),
+    (104, 262, -26, 114),
+    (194, 262, -114, -26),
+    (284, 262, 26, -114),
+];
+const FLOAT_LANDS_189_A13: &[(i32, i32, i32, i32)] = &[];
+
 /// Piece 298's [`Release::float_lands`], one list per anim and turret
 /// (item 3523): `CHAR_ATTACK1`'s and `CHAR_ATTACK2`'s entries differ in
 /// their bits, so each row is its own sweep.
@@ -410,6 +426,51 @@ const FLOAT_LANDS_278_N2: &[(i32, i32, i32, i32)] = &[(77, 124, 464, -163), (167
 /// from a game that fields the type reads each row in a minute
 /// (`tools/recomp/get_position.py … entries <piece>`).
 const RELEASES: &[(i32, i8, u32, Release)] = &[
+    // **The Light Tank, piece 189** (unit type 239; item 3529, `docs/AI.md`
+    // §303): run1169's packet holds the piece's seven entries — the turret
+    // `(4, 0, 0)` and, for each of its three `<RELEASEEVENT>`s (node 8, the
+    // turret's: frame 4 of `CHAR_ATTACK1`, 21 of `CHAR_ATTACK2`, 14 of
+    // `CHAR_ATTACK3`), the turret's and the muzzle's. The muzzle sits 27
+    // model units ahead of the turret, so a round leaves about 127 ahead of
+    // the hull's square: who=1's `1/27` round of 4406 flies 5 frames and
+    // bursts on the human's Citizen `0/3` on 4410, where this crate's left
+    // the hull, flew 6, and came down behind the fleeing citizen on 4411.
+    (
+        189,
+        crate::anim::ATTACK1,
+        4,
+        Release {
+            piece: 189,
+            node: 8,
+            pivot: [18_803, -2_089_893, 37_354_836],
+            at: [135_452, -27_332_077, 3_642_757],
+            float_lands: FLOAT_LANDS_189_A11,
+        },
+    ),
+    (
+        189,
+        crate::anim::ATTACK2,
+        21,
+        Release {
+            piece: 189,
+            node: 8,
+            pivot: [3_905, -3_585_954, 37_319_122],
+            at: [113_480, -27_390_808, 3_339_424],
+            float_lands: FLOAT_LANDS_189_A12,
+        },
+    ),
+    (
+        189,
+        crate::anim::ATTACK3,
+        14,
+        Release {
+            piece: 189,
+            node: 8,
+            pivot: [32_120, -466_466, 37_334_103],
+            at: [155_086, -27_273_699, 3_934_948],
+            float_lands: FLOAT_LANDS_189_A13,
+        },
+    ),
     // **The Destroyer, piece 278** (unit type 328; item 3525, `docs/AI.md`
     // §303): run1169's packet (logger frame 3769 of the Japanese Industrial
     // lobby) holds the piece's thirty-nine entries — its three pivots at
@@ -1991,6 +2052,47 @@ mod tests {
             }
         }
         assert!(rows >= 9 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 189** (item
+    /// 3529): `tools/recomp/get_position.py … pivot 189 8 <anim> <time> 1`
+    /// on run1169's packet, one sweep a row (the three anims' entries
+    /// differ). `$RON_RELEASE_TABLE_189` is the directory holding
+    /// `pivot-189-n8-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-23-item-3529/sweeps/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_189() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_189") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_189 (item 3529's oracle, run1169)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACK1, 4),
+            (crate::anim::ATTACK2, 21),
+            (crate::anim::ATTACK3, 14),
+        ] {
+            let path = format!("{dir}/pivot-189-n8-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_189");
+            let r = release(189, slot, time).expect("the row");
+            assert_eq!(r.node, 8);
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "a{slot} ({}, {}, {}, {}) z {}",
+                        f[0], f[2], f[3], f[4], f[5]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 

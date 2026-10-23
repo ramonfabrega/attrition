@@ -10165,13 +10165,13 @@ other is a computer's siege unit, which counts nothing toward a capture but walk
 `Army::charge(ox, whom)`. Both are read off the listing (`005fd8ef`–`005fd933`, `005fda63`–`005fda9b`) and built.
 On disk, only run1171's computer Light Tank opens the arm. Not booked: no score names either arm.
 
-## Parked by the next landing, slot PC — reserved
+## Parked by item 3529, 2026-10-23 — the Light Tank's turret
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3529a) **`hits.py` names a blow's striker by the victim's `damage_o`, which a later blow need not rewrite** (3529;
+`docs/AI.md` §303). On run1171 the human's `0/3` keeps `damage_o` 54 and `damage_frame` 4391 through six later blows
+(4396..4411), so `hits.py` printed `1/54` (the Dreadnought) for the Light Tank `1/27`'s 160 of 4410, and 3528's
+booking carried that name. The landing frame against each round in flight (`RON_DEBUG_AMMO`, and theirs'
+`AmmoOut::` draws) named the round. Not booked: no score names the tool.
 
 ## Parked by item 3530, 2026-10-23 — the Chinese word 3017: the fire on the move's bearing
 

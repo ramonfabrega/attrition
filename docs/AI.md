@@ -25844,18 +25844,13 @@ Industrial**: `STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5`. Both captures read
 (`japanese_industrial_pair_captures_say_their_lobby`). **The game ends itself at 4547** (closing block 4548).
 
 **The captures.** run1152 is the `DUMP_ALL` start; run1153 the long, 3507's run1147 recipe (`end:UNITS=3,GUYS=2` on
-`--stride 100`), walked from run1152's initial state (3506a): 37 frames identical between the two. run1153's first
-launch died at startup on a Wine page fault (`wine-died.log`, read at `0x00004ECD`), no receipt, and was retaken
-whole. run1153b (1345..1601) and run1153c (3668..3924) are the two words' windows, each `rngcmp.py`-identical to
+`--stride 100`), walked from run1152's initial state (3506a): 37 frames identical between the two. run1153b (1345..1601) and run1153c (3668..3924) are the two words' windows, each `rngcmp.py`-identical to
 run1153 over every frame they share.
 
 **First try: frame 1351 of 4547**, by the count and the sequence. Ours spends 5 draws and theirs 12; they part at
 index 0 on theirs' `Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`, three times: a birth.
 `births.py` names them on the long's block 1401 as `1/19`, `1/20`, `1/21`, **`RIFLEMAN` (TypeIndex 100, land)**, and
 three more, `1/22`..`1/24`, on 1359 (run1153b).
-
-Theirs' twelve, in order: `Guy::init_real+0x52 < Unit::init` ×3, `Guy::set_anim+0x97a < Guy::inc_time` ×3,
-`Guy::set_anim+0x104b` ×2, `Farms::inc_time+0x1ae` ×4. Ours' five open on `Guy::set_anim+0x104b`.
 
 **The value diff** (run1153b walked from run1152, 708 keys). **The state parts before the window**: on block 1345
 who=1's Barracks `1/2013` prices its Riflemen queue `queue[0].cost` **ours 80/70 against theirs 68/60**, and
@@ -25876,35 +25871,27 @@ who=1's Barracks `1/2013` prices its Riflemen queue `queue[0].cost` **ours 80/70
   lineage (`UnitTypeData::is(0x15f, 0)`) `JAPANESE_CARRIER_SPEED` (33).
 
 Both are built: `Sim::nation_unit_discount` and `Sim::train_tail` (`crates/sim/src/lib.rs`), the four constants in
-`Tuning`. Each was mutated off through `tools/mutate.py` and held: the cost arm's mutation fails its direct test
-(`japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier`) and both widenings; the speed arm's fails
-the first parting and both widenings. **The speed arm alone moves the word**; the cost arm moves the value diff.
+`Tuning`. Each was mutated off through `tools/mutate.py` and held. **The speed arm alone moves the word**; the cost arm moves the value diff.
 
 **The word moves 1351 → 3674**: ours 73 draws against 94, index 0, theirs `Unit::think_scout+0x941 <
 Unit::think_peasant+0x2ac < Unit::think+0x362`. run1153b drops to 61 keys, every one a standing family the other
 late-age pairs carry (`SITE[i].reg` ours 65 against 0, `aggression`, `form`, groups' `held` and pool).
 
-**The next word, 3674** (run1153c, 2956 keys). On the word's block 3675 ours holds a unit `1/121` alone and who=1's
-Citizen `1/10` is inside it (`inside` 121 against −1); theirs' `1/10` stands at (37416, 26280) and re-scouts. **The
-direction is ours.** The state parts before the window: on block 3668 who=1's income is **food ours 1440 against
-theirs 1520, wealth 1752 against 1832** (80 each, `rate` 90 against 95 and 68 against 73), with `leftover`,
-`escrow[2]` and the make list's values beside them. The long prints no leader record between its stride blocks, so
-the walk back from 3668 is the next item's first step; a hypothesis only: an income term worth 5 a minute in two
-goods at once.
+**The next word, 3674** (run1153c, 2956 keys): on block 3675 who=1's Citizen `1/10` is inside `1/121` in ours alone
+(`inside` 121 against −1), and on 3668 who=1's income already parts (food 1440 against 1520, wealth 1752 against
+1832).
 
 **Item 3521 (2026-10-23, Opus 5.5): the word 3674 walked, two arms built, 3674 → 3769.** No capture: the disk
 answered both partings.
 
 *The income, walked back.* who=1 holds four Fishermen on 3668 (`FISHERMEN`, 317, sea), and two stand on fish
-(`rare 6`, `1/113` and `1/120`). The long's stride blocks place the first one on fish: `1/113` is born by 2901 and on
-fish (`rare 6`) by 3001; `1/120` joins it by 3401. No leader record is dumped between 1601 and 3668, so the
-dump cannot name the income's first parted frame. A probe can (`RON_PROBE_3521`, committed and reverted whole): **the
+(`rare 6`, `1/113` and `1/120`). No leader record is dumped between 1601 and 3668; a probe (`RON_PROBE_3521`, reverted whole) finds **the
 state first parts on frame 2959**, the first gather that pays a who=1 boat on a fish (good 6, alone on it). With the
 arm it pays 200 food and 232 wealth; without it 160 and 192 (Merchants' 120% on the wealth half), 40 short in each. `LeaderData::calc_rare@006e08d0`'s water arm (`006e0a34`..`006e0a4c`) loads `esi =
 Constants +0x7ac` (`japanese_fishing_boats`, 25) for a leader with `has_tribe_bonus(0xf)`. It adds that to the food
 slot beside `FISHERMEN_BONUS`, and to every other slot as the `extra` term. A fish pays 10 food and 10 wealth (160
 sixteenths each), so each boat is 40 a half short and two boats are the booked 80. `economy::calc_rare` takes the
-tribe test (`japanese`); before this the Nubians' arm was the only `extra` the function carried. With it every income row on 3668
+tribe test. With it every income row on 3668
 agrees (1520, 1832), and run1153c's widening goes 2956 → 2946. **The word does not move on it**: the parting at
 3674 is not the income's.
 
@@ -25996,9 +25983,23 @@ falls to 4343; spot round the city, run1171 reads 1362.
 (6504, 10104) against (6360, 8568); on 4344 `pos` (6504, 10104) against (6500, 10065), `g.ox[0]` 3 against 2000.
 All agree after, to 4467; run1171 **1362 → 922** keys.
 
-**The next word, 4434**: ours 15 draws against 16, index 15, theirs `Unit::close+0xcb6 < Object::die+0x29`: the
-human's Citizen `0/3` (50, land) dies. On block 4411 `0/3 hits_left` reads ours 44 against theirs 34, from theirs'
-blow of 4410 by `1/54` (`DREADNOUGHT`, 348, sea). Why ours makes no such blow is the next item's first question.
+**Item 3529 (2026-10-23, Opus 5.5): the Light Tank's turret, 4434 → 4443** (no capture; the walk is the journal's).
+The booked striker was `damage_o`'s, which `0/3` keeps at `1/54` from 4391 through every later blow. Theirs bursts a round on 4410 (`AmmoOut::explode`) and splashes one on 4411; ours
+brought both down on 4411. The burst is the **Light Tank `1/27`'s** (`LIGHTTANK`, 239, land, piece 189), released on
+4406 from node 8 of a pivot piece with no `sim::pivot` row: ours left from the hull's square, 2221 from its aim, flew
+6 and came down behind the fleeing citizen. run1169's packet gives the turret `(4, 0,
+0)` (0.0, −3.96), `RData +0x88` 0.9, and the muzzle on `CHAR_ATTACK1`..`3` (frames 4, 21, 14) 27 model units
+ahead of it: the round leaves from (6803, 10271), flies 5 and hits. Built as `NODES`, `RDATA_SCALE` and three
+`RELEASES` rows; the oracle agrees on 277,248 cells. Mutated: the rows out, the walk falls to 4434; the `NODES` row
+out, run1171 reads 896.
+
+**The value diff, on the word's frame** (run1171, block 4411): `0/3 hits_left` ours 44 against 34 before, 34 on both
+sides after; `0/3` dies on 4434 on both, and block 4435's `leader:active` (ours 12 against 11) agrees. run1171
+**922 → 895** keys.
+
+**The next word, 4443**: ours 46 draws against 44, index 44 — ours `Ammo::do_damage+0xc59` (`SITE_PUNCTURE_X`),
+theirs `AmmoOut::explode`. `1/28`'s round of 4434 at `0/3`, whose target died in flight, comes down on 4443 on both
+sides; ours punctures the ground and theirs does not. The dump parts nothing before block 4459 (`1/28 g.ox[0]`).
 
 **What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
 ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
@@ -26008,7 +26009,8 @@ alone). `JAPANESE_DAMAGE`'s arm in `damage.rs` reads `Modifiers::japanese_level`
 the Japanese boats' quarter on a fish (run1153c's 3668 income, item 3521), the civilian carrier's shore eject (run1153c's
 3674 landing, item 3521), the Dreadnought's two turrets (run1153c's 3770 blow, item 3523), the Destroyer's three
 turrets (run1153c's 3808 blow, item 3525), the captain's retarget onto its own target (the walk's 3816, item 3525),
-`fight`'s capture approach (the walk's 4343, item 3528). Reading only: the capture approach's mandatory and siege
+`fight`'s capture approach (the walk's 4343, item 3528), the Light Tank's turret (run1171's 4411 blow, item 3529).
+Reading only: the capture approach's mandatory and siege
 arms (parked 3528a); the ship-cost and carrier arms, and the per-tier shape for a non-negative constant; `boat_eject_all`'s air refusal and its kept-cargo case (a passenger `come_out` refuses), which no capture
 reaches.
 

@@ -61,8 +61,15 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // `QUEUE_FIRST` where ours had taken `0/3`. Ours 15 draws against 16,
     // index 15 — theirs `Unit::close+0xcb6 < Object::die+0x29`: theirs'
     // human `0/3` dies, struck for 10 more on 4410 (block 4411).
-    count: 4434,
-    sequence: 4434,
+    // Item 3529: 4434 -> 4443, the Light Tank's (piece 189) turret rows
+    // (`sim::pivot`): `1/27`'s round of 4406 leaves from the muzzle at
+    // (6803, 10271), 127 ahead of the hull, flies 5 and bursts on the
+    // fleeing `0/3` on 4410, as theirs does. Ours 46 draws against 44,
+    // index 44 — ours `Ammo::do_damage+0xc59` (the puncture), theirs
+    // `AmmoOut::explode`: `1/28`'s round of 4434, whose target died, comes
+    // down on 4443.
+    count: 4443,
+    sequence: 4443,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -368,5 +375,12 @@ fn japanese_industrial_pair_run1171_s_word_frame_is_widened_whole() {
     // (6500, 10065) with `g.ox[0]` 2000 and `recharging` 0, theirs' values;
     // it agrees to block 4467. The first non-standing row is block 4411:
     // the human's `0/3` `hits_left` ours 44 against theirs 34.
-    pin_eq!(w.firsts.len(), 922, "run1171 baseline");
+    // Item 3529: 922 -> 895, the Light Tank's turret rows built. On block
+    // 4411 `0/3 hits_left` reads 34 on both sides (`1/27`'s round of 4406
+    // from the muzzle, 5 frames), and `0/3` dies on 4434 on both; block
+    // 4435's `leader:active`/`control`/`num_units[0]`/`peasants` (ours 12,
+    // 12, 11, 11 against 11, 11, 10, 10) and `0/3 extra` agree. The first
+    // non-standing row is block 4459: `1/28`'s target, `g.ox[0]` ours 3
+    // against theirs 11 (`0/11`), `recharging` 0 against 40.
+    pin_eq!(w.firsts.len(), 895, "run1171 baseline");
 }

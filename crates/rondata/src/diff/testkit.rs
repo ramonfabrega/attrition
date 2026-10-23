@@ -9841,12 +9841,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // captain retarget on its own target (item 3525), past run1153c's last
     // block, widened on run1171 over 4338..4548 (block 4344), the window
     // reaching the game's closing block; **4434** with `fight`'s capture
-    // approach (item 3528), the same window (block 4435).
+    // approach (item 3528), the same window (block 4435); **4443** with
+    // the Light Tank's (piece 189) turret rows (item 3529), the same window
+    // (block 4444).
     (
         "JAPANESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL_PAIR_WORD,
         Some("japanese_industrial_pair_run1171_s_word_frame_is_widened_whole"),
-        3528,
+        3529,
         Some(crate::diff::japanese_industrial_pair::WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343),
     ),
     // **The land map's held Industrial pair** (item 3511): the Chinese at
@@ -11344,7 +11346,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // Barracks' Riflemen; 3674 with the Japanese Barracks arms, of a game
     // that ends itself on 4547; 4343 with the Destroyer's turrets and the
     // captain retarget on its own target (item 3525), on run1171's window;
-    // 4434 with `fight`'s capture approach (item 3528), the same window.
+    // 4434 with `fight`'s capture approach (item 3528), the same window;
+    // 4443 with the Light Tank's turret rows (item 3529).
     AiWord {
         line: "Late ages",
         map: "EastIndiesJapaneseIndustrial",
