@@ -461,6 +461,15 @@ pub struct Roles {
     /// held, not a leading run, and `Unit::update_los` multiplies the
     /// count by `TROOPS_UPGRADE_LOS` (`docs/VISION.md` §2, term 6).
     pub troops_los_preq: [Option<TypeId>; 3],
+    /// The three units whose bits `LeaderData::get_tower_fort_los@006daf80`
+    /// tests: byte 8 of the leader's `tech` mask (`+0x6c20`), bits `0x4`,
+    /// `0x8` and `0x10` — `TypeIndex` 66, 67 and 68, which the enum names
+    /// `MILITIA`, `MINUTEMAN` and `PARTISAN`. `has_tech` indexes the same
+    /// mask by `TypeIndex` (`0x6c18 + (t >> 3)`), so the byte is those
+    /// three units' bits, whatever the designers meant by it; holding the
+    /// last answers 4, the middle 3, the first 2, none 1 (`docs/VISION.md`
+    /// §2.1, item 3543).
+    pub tower_fort_los_units: [Option<TypeId>; 3],
     /// SUPPLY_WAGONS_1..3, bonus rows 79..81 (SUPPLY, "Upgrade speed").
     pub supply_upgrade_preq: [Option<TypeId>; 3],
     /// `SPIES_UPGRADE_1..3`' prerequisites (rows 92–94, Tactics, Operations
