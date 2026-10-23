@@ -259,7 +259,9 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     //
     // Item 3521: 2946 with the Japanese boats' quarter on a fish
     // (`calc_rare`'s water arm): on 3668 who=1's food and wealth income
-    // agree, 1520 and 1832 — two Fishermen on fish, 40 each. Then **955**
+    // agree, 1520 and 1832 — two Fishermen on fish, 40 each; the state had
+    // first parted on frame 2959, the first boat's first paid gather (a
+    // probe; no leader record is dumped there). Then **955**
     // with the shore eject: on 3674 `1/10` stands at (37416, 26280) on both
     // sides and `1/121` is gone on both. The next word's block 3770 is in
     // the window: theirs' human Citizen `0/5` is struck for 8 on 3769

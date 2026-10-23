@@ -25898,8 +25898,9 @@ answered both partings.
 *The income, walked back.* who=1 holds four Fishermen on 3668 (`FISHERMEN`, 317, sea), and two stand on fish
 (`rare 6`, `1/113` and `1/120`). The long's stride blocks place the first one on fish: `1/113` is born by 2901 and on
 fish (`rare 6`) by 3001; `1/120` joins it by 3401. No leader record is dumped between 1601 and 3668, so the
-income's first parted frame lies after the first boat's arrival, between 2901 and 3001; the dump cannot name it
-nearer. `LeaderData::calc_rare@006e08d0`'s water arm (`006e0a34`..`006e0a4c`) loads `esi =
+dump cannot name the income's first parted frame. A probe can (`RON_PROBE_3521`, committed and reverted whole): **the
+state first parts on frame 2959**, the first gather that pays a who=1 boat on a fish (good 6, alone on it). With the
+arm it pays 200 food and 232 wealth; without it 160 and 192 (Merchants' 120% on the wealth half), 40 short in each. `LeaderData::calc_rare@006e08d0`'s water arm (`006e0a34`..`006e0a4c`) loads `esi =
 Constants +0x7ac` (`japanese_fishing_boats`, 25) for a leader with `has_tribe_bonus(0xf)`. It adds that to the food
 slot beside `FISHERMEN_BONUS`, and to every other slot as the `extra` term. A fish pays 10 food and 10 wealth (160
 sixteenths each), so each boat is 40 a half short and two boats are the booked 80. `economy::calc_rare` takes the
