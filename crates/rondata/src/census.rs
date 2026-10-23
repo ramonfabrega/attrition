@@ -325,6 +325,11 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// It adds four simulation functions no other lockstep trace enters, 9,298
 /// bytes — `Game::popwin_timer`, `Game::wonder_timer`, `Unit::resolve_block`,
 /// `Ammo::init_crash` — 8,782,939 -> 8,792,237, 77.09 % -> 77.17 %.
+/// Item 3533: 771 -> 771 with the American pair's twin run1178 (114
+/// traces), the first lockstep trace of an age-6 game, landed after 3532.
+/// One simulation function no other lockstep trace enters, 1,246 bytes —
+/// `Unit::update_ceo_position` (its `Ammo::init_crash` 3532 had already
+/// added) — 8,792,237 -> 8,793,483, 77.17 % -> 77.18 %.
 pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 771;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
