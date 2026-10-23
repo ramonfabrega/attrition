@@ -168,6 +168,19 @@ impl Sim {
                 ),
             );
             let share = crowd + 1;
+            if std::env::var_os("RON_PROBE_3521").is_some()
+                && (good == economy::FISH || good == economy::WHALES)
+                && self.tech_tree.has_tribe_bonus(
+                    &self.setup,
+                    &self.tech[who as usize],
+                    crate::nations::power::JAPANESE,
+                )
+            {
+                eprintln!(
+                    "PROBE3521 frame {} who {who} unit {u} good {good} share {share} rate {:?}",
+                    self.frame, rate
+                );
+            }
             for (i, r) in rate.iter().enumerate() {
                 out[i] += r / share;
             }
