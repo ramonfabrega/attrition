@@ -1877,12 +1877,6 @@ impl World {
     pub fn set_blocked_at(&mut self, t: Pos, on: bool) {
         let Some(i) = self.tile_index(t) else { return };
         let had = self.tiles[i] & tile::BLOCKED != 0;
-        if std::env::var("RON_PROBE_3543").is_ok() {
-            let c = Self::cell_of_tile(t);
-            if c.x == 53 && c.y == 17 {
-                eprintln!("P3543W tile ({}, {}) on {} had {} mask {:#x} blocked {}", t.x, t.y, on, had, self.tiles[i], self.cell_data(c).blocked);
-            }
-        }
         if had != on {
             let c = Self::cell_of_tile(t);
             let mut d = self.cell_data(c);
