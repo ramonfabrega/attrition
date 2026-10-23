@@ -52,9 +52,17 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // citizen `0/5` and `find_new_target` takes the building `0/2004`, as
     // theirs does. Frame 4097: ours 104 draws against 103, index 94 — ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a
-    // < Guy::inc_time+0x271`.
-    count: 4097,
-    sequence: 4097,
+    // < Guy::inc_time+0x271`. Item 3522: 4097 → 4207 for both. On 4090
+    // army 1's `ATTACKTO` slot 0 (the Spy's) lies at sea, and a land member
+    // whose slot is in another region sweeps round it as the leader's
+    // barge (`705c0f`–`705c9b`), so the barge's first candidate, slot 0's
+    // own point (8568, 984), stands for the whole army; ours swept each
+    // member's own type, and a T34's wider ring reached the shore at
+    // (8664, 1368) (run1168's block 4091). Frame 4207: ours 3279 draws
+    // against 3284, index 3272 — ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `PathFinder::calc_road_cost+0x46`.
+    count: 4207,
+    sequence: 4207,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -312,7 +320,73 @@ fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
     // No dump prints a block in 3934..4091. The word 4097's draw at index
     // 94: ours `Guy::set_anim+0x97a < Guy::move+0x19f` (`1/154`), theirs a
     // sound roll on the sound stream and then `Guy::inc_time+0x271`.
-    pin_eq!(w.firsts.len(), 7517, "run1166b baseline");
+    // Item 3522: 7517 → 576. Block 4092's orders, paths and positions are
+    // gone: army 1's `ATTACKTO` on 4090 aims every member at slot 0's sea
+    // point (8568, 984), the barge's spot (run1168). What is left is the
+    // standing families on the head, then **who=1's reassembly on block
+    // 4104** — `gather_stamp` ours 4095 against theirs 4103, `income[0]`
+    // 2800 against 2480, `income[1]` 2320 against 1840 (parked 3520a's
+    // family) — and on 4210, two blocks past the word 4207's block 4208,
+    // the scouts `1/26`, `1/30` and `1/31` take different move points
+    // (`1/26` (25080, 32760) against (21240, 45048)).
+    pin_eq!(w.firsts.len(), 576, "run1166b baseline");
+}
+
+/// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
+/// long's detail — from run1161b's last blocks through the word's block
+/// (item 3522).
+pub(crate) const RUN1168: &str = "gamelog-run1168-eastindies-russian-modern-window-3928-4098.txt";
+
+/// The window: block 3928 through 4098; the word 4097's own block is 4098.
+pub(crate) const WIDENING_RUSSIAN_MODERN_GAP_4097: (i64, i64) = (3928, 4098);
+
+/// **The gap before the word 4097's window**: run1168 walked from run1148's
+/// start with the recorder on (item 3522).
+pub(crate) fn russian_modern_gap_4097_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1168",
+        &[(RUN1168, WIDENING_RUSSIAN_MODERN_GAP_4097.0)],
+        WIDENING_RUSSIAN_MODERN_GAP_4097,
+        1,
+        &[4098],
+        true,
+    )
+}
+
+/// **The gap before the word 4097, widened whole** (item 3522): every
+/// dumped record on run1168's blocks, both directions.
+#[test]
+fn russian_modern_pair_run1168_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_gap_4097_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 170, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3522, the first walk: 1881 keys. Through block 4090 only the
+    // standing families part (block 3928's 105, groups 85 and 93's `held`
+    // and pool, `form` on `1/160`, `SITE[7].reg`). **The state first parts
+    // on block 4091** (frame 4090): army 1 (group 67) takes an `ATTACKTO`
+    // off (8010, 2873), and fourteen members — the T34s, the AA Batteries,
+    // the Scout Car `1/136`, the Katyusha `1/123` — carry `order:move` ours
+    // (8664, 1368) against theirs (8568, 984), `1/146` `order:kind` ours 2
+    // against theirs 21, and 878 path keys with them. The fix (the barge's
+    // sweep round slot 0): 1881 → 114, the standing families alone.
+    pin_eq!(w.firsts.len(), 114, "run1168 baseline");
 }
 
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one

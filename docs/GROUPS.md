@@ -4984,11 +4984,15 @@ tile (186, 225), a coastal-water tile whose `region2` is 0. Slot 0's tile
 it. Asked as the unit rather than the type, the sweep found (35928, 43176);
 without the write-back the path kept the old offset.
 
-Built in `Sim::group_action_move_to`'s member loop. **Not built**: the
-`TRANSPORTBARGE` footprint (a land member whose slot 0 is invalid for it,
-under a leader that can transport), a loaded boat's passenger type, and the
-same-region `invalid_loc` arm, which a computer's unit (`unit_masks &
-0x40000`) skips unless a re-placed captain came first.
+Built in `Sim::group_action_move_to`'s member loop. **Not built**: a
+loaded boat's passenger type, and the same-region `invalid_loc` arm, which
+a computer's unit (`unit_masks & 0x40000`) skips unless a re-placed captain
+came first. ~~The `TRANSPORTBARGE` footprint~~ is built (item 3522,
+`docs/AI.md` §304): `705c0f`–`705c9b` ask `invalid_loc(member, slot 0's
+tile, 1, 1, 0, 0, 0)`, and when it refuses a member whose type's domain
+(`+0x218`) is land and the leader `can_transport`, the type swept is
+`current_upgrade(TRANSPORTBARGE)`. The barge's first candidate is slot 0's
+own sea point, and it stands (`Sim::region_spot_type`).
 
 ### 37.2 `path_recursion` survives a recycled object slot
 
@@ -5008,7 +5012,8 @@ that moved.
 
 ### 37.4 What this has *not* established
 
-- The arm's two unbuilt footprints and the same-region arm are a reading.
+- The passenger footprint and the same-region arm are a reading. The barge
+  footprint is diff-backed by run1168's block 4091 (item 3522).
 - Whether other `UnitData` fields survive `Unit::init` the same way was not
   surveyed. `path_recursion` is the one a dump showed.
 
