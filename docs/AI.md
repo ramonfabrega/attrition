@@ -25687,7 +25687,12 @@ family 3506b parks for the Germans' closing window. The rest are that family's `
 `the_space_program_halves_an_aircraft_and_angkor_wat_takes_a_quarter_off_a_ship` exits 101. The Angkor and Aluminium
 steps are each held by the unit test alone.
 
-**Coverage.** Diff-backed: the Space Program step (one purchase, 872/942). Reading-only: the sea step (Angkor Wat)
+**And the peace pair's windows.** The Lakota pair holds a Space Program as well (§233). Its six windows from run866
+to run883 lose 8 to 24 keys each (run866 137 → 121), all on who=1's Airbase queues. On run866's 5383, `1/2005`,
+`1/2032` and `1/2037` price their aircraft at 97–108, against theirs' 52–64, and the wealth and oil buckets part
+with them. All of these now agree.
+
+**Coverage.** Diff-backed: the Space Program step (the ICBM's 872/942, and the Lakota Airbases' queues). Reading-only: the sea step (Angkor Wat)
 and the Aluminium step. No capture holds either with a ship or an aircraft priced. The nested land-unit
 `ANGKOR_SHIPS` inside Terra Cotta's clause (`docs/COSTS.md`, Wonders) is not built.
 
