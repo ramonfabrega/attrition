@@ -196,10 +196,13 @@ impl crate::Sim {
         let who = usize::from(self.units[u].owner);
         if std::env::var("RON_PROBE_3516").is_ok() && who == 1 && self.units[u].index == 25 {
             let t = self.units[u].cast_target;
-            let p = self.units[u].pos;
-            let va = t.map(|t| self.valid_target(me, t));
-            let ir = t.map(|t| self.is_in_range(me, t));
-            eprintln!("PROBE3516 f{frame} 1/25 at {p:?} target {t:?} valid {va:?} in_range {ir:?}");
+            eprintln!(
+                "PROBE3516 f{frame} 1/25 at {:?} target {:?} valid {:?} in_range {:?}",
+                self.units[u].pos,
+                t,
+                t.map(|t| self.valid_target(me, t)),
+                t.map(|t| self.is_in_range(me, t)),
+            );
             if let Some(Obj::Unit(v)) = t {
                 eprintln!("PROBE3516   target pos {:?} owner {} index {}", self.units[v].pos, self.units[v].owner, self.units[v].index);
             }
