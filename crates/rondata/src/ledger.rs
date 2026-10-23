@@ -303,6 +303,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the land map's held Industrial pair's walks: it compares no field itself, and its widenings are harness.rs's (item 3511)",
     ),
     (
+        "diff/turkish_enlightenment_pair.rs",
+        "the land map's held Enlightenment pair's walks: it compares no field itself, and its widenings are harness.rs's (item 3513)",
+    ),
+    (
         "diff/japanese_industrial_pair.rs",
         "the held Industrial pair's walks: it compares no field itself, and its widening is harness.rs's (item 3510)",
     ),

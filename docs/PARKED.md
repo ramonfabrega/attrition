@@ -3774,6 +3774,13 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-23 — the fifty-third tranche's
 
+(3544) **3513's "for the Loop"** (the journal's line, filed at its merge; parked 3513a): a late-age pair minted on a battery
+lobby's `(map, nation, difficulty)` shares the held-out game's triple — the Turks' Enlightenment pair is `(7, 8, 3)`, the
+held-out `GreatSaharaTurkishTier3`'s, ages 0–7 there and 4/4 here — so the pair stays out of `battery::SCORED_LOBBIES`. Whether
+the age difference keeps the battery held out (entry 54, 61: never debugged against) is the pass's to rule; candidate: the
+lobby key carries the age, or a late-age pair is minted on a triple no held-out game holds. Score: the held-out battery's
+first tries. One reach: the pass's.
+
 (3541) **3531's "for the Loop"** (the journal's line, filed at its merge; parked 3531a): entry 91 §2's estimate — the four
 whole pairs' `cover=1` twins carry lockstep bytes from 77.0 % past 80 % — cannot be met by twins. run1176 (the Germans at
 All Technologies, whole against both its `cover=0` takes) entered 2,027 simulation functions and three of them, 5,222 bytes,
@@ -10016,13 +10023,19 @@ words and edits nothing here; a refill lands when two remain.
   packet. Piece 65 is not built in that game (`get_position.py … entries 65` reads no `AttachPos`), and 3538a's
   gunpowder-line pieces stand as they were. **Score**: none until a word parts on one of their rounds.
 
-## Parked by the next landing, slot OP — reserved
+## Parked by item 3513, 2026-10-23 — the Turks at a held Enlightenment age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3513a. A held-age pair can share a held-out lobby's triple.** `(7, 8, 3)` is both this pair and
+  `battery::BATTERY`'s `GreatSaharaTurkishTier3` (item 3385). The two lobbies differ by age and resources: that one
+  plays ages 0–7 on `STARTING_RESOURCES 1`, and this one holds age 4 on 7. `SCORED_LOBBIES` keys on the triple, so
+  the pair stays out of it, and its identity test reads both captures' `GAME INFO` instead (`docs/AI.md` §307). Two
+  things are open. Is a fix tuned on this pair still "never debugged against" for the held-out game (DECISIONS 54,
+  61)? And should a lobby's identity carry its ages? **Score**: the held-out battery's, if a fix on this pair moves
+  `GreatSaharaTurkishTier3`; the pass's to rule.
+- **3513b. The booked units were not the parting's.** The booking named `JANISSARYROYAL`, `BASILICACANNON`,
+  `CAMELCORPS`, `JUNKERS`, `ROYALGUARD` and `MANCHUMUSKETEERS`' kin. The first parting is a Citizen (50) and a
+  Village (414). The game fields Royal Janissaries (113) and Basilica Cannon (277) in quantity, and no Camel Corps,
+  Junkers, Imperial Guard or Manchu Musketeers. **Score**: none until a word parts on one.
 
 ## Parked by item 3514, 2026-10-23 — the Space Program halves the Aztecs' ICBM, and the pair is whole
 
