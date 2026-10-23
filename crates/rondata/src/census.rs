@@ -321,7 +321,11 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// the first lockstep trace of an age-7 game. It enters 2,027 simulation
 /// functions and only three no other lockstep trace does, 5,222 bytes —
 /// 8,777,717 -> 8,782,939 of 11,392,782, 77.04 % -> 77.09 %.
-pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 770;
+/// Item 3532: 770 -> 771 with the Aztec pair's twin run1177 (113 traces).
+/// It adds four simulation functions no other lockstep trace enters, 9,298
+/// bytes — `Game::popwin_timer`, `Game::wonder_timer`, `Unit::resolve_block`,
+/// `Ammo::init_crash` — 8,782,939 -> 8,792,237, 77.09 % -> 77.17 %.
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 771;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->
