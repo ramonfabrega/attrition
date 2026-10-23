@@ -152,3 +152,54 @@ fn run1145b_german_alltech_pair_closing_state() {
     pin_eq!(e.compared, 298, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
+
+/// run1145c: the pair's last blocks, 4169..4176 at the long's detail — six
+/// blocks before the word 4175's block 4176, which is the game's closing
+/// block (item 3506).
+pub(crate) const RUN1145C: &str = "gamelog-run1145c-eastindies-german-alltech-window-4169-4176.txt";
+
+/// The window: block 4169 through the closing block 4176, the word 4175's
+/// own block.
+pub(crate) const WIDENING_GERMAN_ALLTECH_CLOSING: (i64, i64) = (4169, 4176);
+
+/// **The pair's last blocks**: run1145c walked from run1144's start with
+/// the recorder on. The word is the game's last frame (item 3506).
+pub(crate) fn german_alltech_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GERMAN_ALLTECH.start],
+        true,
+        GERMAN_ALLTECH.long,
+        "run1145c",
+        &[(RUN1145C, WIDENING_GERMAN_ALLTECH_CLOSING.0)],
+        WIDENING_GERMAN_ALLTECH_CLOSING,
+        1,
+        &[4176],
+        true,
+    )
+}
+
+#[test]
+fn run1145c_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_alltech_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 7, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 3506, the first walk: 185 keys, 183 standing on 4169 — who=1's
+    // `form` (ours -1 against theirs 9 or 0) and `mirror` (ours 0 against
+    // 1) on most of its units, group and pool `held` lists theirs does not
+    // print at this detail, the leaders' `SITE[i].reg` (ours 65 against
+    // 0), who=0's `aggression[1]` (ours 0 against 1), and six who=1 units'
+    // `attrition` (ours 6 against 24) with their wounds (`1/20`, `1/21`,
+    // `1/22`, `1/49`, `1/91`, `1/92`); group 93's `held` and pool on 4170.
+    // The word 4175's block 4176, the game's closing block, parts no key
+    // of its own; the draw stream agrees to 4175 (`docs/AI.md` §300).
+    pin_eq!(w.firsts.len(), 185, "run1145c baseline");
+}

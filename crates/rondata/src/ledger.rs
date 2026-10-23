@@ -279,6 +279,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the peace pair's walks: it compares no field itself, and its widening is harness.rs's (item 2320)",
     ),
     (
+        "diff/german_alltech_pair.rs",
+        "the first late-age pair's walks: it compares no field itself, and its widening is harness.rs's (item 3506)",
+    ),
+    (
         "diff/mongol_pair.rs",
         "the successor pair's walks: it compares no field itself, and its widening is harness.rs's (item 1728)",
     ),

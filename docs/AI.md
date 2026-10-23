@@ -25568,12 +25568,49 @@ every block of run940 (8409..8672). This Iroquois never fields a Spy in those wi
 10520..10682. Whether `1/46` is the Despot by type: `GUY`'s `type` prints only at `GUYS≥4`, and run1018 is at the
 default.
 
-## 300. Reserved for the next item on the AI track
+## 300. The Germans at All Technologies, East Indies: the first late-age pair, whole on its first try (2026-10-22, item 3506)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3506, Opus 5.5, the AI track (DECISIONS 90): run1144, run1145, run1145b and run1145c, on the click-free pool.*
+
+**The lobby.** The coverage pair's (§127: East Indies, `MAP_STYLE 18`, human Nubians against a computer at Toughest,
+seed 12345, `STARTING_TECHNOLOGY 8` "All Technologies", `STARTING_RESOURCES 7` "Deathmatch") with the nation varied to
+the **Germans (12)**, for the age-7 line on an island map. `ENDING_TECHNOLOGY` stays 7, run652's: All Technologies holds
+no single age, and every pair on file reads back 7. Both captures read the lobby back from their own `GAME INFO`
+through `Pair::assert_lobby`, which checks `ENDING_TECHNOLOGY` beside `STARTING_TECHNOLOGY` from this item on (the
+coverage, Sahara coverage and Sahara Mongol read-backs now call it as well).
+
+**The captures.**
+- run1144 is the `DUMP_ALL` start.
+- run1145 is the queue's long with `end:UNITS=3,GUYS=2` on `--stride 100`. It prints no frame-0 state, so it cannot
+  seed the walk (parked 3506a) and stays the rubric's take.
+- run1145b is the long on run831's detail lines. It is the same game as run1145, 4176 of 4176 frames identical.
+- run1145c is the last blocks, 4169..4176.
+
+**The game ends itself at 4175**: the idle human is defeated, as in the coverage pair (4730) and the Mongol pair (5056).
+
+**First try: whole.** `german_alltech_pair_first_parting` walks run1145b from run1144 with count and sequence agreeing on
+every frame to 4175. `run1145b_german_alltech_pair_closing_state` walks to the closing block 4176 and compares 298 units
+with none off, torn, unlinked or extra, and `Closing fields: none`. `run1145c_s_closing_frame_is_widened_whole` walks
+the last seven compared blocks: 185 keys, 183 of them standing on the window's first block 4169, the same families
+run844 found standing on the Mongol pair's (who=1's `form` and `mirror`, the leaders' `SITE[i].reg`, who=0's
+`aggression[1]`, six who=1 units' `attrition` 6 against 24 with their wounds), plus group 93's `held` and pool on 4170,
+which theirs does not print at this detail. **The word's block 4176 parts no key of its own.** The value diff on the
+word's frame is the closing comparison's: 298 units, 0 differing.
+
+**What the game put on the map** (`rubric.py --tables 3` on run1144 and run1145b): 28 skirmish types. Three are new to
+a lockstep game: the German General (57, `GENERALGERMAN`), the Leopard Tank (259) and the Tornado (297).
+`census::RUBRIC_UNIT_TYPES_SEEN` goes 128 → 131. Of the booking's twelve records, only `LEOPARDTANK` and `TORNADO`
+stood. With every age owned from frame 0, this German fields the generic late land types (Assault Infantry,
+Advanced Machine Gun, `TOW`, Armored Cavalry, MLRS, Avenger) and none of the age-6 nation records the booking named
+(`INFANTRYGER`, `MG42`, `PANZER`, `TIGERTANK`, `HUMMEL`, `ME109`). At sea it fields the Missile Cruiser, the Attack
+Submarine and the Advanced Battleship, and in the air the Strategic Bomber, the Attack Helicopter and the ICBM, but not
+`TYPHOON`, `HIND`, `STEALTHBOMBER` or `CRUISEMISSILE`. A lobby taken for those records holds an age (the held-age pairs'
+recipe, 3508–3513) rather than starting at All Technologies.
+
+**What this has *not* established.** Why the computer passes over the age-6 nation records and the four age-7
+records; the rubric counts presence, and no reading was made of the build choice. The standing families in run1145c's
+window (parked 3506b): the walk compares them, but the word does not gate on them, and no item reads them. Table 4's
+bytes: the scored captures are `cover=0`, and no `cover=1` twin of this game was taken.
 
 ## 301. Reserved for the next item on the AI track
 
