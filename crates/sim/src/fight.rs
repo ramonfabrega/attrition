@@ -4644,31 +4644,6 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
-                        // PROBE 3530: `RON_PROBE_NEARBY=<frame>`.
-                        if std::env::var("RON_PROBE_NEARBY")
-                            .ok()
-                            .and_then(|v| v.parse::<i64>().ok())
-                            == Some(self.frame)
-                        {
-                            let (aw, ao) = match attacker {
-                                Obj::Unit(i) => (self.units[i].owner as i64, self.units[i].index as i64),
-                                Obj::Building(b) => (self.buildings[b].owner as i64, self.buildings[b].index as i64),
-                            };
-                            let (tw, to) = match o {
-                                Obj::Unit(i) => (self.units[i].owner as i64, self.units[i].index as i64),
-                                Obj::Building(b) => (self.buildings[b].owner as i64, self.buildings[b].index as i64),
-                            };
-                            let tg = match o {
-                                Obj::Unit(u) => self.units[u].combat.targeted,
-                                Obj::Building(b) => self.buildings[b].targeted,
-                            };
-                            eprintln!(
-                                "  probe nearby f{} {aw}/{ao} cav {cavarch} -> {tw}/{to} dist {dist} targeted {tg} value {value} in_range {in_range} score {score} best {:?} pos {:?}",
-                                self.frame,
-                                best.map(|(b, _)| b),
-                                self.pos_of(o)
-                            );
-                        }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
