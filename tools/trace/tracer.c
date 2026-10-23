@@ -615,6 +615,8 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
  *                                         issue_set_transport
  *   `@repair <who> <ox> <whom> <o> [<o> ...]` the building's id and owner,
  *                                         issue_swarm_around with REPAIR
+ *   `@repairins`                          `@repair` at QUEUE_FIRST, the
+ *                                         ctrl-click's insert
  *   `@buildmask <who> <mask> <b> [<b> ...]` building ids, issue_buildmask
  *   `@queueup <who> <type> <num> <b> [<b> ...]` building ids, issue_queue_up
  *   `@unqueue <who> <p> <b> [<b> ...]`   building ids, issue_unqueue once
@@ -920,6 +922,7 @@ typedef void(__thiscall *string_dtor_fn)(void *self);
 #define RVA_COMMAND_MANAGER 0xa8ff60u /* command_manager, VA 0xe8ff60 */
 #include "issue_guard.h"
 #include "stride.h"
+#include "queue.h"
 #define RVA_OBJECTS 0x80618cu /* GameAccess::objects, VA 0xc0618c (ObjectsData *):
                                * lists[who] at +4 + who * 0x1c, length +4, slots +0x10 */
 #define RVA_BUILD_VFTABLE 0x742174u /* Build::vftable, VA 0xb42174 */
@@ -1080,6 +1083,9 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
      * the shift-click's queue (`Options::picked_spot@00721c40:527` for a
      * site, `Console::execute_at_cursor`'s `local_3c` for an attack). */
     i32 queue_add = 0;
+    /* `@repairins` (item 3504): verb 16 at QUEUE_FIRST, the insert
+     * `Group::action_swarm_around@0070fbe0:95-108` runs (`queue.h`). */
+    i32 queue_first = 0;
     i32 verb = issue_verb(&t, "move ")       ? 0
                : issue_verb(&t, "moveadd ")  ? (move_add = 1, 0)
                : issue_verb(&t, "patrol ")   ? 1
@@ -1100,6 +1106,7 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
                : issue_verb(&t, "spell ")    ? 14
                : issue_verb(&t, "settransport ") ? 15
                : issue_verb(&t, "repair ")   ? 16
+               : issue_verb(&t, "repairins ") ? (queue_first = 1, 16)
                : issue_verb(&t, "buildmask ") ? 17
                : issue_verb(&t, "queueup ")  ? 18
                : issue_verb(&t, "unqueueunit ") ? 29
@@ -1282,9 +1289,10 @@ static void issue_line(i32 frame, u32 idx, const u16 *text) {
         ((buildmask_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, 1);
     } else if (verb == 16) {
         /* issue_swarm_around(group, ox, whom, QUEUE_NEW 2, REPAIR 13): a
-         * right-click on a damaged friendly building. */
+         * right-click on a damaged friendly building; QUEUE_FIRST 0 for
+         * `@repairins`. */
         typedef void(__thiscall *swarm_fn)(void *, void *, i32, i32, i32, i32);
-        ((swarm_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, 2, 13);
+        ((swarm_fn)(g_base + rva))((void *)(g_base + RVA_COMMAND_MANAGER), g_groupout, x, y, issue_queue(0, queue_first), 13);
     } else if (verb == 15) {
         /* issue_set_transport(group, flag): the transport button's
          * toggle, or OPTION_DISEMBARK's 1. */
