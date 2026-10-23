@@ -9764,6 +9764,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3508,
         Some(crate::diff::russian_modern_pair::WIDENING_RUSSIAN_MODERN_FRAME_8),
     ),
+    // **The land map's held Modern pair** (item 3509): the Americans at a
+    // held Modern age, Great Sahara — 1995 first try (the Airbase's free
+    // Bomber), 4488 with the gate on the tree's Modern Age; widened on
+    // run1151c over 4482..4549 (block 4489).
+    (
+        "AMERICAN_MODERN_PAIR_WORD",
+        crate::diff::american_modern_pair::AMERICAN_MODERN_PAIR_WORD,
+        Some("american_modern_pair_run1151c_s_word_frame_is_widened_whole"),
+        3509,
+        Some(crate::diff::american_modern_pair::WIDENING_AMERICAN_MODERN_FRAME_4488),
+    ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
     // Lakota food term, widened on run849 over 1978..2235 (block 1985);
@@ -11223,6 +11234,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_841,
         endpoint: None,
         window: Some("russian_modern_frame_8_window"),
+    },
+    // The Americans at a held Modern age, Great Sahara (item 3509): first
+    // try 1995, the Airbase's free Bomber; 4488 with the gate on the tree's
+    // Modern Age, of a game that ends itself on 4548.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaAmericanModern",
+        named: "Great Sahara (Americans, Modern)",
+        word: crate::diff::american_modern_pair::AMERICAN_MODERN_PAIR_WORD,
+        length: 4_548,
+        endpoint: None,
+        window: Some("american_modern_frame_4488_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

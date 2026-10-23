@@ -24248,3 +24248,85 @@ SHA-256 `8080506be5b24bc6b2e2875d901df23b590277dcdd9c00b3922317c751efd770`.
 **What it holds**: `russian_modern_pair_run1149b_s_word_frame_is_widened_whole`. It compares 256 blocks and finds
 342 keys. The first that is not standing is on block 5: who=1's research slot `MAKE[8]`, Written Word (551), at
 `val` ours 1620003 against theirs 9999999.
+
+## run1150 — the Americans at a held Modern age, Great Sahara: the `DUMP_ALL` start (2026-10-23, item 3509, `att-3509`)
+
+`docs/AI.md` §302. The Aztec pair's lobby, with the nation and the age varied, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1150 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 20 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3`.
+- Pool lane 1. Launched 01:24:40, exited 01:25:04 (23.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 20, five files restored. `GAME INFO` reads back
+  `MAP_STYLE 7`, `DIFFICULTY 3`, `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6` and `STARTING_RESOURCES 7`. Filed
+  with `filerun.py run1150 greatsahara-american-modern-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1150-greatsahara-american-modern-start.txt`, 149,902,637 bytes,
+SHA-256 `2840c86d6d555f8251ec720dc98ebec7933d1f201ecf883ec6c1c2cde0db91ab`.
+
+Archive `rontrace-run1150.log`, 8,413,728 bytes,
+SHA-256 `e0964d163489002fd42438dacec5ab96b5b8851bd8e8dc7294afab0925502c21`.
+
+**What it holds**: the start of `american_modern_pair::AMERICAN_MODERN`, and the walk's initial state.
+
+## run1151 — the Americans at a held Modern age, Great Sahara: the draw stream to the game's end (2026-10-23, item 3509, `att-3509`)
+
+`docs/AI.md` §302. 3507's run1147 recipe with this lobby: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 20
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1150's
+lobby.
+- Pool lane 2, launched alongside run1150. Launched 01:24:40, exited 01:25:08 (28.0 s launch to exit). `success`.
+  **The game ended itself on 4548** (closing block 4549, `ended_early`). `GAME INFO` reads back as run1150's.
+  `rngcmp.py` against run1150: 37 frames identical. Filed with `filerun.py run1151 greatsahara-american-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1151-greatsahara-american-modern-trace.txt`, 23,089,207 bytes,
+SHA-256 `8ded0fca4e0cb438d043bf97460e7f4ddddddb46717b7be61248eebdf24241f4`.
+
+Archive `rontrace-run1151.log`, 95,566,240 bytes,
+SHA-256 `b0241e2cae7695259a8d04f9a45ef2953db2671b854e1b67f4a7cfd1fe28b3f7`.
+
+**What it holds**: the pair's first try. `american_modern_pair_first_parting` walks it from run1150. The first try
+parts on **frame 1995 of 4548** (count and sequence): ours 6 draws, theirs 7, index 1, theirs `Guy::init_real+0x52`,
+the Airbase's free Bomber. Item 3509 takes it to **4488**: ours 44 against 43, index 29.
+
+## run1151b — the Americans at a held Modern age, Great Sahara: the word 1995's window, blocks 1990..2246 (2026-10-23, item 3509, `att-3509`)
+
+**Disk gap**: run1150 holds only the first blocks, and run1151 every hundredth block, so no dump held the word's block
+1996. `--map 7 --end-frame 2246 --timeout 3600 --log-window 1990 2246 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 20 --profile STARTING_TECHNOLOGY=6 --profile
+ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`.
+- Pool lane 1. Launched 01:27:16, exited 01:27:59 (43.2 s launch to exit). `success`: 2247 frames, last frame 2246.
+  `rngcmp.py` against run1151: **2247 frames in common, 0 differing**. Filed with `filerun.py run1151b
+  greatsahara-american-modern-window-1990-2246`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1151b-greatsahara-american-modern-window-1990-2246.txt`, 453,161,765 bytes,
+SHA-256 `a0a7db25acf90add74d619d4059b24a8ee8369a9d87f849efb396519aafaea6f`.
+
+Archive `rontrace-run1151b.log`, 23,487,296 bytes,
+SHA-256 `70baa20311e6ad6ac3f3e960ca67987c56b8e73869216595399e64791f0c39b1`.
+
+**What it holds**: `american_modern_pair_run1151b_s_word_frame_is_widened_whole`, 256 blocks. Before the fix, 713 keys,
+the first not standing on block 1996: theirs' `1/45`, a `BOMBER` inside the Airbase `1/2022`. After it, 72 keys.
+
+## run1151c — the Americans at a held Modern age, Great Sahara: the word 4488's window, blocks 4482..4549 (2026-10-23, item 3509, `att-3509`)
+
+**Disk gap**: run1151's stride holds blocks 4401 and 4501, so no dump held the word's block 4489. `--map 7
+--end-frame 4548 --allow-early-end --timeout 3600 --log-window 4482 4549 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 20 --profile STARTING_TECHNOLOGY=6 --profile
+ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover cover=0`.
+- Pool lane 1. Launched 01:34:41, exited 01:35:19 (37.6 s launch to exit). `success`: 4549 frames, last frame 4548,
+  68 `BEGIN FRAME`s. `rngcmp.py` against run1151: **4549 frames in common, 0 differing**. Filed with `filerun.py
+  run1151c greatsahara-american-modern-window-4482-4549`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1151c-greatsahara-american-modern-window-4482-4549.txt`, 147,210,779 bytes,
+SHA-256 `58b32d1c88258dacde9688f44b8648ecc2a16c985e98c40c0e3da72ddef9fdc7`.
+
+Archive `rontrace-run1151c.log`, 95,434,688 bytes,
+SHA-256 `c29446832f9622ec9bd3b0a0777e34e7abb9d8a9b5399e4f30a6cf96ce099bc4`.
+
+**What it holds**: `american_modern_pair_run1151c_s_word_frame_is_widened_whole`, 67 blocks and 2419 keys, 188 of them
+standing on 4482. The word's block 4489 parts `1/21`'s `collide_o` (ours 65, theirs −1), after `1/41`'s path on 4487.

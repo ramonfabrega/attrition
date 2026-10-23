@@ -32,6 +32,8 @@ use sim::{Pos, Sim, Tuning, Unit, World};
 #[cfg(test)]
 mod american_lakes_word;
 #[cfg(test)]
+mod american_modern_pair;
+#[cfg(test)]
 mod american_word;
 #[cfg(test)]
 mod aztec_alltech_pair;

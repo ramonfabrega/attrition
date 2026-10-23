@@ -10415,3 +10415,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1147  run831's line with --ai-tribe 0, --stride 100 and --detail end:MISC,UNITS=3,GUYS=2   (the draw stream; ended itself on 4565)
 #   run1147b --map 7 --end-frame 4565 --allow-early-end --log-window 4376 4566 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 0 --cover cover=0   (the word 4382's window)
 # Checks: `rngcmp.py` run1146 vs run1147 -> 37 identical; run1147 vs run1147b -> 4566 identical.
+# ==== item 3509: the Americans at a held Modern age, Great Sahara (`docs/AI.md` §302; `docs/RUNS.md` run1150, run1151, run1151b, run1151c) ====
+#   run1150  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 20 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3   (start)
+#   run1151  run1147's line with --ai-tribe 20 and run1150's lobby   (the draw stream; ended itself on 4548)
+#   run1151b --map 7 --end-frame 2246 --log-window 1990 2246 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 20 --cover cover=0   (the word 1995's window)
+#   run1151c --map 7 --end-frame 4548 --allow-early-end --log-window 4482 4549 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 20 --cover cover=0   (the word 4488's window)
+# Checks: `rngcmp.py` run1150 vs run1151 -> 37 identical; run1151 vs run1151b -> 2247 identical; run1151 vs run1151c -> 4549 identical.
