@@ -12548,9 +12548,12 @@ ground (no splash) or struck it as a fringe (splash).
 ### 73.4 Built
 
 `Sim::building_under` (`crates/sim/src/fight.rs`): the world bound, then
-the first building of a player below eight, active (this crate's
-`Sim::active`), whose footprint (`Sim::covers_tile`, the same
-`tile_corner`) holds the landing's tile. `check_hit` falls back to it.
+the first building of a player below eight, ~~active (this crate's
+`Sim::active`)~~ placed and finished (`Sim::struck` and `Building::active`,
+the two flag reads, and nothing about hit points: `Sim::active`'s `health >
+0` refused a city at its ceiling, `docs/AI.md` §303, item 3539), whose
+footprint (`Sim::covers_tile`, the same `tile_corner`) holds the landing's
+tile. `check_hit` falls back to it.
 
 - **Unit test**: `fight::tests::a_round_with_no_target_strikes_the_building_it_lands_on`,
   on run371's own geometry. It fails on the old comparison: `check_hit`

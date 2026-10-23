@@ -25884,16 +25884,12 @@ late-age pairs carry (`SITE[i].reg` ours 65 against 0, `aggression`, `form`, gro
 **Item 3521 (2026-10-23, Opus 5.5): the word 3674 walked, two arms built, 3674 → 3769.** No capture: the disk
 answered both partings.
 
-*The income, walked back.* who=1 holds four Fishermen on 3668 (`FISHERMEN`, 317, sea), and two stand on fish
-(`rare 6`, `1/113` and `1/120`). No leader record is dumped between 1601 and 3668; a probe (`RON_PROBE_3521`, reverted whole) finds **the
-state first parts on frame 2959**, the first gather that pays a who=1 boat on a fish (good 6, alone on it). With the
-arm it pays 200 food and 232 wealth; without it 160 and 192 (Merchants' 120% on the wealth half), 40 short in each. `LeaderData::calc_rare@006e08d0`'s water arm (`006e0a34`..`006e0a4c`) loads `esi =
-Constants +0x7ac` (`japanese_fishing_boats`, 25) for a leader with `has_tribe_bonus(0xf)`. It adds that to the food
-slot beside `FISHERMEN_BONUS`, and to every other slot as the `extra` term. A fish pays 10 food and 10 wealth (160
-sixteenths each), so each boat is 40 a half short and two boats are the booked 80. `economy::calc_rare` takes the
-tribe test. With it every income row on 3668
-agrees (1520, 1832), and run1153c's widening goes 2956 → 2946. **The word does not move on it**: the parting at
-3674 is not the income's.
+*The income, walked back.* A probe (`RON_PROBE_3521`, reverted whole) finds **the state first parts on frame
+2959**, the first gather that pays a who=1 Fisherman (`FISHERMEN`, 317, sea) on a fish: with the arm 200 food and 232
+wealth, without it 160 and 192. `LeaderData::calc_rare@006e08d0`'s water arm (`006e0a34`..`006e0a4c`) adds `Constants
++0x7ac` (`japanese_fishing_boats`, 25) for `has_tribe_bonus(0xf)`, to the food slot beside `FISHERMEN_BONUS` and to
+every other as the `extra` term. `economy::calc_rare` takes the test; every income row on 3668 agrees (1520, 1832),
+and **the word does not move on it**.
 
 *The word, by its record.* `1/121` is a **`TRANSPORTFREIGHTER` (TypeIndex 322, sea)**. who=1's Citizen `1/10`
 (TypeIndex 50, land) walks to (37236, 26520), casts spell 650 on 3666 (`cast_transport`, §6.2 of
@@ -25924,17 +25920,13 @@ the next item's first question.
 **Item 3523 (2026-10-23, Opus 5.5): the Dreadnought fires from its two turrets, 3769 → 3816.** run1169 (a packet at
 logger frame 3769). *The strikers*: on the block before the blow, `1/66` (`DESTROYER`, 328, sea) and `1/74`, `1/75`
 (**`DREADNOUGHT`, 348, sea**, piece 298) hold `ATTACKORDER` on `0/5`, `in_range 1`. Both sides make the same seven
-rounds on the same frames (the Dreadnoughts' two a release, 3757..3761; the Destroyer's on 3770..3775). *The rounds*
-(`tools/recomp/ammo.py`, new): theirs' leave from the turrets — `1/74`'s of 3758 from (2885, 11948, 121), 12 frames,
-landing on 3769 — where ours' left from the hull's own square and `1/74`'s flew 13, landing on 3770. *The cause*:
-piece 298 has two `<RESTRICTION name="Dreadnought">` (node 4 `−135..135`, node 5 `45..−45`) and four
-`<RELEASEEVENT>`s, and `sim::pivot` had no row for it. The packet's 14 entries (`get_position.py … entries 298`)
-give pivots `(4,0,0)` (0.0, −84.88, 21.05) and `(5,0,0)` (0.0, 100.36, 12.26), `RData +0x88` 0.9, and releases
-node 0 on frame 1 from pivot 4 and node 1 on frame 4 from pivot 5, on `CHAR_ATTACK1` and `CHAR_ATTACK2` with
-different bits each. Built as `NODES`, `RDATA_SCALE` and four `RELEASES` rows; the oracle
-(`the_original_s_release_agrees_on_every_cell_for_piece_298`) agrees on 369,664 cells. Mutated through
-`tools/mutate.py`: the `RELEASES` rows out, the walk falls back to 3769; the `NODES` rows out, the walk holds and
-run1153c reads 702 against 692.
+rounds on the same frames (the Dreadnoughts' two a release, 3757..3761; the Destroyer's on 3770..3775). *The rounds* (`tools/recomp/ammo.py`, new):
+theirs' leave from the turrets, ours' from the hull's square, and `1/74`'s of 3758 landed on 3770 against 3769. *The
+cause*: piece 298 has two `<RESTRICTION name="Dreadnought">` and four `<RELEASEEVENT>`s, and `sim::pivot` had no row.
+The packet gives pivots `(4,0,0)` and `(5,0,0)`, `RData +0x88` 0.9, and releases on `CHAR_ATTACK1` and `CHAR_ATTACK2`.
+Built as `NODES`, `RDATA_SCALE` and four `RELEASES` rows; the oracle
+(`the_original_s_release_agrees_on_every_cell_for_piece_298`) agrees on 369,664 cells. Mutated: the `RELEASES` rows
+out, the walk falls back to 3769.
 
 **The value diff, on the word's frame** (run1153c, block 3770): nothing parts. `0/5`'s `hits_left` 57 and
 `damage_frame` 3769, `0/2004`'s 11, and both leaders' `treaties` 3 agree on both sides; run1153c drops to **692**
@@ -25946,13 +25938,12 @@ theirs `Unit::fight+0x9b0`. The state parts first on block 3808: `0/5` is struck
 3804, `hits_left` 35) and ours on 3807 (3807, 32). Who struck on 3804 is the next item's first question.
 
 **Item 3525 (2026-10-23, Opus 5.5): the Destroyer's three turrets, and a captain's retarget onto its own target,
-3816 → 4343.** run1171; the walk is the journal's. *The blow*: the Destroyer `1/66` (`DESTROYER`, 328, sea, piece
-278) fires on 3795, 3797 and 3800 on both sides; theirs' third lands on 3808, ours' left the hull's square and
-landed on 3807 (block 3808: `0/5 hits_left` ours 32, theirs 35). Piece 278 has three `<RESTRICTION
-name="Destroyer">` (nodes 4–6) and `sim::pivot` had no row: run1169's packet gives pivots (0.0, −56.97), (0.0,
-−36.95) and (0.0, 107.74), `RData +0x88` 0.9, and the Cruiser's release nodes bit for bit on all three anims. Built
-as `NODES`, `RDATA_SCALE` and nine `RELEASES` rows; the oracle agrees on 831,744 cells. Block 3808 then agrees; the
-word does not move.
+3816 → 4343.** run1171; the walk is the journal's. *The blow*: the Destroyer `1/66`
+(`DESTROYER`, 328, sea, piece 278) fires on 3795, 3797 and 3800 on both sides; ours' third left the hull's square and
+landed on 3807 against 3808. Piece 278 has three `<RESTRICTION name="Destroyer">` (nodes 4–6) and `sim::pivot` had no
+row: run1169's packet gives the pivots, `RData +0x88` 0.9, and the Cruiser's release nodes. Built as `NODES`,
+`RDATA_SCALE` and nine `RELEASES` rows; the oracle agrees on 831,744 cells. Block 3808 then agrees; the word does not
+move.
 
 *The word*: on block 3816 theirs' `1/66` stands at (2764, 8930) on its `ATTACKORDER` and fires; ours sailed on to
 (2832, 8916) under the chase move both pushed on 3810. A probe (`RON_PROBE_3525`, reverted whole) read 3815's
@@ -25965,11 +25956,8 @@ t` (item 479) is gone. Mutated: `c != t` back, the walk falls to 3816; piece 278
 8930), `order:kind` 1 against 10; on 3817 `recharging` 0 against 25. All agree after; run1153c **692 → 151** keys,
 the standing families and `1/82`'s repath on 3813 (parked 3525a).
 
-**The next word, 4343**: ours 17 draws against 15, index 1 — ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a
-< Unit::do_idle+0x7d`. run1171 (4338..4548, 1306 keys) opens on the standing families alone. On 4343 who=1's Light
-Tank `1/49` (`LIGHTTANK`, 239, land), on an `ATTACKORDER` on city `0/2000` with `near` `0/3`: theirs pushes a
-`MOVEORDER` to (6360, 8568) on 4342 and keeps `0/2000`; ours reads the city out of reach on 4342 and takes `0/3`
-on 4343 and fires. **The direction is theirs**; which arm pushes is the next item's first question.
+**The next word, 4343**: ours 17 draws against 15, index 1, ours `Unit::fight+0x9b0`: who=1's Light Tank `1/49`
+(`LIGHTTANK`, 239, land) keeps city `0/2000` and walks on 4342 in theirs, and takes `0/3` and fires in ours.
 
 **Item 3528 (2026-10-23, Opus 5.5): `fight`'s capture approach, 4343 → 4434** (no capture; the walk is the
 journal's). Napata `0/2000` is reduced on 4341, so `valid_target` refuses it to `1/49` on 4342 with its out-word
@@ -25987,19 +25975,32 @@ All agree after, to 4467; run1171 **1362 → 922** keys.
 The booked striker was `damage_o`'s, which `0/3` keeps at `1/54` from 4391 through every later blow. Theirs bursts a round on 4410 (`AmmoOut::explode`) and splashes one on 4411; ours
 brought both down on 4411. The burst is the **Light Tank `1/27`'s** (`LIGHTTANK`, 239, land, piece 189), released on
 4406 from node 8 of a pivot piece with no `sim::pivot` row: ours left from the hull's square, 2221 from its aim, flew
-6 and came down behind the fleeing citizen. run1169's packet gives the turret `(4, 0,
-0)` (0.0, −3.96), `RData +0x88` 0.9, and the muzzle on `CHAR_ATTACK1`..`3` (frames 4, 21, 14) 27 model units
-ahead of it: the round leaves from (6803, 10271), flies 5 and hits. Built as `NODES`, `RDATA_SCALE` and three
-`RELEASES` rows; the oracle agrees on 277,248 cells. Mutated: the rows out, the walk falls to 4434; the `NODES` row
-out, run1171 reads 896.
+6 and came down behind the fleeing citizen. run1169's packet gives the turret and the muzzle on
+`CHAR_ATTACK1`..`3`, 27 model units ahead of it: the round leaves from (6803, 10271), flies 5 and hits. Built as
+`NODES`, `RDATA_SCALE` and three `RELEASES` rows; the oracle agrees on 277,248 cells. Mutated: the rows out, the walk
+falls to 4434.
 
 **The value diff, on the word's frame** (run1171, block 4411): `0/3 hits_left` ours 44 against 34 before, 34 on both
 sides after; `0/3` dies on 4434 on both, and block 4435's `leader:active` (ours 12 against 11) agrees. run1171
 **922 → 895** keys.
 
-**The next word, 4443**: ours 46 draws against 44, index 44 — ours `Ammo::do_damage+0xc59` (`SITE_PUNCTURE_X`),
-theirs `AmmoOut::explode`. `1/28`'s round of 4434 at `0/3`, whose target died in flight, comes down on 4443 on both
-sides; ours punctures the ground and theirs does not. The dump parts nothing before block 4459 (`1/28 g.ox[0]`).
+**Item 3539 (2026-10-23, Opus 5.5): `check_hit`'s building is two flag reads, 4443 → 4547, whole** (no capture;
+the walk is the journal's). Theirs makes no `game` draw from `Ammo::do_damage` in the whole game; on 4443 it spends
+`AmmoOut::explode` (the cosmetic stream) and a sound, and no puncture. `1/28` (`LIGHTTANK`, 239, land)'s round, missed
+on 4439 (its target `0/3` died on 4434), comes down at (6818, 6488), tile (35, 33), inside Napata `0/2000`'s 7×7
+footprint. `ObjectsData::find_building_at@0065ab40` asks vslots `0xc` and `0x4c` (`0065ac7f`, `0065ac8e`: flags `& 1`
+and `& 4`) and no hit points; ours' `building_under` asked `Sim::active`, whose `health > 0` refuses a city at its
+ceiling (reduced on 4341). Theirs strikes it: `build_masks` 4128 → 20528 on block 4444, as after every blow on it.
+Built in `building_under`. Mutated: `Sim::active` back, the walk falls to 4443; the `& 4` term out,
+`a_missed_round_strikes_a_city_at_its_ceiling` fails (no walk holds it).
+
+**The value diff, on the word's frame** (run1171): on 4443 ours spent 46 draws against 44, the two at
+`SITE_PUNCTURE_X`/`_Y`; now 44 on both. Block 4444: Napata `build_masks` theirs 20528, a field this crate does not
+carry. Block 4459, the first row before: `1/28 g.ox[0]` ours 3 against 11, `recharging` 0 against 40; both agree now.
+run1171 **895 → 115** keys, all standing families (4338's 109, `form` on 4351–4352, groups 70 and 84 `held` and pool on
+4357 and 4491). The closing block 4548 compares whole: 165 units, no field-row
+(`run1153_japanese_industrial_pair_closing_state`). On the Americans' run1163, block 4396's `0/2000 damage_frac` (ours 4,
+theirs 14) agrees too: 80 → 79.
 
 **What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
 ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
@@ -26009,8 +26010,9 @@ alone). `JAPANESE_DAMAGE`'s arm in `damage.rs` reads `Modifiers::japanese_level`
 the Japanese boats' quarter on a fish (run1153c's 3668 income, item 3521), the civilian carrier's shore eject (run1153c's
 3674 landing, item 3521), the Dreadnought's two turrets (run1153c's 3770 blow, item 3523), the Destroyer's three
 turrets (run1153c's 3808 blow, item 3525), the captain's retarget onto its own target (the walk's 3816, item 3525),
-`fight`'s capture approach (the walk's 4343, item 3528), the Light Tank's turret (run1171's 4411 blow, item 3529).
-Reading only: the capture approach's mandatory and siege
+`fight`'s capture approach (the walk's 4343, item 3528), the Light Tank's turret (run1171's 4411 blow, item 3529),
+a missed round striking a city at its ceiling (the walk's 4443, item 3539).
+Reading only: `check_hit`'s refusal of an unfinished building (`& 4`); the capture approach's mandatory and siege
 arms (parked 3528a); the ship-cost and carrier arms, and the per-tier shape for a non-negative constant; `boat_eject_all`'s air refusal and its kept-cargo case (a passenger `come_out` refuses), which no capture
 reaches.
 

@@ -453,5 +453,9 @@ fn american_modern_pair_run1163_s_walk_back_is_widened_whole() {
     // just left, the squads `1/19` and `1/22` re-added at its end; ours
     // over the list before it. 194 -> 80 with `finish_insert` reading the
     // sorted list: 4479 and 4480 part nothing (`docs/AI.md` section 302).
-    pin_eq!(w.firsts.len(), 80, "run1163 baseline");
+    // Item 3539: 80 -> 79, `check_hit`'s building at the landing found by
+    // its two flag reads and not by health: block 4396's `0/2000
+    // build:damage_frac` (ours 4 against theirs 14), a round coming down
+    // on the city at its ceiling, agrees (`docs/AI.md` section 303).
+    pin_eq!(w.firsts.len(), 79, "run1163 baseline");
 }

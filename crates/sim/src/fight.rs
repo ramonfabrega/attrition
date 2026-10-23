@@ -5614,6 +5614,17 @@ impl Sim {
     /// target that came down on run371's Barracks `1/2006` struck it as a
     /// splash fringe, 400 of its 1,200, where the original struck it as
     /// the round's own target and destroyed it on 2821.
+    ///
+    /// **Active is the two flag reads and nothing about hit points** (item
+    /// 3539, `docs/AI.md` §303): `0065ac7f` calls vslot `0xc` and `0065ac8e`
+    /// vslot `0x4c`, flags `& 1` and `& 4`. [`Sim::active`] also asks for
+    /// health left, the target search's question, and refused a city at
+    /// its ceiling: run1171's Napata `0/2000`, reduced on 4341, whose
+    /// footprint holds the tile `1/28`'s missed round comes down on at
+    /// 4443. Theirs strikes it (`build_masks` takes `0x4000` on block
+    /// 4444) and makes no puncture draws; ours punctured the ground. A
+    /// building with no combat profile is still refused, as
+    /// [`Sim::struck`] refuses it.
     fn building_under(&self, landing: Pos) -> Option<usize> {
         if landing.x < 0
             || landing.y < 0
@@ -5625,7 +5636,8 @@ impl Sim {
         let tile = landing.tile();
         (0..self.buildings.len()).find(|&b| {
             self.buildings[b].owner < crate::world::PLAYER_SLOTS
-                && self.active(Obj::Building(b))
+                && self.struck(Obj::Building(b))
+                && self.buildings[b].active
                 && self.covers_tile(b, tile)
         })
     }
@@ -9530,6 +9542,84 @@ mod tests {
                 ..ammo
             }),
             None
+        );
+    }
+
+    /// **A round that misses comes down on a city at its ceiling and
+    /// strikes it** (item 3539, `docs/AI.md` §303). `find_building_at`'s
+    /// candidate is two flag reads (vslots `0xc` and `0x4c`, flags `& 1`
+    /// and `& 4`) and nothing about hit points: run1171's Light Tank `1/28`,
+    /// whose round of 4434 lost its target in flight, comes down on 4443 on
+    /// the tile of Napata `0/2000`, reduced on 4341 to `health` 0, and
+    /// theirs strikes it and spends no puncture draws. An unfinished
+    /// building (`flags & 4` clear) is still refused, and the round
+    /// punctures the ground.
+    ///
+    /// Made to fail by [`Sim::active`] in `building_under`: `check_hit`
+    /// answers `None` and the landing spends the puncture's two draws.
+    #[test]
+    fn a_missed_round_strikes_a_city_at_its_ceiling() {
+        let (mut sim, ty) = at_war();
+        let bt = sim.add_build_type(crate::build::BuildType {
+            x_size: 7,
+            y_size: 7,
+            ..crate::build::BuildType::default()
+        });
+        let at = Pos::new(6240, 7008);
+        let b = sim.add_building(0, at, 0);
+        sim.buildings[b].ty = Some(bt);
+        sim.buildings[b].hits = 1200;
+        sim.buildings[b].health = 0;
+        sim.buildings[b].combat = Some(Profile::default());
+        let me = put(&mut sim, 1, ty, Pos::new(7272, 10200));
+        let ammo = combat::Projectile {
+            shooter: Obj::Unit(me),
+            owner: 1,
+            target: None,
+            launch: Pos::new(7218, 10078),
+            landing: Pos::new(6818, 6488),
+            cur_time: 10,
+            total_time: 10,
+            accuracy: 250,
+            angle: crate::movement::Angle(0),
+            splash_area: 0,
+            num_guys: 1,
+            rolling: true,
+            missed: true,
+            harmless: false,
+            air: false,
+            sz: 0,
+            ez: 0,
+            v1z: crate::single::Single::ZERO,
+            slot: 0,
+            crash: None,
+        };
+        assert!(
+            !sim.active(Obj::Building(b)),
+            "the target search refuses it"
+        );
+        assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
+        let sites = |s: &mut Sim| {
+            s.trace_phases = true;
+            s.phase_marks.clear();
+            s.land(ammo, 4443);
+            s.phase_marks
+                .iter()
+                .map(|(m, _)| m.clone())
+                .collect::<Vec<_>>()
+        };
+        let struck = sites(&mut sim.clone());
+        assert!(
+            !struck.iter().any(|m| m == SITE_PUNCTURE_X),
+            "no puncture draws: {struck:?}"
+        );
+        // A site not yet finished is no candidate: the round punctures.
+        sim.buildings[b].active = false;
+        assert_eq!(sim.check_hit(&ammo), None);
+        assert_eq!(
+            sites(&mut sim),
+            [SITE_PUNCTURE_X, SITE_PUNCTURE_Y],
+            "the puncture's two draws"
         );
     }
 

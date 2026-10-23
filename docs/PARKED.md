@@ -10243,13 +10243,18 @@ else (`1/107` by (114, −9), `1/73` by (−73, 72), `0/8` by (0, 28)). run1175'
 units on every hundredth block only, so no dump holds the blocks where the 14 part. A window walked back from 4468 at
 the long's detail is the widening the word owes. **Score**: the closing counts, `[14, 0, 0, 0, 0, 0, 0]`. **Booked as 3540** (the fifty-third commander).~~ Answered by item 3540: run1184 widens 4201..4468, and the closing state is none off.
 
-## Parked by the next landing, slot PK — reserved
+## Parked by item 3539, 2026-10-23 — a missed round strikes a city at its ceiling
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3539a) **`build_masks` is a blow's only record on a building at its ceiling, and this crate carries none** (3539;
+`docs/AI.md` §303). run1171's Napata `0/2000` reads `build_masks` 4128 → 20528 on the block after every blow
+(4342, 4346, …, 4444) and back to 4144 on the next, the `0x10` bit held about thirty frames; its `damage` stays
+1200. So the strike on 4443 that 3539 built parted no compared value on 4444 — only the draw stream and block
+4459's `1/28` rows saw it. Not booked: no score names it; a `build_masks` row would have named this word a block
+early.
+
+(3539b) **`check_hit`'s refusal of an unfinished building (`WallData::is_active`, `& 4`) is reached by no walk**
+(3539). The sim test `a_missed_round_strikes_a_city_at_its_ceiling` holds it; no capture lands an unaimed round on
+a site. Not booked: no score names it.
 
 ## Parked by item 3540, 2026-10-23 — the Chinese closing state: the emplaced weapon's latch
 

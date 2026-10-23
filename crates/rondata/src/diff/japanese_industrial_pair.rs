@@ -68,8 +68,14 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // index 44 — ours `Ammo::do_damage+0xc59` (the puncture), theirs
     // `AmmoOut::explode`: `1/28`'s round of 4434, whose target died, comes
     // down on 4443.
-    count: 4443,
-    sequence: 4443,
+    // Item 3539: 4443 -> 4547, the game's last frame: `check_hit`'s
+    // building at the landing is the two flag reads (`SubObjectData::
+    // is_active`, `WallData::is_active`), not health. `1/28`'s round
+    // strikes Napata `0/2000` at its ceiling, as theirs does, and spends
+    // no puncture draws. The closing block 4548 compares whole
+    // (`run1153_japanese_industrial_pair_closing_state`).
+    count: 4547,
+    sequence: 4547,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -170,6 +176,56 @@ fn japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier() {
     let ship = loaded.unit_named("Frigate").expect("a Frigate type");
     assert_eq!(sim.nation_unit_discount(1, ship), 10);
     assert_eq!(sim.nation_unit_discount(0, ship), 0);
+}
+
+/// **The pair's closing state**: run1153's closing dump, block 4548, walked
+/// to and compared whole — a draw stream that agrees to a game's end says
+/// nothing of the end itself (item 1099; item 3539).
+#[test]
+fn run1153_japanese_industrial_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &JAPANESE_INDUSTRIAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Japanese pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4548, "the closing block");
+    // Item 3539, the first walk: 165 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 165, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
 
 /// run1153b: the word 1351's window, blocks 1345..1601 at the long's
@@ -382,5 +438,15 @@ fn japanese_industrial_pair_run1171_s_word_frame_is_widened_whole() {
     // 12, 11, 11 against 11, 11, 10, 10) and `0/3 extra` agree. The first
     // non-standing row is block 4459: `1/28`'s target, `g.ox[0]` ours 3
     // against theirs 11 (`0/11`), `recharging` 0 against 40.
-    pin_eq!(w.firsts.len(), 895, "run1171 baseline");
+    // Item 3539: 895 -> 115, `check_hit`'s building at the landing asks
+    // the two flag reads and not health. `1/28`'s missed round of 4434
+    // comes down on 4443 on the tile of Napata `0/2000`, at its ceiling:
+    // theirs strikes it (`build_masks` 4128 -> 20528 on block 4444, a field
+    // this crate does not carry) and ours now does, where it punctured
+    // the ground. Block 4459's `1/28 g.ox[0]` (ours 3 against 11) and
+    // `recharging` (0 against 40) agree, and so does every block to the
+    // closing 4548. Left: the 109 standing rows of 4338, who=1's `form`
+    // on `1/38` (4351) and `1/87` (4352), and groups 70 (4357) and 84
+    // (4491) `held` and pool, the standing families.
+    pin_eq!(w.firsts.len(), 115, "run1171 baseline");
 }
