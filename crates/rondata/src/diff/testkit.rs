@@ -7559,10 +7559,17 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // own walk. Item 2677's run867 window: 1699, as that window's own.
     // Item 2779's run879 window: 2222, as that window's own. Item 2825's
     // run881 window: 2335, as that window's own. Item 2845's run882
-    // window: 2341, as that window's own.
+    // window: 2341, as that window's own. Item 3510's run1153c window: 5
+    // more, as that window's own.
     (
         "every_parsed_field_is_compared_by_the_instrument_or_pinned",
-        2341,
+        2346,
+    ),
+    // Item 3510: the Japanese Industrial pair's run1153c window (3668..3924)
+    // reads five inexact corners.
+    (
+        "japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole",
+        5,
     ),
 ];
 
@@ -9785,6 +9792,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3518,
         Some(crate::diff::american_modern_pair::WIDENING_AMERICAN_MODERN_FRAME_4488),
     ),
+    // **The held Industrial pair's word** (item 3510): the Japanese at a
+    // held Industrial age, East Indies — 1351 first try (three Riflemen out
+    // of a Barracks in theirs only), widened on run1153b over 1345..1601
+    // (block 1352); **3674** with the Japanese Barracks arms of `get_cost`
+    // and `train_time`, widened on run1153c over 3668..3924 (block 3675).
+    (
+        "JAPANESE_INDUSTRIAL_PAIR_WORD",
+        crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL_PAIR_WORD,
+        Some("japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole"),
+        3510,
+        Some(crate::diff::japanese_industrial_pair::WIDENING_JAPANESE_INDUSTRIAL_FRAME_3674),
+    ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
     // Lakota food term, widened on run849 over 1978..2235 (block 1985);
@@ -11258,6 +11277,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_548,
         endpoint: Some("run1151_american_modern_pair_closing_state"),
         window: Some("american_modern_frame_4488_window"),
+    },
+    // The Japanese at a held Industrial age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 5), East Indies (item 3510): first try 1351, the
+    // Barracks' Riflemen; 3674 with the Japanese Barracks arms, of a game
+    // that ends itself on 4547.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesJapaneseIndustrial",
+        named: "East Indies (Japanese, Industrial)",
+        word: crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL_PAIR_WORD,
+        length: 4_547,
+        endpoint: None,
+        window: Some("japanese_industrial_frame_3674_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

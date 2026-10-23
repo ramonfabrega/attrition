@@ -667,6 +667,21 @@ pub struct Tuning {
     /// fishermen's term in `LeaderData::calc_rare@006e08d0:65`. Ships as
     /// `25% more food`.
     pub japanese_fishing_boats: i32,
+    /// The Japanese Barracks units' price, `TypeData::get_cost@00664090:238`
+    /// –`253`: a unit whose trainer is the Barracks (`0x1ab`) by equality.
+    /// Negative means per tier, `(100 + tier × k) × cost / 100` with the
+    /// tier `min(ages, epoch[0])`; ships as `-7`.
+    pub japanese_barracks_cost: i32,
+    /// The same arm of `ObjectData::train_time@006508c0:120`–`133`: `t × 100
+    /// / (k' + 100)`, `k' = −k × tier` when negative; ships as `-10`.
+    pub japanese_barracks_speed: i32,
+    /// `get_cost:254`–`257`: a unit trained at a Dock, Anchorage or
+    /// Shipyard (`0x1b0`..`0x1b2`) by equality, `(100 − k) × cost / 100`;
+    /// ships as `10`.
+    pub japanese_ship_cost: i32,
+    /// `train_time:134`–`138`: a unit of the Aircraft Carrier's lineage
+    /// (`is(0x15f, 0)`) trains `t × 100 / (k + 100)`; ships as `33`.
+    pub japanese_carrier_speed: i32,
     /// Wealth per thirty seconds from each worked Farm for the Egyptians —
     /// `BuildTypeData::calc_gather@00639e40:997`–`1005`: a building of type
     /// `0x1a1` with any gatherer, for a leader with tribe bonus 7, adds
@@ -1477,6 +1492,10 @@ impl Tuning {
         japanese_farms_cheaper: 50,
         indians_elephant_cost: 15,
         japanese_fishing_boats: 25,
+        japanese_barracks_cost: -7,
+        japanese_barracks_speed: -10,
+        japanese_ship_cost: 10,
+        japanese_carrier_speed: 33,
         egyptian_farm_wealth: 2,
         inca_wealth_per_miner: 10,
 
@@ -2129,6 +2148,19 @@ impl Tuning {
             (
                 "JAPANESE_FARMS_CHEAPER",
                 Slot::Value(T.japanese_farms_cheaper),
+            ),
+            (
+                "JAPANESE_BARRACKS_COST",
+                Slot::Value(T.japanese_barracks_cost),
+            ),
+            (
+                "JAPANESE_BARRACKS_SPEED",
+                Slot::Value(T.japanese_barracks_speed),
+            ),
+            ("JAPANESE_SHIP_COST", Slot::Value(T.japanese_ship_cost)),
+            (
+                "JAPANESE_CARRIER_SPEED",
+                Slot::Value(T.japanese_carrier_speed),
             ),
             (
                 "INDIANS_ELEPHANT_COST",
