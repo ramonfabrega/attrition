@@ -10237,13 +10237,15 @@ booking carried that name. The landing frame against each round in flight (`RON_
   `Guy::set_all_pivots@005d8bc0`. **Score**: the rubric's lockstep bytes. 3534, the last twin booked, should be expected
   to add tenths as well; 3531a's diagnosis (the gap is staged takes' functions) stands.
 
-## Parked by the next landing, slot PH — reserved
+## Parked by item 3534, 2026-10-23 — the Russian pair's `cover=1` twin moves the lockstep share a tenth
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3534a. The sea map's age-6 twin adds three functions, 9,383 bytes.** run1179, the Russian Modern pair at
+  `cover=1` and run1149's game on every frame (rngcmp 5842 identical, 0 differing), is the fourth twin measured under
+  3531a, landed after 3533. It adds three simulation functions no other lockstep trace enters:
+  `Unit::change_target@005e36c0`, `Unit::think_carry_military@005f3260` and `AmmoOut::dirt_splash@00679400` (a
+  fourth, `Unit::update_ceo_position@005f96b0`, 3533's run1178 had already added). None is new to `blind::TRACES`.
+  The share goes 771 → 772 tenths (77.18 % → 77.27 %), 3531a's tenths again.
+  **Score**: the rubric's lockstep bytes. The same lever as 3531a.
 
 ## Parked by the next landing, slot PI — reserved
 
