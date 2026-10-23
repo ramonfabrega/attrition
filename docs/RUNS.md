@@ -24868,3 +24868,34 @@ SHA-256 `2ea57baca8d70af99b1dd161aa304e4614446ee5ba50fae866ffd6ecc495685d`.
 
 **What it holds**: `chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole` (267 blocks, 239 → 81 keys),
 the word 4467's closing block 4468.
+
+## run1176 — the German late-age pair's long lobby at `cover=1` on the click-free pool, to the game's end at 4175: the pair's lockstep twin (2026-10-23, item 3531, `att-3531`)
+
+**What the disk could not answer**: the pair's three captures (run1144, run1145, run1145b) are `cover=0`, which enters
+nothing but the hooks, so no lockstep trace of an age-7 game existed (`docs/DECISIONS.md` entry 91 §2). run1145's recipe
+exactly, at `cover=1`: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1176 --map 18 --end-frame 24000
+--timeout 3600 --log-window 0 24001 --ffwd-minute 27 --cover cover=1 --callwin 0 24000 --allow-early-end --detail
+end:UNITS=3,GUYS=2 --stride 100 --ai-tribe 12 --profile STARTING_TECHNOLOGY=8 --profile ENDING_TECHNOLOGY=7 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`. No `@` line and no click: every input is shared, so there is no `--from`.
+
+- Pool lane 1 (`~/wine-ron`). Launched 15:29:09, exited 15:29:49: **40.0 s launch to exit** (run1145 at `cover=0`: 25.4
+  s). `success`, 4,176 frames, **the game ended itself at 4175** (`ended_early`), map 18 verified, seed 12345, tribes 4
+  and 12. DLL `fbfbfe5f…`, `-DRON_AUTOSTART`. 181 GiB free before. Minutes waited on another lane: none.
+- `rngcmp.py rontrace-run1145.log rontrace-run1176.log`: **4,176 in common, 0 differing, 4,176 identical**; against
+  run1145b the same, **4,176 / 0 / 4,176**. `samegame.py gamelog-run1145-… gamelog-run1176-…`: **42 in common
+  (1..4101, the stride's blocks), 0 differing**.
+- **6,955 functions entered** (`report.py … functions`), 2,027 of them in the simulation layer. **None is new to
+  `blind::TRACES`**: every function it enters, some pinned trace already did, so `blind::NEVER` is unchanged. Over the
+  other 109 lockstep traces it adds three simulation functions, 5,222 bytes: `AirAttackGroundOrder::log_data@00487620`,
+  its vtordisp thunk `@004877f4`, and `AttackGroundOrder::log_data@00487aa0`. `rubric.py --tables 4` reads **lockstep
+  bytes 77.0 %** (8,782,939 of 11,392,782; 2,230 of 3,611 functions; 110 traces): 770 tenths before and after.
+- Filed with `filerun.py run1176 eastindies-german-alltech-cover`.
+
+Archive `gamelog-run1176-eastindies-german-alltech-cover.txt`, 22,617,902 bytes,
+SHA-256 `0825caee4c3dc944c9f1a41eee8e2f9dd63ba2e64b0bc215cc5134d9e5277362`.
+
+Archive `rontrace-run1176.log`, 190,064,992 bytes,
+SHA-256 `412fe339d01ec88e5fca4a3c2ce375c5d580b74d04b0cc53ee11a76f958b373c`.
+
+**What it holds**: the German pair's game on every frame under `cover=1`, the first lockstep trace of an age-7 game
+(`blind::TRACES`).
