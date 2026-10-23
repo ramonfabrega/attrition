@@ -5791,6 +5791,11 @@ if (attack->mandatory == 0 && is_captain(this)) {         // o_up < 0
 }
 ```
 
+**Nothing compares the candidate with the action's own target** (item
+3525): `near` may be the target itself, and `change_target` with the same
+pair still pops every order above the action, so the chase ends at the
+plain reach. This crate had a `c != t` conjunct from item 479 until then.
+
 **The two range tests are the same function with a different sixth
 argument, and that is the whole of why both can decide on one frame.**
 The kill above passes `attack->mandatory == 0`, so it asks the reach

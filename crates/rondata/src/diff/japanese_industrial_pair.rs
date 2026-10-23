@@ -47,8 +47,15 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // 121), flies 12 and strikes `0/5` on 3769, as theirs does. Ours 159
     // draws against 160, index 90 — ours `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d`, theirs `Unit::fight+0x9b0`.
-    count: 3816,
-    sequence: 3816,
+    // Item 3525: 3816 -> 4343, the Destroyer's (piece 278) three turrets
+    // (`sim::pivot`) and `do_move`'s captain retarget taking its own target
+    // (no `c != t`): `1/66`'s stern round of 3800 flies 9 and strikes `0/5`
+    // on 3808, and on 3815 `1/66` drops its chase at (2764, 8930) with
+    // `near` `0/5` in plain reach and fires on 3816, as theirs does. Ours
+    // 17 draws against 15, index 1 — ours `Unit::fight+0x9b0`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    count: 4343,
+    sequence: 4343,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -281,5 +288,72 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // `0/2004` struck for 11 on both, and the leaders' `treaties` 3 on both.
     // The state next parts on 3808: `0/5` is struck again, theirs on 3804
     // (`raid_stamp` 3804, `hits_left` 35) and ours on 3807 (3807, 32).
-    pin_eq!(w.firsts.len(), 692, "run1153c baseline");
+    //
+    // Item 3525: 692 with the Destroyer's turrets — block 3808 agrees whole
+    // (`1/66`'s stern round of 3800 flies 9, not 8, and lands on 3808 as
+    // theirs does; the next blow parts on 3837) — and **151** with the
+    // captain retarget on its own target: on the word's block 3816 `1/66`
+    // stands at (2764, 8930) on its `ATTACKORDER` (`in_range` 1) on both
+    // sides, where ours had sailed on to (2832, 8916) under its
+    // `MOVEORDER`. What is left from 3790 is the standing `form` family and
+    // `1/82`'s path on 3813 (parked 3525a).
+    pin_eq!(w.firsts.len(), 151, "run1153c baseline");
+}
+
+/// run1171: the word 4343's window, blocks 4338..4548 — six blocks before
+/// the word's block 4344 and on to the game's closing block (item 3525).
+pub(crate) const RUN1171: &str =
+    "gamelog-run1171-eastindies-japanese-industrial-window-4338-4548.txt";
+
+/// The window: block 4338 through the closing block 4548; the word 4343's
+/// own block is 4344.
+pub(crate) const WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343: (i64, i64) = (4338, 4548);
+
+/// **The word 4343's window**: run1171 walked from run1152's start with
+/// the recorder on (item 3525).
+pub(crate) fn japanese_industrial_frame_4343_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[JAPANESE_INDUSTRIAL.start],
+        true,
+        JAPANESE_INDUSTRIAL.long,
+        "run1171",
+        &[(RUN1171, WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343.0)],
+        WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343,
+        1,
+        &[4344],
+        true,
+    )
+}
+
+#[test]
+fn japanese_industrial_pair_run1171_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_industrial_frame_4343_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 210, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3525, the first walk: 1306 keys. Block 4338 carries 109
+    // standing rows, all of the standing families run1153c's window already
+    // carries — `form`, `SITE[i].reg`, `aggression[1]`, who=1's groups'
+    // `held` and pools — and no unit field. **The state parts on the
+    // word's frame**: on block 4343 who=1's Light Tank `1/49` (TypeIndex
+    // 239, land, group 65), on an `ATTACKORDER` on the human's city
+    // `0/2000` with `in_range` 1 and `near` `0/3`, holds a `MOVEORDER` to
+    // (6360, 8568) in theirs (pushed on 4342, `unitorder.flags` 0) and
+    // none in ours, whose target is `0/3` from 4343 (`g.ox[0]` ours 3,
+    // theirs 2000 on 4344, and `recharging` ours 40: ours fires); `docs/AI.md`
+    // section 303.
+    pin_eq!(w.firsts.len(), 1362, "run1171 baseline");
 }

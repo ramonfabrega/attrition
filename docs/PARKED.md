@@ -10117,13 +10117,17 @@ they are pinned (`GROUND_INEXACT`, 2). Not booked: it names no score.
   748 dumps). **Score**: none
   until a lobby fields the Egyptians' hero.
 
-## Parked by the next landing, slot OZ — reserved
+## Parked by item 3525, 2026-10-23 — the Destroyer's three turrets and the captain's retarget onto its target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3525a) **The Light Tank `1/82`'s repath on 3813 lays slots 54..78 differently** (3525; `docs/AI.md` §303; run1153c):
+`1/82` (`LIGHTTANK`, 239, land, group 79, `ATTACKTOORDER`) repaths at (31032, 41592) to (31080, 41592). Its path's
+length is ours 81 against theirs 79, and `path[54].to` is ours (29064, 41064) against theirs (28872, 41256). Its
+position and orders agree through the window's end, and the draws agree to 4343. This is the planner's choice
+between two routes of equal end; no score names it.
+
+(3525b) **run1171's window reads two corners not known to be the original's single** (3525): pinned
+(`GROUND_INEXACT`, `japanese_industrial_pair_run1171_s_word_frame_is_widened_whole`, 2), as 3523a's. Not booked: it
+names no score.
 
 ## Parked by item 3527, 2026-10-23 — the Kremlin's Spy, and a captain's retarget on its own target
 

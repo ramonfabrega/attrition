@@ -7592,6 +7592,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole",
         5,
     ),
+    // Item 3525: the Japanese Industrial pair's run1171 window (4338..4548)
+    // reads two inexact corners.
+    (
+        "japanese_industrial_pair_run1171_s_word_frame_is_widened_whole",
+        2,
+    ),
 ];
 
 /// **Every pinned word names the test that widened its frame whole, or
@@ -9831,13 +9837,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **3769** with the Japanese boats' quarter and `think_carry_civilian`'s
     // shore eject (item 3521), the same window (block 3770); **3816** with
     // the Dreadnought's two turrets (item 3523), the same window (block
-    // 3817).
+    // 3817); **4343** with the Destroyer's three turrets and `do_move`'s
+    // captain retarget on its own target (item 3525), past run1153c's last
+    // block, widened on run1171 over 4338..4548 (block 4344), the window
+    // reaching the game's closing block.
     (
         "JAPANESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL_PAIR_WORD,
-        Some("japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole"),
-        3523,
-        Some(crate::diff::japanese_industrial_pair::WIDENING_JAPANESE_INDUSTRIAL_FRAME_3674),
+        Some("japanese_industrial_pair_run1171_s_word_frame_is_widened_whole"),
+        3525,
+        Some(crate::diff::japanese_industrial_pair::WIDENING_JAPANESE_INDUSTRIAL_FRAME_4343),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
@@ -11317,7 +11326,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Japanese at a held Industrial age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 5), East Indies (item 3510): first try 1351, the
     // Barracks' Riflemen; 3674 with the Japanese Barracks arms, of a game
-    // that ends itself on 4547.
+    // that ends itself on 4547; 4343 with the Destroyer's turrets and the
+    // captain retarget on its own target (item 3525), on run1171's window.
     AiWord {
         line: "Late ages",
         map: "EastIndiesJapaneseIndustrial",
@@ -11325,7 +11335,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL_PAIR_WORD,
         length: 4_547,
         endpoint: None,
-        window: Some("japanese_industrial_frame_3674_window"),
+        window: Some("japanese_industrial_frame_4343_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
