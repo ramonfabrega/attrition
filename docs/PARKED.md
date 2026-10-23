@@ -10175,11 +10175,13 @@ booking carried that name. The landing frame against each round in flight (`RON_
 
 ## Parked by item 3530, 2026-10-23 — the Chinese word 3017: the fire on the move's bearing
 
-- **3530a. Theirs lands blows on the human's buildings that ours does not.** Ahead of the word 3271, by state: run1155b's
+- ~~**3530a. Theirs lands blows on the human's buildings that ours does not.** Ahead of the word 3271, by state: run1155b's
   block 3180 reads the building `0/2004`'s `damage` ours 24 against theirs 31 (`damage_frac` 9 against 14), with city
   `0/2000`'s `raid_stamp` ours 3177 against 3179; run1175's block 3270 reads `0/2002`'s `damage` ours 25 against 33 and
   the stamp 3267 against 3269. No draw parts on either frame. **Score**: none until a word parts on it; the word 3271 is
-  `1/42`'s stop against `1/52`. The `raid_stamp` lag is the standing `0/2000` row run1155b's block 3001 already carried.
+  `1/42`'s stop against `1/52`. The `raid_stamp` lag is the standing `0/2000` row run1155b's block 3001 already carried.~~
+  **Answered by item 3538** (`docs/AI.md` §305): the blows were the Anti-tank Rifles' rounds, which left from the
+  figure's own square and landed a frame late; with piece 1143's launch rows both rows agree.
 - **3530b. The bomber's fall reads the figure's facing where its comment cites `UnitData +0x50`.** `fight.rs`'s bomb
   arm (`Ammo::init`'s `is(0x130)`, `0x67c289`) projects the landing one tile along "the shooter's own heading (`ecx =
   UnitData +0x50`)" and reads `movement.facing`; `+0x50` is `angle`, this crate's `heading` (item 3530's slip on
@@ -10226,13 +10228,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot PJ — reserved
+## Parked by item 3538, 2026-10-23 — the Chinese word 3271: the Anti-tank Rifle's launch rows
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3538a. The gunpowder line's other pieces launch from the figure's square.** Item 3538 measured piece 1143 only
+  (the Anti-tank Rifle, type 137, in the Asian art style, `87 + 3 × 0x160`) off run1155c's packet. No `BAYS` row
+  holds the Fusiliers (type 136, piece 86) or either type in another art style (`86`/`87 + k × 0x160`, `k ≠ 3`), and
+  piece 1143's muzzle stands some 180 units ahead of the figure, enough to turn a round's truncated flight a frame
+  long. A packet from a game that fields the piece answers each (`get_position.py … entries <piece>`).
+  **Score**: none until a word parts on one of their rounds.
+
+(3538) **The Chinese word 4467's closing block is not widened.** The word closed at 4467, the game's last frame, and
+`run1155_chinese_industrial_pair_closing_state` scores block 4468: 165 units compared, 14 off by position and nothing
+else (`1/107` by (114, −9), `1/73` by (−73, 72), `0/8` by (0, 28)). run1175's window ends on 3522, and run1155 prints
+units on every hundredth block only, so no dump holds the blocks where the 14 part. A window walked back from 4468 at
+the long's detail is the widening the word owes. **Score**: the closing counts, `[14, 0, 0, 0, 0, 0, 0]`.
 
 ## Parked by the next landing, slot PK — reserved
 

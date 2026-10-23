@@ -1260,6 +1260,51 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 171,
         },
     ),
+    // **Piece 1143, the Anti-tank Rifle in the Asian art style** (type
+    // 137, `87 + 3 × 0x160`; item 3538, `docs/AI.md` §305): the
+    // Chinese's `UNIT_CONTINENT` is 3. run1155c's `RON_STATE_FRAME=3003`
+    // packet on the Chinese Great Sahara game holds its three `AttachPos`
+    // rows — node 0 at 18 of `CHAR_ATTACK1`, 4 of `2` and 16 of `3` — and
+    // `tools/recomp/get_position.py`'s sweep of each is reproduced by these
+    // at all 361 headings, x and y; each is the centroid of its exact
+    // region (62, 160 and 57 lattice points). The muzzle stands some 180
+    // units ahead of the figure. Without them every rifle round left the
+    // unit's own square and landed a frame late: the Chinese word's 3271,
+    // whose state had parted on 3243 — `1/41`'s round at the Citizen
+    // `0/4`, thrown on 3239, striking on 3243 against theirs' 3242 (5
+    // frames over 1,823 units at `PROJ_SPEED` 350, against 4), so `0/4`
+    // fled a frame late and `1/42`'s chase review of 3270 found it in
+    // reach of the move's goal where theirs' did not.
+    (
+        1143,
+        crate::anim::ATTACK1,
+        18,
+        Bay {
+            right: 17_058,
+            fwd: 180_195,
+            dz: 60,
+        },
+    ),
+    (
+        1143,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: 4_863,
+            fwd: 179_398,
+            dz: 63,
+        },
+    ),
+    (
+        1143,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -2_310,
+            fwd: 161_815,
+            dz: 83,
+        },
+    ),
     // **Piece 33, the Javelineers (type 83): the original's own
     // `get_position`** (item 1194). Its `Spear` leaves node 0 on frame 12
     // of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
@@ -1634,6 +1679,44 @@ mod tests {
             })
             .collect();
         assert!(got.contains(&Pos::new(3766, 32893)), "{got:?}");
+    }
+
+    /// **The Chinese Anti-tank Rifles' rounds leave from piece 1143's
+    /// bays** (item 3538): run1155c's packet, `get_position.py … sweep 1143
+    /// 0 <anim> <time>`, at the four facings whose top byte is a whole
+    /// degree — 0, `0x40`, `0xa0` and `0xe0`, the sweep's 180°, 270°, 45°
+    /// and 135° — `(x, y)` off the figure. The muzzle is some 180 units
+    /// ahead; from the figure's own square `1/41`'s round at `0/4` flew a
+    /// frame long.
+    #[test]
+    fn run1155c_s_rifle_rounds_leave_from_piece_1143_s_bays() {
+        for (anim, start, want) in [
+            (
+                crate::anim::ATTACK1,
+                18,
+                [(17, -180), (180, 17), (-139, 115), (-115, -139)],
+            ),
+            (
+                crate::anim::ATTACK2,
+                4,
+                [(4, -179), (179, 4), (-130, 123), (-123, -130)],
+            ),
+            (
+                crate::anim::ATTACK3,
+                16,
+                [(-2, -161), (161, -2), (-112, 116), (-116, -112)],
+            ),
+        ] {
+            for (byte, (x, y)) in [0u32, 0x40, 0xa0, 0xe0].into_iter().zip(want) {
+                let facing = Angle((byte << 24) as i32);
+                let got = launch_point(Pos::new(10_000, 20_000), facing, 1143, anim, start, 0);
+                assert_eq!(
+                    got,
+                    Pos::new(10_000 + x, 20_000 + y),
+                    "anim {anim} at {start}, byte {byte:#x}"
+                );
+            }
+        }
     }
 
     /// Every launch point run109 measured, reproduced to the unit.
