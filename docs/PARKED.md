@@ -10113,7 +10113,8 @@ they are pinned (`GROUND_INEXACT`, 2). Not booked: it names no score.
   saw it. Carrying the recount and reading the field would make the next fog parting a diff rather than a probe.
   **Score**: none directly — a sub-score instrument for every word whose chain reaches fog.
 - **3524d. Ptolemy's term in `UnitData::los@006100c0`** (`leader +0x59d2`, `+0x2c8 & 0x420`, `has_general(0,
-  0x16a)`, `PTOLEMY_LOS_BONUS`) is a SEAM in `Sim::unit_data_los`. No capture on disk fields him. **Score**: none
+  0x16a)`, `PTOLEMY_LOS_BONUS`) is a SEAM in `Sim::unit_data_los`. No capture on disk fields him (scan: no `type 362` in
+  748 dumps). **Score**: none
   until a lobby fields the Egyptians' hero.
 
 ## Parked by the next landing, slot OZ — reserved

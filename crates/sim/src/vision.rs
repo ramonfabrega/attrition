@@ -306,7 +306,9 @@ impl Sim {
     ///
     /// SEAM: the first term, Ptolemy's (`leader +0x59d2`, a type with
     /// `+0x2c8 & 0x420`, `has_general(0, 0x16a)`, `PTOLEMY_LOS_BONUS`), is
-    /// not carried; no capture on disk fields him.
+    /// not carried; no capture on disk fields him (scan: `grep -lac '^    type
+    /// 362$' gamelog*.txt`, none of 748 dumps; the same pattern finds the CEO,
+    /// type 357, 784 times in run1170).
     pub(crate) fn unit_data_los(&self, u: usize) -> i32 {
         let mut los = self.units[u].mylos;
         if self.near_own_ceo(u) {
