@@ -10012,13 +10012,20 @@ words and edits nothing here; a refill lands when two remain.
   Mustang `1/140` inside the Airbase `1/105` has `g.z[0]` ours 0 against 398 on 4401. None of this reaches a draw, and
   the closing comparison reports none of it. **Score**: none while the pair is whole.
 
-## Parked by the next landing, slot OS — reserved
+## Parked by item 3518, 2026-10-23 — the American closing whole: the Armored Scout Car fires from its turret
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3518a. The booked arm, killed: no drawless strike.** 3517 booked the blow on `0/5` at 4531 as a strike that
+  draws nothing (splash, a ram, an area hit or a fire). It is an ordinary round. `1/80` releases it on 4526 on both
+  sides at its cavarch target `0/5`, with the same scatter draws. Theirs lands on 4531. Ours came due on 4532
+  and struck nothing. Ours' flight was one frame longer because ours launched from the
+  car's square, 2549 from the landing, where theirs launches from the turret's release node, 2374 from it
+  (run1164's packet; `docs/AI.md` §302). **Score**: none; the kill.
+- **3518b. The restricted pieces with no release row still fire from the unit's square.** `sim::pivot::RELEASES`
+  holds measured rows for 139, 145, 168, 194, 296, 491, 137, 841, 1545, 1546 and 1898. Every other piece the
+  install restricts (`<RESTRICTION>`, a turret or a bow side) releases from `launch::launch_point`. That is the
+  piece's own square when §22's table has not measured it, and that path is what this item found on piece 168. A
+  packet from a game that fields the type reads each row with `get_position.py … entries <piece>`. **Score**: none
+  until a word parts on one.
 
 ## Parked by the next landing, slot OT — reserved
 
