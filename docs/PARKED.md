@@ -3774,6 +3774,13 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-23 — the fifty-third tranche's
 
+(3544) **3513's "for the Loop"** (the journal's line, filed at its merge; parked 3513a): a late-age pair minted on a battery
+lobby's `(map, nation, difficulty)` shares the held-out game's triple — the Turks' Enlightenment pair is `(7, 8, 3)`, the
+held-out `GreatSaharaTurkishTier3`'s, ages 0–7 there and 4/4 here — so the pair stays out of `battery::SCORED_LOBBIES`. Whether
+the age difference keeps the battery held out (entry 54, 61: never debugged against) is the pass's to rule; candidate: the
+lobby key carries the age, or a late-age pair is minted on a triple no held-out game holds. Score: the held-out battery's
+first tries. One reach: the pass's.
+
 (3541) **3531's "for the Loop"** (the journal's line, filed at its merge; parked 3531a): entry 91 §2's estimate — the four
 whole pairs' `cover=1` twins carry lockstep bytes from 77.0 % past 80 % — cannot be met by twins. run1176 (the Germans at
 All Technologies, whole against both its `cover=0` takes) entered 2,027 simulation functions and three of them, 5,222 bytes,

@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 10 of 20 landed; 3513 and 3542 live; the commander clears at this seam (DECISIONS 91).*
+*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 11 of 20 landed; 3542 and 3543 live; the commander clears at this seam (DECISIONS 91).*
 
-- **Words**: one open, the British at 4587 of 5,522 (lower map first — East Indies (British, Enlightenment)), first try (3512); the Japanese whole at 4,547 (3539), the Chinese at 4,467, none off (3538, 3540);
-  held-out eight of eight. **The late ages**: seven pairs stood up, six whole on real sim work (the Chinese 3538, the Japanese 3539); **the rubric, lockstep**:
+- **Words**: two open, the Turks at 2501 of 3,812 (lower map first — Great Sahara (Turks, Enlightenment)) and the British at 4587 of 5,522, both first tries (3513, 3512); the Japanese whole at 4,547 (3539), the Chinese at 4,467, none off (3538, 3540);
+  held-out eight of eight. **The late ages**: eight pairs stood up, six whole on real sim work (the Chinese 3538, the Japanese 3539); **the rubric, lockstep**:
   ages 8 of 8, types 128 → 158 of 302, **bytes 77.0 → 77.2 %** (the four whole pairs' `cover=1` twins, 3531–3534: 77.04 → 77.27, tenths a twin; Loop 3541). Blind: 0 of 39 dead.
 - **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
   30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
-- **Lanes: two live, Opus 5.5 at medium** (3513 the Turks at Enlightenment, 3542 the British word 4587); **one booked** (3535):
-  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3543, run 1186. Pools: GOLDEN §149–154, AI §308–310, park PM–PP.
-- **Fable backlog: 12 Loop items** (3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
+- **Lanes: two live, Opus 5.5 at medium** (3542 the British word 4587, 3543 the Turkish word 2501); **one booked** (3535):
+  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3545, run 1187. Pools: GOLDEN §149–154, AI §308–310, park PN–PP.
+- **Fable backlog: 13 Loop items** (3544, 3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -30,7 +30,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w4587 of 5,522
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w4587 of 5,522 · GreatSaharaTurkishEnlightenment w2501 of 3,812
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -57,8 +57,10 @@ round flies 9 frames from a launch point on the hull that piece 327 lacks (the D
 prints no `AMMO` record, so a packet at `RON_STATE_FRAME=4580` reading the live `Ammo`'s `total_time` and launch point is the killer.
 Run 1185; amend §306 in place; park OO.
 
-3513. **The Turks at a held Enlightenment age, Great Sahara** (`--map 7 --ai-tribe 8`, Difficulty 3, ages 4/4): `JANISSARYROYAL`,
-`BASILICACANNON`, `CAMELCORPS`, `JUNKERS`, `ROYALGUARD`, `MANCHUMUSKETEERS`' kin. Runs 1158–1159; park OP.
+3543. **The Turkish word, frame 2501: ours 12 draws against 13, index 0** (theirs `Unit::do_idle+0x7d`; 3513's first try and
+widening on run1159b, 2495..2751, 2,651 keys, AI §307): the Village `1/2020` (414) finishes three frames late in ours because its
+builder, the Citizen `1/20` (50), arrives late; the Citizen's state parts between the long's stride blocks 1401 and 1501, which no
+dump on disk covers — the item's first step is a window over 1395..1501. Run 1186; amend §307 in place; park PM.
 
 3535. **The Persians at a held Medieval age, East Indies** (`--map 18 --ai-tribe 23`, Difficulty 5, ages 2/2; the All-Technologies Persians
 trained none of their early line): `ATHANATOI`, `ATHANATOIBOW`, `IMPI`'s and `FIRELANCES`' generic kin, `LEGIONELITE`, `BRIG` — sixteen land and
