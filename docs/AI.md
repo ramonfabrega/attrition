@@ -26350,7 +26350,7 @@ compared. run1184 goes **239 → 81** keys, and no unit's position parts in the 
 rows, `dest_angle` on `1/138`, `1/110` and `1/75`, who=1's food economy from 4376, and `mylos` ours 4 against
 theirs 16 on five of who=1's units from 4376 (3540b). Every other lobby's `first_parting` holds (40 of 40).
 
-## 306. The British at a held Enlightenment age, East Indies: the Sloop's round a frame early, first try 4587 of 5522 (2026-10-23, item 3512)
+## 306. The British at a held Enlightenment age, East Indies: the Sloop's and the Highlanders' launch points, 4587 → 4774 → 5522 of 5522, and the closing state (2026-10-23, items 3512 and 3542)
 
 *Item 3512, Opus 5.5, the AI track (DECISIONS 90, 91): run1156, run1157 and run1157b, on the click-free pool.*
 
@@ -26405,6 +26405,37 @@ other than the unit's own: a turret or muzzle row the Sloop's piece lacks in `si
 Dreadnought's (item 3523) and the Destroyer's (item 3525) did. The dump prints no `AMMO` record at this detail. A
 packet at `RON_STATE_FRAME=4580` reading the live `Ammo`'s `total_time` and launch point would kill or keep it. The
 block 4595 parting (`1/73`'s move to (…, 11256) against (…, 8184), group 76) is downstream of 4588.
+
+**Item 3542 (2026-10-23, Opus 5.5): the Sloop's and the Highlanders' launch rows, 4587 → 4774 → 5522, whole.**
+run1185 (a packet at logger frame 4582) and run1185b (the closing window, 5266..5523). *The hypothesis held.* The Sloop
+`1/61` (`SLOOP`, TypeIndex 327, sea) plays piece 277 (`SLOOP-DEFAULT-AGE0`, `RData +0x88` 0.7), whose
+`<RELEASEEVENT>`s throw `InvisibleAmmo` from node 0 at 333 ms of `CHAR_ATTACK1` and node 1 of `CHAR_ATTACK2` and
+`CHAR_ATTACKWALK` — no `<RESTRICTION>`, so `get_position`'s non-pivot arm. The packet's live `Ammo`
+(`tools/recomp/ammo.py`) leaves **(3315, 6861, −2)** at t 2/9; ours left the hull's (3336, 6840) and flew 8.
+`get_position.py … entries 277` gives node 0 at frame 4 of anim 11 and node 1 at frame 4 of anims 10 and 12, and its
+sweep at the Sloop's 315° reads (−21, +21, −2): the launch exactly. Built as three `sim::launch` `BAYS` rows, each the
+centroid of its exact region over all 361 headings (969, 844, 844 points). The walk moves to **4774**.
+
+*The second blow.* run1157b's widening then first parts on block 4735: the human's Citizen `0/10` (TypeIndex 50, land)
+is struck on 4734 in theirs (`damage_o` 91, `hits_left` 44, `damage_frame` 4734) and not in ours (62). The striker is
+the **Highlanders `1/91` (`HIGHLANDER`, 114, land)**, piece 64: ours' round left the figure's own (5928, 10488) on
+4732, flew 4 and struck on 4735. The same packet holds piece 64's three rows (node 0 at frame 6, 10 and 12 of
+`CHAR_ATTACK1`..`3`, `RData +0x88` 1.05; the musket some 145 units ahead of the figure). Built as three more `BAYS`
+rows (655, 481, 174 points). **The walk is whole: 5522 of 5522**, count and sequence. Mutated through
+`tools/mutate.py`: piece 277's rows re-keyed, the walk falls to 4587 and run1157b reads 2773; piece 64's, to 4774 and
+693. No other lobby's `first_parting` moves (41 of 41).
+
+**The value diff, on the word's frame** (run1157b, block 4588): `0/13` alive at 63 on both sides, `0/2000`'s
+`raid_stamp` 4560 on both, the human's `active`/`control`/`num_units[0]`/`peasants` 12, 12, 11, 11 on both; on block
+4735, `0/10`'s `hits_left` 44 and `damage_frame` 4734 on both. run1157b **2773 → 693 → 108** keys, the standing
+families alone (block 4581's 96 rows, new units' `form`, groups 76's and 79's `held`/pool, one `SITE[8].reg` on 4776).
+
+**The closing state** (`run1157_british_enlightenment_pair_closing_state`, block 5523): 176 units compared, none off,
+torn or unlinked, and no building or city field-row. run1185b's widening
+(`british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole`, 257 blocks) reads **110** keys: the
+standing families and one row, city `0/2000`'s `build:damage` on block 5276, ours 604 and 6/16 against theirs 610
+(parked 3542a). The rubric now counts the game whole: unit types seen 158 → 160, the Highlanders (114) and the Bomb
+Ketch (347).
 
 ## 307. The Turks at a held Enlightenment age, Great Sahara: a Village three frames late, 2501 of 3812 (2026-10-23, item 3513)
 

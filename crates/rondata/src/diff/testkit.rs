@@ -9853,13 +9853,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The held Enlightenment pair's word** (item 3512): the British at a
     // held Enlightenment age, East Indies — 4587 first try (the Sloop
     // `1/61`'s round kills the human's Citizen `0/13` a frame before
-    // theirs), widened on run1157b over 4581..4837 (block 4588).
+    // theirs), widened on run1157b over 4581..4837 (block 4588). **Item
+    // 3542: whole at 5522**, the game's last frame, with the Sloop's (piece
+    // 277) and the Highlanders' (piece 64) launch rows off run1185's packet;
+    // run1157b's test keeps 4587's value diff (block 4588 agrees, 2773 →
+    // 108 keys). The last blocks are widened on run1185b over 5266..5523
+    // (the word's block 5523 is the closing block), and the closing state
+    // is scored by `run1157_british_enlightenment_pair_closing_state`.
     (
         "BRITISH_ENLIGHTENMENT_PAIR_WORD",
         crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT_PAIR_WORD,
-        Some("british_enlightenment_pair_run1157b_s_word_frame_is_widened_whole"),
-        3512,
-        Some(crate::diff::british_enlightenment_pair::WIDENING_BRITISH_ENLIGHTENMENT_FRAME_4587),
+        Some("british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole"),
+        3542,
+        Some(crate::diff::british_enlightenment_pair::WIDENING_BRITISH_ENLIGHTENMENT_CLOSING),
     ),
     (
         "JAPANESE_INDUSTRIAL_PAIR_WORD",
@@ -11414,14 +11420,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The British at a held Enlightenment age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 4), East Indies (item 3512): first try 4587, the
     // Sloop's round a frame early, of a game that ends itself on 5522.
+    // Whole at 5522 with the Sloop's and the Highlanders' launch rows (item
+    // 3542), the closing state none off.
     AiWord {
         line: "Late ages",
         map: "EastIndiesBritishEnlightenment",
         named: "East Indies (British, Enlightenment)",
         word: crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT_PAIR_WORD,
         length: 5_522,
-        endpoint: None,
-        window: Some("british_enlightenment_frame_4587_window"),
+        endpoint: Some("run1157_british_enlightenment_pair_closing_state"),
+        window: Some("british_enlightenment_closing_window"),
     },
     // The Turks at a held Enlightenment age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 4), Great Sahara (item 3513): first try 2501, ours
