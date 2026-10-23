@@ -3774,6 +3774,9 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-23 — the fifty-third tranche's
 
+- **3539's "for the Loop"** (the journal's line, filed at its merge): the Japanese pair whole at 4547 and the open words
+  emptied — the commander's lines, written at 3539's booking (`Late ages`, `Words`, `lower map first — closed`); nothing for the pass.
+
 (3537) **A brief's seams print is an argparse usage error when the item's chain is all short names** (the fifty-third
 commander, composing 3529): `seams.py --item 3529` keeps a chain name only when it holds `_` or runs past eight letters, so
 `Unit::close < Object::die < Unit::die` yields none and the tool exits on `no name given`; `brief.py` pasted that usage text
