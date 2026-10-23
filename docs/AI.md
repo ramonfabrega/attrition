@@ -868,7 +868,7 @@ type_avail`):
   and `epoch[cat] < n + 1`**; ≥ 3 uncapped. Then `epoch[cat] == low` →
   `base ×= 10`; `epoch[cat] > low + 1` → skip (keep the four lines within
   one of each other); `cat` 1 or 2 under victory 8/9 → `×30`; more than one
-  landmass and `types[0x2ae]`'s predicate `+0xdc(t)` → `×30`; `t` in
+  landmass and `types[0x2ae]->find_preq(t)` (§304) → `×30`; `t` in
   `{0x22f, 0x236}` with `has_tech(CLASSICAL_AGE)` → `×20`.
 - Everything: knowledge cost `< bucket[3] − 100` → `base ×= 10` (the
   stockpile again).
@@ -25768,14 +25768,46 @@ sits one slot on. On the word's block 9, building `1/2005`'s research queue is i
 ours 558, 572, 551, 566 against theirs 551, 558, 566, 572 (costs and goods with them), and who=1's `MAKE[10].val` is
 ours 3066003 against theirs 30660.
 
-**The next word**: frame 8, ours 18 draws against 18, index 2. The direction is theirs: on block 5 theirs makes a
-value ours does not. 9999999 is the original's guard value (`ai_research.rs`: the research value's `val < 0`
-guard, and `income_scaled`'s overflow guard), so the hypothesis to kill first is that theirs' Written Word value
-**wraps** before the guard and ours' does not. That is a supposition from the number, not a reading. A packet at
-`RON_STATE_FRAME=4` on `Leader::research_techs` with the research slot watched would answer it without one.
+**The next word was frame 8** (item 3508), ours 18 draws against 18, index 2. The hypothesis to kill first was that
+theirs' Written Word value **wraps** into the original's 9999999 guard and ours' does not. It survives as the
+mechanism, and the cause is one step back.
 
-**What this has *not* established.** Which arm makes theirs' 9999999; no listing was read. Why the count parts on
-11, three frames after the sequence (it follows from the reordered make list, but that is not shown). The standing
+**Item 3515: `TRANSPORT_BONUS`'s prerequisite is worth ×30 on a sea map.** run1161 is a packet at logger frame 4
+(`RON_STATE_FRAME=4`, 804 MB). `step4.py --entry 6c6ba0 --this 00e4127c` runs who=1's `Leader::research_techs` on it
+and offers exactly theirs' four (`make_me` hooked at `6c9be0`): 551 at 9999999, 558 at 5040003, 566 at 420000, 572
+at 3066003. Hooked inside the pass, Written Word reads:
+
+| step | theirs (packet) | ours (before) |
+|---|---|---|
+| `w × base` at `6c738e` | w 27, base **600000** | w 27, base 20000 |
+| value before the income step (`6c7951`) | 48,600,003 | 1,620,003 |
+| `income × val` (income 256), `>> 8` | wraps negative, so **9999999** (`6c79b3`) | 1,620,003 |
+
+Barter, Empire and The Art of War agree at every step. The ×30 is the epoch arm's
+`types[0x2ae]->find_preq(t)` at `6c71a2`–`6c71c9`, taken when `world+0x34 > 1`. vslot `+0xdc` is `Type::find_preq@00668380`,
+which returns slot 0 as written, and `TRANSPORT_BONUS`'s `preq0` is Written Word (`roles.transport_preq`,
+`docs/TRANSPORT.md` §4). `Sim::transport_bonus_needs` was a seam that answered `false`, and it now answers that
+prerequisite (`the_transport_bonus_s_prerequisite_is_worth_thirty_times_on_a_sea_map`). The science arm's
+`epoch[3] − tech+0x1c8` reads 0 on the packet, so it plays no part.
+
+**The value diff.** run1149b's widening goes from 342 keys to 52. Block 5's make list now agrees (`MAKE[8]` Written
+Word at 9999999 on both sides), and what is left is the standing families: block 3's 43, groups 64, 66 and 67's
+`held` and pool, and `SITE[2..4].reg`. **The word moves 8 → 3682** for both the count and the sequence: ours 15
+draws against 14, index 0, ours `Unit::fight+0x9b0` against theirs `Unit::do_move+0xe84`.
+
+**The word 3682, widened on run1161b** (blocks 3677..3933, `russian_modern_pair_run1161b_s_word_frame_is_widened_whole`,
+929 keys):
+- **The state parts first before the window.** On block 3677, who=1's wealth reads `income[2]` ours 3816 against
+  theirs 4000, `rate[2]` 238 against 250 and `over_cap[2]` 0 against 1, and the timber and metal buckets run 40
+  over. No dump prints a leader record in 3601..3676.
+- **The word's eve, block 3682**: Cruiser `1/25` (TypeIndex 329, `EXPLORETOORDER`, near `0/2004`) has `recharging`
+  ours 0 against theirs 25 and `cavarch_o` 11 against 5.
+- From block 3684, who=1's units `1/26`, `1/30` and `1/31` take different move destinations.
+
+The direction and the first parted field before 3677 are the next item's question.
+
+**What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. Which field of who=1's economy parts first in 3601..3676. ~~Why the count parts on
+11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing
 families on block 3 (shared with 3506b). What the game put on the map: the rubric counts lockstep games only
 (DECISIONS 90), and this pair parts on frame 8, so `RUBRIC_UNIT_TYPES_SEEN` does not move. On the captures,
 `rubric.py --tables 3` sees 29 skirmish types, among them `REDGUARD`, `T34`, `KATYUSHA`, `FLAKGUN`, `BAZOOKA`,

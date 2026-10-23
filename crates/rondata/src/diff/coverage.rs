@@ -3430,6 +3430,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::mongol_pair::mongol_closing_window(),
         || super::german_alltech_pair::german_alltech_closing_window(),
         || super::russian_modern_pair::russian_modern_frame_8_window(),
+        || super::russian_modern_pair::russian_modern_frame_3682_window(),
         || super::sahara_mongol::sahara_mongol_frame_2995_window(),
         || super::lakota_pair::lakota_frame_1384_window(),
         || super::lakota_pair::lakota_frame_1984_window(),
