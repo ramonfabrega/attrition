@@ -3544,6 +3544,66 @@ fn a_packed_engine_unpacks_on_a_city_at_its_ceiling() {
     );
 }
 
+/// **A computer's unit walks to capture a city at its ceiling** (item 3528,
+/// `docs/ORDERS.md` §7.2): `Unit::fight@005fd4d0`'s capture approach. The
+/// refused target's out-word says the city is capturable; a computer's land
+/// unit with a capture value, eighteen tiles off — past `city_capture_radius`
+/// — walks to a spot round the midpoint at `QUEUE_FIRST`, the attack kept
+/// under it (run1171's Light Tank `1/49` on Napata, 4342). A human's unit on
+/// the same unordered attack takes `find_new_target` instead, and so does a
+/// computer's inside the radius.
+#[test]
+fn a_computer_s_unit_walks_to_capture_a_city_at_its_ceiling() {
+    let setup = |human: bool, ty: i32| {
+        let mut sim = world_sim();
+        let t = install_types(&mut sim);
+        let (b, _) = city_at(&mut sim, &t, 1, 32, 32);
+        sim.tech[1].epoch[tech::Line::Civic as usize] = 1;
+        let _ = city_at(&mut sim, &t, 1, 8, 8);
+        let hoplite = sim.add_unit_type(hoplite_type(t.barracks));
+        let bd = &mut sim.buildings[b];
+        bd.damage = bd.hits;
+        bd.sync_health();
+        sim.nation[0].human = human;
+        sim.frame = 1000;
+        let u = spawn(&mut sim, 0, hoplite, tile_pos(32, ty));
+        let city = Obj::Building(b);
+        sim.add_attack_order(u, city, crate::orders::QueuePos::New, false, false);
+        (sim, b, u)
+    };
+    let (mut sim, b, u) = setup(false, 50);
+    assert!(sim.capture_eligible(b));
+    let (here, there) = (sim.units[u].pos, sim.pos_of(Obj::Building(b)));
+    sim.do_attack_fight(u, 1000);
+    let kinds: Vec<_> = sim.units[u].orders.iter().map(|o| o.index()).collect();
+    assert_eq!(
+        kinds,
+        [crate::orders::index::MOVE_TO, crate::orders::index::ATTACK],
+        "the walk heads the queue and the attack stays under it"
+    );
+    let crate::orders::Body::Move(m) = sim.units[u].orders[0].body else {
+        unreachable!()
+    };
+    let mid = Pos::new((here.x + there.x) / 2, (here.y + there.y) / 2);
+    assert!(
+        crate::world::vector_dist((m.dest.x - mid.x).abs(), (m.dest.y - mid.y).abs()) <= 0x180,
+        "the spot is round the midpoint: {:?} against {mid:?}",
+        m.dest
+    );
+    assert_eq!(sim.units[u].combat.target, Some(Obj::Building(b)));
+    for (human, ty) in [(true, 50), (false, 40)] {
+        let (mut sim, _, u) = setup(human, ty);
+        sim.do_attack_fight(u, 1000);
+        assert!(
+            !sim.units[u]
+                .orders
+                .iter()
+                .any(|o| o.index() == crate::orders::index::MOVE_TO),
+            "no walk: human {human}, {ty}"
+        );
+    }
+}
+
 #[test]
 fn the_turks_assimilate_three_times_faster() {
     let mut sim = world_sim();
