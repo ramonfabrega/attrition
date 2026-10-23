@@ -1305,6 +1305,87 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 83,
         },
     ),
+    // **Piece 64, the Highlanders** (type 114, `HIGHLANDER-DEFAULT-AGE0`;
+    // item 3542, `docs/AI.md` §306): node 0 at frame 6 of `CHAR_ATTACK1`, 10
+    // of `2` and 12 of `3`, `RData +0x88` 1.05, off the same run1185 packet
+    // as the Sloop's below; each row reproduces its sweep at all 361
+    // headings, x, y and z, the centroid of its exact region (655, 481 and
+    // 174 lattice points). The musket stands some 145 units ahead of the
+    // figure. Without them `1/91`'s round at the Citizen `0/10`, thrown on
+    // 4732 from the figure's own (5928, 10488), flew 4 frames and struck on
+    // 4735 against theirs' 4734.
+    (
+        64,
+        crate::anim::ATTACK1,
+        6,
+        Bay {
+            right: 13_374,
+            fwd: 144_082,
+            dz: 168,
+        },
+    ),
+    (
+        64,
+        crate::anim::ATTACK2,
+        10,
+        Bay {
+            right: 13_848,
+            fwd: 145_503,
+            dz: 169,
+        },
+    ),
+    (
+        64,
+        crate::anim::ATTACK3,
+        12,
+        Bay {
+            right: 13_535,
+            fwd: 145_683,
+            dz: 168,
+        },
+    ),
+    // **Piece 277, the Sloop** (type 327, `SLOOP-DEFAULT-AGE0`; item 3542,
+    // `docs/AI.md` §306): its `InvisibleAmmo` leaves node 0 at frame 4 of
+    // `CHAR_ATTACK1` and node 1 at frame 4 of `CHAR_ATTACK2` and
+    // `CHAR_ATTACKWALK`, `RData +0x88` 0.7. run1185's `RON_STATE_FRAME=4582`
+    // packet on the British East Indies game holds the three `AttachPos`
+    // rows, and `tools/recomp/get_position.py`'s sweep of each is
+    // reproduced by these at all 361 headings, x, y and z; each is the
+    // centroid of its exact region (969, 844 and 844 lattice points).
+    // Without them the Sloop `1/61`'s round at the Citizen `0/13`, thrown
+    // on 4580, left the hull's own square (3336, 6840) and flew 8 frames
+    // where theirs left (3315, 6861) and flew 9: `0/13` died on 4587
+    // against theirs' 4588, the British word.
+    (
+        277,
+        crate::anim::ATTACK1,
+        4,
+        Bay {
+            right: 29_986,
+            fwd: 193,
+            dz: -2,
+        },
+    ),
+    (
+        277,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: -98_342,
+            fwd: -4_178,
+            dz: 50,
+        },
+    ),
+    (
+        277,
+        crate::anim::ATTACKWALK,
+        4,
+        Bay {
+            right: -98_342,
+            fwd: -4_178,
+            dz: 50,
+        },
+    ),
     // **Piece 33, the Javelineers (type 83): the original's own
     // `get_position`** (item 1194). Its `Spear` leaves node 0 on frame 12
     // of `CHAR_ATTACK1`, 6 of `CHAR_ATTACK2` and 27 of `CHAR_ATTACK3`.
@@ -1714,6 +1795,87 @@ mod tests {
                     got,
                     Pos::new(10_000 + x, 20_000 + y),
                     "anim {anim} at {start}, byte {byte:#x}"
+                );
+            }
+        }
+    }
+
+    /// **The Highlanders' rounds leave from piece 64's bays** (item 3542):
+    /// run1185's packet, `get_position.py … sweep 64 0 <anim> <time>`, at
+    /// the four facings whose top byte is a whole degree, as 1143's.
+    #[test]
+    fn run1185_s_highlander_rounds_leave_from_piece_64_s_bays() {
+        for (anim, start, want) in [
+            (
+                crate::anim::ATTACK1,
+                6,
+                [(13, -144), (144, 13), (-111, 92), (-92, -111)],
+            ),
+            (
+                crate::anim::ATTACK2,
+                10,
+                [(13, -145), (145, 13), (-112, 93), (-93, -112)],
+            ),
+            (
+                crate::anim::ATTACK3,
+                12,
+                [(13, -145), (145, 13), (-112, 93), (-93, -112)],
+            ),
+        ] {
+            for (byte, (x, y)) in [0u32, 0x40, 0xa0, 0xe0].into_iter().zip(want) {
+                let facing = Angle((byte << 24) as i32);
+                let got = launch_point(Pos::new(10_000, 20_000), facing, 64, anim, start, 0);
+                assert_eq!(
+                    got,
+                    Pos::new(10_000 + x, 20_000 + y),
+                    "anim {anim} at {start}, byte {byte:#x}"
+                );
+            }
+        }
+    }
+
+    /// **The Sloop's rounds leave from piece 277's bays** (item 3542):
+    /// run1185's packet, `get_position.py … sweep 277 <node> <anim> 4`, at
+    /// the four facings whose top byte is a whole degree, as 1143's; and
+    /// the round `1/61` threw on 4580 from (3336, 6840) at its own facing
+    /// leaves from (3315, 6861), the live `Ammo`'s `sx, sy` on the packet.
+    #[test]
+    fn run1185_s_sloop_rounds_leave_from_piece_277_s_bays() {
+        assert_eq!(
+            launch_point(
+                Pos::new(3336, 6840),
+                Angle(1_621_622_784),
+                277,
+                crate::anim::ATTACK1,
+                4,
+                0
+            ),
+            Pos::new(3315, 6861)
+        );
+        for (anim, node, want) in [
+            (
+                crate::anim::ATTACK1,
+                0,
+                [(29, 0), (0, 29), (-21, -21), (21, -21)],
+            ),
+            (
+                crate::anim::ATTACK2,
+                1,
+                [(-98, 4), (-4, -98), (72, 66), (-66, 72)],
+            ),
+            (
+                crate::anim::ATTACKWALK,
+                1,
+                [(-98, 4), (-4, -98), (72, 66), (-66, 72)],
+            ),
+        ] {
+            for (byte, (x, y)) in [0u32, 0x40, 0xa0, 0xe0].into_iter().zip(want) {
+                let facing = Angle((byte << 24) as i32);
+                let got = launch_point(Pos::new(10_000, 20_000), facing, 277, anim, 4, node);
+                assert_eq!(
+                    got,
+                    Pos::new(10_000 + x, 20_000 + y),
+                    "anim {anim} byte {byte:#x}"
                 );
             }
         }

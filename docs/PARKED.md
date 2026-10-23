@@ -3774,6 +3774,20 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-23 — the fifty-third tranche's
 
+(3545) **A pass's subagent worktree blocked a booking gate until a person removed it** (the fifty-third commander, at the
+tenth booking): `release_gate.py` refuses on an `agent-*` worktree past six hours, and the fifty-second pass's Opus subagent
+(`agent-ac7fff88107d1e948`, tip `c70f409af`, merged as `207458207`, clean) was locked by a live `claude bg-spare` process. The
+commander's `git worktree remove -f -f` was denied by the classifier (a live holder's lock), and Ramon ran it by hand.
+Candidate: the pass removes its subagents' worktrees at their merge, or the gate's refusal names the merged-and-clean case as
+safe to prune. Score: a booking gate that needs no person. One reach: the pass's.
+
+(3546) **`test_waitrun`'s runner fixture is timing-dependent under load** (the fifty-third commander, the same gate):
+`test_a_log_whose_every_staged_map_has_its_receipt_is_judged_while_another_runner_lives` keeps a fixture runner alive with
+`sleep 20` across three waits, the last expecting a 4 s timeout; at a host load near 14 the sleep ended before the last wait
+and the waiter exited on no runner, so the whole gate went red on `67ca395a9`. Alone, three runs of three passed (load 9).
+Candidate: the fixture runner sleeps until killed (`sleep 600`, killed in `finally`). Score: a booking gate red on nothing.
+One reach: the pass's.
+
 (3544) **3513's "for the Loop"** (the journal's line, filed at its merge; parked 3513a): a late-age pair minted on a battery
 lobby's `(map, nation, difficulty)` shares the held-out game's triple — the Turks' Enlightenment pair is `(7, 8, 3)`, the
 held-out `GreatSaharaTurkishTier3`'s, ages 0–7 there and 4/4 here — so the pair stays out of `battery::SCORED_LOBBIES`. Whether
@@ -10011,13 +10025,17 @@ words and edits nothing here; a refill lands when two remain.
   pick. run1155's stride blocks print who=1's Manchu Riflemen (TypeIndex 117, land) in 960 `GUY` rows, and no Fire
   Lance (96, 97). Neither booked type parts first. **Score**: none until a word parts on one.
 
-## Parked by the next landing, slot OO — reserved
+## Parked by item 3542, 2026-10-23 — the British pair whole: the Sloop's and the Highlanders' launch rows
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3542a. City `0/2000`'s `build:damage` parts on block 5276 of the British pair and agrees by the closing block.**
+  run1185b's first walk (`british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole`) reads ours 604 and
+  6/16 against theirs 610 and 0 on block 5276, the window's one row outside the standing families. The draw streams
+  agree to 5522 and `run1157_british_enlightenment_pair_closing_state` compares no building row off, so the blow (or
+  the repair) lands differently on 5275 and is evened before 5523. **Score**: none; the pair is whole.
+- **3542b. The Elite Highlanders (`HIGHLANDERELITE`, the Black Watch) and the Sloop's other art styles have no `BAYS`
+  row.** Item 3542 measured piece 277 (`SLOOP-DEFAULT-AGE0`) and piece 64 (`HIGHLANDER-DEFAULT-AGE0`) off run1185's
+  packet. Piece 65 is not built in that game (`get_position.py … entries 65` reads no `AttachPos`), and 3538a's
+  gunpowder-line pieces stand as they were. **Score**: none until a word parts on one of their rounds.
 
 ## Parked by item 3513, 2026-10-23 — the Turks at a held Enlightenment age, Great Sahara
 

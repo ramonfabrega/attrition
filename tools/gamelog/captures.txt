@@ -10457,3 +10457,7 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1157  run1147's line with --map 18 --ai-tribe 11 and run1156's lobby   (the draw stream; ended itself on 5522)
 #   run1157b --map 18 --end-frame 4837 --log-window 4581 4837 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 11 --cover cover=0   (the word 4587's window)
 # Checks: `rngcmp.py` run1156 vs run1157 -> 37 identical; run1157 vs run1157b -> 4838 identical.
+# ==== item 3542: the British pair's word 4587 -> whole at 5522 (`docs/AI.md` §306; `docs/RUNS.md` run1185, run1185b) ====
+#   run1185  --map 18 --end-frame 4583 --log-window 4578 4583 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 11 --cover cover=0 --tracer-def RON_STATE_FRAME=4582 --tracer-def RON_STATE_PLAN=<item-597 plan.h>, run1156's lobby   (a packet: the Sloop 1/61's round in flight)
+#   run1185b --map 18 --end-frame 5522 --allow-early-end --log-window 5266 5523 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 11 --cover cover=0, run1156's lobby   (the closing window)
+# Checks: `rngcmp.py` run1185 vs run1157 -> 4584 identical; run1185b vs run1157 -> 5523 identical.
