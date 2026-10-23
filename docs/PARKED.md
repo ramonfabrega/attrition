@@ -3779,7 +3779,7 @@ commander, composing 3529): `seams.py --item 3529` keeps a chain name only when 
 `Unit::close < Object::die < Unit::die` yields none and the tool exits on `no name given`; `brief.py` pasted that usage text
 into the brief's "Seams, read for you" block as if it were the print. The commander spliced `seams.py close die` (193 lines)
 in by hand. Candidate: `brief.py` refuses (exit 2) on a seams print that is a usage error, or `item_names` falls back to the
-chain's short names when the filter leaves none. Score: a brief whose step 7 is on the worker's desk. One reach: the pass's.
+chain's short names when the filter leaves none. Score: a brief whose step 7 is on the worker's desk. One reach: the pass's. **Second reach, the same tranche**: 3540's brief (the Chinese closing state, which names no function at all) carried the same usage text; the lane was told to run `seams.py --field` itself.
 
 ## Loop, filed 2026-10-22 — the fifty-second tranche's
 
