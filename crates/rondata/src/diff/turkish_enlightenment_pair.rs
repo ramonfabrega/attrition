@@ -235,6 +235,9 @@ fn turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3543: 2651 -> **49** with the tower's sight (`sim::vision`):
+    // the Village and its builder agree, and what stands is block 2495's
+    // families.
     // Item 3513, the first walk: **2651** keys. Block 2495 carries 47
     // standing rows (the ten `SITE[i].reg`, `aggression[1]`, every unit's
     // `form`, who=1's groups 64–66 ours alone) and the Village `1/2020`
@@ -297,5 +300,68 @@ fn turkish_enlightenment_pair_run1186_s_walk_back_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3543, the first walk: **61** keys. Block 1395 carries the
+    // standing families (`SITE[i].reg`, `aggression`, every unit's `form`,
+    // who=1's groups 64, 66 and 67 ours alone) and the Citizen `1/20`
+    // (TypeIndex 50)'s plan already apart: `path[11].to` ours (41832,
+    // 13128) against theirs (41064, 13128); its position parts on 1416,
+    // (40993, 14149) against (40986, 14147). Walked back to tick 1377,
+    // where both plan it: run1186b's packet holds 29 half-cells of
+    // `seen2` lit for who=1 in theirs only, the rim of the tower `1/2012`
+    // (TypeIndex 441) at `mylos 19` against ours' 15, so ours priced cell
+    // (54, 16) unseen. Then **51** with the tower term: the plan agrees.
     pin_eq!(w.firsts.len(), 51, "run1186 baseline");
+}
+
+/// run1186c: the pair's last blocks, 3557..3813 at run1159b's detail (item
+/// 3543) — the word is the game's last frame, and the long prints no
+/// building, city or leader record between 3701 and the closing block.
+pub(crate) const RUN1186C: &str =
+    "gamelog-run1186c-greatsahara-turkish-enlightenment-window-3557-3813.txt";
+
+/// The window: block 3557 through the closing block 3813.
+pub(crate) const WIDENING_TURKISH_ENLIGHTENMENT_CLOSING: (i64, i64) = (3557, 3813);
+
+/// **The pair's last blocks**: run1186c walked from run1158's start with
+/// the recorder on. The word is the game's last frame (item 3543).
+pub(crate) fn turkish_enlightenment_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[TURKISH_ENLIGHTENMENT.start],
+        true,
+        TURKISH_ENLIGHTENMENT.long,
+        "run1186c",
+        &[(RUN1186C, WIDENING_TURKISH_ENLIGHTENMENT_CLOSING.0)],
+        WIDENING_TURKISH_ENLIGHTENMENT_CLOSING,
+        1,
+        &[3813],
+        true,
+    )
+}
+
+#[test]
+fn turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = turkish_enlightenment_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3543, the first walk: **59** keys, and no position among them.
+    // Block 3557 carries the standing families (every unit's `form`, the
+    // `SITE[i].reg`, `aggression[1]`, who=1's groups 64–70 ours alone);
+    // then who=1's `SITE[2].val` on 3576 (ours 290625 against 193719),
+    // `dest_angle` on `1/22` (3605) and `1/64` (3618), and ours' later
+    // groups 65, 69 and 71. The closing block 3813 parts nothing new.
+    pin_eq!(w.firsts.len(), 59, "run1186c baseline");
 }
