@@ -1,6 +1,6 @@
 # Item 3504: `Unit::kill_group_order@005e3310` through `Group::kill_group_order@00710aa0`, from
 # `Unit::find_new_target@005ff6a0:71` at `do_move:105` under `do_group_move`'s leader arm (t51/draft-items-54.md F1).
-# run1070's cast to 622 (chapter fifteen's two Hoplite squads `0/6`, `0/9`, the Chariot `1/6`, four who=1 Supply
+# Chapter fifteen's cast to 614 (two Hoplite squads `0/6`, `0/9`, the Chariot `1/6`; run1138 had run1070's four who=1 Supply
 # Wagons `1/7`..`1/10` across the walk south), then eight more who=0 Hoplite squads `0/12`..`0/33` standing across the
 # walk home to the Town Center `0/2000` (16,160): the jam. The two squads attack-move onto the Chariot's spot
 # (a `GROUP_ATTACK_TO`); `Object::find_nearby_target:570-580` gives the group `action_attack(…, mandatory 0,
@@ -11,16 +11,12 @@
 610 add hoplite who=0 12,84
 612 add hoplite who=0 18,84
 614 add chariot who=1 16,64
-616 add supply_wagon who=1 13,100
-618 add supply_wagon who=1 15,100
-620 add supply_wagon who=1 17,100
-622 add supply_wagon who=1 19,100
-624 add hoplite who=0 11,106
-626 add hoplite who=0 14,106
-628 add hoplite who=0 17,106
-630 add hoplite who=0 20,106
-632 add hoplite who=0 12,109
-634 add hoplite who=0 15,109
-636 add hoplite who=0 18,109
-638 add hoplite who=0 21,109
+616 add hoplite who=0 11,106
+618 add hoplite who=0 14,106
+620 add hoplite who=0 17,106
+622 add hoplite who=0 20,106
+624 add hoplite who=0 12,109
+626 add hoplite who=0 15,109
+628 add hoplite who=0 18,109
+630 add hoplite who=0 21,109
 640 @amove 0 3192 12408 6 9
