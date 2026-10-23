@@ -259,6 +259,62 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 126, "run1161b baseline");
 }
 
+/// run1166b: the word 4097's window, blocks 4092..4348 at the long's detail —
+/// six blocks before the word's block 4098 and 250 after (item 3520).
+pub(crate) const RUN1166B: &str = "gamelog-run1166b-eastindies-russian-modern-window-4092-4348.txt";
+
+/// The window: block 4092 through 4348; the word 4097's own block is 4098.
+pub(crate) const WIDENING_RUSSIAN_MODERN_FRAME_4097: (i64, i64) = (4092, 4348);
+
+/// **The word 4097's window**: run1166b walked from run1148's start with
+/// the recorder on (item 3520).
+pub(crate) fn russian_modern_frame_4097_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1166b",
+        &[(RUN1166B, WIDENING_RUSSIAN_MODERN_FRAME_4097.0)],
+        WIDENING_RUSSIAN_MODERN_FRAME_4097,
+        1,
+        &[4098],
+        true,
+    )
+}
+
+/// **The word 4097's frame, widened whole** (item 3520): every dumped
+/// record on run1166b's blocks, both directions.
+#[test]
+fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_frame_4097_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3520, the first walk: 7517 keys. **The state parted before the
+    // window**: block 4092 already parts 1749 keys — 1487 of them path
+    // stacks, 84 orders, the standing families (`SITE[i].reg` ours 65
+    // against 0, the groups' `held` and pool, `form`), and positions a unit
+    // off (`1/112` (39829, 42954) against (39829, 42953)) or more (`1/146`
+    // `order:kind` 2 against 21, (36504, 43272) against (36550, 43262)).
+    // No dump prints a block in 3934..4091. The word 4097's draw at index
+    // 94: ours `Guy::set_anim+0x97a < Guy::move+0x19f` (`1/154`), theirs a
+    // sound roll on the sound stream and then `Guy::inc_time+0x271`.
+    pin_eq!(w.firsts.len(), 7517, "run1166b baseline");
+}
+
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one
 /// block in twenty, at the long's detail with `LEADERS=9` (item 3516).
 pub(crate) const RUN1162: &str = "gamelog-run1162-eastindies-russian-modern-stride-259-3682.txt";
