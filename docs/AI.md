@@ -26468,9 +26468,8 @@ the coverage driver). An `AI_WORDS` row on `Late ages` (`GreatSaharaTurkishEnlig
 
 **The rubric.** The pair's dumps field fifteen skirmish types. Two are new to the lockstep ledger: **Royal
 Janissaries (113, `JANISSARYROYAL`)** and **Basilica Cannon (277, `BASILICACANNON`)**. The rubric reads lockstep
-games only, so they count once the pair is whole. The lockstep measure on this tree reads 158 of 302 types
-against the pinned 152; the six are other landings' (3538, 3539), and re-pinning them is the pass's
-(`census::RUBRIC_UNIT_TYPES_SEEN`'s comment). `CAMELCORPS`, `JUNKERS`, `ROYALGUARD` and `MANCHUMUSKETEERS`' kin
+games only, so they count once the pair is whole. The lockstep measure on this tree reads 158 of 302 types,
+as 3512 re-pinned `census::RUBRIC_UNIT_TYPES_SEEN` (the six from 3538's and 3539's whole pairs). `CAMELCORPS`, `JUNKERS`, `ROYALGUARD` and `MANCHUMUSKETEERS`' kin
 are not in this game.
 
 **What is not established.** The frame in 1402..1501 where `1/20` first parts, and on which field. Whether ours'
