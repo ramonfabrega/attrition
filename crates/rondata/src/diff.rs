@@ -99,6 +99,8 @@ mod report;
 #[cfg(test)]
 mod roman_word;
 #[cfg(test)]
+mod russian_modern_pair;
+#[cfg(test)]
 mod russian_word;
 #[cfg(test)]
 mod sahara_coverage;

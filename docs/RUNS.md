@@ -24121,3 +24121,68 @@ SHA-256 `07c72227cb61b4b90016c8a46eaa17a1e946096790be44746ff1b3f00fd9d5c7`.
 
 Archive `rontrace-run1145c.log`, 190,919,296 bytes,
 SHA-256 `93b3f3aa6031fee40d90d4e668f9ad2d49a4513b4834188229fec33b13d3fdee`.
+
+## run1148 — the Russians at a held Modern age, East Indies: the `DUMP_ALL` start (2026-10-22, item 3508, `att-3508`)
+
+`docs/AI.md` §304. The coverage pair's lobby, with the nation and the age varied, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1148 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 13 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 23:54:25, exited 23:54:50 (25.0 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 13, five files restored. `GAME INFO` reads back
+  `MAP_STYLE 18`, `DIFFICULTY 5`, `STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6` and `STARTING_RESOURCES 7`. Filed
+  with `filerun.py run1148 eastindies-russian-modern-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1148-eastindies-russian-modern-start.txt`, 153,809,871 bytes,
+SHA-256 `1afb19782dd085ef9175832efaa6c733989c1c67c3f37e33dfb726ad330d0f32`.
+
+Archive `rontrace-run1148.log`, 10,076,736 bytes,
+SHA-256 `4974c577f75d40727f512cb83185163af2c1121cc2b13a3492e8074e7340a965`.
+
+**What it holds**: the start of `russian_modern_pair::RUSSIAN_MODERN`, and the walk's initial state.
+
+## run1149 — the Russians at a held Modern age, East Indies: the draw stream to the game's end (2026-10-22, item 3508, `att-3508`)
+
+`docs/AI.md` §304. 3507's run1147 recipe with this lobby: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 13
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1148's
+lobby.
+- Pool lane 2, launched alongside run1148. Launched 23:54:25, exited 23:55:00 (35.8 s launch to exit). `success`.
+  **The game ended itself on 5841** (closing block 5842, `ended_early`), and 60 blocks were dumped. `GAME INFO`
+  reads back as run1148's. `rngcmp.py` against run1148: 37 frames identical, 0 differing. Filed with `filerun.py
+  run1149 eastindies-russian-modern-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1149-eastindies-russian-modern-trace.txt`, 44,377,900 bytes,
+SHA-256 `e56c9be24af90d595cb4aa18486a156c9f04b318bf3034d6c4ef79c4bb588ca7`.
+
+Archive `rontrace-run1149.log`, 279,704,608 bytes,
+SHA-256 `889f7ce1185cec5fb61aba74316fad336dce53a231ef0037936b0261b3b7a6f4`.
+
+**What it holds**: the pair's first try. `russian_modern_pair_first_parting` walks it from run1148. The sequence
+parts on **frame 8 of 5841** (the count on 11): ours 18 draws against 18, index 2, ours
+`Leader::produce_building+0x1805`, theirs `Leader::make_stuff+0x63d`. The rubric's take as well: the computer
+holds age 6 to the end.
+
+## run1149b — the Russians at a held Modern age, East Indies: the word 8's window, blocks 3..259 (2026-10-23, item 3508, `att-3508`)
+
+**Disk gap**: run1148 holds blocks 1, 36 and 37, and run1149 every hundredth block, so no dump held the word's block
+9. `--map 18 --end-frame 259 --timeout 3600 --log-window 3 259 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 13 --profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --cover cover=0`.
+- Pool lane 1. Launched 23:59:39, exited 00:00:10 (30.9 s launch to exit). `success`: 260 frames, last frame 259,
+  257 `BEGIN FRAME`s. `rngcmp.py` against run1149: **260 frames in common, 0 differing**. Filed with `filerun.py
+  run1149b eastindies-russian-modern-window-3-259`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1149b-eastindies-russian-modern-window-3-259.txt`, 445,281,975 bytes,
+SHA-256 `e62d1a17f0b14fd413ed072aed0231b6f3fb9e242292fd3b762d76da8bc3b098`.
+
+Archive `rontrace-run1149b.log`, 10,400,096 bytes,
+SHA-256 `8080506be5b24bc6b2e2875d901df23b590277dcdd9c00b3922317c751efd770`.
+
+**What it holds**: `russian_modern_pair_run1149b_s_word_frame_is_widened_whole`. It compares 256 blocks and finds
+342 keys. The first that is not standing is on block 5: who=1's research slot `MAKE[8]`, Written Word (551), at
+`val` ours 1620003 against theirs 9999999.

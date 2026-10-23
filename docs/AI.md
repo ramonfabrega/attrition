@@ -25633,12 +25633,77 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 304. Reserved for the next item on the AI track
+## 304. The Russians at a held Modern age, East Indies: the first held-age pair, parting on frame 8 (2026-10-23, item 3508)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3508, Opus 5.5, the AI track (DECISIONS 90): run1148, run1149 and run1149b, on the click-free pool.*
+
+**The lobby.** The coverage pair's (§127: East Indies, `MAP_STYLE 18`, human Nubians against a computer at Toughest,
+seed 12345, `STARTING_RESOURCES 7`) with the nation varied to the **Russians (13)** and the age **held at Modern**:
+`STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`. It is the first pair to hold one age. Both captures read the lobby back
+from their own `GAME INFO` through `Pair::assert_lobby` (`russian_modern_pair_captures_say_their_lobby`).
+
+**`ENDING_TECHNOLOGY` is honoured.** `rubric.py --tables 2` on run1148 and run1149 puts the computer at age 6
+(Modern) on every leader record it reads, from frame 0 to the game's end, and at 7 on none. So nothing about the cap
+parks.
+
+**The captures.**
+- run1148 is the `DUMP_ALL` start.
+- run1149 is the long to the game's end: `end:UNITS=3,GUYS=2` on `--stride 100`, with 3507's `start:` and
+  `endgame:` detail lines. **The game ends itself at 5841** (closing block 5842). The walk is seeded from run1148's
+  initial state (3506a).
+- run1149b is the word's window, blocks 3..259. No dump on disk held block 9: run1148 has blocks 1, 36 and 37, and
+  run1149 has every hundredth block.
+
+All three are one game by `rngcmp.py`: run1148 against run1149, 37 of 37 frames identical; run1149 against run1149b,
+260 of 260.
+
+**First try: frame 8 of 5841.** `russian_modern_pair_first_parting` walks run1149 from run1148. **The sequence parts
+on frame 8** and the count on 11. On frame 8 both sides spend 18 draws, and the multiset agrees, but the order does
+not (`RON_DEBUG_SITES`):
+
+| index | 0, 1 | 2 | 3 | 4 | 5 | 6 | 7..9 | 10..17 |
+|---|---|---|---|---|---|---|---|---|
+| ours | `make_stuff+0x221` ×2 | `produce_building+0x1805` | `make_stuff+0x63d` | `produce_building+0x1805` | `make_stuff+0x63d` | `make_stuff+0x63d` | `make_stuff+0x63d` | the same eight |
+| theirs | `make_stuff+0x221` ×2 | `make_stuff+0x63d` | `make_stuff+0x63d` | `produce_building+0x1805` | `make_stuff+0x63d` | `produce_building+0x1805` | `make_stuff+0x63d` | the same eight |
+
+The eight shared draws are `Guy::set_anim` < `Unit::move_step` ×3, one `Unit::resolve_unit_collision`, and four
+`Farms::inc_time`. In words: theirs makes one more make-list roll before each building placement. The seeds on
+theirs' side run from `f737bafd` (index 0) to `a280e288` (index 17).
+
+**The value diff: the state parts on block 5** (frame 4), two blocks before any draw parts.
+`russian_modern_pair_run1149b_s_word_frame_is_widened_whole` walks run1149b from run1148 over 256 blocks and finds
+342 keys. Block 3's keys are the standing families the other late-age pairs carry: both leaders' `SITE[i].reg` (ours
+65 against 0), `aggression`, every unit's `form`, and group 65's `held` and pool. Block 4 parts no key. The first
+key that is not standing is who=1's make list on block 5:
+
+| slot | ours | theirs |
+|---|---|---|
+| `MAKE[0]` | t 558 (Barter), cat 4, val 5040003 | **t 551 (Written Word), cat 8, val 9999999** |
+| `MAKE[1]` | t 572 (The Art of War), cat 10, val 3066003 | t 558, cat 4, val 5040003 |
+| `MAKE[2]` | t 566 (Empire), cat 9, val 420000 | t 572, cat 10, val 3066003 |
+| `MAKE[3]` | t −1 | t 566, cat 9, val 420000, escrow 1 |
+| `MAKE[8]` (the research slot, cat 8) | t 551, **val 1620003** | t 551, **val 9999999** |
+
+The technologies are TypeIndex 544 + the `techrules.xml` record counted from 0 (`COINAGE` 559 and `EMPIRE` 566 anchor it, §15). The
+two sides price the same technology in the same slot, Written Word, at different values. Ours prices it at 1620003,
+which puts it below the head's 5040003. Theirs prices it at 9999999, so it sorts to the head and every later entry
+sits one slot on. On the word's block 9, building `1/2005`'s research queue is in the same order as each side's list:
+ours 558, 572, 551, 566 against theirs 551, 558, 566, 572 (costs and goods with them), and who=1's `MAKE[10].val` is
+ours 3066003 against theirs 30660.
+
+**The next word**: frame 8, ours 18 draws against 18, index 2. The direction is theirs: on block 5 theirs makes a
+value ours does not. 9999999 is the original's guard value (`ai_research.rs`: the research value's `val < 0`
+guard, and `income_scaled`'s overflow guard), so the hypothesis to kill first is that theirs' Written Word value
+**wraps** before the guard and ours' does not. That is a supposition from the number, not a reading. A packet at
+`RON_STATE_FRAME=4` on `Leader::research_techs` with the research slot watched would answer it without one.
+
+**What this has *not* established.** Which arm makes theirs' 9999999; no listing was read. Why the count parts on
+11, three frames after the sequence (it follows from the reordered make list, but that is not shown). The standing
+families on block 3 (shared with 3506b). What the game put on the map: the rubric counts lockstep games only
+(DECISIONS 90), and this pair parts on frame 8, so `RUBRIC_UNIT_TYPES_SEEN` does not move. On the captures,
+`rubric.py --tables 3` sees 29 skirmish types, among them `REDGUARD`, `T34`, `KATYUSHA`, `FLAKGUN`, `BAZOOKA`,
+`P40`, the Helicopter, `NUCLEARMISSILE`, the Cruiser and the Battleship. The booking's `MEDIUMTANK`,
+`HVYMACHINEGUN`, `HOWITZER`, `FIGHTERBOMBER`, `V2ROCKET` and `PTBOAT` were not seen.
 
 ## 305. Reserved for the next item on the AI track
 
