@@ -2088,6 +2088,12 @@ impl Sim {
                         self.ground_z(self.units[u].pos)
                     };
                     let sz = z + dz;
+                    if std::env::var("RON_PROBE_3529").is_ok() {
+                        eprintln!(
+                            "probe3529rel f{frame} u{u} {}/{} gpiece {} anim {} start {start} node {node} pivots {pivots} has_row {} turret {:?} facing {} from {:?} sz {sz}",
+                            self.units[u].owner, self.units[u].index, guy.gpiece, guy.anim, pivot.is_some(), guy.turret, facing.0, from
+                        );
+                    }
                     let to = match (target, ground) {
                         (Some(t), _) => self.pos_of(t),
                         (None, Some(g)) => g.at,
