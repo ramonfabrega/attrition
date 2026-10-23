@@ -7334,9 +7334,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2259: 877 -> 923, the walk past 4671 to the word 4946.
     ("mongol_pair_first_parting", 923),
     // The Japanese Industrial pair (item 3523): the Dreadnought's rounds
-    // leave from its turrets now, and round A's arc from `1/75` comes down
-    // past the word over two corners not known to be the original's single,
-    // (4497, 9547) on 3771 and (4533, 9315) on 3772.
+    // leave from its turrets now, and the missed rounds' arc step reads two
+    // corners not known to be the original's single on the walk to the
+    // word 3816, (4497, 9547) on 3771 and (4533, 9315) on 3772.
     ("japanese_industrial_pair_first_parting", 2),
     // The first late-age pair (item 3506): the Germans at All
     // Technologies, East Indies, walked from run1144 to the game's end on
