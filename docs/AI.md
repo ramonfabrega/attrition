@@ -26187,7 +26187,7 @@ search answering the target itself. The retarget at `005f80a6`–`005f820a` has 
 families on block 3 (shared with 3506b). What the game put on the map: `rubric.py --tables 3` sees 29 skirmish types
 on the captures (item 3527's journal names them).
 
-## 305. The Chinese at a held Industrial age, Great Sahara: the Armored Car's turret, 3007 → 3017 of 4467 (2026-10-23, item 3511)
+## 305. The Chinese at a held Industrial age, Great Sahara: the Armored Car's turret and its bearing, 3007 → 3017 → 3271 of 4467 (2026-10-23, items 3511 and 3530)
 
 *Item 3511, Opus 5.5, the AI track (DECISIONS 90): run1154, run1155, run1155b and run1155c, on the click-free pool.*
 
@@ -26254,6 +26254,40 @@ agrees). Theirs keeps the Citizen `0/3` and opens a new attack cycle at it. Ours
 candidates agree when the choice is made. **The direction is ours: a cavalry-archer target pick that differs on
 agreeing inputs.** A hypothesis only, for the next item: `cavarch_fight`'s candidate list or its order, given the
 same roll.
+
+**Item 3530: the bearing is off `UnitData +0x50`, the heading.** The draw delta on 3017 (ours 19, theirs 17): ours
+`1/23`'s `Unit::fight+0x9b0` at index 0 and three extra `Guy::set_anim+0x104b` on the bird `9/1` (the seed's
+knock-on), theirs one `Ammo::init` pair — the car's round. On 3016 both sides spend the same draw (seed
+`5102a998`, 8214, `% 5` = 4): it is `fight@005fd4d0:403`'s captain re-search roll, which `0/3`, a non-military
+target (`+0x2ca & 1` clear), lets through (`:396`–`406`; the attack-to's `UNITORDER flags` 1, no `0x10`). So both
+run `find_melee_target(−1, &who, 1, 0, 0)`, and both write `near_o` 0/11 (no `near` row parts) — the nearest by
+`check_target`'s distance. **What differs is the scored pick**: theirs' answer is `0/3`, since `cavarch_o` stays 3
+and `recharging` reads 30 on block 3017, and ours' is `0/11`. Ours' candidates, by an env-gated probe of
+`find_nearby_target_as` (reverted whole): `0/11` value 10674, shaped distance 1212, ×4 → **6096**; `0/3` 13731,
+2605, ×4 → **3920**. The ×4 is the fire on the move's bearing (`006497b4`–`00649869`, §293), and this crate took
+it off `movement.facing` — guy 0's angle, −1094493771 on 3016 — where the listing reads `UnitData +0x50`, which
+`types.txt` names `angle` and the dump prints as `UNITDATA angle` (−547684352), this crate's `movement.heading`
+(the widening compares the two, `harness.rs`'s `Which::Heading`). The Armored Car's body lags its heading by 30°.
+Off the heading, `0/11` bears 0x2a37_ffff from it — inside 60°, ×2, **3048** — and `0/3` 0x10b2_ffff, ×4,
+3920: `0/3` wins, as theirs'. Item 3385 cited `+0x50` and built on the facing; a horse archer's body and heading
+agree on most frames.
+
+**Built** (`crates/sim/src/fight.rs`): the bearing off `movement.heading`. `cavarch::tests::
+the_fire_on_the_move_bears_off_the_heading_not_the_facing`: two like foes at one distance, one on the heading
+and one on the facing a quarter turn away; the search takes the one on the heading, either way round.
+
+**The word moves 3017 → 3271**, by the count and the sequence; every other lobby's `first_parting` holds and
+`battery_floors` is green. run1155b goes **1026 → 89** keys: block 3017's three rows agree at theirs' values
+(`cavarch_o` 3, `recharging` 30), and the first rows past block 3001's standing ones are block 3180's — city
+`0/2000`'s `raid_stamp` ours 3177 against theirs 3179, and the building `0/2004`'s `damage` ours 24 against 31.
+
+**The next word, 3271** (block 3272, widened on **run1175**, 3258..3522, 1024 keys): ours 20 draws against 21, index
+3, ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. On block
+3271 the `ATRIFLE` `1/42` (TypeIndex 137, land, group 64, on an attack-to under its guard on `1/22`) holds a move to
+ours (8472, 30360) against theirs (8136, 30120), `path:length` 14 against 8; on 3272 theirs collides with the Armored
+Car `1/52` (`collide_o` 52, `collide` 2) where ours reads −1 and 1. Block 3258 carries what run1155b's last
+blocks had parted (`0/4`'s position, `1/41`'s path); the first new rows are 3270's, the city's `raid_stamp` again
+and the building `0/2002`'s `damage` ours 25 against 33.
 
 ## 306. Reserved for the next item on the AI track
 

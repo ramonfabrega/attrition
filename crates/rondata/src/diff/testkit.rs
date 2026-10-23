@@ -9853,13 +9853,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // a held Industrial age, Great Sahara — 3007 first try (theirs' two
     // Armored Car rounds against ours' one), widened on run1155b over
     // 3001..3257 (block 3008); **3017** with the Armored Car's (piece 166)
-    // turret rows, in the same window (block 3018).
+    // turret rows, in the same window (block 3018). **3271** with the fire
+    // on the move's bearing off the heading (item 3530), past run1155b's
+    // last block: widened on run1175 over 3258..3522 (block 3272), and
+    // run1155b's test keeps 3017's value diff (block 3017 agrees).
     (
         "CHINESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
-        Some("chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole"),
-        3511,
-        Some(crate::diff::chinese_industrial_pair::WIDENING_CHINESE_INDUSTRIAL_FRAME_3007),
+        Some("chinese_industrial_pair_run1175_s_word_frame_is_widened_whole"),
+        3530,
+        Some(crate::diff::chinese_industrial_pair::WIDENING_CHINESE_INDUSTRIAL_FRAME_3271),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
@@ -11354,7 +11357,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Chinese at a held Industrial age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 5), Great Sahara (item 3511): first try 3007, the
     // Armored Cars' rounds from the hull; 3017 with piece 166's turret
-    // rows, of a game that ends itself on 4467.
+    // rows; 3271 with the fire on the move's bearing off the heading (item
+    // 3530), widened on run1175; of a game that ends itself on 4467.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaChineseIndustrial",
@@ -11362,7 +11366,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
         length: 4_467,
         endpoint: None,
-        window: Some("chinese_industrial_frame_3007_window"),
+        window: Some("chinese_industrial_frame_3271_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
