@@ -596,17 +596,6 @@ impl Sim {
             if detect {
                 self.world.set_seen3(x, y, mask);
             }
-            if std::env::var("RON_PROBE_3524").is_ok()
-                && mask == 2
-                && y >= 117
-                && (80..=95).contains(&x)
-                && self.world.seen2(x, y).unwrap_or(0) & 2 == 0
-            {
-                eprintln!(
-                    "PROBE3524 lit f{} ({x}, {y}) centre {:?} r {} ring {} range {}..{}",
-                    self.frame, sw.centre, sw.radius, sw.ring, sw.start, sw.end
-                );
-            }
             if self.world.set_seen(x, y, mask) {
                 revealed += 1;
                 // `World::set_seen`'s **return value is the gate**: the
