@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-first tranche (commander, Opus): fourteen of twenty landed from `a17dfdb6`** on two Opus lanes on the pool;
+*2026-10-22, **the fifty-first tranche (commander, Opus): fifteen of twenty landed from `a17dfdb6`** on two Opus lanes on the pool;
 the steer's three decisions in (3484–3486), the queue lane retired (3485), the console mirror measured ~40× and flipped (3497).*
 
 - **Words**: all closed, **none open** (lower map first — closed); held-out eight of eight whole. **The headline is the blind list:
-  `NEVER` 273 → 248, residue 182 → 183, open 91 → 65** (3477's `!eval`, eighteen; 3479, 3481, 3491 one each; 3492's save-and-reload two; 3494's hover two; 3495 a residue row).
+  `NEVER` 273 → 247, residue 182 → 183, open 91 → 64** (3477's `!eval`, eighteen; 3479, 3481, 3491 one each; 3492's save-and-reload two; 3494's hover two; 3501's `type_graft` one; 3495 a residue row).
 - **Amended with Ramon** (DECISIONS 89): the queue lane retired (3485; 1570 closed — a need for it again is a steer); after this tranche the
   headline moves to the rubric (unit types 74 of 364, the late ages' air and sea; the open blind rows a floor); 3484 measured the mirror's flip safe; 3497 flipped it.
 - **What a capture can still enter**: 74 rows and the 17 struck (3477 takes eighteen); all 91 read in `~/.claude/jobs/1b2cdb50/tmp/t51/draft-items-51.md` (Loop 3482).
-- **Lanes: two live** (3501, 3502); none booked; a fourth drafting reads `kill_group_order` (`t51/draft-items-54.md`). Next 3504, run 1138. Pools: GOLDEN §149–154, AI §300–301, park OF–OK.
+- **Lanes: two live** (3502, 3504); one booked (3505) — the drafting source is spent, so the tranche drains at eighteen. Next 3506, run 1144. Pools: GOLDEN §149–154, AI §300–301, park OF–OK.
   For the pass's eye: 3425a, 3428a–b, 3438a, 3442a–c, 3443a, 3445a–c, 3446a, 3447a–b, 3448a, 3454a, 3455a, 3456a–b, 3460a–b, 3461a, 3462b, 3463a–b, 3464a, 3470a, 3471b, 3472a–b, 3477a, 3478a, 3479a–c, 3480a–b, 3481a, 3483a–b, 3484a–b, 3485a–b, 3491a, 3492a–c, 3493a, 3494a–b, 3495a, 3497a.
 - **Fable backlog: 20 Loop items** (3503, 3500, 3499, 3498, 3490, 3489, 3488, 3487, 3486, 3482, 3441, 3440, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 89.
 
@@ -36,12 +36,12 @@ Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
-Blind: never 248 · residue 183 · open 65
+Blind: never 247 · residue 183 · open 64
 Rubric: mechanics 36 of 112 at 100 % · ages held 8 of 8 · unit types seen 74 of 364
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3501 and 3502 live on the two Opus lanes
-(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill by the refill order (`t51/draft-items-54.md` next); twenty landings or Ramon's word, then the fifty-first pass.**
+**Opener: continue the fifty-first tranche from this handoff — commander (Opus): 3502 and 3504 live on the two Opus lanes
+(`brief.py --kind coverage …`, `--model 'claude-opus-5-5[1m]' --effort medium`); refill with 3505 and drain at eighteen; twenty landings or Ramon's word, then the fifty-first pass.**
 
 ## The queue
 
@@ -51,17 +51,22 @@ pinned lobby at **`cover=1` on the click-free pool** — a click an `@click` lin
 into `blind::TRACES`; a function not entered is explained in the journal. Opus; gate `--tests blind:: --no-widen`. **Refill order**: the
 commander's drafting subagent on `t51/draft-items-51.md`'s `## Not drafted` rows that name a reading, one item a staging it yields.
 
-3501. **coverage: `TypeData::type_graft` on a building the script host took from the human's tribe** (the thirteen type-vtable slots'
-one route; E1 of `t51/draft-items-53.md`): the golden start (Great Lakes, map 14) at `cover=1` with a twin, the pool's defaults,
-`--end-frame 690 --log-window 664 690 --detail end:LEADERS=2`, `0 !ai off`, `670 !eval disable_type_by_tribe("Barracks", "Nubians")`,
-`672 !eval train_unit(1, 1, "Hoplites")` and a `676`/`678` pair spelling the tribe `"nubians"`: `train_unit` → `LeaderData::get_graft`
-on the unit's `where` finds `tribe_can_type` 0 and dispatches `+0x68` on the `BuildType`. Runs 1134–1135; park OF.
-
 3502. **coverage: the siege attack, an Alt-right-click with a catapult selected** (3442a's held modifier; E2 of `t51/draft-items-53.md`):
 a new `@hold <vk> <until-frame>` (the exe's `GetKeyState` IAT slot 0xac53e8, 3495a, answering 0x8000 on those frames, with a test),
 then the golden start at `cover=1` with a twin, `--no-ffwd --end-frame 640`, `age`, `add catapult who=0 4,41`, `add barracks who=1 10,41`,
 `select 6`, `camera 10,41`, `610 @hold 18 616`, `612 @rclick 960 445`: `Console::execute_at_cursor@007c6630.c:328-401` issues
 `GroupOut::issue_siege_attack` only under Alt, and its command type 5 is `CommandPackage::process`'s one call of the row. Runs 1136–1137; park OG.
+
+3504. **coverage: an inserted repair walk over a squad's acquired attack, through a jam** (F1 of `t51/draft-items-54.md`, the one live
+route to `Unit::kill_group_order@005e3310`: `do_move:105` from `do_group_move`'s leader arm, a non-mandatory attack under a no-bit group
+move, a suspended search, `repaths` on the frame): a new `@repairins` (`@repair` at `QUEUE_FIRST`, with a test), then run1070's lobby at
+`cover=1` with a twin, `@amove` and, off the first dump showing the acquired `mandatory 0` attack, `@repairins` and a jam. A sweep, not a
+prediction: if no take enters it, the row parks reachable-but-unstaged with the predicate. Runs 1138–1143; park OH.
+
+3505. **reading: the read residue candidates, each re-derived blind** (`t51/draft-items-52.md`'s rulings, `get_follow_order` and eight;
+`t51/draft-items-53.md`'s `## Residue candidates`, eighteen): one blind reader re-derives each row's reachability from the export without
+the drafts, an adjudicator settles every disagreement to the decompile or the listing (`docs/audit/`), and each row both readings call
+unreachable joins `blind::RESIDUE` with its reason; a disagreement stays open. No game is run. Opus; gate `--tests blind::`. Park OI.
 
 ## How to maintain this file
 

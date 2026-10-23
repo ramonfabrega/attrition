@@ -3774,8 +3774,8 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
-(3503) **Two lanes announced a landing their branch never reached origin with** (the commander, 2026-10-22): 3495 (`da5d05a35`)
-and 3494 (`b6993b74e`) each sent its done line with the tip on the local branch only — `git ls-remote origin` held no
+(3503) **Three lanes announced a landing their branch never reached origin with** (the commander, 2026-10-22): 3495 (`da5d05a35`),
+3494 (`b6993b74e`) and 3501 (`fd4db0aad`) each sent its done line with the tip on the local branch only — `git ls-remote origin` held no
 `worktree-att-349*` — and the commander merged from the local ref, which `ccc merge` reads. `lanewait.py`'s `LANDED` keys on
 origin's ref, so without the done line neither landing would have woken the commander, and a reaped worktree would have taken
 the only copy. Candidate: the lane gate's last line, or the done line's check, refuses while `origin/<branch>` is not the tip.
