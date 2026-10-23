@@ -162,6 +162,26 @@ impl crate::Sim {
         }
     }
 
+    /// `fight@005fd4d0:394`–`400`'s `local_14`, the captain's re-search of
+    /// a unit target, whichever way `fight` is reached: a unit with
+    /// `unit_masks2 & 4` (a Bark, item 2165) re-finds a target whose role
+    /// is combat and whose type is not `n` (`unit_flags & 0x2000`), any
+    /// other one whose role is not combat. The fire on the move took only
+    /// the second until item 3516: run1161b's Cruiser `1/25` (a Bark,
+    /// `unit_masks2` 4) keeps the citizen `0/5` on 3681 and fires, where
+    /// ours re-found `0/11`.
+    pub(crate) fn captain_research_admits(&self, u: usize, t: usize) -> bool {
+        let p = self.profile(Obj::Unit(t));
+        if self.units[u].unit_masks2 & crate::combat::umask2::BARK != 0 {
+            p.combat_role
+                && self.units[t]
+                    .ty
+                    .is_none_or(|ty| self.unit_types[ty].cols.unit_flags & 0x2000 == 0)
+        } else {
+            !p.combat_role
+        }
+    }
+
     /// **`Unit::fight(o, who, 0, 0, 1)`** — `fight@005fd4d0` along its
     /// `param_5` path, which never touches the order list:
     ///
@@ -172,7 +192,8 @@ impl crate::Sim {
     ///   leader (`field_0x9f4`, [`crate::Sim::retargets`]).
     /// - `:337-366`: no guard's leash (`param_5 == 0` only).
     /// - `:367-461`: **a captain re-searches** whatever it holds that is
-    ///   not a unit — and, for a unit, unless `Random::get % 5 == 0` or
+    ///   not a unit — and, for a unit, when
+    ///   [`Sim::captain_research_admits`] does, unless `Random::get % 5 == 0` or
     ///   the current order carries `flags & 0x10` (the roll is the same
     ///   draw `do_attack`'s captain takes, `SITE_FIGHT_RESEARCH`). A
     ///   different answer is written and the call returns; the same one
@@ -213,7 +234,7 @@ impl crate::Sim {
                     let reentry = self
                         .current_order(u)
                         .is_some_and(|o| o.flags & flag::FIGHT_REENTRY != 0);
-                    !self.profile(Obj::Unit(t)).combat_role && roll % 5 != 0 && !reentry
+                    self.captain_research_admits(u, t) && roll % 5 != 0 && !reentry
                 }
             };
             if research {

@@ -35,9 +35,14 @@ pub(crate) const RUSSIAN_MODERN: Pair = Pair {
     // `research_techs`' ×30 on a sea map, so who=1's block-5 `MAKE[8].val`
     // is 9999999 on both sides (ours 1620003 before). Frame 3682: ours 15
     // draws against 14, index 0 — ours `Unit::fight+0x9b0`, theirs
-    // `Unit::do_move+0xe84` (`docs/AI.md` section 304).
-    count: 3682,
-    sequence: 3682,
+    // `Unit::do_move+0xe84` (`docs/AI.md` section 304). Item 3516: 3682 →
+    // 3778 for both. The Cruiser `1/25` (a Bark, `unit_masks2` 4) takes the
+    // Bark arm of the captain's re-search on 3681 and keeps the citizen
+    // `0/5`, where ours re-found `0/11` and held its fire. Frame 3778: ours
+    // 467 draws against 469, index 457 — ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`.
+    count: 3778,
+    sequence: 3778,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -216,8 +221,15 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     // buckets 40 over: the state parted in 3601..3676, which no dump
     // prints. On block 3682, the word's eve, Cruiser `1/25` (TypeIndex 329,
     // `EXPLORETOORDER`): `recharging` ours 0 against theirs 25,
-    // `cavarch_o` 11 against 5 (`docs/AI.md` section 304).
-    pin_eq!(w.firsts.len(), 929, "run1161b baseline");
+    // `cavarch_o` 11 against 5 (`docs/AI.md` section 304). Item 3516: 929 →
+    // 769. The economy rows are gone (the disband price, the census's
+    // territory, the CEO's city), and so is the Cruiser's block 3682 (the
+    // Bark arm of the captain's re-search). **The state now first parts on
+    // block 3723**: the citizen `0/5` reads `hits_left` ours 66 against
+    // theirs 62 (`damage` 19 against 23) and flees on theirs (`order:kind`
+    // 4 against 7, two orders), and the city `0/2000`'s `raid_stamp` reads
+    // 3700 against 3722.
+    pin_eq!(w.firsts.len(), 769, "run1161b baseline");
 }
 
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one
@@ -250,7 +262,7 @@ fn russian_modern_pair_run1162_s_gap_is_widened_whole() {
     let Some(w) = russian_modern_gap_3682_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 172, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -258,7 +270,14 @@ fn russian_modern_pair_run1162_s_gap_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run1162 baseline");
+    // Item 3516, the first walk: 132 keys. Past the standing families,
+    // who=1's `bucket[timber]` and `bucket[metal]` on 2200 (20 over: the
+    // disband price, run1162c), who=0's `other_team_terr` on 2620 (462
+    // against 437: the census's territory, run1162d), who=1's wealth
+    // `income` on 3400 (3487 against 3753: the CEO's city, run1162e). With
+    // the three built, 121: the standing families and `dest_angle` on
+    // `1/34`, `1/70` and `1/130`.
+    pin_eq!(w.firsts.len(), 121, "run1162 baseline");
 }
 
 /// run1162c: the first parting's window, blocks 2174..2210 at the long's
@@ -291,7 +310,7 @@ fn russian_modern_pair_run1162c_s_first_parting_is_widened_whole() {
     let Some(w) = russian_modern_frame_2200_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 36, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -299,7 +318,12 @@ fn russian_modern_pair_run1162c_s_first_parting_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run1162c baseline");
+    // Item 3516: the first walk parts who=1's `bucket[timber]` ours 16112
+    // against theirs 16092 and `bucket[metal]` 15899 against 15879 on block
+    // 2187 — the site `1/2038` (type 422, `construct_hits` 1) disbanded and
+    // refunded 160 timber and 110 metal on theirs, priced after its close.
+    // With `SimDisband` pricing after the close, 90: the standing families.
+    pin_eq!(w.firsts.len(), 90, "run1162c baseline");
 }
 
 /// run1162d: the territory census's window, blocks 2596..2622 at the long's
@@ -332,7 +356,7 @@ fn russian_modern_pair_run1162d_s_census_is_widened_whole() {
     let Some(w) = russian_modern_frame_2600_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 26, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -340,7 +364,12 @@ fn russian_modern_pair_run1162d_s_census_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run1162d baseline");
+    // Item 3516: the first walk parts who=0's `other_team_terr` and
+    // `min_other_team_terr` on block 2601, ours 462 against theirs 437 —
+    // the census counted the live map, sea cells too, where
+    // `get_team_terr@006d62e0` sums `LeaderData::territory`. With the field,
+    // 94: the standing families.
+    pin_eq!(w.firsts.len(), 94, "run1162d baseline");
 }
 
 /// run1162e: the wealth's window, blocks 3376..3402 at the long's detail
@@ -373,7 +402,7 @@ fn russian_modern_pair_run1162e_s_wealth_is_widened_whole() {
     let Some(w) = russian_modern_frame_3400_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 26, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -381,5 +410,10 @@ fn russian_modern_pair_run1162e_s_wealth_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run1162e baseline");
+    // Item 3516: the first walk parts who=1's wealth `income` on block
+    // 3384, ours 3183 against theirs 3448, the reassembly after Capitalism
+    // (`gov` 626 → 628) brought the CEO into a city. With
+    // `THECEO_PRODUCTION_BONUS`, 106: the standing families and
+    // `dest_angle` on `1/34` (3379) and `1/70` (3401).
+    pin_eq!(w.firsts.len(), 106, "run1162e baseline");
 }
