@@ -3066,6 +3066,9 @@ divergence of its own: the original spends it doing nothing and plans its
 route on the next, where this crate plans and steps at once (`1/28` on block
 10234, `1/27` on 10240).
 
+**Item 3540**: an emplaced type (`unit_flags2 & 1`) on an invalid target sets
+`fight`'s `local_1c` and skips the reload gate (`docs/AI.md` §305).
+
 ## The other combat orders (§7.3 – §7.9)
 
 ### 7.3 `ATTACK_GROUND` — `do_attack_ground@005f1410`

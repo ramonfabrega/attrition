@@ -26189,7 +26189,7 @@ search answering the target itself. The retarget at `005f80a6`–`005f820a` has 
 families on block 3 (shared with 3506b). What the game put on the map: `rubric.py --tables 3` sees 29 skirmish types
 on the captures (item 3527's journal names them).
 
-## 305. The Chinese at a held Industrial age, Great Sahara: the Armored Car's turret, its bearing and the rifle's muzzle, 3007 → 3017 → 3271 → 4467 of 4467 (2026-10-23, items 3511, 3530 and 3538)
+## 305. The Chinese at a held Industrial age, Great Sahara: the Armored Car's turret, its bearing and the rifle's muzzle, 3007 → 3017 → 3271 → 4467 of 4467, and the closing state (2026-10-23, items 3511, 3530, 3538 and 3540)
 
 *Item 3511, Opus 5.5, the AI track (DECISIONS 90): run1154, run1155, run1155b and run1155c, on the click-free pool.*
 
@@ -26322,6 +26322,31 @@ goes back to 3271, the windows to 89 and 1024. **The closing state** (`run1155_c
 block 4468): 165 units compared, **14 off** by position and nothing else — `0/8` by (0, 28) and thirteen of who=1's, the
 largest `1/107` by (114, −9) — against 112 off without the rows. Where they part is not walked: run1155 prints units on
 every hundredth block only. The gunpowder line's other pieces have no rows (3538a).
+
+**Item 3540: the closing state, 14 → 0 off.** Walked from run1154's start, run1155's own hundredth-block dumps
+agree on every unit's position through block 4201, and 13 of who=1's units are off by 4401. **run1184** (4201..4468,
+267 blocks, `rngcmp.py`-identical to run1155) is the window. Its first walk reads 239 keys. Block 4201 carries the
+standing rows and who=1's economy, already parted (3540a). The first position rows are block 4346's. **On block 4345 theirs' Flamethrowers `1/84` and `1/129`
+(`FLAMETHROWER`, TypeIndex 131, land, group 65) hold one order, the `GUARDORDER`, where ours holds two: an
+`ATTACKORDER` on the human's building `0/2004` sits over the guard.** `0/2004` reads `damage` 397 of 400 on block 4343
+and is gone on 4344 on both sides. **The direction is theirs**: they drop the attack on 4345 with `recharging` 23 and 12, and on
+4346 their group gives both an `ATTACKTOORDER`, to (9528, 27336) and (9672, 27240). Ours keeps the attack until
+the reload ends (`docs/ORDERS.md` §7.12) and stands. The draws agree throughout, so the kill draws nothing.
+
+**The mechanism** (`Unit::fight@005fd4d0:94`–`102`): `local_1c` is set when the type's `unit_flags2 & 1` (the
+machine-gun and flamethrower lineages, `uflags2::EMPLACED`) is set and the order's target fails `valid_target`.
+It walks past the reload gate at `:102` to `:196`'s kill. This crate had it as a `SEAM` ("no capture on disk has a
+unit in it"). **Built** (`crates/sim/src/orders.rs`, `do_attack_fight`'s `latch`). The test is
+`fight::tests::an_emplaced_weapon_drops_a_dead_target_s_order_while_recharging`, with the bit and without it.
+`tools/mutate.py` was run with the latch forced false. It held: the unit test failed, the closing state went back
+to 14 off, and run1184 went back to 239 keys. The latch's other half is still not modelled (3540c): the current
+order's `FIGHT_REENTRY` on a valid target.
+
+**The value diff**: on block 4345 `1/84` and `1/129` read `orders.len` 1 and kind 12 on both sides. On 4346 both
+hold theirs' `ATTACKTOORDER`, `path:length` 3 and 1. **The closing state is `[0, 0, 0, 0, 0, 0, 0]`**, 165 units
+compared. run1184 goes **239 → 81** keys, and no unit's position parts in the window. What stands is block 4201's
+rows, `dest_angle` on `1/138`, `1/110` and `1/75`, who=1's food economy from 4376, and `mylos` ours 4 against
+theirs 16 on five of who=1's units from 4376 (3540b). Every other lobby's `first_parting` holds (40 of 40).
 
 ## 306. Reserved for the next item on the AI track
 
