@@ -267,6 +267,7 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // the window: theirs' human Citizen `0/5` is struck for 8 on 3769
     // (`hits_left` ours 65, theirs 57; `damage_frame` 3769), Barracks
     // `0/2004` for 11, city `0/2000`'s `raid_stamp` is 3769, and both
-    // leaders' `treaties` read ours 1 against theirs 3.
-    pin_eq!(w.firsts.len(), 955, "run1153c baseline");
+    // leaders' `treaties` read ours 1 against theirs 3. **950** on the tree
+    // merged with item 3520's landing (`attack_pos.rs`), which closes five.
+    pin_eq!(w.firsts.len(), 950, "run1153c baseline");
 }

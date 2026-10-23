@@ -25925,7 +25925,7 @@ sharing `disembark`'s loop through `eject_riders(boat, carry)`.
 **The value diff, on the word's frame** (run1153c, block 3674): `1/10 pos` ours (37236, 26520) against theirs
 (37416, 26280), `inside` 121 against −1, and `1/121` held by ours alone. With the eject both sides agree: ours'
 `1/10` lands at (37416, 26280) on 3674 and steps to (37413, 26256) on 3676, theirs' two points. run1153c drops to
-**955** keys.
+**955** keys, and 950 on the tree merged with item 3520's landing.
 
 **The next word, 3769**: ours 14 draws against 15, index 14, theirs `Object::take_damage+0xe1`. On block 3770,
 in run1153c's window, theirs' human Citizen `0/5` (TypeIndex 50, land, gathering at `0/2004`) has been struck
