@@ -3085,7 +3085,7 @@ impl Sim {
             bumped = p;
             &bumped
         };
-        cost::charges(
+        let out = cost::charges(
             &self.tuning,
             price,
             counts,
@@ -3093,7 +3093,19 @@ impl Sim {
             &holdings.available,
             &holdings.discovered,
             &self.redirects,
-        )
+        );
+        if unit.type_index == 316
+            && std::env::var("RON_DEBUG_PRICE").is_ok_and(|v| v == self.frame.to_string())
+        {
+            eprintln!(
+                "PRICE f{} who={who} ty={ty} counts={counts:?} bump={bump:?} nukes_used={} by_type={} queued={} m={m:?} out={out:?}",
+                self.frame,
+                self.nukes.used_of(who),
+                muster.by_type[ty],
+                muster.queued_by_type[ty]
+            );
+        }
+        out
     }
 
     /// The worker lines' extra term in `LeaderData::get_support_count`'s
