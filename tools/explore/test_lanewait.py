@@ -409,6 +409,122 @@ class EndedCarriesTheRowsDetail(unittest.TestCase):
                          (3, 'ENDED a blocked — reply `go` to merge tip a22bdbef'))
 
 
+class TheDeepAnswersArmGoesInAfterItsPush(unittest.TestCase):
+    """Loop 3526 (the fifty-second pass): twice in one tranche (items 3523,
+    3524) the commander's `ccc clear <lane> --then …` on a DEEP answer was
+    refused — "has N uncommitted changes; commit the bank first" — because
+    the lane was mid-edit, and the arm had to go in by hand after the
+    lane's draft push. With `--arm-after-push <lane>` the waiter takes the
+    lane's next push as the DEEP answer's draft and arms the clear itself,
+    once, on the committed tree the push left."""
+
+    def watching(self):
+        watch = watching(a='1' * 40, b='5' * 40)
+        watch['a']['session'] = 's1'
+        watch['b']['session'] = 't1'
+        return watch
+
+    def test_the_item_is_the_lane_s_number_and_the_template_takes_both(self):
+        self.assertEqual(lanewait.item_of('att-3523'), '3523')
+        self.assertEqual(lanewait.item_of('att-3523-2'), '3523')
+        self.assertEqual(lanewait.item_of('scout'), 'scout')
+        self.assertEqual(lanewait.then_prompt('continue item {item} from the journal ({lane})', 'att-3523'),
+                         'continue item 3523 from the journal (att-3523)')
+
+    def test_a_push_arms_the_clear_once_with_the_substituted_prompt(self):
+        watch, pending, armed = self.watching(), {'a'}, []
+        drafts, lines = lanewait.arm_pushes(
+            watch, {'a': '2' * 40, 'b': '5' * 40}, {'a': 's1', 'b': 't1'}, pending,
+            'continue item {item} from the journal',
+            lambda lane, prompt: armed.append((lane, prompt)) or (True, 'armed'),
+            already_armed=lambda lane: False)
+        self.assertEqual(armed, [('a', 'continue item a from the journal')])
+        self.assertEqual(drafts, ["DRAFT a worktree-a 11111111..22222222 — the DEEP answer's push; "
+                                  "arming its clear"])
+        self.assertEqual(lines, ['ARMED a — armed'])
+        self.assertEqual(pending, set())
+        # The push is consumed: the row working on is never a PUSHED of the
+        # draft, and a later push is not armed again.
+        notes = []
+        self.assertIsNone(lanewait.event(watch, {'a': 'working', 'b': 'working'},
+                                         {'a': '2' * 40, 'b': '5' * 40}, 6, 100, notes,
+                                         sessions={'a': 's1', 'b': 't1'}))
+        self.assertEqual(notes, [])
+        drafts, lines = lanewait.arm_pushes(watch, {'a': '3' * 40}, {'a': 's1'}, pending, '{item}',
+                                            lambda lane, prompt: self.fail('armed twice'),
+                                            already_armed=lambda lane: False)
+        self.assertEqual((drafts, lines), ([], []))
+
+    def test_a_refusal_is_said_and_the_waiter_watches_on(self):
+        watch, pending = self.watching(), {'a'}
+
+        def refused(lane, prompt):
+            return False, 'att-a has 3 uncommitted changes; commit the bank first'
+
+        drafts, lines = lanewait.arm_pushes(watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}', refused,
+                                            already_armed=lambda lane: False)
+        self.assertEqual(lines, ['ARM-REFUSED a: att-a has 3 uncommitted changes; commit the bank first'])
+        self.assertEqual(pending, set())
+        # Nothing exits on the refusal; the row stopping is an ENDED the
+        # commander reads beside the ARM-REFUSED line, never a LANDED draft.
+        self.assertIsNone(lanewait.event(watch, {'a': 'idle', 'b': 'working'}, {'a': '2' * 40}, 6, 100,
+                                         sessions={'a': 's1', 'b': 't1'}))
+        self.assertEqual(lanewait.event(watch, {'a': 'idle', 'b': 'working'}, {'a': '2' * 40}, 7, 100,
+                                        sessions={'a': 's1', 'b': 't1'}), (3, 'ENDED a idle'))
+
+    def test_a_lane_not_named_and_a_lane_that_has_not_pushed_are_left_alone(self):
+        watch, pending = self.watching(), {'a'}
+        drafts, lines = lanewait.arm_pushes(watch, {'a': '1' * 40, 'b': '6' * 40}, {'a': 's1', 'b': 't1'},
+                                            pending, '{item}', lambda lane, prompt: self.fail('armed'),
+                                            already_armed=lambda lane: False)
+        self.assertEqual((drafts, lines, pending), ([], [], {'a'}))
+        self.assertEqual(watch['b']['tip'], '5' * 40)
+
+    def test_a_clear_already_armed_or_fired_is_not_armed_again(self):
+        watch, pending = self.watching(), {'a'}
+        drafts, lines = lanewait.arm_pushes(watch, {'a': '2' * 40}, {'a': 's1'}, pending, '{item}',
+                                            lambda lane, prompt: self.fail('armed'),
+                                            already_armed=lambda lane: True)
+        self.assertEqual(lines, ['ARMED a — a clear was already armed; not armed again'])
+        self.assertEqual(pending, set())
+        # A push whose session moved is the clear's own: left to event() as
+        # the draft it already reads it as.
+        watch, pending = self.watching(), {'a'}
+        drafts, lines = lanewait.arm_pushes(watch, {'a': '2' * 40}, {'a': 's2'}, pending, '{item}',
+                                            lambda lane, prompt: self.fail('armed'),
+                                            already_armed=lambda lane: False)
+        self.assertEqual((drafts, lines, pending),
+                         ([], ['ARMED a — its clear has fired (session s1..s2); not armed again'], set()))
+        self.assertEqual(watch['a']['tip'], '1' * 40)
+
+    def test_the_arm_is_ccc_s_and_any_failure_is_a_refusal(self):
+        import subprocess
+
+        def answer(stdout='', stderr='', code=0):
+            def run(command, **kwargs):
+                self.assertEqual(command, ['ccc', 'clear', 'att-1', '--then', 'continue item 1'])
+                return subprocess.CompletedProcess(command, code, stdout=stdout, stderr=stderr)
+            return run
+
+        def missing(command, **kwargs):
+            raise FileNotFoundError('ccc')
+
+        def slow(command, **kwargs):
+            raise subprocess.TimeoutExpired(command, 60)
+
+        self.assertEqual(lanewait.arm_clear('att-1', 'continue item 1', answer('armed att-1\nfires at idle\n')),
+                         (True, 'armed att-1'))
+        self.assertEqual(lanewait.arm_clear('att-1', 'continue item 1',
+                                            answer(stderr='att-1 has 2 uncommitted changes; commit the bank '
+                                                          'first\n', code=1)),
+                         (False, 'att-1 has 2 uncommitted changes; commit the bank first'))
+        self.assertEqual(lanewait.arm_clear('att-1', 'continue item 1', answer(code=3)), (False, 'exit 3'))
+        self.assertFalse(lanewait.arm_clear('att-1', 'continue item 1', missing)[0])
+        self.assertFalse(lanewait.arm_clear('att-1', 'continue item 1', slow)[0])
+
+    def test_the_flag_names_a_watched_lane(self):
+        self.assertEqual(lanewait.main(['a', '--arm-after-push', 'b', '--roster-wait', '0']), 2)
+
 
 class TheRosterIsAwaited(unittest.TestCase):
     """Loop 2620 (the thirty-sixth pass): `lanewait.py` armed in the spawn's

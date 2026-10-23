@@ -3,6 +3,7 @@
 thing a lane did that a commander acts on.
 
     python3 tools/lanewait.py <lane> [<lane> ...] [--quiet-after MIN] [--interval S]
+                              [--arm-after-push <lane> ...] [--then TEMPLATE]
 
 Run it backgrounded after a spawn and end the turn; its exit re-invokes the
 session. A lane is named as `ccc list` names it. The exits:
@@ -32,7 +33,19 @@ session. A lane is named as `ccc list` names it. The exits:
                                              one message carrying the prompt wakes it
     2  usage, a lane the roster does not hold when the wait starts, or a
        lane whose tree holds a second row (parked 1671: a lane's next session
-       is `ccc clear <its row> --then`, never a spawn onto its tree)
+       is `ccc clear <its row> --then`, never a spawn onto its tree), or an
+       --arm-after-push lane the wait does not watch
+
+And the lines that are not exits — the wait goes on past each:
+
+       PUSHED <lane> <branch> <old>..<new>   a push while the row works (stdout)
+       DRAFT <lane> <branch> <old>..<new> — …  a push under a clear, never a
+                                             landing (stderr; item 3368, Loop 3458)
+       ARMED <lane> — <ccc's first line>     an --arm-after-push lane pushed and the
+                                             waiter armed its clear (stdout; Loop 3526)
+       ARM-REFUSED <lane>: <ccc's first line>  ccc refused that arm, or is missing,
+                                             failed or timed out (stdout); the lane
+                                             stopping is then an ENDED to arm by hand
 
 A push while the row still works is printed as `PUSHED <lane> <branch>
 <old>..<new>` and watched on (the twenty-fifth pass): the twenty-fifth
@@ -98,6 +111,20 @@ first put to `ccc clear <lane> --status --json`; an armed clear makes it
 `DRAFT <lane> … — pushed under an armed clear` on stderr, and the wait
 goes on. A ccc that is missing, fails or answers unparseably is no clear,
 and the landing stands as before.
+
+And the DEEP answer's arm goes in after the lane's push (Loop 3526, the
+fifty-second pass): `ccc clear <lane> --then …` refuses a tree with
+uncommitted changes, and the commander's arm in the DEEP answer's own
+turn was refused twice in one tranche (items 3523, 3524) with the lane
+mid-edit — its line already said "armed", and the arm went in by hand
+after the draft push. Without an arm none of the tells above can see the
+draft, which reads PUSHED and then LANDED. So the commander re-arms the
+wait with `--arm-after-push <lane>`: that lane's next push is the draft
+on a committed tree; the ref is recorded (never a PUSHED or a LANDED),
+`ccc clear <lane> --then "<--then with {lane} and {item}>"` runs once,
+and `ARMED` or `ARM-REFUSED` says how it went. A clear already armed, or
+one that fired on the push's poll, is not armed again. The flag lives in
+the process: a re-arm after `ARMED` leaves the lane off it.
 """
 import os
 import argparse
@@ -564,6 +591,76 @@ def armed_clear(lane, run=subprocess.run):
     return isinstance(answer, dict) and answer.get('armed') is True
 
 
+THEN = 'continue item {item} from the journal'
+
+
+def item_of(lane):
+    """The item a lane works: the first run of digits in its name
+    (`att-3523` and `att-3523-2` are 3523), else the name itself."""
+    import re
+    found = re.search(r'\d+', lane)
+    return found.group(0) if found else lane
+
+
+def then_prompt(template, lane):
+    """The `--then` prompt for a lane: `{lane}` and `{item}` substituted."""
+    return template.replace('{lane}', lane).replace('{item}', item_of(lane))
+
+
+def arm_clear(lane, prompt, run=subprocess.run):
+    """`ccc clear <lane> --then <prompt>`, as (armed, ccc's first line). A
+    missing ccc, a non-zero exit and a timeout are a refusal; never raises
+    (Loop 3526)."""
+    try:
+        out = run(['ccc', 'clear', lane, '--then', prompt], capture_output=True, text=True,
+                  check=False, timeout=60)
+    except (OSError, subprocess.SubprocessError) as e:
+        return False, f"{type(e).__name__}: {e}".splitlines()[0]
+    text = '\n'.join(part for part in (out.stdout or '', out.stderr or '') if part.strip())
+    first = next((line.strip() for line in text.splitlines() if line.strip()), '')
+    if out.returncode != 0:
+        return False, first or f"exit {out.returncode}"
+    return True, first or 'armed'
+
+
+def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_armed=armed_clear):
+    """Arm each pending lane's clear on its first push (Loop 3526), as
+    `(drafts, lines)`: the DRAFT lines for stderr and the ARMED /
+    ARM-REFUSED lines for stdout. Called before `event` on every poll.
+
+    A lane in `pending` (the `--arm-after-push` lanes not yet armed) whose
+    origin ref moved has pushed its DEEP answer's draft: the ref is
+    recorded so `event` never reads it as a PUSHED or a LANDED, and
+    `arm(lane, prompt)` runs once — the lane leaves `pending` whatever
+    the answer. A clear already armed is not armed again, and a push on
+    the poll the lane's session moved is the clear's own (it has fired):
+    both leave the lane, and the second leaves the push to `event`, which
+    reads it as the draft it is."""
+    drafts, lines = [], []
+    for lane in sorted(pending):
+        seen = watch.get(lane)
+        tip = tips.get(lane)
+        if seen is None or not tip or tip == seen['tip']:
+            continue
+        pending.discard(lane)
+        now, then = sessions.get(lane), seen.get('session')
+        if now and then and now != then:
+            lines.append(f"ARMED {lane} — its clear has fired (session {then[:8]}..{now[:8]}); "
+                         "not armed again")
+            continue
+        old = seen['tip'][:8] if seen['tip'] else 'none'
+        seen['tip'] = tip
+        seen.pop('pushed', None)
+        drafts.append(f"DRAFT {lane} {seen['branch']} {old}..{tip[:8]} — the DEEP answer's push; "
+                      "arming its clear")
+        if already_armed(lane):
+            lines.append(f"ARMED {lane} — a clear was already armed; not armed again")
+            continue
+        ok, said = arm(lane, then_prompt(template, lane))
+        lines.append(f"ARMED {lane} — {said}" if ok else f"ARM-REFUSED {lane}: {said}")
+    return drafts, lines
+
+
 def origin_tip(cwd, branch):
     out = subprocess.run(['git', 'rev-parse', '--verify', '-q', f'refs/remotes/origin/{branch}'],
                          cwd=cwd, capture_output=True, text=True, check=False)
@@ -595,7 +692,17 @@ def main(argv=None):
     parser.add_argument('--roster-wait', type=float, default=60, metavar='S',
                         help='seconds to wait for a named lane to show its worktree branch before '
                              'refusing (Loop 2620: a wait armed in the spawn\'s own turn died at arm)')
+    parser.add_argument('--arm-after-push', action='append', default=[], metavar='LANE',
+                        help="a watched lane answered at DEEP: its next push is the draft, and the waiter "
+                             "arms `ccc clear LANE --then` itself on it, once (Loop 3526); repeatable")
+    parser.add_argument('--then', default=THEN, metavar='TEMPLATE',
+                        help="the --arm-after-push clear's prompt; {lane} and {item} (the lane's number) "
+                             "are substituted; default %(default)r")
     args = parser.parse_args(argv)
+    strays = [lane for lane in args.arm_after_push if lane not in args.lanes]
+    if strays:
+        print(f"lanewait: --arm-after-push names a lane not watched: {', '.join(strays)}", file=sys.stderr)
+        return 2
 
     rows, missing = rows_for(args.lanes, args.roster_wait, 5)
     if rows is None:
@@ -623,6 +730,7 @@ def main(argv=None):
     reported = set()
     stalled_reported = set()
     uncleared_reported = set()
+    arm_pending = set(args.arm_after_push)
     while True:
         time.sleep(args.interval)
         polls += 1
@@ -660,6 +768,12 @@ def main(argv=None):
                 return found[0]
         tips = {lane: origin_tip(where[lane], seen['branch']) for lane, seen in watch.items()}
         sessions = {lane: getattr(roster, 'sessions', {}).get(lane) for lane in watch}
+        if arm_pending:
+            arm_drafts, arm_lines = arm_pushes(watch, tips, sessions, arm_pending, args.then)
+            for draft in arm_drafts:
+                print(draft, file=sys.stderr, flush=True)
+            for line in arm_lines:
+                print(line, flush=True)
         # The transcript is read only for a lane whose ref moved: the tell
         # is asked of a push, never of every poll.
         pushed = [lane for lane, seen in watch.items() if tips.get(lane) and tips[lane] != seen['tip']]
