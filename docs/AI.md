@@ -26134,6 +26134,29 @@ tiles). **Built**: `Sim::unit_data_los` over `Sim::near_own_ceo`, the block `max
 birth. run1166b: 576 → 146 keys. run1170 (5645..5841) parts 162 on its head, the standing families and who=1's
 buckets; on block 5651, building `1/2034`'s `queue[0].job_counter` is ours 500 against theirs 499.
 
+**Item 3527: the Kremlin's Spy, then the pair whole.** run1149's own hundredths over 4349..5644
+(`russian_modern_pair_run1149_s_gap_before_5651_is_widened_whole`) agree on every unit but the standing families
+and `mirror`; the long prints no leader record there. The parted field on the word's eve is the job, not the
+economy: theirs' Redoubt `1/2034` trains its Spy (TypeIndex 58) 0, 100, … 400, **499** over 5646..5651 and `1/261`
+is born on 5652; ours priced it 12000 (`RON_DEBUG_BUILDS`, now on the widening walk). `train_time@006508c0:344`–`354`,
+the train block's last step: a type with `is(0x3a, 1)` whose leader `has_wonder(0x21a)` returns `ACCEL_TRAIN × 5 −
+1` from the whole function. who=1's Kremlin `1/2021` was 55 % built on 3680 and stands on 5645. **Built**:
+`Sim::kremlin_trains_fast`, taken first in `Sim::queue_target` (`a_held_kremlin_trains_a_spy_in_five_frames`);
+`INSTANT_UNIT_BONUS`'s arm stays a seam (3527c). **The word moves 5651 → 5816**: ours 53 draws against 55, index 30,
+`Unit::do_move+0xe84` against `Unit::fight+0x9b0`. run1170: 2268 → 510 keys.
+
+**5816 → whole: a captain's retarget on its own target.** The Cruiser `1/25` chases the fleeing Special Forces `0/0`
+(uid 7) under a move to (3432, 7944). On 5815, `(25 + 5815) % 16 == 0`, theirs' captain search answers `0/0` (`near`
+0/2004 → 0/0) and the move is gone on block 5816 (`order:kind` 10, `in_range` 1); ours walked on to (3398, 8147),
+the flee clause (`5f7fbe`) refusing the kill as it should. The retarget's conjunction at `005f80a6`–`005f820a` asks
+`near`, the search, `active`, `is_in_range`, `poor_target`, a unit and the Bark admission, and **no `c != t`**: a
+captain whose candidate is the target itself still sets `in_range` and calls `change_target`, which kills the walk
+over the attack. Ours had carried the clause since item 479; it is gone. **The pair is whole, 5841 of 5,841**, and
+`run1149_russian_modern_pair_closing_state` compares block 5842: 271 units, none off. run1170: 510 → 179 keys (166
+standing; who=1's economy, 3527b; `0/0`'s blow on 5786, 3527a). The same clause held the Japanese word on 3816
+(§303): there `1/66` read `order:kind` 1 against 10 and `pos` (2832, 8916) against (2764, 8930), and run1153c goes
+from 572 non-standing keys to 36.
+
 **What this has *not* established.** ~~Which arm makes theirs' 9999999~~ (item 3515, above). `find_preq`'s slots 1 and 2 on a bonus (the lobby's age remaps) are empty in `TRANSPORT_BONUS`'s shipped row and are not carried. ~~Which field of who=1's economy parts first in 3601..3676~~ (item 3516, above: three, from block 2187). ~~Why the count parts on
 11, three frames after the sequence~~ (moot: both move to 3682, item 3515). The standing
 families on block 3 (shared with 3506b). What the game put on the map: the rubric counts lockstep games only
