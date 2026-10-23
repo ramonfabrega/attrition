@@ -25958,13 +25958,40 @@ keys. The missed rounds' arc step now reads two corners not known to be the orig
 theirs `Unit::fight+0x9b0`. The state parts first on block 3808: `0/5` is struck again, theirs on 3804 (`raid_stamp`
 3804, `hits_left` 35) and ours on 3807 (3807, 32). Who struck on 3804 is the next item's first question.
 
+**Item 3525 (2026-10-23, Opus 5.5): the Destroyer's three turrets, and a captain's retarget onto its own target,
+3816 → 4343.** run1171; the walk is the journal's. *The blow*: the Destroyer `1/66` (`DESTROYER`, 328, sea, piece
+278) fires on 3795, 3797 and 3800 on both sides; theirs' third lands on 3808, ours' left the hull's square and
+landed on 3807 (block 3808: `0/5 hits_left` ours 32, theirs 35). Piece 278 has three `<RESTRICTION
+name="Destroyer">` (nodes 4–6) and `sim::pivot` had no row: run1169's packet gives pivots (0.0, −56.97), (0.0,
+−36.95) and (0.0, 107.74), `RData +0x88` 0.9, and the Cruiser's release nodes bit for bit on all three anims. Built
+as `NODES`, `RDATA_SCALE` and nine `RELEASES` rows; the oracle agrees on 831,744 cells. Block 3808 then agrees; the
+word does not move.
+
+*The word*: on block 3816 theirs' `1/66` stands at (2764, 8930) on its `ATTACKORDER` and fires; ours sailed on to
+(2832, 8916) under the chase move both pushed on 3810. A probe (`RON_PROBE_3525`, reverted whole) read 3815's
+chase kill as theirs must: `chase_target_flees` true (`flanking@0092cfe0` is non-zero to `0xd5555555`), so the pop is
+**the captain's retarget** (`005f803f`–`005f8216`, `docs/COMBAT.md` §37.2) with `near` `0/5` in plain reach:
+`change_target(0/5 → 0/5)` pops the move. Nothing there compares the candidate with the target; this crate's `c !=
+t` (item 479) is gone. Mutated: `c != t` back, the walk falls to 3816; piece 278's releases out, run1153c reads 156.
+
+**The value diff, on the word's frame** (run1153c, block 3816): `1/66 pos` ours (2832, 8916) against theirs (2764,
+8930), `order:kind` 1 against 10; on 3817 `recharging` 0 against 25. All agree after; run1153c **692 → 151** keys,
+the standing families and `1/82`'s repath on 3813 (parked 3525a).
+
+**The next word, 4343**: ours 17 draws against 15, index 1 — ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a
+< Unit::do_idle+0x7d`. run1171 (4338..4548, 1306 keys) opens on the standing families alone. On 4343 who=1's Light
+Tank `1/49` (`LIGHTTANK`, 239, land), on an `ATTACKORDER` on city `0/2000` with `near` `0/3`: theirs pushes a
+`MOVEORDER` to (6360, 8568) on 4342 and keeps `0/2000`; ours reads the city out of reach on 4342 and takes `0/3`
+on 4343 and fires. **The direction is theirs**; which arm pushes is the next item's first question.
+
 **What is not established.** The carrier arm runs on no capture: no Japanese Carrier is trained in run1153. The
 ship-cost arm's Dock reads are not compared on any dumped queue either (the Frigate's 10% is the direct test's
 alone). `JAPANESE_DAMAGE`'s arm in `damage.rs` reads `Modifiers::japanese_level`, which nothing writes (parked 3510a).
 
 **Coverage.** Diff-backed: the Barracks cost arm (run1153b's 1345 queues), the Barracks speed arm (the walk's 1351),
 the Japanese boats' quarter on a fish (run1153c's 3668 income, item 3521), the civilian carrier's shore eject (run1153c's
-3674 landing, item 3521), the Dreadnought's two turrets (run1153c's 3770 blow, item 3523). Reading only: the ship-cost and carrier arms, and the per-tier shape for a non-negative
+3674 landing, item 3521), the Dreadnought's two turrets (run1153c's 3770 blow, item 3523), the Destroyer's three
+turrets (run1153c's 3808 blow, item 3525), the captain's retarget onto its own target (the walk's 3816, item 3525). Reading only: the ship-cost and carrier arms, and the per-tier shape for a non-negative
 constant; `boat_eject_all`'s air refusal and its kept-cargo case (a passenger `come_out` refuses), which no capture
 reaches.
 

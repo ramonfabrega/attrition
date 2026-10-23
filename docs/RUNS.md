@@ -24690,6 +24690,29 @@ SHA-256 `621de64d14b1d832bda7c9c3670331d8710030ee45ad97bf1593e47f1dfb8905`.
 The state first parts on block 4091: army 1's `ATTACKTO` sends fourteen members to (8664, 1368) in ours against
 (8568, 984) in theirs. After item 3522's build it finds 114, the standing families.
 
+## run1171 — the Japanese at a held Industrial age, East Indies: the word 4343's window, blocks 4338..4548 (2026-10-23, item 3525, `att-3525`)
+
+`docs/AI.md` §303. **What the disk could not answer**: every record on the word 4343's block 4344. run1153c ends on
+3924, and run1153's stride blocks print no leader record and no block between 4301 and 4401. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1171 --map 18 --end-frame 4548 --allow-early-end --timeout 3600
+--log-window 4338 4548 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --profile
+STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover
+cover=0`.
+- Pool lane 1, seed 12345. Launched 07:21:06, exited 07:21:58 (52.6 s launch to exit). `success`, 4548 frames, last
+  frame 4547, `ended_early` (the game ends itself), closing frame 4548, `map_style 18`, players `(0,4,7),(1,15,1)`.
+- `rngcmp.py` against run1153: **4548 frames in common, 0 differing**. Filed with `filerun.py run1171
+  eastindies-japanese-industrial-window-4338-4548`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1171-eastindies-japanese-industrial-window-4338-4548.txt`, 475,091,313 bytes,
+SHA-256 `30a06d6b98c80012369c3e54cb7e9daa3f7e12f618df233e7f64a893e16a5107`.
+
+Archive `rontrace-run1171.log`, 98,872,416 bytes,
+SHA-256 `392eb01974a31f5229c0ffa6ffb3da1e4431b3687079ef414856b56d5514c6db`.
+
+**What it holds**: `japanese_industrial_pair_run1171_s_word_frame_is_widened_whole` (210 blocks, 1306 keys; two
+inexact height reads, `GROUND_INEXACT`). Block 4338 carries only the standing families. The state parts on the
+word's frame: who=1's Light Tank `1/49` pushes a `MOVEORDER` on 4342 in theirs, and in ours it retargets to `0/3`.
 ## run1170 — the Russians at a held Modern age, East Indies: the word 5651's window, blocks 5645..5841 (2026-10-23, item 3524, `att-3524`)
 
 **Disk gap**: the word 5651 (item 3524's build) lies past every window on disk — run1166b ends at 4348, and run1149
