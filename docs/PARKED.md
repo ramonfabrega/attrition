@@ -10231,13 +10231,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot PH — reserved
+## Parked by item 3534, 2026-10-23 — the Russian pair's `cover=1` twin moves the lockstep share a tenth
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3534a. The first age-6 twin adds four functions, 10,629 bytes.** run1179, the Russian Modern pair at `cover=1`
+  and run1149's game on every frame (rngcmp 5842 identical, 0 differing), is the third twin measured under 3531a. It
+  adds four simulation functions no other lockstep trace enters: `Unit::change_target@005e36c0`,
+  `Unit::think_carry_military@005f3260`, `Unit::update_ceo_position@005f96b0` and `AmmoOut::dirt_splash@00679400`.
+  None is new to `blind::TRACES`. The share goes 771 → 772 tenths (77.17 % → 77.27 %), 3531a's tenths again.
+  **Score**: the rubric's lockstep bytes. The same lever as 3531a.
 
 ## Parked by the next landing, slot PI — reserved
 

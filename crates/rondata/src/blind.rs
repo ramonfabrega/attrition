@@ -475,6 +475,12 @@ pub const TRACES: &[&str] = &[
     // run1177): run1147's game on every frame (rngcmp 4566 identical, 0
     // differing) — the land map's age-7 line.
     "rontrace-run1177.log",
+    // Item 3534: the Russian late-age pair's long lobby (East Indies, the
+    // Russians, a held Modern age; run1149's recipe) at `cover=1` on the
+    // click-free pool, to the game's own end at 5841 (`docs/RUNS.md`
+    // run1179): run1149's game on every frame (rngcmp 5842 identical, 0
+    // differing) — the first lockstep trace of an age-6 game.
+    "rontrace-run1179.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
