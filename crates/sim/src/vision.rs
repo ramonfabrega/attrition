@@ -985,6 +985,41 @@ mod tests {
         (s, b)
     }
 
+    /// **`UnitData::los@006100c0`'s CEO term** (item 3524): a non-siege
+    /// unit whose leader counts a `0x165` and stands within the hero's
+    /// radius sees `THECEO_UNIT_LOS` (2) past its cached `mylos`; out of
+    /// reach, a siege unit, or a leader whose muster counts no CEO, it sees
+    /// the cache bare. Made to fail with the term dropped.
+    #[test]
+    fn a_unit_beside_its_own_ceo_sees_two_tiles_further() {
+        let (mut s, u) = fog_sim(8, 0);
+        s.units[u].mylos = 8;
+        let ceo = s.add_unit_type(crate::UnitType {
+            hits: 20,
+            moves: 40,
+            los: 8,
+            type_index: 0x165,
+            ..crate::UnitType::default()
+        });
+        s.unit_types[ceo].cols.unit_flags2 |= crate::ai_load::uflags2::GENERAL;
+        let at = s.units[u].pos;
+        let mut h = crate::Unit::new(0, 1, Pos::new(at.x + 0x300, at.y), 20);
+        h.ty = Some(ceo);
+        h.type_index = 0x165;
+        let h = s.add_unit(h);
+        assert_eq!(s.unit_data_los(u), 8, "the muster counts no CEO");
+        s.muster[0].by_type[ceo] = 1;
+        assert_eq!(s.unit_data_los(u), 10, "beside the CEO");
+        assert_eq!(s.seen_sweep(u, false).map(|w| w.radius), Some(5));
+        let far = s.hero_radius(h) * 0xc0 + 0x300;
+        s.units[h].pos = Pos::new(at.x + far, at.y);
+        assert_eq!(s.unit_data_los(u), 8, "out of the hero's radius");
+        s.units[h].pos = Pos::new(at.x + 0x300, at.y);
+        let t = s.units[u].ty.unwrap();
+        s.unit_types[t].combat.siege = true;
+        assert_eq!(s.unit_data_los(u), 8, "a siege unit");
+    }
+
     /// §2.1: a building's `mylos` is its type's `LOS`, plus the science
     /// term, plus **half its footprint** — the tail
     /// `Wall::update_los@0063eeb0` adds last and the unit's own

@@ -378,7 +378,7 @@ fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
     let Some(w) = russian_modern_frame_5651_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 196, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -391,7 +391,22 @@ fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1170 baseline");
+    // Item 3524, the first walk: 2268 keys. **The state parted before the
+    // window**: block 5645 already parts 162 keys — the standing families
+    // (`form` 63, `SITE[i].reg` 15, the groups' `held` and pool) and
+    // who=1's economy (`bucket[0:food]` ours 7414 against theirs 7415,
+    // `bucket[1:timber]` 6960 against 6962, `leftover[2:wealth]` 3714
+    // against 738), with who=0's `aggression[1]` 0 against 1. No dump
+    // prints a block in 4349..5644 but run1149's hundredths. Then
+    // `bucket[2:wealth]` 11654 against 11653 on 5647, and **on the word's
+    // eve, block 5651, the building `1/2034`'s `queue[0].job_counter` ours
+    // 500 against theirs 499**: theirs' job completes a frame sooner, and
+    // block 5652 holds theirs' new unit `1/261` alone (`num_units[8]` 4
+    // against 5, `queued` 1 against 0) — the word 5651's birth,
+    // `Guy::init_real < Unit::init < Objects::init_unit`. On 5654 the
+    // scouts `1/26`, `1/30` and `1/31` take different groups and move
+    // points.
+    pin_eq!(w.firsts.len(), 2268, "run1170 baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
@@ -704,6 +719,10 @@ fn russian_modern_pair_s_road_search_on_4207_holds_node_for_node() {
     // 868, the diagonal onto (33504, 45792), tile (174, 238): ours 156
     // against theirs 78, `was_seen`'s doubling of fog cell (87, 119)) until
     // `UnitData::los` carried the CEO's two tiles.
-    pin_eq!(on_word, (3205, 3205), "the word's road nodes, ours and theirs");
+    pin_eq!(
+        on_word,
+        (3205, 3205),
+        "the word's road nodes, ours and theirs"
+    );
     pin_eq!(first, None, "the first node that parts");
 }
