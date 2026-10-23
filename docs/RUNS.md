@@ -24248,3 +24248,47 @@ SHA-256 `8080506be5b24bc6b2e2875d901df23b590277dcdd9c00b3922317c751efd770`.
 **What it holds**: `russian_modern_pair_run1149b_s_word_frame_is_widened_whole`. It compares 256 blocks and finds
 342 keys. The first that is not standing is on block 5: who=1's research slot `MAKE[8]`, Written Word (551), at
 `val` ours 1620003 against theirs 9999999.
+
+## run1161 — the Russians at a held Modern age, East Indies: a packet at logger frame 4 (2026-10-23, item 3515, `att-3515`)
+
+**What the disk could not answer**: which step of who=1's `Leader::research_techs` gives Written Word (551) 9999999
+on block 5. No dump prints a technology's value before `make_me`. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1161 --map 18 --end-frame 36 --timeout 3600 --log-window 3 8 --detail end:MISC,LEADERS=9 --ai-tribe 13
+--profile STARTING_TECHNOLOGY=6 --profile ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--cover cover=0 --tracer-def RON_STATE_FRAME=4 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- The first launch, with `--end-frame 10`, was refused before any lane was taken: the lane wants 36..24000.
+- Pool lane 1, seed 12345. Launched 00:53:10, exited 00:54:05 (54.8 s). `success`, 37 frames. `rngcmp.py` against
+  run1149 gives **37 in common, 0 differing**. Minutes waited on another lane: none.
+- The packet is kept at `~/ron-golden/run1161/map-18/frame-snapshot.bin`, 804,134,192 bytes,
+  SHA-256 `cc84c96c9c981622b7ce6c40dc9731408f9b378df61e32562abb228c020b7083`.
+- **`step4.py --entry 6c6ba0 --this 00e4127c`**: 214,548 instructions, and four `make_me` calls (hooked at `6c9be0`):
+  551 at 9999999, 558 at 5040003, 566 at 420000 and 572 at 3066003, which is the dump's block 5. For Written Word,
+  `6c738e` reads w 27 and base 600000, and `6c7951` reads 48,600,003. `× 256` wraps that negative, so the guard at
+  `6c79b3` gives 9999999. The science arm's `epoch[3] − tech+0x1c8` reads 0 (`6c762f`). `docs/AI.md` §304.
+
+Archive `gamelog-run1161-eastindies-russian-modern-packet-4.txt`, 7,251,576 bytes,
+SHA-256 `32074dde3db5271f2c60ae03245636cc162e82ce4a4db7cb4ac5d414b2425543`.
+
+Archive `rontrace-run1161.log`, 9,925,376 bytes,
+SHA-256 `4465a90b4891eafcda38779e6908b1d9c5f1d89470cb33788335a5e1312b649a`.
+
+## run1161b — the Russians at a held Modern age, East Indies: the word 3682's window, blocks 3677..3933 (2026-10-23, item 3515, `att-3515`)
+
+**Disk gap**: run1149 dumps every hundredth block and no leader record, and run1149b ends at 259, so no dump held
+the word's block 3683. `--map 18 --end-frame 3933 --timeout 3600 --log-window 3677 3933 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 13 --profile STARTING_TECHNOLOGY=6 --profile
+ENDING_TECHNOLOGY=6 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`.
+- Pool lane 1. Launched 01:04:10, exited 01:05:03 (53.0 s). `success`: 3934 frames, last frame 3933. `rngcmp.py`
+  against run1149: **3934 frames in common, 0 differing**. Filed with `filerun.py run1161b
+  eastindies-russian-modern-window-3677-3933`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1161b-eastindies-russian-modern-window-3677-3933.txt`, 568,706,563 bytes,
+SHA-256 `628c0c0010c21fd58c3757b1f51919c03eb3d1f6fb62decdedb2e7777022761a`.
+
+Archive `rontrace-run1161b.log`, 117,042,752 bytes,
+SHA-256 `c714f406b99d5eca62ef1ee619e3b2a2b98a2bc39f7d2fb222a4bdc1287bb948`.
+
+**What it holds**: `russian_modern_pair_run1161b_s_word_frame_is_widened_whole`. It compares 256 blocks and finds 929
+keys. On block 3677 who=1's wealth has already parted (`income[2]` ours 3816 against theirs 4000). On block 3682
+Cruiser `1/25` has `recharging` ours 0 against theirs 25.
