@@ -5,6 +5,16 @@ and the top-level sections of `docs/*.md` (Loop 3486, the fifty-first pass).
     python3 tools/retire.py                # the table, unnamed rows first
     python3 tools/retire.py --json         # the same rows as JSON
     python3 tools/retire.py --since-days 60
+    python3 tools/retire.py --no-ledgers   # without RUNS, PARKED, JOURNAL, DECISIONS, docs/audit/
+    python3 tools/retire.py --doc GOLDEN --doc QUEUE   # only these documents' sections
+
+`--no-ledgers` and `--doc` (the fifty-second pass) choose which documents'
+section rows are listed, never which files name: a ledger's text still
+names a tool or a heading. The ledgers' rows are cited by number
+(`run1148`, `parked 3505a`, `item 3511`), not by heading, so on the whole
+tree they were 1939 of 3056 sections read unnamed. The summary line then
+says what was left out. `docs/audit/` is in the ledger list for the flag's
+promise, though its files are never listed (only `docs/*.md` is).
 
 A steering pass's measurement, and it deletes nothing. It lists
 
@@ -184,7 +194,55 @@ def blame_dates(root, rel):
 
 # --- the measurement -------------------------------------------------------
 
-def measure(root=ROOT, since_days=30, today=None, blame=True):
+LEDGERS = ('DECISIONS', 'JOURNAL', 'PARKED', 'RUNS')
+LEDGER_DIRS = ('docs/audit/',)
+
+
+def doc_path(name):
+    """`ALPHA`, `ALPHA.md` and `docs/ALPHA.md` all name `docs/ALPHA.md`."""
+    name = name.strip()
+    if name.startswith('docs/'):
+        name = name[len('docs/'):]
+    if not name.endswith('.md'):
+        name += '.md'
+    return f'docs/{name}'
+
+
+def is_ledger(rel):
+    return rel.startswith(LEDGER_DIRS) or rel in {f'docs/{name}.md' for name in LEDGERS}
+
+
+def choose(found, only_docs=None, no_ledgers=False, left_out=None):
+    """The `(rel, sections)` pairs whose section rows are listed. The
+    ledgers' rows are cited by number, never by heading, so `no_ledgers`
+    drops them; `only_docs` keeps the documents it names (a name the tree
+    does not hold raises ValueError). Only the rows are chosen: every
+    tracked file still names. `left_out`, when given, is filled with what
+    was left out, for the summary line."""
+    kept = list(found)
+    if no_ledgers:
+        dropped = [(rel, secs) for rel, secs in kept if is_ledger(rel)]
+        kept = [(rel, secs) for rel, secs in kept if not is_ledger(rel)]
+        if left_out is not None:
+            left_out['excluded'] = [*LEDGERS, *LEDGER_DIRS]
+            left_out['excluded_sections'] = sum(len(secs) for _, secs in dropped)
+    if only_docs:
+        wanted = [doc_path(name) for name in only_docs]
+        known = {rel for rel, _ in found}
+        unknown = [name for name, rel in zip(only_docs, wanted) if rel not in known]
+        if unknown:
+            raise ValueError(f"no such document: {', '.join(unknown)}")
+        others = [(rel, secs) for rel, secs in kept if rel not in wanted and secs]
+        kept = [(rel, secs) for rel, secs in kept if rel in wanted]
+        if left_out is not None:
+            left_out['only'] = sorted({rel[len('docs/'):-len('.md')] for rel in wanted})
+            left_out['only_left_out_docs'] = len(others)
+            left_out['only_left_out_sections'] = sum(len(secs) for _, secs in others)
+    return kept
+
+
+def measure(root=ROOT, since_days=30, today=None, blame=True, only_docs=None, no_ledgers=False,
+            left_out=None):
     root = Path(root)
     today = today or datetime.date.today()
     paths = tracked(root)
@@ -226,7 +284,8 @@ def measure(root=ROOT, since_days=30, today=None, blame=True):
                      'bytes': len(texts.get(rel, '').encode('utf-8')) if rel in texts else (root / rel).stat().st_size,
                      'unnamed': not by, 'named_by': sorted(by)[:3]})
 
-    found = [(rel, sections(texts[rel])) for rel in docs if rel in texts]
+    found = choose([(rel, sections(texts[rel])) for rel in docs if rel in texts], only_docs, no_ledgers,
+                   left_out)
     words = {}
     for rel, secs in found:
         for _, heading, *_ in secs:
@@ -258,16 +317,25 @@ def measure(root=ROOT, since_days=30, today=None, blame=True):
     return rows
 
 
-def summary(rows):
+def summary(rows, left_out=None):
     scripts = [r for r in rows if r['kind'] == 'script']
     secs = [r for r in rows if r['kind'] == 'section']
     return {'scripts': len(scripts), 'scripts_unnamed': sum(r['unnamed'] for r in scripts),
-            'sections': len(secs), 'sections_unnamed': sum(r['unnamed'] for r in secs)}
+            'sections': len(secs), 'sections_unnamed': sum(r['unnamed'] for r in secs), **(left_out or {})}
 
 
 def summary_line(s):
-    return (f"retire: {s['scripts_unnamed']} of {s['scripts']} scripts and "
+    line = (f"retire: {s['scripts_unnamed']} of {s['scripts']} scripts and "
             f"{s['sections_unnamed']} of {s['sections']} sections unnamed")
+    if 'excluded' in s:
+        names = [n for n in s['excluded'] if n not in LEDGER_DIRS]
+        dirs = [n for n in s['excluded'] if n in LEDGER_DIRS]
+        line += (f"; excluded the ledgers {', '.join(names)} and {', '.join(dirs)} "
+                 f"({s['excluded_sections']} sections)")
+    if 'only' in s:
+        line += (f"; only {', '.join(s['only'])} ({s['only_left_out_docs']} other documents, "
+                 f"{s['only_left_out_sections']} sections, left out)")
+    return line
 
 
 def main(argv=None):
@@ -278,9 +346,20 @@ def main(argv=None):
     ap.add_argument('--today', type=datetime.date.fromisoformat, help='the day ages are counted from (YYYY-MM-DD)')
     ap.add_argument('--no-blame', action='store_true', help="date a section by its document's last commit")
     ap.add_argument('--json', action='store_true', help='the rows and the summary as JSON')
+    ap.add_argument('--doc', action='append', default=[], metavar='NAME',
+                    help='list only this document\'s sections (`RUNS`, `RUNS.md` or `docs/RUNS.md`); repeatable')
+    ap.add_argument('--no-ledgers', action='store_true',
+                    help=f"leave out the ledgers' sections — {', '.join(LEDGERS)} and "
+                         f"{', '.join(LEDGER_DIRS)} — whose rows are cited by number, never by heading")
     a = ap.parse_args(argv)
-    rows = measure(a.root, a.since_days, a.today, blame=not a.no_blame)
-    s = summary(rows)
+    left_out = {}
+    try:
+        rows = measure(a.root, a.since_days, a.today, blame=not a.no_blame, only_docs=a.doc,
+                       no_ledgers=a.no_ledgers, left_out=left_out)
+    except ValueError as e:
+        print(f"retire: {e}", file=sys.stderr)
+        return 2
+    s = summary(rows, left_out)
     if a.json:
         json.dump({'rows': rows, 'summary': s}, sys.stdout, indent=1)
         sys.stdout.write('\n')

@@ -55,9 +55,9 @@ FILES = {
 }
 
 
-def build(tmp):
+def build(tmp, files=FILES):
     root = Path(tmp)
-    for rel, text in FILES.items():
+    for rel, text in files.items():
         p = root / rel
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_text(text)
@@ -141,6 +141,71 @@ class Retire(unittest.TestCase):
         self.assertEqual(data['summary'], {'scripts': 5, 'scripts_unnamed': 2,
                                            'sections': 11, 'sections_unnamed': 4})
         self.assertEqual([r['unnamed'] for r in data['rows']][:6], [True] * 6)
+
+
+# The ledgers: their rows are cited by number (`run1148`, `parked 3505a`,
+# `item 3511`), never by heading, so their sections read unnamed by the
+# thousand and bury the rest (the fifty-second pass: 1939 of 3056).
+LEDGERS = dict(FILES, **{
+    'docs/RUNS.md': '# RUNS\n\n## run1 — a capture\n\nThe Lonely heading is ALPHA\'s.\n\n## run2 — another\n\nr\n',
+    'docs/PARKED.md': '# PARKED\n\n## 1a. a parked row\n\np\n',
+    'docs/JOURNAL.md': '# JOURNAL\n\n## 2026-10-01 — a pass\n\nj\n',
+    'docs/audit/2026-10-01-x.md': '# x\n\n## An audit section\n\na\n',
+})
+
+
+class Filters(unittest.TestCase):
+    """`--no-ledgers` and `--doc` (the fifty-second pass): the section rows
+    a pass reads are chosen, never the namers — a ledger still names what
+    it names — and the summary line says what was left out."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = build(self.tmp.name, LEDGERS)
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def run_main(self, *args):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = retire.main(['--root', str(self.root), '--today', TODAY.isoformat(), '--no-blame', *args])
+        return code, out.getvalue().rstrip('\n').split('\n')
+
+    def test_no_ledgers_drops_the_ledgers_sections_but_not_their_names(self):
+        rows = retire.measure(self.root, since_days=30, today=TODAY, blame=False, no_ledgers=True)
+        docs = {r['path'] for r in rows if r['kind'] == 'section'}
+        self.assertEqual(docs, {'docs/ALPHA.md', 'docs/BRAVO.md'})
+        by = {r['name']: r['unnamed'] for r in rows}
+        # RUNS still names ALPHA's lonely heading, and the scripts stay.
+        self.assertFalse(by['ALPHA § Lonely heading'])
+        self.assertIn('tools/unused.py', by)
+        code, lines = self.run_main('--no-ledgers')
+        self.assertEqual(code, 0)
+        self.assertEqual(lines[-1], 'retire: 2 of 5 scripts and 2 of 7 sections unnamed; '
+                                    'excluded the ledgers DECISIONS, JOURNAL, PARKED, RUNS and docs/audit/ '
+                                    '(8 sections)')
+
+    def test_doc_keeps_only_the_named_documents(self):
+        rows = retire.measure(self.root, since_days=30, today=TODAY, blame=False, only_docs=['ALPHA', 'docs/RUNS.md'])
+        self.assertEqual({r['path'] for r in rows if r['kind'] == 'section'}, {'docs/ALPHA.md', 'docs/RUNS.md'})
+        code, lines = self.run_main('--doc', 'ALPHA', '--doc', 'RUNS.md')
+        self.assertEqual(code, 0)
+        self.assertEqual(lines[-1], 'retire: 2 of 5 scripts and 3 of 6 sections unnamed; '
+                                    'only ALPHA, RUNS (4 other documents, 9 sections, left out)')
+
+    def test_an_unknown_document_is_refused(self):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code, _ = self.run_main('--doc', 'NOSUCH')
+        self.assertEqual(code, 2)
+        self.assertIn('NOSUCH', err.getvalue())
+
+    def test_the_json_summary_carries_the_exclusion(self):
+        code, lines = self.run_main('--no-ledgers', '--json')
+        data = json.loads('\n'.join(lines))
+        self.assertEqual(data['summary']['excluded'], ['DECISIONS', 'JOURNAL', 'PARKED', 'RUNS', 'docs/audit/'])
+        self.assertEqual(data['summary']['excluded_sections'], 8)
 
 
 if __name__ == '__main__':
