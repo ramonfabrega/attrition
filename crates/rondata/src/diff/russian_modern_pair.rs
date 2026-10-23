@@ -315,6 +315,54 @@ fn russian_modern_pair_run1166b_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 7517, "run1166b baseline");
 }
 
+/// run1168: the gap before the word 4097's window, blocks 3928..4098 at the
+/// long's detail — from run1161b's last blocks through the word's block
+/// (item 3522).
+pub(crate) const RUN1168: &str = "gamelog-run1168-eastindies-russian-modern-window-3928-4098.txt";
+
+/// The window: block 3928 through 4098; the word 4097's own block is 4098.
+pub(crate) const WIDENING_RUSSIAN_MODERN_GAP_4097: (i64, i64) = (3928, 4098);
+
+/// **The gap before the word 4097's window**: run1168 walked from run1148's
+/// start with the recorder on (item 3522).
+pub(crate) fn russian_modern_gap_4097_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1168",
+        &[(RUN1168, WIDENING_RUSSIAN_MODERN_GAP_4097.0)],
+        WIDENING_RUSSIAN_MODERN_GAP_4097,
+        1,
+        &[4098],
+        true,
+    )
+}
+
+/// **The gap before the word 4097, widened whole** (item 3522): every
+/// dumped record on run1168's blocks, both directions.
+#[test]
+fn russian_modern_pair_run1168_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_gap_4097_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 170, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 1881, "run1168 baseline");
+}
+
 /// run1162: the gap before the word 3682's window, blocks 259..3682 at one
 /// block in twenty, at the long's detail with `LEADERS=9` (item 3516).
 pub(crate) const RUN1162: &str = "gamelog-run1162-eastindies-russian-modern-stride-259-3682.txt";
