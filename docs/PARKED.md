@@ -10012,13 +10012,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OP — reserved
+## Parked by item 3513, 2026-10-23 — the Turks at a held Enlightenment age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3513a. A held-age pair can share a held-out lobby's triple.** `(7, 8, 3)` is both this pair and
+  `battery::BATTERY`'s `GreatSaharaTurkishTier3` (item 3385). The two lobbies differ by age and resources: that one
+  plays ages 0–7 on `STARTING_RESOURCES 1`, and this one holds age 4 on 7. `SCORED_LOBBIES` keys on the triple, so
+  the pair stays out of it, and its identity test reads both captures' `GAME INFO` instead (`docs/AI.md` §307). Two
+  things are open. Is a fix tuned on this pair still "never debugged against" for the held-out game (DECISIONS 54,
+  61)? And should a lobby's identity carry its ages? **Score**: the held-out battery's, if a fix on this pair moves
+  `GreatSaharaTurkishTier3`; the pass's to rule.
+- **3513b. The booked units were not the parting's.** The booking named `JANISSARYROYAL`, `BASILICACANNON`,
+  `CAMELCORPS`, `JUNKERS`, `ROYALGUARD` and `MANCHUMUSKETEERS`' kin. The first parting is a Citizen (50) and a
+  Village (414). The game fields Royal Janissaries (113) and Basilica Cannon (277) in quantity, and no Camel Corps,
+  Junkers, Imperial Guard or Manchu Musketeers. **Score**: none until a word parts on one.
 
 ## Parked by item 3514, 2026-10-23 — the Space Program halves the Aztecs' ICBM, and the pair is whole
 

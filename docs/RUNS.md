@@ -25067,3 +25067,67 @@ SHA-256 `768d95462cb8fd2ce52367038706d5434440c18737ae31ff738d85d1a50f7207`.
 
 **What it holds**: the Russian pair's game on every frame under `cover=1`, the sea map's lockstep trace of an age-6
 game (`blind::TRACES`).
+
+## run1158 — the Turks at a held Enlightenment age, Great Sahara: the `DUMP_ALL` start (2026-10-23, item 3513, `att-3513`)
+
+`docs/AI.md` §307. The Chinese pair's lobby, with the nation and the age varied, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1158 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 8 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=3`.
+- Pool lane 1. Launched 17:20:01, exited 17:20:26 (25.0 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 8, five files restored. `GAME INFO` reads back
+  `DIFFICULTY 3`, `STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4` and `STARTING_RESOURCES 7`. Filed with
+  `filerun.py run1158 greatsahara-turkish-enlightenment-start`. The first launch (17:19:30) refused in argparse
+  before any lane was taken: the profile flags had gone in as one zsh word.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1158-greatsahara-turkish-enlightenment-start.txt`, 149,912,717 bytes,
+SHA-256 `55437237bfbc852257e263cf40b199f2d386a989c841af8c83e687d4b700511f`.
+
+Archive `rontrace-run1158.log`, 8,299,168 bytes,
+SHA-256 `0d6c5c8d6c5ffab0089756f02607c0ca9679fdf2928dd699ea13e26575395e22`.
+
+**What it holds**: the start of `turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1159 — the Turks at a held Enlightenment age, Great Sahara: the draw stream to the game's end (2026-10-23, item 3513, `att-3513`)
+
+`docs/AI.md` §307. 3507's run1147 recipe with this lobby: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 8
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1158's
+lobby.
+- Pool lane 2, beside run1158. Launched 17:20:01, exited 17:20:41 (40.7 s launch to exit). `success`. **The game
+  ended itself on 3812** (closing block 3813, `ended_early`). `GAME INFO` reads back as run1158's. `rngcmp.py`
+  against run1158: 37 frames identical. Filed with `filerun.py run1159 greatsahara-turkish-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1159-greatsahara-turkish-enlightenment-trace.txt`, 21,325,251 bytes,
+SHA-256 `ad5c853a514694a433c4c026c3ef2c93a906bcfb05e1cd005b03597486c0c9b6`.
+
+Archive `rontrace-run1159.log`, 51,369,632 bytes,
+SHA-256 `89b26bbdd8ea73ff2d70badf55740a38eb15f1bee445a19c3e69db7b4c081729`.
+
+**What it holds**: the pair's first try. `turkish_enlightenment_pair_first_parting` walks it from run1158. The
+first try parts on **frame 2501 of 3812** (count and sequence): ours 12 draws, theirs 13, index 0, theirs
+`Unit::do_idle+0x7d`. The Citizen `1/20` finishing the Village `1/2020` goes idle in theirs only.
+
+## run1159b — the Turks at a held Enlightenment age, Great Sahara: the word 2501's window, blocks 2495..2751 (2026-10-23, item 3513, `att-3513`)
+
+**Disk gap**: run1158 holds only the first blocks, and run1159 every hundredth block at `UNITS`/`GUYS` detail, so no
+dump held the word's block 2502, a building record or a leader record near it. `--map 7 --end-frame 2751 --timeout
+3600 --log-window 2495 2751 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 8 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover
+cover=0`.
+- Pool lane 1. Launched 17:25:12, exited 17:25:56 (44.5 s launch to exit). `success`: 2752 frames, last frame
+  2751. `rngcmp.py` against run1159: **2752 frames in common, 0 differing**. Filed with `filerun.py run1159b
+  greatsahara-turkish-enlightenment-window-2495-2751`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1159b-greatsahara-turkish-enlightenment-window-2495-2751.txt`, 487,830,551 bytes,
+SHA-256 `687858d1c86f566f07f56dc755a3c054e7df2f6d3fe594e03a53e8c4ca4294bd`.
+
+Archive `rontrace-run1159b.log`, 24,371,584 bytes,
+SHA-256 `2f7931e105dc687ef09930bdd0097dba062159bda5e3f2d4e25ef860282c4394`.
+
+**What it holds**: `turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole`, the word 2501 (block
+2502).
