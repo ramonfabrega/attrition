@@ -27,6 +27,10 @@ pub(crate) struct Pair {
     pub difficulty: i32,
     /// `STARTING_TECHNOLOGY`: 8 is "All Technologies".
     pub starting_technology: i32,
+    /// `ENDING_TECHNOLOGY`: the last age the game allows, 0 Ancient … 7
+    /// Information; 7 is every age (item 3506, the late-age pairs, hold
+    /// an age by setting it to the start's).
+    pub ending_technology: i32,
     /// `STARTING_RESOURCES`: 7 is the "Deathmatch" row.
     pub starting_resources: i32,
     pub start: &'static str,
@@ -260,12 +264,54 @@ pub(crate) struct Pair {
     pub sequence: i64,
 }
 
+impl Pair {
+    /// **The lobby read back** from a capture's own `GAME INFO` and
+    /// `PLAYER` blocks: map, difficulty, the start and the end of the age
+    /// range, the resources row, the rules, and the two nations. A lane
+    /// that stopped carrying a `--profile` setting reads back its default
+    /// here (item 3506).
+    pub(crate) fn assert_lobby(&self, init: &crate::gamelog::Initial<'_>, name: &str) {
+        let info = |key: &str| {
+            init.game_info
+                .iter()
+                .find(|(k, _)| *k == key)
+                .and_then(|(_, v)| v.parse::<i32>().ok())
+        };
+        assert_eq!(info("MAP_STYLE"), Some(self.map_style), "{name}");
+        assert_eq!(info("DIFFICULTY"), Some(self.difficulty), "{name}");
+        assert_eq!(
+            info("STARTING_TECHNOLOGY"),
+            Some(self.starting_technology),
+            "{name}"
+        );
+        assert_eq!(
+            info("ENDING_TECHNOLOGY"),
+            Some(self.ending_technology),
+            "{name}"
+        );
+        assert_eq!(
+            info("STARTING_RESOURCES"),
+            Some(self.starting_resources),
+            "{name}"
+        );
+        assert_eq!(info("GAME_RULES"), Some(1), "{name}");
+        let tribes: Vec<_> = init
+            .leaders
+            .iter()
+            .filter(|l| l.who < 2)
+            .map(|l| (l.who, l.tribe))
+            .collect();
+        assert_eq!(tribes, [(0, 4), (1, i64::from(self.ai_tribe))], "{name}");
+    }
+}
+
 pub(crate) const COVERAGE: Pair = Pair {
     name: "EastIndiesPersianAllTech",
     map_style: 18,
     ai_tribe: 23,
     difficulty: 5,
     starting_technology: 8,
+    ending_technology: 7,
     starting_resources: 7,
     start: "gamelog-run651-eastindies-persian-alltech-start.txt",
     long: (
@@ -379,36 +425,7 @@ fn coverage_pair_captures_say_their_lobby() {
         let text = crate::capture::read(&path);
         let log = Log::parse(&text);
         let init = log.initial().expect("an initial state");
-        let info = |key: &str| {
-            init.game_info
-                .iter()
-                .find(|(k, _)| *k == key)
-                .and_then(|(_, v)| v.parse::<i32>().ok())
-        };
-        assert_eq!(info("MAP_STYLE"), Some(COVERAGE.map_style), "{name}");
-        assert_eq!(info("DIFFICULTY"), Some(COVERAGE.difficulty), "{name}");
-        assert_eq!(
-            info("STARTING_TECHNOLOGY"),
-            Some(COVERAGE.starting_technology),
-            "{name}"
-        );
-        assert_eq!(
-            info("STARTING_RESOURCES"),
-            Some(COVERAGE.starting_resources),
-            "{name}"
-        );
-        assert_eq!(info("GAME_RULES"), Some(1), "{name}");
-        let tribes: Vec<_> = init
-            .leaders
-            .iter()
-            .filter(|l| l.who < 2)
-            .map(|l| (l.who, l.tribe))
-            .collect();
-        assert_eq!(
-            tribes,
-            [(0, 4), (1, i64::from(COVERAGE.ai_tribe))],
-            "{name}"
-        );
+        COVERAGE.assert_lobby(&init, name);
     }
     let Some(path) = dump(COVERAGE.long.0) else {
         return;

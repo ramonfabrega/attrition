@@ -18,6 +18,7 @@ pub(crate) const MONGOL: Pair = Pair {
     ai_tribe: 17,
     difficulty: 3,
     starting_technology: 8,
+    ending_technology: 7,
     starting_resources: 7,
     start: "gamelog-run774-eastindies-mongol-alltech-start.txt",
     long: (
