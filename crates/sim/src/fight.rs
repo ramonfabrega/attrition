@@ -4663,13 +4663,10 @@ impl Sim {
                                 Obj::Building(b) => self.buildings[b].targeted,
                             };
                             eprintln!(
-                                "  probe nearby f{} {aw}/{ao} cav {cavarch} -> {tw}/{to} dist {dist} targeted {tg} value {value} in_range {in_range} score {score} best {:?} pos {:?} at {:?} bearing {} facing {:?}",
+                                "  probe nearby f{} {aw}/{ao} cav {cavarch} -> {tw}/{to} dist {dist} targeted {tg} value {value} in_range {in_range} score {score} best {:?} pos {:?}",
                                 self.frame,
                                 best.map(|(b, _)| b),
-                                self.pos_of(o),
-                                at,
-                                find_angle(self.pos_of(o).x - at.x, self.pos_of(o).y - at.y).0,
-                                match attacker { Obj::Unit(i) => Some((self.units[i].movement.facing.0, self.units[i].movement.heading.0)), _ => None },
+                                self.pos_of(o)
                             );
                         }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
