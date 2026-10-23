@@ -10442,3 +10442,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3530: the Chinese word 3271 (`docs/AI.md` §305; `docs/RUNS.md` run1175) ====
 #   run1175  --map 7 --end-frame 3522 --log-window 3258 3522 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --cover cover=0   (the word 3271's window; run1154's lobby)
 # Checks: `rngcmp.py` run1155 vs run1175 -> 3523 identical.
+# ==== item 3512: the British at a held Enlightenment age, East Indies (`docs/AI.md` §306; `docs/RUNS.md` run1156, run1157, run1157b) ====
+#   run1156  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 11 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1157  run1147's line with --map 18 --ai-tribe 11 and run1156's lobby   (the draw stream; ended itself on 5522)
+#   run1157b --map 18 --end-frame 4837 --log-window 4581 4837 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 11 --cover cover=0   (the word 4587's window)
+# Checks: `rngcmp.py` run1156 vs run1157 -> 37 identical; run1157 vs run1157b -> 4838 identical.

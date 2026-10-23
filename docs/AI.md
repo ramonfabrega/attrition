@@ -26350,12 +26350,61 @@ compared. run1184 goes **239 → 81** keys, and no unit's position parts in the 
 rows, `dest_angle` on `1/138`, `1/110` and `1/75`, who=1's food economy from 4376, and `mylos` ours 4 against
 theirs 16 on five of who=1's units from 4376 (3540b). Every other lobby's `first_parting` holds (40 of 40).
 
-## 306. Reserved for the next item on the AI track
+## 306. The British at a held Enlightenment age, East Indies: the Sloop's round a frame early, first try 4587 of 5522 (2026-10-23, item 3512)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3512, Opus 5.5, the AI track (DECISIONS 90, 91): run1156, run1157 and run1157b, on the click-free pool.*
+
+**The lobby.** The coverage pair's (§127: East Indies, `MAP_STYLE 18`, human Nubians against a computer at Toughest,
+seed 12345, `STARTING_RESOURCES 7`) with the nation varied to the **British (11)** and the age **held at
+Enlightenment**: `STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`. Both captures read the lobby back from their own
+`GAME INFO` through `Pair::assert_lobby` (`british_enlightenment_pair_captures_say_their_lobby`).
+
+**The captures.**
+- run1156 is the `DUMP_ALL` start.
+- run1157 is the long to the game's end: `end:UNITS=3,GUYS=2` on `--stride 100`, with 3507's `start:` and `endgame:`
+  detail lines. **The game ends itself at 5522** (closing block 5523). The walk is seeded from run1156's initial
+  state (3506a).
+- run1157b is the word's window, blocks 4581..4837.
+
+All three are one game by `rngcmp.py` (`docs/RUNS.md`).
+
+**The roster the booking named.** Over the whole game the British field the Highlanders (`HIGHLANDER`, 114), the
+Fusiliers (136), the Sloop (327), the Man o' War (344) and the Bomb Ketch (`MORTARSHIP`, 347), with the Carabineer,
+Hussar, Cuirassier, Cannon and Transport Galleon. The Red Coats (`MUSKETEERS`), the Mortar, `RIFLEHORSE`,
+`HORSEGUARDGREN`, the Clipper and the Heavy Fireship never appear. The rubric counts a lockstep game only to its
+word, so the pair adds no type to `census::RUBRIC_UNIT_TYPES_SEEN`.
+
+**First try: frame 4587 of 5522**, by the count and the sequence (`british_enlightenment_pair_first_parting`). Ours
+spends 26 draws and theirs 25. Both spend the same 22 unit draws first. At index 22 ours draws
+`Unit::close+0xcb6 < Object::die+0x29`, a death, before the three `Farms::inc_time+0x1ae`, and theirs goes straight to
+the farms. Theirs' same death is on frame 4588 (`report.py … when Unit::close`). **The direction is ours: ours kills
+a frame early.**
+
+**The value diff: the state parts on the word's frame.**
+`british_enlightenment_pair_run1157b_s_word_frame_is_widened_whole` walks run1157b from run1156 over 256 blocks and
+finds 2773 keys. Block 4581 holds 96 rows, all standing families: `form`, both leaders' `SITE[i].reg`, `aggression`,
+and who=1's groups' `held` and pools. Blocks 4582..4587 part nothing. Block 4588 (the state after 4587):
+
+| record | field | ours | theirs |
+|---|---|---|---|
+| human's Citizen `0/13` (TypeIndex 50, land) | `damage` | 72 (dead) | 63 |
+| `0/13` | `hold_frames` | 30 | 0 |
+| `0/13` | orders, path | 0, 0 | 2, 1 |
+| city `0/2000` | `raid_stamp` | 4587 | 4560 |
+| the human's leader | `active`, `control`, `num_units[0]`, `peasants` | 11, 11, 10, 10 | 12, 12, 11, 11 |
+| building `0/2004`, where `0/13` gathers | `gather_down[-1]` | −1 | 13 |
+
+The blow is a round from the **Sloop `1/61` (TypeIndex 327, sea)**, on an `ATTACKORDER` at `0/13` from (3336, 6840).
+Ours' round (`RON_DEBUG_AMMO=4570-4589`) reads `cur_time` 1 of `total_time` 8 on block 4581, so it is made on 4580,
+the frame theirs calls `Ammo::init` (`Objects::add_ammo < GraphicEvents::execute_game_events+0x40d`). It is aimed at
+(4920, 5319), `rolling`, and lands on 4587. Theirs kills on 4588, one frame later.
+
+**The next word**: frame 4587, ours 26 draws against 25, index 22. The direction is ours. **The hypothesis, from the
+shape alone**, is that theirs' Sloop round flies 9 frames, not 8. The round would leave from a point on the hull
+other than the unit's own: a turret or muzzle row the Sloop's piece lacks in `sim::pivot` and `launch.rs`, as the
+Dreadnought's (item 3523) and the Destroyer's (item 3525) did. The dump prints no `AMMO` record at this detail. A
+packet at `RON_STATE_FRAME=4580` reading the live `Ammo`'s `total_time` and launch point would kill or keep it. The
+block 4595 parting (`1/73`'s move to (…, 11256) against (…, 8184), group 76) is downstream of 4588.
 
 ## 307. Reserved for the next item on the AI track
 

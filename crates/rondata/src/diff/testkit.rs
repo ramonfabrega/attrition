@@ -9850,6 +9850,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // building found by its two flag reads (item 3539), the same window
     // (the closing block 4548), and the closing state scored by
     // `run1153_japanese_industrial_pair_closing_state`.
+    // **The held Enlightenment pair's word** (item 3512): the British at a
+    // held Enlightenment age, East Indies — 4587 first try (the Sloop
+    // `1/61`'s round kills the human's Citizen `0/13` a frame before
+    // theirs), widened on run1157b over 4581..4837 (block 4588).
+    (
+        "BRITISH_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT_PAIR_WORD,
+        Some("british_enlightenment_pair_run1157b_s_word_frame_is_widened_whole"),
+        3512,
+        Some(crate::diff::british_enlightenment_pair::WIDENING_BRITISH_ENLIGHTENMENT_FRAME_4587),
+    ),
     (
         "JAPANESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL_PAIR_WORD,
@@ -11388,6 +11399,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_467,
         endpoint: Some("run1155_chinese_industrial_pair_closing_state"),
         window: Some("chinese_industrial_closing_window"),
+    },
+    // The British at a held Enlightenment age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 4), East Indies (item 3512): first try 4587, the
+    // Sloop's round a frame early, of a game that ends itself on 5522.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesBritishEnlightenment",
+        named: "East Indies (British, Enlightenment)",
+        word: crate::diff::british_enlightenment_pair::BRITISH_ENLIGHTENMENT_PAIR_WORD,
+        length: 5_522,
+        endpoint: None,
+        window: Some("british_enlightenment_frame_4587_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

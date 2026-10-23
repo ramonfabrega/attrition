@@ -24970,3 +24970,65 @@ SHA-256 `759d100604c88ddafebabd80d2969d9861bc8b100d01d4762a692f06b9b176fe`.
 
 **What it holds**: the Aztec pair's game on every frame under `cover=1`, the land map's lockstep trace of an age-7 game
 (`blind::TRACES`).
+
+## run1156 — the British at a held Enlightenment age, East Indies: the `DUMP_ALL` start (2026-10-23, item 3512, `att-3512`)
+
+`docs/AI.md` §306. The coverage pair's lobby, with the nation and the age varied, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1156 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 11 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 16:58:56, exited 16:59:22 (26.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 11, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`. Filed with `filerun.py run1156
+  eastindies-british-enlightenment-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1156-eastindies-british-enlightenment-start.txt`, 153,799,185 bytes,
+SHA-256 `e1985a135d8fbc186c7bb2a2eca919159fe449dd91cb56db4df3593c6e0656c6`.
+
+Archive `rontrace-run1156.log`, 10,157,088 bytes,
+SHA-256 `977aca87b71cb7ec530dcd9c7bb403cc4c116fdf0ed4600a5b4ebe50f5ad87d8`.
+
+**What it holds**: the start of `british_enlightenment_pair::BRITISH_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1157 — the British at a held Enlightenment age, East Indies: the draw stream to the game's end (2026-10-23, item 3512, `att-3512`)
+
+`docs/AI.md` §306. 3507's run1147 recipe with this lobby: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 11
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1156's
+lobby.
+- Pool lane 2, beside run1156. Launched 16:59:01, exited 16:59:32 (31.6 s launch to exit). `success`. **The game
+  ended itself on 5522** (closing block 5523, `ended_early`). `GAME INFO` reads back as run1156's. `rngcmp.py`
+  against run1156: 37 frames identical. Filed with `filerun.py run1157 eastindies-british-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1157-eastindies-british-enlightenment-trace.txt`, 38,608,288 bytes,
+SHA-256 `b0eccd5748dd8a009d1a69d5ed052cb3b594d62cd1f65f099794d77db5b0dc0e`.
+
+Archive `rontrace-run1157.log`, 188,101,312 bytes,
+SHA-256 `91609b931ef4406aca716ed1d2d5ef47b8ac30abff94d52fe32019e0526deb24`.
+
+**What it holds**: the pair's first try. `british_enlightenment_pair_first_parting` walks it from run1156. The first
+try parts on **frame 4587 of 5522** (count and sequence): ours 26 draws, theirs 25, index 22, ours
+`Unit::close+0xcb6`: the Sloop `1/61`'s round kills the human's Citizen `0/13` a frame before theirs.
+
+## run1157b — the British at a held Enlightenment age, East Indies: the word 4587's window, blocks 4581..4837 (2026-10-23, item 3512, `att-3512`)
+
+**Disk gap**: run1156 holds only the first blocks, and run1157 every hundredth block at `UNITS`/`GUYS` detail, so no
+dump held the word's block 4588. `--map 18 --end-frame 4837 --timeout 3600 --log-window 4581 4837 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 11 --profile STARTING_TECHNOLOGY=4 --profile
+ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`.
+- Pool lane 1. Launched 17:01:24, exited 17:02:11 (47.1 s launch to exit). `success`: 4838 frames, last frame 4837.
+  `rngcmp.py` against run1157: **4838 frames in common, 0 differing**. Filed with `filerun.py run1157b
+  eastindies-british-enlightenment-window-4581-4837`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1157b-eastindies-british-enlightenment-window-4581-4837.txt`, 576,260,320 bytes,
+SHA-256 `9024ee3095b94f451e45f0cb5d86ab871c314c5612495145a5ad7195d728686e`.
+
+Archive `rontrace-run1157b.log`, 166,023,104 bytes,
+SHA-256 `0a7d3439d2ca2d0b8a72cb01b6bd0548e0a49314b9ffe4e274c5359992783abf`.
+
+**What it holds**: `british_enlightenment_pair_run1157b_s_word_frame_is_widened_whole` (256 blocks, 2773 keys): on the
+word's block 4588 `0/13` is dead in ours (`damage` 72) and alive in theirs (63).
