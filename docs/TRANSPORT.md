@@ -1177,6 +1177,17 @@ Checks, cheapest first:
    (`run82_s_window_is_the_east_indies_ride_s_run_up`), which is where the
    792 was shown to be born inside the ride rather than before it.
 
+**The other landing, `Sim::boat_eject_all`: a boat that already stands at its
+shore** (item 3521, `docs/AI.md` §303; §6.4 has the first). `think_carry_civilian@005f37c0` (a worker or a scout
+aboard) ends, when the boat stands in its quarter-cell nearest the shore
+cell, in a one-boat `Group` and `Group::action_eject_all(0, −1, −1,
+−1)@00710b40`: `eject_contents(0, −1, 0, 1)`, so this time **`param_3 = 0`**
+and the passenger keeps its own (empty) list, and then a boat of the
+`TRANSPORTBARGE` or `MERCHANTFLEET` lineage with nothing left inside dies.
+A boat that `can_carry(AIR)` is skipped. run1153c: the Freighter `1/121`
+stands at (37272, 26520) on 3673, and on 3674 its Citizen `1/10` is ashore at
+(37416, 26280), on §6.4's ring.
+
 ## 13. What is not established
 
 - ~~**The whole ride, end to end, is un-oracled** … the three places the

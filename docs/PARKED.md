@@ -4122,7 +4122,7 @@ different, in-reach unit than the held non-combat-role one.
 
 (1847) **`Unit::think_carry`'s unmodelled arms** (1845; `docs/AI.md` §195): `think_carry_idle@005f2f30` (a transport with nothing of
 either kind aboard), the attack-carrier arm, `think_carry_military@005f3260` (the `(0)` call's fall-through), and
-`Group::action_eject_all` on a one-boat group (the shore arm's last step) all answer no / keep the cargo. The successor pair's
+~~`Group::action_eject_all` on a one-boat group (the shore arm's last step)~~ (built, item 3521, `docs/AI.md` §303) all answer no / keep the cargo. The successor pair's
 word moved to 2838, ours 101 draws against 16 on index 1 (`Guy::set_anim < Unit::do_idle` against `Guy::do_turn < Unit::move_step`) —
 a frame and a delta; whether the eject is on it is the next item's widening to say. Not built.
 
@@ -7977,7 +7977,7 @@ farm-covers-itself failure is realised as `buildings[b].ty = None`, a state the 
 ## Parked by item 3261, 2026-10-18 — the shape lane's sixteenth batch: what the crate models less than the original
 
 (3261a) `Group::action_eject_all`: the crate ignores `back_to_work` (a SEAM, now sweep-confirmed), has no 0x140/0x13e
-die-when-emptied step, no `eject_o`/`eject_who` arm (`Unit::come_out` walk), no `ignore_orders` prelude, and no
+die-when-emptied step ~~for a boat~~ (a one-boat group's is built, item 3521: `Sim::boat_eject_all`), no `eject_o`/`eject_who` arm (`Unit::come_out` walk), no `ignore_orders` prelude, and no
 `Group::field_0x10`/0x8cc object-index array (`buildings: &[usize]`). The sweep carries these inline; two modules.
 
 (3261b) `Guy::set_all_pivots`: the original writes `des[k]` and flag bits for nodes past the fourth; the crate drops them
@@ -8554,8 +8554,8 @@ The word closed at 7902 and the close compares whole (`docs/AI.md` §277). What 
 - **3346d. `BuildTypeData::blocked_tcoord@00636db0` seams.** `semaphore[1] & 8` is not carried (`sem8()` false); a tile
   region outside `0..64` or `-1` reads another field of the original's leader record and the sweep draws only `0..7`.
   `blocked_site` still does its own unseen tally beside the now-faithful per-tile `0x24` answer.
-- **3346e. `Unit::think_carry_civilian@005f37c0` seams in `SimCarryCiv` (not swept; only the steps are).** `eject_all` is
-  a no-op (the original builds a one-boat `Group` and calls `action_eject_all(0,-1,-1,-1)`); `military()` returns false
+- **3346e. `Unit::think_carry_civilian@005f37c0` seams in `SimCarryCiv` (not swept; only the steps are).** ~~`eject_all` is
+  a no-op (the original builds a one-boat `Group` and calls `action_eject_all(0,-1,-1,-1)`)~~ (built, item 3521: `Sim::boat_eject_all`, `docs/AI.md` §303); `military()` returns false
   (`think_carry_military@005f3260`); region slots are the dense-by-terrain stand-in. Same root as parked 3339b.
 - **3346f. `Unit::do_repair@005ee420` seams.** The complaint throttle (leader `+0x208`), message and sound are a UI SEAM
   (`feedback_stamp` returns `i32::MIN`); `LeaderDataEncrypt::scratch` is not compared; draws held to price 0..9, hits
@@ -10062,13 +10062,16 @@ words and edits nothing here; a refill lands when two remain.
   the STAND_GROUND gate, with no search, and does not read the `0x2000000` gate at all. **Score**: none until a
   word's frame names a STAND_GROUND chaser.
 
-## Parked by the next landing, slot OV — reserved
+## Parked by item 3521, 2026-10-23 — the Japanese boats' quarter and the civilian carrier's shore eject
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3521a) **`Sim::boat_eject_all`'s two arms no capture reaches** (3521; `docs/AI.md` §303): the air refusal (`can_carry(AIR)`,
+`is(0x1bf|0x15f|0x208, 1)`) and a passenger whose `come_out` refuses, which leaves the barge alive and loaded. Both are
+written from `Group::action_eject_all@00710b40` and `eject_contents@0064cd20` alone. A carrier that reaches its shore, or a
+crowded landing, would test them. Not booked: it names no score.
+
+(3521b) **The income's first parting, 2959, is a probe's and not a dump's** (3521): the long prints no leader record
+between 1601 and 3668. A `LEADERS=9` window over 2953..3209 would make the frame a diff: who=1's food and wealth income
+on block 2960, ours (the arm off) 40 short of theirs in each. It moves no word: the arm already closes the 3668 rows.
 
 ## Parked by the next landing, slot OW — reserved
 

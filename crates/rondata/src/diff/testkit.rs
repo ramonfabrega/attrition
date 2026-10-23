@@ -9799,12 +9799,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // held Industrial age, East Indies — 1351 first try (three Riflemen out
     // of a Barracks in theirs only), widened on run1153b over 1345..1601
     // (block 1352); **3674** with the Japanese Barracks arms of `get_cost`
-    // and `train_time`, widened on run1153c over 3668..3924 (block 3675).
+    // and `train_time`, widened on run1153c over 3668..3924 (block 3675);
+    // **3769** with the Japanese boats' quarter and `think_carry_civilian`'s
+    // shore eject (item 3521), the same window (block 3770).
     (
         "JAPANESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::japanese_industrial_pair::JAPANESE_INDUSTRIAL_PAIR_WORD,
         Some("japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole"),
-        3510,
+        3521,
         Some(crate::diff::japanese_industrial_pair::WIDENING_JAPANESE_INDUSTRIAL_FRAME_3674),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on

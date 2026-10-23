@@ -37,8 +37,13 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // `JAPANESE_BARRACKS_SPEED` -10 a tier): ours 73 draws against 94,
     // index 0 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
     // `Unit::think_scout+0x941`.
-    count: 3674,
-    sequence: 3674,
+    // Item 3521: 3674 -> 3769, `think_carry_civilian`'s shore eject
+    // (`Group::action_eject_all` on a one-boat group) built: who=1's
+    // Freighter `1/121` puts Citizen `1/10` ashore at (37416, 26280) on 3673
+    // and dies, as theirs does. Ours 14 draws against 15, index 14 — theirs
+    // `Object::take_damage+0xe1`, the human's Citizen `0/5` struck.
+    count: 3769,
+    sequence: 3769,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -203,7 +208,8 @@ fn japanese_industrial_pair_run1153b_s_word_frame_is_widened_whole() {
 pub(crate) const RUN1153C: &str =
     "gamelog-run1153c-eastindies-japanese-industrial-window-3668-3924.txt";
 
-/// The window: block 3668 through 3924; the word 3674's own block is 3675.
+/// The window: block 3668 through 3924; the word 3674's own block is 3675,
+/// and the word 3769's (item 3521) is 3770.
 pub(crate) const WIDENING_JAPANESE_INDUSTRIAL_FRAME_3674: (i64, i64) = (3668, 3924);
 
 /// **The word 3674's window**: run1153c walked from run1152's start with
@@ -250,5 +256,18 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // where theirs' stands out at (37416, 26280) and re-scouts
     // (`Unit::think_scout+0x941 < Unit::think_peasant`); `docs/AI.md`
     // section 303.
-    pin_eq!(w.firsts.len(), 2956, "run1153c baseline");
+    //
+    // Item 3521: 2946 with the Japanese boats' quarter on a fish
+    // (`calc_rare`'s water arm): on 3668 who=1's food and wealth income
+    // agree, 1520 and 1832 — two Fishermen on fish, 40 each; the state had
+    // first parted on frame 2959, the first boat's first paid gather (a
+    // probe; no leader record is dumped there). Then **955**
+    // with the shore eject: on 3674 `1/10` stands at (37416, 26280) on both
+    // sides and `1/121` is gone on both. The next word's block 3770 is in
+    // the window: theirs' human Citizen `0/5` is struck for 8 on 3769
+    // (`hits_left` ours 65, theirs 57; `damage_frame` 3769), Barracks
+    // `0/2004` for 11, city `0/2000`'s `raid_stamp` is 3769, and both
+    // leaders' `treaties` read ours 1 against theirs 3. **950** on the tree
+    // merged with item 3520's landing (`attack_pos.rs`), which closes five.
+    pin_eq!(w.firsts.len(), 950, "run1153c baseline");
 }
