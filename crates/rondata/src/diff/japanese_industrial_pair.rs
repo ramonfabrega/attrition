@@ -54,8 +54,15 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // `near` `0/5` in plain reach and fires on 3816, as theirs does. Ours
     // 17 draws against 15, index 1 — ours `Unit::fight+0x9b0`, theirs
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
-    count: 4343,
-    sequence: 4343,
+    // Item 3528: 4343 -> 4434, `fight`'s capture approach (`005fd8d1`-
+    // `005fda9b`): Napata `0/2000` is reduced on 4341, `valid_target`
+    // refuses it with its out-word set, and on 4342 the computer's Light
+    // Tank `1/49` walks to the spot (6360, 8568) round the midpoint at
+    // `QUEUE_FIRST` where ours had taken `0/3`. Ours 15 draws against 16,
+    // index 15 — theirs `Unit::close+0xcb6 < Object::die+0x29`: theirs'
+    // human `0/3` dies, struck for 10 more on 4410 (block 4411).
+    count: 4434,
+    sequence: 4434,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -355,5 +362,11 @@ fn japanese_industrial_pair_run1171_s_word_frame_is_widened_whole() {
     // none in ours, whose target is `0/3` from 4343 (`g.ox[0]` ours 3,
     // theirs 2000 on 4344, and `recharging` ours 40: ours fires); `docs/AI.md`
     // section 303.
-    pin_eq!(w.firsts.len(), 1362, "run1171 baseline");
+    // Item 3528: 1362 -> 922, the capture approach built. On the word's
+    // block 4343 `1/49` holds the `MOVEORDER` to (6360, 8568) on both sides
+    // (`orders.len` 3, `orders_x/y` (6360, 8568)), and on 4344 stands at
+    // (6500, 10065) with `g.ox[0]` 2000 and `recharging` 0, theirs' values;
+    // it agrees to block 4467. The first non-standing row is block 4411:
+    // the human's `0/3` `hits_left` ours 44 against theirs 34.
+    pin_eq!(w.firsts.len(), 922, "run1171 baseline");
 }
