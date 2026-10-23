@@ -9767,12 +9767,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 3515's `TRANSPORT_BONUS` prerequisite, widened on run1161b over
     // 3677..3933 (block 3683). **3778** after item 3516 (the economy, and
     // the Bark arm of the fire on the move's re-search), in the same window
-    // (block 3779).
+    // (block 3779). **3921** after item 3519 (the Cruiser's turrets), in
+    // the same window (block 3922).
     (
         "RUSSIAN_MODERN_PAIR_WORD",
         crate::diff::russian_modern_pair::RUSSIAN_MODERN_PAIR_WORD,
         Some("russian_modern_pair_run1161b_s_word_frame_is_widened_whole"),
-        3516,
+        3519,
         Some(crate::diff::russian_modern_pair::WIDENING_RUSSIAN_MODERN_FRAME_3682),
     ),
     // **The land map's held Modern pair** (item 3509): the Americans at a
@@ -11255,7 +11256,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Russians at a held Modern age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 6), East Indies (item 3508): the sequence parted
     // on frame 8, the computer's first make-list pass; 3682 after item 3515;
-    // 3778 after item 3516.
+    // 3778 after item 3516; 3921 after item 3519.
     AiWord {
         line: "Late ages",
         map: "EastIndiesRussianModern",
