@@ -7333,6 +7333,13 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 2229: 873 -> 877, the walk past 4637 to the word 4671.
     // Item 2259: 877 -> 923, the walk past 4671 to the word 4946.
     ("mongol_pair_first_parting", 923),
+    // The first late-age pair (item 3506): the Germans at All
+    // Technologies, East Indies, walked from run1144 to the game's end on
+    // run1145b; its closing state walks the same.
+    ("german_alltech_pair_first_parting", 1585),
+    ("run1145b_german_alltech_pair_closing_state", 1585),
+    // And run1145c (item 3506): the pair's last blocks, 4169..4176.
+    ("run1145c_s_closing_frame_is_widened_whole", 1585),
     // The peace pair walked to its word (item 2423): 858 reads in the walk
     // past 3479 to the word 4544, where it read none before.
     // Item 2460: 858 -> 1080, the walk past 4544 to the word 4859.
@@ -9735,6 +9742,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         2293,
         Some(crate::diff::mongol_pair::WIDENING_MONGOL_CLOSING),
     ),
+    // **The first late-age pair's word** (item 3506): the Germans at All
+    // Technologies, East Indies, whole on its first try — 4175, the game's
+    // last frame. run1145c widens the last blocks over 4169..4176 (the
+    // word's block 4176 is the closing block), and the closing state is
+    // scored by `run1145b_german_alltech_pair_closing_state`.
+    (
+        "GERMAN_ALLTECH_PAIR_WORD",
+        crate::diff::german_alltech_pair::GERMAN_ALLTECH_PAIR_WORD,
+        Some("run1145c_s_closing_frame_is_widened_whole"),
+        3506,
+        Some(crate::diff::german_alltech_pair::WIDENING_GERMAN_ALLTECH_CLOSING),
+    ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
     // Lakota food term, widened on run849 over 1978..2235 (block 1985);
@@ -10673,23 +10692,11 @@ pub(crate) fn ai_word_length(map: &str) -> i64 {
 /// battery's next lowest lobby, the Iroquois, joins the line first; the
 /// closed row chooses nothing. **The late-age pairs since item 3507**
 /// (DECISIONS 90): the late-age pairs are the headline and the battery is
-/// closed; the Aztecs at All Technologies on Great Sahara are the line's
-/// first open row.
+/// closed; the Germans closed whole on their first try (item 3506), and the
+/// Aztecs at All Technologies on Great Sahara are the line's first open row.
 pub(crate) const NEWEST_PAIR: &str = "Late ages";
 
 pub(crate) const AI_WORDS: &[AiWord] = &[
-    // **The Aztecs at All Technologies, Great Sahara** (DECISIONS 90, item
-    // 3507): a late-age pair, human Nubians against the Aztecs at Difficulty
-    // 3, `STARTING_TECHNOLOGY 8`; the game ends itself on 4565.
-    AiWord {
-        line: "Late ages",
-        map: "GreatSaharaAztecAllTech",
-        named: "Great Sahara (Aztecs)",
-        word: crate::diff::aztec_alltech_pair::AZTEC_ALLTECH_WORD,
-        length: 4_565,
-        endpoint: None,
-        window: Some("aztec_alltech_frame_4382_window"),
-    },
     // **The battery's Spanish word at Great Lakes** (DECISIONS 72, 83, 84;
     // item 3390): Great Lakes, the Spanish at Difficulty 4 — the held-out
     // battery's lowest open lobby on the measure of `02005991`, minted by
@@ -11167,6 +11174,30 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         // Item 2293: closed at the game's last frame.
         endpoint: Some("run775_mongol_pair_closing_state"),
         window: None,
+    },
+    // **The late-age pairs** (DECISIONS 90, item 3506): the Germans at All
+    // Technologies, East Indies — the coverage pair's lobby with the nation
+    // varied. Whole on its first try: the idle human is defeated at 4175.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesGermanAllTech",
+        named: "East Indies (Germans, All Technologies)",
+        word: crate::diff::german_alltech_pair::GERMAN_ALLTECH_PAIR_WORD,
+        length: 4_175,
+        endpoint: Some("run1145b_german_alltech_pair_closing_state"),
+        window: None,
+    },
+    // **The Aztecs at All Technologies, Great Sahara** (DECISIONS 90, item
+    // 3507): the line's second late-age pair, human Nubians against the Aztecs at Difficulty
+    // 3, `STARTING_TECHNOLOGY 8`; the game ends itself on 4565.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaAztecAllTech",
+        named: "Great Sahara (Aztecs)",
+        word: crate::diff::aztec_alltech_pair::AZTEC_ALLTECH_WORD,
+        length: 4_565,
+        endpoint: None,
+        window: Some("aztec_alltech_frame_4382_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

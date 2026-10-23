@@ -180,6 +180,9 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // at Great Sahara being item 3385's, promoted to the AI word (item 3390,
     // DECISIONS 72, 83, 84): the Spanish at Difficulty 4, Great Lakes.
     (14, 9, 4),
+    // The first late-age pair (item 3506, DECISIONS 90): the Germans at
+    // Toughest and All Technologies, East Indies.
+    (18, 12, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
