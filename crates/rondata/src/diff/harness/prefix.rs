@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use std::path::PathBuf;
 use std::time::SystemTime;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct Key {
     install: PathBuf,
     inputs: Vec<Option<(PathBuf, u64, SystemTime)>>,
@@ -30,6 +30,10 @@ impl Key {
 struct Batch {
     active: bool,
     prefix: Option<(Key, Built)>,
+    /// The state the last walk started from (Loop 3382): a later walk on
+    /// the same inputs whose first block falls inside that walk resumes
+    /// here instead of ticking again from frame zero.
+    start: Option<(Key, Built)>,
     reused_ticks: i64,
     loaded: Option<(PathBuf, std::sync::Arc<crate::load::Loaded>)>,
 }
@@ -98,14 +102,34 @@ pub(super) fn take(key: &Key, first_block: i64) -> Option<Built> {
         if !batch.active {
             return None;
         }
-        // Incompatible or overlapping walks fall back to a fresh start.
-        let (previous, built) = batch.prefix.take()?;
-        if previous != *key || built.sim.frame >= first_block {
+        // Incompatible or overlapping walks fall back to the last walk's
+        // own starting state, and past that to a fresh start.
+        let fits = |slot: &Option<(Key, Built)>| {
+            slot.as_ref()
+                .is_some_and(|(previous, built)| previous == key && built.sim.frame < first_block)
+        };
+        let slot = if fits(&batch.prefix) {
+            &mut batch.prefix
+        } else if fits(&batch.start) {
+            &mut batch.start
+        } else {
+            batch.prefix = None;
             return None;
-        }
+        };
+        let (_, built) = slot.take()?;
+        batch.prefix = None;
         batch.reused_ticks += built.sim.frame;
         Some(built)
     })
+}
+/// Keep a copy of the state a walk starts from, for [`take`]'s fallback.
+pub(super) fn mark_start(key: &Key, built: &Built) {
+    BATCH.with(|batch| {
+        let mut batch = batch.borrow_mut();
+        if batch.active {
+            batch.start = Some((key.clone(), built.clone()));
+        }
+    });
 }
 pub(super) fn put(key: Key, built: Built) {
     BATCH.with(|batch| {
@@ -170,6 +194,20 @@ mod tests {
             .push(Some(("capture".into(), 12, SystemTime::UNIX_EPOCH)));
         put(changed, built(10));
         assert!(take(&key("a"), 11).is_none());
+    }
+    #[test]
+    fn an_overlapping_walk_resumes_from_the_last_walk_s_start() {
+        let _scope = scope();
+        mark_start(&key("a"), &built(5));
+        put(key("a"), built(10));
+        // Block 8 lies inside the last walk: its start, frame 5, serves it.
+        assert_eq!(take(&key("a"), 8).unwrap().sim.frame, 5);
+        assert!(take(&key("a"), 11).is_none(), "both slots are spent");
+        mark_start(&key("a"), &built(5));
+        put(key("a"), built(10));
+        assert!(take(&key("a"), 5).is_none(), "the start is no earlier");
+        mark_start(&key("a"), &built(5));
+        assert!(take(&key("b"), 8).is_none(), "other inputs never resume");
     }
     #[test]
     fn dropping_a_batch_discards_its_state_even_on_unwind() {

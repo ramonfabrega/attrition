@@ -4525,6 +4525,7 @@ pub(crate) mod tests {
         let resumed = prefix_key
             .as_ref()
             .and_then(|key| super::prefix::take(key, first_block));
+        let mut parse_time = std::time::Duration::ZERO;
         let mut built = resumed.unwrap_or_else(|| {
             crate::diff::testkit::with_named_sibling_initials(siblings, |refs| {
                 let mut source = crate::capture::indexed::IndexedCapture::open(&path).unwrap();
@@ -4535,9 +4536,13 @@ pub(crate) mod tests {
                 if let Some(t) = trace(base_trace) {
                     borrow_pasture(&mut init, &t);
                 }
+                parse_time = started.elapsed();
                 build_sim(&loaded, &init, Tuning::RON)
             })
         });
+        if let Some(key) = &prefix_key {
+            super::prefix::mark_start(key, &built);
+        }
         let resumed_at = built.sim.frame;
         let setup_time = started.elapsed();
         let players = built.sim.players.len();
@@ -4898,7 +4903,7 @@ pub(crate) mod tests {
         }
         if profiling {
             eprintln!(
-                "replay profile {name}: prefix={prefix} start={resumed_at} tail={tail} blocks={blocks} total={:?} setup={setup_time:?} ticks={tick_time:?} decode={:?} values={:?} groups={:?} leaders_gaia={:?}",
+                "replay profile {name}: base={base} prefix={prefix} start={resumed_at} tail={tail} blocks={blocks} total={:?} setup={setup_time:?} parse={parse_time:?} ticks={tick_time:?} decode={:?} values={:?} groups={:?} leaders_gaia={:?}",
                 started.elapsed(),
                 stages[0],
                 stages[1],
