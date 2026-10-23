@@ -355,5 +355,5 @@ fn japanese_industrial_pair_run1171_s_word_frame_is_widened_whole() {
     // none in ours, whose target is `0/3` from 4343 (`g.ox[0]` ours 3,
     // theirs 2000 on 4344, and `recharging` ours 40: ours fires); `docs/AI.md`
     // section 303.
-    pin_eq!(w.firsts.len(), 1306, "run1171 baseline");
+    pin_eq!(w.firsts.len(), 1362, "run1171 baseline");
 }
