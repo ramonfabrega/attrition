@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 1 of 20 landed; 3529 and 3538 live (DECISIONS 91).*
+*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 2 of 20 landed; 3538 and 3539 live (DECISIONS 91).*
 
-- **Words**: two open, the Chinese at 3271 of 4,467 (lower map first — Great Sahara (Chinese, Industrial)) and the Japanese at 4434 of 4,547;
+- **Words**: two open, the Chinese at 3271 of 4,467 (lower map first — Great Sahara (Chinese, Industrial)) and the Japanese at 4443 of 4,547;
   held-out eight of eight. **The late ages**: six pairs stood up, four whole on real sim work (2,449 lines in `crates/sim`); **the rubric, lockstep**:
   ages 8 of 8, types 128 → 152 of 302, **bytes 77.0 % unmoved** (the whole pairs traced at `cover=0`; their twins booked, 3531–3534). Blind: 0 of 39 dead.
 - **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
   30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
-- **Lanes: two live, Opus 5.5 at medium** (3529 `871a0b06`, 3538 the Chinese word 3271); **seven booked** (3531–3534, 3512, 3513, 3535):
-  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3539, run 1183. Pools: GOLDEN §149–154, AI §306–310, park PK–PP.
+- **Lanes: two live, Opus 5.5 at medium** (3538 the Chinese word 3271, 3539 the Japanese word 4443); **seven booked** (3531–3534, 3512, 3513, 3535):
+  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3540, run 1184. Pools: GOLDEN §149–154, AI §306–310, park PL–PP.
 - **Fable backlog: 11 Loop items** (3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -30,7 +30,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4434 of 4,547 · GreatSaharaChineseIndustrial w3271 of 4,467
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4443 of 4,547 · GreatSaharaChineseIndustrial w3271 of 4,467
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -51,15 +51,15 @@ frame and draw delta, the AI track's); **a whole pair's `cover=1` twin** — the
 stood up** (`mongol_pair.rs`'s shape: own `DUMP_ALL` start and `cover=0` long, `end:UNITS=3,GUYS=2` on `--stride 100`, the walk seeded from the start (3506a),
 the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pair::assert_lobby`, `diff::<name>_pair` at its first parting, a scoreboard line). Opus; a word's gate `--tests <pair>:: blind::`, a twin's `--tests blind:: --no-widen`.
 
-3529. **The Japanese word, frame 4434: ours 15 draws against 16, index 15** (theirs `Unit::close+0xcb6 < Object::die+0x29 <
-Unit::die+0x19`; 3528's value diff on run1171, AI §303): the human's Citizen `0/3` (fleeing) dies in theirs; the first non-standing
-row is block 4411, `0/3 hits_left` 44 against 34 — 160 sixteenths from the Dreadnought `1/54` (348, sea, group 66) at (1896, 9384)
-that ours never makes. Run 1174; amend §303 in place; park PC.
-
 3538. **The Chinese word, frame 3271: ours 20 draws against 21, index 3** (ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
 `Guy::set_anim+0x97a < Unit::move_step+0x823`; 3530's widening on run1175, AI §305): the `ATRIFLE` `1/42` (137, land, group 64, on
 an attack-to) holds a move to ours (8472, 30360) against theirs (8136, 30120), `path:length` 14 against 8, on block 3271; on 3272
 theirs collides with the Armored Car `1/52` (`collide_o` 52) where ours reads −1. Run 1182; amend §305 in place; park PJ.
+
+3539. **The Japanese word, frame 4443: ours 46 draws against 44, index 44** (ours `Ammo::do_damage+0xc59`, theirs
+`AmmoOut::explode`; 3529's value diff on run1171, AI §303): the Light Tank `1/28`'s round of 4434 at the Citizen `0/3`, whose target
+dies in flight; the round lands on 4443 on both sides, and ours punctures the ground where theirs bursts and does not. The dump
+parts nothing before block 4459. Run 1183; amend §303 in place; park PK.
 
 3531. **coverage: the Germans' All-Technologies twin** (`EastIndiesGermanAllTech`, whole at 4175 on run1144/1145; DECISIONS 91): the pair's
 long lobby at `cover=1` on the pool, `--allow-early-end`, checked against run1145 (`rngcmp.py` none differing; `samegame.py` whole), pinned into
