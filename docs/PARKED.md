@@ -10039,13 +10039,24 @@ words and edits nothing here; a refill lands when two remain.
   unit's square. A packet from a game that fields the type reads each piece in a minute (`get_position.py … entries`,
   then `pivot … <count>`). **Score**: none until a word's frame names one.
 
-## Parked by the next landing, slot OU — reserved
+## Parked by item 3520, 2026-10-23 — find_attack_pos's unit tail returns 0
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3520a. who=1's reassembly on block 3808 is off the word's chain.** run1161b's widening first parts it on
+  block 3808, and block 3807 agrees: `gather_stamp` ours 3791 against theirs 3807, `income[0]` 1840 against 2160,
+  `income[1]` 1840 against 2320, `resources[2]` 4425 against 4550, and the escrows and buckets one off from 3809.
+  So theirs reassembles who=1's city on frame 3807 and ours does not. The row stood under item 3516's build too,
+  and the word moved past it on the Cruiser alone (`docs/AI.md` §304). **Score**: none until a word's frame names
+  who=1's economy.
+- **3520b. `find_attack_pos`'s mandatory far arm is a seam.** `602c24`–`602dc2`: under a mandatory attack, a unit
+  target `melee_far` or more off takes `find_nearby_spot` around the target, then returns 0 for a sea asker
+  (`602d8a`) and for a land asker against a sea target (`602db7`), else 1. `Sim::chase_tail_refused` refuses
+  everything else and keeps this crate's walk at the target's point for that arm. **Score**: none until a mandatory
+  chase of a unit parts.
+- **3520c. Two more gates of `fight`'s chase take the refused arm, and ours returns or chases.** `5fe139`–`5fe167`:
+  `get_combat_stance() == 2 && !on_duty()` jumps to `5fe3f8` (`find_new_target`, the same-target kill, the frozen
+  mark), and so does `unit_masks & 0x2000000` with `unit_masks2 & 0x20000` clear. `Sim`'s attack order returns at
+  the STAND_GROUND gate, with no search, and does not read the `0x2000000` gate at all. **Score**: none until a
+  word's frame names a STAND_GROUND chaser.
 
 ## Parked by the next landing, slot OV — reserved
 

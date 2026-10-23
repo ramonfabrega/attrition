@@ -1256,4 +1256,58 @@ mod tests {
             assert_eq!(wrap_side(s), s);
         }
     }
+
+    /// **The unit tail's `return 0`** (item 3520, `602b9f`–`602c1e`):
+    /// once the sweep has found nothing for a unit target, the call
+    /// refuses unless the asker's attack is mandatory and the target stands
+    /// `melee_far` or more off. run1166's packet takes `601604`'s 0 for the
+    /// Cruiser `1/25`'s non-mandatory attack on the fleeing citizen `0/5`.
+    #[test]
+    fn a_unit_target_with_no_spot_is_refused_unless_the_attack_is_mandatory_and_far() {
+        use crate::combat::Profile;
+        use crate::orders::QueuePos;
+        use crate::world::World;
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        sim.at_war[0][1] = true;
+        sim.at_war[1][0] = true;
+        let ty = sim.add_unit_type(crate::UnitType {
+            hits: 85,
+            combat: Profile {
+                attack: 15,
+                max_range: 6,
+                uber_size: 1,
+                block_radius: 48,
+                big_radius: 48,
+                combat_role: true,
+                ..Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let put = |sim: &mut crate::Sim, who: crate::Player, p: Pos| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(who, index, p, 85);
+            u.ty = Some(ty);
+            u.on_map = true;
+            sim.add_unit(u)
+        };
+        let me = put(&mut sim, 0, Pos::new(888, 8376));
+        let near = put(&mut sim, 1, Pos::new(2472, 7944));
+        let far = put(&mut sim, 1, Pos::new(4800, 8376));
+        // `melee_far(6)` is 1920: `near` stands 1642 off, `far` 3912.
+        for (t, mandatory, refused) in [
+            (near, false, true),
+            (far, false, true),
+            (near, true, true),
+            (far, true, false),
+        ] {
+            sim.units[me].orders.clear();
+            sim.add_attack_order(me, Obj::Unit(t), QueuePos::New, mandatory, false);
+            sim.units[me].combat.mandatory = mandatory;
+            assert_eq!(
+                sim.attack_pos_refused(me, Obj::Unit(t)),
+                refused,
+                "target {t}, mandatory {mandatory}"
+            );
+        }
+    }
 }
