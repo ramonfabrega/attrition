@@ -295,14 +295,33 @@ impl Sim {
     // §3, §4 — the disc
     // ------------------------------------------------------------------
 
+    /// **`UnitData::los@006100c0`**: the cache `update_los` wrote
+    /// (`mylos`, `+0x3c`), and the CEO's term on top of it — a non-siege
+    /// unit near its owner's `0x165` hero sees `THECEO_UNIT_LOS` (two
+    /// tiles, one fog cell of radius) further ([`Sim::near_own_ceo`], the
+    /// same block `UnitData::max_range` reaches with). The Russians' T34s
+    /// beside their CEO light the East Indies' last fog row, (89, 119) and
+    /// (90, 119), by frame 3920, where the bare cache left them dark
+    /// (run1166's packet; `docs/AI.md` §304, item 3524).
+    ///
+    /// SEAM: the first term, Ptolemy's (`leader +0x59d2`, a type with
+    /// `+0x2c8 & 0x420`, `has_general(0, 0x16a)`, `PTOLEMY_LOS_BONUS`), is
+    /// not carried; no capture on disk fields him.
+    pub(crate) fn unit_data_los(&self, u: usize) -> i32 {
+        let mut los = self.units[u].mylos;
+        if self.near_own_ceo(u) {
+            los += self.tuning.theceo_unit_los;
+        }
+        los
+    }
+
     /// The centre, radius and index range `Object::update_seen` would walk
     /// for this unit, or `None` when it reveals nothing.
     ///
     /// Split out from [`Sim::update_seen`] so the arithmetic can be tested
     /// without a fog grid.
     pub fn seen_sweep(&self, u: usize, ring_pass: bool) -> Option<Sweep> {
-        // `UnitData::los@006100c0` reads the cache `update_los` wrote.
-        let los = self.units[u].mylos;
+        let los = self.unit_data_los(u);
         if los == 0 {
             return None;
         }
