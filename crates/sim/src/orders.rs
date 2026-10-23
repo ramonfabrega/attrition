@@ -5633,6 +5633,17 @@ impl Sim {
                         // (run984c's packet, `Object +0x3d`), so `1/10`'s
                         // re-search takes `0/4`; without the search both
                         // read 0 and it kept `0/3`.
+                        //
+                        // **And the candidate may be the target itself**
+                        // (item 3525, `docs/AI.md` §303): nothing from
+                        // `5f803f` to `5f8216` compares it with the
+                        // action's own `o`/`who`, and `change_target` with
+                        // the same pair rewrites it and still pops every
+                        // order above the action. A captain whose chase the
+                        // flank test kept from the kill drops its move the
+                        // frame its `near` is in plain reach: run1153c's
+                        // Destroyer `1/66` on 3815, `near` the fleeing
+                        // `0/5`, stops at (2764, 8930) and fires on 3816.
                         let searched = if !self.units[u].combat.mandatory
                             && self.units[u].captain
                             && self.units[u].phase(frame) % 16 == 0
@@ -5655,7 +5666,6 @@ impl Sim {
                             && let c = searched
                                 .filter(|&f| self.is_in_range(me, f))
                                 .unwrap_or(near)
-                            && c != t
                             && self.active(c)
                             && self.is_in_range(me, c)
                             && !self.poor_target(me, c)
