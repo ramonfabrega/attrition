@@ -5592,6 +5592,26 @@ impl Sim {
                         // walks on.
                         let margin = !self.units[u].combat.mandatory;
                         let at = self.units[u].pos;
+                        if std::env::var_os("RON_PROBE_3525").is_some()
+                            && (3805..=3818).contains(&frame)
+                        {
+                            let tp = self.pos_of(t);
+                            eprintln!(
+                                "P3525 f{frame} {}/{} at {:?} hdg {} t {:?} at {:?} thdg {} flees {} inr {} inr0 {} coll {} moving {}",
+                                self.units[u].owner,
+                                self.units[u].index,
+                                at,
+                                self.units[u].movement.heading.0,
+                                t,
+                                tp,
+                                match t { Obj::Unit(tu) => self.units[tu].movement.heading.0, _ => 0 },
+                                self.chase_target_flees(u, t),
+                                self.is_in_range_at_margin(me, at, t, margin),
+                                self.is_in_range_at_margin(me, at, t, false),
+                                self.find_collision_forced(u, at),
+                                match t { Obj::Unit(tu) => self.is_moving(tu), _ => false },
+                            );
+                        }
                         if !self.chase_target_flees(u, t)
                             && self.is_in_range_at_margin(me, at, t, margin)
                             && !self.find_collision_forced(u, at)
