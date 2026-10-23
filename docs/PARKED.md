@@ -10085,13 +10085,12 @@ on block 2960, ours (the arm off) 40 short of theirs in each. It moves no word: 
   first passenger's type (`units[+0x3e].list[+0x28]`'s `+0x18`). `Sim::region_spot_type` takes the member's own type
   there. No capture on file puts a loaded boat in an army's move. **Score**: none until a word's frame names one.
 
-## Parked by the next landing, slot OX — reserved
+## Parked by item 3523, 2026-10-23 — the Dreadnought's two turrets
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3523a) **Two ground reads on the agreeing stretch are a corner's print, not a measurement** (3523; `docs/AI.md`
+§303): the missed rounds' arc step reads (4497, 9547) on 3771 and (4533, 9315) on 3772 over corners two to four
+singles share. The walk agrees through both to 3808, so the nearest single was not the choice that mattered there;
+they are pinned (`GROUND_INEXACT`, 2). Not booked: it names no score.
 
 ## Parked by the next landing, slot OY — reserved
 

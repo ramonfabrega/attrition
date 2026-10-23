@@ -42,8 +42,13 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // Freighter `1/121` puts Citizen `1/10` ashore at (37416, 26280) on 3673
     // and dies, as theirs does. Ours 14 draws against 15, index 14 — theirs
     // `Object::take_damage+0xe1`, the human's Citizen `0/5` struck.
-    count: 3769,
-    sequence: 3769,
+    // Item 3523: 3769 -> 3816, the Dreadnought's (piece 298) two turrets
+    // built (`sim::pivot`): `1/74`'s round of 3758 leaves from (2885, 11948,
+    // 121), flies 12 and strikes `0/5` on 3769, as theirs does. Ours 159
+    // draws against 160, index 90 — ours `Guy::set_anim+0x97a <
+    // Unit::do_idle+0x7d`, theirs `Unit::fight+0x9b0`.
+    count: 3816,
+    sequence: 3816,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -209,7 +214,8 @@ pub(crate) const RUN1153C: &str =
     "gamelog-run1153c-eastindies-japanese-industrial-window-3668-3924.txt";
 
 /// The window: block 3668 through 3924; the word 3674's own block is 3675,
-/// and the word 3769's (item 3521) is 3770.
+/// the word 3769's (item 3521) is 3770, and the word 3816's (item 3523)
+/// is 3817.
 pub(crate) const WIDENING_JAPANESE_INDUSTRIAL_FRAME_3674: (i64, i64) = (3668, 3924);
 
 /// **The word 3674's window**: run1153c walked from run1152's start with
@@ -269,5 +275,11 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // `0/2004` for 11, city `0/2000`'s `raid_stamp` is 3769, and both
     // leaders' `treaties` read ours 1 against theirs 3. **950** on the tree
     // merged with item 3520's landing (`attack_pos.rs`), which closes five.
-    pin_eq!(w.firsts.len(), 950, "run1153c baseline");
+    //
+    // Item 3523: **692** with the Dreadnought's turrets. Block 3770 agrees
+    // whole: `0/5`'s `hits_left` 57 and `damage_frame` 3769 on both sides,
+    // `0/2004` struck for 11 on both, and the leaders' `treaties` 3 on both.
+    // The state next parts on 3808: `0/5` is struck again, theirs on 3804
+    // (`raid_stamp` 3804, `hits_left` 35) and ours on 3807 (3807, 32).
+    pin_eq!(w.firsts.len(), 692, "run1153c baseline");
 }
