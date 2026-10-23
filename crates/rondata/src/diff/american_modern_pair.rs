@@ -161,7 +161,8 @@ fn run1151_american_modern_pair_closing_state() {
     // Item 3517, the draw stream whole: 175 units compared, one off — the
     // human's Citizen `0/5` (TypeIndex 50, land) by (19, 16). On block 4532
     // theirs carries a 36-point blow on it (`hits_left` 49 against 85,
-    // `damage_frame` 4531) and the `FLEEORDER` that follows; ours lands
+    // `damage_frame` 4531) from the Armored Car `1/80` (TypeIndex 218) and
+    // the `FLEEORDER` that follows; ours lands
     // neither, and no draw parts. No building or city field-row.
     pin_eq!(e.compared, 175, "units compared");
     pin_eq!(e.counts(), [1, 0, 0, 0, 0, 0, 0], "the closing counts");

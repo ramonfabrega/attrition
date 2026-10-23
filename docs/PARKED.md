@@ -9999,13 +9999,18 @@ words and edits nothing here; a refill lands when two remain.
   (180 against 181), `sheltered`, four `mirror`s and two pools. This is 3506b's family on the Germans' closing window,
   and the closing comparison reports none of it. **Score**: none while the pair is whole.
 
-## Parked by the next landing, slot OR — reserved
+## Parked by item 3517, 2026-10-23 — the American word whole: the guard re-issued over the sorted list
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3517a. The booked direction, downstream: no `move_step` or `do_idle` arm.** 3509 booked the word 4488 as ours
+  stepping a unit (`Unit::move_step+0x823`) where theirs idles (`Unit::do_idle+0x7d`), on a Bazooka squad whose guard
+  orders already differed. Those orders were nine blocks old at the word. The first parting is army 1/0's escort
+  offsets on block 4479 (run1163), and with `finish_insert` reading the sorted list the draw stream agrees to the
+  game's end. No movement or idle arm is involved (`docs/AI.md` §302). **Score**: none; the kill.
+- **3517b. The air family stands in the stride and the windows: `mirror` and `g.z[0]`.** From 3101 on, the
+  American aircraft (`1/45`, `1/84`, `1/100`, `1/105`, `1/115`, `1/117`, `1/127`, `1/130`, `1/147`, `1/158`) carry
+  `mirror` ours 0 against theirs 1. `1/45`'s and `1/105`'s `order:air.mandatory` are ours 0 against 1 on 3501, and the
+  Mustang `1/140` inside the Airbase `1/105` has `g.z[0]` ours 0 against 398 on 4401. None of this reaches a draw, and
+  the closing comparison reports none of it. **Score**: none while the pair is whole.
 
 ## Parked by the next landing, slot OS — reserved
 
