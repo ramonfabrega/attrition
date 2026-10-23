@@ -4621,6 +4621,18 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
+                        if std::env::var("RON_PROBE_3516").is_ok()
+                            && cavarch
+                            && let Obj::Unit(me) = attacker
+                            && self.units[me].owner == 1
+                            && self.units[me].index == 25
+                        {
+                            let to = self.pos_of(o);
+                            eprintln!(
+                                "PROBE3516   cand {o:?} at {to:?} dist {dist} targeted {targeted} value {value} in_range {in_range} score {score} facing {}",
+                                self.units[me].movement.facing.0
+                            );
+                        }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
