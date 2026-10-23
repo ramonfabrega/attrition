@@ -9864,13 +9864,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // round at `0/4` a frame late, which run1155b's test now reads agreeing
     // (89 → 53, the standing rows) as run1175's does (1024 → 43). The
     // closing block 4468 is scored by `run1155_chinese_industrial_pair_
-    // closing_state`, 14 off, and no window holds it yet.
+    // closing_state`, 14 off, and no window holds it yet: the closing
+    // block's widening is owed (parked 3538).
     (
         "CHINESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
-        Some("chinese_industrial_pair_run1175_s_word_frame_is_widened_whole"),
+        None,
         3538,
-        Some(crate::diff::chinese_industrial_pair::WIDENING_CHINESE_INDUSTRIAL_FRAME_3271),
+        None,
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
