@@ -10214,21 +10214,24 @@ booking carried that name. The landing frame against each round in flight (`RON_
   moves it is a lockstep game that reaches a staged take's functions, or the definition (`docs/DECISIONS.md` entry 91
   §2) read against this.
 
-## Parked by the next landing, slot PF — reserved
+## Parked by item 3532, 2026-10-23 — the Aztec pair's `cover=1` twin moves the lockstep share a tenth
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3532a. The land map's age-7 twin adds four functions, 9,298 bytes.** run1177, the Aztec All-Technologies pair at
+  `cover=1` and run1147's game on every frame (rngcmp 4566 identical, 0 differing), is the second twin measured under
+  3531a. It adds four simulation functions no other lockstep trace enters: `Game::popwin_timer@005944b0`,
+  `Game::wonder_timer@005944f0`, `Unit::resolve_block@005fccc0` and `Ammo::init_crash@0067b800`. None is new to
+  `blind::TRACES`. The share goes 770 → 771 tenths (77.09 % → 77.17 %), which is 3531a's prediction of tenths at most.
+  **Score**: the rubric's lockstep bytes. The same lever as 3531a.
 
-## Parked by item 3533, 2026-10-23 — the American pair's `cover=1` twin moves the lockstep share one tenth
+## Parked by item 3533, 2026-10-23 — the American pair's `cover=1` twin moves the lockstep share 0.01 points
 
 - **3533a. The second whole late-age twin measures 3531a again: one tenth.** run1178, the American Modern pair at
   `cover=1` and that game on every frame (rngcmp 4549 identical against run1151), enters 2,022 simulation functions.
   Two of them, 7,148 bytes, are new to the lockstep set: `Ammo::init_crash@0067b800` (5,902) and
-  `Unit::update_ceo_position@005f96b0` (1,246). None is new to `blind::TRACES`, so `blind::NEVER` holds. The share goes
-  770 → 771 tenths (8,782,939 → 8,790,087 of 11,392,782; 77.09 % → 77.15 %). The item's two mechanics are both
+  `Unit::update_ceo_position@005f96b0` (1,246). None is new to `blind::TRACES`, so `blind::NEVER` holds. On its own
+  base the share went 770 → 771 tenths (8,782,939 → 8,790,087 of 11,392,782). 3532's twin run1177 landed first and also
+  enters `Ammo::init_crash`, so on the merged tree run1178 adds 1,246 bytes and moves the share 771 → 771 (77.17 % →
+  77.18 %). The item's two mechanics are both
   entered: the Airbase's free Bomber through `Build::activate@00623e20` and `Guy::init_real@005db6b0`, and the Armored
   Scout Car's turret release through `GraphicPieces::get_position@0090b750` (first entered on 2995) and
   `Guy::set_all_pivots@005d8bc0`. **Score**: the rubric's lockstep bytes. 3534, the last twin booked, should be expected
