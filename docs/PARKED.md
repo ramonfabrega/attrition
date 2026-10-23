@@ -10129,13 +10129,19 @@ between two routes of equal end; no score names it.
 (`GROUND_INEXACT`, `japanese_industrial_pair_run1171_s_word_frame_is_widened_whole`, 2), as 3523a's. Not booked: it
 names no score.
 
-## Parked by the next landing, slot PA — reserved
+## Parked by item 3527, 2026-10-23 — the Kremlin's Spy, and a captain's retarget on its own target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3527a. The Special Forces `0/0` takes a lighter blow in ours on 5786.** run1170's widening after item 3527: `hits_left`
+  ours 88 against theirs 79, `damage` 22 against 31, `damage_frac` 4 against 14, with no draw parting. Five rounds from
+  `1/69`, `1/143`, `1/142` and `1/128` (twice) are in flight on 0/0 over 5780..5786 (`RON_DEBUG_AMMO`); which one lands
+  differently is not read. The pair's closing block 5842 compares 0/0 with the rest, none off. **Score**: none; the
+  pair is whole.
+- **3527b. who=1's economy parts on the window's head and never moves a word.** run1170 block 5645: `bucket[0:food]`
+  7414 against 7415, `bucket[1:timber]` 6960 against 6962, `leftover[2:wealth]` 3714 against 738; `free_peasants` 5
+  against 6 and `gatherers` 30 against 29 on 5778. It is 3522a's family; the long prints no leader record in
+  4349..5644, so the frame it first parts there is not dated. **Score**: none; the pair is whole.
+- **3527c. `INSTANT_UNIT_BONUS`'s arm of `train_time@006508c0:350`–`354`** — `ACCEL_TRAIN × 5 − 1` for any unit
+  under `has_preq(0x2b8)` — is a SEAM in `Sim::train_tail`. **Score**: none until a capture holds the bonus.
 
 ## Parked by the next landing, slot PB — reserved
 

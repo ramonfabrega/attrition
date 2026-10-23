@@ -5645,6 +5645,9 @@ impl Sim {
                         // frame its `near` is in plain reach: run1153c's
                         // Destroyer `1/66` on 3815, `near` the fleeing
                         // `0/5`, stops at (2764, 8930) and fires on 3816.
+                        // The Russian pair's Cruiser `1/25` is the same
+                        // shape on 5815, its search finding `0/0` itself
+                        // (item 3527, §304).
                         let searched = if !self.units[u].combat.mandatory
                             && self.units[u].captain
                             && self.units[u].phase(frame) % 16 == 0
