@@ -9754,6 +9754,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3506,
         Some(crate::diff::german_alltech_pair::WIDENING_GERMAN_ALLTECH_CLOSING),
     ),
+    // **The held Modern pair's word** (item 3508): the Russians at a held
+    // Modern age, East Indies, first try — frame 8, walked from run1148's
+    // start; widened on run1149b over 3..259 (block 9).
+    (
+        "RUSSIAN_MODERN_PAIR_WORD",
+        crate::diff::russian_modern_pair::RUSSIAN_MODERN_PAIR_WORD,
+        Some("russian_modern_pair_run1149b_s_word_frame_is_widened_whole"),
+        3508,
+        Some(crate::diff::russian_modern_pair::WIDENING_RUSSIAN_MODERN_FRAME_8),
+    ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
     // Lakota food term, widened on run849 over 1978..2235 (block 1985);
@@ -11198,6 +11208,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_565,
         endpoint: None,
         window: Some("aztec_alltech_frame_4382_window"),
+    },
+    // The Russians at a held Modern age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 6), East Indies (item 3508): the sequence parts
+    // on frame 8, the computer's first make-list pass.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesRussianModern",
+        named: "East Indies (Russians, Modern)",
+        word: crate::diff::russian_modern_pair::RUSSIAN_MODERN_PAIR_WORD,
+        length: 5_841,
+        endpoint: None,
+        window: Some("russian_modern_frame_8_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
