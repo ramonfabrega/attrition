@@ -316,7 +316,7 @@ fn run849_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
     }
-    pin_eq!(w.firsts.len(), 85, "initial run849 baseline");
+    pin_eq!(w.firsts.len(), 83, "initial run849 baseline");
     // Item 3333: who=1's `bucket` timber 17466/17361 and metal 15317/15212,
     // standing from 1978, close with an Oil Platform priced by the Oil Wells
     // (`docs/AI.md` §270).

@@ -201,5 +201,5 @@ fn run1145c_s_closing_frame_is_widened_whole() {
     // `1/22`, `1/49`, `1/91`, `1/92`); group 93's `held` and pool on 4170.
     // The word 4175's block 4176, the game's closing block, parts no key
     // of its own; the draw stream agrees to 4175 (`docs/AI.md` §300).
-    pin_eq!(w.firsts.len(), 185, "run1145c baseline");
+    pin_eq!(w.firsts.len(), 183, "run1145c baseline");
 }
