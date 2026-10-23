@@ -24899,3 +24899,38 @@ SHA-256 `412fe339d01ec88e5fca4a3c2ce375c5d580b74d04b0cc53ee11a76f958b373c`.
 
 **What it holds**: the German pair's game on every frame under `cover=1`, the first lockstep trace of an age-7 game
 (`blind::TRACES`).
+
+## run1177 — the Aztec late-age pair's long lobby at `cover=1` on the click-free pool, to the game's end at 4565: the pair's lockstep twin (2026-10-23, item 3532, `att-3532`)
+
+**What the disk could not answer**: the pair's captures (run1146, run1147, run1147b) are `cover=0`, which enters
+nothing but the hooks, so no lockstep trace of the land map's age-7 game existed (`docs/DECISIONS.md` entry 91 §2).
+run1147's recipe exactly, at `cover=1`: `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1177 --map 7
+--end-frame 24000 --timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=1
+--callwin 0 24000 --ai-tribe 0 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile STARTING_TECHNOLOGY=8 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=3`. No `@` line and no click, so every input is shared and there is no `--from`.
+
+- Pool lane 2 (`~/wine-ron-2`). Launched 16:04:41, exited 16:05:13: **32.1 s launch to exit** (run1147 at `cover=0`:
+  27.1 s). `success`, 4,566 frames, **the game ended itself at 4565** (`ended_early`, closing block 4566), map 7
+  verified, seed 12345, tribes 4 and 0. DLL `8222d4ce…`, `-DRON_AUTOSTART`. 182 GiB free before. Minutes waited on
+  another lane: none.
+- `rngcmp.py rontrace-run1147.log rontrace-run1177.log`: **4,566 in common, 0 differing, 4,566 identical**.
+  `samegame.py gamelog-run1147-… gamelog-run1177-…`: **46 in common (1..4501, the stride's blocks), 0 differing**.
+  The two gamelogs differ only on 48 lines: the `Rules` stamp on 45 `CHECKSUM` blocks (2228172724 against 1339962575;
+  run1146 and run1147, two `cover=0` takes of one game, differ on it too), `Sys Memory` and two `SYNCPOINT` wall times.
+- **6,970 functions entered** (`report.py … functions`), 1,822 of them first on a frame and 5,148 before frame 0.
+  **None is new to `blind::TRACES`**, so `blind::NEVER` is unchanged. Over the other 112 lockstep traces it adds four
+  simulation functions, 9,298 bytes: `Game::popwin_timer`, `Game::wonder_timer`, `Unit::resolve_block` and
+  `Ammo::init_crash`. `TypeData::get_cost`, which holds 3514's Space Program arm, is entered (f3). `rubric.py --tables 4`
+  reads **lockstep bytes 77.1 %** (8,792,237 of 11,392,782; 2,234 of 3,611 functions; 113 traces): 770 → 771 tenths.
+- Filed with `filerun.py run1177 greatsahara-aztec-alltech-cover`.
+
+Archive `gamelog-run1177-greatsahara-aztec-alltech-cover.txt`, 30,046,144 bytes,
+SHA-256 `036fb05a382556c35b6734e213c3eb856ebc99f14c16a3f641bfc73eb24cd2ba`.
+
+Archive `rontrace-run1177.log`, 177,066,912 bytes,
+SHA-256 `759d100604c88ddafebabd80d2969d9861bc8b100d01d4762a692f06b9b176fe`.
+
+**What it holds**: the Aztec pair's game on every frame under `cover=1`, the land map's lockstep trace of an age-7 game
+(`blind::TRACES`).

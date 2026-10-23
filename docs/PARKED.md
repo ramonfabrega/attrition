@@ -10214,13 +10214,14 @@ booking carried that name. The landing frame against each round in flight (`RON_
   moves it is a lockstep game that reaches a staged take's functions, or the definition (`docs/DECISIONS.md` entry 91
   §2) read against this.
 
-## Parked by the next landing, slot PF — reserved
+## Parked by item 3532, 2026-10-23 — the Aztec pair's `cover=1` twin moves the lockstep share a tenth
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3532a. The land map's age-7 twin adds four functions, 9,298 bytes.** run1177, the Aztec All-Technologies pair at
+  `cover=1` and run1147's game on every frame (rngcmp 4566 identical, 0 differing), is the second twin measured under
+  3531a. It adds four simulation functions no other lockstep trace enters: `Game::popwin_timer@005944b0`,
+  `Game::wonder_timer@005944f0`, `Unit::resolve_block@005fccc0` and `Ammo::init_crash@0067b800`. None is new to
+  `blind::TRACES`. The share goes 770 → 771 tenths (77.09 % → 77.17 %), which is 3531a's prediction of tenths at most.
+  **Score**: the rubric's lockstep bytes. The same lever as 3531a.
 
 ## Parked by the next landing, slot PG — reserved
 

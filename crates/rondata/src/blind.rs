@@ -469,6 +469,12 @@ pub const TRACES: &[&str] = &[
     // identical, 0 differing, against both) — the first lockstep trace of an
     // age-7 game.
     "rontrace-run1176.log",
+    // Item 3532: the Aztec late-age pair's long lobby (Great Sahara, the
+    // Aztecs, All Technologies; run1147's recipe) at `cover=1` on the
+    // click-free pool, to the game's own end at 4565 (`docs/RUNS.md`
+    // run1177): run1147's game on every frame (rngcmp 4566 identical, 0
+    // differing) — the land map's age-7 line.
+    "rontrace-run1177.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
