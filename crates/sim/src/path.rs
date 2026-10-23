@@ -832,6 +832,18 @@ impl Sim {
             base *= 3;
         }
 
+        if let Ok(out) = std::env::var("RON_PROBE_3543_FOG")
+            && self.frame == 1377
+            && !std::path::Path::new(&out).exists()
+        {
+            let mut b = Vec::new();
+            for fy in 0..120 {
+                for fx in 0..120 {
+                    b.push(self.world.seen2(fx, fy).unwrap_or(0xff));
+                }
+            }
+            std::fs::write(&out, b).unwrap();
+        }
         if std::env::var("RON_PROBE_3543").is_ok()
             && (1376..=1380).contains(&self.frame)
             && step == STEP_WORLD
