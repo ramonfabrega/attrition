@@ -47,8 +47,15 @@ pub(crate) const JAPANESE_INDUSTRIAL: Pair = Pair {
     // 121), flies 12 and strikes `0/5` on 3769, as theirs does. Ours 159
     // draws against 160, index 90 — ours `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d`, theirs `Unit::fight+0x9b0`.
-    count: 3816,
-    sequence: 3816,
+    // Item 3525: 3816 -> 4343, the Destroyer's (piece 278) three turrets
+    // (`sim::pivot`) and `do_move`'s captain retarget taking its own target
+    // (no `c != t`): `1/66`'s stern round of 3800 flies 9 and strikes `0/5`
+    // on 3808, and on 3815 `1/66` drops its chase at (2764, 8930) with
+    // `near` `0/5` in plain reach and fires on 3816, as theirs does. Ours
+    // 17 draws against 15, index 1 — ours `Unit::fight+0x9b0`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    count: 4343,
+    sequence: 4343,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -281,5 +288,14 @@ fn japanese_industrial_pair_run1153c_s_word_frame_is_widened_whole() {
     // `0/2004` struck for 11 on both, and the leaders' `treaties` 3 on both.
     // The state next parts on 3808: `0/5` is struck again, theirs on 3804
     // (`raid_stamp` 3804, `hits_left` 35) and ours on 3807 (3807, 32).
-    pin_eq!(w.firsts.len(), 692, "run1153c baseline");
+    //
+    // Item 3525: 692 with the Destroyer's turrets — block 3808 agrees whole
+    // (`1/66`'s stern round of 3800 flies 9, not 8, and lands on 3808 as
+    // theirs does; the next blow parts on 3837) — and **151** with the
+    // captain retarget on its own target: on the word's block 3816 `1/66`
+    // stands at (2764, 8930) on its `ATTACKORDER` (`in_range` 1) on both
+    // sides, where ours had sailed on to (2832, 8916) under its
+    // `MOVEORDER`. What is left from 3790 is the standing `form` family and
+    // `1/82`'s path on 3813 (parked 3525a).
+    pin_eq!(w.firsts.len(), 151, "run1153c baseline");
 }
