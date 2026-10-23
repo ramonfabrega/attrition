@@ -10191,13 +10191,19 @@ booking carried that name. The landing frame against each round in flight (`RON_
   the fire on the move, item 3385's build). A flier's body and heading may agree; nothing here measured it.
   **Score**: none until a word parts on a bomb's landing.
 
-## Parked by the next landing, slot PE — reserved
+## Parked by item 3531, 2026-10-23 — the German pair's `cover=1` twin moves no lockstep byte
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3531a. A whole game's `cover=1` twin enters what the early twins already do.** run1176, the German All-Technologies
+  pair at `cover=1` and that game on every frame (rngcmp 4176 identical against run1145 and run1145b), enters 2,027
+  simulation functions. Only three of them, 5,222 bytes, are new to the lockstep set: `AirAttackGroundOrder::log_data@00487620`,
+  its vtordisp thunk and `AttackGroundOrder::log_data@00487aa0`. None is new to `blind::TRACES`. The share holds at 770
+  tenths (77.04 % → 77.09 %). Of the 11,392,782 simulation bytes, every pinned trace together enters 9,798,451 (86.0 %).
+  The 336 functions between that and the lockstep share's 2,230 (1,015,512 bytes) are entered only by staged takes,
+  which part their twins by construction. The largest unentered groups are `groups` (507 k, 105 functions), `map` (236 k),
+  `unit` (219 k), `commandpackage` (156 k) and `game` (155 k). **Score**: the rubric's lockstep bytes. The three twins
+  booked beside this one (3532–3534) are the same shape and should be expected to move it by tenths at most. What
+  moves it is a lockstep game that reaches a staged take's functions, or the definition (`docs/DECISIONS.md` entry 91
+  §2) read against this.
 
 ## Parked by the next landing, slot PF — reserved
 

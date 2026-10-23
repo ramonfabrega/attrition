@@ -317,6 +317,10 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// of the simulation layer's (`census.py --layers`' functions, the decompile
 /// file's size): table 4, `entered_in | hooked_in` over the whole games'
 /// `rontrace` logs. The scored captures are `cover=0`, so the twins carry it.
+/// Item 3531: 770 -> 770 with the German pair's twin run1176 (110 traces),
+/// the first lockstep trace of an age-7 game. It enters 2,027 simulation
+/// functions and only three no other lockstep trace does, 5,222 bytes —
+/// 8,777,717 -> 8,782,939 of 11,392,782, 77.04 % -> 77.09 %.
 pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 770;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;

@@ -462,6 +462,13 @@ pub const TRACES: &[&str] = &[
     // through the exe's `GetKeyState` import. Its `cover=0` twin is run1137
     // (rngcmp 641 identical, 0 differing; `docs/RUNS.md` run1136).
     "rontrace-run1136.log",
+    // Item 3531: the German late-age pair's long lobby (East Indies, the
+    // Germans, Toughest, All Technologies; run1145's recipe) at `cover=1` on
+    // the click-free pool, to the game's own end at 4175 (`docs/RUNS.md`
+    // run1176): run1145b's and run1145's game on every frame (rngcmp 4176
+    // identical, 0 differing, against both) — the first lockstep trace of an
+    // age-7 game.
+    "rontrace-run1176.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
