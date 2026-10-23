@@ -7854,3 +7854,151 @@ again"; "if something needs a queue lane again, it probably means we
 early steer"; "we need a mechanism to retire/clean up unused
 tools/docs"; "I'm ok with removing blind list for the rubric"; "we
 should spike out the byte-identical logger".
+
+## 90. The fifty-first tranche is scored on two Opus lanes at eighteen `cover=1` landings in 8 h 05 at the loop's cheapest and fastest, the blind list closes to a floor of thirty-nine referenced rows, the headline moves to the rubric's unit types and six lobbies are booked for it, the pass and the commander stop messaging each other, and eleven Loop items become rules, rows, tools or closes
+
+*2026-10-22, the fifty-first pass (the `steer` session, Fable), cleared
+into by the commander at the tranche's drain (`3e89bc846`), with Ramon's
+word to run the pass and hold the commander for a conversation (Loop
+3499). The record is `docs/audit/2026-10-22-fable-pass-51.md`; this
+entry carries the decisions.*
+
+**What was measured.** Eighteen landings on two lanes — every one a
+`coverage` take on the click-free pool, on Opus 5.5 at `--effort
+medium`, the Sonnet seats empty (entries 87, 88), every lane session's
+model read off lore — in **8 h 05** from the base (`a17dfdb6`, 13:00
+−05:00) to the eighteenth booking (`3e89bc846`, 21:05), the drafting
+source spent at eighteen, the drain's whole gate green. **No word moved
+and none was open.** **The blind list fell by trace and by reading:
+`NEVER` 273 → 247, open 91 → 39** — 3477's eighteen `ScenarioFuncSet`
+rows through `!eval` in one take, 3479's param console, 3491's
+`is_tournament` from a defeated computer's chair, 3492's save-and-reload
+walkers, 3501's `type_graft`, and 3505's twenty-five residue rows by a
+blind second reading (residue 182 → 208); the census backed 1696
+unmoved, port 568, layout 1128, bytes 37.9 %; `entered` 8290 → 8440
+functions over 111 → 119 logs; the rubric's unit types seen 74 of 364
+**unmoved** on 112 → 120 dumps, ages held 8 of 8. **The price: 98.03 USD
+list for the workers, 5.45 a landing** (148.03 / 7.40), 3504 the dearest
+at 18.83 over two sessions and 3493 the cheapest at 2.23; the
+commander's sessions 17.94; **115.97 in all** (166.87); the fiftieth
+pass's own session 35.11. **Waiting 30.9 minutes a landing** (52.0): the
+capture 5.2 a session (25.3), the gate 19.7 (15.5) — seventeen booking
+gates, four whole, thirteen scoped, **none red**, 242.4 minutes of gate
+(289.9); admission 119.4 s summed, longest 0.9 s; two gate ends past the
+sixteen cores. Two `DEEP` (3483, 3504, each landed from a second
+session), two `DRAFT` read right, **one blocked ending** (3502, "waiting
+on commander's gate"), no `STALLED`, no kill rule, no merge backed out.
+The pool held three lanes at once, **waited nothing at the cap** (17.9
+before), median **24.5 frames a wall second (2.1)**. The archives
+compressed 196 → 206 GiB free.
+
+**What it means.**
+
+1. **The console mirror was the pool's clock.** 3483's dump clock put
+   95 % of a dumped frame in `OutputDebugStringW` (`AllowLogs_ToConsole`,
+   the engine's default 1, absent from every lane's `rise.ini`); 3484
+   measured `--console-log 0` byte-identical after a three-line header
+   on three lobbies with the draw stream identical, a dumped frame
+   2.7–3.3 s → 0.06–0.09 s; 3497 made it the pool's default beside the
+   cursor pin. The capture class fell fivefold and the landing's price
+   by a quarter on that one setting; the byte-identical fast writer
+   Ramon spiked (entry 89) was not worth building — about 0.05 s a frame
+   is left (parked 3484a). The waiting that remains is the gate, 64 % of
+   it.
+2. **The blind list is a floor.** The pass's reference scan over the 39
+   open rows (`report.py <exe> refs -`, `docs/LOOP.md`'s fence) found
+   none dead — 14 called, 25 pointed at — so nothing is ratified by
+   family and the 39 stand as `Blind: never 247 · residue 208 · open 39`,
+   scanned again at every pass; a coverage take that enters one is a
+   bonus, never a booking. 3505's method — a blind Opus reader on the
+   names and addresses alone, forbidden the drafts, adjudicated against
+   them — closed twenty-five rows and kept four open on the evidence
+   (3505a–d), and it is the way a reading-only row leaves the floor.
+3. **The headline is the rubric's unit types seen, 74 of 364**, as
+   entry 89's amendment said, and the booking that moves it is a lobby
+   taken for the units it puts on the map: the coverage pair's recipe
+   with the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A`,
+   read back from `GAME INFO` and `ages_get()`, a computer nation chosen
+   for the never-seen records at that age (`rubric.py --tables 3`'s
+   table), `end:UNITS=3,GUYS=2` on a stride to the game's end, pinned
+   into `blind::TRACES` as every trace is. **The `Rubric:` line is the
+   commander's at a booking from this tranche** — the worker re-pins
+   `census::RUBRIC_UNIT_TYPES_SEEN`, as it re-pins `NEVER`, and the
+   pass's `--record` row stays the pass's (entry 88 amended in place).
+   Three definitions the count leaves open are Ramon's and are written
+   in `docs/RUBRIC.md`, "The headline": whether a type the chat cheat
+   `add` places counts, whether the Conquer-the-World and scenario-only
+   records are a ceiling below 364, and whether "seen" becomes
+   "trained". Until answered, the count is presence in a pinned dump by
+   any route the pool stages without a cheat that creates the unit.
+4. **The pass and the commander never message each other** (Loop 3499,
+   Ramon: "you do not communicate live with steer"). The fiftieth pass
+   sent the running commander seven messages and answered four of its
+   status lines, each answer reviving a 300 k-token conversation. The
+   rule is in `docs/LOOP.md`'s fence: the pass's product is the
+   committed tree and the opener it arms; a decision taken with Ramon
+   while the commander runs is written into the parked file or is
+   Ramon's to send; a commander's question for the steer is a Loop row;
+   and the pass does not launch the commander when the opener says not
+   to. This pass ends on its report, and the launch is Ramon's.
+5. **A done line is checked against origin before anything is merged**
+   (Loop 3503): three lanes announced landings whose branches never
+   reached origin, `ccc merge` read the local ref, and a reaped worktree
+   would have held the only copy. The chain's first step is `git
+   ls-remote origin refs/heads/<branch>`, and the frame's landing row
+   says the done line follows the push and names origin's tip.
+6. **Four Loop items are tools** (an Opus 5.5 subagent in its own
+   worktree, each red first): `poolshot.py` resolves the take's own
+   `map-<N>/gamelog.txt` and refuses after a bounded wait (3487, four
+   tests); `release_gate.py --lane --whole` runs every timed test with
+   the lane's forgiveness kept, and `brief.py` refuses a note that names
+   `--lane` with neither `--tests` nor `--whole` (3489, five tests); the
+   pool writes `rise2.ini`'s `StartReveal` on every take from a
+   `RISE2_DEFAULTS` table with a `--rise2 KEY=N` flag and the receipt's
+   `staged` carrying it (3488, two tests); and `tools/retire.py` lists
+   what nothing in the tree names (3486, four tests) — on this tree, 0 of
+   1,950 scripts and 1,931 of 3,047 sections, the sections almost all
+   the ledgers (RUNS 811, PARKED 688, JOURNAL 254) whose rows are cited
+   by number and not by heading, so the next reach is a `--doc` filter
+   or an exclusion of the ledgers before the count says anything.
+7. **The slowest test fell nine percent** (Loop 3382, a second Opus 5.5
+   subagent's nineteen minutes): `RON_PROFILE_REPLAY=1` put the compared
+   pin's 108 s in the sim's own ticks (66.9 s), not the comparison, with
+   23 of 59 fresh walks starting over on a base the batch had already
+   walked; the prefix batch now keeps each walk's start state, 112.2 →
+   102.3 s warm, every reused walk equal to a fresh one under
+   `RON_VERIFY_PREFIX_REUSE=1`. The next lever is the sim's ticks.
+8. **The rest**: 3500 is a row of the coverage frame (a vtable-slot
+   booking names the receiver's most-derived vftable); 3490 is
+   `CLAUDE.md`'s wait bullet, edited; 3482 is ratified by the tranche
+   (its sixty-seven rows were entered, read into residue, or stand among
+   the 39); 3441 and 3440 are moot with the queue lane gone; 3498 waits
+   to be measured against the new rate; 3433 waits on a second
+   occurrence; 2003 took no reach; five stay Ramon's (3350, 3237, 3188,
+   3143, 3118) with this tranche's numbers appended. The backlog 20 → 9.
+
+**Against entry 89's estimate**: 3477 enters at least sixteen of
+eighteen with `base_rate[0]` 80 — met (eighteen); the five items in under
+eight hours — met (2 h 58); a coverage landing under 7 USD and 50 minutes
+— met (5.45 / 30.9); `cursor=X,Y` on 3477's take with 0 differing — met;
+no red booking gate — met; no kill rule — met; no blocked ending —
+**missed** (3502's); the drafting subagent books at least three more —
+met (ten); no dead row among the 91 — met. Eight of nine.
+
+**The estimate, written down to be wrong on record**, on the six lobbies
+and two Opus pool lanes: `ENDING_TECHNOLOGY` holds the computer's age on
+the read-back of every take; the six land in under six hours from the
+launch; unit types seen 74 → at least 150 (each lobby ten to thirty new
+records, 3507's Modern age the largest); a coverage landing under 5.50
+USD and under 35 minutes waiting; the pool's median rate over 15 frames a
+wall second with two long games abreast; no red booking gate; no blocked
+ending; no message between the commander and the steer; the next scan
+finds no dead row among the 39.
+
+**The measure for the next pass**: unit types seen against 74, by domain
+and age; each landing's USD and waiting against 5.45 / 30.9; the pool's
+median rate against 24.5 and its cap wait against 0; the gate class
+against 19.7 a session; booking gate minutes against 242.4; `DEEP`
+against two; the backlog against 9; the disk against 206 GiB; whether
+`ENDING_TECHNOLOGY` held; whether any message crossed between the two
+rows.
