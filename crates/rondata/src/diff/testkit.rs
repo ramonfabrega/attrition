@@ -9871,7 +9871,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (89 → 53, the standing rows) as run1175's does (1024 → 43). The
     // closing block 4468 is scored by `run1155_chinese_industrial_pair_
     // closing_state`, 14 off, and no window holds it yet: the closing
-    // block's widening is owed (parked 3538), booked as item 3540.
+    // block's widening is owed (parked 3538, booked as 3540).
     (
         "CHINESE_INDUSTRIAL_PAIR_WORD",
         crate::diff::chinese_industrial_pair::CHINESE_INDUSTRIAL_PAIR_WORD,
