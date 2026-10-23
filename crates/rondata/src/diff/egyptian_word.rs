@@ -247,7 +247,7 @@ fn run967b_s_gap_is_widened_whole() {
     // the food bucket from 1704 and the age's queue on 2604 (`tech_frame`
     // 1576 against 2576). With the arm, **39**: the standing set and
     // who=0's `other_team_terr` 441 against 388 from 1404.
-    pin_eq!(w.firsts.len(), 39, "run967b with the Egyptian farm wealth");
+    pin_eq!(w.firsts.len(), 37, "run967b with the Egyptian farm wealth");
 }
 
 /// run967c: the word 15782's window, blocks 15776..16033 at run967b's

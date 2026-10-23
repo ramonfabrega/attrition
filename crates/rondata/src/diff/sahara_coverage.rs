@@ -648,7 +648,7 @@ fn run683_s_word_frame_is_widened_whole() {
     // Item 2384: +1, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (who=0, the human): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 54, "initial run683 baseline");
+    pin_eq!(w.firsts.len(), 51, "initial run683 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1577).count(),
         47,
@@ -797,10 +797,10 @@ fn run702_s_word_frame_is_widened_whole() {
     // Item 2761: 82 → 76 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 62, "initial run702 baseline");
+    pin_eq!(w.firsts.len(), 59, "initial run702 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1979).count(),
-        50,
+        47,
         "the keys standing on the window's first block"
     );
     // **The word 1985's value diff** (item 1581, on the tree that merged
@@ -975,10 +975,10 @@ fn run718_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
     // Item 3336: −1, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
-    pin_eq!(w.firsts.len(), 46, "initial run718 baseline");
+    pin_eq!(w.firsts.len(), 44, "initial run718 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 2267).count(),
-        42,
+        40,
         "the keys standing on the window's first block"
     );
     // **The word 2273's value diff** (item 1611, `docs/AI.md` §171). The
@@ -1099,7 +1099,7 @@ fn run766_s_word_frame_is_widened_whole() {
     // Item 3279: −14, `death:extra` is not a parting on a capture that
     // logs no `DEATHS` (this one prints no `DEATH_OBJS`; `docs/AI.md` §259).
     // Item 3336: −1, `Wall::set_type` leaving the hits to the next `calc_wall_stats` (`docs/AI.md` §272).
-    pin_eq!(w.firsts.len(), 51, "initial run766 baseline");
+    pin_eq!(w.firsts.len(), 48, "initial run766 baseline");
 }
 
 pub(crate) const RUN767: &str = "gamelog-run767-greatsahara-persian-alltech-window-2928-3186.txt";
@@ -1153,7 +1153,7 @@ fn run767_s_word_frame_is_widened_whole() {
     // `1/2000`, `1/2028`, `1/2032`, `1/2039` `queue[n].cost[0]` (ours 60 theirs
     // 57 on 2928, 67/64 on 3183) and `1/-1 bucket[0:food]` (18688 against 18712)
     // now agree.
-    pin_eq!(w.firsts.len(), 54, "initial run767 baseline");
+    pin_eq!(w.firsts.len(), 51, "initial run767 baseline");
 }
 
 /// run790, item 1905: the lobby's blocks 3761..4017 at the long's detail —

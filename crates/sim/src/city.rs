@@ -2550,28 +2550,14 @@ impl Sim {
     /// `Object::disband(full)`: the building goes back; the refund is the
     /// fraction not yet built, or the whole price. The steps are
     /// [`crate::disband::disband_steps`], swept against the original
-    /// (item 3346); this takes the prices ahead of them, while the building
-    /// still counts in the ramps they are read from.
+    /// (item 3346), and the prices are read inside them, after the close,
+    /// as the original reads them (item 3516).
     pub fn disband_building(&mut self, b: usize, full: bool) {
         if !self.buildings[b].alive {
             return;
         }
-        let who = self.buildings[b].owner;
-        let lakota = self.nation[who as usize].lakota && self.tuning.lakota_raze_price != 0;
-        let mut prices = [0; RESOURCES];
-        if let Some(ty) = self.buildings[b].ty {
-            let bd = &self.buildings[b];
-            let partial = !bd.active && bd.job_counter < self.build_types[ty].job_time * 100;
-            if full || lakota || partial {
-                prices = self.building_price(who, ty);
-            }
-        }
         crate::disband::disband_steps(
-            &mut crate::disband::SimDisband {
-                sim: self,
-                b,
-                prices,
-            },
+            &mut crate::disband::SimDisband { sim: self, b },
             i32::from(full),
         );
     }

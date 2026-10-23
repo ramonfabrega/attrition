@@ -1503,6 +1503,39 @@ fn a_full_disband_returns_the_price_and_a_lakota_raze_makes_every_disband_full()
     }
 }
 
+/// **A disband prices after the close** (item 3516): `disband@006455c0`
+/// closes the building before it reads the price, so the building no longer
+/// counts in its own type's ramp. Two barracks with a `SUPPORT` ramp, the
+/// second disbanded full: the refund is the one-barracks price, not the
+/// two-barracks one the live count would read (run1162c's site `1/2038`,
+/// 160 timber against 180).
+#[test]
+fn a_disband_refunds_the_price_without_itself_in_the_ramp() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    sim.build_types[t.barracks].price = sim.build_types[t.barracks]
+        .price
+        .clone()
+        .with_support(economy::Resource::Timber, 20);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let a = sim.place_building(0, t.barracks, tile_pos(24, 40)).unwrap();
+    finish(&mut sim, a);
+    let b = sim.place_building(0, t.barracks, tile_pos(40, 40)).unwrap();
+    let live = sim.building_price(0, t.barracks);
+    let before = sim.ledgers[0].bucket;
+    sim.disband_building(b, true);
+    assert!(!sim.buildings[b].alive);
+    let closed = sim.building_price(0, t.barracks);
+    assert_ne!(live, closed, "the ramp counts the building while it stands");
+    for g in 0..closed.len() {
+        assert_eq!(
+            sim.ledgers[0].bucket[g] - before[g],
+            closed[g],
+            "good {g}: the price after the close"
+        );
+    }
+}
+
 #[test]
 fn a_nomads_first_city_takes_three_times_as_long_and_is_refunded_by_what_is_left() {
     let mut sim = world_sim();

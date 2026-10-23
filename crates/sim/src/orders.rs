@@ -8976,15 +8976,7 @@ impl Sim {
                     // role is not combat. run835's `0/7` re-finds the Bark
                     // `1/8` on 634 and keeps it here; the chase's retarget
                     // ([`Sim::retarget_admits`]) hands it the fishing boat.
-                    let p = self.profile(Obj::Unit(t));
-                    let off = if self.units[u].unit_masks2 & combat::umask2::BARK != 0 {
-                        p.combat_role
-                            && self.units[t]
-                                .ty
-                                .is_none_or(|ty| self.unit_types[ty].cols.unit_flags & 0x2000 == 0)
-                    } else {
-                        !p.combat_role
-                    };
+                    let off = self.captain_research_admits(u, t);
                     (off && roll % 5 != 0 && flags & flag::FIGHT_REENTRY == 0)
                         || self.poor_target(me, target)
                 }
