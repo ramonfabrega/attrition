@@ -719,7 +719,7 @@ impl Sim {
     fn road_was_seen(&self, t: Pos, who: Player) -> bool {
         let r = self.was_seen_fog(t.x >> 1, t.y >> 1, who);
         if std::env::var("RON_PROBE_3524").is_ok() && t.x == 174 && t.y == 238 {
-            let cell = Cell::new(t.x >> 3, t.y >> 3);
+            let cell = Cell::new(t.x >> 2, t.y >> 2);
             let reg = self.world.region_of(cell);
             let owner = self.world.owner(cell);
             let rc: Vec<_> = (0..2u8)
