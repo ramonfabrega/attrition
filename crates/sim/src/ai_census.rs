@@ -1451,6 +1451,22 @@ mod tests {
     /// cell's region unless the cell is another leader's and that leader is
     /// not a mutual ally — and only the census writes the array, while the
     /// leader-level sum waits for `calc_gather`'s recompute.
+    /// **The census's territory is the leader's land count** (item 3516,
+    /// `LeaderData::territory`, the field `get_team_terr@006d62e0` sums):
+    /// a sea cell the map's owner layer gives the leader is not in it.
+    /// run1162d's who=0 census read who=1's team as 462 where the
+    /// original held 437.
+    #[test]
+    fn the_census_territory_is_the_land_count_not_the_owned_cells() {
+        let Fix { mut sim, .. } = fix();
+        let p = Owner::Player(1);
+        sim.world.set_owner(Cell::new(3, 3), p, Owner::None);
+        sim.world.set_owner(Cell::new(13, 3), p, Owner::None);
+        sim.holdings[1].territory = 1;
+        assert_eq!(sim.territory_of(1), 1, "the land cell, not the sea one");
+        assert_eq!(sim.team_terr(1), 1);
+    }
+
     #[test]
     fn step_9_counts_the_seen_rares_a_merchant_may_reach() {
         let mut f = fix();

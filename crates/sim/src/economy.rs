@@ -1433,6 +1433,35 @@ mod tests {
         assert_eq!(expected, 20);
     }
 
+    /// **The CEO's city takes half again** (item 3516,
+    /// `calc_city_resources@006d5530:166`–`195`): the trade and the sites,
+    /// every good, scaled by `(THECEO_PRODUCTION_BONUS + 100) / 100` before
+    /// the city's own flat `CITY_GATHER`, which is not scaled. run1162e's
+    /// who=1 wealth `income` reads 3448 against 3183 without it.
+    #[test]
+    fn the_ceo_s_city_takes_half_again_before_the_flats() {
+        let t = Tuning::RON;
+        let mut city = City {
+            trade_val: 530,
+            ..farm_city(3)
+        };
+        let plain = city_rates(&t, &city);
+        city.ceo = true;
+        let ceo = city_rates(&t, &city);
+        for r in [Resource::Food, Resource::Wealth] {
+            let flat = t.city_gather[r.index()] * RATE_SCALE;
+            assert_eq!(
+                ceo[r.index()] - flat,
+                (plain[r.index()] - flat) * 3 / 2,
+                "{r:?}: the gather scaled, the flat not"
+            );
+        }
+        assert_eq!(
+            ceo[Resource::Wealth.index()] - plain[Resource::Wealth.index()],
+            265
+        );
+    }
+
     #[test]
     fn peasant_rate_is_ten_despite_being_written_as_ten() {
         // The trap: PEASANT_RATE reads "10 resources" and is loaded as 2560.

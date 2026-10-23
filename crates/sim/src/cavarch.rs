@@ -442,6 +442,48 @@ mod tests {
         }
     }
 
+    /// **A Bark captain keeps a target that is not combat, and re-searches
+    /// one that is** (`fight@005fd4d0:394`–`400`'s `local_14`, item 3516):
+    /// the other way round from any other captain. run1161b's Cruiser
+    /// `1/25` (`unit_masks2` 4) keeps the citizen `0/5` on 3681 and fires,
+    /// where a re-search found `0/11`.
+    #[test]
+    fn a_bark_captain_firing_on_the_move_keeps_a_target_that_is_not_combat() {
+        for held_combat in [false, true] {
+            let (mut sim, ty) = field(true);
+            let mut cheap = sim.unit_types[ty].clone();
+            cheap.combat.combat_role = held_combat;
+            cheap.combat.cost = 1;
+            let cheap = sim.add_unit_type(cheap);
+            sim.unit_types[ty].combat.cost = 1000;
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let held = put(&mut sim, 0, cheap, Pos::new(3000, 3900));
+            let dear = put(&mut sim, 0, ty, Pos::new(3200, 3900));
+            sim.units[me].unit_masks2 |= crate::combat::umask2::BARK;
+            sim.units[me].combat.captain = i32::from(sim.units[me].index);
+            while {
+                let mut r = sim.rng;
+                r.roll() % 5 == 0
+            } {
+                sim.rng.seed = sim.rng.seed.wrapping_add(1);
+            }
+            sim.units[me].cast_target = Some(Obj::Unit(held));
+            sim.units[me].cavarch_who = 0;
+            sim.cavarch_fight_body(me, 100);
+            if held_combat {
+                assert_eq!(
+                    sim.units[me].cast_target,
+                    Some(Obj::Unit(dear)),
+                    "a combat target: re-searched"
+                );
+                assert_eq!(sim.units[me].combat.recharging, 0, "and nothing shot");
+            } else {
+                assert_eq!(sim.units[me].cast_target, Some(Obj::Unit(held)), "kept");
+                assert_eq!(sim.units[me].combat.recharging, 30, "shot");
+            }
+        }
+    }
+
     /// **A formation follower fires on the move too, and keeps its pair
     /// where the head drops it** (`do_group_move@005e79a0:392`–`406`, item
     /// 3336; run967g's Royal Mameluke `1/68` on 20186). A `v` follower on

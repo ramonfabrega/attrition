@@ -953,6 +953,42 @@ mod tests {
         }
     }
 
+    /// **The CEO's city is the one its owner's counted, on-map `0x165`
+    /// hero stands in** (`calc_city_resources@006d5530:166`–`195`, item
+    /// 3516): no city while the leader's count is 0, none for a hero off
+    /// the map or not a general, none for another player's; otherwise the
+    /// city at its position, which the city's income then reads.
+    #[test]
+    fn the_ceo_s_city_is_where_a_counted_on_map_hero_stands() {
+        use crate::ai_load::uflags2;
+        let mut sim = world_sim();
+        let t = install(&mut sim);
+        let b = build(&mut sim, 0, t.village, 32, 32);
+        let c = sim.buildings[b].city.expect("a finished city");
+        let mut ceo = UnitType {
+            type_index: 0x165,
+            hits: 50,
+            ..UnitType::default()
+        };
+        ceo.cols.unit_flags2 = uflags2::GENERAL;
+        let ceo = sim.add_unit_type(ceo);
+        let h = spawn(&mut sim, 0, ceo, tile_pos(33, 33));
+        sim.units[h].type_index = 0x165;
+        sim.units[h].on_map = true;
+        assert_eq!(sim.ceo_city(0), None, "a hero the leader does not count");
+        sim.muster[0].by_type[ceo] = 1;
+        assert_eq!(sim.ceo_city(0), Some(c));
+        assert!(sim.city_holdings(c, Levels::BASE).ceo);
+        sim.units[h].on_map = false;
+        assert_eq!(sim.ceo_city(0), None, "off the map");
+        sim.units[h].on_map = true;
+        sim.unit_types[ceo].cols.unit_flags2 = 0;
+        assert_eq!(sim.ceo_city(0), None, "not a hero");
+        sim.unit_types[ceo].cols.unit_flags2 = uflags2::GENERAL;
+        sim.muster[1].by_type[ceo] = 1;
+        assert_eq!(sim.ceo_city(1), None, "another player's hero");
+    }
+
     // ------------------------------------------------------------------
     // The one that matters: a farm with a citizen on it pays.
     // ------------------------------------------------------------------
