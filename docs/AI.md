@@ -25621,3 +25621,10 @@ holds every hundredth block, so the walk back has those blocks to read.
 **What this has *not* established.** Why ours escrows rather than queues: the make list's purchase arm for a
 missile at a Silo that already holds one, or a nuke cap (`LeaderData::get_nukes`), is the next item's hypothesis,
 not a finding. Nor is it established whether the standing `SITE` and `hits_left` rows feed the decision.
+
+## 302. Reserved for the next item on the AI track
+
+A stub the opening booking lands so a lane's rewrite and the next booking
+never touch adjacent lines (parked 1741): the booking assigns it by number
+in the queue's own words and edits nothing here; the item's worker renames
+the heading and writes the section.
