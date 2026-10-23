@@ -23938,6 +23938,79 @@ SHA-256 `e24431a53964961147bb2d9366473b4b4bff550c76507d0390afd57827a34e07`.
 Archive `rontrace-run1130.log`, 14,010,144 bytes,
 SHA-256 `fda94e1f7080be3fb4d019a5bee4e9a1f5de1a21e965ee13da96c421e61d71fc`.
 
+## run1138 — chapter fifteen's two Hoplite squads, the Chariot and run1070's four Supply Wagons, at `cover=0`: the recon for an inserted repair walk (2026-10-22, item 3504, `att-3504`)
+
+**What the disk could not answer**: no trace enters `Unit::kill_group_order@005e3310` or `Group::kill_group_order@00710aa0`,
+and no dump holds a leader with a non-mandatory attack under a no-bit group move (F1 of `t51/draft-items-54.md`).
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1138 --map 14 --end-frame 780 --log-window 640 780
+--detail end:UNITS=3 --cover cover=0` over the shared lines of `tools/gamelog/coverage/killgroup3504.cmd` plus the
+wagons. Pool lane 1, launched 19:23:13, exited 19:23:32: **18.7 s**, 781 frames, `last_frame` 780, seed 12345. DLL
+`ca8e6450…`. The group's `GROUP_ATTACK_TO` acquired the wagon `1/7` on block 652, not the Chariot, and the attack's flags
+fell to 16 on 653. The wagons left the cast. Filed with `filerun.py run1138 killgroup-recon-cover0`.
+
+Archive `gamelog-run1138-killgroup-recon-cover0.txt`, 22,509,730 bytes,
+SHA-256 `b7974fa3916f111e56b3e4fcf1310f671e1324cfcf8f3193b45d4754738524f7`.
+
+Archive `rontrace-run1138.log`, 10,307,168 bytes,
+SHA-256 `7770e7f7dea51ecbd5af81800c420f376a3ff9ca82b1b412f7282523d56d5b54`.
+
+## run1139 — `killgroup3504-t2.cmd` at `cover=1`: `@repairins` over the acquired attack, killed by the 32-frame check (2026-10-22, item 3504, `att-3504`)
+
+The shared lines, the jam, and `741 @repairins 0 2000 0 6 9`, to 1400 (`--log-window 735 1400`). Pool lane 1, launched
+19:26:33, exited 19:27:05: **31.3 s**, 1,401 frames, seed 12345. DLL `fa240f8a…`. The acquisition is block 742
+(`ATTACKORDER ox 6 whom 1 flags 4 mandatory 0`). On 743 the leader `0/6` holds `[GROUPATTACKTO, ATTACK mandatory 0,
+GroupMoveOrder flags 1 id 741900]`, the F1 shape. `do_group_move:58-80`'s `kill_group_move` killed it on 762, with the
+leader 2,097 from the still Chariot (< 0x900). Neither target row was entered. Filed with `filerun.py run1139
+killgroup-insert-cover1`.
+
+Archive `gamelog-run1139-killgroup-insert-cover1.txt`, 89,446,108 bytes,
+SHA-256 `925bc551b4e6af9581e0ba19c98bdd8ff0930141cac6c392bc81cb961f8a1d03`.
+
+Archive `rontrace-run1139.log`, 11,894,208 bytes,
+SHA-256 `fc42146f34dff2c92bc3b64f7ab6be3549892885763a25b541f5763f785bcfd2`.
+
+## run1140 — `killgroup3504-t3.cmd` at `cover=1`: the Chariot sent north, killed through `check_target_path` (2026-10-22, item 3504, `att-3504`)
+
+run1139 with the Chariot moved off as who=1 on 739. Pool lane 1, launched 19:28:49, exited 19:29:16: **27.0 s**, 1,401
+frames, seed 12345. DLL `c58c045f…`. The walk died on 746: `Unit::work:158-197`'s 16-frame `check_target_path` saw a
+moving target, and `Unit::repath` → `Group::kill_group_move` followed. Neither target row was entered. Filed with
+`filerun.py run1140 killgroup-insert-hop-cover1`.
+
+Archive `gamelog-run1140-killgroup-insert-hop-cover1.txt`, 85,366,192 bytes,
+SHA-256 `f86574114e0d96176ad18ab0a71719d3b587c8a77db55825efba467ba65d8754`.
+
+Archive `rontrace-run1140.log`, 11,381,568 bytes,
+SHA-256 `196a4e5e59ee85c66303016acfc1b133f0f896c4dfaeca63f4ced258a13b6110`.
+
+## run1141 — the shifted cast, sweep 4's insert and hop, a shuttling who=0 crowd and an obstacle on the walk, at `cover=1`: the leader's collision ungroups under pressure (2026-10-22, item 3504, `att-3504`)
+
+`tools/gamelog/coverage/killgroup3504-crowd-obstacle.cmd`, to 1300 (`--log-window 730 1300`), taken as
+`sweep3504-v11a` and renamed. Pool lane 1, launched 20:20:27, exited 20:20:49: **22.5 s**, 1,301 frames, seed 12345. DLL
+`5f866ff1…`. The acquisition is again block 742, and the walk survives every killer from 743. The leader `0/6` hits the
+obstacle squad on 965 (`collide_frame` 965) while the who=0 cast records 12, 12 and 16 collisions on 964–966. On 966
+its head is `MOVEORDER flags 1`: the walk ungrouped on its first collision, with `start_dist` 0 throughout.
+`Unit::find_new_target` is first entered on 993, by ungrouped units (`find_new_target:63-65`'s `kill_current_order`
+arm). Neither target row was entered. Filed with `filerun.py run1141 killgroup-crowd-obstacle-cover1`.
+
+Archive `gamelog-run1141-killgroup-crowd-obstacle-cover1.txt`, 114,614,277 bytes,
+SHA-256 `73b85e1c863e06a658e15953039f3e7eea0c2079bd14def90e3fd40f4b2187bf`.
+
+Archive `rontrace-run1141.log`, 14,250,208 bytes,
+SHA-256 `c8d21ccfd331e79782f5653df962060acc88c2377d48218125ccdd54ca3051ad`.
+
+## run1142 — run1141 without the obstacle: pressure alone suspends nothing on a grouped leader (2026-10-22, item 3504, `att-3504`)
+
+`tools/gamelog/coverage/killgroup3504-crowd.cmd` (all ten jam squads shuttle), taken as `sweep3504-v10a` and renamed.
+Pool lane 1, launched 20:18:08, exited 20:18:32: **23.9 s**, 1,301 frames, seed 12345. DLL `f66e0d32…`. The who=0 cast
+records up to 19 collisions a frame from 830 on, but the leader `0/6` never collides and never stamps `start_dist`, and
+it walks grouped until 1093 at (3782, 21993). Neither target row was entered. Filed with `filerun.py run1142
+killgroup-crowd-cover1`.
+
+Archive `gamelog-run1142-killgroup-crowd-cover1.txt`, 114,632,532 bytes,
+SHA-256 `424e966dad9d4fc03acff4c1b249e96ea34290af535f2967e6c03b4361662271`.
+
+Archive `rontrace-run1142.log`, 13,082,688 bytes,
+SHA-256 `244277e71adca77990e55dc4fa38630772e23fae0705ec885f3fcef9627051b2`.
 ## run1136 — the golden start at `cover=1` on the click-free pool, a catapult Alt-right-clicked onto an enemy Barracks, to 640 (2026-10-22, item 3502, `att-3502`)
 
 **What the disk could not answer**: no trace enters `CommandPackage::process_siege_attack` (`union.txt`):
