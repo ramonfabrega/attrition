@@ -25696,12 +25696,77 @@ with them. All of these now agree.
 and the Aluminium step. No capture holds either with a ship or an aircraft priced. The nested land-unit
 `ANGKOR_SHIPS` inside Terra Cotta's clause (`docs/COSTS.md`, Wonders) is not built.
 
-## 302. Reserved for the next item on the AI track
+## 302. The Americans at a held Modern age, Great Sahara: the Airbase's free Bomber, 1995 → 4488 of 4548 (2026-10-23, item 3509)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3509, Opus 5.5, the AI track (DECISIONS 90): run1150, run1151, run1151b and run1151c, on the click-free pool.*
+
+**The lobby.** The Aztec pair's (§301: Great Sahara, `MAP_STYLE 7`, human Nubians against a computer at Difficulty 3,
+seed 12345, `STARTING_RESOURCES 7`) with the nation varied to the **Americans (20)** and the age **held at Modern**:
+`STARTING_TECHNOLOGY 6`, `ENDING_TECHNOLOGY 6`. Both captures read the lobby back through `Pair::assert_lobby`
+(`american_modern_pair_captures_say_their_lobby`). `rubric.py --tables 2` on run1150 and run1151 puts the computer at
+age 6 on every leader record it reads, and at 7 on none.
+
+**The captures.** run1150 is the `DUMP_ALL` start. run1151 is the long, 3507's recipe; **the game ends itself on
+4548** (closing block 4549), and the walk is seeded from run1150's initial state (3506a). run1151b is the first word's
+window (blocks 1990..2246) and run1151c the second's (4482..4549). All four are one game by `rngcmp.py`: run1150
+against run1151, 37 of 37; run1151 against run1151b, 2247 of 2247; against run1151c, 4549 of 4549.
+
+**First try: frame 1995 of 4548**, by the count and the sequence. Ours spends 6 draws, theirs 7, and they part at
+index 1:
+
+| index | 0 | 1 | 2, 3 | 4 | 5, 6 |
+|---|---|---|---|---|---|
+| ours | `Animal::do_idle+0x83` | `Guy::set_anim < Unit::do_idle` | the same ×2, then `< Guy::inc_time` | `Farms::inc_time` | — |
+| theirs | `Animal::do_idle+0x83` | **`Guy::init_real+0x52 < Unit::init+0xb97 < Objects::init_unit+0xbd`** | `Guy::set_anim < Unit::do_idle` ×2 | `Guy::set_anim < Guy::inc_time` | `Farms::inc_time` ×2 |
+
+Theirs' seeds run from `6425a524` (index 0) to `596c458a` (index 6), with one `SoundType::play` draw on its own
+generator between them. **The direction is theirs: a birth.** On the word's block 1996 (run1151b,
+`american_modern_pair_run1151b_s_word_frame_is_widened_whole`, 713 keys), `births.py` names one object, theirs only:
+`1/45`, uid 77, **`BOMBER` (TypeIndex 304, air)**, 300 hits, `inside_up 2022`, and the leader row `num_units[254]` is
+ours 0 and theirs 1. `1/2022` is an **Airbase** (447). It completes on block 1996 on both sides: `job_counter`
+44976 → 0 and `build_masks` 1160 → 5256, with no key parting. So the Airbase finishes alike, and only theirs pays.
+
+**The cause** is the `AIRBASE` arm of `Build::activate`'s free units (`docs/CITIES.md` §4.3): `AMERICANS_FREE_BOMBER`
+gated on `has_tech(MODERN_AGE)`. A probe on the arm's inputs found every one passing on ours except the gate (the
+mark rises, `counted`, the American power, the Bomber record, population 32 of 75). The gate asked for `0x225`, the
+original's `TypeIndex` for `MODERN_AGE`. But the tree lays the techs out at `543 + i`, and the original numbers them
+from `0x220 + i` (`rondata::load`'s module table: the buildings end at 543, and the original's `0x21f` is a gap). So
+the tree's `0x225` is the **Information Age**, which a held Modern game never owns. In the tree, the Modern Age is
+`ages[5]`, at 548, and run1150's American owns it from `Leader::init`'s start block (`techrules.xml` `AGE 5 < 6`).
+**The gate now asks for `ages[5]`.** `american_modern_pair_an_american_airbase_pays_a_bomber_in_the_modern_age`
+activates an Airbase for each side on run1150's lobby: the American gets one Bomber, the Nubian none, and the test
+asserts that `ages[5]` is the original's `0x225`. No other `TypeId` constant in `sim` spells a tech by its `TypeIndex`
+(a grep for `0x220`–`0x274`).
+
+**The value diff, 1995** (run1151b, after the fix: 713 → 72 keys). Block 1990 carries the standing rows: both leaders'
+`SITE[i].reg` and `aggression`, every unit's `form`, the pool and `held` of groups 64 and 66 (ours only), and `1/14`'s
+`g.angle[0]`. After those come three `dest_angle` rows (`1/31` on 2092, `1/20` on 2118, `1/40` on 2196), groups 65
+and 67 on ours only (2112, 2204), and then a price. On 2184 who=1's `MAKE[2].val` is ours 653062 against theirs
+710507. On 2186 both Airbases (`1/2022`, `1/2025`) queue four aircraft each, and **ours charges more**: `queue[0].cost[0]`
+ours 89, theirs 71, and on through `queue[3]` (ours 100, theirs 83), with `bucket[2:wealth]` and `bucket[5:oil]`
+150 apart. The draw stream agrees past it. Parked as 3509a.
+
+**The second word: frame 4488 of 4548**, by the count and the sequence. Ours spends 44 draws, theirs 43, and they part
+at index 29: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+`american_modern_pair_run1151c_s_word_frame_is_widened_whole` walks run1151c over 67 blocks and finds 2419 keys,
+188 of them already standing on the window's first block, 4482: the window opens 2236 blocks past run1151b, with only
+the long's stride between. Among the standing rows is a Bazooka squad, `1/21`, `1/41` and `1/65` (TypeIndex 139,
+land), on guard orders that already differ: `1/21`'s `guard_x`/`guard_y` are ours (9192, 30936) against theirs
+(8808, 33096). The first row after the standing ones is `1/41`'s path on 4487: length ours 17, theirs 18, and
+`path[12].to` ours (9720, 31848) against theirs (9576, 31752). On the word's block 4489, `1/21`'s `collide_o` is ours
+65 against theirs −1. **The next word**: frame 4488, ours 44 against 43, index 29. The state parted before 4482,
+so the first step is to walk the long's stride blocks back to the squad's first parted field.
+
+**What the game put on the map** (`rubric.py --tables 3` on run1150 and run1151; the rubric counts lockstep games
+only, so `RUBRIC_UNIT_TYPES_SEEN` does not move). Of the booking's names, the game showed `SHERMAN` (246),
+`MARINEINFANTRY` (121), `MUSTANG` (294), `ARMOREDCAR` (218) and the `BOMBER` (304). It did not show `P40`,
+`TIGERTANK` (258) or `LANCASTERBOMBER` (307): the American line's Modern bomber is the generic `BOMBER`. The game also
+showed the Bazooka (139), `HVYMACHINEGUN`, the Flamethrower, the Howitzer, `FLAKGUN`, the Helicopter,
+`NUCLEARMISSILE` and `SPECIALFORCES`.
+
+**What this has *not* established.** Why ours prices the Airbase's aircraft above theirs from 2186 (3509a), or what
+sets `MAKE[2].val` apart on 2184. Where the Bazooka squad's guard orders part, somewhere in 2247..4481. The
+`AIRBASE` arm's German half (`GERMAN_FREE_FIGHTER`), which rests on the reading alone.
 
 ## 303. Reserved for the next item on the AI track
 

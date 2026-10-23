@@ -9937,13 +9937,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OL — reserved
+## Parked by item 3509, 2026-10-23 — the Americans at a held Modern age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3509a. Ours prices the American Airbases' aircraft above theirs from 2186.** run1151b, after the
+  `MODERN_AGE` fix: on 2186 the Airbases `1/2022` and `1/2025` queue four aircraft each, and `queue[0].cost[0]`
+  is ours 89 against theirs 71, rising to ours 100 against theirs 83 at `queue[3]`. who=1's `bucket[2:wealth]` and
+  `bucket[5:oil]` sit 150 apart, and `MAKE[2].val` parts two blocks earlier (ours 653062, theirs 710507). The
+  draw stream agrees until 4488, so this names no frame of its own. A walk-back of the 4488 word that reaches
+  the make list starts here (`docs/AI.md` §302). **Score**: none until a walk-back ties it to 4488.
+- **3509b. A `TypeIndex` spelled as a tree id.** The tree's techs sit at `543 + i` and the original's at
+  `0x220 + i`, so a tech constant written as the original's number is one off in the tree. `nations.rs`'s
+  `MODERN_AGE` was the only one in `sim` (a grep for `0x220`–`0x274`). A guard could refuse a `TypeId` constant
+  in that range outside the loader. **Score**: none; the class of the bug, not a frame.
 
 ## Parked by the next landing, slot OM — reserved
 
