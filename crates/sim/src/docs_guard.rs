@@ -1499,7 +1499,9 @@ fn a_function_a_booking_names_is_in_the_export() {
 
 /// How many of `rondata::blind::RESIDUE`'s rows say "no reference in the
 /// executable" — the dead list's length, pinned so a new row is a decision.
-const UNREFERENCED: usize = 147;
+/// **148** with item 3505's `Special::walk_data` (inlined into
+/// `Specials::walk_data`; no top-level document cites it).
+const UNREFERENCED: usize = 147 + 1;
 
 /// What `docs/EMULATOR.md` §4 enumerates as dead and the residue table does
 /// not hold as unreferenced, each for a reason the table's own rows give.
