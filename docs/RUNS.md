@@ -23937,3 +23937,54 @@ SHA-256 `e24431a53964961147bb2d9366473b4b4bff550c76507d0390afd57827a34e07`.
 
 Archive `rontrace-run1130.log`, 14,010,144 bytes,
 SHA-256 `fda94e1f7080be3fb4d019a5bee4e9a1f5de1a21e965ee13da96c421e61d71fc`.
+
+## run1136 — the golden start at `cover=1` on the click-free pool, a catapult Alt-right-clicked onto an enemy Barracks, to 640 (2026-10-22, item 3502, `att-3502`)
+
+**What the disk could not answer**: no trace enters `CommandPackage::process_siege_attack` (`union.txt`):
+`Console::execute_at_cursor@007c6630.c:328-401` issues `GroupOut::issue_siege_attack` only with Alt held and Shift
+and Ctrl not, and every pinned `@rclick` (run1050, run1061, run1076) ran with no modifier, since `@key` and `@rclick`
+send none (parked 3442a). The take adds a tracer line, `@hold <vk> <until-frame>` (`tools/trace/hold.h`), that points
+the exe's USER32 `GetKeyState` import (IAT VA 0xac53e8, parked 3495a) at a hook answering 0x8000 for the key on the
+line's frames. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1136 --map 14 --no-ffwd
+--end-frame 640 --log-window 600 640 --timeout 3600 --detail end:UNITS=3,LEADERS=2 --detail misc:COMMANDMANAGER=1
+--cmd-file tools/gamelog/coverage/siege3502-althold.cmd --cover cover=1`, the pool's defaults (the receipt's `staged`:
+`cursor` `1400,1000`, `console_log` 0, `hover` false, `build_defines` `-DRON_AUTOSTART`). Lines `0 !ai off`, `600 age
+who=0 2`, `602 age who=1 2`, `604 add catapult who=0 4,41`, `606 add barracks who=1 10,41`, `608 select 6 who=0`, `608
+camera 10,41`, `610 @hold 18 616`, `612 @rclick 960 445`.
+- Pool lane 1 (`~/wine-ron`), seed 12345, map 14, PLAYER records who 0 (flags 7, tribe 4) and who 1 (flags 1, tribe
+  11). Launched 18:59:57, exited 19:00:56: **58.6 s launch to exit**. `success`, 641 frames, `last_frame` 640. DLL
+  `3058fde5…`. 201 GiB free before. Minutes waited on another lane: none.
+- **The hook's records**: `I_HOLD` (31) on 610, refusal 0, vk 0x12, until 616, the slot found at RVA 0x6c53e8;
+  one `I_HOLD_ASKED` (32), on 612, vk 0x12 — Alt was asked on no other frame of the span. `I_CLICK` on 612 (960,
+  445, right).
+- **6,522 functions entered.** On 612: `Console::right_click`, `Console::execute_at_cursor`, `Console::find_target`,
+  `GroupOut::issue_siege_attack@0070aff0`, **`CommandPackage::process_siege_attack@00949ae0`** (the `NEVER` row) and
+  `Group::action_siege_attack@00706ff0`. `select 6` picked the catapult: the arm issues only on a non-zero
+  `COUNT_SIEGE`.
+- **The dump beside the trace**: ` process_siege_attack 2006 1 2 613` (gamelog line 76128, `COMMANDMANAGER=1`): the
+  Barracks is o 2006, who 1. On 614 `UNITS=3` shows o 6 (uid 13, `myhits` 80) with an `ATTACKORDER` on ox 2006 whom 1
+  uid 12, `mandatory 1`, `in_range 1`. The twin's gamelog prints the same line at the same line number.
+- `rngcmp.py` against run1137, the `cover=0` twin: **641 in common, 0 differing, 641 identical**. `samegame.py`: **41
+  and 41 blocks, 41 in common, 0 differing**. Both send every input, so there is no `--from`.
+- Filed with `filerun.py run1136 golden-siegealt-cover1-clickfree`.
+
+Archive `gamelog-run1136-golden-siegealt-cover1-clickfree.txt`, 3,728,563 bytes,
+SHA-256 `c1df9fbfe5f28b1914236e8160a3c0fe83716c1fc91777c4c632d6a4e083d6d9`.
+
+Archive `rontrace-run1136.log`, 16,137,056 bytes,
+SHA-256 `14d0a3443123cc892c7c22a5c95c5d62874d42411f1f294b0f1c02d0ffd7d550`.
+
+**What it holds**: `blind::TRACES`' run1136 (item 3502), `NEVER` 247 → 246 (after 3501's run1134).
+
+## run1137 — run1136's `cover=0` twin (2026-10-22, item 3502, `att-3502`)
+
+The same command line and command file at `--cover cover=0`, in `~/ron-golden/run1137`. Pool lane 2
+(`~/wine-ron-2`). Launched 18:59:57, exited 19:00:56: **58.4 s launch to exit**. `success`, 641 frames, seed 12345,
+the same two PLAYER records; the same `I_HOLD` record on 610 and `I_HOLD_ASKED` on 612. DLL `3058fde5…` (one build
+serves both covers). Filed with `filerun.py run1137 golden-siegealt-cover0-clickfree`.
+
+Archive `gamelog-run1137-golden-siegealt-cover0-clickfree.txt`, 3,728,563 bytes,
+SHA-256 `ee0292fe579012c8c22b8a020d1740b6a92cd429e7ad60992a4bf7ae041bac1e`.
+
+Archive `rontrace-run1137.log`, 16,015,744 bytes,
+SHA-256 `f5bcde2baab26c6d507ea09c9601d4e58ce92c1546e969c97bd4caa5806db759`.

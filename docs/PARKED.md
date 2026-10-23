@@ -9924,13 +9924,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot OG — reserved
+## Parked by item 3502, 2026-10-22 — a held Alt through the exe's own GetKeyState import
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3502a. `@hold <vk> <until-frame>` is built, so 3442a's other modifier rows are one line each.**
+  `tools/trace/hold.h` points the executable's USER32 `GetKeyState` import (IAT VA 0xac53e8, found by name in its
+  import directory) at a hook that answers 0x8000 for the key on the line's frames and the real function otherwise,
+  for any VK. run1136's one `I_HOLD_ASKED` record is 612: on 610..616 `GetKeyState(0x12)` was asked only by the
+  right-click's `execute_at_cursor`, so a held key changes nothing until a reader asks it. 3442a's rows —
+  `WorldMap::on_right_up`'s ctrl/shift arms (GOLDEN §144.3's minimap row) and `do_formation`'s QUEUE_LAST/QUEUE_FIRST
+  — need no more tooling. **Score**: none until a drafting books those rows.
+- **3502b. The siege command's gamelog line is `COMMANDMANAGER=1`'s, in the gamelog.** run1136 and its twin print
+  ` process_siege_attack 2006 1 2 613` after ` process_group, new 0 1 613` (line 76128 of each): the Barracks o 2006,
+  whom 1, queued 2 (`execute_at_cursor`'s `local_3c`, 2 while Shift is not held), frame 613; on 614 `UNITS=3` shows
+  the catapult o 6 with an `ATTACKORDER` on ox 2006 whom 1, `mandatory 1`, `in_range 1`. The format string at
+  `int_str_array +0x3160` was not read: the four numbers are named by its sync-log twin's
+  "ox whom queued game.frame". Names no score.
 
 ## Parked by the next landing, slot OH — reserved
 
