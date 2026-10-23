@@ -5645,6 +5645,9 @@ impl Sim {
                         // frame its `near` is in plain reach: run1153c's
                         // Destroyer `1/66` on 3815, `near` the fleeing
                         // `0/5`, stops at (2764, 8930) and fires on 3816.
+                        // The Russian pair's Cruiser `1/25` is the same
+                        // shape on 5815, its search finding `0/0` itself
+                        // (item 3527, §304).
                         let searched = if !self.units[u].combat.mandatory
                             && self.units[u].captain
                             && self.units[u].phase(frame) % 16 == 0
@@ -5661,15 +5664,6 @@ impl Sim {
                         } else {
                             None
                         };
-                        // **The incumbent may be the target itself**
-                        // (item 3527, `docs/AI.md` §304): the listing's
-                        // conjunction at `005f80a6`–`005f820a` has no
-                        // `c != t`, so a captain whose search or `near`
-                        // answers the very unit it chases takes the arm
-                        // too, and `change_target` kills the walk over the
-                        // attack. The Russian pair's Cruiser `1/25` drops
-                        // its move on 5815, its sixteenth frame, with
-                        // `0/0` in reach and fleeing.
                         if !self.units[u].combat.mandatory
                             && self.units[u].captain
                             && let Some(near) = self.units[u].near
