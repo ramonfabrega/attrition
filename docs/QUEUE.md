@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-22, **the fifty-second tranche (commander, Opus): 2 of 20 landed from `05f6df2a`** — the Germans whole first try (3506), the Aztecs part at 4382 (3507); the renderer starts this weekend (DECISIONS 90).*
+*2026-10-22, **the fifty-second tranche (commander, Opus): 3 of 20 landed from `05f6df2a`** — the Germans whole first try (3506), the Aztecs part at 4382 (3507), the Russians at 8 (3508); the renderer starts this weekend (DECISIONS 90).*
 
-- **Words**: one open, the Aztecs at 4382 of 4,565 (lower map first — Great Sahara (Aztecs)); held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
-  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence; the Germans whole (4175, 3506), the Aztecs 4382 of 4,565 (3507). **The rubric reads lockstep
+- **Words**: two open, the Russians at 8 of 5,841 and the Aztecs at 4382 (lower map first — East Indies (Russians, Modern)); held-out eight of eight. **The headline is the late ages**: eight new pairs (3506–3513), ages
+  4–7 held, nations the computer has not played, each scored by its first try — frames before divergence; the Germans whole (4175, 3506), the Aztecs 4382 of 4,565 (3507), the Russians 8 of 5,841, Modern held (3508). **The rubric reads lockstep
   games only** (DECISIONS 90): bytes 77.0 %, ages 7 of 8 (Modern never), unit types 131 of 302. **The blind list is a floor**: 247 · 208 · 39.
 - **The fifty-first tranche** (DECISIONS 90): eighteen `cover=1` landings on two Opus lanes in 8 h 05, 5.45 USD and 30.9 minutes waiting
   a landing, no red gate, two `DEEP`, one blocked ending; the pool 2.1 → 24.5 frames a second, mirror off (3484, 3497); open 91 → 39.
-- **Lanes: 3514, 3508 live; five more booked** (3509–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
+- **Lanes: 3514, 3515 live; five more booked** (3509–3513), one pair an item: its own start and long at `cover=0`, the word pinned at its first
   parting, a divergence spawning residue items on that word (the AI track's shape). Refill: a parting's residue first, then the next
-  age and nation off `rubric.py --tables 3`. Next 3515, run 1161. Pools: GOLDEN §149–154, AI §302–305 (§304 3508's), park OR–OX.
+  age and nation off `rubric.py --tables 3`. Next 3516, run 1162. Pools: GOLDEN §149–154, AI §302, §303, §305, park OR–OX.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 90.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4382 of 4,565
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4382 of 4,565 · EastIndiesRussianModern w8 of 5,841
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -56,10 +56,10 @@ In dependency order; **the roster is Ramon's** (DECISIONS 84, 85, 88). **Every i
 0 against 1). The hypothesis to kill first is 3507's — the make list's missile arm with a missile already in the Silo, against a nuke
 cap. Run 1160; amend §301 in place; park OQ.
 
-3508. **The Russians at a held Modern age, East Indies** (`--map 18 --ai-tribe 13`, Difficulty 5, `STARTING_TECHNOLOGY=6 ENDING_TECHNOLOGY=6`):
-fifty age-6 records never seen — `T34`, `KATYUSHA`, `REDGUARD`, `MEDIUMTANK`, `HVYMACHINEGUN`, `BAZOOKA`, `HOWITZER`, `FLAKGUN`, `HELICOPTER`,
-`FIGHTERBOMBER`, `V2ROCKET`, `NUCLEARMISSILE`, `CRUISER`, `BATTLESHIP`, `PTBOAT`. If the read-back says `ENDING_TECHNOLOGY` is not honoured,
-the pair lands at the age it reached and the cap parks. Runs 1148–1149; park OK.
+3515. **The Russian word, frame 8: ours 18 draws against 18, index 2** (`Leader::produce_building+0x1805` against `make_stuff+0x63d`;
+3508's widening on run1149b, AI §304): the state parts first on block 5, who=1's research slot `MAKE[8]` Written Word (551) at `val`
+ours 1620003, theirs 9999999, sorted to theirs' head. The hypothesis to kill first is 3508's — the value wraps into the 9999999 guard
+in theirs only; a packet at frame 4 on `Leader::research_techs` decides it. Run 1161; amend §304 in place; park OK.
 
 3509. **The Americans at a held Modern age, Great Sahara** (`--map 7 --ai-tribe 20`, Difficulty 3, ages 6/6): `SHERMAN`, `MARINEINFANTRY`,
 `P40`/`MUSTANG`, `ARMOREDCAR`, `TIGERTANK`'s generic kin, `LANCASTERBOMBER` if the line allows, on the land map. Runs 1150–1151; park OL.
