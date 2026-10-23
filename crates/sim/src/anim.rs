@@ -1973,23 +1973,6 @@ impl Sim {
             // order releases its `CHAR_ATTACKWALK` round at that target.
             _ => (None, self.units[u].cast_target),
         };
-        if std::env::var("RON_PROBE_3518").is_ok()
-            && self.units[u].owner == 1
-            && self.units[u].index == 80
-            && (4490..4535).contains(&self.frame)
-        {
-            let g0 = self.units[u].guys.first().copied();
-            eprintln!(
-                "PROBE3518 entry frame {} order {:?} ordered {:?} cast {:?} guy0 anim {:?} cur {:?} last {:?}",
-                self.frame,
-                self.current_order(u).map(|o| o.body),
-                ordered,
-                self.units[u].cast_target,
-                g0.map(|g| g.anim),
-                g0.map(|g| g.cur_time),
-                g0.map(|g| g.last_time)
-            );
-        }
         let target = match ground {
             Some(_) => None,
             None => {
@@ -2022,15 +2005,6 @@ impl Sim {
             // is the guy's, forced to `-1` while the clock reads zero.
             let last = if guy.cur_time == 0 { -1 } else { guy.last_time };
             let cur = i64::from(guy.cur_time);
-            if std::env::var("RON_PROBE_3518").is_ok()
-                && self.units[u].owner == 1
-                && self.units[u].index == 80
-            {
-                eprintln!(
-                    "PROBE3518 release frame {} g{} anim {} last {} cur {} times {:?} target {:?}",
-                    frame, g, guy.anim, last, cur, times, target
-                );
-            }
             for (t, node, harmless, missile) in times {
                 let start = t;
                 let t = i64::from(t);
