@@ -219,3 +219,167 @@ fn russian_modern_pair_run1161b_s_word_frame_is_widened_whole() {
     // `cavarch_o` 11 against 5 (`docs/AI.md` section 304).
     pin_eq!(w.firsts.len(), 929, "run1161b baseline");
 }
+
+/// run1162: the gap before the word 3682's window, blocks 259..3682 at one
+/// block in twenty, at the long's detail with `LEADERS=9` (item 3516).
+pub(crate) const RUN1162: &str = "gamelog-run1162-eastindies-russian-modern-stride-259-3682.txt";
+
+/// The window: block 259 through 3682, one block in twenty.
+pub(crate) const WIDENING_RUSSIAN_MODERN_GAP_3682: (i64, i64) = (259, 3682);
+
+/// **The gap before the word 3682's window**: run1162 walked from run1148's
+/// start with the recorder on (item 3516).
+pub(crate) fn russian_modern_gap_3682_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1162",
+        &[(RUN1162, WIDENING_RUSSIAN_MODERN_GAP_3682.0)],
+        WIDENING_RUSSIAN_MODERN_GAP_3682,
+        1,
+        &[],
+        true,
+    )
+}
+
+/// **The gap before the word 3682's window, widened** (item 3516).
+#[test]
+fn russian_modern_pair_run1162_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_gap_3682_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run1162 baseline");
+}
+
+/// run1162c: the first parting's window, blocks 2174..2210 at the long's
+/// detail (item 3516; run1162b was a dead take).
+pub(crate) const RUN1162C: &str = "gamelog-run1162c-eastindies-russian-modern-window-2174-2210.txt";
+
+/// The window: block 2174 through 2210.
+pub(crate) const WIDENING_RUSSIAN_MODERN_FRAME_2200: (i64, i64) = (2174, 2210);
+
+/// **The first parting's window**: run1162c walked from run1148's start
+/// with the recorder on (item 3516).
+pub(crate) fn russian_modern_frame_2200_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1162c",
+        &[(RUN1162C, WIDENING_RUSSIAN_MODERN_FRAME_2200.0)],
+        WIDENING_RUSSIAN_MODERN_FRAME_2200,
+        1,
+        &[],
+        true,
+    )
+}
+
+/// **The first parting's window, widened whole** (item 3516).
+#[test]
+fn russian_modern_pair_run1162c_s_first_parting_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_frame_2200_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run1162c baseline");
+}
+
+/// run1162d: the territory census's window, blocks 2596..2622 at the long's
+/// detail (item 3516).
+pub(crate) const RUN1162D: &str = "gamelog-run1162d-eastindies-russian-modern-window-2596-2622.txt";
+
+/// The window: block 2596 through 2622.
+pub(crate) const WIDENING_RUSSIAN_MODERN_FRAME_2600: (i64, i64) = (2596, 2622);
+
+/// **The territory census's window**: run1162d walked from run1148's
+/// start with the recorder on (item 3516).
+pub(crate) fn russian_modern_frame_2600_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1162d",
+        &[(RUN1162D, WIDENING_RUSSIAN_MODERN_FRAME_2600.0)],
+        WIDENING_RUSSIAN_MODERN_FRAME_2600,
+        1,
+        &[],
+        true,
+    )
+}
+
+/// **The territory census's window, widened whole** (item 3516).
+#[test]
+fn russian_modern_pair_run1162d_s_census_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_frame_2600_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run1162d baseline");
+}
+
+/// run1162e: the wealth's window, blocks 3376..3402 at the long's detail
+/// (item 3516).
+pub(crate) const RUN1162E: &str = "gamelog-run1162e-eastindies-russian-modern-window-3376-3402.txt";
+
+/// The window: block 3376 through 3402.
+pub(crate) const WIDENING_RUSSIAN_MODERN_FRAME_3400: (i64, i64) = (3376, 3402);
+
+/// **The wealth's window**: run1162e walked from run1148's start with the
+/// recorder on (item 3516).
+pub(crate) fn russian_modern_frame_3400_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MODERN.start],
+        true,
+        RUSSIAN_MODERN.long,
+        "run1162e",
+        &[(RUN1162E, WIDENING_RUSSIAN_MODERN_FRAME_3400.0)],
+        WIDENING_RUSSIAN_MODERN_FRAME_3400,
+        1,
+        &[],
+        true,
+    )
+}
+
+/// **The wealth's window, widened whole** (item 3516).
+#[test]
+fn russian_modern_pair_run1162e_s_wealth_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_modern_frame_3400_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run1162e baseline");
+}

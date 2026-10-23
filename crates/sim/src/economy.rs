@@ -439,6 +439,9 @@ pub struct City {
     /// line (`docs/CARAVAN.md` §7.2).
     pub trade_val: i32,
     pub sites: Vec<Site>,
+    /// The city the owner's CEO stands in (item 3516): its trade and its
+    /// building walk take `THECEO_PRODUCTION_BONUS`.
+    pub ceo: bool,
 }
 
 impl City {
@@ -733,8 +736,8 @@ pub fn per_gatherer(t: &Tuning, r: Resource, level: i32) -> i32 {
 /// is where **caravan income arrives**: `City::compute_trade` recomputes it
 /// when a route starts, ends or first delivers rather than on every
 /// recompute, and it is already in sixteenths (`docs/CARAVAN.md` §7.2). The
-/// Forbidden City's percentage and the CEO hero's are still missing, for the
-/// same reason the rest of the wonder layer is.
+/// Forbidden City's percentage is still missing, for the same reason the
+/// rest of the wonder layer is; the CEO hero's is carried (item 3516).
 pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
     let mut out = [0; RESOURCES];
     out[Resource::Wealth.index()] += city.trade_val;
@@ -757,6 +760,18 @@ pub fn city_rates(t: &Tuning, city: &City) -> [i32; RESOURCES] {
         }
         // `calc_gather:850`–`856`: the Inca's wealth per miner (item 3360).
         out[Resource::Wealth.index()] += site.miner_wealth * RATE_SCALE * site.gatherers;
+    }
+
+    // **The CEO's city** (`calc_city_resources@006d5530:166`–`195`, item
+    // 3516): after the trade and the building walk and before anything flat,
+    // every good of the city the owner's first on-map `0x165` hero stands in
+    // takes `(THECEO_PRODUCTION_BONUS + 100) / 100`, each truncating.
+    // run1162e's who=1 reads wealth `income` 3448 on 3384's reassembly
+    // against 3183 without it, a Capitalism CEO's first recompute.
+    if city.ceo {
+        for v in &mut out {
+            *v = (t.theceo_production_bonus + 100) * *v / 100;
+        }
     }
 
     // The city itself. Ships as ten food and ten timber: a city is worth that

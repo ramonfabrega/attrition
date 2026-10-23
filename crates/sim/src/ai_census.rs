@@ -157,17 +157,13 @@ impl Sim {
         self.allied[a][b]
     }
 
-    /// `LeaderData::territory`: the cells this leader owns.
+    /// `LeaderData::territory` (`+0x9d8`, the field `get_team_terr@006d62e0`
+    /// sums): the **land** cells this leader owns, as the border pass last
+    /// left them in [`crate::Holdings::territory`] (item 3516). A count of
+    /// the live map took the sea too — run1162d's who=0 census read who=1's
+    /// team as 462 on block 2601 where the original's field held 437.
     fn territory_of(&self, who: Player) -> i32 {
-        let mut n = 0;
-        for y in 0..self.world.height() {
-            for x in 0..self.world.width() {
-                if self.world.owner(Cell::new(x, y)) == Owner::Player(who) {
-                    n += 1;
-                }
-            }
-        }
-        n
+        self.holdings[who as usize].territory
     }
 
     /// `LeaderData::get_team_terr@006d62e0`: my territory plus every ally's.

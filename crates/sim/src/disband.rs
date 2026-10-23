@@ -241,13 +241,16 @@ pub fn disband_steps<V: DisbandView>(v: &mut V, param: i32) {
     }
 }
 
-/// [`DisbandView`] for one of the crate's buildings. `prices` are taken
-/// before the building closes: the crate counts the building in the price
-/// ramps (wonders, cities, oil) it refunds, as it always has.
+/// [`DisbandView`] for one of the crate's buildings. **The price is asked
+/// when the steps ask it, after the close** (item 3516): `disband@006455c0`
+/// reaches `close` (vslot `0x150`, line 181) or `die` (`0x158`, which is
+/// `Object::die` and closes through `0x150`) before either price read
+/// (`0x78`, lines 211 and 221), so the site no longer counts in its own
+/// type's ramp — run1162c's who=1 site `1/2038` (type 422) refunds 160
+/// timber and 110 metal, not the 180 and 130 its live count prices.
 pub struct SimDisband<'a> {
     pub sim: &'a mut Sim,
     pub b: usize,
-    pub prices: [i32; crate::economy::RESOURCES],
 }
 
 impl DisbandView for SimDisband<'_> {
@@ -367,7 +370,10 @@ impl DisbandView for SimDisband<'_> {
         -1
     }
     fn price(&mut self, args: [i32; 7]) -> i32 {
-        self.prices[args[0] as usize]
+        let bd = &self.sim.buildings[self.b];
+        bd.ty.map_or(0, |ty| {
+            self.sim.building_price(bd.owner, ty)[args[0] as usize]
+        })
     }
     fn add_good(&mut self, who: i32, good: i32, amount: i32) {
         self.sim.ledgers[who as usize].bucket[good as usize] += amount;

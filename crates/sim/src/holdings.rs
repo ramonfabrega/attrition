@@ -308,6 +308,31 @@ impl Sim {
             .is_some_and(|t| build::is(&self.build_types, t, ident))
     }
 
+    /// **The city a leader's CEO stands in** — `calc_city_resources@006d5530:166`
+    /// –`195` (item 3516). Gated on the leader's count of the `0x165` type
+    /// (`+0x59c8`, the muster's, as [`Sim::ceo_unit_range`] reads it) and on
+    /// its heroes; then the first hero on the map that is the `0x165` type
+    /// ends the walk, and `ObjectsData::find_city_at` at its position is the
+    /// city. `is(0x165, 1)` is taken as the type itself, as the patriot tests
+    /// of the radius are, and the heroes list as unit order.
+    pub(crate) fn ceo_city(&self, who: Player) -> Option<usize> {
+        const CEO: i32 = 0x165;
+        let counted = self
+            .unit_types
+            .iter()
+            .position(|t| t.type_index == CEO)
+            .and_then(|r| self.muster.get(who as usize).and_then(|m| m.by_type.get(r)))
+            .is_some_and(|&n| n != 0);
+        if !counted {
+            return None;
+        }
+        let h = (0..self.units.len()).find(|&h| {
+            let x = &self.units[h];
+            x.owner == who && x.alive() && x.on_map && x.type_index == CEO && self.is_hero_unit(h)
+        })?;
+        self.find_city_at(who, self.units[h].pos, None)
+    }
+
     /// One city, as income sees it — `City::calc_gather` and the part of
     /// `LeaderData::calc_city_resources` that reads the city rather than the
     /// leader.
@@ -353,6 +378,7 @@ impl Sim {
         out.temple = any(Ident::Temple);
         out.university = any(Ident::University);
         out.library = any(Ident::Library);
+        out.ceo = self.ceo_city(self.cities[c].owner) == Some(c);
 
         // `City::calc_gather@00737c60`'s four bytes ([`economy::calc_gather_steps`],
         // item 2368's sweep): the flags `0x200` / `0x400` are the granary and
