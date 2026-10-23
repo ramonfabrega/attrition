@@ -2394,6 +2394,7 @@ impl Sim {
         let roman_legion = self.roman_legion_discount(who, ty);
         let uranium = self.uranium_discount(who, ty);
         let citizens = self.citizen_discounts(who, ty);
+        let domain = self.domain_cost_discounts(who, ty);
         let liberty = self.liberty_discount(who, ty);
         let despotism = self.despotism_unit_discount(who, ty);
         let salt = self.salt_barracks_discount(who, ty);
@@ -2412,6 +2413,7 @@ impl Sim {
                 liberty,
                 uranium,
                 citizens,
+                domain,
                 rare_goods,
                 gypsum,
                 ..cost::Modifiers::default()
@@ -2432,6 +2434,7 @@ impl Sim {
                 liberty,
                 uranium,
                 citizens,
+                domain,
                 rare_goods,
                 gypsum,
                 ..cost::Modifiers::default()
@@ -2543,6 +2546,39 @@ impl Sim {
             self.tuning.socialism_unit_bonus
         } else {
             0
+        }
+    }
+
+    /// `TypeData::get_cost@00664090`'s **domain arm** (`:356`–`375`, the
+    /// pre-ramp tail after the Citizen arms and before Despotism, which the
+    /// train and research arms share): on `UnitTypeData +0x218`, a sea unit
+    /// (`1`) of a leader holding Angkor Wat (`has_wonder(0x217)`) takes
+    /// `ANGKOR_SHIPS`; an air unit (`2`) takes `ALUMINUM_AIR_COST` when the
+    /// leader holds Aluminium (`rare` byte 3 bit 0, or `rare_conquest`'s),
+    /// then `SPACE_AIR_COST` with `has_wonder(0x21e)`, the Space Program.
+    /// run1147b's block 4383: the Aztecs' Silo `1/2010` queues a Nuclear
+    /// ICBM at 872 knowledge and 942 oil — `(750 × 50 % × 95 % + 525) ×
+    /// 99 %` — where this crate, without the arm, charged 1224 and 1366
+    /// and escrowed it (item 3514, `docs/AI.md` §301).
+    pub fn domain_cost_discounts(&self, who: Player, ty: usize) -> [i32; 2] {
+        let held = self.wonders_held(who);
+        match self.unit_types[ty].combat.domain {
+            attrition::Domain::Sea if held & (1 << tech::wonder::ANGKOR_WAT) != 0 => {
+                [self.tuning.angkor_ships, 0]
+            }
+            attrition::Domain::Air => [
+                if self.has_rare(who, economy::ALUMINUM) {
+                    self.tuning.aluminum_air_cost
+                } else {
+                    0
+                },
+                if held & (1 << tech::wonder::SPACE_PROGRAM) != 0 {
+                    self.tuning.space_air_cost
+                } else {
+                    0
+                },
+            ],
+            _ => [0, 0],
         }
     }
 

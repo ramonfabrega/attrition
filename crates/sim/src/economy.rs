@@ -214,6 +214,12 @@ pub const TOBACCO: usize = 19;
 /// (`URANIUM_NUKE_COST`, `docs/AI.md` §167).
 pub const URANIUM: usize = 35;
 
+/// `TypeIndex::ALUMINUM` — the rare `TypeData::get_cost@00664090`'s domain
+/// arm reads for an air unit: `rare` byte 3 bit 0, or the same bit of
+/// `rare_conquest`, which is bit `30 - `[`BASE_RARE`]` = 24`
+/// (`ALUMINUM_AIR_COST`, `docs/AI.md` §301).
+pub const ALUMINUM: usize = 30;
+
 /// The five rares `TypeData::get_cost@00664090`'s **shared tail** reads
 /// (`switchD_00666b91_default`, listing `00666e46`..`00666f7f`), after
 /// every arm's own discounts and before the captured-building doubling:
