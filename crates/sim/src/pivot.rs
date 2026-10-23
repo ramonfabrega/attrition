@@ -78,6 +78,11 @@ pub struct Node {
 /// **Piece 841, the Inca Horse Archer** (item 3385): run1011b's packet
 /// reads the same `(4, 0, 0)` entry as 1545's, `RData +0x88` 1.0.
 ///
+/// **Piece 168, the Armored Scout Car** (item 3518, `TankDestroyer`'s
+/// `ARMOREDCAR-DEFAULT` piece, unit type 218): run1164's packet (logger
+/// frame 4528, the American Modern lobby) reads its `(4, 0, 0)` entry as
+/// `(0.0, 1.79, 30.92)` (`0x3fe51eba`), `RData +0x88` 0.95.
+///
 /// SEAM: every other restricted piece. The original fills a row for each
 /// when its events are built; a packet from a game that fields the type
 /// reads it with `tools/recomp/get_position.py … entries <piece>`.
@@ -92,6 +97,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (1898, 4, Node { px: -6, py: -148 }),
     (841, 4, Node { px: -6, py: -148 }),
     (139, 4, Node { px: 0, py: -148 }),
+    (168, 4, Node { px: 0, py: 179 }),
 ];
 
 /// `guy_scale` (`0xc06244`, `4.8f`), as the rational it was typed as.
@@ -101,7 +107,7 @@ const SCALE: (i64, i64) = (48, 10);
 /// `guy_scale` by (`90b7ad`; `local_28` in the decompile), as a rational:
 /// 1.0 for the Chariot's piece 145 and **0.8** for the Bomb Vessel's 296
 /// (`0x3f4ccccd`, run486's packet). A piece with no row is 1.0.
-const RDATA_SCALE: &[(i32, (i64, i64))] = &[(296, (4, 5)), (194, (9, 10))];
+const RDATA_SCALE: &[(i32, (i64, i64))] = &[(296, (4, 5)), (194, (9, 10)), (168, (19, 20))];
 
 /// [`SCALE`] times the piece's [`RDATA_SCALE`], as `(num, den)`.
 fn scale(piece: i32) -> (i64, i64) {
@@ -360,6 +366,77 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [0, -960_000, 31_920_000],
             at: [-351_471, -42_550_259, 1_908_175],
             float_lands: &[],
+        },
+    ),
+    // **The Armored Scout Car, piece 168** (unit type 218; item 3518,
+    // `docs/AI.md` §302): run1164's packet (logger frame 4528 of the
+    // American Modern lobby) holds the piece's nine entries, the `(4, 0, 0)`
+    // pivot and, for each of its four `<RELEASEEVENT>`s (node 0;
+    // `CHAR_ATTACKWALK` and `CHAR_ATTACK1` frame 1, `CHAR_ATTACK2` 11,
+    // `CHAR_ATTACK3` 12), the pivot node's and the release node's. The
+    // car `1/80`'s round on 4526 leaves from `(9412, 31822, 727)`, 174 ahead
+    // of the car's own square along the turret.
+    (
+        168,
+        crate::anim::ATTACKWALK,
+        1,
+        Release {
+            piece: 168,
+            node: 0,
+            pivot: [0, 1_790_000, 30_919_998],
+            at: [0, -38_147_877, 3_000_000],
+            float_lands: &[
+                (91, 225, 129, 125),
+                (269, 86, 7, 173),
+                (271, 84, 7, 173),
+                (271, 225, -129, -125),
+            ],
+        },
+    ),
+    (
+        168,
+        crate::anim::ATTACK1,
+        1,
+        Release {
+            piece: 168,
+            node: 0,
+            pivot: [0, 3_297_407, 30_542_767],
+            at: [0, -37_979_084, 4_673_923],
+            float_lands: &[],
+        },
+    ),
+    (
+        168,
+        crate::anim::ATTACK2,
+        11,
+        Release {
+            piece: 168,
+            node: 0,
+            pivot: [0, 3_427_710, 30_542_767],
+            at: [0, -35_851_234, 11_680_939],
+            float_lands: &[
+                (86, 339, -132, 67),
+                (266, 339, 132, -67),
+                (274, 21, 132, 67),
+            ],
+        },
+    ),
+    (
+        168,
+        crate::anim::ATTACK3,
+        12,
+        Release {
+            piece: 168,
+            node: 0,
+            pivot: [2_242, 4_693_419, 30_337_618],
+            at: [-7_660_163, -33_022_854, 5_185_888],
+            float_lands: &[
+                (80, 136, 137, -105),
+                (170, 136, 105, 137),
+                (260, 136, -137, 105),
+                (350, 136, -105, -137),
+                (354, 111, -138, -93),
+            ],
         },
     ),
     (
@@ -964,6 +1041,46 @@ mod tests {
                     .collect();
                 if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
                     off.push(format!("{slot} {} {} {} {}", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 168** (item
+    /// 3518): `tools/recomp/get_position.py … pivot 168 0 <anim> <time> 1`
+    /// on run1164's packet for its four rows. `$RON_RELEASE_TABLE_168` is
+    /// the directory holding `pivot-168-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-23-item-3518/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_168() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_168") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_168 (item 3518's oracle, run1164)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 1),
+            (crate::anim::ATTACK1, 1),
+            (crate::anim::ATTACK2, 11),
+            (crate::anim::ATTACK3, 12),
+        ] {
+            let path = format!("{dir}/pivot-168-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_168");
+            let r = release(168, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "{slot} {} {} {} {} {}",
+                        f[0], f[2], f[3], f[4], f[5]
+                    ));
                 }
                 rows += 1;
             }
