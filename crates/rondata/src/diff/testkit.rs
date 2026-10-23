@@ -7290,8 +7290,15 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3524: the Russian pair walked past 4207 to its word 5651 reads
-    // 91 inexact corners.
-    ("russian_modern_pair_first_parting", 91),
+    // 91 inexact corners; item 3527, whole to its last frame 5841, 131,
+    // and its closing walk the same 131.
+    ("russian_modern_pair_first_parting", 131),
+    ("run1149_russian_modern_pair_closing_state", 131),
+    // Item 3527: run1149's own hundredths over the gap 4349..5644 read 81.
+    (
+        "russian_modern_pair_run1149_s_gap_before_5651_is_widened_whole",
+        81,
+    ),
     // And run1170's window past the word 5651, to the game's last frame:
     // 131 reads.
     (
@@ -9794,11 +9801,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 0, run1168's gap over 3928..4098), in run1166b's window (block 4208).
     // **5651** after item 3524 (the CEO's two tiles of sight in
     // `UnitData::los`), widened on run1170 over 5645..5841 (block 5652).
+    // **Whole** after item 3527 (the Kremlin's Spy in `train_time`, 5816;
+    // then `do_move`'s captain retarget on its own target), in the same
+    // window, its last block 5841; the closing block 5842 is scored by
+    // `run1149_russian_modern_pair_closing_state`.
     (
         "RUSSIAN_MODERN_PAIR_WORD",
         crate::diff::russian_modern_pair::RUSSIAN_MODERN_PAIR_WORD,
         Some("russian_modern_pair_run1170_s_word_frame_is_widened_whole"),
-        3524,
+        3527,
         Some(crate::diff::russian_modern_pair::WIDENING_RUSSIAN_MODERN_FRAME_5651),
     ),
     // **The land map's held Modern pair** (item 3509): the Americans at a
@@ -11290,14 +11301,14 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 6), East Indies (item 3508): the sequence parted
     // on frame 8, the computer's first make-list pass; 3682 after item 3515;
     // 3778 after item 3516; 3921 after item 3519; 4097 after item 3520;
-    // 4207 after item 3522; 5651 after item 3524.
+    // 4207 after item 3522; 5651 after item 3524; whole after item 3527.
     AiWord {
         line: "Late ages",
         map: "EastIndiesRussianModern",
         named: "East Indies (Russians, Modern)",
         word: crate::diff::russian_modern_pair::RUSSIAN_MODERN_PAIR_WORD,
         length: 5_841,
-        endpoint: None,
+        endpoint: Some("run1149_russian_modern_pair_closing_state"),
         window: Some("russian_modern_frame_5651_window"),
     },
     // The Americans at a held Modern age, Great Sahara (item 3509): first

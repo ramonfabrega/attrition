@@ -3238,6 +3238,72 @@ fn a_held_space_program_halves_an_aircraft_s_time() {
     assert_eq!(sim.queue_target(b, 2), base[2], "a ship keeps its time");
 }
 
+/// **A held Kremlin trains a Spy in five frames** (item 3527, `docs/AI.md`
+/// §304): `train_time@006508c0:344`–`354` returns `ACCEL_TRAIN × 5 − 1` from
+/// the whole function for a type of the Spy line (`is(0x3a, 1)`) whose
+/// leader holds the Kremlin (`has_wonder(0x21a)`). The Russian pair's
+/// Redoubt `1/2034` reads 499 on 5651 and its Spy `1/261` is born on 5652.
+/// Another unit keeps its time, and so does the Spy before the Kremlin
+/// stands.
+#[test]
+fn a_held_kremlin_trains_a_spy_in_five_frames() {
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = tech::TechTree::new();
+    let line: Vec<tech::TypeId> = (0..17)
+        .map(|i| tree.add(tech::TypeDef::building(&format!("WONDER{i}"))))
+        .collect();
+    tree.roles.wonder_line = line.clone();
+    // The tree reaches the Spy's `TypeIndex`, `0x3a`.
+    while tree.types.len() <= 0x3a {
+        tree.add(tech::TypeDef::building("PAD"));
+    }
+    sim.set_tech_tree(tree);
+    let mut kr = bt(Ident::Temple, None, "jam", 4, 4, 420, 1200, 0);
+    kr.ident = Ident::default();
+    kr.tree = Some(line[tech::wonder::KREMLIN]);
+    let kr = sim.add_build_type(kr);
+    let _ = city_at(&mut sim, &t, 0, 32, 32);
+    let b = sim.init_build(0, t.barracks, tile_pos(40, 32), false);
+    finish(&mut sim, b);
+    let times = crate::production::Times {
+        job_time: 120,
+        research_premium_time: 2,
+        job_extra_time: 10,
+    };
+    let c = [0; crate::economy::RESOURCES];
+    let mut base = Vec::new();
+    for tree in [Some(0x3a), None] {
+        let ty = sim.add_unit_type(UnitType {
+            hits: 90,
+            times,
+            tree,
+            ..UnitType::default()
+        });
+        sim.muster[0].researched[ty] = true;
+        sim.buildings[b]
+            .queue
+            .items
+            .push(crate::production::Item::queued(ty, &c));
+        base.push(sim.queue_target(b, base.len()));
+    }
+    assert!(base[0] > 499, "a Spy takes its time: {}", base[0]);
+    let w = sim.place_building(0, kr, tile_pos(32, 25)).unwrap();
+    finish(&mut sim, w);
+    assert_ne!(
+        sim.wonders_held(0) & (1 << tech::wonder::KREMLIN),
+        0,
+        "the finished Kremlin is held"
+    );
+    assert_eq!(sim.tuning.accel_train, 100);
+    assert_eq!(sim.queue_target(b, 0), 499, "the Spy: ACCEL_TRAIN × 5 − 1");
+    assert_eq!(
+        sim.queue_target(b, 1),
+        base[1],
+        "another unit keeps its time"
+    );
+}
+
 /// **A held Supercollider finishes a research job on its next tick**
 /// (item 2259, `docs/AI.md` §216): `train_time@006508c0`'s tech block sets
 /// the time to zero under `has_wonder(0x21d)`, so the floor answers one and

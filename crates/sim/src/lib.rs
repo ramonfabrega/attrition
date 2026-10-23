@@ -3904,6 +3904,16 @@ impl Sim {
         }
         let muster = &self.muster[who as usize];
         let researched = muster.researched[item.ty];
+        // **The Kremlin's Spy** (`train_time@006508c0:344`–`354`), the
+        // train block's last step: a type of the Spy line (`is(0x3a, 1)`)
+        // whose leader holds the Kremlin (`has_wonder(0x21a)`) returns
+        // `ACCEL_TRAIN × 5 − 1` from the whole function — no floor, nothing
+        // after it — so the job completes on its sixth call. The Russian
+        // pair's Redoubt `1/2034` trains its Spy in 499 on 5646..5652 with
+        // who=1's Kremlin `1/2021` standing (item 3527, `docs/AI.md` §304).
+        if researched && self.kremlin_trains_fast(who, item.ty) {
+            return self.tuning.accel_train * 5 - 1;
+        }
         // **The tail is partitioned and the two halves never mix**
         // (`docs/PRODUCTION.md`, "The tail"): a train job takes the national
         // block and jumps over the science speedup, a research job the
@@ -4226,10 +4236,22 @@ impl Sim {
         if held & (1 << wonder.0) != 0 {
             tail.push(production::Adjust::Faster(wonder.1));
         }
-        // SEAM: the Kremlin's and `INSTANT_UNIT_BONUS`'s `ACCEL_TRAIN * 5 -
-        // 1` return after it, read in `docs/PRODUCTION.md` and not built
-        // (`docs/AI.md` §217.4).
+        // The Kremlin's `ACCEL_TRAIN * 5 - 1` return after it is
+        // [`Self::kremlin_trains_fast`], taken in [`Self::queue_target`]. SEAM: its
+        // other arm, `has_preq(INSTANT_UNIT_BONUS)` for any unit, is read in
+        // `docs/PRODUCTION.md` and not built (`docs/AI.md` §217.4).
         tail
+    }
+
+    /// `train_time@006508c0:344`–`349`'s first arm: `is(0x3a, 1)` of the
+    /// type — the Spy, by equality first — and `has_wonder(0x21a)`, the
+    /// Kremlin, of its leader.
+    pub(crate) fn kremlin_trains_fast(&self, who: Player, ty: usize) -> bool {
+        const SPY: tech::TypeId = 0x3a;
+        self.unit_types[ty]
+            .tree
+            .is_some_and(|t| self.tech_tree.is(t, SPY, true))
+            && self.wonders_held(who) & (1 << tech::wonder::KREMLIN) != 0
     }
 
     /// `LeaderData::get_ships_speed_upgrade@006da800` and its two
