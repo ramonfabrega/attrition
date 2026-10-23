@@ -183,6 +183,9 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The first late-age pair (item 3506, DECISIONS 90): the Germans at
     // Toughest and All Technologies, East Indies.
     (18, 12, 5),
+    // The Russians at a held Modern age, East Indies (item 3508, DECISIONS
+    // 90): the first pair to hold one age.
+    (18, 13, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
