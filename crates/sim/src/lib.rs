@@ -3972,7 +3972,8 @@ impl Sim {
     /// speed-upgrade step after it (item 1365).
     ///
     /// **Of the national arms only the British, the German (item 2974), the
-    /// Chinese citizen (item 3092) and the Mongol are here**, and that is a scope claim rather
+    /// Chinese citizen (item 3092), the Japanese (item 3510) and the Mongol
+    /// are here**, and that is a scope claim rather
     /// than an oversight: the block's nine other arms are inert in every
     /// capture on disk, so each would be a predicate no diff could check,
     /// and the audit's standing lesson is that predicates are exactly where
@@ -3980,9 +3981,8 @@ impl Sim {
     /// British on both East Indies captures, and `BRITISH_SHIP_SPEED` is
     /// what the AI's Dock clock is measured against.
     ///
-    /// The arms that come *before* it in the original — the lobby handicap,
-    /// The President, the Japanese barracks and carrier, the Chinese
-    /// citizen — are absent from the captures: the handicap is zero on
+    /// The arms that come *before* it in the original — the lobby handicap
+    /// and The President — are absent from the captures: the handicap is zero on
     /// both players and the rest are other nations' powers, so starting
     /// the tail here is exact rather than approximate. **The Mongol stable
     /// arm is built** (item 1744), first of the block. Of the ones

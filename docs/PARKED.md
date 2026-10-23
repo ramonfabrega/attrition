@@ -9950,13 +9950,17 @@ words and edits nothing here; a refill lands when two remain.
   `MODERN_AGE` was the only one in `sim` (a grep for `0x220`–`0x274`). A guard could refuse a `TypeId` constant
   in that range outside the loader. **Score**: none; the class of the bug, not a frame.
 
-## Parked by the next landing, slot OM — reserved
+## Parked by item 3510, 2026-10-23 — the Japanese at a held Industrial age, East Indies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3510a. The Japanese damage arm has no writer.** `damage.rs`'s thirteenth step reads
+  `Modifiers::japanese_level` (`combat.rs`), and a grep of `crates/` finds no line that sets it, so
+  `JAPANESE_DAMAGE` (−5 a tier against buildings, `ObjectData::get_damage`) never applies, though `docs/NATIONS.md`
+  §4.3 calls it modelled. run1153's who=1 fights the human's buildings late in the game; no dumped blow shows it
+  before 3674. **Score**: none until a Japanese blow on a building parts a word.
+- **3510b. The long's first launch died on a Wine page fault at startup** (`~/ron-golden/run1153-dead-pagefault`,
+  `wine-died.log`: a read of `0x00004ECD` at `0x7BF21139`), and the runner's own `retaken_after_exit` did not catch
+  it: `waitrun.sh` reported a traceback (`extra lifecycle or fault records`) and no receipt. The hand retake ran
+  clean. **Score**: none; a lane's cost, one retake.
 
 ## Parked by the next landing, slot ON — reserved
 

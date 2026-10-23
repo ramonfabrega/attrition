@@ -124,8 +124,8 @@ says in its doc comment that only the British and Mongol arms are built,
 | French | special (general) units train faster, 0 in the rules | `ObjectData::train_time@006508c0` | not modelled | `french_special_speed` |
 | Germans | aircraft train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_air_speed` |
 | Germans | submarines train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs | `german_submarine_speed` |
-| Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | not modelled | `japanese_barracks_speed` |
-| Japanese | carriers train faster | `ObjectData::train_time@006508c0` | not modelled | `japanese_carrier_speed` |
+| Japanese | barracks units train faster (negative in the rules) | `ObjectData::train_time@006508c0` | modelled at lib.rs (item 3510) | `japanese_barracks_speed` |
+| Japanese | carriers train faster | `ObjectData::train_time@006508c0` | modelled at lib.rs (item 3510) | `japanese_carrier_speed` |
 | Japanese | a Farm costs 50% less | `TypeData::get_cost@00664090` | modelled at city.rs | `japanese_farms_cheaper` |
 | Japanese | a farmer gathers 25% more food (calc_gather's flat branch) | `BuildTypeData::calc_gather@00639e40` | modelled at holdings.rs | `japanese_fishing_boats` |
 | Indians | a building's support ramp zeroed, halved rounding up for a wonder or a defence | `TypeData::get_cost@00664090` | modelled at cost.rs | `indian_ramp` |
@@ -293,12 +293,12 @@ left out; a constant with no reader in the export is dead there too.
 | `CHINESE_LARGE_CITY` | 1 | ConquestGame::build_cities, Setup::build_cities | not carried | `chinese_large_city` |
 | `CHINESE_LARGE_CITIES` | 1 | Build::activate, City::assimilate, ConquestGame::build_cities +1 | modelled at activate.rs | `chinese_large_cities` |
 | `JAPANESE_DAMAGE` | -5 | ObjectData::get_damage | modelled at damage.rs | `japanese_damage` |
-| `JAPANESE_BARRACKS_COST` | -7 | TypeData::get_cost | not carried | `japanese_barracks_cost` |
-| `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | not carried | `japanese_barracks_speed` |
-| `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | not carried | `japanese_ship_cost` |
+| `JAPANESE_BARRACKS_COST` | -7 | TypeData::get_cost | modelled at lib.rs | `japanese_barracks_cost` |
+| `JAPANESE_BARRACKS_SPEED` | -10 | ObjectData::train_time | modelled at lib.rs | `japanese_barracks_speed` |
+| `JAPANESE_SHIP_COST` | 10 | TypeData::get_cost | modelled at lib.rs | `japanese_ship_cost` |
 | `JAPANESE_AIRCRAFT_CARRIERS_SPEED` | 33 | no reader in the export | not carried | `japanese_aircraft_carriers_speed` |
 | `JAPANESE_FISHING_BOATS` | 25 | BuildTypeData::calc_gather, LeaderData::calc_rare | modelled at holdings.rs | `japanese_fishing_boats` |
-| `JAPANESE_CARRIER_SPEED` | 33 | ObjectData::train_time | not carried | `japanese_carrier_speed` |
+| `JAPANESE_CARRIER_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `japanese_carrier_speed` |
 | `JAPANESE_FARMS_CHEAPER` | 50 | TypeData::get_cost | modelled at cost.rs | `japanese_farms_cheaper` |
 | `KOREAN_START_CITIZEN` | 3 | no reader in the export | not carried | `korean_start_citizen` |
 | `KOREAN_FREE_CITIZEN` | 5 | no reader in the export | not carried | `korean_free_citizen` |
