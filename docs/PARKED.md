@@ -10004,13 +10004,17 @@ words and edits nothing here; a refill lands when two remain.
   pick. run1155's stride blocks print who=1's Manchu Riflemen (TypeIndex 117, land) in 960 `GUY` rows, and no Fire
   Lance (96, 97). Neither booked type parts first. **Score**: none until a word parts on one.
 
-## Parked by the next landing, slot OO — reserved
+## Parked by item 3542, 2026-10-23 — the British pair whole: the Sloop's and the Highlanders' launch rows
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot OO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3542a. City `0/2000`'s `build:damage` parts on block 5276 of the British pair and agrees by the closing block.**
+  run1185b's first walk (`british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole`) reads ours 604 and
+  6/16 against theirs 610 and 0 on block 5276, the window's one row outside the standing families. The draw streams
+  agree to 5522 and `run1157_british_enlightenment_pair_closing_state` compares no building row off, so the blow (or
+  the repair) lands differently on 5275 and is evened before 5523. **Score**: none; the pair is whole.
+- **3542b. The Elite Highlanders (`HIGHLANDERELITE`, the Black Watch) and the Sloop's other art styles have no `BAYS`
+  row.** Item 3542 measured piece 277 (`SLOOP-DEFAULT-AGE0`) and piece 64 (`HIGHLANDER-DEFAULT-AGE0`) off run1185's
+  packet. Piece 65 is not built in that game (`get_position.py … entries 65` reads no `AttachPos`), and 3538a's
+  gunpowder-line pieces stand as they were. **Score**: none until a word parts on one of their rounds.
 
 ## Parked by the next landing, slot OP — reserved
 

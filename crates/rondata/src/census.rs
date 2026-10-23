@@ -346,8 +346,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// (`rubric.py --record`, 107 lockstep dumps), and ages held 7 -> 8.
 /// Item 3512: 152 -> 158, read by `rubric.py` on the base `3d8b36822` and
 /// on this tree alike — the Japanese and Chinese pairs whole (3538, 3539);
-/// the British pair, open at 4587, adds none.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 158;
+/// the British pair, open at 4587, adds none. Item 3542: 158 -> 160, the
+/// British pair whole at 5522 — the Highlanders (114) and the Bomb Ketch
+/// (`MORTARSHIP`, 347), read by `rubric.py` with and without its two dumps.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 160;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

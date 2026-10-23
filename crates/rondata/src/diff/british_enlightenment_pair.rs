@@ -222,3 +222,51 @@ fn british_enlightenment_pair_run1157b_s_word_frame_is_widened_whole() {
     // `SITE[8].reg` on 4776.
     pin_eq!(w.firsts.len(), 108, "run1157b baseline");
 }
+
+/// run1185b: the pair's last blocks, 5266..5523 at the window's detail —
+/// the word 5522 is the game's last frame and 5523 its closing block (item
+/// 3542).
+pub(crate) const RUN1185B: &str =
+    "gamelog-run1185b-eastindies-british-enlightenment-window-5266-5523.txt";
+
+/// The window: block 5266 through the closing block 5523.
+pub(crate) const WIDENING_BRITISH_ENLIGHTENMENT_CLOSING: (i64, i64) = (5266, 5523);
+
+/// **The pair's last blocks**: run1185b walked from run1156's start with
+/// the recorder on. The word is the game's last frame (item 3542).
+pub(crate) fn british_enlightenment_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BRITISH_ENLIGHTENMENT.start],
+        true,
+        BRITISH_ENLIGHTENMENT.long,
+        "run1185b",
+        &[(RUN1185B, WIDENING_BRITISH_ENLIGHTENMENT_CLOSING.0)],
+        WIDENING_BRITISH_ENLIGHTENMENT_CLOSING,
+        1,
+        &[5523],
+        true,
+    )
+}
+
+#[test]
+fn british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = british_enlightenment_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 3542, the first walk: **110** keys. Block 5266 carries the
+    // standing families alone (`SITE[i].reg`, `aggression[1]`, `form`,
+    // who=1's groups' `held`/pool), and later blocks the new units' `form`
+    // and group 76's `held`/pool. **One row is not a standing family**: on
+    // block 5276 city `0/2000`'s `build:damage` reads ours 604 and 6/16
+    // against theirs 610 and 0 (parked 3542a); the closing block agrees.
+    pin_eq!(w.firsts.len(), 110, "run1185b baseline");
+}

@@ -25032,6 +25032,53 @@ SHA-256 `0a7d3439d2ca2d0b8a72cb01b6bd0548e0a49314b9ffe4e274c5359992783abf`.
 
 **What it holds**: `british_enlightenment_pair_run1157b_s_word_frame_is_widened_whole` (256 blocks, 2773 keys): on the
 word's block 4588 `0/13` is dead in ours (`damage` 72) and alive in theirs (63).
+
+## run1185 — the British at a held Enlightenment age, East Indies: a packet at logger frame 4582, the Sloop's round in flight (2026-10-23, item 3542, `att-3542`)
+
+`docs/AI.md` §306. **What the disk could not answer**: where the Sloop `1/61`'s round of 4580 leaves from and how long
+it flies. run1157b prints the blow on `0/13` (block 4588), but no capture writes an `AMMO` record, and no packet of
+this lobby existed. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1185 --map 18 --end-frame 4583
+--timeout 3600 --log-window 4578 4583 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 11 --profile STARTING_TECHNOLOGY=4
+--profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0 --tracer-def
+RON_STATE_FRAME=4582 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`. The packet is taken two
+frames after the round is made, so it is live.
+- Pool lane 1, seed 12345. Launched 17:44:37, exited 17:45:06 (28.9 s). `success`, 4584 frames, `map_style 18`,
+  players `(0,4,7),(1,11,1)`. The packet's header reads frame 4582, trace frame 4581.
+- `rngcmp.py` against run1157: **4584 frames in common, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1185/map-18/frame-snapshot.bin`, 887,697,240 bytes,
+SHA-256 `c557cae8e1903236900e544435b45dbebc015e6aff1c843487105250137f05dc`. The window's dump and trace stay in
+the capture directory. Nothing reads them, since run1157b already holds those blocks.
+
+**What it holds**: the live `Ammo` (`tools/recomp/ammo.py`): `1/61` → `0/13` from **(3315, 6861, −2)** to (4936, 5303,
+95), t **2/9**, `flags 0x6`. It also holds piece 277's 7 `AttachPos` entries and piece 64's 3
+(`get_position.py … entries`), and their sweeps, kept outside git under
+`~/ron-data/lab-experiments/2026-10-23-item-3542/sweeps/`. `sim::launch`'s
+`run1185_s_sloop_rounds_leave_from_piece_277_s_bays` and `run1185_s_highlander_rounds_leave_from_piece_64_s_bays`
+read the sweeps' values.
+
+## run1185b — the British at a held Enlightenment age, East Indies: the closing window, blocks 5266..5523 (2026-10-23, item 3542, `att-3542`)
+
+**Disk gap**: the word closed at 5522, the game's last frame (item 3542). run1157b ends on 4837, and run1157 prints
+units only every hundredth block, so no dump held the last blocks for the word's widening. `--map 18 --end-frame 5522
+--allow-early-end --timeout 3600 --log-window 5266 5523 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 11 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --cover cover=0`, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1185b`.
+- Pool lane 1. Launched 17:52:17, exited 17:53:09 (51.5 s launch to exit). `success`: 5523 frames, last frame 5522,
+  closing frame 5523, 258 `BEGIN FRAME`s. `rngcmp.py` against run1157: **5523 frames in common, 0 differing**.
+  Filed with `filerun.py run1185b eastindies-british-enlightenment-window-5266-5523`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1185b-eastindies-british-enlightenment-window-5266-5523.txt`, 581,427,809 bytes,
+SHA-256 `cc696e3e1d92a88db9f60a4c553d264d6ecf10d85c92117eb89388f9160e656b`.
+
+Archive `rontrace-run1185b.log`, 187,826,688 bytes,
+SHA-256 `6d72447dd435b3547c9f8d592543ecfeed9ba66ee09a9eadb6f792fda6594f22`.
+
+**What it holds**: `british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole` (257 blocks, 110 keys),
+the word 5522's closing block 5523.
+
 ## run1179 — the Russian late-age pair's long lobby at `cover=1` on the click-free pool, to the game's end at 5841: the pair's lockstep twin (2026-10-23, item 3534, `att-3534`)
 
 **What the disk could not answer**: the pair's captures (run1148, run1149, run1149b) are `cover=0`, which enters
