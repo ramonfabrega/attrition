@@ -92,6 +92,8 @@ mod japanese_industrial_pair;
 #[cfg(test)]
 mod japanese_word;
 #[cfg(test)]
+mod korean_ancient_pair;
+#[cfg(test)]
 mod korean_word;
 #[cfg(test)]
 mod lakota_pair;

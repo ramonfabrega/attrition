@@ -291,6 +291,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the held Classical pair's walks: it compares no field itself (item 3557)",
     ),
     (
+        "diff/korean_ancient_pair.rs",
+        "the Ancient-start pair's walks: it compares no field itself (item 3559)",
+    ),
+    (
         "diff/persian_medieval_pair.rs",
         "the held Medieval pair's walks: it compares no field itself (item 3535)",
     ),
