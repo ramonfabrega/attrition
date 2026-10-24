@@ -2435,14 +2435,6 @@ impl Sim {
         // **Not a missile's** (`Ammo::init@0067bbf0:798`: `local_30 == 0`
         // beside the bomb and ground tests, item 1625): a spline round is
         // not led.
-        if std::env::var_os("RON_PROBE_3574").is_some() {
-            let dx = i64::from(landing.x - launch.x);
-            let dy = i64::from(landing.y - launch.y);
-            eprintln!(
-                "PROBE3574 f{frame} shooter {:?} target {:?} tpos {:?} aim {:?} launch {:?} unled {:?} s {s} acc {acc} d {d} n {} T {total_time} sz {sz} ez {ez}",
-                shooter, target, target_pos, aim, launch, landing, dx * dx + dy * dy
-            );
-        }
         if !missile {
             landing = self.lead_landing(target, landing, total_time);
         }
