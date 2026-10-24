@@ -7289,6 +7289,12 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3589: the Bantu Ancient pair's word 5072, run1236b's window
+    // over 5066..5322 walked from run1205, reads 6 inexact corners.
+    (
+        "bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole",
+        6,
+    ),
     // Item 3578: the Korean pair walked whole, past 4350 to its last
     // frame 5639, reads 181 inexact corners.
     ("korean_ancient_pair_first_parting", 181),
@@ -10065,13 +10071,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::lakota_medieval_pair::WIDENING_LAKOTA_MEDIEVAL_CLOSING),
     ),
     // **The Bantu from an Ancient start** (item 3562): East Indies — 4185
-    // first try, widened on run1206b over 4180..4436 (block 4186).
+    // first try, widened on run1206b over 4180..4436 (block 4186). **5072**
+    // with the lobby's type ages (item 3589), widened on run1236b over
+    // 5066..5322 (block 5073).
     (
         "BANTU_ANCIENT_PAIR_WORD",
         crate::diff::bantu_ancient_pair::BANTU_ANCIENT_PAIR_WORD,
-        Some("bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole"),
-        3562,
-        Some(crate::diff::bantu_ancient_pair::WIDENING_BANTU_ANCIENT_FRAME_4185),
+        Some("bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole"),
+        3589,
+        Some(crate::diff::bantu_ancient_pair::WIDENING_BANTU_ANCIENT_FRAME_5072),
     ),
     // **The Japanese at a held Gunpowder age** (item 3563): Great Sahara —
     // 2839 first try, widened on run1208b over 2834..3090 (block 2840).
@@ -11737,7 +11745,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Bantu from an Ancient start (`STARTING_TECHNOLOGY` 0, the ending
     // age read back 1), East Indies (item 3562): first try 4185, of a game
-    // that ends itself on 6210; widened on run1206b.
+    // that ends itself on 6210; widened on run1206b. 5072 with the lobby's
+    // type ages (item 3589), widened on run1236b.
     AiWord {
         line: "Late ages",
         map: "EastIndiesBantuAncient",
@@ -11745,7 +11754,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::bantu_ancient_pair::BANTU_ANCIENT_PAIR_WORD,
         length: 6_210,
         endpoint: None,
-        window: Some("bantu_ancient_frame_4185_window"),
+        window: Some("bantu_ancient_frame_5072_window"),
     },
     // The Japanese at a held Gunpowder age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3563): first try 2839, of

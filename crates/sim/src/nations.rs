@@ -233,6 +233,29 @@ impl Sim {
         for who in 0..self.tech.len() {
             self.sync_has_city(who as Player);
         }
+        self.finalize_type_ages();
+    }
+
+    /// **`Types::finalize_grafting@00669840`'s age cache**: every unit and
+    /// building type's `age` (`ObjectTypeData +0x278`) is `get_age_slow`
+    /// in the game's own lobby ([`crate::tech::TechTree::age_in`]), so a
+    /// lobby that shortens the age span moves the age of every type whose
+    /// slot-1 prerequisite is a Military epoch. The loader's ages are the
+    /// full game's, which is this in a lobby that starts Ancient and runs to
+    /// Information. The combat table (`Balance`) is built at load from the
+    /// loader's ages and is not rebuilt here (item 3589, `docs/AI.md` §315).
+    pub fn finalize_type_ages(&mut self) {
+        let (tree, setup) = (&self.tech_tree, &self.setup);
+        for u in &mut self.unit_types {
+            if let Some(t) = u.tree {
+                u.combat.age = tree.age_in(setup, t);
+            }
+        }
+        for b in &mut self.build_types {
+            if let (Some(t), Some(c)) = (b.tree, b.combat.as_mut()) {
+                c.age = tree.age_in(setup, t);
+            }
+        }
     }
 
     /// Recomputes one player's per-nation flags from their power.

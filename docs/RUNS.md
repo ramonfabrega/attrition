@@ -26356,6 +26356,55 @@ SHA-256 `027a8794dc6412775e22936e336fe35e7f0295e2ed521c650a4d6ef256c7d7c0`.
 4974): 256 blocks, 115 keys, all standing families but two `dest_angle` rows (3567a's shape); the closing block
 agrees.
 
+## run1236 — the Bantu from an Ancient start, East Indies: the make list walked back, blocks 3970..4186, and a packet at logger frame 4179 (2026-10-24, item 3589, `att-3589`)
+
+`docs/AI.md` §315. **What the disk could not answer**: who=1's make list before 4180. run1205 dumps blocks 0..2,
+run1206's detail prints no `LEADERDATA`, and run1206b starts on 4180 with `MAKE[0]` already apart. Nor could it
+answer the value theirs' `upgrade_units` gives the Galley, which no dump prints because theirs never lists it.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1236 --map 18 --end-frame 4186 --timeout 3600
+--log-window 3970 4186 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0
+--profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=4179 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 12:49:07, exited 12:49:51 (43.3 s launch to exit). `success`, 4187 frames.
+  `rngcmp.py` against run1206: 4187 frames identical. Filed with `filerun.py run1236
+  eastindies-bantu-ancient-window-3970-4186 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1236-eastindies-bantu-ancient-window-3970-4186.txt`, 474,542,398 bytes,
+SHA-256 `6ff63fb2a29d974ec6a44177b0078298e8b2e431ced4949560d415a6e73f1bfb`.
+
+Archive `rontrace-run1236.log`, 67,166,688 bytes,
+SHA-256 `e3e305fb6cf118faedea84db062fb7342a442d8e70c24d5a78e9afeeca749535`.
+
+Packet `~/ron-golden/run1236/map-18/frame-snapshot.bin`, 850,078,764 bytes,
+SHA-256 `2c6093ae2f436166733ccb3522c0acc862d12bf7f30f6d99c495ee901b13d470`.
+
+**What it holds**: `bantu_ancient_pair_run1236_s_make_list_is_widened_whole`, who=1's make list. Before item 3589
+it agreed on every block through 4179 and parted on 4180. `step4.py --entry 6c6430 --this e4127c` runs
+`Leader::upgrade_units` for who=1 on the packet. It hands `make_me` the Galley (341) at val **0**. The predecessor
+walk reads the Trireme's cached `age` (`+0x278`) as **3**, and `get_age_slow` run on the Trireme answers 3 through
+`get_preq(1, −1)` = 0x23f, Conscription.
+
+## run1236b — the Bantu from an Ancient start, East Indies: the word 5072's window, blocks 5066..5322 (2026-10-24, item 3589, `att-3589`)
+
+`docs/AI.md` §315. **What the disk could not answer**: the word 5072's block 5073. run1206's stride prints 5001
+and 5101, and no window reaches it. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1236b --map 18
+--end-frame 5322 --timeout 3600 --log-window 5066 5322 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 12:58:57, exited 53.8 s later. `success`, 5323 frames. `rngcmp.py` against run1206: 5323
+  frames identical. Filed with `filerun.py run1236b eastindies-bantu-ancient-window-5066-5322 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1236b-eastindies-bantu-ancient-window-5066-5322.txt`, 599,080,816 bytes,
+SHA-256 `8b82c1ea7079f63e89584eea96c183aac9dd86ba040960c9a2633940316c29c4`.
+
+Archive `rontrace-run1236b.log`, 102,998,944 bytes,
+SHA-256 `12594749deeab6954cff3f0917d1a30bf152b06f1bff1cccaa8cef87a139984b`.
+
+**What it holds**: `bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole`, the word 5072 (block 5073): 256
+blocks and 4465 keys. On 5073, `1/86`'s `collide_o` and `collide_who` are ours −1 and −1 against theirs 87 and 1.
+The state is already apart on 5066, the window's first block.
 ## run1207 — the Japanese at a held Gunpowder age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3563, `att-3563`)
 
 `docs/AI.md` §316. §313's lobby with the nation and the age moved, through `viadriver.sh

@@ -27666,11 +27666,12 @@ pools.
 two tables above. The first parted field is `MAKE[0]` on 4180. No record on disk walks it back: run1205 dumps
 blocks 0..2, and run1206's stride prints no `LEADERDATA`.
 
-**The next word: frame 4185, ours 350 draws against 342, index 242**, ours `Leader::make_stuff+0x63d`, theirs
+~~**The next word: frame 4185, ours 350 draws against 342, index 242**, ours `Leader::make_stuff+0x63d`, theirs
 `Leader::produce_building+0x1805`. **The hypothesis, untested**: ours' make list values the Galley at 21504000 and
 holds it twice, so the pass that reaches the Stable in theirs spends its draw elsewhere in ours. Its killer is a
 window that dumps `LEADERDATA` from a block where `MAKE[0]` still agrees: the first block it parts on, and the
-writer of that entry. `seams.py --field MAKE` names no live `SEAM` on the make list's writers.
+writer of that entry. `seams.py --field MAKE` names no live `SEAM` on the make list's writers.~~ Answered by
+item 3589, below. The hypothesis held: the Galley is ours' alone, from the lobby's type ages.
 
 **The booked lines are all fielded**, over run1205 and run1206 (`rubric.py --tables 3 --dumps`, 22 types):
 `Umpakati` (93) ×1080, `Yangombi Umpakati` (94) ×1056, `Bark` (323) ×360 and `Trireme` (340) ×474. All four are new
@@ -27679,6 +27680,67 @@ to the ledger and enter it when the pair closes whole. None is in the parting.
 **Coverage.** `bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole` pins the 1368 keys. `WIDENINGS`'s
 `BANTU_ANCIENT_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds the row on `Late
 ages`. Nothing in this section is reading-only: the parting is a dump comparison.
+
+### 315.1 The lobby's type ages: the word 4185 → 5072 (item 3589)
+
+**Ours acted.** run1236 dumps who=1's `LEADERDATA` from block 3970 to 4186. That covers two make passes, the
+Classical age at 3991 between them, and six blocks over run1206b's first. The make list agrees on every block
+through 4179, and its last change before the word is the Upgrades step's on 4179 (theirs Allegiance 596 in slots 0
+and 6). On 4180, the Units step's block, ours writes the Galley (341) at 21504000 into slots 0 and 7. Theirs writes
+no Galley. The Galley turns researchable in ours on tick 4179, the first `upgrade_units` pass after the age.
+
+**What theirs computes** (run1236's packet at logger frame 4179; `step4.py --entry 6c6430 --this e4127c`,
+`Leader::upgrade_units` for who=1). The pass offers six types, and `make_me` receives the Galley at **0**, with
+`aff` 0x40. At the clamp (`6c698e`) the Galley stands at 128000, where ours has 896000, seven times as much. The
+Phalanx (2016000) and the Yangombi Umpakati agree with ours. The factor is the age gap. The predecessor walk
+(`6c6620`–`6c66b4`) reaches the Trireme (340) as the first available predecessor and reads its cached
+`ObjectTypeData::age` (`+0x278`) as **3**. The Galley's own reads 1. So `gap = 1 − 3 = −2`:
+
+| `upgrade_units`, the Galley | ours | theirs |
+|---|---|---|
+| `age_t`, `age_p` | 1, 0 | 1, 3 |
+| `m = max(5·gap + 2, 1)` | 7 | 1 |
+| at the clamp | 896000 | 128000 |
+| `(gap + 2) · v / 2` (military, not siege) | ×3/2 | ×0 |
+| to `make_me` | 21504000 | 0 |
+
+**Why the Trireme is age 3.** `Types::finalize_grafting@00669840`, called from `Game::init_data` (so after the
+lobby), caches `get_age_slow` into every unit and building type's `age`. `ObjectTypeData::get_age_slow@00661a00`
+reads the type's prerequisites **through `TypeData::get_preq(i, −1)`**. Slot 1 is remapped there in any lobby
+that does not run Ancient to Information. A unit's Military epoch becomes
+`INTERNATIONAL_LAW + ((28 / (end − start + 1)) · (age − start + 1) + 3) / 4`. The Trireme's `PREQ1` is The Art of
+War (`AGE` 0). With start 0 and end 1 that is `(14 · 1 + 3) / 4 = 4` → 0x23f, **Conscription**, `AGE` 3.
+`get_age_slow` run on the Trireme on the packet returns 3, and its second `get_preq` answers 0x23f. Ours ported the
+remap (`TechTree::get_preq_1`). But the loader's `age_of_tree` read the raw columns before any lobby existed, so
+every unit's `combat.age` was the full game's.
+
+**The build.** `TechTree::age_in(setup, t)` is `get_age_slow` over `num_preq` slots through `get_preq(·, None)`.
+`Sim::finalize_type_ages`, called from `sync_setup_from_lobby`, rewrites every unit type's `combat.age` and every
+building's profile age with it. A lobby that runs Ancient to Information keeps the loader's ages. The Galley's
+age stays 1 and the Trireme's becomes 3, so ours computes 0 and offers nothing. `a_unit_s_age_is_read_through_the_lobby_remap`
+pins the arithmetic on the fixture tree.
+
+**The value diff on the word's frame** (before → after the build). run1206b's 1368 keys fall to 113, the standing
+families alone: on 4180 who=1's `MAKE[0]` and `MAKE[7]` agree, and on 4186 the Stable `1/2054` and the Hanging
+Gardens `1/2055` are both sides'. run1236's 216 blocks carry 115 keys, none a `leader:MAKE`.
+
+**The next word: frame 5072, ours 39 draws against 40, index 31**, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Widened on run1236b (5066..5322, 4465 keys). On the word's
+block 5073, `1/86`'s `collide_o` and `collide_who` are ours −1 and −1 against theirs 87 and 1. The state is
+already apart on 5066, the window's first block. There, the human's `0/10` and `0/11` read `damage_frame` ours
+5056 and 5036 against theirs 5055 and 5035, with their positions apart, and who=1's `1/86`..`1/88` move orders
+read `y` 48 apart (`1/86` ours 7896 against theirs 7848). Walking it back past 5066 is the next item's: the
+only records on disk before 5066 are run1206's stride blocks (4901, 5001), which print `UNITS` and are not yet
+walked with the recorder.
+
+**What is not established.** The combat table (`Balance`) is built at load from the loader's ages and is not
+rebuilt per lobby. Whether the original builds it before or after `finalize_grafting`, and so whether a short
+lobby moves its age bonus, is unread. The building ages `finalize_type_ages` rewrites have no reader on this word.
+The 49 other lobbies' `first_parting` hold.
+
+**Coverage.** Diff-backed: the make list on run1236 and run1206b, the Galley's 0 and the Trireme's 3 on the packet.
+Reading-only: that `finalize_grafting` runs once per game after the lobby (`Game::init_data`'s order). The packet
+shows the result of that order, not the order itself.
 
 ## 316. The Japanese at a held Gunpowder age, Great Sahara: an Elite Knight re-aimed off a fleeing Citizen, first try 2839 of 3673 (item 3563)
 

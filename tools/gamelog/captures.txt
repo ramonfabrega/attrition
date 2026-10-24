@@ -10539,6 +10539,10 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1206  run1181's line with --ai-tribe 3 and run1205's lobby   (the draw stream; ended itself on 6210)
 #   run1206b --map 18 --end-frame 4436 --allow-early-end --timeout 3600 --log-window 4180 4436 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0, run1205's lobby   (the word 4185's window)
 # Checks: `rngcmp.py` run1205 vs run1206 -> 37 identical; run1206 vs run1206b -> 4437 identical.
+# ==== item 3589: the Bantu word 4185 -> 5072, the lobby's type ages (`docs/AI.md` §315; `docs/RUNS.md` run1236, run1236b) ====
+#   run1236  --map 18 --end-frame 4186 --timeout 3600 --log-window 3970 4186 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0 --tracer-def RON_STATE_FRAME=4179 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h, run1205's lobby   (the make list walked back, and a packet at logger frame 4179)
+#   run1236b --map 18 --end-frame 5322 --timeout 3600 --log-window 5066 5322 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0, run1205's lobby   (the word 5072's window)
+# Checks: `rngcmp.py` run1206 vs run1236 -> 4187 identical; run1206 vs run1236b -> 5323 identical.
 # ==== item 3588: the Lakota word 4168 -> 4973, whole (`docs/AI.md` §314; `docs/RUNS.md` run1235, run1235b, run1235c) ====
 #   run1235  --map 18 --end-frame 4170 --allow-early-end --timeout 3600 --log-window 4086 4170 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0, run1203's lobby   (the rounds at 0/5)
 #   run1235b --map 18 --end-frame 4129 --timeout 3600 --log-window 4126 4128 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 19 --cover cover=0 --tracer-def RON_STATE_FRAME=4127, run1203's lobby   (piece 156's packet)
