@@ -47,8 +47,14 @@ pub(crate) const PERSIAN_MEDIEVAL: Pair = Pair {
     // frames, not 14) and `1/27`'s round the Citizen `0/10` on 4059 (8, not
     // 9). Frame 4170: ours 8 draws against 6, index 0 — ours
     // `Guy::set_anim+0x97a < Unit::fight+0x169`, theirs `Unit::fight+0x824`.
-    count: 4170,
-    sequence: 4170,
+    // Item 3568, 4170 -> 4523 (+353): a melee-and-ranged type walks past
+    // `fight`'s reload gate (`unit_flags & 0x400`), so the Mahout `1/46`,
+    // recharging 35, rolls the guard's `fight+0x824` on 4170 and stands on
+    // (6648, 7800) on 4171 as theirs does. Frame 4523: ours 49 draws
+    // against 45, index 3 — ours `Unit::fight+0x824`, theirs
+    // `Guy::set_anim+0xf2f < Guy::move+0x166`.
+    count: 4523,
+    sequence: 4523,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -320,7 +326,7 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // (6657, 7777) against theirs (6648, 7800), and on 4173 theirs' `1/46`
     // attacks `0/2000` (`g.ox[0]` 2000, `in_range` 1) where ours' takes
     // `0/11` (`new_ord` 1).
-    pin_eq!(w.firsts.len(), 745, "run1189b baseline");
+    pin_eq!(w.firsts.len(), 119, "run1189b baseline");
     // The count cannot see the Peltasts' bays: `0/2000`'s `build:damage`
     // parts later on either tree, so the key set is the same. Its frame is
     // the pin — 4048 when the javelins leave the figure, 4193 from the bay.
@@ -328,7 +334,7 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
         w.firsts
             .get(&(0, 2000, "build:damage".to_string()))
             .map(|(f, _)| *f),
-        Some(4193),
+        Some(4241),
         "`0/2000`'s damage parts past the word"
     );
 }
