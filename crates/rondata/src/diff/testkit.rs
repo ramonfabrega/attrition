@@ -10064,6 +10064,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3588,
         Some(crate::diff::lakota_medieval_pair::WIDENING_LAKOTA_MEDIEVAL_CLOSING),
     ),
+    // **The Bantu from an Ancient start** (item 3562): East Indies — 4185
+    // first try, widened on run1206b over 4180..4436 (block 4186).
+    (
+        "BANTU_ANCIENT_PAIR_WORD",
+        crate::diff::bantu_ancient_pair::BANTU_ANCIENT_PAIR_WORD,
+        Some("bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole"),
+        3562,
+        Some(crate::diff::bantu_ancient_pair::WIDENING_BANTU_ANCIENT_FRAME_4185),
+    ),
     // **The Japanese at a held Gunpowder age** (item 3563): Great Sahara —
     // 2839 first try, widened on run1208b over 2834..3090 (block 2840).
     (
@@ -11725,6 +11734,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_973,
         endpoint: Some("run1204_lakota_medieval_pair_closing_state"),
         window: Some("lakota_medieval_closing_window"),
+    },
+    // The Bantu from an Ancient start (`STARTING_TECHNOLOGY` 0, the ending
+    // age read back 1), East Indies (item 3562): first try 4185, of a game
+    // that ends itself on 6210; widened on run1206b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesBantuAncient",
+        named: "East Indies (Bantu, Ancient)",
+        word: crate::diff::bantu_ancient_pair::BANTU_ANCIENT_PAIR_WORD,
+        length: 6_210,
+        endpoint: None,
+        window: Some("bantu_ancient_frame_4185_window"),
     },
     // The Japanese at a held Gunpowder age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3563): first try 2839, of

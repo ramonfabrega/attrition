@@ -3471,6 +3471,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
         || super::lakota_medieval_pair::lakota_medieval_rounds_window(),
         || super::lakota_medieval_pair::lakota_medieval_closing_window(),
+        || super::bantu_ancient_pair::bantu_ancient_frame_4185_window(),
         || super::chinese_medieval_pair::chinese_medieval_volley_2955_window(),
         || super::chinese_medieval_pair::chinese_medieval_closing_window(),
         || super::roman_classical_pair::roman_classical_closing_window(),

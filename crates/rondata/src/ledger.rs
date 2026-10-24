@@ -151,6 +151,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "scoped replay state and installation reuse; all oracle comparisons remain in harness.rs",
     ),
     (
+        "diff/bantu_ancient_pair.rs",
+        "the Ancient-start Bantu pair's walks: it compares no field itself (item 3562)",
+    ),
+    (
         "diff/battery.rs",
         "the held-out battery's walks: it compares no field itself, and its measure is the draw stream's first parting (DECISIONS 61 §6)",
     ),
