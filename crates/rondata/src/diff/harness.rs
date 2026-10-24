@@ -7194,11 +7194,6 @@ pub(crate) mod tests {
                 };
                 let mut mine = crate::diff::leader::rows(&loaded, &built, who);
                 mine.extend(crate::diff::leader::region_rows(&built, who));
-                if std::env::var("RON_PROBE_RARES").is_ok() && who == 1 && (5574..=5590).contains(&n) {
-                    let ours: Vec<_> = mine.iter().filter(|(k, v)| k.contains("known_rares") && *v != 0).collect();
-                    let theirs: Vec<_> = t.iter().filter(|(k, v)| k.contains("known_rares") && **v != 0).collect();
-                    eprintln!("PROBE_RARES_BLOCK {n} ours {ours:?} theirs {theirs:?} map {:?} raw {:?}", built.region_map, built.sim.ai[1].census.reg_known_rares);
-                }
                 // `RON_MAKE=<lo>-<hi>`: the make list slot for slot, both
                 // sides, through the comparison's own keys (item 613).
                 if who == 1
