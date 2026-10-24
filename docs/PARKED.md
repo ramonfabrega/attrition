@@ -10706,13 +10706,13 @@ block zeroes it beside `reg_known_rares` and `bordering` (AI §318.1), and
 `check_borders` sums it into the leader's `+0x9d8` territory at the pass's
 end. No capture separates it, and no score names it.
 
-## Parked by the next landing, slot QV — reserved
+## Parked by item 3595, 2026-10-24 — the territory tie rotates over eight slots
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3595a) **No dump prints a cell's owner.** The two cells this item turned on, (13, 15) and (15, 13), show
+only as a two-cell gap in the leaders' `territory` sums. Ours' map came from a probe, and theirs' was
+inferred from the Scout's path cost. A tie the old `% players` modulus broke the other way, in another
+lobby, would show the same way. Every pinned word and widening held when the fix landed, so no capture on
+file reaches one before its word. No score names it.
 
 ## Parked by the next landing, slot QW — reserved
 
