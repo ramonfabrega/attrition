@@ -1964,8 +1964,10 @@ mod tests {
     #[test]
     fn the_mongol_nomad_s_rounds_leave_from_its_pivot() {
         use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+        // (anim, time, guy x, y, angle, z, sx, sy, sz, turret steps)
+        type Shot = (i8, u32, i32, i32, i32, i32, i32, i32, i32, &'static [i32]);
         #[rustfmt::skip]
-        let shots: [(i8, u32, i32, i32, i32, i32, i32, i32, i32, &[i32]); 10] = [
+        let shots: [Shot; 10] = [
             (ATTACK3, 19, 7560, 27240, -1_787_953_152, 376, 7484, 27210, 660, &[0]),
             (ATTACKWALK, 18, 7524, 27864, -2_108_948_480, 411, 7467, 27925, 654, &[34]),
             (ATTACK1, 18, 7752, 28104, -1_939_144_704, 463, 7733, 28190, 678, &[-1]),
