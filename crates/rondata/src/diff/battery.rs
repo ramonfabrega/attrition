@@ -196,6 +196,9 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     (7, 14, 3),
     // The British at a held Enlightenment age, East Indies (item 3512).
     (18, 11, 5),
+    // The Greeks at a held Classical age, East Indies (item 3557): the
+    // first pair below age 2.
+    (18, 5, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

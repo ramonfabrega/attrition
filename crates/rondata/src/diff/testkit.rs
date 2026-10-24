@@ -9916,6 +9916,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3554,
         Some(crate::diff::persian_medieval_pair::WIDENING_PERSIAN_MEDIEVAL_FRAME_4038),
     ),
+    // **The first pair below age 2** (item 3557): the Greeks at a held
+    // Classical age, East Indies — 8 first try (the AI's make list parts
+    // on block 7 behind the Greeks' opening knowledge, ours 0 theirs
+    // 10000 from block 2), widened on run1196b over 2..258 (block 9).
+    (
+        "GREEK_CLASSICAL_PAIR_WORD",
+        crate::diff::greek_classical_pair::GREEK_CLASSICAL_PAIR_WORD,
+        Some("greek_classical_pair_run1196b_s_word_frame_is_widened_whole"),
+        3557,
+        Some(crate::diff::greek_classical_pair::WIDENING_GREEK_CLASSICAL_FRAME_8),
+    ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
     // unit on a move where theirs idles it), widened on run1159b over
@@ -11482,6 +11493,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_759,
         endpoint: None,
         window: Some("persian_medieval_frame_4038_window"),
+    },
+    // The Greeks at a held Classical age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 1), East Indies (item 3557): first try 8, the
+    // AI's make list parting behind the Greeks' opening knowledge, of a
+    // game that ends itself on 8126; widened on run1196b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesGreekClassical",
+        named: "East Indies (Greeks, Classical)",
+        word: crate::diff::greek_classical_pair::GREEK_CLASSICAL_PAIR_WORD,
+        length: 8_126,
+        endpoint: None,
+        window: Some("greek_classical_frame_8_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
