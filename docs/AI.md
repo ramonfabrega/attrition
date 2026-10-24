@@ -26503,9 +26503,52 @@ games only, so they count once the pair is whole. The lockstep measure on this t
 as 3512 re-pinned `census::RUBRIC_UNIT_TYPES_SEEN` (the six from 3538's and 3539's whole pairs). `CAMELCORPS`, `JUNKERS`, `ROYALGUARD` and `MANCHUMUSKETEERS`' kin
 are not in this game.
 
-**What is not established.** The frame in 1402..1501 where `1/20` first parts, and on which field. Whether ours'
-`frame_started` is 1901 (the field is unread). Whether anything other than the builder's walk feeds the three
-frames.
+**The cause: a tower's sight** (item 3543, run1186, run1186b and run1186c). The hypothesis above, a slower walk,
+was the wrong mechanism; the frame was right. run1186 (blocks 1395..1502, `rngcmp.py`-identical to run1159) opens
+with the Citizen's *plan* already apart: on 1395 `1/20`'s `path[11].to` is ours (41832, 13128) against theirs
+(41064, 13128), and its position parts on 1416, ours (40993, 14149) against (40986, 14147). Ours plans the
+13-point path to the Village on tick 1377. Theirs' differs at one waypoint: north and then north-east round cell
+(53, 17), where ours goes north-east and then north. Cell (53, 17) costs 48 to enter in both (`blocked 1`, the
+packet's `WData` and ours agree), so the two routes tie only if their next step, cell (54, 16), costs the same.
+**Ours prices (54, 16) unseen** (`calc_cost`'s fog branch: 44 and 52 against 32 and 40 seen). run1186b, a packet at
+`RON_STATE_FRAME=1377`, holds **29 half-cells of `seen2` lit for who=1 in theirs only**: fy 32..36 and 46..48
+along the map's east edge, among them (109, 33). They are the rim of a disc centred on half-cell (113, 41), which
+is the tower **`1/2012` (TypeIndex 441, the age-4 tier of the Tower line: `from 440`, `LOS 14`, `X_SIZE 2`)**.
+Theirs prints it at `mylos 19` and ours computes 15, `LOS + x_size / 2`.
+
+The four tiles are `Wall::update_los@0063eeb0`'s tower term, a `SEAM` this crate had held since `docs/VISION.md`
+§2.1 was written ("none can fire in any capture on disk"). A finished Tower-line building that is not a fort adds
+`constants.tower_fort_range[get_tower_fort_los() + 3]`. The listing reads `movb 0x1b4(%ecx,%eax,4)` with `i` from
+1 to 4, which runs off `TOWER_FORT_RANGE`'s four entries into **`TOWER_FORT_LOS`** (0, 2, 4, 6).
+`LeaderData::get_tower_fort_los@006daf80` tests **byte 8 of the leader's `tech` mask** (`movb 0x6c20(%ecx)`, the
+mask's `ptr` at `+0x6c18`), bits `0x10`, `0x8` and `0x4`. `has_tech` indexes that mask by `TypeIndex` (`0x6c18 +
+(t >> 3)`), so the bits are **`TypeIndex` 68, 67 and 66: `PARTISAN`, `MINUTEMAN` and `MILITIA`**. At Enlightenment
+the Turks hold Minuteman and not Partisan, so `i` is 3 and the term is 4: 14 + 4 + 1 = 19. Built as
+`Sim::tower_fort_los` and the term in `Sim::build_los` (`sim::vision`), with `Roles::tower_fort_los_units` and
+`Tuning::tower_fort_los` read from `rules.xml`. Killer: `a_tower_sees_further_with_each_tower_fort_los_bit`, and on
+the built tree `tools/mutate.py` dropping the Minuteman arm takes the word back to 2501.
+
+**The value diff, walked back.** On tick 1377, half-cell (109, 33) `seen2` reads ours `00` against theirs `02`. It
+is the fog read for the step into cell (54, 16) at (41856, 12672). The tower `1/2012` reads `mylos` ours 15 against
+theirs 19. **With the term, the word 2501 → 3812 of 3812, by the count and the sequence: the pair is whole.** Every
+other lobby's `first_parting` holds. Ours' Citizen plans theirs' path, the Village completes on theirs' frame, and
+run1159b's widening drops 2651 → 49 keys: block 2495's standing families and nothing of the Village. run1186's
+drops 61 → 51.
+
+**The closing state** (`run1159_turkish_enlightenment_pair_closing_state`): block 3813, **184 units compared,
+none off**, with no torn, unlinked or extra row. **run1186c** (3557..3813, the closing window,
+`turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole`) parts 59 keys and no position. They are
+block 3557's standing families, who=1's `SITE[2].val` on 3576 (ours 290625 against 193719), `dest_angle` on `1/22`
+(3605) and `1/64` (3618), and ours' later groups 65, 69 and 71. The closing block parts nothing new.
+
+**Why no widening named it.** `coverage.rs` lists a building's `mylos`
+(`GAME/FRAME/BUILDDATA/WALLDATA/OBJECT`) as printed and read by nothing. `1/2012`'s 19 against 15 stood on every
+block of run1159b and run1186 and parted no key. The walk found it through the fog, on a packet (parked 3543a).
+
+**What is not established.** Whether ours' `frame_started` is 1901 (the field is unread). The fort, colosseum and
+furs terms of `Wall::update_los` (parked 3543b): no Fort-line building or furs holder parts here. When theirs'
+`1/2012` first read 19 is also open. The packet shows the rim lit by 1377, and no dump before run1186 prints a
+building's `mylos` where a reader takes it.
 
 ## 308. The Persians at a held Medieval age, East Indies: the ferried Explorer's attack order, 2226 of 4759 (2026-10-23, item 3535)
 

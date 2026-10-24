@@ -1900,6 +1900,10 @@ pub fn load_tables(
     // `TROOPS_LOS_1..3` (`0x2e9`): the levels `get_troops_los_upgrade`
     // counts (`docs/VISION.md` §2, term 6).
     tree.roles.troops_los_preq = [bonus_at(61), bonus_at(62), bonus_at(63)];
+    // `TypeIndex` 66..68: the unit bits `get_tower_fort_los` reads out of
+    // the tech mask's byte 8 (`crate::tech::Roles::tower_fort_los_units`).
+    tree.roles.tower_fort_los_units =
+        [66usize, 67, 68].map(|x| unit_tree.get(x - BASE_UNITTYPES as usize).copied());
     // The three speed-upgrade ladders `train_time` counts, rows 64–66,
     // 58–60 and 76–78 (`docs/PRODUCTION.md`, "The tail's first caller").
     tree.roles.ships_speed_preq = [bonus_at(64), bonus_at(65), bonus_at(66)];

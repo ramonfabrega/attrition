@@ -349,7 +349,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// the British pair, open at 4587, adds none. Item 3542: 158 -> 160, the
 /// British pair whole at 5522 — the Highlanders (114) and the Bomb Ketch
 /// (`MORTARSHIP`, 347), read by `rubric.py` with and without its two dumps.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 160;
+/// Item 3543: 160 -> 162, the Turkish Enlightenment pair whole — Royal
+/// Janissaries (113, `JANISSARYROYAL`) and Basilica Cannon (277,
+/// `BASILICACANNON`).
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 162;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

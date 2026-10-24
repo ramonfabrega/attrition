@@ -429,8 +429,15 @@ impl Sim {
     /// Woodcutter's Camp at `7` (`6`, `2`) and four Farms at `8`
     /// (`6`, `4`) — and the city goes to **17** on the frame its Science
     /// epoch reaches 1, which is the science term with `SCIENCE_LOS 2`.
-    /// SEAM: the fort/tower/colosseum and furs terms are read and not
-    /// carried; none can fire in any capture on disk.
+    ///
+    /// **The tower term** (item 3543): a finished Tower-line building that
+    /// is not a fort adds `TOWER_FORT_LOS[get_tower_fort_los − 1]`. The
+    /// Turks' age-4 tower `1/2012` (TypeIndex 441, `LOS 14`, `X_SIZE 2`)
+    /// prints `mylos 19` in run1186, its owner holding the `MINUTEMAN` bit
+    /// and not `PARTISAN`'s: 14 + 4 + 1.
+    /// SEAM: the fort, colosseum and furs terms are read and not carried;
+    /// a fort takes its own term in place of the tower's, so a fort here
+    /// sees what it saw before.
     pub fn build_los(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
         if !bd.started || !bd.alive {
@@ -443,7 +450,13 @@ impl Sim {
                 .tech
                 .get(bd.owner as usize)
                 .map_or(0, |t| t.epoch[crate::tech::Line::Science.index()]);
-            ty.los + epoch * ty.science_los
+            let mut los = ty.los + epoch * ty.science_los;
+            if !crate::build::is_fort(&self.build_types, rec)
+                && crate::build::is_tower(&self.build_types, rec)
+            {
+                los += self.tuning.tower_fort_los[(self.tower_fort_los(bd.owner) - 1) as usize];
+            }
+            los
         } else if ty.wonder {
             // Vslot `+0x2c`, `BuildData::is_wonder`: the one unfinished
             // site `Wall::update_los` gives sight (item 3391's sweep).
@@ -453,6 +466,26 @@ impl Sim {
         };
         los += ty.x_size / 2;
         los
+    }
+
+    /// `LeaderData::get_tower_fort_los@006daf80`: 4 with the third of
+    /// [`crate::tech::Roles::tower_fort_los_units`]' bits, 3 with the
+    /// second, 2 with the first, else 1. The raw bits, not `has_tech`.
+    pub(crate) fn tower_fort_los(&self, who: crate::Player) -> i32 {
+        let held = |k: usize| {
+            self.tech_tree.roles.tower_fort_los_units[k].is_some_and(|t| {
+                self.tech
+                    .get(who as usize)
+                    .is_some_and(|p| p.tech.get(t).copied().unwrap_or(false))
+            })
+        };
+        if held(2) {
+            4
+        } else if held(1) {
+            3
+        } else {
+            i32::from(held(0)) + 1
+        }
     }
 
     /// The disc `Object::update_seen(0)` walks for a building: its own
@@ -1294,6 +1327,41 @@ mod tests {
         s.buildings[b].started = true;
         s.check_ever_seen(b, false);
         assert!(s.has_met(1, 0), "a started building is");
+    }
+
+    /// §2.1's tower term (item 3543): a finished Tower-line building that
+    /// is not a fort sees `TOWER_FORT_LOS[get_tower_fort_los − 1]` past
+    /// `LOS + x_size / 2`, and `get_tower_fort_los` is the highest of the
+    /// three unit bits held. The Turks' tower `1/2012` (`LOS 14`, `X_SIZE
+    /// 2`) is 19 in run1186 with the second bit, 15 here without the term.
+    /// A fort takes none of it (its own term is not carried), nor does an
+    /// unfinished tower.
+    #[test]
+    fn a_tower_sees_further_with_each_tower_fort_los_bit() {
+        use crate::build::Ident;
+        use crate::tech::{TechTree, TypeDef, UnitTraits};
+        let (mut s, b) = fog_build(14, 0, 2);
+        let mut tree = TechTree::new().with_tuning(&Tuning::RON);
+        let bits = ["Militia", "Minuteman", "Partisan"]
+            .map(|n| tree.add(TypeDef::unit(n, UnitTraits::default())));
+        tree.roles.tower_fort_los_units = bits.map(Some);
+        s.set_tech_tree(tree);
+        let t = s.buildings[b].ty.expect("typed");
+        assert_eq!(s.build_los(b), 15, "not a tower");
+        s.build_types[t].ident = Ident::Tower;
+        assert_eq!(s.build_los(b), 15, "no bit: get_tower_fort_los 1, entry 0");
+        for (k, want) in [(0, 17), (1, 19), (2, 21)] {
+            s.tech[0].tech[bits[k]] = true;
+            assert_eq!(s.build_los(b), want, "bit {k}");
+        }
+        s.tech[0].tech[bits[2]] = false;
+        assert_eq!(s.build_los(b), 19, "the Turks' 1/2012");
+        assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(9));
+        s.buildings[b].active = false;
+        assert_eq!(s.build_los(b), 0, "an unfinished tower");
+        s.buildings[b].active = true;
+        s.build_types[t].ident = Ident::Fort;
+        assert_eq!(s.build_los(b), 15, "a fort");
     }
 
     /// §2.1's head: an unstarted building sees nothing, an unfinished
