@@ -1296,5 +1296,9 @@ fn run817_s_word_frame_is_widened_whole() {
     // Item 2761: 297 → 293 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3326: 279 → 278 with the Colossus' cap (`docs/AI.md` §266):
     // who=1's `pop_cap` stood from 4260, ours 220 against theirs 270.
-    pin_eq!(w.firsts.len(), 264, "initial run817 baseline");
+    // Item 3575: 264 → 262, the land counted by the original's region
+    // number (`docs/AI.md` §311): who=1's `popwin_stamp` and
+    // `popwin_timer`, ours 0 and 0 against theirs 4135 and 1 from 4260,
+    // agree.
+    pin_eq!(w.firsts.len(), 262, "initial run817 baseline");
 }
