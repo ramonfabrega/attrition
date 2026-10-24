@@ -522,6 +522,46 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **The Arquebusiers' piece 1104** (unit type 98 as the Japanese field
+    // it; item 3590, `docs/AI.md` §316): run1237's `RON_STATE_FRAME=2674`
+    // packet on the Japanese Gunpowder Great Sahara seed holds its three
+    // attack `AttachPos` rows, node 0 at anims 11, 12 and 13, times 6, 25
+    // and 23, and `tools/recomp/get_position.py`'s sweep of each has one
+    // feasible region (240, 757 and 194 lattice points) reproducing all 361
+    // headings, x and y; the rows are its middles. who=1's `1/19` fired at
+    // the Citizen `0/12` on 2693 from (9940, 30945) in run1208d where this
+    // crate fired from the figure's own (10056, 30984): 6 frames against 7,
+    // and the Citizen struck a frame late.
+    (
+        1104,
+        11,
+        6,
+        Bay {
+            right: 16431,
+            fwd: 145_696,
+            dz: 175,
+        },
+    ),
+    (
+        1104,
+        12,
+        25,
+        Bay {
+            right: 20291,
+            fwd: 131_870,
+            dz: 170,
+        },
+    ),
+    (
+        1104,
+        13,
+        23,
+        Bay {
+            right: 3610,
+            fwd: 123_230,
+            dz: 175,
+        },
+    ),
     // **The Javelineers' piece 34** (item 2997, `docs/AI.md` §244): run912e's
     // `RON_STATE_FRAME=12753` packet holds its three `AttachPos` rows, and
     // `tools/recomp/get_position.py`'s sweep of each is reproduced by these
