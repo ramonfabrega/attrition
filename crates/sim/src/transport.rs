@@ -1378,16 +1378,30 @@ impl Sim {
                 .ty
                 .is_some_and(|t| self.unit_types[t].combat.uber_size == 1)
             {
-                let orders = std::mem::take(&mut self.units[boat].orders);
-                self.units[r].orders.extend(orders);
-                let path = std::mem::take(&mut self.units[boat].path);
-                self.units[r].path.extend(path);
-                if let Some(top) = self.units[r].path.last_mut() {
-                    top.flags &= !crate::orders::path_flag::TRANSPORT;
-                }
+                self.hand_over_orders(boat, r);
             } else {
                 self.disembark_squad(boat, r);
             }
+        }
+    }
+
+    /// **`eject_contents`' step 4 on a one-figure passenger**
+    /// (`eject_contents@0064cd20:254`–`330`, item 3550): the boat's orders
+    /// queued **behind** the passenger's own, and its path pushed **on top
+    /// of** the passenger's, the new top `& ~4`. The loop takes the boat's
+    /// current order (`head->prev`, `remove_current`) and
+    /// `LinkListBase::add@0046d5a0`s it to the passenger's list, which
+    /// splices it before `head` — the back of the queue (`docs/ORDERS.md`
+    /// §1.4) — so the passenger's current order stays current. The path is
+    /// `Stack::invert`ed and popped onto the passenger's stack, which keeps
+    /// the boat's own order of nodes above what was there.
+    fn hand_over_orders(&mut self, boat: usize, r: usize) {
+        let orders = std::mem::take(&mut self.units[boat].orders);
+        self.units[r].orders.extend(orders);
+        let path = std::mem::take(&mut self.units[boat].path);
+        self.units[r].path.extend(path);
+        if let Some(top) = self.units[r].path.last_mut() {
+            top.flags &= !crate::orders::path_flag::TRANSPORT;
         }
     }
 
@@ -2703,6 +2717,64 @@ mod tests {
             f.sim.armies[1].list[slot].group.facing,
             "a reversing turn by the leader toggles the army's flag"
         );
+    }
+
+    /// **The boat's orders queue behind what the passenger's tail gave it**
+    /// (item 3550, `docs/AI.md` §308): run1189's Explorer `1/0` lands on
+    /// 2172 with the `ATTACKTOORDER` its `come_out` tail's `add_to_army`
+    /// pushed still current, the barge's `EXPLORETOORDER` behind it, and a
+    /// 17-node path — the attack's 15 under the barge's 2, the top
+    /// (34296, 32760) with its transport bit clear. Made to fail by
+    /// replacing the passenger's list and path with the boat's: the
+    /// explore order is current and the path is the boat's two.
+    #[test]
+    fn the_boat_s_orders_queue_behind_what_the_passenger_s_tail_gave_it() {
+        use crate::orders::{MoveKind, PathData, QueuePos, path_flag};
+        let mut f = fix();
+        let b = barge(&mut f.sim);
+        let rider = unit(&mut f.sim, 1, f.citizen, tile_pos(30, 14));
+        let boat = unit(&mut f.sim, 1, b, tile_pos(33, 14));
+        let attack = tile_pos(20, 20);
+        let explore = tile_pos(28, 10);
+        f.sim
+            .add_move_order(rider, attack, MoveKind::AttackTo, QueuePos::New, false);
+        f.sim
+            .add_move_order(boat, explore, MoveKind::ExploreTo, QueuePos::New, false);
+        let node = |p: Pos, flags| PathData {
+            to: p,
+            tolerance: 0,
+            flags,
+        };
+        f.sim.units[rider].path = vec![node(attack, 1), node(tile_pos(25, 17), 0)];
+        f.sim.units[boat].path = vec![
+            node(explore, 1),
+            node(tile_pos(29, 12), path_flag::TRANSPORT),
+        ];
+        f.sim.hand_over_orders(boat, rider);
+        let kinds: Vec<_> = f.sim.units[rider]
+            .orders
+            .iter()
+            .map(|o| match &o.body {
+                crate::orders::Body::Move(m) => Some(m.kind),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            kinds,
+            [Some(MoveKind::AttackTo), Some(MoveKind::ExploreTo)],
+            "the attack stays current, the boat's order behind it"
+        );
+        assert_eq!(
+            f.sim.units[rider].path,
+            [
+                node(attack, 1),
+                node(tile_pos(25, 17), 0),
+                node(explore, 1),
+                node(tile_pos(29, 12), 0),
+            ],
+            "the boat's path on top of the attack's, its top's transport bit clear"
+        );
+        assert!(f.sim.units[boat].orders.is_empty() && f.sim.units[boat].path.is_empty());
     }
 
     /// The other arm of the same test: a boat that steps off the water
