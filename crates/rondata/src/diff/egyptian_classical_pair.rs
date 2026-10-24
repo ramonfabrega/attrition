@@ -297,3 +297,66 @@ fn egyptian_classical_pair_run1241_walks_the_market_s_queue_back() {
     // 12168 against 7227, 12158) and the groups' `held`/`pool` on 5697.
     pin_eq!(w.firsts.len(), 109, "run1241 baseline");
 }
+
+/// run1241b: the word 6537's window, blocks 6532..6748 — six blocks before
+/// the word's block 6538 and on to the game's last frame (item 3594);
+/// run1230b ends on 6212 and the long's stride prints 6501 and 6601.
+pub(crate) const RUN1241B: &str =
+    "gamelog-run1241b-eastindies-egyptian-classical-window-6532-6748.txt";
+
+/// The window: block 6532 through 6748; the word 6537's own block is 6538.
+pub(crate) const WIDENING_EGYPTIAN_CLASSICAL_FRAME_6537: (i64, i64) = (6532, 6748);
+
+/// **The word 6537's window**: run1241b walked from run1229's start with
+/// the recorder on (item 3594).
+pub(crate) fn egyptian_classical_frame_6537_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN_CLASSICAL.start],
+        true,
+        EGYPTIAN_CLASSICAL.long,
+        "run1241b",
+        &[(RUN1241B, WIDENING_EGYPTIAN_CLASSICAL_FRAME_6537.0)],
+        WIDENING_EGYPTIAN_CLASSICAL_FRAME_6537,
+        1,
+        &[6538],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_classical_frame_6537_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 216, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3594, the first walk: **3161** keys. Block 6532, the window's
+    // first, stands apart beside the standing families: both leaders'
+    // `territory` (ours 180 and 1183 against theirs 182 and 1181, apart
+    // since run1230b's 6033), who=1's wealth `leftover` (874 against 6483),
+    // `income` and `bucket`, and the Scout `1/126` (TypeIndex 69, land,
+    // uid 169, under an `EXPLORETOORDER`): `pos` ours (10445, 12681)
+    // against theirs (10650, 12744), `move.dest_x` 10488 against 11256.
+    // Nothing new parts on the word's block 6538; on 6539 the Dromon
+    // `1/45` (TypeIndex 324, sea) is ordered to (45048, 22008) by ours
+    // and to (15096, 44280) by theirs.
+    pin_eq!(w.firsts.len(), 3161, "run1241b baseline");
+}
