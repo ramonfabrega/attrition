@@ -10133,6 +10133,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3594,
         Some(crate::diff::egyptian_classical_pair::WIDENING_EGYPTIAN_CLASSICAL_FRAME_6537),
     ),
+    // **The Spanish at a held Classical age** (item 3586): Great Sahara —
+    // whole on its first try, 8565 of 8565, the closing state compared;
+    // widened on run1232b over 8310..8566 (the closing block).
+    (
+        "SPANISH_CLASSICAL_PAIR_WORD",
+        crate::diff::spanish_classical_pair::SPANISH_CLASSICAL_PAIR_WORD,
+        Some("spanish_classical_pair_run1232b_s_closing_frame_is_widened_whole"),
+        3586,
+        Some(crate::diff::spanish_classical_pair::WINDOW_SPANISH_CLASSICAL_CLOSING),
+    ),
     // **The Iroquois from an Ancient start** (item 3584): Great Sahara —
     // whole on its first try, 8420 of 8420, the closing state compared;
     // widened on run1228b over 8165..8421 (the closing block).
@@ -11849,6 +11859,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 6_748,
         endpoint: None,
         window: Some("egyptian_classical_frame_6537_window"),
+    },
+    // The Spanish at a held Classical age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3586): whole on its first
+    // try, a game that ends itself on 8565; the closing state compared,
+    // widened on run1232b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaSpanishClassical",
+        named: "Great Sahara (Spanish, Classical)",
+        word: crate::diff::spanish_classical_pair::SPANISH_CLASSICAL_PAIR_WORD,
+        length: 8_565,
+        endpoint: Some("spanish_classical_pair_run1232_s_closing_state"),
+        window: Some("spanish_classical_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

@@ -10582,3 +10582,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1241  --map 18 --end-frame 5786 --timeout 3600 --log-window 5576 5786 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0, run1229's lobby   (the Market's queue walked back)
 #   run1241b --map 18 --end-frame 6748 --allow-early-end --timeout 3600 --log-window 6532 6748 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0, run1229's lobby   (the word 6537's window)
 # Checks: `rngcmp.py` run1241 vs run1230 -> 5787 identical; run1241b vs run1230 -> 6749 identical.
+# ==== item 3586: the Spanish at a held Classical age, Great Sahara (`docs/AI.md` §319; `docs/RUNS.md` run1231, run1232, run1232b) ====
+#   run1231  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1232  run1196's line with --map 7 --ai-tribe 9 and run1231's lobby   (the draw stream; ended itself on 8565)
+#   run1232b --map 7 --end-frame 8565 --allow-early-end --timeout 3600 --log-window 8310 8566 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 9 --cover cover=0, run1231's lobby   (the closing window)
+# Checks: `rngcmp.py` run1231 vs run1232 -> 37 identical; run1232 vs run1232b -> 8566 identical.

@@ -26846,3 +26846,66 @@ SHA-256 `0e43b9fd01e52e67fee11d2060add5e0e81ab25e706aa606a5243c71db51928c`.
 **What it holds**: `egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole` (216 blocks, 3161 keys),
 the word 6537's widening. Block 6532 stands apart on both leaders' `territory`, who=1's wealth `leftover` and
 the Scout `1/126` (TypeIndex 69). On 6539 the Dromon `1/45` takes another destination.
+## run1231 — the Spanish at a held Classical age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3586, `att-3586`)
+
+`docs/AI.md` §319. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1231 --map 7 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=1 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 16:55:36, exited 16:55:58 (21.5 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 9, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1231
+  greatsahara-spanish-classical-start`. `df -g ~` read 135 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1231-greatsahara-spanish-classical-start.txt`, 149,934,794 bytes,
+SHA-256 `90ca5f21c013167cb4f725ded33b2141979d75be987a37932cdc74ac5dc66fd3`.
+
+Archive `rontrace-run1231.log`, 8,285,184 bytes,
+SHA-256 `846a203dba1e498d77fac85ad64ca663caeb51d304a0ca28ad0c5a0b5de135fe`.
+
+**What it holds**: the start of `spanish_classical_pair::SPANISH_CLASSICAL`, and the walk's initial state.
+
+## run1232 — the Spanish at a held Classical age, Great Sahara: the draw stream to the game's end (2026-10-24, item 3586, `att-3586`)
+
+`docs/AI.md` §319. run1196's line with `--ai-tribe 9`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 9
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1231's
+lobby.
+- Pool lane 2, beside run1231. Launched 16:55:43, exited 16:56:26 (42.6 s launch to exit). `success`. **The game
+  ended itself on 8565** (closing block 8566, `ended_early`). `GAME INFO` reads back as run1231's. `rngcmp.py`
+  against run1231: 37 frames identical. Filed with `filerun.py run1232 greatsahara-spanish-classical-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1232-greatsahara-spanish-classical-trace.txt`, 50,396,173 bytes,
+SHA-256 `0b6e3296e641c93574dde4228d6cd8d93f4939a0b63958356767510440010442`.
+
+Archive `rontrace-run1232.log`, 200,680,416 bytes,
+SHA-256 `ea36f0df7a5a2c8e0e7ea4f68abf7465532b6426900adebabc728434cb1638bc`.
+
+**What it holds**: the pair's first try. `spanish_classical_pair_first_parting` walks it from run1231: **whole,
+frame 8565 of 8565** by the count and the sequence. Its closing block 8566
+(`spanish_classical_pair_run1232_s_closing_state`) compares 395 units, none off, torn or unlinked.
+
+## run1232b — the Spanish at a held Classical age, Great Sahara: the closing window, blocks 8310..8566 (2026-10-24, item 3586, `att-3586`)
+
+`docs/AI.md` §319. **What the disk could not answer**: the last blocks at the leaders', buildings' and cities'
+detail. run1232's stride prints units every hundredth block (8501 the last) and no `LEADERDATA` past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1232b --map 7 --end-frame 8565 --allow-early-end
+--timeout 3600 --log-window 8310 8566 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 9
+--cover cover=0 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 16:59:58, exited 17:01:10 (71.8 s launch to exit). `success`: 8566 frames. `rngcmp.py`
+  against run1232: 8566 frames identical. Filed with `filerun.py run1232b
+  greatsahara-spanish-classical-window-8310-8566`. `df -g ~` read 134 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1232b-greatsahara-spanish-classical-window-8310-8566.txt`, 685,617,814 bytes,
+SHA-256 `729a64795dc55cfd720f3cf939428fc72671f4a6a00c190f751ee6ed0751a2d8`.
+
+Archive `rontrace-run1232b.log`, 200,506,080 bytes,
+SHA-256 `ff4aa9d71131481b73e05b70afc2ef6a846b830b2527b1cdf52a97a3bd6b96b5`.
+
+**What it holds**: `spanish_classical_pair_run1232b_s_closing_frame_is_widened_whole` (256 blocks, 82 keys): the
+standing families, both leaders' `territory` one tile apart (parked 3586a), the garrisoned Scholars' `g.angle[0]`
+and twelve `dest_angle` rows. Positions, orders and hits agree to the closing block.

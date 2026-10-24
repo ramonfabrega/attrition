@@ -10663,13 +10663,16 @@ is whole to 8420 (`docs/AI.md` §317).
 whole game, to 6748) sees `Light Camel` ×1084 and no `Chariot`. The line stays unseen. A lobby that reaches it is
 the next pass's to name. **Score**: none (`docs/AI.md` §318).
 
-## Parked by the next landing, slot QR — reserved
+## Parked by item 3586, 2026-10-24 — the Spanish at a held Classical age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3586a) **Both leaders' `territory` one tile apart on run1232b's first block 8310: who=0 ours 241 against
+theirs 242, who=1 2746 against 2745** (`my_team_terr`, `other_team_terr` and `min_other_team_terr` with it).
+3574a's shape on a second pair, the same direction: one tile counted to who=1 in ours and to who=0 in theirs.
+The pair is whole at 8565 and its closing state compares 395 units with none off. No widening walked
+run1231's blocks 0..2 for it and run1232's stride prints no leader, so it parted somewhere before 8310; the tile and its writer were not
+read. A `LEADERS=9` window over the gap, or a `RON_STATE_FRAME` packet of both territory grids, would place it,
+and one read would likely settle 3574a too. **Score**: none — no draw or position follows from it to the game's
+end (`docs/AI.md` §319).
 
 ## Parked by the next landing, slot QS — reserved
 
