@@ -6288,6 +6288,52 @@ impl Sim {
     pub fn tick(&mut self) -> Vec<Tick> {
         self.in_play = true;
         let frame = self.frame;
+        if std::env::var_os("RON_PROBE_3588").is_some() && (4090..=4170).contains(&frame) {
+            for x in &self.units {
+                if x.alive() && x.owner == 0 && (x.index == 5 || x.index == 10) {
+                    eprintln!(
+                        "PROBE3588 head f{frame} 0/{} health {} frac {} damage_o {} damage_who {} damage_frame {} at {:?}",
+                        x.index, x.health, x.damage_frac, x.combat.damage_o, x.combat.damage_who,
+                        x.combat.damage_frame, x.pos
+                    );
+                }
+            }
+        }
+        if std::env::var_os("RON_PROBE_3588").is_some() && (4090..=4170).contains(&frame) {
+            use crate::combat::Obj;
+            let nm = |o: Obj| match o {
+                Obj::Unit(u) => format!("{}/{}", self.units[u].owner, self.units[u].index),
+                Obj::Building(b) => format!("b{b}"),
+            };
+            for p in &self.projectiles {
+                if p.target.is_some_and(|t| matches!(t, Obj::Unit(u) if self.units[u].owner == 0 && self.units[u].index == 5))
+                {
+                    eprintln!(
+                        "PROBE3588 ammo f{frame} {} -> {:?} launch ({},{}) land ({},{}) t{}/{} acc {} roll {} missed {}",
+                        nm(p.shooter), p.target.map(nm), p.launch.x, p.launch.y, p.landing.x, p.landing.y,
+                        p.cur_time, p.total_time, p.accuracy, p.rolling, p.missed
+                    );
+                }
+            }
+            for x in &self.units {
+                if x.alive() && x.owner == 1 && x.index == 32 {
+                    eprintln!(
+                        "PROBE3588 u32 f{frame} at {:?} orders {:?} recharging {} anim/time/end/piece/facing/heading {:?}",
+                        x.pos, x.orders.iter().map(|o| o.index()).collect::<Vec<_>>(),
+                        x.combat.recharging, x.guys.first().map(|g| (g.anim, g.cur_time, g.end_time, g.gpiece, x.movement.facing.0, x.movement.heading.0))
+                    );
+                }
+            }
+        }
+        if std::env::var_os("RON_PROBE_3588_POKE").is_some() && frame == 4163 {
+            for x in self.units.iter_mut() {
+                if x.alive() && x.owner == 0 && x.index == 5 {
+                    x.health = 20;
+                    x.damage_frac = 10;
+                    x.combat.damage_o = 32;
+                }
+            }
+        }
         let mut events = Vec::new();
         // The staged input's marks, taken before the clear and put back at
         // the head of the frame's own — `do_frame`'s entry, which is where
