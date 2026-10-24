@@ -10407,13 +10407,18 @@ words and edits nothing here; a refill lands when two remain.
   standing family or a parted economy: `diff` the whole `LEADERDATA` on a window's first block nearer the start.
   **Score**: none until a word parts on a who=1 purchase.
 
-## Parked by the next landing, slot PW — reserved
+## Parked by item 3559, 2026-10-24 — the Koreans from an Ancient start, East Indies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3559a — no lobby holds the Ancient age: `ENDING_TECHNOLOGY` has a floor of 1.** run1199 and run1200 were taken
+  with `--profile ENDING_TECHNOLOGY=0`, and both read back `ENDING_TECHNOLOGY 1` in `GAME INFO`. The computer is at
+  age 0 through block 4445 and at age 1 from 4446 (run1200b's leader records), and at age 1 on run1200's endgame
+  record. `SetupWin::setup_game` (`0x005b3860`) stores `ending_technology` as the combo's index plus one, after it
+  folds 7 to 6 and sets `flags |= 0x80000000`. So a profile's 0 and 1 give the same game, and an "age 0 held" pair
+  is really an Ancient start capped at Classical. Any booking for a held Ancient age (3562, the Bantu) takes this
+  lobby. The age-0 lines this pair was booked for were fielded or not well before the age-up: the Hwarang from
+  1801, and neither the Spearmen (166), the Bark (323) nor the Trireme (340) at all. Not read: which
+  `ending_technology` value the "Standard" combo row writes. **Score**: none (the census rows are the pair's, not
+  this row's).
 
 ## Parked by the next landing, slot PX — reserved
 

@@ -10494,6 +10494,11 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3571: the Greek word 7865 (`docs/AI.md` §310; `docs/RUNS.md` run1214) ====
 #   run1214  --map 18 --end-frame 8127 --allow-early-end --log-window 7859 8127 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0, run1195's lobby   (the word 7865's window, to the closing block)
 # Checks: `rngcmp.py` run1214 vs run1196 -> 8127 identical.
+# ==== item 3559: the Koreans from an Ancient start, East Indies (`docs/AI.md` §312; `docs/RUNS.md` run1199, run1200, run1200b) ====
+#   run1199  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 16 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start; ENDING_TECHNOLOGY reads back 1)
+#   run1200  run1181's line with --ai-tribe 16 and run1199's lobby   (the draw stream; ended itself on 5639)
+#   run1200b --map 18 --end-frame 4601 --log-window 4345 4601 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 16 --cover cover=0, run1199's lobby   (the word 4350's window)
+# Checks: `rngcmp.py` run1199 vs run1200 -> 37 identical; run1200 vs run1200b -> 4602 identical.
 # ==== item 3560: the Chinese at a held Medieval age, Great Sahara (`docs/AI.md` §313; `docs/RUNS.md` run1201, run1202, run1202b) ====
 #   run1201  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 14 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1202  run1198's line with --ai-tribe 14 and run1201's lobby   (the draw stream; ended itself on 4520)
