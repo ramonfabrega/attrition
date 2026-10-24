@@ -180,8 +180,14 @@ fn egyptian_classical_pair_run1230b_s_word_frame_is_widened_whole() {
     // queue holds and theirs does not — `queued` 0 against 1,
     // `num_units[11]` 3 against 2, `active` 125/124, `control` 136/135.
     // Theirs' `1/167` is a Javelineers (TypeIndex 83, uid 328), born on
-    // 5977.
-    pin_eq!(w.firsts.len(), 4874, "run1230b baseline");
+    // 5977. Item 3594: 4874 → **114** — the border pass's re-zero
+    // (`docs/AI.md` section 318.1) undoes tick 5575's census, so the Market
+    // queues theirs' second Caravan and every economy row above agrees.
+    // What stands past the standing families: `1/73`'s `dest_angle` on
+    // 5962, both leaders' `territory` from 6033 (ours 180/1183 against
+    // theirs 182/1181), who=1's wealth `income` on 6040 and `bucket` on
+    // 6096, and four `dest_angle` rows from 6147.
+    pin_eq!(w.firsts.len(), 114, "run1230b baseline");
 }
 
 /// The long's own stride blocks, 1 through 5901 — the last before run1230b's
@@ -277,5 +283,17 @@ fn egyptian_classical_pair_run1241_walks_the_market_s_queue_back() {
             }
         }
     }
-    pin_eq!(w.firsts.len(), 128, "run1241 baseline");
+    // Item 3594, the first walk: **128** keys. Past the standing families
+    // of 5576 (`form`, `SITE[i].reg`, `aggression`, the pool), the first
+    // is block 5584: who=1's `known_rares` ours 3 against theirs 0 and
+    // `MAKE[4]` ours the Merchant (61, val 967741) against theirs the
+    // Caravan (59, 937500); on 5586 the Market `1/2020`'s `queue[1]` is
+    // ours the Merchant against theirs a second Caravan, with the buckets
+    // and `num_queued[11]`/`[9]` beside it. Theirs' `reg_known_rares` is
+    // empty from 5576 to 5775 (regions 7, 9, 11 on 5776); ours' tick-5575
+    // census counted three goods into regions the pass had not reached.
+    // After the re-zero (`docs/AI.md` section 318.1): **109**, the
+    // standing families, `1/84`'s `orders_x`/`orders_y` on 5759 (7224,
+    // 12168 against 7227, 12158) and the groups' `held`/`pool` on 5697.
+    pin_eq!(w.firsts.len(), 109, "run1241 baseline");
 }
