@@ -2154,12 +2154,15 @@ impl Sim {
     }
 
     /// `Ammo::init`'s `ez` (`+0x20`), `0x67c93a`–`0x67c9a4`: the target
-    /// object's own `z` — for a unit `find_tcoord_z` at its tile, which is
-    /// [`crate::World::tile_z`] — plus **75** when the shot rolls, the
-    /// first figure's ground for an air unit, and never below zero (§46.1).
+    /// object's own `z` (`ObjectData +0xc`, unmasked) — `find_tcoord_z` at
+    /// its tile with the fourth argument 1, which is
+    /// [`crate::World::object_z`]: an ocean tile or a height under the sea
+    /// reads 0 — plus **75** when the shot rolls, the first figure's ground
+    /// for an air unit, and never below zero (§46.1). A Citizen on a shore
+    /// tile at −22 is aimed at 75, not 53 (item 3593, `docs/AI.md` §315.4).
     fn aim_z(&mut self, target: Obj, rolling: bool) -> i32 {
         let at = self.pos_of(target);
-        let mut z = self.world.tile_z(at.tile()) + if rolling { 0x4b } else { 0 };
+        let mut z = self.world.object_z(at.tile()) + if rolling { 0x4b } else { 0 };
         if matches!(self.profile(target).domain, Domain::Air) {
             z = self.ground_z(at);
         }
@@ -10565,6 +10568,41 @@ mod tests {
                 -crate::movement::cos_component(facing, 9) * t
             ),
         );
+    }
+
+    /// **A rolled round is aimed at its target's own `z`** (item 3593,
+    /// `docs/AI.md` §315.4). `Ammo::init` reads `ez` from the target's
+    /// `ObjectData +0xc` (`0x67c93a`), which every writer fills through
+    /// `find_tcoord_z(·, 1)`: a height under the sea is 0. The Bantu pair's
+    /// Citizen `0/11` stood on a shore tile at −22, so its rolled javelins
+    /// were aimed at 75, not 53, and rolled on a frame longer. Made to fail
+    /// by aiming at [`crate::World::tile_z`].
+    #[test]
+    fn a_rolled_round_is_aimed_at_its_target_s_own_clamped_z() {
+        let (mut sim, ty) = at_war();
+        let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+        let foe = put(&mut sim, 1, ty, Pos::new(0x1300, 0x1000));
+        let aim = |tile_z: i32| {
+            let mut s = sim.clone();
+            let t = s.units[foe].pos.tile();
+            s.world.set_tile_z(t, tile_z);
+            s.fire_ammo_pub(
+                Obj::Unit(me),
+                Obj::Unit(foe),
+                Angle(0),
+                0,
+                Pos::new(0x1000, 0x1000),
+                0,
+                0,
+                false,
+                false,
+            );
+            let p = *s.projectiles.last().expect("a shot");
+            assert!(p.rolling, "a shot at a land unit rolls");
+            p.ez
+        };
+        assert_eq!(aim(-22), 0x4b, "under the sea is 0, plus the roll's 75");
+        assert_eq!(aim(17), 17 + 0x4b, "above it, the tile's own height");
     }
 
     /// **A missile's round is not led and never rolls, and flies its
