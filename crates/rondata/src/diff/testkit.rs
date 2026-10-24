@@ -7289,6 +7289,10 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3591: the Bantu Ancient pair's walk to the word 5322 — the
+    // Umpakati's javelins leave from their bays now — reads 3 inexact
+    // corners.
+    ("bantu_ancient_pair_first_parting", 3),
     // Item 3589: the Bantu Ancient pair's word 5072, run1236b's window
     // over 5066..5322 walked from run1205, reads 6 inexact corners.
     (

@@ -41,8 +41,14 @@ pub(crate) const BANTU_ANCIENT: Pair = Pair {
     // where ours offered it at 21504000 on 4179. Ours 39 draws against 40,
     // index 31, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
-    count: 5072,
-    sequence: 5072,
+    // Item 3591: **5322** (+250) — the Umpakati's and the Yangombi
+    // Umpakati's bays (`launch::BAYS`, pieces 43 and 44): `1/86`'s javelin
+    // at the Citizen `0/11` leaves from (6799, 8469) and flies 15 frames,
+    // where it left the figure's own square and flew 16. Ours 26 draws
+    // against 27, index 22, ours `Farms::inc_time+0x1ae`, theirs
+    // `Object::take_damage+0xe1`.
+    count: 5322,
+    sequence: 5322,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -285,7 +291,17 @@ fn bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole() {
     // (`damage_frame` ours 5056 and 5036 against theirs 5055 and 5035, and
     // their positions) and who=1's `1/86`..`1/88`, whose move orders' `y`
     // are 48 apart (`1/86` ours 7896 against theirs 7848).
-    pin_eq!(w.firsts.len(), 4465, "run1236b baseline");
+    //
+    // Item 3591: **97**, from the Umpakati's bays. `1/86`'s javelin strikes
+    // `0/11` on 5035 on both sides, and on the old word's block 5073
+    // `1/86`'s `collide_o` and `collide_who` agree. The standing families
+    // (84 rows on 5066, and two groups' `held` and pool on 5084 and 5086)
+    // and nine rows after them: the first is `1/86`'s `order:target` on
+    // 5107, ours `0/13` against theirs `0/11`; then `1/41`'s target on
+    // 5253 (ours `0/3`, theirs `0/2000`), the `dest_angle`s of `1/110`,
+    // `1/140` (5279) and `1/107` (5303), and `0/2000`'s `damage_frac`,
+    // `raid_stamp` (5299) and `damage` (5315, ours 30 against 31).
+    pin_eq!(w.firsts.len(), 97, "run1236b baseline");
 }
 
 /// **The long's stride, walked back from the word 5072** (item 3591):
@@ -363,7 +379,9 @@ fn bantu_ancient_pair_run1238_walks_the_parting_back_from_5066() {
     let Some(w) = bantu_ancient_gap_5066_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    // Blocks 4995..5072: frame `f` writes block `f + 1`, and the walk
+    // stops at the window's tail.
+    pin_eq!(w.blocks, 78, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -376,5 +394,16 @@ fn bantu_ancient_pair_run1238_walks_the_parting_back_from_5066() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1238 baseline");
+    // Item 3591, the first walk: 181 keys. Beside the standing families,
+    // the first parted field is on block 5036: both leaders'
+    // `treaties[·]` ours 1 against theirs 3 (bit 2, the struck mark) and
+    // the Citizen `0/11`'s blow — `damage_frame` ours 0 against theirs
+    // 5035, `hits_left` 40 against 37 — and its flight (`orders_x`,
+    // `orders_y` ours 7320, 7320 against 7944, 5928). The round is
+    // `1/86`'s (TI 93, land), thrown on 5021 on both sides: run1238b's
+    // `AMMO=5` prints it leaving (6799, 8469) with `total_time` 15, and
+    // ours threw from the figure's own square (6792, 8520) for 16.
+    //
+    // With the Umpakati's bays: **92**, the standing families alone.
+    pin_eq!(w.firsts.len(), 92, "run1238 baseline");
 }
