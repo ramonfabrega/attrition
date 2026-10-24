@@ -1883,6 +1883,21 @@ impl Sim {
         let pop = self.ai[w].census.pop;
 
         for t in units {
+            let probe = std::env::var_os("RON_PROBE_UPG").is_some()
+                && who == 1
+                && matches!(self.tech_tree.types[t].name.as_str(), "Galley" | "Trireme");
+            if probe {
+                let wrec = self.tech_tree.types[t].where_.and_then(|wt| self.build_record(wt));
+                eprintln!(
+                    "  probe-upg f{} {} avail {} where {:?} docks {:?} research {}",
+                    self.frame,
+                    self.tech_tree.types[t].name,
+                    self.type_avail(who, t),
+                    self.tech_tree.types[t].where_,
+                    wrec.map(|r| self.buildings_of_line(who, r)),
+                    self.unit_record(t).map_or_else(|| self.researching(who, t), |r| self.researching_unit(who, r)),
+                );
+            }
             if self.type_avail(who, t) != tech::RESEARCHABLE {
                 continue;
             }
@@ -1942,6 +1957,12 @@ impl Sim {
                     &self.setup,
                     &self.tech[w],
                     self.tech_tree.types[x].from,
+                );
+            }
+            if probe {
+                eprintln!(
+                    "  probe-upg f{} {} owned {owned} chain-avail {avail} age_t {age_t} age_p {age_p} siege {}",
+                    self.frame, self.tech_tree.types[t].name, f.siege
                 );
             }
             if !(owned != 0 || !avail || f.siege) || self.named_is(t, "Merchant Fleet") {
