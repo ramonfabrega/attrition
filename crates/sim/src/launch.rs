@@ -1543,6 +1543,101 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 245,
         },
     ),
+    // **Piece 1794, the Peltasts in the Persians' art style** (`34 + 5 ×
+    // 0x160`, type 84; item 3555, `docs/AI.md` §308): run1007b's
+    // `RON_STATE_FRAME=15915` packet on the Indian Great Sahara game holds
+    // its three attack `AttachPos` rows — piece 34's keys, node 0 — and
+    // `get_position.py`'s sweep of each is reproduced at all 361 headings by
+    // these, each the centroid of its exact region (229, 895 and 1047
+    // lattice points). Without them the Persian javelins left the figure's
+    // own square: `1/22`'s at the Nubian city centre `0/2000` flew 14
+    // frames against 13 and struck on 4048 where run1189b shows 4047.
+    (
+        1794,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 38_946,
+            fwd: 60_202,
+            dz: 163,
+        },
+    ),
+    (
+        1794,
+        crate::anim::ATTACK2,
+        6,
+        Bay {
+            right: 1_685,
+            fwd: 50_747,
+            dz: 170,
+        },
+    ),
+    (
+        1794,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: 21_762,
+            fwd: 35_444,
+            dz: 156,
+        },
+    ),
+    // **Piece 212, the Mahout** (type 262, `mjvyk`; item 3555): the same
+    // packet's five node-1 rows, the howdah's archer, one per attack slot
+    // at frame 16 (`CHAR_ATTACKWALK` the fire on the move's), each the
+    // centroid of its exact region over all 361 headings (645, 280, 694,
+    // 849 and 742 lattice points). The piece's node-4 rows are another
+    // node's; every Mahout release in run1189b's window names node 1.
+    (
+        212,
+        crate::anim::ATTACKWALK,
+        16,
+        Bay {
+            right: -29_938,
+            fwd: 87_586,
+            dz: 448,
+        },
+    ),
+    (
+        212,
+        crate::anim::ATTACK1,
+        16,
+        Bay {
+            right: -291,
+            fwd: 71_525,
+            dz: 451,
+        },
+    ),
+    (
+        212,
+        crate::anim::ATTACK2,
+        16,
+        Bay {
+            right: -17_740,
+            fwd: -7_348,
+            dz: 465,
+        },
+    ),
+    (
+        212,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -18_234,
+            fwd: 60_948,
+            dz: 463,
+        },
+    ),
+    (
+        212,
+        crate::anim::ATTACKSPECIAL,
+        16,
+        Bay {
+            right: -18_369,
+            fwd: 79_421,
+            dz: 452,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -2619,6 +2714,63 @@ mod tests {
                 (at.x - 10_000, at.y - 10_000),
                 (x, y),
                 "{anim} {time} {deg}"
+            );
+        }
+    }
+
+    /// **The Persian Peltasts' piece 1794 and the Mahout's piece 212**
+    /// (item 3555): four headings of each attack row's sweep off run1007b's
+    /// packet (`get_position.py … sweep <piece> <node> <anim> <time>`), the
+    /// way [`the_peltasts_bays_are_the_packet_s_sweep`] reads 1442's.
+    #[test]
+    fn the_persian_peltasts_and_the_mahouts_bays_are_the_packet_s_sweep() {
+        const S: &[(i32, i8, u32, i64, i32, i32)] = &[
+            (1794, 11, 12, 0, -38, 60),
+            (1794, 11, 12, 97, -55, -45),
+            (1794, 11, 12, 233, 71, -5),
+            (1794, 11, 12, 300, 32, 63),
+            (1794, 12, 6, 0, -1, 50),
+            (1794, 12, 6, 97, -50, -7),
+            (1794, 12, 6, 233, 41, -29),
+            (1794, 12, 6, 300, 43, 26),
+            (1794, 13, 27, 0, -21, 35),
+            (1794, 13, 27, 97, -32, -25),
+            (1794, 13, 27, 233, 41, -3),
+            (1794, 13, 27, 300, 19, 36),
+            (212, 10, 16, 0, 29, 87),
+            (212, 10, 16, 97, -90, 19),
+            (212, 10, 16, 233, 51, -76),
+            (212, 10, 16, 300, 90, 17),
+            (212, 11, 16, 0, 0, 71),
+            (212, 11, 16, 97, -71, -8),
+            (212, 11, 16, 233, 56, -43),
+            (212, 11, 16, 300, 62, 35),
+            (212, 12, 16, 0, 17, -7),
+            (212, 12, 16, 97, 5, 18),
+            (212, 12, 16, 233, -16, -9),
+            (212, 12, 16, 300, 2, -19),
+            (212, 13, 16, 0, 18, 60),
+            (212, 13, 16, 97, -62, 10),
+            (212, 13, 16, 233, 37, -51),
+            (212, 13, 16, 300, 61, 14),
+            (212, 14, 16, 0, 18, 79),
+            (212, 14, 16, 97, -81, 8),
+            (212, 14, 16, 233, 52, -62),
+            (212, 14, 16, 300, 77, 23),
+        ];
+        for &(piece, anim, time, deg, x, y) in S {
+            let want = (deg + 180) % 360;
+            let facing = (0..1u32 << 12)
+                .map(|i| Angle((i << 20) as i32))
+                .find(|&a| whole_degrees(a) == want)
+                .expect("a facing at the degree");
+            let node = if piece == 212 { 1 } else { 0 };
+            let b = bay(piece, anim, time, node).expect("every attack AttachPos row");
+            let at = b.point(Pos::new(10_000, 10_000), facing);
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{piece} {anim} {time} {deg}"
             );
         }
     }
