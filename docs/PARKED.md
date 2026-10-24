@@ -1237,9 +1237,10 @@ group.
 
 ## Parked by item 1048, 2026-09-28 — the Helicopter's flight
 
-(1059) **`Unit::work`'s tail clears `unit_masks & 0x10`** (60dc9f): not
+(1059) ~~**`Unit::work`'s tail clears `unit_masks & 0x10`** (60dc9f): not
 modelled beside the separation 1048 built (PRODUCTION, "The
-Helicopter's flight").
+Helicopter's flight").~~ Built by item 3567 (`sim::Unit::contact`,
+`docs/AI.md` §309).
 
 ## Parked by item 1040, 2026-09-28 — the strike's sides
 
@@ -10451,13 +10452,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QC — reserved
+## Parked by item 3567, 2026-10-24 — the Roman pair whole: a blow struck in contact
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3567a. The Light Horse `1/28`'s `dest_angle` is a frame late at its guard post.** run1194b, block 4079: ours
+  137756672, theirs -1351155712. Ours turns on 4080, and `angle` agrees on both blocks. It is the one non-standing
+  row left on the Roman window, and nothing follows from it: the pair runs whole to 7130 and closes on block 7131
+  with every count zero. It names no score. It books only if a later window shows it moving a draw
+  (`docs/AI.md` §309).
+- **3567b. Two arms of the contact mark are reached by no capture.** These are the land-speed halving under
+  `unit_masks & 0x10` (`UnitData::get_speed@00608720`, `0060878c`) and the refusal for a victim attacking a target
+  inside twice the summed radii (`6002c6`). Both were mutated to nothing against every lobby's `first_parting`, and
+  nothing failed. Only `a_unit_struck_while_moving_in_contact_takes_the_blow_doubled` holds them. They rest on the
+  listing alone (`docs/AI.md` §309).
 
 ## Parked by the next landing, slot QD — reserved
 
