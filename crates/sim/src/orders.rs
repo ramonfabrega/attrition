@@ -5326,9 +5326,6 @@ impl Sim {
     /// waypoint take with both arrival tests, the straight-line check, the
     /// step.
     pub(crate) fn do_move(&mut self, u: usize, frame: i64) -> Did {
-        if std::env::var_os("RON_PROBE_3571").is_some() && self.units[u].owner == 1 && self.units[u].index == 138 && (4339..=4342).contains(&frame) {
-            eprintln!("P3571 f{frame} do_move enter cur={:?} pos={:?} collide={} search={}", self.current_order(u).map(|o| o.flags), self.units[u].pos, self.units[u].collide, self.units[u].search.is_some());
-        }
         let Some(Order {
             body: Body::Move(mut mo),
             flags,
@@ -6741,9 +6738,6 @@ impl Sim {
     /// `docs/MOVEMENT.md`, then the Manhattan test against the waypoint's
     /// tolerance, the pop, the facing on the final waypoint, the kill.
     fn unit_step(&mut self, u: usize, mut mo: MoveOrder, speed: i32) -> Did {
-        if std::env::var_os("RON_PROBE_3571").is_some() && self.units[u].owner == 1 && self.units[u].index == 138 {
-            eprintln!("P3571 unit_step speed={speed} pos={:?} wp={:?} heading={:?}", self.units[u].pos, mo.waypoint, self.units[u].movement.heading);
-        }
         // STEP (§4.4): `avoid_x/y = −1,−1` before every step.
         self.units[u].avoid = None;
         // `move_step@005faf30:66-100`, at its head: a fire-on-the-move
