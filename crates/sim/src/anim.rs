@@ -2079,6 +2079,14 @@ impl Sim {
                     // ground under it (`docs/ORDERS.md` §35.2). SEAM: a
                     // helicopter's figure `z`, which this crate does not
                     // fly, keeps the ground's.
+                    if std::env::var("RON_PROBE_3578").is_ok() {
+                        eprintln!(
+                            "probe3578 f{frame} {}/{} ty {} gpiece {} anim {} start {} node {} at {:?} facing {:?} from {:?} dz {}",
+                            self.units[u].owner, self.units[u].index, self.units[u].type_index,
+                            guy.gpiece, guy.anim, start, node, self.units[u].pos,
+                            self.units[u].movement.facing, from, dz
+                        );
+                    }
                     let domain = self.unit_domain_of(u);
                     let z = if domain == crate::attrition::Domain::Sea {
                         0
