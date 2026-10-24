@@ -210,6 +210,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // held-out game's triple (the battery fields no Mongols), and not the
     // Mongols' Difficulty 3 pairs, `(18, 17, 3)` and `(7, 17, 3)`.
     (7, 17, 5),
+    // The Chinese at a held Medieval age, Great Sahara (item 3560): no
+    // held-out game's triple (the battery's Chinese are
+    // `GreatLakesChineseTier1`, `(14, 14, 1)`), and not the Chinese
+    // Industrial pair, `(7, 14, 3)`.
+    (7, 14, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
