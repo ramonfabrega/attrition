@@ -114,7 +114,8 @@ fn maya_ancient_pair_is_no_other_lobby() {
 /// units every hundredth block and no `LEADERS` past the start.
 pub(crate) const RUN1234B: &str = "gamelog-run1234b-eastindies-maya-ancient-window-4177-4433.txt";
 
-/// The window: block 4177 through 4433; the word 4182's own block is 4183.
+/// The window: block 4177 through 4433; the word 4182's own block is 4183,
+/// and item 3597's 4324's is 4325.
 pub(crate) const WIDENING_MAYA_ANCIENT_FRAME_4182: (i64, i64) = (4177, 4433);
 
 /// **The word 4182's window**: run1234b walked from run1233's start with
@@ -165,5 +166,17 @@ fn maya_ancient_pair_run1234b_s_word_frame_is_widened_whole() {
     // theirs 438 (the Senate, still on theirs' list), `bucket` timber 15102 against 15139 and wealth 19210
     // against 19260, `gatherers` 27 against 28. Theirs' `1/2042`, on 4186,
     // is a wonder (`constr_time` 400000) at (37632, 41664).
-    pin_eq!(w.firsts.len(), 2407, "run1234b baseline");
+    //
+    // Item 3597, the Senate arm of `type_avail`: 2407 → 1233 keys. Block
+    // 4183 agrees whole (no second Senate, `MAKE[8].t` 438 on both sides,
+    // `1/94` gathers); 4177's standing families stand, and groups 77 and
+    // 78 hold a pool member in ours alone from 4202 and 4238. The state
+    // parts on block 4311: who=1's army (`1/26`..`1/51`) holds attack
+    // orders on the human's Citizen `0/10` (TypeIndex 50, land, idle at
+    // (5016, 8088)) on both sides, and theirs lands a blow on frame 4310
+    // (`hits_left` 37 against ours 40, `damage_frame` 4310 against 0) —
+    // so both leaders' `treaties` read 3 in theirs (the hit's bit 1)
+    // against ours 1, and `0/10` flees to (4536, 6648) in theirs alone.
+    // The word is 4324 (block 4325).
+    pin_eq!(w.firsts.len(), 1233, "run1234b baseline");
 }
