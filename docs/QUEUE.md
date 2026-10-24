@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 13 of 20 landed; 3535 and 3548 live; the commander clears at this seam (DECISIONS 91).*
+*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 14 of 20 landed; 3535 and 3549 live; the commander clears at this seam (DECISIONS 91).*
 
 - **Words**: none open (lower map first — closed); the Turks whole at 3,812 (3513, 3543); the British whole at 5,522, none off (3512, 3542); the Japanese whole at 4,547 (3539), the Chinese at 4,467, none off (3538, 3540);
   held-out eight of eight. **The late ages**: eight pairs stood up, eight whole on real sim work (the Chinese 3538, the Japanese 3539); **the rubric, lockstep**:
-  ages 8 of 8, types 128 → 162 of 302, **bytes 77.0 → 77.2 %** (the four whole pairs' `cover=1` twins, 3531–3534: 77.04 → 77.27, tenths a twin; Loop 3541). Blind: 0 of 39 dead.
+  ages 8 of 8, types 128 → 162 of 302, **bytes 77.0 → 77.3 %** (five whole pairs' `cover=1` twins, 3531–3534, 3548: 77.04 → 77.36, tenths a twin; Loop 3541). Blind: 0 of 39 dead.
 - **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
   30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
-- **Lanes: two live, Opus 5.5 at medium** (3535 the Persians at Medieval, 3548 the Turks' twin); **none booked**:
-  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3549, run 1188. Pools: GOLDEN §149–154, AI §309–310, park PO–PP.
+- **Lanes: two live, Opus 5.5 at medium** (3535 the Persians at Medieval, 3549 the British twin); **none booked**:
+  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3550, run 1189. Pools: GOLDEN §149–154, AI §309–310, park PP.
 - **Fable backlog: 16 Loop items** (3547, 3546, 3545, 3544, 3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -37,10 +37,10 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 247 · residue 208 · open 39
-Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.2 % · ages held 8 of 8 · unit types seen 162 of 302
+Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.3 % · ages held 8 of 8 · unit types seen 162 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-third tranche (commander, Opus) — 13 of 20 landed from `6f020588`; 3535 and 3548 live on two Opus lanes (`brief.py --kind
+**Opener: the fifty-third tranche (commander, Opus) — 14 of 20 landed from `6f020588`; 3535 and 3549 live on two Opus lanes (`brief.py --kind
 residue …`; `claude-opus-5-5[1m]` at medium); refill a parting's residue, then the next age and nation off `rubric.py --tables 3`; at twenty or Ramon's word, `ccc clear steer --then "<opener>"`.**
 
 ## The queue
@@ -51,8 +51,8 @@ frame and draw delta, the AI track's); **a whole pair's `cover=1` twin** — the
 stood up** (`mongol_pair.rs`'s shape: own `DUMP_ALL` start and `cover=0` long, `end:UNITS=3,GUYS=2` on `--stride 100`, the walk seeded from the start (3506a),
 the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pair::assert_lobby`, `diff::<name>_pair` at its first parting, a scoreboard line). Opus; a word's gate `--tests <pair>:: blind::`, a twin's `--tests blind:: --no-widen`.
 
-3548. **coverage: the Turks' Enlightenment twin** (`GreatSaharaTurkishEnlightenment`, whole at 3812 on run1158/1159): as 3531, against
-run1159; the Royal Janissaries and the Basilica Cannon (3543's two new types) and the tower's sight term in a lockstep trace. Run 1187; park PN.
+3549. **coverage: the British Enlightenment twin** (`EastIndiesBritishEnlightenment`, whole at 5522 on run1156/1157): as 3531, against
+run1157; the Sloop's and the Highlanders' launch rows (3542) and the age-4 navy in a lockstep trace. Run 1188; park PO.
 
 3535. **The Persians at a held Medieval age, East Indies** (`--map 18 --ai-tribe 23`, Difficulty 5, ages 2/2; the All-Technologies Persians
 trained none of their early line): `ATHANATOI`, `ATHANATOIBOW`, `IMPI`'s and `FIRELANCES`' generic kin, `LEGIONELITE`, `BRIG` — sixteen land and
