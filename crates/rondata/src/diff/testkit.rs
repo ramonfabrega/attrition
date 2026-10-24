@@ -9916,6 +9916,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3554,
         Some(crate::diff::persian_medieval_pair::WIDENING_PERSIAN_MEDIEVAL_FRAME_4038),
     ),
+    // **The first pair below age 2** (item 3556): the Romans at a held
+    // Classical age, Great Sahara — 4069 first try, widened on run1194b
+    // over 4063..4319 (block 4070): the Nubian Citizen `0/13` takes both
+    // Light Horse blows of 4068 in theirs and one in ours, and dies on 4069
+    // in theirs only.
+    (
+        "ROMAN_CLASSICAL_PAIR_WORD",
+        crate::diff::roman_classical_pair::ROMAN_CLASSICAL_PAIR_WORD,
+        Some("roman_classical_pair_run1194b_s_word_frame_is_widened_whole"),
+        3556,
+        Some(crate::diff::roman_classical_pair::WIDENING_ROMAN_CLASSICAL_FRAME_4069),
+    ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
     // unit on a move where theirs idles it), widened on run1159b over
@@ -11482,6 +11494,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_759,
         endpoint: None,
         window: Some("persian_medieval_frame_4038_window"),
+    },
+    // The Romans at a held Classical age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3556): first try 4069, the
+    // Citizen `0/13` dying in theirs alone, of a game that ends itself on
+    // 7130; widened on run1194b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaRomanClassical",
+        named: "Great Sahara (Romans, Classical)",
+        word: crate::diff::roman_classical_pair::ROMAN_CLASSICAL_PAIR_WORD,
+        length: 7_130,
+        endpoint: None,
+        window: Some("roman_classical_frame_4069_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

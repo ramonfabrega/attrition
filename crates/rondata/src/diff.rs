@@ -109,6 +109,8 @@ mod persian_medieval_pair;
 mod persian_word;
 mod report;
 #[cfg(test)]
+mod roman_classical_pair;
+#[cfg(test)]
 mod roman_word;
 #[cfg(test)]
 mod russian_modern_pair;

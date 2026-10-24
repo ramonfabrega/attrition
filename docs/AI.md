@@ -26693,12 +26693,68 @@ dropping the `k` test fails the word (4038 again) and fails the unit test.
 damage, three frames after ours' `raid_stamp`. Whether that blow is a Mahout's (the shot ours now takes on 4038,
 landing elsewhere) or another unit's is the next item's first question, and so is the Citizen's missing 25 on 4059.
 
-## 309. Reserved for the next item on the AI track
+## 309. The Romans at a held Classical age, Great Sahara: a Citizen's second blow, 4069 of 7130 (2026-10-23, item 3556)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3556, Opus 5.5, the AI track (DECISIONS 90, 91, 92): run1193, run1194 and run1194b, on the click-free pool.*
+
+**The lobby.** Great Sahara, `MAP_STYLE 7`, human Nubians (4) against the **Romans (6)** at Difficulty 5, seed
+12345, `STARTING_RESOURCES 7`, the age **held at Classical**: `STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1`. It is
+the first pair below age 2. The lobby takes the cap: both captures read it back through `Pair::assert_lobby`
+(`roman_classical_pair_captures_say_their_lobby`). `rubric.py --tables 2` on the two dumps puts the computer at
+age 1 on every record and never above, so **the computer holds Classical**. **The game ends itself at 7130**
+(closing block 7131).
+
+**The triple is new.** `(7, 6, 5)` is no `battery::BATTERY` game's: the battery's one Roman lobby is
+`GreatLakesRomanTier2`, `(14, 6, 2)`. It is no pinned pair's either: the scored Roman lobby is the battery word
+`EastIndiesRomanTier2`, `(18, 6, 2)`. So it is minted into `battery::SCORED_LOBBIES`.
+`roman_classical_pair_is_no_other_lobby` asserts both halves and reads both `GAME INFO`s: the held-out Roman game's
+map 14 and difficulty 2, and this pair's 7, 5, 1 and 1 (3513's shape, Loop 3544).
+
+**The captures.** run1193 is the `DUMP_ALL` start. run1194 is the long, 3507's run1147 recipe (`end:UNITS=3,GUYS=2`
+on `--stride 100`), walked from run1193's initial state (3506a). The two traces' 37 common frames are identical.
+run1194b (4063..4319) is the word's window, booked because the stride's blocks 4001 and 4101 leave the word's block
+4070 undumped. Its 4320 frames are `rngcmp.py`-identical to run1194.
+
+**First try: frame 4069 of 7130**, by the count and the sequence. Ours spends 16 draws and theirs 21. They part at
+index 1:
+- theirs: `Unit::close+0xcb6 < Object::die+0x29 < Unit::die+0x19` (seed `8331f953`), followed by
+  `Objects::kill_guy`'s sound and six `Guy::set_anim+0x104b < Guy::inc_time+0x271 < Unit::inc_time+0x3e`;
+- ours: `Guy::set_anim+0xf2f < Guy::move+0x166`, the Light Horse `1/42` walking on.
+
+**The direction is theirs: a unit dies there that does not die here.**
+
+**The units, by `TypeIndex` and domain.** The dead unit is the Nubian **Citizen `0/13` (TypeIndex 50, land, uid
+20)**. Its attackers are who=1's **Light Horse `1/28` and `1/42` (TypeIndex 209, land, uids 54 and 73)**. None of
+the units the booking names is in the parting. The computer fields no Scutari (149) in the whole game.
+
+**The value diff** (run1194b walked from run1193, 2260 keys). Block 4063 carries 43 rows: the standing families
+(every unit's `form`, the `SITE[i].reg`, who=1's groups' `held` and `pool`) and who=0's `aggression[1]` (ours 0,
+theirs 1). The Citizen agrees until frame 4068. On 4068 both Light Horse take it (ours' `RON_DEBUG_UNIT`: `tgt`
+`(0, 13)` on both), and each draws `Unit::fight+0x824` and `Unit::fight+0x9b0` on both sides, with the streams in
+step. No round is in flight (`RON_DEBUG_AMMO`), so the blows are melee. The dump reads the Citizen's `damage`:
+- theirs: 32 → **46** on 4068 (`damage_frame` 4026 → 4068), two blows of 7;
+- ours: 32 → **39**, one blow.
+
+So block 4069 reads `hits_left` ours 11 against theirs 4, and `hits:damage` 39 against 46. On 4069 theirs' Light
+Horse strike again and the Citizen dies. Block 4070 then reads who=0's `num_units[0]`, `peasants`, `active` and
+`control` ours 5 (6) against theirs 4 (5). The three Light Horse `1/122`, `1/123` and `1/127` stand on a fresh
+order in theirs (`order:kind` ours 1, theirs 10).
+
+**The next word**: frame 4069, ours 16 draws against 21, index 1. The direction is theirs. **The hypothesis,
+untested**: one of ours' two `Unit::fight` blows on 4068 deals nothing to the Citizen. Either its hit roll
+(`+0x824`) reads a miss from the same value, or the blow lands on another object. The cheapest killer is
+`RON_DEBUG_ARMIES`/`RON_DEBUG_UNIT` on 4068 with both Light Horse's `fight` arguments, or a packet at
+`RON_STATE_FRAME=4067` with `Unit::fight` watched.
+
+**The rubric.** `rubric.py --tables 3 --dumps` on run1193 and run1194 sees 13 types: Citizen (50), General (57),
+Caravan (59), Merchant (61), Scout (69), Javelineers (83), Legions (146), Archers (171), Light Horse (209),
+Catapult (265), The Senator (353), and the sheep and peacock herds. Every one is already in the ledger. An open
+pair counts only to its word, so `census::RUBRIC_UNIT_TYPES_SEEN` stays at 162. **`Scutari` (149), the line the
+booking named, is never fielded**: the Romans at Classical and Difficulty 5 train Legions, Light Horse,
+Javelineers, Archers and Catapults (parked 3556a).
+
+**What is not established**: why ours' second blow on 4068 does not reach the Citizen. Both sides take two
+`fight` draws, so the difference is a value, never a count.
 
 ## 310. Reserved for the next item on the AI track
 
