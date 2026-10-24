@@ -1628,6 +1628,17 @@ impl Sim {
         if !cavarch && self.units[i].combat.recharging != 0 {
             return;
         }
+        if std::env::var("RON_PROBE_3570").is_ok() {
+            eprintln!(
+                "  probe3570 f{frame} {}/{} cavarch {cavarch} max_range {} launches {} recharging {} tgt {:?}",
+                self.units[i].owner,
+                self.units[i].index,
+                self.max_range_of(me),
+                self.launches_from_anim(i),
+                self.units[i].combat.recharging,
+                target
+            );
+        }
         if self.max_range_of(me) == 0 {
             // Melee lands now, once per figure of this `UnitData` — one here.
             if p.fires() {
