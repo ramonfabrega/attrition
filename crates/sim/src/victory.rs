@@ -97,11 +97,22 @@ impl Sim {
     }
 
     /// `WorldData::land_size`: the cells of every land region
-    /// (`World::analyze_map@006b58b0` sums regions 1 to 63's sizes).
+    /// (`World::analyze_map@006b58b0` sums regions 1 to 63's sizes — the
+    /// `Region` records from `+0x88`, one stride in).
+    ///
+    /// **The range is the original's numbering, not this crate's index**
+    /// (item 3575): the harness declares a loaded map's regions in order of
+    /// first appearance, so Great Sahara's one land region, the original's
+    /// 1, is index 0 here, and a filter on the index summed nothing — the
+    /// Mongols' Classical pair never started the timer theirs started on
+    /// 8195, and its army's `about_to_win` ×100 never fired (`docs/AI.md`
+    /// §311).
     pub(crate) fn land_size(&self) -> i32 {
         self.world
             .regions()
-            .filter(|&(r, t)| (1..0x40).contains(&r) && t == crate::world::Terrain::Land)
+            .filter(|&(r, t)| {
+                (1..0x40).contains(&self.world.region_number(r)) && t == crate::world::Terrain::Land
+            })
             .map(|(r, _)| self.world.region_size(r))
             .sum()
     }
