@@ -321,6 +321,16 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // attacks `0/2000` (`g.ox[0]` 2000, `in_range` 1) where ours' takes
     // `0/11` (`new_ord` 1).
     pin_eq!(w.firsts.len(), 745, "run1189b baseline");
+    // The count cannot see the Peltasts' bays: `0/2000`'s `build:damage`
+    // parts later on either tree, so the key set is the same. Its frame is
+    // the pin — 4048 when the javelins leave the figure, 4193 from the bay.
+    pin_eq!(
+        w.firsts
+            .get(&(0, 2000, "build:damage".to_string()))
+            .map(|(f, _)| *f),
+        Some(4193),
+        "`0/2000`'s damage parts past the word"
+    );
 }
 
 /// **The long's stride, walked back from the word 4038** (item 3554):
