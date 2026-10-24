@@ -27212,12 +27212,57 @@ first suspect. Walk the gap first: `RON_DEBUG_AMMO` and `RON_DEBUG_UNIT=0/8` ove
 Theirs' game ends itself on 9884, 1689 frames after the stamp. Whether this timer is what ends it has not been
 read; the closing block 9885 is the place to read it.
 
-## 312. Reserved for the next item on the AI track
+## 312. The Koreans from an Ancient start, East Indies: the first pair at age 0, parting on frame 4350 (2026-10-24, item 3559)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3559, Opus 5.5, the AI track (DECISIONS 90, 91, 92): run1199, run1200 and run1200b, on the click-free pool.*
+
+**The lobby.** East Indies (`MAP_STYLE 18`), human Nubians (4) against the **Koreans (16)** at Difficulty 5, seed
+12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 0`. Both captures read it back through `Pair::assert_lobby`
+(`korean_ancient_pair_captures_say_their_lobby`). **The game ends itself at 5639** (closing block 5640).
+
+**This is not a held age.** The booking asked for `ENDING_TECHNOLOGY 0`. The profile took it, and both takes read
+back `ENDING_TECHNOLOGY 1`. `SetupWin::setup_game` (`0x005b3860`) copies the lobby combos into `GameInfo`, folds
+an ending of 7 to 6 with `flags |= 0x80000000`, and then stores `ending_technology + 1`. So the lowest ending a
+lobby can carry is 1, Classical, and no lobby holds Ancient. The pair is minted as an Ancient start capped at
+Classical, and `KOREAN_ANCIENT.ending_technology` is 1. run1200b's leader records date the age-up: the computer is
+at age 0 through block 4445 and at age 1 from 4446, after the word. The human stays at age 0.
+
+**The triple is new.** `(18, 16, 5)` was in no `battery::SCORED_LOBBIES` entry, in no `battery::BATTERY` game and
+in no pinned lobby: the only other Korean lobby is the held-out battery word `GreatSaharaKoreanTier3`, `(7, 16, 3)`,
+another map and difficulty. It is minted into `SCORED_LOBBIES` (`korean_ancient_pair_is_no_other_lobby`).
+
+**First try: frame 4350 of 5639**, by the count and the sequence alike. On 4350 ours spends 21 game draws against
+theirs' 19, parting at index 0: ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+
+**The value diff** (run1200b, walked from run1199: 256 blocks, 2330 keys). The state is already apart on the
+window's first block, 4345. That block holds 84 rows: the standing families (`form`, `SITE[i].reg`, the groups'
+`held` and pools) and the Nubian Citizen `0/10` (TI 50, land), with `damage_frame` ours 4334 against theirs 4333
+and `pos` (4796,7968) against (4774,7955). `0/13` (TI 50) has `damage_frame` 4295 against 4294. On the word's
+frame 4350 the Korean Slingers `1/17` (TI 82, land, group 66) re-aim: `order:kind` ours 10 against theirs 1,
+`orders.len` 2 against 3, `heading` 415236096 against -414449664. On block 4351 its `order:target` is ours `0/13`
+against theirs `0/10` (theirs' `ATTACKORDER` names `uid` 17, which is `0/10`), and its `move.dest` is (5544,8088)
+against (5208,8616).
+
+**The next word**: frame 4350, ours 21 draws against 19, index 0. **The hypothesis, untested**: each of the
+human's two fleeing Citizens is wounded one frame later in ours (`damage_frame` +1), so by 4350 the Slingers pick
+between targets at other positions. **What would kill it**: walk back from 4301 (the long's last stride block
+before the window). If `0/10`'s `damage_frame` agrees at the first wound and the frames part on some other field
+first, the wound's timing is not the cause.
+
+**The unit lines** (`rubric.py --tables 3 --dumps` over run1199 and run1200, 14 types over the whole game):
+- **`Hwarang` (180)**: fielded, ×1326, from block 1801.
+- **`Spearmen` (166)**: never fielded. The Koreans' Ancient foot line is the Hoplites (132, ×1524, from 2101),
+  beside the Slingers (82, from 1201).
+- **`Bark` (323)** and **`Trireme` (340)**: never fielded. At sea there are only the Fishermen (317) and the
+  Transport Barge (320), both from 1701.
+
+All of these come before the age-up at 4446, so the Ancient lines are the computer's own Ancient choice. An open
+pair adds nothing to `rubric.py`'s unit types: tables 2–4 read only lockstep games, which are words at the game's
+full length. `census::RUBRIC_UNIT_TYPES_SEEN` stays 164.
+
+**Coverage.** Diff-backed: the first parting (`korean_ancient_pair_first_parting`) and the word's block, widened
+whole (`korean_ancient_pair_run1200b_s_word_frame_is_widened_whole`). Reading-backed: the ending floor in
+`SetupWin::setup_game` and the combo-to-age mapping beyond the readback of 0 → 1 (parked 3559a).
 
 ## 313. The Chinese at a held Medieval age, Great Sahara: a Fire Lances volley on a Citizen, first try 2981 of 4520 (item 3560)
 
