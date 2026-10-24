@@ -3781,6 +3781,12 @@ commander's `git worktree remove -f -f` was denied by the classifier (a live hol
 Candidate: the pass removes its subagents' worktrees at their merge, or the gate's refusal names the merged-and-clean case as
 safe to prune. Score: a booking gate that needs no person. One reach: the pass's.
 
+(3553) **3550's "for the Loop"** (the journal's line, filed at its merge): a steps-over-a-view module (`eject.rs`, item 3356)
+is checked against the emulated original but not wired into the live path; its `carry_orders` was right while the live
+`eject_riders` replaced a landed passenger's orders with the boat's from item 3356 to item 3550, and the Persian word stood on it
+(2226). Candidate: `tools/seams.py` lists the view modules whose function the live code reimplements beside them, so a brief
+names the pair. Score: the frames a word's walk spends before naming a live reimplementation. One reach: the pass's.
+
 (3547) **3543's "for the Loop"** (the journal's line, filed at its merge; parked 3543a): a building's `mylos` is on
 `coverage.rs`'s unread list, so the Turks' tower `1/2012` printed `mylos 19` against ours' 15 on every block of two widenings
 (run1159b, run1186) and parted no key; the walk reached the 4-tile sight gap only through run1186b's packet. A quiet field
@@ -10404,6 +10410,30 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot PS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot PT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot PT renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot PU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot PU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot PV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot PV renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
