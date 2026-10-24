@@ -10462,13 +10462,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QD — reserved
+## Parked by item 3569, 2026-10-24 — a pushed boat lights its ring
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3569a — the refused cell is read off the geometry, not off a fog grid.** On 2616 the Dromon `1/50`'s region
+  scan accepts 70 cells here against 69 there (`think_scout+0x941` at index 157 on both sides). The one cell
+  of the 70 within eight tiles of a who=1 unit on run1209's 2611..2618 is (43, 58), whose probe half-cell (87, 117) lies at octagonal distance 3
+  from (90, 116), the half-cell the pushed Fishermen `1/68` (`mylos` 6, radius 3) entered on 2614. With the
+  push's ring built the scan accepts 69 and the walk moves 2616 → 4341, but no packet compares the two fog
+  grids on 2616 as run413/run415 did for §11 of `docs/VISION.md`: a `RON_STATE_FRAME=2615` packet and
+  `diff::second`'s grid comparison would make it packet-backed. **Score**: none.
 
 ## Parked by the next landing, slot QE — reserved
 

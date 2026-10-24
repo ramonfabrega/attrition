@@ -10483,3 +10483,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3566: the Greek word 2616 (`docs/AI.md` §310; `docs/RUNS.md` run1209) ====
 #   run1209  --map 18 --end-frame 2867 --log-window 2611 2867 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0, run1195's lobby   (the word 2616's window)
 # Checks: `rngcmp.py` run1209 vs run1196 -> 2868 identical.
+# ==== item 3569: the Greek word 4341 (`docs/AI.md` §310; `docs/RUNS.md` run1212) ====
+#   run1212  --map 18 --end-frame 4592 --log-window 4336 4592 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0, run1195's lobby   (the word 4341's window)
+# Checks: `rngcmp.py` run1196 vs run1212 -> 4593 identical.

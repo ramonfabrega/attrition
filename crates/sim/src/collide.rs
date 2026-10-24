@@ -728,8 +728,14 @@ impl BoatView for SimBoat<'_> {
         self.0
             .invalid_loc(o, tile, false, false, false, false, false)
     }
+    /// `set_new_location(pushed, x, y, 0, 0)` at `detect_boat_collision`'s
+    /// push, and the ring reveal `005f8d20` throws inside it when the
+    /// boat crosses a half-cell (`docs/VISION.md` §6, §11.5): a pushed
+    /// boat sees as it drifts (item 3569, `docs/AI.md` §310).
     fn set_new_location(&mut self, o: usize, to: Pos) {
+        let from = self.0.units[o].pos;
         self.0.set_new_location(o, to, false);
+        self.0.moved_to(o, from, true);
     }
     fn name_pusher(&mut self, o: usize, by: usize) {
         self.0.units[o].collide_o = self.0.units[by].index;
@@ -5011,6 +5017,35 @@ mod tests {
         assert_ne!(push(1), a, "pushed back on the next frame");
         assert_ne!(push(3), a, "and within four");
         assert_eq!(push(4), a, "not on the fourth frame after");
+    }
+
+    /// **A pushed ship lights its ring when the push crosses a half-cell**
+    /// (`docs/VISION.md` §6, item 3569, `docs/AI.md` §310): the push is
+    /// `set_new_location(pushed, x, y, 0, 0)`, and `005f8d20` throws
+    /// `update_seen(param_3 == 0)` inside it on a half-cell change. East
+    /// Indies' Fishermen `1/68`, pushed by `1/73` on 2614, lit the half-cell
+    /// the Dromon `1/50`'s region scan then refused on 2616. Here the
+    /// stranger `y` stands one unit short of a half-cell row and is pushed
+    /// south across it. Made to fail on purpose by dropping the reveal from
+    /// `SimBoat::set_new_location`.
+    #[test]
+    fn a_pushed_ship_lights_its_ring_when_it_crosses_a_half_cell() {
+        let row = 3 * 0x180;
+        let a = Pos::new(20 * 0x30 + 0x18, row - 1);
+        let b = Pos::new(a.x + 150, row - 1);
+        let (mut sim, x, y) = fleet(a, b);
+        assert!(sim.world.set_fog(vec![0; 40 * 40 * 4]));
+        sim.units[y].on_map = true;
+        sim.units[y].mylos = 6;
+        sim.frame = 7;
+        assert!(sim.detect_boat_collision(x, a, true));
+        let moved = sim.units[y].pos;
+        assert!(moved.y >= row, "pushed across the row: {moved:?}");
+        let lit = (0..80)
+            .flat_map(|fy| (0..80).map(move |fx| (fx, fy)))
+            .filter(|&(fx, fy)| sim.world.seen2(fx, fy).is_some_and(|v| v & 1 != 0))
+            .count();
+        assert!(lit > 0, "the pushed ship's ring is lit for its owner");
     }
 
     /// A land convoy: a supply wagon of player 0 (`uflags2::SUPPLY_OR_HERO`,
