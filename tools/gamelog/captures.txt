@@ -10549,6 +10549,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1238c --map 18 --end-frame 5022 --timeout 3600 --log-window 5020 5022 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 3 --cover cover=0 --tracer-def RON_STATE_FRAME=5021 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h, run1205's lobby   (pieces 43's and 44's packet)
 #   run1238d --map 18 --end-frame 5572 --timeout 3600 --log-window 5316 5572 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0, run1205's lobby   (the word 5322's window)
 # Checks: `rngcmp.py` run1206 vs run1238 -> 5074 identical; vs run1238b -> 5081; vs run1238c -> 5023; vs run1238d -> 5573.
+# ==== item 3593: the Bantu word 5523 -> 6210, whole (`docs/AI.md` §315.4; `docs/RUNS.md` run1240) ====
+#   run1240  --map 18 --end-frame 6210 --allow-early-end --timeout 3600 --log-window 5955 6211 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0, run1205's lobby   (the closing window)
+# Checks: `rngcmp.py` run1206 vs run1240 -> 6211 identical.
 # ==== item 3588: the Lakota word 4168 -> 4973, whole (`docs/AI.md` §314; `docs/RUNS.md` run1235, run1235b, run1235c) ====
 #   run1235  --map 18 --end-frame 4170 --allow-early-end --timeout 3600 --log-window 4086 4170 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0, run1203's lobby   (the rounds at 0/5)
 #   run1235b --map 18 --end-frame 4129 --timeout 3600 --log-window 4126 4128 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 19 --cover cover=0 --tracer-def RON_STATE_FRAME=4127, run1203's lobby   (piece 156's packet)

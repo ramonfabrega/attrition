@@ -399,8 +399,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// whole at 3673 — the Samurai (160, 1098 figure rows over run1207 and
 /// run1208), read by `rubric.py` on this tree. Item 3584: 170 -> 172, the
 /// Iroquois Ancient pair whole at 8420 — `Spearmen` (166, 714 figure rows
-/// over run1227 and run1228) and `Mohawk Spearmen` (167, 1020).
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 172;
+/// over run1227 and run1228) and `Mohawk Spearmen` (167, 1020). Item
+/// 3593: 172 -> 176, the Bantu Ancient pair whole at 6210 — `Umpakati`
+/// (93), `Yangombi Umpakati` (94), `Bark` (323) and `Trireme` (340), the
+/// four lines §315 booked, read by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 176;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
