@@ -392,8 +392,16 @@ fn greek_classical_pair_run1214_s_word_frame_is_widened_whole() {
     // `1/215`'s `damage_frame` (7849 against 7848); groups 86 and 95's
     // `held` and pool part on 7861 and 7865. The word 7865's block carries
     // no unit row; the first are on 7867, the Dromons `1/31` and `1/50`'s
-    // explore picks, and 7868, `1/19`'s orders.
-    pin_eq!(w.firsts.len(), 4473, "run1214 baseline");
+    // explore picks, and 7868, `1/19`'s orders. Item 3574: 4473 -> 134,
+    // the word whole at 8126 — `1/215`'s `damage_frame` (7849 against
+    // 7848) and every unit row from 7867 agree, and the closing block
+    // 8127 with them. What stands past the standing families (`form`,
+    // the groups' `held` and pool, `SITE[*].reg`, `aggression`): both
+    // leaders' `territory` on 7859 (who=0 140 against 141, who=1 1525
+    // against 1524), first in this window and unprinted on the stride, and
+    // `dest_angle` on thirteen of who=1's units from 7936 (`1/76`,
+    // -1605566464 against -852099072) — parked under item 3574.
+    pin_eq!(w.firsts.len(), 134, "run1214 baseline");
 }
 
 /// **The long's stride, walked back from the word 4341** (item 3571):
@@ -455,7 +463,10 @@ pub(crate) fn greek_classical_stride_7865_window() -> Option<harness::tests::Wid
         true,
         GREEK_CLASSICAL.long,
         "run1196 stride 7865",
-        &[(GREEK_CLASSICAL.long.0, WIDENING_GREEK_CLASSICAL_STRIDE_7865.0)],
+        &[(
+            GREEK_CLASSICAL.long.0,
+            WIDENING_GREEK_CLASSICAL_STRIDE_7865.0,
+        )],
         WIDENING_GREEK_CLASSICAL_STRIDE_7865,
         1,
         &[],
@@ -482,10 +493,13 @@ fn greek_classical_pair_the_long_s_stride_walks_back_from_7865() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3574: 252 keys. Every row up to 7701 is a standing family
+    // Item 3574: 252 keys before the bays. Every row up to 7701 is a standing family
     // (`build:extra`, every unit's `form`, who=1's groups' `held` and
     // pool). The first unit field apart is on 7801: the Citizen `0/5`'s
     // `damage_frame`, ours 7745 against theirs 7744. The Archers `1/53`'s
-    // round, launched on 7727, lands a frame later here.
-    pin_eq!(w.firsts.len(), 252, "the stride's baseline");
+    // round, launched on 7727, landed a frame later here, from the
+    // figure's own square; with the Archers' bays it leaves from (8201,
+    // 8775) and flies 18 frames, as run1217's packet holds it: 252 -> 251,
+    // the standing families alone.
+    pin_eq!(w.firsts.len(), 251, "the stride's baseline");
 }
