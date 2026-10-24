@@ -10498,13 +10498,15 @@ words and edits nothing here; a refill lands when two remain.
   only the age and the nation brings no byte; lockstep bytes come from a lobby whose *settings* no trace reached.
   **Score**: none.
 
-## Parked by the next landing, slot QG — reserved
+## Parked by item 3573, 2026-10-24 — the Persian Medieval twin at `cover=1`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3573a — the age-2 sea-map twin adds no function to the lockstep set either.** run1216 enters 6,939 functions,
+  none on `blind::NEVER`, and every simulation function among them is one another lockstep trace already enters:
+  `rubric.py --tables 4` reads 8,823,805 of 11,392,782 bytes, 2,247 of 3,611 functions, before and after, now over
+  129 traces (774 tenths, 77.45 %). Third twin in a row to move nothing (3552, 3572, 3573): the held-Medieval game
+  on East Indies, 4,759 frames, reaches nothing the late-age pairs, the battery and the long captures had not.
+  3572a's reading holds: lockstep bytes come from a lobby whose *settings* no trace reached, never from a twin.
+  **Score**: none.
 
 ## Parked by the next landing, slot QH — reserved
 

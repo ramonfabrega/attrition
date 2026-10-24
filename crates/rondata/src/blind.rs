@@ -517,6 +517,12 @@ pub const TRACES: &[&str] = &[
     // (`docs/RUNS.md` run1215): run1194's game on every frame (rngcmp 7131
     // identical, 0 differing) — the land map's age-1 Classical line.
     "rontrace-run1215.log",
+    // Item 3573: the Persian Medieval pair's long lobby (East Indies, the
+    // Persians, `DIFFICULTY 5`, a held Medieval age; run1181's recipe) at
+    // `cover=1` on the click-free pool, to the game's own end at 4759
+    // (`docs/RUNS.md` run1216): run1181's game on every frame (rngcmp 4760
+    // identical, 0 differing) — the sea map's age-2 Medieval line.
+    "rontrace-run1216.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
