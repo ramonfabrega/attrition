@@ -119,6 +119,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (296, 4, Node { px: 0, py: -2945 }),
     (491, 4, Node { px: 0, py: -148 }),
     (137, 4, Node { px: -6, py: -148 }),
+    (149, 4, Node { px: 0, py: -148 }),
     (194, 4, Node { px: 0, py: -96 }),
     (1545, 4, Node { px: -6, py: -148 }),
     (1546, 4, Node { px: -6, py: -148 }),
@@ -1356,6 +1357,65 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             ],
         },
     ),
+    // **Piece 149, the Mongol Nomad** (unit type 199; item 3581, `docs/AI.md`
+    // §311): run1224b's packet (`RON_STATE_FRAME=9745` on the Mongol Great
+    // Sahara seed) holds its nine entries — the `(4, 0, 0)` [`NODES`] read,
+    // `(0.0, −1.48, 32.63)`, and for each of its four `<RELEASEEVENT>`s
+    // (node 0; `CHAR_ATTACKWALK` and `CHAR_ATTACK1`..`3` at frames 18, 18,
+    // 16 and 19) the pivot node's and the release node's. The
+    // `<RESTRICTION name="NOMADS" node="4">` makes it a pivot piece: who=1's
+    // `1/31` loosed at the Citizen `0/11` on 9746 from (7467, 27925), its
+    // rider turned 48° on the horse (`turret_angles[0]` 581828608), where
+    // this crate loosed from the figure's own (7524, 27864), 17 frames
+    // against 16.
+    (
+        149,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 149,
+            node: 0,
+            pivot: [0, -2_686_834, 34_506_775],
+            at: [475_811, -15_610_859, 16_119_343],
+            float_lands: &[],
+        },
+    ),
+    (
+        149,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 149,
+            node: 0,
+            pivot: [0, -1_480_000, 32_630_001],
+            at: [998_139, -16_888_825, 12_294_712],
+            float_lands: &[],
+        },
+    ),
+    (
+        149,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 149,
+            node: 0,
+            pivot: [0, -1_480_000, 32_630_001],
+            at: [1_526_957, -17_046_072, 12_739_372],
+            float_lands: &[],
+        },
+    ),
+    (
+        149,
+        crate::anim::ATTACK3,
+        19,
+        Release {
+            piece: 149,
+            node: 0,
+            pivot: [0, -1_480_000, 32_583_332],
+            at: [-16_889_647, -1_001_732, 26_665_501],
+            float_lands: &[],
+        },
+    ),
     (
         145,
         crate::anim::ATTACKWALK,
@@ -1891,6 +1951,51 @@ mod tests {
             (6805, 31302),
             "the dump's own turret"
         );
+    }
+
+    /// **The Mongol Nomad's rounds leave from its pivot** (item 3581):
+    /// every Nomad round run1222's and run1224's `AMMO=5` windows print to
+    /// 9826, at the figure's pose on the block before the round's first
+    /// print — `(anim, time, guy x, y, angle, z, sx, sy, sz, turret
+    /// steps)`, the key this crate's release event names. Each pose's
+    /// round fits the steps listed and no other, and the height is the
+    /// dump's; run1224b's `GUYS=4` prints two of the turrets, and they are
+    /// the fitted steps.
+    #[test]
+    fn the_mongol_nomad_s_rounds_leave_from_its_pivot() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+        #[rustfmt::skip]
+        let shots: [(i8, u32, i32, i32, i32, i32, i32, i32, i32, &[i32]); 10] = [
+            (ATTACK3, 19, 7560, 27240, -1_787_953_152, 376, 7484, 27210, 660, &[0]),
+            (ATTACKWALK, 18, 7524, 27864, -2_108_948_480, 411, 7467, 27925, 654, &[34]),
+            (ATTACK1, 18, 7752, 28104, -1_939_144_704, 463, 7733, 28190, 678, &[-1]),
+            (ATTACK3, 19, 7512, 28344, -2_033_123_328, 525, 7431, 28344, 809, &[0, 1]),
+            (ATTACK2, 16, 7512, 27864, -2_108_948_480, 411, 7511, 27953, 628, &[2]),
+            (ATTACK3, 19, 7752, 28104, -1_939_144_704, 463, 7671, 28094, 747, &[-1]),
+            (ATTACK2, 16, 7512, 28344, -2_033_123_328, 525, 7507, 28433, 742, &[0]),
+            (ATTACK1, 18, 7512, 27864, -2_108_948_480, 411, 7508, 27952, 626, &[2]),
+            (ATTACK2, 16, 7752, 28104, -1_939_144_704, 463, 7735, 28191, 680, &[-1]),
+            (ATTACK1, 18, 7512, 28344, -2_033_123_328, 525, 7505, 28431, 740, &[0]),
+        ];
+        for (a, t, x, y, f, z, sx, sy, sz, steps) in shots {
+            let r = release(149, a, t).expect("every Nomad release row");
+            let fits: Vec<i32> = (-128..128)
+                .filter(|i| {
+                    let (dx, dy, _) = release_offset(&r, Angle(f), i << 24);
+                    (x + dx, y + dy) == (sx, sy)
+                })
+                .collect();
+            assert_eq!(fits, steps, "anim {a} at ({x}, {y})");
+            assert_eq!(z + release_offset(&r, Angle(f), 0).2, sz, "anim {a} height");
+        }
+        // run1224b's own turrets: `1/31` on 9745, `1/27` on 9760.
+        for (a, t, x, y, f, turret, sx, sy) in [
+            (ATTACKWALK, 18, 7524, 27864, -2_108_948_480, 581_828_608, 7467, 27925),
+            (ATTACK1, 18, 7752, 28104, -1_939_144_704, -65_536, 7733, 28190),
+        ] {
+            let (dx, dy, _) = release_offset(&release(149, a, t).unwrap(), Angle(f), turret);
+            assert_eq!((x + dx, y + dy), (sx, sy), "the dump's own turret, anim {a}");
+        }
     }
 
     /// **The dump's own line** (run147, `misc:MISC=10`): `GUY
