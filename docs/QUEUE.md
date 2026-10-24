@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 11 of 20 landed; 3558, 3574 and 3559 live; the last whole gate is the tenth's.*
+*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 12 of 20 landed; 3574, 3559 and 3560 live; the last whole gate is the tenth's.*
 
-- **Words**: one open — the Greeks at Classical at 7865 of 8,126 (lower map first — East Indies (Greeks, Classical)), 8 → 4341 → 7865 (3557,
-  3566, 3569, 3571: a push takes the body turn). **Whole**: the Romans at Classical at 7,130 (3556, 3567; the twin 3572 moved nothing) and the Persians at Medieval at 4,759,
+- **Words**: two open — the Greeks at Classical at 7865 of 8,126 (lower map first — East Indies (Greeks, Classical)), 8 → 4341 → 7865 (3557,
+  3566, 3569, 3571: a push takes the body turn); the Mongols at Classical, Great Sahara, first try 8444 of 9,884, `Nomad` fielded (3558). **Whole**: the Romans at Classical at 7,130 (3556, 3567; the twin 3572 moved nothing) and the Persians at Medieval at 4,759,
   2226 → 4759, the closing state none off (3535–3570: the bays, a k type's reload; the twin 3573 moved nothing, 77.4 %, `NEVER` 247).
   **The headline, unit types seen 164 of 302**: the early-age pairs on the nation lines no dump holds (3556, 3557 none new; parked 3556a;
   3573 re-pinned the Athanatoi and the Mahout off 3570's Persian close).
 - **The rubric, lockstep**: ages 8 of 8, types 152 → 164 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
   that closes books its twin, never ahead (Loop 3541, DECISIONS 92). Blind: 0 of 39 dead on the pass's scan.
-- **Lanes: three Opus at medium, three live** (3558, 3574, 3559); **four booked** (3560–3563). Next 3575, run 1218. Pools: GOLDEN §149–154, AI §317–320, park QI–QJ.
+- **Lanes: three Opus at medium, three live** (3574, 3559, 3560); **four booked** (3575, 3561–3563). Next 3576, run 1219. Pools: GOLDEN §149–154, AI §317–320, park QJ–QP.
 - **Fable backlog: 11 Loop items** (3565, 3564, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 92.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w7865 of 8,126 · GreatSaharaRomanClassical w7130 of 7,130
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w7865 of 8,126 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w8444 of 9,884
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -56,9 +56,6 @@ the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pa
 `damage_frame`), so walk back through the long's stride blocks to the first parted field before reading a chain. Run 1217; amend §310 in
 place; park QH.
 
-3558. **The Mongols at a held Classical age, Great Sahara** (`GreatSaharaMongolClassical`, map 7, tribe 17, difficulty 5, age 1 held;
-the successor pair's lobby is `(7, 17, 3)`, another difficulty): the line is `Nomad` (199). Runs 1197–1198; AI §311; park PV.
-
 3559. **The Koreans at a held Ancient age, East Indies** (`EastIndiesKoreanAncient`, map 18, tribe 16, difficulty 5, age 0 held; the
 held-out `GreatSaharaKoreanTier3` is another map): the lines are `Hwarang` (180), the age-0 `Spearmen` (166) no dump holds, and the
 water map's `Bark` (323) and `Trireme` (340). Runs 1199–1200; AI §312; park PW.
@@ -66,12 +63,18 @@ water map's `Bark` (323) and `Trireme` (340). Runs 1199–1200; AI §312; park P
 3560. **The Chinese at a held Medieval age, Great Sahara** (`GreatSaharaChineseMedieval`, map 7, tribe 14, difficulty 5, age 2 held; the
 Industrial pair is `(7, 14, 3)`): the line is `Fire Lances` (96), and the age-2 generics. Runs 1201–1202; AI §313; park PX.
 
+3575. **The Mongol word, frame 8444: ours 21 draws against 22, index 8** (ours `Unit::do_guard+0x8fb`, theirs `Guy::set_anim+0x97a`
+under `Unit::do_guard+0x7f4`; 3558's widening on run1198b, 8438..8694, AI §311): who=1's group 64, guarding the Catapult `1/67`, is sent
+to `ATTACK_TO` in ours where theirs keeps its `GUARD`; the state first parts on block 8441 (who=0's `attacked_by`, group 65's march —
+`1/99`'s `order:move`), so walk 8441 first. Run 1218; amend §311 in place; park QI.
+
 3561. **The Lakota at a held Medieval age, East Indies** (`EastIndiesLakotaMedieval`, map 18, tribe 19, difficulty 5, age 2 held; the
 peace pair is `(18, 19, 3)`): the line is `Eagle Feather Horse` (206); the water map's `Brig` (331). Runs 1203–1204; AI §314; park PY.
 
-3562. **The Bantu at a held Ancient age, East Indies** (`EastIndiesBantuAncient`, map 18, tribe 3, difficulty 5, age 0 held; the
-held-out `GreatSaharaBantuTier4` is another map): the line is `Umpakati` (93), with `Spearmen`, `Bark`, `Trireme` if 3559 has not.
-Runs 1205–1206; AI §315; park PZ.
+3562. **The Bantu from an Ancient start, East Indies** (`EastIndiesBantuAncient`, map 18, tribe 3, difficulty 5, starting age 0 and
+ending age 1 — age 0 cannot be held: `SetupWin::setup_game` stores the ending age one above the menu's, run1199/1200 read `ENDING_TECHNOLOGY 1`
+for 0, 3559's lobby; the held-out `GreatSaharaBantuTier4` is another map): the line is `Umpakati` (93), with `Spearmen`, `Bark`,
+`Trireme` if 3559 has not. Runs 1205–1206; AI §315; park PZ.
 
 3563. **The Japanese at a held Gunpowder age, Great Sahara** (`GreatSaharaJapaneseGunpowder`, map 7, tribe 15, difficulty 5, age 3 held;
 the Industrial pair is East Indies', the held-out Tier1 another difficulty): the line is `Samurai` (160) and the age-3 generics.
