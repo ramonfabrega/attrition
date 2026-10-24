@@ -403,7 +403,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// 3593: 172 -> 176, the Bantu Ancient pair whole at 6210 — `Umpakati`
 /// (93), `Yangombi Umpakati` (94), `Bark` (323) and `Trireme` (340), the
 /// four lines §315 booked, read by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 176;
+/// Item 3586: 176 -> 177, the Spanish Classical pair whole at 8565 —
+/// `Scutari` (149, 5094 figure rows over run1231 and run1232), the line
+/// §319 booked and 3556a never saw fielded.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 177;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

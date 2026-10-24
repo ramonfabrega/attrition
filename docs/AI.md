@@ -28102,12 +28102,49 @@ leader's buckets already differ by tens, so the choice may follow the economy or
 `LEADERDATA` or `BUILDDATA` between run1229's block 2 and 5956. The next item's frame is 5961, ours 92 draws
 against 89 at index 77; walk the Market's queue back from 5956.
 
-## 319. Reserved for the next item on the AI track
+## 319. The Spanish at a held Classical age, Great Sahara: whole on its first try, 8565 of 8565 (item 3586)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93). §309's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
+Nubians (4) against the **Spanish (9)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held by
+`STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`, read back on both `GAME INFO`s. Captures: run1231 (a
+`DUMP_ALL` start) and run1232 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 8565. The walk is seeded from run1231's initial state (3506a); run1231 against run1232 is 37 of 37
+frames identical. `diff::spanish_classical_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 9, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery holds no Spanish game; the scored `GreatSaharaSpanishTier3` (`spanish_word`) is `(7, 9, 3)`, the same map
+at another difficulty, `EastIndiesSpanishTier3` is `(18, 9, 3)` and `GreatLakesSpanishTier4` `(14, 9, 4)`. No
+pinned `Lobby` or `Pair` carries it. `spanish_classical_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, frame 8565 of 8565**, by the count and the sequence. **The closing state** (run1232's
+closing block 8566, `spanish_classical_pair_run1232_s_closing_state`) compares 395 units, none off, torn or
+unlinked, and no building or city field-row.
+
+**The closing window** (run1232b, blocks 8310..8566 at the long's detail with `LEADERS=9`, walked from run1231:
+256 blocks, 82 keys, the two `gaia:` keys unprinted). run1232's stride prints units every hundredth block and no
+leader, building or city record past the start, so no dump held the last blocks; run1232 against run1232b is
+8566 of 8566 frames identical.
+- The standing families on 8310 (`form`, `SITE[i].reg`, `aggression[1]`, who=1's groups' `held` and `pool`),
+  groups 66's on 8331 and 72's on 8539.
+- **Both leaders' `territory`, one tile apart from the window's first block**: who=0 ours 241 against theirs 242,
+  who=1 2746 against 2745, `my_team_terr`, `other_team_terr` and `min_other_team_terr` with it — 3574a's shape on
+  another pair (parked 3586a).
+- `g.angle[0]` on seven of who=1's Scholars (TypeIndex 52, land), garrisoned in one `inside` chain: ours
+  1431655765 against theirs 0, from 8310 (`1/206`, `1/208`, `1/212`, `1/365`, `1/368`), 8377 (`1/373`) and 8500
+  (`1/380`) — the newborn `g.angle[0]` the battery's words carry.
+- Twelve `dest_angle` rows from 8358 (`1/79` first): 3567a's shape (parked 3580b).
+
+Positions, orders and hits agree to the closing block.
+
+**The line.** `Scutari` (149), booked Roman by 3556 and never fielded there (parked 3556a), is the Spanish's by
+mask, and here it is **fielded**: 5094 figure rows over run1231 and run1232. It is new to the ledger:
+`rubric.py` on this tree reads unit types seen **177 of 302**, up from 176. The pair's other types are already in
+the set: Citizen 50, Scholar 52, General 57 (the Spanish's), Caravan 59, Merchant 61, Scout 69, Javelineers 83,
+Archers 171, Light Horse 209, Catapult 265 and The Senator 353, and the sheep and peacock herds.
+
+**What is not established.** Which tile the leaders count apart, and when it parted: no widening walked run1231's
+blocks 0..2 for it and the long's stride prints no leader, so it parted somewhere before 8310. Nothing follows from it to the
+game's end.
 
 ## 320. Reserved for the next item on the AI track
 

@@ -147,6 +147,8 @@ mod shutdown;
 #[cfg(test)]
 mod slots;
 #[cfg(test)]
+mod spanish_classical_pair;
+#[cfg(test)]
 mod spanish_east_word;
 #[cfg(test)]
 mod spanish_lakes_word;
