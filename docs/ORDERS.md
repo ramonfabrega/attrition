@@ -2945,7 +2945,7 @@ argument is 1, so the figures are carried with it.
 |---|---|---|
 | `0` | always | snap, then the function continues |
 | non-zero, `bVar7` set | always | snap, then the function continues |
-| non-zero, type `unit_flags & 0x400` (cavalry archer) | always | snap, then continues |
+| non-zero, type `unit_flags & 0x400` (melee-and-ranged, `k`) | always | snap, then continues |
 | non-zero, neither | never | the animation housekeeping arm, then `return 0` |
 
 `bVar7` is `type +0x2b8 & 1` **and** (the target is invalid **or** the action
@@ -2978,8 +2978,13 @@ fifteen frames later. Great Lakes' long word 8201 → 8272
 not diffed: ~~nothing on disk has a **recharging** unit enter `fight`~~ —
 run100's blocks 10231–10239 have six, and §7.12 is what they say — but neither
 `bVar7` nor the cavalry-archer arm has been observed *acting*, because all six
-take the fourth row, and `crates/sim` models the `recharging == 0` row alone —
-a recharging cavalry archer does not snap here where the original's would. Nor
+take the fourth row, ~~and `crates/sim` models the `recharging == 0` row alone —
+a recharging cavalry archer does not snap here where the original's would~~ —
+the latch row is built by item 3540 (§7.12) and the `0x400` row by item 3568
+(`docs/AI.md` §308: run1189b's Mahout `1/46`, `recharging` 35 on 4170, rolls the
+guard's `fight+0x824` past the gate). Past the gate such a unit skips the
+captain's re-search (`recharging == 0` alone, `fight:368`), and in range it swings
+and returns before the blow and the reload (`005feecb`). Nor
 is it established what the snap is *for*: the 48-grid searches downstream
 (§7.10's chase, `find_upath`) all start from a cell, which is the obvious
 reading, but no run has been made to fail by starting one off-centre.

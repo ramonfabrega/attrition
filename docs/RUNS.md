@@ -25604,3 +25604,25 @@ Archive `rontrace-run1196b.log`, 10,689,120 bytes,
 SHA-256 `2dbf65fcfa7dcb9b2825a4f2b8bdaa988a353fc0906045f7506f36d742916c3c`.
 
 **What it holds**: `greek_classical_pair_run1196b_s_word_frame_is_widened_whole`, the word 8 (block 9).
+
+---
+## run1211 — the Persians at a held Medieval age, East Indies: the word 4523's window, blocks 4518..4760 (2026-10-24, item 3568, `att-3568`)
+
+`docs/AI.md` §308. **What the disk could not answer**: the word 4523's block 4524, which run1181's stride (4501,
+4601) leaves undumped; run1189b ends on 4289. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1211
+--map 18 --end-frame 4760 --allow-early-end --log-window 4518 4760 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 23 --cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 00:42:13, exited 00:43:07 (54.3 s launch to exit). `success`, 4760 frames; the game ended
+  itself on 4759 (`ended_early`, closing frame 4760). `rngcmp.py` against run1181: 4760 frames in common, 0
+  differing. Filed with `filerun.py run1211 eastindies-persian-medieval-window-4518-4760 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1211-eastindies-persian-medieval-window-4518-4760.txt`, 566,927,463 bytes,
+SHA-256 `ee1a2d778e0b1f6b62b0c15ff233e75344564a8e102c2f6834a134867bd4a10d`.
+
+Archive `rontrace-run1211.log`, 156,384,800 bytes,
+SHA-256 `787338c91f57bae7e87d85b4140fbb8519ceb7dc0c329cf8c66df3a407ca177f`.
+
+**What it holds**: `persian_medieval_pair_run1211_s_word_frame_is_widened_whole`, the word 4523 (block 4524). The
+Knight `1/62` chases the Citizen `0/4` in theirs and holds its attack in ours.
