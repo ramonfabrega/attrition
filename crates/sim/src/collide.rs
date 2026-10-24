@@ -728,8 +728,14 @@ impl BoatView for SimBoat<'_> {
         self.0
             .invalid_loc(o, tile, false, false, false, false, false)
     }
+    /// `set_new_location(pushed, x, y, 0, 0)` at `detect_boat_collision`'s
+    /// push, and the ring reveal `005f8d20` throws inside it when the
+    /// boat crosses a half-cell (`docs/VISION.md` §6, §11.5): a pushed
+    /// boat sees as it drifts (item 3569, `docs/AI.md` §310).
     fn set_new_location(&mut self, o: usize, to: Pos) {
+        let from = self.0.units[o].pos;
         self.0.set_new_location(o, to, false);
+        self.0.moved_to(o, from, true);
     }
     fn name_pusher(&mut self, o: usize, by: usize) {
         self.0.units[o].collide_o = self.0.units[by].index;
