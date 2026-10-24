@@ -10494,3 +10494,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3571: the Greek word 7865 (`docs/AI.md` §310; `docs/RUNS.md` run1214) ====
 #   run1214  --map 18 --end-frame 8127 --allow-early-end --log-window 7859 8127 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0, run1195's lobby   (the word 7865's window, to the closing block)
 # Checks: `rngcmp.py` run1214 vs run1196 -> 8127 identical.
+# ==== item 3560: the Chinese at a held Medieval age, Great Sahara (`docs/AI.md` §313; `docs/RUNS.md` run1201, run1202, run1202b) ====
+#   run1201  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 14 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1202  run1198's line with --ai-tribe 14 and run1201's lobby   (the draw stream; ended itself on 4520)
+#   run1202b --map 7 --end-frame 3231 --timeout 3600 --log-window 2975 3231 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --cover cover=0, run1201's lobby   (the word 2981's window)
+# Checks: `rngcmp.py` run1201 vs run1202 -> 37 identical; run1202 vs run1202b -> 3232 identical.
