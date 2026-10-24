@@ -27066,30 +27066,14 @@ Groups 86 and 95's `held` and pool part on 7861 and 7865. Block 7866 carries no 
 theirs `Ammo::do_damage+0xc59`. The state parted before 7859 (the territory and `1/215`'s `damage_frame`), and
 only the stride's 7801 was on disk before it.
 
-**Item 3574: the Archers loose from the Heavy Archer's bays** (run1217, run1217b; the word 7865 → 8126, whole).
-
-- **The walk back.** The long's stride over 4601..7801 (`greek_classical_pair_the_long_s_stride_walks_back_from_7865`,
-  33 blocks, 252 keys) parts nothing up to 7701 but the standing families. The first unit field apart is on 7801:
-  the Citizen `0/5`'s (TypeIndex 50, land) `damage_frame`, ours 7745 against theirs 7744, with its damage equal.
-- **The blow.** `RON_DEBUG_AMMO` puts it on the Archers `1/53`'s (TypeIndex 171, `ARCHERS`, land) round, loosed at
-  the fleeing `0/5` on 7727: ours flies 19 frames and strikes on 7745. Theirs' trace spends the round's two
-  `Ammo::init` scatter draws on 7727 too, so the launch frame agrees. Ours' `Ammo::inc_time` timing is the
-  listing's, and no dump prints the round.
-- **The packet.** run1217 (`RON_STATE_FRAME=7728`) holds the round live (`tools/recomp/ammo.py`): theirs leaves
-  from (8201, 8775, 512) with `total_time` 18, and ours left from the figure's own (8232, 8856, 348). The un-led
-  distance from the figure is 1984.7, which is 19 frames at `d` 100.
-- **The cause.** `launch.rs` has no node for the Archers' piece 121, so its release events leave from the
-  unit's square at the figure's height. run1217b's `AMMO=5` window over 7678..7870 prints twenty-one of
-  who=1's Archers' rounds: fifteen distinct poses, six figures, nine headings, and all three keys the piece releases on, (11, 12), (12, 9) and
-  (13, 15). **The Heavy Archer's three bays (pieces 123 and 1531) put every one at the dump's `sx, sy`** to the
-  unit, and at its `sz` over the figure's `z` (163, 164, 164). It is the same model, as 123 is 1531's.
-  `run1217b_s_greek_arrows_leave_from_the_archer_s_bays` (`launch.rs`) asserts the fifteen. A polar `Node`
-  fit misses by one or two, toward zero, which is §22's single-precision rotate.
-
-`tools/mutate.py` dropping the (12, 9) row walks the pair back to 7865 by count and sequence (exit 101). The
-catapults' piece 215 (`1/66`, `1/67`, `1/86`; TypeIndex 265) also leaves from a node that ours lacks, about
-(+20, +25, +245) off the first figure, and no `Node` or `Bay` was fit to it. Its round's time is the siege
-range's, not the distance's, so it moves no frame here (parked 3574c).
+**Item 3574: the Archers loose from the Heavy Archer's bays** (run1217, run1217b; 7865 → 8126, whole; the walk is
+the journal's). The long's stride over 4601..7801 parts first on 7801: the Citizen `0/5`'s (TI 50) `damage_frame`,
+ours 7745 against 7744. It is the Archers `1/53`'s (TI 171) round of 7727. run1217's packet (`ammo.py`) has theirs
+leave from (8201, 8775, 512), `total_time` 18, and ours from the figure's own (8232, 8856, 348), 19. `launch.rs`
+had no node for piece 121. In run1217b's `AMMO=5` window (7678..7870), the Heavy Archer's bays (pieces 123,
+1531) put all fifteen distinct poses at the dump's `sx, sy` and `sz − z`, over all three keys
+(`run1217b_s_greek_arrows_leave_from_the_archer_s_bays`). `tools/mutate.py` dropping the (12, 9) row walks the
+pair back to 7865 (exit 101). The catapults' piece 215 is not fit (parked 3574c).
 
 | frame | record | field | before (ours / theirs) | after |
 |---|---|---|---|---|
@@ -27099,15 +27083,10 @@ range's, not the distance's, so it moves no frame here (parked 3574c).
 | 7859 | who=1 `LEADERDATA` | wealth | 12834 / 12831 | agrees |
 | 7865 | draws | index 24 | `Farms::inc_time+0x1ae` / `Ammo::do_damage+0xc59` (26 / 28) | agree |
 
-run1214's window falls from **4473 keys to 134**. What stands beyond the standing families (`SITE[*].reg`,
-`aggression`, `form`, the groups' `held` and pool):
-- both leaders' `territory` on 7859 (who=0 140 against 141, who=1 1525 against 1524; parked 3574a). The
-  strides print no leader record, so it parted somewhere in 4593..7859;
-- `dest_angle` on thirteen of who=1's units from 7936 (`1/76`, −1605566464 against −852099072; parked 3574b).
-
-**The word: 7865 → 8126, the game's last frame — whole.** `run1196_greek_classical_pair_closing_state` walks
-run1196 to its closing block 8127 and compares it whole: 336 units, none torn, off or unlinked, no building or
-city field row. run1214's window already holds the closing block, so it stays the word's widening.
+run1214's window falls from **4473 keys to 134**. Beyond the standing families stand both leaders' `territory`
+±1 on 7859 (parked 3574a) and `dest_angle` on thirteen who=1 units from 7936 (parked 3574b). **The word: 7865 →
+8126, whole.** `run1196_greek_classical_pair_closing_state` compares the closing block 8127 whole: 336 units, none
+off.
 
 **The rubric.** `Companion` (231) is never fielded in run1195 or run1196. The `Fire Raft` (334) is (×242), with the
 Dromon (324), the Galley (341) and the Transport Barge (320). An open pair counts only to its word, and frame 8 is
