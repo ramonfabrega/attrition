@@ -10511,3 +10511,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3578: the Korean word 4350 -> 5639, whole (`docs/AI.md` §312; `docs/RUNS.md` run1221) ====
 #   run1221  --map 18 --end-frame 4289 --log-window 4286 4288 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 16 --cover cover=0 --tracer-def RON_STATE_FRAME=4287, run1199's lobby   (a packet: the Slinger's stone and the Hwarang's arrow; the first take died in Wine at start-up)
 # Checks: `rngcmp.py` run1200 vs run1221 -> 4290 identical.
+# ==== item 3575: the Mongol word 8444 -> 9744 (`docs/AI.md` §311; `docs/RUNS.md` run1218) ====
+#   run1218  --map 7 --end-frame 9885 --allow-early-end --timeout 3600 --log-window 9738 9885 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --cover cover=0, run1197's lobby   (the word 9744's window, to the closing block)
+# Checks: `rngcmp.py` run1198 vs run1218 -> 9885 identical.

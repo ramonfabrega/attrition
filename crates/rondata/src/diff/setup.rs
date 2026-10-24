@@ -272,6 +272,9 @@ pub fn world_from(
                 sim::world::Terrain::Sea
             };
             let r = world.add_region(terrain);
+            // The original's own number, which `Sim::land_size` ranges
+            // over (item 3575).
+            world.set_region_number(r, n as u16);
             region_map.push((n, r));
             Some(r)
         };

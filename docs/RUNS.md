@@ -25930,6 +25930,26 @@ SHA-256 `6c01de31c20ccd615f7732f5bebaaae4143f84994ab2999a754618e5dfe12193`.
 blocks, 6457 keys). The state first parts on block 8441 (who=0's `attacked_by`, group 65's march); on block 8445
 ours' group 64 takes `ATTACK_TO` over its guard where theirs' keeps `GUARD`.
 
+## run1218 — the Mongols at a held Classical age, Great Sahara: the word 9744's window, blocks 9738..9885 (2026-10-24, item 3575, `att-3575`)
+
+`docs/AI.md` §311. `--map 7 --end-frame 9885 --allow-early-end --timeout 3600 --log-window 9738 9885 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --cover cover=0` and run1197's lobby (`--profile
+STARTING_TECHNOLOGY=1 ENDING_TECHNOLOGY=1 STARTING_RESOURCES=7 DIFFICULTY=5`). Booked because the long's stride blocks
+9701 and 9801 leave the word's block 9745 undumped, and run1198b ends at 8694.
+- Pool lane 1. Launched 05:37:24, exited 05:38:34 (69.9 s launch to exit). `success`: 9885 frames, the game ending
+  itself on 9884 (`ended_early`). `rngcmp.py` against run1198: 9885 frames identical. Filed with `filerun.py run1218
+  greatsahara-mongol-classical-window-9738-9885`. `df -g ~` read 143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1218-greatsahara-mongol-classical-window-9738-9885.txt`, 405,247,958 bytes,
+SHA-256 `ecbdb49cee63d9391a6ea9ade12c0ac75cc7f208316ca8ba6e0a2fdae0cbeb8e`.
+
+Archive `rontrace-run1218.log`, 252,346,496 bytes,
+SHA-256 `ff55d801e57768a52ca50604f549e40a9ae63ae8c6ac0cddda4c5f4c28743a44`.
+
+**What it holds**: the word 9744's widening, `mongol_classical_pair_run1218_s_word_frame_is_widened_whole` (147
+blocks, 2493 keys). It opens apart on 9738: the Nubian Citizen `0/8`'s `damage_frame` ours 9721 against theirs
+9720, and who=1's chasers' moves 48 apart in `y`. The long's stride agrees through 9701.
 ## run1201 — the Chinese at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3560, `att-3560`)
 
 `docs/AI.md` §313. §311's lobby with the nation and the age moved, through `viadriver.sh
