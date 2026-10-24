@@ -47,8 +47,13 @@ pub(crate) const BANTU_ANCIENT: Pair = Pair {
     // where it left the figure's own square and flew 16. Ours 26 draws
     // against 27, index 22, ours `Farms::inc_time+0x1ae`, theirs
     // `Object::take_damage+0xe1`.
-    count: 5322,
-    sequence: 5322,
+    // Item 3592: **5523** (+201) — the Archers' bays (`launch::BAYS`,
+    // piece 473): who=1's arrows at the farmer `0/3` and Napata leave from
+    // the bow hand, so theirs' blow on the farm `0/2002` on 5322 is both
+    // sides'. Ours 31 draws against 29, index 26, ours
+    // `Ammo::do_damage+0xc59`, theirs `Farms::inc_time+0x1ae`.
+    count: 5523,
+    sequence: 5523,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -301,7 +306,14 @@ fn bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole() {
     // 5253 (ours `0/3`, theirs `0/2000`), the `dest_angle`s of `1/110`,
     // `1/140` (5279) and `1/107` (5303), and `0/2000`'s `damage_frac`,
     // `raid_stamp` (5299) and `damage` (5315, ours 30 against 31).
-    pin_eq!(w.firsts.len(), 97, "run1236b baseline");
+    //
+    // Item 3592: **94**, from the Archers' bays (piece 473). Napata's three
+    // rows leave: theirs' 10/16 on 5298 and its 1 + 10/16 on 5315 land on
+    // both sides. The two `order:target` rows (`1/86` on 5107, `1/41` on
+    // 5253) stand: both are the **buried** `ATTACKORDER`'s target, which
+    // this crate does not carry — the current attack agrees on both sides
+    // on both blocks (`docs/AI.md` §315.3, parked 3592a).
+    pin_eq!(w.firsts.len(), 94, "run1236b baseline");
 }
 
 /// **The long's stride, walked back from the word 5072** (item 3591):
@@ -460,5 +472,13 @@ fn bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole() {
     // city centre `0/2000`, apart from 5253 on run1236b), and on 5318
     // `0/2000`'s `damage` 34 against 35 and `raid_stamp` 5316 against
     // 5317.
-    pin_eq!(w.firsts.len(), 4333, "run1238d baseline");
+    //
+    // Item 3592: **650**, from the Archers' bays (piece 473). `0/2002` is
+    // struck on 5322 on both sides and `0/2000`'s rows agree. Through the
+    // new word's block 5524 only the standing families stand (who=1's
+    // groups' `held` and pools, the guards' `dest_angle`, `1/197`'s
+    // `form`), and the buried `ATTACKORDER` target of `1/41` (3592a). The
+    // first other row is the Bark `1/30`'s (TI 323, water) move on 5526,
+    // ours (35064, 27384) against theirs (33528, 25848).
+    pin_eq!(w.firsts.len(), 650, "run1238d baseline");
 }

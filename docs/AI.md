@@ -27790,14 +27790,14 @@ pieces, and run1238b's four rounds. Mutations through `tools/mutate.py`, on the 
 97. On the old word's block 5073, `1/86`'s `collide_o` and `collide_who` agree. The first non-standing row is now
 `1/86`'s `order:target` on 5107: ours `0/13`, theirs `0/11`.
 
-**The next word: frame 5322, ours 26 draws against 27, index 22**, ours `Farms::inc_time+0x1ae`, theirs
+~~**The next word: frame 5322, ours 26 draws against 27, index 22**, ours `Farms::inc_time+0x1ae`, theirs
 `Object::take_damage+0xe1`. It is widened on run1238d (5316..5572, 4333 keys). On the word's block 5323, the human's
 `0/2002` is struck in theirs alone (`damage` 1, `damage_frac` 10). The state is apart before it. On run1236b, `1/86`'s
 target parts on 5107 (ours `0/13`, theirs `0/11`), and `1/41`'s on 5253 (ours the Citizen `0/3`, theirs the city
 centre `0/2000`). On 5299 and 5315, `0/2000`'s `damage_frac`, `raid_stamp` and `damage` part (30 against 31). On
 run1238d's 5316, `1/41`'s target is still ours `0/3` against theirs `0/2000`. **The hypothesis, untested**: the
 5107 retarget is the first parting, and `0/2002`'s blow follows from it. Its killer is `RON_DEBUG_UNIT=1/86` over
-5100..5107 on run1236b: which target `find_new_target` answers in ours, and the inputs it reads on each side.
+5100..5107 on run1236b: which target `find_new_target` answers in ours, and the inputs it reads on each side.~~ Answered by item 3592, §315.3: the 5107 row is the buried attack's target, which this crate does not carry, and the blow is the Archers' arrows, which left from the figure.
 
 **What is not established.** The `CHAR_ATTACK3` row has no round on disk. It rests on the sweep alone, as every
 other `BAYS` row's third key does. The squad's other figures do not arise: the Umpakati is one figure a unit.
@@ -27805,6 +27805,47 @@ other `BAYS` row's third key does. The squad's other figures do not arise: the U
 **Coverage.** Diff-backed: the four rounds' launch points and `sz` (run1238b), and the word's move to 5322. The
 `AttachPos` sweep is the packet's own `get_position`, run under unicorn. It is an oracle on the original's state,
 not a reading.
+
+### 315.3 The Archers' bays: the word 5322 → 5523 (item 3592)
+
+**The 5107 and 5253 rows are no parting.** Both sides retarget `1/86` (TI 94, land) to `0/13` on 5107, and `1/41`
+(TI 171, land) to `0/3` on 5253: the current `ATTACKORDER`s agree. The rows are theirs' **buried** attack slot
+(`0/11`, `0/2000`): this crate's `Attack` order carries no target, and `Built::target_ids` reads the unit's one
+`combat.target` for every slot (parked 3592a).
+
+**The direction is theirs: theirs' arrows land early.** The first state rows are Napata `0/2000`'s (run1236b):
+theirs takes 10/16 on 5298 (`damage_frac` 10 against 0 and `raid_stamp` 5298 against 5294 on 5299) and 1 + 4/16 on
+5315 (`damage` 31 against 30). The word's farm `0/2002` (type 417) takes its first blow, 1 + 10/16, on 5322 in theirs
+alone, which is the `take_damage+0xe1` roll. Its farmer `0/3` stands on it, and who=1's Archers shoot `0/3`.
+`RON_DEBUG_AMMO`: ours' `1/41` looses on 5306 from (5688, 8280), its own square, for 19 frames. The Archers play
+piece **473** (`g473`), and `sim::launch` had no row for it.
+
+**The packet.** run1238c (logger frame 5021) holds piece 473's three attack `AttachPos` rows, piece 472's floats bit
+for bit. `tools/recomp/fit_bay.py` fits each sweep exactly:
+
+| key | region | `right` | `fwd` | `dz` |
+|---|---|---|---|---|
+| `CHAR_ATTACK1`, 12 | 221 points | −1826 | 88749 | 163 |
+| `CHAR_ATTACK2`, 9 | 277 points | 336 | 87408 | 164 |
+| `CHAR_ATTACK3`, 15 | 124 points | 9711 | 66508 | 164 |
+
+**The build.** Three `launch::BAYS` rows, held by `the_archers_bays_are_the_packet_s_sweep`. Re-piecing one key
+through `tools/mutate.py` moves `bantu_ancient_pair_first_parting` back to 5322 (`CHAR_ATTACK2`), 5482 (`ATTACK1`)
+or 5468 (`ATTACK3`).
+
+**The value diff** (before → after): run1236b 97 → 94 keys, with Napata's three rows gone. run1238d 4333 → 650: on
+5323 `0/2002` is struck on both sides, and through block 5524 only the standing families and `1/41`'s buried target
+stand.
+
+**The next word: frame 5523, ours 31 draws against 29, index 26**, ours `Ammo::do_damage+0xc59`, theirs
+`Farms::inc_time+0x1ae`: ours lands a round theirs does not. It is in run1238d's window, and no row parts on 5524.
+**The hypothesis, untested**: another figure piece with no bay. Its killer is `RON_DEBUG_AMMO` over 5500..5523: the
+round's shooter, its `g` piece, and whether `launch` has a row for it.
+
+**Not established**: 473's launch points on a dumped round (3592c); 472's rows on its own floats (3592b).
+
+**Coverage.** Diff-backed: the word's move and the blows. The sweep is the packet's `get_position`. Reading-only:
+nothing.
 
 ## 316. The Japanese at a held Gunpowder age, Great Sahara: the Japanese barracks term and the Arquebusiers' bays, 2839 → 3673, whole (items 3563, 3590)
 
