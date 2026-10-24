@@ -27188,7 +27188,8 @@ by the count and the sequence, "mutation: held".
 run1198b falls from 6457 keys to 77: block 8438's standing families, who=1's `bucket`/`leftover` (3558a), the
 `g.angle[0]` of who=1's newborns, and on 8586 the `cost[0]`/`cost[1]` of `1/2017`'s and `1/2022`'s queues, ours
 116/86 against 110/82 (parked 3575a). The same fix closes the Great Sahara coverage pair's run817 rows
-(`popwin_timer` 1, `popwin_stamp` 4135 from 4260): 264 → 262 keys.
+(`popwin_timer` 1, `popwin_stamp` 4135 from 4260): 264 → 262 keys. The Aztec All Technologies pair's run1147b
+closes the same two rows (stamp 3919, from 4376): 308 → 306.
 
 **The next word: frame 9744, ours 117 draws against 118, index 90** — ours `Guy::set_anim+0xf2f < Guy::move+0x166`,
 theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. run1218 (9738..9885, to the closing block) opens apart on
