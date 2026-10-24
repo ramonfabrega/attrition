@@ -413,3 +413,51 @@ fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
     // the `dest_angle` family (3574b) from 9733.
     pin_eq!(w.firsts.len(), 82, "run1222 baseline");
 }
+
+/// run1224: the word 9772's window, blocks 9740..9885 at run1218's detail
+/// with `AMMO=5` (item 3581) — the Nomad `1/31`'s round at the Citizen
+/// `0/11`, loosed on 9746, and on to the closing block.
+pub(crate) const RUN1224: &str =
+    "gamelog-run1224-greatsahara-mongol-classical-window-9740-9885.txt";
+
+/// The window: block 9740 through the closing block 9885; the word 9772's
+/// own block is 9773.
+pub(crate) const WIDENING_MONGOL_CLASSICAL_FRAME_9772: (i64, i64) = (9740, 9885);
+
+/// **The word 9772's window**: run1224 walked from run1197's start with the
+/// recorder on, to the closing block (item 3581).
+pub(crate) fn mongol_classical_frame_9772_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_CLASSICAL.start],
+        true,
+        MONGOL_CLASSICAL.long,
+        "run1224",
+        &[(RUN1224, WIDENING_MONGOL_CLASSICAL_FRAME_9772.0)],
+        WIDENING_MONGOL_CLASSICAL_FRAME_9772,
+        1,
+        &[9773],
+        true,
+    )
+}
+
+#[test]
+fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_classical_frame_9772_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 146, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1224 baseline");
+}
