@@ -26689,9 +26689,59 @@ its window is in the coverage driver), the re-pinned word and run1189b baseline,
 `cavarch::tests::a_melee_and_ranged_type_keeps_its_wait_under_an_attack_action` in `sim`. Through `tools/mutate.py`,
 dropping the `k` test fails the word (4038 again) and fails the unit test.
 
-**What is not established**: who struck `0/2000` by 4048. The window's first block that parts is a building's
+~~**What is not established**: who struck `0/2000` by 4048. The window's first block that parts is a building's
 damage, three frames after ours' `raid_stamp`. Whether that blow is a Mahout's (the shot ours now takes on 4038,
-landing elsewhere) or another unit's is the next item's first question, and so is the Citizen's missing 25 on 4059.
+landing elsewhere) or another unit's is the next item's first question, and so is the Citizen's missing 25 on 4059.~~
+Answered below (item 3555): the Peltasts' javelins and the Mahout's round, each leaving from the figure.
+
+**Who struck `0/2000`, and the Citizen's 25** (item 3555, no capture; run 1192 unused). Both were walked on
+run1189b's dump and ours' `RON_DEBUG_AMMO`:
+- **The blows on `0/2000`** (the Nubian capital Napata's centre). Theirs' `BUILDDATA` reads `damage` 3/5 on 4045
+  and 6/10 on 4048 (one blow of 53 sixteenths each), and `raid_stamp` 4044 then 4047. Ours lands 4045 and 4049.
+  The shooters are three Peltasts (TypeIndex 84, land), `1/20`–`1/22`, each on an `ATTACKORDER` on `0/2000`. Ours'
+  rounds: `1/21`'s from (7128, 7704), 9 frames, landing on both sides on 4044; `1/22`'s from (6840, 8424) to
+  (6452, 7326), **14 frames, where theirs' lands in 13**; `1/20`'s 17 against theirs' 16 (theirs 4063).
+- **The Citizen `0/10`'s 25.** The Mahout `1/27`'s round, released on 4052 from (5225, 9014), flies 9 frames in ours
+  and lands on 4060. Theirs' `damage_frame` reads 4059.
+- **The direction is ours.** Every round left the figure's own square, and its flight is `(int)(dist / (proj_speed
+  × unit_move_speed))` (`Ammo::init@0067bbf0`, the unit arm, from `param_1`'s `x, y`). `param_1` is
+  `execute_game_events`' package, the guy's position plus `GraphicPieces::get_position`'s node vector
+  (`docs/COMBAT.md` §22). A probe (one commit, reverted whole) printed the pieces: the Persians' Peltast is
+  **piece 1794** (`34 + 5 × 0x160`, piece 34's keys) and the Mahout **piece 212** (`CHAR_ATTACKWALK` at 16, node 1).
+  `launch::BAYS` had neither.
+
+**The bays.** No packet of this game exists. run1007b's (`RON_STATE_FRAME=15915`, the Indian Great Sahara game)
+holds both pieces' `AttachPos` rows: 1794's three (node 0: `CHAR_ATTACK1` at 12, `2` at 6, `3` at 27) and 212's
+eleven (node 1 at frame 16 for each of `CHAR_ATTACKWALK` and `ATTACK1`–`SPECIAL`, and node 4's, which no release in
+the window names). `get_position.py … sweep` was fitted as 1441's and 1442's were (§257, §260): the centroid of the
+integer region that reproduces all 361 headings. The fitter gives 1442's committed (−344, 57100, 173) back exactly.
+- piece 1794: (38946, 60202, 163), (1685, 50747, 170), (21762, 35444, 156);
+- piece 212: `ATTACKWALK` (−29938, 87586, 448), `ATTACK1` (−291, 71525, 451), `ATTACK2` (−17740, −7348, 465),
+  `ATTACK3` (−18234, 60948, 463), `ATTACKSPECIAL` (−18369, 79421, 452).
+
+**The value diff.** `1/22`'s javelin leaves (6821, 8377), flies 13 frames, and `0/2000` reads `damage` 6,
+`damage_frac` 10, on 4048 on both sides. Ours' blows now land on theirs' frames: 4045, 4048, 4063, 4076. `1/27`'s
+round leaves (5191, 8929) and flies 8 frames, and `0/10` reads `hits_left` 25 and `damage_frame` 4059 on 4060 on
+both sides. run1189b's widening goes 1312 → 745 keys. Through 4170 only the standing families stand (`form`, the
+ten `SITE[i].reg`, who=1's groups' `held` and `pool`).
+
+**The word moves 4083 → 4170 of 4759** (+87), by the count and the sequence. On 4170 ours spends 8 draws and theirs
+6. They part at index 0: ours `Guy::set_anim+0x97a < Unit::fight+0x169`, theirs `Unit::fight+0x824`. The first state
+parting is the Mahout `1/46` (TypeIndex 262, land) on 4171. On block 4170 both hold an `ATTACKORDER` on `0/2000`
+(`new_ord` 1, `in_range` 0) at (6657, 7777). On 4171 theirs stands at (6648, 7800), 25 units back along its path,
+and ours stays put. On 4173 theirs reads `in_range` 1 on `0/2000`, while ours has taken `0/11` (`g.ox[0]` 11 against
+2000, `new_ord` 1). Block 4171 is in run1189b's window, so that window stays the word's widening. No other lobby's
+`first_parting` moved (43 of 43 green), nor did `battery_floors`, `blind::` or `coverage::`.
+
+**What is pinned** (item 3555): `launch::tests::the_persian_peltasts_and_the_mahouts_bays_are_the_packet_s_sweep`
+(four headings of each of the eight rows), the re-pinned word, and run1189b's baseline at 745 keys. That count
+cannot see 1794's rows, because `0/2000`'s damage parts later on either tree. So the widening also pins its frame,
+4193. Through `tools/mutate.py`:
+- dropping 212's rows fails the word, at 4083 again;
+- dropping 1794's fails the widening's frame pin (4048 against 4193) and the `sim` test, and leaves the word alone.
+
+**What is not established**: why theirs' `1/46` steps back on 4170 and holds `0/2000` where ours turns on `0/11`.
+That is the next item's frame. Piece 212's node-4 rows are not built (no release names node 4).
 
 ## 309. The Romans at a held Classical age, Great Sahara: a blow struck in contact is doubled, whole at 7130 (2026-10-23, item 3556; 2026-10-24, item 3567)
 
@@ -26880,14 +26930,46 @@ pool), and one more:
 | 9 | who=1 `LEADERDATA` | `bucket[0:food]` / `[2:wealth]` | 19784 / 19780 | 19730 / 19950 |
 | 9 | Citizen `1/10` (TI 50, land) | `order:move.dest_x` / `off_x` | 37524 / 72 | 37500 / 24 |
 
-**The next word**: frame 8, the sequence at index 0, ours `Leader::make_stuff+0x221` against theirs
-`Leader::produce_building+0xc99`. **The hypothesis, untested**: theirs' Greeks hold the opening knowledge at a
-Classical start, and ours' `lay_starting_goods` takes it off them (`GREEK_DELAY_KNOWLEDGE`, `docs/NATIONS.md`) for
-a re-grant on the Classical age, which a game started at Classical never pays (`pay_arriving_goods` pays on a gained
-type, and the start techs are laid before it). The make list then prices what the leader can afford from a different
-purse. The killer is block 2's knowledge row: if ours lays 10000 there and the make list on block 7 still parts, the
-knowledge is not the cause. The battery's Greeks start at age 0, where the delay is right, which is why no other
-dump shows the row.
+**The word 8, as item 3557 left it**: the sequence at index 0, ours `Leader::make_stuff+0x221` against theirs
+`Leader::produce_building+0xc99`, with 3557's hypothesis that ours' `lay_starting_goods` takes the Greeks' opening
+knowledge off them at a Classical start, and its killer: lay 10000 on block 2, and if block 7's make list still
+parts, the knowledge is not the cause.
+
+**The knowledge is the cause (item 3566).** The killer did not fire. `Leader::init@006e3930`'s goods loop takes the
+knowledge back under three terms, not two: `has_tribe_bonus(5)`, `GREEK_DELAY_KNOWLEDGE`, and **the leader's
+`ages` at 0**. `ages` is the word at `+0xdc` of the leader's encoded block (key `0x62766`, the key
+`ObjectData::train_time`, `Unit::plunder` and the Dutch bonus terms read it under). Ours had dropped the age term.
+The fix gates `Sim::lay_starting_goods`' Greek arm on `PlayerTech::ages == 0`.
+`the_greeks_keep_their_opening_knowledge_past_the_ancient_age` (`harness_tests.rs`) tests it, and a
+`tools/mutate.py` run that deletes the term fails it ("Classical: kept", exit 101). At an Ancient start nothing
+changes, so the battery's Greeks are untouched. `gain_tech`'s re-grant on `BASE_AGETYPES` is the Ancient-start half,
+and a Classical start never gains that age in play.
+
+| block | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 2 | who=1 `LEADERDATA` | `bucket[3:knowledge]` | 0 / 10000 | agrees |
+| 7 | who=1 `LEADERDATA` | `MAKE[0]` cat / t / val | 4 / 52 / 9999999 against 8 / 551 / 3 | agrees |
+| 12 | who=1 `LEADERDATA` | `MAKE[8].val` | — | ours 125, theirs 1 (parked 3566a) |
+
+run1196b's window falls from **515 keys to 45**: block 2's 44 standing rows and block 12's row.
+
+**The word: 8 → 2616**, by both count and sequence. On 2616 ours spends 231 draws against theirs' 230. They part at
+index 227: ours `Unit::think_scout+0xaba`, theirs `Farms::inc_time+0x1ae`. **run1209** widens it over 2611..2867
+(`greek_classical_pair_run1209_s_word_frame_is_widened_whole`, 1604 keys). Block 2611 carries 86 rows of the
+standing families, and the word's block 2617 adds only group 83's `held` and pool. The first unit rows fall on 2619:
+
+| block | unit | field | ours | theirs |
+|---|---|---|---|---|
+| 2619 | Dromon `1/31` (TI 324, sea) | `order:move.x` / `.y` | 39672 / 28920 | 31992 / 44280 |
+| 2619 | Dromon `1/43` (TI 324) | `order:move.x` / `.y` | 32760 / 45048 | 26616 / 43512 |
+| 2619 | Dromon `1/50` (TI 324) | `order:move.y` | 43512 | 45048 |
+
+All three were on an `EXPLORETOORDER` on 2617 that ends on 2618. On 2619 each picks a new destination, and the
+extra draw on ours' side is in the scout arm (`think_scout`).
+
+**The next word**: frame 2616, ours 231 draws against 230, index 227 — ours `Unit::think_scout+0xaba`, theirs
+`Farms::inc_time+0x1ae`. The direction is ours: one draw more, spent by the Greek navy's explore pick. The pick
+lands on 2619, and run1209 holds both sides of it.
 
 **The rubric.** `Companion` (231) is never fielded in run1195 or run1196. The `Fire Raft` (334) is (×242), with the
 Dromon (324), the Galley (341) and the Transport Barge (320). An open pair counts only to its word, and frame 8 is

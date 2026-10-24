@@ -9908,24 +9908,30 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // exemption (item 3554, walked back on the long's stride: `cavarch_o`
     // parted on 4001): `1/46` takes the building `0/2005` here and fires,
     // where theirs holds the Citizen `0/10`; block 4084 is in run1189b's
-    // window.
+    // window. **4170** with the Persian Peltasts' and the Mahouts' bays
+    // (item 3555): `1/46`'s `pos` parts on 4171; block 4171 is in
+    // run1189b's window.
     (
         "PERSIAN_MEDIEVAL_PAIR_WORD",
         crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL_PAIR_WORD,
         Some("persian_medieval_pair_run1189b_s_word_frame_is_widened_whole"),
-        3554,
+        3555,
         Some(crate::diff::persian_medieval_pair::WIDENING_PERSIAN_MEDIEVAL_FRAME_4038),
     ),
     // **The first pair below age 2** (item 3557): the Greeks at a held
     // Classical age, East Indies — 8 first try (the AI's make list parts
     // on block 7 behind the Greeks' opening knowledge, ours 0 theirs
     // 10000 from block 2), widened on run1196b over 2..258 (block 9).
+    // **Item 3566 moved it 8 -> 2616**: `Leader::init` takes the Greeks'
+    // knowledge back only at age 0. run1196b's test keeps the move's value
+    // diff (515 keys to 45); run1209 widens the new word over 2611..2867
+    // (block 2617).
     (
         "GREEK_CLASSICAL_PAIR_WORD",
         crate::diff::greek_classical_pair::GREEK_CLASSICAL_PAIR_WORD,
-        Some("greek_classical_pair_run1196b_s_word_frame_is_widened_whole"),
-        3557,
-        Some(crate::diff::greek_classical_pair::WIDENING_GREEK_CLASSICAL_FRAME_8),
+        Some("greek_classical_pair_run1209_s_word_frame_is_widened_whole"),
+        3566,
+        Some(crate::diff::greek_classical_pair::WIDENING_GREEK_CLASSICAL_FRAME_2616),
     ),
     // **The land map's first pair below age 2** (item 3556): the Romans at a held
     // Classical age, Great Sahara — 4069 first try, widened on run1194b
@@ -11509,7 +11515,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Greeks at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3557): first try 8, the
     // AI's make list parting behind the Greeks' opening knowledge, of a
-    // game that ends itself on 8126; widened on run1196b.
+    // game that ends itself on 8126; widened on run1196b. Item 3566: 2616,
+    // widened on run1209.
     AiWord {
         line: "Late ages",
         map: "EastIndiesGreekClassical",
@@ -11517,7 +11524,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::greek_classical_pair::GREEK_CLASSICAL_PAIR_WORD,
         length: 8_126,
         endpoint: None,
-        window: Some("greek_classical_frame_8_window"),
+        window: Some("greek_classical_frame_2616_window"),
     },
     // The Romans at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3556): first try 4069, the

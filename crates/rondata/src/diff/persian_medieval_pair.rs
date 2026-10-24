@@ -41,9 +41,14 @@ pub(crate) const PERSIAN_MEDIEVAL: Pair = Pair {
     // `1/46` keep `cavarch_o` -2 through 4001 and `1/27` fires on the
     // Citizen `0/10` on 4038 as theirs does. Frame 4083: ours 7 draws
     // against 8, index 0 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`,
-    // theirs `Unit::fight+0x9b0`.
-    count: 4083,
-    sequence: 4083,
+    // theirs `Unit::fight+0x9b0`. Item 3555, 4083 -> 4170 (+87): the Persian
+    // Peltasts' piece 1794 and the Mahout's piece 212 leave from their bays
+    // (`launch::BAYS`), so `1/22`'s javelin strikes `0/2000` on 4047 (13
+    // frames, not 14) and `1/27`'s round the Citizen `0/10` on 4059 (8, not
+    // 9). Frame 4170: ours 8 draws against 6, index 0 — ours
+    // `Guy::set_anim+0x97a < Unit::fight+0x169`, theirs `Unit::fight+0x824`.
+    count: 4170,
+    sequence: 4170,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -305,8 +310,27 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // 25, `damage_frame` 0 against 4059) and its flight on 4061; `1/46`
     // on 4067 (`pos` ours (5469, 9811) theirs (5468, 9811)); and the word
     // 4083's own block 4084, `1/46` taking `cavarch_o` 2005 here against
-    // 10 there (4083) and firing, `fought`/`blown` ours 1 theirs 0.
-    pin_eq!(w.firsts.len(), 1312, "run1189b baseline");
+    // 10 there (4083) and firing, `fought`/`blown` ours 1 theirs 0. Item
+    // 3555, 1312 -> 745: the Persian Peltasts' javelins (piece 1794) and the
+    // Mahouts' rounds (piece 212) leave from their bays, and `0/2000`'s
+    // damage reads 6 (`damage_frac` 10) on 4048 and the Citizen `0/10`'s
+    // `hits_left` 25 on 4060 on both sides. Through 4170 only the standing
+    // families stand (`form`, the ten `SITE[i].reg`, who=1's groups' `held`
+    // and `pool`); the first state parting is `1/46`'s `pos` on 4171, ours
+    // (6657, 7777) against theirs (6648, 7800), and on 4173 theirs' `1/46`
+    // attacks `0/2000` (`g.ox[0]` 2000, `in_range` 1) where ours' takes
+    // `0/11` (`new_ord` 1).
+    pin_eq!(w.firsts.len(), 745, "run1189b baseline");
+    // The count cannot see the Peltasts' bays: `0/2000`'s `build:damage`
+    // parts later on either tree, so the key set is the same. Its frame is
+    // the pin — 4048 when the javelins leave the figure, 4193 from the bay.
+    pin_eq!(
+        w.firsts
+            .get(&(0, 2000, "build:damage".to_string()))
+            .map(|(f, _)| *f),
+        Some(4193),
+        "`0/2000`'s damage parts past the word"
+    );
 }
 
 /// **The long's stride, walked back from the word 4038** (item 3554):
