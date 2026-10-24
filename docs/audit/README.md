@@ -2127,3 +2127,21 @@ unwritten one. Ask which of them the reading is checking, and prefer a
 **diff over the field itself** to either: the assertion that closed this is a
 `CITY`-record census over 610 frames and three archives, which no reading
 would have produced and which now checks on every commit.
+
+## The fifty-third pass's rows, 2026-10-23
+
+Two rows of the brief checklist and one of the walk, each from a landing
+of the fifty-third tranche (`docs/audit/2026-10-23-fable-pass-53.md`):
+
+- **A seams print that is a usage error is said in one line** (Loop 3537):
+  `brief.py` carried argparse's usage block as the print twice in one
+  tranche; `seams_print` says the exit and what to run, and `item_names`
+  keeps a chain of short names whole.
+- **A `view` line names a pair** (Loop 3553): `seams.py --views`, and the
+  `view` lines under `--item`, put a module that steps over a view of one
+  original function beside the live modules that name it.
+- **A quiet key is checked against `standing.py --unread`** (Loop 3547)
+  before the frame is called agreeing; the frame's steps 6 and 7 carry
+  these two, and the pair rule (Loop 3544) is 3513's shape, cited by the
+  booking.
+

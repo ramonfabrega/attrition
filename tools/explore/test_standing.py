@@ -60,7 +60,34 @@ SIBLINGS = '''running 1 test
 test diff::third_pair::run661_s_word_frame_is_widened_whole ... ok
 '''
 
+COVERAGE = '''
+const UNREAD: &[(&str, &str)] = &[
+    // a comment
+    (
+        "GAME/FRAME/BUILDDATA/WALLDATA/OBJECT",
+        "down down_who flags mylos near_o size",
+    ),
+    ("GAME/FRAME/CITIES", "increment length size"),
+];
+'''
+
+
 class Standing(unittest.TestCase):
+    def test_the_unread_keys_are_listed_by_record(self):
+        # Loop 3547: a building's `mylos` is pinned unread, so the Turks'
+        # tower printed 19 against ours' 15 on every block of two widenings
+        # and parted no key; the walk found it only through a packet. The
+        # table is printed beside the standing keys so quiet is not read as
+        # agreement.
+        rows = standing.unread_table(COVERAGE)
+        self.assertEqual(rows, [('GAME/FRAME/BUILDDATA/WALLDATA/OBJECT', 'down down_who flags mylos near_o size'),
+                                ('GAME/FRAME/CITIES', 'increment length size')])
+        lines = standing.unread_lines(rows)
+        self.assertEqual(len(lines), 3)
+        self.assertIn('cannot part', lines[0])
+        self.assertIn('mylos', lines[1])
+        self.assertEqual(len(standing.unread_lines(rows, 'cities')), 2)
+
     def test_the_print_is_read_through_its_colour(self):
         rows = standing.firsts(PRINT.split('\n'))
         self.assertEqual(len(rows), 7)

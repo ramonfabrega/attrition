@@ -68,7 +68,7 @@ Before any reading, in order:
    counts its writers first (889).
 6. **Grep the compared pin for the word's record** (772) **and
    `coverage.rs`'s unread list for the parted field** — quiet is blind
-   (1475) — **pipe the
+   (1475; `standing.py --unread`, 3547) — **pipe the
    widening's `RON_FIRSTS=1` print through `standing.py`**
    (1250, 1471): a standing field this crate reads: the journal, both
    values (769, 834, 1162, 1187); **agreeing is quiet, not proven** (898, 1039).
@@ -81,7 +81,7 @@ Before any reading, in order:
 7. **"Seams, read for you" below**, then `seams.py --field <first
    parted field>`, `--callees <its writer>`, `--unwritten <Struct>`
    (1397, 1382, 1400, 1560), **`--item` on `think_<type>` of a unit the
-   draws name** (2827): the `SEAM`s and gap
+   draws name** (2827) **and the pair a `view` line names** (3553): the `SEAM`s and gap
    paragraphs (830, 860, 1146, 1159, 1193, 1240, 1253, 1322, 1337,
    1340), **grepped for the event's subsystem, not the field** (1633);
    **one side spent nothing: the other's order chain** (1233);
@@ -147,27 +147,26 @@ Before any reading, in order:
 ## chapter
 
 - **At most three arms of one staging; one that opens with a parting
-  ends there**: staging walked, captured, pinned, written; **at the trace's end `word == hi − 1`; `Golden:` is mine**
-  (1781).
-- **An issuer chapter's staging is walked before its capture** (794): a
+  ends there**: staging walked, captured, pinned, written; **at the trace's end `word == hi − 1`; `Golden:` is mine** (1781).
+- **A chapter's staging is walked before its capture** (794): a
   dump when every predicate prints (821), else a staging-only packet
   (808), via the command's entry (885); combat precondition first
   (828); **a cheat goes two frames clear of a birth** (2479).
-- **A staging booked on a function greps its writers and gates
-  first** (903, 968); **a cast lists its callees' line counts first**
-  (2824); **no capture while a packet or widening on disk answers the
-  arm** (2330); **an arm the AI track built: its constant's readers in
-  the export, port or park each** (2356).
-- **`blind.rs` is a pin an issuer chapter moves** (950); a context
-  citation picks address or pin (943). **A control: `--cmd-without <the
-  arm's frame>`, second run** (2542). **The staging is the landing; a
-  build without it parks** (2756).
-- **`success: true` with nothing staged** (1170): `stage_walk` first; **another player's units hold `be` across the
-  pump** (1205); **`@` lines: `issuesmatch.py --none-refused <trace>`**
-  (966, 1256). **A row that will not fit says where** (932, 949);
-  **ids come off `RON_STAGE_ALL`**, `add N <type>` is N squads (1730);
-  **`runwiring.py --chapter N`: places and staged count** (2914); **the
-  walk prints each `add`'s landing** (2970, 2654).
+- **A staging booked on a function greps its writers and gates first**
+  (903, 968); **a cast lists its callees' line counts** (2824); **no
+  capture while a packet or widening on disk answers the arm** (2330);
+  **an AI-track arm: its constant's readers in the export** (2356);
+  **`blind.rs` is a pin an issuer chapter moves** (950), a citation
+  picks address or pin (943); **control:
+  `--cmd-without <the arm's frame>`, second run** (2542); **the staging
+  is the landing; a build without it parks** (2756).
+- **`success: true` with nothing staged** (1170): `stage_walk` first;
+  **another player's units hold `be` across the pump** (1205); **`@`
+  lines: `issuesmatch.py --none-refused <trace>`** (966, 1256); **ids
+  come off `RON_STAGE_ALL`**, `add N <type>` is N squads (1730);
+  **`runwiring.py --chapter N`: places and staged count** (2914); **a
+  row that will not fit says where** (932, 949); **the walk prints each
+  `add`** (2970, 2654).
 
 ## sweep
 
@@ -369,6 +368,11 @@ Before any reading, in order:
   pair's own long lobby retaken at `cover=1`, checked against the
   `cover=0` long, and `rubric.py --tables 4` re-pins
   `census::RUBRIC_LOCKSTEP_BYTES_TENTHS` once it is in `blind::TRACES`.
+  **The twins are spent** (3531–3534, 3548, 3549, 3551, 3552: 77.04 →
+  77.45, hundredths a twin, the eighth none; Loop 3541): every whole pair
+  has one, and lockstep bytes now move only on a `cover=1` take of a lobby
+  no trace has reached — a pair that closes books its twin, and a twin is
+  never booked ahead of its pair.
 
 ## build
 

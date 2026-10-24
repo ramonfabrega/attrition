@@ -101,11 +101,25 @@ def lane_worktree(item):
     return str(base / f'att-{item}')
 
 
+def seams_print(code, text, item):
+    """Loop 3537: a print that is a usage error (`seams.py --item 3529` exited
+    2 on `no name given`, and the brief carried argparse's usage block as if
+    it were the print, twice in one tranche) is one line that says so and
+    names what the lane runs instead."""
+    text = text.strip()
+    if code != 0:
+        last = [line for line in text.split('\n') if line.strip()]
+        why = last[-1].strip() if last else 'no output'
+        return (f'(seams.py --item {item} exited {code}: {why}. Run `python3 tools/seams.py <the '
+                f'chain\'s function names>` or `--field <the first parted field>` yourself.)')
+    return text or '(seams.py printed nothing)'
+
+
 def run_seams(item):
     """`python3 tools/seams.py --item N` on this tree, its stdout and stderr."""
     out = subprocess.run([sys.executable, str(ROOT / 'tools/seams.py'), '--item', str(item)],
                          cwd=ROOT, capture_output=True, text=True, check=False)
-    return (out.stdout + out.stderr).strip() or '(seams.py printed nothing)'
+    return seams_print(out.returncode, out.stdout + out.stderr, item)
 
 
 def sections(frame):

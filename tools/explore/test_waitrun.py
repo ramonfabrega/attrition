@@ -11,6 +11,7 @@ receipt; the receipts keep their verdicts (the queue lane's banner left
 with item 3485).
 """
 import os
+import signal
 import re
 import subprocess
 import tempfile
@@ -49,13 +50,13 @@ class Waitrun(unittest.TestCase):
         # runner was gone.
         name = f'waitrun-fixture-runner-{os.getpid()}'
         runner = Path(self.tmp.name) / name
-        runner.write_text('#!/bin/sh\nsleep 20\n')
+        runner.write_text('#!/bin/sh\nsleep 600\n')  # Loop 3546: lives until killed in finally
         runner.chmod(0o755)
-        alive = subprocess.Popen([str(runner)])
+        alive = subprocess.Popen([str(runner)], start_new_session=True)
         try:
             code, _, err = self.run_it(TRACEBACK, runner=name)
         finally:
-            alive.kill()
+            os.killpg(alive.pid, signal.SIGKILL)  # the sh and its sleep (Loop 3546)
             alive.wait()
         self.assertEqual(code, 2)
         self.assertIn('traceback and no receipt', err)
@@ -70,9 +71,9 @@ class Waitrun(unittest.TestCase):
         # finished whatever else runs; one still owed a map keeps waiting.
         name = f'waitrun-fixture-runner-{os.getpid()}'
         runner = Path(self.tmp.name) / name
-        runner.write_text('#!/bin/sh\nsleep 20\n')
+        runner.write_text('#!/bin/sh\nsleep 600\n')  # Loop 3546: lives until killed in finally
         runner.chmod(0o755)
-        alive = subprocess.Popen([str(runner)])
+        alive = subprocess.Popen([str(runner)], start_new_session=True)
         try:
             code, out, _ = self.run_it('Staged: /x/map-7\n' + RECEIPT_OK, runner=name)
             self.assertEqual(code, 0)
@@ -84,7 +85,7 @@ class Waitrun(unittest.TestCase):
                 subprocess.run(['zsh', str(SCRIPT), str(self.log), '1'], env=env,
                                capture_output=True, text=True, timeout=4)
         finally:
-            alive.kill()
+            os.killpg(alive.pid, signal.SIGKILL)  # the sh and its sleep (Loop 3546)
             alive.wait()
 
     def test_a_receipt_after_a_traceback_is_the_verdict(self):

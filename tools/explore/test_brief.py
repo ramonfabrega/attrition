@@ -211,6 +211,20 @@ class ABriefIsComposed(unittest.TestCase):
         self.assertNotIn('line 299', section)
         self.assertIn('more lines', section)
 
+    def test_a_seams_print_that_is_a_usage_error_is_said_in_one_line(self):
+        # Loop 3537: `seams.py --item 3529` exited 2 on `no name given` and
+        # the brief carried argparse's usage text as if it were the print;
+        # 3540's brief carried it again. A non-zero exit is one line that
+        # says so and names what to run.
+        usage = 'usage: seams.py [-h] [--item ITEM]\nseams.py: error: no name given: pass names, --item'
+        line = brief.seams_print(2, usage, 3529)
+        self.assertNotIn('usage:', line)
+        self.assertIn('exited 2', line)
+        self.assertIn('no name given', line)
+        self.assertIn('seams.py', line)
+        self.assertEqual(brief.seams_print(0, 'SEAM a.rs:1 x\n', 3529), 'SEAM a.rs:1 x')
+        self.assertEqual(brief.seams_print(0, '', 3529), '(seams.py printed nothing)')
+
     def test_a_chapter_s_rows_are_a_chapter_s(self):
         self.assertIn('issuer chapter', self.compose(1131, 'chapter'))
         self.assertNotIn('issuer chapter', self.compose(1133))

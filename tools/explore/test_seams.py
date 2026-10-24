@@ -148,6 +148,36 @@ class Seams(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '1215'):
             seams.item_names(QUEUE, 1215)
 
+    def test_a_chain_of_short_names_is_kept_whole(self):
+        # Loop 3537: `Unit::close < Object::die < Unit::die` left nothing
+        # past the filter, `seams.py --item` exited on `no name given`, and
+        # brief.py pasted the usage text into the brief. The chain's own
+        # names are the fallback when the filter leaves none.
+        queue = QUEUE.replace('Unit::think_scout+0x941 < Unit::think+0x7da\n    < Unit::do_idle+0x94',
+                              'Unit::close+0x12 < Object::die+0x4\n    < Unit::die+0x9')
+        self.assertEqual(seams.item_names(queue, 1214), ['close', 'die'])
+        self.assertEqual(seams.item_names(QUEUE, 1214), ['think_scout', 'do_idle'])
+
+    def test_a_view_module_names_the_live_modules_beside_it(self):
+        # Loop 3553: `eject.rs` steps over `Object::eject_contents` and was
+        # right from item 3356 while the live `eject_riders` in transport.rs
+        # was wrong until item 3550. The listing puts the two side by side.
+        with tempfile.TemporaryDirectory() as tmp:
+            sim = Path(tmp)
+            (sim / 'eject.rs').write_text('//! `Object::eject_contents@0064cd20` as steps over a view (item 3356).\n')
+            (sim / 'transport.rs').write_text('/// `Object::eject_contents(boat, 0, -1, carry, 1)@0064cd20` loop\nfn eject_riders() {}\n')
+            (sim / 'alarm.rs').write_text('/// `Object::eject_contents(0, PEASANTS, 0, 0)` on a building\n')
+            (sim / 'other.rs').write_text('fn nothing() {}\n')
+            (sim / 'sweep').mkdir()
+            (sim / 'sweep' / 'object_eject_contents.rs').write_text('// eject_contents@0064cd20 answered\n')
+            rows = seams.views(sim)
+        self.assertEqual(rows, [('eject.rs', 'Object::eject_contents', '0064cd20', ['alarm.rs', 'transport.rs'])])
+        lines = seams.view_lines(rows, names=['eject_contents'])
+        self.assertEqual(len(lines), 1)
+        self.assertIn('eject.rs', lines[0])
+        self.assertIn('transport.rs', lines[0])
+        self.assertEqual(seams.view_lines(rows, names=['think']), [])
+
     def test_a_seam_its_door_outlived_is_a_door(self):
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / 'world.rs').write_text(SOURCE)

@@ -351,7 +351,13 @@ once read as "never clear", and a drain stopped).
 **An unattended pass has a fence.** It measures the tranche, ratifies the
 marked rows, rules the Loop items, builds the loop's tools and guards,
 and rewrites the queue and the loop's own clauses in this file — one
-commit a person can revert. **Its first act is the archives' compression,
+commit a person can revert. **Its subagents' worktrees are removed at
+their merge** (`git worktree remove`, before the pass's gate: the
+fifty-second pass's, locked by a live `claude bg-spare`, refused the
+fifty-third tranche's tenth booking gate until a person removed it, Loop
+3545) **and the lane rows a drain left idle are reaped at the pass's
+start** (`ccc rm <ref>` on a merged row; eight stood at the fifty-third's
+drain, Loop 3565). **Its first act is the archives' compression,
 backgrounded** — `afsctool -c -f -T LZFSE -J8` on `~/ron-data` and
 `~/ron-golden`, six minutes and 19 GiB on 2026-10-17, never beside a
 gate (DECISIONS 77) — **and its table of the tranche's gates is

@@ -85,13 +85,59 @@ def item_names(queue, item):
     # The chain's functions, and not the parted keys beside them: `group`,
     # `order` and `kind` are in every seam of the tree. A name that is one
     # common word (`think`) is left to be passed by hand.
-    names = [n for n in chain_names(m.group(0)) if '_' in n or len(n) > 8]
+    chain = chain_names(m.group(0))
+    names = [n for n in chain if '_' in n or len(n) > 8]
+    if chain and not names:
+        # Loop 3537: a chain of short names (`Unit::close < Object::die <
+        # Unit::die`) left nothing, the tool exited on `no name given`, and
+        # the usage text was pasted into a brief as the print. The chain's
+        # own names are the fallback when the filter keeps none.
+        names = list(chain)
     # The original's own upper-case names — a type (`OILPLATFORM`), a
     # character class (`CHAR_FARM`), a queue mode (`QUEUE_LAST`) — name
     # the paragraph a field's name misses (parked 1560, 1552's cause).
     names += [n for n in re.findall(r'(?<![A-Za-z0-9_])[A-Z][A-Z0-9_]{3,}(?![A-Za-z0-9_])', m.group(0))
               if '_' in n or len(n) > 4]
     return list(dict.fromkeys(names))
+
+
+VIEW_HEAD = re.compile(r'steps over a view')
+VIEW_FN = re.compile(r'`([A-Za-z_][A-Za-z0-9_:~]*)@(00[0-9a-f]{6})`')
+
+
+def views(sim=None):
+    """Loop 3553: the modules that step over a view of one original function
+    (`//! `Class::method@addr` as steps over a view`), each with the live
+    modules that name the same function by address or by its qualified name
+    — the pair a brief names. `eject.rs`'s `carry_orders` was right from
+    item 3356 while the live `eject_riders` beside it in `transport.rs`
+    was wrong until item 3550, and the Persian word stood on it (2226).
+    `sweep/` is the emulated original's answers, not a live twin."""
+    sim = SIM if sim is None else sim
+    files = {f: f.read_text() for f in sorted(sim.rglob('*.rs')) if 'sweep' not in f.parts}
+    rows = []
+    for f, text in files.items():
+        head = '\n'.join(text.split('\n')[:3])
+        if not VIEW_HEAD.search(head):
+            continue
+        m = VIEW_FN.search(head)
+        fn, addr = m.groups() if m else ('?', '?')
+        live = sorted(g.relative_to(sim).as_posix() for g, u in files.items()
+                      if g != f and (addr in u or fn in u))
+        rows.append((f.relative_to(sim).as_posix(), fn, addr, live))
+    return rows
+
+
+def view_lines(rows, names=None):
+    """One line a view module; with `names`, only the views whose function is
+    among them (bare, as `item_names` gives them)."""
+    out = []
+    for mod, fn, addr, live in rows:
+        if names is not None and bare(fn) not in names:
+            continue
+        out.append(f'view {mod}: steps over `{fn}@{addr}`; the live code that names it: '
+                   + (', '.join(live) or 'none') + ' — read the pair, not one of them (Loop 3553)')
+    return out
 
 
 def matcher(names):
@@ -483,6 +529,9 @@ def main():
                     help="an export name (`Wall::process`): its callees' names are scanned too (parked 1560)")
     ap.add_argument('--callers', action='append', default=[], metavar='FN',
                     help="an export name: its callers' names are scanned too")
+    ap.add_argument('--views', action='store_true',
+                    help='list the modules that step over a view of one original function, beside the '
+                         'live modules that name it (Loop 3553)')
     ap.add_argument('--dated', action='store_true',
                     help='every "no capture" sentence in the tree with its blame day and the runs since (1590)')
     ap.add_argument('--width', type=int, default=260)
@@ -490,6 +539,12 @@ def main():
 
     if args.dated:
         dated(width=args.width)
+        return 0
+
+    if args.views:
+        rows = views()
+        print('\n'.join(view_lines(rows)))
+        print(f'{len(rows)} view modules; a brief on a function one steps over names the live module beside it')
         return 0
 
     if args.doors:
@@ -545,6 +600,8 @@ def main():
     if rx is None:
         ap.error('no name given: pass names, --item, --chain, --callees or --callers')
     print('names: ' + ', '.join(dict.fromkeys(bare(n) for n in names)))
+    for line in view_lines(views(), names=[bare(n) for n in names]):
+        print(line)
 
     found = 0
     for f in sorted(SIM.rglob('*.rs')):

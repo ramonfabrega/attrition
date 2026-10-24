@@ -128,12 +128,41 @@ def report(rows, block=None, every=False, show=4):
     return out, read
 
 
+COVERAGE = ROOT / 'crates/rondata/src/diff/coverage.rs'
+
+
+def unread_table(text):
+    """Loop 3547: the keys the dump prints that the harness pins as unread
+    (`coverage.rs`'s `UNREAD`), by record family. A building's `mylos` is
+    one: the Turks' tower printed 19 against ours' 15 on every block of two
+    widenings and parted no key, and the walk found the 4-tile sight gap
+    only through a packet. A quiet key of this table is read by nothing
+    and cannot part, so quiet is not agreement."""
+    body = text[text.index('const UNREAD'):]
+    body = body[:body.index('\n];')]
+    return re.findall(r'\(\s*"([^"]+)",\s*"([^"]+)"', body)
+
+
+def unread_lines(rows, family=None):
+    rows = [r for r in rows if family is None or family.lower() in r[0].lower()]
+    out = [f'{len(rows)} record families carry keys the harness pins as unread (coverage.rs UNREAD): '
+           'a quiet one is read by nothing and cannot part — a field the walk needs there is read '
+           'from a packet or by a reader the landing adds (Loop 3547)']
+    out += [f'  {path}: {keys}' for path, keys in rows]
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
+    ap.add_argument('--unread', nargs='?', const='', metavar='FAMILY',
+                    help='the keys coverage.rs pins as unread, by record family (Loop 3547); FAMILY narrows')
     ap.add_argument('--block', type=int, help='the block whose keys to list (default: the first)')
     ap.add_argument('--all', action='store_true', help='every block, by frame')
     ap.add_argument('--show', type=int, default=4, help='reader lines a field')
     args = ap.parse_args()
+    if args.unread is not None:
+        print('\n'.join(unread_lines(unread_table(COVERAGE.read_text()), args.unread or None)))
+        return 0
     lines, _ = report(firsts(sys.stdin), args.block, args.all, args.show)
     print('\n'.join(lines))
     return 0

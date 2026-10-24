@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-third tranche (commander, Opus): drained at twenty from `6f020588`**, every lane refilled; **the pass is due**.*
+*2026-10-23, **the fifty-third pass (steer, Fable): the fifty-fourth tranche booked on three Opus lanes at medium** — `docs/audit/2026-10-23-fable-pass-53.md`, DECISIONS 92.*
 
 - **Words**: one open, the Persians at Medieval at 4083 of 4,759 (lower map first — East Indies (Persians, Medieval)), 2226 → 4038 → 4083
-  (3535, 3550, 3554); held-out eight of eight. **The headline, the late ages**: nine pairs stood up, eight whole — the Chinese 3017 → 4467 and
-  the Japanese 4434 → 4547 (3538–3540), the British 4587 → 5522 (3512, 3542), the Turks 2501 → 3812 (3513, 3543); the Persians at Medieval new.
-- **The rubric, lockstep**: ages 8 of 8, types 152 → 162 of 302, **bytes 77.0 → 77.4 %** — every whole pair's `cover=1` twin (3531–3534, 3548,
-  3549, 3551, 3552: 77.04 → 77.45, hundredths a twin, the eighth none; Loop 3541 is the pass's: the twins are spent). Blind: 0 of 39 dead.
-- **For the pass**: twenty landings, two Opus lanes at medium, 9 h 54 (first-parent log); no red booking gate (3552 merged under 3550's whole
-  gate, so the drain's whole gate covers both); Loop rows 3544–3547 and 3553 filed at their merges.
-- **Lanes: none live; one booked** (3555, the Persian word 4083). Next 3556, run 1193. Pools: GOLDEN §149–154, AI §309–310, park PT–PV.
-- **Fable backlog: 17 Loop items** (3553, 3547, 3546, 3545, 3544, 3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
+  (3535, 3550, 3554); held-out eight of eight. **The headline, unit types seen 162 of 302**: nine late-age pairs stood up, eight whole,
+  every whole pair's twin in; the fifty-fourth books eight early-age pairs on the nation lines no dump holds (`rubric.py --tables 3`).
+- **The rubric, lockstep**: ages 8 of 8, types 152 → 162 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
+  that closes books its twin, never ahead (Loop 3541, DECISIONS 92). Blind: 0 of 39 dead on the pass's scan.
+- **The fifty-third, measured**: twenty landings in 9 h 57, 5.26 USD and 34.3 minutes waiting a landing (9.26 / 38.9), two `DEEP`;
+  two red booking gates the handoff did not say (3538's pin, 3513's fixture — Loop 3564); the lane rule held, so a third lane is added.
+- **Lanes: three Opus at medium, none live; nine booked** (3555–3563). Next 3566, run 1209. Pools: GOLDEN §149–154, AI §317–320, park QB–QD.
+- **Fable backlog: 11 Loop items** (3565, 3564, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 92.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -41,7 +41,7 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 162 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-third pass (steer, Fable) — the tranche drained at twenty from `6f020588`; this handoff, Loop 3541 (the twins spent), the backlog.**
+**Opener: the fifty-fourth tranche (commander, Opus) — three Opus lanes at medium, 3555 the Persian word and 3556, 3557 the first pairs; the chain is `docs/LOOP.md`'s, twenty landings, and the drain's last act is `ccc clear steer --then "<the opener the pass writes>"`, every lane reaped.**
 
 ## The queue
 
@@ -55,6 +55,36 @@ the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pa
 Mahout `1/46` takes `cavarch_o` 2005 in ours where theirs holds 10 and fires on 4084; the window's first state parting is 4048, the Nubian
 building `0/2000`'s `build:damage` ours 3 against theirs 6, with ours' `raid_stamp` three frames earlier, then the Citizen `0/10`'s
 missing 25 on 4059 — both before the word, so walk 4048 first. Run 1192; amend §308 in place; park PS.
+
+3556. **The Romans at a held Classical age, Great Sahara** (`GreatSaharaRomanClassical`, map 7, tribe 6, difficulty 5, `STARTING_TECHNOLOGY=1
+ENDING_TECHNOLOGY=1`; `mongol_pair.rs`'s shape, 3535's the latest): the never-seen line is `Scutari` (149) and the age-1 generics
+`rubric.py --tables 3` prints; its `is_no_other_lobby` test reads both `GAME INFO`s (3513's shape, Loop 3544). The start and the `cover=0`
+long on the pool, `end:UNITS=3,GUYS=2` on `--stride 100`, the walk seeded from the start; `diff::roman_classical_pair` at its first
+parting; a `Late ages` scoreboard entry; re-pin `census::RUBRIC_UNIT_TYPES_SEEN`. Runs 1193–1194; AI §309; park PT.
+
+3557. **The Greeks at a held Classical age, East Indies** (`EastIndiesGreekClassical`, map 18, tribe 5, difficulty 5, age 1 held; 3556's
+shape): the line is `Companion` (231) and what the water map adds at age 1 (`Fire Raft` 334). Runs 1195–1196; AI §310; park PU.
+
+3558. **The Mongols at a held Classical age, Great Sahara** (`GreatSaharaMongolClassical`, map 7, tribe 17, difficulty 5, age 1 held;
+the successor pair's lobby is `(7, 17, 3)`, another difficulty): the line is `Nomad` (199). Runs 1197–1198; AI §311; park PV.
+
+3559. **The Koreans at a held Ancient age, East Indies** (`EastIndiesKoreanAncient`, map 18, tribe 16, difficulty 5, age 0 held; the
+held-out `GreatSaharaKoreanTier3` is another map): the lines are `Hwarang` (180), the age-0 `Spearmen` (166) no dump holds, and the
+water map's `Bark` (323) and `Trireme` (340). Runs 1199–1200; AI §312; park PW.
+
+3560. **The Chinese at a held Medieval age, Great Sahara** (`GreatSaharaChineseMedieval`, map 7, tribe 14, difficulty 5, age 2 held; the
+Industrial pair is `(7, 14, 3)`): the line is `Fire Lances` (96), and the age-2 generics. Runs 1201–1202; AI §313; park PX.
+
+3561. **The Lakota at a held Medieval age, East Indies** (`EastIndiesLakotaMedieval`, map 18, tribe 19, difficulty 5, age 2 held; the
+peace pair is `(18, 19, 3)`): the line is `Eagle Feather Horse` (206); the water map's `Brig` (331). Runs 1203–1204; AI §314; park PY.
+
+3562. **The Bantu at a held Ancient age, East Indies** (`EastIndiesBantuAncient`, map 18, tribe 3, difficulty 5, age 0 held; the
+held-out `GreatSaharaBantuTier4` is another map): the line is `Umpakati` (93), with `Spearmen`, `Bark`, `Trireme` if 3559 has not.
+Runs 1205–1206; AI §315; park PZ.
+
+3563. **The Japanese at a held Gunpowder age, Great Sahara** (`GreatSaharaJapaneseGunpowder`, map 7, tribe 15, difficulty 5, age 3 held;
+the Industrial pair is East Indies', the held-out Tier1 another difficulty): the line is `Samurai` (160) and the age-3 generics.
+Runs 1207–1208; AI §316; park QA.
 
 ## How to maintain this file
 
