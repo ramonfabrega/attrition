@@ -27013,9 +27013,58 @@ block 4341:
 | 4341 | Catapult `1/124` (TI 265, land) | `collide_o` / `collide_who` | -1 / -1 | 138 / 1 |
 | 4342 | Javelineers `1/118` (TI 83) | `collide_o` | -1 | 138 |
 
-**The next word**: frame 4341, ours 23 draws against 22, index 8 — ours `Guy::set_anim+0x97a <
-Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. The hypothesis, unwalked: theirs'
-General `1/138` steps and pushes the Catapult where ours' stands idle; the draw's unit is not yet named.
+**Item 3571: a push before the pushed unit's process takes its body's turn** (run1214; the word 4341 → 7865).
+
+- **The draws.** `RON_DEBUG_SITES=4341-4341` gives ours' indices 0–7 unit for unit as theirs' (`report.py … draws
+  4341`): `1/16` ×2, `1/31`, `1/38` ×2, `1/43`, `1/50`, `1/104`. Theirs' 8 is a `move_step+0x823` stand before
+  `1/119`'s idle roll, where ours' 8 is `1/119`'s roll. With the fix built, ours' 8 is the Javelineers `1/118`'s
+  (TI 83) blocked stand, the `collide_o` 138 theirs carries on 4342. `1/118` processes before the General, so
+  what it walks into is the General as 4340 left it; how its two facings make the one disc block and the other
+  not was not read.
+- **The step.** Both Generals get the army's `ATTACKTOORDER` to (39720, 42696) on 4341 (`Leaders::strategy_all`
+  runs before the objects on both sides), and both turn toward the first waypoint (35880, 42696) by the same
+  95443712. Ours turns from 763549781 to 858993493 and still owes 575524011, over `move_step`'s 45°, so it turns
+  in place. Theirs turns from 954437205 to 1049880917, owes 32°, and takes the half step: x 34736 → 34756.
+- **The facing, walked back.** The long's stride (`greek_classical_pair_the_long_s_stride_walks_back_from_4341`,
+  2901..4301, 141 keys of the standing families) parts no unit; the General `1/138` (TypeIndex 54, land) is
+  born on 4328 facing 0x55555555 on both sides. Every frame from 4336 the Catapult `1/124` pushes it, and
+  theirs' guy angle falls by the halved body rate each frame: 1336212053, 1240768341, 1145324629, 1049880917,
+  954437205 on 4336..4340. Ours runs two steps ahead from 4336, where it reads 1145324629.
+- **Who turned it.** On 4336 the Catapult's push turns ours one half-rate step to 1336212053, as theirs, and
+  then the General's own process turns its body a whole body-rate step more (190887424), toward its
+  `des_angle`, in `Guy::move:108`'s standing arm.
+- **The listing.** `Guy::do_turn@005d97a0` sets `guy_flags & 2` whenever it moves the angle, whoever calls it.
+  `Guy::process@005e0230:28` clears it right after `Guy::move`, and nothing else does (`Guy::clear` and
+  `init_real` zero the word). So the bit lives from any turn until the guy's own next `Guy::process`: a push
+  by a unit processed earlier in the frame skips that frame's body turn, and one processed later skips the
+  next. Ours took `frame_facing` at the head of the unit's process, which forgot the earlier push; it is now
+  taken after the figures' `Guy::move` (`lib.rs`, `process_movement_on`). Parked 1339 had named the bit.
+
+`a_push_before_the_pushed_unit_s_process_takes_its_body_s_turn` (`collide.rs`) tests it. `tools/mutate.py`
+reversing the fix fails it (exit 101) and walks the pair back to 4341 (exit 101). Every other lobby's
+`first_parting` stands (44 of 45 green before the re-pin).
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 4336 | General `1/138` (TI 54) | `angle:Facing`, `g.angle[0..1]` | 1145324629 / 1336212053 | agree |
+| 4341 | General `1/138` | `pos` | (34736, 42029) / (34756, 42029) | agrees |
+| 4341 | Catapult `1/124` (TI 265) | `collide_o` / `collide_who` | -1 / -1 against 138 / 1 | agrees |
+| 4341 | draws | index 8 | `1/119`'s `do_idle` roll / a `move_step+0x823` stand | agree (23 / 22 → equal) |
+
+run1212's window falls from **1496 keys to 114**: 4336's 101 standing rows, groups 80 and 89..93's `held` and
+pool, and who=1's `known_rares` on 4584, ours 3 theirs 1 (parked 3571a); no unit row stands.
+
+**The word: 4341 → 7865**, by both count and sequence. On 7865 ours spends 26 draws against theirs' 28, and
+they part at index 24: ours `Farms::inc_time+0x1ae`, theirs `Ammo::do_damage+0xc59`. **run1214** widens it over
+7859..8127, the game's closing block (`greek_classical_pair_run1214_s_word_frame_is_widened_whole`, 268
+blocks, 4473 keys). Block 7859 opens apart: both leaders' `territory` (who=0 140 here against 141 there,
+who=1 1525 against 1524), who=1's wealth (12834 against 12831) and `1/215`'s `damage_frame` (7849 against 7848).
+Groups 86 and 95's `held` and pool part on 7861 and 7865. Block 7866 carries no unit row; the first are on
+7867, the Dromons `1/31` and `1/50`'s explore picks, and on 7868, `1/19`'s orders.
+
+**The next word**: frame 7865, ours 26 draws against 28, index 24 — ours `Farms::inc_time+0x1ae`, theirs
+`Ammo::do_damage+0xc59`. The state parted before 7859 (the territory and `1/215`'s `damage_frame`), and only
+the stride's 7801 is on disk before it.
 
 **The rubric.** `Companion` (231) is never fielded in run1195 or run1196. The `Fire Raft` (334) is (×242), with the
 Dromon (324), the Galley (341) and the Transport Barge (320). An open pair counts only to its word, and frame 8 is

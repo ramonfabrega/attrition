@@ -3666,6 +3666,48 @@ mod tests {
         assert_eq!(sim.units[a].coll_at, Some(to));
     }
 
+    /// **A push before the pushed unit's own process takes its body's
+    /// turn** (`Guy::process@005e0230:28`, item 3571). `Guy::do_turn`
+    /// sets `guy_flags & 2` whoever calls it, and only `Guy::process`
+    /// clears it, after `Guy::move`; so a standing unit another unit
+    /// pushed earlier in the frame skips `Guy::move:108`'s own turn
+    /// toward its `des_angle`. East Indies' General `1/138` on 4336: the
+    /// Catapult `1/124` turns it one half-rate step, and the original's
+    /// body turns no further where this crate's turned a whole step more.
+    ///
+    /// Written to fail first: with the mark taken at the head of the
+    /// unit's process the body turns again.
+    #[test]
+    fn a_push_before_the_pushed_unit_s_process_takes_its_body_s_turn() {
+        let (mut sim, a, _b) = pair(
+            ucell_centre(Pos::new(20, 20)),
+            ucell_centre(Pos::new(30, 30)),
+        );
+        sim.units[a].movement.turning.instant_from_stop = false;
+        let start = Angle(0x5555_5555);
+        let bearing = Angle(0x0936_0000);
+        sim.units[a].movement.facing = start;
+        sim.units[a].movement.frame_facing = start;
+        sim.units[a].movement.heading = bearing;
+        sim.push_turn(a, bearing);
+        let pushed = sim.units[a].movement.facing;
+        assert_ne!(pushed, start, "the push turned guy 0");
+        let mut events = Vec::new();
+        let frame = sim.frame;
+        sim.process_unit(a, frame, &mut events);
+        assert_eq!(
+            sim.units[a].movement.facing, pushed,
+            "the pushed body took its own turn as well"
+        );
+        // And the mark is spent: the next frame's body turns.
+        let frame = sim.frame;
+        sim.process_unit(a, frame, &mut events);
+        assert_ne!(
+            sim.units[a].movement.facing, pushed,
+            "the body never turned once the mark was cleared"
+        );
+    }
+
     /// §4 again, and the half of it that is a **write into the order**:
     /// the probe records the point it refused in `coll_x`/`coll_y`, and
     /// `move_step`'s own stores must not put the stale pair back.
