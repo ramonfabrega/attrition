@@ -9015,7 +9015,7 @@ score.
 ## Parked by item 3391, 2026-10-20 — the nations seat's twenty-first batch
 
 - **3391a. `ObjectData::count_inside` has no crate method.** Swept as the standalone `count_inside_view.rs` (unwired, 37 leaf methods, 18 handled `CountIndex` cases). It is the `count_inside` leaf `build_attack_view.rs` (3387a) and others stub; wiring it with `Sim::attack_of`'s building arm is one booking with 3387a.
-- **3391b. `Wall::update_los` is only partly in `Sim::build_los`.** `wall_los_view.rs` (unwired) is the whole function; `build_los` lacks the fort/tower/colosseum/furs terms, the leader-live gate and the 8-bit wrap, and the crate carries none of the tech bytes (`get_fort_los`, `get_tower_fort_los`), `has_wonder(0x212)`, or the constants block (+0x180, +0x1a8, +0x474, +0x914). The sweep forced one sim fix (an unfinished non-wonder site sees 0, not `1 + x_size/2`); the worker's no-pin claim is a reading of `update_seen_build`'s callers, not a diff run, so the booking gate says. The sweep's slot +0x2c stub is random: Wall's vtable +0x2c is `Window::get_button`, so the wonder test is not exercised through it.
+- **3391b. `Wall::update_los` is only partly in `Sim::build_los`.** ~~The tower term~~ is built (item 3543, `docs/VISION.md` §2.1: `TOWER_FORT_LOS[get_tower_fort_los − 1]`, the tech byte read as the unit bits 66–68); the fort, colosseum and furs terms are 3543b. `wall_los_view.rs` (unwired) is the whole function; `build_los` lacks the fort/tower/colosseum/furs terms, the leader-live gate and the 8-bit wrap, and the crate carries none of the tech bytes (`get_fort_los`, `get_tower_fort_los`), `has_wonder(0x212)`, or the constants block (+0x180, +0x1a8, +0x474, +0x914). The sweep forced one sim fix (an unfinished non-wonder site sees 0, not `1 + x_size/2`); the worker's no-pin claim is a reading of `update_seen_build`'s callers, not a diff run, so the booking gate says. The sweep's slot +0x2c stub is random: Wall's vtable +0x2c is `Window::get_button`, so the wonder test is not exercised through it.
 - **3391c. `follower_des` differs from `Guy::set_angle` at a zero track.** It clamps always; the original only when `dx != 0 || dy != 0`. Reachable only by a `follow` record whose track truncates to (0,0). Also `follower_des`/`sin_component` use unchecked `+=` and `-d` (debug panic near `i32::MAX`, `distance == i32::MIN`; release wraps as the original). Not swept: a crew guy with `+0xa2 == 0` (unbounded recursion on random data), `a1` stride beyond 0/1, a zero-sized world.
 - **3391d. `Unit::action_unqueue` is in no crate path.** `Sim::action_unqueue` is `Build::action_unqueue`; `unit_unqueue_view.rs` (unwired) is the unit arm, which no capture enters (`process_unqueue` SEAM). With a negative upgrade and a nonzero argument the original faults at `types.list[-1]`; callers' contract unverified.
 - **3391e. `SpellType::cast` is spread over `do_cast_effect` and `cast_on`.** `spell_cast_view.rs` (unwired) is the switch in one place (`is_castable == 3`, jump table over `spell - 0x275`); many arms pass `is_castable`'s leftover `ecx`, which the sweep draws but never models from the real callee.
@@ -10329,13 +10329,20 @@ a site. Not booked: no score names it.
   whose current order carries `flags & 0x10` even on a valid target. Item 3540 built only the invalid-target half.
   **Score**: none until a capture has an emplaced weapon re-enter `fight` while recharging.
 
-## Parked by the next landing, slot PM — reserved
+## Parked by item 3543, 2026-10-23 — the Turkish word 2501: a tower's sight, one fog rim
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3543a. A building's `mylos` is unread, and it hid this word.** `coverage.rs` lists
+  `GAME/FRAME/BUILDDATA/WALLDATA/OBJECT mylos` as printed and read by nothing, so no widening compares a building's
+  line of sight. The Turks' tower `1/2012` printed `mylos 19` on every block of run1159b and run1186 against ours'
+  15, and neither widening named it; the walk reached it only through the fog (run1186b's packet). Reading the key
+  means a `build_los` beside every window's building rows, and the fort, colosseum and furs terms (still a `SEAM`) would
+  then part wherever a Fort-line building stands. **Score**: none on its own; it is the guard that names the next
+  sight term on the frame it parts.
+- **3543b. The fort, colosseum and furs terms of `Wall::update_los` stay unbuilt.** Item 3543 built the tower term
+  only (`Sim::build_los`). A fort takes `FORT_UPGRADE_LOS[get_fort_los − 1]` (`movb 0x190(%ecx,%eax,4)`, off
+  `FORT_UPGRADE_RANGE`'s five into the next array), `get_fort_los` from `has_preq(FORTLOS2..4)`; the colosseum
+  adds `COLOSSEUM_FORT_RANGE` (0 as shipped) and furs `FURS_LOS`. `wall_los_view.rs` holds the whole function, swept.
+  **Score**: none until a word parts on a Fort-line building's sight or a furs holder's.
 
 ## Parked by the next landing, slot PN — reserved
 

@@ -9900,13 +9900,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
     // unit on a move where theirs idles it), widened on run1159b over
-    // 2495..2751 (block 2502).
+    // 2495..2751 (block 2502). **3812**, the game's last frame, with
+    // `Wall::update_los`'s tower term (item 3543), walked back on run1186
+    // (1395..1502) and run1186b's packet; widened on run1186c over
+    // 3557..3813 (the closing block 3813), and the closing state scored by
+    // `run1159_turkish_enlightenment_pair_closing_state`.
     (
         "TURKISH_ENLIGHTENMENT_PAIR_WORD",
         crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT_PAIR_WORD,
-        Some("turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole"),
-        3513,
-        Some(crate::diff::turkish_enlightenment_pair::WIDENING_TURKISH_ENLIGHTENMENT_FRAME_2501),
+        Some("turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole"),
+        3543,
+        Some(crate::diff::turkish_enlightenment_pair::WIDENING_TURKISH_ENLIGHTENMENT_CLOSING),
     ),
     // **The peace pair's first word** (item 2320): frame 1384, widened on
     // run848 over 1378..1634 (block 1385); **1984** after item 2351's
@@ -11434,15 +11438,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Turks at a held Enlightenment age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 4), Great Sahara (item 3513): first try 2501, ours
     // turning a unit on a move where theirs idles it, of a game that ends
-    // itself on 3812; widened on run1159b.
+    // itself on 3812; widened on run1159b. Whole by item 3543, the tower
+    // term of a building's sight; its closing state compared, none off,
+    // widened on run1186c.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaTurkishEnlightenment",
         named: "Great Sahara (Turks, Enlightenment)",
         word: crate::diff::turkish_enlightenment_pair::TURKISH_ENLIGHTENMENT_PAIR_WORD,
         length: 3_812,
-        endpoint: None,
-        window: Some("turkish_enlightenment_frame_2501_window"),
+        endpoint: Some("run1159_turkish_enlightenment_pair_closing_state"),
+        window: Some("turkish_enlightenment_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

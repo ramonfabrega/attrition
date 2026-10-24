@@ -25178,3 +25178,69 @@ SHA-256 `2f7931e105dc687ef09930bdd0097dba062159bda5e3f2d4e25ef860282c4394`.
 
 **What it holds**: `turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole`, the word 2501 (block
 2502).
+
+## run1186 — the Turks at a held Enlightenment age, Great Sahara: the walk back's window, blocks 1395..1502 (2026-10-23, item 3543, `att-3543`)
+
+`docs/AI.md` §307. **Disk gap**: the Citizen `1/20` agrees on run1159's stride block 1401 and has parted by 1501. run1158
+holds only the first blocks, run1159 every hundredth, and run1159b starts at 2495, so no dump held a block in
+1402..1500. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1186 --map 7 --end-frame 1502 --timeout 3600
+--log-window 1395 1502 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 8 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover
+cover=0`.
+- Pool lane 1. Launched 18:22:03, exited 18:22:28 (25.3 s launch to exit). `success`: 1503 frames, last frame 1502.
+  `rngcmp.py` against run1159: **1503 frames in common, 0 differing**. `unitat.py` on `1/20` agrees with run1159 on
+  block 1501. Filed with `filerun.py run1186 greatsahara-turkish-enlightenment-window-1395-1502`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1186-greatsahara-turkish-enlightenment-window-1395-1502.txt`, 180,857,787 bytes,
+SHA-256 `faaeb429fe5bbabd1c5e6d07ae8f25053b202680bc122d1b62895867a522d136`.
+
+Archive `rontrace-run1186.log`, 14,078,528 bytes,
+SHA-256 `279eba8019543fb66adc280be7fc593658d39c9bbf7af0c1ec0133a6307c1ca9`.
+
+**What it holds**: `turkish_enlightenment_pair_run1186_s_walk_back_is_widened_whole`. `1/20`'s `path[11].to` is
+apart on block 1395 and its position from 1416.
+
+## run1186b — the Turks at a held Enlightenment age, Great Sahara: a packet at logger frame 1377, the Citizen's plan (2026-10-23, item 3543, `att-3543`)
+
+`docs/AI.md` §307. **What the disk could not answer**: what theirs' pathfinder read on tick 1377, when `1/20` plans
+its walk to the Village. Ours prices cell (54, 16) unseen. No capture prints the `seen2` fog grid or a `WData` past
+the start, and run1186 starts at 1395. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1186b --map 7
+--end-frame 1380 --timeout 3600 --log-window 1376 1379 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 8 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3 --cover
+cover=0 --tracer-def RON_STATE_FRAME=1377 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 18:29:58, exited 18:30:14 (16.3 s launch to exit). `success`, 1381 frames. The packet's
+  header reads frame 1377, trace frame 1376. `rngcmp.py` against run1159: **1381 frames in common, 0 differing**.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1186b/map-7/frame-snapshot.bin`, 847,773,484 bytes,
+SHA-256 `776e4b9c346f99787d69797f34cb3e5ddbd4c2c9c9c0ac5234987cdd5b518f37`. The window's dump and trace stay in
+the capture directory, and nothing reads them.
+
+**What it holds**: `WorldData` at `0xc097e8`. Cells (53, 17), (54, 17), (54, 16) and (53, 18) agree with ours on
+`blocked`, owner and danger. **29 half-cells of `seen2` are lit for who=1 in theirs only**: the rim of the tower
+`1/2012`'s disc, half-cell (109, 33) among them. The reads were scratch scripts over `tools/recomp/snapshot.py`, kept
+outside git.
+
+## run1186c — the Turks at a held Enlightenment age, Great Sahara: the closing window, blocks 3557..3813 (2026-10-23, item 3543, `att-3543`)
+
+`docs/AI.md` §307. **Disk gap**: the word closed at 3812 (item 3543). run1159's closing block prints units, and
+`run1159_turkish_enlightenment_pair_closing_state` compares them none off. The long prints no building, city or
+leader record between its stride block 3701 and the closing block, and run1159b ends on 2751.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1186c --map 7 --end-frame 3812 --allow-early-end
+--timeout 3600 --log-window 3557 3813 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 8
+--profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3
+--cover cover=0`.
+- Pool lane 1. Launched 18:43:40, exited 18:44:25 (45.3 s launch to exit). `success`: 3813 frames, last frame 3812,
+  closing frame 3813, 257 `BEGIN FRAME`s. `rngcmp.py` against run1159: **3813 frames in common, 0 differing**. Filed
+  with `filerun.py run1186c greatsahara-turkish-enlightenment-window-3557-3813`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1186c-greatsahara-turkish-enlightenment-window-3557-3813.txt`, 529,116,208 bytes,
+SHA-256 `9a0991be48e52f33c9ce86c103fb9366f04579d06341bdc2bf155d9a6204b5ba`.
+
+Archive `rontrace-run1186c.log`, 51,202,272 bytes,
+SHA-256 `77b15ff939605755803aee2bfa2ad219528ecfdb293b443466e314c46569a860`.
+
+**What it holds**: `turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole`, the word 3812 (the closing
+block 3813).
