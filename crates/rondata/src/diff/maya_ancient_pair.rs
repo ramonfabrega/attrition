@@ -34,8 +34,14 @@ pub(crate) const MAYA_ANCIENT: Pair = Pair {
     // 31 draws against 29, index 16 — ours `Leader::produce_building+0x1805`
     // (who=1 places a second Senate, `1/2042` at (38016, 41376)), theirs
     // `Leader::make_stuff+0x63d` (`docs/AI.md` section 320).
-    count: 4182,
-    sequence: 4182,
+    //
+    // Item 3597: 4182 → 4324. The Senate arm of `LeaderData::type_avail`
+    // refuses the second Senate while the first's site is unfinished
+    // (`num_queued[SENATE]`); the word is now frame 4324, ours 11 draws
+    // against 12, index 1 — ours `Unit::fight+0x9b0`, theirs
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823` (section 320.1).
+    count: 4324,
+    sequence: 4324,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
