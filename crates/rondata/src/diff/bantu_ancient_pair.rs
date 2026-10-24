@@ -41,8 +41,14 @@ pub(crate) const BANTU_ANCIENT: Pair = Pair {
     // where ours offered it at 21504000 on 4179. Ours 39 draws against 40,
     // index 31, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
-    count: 5072,
-    sequence: 5072,
+    // Item 3591: **5322** (+250) — the Umpakati's and the Yangombi
+    // Umpakati's bays (`launch::BAYS`, pieces 43 and 44): `1/86`'s javelin
+    // at the Citizen `0/11` leaves from (6799, 8469) and flies 15 frames,
+    // where it left the figure's own square and flew 16. Ours 26 draws
+    // against 27, index 22, ours `Farms::inc_time+0x1ae`, theirs
+    // `Object::take_damage+0xe1`.
+    count: 5322,
+    sequence: 5322,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -285,5 +291,174 @@ fn bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole() {
     // (`damage_frame` ours 5056 and 5036 against theirs 5055 and 5035, and
     // their positions) and who=1's `1/86`..`1/88`, whose move orders' `y`
     // are 48 apart (`1/86` ours 7896 against theirs 7848).
-    pin_eq!(w.firsts.len(), 4465, "run1236b baseline");
+    //
+    // Item 3591: **97**, from the Umpakati's bays. `1/86`'s javelin strikes
+    // `0/11` on 5035 on both sides, and on the old word's block 5073
+    // `1/86`'s `collide_o` and `collide_who` agree. The standing families
+    // (84 rows on 5066, and two groups' `held` and pool on 5084 and 5086)
+    // and nine rows after them: the first is `1/86`'s `order:target` on
+    // 5107, ours `0/13` against theirs `0/11`; then `1/41`'s target on
+    // 5253 (ours `0/3`, theirs `0/2000`), the `dest_angle`s of `1/110`,
+    // `1/140` (5279) and `1/107` (5303), and `0/2000`'s `damage_frac`,
+    // `raid_stamp` (5299) and `damage` (5315, ours 30 against 31).
+    pin_eq!(w.firsts.len(), 97, "run1236b baseline");
+}
+
+/// **The long's stride, walked back from the word 5072** (item 3591):
+/// run1236b's window opens apart on 5066, and only run1206's stride blocks
+/// are on disk between run1236's 4186 and run1236b's 5066.
+pub(crate) const WIDENING_BANTU_ANCIENT_STRIDE: (i64, i64) = (101, 5001);
+
+pub(crate) fn bantu_ancient_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1206 stride",
+        &[(BANTU_ANCIENT.long.0, WIDENING_BANTU_ANCIENT_STRIDE.0)],
+        WIDENING_BANTU_ANCIENT_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_the_long_s_stride_walks_back_from_5072() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 50, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3591: 182 keys, the standing families alone — every unit's
+    // `form` and `build:extra` — from 101 through 5001: no unit field
+    // parts on any stride block, so the state run1236b opens apart on
+    // 5066 parts after 5001.
+    pin_eq!(w.firsts.len(), 182, "the stride's baseline");
+}
+
+/// run1238: the stride's gap walked, blocks 4995..5073 at the long's
+/// detail with `LEADERS=9` (item 3591) — six blocks over the stride's
+/// 5001, and through run1236b's first block 5066 to the word's 5073.
+pub(crate) const RUN1238: &str = "gamelog-run1238-eastindies-bantu-ancient-window-4995-5073.txt";
+
+/// The window: block 4995 through 5073.
+pub(crate) const WIDENING_BANTU_ANCIENT_GAP_5066: (i64, i64) = (4995, 5073);
+
+/// **The state's parting walked back from 5066**: run1238 walked from
+/// run1205's start with the recorder on (item 3591).
+pub(crate) fn bantu_ancient_gap_5066_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1238",
+        &[(RUN1238, WIDENING_BANTU_ANCIENT_GAP_5066.0)],
+        WIDENING_BANTU_ANCIENT_GAP_5066,
+        1,
+        &[5066, 5073],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_run1238_walks_the_parting_back_from_5066() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_gap_5066_window() else {
+        return;
+    };
+    // Blocks 4995..5072: frame `f` writes block `f + 1`, and the walk
+    // stops at the window's tail.
+    pin_eq!(w.blocks, 78, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3591, the first walk: 181 keys. Beside the standing families,
+    // the first parted field is on block 5036: both leaders'
+    // `treaties[·]` ours 1 against theirs 3 (bit 2, the struck mark) and
+    // the Citizen `0/11`'s blow — `damage_frame` ours 0 against theirs
+    // 5035, `hits_left` 40 against 37 — and its flight (`orders_x`,
+    // `orders_y` ours 7320, 7320 against 7944, 5928). The round is
+    // `1/86`'s (TI 93, land), thrown on 5021 on both sides: run1238b's
+    // `AMMO=5` prints it leaving (6799, 8469) with `total_time` 15, and
+    // ours threw from the figure's own square (6792, 8520) for 16.
+    //
+    // With the Umpakati's bays: **92**, the standing families alone.
+    pin_eq!(w.firsts.len(), 92, "run1238 baseline");
+}
+
+/// run1238d: the word 5322's window, blocks 5316..5572 at the long's
+/// detail — six blocks before the word's block 5323 and 250 after (item
+/// 3591); run1236b ends on 5322.
+pub(crate) const RUN1238D: &str = "gamelog-run1238d-eastindies-bantu-ancient-window-5316-5572.txt";
+
+/// The window: block 5316 through 5572; the word 5322's own block is 5323.
+pub(crate) const WIDENING_BANTU_ANCIENT_FRAME_5322: (i64, i64) = (5316, 5572);
+
+/// **The word 5322's window**: run1238d walked from run1205's start with
+/// the recorder on (item 3591).
+pub(crate) fn bantu_ancient_frame_5322_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1238d",
+        &[(RUN1238D, WIDENING_BANTU_ANCIENT_FRAME_5322.0)],
+        WIDENING_BANTU_ANCIENT_FRAME_5322,
+        1,
+        &[5323],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_frame_5322_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3591, the first walk: 4333 keys. The word's block 5323 parts
+    // the human's `0/2002`: `damage` ours 0 against theirs 1 and
+    // `damage_frac` 0 against 10, a blow theirs lands on 5322 and ours
+    // does not (theirs' draw 22 is `Object::take_damage+0xe1`). The state
+    // is already apart on 5316, the window's first block: beside the
+    // standing families, `1/41`'s `order:target` (ours `0/3`, theirs the
+    // city centre `0/2000`, apart from 5253 on run1236b), and on 5318
+    // `0/2000`'s `damage` 34 against 35 and `raid_stamp` 5316 against
+    // 5317.
+    pin_eq!(w.firsts.len(), 4333, "run1238d baseline");
 }

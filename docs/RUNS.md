@@ -26405,6 +26405,99 @@ SHA-256 `12594749deeab6954cff3f0917d1a30bf152b06f1bff1cccaa8cef87a139984b`.
 **What it holds**: `bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole`, the word 5072 (block 5073): 256
 blocks and 4465 keys. On 5073, `1/86`'s `collide_o` and `collide_who` are ours −1 and −1 against theirs 87 and 1.
 The state is already apart on 5066, the window's first block.
+## run1238 — the Bantu from an Ancient start, East Indies: the parting walked back from 5066, blocks 4995..5073 (2026-10-24, item 3591, `att-3591`)
+
+`docs/AI.md` §315.2. **What the disk could not answer**: where the state parts before 5066. run1206's stride agrees on
+every unit field through 5001 (`bantu_ancient_pair_the_long_s_stride_walks_back_from_5072`: 50 blocks, the standing
+families alone), and run1236b opens apart on 5066. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1238
+--map 18 --end-frame 5073 --timeout 3600 --log-window 4995 5073 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. The first take died at launch: a Wine page fault (`Unhandled page fault on read access to 00004ECD`),
+  exit 9, and the runner's retake exit 5 a second later, with no game frame. Its directory is kept as
+  `~/ron-golden/run1238-dead1`. The second take launched 13:37:13 and exited 33.9 s later. `success`, 5074 frames.
+  `rngcmp.py` against run1206: 5074 frames identical. Filed with `filerun.py run1238
+  eastindies-bantu-ancient-window-4995-5073 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1238-eastindies-bantu-ancient-window-4995-5073.txt`, 176,106,378 bytes,
+SHA-256 `f5f26db92347c29e9047d379b7a2e06330fce0b58ddaf55f8e3003a9770e3d76`.
+
+Archive `rontrace-run1238.log`, 98,350,560 bytes,
+SHA-256 `6e2b2c26758f71601d6c8a0d0e0c732d421922ef6b026cadff5cc3cd5c6aab83`.
+
+**What it holds**: `bantu_ancient_pair_run1238_walks_the_parting_back_from_5066`. Before item 3591 its first parted
+field was on block 5036: both leaders' `treaties[·]` (ours 1, theirs 3) and the Citizen `0/11`'s blow, `damage_frame`
+ours 0 against theirs 5035.
+
+## run1238b — the Bantu from an Ancient start, East Indies: the Umpakati's rounds at `AMMO=5`, blocks 5015..5080 (2026-10-24, item 3591, `att-3591`)
+
+`docs/AI.md` §315.2. **What the disk could not answer**: where theirs' javelin leaves from and how long it flies. Only
+`AMMO` prints a round. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1238b --map 18 --end-frame 5080
+--timeout 3600 --log-window 5015 5080 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 13:43:49, exited 33.8 s later. `success`, 5081 frames. `rngcmp.py` against run1206: 5081
+  frames identical. Filed with `filerun.py run1238b eastindies-bantu-ancient-ammo-5015-5080 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1238b-eastindies-bantu-ancient-ammo-5015-5080.txt`, 146,662,928 bytes,
+SHA-256 `e4ab8de5b6367773800c20e987438bdfd76cbcf29d4b9746a0b69795b055f956`.
+
+Archive `rontrace-run1238b.log`, 98,416,608 bytes,
+SHA-256 `b621903227a04a4567fd65ab3f6fdf7f7f8350e1d1e57ea72ffe3ea5462602d5`.
+
+**What it holds**: four Umpakati rounds, each first printed one block after its launch. `1/86`'s on 5022 leaves
+(6799, 8469, 475) with `total_time` 15, from the figure at (6792, 8520), `z` 288. `1/87`'s on 5042 leaves (6992, 8185,
+496), `1/90`'s on 5043 (5990, 8743, 370) and `1/91`'s on 5050 (5498, 9071, 270).
+`the_umpakati_s_bays_are_the_packet_s_sweep_and_run1238b_s_rounds` reproduces all four.
+
+## run1238c — the Bantu from an Ancient start, East Indies: a packet at logger frame 5021, pieces 43 and 44 (2026-10-24, item 3591, `att-3591`)
+
+`docs/AI.md` §315.2. **What the disk could not answer**: the Umpakati's `AttachPos` rows. They exist only in the
+process (`GraphicEvents::init_unit_events`), and run1236's packet, at 4179, is from before any Umpakati is out.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1238c --map 18 --end-frame 5022 --timeout 3600
+--log-window 5020 5022 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=5021 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 13:48:14, exited 77.3 s later. `success`, 5023 frames. `rngcmp.py` against run1206: 5023
+  frames identical. Filed with `filerun.py run1238c eastindies-bantu-ancient-packet-5021 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1238c-eastindies-bantu-ancient-packet-5021.txt`, 1,128,588 bytes,
+SHA-256 `e67779caddd1f18218704ef24a8173eb7df400ffac3ba1e07fbe09682cdaddbd`.
+
+Archive `rontrace-run1238c.log`, 97,292,064 bytes,
+SHA-256 `94a84d748f0e133846a08c9e2290df6d3b277792c17ed307ab681c83b46ac218`.
+
+Packet `~/ron-golden/run1238c/map-18/frame-snapshot.bin`, 791,682,056 bytes,
+SHA-256 `7d339a4904d76e7b500b17faaa42af60285d46b1b539cf43e82d0a8d5f1a8fd1`.
+
+**What it holds**: `tools/recomp/get_position.py … entries 43` and `entries 44` print three rows each, node 0, at
+`CHAR_ATTACK1` frame 12, `CHAR_ATTACK2` frame 6 and `CHAR_ATTACK3` frame 27. The floats are bit for bit the same and
+the scale is 1.0. The two pieces' `sweep`s are identical at all 361 headings. `launch::BAYS`' six rows are the centroid of
+each row's exact region.
+
+## run1238d — the Bantu from an Ancient start, East Indies: the word 5322's window, blocks 5316..5572 (2026-10-24, item 3591, `att-3591`)
+
+`docs/AI.md` §315.2. **What the disk could not answer**: the word 5322's block 5323. run1236b ends on 5322.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1238d --map 18 --end-frame 5572 --timeout 3600
+--log-window 5316 5572 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 13:56:54, exited 53.7 s later. `success`, 5573 frames. `rngcmp.py` against run1206: 5573
+  frames identical. Filed with `filerun.py run1238d eastindies-bantu-ancient-window-5316-5572 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1238d-eastindies-bantu-ancient-window-5316-5572.txt`, 610,014,016 bytes,
+SHA-256 `99858b0a08b26062ea7093333d0424eb5034a3cc73d13b856647ba9833a4f2b3`.
+
+Archive `rontrace-run1238d.log`, 111,792,960 bytes,
+SHA-256 `ccfdf080a24379d05e7d680ff6e93529eef276d2a581dec5863c7533bad022bc`.
+
+**What it holds**: `bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole`, the word 5322 (block 5323): 256
+blocks and 4333 keys. On 5323 the human's `0/2002` takes a blow in theirs alone (`damage` 1, `damage_frac` 10). The
+state is already apart on 5316, the window's first block (`1/41`'s target).
+
 ## run1207 — the Japanese at a held Gunpowder age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3563, `att-3563`)
 
 `docs/AI.md` §316. §313's lobby with the nation and the age moved, through `viadriver.sh
