@@ -10508,3 +10508,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1217  --map 18 --end-frame 7730 --log-window 7727 7729 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 5 --cover cover=0 --tracer-def RON_STATE_FRAME=7728, run1195's lobby   (a packet: the Archers' round)
 #   run1217b --map 18 --end-frame 7870 --log-window 7678 7870 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 5 --cover cover=0, run1195's lobby   (the Archers' rounds)
 # Checks: `rngcmp.py` run1196 vs run1217 -> 7731 identical; vs run1217b -> 7871 identical.
+# ==== item 3578: the Korean word 4350 -> 5639, whole (`docs/AI.md` §312; `docs/RUNS.md` run1221) ====
+#   run1221  --map 18 --end-frame 4289 --log-window 4286 4288 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 16 --cover cover=0 --tracer-def RON_STATE_FRAME=4287, run1199's lobby   (a packet: the Slinger's stone and the Hwarang's arrow; the first take died in Wine at start-up)
+# Checks: `rngcmp.py` run1200 vs run1221 -> 4290 identical.
