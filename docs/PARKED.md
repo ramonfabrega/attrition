@@ -10573,6 +10573,16 @@ on one of those keys would book a window with `AMMO=5`.
 are `form`, `SITE[i].reg`, both leaders' `aggression`, `build:extra` and who=1's groups' `held` and pools —
 the families every pair carries. **Score**: none.
 
+(3578c) **The Korean pair's closing block reads the human's defeat apart on twelve rows.** run1200 ends on
+5639 with the Nubians `defeated_by 1` (`lost_capital_stamp 5639`), and its closing block 5640, printed at
+`endgame:` detail (`BUILDS=7`, `DEATHS=1`), is the first closing block a walk has read with queues on it.
+Every one of theirs' 67 `queue:queued` reads 0, where ours holds who=1's eight at 1..5 and its leader's
+`num_queued[1]` 6 and `[130]` 2; who=0's `leader:defense` is ours 0 against theirs −1; and `1/2061`'s
+`gather:length[-1]` ours 0 against theirs 73. No unit row parts, and `run1200_korean_ancient_pair_closing_state`
+compares 156 units with none off. What the original does to queues, the loser's `defense` and a gatherer's
+length at a defeat that ends the game is not read. **Score**: none — the endpoint's units agree; a closing
+check that reads queues would book it, with the end-of-game path read first.
+
 ## Parked by the next landing, slot QL — reserved
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief

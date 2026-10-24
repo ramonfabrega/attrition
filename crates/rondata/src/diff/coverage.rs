@@ -3338,7 +3338,10 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // merged with it `job_counter` is compared and off this pin again.
     ("BuildDump", "cliff flags max_age mining_size mtn orig_type"),
     // `DEATH_OBJS`: the window holds no death; the rows register on one.
-    ("DeathDump", "cur_anim first_frame gpiece o valid who"),
+    // Item 3578: the Korean pair's closing walk reads run1200's closing
+    // block at its `endgame:` detail, `DEATHS=1`, so every death field but
+    // `gpiece` is compared.
+    ("DeathDump", "gpiece"),
     // The group record is compared whole since item 1061
     // (`second::widen_records`), `think_frame` since item 1423.
     // `role` is compared on an army's group alone, and registers on
@@ -3452,6 +3455,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::greek_classical_pair::greek_classical_stride_7865_window(),
         || super::korean_ancient_pair::korean_ancient_frame_4350_window(),
         || super::korean_ancient_pair::korean_ancient_stride_window(),
+        || super::korean_ancient_pair::korean_ancient_closing_window(),
         || super::persian_medieval_pair::persian_medieval_landing_2172_window(),
         || super::persian_medieval_pair::persian_medieval_frame_4038_window(),
         || super::persian_medieval_pair::persian_medieval_frame_4523_window(),

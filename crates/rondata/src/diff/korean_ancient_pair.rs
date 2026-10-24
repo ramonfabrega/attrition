@@ -279,3 +279,54 @@ fn korean_ancient_pair_the_long_s_stride_walks_back_from_4350() {
     // families alone.
     pin_eq!(w.firsts.len(), 125, "the stride's baseline");
 }
+
+/// **The pair's last blocks, from the disk** (item 3578): the word is the
+/// game's last frame, 5639, and run1200 itself prints the stride's blocks
+/// 4401..5601 and the closing block 5640 at its `endgame:` detail, so the
+/// widening that holds the word walks the long rather than a new window.
+pub(crate) const WIDENING_KOREAN_ANCIENT_CLOSING: (i64, i64) = (4401, 5640);
+
+pub(crate) fn korean_ancient_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[KOREAN_ANCIENT.start],
+        true,
+        KOREAN_ANCIENT.long,
+        "run1200 closing",
+        &[(KOREAN_ANCIENT.long.0, WIDENING_KOREAN_ANCIENT_CLOSING.0)],
+        WIDENING_KOREAN_ANCIENT_CLOSING,
+        1,
+        &[5640],
+        true,
+    )
+}
+
+#[test]
+fn korean_ancient_pair_run1200_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = korean_ancient_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 14, "every stride block and the closing block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3578, the pair whole: **164** keys. Through 5601 every row is a
+    // standing family (`form`, `SITE[i].reg`, `aggression`, `build:extra`,
+    // who=1's groups' `held` and pools); no unit row parts on any block.
+    // The closing block 5640 adds twelve, each the human's defeat on 5639
+    // (`defeated_by 1`, `lost_capital_stamp 5639`): who=1's eight
+    // `queue:queued` and two `num_queued` rows, ours 1..6 against theirs 0
+    // (every one of theirs' 67 queues reads 0), who=0's `leader:defense`
+    // ours 0 against -1, and `1/2061`'s `gather:length[-1]` ours 0
+    // against 73 (parked 3578c).
+    pin_eq!(w.firsts.len(), 164, "the closing walk's baseline");
+}

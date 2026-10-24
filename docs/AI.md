@@ -27260,7 +27260,10 @@ frame later in ours) was the frame and not the cause.
 - **The value diff.** With the nine rows both rounds leave from the dump's points and land on its frames, and
   `0/13`'s `damage_frame` 4294 and `damage_frac` 10 agree on 4301. run1200b's widening goes 2330 → 83 keys and the
   stride 128 → 125, the standing families alone (parked 3578b). `run1200_korean_ancient_pair_closing_state`
-  compares the closing block 5640 whole: 156 units, none torn, off or unlinked, no field row.
+  compares the closing block 5640 whole: 156 units, none torn, off or unlinked, no field row. The word's widening is
+  run1200 itself over its stride 4401..5601 and the closing block, which its `endgame:` detail prints
+  (`korean_ancient_pair_run1200_s_closing_frame_is_widened_whole`, 14 blocks, 164 keys): no unit row parts, and the
+  closing block adds twelve rows of the human's defeat on 5639 — who=1's queues, who=0's `defense` (parked 3578c).
 - **Tests**: `launch::tests::run1221_s_korean_stone_and_arrow_leave_from_their_bays`. Mutations through
   `tools/mutate.py`: piece 1088's `ATTACK3` row renamed walks back to 4350; piece 130's `ATTACK1`@22, to 4702.
   Seven of the nine keys are diffed on no dumped round (parked 3578a).

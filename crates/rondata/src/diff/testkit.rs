@@ -7293,6 +7293,7 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // frame 5639, reads 181 inexact corners.
     ("korean_ancient_pair_first_parting", 181),
     ("run1200_korean_ancient_pair_closing_state", 181),
+    ("korean_ancient_pair_run1200_s_closing_frame_is_widened_whole", 181),
     // Item 3559: run1200b's window over 4345..4601, walked from run1199's
     // start past 4350, reads 13 inexact corners (the first parting's walk,
     // to 4350, reads none); item 3578, with the Korean bays, 16.
@@ -9964,14 +9965,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run1200b over 4345..4601 (block 4351). **Item 3578: whole at 5639**,
     // the game's last frame: the Korean stones leave from piece 1088's
     // bays and the Hwarang's arrows from piece 130's. run1200b's test
-    // keeps the move's value diff (2330 keys to 83); the closing state is
-    // `run1200_korean_ancient_pair_closing_state`.
+    // keeps the move's value diff (2330 keys to 83). The last blocks are
+    // widened on run1200 itself over its stride 4401..5601 and the closing
+    // block 5640, which its `endgame:` detail prints, and the closing state
+    // is scored by `run1200_korean_ancient_pair_closing_state`.
     (
         "KOREAN_ANCIENT_PAIR_WORD",
         crate::diff::korean_ancient_pair::KOREAN_ANCIENT_PAIR_WORD,
-        Some("korean_ancient_pair_run1200b_s_word_frame_is_widened_whole"),
+        Some("korean_ancient_pair_run1200_s_closing_frame_is_widened_whole"),
         3578,
-        Some(crate::diff::korean_ancient_pair::WIDENING_KOREAN_ANCIENT_FRAME_4350),
+        Some(crate::diff::korean_ancient_pair::WIDENING_KOREAN_ANCIENT_CLOSING),
     ),
     // **The land map's first pair below age 2** (item 3556): the Romans at a held
     // Classical age, Great Sahara — 4069 first try, widened on run1194b
@@ -11612,7 +11615,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::korean_ancient_pair::KOREAN_ANCIENT_PAIR_WORD,
         length: 5_639,
         endpoint: Some("run1200_korean_ancient_pair_closing_state"),
-        window: Some("korean_ancient_frame_4350_window"),
+        window: Some("korean_ancient_closing_window"),
     },
     // The Romans at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3556): first try 4069, the
