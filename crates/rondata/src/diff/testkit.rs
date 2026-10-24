@@ -10018,12 +10018,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Chinese at a held Medieval age** (item 3560): Great Sahara —
     // 2981 first try, widened on run1202b over 2975..3231 (block 2982);
     // 3030 (item 3577: the Fire Lances' bays), block 3031 in the same window.
+    // **Item 3580: whole at 4520**, the game's last frame: a burning
+    // round's kill spends `Unit::close`'s three draws (`flame="1"`).
+    // run1202b's test keeps 3030's value diff (2738 keys to 53); the last
+    // blocks are widened on run1223 over 4265..4521 (the word's block 4521
+    // is the closing block), and the closing state is scored by
+    // `run1202_chinese_medieval_pair_closing_state`.
     (
         "CHINESE_MEDIEVAL_PAIR_WORD",
         crate::diff::chinese_medieval_pair::CHINESE_MEDIEVAL_PAIR_WORD,
-        Some("chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole"),
-        3577,
-        Some(crate::diff::chinese_medieval_pair::WIDENING_CHINESE_MEDIEVAL_FRAME_2981),
+        Some("chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole"),
+        3580,
+        Some(crate::diff::chinese_medieval_pair::WIDENING_CHINESE_MEDIEVAL_CLOSING),
     ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
@@ -11661,8 +11667,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "Great Sahara (Chinese, Medieval)",
         word: crate::diff::chinese_medieval_pair::CHINESE_MEDIEVAL_PAIR_WORD,
         length: 4_520,
-        endpoint: None,
-        window: Some("chinese_medieval_frame_2981_window"),
+        endpoint: Some("run1202_chinese_medieval_pair_closing_state"),
+        window: Some("chinese_medieval_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

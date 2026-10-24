@@ -26102,3 +26102,27 @@ SHA-256 `cead8012c6632d89ece3401b8d304e7af95f4366a786d0a9e0d99260f076350b`.
 (12, 27) and (13, 19), scale 1.0 — the keys `artdata::piece_releases` names. Each key's `sweep` over 361 headings
 has one feasible `sim::launch::Bay` region (606, 344 and 192 lattice points), `z` 95, 78 and 130; the rows are the
 regions' middles.
+
+## run1223 — the Chinese at a held Medieval age, Great Sahara: the closing window, blocks 4265..4521 (2026-10-24, item 3580, `att-3580`)
+
+`docs/AI.md` §313. **Disk gap**: the word closed at 4520, the game's last frame (item 3580). run1202b ends on 3231,
+and run1202 prints units only every hundredth block, so no dump held the last blocks for the word's widening. `--map 7
+--end-frame 4520 --allow-early-end --timeout 3600 --log-window 4265 4521 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --profile STARTING_TECHNOLOGY=2 --profile
+ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --cover cover=0`, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1223`.
+- Pool lane 1, seed 12345. Launched 07:43:39, exited 07:44:38 (59.2 s launch to exit). `success`: 4521 frames, last
+  frame 4520, closing frame 4521. `rngcmp.py` against run1202: **4521 frames in common, 0 differing**. Filed with
+  `filerun.py run1223 greatsahara-chinese-medieval-window-4265-4521`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1223-greatsahara-chinese-medieval-window-4265-4521.txt`, 555,344,178 bytes,
+SHA-256 `4536fa67c3406d817785df0c67d6e9521745ad9613ab706c2d1de0c4cfaa08b7`.
+
+Archive `rontrace-run1223.log`, 93,771,808 bytes,
+SHA-256 `d1de049e9d8182a44c180e99ce20e90d3de68a3a7e6639bc92b840488fddd3cf`.
+
+**What it holds**: the closed word's widening, `chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole` (256
+blocks, 52 keys: the standing families; three `dest_angle` rows, parked 3580b; and the Nubian capital `0/2000`'s
+`damage_frac` on block 4452, the Crossbowmen `1/69`'s round a frame late, parked 3580a). The closing block 4521
+agrees.

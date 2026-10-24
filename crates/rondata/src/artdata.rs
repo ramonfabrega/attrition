@@ -418,7 +418,11 @@ pub fn piece_lengths(install: &Install, graphs: &[String]) -> PieceLengths {
 /// ammo's `missile="1"`, which the same walk keeps as `ammo_flags & 8`
 /// and `Ammo::init@0067bbf0` reads into its `local_30` (`0067c2a5`): a
 /// missile round flies a spline, is not led, and never rolls.
-pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<(u32, i8, bool, bool)>>>;
+///
+/// **And a fifth, `flame`** (item 3580, `docs/AI.md` §313): the ammo's
+/// `flame="1"`, `ammo_flags & 0x10`, which `Object::do_damage@0064a480`
+/// reads on the round's blow to kill with `dtype` 4.
+pub type PieceReleases = BTreeMap<i32, BTreeMap<i8, Vec<sim::anim::Release>>>;
 
 /// The `<AMMO>` names of `effects_graphics.xml` whose `do_damage` is 0.
 ///
@@ -438,6 +442,18 @@ pub fn harmless_ammo(install: &Install) -> std::collections::BTreeSet<String> {
 /// *unit*'s own graphic, carries `missile="0"`.
 pub fn missile_ammo(install: &Install) -> std::collections::BTreeSet<String> {
     ammo_where(install, "missile", 1)
+}
+
+/// The `<AMMO>` names of `effects_graphics.xml` whose `flame` is 1:
+/// `init_ammo_piece_ranges`' `ammo_flags |= 0x10` — the fifth attribute it
+/// reads, `int_str_array + 0x12994`, which is `internal_strings.xml`'s
+/// 3809, `flame` (the other seven land on `puncture`, `puff`, `explosive`,
+/// `missile`, `pulsewave`, `flak` and `do_damage`, their own bits). The
+/// install names five: `InvisibleFlameAmmo` (the Flamethrower's),
+/// `FlamingArrowBolt`, `FlamingArrowBoltLoad`, `FlamingArrow` and
+/// `FirelanceAmmo`.
+pub fn flame_ammo(install: &Install) -> std::collections::BTreeSet<String> {
+    ammo_where(install, "flame", 1)
 }
 
 /// The `<AMMO>` names whose integer attribute `attr` reads `value`.
@@ -610,6 +626,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
     let by_graph = graph_types(graphs);
     let harmless = harmless_ammo(install);
     let missile = missile_ammo(install);
+    let flame = flame_ammo(install);
     let mut out = PieceReleases::new();
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
@@ -618,7 +635,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
         let Some(pieces) = entry_pieces(name.trim(), &by_graph) else {
             continue;
         };
-        let mut rows: BTreeMap<i8, Vec<(u32, i8, bool, bool)>> = BTreeMap::new();
+        let mut rows: BTreeMap<i8, Vec<sim::anim::Release>> = BTreeMap::new();
         for e in u.children().filter(|n| n.has_tag_name("RELEASEEVENT")) {
             let (Some(anim), Some(start)) = (e.attribute("anim"), e.attribute("starttime")) else {
                 continue;
@@ -636,9 +653,10 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
                 .unwrap_or(-1);
             let quiet = e.attribute("type").is_some_and(|t| harmless.contains(t));
             let flies = e.attribute("type").is_some_and(|t| missile.contains(t));
+            let burns = e.attribute("type").is_some_and(|t| flame.contains(t));
             rows.entry(slot)
                 .or_default()
-                .push((release_frame(ms), node, quiet, flies));
+                .push((release_frame(ms), node, quiet, flies, burns));
         }
         if rows.is_empty() {
             continue;
@@ -1147,6 +1165,22 @@ mod tests {
                 (23, true)
             ]
         );
+        // The burning rounds (item 3580): five `flame="1"` ammos, and the
+        // Fire Lances' piece 46 (run1220's `GUY gpiece`) releases one on
+        // each of its three attacks; no gun burns.
+        let burning = flame_ammo(&inst);
+        assert_eq!(burning.len(), 5, "{burning:?}");
+        assert!(burning.contains("FirelanceAmmo"));
+        assert_eq!(piece("FIRELANCES"), 46);
+        let lances = &rel[&46];
+        assert_eq!(
+            [sim::anim::ATTACK1, sim::anim::ATTACK2, sim::anim::ATTACK3]
+                .iter()
+                .map(|a| lances[a].iter().map(|r| r.4).collect::<Vec<_>>())
+                .collect::<Vec<_>>(),
+            [[true], [true], [true]]
+        );
+        assert!(fighter.iter().chain(&fb).chain(&ship).all(|r| !r.4));
     }
 
     /// The `<UNIT>` name grammar, and the piece each coordinate lands on.

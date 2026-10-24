@@ -27406,11 +27406,52 @@ run1220's window (27 blocks) holds 84 keys, every one a standing family on its f
 **The next word: frame 3030, ours 14 draws against 16, index 9** — ours `Farms::inc_time+0x1ae`, theirs
 `Unit::close+0xce6 < Object::die+0x29 < Unit::die+0x19`. Theirs spends a death's three `Unit::close` draws (`+0xcb6`,
 `+0xce6`, `+0xd0a`) and `Objects::kill_guy`'s sound after a round's `AmmoOut::dirt_splash`. No record parts on
-block 3031: who died, and by whose round, is the next item's walk.
+block 3031: who died, and by whose round, is the next item's walk — answered by item 3580 below.
+
+**3030 → 4520 of 4520, the pair whole: a burning round kills with `dtype` 4** (item 3580). *Who dies*:
+`births.py` over run1202b's 3025..3035 drops one object, on block 3031: the Nubian **Citizen `0/10` (TypeIndex
+50, land, uid 17)**. Both sides kill it on 3030. The death costs ours one draw and theirs three:
+
+| index | ours | theirs (seed) |
+|---|---|---|
+| 8 | `Unit::close+0xcb6` | `Unit::close+0xcb6` (`ef51f0f0`) |
+| 9 | `Farms::inc_time+0x1ae` | `Unit::close+0xce6` (`9107cf8f`) |
+| 10 | `Farms::inc_time+0x1ae` | `Unit::close+0xd0a` (`fb7e77a2`) |
+
+*Whose round*: ours' `RON_DEBUG_AMMO` lands round `#6` at t27/27 on 3030, the **Fire Lances `1/31` (TypeIndex 96,
+land, uid 52)**'s. `docs/COMBAT.md` §42.1 has `close` spend its second and third draws only when `dtype == 4`,
+and §7.1 step 6 has `Object::do_damage@0064a480` set 4 when `verify_ammo_flags(ammo[param_5].gpiece, 0x10)`
+answers — the round's ammo index, which `Ammo::do_damage@00678060` passes as its `+0x34` on all three of its calls.
+*The bit*: `GraphicPieces::init_ammo_piece_ranges@008f6140` sets `ammo_flags` from eight `<AMMO>` attributes of
+`effects_graphics.xml`, named by `int_str_array` offsets. Over `internal_strings.xml`'s stride of 0x14 they land on
+`puncture` (1), `puff` (2), `explosive` (4), `missile` (8), **`flame` (0x10, `+0x12994` = 3809)**, `pulsewave`
+(0x20), `flak` (0x40) and `do_damage` (0x80 when 0). Five ammos carry `flame="1"`, among them `FirelanceAmmo`, the
+Fire Lances' three `RELEASEEVENT`s. This crate loaded no ammo flags but `do_damage` and `missile`, so the arm sat
+unreached.
+
+**Built**: `artdata::flame_ammo` and a fifth field on `sim::anim::Release`, carried by the release onto
+`combat::Projectile::flame`; `Sim::do_damage_round` overrides `dtype` to 4 for a burning round's blow (direct,
+splash, and a building's spill onto its builders), before the Build-proper test that makes it 1.
+`a_burning_round_kills_with_the_ammo_graphic_s_three_draws` asserts the three sites and the anim (0x11 or 0x12).
+`tools/mutate.py` dropping the arm fails it and puts `chinese_medieval_pair_first_parting` back at 3030 (both exit
+101, "mutation: held").
+
+**The value diff**: no record parted on 3030 — the dump prints no `DEATH_OBJS` here, so the death's `cur_anim` and
+facing go unread — and the parting was the stream's. Indices 9 and 10 now agree, seeds `9107cf8f` and `fb7e77a2`.
+**The walk runs whole to 4520**, by count and sequence. run1202b's count goes from 2738 keys to 53, all standing
+families; the Crossbowmen `1/127`'s 3037 rows agree. **The closing state** (`run1202_chinese_medieval_pair_closing_state`,
+run1202's block 4521) compares 206 units, none off, torn or unlinked, with no building or city field-row. run1223
+widens the last blocks, 4265..4521, to 52 keys. All but four are standing families. Three are `dest_angle` rows
+(parked 3580b). The fourth is the Nubian capital `0/2000`'s `damage_frac` on block 4452, ours 2 against theirs 12,
+agreeing again on 4453. That blow is the Crossbowmen `1/69`'s round, from figure piece 1178, which has no
+`sim::launch` bay and lands a frame late (parked 3580a). Not established: the death object's anim and facing
+(no capture of the lobby prints `DEATHS`); the Flamethrower's and the Flaming Arrows' rounds, which no walk reaches;
+and a shot no animation launches (`do_attack_ground`'s), which carries no ammo name and is held not to burn (a
+`SEAM` in `sim::orders`).
 
 **Coverage.** `chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole` pins the 2437 keys;
 `WIDENINGS`'s `CHINESE_MEDIEVAL_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds
-the row on `Late ages`. Item 3577's bays are diff-backed (run1220's three poses, the walk to 3030); `chinese_medieval_pair_run1220_s_volley_is_widened_whole` pins run1220's window, which is in the coverage driver beside run1202b's.
+the row on `Late ages`. Item 3577's bays are diff-backed (run1220's three poses, the walk to 3030); `chinese_medieval_pair_run1220_s_volley_is_widened_whole` pins run1220's window, which is in the coverage driver beside run1202b's. Item 3580's `dtype` 4 is diff-backed (the three `Unit::close` draws on 3030, the walk to 4520); the attribute names rest on the `internal_strings.xml` index alone, all eight landing on the XML's own attribute names. `WIDENINGS` names `chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole`, `AI_WORDS`' row is closed on `run1202_chinese_medieval_pair_closing_state`, and run1223's window is in the coverage driver.
 
 ## 314. Reserved for the next item on the AI track
 

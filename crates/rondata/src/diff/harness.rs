@@ -2523,7 +2523,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
             )
         };
         eprintln!(
-            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{} help{} gl{} q[{}]{head}",
+            "  f{frame} B {}/{} ty{ty} ({},{}) act{} regen{} jc{}/{} hits{} dmg{}/{} help{} gl{} q[{}]{head}",
             b.owner,
             b.index,
             b.pos.x,
@@ -2534,6 +2534,7 @@ pub(crate) fn debug_builds(built: &Built, frame: i64) {
             b.constr_time,
             b.construct_hits,
             b.damage,
+            b.damage_frac,
             b.helpers,
             b.gather_from.len(),
             q.join(" ")

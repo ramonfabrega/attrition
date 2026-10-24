@@ -13,7 +13,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const CHINESE_MEDIEVAL: Pair = Pair {
     name: "GreatSaharaChineseMedieval",
@@ -39,8 +39,12 @@ pub(crate) const CHINESE_MEDIEVAL: Pair = Pair {
     // the Citizen `0/10` on 2977 as theirs does. Ours 14 draws against 16,
     // index 9, ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xce6 <
     // Object::die` (a death after a round's `AmmoOut::dirt_splash`).
-    count: 3030,
-    sequence: 3030,
+    // Item 3580: 3030 -> 4520 of 4520, the pair whole — the Fire Lances
+    // `1/31`'s round (`FirelanceAmmo`, `flame="1"`, `ammo_flags & 0x10`)
+    // kills the Citizen `0/10` with `dtype` 4, so `Unit::close` spends its
+    // three draws, `+0xcb6`, `+0xce6` and `+0xd0a`, where ours spent one.
+    count: 4520,
+    sequence: 4520,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -164,6 +168,56 @@ fn chinese_medieval_pair_is_no_other_lobby() {
     );
 }
 
+/// **The pair's closing state**: run1202's closing dump, block 4521,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3580).
+#[test]
+fn run1202_chinese_medieval_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &CHINESE_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Chinese Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4521, "the closing block");
+    // Item 3580, the pair whole: 206 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 206, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
 /// run1202b: the word 2981's window, blocks 2975..3231 at the long's
 /// detail — six blocks before the word's block 2982 and 250 after (item
 /// 3560); the stride's blocks are 2901 and 3001.
@@ -229,7 +283,14 @@ fn chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole() {
     // 17112), `path:length` 22 against 12. **The word 3030** (block 3031,
     // no record parted on it): ours 14 draws against 16, index 9, ours
     // `Farms::inc_time+0x1ae`, theirs `Unit::close+0xce6 < Object::die`.
-    pin_eq!(w.firsts.len(), 2738, "run1202b baseline");
+    //
+    // Item 3580, 2738 -> 53 keys: the Fire Lances `1/31`'s round kills the
+    // Citizen `0/10` on 3030 with `dtype` 4 (`flame="1"`), `Unit::close`'s
+    // three draws in both, and the stream agrees to the game's end. What is
+    // left is the standing families: block 2975's, who=1's `SITE[0].reg`
+    // on 2976, groups 70 and 68 on 3019/3020; the Crossbowmen `1/127`'s
+    // 3037 rows agree.
+    pin_eq!(w.firsts.len(), 53, "run1202b baseline");
 }
 
 /// run1220: the Fire Lances' volley at `AMMO=5`, blocks 2955..2982 (item
@@ -282,4 +343,59 @@ fn chinese_medieval_pair_run1220_s_volley_is_widened_whole() {
     // rounds, the Citizen's blow on 2977 and its flight agree. Without piece
     // 46's bays the Citizen `0/10` parts on 2978.
     pin_eq!(w.firsts.len(), 84, "run1220 baseline");
+}
+
+/// run1223: the pair's last blocks, 4265..4521 at the window's detail —
+/// the word 4520 is the game's last frame and 4521 its closing block (item
+/// 3580). run1202 prints units only every hundredth block, and run1202b
+/// ends on 3231, so no dump held the last blocks.
+pub(crate) const RUN1223: &str =
+    "gamelog-run1223-greatsahara-chinese-medieval-window-4265-4521.txt";
+
+/// The window: block 4265 through the closing block 4521.
+pub(crate) const WIDENING_CHINESE_MEDIEVAL_CLOSING: (i64, i64) = (4265, 4521);
+
+/// **The pair's last blocks**: run1223 walked from run1201's start with
+/// the recorder on. The word is the game's last frame (item 3580).
+pub(crate) fn chinese_medieval_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[CHINESE_MEDIEVAL.start],
+        true,
+        CHINESE_MEDIEVAL.long,
+        "run1223",
+        &[(RUN1223, WIDENING_CHINESE_MEDIEVAL_CLOSING.0)],
+        WIDENING_CHINESE_MEDIEVAL_CLOSING,
+        1,
+        &[4521],
+        true,
+    )
+}
+
+#[test]
+fn chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = chinese_medieval_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    // Item 3580, the first walk: **52** keys. Block 4265 carries the
+    // standing families (`SITE[i].reg`, who=0's `aggression[1]`, `form`,
+    // who=1's groups' `held`/`pool`), and later blocks groups 69, 70 and
+    // 72's (4293, 4371, 4393) and who=1's `SITE[0].reg` (4376). **Four
+    // rows are not standing families**: `dest_angle` on the `1/86` (4424),
+    // `1/96` (4427) and `1/97` (4428), 3567a's shape (parked 3580b); and
+    // on block 4452 the Nubian capital `0/2000`'s `damage_frac`, ours 2
+    // against theirs 12 — the Crossbowmen `1/69` (TypeIndex 172, piece
+    // 1178, no `sim::launch` bay) lands its round a frame late, and the
+    // two agree again on 4453 (parked 3580a). The closing block 4521
+    // agrees.
+    pin_eq!(w.firsts.len(), 52, "run1223 baseline");
 }

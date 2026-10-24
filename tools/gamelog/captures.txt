@@ -10515,6 +10515,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1220  --map 7 --end-frame 2982 --log-window 2955 2982 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 14 --cover cover=0, run1201's lobby   (the Fire Lances' volley)
 #   run1220b --map 7 --end-frame 2978 --log-window 2975 2977 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 14 --cover cover=0 --tracer-def RON_STATE_FRAME=2976, run1201's lobby   (a packet: piece 46's AttachPos rows)
 # Checks: `rngcmp.py` run1202 vs run1220 -> 2983 identical; vs run1220b -> 2979 identical.
+# ==== item 3580: the Chinese word 3030 -> 4520, whole (`docs/AI.md` §313; `docs/RUNS.md` run1223) ====
+#   run1223  --map 7 --end-frame 4520 --allow-early-end --timeout 3600 --log-window 4265 4521 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --cover cover=0, run1201's lobby   (the closing window)
+# Checks: `rngcmp.py` run1202 vs run1223 -> 4521 identical.
 # ==== item 3575: the Mongol word 8444 -> 9744 (`docs/AI.md` §311; `docs/RUNS.md` run1218) ====
 #   run1218  --map 7 --end-frame 9885 --allow-early-end --timeout 3600 --log-window 9738 9885 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --cover cover=0, run1197's lobby   (the word 9744's window, to the closing block)
 # Checks: `rngcmp.py` run1198 vs run1218 -> 9885 identical.

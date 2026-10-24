@@ -1549,6 +1549,9 @@ impl AttackGroundView for SimAttackGround<'_> {
             0,
             false,
             false,
+            // SEAM: a shot no animation launches has no release event, so
+            // no ammo name to read `flame` off (`docs/COMBAT.md` §9.0).
+            false,
         );
     }
     fn recharge(&mut self) -> u8 {

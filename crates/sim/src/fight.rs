@@ -163,9 +163,9 @@ pub const SITE_UNIT_PLUNDER: &str = "Unit::plunder+0x4e5";
 /// `dtype` 4 is `do_damage`'s override for an ammo whose graphic piece
 /// carries flag `0x10` (§7.1 step 6), and it replaces the anim outright:
 /// `cur_anim = roll % 2 + 0x11`, then [`SITE_DEATH_ANIM_FACING`] picks
-/// the facing. No capture on disk reaches it — every death in run112 is
-/// `dtype` 2 — so the two sites are named from the listing and spent from
-/// the reading.
+/// the facing. Named from the listing; the first capture to reach it is
+/// run1202, the Fire Lances `1/31`'s `flame="1"` round on the Citizen
+/// `0/10` at 3030 (item 3580, `docs/AI.md` §313).
 pub const SITE_DEATH_ANIM_ALT: &str = "Unit::close+0xce6";
 
 /// `Unit::close@0060ee50+0xd0a` — the third draw of a `dtype == 4` death:
@@ -2075,6 +2075,27 @@ impl Sim {
         harmless: bool,
         missile: bool,
     ) {
+        self.fire_ammo_release(
+            shooter, target, angle, frame, launch, sz, node, harmless, missile, false,
+        );
+    }
+
+    /// [`Self::fire_ammo_pub`] for a release event, which also says whether
+    /// its ammo burns (`flame="1"`, [`combat::Projectile::flame`]).
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn fire_ammo_release(
+        &mut self,
+        shooter: Obj,
+        target: Obj,
+        angle: Angle,
+        frame: i64,
+        launch: Pos,
+        sz: i32,
+        node: i8,
+        harmless: bool,
+        missile: bool,
+        flame: bool,
+    ) {
         self.fire_ammo_aim(
             shooter,
             Aim::At(target),
@@ -2085,6 +2106,7 @@ impl Sim {
             node,
             harmless,
             missile,
+            flame,
         );
     }
 
@@ -2153,6 +2175,7 @@ impl Sim {
             0,
             false,
             false,
+            false,
         );
     }
 
@@ -2172,6 +2195,7 @@ impl Sim {
         node: i8,
         harmless: bool,
         missile: bool,
+        flame: bool,
     ) {
         self.fire_ammo_aim(
             shooter,
@@ -2183,6 +2207,7 @@ impl Sim {
             node,
             harmless,
             missile,
+            flame,
         );
     }
 
@@ -2258,6 +2283,7 @@ impl Sim {
         node: i8,
         harmless: bool,
         missile: bool,
+        flame: bool,
     ) {
         // **A round at an aircraft rolls to hit** (item 1102,
         // `docs/COMBAT.md` §81): `Ammo::init`'s air arm, ahead of the
@@ -2315,6 +2341,7 @@ impl Sim {
                 ez,
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
+                flame,
                 crash: None,
             });
             return;
@@ -2469,6 +2496,7 @@ impl Sim {
             ez,
             v1z: combat::arc_v1z(sz, ez, total_time),
             slot: 0,
+            flame,
             crash: None,
         });
     }
@@ -2522,6 +2550,28 @@ impl Sim {
         target: Obj,
         angle: Angle,
         ammo: bool,
+        count: i32,
+        splash: bool,
+        quiet: bool,
+        frame: i64,
+    ) -> Option<Taken> {
+        self.do_damage_round(
+            attacker, target, angle, ammo, false, count, splash, quiet, frame,
+        )
+    }
+
+    /// [`Self::do_damage`] for a round's blow, which also says whether the
+    /// round's ammo piece burns ([`combat::Projectile::flame`]): `ammo` is
+    /// `Object::do_damage`'s `param_5 >= 0`, and `flame` its
+    /// `verify_ammo_flags(ammo[param_5].gpiece, 0x10)`.
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn do_damage_round(
+        &mut self,
+        attacker: Obj,
+        target: Obj,
+        angle: Angle,
+        ammo: bool,
+        flame: bool,
         count: i32,
         splash: bool,
         quiet: bool,
@@ -2608,11 +2658,14 @@ impl Sim {
         // `get_damage` leaves 2, or 3 for an EXPLOSIVE/BOMBARD attacker;
         // `do_damage` then overrides it to **4** for an ammo whose graphic
         // piece carries flag `0x10`, and to **1** for a Build-proper
-        // target. The `0x10` arm is not reachable here: this crate loads
-        // no ammo flags (§42.5), and every shot in every capture on disk
-        // is an ordinary one.
+        // target — the second test runs after the first, so a burning round
+        // on a building is 1. The `0x10` piece is `effects_graphics.xml`'s
+        // `flame="1"` (item 3580: run1202b's Fire Lances `1/31` kills the
+        // Citizen `0/10` on 3030 with `Unit::close`'s three draws).
         let dtype = if tt.build_proper {
             1
+        } else if ammo && flame {
+            4
         } else {
             combat::death_type(ap.obj_masks, !matches!(attacker, Obj::Unit(_)))
         };
@@ -2684,7 +2737,7 @@ impl Sim {
             self.units[t].combat.entrenched = false;
         }
         if let Obj::Building(b) = target {
-            self.spill_onto_builders(attacker, b, angle, ammo, count, frame);
+            self.spill_onto_builders(attacker, b, angle, (ammo, flame), count, frame);
         }
         Some(taken)
     }
@@ -2818,7 +2871,7 @@ impl Sim {
         attacker: Obj,
         b: usize,
         angle: Angle,
-        ammo: bool,
+        (ammo, flame): (bool, bool),
         count: i32,
         frame: i64,
     ) {
@@ -2868,11 +2921,12 @@ impl Sim {
                         (count + ((count >> 31) & 7)) >> 3
                     }
                 };
-                self.do_damage(
+                self.do_damage_round(
                     attacker,
                     Obj::Unit(u),
                     angle,
                     ammo,
+                    flame,
                     share,
                     false,
                     true,
@@ -3515,9 +3569,8 @@ impl Sim {
             // The ammo-graphic death **replaces** the anim the first draw
             // chose with one from a second, and rolls its own facing
             // where every other death takes the attack's angle. The first
-            // draw is still spent, and its value discarded. Unreachable
-            // from any capture on disk (this crate loads no ammo flags),
-            // and spent here so the stream is right the day one is.
+            // draw is still spent, and its value discarded. A burning
+            // round's kill (`flame="1"`, [`combat::Projectile::flame`]).
             self.mark(SITE_DEATH_ANIM_ALT);
             let alt = self.rng.roll() % 2;
             cur_anim = combat::death_anim(4, alt);
@@ -5288,6 +5341,7 @@ impl Sim {
                 ez,
                 v1z: combat::arc_v1z(sz, ez, total_time),
                 slot: 0,
+                flame: false,
                 crash: None,
             });
         }
@@ -5522,7 +5576,9 @@ impl Sim {
                 return;
             }
             let angle = p.bearing();
-            self.do_damage(p.shooter, t, angle, true, 0x100, false, false, frame);
+            self.do_damage_round(
+                p.shooter, t, angle, true, p.flame, 0x100, false, false, frame,
+            );
             return;
         }
         // **The missile arm's shield** (item 1078, `678337`..`67845d`;
@@ -5616,7 +5672,9 @@ impl Sim {
             };
             let splash = target != Some(o);
             let angle = p.bearing();
-            self.do_damage(p.shooter, o, angle, true, count, splash, false, frame);
+            self.do_damage_round(
+                p.shooter, o, angle, true, p.flame, count, splash, false, frame,
+            );
         }
     }
 
@@ -6401,6 +6459,7 @@ mod tests {
             ez: 0,
             v1z: combat::arc_v1z(0, 0, 1),
             slot: 0,
+            flame: false,
             crash: None,
         }
     }
@@ -6455,6 +6514,43 @@ mod tests {
             sim.land(p, 3385);
             assert_eq!(!sim.units[them].alive(), decoy, "decoy {decoy}: dead");
         }
+    }
+
+    /// **A burning round kills with `dtype` 4** (item 3580, `docs/AI.md`
+    /// §313): `Object::do_damage@0064a480`'s `verify_ammo_flags(…, 0x10)`
+    /// on the round's ammo piece — `effects_graphics.xml`'s `flame="1"`,
+    /// the Fire Lances' `FirelanceAmmo` — overrides `get_damage`'s 2, and
+    /// `Unit::close` then spends its three draws (`+0xcb6`, `+0xce6`,
+    /// `+0xd0a`) where an ordinary death spends one: run1202b's Fire Lances
+    /// `1/31` on the Citizen `0/10` at 3030. Made to fail with the arm dropped.
+    #[test]
+    fn a_burning_round_kills_with_the_ammo_graphic_s_three_draws() {
+        let sites = |flame: bool| {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 1, ty, Pos::new(1000, 1000));
+            let them = put(&mut sim, 0, ty, Pos::new(2016, 2016));
+            sim.units[them].health = 1;
+            let mut p = round(&sim, me, Some(Obj::Unit(them)), Pos::new(2016, 2016), 0);
+            p.flame = flame;
+            sim.trace_phases = true;
+            sim.land(p, 3030);
+            assert!(!sim.units[them].alive(), "flame {flame}: dead");
+            let marks: Vec<String> = sim
+                .phase_marks
+                .iter()
+                .map(|(l, _)| l.clone())
+                .filter(|l| l.starts_with("Unit::close"))
+                .collect();
+            (marks, sim.deaths.last().map(|d| d.cur_anim))
+        };
+        let (plain, _) = sites(false);
+        assert_eq!(plain, [SITE_DEATH_ANIM]);
+        let (burning, anim) = sites(true);
+        assert_eq!(
+            burning,
+            [SITE_DEATH_ANIM, SITE_DEATH_ANIM_ALT, SITE_DEATH_ANIM_FACING]
+        );
+        assert!(matches!(anim, Some(0x11 | 0x12)), "{anim:?}");
     }
 
     /// **A decoy's overflow strikes its captain** (`Object::take_damage
@@ -9621,6 +9717,7 @@ mod tests {
             ez: 0,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            flame: false,
             crash: None,
         };
         assert_eq!(sim.check_hit(&ammo), None);
@@ -9679,6 +9776,7 @@ mod tests {
             ez: 78,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            flame: false,
             crash: None,
         };
         assert_eq!(sim.check_hit(&ammo), Some(Obj::Building(b)));
@@ -9759,6 +9857,7 @@ mod tests {
             ez: 0,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            flame: false,
             crash: None,
         };
         assert!(
@@ -9836,6 +9935,7 @@ mod tests {
             ez: 78,
             v1z: crate::single::Single::ZERO,
             slot: 0,
+            flame: false,
             crash: None,
         };
         let mut tree = sim.tech_tree.clone();
@@ -9992,6 +10092,7 @@ mod tests {
             ez,
             v1z: combat::arc_v1z(sz, ez, total),
             slot: 0,
+            flame: false,
             crash: None,
         }
     }

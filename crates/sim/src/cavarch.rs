@@ -668,7 +668,7 @@ mod tests {
                 let piece = sim.units[me].guys[0].gpiece;
                 sim.art.releases.insert(
                     piece,
-                    [(crate::anim::ATTACK1, vec![(1, 0, false, false)])]
+                    [(crate::anim::ATTACK1, vec![(1, 0, false, false, false)])]
                         .into_iter()
                         .collect(),
                 );
