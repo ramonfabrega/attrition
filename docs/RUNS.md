@@ -26405,3 +26405,107 @@ SHA-256 `12594749deeab6954cff3f0917d1a30bf152b06f1bff1cccaa8cef87a139984b`.
 **What it holds**: `bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole`, the word 5072 (block 5073): 256
 blocks and 4465 keys. On 5073, `1/86`'s `collide_o` and `collide_who` are ours −1 and −1 against theirs 87 and 1.
 The state is already apart on 5066, the window's first block.
+## run1207 — the Japanese at a held Gunpowder age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3563, `att-3563`)
+
+`docs/AI.md` §316. §313's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1207 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. The first take exited 40 and the runner took it again by itself. Launched 12:01:36, exited
+  12:01:57 (21.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA` blocks on frame 1, seed 12345,
+  players tribe 4 and tribe 15, five files restored. `GAME INFO` reads back `STARTING_TECHNOLOGY 3` and
+  `ENDING_TECHNOLOGY 3`. Filed with `filerun.py run1207 greatsahara-japanese-gunpowder-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1207-greatsahara-japanese-gunpowder-start.txt`, 149,913,024 bytes,
+SHA-256 `d8eeed9642a7489dc1f112242bcd83df22d3c0f16cbe4fbb8e020a4c01e81cce`.
+
+Archive `rontrace-run1207.log`, 8,316,992 bytes,
+SHA-256 `eef4f508a1f320762af7ffca5d0303b5a3de7aa37ace35155bf1fcd1c6ef0d41`.
+
+**What it holds**: the start of `japanese_gunpowder_pair::JAPANESE_GUNPOWDER`, and the walk's initial state.
+
+## run1208 — the Japanese at a held Gunpowder age, Great Sahara: the draw stream to the game's end (2026-10-24, item 3563, `att-3563`)
+
+`docs/AI.md` §316. run1202's line with `--ai-tribe 15`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 15
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1207's
+lobby.
+- Pool lane 2, beside run1207. The first take exited 5 and the runner took it again by itself. Launched
+  12:01:36, exited 12:01:59 (22.4 s launch to exit). `success`. **The game ended itself on 3673** (closing block
+  3674, `ended_early`). `GAME INFO` reads back as run1207's. `rngcmp.py` against run1207: 37 frames identical.
+  Filed with `filerun.py run1208 greatsahara-japanese-gunpowder-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1208-greatsahara-japanese-gunpowder-trace.txt`, 20,438,774 bytes,
+SHA-256 `8394c0650e9fc5bc34052661b1744ab0e8cb002916b78b329cee63f22053baa2`.
+
+Archive `rontrace-run1208.log`, 50,804,096 bytes,
+SHA-256 `cc4c249f6778db8ad5b355fc7e951a6d68b3ea3008b8e516982f1e78b4d7252b`.
+
+**What it holds**: the pair's first try. `japanese_gunpowder_pair_first_parting` walks it from run1207: **frame
+2839 of 3673** (count and sequence), ours 8 draws, theirs 9, index 1, ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` against theirs `Unit::fight+0x824`. Its stride blocks 1..2801 are walked back by
+`japanese_gunpowder_pair_the_long_s_stride_walks_back_from_2771`.
+
+## run1208b — the Japanese at a held Gunpowder age, Great Sahara: the word 2839's window, blocks 2834..3090 (2026-10-24, item 3563, `att-3563`)
+
+`docs/AI.md` §316. `--map 7 --end-frame 3090 --timeout 3600 --log-window 2834 3090 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0` and run1207's lobby. Booked
+because the long's stride blocks 2801 and 2901 leave the word's block 2840 undumped.
+- Pool lane 1. The first take exited 9 and the runner took it again by itself. Launched 12:04:18, exited
+  12:04:57 (38.4 s launch to exit). `success`: 3091 frames. `rngcmp.py` against run1208: 3091 frames identical.
+  Filed with `filerun.py run1208b greatsahara-japanese-gunpowder-window-2834-3090`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1208b-greatsahara-japanese-gunpowder-window-2834-3090.txt`, 505,170,792 bytes,
+SHA-256 `a778b341f957b2fcf4f98c3373f9995bc6b52a647fe9d474fc0018aa8e4d7663`.
+
+Archive `rontrace-run1208b.log`, 38,068,640 bytes,
+SHA-256 `d85f4cd21b8e7b959b88b6799b191c01f3218b03168637130c6b1f6a01bd74b5`.
+
+**What it holds**: the word 2839's widening, `japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole`
+(256 blocks, 1333 keys). The Elite Knight `1/23` keeps its attack and re-aims it off the fleeing Citizen `0/11`
+onto `0/13` in theirs, and chases `0/11` in ours.
+
+## run1208c — the Japanese at a held Gunpowder age, Great Sahara: the walk back, blocks 2771..2834 (2026-10-24, item 3563, `att-3563`)
+
+`docs/AI.md` §316. `--map 7 --end-frame 2834 --timeout 3600 --log-window 2771 2834 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0` and run1207's lobby. Booked
+because run1208b's first block 2834 already holds the Citizens' wounds apart, and the stride's 2801 prints one
+block in the 33 before it.
+- Pool lane 1. Launched 12:07:16, exited 12:07:43 (27.8 s launch to exit). `success`: 2835 frames. `rngcmp.py`
+  against run1208: 2835 frames identical. Filed with `filerun.py run1208c
+  greatsahara-japanese-gunpowder-window-2771-2834`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1208c-greatsahara-japanese-gunpowder-window-2771-2834.txt`, 123,114,810 bytes,
+SHA-256 `09941a289685db2dd58374a9f70437b6b3f5142a0b982537ded28d3f3447be7d`.
+
+Archive `rontrace-run1208c.log`, 32,234,880 bytes,
+SHA-256 `b06a74167e34a21867e5d3118f11c55fb690eade3f0fca35cd2084360a43b806`.
+
+**What it holds**: `japanese_gunpowder_pair_run1208c_walks_the_wound_back` (63 blocks, 93 keys): the Citizen
+`0/11` struck on 2808 in theirs and unstruck in ours (block 2809).
+
+## run1208d — the Japanese at a held Gunpowder age, Great Sahara: the first wound, blocks 2601..2701 at `AMMO=5` (2026-10-24, item 3563, `att-3563`)
+
+`docs/AI.md` §316. `--map 7 --end-frame 2701 --timeout 3600 --log-window 2601 2701 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0` and run1207's lobby.
+Booked because the long's stride has the Citizen `0/12` agreeing on 2601 and wounded apart on 2701, and no dump
+printed the blocks between, nor any `AMMO` record of the lobby.
+- Pool lane 1. Launched 12:09:34, exited 12:09:59 (25.2 s launch to exit). `success`: 2702 frames. `rngcmp.py`
+  against run1208: 2702 frames identical. Filed with `filerun.py run1208d
+  greatsahara-japanese-gunpowder-window-2601-2701`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1208d-greatsahara-japanese-gunpowder-window-2601-2701.txt`, 191,037,668 bytes,
+SHA-256 `8e87e3b2ebcfa148792e40e3aebaf54b1e55e247b7e8a42a7e8f741769bb8153`.
+
+Archive `rontrace-run1208d.log`, 30,466,496 bytes,
+SHA-256 `e0aef6cefcca78e87f446513a0828fc1a24b6a09d2ce7eee8999d01a3a8a007a`.
+
+**What it holds**: `japanese_gunpowder_pair_run1208d_s_first_wound_is_widened` (100 blocks, 52 keys). The state
+first parts on block 2676, where the Arquebusiers `1/20`'s round lands on the Citizen `0/12` with ours 12 against
+theirs 13 + 10/16. Theirs' `AMMO` leaves from (9443, 30828, 784), ours from (9576, 30888).
