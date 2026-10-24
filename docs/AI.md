@@ -26745,9 +26745,10 @@ widenings (118, 114) and its test, but not the word. **Not established**: the 42
 `init_unit_events`' other two writers of `+0x2cc` (`:400`, `:446`), which are not read.
 
 
-## 309. The Romans at a held Classical age, Great Sahara: a Citizen's second blow, 4069 of 7130 (2026-10-23, item 3556)
+## 309. The Romans at a held Classical age, Great Sahara: a blow struck in contact is doubled, whole at 7130 (2026-10-23, item 3556; 2026-10-24, item 3567)
 
-*Item 3556, Opus 5.5, the AI track (DECISIONS 90, 91, 92): run1193, run1194 and run1194b, on the click-free pool.*
+*Item 3556, Opus 5.5, the AI track (DECISIONS 90, 91, 92): run1193, run1194 and run1194b, on the click-free pool.
+Item 3567, Opus 5.5: no capture, the disk's run1194b and the listing.*
 
 **The lobby.** Great Sahara, `MAP_STYLE 7`, human Nubians (4) against the **Romans (6)** at Difficulty 5, seed
 12345, `STARTING_RESOURCES 7`, the age **held at Classical**: `STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1`. It is
@@ -26784,29 +26785,107 @@ the units the booking names is in the parting. The computer fields no Scutari (1
 theirs 1). The Citizen agrees until frame 4068. On 4068 both Light Horse take it (ours' `RON_DEBUG_UNIT`: `tgt`
 `(0, 13)` on both), and each draws `Unit::fight+0x824` and `Unit::fight+0x9b0` on both sides, with the streams in
 step. No round is in flight (`RON_DEBUG_AMMO`), so the blows are melee. The dump reads the Citizen's `damage`:
-- theirs: 32 → **46** on 4068 (`damage_frame` 4026 → 4068), two blows of 7;
-- ours: 32 → **39**, one blow.
+- theirs: 32 → **46** on 4068 (`damage_frame` 4026 → 4068), ~~two blows of 7~~ **one blow of 14** (item 3567,
+  below);
+- ours: 32 → **39**, one blow of 7.
 
-So block 4069 reads `hits_left` ours 11 against theirs 4, and `hits:damage` 39 against 46. On 4069 theirs' Light
-Horse strike again and the Citizen dies. Block 4070 then reads who=0's `num_units[0]`, `peasants`, `active` and
+So block 4069 reads `hits_left` ours 11 against theirs 4, and `hits:damage` 39 against 46. On 4069 ~~theirs' Light
+Horse strike again~~ the Citizen dies in theirs. No unit's `recharging` restarts there in the dump. Ours' probe
+(item 3567) shows a Javelineer of `1/35`'s squad landing 5 10/16 that frame, which is 46 + 5 + a carry = 52 of
+50 in theirs and 45 in ours. Block 4070 then reads who=0's `num_units[0]`, `peasants`, `active` and
 `control` ours 5 (6) against theirs 4 (5). The three Light Horse `1/122`, `1/123` and `1/127` stand on a fresh
 order in theirs (`order:kind` ours 1, theirs 10).
 
-**The next word**: frame 4069, ours 16 draws against 21, index 1. The direction is theirs. **The hypothesis,
+~~**The next word**: frame 4069, ours 16 draws against 21, index 1. The direction is theirs. **The hypothesis,
 untested**: one of ours' two `Unit::fight` blows on 4068 deals nothing to the Citizen. Either its hit roll
-(`+0x824`) reads a miss from the same value, or the blow lands on another object. The cheapest killer is
-`RON_DEBUG_ARMIES`/`RON_DEBUG_UNIT` on 4068 with both Light Horse's `fight` arguments, or a packet at
-`RON_STATE_FRAME=4067` with `Unit::fight` watched.
+(`+0x824`) reads a miss from the same value, or the blow lands on another object.~~ Killed by item 3567: both
+`+0x824` and `+0x9b0` are rolls of the guard and the re-search, never a hit roll (`sim::fight`'s
+`SITE_FIGHT_GUARD_ROLL`, `SITE_FIGHT_RESEARCH`). And there was one blow, not two.
+
+**Item 3567: one blow, doubled.** The walk, every unit on the window's blocks:
+- **One striker.** Across blocks 4068 → 4069, `1/42` is the only unit whose `recharging` restarts (0 → 25), and
+  the Citizen's `damage_o` reads 42. `1/28` stands 320 away with `reach` out of range on both sides (it pushes the
+  same `MOVEORDER` on both). In the whole window, this is the only wound on any who=0 unit.
+- **Theirs is 14 whole.** `damage_frac` is 10 on both blocks, so the blow carried no sixteenths. `guy_mark` is 1,
+  so `fight`'s melee loop (`(char)+0xb5` calls of `do_damage`) ran once.
+- **Ours is 7.** `do_damage`'s inputs, read by a probe reverted whole: attack 120, pct 57, armour 0, `get_damage`
+  7, no flank (`T.angle − angle + 0x80000000` is `0x16a50000`, under `0x2aaaaaaa`, on either side's angles). Ours'
+  earlier Light Horse blows on the Citizen (two on 4026, one on 4051) were 7 each, and theirs agreed with them.
+- **The difference is the target's word.** The Citizen's `unit_masks` reads **12 → 28** across 4068: the bit
+  `0x10` was raised by the strike.
+
+**The mechanism** (`Unit::target_opportunity@005fffc0`, the listing `600175`..`6002c8`). After the head and ahead
+of `is_fleeing`, a responder is marked `unit_masks |= 0x10` when all of these hold:
+- its front order is a move (`is_move@0046f050` of `order_type()`, in `ecx`);
+- the attacker is a unit (vslot `+0x18`);
+- `vector_dist(|dx|, |dy|)` between them is at most the two types' `big_radius` (`+0x244`) summed (`60023e`,
+  `jg` skips).
+
+It is not marked when its action is an `ATTACK` (`action_type@0060a850 == 10`) and that action's target is within
+twice the sum (`6002c6`, `jle` skips).
+
+`Object::do_damage@0064a480` then reads the **struck** unit's bit right after the call (`0064a5dd`) and doubles
+`get_damage`'s answer. `UnitData::get_speed@00608720` halves a land unit's speed under it (`0060878c`). The last
+line of `Unit::work@0060d180` (`:449`, `60dc9f`) clears it, but only on the paths that reach the end. So the bit
+lasts from the strike to the end of the victim's next work. A block prints it on a unit struck after its own work
+ran, as here: who=0 works before who=1.
+
+The Citizen was walking to its gather (`MOVEORDER` in front of its `GATHERORDER`). `1/42` struck it from
+`vector_dist` 104 away (block 4068's positions), inside the two types' radii summed.
+
+This crate carried none of it: `do_damage` read nothing after `target_opportunity`, and `get_speed` held the halving
+as a `SEAM`. Now `sim::Unit::contact` is the bit: `Sim::mark_contact` sets it, `do_damage` doubles under it,
+`get_speed_at` halves under it, and `Sim::work`'s last line clears it. The harness compares it as `contact` beside
+`half_step` and `fought`.
+
+**The word moves 4069 → 7130, the game's last frame: whole.** The value diff on the word's frame, run1194b block
+4069, the Citizen `0/13`:
+
+| field | before (ours) | after (ours) | theirs |
+|---|---|---|---|
+| `damage` | 39 | 46 | 46 |
+| `contact` | — | 1 | 1 |
+
+On 4069 it now dies on both sides. The window falls from 2260 keys to 48:
+- block 4063's 43 standing rows;
+- the standing `pool`/`held` of who=1's groups 68 (4110) and 71 (4163);
+- the Light Horse `1/28`'s `dest_angle` on 4079, ours 137756672 against theirs -1351155712. Ours is a frame late
+  at its guard post and agrees from 4080 (parked 3567a).
+
+The closing block 7131 (`run1194_roman_classical_pair_closing_state`) compares 268 units. None is off or unlinked,
+there is no field row, and one is torn (`1/40`, printed and not pinned). Every other lobby's `first_parting` holds
+(44 of 44).
 
 **The rubric.** `rubric.py --tables 3 --dumps` on run1193 and run1194 sees 13 types: Citizen (50), General (57),
 Caravan (59), Merchant (61), Scout (69), Javelineers (83), Legions (146), Archers (171), Light Horse (209),
 Catapult (265), The Senator (353), and the sheep and peacock herds. Every one is already in the ledger. An open
-pair counts only to its word, so `census::RUBRIC_UNIT_TYPES_SEEN` stays at 162. **`Scutari` (149), the line the
+pair counts only to its word, so `census::RUBRIC_UNIT_TYPES_SEEN` stays at 162. Item 3567 closes the pair, and it
+still stays at 162: the whole game's 13 types were all in the ledger already. **`Scutari` (149), the line the
 booking named, is never fielded**: the Romans at Classical and Difficulty 5 train Legions, Light Horse,
 Javelineers, Archers and Catapults (parked 3556a).
 
-**What is not established**: why ours' second blow on 4068 does not reach the Citizen. Both sides take two
-`fight` draws, so the difference is a value, never a count.
+~~**What is not established**: why ours' second blow on 4068 does not reach the Citizen. Both sides take two
+`fight` draws, so the difference is a value, never a count.~~ Answered by item 3567: there was no second blow. One
+blow was doubled.
+
+**What is not established** (item 3567):
+- **Three arms no capture reaches.** These are the land-speed halving, the refusal for a victim attacking a target
+  inside twice the sum, and `Unit::work`'s clear. Each was mutated to nothing against every lobby's
+  `first_parting`, and nothing failed (parked 3567b). They rest on the listing and on
+  `a_unit_struck_while_moving_in_contact_takes_the_blow_doubled` alone.
+- **The early returns.** `Unit::work`'s early returns (`:82`, `:85`, `:344`, `:352`) skip the clear, and this
+  crate's do too (the gate, the dead target, the pack arm's kill). Whether ours' pack-arm return is the original's
+  is not read here.
+- **The squad case.** The bit is raised on the responder, the captain the head's walk reached, and read on the
+  struck unit. A squad member struck under a marked captain therefore takes no ×2 unless it is the captain. No
+  capture on file has told the two apart.
+
+**Coverage.** Diff-backed:
+- the doubling and the mark on a moving victim within reach, by `roman_classical_pair_first_parting` (7130) and
+  `roman_classical_pair_run1194b_s_word_frame_is_widened_whole` (the `contact` row agrees on 4069). Without the
+  doubling all three of the pair's diff tests fail (`tools/mutate.py`).
+
+Reading-backed: the speed halving, the attacking-victim refusal and the clear (parked 3567b).
 
 ## 310. The Greeks at a held Classical age, East Indies: the first pair below age 2, parting on frame 8 (2026-10-23, item 3557)
 
