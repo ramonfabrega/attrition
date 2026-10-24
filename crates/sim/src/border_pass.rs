@@ -112,6 +112,24 @@ impl Sim {
         }
     }
 
+    /// Every leader's `reg_known_rares[r]` back to zero —
+    /// `compute_reg_territory@006b0bb0:78`–`101`, the same block as
+    /// [`Self::clear_bordering`]: while region `r`'s resume index is 0 its
+    /// call zeroes the slot **before** the budget test, so a region the
+    /// pass has not yet reached is zeroed again on every frame until its
+    /// first cell is written. A census that falls inside the pass — the
+    /// leaders' sweep runs before `check_borders` in the frame — is undone
+    /// for every region still waiting (`docs/AI.md` §318.1; East Indies'
+    /// who=1 on tick 5575, run1241). The block's third write, the
+    /// leader's `ushort` at `+0x145e + 2r`, has no field in this crate.
+    fn zero_region_rares(&mut self, r: u16) {
+        for leader in &mut self.ai {
+            if let Some(slot) = leader.census.reg_known_rares.get_mut(usize::from(r)) {
+                *slot = 0;
+            }
+        }
+    }
+
     /// Setup's `compute_all_territory`: every land region in slot order,
     /// each clearing every city's `bordering` and then marking its own
     /// cells.
@@ -171,6 +189,7 @@ impl Sim {
             }
             if *at == 0 {
                 self.clear_bordering();
+                self.zero_region_rares(r);
             }
             if budget < CELLS_PER_FRAME {
                 let cells = self

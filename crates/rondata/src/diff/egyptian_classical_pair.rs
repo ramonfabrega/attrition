@@ -34,9 +34,15 @@ pub(crate) const EGYPTIAN_CLASSICAL: Pair = Pair {
     // Item 3585, first try: frame 5961 of 6748 by the count and the
     // sequence. On 5961 ours spent 92 draws against theirs' 89, parting at
     // index 77 — ours `Guy::init_real+0x52`, theirs `Guy::set_anim+0x97a <
-    // Guy::inc_time+0x271` (`docs/AI.md` section 318).
-    count: 5961,
-    sequence: 5961,
+    // Guy::inc_time+0x271` (`docs/AI.md` section 318). Item 3594: 5961 →
+    // **6537** (+576) — a region the border pass has not reached is zeroed
+    // again every frame, so the census of tick 5575 is undone and the
+    // Market queues the second Caravan theirs does (`docs/AI.md` section
+    // 318.1). On 6537 ours spends 73 draws against theirs' 72, parting at
+    // index 55 — ours `Unit::think_scout+0xaba`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    count: 6537,
+    sequence: 6537,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
