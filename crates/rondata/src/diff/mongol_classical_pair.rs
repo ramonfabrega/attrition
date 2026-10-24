@@ -12,7 +12,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::{dump, install};
+use crate::testenv::dump;
 
 pub(crate) const MONGOL_CLASSICAL: Pair = Pair {
     name: "GreatSaharaMongolClassical",
