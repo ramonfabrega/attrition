@@ -10,7 +10,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const GREEK_CLASSICAL: Pair = Pair {
     name: "EastIndiesGreekClassical",
@@ -46,8 +46,13 @@ pub(crate) const GREEK_CLASSICAL: Pair = Pair {
     // is cleared after `Guy::move`, not at the head of the unit's process —
     // and the word moves 4341 -> 7865: ours 26 draws against 28, index 24,
     // ours `Farms::inc_time+0x1ae` against theirs `Ammo::do_damage+0xc59`.
-    count: 7865,
-    sequence: 7865,
+    // Item 3574: the Archers' piece 121 looses from the Heavy Archer's
+    // bays, so `1/53`'s round at the fleeing Citizen `0/5` leaves from
+    // (8201, 8775) and flies 18 frames, not 19 from the figure's own
+    // (8232, 8856), and `0/5`'s `damage_frame` is 7744 on both sides; the
+    // walk runs whole to the game's last frame, 7865 -> 8126.
+    count: 8126,
+    sequence: 8126,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -58,6 +63,56 @@ pub(crate) const GREEK_CLASSICAL_PAIR_WORD: i64 =
     } else {
         GREEK_CLASSICAL.sequence
     };
+
+/// **The pair's closing state**: run1196's closing dump, block 8127,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3574).
+#[test]
+fn run1196_greek_classical_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &GREEK_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Greek pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 8127, "the closing block");
+    // Item 3574, the pair whole: 336 units compared, none torn, off or
+    // unlinked, no building or city field-row.
+    pin_eq!(e.compared, 336, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
 
 /// **The pair's first parting**, walked from its own start.
 #[test]
