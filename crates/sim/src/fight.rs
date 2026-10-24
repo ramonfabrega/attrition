@@ -380,8 +380,22 @@ impl Sim {
     /// for a gaia owner (animals, goods), which the leaders' list holds as
     /// zeroes and `mods` — one a player — does not (a nuke's ring strikes
     /// the animals around a city, `docs/AI.md` §158).
+    ///
+    /// **The Japanese level is read live** (item 3590): `get_damage@
+    /// 00644130:243`–`262` asks `has_tribe_bonus(0xf)` of the attacker's
+    /// leader on every blow and takes `n = min(ages, epoch[0])` off its
+    /// `LeaderData` there, so nothing caches it; before this nothing wrote
+    /// `japanese_level` at all (parked 3510a), and run1208d's Arquebusiers
+    /// `1/20` struck the Citizen `0/12` for 12 where the original's +15 %
+    /// (ages 3, `epoch[0]` 3) struck 13 + 10/16 (`docs/AI.md` §316).
     fn mods_of(&self, owner: usize) -> combat::Modifiers {
-        self.mods.get(owner).copied().unwrap_or_default()
+        let mut m = self.mods.get(owner).copied().unwrap_or_default();
+        if let Some(p) = self.tech.get(owner)
+            && self.tech_tree.has_tribe_bonus(&self.setup, p, 0xf)
+        {
+            m.japanese_level = Some(p.ages.min(p.epoch[crate::tech::Line::Military.index()]));
+        }
+        m
     }
 
     /// `armor()` (§4.2). **A building that is not finished holds half its
