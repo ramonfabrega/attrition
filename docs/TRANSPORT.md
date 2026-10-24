@@ -560,7 +560,14 @@ object, in order:
      passenger's, which restores the order it was in; then the passenger's
      **top** waypoint is popped, `flags &= ~4`, and pushed back — the
      embark flag cleared unconditionally, where §6.2 step 7 clears it only
-     on a region match.
+     on a region match. **Both land on what the passenger already holds,
+     never in its place** (item 3550, `docs/AI.md` §308): `add` appends to
+     the back of the queue (`docs/ORDERS.md` §1.4) and the path goes on
+     top of the passenger's stack, so an order step 2's tail gave it —
+     `add_to_army`'s `go_to_unit` `ATTACKTOORDER` — stays current with its
+     path under the boat's. Diff-backed on run1189's block 2172 (the
+     Explorer `1/0`: the attack current over the barge's `EXPLORETOORDER`,
+     17 nodes, 15 the attack's).
    - **`> 1`**: a group insert instead, `Sim::disembark_squad`: `docs/GOLDEN.md` §52.
 5. The transport bit back: with `transport_type(passenger) <= ` the
    leader's level, and unless `is(0x45)` without `leader_options.+0x1c &

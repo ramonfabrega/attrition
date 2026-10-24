@@ -25340,3 +25340,44 @@ SHA-256 `e85eed7ad29b988206830256ab6074d51a3718ba0b799427e177e9f2045ddb00`.
 
 **What it holds**: the Turkish pair's game on every frame under `cover=1`, the first lockstep trace of an age-5 game
 (`blind::TRACES`).
+
+## run1189 — the Persians at a held Medieval age, East Indies: the landing's window, blocks 2160..2220 (2026-10-23, item 3550, `att-3550`)
+
+`docs/AI.md` §308. **What the disk could not answer**: the frame theirs pushes the Explorer `1/0`'s
+`ATTACKTOORDER`. run1181's stride blocks 2101 (none) and 2201 (both orders) bracket it, and run1181b starts at
+2220. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1189 --map 18 --end-frame 2220 --log-window 2160
+2220 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --cover cover=0 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 2. Launched 19:54:43, exited 19:55:05 (22.9 s launch to exit). `success`, 2221 frames. `rngcmp.py`
+  against run1181: 2221 frames in common, 0 differing. Filed with `filerun.py run1189
+  eastindies-persian-medieval-window-2160-2220`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1189-eastindies-persian-medieval-window-2160-2220.txt`, 122,135,846 bytes,
+SHA-256 `f8abd88a289cdd9a8df54321fb37dde0aad2f9f45bda49628558ad916d39a04a`.
+
+Archive `rontrace-run1189.log`, 47,258,784 bytes,
+SHA-256 `98b00e6be60f1ff12bfae5d9f4cedc374366e251ac54ea3b86924fa09aff777e`.
+
+**What it holds**: `persian_medieval_pair_run1189_lands_the_explorer_on_its_attack`. The landing is block 2172:
+`1/0` comes ashore with the `ATTACKTOORDER` current over the barge's `EXPLORETOORDER`.
+
+## run1189b — the Persians at a held Medieval age, East Indies: the word 4038's window, blocks 4033..4289 (2026-10-23, item 3550, `att-3550`)
+
+`docs/AI.md` §308. **What the disk could not answer**: the word 4038's block 4039, which run1181's stride (4001,
+4101) leaves undumped. The run1189 line with `--end-frame 4289 --log-window 4033 4289`.
+- Pool lane 1. Launched 20:02:53, exited 20:03:47 (54.4 s launch to exit). `success`, 4290 frames. `rngcmp.py`
+  against run1181: 4290 frames in common, 0 differing. Filed with `filerun.py run1189b
+  eastindies-persian-medieval-window-4033-4289`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1189b-eastindies-persian-medieval-window-4033-4289.txt`, 606,106,080 bytes,
+SHA-256 `c5846b802e1ad33ec90100fd744c53c910e694c745237ea54f856bfbb173ca89`.
+
+Archive `rontrace-run1189b.log`, 127,351,328 bytes,
+SHA-256 `97fec45063b3fd9a54b5df902cdca0fb5ecff08fe815324a512199af168cf90e`.
+
+**What it holds**: `persian_medieval_pair_run1189b_s_word_frame_is_widened_whole`, the word 4038 (block 4039).
+The Mahout `1/27` fires on the Citizen `0/10` in theirs.
+
+---
