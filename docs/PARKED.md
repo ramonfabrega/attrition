@@ -10378,13 +10378,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot PQ — reserved
+## Parked by item 3551, 2026-10-23 — the Japanese Industrial twin at `cover=1`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3551a — the twin's seven new functions, 7,565 bytes**, which none of the other 121 lockstep traces enters
+  (run1190, by first frame): the think-order path, all first entered on 3183 (`Unit::add_think_order@005e3df0`,
+  `ThinkOrder::get_type@004845c0`, `UnitOrder::walk_data@0047f2b0`, `UnitOrder::clear@0047fff0`), with
+  `Unit::do_think_order@005e5bf0` on 3187; `Group::action_eject_all@00710b40` (5,043 bytes) on 3673; and
+  `Unit::find_nearby_spot@00617010` on 4342. `sim` already carries each of them: `orders.rs` has the think order
+  and `find_nearby_spot`, `group.rs` has `action_eject_all`, and `sweep/` holds `think_order_get_type`,
+  `unit_add_think_order` and `unit_do_think_order`. Which unit queues the think order on 3183, and which group
+  ejects on 3673, is not established. 8,816,240 → 8,823,805 of 11,392,782 bytes, 77.38 % → 77.45 %, so 773 → 774
+  tenths. 3531a's prediction held: tenths at most. **Score**: none.
 
 ## Parked by the next landing, slot PR — reserved
 
