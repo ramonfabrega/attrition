@@ -3446,6 +3446,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::persian_medieval_pair::persian_medieval_frame_2226_window(),
         || super::persian_medieval_pair::persian_medieval_landing_2172_window(),
         || super::persian_medieval_pair::persian_medieval_frame_4038_window(),
+        || super::persian_medieval_pair::persian_medieval_stride_window(),
         || super::british_enlightenment_pair::british_enlightenment_closing_window(),
         || super::turkish_enlightenment_pair::turkish_enlightenment_frame_2501_window(),
         || super::turkish_enlightenment_pair::turkish_enlightenment_gap_1186_window(),

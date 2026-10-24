@@ -10,7 +10,8 @@
 //!
 //! 1. **`Unit::do_move@005f7b30:60-86`**, before anything else in the
 //!    step: an unarmed type, a `HOLD_FIRE` stance (`get_combat_stance()
-//!    == 5`) or an `ATTACK` action under the move clears `cavarch_o` to
+//!    == 5`) or an `ATTACK` action under the move (on a type without
+//!    `k`, `unit_flags & 0x400`) clears `cavarch_o` to
 //!    −1 and does nothing; otherwise `cavarch_fight` runs — on every frame
 //!    while `cavarch_o ≥ −1`, and only on `(o + frame) % 32 == 0` once it
 //!    has fallen to −2 ([`Sim::cavarch_head`]).
@@ -90,18 +91,19 @@ impl crate::Sim {
     /// lays after it, is `% 32` taken the C way; both terms are
     /// non-negative here.
     ///
-    /// SEAM: the `ATTACK` action's exemption for a type with `unit_flags &
-    /// 0x400` (the two-mode cavalry archer of `docs/COMBAT.md` §8.5).
-    /// `cavarch_fight`'s `max_range` swap for it is built
-    /// ([`Self::with_second_range`], item 3383): the three Indian Mahouts
-    /// carry `k`.
+    /// **The `ATTACK` action's exemption** (`005f7b30:68-72`): a type with
+    /// `unit_flags & 0x400` ([`uflags::MELEE_AND_RANGED`], `k`, the
+    /// two-mode cavalry archer of `docs/COMBAT.md` §8.5) is not cleared by
+    /// an attack under its move; it goes on to the phase and the fight, at
+    /// its second range ([`Self::with_second_range`], item 3383). The three
+    /// Indian Mahouts carry `k` (`mjvyk`): run1181's `1/27` and `1/46`
+    /// (TypeIndex 262) keep −2 on 4001 under `[AttackTo, Attack(0/10),
+    /// Move]`, where ours read −1 before item 3554 (`docs/AI.md` §308).
     pub(crate) fn cavarch_head(&mut self, u: usize, frame: i64) {
         if !self.fires_on_move(u) || self.attack_of(Obj::Unit(u)) == 0 {
             return;
         }
-        let attacking = self
-            .action_of(u)
-            .is_some_and(|i| matches!(self.units[u].orders[i].body, Body::Attack(_)));
+        let attacking = self.attack_action_clears(u);
         if self.units[u].combat.stance == Stance::HoldFire || attacking {
             self.cavarch_clear(u);
             return;
@@ -122,14 +124,12 @@ impl crate::Sim {
     /// given that frame: theirs spends `fight`'s re-search roll on the
     /// Citizen `0/4` it held (run967g).
     ///
-    /// SEAM: the `unit_flags & 0x400` exemption, as at the head.
+    /// The `unit_flags & 0x400` exemption is the head's (`005e79a0:395-396`).
     pub(crate) fn cavarch_follower(&mut self, u: usize, frame: i64) {
         if !self.fires_on_move(u) || self.attack_of(Obj::Unit(u)) == 0 {
             return;
         }
-        let attacking = self
-            .action_of(u)
-            .is_some_and(|i| matches!(self.units[u].orders[i].body, Body::Attack(_)));
+        let attacking = self.attack_action_clears(u);
         if self.units[u].combat.stance == Stance::HoldFire || attacking {
             return;
         }
@@ -137,6 +137,18 @@ impl crate::Sim {
             return;
         }
         self.cavarch_fight(u, frame);
+    }
+
+    /// An `ATTACK` action under the move, on a type without `k`
+    /// (`unit_flags & 0x400`): the arm both callers skip the fight on.
+    fn attack_action_clears(&self, u: usize) -> bool {
+        let melee_and_ranged = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::MELEE_AND_RANGED));
+        !melee_and_ranged
+            && self
+                .action_of(u)
+                .is_some_and(|i| matches!(self.units[u].orders[i].body, Body::Attack(_)))
     }
 
     /// **`Unit::cavarch_fight@005ff4b0`**: the fight, and then the
@@ -558,6 +570,34 @@ mod tests {
         assert_eq!(sim.units[me].combat.recharging, 0, "and does not shoot");
         sim.cavarch_head(me, frame + 1);
         assert_eq!(sim.cavarch_o(me), -1, "the head clears it");
+    }
+
+    /// **A `k` type keeps its throttle under an `ATTACK` action**
+    /// (`do_move@005f7b30:68-72`, item 3554): a `v` type whose search has
+    /// fallen to −2 is cleared to −1 by an attack under its move — unless
+    /// its flags carry `k` (`unit_flags & 0x400`), which goes on to the
+    /// phase and stays −2 off it. run1181's Mahouts `1/27` and `1/46`
+    /// (TypeIndex 262, `mjvyk`) read −2 on 4001 under `[AttackTo,
+    /// Attack(0/10), Move]`; ours read −1, and `1/27` missed its shot on
+    /// 4038 (`docs/AI.md` §308).
+    #[test]
+    fn a_melee_and_ranged_type_keeps_its_wait_under_an_attack_action() {
+        for k in [false, true] {
+            let (mut sim, ty) = field(true);
+            if k {
+                sim.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
+            }
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let foe = put(&mut sim, 0, ty, Pos::new(3000, 30000));
+            sim.add_attack_order(me, Obj::Unit(foe), QueuePos::New, false, true);
+            sim.units[me].cavarch_idle = true;
+            let off_phase = 65 - i64::from(sim.units[me].index);
+            sim.cavarch_head(me, off_phase);
+            let want = if k { -2 } else { -1 };
+            assert_eq!(sim.cavarch_o(me), want, "k {k}: the attack's clear");
+            sim.cavarch_follower(me, off_phase);
+            assert_eq!(sim.cavarch_o(me), want, "k {k}: the follower");
+        }
     }
 
     /// **An empty search after an empty one waits for the phase**
