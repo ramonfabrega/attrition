@@ -641,8 +641,8 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
     // **The Archers' piece 121** (unit type 171, `ARCHERS`; item 3574,
     // `docs/AI.md` §310): the Heavy Archer's three bays unchanged — the
     // same model, as piece 123 is piece 1531's. run1217b's `AMMO=5` window
-    // on the Greek East Indies seed prints fifteen rounds of who=1's
-    // Archers over 7692..7848, five figures at nine headings, every key
+    // on the Greek East Indies seed prints twenty-one rounds of who=1's
+    // Archers over 7692..7867, fifteen poses, six figures at nine headings, every key
     // the piece releases on, and these put every one at the dump's `sx,
     // sy` to the unit, and at its `sz` over the figure's `z`. `1/53` loosed
     // at the fleeing Citizen `0/5` on 7727 from (8201, 8775) where this
@@ -1830,7 +1830,7 @@ mod tests {
     use super::*;
 
     /// **The Greek Archers' arrows leave from piece 121's bays** (item
-    /// 3574): run1217b's fifteen `AMMO` rounds over 7692..7848, each the
+    /// 3574): run1217b's fifteen distinct `AMMO` poses over 7692..7848, each the
     /// figure on its unit's own square at the `GUY` record's angle, the
     /// key this crate's release event names, and `sx, sy` the dump's own.
     #[test]

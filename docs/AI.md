@@ -27079,8 +27079,8 @@ only the stride's 7801 was on disk before it.
   from (8201, 8775, 512) with `total_time` 18, and ours left from the figure's own (8232, 8856, 348). The un-led
   distance from the figure is 1984.7, which is 19 frames at `d` 100.
 - **The cause.** `launch.rs` has no node for the Archers' piece 121, so its release events leave from the
-  unit's square at the figure's height. run1217b's `AMMO=5` window over 7678..7870 prints fifteen of who=1's
-  Archers' rounds: five figures, nine headings, and all three keys the piece releases on, (11, 12), (12, 9) and
+  unit's square at the figure's height. run1217b's `AMMO=5` window over 7678..7870 prints twenty-one of
+  who=1's Archers' rounds: fifteen distinct poses, six figures, nine headings, and all three keys the piece releases on, (11, 12), (12, 9) and
   (13, 15). **The Heavy Archer's three bays (pieces 123 and 1531) put every one at the dump's `sx, sy`** to the
   unit, and at its `sz` over the figure's `z` (163, 164, 164). It is the same model, as 123 is 1531's.
   `run1217b_s_greek_arrows_leave_from_the_archer_s_bays` (`launch.rs`) asserts the fifteen. A polar `Node`

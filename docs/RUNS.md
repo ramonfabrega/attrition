@@ -25771,6 +25771,7 @@ end:MISC,UNITS=3,GUYS=4,AMMO=5`, the lobby as run1217's.
 - Minutes waited on another lane: none.
 
 **What it holds**: 29 rounds on their first block, `cur_time 1`:
-- fifteen of who=1's Archers (`1/35`, `1/36`, `1/37`, `1/52`, `1/53`, `1/54`; piece 121) over 7692..7848, every
-  one reproduced by the Heavy Archer's bays (`launch.rs`, `run1217b_s_greek_arrows_leave_from_the_archer_s_bays`);
-- seven of the catapults `1/66`, `1/67` and `1/86` (piece 215), not fit (parked 3574c).
+- twenty-one of who=1's Archers (`1/35`, `1/36`, `1/37`, `1/52`, `1/53`, `1/54`; piece 121) over 7692..7867, fifteen
+  distinct poses, every one reproduced by the Heavy Archer's bays (`launch.rs`, `run1217b_s_greek_arrows_leave_from_the_archer_s_bays`);
+- seven of the catapults `1/66`, `1/67` and `1/86` (piece 215), not fit (parked 3574c);
+- one of the Javelineers `1/200` (piece 33).
