@@ -10466,3 +10466,7 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1181  run1147's line with --map 18 --ai-tribe 23 and run1180's lobby   (the draw stream; ended itself on 4759)
 #   run1181b --map 18 --end-frame 2476 --log-window 2220 2476 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --cover cover=0   (the word 2226's window)
 # Checks: `rngcmp.py` run1180 vs run1181 -> 37 identical; run1181 vs run1181b -> 2477 identical.
+# ==== item 3550: the Persians at a held Medieval age, the ferried Explorer's attack (`docs/AI.md` §308; `docs/RUNS.md` run1189, run1189b) ====
+#   run1189  --map 18 --end-frame 2220 --log-window 2160 2220 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --cover cover=0, run1180's lobby   (the landing's window)
+#   run1189b --map 18 --end-frame 4289 --log-window 4033 4289 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --cover cover=0, run1180's lobby   (the word 4038's window)
+# Checks: `rngcmp.py` run1189 vs run1181 -> 2221 identical; run1189b vs run1181 -> 4290 identical.
