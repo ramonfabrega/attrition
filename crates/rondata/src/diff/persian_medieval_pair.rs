@@ -35,9 +35,15 @@ pub(crate) const PERSIAN_MEDIEVAL: Pair = Pair {
     // ferried Explorer `1/0` keeps its army's `ATTACKTOORDER`, the boat's
     // orders queued behind it (`eject_contents`' step 4). Frame 4038: ours 8
     // draws against 9, index 0 — ours `Guy::set_anim+0x97a <
-    // Unit::do_idle+0x7d`, theirs `Unit::fight+0x9b0`.
-    count: 4038,
-    sequence: 4038,
+    // Unit::do_idle+0x7d`, theirs `Unit::fight+0x9b0`. Item 3554, 4038 ->
+    // 4083 (+45): a `k` type's fire on the move survives an `ATTACK` action
+    // under its move (`do_move`'s exemption), so the Mahouts `1/27` and
+    // `1/46` keep `cavarch_o` -2 through 4001 and `1/27` fires on the
+    // Citizen `0/10` on 4038 as theirs does. Frame 4083: ours 7 draws
+    // against 8, index 0 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`,
+    // theirs `Unit::fight+0x9b0`.
+    count: 4083,
+    sequence: 4083,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -290,6 +296,64 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // 10, `g.whom[0]` -1 against 0 — `Unit::fight+0x9b0`, index 0 of
     // theirs' 9 draws against ours' 8 — and block 4039 reads `fought`,
     // `blown` ours 0 theirs 1 and `recharging` 0 against 40 (`docs/AI.md`
-    // section 308).
-    pin_eq!(w.firsts.len(), 1184, "run1189b baseline");
+    // section 308). Item 3554, 1184 -> 1312: the Mahouts' `cavarch_o` rows
+    // leave 4033 (99 rows there, the standing families), and so do `1/27`'s
+    // shot on 4038 and its reload on 4039. The window now parts on 4048:
+    // the Nubian building `0/2000`'s `build:damage` ours 3 theirs 6
+    // (`damage_frac` 5 against 10) and `city:raid_stamp` ours 4044 theirs
+    // 4047; then the Citizen `0/10` on 4060 (`hits_left` ours 50 theirs
+    // 25, `damage_frame` 0 against 4059) and its flight on 4061; `1/46`
+    // on 4067 (`pos` ours (5469, 9811) theirs (5468, 9811)); and the word
+    // 4083's own block 4084, `1/46` taking `cavarch_o` 2005 here against
+    // 10 there (4083) and firing, `fought`/`blown` ours 1 theirs 0.
+    pin_eq!(w.firsts.len(), 1312, "run1189b baseline");
+}
+
+/// **The long's stride, walked back from the word 4038** (item 3554):
+/// run1181 dumps `UNITS=3,GUYS=2` every hundredth block, and run1189b's
+/// window opens with the Mahouts' `cavarch_o` already apart, so the state
+/// parted before 4033 and only the stride's blocks are on disk there.
+pub(crate) const WIDENING_PERSIAN_MEDIEVAL_STRIDE: (i64, i64) = (101, 4001);
+
+pub(crate) fn persian_medieval_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[PERSIAN_MEDIEVAL.start],
+        true,
+        PERSIAN_MEDIEVAL.long,
+        "run1181 stride",
+        &[(PERSIAN_MEDIEVAL.long.0, WIDENING_PERSIAN_MEDIEVAL_STRIDE.0)],
+        WIDENING_PERSIAN_MEDIEVAL_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn persian_medieval_pair_the_long_s_stride_walks_back_from_4038() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_medieval_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 40, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3554: 155 keys before the fix, the standing families (every
+    // unit's `form`, the `build:extra` rows a `UNITS=3` stride prints no
+    // building for, who=1's groups' `held` and `pool`) and the Mahouts
+    // `1/27` and `1/46` (TypeIndex 262, `mjvyk`) on 4001: `cavarch_o` ours
+    // -1 theirs -2, under `[AttackTo, Attack(0/10), Move]`. Both read -2
+    // on every stride block 1501..3901 (`1/46` from 1801). The fix is
+    // `do_move`'s `k` exemption; 153 keys, the standing families alone.
+    pin_eq!(w.firsts.len(), 153, "the stride's baseline");
 }

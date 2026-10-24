@@ -9904,12 +9904,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // with the boat's orders queued behind the passenger's own (item
     // 3550; run1189 puts the push on the landing, 2172): the Mahout
     // `1/27` fires on the Citizen `0/10` in theirs, widened on run1189b
-    // over 4033..4289 (block 4039).
+    // over 4033..4289 (block 4039). **4083** with `do_move`'s `k`
+    // exemption (item 3554, walked back on the long's stride: `cavarch_o`
+    // parted on 4001): `1/46` takes the building `0/2005` here and fires,
+    // where theirs holds the Citizen `0/10`; block 4084 is in run1189b's
+    // window.
     (
         "PERSIAN_MEDIEVAL_PAIR_WORD",
         crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL_PAIR_WORD,
         Some("persian_medieval_pair_run1189b_s_word_frame_is_widened_whole"),
-        3550,
+        3554,
         Some(crate::diff::persian_medieval_pair::WIDENING_PERSIAN_MEDIEVAL_FRAME_4038),
     ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
