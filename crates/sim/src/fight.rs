@@ -2550,10 +2550,6 @@ impl Sim {
             frame,
             &self.mods_of(owner),
         );
-        if std::env::var("RON_PROBE_3567").is_ok_and(|v| v.split('-').map(|x| x.parse::<i64>().unwrap_or(0)).collect::<Vec<_>>().windows(2).any(|w| (w[0]..=w[1]).contains(&frame))) {
-            eprintln!("  PROBE3567 f{frame} {attacker:?}->{target:?} angle {} ammo {ammo} count {count} attack {} armor {} pct {pct} dmg {dmg} amask {:#x} tmask {:#x} tfacing {} at {:?} tt {:?}",
-                angle.0, self.attack_of(attacker), self.armor_of(target), ap.obj_masks, tp.obj_masks, tt.facing.0, at, tt);
-        }
         // Step 2: the target's captain reacts, and the overkill record.
         if let Obj::Unit(t) = target
             && !quiet
@@ -2601,9 +2597,6 @@ impl Sim {
         // Step 7: take.
         let taken = self.take_damage_typed(target, dealt, attacker, frame, dtype, splash);
         let killed = matches!(taken, Taken::Died { .. });
-        if std::env::var("RON_PROBE_3567").is_ok() {
-            if let Obj::Unit(t) = target { eprintln!("  PROBE3567 taken f{frame} {target:?} dealt {dealt:?} taken {taken:?} owner {} o {}", self.units[t].owner, self.units[t].index); }
-        }
         // **`Armies::emergency` is the CITY alarm's, and a unit never
         // reaches it** (`docs/ARMY.md` §15.8, item 399). The call at
         // `do_damage@0064a480:952` is
