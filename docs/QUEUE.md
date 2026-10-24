@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 18 of 20 landed; 3578 and 3580 live, the drain (no refill past twenty); the last whole gate is the seventeenth's.*
+*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 19 of 20 landed; 3580 live, the drain (no refill past twenty); the last whole gate is the seventeenth's.*
 
-- **Words**: three open — the Chinese at Medieval at 3030 of 4,520 (lower map first — Great Sahara (Chinese, Medieval)), 3560, 3577;
-  the Koreans from an Ancient start at 4350 of 5,639 (3559; age 0 cannot be held, parked 3559a); the Mongols at Classical, 8444 → 9772 of
-  9,884 (3558, 3575, 3579: `Sim::land_size` read our region index; the Archers and Javelineers loose from their bays). **Whole**: the Greeks at Classical at 8,126 (3557–3574);
-  the Romans at Classical at 7,130; the Persians at Medieval at 4,759; twins 3572, 3573 moved nothing. **The headline, unit types seen
-  165 of 302**: the early-age pairs' lines (Nomad 3558, the Athanatoi and Mahout 3573, the Fire Raft 3574, Fire Lances 3560; parked 3556a).
-- **The rubric, lockstep**: ages 8 of 8, types 152 → 165 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
+- **Words**: two open — the Chinese at Medieval at 3030 of 4,520 (lower map first — Great Sahara (Chinese, Medieval)), 3560, 3577; the
+  Mongols at Classical, 8444 → 9772 of 9,884 (3558, 3575, 3579: `Sim::land_size` read our region index; the Archers and Javelineers loose
+  from their bays). **Whole**: the Koreans from an Ancient start at 5,639 (3559, 3578: the Slinger's and the Hwarang's bays; age 0 cannot be
+  held, parked 3559a); the Greeks at Classical at 8,126; the Romans at Classical at 7,130; the Persians at Medieval at 4,759; twins 3572, 3573
+  moved nothing. **The headline, unit types seen 166 of 302**: the early-age pairs' lines (Nomad, the Athanatoi, the Mahout, the Fire Raft, the Hwarang).
+- **The rubric, lockstep**: ages 8 of 8, types 152 → 166 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
   that closes books its twin, never ahead (Loop 3541, DECISIONS 92). Blind: 0 of 39 dead on the pass's scan.
-- **Lanes: three Opus at medium, two live** (3578, 3580); **five booked** (3581, 3576, 3561–3563). Next 3582, run 1225. Pools: GOLDEN §149–154, AI §317–320, park QN–QP.
+- **Lanes: three Opus at medium, one live** (3580); **six booked** (3581, 3576, 3582, 3561–3563). Next 3583, run 1226. Pools: GOLDEN §149–154, AI §317–320, park QO–QP.
 - **Fable backlog: 11 Loop items** (3565, 3564, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 92.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,14 +31,14 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w4350 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9772 of 9,884 · GreatSaharaChineseMedieval w3030 of 4,520
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9772 of 9,884 · GreatSaharaChineseMedieval w3030 of 4,520
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 247 · residue 208 · open 39
-Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 165 of 302
+Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 166 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: the fifty-fourth tranche (commander, Opus) — three Opus lanes at medium, 3555 the Persian word and 3556, 3557 the first pairs; the chain is `docs/LOOP.md`'s, twenty landings, and the drain's last act is `ccc clear steer --then "<the opener the pass writes>"`, every lane reaped.**
@@ -56,17 +56,15 @@ under `Object::die+0x29 < Unit::die+0x19`; 3577's widening, run1202b's 2975..323
 `AmmoOut::dirt_splash`, and no record parts on block 3031 — so name who dies on 3030 in theirs first, then walk its last blows back.
 Run 1223; amend §313 in place; park PX.
 
-3578. **The Korean word, frame 4350: ours 21 draws against 19, index 0** (ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a` under
-`Unit::move_step+0x823`; 3559's widening on run1200b, 4345..4601, AI §312): the Slingers `1/17` (TI 82) fight `0/13` in ours where theirs
-step toward `0/10`; the state is already apart on the window's first block, 4345 (`0/10`'s `damage_frame` 4334 against 4333, `0/13`'s
-4295 against 4294), so walk back from block 4301 to the first parted field before reading a chain. Run 1221; amend §312 in place; park QK.
-
 3581. **The Mongol word, frame 9772: ours 31 draws against 32, index 29** (ours `Farms::inc_time+0x1ae`, theirs
 `Object::take_damage+0xe1`; 3579's widening, AI §311): the state parts on block 9762 at the Citizen `0/11`, struck for 15 by the Nomad
 `1/31` (TI 199) in theirs; the long has no `AMMO`, so take an `AMMO=5` window over block 9762 first. Run 1224; amend §311 in place; park QM.
 
 3576. **coverage: the Greek Classical twin** (`EastIndiesGreekClassical`, whole at 8126 on run1195/1196): as 3573, against run1196;
 the first age-1 East Indies line in a lockstep trace, owed by the pair's close (DECISIONS 92). Run 1219; park QJ.
+
+3582. **coverage: the Korean Ancient twin** (`EastIndiesKoreanAncient`, whole at 5639 on run1199/1200): as 3573, against run1200;
+the first Ancient-start line in a lockstep trace, owed by the pair's close (DECISIONS 92). Run 1225; park QN.
 
 3561. **The Lakota at a held Medieval age, East Indies** (`EastIndiesLakotaMedieval`, map 18, tribe 19, difficulty 5, age 2 held; the
 peace pair is `(18, 19, 3)`): the line is `Eagle Feather Horse` (206); the water map's `Brig` (331). Runs 1203–1204; AI §314; park PY.
