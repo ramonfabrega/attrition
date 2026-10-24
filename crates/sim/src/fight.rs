@@ -2135,6 +2135,9 @@ impl Sim {
         let (z, exact) = self.world.data_z(at.x, at.y);
         if !exact {
             self.ground_inexact += 1;
+            if std::env::var_os("RON_PROBE_3588").is_some() {
+                eprintln!("PROBE3588 inexact f{} at ({}, {}) z {}", self.frame, at.x, at.y, z);
+            }
         }
         z
     }
