@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-24, **the fifty-fourth pass (steer, Fable): the tranche scored, the fifty-fifth booked on two Opus lanes at medium** — the third lane taken away by the lane rule (DECISIONS 93 §1).*
-- **Words**: one open — the Mongols at Classical, 9772 of 9,884 (lower map first — Great Sahara (Mongols, Classical)), 3581 on frame 9772.
-  **The headline, the early ages**: five pairs stood up, four whole (the Greeks 8126, the Romans 7130, the Koreans 5639, the Chinese 4520); the
-  Persians closed at 4759 in three items; 3561–3563 never spawned and stand; four more pairs booked on the nations the mask names (3584–3587).
+*2026-10-24, **the fifty-fifth tranche (commander, Opus): 1 of 20 landed from `58869793f`**; 3581 and 3588 live on two Opus lanes at medium; the last whole gate is the pass's (`bee421571`).*
+- **Words**: two open — the Lakota at Medieval, 4168 of 4,973 (lower map first — East Indies (Lakota, Medieval)), 3588; the Mongols, 9772 of 9,884, 3581.
+  **The headline, the early ages**: six pairs stood up, four whole (the Greeks 8126, the Romans 7130, the Koreans 5639, the Chinese 4520); the
+  Persians closed at 4759; the Lakota first try 4168 of 4973 (3561); 3562, 3563 and four on the mask's nations (3584–3587) booked.
 - **The rubric, lockstep**: ages 8 of 8, types 162 → 167 of 302, **bytes 77.4 %** unmoved — two more twins at zero (3572, 3573), so **a pair that
   varies only age and nation books no twin** (DECISIONS 93 §2): 3576, 3582, 3583 left by the ledger. Blind: 0 of 39 dead.
 - **The tranche**: twenty landings in 9 h 55 at 6.91 USD and 58.8 minutes waiting a landing (5.26 / 34.3 on two lanes): the third lane bought
   nothing; no red gate; three `DEEP` where the handoff said one — **a drain's counts are `tranche.py --base`'s and `gates.py`'s** (Loop 3564).
-- **Lanes: none live; eight booked** (3581 the Mongol word; the pairs 3561–3563, 3584–3587). Next 3588, run 1235.
-  Pools: GOLDEN §149–154, AI §321–324, park QJ, QN, QO, QT–QV.
+- **Lanes: two live** (3581 the Mongol word, 3588 the Lakota word); **six booked** (the pairs 3562–3563, 3584–3587). Next 3589, run 1236.
+  Pools: GOLDEN §149–154, AI §321–324, park QJ, QO, QT–QV.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 93.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9772 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9772 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4168 of 4,973
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -51,13 +51,14 @@ on `--stride 100`, the walk seeded from the start (3506a), the age held by `STAR
 `Pair::assert_lobby` — an Ancient start is `0`/`1`, read back `1`: age 0 cannot be held (3559a) — booked on the nation `rubric.py --tables 3`
 prints in braces, `diff::<name>_pair` at its first parting, a scoreboard line). **No twin for a pair varying only age and nation** (DECISIONS 93 §2).
 
+3588. **The Lakota word, frame 4168: ours 90 draws against 89, index 87** (ours `Guy::inc_time+0x1ed` on the Heavy Archers `1/19`,
+TI 173; 3561's widening, AI §314): the state parts on block 4169, where theirs re-aims `1/19`'s `ATTACKORDER` off the fleeing Citizen `0/10`
+onto `0/5` and ours chases; the window 4163..4419 is on disk (run1204b), and a packet at `RON_STATE_FRAME=4167` with `1/19`'s `process`
+under `step4.py` is the hypothesis's killer. Run 1235; amend §314 in place; park QN.
+
 3581. **The Mongol word, frame 9772: ours 31 draws against 32, index 29** (ours `Farms::inc_time+0x1ae`, theirs
 `Object::take_damage+0xe1`; 3579's widening, AI §311): the state parts on block 9762 at the Citizen `0/11`, struck for 15 by the Nomad
 `1/31` (TI 199) in theirs; the long has no `AMMO`, so take an `AMMO=5` window over block 9762 first. Run 1224; amend §311 in place; park QM.
-
-3561. **The Lakota at a held Medieval age, East Indies** (`EastIndiesLakotaMedieval`, map 18, tribe 19, difficulty 5, age 2 held; the
-peace pair is `(18, 19, 3)`): the line is `Eagle Feather Horse` (206); the water map's `Brig` (331) is the Dutch's by mask and not this
-pair's. Runs 1203–1204; AI §314; park PY.
 
 3562. **The Bantu from an Ancient start, East Indies** (`EastIndiesBantuAncient`, map 18, tribe 3, difficulty 5, starting age 0 and
 ending age 1 — age 0 cannot be held: `SetupWin::setup_game` stores the ending age one above the menu's, run1199/1200 read `ENDING_TECHNOLOGY 1`
