@@ -58,22 +58,6 @@ impl Sim {
             return;
         }
         let target = self.world.owners();
-        if std::env::var("RON_PROBE_BORDER").ok().and_then(|v| {
-            let (lo, hi) = v.split_once('-')?;
-            Some((lo.parse::<i64>().ok()?..=hi.parse::<i64>().ok()?).contains(&i64::from(self.frame)))
-        }) == Some(true)
-        {
-            let w = (1..).find(|k: &i32| k * k >= target.len() as i32).unwrap_or(1);
-            eprintln!("PROBE BORDER f{} fix", self.frame);
-            for (i, s) in self.sources.iter().enumerate() {
-                eprintln!("PROBE BORDER   src {i} who {} kind {:?} pos ({}, {}) bonuses {} limit {}", s.owner, s.kind, s.pos.x, s.pos.y, s.bonuses, s.limit);
-            }
-            for (i, (t, b)) in target.iter().zip(before.iter()).enumerate() {
-                if t.0 != b.0 {
-                    eprintln!("PROBE BORDER   cell ({}, {}) {:?} -> {:?} (runner-up {:?})", i as i32 % w, i as i32 / w, b.0, t.0, t.1);
-                }
-            }
-        }
         self.world.set_owners(&before);
         let index = vec![0; self.world.region_count()];
         let won = self.territory_won.clone();
