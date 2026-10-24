@@ -8743,13 +8743,13 @@ impl Sim {
     /// attack step: the target check, the reload gate with `new_ord`, the
     /// 1/5 re-search, range → strike, out of range → the chase inserted in
     /// front.
-    pub(crate) fn do_attack_fight(&mut self, u: usize, frame: i64) {
+    pub(crate) fn do_attack_fight(&mut self, u: usize, frame: i64) -> bool {
         let Some(Order {
             body: Body::Attack(mut a),
             flags,
         }) = self.current_order(u).copied()
         else {
-            return;
+            return false;
         };
         let me = Obj::Unit(u);
         // **`do_attack`'s own gate is the type's `attack`, and it is the
@@ -8764,7 +8764,7 @@ impl Sim {
         // sits where `fight` puts it: **behind the reload gate**.
         if self.attack_of(me) == 0 {
             self.kill_current_order(u);
-            return;
+            return false;
         }
         let state = self.units[u].combat;
         // **A mandatory order ignores the stance.** `Unit::do_attack@
@@ -8776,7 +8776,7 @@ impl Sim {
         // gives a **mandatory** attack order to, and run19's block 8187
         // has all six chasing, so this arm is what lets them.
         if state.stance == combat::Stance::HoldFire && !state.mandatory {
-            return;
+            return false;
         }
         // **The cell-centre snap at `fight`'s own entry** (§7.11).
         // `Unit::fight@005fd4d0`, `LAB_005fd648`:
@@ -8848,7 +8848,7 @@ impl Sim {
                 self.mark(anim::SITE_RELOAD_IDLE);
                 self.set_anim(u, anim::DEFAULT, true, true);
             }
-            return;
+            return false;
         }
         // **`fight`'s own target test, and it is downstream of the gate
         // above** — `Unit::fight@005fd4d0:196`'s `Object::valid_target`,
@@ -8915,7 +8915,7 @@ impl Sim {
         }
         let Some(target) = self.units[u].combat.target else {
             self.kill_current_order(u);
-            return;
+            return false;
         };
         let mut capturable = 0;
         if !self.valid_target_out(me, target, Some(&mut capturable)) {
@@ -8923,7 +8923,7 @@ impl Sim {
             // `Unit::fight@005fd4d0`, `005fd8d1`–`005fda9b`, the first arm
             // under the refused target, ahead of `find_new_target`.
             if capturable != 0 && self.capture_approach(u, target, state.mandatory) {
-                return;
+                return false;
             }
             // `find_new_target`: the order dropped, then
             // `find_melee_target(−1, NULL, 0, 1, 0)`, **whose head is the
@@ -8975,7 +8975,7 @@ impl Sim {
             ) {
                 self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
             }
-            return;
+            return false;
         }
         // **A guard's attack is leashed to its post** (`docs/COMBAT.md`
         // §63). `Unit::fight@005fd4d0`, `005fdc91`–`005fdd4f`, straight
@@ -9013,7 +9013,7 @@ impl Sim {
                 if self.order_type(u) == index::ATTACK && self.units[u].combat.recharging == 0 {
                     self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
                 }
-                return;
+                return false;
             }
         }
         // **`fight`'s captain arm, `LAB_005fddf7`: one search for both
@@ -9092,7 +9092,7 @@ impl Sim {
             };
             if research {
                 match self.find_new_target(u, false) {
-                    None => return,
+                    None => return false,
                     Some(f) if f != target => {
                         if self.units[u].combat.recharging == 0
                             && matches!(
@@ -9102,7 +9102,7 @@ impl Sim {
                         {
                             self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
                         }
-                        return;
+                        return false;
                     }
                     Some(_) => {
                         let Some(Order {
@@ -9110,7 +9110,7 @@ impl Sim {
                             ..
                         }) = self.current_order(u).copied()
                         else {
-                            return;
+                            return false;
                         };
                         a = fresh;
                     }
@@ -9128,19 +9128,18 @@ impl Sim {
         if in_range {
             a.ever_in_range = true;
             if self.packed_unpacks(u, target, a) {
-                return;
+                return false;
             }
             // **Siege fire at a unit is ground fire** (`docs/COMBAT.md`
             // §57.2): the arm returns before the strike's tail, so the
             // attack keeps `new_ord 1` under the order it pushes, as
             // run146's `0/6` does from 781 to 863.
             if self.siege_ground_arm(u, target, a, frame) {
-                return;
+                return false;
             }
             a.new_ord = false;
             self.store_attack(u, a);
-            self.fight_pub(u, target, frame);
-            return;
+            return self.fight_pub(u, target, frame);
         }
         self.store_attack(u, a);
         // **An unpacked packer that has been in range dies out of it**
@@ -9154,7 +9153,7 @@ impl Sim {
             .is_some_and(|t| self.unit_types[t].combat.packs);
         if packs && !self.units[u].combat.packed && a.ever_in_range {
             self.kill_current_order(u);
-            return;
+            return false;
         }
         // **A packer re-searches before it chases** (`fight:1051`,
         // `docs/COMBAT.md` §60.3): `find_new_target(this, &who, 0)`
@@ -9179,7 +9178,7 @@ impl Sim {
                 t
             } else {
                 let Some(t) = self.find_melee_target(u, -1) else {
-                    return;
+                    return false;
                 };
                 self.nearby_normalize(u);
                 let pos = if state.stance == combat::Stance::Defensive {
@@ -9200,7 +9199,7 @@ impl Sim {
         // (`get_combat_stance@00610a30`, item 2265): run589's cannon
         // `1/132`, packed on its attack-move, walks at `0/2000` on 17945.
         if !state.mandatory && state.stance == combat::Stance::StandGround && !self.on_duty(u) {
-            return;
+            return false;
         }
         // **The chase** (`docs/COMBAT.md` §17): the unit asks where to
         // stand — `Unit::fight@005fd4d0+0xcb4`'s arm, through the
@@ -9216,12 +9215,13 @@ impl Sim {
             Some(p) => p,
             None if self.attack_pos_refused(u, target) => {
                 self.chase_refused(u, target);
-                return;
+                return false;
             }
             None => self.pos_of(target),
         };
         self.add_move_order(u, dest, MoveKind::MoveTo, QueuePos::First, false);
         self.chase_reentry(u, here, dest, frame);
+        false
     }
 
     /// **The chase that `find_attack_pos` refused** — `Unit::fight@

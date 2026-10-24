@@ -215,9 +215,9 @@ impl DoAttackView for SimDoAttack<'_> {
         self.s.with_second_range(u, |s| s.do_attack_fight(u, frame));
         false
     }
+    /// `fight`'s `1`: the strike reached the reload (`fight@005fd4d0:1035`).
     fn fight(&mut self, _mandatory: bool) -> bool {
-        self.s.do_attack_fight(self.u, self.frame);
-        false
+        self.s.do_attack_fight(self.u, self.frame)
     }
     fn recharge_byte(&mut self) -> u8 {
         self.s.units[self.u].combat.recharging
@@ -225,7 +225,15 @@ impl DoAttackView for SimDoAttack<'_> {
     fn set_recharge_byte(&mut self, b: u8) {
         self.s.units[self.u].combat.recharging = b;
     }
-    fn cavarch_fight(&mut self) {}
+    /// `do_attack@005f1b80:255`–`259`: a melee-and-ranged type that struck
+    /// takes the fire on the move's fight too, at its second range, with
+    /// `recharging` held at 0 across it (item 3570). run1189b's Mahout
+    /// `1/46` (TypeIndex 262, `mjvyk`) swings at `0/2000` on 4240 and the
+    /// call's search writes `cavarch_o` 2000 there.
+    fn cavarch_fight(&mut self) {
+        let (u, frame) = (self.u, self.frame);
+        self.s.cavarch_fight(u, frame);
+    }
 }
 
 impl crate::Sim {

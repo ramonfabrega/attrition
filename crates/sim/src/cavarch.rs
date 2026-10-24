@@ -161,7 +161,7 @@ impl crate::Sim {
     /// attack of a `v` type; this crate carries neither, so the third
     /// argument is 0 and the squad arm it opens (`fight:206-215`) is not
     /// reached.
-    fn cavarch_fight(&mut self, u: usize, frame: i64) {
+    pub(crate) fn cavarch_fight(&mut self, u: usize, frame: i64) {
         let was_empty = self.units[u].cast_target.is_none();
         // **A melee-and-ranged type fights here at its second range**
         // (`cavarch_fight@005ff4b0`'s bracket, item 3383): the Gun Mahout

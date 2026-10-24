@@ -1492,8 +1492,8 @@ impl Sim {
         self.add_attack_order(unit, target, crate::orders::QueuePos::New, true, true);
     }
 
-    pub(crate) fn fight_pub(&mut self, i: usize, target: Obj, frame: i64) {
-        self.fight(i, target, frame);
+    pub(crate) fn fight_pub(&mut self, i: usize, target: Obj, frame: i64) -> bool {
+        self.fight(i, target, frame)
     }
 
     /// Tells a building to attack something — `Build::add_attack_order`.
@@ -1545,8 +1545,8 @@ impl Sim {
     // ------------------------------------------------------------------
 
     /// The strike itself — `Unit::fight` from step 2 on (§8.2).
-    fn fight(&mut self, i: usize, target: Obj, frame: i64) {
-        self.fight_as(i, target, frame, false);
+    fn fight(&mut self, i: usize, target: Obj, frame: i64) -> bool {
+        self.fight_as(i, target, frame, false)
     }
 
     /// [`Sim::fight`] with `fight`'s fifth argument, `cavarch`: the fire
@@ -1554,7 +1554,11 @@ impl Sim {
     /// and jumps from `005fe7c5` (`if (param_5 != 0) goto LAB_005feec6`)
     /// over the `set_angle`, the figures' desired angles, the cell-centre
     /// snap and the swing — the walk goes on, under `CHAR_ATTACKWALK`.
-    pub(crate) fn fight_as(&mut self, i: usize, target: Obj, frame: i64, cavarch: bool) {
+    ///
+    /// Answers `fight`'s own `1`: the strike reached the reload
+    /// (`fight@005fd4d0:1035`), which `Unit::do_attack`'s tail reads to run
+    /// a melee-and-ranged type's `cavarch_fight` (item 3570).
+    pub(crate) fn fight_as(&mut self, i: usize, target: Obj, frame: i64, cavarch: bool) -> bool {
         let me = Obj::Unit(i);
         let p = self.profile(me);
         // `local_1c`, `is_in_range`'s out-distance (`fight@005fd4d0:481`),
@@ -1626,11 +1630,24 @@ impl Sim {
         // blow and the reload. Only a melee-and-ranged type reaches here
         // recharging (the reload gate's `0x400`, item 3568).
         if !cavarch && self.units[i].combat.recharging != 0 {
-            return;
+            return false;
         }
         if self.max_range_of(me) == 0 {
             // Melee lands now, once per figure of this `UnitData` — one here.
-            if p.fires() {
+            //
+            // **Only while `fire_proj` (`UnitType +0x2cc`) stands**
+            // (`fight@005fd4d0:853`–`854`, item 3570): `UnitType::init`
+            // sets it to 1 for an attacking type, and
+            // `GraphicEvents::init_unit_events@008e2520:325` writes it 0
+            // for a type whose graphic carries a `RELEASEEVENT` naming a
+            // known ammo — the same condition [`Self::launches_from_anim`]
+            // reads for the ranged arm below. Such a type swings in melee
+            // and lands nothing: its round leaves on the release event.
+            // run1189b's Mahout `1/46` (TypeIndex 262, `RANGE 0-8`) swings
+            // at `0/2000` on 4240 from its first range, and the building's
+            // `damage` stands at 108 through block 4244 in theirs, where
+            // ours struck it 4 on 4241.
+            if p.fires() && !self.launches_from_anim(i) {
                 self.do_damage(me, target, angle, false, 0x100, false, false, frame);
             }
         } else if self.launches_from_anim(i) {
@@ -1648,6 +1665,7 @@ impl Sim {
         }
         // Reload.
         self.units[i].combat.recharging = self.reload_frames(i);
+        true
     }
 
     /// **`UnitData::recharge()`** (vslot `+0x134`, §8.3), as the byte
