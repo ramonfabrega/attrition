@@ -10687,13 +10687,21 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QU — reserved
+## Parked by item 3594, 2026-10-24 — the rares' re-zero, and a blind array
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3594a) **`widen_on_siblings`' leader rows compare no `region_rows`.** The
+widening path (`harness.rs`, `leader::rows` alone) leaves every one of
+`REGION_ARRAYS` unread, `reg_known_rares` among them. run1241's who=1 held
+ours 3 against theirs 0 in regions 7, 9 and 11 for 200 blocks, and only the
+sum `known_rares` parted (AI §318.1). The traced walk at `harness.rs:7196`
+reads them. Adding them here moves every widening's baseline, so it is a
+sweep of its own. No score names it: the sum parts first wherever the arm reads it.
+
+(3594b) **`compute_reg_territory`'s third region-0 zero, `LeaderData
++0x145e + 2r`** (a `ushort[64]`), has no field in this crate. The same
+block zeroes it beside `reg_known_rares` and `bordering` (AI §318.1), and
+`check_borders` sums it into the leader's `+0x9d8` territory at the pass's
+end. No capture separates it, and no score names it.
 
 ## Parked by the next landing, slot QV — reserved
 
