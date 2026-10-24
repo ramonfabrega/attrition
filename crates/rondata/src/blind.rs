@@ -505,6 +505,12 @@ pub const TRACES: &[&str] = &[
     // (`docs/RUNS.md` run1190): run1153's game on every frame (rngcmp 4548
     // identical, 0 differing) — the sea map's age-5 Industrial line.
     "rontrace-run1190.log",
+    // Item 3552: the Chinese late-age pair's long lobby (Great Sahara, the
+    // Chinese, `DIFFICULTY 3`, a held Industrial age; run1155's recipe) at
+    // `cover=1` on the click-free pool, to the game's own end at 4467
+    // (`docs/RUNS.md` run1191): run1155's game on every frame (rngcmp 4468
+    // identical, 0 differing) — the land map's age-5 Industrial line.
+    "rontrace-run1191.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
