@@ -26509,3 +26509,46 @@ SHA-256 `e0aef6cefcca78e87f446513a0828fc1a24b6a09d2ce7eee8999d01a3a8a007a`.
 **What it holds**: `japanese_gunpowder_pair_run1208d_s_first_wound_is_widened` (100 blocks, 52 keys). The state
 first parts on block 2676, where the Arquebusiers `1/20`'s round lands on the Citizen `0/12` with ours 12 against
 theirs 13 + 10/16. Theirs' `AMMO` leaves from (9443, 30828, 784), ours from (9576, 30888).
+
+## run1237 — the Japanese at a held Gunpowder age, Great Sahara: a packet at logger frame 2674, piece 1104's `AttachPos` rows (2026-10-24, item 3590, `att-3590`)
+
+`docs/AI.md` §316.1. **What the disk could not answer**: the Arquebusiers' release nodes at every heading. run1208d
+prints their rounds' launch points, three poses, and no packet of any lobby held piece 1104. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1237 --map 7 --end-frame 2676 --timeout 3600 --log-window 2673 2675
+--detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 15 --cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile
+ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=2674
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 13:11:56, exited 13:12:27 (31.8 s launch to exit). `success`, 2677 frames.
+  `rngcmp.py` against run1208: 2677 frames identical.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1237/map-7/frame-snapshot.bin`, 845,037,284 bytes,
+SHA-256 `b7e2ea9830be2feaa9dae947f7d31005f9d0717b1f9e6ea016cd9d6c1ec8df0f`.
+
+**What it holds**: `tools/recomp/get_position.py … entries 1104` reads three rows, scale 1.0, node 0 at anims 11, 12
+and 13, times 6, 25 and 23. Each key's `sweep` (361 headings) is kept at
+`~/ron-data/lab-experiments/2026-10-24-item-3590/sweep-1104-<anim>-<time>.txt`; each has one feasible `Bay` region,
+and `sim::launch::BAYS`' three piece-1104 rows are the regions' middles.
+
+## run1237b — the Japanese at a held Gunpowder age, Great Sahara: the closing window, blocks 3418..3674 (2026-10-24, item 3590, `att-3590`)
+
+`docs/AI.md` §316.1. **What the disk could not answer**: the word moved to 3673, the game's last frame. run1208
+prints units only every hundredth block, and run1208b ends on 3090, so no dump held the last blocks for the word's
+widening. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1237b --map 7 --end-frame 3673
+--allow-early-end --timeout 3600 --log-window 3418 3674 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 15 --cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 13:15:34, exited 13:16:28 (53.6 s launch to exit). `success`: 3674 frames,
+  last frame 3673, not ended early. `rngcmp.py` against run1208: 3674 frames identical. Filed with `filerun.py
+  run1237b greatsahara-japanese-gunpowder-window-3418-3674 --map 7`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1237b-greatsahara-japanese-gunpowder-window-3418-3674.txt`, 524,978,495 bytes,
+SHA-256 `35d779e7e510fa5c9c7b929adfcf7933c9caeec894f47006b763040e514cd155`.
+
+Archive `rontrace-run1237b.log`, 50,575,360 bytes,
+SHA-256 `58ea02ba103578aaf071acd59db4f947d54a312f328d07267458e09c2245a9cc`.
+
+**What it holds**: `japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole` (256 blocks, 47 keys). Every
+key is a standing family but two `dest_angle` rows on the Arquebusiers `1/132` (3487) and `1/131` (3492), 3567a's
+shape. The closing block 3674 agrees.

@@ -10083,12 +10083,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The Japanese at a held Gunpowder age** (item 3563): Great Sahara —
     // 2839 first try, widened on run1208b over 2834..3090 (block 2840).
+    // **3673**, the game's last frame, with the Japanese barracks term and
+    // the Arquebusiers' bays (item 3590); widened on run1237b over
+    // 3418..3674 (the closing block).
     (
         "JAPANESE_GUNPOWDER_PAIR_WORD",
         crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER_PAIR_WORD,
-        Some("japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole"),
-        3563,
-        Some(crate::diff::japanese_gunpowder_pair::WIDENING_JAPANESE_GUNPOWDER_FRAME_2839),
+        Some("japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole"),
+        3590,
+        Some(crate::diff::japanese_gunpowder_pair::WINDOW_JAPANESE_GUNPOWDER_CLOSING),
     ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
@@ -11758,15 +11761,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Japanese at a held Gunpowder age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3563): first try 2839, of
-    // a game that ends itself on 3673; widened on run1208b.
+    // a game that ends itself on 3673; widened on run1208b. Whole from
+    // item 3590: the closing state compared, widened on run1237b.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaJapaneseGunpowder",
         named: "Great Sahara (Japanese, Gunpowder)",
         word: crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER_PAIR_WORD,
         length: 3_673,
-        endpoint: None,
-        window: Some("japanese_gunpowder_frame_2839_window"),
+        endpoint: Some("japanese_gunpowder_pair_run1208_s_closing_state"),
+        window: Some("japanese_gunpowder_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

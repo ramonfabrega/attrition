@@ -27742,7 +27742,7 @@ The 49 other lobbies' `first_parting` hold.
 Reading-only: that `finalize_grafting` runs once per game after the lobby (`Game::init_data`'s order). The packet
 shows the result of that order, not the order itself.
 
-## 316. The Japanese at a held Gunpowder age, Great Sahara: an Elite Knight re-aimed off a fleeing Citizen, first try 2839 of 3673 (item 3563)
+## 316. The Japanese at a held Gunpowder age, Great Sahara: the Japanese barracks term and the Arquebusiers' bays, 2839 → 3673, whole (items 3563, 3590)
 
 **The pair** (DECISIONS 90, 91, 93). §313's lobby with the nation and the age moved: Great Sahara (`MAP_STYLE 7`),
 human Nubians (4) against the **Japanese (15)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held
@@ -27803,11 +27803,60 @@ and landing on 2675 on both sides. **The two rounds part at their launch point**
 
 The blow is larger in theirs by 1 + 10/16.
 
-**The next word: frame 2839, ours 8 draws against 9, index 1, theirs `Unit::fight+0x824`.** **The hypothesis,
+~~**The next word: frame 2839, ours 8 draws against 9, index 1, theirs `Unit::fight+0x824`.** **The hypothesis,
 untested**: the Arquebusiers' round, by its blow (`get_damage`'s terms against a Citizen, checklist row 3328: the
 packet's live `Ammo` first) or by its launch (no `sim::launch` bay for the Arquebusiers' figure piece, 3577's
 and 3588's family). The killer is a packet at `RON_STATE_FRAME=2674`, reading `1/20`'s `Ammo` and `0/12`'s
-`do_damage` arguments on 2675.
+`do_damage` arguments on 2675.~~ **Both, in that order** (item 3590, below).
+
+### 316.1 The blow and the launch (item 3590)
+
+*Item 3590, 2026-10-24, Opus 5.5. Runs 1237 (a packet at `RON_STATE_FRAME=2674`) and 1237b (the closing window,
+blocks 3418..3674).*
+
+**The blow is the Japanese barracks term, and the flank is not it.** The round's bearing is its landing less its
+launch (§47.3 of `docs/COMBAT.md`), so the parted launch point was read first: theirs' bearing is −70.97° and ours'
+−70.49°, and the Citizen `0/12` faces 120°. Both strike its front (`flank_level` `None`). The term that parts is
+`get_damage@00644130:243`–`262`, step 13 of `docs/COMBAT.md` §6: an attacker that is a unit whose type's `+0x40` is
+`0x1ab` (made at the Barracks), of a leader with tribe bonus `0xf`, takes `base = (5n + 100) · base / 100`, `n =
+min(ages, epoch[0])` read off the leader on the blow. run1208d's who=1 reads `ages_get()` 3 and `epoch_get` 3, 3,
+2, 2 on 2675: +15 %. **Nothing in this crate wrote `Modifiers::japanese_level`** (parked 3510a), so the term never
+ran. `Sim::mods_of` (`fight.rs`) now asks `has_tribe_bonus(0xf)` and takes `min(ages, epoch[Military])` on each
+call, as the original does; there is no target condition (3510a's "against buildings" was the row's wording, not
+the listing's). With it, block 2676 agrees: `0/12`'s `hits:damage` 13, `damage_frac` 10 on both sides.
+
+**The launch is piece 1104's bays.** The Arquebusiers' figures play piece **1104** (`RON_DEBUG_UNIT`'s `g1104`).
+`sim::launch` had no row for it, so their rounds left from the figure's square. The next parting was block 2698:
+who=1's `1/19` loosed at `0/12` on 2693 from theirs' (9940, 30945), 6 frames, where ours loosed from (10056, 30984)
+and flew 7, so theirs' blow landed a frame sooner (`hits:damage` ours 26 against theirs 39 + 10/16). run1237's
+packet holds piece 1104's three `AttachPos` rows, node 0 at anims 11, 12 and 13, times 6, 25 and 23, scale 1.0.
+`tools/recomp/get_position.py`'s sweep of each has one feasible `Bay` region (240, 757 and 194 lattice points)
+reproducing all 361 headings, x and y; `z` is 175, 170 and 175. The regions' middles are `sim::launch::BAYS`'
+rows. With them, ours' `RON_DEBUG_AMMO` prints theirs' launch, `total_time` and angle on all three rounds at
+`0/12`: `1/20`'s (9443, 30828) on 2673, `1/18`'s (9838, 30835) on 2679 and `1/19`'s (9940, 30945) on 2693.
+
+**The value diff:**
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 2676 | Citizen `0/12` (TI 50, uid 19) | `hits:damage`, `damage_frac` | 12, 0 / 13, 10 | agrees |
+| 2698 | Citizen `0/12` | `hits:damage`, `hits_left` | 26, 24 / 39 + 10/16, 11 | agrees |
+| 2809 | Citizen `0/11` (uid 18) | `hits_left` | 50 / 37 | agrees |
+| 2839 | draws | index 1 | `Guy::set_anim+0x97a` / `Unit::fight+0x824` (8 / 9) | agree |
+
+**The word: 2839 → 3673, the game's last frame**, by count and sequence. `tools/mutate.py` scored both builds
+(exit 101, "mutation: held"): with the tribe bonus asked as `0x7f` the walk parts on 2926, and with piece 1104's
+`(13, 23)` row renamed it parts on 2964.
+
+**The pair is whole.** `japanese_gunpowder_pair_run1208_s_closing_state` walks to run1208's closing block 3674:
+170 units compared, none off, torn or unlinked, and no building or city field-row. run1237b (blocks 3418..3674,
+the long's detail) is the word's widening, `japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole`:
+256 blocks, 47 keys, the two `gaia:` keys unprinted. Block 3418 carries the 40 standing rows, later blocks groups
+67 and 70's `held`/`pool` and who=1's `SITE[2].reg`. **Two rows are not standing families**: `dest_angle` on the
+Arquebusiers `1/132` (uid 170, 3487) and `1/131` (uid 169, 3492), 3567a's shape (parked 3580b). The closing
+block agrees. The walk-back windows re-pin: run1208b 1333 → 51 (one non-standing row, the `1/77`'s `dest_angle`
+on 3054, the same shape), run1208c 93 → 49, the stride 87 → 81, run1208d 52 → 48, every other row a standing
+family.
 
 **The rubric.** On the pair's own dumps (`--tables 3 --dumps`, run1207 and run1208) the census sees 16 types:
 - Citizen 50, Caravan 59, Merchant 61, Supply Wagon 63 and Explorer 71;
@@ -27816,18 +27865,29 @@ and 3588's family). The killer is a packet at `RON_STATE_FRAME=2674`, reading `1
 - The Senator 353, The President 355, and the sheep and peacock herds.
 
 **`Samurai` (160), the line the booking names, is fielded, and it is the one type new to the lockstep ledger.**
-`census::RUBRIC_UNIT_TYPES_SEEN` is left at 169: the pair is open, and the Samurai enter the count when it closes
-whole.
+~~`census::RUBRIC_UNIT_TYPES_SEEN` is left at 169: the pair is open, and the Samurai enter the count when it closes
+whole.~~ The pair is whole from item 3590, and `rubric.py` on its tree reads **unit types seen 170 of 302**;
+`RUBRIC_UNIT_TYPES_SEEN` is re-pinned 169 → 170. Lockstep bytes read 77.4 %, unmoved.
 
-**Coverage.** `japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole` pins the 1333 keys. `WIDENINGS`'s
+**Coverage.** Diff-backed (item 3590): the Japanese term against a Citizen (run1208d's 2676), piece 1104's
+three bays (run1208d's three rounds), the pair to its end (the walk) and its closing state (run1208's 3674).
+`japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole` pinned the 1333 keys (51 from item 3590). `WIDENINGS`'s
 `JAPANESE_GUNPOWDER_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds the row on
 `Late ages`. Three tests pin the walk back:
 - `japanese_gunpowder_pair_run1208c_walks_the_wound_back` (63 blocks, 93 keys);
 - `japanese_gunpowder_pair_the_long_s_stride_walks_back_from_2771` (29 blocks, 87);
 - `japanese_gunpowder_pair_run1208d_s_first_wound_is_widened` (100 blocks, 52).
 
-**Not established**: the cause of the larger blow, and whether the launch point is a cause of it at all. That
-`Unit::fight+0x824` is `1/23`'s draw rests on the re-aim on block 2840, not on a stack.
+~~**Not established**: the cause of the larger blow, and whether the launch point is a cause of it at all.~~
+Both answered by §316.1: the blow is the Japanese term, and the launch is a cause of the next parting, not of
+this one. That `Unit::fight+0x824` is `1/23`'s draw rests on the re-aim on block 2840, not on a stack; the re-aim
+now agrees, so it is not asked again.
+
+**Not established (item 3590).** `n`'s other arm, `ages` the lesser, runs on no capture (`epoch[0]` equals
+`ages` here); the direct test `a_japanese_owner_s_blow_takes_the_lesser_of_its_ages_and_military_level` holds
+it. Piece 1104 is the Arquebusiers as the Japanese field them; another nation's Arquebusiers may play another
+piece, and a piece with no row still launches from the figure. `compare_target` calls the same `get_damage`, so
+the term now ranks targets too; no capture separates that from the blow.
 
 ## 317. Reserved for the next item on the AI track
 

@@ -380,8 +380,22 @@ impl Sim {
     /// for a gaia owner (animals, goods), which the leaders' list holds as
     /// zeroes and `mods` — one a player — does not (a nuke's ring strikes
     /// the animals around a city, `docs/AI.md` §158).
+    ///
+    /// **The Japanese level is read live** (item 3590): `get_damage@
+    /// 00644130:243`–`262` asks `has_tribe_bonus(0xf)` of the attacker's
+    /// leader on every blow and takes `n = min(ages, epoch[0])` off its
+    /// `LeaderData` there, so nothing caches it; before this nothing wrote
+    /// `japanese_level` at all (parked 3510a), and run1208d's Arquebusiers
+    /// `1/20` struck the Citizen `0/12` for 12 where the original's +15 %
+    /// (ages 3, `epoch[0]` 3) struck 13 + 10/16 (`docs/AI.md` §316).
     fn mods_of(&self, owner: usize) -> combat::Modifiers {
-        self.mods.get(owner).copied().unwrap_or_default()
+        let mut m = self.mods.get(owner).copied().unwrap_or_default();
+        if let Some(p) = self.tech.get(owner)
+            && self.tech_tree.has_tribe_bonus(&self.setup, p, 0xf)
+        {
+            m.japanese_level = Some(p.ages.min(p.epoch[crate::tech::Line::Military.index()]));
+        }
+        m
     }
 
     /// `armor()` (§4.2). **A building that is not finished holds half its
@@ -6343,6 +6357,32 @@ mod tests {
         assert_eq!(sim.mods_of(9).armor, 0);
         assert_eq!(sim.mods_of(9).range, 0);
         assert_eq!(sim.mods_of(1), sim.mods[1]);
+    }
+
+    /// **The Japanese level is the leader's own, read on the blow** (item
+    /// 3590, `get_damage@00644130:243`–`262`): `min(ages, epoch[0])` for an
+    /// owner with tribe bonus `0xf`, nothing for another nation. run1208d's
+    /// who=1 reads `ages_get()` 3 and `epoch_get` 3 on 2675, and its
+    /// Arquebusiers' blow on the Citizen `0/12` is 13 + 10/16, not 12.
+    #[test]
+    fn a_japanese_owner_s_blow_takes_the_lesser_of_its_ages_and_military_level() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(8, 8), 2);
+        sim.tech[1].ages = 3;
+        sim.tech[1].epoch = [2, 4, 0, 0];
+        assert_eq!(sim.mods_of(1).japanese_level, None, "no bonus, no level");
+        sim.tech[1].power = Some(crate::nations::power::JAPANESE);
+        assert_eq!(
+            sim.mods_of(1).japanese_level,
+            Some(2),
+            "epoch[0] the lesser"
+        );
+        sim.tech[1].epoch = [3, 3, 2, 2];
+        sim.tech[1].ages = 3;
+        assert_eq!(sim.mods_of(1).japanese_level, Some(3), "run1208d's leader");
+        sim.tech[1].ages = 1;
+        assert_eq!(sim.mods_of(1).japanese_level, Some(1), "ages the lesser");
+        assert_eq!(sim.mods_of(0).japanese_level, None, "the other player");
+        assert_eq!(sim.mods_of(9).japanese_level, None, "a gaia owner");
     }
 
     /// **`max_range`'s CEO term** (`UnitData::max_range@0060fe90`, item

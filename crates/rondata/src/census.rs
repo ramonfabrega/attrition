@@ -395,8 +395,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// --tables 3` on this tree. Item 3588: 168 -> 169, the Lakota Medieval
 /// pair whole at 4973 — the Eagle Feather Horse (206, `EAGLEFEATHER`, 378
 /// figure rows over run1203 and run1204), read by `rubric.py --tables 3`
-/// on the merged tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 169;
+/// on the merged tree. Item 3590: 169 -> 170, the Japanese Gunpowder pair
+/// whole at 3673 — the Samurai (160, 1098 figure rows over run1207 and
+/// run1208), read by `rubric.py` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 170;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
