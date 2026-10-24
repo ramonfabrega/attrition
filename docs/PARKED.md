@@ -10456,7 +10456,8 @@ words and edits nothing here; a refill lands when two remain.
 
 - **3567a. The Light Horse `1/28`'s `dest_angle` is a frame late at its guard post.** run1194b, block 4079: ours
   137756672, theirs -1351155712. Ours turns on 4080, and `angle` agrees on both blocks. It is the one non-standing
-  row left on the Roman window, and nothing follows from it: the pair runs whole to 7130 and closes on block 7131
+  row left on the Roman window. run1210's closing window (6875..7131) shows the same row once more: `1/195` on
+  block 6931, ours -610729984 against theirs -620363776. Nothing follows from either: the pair runs whole to 7130 and closes on block 7131
   with every count zero. It names no score. It books only if a later window shows it moving a draw
   (`docs/AI.md` §309).
 - **3567b. Three arms of the contact mark are reached by no capture.** These are the land-speed halving under

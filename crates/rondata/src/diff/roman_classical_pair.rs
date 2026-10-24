@@ -266,3 +266,52 @@ fn roman_classical_pair_run1194b_s_word_frame_is_widened_whole() {
     // 4080 (parked 3567a).
     pin_eq!(w.firsts.len(), 48, "run1194b baseline");
 }
+
+/// run1210: the pair's last blocks, 6875..7131 at the window's detail —
+/// the word 7130 is the game's last frame and 7131 its closing block (item
+/// 3567). run1194 prints units only every hundredth block, and run1194b
+/// ends on 4319, so no dump held the last blocks.
+pub(crate) const RUN1210: &str = "gamelog-run1210-greatsahara-roman-classical-window-6875-7131.txt";
+
+/// The window: block 6875 through the closing block 7131.
+pub(crate) const WIDENING_ROMAN_CLASSICAL_CLOSING: (i64, i64) = (6875, 7131);
+
+/// **The pair's last blocks**: run1210 walked from run1193's start with
+/// the recorder on. The word is the game's last frame (item 3567).
+pub(crate) fn roman_classical_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_CLASSICAL.start],
+        true,
+        ROMAN_CLASSICAL.long,
+        "run1210",
+        &[(RUN1210, WIDENING_ROMAN_CLASSICAL_CLOSING.0)],
+        WIDENING_ROMAN_CLASSICAL_CLOSING,
+        1,
+        &[7131],
+        true,
+    )
+}
+
+#[test]
+fn roman_classical_pair_run1210_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_classical_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 3567, the first walk: **46** keys. Block 6875 carries the
+    // standing families alone (`SITE[i].reg`, who=0's `aggression[1]`,
+    // `form`, who=1's groups' `held`/pool), and later blocks groups 71
+    // (6943) and 66 (7065)'s `held`/pool. **One row is not a standing
+    // family**: on block 6931 the `1/195`'s `dest_angle` reads ours
+    // -610729984 against theirs -620363776, 3567a's row again (parked
+    // 3567a). The closing block 7131 agrees.
+    pin_eq!(w.firsts.len(), 46, "run1210 baseline");
+}
