@@ -27803,8 +27803,9 @@ family.
 - The Senator 353, The President 355, and the sheep and peacock herds.
 
 **`Samurai` (160), the line the booking names, is fielded, and it is the one type new to the lockstep ledger.**
-`census::RUBRIC_UNIT_TYPES_SEEN` is left at 169: the pair is open, and the Samurai enter the count when it closes
-whole.
+~~`census::RUBRIC_UNIT_TYPES_SEEN` is left at 169: the pair is open, and the Samurai enter the count when it closes
+whole.~~ The pair is whole from item 3590, and `rubric.py` on its tree reads **unit types seen 170 of 302**;
+`RUBRIC_UNIT_TYPES_SEEN` is re-pinned 169 → 170. Lockstep bytes read 77.4 %, unmoved.
 
 **Coverage.** Diff-backed (item 3590): the Japanese term against a Citizen (run1208d's 2676), piece 1104's
 three bays (run1208d's three rounds), the pair to its end (the walk) and its closing state (run1208's 3674).
