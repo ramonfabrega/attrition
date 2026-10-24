@@ -994,6 +994,9 @@ impl Sim {
     pub(crate) fn check_borders(&mut self) {
         if self.borders_fixed {
             self.borders_fixed = false;
+            if std::env::var("RON_PROBE_RARES").is_ok() {
+                eprintln!("PROBE_RARES_ZERO f{}", self.frame);
+            }
             for a in &mut self.ai {
                 a.census.reg_known_rares.iter_mut().for_each(|s| *s = 0);
             }
