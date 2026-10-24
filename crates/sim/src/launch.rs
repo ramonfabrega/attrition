@@ -1970,6 +1970,37 @@ mod tests {
         assert_eq!(release_dz(121, 11, 12, 0), Some(163));
     }
 
+    /// **The Korean stone and the Hwarang's arrow leave from pieces 1088's
+    /// and 130's bays** (item 3578): run1221's two `AMMO` records on block
+    /// 4287 — the Slingers `1/29`'s stone at the Citizen `0/13`, thrown on
+    /// 4286 on `CHAR_ATTACK3` at 16, and the Hwarang `1/44`'s arrow at the
+    /// same Citizen, loosed on 4279 on `CHAR_ATTACK1` at 22 — each figure on
+    /// its unit's own square at its facing, `sx, sy` the dump's own; the
+    /// heights are the packet sweep's `z` (the dump's `sz` 264 and 193).
+    #[test]
+    fn run1221_s_korean_stone_and_arrow_leave_from_their_bays() {
+        let stone = launch_point(
+            Pos::new(6600, 9768),
+            Angle(-124_059_648),
+            1088,
+            crate::anim::ATTACK3,
+            16,
+            0,
+        );
+        assert_eq!((stone.x, stone.y), (6541, 9663));
+        assert_eq!(release_dz(1088, crate::anim::ATTACK3, 16, 0), Some(176));
+        let arrow = launch_point(
+            Pos::new(6072, 10728),
+            Angle(163_053_568),
+            130,
+            crate::anim::ATTACK1,
+            22,
+            0,
+        );
+        assert_eq!((arrow.x, arrow.y), (6085, 10656));
+        assert_eq!(release_dz(130, crate::anim::ATTACK1, 22, 0), Some(167));
+    }
+
     /// **The Lakota Slingers' stones leave from piece 1440's bays** (item
     /// 3345): run980b's `AMMO` records, the stone `1/18` threw on 6046 at
     /// the citizen `0/2` and `1/20`'s on 6050 at the city centre — each
