@@ -254,6 +254,14 @@ pub struct World {
     /// regions because it stores the set in a `BitMask<64>`; we do not.
     region: Vec<Option<u16>>,
     regions: Vec<Terrain>,
+    /// The original's own number for each region — land `1..0x40`, sea
+    /// from `0x40` — where the index above is only this crate's order of
+    /// declaration. A harness that loads a map's cells numbers its regions
+    /// by first appearance, so on an all-land map the original's region 1
+    /// is index 0 (item 3575); a reader that walks the original's number
+    /// range ([`crate::Sim::land_size`]) asks this, never the index.
+    /// Defaults to the index for a world built by hand.
+    region_numbers: Vec<u16>,
     /// Cell counts by region, maintained with `region`. Several per-frame
     /// readers ask `Region.size`; scanning the full grid for each query made
     /// territory victory and AI region decisions proportional to map area.
@@ -803,6 +811,7 @@ impl World {
             who2: vec![Owner::None; n],
             region: vec![None; n],
             regions: Vec::new(),
+            region_numbers: Vec::new(),
             region_sizes: Vec::new(),
             region_flags: Vec::new(),
             scouted: Vec::new(),
@@ -1671,7 +1680,20 @@ impl World {
     pub fn add_region(&mut self, terrain: Terrain) -> u16 {
         self.regions.push(terrain);
         self.region_sizes.push(0);
-        u16::try_from(self.regions.len() - 1).expect("too many regions")
+        let r = u16::try_from(self.regions.len() - 1).expect("too many regions");
+        self.region_numbers.push(r);
+        r
+    }
+
+    /// Gives `region` the original's own number (see `region_numbers`).
+    pub fn set_region_number(&mut self, region: u16, number: u16) {
+        self.region_numbers[region as usize] = number;
+    }
+
+    /// The original's number for `region`: its index unless a loader said
+    /// otherwise.
+    pub fn region_number(&self, region: u16) -> u16 {
+        self.region_numbers[region as usize]
     }
 
     /// Puts a cell in a region, replacing any previous membership.

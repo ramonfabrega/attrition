@@ -10538,13 +10538,19 @@ its arc and angle differ. **Score**: none here — a word whose blow turns on a 
 height would book it, with a packet's `AttachPos` rows (`tools/recomp/get_position.py`) as items 2997
 and 3375 took theirs.
 
-## Parked by the next landing, slot QI — reserved
+## Parked by item 3575, 2026-10-24 — the Mongol word 8444 → 9744: the land counted by the original's region number
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3575a. Two who=1 queues' unit costs part on 8586, ours 116/86 against theirs 110/82.** run1198b's
+  `queue:queue[k].cost[0]`/`cost[1]` on `1/2017` and `1/2022` (`docs/AI.md` §311), every queued slot alike, with
+  no draw apart until 9744. The two costs differ by the same ratio, so the cause is a cost multiplier (a count
+  that scales the price, or a tech), not a single table value. **Score**: none until a word parts on a who=1
+  purchase; `diff` the whole `LEADERDATA` across 8501..8586 first.
+- **3575b. A map whose dump carries no cells keeps a land of 0.** `setup.rs`'s `WORLD < 3` branch declares one land
+  region at index and number 0, and `Sim::land_size` sums the original's numbers 1..63, so the territory timer
+  never starts on those walks. The original's number for that one region is not on disk, though 1 is the
+  likely reading: the land regions count from 1 and sea from `0x40`. **Score**: none until a `WORLD < 3`
+  pair's word parts on a `popwin_*` row or an `about_to_win` target. Then number the region 1 and run every
+  pair that pins a `WORLD < 3` start.
 
 ## Parked by the next landing, slot QJ — reserved
 

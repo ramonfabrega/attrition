@@ -97,11 +97,22 @@ impl Sim {
     }
 
     /// `WorldData::land_size`: the cells of every land region
-    /// (`World::analyze_map@006b58b0` sums regions 1 to 63's sizes).
+    /// (`World::analyze_map@006b58b0` sums regions 1 to 63's sizes — the
+    /// `Region` records from `+0x88`, one stride in).
+    ///
+    /// **The range is the original's numbering, not this crate's index**
+    /// (item 3575): the harness declares a loaded map's regions in order of
+    /// first appearance, so Great Sahara's one land region, the original's
+    /// 1, is index 0 here, and a filter on the index summed nothing — the
+    /// Mongols' Classical pair never started the timer theirs started on
+    /// 8195, and its army's `about_to_win` ×100 never fired (`docs/AI.md`
+    /// §311).
     pub(crate) fn land_size(&self) -> i32 {
         self.world
             .regions()
-            .filter(|&(r, t)| (1..0x40).contains(&r) && t == crate::world::Terrain::Land)
+            .filter(|&(r, t)| {
+                (1..0x40).contains(&self.world.region_number(r)) && t == crate::world::Terrain::Land
+            })
             .map(|(r, _)| self.world.region_size(r))
             .sum()
     }
@@ -174,6 +185,33 @@ mod tests {
         s.frame = 1106;
         s.refresh_victory_timers(1);
         assert_eq!(s.ai[1].popwin_stamp, -99, "only on a multiple of the ratio");
+    }
+
+    /// **The land is counted by the original's region number, not this
+    /// crate's index** (item 3575, `docs/AI.md` §311). A loader that
+    /// meets an all-land map's region 1 first declares it as index 0;
+    /// summed by index, Great Sahara's land was 0 and who=1's timer never
+    /// started on 8195. Here the land is index 0 numbered 1, and an empty
+    /// index 1 numbered 0 stands for the coastal `region2` the loader
+    /// declares beside it.
+    #[test]
+    fn a_land_region_declared_first_is_counted_by_its_number() {
+        let mut w = World::new(10, 10);
+        let land = w.add_region(Terrain::Land);
+        let none = w.add_region(Terrain::Land);
+        w.set_region_number(land, 1);
+        w.set_region_number(none, 0);
+        for y in 0..10 {
+            for x in 0..10 {
+                w.set_region(Cell::new(x, y), land);
+            }
+        }
+        let mut s = Sim::new(crate::Tuning::RON, w, 2);
+        assert_eq!(s.land_size(), 100);
+        own_cells(&mut s, 1, 71);
+        s.frame = 8195;
+        s.process_victory_territory();
+        assert_eq!((s.ai[1].popwin_timer, s.ai[1].popwin_stamp), (1, 8195));
     }
 
     #[test]
