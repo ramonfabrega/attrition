@@ -10622,13 +10622,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QO — reserved
+## Parked by item 3591, 2026-10-24 — the Bantu word 5072 → 5322: the Umpakati's bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3591a. The Umpakati's `CHAR_ATTACK3` row has no round on disk.** `launch::BAYS`' rows for pieces 43 and 44 at
+  `CHAR_ATTACK3` 27 are the run1238c packet's sweep alone. run1238b's four rounds are `CHAR_ATTACK1` and
+  `CHAR_ATTACK2` (`docs/AI.md` §315.2). **Score**: none until a Bantu word parts on an Umpakati round thrown from
+  `CHAR_ATTACK3`. Then grep an `AMMO=5` window for its `sx, sy, sz` first.
+- **3591b. The pool's first take of run1238 died at launch.** It hit a Wine page fault (`read access to 00004ECD`),
+  exit 9, and the runner's own retake exited 5 a second later. A third take, into a fresh directory, succeeded. The
+  dead take is kept as `~/ron-golden/run1238-dead1` (its `wine.log` and `wine-died.log`). The runner refuses an
+  existing output directory, so a retake by hand needs the dead one moved aside. **Score**: none. It cost one minute.
 
 ## Parked by the next landing, slot QP — reserved
 

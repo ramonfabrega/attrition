@@ -27724,14 +27724,14 @@ pins the arithmetic on the fixture tree.
 families alone: on 4180 who=1's `MAKE[0]` and `MAKE[7]` agree, and on 4186 the Stable `1/2054` and the Hanging
 Gardens `1/2055` are both sides'. run1236's 216 blocks carry 115 keys, none a `leader:MAKE`.
 
-**The next word: frame 5072, ours 39 draws against 40, index 31**, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
+~~**The next word: frame 5072, ours 39 draws against 40, index 31**, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`,
 theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Widened on run1236b (5066..5322, 4465 keys). On the word's
 block 5073, `1/86`'s `collide_o` and `collide_who` are ours −1 and −1 against theirs 87 and 1. The state is
 already apart on 5066, the window's first block. There, the human's `0/10` and `0/11` read `damage_frame` ours
 5056 and 5036 against theirs 5055 and 5035, with their positions apart, and who=1's `1/86`..`1/88` move orders
 read `y` 48 apart (`1/86` ours 7896 against theirs 7848). Walking it back past 5066 is the next item's: the
 only records on disk before 5066 are run1206's stride blocks (4901, 5001), which print `UNITS` and are not yet
-walked with the recorder.
+walked with the recorder.~~ Answered by item 3591, §315.2: the Umpakati's javelins left from the figure, not its bay.
 
 **What is not established.** The combat table (`Balance`) is built at load from the loader's ages and is not
 rebuilt per lobby. Whether the original builds it before or after `finalize_grafting`, and so whether a short
@@ -27741,6 +27741,70 @@ The 49 other lobbies' `first_parting` hold.
 **Coverage.** Diff-backed: the make list on run1236 and run1206b, the Galley's 0 and the Trireme's 3 on the packet.
 Reading-only: that `finalize_grafting` runs once per game after the lobby (`Game::init_data`'s order). The packet
 shows the result of that order, not the order itself.
+
+### 315.2 The Umpakati's bays: the word 5072 → 5322 (item 3591)
+
+**Walked back.** run1206's stride (`bantu_ancient_pair_the_long_s_stride_walks_back_from_5072`, blocks 101..5001)
+parts no unit field: its 182 keys are every unit's `form` and `build:extra`. So the state parts between 5001 and
+5066. run1238 dumps 4995..5073. Its first parted field is on **block 5036**: both leaders' `treaties[·]`, ours 1
+against theirs 3. Bit 2 is the struck mark (`fight.rs`'s `treaty_on(…, 2)` before `take_damage`). The Citizen
+`0/11` (TI 50, land) is struck in theirs alone, with `damage_frame` 0 against 5035, `hits_left` 40 against 37, and
+its flight order (7944, 5928). Every other row on the block is a standing family. No shooter field parts before
+it.
+
+**The direction is theirs: theirs' round lands two frames early.** On the word's side, ours throws the same round on the
+same frame. `RON_DEBUG_AMMO` shows ours' Umpakati `1/86` (TI 93, land), whose `recharging` starts on block 5016 on
+both sides, throwing at `0/11` on 5021 from (6792, 8520), the figure's own square, with `total_time` 16. It lands on
+5037. run1238b (`AMMO=5`) prints theirs' round from the same launch frame, leaving **(6799, 8469, 475)** with
+`total_time` **15**, so it strikes on 5035. `1/87` and `1/88` start their swings on 5030 and 5029, too late to land
+anything by 5035. The flight time is `flight_time(dx² + dy², PROJ_SPEED 80)`, the straight line, since the round is
+no missile. The figure-to-landing distance gives 16, and the bay-to-landing distance gives 15.
+
+**The bay.** The Umpakati (piece 43) plays the Javelineer's animations, with six `RELEASEEVENT`s whose keys are
+`CHAR_ATTACK1` 12, `CHAR_ATTACK2` 6 and `CHAR_ATTACK3` 27, all node 0. Its model is its own, and no row of
+`launch::BAYS` or `MEASURED` held it. run1238c's packet at logger frame 5021 holds piece 43's three `AttachPos` rows.
+`get_position.py`'s sweep of each is reproduced at all 361 headings by a `Bay` taken as the centroid of its exact
+region (42, 229 and 95 lattice points):
+
+| key | `right` | `fwd` | `dz` |
+|---|---|---|---|
+| `CHAR_ATTACK1`, 12 | 33637 | 65607 | 185 |
+| `CHAR_ATTACK2`, 6 | −13157 | 50004 | 187 |
+| `CHAR_ATTACK3`, 27 | 14497 | 40695 | 173 |
+
+The rows reproduce all four of run1238b's rounds, `sz` included: `1/86` on `CHAR_ATTACK2`, and `1/87`, `1/90` and
+`1/91` on `CHAR_ATTACK1`. The planar `(bearing, radius)` `Node` fits `1/86` alone and no single row fits the
+`CHAR_ATTACK1` three, as §257 found for the Bomber. With piece 43 alone the word went to 5140. There, the Yangombi
+Umpakati `1/90` (TI 94, piece 44, its upgrade) threw at the Citizen `0/10` on 5083 from its own square for 17
+frames, where theirs struck on 5098. The packet's piece 44 rows are piece 43's floats bit for bit, and the sweeps
+are identical, so piece 44 takes the same three rows.
+
+**The build.** Six `launch::BAYS` rows, pieces 43 and 44.
+`the_umpakati_s_bays_are_the_packet_s_sweep_and_run1238b_s_rounds` holds four headings of each sweep for both
+pieces, and run1238b's four rounds. Mutations through `tools/mutate.py`, on the committed tree, with
+`bantu_ancient_pair_first_parting` as the test. Piece 43's `CHAR_ATTACK2` row re-keyed falls the word back to 5072
+(exit 101). Piece 44's falls it to 5140 (exit 101).
+
+**The value diff on the word's frame** (before → after). run1238: 181 keys → 92, the standing families alone. On
+5036 the treaties, `0/11`'s blow and its flight agree, and `0/11` is struck on 5035 on both sides. run1236b: 4465 →
+97. On the old word's block 5073, `1/86`'s `collide_o` and `collide_who` agree. The first non-standing row is now
+`1/86`'s `order:target` on 5107: ours `0/13`, theirs `0/11`.
+
+**The next word: frame 5322, ours 26 draws against 27, index 22**, ours `Farms::inc_time+0x1ae`, theirs
+`Object::take_damage+0xe1`. It is widened on run1238d (5316..5572, 4333 keys). On the word's block 5323, the human's
+`0/2002` is struck in theirs alone (`damage` 1, `damage_frac` 10). The state is apart before it. On run1236b, `1/86`'s
+target parts on 5107 (ours `0/13`, theirs `0/11`), and `1/41`'s on 5253 (ours the Citizen `0/3`, theirs the city
+centre `0/2000`). On 5299 and 5315, `0/2000`'s `damage_frac`, `raid_stamp` and `damage` part (30 against 31). On
+run1238d's 5316, `1/41`'s target is still ours `0/3` against theirs `0/2000`. **The hypothesis, untested**: the
+5107 retarget is the first parting, and `0/2002`'s blow follows from it. Its killer is `RON_DEBUG_UNIT=1/86` over
+5100..5107 on run1236b: which target `find_new_target` answers in ours, and the inputs it reads on each side.
+
+**What is not established.** The `CHAR_ATTACK3` row has no round on disk. It rests on the sweep alone, as every
+other `BAYS` row's third key does. The squad's other figures do not arise: the Umpakati is one figure a unit.
+
+**Coverage.** Diff-backed: the four rounds' launch points and `sz` (run1238b), and the word's move to 5322. The
+`AttachPos` sweep is the packet's own `get_position`, run under unicorn. It is an oracle on the original's state,
+not a reading.
 
 ## 316. The Japanese at a held Gunpowder age, Great Sahara: an Elite Knight re-aimed off a fleeing Citizen, first try 2839 of 3673 (item 3563)
 
