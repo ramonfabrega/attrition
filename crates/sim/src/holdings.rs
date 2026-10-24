@@ -614,9 +614,6 @@ impl Sim {
         // (`docs/AI.md` §55).
         if let Some(a) = self.ai.get_mut(w) {
             a.known_rares = a.census.reg_known_rares.iter().sum();
-            if std::env::var("RON_PROBE_RARES").is_ok() {
-                eprintln!("PROBE_RARES_SUM f{} who={who} known_rares={}", self.frame, a.known_rares);
-            }
         }
 
         let cities: Vec<economy::City> = self
