@@ -803,8 +803,11 @@ impl Sim {
         let here = self.units[u].pos.cell();
         let probe = std::env::var("RON_PROBE_3569")
             .ok()
-            .and_then(|v| v.parse::<i64>().ok())
-            .is_some_and(|f| f == self.frame as i64);
+            .and_then(|v| {
+                let (a, b) = v.split_once('-')?;
+                Some((a.parse::<i64>().ok()?, b.parse::<i64>().ok()?))
+            })
+            .is_some_and(|(a, b)| (a..=b).contains(&(self.frame as i64)));
         if probe {
             eprintln!(
                 "probe3569 f{} u{} who{} region {} n {} stride {} start {}",
