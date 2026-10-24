@@ -26126,3 +26126,66 @@ SHA-256 `d1de049e9d8182a44c180e99ce20e90d3de68a3a7e6639bc92b840488fddd3cf`.
 blocks, 52 keys: the standing families; three `dest_angle` rows, parked 3580b; and the Nubian capital `0/2000`'s
 `damage_frac` on block 4452, the Crossbowmen `1/69`'s round a frame late, parked 3580a). The closing block 4521
 agrees.
+
+## run1203 — the Lakota at a held Medieval age, East Indies: the `DUMP_ALL` start (2026-10-24, item 3561, `att-3561`)
+
+`docs/AI.md` §314. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1203 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 19 --profile STARTING_TECHNOLOGY=2 --profile
+ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 2. Launched 10:15:44, exited 10:16:06 (21.6 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 19, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Filed with `filerun.py run1203
+  eastindies-lakota-medieval-start --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1203-eastindies-lakota-medieval-start.txt`, 153,305,889 bytes,
+SHA-256 `b9457169a99da9b660e799694f22ec06220c62c9bf6245561a4ff78f8e1e4c0d`.
+
+Archive `rontrace-run1203.log`, 9,930,528 bytes,
+SHA-256 `08cc93f6dbce224f4a94ac605df2cd86c1bce03c6317f04310b7d275b087b97b`.
+
+**What it holds**: the start of `lakota_medieval_pair::LAKOTA_MEDIEVAL`, and the walk's initial state.
+
+## run1204 — the Lakota at a held Medieval age, East Indies: the draw stream to the game's end (2026-10-24, item 3561, `att-3561`)
+
+`docs/AI.md` §314. run1181's line with `--ai-tribe 19`: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 19
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1203's
+lobby.
+- Pool lane 3, beside run1203. Launched 10:15:44, exited 10:16:11 (26.7 s launch to exit). `success`. **The game
+  ended itself on 4973** (closing block 4974, `ended_early`). `GAME INFO` reads back as run1203's. `rngcmp.py`
+  against run1203: 37 frames identical. Filed with `filerun.py run1204 eastindies-lakota-medieval-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1204-eastindies-lakota-medieval-trace.txt`, 35,955,525 bytes,
+SHA-256 `4b1646240e3d02a11e18b031e0d280649532491a5a7b8afcaeb59e57faeb17a9`.
+
+Archive `rontrace-run1204.log`, 135,931,200 bytes,
+SHA-256 `2d850f6a867792d9fa9c62e2ebbaf08ba5b1ce8b2e7b98876608db45e5f54a40`.
+
+**What it holds**: the pair's first try. `lakota_medieval_pair_first_parting` walks it from run1203. The first try
+parts on **frame 4168 of 4973** by the count and the sequence: ours 90 draws against 89, index 87, ours
+`Guy::inc_time+0x1ed` against theirs `Guy::inc_time+0x271`.
+
+## run1204b — the Lakota at a held Medieval age, East Indies: the word 4168's window, blocks 4163..4419 (2026-10-24, item 3561, `att-3561`)
+
+`docs/AI.md` §314. **What the disk could not answer**: the word's block 4169, which run1203 (blocks 0..2) and
+run1204's stride (4101, 4201) leave undumped. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1204b
+--map 18 --end-frame 4419 --allow-early-end --timeout 3600 --log-window 4163 4419 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0 --profile STARTING_TECHNOLOGY=2
+--profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 10:18:10, exited 10:18:54 (44.8 s launch to exit; the first take exited 5 and the runner
+  retook it after 1.9 s). `success`, 4420 frames. `rngcmp.py` against run1204: 4420 frames in common, 0 differing.
+  Filed with `filerun.py run1204b eastindies-lakota-medieval-window-4163-4419 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1204b-eastindies-lakota-medieval-window-4163-4419.txt`, 596,151,736 bytes,
+SHA-256 `6e5500a0f2f4601ad1c876350033163bee21cfbb168cc3efed6098f0f0a8e290`.
+
+Archive `rontrace-run1204b.log`, 108,686,976 bytes,
+SHA-256 `023ac2078cf76535bab7ef63ef127719ffc6322e9a141da8d52164890a0ef6d3`.
+
+**What it holds**: `lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole`, the word 4168 (block 4169). The
+Heavy Archers `1/19` re-aims its attack off the fleeing Citizen `0/10` onto `0/5` in theirs and chases `0/10` in
+ours.

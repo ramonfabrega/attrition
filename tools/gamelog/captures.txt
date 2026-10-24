@@ -10524,3 +10524,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3579: the Mongol word 9744 -> 9772 (`docs/AI.md` §311; `docs/RUNS.md` run1222) ====
 #   run1222  --map 7 --end-frame 9745 --timeout 3600 --log-window 9696 9745 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0, run1197's lobby   (the gap 9702..9737 before the word 9744, with the rounds)
 # Checks: `rngcmp.py` run1198 vs run1222 -> 9746 identical.
+# ==== item 3561: the Lakota at a held Medieval age, East Indies (`docs/AI.md` §314; `docs/RUNS.md` run1203, run1204, run1204b) ====
+#   run1203  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 19 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1204  run1181's line with --ai-tribe 19 and run1203's lobby   (the draw stream; ended itself on 4973)
+#   run1204b --map 18 --end-frame 4419 --allow-early-end --timeout 3600 --log-window 4163 4419 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0, run1203's lobby   (the word 4168's window)
+# Checks: `rngcmp.py` run1203 vs run1204 -> 37 identical; run1204 vs run1204b -> 4420 identical.

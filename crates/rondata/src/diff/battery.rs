@@ -215,6 +215,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatLakesChineseTier1`, `(14, 14, 1)`), and not the Chinese
     // Industrial pair, `(7, 14, 3)`.
     (7, 14, 5),
+    // The Lakota at a held Medieval age, East Indies (item 3561): no
+    // held-out game's triple (the battery's Lakota are
+    // `GreatSaharaLakotaTier2`, `(7, 19, 2)`; `GreatLakesLakotaTier2`'s
+    // `(14, 19, 2)` is scored above), and not the peace pair, `(18, 19, 3)`.
+    (18, 19, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
