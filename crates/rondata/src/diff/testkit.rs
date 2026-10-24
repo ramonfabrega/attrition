@@ -9956,6 +9956,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3567,
         Some(crate::diff::roman_classical_pair::WIDENING_ROMAN_CLASSICAL_CLOSING),
     ),
+    // **The Mongols at a held Classical age** (item 3558): Great Sahara —
+    // 8444 first try, widened on run1198b over 8438..8694 (block 8445):
+    // ours' who=1 group 64 leaves its guard round the Catapult `1/67` on
+    // 8444 where theirs' holds it; the state first parts on block 8441.
+    (
+        "MONGOL_CLASSICAL_PAIR_WORD",
+        crate::diff::mongol_classical_pair::MONGOL_CLASSICAL_PAIR_WORD,
+        Some("mongol_classical_pair_run1198b_s_word_frame_is_widened_whole"),
+        3558,
+        Some(crate::diff::mongol_classical_pair::WIDENING_MONGOL_CLASSICAL_FRAME_8444),
+    ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
     // unit on a move where theirs idles it), widened on run1159b over
@@ -11552,6 +11563,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 7_130,
         endpoint: Some("run1194_roman_classical_pair_closing_state"),
         window: Some("roman_classical_closing_window"),
+    },
+    // The Mongols at a held Classical age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3558): first try 8444,
+    // ours' who=1 group 64 leaving its guard, of a game that ends itself on
+    // 9884; widened on run1198b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaMongolClassical",
+        named: "Great Sahara (Mongols, Classical)",
+        word: crate::diff::mongol_classical_pair::MONGOL_CLASSICAL_PAIR_WORD,
+        length: 9_884,
+        endpoint: None,
+        window: Some("mongol_classical_frame_8444_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

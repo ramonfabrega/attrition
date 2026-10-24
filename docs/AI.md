@@ -27026,12 +27026,66 @@ Dromon (324), the Galley (341) and the Transport Barge (320). An open pair count
 before any of them, so **no unit type is new to the ledger**: `rubric.py` reads 162 of 302 on this tree, and
 `census::RUBRIC_UNIT_TYPES_SEEN` is not re-pinned.
 
-## 311. Reserved for the next item on the AI track
+## 311. The Mongols at a held Classical age, Great Sahara: a guarded Catapult's march, 8444 of 9884 (2026-10-24, item 3558)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3558, Opus 5.5, the AI track (DECISIONS 90, 91, 92): run1197, run1198 and run1198b, on the click-free pool.*
+
+**The lobby.** Great Sahara, `MAP_STYLE 7`, human Nubians (4) against the **Mongols (17)** at Difficulty 5, seed
+12345, `STARTING_RESOURCES 7`, the age **held at Classical**: `STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1` — §309's
+lobby with the nation moved. Both captures read it back through `Pair::assert_lobby`
+(`mongol_classical_pair_captures_say_their_lobby`). **The game ends itself at 9884** (closing block 9885).
+
+**The triple is new.** `(7, 17, 5)` is no `battery::BATTERY` game's: the battery fields no Mongols. It is no pinned
+pair's either: the Mongols' two pairs are `mongol_pair`'s `(18, 17, 3)` (East Indies) and `sahara_mongol`'s `(7, 17,
+3)` (this map), both at Difficulty 3 and All Technologies. So it is minted into `battery::SCORED_LOBBIES`.
+`mongol_classical_pair_is_no_other_lobby` asserts that, and reads both `GAME INFO`s: `sahara_mongol`'s map 7,
+difficulty 3 and starting age 8, and this pair's 7, 5, 1 and 1 (3513's shape, Loop 3544).
+
+**The captures.** run1197 is the `DUMP_ALL` start; run1198 the long, §309's recipe (`end:UNITS=3,GUYS=2` on
+`--stride 100`), walked from run1197's initial state (3506a). Their 37 common frames are `rngcmp.py`-identical.
+run1198b (8438..8694) is the word's window, booked because the stride's blocks 8401 and 8501 leave the word's block
+8445 undumped; its 8695 frames are identical to run1198's.
+
+**First try: frame 8444 of 9884**, by the count and the sequence. Ours spends 21 game draws and theirs 22. Indexes
+0–7 agree (eight `Army::find_target+0x7df < Army::do_marching+0x248`). They part at index 8:
+- theirs: `Guy::set_anim+0x97a < Unit::set_anim+0xb6 < Unit::do_guard+0x7f4` (seed `9419010d`), then
+  `Unit::do_idle+0x7d`'s and `Unit::move_step+0x3b6`'s turns;
+- ours: `Unit::do_guard+0x8fb`.
+
+**The units, by `TypeIndex` and domain.** The parting is who=1's group 64, guarding the **Catapult `1/67`
+(TypeIndex 265, land, uid 101)**: among them the **General `1/69` (54, land)**, **The Senator `1/18` (353)**, the
+**Phalanx `1/209` (133)** and the Catapult `1/66` (265). Each holds a `GUARDORDER` whose target is `1/67` (uid 101).
+**The `Nomad` (199) the booking names is fielded** (744 figure rows over the game) and is not in the parting.
+
+**The direction is ours**, with the record that shows it (run1198b, block 8445, the word's own block):
+- theirs' guards keep `GUARD` (`order:kind` 12, `orders.len` 1) and `1/67` takes an `ATTACK_TO` on its own spot,
+  (9864, 23352);
+- ours' 24 guards take an `ATTACK_TO` on top of their guard (`order:kind` 2, `orders.len` 2), and `1/67` a
+  `GROUP_ATTACK_TO` (`order:kind` 21) to (35976, 15672), `path:length` 2 against 0; `1/66`'s `orders.len` reads 1
+  against 0.
+
+So ours marches the guarded Catapult's whole group away, and theirs leaves it on the spot.
+
+**The value diff** (run1198b walked from run1197, 256 blocks, 6457 keys, the two `gaia:` keys unprinted). Block
+8438 carries the standing families (every unit's `form`, `SITE[i].reg`, who=0's `aggression[1]`, who=1's groups'
+`held` and `pool`), who=1's `bucket[0:food]` ours 8966 against theirs 9156, `bucket[1:timber]` 8363 against 8495,
+`leftover[2:wealth]` 2728 against 2448 and `popwin_stamp` 0 against 8195, and the `g.angle[0]` of `1/307` and
+`1/308`. **The state first parts on block 8441**, three frames before the word:
+- who=0's `attacked_by` ours −1 against theirs 1, and `frame_attacked` 0 against 8440;
+- who=1's group 65 march: the Catapult `1/99` (TypeIndex 265, uid 135) `order:move.x`/`y` ours (12024, 30168)
+  against theirs (1320, 28872), `dest_x`/`dest_y` (28152, 24024) against (28200, 24264), `path:length` 23
+  against 38, and `1/101`, `1/117` the same `GROUPATTACKTOORDER`'s move.
+
+**The next word**: frame 8444, ours 21 draws against 22, index 8, ours `Unit::do_guard+0x8fb` against theirs
+`Unit::do_guard+0x7f4`'s `set_anim`. **The hypothesis, untested**: the group's march order (`Army::do_marching`) is
+issued in both, and reaches the guarded Catapult as a `GROUP_ATTACK_TO` to a far point in ours and an `ATTACK_TO` on
+its own spot in theirs — a target `Army::find_target` picks differently. Block 8441's group-65 destinations and
+who=0's `attacked_by` are the same family three frames sooner, so walk 8441 first: the `RON_DEBUG_ARMIES` of who=1's
+armies over 8438–8445 beside theirs' orders.
+
+**Coverage.** `mongol_classical_pair_run1198b_s_word_frame_is_widened_whole` pins the 6457 keys;
+`WIDENINGS`'s `MONGOL_CLASSICAL_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds
+the row on `Late ages`. Nothing here is built: no claim of this section is diff-backed beyond the parting itself.
 
 ## 312. Reserved for the next item on the AI track
 

@@ -25720,3 +25720,63 @@ SHA-256 `218d1783155896a6f4f91d3af29ecd4f5124a018e323bcb9dec7d791d4364b3c`.
 
 **What it holds**: the Roman pair's game on every frame under `cover=1`, the land map's Classical-age lockstep
 trace (`blind::TRACES`).
+## run1197 — the Mongols at a held Classical age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3558, `att-3558`)
+
+`docs/AI.md` §311. §309's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1197 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 03:16:00, exited 03:16:24 (23.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 17, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1197
+  greatsahara-mongol-classical-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1197-greatsahara-mongol-classical-start.txt`, 149,912,034 bytes,
+SHA-256 `aa1802ed10db6d62eed5fb7c14d059d44aecc5cff7f05af9dd073b0e59517592`.
+
+Archive `rontrace-run1197.log`, 8,282,240 bytes,
+SHA-256 `ea335ec85f5575ab500ec6679af96d90a13d0ebc8b0ac99f149c180bc8454d44`.
+
+**What it holds**: the start of `mongol_classical_pair::MONGOL_CLASSICAL`, and the walk's initial state.
+
+## run1198 — the Mongols at a held Classical age, Great Sahara: the draw stream to the game's end (2026-10-24, item 3558, `att-3558`)
+
+`docs/AI.md` §311. run1194's line with `--ai-tribe 17`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 17
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1197's
+lobby.
+- Pool lane 2, beside run1197. Launched 03:16:00, exited 03:16:44 (44.2 s launch to exit). `success`. **The game
+  ended itself on 9884** (closing block 9885, `ended_early`). `GAME INFO` reads back as run1197's. `rngcmp.py`
+  against run1197: 37 frames identical. Filed with `filerun.py run1198 greatsahara-mongol-classical-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1198-greatsahara-mongol-classical-trace.txt`, 58,152,189 bytes,
+SHA-256 `0909bc4e875a5e6e7ac2a239a46c423ab9b5a8146c1f4934982b0bd1c28c884e`.
+
+Archive `rontrace-run1198.log`, 252,572,128 bytes,
+SHA-256 `12cc90d1578ab9aa89dcc80ce574afcd7758e5c9141aab52bd622290f72c7311`.
+
+**What it holds**: the pair's first try. `mongol_classical_pair_first_parting` walks it from run1197: **frame 8444
+of 9884** (count and sequence), ours 21 draws, theirs 22, index 8, ours `Unit::do_guard+0x8fb` against theirs
+`Guy::set_anim+0x97a < Unit::set_anim+0xb6 < Unit::do_guard+0x7f4`.
+
+## run1198b — the Mongols at a held Classical age, Great Sahara: the word 8444's window, blocks 8438..8694 (2026-10-24, item 3558, `att-3558`)
+
+`docs/AI.md` §311. `--map 7 --end-frame 8694 --timeout 3600 --log-window 8438 8694 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --cover cover=0` and run1197's lobby. Booked
+because the long's stride blocks 8401 and 8501 leave the word's block 8445 undumped.
+- Pool lane 1. Launched 03:19:39, exited 03:20:39 (59.8 s launch to exit). `success`: 8695 frames. `rngcmp.py`
+  against run1198: 8695 frames identical. Filed with `filerun.py run1198b
+  greatsahara-mongol-classical-window-8438-8694`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1198b-greatsahara-mongol-classical-window-8438-8694.txt`, 642,774,462 bytes,
+SHA-256 `213c4575119c97202aad6125aaa329d24b8d14fd9a3ef42d3f160fda2a48ca21`.
+
+Archive `rontrace-run1198b.log`, 185,299,040 bytes,
+SHA-256 `6c01de31c20ccd615f7732f5bebaaae4143f84994ab2999a754618e5dfe12193`.
+
+**What it holds**: the word 8444's widening, `mongol_classical_pair_run1198b_s_word_frame_is_widened_whole` (256
+blocks, 6457 keys). The state first parts on block 8441 (who=0's `attacked_by`, group 65's march); on block 8445
+ours' group 64 takes `ATTACK_TO` over its guard where theirs' keeps `GUARD`.
