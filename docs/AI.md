@@ -28150,7 +28150,10 @@ Mutations through `tools/mutate.py`, removing the call: **held** on `egyptian_cl
 old word**: run1230b's 4874 keys go to **114**. Block 5956's buckets, `num_queued`, the queue head and the
 Merchant `1/167`'s birth all agree. What stands is `1/73`'s `dest_angle` on 5962, both leaders' `territory`
 from 6033 (ours 180 and 1183 against 182 and 1181), and who=1's wealth `income` (6040) and `bucket` (6096).
-run1241 goes 128 → 109 (`known_rares`, `MAKE[4]` and the queue agree; `1/84`'s orders on 5759 stand).
+run1241 goes 128 → 109 (`known_rares`, `MAKE[4]` and the queue agree; `1/84`'s orders on 5759 stand). Three
+other widenings lose a `known_rares` row each, toward the original: the Mongol pair's run788 on 2984 (ours 5,
+theirs 4; 112 → 111) and run799 on 3125 (5/4; 140 → 139), and the Greek Classical pair's run1212 on 4584 (3/1;
+114 → 113).
 
 **The new word**: frame 6537, ours 73 draws against theirs' 72, parting at index 55. Ours spends
 `Unit::think_scout+0xaba`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Its window is run1241b (blocks
