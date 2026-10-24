@@ -287,3 +287,44 @@ fn bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole() {
     // are 48 apart (`1/86` ours 7896 against theirs 7848).
     pin_eq!(w.firsts.len(), 4465, "run1236b baseline");
 }
+
+/// **The long's stride, walked back from the word 5072** (item 3591):
+/// run1236b's window opens apart on 5066, and only run1206's stride blocks
+/// are on disk between run1236's 4186 and run1236b's 5066.
+pub(crate) const WIDENING_BANTU_ANCIENT_STRIDE: (i64, i64) = (101, 5001);
+
+pub(crate) fn bantu_ancient_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1206 stride",
+        &[(BANTU_ANCIENT.long.0, WIDENING_BANTU_ANCIENT_STRIDE.0)],
+        WIDENING_BANTU_ANCIENT_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_the_long_s_stride_walks_back_from_5072() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "the stride's baseline");
+}
