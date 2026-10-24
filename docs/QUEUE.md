@@ -12,15 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 7 of 20 landed; 3570, 3571 and 3572 live.*
+*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 8 of 20 landed; 3570, 3571 and 3558 live.*
 
 - **Words**: two open — the Greeks at Classical at 4341 of 8,126 (lower map first — East Indies (Greeks, Classical)), 8 → 2616 → 4341 (3557,
-  3566, 3569); the Persians at Medieval at 4523 of 4,759 (3568). **The Romans at Classical whole at 7,130**, none off (3556, 3567: a contact blow doubled).
+  3566, 3569); the Persians at Medieval at 4523 of 4,759 (3568). **The Romans at Classical whole at 7,130**, none off (3556, 3567: a contact blow doubled);
+  its `cover=1` twin moved nothing (3572: 77.4 %, `NEVER` 247 — the twins spent, as ruled).
   **The headline, unit types seen 162 of 302**: the early-age pairs on the nation lines no dump holds (3556, 3557 none new; parked 3556a).
 - **The rubric, lockstep**: ages 8 of 8, types 152 → 162 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
   that closes books its twin, never ahead (Loop 3541, DECISIONS 92). Blind: 0 of 39 dead on the pass's scan.
 - **The fifty-third, measured**: twenty landings in 9 h 57, 5.26 USD and 34.3 minutes waiting a landing; a third lane by the rule (DECISIONS 92).
-- **Lanes: three Opus at medium, three live** (3570, 3571, 3572); **six booked** (3558–3563). Next 3573, run 1216. Pools: GOLDEN §149–154, AI §317–320, park QG–QJ.
+- **Lanes: three Opus at medium, three live** (3570, 3571, 3558); **five booked** (3559–3563). Next 3573, run 1216. Pools: GOLDEN §149–154, AI §317–320, park QG–QJ.
 - **Fable backlog: 11 Loop items** (3565, 3564, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 92.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -54,9 +55,6 @@ the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pa
 under `Unit::move_step+0x823`; 3569's widening on run1212, AI §310): the first rows are on 4341 itself — the General `1/138` (TI 54) at x
 34736 against 34756 and the Catapult `1/124`'s `collide_o` −1 against `1/138` — so walk the General's position back first. Run 1214; amend
 §310 in place; park QE.
-
-3572. **coverage: the Roman Classical twin** (`GreatSaharaRomanClassical`, whole at 7130 on run1193/1194): as 3552, against run1194;
-the first age-1 Great Sahara line in a lockstep trace, owed by the pair's close (DECISIONS 92). Run 1215; park QF.
 
 3570. **The Persian word, frame 4523: ours 49 draws against 45, index 3** (ours `Unit::fight+0x824`, theirs `Guy::set_anim+0xf2f` under
 `Guy::move+0x166`; 3568's widening on run1211, AI §308): the Knight `1/62` (TI 228) holds its attack where theirs chases `0/4`; the state first
