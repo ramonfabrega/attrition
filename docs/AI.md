@@ -24018,8 +24018,8 @@ M2's call site is the floor's to hold; the unit test holds the follower's own ga
 20380, and the closing block compares whole.
 
 **Not established.** The retarget's `find_new_target` is the one this crate already had; its standing-ground search
-was not compared on 20029 beyond the orders dropping. The follower's `unit_flags & 0x400` exemption stays a SEAM, as at
-the head. `town_up`'s `set_type` raises no flag of its own here; whether the original's caller does is the listing's
+was not compared on 20029 beyond the orders dropping. ~~The follower's `unit_flags & 0x400` exemption stays a SEAM, as
+at the head.~~ Built at both, item 3554 (§308). `town_up`'s `set_type` raises no flag of its own here; whether the original's caller does is the listing's
 alone.
 
 ## 273. The Maya to the game's end: a Maya building's timber, an enemy city's bordering, the Horse Archer's nodes (2026-10-19, item 3338)
@@ -26651,8 +26651,47 @@ run1189b (4033..4289, `rngcmp.py`-identical to run1181) widens it: 256 blocks an
 - Block 4039 reads `fought` and `blown` ours 0 against theirs 1, and `recharging` 0 against 40.
 
 **The direction** is theirs: theirs' Mahout fires and ours' does not. `cavarch_o` already stands parted on the
-window's first block. **What is not established**: where `cavarch_o` parts, before 4033 (the long's stride block
-4001 prints it), and whether it gates the shot.
+window's first block.
+
+**Walked back, 4001** (item 3554, the long's own stride widened from run1180, 101..4001, no capture). The
+stride's 40 blocks carry 155 keys: the standing families (`form`, the `build:extra` rows a `UNITS=3` stride prints
+no building for, who=1's groups' `held` and `pool`), and the two Mahout rows on 4001 alone, `cavarch_o` ours −1
+against theirs −2. Theirs reads −2 on every stride block from 1501 (`1/27`) and 1801 (`1/46`) through 4001, and
+ours agrees through 3901. Between 3901 and 4001 both Mahouts take `[AttackTo, Attack(0/10), Move]`, the
+`ATTACKORDER` on the Citizen `0/10` (uid 17) under a current transit `MOVEORDER`. The orders agree.
+
+**The cause is `do_move`'s exemption** (`Unit::do_move@005f7b30:68-72`). An `ATTACK` action under the move clears
+`cavarch_o` to −1 only when the type's `unit_flags & 0x400` is clear. The Mahout (TypeIndex 262) is `mjvyk`, and
+`k` is that bit (`uflags::MELEE_AND_RANGED`). So theirs goes on to the −2 phase test, and from there to
+`cavarch_fight` on its phase. Ours cleared the pair, so its search ran every frame. `do_group_move@005e79a0:395-396`
+makes the same test for a follower. Both arms had carried it as a `SEAM`. `Sim::attack_action_clears` is now the
+test, at the head and in the follower.
+
+**The value diff.** On the stride, 155 → 153 keys: the standing families alone, and the Mahouts agree on 4001. On
+run1189b, block 4033 drops to 99 rows (the standing families), and `1/27`'s rows on 4038 and 4039 are gone: the
+shot on the Citizen `0/10`, `cavarch_who` 0, `g.ox[0]` 10, `g.whom[0]` 0, and `fought` and `blown` 1 with
+`recharging` 40 on both sides. The window's keys go 1184 → 1312, all of them past 4047:
+- **4048**, the first state parting: the Nubian building `0/2000` reads `build:damage` ours 3 against theirs 6
+  (`damage_frac` 5 against 10), and `city:raid_stamp` ours 4044 against theirs 4047;
+- **4060**: the Citizen `0/10` reads `hits_left` ours 50 against theirs 25, and `damage_frame` 0 against 4059.
+  Theirs then flees: on 4061 it holds one order (to (4632, 6600)) and a path of 2;
+- **4067**: `1/46` reads `pos` ours (5469, 9811) against theirs (5468, 9811), with its move leg one tile apart;
+- **4083**, the word: `1/46` takes `cavarch_o` 2005 (a building) where theirs holds 10, and on 4084 it fires
+  (`fought`, `blown` ours 1 against theirs 0).
+
+**The word moves 4038 → 4083 of 4759** (+45), by the count and the sequence. On 4083 ours spends 7 draws and theirs
+8. They part at index 0: theirs `Unit::fight+0x9b0`, ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Block 4084
+is inside run1189b's window, so that window stays the word's widening. No other lobby's `first_parting` moved (43
+of 43 green).
+
+**What is pinned** (item 3554): `persian_medieval_pair_the_long_s_stride_walks_back_from_4038` (40 blocks, 153 keys;
+its window is in the coverage driver), the re-pinned word and run1189b baseline, and
+`cavarch::tests::a_melee_and_ranged_type_keeps_its_wait_under_an_attack_action` in `sim`. Through `tools/mutate.py`,
+dropping the `k` test fails the word (4038 again) and fails the unit test.
+
+**What is not established**: who struck `0/2000` by 4048. The window's first block that parts is a building's
+damage, three frames after ours' `raid_stamp`. Whether that blow is a Mahout's (the shot ours now takes on 4038,
+landing elsewhere) or another unit's is the next item's first question, and so is the Citizen's missing 25 on 4059.
 
 ## 309. Reserved for the next item on the AI track
 
