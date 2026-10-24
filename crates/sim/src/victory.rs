@@ -52,15 +52,6 @@ impl Sim {
             })
             .collect();
         let frame = self.frame;
-        if std::env::var_os("RON_PROBE_3575").is_some() && (8150..=8445).contains(&frame) {
-            eprintln!(
-                "PROBEVIC f{frame} land {land} share {share} terr {:?} own {:?} defeated {:?} timers {:?}",
-                terr,
-                (0..n).map(|j| self.holdings[j].territory).collect::<Vec<_>>(),
-                self.defeated,
-                (0..n).map(|j| (self.ai[j].popwin_timer, self.ai[j].popwin_stamp)).collect::<Vec<_>>()
-            );
-        }
         for i in 0..n {
             // `leader_flags & 3 == 3`: seated and not defeated.
             if self.defeated[i] {
