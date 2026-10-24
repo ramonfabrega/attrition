@@ -349,22 +349,6 @@ impl Sim {
         };
         let domain = self.unit_types[rec].kind.domain;
         let type_index = self.units[u].type_index;
-        if std::env::var("RON_PROBE_SCOUT").ok().is_some_and(|v| {
-            v.split(',').any(|x| x == format!("{}/{}@{}", who, self.units[u].index, self.frame))
-        }) {
-            for y in 10..=18 {
-                let mut row = String::new();
-                for x in 11..=16 {
-                    let c = crate::world::Cell::new(x, y);
-                    let seen = self.was_really_seen_fog(2 * x, 2 * y, who) as u8
-                        + 2 * self.was_really_seen_fog(2 * x + 1, 2 * y, who) as u8
-                        + 4 * self.was_really_seen_fog(2 * x, 2 * y + 1, who) as u8
-                        + 8 * self.was_really_seen_fog(2 * x + 1, 2 * y + 1, who) as u8;
-                    row += &format!(" ({x},{y}) o{:?} s{seen} d{}", self.world.owner(c).player(), self.scout_danger(who, c));
-                }
-                eprintln!("PROBE CELLS f{}{row}", self.frame);
-            }
-        }
 
         // The head, and it comes before the region read: a land unit that
         // can see an untaken box walks to that instead of thinking, and
