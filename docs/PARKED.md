@@ -10574,9 +10574,10 @@ and 3375 took theirs.
   fits 473's sweeps exactly (221, 277 and 124 lattice points). 472's `Node`s come from run112's nine arrows, and two of
   those nine are a unit out (`launch.rs`'s note). **Score**: none until a word parts on a Bowmen (piece 472) round.
   Then copy 473's rows to 472 and run golden chapter two first: it pins those nine arrows.
-- **3592c. Piece 473's rows are diffed on no dumped round.** run1236b and run1238d print no `AMMO`, so the rows rest on
-  the packet's sweep. The diff that backs them is the word's move and Napata's and the farm's blows. **Score**: none
-  until a word parts on an Archers round. Then take an `AMMO=5` window over it first.
+- **3592c. Piece 473's launch points are diffed on no dumped round.** run1236b and run1238d print no `AMMO`, so the
+  points rest on the packet's sweep. The walk holds each key: re-piecing any one of the three moves the word back
+  (to 5322, 5482 or 5468). **Score**: none until a word parts on an Archers round. Then take an `AMMO=5` window
+  over it first.
 
 ## Parked by item 3578, 2026-10-24 — the Korean Slinger's and Hwarang's bays
 

@@ -27852,8 +27852,11 @@ region:
 Piece 120's `Bay`s at the same keys miss 28, 124 and 60 of the 361 headings, so the rows are 473's own.
 
 **The build.** Three `launch::BAYS` rows, piece 473. `the_archers_bays_are_the_packet_s_sweep` holds four headings
-of each sweep and the three heights. The mutation, through `tools/mutate.py` on the committed tree, is in the
-journal.
+of each sweep and the three heights. Mutations through `tools/mutate.py`, on the committed tree, with
+`bantu_ancient_pair_first_parting` as the test, each re-piece one key to 9473, and all three hold (exit 101):
+- `CHAR_ATTACK2` falls the word back to 5322, so that key is the farm's blow;
+- `CHAR_ATTACK1` falls it to 5482;
+- `CHAR_ATTACK3` falls it to 5468.
 
 **The value diff on the word's frame** (before → after):
 - run1236b: 97 → 94 keys. Napata's three rows leave, and the two buried-target rows stand (3592a).
@@ -27871,7 +27874,8 @@ row parts on 5524. The first non-standing row after it is the Bark `1/30`'s move
 lands a frame late or early on 5523. Its killer is `RON_DEBUG_AMMO` over 5500..5523: the round that lands on 5523 in
 ours, its shooter's `g` piece, and whether `launch` has a row for it.
 
-**What is not established.** No dumped round backs piece 473's rows (3592c). The Bowmen's piece 472 has the same
+**What is not established.** No dumped round backs piece 473's launch points (3592c), though the walk holds
+each key. The Bowmen's piece 472 has the same
 floats, and its planar rows are not exact on the sweep (3592b).
 
 **Coverage.** Diff-backed: the word's move, Napata's three rows and the farm's blow (run1236b, run1238d). The
