@@ -801,31 +801,13 @@ impl Sim {
         };
 
         let here = self.units[u].pos.cell();
-        let probe = std::env::var("RON_PROBE_3569")
-            .ok()
-            .and_then(|v| v.parse::<i64>().ok())
-            .is_some_and(|f| f == self.frame as i64);
-        if probe {
-            eprintln!(
-                "probe3569 f{} u{} who{} region {} n {} stride {} start {}",
-                self.frame, u, who, region, n, stride, start
-            );
-        }
         for c in self.world.region_coords_strided(region, start, stride) {
             // `was_really_seen`, inlined at `005f69cd` rather than called.
             if self.was_really_seen(c, who) {
-                if probe {
-                    eprintln!("probe3569   ({},{}) seen", c.x, c.y);
-                }
                 continue;
             }
             let tile = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
-            let inv = self.invalid_loc(u, tile, false, false, false, false, false);
-            if probe {
-                let ocean = self.world.is_ocean(c);
-                eprintln!("probe3569   ({},{}) unseen invalid {} ocean {}", c.x, c.y, inv, ocean);
-            }
-            if inv != 0 {
+            if self.invalid_loc(u, tile, false, false, false, false, false) != 0 {
                 continue;
             }
             // The surface test, by domain. The land arm's probe is the cell
