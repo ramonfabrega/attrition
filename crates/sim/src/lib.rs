@@ -5210,6 +5210,7 @@ impl Sim {
         let greek = self
             .tech_tree
             .has_tribe_bonus(&self.setup, &self.tech[w], 5)
+            && self.tech[w].ages == 0
             && self.tuning.greek_delay_knowledge != 0;
         let persian = self
             .tech_tree
