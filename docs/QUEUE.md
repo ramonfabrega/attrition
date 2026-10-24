@@ -71,9 +71,10 @@ to `ATTACK_TO` in ours where theirs keeps its `GUARD`; the state first parts on 
 3561. **The Lakota at a held Medieval age, East Indies** (`EastIndiesLakotaMedieval`, map 18, tribe 19, difficulty 5, age 2 held; the
 peace pair is `(18, 19, 3)`): the line is `Eagle Feather Horse` (206); the water map's `Brig` (331). Runs 1203–1204; AI §314; park PY.
 
-3562. **The Bantu at a held Ancient age, East Indies** (`EastIndiesBantuAncient`, map 18, tribe 3, difficulty 5, age 0 held; the
-held-out `GreatSaharaBantuTier4` is another map): the line is `Umpakati` (93), with `Spearmen`, `Bark`, `Trireme` if 3559 has not.
-Runs 1205–1206; AI §315; park PZ.
+3562. **The Bantu from an Ancient start, East Indies** (`EastIndiesBantuAncient`, map 18, tribe 3, difficulty 5, starting age 0 and
+ending age 1 — age 0 cannot be held: `SetupWin::setup_game` stores the ending age one above the menu's, run1199/1200 read `ENDING_TECHNOLOGY 1`
+for 0, 3559's lobby; the held-out `GreatSaharaBantuTier4` is another map): the line is `Umpakati` (93), with `Spearmen`, `Bark`,
+`Trireme` if 3559 has not. Runs 1205–1206; AI §315; park PZ.
 
 3563. **The Japanese at a held Gunpowder age, Great Sahara** (`GreatSaharaJapaneseGunpowder`, map 7, tribe 15, difficulty 5, age 3 held;
 the Industrial pair is East Indies', the held-out Tier1 another difficulty): the line is `Samurai` (160) and the age-3 generics.
