@@ -37,9 +37,14 @@ pub(crate) const MONGOL_CLASSICAL: Pair = Pair {
     // 8195 as theirs does and its army's `about_to_win` x100 sends group
     // 65 at who=0 on 8440. At 9744 ours 117 draws against 118, index 90 —
     // ours `Guy::set_anim+0xf2f < Guy::move+0x166`, theirs
-    // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
-    count: 9744,
-    sequence: 9744,
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823`. Item 3579: 9744 ->
+    // 9772, the Mongol Archers (piece 1177) and Javelineers (piece 1089)
+    // loose from their bays, so the rounds at the fleeing Citizen `0/8`
+    // fly 15 and 17 frames, not 16 and 18, and strike on 9708, 9714 and
+    // 9720 as theirs do. At 9772 ours 31 draws against 32, index 29 —
+    // ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+    count: 9772,
+    sequence: 9772,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -291,7 +296,16 @@ fn mongol_classical_pair_run1218_s_word_frame_is_widened_whole() {
     // `collide` 0 against 1 and `path:length` 1 against 4. The stride
     // (`mongol_classical_pair_the_long_s_stride_walks_back_from_9744`)
     // agrees through 9701, so the state parts in 9702..9737.
-    pin_eq!(w.firsts.len(), 2493, "run1218 baseline");
+    // Item 3579: 2493 -> 6619. run1222 found the gap's parting (the Mongol
+    // Archers' and Javelineers' bays); with it `0/8` agrees on 9738 and
+    // after, and the walk runs on together to 9761, where the Citizen
+    // `0/11` (TypeIndex 50) is struck for 15 in theirs by the Nomad `1/31`
+    // (TypeIndex 199, `damage_o` 31) and not in ours (`hits:damage` 35
+    // against 20, `damage_frame` 9761 against 9724, block 9762). The word
+    // is 9772 (block 9773), and what follows parts wider than the old
+    // walk's tail did: the count is the later parting's, not a regression
+    // before it.
+    pin_eq!(w.firsts.len(), 6619, "run1218 baseline");
 }
 
 /// **The long's stride, walked back from the word 9744** (item 3575):
@@ -340,4 +354,62 @@ fn mongol_classical_pair_the_long_s_stride_walks_back_from_9744() {
     // of who=1's newborns on their first block. No unit row parts on a
     // stride block through 9701.
     pin_eq!(w.firsts.len(), 148, "the stride's baseline");
+}
+
+/// run1222: the gap 9702..9737 the stride and run1218 leave undumped,
+/// blocks 9696..9745 at run1218's detail with `AMMO=5` (item 3579).
+pub(crate) const RUN1222: &str =
+    "gamelog-run1222-greatsahara-mongol-classical-window-9696-9745.txt";
+
+/// The window: block 9696 through the word 9744's own block 9745.
+pub(crate) const WIDENING_MONGOL_CLASSICAL_GAP_9744: (i64, i64) = (9696, 9745);
+
+/// **The gap before the word 9744**: run1222 walked from run1197's start
+/// with the recorder on (item 3579).
+pub(crate) fn mongol_classical_gap_9744_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_CLASSICAL.start],
+        true,
+        MONGOL_CLASSICAL.long,
+        "run1222",
+        &[(RUN1222, WIDENING_MONGOL_CLASSICAL_GAP_9744.0)],
+        WIDENING_MONGOL_CLASSICAL_GAP_9744,
+        1,
+        &[9745],
+        true,
+    )
+}
+
+#[test]
+fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_classical_gap_9744_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 49, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3579, the first walk: 171 keys. The first unit field apart is
+    // on block 9709: **the Nubian Citizen `0/8` (TypeIndex 50, land, uid
+    // 15)**, `hits:damage` ours 31 against theirs 33, `damage_frac` 15
+    // against 4, `hits_left` 19 against 17 — the Mongol Archers `1/74`'s
+    // round (TypeIndex 171, piece 1177) struck on 9708 in theirs and 9709
+    // in ours. The `AMMO` records say why: theirs' round leaves from (7087,
+    // 27292) at `total_time` 15, ours' from the figure's own (7128, 27240)
+    // at 16, and `1/49`'s (TypeIndex 83, piece 1089) javelin 17 against
+    // 18. Built (`sim::launch`, the two pieces' bays): 171 -> 82, every
+    // `0/8` row agreeing. What stands: the standing families, 1/187's
+    // `orders_x`/`orders_y` on 9714 (9627, 30596 against 9634, 30612), and
+    // the `dest_angle` family (3574b) from 9733.
+    pin_eq!(w.firsts.len(), 82, "run1222 baseline");
 }

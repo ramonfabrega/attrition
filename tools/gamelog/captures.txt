@@ -10518,3 +10518,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3575: the Mongol word 8444 -> 9744 (`docs/AI.md` §311; `docs/RUNS.md` run1218) ====
 #   run1218  --map 7 --end-frame 9885 --allow-early-end --timeout 3600 --log-window 9738 9885 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --cover cover=0, run1197's lobby   (the word 9744's window, to the closing block)
 # Checks: `rngcmp.py` run1198 vs run1218 -> 9885 identical.
+# ==== item 3579: the Mongol word 9744 -> 9772 (`docs/AI.md` §311; `docs/RUNS.md` run1222) ====
+#   run1222  --map 7 --end-frame 9745 --timeout 3600 --log-window 9696 9745 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0, run1197's lobby   (the gap 9702..9737 before the word 9744, with the rounds)
+# Checks: `rngcmp.py` run1198 vs run1222 -> 9746 identical.

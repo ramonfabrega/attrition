@@ -678,6 +678,83 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
+    // **The Mongol Archers' piece 1177** (unit type 171, `ARCHERS` as the
+    // Mongols field it; item 3579, `docs/AI.md` §311): piece 121's bays
+    // unchanged — the same model again. run1222's `AMMO=5` window on the
+    // Mongol Great Sahara seed prints `1/74`'s `CHAR_ATTACK3` round from
+    // (7087, 27292, 560) over a figure at (7128, 27240, 396), angle
+    // −1790246912, and `1/73`'s `CHAR_ATTACK1` from (6795, 27316, 577) over
+    // (6840, 27240, 414) at −1755316224: both exact, x, y and height. Ours
+    // loosed from the figure's own square, 16 frames against 15, and the
+    // fleeing Citizen `0/8` was struck a frame late. `CHAR_ATTACK2`'s row
+    // is piece 121's, unmeasured here.
+    (
+        1177,
+        11,
+        12,
+        Bay {
+            right: -1826,
+            fwd: 88743,
+            dz: 163,
+        },
+    ),
+    (
+        1177,
+        12,
+        9,
+        Bay {
+            right: 334,
+            fwd: 87412,
+            dz: 164,
+        },
+    ),
+    (
+        1177,
+        13,
+        15,
+        Bay {
+            right: 9709,
+            fwd: 66502,
+            dz: 164,
+        },
+    ),
+    // **The Mongol Javelineers' piece 1089** (unit type 83; item 3579): the
+    // Javelineers' piece 34's bays in plan. run1222's `1/49` threw its
+    // `CHAR_ATTACK2` javelin at `0/8` from (7227, 27933, 612) over a figure
+    // at (7272, 27912, 442), angle −1382547456 — piece 34's `(right, fwd)`
+    // exactly, and a height of 170 where piece 34's is 173, so the height is
+    // the dump's. Ours threw from the figure, 18 frames against 17. The two
+    // other rows are piece 34's, unmeasured here.
+    (
+        1089,
+        11,
+        12,
+        Bay {
+            right: 39258,
+            fwd: 59130,
+            dz: 166,
+        },
+    ),
+    (
+        1089,
+        12,
+        6,
+        Bay {
+            right: 1121,
+            fwd: 50544,
+            dz: 170,
+        },
+    ),
+    (
+        1089,
+        13,
+        27,
+        Bay {
+            right: 21620,
+            fwd: 35314,
+            dz: 159,
+        },
+    ),
     // **The Fire Lances' piece 46** (`FIRELANCES`, unit type 96; item 3577,
     // `docs/AI.md` §313): run1220b's `RON_STATE_FRAME=2976` packet on the
     // Chinese Great Sahara seed holds its three attack `AttachPos` rows,
@@ -1978,6 +2055,30 @@ pub fn launch_point(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **The Mongol Archers and Javelineers loose from their bays** (item
+    /// 3579): run1222's three rounds at `0/8` over 9694..9706, each the
+    /// figure's `GUY` pose on the block before the round's first print, the
+    /// key this crate's release event names, and the dump's `sx, sy, sz − z`.
+    #[test]
+    fn run1222_s_mongol_rounds_leave_from_their_bays() {
+        // (piece, anim, starttime, x, y, facing, sx, sy, sz − z)
+        type Row = (i32, i8, u32, i32, i32, i32, i32, i32, i32);
+        let rows: [Row; 3] = [
+            (1177, 13, 15, 7128, 27240, -1_790_246_912, 7087, 27292, 164),
+            (1177, 11, 12, 6840, 27240, -1_755_316_224, 6795, 27316, 163),
+            (1089, 12, 6, 7272, 27912, -1_382_547_456, 7227, 27933, 170),
+        ];
+        for (piece, anim, start, x, y, facing, sx, sy, dz) in rows {
+            let at = launch_point(Pos::new(x, y), Angle(facing), piece, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "{piece} ({anim}, {start})");
+            assert_eq!(
+                release_dz(piece, anim, start, 0),
+                Some(dz),
+                "{piece} ({anim}, {start})"
+            );
+        }
+    }
 
     /// **The Greek Archers' arrows leave from piece 121's bays** (item
     /// 3574): run1217b's fifteen distinct `AMMO` poses over 7692..7848, each the

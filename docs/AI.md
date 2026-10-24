@@ -27200,15 +27200,65 @@ and the Phalanx `1/133` (133, group 65), among others. Their moves are 48 apart 
 `0/8`'s `collide` reads 0 against 1 and `path:length` 1 against 4. The long's stride agrees through 9701 on every
 unit row, so the state parts in 9702..9737, a gap no dump prints. **The hypothesis, untested**: a blow on `0/8`
 lands a frame late in ours, the shape §310 closed for the Greek Archers' rounds; the Javelineers' piece is the
-first suspect. Walk the gap first: `RON_DEBUG_AMMO` and `RON_DEBUG_UNIT=0/8` over 9700–9722.
+first suspect. Walk the gap first: `RON_DEBUG_AMMO` and `RON_DEBUG_UNIT=0/8` over 9700–9722. *(Item 3579: the
+blows land a frame late, as supposed, and the cause is where the rounds leave from; below.)*
+
+**The cause: the Mongol Archers and Javelineers loose from the figure (item 3579).** run1222 is an `AMMO=5` window over
+the gap, 9696..9745, `rngcmp.py`-identical to run1198 on all 9746 frames. Walked from run1197, the first unit field
+apart is on **block 9709**, the Citizen `0/8`: `hits:damage` ours 31 against theirs 33, `damage_frac` 15 against 4.
+The blow is the round of the **Archers `1/74` (TypeIndex 171, land, piece 1177)**, which both sides loose on 9694 and
+which strikes in both, with no puncture draw, but on 9708 in theirs and 9709 in ours. Theirs' blows on 9714 (the
+**Javelineers `1/49`**, TypeIndex 83, piece 1089) and 9720 (the Archers `1/73`) are a frame late in ours the same way.
+The last of them, outside the overkill window, stamps `damage_frame` (9720 against 9721) and `damage_o`, which the
+flee reads. That is the window's opening row on 9738. The `AMMO` records give theirs' launch and time:
+
+| round | theirs `sx, sy` / `total_time` | ours |
+|---|---|---|
+| `1/74`, `CHAR_ATTACK3` (13, 15) | (7087, 27292) / 15 | the figure's (7128, 27240) / 16 |
+| `1/73`, `CHAR_ATTACK1` (11, 12) | (6795, 27316) / 15 | (6840, 27240) / 16 |
+| `1/49`, `CHAR_ATTACK2` (12, 6) | (7227, 27933) / 17 | (7272, 27912) / 18 |
+
+`launch.rs` has no row for either piece. **Piece 121's bays (the Archers' and the Heavy Archer's model, §310) put both
+Archer rounds exactly at theirs' `sx, sy`, and at their `sz − z` (164, 163)**. Piece 1177 is the same model. **Piece
+34's (the Javelineers', §244) `CHAR_ATTACK2` bay puts the javelin exactly at (7227, 27933)**, with a height of 173
+against the dump's 170, so piece 1089's height is the dump's. The rows this window does not reach (1177's
+`CHAR_ATTACK2`, 1089's `CHAR_ATTACK1`/`CHAR_ATTACK3`) are their model's, unmeasured. The Nomad `1/31`'s (TypeIndex
+199) round on 9716 agrees on its time (19) from the figure, though theirs leaves from (7484, 27210).
+
+**The build.** Six `BAYS` rows in `launch.rs`. Killer: `launch::tests::run1222_s_mongol_rounds_leave_from_their_bays`,
+which checks the three poses and heights. Mutation through `tools/mutate.py`: renaming piece 1177's `CHAR_ATTACK1` row
+away makes `mongol_classical_pair_first_parting` exit 101, back at 9744 by the count and the sequence ("mutation:
+held"). Renaming the `CHAR_ATTACK3` row moves no draw: `1/74`'s late blow falls inside the overkill window, so it
+stamps nothing, and the damage is even again a frame later.
+
+**The value diff, and the word: 9744 → 9772.**
+
+| block | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 9696 | `1/74`'s round | `sx, sy` / `total_time`, `ex` | (7128, 27240) / 16, 5680 / (7087, 27292) / 15, 5702 | agree |
+| 9709 | Citizen `0/8` (TI 50) | `hits:damage`, `damage_frac`, `hits_left` | 31, 15, 19 / 33, 4, 17 | agree |
+| 9721 | Citizen `0/8` | `damage_frame`, `damage_o`, `orders.len` | 9689, 214, 0 / 9720, 72, 1 | agree |
+| 9745 | draws | index 90 | `Guy::set_anim+0xf2f < Guy::move+0x166` / `+0x97a < Unit::move_step+0x823` (117 / 118) | agree |
+
+run1222 falls from 171 keys to 82. What stands is the standing families, `1/187`'s `orders_x`/`orders_y` on 9714 (ours
+(9627, 30596) against (9634, 30612)), and the `dest_angle` family (3574b) from 9733. run1218 rises from 2493 keys to
+6619: its walk now runs together past 9738 and parts later and wider.
+
+**The next word: frame 9772, ours 31 draws against 32, index 29**: ours `Farms::inc_time+0x1ae`, theirs
+`Object::take_damage+0xe1`. On run1218's block 9762, the Citizen **`0/11` (TypeIndex 50)** reads `hits:damage` ours
+20 against theirs 35, `damage_frame` 9724 against 9761, and `damage_o` 29 against 31. Theirs is struck for 15 by the
+**Nomad `1/31` (TypeIndex 199, land)**. Ours' Nomad looses at `0/11` on 9746 at `total_time` 17 from the figure's
+own (7524, 27864). **The hypothesis, untested**: the Nomad's piece has no bay either, and the 9716 round's agreeing
+time hid it. run1218 prints no `AMMO`, so a window over ~9740..9773 at `AMMO=5` is the next walk's first step.
 
 **Coverage.** `mongol_classical_pair_run1198b_s_word_frame_is_widened_whole` keeps 8444's value diff (77 keys);
 `mongol_classical_pair_run1218_s_word_frame_is_widened_whole` pins the new word's window (147 blocks, 2493 keys);
 `mongol_classical_pair_the_long_s_stride_walks_back_from_9744` pins run1198's stride over 8701..9701 (11 blocks,
-148 keys, every one a standing family). `WIDENINGS`'s `MONGOL_CLASSICAL_PAIR_WORD` names run1218's test, item
+148 keys, every one a standing family). `mongol_classical_pair_run1222_walks_the_gap_before_9744` pins run1222's gap window (49 blocks, 82 keys),
+in `coverage.rs`'s driver; `WIDENINGS` names run1218's test for the word 9772, item 3579. `WIDENINGS`'s `MONGOL_CLASSICAL_PAIR_WORD` names run1218's test, item
 3575; both new windows are in `coverage.rs`'s driver, and `AI_WORDS` names `mongol_classical_frame_9744_window`.
-**Diff-backed**: the territory timer's start on Great Sahara (8195 here, 4135 on run817) and the army's target on
-8440. **Not established**: the timer's expiry. `crate::victory`'s seam table carries it, and no walk has reached it.
+**Diff-backed**: the territory timer's start on Great Sahara (8195 here, 4135 on run817), the army's target on
+8440, and the Mongol Archers' and Javelineers' launch points (run1222's `AMMO`). **Not established**: the timer's expiry. `crate::victory`'s seam table carries it, and no walk has reached it.
 Theirs' game ends itself on 9884, 1689 frames after the stamp. Whether this timer is what ends it has not been
 read; the closing block 9885 is the place to read it.
 
