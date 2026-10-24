@@ -239,6 +239,9 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // difficulty — nor `GreatSaharaEgyptianTier4`'s `(7, 7, 4)` scored above
     // — another map — and no other battery game's triple.
     (18, 7, 5),
+    // The Spanish Classical pair's (item 3586): the Spanish at a held
+    // Classical age, Difficulty 5, Great Sahara.
+    (7, 9, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
