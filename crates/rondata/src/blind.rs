@@ -493,6 +493,12 @@ pub const TRACES: &[&str] = &[
     // (`docs/RUNS.md` run1187): run1159's game on every frame (rngcmp 3813
     // identical, 0 differing) — the first lockstep trace of an age-5 game.
     "rontrace-run1187.log",
+    // Item 3549: the British late-age pair's long lobby (East Indies, the
+    // British, `DIFFICULTY 5`, a held Enlightenment age; run1157's recipe)
+    // at `cover=1` on the click-free pool, to the game's own end at 5522
+    // (`docs/RUNS.md` run1188): run1157's game on every frame (rngcmp 5523
+    // identical, 0 differing) — the sea map's age-5 line.
+    "rontrace-run1188.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked

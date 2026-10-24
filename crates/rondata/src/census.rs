@@ -341,6 +341,10 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// function no other lockstep trace enters, 10,783 bytes —
 /// `DeathObjData::log_data`, entered once a frame — 8,802,866 ->
 /// 8,813,649, 77.27 % -> 77.36 %.
+/// Item 3549: 773 -> 773 with the British pair's twin run1188 (121
+/// traces), the sea map's age-5 line. One simulation function no other
+/// lockstep trace enters, 2,591 bytes — `Group::is_attacking_to` — 8,813,649
+/// -> 8,816,240, 77.36 % -> 77.38 %, below the next tenth.
 pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 773;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;

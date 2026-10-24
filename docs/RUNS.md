@@ -25340,3 +25340,38 @@ SHA-256 `e85eed7ad29b988206830256ab6074d51a3718ba0b799427e177e9f2045ddb00`.
 
 **What it holds**: the Turkish pair's game on every frame under `cover=1`, the first lockstep trace of an age-5 game
 (`blind::TRACES`).
+
+## run1188 — the British late-age pair's long lobby at `cover=1` on the click-free pool, to the game's end at 5522: the pair's lockstep twin (2026-10-23, item 3549, `att-3549`)
+
+**What the disk could not answer**: the pair's captures (run1156, run1157, run1157b, run1185, run1185b) are `cover=0`,
+which enters nothing but the hooks (`report.py rontrace-run1157.log functions`: 0 entered). So no lockstep trace of
+the sea map's age-5 game existed (`docs/DECISIONS.md` entry 91 §2). This is run1157's recipe exactly, at `cover=1`:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1188 --map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=1 --callwin 0 24000 --ai-tribe 11
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`. There is no `@`
+line and no click, so every input is shared and there is no `--from`.
+
+- Pool lane 1 (`~/wine-ron`). Launched 19:54:15 and exited 19:55:12: **56.7 s launch to exit** (run1157 at `cover=0`
+  took 31.6 s). `success`, 5,523 frames. **The game ended itself at 5522** (`ended_early`, closing frame 5523). Map 18
+  verified, seed 12345, tribes 4 and 11. DLL `c64c5379…`, `-DRON_AUTOSTART`. 157 GiB free before. Minutes waited on
+  another lane: none.
+- `rngcmp.py rontrace-run1157.log rontrace-run1188.log`: **5,523 in common, 0 differing, 5,523 identical**.
+  `samegame.py gamelog-run1157-… gamelog-run1188-…`: **56 in common (1..5501, the stride's blocks), 0 differing**.
+- `report.py … functions` lists **6,951 functions**. **None is on `blind::NEVER`**, which stays at 247. Against the
+  other 120 lockstep traces it adds one simulation function, `Group::is_attacking_to@0070ea70` (2,591 bytes, first
+  entered on frame 4652). `rubric.py --tables 4` reads **lockstep bytes 77.3 %**: 8,816,240 of 11,392,782 bytes and
+  2,240 of 3,611 functions, over 121 traces. The bytes move 77.36 % → 77.38 %, and the tenths stay at 773 (3549a).
+- The item's mechanics, entered: `Object::attempt_launch@00643a10` (first on 3632) and `Ammo::init@0067bbf0` (first
+  on 3623), the launches whose Sloop and Highlander rows 3542 pinned.
+- Filed with `filerun.py run1188 eastindies-british-enlightenment-cover`.
+
+Archive `gamelog-run1188-eastindies-british-enlightenment-cover.txt`, 38,608,333 bytes,
+SHA-256 `d06ea5fb1d1282dec8c2a7750b87ad4b07ddcc5d02ff8de09b75fd83ae02c61d`.
+
+Archive `rontrace-run1188.log`, 187,800,096 bytes,
+SHA-256 `fd427e3e37bf911fc0ecf8ad27452de308141cb156cc8f2d7d74f1607fe7455c`.
+
+**What it holds**: the British pair's game on every frame under `cover=1`, the sea map's age-5 lockstep trace
+(`blind::TRACES`).
