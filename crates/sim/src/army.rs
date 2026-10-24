@@ -2071,6 +2071,17 @@ impl Sim {
                     ) else {
                         continue;
                     };
+                    if std::env::var_os("RON_PROBE_3575").is_some() {
+                        let b = self.cities[c].building;
+                        eprintln!(
+                            "PROBE3575 f{} who {who} slot {slot} pass {pass} leader {i} k {k} city {c} build {}/{} ({},{}) draw {draw} score {v}",
+                            self.frame,
+                            self.buildings[b].owner,
+                            self.buildings[b].index,
+                            self.buildings[b].pos.x,
+                            self.buildings[b].pos.y
+                        );
+                    }
                     if best.is_none_or(|(bv, _, _)| bv <= v) {
                         best = Some((v, c, ip));
                     }
