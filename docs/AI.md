@@ -27163,12 +27163,55 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 313. Reserved for the next item on the AI track
+## 313. The Chinese at a held Medieval age, Great Sahara: a Fire Lances volley on a Citizen, first try 2981 of 4520 (item 3560)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 92). §311's lobby with the nation and the age moved: Great Sahara (`MAP_STYLE 7`),
+human Nubians (4) against the **Chinese (14)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held by
+`STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Both `GAME INFO`s read back 2 and 2, and `rubric.py --tables 2`
+on both dumps puts the computer at Medieval on every leader record and never elsewhere. Captures: run1201 (a
+`DUMP_ALL` start) and run1202 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 4520. The walk is seeded from run1201's initial state (3506a); run1201 against run1202 is 37 of 37
+frames identical. `diff::chinese_medieval_pair` pins it.
+
+**The lobby's triple**, `(7, 14, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's (the
+battery's one Chinese game is `GreatLakesChineseTier1`, `(14, 14, 1)`) and not the Chinese Industrial pair's,
+`(7, 14, 3)` — this map at Difficulty 3 and a held Industrial age; `chinese_medieval_pair_is_no_other_lobby` reads
+both `GAME INFO`s.
+
+**First try: frame 2981 of 4520**, by the count and the sequence. Ours 12 game draws, theirs 13; they part at
+index 0:
+- theirs: `Guy::set_anim+0x97a < Unit::move_step+0x823`;
+- ours: `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+
+**The units, by `TypeIndex` and domain.** The Nubian **Citizen `0/10` (TypeIndex 50, land, uid 17)**, standing at
+(8088, 31128), is the target of who=1's group 64: the **Fire Lances `1/21`, `1/22`, `1/23` and `1/42` (TypeIndex
+96, land)**, each on an `ATTACKORDER` at uid 17 over a `GUARDORDER`, and the **Knight `1/29` (228, land)** moving
+in on it. Ours' `RON_DEBUG_AMMO` holds three Fire Lances rounds in flight at the Citizen on 2975: `1/21`'s at
+t13 of 18, `1/22`'s at 7 of 11 and `1/23`'s at 3 of 16, each `roll true missed false`. **`Fire Lances` (96), the
+line the booking names, is fielded** (2064 figure rows) and is in the parting.
+
+**The direction is theirs**, with the record that shows it (run1202b, block 2978, the first parted unit field):
+the Citizen reads `hits:damage` ours 0 against theirs 7 (`damage_frac` 0 against 5), `damage_frame` 0 against
+2977, `damage_o` 21 — theirs' first blow lands on 2977 and is credited to `1/21` — and `orders.len` 0 against 1,
+theirs' `FLEEORDER` to (6552, 30984). On block 2979 the Citizen's `pos` parts, ours (8088, 31128) against theirs
+(8063, 31126), and on block 2980 the Knight `1/29`'s chase destination follows it: `order:move.x`/`y` ours (8136,
+30984) against theirs (8088, 31272). The word's draw is the Citizen's flight in theirs and its idle anim in ours.
+
+**The value diff** (run1202b walked from run1201: 256 blocks, 2437 keys, the two `gaia:` keys unprinted). Block
+2975 carries the standing families (every unit's `form`, `SITE[i].reg`, who=0's `aggression[1]`, who=1's groups'
+`held` and `pool`). **The state first parts on block 2978**: the Citizen above, and `leader:treaties[0]` and
+`[1]` ours 1 against theirs 3 on both players. 1/21's own record agrees on every block to 3012 (`recharging`
+included).
+
+**The next word**: frame 2981, ours 12 draws against 13, index 0, theirs `Unit::move_step+0x823`. **The
+hypothesis, untested**: a Fire Lances round's landing frame. Theirs' first blow lands on 2977 under `1/21`'s
+name, where ours' `1/21` round is at t15 of 18 and ours' first landing is `1/22`'s at t11. No dump on disk
+prints theirs' `AMMO`, so the killer is a window over 2960–2982 with `AMMO` in its detail — each round's `launch`,
+`land` and flight beside ours' `RON_DEBUG_AMMO` — or a packet at `RON_STATE_FRAME=2976`.
+
+**Coverage.** `chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole` pins the 2437 keys;
+`WIDENINGS`'s `CHINESE_MEDIEVAL_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds
+the row on `Late ages`. Nothing here is built: no claim of this section is diff-backed beyond the parting itself.
 
 ## 314. Reserved for the next item on the AI track
 
