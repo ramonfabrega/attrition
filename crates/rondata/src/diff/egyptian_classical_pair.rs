@@ -242,7 +242,8 @@ fn egyptian_classical_pair_the_long_s_stride_walks_back_from_5956() {
 /// ours turns to the Merchant on 5778. The long's stride prints no
 /// `LEADERDATA` or `BUILDDATA`, and run1230b starts on 5956 with the queue
 /// already apart.
-pub(crate) const RUN1241: &str = "gamelog-run1241-eastindies-egyptian-classical-window-5576-5786.txt";
+pub(crate) const RUN1241: &str =
+    "gamelog-run1241-eastindies-egyptian-classical-window-5576-5786.txt";
 
 /// The window: block 5576 through 5786.
 pub(crate) const WINDOW_EGYPTIAN_CLASSICAL_MARKET: (i64, i64) = (5576, 5786);

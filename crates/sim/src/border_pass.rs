@@ -307,8 +307,16 @@ mod tests {
         sim.advance_border_pass();
         let r = |c: Cell| usize::from(sim.world.region_of(c).unwrap());
         let rares = &sim.ai[1].census.reg_known_rares;
-        assert_eq!(rares[r(Cell::new(0, 0))], 1, "region 0 finished on frame one");
-        assert_eq!(rares[r(Cell::new(0, 1))], 1, "region 1 was started on frame one");
+        assert_eq!(
+            rares[r(Cell::new(0, 0))],
+            1,
+            "region 0 finished on frame one"
+        );
+        assert_eq!(
+            rares[r(Cell::new(0, 1))],
+            1,
+            "region 1 was started on frame one"
+        );
         assert_eq!(
             rares[r(Cell::new(0, 2))],
             0,
