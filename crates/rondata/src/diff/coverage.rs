@@ -3446,6 +3446,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::persian_medieval_pair::persian_medieval_frame_2226_window(),
         || super::greek_classical_pair::greek_classical_frame_8_window(),
         || super::greek_classical_pair::greek_classical_frame_2616_window(),
+        || super::greek_classical_pair::greek_classical_frame_4341_window(),
         || super::persian_medieval_pair::persian_medieval_landing_2172_window(),
         || super::persian_medieval_pair::persian_medieval_frame_4038_window(),
         || super::persian_medieval_pair::persian_medieval_frame_4523_window(),

@@ -26973,9 +26973,53 @@ standing families, and the word's block 2617 adds only group 83's `held` and poo
 All three were on an `EXPLORETOORDER` on 2617 that ends on 2618. On 2619 each picks a new destination, and the
 extra draw on ours' side is in the scout arm (`think_scout`).
 
-**The next word**: frame 2616, ours 231 draws against 230, index 227 — ours `Unit::think_scout+0xaba`, theirs
-`Farms::inc_time+0x1ae`. The direction is ours: one draw more, spent by the Greek navy's explore pick. The pick
-lands on 2619, and run1209 holds both sides of it.
+**The word 2616, as item 3566 left it**: ours 231 draws against 230, index 227 — ours `Unit::think_scout+0xaba`,
+theirs `Farms::inc_time+0x1ae`, with the hypothesis that the navy's explore pick on 2619 was the cause.
+
+**A pushed boat lights its ring (item 3569).** The walk back from 2619 says the picks are downstream:
+- **The direction is ours, one Dromon's.** Theirs' trace puts `think_scout+0x941` at indices 27, 96 and 157 as
+  ours does, so `1/31` (68 cells) and `1/43` (60) agree and **`1/50` accepts 70 cells here against 69 there**
+  in its region scan (`docs/SCOUT.md` §11). The three Dromons stand still and re-pick every second frame; their
+  picks on block 2617 agree on both sides, and on 2619 all three part because the stream is one draw ahead.
+- **Which cell.** All 70 were accepted on every earlier scan from 2300 on (ours). Of the 70, only (43, 58) has a
+  who=1 unit within eight tiles on run1209's 2611..2618: the Fishermen `1/68` (TI 317, sea, `mylos` 6), which
+  `1/73` pushes (`collide_o` 73 from block 2614). On 2614 the push carries it from half-cell (91, 117) to
+  (90, 116), and (87, 117), the scan's probe half-cell for (43, 58), lies at octagonal distance 3 from it.
+- **The listing.** `detect_boat_collision@005fa8b0` moves the pushed boat with `set_new_location(o, x, y, 0, 0)`,
+  and `Unit::set_new_location@005f8d20` calls vslot `+0x174`, `update_seen(param_3 == 0)`, on a half-cell
+  change of a unit on the map: the ring (`docs/VISION.md` §6). Ours' `SimBoat::set_new_location` moved the boat
+  and threw nothing, one of `docs/VISION.md` §11.5's callers. It now calls `moved_to(o, from, true)`.
+
+`a_pushed_ship_lights_its_ring_when_it_crosses_a_half_cell` (`collide.rs`) tests it. `tools/mutate.py`
+dropping the call fails it (exit 101) and walks the pair back to 2616 (exit 101). Every other lobby's
+`first_parting` stands.
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 2616 | draws | `1/50`'s `think_scout+0xaba` | 70 / 69 (231 / 230 a frame) | agree |
+| 2619 | Dromon `1/31` (TI 324) | `order:move.x` / `.y` | 39672 / 28920 against 31992 / 44280 | agrees |
+| 2619 | Dromon `1/43` (TI 324) | `order:move.x` / `.y` | 32760 / 45048 against 26616 / 43512 | agrees |
+| 2619 | Dromon `1/50` (TI 324) | `order:move.y` | 43512 against 45048 | agrees |
+
+run1209's window falls from **1604 keys to 96**: 2611's 86 standing rows, groups 75, 83, 84 and 85's `held` and
+pool, and `form` on `1/93` and `1/94`; no unit row stands. The refused half-cell is read off the geometry, and
+no packet compares the two fog grids on 2616 (parked 3569a).
+
+**The word: 2616 → 4341**, by both count and sequence. On 4341 ours spends 23 draws against theirs' 22. They part
+at index 8: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+**run1212** widens it over 4336..4592 (`greek_classical_pair_run1212_s_word_frame_is_widened_whole`, 1496 keys).
+Block 4336 carries 104 standing rows, and group 80's `held` and pool part on 4337. The word's own rows are on
+block 4341:
+
+| block | unit | field | ours | theirs |
+|---|---|---|---|---|
+| 4341 | General `1/138` (TI 54, land) | `pos` | (34736, 42029) | (34756, 42029) |
+| 4341 | Catapult `1/124` (TI 265, land) | `collide_o` / `collide_who` | -1 / -1 | 138 / 1 |
+| 4342 | Javelineers `1/118` (TI 83) | `collide_o` | -1 | 138 |
+
+**The next word**: frame 4341, ours 23 draws against 22, index 8 — ours `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. The hypothesis, unwalked: theirs'
+General `1/138` steps and pushes the Catapult where ours' stands idle; the draw's unit is not yet named.
 
 **The rubric.** `Companion` (231) is never fielded in run1195 or run1196. The `Fire Raft` (334) is (×242), with the
 Dromon (324), the Galley (341) and the Transport Barge (320). An open pair counts only to its word, and frame 8 is

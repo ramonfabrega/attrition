@@ -1475,9 +1475,17 @@ fails without the line.
 
 - **The other callers.** This crate's `set_new_location` has eight
   callers that move a unit and throw no disc: `rally.rs` (the captain's
-  spot), `gaia.rs`, `lib.rs`'s placement, `collide.rs`'s push and snap,
+  spot), `gaia.rs`, `lib.rs`'s placement, ~~`collide.rs`'s push~~ and snap,
   `orders.rs`' snap, and `transport.rs`' and `garrison.rs`' seats. In the original each one
   lights a disc when it crosses a half-cell with the unit on the map.
+  **The push is built (item 3569, `docs/AI.md` §310)**:
+  `detect_boat_collision`'s `set_new_location(pushed, x, y, 0, 0)` throws
+  the ring, `update_seen(1)`, and `SimBoat::set_new_location` now calls
+  `moved_to(o, from, true)`. East Indies' Fishermen `1/68`, pushed by `1/73`
+  across half-cells (91, 117) → (90, 116) on 2614, lit the half-cell
+  (87, 117) the Dromon `1/50`'s region scan refused on 2616; the Greek word
+  moved 2616 → 4341. The snap at `resolve_unit_collision` already threw
+  its disc.
   Not built: none of them sits on the word's frame. A capture that holds
   one crossing a half-cell, on a frame whose fog a later read reaches,
   would settle each of them.
