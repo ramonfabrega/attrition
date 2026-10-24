@@ -26778,8 +26778,8 @@ line of `Unit::work@0060d180` (`:449`, `60dc9f`) clears it, but only on the path
 lasts from the strike to the end of the victim's next work. A block prints it on a unit struck after its own work
 ran, as here: who=0 works before who=1.
 
-The Citizen was walking to its gather (`MOVEORDER` in front of its `GATHERORDER`), and `1/42` struck it from 39
-away, inside the Citizen's and the Light Horse's radii.
+The Citizen was walking to its gather (`MOVEORDER` in front of its `GATHERORDER`). `1/42` struck it from
+`vector_dist` 104 away (block 4068's positions), inside the two types' radii summed.
 
 This crate carried none of it: `do_damage` read nothing after `target_opportunity`, and `get_speed` held the halving
 as a `SEAM`. Now `sim::Unit::contact` is the bit: `Sim::mark_contact` sets it, `do_damage` doubles under it,
@@ -26817,9 +26817,10 @@ Javelineers, Archers and Catapults (parked 3556a).
 blow was doubled.
 
 **What is not established** (item 3567):
-- **Two arms no capture reaches.** The land-speed halving, and the refusal for a victim attacking a target inside
-  twice the sum. Each was mutated to nothing against every lobby's `first_parting`, and nothing failed (parked
-  3567b). They rest on the listing and on `a_unit_struck_while_moving_in_contact_takes_the_blow_doubled` alone.
+- **Three arms no capture reaches.** These are the land-speed halving, the refusal for a victim attacking a target
+  inside twice the sum, and `Unit::work`'s clear. Each was mutated to nothing against every lobby's
+  `first_parting`, and nothing failed (parked 3567b). They rest on the listing and on
+  `a_unit_struck_while_moving_in_contact_takes_the_blow_doubled` alone.
 - **The early returns.** `Unit::work`'s early returns (`:82`, `:85`, `:344`, `:352`) skip the clear, and this
   crate's do too (the gate, the dead target, the pack arm's kill). Whether ours' pack-arm return is the original's
   is not read here.
@@ -26829,10 +26830,10 @@ blow was doubled.
 
 **Coverage.** Diff-backed:
 - the doubling and the mark on a moving victim within reach, by `roman_classical_pair_first_parting` (7130) and
-  `roman_classical_pair_run1194b_s_word_frame_is_widened_whole` (the `contact` row agrees on 4069);
-- the clear, by the same window: the bit is gone on 4070's block on both sides.
+  `roman_classical_pair_run1194b_s_word_frame_is_widened_whole` (the `contact` row agrees on 4069). Without the
+  doubling all three of the pair's diff tests fail (`tools/mutate.py`).
 
-Reading-backed: the speed halving and the attacking-victim refusal (parked 3567b).
+Reading-backed: the speed halving, the attacking-victim refusal and the clear (parked 3567b).
 
 ## 310. The Greeks at a held Classical age, East Indies: the first pair below age 2, parting on frame 8 (2026-10-23, item 3557)
 

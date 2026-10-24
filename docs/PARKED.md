@@ -10459,10 +10459,10 @@ words and edits nothing here; a refill lands when two remain.
   row left on the Roman window, and nothing follows from it: the pair runs whole to 7130 and closes on block 7131
   with every count zero. It names no score. It books only if a later window shows it moving a draw
   (`docs/AI.md` §309).
-- **3567b. Two arms of the contact mark are reached by no capture.** These are the land-speed halving under
-  `unit_masks & 0x10` (`UnitData::get_speed@00608720`, `0060878c`) and the refusal for a victim attacking a target
-  inside twice the summed radii (`6002c6`). Both were mutated to nothing against every lobby's `first_parting`, and
-  nothing failed. Only `a_unit_struck_while_moving_in_contact_takes_the_blow_doubled` holds them. They rest on the
+- **3567b. Three arms of the contact mark are reached by no capture.** These are the land-speed halving under
+  `unit_masks & 0x10` (`UnitData::get_speed@00608720`, `0060878c`), the refusal for a victim attacking a target
+  inside twice the summed radii (`6002c6`), and `Unit::work`'s clear (`60dc9f`). Each was mutated to nothing
+  against every lobby's `first_parting`, and nothing failed. Only `a_unit_struck_while_moving_in_contact_takes_the_blow_doubled` holds them. They rest on the
   listing alone (`docs/AI.md` §309).
 
 ## Parked by the next landing, slot QD — reserved
