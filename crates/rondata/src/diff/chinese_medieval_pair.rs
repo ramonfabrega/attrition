@@ -34,8 +34,13 @@ pub(crate) const CHINESE_MEDIEVAL: Pair = Pair {
     // 12 draws against 13, index 0 — ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271`, theirs `Guy::set_anim+0x97a <
     // Unit::move_step+0x823` (`docs/AI.md` section 313).
-    count: 2981,
-    sequence: 2981,
+    // Item 3577: 2981 -> 3030 — the Fire Lances loose from piece 46's bays
+    // (`sim::launch`), so `1/22`'s round flies 10 frames, not 11, and strikes
+    // the Citizen `0/10` on 2977 as theirs does. Ours 14 draws against 16,
+    // index 9, ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xce6 <
+    // Object::die` (a death after a round's `AmmoOut::dirt_splash`).
+    count: 3030,
+    sequence: 3030,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -215,5 +220,66 @@ fn chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole() {
     // index 0 ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823` (`docs/AI.md` section
     // 313).
-    pin_eq!(w.firsts.len(), 2437, "run1202b baseline");
+    //
+    // Item 3577, 2437 -> 2738 keys: piece 46's bays put `1/22`'s blow on
+    // 2977, and block 2978's Citizen rows agree. After 2976 the first rows
+    // are who=1's groups 70 and 68 (`held`, `pool`, 3019/3020, the
+    // standing family), then the Crossbowmen `1/127` (TypeIndex 172, land)
+    // on 3037: `order:move.dest` ours (36264, 17304) against theirs (35496,
+    // 17112), `path:length` 22 against 12. **The word 3030** (block 3031,
+    // no record parted on it): ours 14 draws against 16, index 9, ours
+    // `Farms::inc_time+0x1ae`, theirs `Unit::close+0xce6 < Object::die`.
+    pin_eq!(w.firsts.len(), 2738, "run1202b baseline");
+}
+
+/// run1220: the Fire Lances' volley at `AMMO=5`, blocks 2955..2982 (item
+/// 3577) — the three rounds `1/21`, `1/22` and `1/23` loosed at the Citizen
+/// `0/10` over 2963..2973, each record's `sx, sy, sz` and `total_time`.
+pub(crate) const RUN1220: &str =
+    "gamelog-run1220-greatsahara-chinese-medieval-window-2955-2982.txt";
+
+/// The window: block 2955 through 2982, the old word 2981's block the last.
+pub(crate) const WINDOW_CHINESE_MEDIEVAL_VOLLEY_2955: (i64, i64) = (2955, 2982);
+
+/// **The volley's window**: run1220 walked from run1201's start with the
+/// recorder on (item 3577).
+pub(crate) fn chinese_medieval_volley_2955_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[CHINESE_MEDIEVAL.start],
+        true,
+        CHINESE_MEDIEVAL.long,
+        "run1220",
+        &[(RUN1220, WINDOW_CHINESE_MEDIEVAL_VOLLEY_2955.0)],
+        WINDOW_CHINESE_MEDIEVAL_VOLLEY_2955,
+        1,
+        &[2978],
+        true,
+    )
+}
+
+/// **run1220's volley window, walked whole** (item 3577): with piece 46's
+/// bays every round leaves from theirs' point and flies theirs' frames, so
+/// the Citizen `0/10`'s blow on 2977 and its flight agree to the window's end.
+#[test]
+fn chinese_medieval_pair_run1220_s_volley_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = chinese_medieval_volley_2955_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 27, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    // 84 keys, every one on the window's first block 2955 and every one a
+    // standing family: each unit's `form`, `build:extra` on who=0's seven
+    // buildings (the capture prints no `BUILDS`) and who=1's groups 64..69
+    // `held`/`pool` (nor `GROUPS`). Nothing parts after 2955: the three
+    // rounds, the Citizen's blow on 2977 and its flight agree. Without piece
+    // 46's bays the Citizen `0/10` parts on 2978.
+    pin_eq!(w.firsts.len(), 84, "run1220 baseline");
 }
