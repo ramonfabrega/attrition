@@ -189,21 +189,6 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
             continue;
         };
         let theirs = tr.labels(*f);
-        if let Ok(w) = std::env::var("RON_PROBE_3593") {
-            let (lo, hi) = w.split_once('-').unwrap();
-            if (lo.parse::<i64>().unwrap()..=hi.parse::<i64>().unwrap()).contains(f) {
-                for (i, l) in ours.iter().enumerate() {
-                    if !l.contains("inc_time") && !l.contains("think_") && !l.contains("set_anim") && !l.contains("calc_road") {
-                        eprintln!("  probe f{f} ours  {i}/{}: {l}", ours.len());
-                    }
-                }
-                for (i, l) in theirs.iter().enumerate() {
-                    if !l.contains("inc_time") && !l.contains("think_") && !l.contains("set_anim") && !l.contains("calc_road") {
-                        eprintln!("  probe f{f} thrs  {i}/{}: {l}", theirs.len());
-                    }
-                }
-            }
-        }
         if count.is_none() && ours.len() != theirs.len() {
             count = Some(*f);
         }
