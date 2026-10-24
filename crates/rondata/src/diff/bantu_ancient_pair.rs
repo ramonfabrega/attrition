@@ -35,8 +35,14 @@ pub(crate) const BANTU_ANCIENT: Pair = Pair {
     // Item 3562, first try: frame 4185 by the count and the sequence, ours
     // 350 draws against 342, index 242 — ours `Leader::make_stuff+0x63d`,
     // theirs `Leader::produce_building+0x1805` (`docs/AI.md` section 315).
-    count: 4185,
-    sequence: 4185,
+    // Item 3589: **5072** (+887) — the lobby's type ages
+    // (`Types::finalize_grafting`, `TechTree::age_in`): the Trireme is an
+    // age-3 type in this lobby, so `upgrade_units` values the Galley at 0
+    // where ours offered it at 21504000 on 4179. Ours 39 draws against 40,
+    // index 31, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+    count: 5072,
+    sequence: 5072,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -163,5 +169,121 @@ fn bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole() {
     // `1/2055` the Hanging Gardens (528, city 1, `constr_time` 400000) at
     // (34560, 37632); ours' `1/2054` is the Hanging Gardens, at (34752,
     // 37824), and ours places no Stable.
-    pin_eq!(w.firsts.len(), 1368, "run1206b baseline");
+    //
+    // Item 3589: **113**, from the lobby's type ages. Who=1's make list agrees
+    // through the window (ours no longer offers the Galley on 4179), the
+    // Stable and the Hanging Gardens are both sides', and what is left is
+    // the standing families: 111 rows on 4180 (every unit's `form`,
+    // `SITE[i].reg`, both leaders' `aggression`, who=1's groups' `held`
+    // and pools), group `75`'s `held` and pool on 4186, and on 4360
+    // `1/175`'s `form`, ours -1 against theirs 0.
+    pin_eq!(w.firsts.len(), 113, "run1206b baseline");
+}
+
+/// run1236: who=1's make list walked back, blocks 3970..4186 at the long's
+/// detail with `LEADERS=9` (item 3589) — two make passes before the
+/// word, the Classical age on 3991 between them, and six blocks over
+/// run1206b's first. Its packet, at logger frame 4179, is the original's
+/// `upgrade_units` on the state before tick 4179 (`docs/AI.md` §315).
+pub(crate) const RUN1236: &str = "gamelog-run1236-eastindies-bantu-ancient-window-3970-4186.txt";
+
+/// The make list's window: block 3970 through 4186.
+pub(crate) const WIDENING_BANTU_ANCIENT_MAKE_4179: (i64, i64) = (3970, 4186);
+
+/// **The make list walked back**: run1236 walked from run1205's start
+/// with the recorder on (item 3589).
+pub(crate) fn bantu_ancient_make_4179_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1236",
+        &[(RUN1236, WIDENING_BANTU_ANCIENT_MAKE_4179.0)],
+        WIDENING_BANTU_ANCIENT_MAKE_4179,
+        1,
+        &[4180],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_run1236_s_make_list_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_make_4179_window() else {
+        return;
+    };
+    // Blocks 3970..4185: frame `f` writes block `f + 1`, and the walk
+    // stops at the window's tail.
+    pin_eq!(w.blocks, 216, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // No `leader:MAKE` row on any block: who=1's make list agrees from
+    // 3970 to 4186, through both passes. Before item 3589 it parted on
+    // 4180 (`MAKE[0]` and `MAKE[7]` ours the Galley 341 at 21504000,
+    // theirs Allegiance 596 at 9999999 and the Yangombi Umpakati 94 at
+    // 2016000).
+    let make: Vec<_> = w
+        .firsts
+        .keys()
+        .filter(|(_, _, what)| what.starts_with("leader:MAKE"))
+        .collect();
+    assert_eq!(make, Vec::<&(i64, i64, String)>::new(), "who=1's make list");
+    // 115 keys, the standing families alone: 111 on 3970 (every unit's
+    // `form`, `SITE[i].reg`, both leaders' `aggression`, who=1's groups'
+    // `held` and pools) and two groups' `held` and pool on 4034 and 4106
+    // (`80`: `[47]`, `86`: `[30]`), which theirs never prints.
+    pin_eq!(w.firsts.len(), 115, "run1236 baseline");
+}
+
+/// run1236b: the word 5072's window, blocks 5066..5322 at the long's
+/// detail — six blocks before the word's block 5073 and 250 after (item
+/// 3589).
+pub(crate) const RUN1236B: &str = "gamelog-run1236b-eastindies-bantu-ancient-window-5066-5322.txt";
+
+/// The window: block 5066 through 5322; the word 5072's own block is 5073.
+pub(crate) const WIDENING_BANTU_ANCIENT_FRAME_5072: (i64, i64) = (5066, 5322);
+
+/// **The word 5072's window**: run1236b walked from run1205's start with
+/// the recorder on (item 3589).
+pub(crate) fn bantu_ancient_frame_5072_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1236b",
+        &[(RUN1236B, WIDENING_BANTU_ANCIENT_FRAME_5072.0)],
+        WIDENING_BANTU_ANCIENT_FRAME_5072,
+        1,
+        &[5073],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_frame_5072_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 3589, the first walk: 4465 keys. The word's block 5073 parts
+    // `1/86`'s `collide_o` and `collide_who`, ours -1 and -1 against theirs
+    // 87 and 1. The state is already apart on 5066, the window's first
+    // block: beside the standing families, the human's `0/10` and `0/11`
+    // (`damage_frame` ours 5056 and 5036 against theirs 5055 and 5035, and
+    // their positions) and who=1's `1/86`..`1/88`, whose move orders' `y`
+    // are 48 apart (`1/86` ours 7896 against theirs 7848).
+    pin_eq!(w.firsts.len(), 4465, "run1236b baseline");
 }

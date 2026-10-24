@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-24, **the fifty-fifth tranche (commander, Opus): 5 of 20 landed from `58869793f`**; 3589 and 3590 live on two Opus lanes at medium; the last whole gate is 3588's booking's (`f30219f60`).*
-- **Words**: two open — the Japanese at Gunpowder, 2839 of 3,673 (lower map first — Great Sahara (Japanese, Gunpowder)), 3590; the Bantu, 4185 of 6,210, 3589.
+*2026-10-24, **the fifty-fifth tranche (commander, Opus): 6 of 20 landed from `58869793f`**; 3590 and 3591 live on two Opus lanes at medium; the last whole gate is 3588's booking's (`f30219f60`).*
+- **Words**: two open — the Japanese at Gunpowder, 2839 of 3,673 (lower map first — Great Sahara (Japanese, Gunpowder)), 3590; the Bantu, 5072 of 6,210, 3591.
   **The headline, the early ages**: eight pairs stood up, six whole (the Greeks, Romans, Koreans, Chinese, Mongols 9884 (3581), Lakota 4973
-  (3588)); the Persians closed at 4759; first tries the Bantu 4185 of 6210 (3562), the Japanese 2839 of 3673 (3563); 3584–3587 booked.
+  (3588)); the Persians closed at 4759; the Bantu 4185 → 5072 of 6210 (3562, 3589: the lobby's type ages), the Japanese 2839 of 3673 (3563); 3584–3587 booked.
 - **The rubric, lockstep**: ages 8 of 8, types 162 → 169 of 302, **bytes 77.4 %** unmoved — two more twins at zero (3572, 3573), so **a pair that
   varies only age and nation books no twin** (DECISIONS 93 §2): 3576, 3582, 3583 left by the ledger. Blind: 0 of 39 dead.
 - **The tranche**: twenty landings in 9 h 55 at 6.91 USD and 58.8 minutes waiting a landing (5.26 / 34.3 on two lanes): the third lane bought
   nothing; no red gate; three `DEEP` where the handoff said one — **a drain's counts are `tranche.py --base`'s and `gates.py`'s** (Loop 3564).
-- **Lanes: two live** (3589 the Bantu word, 3590 the Japanese word); **four booked** (the pairs 3584–3587). Next 3591, run 1238.
-  Pools: GOLDEN §149–154, AI §321–324, park QJ, QO, QT–QV.
+- **Lanes: two live** (3590 the Japanese word, 3591 the Bantu word); **four booked** (the pairs 3584–3587). Next 3592, run 1239.
+  Pools: GOLDEN §149–154, AI §321–324, park QJ, QT–QV.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 93.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w4185 of 6,210 · GreatSaharaJapaneseGunpowder w2839 of 3,673
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w5072 of 6,210 · GreatSaharaJapaneseGunpowder w2839 of 3,673
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -55,10 +55,9 @@ prints in braces, `diff::<name>_pair` at its first parting, a scoreboard line). 
 back, the state first parts on run1208d's block 2676, at the Arquebusiers `1/20`'s round on the Citizen `0/12` (ours 12 against theirs
 13+10/16); a packet at `RON_STATE_FRAME=2674` for `1/20`'s `Ammo` is the first step. Run 1237; amend §316 in place; park QA.
 
-3589. **The Bantu word, frame 4185: ours 350 draws against 342, index 242** (ours `Leader::make_stuff+0x63d`, theirs
-`Leader::produce_building+0x1805`; 3562's widening, AI §315): theirs places a Stable (428) in city 3 that ours never places; who=1's
-`MAKE[0]` is already apart on 4180, the window's first block, so take a `LEADERS=9` window from an earlier block first. Run 1236; amend
-§315 in place; park PZ.
+3591. **The Bantu word, frame 5072: ours 39 draws against 40, index 31** (ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+`Guy::set_anim+0x97a < Unit::move_step+0x823`; 3589's widening, AI §315): on block 5073 `1/86`'s collide is theirs alone; the state is
+apart on 5066, so walk it back first (run1206's 4901 and 5001 stride blocks print `UNITS`). Run 1238; amend §315 in place; park QO.
 
 3584. **The Iroquois from an Ancient start, Great Sahara** (`GreatSaharaIroquoisAncient`, map 7, tribe 18, difficulty 5, starting age 0
 and ending age 1 — 3559a's lobby; the held-out `GreatSaharaIroquoisTier3` is another difficulty): the lines are `Spearmen` (166, age 0 —
