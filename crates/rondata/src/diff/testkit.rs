@@ -10104,6 +10104,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3590,
         Some(crate::diff::japanese_gunpowder_pair::WINDOW_JAPANESE_GUNPOWDER_CLOSING),
     ),
+    // **The Iroquois from an Ancient start** (item 3584): Great Sahara —
+    // whole on its first try, 8420 of 8420, the closing state compared;
+    // widened on run1228b over 8165..8421 (the closing block).
+    (
+        "IROQUOIS_ANCIENT_PAIR_WORD",
+        crate::diff::iroquois_ancient_pair::IROQUOIS_ANCIENT_PAIR_WORD,
+        Some("iroquois_ancient_pair_run1228b_s_closing_frame_is_widened_whole"),
+        3584,
+        Some(crate::diff::iroquois_ancient_pair::WINDOW_IROQUOIS_ANCIENT_CLOSING),
+    ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
     // unit on a move where theirs idles it), widened on run1159b over
@@ -11783,6 +11793,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_673,
         endpoint: Some("japanese_gunpowder_pair_run1208_s_closing_state"),
         window: Some("japanese_gunpowder_closing_window"),
+    },
+    // The Iroquois from an Ancient start (`STARTING_TECHNOLOGY` 0, the
+    // ending age read back 1), Great Sahara (item 3584): whole on its first
+    // try, a game that ends itself on 8420; the closing state compared,
+    // widened on run1228b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaIroquoisAncient",
+        named: "Great Sahara (Iroquois, Ancient)",
+        word: crate::diff::iroquois_ancient_pair::IROQUOIS_ANCIENT_PAIR_WORD,
+        length: 8_420,
+        endpoint: Some("iroquois_ancient_pair_run1228_s_closing_state"),
+        window: Some("iroquois_ancient_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

@@ -10635,13 +10635,15 @@ words and edits nothing here; a refill lands when two remain.
   dead take is kept as `~/ron-golden/run1238-dead1` (its `wine.log` and `wine-died.log`). The runner refuses an
   existing output directory, so a retake by hand needs the dead one moved aside. **Score**: none. It cost one minute.
 
-## Parked by the next landing, slot QP — reserved
+## Parked by item 3584, 2026-10-24 — the Iroquois from an Ancient start, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3584a) **A whole pair closes with two wounds apart, and the closing compare cannot see them.** run1228b's last
+blocks hold the Mohawk Spearmen `1/52` (TypeIndex 167, uid 81) at `hits:damage` ours 42 against theirs 38 on
+8420, and the Javelineers `1/30` (TypeIndex 83, uid 55) at 5 against 4. Both have `damage_frac` ours 9 and 10
+against theirs 0. Theirs heals and ours does not: `1/52` reads 41 on 8191 and 38 on 8420. `endpoint.rs` reads
+no `hits`, so `iroquois_ancient_pair_run1228_s_closing_state`'s counts are zero. The killer: a window from 8150
+over 8191 with `UNITS=3`, the heal's writer named on the block it first changes. Names no score: the draw stream
+is whole to 8420 (`docs/AI.md` §317).
 
 ## Parked by the next landing, slot QQ — reserved
 
