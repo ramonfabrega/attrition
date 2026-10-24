@@ -313,7 +313,7 @@ fn bantu_ancient_pair_the_long_s_stride_walks_back_from_5072() {
     let Some(w) = bantu_ancient_stride_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every stride block in the window");
+    pin_eq!(w.blocks, 50, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -326,5 +326,9 @@ fn bantu_ancient_pair_the_long_s_stride_walks_back_from_5072() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "the stride's baseline");
+    // Item 3591: 182 keys, the standing families alone — every unit's
+    // `form` and `build:extra` — from 101 through 5001: no unit field
+    // parts on any stride block, so the state run1236b opens apart on
+    // 5066 parts after 5001.
+    pin_eq!(w.firsts.len(), 182, "the stride's baseline");
 }
