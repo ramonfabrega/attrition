@@ -3781,6 +3781,13 @@ commander's `git worktree remove -f -f` was denied by the classifier (a live hol
 Candidate: the pass removes its subagents' worktrees at their merge, or the gate's refusal names the merged-and-clean case as
 safe to prune. Score: a booking gate that needs no person. One reach: the pass's.
 
+(3547) **3543's "for the Loop"** (the journal's line, filed at its merge; parked 3543a): a building's `mylos` is on
+`coverage.rs`'s unread list, so the Turks' tower `1/2012` printed `mylos 19` against ours' 15 on every block of two widenings
+(run1159b, run1186) and parted no key; the walk reached the 4-tile sight gap only through run1186b's packet. A quiet field
+the harness never reads was read as agreeing. Candidate: the pass rules whether a widening's stanza names the unread keys on
+its window's records before it calls the frame agreeing (`coverage.rs`'s list beside the word), or 3543a's reader is built.
+Score: the frames a word's walk spends before naming its record. One reach: the pass's.
+
 (3546) **`test_waitrun`'s runner fixture is timing-dependent under load** (the fifty-third commander, the same gate):
 `test_a_log_whose_every_staged_map_has_its_receipt_is_judged_while_another_runner_lives` keeps a fixture runner alive with
 `sleep 20` across three waits, the last expecting a 4 s timeout; at a host load near 14 the sleep ended before the last wait
