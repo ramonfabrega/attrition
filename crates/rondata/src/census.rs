@@ -360,6 +360,10 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// (126 traces), the land map's age-1 Classical line. No simulation
 /// function no other lockstep trace enters — 8,823,805 -> 8,823,805,
 /// 2,247 of 3,611 functions, 77.45 % unchanged.
+/// Item 3573: 774 -> 774 with the Persian Medieval pair's twin run1216
+/// (129 traces), the sea map's age-2 Medieval line. No simulation
+/// function no other lockstep trace enters — 8,823,805 -> 8,823,805,
+/// 2,247 of 3,611 functions, 77.45 % unchanged.
 pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 774;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
@@ -376,7 +380,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3543: 160 -> 162, the Turkish Enlightenment pair whole — Royal
 /// Janissaries (113, `JANISSARYROYAL`) and Basilica Cannon (277,
 /// `BASILICACANNON`).
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 162;
+/// Item 3573: 162 -> 164, the Persian Medieval pair whole at 4759 (3570,
+/// unpinned there) — Athanatoi (164) and Mahout (262), read by `rubric.py`
+/// on the base `34147453` with and without run1216 alike, and gone with
+/// the pair's four dumps left out.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 164;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

@@ -25740,3 +25740,35 @@ SHA-256 `218d1783155896a6f4f91d3af29ecd4f5124a018e323bcb9dec7d791d4364b3c`.
 
 **What it holds**: the Roman pair's game on every frame under `cover=1`, the land map's Classical-age lockstep
 trace (`blind::TRACES`).
+
+## run1216 — the Persian Medieval pair's long lobby at `cover=1` on the click-free pool, to the game's end at 4759: the pair's lockstep twin (2026-10-24, item 3573, `att-3573`)
+
+**What the disk could not answer**: the pair's captures (run1180, run1181, run1181b) are `cover=0`. A `cover=0`
+capture enters nothing but the hooks, so the sea map's held-Medieval game had no lockstep trace (`docs/DECISIONS.md`
+entry 91 §2). This is run1181's recipe exactly, at `cover=1`, with the lobby read off its `receipt.json`:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1216 --map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=1 --callwin 0 24000 --ai-tribe 23
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`. The take
+has no `@` line and no click, so every input is shared and there is no `--from`.
+
+- Pool lane 1 (`~/wine-ron`). Launched 03:33:54 and exited 03:34:31: **36.4 s launch to exit**, against run1181's
+  27.4 s at `cover=0`. `success`, 4,760 frames. **The game ended itself at 4759** (`ended_early`, closing frame
+  4760). Map 18 verified, seed 12345, tribes 4 and 23. DLL `47e39abb…`, `-DRON_AUTOSTART`. 154 GiB free before.
+  Minutes waited on another lane: none.
+- `rngcmp.py rontrace-run1181.log rontrace-run1216.log`: **4,760 in common, 0 differing, 4,760 identical**.
+  `samegame.py gamelog-run1181-… gamelog-run1216-…`: **48 in common (1..4701, the stride's blocks), 0 differing**.
+- `report.py … functions` lists **6,939 functions**. **None is on `blind::NEVER`**, which stays at 247. Against the
+  other lockstep traces it adds no simulation function (3573a). `rubric.py --tables 4` reads **lockstep bytes
+  77.4 %**: 8,823,805 of 11,392,782 bytes and 2,247 of 3,611 functions, over 129 traces, so 774 tenths stay 774.
+- Filed with `filerun.py run1216 eastindies-persian-medieval-cover`.
+
+Archive `gamelog-run1216-eastindies-persian-medieval-cover.txt`, 36,333,405 bytes,
+SHA-256 `a6481d7a5284e8e67949f3d335d0c33a9ae41217823ba1f9fd9fd0a94c57070e`.
+
+Archive `rontrace-run1216.log`, 156,657,824 bytes,
+SHA-256 `276904e66e3c09c7709bda6523d723bbbdfe6a37b964b5e61936295d51f7e822`.
+
+**What it holds**: the Persian Medieval pair's game on every frame under `cover=1`, the sea map's Medieval-age
+lockstep trace (`blind::TRACES`).
