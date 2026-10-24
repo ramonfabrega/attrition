@@ -1829,6 +1829,19 @@ pub fn launch_point(
 mod tests {
     use super::*;
 
+    #[test]
+    fn probe3579_fit() {
+        for (k, x, y, a, sx, sy) in [
+            ((13i8, 15u32), 7128, 27240, -1_790_246_912, 7087, 27292),
+            ((11, 12), 6840, 27240, -1_755_316_224, 6795, 27316),
+        ] {
+            for key in [(11i8, 12u32), (12, 9), (13, 15)] {
+                let at = launch_point(Pos::new(x, y), Angle(a), 121, key.0, key.1, 0);
+                eprintln!("probe3579 ours-key {k:?} try {key:?}: {:?} want ({sx}, {sy})", (at.x, at.y));
+            }
+        }
+    }
+
     /// **The Greek Archers' arrows leave from piece 121's bays** (item
     /// 3574): run1217b's fifteen distinct `AMMO` poses over 7692..7848, each the
     /// figure on its unit's own square at the `GUY` record's angle, the
