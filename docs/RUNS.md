@@ -25806,6 +25806,69 @@ SHA-256 `276904e66e3c09c7709bda6523d723bbbdfe6a37b964b5e61936295d51f7e822`.
 
 **What it holds**: the Persian Medieval pair's game on every frame under `cover=1`, the sea map's Medieval-age
 lockstep trace (`blind::TRACES`).
+
+## run1199 — the Koreans from an Ancient start, East Indies: the `DUMP_ALL` start (2026-10-24, item 3559, `att-3559`)
+
+`docs/AI.md` §312. The first pair from age 0, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1199 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 16 --profile
+STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 04:34:41, exited 04:35:07 (26.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 16, five files restored. **`GAME INFO` reads back
+  `STARTING_TECHNOLOGY 0` and `ENDING_TECHNOLOGY 1`**: the profile's 0 is lifted to the lobby's floor
+  (`SetupWin::setup_game` stores the combo's index plus one). Filed with `filerun.py run1199
+  eastindies-korean-ancient-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1199-eastindies-korean-ancient-start.txt`, 153,821,615 bytes,
+SHA-256 `e9e893f9f6f1c9be5abf4674eafbb97496ff393e35a2c9036ac765f1ef379015`.
+
+Archive `rontrace-run1199.log`, 10,096,864 bytes,
+SHA-256 `5366118c13febdabd62afd5e0c4d4857e68b5b46d22162beba858deb12c75a92`.
+
+**What it holds**: the start of `korean_ancient_pair::KOREAN_ANCIENT`, and the walk's initial state.
+
+## run1200 — the Koreans from an Ancient start, East Indies: the draw stream to the game's end (2026-10-24, item 3559, `att-3559`)
+
+`docs/AI.md` §312. run1181's line with `--ai-tribe 16` and run1199's lobby: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 16
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile
+STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 2, beside run1199. Launched 04:34:46, exited 04:35:18 (31.9 s launch to exit). `success`. **The game
+  ended itself on 5639** (closing block 5640, `ended_early`). `GAME INFO` reads back as run1199's. `rngcmp.py`
+  against run1199: 37 frames identical. Filed with `filerun.py run1200 eastindies-korean-ancient-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1200-eastindies-korean-ancient-trace.txt`, 36,934,917 bytes,
+SHA-256 `1c2ad5281c88822f051ec083df7c384f860c040aac3ea70e59d283f5af8a7ee3`.
+
+Archive `rontrace-run1200.log`, 96,399,232 bytes,
+SHA-256 `788247949287f89cfeba1e28e09fb00ef8031a919e24ed950c1bbef5ea9ae5af`.
+
+**What it holds**: the pair's first try. `korean_ancient_pair_first_parting` walks it from run1199. The first try
+parts on **frame 4350 of 5639** by the count and the sequence: ours 21 draws against 19, index 0, ours
+`Unit::fight+0x9b0` against theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+
+## run1200b — the Koreans from an Ancient start, East Indies: the word 4350's window, blocks 4345..4601 (2026-10-24, item 3559, `att-3559`)
+
+`docs/AI.md` §312. **What the disk could not answer**: the word's block 4351. run1199 dumps blocks 0..2, and run1200's
+stride prints 4301 and 4401. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1200b --map 18
+--end-frame 4601 --timeout 3600 --log-window 4345 4601 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 16 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 04:38:58, exited 04:40:02 (64.1 s launch to exit). `success`, 4602 frames. `rngcmp.py`
+  against run1200: 4602 frames in common, 0 differing. Filed with `filerun.py run1200b
+  eastindies-korean-ancient-window-4345-4601`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1200b-eastindies-korean-ancient-window-4345-4601.txt`, 550,301,846 bytes,
+SHA-256 `298fb4ffe2d060afa9ac55427910cd84c7ed3b6c1911c826fdced527cf27f635`.
+
+Archive `rontrace-run1200b.log`, 60,462,144 bytes,
+SHA-256 `41f619b0a54281c925a17d109dbdb61064b3b5a8af75bb1cc8700cadb87d1cde`.
+
+**What it holds**: `korean_ancient_pair_run1200b_s_word_frame_is_widened_whole`, the word 4350 (block 4351). Its
+leader records put the computer at age 0 through 4445 and at age 1 from 4446.
 ## run1197 — the Mongols at a held Classical age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3558, `att-3558`)
 
 `docs/AI.md` §311. §309's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh

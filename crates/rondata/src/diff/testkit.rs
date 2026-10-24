@@ -7289,6 +7289,13 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3559: run1200b's window over 4345..4601, walked from run1199's
+    // start past 4350, reads 13 inexact corners (the first parting's walk,
+    // to 4350, reads none).
+    (
+        "korean_ancient_pair_run1200b_s_word_frame_is_widened_whole",
+        13,
+    ),
     // Item 3524: the Russian pair walked past 4207 to its word 5651 reads
     // 91 inexact corners; item 3527, whole to its last frame 5841, 131,
     // and its closing walk the same 131.
@@ -9947,6 +9954,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3574,
         Some(crate::diff::greek_classical_pair::WIDENING_GREEK_CLASSICAL_FRAME_7865),
     ),
+    // **The first pair from an Ancient start** (item 3559): the Koreans on
+    // East Indies, `STARTING_TECHNOLOGY 0` capped at Classical (the lobby's
+    // lowest `ENDING_TECHNOLOGY` is 1) — 4350 first try, widened on
+    // run1200b over 4345..4601 (block 4351).
+    (
+        "KOREAN_ANCIENT_PAIR_WORD",
+        crate::diff::korean_ancient_pair::KOREAN_ANCIENT_PAIR_WORD,
+        Some("korean_ancient_pair_run1200b_s_word_frame_is_widened_whole"),
+        3559,
+        Some(crate::diff::korean_ancient_pair::WIDENING_KOREAN_ANCIENT_FRAME_4350),
+    ),
     // **The land map's first pair below age 2** (item 3556): the Romans at a held
     // Classical age, Great Sahara — 4069 first try, widened on run1194b
     // over 4063..4319 (block 4070): the Nubian Citizen `0/13` takes both
@@ -11568,6 +11586,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 8_126,
         endpoint: Some("run1196_greek_classical_pair_closing_state"),
         window: Some("greek_classical_frame_7865_window"),
+    },
+    // The Koreans from an Ancient start (`STARTING_TECHNOLOGY` 0,
+    // `ENDING_TECHNOLOGY` 1, the lobby's floor), East Indies (item 3559):
+    // first try 4350, ours' `Unit::fight` drawing where theirs' unit
+    // steps, of a game that ends itself on 5639; widened on run1200b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesKoreanAncient",
+        named: "East Indies (Koreans, Ancient)",
+        word: crate::diff::korean_ancient_pair::KOREAN_ANCIENT_PAIR_WORD,
+        length: 5_639,
+        endpoint: None,
+        window: Some("korean_ancient_frame_4350_window"),
     },
     // The Romans at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3556): first try 4069, the

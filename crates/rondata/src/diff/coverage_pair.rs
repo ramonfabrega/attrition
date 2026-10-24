@@ -29,7 +29,9 @@ pub(crate) struct Pair {
     pub starting_technology: i32,
     /// `ENDING_TECHNOLOGY`: the last age the game allows, 0 Ancient … 7
     /// Information; 7 is every age (item 3506, the late-age pairs, hold
-    /// an age by setting it to the start's).
+    /// an age by setting it to the start's). Its floor is 1: `SetupWin::
+    /// setup_game` stores the combo's index plus one, so a profile's 0
+    /// reads back as 1 and no lobby holds Ancient (item 3559, run1199).
     pub ending_technology: i32,
     /// `STARTING_RESOURCES`: 7 is the "Deathmatch" row.
     pub starting_resources: i32,
