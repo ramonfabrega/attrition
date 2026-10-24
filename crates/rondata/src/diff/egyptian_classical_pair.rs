@@ -361,3 +361,96 @@ fn egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole() {
     // and to (15096, 44280) by theirs.
     pin_eq!(w.firsts.len(), 3161, "run1241b baseline");
 }
+
+/// The long's stride blocks between run1230b's last block 6212 and
+/// run1241b's first 6532: 6301, 6401 and 6501 (item 3595).
+pub(crate) const WINDOW_EGYPTIAN_CLASSICAL_SCOUT_STRIDE: (i64, i64) = (6301, 6501);
+
+/// **The Scout walked back on the stride**: run1230's blocks 6301..6501
+/// from run1229's start with the recorder on (item 3595).
+pub(crate) fn egyptian_classical_scout_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN_CLASSICAL.start],
+        true,
+        EGYPTIAN_CLASSICAL.long,
+        "run1230 stride 6301",
+        &[(
+            EGYPTIAN_CLASSICAL.long.0,
+            WINDOW_EGYPTIAN_CLASSICAL_SCOUT_STRIDE.0,
+        )],
+        WINDOW_EGYPTIAN_CLASSICAL_SCOUT_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_classical_pair_the_long_s_stride_walks_the_scout_back() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_classical_scout_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 3, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    // Item 3595: **158** keys, every one a standing family (`build:extra`,
+    // `form`, groups' `held`/`pool`). The Scout `1/126` agrees on 6301,
+    // 6401 and 6501, and so does every other unit on the three blocks.
+    pin_eq!(w.firsts.len(), 158, "run1230 stride 6301 baseline");
+}
+
+/// run1242: the Scout `1/126` walked back from run1241b's first block 6532,
+/// blocks 6496..6531 at run1241b's detail (item 3595) — six blocks before
+/// the stride's last agreeing block 6501's successor, through the block
+/// before run1241b.
+pub(crate) const RUN1242: &str =
+    "gamelog-run1242-eastindies-egyptian-classical-window-6496-6531.txt";
+
+/// The window: block 6496 through 6531.
+pub(crate) const WINDOW_EGYPTIAN_CLASSICAL_SCOUT: (i64, i64) = (6496, 6531);
+
+/// **The Scout walked back**: run1242 walked from run1229's start with the
+/// recorder on (item 3595).
+pub(crate) fn egyptian_classical_scout_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN_CLASSICAL.start],
+        true,
+        EGYPTIAN_CLASSICAL.long,
+        "run1242",
+        &[(RUN1242, WINDOW_EGYPTIAN_CLASSICAL_SCOUT.0)],
+        WINDOW_EGYPTIAN_CLASSICAL_SCOUT,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_classical_pair_run1242_walks_the_scout_back() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_classical_scout_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 36, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(w.firsts.len(), 0, "run1242 baseline");
+}
