@@ -499,6 +499,12 @@ pub const TRACES: &[&str] = &[
     // (`docs/RUNS.md` run1188): run1157's game on every frame (rngcmp 5523
     // identical, 0 differing) — the sea map's age-5 line.
     "rontrace-run1188.log",
+    // Item 3551: the Japanese late-age pair's long lobby (East Indies, the
+    // Japanese, `DIFFICULTY 5`, a held Industrial age; run1153's recipe) at
+    // `cover=1` on the click-free pool, to the game's own end at 4547
+    // (`docs/RUNS.md` run1190): run1153's game on every frame (rngcmp 4548
+    // identical, 0 differing) — the sea map's age-5 Industrial line.
+    "rontrace-run1190.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
