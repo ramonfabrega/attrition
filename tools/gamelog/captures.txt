@@ -10544,3 +10544,10 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1235b --map 18 --end-frame 4129 --timeout 3600 --log-window 4126 4128 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 19 --cover cover=0 --tracer-def RON_STATE_FRAME=4127, run1203's lobby   (piece 156's packet)
 #   run1235c --map 18 --end-frame 4973 --allow-early-end --timeout 3600 --log-window 4718 4974 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0, run1203's lobby   (the closing window)
 # Checks: `rngcmp.py` run1204 vs run1235 -> 4171 identical; vs run1235c -> 4974 identical.
+# ==== item 3563: the Japanese at a held Gunpowder age, Great Sahara (`docs/AI.md` §316; `docs/RUNS.md` run1207, run1208, run1208b, run1208c, run1208d) ====
+#   run1207  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1208  run1202's line with --ai-tribe 15 and run1207's lobby   (the draw stream; ended itself on 3673)
+#   run1208b --map 7 --end-frame 3090 --timeout 3600 --log-window 2834 3090 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0, run1207's lobby   (the word 2839's window)
+#   run1208c --map 7 --end-frame 2834 --timeout 3600 --log-window 2771 2834 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0, run1207's lobby   (the walk back)
+#   run1208d --map 7 --end-frame 2701 --timeout 3600 --log-window 2601 2701 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1207's lobby   (the first wound)
+# Checks: `rngcmp.py` run1207 vs run1208 -> 37 identical; run1208 vs run1208b -> 3091 identical; vs run1208c -> 2835 identical; vs run1208d -> 2702 identical.
