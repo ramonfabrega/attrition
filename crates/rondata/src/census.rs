@@ -352,6 +352,10 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// `ThinkOrder::get_type`, `UnitOrder::walk_data`, `UnitOrder::clear`),
 /// `Group::action_eject_all` and `Unit::find_nearby_spot` — 8,816,240 ->
 /// 8,823,805, 77.38 % -> 77.45 %.
+/// Item 3552: 774 -> 774 with the Chinese pair's twin run1191 (123
+/// traces), the land map's age-5 Industrial line. No simulation function
+/// no other lockstep trace enters — 8,823,805 -> 8,823,805, 2,247 of
+/// 3,611 functions, 77.45 % unchanged.
 pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 774;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
