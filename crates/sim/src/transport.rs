@@ -1359,6 +1359,18 @@ impl Sim {
             }
             // 4. the order list and the path, back the way they came —
             //    `if (param_3 != 0)` (`eject_contents@0064cd20:254`).
+            //    **Onto what the tail left, never in its place** (item
+            //    3550, `docs/AI.md` §308): each boat order is
+            //    `remove_current` off the boat's front and
+            //    `LinkListBase::add@0046d5a0`ed to the back of the
+            //    passenger's queue, and the boat's path is inverted and
+            //    popped onto the passenger's own stack, its top re-pushed
+            //    `& ~4`. So an order the tail's `add_to_army` gave —
+            //    `go_to_unit`'s `ATTACKTOORDER` — stays current, with its
+            //    path under the boat's. run1189 block 2172: the Explorer
+            //    `1/0` lands with `ATTACKTOORDER` (42072, 43368) current
+            //    over the boat's `EXPLORETOORDER`, a 17-node path whose
+            //    top is the boat's (34296, 32760) `f0`.
             if !carry {
                 continue;
             }
@@ -1366,12 +1378,13 @@ impl Sim {
                 .ty
                 .is_some_and(|t| self.unit_types[t].combat.uber_size == 1)
             {
-                self.units[r].orders = std::mem::take(&mut self.units[boat].orders);
-                let mut path = std::mem::take(&mut self.units[boat].path);
-                if let Some(top) = path.last_mut() {
+                let orders = std::mem::take(&mut self.units[boat].orders);
+                self.units[r].orders.extend(orders);
+                let path = std::mem::take(&mut self.units[boat].path);
+                self.units[r].path.extend(path);
+                if let Some(top) = self.units[r].path.last_mut() {
                     top.flags &= !crate::orders::path_flag::TRANSPORT;
                 }
-                self.units[r].path = path;
             } else {
                 self.disembark_squad(boat, r);
             }
