@@ -10420,13 +10420,21 @@ words and edits nothing here; a refill lands when two remain.
   `ending_technology` value the "Standard" combo row writes. **Score**: none (the census rows are the pair's, not
   this row's).
 
-## Parked by the next landing, slot PX — reserved
+## Parked by item 3580, 2026-10-24 — the Chinese Medieval pair's closing window
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3580a. The Crossbowmen's piece 1178 has no bay, so its round lands a frame late.** run1223, block 4452: the
+  Nubian capital `0/2000` (VILLAGE, type 414) reads `damage_frac` ours 2 against theirs 12, `damage` 1082 on both
+  sides. Ours takes the same 10 sixteenths on block 4453, and the two agree from then to the closing block. The
+  round is the Crossbowmen `1/69`'s (TypeIndex 172, land, uid 102, figure piece 1178, `CHAR_ATTACK3`). Ours'
+  `RON_DEBUG_AMMO` launches it from the figure's own square, (7176, 28536), and flies it 7 frames. `sim::launch`
+  holds piece 122's Crossbowmen bays (item 3577's shape: piece 46), and no row for 1178. Building it takes a packet's
+  `AttachPos` rows for piece 1178, as run1220b took piece 46's. No draw moves: the walk is whole to 4520 and the
+  closing state compares 206 units with nothing off. **Score**: none. It books only if a later lobby's walk
+  parts on a 1178 round (`docs/AI.md` §313).
+- **3580b. Three `dest_angle` rows on the closing window, 3567a's shape.** run1223: the `1/86` on block 4424 (ours
+  -1073741824, theirs -892141568), the `1/96` on 4427 (-1378942976 against -691798016) and the `1/97` on 4428 (0
+  against -718929920). No other field of the three parts, and the closing block agrees. **Score**: none
+  (parked 3567a).
 
 ## Parked by the next landing, slot PY — reserved
 

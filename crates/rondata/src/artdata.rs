@@ -447,7 +447,7 @@ pub fn missile_ammo(install: &Install) -> std::collections::BTreeSet<String> {
 /// The `<AMMO>` names of `effects_graphics.xml` whose `flame` is 1:
 /// `init_ammo_piece_ranges`' `ammo_flags |= 0x10` — the fifth attribute it
 /// reads, `int_str_array + 0x12994`, which is `internal_strings.xml`'s
-/// 3809, `flame` (the other six land on `puncture`, `puff`, `explosive`,
+/// 3809, `flame` (the other seven land on `puncture`, `puff`, `explosive`,
 /// `missile`, `pulsewave`, `flak` and `do_damage`, their own bits). The
 /// install names five: `InvisibleFlameAmmo` (the Flamethrower's),
 /// `FlamingArrowBolt`, `FlamingArrowBoltLoad`, `FlamingArrow` and

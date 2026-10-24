@@ -854,7 +854,14 @@ every path: a round a decoy fired that lands after its shooter closed is a
 6. Bookkeeping: which owner is attacking which (`attacked` bits both ways),
    the under-attack messages and the city alarms — all interface or AI. And
    `dtype`: `4` if the ammo's graphic piece has flag `0x10`; `1` if T is
-   Build-proper. **Both are overrides of §6 step 11's value, and the death
+   Build-proper. The `0x10` bit is `effects_graphics.xml`'s `<AMMO
+   flame="1">`: `GraphicPieces::init_ammo_piece_ranges@008f6140` reads its
+   eight attributes as `int_str_array` entries, and `+0x12994` is
+   `internal_strings.xml`'s 3809, `flame` (item 3580; the other seven land
+   on their own names). Five ammos carry it — the Fire Lances' and Heavy
+   Fire Lances' `FirelanceAmmo`, the Flamethrower's `InvisibleFlameAmmo`,
+   the Flaming Arrows' `FlamingArrowBolt` and two siblings — and the bit
+   rides the release event onto the round (`sim::combat::Projectile::flame`). **Both are overrides of §6 step 11's value, and the death
    draw is what reads them** (§42.1). The `0x10` test is
    `GraphicPieces::verify_ammo_flags(ammo[index].gpiece, 0x10)` and runs
    only when the ammo index is `>= 0`; the Build-proper test is the
@@ -7280,7 +7287,10 @@ records of the whole capture; the four `cur_anim 17` deaths.
 
 - the `MERCHANT`/`MERCHANTDUTCH`/`FURTRAPPER` exclusion, which no capture
   reaches;
-- the `dtype == 4` pair of draws, likewise;
+- ~~the `dtype == 4` pair of draws, likewise~~ — **diff-backed, item
+  3580** (`docs/AI.md` §313): run1202's Fire Lances `1/31` kills the
+  Citizen `0/10` on 3030 with all three draws, seeds `ef51f0f0`,
+  `9107cf8f`, `fb7e77a2`, and the walk agrees on them;
 - §42.2's flag-4 predicate beyond "a land unit target that is not a
   ground shot" — ~~the lofted term is unmodelled~~ (AI §174) and the ground-order term
   is exercised only by siege, which no capture on disk fires here.

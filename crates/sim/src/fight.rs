@@ -163,9 +163,9 @@ pub const SITE_UNIT_PLUNDER: &str = "Unit::plunder+0x4e5";
 /// `dtype` 4 is `do_damage`'s override for an ammo whose graphic piece
 /// carries flag `0x10` (§7.1 step 6), and it replaces the anim outright:
 /// `cur_anim = roll % 2 + 0x11`, then [`SITE_DEATH_ANIM_FACING`] picks
-/// the facing. No capture on disk reaches it — every death in run112 is
-/// `dtype` 2 — so the two sites are named from the listing and spent from
-/// the reading.
+/// the facing. Named from the listing; the first capture to reach it is
+/// run1202, the Fire Lances `1/31`'s `flame="1"` round on the Citizen
+/// `0/10` at 3030 (item 3580, `docs/AI.md` §313).
 pub const SITE_DEATH_ANIM_ALT: &str = "Unit::close+0xce6";
 
 /// `Unit::close@0060ee50+0xd0a` — the third draw of a `dtype == 4` death:
@@ -3569,9 +3569,8 @@ impl Sim {
             // The ammo-graphic death **replaces** the anim the first draw
             // chose with one from a second, and rolls its own facing
             // where every other death takes the attack's angle. The first
-            // draw is still spent, and its value discarded. Unreachable
-            // from any capture on disk (this crate loads no ammo flags),
-            // and spent here so the stream is right the day one is.
+            // draw is still spent, and its value discarded. A burning
+            // round's kill (`flame="1"`, [`combat::Projectile::flame`]).
             self.mark(SITE_DEATH_ANIM_ALT);
             let alt = self.rng.roll() % 2;
             cur_anim = combat::death_anim(4, alt);
