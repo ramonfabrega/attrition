@@ -487,6 +487,12 @@ pub const TRACES: &[&str] = &[
     // run1179): run1149's game on every frame (rngcmp 5842 identical, 0
     // differing) — the sea map's age-6 line.
     "rontrace-run1179.log",
+    // Item 3548: the Turkish late-age pair's long lobby (Great Sahara, the
+    // Turks, `DIFFICULTY 3`, a held Enlightenment age; run1159's recipe) at
+    // `cover=1` on the click-free pool, to the game's own end at 3812
+    // (`docs/RUNS.md` run1187): run1159's game on every frame (rngcmp 3813
+    // identical, 0 differing) — the first lockstep trace of an age-5 game.
+    "rontrace-run1187.log",
 ];
 
 /// **Off [`NEVER`], and entered only by the instrument** (item 934; parked
