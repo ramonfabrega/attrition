@@ -345,7 +345,14 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// traces), the sea map's age-5 line. One simulation function no other
 /// lockstep trace enters, 2,591 bytes — `Group::is_attacking_to` — 8,813,649
 /// -> 8,816,240, 77.36 % -> 77.38 %, below the next tenth.
-pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 773;
+/// Item 3551: 773 -> 774 with the Japanese pair's twin run1190 (122
+/// traces), the sea map's age-5 Industrial line. Seven simulation
+/// functions no other lockstep trace enters, 7,565 bytes — the think-order
+/// path (`Unit::add_think_order`, `Unit::do_think_order`,
+/// `ThinkOrder::get_type`, `UnitOrder::walk_data`, `UnitOrder::clear`),
+/// `Group::action_eject_all` and `Unit::find_nearby_spot` — 8,816,240 ->
+/// 8,823,805, 77.38 % -> 77.45 %.
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 774;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->
