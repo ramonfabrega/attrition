@@ -27527,19 +27527,81 @@ ours `0/10` against theirs `0/5`, `order:move.x`/`y` ours (6696, 9528) against t
 at `1/19` above; nothing else parts there.
 
 **The next word: frame 4168, ours 90 draws against 89, index 87**, ours `Guy::inc_time+0x1ed` on `1/19`, theirs
-`Guy::inc_time+0x271`. **The hypothesis, untested**: the attack's re-aim when its target leaves reach on the run.
-Theirs drops a fleeing target at about 2320 for a farther one at about 3060 that has just stopped fleeing, so a
-nearest-enemy pick does not explain it. The re-aim's predicate (the target's `FLEEORDER`, `near`, or the group's
-target) is what the next item reads. The killer is a packet at `RON_STATE_FRAME=4167` with `1/19`'s `process`
-run under `step4.py`, its order's writes watched.
+`Guy::inc_time+0x271`. ~~**The hypothesis, untested**: the attack's re-aim when its target leaves reach on the run.
+The re-aim's predicate (the target's `FLEEORDER`, `near`, or the group's target) is what the next item reads.~~
+Killed by item 3588 below: both sides re-search on 4168 (`new_ord` 1 on both), and the pick parts on the
+target's wound, which parted 25 frames earlier.
 
 **`Eagle Feather Horse` (206), the line the booking names, is fielded** (378 figure rows over run1203 and run1204)
-and is the one type of the pair's 22 new to the ledger. It is not in the parting. The water map's `Brig` (331) is
-not fielded, as the booking said (the Dutch's by mask).
+and is the one type of the pair's 22 new to the ledger. ~~It is not in the parting.~~ Its round is the cause
+(item 3588, below). The water map's `Brig` (331) is not fielded, as the booking said (the Dutch's by mask).
 
-**Coverage.** `lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole` pins the 2163 keys; `WIDENINGS`'s
-`LAKOTA_MEDIEVAL_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds the row on
-`Late ages`. Nothing in this section is reading-only: the parting is a dump comparison.
+### 314.1 The Eagle Feather Horse looses through its pivot: whole at 4973 (item 3588)
+
+*Item 3588, 2026-10-24, Opus 5.5. Runs 1235 (`AMMO=5` over 4086..4170), 1235b (a packet at logger frame 4127) and
+1235c (the closing window, 4718..4974).*
+
+**The draw delta, both sides.** On 4168 `1/19`'s attack anim (12, t29 of 30) wraps in ours and rolls
+(`Guy::inc_time+0x1ed`); theirs spends no draw for `1/19`. Ours' `RON_DEBUG_UNIT` has `new_ord` true on block
+4169 too: both sides ran `find_new_target`, and the pick differs. Ours' `find_nearby_target` scores on 4168 (a probe,
+reverted): `0/10` value 475 at `dist` 2622, score 33; `0/5` value 532 at 3643 (`targeted` 6), score 28. The value
+is `compare_target`'s `4 · cost · attack · 100 / hits_left`, and `0/5`'s `hits_left` is the standing row on block
+4163: **ours 29, theirs 20** (`damage` 21 + 5/16 against 30 + 10/16, `damage_o` ours `1/11` against theirs `1/32`).
+At theirs' 20 the value is 680 and the score 35, over `0/10`'s 33.
+
+**The payoff probe** (reverted): ours' `0/5` poked to theirs' 20 + 10/16 on 4163 alone. `1/19` picks `0/5` on 4168,
+and the walk runs to **4973 of 4973**.
+
+**Where the wound parted** (run1235; the stride's 4101 prints `0/5` unstruck). Theirs' `AMMO` records at `0/5`:
+`1/11` on 4092, `1/17` on 4116, the **Eagle Feather Horse `1/32` (TypeIndex 206, land, piece 156)** on 4127, and
+`1/12` on 4130. On frame 4143 `1/32`'s and `1/12`'s rounds land together: `damage` 11 → 30, `damage_frac` 10,
+`damage_o` 32 (block 4144). Ours' `1/32` round:
+
+| `1/32`'s round at `0/5`, launched 4127 | ours | theirs |
+|---|---|---|
+| `sx, sy` | (5544, 10152), the figure's own square | (5484, 10096) |
+| `total_time` | 18 | 17 |
+| `ex, ey` | (4428, 8299) | (4435, 8318) |
+| lands | 4144, a frame after `1/12`'s | 4143, with `1/12`'s |
+
+`dz` is `sz − z` = 263 − 34 = 229, which no facing-only node of piece 156 gives (`sweep`: 73 or 156), and the
+pivot's z plus node 0's does (156 + 73). **Piece 156 is a pivot piece**: run1235b's `get_position.py … entries 156`
+reads nine rows, the pivot `(4, 0, 0)` `(−0.06, −1.48, 32.63)` (1545's, the Horse Archers'), and for `CHAR_ATTACKWALK`
+and `CHAR_ATTACK1..3` at frames 18, 18, 16 and 18 the pivot's and node 0's, all four release nodes its own. The figure
+faces 56098816 (degree 184 by `release_rotation`) while the round flies south-west; `pivot 156 0 13 18 1`'s cell at
+(184, turret 316) is (−60, −56, 229), the round's offset exactly.
+
+**Built**: `sim::pivot`'s `NODES` and `RELEASES` gain piece 156's four rows.
+`the_original_s_release_agrees_on_every_cell_for_piece_156` holds them against the four sweeps (92,416 cells each,
+`$RON_RELEASE_TABLE_156`). Four `CHAR_ATTACK3` cells land on the float's side and are its `float_lands`.
+`run1235_s_eagle_feather_horse_looses_through_piece_156_s_pivot` asserts the round's (5484, 10096, 263). With the
+rows in, ours' round leaves from (5484, 10096), flies 17 and lands on 4143 with `1/12`'s, and `0/5` stands at 20 +
+10/16 with `damage_o` 32.
+
+**The value diff, on the frame the state first parted, walked back**:
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 4127 | `1/32`'s round | `sx, sy` / `total_time` | (5544, 10152) / 18 against (5484, 10096) / 17 | agrees |
+| 4144 | Citizen `0/5` (TI 50) | `hits:damage`, `damage_frac`, `damage_o` | 16, 5, 11 / 30, 10, 32 | agrees |
+| 4169 | Heavy Archers `1/19` (TI 173) | `targetorder.uid` | 17 / 12 | agrees |
+| 4168 | draws | index 87 | `Guy::inc_time+0x1ed` / `+0x271` (90 / 89) | agree |
+
+**The word: 4168 → 4973, the game's last frame**, by count and sequence. `run1204_lakota_medieval_pair_closing_state`
+walks to the closing block 4974: 214 units compared, every count 0. Two height reads touch a corner not pinned to
+the original's single, a round's arc on 4191 and 4192 at (4292, 8067) and (4230, 8020): `GROUND_INEXACT` names them on
+the four walks that pass them.
+
+**The widenings.** run1204b: 2163 → 115 keys, all standing families; block 4169 agrees. run1235: 84 blocks, 101 keys,
+all standing families (block 4086's, group 85, two newborns' `form`). run1235c: 256 blocks, 115 keys, standing
+families but two `dest_angle` rows, the `1/103` on 4782 and the `1/104` on 4790, 3567a's shape (parked 3580b). The
+closing block agrees.
+
+**Coverage.** `lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole`, `…_run1235_s_rounds_are_widened_whole`
+and `…_run1235c_s_closing_frame_is_widened_whole` pin the windows, and all three are in `coverage.rs`'s driver. `WIDENINGS`'s
+`LAKOTA_MEDIEVAL_PAIR_WORD` names run1235c's test, and `AI_WORDS` names the closing state and window. Piece 156's
+geometry is diff-backed: run1235's round and the closing walk check it. The sweep oracle backs the other three rows,
+cell for cell, and no capture fires them. Nothing here is reading-only.
 
 ## 315. Reserved for the next item on the AI track
 
