@@ -755,6 +755,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 159,
         },
     ),
+    // **The Fire Lances' piece 46** (`FIRELANCES`, unit type 96; item 3577,
+    // `docs/AI.md` §313): run1220b's `RON_STATE_FRAME=2976` packet on the
+    // Chinese Great Sahara seed holds its three attack `AttachPos` rows,
+    // node 0 at the keys the art names, and `tools/recomp/get_position.py`'s
+    // sweep of each is reproduced by these at all 361 headings, x and y,
+    // the fits' own middle, and `z` the sweep's. run1220's `AMMO=5` window
+    // prints `1/21`, `1/22` and `1/23`'s rounds at the Citizen `0/10` at
+    // these points; `1/22` loosed on 2968 from (9038, 31212) where this
+    // crate loosed from the figure's own (9096, 31224): 10 frames against
+    // 11, and the Citizen struck a frame late.
+    (
+        46,
+        11,
+        24,
+        Bay {
+            right: 12754,
+            fwd: 65740,
+            dz: 95,
+        },
+    ),
+    (
+        46,
+        12,
+        27,
+        Bay {
+            right: 1898,
+            fwd: 79146,
+            dz: 78,
+        },
+    ),
+    (
+        46,
+        13,
+        19,
+        Bay {
+            right: 8390,
+            fwd: 58926,
+            dz: 130,
+        },
+    ),
     // **The Royal Hwarang's piece 132** (`KORYOHWARANG`, unit type 182; item
     // 3365, `docs/AI.md` §283): the Longbowman's six release events on a
     // smaller figure (`koryo.bh3`), so piece 127's nodes do not serve it.
@@ -1957,6 +1997,24 @@ mod tests {
         }
         assert_eq!(release_dz(121, 12, 9, 0), Some(164));
         assert_eq!(release_dz(121, 11, 12, 0), Some(163));
+    }
+
+    /// **The Fire Lances' rounds leave from piece 46's bays** (item 3577):
+    /// run1220's three `AMMO` records at the Citizen `0/10`, each the
+    /// figure on its unit's own square at the `GUY` record's angle, the key
+    /// the art's release event names, and `sx, sy` the dump's own, `sz` over
+    /// the figure's `z`.
+    #[test]
+    fn run1220_s_fire_lances_leave_from_piece_46_s_bays() {
+        for (anim, start, x, y, facing, sx, sy, dz) in [
+            (12, 27, 9768, 30984, -1_127_809_024, 9690, 30990, 662 - 584),
+            (13, 19, 9096, 31224, -1_013_448_704, 9038, 31212, 766 - 636),
+            (11, 24, 9528, 30840, -1_204_224_000, 9462, 30840, 709 - 614),
+        ] {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 46, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "({anim}, {start}) at {facing}");
+            assert_eq!(release_dz(46, anim, start, 0), Some(dz));
+        }
     }
 
     /// **The Lakota Slingers' stones leave from piece 1440's bays** (item
