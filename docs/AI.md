@@ -27244,21 +27244,43 @@ run1222 falls from 171 keys to 82. What stands is the standing families, `1/187`
 (9627, 30596) against (9634, 30612)), and the `dest_angle` family (3574b) from 9733. run1218 rises from 2493 keys to
 6619: its walk now runs together past 9738 and parts later and wider.
 
-**The next word: frame 9772, ours 31 draws against 32, index 29**: ours `Farms::inc_time+0x1ae`, theirs
-`Object::take_damage+0xe1`. On run1218's block 9762, the Citizen **`0/11` (TypeIndex 50)** reads `hits:damage` ours
-20 against theirs 35, `damage_frame` 9724 against 9761, and `damage_o` 29 against 31. Theirs is struck for 15 by the
-**Nomad `1/31` (TypeIndex 199, land)**. Ours' Nomad looses at `0/11` on 9746 at `total_time` 17 from the figure's
-own (7524, 27864). **The hypothesis, untested**: the Nomad's piece has no bay either, and the 9716 round's agreeing
-time hid it. run1218 prints no `AMMO`, so a window over ~9740..9773 at `AMMO=5` is the next walk's first step.
+**The next word: frame 9772, ours 31 draws against 32, index 29** (ours `Farms::inc_time+0x1ae`, theirs
+`Object::take_damage+0xe1`). On run1218's block 9762 the Citizen **`0/11` (TypeIndex 50)** is struck for 15 in theirs
+by the **Nomad `1/31` (TypeIndex 199, land)** and not in ours. *(Item 3581: the Nomads loose through their pivot; below.)*
+
+**The cause: the Nomad is a pivot piece (item 3581).** run1224 (`AMMO=5`, 9740..9885) prints theirs' `1/31` round
+loosed on 9746 from (7467, 27925, 654) at `total_time` 16, striking `0/11` on 9761; ours' left the figure's own
+(7524, 27864) at 17. Piece 149 carries `<RESTRICTION name="NOMADS" node="4">`, so its four releases
+(`CHAR_ATTACKWALK`, `CHAR_ATTACK1`..`3` at frames 18, 18, 16, 19) take `get_position`'s pivot branch, the rider turned
+on the horse (`turret_angles[0]` 581828608 on 9745), and no facing-only bay fits two headings. run1224b's packet
+(`RON_STATE_FRAME=9745`) reads the nine entries. As `pivot::RELEASES` rows they put all ten dumped Nomad rounds to
+9826 at theirs' `sx, sy`, one turret step each, with the height exact
+(`pivot::tests::the_mongol_nomad_s_rounds_leave_from_its_pivot`). **The word is the `CHAR_ATTACK1` row's**: `1/27`'s
+9761 round at the building `0/2006` strikes on 9772 in theirs. Renamed away through `tools/mutate.py`, that row walks
+`mongol_classical_pair_first_parting` back to 9772 ("held"). The `CHAR_ATTACKWALK` row's mutation keeps the draws
+whole and puts `0/11`'s four rows back on 9762 (93 → 97 keys, "held").
+
+**The value diff, and the word: 9772 → 9884, the game's last frame — whole.**
+
+| block | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 9747 | `1/31`'s round | `sx, sy` / `total_time`, `ex, ey` | (7524, 27864) / 17, (5892, 29195) / (7467, 27925) / 16, (5908, 29179) | agree |
+| 9762 | Citizen `0/11` (TI 50) | `hits:damage`, `damage_frame`, `damage_o` | 20, 9724, 29 / 35, 9761, 31 | agree |
+| 9773 | draws | index 29 | `Farms::inc_time+0x1ae` / `Object::take_damage+0xe1` (31 / 32) | agree |
+
+run1224 goes 6619 → 93 keys and run1218 6619 → 96. What stands: the standing families, 3558a, 3574b, and who=1's
+`bucket[2]`/`[4]` on 9783 (parked 3581a). `run1198_mongol_classical_pair_closing_state` compares 375 units on 9885:
+none torn, off or unlinked, and no field row. The Nomad enters the rubric (167 → 168).
 
 **Coverage.** `mongol_classical_pair_run1198b_s_word_frame_is_widened_whole` keeps 8444's value diff (77 keys);
 `mongol_classical_pair_run1218_s_word_frame_is_widened_whole` pins the new word's window (147 blocks, 2493 keys);
 `mongol_classical_pair_the_long_s_stride_walks_back_from_9744` pins run1198's stride over 8701..9701 (11 blocks,
-148 keys, every one a standing family). `mongol_classical_pair_run1222_walks_the_gap_before_9744` pins run1222's gap window (49 blocks, 82 keys),
-in `coverage.rs`'s driver; `WIDENINGS` names run1218's test for the word 9772, item 3579. `WIDENINGS`'s `MONGOL_CLASSICAL_PAIR_WORD` names run1218's test, item
-3575; both new windows are in `coverage.rs`'s driver, and `AI_WORDS` names `mongol_classical_frame_9744_window`.
+148 keys, every one a standing family). `mongol_classical_pair_run1222_walks_the_gap_before_9744` pins run1222's gap window (49 blocks, 82 keys), and
+`mongol_classical_pair_run1224_s_word_frame_is_widened_whole` run1224's (145 blocks, 93 keys), both in `coverage.rs`'s
+driver; `WIDENINGS` names run1224's test (item 3581), and `AI_WORDS` names its window and the closing state.
 **Diff-backed**: the territory timer's start on Great Sahara (8195 here, 4135 on run817), the army's target on
-8440, and the Mongol Archers' and Javelineers' launch points (run1222's `AMMO`). **Not established**: the timer's expiry. `crate::victory`'s seam table carries it, and no walk has reached it.
+8440, and the Mongol Archers', Javelineers' and Nomads' launch points (run1222's and run1224's `AMMO`). **Packet-backed
+alone**: piece 149's `float_lands`, taken as none; no sweep of its cells has run. **Not established**: the timer's expiry. `crate::victory`'s seam table carries it, and no walk has reached it.
 Theirs' game ends itself on 9884, 1689 frames after the stamp. Whether this timer is what ends it has not been
 read; the closing block 9885 is the place to read it.
 
