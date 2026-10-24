@@ -1952,7 +1952,9 @@ mod tests {
     /// key this crate's release event names, and the dump's `sx, sy, sz − z`.
     #[test]
     fn run1222_s_mongol_rounds_leave_from_their_bays() {
-        let rows: [(i32, i8, u32, i32, i32, i32, i32, i32, i32); 3] = [
+        // (piece, anim, starttime, x, y, facing, sx, sy, sz − z)
+        type Row = (i32, i8, u32, i32, i32, i32, i32, i32, i32);
+        let rows: [Row; 3] = [
             (1177, 13, 15, 7128, 27240, -1_790_246_912, 7087, 27292, 164),
             (1177, 11, 12, 6840, 27240, -1_755_316_224, 6795, 27316, 163),
             (1089, 12, 6, 7272, 27912, -1_382_547_456, 7227, 27933, 170),
