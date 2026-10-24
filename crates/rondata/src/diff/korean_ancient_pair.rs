@@ -165,3 +165,45 @@ fn korean_ancient_pair_run1200b_s_word_frame_is_widened_whole() {
     // theirs `0/10`, and `move.dest` (5544,8088) against (5208,8616).
     pin_eq!(w.firsts.len(), 2330, "run1200b baseline");
 }
+
+/// **The long's stride, walked back from the word 4350** (item 3578):
+/// run1200b's window opens apart on 4345 (`0/10`'s and `0/13`'s
+/// `damage_frame`), and only run1200's stride blocks are on disk between
+/// run1199's 2 and run1200b's 4345.
+pub(crate) const WIDENING_KOREAN_ANCIENT_STRIDE: (i64, i64) = (101, 4301);
+
+pub(crate) fn korean_ancient_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[KOREAN_ANCIENT.start],
+        true,
+        KOREAN_ANCIENT.long,
+        "run1200 stride",
+        &[(KOREAN_ANCIENT.long.0, WIDENING_KOREAN_ANCIENT_STRIDE.0)],
+        WIDENING_KOREAN_ANCIENT_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn korean_ancient_pair_the_long_s_stride_walks_back_from_4350() {
+    let _pins = Pins::hold();
+    let Some(w) = korean_ancient_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 43, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "the stride's baseline");
+}
