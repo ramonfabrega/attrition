@@ -28146,12 +28146,59 @@ Archers 171, Light Horse 209, Catapult 265 and The Senator 353, and the sheep an
 blocks 0..2 for it and the long's stride prints no leader, so it parted somewhere before 8310. Nothing follows from it to the
 game's end.
 
-## 320. Reserved for the next item on the AI track
+## 320. The Maya from an Ancient start, East Indies: first try 4182 of 5935 (item 3587)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93). §315's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
+Nubians (4) against the **Maya (1)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 0`
+and `ENDING_TECHNOLOGY 1` (asked 1, read back 1 on both `GAME INFO`s: age 0 cannot be held, 3559a). Captures:
+run1233 (a `DUMP_ALL` start) and run1234 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 5935. The walk is seeded from run1233's initial state (3506a); run1233 against run1234 is
+37 of 37 frames identical. `diff::maya_ancient_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 1, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery holds no Maya game, and the scored `GreatSaharaMayaTier4` (`maya_word`) is `(7, 1, 4)`, another map. No
+pinned `Lobby` or `Pair` carries it. `maya_ancient_pair_is_no_other_lobby` asserts all three.
+
+**First try: frame 4182 of 5935**, by the count and the sequence. Ours spends 31 draws against theirs' 29
+(run1234's trace, the sound and Surf generators' nine left out), parting at index 16: ours `Leader::produce_building+0x1805
+< Leader::make_this+0x328`, theirs `Leader::make_stuff+0x63d < Leader::production_ai+0x1fa`. Indices 0–15 agree
+by site and seed: two `produce_building` placements of four draws each and their `make_stuff` draws. From 16,
+ours places a third building (two `produce_building` draws) and takes one more `make_stuff+0x63d`. Theirs takes a
+fourth `make_stuff+0x63d` and goes on to the units' `Guy::set_anim`. Who=1 is the side that acts in both.
+`RON_DEBUG_BUILDS=4182-4183` names ours' third placement: **a second Senate, `1/2042` (438), at (38016, 41376)**,
+beside `1/2041`, the Senate at (35904, 41376), which both sides hold.
+
+**The word's window** (run1234b, blocks 4177..4433 at the long's detail with `LEADERS=9`, walked from run1233:
+256 blocks, 2407 keys, the two `gaia:` keys unprinted; 3 inexact ground corners, `GROUND_INEXACT`). run1234
+against run1234b is 4434 of 4434 frames identical. **The value diff:**
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4183 | building `1/2042` | (placed) | a Senate (438), (38016, 41376), `constr_time` 41666 | absent |
+| 4183 | leader who=1 | `MAKE[8].t` | -1 | 438 (the Senate, still listed) |
+| 4183 | leader who=1 | `bucket[1:timber]`, `bucket[2:wealth]` | 15102, 19210 | 15139, 19260 |
+| 4183 | leader who=1 | `gatherers` | 27 | 28 |
+| 4183 | Citizen `1/94` (TypeIndex 50, land) | `order:kind`, `orders_x`/`_y` | 3, (37560, 41256) | 7, (39912, 38232) |
+| 4183 | city `1/2000` | `gatherers`, `filled` | 13, 57 | 14, 56 |
+| 4186 | building `1/2042` | `constr_time`, (x, y) | 41666, (38016, 41376) | 400000 (a wonder), (37632, 41664) |
+
+So ours lays the Senate on 4182 and pays for it, and sends `1/94` to build it. Theirs keeps the Senate on the make
+list, and on 4186 its next building is a wonder. The window's first block 4177 is the standing families alone:
+every unit's `form`, who=0's `SITE[i].reg` (ours 65 against theirs 0), both leaders' `aggression`, and who=1's
+groups' `held` and pools. Group 73's are on 4179. Who=1's make list does not part before the word's block.
+
+**The lines.** `Balamob Slingers` (88) is **fielded**, 2472 figure rows over run1233 and run1234. It is new to
+the ledger, but it enters only when the pair is lockstep. `Royal Balamob Slingers` (89) is not fielded (parked
+3587a). Neither are the `Bark` and the `Trireme`; 3593 entered both. The pair's other types: Citizen 50, Caravan
+59, Merchant 61, Scout 69, Hoplites 132, Bowmen 170, The Senator 353, three boats (Fishermen 317, Merchant Fleet
+318, Transport Barge 320), and the horse, fish and whale herds. `rubric.py` on this tree reads unit types seen
+**177 of 302**, unmoved.
+
+**What is not established.** Why ours places the Senate on 4182 and theirs does not. The list agrees on 4177 and
+the buckets agree until ours pays. So the parting is in the 4182 pass's choice between laying the Senate (ours)
+and the fourth `make_stuff+0x63d` draw (theirs). That draw's arm and the `MAKE` head's `can_pay` inputs on 4182
+(`RON_DEBUG_MAKE=4182`: head t 420, paid in ours) are the next item's first reads. The next item's frame is 4182,
+ours 31 draws against 29 at index 16.
 
 ## 321. Reserved for the next item on the AI track
 

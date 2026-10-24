@@ -10583,3 +10583,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1232  run1196's line with --map 7 --ai-tribe 9 and run1231's lobby   (the draw stream; ended itself on 8565)
 #   run1232b --map 7 --end-frame 8565 --allow-early-end --timeout 3600 --log-window 8310 8566 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 9 --cover cover=0, run1231's lobby   (the closing window)
 # Checks: `rngcmp.py` run1231 vs run1232 -> 37 identical; run1232 vs run1232b -> 8566 identical.
+# ==== item 3587: the Maya from an Ancient start, East Indies (`docs/AI.md` §320; `docs/RUNS.md` run1233, run1234, run1234b) ====
+#   run1233  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1234  run1181's line with --ai-tribe 1 and run1233's lobby   (the draw stream; ended itself on 5935)
+#   run1234b --map 18 --end-frame 4433 --timeout 3600 --log-window 4177 4433 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 1 --cover cover=0, run1233's lobby   (the word 4182's window)
+# Checks: `rngcmp.py` run1233 vs run1234 -> 37 identical; run1234 vs run1234b -> 4434 identical.

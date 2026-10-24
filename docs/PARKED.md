@@ -10674,13 +10674,14 @@ read. A `LEADERS=9` window over the gap, or a `RON_STATE_FRAME` packet of both t
 and one read would likely settle 3574a too. **Score**: none — no draw or position follows from it to the game's
 end (`docs/AI.md` §319).
 
-## Parked by the next landing, slot QS — reserved
+## Parked by item 3587, 2026-10-24 — the Maya from an Ancient start, East Indies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3587a) **`Royal Balamob Slingers` (89) is not fielded on the Maya Ancient pair.** The booking named it with
+`Balamob Slingers` (88), which is fielded (2472 figure rows over run1233 and run1234). In 5935 frames, no
+upgrade to 89 shows on a `GUY` record of either dump. The pair is capped at Classical (`ENDING_TECHNOLOGY 1`),
+where 89 is an age-1 type, so the line was reachable. Why the AI never took it was not read; it may be the
+upgrade's research or its cost. A later pair that fields 89 lands it in the ledger. **Score**: none — the rubric
+counts lockstep games only, and the pair is open at 4182 (`docs/AI.md` §320).
 
 ## Parked by item 3593, 2026-10-24 — the Bantu word 5523 → 6210: a rolled round's aim
 

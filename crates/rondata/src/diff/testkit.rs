@@ -7289,6 +7289,12 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3587: run1234b's window over 4177..4433, the Maya Ancient
+    // pair's word 4182, reads 3 inexact corners.
+    (
+        "maya_ancient_pair_run1234b_s_word_frame_is_widened_whole",
+        3,
+    ),
     // Item 3585: run1230b's window over 5956..6212, the Egyptian
     // Classical pair's word 5961, reads 3 inexact corners.
     (
@@ -10131,6 +10137,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3585,
         Some(crate::diff::egyptian_classical_pair::WIDENING_EGYPTIAN_CLASSICAL_FRAME_5961),
     ),
+    // **The Maya from an Ancient start** (item 3587): East Indies — 4182
+    // first try, widened on run1234b over 4177..4433 (block 4183).
+    (
+        "MAYA_ANCIENT_PAIR_WORD",
+        crate::diff::maya_ancient_pair::MAYA_ANCIENT_PAIR_WORD,
+        Some("maya_ancient_pair_run1234b_s_word_frame_is_widened_whole"),
+        3587,
+        Some(crate::diff::maya_ancient_pair::WIDENING_MAYA_ANCIENT_FRAME_4182),
+    ),
     // **The Spanish at a held Classical age** (item 3586): Great Sahara —
     // whole on its first try, 8565 of 8565, the closing state compared;
     // widened on run1232b over 8310..8566 (the closing block).
@@ -11869,6 +11884,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 8_565,
         endpoint: Some("spanish_classical_pair_run1232_s_closing_state"),
         window: Some("spanish_classical_closing_window"),
+    },
+    // The Maya from an Ancient start (`STARTING_TECHNOLOGY` 0, read back
+    // `ENDING_TECHNOLOGY` 1), East Indies (item 3587): first try 4182, of
+    // a game that ends itself on 5935; widened on run1234b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesMayaAncient",
+        named: "East Indies (Maya, Ancient)",
+        word: crate::diff::maya_ancient_pair::MAYA_ANCIENT_PAIR_WORD,
+        length: 5_935,
+        endpoint: None,
+        window: Some("maya_ancient_frame_4182_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
