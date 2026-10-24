@@ -234,6 +234,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatLakesIroquoisTier3`'s `(14, 18, 3)` scored above — another
     // difficulty — and no other battery game's triple.
     (7, 18, 5),
+    // The Egyptians at a held Classical age, East Indies (item 3585): not
+    // the held-out `EastIndiesEgyptianTier3`, `(18, 7, 3)` — another
+    // difficulty — nor `GreatSaharaEgyptianTier4`'s `(7, 7, 4)` scored above
+    // — another map — and no other battery game's triple.
+    (18, 7, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

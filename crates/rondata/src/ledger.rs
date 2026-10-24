@@ -215,6 +215,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the battery's Dutch word at Great Sahara's walks: it compares no field itself, and its widening is harness.rs's (item 3369)",
     ),
     (
+        "diff/egyptian_classical_pair.rs",
+        "the Egyptian Classical pair's walks: it compares no field itself (item 3585)",
+    ),
+    (
         "diff/iroquois_ancient_pair.rs",
         "the Ancient-start Iroquois pair's walks: it compares no field itself (item 3584)",
     ),

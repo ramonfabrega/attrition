@@ -10573,3 +10573,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1228  run1202's line with --ai-tribe 18 and run1227's lobby   (the draw stream; ended itself on 8420)
 #   run1228b --map 7 --end-frame 8420 --allow-early-end --timeout 3600 --log-window 8165 8421 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 18 --cover cover=0, run1227's lobby   (the closing window)
 # Checks: `rngcmp.py` run1227 vs run1228 -> 37 identical; run1228 vs run1228b -> 8421 identical.
+# ==== item 3585: the Egyptians at a held Classical age, East Indies (`docs/AI.md` §318; `docs/RUNS.md` run1229, run1230, run1230b) ====
+#   run1229  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 7 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1230  run1196's line with --ai-tribe 7 and run1229's lobby   (the draw stream; ended itself on 6748)
+#   run1230b --map 18 --end-frame 6212 --timeout 3600 --log-window 5956 6212 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0, run1229's lobby   (the word 5961's window)
+# Checks: `rngcmp.py` run1229 vs run1230 -> 37 identical; run1230 vs run1230b -> 6213 identical.

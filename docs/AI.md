@@ -28049,12 +28049,58 @@ The Senator 353, and the sheep and peacock herds.
 Iroquois' heal, a territory term or the fraction's carry is the mechanism. The `hits` rows are the next item's
 frame if one is booked, read from 8191 back.
 
-## 318. Reserved for the next item on the AI track
+## 318. The Egyptians at a held Classical age, East Indies: first try 5961 of 6748 (item 3585)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93). §310's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
+Nubians (4) against the **Egyptians (7)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held at
+Classical (`STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1`, both read back). Captures: run1229 (a `DUMP_ALL`
+start) and run1230 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on
+6748. The walk is seeded from run1229's initial state (3506a); run1229 against run1230 is 37 of 37 frames
+identical. `diff::egyptian_classical_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 7, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery's Egyptians are `EastIndiesEgyptianTier3`, `(18, 7, 3)`, the same map at another difficulty, and the
+scored `GreatSaharaEgyptianTier4` is `(7, 7, 4)`, another map. No pinned `Lobby` or `Pair` carries it.
+`egyptian_classical_pair_is_no_other_lobby` asserts all three.
+
+**First try: frame 5961 of 6748**, by the count and the sequence. Ours spends 92 draws against theirs' 89
+(run1230's trace, the Surf generator's eight left out), parting at index 77: ours `Guy::init_real+0x52`, theirs
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`. Ours inits a figure theirs does not.
+
+**The word's window** (run1230b, blocks 5956..6212 at `LEADERS=9`, walked from run1229: 256 blocks, 4874 keys,
+the two `gaia:` keys unprinted; 3 inexact ground corners, `GROUND_INEXACT`). run1230 against run1230b is 6213 of
+6213 frames identical. **The value diff:**
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5956 | leader who=1 | `bucket[0:food]`, `[1:timber]`, `[2:wealth]` | 13346, 11166, 17822 | 13286, 11161, 17852 |
+| 5956 | leader who=1 | `escrow[2:wealth]` | 102 | 103 |
+| 5956 | leader who=1 | `num_queued[11]` (Merchant), `num_queued[9]` (Caravan) | 1, 0 | 0, 1 |
+| 5956 | Market `1/2020` (TypeIndex 436) | `queue[0].type`, `cost[0]`, `cost[1]` | 61 (Merchant), 50, 30 | 59 (Caravan), 60, 55 |
+| 5961 | Market `1/2020` | `queue[0].job_counter` | 18198 | 18200 |
+| 5962 | Market `1/2020` | `queued` | 0 | 1 |
+| 5962 | `1/167` | (birth) | a Merchant, TypeIndex 61, land | absent |
+| 5962 | leader who=1 | `num_units[11]`, `active`, `control` | 3, 125, 136 | 2, 124, 135 |
+
+So ours trains a Merchant at the Market where theirs queues a Caravan, and the Merchant is the figure ours
+inits on 5961. Theirs' `1/167` is a Javelineers (TypeIndex 83, land, uid 328), born on 5977. The rest of block
+5956 is the standing families (`form`, `SITE[i].reg`, `aggression`, who=1's groups' `held` and `pool`).
+
+**The stride** (run1230, blocks 1..5901, `egyptian_classical_pair_the_long_s_stride_walks_back_from_5956`): 60
+blocks, 187 keys, every one a standing family (`build:extra`, `form`, groups' `held`/`pool`). No unit parts on a
+stride block. The stride prints no `LEADERDATA` or `BUILDDATA`, so the economy is not walked back past 5956.
+
+**The lines.** `Light Camel` (213) is fielded, 1084 figure rows over run1229 and run1230. It is new to the
+ledger, but it enters only when the pair is lockstep. `Chariot` (195) is not fielded (parked 3585a). The pair's
+other types are in the lockstep set already: Citizen 50, General 54, Caravan 59, Merchant 61, Scout 69,
+Javelineers 83, Phalanx 133, Archers 171, Catapult 265, The Senator 353, five boats (Fishermen 317, Merchant
+Fleet 318, Transport Barge 320, Dromon 324, Galley 341), and the horse, fish and whale herds. `rubric.py` on this
+tree reads unit types seen **172 of 302**, unmoved.
+
+**What is not established.** Why ours' Market takes a Merchant where theirs takes a Caravan. On 5956 the
+leader's buckets already differ by tens, so the choice may follow the economy or lead it. No dump on disk holds
+`LEADERDATA` or `BUILDDATA` between run1229's block 2 and 5956. The next item's frame is 5961, ours 92 draws
+against 89 at index 77; walk the Market's queue back from 5956.
 
 ## 319. Reserved for the next item on the AI track
 
