@@ -175,6 +175,17 @@ pub(crate) fn walk_from(start: &str, (gamelog, tracelog): (&str, &str)) -> Optio
         crate::diff::harness::debug_leader(&built, at);
         crate::diff::harness::debug_armies(&built, at);
         crate::diff::harness::debug_ammo(&built, at);
+        if std::env::var("RON_PROBE_3579").is_ok() && (9690..=9722).contains(&at) {
+            for u in built.sim.units.iter().filter(|u| u.owner == 0 && u.index == 8) {
+                eprintln!(
+                    "  probe3579 f{at} 0/8 health {} frac {} dframe {}",
+                    u.health, u.damage_frac, u.combat.damage_frame
+                );
+            }
+            for h in built.sim.hits.iter().filter(|h| h.frame >= at - 1) {
+                eprintln!("  probe3579 f{at} hit {h:?}");
+            }
+        }
         crate::diff::harness::debug_builds(&built, at);
         crate::diff::harness::debug_tech(&built, at);
         // `RON_DEBUG_UNIT` and `RON_DEBUG_SITES=<lo>-<hi>`'s attributed
