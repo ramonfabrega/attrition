@@ -26189,3 +26189,68 @@ SHA-256 `023ac2078cf76535bab7ef63ef127719ffc6322e9a141da8d52164890a0ef6d3`.
 **What it holds**: `lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole`, the word 4168 (block 4169). The
 Heavy Archers `1/19` re-aims its attack off the fleeing Citizen `0/10` onto `0/5` in theirs and chases `0/10` in
 ours.
+
+## run1235 — the Lakota at a held Medieval age, East Indies: the rounds at the Citizen `0/5`, blocks 4086..4170 at `AMMO=5` (2026-10-24, item 3588, `att-3588`)
+
+`docs/AI.md` §314. **What the disk could not answer**: how the Citizen `0/5` came to stand struck for 30 + 10/16 on
+run1204b's first block 4163, with `damage_o` 32, where ours had 21 + 5/16 from `1/11`. The stride's block 4101 prints it
+unstruck, and no capture of the lobby writes an `AMMO` record. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1235 --map 18 --end-frame 4170 --allow-early-end --timeout 3600 --log-window 4086 4170 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 11:08:17, exited 11:08:51 (34.5 s launch to exit). `success`, 4171 frames.
+  `rngcmp.py` against run1204: 4171 frames in common, 0 differing. Filed with `filerun.py run1235
+  eastindies-lakota-medieval-window-4086-4170 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1235-eastindies-lakota-medieval-window-4086-4170.txt`, 193,021,521 bytes,
+SHA-256 `d4b722d0cadb498f4ca3c1a3859d8ab0ef2dd5df61420578a690bcdc6c08f4ed`.
+
+Archive `rontrace-run1235.log`, 96,615,200 bytes,
+SHA-256 `dd3762f703ae6bef24a032e28ac800495a03f4159ef8c8c4a50ea31068dc8e3a`.
+
+**What it holds**: the rounds at `0/5`, each on its first block `cur_time 1` (the dump prints one `AMMO` a block, the
+newest): `1/11` on 4092, `1/17` on 4116, the Eagle Feather Horse `1/32` on 4128 from (5484, 10096, 263), `total_time`
+17, and `1/12` on 4130. `0/5`'s `damage` goes 11 → 30, `damage_frac` 10, on block 4144: `1/32`'s and `1/12`'s rounds strike together on frame 4143.
+`lakota_medieval_pair_run1235_s_rounds_are_widened_whole` walks the window (84 blocks, 101 keys, all standing families).
+
+## run1235b — the Lakota at a held Medieval age, East Indies: a packet at logger frame 4127, piece 156's `AttachPos` rows (2026-10-24, item 3588, `att-3588`)
+
+`docs/AI.md` §314. **What the disk could not answer**: the Eagle Feather Horse's release nodes at every facing and
+turret. run1235 prints one round. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1235b --map 18
+--end-frame 4129 --timeout 3600 --log-window 4126 4128 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 19 --cover cover=0
+--profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=4127 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 11:12:42, exited 11:13:07 (24.7 s). `success`, 4130 frames.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1235b/map-18/frame-snapshot.bin`, 883,691,104 bytes,
+SHA-256 `d1df8d33a55daf790c62e1b536ee7cb89846f12a3a7ffc10bb0645ca573ce488`.
+
+**What it holds**: `tools/recomp/get_position.py … entries 156` reads nine rows, scale 1.0: the pivot `(4, 0, 0)`
+`(−0.06, −1.48, 32.63)`, 1545's, and for anims 10..13 at times 18, 18, 16 and 18 the pivot's and node 0's. `pivot 156 0
+<anim> <time> 1` over the four keys (92,416 rows each) is kept at `~/ron-data/lab-experiments/2026-10-24-item-3588/`;
+`sim::pivot`'s rows agree on every cell but four of `CHAR_ATTACK3`, which are its `float_lands`.
+
+## run1235c — the Lakota at a held Medieval age, East Indies: the closing window, blocks 4718..4974 (2026-10-24, item 3588, `att-3588`)
+
+`docs/AI.md` §314. **What the disk could not answer**: the word closed at 4973, the game's last frame. run1204b ends on
+4419, and run1204 prints units only every hundredth block, so no dump held the last blocks for the word's widening.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1235c --map 18 --end-frame 4973 --allow-early-end
+--timeout 3600 --log-window 4718 4974 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19
+--cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 11:20:03, exited 11:20:55 (51.2 s launch to exit). `success`: 4974 frames, last
+  frame 4973, not ended early. `rngcmp.py` against run1204: 4974 frames identical. Filed with `filerun.py run1235c
+  eastindies-lakota-medieval-window-4718-4974 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1235c-eastindies-lakota-medieval-window-4718-4974.txt`, 608,120,926 bytes,
+SHA-256 `a5b804f83b7fc5cdbfc517b4d5d8908a42f846229795c681a8d60bae5f5336dd`.
+
+Archive `rontrace-run1235c.log`, 135,830,016 bytes,
+SHA-256 `027a8794dc6412775e22936e336fe35e7f0295e2ed521c650a4d6ef256c7d7c0`.
+
+**What it holds**: `lakota_medieval_pair_run1235c_s_closing_frame_is_widened_whole`, the word 4973 (closing block
+4974): 256 blocks, 115 keys, all standing families but two `dest_angle` rows (3567a's shape); the closing block
+agrees.

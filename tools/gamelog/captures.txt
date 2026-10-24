@@ -10529,3 +10529,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1204  run1181's line with --ai-tribe 19 and run1203's lobby   (the draw stream; ended itself on 4973)
 #   run1204b --map 18 --end-frame 4419 --allow-early-end --timeout 3600 --log-window 4163 4419 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0, run1203's lobby   (the word 4168's window)
 # Checks: `rngcmp.py` run1203 vs run1204 -> 37 identical; run1204 vs run1204b -> 4420 identical.
+# ==== item 3588: the Lakota word 4168 -> 4973, whole (`docs/AI.md` §314; `docs/RUNS.md` run1235, run1235b, run1235c) ====
+#   run1235  --map 18 --end-frame 4170 --allow-early-end --timeout 3600 --log-window 4086 4170 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0, run1203's lobby   (the rounds at 0/5)
+#   run1235b --map 18 --end-frame 4129 --timeout 3600 --log-window 4126 4128 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 19 --cover cover=0 --tracer-def RON_STATE_FRAME=4127, run1203's lobby   (piece 156's packet)
+#   run1235c --map 18 --end-frame 4973 --allow-early-end --timeout 3600 --log-window 4718 4974 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 19 --cover cover=0, run1203's lobby   (the closing window)
+# Checks: `rngcmp.py` run1204 vs run1235 -> 4171 identical; vs run1235c -> 4974 identical.

@@ -78,6 +78,10 @@ pub struct Node {
 /// **Piece 841, the Inca Horse Archer** (item 3385): run1011b's packet
 /// reads the same `(4, 0, 0)` entry as 1545's, `RData +0x88` 1.0.
 ///
+/// **Piece 156, the Lakota Eagle Feather Horse** (item 3588, unit type
+/// 206): run1235b's packet reads the same `(4, 0, 0)` entry as 1545's,
+/// `RData +0x88` 1.0.
+///
 /// **Piece 168, the Armored Scout Car** (item 3518, `TankDestroyer`'s
 /// `ARMOREDCAR-DEFAULT` piece, unit type 218): run1164's packet (logger
 /// frame 4528, the American Modern lobby) reads its `(4, 0, 0)` entry as
@@ -124,6 +128,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (1546, 4, Node { px: -6, py: -148 }),
     (1898, 4, Node { px: -6, py: -148 }),
     (841, 4, Node { px: -6, py: -148 }),
+    (156, 4, Node { px: -6, py: -148 }),
     (139, 4, Node { px: 0, py: -148 }),
     (168, 4, Node { px: 0, py: 179 }),
     (166, 4, Node { px: 0, py: 1114 }),
@@ -1714,7 +1719,71 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             at: [3_391_179, -16_833_715, 14_928_272],
             float_lands: &[(129, 155, 77, 0), (219, 155, 0, 77), (309, 155, -77, 0)],
         },
-    ), // **The Dreadnought, piece 298** (unit type 348; item 3523, `docs/AI.md`
+    ),
+    // **The Lakota Eagle Feather Horse, piece 156** (unit type 206,
+    // `EAGLEFEATHER`; item 3588, `docs/AI.md` §314): run1235b's packet
+    // (`RON_STATE_FRAME=4127` on the Lakota's held Medieval East Indies
+    // seed), the piece's nine entries. Its pivot node is 1545's; its four
+    // release nodes are its own. who=1's `1/32` looses at the Citizen
+    // `0/5` on 4127 from (5484, 10096, 263) and the round flies 17; this
+    // crate's left the figure's own (5544, 10152), flew 18 and struck a
+    // frame after the original's. `get_position.py pivot 156 0 <anim>
+    // <time> 1` agrees with the integer form on all but four cells of
+    // `CHAR_ATTACK3`, which are its `float_lands`.
+    (
+        156,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 156,
+            node: 0,
+            pivot: [-60_000, -2_676_834, 34_506_775],
+            at: [479_090, -15_615_540, 16_108_955],
+            float_lands: &[],
+        },
+    ),
+    (
+        156,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 156,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [1_223_768, -16_729_307, 14_252_346],
+            float_lands: &[],
+        },
+    ),
+    (
+        156,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 156,
+            node: 0,
+            pivot: [-60_000, -919_060, 31_409_014],
+            at: [1_516_343, -18_837_709, 12_125_257],
+            float_lands: &[],
+        },
+    ),
+    (
+        156,
+        crate::anim::ATTACK3,
+        18,
+        Release {
+            piece: 156,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [3_239_868, -16_143_440, 15_273_258],
+            float_lands: &[
+                (9, 3, -2, 86),
+                (99, 3, -86, -2),
+                (189, 3, 2, -86),
+                (279, 3, 86, 2),
+            ],
+        },
+    ),
+    // **The Dreadnought, piece 298** (unit type 348; item 3523, `docs/AI.md`
     // §303): run1169's packet (logger frame 3769 of the Japanese Industrial
     // lobby) holds the piece's fourteen entries — its two pivots at
     // `(anim 0, time 0)` and, on `CHAR_ATTACK1` and `CHAR_ATTACK2` (whose
@@ -2500,6 +2569,58 @@ mod tests {
             assert_eq!((fx + x, fy + y), (sx, sy), "slot {slot}");
         }
         assert_eq!(node(1545, 4), Some(Node { px: -6, py: -148 }));
+    }
+
+    /// **The original's pivot branch on every cell, for piece 156** (item
+    /// 3588): `tools/recomp/get_position.py … pivot 156 0 <anim> <time> 1`
+    /// on run1235b's packet for its four rows. `$RON_RELEASE_TABLE_156` is
+    /// the directory holding `pivot-156-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-24-item-3588/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_156() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_156") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_156 (item 3588's oracle, run1235b)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 18),
+            (crate::anim::ATTACK1, 18),
+            (crate::anim::ATTACK2, 16),
+            (crate::anim::ATTACK3, 18),
+        ] {
+            let path = format!("{dir}/pivot-156-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_156");
+            let r = release(156, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} ({}, {}, {}, {})", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **run1235's Eagle Feather Horse `1/32`** (item 3588, `docs/AI.md`
+    /// §314): its round at the Citizen `0/5`, `CHAR_ATTACK3` at frame 18 on
+    /// 4127, from the figure's (5544, 10152, 34) at facing 56098816 to the
+    /// dump's `AMMO` (5484, 10096, 263) — the sweep's cell at the facing's
+    /// degree 184 and the turret's 316 (step 225). Made to fail with the rows out of
+    /// `RELEASES`: the round leaves from the figure.
+    #[test]
+    fn run1235_s_eagle_feather_horse_looses_through_piece_156_s_pivot() {
+        let r = release(156, crate::anim::ATTACK3, 18).expect("the Eagle Feather Horse's row");
+        assert_eq!(release_rotation(Angle(56_098_816)), 184);
+        let (x, y, z) = release_offset_at(&r, 184, 316);
+        assert_eq!((5544 + x, 10152 + y, 34 + z), (5484, 10096, 263));
+        assert_eq!(node(156, 4), Some(Node { px: -6, py: -148 }));
     }
 
     /// The table is the sine: a quarter turn, the thirty and the axes.
