@@ -6359,6 +6359,28 @@ mod tests {
         assert_eq!(sim.mods_of(1), sim.mods[1]);
     }
 
+    /// **The Japanese level is the leader's own, read on the blow** (item
+    /// 3590, `get_damage@00644130:243`–`262`): `min(ages, epoch[0])` for an
+    /// owner with tribe bonus `0xf`, nothing for another nation. run1208d's
+    /// who=1 reads `ages_get()` 3 and `epoch_get` 3 on 2675, and its
+    /// Arquebusiers' blow on the Citizen `0/12` is 13 + 10/16, not 12.
+    #[test]
+    fn a_japanese_owner_s_blow_takes_the_lesser_of_its_ages_and_military_level() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(8, 8), 2);
+        sim.tech[1].ages = 3;
+        sim.tech[1].epoch = [2, 4, 0, 0];
+        assert_eq!(sim.mods_of(1).japanese_level, None, "no bonus, no level");
+        sim.tech[1].power = Some(crate::nations::power::JAPANESE);
+        assert_eq!(sim.mods_of(1).japanese_level, Some(2), "epoch[0] the lesser");
+        sim.tech[1].epoch = [3, 3, 2, 2];
+        sim.tech[1].ages = 3;
+        assert_eq!(sim.mods_of(1).japanese_level, Some(3), "run1208d's leader");
+        sim.tech[1].ages = 1;
+        assert_eq!(sim.mods_of(1).japanese_level, Some(1), "ages the lesser");
+        assert_eq!(sim.mods_of(0).japanese_level, None, "the other player");
+        assert_eq!(sim.mods_of(9).japanese_level, None, "a gaia owner");
+    }
+
     /// **`max_range`'s CEO term** (`UnitData::max_range@0060fe90`, item
     /// 2825, `docs/AI.md` §236): a ranged unit within its owner's `0x165`
     /// hero's radius (here 10 tiles, 1920) reaches two tiles further; one
