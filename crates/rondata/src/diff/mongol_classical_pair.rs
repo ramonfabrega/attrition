@@ -32,9 +32,14 @@ pub(crate) const MONGOL_CLASSICAL: Pair = Pair {
     // Item 3558, first try: frame 8444 by the count and the sequence, ours
     // 21 draws against 22, index 8 — ours `Unit::do_guard+0x8fb`, theirs
     // `Guy::set_anim+0x97a < Unit::do_guard+0x7f4` (`docs/AI.md` section
-    // 311).
-    count: 8444,
-    sequence: 8444,
+    // 311). Item 3575: 8444 -> 9744, `Sim::land_size` ranged over the
+    // original's region numbers, so who=1's territory timer starts on
+    // 8195 as theirs does and its army's `about_to_win` x100 sends group
+    // 65 at who=0 on 8440. At 9744 ours 117 draws against 118, index 90 —
+    // ours `Guy::set_anim+0xf2f < Guy::move+0x166`, theirs
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+    count: 9744,
+    sequence: 9744,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -215,5 +220,124 @@ fn mongol_classical_pair_run1198b_s_word_frame_is_widened_whole() {
     // takes a fresh order: `order:kind` ours 2 theirs 12, `orders.len` 2
     // against 1, on 24 units; the Catapult `1/66`'s `orders.len` 1
     // against 0 (`docs/AI.md` section 311).
-    pin_eq!(w.firsts.len(), 6457, "run1198b baseline");
+    // Item 3575: 6457 -> 77. With the land counted by the original's
+    // region number, who=1's `popwin_timer`/`popwin_stamp` (1, 8195) agree
+    // on block 8438, block 8441 is whole (who=0's `attacked_by` 1 and
+    // `frame_attacked` 8440 both sides; group 65's `1/99` marches to
+    // (1320, 28872) with `path:length` 38) and so is the word's block 8445
+    // (group 64 keeps its `GUARD`). What stands: block 8438's families,
+    // who=1's `bucket`/`leftover` (3558a), the `g.angle[0]` of newborn
+    // `1/307`.. on their first block, and on 8586 the `cost[0]`/`cost[1]`
+    // of `1/2017`'s and `1/2022`'s queues, ours 116/86 against 110/82.
+    pin_eq!(w.firsts.len(), 77, "run1198b baseline");
+}
+
+/// run1218: the word 9744's window, blocks 9738..9885 at the long's detail —
+/// six blocks before the word's block 9745 and on to the game's closing
+/// block 9885 (item 3575); the stride's blocks are 9701 and 9801.
+pub(crate) const RUN1218: &str =
+    "gamelog-run1218-greatsahara-mongol-classical-window-9738-9885.txt";
+
+/// The window: block 9738 through the closing block 9885; the word 9744's
+/// own block is 9745.
+pub(crate) const WIDENING_MONGOL_CLASSICAL_FRAME_9744: (i64, i64) = (9738, 9885);
+
+/// **The word 9744's window**: run1218 walked from run1197's start with the
+/// recorder on, to the closing block (item 3575).
+pub(crate) fn mongol_classical_frame_9744_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_CLASSICAL.start],
+        true,
+        MONGOL_CLASSICAL.long,
+        "run1218",
+        &[(RUN1218, WIDENING_MONGOL_CLASSICAL_FRAME_9744.0)],
+        WIDENING_MONGOL_CLASSICAL_FRAME_9744,
+        1,
+        &[9745],
+        true,
+    )
+}
+
+#[test]
+fn mongol_classical_pair_run1218_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_classical_frame_9744_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 147, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3575, the first walk: 2493 keys, and the window opens apart.
+    // Block 9738 carries the standing families and who=1's `bucket`/
+    // `leftover` (3558a), and **the Nubian Citizen `0/8` (TypeIndex 50,
+    // land, uid 15), fleeing on a `FLEETOORDER`**: `damage_frame` ours 9721
+    // against theirs 9720, `pos` (5272, 28856) against (5261, 28879). The
+    // who=1 units chasing it — the Javelineers `1/49` (83) of group 64, the
+    // Phalanx `1/133` (133) of group 65 and more, each with an `ATTACKORDER`
+    // on uid 15 — hold moves 48 apart in `y` (`1/49`'s `order:move.y` 28248
+    // against 28296). **The word 9744** (block 9745): ours 117 draws
+    // against 118, index 90, ours `Guy::set_anim+0xf2f < Guy::move+0x166`,
+    // theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`; `0/8`'s
+    // `collide` 0 against 1 and `path:length` 1 against 4. The stride
+    // (`mongol_classical_pair_the_long_s_stride_walks_back_from_9744`)
+    // agrees through 9701, so the state parts in 9702..9737.
+    pin_eq!(w.firsts.len(), 2493, "run1218 baseline");
+}
+
+/// **The long's stride, walked back from the word 9744** (item 3575):
+/// run1218's window opens apart on 9738, and only the stride's blocks are on
+/// disk between run1198b's 8694 and run1218's 9738.
+pub(crate) const WIDENING_MONGOL_CLASSICAL_STRIDE_9744: (i64, i64) = (8701, 9701);
+
+pub(crate) fn mongol_classical_stride_9744_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_CLASSICAL.start],
+        true,
+        MONGOL_CLASSICAL.long,
+        "run1198 stride 9744",
+        &[(
+            MONGOL_CLASSICAL.long.0,
+            WIDENING_MONGOL_CLASSICAL_STRIDE_9744.0,
+        )],
+        WIDENING_MONGOL_CLASSICAL_STRIDE_9744,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn mongol_classical_pair_the_long_s_stride_walks_back_from_9744() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_classical_stride_9744_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 11, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3575: 148 keys, every one a standing family — `build:extra`,
+    // every unit's `form`, who=1's groups' `held` and pool, the `g.angle[0]`
+    // of who=1's newborns on their first block. No unit row parts on a
+    // stride block through 9701.
+    pin_eq!(w.firsts.len(), 148, "the stride's baseline");
 }

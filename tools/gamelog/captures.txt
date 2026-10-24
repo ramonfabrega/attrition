@@ -10508,3 +10508,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1217  --map 18 --end-frame 7730 --log-window 7727 7729 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 5 --cover cover=0 --tracer-def RON_STATE_FRAME=7728, run1195's lobby   (a packet: the Archers' round)
 #   run1217b --map 18 --end-frame 7870 --log-window 7678 7870 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 5 --cover cover=0, run1195's lobby   (the Archers' rounds)
 # Checks: `rngcmp.py` run1196 vs run1217 -> 7731 identical; vs run1217b -> 7871 identical.
+# ==== item 3575: the Mongol word 8444 -> 9744 (`docs/AI.md` §311; `docs/RUNS.md` run1218) ====
+#   run1218  --map 7 --end-frame 9885 --allow-early-end --timeout 3600 --log-window 9738 9885 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --cover cover=0, run1197's lobby   (the word 9744's window, to the closing block)
+# Checks: `rngcmp.py` run1198 vs run1218 -> 9885 identical.

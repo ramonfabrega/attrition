@@ -27150,11 +27150,67 @@ So ours marches the guarded Catapult's whole group away, and theirs leaves it on
 issued in both, and reaches the guarded Catapult as a `GROUP_ATTACK_TO` to a far point in ours and an `ATTACK_TO` on
 its own spot in theirs — a target `Army::find_target` picks differently. Block 8441's group-65 destinations and
 who=0's `attacked_by` are the same family three frames sooner, so walk 8441 first: the `RON_DEBUG_ARMIES` of who=1's
-armies over 8438–8445 beside theirs' orders.
+armies over 8438–8445 beside theirs' orders. *(Item 3575: the target is picked differently, and not by the march;
+below.)*
 
-**Coverage.** `mongol_classical_pair_run1198b_s_word_frame_is_widened_whole` pins the 6457 keys;
-`WIDENINGS`'s `MONGOL_CLASSICAL_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds
-the row on `Late ages`. Nothing here is built: no claim of this section is diff-backed beyond the parting itself.
+**The cause: the land was summed by this crate's region index (item 3575).** `RON_DEBUG_ARMIES` over 8436–8446
+shows who=1's army 2 (pool 1, group 65, `1/99` among its 58) retarget on 8440 in ours from its own city `1/2016`
+to its own city `1/2043` (14688, 24672), muster (15, 39). Theirs' block 8441 instead marks who=0 attacked by 1 on
+8440, so theirs' army 2 took who=0's one city (6240, 30048) and marched to its muster west of it, (1320, 28872).
+A probe of ours' eight scores on 8440 put who=0's city at 8 against the winner's 268, at the same draws as theirs'.
+The term that multiplies an enemy city by 100 is the leader gate's `about_to_win` (`target_gate.rs`, `local_34`),
+which reads who=1's own `popwin_timer`. That timer is the standing row 3558 parked (3558a): theirs `popwin_timer` 1
+and `popwin_stamp` 8195 on block 8438, ours 0 and 0.
+
+Ours never starts it because `Sim::land_size` is 0 on this map. `World::analyze_map@006b58b0` sums the `Region`
+records from `+0x88`, one stride in, so the original's regions 1 to 63. The filter in `crate::victory` read that
+range off this crate's region *index*. The harness declares a loaded map's regions in order of first appearance
+(`setup.rs`): Great Sahara's cells are all the original's region 1 and their `region2` all 0, so region 1 is index 0
+(3600 cells), and index 1 is an empty region numbered 0. The sum over indexes 1..63 was 0, and with `land <= 0` the
+territory arm returned at its head on every frame of every Great Sahara walk.
+
+**The build.** `World` keeps each region's original number (`region_number`, defaulting to the index for a world
+built by hand), the harness sets it from the dump's own number, and `land_size` ranges over the number. A map whose
+dump carries no cells (`WORLD < 3`) keeps its one land region at index and number 0, so its land is still 0
+(parked 3575b). Killer: `victory::tests::a_land_region_declared_first_is_counted_by_its_number`. Mutation through
+`tools/mutate.py` (the filter back on the index): `mongol_classical_pair_first_parting` exits 101, back at 8444
+by the count and the sequence, "mutation: held".
+
+**The value diff, and the word: 8444 → 9744.**
+
+| block | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 8438 | who=1 `LEADERDATA` | `popwin_timer`, `popwin_stamp` | 0, 0 / 1, 8195 | agree |
+| 8441 | who=0 `LEADERDATA` | `attacked_by`, `frame_attacked` | −1, 0 / 1, 8440 | agree |
+| 8441 | Catapult `1/99` (TI 265) | `order:move.x`/`y`, `path:length` | (12024, 30168), 23 / (1320, 28872), 38 | agree |
+| 8445 | group 64's 24 guards | `order:kind`, `orders.len` | 2, 2 / 12, 1 | agree |
+
+run1198b falls from 6457 keys to 77: block 8438's standing families, who=1's `bucket`/`leftover` (3558a), the
+`g.angle[0]` of who=1's newborns, and on 8586 the `cost[0]`/`cost[1]` of `1/2017`'s and `1/2022`'s queues, ours
+116/86 against 110/82 (parked 3575a). The same fix closes the Great Sahara coverage pair's run817 rows
+(`popwin_timer` 1, `popwin_stamp` 4135 from 4260): 264 → 262 keys. The Aztec All Technologies pair's run1147b
+closes the same two rows (stamp 3919, from 4376): 308 → 306.
+
+**The next word: frame 9744, ours 117 draws against 118, index 90** — ours `Guy::set_anim+0xf2f < Guy::move+0x166`,
+theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. run1218 (9738..9885, to the closing block) opens apart on
+9738. The first parted unit is the **Nubian Citizen `0/8` (TypeIndex 50, land, uid 15)**, fleeing on a
+`FLEETOORDER`: `damage_frame` ours 9721 against theirs 9720, and `pos` (5272, 28856) against (5261, 28879).
+The who=1 units chasing it each carry an `ATTACKORDER` on uid 15: the Javelineers `1/49` (TypeIndex 83, group 64)
+and the Phalanx `1/133` (133, group 65), among others. Their moves are 48 apart in `y`. On the word's block 9745,
+`0/8`'s `collide` reads 0 against 1 and `path:length` 1 against 4. The long's stride agrees through 9701 on every
+unit row, so the state parts in 9702..9737, a gap no dump prints. **The hypothesis, untested**: a blow on `0/8`
+lands a frame late in ours, the shape §310 closed for the Greek Archers' rounds; the Javelineers' piece is the
+first suspect. Walk the gap first: `RON_DEBUG_AMMO` and `RON_DEBUG_UNIT=0/8` over 9700–9722.
+
+**Coverage.** `mongol_classical_pair_run1198b_s_word_frame_is_widened_whole` keeps 8444's value diff (77 keys);
+`mongol_classical_pair_run1218_s_word_frame_is_widened_whole` pins the new word's window (147 blocks, 2493 keys);
+`mongol_classical_pair_the_long_s_stride_walks_back_from_9744` pins run1198's stride over 8701..9701 (11 blocks,
+148 keys, every one a standing family). `WIDENINGS`'s `MONGOL_CLASSICAL_PAIR_WORD` names run1218's test, item
+3575; both new windows are in `coverage.rs`'s driver, and `AI_WORDS` names `mongol_classical_frame_9744_window`.
+**Diff-backed**: the territory timer's start on Great Sahara (8195 here, 4135 on run817) and the army's target on
+8440. **Not established**: the timer's expiry. `crate::victory`'s seam table carries it, and no walk has reached it.
+Theirs' game ends itself on 9884, 1689 frames after the stamp. Whether this timer is what ends it has not been
+read; the closing block 9885 is the place to read it.
 
 ## 312. The Koreans from an Ancient start, East Indies: the first pair at age 0, parting on frame 4350 (2026-10-24, item 3559)
 

@@ -201,5 +201,9 @@ fn aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole() {
     // 8064) and the word whole at 4565, whose block 4566 closes the window.
     // 92 keys stand on 4376 as before; the first later row is `1/93`'s
     // `attrition` on 4388 (ours 6 against 24), the family parked 3506b.
-    pin_eq!(w.firsts.len(), 308, "run1147b baseline");
+    // Item 3575: 308 -> 306, the land counted by the original's region
+    // number (`docs/AI.md` section 311): who=1's `popwin_timer` and
+    // `popwin_stamp`, ours 0 and 0 against theirs 1 and 3919 from 4376,
+    // agree.
+    pin_eq!(w.firsts.len(), 306, "run1147b baseline");
 }
