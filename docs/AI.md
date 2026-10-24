@@ -28165,11 +28165,81 @@ On 6539 the Dromon `1/45` (TypeIndex 324, sea) is ordered to (45048, 22008) by o
 theirs.
 
 **What is not established.**
-- When the Scout `1/126` first parts. The long's stride prints `UNITS` on 6101..6501, so the walk back starts
-  on disk.
-- The territory row from 6033 (ours 180 and 1183 against theirs 182 and 1181): whether it is the Scout's cause
-  or a second residue.
+- ~~When the Scout `1/126` first parts. The long's stride prints `UNITS` on 6101..6501, so the walk back starts
+  on disk.~~ **Answered by §318.2**: block 6509, the path of 6508's explore order.
+- ~~The territory row from 6033 (ours 180 and 1183 against theirs 182 and 1181): whether it is the Scout's cause
+  or a second residue.~~ **Answered by §318.2**: the cause. Two tied cells, and the Scout's path turns on one.
 - The other entries a region-0 call zeroes: `+0x145e` has no field in this crate, and no capture separates it.
+
+### 318.2 A tied territory claim rotates over the eight leader slots, and the word moves 6537 → 6718 (item 3595)
+
+**The draw delta** (`RON_DEBUG_SITES=6537-6537` on the walk, theirs `report.py … draws 6537`): the word's draws
+are not the Scout's. Two Dromons (TypeIndex 324, sea) run `think_scout`'s region scan (§11 of
+`crates/sim/src/scout.rs`) on alternate frames. `1/95` spends one `+0x941` and 29 `+0xaba` on both sides. **`1/96`
+spends one `+0x941` and 23 `+0xaba` ours against 22 theirs**: ours' scan accepts one cell more. The cell is not
+the winner: both sides order `1/96` to (25848, 44280) after 6537. The Scout `1/126` (TypeIndex 69, land) spends
+nothing on 6537 either side.
+
+**The walk back.** run1230b (5956..6212) holds the Scout agreeing. The long's stride blocks 6301, 6401 and 6501
+(`egyptian_classical_pair_the_long_s_stride_walks_the_scout_back`, 158 standing keys) hold every unit agreeing.
+The disk could not say what happens in 6502..6531, so **run1242** took blocks 6496..6531 at run1241b's detail
+(`egyptian_classical_pair_run1242_walks_the_scout_back`; 6532 frames identical to run1230). Past the standing
+families and the territory row, the first unit row is on block 6509:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 6496 | leader who=0, who=1 | `territory` | 180, 1183 | 182, 1181 |
+| 6509 | Scout `1/126` | `path[3].to` | (10488, 11256) | (11256, 11256) |
+| 6509 | Scout `1/126` | `path[4].to` | (10488, 12024) | (11256, 12024) |
+| 6520 | Scout `1/126` | `pos`, `move.dest_x` | (10431, 13077), 10488 | (10435, 13077), 11256 |
+
+Both sides issue the same `EXPLORETOORDER` on 6508, to (11256, 8184). Both routes leave cell (13, 16) and reach
+(14, 12) in four steps with one diagonal. Ours goes north through (13, 15) and (13, 14). Theirs steps east first,
+through (14, 15) and (14, 14). On ours' map (a probe, reverted whole) (13, 15) and (14, 15) are who=1's, and
+(13, 14) and (14, 14) are who=0's. Every cell is seen, and danger is 0. Priced by `docs/PATHFINDER.md` §5's
+seen-cell scout terms (base `0x400`, so 128 a step, +8 a diagonal, +4 an enemy cell, own cells clamped to 0),
+**both routes cost 532**. If (13, 15) is who=0's, ours' route costs 536, and theirs' route is the one taken.
+
+**The territory row.** Theirs' `territory` moves once in run1230b, on block 6033: who=0 190 → 182, who=1 1111 →
+1181. Ours lands 180 and 1183, two cells more for who=1. Ours' fix on 6025 (a second probe, reverted whole)
+moves ten cells from who=0 to who=1, each with who=0 as runner-up. Two of the ten are exact ties between
+who=0's capital Napata and who=1's city at (18528, 21600), **cost 1280 against 1280: (13, 15) and (15, 13)**.
+Ours gave both to who=1.
+
+**The mechanism.** Ties go to the first player scanned, and the scan is rotated by the cell's x.
+`World::compute_reg_territory@006b0bb0:338` computes `(local_20 + x) & 0x80000007` for `local_20` 0..7, and a
+slot whose `leaders[p] & 1` is clear claims nothing (`:344`). That is a rotation over **the eight leader slots**.
+This crate rotated over the player count (`% players`), and the comment called that harmless. With two players,
+x = 13 starts theirs' scan at slot 5: slots 5, 6 and 7 are empty, so player 0 is reached first. Ours' `13 % 2`
+started at player 1. The same holds at x = 15 (slot 7). `docs/ATTRITION.md`'s tie section stated `mod 8` and
+called the generalisation the only change; it is amended in place.
+
+**The build**: `territory::compute_region_territory_won` scans slots 0..7 from `x & 7` and skips any slot at or
+past the player count. `equal_claims_interleave_along_x` now asserts the eight-slot pattern (player 1 at x = 1
+and 9 only). New test: `a_two_player_tie_rotates_over_eight_slots`. Mutations through `tools/mutate.py`, putting
+`% players` back, both **held**: `egyptian_classical_pair_first_parting` exits 101 (6537), and the unit test
+exits 101.
+
+**The score: 6537 → 6718** (+181), by the count and the sequence. `first_parting`: all 54 lobbies hold, and no
+other word moves. `coverage::` passes 19 with run1242 in the driver. **The value diff on the old word**:
+
+| window | before | after | what agrees now |
+|---|---|---|---|
+| run1230b | 114 keys | 102 | both leaders' `territory` from 6033, the team sums of 6176 and 6201, who=1's wealth `income`, `leftover`, `resources` and `bucket` |
+| run1242 | 114 | 91 | the territory row and the Scout `1/126`; the standing families stand alone |
+| run1241b | 3161 | 298 | `territory`, the wealth rows and the Scout `1/126`, through the window; the Dromons `1/95`, `1/96` and `1/45` until the new word (they part from 6720) |
+
+**The new word**: frame 6718, ours 41 draws against theirs' 42, parting at index 23: ours `Guy::set_anim+0x97a <
+Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`. Its window is run1241b (block 6719). Past
+the standing families and five `dest_angle` rows from 6664, the first unit row is block 6718: the Phalanx `1/116`
+(TypeIndex 133, land). Ours holds one order (kind 12, `orders_x` 6216, `orders_y` 9528). Theirs holds two: an
+`ATTACKORDER` on who=0's `0/12` over its `GUARDORDER` (kind 10, at (6222, 9523)). On 6719 its `pos` is ours
+(6222, 9542) against theirs (6216, 9528).
+
+**What is not established.**
+- Why the Phalanx `1/116` drops its `ATTACKORDER` on 6717 in ours. Walk it back from run1241b's 6718.
+- Whether any other lobby's border holds a tie the old modulus broke the other way. Every pinned word and
+  widening held, so no capture on file reached one before its word.
 
 ## 319. The Spanish at a held Classical age, Great Sahara: whole on its first try, 8565 of 8565 (item 3586)
 

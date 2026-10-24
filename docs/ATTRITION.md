@@ -736,12 +736,18 @@ while 13 stays 13.
 Equal costs go to whichever source is scanned first, and the player scan order
 is rotated per cell: player `(i + cell_x) mod 8`. Without it, a frontier
 between two evenly matched players would belong entirely to the lower-numbered
-one; with it, equal claims interleave in alternating columns.
+one; with it, equal claims interleave along x. ~~With eight players the
+columns alternate.~~ The rotation is over the **eight leader slots**, and an
+empty slot claims nothing, so with players 0 and 1 alone a tie goes to player 1
+only where `cell_x & 7 == 1`, and to player 0 everywhere else.
 
 This is the single detail in the whole mechanic least likely to be arrived at
 by reimplementation, and it is directly visible on screen as the dithered look
-of a contested border. `crates/sim` generalises the modulus off eight, which is
-the only change.
+of a contested border. ~~`crates/sim` generalises the modulus off eight, which is
+the only change.~~ **Wrong, and diffed** (item 3595, `docs/AI.md` §318.2): a
+modulus of the player count hands a two-player tie at `x = 13` to player 1,
+where the original's scan starts at slot 5 and reaches player 0 first. The
+crate now rotates over eight (`compute_reg_territory@006b0bb0:338`).
 
 ### Ambiguous ownership
 
