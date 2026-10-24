@@ -10568,13 +10568,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QL — reserved
+## Parked by item 3579, 2026-10-24 — the Mongol word 9744 → 9772: the Mongol Archers and Javelineers loose from their bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3579a. `1/187`'s order point parts on 9714, ours (9627, 30596) against theirs (9634, 30612).** run1222's
+  `orders_x`/`orders_y` (`docs/AI.md` §311), one row on one unit, and nothing else of it parts in the window.
+  It stood before the bays and after them. **Score**: none until a word parts on `1/187`; name it by `TypeIndex`
+  with `RON_DEBUG_UNIT=1/187@9705-9715` beside its `GUY` records first.
+- **3579b. Three bays are their model's, unmeasured.** Piece 1177's `CHAR_ATTACK2` (12, 9) is piece 121's, and
+  piece 1089's `CHAR_ATTACK1` (11, 12) and `CHAR_ATTACK3` (13, 27) are piece 34's. 1089's one measured height
+  (170) is not piece 34's (173), so its other two heights may be off by as much. **Score**: none until a round
+  from one of those keys parts a `total_time` or an `sz`; then measure it in an `AMMO=5` window.
 
 ## Parked by the next landing, slot QM — reserved
 
