@@ -71,15 +71,6 @@ impl Sim {
             for (i, (t, b)) in target.iter().zip(before.iter()).enumerate() {
                 if t.0 != b.0 {
                     eprintln!("PROBE BORDER   cell ({}, {}) {:?} -> {:?} (runner-up {:?})", i as i32 % w, i as i32 / w, b.0, t.0, t.1);
-                    if b.0 != Owner::None {
-                        let here = crate::world::Cell::new(i as i32 % w, i as i32 / w).centre_tile();
-                        for (si, s) in self.sources.iter().enumerate() {
-                            let d = crate::world::vector_dist(here.x - s.pos.tile().x, here.y - s.pos.tile().y);
-                            if d > s.limit { continue; }
-                            let c = crate::territory::cost(&self.tuning, s.kind, crate::territory::contract(d), s.bonuses);
-                            eprintln!("PROBE BORDER     src {si} who {} d {d} contracted {} cost {:?} cap {}", s.owner, crate::territory::contract(d), c, crate::territory::cost_cap(&self.tuning));
-                        }
-                    }
                 }
             }
         }
