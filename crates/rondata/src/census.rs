@@ -356,6 +356,10 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// traces), the land map's age-5 Industrial line. No simulation function
 /// no other lockstep trace enters — 8,823,805 -> 8,823,805, 2,247 of
 /// 3,611 functions, 77.45 % unchanged.
+/// Item 3572: 774 -> 774 with the Roman Classical pair's twin run1215
+/// (126 traces), the land map's age-1 Classical line. No simulation
+/// function no other lockstep trace enters — 8,823,805 -> 8,823,805,
+/// 2,247 of 3,611 functions, 77.45 % unchanged.
 pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 774;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;

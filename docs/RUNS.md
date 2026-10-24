@@ -25685,3 +25685,38 @@ Archive `rontrace-run1212.log`, 180,745,120 bytes,
 SHA-256 `ab57bc1b2337679335a3c6250f8682aa7fb55873bf9db78c780874097a45e3dd`.
 
 **What it holds**: `greek_classical_pair_run1212_s_word_frame_is_widened_whole`, the word 4341 (block 4342).
+
+## run1215 — the Roman Classical pair's long lobby at `cover=1` on the click-free pool, to the game's end at 7130: the pair's lockstep twin (2026-10-24, item 3572, `att-3572`)
+
+**What the disk could not answer**: the pair's captures (run1193, run1194, run1194b) are `cover=0`. A `cover=0`
+capture enters nothing but the hooks, so the land map's Classical game had no lockstep trace (`docs/DECISIONS.md`
+entry 91 §2). This is run1194's recipe exactly, at `cover=1`, with the lobby read off its `receipt.json`:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1215 --map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=1 --callwin 0 24000 --ai-tribe 6
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile
+STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`. The take
+has no `@` line and no click, so every input is shared and there is no `--from`.
+
+- Pool lane 1 (`~/wine-ron`). Launched 02:43:15 and exited 02:44:02: **47.0 s launch to exit**, against run1194's
+  68.4 s at `cover=0` (which included a retake). `success`, 7,131 frames. **The game ended itself at 7130**
+  (`ended_early`, closing frame 7131). Map 7 verified, seed 12345, tribes 4 and 6. DLL `f94dcbd5…`,
+  `-DRON_AUTOSTART`. 154 GiB free before. Minutes waited on another lane: none.
+- `rngcmp.py rontrace-run1194.log rontrace-run1215.log`: **7,131 in common, 0 differing, 7,131 identical**.
+  `samegame.py gamelog-run1194-… gamelog-run1215-…`: **72 in common (1..7101, the stride's blocks), 0 differing**.
+  The gamelogs differ textually only in the host lines (`Rules`, `Sys Memory`, `CPU speed`, the sync-point
+  timings), as every pair of runs does.
+- `report.py … functions` lists **6,854 functions**. **None is on `blind::NEVER`**, which stays at 247. Against the
+  other lockstep traces it adds no simulation function (3572a). `rubric.py --tables 4` reads **lockstep bytes
+  77.4 %**: 8,823,805 of 11,392,782 bytes and 2,247 of 3,611 functions, over 126 traces, so 774 tenths stay 774.
+  `--tables 3`: unit types seen stay 162 of 302 (run1194's `GUY` blocks were already counted).
+- Filed with `filerun.py run1215 greatsahara-roman-classical-cover`.
+
+Archive `gamelog-run1215-greatsahara-roman-classical-cover.txt`, 36,720,006 bytes,
+SHA-256 `a6dddd8a14768d9c0f698dd3c1ead2f0fff84a1a6211032b5afde3a47860d68e`.
+
+Archive `rontrace-run1215.log`, 149,430,976 bytes,
+SHA-256 `218d1783155896a6f4f91d3af29ecd4f5124a018e323bcb9dec7d791d4364b3c`.
+
+**What it holds**: the Roman pair's game on every frame under `cover=1`, the land map's Classical-age lockstep
+trace (`blind::TRACES`).
