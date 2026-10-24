@@ -13,7 +13,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::{dump, install};
+use crate::testenv::dump;
 
 pub(crate) const MAYA_ANCIENT: Pair = Pair {
     name: "EastIndiesMayaAncient",
