@@ -235,7 +235,8 @@ fn chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole() {
 /// run1220: the Fire Lances' volley at `AMMO=5`, blocks 2955..2982 (item
 /// 3577) — the three rounds `1/21`, `1/22` and `1/23` loosed at the Citizen
 /// `0/10` over 2963..2973, each record's `sx, sy, sz` and `total_time`.
-pub(crate) const RUN1220: &str = "gamelog-run1220-greatsahara-chinese-medieval-window-2955-2982.txt";
+pub(crate) const RUN1220: &str =
+    "gamelog-run1220-greatsahara-chinese-medieval-window-2955-2982.txt";
 
 /// The window: block 2955 through 2982, the old word 2981's block the last.
 pub(crate) const WINDOW_CHINESE_MEDIEVAL_VOLLEY_2955: (i64, i64) = (2955, 2982);

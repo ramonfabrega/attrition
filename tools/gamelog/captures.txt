@@ -10503,3 +10503,7 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1217  --map 18 --end-frame 7730 --log-window 7727 7729 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 5 --cover cover=0 --tracer-def RON_STATE_FRAME=7728, run1195's lobby   (a packet: the Archers' round)
 #   run1217b --map 18 --end-frame 7870 --log-window 7678 7870 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 5 --cover cover=0, run1195's lobby   (the Archers' rounds)
 # Checks: `rngcmp.py` run1196 vs run1217 -> 7731 identical; vs run1217b -> 7871 identical.
+# ==== item 3577: the Chinese word 2981 -> 3030 (`docs/AI.md` §313; `docs/RUNS.md` run1220, run1220b) ====
+#   run1220  --map 7 --end-frame 2982 --log-window 2955 2982 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 14 --cover cover=0, run1201's lobby   (the Fire Lances' volley)
+#   run1220b --map 7 --end-frame 2978 --log-window 2975 2977 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 14 --cover cover=0 --tracer-def RON_STATE_FRAME=2976, run1201's lobby   (a packet: piece 46's AttachPos rows)
+# Checks: `rngcmp.py` run1202 vs run1220 -> 2983 identical; vs run1220b -> 2979 identical.
