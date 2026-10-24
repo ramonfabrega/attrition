@@ -10560,13 +10560,24 @@ and 3375 took theirs.
   pair's word parts on a `popwin_*` row or an `about_to_win` target. Then number the region 1 and run every
   pair that pins a `WORLD < 3` start.
 
-## Parked by the next landing, slot QJ — reserved
+## Parked by item 3592, 2026-10-24 — the Bantu word 5322 → 5523: the Archers' bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3592a. A buried `ATTACKORDER`'s target is not carried.** The original's `AttackOrder` is a `TargetOrder` and keeps
+  its own `(ox, whom)`. This crate's `Attack` order is a wrapper, and `Built::target_ids` answers every `Attack` slot
+  with the unit's one `combat.target`. So when a unit pushes a new attack over an old one, the old slot reads the new
+  target. run1236b's two `order:target` rows are that and nothing else: `1/86` on 5107 (the bottom slot, theirs
+  `0/11`) and `1/41` on 5253 (theirs `0/2000`). The current attack agrees on both sides on both blocks (`docs/AI.md`
+  §315.3). **Score**: none until a word parts where the top attack pops and the buried one resumes. Then give
+  `AttackOrder` its target and read `Unit::do_attack`'s resume against it.
+- **3592b. Piece 472's `MEASURED` rows are planar `Node`s, and its floats are exact `Bay`s.** run1238c's packet holds
+  piece 472's three attack `AttachPos` rows with the same floats as piece 473, bit for bit. `tools/recomp/fit_bay.py`
+  fits 473's sweeps exactly (221, 277 and 124 lattice points). 472's `Node`s come from run112's nine arrows, and two of
+  those nine are a unit out (`launch.rs`'s note). **Score**: none until a word parts on a Bowmen (piece 472) round.
+  Then copy 473's rows to 472 and run golden chapter two first: it pins those nine arrows.
+- **3592c. Piece 473's launch points are diffed on no dumped round.** run1236b and run1238d print no `AMMO`, so the
+  points rest on the packet's sweep. The walk holds each key: re-piecing any one of the three moves the word back
+  (to 5322, 5482 or 5468). **Score**: none until a word parts on an Archers round. Then take an `AMMO=5` window
+  over it first.
 
 ## Parked by item 3578, 2026-10-24 — the Korean Slinger's and Hwarang's bays
 
@@ -10688,6 +10699,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot QV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot QW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot QW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot QX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot QX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot QY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot QY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot QZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot QZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot RA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot RA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot RB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot RB renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

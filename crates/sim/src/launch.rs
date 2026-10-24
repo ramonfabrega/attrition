@@ -2019,6 +2019,45 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 173,
         },
     ),
+    // **Piece 473, the Archers** (type 171; item 3592, `docs/AI.md`
+    // §315.3): run1238c's packet holds its three attack `AttachPos` rows,
+    // node 0 at 472's keys and with 472's floats bit for bit, and
+    // `tools/recomp/fit_bay.py` on `get_position.py`'s sweep of each finds
+    // one region (221, 277 and 124 lattice points); the rows are their
+    // centroids. 472's planar `Node`s are not exact on the sweep and
+    // piece 120's `Bay`s miss 28 to 124 headings, so the piece is its
+    // own. Without them who=1's Archers loosed from the figure's square:
+    // `1/41` at the farmer `0/3` on 5306 from (5688, 8280), 19 frames.
+    (
+        473,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -1_826,
+            fwd: 88_749,
+            dz: 163,
+        },
+    ),
+    (
+        473,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: 336,
+            fwd: 87_408,
+            dz: 164,
+        },
+    ),
+    (
+        473,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 9_711,
+            fwd: 66_508,
+            dz: 164,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -3285,6 +3324,47 @@ mod tests {
             let at = launch_point(Pos::new(x, y), Angle(facing), 43, anim, time, 0);
             let dz = release_dz(43, anim, time, 0).expect("a bay");
             assert_eq!((at.x, at.y, z + dz), want, "{who}");
+        }
+    }
+
+    /// **The Archers' piece 473** (item 3592): four headings of each attack
+    /// row's sweep off run1238c's packet (`get_position.py … sweep 473 0
+    /// <anim> <time>`), and the sweep's `z` as the release height. Piece
+    /// 120's `Bay`s, at the same keys, miss 28, 124 and 60 of the 361
+    /// headings (`tools/recomp/fit_bay.py --check`), so the rows are the
+    /// piece's own.
+    #[test]
+    fn the_archers_bays_are_the_packet_s_sweep() {
+        const S: &[(i8, u32, i64, i32, i32)] = &[
+            (11, 12, 0, 1, 88),
+            (11, 12, 97, -88, -9),
+            (11, 12, 233, 69, -54),
+            (11, 12, 300, 77, 42),
+            (12, 9, 0, 0, 87),
+            (12, 9, 97, -86, -10),
+            (12, 9, 233, 70, -52),
+            (12, 9, 300, 75, 43),
+            (13, 15, 0, -9, 66),
+            (13, 15, 97, -64, -17),
+            (13, 15, 233, 58, -32),
+            (13, 15, 300, 52, 41),
+        ];
+        for &(anim, time, deg, x, y) in S {
+            let want = (deg + 180) % 360;
+            let facing = (0..1u32 << 12)
+                .map(|i| Angle((i << 20) as i32))
+                .find(|&a| whole_degrees(a) == want)
+                .expect("a facing at the degree");
+            let b = bay(473, anim, time, 0).expect("every attack AttachPos row");
+            let at = b.point(Pos::new(10_000, 10_000), facing);
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{anim} {time} {deg}"
+            );
+        }
+        for (anim, time, dz) in [(11, 12, 163), (12, 9, 164), (13, 15, 164)] {
+            assert_eq!(release_dz(473, anim, time, 0), Some(dz), "{anim} {time}");
         }
     }
 

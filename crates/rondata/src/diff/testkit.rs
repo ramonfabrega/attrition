@@ -7297,13 +7297,14 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ),
     // Item 3591: the Bantu Ancient pair's walk to the word 5322 — the
     // Umpakati's javelins leave from their bays now — reads 3 inexact
-    // corners.
-    ("bantu_ancient_pair_first_parting", 3),
+    // corners. Item 3592: 13, the walk to 5523 — the Archers' arrows
+    // leave from piece 473's bays.
+    ("bantu_ancient_pair_first_parting", 13),
     // And run1238d's window over 5316..5572, the word 5322's (item 3591):
-    // 16.
+    // 16. Item 3592: 33, the Archers' arrows from piece 473's bays.
     (
         "bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole",
-        16,
+        33,
     ),
     // Item 3589: the Bantu Ancient pair's word 5072, run1236b's window
     // over 5066..5322 walked from run1205, reads 6 inexact corners.
