@@ -2160,12 +2160,13 @@ impl Sim {
             _ => speed,
         };
         if unit.kind.domain == crate::attrition::Domain::Land {
-            // SEAM: `unit_masks & 0x10` halves it first —
-            // `Unit::target_opportunity`'s "moving in contact with a
-            // target", set during the frame and cleared by `work` at the
-            // end of it, so no dump can ever print it. This crate's
-            // [`Sim::target_opportunity`](crate::Sim::target_opportunity)
-            // is the retaliation alone and sets no such bit.
+            // `unit_masks & 0x10` halves it first (`0060878c`) —
+            // `Unit::target_opportunity`'s "struck while moving in
+            // contact" ([`crate::Unit::contact`], `docs/AI.md` §309),
+            // cleared at the end of the unit's next `Unit::work`.
+            if unit.contact {
+                speed /= 2;
+            }
             if self.on_river(unit.pos, at) {
                 speed /= 2;
             }
@@ -3633,6 +3634,9 @@ impl Sim {
         }
         // `60dadd`, after `do_job`: two Helicopters set apart.
         self.helicopter_spread(u);
+        // `Unit::work@0060d180:449`, the last line: `unit_masks &= ~0x10`,
+        // on every path that reaches the end ([`crate::Unit::contact`]).
+        self.units[u].contact = false;
     }
 
     /// `Unit::do_explore_to@005f24a0`'s tail — everything the case does

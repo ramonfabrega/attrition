@@ -10,7 +10,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const ROMAN_CLASSICAL: Pair = Pair {
     name: "GreatSaharaRomanClassical",
@@ -30,9 +30,14 @@ pub(crate) const ROMAN_CLASSICAL: Pair = Pair {
     // Item 3556, first try: frame 4069 by the count and the sequence, ours
     // 16 draws against 21, index 1 — ours `Guy::set_anim+0xf2f <
     // Guy::move+0x166`, theirs `Unit::close+0xcb6` (`docs/AI.md` section
-    // 309).
-    count: 4069,
-    sequence: 4069,
+    // 309). **Item 3567: whole at 7130**, the game's last frame, 4069 →
+    // 7130: a unit struck while moving in contact takes the blow doubled
+    // (`unit_masks & 0x10`, `sim::Unit::contact`). The Citizen `0/13`
+    // walking to its gather took the Light Horse `1/42`'s blow on 4068 at
+    // 14 in theirs (`damage` 32 → 46, `unit_masks` 12 → 28) and 7 in ours
+    // (32 → 39), so the javelin on 4069 killed it in theirs only.
+    count: 7130,
+    sequence: 7130,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -141,6 +146,57 @@ fn roman_classical_pair_is_no_other_lobby() {
     );
 }
 
+/// **The pair's closing state**: run1194's closing dump, block 7131,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3567).
+#[test]
+fn run1194_roman_classical_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &ROMAN_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Roman pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 7131, "the closing block");
+    // Item 3567, the pair whole: 268 units compared, none off or
+    // unlinked, no building or city field-row; one torn, `1/40`
+    // (printed, not pinned: `endpoint`'s module note).
+    pin_eq!(e.compared, 268, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
 /// run1194b: the word 4069's window, blocks 4063..4319 at the long's
 /// detail — six blocks before the word's block 4070 and 250 after (item
 /// 3556); the stride's blocks are 4001 and 4101.
@@ -199,5 +255,63 @@ fn roman_classical_pair_run1194b_s_word_frame_is_widened_whole() {
     // 4 and the three Light Horse `1/122`, `1/123`, `1/127` on a fresh
     // order in theirs (`order:kind` ours 1 theirs 10) (`docs/AI.md`
     // section 309).
-    pin_eq!(w.firsts.len(), 2260, "run1194b baseline");
+    //
+    // Item 3567: 2260 → 48 keys, the `contact` bit read (`unit_masks &
+    // 0x10`). Block 4069 now reads the Citizen at `damage` 46 and
+    // `contact` 1 on both sides, and the word's death is both sides'.
+    // What is left: block 4063's 43 standing rows, the standing `pool`
+    // and `held` of who=1's groups 68 (4110) and 71 (4163), and the Light
+    // Horse `1/28`'s `dest_angle` on 4079 — ours 137756672, theirs
+    // -1351155712, ours a frame late at its guard post, agreeing from
+    // 4080 (parked 3567a).
+    pin_eq!(w.firsts.len(), 48, "run1194b baseline");
+}
+
+/// run1210: the pair's last blocks, 6875..7131 at the window's detail —
+/// the word 7130 is the game's last frame and 7131 its closing block (item
+/// 3567). run1194 prints units only every hundredth block, and run1194b
+/// ends on 4319, so no dump held the last blocks.
+pub(crate) const RUN1210: &str = "gamelog-run1210-greatsahara-roman-classical-window-6875-7131.txt";
+
+/// The window: block 6875 through the closing block 7131.
+pub(crate) const WIDENING_ROMAN_CLASSICAL_CLOSING: (i64, i64) = (6875, 7131);
+
+/// **The pair's last blocks**: run1210 walked from run1193's start with
+/// the recorder on. The word is the game's last frame (item 3567).
+pub(crate) fn roman_classical_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_CLASSICAL.start],
+        true,
+        ROMAN_CLASSICAL.long,
+        "run1210",
+        &[(RUN1210, WIDENING_ROMAN_CLASSICAL_CLOSING.0)],
+        WIDENING_ROMAN_CLASSICAL_CLOSING,
+        1,
+        &[7131],
+        true,
+    )
+}
+
+#[test]
+fn roman_classical_pair_run1210_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_classical_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    // Item 3567, the first walk: **46** keys. Block 6875 carries the
+    // standing families alone (`SITE[i].reg`, who=0's `aggression[1]`,
+    // `form`, who=1's groups' `held`/pool), and later blocks groups 71
+    // (6943) and 66 (7065)'s `held`/pool. **One row is not a standing
+    // family**: on block 6931 the `1/195`'s `dest_angle` reads ours
+    // -610729984 against theirs -620363776, 3567a's row again (parked
+    // 3567a). The closing block 7131 agrees.
+    pin_eq!(w.firsts.len(), 46, "run1210 baseline");
 }

@@ -831,7 +831,9 @@ every path: a round a decoy fired that lands after its shooter closed is a
 1. `dmg = get_damage(o, who, angle, splash, 1, &dtype)` — §6.
 2. If the target is a unit and `!quiet`: the target's **captain** runs
    `Unit::target_opportunity(A)` — it may turn and engage (§12) — and if the
-   target's `unit_masks & 0x10`: `dmg *= 2`. Then the **overkill record**:
+   **struck** unit's `unit_masks & 0x10` (`0064a5dd`): `dmg *= 2`. The bit
+   is `target_opportunity`'s "struck while moving in contact" and is built
+   (item 3567, `sim::Unit::contact`, `docs/AI.md` §309). Then the **overkill record**:
    if `T.damage_frame == 0` or `frame − T.damage_frame >= overkill_frames`:
    `T.damage_frame = frame; T.damage_o = A.get_captain(); T.damage_who =
    A.who`. (So the window belongs to whoever hit first; a later hit inside
@@ -1839,9 +1841,10 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
 2. ~~**Whose mask the cavalry/vehicle flank reduction reads** — the attacker's
    is taken; the register was lost.~~ The target's, read off the listing
    (§53.1, item 601).
-3. **`unit_masks & 0x10` and `0x400000`** (the ×2 in `do_damage` step 2 and
-   `get_damage` step 14) are read but not named here; neither is set by
-   anything this reading covered.
+3. ~~`unit_masks & 0x10`~~ — **settled by item 3567**: `Unit::target_opportunity`
+   sets it at `6002c8` and `Unit::work` clears it, `docs/AI.md` §309.
+   **`0x400000`** (the ×2 in `get_damage` step 14) is still read but not
+   named here, and nothing this reading covered sets it.
 4. **The flight-time float.** `(int)(sqrtf(n) / (float)d)` is emulated by
    exact integer rounding of each IEEE operation. If the original's
    `sqrtf` is not the correctly-rounded one (x87 `fsqrt` is; an SSE
