@@ -223,3 +223,53 @@ fn egyptian_classical_pair_the_long_s_stride_walks_back_from_5956() {
     // not walked back here.
     pin_eq!(w.firsts.len(), 187, "run1230 stride baseline");
 }
+
+/// run1241: the walk back from run1230b's first block 5956, blocks
+/// 5576..5786 at run1230b's detail (item 3594) — six blocks before the
+/// Market `1/2020`'s first Caravan (ours queued on 5582) through the head
+/// ours turns to the Merchant on 5778. The long's stride prints no
+/// `LEADERDATA` or `BUILDDATA`, and run1230b starts on 5956 with the queue
+/// already apart.
+pub(crate) const RUN1241: &str = "gamelog-run1241-eastindies-egyptian-classical-window-5576-5786.txt";
+
+/// The window: block 5576 through 5786.
+pub(crate) const WINDOW_EGYPTIAN_CLASSICAL_MARKET: (i64, i64) = (5576, 5786);
+
+/// **The Market's queue walked back**: run1241 walked from run1229's start
+/// with the recorder on (item 3594).
+pub(crate) fn egyptian_classical_market_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN_CLASSICAL.start],
+        true,
+        EGYPTIAN_CLASSICAL.long,
+        "run1241",
+        &[(RUN1241, WINDOW_EGYPTIAN_CLASSICAL_MARKET.0)],
+        WINDOW_EGYPTIAN_CLASSICAL_MARKET,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_classical_pair_run1241_walks_the_market_s_queue_back() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_classical_market_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 210, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(w.firsts.len(), 128, "run1241 baseline");
+}
