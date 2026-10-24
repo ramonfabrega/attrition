@@ -344,7 +344,8 @@ fn mongol_classical_pair_the_long_s_stride_walks_back_from_9744() {
 
 /// run1222: the gap 9702..9737 the stride and run1218 leave undumped,
 /// blocks 9696..9745 at run1218's detail with `AMMO=5` (item 3579).
-pub(crate) const RUN1222: &str = "gamelog-run1222-greatsahara-mongol-classical-window-9696-9745.txt";
+pub(crate) const RUN1222: &str =
+    "gamelog-run1222-greatsahara-mongol-classical-window-9696-9745.txt";
 
 /// The window: block 9696 through the word 9744's own block 9745.
 pub(crate) const WIDENING_MONGOL_CLASSICAL_GAP_9744: (i64, i64) = (9696, 9745);
