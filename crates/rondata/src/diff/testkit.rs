@@ -9961,12 +9961,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The first pair from an Ancient start** (item 3559): the Koreans on
     // East Indies, `STARTING_TECHNOLOGY 0` capped at Classical (the lobby's
     // lowest `ENDING_TECHNOLOGY` is 1) — 4350 first try, widened on
-    // run1200b over 4345..4601 (block 4351).
+    // run1200b over 4345..4601 (block 4351). **Item 3578: whole at 5639**,
+    // the game's last frame: the Korean stones leave from piece 1088's
+    // bays and the Hwarang's arrows from piece 130's. run1200b's test
+    // keeps the move's value diff (2330 keys to 83); the closing state is
+    // `run1200_korean_ancient_pair_closing_state`.
     (
         "KOREAN_ANCIENT_PAIR_WORD",
         crate::diff::korean_ancient_pair::KOREAN_ANCIENT_PAIR_WORD,
         Some("korean_ancient_pair_run1200b_s_word_frame_is_widened_whole"),
-        3559,
+        3578,
         Some(crate::diff::korean_ancient_pair::WIDENING_KOREAN_ANCIENT_FRAME_4350),
     ),
     // **The land map's first pair below age 2** (item 3556): the Romans at a held
@@ -11594,13 +11598,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 1, the lobby's floor), East Indies (item 3559):
     // first try 4350, ours' `Unit::fight` drawing where theirs' unit
     // steps, of a game that ends itself on 5639; widened on run1200b.
+    // Item 3578: whole at 5639, the Slingers' and the Hwarang's bays; its
+    // closing state compared, none off.
     AiWord {
         line: "Late ages",
         map: "EastIndiesKoreanAncient",
         named: "East Indies (Koreans, Ancient)",
         word: crate::diff::korean_ancient_pair::KOREAN_ANCIENT_PAIR_WORD,
         length: 5_639,
-        endpoint: None,
+        endpoint: Some("run1200_korean_ancient_pair_closing_state"),
         window: Some("korean_ancient_frame_4350_window"),
     },
     // The Romans at a held Classical age (`STARTING_TECHNOLOGY` and
