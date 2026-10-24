@@ -813,9 +813,14 @@ impl Movement {
     /// heading together. `Unit::move_step` never uses it: its `set_angle`
     /// passes zero for that flag, so a step moves the heading and leaves the
     /// facing to the turn rate.
+    ///
+    /// `Guy::set_angle` is not `Guy::do_turn`, so it leaves `guy_flags & 2`
+    /// as it found it: the snap is not a turn the body's own `Guy::move`
+    /// skips for, and [`Movement::frame_facing`] moves with the facing.
     pub const fn set_facing(&mut self, facing: movement::Angle) {
         self.flip_mirror(facing);
         self.facing = facing;
+        self.frame_facing = facing;
         self.heading = facing;
         self.des_angle = facing;
     }
