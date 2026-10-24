@@ -2555,6 +2555,12 @@ impl Sim {
             && !quiet
         {
             self.target_opportunity(t, attacker, frame);
+            // `0064a5dd`: the **struck** unit's `unit_masks & 0x10` — which
+            // [`Sim::mark_contact`] raises on the responder, the captain the
+            // walk reached — doubles the blow.
+            if self.units[t].contact {
+                dmg = dmg.wrapping_mul(2);
+            }
             let u = &mut self.units[t];
             if u.combat.damage_frame == 0
                 || frame - u.combat.damage_frame >= i64::from(self.tuning.overkill_frames)
@@ -2563,7 +2569,6 @@ impl Sim {
                 u.combat.damage_o = at.captain;
                 u.combat.damage_who = i32::try_from(owner).unwrap_or(-1);
             }
-            let _ = &mut dmg;
         }
         // Step 5: scale.
         let dealt = combat::scale(
@@ -3779,6 +3784,7 @@ impl Sim {
         // the hit again, and the test sits **above** everything below it
         // (`6002cf`).
         let front = self.units[responder].orders.front().copied();
+        self.mark_contact(responder, attacker, front);
         if self.is_fleeing(responder) {
             return;
         }
@@ -4040,6 +4046,45 @@ impl Sim {
     /// (`600516`). SEAM: `is_attack`'s overrides are folded in the export,
     /// so it is taken as the attack and ground-attack orders, as
     /// [`Sim::guard_activity`] takes it.
+    /// **Struck while moving in contact** — `Unit::target_opportunity@005fffc0`,
+    /// `600175`..`6002c8`, after the head and ahead of `is_fleeing`
+    /// (`docs/AI.md` §309). The responder's front order is a move
+    /// (`is_move@0046f050` of `order_type()`), the attacker is a unit
+    /// (vslot `+0x18`), and `vector_dist` between them is inside the two
+    /// types' `big_radius` (`+0x244`) summed: then `unit_masks |= 0x10`
+    /// ([`crate::Unit::contact`]) — unless the responder's action is an
+    /// `ATTACK` (`action_type@0060a850 == 10`) whose target (the
+    /// `update_action` record's `+8`/`+0xc`) is inside twice that sum
+    /// (`6002c6`, `jle`). The listing is the reading: the decompile's
+    /// `is_move(unaff_EDI)` takes `order_type`'s answer in `ecx`
+    /// (`600175`), and both distances are `vector_dist(|dx|, |dy|)` from
+    /// the responder (`600211`, `6002b9`).
+    fn mark_contact(&mut self, u: usize, attacker: Obj, front: Option<crate::orders::Order>) {
+        let Obj::Unit(a) = attacker else {
+            return;
+        };
+        if !front.is_some_and(|o| crate::orders::index::is_move_family(o.index())) {
+            return;
+        }
+        let at = self.units[u].pos;
+        let reach = |p: crate::Pos| crate::world::vector_dist(at.x - p.x, at.y - p.y);
+        let r = self
+            .profile(Obj::Unit(u))
+            .big_radius
+            .wrapping_add(self.profile(attacker).big_radius);
+        if reach(self.units[a].pos) > r {
+            return;
+        }
+        if let Some(k) = self.action_of(u)
+            && self.units[u].orders[k].index() == crate::orders::index::ATTACK
+            && let Some(t) = self.units[u].combat.target
+            && reach(self.pos_of(t)) <= r.wrapping_mul(2)
+        {
+            return;
+        }
+        self.units[u].contact = true;
+    }
+
     fn action_is_attack(&self, u: usize) -> bool {
         use crate::orders::Body;
         self.action_of(u).is_some_and(|k| {
