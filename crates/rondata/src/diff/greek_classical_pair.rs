@@ -342,8 +342,10 @@ fn greek_classical_pair_run1212_s_word_frame_is_widened_whole() {
     // 114. The General's facing (ours 1145324629, theirs 1336212053 on
     // 4336) agrees, and every unit row leaves: what stands is 4336's 101
     // standing rows, groups 80, 89..93's `held` and pool, and who=1's
-    // `known_rares` on 4584 (ours 3, theirs 1).
-    pin_eq!(w.firsts.len(), 114, "run1212 baseline");
+    // `known_rares` on 4584 (ours 3, theirs 1). Item 3594: 114 → 113, the
+    // `known_rares` row leaves with the border pass's re-zero
+    // (`docs/AI.md` §318.1).
+    pin_eq!(w.firsts.len(), 113, "run1212 baseline");
 }
 
 pub(crate) const RUN1214: &str = "gamelog-run1214-eastindies-greek-classical-window-7859-8127.txt";

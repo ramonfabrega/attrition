@@ -9728,11 +9728,13 @@ Measured on `59aafe06`, based on `f224f1a7` (811's booking):
 
 ### 76.6 What this has *not* established
 
-- **The budgeted re-zero.** The original zeroes a region on every frame
+- ~~**The budgeted re-zero.** The original zeroes a region on every frame
   its pass has not yet reached, so a census inside a pass is undone for
   the regions still waiting. This crate zeroes once. Where a census
   falls inside a pass (a large map, a fix just before a sweep), the two
-  part. No block on file shows it; it is parked 568's transient.
+  part. No block on file shows it; it is parked 568's transient.~~
+  **Built by item 3594 (§318.1)**: run1241's who=1, a fix on tick 5574
+  and a census on 5575.
 - **The trigger set.** Every `sync_territory` is taken as a fix. The
   original's `gain_tech` fixes on a Civic epoch and two bonus-type
   ranges whether or not the border table changes; ours' `apply_gained`
@@ -28097,10 +28099,77 @@ Javelineers 83, Phalanx 133, Archers 171, Catapult 265, The Senator 353, five bo
 Fleet 318, Transport Barge 320, Dromon 324, Galley 341), and the horse, fish and whale herds. `rubric.py` on this
 tree reads unit types seen **172 of 302**, unmoved.
 
-**What is not established.** Why ours' Market takes a Merchant where theirs takes a Caravan. On 5956 the
+**What is not established.** ~~Why ours' Market takes a Merchant where theirs takes a Caravan. On 5956 the
 leader's buckets already differ by tens, so the choice may follow the economy or lead it. No dump on disk holds
 `LEADERDATA` or `BUILDDATA` between run1229's block 2 and 5956. The next item's frame is 5961, ours 92 draws
-against 89 at index 77; walk the Market's queue back from 5956.
+against 89 at index 77; walk the Market's queue back from 5956.~~ **Answered by §318.1** (item 3594): the
+choice leads the economy. A census inside the border pass counted three rares theirs' pass then zeroed.
+
+### 318.1 A region the border pass has not reached is zeroed every frame, and the word moves 5961 → 6537 (item 3594)
+
+**The walk back** (run1241, blocks 5576..5786 at run1230b's detail, walked from run1229: 210 blocks; run1241
+against run1230 is 5787 of 5787 frames identical). Ours' Market `1/2020` queue (`RON_DEBUG_BUILDS`) takes a
+Caravan on tick 5582 and a Merchant behind it on 5585; the Caravan finishes on 5777 and the Merchant is the head
+from 5778. Theirs (`buildat.py`) takes the same Caravan on 5582 and **a second Caravan** on 5585. Past block
+5576's standing families, the first parted keys are on block 5584, the pick's own inputs:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5584 | leader who=1 | `known_rares` | 3 | 0 |
+| 5584 | leader who=1 | `MAKE[4].t`, `.val` | 61 (Merchant), 967741 | 59 (Caravan), 937500 |
+| 5586 | Market `1/2020` | `queue[1].type`, `cost[0]`, `cost[1]` | 61, 50, 30 | 59, 60, 55 |
+| 5586 | leader who=1 | `num_queued[11]`, `num_queued[9]` | 1, 1 | 0, 2 |
+| 5586 | leader who=1 | `bucket[0:food]`, `[2:wealth]` | 12884, 17509 | 12824, 17539 |
+
+The Merchant arm (§55.2) offers a Merchant while `known_rares − num_queued − num_units > 0`. Ours' sum is 3
+with two Merchants fielded; theirs' is 0. **The array behind the sum**: theirs' who=1 `reg_known_rares` is
+empty on every block from 5576 through 5775, and holds regions 7, 9 and 11 (one each) from the census of tick
+5775. Theirs' recompute of 5783 sums it to 3 on block 5784, 200 frames after ours. Ours (a probe, reverted
+whole) zeroes the array on a border fix at tick 5574's `check_borders`. Its census of tick 5575 then counts
+three goods into its regions 8, 10 and 12, and its recompute of 5583 sums 3. **This widening path compares no
+`region_rows`** (`harness.rs`' `widen_on_siblings` leader rows), so the array itself never parted. The sum is
+where it shows (parked 3594a).
+
+**The mechanism** is §76.6's first unestablished row. `World::compute_reg_territory@006b0bb0:78`–`101` zeroes
+`reg_known_rares[r]` for every live leader, together with `+0x145e[r]` and every city's `bordering`, on each
+call while region r's resume index (`Region +0x2c`) is 0. The zero comes **before** the 256-cell budget test at
+`:111`. `check_borders@00732060` calls it each frame for every region with cells left. So a region the pass has
+not reached is zeroed again on every frame until its first cell is written. The leaders' sweep runs before
+`check_borders` in the frame (`Sim::tick`: `strategy_all`, then `check_borders`), so tick 5575's census is
+undone on 5575 itself for every region still waiting. This crate cleared `bordering` this way already
+(`advance_border_pass`) but zeroed the rares once, at the fix.
+
+**The build**: `Sim::zero_region_rares` (`crates/sim/src/border_pass.rs`), called beside `clear_bordering` for
+a region at index 0. `check_borders`' zero-once stays, since it is the pass's first frame. The block's
+`+0x145e` short has no field here. Test: `a_census_inside_the_pass_is_undone_for_the_regions_still_waiting`.
+Mutations through `tools/mutate.py`, removing the call: **held** on `egyptian_classical_pair_first_parting`
+(exit 101) and on the unit test (exit 101).
+
+**The score: 5961 → 6537** (+576), by the count and the sequence. `first_parting`: the 53 lobbies hold;
+`battery_floors` holds; `coverage::` passes 19 with run1241 and run1241b in the driver. **The value diff on the
+old word**: run1230b's 4874 keys go to **114**. Block 5956's buckets, `num_queued`, the queue head and the
+Merchant `1/167`'s birth all agree. What stands is `1/73`'s `dest_angle` on 5962, both leaders' `territory`
+from 6033 (ours 180 and 1183 against 182 and 1181), and who=1's wealth `income` (6040) and `bucket` (6096).
+run1241 goes 128 → 109 (`known_rares`, `MAKE[4]` and the queue agree; `1/84`'s orders on 5759 stand). Three
+other widenings lose a `known_rares` row each, toward the original: the Mongol pair's run788 on 2984 (ours 5,
+theirs 4; 112 → 111) and run799 on 3125 (5/4; 140 → 139), and the Greek Classical pair's run1212 on 4584 (3/1;
+114 → 113).
+
+**The new word**: frame 6537, ours 73 draws against theirs' 72, parting at index 55. Ours spends
+`Unit::think_scout+0xaba`, theirs `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Its window is run1241b (blocks
+6532..6748, to the game's last frame; 216 blocks, 3161 keys; trace 6749 of 6749 frames identical to run1230's).
+Nothing new parts on the word's block 6538. Block 6532 already stands apart: both leaders' `territory`, who=1's
+wealth `leftover` (874 against 6483), and **the Scout `1/126`** (TypeIndex 69, land, uid 169, under an
+`EXPLORETOORDER`), `pos` ours (10445, 12681) against theirs (10650, 12744), `move.dest_x` 10488 against 11256.
+On 6539 the Dromon `1/45` (TypeIndex 324, sea) is ordered to (45048, 22008) by ours and to (15096, 44280) by
+theirs.
+
+**What is not established.**
+- When the Scout `1/126` first parts. The long's stride prints `UNITS` on 6101..6501, so the walk back starts
+  on disk.
+- The territory row from 6033 (ours 180 and 1183 against theirs 182 and 1181): whether it is the Scout's cause
+  or a second residue.
+- The other entries a region-0 call zeroes: `+0x145e` has no field in this crate, and no capture separates it.
 
 ## 319. The Spanish at a held Classical age, Great Sahara: whole on its first try, 8565 of 8565 (item 3586)
 

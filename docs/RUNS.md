@@ -26799,6 +26799,53 @@ first block 5956 is apart on who=1's economy: the queue `1/2020`'s head is ours 
 Caravan (59), with the buckets and `num_queued[11]`/`[9]` beside it. On the word's block 5962 ours births the
 Merchant `1/167` theirs does not; theirs' `1/167` is a Javelineers born on 5977.
 
+## run1241 — the Egyptians at a held Classical age, East Indies: the Market's queue walked back, blocks 5576..5786 (2026-10-24, item 3594, `att-3594`)
+
+`docs/AI.md` §318.1. **What the disk could not answer**: who=1's `LEADERDATA` and the Market `1/2020`'s queue
+before 5956. run1229 dumps blocks 0..2, run1230's stride prints neither, and run1230b starts on 5956 with the
+queue already apart. Ours' `RON_DEBUG_BUILDS` put the Caravan on tick 5582 and the Merchant on 5585, so the
+window opens six blocks before the first. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1241
+--map 18 --end-frame 5786 --timeout 3600 --log-window 5576 5786 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0 --profile STARTING_TECHNOLOGY=1
+--profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 16:36:28, exited 16:37:17 (49.2 s launch to exit). `success`, 5787 frames.
+  `rngcmp.py` against run1230: 5787 frames identical. Filed with `filerun.py run1241
+  eastindies-egyptian-classical-window-5576-5786 --map 18`. `df -g ~` read 136 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1241-eastindies-egyptian-classical-window-5576-5786.txt`, 486,246,559 bytes,
+SHA-256 `0995f809f18f2a6050ac0888c80674bf385eb7bbd8b8e218849c39f1d3ea19d7`.
+
+Archive `rontrace-run1241.log`, 162,874,272 bytes,
+SHA-256 `580e17cf807e78dee7143bd6e38226b7a2d0dcf678921c2881c1ea1c58aa79d5`.
+
+**What it holds**: `egyptian_classical_pair_run1241_walks_the_market_s_queue_back` (210 blocks). Before item
+3594 it read 128 keys, the first on block 5584: who=1's `known_rares` (ours 3, theirs 0) and `MAKE[4]` (ours the
+Merchant, theirs the Caravan). Theirs' `reg_known_rares` is empty from 5576 to 5775. After the border pass's
+re-zero it reads 109.
+
+## run1241b — the Egyptians at a held Classical age, East Indies: the word 6537's window, blocks 6532..6748 (2026-10-24, item 3594, `att-3594`)
+
+`docs/AI.md` §318.1. **What the disk could not answer**: the new word's block 6538, which run1230b (to 6212)
+and run1230's stride (6501, 6601) leave undumped. The window runs to the game's last frame.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1241b --map 18 --end-frame 6748
+--allow-early-end --timeout 3600 --log-window 6532 6748 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0 --profile STARTING_TECHNOLOGY=1
+--profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 16:51:23, exited 16:52:17 (54.7 s launch to exit). `success`, 6749 frames,
+  last frame 6748. `rngcmp.py` against run1230: 6749 frames identical. Filed with `filerun.py run1241b
+  eastindies-egyptian-classical-window-6532-6748 --map 18`. `df -g ~` read 133 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1241b-eastindies-egyptian-classical-window-6532-6748.txt`, 558,816,779 bytes,
+SHA-256 `59b7c52f5d9f6e037abfa2f5a60d5f7f440a1232ad49bfde1587769b95705f07`.
+
+Archive `rontrace-run1241b.log`, 240,309,088 bytes,
+SHA-256 `0e43b9fd01e52e67fee11d2060add5e0e81ab25e706aa606a5243c71db51928c`.
+
+**What it holds**: `egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole` (216 blocks, 3161 keys),
+the word 6537's widening. Block 6532 stands apart on both leaders' `territory`, who=1's wealth `leftover` and
+the Scout `1/126` (TypeIndex 69). On 6539 the Dromon `1/45` takes another destination.
 ## run1231 — the Spanish at a held Classical age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3586, `att-3586`)
 
 `docs/AI.md` §319. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1231 --map 7 --end-frame

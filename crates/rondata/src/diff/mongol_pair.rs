@@ -351,9 +351,11 @@ fn run788_s_word_frame_is_widened_whole() {
     // Item 2384: 132 -> 133, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 133 → 129 with `Unit::close`'s count (`docs/AI.md` §232).
+    // Item 3594: 112 → 111, who=1's `known_rares` on 2984 (ours 5, theirs
+    // 4) leaves with the border pass's re-zero (`docs/AI.md` §318.1).
     pin_eq!(
         w.firsts.len(),
-        112,
+        111,
         "run788 after item 1868's sea break test (163 -> 151, item 1937: the patrol look and the strike release)"
     );
     // Item 1868: 833 keys part on blocks 2832..3088 before the build, 128 of them
@@ -405,7 +407,9 @@ fn run799_s_word_frame_is_widened_whole() {
     // Item 2384: 160 -> 161, `leader:aggression[i]` ours 0 theirs 1
     // (compared since 2384; theirs' writer on an at-war slot is parked 2385).
     // Item 2761: 161 → 157 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 140, "run799 baseline");
+    // Item 3594: 140 → 139, who=1's `known_rares` on 3125 (ours 5, theirs
+    // 4) leaves with the border pass's re-zero (`docs/AI.md` §318.1).
+    pin_eq!(w.firsts.len(), 139, "run799 baseline");
     // Item 1948: 5,308 keys part on blocks 3125..3382 before the build, 182 of
     // them on the window's first block; the word 3131 (ours 62 draws, theirs
     // 65, index 0) is the BMP `1/27`'s cast of the transport (kind 14, spell

@@ -112,6 +112,24 @@ impl Sim {
         }
     }
 
+    /// Every leader's `reg_known_rares[r]` back to zero —
+    /// `compute_reg_territory@006b0bb0:78`–`101`, the same block as
+    /// [`Self::clear_bordering`]: while region `r`'s resume index is 0 its
+    /// call zeroes the slot **before** the budget test, so a region the
+    /// pass has not yet reached is zeroed again on every frame until its
+    /// first cell is written. A census that falls inside the pass — the
+    /// leaders' sweep runs before `check_borders` in the frame — is undone
+    /// for every region still waiting (`docs/AI.md` §318.1; East Indies'
+    /// who=1 on tick 5575, run1241). The block's third write, the
+    /// leader's `ushort` at `+0x145e + 2r`, has no field in this crate.
+    fn zero_region_rares(&mut self, r: u16) {
+        for leader in &mut self.ai {
+            if let Some(slot) = leader.census.reg_known_rares.get_mut(usize::from(r)) {
+                *slot = 0;
+            }
+        }
+    }
+
     /// Setup's `compute_all_territory`: every land region in slot order,
     /// each clearing every city's `bordering` and then marking its own
     /// cells.
@@ -171,6 +189,7 @@ impl Sim {
             }
             if *at == 0 {
                 self.clear_bordering();
+                self.zero_region_rares(r);
             }
             if budget < CELLS_PER_FRAME {
                 let cells = self
@@ -265,6 +284,44 @@ mod tests {
         sim.advance_border_pass();
         assert!(sim.border_pass.is_none(), "the third frame finishes it");
         assert_eq!(sim.world.owner(Cell::new(199, 2)), Owner::Player(1));
+    }
+
+    /// **A region the pass has not reached is zeroed again every frame**
+    /// (`compute_reg_territory@006b0bb0:78`–`101`, item 3594): a census
+    /// between two frames of the pass keeps its count only in the regions
+    /// the pass has started — run1241's who=1, whose tick-5575 census was
+    /// undone on regions 7, 9 and 11 (`docs/AI.md` §318.1).
+    #[test]
+    fn a_census_inside_the_pass_is_undone_for_the_regions_still_waiting() {
+        let mut sim = Sim::new(crate::Tuning::RON, rows(200, 3), 2);
+        sim.in_play = true;
+        let before = sim.world.owners();
+        let mut target = before.clone();
+        target.fill((Owner::Player(1), Owner::None));
+        sim.world.set_owners(&target);
+        sim.start_border_pass(before);
+        sim.advance_border_pass();
+        // The census refills every region between frames one and two.
+        let n = sim.world.region_count();
+        sim.ai[1].census.reg_known_rares = vec![1; n.max(3)];
+        sim.advance_border_pass();
+        let r = |c: Cell| usize::from(sim.world.region_of(c).unwrap());
+        let rares = &sim.ai[1].census.reg_known_rares;
+        assert_eq!(
+            rares[r(Cell::new(0, 0))],
+            1,
+            "region 0 finished on frame one"
+        );
+        assert_eq!(
+            rares[r(Cell::new(0, 1))],
+            1,
+            "region 1 was started on frame one"
+        );
+        assert_eq!(
+            rares[r(Cell::new(0, 2))],
+            0,
+            "region 2 still stood at index 0 when frame two reached it"
+        );
     }
     /// A city of `who`'s, as `init_city` records it.
     fn city_of(who: crate::Player) -> crate::city::City {

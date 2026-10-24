@@ -3471,6 +3471,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::japanese_gunpowder_pair::japanese_gunpowder_closing_window(),
         || super::iroquois_ancient_pair::iroquois_ancient_closing_window(),
         || super::egyptian_classical_pair::egyptian_classical_frame_5961_window(),
+        || super::egyptian_classical_pair::egyptian_classical_market_window(),
+        || super::egyptian_classical_pair::egyptian_classical_frame_6537_window(),
         || super::spanish_classical_pair::spanish_classical_closing_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
         || super::lakota_medieval_pair::lakota_medieval_rounds_window(),
