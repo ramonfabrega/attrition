@@ -2140,6 +2140,15 @@ fn widen_block_rows(
                     i64::from(un.fought),
                     them.unit_masks.map(|m| i64::from(m & 0x1_0000 != 0)),
                 ),
+                // **`unit_masks & 0x10`, struck while moving in contact**
+                // (item 3567, `docs/AI.md` §309): `target_opportunity`
+                // raises it and the unit's next `Unit::work` drops it, so
+                // a block prints it on a unit struck after its own work.
+                (
+                    "contact",
+                    i64::from(un.contact),
+                    them.unit_masks.map(|m| i64::from(m & 0x10 != 0)),
+                ),
             ] {
                 rows.push((r.0.into(), r.1, r.2));
             }
@@ -2339,7 +2348,9 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "sheltered" => ("UnitDump", "unit_masks2"),
         "orders.len" => ("UnitDump", "orders"),
         "guys.len" => ("UnitDump", "guys"),
-        "half_step" | "packed" | "mirror" | "blown" | "fought" => ("UnitDump", "unit_masks"),
+        "half_step" | "packed" | "mirror" | "blown" | "fought" | "contact" => {
+            ("UnitDump", "unit_masks")
+        }
         "dest_angle" => ("UnitDump", "dest_angle"),
         "orders_x" => ("UnitDump", "orders_x"),
         "orders_y" => ("UnitDump", "orders_y"),

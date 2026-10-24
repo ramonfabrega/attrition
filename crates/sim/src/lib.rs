@@ -620,6 +620,17 @@ pub struct Unit {
     /// `unit_masks & 0x100000`: the one-shot half step a soft collision
     /// asks for (`docs/MOVEMENT.md`, `docs/COLLISION.md` §4.3).
     pub half_step: bool,
+    /// **`unit_masks & 0x10`, struck while moving in contact**
+    /// (`Unit::target_opportunity@005fffc0`, `6002c8`): a unit hit by a
+    /// unit while its front order is a move, with the attacker inside the
+    /// two types' `big_radius` (`+0x244`) summed — unless its own action
+    /// is an `ATTACK` whose target is inside twice that. `Object::do_damage`
+    /// doubles the blow that raised it and every later one before it
+    /// clears (`0064a5dd`), `UnitData::get_speed@00608720` halves a land
+    /// unit's speed under it, and the end of `Unit::work@0060d180:449`
+    /// clears it — on the paths that reach the end. The dump prints it on
+    /// a unit struck after its own work ran (`docs/AI.md` §309).
+    pub contact: bool,
     /// `ObjectData::down` / `up`: this unit's place in its world cell's
     /// object chain, newest first (`docs/COLLISION.md` §3).
     pub down: Option<usize>,
@@ -1116,6 +1127,7 @@ impl Unit {
             safe: 0,
             waiting_on: false,
             half_step: false,
+            contact: false,
             down: None,
             up: None,
             // `Unit::init@00612100` lines 90 and 281: `rare` is **0** and

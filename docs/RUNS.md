@@ -25646,6 +25646,26 @@ SHA-256 `f51e28b7ae6aa8321df5881c4588c05016a1442facc5227cb08da560061776e1`.
 
 **What it holds**: `greek_classical_pair_run1209_s_word_frame_is_widened_whole`, the word 2616 (block 2617).
 
+## run1210 — the Romans at a held Classical age, Great Sahara: the closing window, blocks 6875..7131 (2026-10-24, item 3567, `att-3567`)
+
+**Disk gap**: the word closed at 7130, the game's last frame (item 3567). run1194b ends on 4319, and run1194 prints
+units only every hundredth block, so no dump held the last blocks for the word's widening. `--map 7 --end-frame 7130
+--allow-early-end --timeout 3600 --log-window 6875 7131 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 6 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --cover cover=0`, through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1210`.
+- Pool lane 1. Launched 01:17:47, exited 01:18:39 (52.1 s launch to exit). `success`: 7131 frames, last frame 7130,
+  closing frame 7131. `rngcmp.py` against run1194: **7131 frames in common, 0 differing**. Filed with `filerun.py
+  run1210 greatsahara-roman-classical-window-6875-7131`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1210-greatsahara-roman-classical-window-6875-7131.txt`, 596,777,877 bytes,
+SHA-256 `0143ebd99c6333b29018b5990c4f4511a54e0e1bb2b857d2d16b3f6c6b3dd651`.
+
+Archive `rontrace-run1210.log`, 149,694,656 bytes,
+SHA-256 `a17cc7769f1a5f1f0de0f6fcaa63017d945aa2eb5bdbe9565dc28b4221fd6e51`.
+
+**What it holds**: the closed word's widening, `roman_classical_pair_run1210_s_closing_frame_is_widened_whole` (256
+blocks, 46 keys: the standing families, and `1/195`'s `dest_angle` on 6931, parked 3567a).
 ## run1212 — the Greeks at a held Classical age, East Indies: the word 4341's window, blocks 4336..4592 (2026-10-24, item 3569, `att-3569`)
 
 `docs/AI.md` §310. **What the disk could not answer**: the word's block 4342, after item 3569 moved the word
