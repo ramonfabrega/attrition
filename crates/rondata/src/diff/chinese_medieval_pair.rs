@@ -39,8 +39,12 @@ pub(crate) const CHINESE_MEDIEVAL: Pair = Pair {
     // the Citizen `0/10` on 2977 as theirs does. Ours 14 draws against 16,
     // index 9, ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xce6 <
     // Object::die` (a death after a round's `AmmoOut::dirt_splash`).
-    count: 3030,
-    sequence: 3030,
+    // Item 3580: 3030 -> 4520 of 4520, the pair whole — the Fire Lances
+    // `1/31`'s round (`FirelanceAmmo`, `flame="1"`, `ammo_flags & 0x10`)
+    // kills the Citizen `0/10` with `dtype` 4, so `Unit::close` spends its
+    // three draws, `+0xcb6`, `+0xce6` and `+0xd0a`, where ours spent one.
+    count: 4520,
+    sequence: 4520,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two

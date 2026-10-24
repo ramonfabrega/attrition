@@ -421,6 +421,15 @@ pub struct Projectile {
     /// writer (a roll against the target type's `+0x250`/`+0x254`), is
     /// not built.
     pub harmless: bool,
+    /// The round's ammo piece carries `ammo_flags & 0x10`, the `flame="1"`
+    /// of `effects_graphics.xml` (`GraphicPieces::init_ammo_piece_ranges@008f6140`'s
+    /// fifth attribute, `internal_strings.xml` 3809) — the Fire Lances', the
+    /// Flaming Arrows' and the Flamethrower's. `Object::do_damage@0064a480`
+    /// tests it with `verify_ammo_flags(…, 0x10)` on every blow a round
+    /// delivers and overrides `dtype` to **4**, which `Unit::close` reads
+    /// as a burning death: three draws, not one (`docs/COMBAT.md` §7.1
+    /// step 6, §42.1; item 3580, `docs/AI.md` §313).
+    pub flame: bool,
     /// `AmmoData::sz` and `ez` — the height the shot leaves from and the
     /// one it is aimed to come down at (`docs/COMBAT.md` §46.1). Only a
     /// rolled shot reads them, through [`arc_z`].

@@ -1813,6 +1813,7 @@ impl Sim {
             ez,
             v1z: crate::combat::arc_v1z(sz, ez, MISSILE_FLIGHT),
             slot: 0,
+            flame: false,
             crash: None,
         });
     }
@@ -4122,6 +4123,7 @@ impl Sim {
             ez,
             v1z: Single::ZERO,
             slot: 0,
+            flame: false,
             crash: Some(crate::combat::Crash { bank, rolling }),
         });
     }
