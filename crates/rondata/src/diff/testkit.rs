@@ -9897,6 +9897,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3540,
         Some(crate::diff::chinese_industrial_pair::WIDENING_CHINESE_INDUSTRIAL_CLOSING),
     ),
+    // **The held Medieval pair's word** (item 3535): the Persians at a
+    // held Medieval age, East Indies — 2226 first try (the Explorer `1/0`
+    // idles where theirs walks on under an `ATTACKTOORDER` ours never
+    // pushed), widened on run1181b over 2220..2476 (block 2227).
+    (
+        "PERSIAN_MEDIEVAL_PAIR_WORD",
+        crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL_PAIR_WORD,
+        Some("persian_medieval_pair_run1181b_s_word_frame_is_widened_whole"),
+        3535,
+        Some(crate::diff::persian_medieval_pair::WIDENING_PERSIAN_MEDIEVAL_FRAME_2226),
+    ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
     // unit on a move where theirs idles it), widened on run1159b over
@@ -11443,6 +11454,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_812,
         endpoint: None,
         window: Some("turkish_enlightenment_frame_2501_window"),
+    },
+    // The Persians at a held Medieval age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 2), East Indies (item 3535): first try 2226, the
+    // Explorer idling where theirs walks on, of a game that ends itself on
+    // 4759; widened on run1181b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesPersianMedieval",
+        named: "East Indies (Persians, Medieval)",
+        word: crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL_PAIR_WORD,
+        length: 4_759,
+        endpoint: None,
+        window: Some("persian_medieval_frame_2226_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

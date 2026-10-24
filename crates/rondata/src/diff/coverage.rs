@@ -3443,6 +3443,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::chinese_industrial_pair::chinese_industrial_frame_3271_window(),
         || super::chinese_industrial_pair::chinese_industrial_closing_window(),
         || super::british_enlightenment_pair::british_enlightenment_frame_4587_window(),
+        || super::persian_medieval_pair::persian_medieval_frame_2226_window(),
         || super::british_enlightenment_pair::british_enlightenment_closing_window(),
         || super::turkish_enlightenment_pair::turkish_enlightenment_frame_2501_window(),
         || super::sahara_mongol::sahara_mongol_frame_2995_window(),
