@@ -403,7 +403,9 @@ Two nation terms ride in the same loop. The **Persians** scale the food grant
 by `(PERSIANS_BONUS_FOOD + 100) / 100`; the file writes `50%` and the engine
 reads the face value, so it is one and a half. The **Greeks**, under
 `GREEK_DELAY_KNOWLEDGE`, have the knowledge grant they were just paid written
-straight back to zero.
+straight back to zero — **only when the leader's `ages` (`+0xdc`, key `0x62766`)
+is 0**. A Greek leader started at Classical or later keeps it (item 3566,
+`docs/AI.md` §310, run1196b's block 2).
 
 **`Leader::gain_tech@006dcb60`, its goods loop.** On every gain, over the six
 goods, pay `bucket_add(g, game->starting[g])` for one that passes a **two-part

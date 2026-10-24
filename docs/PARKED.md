@@ -10443,13 +10443,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QB — reserved
+## Parked by item 3566, 2026-10-23 — the Greeks keep their opening knowledge past the Ancient age
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3566a — block 12's make list, a residue past the moved word.** With the knowledge laid, run1196b's window
+  (2..258, walked from run1195) falls from 515 keys to 45: block 2's 44 standing rows and one more, who=1's
+  `leader:MAKE[8].val` ours 125 against theirs 1 on block 12. The draws agree from frame 8 to 2615, so the row
+  moves no draw for 2,600 frames, and run1209's window (2611..2867) carries no `MAKE` row at all. Its likely
+  readings: a value term of one slot's make score, or a standing slot neither side acts on. **Score**: none.
 
 ## Parked by the next landing, slot QC — reserved
 

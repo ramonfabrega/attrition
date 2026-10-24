@@ -771,6 +771,43 @@ fn the_lobbys_resource_row_prices_the_opening_stockpile() {
     );
 }
 
+/// **The Greeks' opening knowledge is taken back only in the Ancient age**
+/// (`Leader::init@006e3930`'s goods loop, `006e4fe0`: `has_tribe_bonus(5)`,
+/// the leader's `ages` at `+0xdc` (key `0x62766`) equal to 0, and
+/// `GREEK_DELAY_KNOWLEDGE`; item 3566, `docs/AI.md` §310). A Greek leader
+/// started at Classical keeps the 10000 of run1196b's block 2; one started
+/// at Ancient is paid it on the Classical age instead.
+#[test]
+fn the_greeks_keep_their_opening_knowledge_past_the_ancient_age() {
+    let mut world = World::new(8, 8);
+    world.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(7, 7));
+    let mut sim = Sim::new(Tuning::RON, world, 2);
+    sim.setup.starting_town = true;
+    sim.tech[0].power = Some(5);
+    let knowledge = economy::Resource::Knowledge.index();
+    let paid = |sim: &mut Sim, ages: i32| {
+        sim.tech[0].ages = ages;
+        sim.lay_starting_goods(0);
+        sim.ledgers[0].bucket[knowledge]
+    };
+    assert_eq!(
+        paid(&mut sim, 0),
+        0,
+        "Ancient: delayed to the Classical age"
+    );
+    assert_eq!(
+        paid(&mut sim, 1),
+        Tuning::RON.starting_goods[knowledge],
+        "Classical: kept"
+    );
+    sim.tech[0].power = None;
+    assert_eq!(
+        paid(&mut sim, 0),
+        Tuning::RON.starting_goods[knowledge],
+        "not Greek: paid"
+    );
+}
+
 /// The Citizen, as `unitrules.xml` writes it: `2f`, `1f support`,
 /// `PROGRESSION 0`, `POP 1`, forty hit points, `JOB_TIME 50`,
 /// `JOB_EXTRA_TIME 1/10tsx`, `RESEARCH_PREMIUM_TIME 2`.

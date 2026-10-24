@@ -26907,14 +26907,46 @@ pool), and one more:
 | 9 | who=1 `LEADERDATA` | `bucket[0:food]` / `[2:wealth]` | 19784 / 19780 | 19730 / 19950 |
 | 9 | Citizen `1/10` (TI 50, land) | `order:move.dest_x` / `off_x` | 37524 / 72 | 37500 / 24 |
 
-**The next word**: frame 8, the sequence at index 0, ours `Leader::make_stuff+0x221` against theirs
-`Leader::produce_building+0xc99`. **The hypothesis, untested**: theirs' Greeks hold the opening knowledge at a
-Classical start, and ours' `lay_starting_goods` takes it off them (`GREEK_DELAY_KNOWLEDGE`, `docs/NATIONS.md`) for
-a re-grant on the Classical age, which a game started at Classical never pays (`pay_arriving_goods` pays on a gained
-type, and the start techs are laid before it). The make list then prices what the leader can afford from a different
-purse. The killer is block 2's knowledge row: if ours lays 10000 there and the make list on block 7 still parts, the
-knowledge is not the cause. The battery's Greeks start at age 0, where the delay is right, which is why no other
-dump shows the row.
+**The word 8, as item 3557 left it**: the sequence at index 0, ours `Leader::make_stuff+0x221` against theirs
+`Leader::produce_building+0xc99`, with 3557's hypothesis that ours' `lay_starting_goods` takes the Greeks' opening
+knowledge off them at a Classical start, and its killer: lay 10000 on block 2, and if block 7's make list still
+parts, the knowledge is not the cause.
+
+**The knowledge is the cause (item 3566).** The killer did not fire. `Leader::init@006e3930`'s goods loop takes the
+knowledge back under three terms, not two: `has_tribe_bonus(5)`, `GREEK_DELAY_KNOWLEDGE`, and **the leader's
+`ages` at 0**. `ages` is the word at `+0xdc` of the leader's encoded block (key `0x62766`, the key
+`ObjectData::train_time`, `Unit::plunder` and the Dutch bonus terms read it under). Ours had dropped the age term.
+The fix gates `Sim::lay_starting_goods`' Greek arm on `PlayerTech::ages == 0`.
+`the_greeks_keep_their_opening_knowledge_past_the_ancient_age` (`harness_tests.rs`) tests it, and a
+`tools/mutate.py` run that deletes the term fails it ("Classical: kept", exit 101). At an Ancient start nothing
+changes, so the battery's Greeks are untouched. `gain_tech`'s re-grant on `BASE_AGETYPES` is the Ancient-start half,
+and a Classical start never gains that age in play.
+
+| block | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 2 | who=1 `LEADERDATA` | `bucket[3:knowledge]` | 0 / 10000 | agrees |
+| 7 | who=1 `LEADERDATA` | `MAKE[0]` cat / t / val | 4 / 52 / 9999999 against 8 / 551 / 3 | agrees |
+| 12 | who=1 `LEADERDATA` | `MAKE[8].val` | — | ours 125, theirs 1 (parked 3566a) |
+
+run1196b's window falls from **515 keys to 45**: block 2's 44 standing rows and block 12's row.
+
+**The word: 8 → 2616**, by both count and sequence. On 2616 ours spends 231 draws against theirs' 230. They part at
+index 227: ours `Unit::think_scout+0xaba`, theirs `Farms::inc_time+0x1ae`. **run1209** widens it over 2611..2867
+(`greek_classical_pair_run1209_s_word_frame_is_widened_whole`, 1604 keys). Block 2611 carries 86 rows of the
+standing families, and the word's block 2617 adds only group 83's `held` and pool. The first unit rows fall on 2619:
+
+| block | unit | field | ours | theirs |
+|---|---|---|---|---|
+| 2619 | Dromon `1/31` (TI 324, sea) | `order:move.x` / `.y` | 39672 / 28920 | 31992 / 44280 |
+| 2619 | Dromon `1/43` (TI 324) | `order:move.x` / `.y` | 32760 / 45048 | 26616 / 43512 |
+| 2619 | Dromon `1/50` (TI 324) | `order:move.y` | 43512 | 45048 |
+
+All three were on an `EXPLORETOORDER` on 2617 that ends on 2618. On 2619 each picks a new destination, and the
+extra draw on ours' side is in the scout arm (`think_scout`).
+
+**The next word**: frame 2616, ours 231 draws against 230, index 227 — ours `Unit::think_scout+0xaba`, theirs
+`Farms::inc_time+0x1ae`. The direction is ours: one draw more, spent by the Greek navy's explore pick. The pick
+lands on 2619, and run1209 holds both sides of it.
 
 **The rubric.** `Companion` (231) is never fielded in run1195 or run1196. The `Fire Raft` (334) is (×242), with the
 Dromon (324), the Galley (341) and the Transport Barge (320). An open pair counts only to its word, and frame 8 is

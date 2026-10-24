@@ -9925,12 +9925,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Classical age, East Indies — 8 first try (the AI's make list parts
     // on block 7 behind the Greeks' opening knowledge, ours 0 theirs
     // 10000 from block 2), widened on run1196b over 2..258 (block 9).
+    // **Item 3566 moved it 8 -> 2616**: `Leader::init` takes the Greeks'
+    // knowledge back only at age 0. run1196b's test keeps the move's value
+    // diff (515 keys to 45); run1209 widens the new word over 2611..2867
+    // (block 2617).
     (
         "GREEK_CLASSICAL_PAIR_WORD",
         crate::diff::greek_classical_pair::GREEK_CLASSICAL_PAIR_WORD,
-        Some("greek_classical_pair_run1196b_s_word_frame_is_widened_whole"),
-        3557,
-        Some(crate::diff::greek_classical_pair::WIDENING_GREEK_CLASSICAL_FRAME_8),
+        Some("greek_classical_pair_run1209_s_word_frame_is_widened_whole"),
+        3566,
+        Some(crate::diff::greek_classical_pair::WIDENING_GREEK_CLASSICAL_FRAME_2616),
     ),
     // **The land map's first pair below age 2** (item 3556): the Romans at a held
     // Classical age, Great Sahara — 4069 first try, widened on run1194b
@@ -11515,7 +11519,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Greeks at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3557): first try 8, the
     // AI's make list parting behind the Greeks' opening knowledge, of a
-    // game that ends itself on 8126; widened on run1196b.
+    // game that ends itself on 8126; widened on run1196b. Item 3566: 2616,
+    // widened on run1209.
     AiWord {
         line: "Late ages",
         map: "EastIndiesGreekClassical",
@@ -11523,7 +11528,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::greek_classical_pair::GREEK_CLASSICAL_PAIR_WORD,
         length: 8_126,
         endpoint: None,
-        window: Some("greek_classical_frame_8_window"),
+        window: Some("greek_classical_frame_2616_window"),
     },
     // The Romans at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3556): first try 4069, the
