@@ -4715,6 +4715,18 @@ impl Sim {
                         dist += (targeted + 8) * 0x30;
                         let value = self.compare_target(attacker, o, in_range, ai);
                         let mut score = value / (dist / 0xc0 + 1);
+                        if std::env::var_os("RON_PROBE_3588").is_some()
+                            && (4160..=4170).contains(&self.frame)
+                            && let Obj::Unit(me) = attacker
+                            && self.units[me].owner == 1
+                            && self.units[me].index == 19
+                        {
+                            eprintln!(
+                                "PROBE3588 f{} cand {:?} value {} dist {} targeted {} in_range {} score {} left {} dmg_of {}",
+                                self.frame, crate::attack_view::obj_key(self, o), value, dist, targeted, in_range, score,
+                                self.hits_left(o), self.hits_of(o)
+                            );
+                        }
                         // **The `flags` preferences** (`00649766`–
                         // `006497b2`): `0x10` halves what is not a unit,
                         // else `0x20` what is not a `Build` (a wall
