@@ -12,15 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 19 of 20 landed; 3554 live; the commander clears at this seam (DECISIONS 91).*
+*2026-10-23, **the fifty-third tranche (commander, Opus): drained at twenty from `6f020588`**, every lane refilled; **the pass is due**.*
 
-- **Words**: one open, the Persians at Medieval at 4038 of 4,759 (lower map first — East Indies (Persians, Medieval)), 2226 → 4038 (3535, 3550: the ferried passenger keeps its orders); the Turks whole at 3,812 (3513, 3543); the British whole at 5,522, none off (3512, 3542); the Japanese whole at 4,547 (3539), the Chinese at 4,467, none off (3538, 3540);
-  held-out eight of eight. **The late ages**: nine pairs stood up, eight whole on real sim work (the Chinese 3538, the Japanese 3539); **the rubric, lockstep**:
-  ages 8 of 8, types 128 → 162 of 302, **bytes 77.0 → 77.4 %** (every whole pair's `cover=1` twin, 3531–3534, 3548, 3549, 3551, 3552: 77.04 → 77.45, hundredths a twin, the eighth none; Loop 3541). Blind: 0 of 39 dead.
-- **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
-  30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
-- **Lanes: one live, Opus 5.5 at medium** (3554 the Persian word 4038), the tranche's twentieth; **none booked**:
-  open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3555, run 1193. Pools: GOLDEN §149–154, AI §309–310, park PT–PV.
+- **Words**: one open, the Persians at Medieval at 4083 of 4,759 (lower map first — East Indies (Persians, Medieval)), 2226 → 4038 → 4083
+  (3535, 3550, 3554); held-out eight of eight. **The headline, the late ages**: nine pairs stood up, eight whole — the Chinese 3017 → 4467 and
+  the Japanese 4434 → 4547 (3538–3540), the British 4587 → 5522 (3512, 3542), the Turks 2501 → 3812 (3513, 3543); the Persians at Medieval new.
+- **The rubric, lockstep**: ages 8 of 8, types 152 → 162 of 302, **bytes 77.0 → 77.4 %** — every whole pair's `cover=1` twin (3531–3534, 3548,
+  3549, 3551, 3552: 77.04 → 77.45, hundredths a twin, the eighth none; Loop 3541 is the pass's: the twins are spent). Blind: 0 of 39 dead.
+- **For the pass**: twenty landings, two Opus lanes at medium, 9 h 54 (first-parent log); no red booking gate (3552 merged under 3550's whole
+  gate, so the drain's whole gate covers both); Loop rows 3544–3547 and 3553 filed at their merges.
+- **Lanes: none live; one booked** (3555, the Persian word 4083). Next 3556, run 1193. Pools: GOLDEN §149–154, AI §309–310, park PT–PV.
 - **Fable backlog: 17 Loop items** (3553, 3547, 3546, 3545, 3544, 3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -30,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4038 of 4,759
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4083 of 4,759
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -40,8 +41,7 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 162 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-third tranche (commander, Opus) — 19 of 20 landed from `6f020588`; 3554 live, the twentieth, on an Opus lane (`brief.py --kind
-residue …`; `claude-opus-5-5[1m]` at medium); no refill, twenty spawned; at its landing or Ramon's word, `ccc clear steer --then "<opener>"`.**
+**Opener: the fifty-third pass (steer, Fable) — the tranche drained at twenty from `6f020588`; this handoff, Loop 3541 (the twins spent), the backlog.**
 
 ## The queue
 
@@ -51,10 +51,10 @@ frame and draw delta, the AI track's); **a whole pair's `cover=1` twin** — the
 stood up** (`mongol_pair.rs`'s shape: own `DUMP_ALL` start and `cover=0` long, `end:UNITS=3,GUYS=2` on `--stride 100`, the walk seeded from the start (3506a),
 the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pair::assert_lobby`, `diff::<name>_pair` at its first parting, a scoreboard line). Opus; a word's gate `--tests <pair>:: blind::`, a twin's `--tests blind:: --no-widen`.
 
-3554. **The Persian word, frame 4038: ours 8 draws against 9, index 0** (theirs `Unit::fight+0x9b0`; 3550's widening on run1189b,
-4033..4289, 1,184 keys, AI §308): theirs' Mahout `1/27` (262), on its `ATTACKTOORDER` to (6552, 10968), fires on the Citizen `0/10` (50)
-and ours' does not; `cavarch_o` stands parted on the window's first block 4033 (ours −1, theirs −2) — walk it back first. Run 1192;
-amend §308 in place; park PS.
+3555. **The Persian word, frame 4083: ours 7 draws against 8, index 0** (theirs `Unit::fight+0x9b0`; 3554's widening, AI §308): the
+Mahout `1/46` takes `cavarch_o` 2005 in ours where theirs holds 10 and fires on 4084; the window's first state parting is 4048, the Nubian
+building `0/2000`'s `build:damage` ours 3 against theirs 6, with ours' `raid_stamp` three frames earlier, then the Citizen `0/10`'s
+missing 25 on 4059 — both before the word, so walk 4048 first. Run 1192; amend §308 in place; park PS.
 
 ## How to maintain this file
 
