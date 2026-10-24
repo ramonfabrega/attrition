@@ -27113,9 +27113,8 @@ city field row. run1214's window already holds the closing block, so it stays th
 Dromon (324), the Galley (341) and the Transport Barge (320). An open pair counts only to its word, and frame 8 is
 before any of them, so **no unit type is new to the ledger**: `rubric.py` reads 162 of 302 on this tree, and
 `census::RUBRIC_UNIT_TYPES_SEEN` is not re-pinned. **Item 3574, the pair whole**: the Fire Raft (334) is new.
-`rubric.py --tables 3` reads 165 of 302, and 164 without run1195 and run1196. The other two are the Athanatoi
-(164) and the Mahout (262), from the Persian Medieval and Roman Classical pairs, whole since the last pin (162
-without their dumps). `RUBRIC_UNIT_TYPES_SEEN` is re-pinned 162 → 165.
+`rubric.py --tables 3` reads 165 of 302, and 164 without run1195 and run1196. 3573 had pinned 162 → 164 for the
+Persian Medieval pair's Athanatoi (164) and Mahout (262), and `RUBRIC_UNIT_TYPES_SEEN` is re-pinned 164 → 165.
 
 ## 311. The Mongols at a held Classical age, Great Sahara: a guarded Catapult's march, 8444 of 9884 (2026-10-24, item 3558)
 
