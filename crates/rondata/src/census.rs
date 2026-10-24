@@ -387,8 +387,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Classical pair whole at 8126 — the Fire Raft (334, `FIRERAFT`), gone
 /// with run1195 and run1196 left out (`rubric.py --tables 3`). Item 3578:
 /// 165 -> 166, the Korean Ancient pair whole at 5639 — the Hwarang (180),
-/// read by `rubric.py` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 166;
+/// read by `rubric.py` on this tree. Item 3580: 166 -> 167, the Chinese
+/// Medieval pair whole at 4520 — Fire Lances (96, `FIRELANCES`), read by
+/// `rubric.py --tables 3` on the merged tree (re-pinned at the booking).
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 167;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
