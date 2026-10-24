@@ -26750,12 +26750,64 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 310. Reserved for the next item on the AI track
+## 310. The Greeks at a held Classical age, East Indies: the first pair below age 2, parting on frame 8 (2026-10-23, item 3557)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3557, Opus 5.5, the AI track (DECISIONS 90, 91, 92): run1195, run1196 and run1196b, on the click-free pool.*
+
+**The lobby.** East Indies (`MAP_STYLE 18`), human Nubians (4) against the **Greeks (5)** at Difficulty 5, seed
+12345, `STARTING_RESOURCES 7`, the age **held at Classical**: `STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1`. Both
+captures read it back through `Pair::assert_lobby` (`greek_classical_pair_captures_say_their_lobby`). **The game
+ends itself at 8126** (closing block 8127).
+
+**Age 1 holds.** The lobby takes `ENDING_TECHNOLOGY 1`, and `rubric.py --tables 2` over run1195 and run1196 puts
+the computer at age 1 on every leader record and at 2 on none.
+
+**The triple is new.** `(18, 5, 5)` was in no `battery::SCORED_LOBBIES` entry and is in no `battery::BATTERY`
+game: the held-out Greeks are `GreatSaharaGreekTier1`, `(7, 5, 1)`. It is minted into `SCORED_LOBBIES`
+(`greek_classical_pair_is_no_other_lobby`).
+
+**The captures.**
+- run1195 is the `DUMP_ALL` start.
+- run1196 is the long to the game's end: `end:UNITS=3,GUYS=2` on `--stride 100`, with 3507's `start:` and
+  `endgame:` detail lines. The walk is seeded from run1195's initial state (3506a).
+- run1196b is the word's window, blocks 2..258: the start dumps blocks 0..2 and the stride first prints 101, so no
+  dump on disk held the word's block 9.
+
+All three are one game by `rngcmp.py` (`docs/RUNS.md`).
+
+**First try: frame 8 of 8126 by the sequence, 11 by the count.** `greek_classical_pair_first_parting` walks run1196
+from run1195. On 8 both sides spend 61 draws and part at index 0: ours `Leader::make_stuff+0x221`, theirs
+`Leader::produce_building+0xc99`. **The direction is the leader's**: who=1's make list, one side placing a
+building where the other rolls its list.
+
+**The value diff: the state parts on block 2.** `greek_classical_pair_run1196b_s_word_frame_is_widened_whole` walks
+run1196b from run1195 over 256 blocks and finds 515 keys. Block 2's 45 rows are the standing families the other
+held-age pairs carry (`SITE[i].reg` ours 65 against 0, `aggression`, every unit's `form`, group 65's `held` and
+pool), and one more:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2 | who=1 `LEADERDATA` | `bucket[3:knowledge]` | 0 | 10000 |
+| 7 | who=1 `LEADERDATA` | `MAKE[0]` cat / t / val | 4 / 52 / 9999999 | 8 / 551 / 3 |
+| 8 | who=1 `LEADERDATA` | `MAKE[1]` cat / t / val | 4 / 417 / 91000 | 10 / 572 / 3 |
+| 9 | who=1 `LEADERDATA` | `num_queued[2]` | 5 | 0 |
+| 9 | who=1 `LEADERDATA` | `tech_cat_frame[2]` | 0 | 8 |
+| 9 | who=1 `LEADERDATA` | `bucket[0:food]` / `[2:wealth]` | 19784 / 19780 | 19730 / 19950 |
+| 9 | Citizen `1/10` (TI 50, land) | `order:move.dest_x` / `off_x` | 37524 / 72 | 37500 / 24 |
+
+**The next word**: frame 8, the sequence at index 0, ours `Leader::make_stuff+0x221` against theirs
+`Leader::produce_building+0xc99`. **The hypothesis, untested**: theirs' Greeks hold the opening knowledge at a
+Classical start, and ours' `lay_starting_goods` takes it off them (`GREEK_DELAY_KNOWLEDGE`, `docs/NATIONS.md`) for
+a re-grant on the Classical age, which a game started at Classical never pays (`pay_arriving_goods` pays on a gained
+type, and the start techs are laid before it). The make list then prices what the leader can afford from a different
+purse. The killer is block 2's knowledge row: if ours lays 10000 there and the make list on block 7 still parts, the
+knowledge is not the cause. The battery's Greeks start at age 0, where the delay is right, which is why no other
+dump shows the row.
+
+**The rubric.** `Companion` (231) is never fielded in run1195 or run1196. The `Fire Raft` (334) is (×242), with the
+Dromon (324), the Galley (341) and the Transport Barge (320). An open pair counts only to its word, and frame 8 is
+before any of them, so **no unit type is new to the ledger**: `rubric.py` reads 162 of 302 on this tree, and
+`census::RUBRIC_UNIT_TYPES_SEEN` is not re-pinned.
 
 ## 311. Reserved for the next item on the AI track
 
