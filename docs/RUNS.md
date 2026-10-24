@@ -26037,3 +26037,45 @@ SHA-256 `d07fc2dab5cb8dfac07f8375770d8f9baf8fd980a712e71f62cda4d2903a336e`.
 `tools/recomp/get_position.py entries` reads piece 1088's three `AttachPos` rows and piece 130's six; each key's
 sweep is `sim::launch`'s `BAYS` rows for the two pieces, pinned by
 `launch::tests::run1221_s_korean_stone_and_arrow_leave_from_their_bays`.
+## run1220 — the Chinese at a held Medieval age, Great Sahara: the Fire Lances' volley, blocks 2955..2982 at `AMMO=5` (2026-10-24, item 3577, `att-3577`)
+
+`docs/AI.md` §313. **What the disk could not answer**: where theirs' Fire Lances rounds at the Citizen `0/10` leave
+from and how long they fly. run1202b prints the Citizen's blow on 2977 (`damage_frame`) and no capture of the lobby
+writes an `AMMO` record. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1220 --map 7 --end-frame 2982
+--timeout 3600 --log-window 2955 2982 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 14 --cover cover=0 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 05:47:42, exited 05:48:05 (22.9 s launch to exit). `success`: 2983 frames.
+  `rngcmp.py` against run1202: 2983 frames identical. Filed with `filerun.py run1220
+  greatsahara-chinese-medieval-window-2955-2982`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1220-greatsahara-chinese-medieval-window-2955-2982.txt`, 17,719,193 bytes,
+SHA-256 `bc1d614bfcd0dd4cd331ff380b2352bebd27efa3a33fbe5a72eaf5fd9c926bf6`.
+
+Archive `rontrace-run1220.log`, 47,754,624 bytes,
+SHA-256 `30e02836093a7ad01682574a9bc504ec09ea7930750b80e31f75ee865891cc51`.
+
+**What it holds**: the three rounds at `0/10`, each on its first block `cur_time 1`, from piece 46 (`GUY gpiece`):
+`1/21` (anim 12) on 2963 from (9690, 30990, 662), `total_time` 17; `1/22` (anim 13) on 2969 from (9038, 31212, 766),
+10; `1/23` (anim 11) on 2973 from (9462, 30840, 709), 15. The dump prints one `AMMO` record a block, the newest.
+`sim::launch`'s `run1220_s_fire_lances_leave_from_piece_46_s_bays` asserts the three poses;
+`chinese_medieval_pair_run1220_s_volley_is_widened_whole` walks the window (27 blocks, 84 keys, all on 2955).
+
+## run1220b — the Chinese at a held Medieval age, Great Sahara: a packet at logger frame 2976, piece 46's `AttachPos` rows (2026-10-24, item 3577, `att-3577`)
+
+`docs/AI.md` §313. **What the disk could not answer**: the Fire Lances' release nodes at every heading. run1220
+prints one round per key. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1220b --map 7 --end-frame
+2978 --timeout 3600 --log-window 2975 2977 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 14 --cover cover=0 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=2976 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 05:58:10, exited 05:58:35 (25.0 s). `success`, 2979 frames. `rngcmp.py` against
+  run1202: 2979 frames identical.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1220b/map-7/frame-snapshot.bin`, 816,721,180 bytes,
+SHA-256 `cead8012c6632d89ece3401b8d304e7af95f4366a786d0a9e0d99260f076350b`.
+
+**What it holds**: `tools/recomp/get_position.py … entries 46` reads three rows, node 0, at (anim 11, time 24),
+(12, 27) and (13, 19), scale 1.0 — the keys `artdata::piece_releases` names. Each key's `sweep` over 361 headings
+has one feasible `sim::launch::Bay` region (606, 344 and 192 lattice points), `z` 95, 78 and 130; the rows are the
+regions' middles.

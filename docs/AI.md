@@ -27325,15 +27325,42 @@ theirs' `FLEEORDER` to (6552, 30984). On block 2979 the Citizen's `pos` parts, o
 `[1]` ours 1 against theirs 3 on both players. 1/21's own record agrees on every block to 3012 (`recharging`
 included).
 
-**The next word**: frame 2981, ours 12 draws against 13, index 0, theirs `Unit::move_step+0x823`. **The
-hypothesis, untested**: a Fire Lances round's landing frame. Theirs' first blow lands on 2977 under `1/21`'s
-name, where ours' `1/21` round is at t15 of 18 and ours' first landing is `1/22`'s at t11. No dump on disk
-prints theirs' `AMMO`, so the killer is a window over 2960–2982 with `AMMO` in its detail — each round's `launch`,
-`land` and flight beside ours' `RON_DEBUG_AMMO` — or a packet at `RON_STATE_FRAME=2976`.
+**The next word was frame 2981** (ours 12 draws against 13, index 0, theirs `Unit::move_step+0x823`), and 3560's
+hypothesis, a Fire Lances round's landing frame, **held** — answered by item 3577 below.
+
+**2981 → 3030: the Fire Lances loose from piece 46's bays** (item 3577). run1220, an `AMMO=5` window over
+2955..2982, prints theirs' three rounds at the Citizen, each from the figure `GUY gpiece` 46 and a frame shorter
+than ours, which left from the unit's own square because `sim::launch` had no row for the piece:
+
+| round | key (anim, time) | theirs `sx, sy, sz` / `total_time` | ours before |
+|---|---|---|---|
+| `1/21` | (12, 27) | (9690, 30990, 662) / 17 | (9768, 30984, 584) / 18 |
+| `1/22` | (13, 19) | (9038, 31212, 766) / 10 | (9096, 31224, 636) / 11 |
+| `1/23` | (11, 24) | (9462, 30840, 709) / 15 | (9528, 30840, 614) / 16 |
+
+The keys are the art's release events (`artdata::piece_releases`, piece 46). run1220b, a packet at
+`RON_STATE_FRAME=2976`, holds the piece's three `AttachPos` rows at those keys, and `tools/recomp/get_position.py`'s
+sweep of each over 361 headings has one feasible `Bay` region (606, 344 and 192 lattice points) and one `z` (95, 78,
+130, each the dump's `sz − z`). The rows are the regions' middles. Theirs' damage on 2977 is `1/22`'s blow, 10
+frames from its launch on 2968; ours struck on 2978. **Built** (`launch.rs`, `BAYS`' three piece-46 rows):
+`run1220_s_fire_lances_leave_from_piece_46_s_bays` asserts the three poses and heights. `tools/mutate.py` renaming
+the (13, 19) row's piece away puts `chinese_medieval_pair_first_parting` back at 2981 (exit 101, "mutation: held").
+
+**The value diff**: block 2978's Citizen `0/10` (TypeIndex 50) — `hits:damage` 0 / 7, `damage_frame` 0 / 2977,
+`orders.len` 0 / 1 — agrees, and so does its `pos` on 2979 and the Knight `1/29`'s chase on 2980. run1202b's
+count moves from 2437 keys to 2738, because the later partings start from another state. After 2976 its first rows are who=1's groups 70
+and 68 (`held`, `pool`, 3019/3020, the standing family), then the Crossbowmen `1/127` (TypeIndex 172, land) on
+3037: `order:move.dest` ours (36264, 17304) against theirs (35496, 17112), `path:length` 22 against 12.
+run1220's window (27 blocks) holds 84 keys, every one a standing family on its first block 2955.
+
+**The next word: frame 3030, ours 14 draws against 16, index 9** — ours `Farms::inc_time+0x1ae`, theirs
+`Unit::close+0xce6 < Object::die+0x29 < Unit::die+0x19`. Theirs spends a death's three `Unit::close` draws (`+0xcb6`,
+`+0xce6`, `+0xd0a`) and `Objects::kill_guy`'s sound after a round's `AmmoOut::dirt_splash`. No record parts on
+block 3031: who died, and by whose round, is the next item's walk.
 
 **Coverage.** `chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole` pins the 2437 keys;
 `WIDENINGS`'s `CHINESE_MEDIEVAL_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds
-the row on `Late ages`. Nothing here is built: no claim of this section is diff-backed beyond the parting itself.
+the row on `Late ages`. Item 3577's bays are diff-backed (run1220's three poses, the walk to 3030); `chinese_medieval_pair_run1220_s_volley_is_widened_whole` pins run1220's window, which is in the coverage driver beside run1202b's.
 
 ## 314. Reserved for the next item on the AI track
 
