@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const KOREAN_ANCIENT: Pair = Pair {
     name: "EastIndiesKoreanAncient",
@@ -37,8 +37,18 @@ pub(crate) const KOREAN_ANCIENT: Pair = Pair {
     // On 4350 ours spent 21 draws against theirs' 19, parting at index 0 —
     // ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
     // Unit::move_step+0x823` (`docs/AI.md` section 312).
-    count: 4350,
-    sequence: 4350,
+    //
+    // **The delta: 4350 → 5639, the game's last frame — whole** (item
+    // 3578): the Korean stones leave from piece 1088's bays and the
+    // Hwarang's arrows from piece 130's (`sim::launch`). The value diff on
+    // the frame the state first parted, 4294: `1/29`'s stone at `0/13`
+    // left from (6600, 9768) in 10 frames where the original's left from
+    // (6541, 9663) in 9, and `1/44`'s arrow (4279) from (6072, 10728) in
+    // 23 where it left from (6085, 10656) in 22 (run1221's `AMMO`); both
+    // now agree, and `0/13`'s `damage_frame` 4294 and `damage_frac` 10
+    // with them.
+    count: 5639,
+    sequence: 5639,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -48,6 +58,56 @@ pub(crate) const KOREAN_ANCIENT_PAIR_WORD: i64 = if KOREAN_ANCIENT.count < KOREA
 } else {
     KOREAN_ANCIENT.sequence
 };
+
+/// **The pair's closing state**: run1200's closing dump, block 5640,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3578).
+#[test]
+fn run1200_korean_ancient_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &KOREAN_ANCIENT;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Korean pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 5640, "the closing block");
+    // Item 3578, the pair whole: 156 units compared, none torn, off or
+    // unlinked, no building or city field-row.
+    pin_eq!(e.compared, 156, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
 
 /// **The pair's first parting**, walked from its own start.
 #[test]
@@ -163,5 +223,110 @@ fn korean_ancient_pair_run1200b_s_word_frame_is_widened_whole() {
     // theirs 1, `orders.len` 2 against 3, `heading` 415236096 against
     // -414449664; on its block 4351 `order:target` is ours `0/13` against
     // theirs `0/10`, and `move.dest` (5544,8088) against (5208,8616).
-    pin_eq!(w.firsts.len(), 2330, "run1200b baseline");
+    //
+    // Item 3578, with piece 1088's and piece 130's bays: 2330 → 83, the
+    // standing families alone (every unit's `form`, `SITE[i].reg`, both
+    // leaders' `aggression`, who=1's groups' `held` and pools); no unit
+    // field parts on any block.
+    pin_eq!(w.firsts.len(), 83, "run1200b baseline");
+}
+
+/// **The long's stride, walked back from the word 4350** (item 3578):
+/// run1200b's window opens apart on 4345 (`0/10`'s and `0/13`'s
+/// `damage_frame`), and only run1200's stride blocks are on disk between
+/// run1199's 2 and run1200b's 4345.
+pub(crate) const WIDENING_KOREAN_ANCIENT_STRIDE: (i64, i64) = (101, 4301);
+
+pub(crate) fn korean_ancient_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[KOREAN_ANCIENT.start],
+        true,
+        KOREAN_ANCIENT.long,
+        "run1200 stride",
+        &[(KOREAN_ANCIENT.long.0, WIDENING_KOREAN_ANCIENT_STRIDE.0)],
+        WIDENING_KOREAN_ANCIENT_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn korean_ancient_pair_the_long_s_stride_walks_back_from_4350() {
+    let _pins = Pins::hold();
+    let Some(w) = korean_ancient_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 43, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3578: 128 keys before the bays — every row a standing family
+    // (`build:extra`, every unit's `form`, who=1's groups' `held` and
+    // pool) up to 4201, and on 4301 the Citizen `0/13` (TI 50, land):
+    // `damage_frame` ours 4295 against theirs 4294 (`1/29`'s stone, a
+    // frame long from the figure's own square) and `damage_frac` 2 against
+    // 10 (`1/44`'s arrow, the same). With the bays, 125: the standing
+    // families alone.
+    pin_eq!(w.firsts.len(), 125, "the stride's baseline");
+}
+
+/// **The pair's last blocks, from the disk** (item 3578): the word is the
+/// game's last frame, 5639, and run1200 itself prints the stride's blocks
+/// 4401..5601 and the closing block 5640 at its `endgame:` detail, so the
+/// widening that holds the word walks the long rather than a new window.
+pub(crate) const WIDENING_KOREAN_ANCIENT_CLOSING: (i64, i64) = (4401, 5640);
+
+pub(crate) fn korean_ancient_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[KOREAN_ANCIENT.start],
+        true,
+        KOREAN_ANCIENT.long,
+        "run1200 closing",
+        &[(KOREAN_ANCIENT.long.0, WIDENING_KOREAN_ANCIENT_CLOSING.0)],
+        WIDENING_KOREAN_ANCIENT_CLOSING,
+        1,
+        &[5640],
+        true,
+    )
+}
+
+#[test]
+fn korean_ancient_pair_run1200_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = korean_ancient_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 14, "every stride block and the closing block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3578, the pair whole: **164** keys. Through 5601 every row is a
+    // standing family (`form`, `SITE[i].reg`, `aggression`, `build:extra`,
+    // who=1's groups' `held` and pools); no unit row parts on any block.
+    // The closing block 5640 adds twelve, each the human's defeat on 5639
+    // (`defeated_by 1`, `lost_capital_stamp 5639`): who=1's eight
+    // `queue:queued` and two `num_queued` rows, ours 1..6 against theirs 0
+    // (every one of theirs' 67 queues reads 0), who=0's `leader:defense`
+    // ours 0 against -1, and `1/2061`'s `gather:length[-1]` ours 0
+    // against 73 (parked 3578c).
+    pin_eq!(w.firsts.len(), 164, "the closing walk's baseline");
 }

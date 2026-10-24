@@ -27262,7 +27262,7 @@ in `coverage.rs`'s driver; `WIDENINGS` names run1218's test for the word 9772, i
 Theirs' game ends itself on 9884, 1689 frames after the stamp. Whether this timer is what ends it has not been
 read; the closing block 9885 is the place to read it.
 
-## 312. The Koreans from an Ancient start, East Indies: the first pair at age 0, parting on frame 4350 (2026-10-24, item 3559)
+## 312. The Koreans from an Ancient start, East Indies: the first pair at age 0, whole at 5639 on the Slinger's and the Hwarang's bays (2026-10-24, items 3559, 3578)
 
 *Item 3559, Opus 5.5, the AI track (DECISIONS 90, 91, 92): run1199, run1200 and run1200b, on the click-free pool.*
 
@@ -27293,11 +27293,30 @@ frame 4350 the Korean Slingers `1/17` (TI 82, land, group 66) re-aim: `order:kin
 against theirs `0/10` (theirs' `ATTACKORDER` names `uid` 17, which is `0/10`), and its `move.dest` is (5544,8088)
 against (5208,8616).
 
-**The next word**: frame 4350, ours 21 draws against 19, index 0. **The hypothesis, untested**: each of the
-human's two fleeing Citizens is wounded one frame later in ours (`damage_frame` +1), so by 4350 the Slingers pick
-between targets at other positions. **What would kill it**: walk back from 4301 (the long's last stride block
-before the window). If `0/10`'s `damage_frame` agrees at the first wound and the frames part on some other field
-first, the wound's timing is not the cause.
+**Item 3578: 4350 → 5639, the game's last frame — whole.** 3559's hypothesis (each fleeing Citizen wounded a
+frame later in ours) was the frame and not the cause.
+- **The walk back.** `korean_ancient_pair_the_long_s_stride_walks_back_from_4350` widens run1200's stride over
+  101..4301 (43 blocks, 128 keys). Up to 4201 every row is a standing family; the first unit fields apart are on
+  4301, the Citizen `0/13` (TI 50, land): `damage_frame` ours 4295 against 4294, `damage_frac` 2 against 10.
+- **The blows.** Ours' `RON_DEBUG_AMMO` holds the Slingers `1/29`'s stone (TI 82), thrown on 4286 from the
+  figure's own (6600, 9768) and landing on 4295 (10 frames), and the Hwarang `1/44`'s arrow (TI 180), loosed on
+  4279 from (6072, 10728), 23 frames. A probe printed the pieces: the Korean Slinger plays **piece 1088**
+  (`32 + 3 × 0x160`, `UNIT_CONTINENT` 3) and the Hwarang **piece 130**; `sim::launch` had no row for either, so
+  both left from the unit's square with `dz` 0.
+- **The packet.** run1221 (`RON_STATE_FRAME=4287`, `AMMO=5`) prints theirs' stone from (6541, 9663, 264) in 9
+  and the arrow from (6085, 10656, 193) in 22. `get_position.py` reads piece 1088's three `AttachPos` rows (piece
+  32's keys, at points of their own: piece 1440's bays put the stone at (6532, 9665)) and piece 130's six, two per
+  attack slot. Each key's sweep at 361 headings is reproduced exactly by the centroid of its integer region.
+- **The value diff.** With the nine rows both rounds leave from the dump's points and land on its frames, and
+  `0/13`'s `damage_frame` 4294 and `damage_frac` 10 agree on 4301. run1200b's widening goes 2330 → 83 keys and the
+  stride 128 → 125, the standing families alone (parked 3578b). `run1200_korean_ancient_pair_closing_state`
+  compares the closing block 5640 whole: 156 units, none torn, off or unlinked, no field row. The word's widening is
+  run1200 itself over its stride 4401..5601 and the closing block, which its `endgame:` detail prints
+  (`korean_ancient_pair_run1200_s_closing_frame_is_widened_whole`, 14 blocks, 164 keys): no unit row parts, and the
+  closing block adds twelve rows of the human's defeat on 5639 — who=1's queues, who=0's `defense` (parked 3578c).
+- **Tests**: `launch::tests::run1221_s_korean_stone_and_arrow_leave_from_their_bays`. Mutations through
+  `tools/mutate.py`: piece 1088's `ATTACK3` row renamed walks back to 4350; piece 130's `ATTACK1`@22, to 4702.
+  Seven of the nine keys are diffed on no dumped round (parked 3578a).
 
 **The unit lines** (`rubric.py --tables 3 --dumps` over run1199 and run1200, 14 types over the whole game):
 - **`Hwarang` (180)**: fielded, ×1326, from block 1801.
@@ -27308,10 +27327,12 @@ first, the wound's timing is not the cause.
 
 All of these come before the age-up at 4446, so the Ancient lines are the computer's own Ancient choice. An open
 pair adds nothing to `rubric.py`'s unit types: tables 2–4 read only lockstep games, which are words at the game's
-full length. `census::RUBRIC_UNIT_TYPES_SEEN` stays 164.
+full length. `census::RUBRIC_UNIT_TYPES_SEEN` stays 164 at 3559; with the pair whole (3578) the Hwarang
+enters the ledger, 165 → 166.
 
-**Coverage.** Diff-backed: the first parting (`korean_ancient_pair_first_parting`) and the word's block, widened
-whole (`korean_ancient_pair_run1200b_s_word_frame_is_widened_whole`). Reading-backed: the ending floor in
+**Coverage.** Diff-backed: the first parting (`korean_ancient_pair_first_parting`, whole), the word's block
+widened whole (`korean_ancient_pair_run1200b_s_word_frame_is_widened_whole`), the stride (in the coverage driver),
+the closing state, and the two dumped releases. Packet-backed alone: the seven other bay keys. Reading-backed: the ending floor in
 `SetupWin::setup_game` and the combo-to-age mapping beyond the readback of 0 → 1 (parked 3559a).
 
 ## 313. The Chinese at a held Medieval age, Great Sahara: a Fire Lances volley on a Citizen, first try 2981 of 4520 (item 3560)
