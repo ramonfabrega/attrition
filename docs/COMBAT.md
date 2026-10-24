@@ -1866,9 +1866,13 @@ members, which `Unit::do_attack` uses to stand an unarmed group member off at
    for any attacking type and `GraphicEvents::init_unit_events` then
    rewrites it — to the first ammo piece, to a named ammo piece, or to
    **zero** for graphics with certain elements — and `fight` strikes in melee
-   only when it is non-zero. Every melee type plainly does strike, so the
+   only when it is non-zero. ~~Every melee type plainly does strike, so the
    zeroing must not reach them; which graphics it does reach was not read.
-   The simulation strikes whenever `attack != 0`.
+   The simulation strikes whenever `attack != 0`.~~ Read for one writer
+   (item 3570, `docs/AI.md` §308): `init_unit_events@008e2520:325` zeroes it
+   for a graphic with a `RELEASEEVENT`, so the Mahout's melee swing lands
+   nothing; the simulation reads that as `launches_from_anim`. `:400` and
+   `:446` are not read.
 9. ~~**The `Flag_` rows of `balance.xml`.** Whether internal string 17 loads as
    a space (the rows match and the file's `Flag_Y_OBJMASK_HEAVY_CAV="95"`
    and friends apply) or as empty (they never match). `rondata` generates
