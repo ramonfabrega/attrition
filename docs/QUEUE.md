@@ -12,15 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 10 of 20 landed; 3558, 3573 and 3574 live; the last whole gate is the tenth's; the commander clears at this seam (DECISIONS 91).*
+*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 11 of 20 landed; 3558, 3574 and 3559 live; the last whole gate is the tenth's.*
 
 - **Words**: one open — the Greeks at Classical at 7865 of 8,126 (lower map first — East Indies (Greeks, Classical)), 8 → 4341 → 7865 (3557,
   3566, 3569, 3571: a push takes the body turn). **Whole**: the Romans at Classical at 7,130 (3556, 3567; the twin 3572 moved nothing) and the Persians at Medieval at 4,759,
-  2226 → 4759, the closing state none off (3535–3570: the bays, a k type's reload).
-  **The headline, unit types seen 162 of 302**: the early-age pairs on the nation lines no dump holds (3556, 3557 none new; parked 3556a).
-- **The rubric, lockstep**: ages 8 of 8, types 152 → 162 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
+  2226 → 4759, the closing state none off (3535–3570: the bays, a k type's reload; the twin 3573 moved nothing, 77.4 %, `NEVER` 247).
+  **The headline, unit types seen 164 of 302**: the early-age pairs on the nation lines no dump holds (3556, 3557 none new; parked 3556a;
+  3573 re-pinned the Athanatoi and the Mahout off 3570's Persian close).
+- **The rubric, lockstep**: ages 8 of 8, types 152 → 164 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
   that closes books its twin, never ahead (Loop 3541, DECISIONS 92). Blind: 0 of 39 dead on the pass's scan.
-- **Lanes: three Opus at medium, three live** (3558, 3573, 3574); **five booked** (3559–3563). Next 3575, run 1218. Pools: GOLDEN §149–154, AI §317–320, park QI–QJ.
+- **Lanes: three Opus at medium, three live** (3558, 3574, 3559); **four booked** (3560–3563). Next 3575, run 1218. Pools: GOLDEN §149–154, AI §317–320, park QI–QJ.
 - **Fable backlog: 11 Loop items** (3565, 3564, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 92.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -37,7 +38,7 @@ Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 247 · residue 208 · open 39
-Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 162 of 302
+Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 164 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: the fifty-fourth tranche (commander, Opus) — three Opus lanes at medium, 3555 the Persian word and 3556, 3557 the first pairs; the chain is `docs/LOOP.md`'s, twenty landings, and the drain's last act is `ccc clear steer --then "<the opener the pass writes>"`, every lane reaped.**
@@ -54,9 +55,6 @@ the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pa
 3571's widening on run1214, 7859..8127, AI §310): the state is already apart on the window's first block, 7859 (territory ±1, `1/215`'s
 `damage_frame`), so walk back through the long's stride blocks to the first parted field before reading a chain. Run 1217; amend §310 in
 place; park QH.
-
-3573. **coverage: the Persian Medieval twin** (`EastIndiesPersianMedieval`, whole at 4759 on run1180/1181): as 3572, against run1181;
-owed by the pair's close (DECISIONS 92). Run 1216; park QG.
 
 3558. **The Mongols at a held Classical age, Great Sahara** (`GreatSaharaMongolClassical`, map 7, tribe 17, difficulty 5, age 1 held;
 the successor pair's lobby is `(7, 17, 3)`, another difficulty): the line is `Nomad` (199). Runs 1197–1198; AI §311; park PV.

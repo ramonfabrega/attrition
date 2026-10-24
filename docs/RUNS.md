@@ -25775,3 +25775,94 @@ end:MISC,UNITS=3,GUYS=4,AMMO=5`, the lobby as run1217's.
   distinct poses, every one reproduced by the Heavy Archer's bays (`launch.rs`, `run1217b_s_greek_arrows_leave_from_the_archer_s_bays`);
 - seven of the catapults `1/66`, `1/67` and `1/86` (piece 215), not fit (parked 3574c);
 - one of the Javelineers `1/200` (piece 33).
+## run1216 — the Persian Medieval pair's long lobby at `cover=1` on the click-free pool, to the game's end at 4759: the pair's lockstep twin (2026-10-24, item 3573, `att-3573`)
+
+**What the disk could not answer**: the pair's captures (run1180, run1181, run1181b) are `cover=0`. A `cover=0`
+capture enters nothing but the hooks, so the sea map's held-Medieval game had no lockstep trace (`docs/DECISIONS.md`
+entry 91 §2). This is run1181's recipe exactly, at `cover=1`, with the lobby read off its `receipt.json`:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1216 --map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=1 --callwin 0 24000 --ai-tribe 23
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`. The take
+has no `@` line and no click, so every input is shared and there is no `--from`.
+
+- Pool lane 1 (`~/wine-ron`). Launched 03:33:54 and exited 03:34:31: **36.4 s launch to exit**, against run1181's
+  27.4 s at `cover=0`. `success`, 4,760 frames. **The game ended itself at 4759** (`ended_early`, closing frame
+  4760). Map 18 verified, seed 12345, tribes 4 and 23. DLL `47e39abb…`, `-DRON_AUTOSTART`. 154 GiB free before.
+  Minutes waited on another lane: none.
+- `rngcmp.py rontrace-run1181.log rontrace-run1216.log`: **4,760 in common, 0 differing, 4,760 identical**.
+  `samegame.py gamelog-run1181-… gamelog-run1216-…`: **48 in common (1..4701, the stride's blocks), 0 differing**.
+- `report.py … functions` lists **6,939 functions**. **None is on `blind::NEVER`**, which stays at 247. Against the
+  other lockstep traces it adds no simulation function (3573a). `rubric.py --tables 4` reads **lockstep bytes
+  77.4 %**: 8,823,805 of 11,392,782 bytes and 2,247 of 3,611 functions, over 129 traces, so 774 tenths stay 774.
+- Filed with `filerun.py run1216 eastindies-persian-medieval-cover`.
+
+Archive `gamelog-run1216-eastindies-persian-medieval-cover.txt`, 36,333,405 bytes,
+SHA-256 `a6481d7a5284e8e67949f3d335d0c33a9ae41217823ba1f9fd9fd0a94c57070e`.
+
+Archive `rontrace-run1216.log`, 156,657,824 bytes,
+SHA-256 `276904e66e3c09c7709bda6523d723bbbdfe6a37b964b5e61936295d51f7e822`.
+
+**What it holds**: the Persian Medieval pair's game on every frame under `cover=1`, the sea map's Medieval-age
+lockstep trace (`blind::TRACES`).
+## run1197 — the Mongols at a held Classical age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3558, `att-3558`)
+
+`docs/AI.md` §311. §309's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1197 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 17 --profile
+STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 03:16:00, exited 03:16:24 (23.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 17, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1197
+  greatsahara-mongol-classical-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1197-greatsahara-mongol-classical-start.txt`, 149,912,034 bytes,
+SHA-256 `aa1802ed10db6d62eed5fb7c14d059d44aecc5cff7f05af9dd073b0e59517592`.
+
+Archive `rontrace-run1197.log`, 8,282,240 bytes,
+SHA-256 `ea335ec85f5575ab500ec6679af96d90a13d0ebc8b0ac99f149c180bc8454d44`.
+
+**What it holds**: the start of `mongol_classical_pair::MONGOL_CLASSICAL`, and the walk's initial state.
+
+## run1198 — the Mongols at a held Classical age, Great Sahara: the draw stream to the game's end (2026-10-24, item 3558, `att-3558`)
+
+`docs/AI.md` §311. run1194's line with `--ai-tribe 17`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 17
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1197's
+lobby.
+- Pool lane 2, beside run1197. Launched 03:16:00, exited 03:16:44 (44.2 s launch to exit). `success`. **The game
+  ended itself on 9884** (closing block 9885, `ended_early`). `GAME INFO` reads back as run1197's. `rngcmp.py`
+  against run1197: 37 frames identical. Filed with `filerun.py run1198 greatsahara-mongol-classical-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1198-greatsahara-mongol-classical-trace.txt`, 58,152,189 bytes,
+SHA-256 `0909bc4e875a5e6e7ac2a239a46c423ab9b5a8146c1f4934982b0bd1c28c884e`.
+
+Archive `rontrace-run1198.log`, 252,572,128 bytes,
+SHA-256 `12cc90d1578ab9aa89dcc80ce574afcd7758e5c9141aab52bd622290f72c7311`.
+
+**What it holds**: the pair's first try. `mongol_classical_pair_first_parting` walks it from run1197: **frame 8444
+of 9884** (count and sequence), ours 21 draws, theirs 22, index 8, ours `Unit::do_guard+0x8fb` against theirs
+`Guy::set_anim+0x97a < Unit::set_anim+0xb6 < Unit::do_guard+0x7f4`.
+
+## run1198b — the Mongols at a held Classical age, Great Sahara: the word 8444's window, blocks 8438..8694 (2026-10-24, item 3558, `att-3558`)
+
+`docs/AI.md` §311. `--map 7 --end-frame 8694 --timeout 3600 --log-window 8438 8694 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 17 --cover cover=0` and run1197's lobby. Booked
+because the long's stride blocks 8401 and 8501 leave the word's block 8445 undumped.
+- Pool lane 1. Launched 03:19:39, exited 03:20:39 (59.8 s launch to exit). `success`: 8695 frames. `rngcmp.py`
+  against run1198: 8695 frames identical. Filed with `filerun.py run1198b
+  greatsahara-mongol-classical-window-8438-8694`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1198b-greatsahara-mongol-classical-window-8438-8694.txt`, 642,774,462 bytes,
+SHA-256 `213c4575119c97202aad6125aaa329d24b8d14fd9a3ef42d3f160fda2a48ca21`.
+
+Archive `rontrace-run1198b.log`, 185,299,040 bytes,
+SHA-256 `6c01de31c20ccd615f7732f5bebaaae4143f84994ab2999a754618e5dfe12193`.
+
+**What it holds**: the word 8444's widening, `mongol_classical_pair_run1198b_s_word_frame_is_widened_whole` (256
+blocks, 6457 keys). The state first parts on block 8441 (who=0's `attacked_by`, group 65's march); on block 8445
+ours' group 64 takes `ATTACK_TO` over its guard where theirs' keeps `GUARD`.
