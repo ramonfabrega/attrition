@@ -25887,3 +25887,64 @@ SHA-256 `ff55d801e57768a52ca50604f549e40a9ae63ae8c6ac0cddda4c5f4c28743a44`.
 **What it holds**: the word 9744's widening, `mongol_classical_pair_run1218_s_word_frame_is_widened_whole` (147
 blocks, 2493 keys). It opens apart on 9738: the Nubian Citizen `0/8`'s `damage_frame` ours 9721 against theirs
 9720, and who=1's chasers' moves 48 apart in `y`. The long's stride agrees through 9701.
+## run1201 — the Chinese at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3560, `att-3560`)
+
+`docs/AI.md` §313. §311's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1201 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 14 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 04:37:12, exited 04:37:38 (25.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 14, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Filed with `filerun.py run1201
+  greatsahara-chinese-medieval-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1201-greatsahara-chinese-medieval-start.txt`, 149,926,198 bytes,
+SHA-256 `3e9c3d5f3ec2c8fd48e8dcc6c60237f4f07421d96801d55fd8461df81da8b03f`.
+
+Archive `rontrace-run1201.log`, 8,814,560 bytes,
+SHA-256 `ccd156dae64e93db1c8ad4df25808baf4dd0ade80e35d38cbb086013517410a1`.
+
+**What it holds**: the start of `chinese_medieval_pair::CHINESE_MEDIEVAL`, and the walk's initial state.
+
+## run1202 — the Chinese at a held Medieval age, Great Sahara: the draw stream to the game's end (2026-10-24, item 3560, `att-3560`)
+
+`docs/AI.md` §313. run1198's line with `--ai-tribe 14`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 14
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1201's
+lobby.
+- Pool lane 2, beside run1201. Launched 04:37:13, exited 04:37:40 (27.9 s launch to exit). `success`. **The game
+  ended itself on 4520** (closing block 4521, `ended_early`). `GAME INFO` reads back as run1201's. `rngcmp.py`
+  against run1201: 37 frames identical. Filed with `filerun.py run1202 greatsahara-chinese-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1202-greatsahara-chinese-medieval-trace.txt`, 24,989,699 bytes,
+SHA-256 `74024229dfa8b74709541e6ca4eb97b594ef070d7155b42a9390f237994e64e7`.
+
+Archive `rontrace-run1202.log`, 94,134,912 bytes,
+SHA-256 `62b3a8c058b6cb9369dcf870c243d03c681daf2a18491439f818c6c11c97492c`.
+
+**What it holds**: the pair's first try. `chinese_medieval_pair_first_parting` walks it from run1201: **frame 2981
+of 4520** (count and sequence), ours 12 draws, theirs 13, index 0, ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` against theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+
+## run1202b — the Chinese at a held Medieval age, Great Sahara: the word 2981's window, blocks 2975..3231 (2026-10-24, item 3560, `att-3560`)
+
+`docs/AI.md` §313. `--map 7 --end-frame 3231 --timeout 3600 --log-window 2975 3231 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 14 --cover cover=0` and run1201's lobby. Booked
+because the long's stride blocks 2901 and 3001 leave the word's block 2982 undumped.
+- Pool lane 2. Launched 04:39:44, exited 04:40:24 (40.2 s launch to exit). `success`: 3232 frames. `rngcmp.py`
+  against run1202: 3232 frames identical. Filed with `filerun.py run1202b
+  greatsahara-chinese-medieval-window-2975-3231`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1202b-greatsahara-chinese-medieval-window-2975-3231.txt`, 512,413,916 bytes,
+SHA-256 `f314c8daeba8c677d8ecd5f3dabd4297ca2252b59bcada79fc51b23efcc726a8`.
+
+Archive `rontrace-run1202b.log`, 53,165,248 bytes,
+SHA-256 `098886da939fa595af64f095a5978c47251e6eb3c8e14aed869431ee4c788344`.
+
+**What it holds**: the word 2981's widening, `chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole` (256
+blocks, 2437 keys). The state first parts on block 2978: the Citizen `0/10` struck by a Fire Lances round on 2977
+and fleeing in theirs, unstruck in ours.
