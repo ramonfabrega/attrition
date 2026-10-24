@@ -1386,6 +1386,116 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 168,
         },
     ),
+    // **Piece 1088, the Slingers in the Asian art style** (`32 + 3 ×
+    // 0x160`; item 3578, `docs/AI.md` §312): the Koreans' Slinger, whose
+    // `UNIT_CONTINENT` is 3. run1221's `RON_STATE_FRAME=4287` packet on
+    // the Korean East Indies game holds its three `AttachPos` rows, piece
+    // 32's keys, at points of their own; `tools/recomp/get_position.py`'s
+    // sweep of each is reproduced at all 361 headings by these, the
+    // centroids of their exact regions (64, 96 and 64 lattice points).
+    // Without them every Korean stone left the unit's own square: the
+    // Korean word's 4350, whose state had parted on 4294 — `1/29`'s stone
+    // at the Citizen `0/13` from (6600, 9768) in 10 frames where the
+    // original's left from (6541, 9663) in 9.
+    (
+        1088,
+        crate::anim::ATTACK1,
+        21,
+        Bay {
+            right: 74_224,
+            fwd: 62_577,
+            dz: 176,
+        },
+    ),
+    (
+        1088,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: 43_592,
+            fwd: 116_950,
+            dz: 150,
+        },
+    ),
+    (
+        1088,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -38_569,
+            fwd: 114_599,
+            dz: 176,
+        },
+    ),
+    // **Piece 130, the Koreans' Hwarang** (type 180; item 3578, `docs/AI.md`
+    // §312): a nation's own piece, so no continent offset. run1221's
+    // packet holds its six attack `AttachPos` rows, two releases on each
+    // slot (`CHAR_ATTACK1` at 6 and 22, `2` at 4 and 22, `3` at 10 and
+    // 24); three share one point. `get_position.py`'s sweep of each is
+    // reproduced at all 361 headings by these (30, 422, 17 and 483 lattice
+    // points). Without them the Hwarang `1/44`'s arrow at `0/13`, loosed
+    // on 4279, left from the figure's own (6072, 10728) and flew 23 frames
+    // where the original's left from (6085, 10656, 193) and flew 22.
+    (
+        130,
+        crate::anim::ATTACK1,
+        6,
+        Bay {
+            right: -3_071,
+            fwd: 73_435,
+            dz: 167,
+        },
+    ),
+    (
+        130,
+        crate::anim::ATTACK1,
+        22,
+        Bay {
+            right: -3_071,
+            fwd: 73_435,
+            dz: 167,
+        },
+    ),
+    (
+        130,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: -13_756,
+            fwd: 73_975,
+            dz: 138,
+        },
+    ),
+    (
+        130,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: -3_071,
+            fwd: 73_435,
+            dz: 167,
+        },
+    ),
+    (
+        130,
+        crate::anim::ATTACK3,
+        10,
+        Bay {
+            right: 9_698,
+            fwd: 61_839,
+            dz: 182,
+        },
+    ),
+    (
+        130,
+        crate::anim::ATTACK3,
+        24,
+        Bay {
+            right: 4_247,
+            fwd: 57_120,
+            dz: 181,
+        },
+    ),
     // **Piece 112, the Persians' Immortals** (type 162; item 3355,
     // `docs/AI.md` §279): a nation's own piece, so no continent offset.
     // run984b's `RON_STATE_FRAME=6011` packet on the Persian Great Lakes
@@ -1999,6 +2109,37 @@ mod tests {
         }
         assert_eq!(release_dz(121, 12, 9, 0), Some(164));
         assert_eq!(release_dz(121, 11, 12, 0), Some(163));
+    }
+
+    /// **The Korean stone and the Hwarang's arrow leave from pieces 1088's
+    /// and 130's bays** (item 3578): run1221's two `AMMO` records on block
+    /// 4287 — the Slingers `1/29`'s stone at the Citizen `0/13`, thrown on
+    /// 4286 on `CHAR_ATTACK3` at 16, and the Hwarang `1/44`'s arrow at the
+    /// same Citizen, loosed on 4279 on `CHAR_ATTACK1` at 22 — each figure on
+    /// its unit's own square at its facing, `sx, sy` the dump's own; the
+    /// heights are the packet sweep's `z` (the dump's `sz` 264 and 193).
+    #[test]
+    fn run1221_s_korean_stone_and_arrow_leave_from_their_bays() {
+        let stone = launch_point(
+            Pos::new(6600, 9768),
+            Angle(-124_059_648),
+            1088,
+            crate::anim::ATTACK3,
+            16,
+            0,
+        );
+        assert_eq!((stone.x, stone.y), (6541, 9663));
+        assert_eq!(release_dz(1088, crate::anim::ATTACK3, 16, 0), Some(176));
+        let arrow = launch_point(
+            Pos::new(6072, 10728),
+            Angle(163_053_568),
+            130,
+            crate::anim::ATTACK1,
+            22,
+            0,
+        );
+        assert_eq!((arrow.x, arrow.y), (6085, 10656));
+        assert_eq!(release_dz(130, crate::anim::ATTACK1, 22, 0), Some(167));
     }
 
     /// **The Fire Lances' rounds leave from piece 46's bays** (item 3577):

@@ -26035,6 +26035,31 @@ SHA-256 `098886da939fa595af64f095a5978c47251e6eb3c8e14aed869431ee4c788344`.
 blocks, 2437 keys). The state first parts on block 2978: the Citizen `0/10` struck by a Fire Lances round on 2977
 and fleeing in theirs, unstruck in ours.
 
+## run1221 — the Koreans from an Ancient start, East Indies: a packet at logger frame 4287, the Slinger's stone and the Hwarang's arrow (2026-10-24, item 3578, `att-3578`)
+
+`docs/AI.md` §312. **What the disk could not answer**: where the Slingers `1/29`'s stone (thrown on 4286) and the
+Hwarang `1/44`'s arrow (loosed on 4279), both at the Citizen `0/13`, leave from and how long they fly, and the
+`AttachPos` rows of their pieces 1088 and 130. The long's stride prints `0/13`'s `damage_frame` and `damage_frac`
+on 4301 only, and no capture of the lobby wrote an `AMMO` record. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1221 --map 18 --end-frame 4289 --timeout 3600 --log-window 4286 4288 --detail
+end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 16 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=4287
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- **The first take died**: Wine took an unhandled page fault at start-up (`read access to 00004ECD at
+  7BF21139`), the game exited 40 and the runner raised with no receipt; its 768-byte trace is kept at
+  `~/ron-golden/run1221-dead`. The same line, taken again at once:
+- Pool lane 1, seed 12345. Launched 06:35:24, exited 06:35:54 (29.8 s). `success`, 4290 frames. `rngcmp.py`
+  against run1200: 4290 frames in common, 0 differing. Not filed: the packet is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1221/map-18/frame-snapshot.bin`, 797,187,008 bytes,
+SHA-256 `d07fc2dab5cb8dfac07f8375770d8f9baf8fd980a712e71f62cda4d2903a336e`.
+
+**What it holds**: the `AMMO` records on block 4287 — `1/29 -> 0/13` from (6541, 9663, 264), `total_time` 9, and
+`1/44 -> 0/13` from (6085, 10656, 193), `total_time` 22 (ours 10 and 23 from the figures' own squares).
+`tools/recomp/get_position.py entries` reads piece 1088's three `AttachPos` rows and piece 130's six; each key's
+sweep is `sim::launch`'s `BAYS` rows for the two pieces, pinned by
+`launch::tests::run1221_s_korean_stone_and_arrow_leave_from_their_bays`.
 ## run1220 — the Chinese at a held Medieval age, Great Sahara: the Fire Lances' volley, blocks 2955..2982 at `AMMO=5` (2026-10-24, item 3577, `att-3577`)
 
 `docs/AI.md` §313. **What the disk could not answer**: where theirs' Fire Lances rounds at the Citizen `0/10` leave

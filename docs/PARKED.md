@@ -10568,13 +10568,28 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QK — reserved
+## Parked by item 3578, 2026-10-24 — the Korean Slinger's and Hwarang's bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3578a) **Seven of the nine new `BAYS` keys are diffed on no dumped round.** run1221's two `AMMO` records
+hold piece 1088's `CHAR_ATTACK3` at 16 and piece 130's `CHAR_ATTACK1` at 22; the other keys (1088's
+`ATTACK1`@21 and `ATTACK2`@22; 130's `ATTACK1`@6, `ATTACK2`@4 and @22, `ATTACK3`@10 and @24) rest on
+`get_position.py`'s sweep of the packet's `AttachPos` rows alone, each reproduced at all 361 headings.
+The pair now runs whole, so no round on its stream disagrees. **Score**: none — a word whose blow turns
+on one of those keys would book a window with `AMMO=5`.
+
+(3578b) **The standing families on the Korean pair's windows.** run1200b's 83 keys and the stride's 125
+are `form`, `SITE[i].reg`, both leaders' `aggression`, `build:extra` and who=1's groups' `held` and pools —
+the families every pair carries. **Score**: none.
+
+(3578c) **The Korean pair's closing block reads the human's defeat apart on twelve rows.** run1200 ends on
+5639 with the Nubians `defeated_by 1` (`lost_capital_stamp 5639`), and its closing block 5640, printed at
+`endgame:` detail (`BUILDS=7`, `DEATHS=1`), is the first closing block a walk has read with queues on it.
+Every one of theirs' 67 `queue:queued` reads 0, where ours holds who=1's eight at 1..5 and its leader's
+`num_queued[1]` 6 and `[130]` 2; who=0's `leader:defense` is ours 0 against theirs −1; and `1/2061`'s
+`gather:length[-1]` ours 0 against theirs 73. No unit row parts, and `run1200_korean_ancient_pair_closing_state`
+compares 156 units with none off. What the original does to queues, the loser's `defense` and a gatherer's
+length at a defeat that ends the game is not read. **Score**: none — the endpoint's units agree; a closing
+check that reads queues would book it, with the end-of-game path read first.
 
 ## Parked by item 3579, 2026-10-24 — the Mongol word 9744 → 9772: the Mongol Archers and Javelineers loose from their bays
 
