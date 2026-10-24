@@ -3764,7 +3764,7 @@ method where it has one, or parked naming the generator flag it could not spell.
 
 ## Loop, filed 2026-10-19 — the forty-fifth pass's own
 
-(3350) **The census counts the large functions the behavioural diff reaches as unbacked** (the forty-fifth pass's
+(3350) **The census counts the large functions the behavioural diff reaches as unbacked** (the forty-fifth pass's **The fifty-fourth pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); the `audit`/`entered` column joins nothing, the definition yours. Ramon's.
 reader, byte-weighted: 1,580 of 3,611 simulation functions backed is 43.8 % of functions and about 23.5 % of their
 bytes; the 200 largest are 45 % of the bytes and 25 of them backed; `--unbacked` lists shortest-first): the words
 drive `Unit::think`, `do_move`, `find_path` every frame against the original's logger, and the census credits none of
@@ -3772,22 +3772,12 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's. **The fiftieth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2471 → 2537 functions, 9,607,787 → 9,745,971 bytes (85.5 %) on the tranche's 53 pool captures (`Census entered: simulation 2537 of 3611 functions · 1396 entered and unbacked`); the definition yours. Ramon's. **The fifty-first pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2537 → 2566 functions, 9,745,971 → 9,798,451 bytes (86.0 %) on the tranche's 46 pool captures (`Census entered: simulation 2566 of 3611 functions · 1410 entered and unbacked`); the definition yours. Ramon's. **The fifty-second pass**: bytes 37.9 % unmoved; the census's `entered` column moves on the tranche's 38 captures (the record); 2,449 lines landed in `crates/sim` on six late-age pairs and the census counts none of it, which is the column's whole case; the definition yours. Ramon's. **The fifty-third pass**: backed 1696, port 568, layout 1128 unmoved through 785 sim lines on ten files (the launch rows, `fight`'s wait, the eject path, a tower's sight); the `audit` column is not built, the definition yours. Ramon's.
 
+## Loop, filed 2026-10-24 — the fifty-fourth tranche's
+
+Loop 2003's reaches in the fifty-fourth tranche, filed here below its own row (its section is at the size ceiling): none — no sweep ran;
+twenty AI-track landings on five early-age pairs, the Persian and Mongol words and two twins. The ledger stays. The pass filed no row.
+
 ## Loop, filed 2026-10-23 — the fifty-third tranche's
-
-(3564) **The drain's handoff said "no red booking gate" over two red ones** (the fifty-third pass): `gates.py` on the
-commander's `t53/` reads 3538's first whole gate red on `floors::tests::the_widening_behind_each_pinned_word_exists`
-(green on the gate's second commit, `7ec2a883e`) and 3513's whole gate red on `test_waitrun`'s fixture at 1 of 6 steps
-(Loop 3546, built), 3512's without a receipt (the stale `agent-*` refusal, Loop 3545); the handoff's "no red booking
-gate" line was written from memory. Candidate: the handoff's gate count is `gates.py <tmp> --since <the last pass's
-gate log>`'s last two lines pasted, never a word; `docs_guard` can read the count against the gate logs when the tmp
-directory is named. Score: a handoff a pass can trust without re-running the table. One reach: the pass's.
-
-(3565) **Eight lane rows stood unreaped at the drain** (the fifty-third pass): the chain's last verb is reap, and every
-lane of the tranche's second half (3535, 3543, 3548–3552, 3554) was idle on the roster with its worktree and merged
-branch at the pass's start; the pass ran `ccc rm <ref>` on each, eight removed. Whether the commander's `ccc rm` was
-refused by the classifier or never run is not on the handoff. Candidate: the commander reaps at the merge, and a
-refusal is a line of the handoff. Score: `release_gate.py`'s stale-worktree refusal (Loop 3545) on a booking gate.
-One reach: the commander's, then the pass's.
 
 Loop 2003's reaches in the fifty-third tranche, filed here below its own row (its section is at the size ceiling): none — no sweep ran;
 twenty AI-track landings on nine late-age pairs and their twins. The ledger stays.
@@ -3813,14 +3803,14 @@ sweep ran; eighteen coverage landings and one reading. The ledger stays.
 
 ## Loop, filed 2026-10-22 — the fiftieth tranche's
 
-(3498) **Pool lane 1 stalls about 0.9 s every 32 frames in AI-on lobbies, whatever the pref** (parked 3484b; the steer):
+(3498) **Pool lane 1 stalls about 0.9 s every 32 frames in AI-on lobbies, whatever the pref** (parked 3484b; the steer): **The fifty-fourth pass**: not measured — no sampler ran; the pool's median 123.1 frames a wall second over 30 captures, peak three lanes, 0.2 minutes at the cap. Stays, the pass's.
 run1105b/1106b (3484's swapped scratch, unfiled) cost a take 9–30 s. Candidate: a lane names its cause in an hour (a `sample` of
 the game's threads across one stall, beside the AI's 32-frame cadence) or it stays the pass's. Score: the pool's frames a second.
 One reach. **The fifty-first pass**: not measured — no AI-on take ran with a sampler, and the pool's median rate moved 2.1 → 24.5 frames a wall second on the console mirror alone (3484, 3497), so the stall is measured again against the new rate before a lane names its cause. Stays, the pass's. **The fifty-second pass**: not measured — no sampler ran; the pool's median rate 99.2 frames a wall second over 38 captures (24.5 the tranche before), two lanes abreast at most. Stays, the pass's. **The fifty-third pass**: not measured — no sampler ran; the pool's median 96.1 frames a wall second over 26 captures, peak two lanes, no cap wait. Stays, the pass's.
 
 ## Loop, filed 2026-10-21 — the forty-ninth tranche's
 
-(3433) **A pool lane aborted before frame 0 on Wine's unimplemented `secur32.dll.QueryContextAttributesW`** (3426's "for
+(3433) **A pool lane aborted before frame 0 on Wine's unimplemented `secur32.dll.QueryContextAttributesW`** (3426's "for **The fifty-fourth pass**: stays — 30 captures, none died before frame 0.
 the Loop"): the first run1031b died on pool lane 2 with nothing dumped; the retake on lane 1 ran clean. It is not on record
 in `docs/ORACLE.md` or `docs/RUNS.md`. Candidate: `unattended_capture.py` names the unimplemented import in its refusal and
 retakes once on the other lane, and a second occurrence on one lane says the lane's prefix differs. Score: a coverage
@@ -3836,7 +3826,7 @@ Loop 2003's reaches in the forty-seventh tranche, filed here below its own row (
 
 ## Loop, filed 2026-10-19 — the forty-sixth tranche's
 
-(3382) **One slow test a pass** (the forty-sixth steer, Ramon): six tests run over 30 s and two of them —
+(3382) **One slow test a pass** (the forty-sixth steer, Ramon): six tests run over 30 s and two of them — **The fifty-fourth pass**: the suite re-timed first (`suite_timings.py --stale-only`, 114 untimed tests in three minutes; 0 of 1,261 untimed, 3,268 s); five tests over 30 s, the compared pin 202 s on file and its lever the forty-eighth pass's `schema()` key — no thirty minutes spent, the budget went to two builds (Loop 3564, parked 3556a). Stays.
 `diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned` at 202 s and
 `every_key_the_dump_prints_is_read_or_pinned` at 137 s — are 339 of the suite's 3,144 s (`suite_timings.py`,
 2026-10-20). Not a lane (a lane gate is thirteen minutes of CPU a landing for a win of seconds a gate): the pass's,
@@ -3865,7 +3855,7 @@ malloc (3339a). The forty-fifth pass's ten rulings on this section's rows are in
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
-(3237) **The port count rises on a sweep that diffs an inline copy, not the crate** (3234's parked (a), filed at its
+(3237) **The port count rises on a sweep that diffs an inline copy, not the crate** (3234's parked (a), filed at its **The fifty-fourth pass**: not re-measured (35 of 1,421 stands; port 568 unmoved, no sweep ran). The recommendation stands: a `called` column beside `port`, measured first. Ramon's.
 merge): five of 3234's six sweeps assert logic inlined in the test, and `Sim::same_damage`, `Sim::do_patrol`,
 `Sim::add_trade_order`, `Sim::check_ever_seen` and `Sim::find_new_bomber_target` are not diffed; the census marks all
 six `port` because the crate spells each `Class::method` outside `sweep/`, so `Census:` port moved 317 → 323 with
@@ -3881,7 +3871,7 @@ with 3102) and a null `--answer-win` (3181); 3182 `--regen` under a new `--answe
 plain name (3013's third reach); 3200 the `--wbias` header's decimal offsets (3218); and 3102's second half, a port
 that returns early wrapped in a closure by the generator, stays the lane's.
 
-(3188) **The nations lane's named family is spent for the battery's leaders** (the commander, at 3172's merge, for the
+(3188) **The nations lane's named family is spent for the battery's leaders** (the commander, at 3172's merge, for the **The fifty-fourth pass**: no nations lane ran; the early-age pairs carry the nation lines now (unit types 162 → 167). Ramon's.
 pass and for Ramon): 3145, 3160 and 3172 audited `get_cost`'s and `train_time`'s national arms against the eight
 battery leaders — 3160's Citizen arms moved the median 2270 → 4770; 3172's audit of `train_time` is negative and its
 Sulphur arm moved no lobby. What the lane takes next is NATIONS §7's sixth candidate (the tiers' arms, booked 3187); whether a
@@ -3889,7 +3879,7 @@ nations lane stays on the roster is Ramon's (DECISIONS 78). One reach. **The for
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
-(3143) **The host at saturation, and a runaway the budget cannot see** (Ramon, 2026-10-18, for the steer): at 01:12
+(3143) **The host at saturation, and a runaway the budget cannot see** (Ramon, 2026-10-18, for the steer): at 01:12 **The fifty-fourth pass**: a third Opus lane — admission **4,304.8 s summed at the door, longest 59.2** (499.7 / 28.6 on two lanes), nine of nineteen gate ends past the sixteen cores (five of seventeen), the gate class 26.1 → 41.0 minutes a session; the lane rule takes the lane away (DECISIONS 93 §1). The slot policy and the reaper stay yours.
 during the forty-first tranche's whole gate, with four lanes live and 3140's run921 capture under Wine, the load was 32 on
 16 cores at 0% idle; the admission budget held 16 leases (16 CPU slots of the v2 policy's 32, 16 GiB reserved), so it was
 admitting freely while the box was already full. Memory was not the constraint: 26 GiB unused, compressor 1.8 GiB, swap
@@ -3901,7 +3891,7 @@ receipt reads seconds while every lane's wall clock stretches; (ii) a reaper, or
 that outlives no supervisor, so a test whose supervisor died cannot run a day; (iii) the sweep test that did not
 terminate (the soak found one in an hour; this one ran under no budget). **The forty-first pass** (02:00–02:40, 2026-10-18, the box idle but for the pass): the orphan is **alive** — pid 51257, the same debug `sweep_a_f … city_data_num_city_buildings` binary, parent 1, started 2026-10-17 03:25:59, 22 h 40 m at 100 % — so the fortieth pass's (iii) was wrong: the `kill 63145 33786` named the cargo parents, not the test; the pass's own `kill 51257` was refused by the classifier (Interfere With Workloads) and goes to Ramon. The budget at 20 made the wait visible: the fourteen booking gates waited **1375.6 s summed at the door, longest 83.8 s** (246 s over nineteen the tranche before), and the lane gates still ran **19–31 minutes on ten of fourteen** (6–13 on the four after 01:00, two lanes live), so twenty slots on sixteen cores beside a Wine capture outside the budget and the orphan's core is still a load past the cores; the gate prints `Host load:` at start and end now (Loop 3091). Loop 3088 (the same orphan) is folded here. Candidates unchanged: a sweep test's emulator loop takes an instruction budget; a lease timeout no supervisor outlives; the capture lane takes a lease. **The forty-second pass** (08:00–09:30, 2026-10-18): the orphan is **still alive** — pid 51257, 1 d 4 h 22 m at 99.7 % of a core; Ramon's `kill 51257`. The tranche's fifteen booking gates, read by `tools/gates.py` (built this pass from the probe three passes wrote by hand): admission **1351.8 s summed, longest 134.8 s** (1375.6 / 83.8 before); **four of fifteen ended past the sixteen cores** (24.0, 19.7, 20.0, 18.7) and eleven under; the lane gates ran **11–51 minutes** (`tranche.py`'s gate class, 21.6 a session mean; 3207's 51.4 beside the sixteenth landing's whole gate and three other lane gates), and 3170's lane gate waited **400.9 s at the door**. Twenty slots is not what the receipts show as the ceiling: the box was under its cores at eleven of fifteen gate ends and the lane gates still ran twenty minutes — the gate prints `Gate minutes:` by step now (Loop 3224), and the next pass reads where a lane gate's minutes go before any slot count moves. Candidates unchanged; Ramon's. **The forty-third pass** (14:45–, 2026-10-18): the orphan is **gone** — pid 51257 is not on the box. The tranche's seventeen booking gates (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t43`): admission **1357.1 s summed, longest 168.3 s** (1351.8 / 134.8), **five of seventeen ended past the sixteen cores** (16.4, 20.0, 23.3, 17.6, 16.2); the lane gates ran 14.8–57.4 minutes a lane as **two to four gate runs a landing**, the release step 4.9–7.5 minutes where a journal quoted it (four of twenty did; the guard now asks all). The slot count is not the ceiling the receipts name; the runs a landing are (Loop 3265). The pass recommends no slot change. Ramon's. **The forty-fourth pass** (23:23–, 2026-10-18): the tranche's seventeen booking gates (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t44`): admission **993.8 s summed, longest 31.8 s** (1357.1 / 168.3), **eight of seventeen ended past the sixteen cores** (20.8, 19.3, 26.5, 25.6, 16.3, 16.1, 23.7, 16.6), 174.3 minutes of gate on the commander's 445; the lane gates' release step **6.0–26.4 minutes, median 18.9**, off twenty journals (4.9–7.5 off four the tranche before), at `--test-threads 4` and widened on every sim path — the thread count under a widening is the loop's lever (Loop 3313), the slot policy is still yours. No orphan. The pass recommends no slot change. **The forty-fifth pass** (17:50–, 2026-10-19): the tranche's twenty booking gates (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t45`): admission **2992.4 s summed, longest 96.1 s** (993.8 / 31.8), **none of twenty ended past the sixteen cores** (3.6–16.3 at the end, against eight of seventeen), 258.4 minutes of gate on the commander's 1015, three lanes (DECISIONS 83); the lane gates' release step off twenty journals: the battery words' (widened, four threads) **9.5–18.6 minutes, median 10.8** (18.9 the tranche before), the `--no-widen` sweep's 8.6–17.0. The thread count stayed and the step fell by a third with one lane fewer — the clock was the box, not the width (Loop 3313, closed). The pass recommends no slot change. Ramon's. **The forty-sixth pass** (2026-10-20): the tranche's twenty-one booking gates (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t46`): admission **3623.4 s summed, longest 160.0 s** (2992.4 / 96.1), **six of twenty-one ended past the sixteen cores** (18.1, 24.3, 26.3, 22.4, 17.3, 18.5; none of twenty before), 351.5 minutes of gate, four lanes (DECISIONS 84); the lane gates' release step off twenty journals: the battery words' (widened, four threads) **9.8–21.3 minutes, median 13.2** (10.8), the `--no-widen` sweeps' 5.8–16.6, median 10.6 (14.2). The fourth lane put six gate ends past the cores where three lanes put none; the slot policy is still yours. The pass recommends no slot change. Ramon's. **The forty-seventh pass**: six of twenty gate ends past the sixteen cores again (19.0, 24.9, 16.2, 23.4, 19.9, 18.6), the admission 5261 s summed at the door (3623), the longest wait 152 s; no orphan found (`pgrep -fl sweep_` empty at the pass). The slot policy stays yours. **The forty-eighth pass** (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t48`): seven booking gates, admission **238.2 s summed, longest 24.0 s** (5261 / 152 the tranche before), one gate end past the sixteen cores (3410's 25.3, four lanes building at once); the lane gates' release step 11.5–15.2 minutes. The box was idle but for the loop. The orphan is not re-checked by this pass. Ramon's. **The forty-ninth pass** (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t49`): sixteen booking gates, admission **98.4 s summed, longest 2.3 s** (238.2 / 24.0), one gate end past the sixteen cores (3424's 16.2, three pool lanes live); 242.7 minutes of gate; `pgrep -fl sweep_` empty at the pass. The slot policy stays yours. Ramon's. **The fiftieth pass**: (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t50`): twenty-one booking gates, admission **118.5 s summed, longest 3.7 s** (98.4 / 2.3), two gate ends past the sixteen cores (3442's 19.7 with three pool lanes live, 3462's 16.2); 289.9 minutes of gate; `pgrep -fl sweep_` empty at the pass. The slot policy stays yours. Ramon's. **The fifty-first pass**: seventeen booking gates waited 119.4 s summed at the door, longest 0.9 s; `Host load:` past the sixteen cores at two gate ends (3491's 25.3 beside three pool lanes, 3497's 26.0); no orphan at the pass's start. Ramon's. **The fifty-second pass**: twenty booking gates waited **1,180.7 s summed at the door, longest 25.9 s** (119.4 / 0.9 the tranche before): seven whole gates of 24–26 minutes beside thirteen scoped ones, two lanes' gates colliding; `Host load:` past the sixteen cores at three gate ends; no orphan at the pass's start. Ramon's. **The fifty-third pass**: admission 499.7 s summed, longest 28.6 s (1,180.7 / 25.9 before), on seven whole gates beside ten scoped; `Host load:` past the sixteen cores at five gate ends of seventeen, 21.6 the highest (3538's whole gate beside 3539's). No orphan found. Yours.
 
-(3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is
+(3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is **The fifty-fourth pass**: not measured — a pass cannot hear the box; thirty captures ran. The muted-launch trial stays yours.
 heard while captures run, though the click-free lane was meant to be muted (parked 343, DECISIONS 40's list). What the
 tree does: `unattended_capture.py`'s `mute()` zeroes `MUSIC_VOL`, `SOUND_VOL` and `TAUNT_VOL` in the lane profile's
 `Player.dat` beside `set_map`, under the staged backup and restore; the queue lane (`runqueue.sh`, `longtrace.sh`,
@@ -10388,7 +10378,9 @@ words and edits nothing here; a refill lands when two remain.
   the pair's never-seen line. `rubric.py --tables 3 --dumps` on run1193 and run1194 (the whole game, to 7130) sees
   13 types, all already in the ledger: Legions (146), Light Horse (209), Javelineers (83), Archers (171), Catapult
   (265), The Senator (353) and the economy's units. The line stays unseen. A lobby that reaches it is the next
-  pass's to name: another difficulty, or another map (`docs/AI.md` §309).
+  pass's to name: another difficulty, or another map (`docs/AI.md` §309). **The fifty-fourth pass**: no Roman
+  lobby reaches it — `TRIBE_MASK` says the Scutari are **Spanish** (`rubric.py --tables 3` prints the nation now,
+  DECISIONS 93 §4); booked as 3586, the Spanish at a held Classical age, Great Sahara.
 
 ## Parked by the next landing, slot PU — reserved
 
@@ -10418,7 +10410,9 @@ words and edits nothing here; a refill lands when two remain.
   lobby. The age-0 lines this pair was booked for were fielded or not well before the age-up: the Hwarang from
   1801, and neither the Spearmen (166), the Bark (323) nor the Trireme (340) at all. Not read: which
   `ending_technology` value the "Standard" combo row writes. **Score**: none (the census rows are the pair's, not
-  this row's).
+  this row's). **The fifty-fourth pass**: ruled — an "age 0" pair is an Ancient start capped at
+  Classical, `STARTING_TECHNOLOGY=0 ENDING_TECHNOLOGY=1`, fielding the age-0 and age-1 lines (DECISIONS 93 §3; the
+  queue's shape paragraph and the frame say so); the Spearmen this pair was booked for are the Iroquois' by mask, 3584's.
 
 ## Parked by item 3580, 2026-10-24 — the Chinese Medieval pair's closing window
 

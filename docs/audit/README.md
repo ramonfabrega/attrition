@@ -2145,3 +2145,20 @@ of the fifty-third tranche (`docs/audit/2026-10-23-fable-pass-53.md`):
   these two, and the pair rule (Loop 3544) is 3513's shape, cited by the
   booking.
 
+
+## The fifty-fourth pass's rows, 2026-10-24
+
+Two rows of the brief checklist and one of the commander's chain, each
+from a landing of the fifty-fourth tranche
+(`docs/audit/2026-10-24-fable-pass-54.md`):
+
+- **A line's nation is the mask's** (parked 3556a): the fifty-third pass
+  booked the Scutari as Roman and the Spearmen as Korean; `rubric.py
+  --tables 3` now prints each never-seen type's nation in braces off
+  `TRIBE_MASK` (MSB-first, `docs/FORMATS.md`), and a pair is booked on it.
+- **Age 0 is an Ancient start capped at Classical** (parked 3559a):
+  `ENDING_TECHNOLOGY` has a floor of 1, so the pair fields the age-0 and
+  age-1 lines and asserts `ENDING_TECHNOLOGY 1`.
+- **The handoff's counts are the tables'** (Loop 3564): `tranche.py --base
+  <base>` prints the `For the pass` line from the tranche's `Book` commits,
+  and `gates.py`'s last two lines are the gate count; a drain pastes both.

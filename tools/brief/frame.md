@@ -361,7 +361,14 @@ Before any reading, in order:
   dumps and nothing else, so a take without `GUYS` moves no type; run
   `tools/rubric.py --tables 3` on your tree after the pin and re-pin
   `census::RUBRIC_UNIT_TYPES_SEEN` with the count in its comment; the
-  `Rubric:` line is the commander's.
+  `Rubric:` line is the commander's. **A line's nation is the mask's**
+  (3556a; DECISIONS 93): table 3 prints it in braces after each never-seen
+  type, and a line booked under another nation's pair is never fielded —
+  the Scutari are Spanish, the Spearmen Iroquois. **Age 0 is an Ancient
+  start capped at Classical** (3559a): `SetupWin::setup_game` stores the
+  ending age as the combo's index plus one, so `ENDING_TECHNOLOGY=0` and
+  `1` are one game, read back as `1`; the pair fields the age-0 and age-1
+  lines, and its `assert_lobby` reads `ENDING_TECHNOLOGY 1`.
 - **A whole pair's `cover=1` twin is what moves lockstep bytes** (3531;
   DECISIONS 91): a `cover=0` trace enters nothing but its hooks, so the
   four whole late-age pairs moved the share not at all; the twin is the
@@ -369,10 +376,12 @@ Before any reading, in order:
   `cover=0` long, and `rubric.py --tables 4` re-pins
   `census::RUBRIC_LOCKSTEP_BYTES_TENTHS` once it is in `blind::TRACES`.
   **The twins are spent** (3531–3534, 3548, 3549, 3551, 3552: 77.04 →
-  77.45, hundredths a twin, the eighth none; Loop 3541): every whole pair
-  has one, and lockstep bytes now move only on a `cover=1` take of a lobby
-  no trace has reached — a pair that closes books its twin, and a twin is
-  never booked ahead of its pair.
+  77.45, hundredths a twin, the eighth none; Loop 3541), **and a pair
+  that varies only age and nation books no twin** (3552a, 3572a, 3573a:
+  three twins in a row entered no function another lockstep trace had
+  not; DECISIONS 93): lockstep bytes move only on a `cover=1` take of a
+  lobby whose *settings* no trace reached — a map, a game type, a
+  difficulty — and a twin is never booked ahead of its pair.
 
 ## build
 

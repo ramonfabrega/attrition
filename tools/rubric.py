@@ -340,10 +340,12 @@ def loaded_ages(buf, want=UNIT_COUNT):
     return out
 
 
-def print_types(rules, ages, types, excluded=(), criterion="", source=""):
+def print_types(rules, ages, types, excluded=(), criterion="", source="", nations=None):
     """Table 3. `excluded` the type ids out of a skirmish's reach
     (`no_tribe_types`): the denominator is the rest; an excluded type seen
-    in a dump is printed, since it would falsify the criterion."""
+    in a dump is printed, since it would falsify the criterion. `nations`
+    (`tribe_nations`) names each never-seen line's nation in braces, so a
+    pair is booked on the nation the mask holds."""
     all_ids = {r[0] for r in rules}
     out = set(excluded)
     rules_in = [r for r in rules if r[0] not in out]
@@ -365,7 +367,8 @@ def print_types(rules, ages, types, excluded=(), criterion="", source=""):
     groups = defaultdict(list)
     for tid, name, graph, domain, cat in never:
         groups[(domain, ages.get(tid, "?"))].append(f"{tid}:{name}" + (f"[{graph}]" if graph and
-                                                                       graph.lower() != name.lower() else ""))
+                                                                       graph.lower() != name.lower() else "")
+                                                    + nation_tag((nations or {}).get(tid)))
     for (domain, age), items in sorted(groups.items(), key=lambda kv: (kv[0][0], str(kv[0][1]))):
         print(f"{domain or '?':6} age {age!s:>2} ({len(items):3}): " + ", ".join(items))
     return len(seen), len(never), len(rules_in)
@@ -686,6 +689,43 @@ def print_lockstep(s, ntraces):
 # --- the denominator of table 3 ---------------------------------------------
 
 
+# The tribe ids, in `rules.xml`'s `TRIBES` order (`crates/sim/src/nations.rs`'s
+# roster); `TRIBE_MASK` is a 24-bit string MSB-first, so the rightmost
+# character is tribe 0 (`docs/FORMATS.md`, "TRIBE_MASK is a 24-bit string").
+TRIBES = ("Aztecs", "Maya", "Inca", "Bantu", "Nubians", "Greeks", "Romans", "Egyptians",
+          "Turks", "Spanish", "French", "British", "Germans", "Russians", "Chinese", "Japanese",
+          "Koreans", "Mongols", "Iroquois", "Lakota", "Americans", "Indians", "Dutch", "Persians")
+
+
+def tribe_nations(text):
+    """`{type id: [nation, …]}` for every record with a `TRIBE_MASK`, the
+    nations whose bit is set, in tribe-id order. The fifty-fourth pass:
+    the fifty-third booked the Scutari as Roman and the Spearmen as
+    Korean, and the mask says Spanish and Iroquois (parked 3556a)."""
+    out = {}
+    for i, b in enumerate(UNIT.findall(text)):
+        mask = tag(b, "TRIBE_MASK")
+        if not mask:
+            continue
+        bits = mask.strip()[::-1]
+        out[UNIT_FIRST + i] = [TRIBES[k] for k, c in enumerate(bits) if c == "1" and k < len(TRIBES)]
+    return out
+
+
+def nation_tag(nations):
+    """What table 3 prints after a never-seen line: `{Spanish}` for a
+    nation line (three nations at most), `{not X}` for a generic one that
+    skips up to three, nothing for the rest."""
+    if not nations:
+        return ""
+    if len(nations) <= 3:
+        return "{" + ", ".join(nations) + "}"
+    missing = [t for t in TRIBES if t not in nations]
+    if 0 < len(missing) <= 3:
+        return "{not " + ", ".join(missing) + "}"
+    return ""
+
+
 def no_tribe_types(text, ages):
     """The type ids no skirmish trains: `TRIBE_MASK` all zero — no
     nation's bit, so `LeaderData::tribe_can_type` answers 0 for every
@@ -902,7 +942,8 @@ def main():
                     with open(tdump, "rb") as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
                         ages = loaded_ages(mm)
                 excluded = no_tribe_types(text, ages)
-                seen, never, ntypes = print_types(rules, ages, types, excluded, CRITERION, source)
+                seen, never, ntypes = print_types(rules, ages, types, excluded, CRITERION, source,
+                                                  tribe_nations(text))
                 parts[3] = (f"unit types seen {seen} of {ntypes} ({never} never; {len(excluded)} excluded; "
                             f"{source})" + partial)
             print()

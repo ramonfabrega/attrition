@@ -122,3 +122,12 @@ file; each one is a ten-minute read of the code the row names.
   Ramon, re-booked the same word as **1639**, the re-race: three racers
   on one brief, one session a landing, the roster decided on its score
   (`docs/DECISIONS.md` entry 64, amended). Nothing landed under 1631.
+- **3576** dropped by the fifty-fourth pass, unbooked: the Greek Classical
+  twin at `cover=1`, owed by the pair's close under DECISIONS 92 §2. Three
+  twins in a row (3552, 3572, 3573) entered no function another lockstep
+  trace had not, so a pair that varies only age and nation books no twin
+  (DECISIONS 93 §2). Nothing landed under 3576.
+- **3582** dropped by the fifty-fourth pass, unbooked: the Korean Ancient
+  twin at `cover=1`, as 3576 (DECISIONS 93 §2). Nothing landed under 3582.
+- **3583** dropped by the fifty-fourth pass, unbooked: the Chinese Medieval
+  twin at `cover=1`, as 3576 (DECISIONS 93 §2). Nothing landed under 3583.

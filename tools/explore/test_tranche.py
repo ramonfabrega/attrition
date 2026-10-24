@@ -131,3 +131,34 @@ class Captures(unittest.TestCase):
         self.assertEqual(tranche.captures_of(3347, self.RUNS), ["run981", "run981b"])
         self.assertEqual(tranche.captures_of(3374, self.RUNS), ["run999c"])
         self.assertEqual(tranche.captures_of(3345, self.RUNS), [])
+
+
+class TheHandoff(unittest.TestCase):
+    """The fifty-fourth pass (Loop 3564): the drain's handoff said one
+    `DEEP` where three lanes crossed 300 k, and the pass before it said no
+    red gate over two. The counts are the tables': `--base <sha>` reads the
+    tranche's items off its `Book` commits and prints the handoff's line."""
+
+    SUBJECTS = ['Book 3580 and drain the fifty-fourth tranche at twenty: the Chinese word',
+                'Merge worktree-att-3580 (7 commits)',
+                'Book 3578: the Korean word 4350 -> 5639 of 5639, whole',
+                "Queue: 3562's lobby is an Ancient start capped at Classical",
+                'Book 3573: the Persian Medieval twin run1216 whole', 'Merge worktree-att-3573 (3 commits)']
+
+    def test_the_items_are_the_book_commits_oldest_first(self):
+        self.assertEqual(tranche.booked_items(self.SUBJECTS), [3573, 3578, 3580])
+
+    def test_the_line_counts_landings_deep_lanes_waiting_and_price(self):
+        rows = [{'item': 3567, 'session': 'a', 'peak_k': 328, 'price': 11.91, 'waiting_min': 21.0},
+                {'item': 3567, 'session': 'b', 'peak_k': 146, 'price': 2.75, 'waiting_min': 90.9},
+                {'item': 3572, 'session': 'c', 'peak_k': 115, 'price': 1.60, 'waiting_min': 23.9}]
+        self.assertEqual(tranche.handoff_line(rows, 300),
+                         'handoff: 2 landings · one DEEP (3567 at 328 k) · 67.9 minutes waiting a landing · '
+                         '8.13 USD a landing (16.26 over 3 sessions)')
+        self.assertEqual(tranche.handoff_line(rows[2:], 300),
+                         'handoff: 1 landing · no DEEP · 23.9 minutes waiting a landing · '
+                         '1.60 USD a landing (1.60 over 1 session)')
+
+
+if __name__ == '__main__':
+    unittest.main()

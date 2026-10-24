@@ -258,7 +258,10 @@ chained and is refilled without reference to another's state, and the
 only coupling between them is the merge and what the brief reserves.
 **A pass adds one lane a tranche while a landing's waiting holds** —
 `tools/tranche.py`'s waiting minutes a landing no more than a fifth
-above the tranche before — **and takes one away when it does not**; a
+above the tranche before — **and takes one away when it does not** (the
+fifty-fourth pass, DECISIONS 93: a third Opus lane raised waiting 34.3 →
+58.8 a landing and the gate 26.1 → 41.0 a session in the same 9 h 55 two
+lanes had taken, so the fifty-fifth runs two); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool
@@ -269,7 +272,11 @@ eight of eight whole, every battery word closed, the `port` and `name`
 marks drained). **The commander counts landings since the last steering pass — by
 `git log` from that pass's commit, never from its own last clear — and
 stops at twenty**, writing the handoff and saying the steering pass is
-due — **or sooner, on the user's word, as a pit stop** (Loop 3439, entry
+due — **its `For the pass` counts are the tables'**: `tools/gates.py <tmp>
+--since <the last pass's gate log>`'s last two lines and `tools/tranche.py
+--base <base>`'s last, pasted, never a count from memory (Loop 3564: one
+drain said "no red booking gate" over two, the next "one `DEEP`" over
+three) — **or sooner, on the user's word, as a pit stop** (Loop 3439, entry
 88: the forty-ninth drained at sixteen): **a capture that is running is
 never stopped halfway** — a reprioritisation stops *future* captures
 only, because a game cut short spends its run number and its lane for

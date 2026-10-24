@@ -99,7 +99,8 @@ is append-only and amended in place, as it always was.
 - 82 standing — The forty-fourth tranche is scored on four lanes at more and slower, the lane gate's first red was the guard that asked for its own quote, a hung mutant and a compile failure get verdicts of their own, a lane's cleanup is by ownership, an unread field the sim carries is owed by name, and sixteen Loop items become tools, guards, rows, closes or Ramon's
 - 86 standing — The forty-seventh tranche is scored on four lanes at the loop's cheapest landing, the held-out battery runs eight of eight whole and the battery track stops by its own rule, the forty-eighth tranche is booked on the blind list, two signal reports had one sender and get a guard, the lane gate gates past the commander's paperwork, and nineteen Loop items become tools, rows, closes or Ramon's
 - 91 standing — The fifty-second tranche is scored on two Opus lanes at twenty landings in 11 h 25 on six late-age pairs, the sim moves for the first time in five tranches and four pairs run whole, the rubric reads ages 8 of 8 and unit types 152 of 302 with lockstep bytes unmoved, the fifty-third tranche is booked on the open words and the whole pairs' twins, the drain's clear is named its last act, and the lane rule's trip is a recommendation to hold
-- 92 standing — The fifty-third tranche is scored on two Opus lanes at twenty landings in 9 h 57 on the late ages, nine pairs stand up and eight run whole, every whole pair's `cover=1` twin lands and lockstep bytes move 77.0 → 77.4 with the twins spent, the rubric reads unit types 162 of 302, a third lane is added by the rule, the fifty-fourth tranche is booked on the Persian word and eight early-age pairs, and eleven Loop items become tools, rules, closes or Ramon's
+- 93 standing — The fifty-fourth tranche is scored on three Opus lanes at twenty landings in 9 h 55 on the early ages, five pairs stand up and four run whole, the Persian word closes in three items, the twins of an age-and-nation pair bring no byte and the three owed leave the queue, the rubric reads unit types 167 of 302, the lane rule takes the third lane away, age 0 is an Ancient start capped at Classical, a never-seen line names its nation off the mask, the handoff's counts are the tables', and the fifty-fifth tranche is booked on the Mongol word and seven early-age pairs
+- 92 amended by 93 — The fifty-third tranche is scored on two Opus lanes at twenty landings in 9 h 57 on the late ages, nine pairs stand up and eight run whole, every whole pair's `cover=1` twin lands and lockstep bytes move 77.0 → 77.4 with the twins spent, the rubric reads unit types 162 of 302, a third lane is added by the rule, the fifty-fourth tranche is booked on the Persian word and eight early-age pairs, and eleven Loop items become tools, rules, closes or Ramon's
 - 90 amended in place — The fifty-first tranche is scored on two Opus lanes at eighteen `cover=1` landings in 8 h 05 at the loop's cheapest and fastest, the blind list closes to a floor of thirty-nine referenced rows, the headline moves to the rubric's unit types and six lobbies are booked for it, the pass and the commander stop messaging each other, and eleven Loop items become rules, rows, tools or closes
 - 89 amended in place — The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter
 - 88 amended by 90 — The forty-ninth tranche is scored on two Opus lanes at sixteen `cover=1` landings drained early on a pit stop, the blind list falls 300 → 240 open, the click layer moves to the pool and the queue lane keeps only what no `@` line sends, two residue rows are ratified, the oracle cache key reads the parser and codec only, and sixteen Loop items become tools, rows, closes or Ramon's
@@ -8275,3 +8276,117 @@ against two and the handoff's count against `gates.py`; `DEEP` against
 two; the lane rows at the drain against eight; the backlog against 11;
 the disk against 153 GiB.
 
+## 93. The fifty-fourth tranche is scored on three Opus lanes at twenty landings in 9 h 55 on the early ages, five pairs stand up and four run whole, the Persian word closes in three items, the twins of an age-and-nation pair bring no byte and the three owed leave the queue, the rubric reads unit types 167 of 302, the lane rule takes the third lane away, age 0 is an Ancient start capped at Classical, a never-seen line names its nation off the mask, the handoff's counts are the tables', and the fifty-fifth tranche is booked on the Mongol word and seven early-age pairs
+
+*2026-10-24, the fifty-fourth pass (the `steer` session, Fable), reached by
+the commander's `ccc clear steer --then` at the drain (`25fd69327`), with
+every lane reaped and no message between the rows. The record is
+`docs/audit/2026-10-24-fable-pass-54.md`; this entry carries the
+decisions.*
+
+**What was measured.** Twenty landings on three Opus 5.5 lanes at
+`--effort medium`, every lane session's model read off lore, in **9 h 55**
+from the base (`2249e2c0`, 22:48 −05:00 on 10-23) to the twentieth
+booking (`25fd69327`, 08:43 on 10-24), the drain's whole gate green.
+**The Persian word closed in three items** (3555, 3568, 3570: 4083 → 4170
+→ 4523 → 4759), as estimated. **Five early-age pairs stood up and four run
+whole**: the Greeks at a held Classical age 8 → 2616 → 4341 → 7865 → 8126
+(3557, 3566, 3569, 3571, 3574), the Romans 4069 → 7130 (3556, 3567), the
+Koreans from an Ancient start 4350 → 5639 (3559, 3578), the Chinese at a
+held Medieval age 2981 → 3030 → 4520 (3560, 3577, 3580); the Mongols at
+Classical open at 9772 of 9884 (3558, 3575, 3579). Two twins (3572, 3573)
+entered no function another trace had not; three booked pairs
+(3561–3563) were never spawned. **The rubric, lockstep: ages held 8 of 8,
+unit types seen 162 → 167 of 302, lockstep bytes 77.4 unmoved.** 1,241
+lines in `crates/sim` over 17 files (`launch.rs` +523, the bays;
+`fight.rs` +310; `orders.rs`, `collide.rs`, `victory.rs`). The blind list
+unmoved at 247 · 208 · 39, the scan finding none dead. **The price: 138.15
+USD list for the workers, 6.91 a landing** (105.14 / 5.26); the commander
+15.79; **153.94 in all** (122.01). **Waiting 58.8 minutes a landing**
+(34.3): the gate 41.0 of 51.1 a session (26.1 of 31.2), the capture 4.5;
+nineteen gates, six whole, thirteen scoped, **none red**, 384.9 minutes
+of gate (258.7); **admission 4,304.8 s summed, longest 59.2** (499.7 /
+28.6); nine gate ends of nineteen past the sixteen cores (five of
+seventeen). **Three `DEEP`** (3567 at 328 k, 3570 at 304 k, 3580 at 305
+k), each landed from a second session of 0.94–2.75 USD — **the handoff
+said one** (Loop 3564's shape again). No kill rule, no merge backed out,
+every lane row reaped at the drain. The pool held three lanes, waited 0.2
+minutes at the cap, median **123.1 frames a wall second** over 30
+captures (1.5 a landing). The archives compressed 148 → 171 GiB free; the
+114 untimed release tests were timed (0 of 1,261 untimed).
+
+**What it means.**
+
+1. **The lane rule's reading is "take one away"** (entry 61 §5): waiting a
+   landing rose 34.3 → 58.8, far past a fifth; the gate class 26.1 → 41.0
+   a session; the admission 500 → 4,305 s; and the tranche took the wall
+   time two lanes had (9 h 55 against 9 h 57) — a third lane bought no
+   landing an hour and cost 31 % more a landing. **The fifty-fifth runs
+   two Opus lanes at medium.** The count is the rule's and the pass's;
+   the models are the roster's and Ramon's, unchanged.
+2. **A pair that varies only age and nation books no twin** (3552a,
+   3572a, 3573a; Loop 3541 extended): three twins in a row entered no
+   function another lockstep trace had not, at 1.5–2.2 USD and 25–37
+   minutes each. Lockstep bytes move only on a `cover=1` take of a lobby
+   whose *settings* no trace reached — a map, a game type, a difficulty.
+   Entry 92 §2's "a pair that closes books its twin" is amended to this;
+   the three twins owed (3576, 3582, 3583) leave the queue by the
+   ledger. The definition stands (Ramon's, entry 88).
+3. **Age 0 is an Ancient start capped at Classical** (3559a):
+   `SetupWin::setup_game` stores the ending age as the combo's index plus
+   one, so a profile's `ENDING_TECHNOLOGY=0` and `1` are one game, read
+   back as `1`. A pair booked "at age 0" is `STARTING_TECHNOLOGY=0
+   ENDING_TECHNOLOGY=1`, fields the age-0 and age-1 lines, and its
+   `assert_lobby` reads `ENDING_TECHNOLOGY 1`; the rubric's "ages held" is
+   unchanged, every start holding age 0. The queue's shape paragraph and
+   the frame say so; 3562 was re-booked that way by the commander.
+4. **A never-seen line names its nation off the mask** (3556a): the
+   fifty-third pass booked the Scutari as Roman and the Spearmen as Korean
+   from memory, and `TRIBE_MASK` says Spanish and Iroquois
+   (`docs/FORMATS.md`: 24 bits, MSB-first, the rightmost tribe 0). Built,
+   red first: `rubric.py --tables 3` prints the nation in braces after
+   each never-seen type (`tribe_nations`, `nation_tag`), and a pair is
+   booked on the nation the mask holds — the Spanish at Classical (3586)
+   and the Iroquois from an Ancient start (3584) are this tranche's.
+5. **The handoff's counts are the tables'** (Loop 3564, built, closes):
+   `tranche.py --base <base>` takes the tranche's items off its `Book`
+   first-parent commits and prints the `For the pass` line — landings,
+   `DEEP` with each lane's peak, waiting and USD a landing — and
+   `gates.py`'s last two lines are the gate count; the commander's chain
+   says to paste them. Red first, both functions.
+6. **The rest**: 3565 closes — every lane row was reaped at this drain,
+   the clause holding on its first tranche; 3382 took the re-timing
+   (`suite_timings.py --stale-only`, 114 tests in three minutes) and no
+   thirty minutes, the five tests over 30 s unchanged and the compared
+   pin's lever the one the forty-eighth pass named; 3498 and 3433 stay
+   unmeasured and unrepeated (30 captures, none died before frame 0);
+   2003 took no reach; five stay Ramon's with the tranche's numbers. The
+   backlog 11 → 9.
+
+**Against entry 92's estimate**: the Persian word closes within three
+items — met (three); the eight pairs stand up and at least five run
+whole — **missed** (five stood up, four whole; 3561–3563 never spawned);
+unit types 162 → at least 185 — **missed** (167); lockstep bytes under 78
+— met (77.4); waiting a landing under 38 minutes and a landing under 6
+USD — **missed** (58.8 / 6.91); admission under 1,200 s — **missed**
+(4,304.8); `DEEP` under four — met (three); no red booking gate and a
+handoff whose gate count is `gates.py`'s — met (none, and the handoff
+said none); the drain arms the clear with every lane reaped — met; no
+dead row — met. Six of ten.
+
+**The estimate, written down to be wrong on record**, on eight items and
+two Opus lanes: the Mongol word closes within two items; the seven pairs
+stand up and at least five run whole; unit types seen 167 → at least 180;
+lockstep bytes 77.4 unmoved (no twin is booked); waiting a landing under
+40 minutes and a landing under 6 USD; admission under 1,200 s; `DEEP`
+under three; no red booking gate and a handoff whose counts are
+`tranche.py --base`'s and `gates.py`'s; the drain arms the clear with
+every lane reaped; the scan finds no dead row among the 39.
+
+**The measure for the next pass**: unit types against 167, lockstep bytes
+against 77.4, ages 8 of 8 held; each landing's USD and waiting against
+6.91 / 58.8 — and the lane rule read on it at two lanes, against 34.3,
+the last two-lane tranche's; the gate class against 41.0 a session and
+the admission against 4,304.8 s; red gates against zero; `DEEP` against
+three; the lane rows at the drain against zero; the backlog against 9;
+the disk against 171 GiB.

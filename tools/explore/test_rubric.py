@@ -380,3 +380,39 @@ class TheLedgerColumns(unittest.TestCase):
         table = rubric.delta_table(rows[0], rows[1])
         line = [l for l in table.splitlines() if l.startswith('lockstep bytes')][0]
         self.assertEqual(line.split()[-2:], ['12.3', '-'])
+
+
+class TheNations(unittest.TestCase):
+    """The fifty-fourth pass: a never-seen line names its nation off its
+    `TRIBE_MASK` (MSB-first, rightmost bit tribe 0 — `docs/FORMATS.md`),
+    because the fifty-third pass booked the Scutari as Roman and the
+    Spearmen as Korean; they are Spanish and Iroquois (parked 3556a)."""
+
+    XML = ('<UNIT><NAME>Samurai</NAME><TRIBE_MASK>000000001000000000000000</TRIBE_MASK></UNIT>'
+           '<UNIT><NAME>Cossack</NAME><TRIBE_MASK>000000000010000000000000</TRIBE_MASK></UNIT>'
+           '<UNIT><NAME>Citizen</NAME><GRAPH>CITIZENSKOREAN</GRAPH>'
+           '<TRIBE_MASK>000000010000000000000000</TRIBE_MASK></UNIT>'
+           '<UNIT><NAME>Citizen</NAME><TRIBE_MASK>111111101111111111111111</TRIBE_MASK></UNIT>'
+           '<UNIT><NAME>Culverin Mahout</NAME><TRIBE_MASK>101000000000000000000000</TRIBE_MASK></UNIT>'
+           '<UNIT><NAME>Odd</NAME></UNIT>')
+
+    def test_the_mask_is_read_msb_first(self):
+        n = rubric.tribe_nations(self.XML)
+        self.assertEqual(n[50], ['Japanese'])
+        self.assertEqual(n[51], ['Russians'])
+        self.assertEqual(n[52], ['Koreans'])
+        self.assertEqual(len(n[53]), 23)
+        self.assertEqual(n[54], ['Indians', 'Persians'])
+        self.assertNotIn(55, n)
+
+    def test_a_never_seen_line_prints_its_nations_and_a_generic_prints_none(self):
+        self.assertEqual(rubric.nation_tag(['Spanish']), '{Spanish}')
+        self.assertEqual(rubric.nation_tag(['Indians', 'Persians']), '{Indians, Persians}')
+        self.assertEqual(rubric.nation_tag(rubric.TRIBES[1:]), '{not Aztecs}')
+        self.assertEqual(rubric.nation_tag(list(rubric.TRIBES)), '')
+        self.assertEqual(rubric.nation_tag(rubric.TRIBES[:12]), '')
+        self.assertEqual(rubric.nation_tag(None), '')
+
+
+if __name__ == '__main__':
+    unittest.main()

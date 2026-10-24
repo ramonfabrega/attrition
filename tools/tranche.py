@@ -26,6 +26,7 @@ transcript field `lore` already carries, folded.
     python3 tools/tranche.py 1214 1228 1243            # workers by item
     python3 tools/tranche.py --session 7ecd9b33        # one session by id
     python3 tools/tranche.py --json 1214 …             # the rows, for a table
+    python3 tools/tranche.py --base 2249e2c0           # the tranche's Book commits, and the handoff's line
 
 The classes are read off the Bash command's text, and `--show-gaps`
 prints each gap with its command so a class can be checked by eye.
@@ -184,9 +185,43 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
     }
 
 
+BOOK = re.compile(r"^Book (\d+)\b")
+
+
+def booked_items(subjects: list[str]) -> list[int]:
+    """The items a tranche landed, off its first-parent commit subjects
+    newest first (`git log --first-parent --format=%s <base>..HEAD`): one
+    per `Book N` commit, oldest first. A `Queue:` or `Merge` commit is not
+    a landing (the fifty-fourth pass, Loop 3564)."""
+    out = [int(m.group(1)) for sub in subjects if (m := BOOK.match(sub))]
+    return out[::-1]
+
+
+def handoff_line(rows: list[dict], deep_k: int) -> str:
+    """The handoff's `For the pass` counts, from the table and never from
+    memory (Loop 3564: one drain said "no red booking gate" over two, the
+    next "one `DEEP`" over three): landings are the distinct items, a
+    `DEEP` is an item whose session's context crossed --deep k, waiting and
+    price are the table's totals a landing."""
+    items = sorted({r["item"] for r in rows if r["item"]})
+    deep = [(r["item"], r["peak_k"]) for r in rows if r["item"] and r["peak_k"] >= deep_k]
+    n = len(items)
+    words = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"]
+    deep_s = ("no DEEP" if not deep else
+              f"{words[len(deep)] if len(deep) < len(words) else len(deep)} DEEP ("
+              + ", ".join(f"{i} at {k} k" for i, k in sorted(deep)) + ")")
+    price = sum(r["price"] for r in rows)
+    wait = sum(r["waiting_min"] for r in rows)
+    return (f"handoff: {n} landing{'s' if n != 1 else ''} · {deep_s} · "
+            f"{wait / max(n, 1):.1f} minutes waiting a landing · {price / max(n, 1):.2f} USD a landing "
+            f"({price:.2f} over {len(rows)} session{'s' if len(rows) != 1 else ''})")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("items", nargs="*", type=int, help="item numbers; each names its lane well")
+    ap.add_argument("--base", help="a commit; the items are the `Book N` first-parent commits since it, "
+                    "and the handoff's line is printed last (Loop 3564)")
     ap.add_argument("--session", action="append", default=[], help="a session id or prefix, read directly")
     ap.add_argument("--gap", type=int, default=90, help="seconds; a longer gap between requests is waiting")
     ap.add_argument("--deep", type=int, default=300, help="k tokens; the context above which spend is 'deep'")
@@ -196,6 +231,10 @@ def main() -> int:
 
     rows = []
     runs_md = RUNS.read_text() if RUNS.exists() else ""
+    if args.base:
+        log = subprocess.run(["git", "log", "--first-parent", "--format=%s", f"{args.base}..HEAD"],
+                             capture_output=True, text=True, check=True).stdout.splitlines()
+        args.items = booked_items(log) + [i for i in args.items if i not in booked_items(log)]
     for item in args.items:
         sids = sessions_of(item)
         if not sids:
@@ -239,6 +278,8 @@ def main() -> int:
         if items:
             print(f"captures: {captures} over {len(items)} items — {captures / len(items):.1f} a landing "
                   f"(docs/RUNS.md sections naming the item; Loop 3352)")
+    if args.base:
+        print(handoff_line(rows, args.deep))
     return 0
 
 
