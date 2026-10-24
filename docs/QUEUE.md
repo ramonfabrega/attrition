@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 18 of 20 landed; 3552 and 3554 live; the commander clears at this seam (DECISIONS 91).*
+*2026-10-23, **the fifty-third tranche (commander, Opus) open from `6f020588`**: 19 of 20 landed; 3554 live; the commander clears at this seam (DECISIONS 91).*
 
 - **Words**: one open, the Persians at Medieval at 4038 of 4,759 (lower map first — East Indies (Persians, Medieval)), 2226 → 4038 (3535, 3550: the ferried passenger keeps its orders); the Turks whole at 3,812 (3513, 3543); the British whole at 5,522, none off (3512, 3542); the Japanese whole at 4,547 (3539), the Chinese at 4,467, none off (3538, 3540);
   held-out eight of eight. **The late ages**: nine pairs stood up, eight whole on real sim work (the Chinese 3538, the Japanese 3539); **the rubric, lockstep**:
-  ages 8 of 8, types 128 → 162 of 302, **bytes 77.0 → 77.4 %** (seven whole pairs' `cover=1` twins, 3531–3534, 3548, 3549, 3551: 77.04 → 77.45, hundredths a twin now; Loop 3541). Blind: 0 of 39 dead.
+  ages 8 of 8, types 128 → 162 of 302, **bytes 77.0 → 77.4 %** (every whole pair's `cover=1` twin, 3531–3534, 3548, 3549, 3551, 3552: 77.04 → 77.45, hundredths a twin, the eighth none; Loop 3541). Blind: 0 of 39 dead.
 - **The fifty-second tranche** (DECISIONS 91): twenty landings, two Opus lanes, 11 h 25; 9.26 USD and 38.9 minutes waiting a landing (5.45 /
   30.9 — the gate 23.0 of 26.8 a session, nine `DEEP`); no red gate; the pool 99.2 frames a second. The lane rule tripped; the pass says hold.
-- **Lanes: two live, Opus 5.5 at medium** (3552 the Chinese twin, 3554 the Persian word 4038); **none booked**:
+- **Lanes: one live, Opus 5.5 at medium** (3554 the Persian word 4038), the tranche's twentieth; **none booked**:
   open words, then twins, then pairs; refill a parting's residue, then a whole pair's twin, then the next age and nation off `rubric.py --tables 3`. Next 3555, run 1193. Pools: GOLDEN §149–154, AI §309–310, park PT–PV.
 - **Fable backlog: 17 Loop items** (3553, 3547, 3546, 3545, 3544, 3541, 3537, 3536, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 91.
 
@@ -40,8 +40,8 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 162 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-third tranche (commander, Opus) — 18 of 20 landed from `6f020588`; 3552 and 3554 live on two Opus lanes (`brief.py --kind
-residue …`; `claude-opus-5-5[1m]` at medium); refill a parting's residue, then the next age and nation off `rubric.py --tables 3`; at twenty or Ramon's word, `ccc clear steer --then "<opener>"`.**
+**Opener: the fifty-third tranche (commander, Opus) — 19 of 20 landed from `6f020588`; 3554 live, the twentieth, on an Opus lane (`brief.py --kind
+residue …`; `claude-opus-5-5[1m]` at medium); no refill, twenty spawned; at its landing or Ramon's word, `ccc clear steer --then "<opener>"`.**
 
 ## The queue
 
@@ -50,9 +50,6 @@ frame and draw delta, the AI track's); **a whole pair's `cover=1` twin** — the
 `cover=0` long (`rngcmp.py`; `samegame.py`), pinned into `blind::TRACES` so `rubric.py`'s lockstep bytes and `blind::NEVER` read it; **a late-age pair
 stood up** (`mongol_pair.rs`'s shape: own `DUMP_ALL` start and `cover=0` long, `end:UNITS=3,GUYS=2` on `--stride 100`, the walk seeded from the start (3506a),
 the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pair::assert_lobby`, `diff::<name>_pair` at its first parting, a scoreboard line). Opus; a word's gate `--tests <pair>:: blind::`, a twin's `--tests blind:: --no-widen`.
-
-3552. **coverage: the Chinese Industrial twin** (`GreatSaharaChineseIndustrial`, whole at 4467 on run1154/1155): as 3531, against
-run1155; the age-5 Great Sahara line in a lockstep trace, the last whole pair without a twin. Run 1191; park PR.
 
 3554. **The Persian word, frame 4038: ours 8 draws against 9, index 0** (theirs `Unit::fight+0x9b0`; 3550's widening on run1189b,
 4033..4289, 1,184 keys, AI §308): theirs' Mahout `1/27` (262), on its `ATTACKTOORDER` to (6552, 10968), fires on the Citizen `0/10` (50)
