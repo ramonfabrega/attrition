@@ -387,3 +387,50 @@ fn greek_classical_pair_the_long_s_stride_walks_back_from_4341() {
     // block: the General `1/138` is born on 4328, between 4301 and 4336.
     pin_eq!(w.firsts.len(), 141, "the stride's baseline");
 }
+
+/// **The long's stride, walked back from the word 7865** (item 3574):
+/// run1214's window opens apart on 7859 (territory, `1/215`'s
+/// `damage_frame`), and only the stride's blocks are on disk between
+/// run1212's 4592 and run1214's 7859.
+pub(crate) const WIDENING_GREEK_CLASSICAL_STRIDE_7865: (i64, i64) = (4601, 7801);
+
+pub(crate) fn greek_classical_stride_7865_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GREEK_CLASSICAL.start],
+        true,
+        GREEK_CLASSICAL.long,
+        "run1196 stride 7865",
+        &[(GREEK_CLASSICAL.long.0, WIDENING_GREEK_CLASSICAL_STRIDE_7865.0)],
+        WIDENING_GREEK_CLASSICAL_STRIDE_7865,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn greek_classical_pair_the_long_s_stride_walks_back_from_7865() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_classical_stride_7865_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 33, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3574: 252 keys. Every row up to 7701 is a standing family
+    // (`build:extra`, every unit's `form`, who=1's groups' `held` and
+    // pool). The first unit field apart is on 7801: the Citizen `0/5`'s
+    // `damage_frame`, ours 7745 against theirs 7744. The Archers `1/53`'s
+    // round, launched on 7727, lands a frame later here.
+    pin_eq!(w.firsts.len(), 252, "the stride's baseline");
+}
