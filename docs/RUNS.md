@@ -26498,6 +26498,29 @@ SHA-256 `ccfdf080a24379d05e7d680ff6e93529eef276d2a581dec5863c7533bad022bc`.
 blocks and 4333 keys. On 5323 the human's `0/2002` takes a blow in theirs alone (`damage` 1, `damage_frac` 10). The
 state is already apart on 5316, the window's first block (`1/41`'s target).
 
+## run1240 — the Bantu from an Ancient start, East Indies: the closing window, blocks 5955..6211 (2026-10-24, item 3593, `att-3593`)
+
+`docs/AI.md` §315.4. **What the disk could not answer**: the last blocks at the leaders', buildings' and cities'
+detail. run1206's stride prints units every hundredth block and no `LEADERDATA` past the start; run1238d ends on
+5572. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1240 --map 18 --end-frame 6210
+--allow-early-end --timeout 3600 --log-window 5955 6211 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 15:57:27, exited 75.96 s later. `success`, 6211 frames, closing frame 6211. `rngcmp.py`
+  against run1206: 6211 frames identical. Filed with `filerun.py run1240 eastindies-bantu-ancient-window-5955-6211
+  --map 18`. `df -g ~` read 139 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1240-eastindies-bantu-ancient-window-5955-6211.txt`, 625,860,119 bytes,
+SHA-256 `e62d65d38078122502b535af212fbdf9c7ef96370e84a8b99a2e6f9ad548cb93`.
+
+Archive `rontrace-run1240.log`, 151,242,656 bytes,
+SHA-256 `c38a9455fa371372670eaf017114df15b28036b87d840430334522a99b173b7c`.
+
+**What it holds**: `bantu_ancient_pair_run1240_s_closing_frame_is_widened_whole` (256 blocks, 73 keys, every one a
+standing family). Beside it, `bantu_ancient_pair_run1206_s_closing_state` compares run1206's closing block 6211: 243
+units, no row.
+
 ## run1207 — the Japanese at a held Gunpowder age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3563, `att-3563`)
 
 `docs/AI.md` §316. §313's lobby with the nation and the age moved, through `viadriver.sh

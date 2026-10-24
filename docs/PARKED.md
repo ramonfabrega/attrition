@@ -10679,13 +10679,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QT — reserved
+## Parked by item 3593, 2026-10-24 — the Bantu word 5523 → 6210: a rolled round's aim
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3593a. A building target's `ez` on a sea tile.** `Sim::aim_z` now reads `World::object_z` for every target, as
+  `Ammo::init` reads `ObjectData +0xc` (`docs/AI.md` §315.4). A building's `+0xc` has writers of its own
+  (`SubObject::init`, `set_new_location`), and no round on disk lands on a building standing on a tile under the sea,
+  so the building arm rests on the reading. **Score**: none until a word parts on such a round; then grep the
+  building's `z_internal` in the dump beside ours' `object_z`.
 
 ## Parked by item 3594, 2026-10-24 — the rares' re-zero, and a blind array
 

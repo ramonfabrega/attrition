@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const BANTU_ANCIENT: Pair = Pair {
     name: "EastIndiesBantuAncient",
@@ -52,8 +52,13 @@ pub(crate) const BANTU_ANCIENT: Pair = Pair {
     // the bow hand, so theirs' blow on the farm `0/2002` on 5322 is both
     // sides'. Ours 31 draws against 29, index 26, ours
     // `Ammo::do_damage+0xc59`, theirs `Farms::inc_time+0x1ae`.
-    count: 5523,
-    sequence: 5523,
+    // Item 3593: **6210** (+687), the game's last frame — whole. A rolled
+    // round's aim `ez` is its target's own `z` (`World::object_z`, clamped
+    // at 0), not the raw tile height: `1/88`'s javelin at the dead Citizen
+    // `0/11`, on a shore tile at −22, is aimed at 75 where ours aimed 53,
+    // so it rolls on one frame more and punctures on 5524 as theirs does.
+    count: 6210,
+    sequence: 6210,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -480,5 +485,118 @@ fn bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole() {
     // `form`), and the buried `ATTACKORDER` target of `1/41` (3592a). The
     // first other row is the Bark `1/30`'s (TI 323, water) move on 5526,
     // ours (35064, 27384) against theirs (33528, 25848).
-    pin_eq!(w.firsts.len(), 650, "run1238d baseline");
+    //
+    // Item 3593: **94**, from a rolled round's aim (`World::object_z`).
+    // `1/88`'s javelin at the dead `0/11` punctures on 5524 on both sides
+    // (it came down on 5523 in ours), and the Bark's move on 5526 agrees.
+    // What stands is the standing families, the buried target (3592a) and
+    // eight guards' `dest_angle` (5380..5474, 3580b's shape).
+    pin_eq!(w.firsts.len(), 94, "run1238d baseline");
+}
+
+/// **The pair's closing state**: run1206's closing dump, block 6211, walked
+/// from run1205's start (item 3593: the pair whole).
+#[test]
+fn bantu_ancient_pair_run1206_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &BANTU_ANCIENT;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Bantu Ancient pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 6211, "the closing block");
+    // Item 3593, the pair whole: 243 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 243, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run1240: the pair's last blocks, 5955..6211 at the long's detail — the
+/// word 6210 is the game's last frame and 6211 its closing block (item
+/// 3593). run1206 prints units only every hundredth block and no
+/// `LEADERS`, `BUILDS` or `CITIES` record past the start, so no dump held
+/// the last blocks.
+pub(crate) const RUN1240: &str = "gamelog-run1240-eastindies-bantu-ancient-window-5955-6211.txt";
+
+/// The window: block 5955 through the closing block 6211.
+pub(crate) const WINDOW_BANTU_ANCIENT_CLOSING: (i64, i64) = (5955, 6211);
+
+/// **The pair's last blocks**: run1240 walked from run1205's start with
+/// the recorder on. The word is the game's last frame (item 3593).
+pub(crate) fn bantu_ancient_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1240",
+        &[(RUN1240, WINDOW_BANTU_ANCIENT_CLOSING.0)],
+        WINDOW_BANTU_ANCIENT_CLOSING,
+        1,
+        &[6211],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_run1240_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3593, the first walk: **73** keys, every one a standing family
+    // from the window's first block 5955: `form`, `SITE[i].reg`,
+    // `aggression[1]` and who=1's groups' `held` and pools. No unit,
+    // building or city field parts, and the closing block agrees.
+    pin_eq!(w.firsts.len(), 73, "run1240 baseline");
 }
