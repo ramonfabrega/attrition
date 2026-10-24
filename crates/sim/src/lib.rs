@@ -6692,6 +6692,19 @@ impl Sim {
     /// One unit's turn inside `Objects::process_all`'s first loop —
     /// `Unit::process@00610bc0`, or `Animal::process` for gaia's.
     fn process_unit(&mut self, i: usize, frame: i64, events: &mut Vec<Tick>) {
+        let p3571 = std::env::var_os("RON_PROBE_3571").is_some() && (4334..=4336).contains(&frame);
+        let g138 = |s: &Self| s.units.iter().position(|x| x.alive() && x.owner == 1 && x.index == 138);
+        let before = if p3571 { g138(self).map(|k| self.units[k].movement.facing) } else { None };
+        self.process_unit_3571(i, frame, events);
+        if p3571 {
+            let after = g138(self).map(|k| self.units[k].movement.facing);
+            if after != before {
+                eprintln!("P3571 f{frame} processing {}/{} turned 1/138 {:?} -> {:?}", self.units[i].owner, self.units[i].index, before, after);
+            }
+        }
+    }
+
+    fn process_unit_3571(&mut self, i: usize, frame: i64, events: &mut Vec<Tick>) {
         // `who/o` — the unit's own [`Unit::index`], not its slot in this
         // vector. Every other `who/o` in the project is the game's `o`,
         // and a label that quietly meant the slot cost a probe run once.
