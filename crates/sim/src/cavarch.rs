@@ -600,6 +600,43 @@ mod tests {
         }
     }
 
+    /// **A melee-and-ranged type walks past `fight`'s reload gate**
+    /// (`fight@005fd4d0:106`, item 3568): recharging on a fresh attack out
+    /// of range, a plain type stands (the reload idle, and no chase) where a
+    /// `k` type goes on and chases; in range, the `k` type swings and
+    /// returns before the blow and the reload (`005feecb`). run1189b's
+    /// Mahout `1/46` (TypeIndex 262, `mjvyk`), `recharging` 35 on 4170, is
+    /// the witness (`docs/AI.md` §308).
+    #[test]
+    fn a_melee_and_ranged_type_walks_past_the_reload_gate() {
+        for k in [false, true] {
+            let (mut sim, ty) = field(false);
+            if k {
+                sim.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
+            }
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let foe = put(&mut sim, 0, ty, Pos::new(3000, 30000));
+            sim.add_attack_order(me, Obj::Unit(foe), QueuePos::New, false, true);
+            sim.units[me].combat.recharging = 20;
+            sim.do_attack_fight(me, 100);
+            let chased = sim.units[me].orders.len() == 2;
+            assert_eq!(chased, k, "k {k}: the chase out of range");
+            // In range: no blow, the reload untouched.
+            let (mut sim, ty) = field(false);
+            if k {
+                sim.unit_types[ty].cols.unit_flags |= uflags::MELEE_AND_RANGED;
+            }
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let foe = put(&mut sim, 0, ty, Pos::new(3000, 3400));
+            sim.add_attack_order(me, Obj::Unit(foe), QueuePos::New, false, true);
+            sim.units[me].combat.recharging = 20;
+            sim.do_attack_fight(me, 100);
+            assert_eq!(sim.units[me].combat.recharging, 20, "k {k}: no reload");
+            assert_eq!(sim.units[foe].health, 100, "k {k}: no blow");
+            assert_eq!(sim.units[me].orders.len(), 1, "k {k}: no chase in range");
+        }
+    }
+
     /// **An empty search after an empty one waits for the phase**
     /// (`cavarch_fight@005ff4b0`'s tail, `do_move@005f7b30:66`): −1, then
     /// −2, and from −2 a search runs only on `(o + frame) % 32 == 0`.

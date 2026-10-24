@@ -26710,14 +26710,9 @@ run1189b's dump and ours' `RON_DEBUG_AMMO`:
   **piece 1794** (`34 + 5 × 0x160`, piece 34's keys) and the Mahout **piece 212** (`CHAR_ATTACKWALK` at 16, node 1).
   `launch::BAYS` had neither.
 
-**The bays.** No packet of this game exists. run1007b's (`RON_STATE_FRAME=15915`, the Indian Great Sahara game)
-holds both pieces' `AttachPos` rows: 1794's three (node 0: `CHAR_ATTACK1` at 12, `2` at 6, `3` at 27) and 212's
-eleven (node 1 at frame 16 for each of `CHAR_ATTACKWALK` and `ATTACK1`–`SPECIAL`, and node 4's, which no release in
-the window names). `get_position.py … sweep` was fitted as 1441's and 1442's were (§257, §260): the centroid of the
-integer region that reproduces all 361 headings. The fitter gives 1442's committed (−344, 57100, 173) back exactly.
-- piece 1794: (38946, 60202, 163), (1685, 50747, 170), (21762, 35444, 156);
-- piece 212: `ATTACKWALK` (−29938, 87586, 448), `ATTACK1` (−291, 71525, 451), `ATTACK2` (−17740, −7348, 465),
-  `ATTACK3` (−18234, 60948, 463), `ATTACKSPECIAL` (−18369, 79421, 452).
+**The bays.** Fitted from run1007b's packet (`RON_STATE_FRAME=15915`) by `get_position.py … sweep`, as §257 and
+§260 were; the rows are `launch::BAYS`' (piece 1794's three, piece 212's five node-1 slots), the fit in
+`docs/journal/2026-10-23-item-3555.md`.
 
 **The value diff.** `1/22`'s javelin leaves (6821, 8377), flies 13 frames, and `0/2000` reads `damage` 6,
 `damage_frac` 10, on 4048 on both sides. Ours' blows now land on theirs' frames: 4045, 4048, 4063, 4076. `1/27`'s
@@ -26740,8 +26735,19 @@ cannot see 1794's rows, because `0/2000`'s damage parts later on either tree. So
 - dropping 212's rows fails the word, at 4083 again;
 - dropping 1794's fails the widening's frame pin (4048 against 4193) and the `sim` test, and leaves the word alone.
 
-**What is not established**: why theirs' `1/46` steps back on 4170 and holds `0/2000` where ours turns on `0/11`.
-That is the next item's frame. Piece 212's node-4 rows are not built (no release names node 4).
+~~**What is not established**: why theirs' `1/46` steps back on 4170 and holds `0/2000` where ours turns on `0/11`.~~
+Answered below (item 3568). Piece 212's node-4 rows are not built (no release names node 4).
+
+**The Mahout past the reload gate** (item 3568, run 1211; the walk is `docs/journal/2026-10-24-item-3568.md`'s). On
+4170 both sides' `1/46` (TypeIndex 262, `mjvyk`) enters `fight` recharging 35 (its shot on `0/11`, 4164).
+Theirs reaches the guard's roll at `fight+0x824`; ours returned at the reload gate. **The direction is ours.**
+`fight@005fd4d0:102-127` runs the idle block only when `unit_flags & 0x400` (`k`) is clear: a set bit snaps and goes
+on, skips the captain's re-search (`fight:368`), and in range swings and returns before the blow (`005feecb`).
+**The value diff**: on 4171 `1/46` stands on (6648, 7800) and on 4173 reads `in_range` 1 on `0/2000` on both sides;
+run1189b 745 → 119 keys. It now parts on 4241: `0/2000`'s `build:damage` ours 112 theirs 108, and `1/46`'s
+`cavarch_o` ours −2 theirs 2000 (theirs fires through `cavarch_fight`). **4170 → 4523 of 4759**: ours 49 draws
+against 45, index 3, ours `Unit::fight+0x824`, theirs `Guy::set_anim+0xf2f < Guy::move+0x166`. run1211 (4518..4760)
+widens it (1729 keys); the Knight `1/62` (TypeIndex 228) holds its attack on 4523 where theirs chases. **Not established**: why theirs fires through `cavarch_fight` on 4241.
 
 ## 309. The Romans at a held Classical age, Great Sahara: a Citizen's second blow, 4069 of 7130 (2026-10-23, item 3556)
 

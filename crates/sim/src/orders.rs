@@ -8785,11 +8785,8 @@ impl Sim {
         // function does anything else. §7.11's table has four rows and
         // this is the first: the snap is skipped **only** by a recharging
         // unit that is neither §7.10's re-entry latch on an invalid target
-        // nor a cavalry archer (`unit_flags & 0x400`), and those two rows
-        // are unmodelled seams, not coverage — the reload gate below
-        // returns for *every* recharging unit. Nothing on disk has a
-        // recharging unit enter `fight`, which is what a capture would
-        // have to carry to refuse them (item 336).
+        // nor a melee-and-ranged type (`unit_flags & 0x400`). Both rows
+        // are built: the latch by item 3540, the type by item 3568.
         //
         // **The emplaced weapon's latch** (item 3540, `docs/ORDERS.md`
         // §7.12): `Unit::fight@005fd4d0:94`–`102`. `local_1c` is set when
@@ -8812,7 +8809,18 @@ impl Sim {
                 Some(t) => !self.valid_target(me, t),
                 None => true,
             };
-        if state.recharging == 0 || latch {
+        // **A melee-and-ranged type walks past the reload gate** (item
+        // 3568, `docs/AI.md` §308): `fight@005fd4d0:106`'s `unit_flags &
+        // 0x400` test sits ahead of the idle block, and a set bit falls
+        // through to `LAB_005fd648`'s snap and on into the function, as the
+        // latch does. The Mahout (TypeIndex 262, `mjvyk`) is the witness:
+        // run1189b's `1/46` reads `recharging` 35 on block 4170 and theirs
+        // rolls the guard's `fight+0x824` under its `ATTACKORDER`, where
+        // ours stood and rolled the reload idle.
+        let walks_on = self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag(uflags::MELEE_AND_RANGED));
+        if state.recharging == 0 || latch || walks_on {
             let snap = crate::collide::ucell_centre(crate::collide::ucell(self.units[u].pos));
             self.set_new_location(u, snap, true);
         }
@@ -8830,7 +8838,7 @@ impl Sim {
         // from its attack-move's look on 773 while recharging 13. On 774
         // it stands with its heading unchanged and rolls the idle, and
         // that roll is the chapter's word (`docs/ORDERS.md` §22).
-        if state.recharging != 0 && !latch {
+        if state.recharging != 0 && !latch && !walks_on {
             if a.new_ord
                 && let Some(target) = self.units[u].combat.target
                 && let Some(g0) = self.units[u].guys.first()
@@ -9001,7 +9009,8 @@ impl Sim {
                 self.kill_current_order(u);
                 // The squad head first (item 2032, `docs/GOLDEN.md` §74).
                 self.find_melee_target_headed(u);
-                if self.order_type(u) == index::ATTACK {
+                // `005fdd3c`: no mark on a recharging unit (item 3568).
+                if self.order_type(u) == index::ATTACK && self.units[u].combat.recharging == 0 {
                     self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
                 }
                 return;
@@ -9057,7 +9066,12 @@ impl Sim {
         // target was changed above; nothing here changes it in between.
         // SEAM: the cavalry archer's `find_melee_target` in place of
         // `find_new_target`.
-        if !state.mandatory && state.captain == i32::from(self.units[u].index) {
+        // The arm is `recharging == 0`'s alone (`fight@005fd4d0:368`): a
+        // recharging melee-and-ranged unit past the gate skips it.
+        if !state.mandatory
+            && state.recharging == 0
+            && state.captain == i32::from(self.units[u].index)
+        {
             let research = match target {
                 Obj::Building(_) => true,
                 Obj::Unit(t) => {
