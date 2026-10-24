@@ -25482,6 +25482,69 @@ SHA-256 `d24d28e37e7c506ef26d8b5eaf46ecb0373ed9aad706f9e82834f2e864c5df6f`.
 
 **What it holds**: the Chinese pair's game on every frame under `cover=1`, the land map's Industrial-age lockstep
 trace (`blind::TRACES`).
+
+## run1193 — the Romans at a held Classical age, Great Sahara: the `DUMP_ALL` start (2026-10-23, item 3556, `att-3556`)
+
+`docs/AI.md` §309. A new lobby with the age held at Classical, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1193 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 6 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 22:51:41, exited 22:52:10 (28.6 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 6, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1193
+  greatsahara-roman-classical-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1193-greatsahara-roman-classical-start.txt`, 149,924,197 bytes,
+SHA-256 `87cba276418f1c277ba365aa067d59ade4564d25d0a6fc343b02b7db0c94a006`.
+
+Archive `rontrace-run1193.log`, 8,330,112 bytes,
+SHA-256 `4539a0f35d28d8620d4362bbb89830898534402c15fd540738bb097087e17390`.
+
+**What it holds**: the start of `roman_classical_pair::ROMAN_CLASSICAL`, and the walk's initial state.
+
+## run1194 — the Romans at a held Classical age, Great Sahara: the draw stream to the game's end (2026-10-23, item 3556, `att-3556`)
+
+`docs/AI.md` §309. 3507's run1147 recipe with this lobby: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 6
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1193's
+lobby.
+- Pool lane 2, beside run1193. Launched 22:51:49, exited 22:52:57 (68.4 s launch to exit). The first take exited 3
+  and the runner retook it after 2.5 s. `success`. **The game ended itself on 7130** (closing block 7131,
+  `ended_early`). `GAME INFO` reads back as run1193's. `rngcmp.py` against run1193: 37 frames identical. Filed with
+  `filerun.py run1194 greatsahara-roman-classical-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1194-greatsahara-roman-classical-trace.txt`, 36,720,005 bytes,
+SHA-256 `bc20518d514486c216df8c58568d3d5f667b559186cec9afc1e7a1fec938d533`.
+
+Archive `rontrace-run1194.log`, 149,587,872 bytes,
+SHA-256 `70dfc469a493152b66b7cb367d3d32ffe2b5d8dc9d7bc8c2f67caa85737d04da`.
+
+**What it holds**: the pair's first try. `roman_classical_pair_first_parting` walks it from run1193. The first try
+parts on **frame 4069 of 7130** (count and sequence): ours 16 draws, theirs 21, index 1, ours `Guy::set_anim+0xf2f
+< Guy::move+0x166` against theirs `Unit::close+0xcb6 < Object::die+0x29`. The Nubian Citizen `0/13` dies in theirs
+only.
+
+## run1194b — the Romans at a held Classical age, Great Sahara: the word 4069's window, blocks 4063..4319 (2026-10-23, item 3556, `att-3556`)
+
+`docs/AI.md` §309. `--map 7 --end-frame 4319 --timeout 3600 --log-window 4063 4319 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0` and run1193's lobby. Booked
+because the long's stride blocks 4001 and 4101 leave the word's block 4070 undumped.
+- Pool lane 1. Launched 22:55:58, exited 22:56:41 (43.0 s launch to exit). `success`: 4320 frames. `rngcmp.py`
+  against run1194: 4320 frames identical. Filed with `filerun.py run1194b
+  greatsahara-roman-classical-window-4063-4319`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1194b-greatsahara-roman-classical-window-4063-4319.txt`, 525,874,297 bytes,
+SHA-256 `61168b2f3485dba97a1a4af6a2d9eb420310cad4124fbcf7157690b5782ab786`.
+
+Archive `rontrace-run1194b.log`, 58,064,288 bytes,
+SHA-256 `8a0b0bc4323e64b74703a87c07d35acc34d7d9d3b9af44d597e0b6619259eefe`.
+
+**What it holds**: the word 4069's widening, `roman_classical_pair_run1194b_s_word_frame_is_widened_whole` (256
+blocks, 2260 keys). On 4068 the Citizen `0/13`'s `damage` goes 32 → 46 in theirs and 32 → 39 in ours.
 ## run1195 — the Greeks at a held Classical age, East Indies: the `DUMP_ALL` start (2026-10-23, item 3557, `att-3557`)
 
 `docs/AI.md` §310. The first pair below age 2, through `viadriver.sh tools/explore/golden_capture.sh

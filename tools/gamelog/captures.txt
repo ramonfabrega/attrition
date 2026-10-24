@@ -10470,6 +10470,11 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1189  --map 18 --end-frame 2220 --log-window 2160 2220 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --cover cover=0, run1180's lobby   (the landing's window)
 #   run1189b --map 18 --end-frame 4289 --log-window 4033 4289 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --cover cover=0, run1180's lobby   (the word 4038's window)
 # Checks: `rngcmp.py` run1189 vs run1181 -> 2221 identical; run1189b vs run1181 -> 4290 identical.
+# ==== item 3556: the Romans at a held Classical age, Great Sahara (`docs/AI.md` §309; `docs/RUNS.md` run1193, run1194, run1194b) ====
+#   run1193  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 6 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1194  run1147's line with --map 7 --ai-tribe 6 and run1193's lobby   (the draw stream; ended itself on 7130)
+#   run1194b --map 7 --end-frame 4319 --timeout 3600 --log-window 4063 4319 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0, run1193's lobby   (the word 4069's window)
+# Checks: `rngcmp.py` run1193 vs run1194 -> 37 identical; run1194 vs run1194b -> 4320 identical.
 # ==== item 3557: the Greeks at a held Classical age, East Indies (`docs/AI.md` §310; `docs/RUNS.md` run1195, run1196, run1196b) ====
 #   run1195  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 5 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1196  run1181's line with --ai-tribe 5 and run1195's lobby   (the draw stream; ended itself on 8126)

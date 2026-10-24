@@ -199,6 +199,10 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The Greeks at a held Classical age, East Indies (item 3557): the
     // first pair below age 2.
     (18, 5, 5),
+    // The Romans at a held Classical age, Great Sahara (item 3556): no
+    // held-out game's triple (the battery's Romans are
+    // `GreatLakesRomanTier2`, `(14, 6, 2)`).
+    (7, 6, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

@@ -10379,13 +10379,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot PT — reserved
+## Parked by item 3556, 2026-10-23 — the Romans at a held Classical age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3556a. The Romans at Classical, Difficulty 5, never field the Scutari (149).** The booking named `Scutari` as
+  the pair's never-seen line. `rubric.py --tables 3 --dumps` on run1193 and run1194 (the whole game, to 7130) sees
+  13 types, all already in the ledger: Legions (146), Light Horse (209), Javelineers (83), Archers (171), Catapult
+  (265), The Senator (353) and the economy's units. The line stays unseen. A lobby that reaches it is the next
+  pass's to name: another difficulty, or another map (`docs/AI.md` §309).
 
 ## Parked by the next landing, slot PU — reserved
 
