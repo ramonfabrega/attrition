@@ -9990,12 +9990,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // region number, so who=1's territory timer runs from 8195 and its
     // army 2 takes who=0's city on 8440; run1198b's test keeps the move's
     // value diff (6457 keys to 77), and the new word is widened on run1218
-    // over 9738..9885 (block 9745), to the closing block.
+    // over 9738..9885 (block 9745), to the closing block. **Item 3579:
+    // 9744 -> 9772**, the Mongol Archers' and Javelineers' rounds leave
+    // from their bays (run1222's gap window keeps the value diff, 171 keys
+    // to 82); the new word's block 9773 is in run1218's window.
     (
         "MONGOL_CLASSICAL_PAIR_WORD",
         crate::diff::mongol_classical_pair::MONGOL_CLASSICAL_PAIR_WORD,
         Some("mongol_classical_pair_run1218_s_word_frame_is_widened_whole"),
-        3575,
+        3579,
         Some(crate::diff::mongol_classical_pair::WIDENING_MONGOL_CLASSICAL_FRAME_9744),
     ),
     // **The Chinese at a held Medieval age** (item 3560): Great Sahara —
