@@ -10559,3 +10559,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1237  --map 7 --end-frame 2676 --timeout 3600 --log-window 2673 2675 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 15 --cover cover=0 --tracer-def RON_STATE_FRAME=2674, run1207's lobby   (piece 1104's packet)
 #   run1237b --map 7 --end-frame 3673 --allow-early-end --timeout 3600 --log-window 3418 3674 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0, run1207's lobby   (the closing window)
 # Checks: `rngcmp.py` run1208 vs run1237 -> 2677 identical; vs run1237b -> 3674 identical.
+# ==== item 3584: the Iroquois from an Ancient start, Great Sahara (`docs/AI.md` §317; `docs/RUNS.md` run1227, run1228, run1228b) ====
+#   run1227  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 18 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start; ENDING_TECHNOLOGY reads back 1)
+#   run1228  run1202's line with --ai-tribe 18 and run1227's lobby   (the draw stream; ended itself on 8420)
+#   run1228b --map 7 --end-frame 8420 --allow-early-end --timeout 3600 --log-window 8165 8421 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 18 --cover cover=0, run1227's lobby   (the closing window)
+# Checks: `rngcmp.py` run1227 vs run1228 -> 37 identical; run1228 vs run1228b -> 8421 identical.

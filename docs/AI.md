@@ -27889,12 +27889,48 @@ it. Piece 1104 is the Arquebusiers as the Japanese field them; another nation's 
 piece, and a piece with no row still launches from the figure. `compare_target` calls the same `get_damage`, so
 the term now ranks targets too; no capture separates that from the blow.
 
-## 317. Reserved for the next item on the AI track
+## 317. The Iroquois from an Ancient start, Great Sahara: whole on its first try, 8420 of 8420 (item 3584)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93). §315's lobby on the land map with the nation moved: Great Sahara
+(`MAP_STYLE 7`), human Nubians (4) against the **Iroquois (18)** at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 0`. The profile's `ENDING_TECHNOLOGY=0` reads back as 1 on both
+`GAME INFO`s (3559a), so this is an Ancient start capped at Classical. Captures: run1227 (a `DUMP_ALL` start)
+and run1228 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 8420.
+The walk is seeded from run1227's initial state (3506a); run1227 against run1228 is 37 of 37 frames identical.
+`diff::iroquois_ancient_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 18, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery's Iroquois is `GreatSaharaIroquoisTier3`, `(7, 18, 3)`, the same map at another difficulty, and the
+scored `GreatLakesIroquoisTier3` is `(14, 18, 3)`. No pinned `Lobby` or `Pair` carries it.
+`iroquois_ancient_pair_is_no_other_lobby` asserts all three.
+
+**First try: whole, frame 8420 of 8420**, by the count and the sequence. **The closing state** (run1228's
+closing block 8421, `iroquois_ancient_pair_run1228_s_closing_state`) compares 259 units, none off, torn or
+unlinked, and no building or city field-row.
+
+**The closing window** (run1228b, blocks 8165..8421 at the long's detail with `LEADERS=9`, walked from run1227:
+256 blocks, 67 keys, the two `gaia:` keys unprinted). run1228's stride prints units every hundredth block and no
+leader, building or city record past the start, so no dump held the last blocks; run1228 against run1228b is
+8421 of 8421 frames identical.
+- The standing families: 50 rows on 8165 (`form`, `SITE[i].reg`, `aggression[1]`, who=1's groups' `held` and
+  `pool`), group 68's on 8181. `blown` on `1/88` (8165) and `1/16` (8177), ours 1 against theirs 0.
+- Six `dest_angle` rows from 8225 (`1/22`, `1/56`, `1/92`, `1/83`, `1/90`, `1/82`): 3567a's shape (parked
+  3580b).
+- **Two wounds, apart through the game's last frame 8420.** The Mohawk Spearmen **`1/52` (TypeIndex 167, land,
+  uid 81)** in group 65 parts on 8191: `hits:damage` ours 42 against theirs 41, `damage_frac` ours 9 against
+  theirs 0. On 8420 it reads 42 against 38: theirs heals, ours does not. The Javelineers **`1/30` (TypeIndex 83,
+  land, uid 55)** parts on 8411, 5 against 4, `damage_frac` 10 against 0. `endpoint::walk_to_close` reads no
+  `hits`, so the closing counts stay zero (parked 3584a).
+
+**The lines.** `Spearmen` (166) and `Mohawk Spearmen` (167) are both fielded, at 714 and 1020 figure rows
+over run1227 and run1228. Both are new to the ledger. `rubric.py` on this tree reads unit types seen **172 of
+302**, up from 170. The pair's other types are already in the set: Citizen 50, General 54, Caravan 59, Merchant
+61, Scout 69, Takohs 79, Slingers 82, Javelineers 83, Bowmen 170, Archers 171, Light Horse 209, Catapult 265 and
+The Senator 353, and the sheep and peacock herds.
+
+**What is not established.** Why theirs heals `1/52` and ours does not. No record on disk says whether the
+Iroquois' heal, a territory term or the fraction's carry is the mechanism. The `hits` rows are the next item's
+frame if one is booked, read from 8191 back.
 
 ## 318. Reserved for the next item on the AI track
 

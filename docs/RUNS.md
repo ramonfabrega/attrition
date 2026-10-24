@@ -26552,3 +26552,68 @@ SHA-256 `58ea02ba103578aaf071acd59db4f947d54a312f328d07267458e09c2245a9cc`.
 **What it holds**: `japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole` (256 blocks, 47 keys). Every
 key is a standing family but two `dest_angle` rows on the Arquebusiers `1/132` (3487) and `1/131` (3492), 3567a's
 shape. The closing block 3674 agrees.
+## run1227 — the Iroquois from an Ancient start, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3584, `att-3584`)
+
+`docs/AI.md` §317. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1227 --map 7 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 18 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 14:10:38, exited 14:11:03 (24.7 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 18, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 0` and **`ENDING_TECHNOLOGY 1`** (3559a). Filed with `filerun.py run1227
+  greatsahara-iroquois-ancient-start --map 7`. The first launch died in argument parsing (a shell variable
+  holding the `--profile` flags passed as one word) before staging anything, and was relaunched.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1227-greatsahara-iroquois-ancient-start.txt`, 149,901,026 bytes,
+SHA-256 `9b0c34a3b797e40ea55d6a204cea83850edbd6e4d333d4752c9104e04f3ce454`.
+
+Archive `rontrace-run1227.log`, 8,206,528 bytes,
+SHA-256 `4c4258b98ec352121f81c8cc7549698d7e0b6154f2ba7b7c64d854245d524932`.
+
+**What it holds**: the start of `iroquois_ancient_pair::IROQUOIS_ANCIENT`, and the walk's initial state.
+
+## run1228 — the Iroquois from an Ancient start, Great Sahara: the draw stream to the game's end (2026-10-24, item 3584, `att-3584`)
+
+`docs/AI.md` §317. run1202's line with `--ai-tribe 18`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 18
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1227's
+lobby.
+- Pool lane 2, beside run1227. Launched 14:10:38, exited 14:11:20 (42.0 s launch to exit). `success`. **The game
+  ended itself on 8420** (closing block 8421, `ended_early`). `GAME INFO` reads back as run1227's. `rngcmp.py`
+  against run1227: 37 frames identical. Filed with `filerun.py run1228 greatsahara-iroquois-ancient-trace --map 7`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1228-greatsahara-iroquois-ancient-trace.txt`, 35,846,238 bytes,
+SHA-256 `c9202f7e7a493b5c35b04f5cf41331a5f8d06d590c9589a41051dc2219752085`.
+
+Archive `rontrace-run1228.log`, 160,439,936 bytes,
+SHA-256 `730a72f6298928fce1f21c21f66dec22173f14dc1ba5de68a38120b664ad8735`.
+
+**What it holds**: the pair's first try, **whole**. `iroquois_ancient_pair_first_parting` walks it from run1227:
+8420 of 8420 by the count and the sequence. `iroquois_ancient_pair_run1228_s_closing_state` compares its closing
+block 8421: 259 units, none off, torn or unlinked.
+
+## run1228b — the Iroquois from an Ancient start, Great Sahara: the closing window, blocks 8165..8421 (2026-10-24, item 3584, `att-3584`)
+
+`docs/AI.md` §317. **What the disk could not answer**: the last blocks at the leaders', buildings' and cities'
+detail. run1228's stride prints units at 8401 alone and no `LEADERDATA` past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1228b --map 7 --end-frame 8420 --allow-early-end
+--timeout 3600 --log-window 8165 8421 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 18
+--cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 14:14:03 (74.5 s launch to exit). `success`, 8421 frames. `rngcmp.py` against run1228:
+  8421 frames identical. Filed with `filerun.py run1228b greatsahara-iroquois-ancient-window-8165-8421 --map 7`.
+  `df -g ~` read 143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1228b-greatsahara-iroquois-ancient-window-8165-8421.txt`, 624,608,527 bytes,
+SHA-256 `0427b09936c34d8f309a8c991092a281509700f80357f24e5edca6619366ce0e`.
+
+Archive `rontrace-run1228b.log`, 160,359,648 bytes,
+SHA-256 `8eacadad24c845246ecac0f7acd2054b3050c2d6d8a047dd57f03e511e3438da`.
+
+**What it holds**: `iroquois_ancient_pair_run1228b_s_closing_frame_is_widened_whole` (256 blocks, 67 keys). Beside
+the standing families, `blown` on two units and six `dest_angle` rows (3567a's shape), two wounds stand through the
+last frame: the Mohawk Spearmen `1/52` (`hits:damage` ours 42 against theirs 38 on 8420) and the Javelineers `1/30`
+(5 against 4). Theirs heals both and ours does not (parked 3584a).
