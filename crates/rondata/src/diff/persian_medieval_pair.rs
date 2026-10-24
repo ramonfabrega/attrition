@@ -325,11 +325,18 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // and `pool`); the first state parting is `1/46`'s `pos` on 4171, ours
     // (6657, 7777) against theirs (6648, 7800), and on 4173 theirs' `1/46`
     // attacks `0/2000` (`g.ox[0]` 2000, `in_range` 1) where ours' takes
-    // `0/11` (`new_ord` 1).
+    // `0/11` (`new_ord` 1). Item 3568, 745 -> 119: the Mahout walks past
+    // `fight`'s reload gate (`unit_flags & 0x400`), and `1/46`'s rows on
+    // 4171 and 4173 leave — (6648, 7800) on 4171 and `in_range` 1 on 4173
+    // on both sides. The window now parts on 4241: `0/2000`'s
+    // `build:damage` ours 112 theirs 108 (`city:raid_stamp` ours 4240
+    // theirs 4238), and `1/46`'s `cavarch_o` ours -2 theirs 2000 — theirs'
+    // Mahout fires there through `cavarch_fight` (`recharging` 1 -> 40).
     pin_eq!(w.firsts.len(), 119, "run1189b baseline");
     // The count cannot see the Peltasts' bays: `0/2000`'s `build:damage`
     // parts later on either tree, so the key set is the same. Its frame is
-    // the pin — 4048 when the javelins leave the figure, 4193 from the bay.
+    // the pin — 4048 when the javelins leave the figure, 4193 from the bay,
+    // 4241 with the Mahout past the reload gate (item 3568).
     pin_eq!(
         w.firsts
             .get(&(0, 2000, "build:damage".to_string()))
@@ -337,6 +344,64 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
         Some(4241),
         "`0/2000`'s damage parts past the word"
     );
+}
+
+/// run1211: the word 4523's window, blocks 4518..4760 at the long's
+/// detail — six blocks before the word's block 4524, to the game's own
+/// closing block (item 3568); the stride's blocks are 4501 and 4601.
+pub(crate) const RUN1211: &str = "gamelog-run1211-eastindies-persian-medieval-window-4518-4760.txt";
+
+/// The window: block 4518 through the closing block 4760; the word 4523's
+/// own block is 4524.
+pub(crate) const WIDENING_PERSIAN_MEDIEVAL_FRAME_4523: (i64, i64) = (4518, 4760);
+
+/// **The word 4523's window**: run1211 walked from run1180's start with
+/// the recorder on (item 3568).
+pub(crate) fn persian_medieval_frame_4523_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[PERSIAN_MEDIEVAL.start],
+        true,
+        PERSIAN_MEDIEVAL.long,
+        "run1211",
+        &[(RUN1211, WIDENING_PERSIAN_MEDIEVAL_FRAME_4523.0)],
+        WIDENING_PERSIAN_MEDIEVAL_FRAME_4523,
+        1,
+        &[4524],
+        true,
+    )
+}
+
+#[test]
+fn persian_medieval_pair_run1211_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_medieval_frame_4523_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 242, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3568, the first walk: 1729 keys, 104 of them on block 4518.
+    // Past the standing families (`form`, the `SITE[i].reg`, who=1's
+    // groups' `held` and `pool`), the window opens parted: the Nubian
+    // capital `0/2000`'s `build:damage` ours 629 theirs 573, and the
+    // Mahouts `1/27` and `1/46` (TypeIndex 262) reading `cavarch_o` ours
+    // 11 and -2 against theirs 2000, as run1189b's 4241 left them. On the
+    // word's own blocks the Knight `1/62` (TypeIndex 228, land, uid 98),
+    // under its `GUARDORDER`, holds its `ATTACKORDER` (kind 10, two
+    // orders) on 4523 where theirs has pushed a `MOVEORDER` to (5352,
+    // 6024) over the attack on the Citizen `0/4` (three orders, `pos`
+    // (4803, 6436) against ours (4776, 6456)); on 4524 ours names `0/3`.
+    pin_eq!(w.firsts.len(), 1729, "run1211 baseline");
 }
 
 /// **The long's stride, walked back from the word 4038** (item 3554):
