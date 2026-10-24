@@ -10064,6 +10064,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3588,
         Some(crate::diff::lakota_medieval_pair::WIDENING_LAKOTA_MEDIEVAL_CLOSING),
     ),
+    // **The Japanese at a held Gunpowder age** (item 3563): Great Sahara —
+    // 2839 first try, widened on run1208b over 2834..3090 (block 2840).
+    (
+        "JAPANESE_GUNPOWDER_PAIR_WORD",
+        crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER_PAIR_WORD,
+        Some("japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole"),
+        3563,
+        Some(crate::diff::japanese_gunpowder_pair::WIDENING_JAPANESE_GUNPOWDER_FRAME_2839),
+    ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
     // unit on a move where theirs idles it), widened on run1159b over
@@ -11716,6 +11725,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_973,
         endpoint: Some("run1204_lakota_medieval_pair_closing_state"),
         window: Some("lakota_medieval_closing_window"),
+    },
+    // The Japanese at a held Gunpowder age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3563): first try 2839, of
+    // a game that ends itself on 3673; widened on run1208b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaJapaneseGunpowder",
+        named: "Great Sahara (Japanese, Gunpowder)",
+        word: crate::diff::japanese_gunpowder_pair::JAPANESE_GUNPOWDER_PAIR_WORD,
+        length: 3_673,
+        endpoint: None,
+        window: Some("japanese_gunpowder_frame_2839_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

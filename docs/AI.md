@@ -27610,12 +27610,92 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 316. Reserved for the next item on the AI track
+## 316. The Japanese at a held Gunpowder age, Great Sahara: an Elite Knight re-aimed off a fleeing Citizen, first try 2839 of 3673 (item 3563)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93). §313's lobby with the nation and the age moved: Great Sahara (`MAP_STYLE 7`),
+human Nubians (4) against the **Japanese (15)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held
+by `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3`. Both `GAME INFO`s read back 3 and 3. Captures: run1207 (a
+`DUMP_ALL` start) and run1208 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 3673. The walk is seeded from run1207's initial state (3506a); run1207 against run1208 is 37 of 37
+frames identical. `diff::japanese_gunpowder_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 15, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery fields no Japanese since `GreatSaharaJapaneseTier1`, `(7, 15, 1)`, left it for the AI word
+(`japanese_word`, item 3331). It is not the Japanese Industrial pair's `(18, 15, 5)` either, which is East Indies
+at a held Industrial age. `japanese_gunpowder_pair_is_no_other_lobby` asserts both and reads both pairs' `GAME
+INFO`s.
+
+**First try: frame 2839 of 3673**, by the count and the sequence. Ours 8 game draws, theirs 9. Index 0 agrees;
+at index 1:
+- theirs: `Unit::fight+0x824`;
+- ours: `Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+
+**The units, by `TypeIndex` and domain.** The **Elite Knight `1/23` (TypeIndex 229, `KNIGHTSELITE`, land,
+uid 42)**, in who=1's group 64, stands at (6168, 31896). It is on an `ATTACKORDER` (`new_ord` 1) over a
+`GUARDORDER`, aimed at the Nubian **Citizen `0/11` (TypeIndex 50, land, uid 18)**, which is fleeing to (5016,
+31944). The Citizen `0/13` (uid 20) is fleeing to (5448, 32232).
+
+**The direction is theirs** (run1208b, walked from run1207: 256 blocks, 1333 keys, the two `gaia:` keys
+unprinted).
+- On block 2839, `1/23` parts by its orders: ours pushes a chase (`order:kind` 1, `orders.len` 3, `path:length`
+  1); theirs keeps the attack (10, 2, 0).
+- On block 2840, theirs re-aims the attack off `0/11` onto `0/13`: `order:target` ours `0/11` against theirs
+  `0/13`.
+- On 2841 `orders_x` parts, ours 6168 against theirs 6312. On block 2842 theirs' blow on `0/13` shows:
+  `hits:damage` ours 26 against theirs 30 + 5/16.
+- The word's extra draw is theirs' `Unit::fight` on the re-aimed attack. It is 3561's shape: the Lakota's Heavy
+  Archers on a fleeing Citizen.
+
+**The value diff, walked back to the frame the state first parts.** run1208b's first block 2834 already holds the
+wounds apart: the Citizens `0/10`, `0/11` and `0/12` read `hits_left` ours 8, 27 and 18 against theirs 5, 25 and
+14, and `1/23`'s chase reads `orders_y` ours 31944 against theirs 31896. The walk back takes three steps.
+- **run1208c** (blocks 2771..2834, 93 keys). On block 2809 the Citizen `0/11` parts. Theirs is struck on 2808
+  (`hits:damage` 13 + 10/16, `hits_left` 37) and flees to (5016, 31944); ours is unstruck at 50, and idles.
+  `0/10` and `0/12` are apart already on 2771.
+- **The long's stride** (blocks 1..2801, 87 keys). The Citizen `0/12` agrees on 2601 and parts on 2701; `0/10`
+  parts on 2801. Every other row is a standing family.
+- **run1208d** (blocks 2601..2701 at `AMMO=5`, 52 keys). **The state first parts on block 2676**, four rows on
+  the Citizen `0/12` (TypeIndex 50, land, uid 19), standing at (8088, 30360):
+
+| field | ours | theirs |
+|---|---|---|
+| `hits:damage` | 12 | 13 |
+| `hits:damage_frac` / `damage_frac` | 0 | 10 |
+| `hits_left` | 38 | 37 |
+
+The blow is the **Arquebusiers `1/20` (TypeIndex 98, land, uid 38)**'s round, loosed on 2673 with `total_time` 4
+and landing on 2675 on both sides. **The two rounds part at their launch point**:
+- theirs' `AMMO` leaves from (9443, 30828, 784);
+- ours' leaves from the figure's square, (9576, 30888);
+- both land on (8089, 30361), `accuracy` 300.
+
+The blow is larger in theirs by 1 + 10/16.
+
+**The next word: frame 2839, ours 8 draws against 9, index 1, theirs `Unit::fight+0x824`.** **The hypothesis,
+untested**: the Arquebusiers' round, by its blow (`get_damage`'s terms against a Citizen, checklist row 3328: the
+packet's live `Ammo` first) or by its launch (no `sim::launch` bay for the Arquebusiers' figure piece, 3577's
+and 3588's family). The killer is a packet at `RON_STATE_FRAME=2674`, reading `1/20`'s `Ammo` and `0/12`'s
+`do_damage` arguments on 2675.
+
+**The rubric.** On the pair's own dumps (`--tables 3 --dumps`, run1207 and run1208) the census sees 16 types:
+- Citizen 50, Caravan 59, Merchant 61, Supply Wagon 63 and Explorer 71;
+- **Arquebusiers 98**, **Samurai 160** (1098 figure rows), Crossbowmen 172, **Dragoon 189**, **Elite Light
+  Cavalry 211**, Heavy Knight 229 and **Bombard 267** (the age-3 generics fielded are 98, 189, 211 and 267);
+- The Senator 353, The President 355, and the sheep and peacock herds.
+
+**`Samurai` (160), the line the booking names, is fielded, and it is the one type new to the lockstep ledger.**
+`census::RUBRIC_UNIT_TYPES_SEEN` is left at 169: the pair is open, and the Samurai enter the count when it closes
+whole.
+
+**Coverage.** `japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole` pins the 1333 keys. `WIDENINGS`'s
+`JAPANESE_GUNPOWDER_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds the row on
+`Late ages`. Three tests pin the walk back:
+- `japanese_gunpowder_pair_run1208c_walks_the_wound_back` (63 blocks, 93 keys);
+- `japanese_gunpowder_pair_the_long_s_stride_walks_back_from_2771` (29 blocks, 87);
+- `japanese_gunpowder_pair_run1208d_s_first_wound_is_widened` (100 blocks, 52).
+
+**Not established**: the cause of the larger blow, and whether the launch point is a cause of it at all. That
+`Unit::fight+0x824` is `1/23`'s draw rests on the re-aim on block 2840, not on a stack.
 
 ## 317. Reserved for the next item on the AI track
 

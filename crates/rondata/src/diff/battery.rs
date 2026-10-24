@@ -220,6 +220,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatSaharaLakotaTier2`, `(7, 19, 2)`; `GreatLakesLakotaTier2`'s
     // `(14, 19, 2)` is scored above), and not the peace pair, `(18, 19, 3)`.
     (18, 19, 5),
+    // The Japanese at a held Gunpowder age, Great Sahara (item 3563): no
+    // held-out game's triple (the battery fields no Japanese), not the AI
+    // word `GreatSaharaJapaneseTier1`, `(7, 15, 1)`, and not the Japanese
+    // Industrial pair, `(18, 15, 5)`.
+    (7, 15, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
