@@ -161,7 +161,7 @@ impl crate::Sim {
     /// attack of a `v` type; this crate carries neither, so the third
     /// argument is 0 and the squad arm it opens (`fight:206-215`) is not
     /// reached.
-    fn cavarch_fight(&mut self, u: usize, frame: i64) {
+    pub(crate) fn cavarch_fight(&mut self, u: usize, frame: i64) {
         let was_empty = self.units[u].cast_target.is_none();
         // **A melee-and-ranged type fights here at its second range**
         // (`cavarch_fight@005ff4b0`'s bracket, item 3383): the Gun Mahout
@@ -634,6 +634,81 @@ mod tests {
             assert_eq!(sim.units[me].combat.recharging, 20, "k {k}: no reload");
             assert_eq!(sim.units[foe].health, 100, "k {k}: no blow");
             assert_eq!(sim.units[me].orders.len(), 1, "k {k}: no chase in range");
+        }
+    }
+
+    /// A melee-and-ranged type as the Mahout is (`RANGE 0-8`, `mjvyk`):
+    /// melee at its first range, 8 at its second, firing on the move.
+    fn mahout(k: bool) -> (Sim, usize) {
+        let (mut sim, ty) = field(true);
+        let t = &mut sim.unit_types[ty];
+        t.combat.max_range = 0;
+        t.combat.second_max_range = 8;
+        if k {
+            t.cols.unit_flags |= uflags::MELEE_AND_RANGED;
+        }
+        (sim, ty)
+    }
+
+    /// **A type whose graphic releases a round lands no melee blow**
+    /// (`fight@005fd4d0:853`–`854`, item 3570): the melee arm strikes only
+    /// while `UnitType +0x2cc` stands, and
+    /// `GraphicEvents::init_unit_events@008e2520:325` zeroes it for a
+    /// graphic with a `RELEASEEVENT`. Both swing and reload; only the one
+    /// without a release wounds. run1189b's Mahout `1/46` (TypeIndex 262)
+    /// swings at `0/2000` on 4240, and the building stands at 108 in
+    /// theirs where ours struck it to 112 (`docs/AI.md` §308).
+    #[test]
+    fn a_melee_swing_whose_graphic_releases_a_round_lands_no_blow() {
+        for release in [false, true] {
+            let (mut sim, ty) = mahout(false);
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let foe = put(&mut sim, 0, ty, Pos::new(3000, 3100));
+            if release {
+                let piece = sim.units[me].guys[0].gpiece;
+                sim.art.releases.insert(
+                    piece,
+                    [(crate::anim::ATTACK1, vec![(1, 0, false, false)])]
+                        .into_iter()
+                        .collect(),
+                );
+            }
+            sim.add_attack_order(me, Obj::Unit(foe), QueuePos::New, false, true);
+            let struck = sim.do_attack_fight(me, 100);
+            assert!(struck, "release {release}: the strike answers 1");
+            assert_eq!(
+                sim.units[me].combat.recharging, 30,
+                "release {release}: the reload"
+            );
+            let wounded = sim.units[foe].health < 100;
+            assert_eq!(wounded, !release, "release {release}: the blow");
+        }
+    }
+
+    /// **`do_attack`'s tail runs a `k` type's fire on the move after a
+    /// strike** (`do_attack@005f1b80:255`–`259`, item 3570): `fight`
+    /// answered 1, so `cavarch_fight` runs with `recharging` held at 0 —
+    /// its search, at the second range, writes the pair — and the reload
+    /// is put back. A type without `k` writes nothing. run1189b's Mahout
+    /// `1/46` reads `cavarch_o` 2000 on 4241 in theirs, −2 in ours before.
+    #[test]
+    fn a_melee_and_ranged_strike_takes_the_fire_on_the_move_s_fight() {
+        for k in [false, true] {
+            let (mut sim, ty) = mahout(k);
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let foe = put(&mut sim, 0, ty, Pos::new(3000, 3100));
+            sim.add_attack_order(me, Obj::Unit(foe), QueuePos::New, false, true);
+            sim.do_attack(me, 100);
+            assert_eq!(
+                sim.units[me].combat.recharging, 30,
+                "k {k}: the reload stands"
+            );
+            let want = if k {
+                i64::from(sim.units[foe].index)
+            } else {
+                -1
+            };
+            assert_eq!(sim.cavarch_o(me), want, "k {k}: the pair");
         }
     }
 

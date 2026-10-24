@@ -11532,7 +11532,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         named: "East Indies (Persians, Medieval)",
         word: crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL_PAIR_WORD,
         length: 4_759,
-        endpoint: None,
+        endpoint: Some("run1181_persian_medieval_pair_closing_state"),
         window: Some("persian_medieval_frame_4523_window"),
     },
     // The Greeks at a held Classical age (`STARTING_TECHNOLOGY` and

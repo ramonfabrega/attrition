@@ -12,16 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 8 of 20 landed; 3570, 3571 and 3558 live.*
+*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 9 of 20 landed; 3571, 3558 and 3573 live.*
 
-- **Words**: two open — the Greeks at Classical at 4341 of 8,126 (lower map first — East Indies (Greeks, Classical)), 8 → 2616 → 4341 (3557,
-  3566, 3569); the Persians at Medieval at 4523 of 4,759 (3568). **The Romans at Classical whole at 7,130**, none off (3556, 3567: a contact blow doubled);
-  its `cover=1` twin moved nothing (3572: 77.4 %, `NEVER` 247 — the twins spent, as ruled).
+- **Words**: one open — the Greeks at Classical at 4341 of 8,126 (lower map first — East Indies (Greeks, Classical)), 8 → 2616 → 4341 (3557,
+  3566, 3569). **Whole**: the Romans at Classical at 7,130 (3556, 3567; the twin 3572 moved nothing) and the Persians at Medieval at 4,759,
+  2226 → 4759, the closing state none off (3535–3570: the bays, a k type's reload).
   **The headline, unit types seen 162 of 302**: the early-age pairs on the nation lines no dump holds (3556, 3557 none new; parked 3556a).
 - **The rubric, lockstep**: ages 8 of 8, types 152 → 162 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
   that closes books its twin, never ahead (Loop 3541, DECISIONS 92). Blind: 0 of 39 dead on the pass's scan.
-- **The fifty-third, measured**: twenty landings in 9 h 57, 5.26 USD and 34.3 minutes waiting a landing; a third lane by the rule (DECISIONS 92).
-- **Lanes: three Opus at medium, three live** (3570, 3571, 3558); **five booked** (3559–3563). Next 3573, run 1216. Pools: GOLDEN §149–154, AI §317–320, park QG–QJ.
+- **Lanes: three Opus at medium, three live** (3571, 3558, 3573); **five booked** (3559–3563). Next 3574, run 1217. Pools: GOLDEN §149–154, AI §317–320, park QH–QJ.
 - **Fable backlog: 11 Loop items** (3565, 3564, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 92.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +30,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4523 of 4,759 · EastIndiesGreekClassical w4341 of 8,126 · GreatSaharaRomanClassical w7130 of 7,130
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w4341 of 8,126 · GreatSaharaRomanClassical w7130 of 7,130
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -56,10 +55,8 @@ under `Unit::move_step+0x823`; 3569's widening on run1212, AI §310): the first 
 34736 against 34756 and the Catapult `1/124`'s `collide_o` −1 against `1/138` — so walk the General's position back first. Run 1214; amend
 §310 in place; park QE.
 
-3570. **The Persian word, frame 4523: ours 49 draws against 45, index 3** (ours `Unit::fight+0x824`, theirs `Guy::set_anim+0xf2f` under
-`Guy::move+0x166`; 3568's widening on run1211, AI §308): the Knight `1/62` (TI 228) holds its attack where theirs chases `0/4`; the state first
-parts on run1189b's block 4241 — `0/2000`'s `build:damage` ours 112 against 108, `1/46`'s `cavarch_o` ours −2 against 2000 — so walk 4241
-first. Run 1213; amend §308 in place; park PS.
+3573. **coverage: the Persian Medieval twin** (`EastIndiesPersianMedieval`, whole at 4759 on run1180/1181): as 3572, against run1181;
+owed by the pair's close (DECISIONS 92). Run 1216; park QG.
 
 3558. **The Mongols at a held Classical age, Great Sahara** (`GreatSaharaMongolClassical`, map 7, tribe 17, difficulty 5, age 1 held;
 the successor pair's lobby is `(7, 17, 3)`, another difficulty): the line is `Nomad` (199). Runs 1197–1198; AI §311; park PV.

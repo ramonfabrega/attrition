@@ -11,7 +11,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const PERSIAN_MEDIEVAL: Pair = Pair {
     name: "EastIndiesPersianMedieval",
@@ -52,9 +52,15 @@ pub(crate) const PERSIAN_MEDIEVAL: Pair = Pair {
     // recharging 35, rolls the guard's `fight+0x824` on 4170 and stands on
     // (6648, 7800) on 4171 as theirs does. Frame 4523: ours 49 draws
     // against 45, index 3 — ours `Unit::fight+0x824`, theirs
-    // `Guy::set_anim+0xf2f < Guy::move+0x166`.
-    count: 4523,
-    sequence: 4523,
+    // `Guy::set_anim+0xf2f < Guy::move+0x166`. Item 3570, 4523 -> 4759
+    // (+236), **the pair closes**: a type whose graphic releases a round
+    // lands no melee blow (`fight@005fd4d0:853`, `UnitType +0x2cc` zeroed by
+    // `init_unit_events`), and `do_attack`'s tail runs a `k` type's
+    // `cavarch_fight` after a strike, so on run1189b's block 4241 `0/2000`
+    // reads `damage` 108 and `1/46` `cavarch_o` 2000 on both sides, where
+    // ours read 112 and -2.
+    count: 4759,
+    sequence: 4759,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -332,16 +338,24 @@ fn persian_medieval_pair_run1189b_s_word_frame_is_widened_whole() {
     // `build:damage` ours 112 theirs 108 (`city:raid_stamp` ours 4240
     // theirs 4238), and `1/46`'s `cavarch_o` ours -2 theirs 2000 — theirs'
     // Mahout fires there through `cavarch_fight` (`recharging` 1 -> 40).
-    pin_eq!(w.firsts.len(), 119, "run1189b baseline");
+    // Item 3570, 119 -> 116: both 4241 rows leave. The Mahout's melee swing
+    // lands nothing (its graphic releases the round: `UnitType +0x2cc` is
+    // 0), so `0/2000` reads 108 there on both sides, and `do_attack`'s tail
+    // runs its `cavarch_fight`, so `1/46` reads `cavarch_o` 2000 (and `1/27`
+    // on 4242). The window now parts on 4283, the sixteenths of one frame:
+    // `0/2000`'s `build:damage` ours 145 theirs 146 (`damage_frac` 14
+    // against 8), both 149 13/16 on 4284.
+    pin_eq!(w.firsts.len(), 116, "run1189b baseline");
     // The count cannot see the Peltasts' bays: `0/2000`'s `build:damage`
     // parts later on either tree, so the key set is the same. Its frame is
     // the pin — 4048 when the javelins leave the figure, 4193 from the bay,
-    // 4241 with the Mahout past the reload gate (item 3568).
+    // 4241 with the Mahout past the reload gate (item 3568), 4283 with its
+    // melee swing landing nothing (item 3570).
     pin_eq!(
         w.firsts
             .get(&(0, 2000, "build:damage".to_string()))
             .map(|(f, _)| *f),
-        Some(4241),
+        Some(4283),
         "`0/2000`'s damage parts past the word"
     );
 }
@@ -401,7 +415,11 @@ fn persian_medieval_pair_run1211_s_word_frame_is_widened_whole() {
     // orders) on 4523 where theirs has pushed a `MOVEORDER` to (5352,
     // 6024) over the attack on the Citizen `0/4` (three orders, `pos`
     // (4803, 6436) against ours (4776, 6456)); on 4524 ours names `0/3`.
-    pin_eq!(w.firsts.len(), 1729, "run1211 baseline");
+    // Item 3570, 1729 -> 112, the pair closed: the Mahouts' `cavarch_o` and
+    // the Knight's rows leave. Past the standing families, `0/2000`'s
+    // sixteenths alone: `damage_frac` ours 5 theirs 15 on 4518, and
+    // `damage` 584 against 585 on 4530.
+    pin_eq!(w.firsts.len(), 112, "run1211 baseline");
 }
 
 /// **The long's stride, walked back from the word 4038** (item 3554):
@@ -451,4 +469,54 @@ fn persian_medieval_pair_the_long_s_stride_walks_back_from_4038() {
     // on every stride block 1501..3901 (`1/46` from 1801). The fix is
     // `do_move`'s `k` exemption; 153 keys, the standing families alone.
     pin_eq!(w.firsts.len(), 153, "the stride's baseline");
+}
+
+/// **The pair's closing state**: run1181's closing dump, block 4760,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3570).
+#[test]
+fn run1181_persian_medieval_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &PERSIAN_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Persian pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4760, "the closing block");
+    // Item 3570, the pair whole: 191 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 191, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
