@@ -9970,11 +9970,13 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3510, 2026-10-23 — the Japanese at a held Industrial age, East Indies
 
-- **3510a. The Japanese damage arm has no writer.** `damage.rs`'s thirteenth step reads
+- ~~**3510a. The Japanese damage arm has no writer.** `damage.rs`'s thirteenth step reads
   `Modifiers::japanese_level` (`combat.rs`), and a grep of `crates/` finds no line that sets it, so
   `JAPANESE_DAMAGE` (−5 a tier against buildings, `ObjectData::get_damage`) never applies, though `docs/NATIONS.md`
   §4.3 calls it modelled. run1153's who=1 fights the human's buildings late in the game; no dumped blow shows it
-  before 3674. **Score**: none until a Japanese blow on a building parts a word.
+  before 3674. **Score**: none until a Japanese blow on a building parts a word.~~ **Built by item 3590**
+  (`docs/AI.md` §316.1): `Sim::mods_of` writes it on every call. The listing has no target condition — the
+  Arquebusiers' blow on a Citizen parted the Japanese Gunpowder word.
 - **3510b. The long's first launch died on a Wine page fault at startup** (`~/ron-golden/run1153-dead-pagefault`,
   `wine-died.log`: a read of `0x00004ECD` at `0x7BF21139`), and the runner's own `retaken_after_exit` did not catch
   it: `waitrun.sh` reported a traceback (`extra lifecycle or fault records`) and no receipt. The hand retake ran

@@ -10551,3 +10551,7 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1208c --map 7 --end-frame 2834 --timeout 3600 --log-window 2771 2834 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0, run1207's lobby   (the walk back)
 #   run1208d --map 7 --end-frame 2701 --timeout 3600 --log-window 2601 2701 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1207's lobby   (the first wound)
 # Checks: `rngcmp.py` run1207 vs run1208 -> 37 identical; run1208 vs run1208b -> 3091 identical; vs run1208c -> 2835 identical; vs run1208d -> 2702 identical.
+# ==== item 3590: the Japanese Gunpowder word 2839 -> 3673, whole (`docs/AI.md` §316.1; `docs/RUNS.md` run1237, run1237b) ====
+#   run1237  --map 7 --end-frame 2676 --timeout 3600 --log-window 2673 2675 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 15 --cover cover=0 --tracer-def RON_STATE_FRAME=2674, run1207's lobby   (piece 1104's packet)
+#   run1237b --map 7 --end-frame 3673 --allow-early-end --timeout 3600 --log-window 3418 3674 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0, run1207's lobby   (the closing window)
+# Checks: `rngcmp.py` run1208 vs run1237 -> 2677 identical; vs run1237b -> 3674 identical.
