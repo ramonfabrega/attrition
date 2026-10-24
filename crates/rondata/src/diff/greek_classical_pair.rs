@@ -10,7 +10,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const GREEK_CLASSICAL: Pair = Pair {
     name: "EastIndiesGreekClassical",
@@ -46,8 +46,13 @@ pub(crate) const GREEK_CLASSICAL: Pair = Pair {
     // is cleared after `Guy::move`, not at the head of the unit's process —
     // and the word moves 4341 -> 7865: ours 26 draws against 28, index 24,
     // ours `Farms::inc_time+0x1ae` against theirs `Ammo::do_damage+0xc59`.
-    count: 7865,
-    sequence: 7865,
+    // Item 3574: the Archers' piece 121 looses from the Heavy Archer's
+    // bays, so `1/53`'s round at the fleeing Citizen `0/5` leaves from
+    // (8201, 8775) and flies 18 frames, not 19 from the figure's own
+    // (8232, 8856), and `0/5`'s `damage_frame` is 7744 on both sides; the
+    // walk runs whole to the game's last frame, 7865 -> 8126.
+    count: 8126,
+    sequence: 8126,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -58,6 +63,56 @@ pub(crate) const GREEK_CLASSICAL_PAIR_WORD: i64 =
     } else {
         GREEK_CLASSICAL.sequence
     };
+
+/// **The pair's closing state**: run1196's closing dump, block 8127,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3574).
+#[test]
+fn run1196_greek_classical_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &GREEK_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Greek pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 8127, "the closing block");
+    // Item 3574, the pair whole: 336 units compared, none torn, off or
+    // unlinked, no building or city field-row.
+    pin_eq!(e.compared, 336, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
 
 /// **The pair's first parting**, walked from its own start.
 #[test]
@@ -337,8 +392,16 @@ fn greek_classical_pair_run1214_s_word_frame_is_widened_whole() {
     // `1/215`'s `damage_frame` (7849 against 7848); groups 86 and 95's
     // `held` and pool part on 7861 and 7865. The word 7865's block carries
     // no unit row; the first are on 7867, the Dromons `1/31` and `1/50`'s
-    // explore picks, and 7868, `1/19`'s orders.
-    pin_eq!(w.firsts.len(), 4473, "run1214 baseline");
+    // explore picks, and 7868, `1/19`'s orders. Item 3574: 4473 -> 134,
+    // the word whole at 8126 — `1/215`'s `damage_frame` (7849 against
+    // 7848) and every unit row from 7867 agree, and the closing block
+    // 8127 with them. What stands past the standing families (`form`,
+    // the groups' `held` and pool, `SITE[*].reg`, `aggression`): both
+    // leaders' `territory` on 7859 (who=0 140 against 141, who=1 1525
+    // against 1524), first in this window and unprinted on the stride, and
+    // `dest_angle` on thirteen of who=1's units from 7936 (`1/76`,
+    // -1605566464 against -852099072) — parked under item 3574.
+    pin_eq!(w.firsts.len(), 134, "run1214 baseline");
 }
 
 /// **The long's stride, walked back from the word 4341** (item 3571):
@@ -386,4 +449,57 @@ fn greek_classical_pair_the_long_s_stride_walks_back_from_4341() {
     // who=1's groups' `held` and pool). No unit row parts on a stride
     // block: the General `1/138` is born on 4328, between 4301 and 4336.
     pin_eq!(w.firsts.len(), 141, "the stride's baseline");
+}
+
+/// **The long's stride, walked back from the word 7865** (item 3574):
+/// run1214's window opens apart on 7859 (territory, `1/215`'s
+/// `damage_frame`), and only the stride's blocks are on disk between
+/// run1212's 4592 and run1214's 7859.
+pub(crate) const WIDENING_GREEK_CLASSICAL_STRIDE_7865: (i64, i64) = (4601, 7801);
+
+pub(crate) fn greek_classical_stride_7865_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GREEK_CLASSICAL.start],
+        true,
+        GREEK_CLASSICAL.long,
+        "run1196 stride 7865",
+        &[(
+            GREEK_CLASSICAL.long.0,
+            WIDENING_GREEK_CLASSICAL_STRIDE_7865.0,
+        )],
+        WIDENING_GREEK_CLASSICAL_STRIDE_7865,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn greek_classical_pair_the_long_s_stride_walks_back_from_7865() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_classical_stride_7865_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 33, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3574: 252 keys before the bays. Every row up to 7701 is a standing family
+    // (`build:extra`, every unit's `form`, who=1's groups' `held` and
+    // pool). The first unit field apart is on 7801: the Citizen `0/5`'s
+    // `damage_frame`, ours 7745 against theirs 7744. The Archers `1/53`'s
+    // round, launched on 7727, landed a frame later here, from the
+    // figure's own square; with the Archers' bays it leaves from (8201,
+    // 8775) and flies 18 frames, as run1217's packet holds it: 252 -> 251,
+    // the standing families alone.
+    pin_eq!(w.firsts.len(), 251, "the stride's baseline");
 }

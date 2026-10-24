@@ -27062,14 +27062,38 @@ who=1 1525 against 1524), who=1's wealth (12834 against 12831) and `1/215`'s `da
 Groups 86 and 95's `held` and pool part on 7861 and 7865. Block 7866 carries no unit row; the first are on
 7867, the Dromons `1/31` and `1/50`'s explore picks, and on 7868, `1/19`'s orders.
 
-**The next word**: frame 7865, ours 26 draws against 28, index 24 — ours `Farms::inc_time+0x1ae`, theirs
-`Ammo::do_damage+0xc59`. The state parted before 7859 (the territory and `1/215`'s `damage_frame`), and only
-the stride's 7801 is on disk before it.
+**The word 7865, as item 3571 left it**: ours 26 draws against 28, index 24 — ours `Farms::inc_time+0x1ae`,
+theirs `Ammo::do_damage+0xc59`. The state parted before 7859 (the territory and `1/215`'s `damage_frame`), and
+only the stride's 7801 was on disk before it.
+
+**Item 3574: the Archers loose from the Heavy Archer's bays** (run1217, run1217b; 7865 → 8126, whole; the walk is
+the journal's). The long's stride over 4601..7801 parts first on 7801: the Citizen `0/5`'s (TI 50) `damage_frame`,
+ours 7745 against 7744. It is the Archers `1/53`'s (TI 171) round of 7727. run1217's packet (`ammo.py`) has theirs
+leave from (8201, 8775, 512), `total_time` 18, and ours from the figure's own (8232, 8856, 348), 19. `launch.rs`
+had no node for piece 121. In run1217b's `AMMO=5` window (7678..7870), the Heavy Archer's bays (pieces 123,
+1531) put all fifteen distinct poses at the dump's `sx, sy` and `sz − z`, over all three keys
+(`run1217b_s_greek_arrows_leave_from_the_archer_s_bays`). `tools/mutate.py` dropping the (12, 9) row walks the
+pair back to 7865 (exit 101). The catapults' piece 215 is not fit (parked 3574c).
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 7727 | Archers `1/53`'s round | `sx, sy, sz` / `total_time` | (8232, 8856, 348) / 19 against (8201, 8775, 512) / 18 | agrees |
+| 7801 | Citizen `0/5` (TI 50) | `damage_frame` | 7745 / 7744 | agrees |
+| 7859 | `1/215` | `damage_frame` | 7849 / 7848 | agrees |
+| 7859 | who=1 `LEADERDATA` | wealth | 12834 / 12831 | agrees |
+| 7865 | draws | index 24 | `Farms::inc_time+0x1ae` / `Ammo::do_damage+0xc59` (26 / 28) | agree |
+
+run1214's window falls from **4473 keys to 134**. Beyond the standing families stand both leaders' `territory`
+±1 on 7859 (parked 3574a) and `dest_angle` on thirteen who=1 units from 7936 (parked 3574b). **The word: 7865 →
+8126, whole.** `run1196_greek_classical_pair_closing_state` compares the closing block 8127 whole: 336 units, none
+off.
 
 **The rubric.** `Companion` (231) is never fielded in run1195 or run1196. The `Fire Raft` (334) is (×242), with the
 Dromon (324), the Galley (341) and the Transport Barge (320). An open pair counts only to its word, and frame 8 is
 before any of them, so **no unit type is new to the ledger**: `rubric.py` reads 162 of 302 on this tree, and
-`census::RUBRIC_UNIT_TYPES_SEEN` is not re-pinned.
+`census::RUBRIC_UNIT_TYPES_SEEN` is not re-pinned. **Item 3574, the pair whole**: the Fire Raft (334) is new.
+`rubric.py --tables 3` reads 165 of 302, and 164 without run1195 and run1196. 3573 had pinned 162 → 164 for the
+Persian Medieval pair's Athanatoi (164) and Mahout (262), and `RUBRIC_UNIT_TYPES_SEEN` is re-pinned 164 → 165.
 
 ## 311. The Mongols at a held Classical age, Great Sahara: a guarded Catapult's march, 8444 of 9884 (2026-10-24, item 3558)
 

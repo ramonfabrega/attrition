@@ -383,8 +383,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3573: 162 -> 164, the Persian Medieval pair whole at 4759 (3570,
 /// unpinned there) — Athanatoi (164) and Mahout (262), read by `rubric.py`
 /// on the base `34147453` with and without run1216 alike, and gone with
-/// the pair's four dumps left out.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 164;
+/// the pair's four dumps left out. Item 3574: 164 -> 165, the Greek
+/// Classical pair whole at 8126 — the Fire Raft (334, `FIRERAFT`), gone
+/// with run1195 and run1196 left out (`rubric.py --tables 3`).
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 165;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

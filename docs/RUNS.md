@@ -25741,6 +25741,40 @@ SHA-256 `218d1783155896a6f4f91d3af29ecd4f5124a018e323bcb9dec7d791d4364b3c`.
 **What it holds**: the Roman pair's game on every frame under `cover=1`, the land map's Classical-age lockstep
 trace (`blind::TRACES`).
 
+## run1217 — the Greeks at a held Classical age, East Indies: a packet at logger frame 7728, the Archers' round (2026-10-24, item 3574, `att-3574`)
+
+`docs/AI.md` §310. **What the disk could not answer**: where the Archers `1/53`'s round, loosed at the Citizen
+`0/5` on 7727, leaves from and how long it flies. The long's stride prints `0/5`'s `damage_frame` on 7801
+(theirs 7744, ours 7745), and no capture of the lobby writes an `AMMO` record. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1217 --map 18 --end-frame 7730 --timeout 3600 --log-window 7727
+7729 --detail end:MISC,UNITS=3,GUYS=2 --ai-tribe 5 --cover cover=0 --profile STARTING_TECHNOLOGY=1 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=7728
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 04:06:01, exited 04:06:44 (42.9 s). `success`, 7731 frames. `rngcmp.py`
+  against run1196: 7731 frames in common, 0 differing. The packet's header reads frame 7728.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1217/map-18/frame-snapshot.bin`, 854,474,160 bytes,
+SHA-256 `aa5f1e15749b77a4ce3d2ee18ec7f0b362eb0d97d110bbe62d63aaa231d74cd6`.
+
+**What it holds**: `tools/recomp/ammo.py` reads two live rounds. `1/53 -> 0/5` leaves from (8201, 8775, 512) and
+lands at (7367, 6640, 463), `t 1/18`. Ours left from the figure's own (8232, 8856, 348), with 19.
+
+## run1217b — the Greeks at a held Classical age, East Indies: the Archers' rounds, blocks 7678..7870 at `AMMO=5` (2026-10-24, item 3574, `att-3574`)
+
+**What the disk could not answer**: the release node of the Archers' piece 121 at each of its keys. run1217's
+packet holds one round. `--map 18 --end-frame 7870 --timeout 3600 --log-window 7678 7870 --detail
+end:MISC,UNITS=3,GUYS=4,AMMO=5`, the lobby as run1217's.
+- Pool lane 1. Launched 04:09:34, exited 04:10:29 (55.6 s). `success`: 7871 frames. `rngcmp.py` against run1196:
+  **7871 frames in common, 0 differing**. Filed with `filerun.py run1217b
+  eastindies-greek-classical-window-7678-7870 --map 18`.
+- Minutes waited on another lane: none.
+
+**What it holds**: 29 rounds on their first block, `cur_time 1`:
+- twenty-one of who=1's Archers (`1/35`, `1/36`, `1/37`, `1/52`, `1/53`, `1/54`; piece 121) over 7692..7867, fifteen
+  distinct poses, every one reproduced by the Heavy Archer's bays (`launch.rs`, `run1217b_s_greek_arrows_leave_from_the_archer_s_bays`);
+- seven of the catapults `1/66`, `1/67` and `1/86` (piece 215), not fit (parked 3574c);
+- one of the Javelineers `1/200` (piece 33).
 ## run1216 — the Persian Medieval pair's long lobby at `cover=1` on the click-free pool, to the game's end at 4759: the pair's lockstep twin (2026-10-24, item 3573, `att-3573`)
 
 **What the disk could not answer**: the pair's captures (run1180, run1181, run1181b) are `cover=0`. A `cover=0`
