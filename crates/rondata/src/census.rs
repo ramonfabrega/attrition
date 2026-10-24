@@ -390,7 +390,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// read by `rubric.py` on this tree. Item 3580: 166 -> 167, the Chinese
 /// Medieval pair whole at 4520 — Fire Lances (96, `FIRELANCES`), read by
 /// `rubric.py --tables 3` on the merged tree (re-pinned at the booking).
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 167;
+/// Item 3581: 167 -> 168, the Mongol Classical pair whole at 9884 — the
+/// Nomad (199, `NOMADS`, ×744 in run1197 and run1198), read by `rubric.py
+/// --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 168;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
