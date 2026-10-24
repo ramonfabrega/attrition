@@ -25950,6 +25950,29 @@ SHA-256 `ff55d801e57768a52ca50604f549e40a9ae63ae8c6ac0cddda4c5f4c28743a44`.
 **What it holds**: the word 9744's widening, `mongol_classical_pair_run1218_s_word_frame_is_widened_whole` (147
 blocks, 2493 keys). It opens apart on 9738: the Nubian Citizen `0/8`'s `damage_frame` ours 9721 against theirs
 9720, and who=1's chasers' moves 48 apart in `y`. The long's stride agrees through 9701.
+## run1222 — the Mongols at a held Classical age, Great Sahara: the gap before the word 9744, blocks 9696..9745 at `AMMO=5` (2026-10-24, item 3579, `att-3579`)
+
+`docs/AI.md` §311. **What the disk could not answer**: the state from 9702 to 9737. The long's stride prints 9701,
+run1218 starts at 9738 and is already apart there, and no capture of this lobby prints an `AMMO` record. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1222 --map 7 --end-frame 9745 --timeout 3600 --log-window 9696 9745
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0` and run1197's lobby
+(`--profile STARTING_TECHNOLOGY=1 ENDING_TECHNOLOGY=1 STARTING_RESOURCES=7 DIFFICULTY=5`).
+- Pool lane 1. Launched 06:54:19, exited 06:55:04 (45.8 s launch to exit). `success`: 9746 frames. `rngcmp.py`
+  against run1198: 9746 frames identical. Filed with `filerun.py run1222
+  greatsahara-mongol-classical-window-9696-9745`. `df -g ~` read 141 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1222-greatsahara-mongol-classical-window-9696-9745.txt`, 135,804,025 bytes,
+SHA-256 `afc0b6cbf4f85bfab6f5ea32db96ea9553e43ff07cda18f245acbe534ce51a8f`.
+
+Archive `rontrace-run1222.log`, 243,471,072 bytes,
+SHA-256 `f1e8b5070857bb9b133ff355fe6c5b0b7599e09647cd773c80ca811f7060f108`.
+
+**What it holds**: `mongol_classical_pair_run1222_walks_the_gap_before_9744` (49 blocks, 171 keys before the build
+and 82 after). The first unit field apart is on 9709: the Citizen `0/8`, struck a frame late in ours. The Mongol
+Archers' (piece 1177) and Javelineers' (piece 1089) rounds at it carry theirs' `sx, sy` and `total_time`, which
+reproduce piece 121's and piece 34's bays (`launch::tests::run1222_s_mongol_rounds_leave_from_their_bays`).
+
 ## run1201 — the Chinese at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3560, `att-3560`)
 
 `docs/AI.md` §313. §311's lobby with the nation and the age moved, through `viadriver.sh
