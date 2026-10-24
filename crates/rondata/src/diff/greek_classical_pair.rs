@@ -35,8 +35,14 @@ pub(crate) const GREEK_CLASSICAL: Pair = Pair {
     // only at age 0 (`Leader::init`'s `ages == 0` term), and the word moves
     // 8 -> 2616: ours 231 draws against 230, index 227, ours
     // `Unit::think_scout+0xaba` against theirs `Farms::inc_time+0x1ae`.
-    count: 2616,
-    sequence: 2616,
+    // Item 3569: the Dromon `1/50`'s region scan accepted a cell the
+    // Fishermen `1/68` had lit in theirs — pushed by `1/73` across a
+    // half-cell, a boat `detect_boat_collision` moves throws its ring
+    // reveal — and the word moves 2616 -> 4341: ours 23 draws against 22,
+    // index 8, ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d` against
+    // theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+    count: 4341,
+    sequence: 4341,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -221,6 +227,57 @@ fn greek_classical_pair_run1209_s_word_frame_is_widened_whole() {
     // `1/43` and `1/50` (TI 324, sea), whose `EXPLORETOORDER`s end on 2618,
     // re-pick their destinations (`1/31` `move.x`/`y` ours 39672/28920
     // against 31992/44280) — the scout arm ours' extra draw at
-    // `Unit::think_scout+0xaba` names.
-    pin_eq!(w.firsts.len(), 1604, "run1209 baseline");
+    // `Unit::think_scout+0xaba` names. Item 3569: 1604 -> 96. The pushed
+    // Fishermen `1/68` lights its ring on 2614, the Dromon `1/50` accepts
+    // 69 cells on 2616 as theirs does, and every unit row leaves: what
+    // stands is 2611's 86 standing rows, groups 75, 83, 84 and 85's `held`
+    // and pool (2613, 2617, 2673, 2729) and `form` on `1/93` and `1/94`.
+    pin_eq!(w.firsts.len(), 96, "run1209 baseline");
+}
+
+pub(crate) const RUN1212: &str = "gamelog-run1212-eastindies-greek-classical-window-4336-4592.txt";
+
+pub(crate) const WIDENING_GREEK_CLASSICAL_FRAME_4341: (i64, i64) = (4336, 4592);
+
+/// **The word 4341's window**: run1212 walked from run1195's start with the
+/// recorder on (item 3569).
+pub(crate) fn greek_classical_frame_4341_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GREEK_CLASSICAL.start],
+        true,
+        GREEK_CLASSICAL.long,
+        "run1212",
+        &[(RUN1212, WIDENING_GREEK_CLASSICAL_FRAME_4341.0)],
+        WIDENING_GREEK_CLASSICAL_FRAME_4341,
+        1,
+        &[4342],
+        true,
+    )
+}
+
+#[test]
+fn greek_classical_pair_run1212_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_classical_frame_4341_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3569: 1496 keys. Block 4336 carries 104 rows of the standing
+    // families; group 80's `held` and pool part on 4337. The word's own
+    // rows are on 4341: the General `1/138` (TI 54, land) stands at x 34736
+    // in ours against 34756 in theirs, and the Catapult `1/124` (TI 265)
+    // carries `collide_o` 138 in theirs and -1 in ours.
+    pin_eq!(w.firsts.len(), 1496, "run1212 baseline");
 }
