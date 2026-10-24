@@ -6804,9 +6804,6 @@ impl Sim {
             half,
             heli_rate,
         );
-        if std::env::var_os("RON_PROBE_3571").is_some() && self.units[u].owner == 1 && self.units[u].index == 138 {
-            eprintln!("P3571 step {:?} facing_in={:?} rate={rate} turn_first={turn_first} half={half} last_speed={} avg={} ", step, m.facing, m.body.last_speed, m.body.avg_speed);
-        }
         if step.half_step_used {
             self.units[u].half_step = false;
         }
