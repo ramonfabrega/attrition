@@ -26550,12 +26550,75 @@ furs terms of `Wall::update_los` (parked 3543b): no Fort-line building or furs h
 `1/2012` first read 19 is also open. The packet shows the rim lit by 1377, and no dump before run1186 prints a
 building's `mylos` where a reader takes it.
 
-## 308. Reserved for the next item on the AI track
+## 308. The Persians at a held Medieval age, East Indies: the ferried Explorer's attack order, 2226 of 4759 (2026-10-23, item 3535)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3535, Opus 5.5, the AI track (DECISIONS 90): run1180, run1181 and run1181b, on the click-free pool.*
+
+**The lobby.** The coverage pair's own (run652's: East Indies, `MAP_STYLE 18`, human Nubians against the
+**Persians (23)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`), with the age **held at Medieval**
+instead of All Technologies: `STARTING_TECHNOLOGY 2`, `ENDING_TECHNOLOGY 2`. Both captures read it back through
+`Pair::assert_lobby` (`persian_medieval_pair_captures_say_their_lobby`). **The game ends itself at 4759**
+(closing block 4760).
+
+**The triple is a scored lobby's, not a battery game's.** `(18, 23, 5)` is already in `battery::SCORED_LOBBIES`
+as the coverage pair's (item 1466, `EastIndiesPersianAllTech`), and no `battery::BATTERY` lobby holds it
+(`persian_medieval_pair_is_no_other_lobby`). The held age alone tells the two pairs apart, so nothing is added to
+the list. The battery's Persian lobby, `GreatLakesPersianTier2`, is `(14, 23, 2)`.
+
+**The captures.** run1180 is the `DUMP_ALL` start. run1181 is the long, 3507's run1147 recipe
+(`end:UNITS=3,GUYS=2` on `--stride 100`), walked from run1180's initial state (3506a). The two traces' 37 common
+frames are identical. run1181b (2220..2476) is the word's window, booked because the stride leaves block 2227
+undumped. Its 2477 frames are `rngcmp.py`-identical to run1181.
+
+**First try: frame 2226 of 4759**, by the count and the sequence. Ours spends 10 draws and theirs 8. They part at
+index 0: theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_guard+0x7f4` (seed `63042e02`, the same
+site as 2225's index 0), ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. **Ours idles a unit that theirs walks
+on.**
+
+**The units, by `TypeIndex` and domain.** The idler is who=1's **Explorer `1/0` (TypeIndex 71, land, uid 6)**.
+It was ferried: on the long's block 2101 it is inside **`1/45`, a Transport Barge (TypeIndex 320, sea, uid 89)**,
+and ours' `RON_DEBUG_UNIT` shows it ashore on 2172 at (34728, 32376), in army 2. None of the units the booking
+names (`ATHANATOI`, `IMPI`, `FIRELANCES`, `LEGIONELITE`, `BRIG`) is in the parting.
+
+**The value diff** (run1181b walked from run1180, 1130 keys). Block 2220 carries 79 rows. They are the standing
+families (every unit's `form`, the ten and seven `SITE[i].reg`, who=1's groups' `held`) and the Explorer's
+orders, **already parted**:
+- theirs holds two orders: an `EXPLORETOORDER` to (34296, 33528) (waypoint (34296, 32760), `last` (40428,
+  33324)), and above it a current **`ATTACKTOORDER` to (42072, 43368)**, `angle` 1744502784, its path 16 nodes
+  from (34272, 33504);
+- ours holds the explore order alone: `order:kind` ours 3 against theirs 2, `orders.len` 1 against 2, a path of
+  1 to (34272, 33504).
+
+The positions agree to 2225. On the word's block 2227 both stand on (34272, 33504). Ours' order is done and the
+unit idles; theirs walks on toward the attack's next node. `heading` reads ours −1073741824 against theirs
+1962213376 and `orders_x` 34272 against 34296 (block 2226's rows). `idle` reads ours 1 against theirs 0
+(block 2227's).
+
+**Walked back.** The long's stride blocks print the Explorer with no orders on 2101 and both of theirs' orders on
+2201, at (34210, 32887). Ours' `RON_DEBUG_UNIT` on 2201 reads the same point. Ours' `RON_DEBUG_UNIT` on 2172 shows the
+`ExploreTo` alone, with `des` 1744502784: theirs' `ATTACKTOORDER` angle. So theirs pushes the attack after the
+landing, between 2102 and 2201, and ours never pushes it. No dump on disk prints the unit at detail in that span.
+
+**The direction** is theirs: theirs made the record (the `ATTACKTOORDER`) that ours lacks. The next item's
+hypothesis is the army's attack order handed to a unit the barge lands, read on a window over 2165..2201.
+
+**What is pinned.** `diff::persian_medieval_pair` (run1180, run1181, run1181b):
+- `persian_medieval_pair_first_parting` (2226 and 2226 of 4759);
+- `…_captures_say_their_lobby` and `…_is_no_other_lobby`;
+- `…_run1181b_s_word_frame_is_widened_whole` (256 blocks, 1130 keys; its window is in the coverage driver).
+
+The pair also has an `AI_WORDS` row on `Late ages` (`EastIndiesPersianMedieval`) and its word in
+`testkit::WIDENINGS`.
+
+**The rubric.** Over the whole game the pair's dumps field 25 skirmish types. Of the booking's roster, the
+**Athanatoi (164)** and the **Mahout (262)** are seen. `ATHANATOIBOW` has no record of its own in the table.
+`IMPI` (95), `FIRELANCES` (96), `LEGIONELITE` (147) and the `BRIG` (331) are never fielded. The computer never
+sits below the cap (table 2: age 2 only), so the age-1 line does not enter. The rubric reads lockstep games only,
+and the open pair counts only to its word: the lockstep ledger stays at **160 of 302** types, and no type is new
+to it.
+
+**What is not established.** The frame in 2102..2201 where theirs pushes the `ATTACKTOORDER`, and which caller
+pushes it. Whether ours' `des` 1744502784 on 2172 comes from the same order, made and then dropped.
 
 ## 309. Reserved for the next item on the AI track
 

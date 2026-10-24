@@ -104,6 +104,8 @@ mod mongol_pair;
 pub mod oracle;
 mod order;
 #[cfg(test)]
+mod persian_medieval_pair;
+#[cfg(test)]
 mod persian_word;
 mod report;
 #[cfg(test)]

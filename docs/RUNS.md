@@ -25179,6 +25179,67 @@ SHA-256 `2f7931e105dc687ef09930bdd0097dba062159bda5e3f2d4e25ef860282c4394`.
 **What it holds**: `turkish_enlightenment_pair_run1159b_s_word_frame_is_widened_whole`, the word 2501 (block
 2502).
 
+## run1180 — the Persians at a held Medieval age, East Indies: the `DUMP_ALL` start (2026-10-23, item 3535, `att-3535`)
+
+`docs/AI.md` §308. The coverage pair's lobby with the age held at Medieval, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1180 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 23 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 18:47:36, exited 18:48:01 (24.8 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 23, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Filed with `filerun.py run1180
+  eastindies-persian-medieval-start`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1180-eastindies-persian-medieval-start.txt`, 153,796,123 bytes,
+SHA-256 `408d839dcb632d4c6a2d83db4efa4ef0713d7904a750d5533689e1fd707a0063`.
+
+Archive `rontrace-run1180.log`, 10,389,280 bytes,
+SHA-256 `eb078ee73f75ebcd4216c21c528d0154e29a4c36654037f5e62c3974d93690f0`.
+
+**What it holds**: the start of `persian_medieval_pair::PERSIAN_MEDIEVAL`, and the walk's initial state.
+
+## run1181 — the Persians at a held Medieval age, East Indies: the draw stream to the game's end (2026-10-23, item 3535, `att-3535`)
+
+`docs/AI.md` §308. 3507's run1147 recipe with this lobby: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 23
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1180's
+lobby.
+- Pool lane 2, beside run1180. Launched 18:47:41, exited 18:48:09 (27.4 s launch to exit). `success`. **The game
+  ended itself on 4759** (closing block 4760, `ended_early`). `GAME INFO` reads back as run1180's. `rngcmp.py`
+  against run1180: 37 frames identical. Filed with `filerun.py run1181 eastindies-persian-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1181-eastindies-persian-medieval-trace.txt`, 36,333,406 bytes,
+SHA-256 `afef7367d40672652aa94ec6c065d583970d92a0c53b8a2551692a6fdd7517f8`.
+
+Archive `rontrace-run1181.log`, 156,586,624 bytes,
+SHA-256 `f96ebf9873325b7040045e2248f2e9934710413cb0ded4e18a588c77e57f61f2`.
+
+**What it holds**: the pair's first try. `persian_medieval_pair_first_parting` walks it from run1180. The first
+try parts on **frame 2226 of 4759** (count and sequence): ours 10 draws, theirs 8, index 0, ours
+`Unit::do_idle+0x7d` against theirs `Unit::do_guard+0x7f4`. The ferried Explorer `1/0` idles in ours.
+
+## run1181b — the Persians at a held Medieval age, East Indies: the word 2226's window, blocks 2220..2476 (2026-10-23, item 3535, `att-3535`)
+
+`docs/AI.md` §308. **What the disk could not answer**: the word's block 2227, which run1181's stride (2201, 2301)
+leaves undumped. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1181b --map 18 --end-frame 2476
+--log-window 2220 2476 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 23 --cover cover=0
+--profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1. Launched 18:50:33, exited 18:51:15 (42.2 s launch to exit). `success`, 2477 frames. `rngcmp.py`
+  against run1181: 2477 frames in common, 0 differing. Filed with `filerun.py run1181b
+  eastindies-persian-medieval-window-2220-2476`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1181b-eastindies-persian-medieval-window-2220-2476.txt`, 550,772,402 bytes,
+SHA-256 `40dad4be8c47736f8206d030b4ae07d4811fae5a220884102da072ef09efa1f4`.
+
+Archive `rontrace-run1181b.log`, 61,922,496 bytes,
+SHA-256 `16a362da9b9110d64f62504dfccbb6ba82f990bad6202c730dac098f618f7504`.
+
+**What it holds**: `persian_medieval_pair_run1181b_s_word_frame_is_widened_whole`, the word 2226 (block 2227).
 ## run1186 — the Turks at a held Enlightenment age, Great Sahara: the walk back's window, blocks 1395..1502 (2026-10-23, item 3543, `att-3543`)
 
 `docs/AI.md` §307. **Disk gap**: the Citizen `1/20` agrees on run1159's stride block 1401 and has parted by 1501. run1158
