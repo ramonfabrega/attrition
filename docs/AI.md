@@ -26689,9 +26689,59 @@ its window is in the coverage driver), the re-pinned word and run1189b baseline,
 `cavarch::tests::a_melee_and_ranged_type_keeps_its_wait_under_an_attack_action` in `sim`. Through `tools/mutate.py`,
 dropping the `k` test fails the word (4038 again) and fails the unit test.
 
-**What is not established**: who struck `0/2000` by 4048. The window's first block that parts is a building's
+~~**What is not established**: who struck `0/2000` by 4048. The window's first block that parts is a building's
 damage, three frames after ours' `raid_stamp`. Whether that blow is a Mahout's (the shot ours now takes on 4038,
-landing elsewhere) or another unit's is the next item's first question, and so is the Citizen's missing 25 on 4059.
+landing elsewhere) or another unit's is the next item's first question, and so is the Citizen's missing 25 on 4059.~~
+Answered below (item 3555): the Peltasts' javelins and the Mahout's round, each leaving from the figure.
+
+**Who struck `0/2000`, and the Citizen's 25** (item 3555, no capture; run 1192 unused). Both were walked on
+run1189b's dump and ours' `RON_DEBUG_AMMO`:
+- **The blows on `0/2000`** (the Nubian capital Napata's centre). Theirs' `BUILDDATA` reads `damage` 3/5 on 4045
+  and 6/10 on 4048 (one blow of 53 sixteenths each), and `raid_stamp` 4044 then 4047. Ours lands 4045 and 4049.
+  The shooters are three Peltasts (TypeIndex 84, land), `1/20`–`1/22`, each on an `ATTACKORDER` on `0/2000`. Ours'
+  rounds: `1/21`'s from (7128, 7704), 9 frames, landing on both sides on 4044; `1/22`'s from (6840, 8424) to
+  (6452, 7326), **14 frames, where theirs' lands in 13**; `1/20`'s 17 against theirs' 16 (theirs 4063).
+- **The Citizen `0/10`'s 25.** The Mahout `1/27`'s round, released on 4052 from (5225, 9014), flies 9 frames in ours
+  and lands on 4060. Theirs' `damage_frame` reads 4059.
+- **The direction is ours.** Every round left the figure's own square, and its flight is `(int)(dist / (proj_speed
+  × unit_move_speed))` (`Ammo::init@0067bbf0`, the unit arm, from `param_1`'s `x, y`). `param_1` is
+  `execute_game_events`' package, the guy's position plus `GraphicPieces::get_position`'s node vector
+  (`docs/COMBAT.md` §22). A probe (one commit, reverted whole) printed the pieces: the Persians' Peltast is
+  **piece 1794** (`34 + 5 × 0x160`, piece 34's keys) and the Mahout **piece 212** (`CHAR_ATTACKWALK` at 16, node 1).
+  `launch::BAYS` had neither.
+
+**The bays.** No packet of this game exists. run1007b's (`RON_STATE_FRAME=15915`, the Indian Great Sahara game)
+holds both pieces' `AttachPos` rows: 1794's three (node 0: `CHAR_ATTACK1` at 12, `2` at 6, `3` at 27) and 212's
+eleven (node 1 at frame 16 for each of `CHAR_ATTACKWALK` and `ATTACK1`–`SPECIAL`, and node 4's, which no release in
+the window names). `get_position.py … sweep` was fitted as 1441's and 1442's were (§257, §260): the centroid of the
+integer region that reproduces all 361 headings. The fitter gives 1442's committed (−344, 57100, 173) back exactly.
+- piece 1794: (38946, 60202, 163), (1685, 50747, 170), (21762, 35444, 156);
+- piece 212: `ATTACKWALK` (−29938, 87586, 448), `ATTACK1` (−291, 71525, 451), `ATTACK2` (−17740, −7348, 465),
+  `ATTACK3` (−18234, 60948, 463), `ATTACKSPECIAL` (−18369, 79421, 452).
+
+**The value diff.** `1/22`'s javelin leaves (6821, 8377), flies 13 frames, and `0/2000` reads `damage` 6,
+`damage_frac` 10, on 4048 on both sides. Ours' blows now land on theirs' frames: 4045, 4048, 4063, 4076. `1/27`'s
+round leaves (5191, 8929) and flies 8 frames, and `0/10` reads `hits_left` 25 and `damage_frame` 4059 on 4060 on
+both sides. run1189b's widening goes 1312 → 745 keys. Through 4170 only the standing families stand (`form`, the
+ten `SITE[i].reg`, who=1's groups' `held` and `pool`).
+
+**The word moves 4083 → 4170 of 4759** (+87), by the count and the sequence. On 4170 ours spends 8 draws and theirs
+6. They part at index 0: ours `Guy::set_anim+0x97a < Unit::fight+0x169`, theirs `Unit::fight+0x824`. The first state
+parting is the Mahout `1/46` (TypeIndex 262, land) on 4171. On block 4170 both hold an `ATTACKORDER` on `0/2000`
+(`new_ord` 1, `in_range` 0) at (6657, 7777). On 4171 theirs stands at (6648, 7800), 25 units back along its path,
+and ours stays put. On 4173 theirs reads `in_range` 1 on `0/2000`, while ours has taken `0/11` (`g.ox[0]` 11 against
+2000, `new_ord` 1). Block 4171 is in run1189b's window, so that window stays the word's widening. No other lobby's
+`first_parting` moved (43 of 43 green), nor did `battery_floors`, `blind::` or `coverage::`.
+
+**What is pinned** (item 3555): `launch::tests::the_persian_peltasts_and_the_mahouts_bays_are_the_packet_s_sweep`
+(four headings of each of the eight rows), the re-pinned word, and run1189b's baseline at 745 keys. That count
+cannot see 1794's rows, because `0/2000`'s damage parts later on either tree. So the widening also pins its frame,
+4193. Through `tools/mutate.py`:
+- dropping 212's rows fails the word, at 4083 again;
+- dropping 1794's fails the widening's frame pin (4048 against 4193) and the `sim` test, and leaves the word alone.
+
+**What is not established**: why theirs' `1/46` steps back on 4170 and holds `0/2000` where ours turns on `0/11`.
+That is the next item's frame. Piece 212's node-4 rows are not built (no release names node 4).
 
 ## 309. Reserved for the next item on the AI track
 
