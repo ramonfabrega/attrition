@@ -2949,6 +2949,13 @@ impl Sim {
                 let lost = match taken {
                     Taken::Alive { lost } | Taken::Died { lost, .. } => lost,
                 };
+                if std::env::var("RON_PROBE_3578").is_ok() {
+                    let u = &self.units[i];
+                    eprintln!(
+                        "probe3578 hit f{_frame} {}/{} by {:?} hit {:?} before {}+{} lost {} frac {} splash {splash}",
+                        u.owner, u.index, _by, hit, u.max_health - u.health, u.damage_frac, lost, frac
+                    );
+                }
                 let u = &mut self.units[i];
                 u.damage_frac = frac;
                 u.health -= lost;
