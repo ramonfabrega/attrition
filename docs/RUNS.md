@@ -26710,3 +26710,68 @@ SHA-256 `8eacadad24c845246ecac0f7acd2054b3050c2d6d8a047dd57f03e511e3438da`.
 the standing families, `blown` on two units and six `dest_angle` rows (3567a's shape), two wounds stand through the
 last frame: the Mohawk Spearmen `1/52` (`hits:damage` ours 42 against theirs 38 on 8420) and the Javelineers `1/30`
 (5 against 4). Theirs heals both and ours does not (parked 3584a).
+
+## run1229 — the Egyptians at a held Classical age, East Indies: the `DUMP_ALL` start (2026-10-24, item 3585, `att-3585`)
+
+`docs/AI.md` §318. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1229 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 7 --profile STARTING_TECHNOLOGY=1 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 15:17:33, exited 15:17:57 (24.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 7, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1229
+  eastindies-egyptian-classical-start --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1229-eastindies-egyptian-classical-start.txt`, 153,803,298 bytes,
+SHA-256 `5160fc8f9ea2aa066cebfc3d0c0a0aa9ab795eb619618689e19107aeef6ab45a`.
+
+Archive `rontrace-run1229.log`, 10,041,600 bytes,
+SHA-256 `57377237715bf91168a0bd2c9dd690dd7b64ad2982e85a80c80ee6424cd75b6a`.
+
+**What it holds**: the start of `egyptian_classical_pair::EGYPTIAN_CLASSICAL`, and the walk's initial state.
+
+## run1230 — the Egyptians at a held Classical age, East Indies: the draw stream to the game's end (2026-10-24, item 3585, `att-3585`)
+
+`docs/AI.md` §318. run1196's line with `--ai-tribe 7`: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 7
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1229's
+lobby.
+- Pool lane 2, beside run1229. Launched 15:17:38, exited 15:18:11 (33.5 s launch to exit). `success`. **The game
+  ended itself on 6748** (closing block 6749, `ended_early`). `GAME INFO` reads back as run1229's. `rngcmp.py`
+  against run1229: 37 frames identical. Filed with `filerun.py run1230 eastindies-egyptian-classical-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1230-eastindies-egyptian-classical-trace.txt`, 48,161,252 bytes,
+SHA-256 `dd08381dc1332f25216f965b2cd96f7046c0b69d7f08de0b4ec9a7514da659c1`.
+
+Archive `rontrace-run1230.log`, 240,442,592 bytes,
+SHA-256 `5384e21e92ce446355727a7c8f638d7dacdc99e862fe8de29d9b765eedce86ad`.
+
+**What it holds**: the pair's first try. `egyptian_classical_pair_first_parting` walks it from run1229: **frame
+5961 of 6748** by the count and the sequence, ours 92 draws against theirs 89, index 77, ours
+`Guy::init_real+0x52` against theirs `Guy::set_anim+0x97a < Guy::inc_time+0x271`. Its stride (blocks 1..5901)
+parts only the standing families (`egyptian_classical_pair_the_long_s_stride_walks_back_from_5956`).
+
+## run1230b — the Egyptians at a held Classical age, East Indies: the word 5961's window, blocks 5956..6212 (2026-10-24, item 3585, `att-3585`)
+
+`docs/AI.md` §318. **What the disk could not answer**: the word's block 5962, which run1229 (blocks 0..2) and
+run1230's stride (5901, 6001) leave undumped. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1230b
+--map 18 --end-frame 6212 --timeout 3600 --log-window 5956 6212 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0 --profile STARTING_TECHNOLOGY=1
+--profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 15:20:31 (53.9 s launch to exit). `success`, 6213 frames. `rngcmp.py` against run1230:
+  6213 frames identical. Filed with `filerun.py run1230b eastindies-egyptian-classical-window-5956-6212 --map 18`.
+  `df -g ~` read 140 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1230b-eastindies-egyptian-classical-window-5956-6212.txt`, 612,755,647 bytes,
+SHA-256 `ca3af845364e9b9d0b670c20bcf50a2da7fc261ee4db89c84b913413f7667ec1`.
+
+Archive `rontrace-run1230b.log`, 210,588,224 bytes,
+SHA-256 `9f6abfc1f2d66adc9a092460b607260ac467bc0b8504ce539943160ef85759a6`.
+
+**What it holds**: `egyptian_classical_pair_run1230b_s_word_frame_is_widened_whole` (256 blocks, 4874 keys). Its
+first block 5956 is apart on who=1's economy: the queue `1/2020`'s head is ours a Merchant (61) against theirs a
+Caravan (59), with the buckets and `num_queued[11]`/`[9]` beside it. On the word's block 5962 ours births the
+Merchant `1/167` theirs does not; theirs' `1/167` is a Javelineers born on 5977.

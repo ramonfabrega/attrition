@@ -61,6 +61,8 @@ mod dutch_sahara_word;
 #[cfg(test)]
 mod dutch_word;
 #[cfg(test)]
+mod egyptian_classical_pair;
+#[cfg(test)]
 mod egyptian_word;
 mod endpoint;
 mod floors;

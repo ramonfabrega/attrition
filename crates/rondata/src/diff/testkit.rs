@@ -7289,6 +7289,12 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3585: run1230b's window over 5956..6212, the Egyptian
+    // Classical pair's word 5961, reads 3 inexact corners.
+    (
+        "egyptian_classical_pair_run1230b_s_word_frame_is_widened_whole",
+        3,
+    ),
     // Item 3591: the Bantu Ancient pair's walk to the word 5322 — the
     // Umpakati's javelins leave from their bays now — reads 3 inexact
     // corners. Item 3592: 13, the walk to 5523 — the Archers' arrows
@@ -10105,6 +10111,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3590,
         Some(crate::diff::japanese_gunpowder_pair::WINDOW_JAPANESE_GUNPOWDER_CLOSING),
     ),
+    // **The Egyptians at a held Classical age** (item 3585): East Indies —
+    // 5961 first try, widened on run1230b over 5956..6212 (block 5962).
+    (
+        "EGYPTIAN_CLASSICAL_PAIR_WORD",
+        crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL_PAIR_WORD,
+        Some("egyptian_classical_pair_run1230b_s_word_frame_is_widened_whole"),
+        3585,
+        Some(crate::diff::egyptian_classical_pair::WIDENING_EGYPTIAN_CLASSICAL_FRAME_5961),
+    ),
     // **The Iroquois from an Ancient start** (item 3584): Great Sahara —
     // whole on its first try, 8420 of 8420, the closing state compared;
     // widened on run1228b over 8165..8421 (the closing block).
@@ -11807,6 +11822,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 8_420,
         endpoint: Some("iroquois_ancient_pair_run1228_s_closing_state"),
         window: Some("iroquois_ancient_closing_window"),
+    },
+    // The Egyptians at a held Classical age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 1), East Indies (item 3585): first try 5961, of
+    // a game that ends itself on 6748; widened on run1230b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesEgyptianClassical",
+        named: "East Indies (Egyptians, Classical)",
+        word: crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL_PAIR_WORD,
+        length: 6_748,
+        endpoint: None,
+        window: Some("egyptian_classical_frame_5961_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

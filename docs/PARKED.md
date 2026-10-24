@@ -10656,13 +10656,12 @@ no `hits`, so `iroquois_ancient_pair_run1228_s_closing_state`'s counts are zero.
 over 8191 with `UNITS=3`, the heal's writer named on the block it first changes. Names no score: the draw stream
 is whole to 8420 (`docs/AI.md` §317).
 
-## Parked by the next landing, slot QQ — reserved
+## Parked by item 3585, 2026-10-24 — the Egyptians at a held Classical age, East Indies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3585a) **The Egyptians at a held Classical age, Difficulty 5, never field the Chariot (195).** The booking named
+`Chariot` and `Light Camel` (213) as the pair's lines. `rubric.py --tables 3 --dumps` on run1229 and run1230 (the
+whole game, to 6748) sees `Light Camel` ×1084 and no `Chariot`. The line stays unseen. A lobby that reaches it is
+the next pass's to name. **Score**: none (`docs/AI.md` §318).
 
 ## Parked by the next landing, slot QR — reserved
 
