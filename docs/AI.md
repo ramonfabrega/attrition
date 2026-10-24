@@ -26602,24 +26602,13 @@ landing, between 2102 and 2201, and ours never pushes it. No dump on disk prints
 **The direction** is theirs: theirs made the record (the `ATTACKTOORDER`) that ours lacks. The next item's
 hypothesis is the army's attack order handed to a unit the barge lands, read on a window over 2165..2201.
 
-**What is pinned.** `diff::persian_medieval_pair` (run1180, run1181, run1181b):
-- `persian_medieval_pair_first_parting` (2226 and 2226 of 4759);
-- `…_captures_say_their_lobby` and `…_is_no_other_lobby`;
-- `…_run1181b_s_word_frame_is_widened_whole` (256 blocks, 1130 keys; its window is in the coverage driver; 86
-  since item 3550);
-- item 3550's `…_run1189_lands_the_explorer_on_its_attack` (60 blocks, 77 keys, none on `1/0`) and
-  `…_run1189b_s_word_frame_is_widened_whole` (256 blocks, 1184 keys), both windows in the coverage driver, and
-  `transport::tests::the_boat_s_orders_queue_behind_what_the_passenger_s_tail_gave_it` in `sim`.
+**What is pinned.** `diff::persian_medieval_pair`: the first parting, the lobby and no-other-lobby tests, each
+window's `…_is_widened_whole` (in the coverage driver), item 3550's `…_run1189_lands_the_explorer_on_its_attack`,
+and `transport::tests::the_boat_s_orders_queue_behind_what_the_passenger_s_tail_gave_it`; an `AI_WORDS` row on
+`Late ages` and the word in `testkit::WIDENINGS`.
 
-The pair also has an `AI_WORDS` row on `Late ages` (`EastIndiesPersianMedieval`) and its word in
-`testkit::WIDENINGS`.
-
-**The rubric.** Over the whole game the pair's dumps field 25 skirmish types. Of the booking's roster, the
-**Athanatoi (164)** and the **Mahout (262)** are seen. `ATHANATOIBOW` has no record of its own in the table.
-`IMPI` (95), `FIRELANCES` (96), `LEGIONELITE` (147) and the `BRIG` (331) are never fielded. The computer never
-sits below the cap (table 2: age 2 only), so the age-1 line does not enter. The rubric reads lockstep games only,
-and the open pair counts only to its word: the lockstep ledger stays at **160 of 302** types, and no type is new
-to it.
+**The rubric.** The dumps field 25 skirmish types; of the booking's roster the **Athanatoi (164)** and the
+**Mahout (262)** are seen, and `IMPI`, `FIRELANCES`, `LEGIONELITE` and the `BRIG` never are (item 3535's journal).
 
 **The landing, 2172** (item 3550, run1189 over 2160..2220, `rngcmp.py`-identical to run1181). The disk had no
 dump of the unit in 2102..2201, so run1189 was taken. On block 2171 theirs' Explorer is still aboard, in group
@@ -26629,16 +26618,12 @@ at (34728, 32376), in group 75 — the Mahout `1/72`'s (TypeIndex 262, land, at 
 - behind it, the barge's `EXPLORETOORDER`;
 - and a path of 17 nodes: the attack's 15 under the barge's two, the top (34296, 32760) `f0`.
 
-**So both sides made the attack, and ours dropped it.** On 2171 ours' `come_out` tail draws the scout coin and
-`add_to_army` puts the Explorer in army 2 (leader `1/72`); `go_to_unit` pushes the `AttackTo`, and that is where
-ours' `des` 1744502784 came from. Then `eject_contents`' step 4 (`docs/TRANSPORT.md` §6.4) **replaced** the
-passenger's list and path with the barge's. The original's step 4 moves each barge order with `remove_current` and
-`LinkListBase::add@0046d5a0`, which appends to the back of the queue (`docs/ORDERS.md` §1.4), and pushes the
-barge's path on top of the passenger's. Ours now does the same (`Sim::hand_over_orders`). **The value diff on
-block 2172**, after the fix: ours' `1/0` holds `AttackTo` (42072, 43368), angle 1744502784, current over the
-`ExploreTo` (34296, 33528), with the same 17 nodes. Before it, `order:kind` read ours 3 against theirs 2, and
-`orders.len` 1 against 2. run1189's widening: 60 blocks, 77 keys, none on `1/0`, and the rest standing families.
-run1181b's widening goes from 1130 keys to 86, the standing families alone.
+**So both sides made the attack, and ours dropped it.** Ours' `come_out` tail put the Explorer in army 2 and
+`go_to_unit` pushed the `AttackTo`. Then `eject_contents`' step 4 (`docs/TRANSPORT.md` §6.4) **replaced** the
+passenger's list and path with the barge's, where the original appends each barge order to the back
+(`LinkListBase::add@0046d5a0`, `docs/ORDERS.md` §1.4) and pushes the barge's path on top. Ours now does the same
+(`Sim::hand_over_orders`). **The value diff on block 2172**: ours' `1/0` holds the `AttackTo` (42072, 43368) over
+the `ExploreTo`, with the same 17 nodes. run1189 reads 77 keys, none on `1/0`, and run1181b goes 1130 → 86.
 
 **The word moves 2226 → 4038 of 4759** (+1812), by the count and the sequence. On 4038 ours spends 8 draws and
 theirs 9. They part at index 0: theirs `Unit::fight+0x9b0`, ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
@@ -26667,17 +26652,10 @@ ours agrees through 3901. Between 3901 and 4001 both Mahouts take `[AttackTo, At
 makes the same test for a follower. Both arms had carried it as a `SEAM`. `Sim::attack_action_clears` is now the
 test, at the head and in the follower.
 
-**The value diff.** On the stride, 155 → 153 keys: the standing families alone, and the Mahouts agree on 4001. On
-run1189b, block 4033 drops to 99 rows (the standing families), and `1/27`'s rows on 4038 and 4039 are gone: the
-shot on the Citizen `0/10`, `cavarch_who` 0, `g.ox[0]` 10, `g.whom[0]` 0, and `fought` and `blown` 1 with
-`recharging` 40 on both sides. The window's keys go 1184 → 1312, all of them past 4047:
-- **4048**, the first state parting: the Nubian building `0/2000` reads `build:damage` ours 3 against theirs 6
-  (`damage_frac` 5 against 10), and `city:raid_stamp` ours 4044 against theirs 4047;
-- **4060**: the Citizen `0/10` reads `hits_left` ours 50 against theirs 25, and `damage_frame` 0 against 4059.
-  Theirs then flees: on 4061 it holds one order (to (4632, 6600)) and a path of 2;
-- **4067**: `1/46` reads `pos` ours (5469, 9811) against theirs (5468, 9811), with its move leg one tile apart;
-- **4083**, the word: `1/46` takes `cavarch_o` 2005 (a building) where theirs holds 10, and on 4084 it fires
-  (`fought`, `blown` ours 1 against theirs 0).
+**The value diff.** The stride goes 155 → 153 keys, and the Mahouts agree on 4001. On run1189b, `1/27`'s shot on
+`0/10` on 4038 and its reload on 4039 agree, and the keys go 1184 → 1312, all past 4047. The first state parting is
+**4048**: `0/2000`'s `build:damage` ours 3 against theirs 6. Then the Citizen `0/10`'s `hits_left` on 4060 (50
+against 25), and `1/46`'s `cavarch_o` on the word 4083 (2005 against 10).
 
 **The word moves 4038 → 4083 of 4759** (+45), by the count and the sequence. On 4083 ours spends 7 draws and theirs
 8. They part at index 0: theirs `Unit::fight+0x9b0`, ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Block 4084
@@ -26747,7 +26725,25 @@ on, skips the captain's re-search (`fight:368`), and in range swings and returns
 run1189b 745 → 119 keys. It now parts on 4241: `0/2000`'s `build:damage` ours 112 theirs 108, and `1/46`'s
 `cavarch_o` ours −2 theirs 2000 (theirs fires through `cavarch_fight`). **4170 → 4523 of 4759**: ours 49 draws
 against 45, index 3, ours `Unit::fight+0x824`, theirs `Guy::set_anim+0xf2f < Guy::move+0x166`. run1211 (4518..4760)
-widens it (1729 keys); the Knight `1/62` (TypeIndex 228) holds its attack on 4523 where theirs chases. **Not established**: why theirs fires through `cavarch_fight` on 4241.
+widens it (1729 keys); the Knight `1/62` (TypeIndex 228) holds its attack on 4523 where theirs chases. ~~**Not established**: why theirs fires through `cavarch_fight` on 4241.~~ Answered below (item 3570).
+
+**The melee swing that lands nothing; the pair closes** (item 3570, no capture, run 1213 unused; the walk is
+`docs/journal/2026-10-24-item-3570.md`'s). On run1189b's block 4241 ours' `0/2000` took a blow on 4240 that no round
+carried. Ours' `1/46`, in melee range on its `ATTACKORDER`, struck from `do_attack`'s `fight` at its first range
+(`RANGE 0-8`) and wounded the building directly. **The direction is ours.** `fight@005fd4d0:853-854` lands a melee
+blow only while `UnitType +0x2cc` stands, and `GraphicEvents::init_unit_events@008e2520:325` zeroes it for a
+graphic with a `RELEASEEVENT`: the Mahout's round leaves on its release. Then `do_attack@005f1b80:255-259`: a
+strike that answers 1 runs a `k` type's `cavarch_fight`, `recharging` held at 0, and its search writes theirs'
+`cavarch_o` 2000. Ours stubbed both. **The value diff**: on 4241 `0/2000` reads 108 and `1/46` reads `cavarch_o`
+2000 on both sides (`1/27` on 4242). run1189b goes 119 → 116 keys and now parts on 4283, by sixteenths only (ours
+145 14/16, theirs 146 8/16, both 149 13/16 on 4284). run1211 goes 1729 → 112: past the standing families, only
+`0/2000`'s sixteenths. **The word closes, 4523 → 4759 of 4759.** No other lobby's `first_parting` moved (44 of
+44). Pinned: `cavarch::tests::a_melee_swing_whose_graphic_releases_a_round_lands_no_blow` and
+`…::a_melee_and_ranged_strike_takes_the_fire_on_the_move_s_fight`, the word, and both widenings. Through
+`tools/mutate.py`, dropping the `+0x2cc` gate fails the word (4523) and its test; stubbing the tail fails both
+widenings (118, 114) and its test, but not the word. **Not established**: the 4283 sixteenths (parked 3570a), and
+`init_unit_events`' other two writers of `+0x2cc` (`:400`, `:446`), which are not read.
+
 
 ## 309. The Romans at a held Classical age, Great Sahara: a Citizen's second blow, 4069 of 7130 (2026-10-23, item 3556)
 
