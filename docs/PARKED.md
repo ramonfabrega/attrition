@@ -10362,13 +10362,13 @@ a site. Not booked: no score names it.
   entered: `Wall::update_los@0063eeb0` and `LeaderData::get_tower_fort_los@006daf80` (929 entries), the tower
   term of 3543. **Score**: none; the lockstep share's remaining gap is still staged takes' (3531a).
 
-## Parked by the next landing, slot PO — reserved
+## Parked by item 3549, 2026-10-23 — the British Enlightenment twin at `cover=1`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3549a — the twin's one new function, `Group::is_attacking_to@0070ea70`** (2,591 bytes, first entered on frame
+  4652 of run1188). No other of the 120 lockstep traces enters it, and `sim::group` already ports it (item 1012).
+  Which group call in the British game reaches it first is not established. It is the sea map's age-5 navy at
+  4652, by the frame. 8,813,649 → 8,816,240 of 11,392,782 bytes, 77.36 % → 77.38 %, which stays 773 tenths. 3531a's
+  prediction held again. **Score**: none.
 
 ## Parked by the next landing, slot PP — reserved
 
