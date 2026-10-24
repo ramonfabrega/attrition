@@ -26932,3 +26932,67 @@ SHA-256 `92ddf0f717f610da9afd6dc572cdee6632a4f49e736e0cd8bc843591b420f412`.
 walk, 91 after the eight-slot tie rotation). The Scout `1/126` parts on block 6509, on `path[3].to` and
 `path[4].to`, under the explore order both sides issue on 6508. Both leaders' `territory` stands from 6496
 until the fix.
+
+## run1233 — the Maya from an Ancient start, East Indies: the `DUMP_ALL` start (2026-10-24, item 3587, `att-3587`)
+
+`docs/AI.md` §320. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1233 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 1 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 17:38:46, exited 17:39:10 (23.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 1, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 0` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1233 eastindies-maya-ancient-start
+  --map 18`. `df -g ~` read 131 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1233-eastindies-maya-ancient-start.txt`, 153,787,409 bytes,
+SHA-256 `f17c4c529708544fcb4ae87ac8e1dd3034806eb37931a0f75db2bce71f23bf0b`.
+
+Archive `rontrace-run1233.log`, 9,899,904 bytes,
+SHA-256 `89907e1fc7e2231d62d80e1d463012bc905c075503421a586b057911622c415d`.
+
+**What it holds**: the start of `maya_ancient_pair::MAYA_ANCIENT`, and the walk's initial state.
+
+## run1234 — the Maya from an Ancient start, East Indies: the draw stream to the game's end (2026-10-24, item 3587, `att-3587`)
+
+`docs/AI.md` §320. run1181's line with `--ai-tribe 1`: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 1
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1233's
+lobby.
+- Pool lane 2, beside run1233. Launched 17:38:50, exited 17:39:22 (32.1 s launch to exit). `success`. **The game
+  ended itself on 5935** (closing block 5936, `ended_early`). `GAME INFO` reads back as run1233's. `rngcmp.py`
+  against run1233: 37 frames identical. Filed with `filerun.py run1234 eastindies-maya-ancient-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1234-eastindies-maya-ancient-trace.txt`, 39,147,525 bytes,
+SHA-256 `466946d43302a70565932fe7ec1a33714b6d85908f2fc8dad69afc376f6c8fc8`.
+
+Archive `rontrace-run1234.log`, 98,581,664 bytes,
+SHA-256 `3ca48b955202b810c2a7d3a698b6a0af20760f8261184d23230a24251ba6bd83`.
+
+**What it holds**: the pair's first try. `maya_ancient_pair_first_parting` walks it from run1233. The first try
+parts on **frame 4182 of 5935** by the count and the sequence: ours 31 draws against 29, index 16, ours
+`Leader::produce_building+0x1805` against theirs `Leader::make_stuff+0x63d`.
+
+## run1234b — the Maya from an Ancient start, East Indies: the word 4182's window, blocks 4177..4433 (2026-10-24, item 3587, `att-3587`)
+
+`docs/AI.md` §320. **What the disk could not answer**: who=1's leader, buildings and cities on the word's frame.
+run1234's stride prints units every hundredth block (4101 and 4201) and no `LEADERDATA` past the start, and no
+other dump holds this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1234b --map 18
+--end-frame 4433 --timeout 3600 --log-window 4177 4433 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 1 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 17:41:16, exited 17:42:03 (47.5 s launch to exit). `success`: 4434 frames. `rngcmp.py`
+  against run1234: 4434 frames identical. Filed with `filerun.py run1234b
+  eastindies-maya-ancient-window-4177-4433 --map 18`. `df -g ~` read 129 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1234b-eastindies-maya-ancient-window-4177-4433.txt`, 544,141,641 bytes,
+SHA-256 `c2b67e3f0b67cdcb3eaac2f33223d78d999740269c039a3090a2629fb8fb8c01`.
+
+Archive `rontrace-run1234b.log`, 59,128,992 bytes,
+SHA-256 `5cb750c56bed70030117d15e0150e2db02ea7e9ac22fbbd7b4c76922fa370954`.
+
+**What it holds**: `maya_ancient_pair_run1234b_s_word_frame_is_widened_whole` (256 blocks, 2407 keys): who=1's
+second Senate `1/2042` placed on the word's block 4183 in ours alone, the Citizen `1/94` sent to build it, theirs'
+`MAKE[8].t` still the Senate, and the standing families from 4177.

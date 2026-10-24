@@ -10590,3 +10590,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3595: the Egyptian word 6537 walked back to the Scout's path, and the new word 6718 (`docs/AI.md` §318.2; `docs/RUNS.md` run1242) ====
 #   run1242  --map 18 --end-frame 6531 --timeout 3600 --log-window 6496 6531 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0, run1229's lobby   (the Scout 1/126 walked back)
 # Checks: `rngcmp.py` run1242 vs run1230 -> 6532 identical.
+# ==== item 3587: the Maya from an Ancient start, East Indies (`docs/AI.md` §320; `docs/RUNS.md` run1233, run1234, run1234b) ====
+#   run1233  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 1 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1234  run1181's line with --ai-tribe 1 and run1233's lobby   (the draw stream; ended itself on 5935)
+#   run1234b --map 18 --end-frame 4433 --timeout 3600 --log-window 4177 4433 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 1 --cover cover=0, run1233's lobby   (the word 4182's window)
+# Checks: `rngcmp.py` run1233 vs run1234 -> 37 identical; run1234 vs run1234b -> 4434 identical.
