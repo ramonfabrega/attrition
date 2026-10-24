@@ -1905,6 +1905,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 452,
         },
     ),
+    // **Piece 43, the Bantu Umpakati** (type 93; item 3591, `docs/AI.md`
+    // §315.2): run1238c's `RON_STATE_FRAME=5021` packet on the Bantu East
+    // Indies game holds its three attack `AttachPos` rows — the
+    // Javelineer's animations and keys, node 0, on the piece's own model —
+    // and `get_position.py`'s sweep of each is reproduced at all 361
+    // headings by these, each the centroid of its exact region (42, 229 and
+    // 95 lattice points). Without them the Umpakati's javelins left the
+    // figure's own square: `1/86`'s at the Citizen `0/11` flew 16 frames
+    // from (6792, 8520) where run1238b's round leaves (6799, 8469) and flies
+    // 15, and struck on 5037 where theirs struck on 5035.
+    (
+        43,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 33_637,
+            fwd: 65_607,
+            dz: 185,
+        },
+    ),
+    (
+        43,
+        crate::anim::ATTACK2,
+        6,
+        Bay {
+            right: -13_157,
+            fwd: 50_004,
+            dz: 187,
+        },
+    ),
+    (
+        43,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: 14_497,
+            fwd: 40_695,
+            dz: 173,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -3086,6 +3126,87 @@ mod tests {
                 (x, y),
                 "{anim} {time} {deg}"
             );
+        }
+    }
+
+    /// **The Umpakati's piece 43** (item 3591): four headings of each
+    /// attack row's sweep off run1238c's packet, the way
+    /// [`the_peltasts_bays_are_the_packet_s_sweep`] reads 1442's, and the
+    /// four rounds run1238b prints (`AMMO=5`, `sx, sy, sz` against the
+    /// figure's pose on the block before the round's first print).
+    #[test]
+    fn the_umpakati_s_bays_are_the_packet_s_sweep_and_run1238b_s_rounds() {
+        const S: &[(i8, u32, i64, i32, i32)] = &[
+            (11, 12, 0, -33, 65),
+            (11, 12, 97, -61, -41),
+            (11, 12, 233, 72, -12),
+            (11, 12, 300, 39, 61),
+            (12, 6, 0, 13, 50),
+            (12, 6, 97, -51, 6),
+            (12, 6, 233, 32, -40),
+            (12, 6, 300, 49, 13),
+            (13, 27, 0, -14, 40),
+            (13, 27, 97, -38, -19),
+            (13, 27, 233, 41, -12),
+            (13, 27, 300, 27, 32),
+        ];
+        for &(anim, time, deg, x, y) in S {
+            let want = (deg + 180) % 360;
+            let facing = (0..1u32 << 12)
+                .map(|i| Angle((i << 20) as i32))
+                .find(|&a| whole_degrees(a) == want)
+                .expect("a facing at the degree");
+            let b = bay(43, anim, time, 0).expect("every attack AttachPos row");
+            let at = b.point(Pos::new(10_000, 10_000), facing);
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{anim} {time} {deg}"
+            );
+        }
+        // `(shooter, anim, time, figure, z, facing, the round's sx sy sz)`.
+        const R: &[(&str, i8, u32, (i32, i32), i32, i32, (i32, i32, i32))] = &[
+            (
+                "1/86",
+                12,
+                6,
+                (6792, 8520),
+                288,
+                283_836_416,
+                (6799, 8469, 475),
+            ),
+            (
+                "1/87",
+                11,
+                12,
+                (6936, 8232),
+                311,
+                273_154_048,
+                (6992, 8185, 496),
+            ),
+            (
+                "1/90",
+                11,
+                12,
+                (6024, 8808),
+                185,
+                -649_068_544,
+                (5990, 8743, 370),
+            ),
+            (
+                "1/91",
+                11,
+                12,
+                (5496, 9144),
+                85,
+                -292_028_416,
+                (5498, 9071, 270),
+            ),
+        ];
+        for &(who, anim, time, (x, y), z, facing, want) in R {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 43, anim, time, 0);
+            let dz = release_dz(43, anim, time, 0).expect("a bay");
+            assert_eq!((at.x, at.y, z + dz), want, "{who}");
         }
     }
 
