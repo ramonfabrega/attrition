@@ -26605,7 +26605,11 @@ hypothesis is the army's attack order handed to a unit the barge lands, read on 
 **What is pinned.** `diff::persian_medieval_pair` (run1180, run1181, run1181b):
 - `persian_medieval_pair_first_parting` (2226 and 2226 of 4759);
 - `…_captures_say_their_lobby` and `…_is_no_other_lobby`;
-- `…_run1181b_s_word_frame_is_widened_whole` (256 blocks, 1130 keys; its window is in the coverage driver).
+- `…_run1181b_s_word_frame_is_widened_whole` (256 blocks, 1130 keys; its window is in the coverage driver; 86
+  since item 3550);
+- item 3550's `…_run1189_lands_the_explorer_on_its_attack` (60 blocks, 77 keys, none on `1/0`) and
+  `…_run1189b_s_word_frame_is_widened_whole` (256 blocks, 1184 keys), both windows in the coverage driver, and
+  `transport::tests::the_boat_s_orders_queue_behind_what_the_passenger_s_tail_gave_it` in `sim`.
 
 The pair also has an `AI_WORDS` row on `Late ages` (`EastIndiesPersianMedieval`) and its word in
 `testkit::WIDENINGS`.
@@ -26617,8 +26621,38 @@ sits below the cap (table 2: age 2 only), so the age-1 line does not enter. The 
 and the open pair counts only to its word: the lockstep ledger stays at **160 of 302** types, and no type is new
 to it.
 
-**What is not established.** The frame in 2102..2201 where theirs pushes the `ATTACKTOORDER`, and which caller
-pushes it. Whether ours' `des` 1744502784 on 2172 comes from the same order, made and then dropped.
+**The landing, 2172** (item 3550, run1189 over 2160..2220, `rngcmp.py`-identical to run1181). The disk had no
+dump of the unit in 2102..2201, so run1189 was taken. On block 2171 theirs' Explorer is still aboard, in group
+72, with no orders, and the barge `1/45` carries the `EXPLORETOORDER` (34296, 33528). On block 2172 it is ashore
+at (34728, 32376), in group 75 — the Mahout `1/72`'s (TypeIndex 262, land, at (41880, 43320)) — with two orders:
+- current, `ATTACKTOORDER` (42072, 43368), `angle` 1744502784;
+- behind it, the barge's `EXPLORETOORDER`;
+- and a path of 17 nodes: the attack's 15 under the barge's two, the top (34296, 32760) `f0`.
+
+**So both sides made the attack, and ours dropped it.** On 2171 ours' `come_out` tail draws the scout coin and
+`add_to_army` puts the Explorer in army 2 (leader `1/72`); `go_to_unit` pushes the `AttackTo`, and that is where
+ours' `des` 1744502784 came from. Then `eject_contents`' step 4 (`docs/TRANSPORT.md` §6.4) **replaced** the
+passenger's list and path with the barge's. The original's step 4 moves each barge order with `remove_current` and
+`LinkListBase::add@0046d5a0`, which appends to the back of the queue (`docs/ORDERS.md` §1.4), and pushes the
+barge's path on top of the passenger's. Ours now does the same (`Sim::hand_over_orders`). **The value diff on
+block 2172**, after the fix: ours' `1/0` holds `AttackTo` (42072, 43368), angle 1744502784, current over the
+`ExploreTo` (34296, 33528), with the same 17 nodes. Before it, `order:kind` read ours 3 against theirs 2, and
+`orders.len` 1 against 2. run1189's widening: 60 blocks, 77 keys, none on `1/0`, and the rest standing families.
+run1181b's widening goes from 1130 keys to 86, the standing families alone.
+
+**The word moves 2226 → 4038 of 4759** (+1812), by the count and the sequence. On 4038 ours spends 8 draws and
+theirs 9. They part at index 0: theirs `Unit::fight+0x9b0`, ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+run1189b (4033..4289, `rngcmp.py`-identical to run1181) widens it: 256 blocks and 1184 keys.
+- Block 4033 carries 101 rows: the standing families, and two already parted. The Mahouts `1/27` and `1/46`
+  (TypeIndex 262, land) read `cavarch_o` ours −1 against theirs −2.
+- On 4038 theirs' `1/27`, at (5241, 9419) on its `ATTACKTOORDER` to (6552, 10968), takes the Citizen `0/10`
+  (TypeIndex 50, land) at (5016, 8088). The rows: `cavarch_who` ours −1 against theirs 0, `g.ox[0]` −1 against
+  10, and `g.whom[0]` −1 against 0.
+- Block 4039 reads `fought` and `blown` ours 0 against theirs 1, and `recharging` 0 against 40.
+
+**The direction** is theirs: theirs' Mahout fires and ours' does not. `cavarch_o` already stands parted on the
+window's first block. **What is not established**: where `cavarch_o` parts, before 4033 (the long's stride block
+4001 prints it), and whether it gates the shot.
 
 ## 309. Reserved for the next item on the AI track
 
