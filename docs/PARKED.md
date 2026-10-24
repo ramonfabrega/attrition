@@ -10351,13 +10351,16 @@ a site. Not booked: no score names it.
   adds `COLOSSEUM_FORT_RANGE` (0 as shipped) and furs `FURS_LOS`. `wall_los_view.rs` holds the whole function, swept.
   **Score**: none until a word parts on a Fort-line building's sight or a furs holder's.
 
-## Parked by the next landing, slot PN — reserved
+## Parked by item 3548, 2026-10-23 — the Turks' Enlightenment twin
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3548a. The age-5 twin adds one function, the deaths' logger.** run1187, the Turkish pair's long lobby at
+  `cover=1`, is run1159's game on every frame (rngcmp 3813 / 0 / 3813; samegame 39 / 0) and enters 6,863 functions,
+  none of them on `blind::NEVER` (247 unchanged). Over the other 119 lockstep traces it adds one simulation
+  function, `DeathObjData::log_data@008d55e0` (10,783 bytes, 3,812 entries — once a frame; why no other twin,
+  run1178 under the same `endgame:` detail among them, enters it is not established): 8,802,866 → 8,813,649 of
+  11,392,782, 77.27 % → 77.36 %, 772 → 773 tenths. 3531a's prediction held: tenths at most. The item's mechanics are
+  entered: `Wall::update_los@0063eeb0` and `LeaderData::get_tower_fort_los@006daf80` (929 entries), the tower
+  term of 3543. **Score**: none; the lockstep share's remaining gap is still staged takes' (3531a).
 
 ## Parked by the next landing, slot PO — reserved
 
