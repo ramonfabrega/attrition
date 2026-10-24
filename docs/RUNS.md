@@ -25541,3 +25541,23 @@ Archive `rontrace-run1196b.log`, 10,689,120 bytes,
 SHA-256 `2dbf65fcfa7dcb9b2825a4f2b8bdaa988a353fc0906045f7506f36d742916c3c`.
 
 **What it holds**: `greek_classical_pair_run1196b_s_word_frame_is_widened_whole`, the word 8 (block 9).
+
+## run1209 — the Greeks at a held Classical age, East Indies: the word 2616's window, blocks 2611..2867 (2026-10-23, item 3566, `att-3566`)
+
+`docs/AI.md` §310. **What the disk could not answer**: the word's block 2617, after item 3566 moved the word 8 → 2616.
+run1196b ends at block 258 and run1196's stride prints 2601 and 2701. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1209 --map 18 --end-frame 2867 --timeout 3600 --log-window 2611 2867 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0 --profile STARTING_TECHNOLOGY=1
+--profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 23:47:21, exited 23:48:26 (65.5 s launch to exit). `success`, 2868 frames. `rngcmp.py`
+  against run1196: 2868 frames in common, 0 differing. Filed with `filerun.py run1209
+  eastindies-greek-classical-window-2611-2867`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1209-eastindies-greek-classical-window-2611-2867.txt`, 523,598,540 bytes,
+SHA-256 `6ac40dc8ed95fe3fccc69978f760c884f2fd10770a5470aa68f3cdbd3c26d842`.
+
+Archive `rontrace-run1209.log`, 61,278,240 bytes,
+SHA-256 `f51e28b7ae6aa8321df5881c4588c05016a1442facc5227cb08da560061776e1`.
+
+**What it holds**: `greek_classical_pair_run1209_s_word_frame_is_widened_whole`, the word 2616 (block 2617).

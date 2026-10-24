@@ -10475,3 +10475,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1196  run1181's line with --ai-tribe 5 and run1195's lobby   (the draw stream; ended itself on 8126)
 #   run1196b --map 18 --end-frame 258 --log-window 2 258 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0, run1195's lobby   (the word 8's window)
 # Checks: `rngcmp.py` run1195 vs run1196 -> 37 identical; run1196 vs run1196b -> 259 identical.
+# ==== item 3566: the Greek word 2616 (`docs/AI.md` §310; `docs/RUNS.md` run1209) ====
+#   run1209  --map 18 --end-frame 2867 --log-window 2611 2867 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0, run1195's lobby   (the word 2616's window)
+# Checks: `rngcmp.py` run1209 vs run1196 -> 2868 identical.

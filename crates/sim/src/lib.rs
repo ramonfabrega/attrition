@@ -5199,7 +5199,10 @@ impl Sim {
     /// **Greeks** — who hold knowledge from frame 0 through
     /// `GREEK_KNOWLEDGE_EARLY`, and so are paid here — have it taken
     /// straight back off them by `GREEK_DELAY_KNOWLEDGE` and re-granted at
-    /// the Classical age.
+    /// the Classical age. **Only in the Ancient age**: the original's
+    /// branch also asks the leader's `ages` (`+0xdc`, key `0x62766`) for 0,
+    /// so a Greek leader started at Classical or later keeps it (item 3566,
+    /// `docs/AI.md` §310).
     ///
     /// It **assigns**, so re-laying it is what the original's single call
     /// does: a leader whose nation or lobby is only known after the first
