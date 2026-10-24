@@ -1944,6 +1944,40 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             fwd: 40_695,
             dz: 173,
         },
+    ), // **Piece 44, the Yangombi Umpakati** (type 94): the same packet's
+    // three rows carry piece 43's floats bit for bit at the same scale, and
+    // the sweeps are identical at all 361 headings. Without them who=1's
+    // Yangombi `1/90` threw at the Citizen `0/10` on 5083 from its own
+    // square (5592, 8520), 17 frames, where theirs struck on 5098.
+    (
+        44,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 33_637,
+            fwd: 65_607,
+            dz: 185,
+        },
+    ),
+    (
+        44,
+        crate::anim::ATTACK2,
+        6,
+        Bay {
+            right: -13_157,
+            fwd: 50_004,
+            dz: 187,
+        },
+    ),
+    (
+        44,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: 14_497,
+            fwd: 40_695,
+            dz: 173,
+        },
     ),
 ];
 
@@ -3129,7 +3163,7 @@ mod tests {
         }
     }
 
-    /// **The Umpakati's piece 43** (item 3591): four headings of each
+    /// **The Umpakati's pieces 43 and 44** (item 3591): four headings of each
     /// attack row's sweep off run1238c's packet, the way
     /// [`the_peltasts_bays_are_the_packet_s_sweep`] reads 1442's, and the
     /// four rounds run1238b prints (`AMMO=5`, `sx, sy, sz` against the
@@ -3156,13 +3190,16 @@ mod tests {
                 .map(|i| Angle((i << 20) as i32))
                 .find(|&a| whole_degrees(a) == want)
                 .expect("a facing at the degree");
-            let b = bay(43, anim, time, 0).expect("every attack AttachPos row");
-            let at = b.point(Pos::new(10_000, 10_000), facing);
-            assert_eq!(
-                (at.x - 10_000, at.y - 10_000),
-                (x, y),
-                "{anim} {time} {deg}"
-            );
+            // Piece 44, the Yangombi Umpakati, sweeps identically.
+            for piece in [43, 44] {
+                let b = bay(piece, anim, time, 0).expect("every attack AttachPos row");
+                let at = b.point(Pos::new(10_000, 10_000), facing);
+                assert_eq!(
+                    (at.x - 10_000, at.y - 10_000),
+                    (x, y),
+                    "{piece} {anim} {time} {deg}"
+                );
+            }
         }
         // `(shooter, anim, time, figure, z, facing, the round's sx sy sz)`.
         const R: &[(&str, i8, u32, (i32, i32), i32, i32, (i32, i32, i32))] = &[
