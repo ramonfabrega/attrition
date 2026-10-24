@@ -170,3 +170,57 @@ fn greek_classical_pair_run1196b_s_word_frame_is_widened_whole() {
     // 37500, `off_x` 72 against 24).
     pin_eq!(w.firsts.len(), 45, "run1196b baseline");
 }
+
+/// run1209: the word 2616's window, blocks 2611..2867 at run1196b's
+/// detail — six blocks before the word's block 2617 and 250 after (item
+/// 3566); run1196b ends at 258 and the long's stride prints 2601 and 2701.
+pub(crate) const RUN1209: &str = "gamelog-run1209-eastindies-greek-classical-window-2611-2867.txt";
+
+/// The window: block 2611 through 2867; the word 2616's own block is 2617.
+pub(crate) const WIDENING_GREEK_CLASSICAL_FRAME_2616: (i64, i64) = (2611, 2867);
+
+/// **The word 2616's window**: run1209 walked from run1195's start with the
+/// recorder on (item 3566).
+pub(crate) fn greek_classical_frame_2616_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GREEK_CLASSICAL.start],
+        true,
+        GREEK_CLASSICAL.long,
+        "run1209",
+        &[(RUN1209, WIDENING_GREEK_CLASSICAL_FRAME_2616.0)],
+        WIDENING_GREEK_CLASSICAL_FRAME_2616,
+        1,
+        &[2617],
+        true,
+    )
+}
+
+#[test]
+fn greek_classical_pair_run1209_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_classical_frame_2616_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3566: 1604 keys. Block 2611, the window's first, carries 86 rows
+    // of the standing families (`SITE[i].reg`, `aggression`, `form`, the
+    // groups' `held` and pools); the word's block 2617 adds only group 83's
+    // `held` and pool. The first unit rows are on 2619: the Dromons `1/31`,
+    // `1/43` and `1/50` (TI 324, sea), whose `EXPLORETOORDER`s end on 2618,
+    // re-pick their destinations (`1/31` `move.x`/`y` ours 39672/28920
+    // against 31992/44280) — the scout arm ours' extra draw at
+    // `Unit::think_scout+0xaba` names.
+    pin_eq!(w.firsts.len(), 1604, "run1209 baseline");
+}
