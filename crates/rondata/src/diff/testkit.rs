@@ -9910,13 +9910,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // where theirs holds the Citizen `0/10`; block 4084 is in run1189b's
     // window. **4170** with the Persian Peltasts' and the Mahouts' bays
     // (item 3555): `1/46`'s `pos` parts on 4171; block 4171 is in
-    // run1189b's window.
+    // run1189b's window. **4523** with a melee-and-ranged type walking
+    // past `fight`'s reload gate (item 3568): the Knight `1/62` holds its
+    // attack where theirs chases, widened on run1211 over 4518..4760
+    // (block 4524); the state first parts on run1189b's 4241.
     (
         "PERSIAN_MEDIEVAL_PAIR_WORD",
         crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL_PAIR_WORD,
-        Some("persian_medieval_pair_run1189b_s_word_frame_is_widened_whole"),
-        3555,
-        Some(crate::diff::persian_medieval_pair::WIDENING_PERSIAN_MEDIEVAL_FRAME_4038),
+        Some("persian_medieval_pair_run1211_s_word_frame_is_widened_whole"),
+        3568,
+        Some(crate::diff::persian_medieval_pair::WIDENING_PERSIAN_MEDIEVAL_FRAME_4523),
     ),
     // **The first pair below age 2** (item 3557): the Greeks at a held
     // Classical age, East Indies — 8 first try (the AI's make list parts
@@ -11507,7 +11510,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 2), East Indies (item 3535): first try 2226, the
     // Explorer idling where theirs walks on, of a game that ends itself on
     // 4759; widened on run1181b. 4038 by item 3550, the ferried Explorer
-    // keeping its army's attack; widened on run1189b.
+    // keeping its army's attack; widened on run1189b. 4523 by item 3568,
+    // the Mahout past `fight`'s reload gate; widened on run1211.
     AiWord {
         line: "Late ages",
         map: "EastIndiesPersianMedieval",
@@ -11515,7 +11519,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::persian_medieval_pair::PERSIAN_MEDIEVAL_PAIR_WORD,
         length: 4_759,
         endpoint: None,
-        window: Some("persian_medieval_frame_4038_window"),
+        window: Some("persian_medieval_frame_4523_window"),
     },
     // The Greeks at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3557): first try 8, the

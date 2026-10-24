@@ -1621,6 +1621,13 @@ impl Sim {
         // `set_anim` and before the damage: the strike makes this unit
         // visible to whoever it just hit (`docs/VISION.md` §7).
         self.set_attacking(i, self.owner_of(target));
+        // `LAB_005feec6`'s tail (`005feecb`): under `param_5 == 0` a unit
+        // still recharging has swung and aimed, and returns before the
+        // blow and the reload. Only a melee-and-ranged type reaches here
+        // recharging (the reload gate's `0x400`, item 3568).
+        if !cavarch && self.units[i].combat.recharging != 0 {
+            return;
+        }
         if self.max_range_of(me) == 0 {
             // Melee lands now, once per figure of this `UnitData` — one here.
             if p.fires() {
