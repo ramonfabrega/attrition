@@ -3202,7 +3202,8 @@ mod tests {
             }
         }
         // `(shooter, anim, time, figure, z, facing, the round's sx sy sz)`.
-        const R: &[(&str, i8, u32, (i32, i32), i32, i32, (i32, i32, i32))] = &[
+        type Round = (&'static str, i8, u32, (i32, i32), i32, i32, (i32, i32, i32));
+        const R: &[Round] = &[
             (
                 "1/86",
                 12,
