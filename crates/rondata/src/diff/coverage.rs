@@ -3480,6 +3480,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::bantu_ancient_pair::bantu_ancient_stride_window(),
         || super::bantu_ancient_pair::bantu_ancient_gap_5066_window(),
         || super::bantu_ancient_pair::bantu_ancient_frame_5322_window(),
+        || super::bantu_ancient_pair::bantu_ancient_closing_window(),
         || super::chinese_medieval_pair::chinese_medieval_volley_2955_window(),
         || super::chinese_medieval_pair::chinese_medieval_closing_window(),
         || super::roman_classical_pair::roman_classical_closing_window(),

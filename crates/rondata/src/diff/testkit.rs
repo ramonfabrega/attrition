@@ -7298,8 +7298,16 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3591: the Bantu Ancient pair's walk to the word 5322 — the
     // Umpakati's javelins leave from their bays now — reads 3 inexact
     // corners. Item 3592: 13, the walk to 5523 — the Archers' arrows
-    // leave from piece 473's bays.
-    ("bantu_ancient_pair_first_parting", 13),
+    // leave from piece 473's bays. Item 3593: 143, the walk whole to
+    // 6210 — a rolled round's aim is its target's own clamped `z`.
+    ("bantu_ancient_pair_first_parting", 143),
+    // And its closing state and run1240's closing window, 5955..6211
+    // (item 3593): the same walk to the end, 143.
+    ("bantu_ancient_pair_run1206_s_closing_state", 143),
+    (
+        "bantu_ancient_pair_run1240_s_closing_frame_is_widened_whole",
+        143,
+    ),
     // And run1238d's window over 5316..5572, the word 5322's (item 3591):
     // 16. Item 3592: 33, the Archers' arrows from piece 473's bays.
     (
@@ -10091,13 +10099,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // first try, widened on run1206b over 4180..4436 (block 4186). **5072**
     // with the lobby's type ages (item 3589), widened on run1236b over
     // 5066..5322 (block 5073). **5322** with the Umpakati's bays (item
-    // 3591), widened on run1238d over 5316..5572 (block 5323).
+    // 3591), widened on run1238d over 5316..5572 (block 5323). **6210**,
+    // the game's last frame, with a rolled round's aim at its target's own
+    // `z` (item 3593); widened on run1240 over 5955..6211 (the closing
+    // block), the closing state scored.
     (
         "BANTU_ANCIENT_PAIR_WORD",
         crate::diff::bantu_ancient_pair::BANTU_ANCIENT_PAIR_WORD,
-        Some("bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole"),
-        3591,
-        Some(crate::diff::bantu_ancient_pair::WIDENING_BANTU_ANCIENT_FRAME_5322),
+        Some("bantu_ancient_pair_run1240_s_closing_frame_is_widened_whole"),
+        3593,
+        Some(crate::diff::bantu_ancient_pair::WINDOW_BANTU_ANCIENT_CLOSING),
     ),
     // **The Japanese at a held Gunpowder age** (item 3563): Great Sahara —
     // 2839 first try, widened on run1208b over 2834..3090 (block 2840).
@@ -11787,15 +11798,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // age read back 1), East Indies (item 3562): first try 4185, of a game
     // that ends itself on 6210; widened on run1206b. 5072 with the lobby's
     // type ages (item 3589), widened on run1236b. 5322 with the Umpakati's
-    // bays (item 3591), widened on run1238d.
+    // bays (item 3591), widened on run1238d. Whole from item 3593: the
+    // closing state compared, widened on run1240.
     AiWord {
         line: "Late ages",
         map: "EastIndiesBantuAncient",
         named: "East Indies (Bantu, Ancient)",
         word: crate::diff::bantu_ancient_pair::BANTU_ANCIENT_PAIR_WORD,
         length: 6_210,
-        endpoint: None,
-        window: Some("bantu_ancient_frame_5322_window"),
+        endpoint: Some("bantu_ancient_pair_run1206_s_closing_state"),
+        window: Some("bantu_ancient_closing_window"),
     },
     // The Japanese at a held Gunpowder age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3563): first try 2839, of
