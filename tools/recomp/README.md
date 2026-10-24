@@ -43,6 +43,10 @@ nothing from the install is committed.
   (`sweep`), and the pivot arm on every facing and turret step (`pivot`).
   How a release node's rows are read for `sim::launch` and `sim::pivot`
   (items 602, 1194, 1257).
+- `fit_bay.py` — the `sim::launch::Bay` rows a `sweep` admits: the exact
+  integer `(right, fwd)` region under `Bay::point`'s whole-degree turn and
+  truncation, its centroid and `dz`, and `--check` for a given row (item
+  3592; 3590's and 3591's scratch fitters before it).
 - `snapshot.py` — the lab's `frame-snapshot-v1` stream as guest memory.
 - `scan.py` — lifts and compiles every function a set of documents cites,
   and groups the failures by the instruction that stopped them.
