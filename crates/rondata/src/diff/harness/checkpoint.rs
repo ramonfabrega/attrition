@@ -684,8 +684,12 @@ mod tests {
             eprintln!(
                 "RESEAT_RESULT {key:?}: changed_frames={changed}, first={first:?}, last={last:?}, first [clock,position,player,RNG,comparator]={effects:?}"
             );
-            let expected_frames = if key.frame == 99 { 556 } else { 1 };
-            let expected_last = if key.frame == 99 { 655 } else { key.frame + 1 };
+            // Item 3571: 556 -> 555 frames, last 655 -> 654. `frame_facing`
+            // is now refreshed after the body's `Guy::move` rather than at
+            // the head of the next process, so the angles converge a frame
+            // sooner; the five effects stay none.
+            let expected_frames = if key.frame == 99 { 555 } else { 1 };
+            let expected_last = if key.frame == 99 { 654 } else { key.frame + 1 };
             assert_eq!(
                 (changed, first, last),
                 (expected_frames, Some(key.frame + 1), Some(expected_last))
