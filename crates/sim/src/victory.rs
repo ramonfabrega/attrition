@@ -29,10 +29,6 @@ pub mod seams {}
 impl Sim {
     /// `GameDaemon::process_victory`'s POPWIN arm: the territory timers.
     pub(crate) fn process_victory_territory(&mut self) {
-        if std::env::var_os("RON_PROBE_3575").is_some() && self.frame == 100 {
-            let r: Vec<_> = self.world.regions().map(|(r, t)| (r, t, self.world.region_size(r))).collect();
-            eprintln!("PROBEREG {:?}", r);
-        }
         if std::env::var_os("RON_PROBE_3575").is_some() && self.frame % 50 == 0 {
             eprintln!(
                 "PROBEHEAD f{} victory {} land {} share {} own {:?}",
