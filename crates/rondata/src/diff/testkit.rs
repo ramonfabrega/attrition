@@ -9976,12 +9976,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::mongol_classical_pair::WIDENING_MONGOL_CLASSICAL_FRAME_8444),
     ),
     // **The Chinese at a held Medieval age** (item 3560): Great Sahara —
-    // 2981 first try, widened on run1202b over 2975..3231 (block 2982).
+    // 2981 first try, widened on run1202b over 2975..3231 (block 2982);
+    // 3030 (item 3577: the Fire Lances' bays), block 3031 in the same window.
     (
         "CHINESE_MEDIEVAL_PAIR_WORD",
         crate::diff::chinese_medieval_pair::CHINESE_MEDIEVAL_PAIR_WORD,
         Some("chinese_medieval_pair_run1202b_s_word_frame_is_widened_whole"),
-        3560,
+        3577,
         Some(crate::diff::chinese_medieval_pair::WIDENING_CHINESE_MEDIEVAL_FRAME_2981),
     ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
