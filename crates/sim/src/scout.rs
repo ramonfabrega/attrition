@@ -801,22 +801,12 @@ impl Sim {
         };
 
         let here = self.units[u].pos.cell();
-        let probe = std::env::var("RON_PROBE_SCOUT").ok().is_some_and(|v| {
-            v.split(',').any(|x| x == format!("{}/{}@{}", who, self.units[u].index, self.frame))
-        });
-        if probe {
-            eprintln!("PROBE f{} {}/{} region {region} n {n} stride {stride} start {start}", self.frame, who, self.units[u].index);
-        }
         for c in self.world.region_coords_strided(region, start, stride) {
             // `was_really_seen`, inlined at `005f69cd` rather than called.
             if self.was_really_seen(c, who) {
                 continue;
             }
             let tile = Pos::new(c.x * 4 + 2, c.y * 4 + 2);
-            if probe {
-                let inv = self.invalid_loc(u, tile, false, false, false, false, false);
-                eprintln!("PROBE   cell ({}, {}) unseen invalid {inv} ocean {}", c.x, c.y, self.world.is_ocean(c));
-            }
             if self.invalid_loc(u, tile, false, false, false, false, false) != 0 {
                 continue;
             }
