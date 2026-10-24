@@ -505,6 +505,17 @@ impl Sim {
             let Some(r) = self.world.region_of(cell) else {
                 continue;
             };
+            if std::env::var("RON_PROBE_RARES").is_ok() {
+                eprintln!(
+                    "PROBE_RARES f{} who={who} good={gi} ty={:?} pos=({},{}) cell={:?} owner={:?} region={r}",
+                    self.frame,
+                    self.world.goods().get(gi).map(|g| g.ty),
+                    pos.x,
+                    pos.y,
+                    cell,
+                    self.world.owner(cell)
+                );
+            }
             if let Some(slot) = self.ai[w].census.reg_known_rares.get_mut(usize::from(r)) {
                 *slot += 1;
             }
