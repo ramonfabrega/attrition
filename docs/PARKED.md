@@ -10723,13 +10723,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QX — reserved
+## Parked by item 3597, 2026-10-24 — the Senate arm of `type_avail`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3597a. The Senate arm's capital-loss branches are unwalked.** `Sim::senate_avail` carries
+  `LeaderData::type_avail@006e33a0`'s Senate test whole: `num_queued`, the capital walk and the two
+  `find_capital` re-asks. But only clause 1 (a placed site) and clause 4 (an active Senate in my capital) have a
+  walk behind them. Clauses 3 and 5 are reached only when another leader holds a city that was my capital
+  (`find_capital`'s second arm, `was_capital_flags`, the founding `0x4000`), and no capture on file has one
+  before a Senate is listed. The per-leader city index is read as the position in `Sim::cities_of` (a `SEAM`).
+  `docs/AI.md` §320.1. **Score**: none until a capture loses a capital and lists a Senate after it.
 
 ## Parked by the next landing, slot QY — reserved
 

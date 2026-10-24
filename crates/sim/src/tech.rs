@@ -1681,7 +1681,9 @@ impl TechTree {
                 if def.from.is_some() && auto && !p.tech[t] {
                     return RESEARCHABLE;
                 }
-                // The Senate's capital walk needs cities; not modelled.
+                // The Senate's arm (`num_queued`, the capital walk) needs
+                // the sites and the cities: [`crate::Sim::type_avail`]
+                // takes it after this answer (item 3597).
                 AVAILABLE
             }
             Kind::Gov { .. } if p.no_governments => NOT_AVAILABLE,

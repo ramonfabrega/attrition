@@ -28263,11 +28263,84 @@ the ledger, but it enters only when the pair is lockstep. `Royal Balamob Slinger
 318, Transport Barge 320), and the horse, fish and whale herds. `rubric.py` on this tree reads unit types seen
 **177 of 302**, unmoved.
 
-**What is not established.** Why ours places the Senate on 4182 and theirs does not. The list agrees on 4177 and
+**What is not established.** ~~Why ours places the Senate on 4182 and theirs does not. The list agrees on 4177 and
 the buckets agree until ours pays. So the parting is in the 4182 pass's choice between laying the Senate (ours)
 and the fourth `make_stuff+0x63d` draw (theirs). That draw's arm and the `MAKE` head's `can_pay` inputs on 4182
 (`RON_DEBUG_MAKE=4182`: head t 420, paid in ours) are the next item's first reads. The next item's frame is 4182,
-ours 31 draws against 29 at index 16.
+ours 31 draws against 29 at index 16.~~ Answered in §320.1: the list held the Senate twice, and the original's
+`type_avail` refuses the second while the first's site stands unfinished.
+
+### 320.1 The Senate arm of `type_avail`: 4182 → 4324 (item 3597)
+
+**The make list, walked back** (run1234b, `LEADERS=9`, every block from 4177). Who=1's list holds two `596`
+entries alone from 4179 to 4181 and is rebuilt for the 4182 pass, on both sides alike. On block 4182 it lists
+**the Senate twice**: slot 3 for city 2 and slot 8 for city 0, both `val` 4000000, cat 8, beside the head `420`
+(city 3), `430`, `428`, a second `420` and `428`, and the `596`. The two lists agree whole on every block to 4182,
+so no input of the list's parts: the parting is the 4182 pass's.
+
+**Both sides' event on 4182.** The pass buys the head (`1/2040`, the 420, city 3) and slot 3's Senate (`1/2041`
+at (35904, 41376), city 2) on both sides: indices 0–15, two four-draw placements. Then slot 8, the Senate for city
+0. On block 4183 theirs still lists it, with `val` 40000. That is `4000000 / 100`, the `make_this` tail
+(`006c999d`) that only a producer answering 0 (bought) reaches. So theirs' `make_this` answered *bought* for slot
+8 and placed nothing, and the `make_stuff+0x63d` draw is the slot's expiry, which left `t` standing (`% 3 != 0`).
+Ours places a second Senate (`1/2042`, two `produce_building` draws), then takes the same expiry draw.
+
+**The arm.** `make_this@006c94f0`'s building arm sends a type whose `type_avail(t, 1)` is not 4 to `produce_tech`.
+A building type whose bit the leader holds answers 0 there at once: bought, no draw, nothing placed. And
+`LeaderData::type_avail@006e33a0` ends with a test on exact identity, `TVar3 == SENATE` (438), before its `return
+4`. It answers 0 when:
+1. `num_queued[SENATE] != 0` (`LeaderData +0x5a22`, u16 per type). `Wall::increment_stats@00643270` adds one for
+   an **inactive** wall (a site, `field_0x8 & 4` clear, `0xe3fdb2 + 0x6eec·who + 2t`), and
+   `Wall::activate@0063e4b0` and `Wall::decrement_stats@00642da0` take it off. This crate's count is
+   `Sim::num_sites_of`.
+2. `find_capital(−1, −1)` (`006eb930`) answers no city. It looks first for my first live city with `city_flags &
+   0x10`, else for another leader's live city whose `was_capital_flags` carries my bit.
+3. The capital is another leader's, and a second `find_capital` that skips it does not answer a city of mine.
+   That city must also hold no active Senate and be the founding capital (`0x4000`).
+4. `CityData::count_buildings@00739390(SENATE, 0, 1)` is non-zero on my city at the capital's index. The count is
+   members whose object flag bit 2 (active) is set and whose type `is` the Senate.
+5. A second capital that skips the first is mine and holds an active Senate. Or it is another leader's, and my
+   city at the first index is the founding capital.
+
+The tree's own `type_avail_built` cannot see sites or cities, and it said so ("the Senate's capital walk needs
+cities; not modelled"). `Sim::type_avail` now takes the arm after the tree answers 4: `Sim::senate_avail`, with
+`Sim::leader_find_capital`. On 4182, slot 3's Senate site is placed and inactive, so `num_queued[438]` is 1. Slot
+8 then answers 0, goes to `produce_tech`, and is bought for nothing, as theirs is. The walk now spends ours' 29
+draws on 4182.
+
+**The score: 4182 → 4324** (+142), by the count and the sequence. The new word is ours 11 draws against 12, index
+1: ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Every other lobby's
+`first_parting` holds (55 of 55).
+
+**The value diff**, run1234b re-walked (256 blocks, 2407 → **1233** keys):
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4183 | leader who=1, building `1/2042`, Citizen `1/94` | (all) | agree | agree |
+| 4202, 4238 | who=1's groups 77, 78 | `held`, pool | `[55]`, `[113]` | none |
+| 4311 | Citizen `0/10` (TypeIndex 50, land) | `hits_left`, `damage_frame`, `damage_frac` | 40, 0, 0 | 37, 4310, 5 |
+| 4311 | leaders who=0 and who=1 | `treaties[1]`, `treaties[0]` | 1, 1 | 3, 3 |
+| 4311 | Citizen `0/10` | `orders.len`, `orders_x`/`_y` | 0, (5016, 8088) | 1 (a flee), (4536, 6648) |
+
+On block 4311, who=1's army (`1/26`..`1/51`) holds attack orders on `0/10` on both sides, and no row of theirs
+parts. Theirs lands a blow on frame 4310 and ours does not. The treaties' bit 1 is that blow's own mark
+(`Object::do_damage`'s `treaty_on(…, 2)`, ours in `fight.rs`), not a cause. `1/79`'s `form` on 4302 is a
+Transport Barge (320) at (43368, 37752), far from the fight.
+
+**Tests.** `cities_tests::a_senate_site_or_a_finished_senate_in_the_capital_refuses_a_second` runs four cases:
+no capital, a capital, a placed site and a finished Senate in the capital. `maya_ancient_pair_first_parting`
+pins 4324. Three mutations through `tools/mutate.py` on the committed tree **held**:
+- the arm's call dropped fails the pair (4182 again);
+- the `num_queued` clause dropped fails the pair (4182);
+- the same clause dropped also fails the sim test ("a placed site is num_queued").
+
+**What is not established.**
+- The capital-loss branches (3 and 5's second half) and `find_capital`'s second arm. No capture on file loses a
+  capital before a Senate is listed (parked 3597a).
+- The per-leader city index: it is read as the position in `Sim::cities_of`, which drops a dead city's slot
+  (a `SEAM` on `senate_avail`).
+- Who strikes `0/10` on 4310 in theirs. That is the next item's frame: 4324, ours 11 draws against 12, index 1,
+  with the state apart on block 4311.
 
 ## 321. Reserved for the next item on the AI track
 
