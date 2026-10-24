@@ -10507,13 +10507,28 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QH — reserved
+## Parked by item 3574, 2026-10-24 — the Archers' bays, the Greek pair whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3574a) **Both leaders' `territory` on run1214's 7859: who=0 140 against 141, who=1 1525 against 1524.**
+The word is whole at 8126, and its closing state compares 336 units with none off. But run1214's window
+opens with one tile counted to who=1 in ours and to who=0 in theirs (`my_team_terr`, `other_team_terr` and
+`min_other_team_terr` move with it). run1212's leaders agree through 4592, and the long's strides print no
+leader record, so it parted somewhere in 4593..7859. The tile and its writer were not read. A window that
+prints `LEADERS` over the gap, or a `RON_STATE_FRAME` packet of both territory grids, would place it.
+**Score**: none — no draw or position follows from it to the game's end.
+
+(3574b) **`dest_angle` on thirteen of who=1's units from run1214's 7936** (`1/76` and `1/213` first: ours
+−1605566464 against −852099072 and −632750080). Positions and orders agree to the closing block. The field's
+writer was not read. **Score**: none.
+
+(3574c) **The catapults' piece 215 (TypeIndex 265) leaves from a node this crate lacks.** run1217b's
+`AMMO=5` window prints seven rounds of `1/66`, `1/67` and `1/86`, each about (+20, +25, +245) off the
+first figure at three headings (−458096640, −667811840, −508821504), where ours leaves from the figure
+with `dz` 0. Neither a polar `Node` nor a pinned `Bay` was fit: three headings do not pin one, and the
+polar fit misses by six. The round's `total_time` is `siege_flight_time`'s (33 on both sides), so only
+its arc and angle differ. **Score**: none here — a word whose blow turns on a catapult round's angle or
+height would book it, with a packet's `AttachPos` rows (`tools/recomp/get_position.py`) as items 2997
+and 3375 took theirs.
 
 ## Parked by the next landing, slot QI — reserved
 
