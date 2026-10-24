@@ -10596,13 +10596,19 @@ check that reads queues would book it, with the end-of-game path read first.
   (170) is not piece 34's (173), so its other two heights may be off by as much. **Score**: none until a round
   from one of those keys parts a `total_time` or an `sz`; then measure it in an `AMMO=5` window.
 
-## Parked by the next landing, slot QM — reserved
+## Parked by item 3581, 2026-10-24 — the Mongol word 9772 → 9884, whole: the Nomad looses through its pivot
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3581a. who=1's `bucket[2:wealth]` and `bucket[4:metal]` part on 9783**, ours 20897 and 16844 against theirs
+  20907 and 16856 (run1224's walk, `docs/AI.md` §311), beside the standing `bucket[0]`/`[1]`/`leftover[2]` rows
+  (3558a). No draw reads them before the game ends, and the closing block compares whole. **Score**: none until a
+  word parts on who=1's spending; diff the whole `LEADERDATA` over 9780..9784 first.
+- **3581b. The Catapult's piece 1271 has no bay.** run1224's rounds of `1/101`, `1/117` and `1/99`
+  (`CHAR_ATTACK2` at 12) leave theirs from (9752, 30652), (9752, 29491) and (9655, 31331). Ours leave from the
+  figure's own (9720, 30648), (9720, 29496) and (9624, 31320). A planar `Bay` near `(right −26, fwd −33057)` fits
+  all three. Times (33) and landings agree, so no row parts. **Score**: none until a Catapult's `total_time` or
+  `ex, ey` parts; read the piece's `AttachPos` off run1224b's packet then (`get_position.py … entries 1271`).
+- **3581c. Piece 149's `float_lands` are unswept**, taken as none. Ten dumped rounds fit, but no
+  `get_position.py pivot` sweep of its cells has run. **Score**: none until a Nomad round parts by one unit.
 
 ## Parked by the next landing, slot QN — reserved
 

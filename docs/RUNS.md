@@ -26127,6 +26127,44 @@ blocks, 52 keys: the standing families; three `dest_angle` rows, parked 3580b; a
 `damage_frac` on block 4452, the Crossbowmen `1/69`'s round a frame late, parked 3580a). The closing block 4521
 agrees.
 
+## run1224 — the Mongols at a held Classical age, Great Sahara: the word 9772's window, blocks 9740..9885 at `AMMO=5` (2026-10-24, item 3581, `att-3581`)
+
+`docs/AI.md` §311. **What the disk could not answer**: whether theirs' blow on the Citizen `0/11` on 9761 is a round,
+and from where it leaves. run1218 (9738..9885) prints no `AMMO` record, and run1222 ends on 9745. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1224 --map 7 --end-frame 9885 --allow-early-end --timeout 3600
+--log-window 9740 9885 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover
+cover=0` and run1197's lobby (`--profile STARTING_TECHNOLOGY=1 ENDING_TECHNOLOGY=1 STARTING_RESOURCES=7 DIFFICULTY=5`).
+- Pool lane 1. Launched 10:15:42, exited 10:16:48 (66.6 s launch to exit). `success`: 9885 frames, the game ending
+  itself on 9884. `rngcmp.py` against run1198: 9885 frames identical. Filed with `filerun.py run1224
+  greatsahara-mongol-classical-window-9740-9885`. `df -g ~` read 171 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1224-greatsahara-mongol-classical-window-9740-9885.txt`, 399,909,300 bytes,
+SHA-256 `272a6a96facfc21041a87b87bd8bd77927f78a54420f1a7e39b694816938f8d5`.
+
+Archive `rontrace-run1224.log`, 252,536,640 bytes,
+SHA-256 `1d8d44d4447e93c9a39fb8f9a9c268b81d36a9bf8bc4412dc5f80ede4add132e`.
+
+**What it holds**: `mongol_classical_pair_run1224_s_word_frame_is_widened_whole` (145 blocks, 6619 keys before the
+build and 93 after). The state parts on 9762 at `0/11`. Theirs' Nomad `1/31` round leaves on 9746 from (7467,
+27925, 654) at `total_time` 16. Ten Nomad rounds over 9747..9826 pin piece 149's pivot releases
+(`pivot::tests::the_mongol_nomad_s_rounds_leave_from_its_pivot`).
+
+## run1224b — the Mongols at a held Classical age, Great Sahara: a packet at logger frame 9745, the Nomad's releases (2026-10-24, item 3581, `att-3581`)
+
+`docs/AI.md` §311. **What the disk could not answer**: piece 149's `AttachPos` entries and the Nomads' turret angles.
+No dump prints either, and no facing-only bay fits two headings. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1224b --map 7 --end-frame 9763 --timeout 3600 --log-window 9744 9762 --detail
+end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 17 --cover cover=0`, run1197's lobby, `--tracer-def RON_STATE_FRAME=9745
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 10:29:03, exited 10:29:44 (40.2 s). `success`, 9764 frames. `rngcmp.py`
+  against run1198: 9764 frames identical. Not filed: the packet (`frame-snapshot.bin`, 861,232,520 bytes) is the
+  product, kept at `~/ron-golden/run1224b/map-7`. `df -g ~` read 164 GiB free before it.
+- Minutes waited on another lane: none.
+
+**What it holds**: `get_position.py … entries 149`. That is nine rows: the `(4, 0, 0)` pivot `(0.0, −1.48, 32.63)`,
+and the pivot's and the release node's entries for each of the four releases (`pivot::RELEASES`, piece 149). Its
+`GUYS=4` records print `1/31`'s `turret_angles[0]` 581828608 and `1/27`'s −65536, the steps the fit takes.
 ## run1203 — the Lakota at a held Medieval age, East Indies: the `DUMP_ALL` start (2026-10-24, item 3561, `att-3561`)
 
 `docs/AI.md` §314. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1203 --map 18 --end-frame
