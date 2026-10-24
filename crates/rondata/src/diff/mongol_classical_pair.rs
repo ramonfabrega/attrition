@@ -12,7 +12,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const MONGOL_CLASSICAL: Pair = Pair {
     name: "GreatSaharaMongolClassical",
@@ -43,8 +43,14 @@ pub(crate) const MONGOL_CLASSICAL: Pair = Pair {
     // fly 15 and 17 frames, not 16 and 18, and strike on 9708, 9714 and
     // 9720 as theirs do. At 9772 ours 31 draws against 32, index 29 —
     // ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
-    count: 9772,
-    sequence: 9772,
+    // Item 3581: 9772 -> 9884, the game's last frame — whole. The Nomad
+    // (piece 149) is a pivot piece and releases through it
+    // (`sim::pivot::RELEASES`, run1224b's packet): `1/31`'s 9746 round at
+    // the Citizen `0/11` leaves from (7467, 27925), the rider turned 48° on
+    // the horse, and flies 16 frames, not 17, so `0/11` is struck on 9761
+    // as theirs is.
+    count: 9884,
+    sequence: 9884,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -305,7 +311,11 @@ fn mongol_classical_pair_run1218_s_word_frame_is_widened_whole() {
     // is 9772 (block 9773), and what follows parts wider than the old
     // walk's tail did: the count is the later parting's, not a regression
     // before it.
-    pin_eq!(w.firsts.len(), 6619, "run1218 baseline");
+    // Item 3581: 6619 -> 96, the Nomad's pivot (run1224's widening): the
+    // standing families, who=1's `bucket`/`leftover` (3558a), the
+    // `dest_angle` family (3574b) and who=1's `bucket[2]`/`bucket[4]` on
+    // 9783 (parked 3581a).
+    pin_eq!(w.firsts.len(), 96, "run1218 baseline");
 }
 
 /// **The long's stride, walked back from the word 9744** (item 3575):
@@ -446,7 +456,7 @@ fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
     let Some(w) = mongol_classical_frame_9772_window() else {
         return;
     };
-    pin_eq!(w.blocks, 146, "every captured block");
+    pin_eq!(w.blocks, 145, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -459,5 +469,69 @@ fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1224 baseline");
+    // Item 3581, the first walk: 6619 keys, the state parting on block
+    // 9762 at the Citizen `0/11` (TypeIndex 50, uid 18): `hits:damage`
+    // ours 20 against theirs 35, `hits_left` 30 against 15,
+    // `damage_frame` 9724 against 9761, `damage_o` 29 against 31 — the
+    // Nomad `1/31` (TypeIndex 199, piece 149) struck it in theirs. The
+    // `AMMO` records say why: theirs' round leaves on 9746 from (7467,
+    // 27925, 654) at `total_time` 16 and strikes on 9761; ours' from the
+    // figure's own (7524, 27864) at 17, landing (5892, 29195) against
+    // (5908, 29179). Built (`sim::pivot`, piece 149's four releases): 6619
+    // -> 93, and the draw stream whole to 9884. What stands: the standing
+    // families, who=1's `bucket`/`leftover` (3558a) and, on 9783,
+    // `bucket[2:wealth]` 20897 against 20907 and `bucket[4:metal]` 16844
+    // against 16856 (parked 3581a), and the `dest_angle` family (3574b).
+    pin_eq!(w.firsts.len(), 93, "run1224 baseline");
+}
+
+/// **The closing state** (item 3581): with the draw stream whole to the
+/// game's last frame 9884, the long's closing block 9885 is walked to and
+/// compared whole — a draw stream that agrees to a game's end says nothing
+/// of the end itself (item 1099).
+#[test]
+fn run1198_mongol_classical_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &MONGOL_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Mongol Classical pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 9885, "the closing block");
+    // Item 3581, the pair whole: 375 units compared, none torn, off or
+    // unlinked, no building or city field-row.
+    pin_eq!(e.compared, 375, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }

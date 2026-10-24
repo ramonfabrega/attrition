@@ -1990,11 +1990,33 @@ mod tests {
         }
         // run1224b's own turrets: `1/31` on 9745, `1/27` on 9760.
         for (a, t, x, y, f, turret, sx, sy) in [
-            (ATTACKWALK, 18, 7524, 27864, -2_108_948_480, 581_828_608, 7467, 27925),
-            (ATTACK1, 18, 7752, 28104, -1_939_144_704, -65_536, 7733, 28190),
+            (
+                ATTACKWALK,
+                18,
+                7524,
+                27864,
+                -2_108_948_480,
+                581_828_608,
+                7467,
+                27925,
+            ),
+            (
+                ATTACK1,
+                18,
+                7752,
+                28104,
+                -1_939_144_704,
+                -65_536,
+                7733,
+                28190,
+            ),
         ] {
             let (dx, dy, _) = release_offset(&release(149, a, t).unwrap(), Angle(f), turret);
-            assert_eq!((x + dx, y + dy), (sx, sy), "the dump's own turret, anim {a}");
+            assert_eq!(
+                (x + dx, y + dy),
+                (sx, sy),
+                "the dump's own turret, anim {a}"
+            );
         }
     }
 
