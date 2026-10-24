@@ -2980,11 +2980,8 @@ run100's blocks 10231–10239 have six, and §7.12 is what they say — but neit
 `bVar7` nor the cavalry-archer arm has been observed *acting*, because all six
 take the fourth row, ~~and `crates/sim` models the `recharging == 0` row alone —
 a recharging cavalry archer does not snap here where the original's would~~ —
-the latch row is built by item 3540 (§7.12) and the `0x400` row by item 3568
-(`docs/AI.md` §308: run1189b's Mahout `1/46`, `recharging` 35 on 4170, rolls the
-guard's `fight+0x824` past the gate). Past the gate such a unit skips the
-captain's re-search (`recharging == 0` alone, `fight:368`), and in range it swings
-and returns before the blow and the reload (`005feecb`). Nor
+the latch row is built by item 3540 (§7.12), the `0x400` row by item 3568
+(`docs/AI.md` §308). Nor
 is it established what the snap is *for*: the 48-grid searches downstream
 (§7.10's chase, `find_upath`) all start from a cell, which is the obvious
 reading, but no run has been made to fail by starting one off-centre.
