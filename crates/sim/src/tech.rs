@@ -985,6 +985,35 @@ impl TechTree {
     /// `get_cost`, and every unit is "six levels behind" the player's seven
     /// (`docs/AI.md` §158). The scaled arm clamps into the line as the
     /// ordinary `get_preq` does.
+    /// `ObjectTypeData::get_age_slow@00661a00` in a lobby: the age a type
+    /// stands at, which `Types::finalize_grafting@00669840` (called from
+    /// `Game::init_data`, so after the lobby is known) caches into
+    /// `ObjectTypeData::age` (`+0x278`) for every unit and building type,
+    /// and which every `get_age` reads thereafter. The first of the type's
+    /// `num_preq` slots, **through `get_preq(i, −1)`**, that names a tech
+    /// decides: an age tech's `AGE` (`TechTypeData +0x1c8`) plus one, any
+    /// other tech's as written; no tech prerequisite is 0.
+    ///
+    /// The lobby matters because slot 1 is remapped (`get_preq_1`): in a
+    /// game that does not run Ancient to Information, a unit's Military
+    /// epoch is rescaled into the shortened span. The Trireme's `PREQ1` is
+    /// The Art of War (`AGE` 0), and in the Bantu Ancient pair's lobby
+    /// (start 0, ending 1) `get_preq(1, −1)` names **Conscription** (`AGE`
+    /// 3), so the Trireme is an age-3 type there — run1236's packet runs
+    /// `get_age_slow` on it and answers 3 (item 3589, `docs/AI.md` §315).
+    pub fn age_in(&self, setup: &Setup, t: TypeId) -> i32 {
+        for i in 0..self.num_preq(t) {
+            if let Preq::Of(p) = self.get_preq(setup, None, t, i) {
+                match self.kind(p) {
+                    Kind::Age(_) => return self.tech_age(p) + 1,
+                    k if k.is_tech() => return self.tech_age(p),
+                    _ => {}
+                }
+            }
+        }
+        0
+    }
+
     pub fn military_level_in(&self, setup: &Setup, t: TypeId) -> i32 {
         let military = |p: Preq| match p {
             Preq::Of(x) => match self.kind(x) {
@@ -3143,6 +3172,31 @@ mod tests {
             t.get_preq(&Setup::STANDARD, Some(&p), u, 1),
             Preq::Of(mil[3])
         );
+    }
+
+    #[test]
+    fn a_unit_s_age_is_read_through_the_lobby_remap() {
+        // `get_age_slow` asks `get_preq(i, −1)`, so the age
+        // `finalize_grafting` caches is the lobby's: the Trireme's slot-1
+        // The Art of War (Military 0, `AGE` 0) is Conscription (Military 3,
+        // `AGE` 3) in the Bantu Ancient pair's lobby, start 0 and ending 1
+        // — `n = 28 / 2 * (0 - 0 + 1) + 3 = 17`, `17 / 4 = 4`, level 3 —
+        // and the Galley it upgrades to, which asks for the Classical Age
+        // in slot 0, stays at 1 (item 3589, `docs/AI.md` §315).
+        let f = fixture();
+        let mut t = f.tree.clone();
+        let mil = f.epochs[Line::Military.index()];
+        let trireme = t.add(TypeDef::unit("Trireme", J).needs(1, mil[0]));
+        let galley = t.add(TypeDef::unit("Galley", J).needs(0, f.ages[0]));
+        let s = Setup {
+            starting_age: 0,
+            ending: 1,
+            ..Setup::STANDARD
+        };
+        assert_eq!(t.age_in(&s, trireme), 3);
+        assert_eq!(t.age_in(&Setup::STANDARD, trireme), 0);
+        assert_eq!(t.age_in(&s, galley), 1);
+        assert_eq!(t.age_in(&Setup::STANDARD, galley), 1);
     }
 
     #[test]

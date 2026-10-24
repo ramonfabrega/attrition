@@ -10438,13 +10438,17 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot PZ — reserved
+## Parked by item 3589, 2026-10-24 — the Bantu word 4185 → 5072: the lobby's type ages
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3589a. The combat table is the full game's ages in every lobby.** `Balance` is built at load
+  (`rondata::load`, `balance::entry` over `kinds`) from the loader's `age_of_tree`. `Sim::finalize_type_ages`
+  rewrites the cached `combat.age` per lobby but leaves the table alone. Whether the original's
+  `Balance::return_pack` reads `get_age` before or after `Types::finalize_grafting` is unread (`docs/AI.md`
+  §315.1). **Score**: none until a short lobby's word parts on a `get_damage` whose age bonus differs. Then read
+  `Game::init_data`'s order and `return_pack`'s `age` source first.
+- **3589b. Building ages have no reader on the word.** `finalize_type_ages` rewrites building profiles' age as
+  `finalize_grafting` does (`0x19e..0x21f`), and no row this item walked reads one. **Score**: none until a
+  building's age-dependent read parts in a lobby with `ending < 7` or `start > 0`.
 
 ## Parked by the next landing, slot QA — reserved
 
