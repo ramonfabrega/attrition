@@ -40,9 +40,16 @@ pub(crate) const EGYPTIAN_CLASSICAL: Pair = Pair {
     // Market queues the second Caravan theirs does (`docs/AI.md` section
     // 318.1). On 6537 ours spends 73 draws against theirs' 72, parting at
     // index 55 — ours `Unit::think_scout+0xaba`, theirs
-    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
-    count: 6537,
-    sequence: 6537,
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`: the Dromon `1/96`'s
+    // region scan accepts one cell more. Item 3595: 6537 → **6718** (+181) —
+    // a tied territory claim rotates over the eight leader slots, not the
+    // two players, so (13, 15) and (15, 13) stay who=0's from the 6025 fix
+    // and the Scout `1/126`'s path of 6508 steps east first (`docs/AI.md`
+    // section 318.2). On 6718 ours spends 41 draws against theirs' 42,
+    // parting at index 23 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`,
+    // theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
+    count: 6718,
+    sequence: 6718,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -186,8 +193,13 @@ fn egyptian_classical_pair_run1230b_s_word_frame_is_widened_whole() {
     // What stands past the standing families: `1/73`'s `dest_angle` on
     // 5962, both leaders' `territory` from 6033 (ours 180/1183 against
     // theirs 182/1181), who=1's wealth `income` on 6040 and `bucket` on
-    // 6096, and four `dest_angle` rows from 6147.
-    pin_eq!(w.firsts.len(), 114, "run1230b baseline");
+    // 6096, and four `dest_angle` rows from 6147. Item 3595: 114 → **102**
+    // — the eight-slot tie rotation (`docs/AI.md` section 318.2) gives
+    // (13, 15) and (15, 13) to who=0, so both leaders' `territory` (and the
+    // team sums of 6176/6201), who=1's wealth `income`, `leftover`,
+    // `resources` and `bucket` agree; `1/73`'s and six other
+    // `dest_angle` rows stand.
+    pin_eq!(w.firsts.len(), 102, "run1230b baseline");
 }
 
 /// The long's own stride blocks, 1 through 5901 — the last before run1230b's
@@ -358,8 +370,14 @@ fn egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole() {
     // against theirs (10650, 12744), `move.dest_x` 10488 against 11256.
     // Nothing new parts on the word's block 6538; on 6539 the Dromon
     // `1/45` (TypeIndex 324, sea) is ordered to (45048, 22008) by ours
-    // and to (15096, 44280) by theirs.
-    pin_eq!(w.firsts.len(), 3161, "run1241b baseline");
+    // and to (15096, 44280) by theirs. Item 3595: 3161 → **298** — the
+    // eight-slot tie rotation (`docs/AI.md` section 318.2): `territory`, the
+    // wealth rows, the Scout `1/126` and the Dromons agree. Past the
+    // standing families and five `dest_angle` rows from 6664, the first is
+    // block 6718: the Phalanx `1/116` (TypeIndex 133, land) holds ours one
+    // order (kind 12, at (6216, 9528)) against theirs' two (an
+    // `ATTACKORDER`, kind 10, over its `GUARDORDER`, at (6222, 9523)).
+    pin_eq!(w.firsts.len(), 298, "run1241b baseline");
 }
 
 /// The long's stride blocks between run1230b's last block 6212 and
@@ -438,7 +456,7 @@ fn egyptian_classical_pair_run1242_walks_the_scout_back() {
     let Some(w) = egyptian_classical_scout_window() else {
         return;
     };
-    pin_eq!(w.blocks, 36, "every captured block");
+    pin_eq!(w.blocks, 35, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -452,5 +470,18 @@ fn egyptian_classical_pair_run1242_walks_the_scout_back() {
             }
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run1242 baseline");
+    // Item 3595, the first walk: **114** keys. Past block 6496's standing
+    // families and the territory row (ours 180/1183 against theirs
+    // 182/1181, both leaders, with the team sums and who=1's wealth
+    // `income`, `leftover` and `resources`), the first unit row is block
+    // 6509: the Scout `1/126` (TypeIndex 69, land) under the
+    // `EXPLORETOORDER` both sides issue on 6508, `path[3].to` ours (10488,
+    // 11256) against theirs (11256, 11256) and `path[4].to` (10488, 12024)
+    // against (11256, 12024). Both routes run (13, 16) to (14, 12) and part
+    // where the diagonal falls: ours north through (13, 15), theirs east
+    // through (14, 15). Priced on ours' map they tie at 532; the tie rotation
+    // (`docs/AI.md` section 318.2) gives (13, 15) to who=0 theirs, and the
+    // enemy cell's +4 sends theirs east. After it: **91**, the standing
+    // families alone.
+    pin_eq!(w.firsts.len(), 91, "run1242 baseline");
 }
