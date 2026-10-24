@@ -6895,6 +6895,103 @@ mod tests {
         assert_eq!(sim.units[me].max_health, 120);
     }
 
+    /// **A unit struck while moving in contact takes the blow doubled**
+    /// (item 3567, `docs/AI.md` §309): `Unit::target_opportunity`'s move
+    /// arm (`600175`..`6002c8`) raises `unit_masks & 0x10` on a victim
+    /// whose front order is a move and whose attacker stands inside the
+    /// two types' `big_radius` summed, `Object::do_damage` doubles the
+    /// blow under it (`0064a5dd`), `UnitData::get_speed` halves the land
+    /// unit's speed (`0060878c`), and the end of `Unit::work` clears it.
+    /// The Roman pair's 4068: the Citizen `0/13`, walking to its gather,
+    /// took the Light Horse `1/42`'s 7 as 14. Each arm of the predicate is
+    /// asked by a victim that refuses it: standing, out of reach, and
+    /// attacking a target near enough.
+    #[test]
+    fn a_unit_struck_while_moving_in_contact_takes_the_blow_doubled() {
+        let blow = |moving: bool, gap: i32, attacking: bool| {
+            let (mut sim, _) = at_war();
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 100,
+                moves: 40,
+                combat: Profile {
+                    attack: 70,
+                    max_range: 0,
+                    uber_size: 1,
+                    big_radius: 60,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            let me = put(&mut sim, 0, ty, Pos::new(0x4000, 0x4000));
+            let foe = put(&mut sim, 1, ty, Pos::new(0x4000 + gap, 0x4000));
+            if attacking {
+                sim.units[me].orders.push_front(crate::orders::Order {
+                    flags: 0x10,
+                    body: crate::orders::Body::Attack(crate::orders::AttackOrder {
+                        defensive: false,
+                        def: None,
+                        in_range: true,
+                        ever_in_range: true,
+                        new_ord: false,
+                    }),
+                });
+                sim.units[me].combat.target = Some(Obj::Unit(foe));
+            }
+            if moving && attacking {
+                // The chase's transit move in front of the attack, as
+                // `1/42`'s own queue stood on 4066.
+                sim.add_move_order(
+                    me,
+                    Pos::new(0x4000, 0x5000),
+                    crate::orders::MoveKind::MoveTo,
+                    crate::orders::QueuePos::First,
+                    false,
+                );
+            } else if moving {
+                sim.order_move(me, Pos::new(0x4000, 0x5000));
+            }
+            let taken = sim.do_damage(
+                Obj::Unit(foe),
+                Obj::Unit(me),
+                crate::movement::Angle(0),
+                false,
+                0x100,
+                false,
+                false,
+                10,
+            );
+            let Some(Taken::Alive { lost }) = taken else {
+                panic!("the blow killed or missed: {taken:?}");
+            };
+            (lost, sim, me)
+        };
+        // Standing: no move, no mark — the blow as `get_damage` prices it.
+        let base = blow(false, 100, false).0;
+        // Moving, 100 apart against a reach of 60 + 60: doubled.
+        let (lost, mut sim, me) = blow(true, 100, false);
+        assert_eq!(lost, 2 * base, "the blow doubled");
+        assert!(
+            sim.units[me].contact,
+            "the bit stands for the unit's next work"
+        );
+        sim.units[me].movement.speed = 40;
+        let halved = sim.get_speed(me, 0);
+        sim.units[me].contact = false;
+        assert_eq!(
+            halved,
+            sim.get_speed(me, 0) / 2,
+            "a land unit's speed halves"
+        );
+        sim.units[me].contact = true;
+        sim.work(me, 11);
+        assert!(!sim.units[me].contact, "Unit::work's last line clears it");
+        // Out of reach: 121 against the 120 summed.
+        assert_eq!(blow(true, 121, false).0, base, "outside the summed radii");
+        assert_eq!(blow(true, 120, false).0, 2 * base, "the sum is inclusive");
+        // Attacking a target inside twice the sum: the arm refuses.
+        assert_eq!(blow(true, 100, true).0, base, "its own target is near");
+    }
+
     /// **A hit civilian runs away from whoever hit it** —
     /// `Unit::target_opportunity`'s flee arm, `docs/COMBAT.md` §34. The
     /// sweep's base bearing is `find_angle(me − attacker)` and its ring
