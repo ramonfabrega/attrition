@@ -10036,6 +10036,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3580,
         Some(crate::diff::chinese_medieval_pair::WIDENING_CHINESE_MEDIEVAL_CLOSING),
     ),
+    // **The Lakota at a held Medieval age** (item 3561): East Indies —
+    // 4168 first try, widened on run1204b over 4163..4419 (block 4169).
+    (
+        "LAKOTA_MEDIEVAL_PAIR_WORD",
+        crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL_PAIR_WORD,
+        Some("lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole"),
+        3561,
+        Some(crate::diff::lakota_medieval_pair::WIDENING_LAKOTA_MEDIEVAL_FRAME_4168),
+    ),
     // **The land map's held Enlightenment pair** (item 3513): the Turks at
     // a held Enlightenment age, Great Sahara — 2501 first try (ours turns a
     // unit on a move where theirs idles it), widened on run1159b over
@@ -11675,6 +11684,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_520,
         endpoint: Some("run1202_chinese_medieval_pair_closing_state"),
         window: Some("chinese_medieval_closing_window"),
+    },
+    // The Lakota at a held Medieval age (`STARTING_TECHNOLOGY` and
+    // `ENDING_TECHNOLOGY` 2), East Indies (item 3561): first try 4168, of a
+    // game that ends itself on 4973; widened on run1204b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesLakotaMedieval",
+        named: "East Indies (Lakota, Medieval)",
+        word: crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL_PAIR_WORD,
+        length: 4_973,
+        endpoint: None,
+        window: Some("lakota_medieval_frame_4168_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

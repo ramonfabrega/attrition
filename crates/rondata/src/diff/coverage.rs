@@ -3467,6 +3467,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::mongol_classical_pair::mongol_classical_gap_9744_window(),
         || super::mongol_classical_pair::mongol_classical_frame_9772_window(),
         || super::chinese_medieval_pair::chinese_medieval_frame_2981_window(),
+        || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
         || super::chinese_medieval_pair::chinese_medieval_volley_2955_window(),
         || super::chinese_medieval_pair::chinese_medieval_closing_window(),
         || super::roman_classical_pair::roman_classical_closing_window(),

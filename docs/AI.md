@@ -27475,12 +27475,71 @@ and a shot no animation launches (`do_attack_ground`'s), which carries no ammo n
 `WIDENINGS`'s `CHINESE_MEDIEVAL_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds
 the row on `Late ages`. Item 3577's bays are diff-backed (run1220's three poses, the walk to 3030); `chinese_medieval_pair_run1220_s_volley_is_widened_whole` pins run1220's window, which is in the coverage driver beside run1202b's. Item 3580's `dtype` 4 is diff-backed (the three `Unit::close` draws on 3030, the walk to 4520); the attribute names rest on the `internal_strings.xml` index alone, all eight landing on the XML's own attribute names. `WIDENINGS` names `chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole`, `AI_WORDS`' row is closed on `run1202_chinese_medieval_pair_closing_state`, and run1223's window is in the coverage driver.
 
-## 314. Reserved for the next item on the AI track
+## 314. The Lakota at a held Medieval age, East Indies: a Heavy Archers' attack re-aimed off a fleeing Citizen, first try 4168 of 4973 (item 3561)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93). §308's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
+Nubians (4) against the **Lakota (19)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held by
+`STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Both `GAME INFO`s read back 2 and 2. Captures: run1203 (a
+`DUMP_ALL` start) and run1204 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 4973. The walk is seeded from run1203's initial state (3506a); run1203 against run1204 is 37 of 37
+frames identical. `diff::lakota_medieval_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 19, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's (the
+battery's one Lakota game is `GreatSaharaLakotaTier2`, `(7, 19, 2)`; `GreatLakesLakotaTier2`'s `(14, 19, 2)` was
+promoted to a scored word by item 3345) and not the peace pair's, `(18, 19, 3)` — this map at Difficulty 3 and no
+held age; `lakota_medieval_pair_is_no_other_lobby` reads both `GAME INFO`s.
+
+**First try: frame 4168 of 4973**, by the count and the sequence. Ours 90 game draws, theirs 89; indices 0..86
+agree, and at 87:
+- ours: `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, the Heavy Archers `1/19`; ours' 88 is the Elite
+  Javelineers `1/108`'s `Guy::inc_time+0x271`;
+- theirs: `Guy::set_anim+0x97a < Guy::inc_time+0x271 < Unit::inc_time+0x3e` (seed `772e92f1`) — the
+  Javelineers' draw — and then `Farms::inc_time+0x1ae`.
+
+So the one-draw delta is ours': `1/19`'s anim restart, which theirs does not spend.
+
+**The units, by `TypeIndex` and domain.** The **Heavy Archers `1/19` (TypeIndex 173, TY 123, land, uid 39)**
+stands at (6264, 10008) in who=1's group 65, its `ATTACKORDER` on the Nubian **Citizen `0/10` (TypeIndex 50, land,
+uid 17)** over an `ATTACKTOORDER` to (5880, 7368); `in_range` 1, attack anim 12 at t29 of 30 on 4168. The Citizen
+is on a `FLEEORDER` to (8376, 7704), at (7834, 8298) on 4168, about 2320 away, and its hits are 50 (unstruck).
+The **Citizen `0/5` (TypeIndex 50, land, uid 12)** stands at (4248, 7704), about 3060 away; its own `FLEEORDER`
+ends on 4168 and it returns to its `GATHERORDER`. The **Elite Javelineers `1/108` (TypeIndex 84, land)** is on a
+`GUARDORDER` and agrees.
+
+**The direction is theirs**, with the record that shows it (run1204b, block 4169, the first parted unit field):
+theirs' `1/19` re-aims its `ATTACKORDER` at `0/5` — `targetorder.uid` 17 → 12, `new_ord` 0 → 1, `in_range` and
+`ever_in_range` 1 → 0, `near` 0/10 → 0/2000 — and pushes nothing yet; on 4170 it pushes a `MOVEORDER` to (5400,
+9000). Ours keeps `0/10` and pushes its chase on 4169 to (6696, 9528):
+
+| block 4169, `1/19` | ours | theirs |
+|---|---|---|
+| `orders.len` | 3 | 2 |
+| `order:kind` (top) | 1 | 10 |
+| `orders_x`, `orders_y` | (6696, 9528) | (6264, 10008) |
+| `path:length` | 15 | 14 |
+| `dest_angle` | 504299520 | 511180800 |
+
+On 4170 `1/19`'s `pos` parts, ours (6283, 9987) against theirs (6264, 10008), and the move's `order:target` reads
+ours `0/10` against theirs `0/5`, `order:move.x`/`y` ours (6696, 9528) against theirs (5400, 9000).
+
+**The value diff** (run1204b walked from run1203: 256 blocks, 2163 keys, the two `gaia:` keys unprinted). Block
+4163 carries the standing families (every unit's `form`, `SITE[i].reg`). **The state first parts on block 4169**,
+at `1/19` above; nothing else parts there.
+
+**The next word: frame 4168, ours 90 draws against 89, index 87**, ours `Guy::inc_time+0x1ed` on `1/19`, theirs
+`Guy::inc_time+0x271`. **The hypothesis, untested**: the attack's re-aim when its target leaves reach on the run.
+Theirs drops a fleeing target at about 2320 for a farther one at about 3060 that has just stopped fleeing, so a
+nearest-enemy pick does not explain it. The re-aim's predicate (the target's `FLEEORDER`, `near`, or the group's
+target) is what the next item reads. The killer is a packet at `RON_STATE_FRAME=4167` with `1/19`'s `process`
+run under `step4.py`, its order's writes watched.
+
+**`Eagle Feather Horse` (206), the line the booking names, is fielded** (378 figure rows over run1203 and run1204)
+and is the one type of the pair's 22 new to the ledger. It is not in the parting. The water map's `Brig` (331) is
+not fielded, as the booking said (the Dutch's by mask).
+
+**Coverage.** `lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole` pins the 2163 keys; `WIDENINGS`'s
+`LAKOTA_MEDIEVAL_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds the row on
+`Late ages`. Nothing in this section is reading-only: the parting is a dump comparison.
 
 ## 315. Reserved for the next item on the AI track
 
