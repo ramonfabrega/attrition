@@ -341,3 +341,48 @@ fn mongol_classical_pair_the_long_s_stride_walks_back_from_9744() {
     // stride block through 9701.
     pin_eq!(w.firsts.len(), 148, "the stride's baseline");
 }
+
+/// run1222: the gap 9702..9737 the stride and run1218 leave undumped,
+/// blocks 9696..9745 at run1218's detail with `AMMO=5` (item 3579).
+pub(crate) const RUN1222: &str = "gamelog-run1222-greatsahara-mongol-classical-window-9696-9745.txt";
+
+/// The window: block 9696 through the word 9744's own block 9745.
+pub(crate) const WIDENING_MONGOL_CLASSICAL_GAP_9744: (i64, i64) = (9696, 9745);
+
+/// **The gap before the word 9744**: run1222 walked from run1197's start
+/// with the recorder on (item 3579).
+pub(crate) fn mongol_classical_gap_9744_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_CLASSICAL.start],
+        true,
+        MONGOL_CLASSICAL.long,
+        "run1222",
+        &[(RUN1222, WIDENING_MONGOL_CLASSICAL_GAP_9744.0)],
+        WIDENING_MONGOL_CLASSICAL_GAP_9744,
+        1,
+        &[9745],
+        true,
+    )
+}
+
+#[test]
+fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_classical_gap_9744_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 50, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1222 baseline");
+}
