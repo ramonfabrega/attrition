@@ -6371,7 +6371,11 @@ mod tests {
         sim.tech[1].epoch = [2, 4, 0, 0];
         assert_eq!(sim.mods_of(1).japanese_level, None, "no bonus, no level");
         sim.tech[1].power = Some(crate::nations::power::JAPANESE);
-        assert_eq!(sim.mods_of(1).japanese_level, Some(2), "epoch[0] the lesser");
+        assert_eq!(
+            sim.mods_of(1).japanese_level,
+            Some(2),
+            "epoch[0] the lesser"
+        );
         sim.tech[1].epoch = [3, 3, 2, 2];
         sim.tech[1].ages = 3;
         assert_eq!(sim.mods_of(1).japanese_level, Some(3), "run1208d's leader");

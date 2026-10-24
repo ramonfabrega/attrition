@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const JAPANESE_GUNPOWDER: Pair = Pair {
     name: "GreatSaharaJapaneseGunpowder",
@@ -34,9 +34,14 @@ pub(crate) const JAPANESE_GUNPOWDER: Pair = Pair {
     // Item 3563, first try: frame 2839 by the count and the sequence, ours
     // 8 draws against 9, index 1 — ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271`, theirs `Unit::fight+0x824` (`docs/AI.md`
-    // section 316).
-    count: 2839,
-    sequence: 2839,
+    // section 316). Item 3590: 2839 → **3673, the game's last frame** —
+    // the Japanese barracks term (`get_damage`'s step 13, `n = min(ages,
+    // epoch[0])` = 3, +15 %) puts the Arquebusiers `1/20`'s blow on the
+    // Citizen `0/12` at 13 + 10/16 on 2675, and piece 1104's bays
+    // (`sim::launch::BAYS`, run1237's packet) put `1/19`'s round of 2693 on
+    // (9940, 30945), 6 frames, as theirs.
+    count: 3673,
+    sequence: 3673,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -226,7 +231,13 @@ fn japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole() {
     // by block 2842. **The word 2839** (block 2840), ours 8 draws against
     // 9, index 1, ours `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Unit::fight+0x824` (`docs/AI.md` section 316).
-    pin_eq!(w.firsts.len(), 1333, "run1208b baseline");
+    // Item 3590: 1333 → **51**. Block 2834's 45 are the standing families
+    // alone; groups 67 and 68's `held`/`pool` (2916, 2962) and who=1's
+    // `SITE[1].reg` (2976) are standing families too. **One row is not**:
+    // the `1/77`'s `dest_angle` on 3054, ours 1498415104 against theirs
+    // 943259648, 3567a's shape (parked 3580b). Block 2840 agrees: `1/23`
+    // re-aims onto `0/13` as theirs does.
+    pin_eq!(w.firsts.len(), 51, "run1208b baseline");
 }
 
 /// run1208c: the blocks before the word's window, 2771..2834 (item 3563) —
@@ -277,7 +288,10 @@ fn japanese_gunpowder_pair_run1208c_walks_the_wound_back() {
     // 13 + 10/16, `hits_left` 37) and flees to (5016, 31944), ours is
     // unstruck at 50 and idles; on 2831 `1/23`'s chase of it follows
     // (`orders_y` 31944 against 31896).
-    pin_eq!(w.firsts.len(), 93, "run1208c baseline");
+    // Item 3590: 93 → **49**, every one a standing family (46 on 2771,
+    // `SITE[0].reg` on 2776, group 67 on 2787); `0/11`'s blow on 2808
+    // agrees.
+    pin_eq!(w.firsts.len(), 49, "run1208c baseline");
 }
 
 /// The long's own stride blocks, 1 through 2801 — the Citizens `0/10` and
@@ -322,7 +336,9 @@ fn japanese_gunpowder_pair_the_long_s_stride_walks_back_from_2771() {
     // which this crate holds alone, `form`, `SITE[i].reg`, groups'
     // `held`/`pool`). The Citizen `0/12` agrees on 2601 and parts on 2701
     // (`hits:damage` ours 35 against theirs 39 + 10/16), `0/10` on 2801.
-    pin_eq!(w.firsts.len(), 87, "run1208 stride baseline");
+    // Item 3590: 87 → **81**, every one a standing family; `0/12` on 2701
+    // and `0/10` on 2801 agree.
+    pin_eq!(w.firsts.len(), 81, "run1208 stride baseline");
 }
 
 /// run1208d: blocks 2601..2701 at the window's detail and `AMMO=5` (item
@@ -372,5 +388,117 @@ fn japanese_gunpowder_pair_run1208d_s_first_wound_is_widened() {
     // reads ours 12 against theirs 13 + 10/16 (`hits_left` 38 against 37).
     // Theirs' `AMMO` leaves from (9443, 30828, 784), ours from the
     // figure's square (9576, 30888).
-    pin_eq!(w.firsts.len(), 52, "run1208d baseline");
+    // Item 3590: 52 → **48**, the standing families on 2601 and 2643
+    // alone. Block 2676 agrees (`hits:damage` 13, `damage_frac` 10 on both
+    // sides) with the Japanese term in, and the rounds of `1/20` (2673),
+    // `1/18` (2679) and `1/19` (2693) leave from theirs' (9443, 30828),
+    // (9838, 30835) and (9940, 30945) with piece 1104's bays.
+    pin_eq!(w.firsts.len(), 48, "run1208d baseline");
+}
+
+/// **The pair's closing state**: run1208's closing dump, block 3674,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3590).
+#[test]
+fn japanese_gunpowder_pair_run1208_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &JAPANESE_GUNPOWDER;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Japanese Gunpowder pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 3674, "the closing block");
+    // Item 3590, the pair whole: 170 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 170, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run1237b: the pair's last blocks, 3418..3674 at the long's detail —
+/// the word 3673 is the game's last frame and 3674 its closing block (item
+/// 3590). run1208 prints units only every hundredth block, and run1208b
+/// ends on 3090, so no dump held the last blocks.
+pub(crate) const RUN1237B: &str =
+    "gamelog-run1237b-greatsahara-japanese-gunpowder-window-3418-3674.txt";
+
+/// The window: block 3418 through the closing block 3674.
+pub(crate) const WINDOW_JAPANESE_GUNPOWDER_CLOSING: (i64, i64) = (3418, 3674);
+
+/// **The pair's last blocks**: run1237b walked from run1207's start with
+/// the recorder on. The word is the game's last frame (item 3590).
+pub(crate) fn japanese_gunpowder_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[JAPANESE_GUNPOWDER.start],
+        true,
+        JAPANESE_GUNPOWDER.long,
+        "run1237b",
+        &[(RUN1237B, WINDOW_JAPANESE_GUNPOWDER_CLOSING.0)],
+        WINDOW_JAPANESE_GUNPOWDER_CLOSING,
+        1,
+        &[3674],
+        true,
+    )
+}
+
+#[test]
+fn japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_gunpowder_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3590, the first walk: **47** keys. Block 3418 carries the
+    // standing families (40 rows: `form`, `SITE[i].reg`, `aggression[1]`,
+    // the groups' `held`/`pool`), and later blocks groups 67 and 70's (3429,
+    // 3478) and who=1's `SITE[2].reg` (3576). **Two rows are not standing
+    // families**: `dest_angle` on the Arquebusiers `1/132` (TypeIndex 98,
+    // uid 170; 3487, ours 897908736 against theirs 969932800) and `1/131`
+    // (uid 169; 3492), 3567a's shape (parked 3580b). The closing block
+    // 3674 agrees.
+    pin_eq!(w.firsts.len(), 47, "run1237b baseline");
 }
