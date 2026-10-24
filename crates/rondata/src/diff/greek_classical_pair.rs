@@ -40,9 +40,14 @@ pub(crate) const GREEK_CLASSICAL: Pair = Pair {
     // half-cell, a boat `detect_boat_collision` moves throws its ring
     // reveal — and the word moves 2616 -> 4341: ours 23 draws against 22,
     // index 8, ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d` against
-    // theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`.
-    count: 4341,
-    sequence: 4341,
+    // theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Item 3571:
+    // the General `1/138`, pushed by the Catapult `1/124` before its own
+    // process on 4336, took its body's own turn as well — `guy_flags & 2`
+    // is cleared after `Guy::move`, not at the head of the unit's process —
+    // and the word moves 4341 -> 7865: ours 26 draws against 28, index 24,
+    // ours `Farms::inc_time+0x1ae` against theirs `Ammo::do_damage+0xc59`.
+    count: 7865,
+    sequence: 7865,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -278,6 +283,107 @@ fn greek_classical_pair_run1212_s_word_frame_is_widened_whole() {
     // families; group 80's `held` and pool part on 4337. The word's own
     // rows are on 4341: the General `1/138` (TI 54, land) stands at x 34736
     // in ours against 34756 in theirs, and the Catapult `1/124` (TI 265)
-    // carries `collide_o` 138 in theirs and -1 in ours.
-    pin_eq!(w.firsts.len(), 1496, "run1212 baseline");
+    // carries `collide_o` 138 in theirs and -1 in ours. Item 3571: 1496 ->
+    // 114. The General's facing (ours 1145324629, theirs 1336212053 on
+    // 4336) agrees, and every unit row leaves: what stands is 4336's 101
+    // standing rows, groups 80, 89..93's `held` and pool, and who=1's
+    // `known_rares` on 4584 (ours 3, theirs 1).
+    pin_eq!(w.firsts.len(), 114, "run1212 baseline");
+}
+
+pub(crate) const RUN1214: &str = "gamelog-run1214-eastindies-greek-classical-window-7859-8127.txt";
+
+pub(crate) const WIDENING_GREEK_CLASSICAL_FRAME_7865: (i64, i64) = (7859, 8127);
+
+/// **The word 7865's window**: run1214 walked from run1195's start with the
+/// recorder on, to the game's closing block 8127 (item 3571); the long's
+/// stride prints 7801 and 7901.
+pub(crate) fn greek_classical_frame_7865_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GREEK_CLASSICAL.start],
+        true,
+        GREEK_CLASSICAL.long,
+        "run1214",
+        &[(RUN1214, WIDENING_GREEK_CLASSICAL_FRAME_7865.0)],
+        WIDENING_GREEK_CLASSICAL_FRAME_7865,
+        1,
+        &[7866],
+        true,
+    )
+}
+
+#[test]
+fn greek_classical_pair_run1214_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_classical_frame_7865_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 268, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3571: 4473 keys. Block 7859 opens apart: the standing families,
+    // both leaders' territory (who=0 140 here against 141 there, who=1
+    // 1525 against 1524), who=1's wealth (12834 against 12831) and the
+    // `1/215`'s `damage_frame` (7849 against 7848); groups 86 and 95's
+    // `held` and pool part on 7861 and 7865. The word 7865's block carries
+    // no unit row; the first are on 7867, the Dromons `1/31` and `1/50`'s
+    // explore picks, and 7868, `1/19`'s orders.
+    pin_eq!(w.firsts.len(), 4473, "run1214 baseline");
+}
+
+/// **The long's stride, walked back from the word 4341** (item 3571):
+/// run1196 dumps `UNITS=3,GUYS=2` every hundredth block, and run1212's
+/// window opens with the General `1/138`'s facing already apart, so the
+/// state parted before 4336 and only the stride's blocks are on disk
+/// between run1209's 2867 and run1212's 4336.
+pub(crate) const WIDENING_GREEK_CLASSICAL_STRIDE: (i64, i64) = (2901, 4301);
+
+pub(crate) fn greek_classical_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GREEK_CLASSICAL.start],
+        true,
+        GREEK_CLASSICAL.long,
+        "run1196 stride",
+        &[(GREEK_CLASSICAL.long.0, WIDENING_GREEK_CLASSICAL_STRIDE.0)],
+        WIDENING_GREEK_CLASSICAL_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn greek_classical_pair_the_long_s_stride_walks_back_from_4341() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_classical_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 15, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3571: 141 keys, the standing families alone (the `build:extra`
+    // rows a `UNITS=3` stride prints no building for, every unit's `form`,
+    // who=1's groups' `held` and pool). No unit row parts on a stride
+    // block: the General `1/138` is born on 4328, between 4301 and 4336.
+    pin_eq!(w.firsts.len(), 141, "the stride's baseline");
 }

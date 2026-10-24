@@ -891,8 +891,10 @@ part between a push, which rewrites guy 0's `des`, and the pushed unit's
 next `Guy::process`. There the crew stands on its destination and guy 0
 does not (`docs/COLLISION.md` §16.2).
 
-**The idle body's turn.** Standing on its destination and not turned this
-frame by the unit step (`guy_flags & 2`, which `do_turn` sets), guy 0 turns
+**The idle body's turn.** Standing on its destination and not turned since
+its last `Guy::process` (`guy_flags & 2`, which every `do_turn` that moves
+the angle sets — the unit step's, or a push by another unit — and which
+`Guy::process@005e0230:28` clears only after `Guy::move`; item 3571), guy 0 turns
 its own facing toward `des_angle` — the heading, which `Unit::set_angle` last
 wrote. `turn_towards` uses `turn_speed(mode 1)`, and the instant-turn test
 sits *before* the mode test, so a stopped foot unit snaps its body onto the

@@ -733,9 +733,11 @@ pub struct Movement {
     /// facing, which the unit step turns by the rate and steps along. North is
     /// zero.
     pub facing: movement::Angle,
-    /// The facing as it stood at the start of this frame — what the body
-    /// follow compares against after the order step has turned the unit
-    /// (`guy_flags & 2`).
+    /// The facing as the body's last `Guy::process` left it — what the
+    /// body follow compares against to tell whether anything has turned
+    /// guy 0 since (`guy_flags & 2`: set by every `Guy::do_turn` that
+    /// moves the angle, a push by another unit included, and cleared only
+    /// after `Guy::move`; item 3571).
     pub frame_facing: movement::Angle,
     /// Where it *wants* to face: **`UnitData::angle` (`+0x50`)**, which is
     /// also **`GuyData::des_angle` (`+0x64`)** — `Unit::set_angle` writes the
@@ -811,9 +813,14 @@ impl Movement {
     /// heading together. `Unit::move_step` never uses it: its `set_angle`
     /// passes zero for that flag, so a step moves the heading and leaves the
     /// facing to the turn rate.
+    ///
+    /// `Guy::set_angle` is not `Guy::do_turn`, so it leaves `guy_flags & 2`
+    /// as it found it: the snap is not a turn the body's own `Guy::move`
+    /// skips for, and [`Movement::frame_facing`] moves with the facing.
     pub const fn set_facing(&mut self, facing: movement::Angle) {
         self.flip_mirror(facing);
         self.facing = facing;
+        self.frame_facing = facing;
         self.heading = facing;
         self.des_angle = facing;
     }
@@ -6714,7 +6721,6 @@ impl Sim {
         if !self.units[i].alive() {
             return;
         }
-        self.units[i].movement.frame_facing = self.units[i].movement.facing;
         // Gaia's animals: `Animal::process` is `Unit::process` without
         // a player behind it — no heal, no attrition, no reload; the
         // order step (`Animal::do_idle` when idle) and the body follow.
@@ -7097,6 +7103,17 @@ impl Sim {
         }
         let unit = &mut self.units[i];
         unit.movement.facing = follow.facing;
+        // **`guy_flags & 2` is cleared here, after `Guy::move`**
+        // (`Guy::process@005e0230:28`), not at the head of the unit's
+        // process. `Guy::do_turn@005d97a0` sets it on any turn that moves
+        // the angle, whoever calls it, so a push turned by a unit processed
+        // earlier in the frame keeps the pushed body from taking its own
+        // turn in `Guy::move:108` this frame, and one turned later in the
+        // frame keeps it from the next. East Indies' General `1/138` on
+        // 4336: the Catapult `1/124` pushes it one half-rate step before
+        // its own process, and the body turns no further (item 3571,
+        // `docs/AI.md` §310).
+        unit.movement.frame_facing = follow.facing;
         unit.movement.body = follow.body;
         // `Guy::move`'s `Guy::set_new_location` is what moves the
         // collision disc (`CollCheck::move_unit`, its only caller): the

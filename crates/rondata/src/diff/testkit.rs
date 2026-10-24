@@ -9931,13 +9931,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // (block 2617). **Item 3569 moved it 2616 -> 4341**: a boat
     // `detect_boat_collision` pushes across a half-cell lights its ring.
     // run1209's test keeps the move's value diff (1604 keys to 96); run1212
-    // widens the new word over 4336..4592 (block 4342).
+    // widens the new word over 4336..4592 (block 4342). **Item 3571 moved
+    // it 4341 -> 7865**: a push by a unit processed earlier in the frame
+    // takes the pushed body's own turn (`guy_flags & 2`). run1212's test
+    // keeps the move's value diff (1496 keys to 114); run1214 widens the
+    // new word over 7859..8127, the game's closing block (block 7866).
     (
         "GREEK_CLASSICAL_PAIR_WORD",
         crate::diff::greek_classical_pair::GREEK_CLASSICAL_PAIR_WORD,
-        Some("greek_classical_pair_run1212_s_word_frame_is_widened_whole"),
-        3569,
-        Some(crate::diff::greek_classical_pair::WIDENING_GREEK_CLASSICAL_FRAME_4341),
+        Some("greek_classical_pair_run1214_s_word_frame_is_widened_whole"),
+        3571,
+        Some(crate::diff::greek_classical_pair::WIDENING_GREEK_CLASSICAL_FRAME_7865),
     ),
     // **The land map's first pair below age 2** (item 3556): the Romans at a held
     // Classical age, Great Sahara — 4069 first try, widened on run1194b
@@ -11528,7 +11532,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3557): first try 8, the
     // AI's make list parting behind the Greeks' opening knowledge, of a
     // game that ends itself on 8126; widened on run1196b. Item 3566: 2616,
-    // widened on run1209. Item 3569: 4341, widened on run1212.
+    // widened on run1209. Item 3569: 4341, widened on run1212. Item 3571:
+    // 7865, widened on run1214.
     AiWord {
         line: "Late ages",
         map: "EastIndiesGreekClassical",
@@ -11536,7 +11541,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::greek_classical_pair::GREEK_CLASSICAL_PAIR_WORD,
         length: 8_126,
         endpoint: None,
-        window: Some("greek_classical_frame_4341_window"),
+        window: Some("greek_classical_frame_7865_window"),
     },
     // The Romans at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3556): first try 4069, the

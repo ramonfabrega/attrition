@@ -540,12 +540,11 @@ hands**: a capture would need the original's list order.
 
 ## Parked by item 1332, 2026-09-30 — the stranger's shove
 
-(1339) **The pushed unit's `guy_flags & 2` across a frame boundary**:
-this crate reads the bit as the facing against the frame's start, so a
-push landing after the pushed unit's own turn, owing more than the
-halved rate, is forgotten at the next frame's start where the original
-may hold it into that unit's next `Guy::move`. No capture shows a
-partial push turn.
+(1339) closed 2026-10-24 by item 3571: **the pushed unit's `guy_flags &
+2`** is cleared by `Guy::process@005e0230:28` after `Guy::move`, so the
+mark is now taken there; a push before the pushed unit's process (East
+Indies' General `1/138` on 4336) and one after it both hold into its
+next `Guy::move` (`docs/AI.md` §310).
 
 ## Parked by item 1318, 2026-09-30 — Forced March's speed
 
@@ -10479,13 +10478,15 @@ words and edits nothing here; a refill lands when two remain.
   grids on 2616 as run413/run415 did for §11 of `docs/VISION.md`: a `RON_STATE_FRAME=2615` packet and
   `diff::second`'s grid comparison would make it packet-backed. **Score**: none.
 
-## Parked by the next landing, slot QE — reserved
+## Parked by item 3571, 2026-10-24 — the push's turn mark
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3571a) **who=1's `known_rares` on run1212's 4584: ours 3, theirs 1.**
+With the General's push turn built, run1212's window keeps one leader
+row besides the standing families and the groups' `held` and pool:
+block 4584's `leader:known_rares` for who=1. It is after the word 4341
+and inside no word's frame now that the word is 7865, and its writer
+was not read. **Score**: none — it parks until a word's walk back
+reaches it.
 
 ## Parked by item 3572, 2026-10-24 — the Roman Classical twin at `cover=1`
 

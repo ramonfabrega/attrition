@@ -25685,6 +25685,26 @@ Archive `rontrace-run1212.log`, 180,745,120 bytes,
 SHA-256 `ab57bc1b2337679335a3c6250f8682aa7fb55873bf9db78c780874097a45e3dd`.
 
 **What it holds**: `greek_classical_pair_run1212_s_word_frame_is_widened_whole`, the word 4341 (block 4342).
+## run1214 — the Greeks at a held Classical age, East Indies: the word 7865's window, blocks 7859..8127 (2026-10-24, item 3571, `att-3571`)
+
+`docs/AI.md` §310. **What the disk could not answer**: the word's block 7866, after item 3571 moved the word
+4341 → 7865. run1212 ends at block 4592 and run1196's stride prints 7801 and 7901. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1214 --map 18 --end-frame 8127 --allow-early-end --log-window 7859
+8127 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0 --profile
+STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 02:35:06, exited 02:36:10 (64.2 s launch to exit). `success`, 8127 frames; the game ended
+  itself on 8126 (`ended_early`, closing frame 8127). `rngcmp.py` against run1196: 8127 frames in common, 0
+  differing. Filed with `filerun.py run1214 eastindies-greek-classical-window-7859-8127 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1214-eastindies-greek-classical-window-7859-8127.txt`, 700,773,478 bytes,
+SHA-256 `a225421dc199433074b1339809061d422c2a0e602efe9c9b71278661b41d07cb`.
+
+Archive `rontrace-run1214.log`, 428,059,904 bytes,
+SHA-256 `a3c25e974d82f42a6ccdf5f3f61a64ce3c0fd6ab47a6046297a057a22a1be0bb`.
+
+**What it holds**: `greek_classical_pair_run1214_s_word_frame_is_widened_whole`, the word 7865 (block 7866), to
+the game's closing block.
 
 ## run1215 — the Roman Classical pair's long lobby at `cover=1` on the click-free pool, to the game's end at 7130: the pair's lockstep twin (2026-10-24, item 3572, `att-3572`)
 
