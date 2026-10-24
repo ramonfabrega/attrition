@@ -26228,6 +26228,69 @@ SHA-256 `023ac2078cf76535bab7ef63ef127719ffc6322e9a141da8d52164890a0ef6d3`.
 Heavy Archers `1/19` re-aims its attack off the fleeing Citizen `0/10` onto `0/5` in theirs and chases `0/10` in
 ours.
 
+## run1205 — the Bantu from an Ancient start, East Indies: the `DUMP_ALL` start (2026-10-24, item 3562, `att-3562`)
+
+`docs/AI.md` §315. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1205 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 3 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 11:28:56, exited 11:29:19 (23.4 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 3, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 0` and **`ENDING_TECHNOLOGY 1`** (3559a). Filed with `filerun.py run1205
+  eastindies-bantu-ancient-start --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1205-eastindies-bantu-ancient-start.txt`, 153,764,725 bytes,
+SHA-256 `e0d5ad8dd9b676fd2d8d56dd904f44a3c5ae0f40632541b621ba6d4fd10357c9`.
+
+Archive `rontrace-run1205.log`, 9,995,168 bytes,
+SHA-256 `dccca92707d4ed538b7edd0a1fb736623813f0165ad8d31f691b139cec0eb8db`.
+
+**What it holds**: the start of `bantu_ancient_pair::BANTU_ANCIENT`, and the walk's initial state.
+
+## run1206 — the Bantu from an Ancient start, East Indies: the draw stream to the game's end (2026-10-24, item 3562, `att-3562`)
+
+`docs/AI.md` §315. run1181's line with `--ai-tribe 3`: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 3
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1205's
+lobby.
+- Pool lane 2, beside run1205. Launched 11:28:56, exited 11:29:35 (39.5 s launch to exit). `success`. **The game
+  ended itself on 6210** (closing block 6211, `ended_early`). `GAME INFO` reads back as run1205's. `rngcmp.py`
+  against run1205: 37 frames identical. Filed with `filerun.py run1206 eastindies-bantu-ancient-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1206-eastindies-bantu-ancient-trace.txt`, 42,647,299 bytes,
+SHA-256 `ad5080abcfd4199b79f10344bad17fa42fce137d68e07e3862f24aaace414b7c`.
+
+Archive `rontrace-run1206.log`, 151,523,360 bytes,
+SHA-256 `41c1d008a428dde0534f631a17b8d658ec0cfd6589baa73073107b5cfe526473`.
+
+**What it holds**: the pair's first try. `bantu_ancient_pair_first_parting` walks it from run1205. The first try
+parts on **frame 4185 of 6210** by the count and the sequence: ours 350 draws against 342, index 242, ours
+`Leader::make_stuff+0x63d` against theirs `Leader::produce_building+0x1805`.
+
+## run1206b — the Bantu from an Ancient start, East Indies: the word 4185's window, blocks 4180..4436 (2026-10-24, item 3562, `att-3562`)
+
+`docs/AI.md` §315. **What the disk could not answer**: the word's block 4186, which run1205 (blocks 0..2) and
+run1206's stride (4101, 4201) leave undumped, and the leaders' make list, which run1206's detail does not print.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1206b --map 18 --end-frame 4436 --allow-early-end
+--timeout 3600 --log-window 4180 4436 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 3
+--cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=0 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 11:31:36, exited 11:32:21 (45.2 s launch to exit). `success`, 4437 frames. `rngcmp.py`
+  against run1206: 4437 frames in common, 0 differing. Filed with `filerun.py run1206b
+  eastindies-bantu-ancient-window-4180-4436 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1206b-eastindies-bantu-ancient-window-4180-4436.txt`, 572,813,190 bytes,
+SHA-256 `08a86e53dc6615feddbd40abfc8963cf393bbff432280a5da70494548862fbf4`.
+
+Archive `rontrace-run1206b.log`, 70,777,696 bytes,
+SHA-256 `89fa8c57cf00e5e9c2aa5f09026c886c1d23a23fc8c4c8b86fe915014b6a8c7e`.
+
+**What it holds**: `bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole`, the word 4185 (block 4186). Theirs
+places a Stable (428) in city 3 and the Hanging Gardens (528) in city 1; ours places only the Hanging Gardens, at
+another spot. Its first block, 4180, already holds who=1's make list apart (`MAKE[0]`, `MAKE[7]`).
 ## run1235 — the Lakota at a held Medieval age, East Indies: the rounds at the Citizen `0/5`, blocks 4086..4170 at `AMMO=5` (2026-10-24, item 3588, `att-3588`)
 
 `docs/AI.md` §314. **What the disk could not answer**: how the Citizen `0/5` came to stand struck for 30 + 10/16 on

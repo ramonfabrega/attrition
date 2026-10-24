@@ -27603,12 +27603,82 @@ and `…_run1235c_s_closing_frame_is_widened_whole` pin the windows, and all thr
 geometry is diff-backed: run1235's round and the closing walk check it. The sweep oracle backs the other three rows,
 cell for cell, and no capture fires them. Nothing here is reading-only.
 
-## 315. Reserved for the next item on the AI track
+## 315. The Bantu from an Ancient start, East Indies: a Stable the make list never reaches, first try 4185 of 6210 (item 3562)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93). §312's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
+Nubians (4) against the **Bantu (3)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 0`.
+The profile asks `ENDING_TECHNOLOGY=0`, and both `GAME INFO`s read it back as 1 (3559a: `SetupWin::setup_game`
+stores the combo's index plus one). So this is an Ancient start capped at Classical, not a held age. Captures:
+run1205 (a `DUMP_ALL` start) and run1206 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 6210. The walk is seeded from run1205's initial state (3506a). run1205 against run1206: 37
+of 37 frames identical. `diff::bantu_ancient_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 3, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery fields no Bantu. It is not the Bantu word's either: `GreatSaharaBantuTier4`, `(7, 3, 4)`, was promoted to a
+scored word by item 3343 and is another map and difficulty. No pinned `Lobby` or `Pair` literal held it.
+`bantu_ancient_pair_is_no_other_lobby` asserts all three.
+
+**First try: frame 4185 of 6210**, by the count and the sequence. Ours spends 350 game draws, theirs 342.
+Indices 0..240 agree (the last six are `Build::find_gather_tiles+0x10a`), and both spend `Leader::make_stuff+0x63d`
+at 241. Then:
+
+| index | ours | theirs |
+|---|---|---|
+| 242 | `Leader::make_stuff+0x63d` | `Leader::produce_building+0x1805` (seed `7bdd1c1c`) |
+| 243–245 | `produce_building+0x1805` ×3 | `produce_building+0x1805` ×3 |
+| 246 | `make_stuff+0x63d` | `make_stuff+0x63d` (seed `9ccf8310`) |
+| 247–249 | `Animal::do_idle`, `Unit::think_scout` … | `produce_building+0x1805` ×3 |
+| 250 | | `make_stuff+0x63d` |
+
+Theirs' make pass places two buildings: one with four placement draws, then one with three. Ours' pass places only
+the second. `RON_DEBUG_MAKE=4185` prints ours' head as `t=420` (the University), paid.
+
+**The direction is theirs**, with the record that shows it (run1206b, block 4186). Theirs holds two new
+`BUILDDATA` records and ours one:
+
+| block 4186 | ours | theirs |
+|---|---|---|
+| `1/2054` `orig_type` | 528, the Hanging Gardens | **428, the Stable** |
+| `1/2054` `city`, `constr_time`, `myhits` | 1, 400000, 2000 | 3, 42000, 1200 |
+| `1/2054` `x_internal`, `y_internal` | (34752, 37824) | (35136, 38976) |
+| `1/2055` | absent | 528, the Hanging Gardens: city 1, 400000, 2000, at (34560, 37632) |
+
+So the Stable in city 3 is theirs' alone. The Hanging Gardens is both sides', numbered one apart and placed 272
+apart. The block's other rows follow from it: `1/2016`'s `city:filled`, `gatherers` and `space[i]`, `leader:gatherers`
+26 against 25, and the moves of the scouts `1/30` and `1/58` and of `1/108`, `1/109` and `1/157`.
+
+**The state parts before the window.** On block 4180, the window's first, who=1's make list is already apart:
+
+| block 4180, who=1 `LEADERDATA` | ours | theirs |
+|---|---|---|
+| `MAKE[0]` cat / t / val | 7 / 341 (the Galley) / 21504000 | 6 / 596 / 9999999 |
+| `MAKE[7]` t / val | 341 (the Galley) / 21504000 | 94 (the Yangombi Umpakati) / 2016000 |
+
+Theirs' list on 4180 is t 596, the Phalanx 133, the Yangombi Umpakati 94, the Archers 171, two empty slots, 596
+again, 94 again, two empty slots, and 574 (cat 10). No Galley is in it. Theirs' who=1 is at age 1 on 4180
+(`ages_get()` 1), so the Galley is age-legal. The pair's dumps field no Galley at all (`rubric.py --tables 3`).
+On 4183 ours queues at the building `1/2014` and theirs does not: `queue:queued` 1 against 0, and `bucket` timber
+and metal 80 lower in ours (12886 against 12966, 19645 against 19725). The rest of block 4180's 115 rows are the
+standing families: every unit's `form`, `SITE[i].reg`, both leaders' `aggression`, who=1's groups' `held` and
+pools.
+
+**The value diff** (run1206b walked from run1205: 256 blocks, 1368 keys, the two `gaia:` keys unprinted). It is the
+two tables above. The first parted field is `MAKE[0]` on 4180. No record on disk walks it back: run1205 dumps
+blocks 0..2, and run1206's stride prints no `LEADERDATA`.
+
+**The next word: frame 4185, ours 350 draws against 342, index 242**, ours `Leader::make_stuff+0x63d`, theirs
+`Leader::produce_building+0x1805`. **The hypothesis, untested**: ours' make list values the Galley at 21504000 and
+holds it twice, so the pass that reaches the Stable in theirs spends its draw elsewhere in ours. Its killer is a
+window that dumps `LEADERDATA` from a block where `MAKE[0]` still agrees: the first block it parts on, and the
+writer of that entry. `seams.py --field MAKE` names no live `SEAM` on the make list's writers.
+
+**The booked lines are all fielded**, over run1205 and run1206 (`rubric.py --tables 3 --dumps`, 22 types):
+`Umpakati` (93) ×1080, `Yangombi Umpakati` (94) ×1056, `Bark` (323) ×360 and `Trireme` (340) ×474. All four are new
+to the ledger and enter it when the pair closes whole. None is in the parting.
+
+**Coverage.** `bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole` pins the 1368 keys. `WIDENINGS`'s
+`BANTU_ANCIENT_PAIR_WORD` names it, the window is in `coverage.rs`'s driver, and `AI_WORDS` holds the row on `Late
+ages`. Nothing in this section is reading-only: the parting is a dump comparison.
 
 ## 316. Reserved for the next item on the AI track
 
