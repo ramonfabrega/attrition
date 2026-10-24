@@ -10487,13 +10487,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QF — reserved
+## Parked by item 3572, 2026-10-24 — the Roman Classical twin at `cover=1`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3572a — the age-1 twin adds no function to the lockstep set either.** run1215 enters 6,854 functions, none on
+  `blind::NEVER`, and every simulation function among them is one another lockstep trace already enters:
+  `rubric.py --tables 4` reads 8,823,805 of 11,392,782 bytes, 2,247 of 3,611 functions, before and after, now over
+  126 traces (774 tenths, 77.45 %). It is the second twin in a row to move nothing, and the first of an early-age
+  pair: the Classical game on the land map, 7,130 frames long, reaches nothing the Ancient and Classical battery
+  games and the long captures had not. 3552a's reading holds one step further: a twin of a pair whose lobby varies
+  only the age and the nation brings no byte; lockstep bytes come from a lobby whose *settings* no trace reached.
+  **Score**: none.
 
 ## Parked by the next landing, slot QG — reserved
 
