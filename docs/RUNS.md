@@ -25305,3 +25305,38 @@ SHA-256 `77b15ff939605755803aee2bfa2ad219528ecfdb293b443466e314c46569a860`.
 
 **What it holds**: `turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole`, the word 3812 (the closing
 block 3813).
+
+## run1187 — the Turkish late-age pair's long lobby at `cover=1` on the click-free pool, to the game's end at 3812: the pair's lockstep twin (2026-10-23, item 3548, `att-3548`)
+
+**What the disk could not answer**: the pair's captures (run1158, run1159, run1159b, run1186, run1186b, run1186c) are
+`cover=0`, which enters nothing but the hooks (`report.py rontrace-run1159.log functions`: 0 entered), so no lockstep
+trace of an age-5 game existed (`docs/DECISIONS.md` entry 91 §2). run1159's recipe exactly, at `cover=1`:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1187 --map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=1 --callwin 0 24000 --ai-tribe 8
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`. No `@`
+line and no click: every input is shared, so there is no `--from`.
+
+- Pool lane 1 (`~/wine-ron`). Launched 19:22:36, exited 19:23:09: **32.6 s launch to exit** (run1159 at `cover=0`:
+  40.7 s). `success`, 3,813 frames, **the game ended itself at 3812** (`ended_early`, closing frame 3813), map 7
+  verified, seed 12345, tribes 4 and 8. DLL `06623031…`, `-DRON_AUTOSTART`. 163 GiB free before. Minutes waited on
+  another lane: none.
+- `rngcmp.py rontrace-run1159.log rontrace-run1187.log`: **3,813 in common, 0 differing, 3,813 identical**.
+  `samegame.py gamelog-run1159-… gamelog-run1187-…`: **39 in common (1..3801, the stride's blocks), 0 differing**.
+- **6,863 functions entered** (`report.py … functions`). **None is on `blind::NEVER`**, which is unchanged at 247.
+  Over the other 119 lockstep traces it adds one simulation function, `DeathObjData::log_data@008d55e0` (10,783
+  bytes, 3,812 entries): `rubric.py --tables 4` reads **lockstep bytes 77.3 %** (8,813,649 of 11,392,782; 2,239 of
+  3,611 functions; 120 traces), 772 → 773 tenths (77.27 % → 77.36 %).
+- The item's mechanics, entered: `Wall::update_los@0063eeb0` and `LeaderData::get_tower_fort_los@006daf80` (929
+  entries), the tower's sight term (item 3543).
+- Filed with `filerun.py run1187 greatsahara-turkish-enlightenment-cover`.
+
+Archive `gamelog-run1187-greatsahara-turkish-enlightenment-cover.txt`, 21,325,250 bytes,
+SHA-256 `43b4bada78df9b269bc1d0ebb6b84b9b39e7009b9c0c75c22c38f41c7aa69f27`.
+
+Archive `rontrace-run1187.log`, 51,492,128 bytes,
+SHA-256 `e85eed7ad29b988206830256ab6074d51a3718ba0b799427e177e9f2045ddb00`.
+
+**What it holds**: the Turkish pair's game on every frame under `cover=1`, the first lockstep trace of an age-5 game
+(`blind::TRACES`).

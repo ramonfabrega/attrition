@@ -336,7 +336,12 @@ pub const RUBRIC_GROUPS: usize = 112;
 /// `Unit::change_target`, `Unit::think_carry_military`,
 /// `AmmoOut::dirt_splash` (its `Unit::update_ceo_position` 3533 had already
 /// added) — 8,793,483 -> 8,802,866, 77.18 % -> 77.27 %.
-pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 772;
+/// Item 3548: 772 -> 773 with the Turkish pair's twin run1187 (120
+/// traces), the first lockstep trace of an age-5 game. One simulation
+/// function no other lockstep trace enters, 10,783 bytes —
+/// `DeathObjData::log_data`, entered once a frame — 8,802,866 ->
+/// 8,813,649, 77.27 % -> 77.36 %.
+pub const RUBRIC_LOCKSTEP_BYTES_TENTHS: usize = 773;
 /// Ages a lockstep game's dump has held an active leader in, of eight.
 pub const RUBRIC_AGES_HELD: usize = 8;
 /// Skirmish unit types seen in a lockstep game's dump. Item 3506: 128 ->
