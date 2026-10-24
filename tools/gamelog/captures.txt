@@ -10475,3 +10475,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1194  run1147's line with --map 7 --ai-tribe 6 and run1193's lobby   (the draw stream; ended itself on 7130)
 #   run1194b --map 7 --end-frame 4319 --timeout 3600 --log-window 4063 4319 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0, run1193's lobby   (the word 4069's window)
 # Checks: `rngcmp.py` run1193 vs run1194 -> 37 identical; run1194 vs run1194b -> 4320 identical.
+# ==== item 3557: the Greeks at a held Classical age, East Indies (`docs/AI.md` §310; `docs/RUNS.md` run1195, run1196, run1196b) ====
+#   run1195  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 5 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1196  run1181's line with --ai-tribe 5 and run1195's lobby   (the draw stream; ended itself on 8126)
+#   run1196b --map 18 --end-frame 258 --log-window 2 258 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 5 --cover cover=0, run1195's lobby   (the word 8's window)
+# Checks: `rngcmp.py` run1195 vs run1196 -> 37 identical; run1196 vs run1196b -> 259 identical.

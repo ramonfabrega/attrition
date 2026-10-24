@@ -1,5 +1,5 @@
 //! **The Romans at a held Classical age, Great Sahara** (DECISIONS 90, 91,
-//! 92, item 3556): the first pair below age 2 — Great Sahara, `MAP_STYLE
+//! 92, item 3556): the land map's first pair below age 2 — Great Sahara, `MAP_STYLE
 //! 7`, human Nubians (4) against the **Romans (6)** at Difficulty 5, seed
 //! 12345, `STARTING_RESOURCES 7`, the age held at Classical:
 //! `STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1`. Captures: run1193 (a

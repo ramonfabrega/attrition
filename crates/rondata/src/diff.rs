@@ -71,6 +71,8 @@ mod german_word;
 #[cfg(test)]
 mod golden;
 #[cfg(test)]
+mod greek_classical_pair;
+#[cfg(test)]
 mod greek_word;
 mod harness;
 #[cfg(test)]
