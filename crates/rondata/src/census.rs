@@ -375,8 +375,12 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// (`MORTARSHIP`, 347), read by `rubric.py` with and without its two dumps.
 /// Item 3543: 160 -> 162, the Turkish Enlightenment pair whole — Royal
 /// Janissaries (113, `JANISSARYROYAL`) and Basilica Cannon (277,
-/// `BASILICACANNON`).
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 162;
+/// `BASILICACANNON`). Item 3574: 162 -> 165, read by `rubric.py --tables 3`
+/// with and without each pair's dumps — the Greek Classical pair whole at
+/// 8126 adds the Fire Raft (334, `FIRERAFT`); the Persian Medieval and
+/// Roman Classical pairs, whole since the last pin (3567, 3570), add the
+/// Athanatoi (164) and the Mahout (262).
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 165;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
