@@ -10390,13 +10390,15 @@ words and edits nothing here; a refill lands when two remain.
   ejects on 3673, is not established. 8,816,240 → 8,823,805 of 11,392,782 bytes, 77.38 % → 77.45 %, so 773 → 774
   tenths. 3531a's prediction held: tenths at most. **Score**: none.
 
-## Parked by the next landing, slot PR — reserved
+## Parked by item 3552, 2026-10-23 — the Chinese Industrial twin at `cover=1`
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot PR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3552a — the twin adds no function to the lockstep set.** run1191 enters 6,912 functions, and every simulation
+  function among them is one another of the 122 lockstep traces already enters: `rubric.py --tables 4` reads
+  8,823,805 of 11,392,782 bytes, 2,247 of 3,611 functions, before and after (774 tenths, 77.45 %). It is the first
+  twin of the eight that moves nothing. The Japanese twin run1190 had already brought the Industrial age's
+  think-order and eject paths in, and the land map's Industrial game reaches nothing past them. With this twin,
+  every whole pair has one, so lockstep bytes now come only from games whose lobby no trace has reached.
+  **Score**: none.
 
 ## Parked by the next landing, slot PS — reserved
 

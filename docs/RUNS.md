@@ -25409,3 +25409,36 @@ SHA-256 `75c07ae0f8141902c924d5aa85bf44a38d4cc17677e4f24cb0c689e78aee296d`.
 
 **What it holds**: the Japanese pair's game on every frame under `cover=1`, the sea map's Industrial-age lockstep
 trace (`blind::TRACES`).
+
+## run1191 — the Chinese late-age pair's long lobby at `cover=1` on the click-free pool, to the game's end at 4467: the pair's lockstep twin (2026-10-23, item 3552, `att-3552`)
+
+**What the disk could not answer**: the pair's captures (run1154, run1155, run1155b, run1155c) are `cover=0`. A
+`cover=0` capture enters nothing but the hooks, so the land map's Industrial game had no lockstep trace
+(`docs/DECISIONS.md` entry 91 §2). This is run1155's recipe exactly, at `cover=1`, with the lobby read off its
+`receipt.json`:
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1191 --map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=1 --callwin 0 24000 --ai-tribe 14
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --profile
+STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=3`. The take
+has no `@` line and no click, so every input is shared and there is no `--from`.
+
+- Pool lane 1 (`~/wine-ron`). Launched 20:53:04 and exited 20:53:39: **34.5 s launch to exit**, against run1155's
+  28.5 s at `cover=0`. `success`, 4,468 frames. **The game ended itself at 4467** (`ended_early`, closing frame
+  4468). Map 7 verified, seed 12345, tribes 4 and 14. DLL `a96b41c7…`, `-DRON_AUTOSTART`. 145 GiB free before.
+  Minutes waited on another lane: none.
+- `rngcmp.py rontrace-run1155.log rontrace-run1191.log`: **4,468 in common, 0 differing, 4,468 identical**.
+  `samegame.py gamelog-run1155-… gamelog-run1191-…`: **45 in common (1..4401, the stride's blocks), 0 differing**.
+- `report.py … functions` lists **6,912 functions**. **None is on `blind::NEVER`**, which stays at 247. Against the
+  other 122 lockstep traces it adds no simulation function (3552a). `rubric.py --tables 4` reads **lockstep bytes
+  77.4 %**: 8,823,805 of 11,392,782 bytes and 2,247 of 3,611 functions, over 123 traces, so 774 tenths stay 774.
+- Filed with `filerun.py run1191 greatsahara-chinese-industrial-cover`.
+
+Archive `gamelog-run1191-greatsahara-chinese-industrial-cover.txt`, 23,939,309 bytes,
+SHA-256 `3adcca85af08a751834924b2fa55549d7d2bf8d03c2083683eec8908d2c6d9ad`.
+
+Archive `rontrace-run1191.log`, 89,026,336 bytes,
+SHA-256 `d24d28e37e7c506ef26d8b5eaf46ecb0373ed9aad706f9e82834f2e864c5df6f`.
+
+**What it holds**: the Chinese pair's game on every frame under `cover=1`, the land map's Industrial-age lockstep
+trace (`blind::TRACES`).
