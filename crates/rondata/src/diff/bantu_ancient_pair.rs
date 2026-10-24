@@ -332,3 +332,49 @@ fn bantu_ancient_pair_the_long_s_stride_walks_back_from_5072() {
     // 5066 parts after 5001.
     pin_eq!(w.firsts.len(), 182, "the stride's baseline");
 }
+
+/// run1238: the stride's gap walked, blocks 4995..5073 at the long's
+/// detail with `LEADERS=9` (item 3591) — six blocks over the stride's
+/// 5001, and through run1236b's first block 5066 to the word's 5073.
+pub(crate) const RUN1238: &str = "gamelog-run1238-eastindies-bantu-ancient-window-4995-5073.txt";
+
+/// The window: block 4995 through 5073.
+pub(crate) const WIDENING_BANTU_ANCIENT_GAP_5066: (i64, i64) = (4995, 5073);
+
+/// **The state's parting walked back from 5066**: run1238 walked from
+/// run1205's start with the recorder on (item 3591).
+pub(crate) fn bantu_ancient_gap_5066_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1238",
+        &[(RUN1238, WIDENING_BANTU_ANCIENT_GAP_5066.0)],
+        WIDENING_BANTU_ANCIENT_GAP_5066,
+        1,
+        &[5066, 5073],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_run1238_walks_the_parting_back_from_5066() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_gap_5066_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1238 baseline");
+}
