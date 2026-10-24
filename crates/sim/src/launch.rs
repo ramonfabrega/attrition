@@ -638,6 +638,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
+    // **The Archers' piece 121** (unit type 171, `ARCHERS`; item 3574,
+    // `docs/AI.md` §310): the Heavy Archer's three bays unchanged — the
+    // same model, as piece 123 is piece 1531's. run1217b's `AMMO=5` window
+    // on the Greek East Indies seed prints fifteen rounds of who=1's
+    // Archers over 7692..7848, five figures at nine headings, every key
+    // the piece releases on, and these put every one at the dump's `sx,
+    // sy` to the unit, and at its `sz` over the figure's `z`. `1/53` loosed
+    // at the fleeing Citizen `0/5` on 7727 from (8201, 8775) where this
+    // crate loosed from the figure's own (8232, 8856): 18 frames against
+    // 19, and the Citizen struck a frame late (run1217's packet).
+    (
+        121,
+        11,
+        12,
+        Bay {
+            right: -1826,
+            fwd: 88743,
+            dz: 163,
+        },
+    ),
+    (
+        121,
+        12,
+        9,
+        Bay {
+            right: 334,
+            fwd: 87412,
+            dz: 164,
+        },
+    ),
+    (
+        121,
+        13,
+        15,
+        Bay {
+            right: 9709,
+            fwd: 66502,
+            dz: 164,
+        },
+    ),
     // **The Royal Hwarang's piece 132** (`KORYOHWARANG`, unit type 182; item
     // 3365, `docs/AI.md` §283): the Longbowman's six release events on a
     // smaller figure (`koryo.bh3`), so piece 127's nodes do not serve it.
@@ -1788,6 +1828,37 @@ pub fn launch_point(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **The Greek Archers' arrows leave from piece 121's bays** (item
+    /// 3574): run1217b's fifteen `AMMO` rounds over 7692..7848, each the
+    /// figure on its unit's own square at the `GUY` record's angle, the
+    /// key this crate's release event names, and `sx, sy` the dump's own.
+    #[test]
+    fn run1217b_s_greek_arrows_leave_from_the_archer_s_bays() {
+        let rows: [(i8, u32, i32, i32, i32, i32, i32); 15] = [
+            (12, 9, 8232, 8856, -229_310_464, 8203, 8774),
+            (12, 9, 8040, 9144, -100_663_296, 8029, 9058),
+            (12, 9, 8232, 8856, -243_597_312, 8201, 8775),
+            (12, 9, 8040, 9144, 7_995_392, 8040, 9057),
+            (12, 9, 7752, 9048, 115_474_432, 7764, 8962),
+            (12, 9, 7752, 9048, 107_675_648, 7764, 8962),
+            (12, 9, 8232, 8856, -60_686_336, 8224, 8770),
+            (11, 12, 8328, 8712, -305_201_152, 8287, 8634),
+            (11, 12, 8232, 8856, -68_419_584, 8220, 8769),
+            (11, 12, 8040, 9144, 7_995_392, 8039, 9056),
+            (13, 15, 8088, 9384, -104_660_992, 8087, 9317),
+            (13, 15, 8424, 9240, -250_740_736, 8410, 9175),
+            (13, 15, 7752, 9048, 20_709_376, 7762, 8982),
+            (13, 15, 7752, 9048, 115_474_432, 7770, 8984),
+            (13, 15, 8232, 8856, -68_419_584, 8233, 8789),
+        ];
+        for (anim, start, x, y, facing, sx, sy) in rows {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 121, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "({anim}, {start}) at {facing}");
+        }
+        assert_eq!(release_dz(121, 12, 9, 0), Some(164));
+        assert_eq!(release_dz(121, 11, 12, 0), Some(163));
+    }
 
     /// **The Lakota Slingers' stones leave from piece 1440's bays** (item
     /// 3345): run980b's `AMMO` records, the stone `1/18` threw on 6046 at
