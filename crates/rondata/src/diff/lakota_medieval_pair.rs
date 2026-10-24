@@ -12,7 +12,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const LAKOTA_MEDIEVAL: Pair = Pair {
     name: "EastIndiesLakotaMedieval",
@@ -32,9 +32,14 @@ pub(crate) const LAKOTA_MEDIEVAL: Pair = Pair {
     // Item 3561, first try: frame 4168 by the count and the sequence, ours
     // 90 draws against 89, index 87 — ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x1ed`, theirs `Guy::set_anim+0x97a <
-    // Guy::inc_time+0x271` (`docs/AI.md` section 314).
-    count: 4168,
-    sequence: 4168,
+    // Guy::inc_time+0x271` (`docs/AI.md` section 314). Item 3588: 4168 →
+    // **4973, the game's last frame** — the Eagle Feather Horse `1/32`
+    // (TypeIndex 206, piece 156) looses through its pivot
+    // (`sim::pivot::RELEASES`), its round at the Citizen `0/5` flies 17
+    // frames from (5484, 10096) and strikes on 4143 beside `1/12`'s, and
+    // the Heavy Archers `1/19` re-aims at the wounded `0/5` on 4168.
+    count: 4973,
+    sequence: 4973,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -211,5 +216,166 @@ fn lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole() {
     // 4169), ours 90 draws against 89, index 87 ours `Guy::set_anim+0x97a
     // < Guy::inc_time+0x1ed` (`1/19`), theirs `Guy::set_anim+0x97a <
     // Guy::inc_time+0x271` (`docs/AI.md` section 314).
-    pin_eq!(w.firsts.len(), 2163, "run1204b baseline");
+    //
+    // Item 3588: **2163 → 115**, every one a standing family — block 4163's
+    // (`form`, `SITE[i].reg`, who=0's `aggression[1]`, who=1's groups'
+    // `held`/`pool`; 96 rows) and later blocks' groups 77 and 86 (4164,
+    // 4189), `SITE[3..6].reg` (4176, 4376) and the newborns' `form`. With
+    // the Eagle Feather Horse's round through its pivot, `0/5` stands
+    // struck for 30 + 10/16 on 4163, `1/19` re-aims at it on 4168 as
+    // theirs does, and block 4169 agrees.
+    pin_eq!(w.firsts.len(), 115, "run1204b baseline");
+}
+
+/// **The pair's closing state**: run1204's closing dump, block 4974,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3588).
+#[test]
+fn run1204_lakota_medieval_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &LAKOTA_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Lakota Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4974, "the closing block");
+    // Item 3588, the pair whole: 214 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 214, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run1235: the Citizen `0/5`'s rounds, blocks 4086..4170 at `AMMO=5` over
+/// the long's detail (item 3588) — the stride's block 4101 prints it
+/// unstruck and run1204b's 4163 struck for 30, so no dump held the blows.
+pub(crate) const RUN1235: &str = "gamelog-run1235-eastindies-lakota-medieval-window-4086-4170.txt";
+
+/// The window: block 4086 through 4170; the Eagle Feather Horse's round
+/// lands on 4143 (block 4144).
+pub(crate) const WIDENING_LAKOTA_MEDIEVAL_ROUNDS: (i64, i64) = (4086, 4170);
+
+/// **The rounds at `0/5`**: run1235 walked from run1203's start with the
+/// recorder on (item 3588).
+pub(crate) fn lakota_medieval_rounds_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA_MEDIEVAL.start],
+        true,
+        LAKOTA_MEDIEVAL.long,
+        "run1235",
+        &[(RUN1235, WIDENING_LAKOTA_MEDIEVAL_ROUNDS.0)],
+        WIDENING_LAKOTA_MEDIEVAL_ROUNDS,
+        1,
+        &[4144],
+        true,
+    )
+}
+
+#[test]
+fn lakota_medieval_pair_run1235_s_rounds_are_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_medieval_rounds_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 84, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    // Item 3588, the first walk: **101** keys, every one a standing
+    // family — block 4086's (`form`, `SITE[i].reg`, `aggression[1]`, the
+    // groups' `held`/`pool`; 97 rows), group 85 on 4087 and two newborns'
+    // `form` (4098, 4120). The rounds at `0/5` agree: `1/11`'s on 4092,
+    // `1/17`'s on 4116, and `1/32`'s (5484, 10096, 263) on 4127, 17 frames,
+    // with `1/12`'s on 4130 — the two strike together on 4143 (block 4144:
+    // `damage` 30, `damage_frac` 10, `damage_o` 32 on both sides). Without
+    // piece 156's rows ours looses from the figure's (5544, 10152), flies
+    // 18, and `0/5` stands at 21 + 5/16 from 1/11 on 4163.
+    pin_eq!(w.firsts.len(), 101, "run1235 baseline");
+}
+
+/// run1235c: the pair's last blocks, 4718..4974 at the long's detail —
+/// the word 4973 is the game's last frame and 4974 its closing block (item
+/// 3588). run1204 prints units only every hundredth block, and run1204b
+/// ends on 4419, so no dump held the last blocks.
+pub(crate) const RUN1235C: &str =
+    "gamelog-run1235c-eastindies-lakota-medieval-window-4718-4974.txt";
+
+/// The window: block 4718 through the closing block 4974.
+pub(crate) const WIDENING_LAKOTA_MEDIEVAL_CLOSING: (i64, i64) = (4718, 4974);
+
+/// **The pair's last blocks**: run1235c walked from run1203's start with
+/// the recorder on. The word is the game's last frame (item 3588).
+pub(crate) fn lakota_medieval_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA_MEDIEVAL.start],
+        true,
+        LAKOTA_MEDIEVAL.long,
+        "run1235c",
+        &[(RUN1235C, WIDENING_LAKOTA_MEDIEVAL_CLOSING.0)],
+        WIDENING_LAKOTA_MEDIEVAL_CLOSING,
+        1,
+        &[4974],
+        true,
+    )
+}
+
+#[test]
+fn lakota_medieval_pair_run1235c_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_medieval_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    // Item 3588, the first walk: **115** keys. Block 4718 carries the
+    // standing families (`form`, `SITE[i].reg`, `aggression[1]`, the
+    // groups' `held`/`pool`), and later blocks groups 80 and 86's (4719,
+    // 4828), `SITE[7].reg` (4776) and the `1/132`'s `form` (4775). **Two
+    // rows are not standing families**: `dest_angle` on the `1/103` (4782)
+    // and `1/104` (4790), 3567a's shape (parked 3580b). The closing block
+    // 4974 agrees.
+    pin_eq!(w.firsts.len(), 115, "run1235c baseline");
 }

@@ -392,8 +392,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `rubric.py --tables 3` on the merged tree (re-pinned at the booking).
 /// Item 3581: 167 -> 168, the Mongol Classical pair whole at 9884 — the
 /// Nomad (199, `NOMADS`, ×744 in run1197 and run1198), read by `rubric.py
-/// --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 168;
+/// --tables 3` on this tree. Item 3588: 168 -> 169, the Lakota Medieval
+/// pair whole at 4973 — the Eagle Feather Horse (206, `EAGLEFEATHER`, 378
+/// figure rows over run1203 and run1204), read by `rubric.py --tables 3`
+/// on the merged tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 169;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

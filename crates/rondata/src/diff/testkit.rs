@@ -7369,6 +7369,20 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // corners not known to be the original's single on the walk to the
     // word 3816, (4497, 9547) on 3771 and (4533, 9315) on 3772.
     ("japanese_industrial_pair_first_parting", 2),
+    // The Lakota Medieval pair (item 3588): the Eagle Feather Horse's
+    // rounds leave through its pivot now, the walk runs to the game's end,
+    // and a round's arc step reads two corners not known to be the
+    // original's single, (4292, 8067) on 4191 and (4230, 8020) on 4192.
+    ("lakota_medieval_pair_first_parting", 2),
+    (
+        "lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole",
+        2,
+    ),
+    ("run1204_lakota_medieval_pair_closing_state", 2),
+    (
+        "lakota_medieval_pair_run1235c_s_closing_frame_is_widened_whole",
+        2,
+    ),
     // The first late-age pair (item 3506): the Germans at All
     // Technologies, East Indies, walked from run1144 to the game's end on
     // run1145b; its closing state walks the same.
@@ -10038,12 +10052,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The Lakota at a held Medieval age** (item 3561): East Indies —
     // 4168 first try, widened on run1204b over 4163..4419 (block 4169).
+    // Item 3588: 4973, the game's last frame — the Eagle Feather Horse's
+    // rounds leave through its pivot; the rounds are widened on run1235
+    // over 4086..4170, the last blocks on run1235c over 4718..4974 (the
+    // word's block 4974 is the closing block), and the closing state is
+    // scored by `run1204_lakota_medieval_pair_closing_state`.
     (
         "LAKOTA_MEDIEVAL_PAIR_WORD",
         crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL_PAIR_WORD,
-        Some("lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole"),
-        3561,
-        Some(crate::diff::lakota_medieval_pair::WIDENING_LAKOTA_MEDIEVAL_FRAME_4168),
+        Some("lakota_medieval_pair_run1235c_s_closing_frame_is_widened_whole"),
+        3588,
+        Some(crate::diff::lakota_medieval_pair::WIDENING_LAKOTA_MEDIEVAL_CLOSING),
     ),
     // **The Bantu from an Ancient start** (item 3562): East Indies — 4185
     // first try, widened on run1206b over 4180..4436 (block 4186).
@@ -11696,15 +11715,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Lakota at a held Medieval age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 2), East Indies (item 3561): first try 4168, of a
-    // game that ends itself on 4973; widened on run1204b.
+    // game that ends itself on 4973; widened on run1204b. Item 3588: whole
+    // at 4973, the closing state scored, the last blocks on run1235c.
     AiWord {
         line: "Late ages",
         map: "EastIndiesLakotaMedieval",
         named: "East Indies (Lakota, Medieval)",
         word: crate::diff::lakota_medieval_pair::LAKOTA_MEDIEVAL_PAIR_WORD,
         length: 4_973,
-        endpoint: None,
-        window: Some("lakota_medieval_frame_4168_window"),
+        endpoint: Some("run1204_lakota_medieval_pair_closing_state"),
+        window: Some("lakota_medieval_closing_window"),
     },
     // The Bantu from an Ancient start (`STARTING_TECHNOLOGY` 0, the ending
     // age read back 1), East Indies (item 3562): first try 4185, of a game
