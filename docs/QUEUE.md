@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 3 of 20 landed; 3566, 3567 and 3568 live.*
+*2026-10-23, **the fifty-fourth tranche (commander, Opus) open from `2249e2c0`**: 4 of 20 landed; 3567, 3568 and 3569 live.*
 
-- **Words**: three open — the Greeks at Classical at 8 of 8,126 (lower map first — East Indies (Greeks, Classical)), the first pair below age 2
-  (3557); the Romans at Classical at 4069 of 7,130 (3556); the Persians at Medieval at 4170 of 4,759 (3554, 3555: the bays); held-out eight of eight.
+- **Words**: three open — the Greeks at Classical at 2616 of 8,126 (lower map first — East Indies (Greeks, Classical)), 8 → 2616
+  (3557, 3566: the knowledge re-grant at age 0); the Romans at Classical at 4069 of 7,130 (3556); the Persians at Medieval at 4170 of 4,759 (3554, 3555: the bays); held-out eight of eight.
   **The headline, unit types seen 162 of 302**: the early-age pairs on the nation lines no dump holds (3556, 3557 none new; parked 3556a).
 - **The rubric, lockstep**: ages 8 of 8, types 152 → 162 of 302, **bytes 77.0 → 77.4 %** (2247 of 3611) — the twins are spent: a pair
   that closes books its twin, never ahead (Loop 3541, DECISIONS 92). Blind: 0 of 39 dead on the pass's scan.
 - **The fifty-third, measured**: twenty landings in 9 h 57, 5.26 USD and 34.3 minutes waiting a landing; a third lane by the rule (DECISIONS 92).
-- **Lanes: three Opus at medium, three live** (3566, 3567, 3568); **six booked** (3558–3563). Next 3569, run 1212. Pools: GOLDEN §149–154, AI §317–320, park QD–QJ.
+- **Lanes: three Opus at medium, three live** (3567, 3568, 3569); **six booked** (3558–3563). Next 3570, run 1213. Pools: GOLDEN §149–154, AI §317–320, park QE–QJ.
 - **Fable backlog: 11 Loop items** (3565, 3564, 3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 92.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -30,7 +30,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4170 of 4,759 · EastIndiesGreekClassical w8 of 8,126 · GreatSaharaRomanClassical w4069 of 7,130
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4170 of 4,759 · EastIndiesGreekClassical w2616 of 8,126 · GreatSaharaRomanClassical w4069 of 7,130
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -50,10 +50,9 @@ frame and draw delta, the AI track's); **a whole pair's `cover=1` twin** — the
 stood up** (`mongol_pair.rs`'s shape: own `DUMP_ALL` start and `cover=0` long, `end:UNITS=3,GUYS=2` on `--stride 100`, the walk seeded from the start (3506a),
 the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pair::assert_lobby`, `diff::<name>_pair` at its first parting, a scoreboard line). Opus; a word's gate `--tests <pair>:: blind::`, a twin's `--tests blind:: --no-widen`.
 
-3566. **The Greek word, frame 8: 61 draws a side, index 0** (ours `Leader::make_stuff+0x221`, theirs `Leader::produce_building+0xc99`; 3557's
-widening on run1196b, AI §310): who=1's `bucket[3:knowledge]` stands ours 0 against theirs 10000 from block 2, then `MAKE[0]` parts on block 7.
-3557's hypothesis, untested: the Greeks' delayed knowledge is never re-granted in a game started at Classical; its killer is block 2's row —
-lay 10000 there, and if block 7's `MAKE[0]` still parts, the knowledge is not the cause. Run 1209; amend §310 in place; park QB.
+3569. **The Greek word, frame 2616: ours 231 draws against 230, index 227** (ours `Unit::think_scout+0xaba`, theirs `Farms::inc_time+0x1ae`;
+3566's widening, AI §310): ours spends an extra scout draw before theirs' farm draw; the Dromons `1/31`, `1/43`, `1/50` re-pick explore
+destinations on 2619 — downstream until the walk back from the frame says otherwise. Run 1212; amend §310 in place; park QD.
 
 3567. **The Roman word, frame 4069: ours 16 draws against 21, index 1** (theirs `Unit::close+0xcb6` under `Object::die`; 3556's widening on
 run1194b, AI §309): the Citizen `0/13` takes both Light Horse (TI 209) blows on 4068 in theirs (damage 32 → 46) and one in ours (32 → 39), so it
