@@ -7289,12 +7289,16 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3578: the Korean pair walked whole, past 4350 to its last
+    // frame 5639, reads 181 inexact corners.
+    ("korean_ancient_pair_first_parting", 181),
+    ("run1200_korean_ancient_pair_closing_state", 181),
     // Item 3559: run1200b's window over 4345..4601, walked from run1199's
     // start past 4350, reads 13 inexact corners (the first parting's walk,
-    // to 4350, reads none).
+    // to 4350, reads none); item 3578, with the Korean bays, 16.
     (
         "korean_ancient_pair_run1200b_s_word_frame_is_widened_whole",
-        13,
+        16,
     ),
     // Item 3524: the Russian pair walked past 4207 to its word 5651 reads
     // 91 inexact corners; item 3527, whole to its last frame 5841, 131,
