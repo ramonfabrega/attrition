@@ -7293,6 +7293,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Umpakati's javelins leave from their bays now — reads 3 inexact
     // corners.
     ("bantu_ancient_pair_first_parting", 3),
+    // And run1238d's window over 5316..5572, the word 5322's (item 3591):
+    // 16.
+    (
+        "bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole",
+        16,
+    ),
     // Item 3589: the Bantu Ancient pair's word 5072, run1236b's window
     // over 5066..5322 walked from run1205, reads 6 inexact corners.
     (
@@ -10077,13 +10083,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Bantu from an Ancient start** (item 3562): East Indies — 4185
     // first try, widened on run1206b over 4180..4436 (block 4186). **5072**
     // with the lobby's type ages (item 3589), widened on run1236b over
-    // 5066..5322 (block 5073).
+    // 5066..5322 (block 5073). **5322** with the Umpakati's bays (item
+    // 3591), widened on run1238d over 5316..5572 (block 5323).
     (
         "BANTU_ANCIENT_PAIR_WORD",
         crate::diff::bantu_ancient_pair::BANTU_ANCIENT_PAIR_WORD,
-        Some("bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole"),
-        3589,
-        Some(crate::diff::bantu_ancient_pair::WIDENING_BANTU_ANCIENT_FRAME_5072),
+        Some("bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole"),
+        3591,
+        Some(crate::diff::bantu_ancient_pair::WIDENING_BANTU_ANCIENT_FRAME_5322),
     ),
     // **The Japanese at a held Gunpowder age** (item 3563): Great Sahara —
     // 2839 first try, widened on run1208b over 2834..3090 (block 2840).
@@ -11750,7 +11757,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Bantu from an Ancient start (`STARTING_TECHNOLOGY` 0, the ending
     // age read back 1), East Indies (item 3562): first try 4185, of a game
     // that ends itself on 6210; widened on run1206b. 5072 with the lobby's
-    // type ages (item 3589), widened on run1236b.
+    // type ages (item 3589), widened on run1236b. 5322 with the Umpakati's
+    // bays (item 3591), widened on run1238d.
     AiWord {
         line: "Late ages",
         map: "EastIndiesBantuAncient",
@@ -11758,7 +11766,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::bantu_ancient_pair::BANTU_ANCIENT_PAIR_WORD,
         length: 6_210,
         endpoint: None,
-        window: Some("bantu_ancient_frame_5072_window"),
+        window: Some("bantu_ancient_frame_5322_window"),
     },
     // The Japanese at a held Gunpowder age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3563): first try 2839, of

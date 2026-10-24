@@ -407,3 +407,58 @@ fn bantu_ancient_pair_run1238_walks_the_parting_back_from_5066() {
     // With the Umpakati's bays: **92**, the standing families alone.
     pin_eq!(w.firsts.len(), 92, "run1238 baseline");
 }
+
+/// run1238d: the word 5322's window, blocks 5316..5572 at the long's
+/// detail — six blocks before the word's block 5323 and 250 after (item
+/// 3591); run1236b ends on 5322.
+pub(crate) const RUN1238D: &str = "gamelog-run1238d-eastindies-bantu-ancient-window-5316-5572.txt";
+
+/// The window: block 5316 through 5572; the word 5322's own block is 5323.
+pub(crate) const WIDENING_BANTU_ANCIENT_FRAME_5322: (i64, i64) = (5316, 5572);
+
+/// **The word 5322's window**: run1238d walked from run1205's start with
+/// the recorder on (item 3591).
+pub(crate) fn bantu_ancient_frame_5322_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[BANTU_ANCIENT.start],
+        true,
+        BANTU_ANCIENT.long,
+        "run1238d",
+        &[(RUN1238D, WIDENING_BANTU_ANCIENT_FRAME_5322.0)],
+        WIDENING_BANTU_ANCIENT_FRAME_5322,
+        1,
+        &[5323],
+        true,
+    )
+}
+
+#[test]
+fn bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = bantu_ancient_frame_5322_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3591, the first walk: 4333 keys. The word's block 5323 parts
+    // the human's `0/2002`: `damage` ours 0 against theirs 1 and
+    // `damage_frac` 0 against 10, a blow theirs lands on 5322 and ours
+    // does not (theirs' draw 22 is `Object::take_damage+0xe1`). The state
+    // is already apart on 5316, the window's first block: beside the
+    // standing families, `1/41`'s `order:target` (ours `0/3`, theirs the
+    // city centre `0/2000`, apart from 5253 on run1236b), and on 5318
+    // `0/2000`'s `damage` 34 against 35 and `raid_stamp` 5316 against
+    // 5317.
+    pin_eq!(w.firsts.len(), 4333, "run1238d baseline");
+}
