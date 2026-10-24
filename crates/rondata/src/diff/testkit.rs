@@ -10007,13 +10007,18 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // over 9738..9885 (block 9745), to the closing block. **Item 3579:
     // 9744 -> 9772**, the Mongol Archers' and Javelineers' rounds leave
     // from their bays (run1222's gap window keeps the value diff, 171 keys
-    // to 82); the new word's block 9773 is in run1218's window.
+    // to 82); the new word's block 9773 is in run1218's window. **Item
+    // 3581: whole at 9884**, the game's last frame: the Nomad (piece 149)
+    // releases through its pivot. The last blocks are widened on run1224
+    // over 9740..9885 (`AMMO=5`, to the closing block; 6619 keys to 93),
+    // and the closing state is scored by
+    // `run1198_mongol_classical_pair_closing_state`.
     (
         "MONGOL_CLASSICAL_PAIR_WORD",
         crate::diff::mongol_classical_pair::MONGOL_CLASSICAL_PAIR_WORD,
-        Some("mongol_classical_pair_run1218_s_word_frame_is_widened_whole"),
-        3579,
-        Some(crate::diff::mongol_classical_pair::WIDENING_MONGOL_CLASSICAL_FRAME_9744),
+        Some("mongol_classical_pair_run1224_s_word_frame_is_widened_whole"),
+        3581,
+        Some(crate::diff::mongol_classical_pair::WIDENING_MONGOL_CLASSICAL_FRAME_9772),
     ),
     // **The Chinese at a held Medieval age** (item 3560): Great Sahara —
     // 2981 first try, widened on run1202b over 2975..3231 (block 2982);
@@ -11658,14 +11663,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3558): first try 8444,
     // ours' who=1 group 64 leaving its guard, of a game that ends itself on
     // 9884; widened on run1198b. Item 3575: 9744, widened on run1218.
+    // Item 3581: whole at 9884, widened on run1224 to the closing block.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaMongolClassical",
         named: "Great Sahara (Mongols, Classical)",
         word: crate::diff::mongol_classical_pair::MONGOL_CLASSICAL_PAIR_WORD,
         length: 9_884,
-        endpoint: None,
-        window: Some("mongol_classical_frame_9744_window"),
+        endpoint: Some("run1198_mongol_classical_pair_closing_state"),
+        window: Some("mongol_classical_frame_9772_window"),
     },
     // The Chinese at a held Medieval age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3560): first try 2981, of
