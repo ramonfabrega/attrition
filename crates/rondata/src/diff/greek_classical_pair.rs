@@ -281,3 +281,46 @@ fn greek_classical_pair_run1212_s_word_frame_is_widened_whole() {
     // carries `collide_o` 138 in theirs and -1 in ours.
     pin_eq!(w.firsts.len(), 1496, "run1212 baseline");
 }
+
+/// **The long's stride, walked back from the word 4341** (item 3571):
+/// run1196 dumps `UNITS=3,GUYS=2` every hundredth block, and run1212's
+/// window opens with the General `1/138`'s facing already apart, so the
+/// state parted before 4336 and only the stride's blocks are on disk
+/// between run1209's 2867 and run1212's 4336.
+pub(crate) const WIDENING_GREEK_CLASSICAL_STRIDE: (i64, i64) = (2901, 4301);
+
+pub(crate) fn greek_classical_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[GREEK_CLASSICAL.start],
+        true,
+        GREEK_CLASSICAL.long,
+        "run1196 stride",
+        &[(GREEK_CLASSICAL.long.0, WIDENING_GREEK_CLASSICAL_STRIDE.0)],
+        WIDENING_GREEK_CLASSICAL_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn greek_classical_pair_the_long_s_stride_walks_back_from_4341() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_classical_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 15, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "the stride's baseline");
+}
