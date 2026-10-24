@@ -229,6 +229,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // word `GreatSaharaJapaneseTier1`, `(7, 15, 1)`, and not the Japanese
     // Industrial pair, `(18, 15, 5)`.
     (7, 15, 5),
+    // The Iroquois from an Ancient start, Great Sahara (item 3584): not the
+    // held-out `GreatSaharaIroquoisTier3`, `(7, 18, 3)`, nor
+    // `GreatLakesIroquoisTier3`'s `(14, 18, 3)` scored above — another
+    // difficulty — and no other battery game's triple.
+    (7, 18, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

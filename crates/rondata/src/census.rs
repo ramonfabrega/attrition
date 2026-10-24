@@ -397,8 +397,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// figure rows over run1203 and run1204), read by `rubric.py --tables 3`
 /// on the merged tree. Item 3590: 169 -> 170, the Japanese Gunpowder pair
 /// whole at 3673 — the Samurai (160, 1098 figure rows over run1207 and
-/// run1208), read by `rubric.py` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 170;
+/// run1208), read by `rubric.py` on this tree. Item 3584: 170 -> 172, the
+/// Iroquois Ancient pair whole at 8420 — `Spearmen` (166, 714 figure rows
+/// over run1227 and run1228) and `Mohawk Spearmen` (167, 1020).
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 172;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
