@@ -41,8 +41,15 @@ pub(crate) const ROMAN_MEDIEVAL: Pair = Pair {
     // word: ours 3205 draws against 3208, index 3201 — ours
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
     // `PathFinder::calc_road_cost+0x46`.
-    count: 3607,
-    sequence: 3607,
+    // Item 3631: 3607 -> **5582** by the count and the sequence — a
+    // finished fort sees `FORT_UPGRADE_LOS[get_fort_los - 1]` further, so
+    // the Roman Fort `1/2013`'s disc lights fog cell (110, 85) and the
+    // Caravan `1/49`'s road search on 3606 prices node 126 at 89, not 179.
+    // The new word: ours 31 draws against 35, index 7 — ours
+    // `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823`.
+    count: 5582,
+    sequence: 5582,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -289,9 +296,252 @@ fn roman_medieval_pair_run1277_s_word_frame_is_widened_whole() {
     // on block 3615, at `1/49`'s move: `order:move.x`/`.y` (37944, 24504)
     // against (38328, 23928), `off_x`/`off_y` (312, 696) against (696,
     // 120), `path:length` 46 against 47.
+    //
+    // Item 3631: 720 -> **112**. The road search parted on 3606, node 126
+    // (ours 179 against 89: `was_seen`'s doubling), because the Roman Fort
+    // `1/2013` saw 14 here and 16 there (`FORT_UPGRADE_LOS` at fort level
+    // 2) and its disc left nine of who=1's fog cells dark (run1293's
+    // packet). With the fort term, `1/49`'s rows are gone; what stays is
+    // the standing families (106 on 3602..3603) and, later, the pools and
+    // groups 73 (3635) and 77 (3782) and `form` on `1/186` (3683) and
+    // `1/187` (3736) — no position, no order.
     pin!(
         w.firsts.values().all(|(f, _)| !(3604..=3614).contains(f)),
         "nothing parts from block 3604 to 3614"
     );
-    pin_eq!(w.firsts.len(), 720, "run1277 baseline");
+    pin!(
+        w.firsts.iter().all(|((_, _, what), (f, _))| *f <= 3603
+            || what == "form"
+            || what.starts_with("pool:")
+            || what.starts_with("group:")),
+        "past the standing blocks only pools, groups and form part"
+    );
+    pin_eq!(w.firsts.len(), 112, "run1277 baseline");
+}
+
+/// **The word's road search, node for node** (item 3631): every road search
+/// run1275's call window prices, from the start to the word 3607, against
+/// ours.
+#[test]
+fn roman_medieval_pair_s_road_search_on_3607_holds_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let p = &ROMAN_MEDIEVAL;
+    let (Some(path), Some(sib), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1)) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_costs = true;
+    let mut first: Option<String> = None;
+    let mut searched = 0;
+    let mut on_word = (0, 0);
+    while built.sim.frame <= 3607 {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        let theirs = tr.road_nodes(f);
+        if f == 3607 {
+            on_word = (ours.len(), theirs.len());
+        }
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        searched += 1;
+        if first.is_none()
+            && let Some(i) =
+                (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
+        {
+            first = Some(format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            ));
+            if std::env::var("RON_ROAD_NODES").is_ok() {
+                for j in i.saturating_sub(8)..(i + 12).min(ours.len().max(theirs.len())) {
+                    eprintln!(
+                        "  node {j}: ours {:?} theirs {:?}",
+                        ours.get(j),
+                        theirs.get(j)
+                    );
+                }
+            }
+        }
+    }
+    eprintln!("ROAD searched {searched}; first parting {first:?}; on 3607 {on_word:?}");
+    // Item 3631: (3201, 3204) on the word, and the first node parting on
+    // 3606 (node 126, the diagonal onto (42336, 32928), tile (220, 171):
+    // ours 179 against theirs 89, `was_seen`'s doubling of fog cell
+    // (110, 85)) until a finished fort carried `FORT_UPGRADE_LOS`: the
+    // Fort `1/2013`'s disc reaches it at radius 8.
+    pin_eq!(
+        on_word,
+        (3204, 3204),
+        "the word's road nodes, ours and theirs"
+    );
+    pin_eq!(
+        first.as_deref().map(|s| s.split(':').next().unwrap_or("")),
+        None,
+        "the first node that parts"
+    );
+}
+
+/// run1293b: the word 5582's window, blocks 5577..5833 at the long's detail
+/// — six blocks before the word's block 5583 and 250 after (item 3631);
+/// the stride's blocks are 5501 and 5601.
+pub(crate) const RUN1293B: &str = "gamelog-run1293b-eastindies-roman-medieval-window-5577-5833.txt";
+
+/// The window: block 5577 through 5833; the word 5582's own block is 5583.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_FRAME_5582: (i64, i64) = (5577, 5833);
+
+/// **The word 5582's window**: run1293b walked from run1274's start with
+/// the recorder on (item 3631).
+pub(crate) fn roman_medieval_frame_5582_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_MEDIEVAL.start],
+        true,
+        ROMAN_MEDIEVAL.long,
+        "run1293b",
+        &[(RUN1293B, WIDENING_ROMAN_MEDIEVAL_FRAME_5582.0)],
+        WIDENING_ROMAN_MEDIEVAL_FRAME_5582,
+        1,
+        &[5583],
+        true,
+    )
+}
+
+#[test]
+fn roman_medieval_pair_run1293b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_medieval_frame_5582_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3631: **2550** keys. Block 5577 carries the standing families
+    // and, from run1293c's gap, the human's `0/10` already apart (`pos` y
+    // 4201 against 4226). On the word's own block 5583 `1/14` is in range
+    // of its target in theirs (`recharging` 30 against 0) and `1/124` in
+    // ours.
+    pin_eq!(w.firsts.len(), 2550, "run1293b baseline");
+}
+
+/// **The long's stride, walked back from the word 5582** (item 3631):
+/// run1275's stride blocks 3901..5501, between run1277's window and
+/// run1293b's.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_STRIDE: (i64, i64) = (3901, 5501);
+
+pub(crate) fn roman_medieval_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_MEDIEVAL.start],
+        true,
+        ROMAN_MEDIEVAL.long,
+        "run1275 stride",
+        &[(ROMAN_MEDIEVAL.long.0, WIDENING_ROMAN_MEDIEVAL_STRIDE.0)],
+        WIDENING_ROMAN_MEDIEVAL_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn roman_medieval_pair_the_long_s_stride_walks_back_from_5582() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_medieval_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 17, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(w.firsts.len(), 180, "run1275 stride baseline");
+}
+
+/// run1293c: the gap before the word 5582's window, blocks 5501..5577 at
+/// the long's detail (item 3631): run1275's stride prints 5501 and run1293b
+/// opens with the human's `0/10` already apart.
+pub(crate) const RUN1293C: &str = "gamelog-run1293c-eastindies-roman-medieval-gap-5501-5577.txt";
+
+/// The window: block 5501 through 5577.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_GAP_5582: (i64, i64) = (5501, 5577);
+
+/// **The gap before the word 5582's window**: run1293c walked from
+/// run1274's start with the recorder on (item 3631).
+pub(crate) fn roman_medieval_gap_5582_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_MEDIEVAL.start],
+        true,
+        ROMAN_MEDIEVAL.long,
+        "run1293c",
+        &[(RUN1293C, WIDENING_ROMAN_MEDIEVAL_GAP_5582.0)],
+        WIDENING_ROMAN_MEDIEVAL_GAP_5582,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn roman_medieval_pair_run1293c_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_medieval_gap_5582_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 76, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    // Item 3631: 113 keys. Block 5501 carries the standing families (91
+    // rows) and agrees on every unit. **The state first parts on block
+    // 5519, at the human's Village `0/2000`: `damage` ours 552 against
+    // 554** (548 on both on 5518; theirs' blow on tick 5518 is six, ours
+    // four). Then the human's `0/10` on 5551: theirs takes a hit from
+    // `1/130` on 5550 (`damage_o` 130, `hits_left` 30 against 31) and an
+    // order, ours none.
+    pin!(
+        w.firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > 5501)
+            .map(|(k, (f, _))| (*f, k.clone()))
+            .min()
+            == Some((5519, (0, 2000, "build:damage".to_string()))),
+        "the first parting past the standing block is the Village's damage on 5519"
+    );
+    pin_eq!(w.firsts.len(), 113, "run1293c baseline");
 }

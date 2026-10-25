@@ -10661,6 +10661,11 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3622: the Roman Medieval word 3607 (`docs/AI.md` §330; `docs/RUNS.md` run1277) ====
 #   run1277  --map 18 --end-frame 3858 --allow-early-end --timeout 3600 --log-window 3602 3858 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0, run1274's lobby   (the word 3607's window)
 # Checks: `rngcmp.py` run1275 vs run1277 -> 3859 identical.
+# ==== item 3631: the Roman Medieval word 5582 (`docs/AI.md` §330; `docs/RUNS.md` run1293, run1293b, run1293c) ====
+#   run1293  --map 18 --end-frame 3608 --log-window 3605 3608 --detail end:MISC,UNITS=3,BUILDS=7,GUYS=2 --ai-tribe 6 --cover cover=0 --tracer-def RON_STATE_FRAME=3606 --tracer-def RON_STATE_PLAN=<item 597's plan.h>, run1274's lobby   (a packet: who=1's fog)
+#   run1293b --map 18 --end-frame 5833 --allow-early-end --timeout 3600 --log-window 5577 5833 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0, run1274's lobby   (the word 5582's window)
+#   run1293c --map 18 --end-frame 5577 --allow-early-end --timeout 3600 --log-window 5501 5577 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0, run1274's lobby   (the gap before it)
+# Checks: `rngcmp.py` run1275 vs run1293b -> 5834 identical; run1275 vs run1293c -> 5578 identical.
 # ==== item 3605: the Russians at a held Medieval age, Great Sahara (`docs/AI.md` §326; `docs/RUNS.md` run1257, run1258, run1258b) ====
 #   run1257  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 13 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1258  run1202's line with --ai-tribe 13 and run1257's lobby   (the draw stream; ended itself on 4541)

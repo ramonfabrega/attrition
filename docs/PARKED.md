@@ -10306,8 +10306,9 @@ a site. Not booked: no score names it.
   then part wherever a Fort-line building stands. **Score**: none on its own; it is the guard that names the next
   sight term on the frame it parts.
 - **3543b. The fort, colosseum and furs terms of `Wall::update_los` stay unbuilt.** Item 3543 built the tower term
-  only (`Sim::build_los`). A fort takes `FORT_UPGRADE_LOS[get_fort_los − 1]` (`movb 0x190(%ecx,%eax,4)`, off
-  `FORT_UPGRADE_RANGE`'s five into the next array), `get_fort_los` from `has_preq(FORTLOS2..4)`; the colosseum
+  only (`Sim::build_los`). ~~A fort takes `FORT_UPGRADE_LOS[get_fort_los − 1]` (`movb 0x190(%ecx,%eax,4)`, off
+  `FORT_UPGRADE_RANGE`'s five into the next array), `get_fort_los` from `has_preq(FORTLOS2..4)`;~~ **the fort term
+  is built** (item 3631, `docs/AI.md` §330: the Roman Medieval word parted on the Fort `1/2013`'s sight); the colosseum
   adds `COLOSSEUM_FORT_RANGE` (0 as shipped) and furs `FURS_LOS`. `wall_los_view.rs` holds the whole function, swept.
   **Score**: none until a word parts on a Fort-line building's sight or a furs holder's.
 
@@ -11016,13 +11017,21 @@ reached on the cast's frame 1946 and refused on the mana, because `UnitData::man
 Built in `Sim::unit_mana` (`docs/AI.md` §331). The moved word 4499 books on run1292c's block 4475, where both
 leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` stays a seam no capture reaches.
 
-## Parked by the next landing, slot SD — reserved
+## Parked by item 3631, 2026-10-25 — a fort's sight, and the packet's regions
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3631a. The colosseum and furs terms of a building's sight are not
+  carried.** `Wall::update_los@0063eeb0` adds `COLOSSEUM_FORT_RANGE` to a
+  fort or tower whose owner holds the Colosseum (`has_wonder(0x212)`), and
+  `FURS_LOS` when bit 7 of `leaders[who] +0x6da5` or `+0x6dcd` is set.
+  `crate::wall_los_view` sweeps both; `Sim::build_los` carries neither. Both
+  ship as 0, so no score moves. It names no score.
+- **3631b. Ours' region numbers are not the packet's.** On run1293's packet
+  `WData.region` reads 11 at cells (52..53, 43..44), where ours'
+  `World::region_of` reads 12, and 65 on the unowned cells beside them,
+  where ours reads 0. `was_seen` reads the region only on an owned cell and
+  indexes its owner's `reg_cities`/`reg_forts` with it, so a consistent
+  renumbering moves nothing; whether it is consistent over the map is not
+  checked. It names no score.
 
 ## Parked by item 3632, 2026-10-25 — the Horde looses through its saddle pivot, 4499 → 4632
 

@@ -191,8 +191,13 @@ Three consequences worth stating:
   `0x4`. `has_tech` indexes the mask by `TypeIndex`, so the bits are
   units 68/67/66 (`PARTISAN`, `MINUTEMAN`, `MILITIA`), answering 4/3/2,
   else 1. A fort takes its own term instead (`FORT_UPGRADE_LOS[i − 1]`,
-  `movb 0x190(…)`, `i` from `has_preq(FORTLOS2..4)`), and that term, the
-  colosseum's and the furs' are still not carried (parked 3543b). Every
+  `movb 0x190(…)`, `i` from `has_preq(FORTLOS2..4)`), ~~and that term, the
+  colosseum's and the furs' are still not carried (parked 3543b)~~ **and
+  the fort term is carried** (item 3631, `docs/AI.md` §330): run1277's
+  Roman Fort `1/2013` (TypeIndex 444, `LOS 12`, `X_SIZE 5`) is `mylos 16`
+  at fort level 2, and run1293's packet holds who=1's fog to the byte with
+  it. The colosseum's and the furs' are still not carried (parked 3631a);
+  both ship as 0. Every
   one of them is an addition to a value §3 halves, so a term is worth a
   fog cell only when it reaches 2.
 - `type->x_size` is the footprint in **tiles**, the same field the block
@@ -885,7 +890,7 @@ run240's world pin.
 |---|---|---|
 | 1 | `seen` and `seen2`, and `World::set_seen` answering "newly revealed" | `world.rs` |
 | 2 | `Sim::unit_los` — terms 1–5b and 12, of which only the type's own `LOS`, the citizen terms and the science term can be nonzero here | `vision.rs` |
-| 2.1 | `Sim::build_los` — the started/active heads, the science term and the `x_size / 2` tail; the fort, tower, colosseum and furs terms are seams | `vision.rs` |
+| 2.1 | `Sim::build_los` — the started/active heads, the science term, the tower term (item 3543), the fort term (item 3631) and the `x_size / 2` tail; the colosseum and furs terms are seams | `vision.rs` |
 | 2.1, 5 | `Sim::build_sweep` and `Sim::update_seen_build` — the whole disc at the building's own half-cell | `vision.rs` |
 | 3, 4 | `Sim::seen_sweep` — the radius, the forward projection **along `UnitData::angle`**, and the four index ranges | `vision.rs` |
 | 4 | `vision::ring` — `ring_init` rebuilt in integers | `vision.rs` |

@@ -1895,6 +1895,8 @@ pub fn load_tables(
     // border levels `compute_reg_territory` reads (item 552).
     tree.roles.temple_borders_preq = [bonus_at(28), bonus_at(29), bonus_at(30)];
     tree.roles.fort_borders_preq = [bonus_at(37), bonus_at(38), bonus_at(39)];
+    // `FORTLOS2..4` (`0x2da`): the levels `get_fort_los` reads (item 3631).
+    tree.roles.fort_los_preq = [bonus_at(46), bonus_at(47), bonus_at(48)];
     // `ATTRITION1..4` (`0x2dd`): the steps `Leader::calc_attrition` counts.
     tree.roles.attrition_preq = [bonus_at(49), bonus_at(50), bonus_at(51), bonus_at(52)];
     // `TROOPS_LOS_1..3` (`0x2e9`): the levels `get_troops_los_upgrade`

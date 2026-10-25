@@ -1050,6 +1050,13 @@ pub struct Tuning {
     /// off `TOWER_FORT_RANGE`'s four entries into this array's first four:
     /// indexed here by `i − 1` (`docs/VISION.md` §2.1, item 3543).
     pub tower_fort_los: [i32; 4],
+    /// `FORT_UPGRADE_LOS`: the tiles a finished Fort-line building's sight
+    /// gains. `Wall::update_los@0063eeb0` reads it as
+    /// `fort_upgrade_range[get_fort_los + 4]`, and `get_fort_los` is 1..4,
+    /// so the read runs off `FORT_UPGRADE_RANGE`'s five entries (`+0x180`)
+    /// into this array's (`+0x194`): indexed here by the level − 1 (item
+    /// 3631, `docs/AI.md` §330).
+    pub fort_upgrade_los: [i32; 5],
     /// Percent faster British creation of the Archers line. Ships as zero,
     /// so the arm is live and inert at once.
     pub british_archer_speed: i32,
@@ -1662,6 +1669,7 @@ impl Tuning {
         german_submarine_speed: 33,
         british_tower_range: 2,
         tower_fort_los: [0, 2, 4, 6],
+        fort_upgrade_los: [0, 2, 4, 6, 8],
         british_archer_speed: 0,
         british_aa_speed: 33,
         wool_citizens_speed: 33,
@@ -1810,6 +1818,7 @@ impl Tuning {
             ("TIKAL_TEMPLE_BORDERS", Slot::Value(T.tikal_temple_borders)),
             ("ATTRITION_IMPROVED", Slot::Entries(&T.attrition_improved)),
             ("TOWER_FORT_LOS", Slot::Entries(&T.tower_fort_los)),
+            ("FORT_UPGRADE_LOS", Slot::Entries(&T.fort_upgrade_los)),
             ("ATTRITION_UPGRADE", Slot::Entries(&T.attrition_upgrade)),
             ("CITY_UPGRADE_TERR", Slot::Entries(&T.city_upgrade_terr)),
             ("FORT_UPGRADE_TERR", Slot::Entries(&T.fort_upgrade_terr)),

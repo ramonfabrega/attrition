@@ -7289,6 +7289,12 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3631: run1293b, the Roman Medieval word 5582's window,
+    // 5577..5833, reads 17 inexact corners.
+    (
+        "roman_medieval_pair_run1293b_s_word_frame_is_widened_whole",
+        17,
+    ),
     // Item 3630: the Mongol Gunpowder pair, walked from run1278 along
     // run1279 to its new word 4499, reads 2 inexact corners.
     ("mongol_gunpowder_pair_first_parting", 2),
@@ -10321,12 +10327,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // first try 1875 of 5979 by the count and the sequence, widened on
     // run1275b over 1870..2126 (the word's block 1876). Item 3622: 1875 ->
     // 3607, widened on run1277 over 3602..3858 (the word's block 3608).
+    // Item 3631: 3607 -> 5582, widened on run1293b over 5577..5833 (the
+    // word's block 5583).
     (
         "ROMAN_MEDIEVAL_PAIR_WORD",
         crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL_PAIR_WORD,
-        Some("roman_medieval_pair_run1277_s_word_frame_is_widened_whole"),
-        3622,
-        Some(crate::diff::roman_medieval_pair::WIDENING_ROMAN_MEDIEVAL_FRAME_3607),
+        Some("roman_medieval_pair_run1293b_s_word_frame_is_widened_whole"),
+        3631,
+        Some(crate::diff::roman_medieval_pair::WIDENING_ROMAN_MEDIEVAL_FRAME_5582),
     ),
     // **The Mongols at a held Gunpowder age** (item 3623): East Indies —
     // first try 1973 of 5399 by the count and the sequence, widened on
@@ -12235,7 +12243,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Romans at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), East Indies (item 3620): first try 1875 of a
     // game that ends itself on 5979, widened on run1275b; 3607 since item
-    // 3622, widened on run1277.
+    // 3622, widened on run1277; 5582 since item 3631, widened on run1293b.
     AiWord {
         line: "Late ages",
         map: "EastIndiesRomanMedieval",
@@ -12243,7 +12251,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL_PAIR_WORD,
         length: 5_979,
         endpoint: None,
-        window: Some("roman_medieval_frame_3607_window"),
+        window: Some("roman_medieval_frame_5582_window"),
     },
     // The Mongols at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3623): first try 1973 of a
