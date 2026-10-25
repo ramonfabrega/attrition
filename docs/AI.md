@@ -30281,12 +30281,90 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 333. Reserved for the next item on the AI track
+## 333. The Chinese at a held Gunpowder age, East Indies: first try 4884 of 5568 (item 3625)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Mongol
+Gunpowder pair's lobby (§331) with the nation moved: East Indies,
+`MAP_STYLE 18`, human Nubians (4) against the **Chinese (14)** at Difficulty
+5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 3` and
+`ENDING_TECHNOLOGY 3`. `crates/rondata/src/diff/chinese_gunpowder_pair.rs`
+pins it. Its triple `(18, 14, 5)` is minted in `battery::SCORED_LOBBIES`:
+the battery's one Chinese game is the held-out `GreatLakesChineseTier1`
+`(14, 14, 1)`, and the Chinese Industrial `(7, 14, 3)` and Medieval
+`(7, 14, 5)` pairs are another map.
+
+**The captures.** run1282 is the `DUMP_ALL` start; run1283 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 5568**; run1283b the word's window, blocks 4879..5135 with `LEADERS=9`
+and `AMMO=5`; run1283c the gap before it, 4795..4880 at the same detail.
+`GAME INFO` reads back `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3` on
+both pair takes (`Pair::assert_lobby`); run1282 against run1283 is 37 of 37
+frames identical, run1283 against run1283b 5136 of 5136 and against run1283c
+4881 of 4881. The walk is seeded from run1282's initial state (3506a).
+
+**First try: frame 4884 of 5568**, by the count and the sequence. On 4884
+ours spends 341 game-stream draws against theirs' 357, parting at index 6
+(ours `RON_DEBUG_SITES=4884-4884`, theirs `report.py … draws 4884`):
+
+- both: one `Guy::set_anim+0x97a < Unit::move_step+0x823`, two `< Guy::move`,
+  one `< Unit::do_idle`, two `< Unit::move_step` (ours `1/24`, `1/52` twice,
+  `1/115`, `1/124`, `1/153`);
+- theirs then spends another `move_step`, a `PathFinder::astar_path+0x1697 <
+  find_upath` and another `move_step` (indexes 6..8) before the caravan
+  road's run of `PathFinder::calc_road_cost+0x46 < astar_caravan_road`,
+  which ours enters at 6.
+
+**Theirs acts** on the word's frame; the cause is earlier.
+
+**The value diff, walked back.** run1283b (256 blocks, **3727 keys**)
+already parts on its first block: the Heavy Fire Lance `1/215` stands at x
+40327 in ours against 40105 in theirs, y 36732 on both — six frames of its
+37-a-frame walk east ahead. run1283c (85 blocks, **144 keys**) places it.
+`1/215` is a **Heavy Fire Lance** (TypeIndex 97, `EFIRELANCES`, land, uid
+300), born on 4797, on an attack-move under a guard of the unit uid 207.
+Every row before 4863 is a standing family (`form`, `SITE[i].reg`, the
+groups' `held` and pools, `build:extra`).
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4862 | `1/215` `ATTACKTOORDER` | `moveorder.retry` (uncompared) | 0 | 6 |
+| 4863 | `1/215` | `pos` | (39923, 36488) | (39905, 36456) |
+| 4863 | `1/215` | `move.dest`, `last_x/y` | 1, (39905, 36456) | 0, (-1, -1) |
+| 4863 | `1/215` | `tolerance`, `path_recursion`, `path.len` | 0, 3, 13 | 384, 10, 12 |
+
+On frame 4861 both sides spend `Unit::do_move+0xe84` and
+`PathFinder::astar_path+0x1697`: a unit-grid search fails and rolls the
+move's `retry` (`r % 3 + 6`, 6 here). On block 4862 both hold the same
+12-node path, its top popped, `dest` 0 and the waypoint (39144, 36888), but
+**theirs' order keeps `retry` 6 and ours' reads 0**. Theirs then stands six
+frames counting it down (4863..4868), gains `attempts` 3 and re-paths on
+4869 to (40068, 36732); ours re-paths on 4863. So ours walks six frames
+(222) ahead, and on the word its neighbours `1/185`, `1/186`, `1/197` and
+`1/213` collide differently.
+
+**The hypothesis for the next item.** `Sim::roll_upath_retry`
+(`crates/sim/src/path.rs`) writes `retry` into the unit's front order, and
+`do_move`'s refused-line branch (`crates/sim/src/orders.rs`, the `r == 0`
+arm with a non-final top: `mo.has_waypoint = false; self.store_move(u, mo,
+flags)`) stores back its copy `mo`, taken before the search, over it. The
+original clears `dest` in place and keeps the roll. I built nothing.
+`moveorder.retry` and `attempts` are left out of the move order's row
+(`crates/rondata/src/diff/order.rs`, "nothing here writes them"), which is
+why the first compared row is 4863 rather than 4862 (parked 3625a).
+
+The stride (`chinese_gunpowder_pair_the_long_s_stride_walks_back_from_4884`,
+101..4801: 48 blocks, 177 keys) parts on the standing families alone: `form`
+on every start unit and on each unit as it is born (ours -1 against theirs
+9 or 0, parked 3386i), `build:extra`, and who=1's groups' `held` and pools.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **192 of 302**,
+unmoved: the pair is open. Its own dumps see 24 types, and one is new to
+the ledger: **`Heavy Fire Lances` (97), the booking's line, fielded**
+(×32022), and the unit the word turns on. It enters when the pair closes.
+
+**Not established.** Why theirs' frame 4884 spends 16 more road-cost draws
+than ours: the caravan road's search reads the unit grid, which `1/215`'s
+six frames have moved.
 
 ## 334. Reserved for the next item on the AI track
 

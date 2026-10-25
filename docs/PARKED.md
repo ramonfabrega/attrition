@@ -10971,13 +10971,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RX — reserved
+## Parked by item 3625, 2026-10-25 — the Chinese at a held Gunpowder age, East Indies: first try 4884
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The pair's first parting books: the Heavy Fire Lance `1/215` (TI 97) keeps its spent unit-grid search's `retry` 6 in
+theirs and loses it in ours on block 4862, so ours walks six frames ahead from 4863 (`docs/AI.md` §333).
+`Heavy Fire Lances` (97) is fielded.
+
+- **3625a. The move order's row leaves out `retry` and `attempts` on a reason that no longer holds.**
+  `crates/rondata/src/diff/order.rs` skips `tolerance`, `retry`, `attempts` and `orig_x/orig_y` "because nothing
+  here writes them", but `sim::orders::MoveOrder` carries `retry` and `attempts` and `do_move` and
+  `roll_upath_retry` write both. On the Chinese Gunpowder pair the dump's `moveorder.retry` parts on block 4862
+  (ours 0, theirs 6) and the first compared row is 4863. Comparing the two would name the parting a block
+  earlier. It names no score of its own; the word's next item reads it.
 
 ## Parked by the next landing, slot RY — reserved
 
