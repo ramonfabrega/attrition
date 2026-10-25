@@ -3831,6 +3831,23 @@ impl Sim {
         if let Some(st) = self.gstate_mut(g) {
             st.order_num += 1;
         }
+        // PROBE 3634: who bumps a group's order count (reverted whole).
+        if let Ok(v) = std::env::var("RON_PROBE_GROUP")
+            && let Some((lo, hi)) = v.split_once('-')
+            && let (Ok(lo), Ok(hi)) = (lo.parse::<i64>(), hi.parse::<i64>())
+            && (lo..=hi).contains(&self.frame)
+        {
+            let n = self.group_order_num(g);
+            eprintln!(
+                "  probe f{} group {} who {} order_num {} list {:?}\n{}",
+                self.frame,
+                self.group_id(g),
+                g.who,
+                n,
+                g.list,
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
     }
 
     /// `action_move_near`'s writes to the record: `form` unconditionally
