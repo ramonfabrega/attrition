@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-24, **the fifty-fifth tranche (commander, Opus): 15 of 20 landed from `58869793f`**; 3595 and 3597 live on two Opus lanes at medium; the last whole gate is 3593's booking's (`6c03f7fdd`).*
-- **Words**: two open — Maya (Ancient) 4182 of 5,935 (lower map first — East Indies (Maya, Ancient)), 3597; Egyptians 6537 of 6,748, 3595.
+*2026-10-24, **the fifty-fifth tranche (commander, Opus): 16 of 20 landed from `58869793f`**; 3597 and 3598 live on two Opus lanes at medium; the last whole gate is 3587's booking's (`73b441ee0`).*
+- **Words**: two open — Maya (Ancient) 4182 of 5,935 (lower map first — East Indies (Maya, Ancient)), 3597; Egyptians 6718 of 6,748, 3598.
   **The headline, the early ages**: twelve pairs, ten whole (Greeks, Romans, Koreans, Chinese, Mongols 3581, Lakota 3588, Japanese 3590,
-  Iroquois 3584, Bantu 3593, Spanish 3586); Egyptians 5961 → 6537 of 6748 (3585, 3594); Maya first try 4182 of 5935 (3587); 3596 booked.
+  Iroquois 3584, Bantu 3593, Spanish 3586); Egyptians 5961 → 6718 of 6748 (3585, 3594, 3595); Maya first try 4182 of 5935 (3587); 3596 booked.
 - **The rubric, lockstep**: ages 8 of 8, types 162 → 177 of 302, **bytes 77.4 %** unmoved — two more twins at zero (3572, 3573), so **a pair that
   varies only age and nation books no twin** (DECISIONS 93 §2): 3576, 3582, 3583 left by the ledger. Blind: 0 of 39 dead.
 - **The tranche**: twenty landings in 9 h 55 at 6.91 USD and 58.8 minutes waiting a landing (5.26 / 34.3 on two lanes): the third lane bought
   nothing; no red gate; three `DEEP` where the handoff said one — **a drain's counts are `tranche.py --base`'s and `gates.py`'s** (Loop 3564).
-- **Lanes: two live** (3595 the Egyptian word, 3597 the Maya word); **one booked** (the pair 3596). Next 3598, run 1246.
-  Pools: GOLDEN §149–154, AI §322–324, park QY, QZ, RA, RB.
+- **Lanes: two live** (3597 the Maya word, 3598 the Egyptian word); **one booked** (the pair 3596). Next 3599, run 1247.
+  Pools: GOLDEN §149–154, AI §322–324, park QZ, RA, RB.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 93.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6537 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w4182 of 5,935
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6718 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w4182 of 5,935
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -51,13 +51,13 @@ on `--stride 100`, the walk seeded from the start (3506a), the age held by `STAR
 `Pair::assert_lobby` — an Ancient start is `0`/`1`, read back `1`: age 0 cannot be held (3559a) — booked on the nation `rubric.py --tables 3`
 prints in braces, `diff::<name>_pair` at its first parting, a scoreboard line). **No twin for a pair varying only age and nation** (DECISIONS 93 §2).
 
-3595. **The Egyptian word, frame 6537: ours 73 draws against 72, index 55** (ours `Unit::think_scout+0xaba`, theirs `Guy::set_anim+0x97a`
-< `Unit::do_idle+0x7d`; 3594's widening, AI §318): the Scout `1/126` (type 69) is apart on run1241b's first block 6532, and a territory row
-stands from 6033; take a window from before 6532 first. Run 1242; amend §318 in place; park QV.
-
 3597. **The Maya word, frame 4182: ours 31 draws against 29, index 16** (ours `Leader::produce_building+0x1805`, theirs
 `Leader::make_stuff+0x63d`; 3587's widening, AI §320): who=1 lays a second Senate (438), 1/2042 at (38016, 41376), where theirs still
 lists it as `MAKE[8]`; walk who=1's make list back from 4177 with a `LEADERS=9` window first. Run 1245; amend §320 in place; park QX.
+
+3598. **The Egyptian word, frame 6718: ours 41 draws against 42, index 23** (ours `Guy::set_anim+0x97a` < `Unit::do_idle+0x7d`, theirs
+`Guy::set_anim+0x97a` < `Guy::move+0x19f`; 3595's widening, AI §318): the Phalanx `1/116` (type 133) is apart on its orders on
+run1241b's block 6718 — theirs moves where ours idles; walk its orders back from 6718 first. Run 1246; amend §318 in place; park QY.
 
 3596. **The Germans from an Ancient start, Great Sahara** (`GreatSaharaGermanAncient`, map 7, tribe 12, difficulty 5, starting age 0 and
 ending age 1; the scored `GreatSaharaGermanTier3` is another difficulty): the lines are `Solduri` (153) and `Barbarians` (154). Runs

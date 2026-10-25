@@ -886,7 +886,11 @@ fn run882_s_word_frame_is_widened_whole() {
     // Item 3514: 230 → 222, `get_cost`'s domain arm: the Space Program halves
     // who=1's aircraft, so the Airbase queues' `cost` rows and the wealth/oil
     // buckets agree (run866's 5383: `1/2032` 97 against 52; `docs/AI.md` §301).
-    pin_eq!(w.firsts.len(), 222, "initial run882 baseline");
+    // Item 3595: 222 -> 209, the eight-slot territory tie (`docs/AI.md`
+    // section 318.2): both leaders' `territory` and team sums on 6802, with
+    // the wealth `income`, `resources`, `leftover` and `bucket` rows they
+    // feed, agree.
+    pin_eq!(w.firsts.len(), 209, "initial run882 baseline");
     // Item 3333: who=1's `bucket` metal 5378/4833, standing from 6802, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.
@@ -945,7 +949,11 @@ fn run883_s_closing_frame_is_widened_whole() {
     // Item 3514: 229 → 221, `get_cost`'s domain arm: the Space Program halves
     // who=1's aircraft, so the Airbase queues' `cost` rows and the wealth/oil
     // buckets agree (run866's 5383: `1/2032` 97 against 52; `docs/AI.md` §301).
-    pin_eq!(w.firsts.len(), 221, "run883 baseline");
+    // Item 3595: 221 -> 208, the eight-slot territory tie (`docs/AI.md`
+    // section 318.2): both leaders' `territory` and team sums on 6815, with
+    // the wealth `income`, `resources`, `leftover` and `bucket` rows they
+    // feed, agree.
+    pin_eq!(w.firsts.len(), 208, "run883 baseline");
     // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.

@@ -10399,7 +10399,9 @@ words and edits nothing here; a refill lands when two remain.
   `leftover[2:wealth]` 2728 against 2448 and `popwin_stamp` 0 against 8195 (`docs/AI.md` §311). run1198 prints no
   `LEADERDATA` between the start and the end, so whether these stand from the start or part late is not on disk. A
   standing family or a parted economy: `diff` the whole `LEADERDATA` on a window's first block nearer the start.
-  **Score**: none until a word parts on a who=1 purchase.
+  **Score**: none until a word parts on a who=1 purchase. **Item 3595** (`docs/AI.md` §318.2): ~~`leftover[2:wealth]`~~
+  agrees on every Mongol window since the eight-slot tie rotation. It was a territory tie's wealth. The food and
+  timber buckets stand.
 
 ## Parked by item 3559, 2026-10-24 — the Koreans from an Ancient start, East Indies
 
@@ -10525,7 +10527,9 @@ reaches it.
 
 ## Parked by item 3574, 2026-10-24 — the Archers' bays, the Greek pair whole
 
-(3574a) **Both leaders' `territory` on run1214's 7859: who=0 140 against 141, who=1 1525 against 1524.**
+(3574a) ~~**Both leaders' `territory` on run1214's 7859: who=0 140 against 141, who=1 1525 against 1524.**~~
+**Answered by item 3595** (`docs/AI.md` §318.2): a tied claim the crate's `% players` scan gave to who=1; the
+eight-slot rotation gives it to who=0, and run1214's territory rows agree (134 → 125 keys).
 The word is whole at 8126, and its closing state compares 336 units with none off. But run1214's window
 opens with one tile counted to who=1 in ours and to who=0 in theirs (`my_team_terr`, `other_team_terr` and
 `min_other_team_terr` move with it). run1212's leaders agree through 4592, and the long's strides print no
@@ -10665,8 +10669,9 @@ the next pass's to name. **Score**: none (`docs/AI.md` §318).
 
 ## Parked by item 3586, 2026-10-24 — the Spanish at a held Classical age, Great Sahara
 
-(3586a) **Both leaders' `territory` one tile apart on run1232b's first block 8310: who=0 ours 241 against
-theirs 242, who=1 2746 against 2745** (`my_team_terr`, `other_team_terr` and `min_other_team_terr` with it).
+(3586a) ~~**Both leaders' `territory` one tile apart on run1232b's first block 8310: who=0 ours 241 against
+theirs 242, who=1 2746 against 2745**~~ **Answered by item 3595** (`docs/AI.md` §318.2): the same tie as
+3574a, and run1232b's territory rows agree (82 → 74 keys). (`my_team_terr`, `other_team_terr` and `min_other_team_terr` with it).
 3574a's shape on a second pair, the same direction: one tile counted to who=1 in ours and to who=0 in theirs.
 The pair is whole at 8565 and its closing state compares 395 units with none off. No widening walked
 run1231's blocks 0..2 for it and run1232's stride prints no leader, so it parted somewhere before 8310; the tile and its writer were not
@@ -10707,13 +10712,13 @@ block zeroes it beside `reg_known_rares` and `bordering` (AI §318.1), and
 `check_borders` sums it into the leader's `+0x9d8` territory at the pass's
 end. No capture separates it, and no score names it.
 
-## Parked by the next landing, slot QV — reserved
+## Parked by item 3595, 2026-10-24 — the territory tie rotates over eight slots
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3595a) **No dump prints a cell's owner.** The two cells this item turned on, (13, 15) and (15, 13), show
+only as a two-cell gap in the leaders' `territory` sums. Ours' map came from a probe, and theirs' was
+inferred from the Scout's path cost. A tie the old `% players` modulus broke the other way, in another
+lobby, would show the same way. Nine widenings' territory rows moved toward the original when the fix landed
+(`docs/AI.md` §318.2), and no pinned word did. No score names it.
 
 ## Parked by the next landing, slot QW — reserved
 

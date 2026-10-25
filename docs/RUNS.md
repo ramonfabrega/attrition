@@ -26909,6 +26909,29 @@ SHA-256 `ff4aa9d71131481b73e05b70afc2ef6a846b830b2527b1cdf52a97a3bd6b96b5`.
 **What it holds**: `spanish_classical_pair_run1232b_s_closing_frame_is_widened_whole` (256 blocks, 82 keys): the
 standing families, both leaders' `territory` one tile apart (parked 3586a), the garrisoned Scholars' `g.angle[0]`
 and twelve `dest_angle` rows. Positions, orders and hits agree to the closing block.
+## run1242 — the Egyptians at a held Classical age, East Indies: the Scout walked back, blocks 6496..6531 (2026-10-24, item 3595, `att-3595`)
+
+`docs/AI.md` §318.2. **What the disk could not answer**: the frames 6502..6531. The long's stride holds the Scout
+`1/126` agreeing on 6501, and run1241b holds it apart from its first block, 6532.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1242 --map 18 --end-frame 6531 --timeout 3600
+--log-window 6496 6531 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0
+--profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 18:18:46, exited 18:19:38 (52.8 s launch to exit). `success`, 6532 frames,
+  last frame 6531. `rngcmp.py` against run1230: 6532 frames identical. Filed with `filerun.py run1242
+  eastindies-egyptian-classical-window-6496-6531 --map 18`. `df -g ~` read 130 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1242-eastindies-egyptian-classical-window-6496-6531.txt`, 84,177,134 bytes,
+SHA-256 `8b4c6b5a5f2647171db7660d9810b0b5641c232c34e2993965a1aa7d2b822fbe`.
+
+Archive `rontrace-run1242.log`, 230,149,504 bytes,
+SHA-256 `92ddf0f717f610da9afd6dc572cdee6632a4f49e736e0cd8bc843591b420f412`.
+
+**What it holds**: `egyptian_classical_pair_run1242_walks_the_scout_back` (35 blocks; 114 keys on the first
+walk, 91 after the eight-slot tie rotation). The Scout `1/126` parts on block 6509, on `path[3].to` and
+`path[4].to`, under the explore order both sides issue on 6508. Both leaders' `territory` stands from 6496
+until the fix.
 
 ## run1233 — the Maya from an Ancient start, East Indies: the `DUMP_ALL` start (2026-10-24, item 3587, `att-3587`)
 

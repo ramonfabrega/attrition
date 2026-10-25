@@ -416,11 +416,19 @@ fn compute_region_territory_won(
         // The player scan order is rotated by the cell's x coordinate. Ties go
         // to whoever is reached first, so without the rotation a contested
         // frontier would belong entirely to the lower-numbered player; with
-        // it, equal claims interleave along x. The original writes this as
-        // `(i + x) & 7` against its fixed eight-player array. Generalising the
-        // modulus is the only change, and it preserves the intent exactly.
-        for step in 0..players {
-            let p = ((step as i32 + cell.x).rem_euclid(players as i32)) as Player;
+        // it, equal claims interleave along x. **The rotation is over the
+        // eight leader slots, not the players in the game**:
+        // `compute_reg_territory@006b0bb0:338` is `(local_20 + x) &
+        // 0x80000007` for `local_20` 0..7, and a slot whose `leaders[p] & 1`
+        // is clear claims nothing (`:344`). With two players a tie at x = 13
+        // starts the scan at slot 5 and reaches player 0 before player 1;
+        // the generalised `% players` started it at player 1 (item 3595,
+        // `docs/AI.md` §318.2: East Indies' cells (13, 15) and (15, 13)).
+        for step in 0..8 {
+            let p = ((step + cell.x).rem_euclid(8)) as Player;
+            if p >= players {
+                continue;
+            }
             for (si, s) in sources.iter().enumerate().filter(|(_, s)| s.owner == p) {
                 let d = vector_dist(here.x - s.pos.tile().x, here.y - s.pos.tile().y);
                 // The limit is tested against the raw distance, before the
@@ -756,10 +764,35 @@ mod tests {
         assert!(row.contains(&Owner::Player(0)), "{row:?}");
         assert!(row.contains(&Owner::Player(1)), "{row:?}");
         for (x, o) in row.iter().enumerate() {
-            // At even x the scan starts at player 0, so player 0 takes the
-            // tie; at odd x it starts at player 1.
-            assert_eq!(*o, Owner::Player(u8::from(x % 2 != 0)), "cell {x},1");
+            // The scan starts at slot `x & 7` of eight: player 1 is reached
+            // first only when it starts there (x = 1 and 9); from slots 2..7
+            // it wraps to player 0 first.
+            assert_eq!(*o, Owner::Player(u8::from(x & 7 == 1)), "cell {x},1");
         }
+    }
+
+    #[test]
+    fn a_two_player_tie_rotates_over_eight_slots() {
+        // `compute_reg_territory:338`: `(i + x) & 7`, not `(i + x) % players`.
+        // At x = 13 the scan starts at slot 5, so slots 5, 6 and 7 are empty
+        // and player 0 is reached before player 1 — East Indies' (13, 15),
+        // which `% 2` gave to player 1 (item 3595).
+        let mut w = World::new(16, 3);
+        w.fill_region(Terrain::Land, Cell::new(0, 0), Cell::new(15, 2));
+        let b = plain_player();
+        let at = |cx: i32, cy: i32| {
+            Pos::new(
+                cx * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+                cy * UNITS_PER_CELL + UNITS_PER_CELL / 2,
+            )
+        };
+        let s = vec![
+            city_source(&T, 0, &b, &plain_city(at(13, 0))),
+            city_source(&T, 1, &b, &plain_city(at(13, 2))),
+        ];
+        compute_all_territory(&mut w, &T, &s, 2);
+        assert_eq!(w.owner(Cell::new(13, 1)), Owner::Player(0));
+        assert_eq!(w.owner(Cell::new(9, 1)), Owner::Player(1));
     }
 
     #[test]
