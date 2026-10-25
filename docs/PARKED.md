@@ -10754,13 +10754,12 @@ run1241b's block 6718. No score names any of it: the Egyptian pair is whole and 
   and nothing has read whether 824 and 473 share one model. `docs/AI.md` §320.3. **Score**: none. The pair is
   whole, so a mismatch would show up as a later parting.
 
-## Parked by the next landing, slot RB — reserved
+## Parked by item 3601, 2026-10-24 — the Koreans at a held Classical age
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3601a) **Five garrisoned units' `g.angle[0]` stand on run1250b's first block.** Ours 1431655765 against theirs 0
+on the Korean Scholars (TypeIndex 53) `1/363`, `1/367`, `1/369`, `1/376` and `1/377`, garrisoned in one `inside`
+chain (`inside_up` 2007 at its head), from 8374: §319's Scholars' shape (item 3586) on a second pair.
+The draws do not read it before 8379 (`docs/AI.md` §322), so no score names it.
 
 ## Parked by the next landing, slot RC — reserved
 

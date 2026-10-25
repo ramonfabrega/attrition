@@ -28552,12 +28552,67 @@ herds.
 **What is not established.** The `SITE` rows' first parting (above). Nothing in the window reads a wound, so
 the closing compare's silence on `hits` (3584a) holds here too: no `hits` row parts in run1244b.
 
-## 322. Reserved for the next item on the AI track
+## 322. The Koreans at a held Classical age, Great Sahara: first try 8379 of 8777 (item 3601)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94). §319's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
+Nubians (4) against the **Koreans (16)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held by
+`STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1` — both read back on both `GAME INFO`s. Captures: run1249 (a
+`DUMP_ALL` start) and run1250 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 8777. The walk is seeded from run1249's initial state (3506a); run1249 against run1250 is 37 of 37
+frames identical. `diff::korean_classical_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 16, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's and no
+pinned lobby's: the scored `GreatSaharaKoreanTier3` (`korean_word`) is `(7, 16, 3)`, the same map at another
+difficulty; the Ancient-start `EastIndiesKoreanAncient` (`korean_ancient_pair`, 3559) is `(18, 16, 5)`, another
+map. `korean_classical_pair_is_no_other_lobby` asserts all of it.
+
+**First try: frame 8379 of 8777**, by the count and the sequence: ours 29 draws against theirs' 27, parting at
+index 10. `RON_DEBUG_SITES=8379-8379` on ours and `report.py … draws 8379` on theirs: indices 0–9 agree by site and
+seed (`1/123` and `1/143` guarding, `1/126`'s two `fight` draws, `1/158`'s two `do_job` rolls, three
+`move_step` turns and `1/226`'s `Guy::move`). From 10 ours takes the Javelineers `1/267`'s (TypeIndex 83, land)
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, and the Light Horse `1/337`'s (TypeIndex 209, land, attacking
+`0/4`) `Unit::fight+0x824` and `+0x9b0`; theirs takes one `Unit::fight+0x824` and goes on to `1/339`'s turn.
+The rest of the frame agrees (seven `Unit::inc_time` turns, one round, four farm draws).
+
+**The value diff** (run1250b, blocks 8374..8630 at the long's detail with `LEADERS=9`, walked from run1249: 256
+blocks, **9513 keys**, the two `gaia:` keys unprinted; run1250 against run1250b is 8631 of 8631 frames identical):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 8375 | Citizen `0/4` (TypeIndex 50, land) | `hits_left` | 50 | 48 |
+| 8375 | `0/4` | `damage`, `damage_frac` | 0, 0 | 2, 5 |
+| 8375 | `0/4` | `damage_frame` | 0 | 8374 |
+| 8375 | both leaders | `treaties[i]` | 1 | 3 |
+| 8375 | who=0's city `0/2000` | `raid_stamp` | 0 | 8374 |
+| 8376 | `0/4` | `order:kind`, `orders.len` | 4, 2 | 7, 1 |
+| 8378 | `0/4` | `damage_frame` (standing; `hits` agree) | 8375 | 8374 |
+| 8380 | `1/267` | `pos` | (10570, 29479) | (10600, 29437) |
+
+Block 8374, the window's first, holds only the standing families (every unit's `form`, who=0's `SITE[i].reg`,
+both leaders' `aggression`, who=1's groups' `held` and pools) and five garrisoned Korean Scholars' (TypeIndex 53) `g.angle[0]`,
+ours 1431655765 against theirs 0 (§319's shape, parked 3601a).
+
+**The blow.** Theirs' only extra draw on 8374 is the sound generator's `SoundGlobal::play < Object::do_damage+0xedb
+< Ammo::do_damage+0xc11`: a round lands on `0/4` there. `RON_DEBUG_AMMO=8370-8376` holds three rounds in flight at
+`0/4` on ours; the one due is the Elite Hwarang `1/135`'s (TypeIndex 181, land, army 2), launched on 8361 on
+both sides by the same two `Ammo::init` draws, from (9432, 28584), the unit's own square, `t14/15` on 8374. Ours
+lands it on 8375, a frame after theirs, with the same blow (`hits` agree by 8378). `0/4` takes its flee order a
+frame ahead in theirs, and the draws part on 8379. run1250b prints no `AMMO` record, so theirs' launch point and
+`total_time` are not on disk.
+
+**The hypothesis, the next item's:** the Elite Hwarang's piece has no `launch.rs` bay row. Pieces 130 (the
+Hwarang, 180; item 3578) and 132 (the Royal Hwarang, 182; §283) were measured and leave from the bow hand; a round
+off the figure's own square was a frame long each time there.
+
+**The rubric.** Unit types seen stay **179** of 302: the pair is open at 8379, so it is not lockstep. On the pair's
+own dumps (`--tables 3 --dumps`, run1249 and run1250) the rubric sees 16 types. **`Elite Hwarang` (181)** ×5082
+and **`Flaming Arrow` (279)** ×2532, the booking's two lines, are both **fielded** and both new to the ledger; they
+enter when the pair closes. The other 14 are in the lockstep set: Citizen 50 and 51, Scholar 53, General 54,
+Caravan 59, Merchant 61, Scout 69 and 70, Javelineers 83, Phalanx 133, Light Horse 209, The Senator 353, and the
+sheep and peacock herds.
+
+**What is not established.** Theirs' round's launch point and flight time (no `AMMO` record; a packet or an
+`AMMO` window is the next item's); the garrisoned units' `g.angle[0]` (parked 3601a).
 
 ## 323. Reserved for the next item on the AI track
 

@@ -27104,3 +27104,66 @@ SHA-256 `c4b3841e44fb8a9e2da09cdf04cc6e3defa2aafb579b3c4201d07a313e45e653`.
 **What it holds**: `maya_ancient_pair_run1248_s_closing_frame_is_widened_whole` (256 blocks, 86 keys): the
 standing families on 5680, groups 72's and 78's pools on 5690 and 5724, and two new units' `form`. No unit,
 building or city field parts.
+
+## run1249 — the Koreans at a held Classical age, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3601, `att-3601`)
+
+`docs/AI.md` §322. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1249 --map 7 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 16 --profile STARTING_TECHNOLOGY=1 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 22:44:28, exited 22:44:52 (24.3 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 16, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1249
+  greatsahara-korean-classical-start`. `df -g ~` read 156 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1249-greatsahara-korean-classical-start.txt`, 149,947,880 bytes,
+SHA-256 `d2a4923391d4b11fa8d40712d6f310f443876f8cbe56a936b5cc7f3756c78345`.
+
+Archive `rontrace-run1249.log`, 8,321,920 bytes,
+SHA-256 `62e2c07c677cb164ed0d201a9b54503c5e77ae0586fe148602505ceccee960e6`.
+
+**What it holds**: the start of `korean_classical_pair::KOREAN_CLASSICAL`, and the walk's initial state.
+
+## run1250 — the Koreans at a held Classical age, Great Sahara: the draw stream to the game's end (2026-10-24, item 3601, `att-3601`)
+
+`docs/AI.md` §322. run1232's line with `--ai-tribe 16`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 16
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1249's
+lobby.
+- Pool lane 2, beside run1249. Launched 22:44:36, exited 22:45:18 (42.2 s launch to exit). `success`. **The game
+  ended itself on 8777** (closing block 8778, `ended_early`). `GAME INFO` reads back as run1249's. `rngcmp.py`
+  against run1249: 37 frames identical. Filed with `filerun.py run1250 greatsahara-korean-classical-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1250-greatsahara-korean-classical-trace.txt`, 55,902,679 bytes,
+SHA-256 `9b3f9934687cbe9b10bdba6ffe9baa486fc4892cac5b8bcb25c91afd5a6252ec`.
+
+Archive `rontrace-run1250.log`, 273,207,840 bytes,
+SHA-256 `cfb161430598dfbc57a46df999c5c7243d2d60703cb9689596356c7a3871bbb1`.
+
+**What it holds**: the pair's first try. `korean_classical_pair_first_parting` walks it from run1249: **frame 8379
+of 8777** by the count and the sequence, ours 29 draws against 27, index 10.
+
+## run1250b — the Koreans at a held Classical age, Great Sahara: the word 8379's window, blocks 8374..8630 (2026-10-24, item 3601, `att-3601`)
+
+`docs/AI.md` §322. **What the disk could not answer**: every record on the word's frame. run1250's stride prints
+units every hundredth block (8301 and 8401 around the word) and no `LEADERDATA` past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1250b --map 7 --end-frame 8630 --timeout 3600
+--log-window 8374 8630 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 16 --cover cover=0
+--profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1. Launched 22:47:55, exited 22:48:57 (61.6 s launch to exit). `success`: 8631 frames. `rngcmp.py`
+  against run1250: 8631 frames identical. Filed with `filerun.py run1250b
+  greatsahara-korean-classical-window-8374-8630`. `df -g ~` read 154 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1250b-greatsahara-korean-classical-window-8374-8630.txt`, 705,541,447 bytes,
+SHA-256 `a58b51c8988e62afc099b4c09e75e69be3ced1045fa2bac4415c69dd005a057a`.
+
+Archive `rontrace-run1250b.log`, 257,756,000 bytes,
+SHA-256 `871146678d1c1a072cbc8bc2e50251072a99e4437c08fc8337f39c002cb28d1d`.
+
+**What it holds**: `korean_classical_pair_run1250b_s_word_frame_is_widened_whole` (256 blocks, 9513 keys): the
+standing families on 8374, the garrisoned Scholars' `g.angle[0]` (parked 3601a), and the Citizen `0/4`'s blow on
+block 8375 — theirs lands the Elite Hwarang `1/135`'s round on 8374, ours on 8375. No `AMMO` record.

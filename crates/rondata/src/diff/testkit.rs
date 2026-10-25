@@ -10166,6 +10166,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3600,
         Some(crate::diff::maya_ancient_pair::WINDOW_MAYA_ANCIENT_CLOSING),
     ),
+    // **The Koreans at a held Classical age** (item 3601): Great Sahara —
+    // first try 8379 of 8777; widened on run1250b over 8374..8630 (the
+    // word's block 8380), the state apart from block 8375.
+    (
+        "KOREAN_CLASSICAL_PAIR_WORD",
+        crate::diff::korean_classical_pair::KOREAN_CLASSICAL_PAIR_WORD,
+        Some("korean_classical_pair_run1250b_s_word_frame_is_widened_whole"),
+        3601,
+        Some(crate::diff::korean_classical_pair::WIDENING_KOREAN_CLASSICAL_FRAME_8379),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -11943,6 +11953,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_314,
         endpoint: Some("german_ancient_pair_run1244_s_closing_state"),
         window: Some("german_ancient_closing_window"),
+    },
+    // The Koreans at a held Classical age (`STARTING_TECHNOLOGY` 1,
+    // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3601): first try 8379 of
+    // a game that ends itself on 8777, widened on run1250b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaKoreanClassical",
+        named: "Great Sahara (Koreans, Classical)",
+        word: crate::diff::korean_classical_pair::KOREAN_CLASSICAL_PAIR_WORD,
+        length: 8_777,
+        endpoint: None,
+        window: Some("korean_classical_frame_8379_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
