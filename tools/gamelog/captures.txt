@@ -10630,3 +10630,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1264b --map 18 --end-frame 4921 --log-window 4918 4921 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 15 --cover cover=0 --tracer-def RON_STATE_FRAME=4919 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h, run1251's lobby   (a packet: piece 1176, the Japanese Bowmen)
 #   run1264c --map 18 --end-frame 6126 --allow-early-end --timeout 3600 --log-window 5871 6127 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0, run1251's lobby   (the closing window)
 # Checks: `rngcmp.py` run1252 vs run1264 -> 4941 identical; vs run1264b -> 4922 identical; vs run1264c -> 6127 identical.
+# ==== item 3604: the Aztecs from an Ancient start, East Indies (`docs/AI.md` §325; `docs/RUNS.md` run1255, run1256, run1256b) ====
+#   run1255  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1256  run1234's line with --ai-tribe 0 and run1255's lobby   (the draw stream; ended itself on 9258)
+#   run1256b --map 18 --end-frame 8966 --timeout 3600 --log-window 8710 8966 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover cover=0, run1255's lobby   (the word 8716's window)
+# Checks: `rngcmp.py` run1255 vs run1256 -> 37 identical; run1256 vs run1256b -> 8967 identical.
