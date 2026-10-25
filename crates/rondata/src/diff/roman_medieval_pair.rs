@@ -569,3 +569,65 @@ fn roman_medieval_pair_run1293c_s_gap_is_widened_whole() {
     );
     pin_eq!(w.firsts.len(), 93, "run1293c baseline");
 }
+
+/// run1295: the word 5971's window, blocks 5833..5979 at the long's detail
+/// and `AMMO=5` (item 3633): from run1293b's last block to the game's last
+/// frame, since the long prints only 5901 and the closing block 5980.
+pub(crate) const RUN1295: &str = "gamelog-run1295-eastindies-roman-medieval-window-5833-5979.txt";
+
+/// The window: block 5833 through 5979; the word 5971's own block is 5972.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_FRAME_5971: (i64, i64) = (5833, 5979);
+
+/// **The word 5971's window**: run1295 walked from run1274's start with
+/// the recorder on (item 3633).
+pub(crate) fn roman_medieval_frame_5971_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_MEDIEVAL.start],
+        true,
+        ROMAN_MEDIEVAL.long,
+        "run1295",
+        &[(RUN1295, WIDENING_ROMAN_MEDIEVAL_FRAME_5971.0)],
+        WIDENING_ROMAN_MEDIEVAL_FRAME_5971,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn roman_medieval_pair_run1295_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_medieval_frame_5971_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 146, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    // Item 3633: **104** keys. Block 5833 carries the standing families
+    // (89 rows); then `form` on a newborn (5847) and pools and groups 72,
+    // 84 and 85. **The state first parts on block 5964, at the Cavalry
+    // Archer `1/124`** (TI 188, on an `ATTACKTOORDER` walking at
+    // (4488, 8328)): `cavarch_o` ours -1 against theirs' 2000, the human's
+    // Village — theirs' fire on the move takes a target ours does not. Then
+    // its `recharging` 5 against 0 on 5969 and its guy's target on 5971;
+    // `1/145`'s move pause on 5972, `1/17`'s gather wait on 5975 and the
+    // leader's peasant counts on 5978 follow.
+    pin!(
+        w.firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > 5833)
+            .filter(|((_, o, _), _)| *o >= 0)
+            .filter(|((_, _, k), _)| k != "form")
+            .map(|(k, (f, _))| (*f, k.clone()))
+            .min()
+            == Some((5964, (1, 124, "cavarch_o".to_string()))),
+        "the first unit parting past the standing block is 1/124's cavarch_o on 5964"
+    );
+    pin_eq!(w.firsts.len(), 104, "run1295 baseline");
+}
