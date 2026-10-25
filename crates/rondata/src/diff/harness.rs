@@ -2113,6 +2113,9 @@ fn widen_block_rows(
                 ("mana_burn", i64::from(un.mana_burn), them.mana_burn),
                 // Item 3385: the melee slot counter the search divides by.
                 ("full", i64::from(un.full), them.full),
+                // Item 3598: the search budget `fight`'s invalid-target arm
+                // spends (`docs/AI.md` §318.3).
+                ("waiting", i64::from(un.waiting), them.waiting),
                 ("rare", i64::from(un.rare), them.rare),
                 ("good_obj", i64::from(un.good_obj), them.good_obj),
                 ("mylos", i64::from(built.sim.units[u].mylos), them.mylos),
@@ -2381,6 +2384,7 @@ fn widened_field(label: &str) -> Option<(&'static str, &'static str)> {
         "spell_time" => ("UnitDump", "spell_time"),
         "mana_burn" => ("UnitDump", "mana_burn"),
         "full" => ("UnitDump", "full"),
+        "waiting" => ("UnitDump", "waiting"),
         "rare" => ("UnitDump", "rare"),
         "good_obj" => ("UnitDump", "good_obj"),
         "mylos" => ("UnitDump", "mylos"),

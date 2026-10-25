@@ -2182,6 +2182,10 @@ pub struct UnitDump {
     /// `UnitData::full` (`+0xac`) — the "nobody can reach it" counter the
     /// target search divides by. Read since item 3385.
     pub full: Option<i64>,
+    /// `UnitData::waiting` (`+0xad`) — `Unit::fight`'s search budget, 2
+    /// added when a leader's invalid targets pass ten in a frame, one taken
+    /// off a frame. Read since item 3598.
+    pub waiting: Option<i64>,
     /// `UnitData::rare` (`+0x54`) — the good `calc_gather` last found, `-1`
     /// when it looked and found none (item 3306).
     pub rare: Option<i64>,
@@ -3412,6 +3416,7 @@ fn unit_of(b: Block<'_>) -> Option<UnitDump> {
         spell_time: b.int("spell_time"),
         mana_burn: b.int("mana_burn"),
         full: b.int("full"),
+        waiting: b.int("waiting"),
         rare: b.int("rare"),
         good_obj: b.int("good_obj"),
         uid: obj.and_then(|o| o.int("uid")),

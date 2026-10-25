@@ -10738,13 +10738,16 @@ words and edits nothing here; a refill lands when two remain.
   before a Senate is listed. The per-leader city index is read as the position in `Sim::cities_of` (a `SEAM`).
   `docs/AI.md` §320.1. **Score**: none until a capture loses a capital and lists a Senate after it.
 
-## Parked by the next landing, slot QY — reserved
+## Parked by item 3598, 2026-10-24 — fight's search budget
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3598a) **The search budget's other entries.** Item 3598 built `LAB_005fdb9e`'s first arm on the refused-target
+path, `Sim::do_attack_fight` and `cavarch_fight_body` (`docs/AI.md` §318.3). Two of its doors stay unbuilt.
+- Ours' no-target arm (`combat.target` `None`) kills the attack at once. The original's `-1` target reaches the
+  same label, the budget first, then `find_new_target`.
+- The mandatory order's re-point (`fight:300`, the target's `+0xe4`) is not modelled.
+
+`LEADERDATA` dumps `retargets` (`+0x9f4`), and it stays on `coverage`'s unread list. Theirs' who=1 reads 11 on
+run1241b's block 6718. No score names any of it: the Egyptian pair is whole and no other word moved.
 
 ## Parked by the next landing, slot QZ — reserved
 
