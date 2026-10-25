@@ -248,6 +248,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The German Ancient pair's (item 3596): the Germans from an Ancient
     // start, Difficulty 5, Great Sahara.
     (7, 12, 5),
+    // The Korean Classical pair's (item 3601): the Koreans at a held
+    // Classical age, Difficulty 5, Great Sahara — not the held-out
+    // `GreatSaharaKoreanTier3`, `(7, 16, 3)`, another difficulty, nor the
+    // Ancient-start pair's `(18, 16, 5)`, another map.
+    (7, 16, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
