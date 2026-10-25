@@ -301,6 +301,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Ancient-start pair's `(18, 3, 5)`, another map; the battery fields no
     // Bantu.
     (7, 3, 5),
+    // The Greek Gunpowder pair's (item 3626): the Greeks at a held
+    // Gunpowder age, Difficulty 5, Great Sahara — not the AI word
+    // `GreatSaharaGreekTier1`, `(7, 5, 1)`, another difficulty, nor the
+    // Classical pair's `(18, 5, 5)`, another map; the battery fields no
+    // Greeks.
+    (7, 5, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

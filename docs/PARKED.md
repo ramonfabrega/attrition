@@ -10981,13 +10981,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RY — reserved
+## Parked by item 3626, 2026-10-25 — the Greeks at a held Gunpowder age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3626a. Seventeen `dest_angle` rows on the closing window, 3624a's shape.** run1285b, who=1's `GUARDORDER`s.
+  Group 64's guards of the Bombard `1/72` (TypeIndex 267): the Arquebusiers (98) `1/33` on block 3828 (ours
+  791281664, theirs 477233152), `1/92` on 3828 (671481856 against 254541824), `1/55` on 3864 (221642752 against
+  632750080), `1/57` on 3870 (286392320 against 921894912), `1/59` on 3871 (326369280 against 1031929856), `1/44` on
+  3873 (-756678656 against -317063168), `1/36` on 3876 (560463872 against 1006960640), `1/32` on 3878 (1073741824
+  against -41811968), `1/48` on 3882 (402259968 against 1144389632), `1/67` on 3947 (-1514733568 against
+  -732430336), `1/34` on 3961 (-1476001792 against -933363712), `1/53` on 3961 (-1664942080 against -1219624960)
+  and `1/49` on 4002 (-1191706624 against -2067660800); the Elite Pikemen (135) `1/63` on 3873 (1073741824 against
+  414449664); the Crossbowmen (172) `1/96` on 3892 (671481856 against 1239220224); the Supply Wagon (63) `1/71` on
+  3940 (541917184 against -1248985088). Group 65's Crossbowman `1/146`, guarding `1/118`, on 3864 (-1802895360
+  against -1344339968). No other field of the seventeen parts, and the closing block 4075 agrees.
+  **Score**: none. The pair is whole at 4074 (parked 3567a, 3580b, 3624a; `docs/AI.md` §334).
 
 ## Parked by the next landing, slot RZ — reserved
 
