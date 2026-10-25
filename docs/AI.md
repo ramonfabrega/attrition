@@ -28488,80 +28488,30 @@ pins 167. One mutation through `tools/mutate.py` on the committed tree **held** 
 4429. Packet and sweep only: the `CHAR_ATTACK3` row (parked 3599a).
 
 **What is not established.**
-- ~~Piece 38's `CHAR_ATTACK3` row on a dumped round~~ (answered in §320.3: the whole walk holds it), and the Royal
-  Balamob Slingers' piece (parked 3599a).
-- ~~Why `0/10`'s damage parts on block 4338, and who strikes `0/11` on 4386 in theirs. The next item's frame is
-  4429, ours 10 draws against 12, index 1, with the state apart on block 4338.~~ Answered in §320.3: the Bowmen
-  `1/46`'s arrow, from piece 824's bays.
+- ~~Piece 38's `CHAR_ATTACK3` row~~ (§320.3), and the Royal Balamob Slingers' piece (parked 3599a).
+- ~~Why `0/10`'s damage parts on block 4338.~~ §320.3: `1/46`'s arrow, from piece 824's bays.
 
 ### 320.3 The Bowmen's bays: 4429 → whole, 5935 of 5935 (item 3600)
 
-**The draw delta on 4429** (`report.py rontrace-run1234b.log draws 4429`). Theirs spends 12 game draws: an
-`Animal::do_idle` roll, **two `Unit::move_step+0x823` rolls**, two `Unit::do_idle+0x7d` rolls (`+0x56` and
-`+0xb6`), two `Guy::inc_time` rolls and five `Farms::inc_time`. Ours spends 10, and its index 1 is the
-`do_idle` roll: a unit walks in theirs and stands in ours. That is the frame; the state had parted 91 blocks
-earlier.
+**The blow.** run1234b's Citizen `0/10` (TypeIndex 50) takes one point on each of blocks 4334, 4336 and 4338. Ours
+lands the first two, the Balamob Slingers `1/27`'s and `1/43`'s stones. The third is the Bowmen **`1/46`'s**
+arrow (TypeIndex 170), loosed on 4318. Ours loosed it from the unit's square, (6552, 9240), in 21 frames, so it had
+not landed by 4338 (`RON_DEBUG_AMMO`). Its piece is **824**, `BOWMEN-AMERICAN` (`120 + 2 × 0x160`), which had no
+row. run1247's packet holds 824's rows on piece 120's keys: `CHAR_ATTACK1` at 12, `2` at 9, `3` at 15.
+`fit_bay.py` finds **piece 473's regions to the point** (221, 277, 124), so the rows
+are 473's centroids.
 
-**The blow, both sides** (run1234b's `0/10` record, every block; `RON_DEBUG_AMMO=4316-4340` on the walk). Theirs'
-Citizen `0/10` (TypeIndex 50, land, fleeing to (4536, 6648)) takes one point on each of blocks 4334, 4336 and
-4338, so `damage` is 7, 8, 9; `damage_frac` stays 10 and `damage_frame` 4310. Ours lands the first two on the
-same blocks: the Balamob Slingers `1/27`'s and `1/43`'s stones, thrown on 4326 and 4327 from piece 38's bays. The
-third is the Bowmen **`1/46`'s** arrow (TypeIndex 170, land), loosed on 4318. Ours loosed it from the unit's own
-square, (6552, 9240), with `total_time` 21, so its point had not landed by block 4338. No other round is in flight
-at `0/10`. `1/46`'s piece is **824**, `BOWMEN-AMERICAN` (`120 + 2 × 0x160`, `UNIT_CONTINENT` 2), and
-`launch.rs` had no row for it.
+**The value diff**: `1/46`'s arrow (6552, 9240)/21 → (6481, 9189)/20, and on block 4338 `0/10`'s `hits:damage`
+goes 8 → 9 (theirs 9). run1234b goes from 167 keys to **82**, the standing families alone.
 
-**The packet** (run1247, §320.2's; no new take). `get_position.py entries 824` reads four `AttachPos` rows, all
-node 0: anim 4 at 34 (`CHAR_DIE`, which no round reads), and the three attack rows on piece 120's keys,
-`CHAR_ATTACK1` at 12, `2` at 9 and `3` at 15. `fit_bay.py` on each row's 361-heading sweep finds one region:
-221, 277 and 124 lattice points, `z` 163, 164 and 164. **These are piece 473's regions to the point** (the
-Archers, §315.3), so the rows are 473's centroids: (−1826, 88749), (336, 87408) and (9711, 66508).
+**The score: 4429 → whole, 5935 of 5935** (+1506). The closing state, block 5936, compares 180 units, none off.
+**The closing window** is run1248, blocks 5680..5936 at `LEADERS=9`, 256 blocks, 5936 frames identical to
+run1234. It holds 86 keys, all standing families: `form`, who=0's `SITE[i].reg`, `aggression[1]`, and who=1's
+groups' `held` and pools. Unit types seen 179 → 180.
 
-**The value diff** (the walk's own `AMMO` line against run1234b's dumped `0/10`):
-
-| frame | record | field | ours before | theirs | after |
-|---|---|---|---|---|---|
-| 4318 | `1/46`'s arrow at `0/10` | `sx, sy` / `total_time` | (6552, 9240) / 21 | its point on block 4338 | (6481, 9189) / 20 |
-| 4338 | Citizen `0/10` | `hits:damage`, `hits_left` | 8, 32 | 9, 31 | agrees |
-| 4387 | Citizen `0/11` | `hits_left`, `damage_frame`, `orders` | 40, 0, none | 37, 4386, a flee to (8136, 6024) | agrees |
-
-run1234b re-walked: **167 → 82 keys**, and nothing parts past the standing families (4177's, 4179's, groups 77
-and 78 from 4202 and 4238, `1/79`'s `form` on 4302). `0/11`'s wound on 4386 and the angles of `1/44`..`1/46`
-from 4396 were downstream of the arrow.
-
-**The score: 4429 → whole, 5935 of 5935** (+1506), by the count and the sequence. Every other lobby's
-`first_parting` holds. **The closing state** (run1234's closing block 5936,
-`maya_ancient_pair_run1234_s_closing_state`) compares 180 units, none off, torn or unlinked, and no building or
-city field-row. **The closing window** (run1248, blocks 5680..5936 at the long's detail with `LEADERS=9`,
-walked from run1233: 256 blocks, **86 keys**, the two `gaia:` keys unprinted; run1234 against run1248 is 5936 of
-5936 frames identical) holds only standing families. On 5680 there are 80 rows: `form` on 27 units, who=0's
-`SITE[0..9].reg` (ours 65 against theirs 0), `aggression[1]`, and who=1's groups' `held` and pools (64–86).
-Group 72's are on 5690 and 78's on 5724, and `1/172`'s and `1/173`'s `form` on 5886 and 5887. No unit, building
-or city field parts. The walk reads 51 inexact ground corners, and the closing state and window 52
-(`GROUND_INEXACT`). The Balamob Slingers (88) enter the ledger with the pair lockstep: `rubric.py` reads unit
-types seen **179 → 180** of 302.
-
-**Tests.** `launch::tests::the_maya_bowmen_s_bays_are_the_packet_s_sweep_and_piece_473_s` checks four headings of
-each row's sweep, and that each row is 473's. `maya_ancient_pair_first_parting` pins 5935,
-`maya_ancient_pair_run1234b_s_word_frame_is_widened_whole` pins 82, and the closing state and
-`maya_ancient_pair_run1248_s_closing_frame_is_widened_whole` (86) are new. Five mutations through
-`tools/mutate.py` on the committed tree **held** (exit 101 each):
-- piece 824's three rows keyed away: the walk falls back to 4429;
-- `CHAR_ATTACK2` alone, `1/46`'s key: 4429;
-- `CHAR_ATTACK1` alone: 4493;
-- `CHAR_ATTACK3` alone: 4916;
-- piece 38's `CHAR_ATTACK3` alone (§320.2's open row): 4415.
-
-**Coverage.** Diff-backed: all three of piece 824's attack rows and piece 38's three, by the draw stream to the
-game's end (each row keyed away parts the walk); `1/46`'s arrow's point on block 4338, by `0/10`'s dumped `damage`. No
-capture of the lobby writes `AMMO` past 4307, so no launch point of 824's is dumped. Packet and sweep only: the
-rows' exact centroids within their regions.
-
-**What is not established.**
-- The launch points themselves: the walk holds each row, but no dumped round prints `sx, sy` for piece 824.
-- The Royal Balamob Slingers' piece (parked 3599a); the pair never fields them.
-- Whether piece 824's identity with 473 is one model or two models that agree. It does not matter to the rows,
-  and nothing here reads the model files (parked 3600a).
+**Coverage.** Each of 824's rows, keyed away through `tools/mutate.py`, parts the walk: `CHAR_ATTACK2` (`1/46`'s)
+at 4429, `1` at 4493, `3` at 4916. Piece 38's `CHAR_ATTACK3` parts it at 4415. The launch points themselves are
+on no dumped round (parked 3600a).
 
 ## 321. The Germans from an Ancient start, Great Sahara: whole on its first try, 5314 of 5314 (item 3596)
 
