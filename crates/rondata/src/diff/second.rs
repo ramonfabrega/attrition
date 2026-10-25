@@ -2752,7 +2752,11 @@ mod tests {
                 .all(|((who, o, _), _)| (*who, *o) != (1, 135)),
             "every compared field of both booked arrows agrees"
         );
-        assert_eq!(w.firsts.len(), 33, "unmeasured pieces remain visible");
+        // Item 3603: 33 → 6 — piece 48's bays (the Arquebusiers' art the
+        // Egyptian Gunpowder pair measured, run1254c) put every Arquebusier
+        // round here on theirs' launch point; `1/80`'s round of 17693 is
+        // the one left (`sx, sy, sz`, `ex`, `angle`, `v1z`).
+        assert_eq!(w.firsts.len(), 6, "unmeasured pieces remain visible");
         assert_eq!(w.unmodelled, (19, 0x80fd_4385_9445_ed39));
     }
 
@@ -2837,13 +2841,16 @@ mod tests {
         pin_eq!(a.frames, 81, "run594 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1326, 1343, 29172),
+            (1326, 1339, 29172),
             "all live rounds and paired fields"
         );
         // 351 → 337 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
         // Catapult's and the Trireme's release rows read off two packets,
         // and a half-way heading byte rounded up; not attributed per round.
-        pin_eq!(a.firsts.len(), 337, "run594 projectile baseline");
+        // Item 3603: ours' rounds 1343 → 1339 and the baseline 337 → 256 once
+        // piece 48's bays (the Arquebusiers' art, run1254c) move its rounds
+        // onto theirs' launch points.
+        pin_eq!(a.firsts.len(), 256, "run594 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (115, 16282458979908766585),
@@ -2934,13 +2941,16 @@ mod tests {
         pin_eq!(a.frames, 64, "run589 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (1084, 1096, 23848),
+            (1084, 1093, 23848),
             "all live rounds and paired fields"
         );
         // 279 → 276 at item 2304 (`docs/GOLDEN.md` §83): the Bark's, the
         // Catapult's and the Trireme's release rows read off two packets,
         // and a half-way heading byte rounded up; not attributed per round.
-        pin_eq!(a.firsts.len(), 276, "run589 projectile baseline");
+        // Item 3603: ours' rounds 1096 → 1093 and the baseline 276 → 209 once
+        // piece 48's bays (the Arquebusiers' art, run1254c) move its rounds
+        // onto theirs' launch points.
+        pin_eq!(a.firsts.len(), 209, "run589 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (90, 4975466785581637854),
@@ -3020,10 +3030,13 @@ mod tests {
         pin_eq!(a.frames, 64, "run588 ammo window");
         pin_eq!(
             (a.theirs, a.ours, a.fields),
-            (973, 978, 21406),
+            (973, 975, 21406),
             "all live rounds and paired fields"
         );
-        pin_eq!(a.firsts.len(), 173, "run588 projectile baseline");
+        // Item 3603: ours' rounds 978 → 975 and the baseline 173 → 106 once
+        // piece 48's bays (the Arquebusiers' art, run1254c) move its rounds
+        // onto theirs' launch points.
+        pin_eq!(a.firsts.len(), 106, "run588 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (71, 10002085738206419128),

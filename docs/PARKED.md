@@ -10771,13 +10771,12 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3603, 2026-10-25 — the Egyptians at a held Gunpowder age
 
-- **3603a — which nations' Arquebusiers play piece 48.** The Egyptian
-  Arquebusiers (TypeIndex 98) play piece 48 (`docs/AI.md` §324, run1254c's
-  packet), the Japanese piece 1104 (§316), and the two arts' `AttachPos`
-  rows differ on the same keys. No other nation's Arquebusier round has
-  been read; a lobby whose word lands on one reads its piece off the probe
-  first. Names no score: every lobby's `first_parting` holds with piece
-  48's rows in.
+- **3603a — run587's last unmeasured round.** With piece 48's bays in
+  (`docs/AI.md` §324), run587's projectile window (`second::tests::
+  run587_s_projectiles_are_compared_whole`) keeps one round apart: `1/80`'s
+  of 17693, `sx, sy` ours (6840, 8904) against theirs (6815, 8812), `sz` 246
+  against 362, with `ex`, `angle` and `v1z` after it. Its piece is not read.
+  Names no score: the window is a closed word's, pinned at 6 rows.
 
 ## Parked by the next landing, slot RE — reserved
 

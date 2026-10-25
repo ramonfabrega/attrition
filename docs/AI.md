@@ -28718,6 +28718,13 @@ run1254c_s_egyptian_arquebusiers_fire_from_piece_48_s_bays` asserts the three du
 `tools/mutate.py`: renaming piece 48's `CHAR_ATTACK2`@25 row to 9048 walks back to 3118 (exit 101, "held").
 Every lobby's `first_parting` holds (58 of 58).
 
+**Piece 48 is not the Egyptians' alone.** The lane gate widened on the `launch.rs` hunk and moved seven older
+projectile pins, every one toward theirs. Ours' live rounds came down onto theirs' in third_pair's window (71 → 70
+against 70, rows 298 → 40) and in run594, run589 and run588 (1343 → 1339, 1096 → 1093, 978 → 975; baselines 337 →
+256, 276 → 209, 173 → 106). run662's and run667's baselines went 84 → 82 and 166 → 164. run587's unmeasured rows
+went 33 → 6, all of them one round, `1/80`'s (parked 3603a). So piece 48 is the Arquebusiers' common art, and
+piece 1104 the Japanese one.
+
 **The value diff:**
 
 | frame | record | field | before (ours / theirs) | after |
@@ -28745,8 +28752,8 @@ stride prints units every hundredth block and no `LEADERDATA` past the start, so
 
 **What is not established.** What wounds `1/47` and `1/45`: the block names no round, and the fraction's creep is
 the shape of a per-frame loss, which this section has not read. That is the next item's frame, booked by the
-block and the draw delta, not by a mechanism. Whether other nations' Arquebusiers play piece 48 is not read (the
-Japanese play 1104; parked 3603a).
+block and the draw delta, not by a mechanism. Which nations play piece 48 is read off the pins it moved, not off
+each nation's art.
 
 **The rubric.** Unit types seen stays **182** (`rubric.py --tables 3`): the pair is open, and the rubric counts
 lockstep games only. On the pair's own dumps (`--dumps` run1253, run1254) it sees 18 types. **`Mameluke` (197)**
