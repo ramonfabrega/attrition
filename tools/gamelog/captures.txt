@@ -10696,3 +10696,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1296  --map 18 --end-frame 4634 --timeout 3600 --log-window 4631 4634 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 17 --cover cover=0 --tracer-def RON_STATE_FRAME=4632, run1278's lobby   (group 80's packet)
 #   run1296b --map 18 --end-frame 5297 --allow-early-end --timeout 3600 --log-window 5041 5297 --detail (run1292's) --ai-tribe 17 --cover cover=0, run1278's lobby   (the word 5047's window)
 # Checks: `rngcmp.py` run1279 vs run1296 -> 4635 identical; vs run1296b -> 5298 identical.
+# ==== item 3636: the Mongol Gunpowder pair whole, 5047 -> 5399, a splash walks one cell past its square (`docs/AI.md` §331.4; `docs/RUNS.md` run1298) ====
+#   run1298  --map 18 --end-frame 5399 --allow-early-end --timeout 3600 --log-window 5297 5400 --detail (run1292's) --ai-tribe 17 --cover cover=0, run1278's lobby   (the closing window)
+# Checks: `rngcmp.py` run1279 vs run1298 -> 5400 identical.

@@ -30158,9 +30158,8 @@ Horse Archer pieces (1545, 841, 156, …) this crate already carries. Its
 `pivot::NODES` row and four `RELEASES` rows are the packet's entries;
 `get_position.py pivot 153 0 <anim> <time> 1` agrees with the integer
 form on all 4 × 92,416 cells but one (`CHAR_ATTACK3` at `(307, 187)`,
-its `float_lands`). Every one of the nine Horde rounds run1292c and
-run1292b print, at its figure's pose on the block before, is a cell of
-the table at its facing's degree.
+its `float_lands`); the nine dumped Horde rounds are cells of it (the
+journal).
 
 **Built.** `crates/sim/src/pivot.rs`: `NODES` `(153, 4)`, `RELEASES`
 for piece 153's four keys. Tests
@@ -30222,38 +30221,46 @@ hand-off, else the alone add); the seam is retired. Mutation through
 `tools/mutate.py`, `nearby_add` back to `nearby_normalize` +
 `nearby_add_order`: **held**, the word back to 4632.
 
-**What it moved — the value diff, block 4633.**
-
-| record | field | ours before | ours now | theirs |
-|---|---|---|---|---|
-| `1/84` | `orders.len` | 2 | 3 (GAT 4640007 queued last) | 3 |
-| `1/93` | `order:kind` (the head) | 2 (ATTACKTO) | 10 (ATTACK `0/11`) | 10 |
-| `1/94` | `order:kind` (the bottom) | 21 | 2 (AT (8184, 2904)) | 2 |
-| `1/95` | `order:kind` | 21 | 2 (AT (7512, 2712)) | 2 |
-
+**What it moved — the value diff, block 4633** (the table is the
+journal's): `1/84`'s `orders.len` 2 → 3, `1/93`'s head 2 → 10 (ATTACK
+`0/11`), `1/94`'s and `1/95`'s 21 → 2, each as theirs.
 run1292b 1772 → **139** keys, the standing families alone. **The word
 4632 → 5047** by the count and the sequence; every other lobby's
 `first_parting` is unmoved (65 of 66, this pair's alone moving).
 
-**The word 5047**, widened on run1296b (5041..5297,
-`mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole`, 3282
-keys). Ours spends 7 draws against 8, parting at index 5: ours
-`Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`, a first
-wound. Block 5041's 112 keys stand — run1292b's families, the groups
-minted since, and who=1's `leader:attack` 1067 against 1085, the one new
-leader row. Nothing else parts before **block 5048, the word's own**,
-and there only the human's `0/2005` (orig_type 435, myhits 1200, at
-(6048, 5856)): theirs `damage` 1 and `damage_frac` 13, ours 0 and 0. The
-Bombard `1/84`'s round (`splash_area` 1, loosed on 5032) lands on 5047
-at (6289, 6920) on both sides and strikes the city `0/2000` for 109;
-theirs also wounds `0/2005`. That round leaves from different points
-(`RON_DEBUG_AMMO`, unwalked by the widening): theirs `sx, sy` (9501,
-9254), angle −660930560; ours (9624, 9336), −661323776. Why ours'
-splash misses `0/2005` is the next item's; from block 5051 who=1's
-`1/92` parts in its orders.
+**The word 5047** (run1296b, 5041..5297, 3282 keys): ours 7 draws
+against 8, index 5 — theirs' first wound on the human's Library `0/2005`
+(block 5048) by the Bombard `1/84`'s splash round, which strikes the
+city `0/2000` on both sides. ~~Why ours' splash misses it~~ **answered
+by item 3636 (§331.4)**.
 
 **Not established.** Whether `Group::target_opportunity`'s member arm
 hands its find to the group (parked 3634a).
+
+### 331.4 A splash walks one cell past its square: the pair whole, 5047 → 5399 (item 3636)
+
+*Item 3636, 2026-10-25, Opus 5.5. Run 1298, the closing window.*
+
+**The cell, not the launch.** `Ammo::do_damage@00678060`'s splash walks
+the spiral `move_x`/`move_y` while `i <= radius[k]` (`678b49`, a `jle`),
+and `radius[k]` is `(2k+1)²`: one entry past the square, ring `k + 1`'s
+first cell — `(−1, −2)` for `k = 1`, `(−(k+1), −(k+1))` for 2..7 (parked
+3356c). The centre is the landing (no `unit_flags & 0x2000`). The round lands in cell (8, 9); the
+Library (TI 435, 5×5) sits in (7, 7), the tenth cell: `d` 104, count 118,
+a first wound. Built: `combat::splash_extra_cell` in `Sim::land`; test
+`a_splash_walks_one_spiral_cell_past_its_square`; the mutation (the
+cell dropped) **held**, the word back to 5047.
+
+**What it moved.** Block 5048: `0/2005` `damage` 1, `damage_frac` 13 on
+both sides (ours 0, 0); run1296b 3282 → **119** keys. **The word 5047 →
+5399 of 5399, the pair whole**: the closing state (block 5400) 242
+units, none off, torn or unlinked, `Closing fields: none`; run1298
+(5297..5400) 114 keys, standing families alone; every other lobby
+unmoved; unit types 189 → **191** (the Horde, the Bomb Vessel).
+
+**Not established.** The walk's order (spiral cells, each chain head
+first) against ours' index order: it orders draws only when one splash
+wounds two objects first.
 
 ## 332. Reserved for the next item on the AI track
 

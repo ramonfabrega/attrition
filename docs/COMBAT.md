@@ -1408,8 +1408,9 @@ ey − sy), num_guys, index, 0x100, 0, 0)` (§47.3).
 `check_hit()` as above — then, for every object on every cell of the
 **square** the spiral table `move_x/move_y` walks to `radius[k]`, `k =
 splash_area / 4 + 1` capped at 10 (the `(2k+1)²` cells within Chebyshev
-distance `k` of the landing cell — 3×3 for a splash of up to three tiles;
-*second reading: the first draft had a circle of `splash_area / 4`*), walking
+distance `k` of the landing cell — 3×3 for a splash of up to three tiles)
+**and ring `k + 1`'s first cell**, for the loop is `i <= radius[k]`
+(`678b49`, item 3636), walking
 each cell's object chain through `down/down_who`, skipping the shooter,
 players past 7 and, **for a non-target**, its side and allies
 (`6787d9`), **damaging the intended target with `splash
