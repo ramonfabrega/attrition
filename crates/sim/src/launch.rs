@@ -1578,6 +1578,75 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 181,
         },
     ),
+    // **Piece 131, the Koreans' Elite Hwarang** (type 181; item 3609,
+    // `docs/AI.md` §322): run1263's `RON_STATE_FRAME=8362` packet on the
+    // Korean Classical Great Sahara seed holds its six attack `AttachPos`
+    // rows, bit for bit piece 130's, and `get_position.py`'s sweep of each
+    // is reproduced at all 361 headings by piece 130's bays (the same 30,
+    // 422, 17 and 483 lattice points). Without them the Elite Hwarang
+    // `1/135`'s arrow at `0/4`, loosed on 8361, left from the figure's own
+    // (9432, 28584) and flew 15 frames where the original's left from
+    // (9389, 28645, 606) and flew 14.
+    (
+        131,
+        crate::anim::ATTACK1,
+        6,
+        Bay {
+            right: -3_071,
+            fwd: 73_435,
+            dz: 167,
+        },
+    ),
+    (
+        131,
+        crate::anim::ATTACK1,
+        22,
+        Bay {
+            right: -3_071,
+            fwd: 73_435,
+            dz: 167,
+        },
+    ),
+    (
+        131,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: -13_756,
+            fwd: 73_975,
+            dz: 138,
+        },
+    ),
+    (
+        131,
+        crate::anim::ATTACK2,
+        22,
+        Bay {
+            right: -3_071,
+            fwd: 73_435,
+            dz: 167,
+        },
+    ),
+    (
+        131,
+        crate::anim::ATTACK3,
+        10,
+        Bay {
+            right: 9_698,
+            fwd: 61_839,
+            dz: 182,
+        },
+    ),
+    (
+        131,
+        crate::anim::ATTACK3,
+        24,
+        Bay {
+            right: 4_247,
+            fwd: 57_120,
+            dz: 181,
+        },
+    ),
     // **Piece 112, the Persians' Immortals** (type 162; item 3355,
     // `docs/AI.md` §279): a nation's own piece, so no continent offset.
     // run984b's `RON_STATE_FRAME=6011` packet on the Persian Great Lakes
