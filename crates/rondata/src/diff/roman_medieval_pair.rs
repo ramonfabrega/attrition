@@ -48,8 +48,15 @@ pub(crate) const ROMAN_MEDIEVAL: Pair = Pair {
     // The new word: ours 31 draws against 35, index 7 — ours
     // `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`.
-    count: 5582,
-    sequence: 5582,
+    // Item 3633: 5582 -> **5971** by the count and the sequence — the
+    // Cavalry Archer (piece 138) and the Caravel (piece 275) loose from
+    // the original's own release points: `1/79`'s arrow at the Village
+    // `0/2000` flies 2 frames, not 3, and `1/130`'s broadside at the
+    // Citizen `0/10` 7, not 8. The new word: ours 148 draws against 149,
+    // index 0 — ours `Unit::think_fish+0x27a`, theirs
+    // `Unit::fight+0x9b0`.
+    count: 5971,
+    sequence: 5971,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -443,12 +450,20 @@ fn roman_medieval_pair_run1293b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3631: **2550** keys. Block 5577 carries the standing families
-    // and, from run1293c's gap, the human's `0/10` already apart (`pos` y
-    // 4201 against 4226). On the word's own block 5583 `1/14` is in range
-    // of its target in theirs (`recharging` 30 against 0) and `1/124` in
-    // ours.
-    pin_eq!(w.firsts.len(), 2550, "run1293b baseline");
+    // Item 3631: 2550 keys. Block 5577 carried the standing families and,
+    // from run1293c's gap, the human's `0/10` already apart (`pos` y 4201
+    // against 4226). Item 3633: **102** — the Caravel `1/130`'s broadside
+    // lands on 5550 as theirs does, so `0/10` flees in step. What is left
+    // is the standing families on 5577 (89 rows), pools and groups 75, 81
+    // and 83, `form` on five units born in the window, `SITE[7].reg` and
+    // two `dest_angle` rows; no position and no order.
+    pin!(
+        w.firsts
+            .iter()
+            .all(|((_, _, k), (f, _))| *f == 5577 || !(k == "pos" || k.starts_with("order"))),
+        "no position or order parts past the standing block"
+    );
+    pin_eq!(w.firsts.len(), 102, "run1293b baseline");
 }
 
 /// **The long's stride, walked back from the word 5582** (item 3631):
@@ -528,20 +543,29 @@ fn roman_medieval_pair_run1293c_s_gap_is_widened_whole() {
         eprintln!("  missing {:?}", w.missing);
     }
     // Item 3631: 113 keys. Block 5501 carries the standing families (91
-    // rows) and agrees on every unit. **The state first parts on block
-    // 5519, at the human's Village `0/2000`: `damage` ours 552 against
-    // 554** (548 on both on 5518; theirs' blow on tick 5518 is six, ours
-    // four). Then the human's `0/10` on 5551: theirs takes a hit from
-    // `1/130` on 5550 (`damage_o` 130, `hits_left` 30 against 31) and an
-    // order, ours none.
+    // rows) and agrees on every unit. The state first parted on block
+    // 5519, at the human's Village `0/2000`: `damage` ours 552 against 554
+    // (548 on both on 5518; theirs' blows on tick 5518 were six, ours
+    // four). Then the human's `0/10` on 5551: theirs took a hit from
+    // `1/130` on 5550, ours none.
+    //
+    // Item 3633: **93**. The six were the Knight `1/14`'s 2, `1/88`'s
+    // arrow's 2 and the Cavalry Archer `1/79`'s arrow's 2, which ours
+    // landed a tick late: it left from piece 138's facing-only node, 305
+    // units out at a speed of 100, and flew 3. Through the pivot it leaves
+    // from (6086, 7611), 293 out, and flies 2. The Caravel `1/130`'s
+    // first round at `0/10` left the hull's own square, 1653 out at 200,
+    // and flew 8; from its broadside at (3476, 2151) it flies 7 and lands
+    // on 5550. What is left past the standing block is `form` on `1/174`
+    // (5544) and `1/186` (5564), units born in the window.
     pin!(
         w.firsts
             .iter()
             .filter(|(_, (f, _))| *f > 5501)
             .map(|(k, (f, _))| (*f, k.clone()))
             .min()
-            == Some((5519, (0, 2000, "build:damage".to_string()))),
-        "the first parting past the standing block is the Village's damage on 5519"
+            == Some((5544, (1, 174, "form".to_string()))),
+        "the first parting past the standing block is a newborn's form on 5544"
     );
-    pin_eq!(w.firsts.len(), 113, "run1293c baseline");
+    pin_eq!(w.firsts.len(), 93, "run1293c baseline");
 }

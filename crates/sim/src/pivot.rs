@@ -2448,9 +2448,39 @@ mod tests {
         // (anim, starttime, x, y, facing, sx, sy, sz − z, the step)
         type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
         let rows: [Row; 3] = [
-            (crate::anim::ATTACK3, 20, 9480, 30936, -1_535_115_264, 9401, 30970, 228, 22),
-            (crate::anim::ATTACK2, 16, 9480, 30936, -1_535_115_264, 9388, 30958, 208, 22),
-            (crate::anim::ATTACK1, 18, 7944, 30840, -990_642_176, 7860, 30861, 225, 243),
+            (
+                crate::anim::ATTACK3,
+                20,
+                9480,
+                30936,
+                -1_535_115_264,
+                9401,
+                30970,
+                228,
+                22,
+            ),
+            (
+                crate::anim::ATTACK2,
+                16,
+                9480,
+                30936,
+                -1_535_115_264,
+                9388,
+                30958,
+                208,
+                22,
+            ),
+            (
+                crate::anim::ATTACK1,
+                18,
+                7944,
+                30840,
+                -990_642_176,
+                7860,
+                30861,
+                225,
+                243,
+            ),
         ];
         for (anim, time, x, y, facing, sx, sy, dz, step) in rows {
             let r = release(138, anim, time).expect("the row");

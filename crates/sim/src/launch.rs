@@ -480,6 +480,108 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **The Caravel's piece 275** (unit type 325; item 3633, `docs/AI.md`
+    // §330): run1293's `RON_STATE_FRAME=3606` packet on the Roman Medieval
+    // East Indies seed holds its nine attack `AttachPos` rows, node 0 at
+    // anims 10, 11 and 12, frames 5, 8 and 13 (the three
+    // `ArcherArrowWOtip` releases at 366, 570 and 900 ms). The three anims
+    // share their bits, and frames 5 and 8 share theirs; each sweep has one
+    // feasible region (101 and 1394 lattice points) reproducing all 361
+    // headings, x and y, and the rows are its middles. The gun is the
+    // broadside, 150 units off the hull's square: who=1's `1/130` loosed
+    // at the Citizen `0/10` on 5544 from (3476, 2151) where this crate
+    // loosed from the hull's (3576, 2040), 7 frames against 8, and `0/10`
+    // was struck on 5550 a frame late.
+    (
+        275,
+        10,
+        5,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        10,
+        8,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        10,
+        13,
+        Bay {
+            right: 65135,
+            fwd: -135_024,
+            dz: 30,
+        },
+    ),
+    (
+        275,
+        11,
+        5,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        11,
+        8,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        11,
+        13,
+        Bay {
+            right: 65135,
+            fwd: -135_024,
+            dz: 30,
+        },
+    ),
+    (
+        275,
+        12,
+        5,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        12,
+        8,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        12,
+        13,
+        Bay {
+            right: 65135,
+            fwd: -135_024,
+            dz: 30,
+        },
+    ),
     // **The Arquebusiers' piece 1104** (unit type 98 as the Japanese field
     // it; item 3590, `docs/AI.md` §316): run1237's `RON_STATE_FRAME=2674`
     // packet on the Japanese Gunpowder Great Sahara seed holds its three
@@ -3744,6 +3846,66 @@ mod tests {
             0,
         );
         assert_eq!((miss.x, miss.y), (8587, 30273), "the parked miss");
+    }
+
+    /// **Piece 275, the Caravel** (item 3633): four headings of each of its
+    /// nine rows' `get_position.py` sweeps on run1293's packet, `(anim,
+    /// starttime, degree, x, y)`, read the way
+    /// [`the_peltasts_bays_are_the_packet_s_sweep`] reads 1442's.
+    #[test]
+    fn the_caravel_s_bays_are_the_packet_s_sweep() {
+        const S: &[(i8, u32, i64, i32, i32)] = &[
+            (10, 5, 0, -66, -135),
+            (10, 5, 97, 142, -49),
+            (10, 5, 233, -68, 133),
+            (10, 5, 300, -149, -10),
+            (10, 8, 0, -66, -135),
+            (10, 8, 97, 142, -49),
+            (10, 8, 233, -68, 133),
+            (10, 8, 300, -149, -10),
+            (10, 13, 0, -65, -135),
+            (10, 13, 97, 141, -48),
+            (10, 13, 233, -68, 133),
+            (10, 13, 300, -149, -11),
+            (11, 5, 0, -66, -135),
+            (11, 5, 97, 142, -49),
+            (11, 5, 233, -68, 133),
+            (11, 5, 300, -149, -10),
+            (11, 8, 0, -66, -135),
+            (11, 8, 97, 142, -49),
+            (11, 8, 233, -68, 133),
+            (11, 8, 300, -149, -10),
+            (11, 13, 0, -65, -135),
+            (11, 13, 97, 141, -48),
+            (11, 13, 233, -68, 133),
+            (11, 13, 300, -149, -11),
+            (12, 5, 0, -66, -135),
+            (12, 5, 97, 142, -49),
+            (12, 5, 233, -68, 133),
+            (12, 5, 300, -149, -10),
+            (12, 8, 0, -66, -135),
+            (12, 8, 97, 142, -49),
+            (12, 8, 233, -68, 133),
+            (12, 8, 300, -149, -10),
+            (12, 13, 0, -65, -135),
+            (12, 13, 97, 141, -48),
+            (12, 13, 233, -68, 133),
+            (12, 13, 300, -149, -11),
+        ];
+        for &(anim, time, deg, x, y) in S {
+            let want = (deg + 180) % 360;
+            let facing = (0..1u32 << 12)
+                .map(|i| Angle((i << 20) as i32))
+                .find(|&a| whole_degrees(a) == want)
+                .expect("a facing at the degree");
+            let b = bay(275, anim, time, 0).expect("every attack AttachPos row");
+            let at = b.point(Pos::new(10_000, 10_000), facing);
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{anim} {time} {deg}"
+            );
+        }
     }
 
     /// **Piece 1442, the Native American Peltasts** (item 3287): four

@@ -7289,6 +7289,9 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3633: the Roman Medieval pair, walked from run1274 along
+    // run1275 to its new word 5971, reads 27 inexact corners.
+    ("roman_medieval_pair_first_parting", 27),
     // Item 3631: run1293b, the Roman Medieval word 5582's window,
     // 5577..5833, reads 17 inexact corners.
     (
