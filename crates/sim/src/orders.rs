@@ -3702,22 +3702,6 @@ impl Sim {
     /// siege-on-a-city `mandatory` arm. Neither is carried by
     /// [`Sim::find_nearby_target`].
     pub(crate) fn do_attack_to_tail(&mut self, u: usize, frame: i64, dest: Pos) {
-        let probe = std::env::var("RON_PROBE_GROUP").ok().and_then(|v| {
-            let (lo, hi) = v.split_once('-')?;
-            Some((lo.parse::<i64>().ok()?, hi.parse::<i64>().ok()?))
-        });
-        if let Some((lo, hi)) = probe
-            && (lo..=hi).contains(&frame)
-        {
-            eprintln!(
-                "  probe f{frame} attack_to_tail {}/{} index {} phase {} head {:?}",
-                self.units[u].owner,
-                self.units[u].index,
-                self.units[u].index,
-                (frame + i64::from(self.units[u].index)).rem_euclid(15),
-                self.current_order(u).map(|o| o.body)
-            );
-        }
         if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
             return;
         }
@@ -3725,11 +3709,6 @@ impl Sim {
             self.current_order(u).map(|o| o.body),
             Some(Body::Move(m)) if m.kind == MoveKind::AttackTo && m.group.is_none() && m.dest == dest
         );
-        if let Some((lo, hi)) = probe
-            && (lo..=hi).contains(&frame)
-        {
-            eprintln!("  probe f{frame} attack_to_tail same {same} dest {dest:?}");
-        }
         if !same {
             return;
         }
@@ -3748,16 +3727,6 @@ impl Sim {
     /// handed to the group rather than to the unit when the whole group is
     /// still walking its attack-move ([`Self::attack_move_add`]).
     pub(crate) fn do_group_attack_to_tail(&mut self, u: usize, frame: i64, id: i64) {
-        if std::env::var("RON_PROBE_GROUP").is_ok()
-            && (frame + i64::from(self.units[u].index)).rem_euclid(15) == 0
-        {
-            eprintln!(
-                "  probe f{frame} group_tail {}/{} id {id} still {}",
-                self.units[u].owner,
-                self.units[u].index,
-                self.still_group_move(u, id)
-            );
-        }
         if (frame + i64::from(self.units[u].index)).rem_euclid(15) != 0 {
             return;
         }
@@ -3802,14 +3771,7 @@ impl Sim {
                 if self.take_siege_army_target(u).is_some() {
                     return;
                 }
-                let found = self.find_melee_target(u, -1);
-                if std::env::var("RON_PROBE_GROUP").is_ok() {
-                    eprintln!(
-                        "  probe f{} look {}/{} found {:?}",
-                        self.frame, self.units[u].owner, self.units[u].index, found
-                    );
-                }
-                if let Some(t) = found {
+                if let Some(t) = self.find_melee_target(u, -1) {
                     self.attack_move_add(u, t);
                 }
             }
@@ -3956,15 +3918,6 @@ impl Sim {
         let siege = self.units[u]
             .ty
             .is_some_and(|ty| self.unit_types[ty].cols.flag(uflags::SIEGE));
-        if std::env::var("RON_PROBE_GROUP").is_ok() {
-            let g = self.group_of(u);
-            let inn = g.as_ref().map(|g| g.list.contains(&u));
-            let att = g.as_ref().map(|g| self.group_is_attacking_to(g));
-            eprintln!(
-                "  probe f{} add {}/{} t {t:?} group_move {group_move} siege {siege} in {inn:?} attacking {att:?}",
-                self.frame, self.units[u].owner, self.units[u].index
-            );
-        }
         if group_move
             && !siege
             && let Some(g) = self.group_of(u)
@@ -9147,17 +9100,6 @@ impl Sim {
         // `find_new_target`.
         // The arm is `recharging == 0`'s alone (`fight@005fd4d0:368`): a
         // recharging melee-and-ranged unit past the gate skips it.
-        if std::env::var("RON_PROBE_GROUP").is_ok() {
-            eprintln!(
-                "  probe f{} fight_arm {}/{} mandatory {} recharging {} captain {} target {target:?} flags {flags:#x}",
-                self.frame,
-                self.units[u].owner,
-                self.units[u].index,
-                state.mandatory,
-                state.recharging,
-                state.captain
-            );
-        }
         if !state.mandatory
             && state.recharging == 0
             && state.captain == i32::from(self.units[u].index)
@@ -9176,16 +9118,6 @@ impl Sim {
                     // `1/8` on 634 and keeps it here; the chase's retarget
                     // ([`Sim::retarget_admits`]) hands it the fishing boat.
                     let off = self.captain_research_admits(u, t);
-                    if std::env::var("RON_PROBE_GROUP").is_ok() {
-                        eprintln!(
-                            "  probe f{} research {}/{} off {off} roll%5 {} reentry {}",
-                            self.frame,
-                            self.units[u].owner,
-                            self.units[u].index,
-                            roll % 5,
-                            flags & flag::FIGHT_REENTRY != 0
-                        );
-                    }
                     (off && roll % 5 != 0 && flags & flag::FIGHT_REENTRY == 0)
                         || self.poor_target(me, target)
                 }
