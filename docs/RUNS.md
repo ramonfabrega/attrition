@@ -27498,3 +27498,74 @@ SHA-256 `c78db3582aac1e0cc1f8a274a2dca026eb4ff330f6ea4e1d9ac0b24931fe929d`.
 **What it holds**: the closing window, `egyptian_gunpowder_pair_run1267_s_closing_frame_is_widened_whole`: 256
 blocks, 55 keys, the standing families and one `dest_angle` row (parked 3614a).
 
+## run1266 — the Aztecs from an Ancient start, East Indies: the gap's window, blocks 8596..8710 (2026-10-25, item 3613, `att-3613`)
+
+`docs/AI.md` §325.1. **What the disk could not answer**: blocks 8602..8709. run1256's stride prints 8601 and 8701,
+and run1256b opens on 8710, already apart. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1266
+--map 18 --end-frame 8710 --timeout 3600 --log-window 8596 8710 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover cover=0 --profile
+STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 03:07:49, exited 03:08:42 (53.0 s launch to exit). `success`: 8711 frames.
+  `rngcmp.py` against run1256: 8711 of 8711 frames identical. Filed with `filerun.py run1266
+  eastindies-aztec-ancient-window-8596-8710 --map 18`. `df -g ~` read 130 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1266-eastindies-aztec-ancient-window-8596-8710.txt`, 301,330,300 bytes,
+SHA-256 `88c9c6d0f9660020e9db2a340817459c5ad8981d627e1a400e2fdc3da44ee091`.
+
+Archive `rontrace-run1266.log`, 342,242,752 bytes,
+SHA-256 `770a8a01f342cb3e6fd73e1e03b7e79a55956ffc7a54198f96f5f75232a76253`.
+
+**What it holds**: `aztec_ancient_pair_run1266_s_gap_is_widened_whole` (114 blocks). Before piece 36's bays it read
+189 keys. Past the standing families, the first rows were `1/175`'s `dest_angle` on 8692 (parked 3613a) and the
+Citizen `0/4`'s wound on block 8694. That wound came from the Royal Atl-Atls `1/163`'s javelin, which left (6327,
+9920, 238) in 14 frames in theirs and (6312, 10008) in 15 in ours. With the bays, 141 keys: the standing families and
+3613a.
+
+## run1266b — a dead take (2026-10-25, item 3613, `att-3613`)
+
+run1266c's line with `RON_STATE_PLAN=` unquoted. The tracer build refused (`live_frame_snapshot.h`: expected
+"FILENAME"), and the game never launched. Nothing was filed. The plan path must be passed as
+`'RON_STATE_PLAN="<path>"'`, as run1264b's line has it.
+
+## run1266c — the Aztecs from an Ancient start, East Indies: a packet at logger frame 8700, pieces 35 and 36 (2026-10-25, item 3613, `att-3613`)
+
+`docs/AI.md` §325.1. **What the disk could not answer**: the `AttachPos` rows of pieces 35 and 36 (the Atl-Atls and
+the Royal Atl-Atls), which only a packet of a game fielding the types holds. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1266c --map 18 --end-frame 8702 --timeout 3600 --log-window 8699
+8702 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 0 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=8700
+--tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 03:09:34, exited 03:10:15 (40.5 s). `success`, 8703 frames. `rngcmp.py` against
+  run1256: 8703 of 8703 identical. Not filed: the packet is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1266c/map-18/frame-snapshot.bin`, 849,574,924 bytes,
+SHA-256 `94150871983d1263c2a07c4d77384280e8d1038f4ca41019480c504c078ff3be`.
+
+**What it holds**: `get_position.py entries 35` and `entries 36` each give three rows at scale 1.0: node 0 at (11,
+11), (12, 11) and (13, 11). `fit_bay.py` on each key's sweep gives the six `BAYS` rows. For piece 35 they are
+(27451, 148341, 166), (40884, 135492, 188) and (27982, 110381, 178). For piece 36 they are (34560, 123009, 168),
+(49097, 105964, 186) and (32102, 84123, 182).
+
+## run1266d — the Aztecs from an Ancient start, East Indies: the closing window, blocks 9003..9259 (2026-10-25, item 3613, `att-3613`)
+
+`docs/AI.md` §325.1. **What the disk could not answer**: the pair went whole, and run1256 prints units every
+hundredth block and no leader, building or city record past the start, so no dump held the last blocks.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1266d --map 18 --end-frame 9258 --allow-early-end
+--timeout 3600 --log-window 9003 9259 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 0
+--cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 03:17:38, exited 03:18:53 (75.9 s). `success`: 9259 frames. `rngcmp.py` against
+  run1256: 9259 of 9259 identical. Filed with `filerun.py run1266d eastindies-aztec-ancient-window-9003-9259 --map
+  18`. `df -g ~` read 127 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1266d-eastindies-aztec-ancient-window-9003-9259.txt`, 694,301,971 bytes,
+SHA-256 `cd8dc7ae8fa6afa7be51e6ebcd8046531d941d8d6ae027350fcbe363453e319f`.
+
+Archive `rontrace-run1266d.log`, 389,997,248 bytes,
+SHA-256 `048efff3a2d323e2ca2520e8bddfbdcadf522bc335a438340bcfbcc555cb26e6`.
+
+**What it holds**: `aztec_ancient_pair_run1266d_s_closing_frame_is_widened_whole` (256 blocks, 163 keys), the
+standing families alone through the closing block 9259.

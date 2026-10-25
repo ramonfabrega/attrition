@@ -10638,3 +10638,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1256  run1234's line with --ai-tribe 0 and run1255's lobby   (the draw stream; ended itself on 9258)
 #   run1256b --map 18 --end-frame 8966 --timeout 3600 --log-window 8710 8966 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover cover=0, run1255's lobby   (the word 8716's window)
 # Checks: `rngcmp.py` run1255 vs run1256 -> 37 identical; run1256 vs run1256b -> 8967 identical.
+# ==== item 3613: the Aztec Ancient word 8716 -> 9258, whole (`docs/AI.md` §325.1; `docs/RUNS.md` run1266, run1266b, run1266c, run1266d) ====
+#   run1266  --map 18 --end-frame 8710 --timeout 3600 --log-window 8596 8710 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover cover=0, run1255's lobby   (the gap's window)
+#   run1266b run1266c's line with RON_STATE_PLAN unquoted   (a dead take: the tracer build refused, nothing ran)
+#   run1266c --map 18 --end-frame 8702 --log-window 8699 8702 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 0 --cover cover=0 --tracer-def RON_STATE_FRAME=8700 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h, run1255's lobby   (a packet: pieces 35 and 36, the Atl-Atls)
+#   run1266d --map 18 --end-frame 9258 --allow-early-end --timeout 3600 --log-window 9003 9259 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 0 --cover cover=0, run1255's lobby   (the closing window)
+# Checks: `rngcmp.py` run1256 vs run1266 -> 8711 identical; vs run1266c -> 8703 identical; vs run1266d -> 9259 identical.
