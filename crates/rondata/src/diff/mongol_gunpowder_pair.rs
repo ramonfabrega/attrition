@@ -416,6 +416,68 @@ fn mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 139, "run1292b baseline");
 }
 
+/// run1296b: the word 5047's window, blocks 5041..5297 at run1292's
+/// detail, `cover=0` (item 3634) — six blocks before the word's block 5048
+/// and 250 after; the stride's blocks are 5001 and 5101.
+pub(crate) const RUN1296B: &str =
+    "gamelog-run1296b-eastindies-mongol-gunpowder-window-5041-5297.txt";
+
+/// The window: block 5041 through 5297; the word 5047's own block is 5048.
+pub(crate) const WIDENING_MONGOL_GUNPOWDER_FRAME_5047: (i64, i64) = (5041, 5297);
+
+/// **The word 5047's window**: run1296b walked from run1278's start with
+/// the recorder on (item 3634).
+pub(crate) fn mongol_gunpowder_frame_5047_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_GUNPOWDER.start],
+        true,
+        MONGOL_GUNPOWDER.long,
+        "run1296b",
+        &[(RUN1296B, WIDENING_MONGOL_GUNPOWDER_FRAME_5047.0)],
+        WIDENING_MONGOL_GUNPOWDER_FRAME_5047,
+        1,
+        &[5048],
+        true,
+    )
+}
+
+#[test]
+fn mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_gunpowder_frame_5047_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3634, the word 5047's widening: 3282 keys. Block 5041's 112
+    // stand — run1292b's families, the groups minted since (84..89) and
+    // who=1's `leader:attack` 1067 against 1085, the one new leader row.
+    // The draws agree through 5046; **the word's block 5048** parts on the
+    // human's `0/2005` (orig_type 435) alone: theirs `damage` 1 and
+    // `damage_frac` 13, ours 0 and 0. Both sides' Bombard `1/84` round
+    // lands on 5047 at (6289, 6920) and strikes `0/2000` for 109; theirs
+    // also wounds `0/2005` (`Object::take_damage+0xe1`, the extra draw at
+    // index 5). From 5051 who=1's `1/92` parts in its orders.
+    pin_eq!(w.firsts.len(), 3282, "run1296b baseline");
+}
+
 /// **The long's stride between the windows** (item 3630): run1279's
 /// stride blocks after run1292's window and up to the word 4499's.
 pub(crate) const WIDENING_MONGOL_GUNPOWDER_LATE_STRIDE: (i64, i64) = (2001, 4401);
