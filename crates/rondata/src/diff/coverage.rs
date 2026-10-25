@@ -3510,6 +3510,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::roman_medieval_pair::roman_medieval_stride_window(),
         || super::roman_medieval_pair::roman_medieval_gap_5582_window(),
         || super::roman_medieval_pair::roman_medieval_frame_5582_window(),
+        || super::roman_medieval_pair::roman_medieval_frame_5971_window(),
         || super::mongol_gunpowder_pair::mongol_gunpowder_frame_1973_window(),
         || super::mongol_gunpowder_pair::mongol_gunpowder_stride_window(),
         || super::mongol_gunpowder_pair::mongol_gunpowder_gap_window(),

@@ -55,22 +55,19 @@ pub struct Node {
 /// A piece with no row here launches from the unit's own position, which
 /// is what every shot in this crate did before run109.
 const MEASURED: &[(i32, i8, u32, Node)] = &[
-    // **122 is `CROSSBOWMEN`** (unit type 172) **and 138 `CAVARCHERS`**
-    // (type 188, the French Heavy Horse Archer; item 3347, run982 on the
-    // French Great Sahara seed, `AMMO=5` over `[13416, 14093]`): the four
+    // **122 is `CROSSBOWMEN`** (unit type 172; item 3347, run982 on the
+    // French Great Sahara seed, `AMMO=5` over `[13416, 14093]`): the three
     // first rounds of who=1's archers on 13822–13839, each the guy's pose on
     // the block before its first print against the round's `sx, sy, sz` —
     // `1/41`'s `CHAR_ATTACK2` frame 3, guy (10008, 30984) at −1120927744,
     // (9943, 30974, 707) over a guy `z` of 573; `1/42`'s `CHAR_ATTACK1`
     // frame 5, (9624, 31176) at −1057882112, (9540, 31165, 769) over 603;
-    // `1/43`'s `CHAR_ATTACK3` frame 6, (9672, 30984) at −1130299392,
-    // (9596, 30977, 758) over 597; and the Cavalry Archer `1/39`'s
-    // `CHAR_ATTACK3` frame 20, (9480, 30936) at −1535115264, (9401, 30970,
-    // 842) over 614. One shot each: the radius is the only one that fits
-    // and the bearing the middle of its exact fits. Without them the
-    // rounds left from the guy, `1/39`'s flew 14 frames against 13 and was
-    // still airborne where theirs had rolled to the ground on 13843
-    // (`docs/AI.md` §278).
+    // and `1/43`'s `CHAR_ATTACK3` frame 6, (9672, 30984) at −1130299392,
+    // (9596, 30977, 758) over 597. One shot each: the radius is the only
+    // one that fits and the bearing the middle of its exact fits. The
+    // Cavalry Archer's three rows, piece 138, left for `pivot::RELEASES`
+    // (item 3633): its `<RESTRICTION>` makes it a pivot piece, and its
+    // rounds turn with the rider (`docs/AI.md` §330).
     (
         122,
         crate::anim::ATTACK1,
@@ -99,45 +96,6 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             bearing: 123_879_424,
             radius: 76,
             dz: 161,
-        },
-    ),
-    (
-        138,
-        crate::anim::ATTACK3,
-        20,
-        Node {
-            bearing: 185_516_032,
-            radius: 85,
-            dz: 228,
-        },
-    ),
-    // The Cavalry Archer's other two, and **139, `DRAGOON`** (type 189, the
-    // line `1/39` upgrades into before 14002), from the same window: `1/39`'s
-    // `CHAR_ATTACK2` frame 16 on 13851, guy (9480, 30936) at −1535115264,
-    // (9388, 30958, 822) over 614; its `CHAR_ATTACK1` frame 18 on 13982,
-    // guy (7944, 30840) at −990642176, (7860, 30861, 883) over 658; and as
-    // a Dragoon from the same pose, `CHAR_ATTACK1` frame 12 on 14002,
-    // (7794, 30874, 881), and `CHAR_ATTACK3` frame 18 on 14039, (7797,
-    // 30845, 866). The Dragoon's own rows went to `pivot::RELEASES` (item
-    // 3359): piece 139 is a pivot piece, and run985b's packet holds them.
-    (
-        138,
-        crate::anim::ATTACK1,
-        18,
-        Node {
-            bearing: -246_988_800,
-            radius: 86,
-            dz: 225,
-        },
-    ),
-    (
-        138,
-        crate::anim::ATTACK2,
-        16,
-        Node {
-            bearing: 304_234_496,
-            radius: 94,
-            dz: 208,
         },
     ),
     // **49 is `MUSKETEERS`** (unit type 99; item 3336, run971 on the
@@ -522,6 +480,108 @@ impl Bay {
 /// 16, 21) and `node 1` (2, 8, 13, 18, 24), and neither moves with the
 /// event's frame.
 const BAYS: &[(i32, i8, u32, Bay)] = &[
+    // **The Caravel's piece 275** (unit type 325; item 3633, `docs/AI.md`
+    // §330): run1293's `RON_STATE_FRAME=3606` packet on the Roman Medieval
+    // East Indies seed holds its nine attack `AttachPos` rows, node 0 at
+    // anims 10, 11 and 12, frames 5, 8 and 13 (the three
+    // `ArcherArrowWOtip` releases at 366, 570 and 900 ms). The three anims
+    // share their bits, and frames 5 and 8 share theirs; each sweep has one
+    // feasible region (101 and 1394 lattice points) reproducing all 361
+    // headings, x and y, and the rows are its middles. The gun is the
+    // broadside, 150 units off the hull's square: who=1's `1/130` loosed
+    // at the Citizen `0/10` on 5544 from (3476, 2151) where this crate
+    // loosed from the hull's (3576, 2040), 7 frames against 8, and `0/10`
+    // was struck on 5550 a frame late.
+    (
+        275,
+        10,
+        5,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        10,
+        8,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        10,
+        13,
+        Bay {
+            right: 65135,
+            fwd: -135_024,
+            dz: 30,
+        },
+    ),
+    (
+        275,
+        11,
+        5,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        11,
+        8,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        11,
+        13,
+        Bay {
+            right: 65135,
+            fwd: -135_024,
+            dz: 30,
+        },
+    ),
+    (
+        275,
+        12,
+        5,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        12,
+        8,
+        Bay {
+            right: 66031,
+            fwd: -135_008,
+            dz: 28,
+        },
+    ),
+    (
+        275,
+        12,
+        13,
+        Bay {
+            right: 65135,
+            fwd: -135_024,
+            dz: 30,
+        },
+    ),
     // **The Arquebusiers' piece 1104** (unit type 98 as the Japanese field
     // it; item 3590, `docs/AI.md` §316): run1237's `RON_STATE_FRAME=2674`
     // packet on the Japanese Gunpowder Great Sahara seed holds its three
@@ -3788,6 +3848,66 @@ mod tests {
         assert_eq!((miss.x, miss.y), (8587, 30273), "the parked miss");
     }
 
+    /// **Piece 275, the Caravel** (item 3633): four headings of each of its
+    /// nine rows' `get_position.py` sweeps on run1293's packet, `(anim,
+    /// starttime, degree, x, y)`, read the way
+    /// [`the_peltasts_bays_are_the_packet_s_sweep`] reads 1442's.
+    #[test]
+    fn the_caravel_s_bays_are_the_packet_s_sweep() {
+        const S: &[(i8, u32, i64, i32, i32)] = &[
+            (10, 5, 0, -66, -135),
+            (10, 5, 97, 142, -49),
+            (10, 5, 233, -68, 133),
+            (10, 5, 300, -149, -10),
+            (10, 8, 0, -66, -135),
+            (10, 8, 97, 142, -49),
+            (10, 8, 233, -68, 133),
+            (10, 8, 300, -149, -10),
+            (10, 13, 0, -65, -135),
+            (10, 13, 97, 141, -48),
+            (10, 13, 233, -68, 133),
+            (10, 13, 300, -149, -11),
+            (11, 5, 0, -66, -135),
+            (11, 5, 97, 142, -49),
+            (11, 5, 233, -68, 133),
+            (11, 5, 300, -149, -10),
+            (11, 8, 0, -66, -135),
+            (11, 8, 97, 142, -49),
+            (11, 8, 233, -68, 133),
+            (11, 8, 300, -149, -10),
+            (11, 13, 0, -65, -135),
+            (11, 13, 97, 141, -48),
+            (11, 13, 233, -68, 133),
+            (11, 13, 300, -149, -11),
+            (12, 5, 0, -66, -135),
+            (12, 5, 97, 142, -49),
+            (12, 5, 233, -68, 133),
+            (12, 5, 300, -149, -10),
+            (12, 8, 0, -66, -135),
+            (12, 8, 97, 142, -49),
+            (12, 8, 233, -68, 133),
+            (12, 8, 300, -149, -10),
+            (12, 13, 0, -65, -135),
+            (12, 13, 97, 141, -48),
+            (12, 13, 233, -68, 133),
+            (12, 13, 300, -149, -11),
+        ];
+        for &(anim, time, deg, x, y) in S {
+            let want = (deg + 180) % 360;
+            let facing = (0..1u32 << 12)
+                .map(|i| Angle((i << 20) as i32))
+                .find(|&a| whole_degrees(a) == want)
+                .expect("a facing at the degree");
+            let b = bay(275, anim, time, 0).expect("every attack AttachPos row");
+            let at = b.point(Pos::new(10_000, 10_000), facing);
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{anim} {time} {deg}"
+            );
+        }
+    }
+
     /// **Piece 1442, the Native American Peltasts** (item 3287): four
     /// headings of each row's `get_position.py` sweep on run943c's packet,
     /// `(anim, starttime, degree, x, y)`, the degree `fast_angle_to_degrees`'
@@ -4123,8 +4243,9 @@ mod tests {
 
     /// run982's rounds (item 3347): `(piece, anim, starttime, guy x, y, z,
     /// angle, sx, sy, sz)`, the dump's own columns, reproduced to the unit —
-    /// the four first rounds, then the Cavalry Archer's other two and the
-    /// Dragoon's two (`cf3e7e2c2`).
+    /// the Crossbowman's three. The Cavalry Archer's three are
+    /// `pivot::tests::run982_s_cavalry_archer_rounds_fit_piece_138_s_pivot_rows`
+    /// since item 3633.
     #[test]
     fn run982_s_crossbow_and_cavalry_archer_launches_are_reproduced_to_the_unit() {
         type Round = (i32, i8, u32, i32, i32, i32, i32, i32, i32, i32);
@@ -4164,42 +4285,6 @@ mod tests {
                 9596,
                 30977,
                 758,
-            ),
-            (
-                138,
-                crate::anim::ATTACK3,
-                20,
-                9480,
-                30936,
-                614,
-                -1_535_115_264,
-                9401,
-                30970,
-                842,
-            ),
-            (
-                138,
-                crate::anim::ATTACK2,
-                16,
-                9480,
-                30936,
-                614,
-                -1_535_115_264,
-                9388,
-                30958,
-                822,
-            ),
-            (
-                138,
-                crate::anim::ATTACK1,
-                18,
-                7944,
-                30840,
-                658,
-                -990_642_176,
-                7860,
-                30861,
-                883,
             ),
         ];
         for &(piece, anim, t, gx, gy, gz, ga, sx, sy, sz) in M {
@@ -4241,9 +4326,9 @@ mod tests {
     /// keys the event walk never reaches. **49**, the Musketeer's two, are
     /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4. **842**, the
     /// Horse Archer's three, are run973e/f's (item 3338): keys 18, 16, 20.
-    /// **122**, the Crossbowman's three, and **138**, the Cavalry Archer's
-    /// `CHAR_ATTACK3`, are run982's (item 3347): keys 5, 3, 6 and 20. The
-    /// Dragoon's, **139**, left for `pivot::RELEASES` (item 3359).
+    /// **122**, the Crossbowman's three, are run982's (item 3347): keys 5,
+    /// 3 and 6. The Dragoon's, **139**, left for `pivot::RELEASES` (item
+    /// 3359), and the Cavalry Archer's, **138**, too (item 3633).
     #[test]
     fn the_table_is_every_release_event_a_capture_has_measured() {
         let mut keys: Vec<(i32, i8, u32)> =
@@ -4263,9 +4348,6 @@ mod tests {
                 (127, crate::anim::ATTACK2, 22),
                 (127, crate::anim::ATTACK3, 10),
                 (127, crate::anim::ATTACK3, 24),
-                (138, crate::anim::ATTACK1, 18),
-                (138, crate::anim::ATTACK2, 16),
-                (138, crate::anim::ATTACK3, 20),
                 (384, crate::anim::ATTACK1, 21),
                 (384, crate::anim::ATTACK2, 22),
                 (472, crate::anim::ATTACK1, 12),
