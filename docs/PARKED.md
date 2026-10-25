@@ -10930,13 +10930,11 @@ None spends a draw before the word 7063. No score names it.
 2008) print `g.angle[0]` 0 in theirs against ours' 1431655765 (`0x55555555`), from the stride through run1273b's
 block 7057. No draw and no score names it.
 
-## Parked by the next landing, slot RS — reserved
+## Parked by item 3620, 2026-10-25 — the Romans at a held Medieval age, East Indies: first try 1875
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting books: the Citizen `1/17`'s current `BUILDORDER` on `1/2023`, popped
+on 1875 in theirs (its `EXPLORETOORDER` made current) and kept in ours (`docs/AI.md` §330). `Caesar's Legions`
+(147) is fielded.
 
 ## Parked by the next landing, slot RT — reserved
 

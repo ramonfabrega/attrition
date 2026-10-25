@@ -10653,6 +10653,11 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1261  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1262  run1250's line with --ai-tribe 10 and run1261's lobby   (the draw stream; ended itself on 6106)
 # Checks: `rngcmp.py` run1261 vs run1262 -> 37 identical.
+# ==== item 3620: the Romans at a held Medieval age, East Indies (`docs/AI.md` §330; `docs/RUNS.md` run1274, run1275, run1275b) ====
+#   run1274  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 6 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1275  run1204's line with --ai-tribe 6 and run1274's lobby   (the draw stream; ended itself on 5979)
+#   run1275b --map 18 --end-frame 2126 --allow-early-end --timeout 3600 --log-window 1870 2126 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0, run1274's lobby   (the word 1875's window)
+# Checks: `rngcmp.py` run1274 vs run1275 -> 37 identical; run1275 vs run1275b -> 2127 identical.
 # ==== item 3605: the Russians at a held Medieval age, Great Sahara (`docs/AI.md` §326; `docs/RUNS.md` run1257, run1258, run1258b) ====
 #   run1257  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 13 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1258  run1202's line with --ai-tribe 13 and run1257's lobby   (the draw stream; ended itself on 4541)

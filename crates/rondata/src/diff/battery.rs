@@ -284,6 +284,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatSaharaDutchTier3`, `(7, 22, 3)`; the held-out
     // `GreatLakesDutchTier4` is `(14, 22, 4)`, another map.
     (18, 22, 5),
+    // The Roman Medieval pair's (item 3620): the Romans at a held Medieval
+    // age, Difficulty 5, East Indies — not the AI word
+    // `EastIndiesRomanTier2`, `(18, 6, 2)`, another difficulty, nor the
+    // held-out `GreatLakesRomanTier2`, `(14, 6, 2)`, nor the Classical
+    // pair's `(7, 6, 5)`, another map.
+    (18, 6, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
