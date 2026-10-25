@@ -28428,8 +28428,69 @@ pins 4324. Three mutations through `tools/mutate.py` on the committed tree **hel
   capital before a Senate is listed (parked 3597a).
 - The per-leader city index: it is read as the position in `Sim::cities_of`, which drops a dead city's slot
   (a `SEAM` on `senate_avail`).
-- Who strikes `0/10` on 4310 in theirs. That is the next item's frame: 4324, ours 11 draws against 12, index 1,
-  with the state apart on block 4311.
+- ~~Who strikes `0/10` on 4310 in theirs. That is the next item's frame: 4324, ours 11 draws against 12, index 1,
+  with the state apart on block 4311.~~ Answered in §320.2: both sides throw the same stone, and theirs' leaves
+  from the Balamob Slinger's hand.
+
+### 320.2 The Balamob Slingers' bays: 4324 → 4429 (item 3599)
+
+**The blow on 4310** (`RON_DEBUG_AMMO=4280-4312` on the walk, `report.py rontrace-run1234b.log draws`). Theirs
+spends one draw for it, `SoundGlobal::play < Object::do_damage < Ammo::do_damage` on the sound generator, so the game
+stream agrees past it. Both sides spend the same four `Ammo::init` draws on 4305: the Balamob Slingers `1/32` and
+`1/33` (TypeIndex 88, land, group 66) each throw a stone at the Citizen `0/10`. In ours they leave from the units'
+squares, (6072, 8616) and (6072, 8856), in 7 and 8 frames. `1/32`'s lands on 4311, a frame after theirs'. The dumped
+`damage_o` 31 on theirs' `0/10` is a standing value from an earlier hit; ours carries the same until 4418.
+
+**The packet** (run1247, `RON_STATE_FRAME=4306`, `AMMO=5` over 4305..4307; 4309 frames `rngcmp`-identical to
+run1234). Theirs' records on block 4306:
+- `1/32 -> 0/10` from **(5950, 8535, 362)**, `total_time` 6;
+- `1/33 -> 0/10` from **(5963, 8757, 371)**, `total_time` 7.
+
+Both figures stand at `z` 194, so `dz` is 168 and 177. **A nation's own piece**: the Balamob Slingers' art is
+`BAMOBSLINGERS-DEFAULT-AGE0` alone, its own model (`Balamob.bh3`), so `get_unit_gpiece` lands on piece **38**
+(`88 − 0x32`) for both figures. `tools/recomp/get_position.py entries 38` reads three `AttachPos` rows, on keys of
+their own: `CHAR_ATTACK1` at 18, `2` at 19 and `3` at 21. A sweep of each at all 361 headings is reproduced exactly
+by one integer `launch::Bay`, the centroid of its region: (18702, 146963, `dz` 177), (22458, 145250, 168) and
+(36186, 144839, 173), from 650, 666 and 97 lattice points. `1/32` throws on `CHAR_ATTACK2`, `1/33` on `CHAR_ATTACK1`.
+
+**The value diff:**
+
+| frame | record | field | ours before | theirs | after |
+|---|---|---|---|---|---|
+| 4305 | `1/32`'s stone at `0/10` | `sx, sy` / `total_time` | (6072, 8616) / 7 | (5950, 8535) / 6 | agrees |
+| 4305 | `1/33`'s stone at `0/10` | `sx, sy` / `total_time` | (6072, 8856) / 8 | (5963, 8757) / 7 | agrees |
+| 4311 | Citizen `0/10` (TI 50) | `hits_left`, `damage_frame`, `orders` | 40, 0, none | 37, 4310, a flee to (4536, 6648) | agrees |
+
+run1234b re-walked: **1233 → 167 keys**, and block 4311 agrees whole.
+
+**The score: 4324 → 4429** (+105), by the count and the sequence. The new word is ours 10 draws against 12, index
+1: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Every
+other lobby's `first_parting` holds (55 of 55), and so does `battery_floors`. The walk now reads one inexact ground
+corner (`GROUND_INEXACT`).
+
+**Where the window parts now.** Past the standing families (4177's, groups 77 and 78, `1/79`'s `form`):
+- block 4338: `0/10`'s `hits:damage` is ours 8 against theirs 9. Rounds from the Balamob Slingers `1/27` and
+  `1/43` and the Bowmen **`1/46` (type 170)** are in flight at the fleeing Citizen. Ours throws `1/46`'s arrow from
+  the unit's own square, (6552, 9240), `t` 21;
+- block 4387: the Citizen `0/11` is struck on 4386 in theirs alone;
+- `1/44`, `1/45`, `1/46` part on their angles from 4396.
+
+The Maya's Bowmen are `BOWMEN-AMERICAN`, piece **824** (`120 + 2 × 0x160`; `UNIT_CONTINENT` 2). `launch.rs` has no
+row for it. run1247's packet already holds its four `AttachPos` rows (anim 4 at 34, 11 at 12, 12 at 9, 13 at 15).
+That is the next item's hypothesis, and it is untested here.
+
+**Tests.** `launch::tests::run1247_s_balamob_stones_leave_from_piece_38_s_bays` checks both dumped points and
+heights. `maya_ancient_pair_first_parting` pins 4429, and `maya_ancient_pair_run1234b_s_word_frame_is_widened_whole`
+pins 167. One mutation through `tools/mutate.py` on the committed tree **held** (exit 101): with piece 38's
+`CHAR_ATTACK2` row keyed away, the walk falls back to 4324.
+
+**Coverage.** Diff-backed: two stones' launch points and flight times, on keys 19 and 18, and the draw stream to
+4429. Packet and sweep only: the `CHAR_ATTACK3` row (parked 3599a).
+
+**What is not established.**
+- Piece 38's `CHAR_ATTACK3` row on a dumped round, and the Royal Balamob Slingers' piece (parked 3599a).
+- Why `0/10`'s damage parts on block 4338, and who strikes `0/11` on 4386 in theirs. The next item's frame is
+  4429, ours 10 draws against 12, index 1, with the state apart on block 4338.
 
 ## 321. Reserved for the next item on the AI track
 

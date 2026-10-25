@@ -10595,3 +10595,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1234  run1181's line with --ai-tribe 1 and run1233's lobby   (the draw stream; ended itself on 5935)
 #   run1234b --map 18 --end-frame 4433 --timeout 3600 --log-window 4177 4433 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 1 --cover cover=0, run1233's lobby   (the word 4182's window)
 # Checks: `rngcmp.py` run1233 vs run1234 -> 37 identical; run1234 vs run1234b -> 4434 identical.
+# ==== item 3599: the Maya word 4324 -> 4429 (`docs/AI.md` §320.2; `docs/RUNS.md` run1247) ====
+#   run1247  --map 18 --end-frame 4308 --log-window 4305 4307 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 1 --cover cover=0 --tracer-def RON_STATE_FRAME=4306, run1233's lobby   (a packet: the Balamob Slingers' stones; the first take's tracer build failed on an unquoted plan path)
+# Checks: `rngcmp.py` run1234 vs run1247 -> 4309 identical.
