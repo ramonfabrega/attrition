@@ -10786,13 +10786,10 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RE — reserved
+## Parked by item 3604, 2026-10-25 — the Aztecs from an Ancient start, East Indies: first try 8716
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting books: the Citizens' wounds a frame early in theirs, struck by the Royal
+Atl-Atls, in the gap 8602..8700 (`docs/AI.md` §325). `Atl-Atls` (85) is fielded.
 
 ## Parked by the next landing, slot RF — reserved
 

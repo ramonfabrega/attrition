@@ -28762,12 +28762,67 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 325. Reserved for the next item on the AI track
+## 325. The Aztecs from an Ancient start, East Indies: first try 8716 of 9258 (item 3604)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94). §323's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
+Nubians (4) against the **Aztecs (0)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY
+0` and `ENDING_TECHNOLOGY 1` (asked 1, read back 1 on both `GAME INFO`s: age 0 cannot be held, 3559a). Captures:
+run1255 (a `DUMP_ALL` start) and run1256 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 9258. The walk is seeded from run1255's initial state (3506a); run1255 against run1256 is 37
+of 37 frames identical. `diff::aztec_ancient_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 0, 5)`, is **new**, and item 3604 mints it in `battery::SCORED_LOBBIES`. The held-out
+`EastIndiesAztecTier1` is `(18, 0, 1)`, another difficulty. The Aztecs' other pinned lobbies are Great Sahara's:
+the AllTech pair `(7, 0, 3)` and the AI word's `GreatSaharaAztecTier2`, `(7, 0, 2)`. No other pinned lobby holds
+the triple. `aztec_ancient_pair_is_no_other_lobby` asserts it.
+
+**First try: frame 8716 of 9258**, by the count and the sequence. Theirs spends 17 game-stream draws against
+ours' 16, parting at index 2: theirs `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::move_step+0x823`, ours
+`Guy::set_anim+0x97a < Guy::move+0x19f` (who=1's Royal Atl-Atls `1/104`, TypeIndex 86, land). Theirs draws three
+`move_step` animations on the frame and ours two (`1/190` and `1/192`, both TypeIndex 86); the other draws agree
+by site (`9/2`'s `Animal::do_idle`, `9/28`'s `do_air_physics`, `1/132`'s `Unit::do_move` — the General, TypeIndex
+54 — four `Guy::inc_time` animations and six `Farms::inc_time`). So theirs acts: one unit processed between `9/28`
+and `1/104` takes a `move_step` animation in theirs alone.
+
+**The word's window** (run1256b, blocks 8710..8966 at the long's detail with `LEADERS=9` and `AMMO=5`, walked
+from run1255: 256 blocks, 1684 keys, the two `gaia:` keys unprinted, no inexact ground corner). run1256 against
+run1256b is 8967 of 8967 frames identical. **The value diff:**
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 8710 | Citizen `0/4` (TI 50, land) | `damage_frame`, `pos` | 8694, (5862, 8445) | 8693, (5848, 8424) |
+| 8710 | Citizen `0/13` (TI 50, land) | `damage_frame`, `pos` | 8700, (6642, 8658) | 8699, (6653, 8636) |
+| 8710 | Citizen `0/11` (TI 50, land) | `damage_frame`, `hits_left`, `orders.len` | 0, 40, 0 | 8709, 36, 1 |
+| 8710 | Citizen `0/11` | `orders_x`/`_y` | (7320, 8856) | (7080, 7320) |
+| 8710 | Royal Atl-Atls `1/163` (TI 86) | `heading` | 142540800 | 145489920 |
+| 8717 | Citizen `0/4` | `collide_o`, `path:length` | −1, 1 | 3, 4 |
+
+**The rounds.** The three Citizens were struck by who=1's Royal Atl-Atls (TypeIndex 86, group 92), and each
+wound lands a frame earlier in theirs. Ours' `RON_DEBUG_AMMO=8685-8710` holds these rounds:
+- `1/163` at `0/4`, from (6312, 10008), `t/15`;
+- `1/155` and `1/180` at `0/13`, from (6504, 9864) and (6648, 9912), `t/12` and `t/13`;
+- `1/194` and `1/195` at `0/11`, from (7512, 9960) and (7464, 9768), `t/14` and `t/11`.
+
+Each leaves its shooter's own square. Theirs' `AMMO` on block 8710 holds `1/195`'s round at `0/11` leaving
+**(7476, 9641, 348)** with `total_time` **10**. This is §323.1's shape (a piece with no `sim::launch` row). It is
+the next item's hypothesis, and nothing here reads or builds it.
+
+**The state is apart before the window opens.** The long's stride, walked over 101..8701
+(`aztec_ancient_pair_the_long_s_stride_walks_back_from_8716`, 87 blocks, 324 keys), parts on these rows:
+- the standing families: every unit's `form` and `build:extra`, which the stride does not print, and the pools;
+- the Catapult `1/107`'s `mylos` (TypeIndex 265), 4 against 10 on 5701;
+- who=1's `g.angle[0]`, 1431655765 against 0, on Royal Atl-Atls from 8101 (`german_word`'s row).
+
+The first wound rows are on 8701: `0/4` and `0/13`, `damage_frame` 8693 and 8699 in theirs against 8694 and 8700.
+So the wounds part in **the gap 8602..8700**.
+
+**The lines.** `Atl-Atls` (85) is **fielded**: 864 figure rows over run1255, run1256 and run1256b. It is new to the
+ledger and enters when the pair is lockstep. `Royal Atl-Atls` (86), the Classical upgrade, is fielded too (29070
+rows) and is already seen. `Xopilli Atl-Atls` (87) is Medieval's and does not appear. The pair's other types
+are Citizen 50, Scholar 52, General 54, Caravan 59, Merchant 61, Scout 69, Hoplites 132, Phalanx 133, Bowmen 170,
+Archers 171, Light Horse 209, Catapult 265, The Despot 352, six boats (Fishermen 317, Merchant Fleet 318,
+Transport Barge 320, Bark 323, Fire Raft 334, Trireme 340), and the horse, fish and whale herds: 24 types.
+`rubric.py` on this tree reads unit types seen **183 of 302**, unmoved, because the pair is open.
 
 ## 326. Reserved for the next item on the AI track
 

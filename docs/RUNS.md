@@ -27323,3 +27323,69 @@ SHA-256 `dac41535d65075aff385ab9e0300bed2a96f74f618b8219943cbdef81c832132`.
 
 **What it holds**: `japanese_ancient_pair_run1264c_s_closing_frame_is_widened_whole` (256 blocks, 59 keys, the
 standing families alone, through the closing block 6127).
+
+## run1255 — the Aztecs from an Ancient start, East Indies: the `DUMP_ALL` start (2026-10-25, item 3604, `att-3604`)
+
+`docs/AI.md` §325. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1255 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 0 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 01:49:36, exited 01:50:02 (26.5 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 0, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 0` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1255
+  eastindies-aztec-ancient-start --map 18`. `df -g ~` read 135 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1255-eastindies-aztec-ancient-start.txt`, 153,432,651 bytes,
+SHA-256 `90bb983587492725ea8d6354b6e907bb74da359621b76629d45b391124b23ecb`.
+
+Archive `rontrace-run1255.log`, 10,242,144 bytes,
+SHA-256 `c4dc13fc496c69ac1490d35d5e045b6f9e8d66e75ff21c0663191ff504822a9c`.
+
+**What it holds**: the start of `aztec_ancient_pair::AZTEC_ANCIENT`, and the walk's initial state.
+
+## run1256 — the Aztecs from an Ancient start, East Indies: the draw stream to the game's end (2026-10-25, item 3604, `att-3604`)
+
+`docs/AI.md` §325. run1234's line with `--ai-tribe 0`: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 0
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1255's
+lobby.
+- Pool lane 2, beside run1255. Launched 01:49:41, exited 01:50:22 (41.5 s launch to exit). `success`. **The game
+  ended itself on 9258** (closing block 9259, `ended_early`). `GAME INFO` reads back as run1255's. `rngcmp.py`
+  against run1255: 37 frames identical. Filed with `filerun.py run1256 eastindies-aztec-ancient-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1256-eastindies-aztec-ancient-trace.txt`, 65,830,563 bytes,
+SHA-256 `5bac5fb5db68e25b5432f4a377527553e9d70f134b644b53989e123994197133`.
+
+Archive `rontrace-run1256.log`, 390,178,944 bytes,
+SHA-256 `92009f448d4448aa81cb6a5a2764a218b6df5dcbebbc625deecafd11262b4179`.
+
+**What it holds**: the pair's first try. `aztec_ancient_pair_first_parting` walks it from run1255: **frame 8716 of
+9258** by the count and the sequence, ours 16 game-stream draws against theirs' 17, index 2, theirs
+`Guy::set_anim+0x97a < Unit::move_step+0x823` against ours `Guy::set_anim+0x97a < Guy::move+0x19f` (the Royal
+Atl-Atls `1/104`). Its stride, walked over 101..8701, first parts on a unit's wound on 8701.
+
+## run1256b — the Aztecs from an Ancient start, East Indies: the word 8716's window, blocks 8710..8966 (2026-10-25, item 3604, `att-3604`)
+
+`docs/AI.md` §325. **What the disk could not answer**: every record on the word's frame. run1256's stride prints
+units every hundredth block (8701 and 8801 around the word) and no `LEADERDATA` past the start, and no other dump
+holds this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1256b --map 18 --end-frame 8966
+--timeout 3600 --log-window 8710 8966 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 0 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 01:52:49, exited 01:54:52 (123.3 s launch to exit). `success`: 8967 frames. `rngcmp.py`
+  against run1256: 8967 frames identical. Filed with `filerun.py run1256b
+  eastindies-aztec-ancient-window-8710-8966 --map 18`. `df -g ~` read 133 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1256b-eastindies-aztec-ancient-window-8710-8966.txt`, 683,085,110 bytes,
+SHA-256 `f13fb0fed8960d257662d7e7e4fd475b5b825ff03bde31722cf9e41c1e28835b`.
+
+Archive `rontrace-run1256b.log`, 364,906,528 bytes,
+SHA-256 `b808a9e6eb367db1ccf4f1195dc618508f2590aff75bd7d5a9d4997292b218f9`.
+
+**What it holds**: `aztec_ancient_pair_run1256b_s_word_frame_is_widened_whole` (256 blocks, 1684 keys): the window
+opens apart on 8710. The Citizens `0/4`, `0/13` and `0/11` are wounded a frame earlier in theirs by the Royal
+Atl-Atls' rounds. Theirs' `1/195` round at `0/11` leaves (7476, 9641, 348) and flies 10, against ours' (7464, 9768)
+and 11.
