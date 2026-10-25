@@ -10218,13 +10218,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // it to 3238 in the same item; widened on run1254b over 3113..3369
     // (the word's block 3239), the state apart from block 3225. Item
     // 3612: the squad's dead tail moves it to 3281 (block 3282, the same
-    // window), the state apart from block 3268.
+    // window), the state apart from block 3268. Item 3614: whole at 4454
+    // (a dead tail's number is held while its squad lives); widened on
+    // run1267 over 4199..4455 (the closing block).
     (
         "EGYPTIAN_GUNPOWDER_PAIR_WORD",
         crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER_PAIR_WORD,
-        Some("egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole"),
-        3603,
-        Some(crate::diff::egyptian_gunpowder_pair::WIDENING_EGYPTIAN_GUNPOWDER_FRAME_3118),
+        Some("egyptian_gunpowder_pair_run1267_s_closing_frame_is_widened_whole"),
+        3614,
+        Some(crate::diff::egyptian_gunpowder_pair::WINDOW_EGYPTIAN_GUNPOWDER_CLOSING),
     ),
     // **The Aztecs from an Ancient start** (item 3604): East Indies —
     // first try 8716 of 9258; widened on run1256b over 8710..8966 (the
@@ -12045,15 +12047,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3603): first try 3118 of
     // a game that ends itself on 4454, moved to 3238 by piece 48's bays
     // and to 3281 by the squad's dead tail (item 3612), widened on
-    // run1254b.
+    // run1254b. Item 3614: whole at 4454, the dead tail's number held; the
+    // closing state compared, widened on run1267.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaEgyptianGunpowder",
         named: "Great Sahara (Egyptians, Gunpowder)",
         word: crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER_PAIR_WORD,
         length: 4_454,
-        endpoint: None,
-        window: Some("egyptian_gunpowder_frame_3118_window"),
+        endpoint: Some("egyptian_gunpowder_pair_run1254_s_closing_state"),
+        window: Some("egyptian_gunpowder_closing_window"),
     },
     // The Aztecs from an Ancient start (`STARTING_TECHNOLOGY` 0, read back
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3604): first try 8716 of a

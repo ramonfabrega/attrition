@@ -2293,14 +2293,19 @@ impl Sim {
             for u in &self.units {
                 let i = u.index - base;
                 if u.owner == who && (base..mark).contains(&u.index) {
-                    // SEAM: the reuse test's captain term (`UnitData +0x8e`
-                    // negative, `0065adde`) is not modelled here — read as
-                    // `o_up.is_none()` it kept dead numbers from reuse and the
-                    // third pair parted at 14461 against 17379 (item 2400's
-                    // booking gate; parked 2441). Every dead unit counts as a
-                    // captain until `+0x8e`'s field is named.
-                    free[i as usize] &=
-                        find_free_reusable(u.alive(), i16::from(u.hold_frames != 0), true, true);
+                    // The reuse test's captain term, `UnitData +0x8e`
+                    // (`o_up`) negative (`0065adde`): a dead tail still
+                    // linked under a live squad is held. 2400 read it so and
+                    // the third pair fell (parked 2441) because the squad's
+                    // last death left its dead tail linked here;
+                    // [`Sim::relink_squad`]'s whole-squad arm clears it, as
+                    // `Unit::close` does (`docs/AI.md` §324.2).
+                    free[i as usize] &= find_free_reusable(
+                        u.alive(),
+                        i16::from(u.hold_frames != 0),
+                        true,
+                        u.o_up.is_none(),
+                    );
                 }
             }
         }
