@@ -29678,7 +29678,7 @@ ledger: **the `Brig` (331, sea), ×618**, the booking's line. The AI built it. T
 **Coverage.** Diff-backed: the third refusal, by the word's closure and the mutation. Reading only: that the third
 test is in the stand arm alone, from the listing.
 
-## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620)
+## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Lakota
 Medieval pair's lobby (§314) with the nation moved: East Indies,
@@ -29754,12 +29754,86 @@ Legions (147)**. It enters the count when the pair closes. `Praetorian
 Guards` (148) is Gunpowder's and does not appear. The pair is open at 1875,
 so `unit types seen` stays 188 of 302.
 
-**What is not established.** Why theirs pops the build on `1/2023` on 1875,
-and ours keeps it, is not established. It is the next item's hypothesis.
-The draws say only that ours' `1/17` walks (`Guy::move`) on the frame
-theirs' takes its new path. The order lists say that both sides rewrite the
-explore's destination, and only theirs drops the build. The building's own
-fields agree on the frame.
+**What is not established.** ~~Why theirs pops the build on `1/2023` on 1875,
+and ours keeps it, is not established.~~ Answered below (item 3622): the
+ring finds no spot for the Dock site, and the original queues nothing.
+
+**Item 3622: a swarm whose ring finds no spot queues nothing; 1875 → 3607.**
+
+*How it was found.* Theirs' dump shows the same pop two frames apart: on
+1871 the build on the finished `1/2022` goes the frame it becomes current,
+and on 1875 the build on `1/2023` does. Both `1/2023` and `1/2030` are Dock
+sites (`orig_type` 432, unstarted, `construct_hits` 1, `build_masks` 8192 =
+`0x2000`, the orphan check's "no builder found" mark). On 1875 theirs clears
+`1/2030`'s `0x2000` and leaves `1/2023`'s set. Only
+`Group::action_swarm_around@0070fbe0`'s member arm clears it
+(`swarm_around_view::SwarmView::clear_site_2000`). A probe (reverted whole)
+printed `1/17`'s orders at every phase mark and after every unit's
+`process` on sim frame 1874. Ours' rewrite happens inside `1/17`'s own
+`process`, in `do_build`.
+
+*The mechanism.* `Unit::do_build@005eebf0` finds `1/17` out of reach of
+`1/2023` and re-swarms it through the insert dance (`005ef165`): kill the
+build, `set_up_insert`, halt, `swarm_around(2023)` at `QUEUE_NEW`,
+`finish_insert`. The ring finds no spot for the Dock site. The member arm's
+approach move, its `add_build_order` and the builder's mark all sit inside
+`find_nearby_spot == 0` (`swarm_around_view::swarm_member`, the swept
+steps), so the original queues nothing for 2023. `finish_insert` then
+re-issues the copied action-flagged build on 2030 at `QUEUE_LAST`, which is
+the new explore to (36600, 43320) and the `0x2000` clear. Theirs:
+`[BUILD 2030, EXPLORE (36600, 43320)]`.
+
+`Sim::swarm_around` (`crates/sim/src/orders.rs`) queued the approach only
+when a spot was found, but inserted the order every time. So ours kept a
+`Build(2023)` with no approach in front of it, and `1/17` stood on it.
+`swarm_around` now returns when the ring finds no spot. This is the shape
+`swarm_around_last` already had. The barge test
+(`transport::tests::a_citizen_swarms_a_sea_site_as_the_barge_once_its_leader_transports`)
+asserted the old shape ("the build goes in bare"), which was ours' behaviour
+read back (§151 reports ours holding a bare `Build`, not the original). It
+now asserts no order and no mark.
+
+*The value diff* (run1275b, `1/17`):
+
+| frame | field | ours before | ours now | theirs |
+|---|---|---|---|---|
+| 1875 | `orders.len`, `order:kind` | 3, 6 | 2, 3 | 2, 3 |
+| 1875 | `orders_x`, `orders_y` | 35340, 42696 | 36600, 43320 | 36600, 43320 |
+| 1876 | `pos` | (35340, 42696) | (35349, 42720) | (35349, 42720) |
+| 1876 | `path:length` | 0 | 4 | 4 |
+
+The window's keys fall from 1211 to 83. No `1/17` key is among them
+(`roman_medieval_pair_run1275b_s_word_frame_is_widened_whole` asserts it).
+What is left is the standing families on 1870, plus value rows from 1919 on
+that predate the fix: the pools and groups, `SITE[i]` on 1976, `1/64`'s
+`form` on 2030. Every other lobby's `first_parting` is unmoved (64 green).
+`tools/mutate.py`: putting the old shape back fails both the barge test and
+the pair's two pins.
+
+*The new word: frame 3607 of 5979*, by the count and the sequence. Ours
+spends 3205 game-stream draws against theirs' 3208, and they part at index
+3201. The Caravan `1/49` (TypeIndex 59, uid 81), on a `TRADEORDER` from
+`1/2032` to `1/2000`, runs `PathFinder::astar_caravan_road`. Its
+`calc_road_cost+0x46` draws 3201 times in ours and 3204 in theirs. The four
+draws after it agree in order (`1/141`'s `do_idle`, `0/12`'s and `9/13`'s
+`Guy::inc_time`, `Farms::inc_time`). **Theirs draws more.** run1277 widens
+it (blocks 3602..3858, 256 blocks, **720 keys**;
+`roman_medieval_pair_run1277_s_word_frame_is_widened_whole`). Block 3602
+carries the standing families (104 rows) and 3603 one pool and its group.
+**Nothing parts from block 3604 to 3614.** The state first parts on block
+3615, at `1/49`'s move:
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3615 | Caravan `1/49` (TI 59) | `order:move.x`, `.y` | 37944, 24504 | 38328, 23928 |
+| 3615 | `1/49` | `off_x`, `off_y` | 312, 696 | 696, 120 |
+| 3615 | `1/49` | `path:length` | 46 | 47 |
+
+So the word is a road search that costs three more node expansions in
+theirs. Which node is the next item's question (the brief's row 9: a
+road-node parting logs ours' map around the tile over the whole game
+first). Not established: why the road map differs. The rubric is unmoved
+while the pair is open.
 
 ## 331. Reserved for the next item on the AI track
 
