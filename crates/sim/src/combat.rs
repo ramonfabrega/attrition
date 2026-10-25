@@ -637,6 +637,22 @@ pub const fn splash_cells(splash_area: i32) -> i32 {
     if k > 10 { 10 } else { k }
 }
 
+/// **The one cell past the square** (item 3636, parked 3356c): the walk is
+/// `while i <= radius[k]` (`678b49`..`678b50`, a `jle`), and `radius[k]` is
+/// `(2k+1)²`, so it reads one spiral entry more than the square holds —
+/// the first cell of ring `k + 1`, `(−1, −2)` for `k = 1` and
+/// `(−(k+1), −(k+1))` beyond. An offset from the landing cell. The shipped
+/// table reaches entry 288 in this crate ([`crate::world::MOVE_289`]); a
+/// splash of `k >= 8` (no shipped type has one) answers `None`.
+pub const fn splash_extra_cell(k: i32) -> Option<(i32, i32)> {
+    let i = ((2 * k + 1) * (2 * k + 1)) as usize;
+    if i < crate::world::MOVE_289.len() {
+        Some(crate::world::MOVE_289[i])
+    } else {
+        None
+    }
+}
+
 /// The ring a cell offset belongs to in `circle_x/circle_y` — the original's
 /// own integer distance, `max + min² / (2·max)` — and the order within it,
 /// `dx` ascending then `dy`.

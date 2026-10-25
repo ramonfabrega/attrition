@@ -5735,6 +5735,7 @@ impl Sim {
         // Splash: everything on the square of cells the spiral table walks,
         // the intended target at full count and everything else as a fringe.
         let k = combat::splash_cells(p.splash_area);
+        let extra = combat::splash_extra_cell(k);
         let landing_cell = p.landing.cell();
         let candidates: Vec<Obj> = (0..self.units.len())
             .map(Obj::Unit)
@@ -5745,7 +5746,12 @@ impl Sim {
             .filter(|&o| self.struck(o))
             .filter(|&o| {
                 let c = self.pos_of(o).cell();
-                (c.x - landing_cell.x).abs() <= k && (c.y - landing_cell.y).abs() <= k
+                let (dx, dy) = (c.x - landing_cell.x, c.y - landing_cell.y);
+                // The square, and the spiral's next entry the inclusive
+                // walk reads (item 3636): run1296b's Bombard round on 5047
+                // lands in cell (8, 9) and wounds the Library `0/2005`,
+                // chained in (7, 7).
+                (dx.abs() <= k && dy.abs() <= k) || extra == Some((dx, dy))
             })
             .filter(|&o| {
                 // **The round's own target skips the team test**
