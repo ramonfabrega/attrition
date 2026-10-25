@@ -28092,3 +28092,48 @@ SHA-256 `f46c6cd4cb8d37d489d0232d0f29d0c3e5e3305927eab5cfa8ab28035e48b3e9`.
 86), (112, 86), (112, 87), (113, 88), (114, 88), (114, 89), (115, 90), (115, 91). The cell (55, 42) under them is
 unowned (`who` −1) on both sides, so `was_seen`'s territory arm is out. The arc is the Fort `1/2013`'s disc at
 radius 8 (`mylos 16` in run1277) against ours' 7. With the fort term built, every byte of the grid agrees.
+## run1293b — the Romans at a held Medieval age, East Indies: the word 5582's window, blocks 5577..5833 (2026-10-25, item 3631, `att-3631`)
+
+`docs/AI.md` §330. **What the disk could not answer**: the word's block 5583. Item 3631 moved the word from 3607 to
+5582, and run1275's stride prints only 5501 and 5601; no other capture holds this lobby past 3858.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1293b --map 18 --end-frame 5833 --allow-early-end
+--timeout 3600 --log-window 5577 5833 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6
+--cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 13:15:14, exited 13:16:09 (55.1 s launch to exit). `success`, 5834 frames. `rngcmp.py`
+  against run1275: 5834 frames in common, 0 differing. Filed with `filerun.py run1293b
+  eastindies-roman-medieval-window-5577-5833 --map 18`. `df -g ~` read 132 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1293b-eastindies-roman-medieval-window-5577-5833.txt`, 651,607,485 bytes,
+SHA-256 `e01c9798dc867f347a4447ceadab8587642500080e608f75bde344d189f91a96`.
+
+Archive `rontrace-run1293b.log`, 180,168,000 bytes,
+SHA-256 `7852472a42a656321fd854954719ea3491e489ee2c885a3d6908c5f8bf1d17fb`.
+
+**What it holds**: `roman_medieval_pair_run1293b_s_word_frame_is_widened_whole` (256 blocks, 2550 keys), the word
+5582 (block 5583). Its first block 5577 already holds the human's `0/10` apart (`pos` y 4201 against 4226), so
+run1293c took the gap.
+
+## run1293c — the Romans at a held Medieval age, East Indies: the gap before the word 5582, blocks 5501..5577 (2026-10-25, item 3631, `att-3631`)
+
+`docs/AI.md` §330. **What the disk could not answer**: where the state first parts before 5577. run1275's stride
+agrees on every unit through 5501 and prints no building; run1293b opens on 5577 with `0/10` apart.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1293c --map 18 --end-frame 5577 --allow-early-end
+--timeout 3600 --log-window 5501 5577 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6
+--cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 13:19:40, exited 13:20:15 (34.5 s launch to exit). `success`, 5578 frames. `rngcmp.py`
+  against run1275: 5578 frames in common, 0 differing. Filed with `filerun.py run1293c
+  eastindies-roman-medieval-gap-5501-5577 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1293c-eastindies-roman-medieval-gap-5501-5577.txt`, 187,970,186 bytes,
+SHA-256 `53b7ef93f5db9ee7236d7742169efadd81bad1d9f849b946acfcdcf5845f8cd9`.
+
+Archive `rontrace-run1293c.log`, 169,807,904 bytes,
+SHA-256 `5ab34ae1fb2feaad37e1b214e4ccd82359498b72072919db69d66dc0e81f893c`.
+
+**What it holds**: `roman_medieval_pair_run1293c_s_gap_is_widened_whole` (76 blocks, 113 keys). Block 5501 agrees
+past the standing families. **The state first parts on block 5519, at the human's Village `0/2000`: `damage` ours
+552 against 554** (548 on both on 5518). The human's `0/10` follows on 5551.

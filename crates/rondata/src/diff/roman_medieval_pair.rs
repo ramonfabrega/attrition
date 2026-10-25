@@ -443,6 +443,11 @@ fn roman_medieval_pair_run1293b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3631: **2550** keys. Block 5577 carries the standing families
+    // and, from run1293c's gap, the human's `0/10` already apart (`pos` y
+    // 4201 against 4226). On the word's own block 5583 `1/14` is in range
+    // of its target in theirs (`recharging` 30 against 0) and `1/124` in
+    // ours.
     pin_eq!(w.firsts.len(), 2550, "run1293b baseline");
 }
 
@@ -481,4 +486,62 @@ fn roman_medieval_pair_the_long_s_stride_walks_back_from_5582() {
         eprintln!("  missing {:?}", w.missing);
     }
     pin_eq!(w.firsts.len(), 180, "run1275 stride baseline");
+}
+
+/// run1293c: the gap before the word 5582's window, blocks 5501..5577 at
+/// the long's detail (item 3631): run1275's stride prints 5501 and run1293b
+/// opens with the human's `0/10` already apart.
+pub(crate) const RUN1293C: &str = "gamelog-run1293c-eastindies-roman-medieval-gap-5501-5577.txt";
+
+/// The window: block 5501 through 5577.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_GAP_5582: (i64, i64) = (5501, 5577);
+
+/// **The gap before the word 5582's window**: run1293c walked from
+/// run1274's start with the recorder on (item 3631).
+pub(crate) fn roman_medieval_gap_5582_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_MEDIEVAL.start],
+        true,
+        ROMAN_MEDIEVAL.long,
+        "run1293c",
+        &[(RUN1293C, WIDENING_ROMAN_MEDIEVAL_GAP_5582.0)],
+        WIDENING_ROMAN_MEDIEVAL_GAP_5582,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn roman_medieval_pair_run1293c_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_medieval_gap_5582_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 76, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    // Item 3631: 113 keys. Block 5501 carries the standing families (91
+    // rows) and agrees on every unit. **The state first parts on block
+    // 5519, at the human's Village `0/2000`: `damage` ours 552 against
+    // 554** (548 on both on 5518; theirs' blow on tick 5518 is six, ours
+    // four). Then the human's `0/10` on 5551: theirs takes a hit from
+    // `1/130` on 5550 (`damage_o` 130, `hits_left` 30 against 31) and an
+    // order, ours none.
+    pin!(
+        w.firsts
+            .iter()
+            .filter(|(_, (f, _))| *f > 5501)
+            .map(|(k, (f, _))| (*f, k.clone()))
+            .min()
+            == Some((5519, (0, 2000, "build:damage".to_string()))),
+        "the first parting past the standing block is the Village's damage on 5519"
+    );
+    pin_eq!(w.firsts.len(), 113, "run1293c baseline");
 }

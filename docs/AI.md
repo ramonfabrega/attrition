@@ -29678,7 +29678,7 @@ ledger: **the `Brig` (331, sea), ×618**, the booking's line. The AI built it. T
 **Coverage.** Diff-backed: the third refusal, by the word's closure and the mutation. Reading only: that the third
 test is in the stand arm alone, from the listing.
 
-## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622
+## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622, 5582 since item 3631
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Lakota
 Medieval pair's lobby (§314) with the nation moved: East Indies,
@@ -29898,6 +29898,31 @@ Unit::move_step+0x823` (seed `bd4d2101`) before the `Unit::fight+0x824`
 that ours draws there (`1/14`'s, by `RON_DEBUG_SITES`). **Theirs draws
 more.** Ours' `1/124` spends `fight+0x824`, `fight+0x9b0` and a `set_anim
 +0xf2f` further on.
+
+*The widening, walked back.* run1275's stride prints 5501 and 5601, so
+**run1293b** is the word's window (blocks 5577..5833, 256 blocks, **2550
+keys**; `roman_medieval_pair_run1293b_s_word_frame_is_widened_whole`). Its
+first block already holds the human's `0/10` apart (`pos` y 4201 against
+4226, `damage_frame` 5551 against 5550). On the word's block 5583 `1/14` is
+in range of its target in theirs (`recharging` 30 against 0) and `1/124` in
+ours. Walked back: run1275's stride 3901..5501
+(`roman_medieval_pair_the_long_s_stride_walks_back_from_5582`, 17 blocks,
+180 keys) parts nothing but the standing families and the stride's
+unprinted buildings. **run1293c** takes the gap (blocks 5501..5577, 76
+blocks, 113 keys; `roman_medieval_pair_run1293c_s_gap_is_widened_whole`).
+**The state first parts on block 5519, at the human's Village `0/2000`**:
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5518 | Village `0/2000` | `damage` | 548 | 548 |
+| 5519 | `0/2000` | `damage` | 552 | 554 |
+| 5551 | Nubian `0/10` | `damage_o`, `damage_frame` | 46, 5425 | 130, 5550 |
+| 5551 | `0/10` | `hits_left`, `orders.len` | 31, 0 | 30, 1 |
+
+So a blow on the Village on tick 5518 is four here and six there, with no
+draw between them; and on 5550 theirs' `1/130` strikes `0/10`, which then
+takes an order. Which blow, and why it is two short, is the next item's. Not
+established: the cause of either.
 
 ## 331. The Mongols at a held Gunpowder age, East Indies: first try 1973 of 5399 (item 3623)
 
