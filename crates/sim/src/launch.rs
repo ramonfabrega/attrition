@@ -4458,7 +4458,8 @@ mod tests {
     /// `GUY` and `AMMO` records on the round's first block.
     #[test]
     fn run1270_s_inca_archers_loose_from_piece_825_s_bays() {
-        const M: &[(&str, i32, i8, i32, i32, i32, i32, i32, i32, i32)] = &[
+        type Round = (&'static str, i32, i8, i32, i32, i32, i32, i32, i32, i32);
+        const M: &[Round] = &[
             (
                 "1/58",
                 5328,
