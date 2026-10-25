@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-25, **the fifty-sixth tranche (commander, Opus): 16 of 20 landed from `a30d051d3`**; 3607 and 3619 live on two Opus lanes at medium; the last whole gate is `2bb2cbf68`.*
-- **Words**: none open (lower map first — closed); seven closed this tranche.
-  **The headline, the early ages**: seven closed — Maya 5935, Korean Classical 8777, Japanese Ancient 6126, Egyptian Gunpowder 4454 (3614: a dead
+*2026-10-25, **the fifty-sixth tranche (commander, Opus): 17 of 20 landed from `a30d051d3`**; 3619 and 3620 live on two Opus lanes at medium; the last whole gate is `2bb2cbf68`.*
+- **Words**: none open (lower map first — closed); eight closed this tranche.
+  **The headline, the early ages**: eight closed — Maya 5935, Korean Classical 8777, Japanese Ancient 6126, Egyptian Gunpowder 4454 (3614: a dead
   tail's squad links), Aztec Ancient 9258, Inca Classical 6073 (3616, 3617: two pieces' bays; one Citizen over at the close, 3617b), Russian Medieval
-  4541 (3615, 3618: a target's training building ×2; attrition's remainder share to the last figure standing). 3607 and 3619 live.
+  4541 (3615, 3618: a target's training building ×2; attrition's remainder share); French Classical 6106 on its first try (3607).
 - **The rubric, lockstep**: ages 8 of 8, types 179 → 188 of 302, **bytes 77.4 %** unmoved; the scan 0 of 39 dead. 20 gates green, no `FABLE:`.
 - **The gate is the clock**: 30.7 of 35.2 waiting minutes a session; eight stand-ups' lane gates ran the whole timed suite for three row-list
   edits — `release_gate.py --lane` reads the hunks now (Loop 3608, DECISIONS 94 §2); the next drain measures it in `tranche.py`'s gate class.
-- **Lanes: two Opus at medium** (the lane rule read on the gate, DECISIONS 94 §1); two live (3607, 3619); none booked. Next 3620, run 1274.
-  Pools: AI §330–334 and park RS–RZ (§331–334 and RU–RZ landed by this booking).
+- **Lanes: two Opus at medium** (the lane rule read on the gate, DECISIONS 94 §1); two live (3619, 3620); none booked. Next 3621, run 1276.
+  Pools: AI §331–334, park RT–RZ.
 - **Fable backlog: 7 Loop items** (3611, 3382, 3350, 3237, 3188, 3143, 3118); 3498, 3433 and 2003 closed unreached (DECISIONS 54), their text in the record.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6748 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w5935 of 5,935 · GreatSaharaGermanAncient w5314 of 5,314 · GreatSaharaKoreanClassical w8777 of 8,777 · EastIndiesJapaneseAncient w6126 of 6,126 · GreatSaharaEgyptianGunpowder w4454 of 4,454 · EastIndiesAztecAncient w9258 of 9,258 · GreatSaharaRussianMedieval w4541 of 4,541 · EastIndiesIncaClassical w6073 of 6,073
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6748 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w5935 of 5,935 · GreatSaharaGermanAncient w5314 of 5,314 · GreatSaharaKoreanClassical w8777 of 8,777 · EastIndiesJapaneseAncient w6126 of 6,126 · GreatSaharaEgyptianGunpowder w4454 of 4,454 · EastIndiesAztecAncient w9258 of 9,258 · GreatSaharaRussianMedieval w4541 of 4,541 · EastIndiesIncaClassical w6073 of 6,073 · GreatSaharaFrenchClassical w6106 of 6,106
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -51,13 +51,13 @@ the walk seeded from the start (3506a), the age held by `STARTING_TECHNOLOGY=A E
 start is `0`/`1`, read back `1`: age 0 cannot be held (3559a) — booked on the nation `rubric.py --tables 3` prints in braces, `diff::<name>_pair` at its
 first parting, a scoreboard line). **No twin for a pair varying only age and nation** (93 §2). **The refill is the next nation and age off the braces, a lobby that fields two never-seen lines first** (94 §4; the order is in the pass's record).
 
-3607. **The French at a held Classical age, Great Sahara** (`GreatSaharaFrenchClassical`, map 7, tribe 10, difficulty 5, age 1 held; the third
-pair's French lobbies are the default age on East Indies and Great Lakes, the held-out `GreatSaharaFrenchTier4` another difficulty): the line
-is `Chevalier` (235); `Heavy Chevalier` (236) is Medieval's. Runs 1261–1262; AI §328; park RH.
-
 3619. **The Dutch at a held Medieval age, East Indies** (`EastIndiesDutchMedieval`, map 18, tribe 22, difficulty 5, age 2 held; the Dutch AI
 words are `(18, 22, 4)` and `(7, 22, 3)`, another difficulty and another map): the line is `Brig` (331, sea); the `Fluyt` (332) is Gunpowder's.
 Runs 1272–1273; AI §329; park RR.
+
+3620. **The Romans at a held Medieval age, East Indies** (`EastIndiesRomanMedieval`, map 18, tribe 6, difficulty 5, age 2 held; the Classical
+pair is Great Sahara's `(7, 6, 5)`, the Roman AI words `(18, 6, 2)` and `(14, 6, 2)` another difficulty): the line is `Caesar's Legions` (147);
+`Praetorian Guards` (148) is Gunpowder's. Runs 1274–1275; AI §330; park RS.
 
 ## How to maintain this file
 

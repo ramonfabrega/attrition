@@ -10281,6 +10281,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3617,
         Some(crate::diff::inca_classical_pair::WINDOW_INCA_CLASSICAL_CLOSING),
     ),
+    // **The French at a held Classical age** (item 3607): Great Sahara —
+    // whole on its first try, 6106 of 6106, the closing state compared;
+    // the word's widening is run1262's whole long, 101..6107 (the
+    // closing block).
+    (
+        "FRENCH_CLASSICAL_PAIR_WORD",
+        crate::diff::french_classical_pair::FRENCH_CLASSICAL_PAIR_WORD,
+        Some("french_classical_pair_run1262_s_closing_frame_is_widened_whole"),
+        3607,
+        Some(crate::diff::french_classical_pair::WIDENING_FRENCH_CLASSICAL_CLOSING),
+    ),
     // **The Dutch at a held Medieval age** (item 3619): East Indies —
     // first try 7063 of 7095; widened on run1273b over 7057..7096 (the
     // word's block 7064 through the closing block).
@@ -12153,6 +12164,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 6_073,
         endpoint: Some("inca_classical_pair_run1260_s_closing_state"),
         window: Some("inca_classical_closing_window"),
+    },
+    // The French at a held Classical age (`STARTING_TECHNOLOGY` 1,
+    // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3607): whole on its first
+    // try, a game that ends itself on 6106; the closing state compared,
+    // widened on run1262's whole long.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaFrenchClassical",
+        named: "Great Sahara (French, Classical)",
+        word: crate::diff::french_classical_pair::FRENCH_CLASSICAL_PAIR_WORD,
+        length: 6_106,
+        endpoint: Some("french_classical_pair_run1262_s_closing_state"),
+        window: Some("french_classical_closing_window"),
     },
     // The Dutch at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), East Indies (item 3619): first try 7063 of a

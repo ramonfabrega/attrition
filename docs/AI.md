@@ -29485,12 +29485,67 @@ The new one is the Inti Clubmen (91), the line this section booked (`census::RUB
 **Diff-backed**: piece 825's three launches (run1270's `AMMO`), the pair's draw stream to 6073, and the closing
 units' fields. **Reading alone**: nothing here.
 
-## 328. Reserved for the next item on the AI track
+## 328. The French at a held Classical age, Great Sahara: whole on its first try, 6106 of 6106 (item 3607)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Korean
+Classical pair's lobby (§322) with the nation moved: Great Sahara,
+`MAP_STYLE 7`, human Nubians (4) against the **French (10)** at Difficulty
+5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 1` and
+`ENDING_TECHNOLOGY 1`. `crates/rondata/src/diff/french_classical_pair.rs`
+pins it.
+
+**The captures.** run1261 is the `DUMP_ALL` start. run1262 is the long:
+`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100, and `endgame:` detail on
+the closing block. `GAME INFO` reads back `DIFFICULTY 5`,
+`STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1` on both, and
+`Pair::assert_lobby` checks it. `rngcmp.py` reads run1261 against run1262 as
+37 of 37 frames identical. The walk is seeded from run1261's initial state
+(3506a). **The game ends itself on 6106** (closing block 6107): the idle
+human is defeated.
+
+**The lobby.** The triple `(7, 10, 5)` is in no `battery::BATTERY` game,
+and no battery game fields the French. Every other French lobby is another
+game: `french_word`'s `GreatSaharaFrenchTier4` is `(7, 10, 4)`, another
+difficulty, and the third pair's East Indies and Great Lakes are
+`(18, 10, 5)` and `(14, 10, 5)`, other maps at the default age. So item
+3607 mints `(7, 10, 5)` in `battery::SCORED_LOBBIES`, and
+`french_classical_pair_is_no_other_lobby` asserts it.
+
+**The first try: whole.** The draw stream agrees by the count and by the
+sequence to frame 6106, the game's last (`french_classical_pair_first_parting`).
+**The closing state is compared whole** (`french_classical_pair_run1262_s_closing_state`):
+on block 6107 there are 254 units, none torn, off or unlinked, and no
+building or city field-row.
+
+**The widening** is run1262's whole long, 101..6107: 62 blocks and **154**
+keys (`french_classical_pair_run1262_s_closing_frame_is_widened_whole`). No
+new window was booked, because the long already prints every stride block
+and the closing block at its `endgame:` detail.
+- From block 101: the standing families. These are every unit's `form`,
+  `build:extra`, and who=1's groups' `held` and pools.
+- **One unit row.** The Light Horse `1/50` (TypeIndex 209, land, uid 82)
+  holds `hits_left` 68 and `damage` 5 in ours, against 73 and 0 in theirs,
+  from block 5601. The values agree on 5501, when the unit is on an
+  `ATTACKORDER` against `0/12`. The row stands to the close, and no draw
+  parts (parked 3607a).
+- `1/37`'s `dest_angle` on 6101 (3574b's family).
+- The closing block adds the human's defeat, as on 3609a's:
+  - who=0's `SITE[i].reg`, `aggression[1]` and `leader:defense`;
+  - who=1's `num_queued` and six `queue:queued` rows, ours 1..6 against 0;
+  - `bucket[3:knowledge]`, ours 4739 against 4239;
+  - two idle Phalanxes' (`1/89`, `1/221`) `g.cur_anim` and `g.end_time`;
+  - the Light Horse `1/182`'s `guard.retry`, 7 against 6.
+
+**The rubric.** The booking names the line `Chevalier` (235), and it was
+**not fielded**. The pair's dumps show 14 unit types, all already in the
+lockstep set: Citizen, General, Caravan, Merchant, Supply Wagon, Scout,
+Javelineers, Phalanx, Archers, Light Horse, Catapult, The Senator, and the
+sheep and peacock herds. The French AI never trained its unique cavalry at
+this age in 6106 frames. `unit types seen` stays 187 of 302.
+
+**What is not established.** Why `1/50` holds five hits fewer in ours with
+no draw apart is not established. It could be one blow landed only in ours,
+or a heal only theirs made. No dump between 5501 and 5601 prints the unit.
 
 ## 329. The Dutch at a held Medieval age, East Indies: first try 7063 of 7095 (item 3619)
 
