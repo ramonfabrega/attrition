@@ -3012,7 +3012,7 @@ impl Sim {
                 // `max_health - health` and the share beside them.
                 let u = &self.units[i];
                 let uber = self.profile(target).uber_size;
-                let alone = u.combat.captain == i32::from(u.index) && u.squad_size == 1;
+                let alone = self.takes_remainder_share(i);
                 let share = combat::share(u.max_health, uber, alone);
                 let u = &self.units[i];
                 let (taken, _, frac) =

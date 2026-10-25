@@ -49,9 +49,17 @@ pub(crate) const RUSSIAN_MEDIEVAL: Pair = Pair {
     // the armed weight's empty-city gate; the pair reads 4442 by the count
     // and the sequence, ours 28 draws against 25, index 12 — ours
     // `Ammo::init+0xcd9`, theirs `Guy::set_anim+0x97a <
-    // Guy::inc_time+0x1ed`.
-    count: 4442,
-    sequence: 4442,
+    // Guy::inc_time+0x1ed`. Item 3618: on 4442 six Elite Javelineers
+    // squads fall to attrition one point short of their shares, and the
+    // remainder share (`hits − 2·hits/3`, 37 of 110) is the last figure
+    // standing's, not every captain's (`Object::take_damage`'s
+    // `curr_uber_size(this, 1) == 1`, `docs/AI.md` section 326.2): theirs
+    // removes each captain and its first member on 4443 and the last on
+    // 4444, ours the two members and then the captain. Built
+    // (`Sim::takes_remainder_share`), **the word closes: 4442 → 4541 of
+    // 4541** by the count and the sequence.
+    count: 4541,
+    sequence: 4541,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -230,7 +238,7 @@ fn russian_medieval_pair_run1258b_s_word_frame_is_widened_whole() {
     // 3350; its slot a Citizen's on 3384) and wounds `1/42` 19 → 20,
     // `damage_frac` 0, where ours keeps `1/41` and leaves `1/42` at 19,
     // `damage_frac` 8. The draw stream holds through it to 4442.
-    pin_eq!(w.firsts.len(), 55, "run1258b baseline");
+    pin_eq!(w.firsts.len(), 49, "run1258b baseline");
 }
 
 /// run1268b: the closing window, blocks 4286..4542 at run1258b's detail
@@ -290,7 +298,7 @@ fn russian_medieval_pair_run1268b_s_word_frame_is_widened_whole() {
     // `1/215`, `1/218` (theirs' gone) and theirs `1/202`, `1/207`,
     // `1/211`, `1/214`, `1/217`, `1/220` (ours' gone). Then the city's
     // damage on 4446 (ours 1091 against 1087) and `1/54`'s attack.
-    pin_eq!(w.firsts.len(), 1411, "run1268b baseline");
+    pin_eq!(w.firsts.len(), 55, "run1268b baseline");
 }
 
 /// **The long's stride, walked back from the window** (item 3605):
@@ -407,5 +415,90 @@ fn russian_medieval_pair_s_guard_search_values_the_market_as_a_trainer() {
         value(2000),
         2787,
         "the empty city's worth to 1/27, as the packet computes it"
+    );
+}
+
+/// **The remainder share is the last figure's** (item 3618, `docs/AI.md`
+/// §326.2): `Object::take_damage` gives a squad figure `hits − (uber − 1) ·
+/// hits / uber` only when it is a captain whose `curr_uber_size(this, 1)`
+/// is 1, and `hits / uber` otherwise. On 4442 six squads of Elite
+/// Javelineers (TypeIndex 84, `uber_size` 3, 110 hits: shares 36 and 37)
+/// stand at damage 35 round the empty city `0/2000`, and attrition deals
+/// each figure its point. Theirs' dump: block 4443 holds each squad's
+/// third figure alone, at damage 36; block 4444 none of them. And the same
+/// rule on block 3351, draw-silent: the captain `1/41` falls at 36 and
+/// `1/42`, alone, takes a lone figure's whole point (damage 20,
+/// `damage_frac` 0). Ours gave every captain the remainder and kept it
+/// (37), dropping the two members instead.
+#[test]
+fn russian_medieval_pair_s_attrition_gives_the_remainder_to_the_last_figure() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let p = &RUSSIAN_MEDIEVAL;
+    let (Some(path), Some(sib), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1)) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    // A figure by number: `None` when its slot is dead, else its dump
+    // `damage` and `damage_frac`.
+    let at = |s: &sim::Sim, o: i16| {
+        (0..s.units.len())
+            .find(|&u| s.units[u].owner == 1 && s.units[u].index == o && s.units[u].alive())
+            .map(|u| {
+                (
+                    s.units[u].max_health - s.units[u].health,
+                    s.units[u].damage_frac,
+                )
+            })
+    };
+    while built.sim.frame < 3351 {
+        built.tick();
+    }
+    pin_eq!(
+        (at(&built.sim, 41), at(&built.sim, 42)),
+        (None, Some((20, 0))),
+        "run1258b's block 3351: the captain 1/41 gone, 1/42 alone at 20/0"
+    );
+    while built.sim.frame < 4443 {
+        built.tick();
+    }
+    let squads: [i16; 6] = [200, 205, 209, 212, 215, 218];
+    let rows: Vec<_> = squads
+        .iter()
+        .map(|&c| {
+            // 1/203 and 1/208 are Knights between the squads: the third
+            // figure of 1/200's squad is 1/202, and of 1/205's 1/207.
+            let last = c + 2;
+            (
+                at(&built.sim, c),
+                at(&built.sim, c + 1),
+                at(&built.sim, last).map(|d| d.0),
+            )
+        })
+        .collect();
+    pin_eq!(
+        rows,
+        vec![(None, None, Some(36)); 6],
+        "run1268b's block 4443: each squad's third figure alone, at damage 36"
+    );
+    built.tick();
+    pin_eq!(
+        squads
+            .iter()
+            .map(|&c| at(&built.sim, c + 2))
+            .collect::<Vec<_>>(),
+        vec![None; 6],
+        "run1268b's block 4444: the last figures fall at the remainder share, 37"
     );
 }
