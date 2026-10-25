@@ -7289,6 +7289,9 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3630: the Mongol Gunpowder pair, walked from run1278 along
+    // run1279 to its new word 4499, reads 2 inexact corners.
+    ("mongol_gunpowder_pair_first_parting", 2),
     // Item 3619: the Dutch Medieval pair's first try, walked from run1272
     // along run1273, reads 9 inexact corners.
     ("dutch_medieval_pair_first_parting", 9),

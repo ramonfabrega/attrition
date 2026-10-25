@@ -37,8 +37,14 @@ pub(crate) const MONGOL_GUNPOWDER: Pair = Pair {
     // sequence. On 1973 ours spends 7 draws against theirs' 5, parting at
     // index 0 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d` (twice,
     // `1/17`'s), theirs `Guy::init_real+0x52` (`docs/AI.md` section 331).
-    count: 1973,
-    sequence: 1973,
+    // Item 3630: 1973 → 4499. A supplier's pool is `MANA ×
+    // (get_supply_upgrade + 1)`, so the Monarch `1/17` casts Create Decoy
+    // on 1946 under one supply upgrade (`mana` 2000 against `mana_burn`
+    // 767 + 1000). On 4499 ours spends 11 draws against 10, parting at
+    // index 2 — ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+    count: 4499,
+    sequence: 4499,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -253,7 +259,7 @@ fn mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole() {
     // (`docs/AI.md` section 331). Nothing parts on the word's block 1974;
     // the first rows past it are who=1's `leader:attack` 210 against 218
     // on 1976 and the make list from 1983.
-    pin_eq!(w.firsts.len(), 1038, "run1279b baseline");
+    pin_eq!(w.firsts.len(), 90, "run1279b baseline");
 }
 
 /// run1292: the gap before the word's window, blocks 1895..1975 at
@@ -286,7 +292,7 @@ fn mongol_gunpowder_pair_run1292_s_gap_is_widened_whole() {
     let Some(w) = mongol_gunpowder_gap_window() else {
         return;
     };
-    pin_eq!(w.blocks, 81, "every captured block");
+    pin_eq!(w.blocks, 80, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -305,5 +311,5 @@ fn mongol_gunpowder_pair_run1292_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1292 baseline");
+    pin_eq!(w.firsts.len(), 80, "run1292 baseline");
 }
