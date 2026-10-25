@@ -354,5 +354,7 @@ fn run982d_s_last_blocks_are_widened_whole() {
     // threshold.
     // Item 3369: 38 -> 30, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
+    // Item 3595: 30 -> 29, the eight-slot territory tie (`docs/AI.md`
+    // section 318.2): who=1's `leftover[2:wealth]` on 16740 agrees.
     pin_eq!(w.firsts.len(), 29, "run982d, the last blocks");
 }

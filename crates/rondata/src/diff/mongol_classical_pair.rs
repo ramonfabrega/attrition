@@ -240,6 +240,8 @@ fn mongol_classical_pair_run1198b_s_word_frame_is_widened_whole() {
     // who=1's `bucket`/`leftover` (3558a), the `g.angle[0]` of newborn
     // `1/307`.. on their first block, and on 8586 the `cost[0]`/`cost[1]`
     // of `1/2017`'s and `1/2022`'s queues, ours 116/86 against 110/82.
+    // Item 3595: 77 -> 75, the eight-slot territory tie (`docs/AI.md`
+    // section 318.2): who=1's `leftover[2:wealth]` on 8438, and `bucket[2:wealth]` on 8455, agrees.
     pin_eq!(w.firsts.len(), 75, "run1198b baseline");
 }
 
@@ -315,6 +317,8 @@ fn mongol_classical_pair_run1218_s_word_frame_is_widened_whole() {
     // standing families, who=1's `bucket`/`leftover` (3558a), the
     // `dest_angle` family (3574b) and who=1's `bucket[2]`/`bucket[4]` on
     // 9783 (parked 3581a).
+    // Item 3595: 96 -> 95, the eight-slot territory tie (`docs/AI.md`
+    // section 318.2): who=1's `leftover[2:wealth]` on 9738, agrees.
     pin_eq!(w.firsts.len(), 95, "run1218 baseline");
 }
 
@@ -421,6 +425,8 @@ fn mongol_classical_pair_run1222_walks_the_gap_before_9744() {
     // `0/8` row agreeing. What stands: the standing families, 1/187's
     // `orders_x`/`orders_y` on 9714 (9627, 30596 against 9634, 30612), and
     // the `dest_angle` family (3574b) from 9733.
+    // Item 3595: 82 -> 81, the eight-slot territory tie (`docs/AI.md`
+    // section 318.2): who=1's `leftover[2:wealth]` on 9696, agrees.
     pin_eq!(w.firsts.len(), 81, "run1222 baseline");
 }
 
@@ -482,6 +488,8 @@ fn mongol_classical_pair_run1224_s_word_frame_is_widened_whole() {
     // families, who=1's `bucket`/`leftover` (3558a) and, on 9783,
     // `bucket[2:wealth]` 20897 against 20907 and `bucket[4:metal]` 16844
     // against 16856 (parked 3581a), and the `dest_angle` family (3574b).
+    // Item 3595: 93 -> 92, the eight-slot territory tie (`docs/AI.md`
+    // section 318.2): who=1's `leftover[2:wealth]` on 9740, agrees.
     pin_eq!(w.firsts.len(), 92, "run1224 baseline");
 }
 

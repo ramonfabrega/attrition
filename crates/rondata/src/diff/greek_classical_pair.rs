@@ -403,6 +403,9 @@ fn greek_classical_pair_run1214_s_word_frame_is_widened_whole() {
     // against 1524), first in this window and unprinted on the stride, and
     // `dest_angle` on thirteen of who=1's units from 7936 (`1/76`,
     // -1605566464 against -852099072) — parked under item 3574.
+    // Item 3595: 134 -> 125, the eight-slot territory tie (`docs/AI.md`
+    // section 318.2; parked 3574a answered): both leaders' `territory`
+    // and team sums on 7859, and who=1's `resources[2:wealth]`, agree.
     pin_eq!(w.firsts.len(), 125, "run1214 baseline");
 }
 

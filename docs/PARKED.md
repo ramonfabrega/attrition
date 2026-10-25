@@ -10399,7 +10399,9 @@ words and edits nothing here; a refill lands when two remain.
   `leftover[2:wealth]` 2728 against 2448 and `popwin_stamp` 0 against 8195 (`docs/AI.md` §311). run1198 prints no
   `LEADERDATA` between the start and the end, so whether these stand from the start or part late is not on disk. A
   standing family or a parted economy: `diff` the whole `LEADERDATA` on a window's first block nearer the start.
-  **Score**: none until a word parts on a who=1 purchase.
+  **Score**: none until a word parts on a who=1 purchase. **Item 3595** (`docs/AI.md` §318.2): ~~`leftover[2:wealth]`~~
+  agrees on every Mongol window since the eight-slot tie rotation. It was a territory tie's wealth. The food and
+  timber buckets stand.
 
 ## Parked by item 3559, 2026-10-24 — the Koreans from an Ancient start, East Indies
 
