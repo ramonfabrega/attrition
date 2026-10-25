@@ -10809,13 +10809,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RI — reserved
+## Parked by item 3609, 2026-10-24 — the Korean Classical word: the Elite Hwarang's bays, whole at 8777
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3609a) **The Korean Classical pair's closing block reads the human's defeat apart, and one bucket beside it.**
+run1250 ends on 8777, and its closing block 8778 adds 25 rows to the closing walk
+(`korean_classical_pair_run1250_s_closing_frame_is_widened_whole`). 24 of them are 3578c's shape on a second
+pair. who=1's seven `queue:queued` rows and four `num_queued` rows read ours 1..5 against theirs 0. who=0's
+`leader:defense` reads ours 0 against −1, with its ten `SITE[i].reg` and `aggression[1]`. `1/2090`'s
+`gather:length[-1]` reads ours 0 against 45. The new row is who=1's **`bucket[3:knowledge]`, ours 1437 against
+theirs 937**: 500 apart on the closing block only. Through 8701 the stride holds no leader row. The closing
+state compares 407 units, none apart (`run1250_korean_classical_pair_closing_state`). The word is the game's last
+frame, so no score names it. The garrisoned `g.angle[0]` of 3601a reaches two more units, `1/381` on 8380 and
+`1/388` on 8503.
 
 ## Parked by the next landing, slot RJ — reserved
 

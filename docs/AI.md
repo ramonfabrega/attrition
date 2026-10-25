@@ -28552,7 +28552,7 @@ herds.
 **What is not established.** The `SITE` rows' first parting (above). Nothing in the window reads a wound, so
 the closing compare's silence on `hits` (3584a) holds here too: no `hits` row parts in run1244b.
 
-## 322. The Koreans at a held Classical age, Great Sahara: first try 8379 of 8777 (item 3601)
+## 322. The Koreans at a held Classical age, Great Sahara: first try 8379 of 8777 (item 3601), whole at 8777 (item 3609)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §319's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
 Nubians (4) against the **Koreans (16)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held by
@@ -28602,7 +28602,43 @@ frame ahead in theirs, and the draws part on 8379. run1250b prints no `AMMO` rec
 
 **The hypothesis, the next item's:** the Elite Hwarang's piece has no `launch.rs` bay row. Pieces 130 (the
 Hwarang, 180; item 3578) and 132 (the Royal Hwarang, 182; §283) were measured and leave from the bow hand; a round
-off the figure's own square was a frame long each time there.
+off the figure's own square was a frame long each time there. Item 3609 confirmed it (below).
+
+**Item 3609: 8379 → 8777, the game's last frame — whole.** The Elite Hwarang plays **piece 131**, and
+`sim::launch` had no row for it.
+- **The piece.** A probe printed every release's piece, key and point (one commit, reverted whole). Every Elite
+  Hwarang (TypeIndex 181) round is piece 131, on the keys piece 130 has: `CHAR_ATTACK1` at 6 and 22, `2` at 4 and
+  22, `3` at 10 and 24. `1/135`'s on 8361 is `CHAR_ATTACK2` at 4. With no row, each one left from the figure's
+  own square with `dz` 0.
+- **The packet.** run1263 (`RON_STATE_FRAME=8362`, `AMMO=5`) prints three rounds at `0/4` on 8362. `1/135`'s
+  leaves from **(9389, 28645, 606)** with `total_time` **14**; ours left from (9432, 28584) and flew 15.
+  `1/327`'s leaves from (9675, 30558, 786) in 15, and `1/325`'s from (9356, 31175, 804) in 18.
+  `get_position.py entries 131` reads six `AttachPos` rows, bit for bit piece 130's (and piece 132's). Piece 130's
+  bays reproduce every key's 361-heading sweep exactly, on the same 30, 422, 17 and 483 lattice points.
+- **The build.** `BAYS` gains piece 131's six rows, piece 130's values.
+  `launch::tests::run1263_s_elite_hwarang_arrows_leave_from_piece_131_s_bays` asserts the three dumped points and
+  heights. Ours' `RON_DEBUG_AMMO` on 8362 now matches the packet: each round's launch point and `total_time`
+  agree. Mutation through `tools/mutate.py`: renaming piece 131's `ATTACK2`@4 row to 9131 walks back to 8379.
+- **The value diff.**
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 8361 | Elite Hwarang `1/135`'s round | `sx, sy` / `total_time` | (9432, 28584) / 15 against (9389, 28645) / 14 | agrees |
+| 8375 | Citizen `0/4` (TI 50) | `hits_left`; `damage_frame` | 50, 0 against 48, 8374 | agrees |
+| 8376 | `0/4` | `order:kind`, `orders.len` | 4, 2 against 7, 1 | agrees |
+| 8379 | draws | index 10 | `Guy::set_anim+0x97a` / `Unit::fight+0x824` (29 / 27) | agree |
+
+- **The widenings.** run1250b's goes from 9513 keys to **74**. What remains: block 8374's standing families,
+  the garrisoned `g.angle[0]` (3601a, now on seven units), and the `dest_angle` family (3574b) on six of who=1's
+  units. Beside them: who=1's new groups' `held` and pool, and three of who=1's `orders_x`/`orders_y` a few units
+  apart. No `pos`, `hits` or order row parts.
+  The word now sits past run1250b's 8630. Its widening is run1250 itself, over the stride 8401..8701 and the
+  closing block 8778 (`korean_classical_pair_run1250_s_closing_frame_is_widened_whole`: 5 blocks, 173 keys).
+  - Through 8701 every row is a standing family.
+  - The closing block adds 25 rows. 24 are the human's defeat on 8777, 3578c's shape.
+  - The 25th is who=1's `bucket[3:knowledge]`, ours 1437 against 937 (parked 3609a).
+  - `run1250_korean_classical_pair_closing_state` compares block 8778 whole: 407 units, none torn, off or unlinked,
+    no field row.
 
 **The rubric.** Unit types seen stay **179** of 302: the pair is open at 8379, so it is not lockstep. On the pair's
 own dumps (`--tables 3 --dumps`, run1249 and run1250) the rubric sees 16 types. **`Elite Hwarang` (181)** ×5082
@@ -28611,8 +28647,15 @@ enter when the pair closes. The other 14 are in the lockstep set: Citizen 50 and
 Caravan 59, Merchant 61, Scout 69 and 70, Javelineers 83, Phalanx 133, Light Horse 209, The Senator 353, and the
 sheep and peacock herds.
 
-**What is not established.** Theirs' round's launch point and flight time (no `AMMO` record; a packet or an
-`AMMO` window is the next item's); the garrisoned units' `g.angle[0]` (parked 3601a).
+**The rubric, closed (item 3609).** Unit types seen **179 → 181**: `Elite Hwarang` (181) and `Flaming Arrow`
+(279) enter (`census::RUBRIC_UNIT_TYPES_SEEN`, `rubric.py --tables 3` on this tree).
+
+**What is not established.** ~~Theirs' round's launch point and flight time~~ — answered by item 3609 (run1263's
+packet, above). Still open:
+- the garrisoned units' `g.angle[0]` (parked 3601a);
+- the closing block's `bucket[3:knowledge]` (parked 3609a);
+- piece 131's `CHAR_ATTACK1` keys and `ATTACK2`@22, which no dumped round diffs (they are piece 130's rows, read
+  off the packet).
 
 ## 323. Reserved for the next item on the AI track
 
