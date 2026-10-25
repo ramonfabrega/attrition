@@ -10614,3 +10614,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3609: the Korean Classical word 8379 -> 8777, whole (`docs/AI.md` §322; `docs/RUNS.md` run1263) ====
 #   run1263  --map 7 --end-frame 8364 --log-window 8361 8363 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 16 --cover cover=0 --tracer-def RON_STATE_FRAME=8362, run1249's lobby   (a packet: the Elite Hwarang's arrows)
 # Checks: `rngcmp.py` run1250 vs run1263 -> 8365 identical.
+# ==== item 3602: the Japanese from an Ancient start, East Indies (`docs/AI.md` §323; `docs/RUNS.md` run1251, run1252, run1252b) ====
+#   run1251  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1252  run1234's line with --ai-tribe 15 and run1251's lobby   (the draw stream; ended itself on 6126)
+#   run1252b --map 18 --end-frame 5184 --timeout 3600 --log-window 4928 5184 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1251's lobby   (the word 4934's window)
+# Checks: `rngcmp.py` run1251 vs run1252 -> 37 identical; run1252 vs run1252b -> 5185 identical.

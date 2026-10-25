@@ -27190,3 +27190,71 @@ SHA-256 `9b5580a5245e1c2e205795808441821e9a7024d25b8d409e752ef59bd63217b1`.
 804), 18. `tools/recomp/get_position.py entries 131` reads six `AttachPos` rows bit for bit piece 130's, and each
 key's sweep is reproduced at all 361 headings by piece 130's `BAYS` rows. Pinned by
 `launch::tests::run1263_s_elite_hwarang_arrows_leave_from_piece_131_s_bays`.
+
+## run1251 — the Japanese from an Ancient start, East Indies: the `DUMP_ALL` start (2026-10-25, item 3602, `att-3602`)
+
+`docs/AI.md` §323. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1251 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 00:18:47, exited 00:19:23 (36.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 15, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 0` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1251
+  eastindies-japanese-ancient-start --map 18`. `df -g ~` read 142 GiB free before it. A first launch a minute
+  earlier was refused by the runner's argument parser (the four `--profile` flags reached it as one word) and
+  ran nothing.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1251-eastindies-japanese-ancient-start.txt`, 153,787,638 bytes,
+SHA-256 `80023811f243384963c21ec9d4889a3b19f6c2a800fd8c7d8fb0730135d0b43e`.
+
+Archive `rontrace-run1251.log`, 9,896,448 bytes,
+SHA-256 `8d385d127330cd4780b999fc9479b543ab0d5bd32b1f64cbf7126563d57b6235`.
+
+**What it holds**: the start of `japanese_ancient_pair::JAPANESE_ANCIENT`, and the walk's initial state.
+
+## run1252 — the Japanese from an Ancient start, East Indies: the draw stream to the game's end (2026-10-25, item 3602, `att-3602`)
+
+`docs/AI.md` §323. run1234's line with `--ai-tribe 15`: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 15
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1251's
+lobby.
+- Pool lane 2, beside run1251. Launched 00:18:53, exited 00:19:48 (55.1 s launch to exit). `success`. **The game
+  ended itself on 6126** (closing block 6127, `ended_early`). `GAME INFO` reads back as run1251's. `rngcmp.py`
+  against run1251: 37 frames identical. Filed with `filerun.py run1252 eastindies-japanese-ancient-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1252-eastindies-japanese-ancient-trace.txt`, 39,691,827 bytes,
+SHA-256 `f4e037a1119b9fef72d4c4cd2cf668e5ea82bcb9bf99587e4279983de0ff7c23`.
+
+Archive `rontrace-run1252.log`, 115,151,072 bytes,
+SHA-256 `472c26395845345bde00bff1e3b7a2026d76701b4a5a0b6d1f55fcfc5cd84861`.
+
+**What it holds**: the pair's first try. `japanese_ancient_pair_first_parting` walks it from run1251: **frame 4934
+of 6126** by the count and the sequence, ours 180 draws against 179, index 0, ours `Guy::set_anim+0x97a <
+Guy::move+0x19f` (the Bowmen `1/51`) against theirs `Unit::think_fish+0x27a`. Its stride, walked over 101..4901,
+agrees on every unit field.
+
+## run1252b — the Japanese from an Ancient start, East Indies: the word 4934's window, blocks 4928..5184 (2026-10-25, item 3602, `att-3602`)
+
+`docs/AI.md` §323. **What the disk could not answer**: every record on the word's frame. run1252's stride prints
+units every hundredth block (4901 and 5001 around the word) and no `LEADERDATA` past the start, and no other dump
+holds this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1252b --map 18 --end-frame 5184
+--timeout 3600 --log-window 4928 5184 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 15 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 00:23:48, exited 00:24:34 (46.5 s launch to exit). `success`: 5185 frames. `rngcmp.py`
+  against run1252: 5185 frames identical. Filed with `filerun.py run1252b
+  eastindies-japanese-ancient-window-4928-5184 --map 18`. `df -g ~` read 138 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1252b-eastindies-japanese-ancient-window-4928-5184.txt`, 560,274,189 bytes,
+SHA-256 `2732fe83bf27f862f21a698e30c3d5d68a2c7cad0c0de765a132eb87bbed512d`.
+
+Archive `rontrace-run1252b.log`, 90,288,032 bytes,
+SHA-256 `d7eb89d692affdbbc0592011559b74f00431e368e70e2f890cfbd37e5a686b82`.
+
+**What it holds**: `japanese_ancient_pair_run1252b_s_word_frame_is_widened_whole` (256 blocks, 1962 keys): the
+window opens apart on 4928 — the Bowmen `1/51`'s move to (7416, 6024) in ours against (6984, 5832) in theirs, the
+Citizen `0/6`'s wound on 4905 against 4904 — then `1/51`'s order 10 against 1 on 4933 and its extra draw on the
+word's block 4935.
