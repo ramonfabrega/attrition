@@ -11048,13 +11048,21 @@ leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` st
   step of a Horde parts on any dumped block. The sim test `run1292_s_horde_rounds_leave_through_piece_153_s_pivot`
   pins the row; a Horde whose aim crosses a turret step at the node's offset would be the walk's killer.
 
-## Parked by the next landing, slot SF — reserved
+## Parked by item 3633, 2026-10-25 — release points still read off one shot
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3633a. The Horse Archer's piece 842 is a pivot piece read as planar
+  nodes.** Its three `launch::MEASURED` rows are one shot each (item 3338),
+  and the `<RESTRICTION name="HORSEARCHER" node="4">` makes it a pivot
+  piece, so its rounds turn with the rider as piece 138's do (item 3633);
+  item 3338 already measured its rows 6 to 16 units off the original's.
+  A packet from a game that fields it reads its `AttachPos` rows in a
+  minute (`tools/recomp/get_position.py … entries 842`). It names no score.
+- **3633b. A ship whose piece has no row looses from its hull.** Piece 275,
+  the Caravel, now has its broadside (`launch::BAYS`, item 3633), 150 units
+  off the hull; any other ship's piece with no `BAYS`, `GUNS` or `MEASURED`
+  row still looses from the hull's square, a frame of flight long at range.
+  Which ship pieces release with no row is a grep of the install's
+  `<RELEASEEVENT>`s against the three tables. It names no score.
 
 ## Parked by the next landing, slot SG — reserved
 

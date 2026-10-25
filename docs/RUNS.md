@@ -28071,6 +28071,29 @@ SHA-256 `8213be832d932081c5811bb16a784f06af07c46acf162998a466863e4fc2577f`.
 **What it holds**: `mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole` (256 blocks, 1038 keys). On its
 first block 1968 the Monarch `1/17` (TI 354) holds a `CASTORDER` (Create Decoy, `spell_time` 22) in theirs and
 idles in ours.
+## run1295 — the Romans at a held Medieval age, East Indies: the word 5971's window, blocks 5833..5979 (2026-10-25, item 3633, `att-3633`)
+
+`docs/AI.md` §330. **What the disk could not answer**: the word's own block, 5972. run1275's stride prints 5901
+and the closing block 5980 only, and run1293b ends on 5833. run1293's packet (frame 3606) already answered the
+two release points this item built, so this is the only capture it took.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1295 --map 18 --end-frame 5979 --allow-early-end
+--timeout 3600 --log-window 5833 5979 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 6 --cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 14:48:10, exited 14:49:16 (65.7 s launch to exit). `success`, 5980 frames, closing frame
+  5980, not ended early. `rngcmp.py` against run1275: 5980 frames in common, 0 differing. Filed with `filerun.py
+  run1295 eastindies-roman-medieval-window-5833-5979 --map 18`. `df -g ~` read 126 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1295-eastindies-roman-medieval-window-5833-5979.txt`, 369,389,349 bytes,
+SHA-256 `ea629d59b2e91d914cb8f9c830a0b7d8d295a63bde50d7516239cf743db091ad`.
+
+Archive `rontrace-run1295.log`, 185,307,200 bytes,
+SHA-256 `447a22664c52213caf8fc55dfb24688eaeb18a3e55f26817c0f33a4f95365359`.
+
+**What it holds**: `roman_medieval_pair_run1295_s_word_frame_is_widened_whole` (146 blocks, 104 keys). **The state
+first parts on block 5964, at the Cavalry Archer `1/124`: `cavarch_o` ours -1 against theirs' 2000.**
+
 ## run1293 — the Romans at a held Medieval age, East Indies: a packet at logger frame 3606, who=1's fog (2026-10-25, item 3631, `att-3631`)
 
 `docs/AI.md` §330. **What the disk could not answer**: who=1's `seen2` at fog cell (110, 85), which `was_seen`

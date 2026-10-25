@@ -24755,8 +24755,9 @@ newborn `g.angle[0]`, `0/2000`'s `raid_stamp`) and `1/87`'s `dest_angle` on 1512
 1008795648), which the draw stream never feels (parked 3370a).
 
 **The close.** `run986b_spanish_east_closing_state` walks to run986b's closing block 24001 and compares 160 units,
-none apart, no building field-row; one closing field, city `0/2000`'s `raid_stamp`, ours 12774 against theirs 12773
-— the human's city, standing since run993c (parked 3367a's neighbour). Every other lobby's first parting holds (23
+none apart, no building field-row; ~~one closing field, city `0/2000`'s `raid_stamp`, ours 12774 against theirs 12773
+— the human's city, standing since run993c (parked 3367a's neighbour)~~ none since item 3633 (§330): the Caravel's
+bays land the 12774 blow on theirs' tick. Every other lobby's first parting holds (23
 of 23), and the battery's floors. The second pair's run544 window drops 51 → 50: `1/40`'s `path[43].flags` on 16074,
 ours 32, theirs 0 — the same stripped top.
 
@@ -29678,7 +29679,7 @@ ledger: **the `Brig` (331, sea), ×618**, the booking's line. The AI built it. T
 **Coverage.** Diff-backed: the third refusal, by the word's closure and the mutation. Reading only: that the third
 test is in the stand arm alone, from the listing.
 
-## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622, 5582 since item 3631
+## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622, 5582 since item 3631, 5971 since item 3633
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Lakota
 Medieval pair's lobby (§314) with the nation moved: East Indies,
@@ -29921,8 +29922,51 @@ blocks, 113 keys; `roman_medieval_pair_run1293c_s_gap_is_widened_whole`).
 
 So a blow on the Village on tick 5518 is four here and six there, with no
 draw between them; and on 5550 theirs' `1/130` strikes `0/10`, which then
-takes an order. Which blow, and why it is two short, is the next item's. Not
-established: the cause of either.
+takes an order. ~~Which blow, and why it is two short, is the next item's. Not
+established: the cause of either.~~ Answered below (item 3633): two rounds
+that left the wrong point and flew a frame too long.
+
+**Item 3633: two release points; 5582 → 5971** (story: its journal).
+
+*Built.* The 5519 blow a tick late is the Cavalry Archer `1/79`'s arrow:
+it left piece 138's facing-only node and flew 3, not 2. `HEAVYCAVARCHER` has a `<RESTRICTION node="4">`: piece 138 is a pivot
+piece, and its four `pivot::RELEASES` rows are run1293's packet's
+`AttachPos` entries (every sweep cell agrees; run982's rounds fit). The
+Caravel `1/130` (piece 275) had no row and loosed from the hull; its nine
+`launch::BAYS` rows are each sweep's one feasible region's middle, a
+broadside 150 out (tests: `pivot::tests`, `launch::tests`).
+
+*The value diff* (run1293c):
+
+| frame | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 5517 | `1/79`'s round | launch, flight | (6131, 7631), 3 | (6086, 7611), 2 | — |
+| 5519 | Village `0/2000` | `damage` | 552 | 554 | 554 |
+| 5544 | `1/130`'s round | launch, flight | (3576, 2040), 8 | (3476, 2151), 7 | — |
+| 5551 | Citizen `0/10` | `hits_left`, `damage_o` | 31, 46 | 30, 130 | 30, 130 |
+| 5552 | `0/10` | `pos` | (4200, 3576) | (4200, 3601) | (4200, 3601) |
+
+run1293c 113 → **93** keys, run1293b 2550 → **102**, neither parting a
+position or an order past the standing blocks (asserted); 66 lobbies'
+`first_parting` unmoved; piece 275 also takes Spanish East's windows 61 →
+58 and 61 → 60 and its closing field. Mutations held on each row.
+
+*The new word: frame 5971 of 5979*, by the count and the sequence. Ours
+148 draws against 149, parting at index 0: ours `Unit::think_fish+0x27a`,
+theirs `Unit::fight+0x9b0`. **run1295** is its window (blocks 5833..5979,
+`AMMO=5`, 104 keys; `roman_medieval_pair_run1295_s_word_frame_is_widened_whole`).
+**The state first parts on block 5964, at the Cavalry Archer `1/124`** (TI
+188, on an `ATTACKTOORDER`, walking):
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5964 | Cavalry Archer `1/124` | `cavarch_o` | -1 | 2000 |
+| 5969 | `1/124` | `recharging` | 5 | 0 |
+| 5970 | `1/124` | `cavarch_who` | 0 | -1 |
+| 5971 | `1/124` | `g.ox[0]` | 2000 | 12 |
+
+Theirs' fire on the move takes the Village on 5963 and ours does not;
+why is the next item's (`anim.rs`'s `non_looping` `SEAM` is in the chain).
 
 ## 331. The Mongols at a held Gunpowder age, East Indies: first try 1973 of 5399 (item 3623)
 

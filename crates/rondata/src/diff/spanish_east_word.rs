@@ -223,7 +223,11 @@ fn run993c_s_word_frame_is_widened_whole() {
     // 765 → 61 by the same item's move to 14942: `1/49` agrees through the
     // window; the standing family stands, and `0/2004`'s `damage` parts on
     // 12774 (ours 2, theirs 3).
-    pin_eq!(w.firsts.len(), 61, "keys that part in the window");
+    // 61 → 58 by item 3633's Caravel bays (piece 275, `launch::BAYS`): the
+    // broadside's round now lands on 12774 as theirs does, so `0/2004`'s
+    // `damage` (2 → 3) and `damage_frac` (10 → 15) and `0/2000`'s
+    // `raid_stamp` (12767 → 12773) agree. What stands is the standing family.
+    pin_eq!(w.firsts.len(), 58, "keys that part in the window");
 }
 
 /// run993d: the word 14942's window, blocks 14936..15192 at `GUYS=4`,
@@ -280,7 +284,10 @@ fn run993d_s_word_frame_is_widened_whole() {
     // newborn `g.angle[0]`, `0/2000`'s `raid_stamp`) and `1/87`'s
     // `dest_angle` on 15129 (ours 793640960, theirs 1008795648), which the
     // draw stream never feels.
-    pin_eq!(w.firsts.len(), 61, "keys that part in the window");
+    // 61 → 60 by item 3633's Caravel bays (piece 275): `0/2000`'s
+    // `raid_stamp` agrees (ours 12774 → 12773, run993c's 12774 blow landing
+    // as theirs does). `1/87`'s `dest_angle` stands.
+    pin_eq!(w.firsts.len(), 60, "keys that part in the window");
 }
 
 /// The closing state's window: run986b's closing block alone, the long's
@@ -334,10 +341,12 @@ fn run986b_spanish_east_closing_state() {
     );
     pin_eq!(e.frame, 24001, "the closing block");
     pin_eq!(e.compared, 160, "units compared");
-    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 1], "the closing counts");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     // Item 3370, the first walk (the word at 24000): 160 units compared on
     // block 24001, none apart, no building field-row; one closing field,
     // city `0/2000`'s `raid_stamp`, ours 12774 against theirs 12773 — the
     // human's city, standing since run993c's window (parked 3367a's
     // neighbour), which the draw stream never feels.
+    // Item 3633: none. The Caravel's bays (piece 275) land the 12774 blow
+    // on theirs' tick, and `raid_stamp` agrees (12774 → 12773).
 }
