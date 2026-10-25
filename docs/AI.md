@@ -29679,7 +29679,7 @@ ledger: **the `Brig` (331, sea), ×618**, the booking's line. The AI built it. T
 **Coverage.** Diff-backed: the third refusal, by the word's closure and the mutation. Reading only: that the third
 test is in the stand arm alone, from the listing.
 
-## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622, 5582 since item 3631, 5971 since item 3633
+## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622, 5582 since item 3631, 5971 since item 3633, whole since item 3635
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Lakota
 Medieval pair's lobby (§314) with the nation moved: East Indies,
@@ -29752,8 +29752,9 @@ as far as the dump prints it. The remaining keys follow from `1/17`.
 is **fielded** (×9462 on the pair's dumps; `1/43` is one). The pair's dumps
 show 24 unit types. Against the lockstep set, **one is new: Caesar's
 Legions (147)**. It enters the count when the pair closes. `Praetorian
-Guards` (148) is Gunpowder's and does not appear. The pair is open at 1875,
-so `unit types seen` stays 188 of 302.
+Guards` (148) is Gunpowder's and does not appear. The pair was open at
+1875. Since item 3635 it is whole, and `rubric.py --tables 3` reads `unit
+types seen` **190 of 302** (189 → 190, Caesar's Legions ×2640).
 
 **What is not established.** ~~Why theirs pops the build on `1/2023` on 1875,
 and ours keeps it, is not established.~~ Answered below (item 3622): the
@@ -29761,17 +29762,7 @@ ring finds no spot for the Dock site, and the original queues nothing.
 
 **Item 3622: a swarm whose ring finds no spot queues nothing; 1875 → 3607.**
 
-*How it was found.* Theirs' dump shows the same pop two frames apart: on
-1871 the build on the finished `1/2022` goes the frame it becomes current,
-and on 1875 the build on `1/2023` does. Both `1/2023` and `1/2030` are Dock
-sites (`orig_type` 432, unstarted, `construct_hits` 1, `build_masks` 8192 =
-`0x2000`, the orphan check's "no builder found" mark). On 1875 theirs clears
-`1/2030`'s `0x2000` and leaves `1/2023`'s set. Only
-`Group::action_swarm_around@0070fbe0`'s member arm clears it
-(`swarm_around_view::SwarmView::clear_site_2000`). A probe (reverted whole)
-printed `1/17`'s orders at every phase mark and after every unit's
-`process` on sim frame 1874. Ours' rewrite happens inside `1/17`'s own
-`process`, in `do_build`.
+*How it was found*: item 3635's journal keeps the paragraph.
 
 *The mechanism.* `Unit::do_build@005eebf0` finds `1/17` out of reach of
 `1/2023` and re-swarms it through the insert dance (`005ef165`): kill the
@@ -29839,37 +29830,20 @@ The rubric is unmoved while the pair is open.
 
 **Item 3631: a finished fort sees `FORT_UPGRADE_LOS` further; 3607 → 5582.**
 
-*The node.* `roman_medieval_pair_s_road_search_on_3607_holds_node_for_node`
-walks every road search run1275's call window prices (109 to the word) node
-for node. The first node to part is on **3606**, not the word: node 126, the
-diagonal from (42144, 33120) onto (42336, 32928), tile (220, 171). Ours
-costs it 179 and theirs 89. That is 128 × 7/5 against 64 × 7/5: ours
-doubled it, which is `was_seen` answering "unseen" for who=1 at fog cell
-(110, 85). The search keeps its length on 3606 (3200 nodes on both sides)
-and spends three fewer on 3607.
-
-*The fog.* Ours' `seen2` at (110, 85) is 0 for the whole game; its
-neighbours light between frames 712 and 1170. No dump prints the fog past
-the start, so **run1293** is a packet at logger frame 3606. Its `seen2` grid
-(`World +0x160`, 120 × 120) against ours after tick 3605: **nine cells
-differ**, all who=1's bit, all on one arc one cell outside ours' lit edge —
-(110, 85), (111, 86), (112, 86), (112, 87), (113, 88), (114, 88), (114, 89),
-(115, 90), (115, 91). The world cell under them is unowned on both sides, so
-`was_seen`'s territory arm is out. The arc is the edge of the disc that ours
-lights on 1170 around fog cell (107, 93): the Fort `1/2013` (`orig_type`
-444, `LOS 12`, `X_SIZE 5`) at (41184, 35808). run1277 prints its **`mylos
-16`**; ours' `build_los` gave 12 + 5/2 = **14**, radius 7 against 8.
+*The node and the fog* (story: its journal).
+`roman_medieval_pair_s_road_search_on_3607_holds_node_for_node` walks every
+road search to the word node for node. Node 126 on **3606** (tile (220, 171))
+cost 179 in ours against 89: `was_seen` read who=1's fog cell (110, 85)
+unseen. **run1293**, a packet at logger frame 3606, put nine `seen2` cells
+apart on one arc around the Fort `1/2013` (`LOS 12`, `X_SIZE 5`), whose
+`mylos` is 16 against ours' 14.
 
 *The term.* `Wall::update_los@0063eeb0` gives a fort (type vslot `+0xfc`)
-`fort_upgrade_range[get_fort_los + 4]` in place of the tower term.
-`get_fort_los@006daf30` is 1 plus the highest of `FORTLOS2..4` held
-(`has_preq`, bonuses 46–48 off `BASE_BONUSTYPES`). The level is 1 to 4, so the
-index is 5 to 8, which runs off `fort_upgrade_range`'s five entries
+`fort_upgrade_range[get_fort_los + 4]`, which runs off its five entries
 (`Constants +0x180`) into `fort_upgrade_los` (`+0x194`): the term is
-`FORT_UPGRADE_LOS[level − 1]`, shipped 0, 2, 4, 6, 8. The tower term reads
-`TOWER_FORT_LOS` the same way (item 3543). who=1 is at fort level 2: 12 + 2
-+ 2 = 16. `crate::wall_los_view` (item 3391) already held the whole function
-and its sweep; `Sim::build_los` carried the tower term and not this one.
+`FORT_UPGRADE_LOS[level − 1]` (shipped 0, 2, 4, 6, 8), the level 1 plus the
+highest of `FORTLOS2..4` held (`get_fort_los@006daf30`, bonuses 46–48).
+who=1 at level 2: 12 + 2 + 2 = 16.
 
 *Built.* `Tuning::fort_upgrade_los` (`FORT_UPGRADE_LOS`),
 `Roles::fort_los_preq` (bonuses 46–48, loaded beside `fort_borders_preq`),
@@ -29965,8 +29939,46 @@ theirs `Unit::fight+0x9b0`. **run1295** is its window (blocks 5833..5979,
 | 5970 | `1/124` | `cavarch_who` | 0 | -1 |
 | 5971 | `1/124` | `g.ox[0]` | 2000 | 12 |
 
-Theirs' fire on the move takes the Village on 5963 and ours does not;
-why is the next item's (`anim.rs`'s `non_looping` `SEAM` is in the chain).
+~~Theirs' fire on the move takes the Village on 5963 and ours does not;
+why is the next item's.~~ Answered below (item 3635): both held it; ours
+dropped it on the walk's first step.
+
+**Item 3635: a city at its ceiling is still borne on; 5971 → 5979 of 5979,
+the pair whole** (story: its journal).
+
+*The mechanism.* Both sides hold `cavarch_o` 2000 under `1/124`'s
+`ATTACKORDER` on `0/2005` all window. The Village falls on 5963 (`damage`
+1200 of 1200), the order becomes an `ATTACKTOORDER` and the walk starts.
+`recharging` is non-zero, so `move_step`'s head decides:
+`Guy::set_all_pivots@005d8bc0`'s gone test is the slot's `flags & 1`
+(`005d8c69`), never hit points, and theirs bears on the Village to 5969.
+Ours asked `Sim::active` (a building's `health > 0`), so guy 0's
+`des_flags` read 0 and `cavarch_o` fell to −1 on 5964.
+
+*Built.* `set_all_pivots` asks `Sim::struck` (the slot's `flags & 1`; the same
+as before for a unit). Sim test
+`cavarch::tests::a_city_at_its_ceiling_is_still_borne_on`.
+
+*The value diff* (run1295, `1/124`):
+
+| frame | field | ours before | ours now | theirs |
+|---|---|---|---|---|
+| 5964 | `cavarch_o` | −1 | 2000 | 2000 |
+| 5969 | `recharging` | 5 | 0 | 0 |
+| 5970 | `cavarch_who` | 0 | −1 | −1 |
+| 5971 | `g.ox[0]` | 2000 | 12 | 12 |
+| 5971 | game-stream draws | 148 | 149 | 149 |
+
+run1295 104 → **98** keys, no unit parting past the standing block
+(asserted); left are the standing families, a newborn's `form`, the pools
+and groups, and the leader's `free_peasants`/`gatherers` on 5978 (ours 3,
+33; theirs 2, 34). The draws agree to the game's last frame, **5979 of
+5979**. **The closing state** (`roman_medieval_pair_run1275_s_closing_state`,
+block 5980): 247 units, no count off, no extra, `Closing fields: none`.
+The 65 other lobbies' `first_parting` are unmoved; the same arm takes
+run834 271 → 267 and run883 208 → 207 (fire-on-the-move units on a city
+at its ceiling). `tools/mutate.py` with the
+health test put back: held (the word 5971, run1295 104).
 
 ## 331. The Mongols at a held Gunpowder age, East Indies: first try 1973 of 5399 (item 3623)
 

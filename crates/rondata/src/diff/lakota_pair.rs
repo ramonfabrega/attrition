@@ -953,7 +953,9 @@ fn run883_s_closing_frame_is_widened_whole() {
     // section 318.2): both leaders' `territory` and team sums on 6815, with
     // the wealth `income`, `resources`, `leftover` and `bucket` rows they
     // feed, agree.
-    pin_eq!(w.firsts.len(), 208, "run883 baseline");
+    // Item 3635: 208 -> 207, `set_all_pivots`' gone test is the slot's
+    // `flags & 1`: `1/106` keeps `cavarch_o` 2000 on 6822.
+    pin_eq!(w.firsts.len(), 207, "run883 baseline");
     // Item 3333: who=1's `bucket` metal 5389/4844, standing from 6815, closes
     // with an Oil Platform priced by the Oil Wells (`docs/AI.md` §270); the
     // timber row stands, ours below theirs.

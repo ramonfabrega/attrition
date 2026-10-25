@@ -430,8 +430,9 @@ pub struct Guy {
     /// idle again while guy 0 is already aimed at the order's target
     /// (`docs/ORDERS.md` §22).
     ///
-    /// SEAM: `Unit::move_step`'s cavalry-archer write (`+0x2b4 &
-    /// 0x200000`), which aims the guys at the second weapon's target.
+    /// `Unit::move_step`'s cavalry-archer write (`+0x2b4 & 0x200000`)
+    /// aims them at the fire on the move's target too
+    /// ([`crate::Sim::cavarch_step_anim`]).
     pub aim: Option<crate::combat::Obj>,
     /// A **crew** guy's own body, or `None` for one that has none.
     ///
