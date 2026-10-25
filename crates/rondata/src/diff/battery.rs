@@ -264,6 +264,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // held-out `EastIndiesEgyptianTier3` `(18, 7, 3)` or the Classical
     // pair's `(18, 7, 5)`, another map.
     (7, 7, 5),
+    // The Inca Classical pair's (item 3606): the Inca at a held Classical
+    // age, Difficulty 5, East Indies — not the AI words
+    // `EastIndiesIncaTier3`, `(18, 2, 3)`, another difficulty, nor
+    // `GreatSaharaIncaTier3`, `(7, 2, 3)`; no battery game fields the Inca.
+    (18, 2, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
