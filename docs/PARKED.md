@@ -10800,13 +10800,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RG — reserved
+## Parked by item 3606, 2026-10-25 — the Inca at a held Classical age, East Indies: first try 4501
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting books: the Dromon `1/24`'s round lands on the Farm `0/2004` a frame early
+in theirs, 12 frames from (2808, 6381, 52) against ours' 13 from (2808, 6568), launched in the gap 4402..4494
+(`docs/AI.md` §327). `Inti Clubmen` (91) is fielded.
 
 ## Parked by the next landing, slot RH — reserved
 

@@ -171,3 +171,71 @@ fn inca_classical_pair_the_long_s_stride_walks_back_from_4501() {
     // through block 4501, the last before the word's block 4502.
     pin_eq!(w.firsts.len(), 172, "the stride's baseline");
 }
+
+/// run1260b: the word 4501's window, blocks 4495..4751 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` — six blocks before the word's
+/// block 4502 and 250 after (item 3606); the long's stride prints units
+/// every hundredth block (4501 and 4601) and no `LEADERS` past the start.
+pub(crate) const RUN1260B: &str = "gamelog-run1260b-eastindies-inca-classical-window-4495-4751.txt";
+
+/// The window: block 4495 through 4751; the word 4501's own block is 4502.
+pub(crate) const WIDENING_INCA_CLASSICAL_FRAME_4501: (i64, i64) = (4495, 4751);
+
+/// **The word 4501's window**: run1260b walked from run1259's start with
+/// the recorder on (item 3606).
+pub(crate) fn inca_classical_frame_4501_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA_CLASSICAL.start],
+        true,
+        INCA_CLASSICAL.long,
+        "run1260b",
+        &[(RUN1260B, WIDENING_INCA_CLASSICAL_FRAME_4501.0)],
+        WIDENING_INCA_CLASSICAL_FRAME_4501,
+        1,
+        &[4502],
+        true,
+    )
+}
+
+#[test]
+fn inca_classical_pair_run1260b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_classical_frame_4501_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3606, the first walk: 754 keys. Block 4495 holds only the
+    // standing families (every unit's `form`, who=1's groups' `held` and
+    // pools, both leaders' `SITE[i].reg` 65 against 0 and who=0's
+    // `aggression[1]`), and nothing else parts until the word's block
+    // 4502. There the Farm `0/2004` (TypeIndex 417) takes its first wound
+    // in theirs alone — `damage` 1 and `damage_frac` 5 against 0 — and its
+    // city `0/2000` is raided (`raid_stamp` 4501, `city_flags` 0x2, 0x4
+    // and 0x8), with both leaders' `treaties` 3 against ours' 1. The round
+    // is the Dromon `1/24`'s (TypeIndex 324, sea, uid 54, on an
+    // `EXPLORETOORDER`): theirs flies 12 frames from (2808, 6381, 52) to
+    // (4319, 5864) and lands on 4501; ours flies 13 from (2808, 6568) to
+    // (4327, 5881) (`RON_DEBUG_AMMO`), the same launch frame. Its next
+    // round flies 12 on both sides, from (2809, 6079) in theirs and
+    // (2808, 6088) in ours. From 4503 who=1's units' orders part (`1/15`,
+    // `1/30`, `1/28`).
+    pin_eq!(w.firsts.len(), 754, "run1260b baseline");
+}

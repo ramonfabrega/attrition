@@ -27569,3 +27569,69 @@ SHA-256 `048efff3a2d323e2ca2520e8bddfbdcadf522bc335a438340bcfbcc555cb26e6`.
 
 **What it holds**: `aztec_ancient_pair_run1266d_s_closing_frame_is_widened_whole` (256 blocks, 163 keys), the
 standing families alone through the closing block 9259.
+
+## run1259 — the Inca at a held Classical age, East Indies: the `DUMP_ALL` start (2026-10-25, item 3606, `att-3606`)
+
+`docs/AI.md` §327. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1259 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 2 --profile STARTING_TECHNOLOGY=1 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 04:38:08, exited 04:38:34 (26.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 2, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1259
+  eastindies-inca-classical-start --map 18`. `df -g ~` read 121 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1259-eastindies-inca-classical-start.txt`, 153,794,379 bytes,
+SHA-256 `f7f420390466307bce1cec7ec22623a9c85533447599059ae3aa4f69fba767c0`.
+
+Archive `rontrace-run1259.log`, 9,918,400 bytes,
+SHA-256 `fe49331fd75df9f35b7152fa4f02277ac4640d5946a9dd07b61efc131cf4fb59`.
+
+**What it holds**: the start of `inca_classical_pair::INCA_CLASSICAL`, and the walk's initial state.
+
+## run1260 — the Inca at a held Classical age, East Indies: the draw stream to the game's end (2026-10-25, item 3606, `att-3606`)
+
+`docs/AI.md` §327. run1256's line with `--ai-tribe 2`: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 2
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1259's
+lobby.
+- Pool lane 2, beside run1259. Launched 04:38:13, exited 04:38:43 (30.7 s launch to exit). `success`. **The game
+  ended itself on 6073** (closing block 6074, `ended_early`). `GAME INFO` reads back as run1259's. `rngcmp.py`
+  against run1259: 37 frames identical. Filed with `filerun.py run1260 eastindies-inca-classical-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1260-eastindies-inca-classical-trace.txt`, 38,790,756 bytes,
+SHA-256 `88c377d57b8cbfbc0e5bb84c3c7cbc4909952c67fdb03c4aa89ce73c9faf90f5`.
+
+Archive `rontrace-run1260.log`, 150,165,600 bytes,
+SHA-256 `31449416ef4ad2dbbcbac6d94975df1d9221af58fde9d9d7a817b6bf358e5719`.
+
+**What it holds**: the pair's first try. `inca_classical_pair_first_parting` walks it from run1259: **frame 4501 of
+6073** by the count and the sequence, ours 156 game-stream draws against theirs' 157, index 153, theirs
+`Object::take_damage+0xe1 < Object::do_damage+0x159e < Ammo::do_damage+0xc11` against ours `Farms::inc_time+0x1ae`
+(the Dromon `1/24`'s round on the Farm `0/2004`). Its stride, walked over 101..4501, parts on the standing
+families alone.
+
+## run1260b — the Inca at a held Classical age, East Indies: the word 4501's window, blocks 4495..4751 (2026-10-25, item 3606, `att-3606`)
+
+`docs/AI.md` §327. **What the disk could not answer**: every record on the word's frame. run1260's stride prints
+units every hundredth block (4501 and 4601 around the word) and no `LEADERDATA`, building or `AMMO` record past the
+start, and no other dump holds this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1260b
+--map 18 --end-frame 4751 --timeout 3600 --log-window 4495 4751 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover cover=0 --profile
+STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 04:40:52, exited 04:41:45 (53.5 s launch to exit). `success`: 4752 frames. `rngcmp.py`
+  against run1260: 4752 frames identical. Filed with `filerun.py run1260b
+  eastindies-inca-classical-window-4495-4751 --map 18`. `df -g ~` read 120 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1260b-eastindies-inca-classical-window-4495-4751.txt`, 582,959,432 bytes,
+SHA-256 `b6bd9dff8ba07ed6c8527ec2e3cec361ff4b374415cc23351965d5dce1d7e1f7`.
+
+Archive `rontrace-run1260b.log`, 86,032,608 bytes,
+SHA-256 `3edbb5f05d768006f9529b9e22eb24d0b981e5948742199366b300c5d8338dc7`.
+
+**What it holds**: `inca_classical_pair_run1260b_s_word_frame_is_widened_whole` (256 blocks, 754 keys): the Farm
+`0/2004`'s first wound on block 4502 in theirs alone, and both sides' Dromon rounds in `AMMO` and
+`RON_DEBUG_AMMO`.
