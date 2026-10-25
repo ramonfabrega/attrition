@@ -10686,3 +10686,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1292b --map 18 --end-frame 4749 --allow-early-end --timeout 3600 --log-window 4493 4749 --detail (run1292's) --ai-tribe 17 --cover cover=0, run1278's lobby   (the word 4499's window)
 #   run1292c --map 18 --end-frame 4495 --allow-early-end --timeout 3600 --log-window 4395 4495 --detail (run1292's) --ai-tribe 17 --cover cover=0, run1278's lobby   (the walk back from 4499)
 # Checks: `rngcmp.py` run1279 vs run1292 -> 1976 identical; vs run1292b -> 4750 identical; vs run1292c -> 4496 identical.
+# ==== item 3632: the Mongol Gunpowder word 4499 -> 4632, the Horde's pivot (`docs/AI.md` §331.2; `docs/RUNS.md` run1294) ====
+#   run1294  --map 18 --end-frame 4475 --timeout 3600 --log-window 4472 4475 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 17 --cover cover=0 --tracer-def RON_STATE_FRAME=4473, run1278's lobby   (piece 153's packet)
+# Checks: `rngcmp.py` run1279 vs run1294 -> 4476 identical.

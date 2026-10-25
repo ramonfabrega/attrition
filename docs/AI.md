@@ -30069,8 +30069,87 @@ keys) parts on the standing families alone. run1292c (blocks 4395..4495,
 | 4475 | `0/2000` | `raid_stamp` | 0 | 4474 |
 
 From 4476 `0/5`'s position parts, from 4479 who=1's move destinations;
-no draw parts until 4499. Which side moved the treaty, and why, is the
-next item's hypothesis, unread; `0/5`'s striker is not yet named.
+no draw parts until 4499. ~~Which side moved the treaty, and why, is the
+next item's hypothesis, unread; `0/5`'s striker is not yet named.~~
+**Answered by item 3632 (§331.2)**: theirs, by a hit — the Horde `1/21`'s
+round strikes `0/5` a frame before ours' does.
+
+### 331.2 The Horde looses through its saddle pivot, 4499 → 4632 (item 3632)
+
+*Item 3632, 2026-10-25, Opus 5.5. Run 1294, a packet.*
+
+**The treaty is the hit's effect.** `treaties` 3 is the met bit and bit
+2, and bit 2's only writer in a game is the cross-player hit
+(`Ammo::do_damage@00678060:268`–`:287`, `Object::do_damage:327`; this
+crate's `fight.rs` `treaty_on(hit_by, hit_who, 2)`, item 1620). So the
+treaty, the wound (`hits_left` 24, `damage_frame` 4474), `0/5`'s flight
+order (kind 4, a `FLEETOORDER` to (5064, 7608)) and its city's
+`raid_stamp` 4474 are one event on frame 4474: **theirs' round landed
+and ours' had not yet.**
+
+**The round, both sides.** run1292c prints `AMMO` (the walk does not
+compare it). Theirs': `1/21` → `0/5`, first printed on block 4459
+(`cur_time` 1, so loosed on 4458), `sx, sy, sz` (5570, 10826, 245), `ex,
+ey` (5305, 9140), `total_time` **17**, landing on 4474. Ours'
+(`RON_DEBUG_AMMO=4456-4476`): the same shooter, target and landing, from
+**(5592, 10920)** — the figure's own square — with `total_time` **18**,
+so it struck on 4475's frame, one after.
+
+**The shooter.** `1/21` is **the Horde** (TypeIndex 203, `HORDE`, land,
+uid 45; `RON_DEBUG_UNIT`), figure piece **153**, standing at (5592,
+10920) facing −174784512 on an `ATTACKORDER` at `0/5`; its `CHAR_ATTACK2`
+(slot 12) releases at starttime 16 on 4458. Piece 153 had no row in
+`sim::launch` or `sim::pivot`, so the round left from the figure.
+
+**Which model: the pivot, not a bay.** run1294's packet
+(`RON_STATE_FRAME=4473`) holds piece 153's nine `AttachPos` rows: a
+node 4 at every key (`(0.0, −3.38, 32.63)` at `(4, 0, 0)`) and node 0 at
+`(10, 18)`, `(11, 18)`, `(12, 16)` and `(13, 19)`. Node 0's non-pivot
+sweep alone (`get_position.py sweep`) puts the round about 16 short and
+156 low of every dumped one; node 0 plus node 4 gets the heights right
+(233, 235, 285 — the dump's own) and still misses eight of the nine
+dumped Horde rounds by a few degrees, each turned toward its target. So
+the rider turns in the saddle: piece 153 is a **pivot piece**, like the
+Horse Archer pieces (1545, 841, 156, …) this crate already carries. Its
+`pivot::NODES` row and four `RELEASES` rows are the packet's entries;
+`get_position.py pivot 153 0 <anim> <time> 1` agrees with the integer
+form on all 4 × 92,416 cells but one (`CHAR_ATTACK3` at `(307, 187)`,
+its `float_lands`). Every one of the nine Horde rounds run1292c and
+run1292b print, at its figure's pose on the block before, is a cell of
+the table at its facing's degree.
+
+**Built.** `crates/sim/src/pivot.rs`: `NODES` `(153, 4)`, `RELEASES`
+for piece 153's four keys. Tests
+`the_original_s_release_agrees_on_every_cell_for_piece_153` (the
+packet's table, `$RON_RELEASE_TABLE_153`, outside git) and
+`run1292_s_horde_rounds_leave_through_piece_153_s_pivot` (the nine
+rounds). Mutation through `tools/mutate.py`: `CHAR_ATTACK2`'s row moved
+off its frame — **held**, the word back to 4499. The `NODES` row dropped
+fails nothing on the walk (the node feeds only the turret's bearing,
+which the word does not reach); the sim test pins it.
+
+**What it moved — the value diff, on the frame the state first parted.**
+
+| frame | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 4459 | `AMMO` `1/21` → `0/5` | `sx, sy` | (5592, 10920) | (5570, 10826) | (5570, 10826) |
+| 4459 | `AMMO` | `total_time` | 18 | 17 | 17 |
+| 4475 | `0/5` | `hits_left` | 50 | 24 | 24 |
+| 4475 | leader 0, leader 1 | `treaties[1]`, `treaties[0]` | 1 | 3 | 3 |
+
+run1292c 404 → **136** keys, the standing families alone; run1292b 5030
+→ **1772**. **The word 4499 → 4632** by the count and the sequence;
+every other lobby's `first_parting` is unmoved (66 of 66).
+
+**The word 4632.** Ours spends 54 draws against 52, parting at index 40:
+ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::fight+0x9b0`.
+It sits inside run1292b, which is its widening: nothing but the standing
+families parts before **block 4633, the word's own**. There who=1's
+group 80 parts in its orders — the Bombard `1/84` (TypeIndex 267)
+`orders.len` 2 against theirs' 3 (a second `GROUPATTACKTOORDER`) and its
+path; the Hussars (211) `1/93` `order:kind` 2 against 10, `1/94` and
+`1/95` 21 against 2. Which side issued the group's order, and why, is the
+next item's, unread.
 
 ## 332. Reserved for the next item on the AI track
 
