@@ -3330,6 +3330,14 @@ impl Sim {
         }
         let mut hit = hit;
         let owner = self.buildings[b].owner;
+        #[cfg(not(test))]
+        if std::env::var("RON_PROBE_3633").is_ok() {
+            let who = by.map(|o| match o {
+                Obj::Unit(u) => format!("{}/{} ty{:?}", self.units[u].owner, self.units[u].index, self.units[u].ty),
+                Obj::Building(x) => format!("b{x}"),
+            });
+            eprintln!("  PROBE3633 f{frame} b{b} {}/{} hit {}+{}/16 by {:?} attr {attrition}", owner, self.buildings[b].index, hit.whole, hit.frac, who);
+        }
         if !attrition
             && let Some(by) = by
             && self.owner_of(by) != owner
