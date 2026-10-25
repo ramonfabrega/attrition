@@ -2423,6 +2423,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
+    // **Piece 825, the Inca Archers** (`ARCHERS`, type 171; item 3617,
+    // `docs/AI.md` §327.2): run1266c's packet holds its four `AttachPos`
+    // rows at scale 1.0 — node 0 at anims 11, 12 and 13, times 12, 9 and
+    // 15, and a `CHAR_DIE` row (anim 4) no round reads — and
+    // `tools/recomp/fit_bay.py` on `get_position.py`'s sweep of each finds
+    // piece 473's regions to the point (221, 277 and 124 lattice points),
+    // so the rows are 473's centroids. Without them who=1's Archers loosed
+    // from the figure's own square, a frame long: `1/58` at the Scout `0/0`
+    // on 5327 from (7224, 8952), 18 frames where theirs left (7278, 8882)
+    // and flew 17, and `0/0` was struck a frame late.
+    (
+        825,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -1_826,
+            fwd: 88_749,
+            dz: 163,
+        },
+    ),
+    (
+        825,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: 336,
+            fwd: 87_408,
+            dz: 164,
+        },
+    ),
+    (
+        825,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 9_711,
+            fwd: 66_508,
+            dz: 164,
+        },
+    ),
     // **Piece 1176, the Japanese Bowmen** (`BOWMEN`, type 170, `120 + 3 ×
     // 0x160`; item 3610, `docs/AI.md` §323): run1264b's
     // `RON_STATE_FRAME=4919` packet on the Japanese Ancient East Indies
@@ -4409,6 +4449,66 @@ mod tests {
                 Some(sz),
                 "block {block}"
             );
+        }
+    }
+
+    /// **run1270's Inca Archers loose from piece 825's bays** (item 3617):
+    /// who=1's three rounds at the Scout `0/0` over 5327..5342, `(shooter,
+    /// first block, anim, guy x, guy y, guy z, angle, sx, sy, sz)` off the
+    /// `GUY` and `AMMO` records on the round's first block.
+    #[test]
+    fn run1270_s_inca_archers_loose_from_piece_825_s_bays() {
+        const M: &[(&str, i32, i8, i32, i32, i32, i32, i32, i32, i32)] = &[
+            (
+                "1/58",
+                5328,
+                crate::anim::ATTACK1,
+                7224,
+                8952,
+                251,
+                477_233_152,
+                7278,
+                8882,
+                414,
+            ),
+            (
+                "1/73",
+                5332,
+                crate::anim::ATTACK1,
+                7080,
+                9000,
+                240,
+                505_610_240,
+                7138,
+                8933,
+                403,
+            ),
+            (
+                "1/74",
+                5343,
+                crate::anim::ATTACK3,
+                7080,
+                8376,
+                308,
+                683_016_192,
+                7140,
+                8347,
+                472,
+            ),
+        ];
+        for &(who, block, anim, x, y, z, angle, sx, sy, sz) in M {
+            let time = [
+                (crate::anim::ATTACK1, 12),
+                (crate::anim::ATTACK2, 9),
+                (crate::anim::ATTACK3, 15),
+            ]
+            .iter()
+            .find(|k| k.0 == anim)
+            .expect("an attack key")
+            .1;
+            let got = launch_point(Pos::new(x, y), Angle(angle), 825, anim, time, 0);
+            let dz = release_dz(825, anim, time, 0).expect("a bay");
+            assert_eq!((got.x, got.y, z + dz), (sx, sy, sz), "{who} block {block}");
         }
     }
 
