@@ -42,9 +42,16 @@ pub(crate) const RUSSIAN_MEDIEVAL: Pair = Pair {
     // the count and the sequence, ours 10 draws against 9, index 1 — ours
     // `Guy::set_anim+0xf2f < Unit::set_anim+0x56` (the Elite Javelineers
     // `1/27`, TypeIndex 84), theirs `Guy::set_anim+0x97a <
-    // Unit::do_guard+0x7f4`.
-    count: 3349,
-    sequence: 3349,
+    // Unit::do_guard+0x7f4`: the guard's search took the Library `0/2005`
+    // where theirs took the Market `0/2006`. Item 3615 built
+    // `compare_target`'s computer building-class arm (a training building
+    // `× 2`: run1268's packet values the Market 71 against ours' 36) with
+    // the armed weight's empty-city gate; the pair reads 4442 by the count
+    // and the sequence, ours 28 draws against 25, index 12 — ours
+    // `Ammo::init+0xcd9`, theirs `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x1ed`.
+    count: 4442,
+    sequence: 4442,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -148,7 +155,9 @@ fn russian_medieval_pair_is_no_other_lobby() {
 /// for the first try's 3149 — six blocks before its block 3150 and 250
 /// after (item 3605); the long's stride prints units every hundredth block
 /// (3101 and 3201) and no `LEADERS` past the start. On 3614's tree the word
-/// is 3349, whose block 3350 the window holds with 49 after it.
+/// was 3349, whose block 3350 the window holds with 49 after it; on 3615's
+/// it is 4442, past the window, and run1258b holds the state's first value
+/// parting (block 3351).
 pub(crate) const RUN1258B: &str =
     "gamelog-run1258b-greatsahara-russian-medieval-window-3143-3399.txt";
 
@@ -213,8 +222,75 @@ fn russian_medieval_pair_run1258b_s_word_frame_is_widened_whole() {
     // block 3348, building `0/2005` in ours against `0/2006` in theirs;
     // its heading parts on 3350, the word 3349's block, where ours spends
     // a `Unit::set_anim` draw theirs does not. Then `1/42`'s wound on 3351
-    // (`hits_left` 91 against 90) and `1/41`, ours' alone.
-    pin_eq!(w.firsts.len(), 337, "run1258b baseline");
+    // (`hits_left` 91 against 90) and `1/41`, ours' alone. Item 3615
+    // (`compare_target`'s training-building `× 2`): 55 keys — `1/27` takes
+    // the Market `0/2006` on both sides, and past the standing families
+    // (who=1's group pools from 3143) the first rows are block 3351's:
+    // theirs frees `1/41` (Elite Javelineers, damage 35, `damage_frac` 8 on
+    // 3350; its slot a Citizen's on 3384) and wounds `1/42` 19 → 20,
+    // `damage_frac` 0, where ours keeps `1/41` and leaves `1/42` at 19,
+    // `damage_frac` 8. The draw stream holds through it to 4442.
+    pin_eq!(w.firsts.len(), 55, "run1258b baseline");
+}
+
+/// run1268b: the closing window, blocks 4286..4542 at run1258b's detail
+/// (item 3615) — booked for the word 4442, whose block 4443 no dump held:
+/// run1258's stride prints units every hundredth block and run1258b ends on
+/// 3399. It runs to the closing block 4542.
+pub(crate) const RUN1268B: &str =
+    "gamelog-run1268b-greatsahara-russian-medieval-window-4286-4542.txt";
+
+/// The window: block 4286 through the closing block 4542; the word 4442's
+/// own block is 4443.
+pub(crate) const WIDENING_RUSSIAN_MEDIEVAL_RUN1268B: (i64, i64) = (4286, 4542);
+
+/// **The word 4442's window**: run1268b walked from run1257's start with
+/// the recorder on (item 3615).
+pub(crate) fn russian_medieval_run1268b_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_MEDIEVAL.start],
+        true,
+        RUSSIAN_MEDIEVAL.long,
+        "run1268b",
+        &[(RUN1268B, WIDENING_RUSSIAN_MEDIEVAL_RUN1268B.0)],
+        WIDENING_RUSSIAN_MEDIEVAL_RUN1268B,
+        1,
+        &[4443],
+        true,
+    )
+}
+
+#[test]
+fn russian_medieval_pair_run1268b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_medieval_run1268b_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3615, the first walk: 1411 keys. Past the standing families
+    // (who=1's groups' `held` and pools, every unit's `form`, who=0's
+    // `SITE[i].reg` and `aggression[1]`), two order points part before
+    // the word — `1/78`'s `orders_x` 11160 against 11145 on 4395, `1/70`'s
+    // 10824 against 10823 on 4398 — and on the word's block 4443 six of
+    // who=1's units round the empty city `0/2000` leave each side, but not
+    // the same six: ours keeps `1/200`, `1/205`, `1/209`, `1/212`,
+    // `1/215`, `1/218` (theirs' gone) and theirs `1/202`, `1/207`,
+    // `1/211`, `1/214`, `1/217`, `1/220` (ours' gone). Then the city's
+    // damage on 4446 (ours 1091 against 1087) and `1/54`'s attack.
+    pin_eq!(w.firsts.len(), 1411, "run1268b baseline");
 }
 
 /// **The long's stride, walked back from the window** (item 3605):
