@@ -71,6 +71,8 @@ mod french_word;
 #[cfg(test)]
 mod german_alltech_pair;
 #[cfg(test)]
+mod german_ancient_pair;
+#[cfg(test)]
 mod german_sahara_word;
 #[cfg(test)]
 mod german_word;

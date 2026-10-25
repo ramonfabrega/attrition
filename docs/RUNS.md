@@ -26997,6 +26997,67 @@ SHA-256 `5cb750c56bed70030117d15e0150e2db02ea7e9ac22fbbd7b4c76922fa370954`.
 second Senate `1/2042` placed on the word's block 4183 in ours alone, the Citizen `1/94` sent to build it, theirs'
 `MAKE[8].t` still the Senate, and the standing families from 4177.
 
+## run1243 — the Germans from an Ancient start, Great Sahara: the `DUMP_ALL` start (2026-10-24, item 3596, `att-3596`)
+
+`docs/AI.md` §321. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1243 --map 7 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 20:27:07, exited 20:27:32 (24.4 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 12, five files restored. `GAME INFO` reads back
+  `DIFFICULTY 5`, `STARTING_TECHNOLOGY 0` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1243
+  greatsahara-german-ancient-start --map 7`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1243-greatsahara-german-ancient-start.txt`, 149,896,883 bytes,
+SHA-256 `a4b4718f4767017ab9abbcf964d5cca2e8272434cb4e6936ff293c37be55ebd4`.
+
+Archive `rontrace-run1243.log`, 8,275,648 bytes,
+SHA-256 `24835dab74d2ce5e724c183946247b9a009e7327059b38713cf1e6c012be3b99`.
+
+**What it holds**: the start of `german_ancient_pair::GERMAN_ANCIENT`, and the walk's initial state.
+
+## run1244 — the Germans from an Ancient start, Great Sahara: the draw stream to the game's end (2026-10-24, item 3596, `att-3596`)
+
+`docs/AI.md` §321. run1202's line with `--ai-tribe 12`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 12
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1243's
+lobby.
+- Pool lane 2, beside run1243. Launched 20:27:07, exited 20:27:43 (35.1 s launch to exit). `success`. **The game
+  ended itself on 5314** (closing block 5315, `ended_early`). `GAME INFO` reads back as run1243's. `rngcmp.py`
+  against run1243: 37 frames identical. Filed with `filerun.py run1244 greatsahara-german-ancient-trace --map 7`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1244-greatsahara-german-ancient-trace.txt`, 26,080,716 bytes,
+SHA-256 `7037214f5d3e32b3712a67a4e7eb52635e034f5e607ea611a7095090c28f635b`.
+
+Archive `rontrace-run1244.log`, 87,999,616 bytes,
+SHA-256 `3bd47090725afb38dbd683c3b8b2423ab8633ce5800faba5e9f35d75fc6ae466`.
+
+**What it holds**: the pair's first try, **whole**. `german_ancient_pair_first_parting` walks it from run1243:
+5314 of 5314 by the count and the sequence. `german_ancient_pair_run1244_s_closing_state` compares its closing
+block 5315: 171 units, none off, torn or unlinked.
+
+## run1244b — the Germans from an Ancient start, Great Sahara: the closing window, blocks 5059..5315 (2026-10-24, item 3596, `att-3596`)
+
+`docs/AI.md` §321. `--map 7 --end-frame 5314 --allow-early-end --timeout 3600 --log-window 5059 5315 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 12 --cover cover=0` and run1243's lobby. Booked
+because run1244 prints units only every hundredth block and no leader, building or city record past the start,
+so no dump held the last blocks.
+- Pool lane 1. Launched 20:32:30, exited 20:33:58 (88.1 s launch to exit). `success`: 5315 frames. `rngcmp.py`
+  against run1244: 5315 of 5315 frames identical. Filed with `filerun.py run1244b
+  greatsahara-german-ancient-window-5059-5315 --map 7`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1244b-greatsahara-german-ancient-window-5059-5315.txt`, 560,664,292 bytes,
+SHA-256 `e8d20fff1fe2679001e7f9731cb7045459dad399289a0d214785e10ab41722be`.
+
+Archive `rontrace-run1244b.log`, 87,579,616 bytes,
+SHA-256 `7fa633733fa92b9f545b262e22f7b0ebfe318969951e01f391a1e67cfa648581`.
+
+**What it holds**: `german_ancient_pair_run1244b_s_closing_frame_is_widened_whole` (256 blocks, 55 keys): the
+standing families on 5059, five rows of who=1's `SITE` ranks and one value there that agree again by 5313, and
+groups 71's and 73's pools. No unit, building or city field parts.
 ## run1247 — the Maya from an Ancient start, East Indies: a packet at logger frame 4306, the Balamob Slingers' stones (2026-10-24, item 3599, `att-3599`)
 
 `docs/AI.md` §320.2. **What the disk could not answer**: where the Balamob Slingers `1/32` and `1/33` throw their

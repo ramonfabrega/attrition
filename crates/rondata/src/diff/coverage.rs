@@ -3479,6 +3479,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::egyptian_classical_pair::egyptian_classical_scout_window(),
         || super::spanish_classical_pair::spanish_classical_closing_window(),
         || super::maya_ancient_pair::maya_ancient_frame_4182_window(),
+        || super::german_ancient_pair::german_ancient_closing_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
         || super::lakota_medieval_pair::lakota_medieval_rounds_window(),
         || super::lakota_medieval_pair::lakota_medieval_closing_window(),
