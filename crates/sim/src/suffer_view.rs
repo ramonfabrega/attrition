@@ -178,13 +178,10 @@ impl SufferView for SimSuffer<'_> {
     }
     fn hurt(&mut self, h: Hurt) -> bool {
         let sixteenths = h.whole * 16 + h.sixteenths;
-        let (uber, alone) = {
-            let u = &self.sim.units[self.unit];
-            (
-                self.sim.profile(combat::Obj::Unit(self.unit)).uber_size,
-                u.combat.captain == i32::from(u.index) && u.squad_size == 1,
-            )
-        };
+        let (uber, alone) = (
+            self.sim.profile(combat::Obj::Unit(self.unit)).uber_size,
+            self.sim.takes_remainder_share(self.unit),
+        );
         let unit = &mut self.sim.units[self.unit];
         let share = combat::share(unit.max_health, uber, alone);
         let (taken, _, frac) = combat::take(

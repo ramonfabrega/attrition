@@ -3012,7 +3012,7 @@ impl Sim {
                 // `max_health - health` and the share beside them.
                 let u = &self.units[i];
                 let uber = self.profile(target).uber_size;
-                let alone = u.combat.captain == i32::from(u.index) && u.squad_size == 1;
+                let alone = self.takes_remainder_share(i);
                 let share = combat::share(u.max_health, uber, alone);
                 let u = &self.units[i];
                 let (taken, _, frac) =
@@ -7171,6 +7171,51 @@ mod tests {
         // And the squad-sized maximum is untouched, because item 484's
         // row compares it against the dump's `myhits`.
         assert_eq!(sim.units[me].max_health, 120);
+    }
+
+    /// **The remainder share is the last figure's** (item 3618,
+    /// `docs/AI.md` §326.2): `Object::take_damage` gives a squad figure
+    /// `hits − (uber − 1) · hits / uber` only when it is a captain whose
+    /// live `curr_uber_size(this, 1)` is 1. A captain with two live
+    /// members takes `110 / 3 = 36` and falls at its thirty-sixth point;
+    /// standing alone it takes `110 − 73 = 37`. This crate read the stored
+    /// `squad_size`, 1 here, and gave the captain 37 either way.
+    #[test]
+    fn a_captain_takes_the_remainder_share_only_alone() {
+        let falls_at_36 = |members: bool| {
+            let (mut sim, _) = at_war();
+            let ty = sim.add_unit_type(crate::UnitType {
+                hits: 110,
+                combat: Profile {
+                    attack: 15,
+                    max_range: 4,
+                    uber_size: 3,
+                    ..Profile::default()
+                },
+                ..crate::UnitType::default()
+            });
+            let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+            let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+            let c = i32::from(sim.units[me].index);
+            sim.units[me].combat.captain = c;
+            if members {
+                let a = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1030));
+                let b = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1060));
+                sim.units[me].o_down = Some(a);
+                sim.units[a].o_up = Some(me);
+                sim.units[a].o_down = Some(b);
+                sim.units[b].o_up = Some(a);
+                sim.units[a].combat.captain = c;
+                sim.units[b].combat.captain = c;
+            }
+            let hit = combat::Sixteenths { whole: 36, frac: 0 };
+            matches!(
+                sim.take_damage(Obj::Unit(me), hit, Obj::Unit(foe), 10),
+                Taken::Died { .. }
+            )
+        };
+        assert!(falls_at_36(true), "a whole squad's captain: share 36");
+        assert!(!falls_at_36(false), "the last figure standing: share 37");
     }
 
     /// **A unit struck while moving in contact takes the blow doubled**

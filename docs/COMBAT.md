@@ -6988,10 +6988,8 @@ body; `cur_anim 17` is the dump agreeing with the reading, which is why
 - that `dz` is carried and unread. The flight time is a plan distance in
   §9.1's own formula, and the three `dz` values here (163, 164, 178,
   151) are recorded because the record prints them.
-- §41.4's captain remainder — `combat::share`'s `captain_alone` arm —
-  which needs a squad down to one figure and which no capture on disk
-  reaches. Its arithmetic is tested; its predicate is §7.2 step 8's
-  reading.
+- ~~§41.4's captain remainder, which no capture reaches.~~ Diff-backed:
+  `docs/AI.md` §326.2 (run1268b's 4443, the predicate built live).
 
 **What this does not establish**:
 
