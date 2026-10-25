@@ -28216,12 +28216,17 @@ called the generalisation the only change; it is amended in place.
 
 **The build**: `territory::compute_region_territory_won` scans slots 0..7 from `x & 7` and skips any slot at or
 past the player count. `equal_claims_interleave_along_x` now asserts the eight-slot pattern (player 1 at x = 1
-and 9 only). New test: `a_two_player_tie_rotates_over_eight_slots`. Mutations through `tools/mutate.py`, putting
-`% players` back, both **held**: `egyptian_classical_pair_first_parting` exits 101 (6537), and the unit test
-exits 101.
+and 9 only). New test: `a_two_player_tie_rotates_over_eight_slots`. Mutations through `tools/mutate.py`, putting the
+old block back (`0..players`, `% players`), both **held**: `egyptian_classical_pair_first_parting` exits 101
+(6537), and the unit test exits 101.
 
 **The score: 6537 → 6718** (+181), by the count and the sequence. `first_parting`: all 54 lobbies hold, and no
-other word moves. `coverage::` passes 19 with run1242 in the driver. **The value diff on the old word**:
+other word moves. `coverage::` passes 19 with run1242 in the driver. **Nine other widenings each lose rows, all
+toward the original, and none gains one** (old block against new, through `tools/mutate.py`): the Greek
+Classical run1214 134 → 125, the Spanish Classical run1232b 82 → 74, the Lakota run882 222 → 209 and run883
+221 → 208 (both leaders' `territory` and team sums, with the wealth rows they feed); the Mongol Classical
+run1198b 77 → 75, run1218 96 → 95, run1222 82 → 81 and run1224 93 → 92, and the French run982d 30 → 29 (who=1's
+`leftover[2:wealth]`). Parked 3574a and 3586a were this tie and are answered; 3558a's `leftover` row is too. **The value diff on the old word**:
 
 | window | before | after | what agrees now |
 |---|---|---|---|
@@ -28238,8 +28243,8 @@ the standing families and five `dest_angle` rows from 6664, the first unit row i
 
 **What is not established.**
 - Why the Phalanx `1/116` drops its `ATTACKORDER` on 6717 in ours. Walk it back from run1241b's 6718.
-- Whether any other lobby's border holds a tie the old modulus broke the other way. Every pinned word and
-  widening held, so no capture on file reached one before its word.
+- Whether a tie the old modulus broke parts a word anywhere else. Nine widenings' territory rows moved, and
+  no pinned word did (parked 3595a).
 
 ## 319. The Spanish at a held Classical age, Great Sahara: whole on its first try, 8565 of 8565 (item 3586)
 

@@ -10717,8 +10717,8 @@ end. No capture separates it, and no score names it.
 (3595a) **No dump prints a cell's owner.** The two cells this item turned on, (13, 15) and (15, 13), show
 only as a two-cell gap in the leaders' `territory` sums. Ours' map came from a probe, and theirs' was
 inferred from the Scout's path cost. A tie the old `% players` modulus broke the other way, in another
-lobby, would show the same way. Every pinned word and widening held when the fix landed, so no capture on
-file reaches one before its word. No score names it.
+lobby, would show the same way. Nine widenings' territory rows moved toward the original when the fix landed
+(`docs/AI.md` §318.2), and no pinned word did. No score names it.
 
 ## Parked by the next landing, slot QW — reserved
 
