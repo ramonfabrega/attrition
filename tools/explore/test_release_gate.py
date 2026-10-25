@@ -850,6 +850,66 @@ class GateTests(unittest.TestCase):
         self.assertNotIn('--skip', command)
         self.assertEqual(policy['scope']['widened'], sorted(rows))
 
+    def test_a_pair_stand_up_s_window_line_and_test_kit_rows_do_not_widen_the_lane_gate(self):
+        # The fifty-sixth pass (Loop 3608's sequel): every stand-up of the
+        # fifty-sixth tranche also added one `|| super::<pair>::<window>(),`
+        # line to the coverage driver and two literal rows to the test kit
+        # — its `WIDENINGS` tuple and its `AiWord` — so `row_only_edits`
+        # left those two paths and zero of twenty lane gates skipped the
+        # timed suite (release 16–24 minutes in every journal). Both are
+        # row lists: the window line is read by the `coverage::` pins the
+        # lane's `--tests` names, the test-kit rows by the fast floors
+        # guards every lane gate runs. Eight of the tranche's twenty gates
+        # would have kept the fast suite under this reading.
+        fork = 'f0f0f0f0'
+        hunks = {
+            'crates/rondata/src/diff/coverage.rs': '+        || super::french_classical_pair::french_classical_closing_window(),\n',
+            'crates/rondata/src/diff/testkit.rs': (
+                "+    // **The French at a held Classical age** (item 3607): Great Sahara —\n"
+                "+    // whole on its first try, 6106 of 6106, the closing state compared.\n"
+                "+    (\n"
+                '+        "FRENCH_CLASSICAL_PAIR_WORD",\n'
+                "+        crate::diff::french_classical_pair::FRENCH_CLASSICAL_PAIR_WORD,\n"
+                '+        Some("french_classical_pair_run1262_s_closing_frame_is_widened_whole"),\n'
+                "+        3607,\n"
+                "+        Some(crate::diff::french_classical_pair::WIDENING_FRENCH_CLASSICAL_CLOSING),\n"
+                "+    ),\n"
+                "+    AiWord {\n"
+                '+        line: "Late ages",\n'
+                '+        map: "GreatSaharaFrenchClassical",\n'
+                '+        named: "Great Sahara (French, Classical)",\n'
+                "+        word: crate::diff::french_classical_pair::FRENCH_CLASSICAL_PAIR_WORD,\n"
+                "+        length: 6_106,\n"
+                '+        endpoint: Some("french_classical_pair_run1262_s_closing_state"),\n'
+                '+        window: Some("french_classical_closing_window"),\n'
+                "+    },\n"
+                '+    ("run1262_french_classical_pair_closing_state", 2),\n'),
+        }
+        status = ('A\tcrates/rondata/src/diff/french_classical_pair.rs\nM\tcrates/rondata/src/diff/coverage.rs\n'
+                  'M\tcrates/rondata/src/diff/testkit.rs\n')
+        def run(command, **kwargs):
+            if command[:2] == ['git', 'merge-base']:
+                return SimpleNamespace(stdout=fork + '\n')
+            if command[:3] == ['git', 'diff', '--name-status']:
+                return SimpleNamespace(stdout=status)
+            if command[:3] == ['git', 'diff', '-U0']:
+                path = command[-1]
+                head = f'diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ -1,0 +2,3 @@\n'
+                return SimpleNamespace(stdout=head + hunks.get(path, ''))
+            raise AssertionError(command)
+        rows = {'crates/rondata/src/diff/french_classical_pair.rs', 'crates/rondata/src/diff/coverage.rs',
+                'crates/rondata/src/diff/testkit.rs'}
+        self.assertEqual(gate.row_only_edits('worktree-replan-pdb', run=run), rows)
+        self.assertEqual(gate.lane_widens(sorted(rows) + ['docs/AI.md'], row_only=sorted(rows)), [])
+        # A window swapped, a helper, a `use`, or a field of another name is an edit.
+        hunks['crates/rondata/src/diff/coverage.rs'] = ('-        || super::maya_ancient_pair::maya_ancient_frame_4429_window(),\n'
+                                                       '+        || super::maya_ancient_pair::maya_ancient_frame_4529_window(),\n')
+        self.assertNotIn('crates/rondata/src/diff/coverage.rs', gate.row_only_edits('worktree-replan-pdb', run=run))
+        for edit in ('+pub(crate) fn frame(&self) -> u32 { self.frame }\n', '+use super::french_classical_pair::walk;\n',
+                     '+        length: LENGTH + 1,\n', '+        stride: 100,\n'):
+            hunks['crates/rondata/src/diff/testkit.rs'] = edit
+            self.assertNotIn('crates/rondata/src/diff/testkit.rs', gate.row_only_edits('worktree-replan-pdb', run=run), edit)
+
     def test_a_lane_gate_told_not_to_widen_leaves_the_timed_tests_to_the_booking_gate(self):
         # DECISIONS 83 (the forty-fourth steer, Ramon's word): every lane of
         # the forty-fourth tranche touched a sim path, so every lane gate ran

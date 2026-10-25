@@ -269,7 +269,13 @@ landing against the fifty-fourth's 58.8, which the letter reads as
 sixteen-core host, 26.1 → 41.0 a session, and the gate on two lanes
 read 30.7 this tranche, above the 26.1 it was taken at; the lane
 returns when a two-lane tranche's gate a session is under that figure,
-or the gate's class is cut — the lever Loop 3608 pulls); a
+or the gate's class is cut — the lever Loop 3608 pulls; **the fifty-sixth
+pass measured that lever at zero**: the gate read 34.2 a session and
+every stand-up's lane gate still ran the timed suite, because a stand-up
+also adds the coverage driver's window line and two test-kit rows, which
+the rule did not read — it reads them now, eight of that tranche's
+twenty gates would have kept the fast suite, and the fifty-seventh's
+drain measures it); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

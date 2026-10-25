@@ -31,8 +31,9 @@ The lane gate's release step runs:
 A branch that can move a timed pin widens the lane gate to the whole
 suite (`lane_widens`, Loop 2415); since the fifty-fifth pass a pair
 stand-up's row-list edits — its `mod` line, its scored triple, its ledger
-row, its new module — do not (`row_only_edits`, Loop 3608), and the
-receipt's `row_only` names them.
+row, its new module, and since the fifty-sixth its coverage window line
+and its two test-kit rows — do not (`row_only_edits`, Loop 3608 and its
+sequel), and the receipt's `row_only` names them.
 A lane whose item moves no test (a retirement, a tooling item) gates with
 `--lane --whole` in place of `--tests`: every test, the timed ones
 included, with the lane's forgiveness and `Lane verdict:` (Loop 3489).
@@ -324,10 +325,28 @@ def lane_widens(paths, row_only=()):
 # rows, with nothing removed, does not widen it, and a new `.rs` under
 # `diff/` does not either. The booking gate's `--scope` keeps the path rule
 # — a wrong triple is its to catch — and the policy receipt names the rows.
+# The fifty-sixth pass (Loop 3608's sequel): every stand-up of the fifty-sixth
+# tranche also added one `|| super::<pair>::<window>(),` line to the coverage
+# driver and two literal rows to the test kit — the pair's `WIDENINGS` tuple
+# and its `AiWord` — so the two paths widened every one of them and zero of
+# twenty lane gates kept the fast suite (release 16–24 minutes in every
+# journal; the dry run over the tranche's merges says eight of twenty would
+# under this reading). The window line is read by the `coverage::` pins the
+# lane's `--tests` names, the test-kit rows by the fast floors guards every
+# lane gate runs; a removed line, a helper, a `use` or a field of another
+# name is an edit.
 ROW_LISTS = {
     'crates/rondata/src/diff.rs': re.compile(r'^(?:pub )?mod [a-z0-9_]+;$|^#\[cfg\(test\)\]$'),
     'crates/rondata/src/diff/battery.rs': re.compile(r'^\s*\(\d+, \d+, \d+\),$|^\s*//.*$'),
     'crates/rondata/src/ledger.rs': re.compile(r'^\s*\($|^\s*"[^"]*",$|^\s*\),$|^\s*//.*$'),
+    'crates/rondata/src/diff/coverage.rs': re.compile(r'^\s*\|\| super::[a-z0-9_]+::[a-z0-9_]+\(\),$|^\s*//.*$'),
+    'crates/rondata/src/diff/testkit.rs': re.compile(
+        r'^\s*//.*$|^\s*$|^\s*\($|^\s*\),$|^\s*AiWord \{$|^\s*\},$'
+        r'|^\s*"[^"]*",$|^\s*\("[^"]*", \d+\),$|^\s*\d[\d_]*,$|^\s*None,$'
+        r'|^\s*Some\("[^"]*"\),$|^\s*Some\(crate::diff::[a-z0-9_]+::[A-Z0-9_]+\),$'
+        r'|^\s*crate::diff::[a-z0-9_]+::[A-Z0-9_]+,$'
+        r'|^\s*(?:line|map|named|window|endpoint): (?:"[^"]*"|None|Some\("[^"]*"\)),$'
+        r'|^\s*word: crate::diff::[a-z0-9_]+::[A-Z0-9_]+,$|^\s*length: \d[\d_]*,$'),
 }
 NEW_MODULES = 'crates/rondata/src/diff/'
 

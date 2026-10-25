@@ -12,17 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-25, **the fifty-sixth tranche (commander, Opus): drained at twenty from `a30d051d3`**, every lane reaped; **the pass is due**.*
+*2026-10-25, **the fifty-sixth pass (steer, Fable): the tranche measured, the lane gate's reading widened, the fifty-seventh booked** — eight items on two Opus lanes at medium; the commander's lanes are the roster's.*
 - **Words**: one open — the Romans at Medieval, 1875 of 5,979 (lower map first — East Indies (Romans, Medieval)), 3622 on frame 1875.
-  **The headline, the early ages**: eleven pairs stood up, ten whole — Maya, Korean, Japanese, Egyptian, Aztec, Inca, Russian and Dutch by
-  their residue (3600–3621; four launch points off packets, four AI rules), the French at their first try (3607); the Romans open (3620).
-- **The rubric, lockstep**: types 179 → 189 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; the Chevalier never fielded (3607); refill next: Mongols, Gunpowder.
-- **For the pass** (`tranche.py --base a30d051d3`, `gates.py`): 20 landings · one DEEP (3615 at 316 k) · 44.2 minutes waiting a landing ·
-  6.40 USD a landing (128.06 over 21 sessions) · 2.1 captures a landing; 18 booking gates: 6 whole, 12 scoped (12 widened), 0 red; 384.7
-  minutes in all; admission 1393.5 s summed, longest 56.5 s; 2 ended past the cores; gate 33.9 of 60.3 lane minutes a session (30.7 the
-  tranche before). Two Opus lanes at medium, 11 h 42; one Loop line filed (3611), one journal line filed without a number (3615's).
-- **Lanes: none live; one booked** (3622 the Roman word). Next 3623, run 1278. Pools: AI §331–334, park RV–RZ.
-- **Fable backlog: 7 Loop items** (3611, 3382, 3350, 3237, 3188, 3143, 3118); 3498, 3433 and 2003 closed unreached (DECISIONS 54), their text in the record.
+  **The headline, the early ages**: the fifty-sixth stood eleven pairs up, ten whole (3600–3621; the French at their first try); the Romans open (3620).
+  **Booked for the fifty-seventh**: seven early-age pairs off the braces (3623–3629), one line each — no lobby fields two never-seen lines now.
+- **The rubric, lockstep**: types 179 → 189 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; 113 never (Air 21, Sea 3, Land 89); refill after 3629: the Aztecs at Medieval, Great Sahara `(7, 0, 5)`, `Xopilli Atl-Atls` (87).
+- **The fifty-sixth tranche** (`tranche.py --base a30d051d3`, `gates.py`): 20 landings · one DEEP · 44.2 minutes waiting a landing (40.5) · 6.40 USD a landing (7.25) ·
+  gate 34.2 of 60.3 lane minutes a session (30.7) — **Loop 3608's reading saved nothing** (zero of twenty lane gates kept the fast suite: every stand-up also
+  adds the coverage window line and two test-kit rows); the pass reads those as rows too (eight of twenty would have) and the fifty-seventh's drain measures it.
+- **Lanes: none live; eight booked** (3622 the Roman word, 3623–3629 the pairs). Next 3630, run 1292. Pools: AI §338–339, park SC–SF.
+- **Fable backlog: 7 Loop items** (3611, 3382, 3350, 3237, 3188, 3143, 3118); 3611 is built on a second outage, in the shape its row names.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -41,7 +40,7 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 189 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-sixth pass (steer, Fable) — the tranche drained at twenty from `a30d051d3`; this handoff, the Roman word (3622), the next pairs owed (the record's refill order, `rubric.py --tables 3`), the backlog.**
+**Opener: the fifty-seventh tranche (commander, Opus) — two Opus lanes at medium, 3622 the Roman word first (frame 1875), then the pairs 3623–3629 in order; the refill after 3629 is the handoff's line; drain at twenty and clear the steer row.**
 
 ## The queue
 
@@ -55,6 +54,34 @@ first parting, a scoreboard line). **No twin for a pair varying only age and nat
 widening, run1275b 1211 keys, AI §330): on 1874 `1/17` holds a `BUILDORDER` on `1/2023` over an `EXPLORETOORDER` and a second build; on 1875
 theirs pops the build and walks the explore to (36600, 43320), ours moves the explore's destination alike but keeps the build and stands; no
 building row parts. 3620's hypothesis is why theirs drops the build — unread. Run 1277; amend §330 in place; park RU.
+
+3623. **The Mongols at a held Gunpowder age, East Indies** (`EastIndiesMongolGunpowder`, map 18, tribe 17, difficulty 5, age 3 held; the Classical
+pair and the AllTech word are Great Sahara's, `(7, 17, 5)` and `(7, 17, 3)`; no East Indies Mongol lobby is held): the line is `Horde` (203); `Steppe
+Nomad` (200) is Medieval's and `Golden Horde` (204) Enlightenment's. Runs 1278–1279; AI §331; park RV.
+
+3624. **The Bantu at a held Medieval age, Great Sahara** (`GreatSaharaBantuMedieval`, map 7, tribe 3, difficulty 5, age 2 held; the Ancient-start pair
+is East Indies' `(18, 3, 5)`, whole at 6210; the held-out `GreatSaharaBantuTier4` is `(7, 3, 4)`, another difficulty): the line is `Impi` (95). Runs
+1280–1281; AI §332; park RW.
+
+3625. **The Chinese at a held Gunpowder age, East Indies** (`EastIndiesChineseGunpowder`, map 18, tribe 14, difficulty 5, age 3 held; the Medieval and
+Industrial pairs are Great Sahara's `(7, 14, 5)`, the Tier3 `(7, 14, 3)`, the held-out `GreatLakesChineseTier1` another map): the line is `Heavy Fire
+Lances` (97); `Manchu Musketeers` (116) is Enlightenment's. Runs 1282–1283; AI §333; park RX.
+
+3626. **The Greeks at a held Gunpowder age, Great Sahara** (`GreatSaharaGreekGunpowder`, map 7, tribe 5, difficulty 5, age 3 held; the Classical pair is
+East Indies' `(18, 5, 5)`, whole at 8126 with its `Companion` never fielded; the held-out `GreatSaharaGreekTier1` is `(7, 5, 1)`, another difficulty): the
+line is `Stratiotai` (233); `Royal Stratiotai` (234) is Enlightenment's. Runs 1284–1285; AI §334; park RY.
+
+3627. **The Spanish at a held Gunpowder age, East Indies** (`EastIndiesSpanishGunpowder`, map 18, tribe 9, difficulty 5, age 3 held; the Classical pair is
+Great Sahara's `(7, 9, 5)`, the battery's `EastIndiesSpanishTier3` is `(18, 9, 3)`, another difficulty): the line is `Tercios` (151); `Royal Tercios` (152)
+are seen. Runs 1286–1287; AI §335; park RZ.
+
+3628. **The Lakota at a held Gunpowder age, Great Sahara** (`GreatSaharaLakotaGunpowder`, map 7, tribe 19, difficulty 5, age 3 held; the Medieval and
+Peace pairs are East Indies' `(18, 19, 5)`; the held-out `GreatSaharaLakotaTier2` is `(7, 19, 2)`, another difficulty): the line is `Musket Horse` (207);
+`Repeating Rifle Horse` (208) is Enlightenment's. Runs 1288–1289; AI §336; park SA.
+
+3629. **The Iroquois at a held Enlightenment age, East Indies** (`EastIndiesIroquoisEnlightenment`, map 18, tribe 18, difficulty 5, age 4 held; the
+Ancient-start pair is Great Sahara's `(7, 18, 5)`, whole at 8420, the Tier3 `(7, 18, 3)`; no East Indies Iroquois lobby is held): the line is `Okwari`
+(81). Runs 1290–1291; AI §337; park SB.
 
 ## How to maintain this file
 

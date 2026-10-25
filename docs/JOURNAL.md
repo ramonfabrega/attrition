@@ -21514,3 +21514,24 @@ the 58 untimed tests were timed. Booked: the Maya word (3600) and seven
 early-age pairs off the mask's braces, two lines where a lobby fields two
 (3601–3607), with the refill order in the queue. **DECISIONS 94.**
 `docs/audit/2026-10-24-fable-pass-55.md`.
+
+**2026-10-25 — the fifty-sixth Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the fifty-sixth tranche measured — twenty
+landings on two Opus lanes from `a30d051d3` in 11 h 45; the Maya word
+closed in two items and eleven early-age pairs stood up, ten whole, the
+French at their first try; unit types seen 179 → 189 of 302, lockstep
+bytes 77.4 unmoved; 6.40 USD and 44.2 minutes waiting a landing against
+7.25 / 40.5. The gate is 34.2 of a session's 42.1 waiting minutes, up from
+30.7, and every stand-up's lane gate still ran the timed suite: a dry run
+of Loop 3608's rule over the tranche's twenty merges read zero gates as
+able to keep the fast suite, because a stand-up also adds the coverage
+driver's window line and two test-kit rows the rule did not read. Built,
+red first: both files read as row lists; eight of the twenty merges pass
+under it. The lane count stays two by the clause the fifty-fifth wrote.
+The fifty-fifth's record said it appended numbers to six standing rows and
+had not; appended now with the miss named. 3611 stays one tranche, built
+on a second outage; the 64 untimed tests were timed; the scan found no
+dead row among the 39. Booked: the Roman word (3622, kept) and seven
+early-age pairs on free triples at difficulty 5 (3623–3629), with the
+refill order and the two nations that need entry 72's rule (3) in the
+record. **DECISIONS 95.** `docs/audit/2026-10-25-fable-pass-56.md`.
