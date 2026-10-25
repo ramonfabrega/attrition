@@ -4686,7 +4686,6 @@ impl Sim {
                             continue;
                         }
                         let mut dist = self.attack_dist(attacker, o);
-                        let probe_raw = dist;
                         let is_unit = matches!(o, Obj::Unit(_));
                         // `00649527`'s conjunct: one of the two ends has
                         // to be a unit, so a building's search of another
@@ -4806,25 +4805,6 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
-                        // PROBE 3615
-                        if let Ok(spec) = std::env::var("RON_DEBUG_SEARCH")
-                            && let Obj::Unit(me) = attacker
-                            && let Some((uo, w)) = spec.split_once('@')
-                            && let Some((lo, hi)) = w.split_once('-')
-                            && (uo == "*" || uo.parse::<i64>().ok() == Some(i64::from(self.units[me].index)))
-                            && lo.parse::<i64>().is_ok_and(|l| self.frame >= l)
-                            && hi.parse::<i64>().is_ok_and(|h| self.frame <= h)
-                        {
-                            let (tidx, tgd) = match o {
-                                Obj::Unit(x) => (i64::from(self.units[x].index), self.units[x].combat.targeted),
-                                Obj::Building(x) => (i64::from(self.buildings[x].index), self.buildings[x].targeted),
-                            };
-                            eprintln!(
-                                "SEARCH f{} me {} cand {} raw {} dist {} targeted {} in_range {} value {} score {} best {:?} guard {} must {} flags {:#x} max {}",
-                                self.frame, self.units[me].index, tidx, probe_raw, dist, tgd, in_range, value, score,
-                                best.map(|(b, _)| b), guard.is_some(), must_reach, flags, max_dist
-                            );
-                        }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
@@ -4851,18 +4831,6 @@ impl Sim {
         // `docs/COMBAT.md` §33.
         if let Some((_, o)) = best {
             self.bump_targeted(o, 1);
-            // PROBE 3615
-            if std::env::var("RON_DEBUG_SEARCH").is_ok() {
-                let (aw, ai) = match attacker {
-                    Obj::Unit(x) => (self.units[x].owner, i64::from(self.units[x].index)),
-                    Obj::Building(x) => (self.buildings[x].owner, i64::from(self.buildings[x].index)),
-                };
-                let (tidx, tgd) = match o {
-                    Obj::Unit(x) => (i64::from(self.units[x].index), self.units[x].combat.targeted),
-                    Obj::Building(x) => (i64::from(self.buildings[x].index), self.buildings[x].targeted),
-                };
-                eprintln!("BUMP f{} by {}/{} -> {} now {}", self.frame, aw, ai, tidx, tgd);
-            }
         }
         // `006498de`: the pair survives only if the nearest candidate the
         // rings saw is inside `0xf00`, and is cleared otherwise — so an
