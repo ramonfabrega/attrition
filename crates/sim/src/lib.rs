@@ -5157,9 +5157,17 @@ impl Sim {
     /// The squad a captain heads, captain first — `o_down` walked.
     /// `UnitData::curr_uber_size`: the figures in `i`'s squad now — up
     /// the `o_up` links to the captain, then the captain's chain. A dead
-    /// figure is relinked out of the chain, so the count is the living.
+    /// figure is **not** relinked out: `Unit::close` re-appends it at the
+    /// chain's tail, and the walk stops at it because `0060a760` follows
+    /// `o_down` only while the next figure's `flags & 1` holds, the bit
+    /// `Object::close@00647160` clears (item 3612: run1254b's `1/46` dies
+    /// on 3225 and `1/47` takes the two-figure share on the same block).
     pub fn curr_uber_size(&self, i: usize) -> i32 {
-        squad_size(i, |u| self.units[u].o_up, |u| self.units[u].o_down)
+        squad_size(
+            i,
+            |u| self.units[u].o_up,
+            |u| self.units[u].o_down.filter(|&d| self.units[d].alive()),
+        )
     }
 
     pub fn squad_members(&self, captain: usize) -> Vec<usize> {

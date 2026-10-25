@@ -10216,7 +10216,9 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Egyptians at a held Gunpowder age** (item 3603): Great Sahara
     // — first try 3118 of 4454; piece 48's bays (run1254c's packet) move
     // it to 3238 in the same item; widened on run1254b over 3113..3369
-    // (the word's block 3239), the state apart from block 3225.
+    // (the word's block 3239), the state apart from block 3225. Item
+    // 3612: the squad's dead tail moves it to 3281 (block 3282, the same
+    // window), the state apart from block 3268.
     (
         "EGYPTIAN_GUNPOWDER_PAIR_WORD",
         crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER_PAIR_WORD,
@@ -12043,8 +12045,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Egyptians at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3603): first try 3118 of
-    // a game that ends itself on 4454, moved to 3238 by piece 48's bays,
-    // widened on run1254b.
+    // a game that ends itself on 4454, moved to 3238 by piece 48's bays
+    // and to 3281 by the squad's dead tail (item 3612), widened on
+    // run1254b.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaEgyptianGunpowder",

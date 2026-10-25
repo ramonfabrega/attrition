@@ -428,7 +428,11 @@ the thing the player selects; the figure is the thing that bleeds.
 
 The amount is in **sixteenths of a hit point**, and depends only on how many
 figures the squad currently has — `curr_uber_size`, which walks up to the
-captain and counts down the chain:
+captain and counts down the chain **while the next figure's `flags & 1`
+holds**. A dead figure is not unlinked: `Unit::close` re-appends it at the
+chain's tail and `Object::close` clears its flags, so the count stops there
+(item 3612, diff-backed on run1254b's block 3225: `1/46` dies
+and `1/47`, later in the frame, takes the two-figure eight):
 
 | Figures in the squad | Sixteenths per figure per tick |
 | --- | --- |

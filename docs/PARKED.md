@@ -10834,13 +10834,11 @@ frame, so no score names it. The garrisoned `g.angle[0]` of 3601a reaches two mo
 Nothing parks. The pair is whole at 6126. Its windows (run1264, run1252b, run1264c) and its stride read only the
 standing families, and its closing block 6127 compares 169 units with no field apart (`docs/AI.md` §323.1).
 
-## Parked by the next landing, slot RK — reserved
+## Parked by item 3612, 2026-10-25 — the Egyptian Gunpowder word: the squad's dead tail, 3238 → 3281
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The next parting, block 3268 (a squad trained into slots 47 and 49 in ours and 47 and 139 in
+theirs, whose dead `1/49` is still `1/50`'s tail), names the word 3281's frame and is the booking's
+(`docs/AI.md` §324.1).
 
 ## Parked by item 3613, 2026-10-25 — the Aztec Ancient word: the Royal Atl-Atls' bays, whole at 9258
 
@@ -10869,6 +10867,54 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot RN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot RO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot RO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot RP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot RP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot RQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot RQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot RR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot RR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot RS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot RS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot RT — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot RT renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
