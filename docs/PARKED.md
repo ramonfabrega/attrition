@@ -3780,6 +3780,10 @@ SendMessage), whose row sat `tempo=idle` until `lanewait.py` exited `STALLED lan
 outage rule (`CLAUDE.md`, back off on a Monitor) held; what the waiter cannot do is tell an outage from a lost exit notice, so the
 `STALLED` answer named the wrong remedy. For the pass: whether `STALLED` reads the lane's last tool result for `no verdict` first.
 
+**3615's "for the Loop"** (the journal's line, filed at its merge; no Loop number, nothing for the pass): it is a booking note, not a Loop
+finding — read run1258b's block 3351 before the word's frame 4442 — and the booking took it as 3618's first read. Its "next free run is
+1269" was stale: 3616's brief held 1269, which a lane cannot see; the queue's `Next … run` line is the count.
+
 ## Loop, filed 2026-10-24 — the fifty-fifth tranche's
 
 No row: twenty journals' "for the Loop" lines say `none`, and the pass's one finding was built in the pass — Loop 3608, the lane gate's
