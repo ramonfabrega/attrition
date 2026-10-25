@@ -8932,6 +8932,20 @@ impl Sim {
             if capturable != 0 && self.capture_approach(u, target, state.mandatory) {
                 return false;
             }
+            // **The search budget** (item 3598, `docs/AI.md` §318.3):
+            // `LAB_005fdb9e`'s first arm. While the unit's `waiting`
+            // (`+0xad`) is below 5 and its leader has counted more than ten
+            // invalid targets this frame, `fight` sets the frozen mark, adds
+            // 2 to `waiting` and returns: the order stands, nothing is
+            // searched and nothing is counted. run1241b's Phalanx `1/116`
+            // keeps its `ATTACKORDER` on the dead Citizen `0/12` one frame
+            // past ours (`waiting` 2, `unit_masks2` 16 on block 6718).
+            let who = usize::from(self.units[u].owner);
+            if self.units[u].waiting < 5 && self.retargets[who] > 10 {
+                self.units[u].unit_masks2 |= combat::umask2::NOT_FIRING;
+                self.units[u].waiting += 2;
+                return false;
+            }
             // `find_new_target`: the order dropped, then
             // `find_melee_target(−1, NULL, 0, 1, 0)`, **whose head is the
             // squad's** (item 1089, `docs/COMBAT.md` §79). A follower takes
@@ -8968,13 +8982,10 @@ impl Sim {
             // head of each leader's frame, and `resolve_unit_collision`'s
             // enemy ladder reads `< 10` (`docs/COLLISION.md` §14).
             //
-            // SEAM: the **search budget** it feeds here. `LAB_005fdb9e`'s
-            // first arm is `waiting < 5 && retargets > 10`, which sets
-            // the same bit, adds 2 to `UnitData::waiting` and returns
-            // *without* searching or counting. It is not modelled, and
-            // run112 says it did not fire there: `0/6`'s `waiting` is 0
-            // on block 696, where the throttle would have left 2.
-            let who = usize::from(self.units[u].owner);
+            // ~~SEAM: the **search budget** it feeds here~~ — built above
+            // (item 3598). run112 says it did not fire there: `0/6`'s
+            // `waiting` is 0 on block 696, where the throttle would have
+            // left 2.
             self.retargets[who] += 1;
             if matches!(
                 self.current_order(u).map(|o| &o.body),

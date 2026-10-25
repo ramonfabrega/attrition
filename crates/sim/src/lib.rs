@@ -393,6 +393,14 @@ pub struct Unit {
     /// from block 13278 as two Inti Macemen fail to reach it, and the
     /// Heavy Archer `1/99` takes the citizen `0/4` over it on 13282.
     pub full: i8,
+    /// **`UnitData::waiting`** (`+0xad`, a signed byte): `Unit::fight@
+    /// 005fd4d0`'s search budget. Its invalid-target arm (`LAB_005fdb9e`)
+    /// adds 2 and returns without searching while `waiting < 5` and the
+    /// leader's [`Sim::retargets`] is past ten; `Unit::process@00610bc0`
+    /// takes one off a frame at its head; `Unit::init@00612100` zeroes it.
+    /// Item 3598: run1241b's Phalanx `1/116` reads 2 on block 6718 and 1
+    /// on 6719, the frame twelve of who=1's units lost the Citizen `0/12`.
+    pub waiting: i8,
     /// **`UnitData::cavarch_o`/`cavarch_who` (`+0xa2`/`+0xa8`)** and the
     /// uid beside them (`+0xa6`) — a caster's target, written by
     /// `Group::action_spell` and again by each frame of `do_cast`'s
@@ -1092,6 +1100,7 @@ impl Unit {
             spell_time: 0,
             mana_burn: 0,
             full: 0,
+            waiting: 0,
             cast_target: None,
             cavarch_who: 0,
             cavarch_idle: false,
@@ -6747,6 +6756,9 @@ impl Sim {
         // reload and the wait (`:63`–`65`), inside or out.
         if self.units[i].full != 0 {
             self.units[i].full -= 1;
+        }
+        if self.units[i].waiting != 0 {
+            self.units[i].waiting -= 1;
         }
         // `Unit::process@00610bc0`'s head, a caster's arm: a hero's
         // spells run out, then a point of craft back (`crate::cast`),
