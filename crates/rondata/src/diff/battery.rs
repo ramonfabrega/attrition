@@ -258,6 +258,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `EastIndiesAztecTier1`, `(18, 0, 1)`, another difficulty, nor the
     // Great Sahara lobbies `(7, 0, 3)` (AllTech) and `(7, 0, 2)`.
     (18, 0, 5),
+    // The Chinese Gunpowder pair's (item 3625): the Chinese at a held
+    // Gunpowder age, Difficulty 5, East Indies — not the held-out
+    // `GreatLakesChineseTier1`, `(14, 14, 1)`, nor the Great Sahara pairs
+    // `(7, 14, 3)` and `(7, 14, 5)`, another map.
+    (18, 14, 5),
     // The Egyptian Gunpowder pair's (item 3603): the Egyptians at a held
     // Gunpowder age, Difficulty 5, Great Sahara — not the scored
     // `GreatSaharaEgyptianTier4`, `(7, 7, 4)`, another difficulty, nor the

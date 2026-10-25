@@ -28436,3 +28436,89 @@ SHA-256 `fda04725951a4ffbefe3be33473016f8b7f30020bcdfb5d49e657fd8e2164b48`.
 **What it holds**: `greek_gunpowder_pair_run1285b_s_closing_frame_is_widened_whole` (256 blocks, 65 keys): the
 standing families on 3819, group 66's on 3904, and seventeen `dest_angle` rows on who=1's guards (parked 3626a); the
 closing block agrees.
+## run1282 — the Chinese at a held Gunpowder age, East Indies: the `DUMP_ALL` start (2026-10-25, item 3625, `att-3625`)
+
+`docs/AI.md` §333. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1282 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 14 --profile STARTING_TECHNOLOGY=3 --profile
+ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. The first take exited 5 and the runner retook it after 300 s; the retake launched 17:47:03 and
+  exited 17:47:27 (24.3 s launch to exit, 340.8 s in all). `success`: 37 frames, 3370 `GROUPDATA` blocks on frame
+  1, seed 12345, players tribe 4 and tribe 14, five files restored. `GAME INFO` reads back `STARTING_TECHNOLOGY 3`
+  and `ENDING_TECHNOLOGY 3`. Filed with `filerun.py run1282 eastindies-chinese-gunpowder-start --map 18`. `df -g ~`
+  read 111 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1282-eastindies-chinese-gunpowder-start.txt`, 153,811,887 bytes,
+SHA-256 `dd9b14a36445c985a9917cabf450536ed7b67ab254db1a49a4b6e5b109337668`.
+
+Archive `rontrace-run1282.log`, 10,073,824 bytes,
+SHA-256 `67735a1097ee689543c9459972d7edf7085787077627f3938699202c71e2b2d5`.
+
+**What it holds**: the start of `chinese_gunpowder_pair::CHINESE_GUNPOWDER`, and the walk's initial state.
+
+## run1283 — the Chinese at a held Gunpowder age, East Indies: the draw stream to the game's end (2026-10-25, item 3625, `att-3625`)
+
+`docs/AI.md` §333. run1279's line with `--ai-tribe 14` and run1282's lobby: `--map 18 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 14 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`, with run1282's four `--profile`s. The
+`start:` detail carries `GUYS=4` where run1279's carries `GUYS=2`, a slip: it prints more of the start block and
+spends no draw (run1282 against it is 37 of 37 identical), and the walk is seeded from run1282.
+- Pool lane 2, beside run1282. Launched 17:42:02, exited 17:42:35 (32.4 s launch to exit). `success`. **The game
+  ended itself on 5568** (closing block 5569, `ended_early`). `GAME INFO` reads back as run1282's. `rngcmp.py`
+  against run1282: 37 frames identical. Filed with `filerun.py run1283 eastindies-chinese-gunpowder-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1283-eastindies-chinese-gunpowder-trace.txt`, 43,464,021 bytes,
+SHA-256 `73780562898c9e778b517a36ea10564371ede9e2787ad52383a330568349b0c9`.
+
+Archive `rontrace-run1283.log`, 266,902,880 bytes,
+SHA-256 `dd9991537c694b77066283ab9bda6275e54793fef14958936ad748ebefc8ed2c`.
+
+**What it holds**: the pair's first try. `chinese_gunpowder_pair_first_parting` walks it from run1282: **frame 4884
+of 5568** by the count and the sequence. Ours spends 341 game-stream draws against theirs' 357, parting at index 6:
+ours `PathFinder::calc_road_cost+0x46`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Its stride, walked
+over 101..4801, parts on the standing families alone.
+
+## run1283b — the Chinese at a held Gunpowder age, East Indies: the word 4884's window, blocks 4879..5135 (2026-10-25, item 3625, `att-3625`)
+
+`docs/AI.md` §333. **What the disk could not answer**: every record on the word's frame. run1283's stride prints
+units on 4801 and 4901 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1283b --map 18 --end-frame 5135
+--allow-early-end --timeout 3600 --log-window 4879 5135 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 14 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 17:50:38, exited 17:51:43 (65.0 s launch to exit). `success`: 5136 frames, closing frame
+  5136. `rngcmp.py` against run1283: 5136 of 5136 identical. Filed with `filerun.py run1283b
+  eastindies-chinese-gunpowder-window-4879-5135 --map 18`. `df -g ~` read 107 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1283b-eastindies-chinese-gunpowder-window-4879-5135.txt`, 643,937,511 bytes,
+SHA-256 `f6947653e5498864c5b5141a44907c24d861e9006a067520eb48e360566ada85`.
+
+Archive `rontrace-run1283b.log`, 234,552,224 bytes,
+SHA-256 `6fc724a6b3c1d2c02382460c7b27e7a0b73f6c0ac533c2b20e9ff8e912c182e0`.
+
+**What it holds**: `chinese_gunpowder_pair_run1283b_s_word_frame_is_widened_whole` (256 blocks, 3727 keys). On its
+first block 4879 the Heavy Fire Lance `1/215` (TI 97) stands 222 east of theirs, six frames of its walk ahead.
+
+## run1283c — the Chinese at a held Gunpowder age, East Indies: the gap before the word's window, blocks 4795..4880 (2026-10-25, item 3625, `att-3625`)
+
+`docs/AI.md` §333. **What the disk could not answer**: where `1/215` first parts. run1283b parts on its first block,
+and run1283's stride prints 4801 only, before the unit's walk; no other dump holds the gap 4802..4878.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1283c --map 18 --end-frame 4880 --allow-early-end
+--timeout 3600 --log-window 4795 4880` with run1283b's detail, tribe, cover and lobby.
+- Pool lane 1. Launched 17:53:49, exited 17:54:27 (38.6 s launch to exit). `success`: 4881 frames, closing frame
+  4881. `rngcmp.py` against run1283: 4881 of 4881 identical. Filed with `filerun.py run1283c
+  eastindies-chinese-gunpowder-window-4795-4880 --map 18`. `df -g ~` read 107 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1283c-eastindies-chinese-gunpowder-window-4795-4880.txt`, 212,884,137 bytes,
+SHA-256 `16120bdc0d233550d2310e098065b411f6844feaab70470ed19a8803dbbd7707`.
+
+Archive `rontrace-run1283c.log`, 210,768,896 bytes,
+SHA-256 `d25aa3d04362a995ede56084fab7c69f23e47865190170c2fa74762761391e1e`.
+
+**What it holds**: `chinese_gunpowder_pair_run1283c_s_gap_is_widened_whole` (85 blocks, 144 keys). **The state first
+parts on block 4863, at the Heavy Fire Lance `1/215`**: theirs stands out a `retry` of 6 it holds on 4862, ours 0.
