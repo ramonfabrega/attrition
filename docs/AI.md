@@ -29678,7 +29678,7 @@ ledger: **the `Brig` (331, sea), ×618**, the booking's line. The AI built it. T
 **Coverage.** Diff-backed: the third refusal, by the word's closure and the mutation. Reading only: that the third
 test is in the stand arm alone, from the listing.
 
-## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622, 5582 since item 3631
+## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622, 5582 since item 3631, 5971 since item 3633
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Lakota
 Medieval pair's lobby (§314) with the nation moved: East Indies,
@@ -29921,8 +29921,84 @@ blocks, 113 keys; `roman_medieval_pair_run1293c_s_gap_is_widened_whole`).
 
 So a blow on the Village on tick 5518 is four here and six there, with no
 draw between them; and on 5550 theirs' `1/130` strikes `0/10`, which then
-takes an order. Which blow, and why it is two short, is the next item's. Not
-established: the cause of either.
+takes an order. ~~Which blow, and why it is two short, is the next item's. Not
+established: the cause of either.~~ Answered below (item 3633): two rounds
+that left the wrong point and flew a frame too long.
+
+**Item 3633: two release points read off the original; 5582 → 5971.**
+
+*Whose blow.* No dump prints a round, so a probe (reverted whole) printed
+every blow ours lands on the Village. Tick 5518 is the Knight `1/14` (TI
+228) for 2 and `1/88`'s arrow for 2; tick 5519 is `1/50` for 1, `1/72` for
+6 5/16 and the Cavalry Archer `1/79`'s (TI 188) arrow for 2. Theirs reads
+6 then 7 5/16 and the two sides agree again on 5520 (561, sixteenths 5), so
+one 2 lands a tick earlier there: `1/79`'s, the only short flight. Its
+round left from piece 138's facing-only node (`launch::MEASURED`, one shot
+of run982), 305.4 units from its landing at `PROJ_SPEED` 100, and `(int)(√n
+/ d)` gave 3.
+
+*The pivot.* The Cavalry Archer's `GRAPH` is `HEAVYCAVARCHER`, which has a
+`<RESTRICTION node="4">`: a pivot piece, whose round leaves through the
+rider's turret. run1293's packet (frame 3606) holds piece 138's nine
+`AttachPos` entries; three of the four rows are piece 137's, the Horse
+Archer's, to the bit, and `CHAR_ATTACK3`'s release node is its own.
+`get_position.py`'s pivot sweep of each row agrees with
+`pivot::release_offset` on all 369,664 cells with no `float_lands`
+(`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_138`).
+run982's three rounds each fit one turret step, two from one pose at the
+same step (`run982_s_cavalry_archer_rounds_fit_piece_138_s_pivot_rows`), so
+the rows left `launch::MEASURED` for `pivot::RELEASES`. `1/79` now looses
+from (6086, 7611), 292.8 out, and flies 2.
+
+*The broadside.* That closes the Village; the word held at 5582. The next
+parting was the human's Citizen `0/10` on 5551, wounded by theirs' Caravel
+`1/130` (TI 325) on 5550 and by ours on no frame. The Caravel's three
+`ArcherArrowWOtip` releases (366, 570, 900 ms: frames 5, 8, 13) fire on
+the same ticks in both, but ours left the hull's square: piece 275 had no
+row, 1653 units at 200 is 8 frames. The packet holds its nine attack rows
+(three anims share their bits, frames 5 and 8 theirs); each sweep has one
+feasible `Bay` region over all 361 headings, and the rows are the middles
+(`launch::tests::the_caravel_s_bays_are_the_packet_s_sweep`). The gun is
+150 units off the hull, on the broadside: the round leaves (3476, 2151),
+flies 7 and lands on 5550.
+
+*The value diff* (run1293c):
+
+| frame | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 5517 | `1/79`'s round | launch, flight | (6131, 7631), 3 | (6086, 7611), 2 | — |
+| 5519 | Village `0/2000` | `damage` | 552 | 554 | 554 |
+| 5544 | `1/130`'s round | launch, flight | (3576, 2040), 8 | (3476, 2151), 7 | — |
+| 5551 | Citizen `0/10` | `hits_left`, `damage_o` | 31, 46 | 30, 130 | 30, 130 |
+| 5552 | `0/10` | `pos` | (4200, 3576) | (4200, 3601) | (4200, 3601) |
+
+run1293c falls from 113 to **93** keys and run1293b from 2550 to **102**;
+past the standing blocks neither parts a position or an order (asserted).
+Every other lobby's `first_parting` is unmoved (66 green). `tools/mutate.py`:
+filtering piece 138's pivot rows out fails run1293c's two pins; filtering
+piece 275 out of `launch::bay` fails its count.
+
+*The new word: frame 5971 of 5979*, by the count and the sequence, eight
+frames from the game's end. Ours spends 148 game-stream draws against
+theirs' 149, and they part at index 0: ours `Unit::think_fish+0x27a`,
+theirs `Unit::fight+0x9b0`. **Theirs draws more.** **run1295** is its
+window (blocks 5833..5979 with `AMMO=5`, 146 blocks, **104 keys**;
+`roman_medieval_pair_run1295_s_word_frame_is_widened_whole`). Block 5833
+carries the standing families; past them, `form` on a newborn and three
+pools and groups. **The state first parts on block 5964, at the Cavalry
+Archer `1/124`** (TI 188, on an `ATTACKTOORDER`, walking):
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5964 | Cavalry Archer `1/124` | `cavarch_o` | -1 | 2000 |
+| 5969 | `1/124` | `recharging` | 5 | 0 |
+| 5970 | `1/124` | `cavarch_who` | 0 | -1 |
+| 5971 | `1/124` | `g.ox[0]` | 2000 | 12 |
+
+So theirs' fire on the move takes the Village as its target on tick 5963
+and ours does not. Why is the next item's question; the `SEAM` at
+`anim.rs`'s `non_looping` (`Unit::move_step`'s cavalry-archer write) is in
+this chain. The rubric is unmoved while the pair is open.
 
 ## 331. The Mongols at a held Gunpowder age, East Indies: first try 1973 of 5399 (item 3623)
 
