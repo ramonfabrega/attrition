@@ -249,3 +249,112 @@ fn inca_classical_pair_run1260b_s_word_frame_is_widened_whole() {
     // `held` and pools.
     pin_eq!(w.firsts.len(), 133, "run1260b baseline");
 }
+
+/// run1269: the word 5357's window, blocks 5351..5607 at run1260b's
+/// detail — six blocks before the word's block 5358 and 250 after (item
+/// 3616); the long's stride prints units on 5301 and 5401 and no `AMMO`
+/// past the start.
+pub(crate) const RUN1269: &str = "gamelog-run1269-eastindies-inca-classical-window-5351-5607.txt";
+
+/// The window: block 5351 through 5607; the word 5357's own block is 5358.
+pub(crate) const WIDENING_INCA_CLASSICAL_FRAME_5357: (i64, i64) = (5351, 5607);
+
+/// **The word 5357's window**: run1269 walked from run1259's start with
+/// the recorder on (item 3616).
+pub(crate) fn inca_classical_frame_5357_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA_CLASSICAL.start],
+        true,
+        INCA_CLASSICAL.long,
+        "run1269",
+        &[(RUN1269, WIDENING_INCA_CLASSICAL_FRAME_5357.0)],
+        WIDENING_INCA_CLASSICAL_FRAME_5357,
+        1,
+        &[5358],
+        true,
+    )
+}
+
+#[test]
+fn inca_classical_pair_run1269_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_classical_frame_5357_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3616, the first walk: 1443 keys. Block 5351 already parts past
+    // the standing families: the Scout `0/0` (TypeIndex 69, uid 7) a step
+    // behind in ours — `pos` (8556, 7356) against (8578, 7330),
+    // `damage_frame` 5344 against 5343 — and who=1's `free_peasants` and
+    // `gatherers`, `1/58`'s facing. In `AMMO` the Archers `1/74`
+    // (TypeIndex 171, piece 825)'s round at `0/0` leaves (7140, 8347) and
+    // flies 15 frames in theirs, ending on 5357; ours leaves the figure's
+    // own (7080, 8376) and flies 16 (`RON_DEBUG_AMMO`). On block 5357
+    // `0/0`'s `g.angle[1]` parts (482541568 against 466354176), and on the
+    // word's block 5358 `1/74`'s facing (638255104 against 635502592).
+    // From 5371 who=1's army's orders part.
+    pin_eq!(w.firsts.len(), 1443, "run1269 baseline");
+}
+
+/// **The long's stride between the two windows** (item 3616): run1260's
+/// stride blocks 4801..5301, after run1260b's window and before run1269's.
+pub(crate) const WIDENING_INCA_CLASSICAL_STRIDE_5357: (i64, i64) = (4801, 5301);
+
+pub(crate) fn inca_classical_stride_5357_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA_CLASSICAL.start],
+        true,
+        INCA_CLASSICAL.long,
+        "run1260 stride to 5357",
+        &[(INCA_CLASSICAL.long.0, WIDENING_INCA_CLASSICAL_STRIDE_5357.0)],
+        WIDENING_INCA_CLASSICAL_STRIDE_5357,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn inca_classical_pair_the_long_s_stride_walks_back_from_5357() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_classical_stride_5357_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 6, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3616: 178 keys, the standing families alone (`form`,
+    // `build:extra`, who=1's groups' `held` and pools); no unit row parts
+    // through 5301. The state first parts in the gap 5302..5350, which no
+    // dump holds: run1269's first block, 5351, already has the Scout `0/0`
+    // a step behind.
+    pin_eq!(w.firsts.len(), 178, "the stride's baseline");
+}
