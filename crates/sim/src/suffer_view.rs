@@ -185,6 +185,7 @@ impl SufferView for SimSuffer<'_> {
                 u.combat.captain == i32::from(u.index) && u.squad_size == 1,
             )
         };
+        let frame_p = self.sim.frame;
         let unit = &mut self.sim.units[self.unit];
         let share = combat::share(unit.max_health, uber, alone);
         let (taken, _, frac) = combat::take(
@@ -196,11 +197,10 @@ impl SufferView for SimSuffer<'_> {
                 frac: sixteenths % 16,
             },
         );
-        if std::env::var("RON_PROBE_DIE").is_ok() && (4440..=4445).contains(&self.sim.frame) && (195..=222).contains(&self.sim.units[self.unit].index) {
-            let u = &self.sim.units[self.unit];
+        if std::env::var("RON_PROBE_DIE").is_ok() && (4440..=4445).contains(&frame_p) && (195..=222).contains(&unit.index) {
             eprintln!(
                 "PROBE hurt f{} 1/{} health {}/{} frac {} uber {} alone {} captain {} squad_size {} share {:?} six {} taken {:?} newfrac {}",
-                self.sim.frame, u.index, u.health, u.max_health, u.damage_frac, uber, alone, u.combat.captain, u.squad_size, share, sixteenths, taken, frac
+                frame_p, unit.index, unit.health, unit.max_health, unit.damage_frac, uber, alone, unit.combat.captain, unit.squad_size, share, sixteenths, taken, frac
             );
         }
         let (combat::Taken::Alive { lost } | combat::Taken::Died { lost, .. }) = taken;
