@@ -68,12 +68,26 @@ impl Sim {
     /// `UnitData::mana@00609a50` — the type's `MANA`, and a French
     /// General's `(FRENCH_SPECIAL_CRAFT + 100) × MANA / 100` (`609ad7`..
     /// `609b1c`, `has_tribe_bonus(10)` and `is(GENERAL, 1)`; the bonus
-    /// ships as 0%). SEAM: the supply upgrade's multiple and the space-air
-    /// arm; neither is reached by a Spy or a General.
+    /// ships as 0%), after **a supplier's multiple** (`609a8f`..`609aac`,
+    /// item 3630, `docs/AI.md` §331): a unit whose `is_supply` (vslot
+    /// `0xcc`, `UnitTypeData +0x2b8 & 0x40`,
+    /// [`crate::ai_load::uflags2::SUPPLY_OR_HERO`] — the Supply Wagon, the
+    /// government heroes, The Monarch, The Citizen) holds `MANA ×
+    /// (get_supply_upgrade + 1)`. SEAM: the space-air arm (`+0x218 == 2`,
+    /// `has_wonder(0x21e)` and `space_air_range`), which no supplier and no
+    /// General reaches.
     pub(crate) fn unit_mana(&self, u: usize) -> i32 {
-        let mana = self.units[u].ty.map_or(0, |t| self.unit_types[t].mana);
+        let mut mana = self.units[u].ty.map_or(0, |t| self.unit_types[t].mana);
         if mana == 0 {
             return 0;
+        }
+        let supplier = self.units[u].ty.is_some_and(|t| {
+            self.unit_types[t]
+                .cols
+                .flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO)
+        });
+        if supplier {
+            mana *= self.supply_upgrade_level(self.units[u].owner) + 1;
         }
         let who = self.units[u].owner as usize;
         let french_general = self.tech_tree.has_tribe_bonus(
@@ -1919,6 +1933,59 @@ mod tests {
         assert_eq!(steps(&mut s, general), [2, 2], "held: the General");
         assert_eq!(steps(&mut s, spy), [2, 2], "held: the Spy");
         assert_eq!(steps(&mut s, filler), [1, 1], "held: a caster of no line");
+    }
+
+    /// **A supplier's pool is `MANA × (get_supply_upgrade + 1)`**
+    /// (`UnitData::mana@00609a50`, `609a8f`..`609aac`; item 3630,
+    /// `docs/AI.md` §331): run1292's Monarch `1/17` (TypeIndex 354, a
+    /// supplier) holds 2000 under one supply upgrade on 1946, so the hero
+    /// arm's Create Decoy is afforded at `mana_burn` 767 where 1000 was
+    /// not. The steps are a count, not a prefix; a General (no
+    /// `SUPPLY_OR_HERO`) and another leader's supplier keep `MANA`.
+    ///
+    /// Made to fail with the multiple dropped and with it on every unit.
+    #[test]
+    fn a_suppliers_pool_grows_with_the_supply_upgrade() {
+        use crate::ai_load::{UnitCols, uflags2};
+        let mut s = Sim::new(Tuning::RON, World::new(8, 8), 2);
+        let mut tree = crate::tech::TechTree::new();
+        let steps = [
+            tree.add(TypeDef::plain("step one", 0)),
+            tree.add(TypeDef::plain("step two", 0)),
+            tree.add(TypeDef::plain("step three", 0)),
+        ];
+        tree.roles.supply_upgrade_preq = steps.map(Some);
+        s.set_tech_tree(tree);
+        let ty = |s: &mut Sim, flags2: u32| {
+            s.add_unit_type(UnitType {
+                mana: 1000,
+                cols: UnitCols {
+                    unit_flags2: flags2,
+                    ..UnitCols::default()
+                },
+                ..UnitType::default()
+            })
+        };
+        let monarch = ty(&mut s, uflags2::SUPPLY_OR_HERO);
+        let general = ty(&mut s, uflags2::GENERAL);
+        let unit = |s: &mut Sim, who: u8, t: usize| {
+            let mut u = Unit::new(who, 0, Pos::new(3 * 768, 3 * 768), 20);
+            u.ty = Some(t);
+            s.add_unit(u)
+        };
+        let mine = unit(&mut s, 1, monarch);
+        let theirs = unit(&mut s, 0, monarch);
+        let hero = unit(&mut s, 1, general);
+        assert_eq!(s.unit_mana(mine), 1000, "no upgrade");
+        s.gain_tech(1, steps[2]);
+        assert_eq!(s.unit_mana(mine), 2000, "one step, the last");
+        assert_eq!(s.unit_mana(theirs), 1000, "another leader's supplier");
+        assert_eq!(s.unit_mana(hero), 1000, "a General is no supplier");
+        s.units[mine].mana_burn = 767;
+        assert_eq!(s.mana_left(mine), 1233, "Create Decoy's 1000 afforded");
+        s.gain_tech(1, steps[0]);
+        s.gain_tech(1, steps[1]);
+        assert_eq!(s.unit_mana(mine), 4000, "all three");
     }
 
     /// **A French General takes back two a frame** (`docs/AI.md` §119,
