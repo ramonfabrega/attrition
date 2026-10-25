@@ -44,6 +44,8 @@ mod aztec_word;
 #[cfg(test)]
 mod bantu_ancient_pair;
 #[cfg(test)]
+mod bantu_medieval_pair;
+#[cfg(test)]
 mod bantu_word;
 #[cfg(test)]
 mod battery;

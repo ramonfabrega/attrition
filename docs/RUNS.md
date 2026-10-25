@@ -28284,6 +28284,69 @@ SHA-256 `012970e76dcc49dd83bbad7aa83282267e2e2e6b18da4e1bfcb4b7c22cc7e4d7`.
 **What it holds**: `mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole` (256 blocks, 3282 keys): block
 5041's 112 stand, and the word's block 5048 parts on the human's `0/2005` alone (theirs `damage` 1, `damage_frac` 13).
 
+## run1280 — the Bantu at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-25, item 3624, `att-3624`)
+
+`docs/AI.md` §332. §326's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1280 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 3 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 17:06:47, exited 17:07:10 (23.6 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 3, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Filed with `filerun.py run1280
+  greatsahara-bantu-medieval-start`. `df -g ~` read 114 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1280-greatsahara-bantu-medieval-start.txt`, 149,893,435 bytes,
+SHA-256 `bcbc596760bc6184944e84f0a88b6ff0bac9b85a5776bb4bea062183c63f7be2`.
+
+Archive `rontrace-run1280.log`, 8,364,800 bytes,
+SHA-256 `afce163ca7e1f539e71f7442880c668072ae8ae1bef304876d3a895a99eabcea`.
+
+**What it holds**: the start of `bantu_medieval_pair::BANTU_MEDIEVAL`, and the walk's initial state.
+
+## run1281 — the Bantu at a held Medieval age, Great Sahara: the draw stream to the game's end (2026-10-25, item 3624, `att-3624`)
+
+`docs/AI.md` §332. run1258's line with `--ai-tribe 3`: `--map 7 --end-frame 24000 --timeout 7200 --allow-early-end
+--log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 3 --detail
+end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1280's
+lobby.
+- Pool lane 2, beside run1280. Launched 17:06:46, exited 17:07:19 (32.5 s launch to exit). `success`. **The game
+  ended itself on 4914** (closing block 4915, `ended_early`). `GAME INFO` reads back as run1280's. `rngcmp.py`
+  against run1280: 37 frames identical. Filed with `filerun.py run1281 greatsahara-bantu-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1281-greatsahara-bantu-medieval-trace.txt`, 27,253,904 bytes,
+SHA-256 `7db99b5f71724692c5dd76f44d599f940e0795250ea1231bf74543d502fbe5da`.
+
+Archive `rontrace-run1281.log`, 108,462,528 bytes,
+SHA-256 `a2b9c414b7a109a8bd9e32695960808dc0ed26997921173d93436098526b01fa`.
+
+**What it holds**: the pair's first try. `bantu_medieval_pair_first_parting` walks it from run1280: **whole, 4914 of
+4914** by the count and the sequence; `bantu_medieval_pair_run1281_s_closing_state` compares the closing block 4915,
+255 units, none off.
+
+## run1281b — the Bantu at a held Medieval age, Great Sahara: the closing window, blocks 4659..4915 (2026-10-25, item 3624, `att-3624`)
+
+`docs/AI.md` §332. **What the disk could not answer**: every record on the pair's last blocks. run1281's stride
+prints units every hundredth block and no `LEADERDATA`, `BUILDDATA` or `CITYDATA` past the start, and no other dump
+holds this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1281b --map 7 --end-frame 4914
+--allow-early-end --timeout 3600 --log-window 4659 4915 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 3 --cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 17:09:46, exited 17:10:34 (47.8 s launch to exit). `success`: 4915 frames. `rngcmp.py`
+  against run1281: 4915 frames identical. Filed with `filerun.py run1281b
+  greatsahara-bantu-medieval-window-4659-4915`. `df -g ~` read 112 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1281b-greatsahara-bantu-medieval-window-4659-4915.txt`, 583,608,261 bytes,
+SHA-256 `e350e07818f3134a0597e01d4aaa5de503a2fc2e26b11900c0cea91d666063f7`.
+
+Archive `rontrace-run1281b.log`, 108,162,080 bytes,
+SHA-256 `eef2079176282badaa186821a276ad75bf965d89b7af71c0bef10306c07be379`.
+
+**What it holds**: `bantu_medieval_pair_run1281b_s_closing_frame_is_widened_whole` (256 blocks, 60 keys): the
+standing families on 4659, groups 67 and 68's on 4701 and 4710, and eight `dest_angle` rows on group 64's Impi and
+one Pikemen (parked 3624a); the closing block agrees.
 ## run1298 — the Mongols at a held Gunpowder age, East Indies: the closing window, blocks 5297..5400 (2026-10-25, item 3636, `att-3636`)
 
 `docs/AI.md` §331.4. **What the disk could not answer**: every record on the word 5399's frame, the game's last.

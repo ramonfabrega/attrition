@@ -441,8 +441,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3636: 190 -> 192 on the tree holding 3635's merge, the Mongol
 /// Gunpowder pair whole at 5399 — the `Horde` (203, 736 figure rows) and
 /// the `Bomb Vessel` (346, sea; 242), the line §331 booked, read by
-/// `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 192;
+/// `rubric.py --tables 3` on this tree. Item 3624: 192 -> 193 on the tree
+/// holding 3636's merge, the Bantu Medieval pair whole at 4914 on its
+/// first try — `Impi` (95, land; 3102 figure rows), the line §332 booked,
+/// read by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 193;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
