@@ -345,7 +345,73 @@ fn roman_medieval_pair_s_road_search_on_3607_holds_node_for_node() {
                     *l.borrow_mut() = txt;
                 }
             });
-            if f == 3606 {
+            thread_local!(static LIT: std::cell::RefCell<std::collections::BTreeSet<(i32, i32)>> = const { std::cell::RefCell::new(std::collections::BTreeSet::new()) });
+            for fy in 83..93 {
+                for fx in 106..118 {
+                    let lit = w.seen2(fx, fy).is_some_and(|b| b & 2 != 0);
+                    if lit && LIT.with(|l| l.borrow_mut().insert((fx, fy))) {
+                        let near: Vec<String> = built
+                            .sim
+                            .units
+                            .iter()
+                            .filter(|u| u.owner == 1 && u.on_map)
+                            .filter(|u| (u.pos.x - fx * 384).abs() < 4000 && (u.pos.y - fy * 384).abs() < 4000)
+                            .map(|u| format!("1/{} ty{:?} ({}, {})", u.index, u.ty, u.pos.x, u.pos.y))
+                            .collect();
+                        let bnear: Vec<String> = built
+                            .sim
+                            .buildings
+                            .iter()
+                            .filter(|b| b.owner == 1)
+                            .filter(|b| (b.pos.x - fx * 384).abs() < 6000 && (b.pos.y - fy * 384).abs() < 6000)
+                            .map(|b| format!("1/{} ty{:?} ({}, {})", b.index, b.ty, b.pos.x, b.pos.y))
+                            .collect();
+                        eprintln!("PROBE lit ({fx}, {fy}) on {f}: {near:?} buildings {bnear:?}");
+                    }
+                }
+            }
+            for (j, m) in theirs.iter().enumerate() {
+                if (m.to.0 / 384, m.to.1 / 384) == (110, 85) {
+                    eprintln!("PROBE cellnode {f} {j} theirs {} ours {:?}", m.cost, ours.get(j).map(|o| (o.to, o.cost)));
+                }
+            }
+            thread_local!(static PREV: std::cell::RefCell<Vec<u8>> = const { std::cell::RefCell::new(Vec::new()) });
+            let cur: Vec<u8> = (0..w.height() * 2)
+                .flat_map(|fy| (0..w.width() * 2).map(move |fx| (fx, fy)))
+                .map(|(fx, fy)| w.seen2(fx, fy).unwrap_or(0) & 2)
+                .collect();
+            if f == 1170 {
+                PREV.with(|p| {
+                    let p = p.borrow();
+                    let fw = w.width() * 2;
+                    let new: Vec<(i32, i32)> = (0..cur.len())
+                        .filter(|&i| cur[i] != 0 && p.get(i).copied().unwrap_or(0) == 0)
+                        .map(|i| (i as i32 % fw, i as i32 / fw))
+                        .collect();
+                    eprintln!("PROBE new on 1170: {new:?}");
+                });
+                for b in built.sim.buildings.iter().filter(|b| b.owner == 1) {
+                    eprintln!("PROBE b 1/{} ty{:?} ({}, {}) name {:?}", b.index, b.ty, b.pos.x, b.pos.y, b.ty.map(|t| { let bt = &built.sim.build_types[t]; (bt.ident, bt.x_size, bt.los) }));
+                }
+            }
+            PREV.with(|p| *p.borrow_mut() = cur);
+            if f == 3605 {
+                let mut out = String::new();
+                for fy in 0..w.height() * 2 {
+                    for fx in 0..w.width() * 2 {
+                        out += &format!("{fx} {fy} {}\n", w.seen2(fx, fy).unwrap_or(0));
+                    }
+                }
+                std::fs::write(std::env::var("RON_PROBE_3631").unwrap(), out).unwrap();
+                for cy in 40..45 {
+                    let row: Vec<String> = (52..59)
+                        .map(|cx| format!("{:?}/{:?}", w.owner(Cell::new(cx, cy)), w.region_of(Cell::new(cx, cy))))
+                        .collect();
+                    eprintln!("PROBE owner cy {cy}: {}", row.join(" "));
+                }
+            }
+            if [0, 1, 2, 50, 200, 500, 1000, 2000, 3000, 3606].contains(&f) {
+                eprintln!("PROBE grid at {f}");
                 for fy in 80..91 {
                     let row: Vec<String> = (104..117)
                         .map(|fx| format!("{:>3}", w.seen2(fx, fy).map_or(-1, i32::from)))
