@@ -28755,12 +28755,103 @@ puts the **Ashigaru Spearmen (157)** in the lockstep set: `rubric.py --tables 3`
 **What is not established.** The `CHAR_DIE` row (anim 4, time 34), which no round reads. Piece 1176 at a
 heading no dumped round took is the sweep's fit, not a dump's.
 
-## 324. Reserved for the next item on the AI track
+## 324. The Egyptians at a held Gunpowder age, Great Sahara: first try 3118 of 4454, moved to 3238 (item 3603)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94). §316's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
+Nubians (4) against the **Egyptians (7)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held by
+`STARTING_TECHNOLOGY 3`, `ENDING_TECHNOLOGY 3` — both read back on both `GAME INFO`s. Captures: run1253 (a
+`DUMP_ALL` start) and run1254 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 4454. The walk is seeded from run1253's initial state (3506a); run1253 against run1254 is 37 of 37
+frames identical. `diff::egyptian_gunpowder_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 7, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's (the
+battery's one Egyptian game is `EastIndiesEgyptianTier3`, `(18, 7, 3)`) and no pinned lobby's: the scored
+`GreatSaharaEgyptianTier4` (`egyptian_word`) is `(7, 7, 4)`, the same map at another difficulty; the Classical
+pair (`egyptian_classical_pair`) is `(18, 7, 5)`, another map. `egyptian_gunpowder_pair_is_no_other_lobby`
+asserts all of it.
+
+**First try: frame 3118 of 4454**, by the count and the sequence: ours 13 draws against theirs' 14, parting at
+index 11, ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6`. On `report.py … draws 3118` theirs' game
+draws 0–7 and 12–14 are ours' eleven by site and seed (`1/20`'s `Guy::move`, two `move_step` turns, `1/59`'s
+`fight`, `1/104`'s three `do_trade` turns, `0/10`'s `inc_time` and three gaia turns); between them a round lands
+(`AmmoOut::dirt_splash < Ammo::inc_time`, the graphic stream) and **a unit dies**: `Unit::close+0xcb6 <
+Object::die < Unit::die`. Ours kills nothing on 3118 and goes on to the farms.
+
+**The direction.** The widening (run1254b, below) names the dead: on block 3119 who=0's `active`, `control`,
+`num_units[0]` and `peasants` are ours 14/14/13/13 against theirs 13/13/12/12, and the Citizen **`0/9`**
+(TypeIndex 50, land, uid 16, fleeing to (5880, 33288) at its full 50 hits) is a record ours holds alone. Who=1's
+Arquebusiers (TypeIndex 98, land, group 64, stance 3) shoot at it from range: ours' `RON_DEBUG_AMMO` holds
+`1/43`'s round of 3110 (6 frames), `1/31`'s of 3113 (5) and **`1/32`'s of 3114 (6)**, each from the shooter's
+own square. Theirs' landings are on 3115, 3117 and 3118; ours' on 3115, 3117 and 3119. So `1/32`'s round flies
+a frame long in ours, and `0/9` dies a frame late.
+
+**The piece.** 3609's probe, applied under `RON_PROBE_3603` in one commit and reverted whole, prints every
+release: each Egyptian Arquebusier round is **piece 48** on keys `CHAR_ATTACK1` at 6, `2` at 25 and `3` at 23
+— piece 1104's keys (§316, item 3590) — and with no `launch::BAYS` row for 48 each leaves from the figure's own
+square at `dz` 0. `1/32`'s is `CHAR_ATTACK2` at 25.
+
+**The packet** (run1254c, `RON_STATE_FRAME=3115`, `AMMO=5` over 3114..3116). The disk held no Egyptian packet:
+every Egyptian capture is a dump, and no lobby's capture wrote an `AMMO` record. Theirs' three records on block
+3115, all at `0/9`:
+- `1/32` from **(7459, 30915, 792)**, `total_time` **5**, landing at (6195, 32643); ours left from (7560, 30840)
+  in 6 and aimed at (6185, 32663);
+- `1/31` from (5827, 30661, 818) in 5;
+- `1/43` from (8299, 31334, 796) in 6.
+
+`get_position.py entries 48` reads three `AttachPos` rows on 1104's keys with their own points: **a different
+art**. `fit_bay.py` fits each key's 361-heading sweep to one region, and piece 1104's rows reproduce none of
+them (0 of 361 each): `CHAR_ATTACK1`@6 (26383, 140546, `dz` 168) from 14 lattice points, `2`@25 (25298,
+124214, 159) from 1293, `3`@23 (13387, 117132, 166) from 238; the rows are the centroids.
+
+**The build.** `BAYS` gains piece 48's three rows. `launch::tests::
+run1254c_s_egyptian_arquebusiers_fire_from_piece_48_s_bays` asserts the three dumped launch points. Ours'
+`RON_DEBUG_AMMO` now matches block 3115 to the field: launch, landing, `total_time`, angle. Mutation through
+`tools/mutate.py`: renaming piece 48's `CHAR_ATTACK2`@25 row to 9048 walks back to 3118 (exit 101, "held").
+Every lobby's `first_parting` holds (58 of 58).
+
+**Piece 48 is not the Egyptians' alone.** The lane gate widened on the `launch.rs` hunk and moved seven older
+projectile pins, every one toward theirs. Ours' live rounds came down onto theirs' in third_pair's window (71 → 70
+against 70, rows 298 → 40) and in run594, run589 and run588 (1343 → 1339, 1096 → 1093, 978 → 975; baselines 337 →
+256, 276 → 209, 173 → 106). run662's and run667's baselines went 84 → 82 and 166 → 164. run587's unmeasured rows
+went 33 → 6, all of them one round, `1/80`'s (parked 3603a). So piece 48 is the Arquebusiers' common art, and
+piece 1104 the Japanese one.
+
+**The value diff:**
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 3114 | Arquebusiers `1/32`'s round | `sx, sy` / `total_time` | (7560, 30840) / 6 against (7459, 30915) / 5 | agrees |
+| 3114 | `1/32`'s round | `ex, ey` | (6185, 32663) against (6195, 32643) | agrees |
+| 3119 | Citizen `0/9` (TI 50) | alive | ours holds it, theirs' died on 3118 | agrees |
+| 3119 | who=0 | `active`, `control`, `num_units[0]`, `peasants` | 14, 14, 13, 13 against 13, 13, 12, 12 | agrees |
+
+**The score: 3118 → 3238** (+120), by the count and the sequence. The new word is ours 8 draws against 7, index
+5: ours `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`.
+
+**The widening** (run1254b, blocks 3113..3369 at the long's detail with `LEADERS=9`, walked from run1253: 256
+blocks, the two `gaia:` keys unprinted; run1254 against run1254b is 3370 of 3370 frames identical). run1254's
+stride prints units every hundredth block and no `LEADERDATA` past the start, so no dump held the word's frame.
+- First walk: **1685 keys**. Block 3113 holds the standing families alone (`form`, both leaders' `SITE[i].reg`
+  ours 1 against theirs 0, who=0's `aggression[1]`, who=1's groups 64–70 `held` and pools). The state parts on
+  3119, `0/9`'s death above.
+- After piece 48's rows: **880 keys**. Block 3119 agrees. Past the standing families (groups 68 and 69 join on
+  3179 and 3181), **the state parts on block 3225**: the Arquebusiers `1/47` (TypeIndex 98, land, uid 78,
+  standing at (5448, 31368) in Raid stance, targeting `0/10`) holds `damage_frac` ours 10 against theirs 12,
+  and `1/45`'s on 3226 is 12 against 14; `hits_left` follows on 3228 and 3229 (93 against 92, 110 against 109).
+  No round is in flight at either on ours' `RON_DEBUG_AMMO` (3215..3226), and neither moves. Then `1/24`'s and
+  `1/23`'s path `tolerance` (144 against 0) on 3237 and 3240, the word's neighbours.
+
+**What is not established.** What wounds `1/47` and `1/45`: the block names no round, and the fraction's creep is
+the shape of a per-frame loss, which this section has not read. That is the next item's frame, booked by the
+block and the draw delta, not by a mechanism. Which nations play piece 48 is read off the pins it moved, not off
+each nation's art.
+
+**The rubric.** Unit types seen stays **182** (`rubric.py --tables 3`): the pair is open, and the rubric counts
+lockstep games only. On the pair's own dumps (`--dumps` run1253, run1254) it sees 18 types. **`Mameluke` (197)**
+×286 and **`Elite Camel Warrior` (215)** ×204, the booking's two lines, are **fielded** and new to the ledger;
+both enter it when the pair closes. The other 16 are in the lockstep set: Citizen 50, General 54, Spy 58, Caravan
+59, Merchant 61, Supply Wagon 63, Explorer 71, Arquebusiers 98, Elite Pikemen 135, Crossbowmen 172, Heavy Knight
+229, Bombard 267, The Senator 353, The President 355, and the sheep and peacock herds.
 
 ## 325. Reserved for the next item on the AI track
 

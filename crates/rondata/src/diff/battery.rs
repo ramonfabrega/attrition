@@ -253,6 +253,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatSaharaKoreanTier3`, `(7, 16, 3)`, another difficulty, nor the
     // Ancient-start pair's `(18, 16, 5)`, another map.
     (7, 16, 5),
+    // The Egyptian Gunpowder pair's (item 3603): the Egyptians at a held
+    // Gunpowder age, Difficulty 5, Great Sahara — not the scored
+    // `GreatSaharaEgyptianTier4`, `(7, 7, 4)`, another difficulty, nor the
+    // held-out `EastIndiesEgyptianTier3` `(18, 7, 3)` or the Classical
+    // pair's `(18, 7, 5)`, another map.
+    (7, 7, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

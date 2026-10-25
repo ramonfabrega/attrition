@@ -562,6 +562,47 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 175,
         },
     ),
+    // **Piece 48, the Egyptians' Arquebusiers** (unit type 98 as the
+    // Egyptians field it; item 3603, `docs/AI.md` §324): not piece 1104's
+    // art — run1254c's `RON_STATE_FRAME=3115` packet on the Egyptian
+    // Gunpowder Great Sahara seed holds three attack `AttachPos` rows on
+    // 1104's keys (anims 11, 12 and 13 at 6, 25 and 23) with their own
+    // points, and `tools/recomp/fit_bay.py` fits each 361-heading sweep to
+    // one region (14, 1293 and 238 lattice points); the rows are its
+    // centroids. Without them the Arquebusiers `1/32`'s round at the
+    // Citizen `0/9`, fired on 3114, left from the figure's own (7560,
+    // 30840) and flew 6 frames where the original's left from (7459,
+    // 30915, 792) and flew 5, and `0/9` died a frame late.
+    (
+        48,
+        11,
+        6,
+        Bay {
+            right: 26_383,
+            fwd: 140_546,
+            dz: 168,
+        },
+    ),
+    (
+        48,
+        12,
+        25,
+        Bay {
+            right: 25_298,
+            fwd: 124_214,
+            dz: 159,
+        },
+    ),
+    (
+        48,
+        13,
+        23,
+        Bay {
+            right: 13_387,
+            fwd: 117_132,
+            dz: 166,
+        },
+    ),
     // **The Javelineers' piece 34** (item 2997, `docs/AI.md` §244): run912e's
     // `RON_STATE_FRAME=12753` packet holds its three `AttachPos` rows, and
     // `tools/recomp/get_position.py`'s sweep of each is reproduced by these
@@ -2553,6 +2594,24 @@ mod tests {
                 Some(dz),
                 "131 ({anim}, {start})"
             );
+        }
+    }
+
+    /// **The Egyptian Arquebusiers' rounds leave from piece 48's bays**
+    /// (item 3603, `docs/AI.md` §324): run1254c's three `AMMO` records at
+    /// the Citizen `0/9` on block 3115, each figure on its unit's own
+    /// square at its facing, the key the art's release event names, and
+    /// `sx, sy` the dump's own.
+    #[test]
+    fn run1254c_s_egyptian_arquebusiers_fire_from_piece_48_s_bays() {
+        for (anim, start, x, y, facing, sx, sy, dz) in [
+            (12, 25, 7560, 30840, -1_633_288_192, 7459, 30915, 159),
+            (13, 23, 5784, 30552, 1_828_126_720, 5827, 30661, 166),
+            (12, 25, 8424, 31320, -1_279_787_008, 8299, 31334, 159),
+        ] {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 48, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "({anim}, {start}) at {facing}");
+            assert_eq!(release_dz(48, anim, start, 0), Some(dz));
         }
     }
 
