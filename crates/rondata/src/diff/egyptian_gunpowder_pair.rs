@@ -45,7 +45,7 @@ pub(crate) const EGYPTIAN_GUNPOWDER: Pair = Pair {
     // parts on block 3225, the standing Arquebusiers `1/47`'s
     // `damage_frac` ours 10 against theirs 12, no round at it. Item 3612:
     // 3238 → **3281** (+43) — attrition, not a round: `1/46` (the middle
-    // of `1/45 → 1/46 → 1/47`) dies of it on 3225, `Unit::close`
+    // of `1/45 → 1/46 → 1/47`) dies on 3225, `Unit::close`
     // re-appends it at the tail, and `curr_uber_size@0060a760` stops at
     // its cleared `flags & 1`, so `1/47` takes the two-figure eight
     // sixteenths there (ours counted three, six). The new word is ours 8
@@ -218,7 +218,7 @@ fn egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole() {
     // parts on block 3225, the Arquebusiers `1/47`'s `damage_frac` ours 10
     // against theirs 12 (`1/45`'s on 3226, 12 against 14), with no round
     // at either: the word 3238 (block 3239) follows.
-    // Item 3612: 880 → **632**. `1/46` dies of attrition on 3225 and the
+    // Item 3612: 880 → **632**. `1/46` dies on 3225 and the
     // squad's count stops at its dead tail (`curr_uber_size@0060a760`):
     // `1/47`'s `damage_frac` agrees (theirs 12) and so does `1/45`'s on
     // 3226 (14). The state parts on block 3268: ours trains a squad into
