@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-24, **the fifty-fifth tranche (commander, Opus): 20 of 20 landed from `58869793f`**; no lane live; the last whole gate is 3598's booking's.*
-- **Words**: one open — the Maya from Ancient, 4429 of 5,935 (lower map first — East Indies (Maya, Ancient)), 3600 on frame 4429.
-  **The headline, the early ages**: thirteen pairs, twelve whole (Greeks, Romans, Koreans, Chinese, Mongols 3581, Lakota 3588, Japanese 3590,
-  Iroquois 3584, Bantu 3593, Spanish 3586, Egyptians 5961 → 6748 (3585, 3594, 3595, 3598), Germans 3596); Maya 4182 → 4429 of 5935 (3587, 3597, 3599).
-- **The rubric, lockstep**: ages 8 of 8, types 162 → 179 of 302, **bytes 77.4 %** unmoved — two more twins at zero (3572, 3573), so **a pair that
-  varies only age and nation books no twin** (DECISIONS 93 §2): 3576, 3582, 3583 left by the ledger. Blind: 0 of 39 dead.
-- **The tranche**: twenty landings in 9 h 55 at 6.91 USD and 58.8 minutes waiting a landing (5.26 / 34.3 on two lanes): the third lane bought
-  nothing; no red gate; three `DEEP` where the handoff said one — **a drain's counts are `tranche.py --base`'s and `gates.py`'s** (Loop 3564).
-- **Lanes: none live; one booked** (3600 the Maya word). Next 3601, run 1249.
-  Pools: GOLDEN §149–154, AI §322–324, park RB–RH.
+*2026-10-24, **the fifty-fifth tranche (commander, Opus): drained at twenty from `58869793f`**, every lane reaped; **the pass is due**.*
+- **Words**: one open — the Maya from Ancient, 4182 → 4429 of 5,935 (lower map first — East Indies (Maya, Ancient)), 3600 on frame 4429.
+  **The headline, the early ages**: thirteen pairs stood up, twelve whole — this tranche the Mongols (3581), Lakota (3588), Japanese (3590),
+  Bantu 4185 → 6210 (3562–3593), Egyptians 5961 → 6748 (3585–3598), and three at their first try: Iroquois, Spanish, Germans (3584, 3586, 3596).
+- **The rubric, lockstep**: ages 8 of 8, types 162 → 179 of 302, **bytes 77.4 %** unmoved — no twin for a pair varying only age and nation
+  (DECISIONS 93 §2). Blind: 0 of 39 dead. Never fielded though booked: Royal Balamob Slingers (3587a), Barbarians (3596), Chariot (3585a).
+- **For the pass** (`tranche.py --base 58869793f`, `gates.py`): 20 landings · three DEEP (3588 at 331 k, 3589 at 360 k, 3591 at 325 k) ·
+  39.6 minutes waiting a landing · 7.24 USD a landing (144.72 over 23 sessions); 19 gates: 6 whole, 13 scoped (13 widened), 0 red; 374.7
+  minutes in all; admission 1816.0 s summed, longest 26.1 s; 2 ended past the cores. Two Opus lanes at medium, 11 h 18; no Loop rows filed.
+- **Lanes: none live; one booked** (3600 the Maya word). Next 3601, run 1249. Pools: GOLDEN §149–154, AI §322–324, park RB–RH.
 - **Fable backlog: 9 Loop items** (3498, 3433, 3382, 2003, 3350, 3237, 3188, 3143, 3118); DECISIONS 93.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -41,7 +41,7 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 179 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-fifth tranche (commander, Opus) — two Opus lanes at medium, 3581 the Mongol word and 3561 the Lakota pair first; the chain is `docs/LOOP.md`'s, and the drain's `For the pass` line is `tools/tranche.py --base <this pass's commit>`'s last line and `tools/gates.py`'s last two.**
+**Opener: the fifty-fifth pass (steer, Fable) — the tranche drained at twenty from `58869793f`; this handoff, the Maya word (3600), the next pairs owed (`rubric.py --tables 3`), the backlog.**
 
 ## The queue
 
