@@ -7598,9 +7598,18 @@ impl Sim {
         } else {
             MoveKind::ExploreTo
         };
-        if let Some((spot, facing)) = self.swarm_spot(u, b, building) {
-            self.add_move_facing_order(u, spot, kind, QueuePos::First, false, facing, None, false);
-        }
+        // **Nothing is queued when the ring finds no spot** (item 3622,
+        // `docs/AI.md` §330): the member arm's move, its order and the
+        // builder's mark all sit inside `find_nearby_spot == 0`
+        // (`swarm_around_view::swarm_member`). `do_build`'s re-swarm of a
+        // Dock site the ring cannot reach therefore drops the build, and the
+        // insert dance's `finish_insert` re-swarms what was queued under it
+        // (run1275b's `1/17` on 1875); this shape inserted the order with no
+        // approach and the builder stood on it.
+        let Some((spot, facing)) = self.swarm_spot(u, b, building) else {
+            return;
+        };
+        self.add_move_facing_order(u, spot, kind, QueuePos::First, false, facing, None, false);
         // **The builder's mark.** `action_swarm_around@0070fbe0` has one
         // arm for `QUEUE_NEW` and `QUEUE_LAST` (`QUEUE_FIRST` re-enters
         // it at `QUEUE_NEW`, `70fd40`), and that arm queues the order

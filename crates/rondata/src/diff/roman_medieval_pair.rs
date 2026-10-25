@@ -34,9 +34,15 @@ pub(crate) const ROMAN_MEDIEVAL: Pair = Pair {
     // Item 3620, first try: frame 1875 by the count and the sequence, ours
     // 9 draws against 8, index 1 — ours `Guy::set_anim+0x97a <
     // Guy::move+0x19f`, theirs `Guy::set_anim+0x97a <
-    // Unit::do_guard+0x7f4` (`docs/AI.md` section 330).
-    count: 1875,
-    sequence: 1875,
+    // Unit::do_guard+0x7f4` (`docs/AI.md` section 330). Item 3622: 1875 ->
+    // **3607** by the count and the sequence — `swarm_around` queues
+    // nothing when the ring finds no spot, so `do_build`'s re-swarm of the
+    // Dock site `1/2023` drops `1/17`'s build as theirs does. The new
+    // word: ours 3205 draws against 3208, index 3201 — ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    // `PathFinder::calc_road_cost+0x46`.
+    count: 3607,
+    sequence: 3607,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -100,7 +106,7 @@ fn roman_medieval_pair_is_no_other_lobby() {
     let p = &ROMAN_MEDIEVAL;
     let triple = (p.map_style, p.ai_tribe, p.difficulty);
     assert!(battery::SCORED_LOBBIES.contains(&triple));
-    assert!(
+    pin!(
         !battery::BATTERY
             .iter()
             .any(|l| (l.map_style, l.ai_tribe, l.difficulty) == triple)
@@ -208,5 +214,84 @@ fn roman_medieval_pair_run1275b_s_word_frame_is_widened_whole() {
     // index 1: ours spends `1/17`'s `Guy::set_anim+0x97a <
     // Guy::move+0x19f`, and the other eight agree in order — ours acts
     // (`docs/AI.md` section 330). The rest follows from `1/17`.
-    pin_eq!(w.firsts.len(), 1211, "run1275b baseline");
+    //
+    // Item 3622: **1211 -> 83**. `do_build` finds `1/17` out of reach of
+    // the Dock site `1/2023` and re-swarms it through the insert dance;
+    // the ring finds no spot, so the original queues neither the approach
+    // nor the build, and `finish_insert` re-swarms the build on `1/2030`
+    // under it (the new explore to (36600, 43320)). Ours queued the build
+    // with no approach and stood on it. On 1875 both sides now hold
+    // `orders.len` 2, `order:kind` 3 at (36600, 43320), and on 1876 both
+    // stand at (35349, 42720) with a path of 4. What is left is the
+    // standing families on 1870 and value rows past 1918 (the pools and
+    // groups from 1919, `SITE[i]` on 1976, `1/64`'s `form` on 2030), none
+    // of them the Citizen's.
+    pin!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 17)),
+        "the Citizen 1/17 parts nowhere in the window"
+    );
+    pin_eq!(w.firsts.len(), 83, "run1275b baseline");
+}
+
+/// run1277: the word 3607's window, blocks 3602..3858 at the long's detail
+/// — six blocks before the word's block 3608 and 250 after (item 3622);
+/// the stride's blocks are 3601 and 3701.
+pub(crate) const RUN1277: &str = "gamelog-run1277-eastindies-roman-medieval-window-3602-3858.txt";
+
+/// The window: block 3602 through 3858; the word 3607's own block is 3608.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_FRAME_3607: (i64, i64) = (3602, 3858);
+
+/// **The word 3607's window**: run1277 walked from run1274's start with
+/// the recorder on (item 3622).
+pub(crate) fn roman_medieval_frame_3607_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_MEDIEVAL.start],
+        true,
+        ROMAN_MEDIEVAL.long,
+        "run1277",
+        &[(RUN1277, WIDENING_ROMAN_MEDIEVAL_FRAME_3607.0)],
+        WIDENING_ROMAN_MEDIEVAL_FRAME_3607,
+        1,
+        &[3608],
+        true,
+    )
+}
+
+#[test]
+fn roman_medieval_pair_run1277_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_medieval_frame_3607_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3622, the first walk: **720** keys. Block 3602 carries the
+    // standing families (`form` 63, `leader` 19, the pools and groups 22;
+    // 104 rows), block 3603 a pool and its group. **Nothing parts on the
+    // word's block 3608**, nor on any block to 3614: the word 3607 is the
+    // Caravan `1/49` (TypeIndex 59, uid 81) on a `TRADEORDER` from
+    // `1/2032` to `1/2000`, whose `PathFinder::astar_caravan_road` spends
+    // 3201 `calc_road_cost` draws in ours against 3204 in theirs; the four
+    // draws after agree in order (`1/141`'s `do_idle`, `0/12`'s and
+    // `9/13`'s `Guy::inc_time`, `Farms::inc_time`). The state first parts
+    // on block 3615, at `1/49`'s move: `order:move.x`/`.y` (37944, 24504)
+    // against (38328, 23928), `off_x`/`off_y` (312, 696) against (696,
+    // 120), `path:length` 46 against 47.
+    pin!(
+        w.firsts.values().all(|(f, _)| !(3604..=3614).contains(f)),
+        "nothing parts from block 3604 to 3614"
+    );
+    pin_eq!(w.firsts.len(), 720, "run1277 baseline");
 }

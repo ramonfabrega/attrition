@@ -10945,13 +10945,15 @@ closure is the evidence that theirs holds the same value: 7095 of 7095, and the 
 families and two births' `form`. A packet at `RON_STATE_FRAME=7062` with `--watch` over `+0x120:8` would measure it.
 Run 1276 was reserved for that packet and was not taken.
 
-## Parked by the next landing, slot RU — reserved
+## Parked by item 3622, 2026-10-25 — the Roman Medieval word 1875 -> 3607
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3622a) **`BUILD_AT`'s clear of the site's `build_masks & 0x2000` is still not kept** (3622; names no score). The
+member arm of `Group::action_swarm_around@0070fbe0` clears it on every build it queues
+(`swarm_around_view::SwarmView::clear_site_2000`), and `check_orphaned_buildings` sets it when no builder is found.
+`Building` carries no `build_masks`, so neither write has anywhere to go. run1275b shows both: `1/2030` goes from
+8192 to 0 on 1875 when `finish_insert` re-swarms its build, and `1/2023` keeps 8192 because the ring found no spot
+for it. Nothing in `sim` reads the bit, and the run1275b walk parts no key on it (`1/2030`'s first row is 1945's
+`construct_hits`). It becomes a booking when a reader of `& 0x2000` is reached.
 
 ## Parked by item 3623, 2026-10-25 — the Mongols at a held Gunpowder age, East Indies: first try 1973
 

@@ -27985,6 +27985,28 @@ SHA-256 `079feb322287afa0c302395bd57315ab81e8d194a6647cbd387a86affdc660e6`.
 Citizen `1/17` pops its current `BUILDORDER` on `1/2023` on 1875 in theirs and walks its `EXPLORETOORDER`; ours
 keeps the build and stands.
 
+## run1277 — the Romans at a held Medieval age, East Indies: the word 3607's window, blocks 3602..3858 (2026-10-25, item 3622, `att-3622`)
+
+`docs/AI.md` §330. **What the disk could not answer**: the word's block 3608. Item 3622 moved the word from 1875 to
+3607, and run1275's stride prints only 3601 and 3701; no other capture holds this lobby past 2126.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1277 --map 18 --end-frame 3858 --allow-early-end
+--timeout 3600 --log-window 3602 3858 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6
+--cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 11:54:42, exited 11:55:28 (46.3 s launch to exit). `success`, 3859 frames. `rngcmp.py`
+  against run1275: 3859 frames in common, 0 differing. Filed with `filerun.py run1277
+  eastindies-roman-medieval-window-3602-3858 --map 18`. `df -g ~` read 140 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1277-eastindies-roman-medieval-window-3602-3858.txt`, 635,849,287 bytes,
+SHA-256 `0bb6cccb22fd1e20cef971c39570d80831f9b70156b8ee95cb05bdacffde255a`.
+
+Archive `rontrace-run1277.log`, 82,711,168 bytes,
+SHA-256 `c7a8c8dd0d8a2864380fb29b1f6219dbc7dc3e63422ec36193edf75f3feb7b96`.
+
+**What it holds**: `roman_medieval_pair_run1277_s_word_frame_is_widened_whole`, the word 3607 (block 3608). Nothing
+parts on blocks 3604..3614. The Caravan `1/49`'s caravan-road A* spends three draws fewer in ours on 3607, and its
+move first parts on block 3615.
 ## run1278 — the Mongols at a held Gunpowder age, East Indies: the `DUMP_ALL` start (2026-10-25, item 3623, `att-3623`)
 
 `docs/AI.md` §331. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1278 --map 18 --end-frame
