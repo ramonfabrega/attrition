@@ -237,7 +237,11 @@ fn russian_medieval_pair_run1258b_s_word_frame_is_widened_whole() {
     // theirs frees `1/41` (Elite Javelineers, damage 35, `damage_frac` 8 on
     // 3350; its slot a Citizen's on 3384) and wounds `1/42` 19 → 20,
     // `damage_frac` 0, where ours keeps `1/41` and leaves `1/42` at 19,
-    // `damage_frac` 8. The draw stream holds through it to 4442.
+    // `damage_frac` 8. The draw stream holds through it to 4442. Item
+    // 3618 (attrition's remainder share is the last figure's, not every
+    // captain's): 49 keys — `1/41` falls at 36 on 3351 in ours too, and
+    // `1/42`, alone, takes its whole point (20, `damage_frac` 0); past the
+    // standing families nothing parts.
     pin_eq!(w.firsts.len(), 49, "run1258b baseline");
 }
 
@@ -297,7 +301,14 @@ fn russian_medieval_pair_run1268b_s_word_frame_is_widened_whole() {
     // the same six: ours keeps `1/200`, `1/205`, `1/209`, `1/212`,
     // `1/215`, `1/218` (theirs' gone) and theirs `1/202`, `1/207`,
     // `1/211`, `1/214`, `1/217`, `1/220` (ours' gone). Then the city's
-    // damage on 4446 (ours 1091 against 1087) and `1/54`'s attack.
+    // damage on 4446 (ours 1091 against 1087) and `1/54`'s attack. Item
+    // 3618: 55 keys, through the closing block 4542. The eighteen figures
+    // are six squads (captain, two members) and attrition took them: the
+    // remainder share (37 of 110) is the last figure standing's, so each
+    // captain and its first member fall at 36 on 4443 and the third at 37
+    // on 4444, on both sides now. Past the standing families: the two
+    // order points above and `1/125`'s `dest_angle` on 4509 (ours
+    // -1605566464, theirs 1814626304); no draw parts.
     pin_eq!(w.firsts.len(), 55, "run1268b baseline");
 }
 
@@ -501,4 +512,51 @@ fn russian_medieval_pair_s_attrition_gives_the_remainder_to_the_last_figure() {
         vec![None; 6],
         "run1268b's block 4444: the last figures fall at the remainder share, 37"
     );
+}
+
+/// **The closing state** (item 3618): run1258's closing block 4542, the
+/// whole map's units, walked from run1257's start.
+#[test]
+fn russian_medieval_pair_run1258_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &RUSSIAN_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Russian Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4542, "the closing block");
+    pin_eq!(e.compared, 222, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
