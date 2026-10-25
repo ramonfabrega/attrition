@@ -10279,6 +10279,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3607,
         Some(crate::diff::french_classical_pair::WIDENING_FRENCH_CLASSICAL_CLOSING),
     ),
+    // **The Romans at a held Medieval age** (item 3620): East Indies —
+    // first try 1875 of 5979 by the count and the sequence, widened on
+    // run1275b over 1870..2126 (the word's block 1876).
+    (
+        "ROMAN_MEDIEVAL_PAIR_WORD",
+        crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL_PAIR_WORD,
+        Some("roman_medieval_pair_run1275b_s_word_frame_is_widened_whole"),
+        3620,
+        Some(crate::diff::roman_medieval_pair::WIDENING_ROMAN_MEDIEVAL_FRAME_1875),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12154,6 +12164,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 6_106,
         endpoint: Some("french_classical_pair_run1262_s_closing_state"),
         window: Some("french_classical_closing_window"),
+    },
+    // The Romans at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), East Indies (item 3620): first try 1875 of a
+    // game that ends itself on 5979, widened on run1275b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesRomanMedieval",
+        named: "East Indies (Romans, Medieval)",
+        word: crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL_PAIR_WORD,
+        length: 5_979,
+        endpoint: None,
+        window: Some("roman_medieval_frame_1875_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

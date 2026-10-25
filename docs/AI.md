@@ -29554,12 +29554,88 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 330. Reserved for the next item on the AI track
+## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Lakota
+Medieval pair's lobby (§314) with the nation moved: East Indies,
+`MAP_STYLE 18`, human Nubians (4) against the **Romans (6)** at Difficulty
+5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 2` and
+`ENDING_TECHNOLOGY 2`. `crates/rondata/src/diff/roman_medieval_pair.rs`
+pins it.
+
+**The captures.** run1274 is the `DUMP_ALL` start. run1275 is the long:
+`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100, and `endgame:` detail on
+the closing block. `GAME INFO` reads back `DIFFICULTY 5`,
+`STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2` on both, and
+`Pair::assert_lobby` checks it. `rngcmp.py` reads run1274 against run1275 as
+37 of 37 frames identical. The walk is seeded from run1274's initial state
+(3506a). **The game ends itself on 5979** (closing block 5980). run1275b is
+the word's window, blocks 1870..2126, because the stride prints 1801 and
+1901 and no dump held the word's block 1876. It is 2127 of 2127 frames
+identical to run1275.
+
+**The lobby.** The triple `(18, 6, 5)` is in no `battery::BATTERY` game. The
+battery's one Roman game is the held-out `GreatLakesRomanTier2`,
+`(14, 6, 2)`. Every other Roman lobby is another game: `roman_word`'s
+`EastIndiesRomanTier2` is `(18, 6, 2)`, this map at another difficulty, and
+the Classical pair (§309, `roman_classical_pair`) is `(7, 6, 5)`,
+another map. So item 3620 mints `(18, 6, 5)` in `battery::SCORED_LOBBIES`,
+and `roman_medieval_pair_is_no_other_lobby` asserts it.
+
+**The first try: frame 1875 of 5979**, by the count and by the sequence
+(`roman_medieval_pair_first_parting`).
+- **The draws.** Ours spends 9 game-stream draws and theirs spends 8. They
+  part at index 1: ours draws `Guy::set_anim+0x97a < Guy::move+0x19f` there,
+  and theirs draws `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`.
+  `RON_DEBUG_SITES=1875-1875` names ours' extra draw: it belongs to the
+  Citizen `1/17`. The other eight agree in order on both sides: the farm
+  animal `9/9`; the Caesar's Legions `1/43`'s `do_guard`; `1/49`'s two
+  `do_idle`; and four `Guy::inc_time` (`1/14`, `1/22`, `1/38` ×2). **Ours
+  acts.**
+- **Units named**, by ours' `RON_DEBUG_UNIT` and `unitat.py` on run1275b:
+  - `1/17` is a Citizen (TypeIndex 50, land, uid 37) at (35340, 42696);
+  - `1/43` is Caesar's Legions (TypeIndex 147, land), on a `GUARDORDER`.
+
+**The value diff** (run1275b, walked from run1274: 256 blocks, **1211
+keys**, the two `gaia:` keys unprinted, no inexact ground corner;
+`roman_medieval_pair_run1275b_s_word_frame_is_widened_whole`). Block 1870
+carries the standing families (`form`, `SITE[i].reg`, the pools; 57 rows).
+**The state first parts on block 1875, at `1/17`.**
+
+On 1874 both sides hold three orders. The current order is a `BUILDORDER`
+on the building `1/2023` (uid 46). Under it are an `EXPLORETOORDER` to
+(36456, 43320) and a `BUILDORDER` on `1/2030` (uid 69).
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 1875 | Citizen `1/17` (TI 50) | `orders.len` | 3 | 2 |
+| 1875 | `1/17` | `order:kind` | 6 (the build) | 3 (the explore) |
+| 1875 | `1/17` | `orders_x`, `orders_y` | 35340, 42696 | 36600, 43320 |
+| 1875 | `1/17` | `dest_angle` | -1073741824 | 2110717952 |
+| 1876 | `1/17` | `pos` | (35340, 42696) | (35349, 42720) |
+| 1876 | `1/17` | `path:length`, `heading` | 0, -1073741824 | 4, 1874329600 |
+
+- **Theirs** pops the build on `1/2023` and makes the explore current, with
+  its destination moved to (36600, 43320). It walks on 1876.
+- **Ours** moves the explore's destination alike, to (36600, 43320), but
+  keeps the build current and stands.
+
+The window parts no building row on 1875. So `1/2023` agrees on both sides
+as far as the dump prints it. The remaining keys follow from `1/17`.
+
+**The rubric.** The booking names the line `Caesar's Legions` (147), and it
+is **fielded** (×9462 on the pair's dumps; `1/43` is one). The pair's dumps
+show 24 unit types. Against the lockstep set, **one is new: Caesar's
+Legions (147)**. It enters the count when the pair closes. `Praetorian
+Guards` (148) is Gunpowder's and does not appear. The pair is open at 1875,
+so `unit types seen` stays 188 of 302.
+
+**What is not established.** Why theirs pops the build on `1/2023` on 1875,
+and ours keeps it, is not established. It is the next item's hypothesis.
+The draws say only that ours' `1/17` walks (`Guy::move`) on the frame
+theirs' takes its new path. The order lists say that both sides rewrite the
+explore's destination, and only theirs drops the build. The building's own
+fields agree on the frame.
 
 ## 331. Reserved for the next item on the AI track
 

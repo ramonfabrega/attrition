@@ -10927,13 +10927,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RS — reserved
+## Parked by item 3620, 2026-10-25 — the Romans at a held Medieval age, East Indies: first try 1875
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting books: the Citizen `1/17`'s current `BUILDORDER` on `1/2023`, popped
+on 1875 in theirs (its `EXPLORETOORDER` made current) and kept in ours (`docs/AI.md` §330). `Caesar's Legions`
+(147) is fielded.
 
 ## Parked by the next landing, slot RT — reserved
 

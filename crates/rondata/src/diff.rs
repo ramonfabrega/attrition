@@ -145,6 +145,8 @@ mod report;
 #[cfg(test)]
 mod roman_classical_pair;
 #[cfg(test)]
+mod roman_medieval_pair;
+#[cfg(test)]
 mod roman_word;
 #[cfg(test)]
 mod russian_medieval_pair;
