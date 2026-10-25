@@ -27635,3 +27635,46 @@ SHA-256 `2d7b2c8cb3e0d6eb3592b89e9fd419f1394b1c0e6d73e33f8e95864c6ff72a09`.
 **What it holds**: `russian_medieval_pair_run1258b_s_word_frame_is_widened_whole` (256 blocks, 2299 keys). It opens
 apart on 3143: the Supply Wagon is `1/43` in ours and `1/132` in theirs, and every later unit of who=1 sits one
 number higher in theirs.
+
+## run1268 — the Russians at a held Medieval age, Great Sahara: a packet at logger frame 3347, `1/27`'s guard search (2026-10-25, item 3615, `att-3615`)
+
+`docs/AI.md` §326.1. **What the disk could not answer**: what `compare_target` answers for the Elite Javelineers
+`1/27` against the Library `0/2005` and the Market `0/2006`, and `targeted` on a building, which no dump prints.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1268 --map 7 --end-frame 3349 --log-window 3346 3349
+--detail end:MISC,UNITS=3,BUILDS=7,GUYS=2 --ai-tribe 13 --cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile
+ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=3347
+--tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 05:22:07, exited 05:22:33 (25.8 s). `success`, 3350 frames. Not filed: the
+  packet is the product. `df -g ~` read 119 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1268/map-7/frame-snapshot.bin`, 818,117,836 bytes,
+SHA-256 `03419c4e44bc57f0ed6e40099f42ba62655353b225f446badc541f89934f6164`.
+
+**What it holds**: `targeted` (`ObjectData +0x3d`) 0 for both buildings. `step4.py --entry 610bc0 --this 164feaec`
+(`1/27`'s `Unit::process`) scores the Library 27 at 384 → 9 and the Market 71 at 756 → 17. `compare_target`
+entered alone (`--args 0x7d6,0,0,0`) takes the Market 320 → 640 at `64eac1` (the training building's `× 2`) → 71,
+and the empty city `0/2000` → 2787.
+
+## run1268b — the Russians at a held Medieval age, Great Sahara: the word 4442's window, blocks 4286..4542 (2026-10-25, item 3615, `att-3615`)
+
+`docs/AI.md` §326.1. **What the disk could not answer**: every record on the word 4442's frame. run1258's stride
+prints units every hundredth block and no `LEADERDATA` past the start, and run1258b ends on 3399.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1268b --map 7 --end-frame 4541 --allow-early-end
+--timeout 3600 --log-window 4286 4542 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 13 --cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 05:39:23, exited 05:40:20 (57.0 s). `success`: 4542 frames, not ended early.
+  `rngcmp.py` against run1258: 4542 of 4542 identical. Filed with `filerun.py run1268b
+  greatsahara-russian-medieval-window-4286-4542 --map 7`. `df -g ~` read 123 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1268b-greatsahara-russian-medieval-window-4286-4542.txt`, 581,988,928 bytes,
+SHA-256 `1e941158a25f25f3eaf035d1840acc5ee5374571c5e728527080e64dc91b7cb3`.
+
+Archive `rontrace-run1268b.log`, 87,781,536 bytes,
+SHA-256 `0b899fb4899c02649aef63d5371fba5168fd4ba9106631402b7e1b8c5ddeebff`.
+
+**What it holds**: `russian_medieval_pair_run1268b_s_word_frame_is_widened_whole` (256 blocks, 1411 keys). On the
+word's block 4443 six of who=1's Elite Javelineers round the empty city `0/2000` leave each side, and not the
+same six.
