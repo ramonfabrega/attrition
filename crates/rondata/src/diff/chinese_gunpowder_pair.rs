@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::{dump, install};
+use crate::testenv::dump;
 
 pub(crate) const CHINESE_GUNPOWDER: Pair = Pair {
     name: "EastIndiesChineseGunpowder",
