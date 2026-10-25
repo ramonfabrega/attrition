@@ -29975,7 +29975,9 @@ and groups, and the leader's `free_peasants`/`gatherers` on 5978 (ours 3,
 33; theirs 2, 34). The draws agree to the game's last frame, **5979 of
 5979**. **The closing state** (`roman_medieval_pair_run1275_s_closing_state`,
 block 5980): 247 units, no count off, no extra, `Closing fields: none`.
-The 65 other lobbies' `first_parting` are unmoved. `tools/mutate.py` with the
+The 65 other lobbies' `first_parting` are unmoved; the same arm takes
+run834 271 → 267 and run883 208 → 207 (fire-on-the-move units on a city
+at its ceiling). `tools/mutate.py` with the
 health test put back: held (the word 5971, run1295 104).
 
 ## 331. The Mongols at a held Gunpowder age, East Indies: first try 1973 of 5399 (item 3623)
