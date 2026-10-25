@@ -37,8 +37,11 @@ pub(crate) const DUTCH_MEDIEVAL: Pair = Pair {
     // sequence. On 7063 ours spends 12 draws against theirs' 14, parting
     // at index 0 — ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
     // theirs `Unit::do_non_flat_gather+0x54b` (`docs/AI.md` section 329).
-    count: 7063,
-    sequence: 7063,
+    // Item 3621: 7063 → 7095, the game's last frame — the stand-at-tile
+    // arm refuses a spot equal to the unit's `avoid_x/avoid_y` (`1/146`'s
+    // (33384, 35064), left by `do_move`'s gather park on 7061).
+    count: 7095,
+    sequence: 7095,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -250,5 +253,9 @@ fn dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole() {
     // against 7. On 7064 theirs takes tile (172, 182) and `1/2074`'s list
     // swaps entries 44 and 45; ours' Citizen steps to (33411, 34906)
     // against theirs' standing (33432, 34920), `collide` 0 against 6.
-    pin_eq!(w.firsts.len(), 306, "run1273b baseline");
+    // Item 3621: 306 → 152. Ours refuses the spot that equals `1/146`'s
+    // `avoid` (33384, 35064) and takes the no-spot arm; the Citizen's rows
+    // and their cascade are gone, and what stands is block 7057's
+    // families and two births' `form` (`1/307` on 7063, `1/308` on 7093).
+    pin_eq!(w.firsts.len(), 152, "run1273b baseline");
 }

@@ -8554,8 +8554,13 @@ impl Sim {
             self.mark(crate::anim::SITE_STAND_TILE);
             self.set_default_anim(u);
             let angle = find_angle(here.x - centre.x, here.y - centre.y);
+            // Three answers take the no-spot arm (`005f1191`–`005f1318`):
+            // none found, the unit's own position, and **the unit's
+            // `avoid_x/avoid_y`** (`cmpl 0x120(%ebx)` at `5f1298`, `0x124`
+            // at `5f12a0`) — the point `do_move`'s gather park left there
+            // (`docs/COLLISION.md` §15; `docs/AI.md` §329, item 3621).
             match self.find_nearby_spot(u, centre, TILE, 0x100, 2, angle, None) {
-                Some(spot) if spot != here => {
+                Some(spot) if spot != here && Some(spot) != self.units[u].avoid => {
                     if !self.is_gathered_by(b, u) {
                         g.been_there = false;
                         self.store_gather(u, g);
