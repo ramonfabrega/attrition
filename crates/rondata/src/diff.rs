@@ -136,6 +136,8 @@ mod maya_word;
 #[cfg(test)]
 mod mongol_classical_pair;
 #[cfg(test)]
+mod mongol_gunpowder_pair;
+#[cfg(test)]
 mod mongol_pair;
 pub mod oracle;
 mod order;
