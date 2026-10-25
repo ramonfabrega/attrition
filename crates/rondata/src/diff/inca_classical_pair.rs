@@ -315,7 +315,7 @@ fn inca_classical_pair_run1269_s_word_frame_is_widened_whole() {
     // From 5371 who=1's army's orders part. Item 3617, with piece 825's
     // bays: 118 keys, the standing families, who=1's `free_peasants` 4
     // against 3 and `gatherers` 28 against 29 (standing from run1270's
-    // 5301), and `1/57`'s `dest_angle` on 5444 (554893312 against
+    // 5301, parked as 3617c), and `1/57`'s `dest_angle` on 5444 (554893312 against
     // 1777795072), parked as 3617a.
     pin_eq!(w.firsts.len(), 118, "run1269 baseline");
 }
@@ -375,7 +375,7 @@ fn inca_classical_pair_run1270_s_gap_is_widened_whole() {
     // 58 — struck by the Archers `1/58`'s arrow, which left the figure's
     // own (7224, 8952) and flew 18 frames in ours, and (7278, 8882) and 17
     // in theirs; then its flight from 5345. With the bays: 115, the
-    // standing families and `free_peasants`/`gatherers` alone.
+    // standing families and `free_peasants`/`gatherers` alone (3617c).
     pin_eq!(w.firsts.len(), 115, "run1270 baseline");
 }
 
@@ -489,4 +489,57 @@ fn inca_classical_pair_run1260_s_closing_state() {
     pin_eq!(e.compared, 196, "units compared");
     pin_eq!(e.counts(), [0, 0, 1, 0, 0, 0, 0], "the closing counts");
     pin_eq!(e.extra.clone(), vec![(1, 175)], "the closing extras");
+}
+
+/// run1270b: the closing window, blocks 5817..6074 at the long's detail
+/// with `LEADERS=9` (item 3617) — run1260 prints units every hundredth
+/// block and no leader, building or city record past the start, so no
+/// dump held the last blocks.
+pub(crate) const RUN1270B: &str = "gamelog-run1270b-eastindies-inca-classical-window-5817-6074.txt";
+
+/// The closing window: block 5817 through the closing block 6074.
+pub(crate) const WINDOW_INCA_CLASSICAL_CLOSING: (i64, i64) = (5817, 6074);
+
+/// **The closing window**: run1270b walked from run1259's start with the
+/// recorder on (item 3617).
+pub(crate) fn inca_classical_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA_CLASSICAL.start],
+        true,
+        INCA_CLASSICAL.long,
+        "run1270b",
+        &[(RUN1270B, WINDOW_INCA_CLASSICAL_CLOSING.0)],
+        WINDOW_INCA_CLASSICAL_CLOSING,
+        1,
+        &[6074],
+        true,
+    )
+}
+
+#[test]
+fn inca_classical_pair_run1270b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_classical_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3617, the pair whole: 95 keys, the standing families (`form`,
+    // `build:extra`, who=1's groups' `held` and pools, `SITE[i].reg`,
+    // who=0's `aggression[1]`) and who=1's `free_peasants` 5 against 6 and
+    // `gatherers` 35 against 34 from 5978 (3617c), through the closing
+    // block 6074.
+    pin_eq!(w.firsts.len(), 95, "run1270b baseline");
 }

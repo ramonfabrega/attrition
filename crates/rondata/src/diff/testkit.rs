@@ -10254,13 +10254,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // first try 4501 of 6073; widened on run1260b over 4495..4751 (the
     // word's block 4502). Item 3616: 5357 (the Dromon's rounds leave from
     // piece 274's bays); widened on run1269 over 5351..5607 (the word's
-    // block 5358).
+    // block 5358). Item 3617: whole at 6073 (the Archers loose from piece
+    // 825's bays); the word's widening is run1270b's closing walk,
+    // 5817..6074.
     (
         "INCA_CLASSICAL_PAIR_WORD",
         crate::diff::inca_classical_pair::INCA_CLASSICAL_PAIR_WORD,
-        Some("inca_classical_pair_run1269_s_word_frame_is_widened_whole"),
-        3616,
-        Some(crate::diff::inca_classical_pair::WIDENING_INCA_CLASSICAL_FRAME_5357),
+        Some("inca_classical_pair_run1270b_s_closing_frame_is_widened_whole"),
+        3617,
+        Some(crate::diff::inca_classical_pair::WINDOW_INCA_CLASSICAL_CLOSING),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12112,15 +12114,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Inca at a held Classical age (`STARTING_TECHNOLOGY` 1,
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3606): first try 4501 of a
     // game that ends itself on 6073, widened on run1260b; 5357 since item
-    // 3616, widened on run1269.
+    // 3616, widened on run1269; whole since item 3617, its closing state
+    // compared and widened on run1270b.
     AiWord {
         line: "Late ages",
         map: "EastIndiesIncaClassical",
         named: "East Indies (Inca, Classical)",
         word: crate::diff::inca_classical_pair::INCA_CLASSICAL_PAIR_WORD,
         length: 6_073,
-        endpoint: None,
-        window: Some("inca_classical_frame_5357_window"),
+        endpoint: Some("inca_classical_pair_run1260_s_closing_state"),
+        window: Some("inca_classical_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

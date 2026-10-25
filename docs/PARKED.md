@@ -10874,13 +10874,27 @@ that a moving shooter leads by two frames of its 60-unit speed. run1217's packet
 `AttachPos` rows carry the 119 in the model's `y`, and the rows built from them reproduce every dumped round of the
 moving Dromon. Unbuilt. No score names it.
 
-## Parked by the next landing, slot RP — reserved
+## Parked by item 3617, 2026-10-25 — the Inca Archers' bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3617a) **`1/57`'s `dest_angle` on block 5444, a row that spends no draw** (`docs/AI.md` §327.2). With the pair
+whole, run1269's widening holds one unit row past its standing families: `1/57`'s `dest_angle`, ours 554893312
+against theirs 1777795072. Nothing else on `1/57` parts, and the draw stream agrees to 6073. The writer of
+`dest_angle` on that frame is unread. No score names it.
+
+(3617b) **The closing Citizen `1/175`** (§327.2). `inca_classical_pair_run1260_s_closing_state` compares 196 units
+on the closing block 6074. None is off, torn or unlinked, and `Closing fields: none`. There is one extra: who=1's
+Citizen `1/175` at (26232, 26424). Ours bears it on the game's last tick, beside the city centre `1/2040` at
+(26208, 25440), whose queue still holds three Citizens in theirs' closing block. On 6073 theirs runs
+`Cities::capture_city` (`Build::activate`'s `Farms::add_animals` draws) and the game ends. A Citizen's birth
+spends no draw, so the stream cannot see it. Not read: whether theirs' production that frame runs after the
+capture's game-over, or whether `1/2040`'s queue timer is a frame behind ours (the closing compare reads no queue
+progress). It names the closing counts, a floor no queue line carries.
+
+(3617c) **who=1's `free_peasants` and `gatherers`, a count that parts and heals.** They read 4 against 3 and 28
+against 29 from run1270's first block 5301 through run1269's 5607. They agree in run1260b (4495..4751) and in
+run1270b over 5817..5977, then part again on 5978, 5 against 6 and 35 against 34. The draws never move. No
+`LEADERDATA` prints between 4751 and 5301, so the frame the first parting begins on is not on disk; run1270b's
+5978 is. Its writer is unread. No score names it.
 
 ## Parked by the next landing, slot RQ — reserved
 
