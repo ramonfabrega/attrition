@@ -11,12 +11,13 @@
 //! Captures: run1272 (a `DUMP_ALL` start) and run1273 (the draw stream to
 //! the game's end, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100,
 //! walked from the start's initial state). The first try is in
-//! `docs/AI.md` §329.
+//! `docs/AI.md` §329; whole since item 3621, its closing state compared
+//! on run1273's closing block and widened on run1273b.
 
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const DUTCH_MEDIEVAL: Pair = Pair {
     name: "EastIndiesDutchMedieval",
@@ -37,8 +38,11 @@ pub(crate) const DUTCH_MEDIEVAL: Pair = Pair {
     // sequence. On 7063 ours spends 12 draws against theirs' 14, parting
     // at index 0 — ours `Guy::set_anim+0x97a < Unit::move_step+0x823`,
     // theirs `Unit::do_non_flat_gather+0x54b` (`docs/AI.md` section 329).
-    count: 7063,
-    sequence: 7063,
+    // Item 3621: 7063 → 7095, the game's last frame — the stand-at-tile
+    // arm refuses a spot equal to the unit's `avoid_x/avoid_y` (`1/146`'s
+    // (33384, 35064), left by `do_move`'s gather park on 7061).
+    count: 7095,
+    sequence: 7095,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -250,5 +254,74 @@ fn dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole() {
     // against 7. On 7064 theirs takes tile (172, 182) and `1/2074`'s list
     // swaps entries 44 and 45; ours' Citizen steps to (33411, 34906)
     // against theirs' standing (33432, 34920), `collide` 0 against 6.
-    pin_eq!(w.firsts.len(), 306, "run1273b baseline");
+    // Item 3621: 306 → 152. Ours refuses the spot that equals `1/146`'s
+    // `avoid` (33384, 35064) and takes the no-spot arm; the Citizen's rows
+    // and their cascade are gone, and what stands is block 7057's
+    // families and two births' `form` (`1/307` on 7063, `1/308` on 7093).
+    pin_eq!(w.firsts.len(), 152, "run1273b baseline");
+}
+
+/// **The closing state** (item 3621): run1273's closing block 7096, the
+/// whole map's units, walked from run1272's start.
+#[test]
+fn dutch_medieval_pair_run1273_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &DUTCH_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Dutch Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    // Item 3621, the pair whole: 321 units, none off, torn or unlinked,
+    // no extra, `Closing fields: none`.
+    pin_eq!(e.frame, 7096, "the closing block");
+    pin_eq!(e.compared, 321, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }

@@ -7302,6 +7302,8 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole",
         9,
     ),
+    // Item 3621: and the closing state, run1273's block 7096: 9.
+    ("dutch_medieval_pair_run1273_s_closing_state", 9),
     // Item 3602: the Japanese Ancient pair's first try, walked from
     // run1251 along run1252, reads 7 inexact corners; item 3610's walk,
     // past 4934 with piece 1176's bays, reads 43.
@@ -10294,12 +10296,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The Dutch at a held Medieval age** (item 3619): East Indies —
     // first try 7063 of 7095; widened on run1273b over 7057..7096 (the
-    // word's block 7064 through the closing block).
+    // word's block 7064 through the closing block). Whole since item
+    // 3621, 7095 of 7095, the closing state compared; the same window,
+    // re-walked, reaches the closing block.
     (
         "DUTCH_MEDIEVAL_PAIR_WORD",
         crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL_PAIR_WORD,
         Some("dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole"),
-        3619,
+        3621,
         Some(crate::diff::dutch_medieval_pair::WIDENING_DUTCH_MEDIEVAL_FRAME_7063),
     ),
     // **The Romans at a held Medieval age** (item 3620): East Indies —
@@ -12190,14 +12194,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Dutch at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), East Indies (item 3619): first try 7063 of a
-    // game that ends itself on 7095, widened on run1273b.
+    // game that ends itself on 7095, widened on run1273b; whole since item
+    // 3621, its closing state compared and the window re-walked.
     AiWord {
         line: "Late ages",
         map: "EastIndiesDutchMedieval",
         named: "East Indies (Dutch, Medieval)",
         word: crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL_PAIR_WORD,
         length: 7_095,
-        endpoint: None,
+        endpoint: Some("dutch_medieval_pair_run1273_s_closing_state"),
         window: Some("dutch_medieval_frame_7063_window"),
     },
     // The Romans at a held Medieval age (`STARTING_TECHNOLOGY` 2,

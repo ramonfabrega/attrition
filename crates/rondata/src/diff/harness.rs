@@ -2611,7 +2611,7 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         .collect();
     eprintln!(
         "  f{frame} {who}/{o} #{} decoy {} TY {:?} ({}) TI {:?} PACKS {:?} army {:?} gspeed {:?} at ({}, {}) in {:?} on {} ang {} hdg {} des {} \
-         danger {} targeted {} stance {}/{:?} coll {}@{} tgt {:?} reach {:?} path {:?} orders {:?} {}",
+         danger {} targeted {} stance {}/{:?} coll {}@{} avoid {:?} tgt {:?} reach {:?} path {:?} orders {:?} {}",
         // The unit's slot in `sim.units`, which a `GroupMove`'s `leader`
         // names (item 795).
         built
@@ -2669,6 +2669,9 @@ pub(crate) fn debug_unit(built: &Built, u: &sim::Unit, frame: i64) {
         // widening compares only once ours has stamped one (item 795).
         u.collide,
         u.collide_frame,
+        // `UnitData::avoid_x/avoid_y` (`+0x120/+0x124`), which the
+        // stand-at-tile arm refuses a spot on (item 3621).
+        u.avoid.map(|p| (p.x, p.y)),
         // The combat target, which an `Attack` order does not carry
         // (item 997: the attack-move's look pushed one on 4554).
         // Beside it, the target's own `targeted` (item 3306).

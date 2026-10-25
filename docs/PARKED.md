@@ -10936,13 +10936,14 @@ Nothing parks. The pair's first parting books: the Citizen `1/17`'s current `BUI
 on 1875 in theirs (its `EXPLORETOORDER` made current) and kept in ours (`docs/AI.md` §330). `Caesar's Legions`
 (147) is fielded.
 
-## Parked by the next landing, slot RT — reserved
+## Parked by item 3621, 2026-10-25 — the Dutch Medieval word closes: a gather spot equal to `avoid` is no spot
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3621a) **Theirs' `avoid_x/avoid_y` on the word's frame is read, not measured** (3621; names no score). The arm that
+closed the word compares `find_nearby_spot`'s answer with `UnitData +0x120/+0x124` (`5f1298`, `5f12a0`). Ours holds
+`1/146`'s (33384, 35064) from 7061, written by `do_move`'s gather park (COLLISION §15). No dump prints the field. The
+closure is the evidence that theirs holds the same value: 7095 of 7095, and the 152 keys left are block 7057's standing
+families and two births' `form`. A packet at `RON_STATE_FRAME=7062` with `--watch` over `+0x120:8` would measure it.
+Run 1276 was reserved for that packet and was not taken.
 
 ## Parked by the next landing, slot RU — reserved
 
