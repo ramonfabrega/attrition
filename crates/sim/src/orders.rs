@@ -9623,9 +9623,8 @@ impl Sim {
             }
             SquadHead::Search => {
                 let t = self.find_melee_target(u, -1)?;
-                // SEAM: a group's attack-move may hand the target to
-                // `Group::action_attack` instead; this crate carries that arm
-                // for the attack-move's own look alone.
+                // A group's attack-move hands the target to
+                // `Group::action_attack` ([`Self::nearby_add`], item 3634).
                 self.nearby_add(u, t);
                 Some(t)
             }
@@ -9666,9 +9665,19 @@ impl Sim {
     ///   `+0xf4 == 1`), and `QUEUE_NEW` for every other.
     ///
     /// SEAM: the naval refusal (`+0x218 == 2`) under an attack-move.
+    ///
+    /// **The arm is one for every caller** (item 3634): `find_nearby_target`'s
+    /// add (`00648da0:545`–`606`) is the attack-move look's
+    /// [`Self::attack_move_add`] — a `GROUP_ATTACK_TO` head on an active
+    /// member of a group still walking its attack-move hands the find to
+    /// `Group::action_attack` — whoever asked. `fight`'s captain re-search is
+    /// the witness: `find_new_target` kills the attack, the head is the
+    /// group's attack-move again, and run1296's packet has East Indies'
+    /// Hussar `1/94` hand the Citizen `0/11` to group 80 on tick 4632
+    /// (`find_nearby_target+0xf73` → `Group::action_attack`, then
+    /// `set_up_insert`), where this crate took it alone.
     pub(crate) fn nearby_add(&mut self, u: usize, t: Obj) {
-        self.nearby_normalize(u);
-        self.nearby_add_order(u, t);
+        self.attack_move_add(u, t);
     }
 
     /// **`Object::find_nearby_target`'s first act on a find it adds**

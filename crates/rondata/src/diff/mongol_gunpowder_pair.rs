@@ -50,8 +50,16 @@ pub(crate) const MONGOL_GUNPOWDER: Pair = Pair {
     // `treaties` 3 on block 4475, where ours read 50 and 1). On 4632 ours
     // spends 54 draws against 52, parting at index 40 — ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::fight+0x9b0`.
-    count: 4632,
-    sequence: 4632,
+    // Item 3634: 4632 → 5047. `fight`'s captain re-search hands its find to
+    // the group: the Hussar `1/94`'s `find_new_target` kills its attack, the
+    // head is group 80's attack-move again, and `find_nearby_target`'s add
+    // calls `Group::action_attack` on the Citizen `0/11` (run1296's packet),
+    // so `1/93` and `1/95` take it too and the group's move is laid again
+    // from `1/93`'s point (7848, 2808), order id 4640007. On 5047 ours
+    // spends 7 draws against 8, parting at index 5 — ours
+    // `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+    count: 5047,
+    sequence: 5047,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -401,7 +409,73 @@ fn mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole() {
     // `1/93`'s `order:kind` 2 against 10, `1/94`'s and `1/95`'s 21 against
     // 2. **The word 4632**, ours 54 draws against 52, index 40: ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::fight+0x9b0`.
-    pin_eq!(w.firsts.len(), 1772, "run1292b baseline");
+    // Item 3634: 1772 → 139, the standing families alone. Group 80's
+    // orders agree on 4633: theirs' order id 4640007 is ours, `1/93`,
+    // `1/94` and `1/95` each hold the attack on `0/11`, and `1/84` the
+    // second `GROUPATTACKTOORDER`.
+    pin_eq!(w.firsts.len(), 139, "run1292b baseline");
+}
+
+/// run1296b: the word 5047's window, blocks 5041..5297 at run1292's
+/// detail, `cover=0` (item 3634) — six blocks before the word's block 5048
+/// and 250 after; the stride's blocks are 5001 and 5101.
+pub(crate) const RUN1296B: &str =
+    "gamelog-run1296b-eastindies-mongol-gunpowder-window-5041-5297.txt";
+
+/// The window: block 5041 through 5297; the word 5047's own block is 5048.
+pub(crate) const WIDENING_MONGOL_GUNPOWDER_FRAME_5047: (i64, i64) = (5041, 5297);
+
+/// **The word 5047's window**: run1296b walked from run1278's start with
+/// the recorder on (item 3634).
+pub(crate) fn mongol_gunpowder_frame_5047_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_GUNPOWDER.start],
+        true,
+        MONGOL_GUNPOWDER.long,
+        "run1296b",
+        &[(RUN1296B, WIDENING_MONGOL_GUNPOWDER_FRAME_5047.0)],
+        WIDENING_MONGOL_GUNPOWDER_FRAME_5047,
+        1,
+        &[5048],
+        true,
+    )
+}
+
+#[test]
+fn mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_gunpowder_frame_5047_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3634, the word 5047's widening: 3282 keys. Block 5041's 112
+    // stand — run1292b's families, the groups minted since (84..89) and
+    // who=1's `leader:attack` 1067 against 1085, the one new leader row.
+    // The draws agree through 5046; **the word's block 5048** parts on the
+    // human's `0/2005` (orig_type 435) alone: theirs `damage` 1 and
+    // `damage_frac` 13, ours 0 and 0. Both sides' Bombard `1/84` round
+    // lands on 5047 at (6289, 6920) and strikes `0/2000` for 109; theirs
+    // also wounds `0/2005` (`Object::take_damage+0xe1`, the extra draw at
+    // index 5). From 5051 who=1's `1/92` parts in its orders.
+    pin_eq!(w.firsts.len(), 3282, "run1296b baseline");
 }
 
 /// **The long's stride between the windows** (item 3630): run1279's

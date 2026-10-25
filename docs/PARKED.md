@@ -11064,13 +11064,14 @@ leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` st
   Which ship pieces release with no row is a grep of the install's
   `<RELEASEEVENT>`s against the three tables. It names no score.
 
-## Parked by the next landing, slot SG — reserved
+## Parked by item 3634, 2026-10-25 — fight's re-search hands its find to the group, 4632 → 5047
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3634a. `Group::target_opportunity`'s member arm adds alone.** Item 3634 made `nearby_add` the whole
+  `find_nearby_target` add (`00648da0:545`–`606`), group hand-off included, for every caller that reaches it.
+  `find_melee_target_added_in`, the member arm of `Group::target_opportunity`, carries its own copy of the add
+  and never hands the find to `Group::action_attack`. Whether the original's arm reaches the group there is
+  unread (`docs/AI.md` §331.3). No walk moved on it and it names no open word's frame; the killer is a member of
+  a walking attack-move group whose opportunity find theirs dumps as a `GROUPATTACKTOORDER` bump.
 
 ## Parked by the next landing, slot SH — reserved
 

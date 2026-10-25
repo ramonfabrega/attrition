@@ -28244,3 +28244,42 @@ SHA-256 `f55e706f8e5a25efa1cb11dc5156cfc4a0d434cfb21e3eb70b2472585e38feb0`.
 1` for each key (92,416 cells, kept at `~/ron-data/lab-experiments/2026-10-25-item-3632/`) is the oracle of
 `sim::pivot`'s four `RELEASES` rows. It disagrees with the integer form on one cell, which is that row's
 `float_lands`.
+
+## run1296 — the Mongols at a held Gunpowder age, East Indies: a packet at logger frame 4632, group 80's order (2026-10-25, item 3634, `att-3634`)
+
+`docs/AI.md` §331.3. **What the disk could not answer**: which unit's call issued group 80's order 7 on tick 4632;
+run1292b is `cover=0` and dumps no group pool. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1296
+--map 18 --end-frame 4634 --log-window 4631 4634 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 17 --cover
+cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --tracer-def RON_STATE_FRAME=4632 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`. The brief
+named 4631; the decision prints on block 4633, so EMULATOR §8's `N−1` gives 4632.
+- Pool lane 1, seed 12345. Launched 15:05:34, exited 15:06:01 (27.3 s launch to exit). `success`, 4635 frames.
+  `rngcmp.py` against run1279: 4635 of 4635 identical. Not filed: the packet is the product. `df -g ~` read 123 GiB
+  free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1296/map-18/frame-snapshot.bin`, 911,486,700 bytes,
+SHA-256 `f0939522524234386c4c78f8b12fe82f663361808b8815e285a5e14c8b539f08`.
+
+**What it holds**: `step4.py --entry 610bc0` on `1/94` (`15acc5ac`) runs `fight` → `find_new_target` →
+`find_nearby_target`, whose group arm (`+0xf73`) calls `Group::action_attack` on `0/11`; on `1/93` (`15acc43c`) the
+attack-to look finds nothing.
+
+## run1296b — the Mongols at a held Gunpowder age, East Indies: the word 5047's window, blocks 5041..5297 (2026-10-25, item 3634, `att-3634`)
+
+`docs/AI.md` §331.3. **What the disk could not answer**: every record on the moved word's block 5048; run1279's
+stride prints 5001 and 5101 only. run1292b's line with `--end-frame 5297 --log-window 5041 5297 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --cover cover=0`.
+- Pool lane 1, seed 12345. Launched 15:13:55, exited 15:14:47 (51.3 s launch to exit). `success`: 5298 frames.
+  `rngcmp.py` against run1279: 5298 identical frames. Filed with `filerun.py run1296b
+  eastindies-mongol-gunpowder-window-5041-5297 --map 18`. `df -g ~` read 127 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1296b-eastindies-mongol-gunpowder-window-5041-5297.txt`, 647,411,366 bytes,
+SHA-256 `f4bc43d3f8a274f4d9860b0812ee73444696a87defaaa9ff155b299f0dca4783`.
+
+Archive `rontrace-run1296b.log`, 201,061,440 bytes,
+SHA-256 `012970e76dcc49dd83bbad7aa83282267e2e2e6b18da4e1bfcb4b7c22cc7e4d7`.
+
+**What it holds**: `mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole` (256 blocks, 3282 keys): block
+5041's 112 stand, and the word's block 5048 parts on the human's `0/2005` alone (theirs `damage` 1, `damage_frac` 13).
