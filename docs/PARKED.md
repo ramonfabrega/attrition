@@ -8700,7 +8700,8 @@ The word closed at 7105 and the close compares whole (`docs/AI.md` §279). What 
   over the emu cache cap, so the sweep re-emulates (~16 s). `LeaderDataEncrypt::scratch` is not compared.
 - **3356c. `Ammo::do_damage@00678060`: `Sim::land`'s splash is one cell wide of the original's, and the shipped `move_x`/`move_y`
   is defective beyond ring 7.** The original walks the spiral `0..=radius[k]` inclusive (one cell past the Chebyshev disc:
-  `(-1,-2)` for `radius[1]=9`, `(-(k+1),-(k+1))` for k >= 2); the crate's `splash_cells` takes the exact `(2k+1)^2` disc. Ring 8's
+  `(-1,-2)` for `radius[1]=9`, `(-(k+1),-(k+1))` for k >= 2); ~~the crate's `splash_cells` takes the exact `(2k+1)^2` disc~~
+  **built by item 3636** (`combat::splash_extra_cell`, the Mongol Gunpowder pair whole; the walk's order is 3636a). Ring 8's
   last entry is `(-8,-16)` (the crate has it as `MOVE_289[288]`); rings 9 and 10 lack the NE and SW corners, lay the SE corner
   twice and close on a stray cell, and entry 441 is a stray word that `radius[10]=441` makes the loop read. The sweep lays the
   table as shipped (`shipped_spiral()`); `Sim::land` is not fixed — a fight-lane item (a pinned diff could move). Six calls
@@ -11085,13 +11086,15 @@ leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` st
   parted for eight frames and left nothing a closing block compares. The
   word and the window are what hold the mechanism. It names no score.
 
-## Parked by the next landing, slot SI — reserved
+## Parked by item 3636, 2026-10-25 — a splash walks one cell past its square, the Mongol Gunpowder pair whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3636a. A splash strikes in the walk's order, not the crate's index order.** Item 3636 gave `Sim::land` the
+  spiral's tenth cell (`combat::splash_extra_cell`, parked 3356c's first half), and the pair closed. The original
+  strikes object by object as it walks `move_x`/`move_y` from entry 0 and each cell's chain from its head
+  (`Object::add_to_world` pushes onto the head, so the newest first); `Sim::land` strikes its candidates units
+  first, then buildings, each by index. The two differ only when one splash gives two objects a draw (two first
+  wounds, a kill's death roll and a first wound), and no walk has parted on it (`docs/AI.md` §331.4). The killer
+  is a splash round whose `take_damage` draws theirs' trace orders differently from ours on the same frame.
 
 ## Parked by the next landing, slot SJ — reserved
 

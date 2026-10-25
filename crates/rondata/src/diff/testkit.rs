@@ -7324,6 +7324,14 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ),
     // Item 3630: run1292c's walk back, through 4495, reads the same 2.
     ("mongol_gunpowder_pair_run1292c_walks_back_from_4499", 2),
+    // Item 3636: run1298's closing window, walked from run1278 through
+    // 5400, reads the same 2; and the closing state, run1279's block
+    // 5400: 2.
+    ("mongol_gunpowder_pair_run1279_s_closing_state", 2),
+    (
+        "mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole",
+        2,
+    ),
     // Item 3619: the Dutch Medieval pair's first try, walked from run1272
     // along run1273, reads 9 inexact corners.
     ("dutch_medieval_pair_first_parting", 9),
@@ -10367,13 +10375,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // window: the state first parts on the word's own block 4633. Item
     // 3634 moved it to 5047 (fight's re-search hands its find to the
     // group) and widened it on run1296b over 5041..5297 (the word's block
-    // 5048).
+    // 5048). Whole since item 3636, 5399 of 5399 (a splash walks one
+    // spiral cell past its square), the closing state compared; widened
+    // on run1298 over 5297..5400 (the closing block).
     (
         "MONGOL_GUNPOWDER_PAIR_WORD",
         crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER_PAIR_WORD,
-        Some("mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole"),
-        3634,
-        Some(crate::diff::mongol_gunpowder_pair::WIDENING_MONGOL_GUNPOWDER_FRAME_5047),
+        Some("mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole"),
+        3636,
+        Some(crate::diff::mongol_gunpowder_pair::WIDENING_MONGOL_GUNPOWDER_FRAME_5399),
     ),
     // **The Bantu at a held Medieval age** (item 3624): Great Sahara —
     // whole on its first try, 4914 of 4914, the closing state compared;
@@ -12293,15 +12303,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3623): first try 1973 of a
     // game that ends itself on 5399, widened on run1279b; 4499 since item
     // 3630, widened on run1292b; 4632 since item 3632, the same window;
-    // 5047 since item 3634, widened on run1296b.
+    // 5047 since item 3634, widened on run1296b; whole since item 3636,
+    // its closing state compared and widened on run1298.
     AiWord {
         line: "Late ages",
         map: "EastIndiesMongolGunpowder",
         named: "East Indies (Mongols, Gunpowder)",
         word: crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER_PAIR_WORD,
         length: 5_399,
-        endpoint: None,
-        window: Some("mongol_gunpowder_frame_5047_window"),
+        endpoint: Some("mongol_gunpowder_pair_run1279_s_closing_state"),
+        window: Some("mongol_gunpowder_frame_5399_window"),
     },
     // The Bantu at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3624): whole on its first

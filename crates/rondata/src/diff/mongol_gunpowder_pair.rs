@@ -16,7 +16,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const MONGOL_GUNPOWDER: Pair = Pair {
     name: "EastIndiesMongolGunpowder",
@@ -58,8 +58,14 @@ pub(crate) const MONGOL_GUNPOWDER: Pair = Pair {
     // from `1/93`'s point (7848, 2808), order id 4640007. On 5047 ours
     // spends 7 draws against 8, parting at index 5 — ours
     // `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
-    count: 5047,
-    sequence: 5047,
+    // Item 3636: 5047 → 5399, the game's last frame — the pair is whole.
+    // A splash walks the spiral to `radius[k]` inclusive, one cell past its
+    // square (parked 3356c), so the Bombard `1/84`'s round, landing in cell
+    // (8, 9) on 5047, wounds the Library `0/2005` chained in (7, 7): on
+    // block 5048 its `damage` 1 and `damage_frac` 13 on both sides, where
+    // ours read 0 and 0.
+    count: 5399,
+    sequence: 5399,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -475,7 +481,132 @@ fn mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole() {
     // lands on 5047 at (6289, 6920) and strikes `0/2000` for 109; theirs
     // also wounds `0/2005` (`Object::take_damage+0xe1`, the extra draw at
     // index 5). From 5051 who=1's `1/92` parts in its orders.
-    pin_eq!(w.firsts.len(), 3282, "run1296b baseline");
+    // Item 3636: 3282 → 119. The splash's tenth cell wounds `0/2005` on
+    // 5047 in ours too; block 5041's families stand and nothing else
+    // parts through 5297.
+    pin_eq!(w.firsts.len(), 119, "run1296b baseline");
+}
+
+/// run1298: the closing window, blocks 5297..5400 at run1296b's detail,
+/// `cover=0` (item 3636) — from run1296b's last block through the closing
+/// block, so the word 5399, the game's last frame, sits inside a window.
+pub(crate) const RUN1298: &str = "gamelog-run1298-eastindies-mongol-gunpowder-window-5297-5400.txt";
+
+/// The window: block 5297 through the closing block 5400.
+pub(crate) const WIDENING_MONGOL_GUNPOWDER_FRAME_5399: (i64, i64) = (5297, 5400);
+
+/// **The closing window**: run1298 walked from run1278's start with the
+/// recorder on (item 3636).
+pub(crate) fn mongol_gunpowder_frame_5399_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_GUNPOWDER.start],
+        true,
+        MONGOL_GUNPOWDER.long,
+        "run1298",
+        &[(RUN1298, WIDENING_MONGOL_GUNPOWDER_FRAME_5399.0)],
+        WIDENING_MONGOL_GUNPOWDER_FRAME_5399,
+        1,
+        &[5400],
+        true,
+    )
+}
+
+#[test]
+fn mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_gunpowder_frame_5399_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 103, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3636, the pair whole: 114 keys, every one standing — block
+    // 5297's 100 (run1296b's families), then births' `form` (`1/102` on
+    // 5337, `1/224`, `1/227`, `1/232`) and who=1's groups' `held` and
+    // pools as each is minted or refilled (64, 75, 78, 85, 87). No unit's
+    // position or orders part through the closing block.
+    pin_eq!(w.firsts.len(), 114, "run1298 baseline");
+}
+
+/// **The closing state** (item 3636): run1279's closing block 5400, the
+/// whole map's units, walked from run1278's start.
+#[test]
+fn mongol_gunpowder_pair_run1279_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &MONGOL_GUNPOWDER;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Mongol Gunpowder pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    // Item 3636, the pair whole: 242 units, none off, torn or unlinked,
+    // no extra, `Closing fields: none`.
+    pin_eq!(e.frame, 5400, "the closing block");
+    pin_eq!(e.compared, 242, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }
 
 /// **The long's stride between the windows** (item 3630): run1279's
