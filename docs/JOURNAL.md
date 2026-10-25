@@ -21487,3 +21487,30 @@ against what a capture can still enter, the `!eval` take first; the 67
 rows no item stages filed with their reasons (Loop 3482). The queue
 lane's retirement recommended to Ramon. **DECISIONS 89.**
 `docs/audit/2026-10-22-fable-pass-50.md`.
+
+## 2026-10-24 — the fifty-fifth Fable pass: the gate is the clock, the lane rule reads it, and a stand-up stops widening (Fable 5.1, steering)
+
+*The fifty-first to fifty-fourth passes wrote no entry here; their stories
+are their records (`docs/audit/2026-10-22-fable-pass-51.md` to
+`2026-10-24-fable-pass-54.md`) and DECISIONS 90–93. This file resumes with
+the fifty-fifth.*
+
+**2026-10-24 — the fifty-fifth Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the fifty-fifth tranche measured — twenty
+landings on two Opus lanes from `58869793f` in 11 h 19; the Mongol word
+closed in one item and thirteen early-age pairs stood up, twelve whole,
+three of them at their first try; unit types seen 167 → 179 of 302,
+lockstep bytes 77.4 unmoved; 7.25 USD and 40.5 minutes waiting a landing
+against 6.91 / 58.8 on three lanes and 5.26 / 34.3 on the last two-lane
+tranche. The gate is 30.7 of a session's 35.2 waiting minutes, and eight
+of the twenty landings — pair stand-ups touching no sim path — ran the
+whole timed suite at their lane gate for a `mod` line, a scored triple and
+a ledger row. Built, red first: the lane gate reads the hunks and a
+row-only edit does not widen it (Loop 3608). The lane rule's letter said
+add a lane; the clause now reads the gate class that took the third lane
+away, and two stay. Three Loop items closed unreached with their text in
+the record (3498, 3433, 2003); the scan found no dead row among the 39;
+the 58 untimed tests were timed. Booked: the Maya word (3600) and seven
+early-age pairs off the mask's braces, two lines where a lobby fields two
+(3601–3607), with the refill order in the queue. **DECISIONS 94.**
+`docs/audit/2026-10-24-fable-pass-55.md`.

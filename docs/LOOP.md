@@ -261,7 +261,15 @@ only coupling between them is the merge and what the brief reserves.
 above the tranche before — **and takes one away when it does not** (the
 fifty-fourth pass, DECISIONS 93: a third Opus lane raised waiting 34.3 →
 58.8 a landing and the gate 26.1 → 41.0 a session in the same 9 h 55 two
-lanes had taken, so the fifty-fifth runs two); a
+lanes had taken, so the fifty-fifth runs two) — **and a lane the rule
+took away is not re-added while the gate class that took it stands**
+(the fifty-fifth pass, DECISIONS 94 §1: two lanes waited 40.5 a
+landing against the fifty-fourth's 58.8, which the letter reads as
+"holds, add one", but the third lane's cost was the gate on a
+sixteen-core host, 26.1 → 41.0 a session, and the gate on two lanes
+read 30.7 this tranche, above the 26.1 it was taken at; the lane
+returns when a two-lane tranche's gate a session is under that figure,
+or the gate's class is cut — the lever Loop 3608 pulls); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

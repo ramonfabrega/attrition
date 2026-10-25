@@ -81,6 +81,8 @@ def git_fixture(commits=(), theirs=(), ours=()):
             out = ''.join(c + '\n' for c in commits)
         elif args[:3] == ['git', 'diff', '--name-only']:
             out = ''.join(p + '\n' for p in (ours if args[-1] == 'HEAD' else theirs))
+        elif args[:3] in (['git', 'diff', '--name-status'], ['git', 'diff', '-U0']):
+            out = ''  # `row_only_edits` (Loop 3608): no row-list edit in these cases
         else:
             raise AssertionError(f'the gate ran an unexpected git: {args}')
         return SimpleNamespace(stdout=out, returncode=0)
@@ -731,7 +733,7 @@ class GateTests(unittest.TestCase):
                '1.00\tdiff::golden::at_the_budget\n'
                '0.02\tdiff::floors::tests::the_gate_has_a_bounded_test_width\n')
 
-    def release_command(self, touched=(), **kw):
+    def release_command(self, touched=(), row_only=(), **kw):
         kw.setdefault('isolated', False)  # Retain reference-runner selection assertions.
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp);(path/'Data').mkdir();(path/'Data/rules.xml').touch()
@@ -740,7 +742,8 @@ class GateTests(unittest.TestCase):
                 calls.append(command)
                 if '--release' in command:
                     release_ran(kwargs)
-            with patch('builtins.print'), patch.object(gate, 'branch_paths', return_value=list(touched)):
+            with patch('builtins.print'), patch.object(gate, 'branch_paths', return_value=list(touched)), \
+                    patch.object(gate, 'row_only_edits', return_value=set(row_only)):
                 gate.gate(path, report_dir=path/'report', run=run, test_threads=4, git=UNMOVED, **kw)
             policy=json.loads((path/'report/gate-policy.json').read_text())
         return next(c for c in calls if '--release' in c), policy
@@ -788,6 +791,64 @@ class GateTests(unittest.TestCase):
         command, policy = self.release_command(touched=['crates/sim/src/sweep/x.rs'], lane=True, tests=WORD)
         self.assertIn('--skip', command)
         self.assertEqual(policy['lane']['widened'], [])
+
+    def test_a_pair_stand_up_s_row_list_edits_do_not_widen_the_lane_gate(self):
+        # Loop 3608 (the fifty-fifth pass): eight of the fifty-fifth tranche's
+        # twenty landings stood an early-age pair up and touched no sim path,
+        # and each lane gate ran the whole timed suite (release 16.0–17.7
+        # minutes) for a `mod` line in `diff.rs`, a scored triple in
+        # `battery.rs`, a ledger row in `ledger.rs` and the new module itself.
+        # None of those can move another test's pin; the lane gate reads the
+        # hunks and a row-only edit does not widen it. The booking gate's
+        # `--scope` keeps the path rule.
+        fork = 'f0f0f0f0'
+        hunks = {
+            'crates/rondata/src/diff.rs': '+mod german_ancient_pair;\n+#[cfg(test)]\n',
+            'crates/rondata/src/diff/battery.rs': ("+    // The German Ancient pair's (item 3596): the Germans from an Ancient\n"
+                                                   "+    // start, Difficulty 5, Great Sahara.\n+    (7, 12, 5),\n"),
+            'crates/rondata/src/ledger.rs': ('+    (\n+        "diff/german_ancient_pair.rs",\n'
+                                             '+        "the Ancient-start German pair\'s walks: it compares no field itself (item 3596)",\n'
+                                             '+    ),\n'),
+            'crates/rondata/src/gamelog.rs': '+    pub fn hits(&self) -> u32 { 0 }\n',
+        }
+        status = ('A\tcrates/rondata/src/diff/german_ancient_pair.rs\nM\tcrates/rondata/src/diff.rs\n'
+                  'M\tcrates/rondata/src/diff/battery.rs\nM\tcrates/rondata/src/ledger.rs\n'
+                  'M\tcrates/rondata/src/gamelog.rs\nA\tdocs/journal/2026-10-24-item-3596.md\n')
+        def run(command, **kwargs):
+            if command[:2] == ['git', 'merge-base']:
+                return SimpleNamespace(stdout=fork + '\n')
+            if command[:3] == ['git', 'diff', '--name-status']:
+                return SimpleNamespace(stdout=status)
+            if command[:3] == ['git', 'diff', '-U0']:
+                path = command[-1]
+                head = f'diff --git a/{path} b/{path}\n--- a/{path}\n+++ b/{path}\n@@ -1,0 +2,3 @@\n'
+                return SimpleNamespace(stdout=head + hunks.get(path, ''))
+            raise AssertionError(command)
+        self.assertEqual(gate.row_only_edits('worktree-replan-pdb', run=run),
+                         {'crates/rondata/src/diff/german_ancient_pair.rs', 'crates/rondata/src/diff.rs',
+                          'crates/rondata/src/diff/battery.rs', 'crates/rondata/src/ledger.rs'})
+        # A removed line, a `pub use`, or a row of another shape is an edit, not a row.
+        hunks['crates/rondata/src/diff.rs'] = '-mod old_pair;\n+mod german_ancient_pair;\n'
+        hunks['crates/rondata/src/diff/battery.rs'] = '+    (7, 12, 5),\n+    pub const HELD: usize = 3;\n'
+        self.assertEqual(gate.row_only_edits('worktree-replan-pdb', run=run),
+                         {'crates/rondata/src/diff/german_ancient_pair.rs', 'crates/rondata/src/ledger.rs'})
+        hunks['crates/rondata/src/diff.rs'] = '+pub use german_ancient_pair::walk;\n'
+        self.assertNotIn('crates/rondata/src/diff.rs', gate.row_only_edits('worktree-replan-pdb', run=run))
+        touched = ['crates/rondata/src/diff/german_ancient_pair.rs', 'crates/rondata/src/diff.rs',
+                   'crates/rondata/src/diff/battery.rs', 'crates/rondata/src/ledger.rs',
+                   'crates/rondata/src/census.rs', 'docs/AI.md']
+        rows = touched[:4]
+        self.assertEqual(gate.lane_widens(touched), sorted(rows))
+        self.assertEqual(gate.lane_widens(touched, row_only=rows), [])
+        self.assertEqual(gate.lane_widens(touched + ['crates/sim/src/fight.rs'], row_only=rows),
+                         ['crates/sim/src/fight.rs'])
+        command, policy = self.release_command(touched=touched, row_only=rows, lane=True, tests=WORD)
+        self.assertIn('--skip', command)
+        self.assertEqual(policy['lane']['widened'], [])
+        self.assertEqual(policy['lane']['row_only'], sorted(rows))
+        command, policy = self.release_command(touched=touched, row_only=rows, scope='abc1234')
+        self.assertNotIn('--skip', command)
+        self.assertEqual(policy['scope']['widened'], sorted(rows))
 
     def test_a_lane_gate_told_not_to_widen_leaves_the_timed_tests_to_the_booking_gate(self):
         # DECISIONS 83 (the forty-fourth steer, Ramon's word): every lane of

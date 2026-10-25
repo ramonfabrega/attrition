@@ -1,6 +1,6 @@
-# Every rondata release test timed alone, 2026-10-24, tools/suite_timings.py (tree 25fd6932).
+# Every rondata release test timed alone, 2026-10-24, tools/suite_timings.py (tree f0525631).
 # One test per process, --test-threads 1, sequential, RON_INSTALL set; seconds then the test.
-# Sum 3,268 s over 1261 tests; --stale-only merged. Top 10 = 501 s, top 30 = 823, top 100 = 1326; 511 tests under 1 s.
+# Sum 3,393 s over 1319 tests; --stale-only merged. Top 10 = 501 s, top 30 = 823, top 100 = 1326; 531 tests under 1 s.
 # By module: golden 907 s / 281 tests, harness 471 s / 92 tests, second 246 s / 35 tests, coverage 221 s / 4 tests, third_pair 166 s / 48 tests.
 202.00	diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned
 55.58	diff::third_pair::third_pair_windows_check_groups_and_projectiles_on_both_sides
@@ -94,6 +94,7 @@
 6.09	diff::second::tests::run535_s_word_frame_is_widened_whole
 6.06	diff::harness::tests::run257_s_word_frame_is_widened_whole
 6.05	diff::second::tests::run523_s_word_frame_is_widened_whole
+6.04	diff::egyptian_classical_pair::egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole
 6.00	diff::golden::chapter_twenty_one_s_word_frame_is_widened_whole
 6.00	diff::golden::chapter_four_s_border_is_widened_cell_for_cell
 6.00	diff::golden::chapter_seventy_two_s_word_frame_is_widened_whole
@@ -112,6 +113,7 @@
 5.71	diff::harness::tests::run251_s_word_frame_is_widened_whole
 5.63	diff::harness::tests::run125_s_word_frame_is_widened_whole
 5.54	diff::french_word::run982_s_word_frame_is_widened_whole
+5.53	diff::spanish_classical_pair::spanish_classical_pair_run1232b_s_closing_frame_is_widened_whole
 5.52	diff::golden::chapter_twenty_six_holds_to_the_golden_word
 5.52	diff::golden::chapter_fifty_s_word_frame_is_widened_whole
 5.48	diff::golden::chapter_fifty_six_s_word_frame_is_widened_whole
@@ -127,6 +129,7 @@
 5.27	diff::golden::chapter_thirty_two_holds_to_the_golden_word
 5.25	diff::second::tests::run506_s_word_frame_is_widened_whole
 5.22	diff::golden::chapter_fifteen_s_word_frame_is_widened_whole
+5.21	diff::egyptian_classical_pair::egyptian_classical_pair_run1230b_s_word_frame_is_widened_whole
 5.20	diff::mongol_classical_pair::mongol_classical_pair_run1218_s_word_frame_is_widened_whole
 5.19	diff::golden::chapter_seven_s_word_frame_is_widened_whole
 5.16	diff::third_pair::run662_s_word_frame_is_widened_whole
@@ -142,6 +145,7 @@
 4.94	diff::third_pair::run658_dates_the_gap_before_17171
 4.92	diff::second::tests::run480_s_word_frame_is_widened_whole
 4.90	diff::iroquois_word::run952b_s_gap_is_widened_whole
+4.88	diff::mongol_classical_pair::mongol_classical_pair_run1224_s_word_frame_is_widened_whole
 4.82	diff::harness::tests::run100_s_word_block_is_every_record_the_dump_carries
 4.78	diff::coverage_pair::run721_s_word_frame_is_widened_whole
 4.78	diff::sahara_toughest::tests::run470_is_great_sahara_at_toughest_and_its_word_holds
@@ -159,6 +163,8 @@
 4.58	diff::third_pair::run661_s_word_frame_is_widened_whole
 4.56	diff::spanish_east_word::run993d_s_word_frame_is_widened_whole
 4.54	diff::lakota_pair::run861_s_word_frame_is_widened_whole
+4.52	diff::iroquois_ancient_pair::iroquois_ancient_pair_run1228b_s_closing_frame_is_widened_whole
+4.50	diff::bantu_ancient_pair::bantu_ancient_pair_run1240_s_closing_frame_is_widened_whole
 4.50	diff::third_pair::run657_s_word_frame_is_widened_whole
 4.49	diff::third_pair::run667_s_closing_frame_is_widened_whole
 4.48	diff::world::tests::run72_s_road_nodes_are_where_great_lakes_word_parts
@@ -182,6 +188,7 @@
 4.24	diff::mongol_pair::run820_s_word_frame_is_widened_whole
 4.23	diff::coverage_pair::run754_s_word_frame_is_widened_whole
 4.20	diff::golden::chapter_forty_eight_holds_to_the_golden_word
+4.20	diff::egyptian_classical_pair::egyptian_classical_pair_run1241_walks_the_market_s_queue_back
 4.16	diff::spanish_east_word::run993c_s_word_frame_is_widened_whole
 4.15	diff::golden::chapter_sixty_s_fog_plane
 4.14	diff::sahara_coverage::run817_s_word_frame_is_widened_whole
@@ -214,11 +221,13 @@
 3.88	diff::golden::chapter_twenty_eight_holds_to_the_golden_word
 3.87	diff::coverage_pair::run711_s_word_frame_is_widened_whole
 3.87	diff::lakota_pair::lakota_pair_first_parting
+3.87	diff::egyptian_classical_pair::egyptian_classical_pair_run1242_walks_the_scout_back
 3.86	diff::harness::tests::run86_s_window_is_the_transport_ride
 3.86	diff::lakota_pair::run855_s_word_frame_is_widened_whole
 3.85	diff::second::tests::run357_s_word_frame_is_widened_whole
 3.85	diff::golden::chapter_six_b_s_word_frame_is_widened_whole
 3.85	diff::golden::run265_s_rounds_are_the_original_s_record_for_record
+3.82	diff::bantu_ancient_pair::bantu_ancient_pair_run1238d_s_word_frame_is_widened_whole
 3.81	diff::third_pair::run639_s_word_frame_is_widened_whole
 3.81	diff::golden::chapter_seventy_two_holds_to_the_golden_word
 3.81	diff::mongol_pair::run799_s_word_frame_is_widened_whole
@@ -226,10 +235,13 @@
 3.80	diff::build::tests::run56_s_buildings_stand_where_the_original_s_do
 3.77	diff::sahara_toughest::tests::run511_s_word_frame_is_widened_whole
 3.77	diff::golden::chapter_thirty_holds_to_the_golden_word
+3.77	diff::mongol_classical_pair::run1198_mongol_classical_pair_closing_state
 3.75	diff::unit::tests::the_frozen_frame_s_figures_do_not_step_their_clocks
+3.75	diff::bantu_ancient_pair::bantu_ancient_pair_run1236b_s_word_frame_is_widened_whole
 3.74	diff::golden::chapter_twenty_seven_holds_to_the_golden_word
 3.74	diff::golden::chapter_twenty_four_holds_to_the_golden_word
 3.72	diff::endpoint::tests::the_east_indies_ladder_is_pinned
+3.70	diff::german_ancient_pair::german_ancient_pair_run1244b_s_closing_frame_is_widened_whole
 3.70	diff::golden::chapter_seventeen_holds_to_the_golden_word
 3.69	diff::golden::run255_s_repair_is_the_original_s_unit_for_unit
 3.67	diff::golden::chapter_seventy_five_s_word_frame_is_widened_whole
@@ -249,6 +261,7 @@
 3.58	diff::spanish_east_word::run993_s_word_frame_is_widened_whole
 3.58	diff::golden::chapter_eighteen_holds_to_the_golden_word
 3.58	diff::golden::chapter_thirty_one_holds_to_the_golden_word
+3.57	diff::lakota_medieval_pair::lakota_medieval_pair_run1235c_s_closing_frame_is_widened_whole
 3.57	diff::lakota_word::lakota_word_first_parting
 3.57	diff::persian_medieval_pair::persian_medieval_pair_run1211_s_word_frame_is_widened_whole
 3.56	diff::unit::tests::run89_s_window_is_great_lakes_word_frame
@@ -262,14 +275,19 @@
 3.52	diff::golden::chapter_forty_five_holds_to_the_golden_word
 3.50	diff::golden::chapter_sixty_eight_holds_to_the_golden_word
 3.49	diff::sahara_toughest::tests::run529_s_word_frame_is_widened_whole
+3.49	diff::egyptian_classical_pair::egyptian_classical_pair_the_long_s_stride_walks_the_scout_back
 3.47	diff::golden::chapter_twenty_one_holds_to_the_golden_word
 3.46	diff::indian_sahara_word::run1007_s_word_frame_is_widened_whole
 3.46	diff::golden::chapter_twenty_holds_to_the_golden_word
 3.46	diff::inca_sahara_word::run1011_s_word_frame_is_widened_whole
 3.45	diff::golden::chapter_sixteen_holds_to_the_golden_word
+3.45	diff::bantu_ancient_pair::bantu_ancient_pair_run1206b_s_word_frame_is_widened_whole
 3.43	diff::mongol_classical_pair::mongol_classical_pair_the_long_s_stride_walks_back_from_9744
 3.43	diff::mongol_pair::mongol_pair_first_parting
+3.42	diff::lakota_medieval_pair::lakota_medieval_pair_run1204b_s_word_frame_is_widened_whole
+3.42	diff::egyptian_classical_pair::egyptian_classical_pair_run1230_s_closing_state
 3.42	diff::sahara_toughest::tests::run584_s_word_frame_is_widened_whole
+3.42	diff::egyptian_classical_pair::egyptian_classical_pair_first_parting
 3.41	diff::golden::chapter_fifty_three_holds_to_the_golden_word
 3.41	diff::harness::tests::run97_s_window_clocks_are_the_original_s
 3.40	diff::third_pair::run649_s_decision_frame_is_widened_whole
@@ -354,12 +372,14 @@
 3.01	diff::build::tests::run100_says_great_lakes_9451_is_two_arrows_on_one_farm
 3.00	diff::golden::chapter_three_s_restage_is_widened_whole
 3.00	diff::bantu_word::run978f_s_word_frame_is_widened_whole
+2.99	diff::egyptian_classical_pair::egyptian_classical_pair_the_long_s_stride_walks_back_from_5956
 2.98	diff::roman_classical_pair::roman_classical_pair_run1194b_s_word_frame_is_widened_whole
 2.98	diff::golden::chapter_sixty_two_holds_to_the_golden_word
 2.98	diff::world::tests::run12_and_run13_s_farm_records_are_the_original_s_cell_for_cell
 2.98	diff::sahara_toughest::tests::run491_s_word_frame_is_widened_whole
 2.98	diff::golden::chapter_forty_two_holds_to_the_golden_word
 2.98	diff::inca_word::run987_s_word_frame_is_widened_whole
+2.97	diff::spanish_classical_pair::spanish_classical_pair_run1232_s_closing_state
 2.96	diff::third::tests::run442_s_word_frame_is_widened_whole
 2.96	diff::city::tests::great_lakes_goods_record_and_its_trade_routes_are_the_original_s
 2.96	diff::unit::tests::run94_s_window_is_great_lakes_scout_repath
@@ -368,6 +388,7 @@
 2.95	diff::inca_sahara_word::run1014_s_word_frame_is_widened_whole
 2.95	diff::sahara_toughest::tests::run547_s_word_frame_is_widened_whole
 2.95	diff::golden::chapter_nine_s_word_frame_is_widened_whole
+2.95	diff::maya_ancient_pair::maya_ancient_pair_run1234b_s_word_frame_is_widened_whole
 2.94	diff::leader::tests::run115_s_window_is_the_met_bit_s_own_frame
 2.94	diff::lakota_pair::run882_s_word_frame_is_widened_whole
 2.93	diff::golden::chapter_sixty_three_s_word_frame_is_widened_whole
@@ -376,6 +397,7 @@
 2.91	diff::golden::chapter_fifty_five_holds_to_the_golden_word
 2.91	diff::third::tests::run426_s_word_frame_is_widened_whole
 2.91	diff::golden::chapter_seventy_three_s_word_frame_is_widened_whole
+2.90	diff::bantu_ancient_pair::bantu_ancient_pair_first_parting
 2.90	diff::greek_classical_pair::greek_classical_pair_run1209_s_word_frame_is_widened_whole
 2.90	diff::shutdown::tests::the_closing_dump_lags_one_tick_on_one_unit
 2.89	diff::lakota_pair::run883_s_closing_frame_is_widened_whole
@@ -389,6 +411,7 @@
 2.88	diff::golden::chapter_sixty_one_holds_to_the_golden_word
 2.88	diff::golden::chapter_fifty_seven_holds_to_the_golden_word
 2.87	diff::golden::chapter_thirteen_s_word_frame_is_widened_whole
+2.87	diff::spanish_classical_pair::spanish_classical_pair_first_parting
 2.85	diff::golden::chapter_six_b_holds_to_the_golden_word
 2.84	diff::bantu_word::bantu_word_first_parting
 2.84	diff::mongol_pair::run780_s_word_frame_is_widened_whole
@@ -421,6 +444,7 @@
 2.68	diff::sahara_coverage::run718_s_word_frame_is_widened_whole
 2.68	diff::harness::tests::run149_s_word_frame_is_widened_whole
 2.68	diff::bantu_word::run972b_bantu_closing_state
+2.67	diff::bantu_ancient_pair::bantu_ancient_pair_run1236_s_make_list_is_widened_whole
 2.67	diff::golden::chapter_seven_s_control_holds_to_the_golden_word
 2.67	diff::golden::chapter_seven_b_s_control_holds_to_the_golden_word
 2.67	diff::leader::tests::run107_s_window_is_the_leader_record_at_the_word
@@ -436,6 +460,7 @@
 2.63	diff::harness::tests::run39_s_islands_game_is_the_second_map_s_score
 2.63	diff::golden::chapter_seven_holds_to_the_golden_word
 2.63	diff::golden::chapter_seventy_three_holds_to_the_golden_word
+2.62	diff::bantu_ancient_pair::bantu_ancient_pair_run1206_s_closing_state
 2.62	diff::harness::tests::run88_s_window_is_east_indies_word_frame
 2.62	diff::spanish_word::run958e_s_word_frame_is_widened_whole
 2.62	diff::indian_word::run970c_s_word_frame_is_widened_whole
@@ -466,10 +491,13 @@
 2.55	diff::harness::tests::run98_s_window_clocks_are_the_original_s
 2.54	diff::iroquois_word::run952_s_word_frame_is_widened_whole
 2.54	diff::world::tests::run73_s_caravan_road_is_the_original_s_node_for_node
+2.53	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1208b_s_word_frame_is_widened_whole
 2.52	diff::world::tests::run13_s_world_at_frame_95_is_the_original_s_cell_for_cell
 2.52	diff::golden::chapter_three_s_catapult_after_its_reload
 2.52	diff::indian_word::run970d_s_gap_is_widened_whole
+2.51	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1237b_s_closing_frame_is_widened_whole
 2.51	diff::sahara_toughest::tests::run476_s_word_frame_is_widened_whole
+2.50	diff::iroquois_ancient_pair::iroquois_ancient_pair_first_parting
 2.50	diff::golden::chapter_thirteen_holds_to_the_golden_word
 2.50	diff::world::tests::run240_s_every_priced_step_is_the_original_s
 2.50	diff::golden::chapter_five_holds_to_the_golden_word
@@ -484,6 +512,7 @@
 2.47	diff::persian_word::run984_s_word_frame_is_widened_whole
 2.46	diff::golden::chapter_one_holds_to_the_golden_word
 2.46	diff::aztec_word::run989d_s_word_frame_is_widened_whole
+2.45	diff::iroquois_ancient_pair::iroquois_ancient_pair_run1228_s_closing_state
 2.45	diff::build::tests::run76_and_run79_date_the_tobacco_rare_on_the_tower_s_clock
 2.44	diff::harness::tests::run78_s_old_word_keeps_its_value_diff
 2.43	diff::coverage_pair::run710_s_word_frame_is_widened_whole
@@ -534,6 +563,7 @@
 2.12	diff::german_alltech_pair::run1145b_german_alltech_pair_closing_state
 2.12	diff::british_enlightenment_pair::british_enlightenment_pair_run1185b_s_closing_frame_is_widened_whole
 2.12	diff::harness::tests::run82_s_window_is_the_east_indies_ride_s_run_up
+2.12	diff::bantu_ancient_pair::bantu_ancient_pair_run1238_walks_the_parting_back_from_5066
 2.11	diff::roman_classical_pair::run1194_roman_classical_pair_closing_state
 2.10	diff::german_alltech_pair::german_alltech_pair_first_parting
 2.10	diff::lakota_word::run980_s_word_frame_is_widened_whole
@@ -639,6 +669,8 @@
 1.71	diff::greek_word::run957b_greek_closing_state
 1.71	diff::harness::tests::great_lakes_8186_sends_the_probe_s_six_where_the_original_does
 1.71	diff::maya_word::run973_s_word_frame_is_widened_whole
+1.71	diff::lakota_medieval_pair::lakota_medieval_pair_run1235_s_rounds_are_widened_whole
+1.70	diff::lakota_medieval_pair::run1204_lakota_medieval_pair_closing_state
 1.70	diff::harness::tests::great_lakes_8186_snaps_the_probe_s_walkers_onto_their_cell_centres
 1.70	diff::golden::chapter_ninety_eight_s_window_is_widened_whole
 1.69	diff::greek_classical_pair::greek_classical_pair_the_long_s_stride_walks_back_from_4341
@@ -649,6 +681,7 @@
 1.68	diff::third_pair::run616_s_word_frame_is_widened_whole
 1.68	diff::aztec_word::run989_s_fog_agrees_over_the_birth_and_on_the_word
 1.68	diff::french_word::run977b_french_closing_state
+1.67	diff::lakota_medieval_pair::lakota_medieval_pair_first_parting
 1.67	diff::russian_modern_pair::russian_modern_pair_run1168_s_gap_is_widened_whole
 1.67	diff::golden::the_golden_record_s_setup_is_run11_s
 1.67	diff::third_pair::run614_s_builder_window_is_widened_whole
@@ -685,6 +718,7 @@
 1.57	diff::dutch_sahara_word::run990b_dutch_sahara_closing_state
 1.57	diff::indian_sahara_word::run1002b_indian_sahara_closing_state
 1.56	diff::golden::chapter_two_s_squads_stand_where_the_dump_stands_them
+1.56	diff::bantu_ancient_pair::bantu_ancient_pair_the_long_s_stride_walks_back_from_5072
 1.55	diff::second::tests::run421_s_gap_is_walked_whole
 1.55	diff::sahara_toughest::tests::run653_s_word_frame_is_widened_whole
 1.54	diff::third_pair::run603_s_word_frame_is_widened_whole
@@ -704,11 +738,13 @@
 1.44	diff::third_pair::run620_s_ship_window_is_widened_whole
 1.42	diff::chinese_industrial_pair::chinese_industrial_pair_run1184_s_closing_frame_is_widened_whole
 1.42	diff::inca_sahara_word::run1006b_inca_sahara_closing_state
+1.41	diff::german_ancient_pair::german_ancient_pair_first_parting
 1.41	diff::aztec_word::run895b_aztec_closing_state
 1.41	diff::harness::tests::indexed_replay_preserves_reports_with_sibling_corrections
 1.41	diff::endpoint::tests::great_sahara_endpoint_is_pinned
 1.38	diff::world::tests::run64_s_danger_map_is_the_original_s
 1.37	diff::world::tests::run64_s_caravan_road_is_the_original_s_node_for_node
+1.36	diff::german_ancient_pair::german_ancient_pair_run1244_s_closing_state
 1.35	diff::golden::chapter_one_hundred_and_five_holds_to_the_golden_word
 1.35	diff::third_pair::run598_french_great_lakes_word
 1.35	diff::golden::chapter_ninety_s_window_is_widened_whole
@@ -724,6 +760,7 @@
 1.22	diff::chinese_medieval_pair::run1202_chinese_medieval_pair_closing_state
 1.22	diff::chinese_medieval_pair::chinese_medieval_pair_first_parting
 1.22	diff::american_modern_pair::run1151_american_modern_pair_closing_state
+1.22	diff::maya_ancient_pair::maya_ancient_pair_first_parting
 1.21	diff::chinese_industrial_pair::run1155_chinese_industrial_pair_closing_state
 1.21	diff::german_word::german_word_first_parting
 1.21	diff::chinese_industrial_pair::chinese_industrial_pair_first_parting
@@ -735,6 +772,7 @@
 1.17	diff::golden::chapter_one_hundred_holds_to_the_golden_word
 1.17	diff::sahara_toughest::tests::run469_s_score_holds
 1.15	diff::american_modern_pair::american_modern_pair_run1163_s_walk_back_is_widened_whole
+1.14	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1208d_s_first_wound_is_widened
 1.14	diff::world::tests::run32_s_two_fresh_roads_are_the_original_s_tile_for_tile
 1.14	diff::korean_ancient_pair::korean_ancient_pair_the_long_s_stride_walks_back_from_4350
 1.14	diff::american_modern_pair::american_modern_pair_run1151c_s_word_frame_is_widened_whole
@@ -753,6 +791,7 @@
 1.04	diff::sahara_toughest::tests::run469_s_trace_holds_to_its_end
 1.02	diff::chinese_industrial_pair::chinese_industrial_pair_run1155b_s_word_frame_is_widened_whole
 0.99	diff::greek_word::run961c_s_gap_is_widened_whole
+0.98	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1208c_walks_the_wound_back
 0.97	diff::turkish_enlightenment_pair::turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole
 0.97	diff::world::tests::run20_s_pasture_grows_nothing_and_its_five_animals_draw_six
 0.96	diff::golden::chapter_eighty_eight_s_window_is_widened_whole
@@ -773,6 +812,8 @@
 0.89	diff::turkish_enlightenment_pair::run1159_turkish_enlightenment_pair_closing_state
 0.88	diff::iroquois_word::iroquois_word_first_parting
 0.88	diff::city::tests::run64_s_frame_6167_prices_are_the_originals
+0.88	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_run1208_s_closing_state
+0.87	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_first_parting
 0.87	diff::iroquois_word::run946_s_road_elements_at_10842_are_ours
 0.87	diff::golden::chapter_ninety_seven_s_window_is_widened_whole
 0.87	debug_view::tests::selected_failure_exports_actual_replay_context
@@ -851,6 +892,7 @@
 0.59	diff::build::tests::run20_s_islands_sites_walk_the_coastal_ring_from_the_original_cell
 0.58	diff::setup::tests::the_install_s_gaia_lengths_match_the_dump_s
 0.58	diff::build::tests::run22_s_first_dock_registers_in_the_sea_and_grants_the_level
+0.57	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_the_long_s_stride_walks_back_from_2771
 0.53	diff::golden::chapter_eighty_five_s_window_is_widened_whole
 0.53	diff::golden::chapter_eighty_staging_reaches_the_stealth_arm
 0.53	diff::iroquois_word::run918_s_word_frame_is_widened_whole
@@ -862,6 +904,7 @@
 0.50	diff::japanese_industrial_pair::japanese_industrial_pair_a_japanese_barracks_unit_costs_less_by_the_tier
 0.50	diff::golden::chapter_seventy_nine_holds_to_the_golden_word
 0.50	diff::iroquois_word::run897_s_block_1_fog_plane_is_ours
+0.49	diff::spanish_classical_pair::spanish_classical_pair_captures_say_their_lobby
 0.49	trace::tests::complete_trace_frame_lookup_matches_a_single_pass_partition
 0.47	diff::golden::chapter_eighty_holds_to_the_golden_word
 0.47	diff::golden::run223_s_air_orders_are_read_whole
@@ -875,6 +918,8 @@
 0.46	diff::golden::chapter_eighty_s_window_is_widened_whole
 0.45	diff::army::tests::run31_s_curr_is_the_leader_s_heading_through_the_y_flip
 0.45	diff::build::tests::east_indies_10582_mine_sites_measure_to_the_nearest_solid_cell
+0.45	diff::egyptian_classical_pair::egyptian_classical_pair_captures_say_their_lobby
+0.44	diff::bantu_ancient_pair::bantu_ancient_pair_captures_say_their_lobby
 0.44	diff::golden::chapter_ninety_seven_holds_to_the_golden_word
 0.44	diff::harness::tests::great_lakes_s_word_draws_are_a_road_search_and_8186_spends_none
 0.44	diff::golden::chapter_ninety_five_holds_to_the_golden_word
@@ -889,6 +934,7 @@
 0.42	diff::build::tests::run80_s_gem_widens_the_ai_s_border_by_forty_three_cells
 0.42	diff::sahara_toughest::tests::run666_s_decoy_rounds_strike_nothing
 0.42	diff::coverage_pair::coverage_pair_start_owns_every_age
+0.41	diff::iroquois_ancient_pair::iroquois_ancient_pair_captures_say_their_lobby
 0.41	diff::golden::chapter_three_s_falsifiers_are_the_dump_s
 0.41	diff::russian_modern_pair::russian_modern_pair_captures_say_their_lobby
 0.40	diff::korean_ancient_pair::korean_ancient_pair_captures_say_their_lobby
@@ -899,6 +945,7 @@
 0.38	artdata::tests::a_unit_piece_binds_by_graph_whatever_its_case
 0.38	diff::army::tests::run29_s_group_pool_is_five_hundred_and_twelve_whole_groupdata_records
 0.38	diff::british_enlightenment_pair::british_enlightenment_pair_captures_say_their_lobby
+0.37	diff::maya_ancient_pair::maya_ancient_pair_captures_say_their_lobby
 0.37	diff::persian_medieval_pair::persian_medieval_pair_captures_say_their_lobby
 0.37	diff::city::tests::run8_s_frame_2_income_is_the_city_and_nothing_the_citizens_have_reached
 0.37	diff::third_pair::third_pair_starts_change_the_ai_nation_in_the_same_lobby
@@ -906,6 +953,7 @@
 0.36	diff::setup::tests::run11_s_checksum_trace_pins_the_setup_stream
 0.36	load::tests::run17_s_hits_are_the_formula_s
 0.36	diff::iroquois_word::run897_s_word_frame_is_widened_whole
+0.35	diff::lakota_medieval_pair::lakota_medieval_pair_captures_say_their_lobby
 0.34	diff::coverage_pair::run717_s_missiles_fly_their_spline_s_count
 0.33	load::tests::the_buildings_load_their_lineages_and_flags
 0.33	diff::endpoint::tests::the_endpoint_captures_are_four_families
@@ -914,6 +962,7 @@
 0.32	diff::build::tests::run9_s_camps_get_the_original_s_gatherer_counts
 0.32	load::tests::every_nation_s_graft_table_is_run3_s
 0.32	load::tests::the_citizen_loads_as_the_harness_transcribed_it
+0.30	diff::german_ancient_pair::german_ancient_pair_captures_say_their_lobby
 0.30	load::tests::a_sim_can_be_built_from_the_load
 0.29	diff::setup::tests::a_leader_s_opening_units_are_its_own_nation_s
 0.29	diff::setup::tests::the_simulation_is_built_from_the_dump_and_idle_units_hold
@@ -948,6 +997,7 @@
 0.23	diff::harness::tests::run84_says_great_lakes_6994_belongs_to_the_second_squad
 0.23	diff::army::tests::run29_s_move_orders_match_the_field_table_row_for_row
 0.23	blind::tests::every_unreferenced_row_is_unreferenced_in_the_image
+0.22	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_captures_say_their_lobby
 0.22	trace::site_rows::every_site_label_the_simulation_marks_has_a_row
 0.21	load::tests::the_other_nation_free_tech_blocks_are_loaded
 0.21	load::tests::an_elephant_counts_toward_a_horse_archer_s_ramp
@@ -997,11 +1047,13 @@
 0.14	diff::american_lakes_word::american_lakes_word_is_no_other_lobby
 0.12	writers::compared_fields_have_writers
 0.12	diff::ammo::tests::run109_s_v1z_is_arc_v1z_to_the_last_digit
+0.12	diff::japanese_gunpowder_pair::japanese_gunpowder_pair_is_no_other_lobby
 0.11	diff::ammo::tests::run109_s_ammo_index_is_the_lowest_free_slot_in_the_pool
 0.11	diff::ammo::tests::run109_s_ammo_floats_are_the_trajectory_this_crate_does_not_fly
 0.11	diff::ammo::tests::run109_s_ammo_record_pins_the_thirteen_fields_nothing_here_models
 0.11	diff::ammo::tests::run109_s_ammo_record_is_twenty_seven_fields_on_every_block
 0.11	diff::roman_classical_pair::roman_classical_pair_is_no_other_lobby
+0.11	diff::lakota_medieval_pair::lakota_medieval_pair_is_no_other_lobby
 0.10	diff::chinese_medieval_pair::chinese_medieval_pair_is_no_other_lobby
 0.10	diff::oracle::gc_takes_the_flat_layout_as_one_stale_generation_and_keeps_both_current
 0.09	capture::archive::tests::truncation_corruption_and_trailing_bytes_fail_closed
@@ -1103,6 +1155,12 @@
 0.01	diff::floors::tests::the_handoff_s_blind_list_is_the_pinned_count
 0.01	diff::korean_ancient_pair::korean_ancient_pair_is_no_other_lobby
 0.01	gamelog::tests::the_header_lines_two_takes_differ_on_reach_no_reader
+0.00	diff::german_ancient_pair::german_ancient_pair_is_no_other_lobby
+0.00	diff::iroquois_ancient_pair::iroquois_ancient_pair_is_no_other_lobby
+0.00	diff::spanish_classical_pair::spanish_classical_pair_is_no_other_lobby
+0.00	diff::egyptian_classical_pair::egyptian_classical_pair_is_no_other_lobby
+0.00	diff::bantu_ancient_pair::bantu_ancient_pair_is_no_other_lobby
+0.00	diff::maya_ancient_pair::maya_ancient_pair_is_no_other_lobby
 0.00	diff::chinese_industrial_pair::chinese_industrial_pair_is_no_other_lobby
 0.00	diff::japanese_industrial_pair::japanese_industrial_pair_is_no_other_lobby
 0.00	diff::british_enlightenment_pair::british_enlightenment_pair_is_no_other_lobby

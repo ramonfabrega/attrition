@@ -28,6 +28,11 @@ The lane gate's release step runs:
     those, and the whole suite, are the booking gate's. A worker whose
     landing reads a new key passes `--tests coverage::` and runs them.
 
+A branch that can move a timed pin widens the lane gate to the whole
+suite (`lane_widens`, Loop 2415); since the fifty-fifth pass a pair
+stand-up's row-list edits — its `mod` line, its scored triple, its ledger
+row, its new module — do not (`row_only_edits`, Loop 3608), and the
+receipt's `row_only` names them.
 A lane whose item moves no test (a retirement, a tooling item) gates with
 `--lane --whole` in place of `--tests`: every test, the timed ones
 included, with the lane's forgiveness and `Lane verdict:` (Loop 3489).
@@ -295,11 +300,71 @@ def lane_paperwork(timings):
 NEVER_WIDENS = ('crates/sim/src/sweep/', 'crates/rondata/src/census.rs', 'crates/rondata/src/blind.rs')
 
 
-def lane_widens(paths):
-    """The paths of a branch that can move the timed `diff::` pins."""
+def lane_widens(paths, row_only=()):
+    """The paths of a branch that can move the timed `diff::` pins, less
+    the row-list edits `row_only_edits` found (a lane gate's; the booking
+    gate passes none)."""
     return sorted(p for p in paths
                   if (p.startswith('crates/') or p in ('Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml'))
-                  and not p.startswith(NEVER_WIDENS))
+                  and not p.startswith(NEVER_WIDENS) and p not in set(row_only))
+
+
+# Loop 3608 (the fifty-fifth pass): eight of the fifty-fifth tranche's twenty
+# landings stood an early-age pair up and touched no sim path, and every one
+# of their lane gates ran the whole timed suite — release 16.0–17.7 minutes
+# at four threads, the 788 tests over a second among them — for three
+# row-list edits and a new file: the pair's `mod` line in `diff.rs`, its
+# scored triple in `battery.rs`, its ledger row in `ledger.rs`, and the pair
+# module itself. None can move another test's pin: a `mod` line declares, a
+# new module is read by nothing that exists, the ledger's rows are the
+# `ledger::` guards' (run in every lane gate whatever their timing) and a
+# scored triple is read by the pair's own `is_no_other_lobby` (its `--tests`)
+# and by the battery's held-out selection, which the booking gate keeps. So a
+# lane gate reads the hunks: a path whose every changed line is one of these
+# rows, with nothing removed, does not widen it, and a new `.rs` under
+# `diff/` does not either. The booking gate's `--scope` keeps the path rule
+# — a wrong triple is its to catch — and the policy receipt names the rows.
+ROW_LISTS = {
+    'crates/rondata/src/diff.rs': re.compile(r'^(?:pub )?mod [a-z0-9_]+;$|^#\[cfg\(test\)\]$'),
+    'crates/rondata/src/diff/battery.rs': re.compile(r'^\s*\(\d+, \d+, \d+\),$|^\s*//.*$'),
+    'crates/rondata/src/ledger.rs': re.compile(r'^\s*\($|^\s*"[^"]*",$|^\s*\),$|^\s*//.*$'),
+}
+NEW_MODULES = 'crates/rondata/src/diff/'
+
+
+def row_only_edits(base, run=subprocess.run):
+    """The branch's paths that cannot move a pin by their content: a new
+    module under `diff/`, and a row list (`ROW_LISTS`) whose hunks only add
+    rows. Empty when `base` is not a ref this tree knows."""
+    try:
+        fork = run(['git', 'merge-base', base, 'HEAD'], capture_output=True, text=True,
+                   cwd=ROOT, check=True).stdout.strip()
+        status = run(['git', 'diff', '--name-status', fork, 'HEAD'], capture_output=True, text=True,
+                     cwd=ROOT, check=True).stdout
+    except subprocess.CalledProcessError:
+        return set()
+    found = set()
+    changed = {}
+    for line in status.splitlines():
+        parts = line.split('\t')
+        if len(parts) >= 2:
+            changed[parts[-1]] = parts[0][:1]
+    for path, kind in changed.items():
+        if kind == 'A' and path.startswith(NEW_MODULES) and path.endswith('.rs'):
+            found.add(path)
+    for path, row in ROW_LISTS.items():
+        if path not in changed:
+            continue
+        try:
+            diff = run(['git', 'diff', '-U0', fork, 'HEAD', '--', path], capture_output=True, text=True,
+                       cwd=ROOT, check=True).stdout
+        except subprocess.CalledProcessError:
+            continue
+        lines = [l for l in diff.splitlines()
+                 if (l.startswith('+') or l.startswith('-')) and not l.startswith(('+++', '---'))]
+        if lines and all(l.startswith('+') and row.match(l[1:]) for l in lines):
+            found.add(path)
+    return found
 
 
 def branch_paths(base, run=subprocess.run):
@@ -508,10 +573,13 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
             raise ValueError(f"the base moved under this branch and both sides touched "
                              f"{', '.join(blocking)}: refused before the offline step, nothing ran; "
                              "take `ccc update <your ref>` and gate again (Loop 3341, item 3366)")
-    skips, widened, touched, paperwork = [], [], None, []
+    skips, widened, touched, paperwork, row_only = [], [], None, [], []
     if lane or scope is not None:
         touched = branch_paths(base if lane else scope, run=git)
-        widened = lane_widens(touched or [])
+        # Loop 3608: a lane's row-list edits and new `diff/` modules do not
+        # widen it; the booking gate's scope keeps the path rule.
+        row_only = sorted(row_only_edits(base, run=git)) if lane else []
+        widened = lane_widens(touched or [], row_only=row_only)
         # DECISIONS 83 (the forty-fourth steer): every lane of one tranche
         # touched a sim path and every lane gate ran the whole timed suite
         # at four threads (6–26 minutes, median 18.9) while fifteen of the
@@ -568,7 +636,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         policy['lane'] = {'tests': tests, 'timings': str(TIMINGS.relative_to(ROOT)), 'no_widen': bool(no_widen),
                           'whole': bool(whole),
                           'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
-                          'paperwork_kept': len(paperwork), 'base': base, 'widened': widened}
+                          'paperwork_kept': len(paperwork), 'base': base, 'widened': widened,
+                          'row_only': row_only}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
     #
