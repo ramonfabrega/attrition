@@ -27082,3 +27082,25 @@ SHA-256 `290c2f7b2d8d136799b3b9efe008ce1a95ea43d34cf505a719c9c92d1c38d9fb`.
 `1/33 -> 0/10` from (5963, 8757, 371) with `total_time` 7 (ours threw from the units' own squares in 7 and 8).
 `tools/recomp/get_position.py entries 38` reads piece 38's three `AttachPos` rows, and each key's sweep is fitted
 by one `launch::Bay`. It also holds piece 824's four rows: the Maya Bowmen, `BOWMEN-AMERICAN`.
+## run1248 — the Maya from an Ancient start, East Indies: the closing window, blocks 5680..5936 (2026-10-24, item 3600, `att-3600`)
+
+`docs/AI.md` §320.3. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1248 --map 18 --end-frame 5935
+--allow-early-end --timeout 3600 --log-window 5680 5936 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 1 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`. **What the disk could not answer**: the pair went whole, and run1234
+prints units only every hundredth block and no leader, building or city record past the start, so no dump held
+the last blocks.
+- Pool lane 1, seed 12345. Launched 22:51:08, exited 22:51:56 (48.3 s launch to exit). `success`: 5936 frames.
+  `rngcmp.py` against run1234: 5936 of 5936 frames identical. `df -g ~` read 156 GiB free before it. Filed with
+  `filerun.py run1248 eastindies-maya-ancient-window-5680-5936 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1248-eastindies-maya-ancient-window-5680-5936.txt`, 570,699,885 bytes,
+SHA-256 `107c71160d1b334dbc9400119b9204a6c4a499394a1e6d4c5bcc5295ab21c850`.
+
+Archive `rontrace-run1248.log`, 98,446,784 bytes,
+SHA-256 `c4b3841e44fb8a9e2da09cdf04cc6e3defa2aafb579b3c4201d07a313e45e653`.
+
+**What it holds**: `maya_ancient_pair_run1248_s_closing_frame_is_widened_whole` (256 blocks, 86 keys): the
+standing families on 5680, groups 72's and 78's pools on 5690 and 5724, and two new units' `form`. No unit,
+building or city field parts.

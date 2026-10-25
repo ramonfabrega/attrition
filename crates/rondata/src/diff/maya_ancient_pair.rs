@@ -51,7 +51,7 @@ pub(crate) const MAYA_ANCIENT: Pair = Pair {
     // from piece 824's bays (`sim::launch`): `1/46`'s at the Citizen
     // `0/10`, loosed on 4318, from (6481, 9189) in 20 frames where ours
     // loosed from the unit's square (6552, 9240) in 21, so `0/10`'s third
-    // point lands on 4337 as theirs' does (section 320.3).
+    // point is on block 4338 as theirs' is (section 320.3).
     count: 5935,
     sequence: 5935,
 };
