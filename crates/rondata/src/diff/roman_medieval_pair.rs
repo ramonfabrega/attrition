@@ -581,7 +581,8 @@ fn roman_medieval_pair_run1293c_s_gap_is_widened_whole() {
 pub(crate) const RUN1295: &str = "gamelog-run1295-eastindies-roman-medieval-window-5833-5979.txt";
 
 /// The window: block 5833 through 5979; the word 5971's own block is 5972.
-pub(crate) const WIDENING_ROMAN_MEDIEVAL_FRAME_5971: (i64, i64) = (5833, 5979);
+/// Item 3635: through the closing block 5980, the pair whole at 5979.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_FRAME_5971: (i64, i64) = (5833, 5980);
 
 /// **The word 5971's window**: run1295 walked from run1274's start with
 /// the recorder on (item 3633).
