@@ -1462,6 +1462,24 @@ pub const fn garrison_arrows(attack: i32, base_arrows: i32, most_shots: i32, gar
 mod tests {
     use super::*;
 
+    /// **A splash walks one spiral cell past its square** (item 3636,
+    /// parked 3356c): `Ammo::do_damage`'s walk is `0..=radius[k]`, and the
+    /// entry at `radius[k] = (2k+1)²` is the first of ring `k + 1` —
+    /// `(−1, −2)` for a splash of up to three tiles, then the ring's
+    /// north-west corner. run1296b's Bombard round lands in cell (8, 9)
+    /// and wounds the Library in (7, 7) through this cell. Every shipped
+    /// splash (1, 2, 10, 20) is `k <= 6`.
+    #[test]
+    fn a_splash_walks_one_spiral_cell_past_its_square() {
+        assert_eq!(splash_cells(1), 1);
+        assert_eq!(splash_extra_cell(1), Some((-1, -2)));
+        for k in 2..=7 {
+            assert_eq!(splash_extra_cell(k), Some((-(k + 1), -(k + 1))), "k {k}");
+        }
+        assert_eq!(splash_extra_cell(splash_cells(20)), Some((-7, -7)));
+        assert_eq!(splash_extra_cell(8), None, "past the crate's table");
+    }
+
     /// **A missile flies thirteen frames once its polygon reaches twelve
     /// speeds** (item 1625, `docs/AI.md` §174): run717's first round of
     /// the Advanced Battleship `1/49`, launched on 3124 and landing on

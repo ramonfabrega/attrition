@@ -5733,7 +5733,9 @@ impl Sim {
             return;
         }
         // Splash: everything on the square of cells the spiral table walks,
-        // the intended target at full count and everything else as a fringe.
+        // and the one cell past it the inclusive walk reads
+        // ([`combat::splash_extra_cell`]), the intended target at full count
+        // and everything else as a fringe.
         let k = combat::splash_cells(p.splash_area);
         let extra = combat::splash_extra_cell(k);
         let landing_cell = p.landing.cell();

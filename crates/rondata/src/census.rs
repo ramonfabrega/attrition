@@ -435,8 +435,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// booked, read by `rubric.py --tables 3` on this tree. Item 3621:
 /// 188 -> 189, the Dutch Medieval pair whole at 7095 — the `Brig` (331,
 /// sea; 618 figure rows), the line §329 booked, read by `rubric.py
+/// --tables 3` on this tree. Item 3636: 189 -> 191, the Mongol Gunpowder
+/// pair whole at 5399 — the `Horde` (203, 736 figure rows) and the `Bomb
+/// Vessel` (346, sea; 242), the line §331 booked, read by `rubric.py
 /// --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 189;
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 191;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
