@@ -10823,13 +10823,10 @@ state compares 407 units, none apart (`run1250_korean_classical_pair_closing_sta
 frame, so no score names it. The garrisoned `g.angle[0]` of 3601a reaches two more units, `1/381` on 8380 and
 `1/388` on 8503.
 
-## Parked by the next landing, slot RJ — reserved
+## Parked by item 3610, 2026-10-25 — the Japanese Ancient word: the Bowmen's bays, whole at 6126
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair is whole at 6126. Its windows (run1264, run1252b, run1264c) and its stride read only the
+standing families, and its closing block 6127 compares 169 units with no field apart (`docs/AI.md` §323.1).
 
 ## Parked by the next landing, slot RK — reserved
 
