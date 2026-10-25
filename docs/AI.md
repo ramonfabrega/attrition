@@ -28310,7 +28310,8 @@ draws on 4182.
 
 **The score: 4182 → 4324** (+142), by the count and the sequence. The new word is ours 11 draws against 12, index
 1: ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`. Every other lobby's
-`first_parting` holds (55 of 55).
+`first_parting` holds (55 of 55). The Greek Classical pair's run1196b widening drops one key, from 45 to 44: block
+12's `leader:MAKE[8].val`, ours 125 against theirs 1, now agrees.
 
 **The value diff**, run1234b re-walked (256 blocks, 2407 → **1233** keys):
 

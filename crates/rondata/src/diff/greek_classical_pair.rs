@@ -217,6 +217,10 @@ fn greek_classical_pair_run1196b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3597: 44 keys. Block 12's `leader:MAKE[8].val` (ours 125,
+    // theirs 1) agrees: the Senate arm of `type_avail` (`docs/AI.md`
+    // §320.1). The 44 standing rows of block 2 stay.
+    //
     // Item 3566: 45 keys. Block 2's knowledge row is gone and block 7's
     // `MAKE[0]` agrees; the 44 standing rows of block 2 stay, and one row is
     // new — block 12's `leader:MAKE[8].val`, ours 125 theirs 1.
@@ -234,7 +238,7 @@ fn greek_classical_pair_run1196b_s_word_frame_is_widened_whole() {
     // against 19950), `num_queued[2]` 5 against 0, `tech_cat_frame[2]` 0
     // against 8, and the Citizen `1/10`'s move (`dest_x` 37524 against
     // 37500, `off_x` 72 against 24).
-    pin_eq!(w.firsts.len(), 45, "run1196b baseline");
+    pin_eq!(w.firsts.len(), 44, "run1196b baseline");
 }
 
 /// run1209: the word 2616's window, blocks 2611..2867 at run1196b's

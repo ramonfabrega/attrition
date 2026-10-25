@@ -5644,8 +5644,7 @@ impl Sim {
     ///
     /// SEAM: the original's per-leader city array keeps a dead city's slot
     /// (`city_mark`); [`Sim::cities_of`] drops it, so an index past a lost
-    /// city reads its neighbour. No capture on file has lost a city before
-    /// a Senate is listed.
+    /// city reads its neighbour (parked 3597a).
     fn senate_avail(&self, who: Player, t: tech::TypeId) -> bool {
         let Some(rec) = self.build_record(t) else {
             return true;
