@@ -27635,3 +27635,68 @@ SHA-256 `3edbb5f05d768006f9529b9e22eb24d0b981e5948742199366b300c5d8338dc7`.
 **What it holds**: `inca_classical_pair_run1260b_s_word_frame_is_widened_whole` (256 blocks, 754 keys): the Farm
 `0/2004`'s first wound on block 4502 in theirs alone, and both sides' Dromon rounds in `AMMO` and
 `RON_DEBUG_AMMO`.
+## run1257 — the Russians at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-25, item 3605, `att-3605`)
+
+`docs/AI.md` §326. §313's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1257 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 13 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 2. Launched 03:57:42, exited 03:58:06 (24.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 13, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Filed with `filerun.py run1257
+  greatsahara-russian-medieval-start`. `df -g ~` read 124 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1257-greatsahara-russian-medieval-start.txt`, 149,912,288 bytes,
+SHA-256 `02f222d450288ab61374cbafd2b60fd5c6d0a67f8ff80d9a9f40fa39643490e4`.
+
+Archive `rontrace-run1257.log`, 8,351,904 bytes,
+SHA-256 `2088b297ccff2d2665543f3ab5b9b89d446d8189d4d0068dbd6659745612706c`.
+
+**What it holds**: the start of `russian_medieval_pair::RUSSIAN_MEDIEVAL`, and the walk's initial state.
+
+## run1258 — the Russians at a held Medieval age, Great Sahara: the draw stream to the game's end (2026-10-25, item 3605, `att-3605`)
+
+`docs/AI.md` §326. run1202's line with `--ai-tribe 13`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 13
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1257's
+lobby.
+- Pool lane 1, beside run1257. Launched 03:57:42, exited 03:58:18 (36.0 s launch to exit). `success`. **The game
+  ended itself on 4541** (closing block 4542, `ended_early`). `GAME INFO` reads back as run1257's. `rngcmp.py`
+  against run1257: 37 frames identical. Filed with `filerun.py run1258 greatsahara-russian-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1258-greatsahara-russian-medieval-trace.txt`, 25,308,049 bytes,
+SHA-256 `48c90d679a5b90720c224514fa9573982b807ccb096996f91cdf1f28b4cb9796`.
+
+Archive `rontrace-run1258.log`, 87,982,208 bytes,
+SHA-256 `fe53e877ad8d6b33c43c6df08df1c01cf9abecd6512dc6cff0862fb124e3f3d7`.
+
+**What it holds**: the pair's first try. `russian_medieval_pair_first_parting` walks it from run1257: **frame 3149
+of 4541** by the sequence (3164 by the count), 11 game-stream draws a side, index 3, ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x271` (the Supply Wagon `1/43`) against theirs `Ammo::init+0xcd9`. Its stride, walked over
+101..3101, reads the standing families alone. On item 3614's tree (`find_free`'s dead tail), 3349 by both, ours 10 draws
+against 9, index 1 (the Elite Javelineers `1/27`).
+
+## run1258b — the Russians at a held Medieval age, Great Sahara: the word 3149's window, blocks 3143..3399 (2026-10-25, item 3605, `att-3605`)
+
+`docs/AI.md` §326. **What the disk could not answer**: every record on the word's frame. run1258's stride prints
+units every hundredth block (3101 and 3201 around the word) and no `LEADERDATA` past the start, and no other dump
+holds this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1258b --map 7 --end-frame 3399
+--timeout 3600 --log-window 3143 3399 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 13 --cover cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 04:00:55, exited 04:01:52 (57.9 s launch to exit). `success`: 3400 frames. `rngcmp.py`
+  against run1258: 3400 frames identical. Filed with `filerun.py run1258b
+  greatsahara-russian-medieval-window-3143-3399`. `df -g ~` read 123 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1258b-greatsahara-russian-medieval-window-3143-3399.txt`, 528,173,262 bytes,
+SHA-256 `310fcbce3d2139f7957de9b1a4ec1d50ac2733881a98761beb6e6d4244aea9dc`.
+
+Archive `rontrace-run1258b.log`, 51,367,424 bytes,
+SHA-256 `2d7b2c8cb3e0d6eb3592b89e9fd419f1394b1c0e6d73e33f8e95864c6ff72a09`.
+
+**What it holds**: `russian_medieval_pair_run1258b_s_word_frame_is_widened_whole` (256 blocks, 2299 keys). It opens
+apart on 3143: the Supply Wagon is `1/43` in ours and `1/132` in theirs, and every later unit of who=1 sits one
+number higher in theirs.

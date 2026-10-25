@@ -10792,13 +10792,10 @@ where 158 is the age-1 line, so it was reachable. Why the AI never took it was n
 Nothing parks. The pair's first parting books: the Citizens' wounds a frame early in theirs, struck by the Royal
 Atl-Atls, in the gap 8602..8700 (`docs/AI.md` §325). `Atl-Atls` (85) is fielded.
 
-## Parked by the next landing, slot RF — reserved
+## Parked by item 3605, 2026-10-25 — the Russians at a held Medieval age, Great Sahara: first try 3149
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting books: the Supply Wagon born in the gap 3102..3142 takes the Peltasts'
+freed `1/43` in ours and the fresh `1/132` in theirs (`docs/AI.md` §326). `Rusiny Lancer` (224) is fielded.
 
 ## Parked by item 3606, 2026-10-25 — the Inca at a held Classical age, East Indies: first try 4501
 
