@@ -10840,13 +10840,20 @@ Nothing parks. The next parting, block 3268 (a squad trained into slots 47 and 4
 theirs, whose dead `1/49` is still `1/50`'s tail), names the word 3281's frame and is the booking's
 (`docs/AI.md` §324.1).
 
-## Parked by the next landing, slot RL — reserved
+## Parked by item 3613, 2026-10-25 — the Aztec Ancient word: the Royal Atl-Atls' bays, whole at 9258
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The pair is whole at 9258, the game's last frame, and its closing block 9259 compares 371 units with no field apart
+(`docs/AI.md` §325.1). No score names either row below.
+
+(3613a) **The Royal Atl-Atls `1/175`'s `dest_angle` on its arrival, 8692.** run1266 (the gap's window, 8596..8710)
+reads it ours 1073741824 against theirs 852099072 on block 8692, the block `1/175` (TypeIndex 86, group 92) ends its
+`ATTACKTOORDER` at (8040, 10248) and falls back to its `GUARDORDER`. Theirs keeps the move order's own `angle`
+(852099072), and ours writes a quarter turn. No later field parts: run1256b opens on 8710 with no `1/175` row, and the
+pair is whole. The writer of `dest_angle` on an `ATTACKTO` arrival is not read.
+
+(3613b) **The Catapult `1/107`'s `mylos`, 4 against 10 from the stride's 5701** (TypeIndex 265), 3604's row. It stays
+through the stride walk with piece 36's bays in (`aztec_ancient_pair_the_long_s_stride_walks_back_from_8716`, 306
+keys) and never reaches a draw: the pair is whole. The stride does not print the block it first parts on.
 
 ## Parked by the next landing, slot RM — reserved
 

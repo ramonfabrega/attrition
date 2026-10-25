@@ -420,8 +420,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// on the tree holding both merges. Item 3610: 182 -> 183, the Japanese
 /// Ancient pair whole at 6126 — `Ashigaru Spearmen` (157, 2268 figure
 /// rows over run1251 and run1252), one of the two lines §323 booked;
-/// `Bushi` (158) was not fielded (parked 3602a).
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 183;
+/// `Bushi` (158) was not fielded (parked 3602a). Item 3613: 183 -> 184,
+/// the Aztec Ancient pair whole at 9258 — `Atl-Atls` (85, 864 figure rows),
+/// the line §325 booked; `Xopilli Atl-Atls` (87) was not fielded.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 184;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

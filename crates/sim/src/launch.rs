@@ -640,6 +640,76 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 159,
         },
     ),
+    // **The Atl-Atls' pieces 35 and 36** (`ATLATL` and `ELITEATLATL`, unit
+    // types 85 and 86; item 3613, `docs/AI.md` §325.1): run1266c's
+    // `RON_STATE_FRAME=8700` packet on the Aztec East Indies seed holds each
+    // piece's three attack `AttachPos` rows, all at time 11, and
+    // `get_position.py`'s sweep of each is reproduced at all 361 headings by
+    // these, each the centroid of its exact region (piece 35: 252, 869 and
+    // 473 lattice points; piece 36: 28, 35 and 135). Without them the Royal
+    // Atl-Atls threw from the figure's own square: `1/163`'s javelin at the
+    // Citizen `0/4` flew 15 frames where run1266 shows 14 from (6327, 9920),
+    // and the wound landed on 8694 against 8693.
+    (
+        35,
+        11,
+        11,
+        Bay {
+            right: 27_451,
+            fwd: 148_341,
+            dz: 166,
+        },
+    ),
+    (
+        35,
+        12,
+        11,
+        Bay {
+            right: 40_884,
+            fwd: 135_492,
+            dz: 188,
+        },
+    ),
+    (
+        35,
+        13,
+        11,
+        Bay {
+            right: 27_982,
+            fwd: 110_381,
+            dz: 178,
+        },
+    ),
+    (
+        36,
+        11,
+        11,
+        Bay {
+            right: 34_560,
+            fwd: 123_009,
+            dz: 168,
+        },
+    ),
+    (
+        36,
+        12,
+        11,
+        Bay {
+            right: 49_097,
+            fwd: 105_964,
+            dz: 186,
+        },
+    ),
+    (
+        36,
+        13,
+        11,
+        Bay {
+            right: 32_102,
+            fwd: 84_123,
+            dz: 182,
+        },
+    ),
     // **`HEAVYARCHERS-NA`'s piece 1531** (unit type 173, the Native American
     // Heavy Archer; item 3375, `docs/AI.md` §288): run1001d's
     // `RON_STATE_FRAME=13760` packet on the Iroquois Great Sahara seed holds
@@ -2441,6 +2511,38 @@ pub fn launch_point(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// **The Royal Atl-Atls throw from piece 36's bays** (item 3613): all
+    /// ten rounds run1266 and run1256b print from their first frame, each
+    /// beside its figure's `GUY` pose on the block before, reproduced at the
+    /// dump's `sx, sy` and `sz − z` by exactly one of the piece's three
+    /// attack keys (the dump does not print which the figure played).
+    #[test]
+    fn run1266_s_aztec_javelins_leave_from_the_royal_atl_atls_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 10] = [
+            (6312, 10008, -125173760, 6327, 9920, 182),
+            (6504, 9864, 29687808, 6540, 9742, 168),
+            (6648, 9912, -57475072, 6685, 9802, 186),
+            (7512, 9960, -112590848, 7541, 9848, 186),
+            (7464, 9768, -101777408, 7476, 9641, 168),
+            (7800, 9960, -280952832, 7801, 9844, 186),
+            (6312, 10008, 145489920, 6359, 9932, 182),
+            (7032, 9288, 70647808, 7072, 9208, 182),
+            (7080, 8664, 0, 7129, 8559, 186),
+            (6744, 8568, 179109888, 6795, 8495, 182),
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let keys: Vec<i8> = [11, 12, 13]
+                .into_iter()
+                .filter(|&anim| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), 36, anim, 11, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(36, anim, 11, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
 
     /// **The Mongol Archers and Javelineers loose from their bays** (item
     /// 3579): run1222's three rounds at `0/8` over 9694..9706, each the

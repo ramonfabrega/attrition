@@ -28913,7 +28913,7 @@ widening (run1254b, the same window, which still holds the word's block 3282) go
 **What is not established.** Whether the slot is held by the dead tail's link or by something else `Unit::close`
 leaves behind. The next item reads the slot allocator's predicate against 3268.
 
-## 325. The Aztecs from an Ancient start, East Indies: first try 8716 of 9258 (item 3604)
+## 325. The Aztecs from an Ancient start, East Indies: first try 8716 of 9258, whole at 9258 (items 3604, 3613)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §323's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
 Nubians (4) against the **Aztecs (0)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY
@@ -28974,6 +28974,59 @@ are Citizen 50, Scholar 52, General 54, Caravan 59, Merchant 61, Scout 69, Hopli
 Archers 171, Light Horse 209, Catapult 265, The Despot 352, six boats (Fishermen 317, Merchant Fleet 318,
 Transport Barge 320, Bark 323, Fire Raft 334, Trireme 340), and the horse, fish and whale herds: 24 types.
 `rubric.py` on this tree reads unit types seen **183 of 302**, unmoved, because the pair is open.
+
+**325.1 Item 3613: the Royal Atl-Atls throw from piece 36's bays, and the pair is whole at 9258.** run1266 is the
+gap's window (blocks 8596..8710, `AMMO=5`, identical to run1256 over 8711 frames; 114 blocks, 189 keys). Past the
+standing families, its first unit row is on block 8692: the Royal Atl-Atls `1/175`'s `dest_angle` on its arrival
+(parked 3613a; nothing reads it downstream). The first wound is on block 8694, **the Citizen `0/4`** (TI 50, land):
+`damage_frame` 0 against 8693, `hits_left` 40 against 36, then a flight (order 7 against 4). The blow is **the
+Royal Atl-Atls `1/163`'s javelin** (TI 86, who=1's group 92). The shooter stands at (6312, 10008) on both sides.
+Theirs' round leaves **(6327, 9920, 238)** with `total_time` **14**, and ours' leaves the unit's own square in 15.
+The reason is that `sim::launch` has no row for the Royal Atl-Atls' piece, **36** (ours' `RON_DEBUG_UNIT` prints
+`g36` on every figure). `0/13`'s wound on 8699 is `1/155`'s javelin from (6540, 9742), with the same shape.
+
+**The pieces.** run1266c, a `RON_STATE_FRAME=8700` packet on the same lobby, holds three attack `AttachPos` rows for
+each of pieces 35 (`Atl-Atls`) and 36, node 0, anims 11, 12 and 13, all at time 11 and scale 1.0. `fit_bay.py` fits
+each key's `get_position.py` sweep to one region:
+
+| piece | key | right | fwd | dz | region |
+|---|---|---|---|---|---|
+| 35 | `CHAR_ATTACK1` at 11 | 27451 | 148341 | 166 | 252 |
+| 35 | `CHAR_ATTACK2` at 11 | 40884 | 135492 | 188 | 869 |
+| 35 | `CHAR_ATTACK3` at 11 | 27982 | 110381 | 178 | 473 |
+| 36 | `CHAR_ATTACK1` at 11 | 34560 | 123009 | 168 | 28 |
+| 36 | `CHAR_ATTACK2` at 11 | 49097 | 105964 | 186 | 35 |
+| 36 | `CHAR_ATTACK3` at 11 | 32102 | 84123 | 182 | 135 |
+
+`run1266_s_aztec_javelins_leave_from_the_royal_atl_atls_bays` checks all ten Royal Atl-Atls rounds that run1266 and
+run1256b print from their first frame. It pairs each round with its figure's `GUY` record on the block before. Each
+round is reproduced at the dump's `sx, sy` and `sz − z` by exactly one of piece 36's keys. No dump holds an Atl-Atls
+(85) round, so piece 35's rows are the sweep's fit and no dump's.
+
+**The value diff.**
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 8681 (first print) | Royal Atl-Atls `1/163`'s round at `0/4` | `sx, sy` / `total_time` | (6312, 10008) / 15 against (6327, 9920) / 14 | agrees |
+| 8693 (block 8694) | Citizen `0/4` | `damage_frame`, `hits_left` | 0, 40 / 8693, 36 | agrees |
+| 8699 (block 8700) | Citizen `0/13` | `damage_frame`, `hits_left` | 0, 40 / 8699, 36 | agrees |
+| 8706 (first print) | `1/195`'s round at `0/11` | `sx, sy` / `total_time` | (7464, 9768) / 11 against (7476, 9641) / 10 | agrees |
+| 8716 | draws | index 2 | `Guy::set_anim < Guy::move` / `< Unit::move_step` (16 / 17) | agree |
+
+**The word: 8716 → 9258, the game's last frame — whole**, by the count and the sequence. With the rows:
+- run1266 falls from 189 keys to 141: the standing families and `1/175`'s `dest_angle`.
+- run1256b falls from 1684 to 136, and the stride from 324 to 306. All of these are the standing families, plus
+  the Catapult's `mylos` on the stride (parked 3613b).
+- `aztec_ancient_pair_run1256_s_closing_state` compares the closing block 9259 whole: 371 units, none off or
+  unlinked, no field apart (two torn, the closing dump's tick).
+- run1266d, the closing window over 9003..9259 at `LEADERS=9`, reads 163 keys, the standing families alone.
+
+No walk reads an inexact ground corner. Zeroing piece 36's `CHAR_ATTACK1` row (`tools/mutate.py`) walks the pair
+back to 8752 (exit 101). With the pair whole, the **Atl-Atls (85)** join the lockstep set: `rubric.py --tables 3`
+reads unit types seen **184 of 302**. `Xopilli Atl-Atls` (87) stays unfielded.
+
+**What is not established.** Piece 35 at any heading, since no Atl-Atls round is dumped, and piece 36 at a heading
+no dumped round took: those are the sweep's fit and no dump's. The writer of `1/175`'s arrival `dest_angle` (3613a).
 
 ## 326. Reserved for the next item on the AI track
 
