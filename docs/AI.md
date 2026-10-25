@@ -28173,78 +28173,91 @@ theirs.
 
 ### 318.2 A tied territory claim rotates over the eight leader slots, and the word moves 6537 → 6718 (item 3595)
 
-**The draw delta** (`RON_DEBUG_SITES=6537-6537` on the walk, theirs `report.py … draws 6537`): the word's draws
-are not the Scout's. Two Dromons (TypeIndex 324, sea) run `think_scout`'s region scan (§11 of
-`crates/sim/src/scout.rs`) on alternate frames. `1/95` spends one `+0x941` and 29 `+0xaba` on both sides. **`1/96`
-spends one `+0x941` and 23 `+0xaba` ours against 22 theirs**: ours' scan accepts one cell more. The cell is not
-the winner: both sides order `1/96` to (25848, 44280) after 6537. The Scout `1/126` (TypeIndex 69, land) spends
-nothing on 6537 either side.
+**The walk back.** The word's draws were two Dromons' `think_scout` scans (`1/96` accepted one cell more), not
+the Scout. run1230b, the long's stride (6301..6501) and **run1242** (blocks 6496..6531) walked the Scout `1/126`
+(TypeIndex 69, land) back to block 6509. Both sides issue the same `EXPLORETOORDER` on 6508, and the path parts at
+`path[3].to`, ours (10488, 11256) against theirs (11256, 11256): ours goes north through (13, 15), theirs east
+through (14, 15). Priced by `docs/PATHFINDER.md` §5's seen-cell scout terms, both routes cost 532 on ours' map, and
+536 if (13, 15) is who=0's.
 
-**The walk back.** run1230b (5956..6212) holds the Scout agreeing. The long's stride blocks 6301, 6401 and 6501
-(`egyptian_classical_pair_the_long_s_stride_walks_the_scout_back`, 158 standing keys) hold every unit agreeing.
-The disk could not say what happens in 6502..6531, so **run1242** took blocks 6496..6531 at run1241b's detail
-(`egyptian_classical_pair_run1242_walks_the_scout_back`; 6532 frames identical to run1230). Past the standing
-families and the territory row, the first unit row is on block 6509:
+**The territory row.** Theirs' `territory` moves on 6033 to 182 and 1181, ours to 180 and 1183. Ours' fix of 6025
+moves ten cells to who=1, two of them exact ties at cost 1280, **(13, 15) and (15, 13)**.
 
-| block | record | field | ours | theirs |
-|---|---|---|---|---|
-| 6496 | leader who=0, who=1 | `territory` | 180, 1183 | 182, 1181 |
-| 6509 | Scout `1/126` | `path[3].to` | (10488, 11256) | (11256, 11256) |
-| 6509 | Scout `1/126` | `path[4].to` | (10488, 12024) | (11256, 12024) |
-| 6520 | Scout `1/126` | `pos`, `move.dest_x` | (10431, 13077), 10488 | (10435, 13077), 11256 |
+**The mechanism.** Ties go to the first player scanned, and `World::compute_reg_territory@006b0bb0:338` rotates the
+scan over **the eight leader slots**: `(local_20 + x) & 7`, an empty slot claiming nothing (`:344`). This crate
+rotated over the player count, so x = 13 and x = 15 reached who=1 first where theirs reaches who=0.
+`docs/ATTRITION.md`'s tie section is amended in place.
 
-Both sides issue the same `EXPLORETOORDER` on 6508, to (11256, 8184). Both routes leave cell (13, 16) and reach
-(14, 12) in four steps with one diagonal. Ours goes north through (13, 15) and (13, 14). Theirs steps east first,
-through (14, 15) and (14, 14). On ours' map (a probe, reverted whole) (13, 15) and (14, 15) are who=1's, and
-(13, 14) and (14, 14) are who=0's. Every cell is seen, and danger is 0. Priced by `docs/PATHFINDER.md` §5's
-seen-cell scout terms (base `0x400`, so 128 a step, +8 a diagonal, +4 an enemy cell, own cells clamped to 0),
-**both routes cost 532**. If (13, 15) is who=0's, ours' route costs 536, and theirs' route is the one taken.
+**The build**: `territory::compute_region_territory_won` scans slots 0..7 from `x & 7` and skips any slot at or past
+the player count. Tests: `equal_claims_interleave_along_x`, `a_two_player_tie_rotates_over_eight_slots`. Mutation
+(the old block back): **held** on both.
 
-**The territory row.** Theirs' `territory` moves once in run1230b, on block 6033: who=0 190 → 182, who=1 1111 →
-1181. Ours lands 180 and 1183, two cells more for who=1. Ours' fix on 6025 (a second probe, reverted whole)
-moves ten cells from who=0 to who=1, each with who=0 as runner-up. Two of the ten are exact ties between
-who=0's capital Napata and who=1's city at (18528, 21600), **cost 1280 against 1280: (13, 15) and (15, 13)**.
-Ours gave both to who=1.
+**The score: 6537 → 6718** (+181). Nine other widenings lose rows toward the original and none gains one (3595's
+journal has the table); parked 3574a and 3586a are answered. run1241b goes 3161 → 298 keys.
 
-**The mechanism.** Ties go to the first player scanned, and the scan is rotated by the cell's x.
-`World::compute_reg_territory@006b0bb0:338` computes `(local_20 + x) & 0x80000007` for `local_20` 0..7, and a
-slot whose `leaders[p] & 1` is clear claims nothing (`:344`). That is a rotation over **the eight leader slots**.
-This crate rotated over the player count (`% players`), and the comment called that harmless. With two players,
-x = 13 starts theirs' scan at slot 5: slots 5, 6 and 7 are empty, so player 0 is reached first. Ours' `13 % 2`
-started at player 1. The same holds at x = 15 (slot 7). `docs/ATTRITION.md`'s tie section stated `mod 8` and
-called the generalisation the only change; it is amended in place.
-
-**The build**: `territory::compute_region_territory_won` scans slots 0..7 from `x & 7` and skips any slot at or
-past the player count. `equal_claims_interleave_along_x` now asserts the eight-slot pattern (player 1 at x = 1
-and 9 only). New test: `a_two_player_tie_rotates_over_eight_slots`. Mutations through `tools/mutate.py`, putting the
-old block back (`0..players`, `% players`), both **held**: `egyptian_classical_pair_first_parting` exits 101
-(6537), and the unit test exits 101.
-
-**The score: 6537 → 6718** (+181), by the count and the sequence. `first_parting`: all 54 lobbies hold, and no
-other word moves. `coverage::` passes 19 with run1242 in the driver. **Nine other widenings each lose rows, all
-toward the original, and none gains one** (old block against new, through `tools/mutate.py`): the Greek
-Classical run1214 134 → 125, the Spanish Classical run1232b 82 → 74, the Lakota run882 222 → 209 and run883
-221 → 208 (both leaders' `territory` and team sums, with the wealth rows they feed); the Mongol Classical
-run1198b 77 → 75, run1218 96 → 95, run1222 82 → 81 and run1224 93 → 92, and the French run982d 30 → 29 (who=1's
-`leftover[2:wealth]`). Parked 3574a and 3586a were this tie and are answered; 3558a's `leftover` row is too. **The value diff on the old word**:
-
-| window | before | after | what agrees now |
-|---|---|---|---|
-| run1230b | 114 keys | 102 | both leaders' `territory` from 6033, the team sums of 6176 and 6201, who=1's wealth `income`, `leftover`, `resources` and `bucket` |
-| run1242 | 114 | 91 | the territory row and the Scout `1/126`; the standing families stand alone |
-| run1241b | 3161 | 298 | `territory`, the wealth rows and the Scout `1/126`, through the window; the Dromons `1/95`, `1/96` and `1/45` until the new word (they part from 6720) |
-
-**The new word**: frame 6718, ours 41 draws against theirs' 42, parting at index 23: ours `Guy::set_anim+0x97a <
-Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`. Its window is run1241b (block 6719). Past
-the standing families and five `dest_angle` rows from 6664, the first unit row is block 6718: the Phalanx `1/116`
-(TypeIndex 133, land). Ours holds one order (kind 12, `orders_x` 6216, `orders_y` 9528). Theirs holds two: an
-`ATTACKORDER` on who=0's `0/12` over its `GUARDORDER` (kind 10, at (6222, 9523)). On 6719 its `pos` is ours
-(6222, 9542) against theirs (6216, 9528).
+**The next word**: 6718, ours 41 draws against 42, index 23, ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`,
+theirs `Guy::set_anim+0x97a < Guy::move+0x19f`. On block 6718 the Phalanx `1/116` (TypeIndex 133, land) holds
+ours' `GUARDORDER` alone against theirs' `ATTACKORDER` on `0/12` over it.
 
 **What is not established.**
-- Why the Phalanx `1/116` drops its `ATTACKORDER` on 6717 in ours. Walk it back from run1241b's 6718.
-- Whether a tie the old modulus broke parts a word anywhere else. Nine widenings' territory rows moved, and
-  no pinned word did (parked 3595a).
+- ~~Why the Phalanx `1/116` drops its `ATTACKORDER` on 6717 in ours.~~ **Answered by §318.3**: theirs' search budget.
+- Whether a tie the old modulus broke parts a word anywhere else (parked 3595a).
+
+### 318.3 Fight's search budget holds a dead target's order a frame, and the pair is whole, 6748 of 6748 (item 3598)
+
+**The walk back** (run1241b on disk; no capture was taken, and run 1246 is unused). The Phalanx `1/116` (TypeIndex
+133, land, uid 155) holds an `ATTACKORDER` on the Citizen `0/12` (TypeIndex 50) over its `GUARDORDER`, under a
+`MOVEORDER` to (6222, 9523). Every unit agrees through block 6717:
+- `0/12` dies on frame 6715 on both sides, and ours carries `targeted 12` on it;
+- both sides pop the move on 6716.
+
+On 6717, `recharging` is 0 on both sides, and both snap the Phalanx to its cell centre, (6216, 9528), at `fight`'s
+entry. Ours then drops the attack. Theirs keeps it a frame:
+
+| block | record | field | ours before | theirs | after |
+|---|---|---|---|---|---|
+| 6718 | leader who=1 | `retargets` (unread) | — | 11 | — |
+| 6718 | Phalanx `1/116` | `waiting` | 0 (not carried) | 2 | 2 |
+| 6718 | Phalanx `1/116` | `unit_masks2` | 0 | 16 | 16 |
+| 6718 | Phalanx `1/116` | `order:kind`, `orders.len` | 12 (`GUARD`), 1 | 10 (`ATTACK`), 2 | agrees |
+| 6719 | Phalanx `1/116` | `waiting`, `orders.len` | 0, 1 | 1, 1 | agrees |
+
+Theirs' extra draw on 6718, index 23, is that Phalanx's: `Guy::move+0x19f < Guy::process`, between `1/96`'s
+`do_move` and `1/148`'s `do_idle` in process order. Ours spends nothing for it on 6718.
+
+**The mechanism.** `Unit::fight@005fd4d0`'s invalid-target arm, `LAB_005fdb9e` (`:204`–`:210`), opens with the
+search budget. It runs while `waiting` (`UnitData +0xad`, a signed char) is below 5 and the unit's own leader's
+`+0x9f4` (`retargets`, the frame's count of invalid targets) is past ten. It then:
+- sets `unit_masks2 |= 0x10` when `param_5` is 0;
+- adds 2 to `waiting`;
+- returns, with no `find_new_target` and no count.
+
+Three writers by offset: `Unit::init@00612100:98` zeroes it, `Unit::process@00610bc0:66` takes one off a frame at its
+head, beside `full` and `recharging`, and this arm adds 2. Twelve of who=1's units lost `0/12` on 6717. Eleven
+counted before the Phalanx, so it waited. This crate carried the arm as a `SEAM` in `orders.rs` and `cavarch.rs`.
+
+**The build.**
+- `sim::Unit::waiting`, decayed in `Sim::process`'s head.
+- The arm in `Sim::do_attack_fight` after the capture approach, and in `cavarch_fight_body` after the clear, with no
+  mark there.
+- The harness reads `waiting` beside `full`, and it leaves both `UNITDATA` paths of `coverage`'s unread pin.
+
+Test: `the_search_budget_keeps_a_dead_target_s_order_a_frame` (at ten, the order drops; at eleven it stands, is
+marked, and drops on the next frame). Mutation through `tools/mutate.py`, the arm's test made false: **held** on
+`egyptian_classical_pair_first_parting` (exit 101, back to 6718) and on the unit test (exit 101).
+
+**The score: 6718 → 6748, the game's last frame**, by the count and the sequence. The pair is whole. Every other
+lobby's `first_parting` holds (54).
+- run1241b goes 298 → **96** keys. What stands is the standing families, the groups' `held` and pools on 6533 and
+  6543, five `dest_angle` rows from 6664 (3580b's shape) and `1/261`'s `form` on 6733. No `waiting` row parts.
+- **The closing state**: `egyptian_classical_pair_run1230_s_closing_state` walks to block 6749. It compares 272
+  units, none off, torn or unlinked, with no building or city row.
+- The rubric's unit types seen go 177 → 178: `Light Camel` (213) enters.
+
+**What is not established.**
+- Ours' no-target arm kills the attack at once. The original's `-1` target reaches the same `LAB_005fdb9e`, budget
+  first (parked 3598a).
+- `retargets` is dumped (`LEADERDATA`) and stays unread (parked 3598a).
 
 ## 319. The Spanish at a held Classical age, Great Sahara: whole on its first try, 8565 of 8565 (item 3586)
 

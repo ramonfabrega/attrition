@@ -323,7 +323,9 @@ pub(crate) const RUN1241B: &str =
     "gamelog-run1241b-eastindies-egyptian-classical-window-6532-6748.txt";
 
 /// The window: block 6532 through 6748; the word 6537's own block is 6538.
-pub(crate) const WIDENING_EGYPTIAN_CLASSICAL_FRAME_6537: (i64, i64) = (6532, 6748);
+/// Item 3598: through the closing block 6749, now that the word is the
+/// game's last frame 6748.
+pub(crate) const WIDENING_EGYPTIAN_CLASSICAL_FRAME_6537: (i64, i64) = (6532, 6749);
 
 /// **The word 6537's window**: run1241b walked from run1229's start with
 /// the recorder on (item 3594).

@@ -10132,11 +10132,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 5961 first try, widened on run1230b over 5956..6212 (block 5962).
     // Item 3594: 5961 → 6537, widened on run1241b over 6532..6748 (block
     // 6538). Item 3595: 6537 → 6718, the same window (block 6719).
+    // **6748**, the game's last frame, with `fight`'s search budget (item
+    // 3598); the same window runs to the closing block 6749, the closing
+    // state scored.
     (
         "EGYPTIAN_CLASSICAL_PAIR_WORD",
         crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL_PAIR_WORD,
         Some("egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole"),
-        3595,
+        3598,
         Some(crate::diff::egyptian_classical_pair::WIDENING_EGYPTIAN_CLASSICAL_FRAME_6537),
     ),
     // **The Maya from an Ancient start** (item 3587): East Indies — 4182
@@ -11865,14 +11868,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Egyptians at a held Classical age (`STARTING_TECHNOLOGY` and
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3585): first try 5961, of
     // a game that ends itself on 6748; widened on run1230b. Item 3594:
-    // 6537, widened on run1241b. Item 3595: 6718, the same window.
+    // 6537, widened on run1241b. Item 3595: 6718, the same window. Whole
+    // from item 3598: the closing state compared, run1241b the closing
+    // window (it runs to the closing block 6749).
     AiWord {
         line: "Late ages",
         map: "EastIndiesEgyptianClassical",
         named: "East Indies (Egyptians, Classical)",
         word: crate::diff::egyptian_classical_pair::EGYPTIAN_CLASSICAL_PAIR_WORD,
         length: 6_748,
-        endpoint: None,
+        endpoint: Some("egyptian_classical_pair_run1230_s_closing_state"),
         window: Some("egyptian_classical_frame_6537_window"),
     },
     // The Spanish at a held Classical age (`STARTING_TECHNOLOGY` and
