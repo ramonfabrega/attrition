@@ -295,3 +295,82 @@ fn roman_medieval_pair_run1277_s_word_frame_is_widened_whole() {
     );
     pin_eq!(w.firsts.len(), 720, "run1277 baseline");
 }
+
+/// **The word's road search, node for node** (item 3631): every road search
+/// run1275's call window prices, from the start to the word 3607, against
+/// ours.
+#[test]
+fn roman_medieval_pair_s_road_search_on_3607_holds_node_for_node() {
+    let _pins = Pins::hold();
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let p = &ROMAN_MEDIEVAL;
+    let (Some(path), Some(sib), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1)) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    built.sim.trace_costs = true;
+    let mut first: Option<String> = None;
+    let mut searched = 0;
+    let mut on_word = (0, 0);
+    while built.sim.frame <= 3607 {
+        let f = built.sim.frame;
+        built.sim.road_marks.clear();
+        built.tick();
+        let ours = std::mem::take(&mut built.sim.road_marks);
+        let theirs = tr.road_nodes(f);
+        if f == 3607 {
+            on_word = (ours.len(), theirs.len());
+        }
+        if ours.is_empty() && theirs.is_empty() {
+            continue;
+        }
+        searched += 1;
+        if first.is_none()
+            && let Some(i) =
+                (0..ours.len().max(theirs.len())).find(|&i| ours.get(i) != theirs.get(i))
+        {
+            first = Some(format!(
+                "{f} at {i}: ours {:?} theirs {:?} ({} against {})",
+                ours.get(i),
+                theirs.get(i),
+                ours.len(),
+                theirs.len()
+            ));
+            if std::env::var("RON_ROAD_NODES").is_ok() {
+                for j in i.saturating_sub(8)..(i + 12).min(ours.len().max(theirs.len())) {
+                    eprintln!(
+                        "  node {j}: ours {:?} theirs {:?}",
+                        ours.get(j),
+                        theirs.get(j)
+                    );
+                }
+            }
+        }
+    }
+    eprintln!("ROAD searched {searched}; first parting {first:?}; on 3607 {on_word:?}");
+    // Item 3631: (3201, 3204) on the word, and the first node parting on
+    // 3606 (node 126, the diagonal onto (42336, 32928), tile (220, 171):
+    // ours 179 against theirs 89, `was_seen`'s doubling of fog cell
+    // (110, 85)).
+    pin_eq!(
+        on_word,
+        (3201, 3204),
+        "the word's road nodes, ours and theirs"
+    );
+    pin_eq!(
+        first.as_deref().map(|s| s.split(':').next().unwrap_or("")),
+        Some("3606 at 126"),
+        "the first node that parts"
+    );
+}
