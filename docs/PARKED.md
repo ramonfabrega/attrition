@@ -10904,13 +10904,20 @@ run1270b over 5817..5977, then part again on 5978, 5 against 6 and 35 against 34
 `LEADERDATA` prints between 4751 and 5301, so the frame the first parting begins on is not on disk; run1270b's
 5978 is. Its writer is unread. No score names it.
 
-## Parked by the next landing, slot RQ — reserved
+## Parked by item 3618, 2026-10-25 — the Russian Medieval word: the remainder share is the last figure's, whole at 4541
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3618a) **3615's `near` hypothesis, killed** (`docs/AI.md` §326.2). On 4442 theirs printed `near` set on the six
+Elite Javelineers it removed and `near -1/-1` on the six it kept. Those six are the squads' captains, and only a
+captain searches, so `near_o` is its footprint (`docs/COMBAT.md` §18). The removal is attrition's. Theirs also
+removes each squad's first member, whose `near` is −1. Nothing was built for it.
+
+(3618b) **The captain test is ours' `combat.captain == index`** (`Sim::takes_remainder_share`). The original asks
+vslot `+0xe8` (`UnitData::is_captain`, `o_up`'s sign bit). They agree wherever `relink_squad` runs, but no reader
+compares them. No score names it.
+
+(3618c) **run1268b's rows past the word, which name no score now that the pair is whole**: `1/78`'s `orders_x`/
+`orders_y` on 4395 (11160, 28008 against 11145, 28001), `1/70`'s `orders_x` on 4398 (10824 against 10823) and
+`1/125`'s `dest_angle` on 4509 (−1605566464 against 1814626304). None parts a draw through the closing block.
 
 ## Parked by the next landing, slot RR — reserved
 

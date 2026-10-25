@@ -5159,6 +5159,21 @@ impl Sim {
         );
     }
 
+    /// **`Object::take_damage@00652020`'s remainder test** (decompile lines 311-329,
+    /// the `+0x308` block): a figure of a squad type takes `hits − (uber − 1)
+    /// · hits / uber` — the remainder — only when it is a captain (vslot
+    /// `+0xe8`) **and** `UnitData::curr_uber_size(this, 1)` answers 1, the
+    /// last figure standing; every other figure takes `hits / uber`. The
+    /// count is live: this crate read its stored [`Unit::squad_size`], which
+    /// nothing outside the tests writes past 1, so every captain of a whole
+    /// squad took the remainder and outlived its members by a point (item
+    /// 3618, `docs/AI.md` §326.2: Great Sahara's six Elite Javelineers
+    /// squads on 4442, `1/200` falling at 37 where theirs falls at 36).
+    pub(crate) fn takes_remainder_share(&self, i: usize) -> bool {
+        let u = &self.units[i];
+        u.combat.captain == i32::from(u.index) && self.curr_uber_size(i) == 1
+    }
+
     /// The squad a captain heads, captain first — `o_down` walked.
     /// `UnitData::curr_uber_size`: the figures in `i`'s squad now — up
     /// the `o_up` links to the captain, then the captain's chain. A dead

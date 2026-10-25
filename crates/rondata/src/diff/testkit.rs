@@ -10244,12 +10244,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // first try 3149 of 4541, 3349 on the tree item 3614 landed, widened
     // on run1258b over 3143..3399; 4442 on item 3615's (the class arm's
     // training building), widened on run1268b over 4286..4542 (the word's
-    // block 4443).
+    // block 4443). Item 3618: whole at 4541 (attrition's remainder share
+    // is the last figure's); run1268b reaches the closing block 4542 and
+    // is the closing walk.
     (
         "RUSSIAN_MEDIEVAL_PAIR_WORD",
         crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL_PAIR_WORD,
         Some("russian_medieval_pair_run1268b_s_word_frame_is_widened_whole"),
-        3615,
+        3618,
         Some(crate::diff::russian_medieval_pair::WIDENING_RUSSIAN_MEDIEVAL_RUN1268B),
     ),
     // **The Inca at a held Classical age** (item 3606): East Indies —
@@ -12115,13 +12117,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3605): first try 3349 (3149
     // before item 3614's slot rule) of a game that ends itself on 4541,
     // widened on run1258b; 4442 on item 3615's tree, widened on run1268b.
+    // Item 3618: whole at 4541, attrition's remainder share; the closing
+    // state compared, widened on run1268b.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaRussianMedieval",
         named: "Great Sahara (Russians, Medieval)",
         word: crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL_PAIR_WORD,
         length: 4_541,
-        endpoint: None,
+        endpoint: Some("russian_medieval_pair_run1258_s_closing_state"),
         window: Some("russian_medieval_run1268b_window"),
     },
     // The Inca at a held Classical age (`STARTING_TECHNOLOGY` 1,
