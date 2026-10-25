@@ -10375,6 +10375,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3634,
         Some(crate::diff::mongol_gunpowder_pair::WIDENING_MONGOL_GUNPOWDER_FRAME_5047),
     ),
+    // **The Bantu at a held Medieval age** (item 3624): Great Sahara —
+    // whole on its first try, 4914 of 4914, the closing state compared;
+    // widened on run1281b over 4659..4915 (the closing block).
+    (
+        "BANTU_MEDIEVAL_PAIR_WORD",
+        crate::diff::bantu_medieval_pair::BANTU_MEDIEVAL_PAIR_WORD,
+        Some("bantu_medieval_pair_run1281b_s_closing_frame_is_widened_whole"),
+        3624,
+        Some(crate::diff::bantu_medieval_pair::WINDOW_BANTU_MEDIEVAL_CLOSING),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12292,6 +12302,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_399,
         endpoint: None,
         window: Some("mongol_gunpowder_frame_5047_window"),
+    },
+    // The Bantu at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3624): whole on its first
+    // try, 4914 of a game that ends itself on 4914, its closing state
+    // compared; widened on run1281b over the closing block.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaBantuMedieval",
+        named: "Great Sahara (Bantu, Medieval)",
+        word: crate::diff::bantu_medieval_pair::BANTU_MEDIEVAL_PAIR_WORD,
+        length: 4_914,
+        endpoint: Some("bantu_medieval_pair_run1281_s_closing_state"),
+        window: Some("bantu_medieval_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

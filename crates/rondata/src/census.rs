@@ -438,7 +438,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// --tables 3` on this tree. Item 3635: 189 -> 190, the Roman Medieval
 /// pair whole at 5979 — `Caesar's Legions` (147, land; 2640 figure rows),
 /// the line §330 booked, read by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 190;
+/// Item 3624: 190 -> 191, the Bantu Medieval pair whole at 4914 on its
+/// first try — `Impi` (95, land; 3102 figure rows), the line §332 booked,
+/// read by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 191;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

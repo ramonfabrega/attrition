@@ -10696,3 +10696,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1296  --map 18 --end-frame 4634 --timeout 3600 --log-window 4631 4634 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 17 --cover cover=0 --tracer-def RON_STATE_FRAME=4632, run1278's lobby   (group 80's packet)
 #   run1296b --map 18 --end-frame 5297 --allow-early-end --timeout 3600 --log-window 5041 5297 --detail (run1292's) --ai-tribe 17 --cover cover=0, run1278's lobby   (the word 5047's window)
 # Checks: `rngcmp.py` run1279 vs run1296 -> 4635 identical; vs run1296b -> 5298 identical.
+# ==== item 3624: the Bantu at a held Medieval age, Great Sahara (`docs/AI.md` §332; `docs/RUNS.md` run1280, run1281, run1281b) ====
+#   run1280  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 3 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1281  run1258's line with --ai-tribe 3 and run1280's lobby   (the draw stream; ended itself on 4914)
+#   run1281b --map 7 --end-frame 4914 --allow-early-end --timeout 3600 --log-window 4659 4915 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 3 --cover cover=0, run1280's lobby   (the closing window)
+# Checks: `rngcmp.py` run1280 vs run1281 -> 37 identical; run1281 vs run1281b -> 4915 identical.

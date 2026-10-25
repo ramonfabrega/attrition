@@ -30267,12 +30267,45 @@ splash misses `0/2005` is the next item's; from block 5051 who=1's
 **Not established.** Whether `Group::target_opportunity`'s member arm
 hands its find to the group (parked 3634a).
 
-## 332. Reserved for the next item on the AI track
+## 332. The Bantu at a held Medieval age, Great Sahara: whole on its first try, 4914 of 4914 (item 3624)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4). §326's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
+Nubians (4) against the **Bantu (3)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 2`,
+`ENDING_TECHNOLOGY 2`. Both age settings read back `2` on both `GAME INFO`s (`Pair::assert_lobby`). Captures: run1280
+(a `DUMP_ALL` start) and run1281 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 4914. The walk is seeded from run1280's initial state (3506a). run1280 against run1281 is 37 of 37 frames
+identical. `diff::bantu_medieval_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 3, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the battery
+fields no Bantu since `GreatSaharaBantuTier4`, `(7, 3, 4)`, left it for the AI word (`diff::bantu_word`, another
+difficulty). It is no pinned lobby's: the Ancient-start pair `bantu_ancient_pair` is `(18, 3, 5)`, another map.
+`bantu_medieval_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, frame 4914 of 4914**, by the count and the sequence. **The closing state** (run1281's closing
+block 4915, `bantu_medieval_pair_run1281_s_closing_state`) compares 255 units, none off, torn or unlinked, and no
+building or city field-row (`closing_fields`: none).
+
+**The closing window** (run1281b, blocks 4659..4915 at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+run1280: 256 blocks, 60 keys, the two `gaia:` keys unprinted). run1281's stride prints units every hundredth block
+and no leader, building or city record past the start, so no dump held the last blocks. run1281 against run1281b is
+4915 of 4915 frames identical.
+- The standing families on 4659: `form` on 27 units, `SITE[0..9].reg`, who=0's `aggression[1]` (ours 0 against
+  theirs 1), who=1's groups 64, 65, 66 and 69's `held` and `pool`; groups 67 and 68's on 4701 and 4710.
+- **Eight `dest_angle` rows**, 3567a's shape. All eight are who=1's group 64, on `GUARDORDER`s about `1/67`: the
+  Impi (TypeIndex 95, land) `1/24` (4726), `1/26` and `1/42` (4736), `1/110` (4749), `1/43` (4767), `1/90` (4893)
+  and `1/29` (4895), and the Pikemen (134) `1/55` (4765). No other field of the eight parts, and the closing block
+  agrees. The draw stream is whole, so they name no score (parked 3624a).
+- No unit, building or city field parts in the window beyond those.
+
+**The rubric.** Unit types seen 190 → **191** of 302 (`rubric.py --tables 3`, `census::RUBRIC_UNIT_TYPES_SEEN`):
+**`Impi` (95)**, the booking's line, is fielded and new to the ledger (3102 figure rows on the lockstep count). With
+the pair's pins set open, the rubric reads 190 and no Impi, so the Impi is the one type this pair adds. The pair's
+other sixteen types are in the lockstep set already: Citizen 50, General 54, Spy 58, Caravan 59, Merchant 61,
+Supply Wagon 63, Explorer 71, Pikemen 134, Crossbowmen 172, Heavy Horse Archer 188, Light Cavalry 210, Knight 228,
+Trebuchet 266, The Senator 353, and the sheep and peacock herds.
+
+**What is not established.** When the eight `dest_angle` rows part is seen, but why is not read (3624a). Nothing in
+the window parts a wound, so the closing compare's silence on `hits` (3584a) holds here too.
 
 ## 333. Reserved for the next item on the AI track
 
