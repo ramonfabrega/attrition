@@ -1401,6 +1401,25 @@ impl Sim {
     /// turn.
     fn use_generals(&mut self, who: Player, slot: usize) {
         let members = self.armies[who as usize].list[slot].units.clone();
+        if std::env::var("RON_PROBE_3630").is_ok() {
+            for &u in &members {
+                let hero = self.is_hero_unit(u);
+                let mv = self.is_moving(u);
+                let mana = self.unit_mana(u);
+                let decoys: Vec<usize> = (0..self.units.len())
+                    .filter(|&i| self.units[i].owner == self.units[u].owner && self.units[i].alive() && self.units[i].decoy)
+                    .collect();
+                if hero {
+                    eprintln!(
+                        "PROBE3630 f{} slot {} u {} ty {:?} alive {} hero {} moving {} mana {} burn {} decoys {:?} supply_lvl {} supplier {}",
+                        self.frame, slot, u, self.units[u].ty, self.units[u].alive(), hero, mv, mana,
+                        self.units[u].mana_burn, decoys,
+                        self.supply_upgrade_level(self.units[u].owner),
+                        self.units[u].ty.is_some_and(|t| self.unit_types[t].cols.flag2(crate::ai_load::uflags2::SUPPLY_OR_HERO))
+                    );
+                }
+            }
+        }
         generals_walk(
             self,
             members,
