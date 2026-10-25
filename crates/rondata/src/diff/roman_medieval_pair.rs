@@ -329,6 +329,36 @@ fn roman_medieval_pair_s_road_search_on_3607_holds_node_for_node() {
         built.tick();
         let ours = std::mem::take(&mut built.sim.road_marks);
         let theirs = tr.road_nodes(f);
+        if std::env::var("RON_PROBE_3631").is_ok() {
+            use sim::world::Cell;
+            let w = &built.sim.world;
+            let now = (
+                w.seen2(110, 85),
+                w.owner(Cell::new(55, 42)),
+                w.region_of(Cell::new(55, 42)),
+            );
+            thread_local!(static LAST: std::cell::RefCell<String> = const { std::cell::RefCell::new(String::new()) });
+            let txt = format!("{now:?}");
+            LAST.with(|l| {
+                if *l.borrow() != txt {
+                    eprintln!("PROBE {f}: seen2/owner/region {txt}");
+                    *l.borrow_mut() = txt;
+                }
+            });
+            if f == 3606 {
+                for fy in 80..91 {
+                    let row: Vec<String> = (104..117)
+                        .map(|fx| format!("{:>3}", w.seen2(fx, fy).map_or(-1, i32::from)))
+                        .collect();
+                    eprintln!("PROBE seen2 fy {fy}: {}", row.join(" "));
+                }
+                for (j, m) in theirs.iter().enumerate() {
+                    if (m.to.0 / 384, m.to.1 / 384) == (110, 85) {
+                        eprintln!("PROBE theirs node {j} {m:?} ours {:?}", ours.get(j));
+                    }
+                }
+            }
+        }
         if f == 3607 {
             on_word = (ours.len(), theirs.len());
         }
