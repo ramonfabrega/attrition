@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const EGYPTIAN_CLASSICAL: Pair = Pair {
     name: "EastIndiesEgyptianClassical",
@@ -47,9 +47,14 @@ pub(crate) const EGYPTIAN_CLASSICAL: Pair = Pair {
     // and the Scout `1/126`'s path of 6508 steps east first (`docs/AI.md`
     // section 318.2). On 6718 ours spends 41 draws against theirs' 42,
     // parting at index 23 — ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`,
-    // theirs `Guy::set_anim+0x97a < Guy::move+0x19f`.
-    count: 6718,
-    sequence: 6718,
+    // theirs `Guy::set_anim+0x97a < Guy::move+0x19f`. Item 3598: 6718 →
+    // **6748** (+30), the game's last frame — `fight`'s search budget
+    // (`docs/AI.md` section 318.3): twelve of who=1's units lose the
+    // Citizen `0/12` on 6715, the leader's count passes ten on 6717, and
+    // the Phalanx `1/116`'s `waiting` takes 2 and keeps its `ATTACKORDER`
+    // a frame, as theirs does. The pair is whole.
+    count: 6748,
+    sequence: 6748,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -377,7 +382,13 @@ fn egyptian_classical_pair_run1241b_s_word_frame_is_widened_whole() {
     // block 6718: the Phalanx `1/116` (TypeIndex 133, land) holds ours one
     // order (kind 12, at (6216, 9528)) against theirs' two (an
     // `ATTACKORDER`, kind 10, over its `GUARDORDER`, at (6222, 9523)).
-    pin_eq!(w.firsts.len(), 298, "run1241b baseline");
+    // Item 3598: 298 → **96** — `fight`'s search budget (`docs/AI.md`
+    // section 318.3): the Phalanx's `waiting` reads 2 on 6718 and 1 on 6719
+    // both sides, its attack stands a frame, and every row from 6718 agrees
+    // through the closing block. What stands is the standing families, the
+    // groups' `held` and pools on 6533 and 6543, the five `dest_angle` rows
+    // from 6664 (3580b's shape) and `1/261`'s `form` on 6733.
+    pin_eq!(w.firsts.len(), 96, "run1241b baseline");
 }
 
 /// The long's stride blocks between run1230b's last block 6212 and
@@ -484,4 +495,55 @@ fn egyptian_classical_pair_run1242_walks_the_scout_back() {
     // enemy cell's +4 sends theirs east. After it: **91**, the standing
     // families alone.
     pin_eq!(w.firsts.len(), 91, "run1242 baseline");
+}
+
+/// **The pair's closing state**: run1230's closing dump, block 6749, walked
+/// from run1229's start (item 3598: the pair whole). run1241b's last blocks
+/// run to the same close at full detail, so its widening is the closing
+/// window and no capture was booked for one.
+#[test]
+fn egyptian_classical_pair_run1230_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &EGYPTIAN_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Egyptian Classical pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 6749, "the closing block");
+    // Item 3598, the pair whole: 272 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 272, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
