@@ -172,6 +172,26 @@ fn attrition_kills() {
 }
 
 #[test]
+fn a_dead_tail_is_not_counted_in_the_squad() {
+    // `UnitData::curr_uber_size@0060a760` follows `o_down` only while the
+    // next figure's `flags & 1` holds, and `Unit::close` re-appends a dead
+    // figure at its chain's tail rather than unlinking it: run1254b's
+    // `1/45 → 1/47 → 1/46` after `1/46`'s death on 3225 is a squad of two,
+    // and `1/47` takes eight sixteenths there (item 3612).
+    let mut sim = skirmish(1);
+    for k in 0..3 {
+        let mut u = Unit::new(0, k, centre_of(Cell::new(15, 0)), 100);
+        u.o_up = (k > 0).then(|| k as usize - 1);
+        u.o_down = (k < 2).then(|| k as usize + 1);
+        sim.units.push(u);
+    }
+    assert_eq!(sim.curr_uber_size(1), 3);
+    sim.units[2].health = 0;
+    assert_eq!(sim.curr_uber_size(0), 2);
+    assert_eq!(sim.curr_uber_size(1), 2);
+}
+
+#[test]
 fn a_bigger_squad_bleeds_slower_per_figure() {
     let mut sim = skirmish(1);
     // A squad of four **linked** figures, captain first: the damage counts
