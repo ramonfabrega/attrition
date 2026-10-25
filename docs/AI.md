@@ -29265,7 +29265,7 @@ Tests: `russian_medieval_pair_s_attrition_gives_the_remainder_to_the_last_figure
 its mutation fails nothing across the 62 `first_parting`s, so the sim test holds it. Mutation of the shared helper
 back to `squad_size`: the value test, `first_parting` and both widenings go red.
 
-**The rubric.** The pair is whole, so its lines join the lockstep set: **unit types 186 → 187 of 302**. The
+**The rubric.** The pair is whole, so its lines join the lockstep set: **unit types 187 → 188 of 302** on the tree holding 3617's merge (186 → 187 on this item's base). The
 `Rusiny Lancer` (224, 288 figure rows) is the line this section booked.
 
 **What is not established.** The captain test is ours' `combat.captain == index`, where the original asks vslot
@@ -29273,7 +29273,7 @@ back to `squad_size`: the value test, `first_parting` and both widenings go red.
 directly. The combat site's predicate rests on the sim test and the listing; no capture lands a blow on a squad's
 last figure.
 
-## 327. The Inca at a held Classical age, East Indies: first try 4501 of 6073 (item 3606)
+## 327. The Inca at a held Classical age, East Indies: first try 4501 of 6073, whole at 6073 (items 3606, 3616, 3617)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §318's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
 Nubians (4) against the **Inca (2)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held at
@@ -29406,12 +29406,84 @@ holds. run1269's first block already holds it:
 | 5358 | Archers `1/74` (TypeIndex 171, uid 110) | facing, heading | 638255104 | 635502592 |
 
 The shooter is the Archers `1/74`, who=1, on `CHAR_ATTACK3` and **piece 825**, a piece `sim::launch` has no row
-for. Its round leaves the figure's own square in ours. That is the next item's hypothesis, and nothing here builds
-it. From 5371 who=1's army's orders part. A window from the stride's last block, 5301, would hold the first
-parted frame.
+for. Its round leaves the figure's own square in ours. ~~That is the next item's hypothesis, and nothing here
+builds it.~~ It is, and since item 3617 the Archers loose from piece 825's bays (§327.2). From 5371 who=1's army's
+orders part. A window from the stride's last block, 5301, would hold the first parted frame.
 
-**The lines.** The pair is open, so `rubric.py` still reads unit types seen 186 of 302, and the Inti Clubmen (91)
-enter when the pair closes.
+**The lines.** ~~The pair is open, so `rubric.py` still reads unit types seen 186 of 302, and the Inti Clubmen (91)
+enter when the pair closes.~~ They entered with the pair whole (§327.2).
+
+### 327.2 The Inca Archers' bays: 5357 → 6073, the pair whole (item 3617)
+
+**The direction: theirs acts.** run1270 (blocks 5301..5360 at run1269's detail, from the stride's last block)
+walked from run1259 parts first on **block 5344**, past the standing families. On frame 5343 the Scout `0/0`
+(TypeIndex 69, uid 7) is wounded in theirs and not in ours:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5344 | Scout `0/0` | `damage_frame`; `damage_o` | 5168; 39 | 5343; 58 |
+| 5344 | Scout `0/0` | `hits_left`; `hits:damage`; `damage_frac` | 22; 28; 0 | 18; 32; 5 |
+| 5344 | Scout `0/0` | `orders.len`; `orders_x, _y` | 0; (8424, 7512) | 1; (9432, 6312) |
+| 5345 | Scout `0/0` | `pos` | (8424, 7512) | (8446, 7486) |
+
+Every earlier parting in the window is a standing family (`form`, `held` and pools, `SITE[i].reg`, `aggression[1]`)
+or who=1's `free_peasants`/`gatherers` (3617c), none on a unit near the fight. The wound is the Archers `1/58`'s
+(TypeIndex 171, `ARCHERS`, uid 108, who=1, on an `ATTACKORDER` at `0/0`). Their `AMMO` and ours
+(`RON_DEBUG_AMMO=5325-5345`) put the three rounds at the Scout side by side, each on its first block:
+
+| shooter | first block | figure (`GUY`) | theirs `sx, sy, sz`; `total_time` | ours launch; `total_time` |
+|---|---|---|---|---|
+| `1/58` | 5328 | (7224, 8952, 251), angle 477233152 | (7278, 8882, 414); 17 | (7224, 8952); 18 |
+| `1/73` | 5332 | (7080, 9000, 240), angle 505610240 | (7138, 8933, 403); 19 | (7080, 9000); 20 |
+| `1/74` | 5343 | (7080, 8376, 308), angle 683016192 | (7140, 8347, 472); 15 | (7080, 8376); 16 |
+
+Ours launches every one from the figure's own square, so each flies a frame long. `1/58`'s lands on 5344 in ours
+against 5343 in theirs: the Scout's step behind on 5351, and on 5357 `1/74`'s round ending in theirs while ours is
+still in the air (§327.1's word). All three are the Inca Archers' piece 825, which `sim::launch` had no row for.
+
+**The packet.** `get_position.py entries 825` over all 59 packets on disk finds the piece in one, run1266c's: four
+rows at scale 1.0, node 0 at anims 11, 12 and 13, times 12, 9 and 15, and a `CHAR_DIE` row (anim 4, time 34) no
+round reads. `fit_bay.py` on each attack key's 361-heading sweep finds **piece 473's regions to the point**: 221,
+277 and 124 lattice points, the same centroids. Piece 121's rows also reproduce all 361 headings of each key.
+**The killer, written before the build**: the reading dies if the rows put any of the three dumped launches
+anywhere but its `sx, sy` and `sz − z`. It did not fire. All three are exact in x, y and height (163, 163, 164)
+at their own facings.
+
+**Built** (`crates/sim/src/launch.rs`): three `BAYS` rows for piece 825 at 473's centroids.
+`run1270_s_inca_archers_loose_from_piece_825_s_bays` holds the three dumped launches. Mutation
+(`tools/mutate.py --patch`, the three rows renamed to piece 9825): **held**, cargo 101. Four tests fail:
+`inca_classical_pair_first_parting`, `…_run1260_s_closing_state`, `…_run1269_s_word_frame_is_widened_whole` and
+`…_run1270_s_gap_is_widened_whole`.
+
+**The score: 5357 → 6073 of 6073**, by the count and the sequence, the game's last frame. **The pair is whole.**
+
+**The value diff.** On block 5344, `0/0`'s wound agrees on both sides: `damage_frame` 5343, `damage_o` 58,
+`hits_left` 18, `damage_frac` 5. So do its flight from 5345, `1/58`'s facing on 5346 and `1/74`'s on the word's
+block 5358. Window by window:
+- run1270 goes from 149 keys to **115**: the standing families and 3617c.
+- run1269 goes from 1443 to **118**: those, plus `1/57`'s `dest_angle` on 5444, a row that spends no draw (3617a).
+
+**The closing state** (`inca_classical_pair_run1260_s_closing_state`, run1260's closing block 6074, walked from
+run1259): 196 units compared, none off, torn or unlinked, `Closing fields: none`, and **one extra**, who=1's
+Citizen `1/175` at (26232, 26424). Ours bears it on the last tick beside the city centre `1/2040`. Theirs' closing
+block still holds three Citizens in that centre's queue. On 6073 theirs runs `Cities::capture_city` and the game
+ends. A Citizen's birth spends no draw, so the stream cannot see the difference. It parks as 3617b, with what is
+unread.
+
+**The closing window, run1270b** (blocks 5817..6074 at the long's detail with `LEADERS=9`):
+`inca_classical_pair_run1270b_s_closing_frame_is_widened_whole`, 257 blocks, **95 keys**. Those are the standing
+families and who=1's `free_peasants`/`gatherers`, which part on 5978 (5 against 6, 35 against 34) after agreeing
+from 5817 (3617c).
+
+**The lines.** `rubric.py --tables 3` on the tree holding 3615's merge reads unit types seen **186 → 187 of 302**.
+The new one is the Inti Clubmen (91), the line this section booked (`census::RUBRIC_UNIT_TYPES_SEEN`).
+
+**What is not established.**
+- Why theirs does not bear `1/2040`'s Citizen on the last frame (3617b).
+- The writers of `1/57`'s `dest_angle` (3617a) and of who=1's `free_peasants`/`gatherers` (3617c).
+
+**Diff-backed**: piece 825's three launches (run1270's `AMMO`), the pair's draw stream to 6073, and the closing
+units' fields. **Reading alone**: nothing here.
 
 ## 328. Reserved for the next item on the AI track
 

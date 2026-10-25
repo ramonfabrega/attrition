@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const INCA_CLASSICAL: Pair = Pair {
     name: "EastIndiesIncaClassical",
@@ -39,9 +39,11 @@ pub(crate) const INCA_CLASSICAL: Pair = Pair {
     // 4501 → 5357, the Dromon's rounds leaving from piece 274's bays
     // (`sim::launch`); on 5357 ours spends 149 draws against theirs' 151,
     // parting at index 146 — ours `Farms::inc_time+0x1ae`, theirs
-    // `Ammo::do_damage+0xc59`.
-    count: 5357,
-    sequence: 5357,
+    // `Ammo::do_damage+0xc59`. Item 3617: 5357 → 6073, the game's last
+    // frame — who=1's Archers' rounds leaving from piece 825's bays
+    // (`sim::launch`); the pair is whole.
+    count: 6073,
+    sequence: 6073,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -310,8 +312,71 @@ fn inca_classical_pair_run1269_s_word_frame_is_widened_whole() {
     // own (7080, 8376) and flies 16 (`RON_DEBUG_AMMO`). On block 5357
     // `0/0`'s `g.angle[1]` parts (482541568 against 466354176), and on the
     // word's block 5358 `1/74`'s facing (638255104 against 635502592).
-    // From 5371 who=1's army's orders part.
-    pin_eq!(w.firsts.len(), 1443, "run1269 baseline");
+    // From 5371 who=1's army's orders part. Item 3617, with piece 825's
+    // bays: 118 keys, the standing families, who=1's `free_peasants` 4
+    // against 3 and `gatherers` 28 against 29 (standing from run1270's
+    // 5301, parked as 3617c), and `1/57`'s `dest_angle` on 5444 (554893312 against
+    // 1777795072), parked as 3617a.
+    pin_eq!(w.firsts.len(), 118, "run1269 baseline");
+}
+
+/// run1270: the gap 5302..5350's window, blocks 5301..5360 at run1269's
+/// detail, from the stride's last block (item 3617).
+pub(crate) const RUN1270: &str = "gamelog-run1270-eastindies-inca-classical-window-5301-5360.txt";
+
+/// The window: block 5301 through 5360; the word 5357's own block is 5358.
+pub(crate) const WIDENING_INCA_CLASSICAL_GAP_5357: (i64, i64) = (5301, 5360);
+
+/// **The gap before the word 5357**: run1270 walked from run1259's start
+/// with the recorder on (item 3617).
+pub(crate) fn inca_classical_gap_5357_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA_CLASSICAL.start],
+        true,
+        INCA_CLASSICAL.long,
+        "run1270",
+        &[(RUN1270, WIDENING_INCA_CLASSICAL_GAP_5357.0)],
+        WIDENING_INCA_CLASSICAL_GAP_5357,
+        1,
+        &[5358],
+        true,
+    )
+}
+
+#[test]
+fn inca_classical_pair_run1270_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_classical_gap_5357_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 59, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3617, before piece 825's bays: 149 keys. Past the standing
+    // families and who=1's `free_peasants`/`gatherers` (4/28 against 3/29
+    // from 5301), the Scout `0/0`'s wound on block 5344 — `damage_frame`
+    // 5168 against 5343, `hits_left` 22 against 18, `damage_o` 39 against
+    // 58 — struck by the Archers `1/58`'s arrow, which left the figure's
+    // own (7224, 8952) and flew 18 frames in ours, and (7278, 8882) and 17
+    // in theirs; then its flight from 5345. With the bays: 115, the
+    // standing families and `free_peasants`/`gatherers` alone (3617c).
+    pin_eq!(w.firsts.len(), 115, "run1270 baseline");
 }
 
 /// **The long's stride between the two windows** (item 3616): run1260's
@@ -357,4 +422,124 @@ fn inca_classical_pair_the_long_s_stride_walks_back_from_5357() {
     // dump holds: run1269's first block, 5351, already has the Scout `0/0`
     // a step behind.
     pin_eq!(w.firsts.len(), 178, "the stride's baseline");
+}
+
+/// **The closing state** (item 3617): run1260's closing block 6074, the
+/// whole map's units, walked from run1259's start.
+#[test]
+fn inca_classical_pair_run1260_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &INCA_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Inca Classical pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    // The extras, typed (item 370): nothing on disk says what they are.
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    // Item 3617, the pair whole: 196 units, none off, torn or unlinked,
+    // `Closing fields: none`, and one extra — who=1's Citizen `1/175` at
+    // (26232, 26424), born in ours on the game's last tick beside the city
+    // centre `1/2040`, whose queue still holds three Citizens in theirs'
+    // closing block. On 6073 theirs runs `Cities::capture_city` and the
+    // game ends; a Citizen's birth spends no draw, so the stream cannot see
+    // it (parked 3617b).
+    pin_eq!(e.frame, 6074, "the closing block");
+    pin_eq!(e.compared, 196, "units compared");
+    pin_eq!(e.counts(), [0, 0, 1, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![(1, 175)], "the closing extras");
+}
+
+/// run1270b: the closing window, blocks 5817..6074 at the long's detail
+/// with `LEADERS=9` (item 3617) — run1260 prints units every hundredth
+/// block and no leader, building or city record past the start, so no
+/// dump held the last blocks.
+pub(crate) const RUN1270B: &str = "gamelog-run1270b-eastindies-inca-classical-window-5817-6074.txt";
+
+/// The closing window: block 5817 through the closing block 6074.
+pub(crate) const WINDOW_INCA_CLASSICAL_CLOSING: (i64, i64) = (5817, 6074);
+
+/// **The closing window**: run1270b walked from run1259's start with the
+/// recorder on (item 3617).
+pub(crate) fn inca_classical_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INCA_CLASSICAL.start],
+        true,
+        INCA_CLASSICAL.long,
+        "run1270b",
+        &[(RUN1270B, WINDOW_INCA_CLASSICAL_CLOSING.0)],
+        WINDOW_INCA_CLASSICAL_CLOSING,
+        1,
+        &[6074],
+        true,
+    )
+}
+
+#[test]
+fn inca_classical_pair_run1270b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = inca_classical_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3617, the pair whole: 95 keys, the standing families (`form`,
+    // `build:extra`, who=1's groups' `held` and pools, `SITE[i].reg`,
+    // who=0's `aggression[1]`) and who=1's `free_peasants` 5 against 6 and
+    // `gatherers` 35 against 34 from 5978 (3617c), through the closing
+    // block 6074.
+    pin_eq!(w.firsts.len(), 95, "run1270b baseline");
 }
