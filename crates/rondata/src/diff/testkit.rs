@@ -7295,6 +7295,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "maya_ancient_pair_run1234b_s_word_frame_is_widened_whole",
         3,
     ),
+    // Item 3599: the Maya Ancient pair's walk to the word 4429 — the
+    // Balamob Slingers' stones leave from piece 38's bays — reads 1.
+    ("maya_ancient_pair_first_parting", 1),
     // Item 3585: run1230b's window over 5956..6212, the Egyptian
     // Classical pair's word 5961, reads 3 inexact corners.
     (
@@ -10145,12 +10148,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Maya from an Ancient start** (item 3587): East Indies — 4182
     // first try, widened on run1234b over 4177..4433 (block 4183); item
     // 3597's 4324 sits in the same window (block 4325), its state apart
-    // from block 4311.
+    // from block 4311; item 3599's 4429 too (block 4430).
     (
         "MAYA_ANCIENT_PAIR_WORD",
         crate::diff::maya_ancient_pair::MAYA_ANCIENT_PAIR_WORD,
         Some("maya_ancient_pair_run1234b_s_word_frame_is_widened_whole"),
-        3597,
+        3599,
         Some(crate::diff::maya_ancient_pair::WIDENING_MAYA_ANCIENT_FRAME_4182),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —

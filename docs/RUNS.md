@@ -27058,3 +27058,27 @@ SHA-256 `7fa633733fa92b9f545b262e22f7b0ebfe318969951e01f391a1e67cfa648581`.
 **What it holds**: `german_ancient_pair_run1244b_s_closing_frame_is_widened_whole` (256 blocks, 55 keys): the
 standing families on 5059, five rows of who=1's `SITE` ranks and one value there that agree again by 5313, and
 groups 71's and 73's pools. No unit, building or city field parts.
+## run1247 — the Maya from an Ancient start, East Indies: a packet at logger frame 4306, the Balamob Slingers' stones (2026-10-24, item 3599, `att-3599`)
+
+`docs/AI.md` §320.2. **What the disk could not answer**: where the Balamob Slingers `1/32` and `1/33` throw their
+stones at the Citizen `0/10` from on 4305, how long they fly, and piece 38's `AttachPos` rows. run1234b prints
+`0/10`'s `damage_frame` 4310 on block 4311, and no capture of the lobby wrote an `AMMO` record.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1247 --map 18 --end-frame 4308 --timeout 3600
+--log-window 4305 4307 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 1 --cover cover=0 --profile
+STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=4306 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- **The first take never launched**: the plan path was passed without its C string quotes, and the tracer build
+  stopped at `live_frame_snapshot.h` (`SNAP_LOGGER` undeclared). No game ran; the staging is kept at
+  `~/ron-golden/run1247-badbuild`. The same line with the quotes:
+- Pool lane 1, seed 12345. Launched 20:07:26, exited 20:07:56 (29.5 s). `success`, 4309 frames. `rngcmp.py`
+  against run1234: 4309 frames in common, 0 differing. `df -g ~` read 121 GiB free before it. Not filed: the packet
+  is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1247/map-18/frame-snapshot.bin`, 794,716,876 bytes,
+SHA-256 `290c2f7b2d8d136799b3b9efe008ce1a95ea43d34cf505a719c9c92d1c38d9fb`.
+
+**What it holds**: the `AMMO` records on block 4306, `1/32 -> 0/10` from (5950, 8535, 362) with `total_time` 6 and
+`1/33 -> 0/10` from (5963, 8757, 371) with `total_time` 7 (ours threw from the units' own squares in 7 and 8).
+`tools/recomp/get_position.py entries 38` reads piece 38's three `AttachPos` rows, and each key's sweep is fitted
+by one `launch::Bay`. It also holds piece 824's four rows: the Maya Bowmen, `BOWMEN-AMERICAN`.
