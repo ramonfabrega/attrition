@@ -218,6 +218,7 @@ impl crate::Sim {
     /// - `LAB_005fdb9e`'s first arm, `waiting < 5 && retargets > 10` (the
     ///   search budget, item 3598): 2 added to `waiting` and a return,
     ///   with no search, no count, and — `param_5` set — no frozen mark.
+    ///
     /// SEAM: `unit_masks |= 0x11000` before the strike, as for every
     /// strike here.
     pub(crate) fn cavarch_fight_body(&mut self, u: usize, frame: i64) {
