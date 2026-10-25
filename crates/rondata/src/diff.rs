@@ -65,6 +65,8 @@ mod dutch_word;
 #[cfg(test)]
 mod egyptian_classical_pair;
 #[cfg(test)]
+mod egyptian_gunpowder_pair;
+#[cfg(test)]
 mod egyptian_word;
 mod endpoint;
 mod floors;

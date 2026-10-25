@@ -435,7 +435,8 @@ fn run667_s_closing_frame_is_widened_whole() {
     // harness replays no quit. The draws agree on every frame.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 190 -> 166.
-    pin_eq!(w.firsts.len(), 166, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
+    // Item 3603: piece 48's bays (the Arquebusiers' art, run1254c) moved this pin: 166 -> 164.
+    pin_eq!(w.firsts.len(), 164, "initial run667 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173). Item 1960: −3, a guarding follower's idle search takes the squad head (`docs/GOLDEN.md` §71).
 }
 
 #[test]
@@ -466,7 +467,8 @@ fn run662_s_word_frame_is_widened_whole() {
     // 5 against 6 and `1/96`'s `form` −1 against 0 on 17331.
     // Item 1581: three fewer — the supply wagon's `myhits`, `hits_left` and `hits:myhits` agree (`docs/AI.md` §157).
     // Item 3369: an unpacked merchant's "over time" piece (`sim::anim::stall_piece`) moved this pin: 108 -> 84.
-    pin_eq!(w.firsts.len(), 84, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
+    // Item 3603: piece 48's bays (the Arquebusiers' art, run1254c) moved this pin: 84 -> 82.
+    pin_eq!(w.firsts.len(), 82, "initial run662 baseline"); // Item 1620: −2, `treaties[0]`/`[1]` compared as the word (`docs/AI.md` §173).
 }
 
 /// run661: the successor after the guard's leg and the fire on the move,
@@ -1938,10 +1940,12 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // `rolling` and bank (`docs/AI.md` §228); the rows unmoved. Item
             // 3347's release nodes (pieces 122, 138, 139): 74 → 71 against
             // theirs' 70, and 442 → 337 rows. Item 3359, the Dragoon's pivot
-            // rows (piece 139): 337 → 298.
+            // rows (piece 139): 337 → 298. Item 3603, piece 48's bays (the
+            // Arquebusiers' art, run1254c): 71 → 70 against theirs' 70, and
+            // 298 → 40 rows.
             assert_eq!(
                 (ammo_counts, ammo_differences.len() - before.len()),
-                ((70, 71, 1540), 298),
+                ((70, 70, 1540), 40),
                 "the rounds past the word"
             );
             assert_eq!(

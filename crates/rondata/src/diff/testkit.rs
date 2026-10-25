@@ -10213,6 +10213,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3610,
         Some(crate::diff::japanese_ancient_pair::WINDOW_JAPANESE_ANCIENT_CLOSING),
     ),
+    // **The Egyptians at a held Gunpowder age** (item 3603): Great Sahara
+    // — first try 3118 of 4454; piece 48's bays (run1254c's packet) move
+    // it to 3238 in the same item; widened on run1254b over 3113..3369
+    // (the word's block 3239), the state apart from block 3225.
+    (
+        "EGYPTIAN_GUNPOWDER_PAIR_WORD",
+        crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER_PAIR_WORD,
+        Some("egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole"),
+        3603,
+        Some(crate::diff::egyptian_gunpowder_pair::WIDENING_EGYPTIAN_GUNPOWDER_FRAME_3118),
+    ),
     // **The Aztecs from an Ancient start** (item 3604): East Indies —
     // first try 8716 of 9258; widened on run1256b over 8710..8966 (the
     // word's block 8717).
@@ -12027,6 +12038,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 6_126,
         endpoint: Some("japanese_ancient_pair_run1252_s_closing_state"),
         window: Some("japanese_ancient_closing_window"),
+    },
+    // The Egyptians at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
+    // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3603): first try 3118 of
+    // a game that ends itself on 4454, moved to 3238 by piece 48's bays,
+    // widened on run1254b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaEgyptianGunpowder",
+        named: "Great Sahara (Egyptians, Gunpowder)",
+        word: crate::diff::egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER_PAIR_WORD,
+        length: 4_454,
+        endpoint: None,
+        window: Some("egyptian_gunpowder_frame_3118_window"),
     },
     // The Aztecs from an Ancient start (`STARTING_TECHNOLOGY` 0, read back
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3604): first try 8716 of a

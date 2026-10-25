@@ -10778,13 +10778,14 @@ where 158 is the age-1 line, so it was reachable. Why the AI never took it was n
 158 lands it in the ledger. **Score**: none — the rubric counts lockstep games only, and the pair is open at 4934
 (`docs/AI.md` §323).
 
-## Parked by the next landing, slot RD — reserved
+## Parked by item 3603, 2026-10-25 — the Egyptians at a held Gunpowder age
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3603a — run587's last unmeasured round.** With piece 48's bays in
+  (`docs/AI.md` §324), run587's projectile window (`second::tests::
+  run587_s_projectiles_are_compared_whole`) keeps one round apart: `1/80`'s
+  of 17693, `sx, sy` ours (6840, 8904) against theirs (6815, 8812), `sz` 246
+  against 362, with `ex`, `angle` and `v1z` after it. Its piece is not read.
+  Names no score: the window is a closed word's, pinned at 6 rows.
 
 ## Parked by item 3604, 2026-10-25 — the Aztecs from an Ancient start, East Indies: first try 8716
 
