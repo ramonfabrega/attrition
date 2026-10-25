@@ -42,8 +42,7 @@ pub(crate) const INCA_CLASSICAL: Pair = Pair {
 
 /// The pair's word as the handoff's line carries it: the lower of the two
 /// partings.
-pub(crate) const INCA_CLASSICAL_PAIR_WORD: i64 = if INCA_CLASSICAL.count < INCA_CLASSICAL.sequence
-{
+pub(crate) const INCA_CLASSICAL_PAIR_WORD: i64 = if INCA_CLASSICAL.count < INCA_CLASSICAL.sequence {
     INCA_CLASSICAL.count
 } else {
     INCA_CLASSICAL.sequence
