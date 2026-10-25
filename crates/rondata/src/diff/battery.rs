@@ -278,6 +278,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // third pair's `(14, 10, 5)` and `(18, 10, 5)`, other maps; no battery
     // game fields the French.
     (7, 10, 5),
+    // The Dutch Medieval pair's (item 3619): the Dutch at a held Medieval
+    // age, Difficulty 5, East Indies — not the AI words
+    // `EastIndiesDutchTier4`, `(18, 22, 4)`, another difficulty, nor
+    // `GreatSaharaDutchTier3`, `(7, 22, 3)`; the held-out
+    // `GreatLakesDutchTier4` is `(14, 22, 4)`, another map.
+    (18, 22, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

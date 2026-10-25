@@ -29547,12 +29547,85 @@ this age in 6106 frames. `unit types seen` stays 187 of 302.
 no draw apart is not established. It could be one blow landed only in ours,
 or a heal only theirs made. No dump between 5501 and 5601 prints the unit.
 
-## 329. Reserved for the next item on the AI track
+## 329. The Dutch at a held Medieval age, East Indies: first try 7063 of 7095 (item 3619)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** East Indies (`MAP_STYLE 18`), human Nubians (4) against the Dutch (22) at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, the age held by `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`, which both takes' `GAME
+INFO` read back. It is `lakota_medieval_pair`'s lobby with the nation moved. Its triple `(18, 22, 5)` is new:
+- the Dutch AI words are `EastIndiesDutchTier4` `(18, 22, 4)`, another difficulty, and `GreatSaharaDutchTier3`
+  `(7, 22, 3)`, another map;
+- the held-out `GreatLakesDutchTier4` is `(14, 22, 4)`, another map, and the battery's only Dutch game.
+
+Captures: run1272 (the `DUMP_ALL` start), run1273 (the `cover=0` long, `end:UNITS=3,GUYS=2` on a stride of 100),
+which **ends itself on 7095**, and run1273b (the word's window, blocks 7057..7096 with `LEADERS=9` and `AMMO=5`).
+`rngcmp.py`: run1272 against run1273, 37 frames identical; run1273 against run1273b, 7096 identical.
+`diff::dutch_medieval_pair` holds it.
+
+**First try: 7063 of 7095**, by the count and the sequence, walked from run1272's initial state (3506a).
+
+**The draws on 7063.** Theirs spends 19 draws (14 game-stream, 5 `Surf`) against ours' 12 game-stream, and the
+first parts at index 0:
+- theirs draws first `Unit::do_non_flat_gather+0x54b < Unit::do_gather+0xea0 < Unit::do_job+0x67`, seed
+  `b4050c03`;
+- after it both sides spend the same twelve by site: two `Guy::set_anim < Unit::set_anim+0x56 <
+  Unit::move_step+0x823` (ours `1/218`, `1/253`), one `< Unit::do_idle+0x7d` (`1/279`), three `< Guy::inc_time+0x271`
+  (`1/168`, `1/176`, `1/220`), six `Farms::inc_time+0x1ae`;
+- theirs then spends a seventh farm draw at `Farms::inc_time+0x1de`, which ours does not.
+
+**Theirs acts**, twice. The gather draw is the Citizen `1/146`'s. The farm's `+0x1de` site is not yet named.
+
+**The unit.** `1/146` is a Citizen (TypeIndex 50, land, uid 468) on a `GATHERORDER` at the camp `1/2074` (build
+type 419, `non_flat_gather=1`), standing at (33432, 34920). Its `collide` counter has read 6 since frame 7054 on both
+sides, against the partner `1/265`. Ours' `RON_DEBUG_UNIT=1/146@7058-7064` and run1273b's `unitat.py`:
+
+| frame | field | ours | theirs |
+|---|---|---|---|
+| 7061 | gather tile, `wait`, `goto_build`, `dist_mod` | none, −1, 1, 10 | (as ours) |
+| 7062 | gather tile, `wait`, `goto_build`, `dist_mod` | (173, 183), 1000000, 0, 10 | (173, 183), 1000000, 0, 10 |
+| 7063 | orders | `MoveTo` (33384, 35064) over the gather, 2 | the gather alone: tile −1, `wait` −1, `goto_build` 1, `dist_mod` 9 |
+| 7064 | the camp `1/2074`'s tile list, entries 44 and 45 | (172, 182), (173, 183) | (173, 183), (172, 182) |
+| 7064 | the order's tile; `pos`; `collide` | (173, 183); (33411, 34906); 0 | (172, 182); (33432, 34920); 6 |
+
+So on 7063 the Citizen at its tile takes `do_non_flat_gather`'s stand-at-tile arm on both sides
+(`orders.rs`, the `find_nearby_spot` call after `SITE_STAND_TILE`):
+- **ours** finds a spot (33384, 35064) away from where it stands and walks to it;
+- **theirs** takes the no-spot arm: the tile dropped, `goto_build` set, `dist_mod` one less. It then picks a new
+  tile under the `+0x54b` draw, and the list's two entries swap.
+
+**Hypothesis** for the next item, not built here: `find_nearby_spot`'s answer for a unit whose `collide` stands at
+6 against `1/265`. COLLISION §15 parted on the same draw site at Great Lakes' 14650, a gatherer near its point
+giving the walk up.
+
+**The value diff.** run1273b walked from run1272: 39 blocks, **306 keys**, the two `gaia:` keys unprinted, 9
+inexact ground corners (`GROUND_INEXACT`).
+- Block 7057 holds the standing families:
+  - every unit's `form`;
+  - who=1's groups' `held` and pools;
+  - who=0's `SITE[i].reg`, 65 against 0, and `aggression[1]`.
+- Two standing value families run through the stride too (below).
+- On the word's block 7064 the Citizen `1/146`'s rows part, in the table above. Later blocks part on its order and
+  path, then on `1/13`'s move angle on 7077.
+
+**The walk back.** The long's stride over 101..7001
+(`dutch_medieval_pair_the_long_s_stride_walks_back_from_7063`) reads 70 blocks and 306 keys, 9 inexact corners:
+- `form` 111 and `build:extra` 98, which the stride does not print;
+- who=1's groups' `held` and pools;
+- **four of who=1's Merchant Fleets** (TypeIndex 318, sea: `1/142` from 4301, then `1/247`, `1/156`, `1/271`)
+  hold 192 hits in theirs against ours' 172 (`hits_left`, `myhits`);
+- **seven garrisoned Scholars** (52; `1/193` from 5701, `inside_up` 2008) hold `g.angle[0]` 0 in theirs against
+  ours' 1431655765.
+
+Neither family spends a draw, and no unit's position or orders part through 7001. Both are parked (3619a,
+3619b).
+
+**The rubric.** On the pair's three dumps `rubric.py --tables 3 --dumps` sees 25 types. One is new to the lockstep
+ledger: **the `Brig` (331, sea), ×618**, the booking's line. The AI built it. The pair is open, so
+`census::RUBRIC_UNIT_TYPES_SEEN` stays 188.
+
+**What is not established.**
+- Why `find_nearby_spot` answers a spot in ours and none in theirs.
+- Which farm spends theirs' `+0x1de` draw.
+- The Merchant Fleet's 20 hits: no reading has been made.
 
 ## 330. Reserved for the next item on the AI track
 

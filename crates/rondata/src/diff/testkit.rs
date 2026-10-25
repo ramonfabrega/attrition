@@ -7289,6 +7289,19 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3619: the Dutch Medieval pair's first try, walked from run1272
+    // along run1273, reads 9 inexact corners.
+    ("dutch_medieval_pair_first_parting", 9),
+    // And run1273's stride walked back from it, 101..7001: 9.
+    (
+        "dutch_medieval_pair_the_long_s_stride_walks_back_from_7063",
+        9,
+    ),
+    // And run1273b, the word 7063's window, 7057..7096: 9.
+    (
+        "dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole",
+        9,
+    ),
     // Item 3602: the Japanese Ancient pair's first try, walked from
     // run1251 along run1252, reads 7 inexact corners; item 3610's walk,
     // past 4934 with piece 1176's bays, reads 43.
@@ -10279,6 +10292,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3607,
         Some(crate::diff::french_classical_pair::WIDENING_FRENCH_CLASSICAL_CLOSING),
     ),
+    // **The Dutch at a held Medieval age** (item 3619): East Indies —
+    // first try 7063 of 7095; widened on run1273b over 7057..7096 (the
+    // word's block 7064 through the closing block).
+    (
+        "DUTCH_MEDIEVAL_PAIR_WORD",
+        crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL_PAIR_WORD,
+        Some("dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole"),
+        3619,
+        Some(crate::diff::dutch_medieval_pair::WIDENING_DUTCH_MEDIEVAL_FRAME_7063),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12154,6 +12177,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 6_106,
         endpoint: Some("french_classical_pair_run1262_s_closing_state"),
         window: Some("french_classical_closing_window"),
+    },
+    // The Dutch at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), East Indies (item 3619): first try 7063 of a
+    // game that ends itself on 7095, widened on run1273b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesDutchMedieval",
+        named: "East Indies (Dutch, Medieval)",
+        word: crate::diff::dutch_medieval_pair::DUTCH_MEDIEVAL_PAIR_WORD,
+        length: 7_095,
+        endpoint: None,
+        window: Some("dutch_medieval_frame_7063_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
