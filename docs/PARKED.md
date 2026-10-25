@@ -10797,13 +10797,11 @@ Atl-Atls, in the gap 8602..8700 (`docs/AI.md` §325). `Atl-Atls` (85) is fielded
 Nothing parks. The pair's first parting books: the Supply Wagon born in the gap 3102..3142 takes the Peltasts'
 freed `1/43` in ours and the fresh `1/132` in theirs (`docs/AI.md` §326). `Rusiny Lancer` (224) is fielded.
 
-## Parked by the next landing, slot RG — reserved
+## Parked by item 3606, 2026-10-25 — the Inca at a held Classical age, East Indies: first try 4501
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting books: the Dromon `1/24`'s round lands on the Farm `0/2004` a frame early
+in theirs, 12 frames from (2808, 6381, 52) against ours' 13 from (2808, 6568), launched in the gap 4402..4494
+(`docs/AI.md` §327). `Inti Clubmen` (91) is fielded.
 
 ## Parked by the next landing, slot RH — reserved
 
