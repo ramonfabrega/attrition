@@ -29835,12 +29835,72 @@ road-node parting logs ours' map around the tile over the whole game
 first). Not established: why the road map differs. The rubric is unmoved
 while the pair is open.
 
-## 331. Reserved for the next item on the AI track
+## 331. The Mongols at a held Gunpowder age, East Indies: first try 1973 of 5399 (item 3623)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Dutch
+Medieval pair's lobby (§329) with the nation and the age moved: East Indies,
+`MAP_STYLE 18`, human Nubians (4) against the **Mongols (17)** at Difficulty
+5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 3` and
+`ENDING_TECHNOLOGY 3`. `crates/rondata/src/diff/mongol_gunpowder_pair.rs`
+pins it. Its triple `(18, 17, 5)` is minted in `battery::SCORED_LOBBIES`:
+the battery fields no Mongols, the successor pair `EastIndiesMongolAllTech`
+is `(18, 17, 3)` (another difficulty), and `GreatSaharaMongolAllTech`
+`(7, 17, 3)` and the Classical pair `(7, 17, 5)` are another map.
+
+**The captures.** run1278 is the `DUMP_ALL` start; run1279 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 5399**; run1279b the word's window, blocks 1968..2224 with `LEADERS=9`
+and `AMMO=5`. `GAME INFO` reads back `STARTING_TECHNOLOGY 3` and
+`ENDING_TECHNOLOGY 3` on both pair takes (`Pair::assert_lobby`); run1278
+against run1279 is 37 of 37 frames identical, run1279 against run1279b
+2225 of 2225. The walk is seeded from run1278's initial state (3506a).
+
+**First try: frame 1973 of 5399**, by the count and the sequence. On 1973
+ours spends 7 game-stream draws against theirs' 5, parting at index 0
+(ours `RON_DEBUG_SITES=1973-1973`, theirs `report.py … draws 1973`):
+
+- ours: **`1/17`'s two `Guy::set_anim+0x97a < Unit::do_idle+0x7d`**, then
+  the five theirs spends;
+- theirs: two `Guy::init_real+0x52 < Unit::init+0xb97 <
+  Objects::init_unit+0xbd` (a birth, seeds `30853ebf`, `eada3d12`), two
+  `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`1/44`, `9/8`) and one
+  `Farms::inc_time+0x1ae`.
+
+**Ours acts.** `1/17` is **The Monarch** (TypeIndex 354, land, uid 37),
+The Despot (352) on every stride block through 1901.
+
+**The value diff** (run1279b, walked from run1278: 256 blocks, **1038
+keys**, the two `gaia:` keys unprinted, no inexact ground corner). Block
+1968 carries the standing families (every unit's `form`, `SITE[i].reg`, both
+leaders' `aggression`, who=1's groups' `held` and pools, the make queue's
+costs) and the Monarch:
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 1968 | `1/17` (TI 354) | `orders.len`, `order` | 0 | 1, `CASTORDER` spell 634 (`0x27a`, Create Decoy), `paid` 1, at (34008, 37921) |
+| 1968 | `1/17` | `spell_time` | 0 | 22 |
+| 1968 | `1/17` | `mana_burn` | 745 | 1745 |
+| 1968 | `1/17` | `idle` | 14 | 0 |
+
+Theirs' Monarch is casting Create Decoy on the window's first block, and
+ours' stands idle, so ours' idle figure clock rolls on 1973 where theirs'
+casting figure does not. The cast began in the gap 1902..1967 that no dump
+prints. The stride (`mongol_gunpowder_pair_the_long_s_stride_walks_back_from_1973`,
+101..1901: 19 blocks, 81 keys) parts on the standing families alone
+(`build:extra`, the groups' `held` and pools); the Despot's Create Decoy cast
+of 1401 (`CASTORDER`, spell 634) agrees on both sides. Nothing parts on the
+word's block 1974. The first rows past it are who=1's `leader:attack` 210
+against 218 on 1976 and the make list from 1983.
+
+Why ours' Monarch does not cast in 1902..1967 is the next item's hypothesis
+(`Sim::think_hero`, `docs/AI.md` §255's Create Decoy row). The `mana_burn`
+1000 apart is the cast's price, so it is the cast's effect and not its cause.
+I built nothing.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **189 of 302**,
+unmoved: the pair is open. Its own dumps see 24 types, and two are new to
+the ledger: **`Horde` (203), the booking's line, fielded** (×4256), and the
+Bomb Vessel (346, sea, ×754). Both enter when the pair closes.
 
 ## 332. Reserved for the next item on the AI track
 

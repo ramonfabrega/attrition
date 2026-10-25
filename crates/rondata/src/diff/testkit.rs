@@ -10317,6 +10317,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3622,
         Some(crate::diff::roman_medieval_pair::WIDENING_ROMAN_MEDIEVAL_FRAME_3607),
     ),
+    // **The Mongols at a held Gunpowder age** (item 3623): East Indies —
+    // first try 1973 of 5399 by the count and the sequence, widened on
+    // run1279b over 1968..2224 (the word's block 1974).
+    (
+        "MONGOL_GUNPOWDER_PAIR_WORD",
+        crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER_PAIR_WORD,
+        Some("mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole"),
+        3623,
+        Some(crate::diff::mongol_gunpowder_pair::WIDENING_MONGOL_GUNPOWDER_FRAME_1973),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12218,6 +12228,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_979,
         endpoint: None,
         window: Some("roman_medieval_frame_3607_window"),
+    },
+    // The Mongols at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
+    // `ENDING_TECHNOLOGY` 3), East Indies (item 3623): first try 1973 of a
+    // game that ends itself on 5399, widened on run1279b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesMongolGunpowder",
+        named: "East Indies (Mongols, Gunpowder)",
+        word: crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER_PAIR_WORD,
+        length: 5_399,
+        endpoint: None,
+        window: Some("mongol_gunpowder_frame_1973_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

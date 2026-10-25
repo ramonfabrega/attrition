@@ -28007,3 +28007,67 @@ SHA-256 `c7a8c8dd0d8a2864380fb29b1f6219dbc7dc3e63422ec36193edf75f3feb7b96`.
 **What it holds**: `roman_medieval_pair_run1277_s_word_frame_is_widened_whole`, the word 3607 (block 3608). Nothing
 parts on blocks 3604..3614. The Caravan `1/49`'s caravan-road A* spends three draws fewer in ours on 3607, and its
 move first parts on block 3615.
+## run1278 — the Mongols at a held Gunpowder age, East Indies: the `DUMP_ALL` start (2026-10-25, item 3623, `att-3623`)
+
+`docs/AI.md` §331. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1278 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 17 --profile STARTING_TECHNOLOGY=3 --profile
+ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 11:41:45, exited 11:42:08 (23.0 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 17, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3`. Filed with `filerun.py run1278
+  eastindies-mongol-gunpowder-start --map 18`. `df -g ~` read 145 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1278-eastindies-mongol-gunpowder-start.txt`, 153,437,540 bytes,
+SHA-256 `5451ee273ae87a58886a3ec198b45cac5f3bdc1fd653c754de4175d3d8fdf8e3`.
+
+Archive `rontrace-run1278.log`, 9,992,672 bytes,
+SHA-256 `43d11c587e748c422677702aa95006367553f103a8692ac4acfe724b19825704`.
+
+**What it holds**: the start of `mongol_gunpowder_pair::MONGOL_GUNPOWDER`, and the walk's initial state.
+
+## run1279 — the Mongols at a held Gunpowder age, East Indies: the draw stream to the game's end (2026-10-25, item 3623, `att-3623`)
+
+`docs/AI.md` §331. run1273's line with `--ai-tribe 17` and run1278's lobby: `--map 18 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 17 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1278. Launched 11:41:49, exited 11:42:17 (28.1 s launch to exit). `success`. **The game
+  ended itself on 5399** (closing block 5400, `ended_early`). `GAME INFO` reads back as run1278's. `rngcmp.py`
+  against run1278: 37 frames identical. Filed with `filerun.py run1279 eastindies-mongol-gunpowder-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1279-eastindies-mongol-gunpowder-trace.txt`, 41,824,837 bytes,
+SHA-256 `df7298fe7a257754155f1cdd72598b243dd9259dfef617a31dcb0b8987bcfd4c`.
+
+Archive `rontrace-run1279.log`, 205,118,912 bytes,
+SHA-256 `a2c472f3691a392221d5450bae51253f6d433598ad63280376e7545c4f4e2caf`.
+
+**What it holds**: the pair's first try. `mongol_gunpowder_pair_first_parting` walks it from run1278: **frame 1973
+of 5399** by the count and the sequence. Ours spends 7 game-stream draws against theirs' 5, parting at index 0: ours
+spends the Monarch `1/17`'s two `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::init_real+0x52` first.
+Its stride, walked over 101..1901, parts on the standing families alone.
+
+## run1279b — the Mongols at a held Gunpowder age, East Indies: the word 1973's window, blocks 1968..2224 (2026-10-25, item 3623, `att-3623`)
+
+`docs/AI.md` §331. **What the disk could not answer**: every record on the word's frame. run1279's stride prints
+units on 1901 and 2001 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1279b --map 18 --end-frame 2224
+--allow-early-end --timeout 3600 --log-window 1968 2224 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 11:44:47, exited 11:45:21 (33.9 s launch to exit). `success`: 2225 frames, closing frame
+  2225. `rngcmp.py` against run1279: 2225 of 2225 identical. Filed with `filerun.py run1279b
+  eastindies-mongol-gunpowder-window-1968-2224 --map 18`. `df -g ~` read 143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1279b-eastindies-mongol-gunpowder-window-1968-2224.txt`, 496,801,420 bytes,
+SHA-256 `657e9d0c0fdc205fd413942b387779b39b82012530222fdfd6ce261ea002805b`.
+
+Archive `rontrace-run1279b.log`, 31,766,048 bytes,
+SHA-256 `8213be832d932081c5811bb16a784f06af07c46acf162998a466863e4fc2577f`.
+
+**What it holds**: `mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole` (256 blocks, 1038 keys). On its
+first block 1968 the Monarch `1/17` (TI 354) holds a `CASTORDER` (Create Decoy, `spell_time` 22) in theirs and
+idles in ours.
