@@ -10395,6 +10395,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3624,
         Some(crate::diff::bantu_medieval_pair::WINDOW_BANTU_MEDIEVAL_CLOSING),
     ),
+    // **The Chinese at a held Gunpowder age** (item 3625): East Indies —
+    // first try 4884 of a game that ends itself on 5568, widened on
+    // run1283b over 4879..5135 (the word's block 4885).
+    (
+        "CHINESE_GUNPOWDER_PAIR_WORD",
+        crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER_PAIR_WORD,
+        Some("chinese_gunpowder_pair_run1283b_s_word_frame_is_widened_whole"),
+        3625,
+        Some(crate::diff::chinese_gunpowder_pair::WIDENING_CHINESE_GUNPOWDER_FRAME_4884),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12326,6 +12336,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_914,
         endpoint: Some("bantu_medieval_pair_run1281_s_closing_state"),
         window: Some("bantu_medieval_closing_window"),
+    },
+    // The Chinese at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
+    // `ENDING_TECHNOLOGY` 3), East Indies (item 3625): first try 4884 of a
+    // game that ends itself on 5568, widened on run1283b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesChineseGunpowder",
+        named: "East Indies (Chinese, Gunpowder)",
+        word: crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER_PAIR_WORD,
+        length: 5_568,
+        endpoint: None,
+        window: Some("chinese_gunpowder_frame_4884_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
