@@ -10140,12 +10140,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::egyptian_classical_pair::WIDENING_EGYPTIAN_CLASSICAL_FRAME_6537),
     ),
     // **The Maya from an Ancient start** (item 3587): East Indies — 4182
-    // first try, widened on run1234b over 4177..4433 (block 4183).
+    // first try, widened on run1234b over 4177..4433 (block 4183); item
+    // 3597's 4324 sits in the same window (block 4325), its state apart
+    // from block 4311.
     (
         "MAYA_ANCIENT_PAIR_WORD",
         crate::diff::maya_ancient_pair::MAYA_ANCIENT_PAIR_WORD,
         Some("maya_ancient_pair_run1234b_s_word_frame_is_widened_whole"),
-        3587,
+        3597,
         Some(crate::diff::maya_ancient_pair::WIDENING_MAYA_ANCIENT_FRAME_4182),
     ),
     // **The Spanish at a held Classical age** (item 3586): Great Sahara —
