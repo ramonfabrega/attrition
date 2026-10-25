@@ -8491,9 +8491,12 @@ mod tests {
         sim.buildings[b].ty = Some(bt);
         sim.buildings[b].hits = 800;
         sim.buildings[b].health = 800;
+        // A tenth of the cost it was written with: the search here passes
+        // `ai` (difficulty 0), and the class arm's `× 10` on a building
+        // (item 3615) gives it back.
         sim.buildings[b].combat = Some(Profile {
             attack: 10,
-            cost: 1600,
+            cost: 160,
             ..Profile::default()
         });
         let me = put(&mut sim, 1, ty, Pos::new(at.x + 3 * 0xc0, at.y));

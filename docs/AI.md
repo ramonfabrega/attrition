@@ -29169,7 +29169,7 @@ was the first suspect.
 
 **The packet** (run1268, `RON_STATE_FRAME=3347`). `targeted` is 0 for both buildings: killed. `step4.py` on
 `1/27`'s whole `Unit::process` scores the Library 27 at 384 → 9 and **the Market 71 at 756 → 17**. Entered alone
-(`--args 0x7d6,0,0,0`; the search passes `ai` 0), `compare_target` takes the Market's `cost × 4` = 320 at `64e76d`
+(its first argument the Market's number, 2006; the search passes `ai` 0), `compare_target` takes the Market's `cost × 4` = 320 at `64e76d`
 to **640 at `64eac1`**, then `× 11` → 71. The doubling is the computer searcher's building-class arm
 (`0064e79b`–`0064e9e2`, `LAB_0064e9e2`): the Market is a training building (`BuildTypeData::is_training_building`).
 
