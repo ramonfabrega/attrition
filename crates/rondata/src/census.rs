@@ -411,8 +411,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `rubric.py --tables 3` on this tree. Item 3596: 178 -> 179, the German
 /// Ancient pair whole at 5314 — `Solduri` (153, 1788 figure rows over
 /// run1243 and run1244), one of the two lines §321 booked; `Barbarians`
-/// (154) was not fielded (parked 3596b).
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 179;
+/// (154) was not fielded (parked 3596b). Item 3609: 179 -> 181, the Korean
+/// Classical pair whole at 8777 — `Elite Hwarang` (181, 5082 figure rows
+/// over run1249 and run1250) and `Flaming Arrow` (279, 2532), the two
+/// lines §322 booked, read by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 181;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

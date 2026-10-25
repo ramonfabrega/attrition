@@ -27145,3 +27145,26 @@ SHA-256 `871146678d1c1a072cbc8bc2e50251072a99e4437c08fc8337f39c002cb28d1d`.
 **What it holds**: `korean_classical_pair_run1250b_s_word_frame_is_widened_whole` (256 blocks, 9513 keys): the
 standing families on 8374, the garrisoned Scholars' `g.angle[0]` (parked 3601a), and the Citizen `0/4`'s blow on
 block 8375 — theirs lands the Elite Hwarang `1/135`'s round on 8374, ours on 8375. No `AMMO` record.
+## run1263 — the Koreans at a held Classical age, Great Sahara: a packet at logger frame 8362, the Elite Hwarang's arrows (2026-10-24, item 3609, `att-3609`)
+
+`docs/AI.md` §322. **What the disk could not answer**: where the Elite Hwarang `1/135`'s arrow at the Citizen `0/4`
+(loosed on 8361) leaves from and how long it flies, and the `AttachPos` rows of its piece 131. run1250b prints
+`0/4`'s blow on 8375 (`damage_frame`), no capture of the lobby writes an `AMMO` record, and no packet on disk holds
+piece 131's rows (run991d's reads `pos_num 0`; run1221's has the piece unloaded). `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1263 --map 7 --end-frame 8364 --timeout 3600 --log-window 8361
+8363 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 16 --cover cover=0 --profile STARTING_TECHNOLOGY=1
+--profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def
+RON_STATE_FRAME=8362 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 23:31:30, exited 23:32:09 (38.2 s launch to exit). `success`, 8365 frames.
+  `rngcmp.py` against run1250: 8365 frames in common, 0 differing. Not filed: the packet is the product.
+  `df -g ~` read 144 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1263/map-7/frame-snapshot.bin`, 855,334,200 bytes,
+SHA-256 `9b5580a5245e1c2e205795808441821e9a7024d25b8d409e752ef59bd63217b1`.
+
+**What it holds**: three `AMMO` records on block 8362, all at `0/4`: `1/135` from (9389, 28645, 606), `total_time`
+14 (ours 15 from the figure's own (9432, 28584)); `1/327` from (9675, 30558, 786), 15; `1/325` from (9356, 31175,
+804), 18. `tools/recomp/get_position.py entries 131` reads six `AttachPos` rows bit for bit piece 130's, and each
+key's sweep is reproduced at all 361 headings by piece 130's `BAYS` rows. Pinned by
+`launch::tests::run1263_s_elite_hwarang_arrows_leave_from_piece_131_s_bays`.
