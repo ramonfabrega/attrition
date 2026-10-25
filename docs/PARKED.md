@@ -11007,13 +11007,12 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot SC — reserved
+## Parked by item 3630, 2026-10-25 — the Mongol Gunpowder word: a supplier's pool takes the supply upgrade, 1973 → 4499
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The 1973 hypothesis held in its unit and not its name: `Sim::think_hero`'s Create Decoy arm was
+reached on the cast's frame 1946 and refused on the mana, because `UnitData::mana`'s supplier multiple was a seam.
+Built in `Sim::unit_mana` (`docs/AI.md` §331). The moved word 4499 books on run1292c's block 4475, where both
+leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` stays a seam no capture reaches.
 
 ## Parked by the next landing, slot SD — reserved
 

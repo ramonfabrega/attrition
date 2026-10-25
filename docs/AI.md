@@ -29818,15 +29818,93 @@ of 1401 (`CASTORDER`, spell 634) agrees on both sides. Nothing parts on the
 word's block 1974. The first rows past it are who=1's `leader:attack` 210
 against 218 on 1976 and the make list from 1983.
 
-Why ours' Monarch does not cast in 1902..1967 is the next item's hypothesis
-(`Sim::think_hero`, `docs/AI.md` §255's Create Decoy row). The `mana_burn`
-1000 apart is the cast's price, so it is the cast's effect and not its cause.
-I built nothing.
+~~Why ours' Monarch does not cast in 1902..1967 is the next item's hypothesis
+(`Sim::think_hero`, `docs/AI.md` §255's Create Decoy row).~~ **Answered by
+item 3630 (§331.1)**: the hero arm is reached and refuses on the mana. The
+`mana_burn` 1000 apart is the cast's price, so it is the cast's effect and
+not its cause. I built nothing.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **189 of 302**,
 unmoved: the pair is open. Its own dumps see 24 types, and two are new to
 the ledger: **`Horde` (203), the booking's line, fielded** (×4256), and the
 Bomb Vessel (346, sea, ×754). Both enter when the pair closes.
+
+### 331.1 The gap: a supplier's pool takes the supply upgrade, 1973 → 4499 (item 3630)
+
+*Item 3630, 2026-10-25, Opus 5.5. Runs 1292, 1292b and 1292c.*
+
+**The cast's frame.** run1292 (blocks 1895..1975, `cover=1`) prints the
+Monarch `1/17` (TypeIndex 354, land; already The Monarch on 1895) idle
+through 1946 and holding the `CASTORDER` (spell 634, Create Decoy, `paid`
+1) from **block 1947**; `CastOrder::log_data` is first entered on trace
+frame 1946. The cast draws nothing — the hero arm's standing branch throws
+no coin — so the draw stream could not place it.
+
+**Both sides on 1946.** Widened whole from run1278's start
+(`mongol_gunpowder_pair_run1292_s_gap_is_widened_whole`): 85 keys on the
+base, and the one unit row is `1/17` on block 1947.
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 1947 | `1/17` (TI 354) | `orders.len` | 0 | 1 (`CASTORDER` 634) |
+| 1947 | `1/17` | `spell_time` | 0 | 1 |
+| 1947 | `1/17` | `mana_burn` | 766 | 1766 |
+| 1947 | `1/17` | `idle` | 12 | 0 |
+
+**Which side acted: theirs; why ours did not.** The original's only AI
+caller of `Unit::think_spellcaster@005f27a0` is `Army::use_generals`
+(`Unit::think`'s call is the human arm, `leader_flags & 4`). A probe
+behind `RON_PROBE_3630` (commit `3ce8cfe2e`, reverted whole) showed ours'
+`use_generals` offering the Monarch on the same frame 1946 — not moving,
+no live decoy captain, `SUPPLY_OR_HERO` set — and the arm refusing on
+"with the mana": `mana` 1000 against `mana_burn` 767 + Create Decoy's
+1000. `UnitData::mana@00609a50` gives a unit whose `is_supply` (vslot
+`0xcc`, `UnitTypeData +0x2b8 & 0x40`) holds `MANA × (get_supply_upgrade +
+1)` before the French arm (`609a8f`..`609aac`), and this crate's
+`unit_mana` carried that as a seam ("neither is reached by a Spy or a
+General"). The Monarch is a supplier (`UnitType::init_final_flags`'s
+`is(THEMONARCH)`), and who=1 held one supply step on 1946 and none on
+1818, the previous army turn: theirs' 2000 ≥ 1767 casts, and on 1818 1000
+< 1895 refuses on both sides, which is why the stride agreed through 1901.
+
+**Built.** `Sim::unit_mana` (`crates/sim/src/cast.rs`) multiplies a
+supplier's pool by `supply_upgrade_level + 1`; the space-air arm
+(`+0x218 == 2`, `has_wonder(0x21e)`) stays the seam. Every reader of the
+pool takes it — the hero arm's afford, `mana_left`, the regeneration cap,
+a Spy's half-spent birth (no Spy is a supplier). Test
+`a_suppliers_pool_grows_with_the_supply_upgrade`; two mutations through
+`tools/mutate.py` held: the multiple dropped (run1292's gap 80 → 85
+keys) and the multiple on every unit (the test's "a General is no
+supplier").
+
+**What it moved.** The word **1973 → 4499** by the count and the
+sequence; every other lobby's `first_parting` is unmoved (66 of 66).
+run1279b's window 1038 → 90 keys (the Monarch's rows gone; who=1's
+`leader:attack` 210 against 218 on 1976 stays), run1292's 85 → 80, every
+row standing. The walk now reads 2 inexact ground corners
+(`GROUND_INEXACT`).
+
+**The word 4499.** Ours spends 11 draws against 10, parting at index 2:
+ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`. run1292b (blocks
+4493..4749, `mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole`,
+5030 keys) parts on its first block. The long's stride 2001..4401
+(`mongol_gunpowder_pair_the_long_s_stride_walks_back_from_4499`, 187
+keys) parts on the standing families alone. run1292c (blocks 4395..4495,
+`mongol_gunpowder_pair_run1292c_walks_back_from_4499`, 404 keys) names
+**the block the state first parts on, 4475** (frame 4474):
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4475 | leader 0 | `treaties[1]` | 1 | 3 |
+| 4475 | leader 1 | `treaties[0]` | 1 | 3 |
+| 4475 | `0/5` | `hits_left` | 50 | 24 (`damage` 26, `damage_frame` 4474) |
+| 4475 | `0/5` | `orders.len`, `order:kind` | 1, 7 | 2, 4 |
+| 4475 | `0/2000` | `raid_stamp` | 0 | 4474 |
+
+From 4476 `0/5`'s position parts, from 4479 who=1's move destinations;
+no draw parts until 4499. Which side moved the treaty, and why, is the
+next item's hypothesis, unread; `0/5`'s striker is not yet named.
 
 ## 332. Reserved for the next item on the AI track
 

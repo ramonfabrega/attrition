@@ -28049,3 +28049,64 @@ SHA-256 `8213be832d932081c5811bb16a784f06af07c46acf162998a466863e4fc2577f`.
 **What it holds**: `mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole` (256 blocks, 1038 keys). On its
 first block 1968 the Monarch `1/17` (TI 354) holds a `CASTORDER` (Create Decoy, `spell_time` 22) in theirs and
 idles in ours.
+
+## run1292 — the Mongols at a held Gunpowder age, East Indies: the gap before the word 1973, blocks 1895..1975, `cover=1` (2026-10-25, item 3630, `att-3630`)
+
+`docs/AI.md` §331. **What the disk could not answer**: the frame theirs' Monarch `1/17` began its Create Decoy cast.
+run1279's stride prints 1901 and 2001 only, and run1279b starts on 1968 with the cast already running.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1292 --map 18 --end-frame 1975 --allow-early-end
+--timeout 3600 --log-window 1895 1975 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 17 --cover cover=1 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 12:21:26, exited 12:21:54 (28.4 s launch to exit). `success`: 1976 frames, closing frame
+  1976. `rngcmp.py` against run1279: 1976 identical frames. Filed with `filerun.py run1292
+  eastindies-mongol-gunpowder-window-1895-1975 --map 18`. `df -g ~` read 133 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1292-eastindies-mongol-gunpowder-window-1895-1975.txt`, 152,457,018 bytes,
+SHA-256 `6b290c9fbebb0fc46336f78704dd349cc7d4fdcc65ef152b04cc7d0bfe45087c`.
+
+Archive `rontrace-run1292.log`, 27,582,112 bytes,
+SHA-256 `d714aed490616a99e925df4042c92ea0607b4438bc4c5759586a6f7650a5c220`.
+
+**What it holds**: `mongol_gunpowder_pair_run1292_s_gap_is_widened_whole` (80 blocks; 85 keys on the base, 80 with
+item 3630's fix). The Monarch's `CASTORDER` first prints on block 1947 (`CastOrder::log_data` first entered on trace
+frame 1946); the cast draws nothing.
+
+## run1292b — the Mongols at a held Gunpowder age, East Indies: the word 4499's window, blocks 4493..4749 (2026-10-25, item 3630, `att-3630`)
+
+`docs/AI.md` §331. **What the disk could not answer**: every record on the moved word's block 4500; run1279's
+stride prints 4401 and 4501 only. The same line as run1292 with `--end-frame 4749 --log-window 4493 4749 --cover
+cover=0`.
+- Pool lane 1. Launched 12:31:03, exited 12:32:03 (59.5 s launch to exit). `success`: 4750 frames. `rngcmp.py`
+  against run1279: 4750 identical frames. Filed with `filerun.py run1292b
+  eastindies-mongol-gunpowder-window-4493-4749 --map 18`. `df -g ~` read 131 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1292b-eastindies-mongol-gunpowder-window-4493-4749.txt`, 635,895,668 bytes,
+SHA-256 `964a1c81e3dfb4d59f594b00ca536a61b275b4c508dd31f134bad510a0b6ce18`.
+
+Archive `rontrace-run1292b.log`, 154,349,664 bytes,
+SHA-256 `a1d7318c03d24034df8c86e83f6679f041aeb075120b6ad83470cd00582c40d0`.
+
+**What it holds**: `mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole` (256 blocks, 5030 keys): the
+state had parted before the window.
+
+## run1292c — the Mongols at a held Gunpowder age, East Indies: the walk back from 4499, blocks 4395..4495 (2026-10-25, item 3630, `att-3630`)
+
+`docs/AI.md` §331. **What the disk could not answer**: the block the state first parts on between the stride's
+4401, which agrees, and run1292b's 4493, which does not. The same line with `--end-frame 4495 --log-window 4395
+4495 --cover cover=0`.
+- Pool lane 1. Launched 12:35:30, exited 12:36:08 (37.6 s launch to exit). `success`: 4496 frames. `rngcmp.py`
+  against run1279: 4496 identical frames. Filed with `filerun.py run1292c
+  eastindies-mongol-gunpowder-window-4395-4495 --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1292c-eastindies-mongol-gunpowder-window-4395-4495.txt`, 237,982,180 bytes,
+SHA-256 `3108f96facd75824ab7bdd09890aa983be4407275de7727ae5a67dd656ec8685`.
+
+Archive `rontrace-run1292c.log`, 134,532,992 bytes,
+SHA-256 `52318eb246207897b64b55094fe1d7a3bf885968416b727f3b20c941068b1b8f`.
+
+**What it holds**: `mongol_gunpowder_pair_run1292c_walks_back_from_4499` (100 blocks, 404 keys). The state first
+parts on block 4475: both leaders' `treaties` 3 in theirs against 1 in ours, and the human's `0/5` struck for 26.
