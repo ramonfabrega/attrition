@@ -27920,3 +27920,67 @@ SHA-256 `618a8c1194570da1fac683b653260d705674b606a00b83aa1f8491600d5241ce`.
 of 6106** by the count and the sequence. The closing block 6107 compares whole (254 units, zero counts), and its
 whole stride, walked over 101..6107, parts on the standing families, the Light Horse `1/50`'s hits from 5601
 (parked 3607a) and the human's defeat on the closing block.
+
+## run1274 — the Romans at a held Medieval age, East Indies: the `DUMP_ALL` start (2026-10-25, item 3620, `att-3620`)
+
+`docs/AI.md` §330. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1274 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 6 --profile STARTING_TECHNOLOGY=2 --profile
+ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 08:52:22, exited 08:52:46 (23.7 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 6, five files restored. `GAME INFO` reads back
+  `DIFFICULTY 5`, `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Filed with `filerun.py run1274
+  eastindies-roman-medieval-start --map 18`. `df -g ~` read 111 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1274-eastindies-roman-medieval-start.txt`, 153,799,291 bytes,
+SHA-256 `b99db65a18823f7ad7e308c726e052a97c185ed13930ec96f27f5645d22b9f42`.
+
+Archive `rontrace-run1274.log`, 10,019,936 bytes,
+SHA-256 `6efea3559666ac16cdc4e6d6e5ec9f0461fbca24afd2274887b4cd7c194d36d9`.
+
+**What it holds**: the start of `roman_medieval_pair::ROMAN_MEDIEVAL`, and the walk's initial state.
+
+## run1275 — the Romans at a held Medieval age, East Indies: the draw stream to the game's end (2026-10-25, item 3620, `att-3620`)
+
+`docs/AI.md` §330. run1204's line with `--ai-tribe 6`: `--map 18 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 6
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1274's
+lobby.
+- Pool lane 2, beside run1274. Launched 08:52:22, exited 08:53:01 (38.9 s launch to exit). `success`. **The game
+  ended itself on 5979** (closing block 5980, `ended_early`). `GAME INFO` reads back as run1274's. `rngcmp.py`
+  against run1274: 37 frames identical. Filed with `filerun.py run1275 eastindies-roman-medieval-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1275-eastindies-roman-medieval-trace.txt`, 48,284,679 bytes,
+SHA-256 `d3d12188fc69ce7b57fe76f7fb2951a57c378c384569c8f14fc8609e2c8631ac`.
+
+Archive `rontrace-run1275.log`, 185,270,880 bytes,
+SHA-256 `6d3191fd09db65554102391b1adf1ce5a100a0377a50b3f112893756a340640d`.
+
+**What it holds**: the pair's first try. `roman_medieval_pair_first_parting` walks it from run1274. The first try
+parts on **frame 1875 of 5979** by the count and the sequence: ours 9 draws against 8, index 1, ours
+`Guy::set_anim+0x97a < Guy::move+0x19f` (the Citizen `1/17`) against theirs `Guy::set_anim+0x97a <
+Unit::do_guard+0x7f4`.
+
+## run1275b — the Romans at a held Medieval age, East Indies: the word 1875's window, blocks 1870..2126 (2026-10-25, item 3620, `att-3620`)
+
+`docs/AI.md` §330. **What the disk could not answer**: the word's block 1876, which run1274 (blocks 0..2) and
+run1275's stride (1801, 1901) leave undumped. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1275b
+--map 18 --end-frame 2126 --allow-early-end --timeout 3600 --log-window 1870 2126 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 6 --cover cover=0 --profile STARTING_TECHNOLOGY=2
+--profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 08:55:41, exited 08:56:24 (42.5 s launch to exit). `success`, 2127 frames. `rngcmp.py`
+  against run1275: 2127 frames in common, 0 differing. Filed with `filerun.py run1275b
+  eastindies-roman-medieval-window-1870-2126 --map 18`. `df -g ~` read 109 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1275b-eastindies-roman-medieval-window-1870-2126.txt`, 501,630,699 bytes,
+SHA-256 `6a65ecab9acbea8f01a17974b1cb39b62f4e1e3042e8faa935a4d7fc4695e46f`.
+
+Archive `rontrace-run1275b.log`, 26,418,944 bytes,
+SHA-256 `079feb322287afa0c302395bd57315ab81e8d194a6647cbd387a86affdc660e6`.
+
+**What it holds**: `roman_medieval_pair_run1275b_s_word_frame_is_widened_whole`, the word 1875 (block 1876). The
+Citizen `1/17` pops its current `BUILDORDER` on `1/2023` on 1875 in theirs and walks its `EXPLORETOORDER`; ours
+keeps the build and stands.
