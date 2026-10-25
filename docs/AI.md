@@ -29862,7 +29862,7 @@ lights on 1170 around fog cell (107, 93): the Fort `1/2013` (`orig_type`
 *The term.* `Wall::update_los@0063eeb0` gives a fort (type vslot `+0xfc`)
 `fort_upgrade_range[get_fort_los + 4]` in place of the tower term.
 `get_fort_los@006daf30` is 1 plus the highest of `FORTLOS2..4` held
-(`has_preq`, bonuses 46–48, `0x2da..0x2dc`). The level is 1 to 4, so the
+(`has_preq`, bonuses 46–48 off `BASE_BONUSTYPES`). The level is 1 to 4, so the
 index is 5 to 8, which runs off `fort_upgrade_range`'s five entries
 (`Constants +0x180`) into `fort_upgrade_los` (`+0x194`): the term is
 `FORT_UPGRADE_LOS[level − 1]`, shipped 0, 2, 4, 6, 8. The tower term reads
