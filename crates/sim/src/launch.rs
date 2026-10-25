@@ -2406,6 +2406,31 @@ mod tests {
         assert_eq!(release_dz(130, crate::anim::ATTACK1, 22, 0), Some(167));
     }
 
+    /// **The Elite Hwarang's arrows leave from piece 131's bays** (item
+    /// 3609): run1263's three `AMMO` records on block 8362, each the
+    /// figure's pose on its release frame (`1/327` on 8354, `1/325` on
+    /// 8355, `1/135` on 8361), the key this crate's release event names,
+    /// the dump's `sx, sy`, and the sweep's `z`.
+    #[test]
+    fn run1263_s_elite_hwarang_arrows_leave_from_piece_131_s_bays() {
+        // (anim, starttime, x, y, facing, sx, sy, dz)
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32);
+        let rows: [Row; 3] = [
+            (13, 10, 9720, 30600, -665_780_224, 9675, 30558, 182),
+            (13, 24, 9384, 31224, -397_213_696, 9356, 31175, 181),
+            (12, 4, 9432, 28584, -1_585_250_304, 9389, 28645, 138),
+        ];
+        for (anim, start, x, y, facing, sx, sy, dz) in rows {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 131, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "131 ({anim}, {start})");
+            assert_eq!(
+                release_dz(131, anim, start, 0),
+                Some(dz),
+                "131 ({anim}, {start})"
+            );
+        }
+    }
+
     /// **The Balamob Slingers' stones leave from piece 38's bays** (item
     /// 3599, `docs/AI.md` §320.2): run1247's two `AMMO` records at the
     /// Citizen `0/10` on block 4306, each figure on its unit's own square

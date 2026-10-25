@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const KOREAN_CLASSICAL: Pair = Pair {
     name: "GreatSaharaKoreanClassical",
@@ -35,10 +35,14 @@ pub(crate) const KOREAN_CLASSICAL: Pair = Pair {
     // 29 draws against theirs' 27, parting at index 10 — ours
     // `Guy::set_anim+0x97a < Unit::move_step+0x823` (the Javelineers
     // `1/267`), theirs `Unit::fight+0x824` (`docs/AI.md` section 322). The
-    // state parts first on block 8375: the human Citizen `0/4` takes an
-    // Elite Hwarang's round on 8374 in theirs and on 8375 in ours.
-    count: 8379,
-    sequence: 8379,
+    // state parted first on block 8375: the human Citizen `0/4` took the
+    // Elite Hwarang `1/135`'s round on 8374 in theirs and on 8375 in ours.
+    // Item 3609: 8379 -> 8777, the game's last frame — whole. The Elite
+    // Hwarang's piece 131 looses from piece 130's bays (run1263's packet:
+    // the round from (9389, 28645) in 14 frames, ours from the figure's
+    // own (9432, 28584) in 15).
+    count: 8777,
+    sequence: 8777,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -49,6 +53,56 @@ pub(crate) const KOREAN_CLASSICAL_PAIR_WORD: i64 =
     } else {
         KOREAN_CLASSICAL.sequence
     };
+
+/// **The pair's closing state**: run1250's closing dump, block 8778,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3609).
+#[test]
+fn run1250_korean_classical_pair_closing_state() {
+    let _pins = Pins::hold();
+    let p = &KOREAN_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Korean Classical pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 8778, "the closing block");
+    // Item 3609, the pair whole: 407 units compared, none torn, off or
+    // unlinked, no building or city field-row.
+    pin_eq!(e.compared, 407, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
 
 /// **The pair's first parting**, walked from its own start.
 #[test]
@@ -189,6 +243,71 @@ fn korean_classical_pair_run1250b_s_word_frame_is_widened_whole() {
     // sides (the same `Ammo::init` draws): ours lands it on 8375
     // (`damage_frame` 8375 standing on 8378, `hits` agreeing). `0/4`
     // takes its flee order on 8376 in theirs, a frame ahead, and the draws
-    // part on 8379 (block 8380).
-    pin_eq!(w.firsts.len(), 9513, "run1250b baseline");
+    // part on 8379 (block 8380). Item 3609, with the Elite Hwarang's bays
+    // (the round lands on 8374 on both sides): **74** keys. Block 8374's
+    // standing families and garrisoned `g.angle[0]` stay; past it only the
+    // `dest_angle` family (3574b) on six of who=1's units from 8378, two
+    // more garrisoned `g.angle[0]`, who=1's new groups' `held`/pool (65 on
+    // 8390, 69 on 8458), and three of who=1's `orders_x`/`orders_y` a few
+    // units apart (`1/69` on 8548, 11580, 30913 against 11601, 30926).
+    // No `pos`, `hits` or order row parts.
+    pin_eq!(w.firsts.len(), 74, "run1250b baseline");
+}
+
+/// **The pair's last blocks, from the disk** (item 3609): the word is the
+/// game's last frame, 8777, past run1250b's 8630, and run1250 itself prints
+/// the stride's blocks 8401..8701 and the closing block 8778 at its
+/// `endgame:` detail, so the widening that holds the word walks the long
+/// rather than a new window.
+pub(crate) const WIDENING_KOREAN_CLASSICAL_CLOSING: (i64, i64) = (8401, 8778);
+
+pub(crate) fn korean_classical_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[KOREAN_CLASSICAL.start],
+        true,
+        KOREAN_CLASSICAL.long,
+        "run1250 closing",
+        &[(KOREAN_CLASSICAL.long.0, WIDENING_KOREAN_CLASSICAL_CLOSING.0)],
+        WIDENING_KOREAN_CLASSICAL_CLOSING,
+        1,
+        &[8778],
+        true,
+    )
+}
+
+#[test]
+fn korean_classical_pair_run1250_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = korean_classical_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 5, "every stride block and the closing block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3609, the pair whole: **173** keys. Through 8701 every row is a
+    // standing family (`build:extra`, `form`, garrisoned `g.angle[0]`,
+    // who=1's groups' `held` and pools, `1/58`'s `dest_angle`); no unit
+    // row parts on any block. The closing block 8778 adds 25, the human's
+    // defeat on 8777 as on 3578c's: who=1's seven `queue:queued` and four
+    // `num_queued` rows, ours 1..5 against theirs 0, who=0's
+    // `leader:defense` ours 0 against -1 and its `SITE[i].reg` and
+    // `aggression[1]`, `1/2090`'s `gather:length[-1]` ours 0 against 45 —
+    // and who=1's `bucket[3:knowledge]`, ours 1437 against 937 (parked
+    // 3609a).
+    pin_eq!(w.firsts.len(), 173, "the closing walk's baseline");
 }
