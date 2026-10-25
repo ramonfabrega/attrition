@@ -27610,7 +27610,8 @@ SHA-256 `fe53e877ad8d6b33c43c6df08df1c01cf9abecd6512dc6cff0862fb124e3f3d7`.
 **What it holds**: the pair's first try. `russian_medieval_pair_first_parting` walks it from run1257: **frame 3149
 of 4541** by the sequence (3164 by the count), 11 game-stream draws a side, index 3, ours `Guy::set_anim+0x97a <
 Guy::inc_time+0x271` (the Supply Wagon `1/43`) against theirs `Ammo::init+0xcd9`. Its stride, walked over
-101..3101, reads the standing families alone.
+101..3101, reads the standing families alone. On item 3614's tree (`find_free`'s dead tail), 3349 by both, ours 10 draws
+against 9, index 1 (the Elite Javelineers `1/27`).
 
 ## run1258b — the Russians at a held Medieval age, Great Sahara: the word 3149's window, blocks 3143..3399 (2026-10-25, item 3605, `att-3605`)
 

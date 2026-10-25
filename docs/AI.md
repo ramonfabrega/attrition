@@ -29082,7 +29082,7 @@ reads unit types seen **184 of 302**. `Xopilli Atl-Atls` (87) stays unfielded.
 **What is not established.** Piece 35 at any heading, since no Atl-Atls round is dumped, and piece 36 at a heading
 no dumped round took: those are the sweep's fit and no dump's. The writer of `1/175`'s arrival `dest_angle` (3613a).
 
-## 326. The Russians at a held Medieval age, Great Sahara: first try 3149 of 4541 (item 3605)
+## 326. The Russians at a held Medieval age, Great Sahara: first try 3149 of 4541, 3349 on 3614's tree (item 3605)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §313's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
 Nubians (4) against the **Russians (13)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY
@@ -29131,12 +29131,33 @@ birth. Ours reuses the Peltasts' freed `o` 43; theirs leaves it empty and takes 
 Ours' rule for a unit's number is the next item's to read. It is the shape of 3614's open word (a dead unit's slot)
 and is that item's hypothesis, not this one's. Nothing here reads or builds it.
 
+**On 3614's tree: 3349 of 4541**, by the count and the sequence. Item 3614 landed while this lane gated:
+`find_free`'s `o_up` term holds a dead tail. On that tree the wagon is `1/132` on both sides and the first parting
+moves. On 3349 ours spends 10 game-stream draws against theirs' 9, parting at index 1. Ours draws `Guy::set_anim+0xf2f
+< Unit::set_anim+0x56`, which is the Elite Javelineers `1/27` (TI 84, land, army 1), right after its `Unit::fight+0x824`.
+Theirs draws `Guy::set_anim+0x97a < Unit::set_anim+0x56 < Unit::do_guard+0x7f4`, which is ours' next draw (`1/61`). The
+rest agree by site: `1/67`'s two `Guy::inc_time` and five `Farms::inc_time`. **Ours acts.** run1258b holds the
+word's block 3350 with 49 blocks after it, and its walk falls 2299 → **337 keys**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3348 | Elite Javelineers `1/27` (TI 84) | `order:target` | `0/2005` | `0/2006` |
+| 3350 | `1/27` | `heading`, `g.ox[0]` | 369426432, 2005 | 62128128, 2006 |
+| 3351 | `1/42` | `hits_left`, `damage_frac` | 91, 8 | 90, 0 |
+| 3351 | `1/41` | `extra` | present | absent |
+| 3359 | `1/28` | `order:target` | `0/2005` | `0/2006` |
+
+Past the standing families, the first row is `1/27`'s target on block 3348. It aims at building `0/2005` in ours
+and `0/2006` in theirs, on the frame before the word, and turns to it on the word. The stride over 101..3101 still
+reads 87 keys. Which building the Javelineers' attack takes is the next item's hypothesis; nothing here reads it.
+
 **The rubric.** On the pair's own dumps (`rubric.py --tables 3 --dumps`, run1257, run1258 and run1258b) the rubric
 sees 17 types. One is new to the lockstep set: **`Rusiny Lancer` (224), the booking's line**, fielded ×4318. The
-`Cossack` (225) is Gunpowder's and does not appear. The pair is open, so the lockstep count stays **184 of 302**.
+`Cossack` (225) is Gunpowder's and does not appear. The pair is open, so the lockstep count is unmoved: **186 of 302**
+on 3614's tree (184 at this item's base).
 
-**What is not established.** Theirs' birth frame for the wagon, and whether theirs' `1/43` is still held by a dying
-or dead record over 3053..3106: no dump on disk prints 3102..3142.
+**What is not established.** Theirs' birth frame for the wagon: no dump on disk prints 3102..3142. 3614's rule
+numbers it as theirs does, and the draw stream agrees through 3348. Why `1/27` takes `0/2005` in ours.
 
 ## 327. Reserved for the next item on the AI track
 

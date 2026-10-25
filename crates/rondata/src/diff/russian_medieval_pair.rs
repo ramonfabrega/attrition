@@ -35,9 +35,16 @@ pub(crate) const RUSSIAN_MEDIEVAL: Pair = Pair {
     // Item 3605, first try: frame 3149 by the sequence (3164 by the
     // count), 11 draws a side, parting at index 3 — ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
-    // `Ammo::init+0xcd9` (`docs/AI.md` section 326).
-    count: 3164,
-    sequence: 3149,
+    // `Ammo::init+0xcd9` (`docs/AI.md` section 326): the Supply Wagon born
+    // into the Peltasts' freed `1/43` in ours, `1/132` in theirs. On the
+    // tree item 3614 landed (`find_free`'s `o_up` term holds a dead tail),
+    // the wagon is `1/132` on both sides and the first try reads 3349 by
+    // the count and the sequence, ours 10 draws against 9, index 1 — ours
+    // `Guy::set_anim+0xf2f < Unit::set_anim+0x56` (the Elite Javelineers
+    // `1/27`, TypeIndex 84), theirs `Guy::set_anim+0x97a <
+    // Unit::do_guard+0x7f4`.
+    count: 3349,
+    sequence: 3349,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -137,28 +144,29 @@ fn russian_medieval_pair_is_no_other_lobby() {
     }
 }
 
-/// run1258b: the word 3149's window, blocks 3143..3399 at the long's
-/// detail with `AMMO=5` — six blocks before the word's block 3150 and 250
+/// run1258b: blocks 3143..3399 at the long's detail with `AMMO=5`, booked
+/// for the first try's 3149 — six blocks before its block 3150 and 250
 /// after (item 3605); the long's stride prints units every hundredth block
-/// (3101 and 3201) and no `LEADERS` past the start.
+/// (3101 and 3201) and no `LEADERS` past the start. On 3614's tree the word
+/// is 3349, whose block 3350 the window holds with 49 after it.
 pub(crate) const RUN1258B: &str =
     "gamelog-run1258b-greatsahara-russian-medieval-window-3143-3399.txt";
 
-/// The window: block 3143 through 3399; the word 3149's own block is 3150.
-pub(crate) const WIDENING_RUSSIAN_MEDIEVAL_FRAME_3149: (i64, i64) = (3143, 3399);
+/// The window: block 3143 through 3399; the word 3349's own block is 3350.
+pub(crate) const WIDENING_RUSSIAN_MEDIEVAL_RUN1258B: (i64, i64) = (3143, 3399);
 
-/// **The word 3149's window**: run1258b walked from run1257's start with
+/// **The word 3349's window**: run1258b walked from run1257's start with
 /// the recorder on (item 3605).
-pub(crate) fn russian_medieval_frame_3149_window() -> Option<harness::tests::Widened> {
+pub(crate) fn russian_medieval_run1258b_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
         &[RUSSIAN_MEDIEVAL.start],
         true,
         RUSSIAN_MEDIEVAL.long,
         "run1258b",
-        &[(RUN1258B, WIDENING_RUSSIAN_MEDIEVAL_FRAME_3149.0)],
-        WIDENING_RUSSIAN_MEDIEVAL_FRAME_3149,
+        &[(RUN1258B, WIDENING_RUSSIAN_MEDIEVAL_RUN1258B.0)],
+        WIDENING_RUSSIAN_MEDIEVAL_RUN1258B,
         1,
-        &[3150],
+        &[3350],
         true,
     )
 }
@@ -166,7 +174,7 @@ pub(crate) fn russian_medieval_frame_3149_window() -> Option<harness::tests::Wid
 #[test]
 fn russian_medieval_pair_run1258b_s_word_frame_is_widened_whole() {
     let _pins = Pins::hold();
-    let Some(w) = russian_medieval_frame_3149_window() else {
+    let Some(w) = russian_medieval_run1258b_window() else {
         return;
     };
     pin_eq!(w.blocks, 256, "every captured block");
@@ -199,11 +207,17 @@ fn russian_medieval_pair_run1258b_s_word_frame_is_widened_whole() {
     // ...). So on the word 3149 ours' wagon spends its `Guy::inc_time`
     // draw ahead of the Heavy Horse Archer `1/54`'s round (TypeIndex 188,
     // `Ammo::init+0xcd9`), and theirs behind it: the same eleven draws,
-    // parted at index 3.
-    pin_eq!(w.firsts.len(), 2299, "run1258b baseline");
+    // parted at index 3. On the tree item 3614 landed: 337 keys — the
+    // wagon is `1/132` on both sides, and past the standing families the
+    // first row is the Elite Javelineers `1/27`'s (TypeIndex 84) target on
+    // block 3348, building `0/2005` in ours against `0/2006` in theirs;
+    // its heading parts on 3350, the word 3349's block, where ours spends
+    // a `Unit::set_anim` draw theirs does not. Then `1/42`'s wound on 3351
+    // (`hits_left` 91 against 90) and `1/41`, ours' alone.
+    pin_eq!(w.firsts.len(), 337, "run1258b baseline");
 }
 
-/// **The long's stride, walked back from the word 3149** (item 3605):
+/// **The long's stride, walked back from the window** (item 3605):
 /// only run1258's stride blocks are on disk before run1258b's window.
 pub(crate) const WIDENING_RUSSIAN_MEDIEVAL_STRIDE: (i64, i64) = (101, 3101);
 

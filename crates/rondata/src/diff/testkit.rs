@@ -10241,14 +10241,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some(crate::diff::aztec_ancient_pair::WINDOW_AZTEC_ANCIENT_CLOSING),
     ),
     // **The Russians at a held Medieval age** (item 3605): Great Sahara —
-    // first try 3149 of 4541; widened on run1258b over 3143..3399 (the
-    // word's block 3150).
+    // first try 3149 of 4541, 3349 on the tree item 3614 landed; widened
+    // on run1258b over 3143..3399 (the word's block 3350).
     (
         "RUSSIAN_MEDIEVAL_PAIR_WORD",
         crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL_PAIR_WORD,
         Some("russian_medieval_pair_run1258b_s_word_frame_is_widened_whole"),
         3605,
-        Some(crate::diff::russian_medieval_pair::WIDENING_RUSSIAN_MEDIEVAL_FRAME_3149),
+        Some(crate::diff::russian_medieval_pair::WIDENING_RUSSIAN_MEDIEVAL_RUN1258B),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12085,8 +12085,9 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         window: Some("aztec_ancient_closing_window"),
     },
     // The Russians at a held Medieval age (`STARTING_TECHNOLOGY` and
-    // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3605): first try 3149 of a
-    // game that ends itself on 4541, widened on run1258b.
+    // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3605): first try 3349 (3149
+    // before item 3614's slot rule) of a game that ends itself on 4541,
+    // widened on run1258b.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaRussianMedieval",
@@ -12094,7 +12095,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::russian_medieval_pair::RUSSIAN_MEDIEVAL_PAIR_WORD,
         length: 4_541,
         endpoint: None,
-        window: Some("russian_medieval_frame_3149_window"),
+        window: Some("russian_medieval_run1258b_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
