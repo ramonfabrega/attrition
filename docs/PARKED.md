@@ -10720,13 +10720,16 @@ inferred from the Scout's path cost. A tie the old `% players` modulus broke the
 lobby, would show the same way. Nine widenings' territory rows moved toward the original when the fix landed
 (`docs/AI.md` §318.2), and no pinned word did. No score names it.
 
-## Parked by the next landing, slot QW — reserved
+## Parked by item 3596, 2026-10-24 — the Germans from an Ancient start
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3596a) **Who=1's site ranks part unseen before 5059.** run1244b's first block reads `SITE[1].rank` 3 against
+4, `SITE[3].rank` 4 against 1, `SITE[3].val` 607488 against 404976, and `SITE[4].rank`, `SITE[6].rank` 2
+against 3; none stands on 5313. No dump prints the German leader between the start and 5059, so the frame they
+part is unknown. The draw stream is whole to 5314 (`docs/AI.md` §321), so no score names it.
+
+(3596b) **`Barbarians` (154) is not fielded.** The booking named it beside `Solduri` (153); the Germans build
+Solduri alone in a game that stays at Classical's cap and ends on 5314. A pair that fields it would add a type
+to the rubric.
 
 ## Parked by item 3597, 2026-10-24 — the Senate arm of `type_avail`
 

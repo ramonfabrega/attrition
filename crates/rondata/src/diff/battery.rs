@@ -245,6 +245,9 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The Maya Ancient pair's (item 3587): the Maya from an Ancient start,
     // Difficulty 5, East Indies.
     (18, 1, 5),
+    // The German Ancient pair's (item 3596): the Germans from an Ancient
+    // start, Difficulty 5, Great Sahara.
+    (7, 12, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

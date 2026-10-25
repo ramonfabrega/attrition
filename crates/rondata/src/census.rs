@@ -408,8 +408,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// §319 booked and 3556a never saw fielded. Item 3598: 177 -> 178, the
 /// Egyptian Classical pair whole at 6748 — `Light Camel` (213, 1084
 /// figure rows over run1229 and run1230), the line §318 booked, read by
-/// `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 178;
+/// `rubric.py --tables 3` on this tree. Item 3596: 178 -> 179, the German
+/// Ancient pair whole at 5314 — `Solduri` (153, 1788 figure rows over
+/// run1243 and run1244), one of the two lines §321 booked; `Barbarians`
+/// (154) was not fielded (parked 3596b).
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 179;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

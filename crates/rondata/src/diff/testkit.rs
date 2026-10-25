@@ -10153,6 +10153,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3597,
         Some(crate::diff::maya_ancient_pair::WIDENING_MAYA_ANCIENT_FRAME_4182),
     ),
+    // **The Germans from an Ancient start** (item 3596): Great Sahara —
+    // whole on its first try, 5314 of 5314, the closing state compared;
+    // widened on run1244b over 5059..5315 (the closing block).
+    (
+        "GERMAN_ANCIENT_PAIR_WORD",
+        crate::diff::german_ancient_pair::GERMAN_ANCIENT_PAIR_WORD,
+        Some("german_ancient_pair_run1244b_s_closing_frame_is_widened_whole"),
+        3596,
+        Some(crate::diff::german_ancient_pair::WINDOW_GERMAN_ANCIENT_CLOSING),
+    ),
     // **The Spanish at a held Classical age** (item 3586): Great Sahara —
     // whole on its first try, 8565 of 8565, the closing state compared;
     // widened on run1232b over 8310..8566 (the closing block).
@@ -11906,6 +11916,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_935,
         endpoint: None,
         window: Some("maya_ancient_frame_4182_window"),
+    },
+    // The Germans from an Ancient start (`STARTING_TECHNOLOGY` 0,
+    // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3596): whole on its first
+    // try, a game that ends itself on 5314; the closing state compared,
+    // widened on run1244b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaGermanAncient",
+        named: "Great Sahara (Germans, Ancient)",
+        word: crate::diff::german_ancient_pair::GERMAN_ANCIENT_PAIR_WORD,
+        length: 5_314,
+        endpoint: Some("german_ancient_pair_run1244_s_closing_state"),
+        window: Some("german_ancient_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

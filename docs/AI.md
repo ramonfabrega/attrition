@@ -28431,12 +28431,44 @@ pins 4324. Three mutations through `tools/mutate.py` on the committed tree **hel
 - Who strikes `0/10` on 4310 in theirs. That is the next item's frame: 4324, ours 11 draws against 12, index 1,
   with the state apart on block 4311.
 
-## 321. Reserved for the next item on the AI track
+## 321. The Germans from an Ancient start, Great Sahara: whole on its first try, 5314 of 5314 (item 3596)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93). §317's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
+Nubians (4) against the **Germans (12)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 0`, `ENDING_TECHNOLOGY 1` — both read back on both `GAME INFO`s. Captures: run1243 (a
+`DUMP_ALL` start) and run1244 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 5314. The walk is seeded from run1243's initial state (3506a); run1243 against run1244 is 37 of 37
+frames identical. `diff::german_ancient_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 12, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's (the
+battery holds no German game) and no pinned lobby's: the scored `GreatSaharaGermanTier3` is `(7, 12, 3)`, the
+same map at another difficulty; `EastIndiesGermanTier3` is `(18, 12, 3)`; the late-age `EastIndiesGermanAllTech`
+is `(18, 12, 5)`, another map. `german_ancient_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, frame 5314 of 5314**, by the count and the sequence. **The closing state** (run1244's
+closing block 5315, `german_ancient_pair_run1244_s_closing_state`) compares 171 units, none off, torn or
+unlinked, and no building or city field-row (`closing_fields`: none).
+
+**The closing window** (run1244b, blocks 5059..5315 at the long's detail with `LEADERS=9`, walked from run1243:
+256 blocks, 55 keys, the two `gaia:` keys unprinted). run1244's stride prints units every hundredth block and no
+leader, building or city record past the start, so no dump held the last blocks; run1244 against run1244b is
+5315 of 5315 frames identical.
+- The standing families on 5059: `form` on 19 units, who=0's `SITE[0..9].reg` ours 1 against theirs 0,
+  `aggression[1]`, who=1's groups' `held` and `pool` (64–70, 72); group 71's on 5065 and 73's on 5179.
+- **Five rows of who=1's sites on 5059**: `SITE[1].rank` ours 3 against theirs 4, `SITE[3].rank` 4 against 1,
+  `SITE[3].val` 607488 against 404976, `SITE[4].rank` and `SITE[6].rank` 2 against 3. None stands on 5313 or
+  5314. The window's first block is the first `LEADERDATA` either dump prints past the start, so when they parted
+  is unseen; the draw stream is whole, so they name no score (parked 3596a).
+- No unit, building or city field parts in the window.
+
+**The rubric.** Unit types seen 178 → **179** of 302 (`rubric.py --tables 3`, `census::RUBRIC_UNIT_TYPES_SEEN`):
+**`Solduri` (153)**, 1788 figure rows over run1243 and run1244, one of the booking's lines, is fielded and new to
+the ledger. **`Barbarians` (154)** is not fielded (parked 3596b). The pair's other seven types are in the lockstep
+set already: Citizen 50, Caravan 59, Merchant 61, Scout 69, Slingers 82, Bowmen 170, and the sheep and peacock
+herds.
+
+**What is not established.** The `SITE` rows' first parting (above). Nothing in the window reads a wound, so
+the closing compare's silence on `hits` (3584a) holds here too: no `hits` row parts in run1244b.
 
 ## 322. Reserved for the next item on the AI track
 
