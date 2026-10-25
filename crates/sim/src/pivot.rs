@@ -1362,6 +1362,66 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             ],
         },
     ),
+    // **Piece 138, the Cavalry Archer** (unit type 188, `CAVARCHERS`; item
+    // 3633, `docs/AI.md` §330): run1293's packet (`RON_STATE_FRAME=3606` of
+    // the Roman Medieval pair) holds its nine entries — the `(4, 0, 0)`
+    // [`NODES`] read, `(−0.06, −1.48, 32.63)`, and for each of its four
+    // `<RELEASEEVENT>`s (node 0; `CHAR_ATTACKWALK` and `CHAR_ATTACK1`..`3`
+    // at frames 18, 18, 16 and 20) the pivot node's and the release node's.
+    // The first three are piece 137's to the bit; `CHAR_ATTACK3`'s release
+    // node is its own. The `<RESTRICTION name="HEAVYCAVARCHER" node="4">`
+    // makes it a pivot piece, so its rounds left from `launch::MEASURED`'s
+    // facing-only nodes until now: who=1's `1/79` loosed at the human's
+    // Village `0/2000` on 5517 from (6131, 7631), 305 units short of its
+    // landing at a speed of 100, and flew 3 frames where theirs flew 2.
+    (
+        138,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 138,
+            node: 0,
+            pivot: [-60_000, -2_676_834, 34_506_775],
+            at: [479_090, -15_615_540, 16_108_955],
+            float_lands: &[],
+        },
+    ),
+    (
+        138,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 138,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [1_223_768, -16_729_307, 14_252_346],
+            float_lands: &[],
+        },
+    ),
+    (
+        138,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 138,
+            node: 0,
+            pivot: [-60_000, -919_060, 31_409_014],
+            at: [1_516_343, -18_837_709, 12_125_257],
+            float_lands: &[],
+        },
+    ),
+    (
+        138,
+        crate::anim::ATTACK3,
+        20,
+        Release {
+            piece: 138,
+            node: 0,
+            pivot: [-60_000, -1_480_000, 32_630_001],
+            at: [4_182_650, -16_023_108, 15_027_695],
+            float_lands: &[],
+        },
+    ),
     // **Piece 149, the Mongol Nomad** (unit type 199; item 3581, `docs/AI.md`
     // §311): run1224b's packet (`RON_STATE_FRAME=9745` on the Mongol Great
     // Sahara seed) holds its nine entries — the `(4, 0, 0)` [`NODES`] read,
@@ -2359,6 +2419,73 @@ mod tests {
             let path = format!("{dir}/pivot-168-a{slot}-t{time}.txt");
             let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_168");
             let r = release(168, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!(
+                        "{slot} {} {} {} {} {}",
+                        f[0], f[2], f[3], f[4], f[5]
+                    ));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **run982's three Cavalry Archer rounds leave from piece 138's pivot
+    /// rows** (item 3633): each is the figure's pose on the block before
+    /// its first `AMMO` print (the rows `launch::MEASURED` held from item
+    /// 3347 until this item), and each lands on exactly one turret step,
+    /// `dz` exact. The two `1/39` loosed from one pose share step 22.
+    #[test]
+    fn run982_s_cavalry_archer_rounds_fit_piece_138_s_pivot_rows() {
+        // (anim, starttime, x, y, facing, sx, sy, sz − z, the step)
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        let rows: [Row; 3] = [
+            (crate::anim::ATTACK3, 20, 9480, 30936, -1_535_115_264, 9401, 30970, 228, 22),
+            (crate::anim::ATTACK2, 16, 9480, 30936, -1_535_115_264, 9388, 30958, 208, 22),
+            (crate::anim::ATTACK1, 18, 7944, 30840, -990_642_176, 7860, 30861, 225, 243),
+        ];
+        for (anim, time, x, y, facing, sx, sy, dz, step) in rows {
+            let r = release(138, anim, time).expect("the row");
+            let fits: Vec<i32> = (0..256)
+                .filter(|&i| {
+                    let (ox, oy, oz) = release_offset(&r, Angle(facing), i << 24);
+                    (x + ox, y + oy, oz) == (sx, sy, dz)
+                })
+                .collect();
+            assert_eq!(fits, vec![step], "anim {anim}");
+        }
+    }
+
+    /// **The original's pivot branch on every cell, for piece 138, the
+    /// Cavalry Archer** (item 3633): `tools/recomp/get_position.py … pivot
+    /// 138 0 <anim> <time> 1` on run1293's packet for its four rows.
+    /// `$RON_RELEASE_TABLE_138` is the directory holding
+    /// `pivot-138-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-25-item-3633/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_138() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_138") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_138 (item 3633's oracle, run1293)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 18),
+            (crate::anim::ATTACK1, 18),
+            (crate::anim::ATTACK2, 16),
+            (crate::anim::ATTACK3, 20),
+        ] {
+            let path = format!("{dir}/pivot-138-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_138");
+            let r = release(138, slot, time).expect("the row");
             for line in table.lines() {
                 let f: Vec<i32> = line
                     .split_whitespace()
