@@ -10644,3 +10644,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1266c --map 18 --end-frame 8702 --log-window 8699 8702 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 0 --cover cover=0 --tracer-def RON_STATE_FRAME=8700 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h, run1255's lobby   (a packet: pieces 35 and 36, the Atl-Atls)
 #   run1266d --map 18 --end-frame 9258 --allow-early-end --timeout 3600 --log-window 9003 9259 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 0 --cover cover=0, run1255's lobby   (the closing window)
 # Checks: `rngcmp.py` run1256 vs run1266 -> 8711 identical; vs run1266c -> 8703 identical; vs run1266d -> 9259 identical.
+# ==== item 3605: the Russians at a held Medieval age, Great Sahara (`docs/AI.md` §326; `docs/RUNS.md` run1257, run1258, run1258b) ====
+#   run1257  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 13 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1258  run1202's line with --ai-tribe 13 and run1257's lobby   (the draw stream; ended itself on 4541)
+#   run1258b --map 7 --end-frame 3399 --timeout 3600 --log-window 3143 3399 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0, run1257's lobby   (the word 3149's window)
+# Checks: `rngcmp.py` run1257 vs run1258 -> 37 identical; run1258 vs run1258b -> 3400 identical.

@@ -264,6 +264,9 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // held-out `EastIndiesEgyptianTier3` `(18, 7, 3)` or the Classical
     // pair's `(18, 7, 5)`, another map.
     (7, 7, 5),
+    // The Russians at a held Medieval age, Great Sahara (item 3605): the
+    // held-out `GreatSaharaRussianTier4` is Difficulty 4.
+    (7, 13, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
