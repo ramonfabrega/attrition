@@ -33,11 +33,15 @@ pub(crate) const INCA_CLASSICAL: Pair = Pair {
     // The game ended itself on 6073 (closing block 6074).
     length: 6073,
     // Item 3606, first try: frame 4501 of 6073 by the count and the
-    // sequence. On 4501 ours spends 156 draws against theirs' 157, parting
+    // sequence. On 4501 ours spent 156 draws against theirs' 157, parting
     // at index 153 — ours `Farms::inc_time+0x1ae`, theirs
-    // `Object::take_damage+0xe1` (`docs/AI.md` section 327).
-    count: 4501,
-    sequence: 4501,
+    // `Object::take_damage+0xe1` (`docs/AI.md` section 327). Item 3616:
+    // 4501 → 5357, the Dromon's rounds leaving from piece 274's bays
+    // (`sim::launch`); on 5357 ours spends 149 draws against theirs' 151,
+    // parting at index 146 — ours `Farms::inc_time+0x1ae`, theirs
+    // `Ammo::do_damage+0xc59`.
+    count: 5357,
+    sequence: 5357,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -235,6 +239,13 @@ fn inca_classical_pair_run1260b_s_word_frame_is_widened_whole() {
     // (4327, 5881) (`RON_DEBUG_AMMO`), the same launch frame. Its next
     // round flies 12 on both sides, from (2809, 6079) in theirs and
     // (2808, 6088) in ours. From 4503 who=1's units' orders part (`1/15`,
-    // `1/30`, `1/28`).
-    pin_eq!(w.firsts.len(), 754, "run1260b baseline");
+    // `1/30`, `1/28`). Item 3616: 754 → 133. The Dromon's rounds leave
+    // from piece 274's bays, its first from (2808, 6381) on both sides and
+    // 12 frames long, so the Farm's wound on block 4502 agrees — `damage`
+    // 1, `damage_frac` 5 — and with it the city's raid and the treaties.
+    // What stands is the standing families alone: block 4495's 120 (every
+    // unit's `form`, who=1's 23 groups' `held` and pools, `SITE[i].reg`
+    // and `aggression[1]`), and later births' `form` and new groups'
+    // `held` and pools.
+    pin_eq!(w.firsts.len(), 133, "run1260b baseline");
 }
