@@ -10603,3 +10603,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3599: the Maya word 4324 -> 4429 (`docs/AI.md` §320.2; `docs/RUNS.md` run1247) ====
 #   run1247  --map 18 --end-frame 4308 --log-window 4305 4307 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 1 --cover cover=0 --tracer-def RON_STATE_FRAME=4306, run1233's lobby   (a packet: the Balamob Slingers' stones; the first take's tracer build failed on an unquoted plan path)
 # Checks: `rngcmp.py` run1234 vs run1247 -> 4309 identical.
+# ==== item 3601: the Koreans at a held Classical age, Great Sahara (`docs/AI.md` §322; `docs/RUNS.md` run1249, run1250, run1250b) ====
+#   run1249  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 16 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1250  run1232's line with --ai-tribe 16 and run1249's lobby   (the draw stream; ended itself on 8777)
+#   run1250b --map 7 --end-frame 8630 --timeout 3600 --log-window 8374 8630 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 16 --cover cover=0, run1249's lobby   (the word 8379's window)
+# Checks: `rngcmp.py` run1249 vs run1250 -> 37 identical; run1250 vs run1250b -> 8631 identical.
