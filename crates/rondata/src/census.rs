@@ -415,7 +415,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Classical pair whole at 8777 — `Elite Hwarang` (181, 5082 figure rows
 /// over run1249 and run1250) and `Flaming Arrow` (279, 2532), the two
 /// lines §322 booked, read by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 181;
+/// Item 3600's `Balamob Slingers` (88), the Maya Ancient pair whole at 5935,
+/// landed beside it unpinned: 182 at 3609's booking, `rubric.py --tables 3`
+/// on the tree holding both merges.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 182;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
