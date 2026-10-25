@@ -449,6 +449,12 @@ pub struct Roles {
     /// city and fort limit steps (`docs/ATTRITION.md`, "The cost").
     pub temple_borders_preq: [Option<TypeId>; 3],
     pub fort_borders_preq: [Option<TypeId>; 3],
+    /// `FORTLOS2..4`, bonuses 46–48 (`0x2da..0x2dc` off `BASE_BONUSTYPES`):
+    /// `LeaderData::get_fort_los@006daf30` asks `has_preq` from the top
+    /// down, so the level is `1` plus the highest held, and
+    /// `Wall::update_los` adds `FORT_UPGRADE_LOS` at it to a finished fort's
+    /// sight (`crate::Sim::build_los`, item 3631).
+    pub fort_los_preq: [Option<TypeId>; 3],
     /// `ATTRITION1..4`, bonuses 49–52 (`0x2dd..0x2e0`): Allegiance, Oath of
     /// Fealty, Patriotism and Nationalism in the shipped file.
     /// `Leader::calc_attrition@006cdea0` counts the **leading run** held —
