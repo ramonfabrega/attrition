@@ -35,9 +35,17 @@ pub(crate) const EGYPTIAN_GUNPOWDER: Pair = Pair {
     // Item 3603, first try: frame 3118 by the count and the sequence, ours
     // 13 draws against theirs' 14, parting at index 11 — ours
     // `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6` (`docs/AI.md`
-    // section 324).
-    count: 3118,
-    sequence: 3118,
+    // section 324): the state parts on block 3119, the Citizen `0/9`
+    // (TypeIndex 50) dying in theirs to the Arquebusiers `1/32`'s round a
+    // frame before ours. Item 3603: 3118 → **3238** (+120) — piece 48's
+    // bays (`sim::launch::BAYS`, run1254c's packet) put `1/32`'s round of
+    // 3114 on (7459, 30915), 5 frames, as theirs. The new word is ours 8
+    // draws against 7, index 5 — ours `Guy::set_anim+0x97a <
+    // Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`; the state
+    // parts on block 3225, the standing Arquebusiers `1/47`'s
+    // `damage_frac` ours 10 against theirs 12, no round at it.
+    count: 3238,
+    sequence: 3238,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -166,7 +174,7 @@ fn egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole() {
     let Some(w) = egyptian_gunpowder_frame_3118_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -185,5 +193,21 @@ fn egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1254b baseline");
+    // Item 3603, the first walk: 1685 keys. Block 3113, the window's
+    // first, carries the standing families alone (who=0's and who=1's
+    // `SITE[i].reg`, who=0's `aggression[1]`, who=1's groups 64..70
+    // `held` and pools, every unit's `form`). The state parts on block
+    // 3119: the human Citizen `0/9` (TypeIndex 50, land, fleeing at full
+    // 50 hits) dies in theirs — `Unit::close < Object::die` after one
+    // round's landing on 3118 — and stands in ours (who=0's `active`,
+    // `control`, `num_units[0]`, `peasants` ours 14/14/13/13 against
+    // 13/13/12/12). The round is the Arquebusiers `1/32`'s (TypeIndex 98,
+    // piece 48), fired on 3114: ours left from the figure's own (7560,
+    // 30840) and flew 6 frames (`docs/AI.md` section 324).
+    // Item 3603, after piece 48's bays: 1685 → **880**. Block 3119 agrees;
+    // past block 3113's standing families and groups 68/69 the state
+    // parts on block 3225, the Arquebusiers `1/47`'s `damage_frac` ours 10
+    // against theirs 12 (`1/45`'s on 3226, 12 against 14), with no round
+    // at either: the word 3238 (block 3239) follows.
+    pin_eq!(w.firsts.len(), 880, "run1254b baseline");
 }
