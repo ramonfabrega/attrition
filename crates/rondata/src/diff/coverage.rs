@@ -3480,6 +3480,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::spanish_classical_pair::spanish_classical_closing_window(),
         || super::maya_ancient_pair::maya_ancient_frame_4182_window(),
         || super::maya_ancient_pair::maya_ancient_closing_window(),
+        || super::japanese_ancient_pair::japanese_ancient_frame_4934_window(),
+        || super::japanese_ancient_pair::japanese_ancient_stride_window(),
         || super::german_ancient_pair::german_ancient_closing_window(),
         || super::korean_classical_pair::korean_classical_frame_8379_window(),
         || super::korean_classical_pair::korean_classical_closing_window(),

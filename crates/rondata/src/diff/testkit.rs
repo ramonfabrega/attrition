@@ -7289,6 +7289,19 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3602: the Japanese Ancient pair's first try, walked from
+    // run1251 along run1252, reads 7 inexact corners.
+    ("japanese_ancient_pair_first_parting", 7),
+    // And run1252's stride walked back from it, 101..4901: 5.
+    (
+        "japanese_ancient_pair_the_long_s_stride_walks_back_from_4934",
+        5,
+    ),
+    // And run1252b's window over 4928..5184, the word 4934's: 20.
+    (
+        "japanese_ancient_pair_run1252b_s_word_frame_is_widened_whole",
+        20,
+    ),
     // Item 3587: run1234b's window over 4177..4433, the Maya Ancient
     // pair's word 4182, reads 3 inexact corners.
     (
@@ -10178,6 +10191,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3609,
         Some(crate::diff::korean_classical_pair::WIDENING_KOREAN_CLASSICAL_CLOSING),
     ),
+    // **The Japanese from an Ancient start** (item 3602): East Indies —
+    // first try 4934 of 6126; widened on run1252b over 4928..5184 (the
+    // word's block 4935).
+    (
+        "JAPANESE_ANCIENT_PAIR_WORD",
+        crate::diff::japanese_ancient_pair::JAPANESE_ANCIENT_PAIR_WORD,
+        Some("japanese_ancient_pair_run1252b_s_word_frame_is_widened_whole"),
+        3602,
+        Some(crate::diff::japanese_ancient_pair::WIDENING_JAPANESE_ANCIENT_FRAME_4934),
+    ),
     // **The Egyptians at a held Gunpowder age** (item 3603): Great Sahara
     // — first try 3118 of 4454; piece 48's bays (run1254c's packet) move
     // it to 3238 in the same item; widened on run1254b over 3113..3369
@@ -11979,6 +12002,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 8_777,
         endpoint: Some("run1250_korean_classical_pair_closing_state"),
         window: Some("korean_classical_closing_window"),
+    },
+    // The Japanese from an Ancient start (`STARTING_TECHNOLOGY` 0, read
+    // back `ENDING_TECHNOLOGY` 1), East Indies (item 3602): first try 4934
+    // of a game that ends itself on 6126, widened on run1252b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesJapaneseAncient",
+        named: "East Indies (Japanese, Ancient)",
+        word: crate::diff::japanese_ancient_pair::JAPANESE_ANCIENT_PAIR_WORD,
+        length: 6_126,
+        endpoint: None,
+        window: Some("japanese_ancient_frame_4934_window"),
     },
     // The Egyptians at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3603): first try 3118 of

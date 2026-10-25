@@ -100,6 +100,8 @@ mod iroquois_sahara_word;
 #[cfg(test)]
 mod iroquois_word;
 #[cfg(test)]
+mod japanese_ancient_pair;
+#[cfg(test)]
 mod japanese_gunpowder_pair;
 #[cfg(test)]
 mod japanese_industrial_pair;

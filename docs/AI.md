@@ -28657,12 +28657,62 @@ packet, above). Still open:
 - piece 131's `CHAR_ATTACK1` keys and `ATTACK2`@22, which no dumped round diffs (they are piece 130's rows, read
   off the packet).
 
-## 323. Reserved for the next item on the AI track
+## 323. The Japanese from an Ancient start, East Indies: first try 4934 of 6126 (item 3602)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94). §320's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
+Nubians (4) against the **Japanese (15)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 0` and `ENDING_TECHNOLOGY 1` (asked 1, read back 1 on both `GAME INFO`s: age 0 cannot be
+held, 3559a). Captures: run1251 (a `DUMP_ALL` start) and run1252 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 6126. The walk is seeded from run1251's initial
+state (3506a); run1251 against run1252 is 37 of 37 frames identical. `diff::japanese_ancient_pair` pins it. No
+twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 15, 5)`, is **already scored**: the Japanese Industrial pair (item 3510,
+`japanese_industrial_pair`) holds it at a held Industrial age, so it is not minted again. The two lobbies part on
+the age, and `japanese_ancient_pair_is_no_other_lobby` reads both `GAME INFO`s: theirs `(18, 5, 5, 5)` (map,
+difficulty, starting and ending age), this pair's `(18, 5, 0, 1)` — the Gunpowder pair's shape (3513, Loop 3544).
+The battery fields no Japanese game; the Gunpowder pair's `(7, 15, 5)` and the AI word's `GreatSaharaJapaneseTier1`,
+`(7, 15, 1)`, are another map.
+
+**First try: frame 4934 of 6126**, by the count and the sequence. Ours spends 180 draws against theirs' 179,
+parting at index 0: ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::think_fish+0x27a`. Ours'
+`RON_DEBUG_SITES=4934` names the draw's unit: **the Bowmen `1/51`** (TypeIndex 170, land, who=1's group 64).
+Every other draw agrees by site: the fish herd `1/117`'s 169 `think_fish` draws, `1/33`'s two `Ammo::init`, three
+`Guy::inc_time` animations (`1/54`, `1/111`, `9/7`) and five `Farms::inc_time`. So ours' `1/51` takes one
+animation from its move that theirs does not; who=1 is the side that acts.
+
+**The word's window** (run1252b, blocks 4928..5184 at the long's detail with `LEADERS=9` and `AMMO=5`, walked
+from run1251: 256 blocks, 1962 keys, the two `gaia:` keys unprinted; 20 inexact ground corners,
+`GROUND_INEXACT`). run1252 against run1252b is 5185 of 5185 frames identical. **The value diff:**
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4928 | Bowmen `1/51` (TI 170, land) | `orders_x`/`_y`, `order:move.off_x`/`off_y` | (7416, 6024), 504/648 | (6984, 5832), 72/456 |
+| 4928 | Bowmen `1/51` | `pos` | (7518, 6120) | (7532, 6149) |
+| 4928 | Citizen `0/6` (TI 50, land) | `damage_frame`, `pos` | 4905, (5522, 4994) | 4904, (5497, 4993) |
+| 4933 | Bowmen `1/51` | `order:kind`, `orders.len`, `path:length` | 10, 2, 18 | 1, 3, 19 |
+| 4933 | Ashigaru Spearmen `1/29` (TI 157, land) | `orders_x`/`_y` | (4488, 4968) | (4248, 5112) |
+| 4934 | Bowmen `1/51` | `order:flags`, `order:move.dest` | 0, 0 | 1, 1 |
+| 4938 | Citizen `0/6` | `hits_left` | 37 | 33 |
+
+**The state is apart before the window opens.** Block 4928 already parts on `1/51`'s move and `0/6`'s wound,
+beside the standing families (every unit's `form`, who=0's `SITE[i].reg`, `aggression[1]`, who=1's groups'
+`held` and pools). The long's stride, walked over 101..4901 (`japanese_ancient_pair_the_long_s_stride_walks_back_from_4934`,
+134 keys), parts on the standing families alone: every unit field agrees on every stride block through 4901,
+where both sides' `1/51` heads for (7416, 6024). So the state parts in **the gap 4902..4927**: theirs' `1/51`
+re-aims to (6984, 5832) and ours' does not, and `0/6`'s wound lands a frame earlier in theirs (4904 against 4905).
+
+**The lines.** `Ashigaru Spearmen` (157) is **fielded**: 2268 figure rows over run1251 and run1252, 16896 on
+run1252b. It is new to the ledger and enters when the pair is lockstep. `Bushi` (158) is not fielded (parked
+3602a). The pair's other types: Citizen 50, Caravan 59, Merchant 61, Scout 69, Slingers 82, Bowmen 170, The
+Senator 353, three boats (Fishermen 317, Merchant Fleet 318, Transport Barge 320), and the horse, fish and whale
+herds. `rubric.py` on this tree reads unit types seen **182 of 302**, unmoved: the pair is open.
+
+**What is not established.** Why theirs' `1/51` re-aims inside 4902..4927 and ours' does not, and who wounded
+`0/6` on 4904 (theirs) against 4905 (ours): a round's flight a frame shorter in theirs is the Maya pair's shape
+(§320.2, §320.3), and `0/6`'s wound is the gap's earliest named row. No dump holds the gap's blocks at the long's
+detail; the next item's first read is a window over 4898..4928 with `AMMO=5`. The next item's frame is 4934,
+ours 180 draws against 179 at index 0.
 
 ## 324. The Egyptians at a held Gunpowder age, Great Sahara: first try 3118 of 4454, moved to 3238 (item 3603)
 
