@@ -34,9 +34,15 @@ pub(crate) const ROMAN_MEDIEVAL: Pair = Pair {
     // Item 3620, first try: frame 1875 by the count and the sequence, ours
     // 9 draws against 8, index 1 — ours `Guy::set_anim+0x97a <
     // Guy::move+0x19f`, theirs `Guy::set_anim+0x97a <
-    // Unit::do_guard+0x7f4` (`docs/AI.md` section 330).
-    count: 1875,
-    sequence: 1875,
+    // Unit::do_guard+0x7f4` (`docs/AI.md` section 330). Item 3622: 1875 ->
+    // **3607** by the count and the sequence — `swarm_around` queues
+    // nothing when the ring finds no spot, so `do_build`'s re-swarm of the
+    // Dock site `1/2023` drops `1/17`'s build as theirs does. The new
+    // word: ours 3205 draws against 3208, index 3201 — ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    // `PathFinder::calc_road_cost+0x46`.
+    count: 3607,
+    sequence: 3607,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -208,5 +214,5 @@ fn roman_medieval_pair_run1275b_s_word_frame_is_widened_whole() {
     // index 1: ours spends `1/17`'s `Guy::set_anim+0x97a <
     // Guy::move+0x19f`, and the other eight agree in order — ours acts
     // (`docs/AI.md` section 330). The rest follows from `1/17`.
-    pin_eq!(w.firsts.len(), 1211, "run1275b baseline");
+    pin_eq!(w.firsts.len(), 83, "run1275b baseline");
 }
