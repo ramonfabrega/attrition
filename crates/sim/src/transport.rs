@@ -2294,7 +2294,9 @@ mod tests {
     /// §151): a citizen swarming an Oil Platform at sea searches the ring as
     /// the leader's barge once the leader transports civilians, so its
     /// approach is a point on the water; before that its own (land) type
-    /// finds nothing and the build goes in bare. A water Dock is excepted.
+    /// finds nothing and **nothing is queued** — the member arm's move and
+    /// order both sit inside `find_nearby_spot == 0` (item 3622,
+    /// `docs/AI.md` §330). A water Dock is excepted.
     #[test]
     fn a_citizen_swarms_a_sea_site_as_the_barge_once_its_leader_transports() {
         use crate::orders::{Body, MoveKind};
@@ -2322,11 +2324,11 @@ mod tests {
             sim.world.tile_mask(p.tile()) & tile::SURFACE == tile::SURFACE_OCEAN
         };
 
-        // No transport level: the land ring finds no land, and the build
-        // goes in with no approach in front of it.
+        // No transport level: the land ring finds no land, and neither
+        // the approach nor the build goes in, nor the builder's mark.
         f.sim.swarm_around(c, site, Body::Build(site), true);
-        assert_eq!(f.sim.units[c].orders.len(), 1);
-        assert!(matches!(f.sim.units[c].orders[0].body, Body::Build(b) if b == site));
+        assert!(f.sim.units[c].orders.is_empty(), "{:?}", f.sim.units[c].orders);
+        assert!(!f.sim.units[c].was_builder, "no order, no mark");
 
         // A finished dock grants the civilian level; the ring is now the
         // barge's, and its first answer is water.
@@ -2349,10 +2351,9 @@ mod tests {
         f.sim.clear_orders(c);
         f.sim
             .swarm_around(c, dock_site, Body::Build(dock_site), true);
-        assert_eq!(
-            f.sim.units[c].orders.len(),
-            1,
-            "no water approach to a dock"
+        assert!(
+            f.sim.units[c].orders.is_empty(),
+            "no water approach to a dock, and so no build"
         );
     }
 

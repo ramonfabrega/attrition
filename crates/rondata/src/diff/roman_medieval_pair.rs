@@ -214,5 +214,21 @@ fn roman_medieval_pair_run1275b_s_word_frame_is_widened_whole() {
     // index 1: ours spends `1/17`'s `Guy::set_anim+0x97a <
     // Guy::move+0x19f`, and the other eight agree in order — ours acts
     // (`docs/AI.md` section 330). The rest follows from `1/17`.
+    //
+    // Item 3622: **1211 -> 83**. `do_build` finds `1/17` out of reach of
+    // the Dock site `1/2023` and re-swarms it through the insert dance;
+    // the ring finds no spot, so the original queues neither the approach
+    // nor the build, and `finish_insert` re-swarms the build on `1/2030`
+    // under it (the new explore to (36600, 43320)). Ours queued the build
+    // with no approach and stood on it. On 1875 both sides now hold
+    // `orders.len` 2, `order:kind` 3 at (36600, 43320), and on 1876 both
+    // stand at (35349, 42720) with a path of 4. What is left is the
+    // standing families on 1870 and value rows past 1918 (the pools and
+    // groups from 1919, `SITE[i]` on 1976, `1/64`'s `form` on 2030), none
+    // of them the Citizen's.
+    assert!(
+        w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 17)),
+        "the Citizen 1/17 parts nowhere in the window"
+    );
     pin_eq!(w.firsts.len(), 83, "run1275b baseline");
 }
