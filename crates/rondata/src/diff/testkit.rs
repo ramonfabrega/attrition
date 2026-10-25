@@ -10226,13 +10226,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The Aztecs from an Ancient start** (item 3604): East Indies —
     // first try 8716 of 9258; widened on run1256b over 8710..8966 (the
-    // word's block 8717).
+    // word's block 8717). Item 3613: whole at 9258 (the Royal Atl-Atls
+    // throw from piece 36's bays); the word's widening is run1266d's
+    // closing walk, 9003..9259.
     (
         "AZTEC_ANCIENT_PAIR_WORD",
         crate::diff::aztec_ancient_pair::AZTEC_ANCIENT_PAIR_WORD,
-        Some("aztec_ancient_pair_run1256b_s_word_frame_is_widened_whole"),
-        3604,
-        Some(crate::diff::aztec_ancient_pair::WIDENING_AZTEC_ANCIENT_FRAME_8716),
+        Some("aztec_ancient_pair_run1266d_s_closing_frame_is_widened_whole"),
+        3613,
+        Some(crate::diff::aztec_ancient_pair::WINDOW_AZTEC_ANCIENT_CLOSING),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12054,15 +12056,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Aztecs from an Ancient start (`STARTING_TECHNOLOGY` 0, read back
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3604): first try 8716 of a
-    // game that ends itself on 9258, widened on run1256b.
+    // game that ends itself on 9258, widened on run1256b. Item 3613: whole
+    // at 9258, piece 36's bays; the closing state compared, widened on
+    // run1266d.
     AiWord {
         line: "Late ages",
         map: "EastIndiesAztecAncient",
         named: "East Indies (Aztecs, Ancient)",
         word: crate::diff::aztec_ancient_pair::AZTEC_ANCIENT_PAIR_WORD,
         length: 9_258,
-        endpoint: None,
-        window: Some("aztec_ancient_frame_8716_window"),
+        endpoint: Some("aztec_ancient_pair_run1256_s_closing_state"),
+        window: Some("aztec_ancient_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
