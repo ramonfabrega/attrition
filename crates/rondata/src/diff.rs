@@ -59,6 +59,8 @@ mod corrections;
 #[cfg(test)]
 mod coverage_pair;
 #[cfg(test)]
+mod dutch_medieval_pair;
+#[cfg(test)]
 mod dutch_sahara_word;
 #[cfg(test)]
 mod dutch_word;
