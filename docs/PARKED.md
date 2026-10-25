@@ -11024,13 +11024,20 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot SE — reserved
+## Parked by item 3632, 2026-10-25 — the Horde looses through its saddle pivot, 4499 → 4632
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3632a. Piece 842's rows are planar, and a mounted archer is a pivot piece.** Item 3338 entered the Horse
+  Archer's piece 842 as three `launch::MEASURED` `(bearing, radius)` rows and parked them "known short of the
+  original's": run973f's second round misses by 6 to 16 units, "turned by something the non-pivot sweep does not
+  take". Item 3632 found that turn on piece 153 (the Horde): node 4 is a saddle pivot, the rider turns toward the
+  target, and the rows belong in `pivot::NODES`/`RELEASES` — as the Horse Archer pieces 1545, 841 and 156 already
+  are. Piece 842 likely wants the same: `get_position.py … entries 842` on a packet of a game that fields it
+  (run973e's Maya Great Sahara lobby), the pivot table's sweep, and run973e/f's four rounds as the killer. Names
+  no open word's frame; the Maya pair is whole.
+- **3632b. Piece 153's `NODES` row is reached by no walk.** Dropping it (`tools/mutate.py`) fails nothing on the
+  Mongol Gunpowder walk: the pivot node moves only the turret's bearing (`Guy::set_all_pivots`), and no turret
+  step of a Horde parts on any dumped block. The sim test `run1292_s_horde_rounds_leave_through_piece_153_s_pivot`
+  pins the row; a Horde whose aim crosses a turret step at the node's offset would be the walk's killer.
 
 ## Parked by the next landing, slot SF — reserved
 
