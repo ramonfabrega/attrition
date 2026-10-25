@@ -6343,20 +6343,8 @@ impl Sim {
     /// turns the fold from a count into a sequence comparable with
     /// `rondata::trace`'s.
     pub(crate) fn mark(&mut self, phase: &str) {
-        self.probe_3622(phase);
         if self.trace_phases {
             self.phase_marks.push((phase.to_string(), self.rng.seed));
-        }
-    }
-
-    /// PROBE 3622: `1/17`'s orders at every phase mark on 1875.
-    pub(crate) fn probe_3622(&self, phase: &str) {
-        if std::env::var_os("RON_PROBE_3622").is_none() || !(1874..=1875).contains(&self.frame) {
-            return;
-        }
-        if let Some(u) = self.unit_by_o(1, 17) {
-            let o: Vec<String> = self.units[u].orders.iter().map(|x| format!("{:?}", x.body)).collect();
-            eprintln!("PROBE f{} {phase}: {}", self.frame, o.join(" | "));
         }
     }
 
@@ -6700,9 +6688,7 @@ impl Sim {
                     if !self.units[i].alive() && self.units[i].hold_frames != 0 {
                         self.units[i].hold_frames -= 1;
                     }
-                    let tag = format!("unit {who}/{o}");
                     self.process_unit(i, frame, &mut events);
-                    self.probe_3622(&tag);
                 } else if let Some(&i) = dead[w].get(&o)
                     && self.units[i].hold_frames != 0
                 {
