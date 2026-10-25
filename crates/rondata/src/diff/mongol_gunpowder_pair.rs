@@ -259,6 +259,11 @@ fn mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole() {
     // (`docs/AI.md` section 331). Nothing parts on the word's block 1974;
     // the first rows past it are who=1's `leader:attack` 210 against 218
     // on 1976 and the make list from 1983.
+    // Item 3630: 1038 → 90. The Monarch casts Create Decoy on 1946 as
+    // theirs does (a supplier's pool, `mana` 2000 under one supply
+    // upgrade), so `1/17`'s rows leave the window; what stays is the
+    // standing families and who=1's `leader:attack` 210 against 218 on
+    // 1976. The word left this window for 4499.
     pin_eq!(w.firsts.len(), 90, "run1279b baseline");
 }
 
@@ -311,5 +316,175 @@ fn mongol_gunpowder_pair_run1292_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3630, the gap's first walk: 85 keys, and the one unit row was
+    // the Monarch `1/17` (TypeIndex 354) on block 1947 — theirs `orders.len`
+    // 1 (`CASTORDER`, Create Decoy), `spell_time` 1, `mana_burn` 1766,
+    // `idle` 0; ours 0, 0, 766 and 12. Ours reached the hero arm on the
+    // same frame 1946 (`Army::use_generals`), the Monarch standing with no
+    // decoy, and refused it on the mana: 1000 against `mana_burn` 767 +
+    // Create Decoy's 1000, where the original's `UnitData::mana` gives a
+    // supplier `MANA × (get_supply_upgrade + 1)` = 2000 (the leader held
+    // one step from 1818..1946). Built: 85 → 80, every row standing (both
+    // leaders' `SITE[i].reg`, who=1's stockpile and queue costs, the
+    // groups' `held` and pools).
     pin_eq!(w.firsts.len(), 80, "run1292 baseline");
+}
+
+/// run1292b: the word 4499's window, blocks 4493..4749 at run1279b's
+/// detail — six blocks before the word's block 4500 and 250 after (item
+/// 3630); the stride's blocks are 4401 and 4501.
+pub(crate) const RUN1292B: &str =
+    "gamelog-run1292b-eastindies-mongol-gunpowder-window-4493-4749.txt";
+
+/// The window: block 4493 through 4749; the word 4499's own block is 4500.
+pub(crate) const WIDENING_MONGOL_GUNPOWDER_FRAME_4499: (i64, i64) = (4493, 4749);
+
+/// **The word 4499's window**: run1292b walked from run1278's start with
+/// the recorder on (item 3630).
+pub(crate) fn mongol_gunpowder_frame_4499_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_GUNPOWDER.start],
+        true,
+        MONGOL_GUNPOWDER.long,
+        "run1292b",
+        &[(RUN1292B, WIDENING_MONGOL_GUNPOWDER_FRAME_4499.0)],
+        WIDENING_MONGOL_GUNPOWDER_FRAME_4499,
+        1,
+        &[4500],
+        true,
+    )
+}
+
+#[test]
+fn mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_gunpowder_frame_4499_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3630, the word 4499's widening: 5030 keys, the state parted
+    // before the window (run1292c's block 4475). **The word 4499**, ours 11
+    // draws against 10, index 2: ours `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a <
+    // Unit::do_idle+0x7d`.
+    pin_eq!(w.firsts.len(), 5030, "run1292b baseline");
+}
+
+/// **The long's stride between the windows** (item 3630): run1279's
+/// stride blocks after run1292's window and up to the word 4499's.
+pub(crate) const WIDENING_MONGOL_GUNPOWDER_LATE_STRIDE: (i64, i64) = (2001, 4401);
+
+pub(crate) fn mongol_gunpowder_late_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_GUNPOWDER.start],
+        true,
+        MONGOL_GUNPOWDER.long,
+        "run1279 late stride",
+        &[(
+            MONGOL_GUNPOWDER.long.0,
+            WIDENING_MONGOL_GUNPOWDER_LATE_STRIDE.0,
+        )],
+        WIDENING_MONGOL_GUNPOWDER_LATE_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn mongol_gunpowder_pair_the_long_s_stride_walks_back_from_4499() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_gunpowder_late_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 25, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3630: 187 keys, every one standing — the start's buildings'
+    // and new buildings' `build:extra`, who=1's groups' `held` and pools as
+    // each is minted, and new units' `form`. No unit's position or orders
+    // part through block 4401.
+    pin_eq!(w.firsts.len(), 187, "the late stride's baseline");
+}
+
+/// run1292c: the walk back from the word 4499, blocks 4395..4495 at
+/// run1279b's detail (item 3630) — the stride agrees through 4401 and
+/// run1292b's first block 4493 already parts.
+pub(crate) const RUN1292C: &str =
+    "gamelog-run1292c-eastindies-mongol-gunpowder-window-4395-4495.txt";
+
+/// The window: block 4395 through 4495.
+pub(crate) const WIDENING_MONGOL_GUNPOWDER_BEFORE_4499: (i64, i64) = (4395, 4495);
+
+/// **The walk back from 4499**: run1292c walked from run1278's start with
+/// the recorder on (item 3630).
+pub(crate) fn mongol_gunpowder_before_4499_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_GUNPOWDER.start],
+        true,
+        MONGOL_GUNPOWDER.long,
+        "run1292c",
+        &[(RUN1292C, WIDENING_MONGOL_GUNPOWDER_BEFORE_4499.0)],
+        WIDENING_MONGOL_GUNPOWDER_BEFORE_4499,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn mongol_gunpowder_pair_run1292c_walks_back_from_4499() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_gunpowder_before_4499_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 100, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3630: 404 keys. **The state first parts on block 4475** (frame
+    // 4474): both leaders' `treaties` — `0`'s `treaties[1]` and `1`'s
+    // `treaties[0]` — read 3 in theirs and 1 in ours, and the human's `0/5`
+    // takes 26 in theirs (`hits_left` 24 against 50, `damage_frame` and its
+    // city's `raid_stamp` 4474) with a second order (kind 4 over ours' 7).
+    // From 4476 `0/5`'s position parts, and from 4479 who=1's move
+    // destinations; no draw parts until 4499.
+    pin_eq!(w.firsts.len(), 404, "run1292c baseline");
 }
