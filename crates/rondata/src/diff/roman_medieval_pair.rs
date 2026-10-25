@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const ROMAN_MEDIEVAL: Pair = Pair {
     name: "EastIndiesRomanMedieval",
@@ -55,8 +55,13 @@ pub(crate) const ROMAN_MEDIEVAL: Pair = Pair {
     // Citizen `0/10` 7, not 8. The new word: ours 148 draws against 149,
     // index 0 — ours `Unit::think_fish+0x27a`, theirs
     // `Unit::fight+0x9b0`.
-    count: 5971,
-    sequence: 5971,
+    // Item 3635: 5971 -> **5979 of 5979**, the pair whole —
+    // `Guy::set_all_pivots`' gone test is the target slot's `flags & 1`,
+    // never its hit points, so the Cavalry Archer `1/124`'s turret keeps
+    // bearing on the Village `0/2000` at its ceiling (5963) and
+    // `move_step` keeps `cavarch_o` 2000 to 5969, as theirs does.
+    count: 5979,
+    sequence: 5979,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -618,6 +623,12 @@ fn roman_medieval_pair_run1295_s_word_frame_is_widened_whole() {
     // its `recharging` 5 against 0 on 5969 and its guy's target on 5971;
     // `1/145`'s move pause on 5972, `1/17`'s gather wait on 5975 and the
     // leader's peasant counts on 5978 follow.
+    // Item 3635: **98** keys, and no unit parts past the standing block —
+    // `1/124` keeps bearing on the Village at its ceiling (`set_all_pivots`'
+    // gone test is the slot's `flags & 1`), and its four rows go with
+    // `1/145`'s and `1/17`'s. Left: the standing families, the newborn's
+    // `form`, the pools and groups, and the leader's `free_peasants` and
+    // `gatherers` on 5978 (ours 3 and 33 against 2 and 34).
     pin!(
         w.firsts
             .iter()
@@ -626,8 +637,73 @@ fn roman_medieval_pair_run1295_s_word_frame_is_widened_whole() {
             .filter(|((_, _, k), _)| k != "form")
             .map(|(k, (f, _))| (*f, k.clone()))
             .min()
-            == Some((5964, (1, 124, "cavarch_o".to_string()))),
-        "the first unit parting past the standing block is 1/124's cavarch_o on 5964"
+            .is_none(),
+        "no unit parts past the standing block"
     );
-    pin_eq!(w.firsts.len(), 104, "run1295 baseline");
+    pin_eq!(w.firsts.len(), 98, "run1295 baseline");
+}
+
+/// **The closing state** (item 3635): run1275's closing block 5980, the
+/// whole map's units, walked from run1274's start.
+#[test]
+fn roman_medieval_pair_run1275_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &ROMAN_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Roman Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    pin_eq!(e.frame, 5980, "the closing block");
+    // Item 3635, the pair whole: 247 units, none off, torn or unlinked,
+    // no extra, `Closing fields: none`.
+    pin_eq!(e.compared, 247, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }

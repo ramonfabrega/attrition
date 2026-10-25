@@ -458,6 +458,40 @@ mod tests {
         }
     }
 
+    /// **A city at its ceiling is still borne on** (item 3635, `docs/AI.md`
+    /// §330): `Guy::set_all_pivots@005d8bc0`'s gone test is the target
+    /// slot's `flags & 1` (`005d8c69`), never its hit points, so a walking
+    /// `v` type whose `cavarch_o` holds a city brought to 0 keeps it, and
+    /// its step walks `CHAR_ATTACKWALK`. run1295's Cavalry Archer `1/124`
+    /// (TypeIndex 188) holds the Village `0/2000` from its fall on 5963 to
+    /// 5969; ours dropped it on 5964. A building gone from its slot is
+    /// dropped (−1) and the walk is `CHAR_WALK`.
+    #[test]
+    fn a_city_at_its_ceiling_is_still_borne_on() {
+        for alive in [true, false] {
+            let (mut sim, ty) = field(true);
+            const CAVARCHERS: i32 = 188;
+            sim.unit_types[ty].type_index = CAVARCHERS;
+            sim.art
+                .pivots
+                .insert(CAVARCHERS, [(4, (-180, 180))].into_iter().collect());
+            let me = put(&mut sim, 1, ty, Pos::new(3000, 3000));
+            let b = sim.add_building(0, Pos::new(3000, 4200), 0);
+            sim.buildings[b].combat = Some(Profile::default());
+            sim.buildings[b].health = 0;
+            sim.buildings[b].alive = alive;
+            sim.units[me].cast_target = Some(Obj::Building(b));
+            let walk = sim.cavarch_step_anim(me);
+            if alive {
+                assert_eq!(walk, crate::anim::ATTACKWALK, "the turret bears");
+                assert_eq!(sim.units[me].cast_target, Some(Obj::Building(b)));
+            } else {
+                assert_eq!(walk, crate::anim::WALK, "a gone slot is dropped");
+                assert_eq!(sim.cavarch_o(me), -1);
+            }
+        }
+    }
+
     /// **The fire on the move's bearing is off the unit's heading, not its
     /// figure's facing** (`find_nearby_target@00648da0`'s `param_4` arm
     /// reads `UnitData +0x50`, `angle`; item 3530, `docs/AI.md` §305). Two

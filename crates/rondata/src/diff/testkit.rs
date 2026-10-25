@@ -7298,6 +7298,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "roman_medieval_pair_run1295_s_word_frame_is_widened_whole",
         27,
     ),
+    // Item 3635: the pair whole, and its closing state, run1275's block
+    // 5980, reads the same 27.
+    ("roman_medieval_pair_run1275_s_closing_state", 27),
     // Item 3631: run1293b, the Roman Medieval word 5582's window,
     // 5577..5833, reads 17 inexact corners.
     (
@@ -10338,12 +10341,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // 3607, widened on run1277 over 3602..3858 (the word's block 3608).
     // Item 3631: 3607 -> 5582, widened on run1293b over 5577..5833 (the
     // word's block 5583). Item 3633: 5582 -> 5971, widened on run1295 over
-    // 5833..5979 (the word's block 5972).
+    // 5833..5979 (the word's block 5972). Whole since item 3635, 5979 of
+    // 5979, the closing state compared; the same window, re-walked,
+    // reaches the closing block.
     (
         "ROMAN_MEDIEVAL_PAIR_WORD",
         crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL_PAIR_WORD,
         Some("roman_medieval_pair_run1295_s_word_frame_is_widened_whole"),
-        3633,
+        3635,
         Some(crate::diff::roman_medieval_pair::WIDENING_ROMAN_MEDIEVAL_FRAME_5971),
     ),
     // **The Mongols at a held Gunpowder age** (item 3623): East Indies —
@@ -12254,14 +12259,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 2), East Indies (item 3620): first try 1875 of a
     // game that ends itself on 5979, widened on run1275b; 3607 since item
     // 3622, widened on run1277; 5582 since item 3631, widened on run1293b;
-    // 5971 since item 3633, widened on run1295.
+    // 5971 since item 3633, widened on run1295; whole since item 3635, its
+    // closing state compared and the window re-walked.
     AiWord {
         line: "Late ages",
         map: "EastIndiesRomanMedieval",
         named: "East Indies (Romans, Medieval)",
         word: crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL_PAIR_WORD,
         length: 5_979,
-        endpoint: None,
+        endpoint: Some("roman_medieval_pair_run1275_s_closing_state"),
         window: Some("roman_medieval_frame_5971_window"),
     },
     // The Mongols at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
