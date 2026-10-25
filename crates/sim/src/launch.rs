@@ -1344,6 +1344,48 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 177,
         },
     ),
+    // **Piece 38, the Maya's Balamob Slingers** (type 88, `BAMOBSLINGERS`;
+    // item 3599, `docs/AI.md` §320.2): a nation's own piece on its own
+    // model (`Balamob.bh3`), so no continent offset and none of piece 32's
+    // keys — `CHAR_ATTACK1` at 18, `2` at 19, `3` at 21. run1247's
+    // `RON_STATE_FRAME=4306` packet on the Maya East Indies game holds the
+    // three `AttachPos` rows, and `tools/recomp/get_position.py`'s sweep of
+    // each is reproduced at all 361 headings by these, the centroids of
+    // their exact regions (650, 666 and 97 lattice points). Without them
+    // every Balamob stone left the unit's own square: the Maya word's
+    // 4324, whose state had parted on 4310 — `1/32`'s stone at the Citizen
+    // `0/10` from (6072, 8616) in 7 frames where the original's left from
+    // (5950, 8535, 362) in 6.
+    (
+        38,
+        crate::anim::ATTACK1,
+        18,
+        Bay {
+            right: 18_702,
+            fwd: 146_963,
+            dz: 177,
+        },
+    ),
+    (
+        38,
+        crate::anim::ATTACK2,
+        19,
+        Bay {
+            right: 22_458,
+            fwd: 145_250,
+            dz: 168,
+        },
+    ),
+    (
+        38,
+        crate::anim::ATTACK3,
+        21,
+        Bay {
+            right: 36_186,
+            fwd: 144_839,
+            dz: 173,
+        },
+    ),
     // **Piece 1440, the Slingers in the `NA` art style** (`32 + 4 ×
     // 0x160`; item 3345, `docs/AI.md` §277): the Lakota's and the
     // Iroquois' Slinger, whose `UNIT_CONTINENT` is 4. run954b's
@@ -2293,6 +2335,23 @@ mod tests {
         );
         assert_eq!((arrow.x, arrow.y), (6085, 10656));
         assert_eq!(release_dz(130, crate::anim::ATTACK1, 22, 0), Some(167));
+    }
+
+    /// **The Balamob Slingers' stones leave from piece 38's bays** (item
+    /// 3599, `docs/AI.md` §320.2): run1247's two `AMMO` records at the
+    /// Citizen `0/10` on block 4306, each figure on its unit's own square
+    /// at the `GUY` record's angle, `sx, sy` the dump's own and `sz` less
+    /// the figure's `z` 194 naming the key.
+    #[test]
+    fn run1247_s_balamob_stones_leave_from_piece_38_s_bays() {
+        for (anim, start, x, y, facing, sx, sy, dz) in [
+            (12, 19, 6072, 8616, -756_678_656, 5950, 8535, 362 - 194),
+            (11, 18, 6072, 8856, -643_039_232, 5963, 8757, 371 - 194),
+        ] {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 38, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "({anim}, {start}) at {facing}");
+            assert_eq!(release_dz(38, anim, start, 0), Some(dz));
+        }
     }
 
     /// **The Fire Lances' rounds leave from piece 46's bays** (item 3577):

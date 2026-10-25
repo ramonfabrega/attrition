@@ -40,8 +40,14 @@ pub(crate) const MAYA_ANCIENT: Pair = Pair {
     // (`num_queued[SENATE]`); the word is now frame 4324, ours 11 draws
     // against 12, index 1 — ours `Unit::fight+0x9b0`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823` (section 320.1).
-    count: 4324,
-    sequence: 4324,
+    //
+    // Item 3599: 4324 → 4429. The Balamob Slingers' stones leave from
+    // piece 38's bays (`sim::launch`); the word is now frame 4429, ours 10
+    // draws against 12, index 1 — ours `Guy::set_anim+0x97a <
+    // Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823` (section 320.2).
+    count: 4429,
+    sequence: 4429,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -178,5 +184,11 @@ fn maya_ancient_pair_run1234b_s_word_frame_is_widened_whole() {
     // so both leaders' `treaties` read 3 in theirs (the hit's bit 1)
     // against ours 1, and `0/10` flees to (4536, 6648) in theirs alone.
     // The word is 4324 (block 4325).
-    pin_eq!(w.firsts.len(), 1233, "run1234b baseline");
+    //
+    // Item 3599, piece 38's bays: 1233 → 167 keys. `1/32`'s and `1/33`'s
+    // stones at `0/10`, thrown on 4305, leave from (5950, 8535) and
+    // (5963, 8757) in 6 and 7 frames, as run1247's `AMMO` records print,
+    // where ours threw from the units' squares in 7 and 8; block 4311
+    // agrees whole. The word is 4429 (block 4430).
+    pin_eq!(w.firsts.len(), 167, "run1234b baseline");
 }
