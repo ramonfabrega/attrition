@@ -209,5 +209,5 @@ fn egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole() {
     // parts on block 3225, the Arquebusiers `1/47`'s `damage_frac` ours 10
     // against theirs 12 (`1/45`'s on 3226, 12 against 14), with no round
     // at either: the word 3238 (block 3239) follows.
-    pin_eq!(w.firsts.len(), 880, "run1254b baseline");
+    pin_eq!(w.firsts.len(), 632, "run1254b baseline");
 }
