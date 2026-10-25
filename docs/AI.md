@@ -29218,12 +29218,72 @@ the walk catches each one.
 reading alone. The packet's search passes `ai` 0, so they are owed a blind second reading (`docs/COMBAT.md`). What
 removes the Elite Javelineers at the city, and how each side chooses them.
 
-## 327. Reserved for the next item on the AI track
+## 327. The Inca at a held Classical age, East Indies: first try 4501 of 6073 (item 3606)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94). §318's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
+Nubians (4) against the **Inca (2)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held at
+Classical by `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1` (read back 1 on both `GAME INFO`s). Captures: run1259
+(a `DUMP_ALL` start) and run1260 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 6073. The walk is seeded from run1259's initial state (3506a); run1259 against run1260 is 37 of 37
+frames identical. `diff::inca_classical_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 2, 5)`, is **new**, and item 3606 mints it in `battery::SCORED_LOBBIES`. No battery
+game fields the Inca. The Inca's two pinned lobbies are the AI words `EastIndiesIncaTier3` (`inca_word`), `(18, 2,
+3)`, another difficulty, and `GreatSaharaIncaTier3` (`inca_sahara_word`), `(7, 2, 3)`, another map.
+`inca_classical_pair_is_no_other_lobby` asserts all of it.
+
+**First try: frame 4501 of 6073**, by the count and the sequence. Theirs spends 157 game-stream draws against
+ours' 156, parting at index 153: theirs `Object::take_damage+0xe1 < Object::do_damage+0x159e <
+Ammo::do_damage+0xc11`, ours `Farms::inc_time+0x1ae`, the first of the frame's three Farms draws on both sides.
+Ours' sites (`RON_DEBUG_SITES=4501`) and theirs' (`report.py … draws 4501`) agree up to there: the Scout `1/28`'s
+`think_scout` scan, the fish, `1/30`'s `do_move`, `1/148`'s `Guy::set_anim < Unit::do_move` and `9/19`'s
+`Guy::set_anim`. So **theirs acts**: a round lands and wounds in theirs, between the unit loop and the Farms, and
+ours lands nothing on the frame. (Theirs' `SoundGlobal::play` draw just before it is on the sound stream, not the
+game's.)
+
+**The word's window** (run1260b, blocks 4495..4751 at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+run1259: 256 blocks, 754 keys, the two `gaia:` keys unprinted, no inexact ground corner). run1260 against run1260b
+is 4752 of 4752 frames identical. Block 4495 holds only the standing families (every unit's `form`, who=1's
+groups' `held` and pools, both leaders' `SITE[i].reg` 65 against 0, who=0's `aggression[1]`). Nothing else parts
+before the word's block 4502. **The value diff:**
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4501 (block 4502) | Farm `0/2004` (TypeIndex 417) | `damage`, `damage_frac` | 0, 0 | 1, 5 |
+| 4501 | city `0/2000` | `raid_stamp`; `city_flags` 0x2, 0x4, 0x8 | 0; 0, 0, 0 | 4501; 1, 1, 1 |
+| 4501 | leaders who=0 and who=1 | `treaties[1]`, `treaties[0]` | 1 | 3 |
+| 4502 (block 4503) | `1/15`, `1/30` (who=1) | `orders_x`/`_y`, `dest_angle` | (40440, 40632), (41976, 13560) | (40632, 40440), (42744, 24312) |
+
+**The round.** The shooter is the **Dromon `1/24`** (TypeIndex 324, sea, uid 54, group 69, on an
+`EXPLORETOORDER`), which fires at the Farm `0/2004` as it sails north past it. Both sides launch its first round
+together, about frame 4489. Ours' `t9/13` on 4498 and theirs' `cur_time 9` on block 4499 put the two rounds at the
+same step.
+
+| round | side | launch | land | `total_time` |
+|---|---|---|---|---|
+| first | theirs (`AMMO`, block 4495) | (2808, 6381, 52) | (4319, 5864, 8) | 12, so it lands on 4501 |
+| first | ours (`RON_DEBUG_AMMO`) | (2808, 6568) | (4327, 5881) | 13, so it lands on 4502 |
+| second (launched 4497) | theirs | (2809, 6079, 52) | (4292, 5789, 8) | 12 |
+| second | ours | (2808, 6088) | (4292, 5790) | 12 |
+
+So the first round's launch point is 187 world units apart in y, and its flight is a frame longer in ours. The
+second round's launch point is 9 apart, and the two flights agree. `sim::launch` has no row for the Dromon's
+piece, and a piece with no row launches from the unit's own position (§323.1's shape). The launch frame is in
+the gap 4402..4494, which no dump holds: the stride prints 4401 and run1260b opens on 4495. The launch point is
+the next item's hypothesis, and nothing here reads or builds it.
+
+**The stride, walked back** (`inca_classical_pair_the_long_s_stride_walks_back_from_4501`, run1260's blocks
+101..4501, 45 blocks, 172 keys) parts on the standing families alone: every unit's `form` (71) and `build:extra`
+(53), which the stride does not print, and who=1's groups' `held` and pools (24 each). No unit row parts through
+block 4501, the last before the word's.
+
+**The lines.** `Inti Clubmen` (91), the booking's line, is **fielded**: 10266 figure rows over run1259, run1260
+and run1260b. It is new to the ledger and enters when the pair is lockstep. `Inti Macemen` (92), the Medieval
+upgrade, does not appear here; the ledger has already seen it (×6). The pair's other 18 types are all in the
+lockstep set: Citizen 50, General 54, Caravan 59, Merchant 61, Scout 69, Phalanx 133, Archers 171, Light Horse
+209, Catapult 265, The Senator 353, five boats (Fishermen 317, Transport Barge 320, Dromon 324, Fire Raft 334,
+Galley 341), and the horse, fish and whale herds: 19 types. `rubric.py` on this tree reads unit types seen **186
+of 302**, unmoved, because the pair is open.
 
 ## 328. Reserved for the next item on the AI track
 

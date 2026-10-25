@@ -10252,6 +10252,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3615,
         Some(crate::diff::russian_medieval_pair::WIDENING_RUSSIAN_MEDIEVAL_RUN1268B),
     ),
+    // **The Inca at a held Classical age** (item 3606): East Indies —
+    // first try 4501 of 6073; widened on run1260b over 4495..4751 (the
+    // word's block 4502).
+    (
+        "INCA_CLASSICAL_PAIR_WORD",
+        crate::diff::inca_classical_pair::INCA_CLASSICAL_PAIR_WORD,
+        Some("inca_classical_pair_run1260b_s_word_frame_is_widened_whole"),
+        3606,
+        Some(crate::diff::inca_classical_pair::WIDENING_INCA_CLASSICAL_FRAME_4501),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12098,6 +12108,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_541,
         endpoint: None,
         window: Some("russian_medieval_run1268b_window"),
+    },
+    // The Inca at a held Classical age (`STARTING_TECHNOLOGY` 1,
+    // `ENDING_TECHNOLOGY` 1), East Indies (item 3606): first try 4501 of a
+    // game that ends itself on 6073, widened on run1260b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesIncaClassical",
+        named: "East Indies (Inca, Classical)",
+        word: crate::diff::inca_classical_pair::INCA_CLASSICAL_PAIR_WORD,
+        length: 6_073,
+        endpoint: None,
+        window: Some("inca_classical_frame_4501_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

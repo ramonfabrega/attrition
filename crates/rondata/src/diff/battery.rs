@@ -267,6 +267,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // The Russians at a held Medieval age, Great Sahara (item 3605): the
     // held-out `GreatSaharaRussianTier4` is Difficulty 4.
     (7, 13, 5),
+    // The Inca Classical pair's (item 3606): the Inca at a held Classical
+    // age, Difficulty 5, East Indies — not the AI words
+    // `EastIndiesIncaTier3`, `(18, 2, 3)`, another difficulty, nor
+    // `GreatSaharaIncaTier3`, `(7, 2, 3)`; no battery game fields the Inca.
+    (18, 2, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
