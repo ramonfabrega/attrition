@@ -3690,18 +3690,6 @@ impl Sim {
         // shipped type with a round in flight is known to hold it zero), so
         // it is read as set; `die_hold_steps` takes it for the sweep.
         let (who, idx) = (self.units[i].owner, self.units[i].index);
-        if std::env::var("RON_PROBE_DIE").is_ok() && (4440..=4445).contains(&self.frame) {
-            eprintln!(
-                "PROBE die f{} {}/{} health {} up {:?} down {:?}\n{}",
-                self.frame,
-                who,
-                idx,
-                self.units[i].health,
-                self.units[i].o_up,
-                self.units[i].o_down,
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
         let ammo: Vec<DieAmmo> = self
             .projectiles
             .iter()
