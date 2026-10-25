@@ -3495,6 +3495,21 @@ impl Sim {
             append |= self.units[b].alive();
         }
         if !append {
+            // The whole-squad arm (`Unit::close@0060ee50:292`-`316`): the last of the
+            // squad dies, and every figure still linked below it — the dead
+            // tail — has both links cleared, then this one. Only then is a
+            // dead number a captain (`o_up < 0`) to `Objects::find_free`'s
+            // reuse test; a dead tail of a live squad stays linked and its
+            // number is held (`docs/AI.md` §324.2).
+            let mut at = down;
+            for _ in 0..self.units.len() {
+                let Some(n) = at else { break };
+                at = self.units[n].o_down;
+                self.units[n].o_down = None;
+                self.units[n].o_up = None;
+            }
+            self.units[i].o_down = None;
+            self.units[i].o_up = None;
             return;
         }
         let mut tail = i;
@@ -10521,6 +10536,43 @@ mod tests {
             before, after,
             "nobody alive below the head, nobody promoted"
         );
+    }
+
+    /// **A dead tail of a live squad holds its number; the squad's last
+    /// death frees the whole tail** (`Unit::close@0060ee50:292`-`316`,
+    /// `Objects::find_free@0065ad60`'s `+0x8e` term; `docs/AI.md` §324.2).
+    /// run1254b's who=1 Arquebusier `1/49` dies on 3219 and stays the tail
+    /// of `1/48 → 1/50 → 1/49`; the squad trained on 3268 skips it and takes
+    /// 46, 47 and 139, where 46 and 47 were the dead tail of `1/45`'s squad,
+    /// unlinked when `1/45` died last on 3254. Holds are spent here so the
+    /// link is the only term asked.
+    #[test]
+    fn a_dead_tail_holds_its_number_until_its_squad_is_gone() {
+        let (mut sim, ty) = at_war();
+        let [a, b, c] = chain3(&mut sim, ty);
+        let free = |s: &mut Sim| s.find_free(0, crate::UNIT_BASE, crate::BUILD_BASE);
+        sim.units[c].health = 0;
+        sim.relink_squad(c);
+        sim.units[c].hold_frames = 0;
+        assert_eq!(links(&sim, c), (Some(b), None), "linked under the living");
+        assert_ne!(
+            free(&mut sim),
+            Some(sim.units[c].index),
+            "a linked dead tail is no captain to the reuse test"
+        );
+        for f in [b, a] {
+            sim.units[f].health = 0;
+            sim.relink_squad(f);
+            sim.units[f].hold_frames = 0;
+        }
+        for f in [a, b, c] {
+            assert_eq!(
+                links(&sim, f),
+                (None, None),
+                "the last death clears the tail"
+            );
+        }
+        assert_eq!(free(&mut sim), Some(sim.units[a].index));
     }
 
     /// **A squad leaves the muster when its last live figure dies, and

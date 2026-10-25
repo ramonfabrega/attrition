@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const EGYPTIAN_GUNPOWDER: Pair = Pair {
     name: "GreatSaharaEgyptianGunpowder",
@@ -52,9 +52,14 @@ pub(crate) const EGYPTIAN_GUNPOWDER: Pair = Pair {
     // draws against 7, index 0 — ours `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a <
     // Guy::move+0x19f`; the state parts on block 3268, a squad trained
-    // into slots 47 and 49 in ours and 47 and 139 in theirs.
-    count: 3281,
-    sequence: 3281,
+    // into slots 47 and 49 in ours and 47 and 139 in theirs. Item 3614:
+    // 3281 → **whole, 4454 of 4454** (+1173) — the squad is 46, 47, 139 on
+    // both sides: `find_free@0065ad60`'s `+0x8e` term holds the dead tail
+    // `1/49` (`o_up` 50 under the live `1/48 → 1/50`), and
+    // `Unit::close`'s whole-squad arm cleared 46's and 47's links when
+    // `1/45` died last on 3254 (`docs/AI.md` section 324.2).
+    count: 4454,
+    sequence: 4454,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -225,5 +230,117 @@ fn egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole() {
     // `1/47` and `1/49` (#177, #178), theirs into `1/47` and `1/139`
     // (uid 182, `o_up` 47) while its dead `1/49` stays `1/50`'s tail —
     // the word 3281 (block 3282) follows.
-    pin_eq!(w.firsts.len(), 632, "run1254b baseline");
+    // Item 3614: 632 → **56**. The squad of 3268 is 46, 47, 139 on both
+    // sides (`find_free`'s `+0x8e` term holds the dead tail `1/49`). What
+    // stands is block 3113's standing families, groups 68 and 69 from 3179
+    // and 3181, and one row: `1/23`'s `dest_angle` on 3277, ours
+    // -1295384576 against theirs 2122579968, which spends no draw (parked
+    // 3614a).
+    pin_eq!(w.firsts.len(), 56, "run1254b baseline");
+}
+
+/// **The closing state** (item 3614): run1254's closing block 4455, the
+/// whole map's units, walked from run1253's start.
+#[test]
+fn egyptian_gunpowder_pair_run1254_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &EGYPTIAN_GUNPOWDER;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Egyptian Gunpowder pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4455, "the closing block");
+    pin_eq!(e.compared, 222, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run1267: the closing window, blocks 4199..4455 at the long's detail
+/// with `LEADERS=9` (item 3614) — run1254 prints units every hundredth
+/// block and no leader, building or city record past the start, so no
+/// dump held the last blocks.
+pub(crate) const RUN1267: &str =
+    "gamelog-run1267-greatsahara-egyptian-gunpowder-window-4199-4455.txt";
+
+/// The closing window: block 4199 through the closing block 4455.
+pub(crate) const WINDOW_EGYPTIAN_GUNPOWDER_CLOSING: (i64, i64) = (4199, 4455);
+
+/// **The closing window**: run1267 walked from run1253's start with the
+/// recorder on (item 3614).
+pub(crate) fn egyptian_gunpowder_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[EGYPTIAN_GUNPOWDER.start],
+        true,
+        EGYPTIAN_GUNPOWDER.long,
+        "run1267",
+        &[(RUN1267, WINDOW_EGYPTIAN_GUNPOWDER_CLOSING.0)],
+        WINDOW_EGYPTIAN_GUNPOWDER_CLOSING,
+        1,
+        &[4455],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_gunpowder_pair_run1267_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_gunpowder_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3614: **55** keys, the standing families — block 4199's 51
+    // (`form`, both leaders' `SITE[i].reg`, who=0's `aggression[1]`,
+    // who=1's groups' `held` and pools), group 68's two on 4230 and who=1's
+    // `SITE[1].reg` on 4376 — and one row, `1/49`'s `dest_angle` on 4406,
+    // ours 0 against theirs 286261248, which spends no draw (parked 3614a).
+    pin_eq!(w.firsts.len(), 55, "run1267 baseline");
 }

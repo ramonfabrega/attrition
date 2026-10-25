@@ -422,8 +422,12 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// rows over run1251 and run1252), one of the two lines §323 booked;
 /// `Bushi` (158) was not fielded (parked 3602a). Item 3613: 183 -> 184,
 /// the Aztec Ancient pair whole at 9258 — `Atl-Atls` (85, 864 figure rows),
-/// the line §325 booked; `Xopilli Atl-Atls` (87) was not fielded.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 184;
+/// the line §325 booked; `Xopilli Atl-Atls` (87) was not fielded. Item
+/// 3614: 184 -> 186 on the tree holding both merges, the Egyptian
+/// Gunpowder pair whole at 4454 — `Mameluke` (197, 286 figure rows over
+/// run1253 and run1254) and `Elite Camel Warrior` (215, 204), the two
+/// lines §324 booked, read by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 186;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
