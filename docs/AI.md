@@ -30156,24 +30156,14 @@ next item's, unread.
 *Item 3634, 2026-10-25, Opus 5.5. Run 1296, a packet at `RON_STATE_FRAME=4632`;
 run1296b, the new word's window.*
 
-**Theirs acted.** The group order's id is `(group + frame × 10) × 100 +
-order_num` (`sim::group::group_move_id`). Both sides hold 4639005, group
-80's order 5 on tick 4631 (`1/94`'s look found the fleeing Citizen
-`0/11`); only theirs holds **4640007**, order 7 on tick 4632, leader
-`oxx` 93, origin (7848, 2808) — `1/93`'s own attack-to point. On 4632
-ours bumps no group: `1/93`'s attack-to look finds nothing (`0/11` is
-about 5,800 off against the AI's 4608), and `fight`'s captain arm on
-`1/94` takes the re-search (`off`, roll 18797 % 5 = 2, no latch).
-
-**The packet.** `step4.py --entry 610bc0` (`Unit::process`) on each of
-the four. `1/94` runs `do_job` → `do_attack` → `Unit::fight`, whose roll
-arm (`0x5fdf50`, not `poor_target`) calls `find_new_target` at
-`fight+0xa1f`: `find_melee_target(−1)`, then `find_nearby_target(0x1200)`,
-which finds `0/11` and at `find_nearby_target+0xf73` takes the group arm
-— `Group::action_attack(11, 0, 0, QUEUE_FIRST, 4)`, `set_up_insert`, the
-attack added to `1/93`, `1/94` and `1/95`, and `finish_insert` re-laying
-the move from the leader's attack-to. `poor_target` is reached only from
-`check_target` inside the search, never from `fight`.
+**Theirs acted** (the story, the order ids and the stacks are the
+journal's, `docs/journal/2026-10-25-item-3634.md`). Only theirs holds
+group 80's order 7 on tick 4632. run1296's packet (`step4.py --entry
+610bc0` on each Hussar) has `1/94`'s `Unit::fight` roll arm call
+`find_new_target` at `fight+0xa1f`; its `find_nearby_target(0x1200)`
+finds the Citizen `0/11` and at `+0xf73` takes the group arm —
+`Group::action_attack(11, 0, 0, QUEUE_FIRST, 4)`, `set_up_insert`, the
+attack added to `1/93`, `1/94` and `1/95`, `finish_insert`.
 
 **The cause.** Ours' `find_new_target` reached `find_melee_target_headed`,
 whose search arm called `nearby_add` — the find added to the unit alone.
@@ -30218,10 +30208,8 @@ theirs also wounds `0/2005`. That round leaves from different points
 splash misses `0/2005` is the next item's; from block 5051 who=1's
 `1/92` parts in its orders.
 
-**Not established.** `Group::target_opportunity`'s member arm
-(`find_melee_target_added_in`) carries its own copy of the add without
-the group hand-off; whether the original's reaches the group there is
-unread, and no walk moved on it (parked 3634a).
+**Not established.** Whether `Group::target_opportunity`'s member arm
+hands its find to the group (parked 3634a).
 
 ## 332. Reserved for the next item on the AI track
 
