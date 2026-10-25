@@ -50,8 +50,16 @@ pub(crate) const MONGOL_GUNPOWDER: Pair = Pair {
     // `treaties` 3 on block 4475, where ours read 50 and 1). On 4632 ours
     // spends 54 draws against 52, parting at index 40 — ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::fight+0x9b0`.
-    count: 4632,
-    sequence: 4632,
+    // Item 3634: 4632 → 5047. `fight`'s captain re-search hands its find to
+    // the group: the Hussar `1/94`'s `find_new_target` kills its attack, the
+    // head is group 80's attack-move again, and `find_nearby_target`'s add
+    // calls `Group::action_attack` on the Citizen `0/11` (run1296's packet),
+    // so `1/93` and `1/95` take it too and the group's move is laid again
+    // from `1/93`'s point (7848, 2808), order id 4640007. On 5047 ours
+    // spends 7 draws against 8, parting at index 5 — ours
+    // `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+    count: 5047,
+    sequence: 5047,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -401,7 +409,11 @@ fn mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole() {
     // `1/93`'s `order:kind` 2 against 10, `1/94`'s and `1/95`'s 21 against
     // 2. **The word 4632**, ours 54 draws against 52, index 40: ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::fight+0x9b0`.
-    pin_eq!(w.firsts.len(), 1772, "run1292b baseline");
+    // Item 3634: 1772 → 139, the standing families alone. Group 80's
+    // orders agree on 4633: theirs' order id 4640007 is ours, `1/93`,
+    // `1/94` and `1/95` each hold the attack on `0/11`, and `1/84` the
+    // second `GROUPATTACKTOORDER`.
+    pin_eq!(w.firsts.len(), 139, "run1292b baseline");
 }
 
 /// **The long's stride between the windows** (item 3630): run1279's
