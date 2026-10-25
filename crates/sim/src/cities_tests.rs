@@ -1981,6 +1981,58 @@ fn an_iroquois_leader_s_first_senate_is_free_and_instant() {
     assert_eq!(sim.construct_time_of(b), sim.buildings[b].constr_time);
 }
 
+/// **The Senate arm of `LeaderData::type_avail@006e33a0`** (item 3597,
+/// `docs/AI.md` §320.1): no capital, no Senate; a placed Senate site
+/// (`num_queued[SENATE]`, which `Wall::increment_stats` files while the
+/// site is inactive) refuses a second; and an active Senate in the capital
+/// (`count_buildings(SENATE, 0, 1)`) keeps refusing it. The Maya Ancient
+/// pair's who=1 listed the Senate for two cities on 4182 and the original
+/// placed only the first.
+///
+/// Made to fail with the arm's call removed (the site answers 4).
+#[test]
+fn a_senate_site_or_a_finished_senate_in_the_capital_refuses_a_second() {
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let senate_t = tree.add(TypeDef::building("Senate"));
+    sim.set_tech_tree(tree);
+    sim.start_techs(0);
+    sim.build_types[t.senate].tree = Some(senate_t);
+    assert_eq!(
+        sim.type_avail(0, senate_t),
+        tech::NOT_AVAILABLE,
+        "no capital"
+    );
+    let (_, c) = city_at(&mut sim, &t, 0, 32, 32);
+    assert!(sim.cities[c].capital, "the first city is the capital");
+    assert_eq!(sim.type_avail(0, senate_t), tech::AVAILABLE);
+    let b = sim.place_building(0, t.senate, tile_pos(40, 32)).unwrap();
+    assert!(!sim.buildings[b].active);
+    assert_eq!(
+        sim.type_avail(0, senate_t),
+        tech::NOT_AVAILABLE,
+        "a placed site is num_queued"
+    );
+    finish(&mut sim, b);
+    assert_eq!(
+        sim.buildings[b].city,
+        Some(c),
+        "the Senate joins the capital"
+    );
+    assert_eq!(
+        sim.type_avail(0, senate_t),
+        tech::NOT_AVAILABLE,
+        "an active Senate in the capital"
+    );
+    assert_eq!(
+        sim.type_avail(1, senate_t),
+        tech::NOT_AVAILABLE,
+        "no capital of 1's"
+    );
+}
+
 /// **The President's arm of `ObjectData::train_time`** (item 2491,
 /// `train_time@006508c0:103`–`107`, `docs/AI.md` §225): a trained unit's time
 /// at a building with one of the owner's THEPRESIDENT heroes in

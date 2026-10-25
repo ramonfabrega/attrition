@@ -5621,8 +5621,122 @@ impl Sim {
             .iter()
             .position(|&w| w == t)
             .is_some_and(|k| self.wonders_built & (1 << k) != 0);
-        self.tech_tree
-            .type_avail_built(&self.setup, &self.tech[who as usize], t, true, built)
+        let a =
+            self.tech_tree
+                .type_avail_built(&self.setup, &self.tech[who as usize], t, true, built);
+        if a == tech::AVAILABLE && !self.senate_avail(who, t) {
+            return tech::NOT_AVAILABLE;
+        }
+        a
+    }
+
+    /// **The Senate arm** of `LeaderData::type_avail@006e33a0` (item 3597,
+    /// `docs/AI.md` §320.1), the last test before its `return 4`, on exact
+    /// identity (`TVar3 == SENATE`, 438): `false` — the original's 0 — when
+    ///
+    /// 1. `num_queued[SENATE] != 0`: a Senate site of mine is placed and not
+    ///    yet active (`Wall::increment_stats` files an inactive site,
+    ///    `Wall::activate` takes it off; [`Sim::num_sites_of`]);
+    /// 2. `find_capital(−1, −1)` answers no city;
+    /// 3. the capital it answers is another leader's (a city that was mine,
+    ///    `was_capital_flags`) and a second `find_capital` skipping it does
+    ///    not answer a city of mine that holds no active Senate and is the
+    ///    founding capital (`0x4000`);
+    /// 4. `count_buildings(SENATE, 0, 1)` — active members whose type `is`
+    ///    the Senate — is non-zero on my city at the capital's index;
+    /// 5. a second capital skipping the first is mine and holds an active
+    ///    Senate, or is another leader's while my city at the first index is
+    ///    the founding capital.
+    ///
+    /// The capital indices are per leader: the position in
+    /// [`Sim::cities_of`], as `target_gate`'s `find_capital` reads it.
+    ///
+    /// SEAM: the original's per-leader city array keeps a dead city's slot
+    /// (`city_mark`); [`Sim::cities_of`] drops it, so an index past a lost
+    /// city reads its neighbour (parked 3597a).
+    fn senate_avail(&self, who: Player, t: tech::TypeId) -> bool {
+        let Some(rec) = self.build_record(t) else {
+            return true;
+        };
+        if self.build_types[rec].ident != crate::build::Ident::Senate {
+            return true;
+        }
+        if self.num_sites_of(who, rec) != 0 {
+            return false;
+        }
+        let own = self.cities_of(who);
+        let active_senates =
+            |c: usize| self.count_buildings(c, crate::build::Ident::Senate, true) != 0;
+        let Some((c1, o1)) = self.leader_find_capital(who, None) else {
+            return false;
+        };
+        if o1 != who {
+            let Some((c2, o2)) = self.leader_find_capital(who, Some((c1, o1))) else {
+                return false;
+            };
+            if o2 != who {
+                return false;
+            }
+            let Some(&g2) = own.get(c2) else {
+                return false;
+            };
+            if active_senates(g2) || !self.cities[g2].founding_capital {
+                return false;
+            }
+        }
+        if own.get(c1).is_some_and(|&g| active_senates(g)) {
+            return false;
+        }
+        if let Some((c2, o2)) = self.leader_find_capital(who, Some((c1, o1))) {
+            if o2 == who {
+                if own.get(c2).is_some_and(|&g| active_senates(g)) {
+                    return false;
+                }
+            } else if own
+                .get(c1)
+                .is_some_and(|&g| self.cities[g].founding_capital)
+            {
+                return false;
+            }
+        }
+        true
+    }
+
+    /// `LeaderData::find_capital@006eb930(&c, &owner, skip_c, skip_owner)`:
+    /// my first live capital (`city_flags & 1` and `& 0x10`) in slot order,
+    /// else the first live city of another leader whose `was_capital_flags`
+    /// carries my bit — each skipping `(skip_c, skip_owner)`. The index is
+    /// the owner's own (a position in [`Sim::cities_of`]); `None` is the
+    /// original's `c = −1`.
+    ///
+    /// SEAM: the second arm's gate is `leaders[who] & 3 == 3` read on *my*
+    /// row for every other leader, and is taken as true for a leader in
+    /// play.
+    fn leader_find_capital(
+        &self,
+        who: Player,
+        skip: Option<(usize, Player)>,
+    ) -> Option<(usize, Player)> {
+        let mine = self
+            .cities_of(who)
+            .into_iter()
+            .enumerate()
+            .find(|&(i, c)| self.cities[c].capital && skip != Some((i, who)));
+        if let Some((i, _)) = mine {
+            return Some((i, who));
+        }
+        (0..self.players.len() as Player)
+            .filter(|&o| o != who)
+            .find_map(|o| {
+                self.cities_of(o)
+                    .into_iter()
+                    .enumerate()
+                    .find(|&(i, c)| {
+                        self.cities[c].was_capital & (1u64 << (who as u32)) != 0
+                            && skip != Some((i, o))
+                    })
+                    .map(|(i, _)| (i, o))
+            })
     }
 
     /// After the tree changed: the researched bits follow it, and so does the
