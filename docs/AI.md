@@ -30151,6 +30151,78 @@ path; the Hussars (211) `1/93` `order:kind` 2 against 10, `1/94` and
 `1/95` 21 against 2. Which side issued the group's order, and why, is the
 next item's, unread.
 
+### 331.3 Fight's re-search hands its find to the group, 4632 → 5047 (item 3634)
+
+*Item 3634, 2026-10-25, Opus 5.5. Run 1296, a packet at `RON_STATE_FRAME=4632`;
+run1296b, the new word's window.*
+
+**Theirs acted.** The group order's id is `(group + frame × 10) × 100 +
+order_num` (`sim::group::group_move_id`). Both sides hold 4639005, group
+80's order 5 on tick 4631 (`1/94`'s look found the fleeing Citizen
+`0/11`); only theirs holds **4640007**, order 7 on tick 4632, leader
+`oxx` 93, origin (7848, 2808) — `1/93`'s own attack-to point. On 4632
+ours bumps no group: `1/93`'s attack-to look finds nothing (`0/11` is
+about 5,800 off against the AI's 4608), and `fight`'s captain arm on
+`1/94` takes the re-search (`off`, roll 18797 % 5 = 2, no latch).
+
+**The packet.** `step4.py --entry 610bc0` (`Unit::process`) on each of
+the four. `1/94` runs `do_job` → `do_attack` → `Unit::fight`, whose roll
+arm (`0x5fdf50`, not `poor_target`) calls `find_new_target` at
+`fight+0xa1f`: `find_melee_target(−1)`, then `find_nearby_target(0x1200)`,
+which finds `0/11` and at `find_nearby_target+0xf73` takes the group arm
+— `Group::action_attack(11, 0, 0, QUEUE_FIRST, 4)`, `set_up_insert`, the
+attack added to `1/93`, `1/94` and `1/95`, and `finish_insert` re-laying
+the move from the leader's attack-to. `poor_target` is reached only from
+`check_target` inside the search, never from `fight`.
+
+**The cause.** Ours' `find_new_target` reached `find_melee_target_headed`,
+whose search arm called `nearby_add` — the find added to the unit alone.
+The original's add (`find_nearby_target:545`–`606`) is one arm for every
+caller: a `GROUP_ATTACK_TO` head on an active member of a group still
+walking its attack-move hands the find to `Group::action_attack`. Ours had
+it as a SEAM, carried "for the attack-move's own look alone".
+
+**Built.** `crates/sim/src/orders.rs`: `nearby_add` is
+`attack_move_add`, the whole arm (the guard's `local_2c`, the group
+hand-off, else the alone add); the seam is retired. Mutation through
+`tools/mutate.py`, `nearby_add` back to `nearby_normalize` +
+`nearby_add_order`: **held**, the word back to 4632.
+
+**What it moved — the value diff, block 4633.**
+
+| record | field | ours before | ours now | theirs |
+|---|---|---|---|---|
+| `1/84` | `orders.len` | 2 | 3 (GAT 4640007 queued last) | 3 |
+| `1/93` | `order:kind` (the head) | 2 (ATTACKTO) | 10 (ATTACK `0/11`) | 10 |
+| `1/94` | `order:kind` (the bottom) | 21 | 2 (AT (8184, 2904)) | 2 |
+| `1/95` | `order:kind` | 21 | 2 (AT (7512, 2712)) | 2 |
+
+run1292b 1772 → **139** keys, the standing families alone. **The word
+4632 → 5047** by the count and the sequence; every other lobby's
+`first_parting` is unmoved (65 of 66, this pair's alone moving).
+
+**The word 5047**, widened on run1296b (5041..5297,
+`mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole`, 3282
+keys). Ours spends 7 draws against 8, parting at index 5: ours
+`Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`, a first
+wound. Block 5041's 112 keys stand — run1292b's families, the groups
+minted since, and who=1's `leader:attack` 1067 against 1085, the one new
+leader row. Nothing else parts before **block 5048, the word's own**,
+and there only the human's `0/2005` (orig_type 435, myhits 1200, at
+(6048, 5856)): theirs `damage` 1 and `damage_frac` 13, ours 0 and 0. The
+Bombard `1/84`'s round (`splash_area` 1, loosed on 5032) lands on 5047
+at (6289, 6920) on both sides and strikes the city `0/2000` for 109;
+theirs also wounds `0/2005`. That round leaves from different points
+(`RON_DEBUG_AMMO`, unwalked by the widening): theirs `sx, sy` (9501,
+9254), angle −660930560; ours (9624, 9336), −661323776. Why ours'
+splash misses `0/2005` is the next item's; from block 5051 who=1's
+`1/92` parts in its orders.
+
+**Not established.** `Group::target_opportunity`'s member arm
+(`find_melee_target_added_in`) carries its own copy of the add without
+the group hand-off; whether the original's reaches the group there is
+unread, and no walk moved on it (parked 3634a).
+
 ## 332. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking
