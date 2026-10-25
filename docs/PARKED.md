@@ -10963,13 +10963,15 @@ Nothing parks. The pair's first parting books: the Monarch `1/17` (TI 354) casts
 in the undumped gap 1902..1967 and idles in ours, and ours' idle figure draws twice on 1973 (`docs/AI.md` §331).
 `Horde` (203) is fielded.
 
-## Parked by the next landing, slot RW — reserved
+## Parked by item 3624, 2026-10-25 — the Bantu at a held Medieval age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3624a. Eight `dest_angle` rows on the closing window, 3567a's shape.** run1281b: who=1's group 64, on
+  `GUARDORDER`s about `1/67`. The Impi (TypeIndex 95) `1/24` on block 4726 (ours 1340014592, theirs -2147483648),
+  `1/26` on 4736 (1309605888 against 2062155776), `1/42` on 4736 (-1972699136 against -918683648), `1/110` on 4749
+  (-1372520448 against -691798016), `1/43` on 4767 (1360134144 against 1851523072), `1/90` on 4893 (1536753664
+  against -2147483648) and `1/29` on 4895 (1390804992 against -2147483648); the Pikemen (134) `1/55` on 4765
+  (1694105600 against -1759969280). No other field of the eight parts, and the closing block 4915 agrees.
+  **Score**: none. The pair is whole at 4914 (parked 3567a, 3580b; `docs/AI.md` §332).
 
 ## Parked by item 3625, 2026-10-25 — the Chinese at a held Gunpowder age, East Indies: first try 4884
 

@@ -300,6 +300,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(18, 17, 3)`, another difficulty, nor `(7, 17, 3)` or the Classical
     // pair's `(7, 17, 5)`, another map; the battery fields no Mongols.
     (18, 17, 5),
+    // The Bantu Medieval pair's (item 3624): the Bantu at a held Medieval
+    // age, Difficulty 5, Great Sahara — not the AI word
+    // `GreatSaharaBantuTier4`, `(7, 3, 4)`, another difficulty, nor the
+    // Ancient-start pair's `(18, 3, 5)`, another map; the battery fields no
+    // Bantu.
+    (7, 3, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

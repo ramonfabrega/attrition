@@ -263,6 +263,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the Mongol Gunpowder pair's walks: it compares no field itself (item 3623)",
     ),
     (
+        "diff/bantu_medieval_pair.rs",
+        "the Bantu Medieval pair's walks: it compares no field itself (item 3624)",
+    ),
+    (
         "diff/chinese_gunpowder_pair.rs",
         "the Chinese Gunpowder pair's walks: it compares no field itself (item 3625)",
     ),
