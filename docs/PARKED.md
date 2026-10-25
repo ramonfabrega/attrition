@@ -10761,13 +10761,14 @@ on the Korean Scholars (TypeIndex 53) `1/363`, `1/367`, `1/369`, `1/376` and `1/
 chain (`inside_up` 2007 at its head), from 8374: §319's Scholars' shape (item 3586) on a second pair.
 The draws do not read it before 8379 (`docs/AI.md` §322), so no score names it.
 
-## Parked by the next landing, slot RC — reserved
+## Parked by item 3602, 2026-10-25 — the Japanese from an Ancient start, East Indies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3602a) **`Bushi` (158) is not fielded on the Japanese Ancient pair.** The booking named it with `Ashigaru
+Spearmen` (157), which is fielded (2268 figure rows over run1251 and run1252, 16896 on run1252b). In 6126 frames
+no `GUY` record of either dump, nor of run1252b, carries 158. The pair reaches Classical (`ENDING_TECHNOLOGY 1`),
+where 158 is the age-1 line, so it was reachable. Why the AI never took it was not read. A later pair that fields
+158 lands it in the ledger. **Score**: none — the rubric counts lockstep games only, and the pair is open at 4934
+(`docs/AI.md` §323).
 
 ## Parked by the next landing, slot RD — reserved
 
