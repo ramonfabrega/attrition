@@ -12,16 +12,16 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-25, **the fifty-sixth tranche (commander, Opus): 20 of 20 landed from `a30d051d3`**; no lane live; the last whole gate is `40caa4e0d`; the drain's is next.*
-- **Words**: two open — the Romans at Medieval, 1875 of 5,979 (lower map first — East Indies (Romans, Medieval)), 3622; nine closed this tranche.
-  **The headline, the early ages**: eight closed — Maya, Korean Classical, Japanese Ancient, Egyptian Gunpowder (3614: a dead tail's squad
-  links), Aztec Ancient, Inca Classical (3616, 3617: two pieces' bays), Russian Medieval (3615, 3618: a target's training building ×2; attrition's
-  remainder share), French Classical on its first try (3607), Dutch Medieval (3619, 3621: a stand-at-tile spot equal to the unit's avoid refused); Roman Medieval first try 1875 (3620).
-- **The rubric, lockstep**: ages 8 of 8, types 179 → 189 of 302, **bytes 77.4 %** unmoved; the scan 0 of 39 dead. 20 gates green, no `FABLE:`.
-- **The gate is the clock**: 30.7 of 35.2 waiting minutes a session; eight stand-ups' lane gates ran the whole timed suite for three row-list
-  edits — `release_gate.py --lane` reads the hunks now (Loop 3608, DECISIONS 94 §2); the next drain measures it in `tranche.py`'s gate class.
-- **Lanes: two Opus at medium** (the lane rule read on the gate, DECISIONS 94 §1); none live; one booked (3622). Next 3623, run 1278.
-  Pools: AI §331–334, park RV–RZ.
+*2026-10-25, **the fifty-sixth tranche (commander, Opus): drained at twenty from `a30d051d3`**, every lane reaped; **the pass is due**.*
+- **Words**: one open — the Romans at Medieval, 1875 of 5,979 (lower map first — East Indies (Romans, Medieval)), 3622 on frame 1875.
+  **The headline, the early ages**: eleven pairs stood up, ten whole — Maya, Korean, Japanese, Egyptian, Aztec, Inca, Russian and Dutch by
+  their residue (3600–3621; four launch points off packets, four AI rules), the French at their first try (3607); the Romans open (3620).
+- **The rubric, lockstep**: types 179 → 189 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; the Chevalier never fielded (3607); refill next: Mongols, Gunpowder.
+- **For the pass** (`tranche.py --base a30d051d3`, `gates.py`): 20 landings · one DEEP (3615 at 316 k) · 44.2 minutes waiting a landing ·
+  6.40 USD a landing (128.06 over 21 sessions) · 2.1 captures a landing; 18 booking gates: 6 whole, 12 scoped (12 widened), 0 red; 384.7
+  minutes in all; admission 1393.5 s summed, longest 56.5 s; 2 ended past the cores; gate 33.9 of 60.3 lane minutes a session (30.7 the
+  tranche before). Two Opus lanes at medium, 11 h 42; one Loop line filed (3611), one journal line filed without a number (3615's).
+- **Lanes: none live; one booked** (3622 the Roman word). Next 3623, run 1278. Pools: AI §331–334, park RV–RZ.
 - **Fable backlog: 7 Loop items** (3611, 3382, 3350, 3237, 3188, 3143, 3118); 3498, 3433 and 2003 closed unreached (DECISIONS 54), their text in the record.
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
@@ -41,7 +41,7 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 189 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-sixth tranche (commander, Opus) — two Opus lanes at medium, 3600 the Maya word and 3601 the Korean pair first; the chain is `docs/LOOP.md`'s.**
+**Opener: the fifty-sixth pass (steer, Fable) — the tranche drained at twenty from `a30d051d3`; this handoff, the Roman word (3622), the next pairs owed (the record's refill order, `rubric.py --tables 3`), the backlog.**
 
 ## The queue
 
