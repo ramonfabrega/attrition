@@ -28755,7 +28755,7 @@ puts the **Ashigaru Spearmen (157)** in the lockstep set: `rubric.py --tables 3`
 **What is not established.** The `CHAR_DIE` row (anim 4, time 34), which no round reads. Piece 1176 at a
 heading no dumped round took is the sweep's fit, not a dump's.
 
-## 324. The Egyptians at a held Gunpowder age, Great Sahara: first try 3118 of 4454, moved to 3238 (item 3603) and 3281 (item 3612)
+## 324. The Egyptians at a held Gunpowder age, Great Sahara: first try 3118 of 4454, moved to 3238 (item 3603) and 3281 (item 3612), whole (item 3614)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §316's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
 Nubians (4) against the **Egyptians (7)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held by
@@ -28910,8 +28910,62 @@ widening (run1254b, the same window, which still holds the word's block 3282) go
 - So theirs' dead tail holds its slot, and ours reuses the slot. This is the next item's hypothesis, and it is not
   built. The parting predates this item: on the first widening `1/47` was already "unlinked" on 3268.
 
-**What is not established.** Whether the slot is held by the dead tail's link or by something else `Unit::close`
-leaves behind. The next item reads the slot allocator's predicate against 3268.
+**What is not established.** ~~Whether the slot is held by the dead tail's link or by something else `Unit::close`
+leaves behind.~~ The link: §324.2 (item 3614).
+
+### 324.2. A dead tail's number is held while its squad lives: 3281 → whole (item 3614)
+
+**The direction.** Theirs' who=1 slots over run1254b, every block (a scratch scan of each record's `uid`, `o_up`,
+`o_down`), name it without a capture. The Arquebusiers (TypeIndex 98, land) die in two squads:
+- `1/49` dies on 3219, in the middle of `1/48 → 1/49 → 1/50`, and stays the dead tail of `1/48 → 1/50 → 1/49`;
+- of `1/45 → 1/46 → 1/47`, `1/46` dies on 3225, `1/47` on 3236 and the captain `1/45` last, on 3254.
+
+On 3268 a three-figure squad is trained at (35112, 16536). Theirs puts it in **46, 47 and 139** (uids 180–182).
+Ours put its second and third figures in 47 and 49 (3612's rows: #177, #178). Theirs skips 45 too, and the next three births go to 140 (3274), 141 (3276) and then
+**45** (uid 186, 3285). So two things hold a number. `1/45` is held by `Object::close`'s thirty frames (§59.3 of
+`docs/COMBAT.md`: 3254 + 30), which ours already has. `1/49` is held by something else, since it died first.
+
+**The reading.** `Objects::find_free@0065ad60` reuses a dead number only for a non-unit, or for a unit whose
+`UnitData +0x8e` (`o_up`) is negative. `Unit::close@0060ee50` re-appends a dying figure at its chain's tail
+(`o_up` = the old tail) while anything below it lives. Only the squad's last death, a head with nothing live
+below (lines 292–316), walks the tail and sets every figure's `o_up` and `o_down` to −1. So `1/49` stays
+`o_up` 50 and is held. When `1/45` died last, 46 and 47 were cleared and became reusable.
+
+Ours had both halves wrong. `Sim::find_free` passed `true` for the term (parked 2441). `Sim::relink_squad`'s
+whole-squad arm returned without clearing, so a dead squad's tail kept its `o_up`. Item 2400 built the term
+without the clear. Every number in a dead tail was then held for good, and the third pair fell.
+
+**The build.**
+- `Sim::find_free` passes `u.o_up.is_none()`.
+- `Sim::relink_squad`'s whole-squad arm clears the tail's links and its own.
+- `fight::tests::a_dead_tail_holds_its_number_until_its_squad_is_gone` is the unit test.
+
+**The mutations**, through `tools/mutate.py` on `b0d69b6f3`:
+- The term back to `true`: `egyptian_gunpowder_pair_first_parting` walks back to 3281 (exit 101, "held").
+- The clear taken out: 22 of 60 lobbies' `first_parting` fall, 2441's shape (Bantu 23627 → 11930, Dutch 24000 →
+  15034, this pair 4454 → 3276).
+
+With both halves in, every lobby's `first_parting` holds, 59 of 60 before the re-pin.
+
+**The value diff** (run1254b, block 3268, who=1):
+
+| record | field | before (ours / theirs) | after |
+|---|---|---|---|
+| the new squad's third figure (uid 182) | `o` | 49 / 139 | 139, agrees |
+| `1/47` (uid 181) | `o_down` | 49 / 139 | agrees |
+| `1/49` | held | reused / the dead tail of `1/50` | held, agrees |
+
+**The score: 3281 → whole, 4454 of 4454** (+1173), by the count and the sequence. run1254b's widening goes from 632
+keys to **56**: block 3113's standing families, groups 68 and 69 from 3179 and 3181, and `1/23`'s `dest_angle` on
+3277 (parked 3614a). **The closing state** (`egyptian_gunpowder_pair_run1254_s_closing_state`, block 4455) compares
+222 units: none off, torn or unlinked, and no field-row. **The closing window** (run1267, 4199..4455, 256 blocks)
+holds **55 keys**: standing families, plus `1/49`'s `dest_angle` on 4406 (3614a).
+
+**The rubric.** Unit types seen **183 → 185** of 302 (`rubric.py --tables 3`): `Mameluke` (197) and `Elite Camel
+Warrior` (215), the pair's two lines, enter now that it is lockstep.
+
+**What is not established.** The frame a dead tail's number frees, against `process_all`'s visit order, when the
+squad's last death lands on the same frame as a birth. No capture reaches it.
 
 ## 325. The Aztecs from an Ancient start, East Indies: first try 8716 of 9258, whole at 9258 (items 3604, 3613)
 

@@ -10620,6 +10620,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1254b --map 7 --end-frame 3369 --timeout 3600 --log-window 3113 3369 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0, run1253's lobby   (the word 3118's window)
 #   run1254c --map 7 --end-frame 3117 --timeout 3600 --log-window 3114 3116 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 7 --cover cover=0 --tracer-def RON_STATE_FRAME=3115 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h, run1253's lobby   (a packet: the Arquebusiers' rounds)
 # Checks: `rngcmp.py` run1253 vs run1254 -> 37 identical; run1254 vs run1254b -> 3370 identical; run1254 vs run1254c -> 3118 identical.
+# ==== item 3614: the Egyptian Gunpowder word 3281 -> whole, 4454 (`docs/AI.md` §324.2; `docs/RUNS.md` run1267) ====
+#   run1267  --map 7 --end-frame 4454 --allow-early-end --timeout 3600 --log-window 4199 4455 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0, run1253's lobby   (the closing window)
+# Checks: `rngcmp.py` run1254 vs run1267 -> 4455 identical.
 # ==== item 3602: the Japanese from an Ancient start, East Indies (`docs/AI.md` §323; `docs/RUNS.md` run1251, run1252, run1252b) ====
 #   run1251  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1252  run1234's line with --ai-tribe 15 and run1251's lobby   (the draw stream; ended itself on 6126)

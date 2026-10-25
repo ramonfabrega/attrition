@@ -27476,6 +27476,28 @@ opens apart on 8710. The Citizens `0/4`, `0/13` and `0/11` are wounded a frame e
 Atl-Atls' rounds. Theirs' `1/195` round at `0/11` leaves (7476, 9641, 348) and flies 10, against ours' (7464, 9768)
 and 11.
 
+## run1267 — the Egyptians at a held Gunpowder age, Great Sahara: the closing window, blocks 4199..4455 (2026-10-25, item 3614, `att-3614`)
+
+`docs/AI.md` §324.2. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1267 --map 7 --end-frame 4454
+--allow-early-end --timeout 3600 --log-window 4199 4455 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9
+--ai-tribe 7 --cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`. **What the disk could not answer**: the pair went whole, and run1254
+prints units only every hundredth block and no leader, building or city record past the start, so no dump held
+the last blocks.
+- Pool lane 1, seed 12345. Launched 03:32:27, exited 03:33:29 (62.1 s launch to exit). `success`: 4455 frames,
+  closing frame 4455. `rngcmp.py` against run1254: 4455 of 4455 frames identical. `df -g ~` read 127 GiB free
+  before it. Filed with `filerun.py run1267 greatsahara-egyptian-gunpowder-window-4199-4455 --map 7`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1267-greatsahara-egyptian-gunpowder-window-4199-4455.txt`, 554,331,693 bytes,
+SHA-256 `c165327a82c8b15fa2cffbb1478bf871db49b40285312f25c25a4e0e5dce5bfa`.
+
+Archive `rontrace-run1267.log`, 69,646,592 bytes,
+SHA-256 `c78db3582aac1e0cc1f8a274a2dca026eb4ff330f6ea4e1d9ac0b24931fe929d`.
+
+**What it holds**: the closing window, `egyptian_gunpowder_pair_run1267_s_closing_frame_is_widened_whole`: 256
+blocks, 55 keys, the standing families and one `dest_angle` row (parked 3614a).
+
 ## run1266 — the Aztecs from an Ancient start, East Indies: the gap's window, blocks 8596..8710 (2026-10-25, item 3613, `att-3613`)
 
 `docs/AI.md` §325.1. **What the disk could not answer**: blocks 8602..8709. run1256's stride prints 8601 and 8701,

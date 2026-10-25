@@ -10406,8 +10406,10 @@ now links arena A's hoplites and shows what the numbering had hidden:
   widening carries both as `death:extra`. No golden window has a birth that a
   cull would have freed a number for. The long captures' words hold under
   the grow-only hold (the item's journal has the gate).
-- **`o_up`**, the third term of `find_free`'s test: a dead squad member
-  still linked in its chain is not reused. This crate does not test it.
+- ~~**`o_up`**, the third term of `find_free`'s test: a dead squad member
+  still linked in its chain is not reused. This crate does not test it.~~
+  Built by item 3614 (`docs/AI.md` §324.2), with `Unit::close`'s
+  whole-squad clear beside it.
 - **`blocks_while_dead`**'s floor of 30. It is not carried, because a
   live record already holds the number, and the floor only matters after
   the record ends, in the cull this crate does not have.

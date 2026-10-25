@@ -5481,13 +5481,13 @@ reaches them. `PathFinder::calc_road_cost` now prices an ambiguous owner byte (-
 arm (00686441–00686477); `Objects::find_free` gained the `UnitData +0x8e` captain term (0065adde). Each passed every
 lobby's `first_parting`.
 
-(2441) **`find_free`'s captain term is a SEAM: `UnitData +0x8e`'s field is unnamed** (the commander's, at 2400's
+~~(2441) **`find_free`'s captain term is a SEAM: `UnitData +0x8e`'s field is unnamed** (the commander's, at 2400's
 booking gate; `crates/sim/src/lib.rs`, `Sim::find_free`). 2400 built the reuse test's third term — a dead unit's
 number is reused only if it is no unit or a captain (`+0x8e` negative, `0065adde`) — and fed it `o_up.is_none()`.
 The third pair's floor fell 17379 → 14461 (ours `Unit::do_guard`, theirs `Unit::do_idle`) and run587's projectile
 lifetimes 131 → 10; bisected to 3d3cdf0f. The call now passes `true` (every dead unit a captain, the old behaviour)
 and the floor stands; `find_free_reusable` keeps the term for the sweep. Parked 2370 reads `+0x8e` as `GuyData`'s
-attack target `o` (`Unit::set_attack`) — not `o_up`. Names no score until the field is named and a diff backs it.
+attack target `o` (`Unit::set_attack`) — not `o_up`. Names no score until the field is named and a diff backs it.~~ **Answered by item 3614** (`docs/AI.md` §324.2): `+0x8e` is `o_up`, and the term was right. The floor fell because `Sim::relink_squad`'s whole-squad arm left the dead tail linked, where `Unit::close@0060ee50:292`-`316` clears it. With both halves built, every lobby's `first_parting` holds.
 
 (2404) **`sweep_gen` gaps this batch met** (2400, for the Loop; Loop 2003):
 - `--seq` cannot take a bounded range for an index-like answer (a `Random::get` stub, `Farms::add_animals`), and a
@@ -10852,13 +10852,13 @@ pair is whole. The writer of `dest_angle` on an `ATTACKTO` arrival is not read.
 through the stride walk with piece 36's bays in (`aztec_ancient_pair_the_long_s_stride_walks_back_from_8716`, 306
 keys) and never reaches a draw: the pair is whole. The stride does not print the block it first parts on.
 
-## Parked by the next landing, slot RM — reserved
+## Parked by item 3614, 2026-10-25 — the Egyptian Gunpowder pair whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3614a) **Two `dest_angle` rows that spend no draw** (`docs/AI.md` §324.2). With the pair whole, run1254b's widening
+holds one row past its standing families: `1/23`'s `dest_angle` on block 3277, ours -1295384576 against theirs
+2122579968. run1267's closing window holds one too: `1/49`'s on 4406, ours 0 against 286261248. Neither reaches the
+draw stream, which agrees to the game's end. Names no score: the pair is closed, and a row that parts no draw moves
+no word. The writer of `dest_angle` on each frame is unread.
 
 ## Parked by the next landing, slot RN — reserved
 
