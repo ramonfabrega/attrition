@@ -27812,3 +27812,45 @@ SHA-256 `0b899fb4899c02649aef63d5371fba5168fd4ba9106631402b7e1b8c5ddeebff`.
 **What it holds**: `russian_medieval_pair_run1268b_s_word_frame_is_widened_whole` (256 blocks, 1411 keys). On the
 word's block 4443 six of who=1's Elite Javelineers round the empty city `0/2000` leave each side, and not the
 same six.
+
+## run1261 — the French at a held Classical age, Great Sahara: the `DUMP_ALL` start (2026-10-25, item 3607, `att-3607`)
+
+`docs/AI.md` §328. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1261 --map 7 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 10 --profile STARTING_TECHNOLOGY=1 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 07:29:29, exited 07:29:52 (22.7 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 10, five files restored. `GAME INFO` reads back
+  `DIFFICULTY 5`, `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1`. Filed with `filerun.py run1261
+  greatsahara-french-classical-start`. `df -g ~` read 114 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1261-greatsahara-french-classical-start.txt`, 149,920,103 bytes,
+SHA-256 `5a98a767161600529719dd0dc231e7a30b82ef12476a49978c3cf9e7bd873e64`.
+
+Archive `rontrace-run1261.log`, 8,291,040 bytes,
+SHA-256 `b7542243b38d96ca88ee7465f9277500c832dad47586fa1f6402136f39b81aa8`.
+
+**What it holds**: the start of `french_classical_pair::FRENCH_CLASSICAL`, and the walk's initial state.
+
+## run1262 — the French at a held Classical age, Great Sahara: the draw stream to the game's end (2026-10-25, item 3607, `att-3607`)
+
+`docs/AI.md` §328. run1250's line with `--ai-tribe 10`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 10
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1261's
+lobby.
+- Pool lane 2, beside run1261. Launched 07:29:34, exited 07:30:03 (28.8 s launch to exit). `success`. **The game
+  ended itself on 6106** (closing block 6107, `ended_early`). `GAME INFO` reads back as run1261's. `rngcmp.py`
+  against run1261: 37 frames identical. Filed with `filerun.py run1262 greatsahara-french-classical-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1262-greatsahara-french-classical-trace.txt`, 29,858,969 bytes,
+SHA-256 `cdbe169a6bd946e2aeb8a318a442e8a09bca41049d37a657d88d069e5e8ceda3`.
+
+Archive `rontrace-run1262.log`, 112,140,480 bytes,
+SHA-256 `618a8c1194570da1fac683b653260d705674b606a00b83aa1f8491600d5241ce`.
+
+**What it holds**: the pair's first try. `french_classical_pair_first_parting` walks it from run1261: **whole, 6106
+of 6106** by the count and the sequence. The closing block 6107 compares whole (254 units, zero counts), and its
+whole stride, walked over 101..6107, parts on the standing families, the Light Horse `1/50`'s hits from 5601
+(parked 3607a) and the human's defeat on the closing block.
