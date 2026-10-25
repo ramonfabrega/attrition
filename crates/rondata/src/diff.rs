@@ -71,6 +71,8 @@ mod egyptian_word;
 mod endpoint;
 mod floors;
 #[cfg(test)]
+mod french_classical_pair;
+#[cfg(test)]
 mod french_word;
 #[cfg(test)]
 mod german_alltech_pair;

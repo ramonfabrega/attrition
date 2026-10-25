@@ -10807,13 +10807,17 @@ Nothing parks. The pair's first parting books: the Dromon `1/24`'s round lands o
 in theirs, 12 frames from (2808, 6381, 52) against ours' 13 from (2808, 6568), launched in the gap 4402..4494
 (`docs/AI.md` §327). `Inti Clubmen` (91) is fielded.
 
-## Parked by the next landing, slot RH — reserved
+## Parked by item 3607, 2026-10-25 — the French at a held Classical age, Great Sahara: whole on its first try
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3607a) **The French Classical pair's Light Horse `1/50` holds five hits
+fewer in ours, and no draw parts.** On run1262's stride, the Light Horse
+`1/50` (TypeIndex 209, land, uid 82) agrees on block 5501. From 5601 to the
+closing block 6107 it holds `hits_left` 68 and `damage` 5 in ours, against
+73 and 0 in theirs. On 5501 it holds an `ATTACKORDER` on the human's `0/12`;
+on 5601 an `ATTACKTOORDER`. The draw stream agrees to the game's end, so the
+row names no score (`docs/AI.md` §328). The first read is a window over
+5501..5601 with `AMMO=5`, both sides' `RON_DEBUG_UNIT=1/50`, to tell a blow
+landed only in ours from a heal only theirs made.
 
 ## Parked by item 3609, 2026-10-24 — the Korean Classical word: the Elite Hwarang's bays, whole at 8777
 
