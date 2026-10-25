@@ -10746,13 +10746,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot QZ — reserved
+## Parked by item 3599, 2026-10-24 — the Balamob Slingers' bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot QZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3599a. Piece 38's `CHAR_ATTACK3` row is diffed on no dumped round.** run1247's two `AMMO` records are
+  `1/32`'s stone on `CHAR_ATTACK2` (19) and `1/33`'s on `CHAR_ATTACK1` (18); the third row (21) rests on the
+  packet's `AttachPos` row and `get_position.py`'s sweep alone (97 lattice points). The Royal Balamob Slingers
+  (89, `BAMOBSLINGERSELITE`, the `Slinger_Royal.bh3` model) are another piece and unmeasured. `docs/AI.md` §320.2.
+  **Score**: none until a walk throws a stone on that key across a frame boundary.
 
 ## Parked by the next landing, slot RA — reserved
 
