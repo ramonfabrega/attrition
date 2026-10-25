@@ -27635,6 +27635,29 @@ SHA-256 `3edbb5f05d768006f9529b9e22eb24d0b981e5948742199366b300c5d8338dc7`.
 **What it holds**: `inca_classical_pair_run1260b_s_word_frame_is_widened_whole` (256 blocks, 754 keys): the Farm
 `0/2004`'s first wound on block 4502 in theirs alone, and both sides' Dromon rounds in `AMMO` and
 `RON_DEBUG_AMMO`.
+## run1269 — the Inca at a held Classical age, East Indies: the word 5357's window, blocks 5351..5607 (2026-10-25, item 3616, `att-3616`)
+
+`docs/AI.md` §327.1. **What the disk could not answer**: every record on the word's frame. run1260's stride prints
+units on 5301 and 5401 and no `LEADERDATA`, building or `AMMO` record past the start, and run1260b ends on 4751.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1269 --map 18 --end-frame 5607 --timeout 3600
+--log-window 5351 5607 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover
+cover=0 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1. Launched 05:58:39, exited 05:59:37 (58.0 s launch to exit). `success`: 5608 frames, seed 12345.
+  `rngcmp.py` of its trace against run1260's: 5608 frames identical. Filed with `filerun.py run1269
+  eastindies-inca-classical-window-5351-5607 --map 18`. `df -g ~` read 117 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1269-eastindies-inca-classical-window-5351-5607.txt`, 571,733,238 bytes,
+SHA-256 `a7f121fd8c5bcab2caf427eaf2063db1e023bdeb1270fb15623ea708f48f22ed`.
+
+Archive `rontrace-run1269.log`, 116,982,784 bytes,
+SHA-256 `ca8ad2d956c6220677323e079c962ea140e92dcfa678cc456644f8b13e34cd84`.
+
+**What it holds**: `inca_classical_pair_run1269_s_word_frame_is_widened_whole` (256 blocks, 1443 keys). The
+Archers `1/74`'s round at the Scout `0/0` leaves (7140, 8347) and flies 15 frames in theirs, against the figure's
+own square and 16 frames in ours, and the Scout is a step behind from the first block.
+
 ## run1257 — the Russians at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-25, item 3605, `att-3605`)
 
 `docs/AI.md` §326. §313's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh

@@ -2062,6 +2062,109 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 52,
         },
     ),
+    // **Piece 274, the Dromon (type 324)** (item 3616, `docs/AI.md` §327):
+    // the Bark's art file, `Dromon Attack`, on another model. Its nine
+    // `AttachPos` rows (run1217's packet; run959's and run912e's hold the
+    // same) are node 0 at frames 2, 10 and 17 of anims 10, 11 and 12, the
+    // Bark's points with `y` 31.88 model units lower, 119 units further
+    // forward on the water — (0.04,
+    // −50.04, 14.03), (−0.296, −2.42, 14.03), (0.460, −24.88, 14.02) — at
+    // the Bark's scale, 4.8 × 0.78. Each row reproduces
+    // `get_position`'s truncated answer at all 361 whole degrees under
+    // unicorn; frame 2's region is three lattice points, and this is its
+    // middle. Without them the Dromon `1/24`'s first round at the Farm
+    // `0/2004` left the hull's own (2808, 6568) and flew 13 frames where
+    // theirs left (2808, 6381) and flew 12: the Inca Classical word, 4501.
+    (
+        274,
+        crate::anim::ATTACKWALK,
+        2,
+        Bay {
+            right: -148,
+            fwd: 187_348,
+            dz: 52,
+        },
+    ),
+    (
+        274,
+        crate::anim::ATTACKWALK,
+        10,
+        Bay {
+            right: 1_110,
+            fwd: 9_061,
+            dz: 52,
+        },
+    ),
+    (
+        274,
+        crate::anim::ATTACKWALK,
+        17,
+        Bay {
+            right: -1_724,
+            fwd: 93_151,
+            dz: 52,
+        },
+    ),
+    (
+        274,
+        crate::anim::ATTACK1,
+        2,
+        Bay {
+            right: -148,
+            fwd: 187_348,
+            dz: 52,
+        },
+    ),
+    (
+        274,
+        crate::anim::ATTACK1,
+        10,
+        Bay {
+            right: 1_110,
+            fwd: 9_061,
+            dz: 52,
+        },
+    ),
+    (
+        274,
+        crate::anim::ATTACK1,
+        17,
+        Bay {
+            right: -1_724,
+            fwd: 93_151,
+            dz: 52,
+        },
+    ),
+    (
+        274,
+        crate::anim::ATTACK2,
+        2,
+        Bay {
+            right: -148,
+            fwd: 187_348,
+            dz: 52,
+        },
+    ),
+    (
+        274,
+        crate::anim::ATTACK2,
+        10,
+        Bay {
+            right: 1_110,
+            fwd: 9_061,
+            dz: 52,
+        },
+    ),
+    (
+        274,
+        crate::anim::ATTACK2,
+        17,
+        Bay {
+            right: -1_724,
+            fwd: 93_151,
+            dz: 52,
+        },
+    ),
     (
         567,
         crate::anim::ATTACK2,
@@ -4279,6 +4382,34 @@ mod tests {
         // nine exactly may re-pin every `err` to zero; nothing may
         // raise one.
         assert_eq!(exact, 6, "the number of exactly reproduced rows fell");
+    }
+
+    /// **The Dromon's rounds leave from piece 274's bays** (item 3616,
+    /// `docs/AI.md` §327): every round run1260b prints from its first
+    /// block, the Dromon `1/24` sailing north at facing 0 on an
+    /// `EXPLORETOORDER` and firing at the Farm `0/2004` on
+    /// `CHAR_ATTACKWALK` — the hull's `GUY` point on that block, the key
+    /// the swing's frame names, and the dump's own `sx, sy, sz`. The same
+    /// three offsets come round every 25-frame swing.
+    #[test]
+    fn run1260b_s_dromon_rounds_leave_from_piece_274_s_bays() {
+        // (block, swing frame, hull x, hull y, sx, sy, sz)
+        const M: &[(i32, u32, i32, i32, i32, i32, i32)] = &[
+            (4499, 10, 2808, 6088, 2809, 6079, 52),
+            (4506, 17, 2808, 5668, 2807, 5575, 52),
+            (4516, 2, 2808, 5068, 2808, 4881, 52),
+            (4524, 10, 2808, 4588, 2809, 4579, 52),
+            (4531, 17, 2808, 4168, 2807, 4075, 52),
+        ];
+        for &(block, t, x, y, sx, sy, sz) in M {
+            let got = launch_point(Pos::new(x, y), Angle(0), 274, crate::anim::ATTACKWALK, t, 0);
+            assert_eq!((got.x, got.y), (sx, sy), "block {block} t {t}");
+            assert_eq!(
+                release_dz(274, crate::anim::ATTACKWALK, t, 0),
+                Some(sz),
+                "block {block}"
+            );
+        }
     }
 
     /// **Every trireme launch point run127 recorded on its first two

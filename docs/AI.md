@@ -29269,8 +29269,9 @@ same step.
 So the first round's launch point is 187 world units apart in y, and its flight is a frame longer in ours. The
 second round's launch point is 9 apart, and the two flights agree. `sim::launch` has no row for the Dromon's
 piece, and a piece with no row launches from the unit's own position (§323.1's shape). The launch frame is in
-the gap 4402..4494, which no dump holds: the stride prints 4401 and run1260b opens on 4495. The launch point is
-the next item's hypothesis, and nothing here reads or builds it.
+the gap 4402..4494, which no dump holds: the stride prints 4401 and run1260b opens on 4495. ~~The launch point is
+the next item's hypothesis, and nothing here reads or builds it.~~ It is piece 274's release node, and since item
+3616 the round leaves it (§327.1).
 
 **The stride, walked back** (`inca_classical_pair_the_long_s_stride_walks_back_from_4501`, run1260's blocks
 101..4501, 45 blocks, 172 keys) parts on the standing families alone: every unit's `form` (71) and `build:extra`
@@ -29284,6 +29285,78 @@ lockstep set: Citizen 50, General 54, Caravan 59, Merchant 61, Scout 69, Phalanx
 209, Catapult 265, The Senator 353, five boats (Fishermen 317, Transport Barge 320, Dromon 324, Fire Raft 334,
 Galley 341), and the horse, fish and whale herds: 19 types. `rubric.py` on this tree reads unit types seen **186
 of 302**, unmoved, because the pair is open.
+
+### 327.1 The Dromon's bays: 4501 → 5357 (item 3616)
+
+**The direction.** Theirs acts on 4501. A round lands in theirs a frame before ours, and ours spends the frame's
+Farms draws where theirs wounds the Farm. Both sides launch the Dromon `1/24`'s first round on the same frame: its
+`cur_time` is 5 on block 4495 in theirs and `t5` in ours, and the hull's `GUY` point is the same on every block
+run1260b prints. What differs is the launch point.
+
+**What the disk answered, so no window over the gap was taken.** run1260b prints five more of the Dromon's rounds
+from their first block. Each one leaves a fixed offset from the hull's `GUY` point on that block, at facing 0, and
+the three offsets come round with the 25-frame `CHAR_ATTACKWALK` swing (ours plays anim 10, piece 274):
+
+| block | swing frame | hull | `sx, sy` | offset |
+|---|---|---|---|---|
+| 4499 | 10 | (2808, 6088) | (2809, 6079) | (+1, −9) |
+| 4506 | 17 | (2808, 5668) | (2807, 5575) | (−1, −93) |
+| 4516 | 2 | (2808, 5068) | (2808, 4881) | (0, −187) |
+| 4524 | 10 | (2808, 4588) | (2809, 4579) | (+1, −9) |
+| 4531 | 17 | (2808, 4168) | (2807, 4075) | (−1, −93) |
+
+The first round is frame 2's: (2808, 6568) less 187 is theirs' (2808, 6381). The art gives the Dromon three
+`<RELEASEEVENT>`s, at 200, 700 and 1200 ms on `CHAR_ATTACK1`, `CHAR_ATTACK2` and `CHAR_ATTACKWALK`, node 0, all
+on `Dromon Attack`. `release_frame` makes those frames 2, 10 and 17. `sim::launch` had no row for piece 274, so
+ours launched from the hull.
+
+**Two readings, and the packet's verdict.** The offsets are the Bark's rows (piece 273, the same `Dromon Attack`
+file, GOLDEN §83) with `right` truncating the same way and `fwd` exactly 119 further forward on all three frames.
+So either (H1) the Dromon model's node 0 sits further forward, or (H2) a moving shooter leads by two frames of its
+60-unit speed, which the Bark's stationary rounds could not show. The disk settled it: `get_position.py entries
+274` finds piece 274's nine `AttachPos` rows in three packets (run1217, run959, run912e). They are the Bark's
+points with `y` 31.88 model units lower: (0.04, −50.04, 14.03), (−0.296, −2.42, 14.03) and (0.460, −24.88, 14.02),
+at the same `RData +0x88` 0.78. **H1 holds and H2 is killed**: the lead belongs to the model, not to the movement.
+
+**Built** (`crates/sim/src/launch.rs`): nine `BAYS` rows for piece 274, frames 2, 10 and 17 of anims 10, 11 and
+12. Each is the model point × 4.8 × 0.78, `right = −s·x` and `fwd = −s·y` in thousandths, `dz` 52 over the
+water. `sweep 274 0 10 <t>` under unicorn checks each row at all 361 whole degrees: frames 10 and 17 reproduce
+every heading as derived, and frame 2's region is three lattice points, with (−148, 187 348) its middle.
+`run1260b_s_dromon_rounds_leave_from_piece_274_s_bays` holds the five dumped rounds; the packet's rows were read
+independently of them. Mutation (`tools/mutate.py`, piece 274's `CHAR_ATTACKWALK` rows renamed away): **held**,
+cargo 101 — `inca_classical_pair_first_parting`, both word widenings and the new stride walk fail.
+
+**The value diff on 4501.** run1260b's widening goes from **754 to 133 keys**. Ours' first round now leaves
+(2808, 6381) and lands on (4319, 5864) in 12 frames, as theirs does, so the Farm `0/2004`'s wound on block 4502
+agrees (`damage` 1, `damage_frac` 5), and so do the city's `raid_stamp` 4501, its `city_flags` and both leaders'
+`treaties` 3. What stands is the standing families alone: 120 on block 4495, then later births' `form` and new
+groups' `held` and pools.
+
+**The word: 5357 of 6073**, by the count and the sequence. Theirs spends 151 game-stream draws against ours' 149,
+parting at index 146: theirs `Ammo::do_damage+0xc59` and `+0xc7e` (then `AmmoOut::puncture_ground` on the sound
+stream), ours `Farms::inc_time+0x1ae`. **Theirs acts**: a round ends in theirs on 5357, and ours' is still in the
+air.
+
+**The word's window, run1269** (blocks 5351..5607 at run1260b's detail, `LEADERS=9`, `AMMO=5`, walked from run1259:
+256 blocks, **1443 keys**). The stride walked over 4801..5301 (`…_the_long_s_stride_walks_back_from_5357`, 178
+keys) parts on the standing families alone, so **the state first parts in the gap 5302..5350**, which no dump
+holds. run1269's first block already holds it:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5351 | Scout `0/0` (TypeIndex 69, uid 7) | `pos`; `damage_frame` | (8556, 7356); 5344 | (8578, 7330); 5343 |
+| 5351 | `AMMO`, `1/74`'s round at `0/0` | `sx, sy`; `total_time` | (7080, 8376); 16 (`RON_DEBUG_AMMO`) | (7140, 8347); 15 |
+| 5357 | Scout `0/0` | `g.angle[1]` | 482541568 | 466354176 |
+| 5357 | the round | ends | still in flight (`t16/16`) | `flags` 14, `whom` −1 |
+| 5358 | Archers `1/74` (TypeIndex 171, uid 110) | facing, heading | 638255104 | 635502592 |
+
+The shooter is the Archers `1/74`, who=1, on `CHAR_ATTACK3` and **piece 825**, a piece `sim::launch` has no row
+for. Its round leaves the figure's own square in ours. That is the next item's hypothesis, and nothing here builds
+it. From 5371 who=1's army's orders part. A window from the stride's last block, 5301, would hold the first
+parted frame.
+
+**The lines.** The pair is open, so `rubric.py` still reads unit types seen 186 of 302, and the Inti Clubmen (91)
+enter when the pair closes.
 
 ## 328. Reserved for the next item on the AI track
 
