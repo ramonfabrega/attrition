@@ -228,5 +228,5 @@ fn spanish_classical_pair_run1232b_s_closing_frame_is_widened_whole() {
     // and 8500 (`1/380`); and twelve `dest_angle` rows from 8358 (`1/79`
     // first; 3567a's shape, parked 3580b). Positions, orders and hits
     // agree to the closing block.
-    pin_eq!(w.firsts.len(), 82, "run1232b baseline");
+    pin_eq!(w.firsts.len(), 74, "run1232b baseline");
 }

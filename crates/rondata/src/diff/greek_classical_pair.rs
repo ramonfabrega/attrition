@@ -403,7 +403,7 @@ fn greek_classical_pair_run1214_s_word_frame_is_widened_whole() {
     // against 1524), first in this window and unprinted on the stride, and
     // `dest_angle` on thirteen of who=1's units from 7936 (`1/76`,
     // -1605566464 against -852099072) — parked under item 3574.
-    pin_eq!(w.firsts.len(), 134, "run1214 baseline");
+    pin_eq!(w.firsts.len(), 125, "run1214 baseline");
 }
 
 /// **The long's stride, walked back from the word 4341** (item 3571):

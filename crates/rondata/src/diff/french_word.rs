@@ -354,5 +354,5 @@ fn run982d_s_last_blocks_are_widened_whole() {
     // threshold.
     // Item 3369: 38 -> 30, an unpacked merchant's "over time" piece
     // (`sim::anim::stall_piece`): its crew on one piece at its point.
-    pin_eq!(w.firsts.len(), 30, "run982d, the last blocks");
+    pin_eq!(w.firsts.len(), 29, "run982d, the last blocks");
 }

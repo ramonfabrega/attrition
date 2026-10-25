@@ -10525,7 +10525,9 @@ reaches it.
 
 ## Parked by item 3574, 2026-10-24 — the Archers' bays, the Greek pair whole
 
-(3574a) **Both leaders' `territory` on run1214's 7859: who=0 140 against 141, who=1 1525 against 1524.**
+(3574a) ~~**Both leaders' `territory` on run1214's 7859: who=0 140 against 141, who=1 1525 against 1524.**~~
+**Answered by item 3595** (`docs/AI.md` §318.2): a tied claim the crate's `% players` scan gave to who=1; the
+eight-slot rotation gives it to who=0, and run1214's territory rows agree (134 → 125 keys).
 The word is whole at 8126, and its closing state compares 336 units with none off. But run1214's window
 opens with one tile counted to who=1 in ours and to who=0 in theirs (`my_team_terr`, `other_team_terr` and
 `min_other_team_terr` move with it). run1212's leaders agree through 4592, and the long's strides print no
@@ -10665,8 +10667,9 @@ the next pass's to name. **Score**: none (`docs/AI.md` §318).
 
 ## Parked by item 3586, 2026-10-24 — the Spanish at a held Classical age, Great Sahara
 
-(3586a) **Both leaders' `territory` one tile apart on run1232b's first block 8310: who=0 ours 241 against
-theirs 242, who=1 2746 against 2745** (`my_team_terr`, `other_team_terr` and `min_other_team_terr` with it).
+(3586a) ~~**Both leaders' `territory` one tile apart on run1232b's first block 8310: who=0 ours 241 against
+theirs 242, who=1 2746 against 2745**~~ **Answered by item 3595** (`docs/AI.md` §318.2): the same tie as
+3574a, and run1232b's territory rows agree (82 → 74 keys). (`my_team_terr`, `other_team_terr` and `min_other_team_terr` with it).
 3574a's shape on a second pair, the same direction: one tile counted to who=1 in ours and to who=0 in theirs.
 The pair is whole at 8565 and its closing state compares 395 units with none off. No widening walked
 run1231's blocks 0..2 for it and run1232's stride prints no leader, so it parted somewhere before 8310; the tile and its writer were not
