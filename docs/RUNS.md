@@ -28283,3 +28283,25 @@ SHA-256 `012970e76dcc49dd83bbad7aa83282267e2e2e6b18da4e1bfcb4b7c22cc7e4d7`.
 
 **What it holds**: `mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole` (256 blocks, 3282 keys): block
 5041's 112 stand, and the word's block 5048 parts on the human's `0/2005` alone (theirs `damage` 1, `damage_frac` 13).
+
+## run1298 — the Mongols at a held Gunpowder age, East Indies: the closing window, blocks 5297..5400 (2026-10-25, item 3636, `att-3636`)
+
+`docs/AI.md` §331.4. **What the disk could not answer**: every record on the word 5399's frame, the game's last.
+run1296b ends on 5297 and run1279's stride prints 5301 and the closing block 5400 only, at `UNITS=3,GUYS=2`.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1298 --map 18 --end-frame 5399 --allow-early-end
+--timeout 3600 --log-window 5297 5400 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 17 --cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 16:54:28, exited 16:55:10 (41.8 s launch to exit). `success`: 5400 frames,
+  closing frame 5400. `rngcmp.py` against run1279: 5400 identical frames. Filed with `filerun.py run1298
+  eastindies-mongol-gunpowder-window-5297-5400 --map 18`. `df -g ~` read 116 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1298-eastindies-mongol-gunpowder-window-5297-5400.txt`, 261,741,186 bytes,
+SHA-256 `37d2ea00ae5440cded599ecb624e721432c8863d246718f65e251737f31e7b7c`.
+
+Archive `rontrace-run1298.log`, 205,009,728 bytes,
+SHA-256 `687feec775fecf652055b025c310e24e966a0739f050cf164cc32871395caeb3`.
+
+**What it holds**: `mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole` (103 blocks, 114 keys), the
+standing families alone: the pair is whole at 5399 since item 3636.

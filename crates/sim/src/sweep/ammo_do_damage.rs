@@ -65,9 +65,9 @@ fn the_emulated_original_agrees_on_every_row() {
             // `p42`/`p43` the two records slot `+0xb0` answers.
             //
             // **The port is the sweep's own**: the crate has `Sim::land` (fight.rs) for this function, but
-            // over the whole world and not a view, and it walks a different splash (a Chebyshev disc,
-            // `combat::splash_cells`, where the original walks the spiral to `radius[k]` *inclusive*, one
-            // cell past the disc). What it calls of the crate: `movement::find_angle`,
+            // over the whole world and not a view, and it walks the splash by object rather than by cell
+            // (the Chebyshev disc of `combat::splash_cells` and, since item 3636, the one cell past it the
+            // inclusive walk reads, `combat::splash_extra_cell`). What it calls of the crate: `movement::find_angle`,
             // `world::vector_dist`, `world::MOVE_289` (`move_x`/`move_y`, the first 289 entries, ring
             // 8's typo included), `ai_place::circle` (`circle_x`/`circle_y`). The table's rings 9 and
             // 10 (entries 289 to 440) are not in the crate: [`shipped_spiral`] lays them as the
