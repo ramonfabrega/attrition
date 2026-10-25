@@ -29028,12 +29028,61 @@ reads unit types seen **184 of 302**. `Xopilli Atl-Atls` (87) stays unfielded.
 **What is not established.** Piece 35 at any heading, since no Atl-Atls round is dumped, and piece 36 at a heading
 no dumped round took: those are the sweep's fit and no dump's. The writer of `1/175`'s arrival `dest_angle` (3613a).
 
-## 326. Reserved for the next item on the AI track
+## 326. The Russians at a held Medieval age, Great Sahara: first try 3149 of 4541 (item 3605)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94). §313's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
+Nubians (4) against the **Russians (13)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY
+2` and `ENDING_TECHNOLOGY 2` (read back 2 on both `GAME INFO`s). Captures: run1257 (a `DUMP_ALL` start) and run1258
+(the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 4541. The walk is
+seeded from run1257's initial state (3506a); run1257 against run1258 is 37 of 37 frames identical.
+`diff::russian_medieval_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 13, 5)`, is **new**, and item 3605 mints it in `battery::SCORED_LOBBIES`. The held-out
+Russian game is `GreatSaharaRussianTier4`, `(7, 13, 4)`: the same map at another difficulty. (The booking named
+`GreatLakesRussianTier2`, which left the battery for the AI word on item 3342; it is `russian_word`'s `(14, 13,
+2)`.) The Modern pair is `(18, 13, 5)`, another map. `russian_medieval_pair_is_no_other_lobby` asserts all of it.
+
+**First try: frame 3149 of 4541** by the sequence (3164 by the count). Both sides spend 11 game-stream draws, and
+they part at index 3. Ours draws `Guy::set_anim+0x97a < Guy::inc_time+0x271` there and theirs `Ammo::init+0xcd9 <
+Objects::add_ammo < GraphicEvents::execute_game_events`. By ours' `RON_DEBUG_SITES`:
+- the frame opens with the Knight `1/39`'s two `Unit::fight` draws (TypeIndex 228) and the Citizen `1/100`'s
+  `Guy::move` (TI 50), agreeing;
+- then ours spends the Supply Wagon `1/43`'s `Guy::inc_time` (TI 63, land), then the Heavy Horse Archer `1/54`'s
+  round (TI 188, `Ammo::init+0xcd9`, `+0xd0b`), then the Caravan `1/67`'s two (TI 59), then three
+  `Farms::inc_time`;
+- theirs spends the round first, then three `Guy::inc_time` animations (two through `Unit::inc_time+0x6e`, one
+  through `+0x3e`), then the farms.
+
+The draws are the same eleven, in another order. **No side acts alone; the order differs.**
+
+**The word's window** (run1258b, blocks 3143..3399 at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+run1257: 256 blocks, 2299 keys, the two `gaia:` keys unprinted, no inexact ground corner). run1258 against run1258b
+is 3400 of 3400 frames identical. It opens apart on 3143. **The value diff:**
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3143 | Supply Wagon (TI 63, three figures, (40536, 22776)) | its number | `1/43` | `1/132` |
+| 3143 | `1/132` | `pos`, `hits_left`, `guys.len` | (43151, 23354), 15, 1 | (40536, 22776), 90, 3 |
+| 3143 | `1/133` | `pos`, `hits_left` | (40762, 15069), 91 | (43151, 23354), 15 |
+| 3143 | `1/43` | — | the wagon | absent |
+| 3143 | who=1's group 66 | `held` | `[43, 132, 133, 134, 135, 136]` | — |
+
+From `1/132` up, every unit of who=1 sits one number higher in theirs: theirs' `1/133` holds ours' `1/132`, and
+so on. **The walk back.** The long's stride over 101..3101 (`russian_medieval_pair_the_long_s_stride_walks_back_from_3149`)
+reads 31 blocks and 87 keys, the standing families alone. The Peltasts `1/43` (Elite Javelineers, TI 84) stand on
+3001 and are gone on 3101 on both sides. Ours' `RON_DEBUG_UNIT=1/43` has them die on 3053 (absent from 3053), and the
+Supply Wagon born into the freed slot on 3106. So the numbering parts in **the gap 3102..3142**, at the wagon's
+birth. Ours reuses the Peltasts' freed `o` 43; theirs leaves it empty and takes the next fresh number, 132. On
+3149, ours' unit loop reaches the wagon (43) before the Horse Archer (54), and theirs reaches it (132) after.
+Ours' rule for a unit's number is the next item's to read. It is the shape of 3614's open word (a dead unit's slot)
+and is that item's hypothesis, not this one's. Nothing here reads or builds it.
+
+**The rubric.** On the pair's own dumps (`rubric.py --tables 3 --dumps`, run1257, run1258 and run1258b) the rubric
+sees 17 types. One is new to the lockstep set: **`Rusiny Lancer` (224), the booking's line**, fielded ×4318. The
+`Cossack` (225) is Gunpowder's and does not appear. The pair is open, so the lockstep count stays **184 of 302**.
+
+**What is not established.** Theirs' birth frame for the wagon, and whether theirs' `1/43` is still held by a dying
+or dead record over 3053..3106: no dump on disk prints 3102..3142.
 
 ## 327. Reserved for the next item on the AI track
 
