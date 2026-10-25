@@ -435,9 +435,12 @@ impl Sim {
     /// Turks' age-4 tower `1/2012` (TypeIndex 441, `LOS 14`, `X_SIZE 2`)
     /// prints `mylos 19` in run1186, its owner holding the `MINUTEMAN` bit
     /// and not `PARTISAN`'s: 14 + 4 + 1.
-    /// SEAM: the fort, colosseum and furs terms are read and not carried;
-    /// a fort takes its own term in place of the tower's, so a fort here
-    /// sees what it saw before.
+    /// **The fort term** (item 3631): a finished Fort-line building adds
+    /// `FORT_UPGRADE_LOS[get_fort_los − 1]` in place of the tower's. The
+    /// Romans' Fort `1/2013` (TypeIndex 444, `LOS 12`, `X_SIZE 5`) prints
+    /// `mylos 16` in run1277: 12 + 2 + 2, its owner at fort level 2.
+    /// SEAM: the colosseum and furs terms (both 0 in the shipped rules,
+    /// parked 3631a) are read and not carried.
     pub fn build_los(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
         if !bd.started || !bd.alive {
@@ -451,9 +454,9 @@ impl Sim {
                 .get(bd.owner as usize)
                 .map_or(0, |t| t.epoch[crate::tech::Line::Science.index()]);
             let mut los = ty.los + epoch * ty.science_los;
-            if !crate::build::is_fort(&self.build_types, rec)
-                && crate::build::is_tower(&self.build_types, rec)
-            {
+            if crate::build::is_fort(&self.build_types, rec) {
+                los += self.tuning.fort_upgrade_los[self.fort_los(bd.owner) - 1];
+            } else if crate::build::is_tower(&self.build_types, rec) {
                 los += self.tuning.tower_fort_los[(self.tower_fort_los(bd.owner) - 1) as usize];
             }
             los
@@ -466,6 +469,12 @@ impl Sim {
         };
         los += ty.x_size / 2;
         los
+    }
+
+    /// `LeaderData::get_fort_los@006daf30`: `1` plus the highest of
+    /// `FORTLOS2..4` held ([`crate::tech::Roles::fort_los_preq`]).
+    pub(crate) fn fort_los(&self, who: crate::Player) -> usize {
+        1 + self.bonus_level(who, &self.tech_tree.roles.fort_los_preq)
     }
 
     /// `LeaderData::get_tower_fort_los@006daf80`: 4 with the third of
@@ -1362,6 +1371,36 @@ mod tests {
         s.buildings[b].active = true;
         s.build_types[t].ident = Ident::Fort;
         assert_eq!(s.build_los(b), 15, "a fort");
+    }
+
+    /// §2.1's fort arm (item 3631): a finished Fort-line building adds
+    /// `FORT_UPGRADE_LOS[get_fort_los − 1]` and never the tower term;
+    /// `get_fort_los` is `1` plus the highest `FORTLOS2..4` held. run1277's
+    /// Roman Fort `1/2013` (`LOS 12`, `X_SIZE 5`) prints `mylos 16` at level
+    /// 2, a radius of eight fog cells.
+    #[test]
+    fn a_fort_sees_further_with_each_fort_los_level() {
+        use crate::build::Ident;
+        use crate::tech::{TechTree, TypeDef};
+        let (mut s, b) = fog_build(12, 0, 5);
+        let mut tree = TechTree::new().with_tuning(&Tuning::RON);
+        let levels =
+            ["Fort LOS 2", "Fort LOS 3", "Fort LOS 4"].map(|n| tree.add(TypeDef::plain(n, 0)));
+        tree.roles.fort_los_preq = levels.map(Some);
+        s.set_tech_tree(tree);
+        let t = s.buildings[b].ty.expect("typed");
+        s.build_types[t].ident = Ident::Fort;
+        assert_eq!(s.build_los(b), 14, "level 1: entry 0");
+        for (k, want) in [(0, 16), (1, 18), (2, 20)] {
+            s.tech[0].tech[levels[k]] = true;
+            assert_eq!(s.build_los(b), want, "level {}", k + 2);
+        }
+        s.tech[0].tech[levels[1]] = false;
+        s.tech[0].tech[levels[2]] = false;
+        assert_eq!(s.build_los(b), 16, "the Romans' 1/2013");
+        assert_eq!(s.build_sweep(b).map(|w| w.radius), Some(8));
+        s.build_types[t].ident = Ident::Tower;
+        assert_eq!(s.build_los(b), 14, "a tower takes no fort term");
     }
 
     /// §2.1's head: an unstarted building sees nothing, an unfinished

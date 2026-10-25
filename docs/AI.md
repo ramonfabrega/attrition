@@ -29678,7 +29678,7 @@ ledger: **the `Brig` (331, sea), ×618**, the booking's line. The AI built it. T
 **Coverage.** Diff-backed: the third refusal, by the word's closure and the mutation. Reading only: that the third
 test is in the stand arm alone, from the listing.
 
-## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622
+## 330. The Romans at a held Medieval age, East Indies: first try 1875 of 5979 (item 3620), 3607 since item 3622, 5582 since item 3631
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Lakota
 Medieval pair's lobby (§314) with the nation moved: East Indies,
@@ -29830,10 +29830,99 @@ carries the standing families (104 rows) and 3603 one pool and its group.
 | 3615 | `1/49` | `path:length` | 46 | 47 |
 
 So the word is a road search that costs three more node expansions in
-theirs. Which node is the next item's question (the brief's row 9: a
+theirs. ~~Which node is the next item's question (the brief's row 9: a
 road-node parting logs ours' map around the tile over the whole game
-first). Not established: why the road map differs. The rubric is unmoved
-while the pair is open.
+first). Not established: why the road map differs.~~ Answered below (item
+3631): not the road map but the fog, under a fort that saw two tiles short.
+The rubric is unmoved while the pair is open.
+
+**Item 3631: a finished fort sees `FORT_UPGRADE_LOS` further; 3607 → 5582.**
+
+*The node.* `roman_medieval_pair_s_road_search_on_3607_holds_node_for_node`
+walks every road search run1275's call window prices (109 to the word) node
+for node. The first node to part is on **3606**, not the word: node 126, the
+diagonal from (42144, 33120) onto (42336, 32928), tile (220, 171). Ours
+costs it 179 and theirs 89. That is 128 × 7/5 against 64 × 7/5: ours
+doubled it, which is `was_seen` answering "unseen" for who=1 at fog cell
+(110, 85). The search keeps its length on 3606 (3200 nodes on both sides)
+and spends three fewer on 3607.
+
+*The fog.* Ours' `seen2` at (110, 85) is 0 for the whole game; its
+neighbours light between frames 712 and 1170. No dump prints the fog past
+the start, so **run1293** is a packet at logger frame 3606. Its `seen2` grid
+(`World +0x160`, 120 × 120) against ours after tick 3605: **nine cells
+differ**, all who=1's bit, all on one arc one cell outside ours' lit edge —
+(110, 85), (111, 86), (112, 86), (112, 87), (113, 88), (114, 88), (114, 89),
+(115, 90), (115, 91). The world cell under them is unowned on both sides, so
+`was_seen`'s territory arm is out. The arc is the edge of the disc that ours
+lights on 1170 around fog cell (107, 93): the Fort `1/2013` (`orig_type`
+444, `LOS 12`, `X_SIZE 5`) at (41184, 35808). run1277 prints its **`mylos
+16`**; ours' `build_los` gave 12 + 5/2 = **14**, radius 7 against 8.
+
+*The term.* `Wall::update_los@0063eeb0` gives a fort (type vslot `+0xfc`)
+`fort_upgrade_range[get_fort_los + 4]` in place of the tower term.
+`get_fort_los@006daf30` is 1 plus the highest of `FORTLOS2..4` held
+(`has_preq`, bonuses 46–48 off `BASE_BONUSTYPES`). The level is 1 to 4, so the
+index is 5 to 8, which runs off `fort_upgrade_range`'s five entries
+(`Constants +0x180`) into `fort_upgrade_los` (`+0x194`): the term is
+`FORT_UPGRADE_LOS[level − 1]`, shipped 0, 2, 4, 6, 8. The tower term reads
+`TOWER_FORT_LOS` the same way (item 3543). who=1 is at fort level 2: 12 + 2
++ 2 = 16. `crate::wall_los_view` (item 3391) already held the whole function
+and its sweep; `Sim::build_los` carried the tower term and not this one.
+
+*Built.* `Tuning::fort_upgrade_los` (`FORT_UPGRADE_LOS`),
+`Roles::fort_los_preq` (bonuses 46–48, loaded beside `fort_borders_preq`),
+`Sim::fort_los`, and the fort arm of `Sim::build_los`. The colosseum and
+furs terms (`COLOSSEUM_FORT_RANGE`, `FURS_LOS`, both 0 as shipped) stay a
+seam. Sim test `vision::tests::a_fort_sees_further_with_each_fort_los_level`.
+
+*The value diff.*
+
+| frame | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 3606 (packet) | who=1 fog | `seen2` cells parted | 9 | 0 | — |
+| 3606 | Caravan `1/49`'s road search | node 126's cost | 179 | 89 | 89 |
+| 3607 | the same search | nodes costed | 3201 | 3204 | 3204 |
+| 3615 | `1/49` | `path:length` | 46 | 47 | 47 |
+
+Every road search to 3607 now holds node for node. run1277's widening falls
+from 720 to **112** keys: the standing families (106 on 3602..3603), the
+pools and groups 73 (3635) and 77 (3782), and `form` on `1/186` (3683) and
+`1/187` (3736); no position, no order (asserted). Every other lobby's
+`first_parting` is unmoved (65 green).
+
+*The new word: frame 5582 of 5979*, by the count and the sequence. Ours
+spends 31 game-stream draws against theirs' 35, and they part at index 7:
+theirs draws `Guy::set_anim+0x97a < Unit::set_anim+0x56 <
+Unit::move_step+0x823` (seed `bd4d2101`) before the `Unit::fight+0x824`
+that ours draws there (`1/14`'s, by `RON_DEBUG_SITES`). **Theirs draws
+more.** Ours' `1/124` spends `fight+0x824`, `fight+0x9b0` and a `set_anim
++0xf2f` further on.
+
+*The widening, walked back.* run1275's stride prints 5501 and 5601, so
+**run1293b** is the word's window (blocks 5577..5833, 256 blocks, **2550
+keys**; `roman_medieval_pair_run1293b_s_word_frame_is_widened_whole`). Its
+first block already holds the human's `0/10` apart (`pos` y 4201 against
+4226, `damage_frame` 5551 against 5550). On the word's block 5583 `1/14` is
+in range of its target in theirs (`recharging` 30 against 0) and `1/124` in
+ours. Walked back: run1275's stride 3901..5501
+(`roman_medieval_pair_the_long_s_stride_walks_back_from_5582`, 17 blocks,
+180 keys) parts nothing but the standing families and the stride's
+unprinted buildings. **run1293c** takes the gap (blocks 5501..5577, 76
+blocks, 113 keys; `roman_medieval_pair_run1293c_s_gap_is_widened_whole`).
+**The state first parts on block 5519, at the human's Village `0/2000`**:
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5518 | Village `0/2000` | `damage` | 548 | 548 |
+| 5519 | `0/2000` | `damage` | 552 | 554 |
+| 5551 | Nubian `0/10` | `damage_o`, `damage_frame` | 46, 5425 | 130, 5550 |
+| 5551 | `0/10` | `hits_left`, `orders.len` | 31, 0 | 30, 1 |
+
+So a blow on the Village on tick 5518 is four here and six there, with no
+draw between them; and on 5550 theirs' `1/130` strikes `0/10`, which then
+takes an order. Which blow, and why it is two short, is the next item's. Not
+established: the cause of either.
 
 ## 331. The Mongols at a held Gunpowder age, East Indies: first try 1973 of 5399 (item 3623)
 
