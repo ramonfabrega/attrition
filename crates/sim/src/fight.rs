@@ -4846,6 +4846,87 @@ impl Sim {
         best.map(|(_, o)| o)
     }
 
+    /// **`Object::compare_target`'s building-class arm** (`0064e79b`–
+    /// `0064e9e2`; item 3615, `docs/AI.md` §326): the weight a finished
+    /// Build-proper target (vslot `+0x4c`, `WallData::is_active`, and vslot
+    /// `+0x20`, which a wall answers 0) takes on its `cost × 4` before the
+    /// threat formula. `None` is the arm's `return 100`.
+    ///
+    /// - `param_4` (the search's `ai`, [`Sim::search_ai`]) first: `× 10`.
+    /// - Then, for a searcher **not raiding** (`bVar17`) whose own leader
+    ///   is **not human** (`leader_flags & 4`, `0064e836`), by the target's
+    ///   class, the first that answers:
+    ///   - a **city** (`SubObjectData::flags & 0x20`): `return 100` under
+    ///     `ai`, else `× 5`;
+    ///   - **defensive** (`WallData::is_defensive@00473650`) and not
+    ///     ANTI_AIR (`local_20`, the target's objmask `0x80000000`): `× 4`,
+    ///     and `× 40` under `ai` (`× 4 × 5 × 2`, `0064e8ae`–`0064e8be` →
+    ///     `0064e9e2`);
+    ///   - a **military trainer** (`BuildTypeData::is_military_trainer`):
+    ///     `× 3`; without `ai`, a Missile Silo (`is(0x208, 0)`) with
+    ///     `queued` (`BuildData +0x82`) non-zero or something inside
+    ///     (`inside_down`, `+0x28`, `>= 0`) is `× 15`; and a raiding
+    ///     (`bVar3`, `bVar16`) computer ship with SIEGE (`0x148(0x40000)`)
+    ///     takes `× 5000` more (the type's `+0x108`, `is_build_type`, is
+    ///     every building's);
+    ///   - a **training building** (`BuildTypeData::is_training_building`):
+    ///     `× 2`.
+    ///
+    /// run1268's packet (logger frame 3347): the Elite Javelineers `1/27`'s
+    /// guard search scores the Market `0/2006` at `320 × 2 × 11` → 71 and
+    /// the Library `0/2005` at `240 × 11` → 27, so the Market's 17 beats
+    /// the Library's 9 where this crate tied them at 9 and kept the first.
+    pub(crate) fn building_class_weight(
+        &self,
+        attacker: Obj,
+        b: usize,
+        raiding: bool,
+        ai: bool,
+    ) -> Option<impl Fn(i64) -> i64> {
+        let ai_mul: i64 = if ai { 10 } else { 1 };
+        let human = self
+            .nation
+            .get(self.owner_of(attacker) as usize)
+            .is_some_and(|n| n.human);
+        let mut class: i64 = 1;
+        if !raiding && !human {
+            let bd = &self.buildings[b];
+            let ty = bd.ty;
+            let types = &self.build_types;
+            if self.building_is_city(b) {
+                if ai {
+                    return None;
+                }
+                class = 5;
+            } else if ty.is_some_and(|t| crate::build::is_defensive(types, t))
+                && !self.profile(Obj::Building(b)).has(mask::ANTI_AIR)
+            {
+                class = if ai { 40 } else { 4 };
+            } else if ty.is_some_and(|t| crate::build::is_military_trainer(types, t)) {
+                class = 3;
+                if !ai
+                    && ty.is_some_and(|t| {
+                        crate::build::is(types, t, crate::build::Ident::MissileSilo)
+                    })
+                    && (!bd.queue.items.is_empty() || !bd.garrison.is_empty())
+                {
+                    class = 15;
+                }
+                if let Obj::Unit(i) = attacker
+                    && self.units[i].combat.stance == Stance::Raid
+                    && self.unit_ai_bit(self.units[i].owner)
+                    && matches!(self.profile(attacker).domain, Domain::Sea)
+                    && self.profile(attacker).has(mask::SIEGE)
+                {
+                    class *= 5000;
+                }
+            } else if ty.is_some_and(|t| crate::build::is_training_building(types, t)) {
+                class = 2;
+            }
+        }
+        Some(move |v: i64| v * ai_mul * class)
+    }
+
     /// Whether the search's `flags` let a candidate through
     /// (`Object::find_nearby_target`, `00649430`–`00649515`; `docs/COMBAT.md`
     /// §64.2). The candidate's own virtuals, as the PDB's tables name them:
@@ -4893,20 +4974,21 @@ impl Sim {
     /// [`Sim::search_ai`] and not per candidate, exactly as
     /// `00648e6e`-`00648e8d` computes `local_40` before the rings.
     ///
-    /// `ai`'s other arms — the building-class multipliers at `0064e6a5`,
-    /// `0064e9e2` and `0064e7bb` — are still unmodelled, and no capture on
-    /// disk puts a building in a target search (§33.5).
+    /// `ai`'s other arms, the building-class multipliers (`0064e79b`–
+    /// `0064e9e2`), are [`Sim::building_class_weight`]'s (item 3615).
     pub fn compare_target(&self, attacker: Obj, target: Obj, in_range: bool, ai: bool) -> i32 {
         let ap = self.profile(attacker);
         let tp = self.profile(target);
         let is_build = matches!(target, Obj::Building(_));
         let aa = is_build && tp.has(mask::ANTI_AIR);
         let mut v: i64 = 4 * i64::from(tp.cost);
-        if is_build {
-            // Not raiding, human: nothing of the class multipliers applies —
-            // they are gated on a non-human owner. Kept as the rule for an AI
-            // owner, which the simulation does not yet distinguish.
-            let _ = tp.build_class;
+        // **A wonder's worth is a twenty-fifth** (`0064e783`–`0064e799`, the
+        // target's vslot `+0x2c`, `BuildData::is_wonder`): `cost × 4 / 25`,
+        // signed, ahead of every multiplier below.
+        if matches!(target, Obj::Building(b)
+            if self.buildings[b].ty.is_some_and(|t| self.build_types[t].wonder))
+        {
+            v /= 25;
         }
         // **The RAID arm** (`0064e6b6`–`0064e742`, `docs/COMBAT.md` §68.1):
         // `bVar17`, the attacker's own stance 3, qualified for an AI-driven
@@ -4947,6 +5029,15 @@ impl Sim {
             && (self.fires_on_move(i) || !ap.has(mask::SIEGE))
         {
             return 0;
+        }
+        if let Obj::Building(b) = target
+            && self.buildings[b].index < crate::WALL_BASE
+            && self.buildings[b].active
+        {
+            match self.building_class_weight(attacker, b, raiding, ai) {
+                Some(w) => v = w(v),
+                None => return 100,
+            }
         }
         let t_attack = self.attack_of(target);
         let left = self.hits_left(target);
@@ -5046,16 +5137,24 @@ impl Sim {
             // owner. A raider jumps past all of it (`if (bVar17) goto
             // LAB_0064f1ed`).
             let armed = t_attack != 0 && !(aa && !matches!(ap.domain, Domain::Air));
-            // SEAM: the arm at `64f171` — a target whose object flags
-            // carry `0x20` takes the weight only with `num_inside` non-zero
-            // — is not carried: read as "a city" it moves Great Lakes'
+            // **A city takes the computer's weight only with someone
+            // inside** (`64f171`–`64f199`, item 3615): a target whose
+            // object flags carry `0x20` (a city) asks `num_inside(0)`, and
+            // an empty one jumps to `64f1d1` past the `×5` and the
+            // `+1,000,000`, keeping SIEGE's `+100,000`. It is the other
+            // half of the class arm's city `×5` ([`Sim::building_class_weight`]):
+            // with both, run1268's packet values the empty city `0/2000` at
+            // 2787 for `1/27` where this crate read 2785; with the arm alone
+            // the city counted `×25`, and the gate alone moved Great Lakes'
             // second game off its close (5930 → 5158, `1/9`'s strike).
+            let empty_city = matches!(target, Obj::Building(b)
+                if self.building_is_city(b) && self.num_inside(b) == 0);
             if armed && !raiding {
                 let human = self
                     .nation
                     .get(self.owner_of(attacker) as usize)
                     .is_some_and(|n| n.human);
-                if !human {
+                if !human && !empty_city {
                     if ap.has(mask::SIEGE) {
                         v += 1_000_000;
                     } else {

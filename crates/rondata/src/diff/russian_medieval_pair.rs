@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const RUSSIAN_MEDIEVAL: Pair = Pair {
     name: "GreatSaharaRussianMedieval",
@@ -260,4 +260,76 @@ fn russian_medieval_pair_the_long_s_stride_walks_back_from_3149() {
     // and are gone on 3101 on both sides; the wagon's birth, and the
     // numbering, fall in the gap 3102..3142.
     pin_eq!(w.firsts.len(), 87, "the stride's baseline");
+}
+
+/// **The Elite Javelineers' two buildings, valued as run1268's packet values
+/// them** (item 3615, `docs/AI.md` §326): on block 3347 — the state the
+/// packet holds, before the tick whose guard roll drops `1/27`'s attack and
+/// searches again — `Object::compare_target(o, 0, 0, 0)` returns **27** for
+/// the Library `0/2005` (`240 × 11`, `(2640 + 99) / 100`) and **71** for the
+/// Market `0/2006` (`320 × 2 × 11`: the computer searcher's class arm takes
+/// a training building twice, `0064e9e2`). Without the arm the Market is 36
+/// and the two score 9 apiece, the Library first. The city `0/2000` is the
+/// packet's 2787 (the class arm's `× 5` and the armed weight's empty-city
+/// gate together).
+#[test]
+fn russian_medieval_pair_s_guard_search_values_the_market_as_a_trainer() {
+    let _pins = Pins::hold();
+    let Some(inst) = install() else {
+        return;
+    };
+    let p = &RUSSIAN_MEDIEVAL;
+    let (Some(path), Some(sib), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1)) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let sib_text = crate::capture::read(&sib);
+    let log = Log::parse(&text);
+    let sib_log = Log::parse(&sib_text);
+    let sib_init = sib_log.initial().expect("a start dump");
+    let mut init = log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sib_init]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    // Block 3347 is the state after the tick this crate numbers 3346.
+    while built.sim.frame < 3347 {
+        built.tick();
+    }
+    let s = &built.sim;
+    let me = (0..s.units.len())
+        .find(|&u| s.units[u].owner == 1 && s.units[u].index == 27)
+        .expect("the Elite Javelineers 1/27");
+    let building = |o: i16| {
+        (0..s.buildings.len())
+            .find(|&b| s.buildings[b].owner == 0 && s.buildings[b].index == o)
+            .expect("who=0's building")
+    };
+    let ai = s.search_ai(1);
+    let value = |o: i16| {
+        s.compare_target(
+            sim::combat::Obj::Unit(me),
+            sim::combat::Obj::Building(building(o)),
+            false,
+            ai,
+        )
+    };
+    pin_eq!(
+        ai,
+        false,
+        "the search's `ai`, as the packet's call passes it"
+    );
+    pin_eq!(
+        (value(2005), value(2006)),
+        (27, 71),
+        "the Library's and the Market's worth to 1/27, as run1268's packet computes them"
+    );
+    // The city `0/2000`, empty: the class arm's `× 5` with the armed
+    // weight's `num_inside` gate (`64f171`) is the packet's 2787; the arm
+    // alone read 13935, the gate alone 2785 less the arm's factor.
+    pin_eq!(
+        value(2000),
+        2787,
+        "the empty city's worth to 1/27, as the packet computes it"
+    );
 }
