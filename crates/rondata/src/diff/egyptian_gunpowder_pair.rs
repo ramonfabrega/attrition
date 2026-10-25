@@ -43,9 +43,18 @@ pub(crate) const EGYPTIAN_GUNPOWDER: Pair = Pair {
     // draws against 7, index 5 — ours `Guy::set_anim+0x97a <
     // Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`; the state
     // parts on block 3225, the standing Arquebusiers `1/47`'s
-    // `damage_frac` ours 10 against theirs 12, no round at it.
-    count: 3238,
-    sequence: 3238,
+    // `damage_frac` ours 10 against theirs 12, no round at it. Item 3612:
+    // 3238 → **3281** (+43) — attrition, not a round: `1/46` (the middle
+    // of `1/45 → 1/46 → 1/47`) dies on 3225, `Unit::close`
+    // re-appends it at the tail, and `curr_uber_size@0060a760` stops at
+    // its cleared `flags & 1`, so `1/47` takes the two-figure eight
+    // sixteenths there (ours counted three, six). The new word is ours 8
+    // draws against 7, index 0 — ours `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a <
+    // Guy::move+0x19f`; the state parts on block 3268, a squad trained
+    // into slots 47 and 49 in ours and 47 and 139 in theirs.
+    count: 3281,
+    sequence: 3281,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -209,5 +218,12 @@ fn egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole() {
     // parts on block 3225, the Arquebusiers `1/47`'s `damage_frac` ours 10
     // against theirs 12 (`1/45`'s on 3226, 12 against 14), with no round
     // at either: the word 3238 (block 3239) follows.
-    pin_eq!(w.firsts.len(), 880, "run1254b baseline");
+    // Item 3612: 880 → **632**. `1/46` dies on 3225 and the
+    // squad's count stops at its dead tail (`curr_uber_size@0060a760`):
+    // `1/47`'s `damage_frac` agrees (theirs 12) and so does `1/45`'s on
+    // 3226 (14). The state parts on block 3268: ours trains a squad into
+    // `1/47` and `1/49` (#177, #178), theirs into `1/47` and `1/139`
+    // (uid 182, `o_up` 47) while its dead `1/49` stays `1/50`'s tail —
+    // the word 3281 (block 3282) follows.
+    pin_eq!(w.firsts.len(), 632, "run1254b baseline");
 }

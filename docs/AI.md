@@ -28755,7 +28755,7 @@ puts the **Ashigaru Spearmen (157)** in the lockstep set: `rubric.py --tables 3`
 **What is not established.** The `CHAR_DIE` row (anim 4, time 34), which no round reads. Piece 1176 at a
 heading no dumped round took is the sweep's fit, not a dump's.
 
-## 324. The Egyptians at a held Gunpowder age, Great Sahara: first try 3118 of 4454, moved to 3238 (item 3603)
+## 324. The Egyptians at a held Gunpowder age, Great Sahara: first try 3118 of 4454, moved to 3238 (item 3603) and 3281 (item 3612)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §316's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
 Nubians (4) against the **Egyptians (7)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, the age held by
@@ -28841,9 +28841,9 @@ stride prints units every hundredth block and no `LEADERDATA` past the start, so
   No round is in flight at either on ours' `RON_DEBUG_AMMO` (3215..3226), and neither moves. Then `1/24`'s and
   `1/23`'s path `tolerance` (144 against 0) on 3237 and 3240, the word's neighbours.
 
-**What is not established.** What wounds `1/47` and `1/45`: the block names no round, and the fraction's creep is
-the shape of a per-frame loss, which this section has not read. That is the next item's frame, booked by the
-block and the draw delta, not by a mechanism. Which nations play piece 48 is read off the pins it moved, not off
+**What is not established.** ~~What wounds `1/47` and `1/45`: the block names no round, and the fraction's creep is
+the shape of a per-frame loss, which this section has not read.~~ Attrition, and the squad's count: §324.1 (item
+3612). Which nations play piece 48 is read off the pins it moved, not off
 each nation's art.
 
 **The rubric.** Unit types seen stays **182** (`rubric.py --tables 3`): the pair is open, and the rubric counts
@@ -28852,6 +28852,66 @@ lockstep games only. On the pair's own dumps (`--dumps` run1253, run1254) it see
 both enter it when the pair closes. The other 16 are in the lockstep set: Citizen 50, General 54, Spy 58, Caravan
 59, Merchant 61, Supply Wagon 63, Explorer 71, Arquebusiers 98, Elite Pikemen 135, Crossbowmen 172, Heavy Knight
 229, Bombard 267, The Senator 353, The President 355, and the sheep and peacock herds.
+
+### 324.1. The squad's dead tail: 3238 → 3281 (item 3612)
+
+**The draws.** On 3238 ours draws 8 against theirs' 7, parting at index 5: ours `Guy::set_anim+0x97a <
+Guy::inc_time+0x1ed`, theirs `Farms::inc_time+0x1ae`. The draws are where the state, apart since block 3225,
+reaches the stream. The booking read that block and named no mechanism.
+
+**The direction.** Theirs acted. run1254b's `UNITDATA` holds the whole story, and no capture was taken. The
+squad is `1/45 → 1/46 → 1/47` (TypeIndex 98, Arquebusiers, `myhits` 132), standing
+on who=0's ground. Each figure bleeds 6/16 a frame, the three-figure share (`docs/ATTRITION.md`, the damage).
+- On 3224, `1/46` stands at `damage` 43 and 14 sixteenths. On 3225 it dies on both sides (the kill's threshold is
+  not read here): ours' `RON_DEBUG_UNIT` reads it absent from 3225, theirs' dump drops it.
+- Theirs relinks the chain to `1/45 → 1/47 → 1/46`: the dead figure is re-appended at the tail, and `1/47`'s
+  `o_down` still names it. The harness compares `o_up`/`o_down`, and ours agrees.
+- Theirs' `1/47` (`o` 47, later in the frame than 46) takes **8/16** on 3225, the two-figure share. `1/45`
+  (`o` 45, earlier) takes 6 on 3225 and 8 from 3226. Ours goes on at 6 for both.
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3224 | `1/46` (uid 77) | `damage`, `damage_frac` | 43, 14 | 43, 14 |
+| 3225 | `1/46` | alive | gone | gone |
+| 3225 | `1/47` (uid 78) | `o_up`, `o_down` | 45, 46 | 45, 46 |
+| 3225 | `1/47` | `damage_frac` | 10 (38.4 + 6) | **12** (38.4 + 8) |
+| 3226 | `1/45` (uid 76) | `damage_frac` | 12 | **14** |
+
+**The reading.** `UnitData::curr_uber_size@0060a760` walks `o_up` to the captain, then follows `o_down` only
+while the next figure's `field_0x8 & 1` (the `SubObject` flags) holds. `Object::close@00647160` writes
+`field_0x8 = 0`, and 3118's trace already shows `Unit::close < Object::die < Unit::die` on the dying frame. So
+the walk stops at a dead tail. Ours' `Sim::curr_uber_size` counted every link. Its comment held that a dead
+figure is relinked out, and the dump says it is not.
+
+**The build.** `Sim::curr_uber_size` follows `o_down` only to a figure still `alive()` (health above zero, ours'
+spelling of a figure `Object::close` has not run on). `harness_tests::a_dead_tail_is_not_counted_in_the_squad`
+asserts a three-figure chain counting 2 from either live figure once its tail is dead. Mutation through
+`tools/mutate.py`: drop the filter, and `egyptian_gunpowder_pair_first_parting` walks back to 3238 (exit 101,
+"held"). Every lobby's `first_parting` holds: 58 of 59 green before the re-pin, the one red being this pair's
+own move. `fight.rs`'s `curr_uber_size(v) != 1` reads the same function, as the original's does.
+
+**The value diff:**
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| 3225 | `1/47` | `damage_frac` | 10 / 12 | agrees |
+| 3226 | `1/45` | `damage_frac` | 12 / 14 | agrees |
+| 3228 | `1/47` | `hits_left` | 93 / 92 | agrees |
+| 3229 | `1/45` | `hits_left` | 110 / 109 | agrees |
+
+**The score: 3238 → 3281** (+43), by the count and the sequence. The new word is ours 8 draws against 7, at index
+0: ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a < Guy::move+0x19f`. The
+widening (run1254b, the same window, which still holds the word's block 3282) goes from 880 keys to **632**.
+
+**Where the state parts now: block 3268.** A new Arquebusier squad appears at the Egyptian base, (35112, 16536).
+- Ours puts it in slots `1/47` and `1/49` (#177, #178).
+- Theirs puts it in `1/47` and **`1/139`** (uid 182, `o_up` 47). Theirs' `1/49` is still the dead tail of `1/48 →
+  1/50 → 1/49`.
+- So theirs' dead tail holds its slot, and ours reuses the slot. This is the next item's hypothesis, and it is not
+  built. The parting predates this item: on the first widening `1/47` was already "unlinked" on 3268.
+
+**What is not established.** Whether the slot is held by the dead tail's link or by something else `Unit::close`
+leaves behind. The next item reads the slot allocator's predicate against 3268.
 
 ## 325. The Aztecs from an Ancient start, East Indies: first try 8716 of 9258 (item 3604)
 
