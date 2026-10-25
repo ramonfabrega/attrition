@@ -439,8 +439,8 @@ impl Sim {
     /// `FORT_UPGRADE_LOS[get_fort_los − 1]` in place of the tower's. The
     /// Romans' Fort `1/2013` (TypeIndex 444, `LOS 12`, `X_SIZE 5`) prints
     /// `mylos 16` in run1277: 12 + 2 + 2, its owner at fort level 2.
-    /// SEAM: the colosseum and furs terms (`COLOSSEUM_FORT_RANGE`,
-    /// `FURS_LOS`, both 0 as shipped) are read and not carried.
+    /// SEAM: the colosseum and furs terms (both 0 in the shipped rules,
+    /// parked 3631a) are read and not carried.
     pub fn build_los(&self, b: usize) -> i32 {
         let bd = &self.buildings[b];
         if !bd.started || !bd.alive {
