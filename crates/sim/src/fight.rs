@@ -9466,6 +9466,61 @@ mod tests {
         assert_eq!(sim.units[me].unit_masks2, 0);
     }
 
+    /// **The search budget keeps a dead target's order a frame** (item
+    /// 3598, `docs/AI.md` §318.3). `Unit::fight@005fd4d0`'s invalid-target
+    /// arm, `LAB_005fdb9e`: with the unit's `waiting` below 5 and its
+    /// leader's invalid targets past ten this frame, it marks the unit
+    /// frozen, adds 2 to `waiting` and returns, searching nothing and
+    /// counting nothing. run1241b's Phalanx `1/116` is the witness: who=1
+    /// reads `retargets 11` on block 6718, and the Phalanx `waiting 2`,
+    /// `unit_masks2 16` and its `ATTACKORDER` on the dead `0/12`, which it
+    /// drops on the next frame with `waiting` 1. At ten, the order drops at
+    /// once.
+    #[test]
+    fn the_search_budget_keeps_a_dead_target_s_order_a_frame() {
+        for count in [10, 11] {
+            let (mut sim, ty) = at_war();
+            let me = put(&mut sim, 0, ty, Pos::new(0x1000, 0x1000));
+            let foe = put(&mut sim, 1, ty, Pos::new(0x1100, 0x1000));
+            sim.add_attack_order(
+                me,
+                Obj::Unit(foe),
+                crate::orders::QueuePos::First,
+                false,
+                false,
+            );
+            sim.units[foe].health = 0;
+            sim.forget(Obj::Unit(foe));
+            sim.retargets[0] = count;
+            sim.work(me, 0);
+            if count == 10 {
+                assert!(sim.units[me].orders.is_empty(), "at ten, no budget");
+                assert_eq!(sim.units[me].waiting, 0);
+                assert_eq!(sim.retargets[0], 11, "the search is counted");
+                continue;
+            }
+            assert_eq!(sim.units[me].orders.len(), 1, "past ten the order stands");
+            assert_eq!(sim.units[me].waiting, 2);
+            assert_eq!(sim.retargets[0], 11, "nothing is counted");
+            assert_ne!(
+                sim.units[me].unit_masks2 & combat::umask2::NOT_FIRING,
+                0,
+                "the frozen mark"
+            );
+            // The next frame: `Unit::process` takes one off, the leader's
+            // count starts again, and the order drops.
+            sim.units[me].waiting -= 1;
+            sim.retargets[0] = 0;
+            sim.work(me, 1);
+            assert!(
+                sim.units[me].orders.is_empty(),
+                "{:?}",
+                sim.units[me].orders
+            );
+            assert_eq!(sim.units[me].waiting, 1);
+        }
+    }
+
     /// **An emplaced weapon drops a dead target's order at once, reload or
     /// not** (item 3540, `docs/ORDERS.md` §7.12). `Unit::fight@005fd4d0:
     /// 94`–`102`: the type's `unit_flags2 & 1` (the machine gun and

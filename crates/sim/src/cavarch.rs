@@ -215,10 +215,10 @@ impl crate::Sim {
     ///   [`Sim::fight_as`]'s cavarch strike — angle, `set_attacking`, the
     ///   damage arm and the reload — with no `set_angle`, snap or swing.
     ///
-    /// SEAM: `LAB_005fdb9e`'s first arm, `waiting < 5 && retargets > 10`
-    /// (the search budget), which adds 2 to `waiting` and returns without
-    /// searching or counting — unmodelled here as on the attack order's
-    /// own arm.
+    /// - `LAB_005fdb9e`'s first arm, `waiting < 5 && retargets > 10` (the
+    ///   search budget, item 3598): 2 added to `waiting` and a return,
+    ///   with no search, no count, and — `param_5` set — no frozen mark.
+    ///
     /// SEAM: `unit_masks |= 0x11000` before the strike, as for every
     /// strike here.
     pub(crate) fn cavarch_fight_body(&mut self, u: usize, frame: i64) {
@@ -232,6 +232,10 @@ impl crate::Sim {
             .filter(|&t| self.valid_target(me, t))
         else {
             self.cavarch_clear(u);
+            if self.units[u].waiting < 5 && self.retargets[who] > 10 {
+                self.units[u].waiting += 2;
+                return;
+            }
             let found = self.find_melee_target_as(u, -1, 0, true);
             self.cavarch_take(u, found);
             self.retargets[who] += 1;
