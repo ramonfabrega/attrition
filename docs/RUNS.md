@@ -28221,3 +28221,26 @@ SHA-256 `52318eb246207897b64b55094fe1d7a3bf885968416b727f3b20c941068b1b8f`.
 
 **What it holds**: `mongol_gunpowder_pair_run1292c_walks_back_from_4499` (100 blocks, 404 keys). The state first
 parts on block 4475: both leaders' `treaties` 3 in theirs against 1 in ours, and the human's `0/5` struck for 26.
+
+## run1294 — the Mongols at a held Gunpowder age, East Indies: a packet at logger frame 4473, piece 153's `AttachPos` rows (2026-10-25, item 3632, `att-3632`)
+
+`docs/AI.md` §331.2. **What the disk could not answer**: the Horde's (piece 153) release node at every heading and
+turret step. run1292c and run1292b print nine Horde rounds' launch points at four facings; no packet of any lobby held
+piece 153, whose rows exist only in a game that has built a Horde. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1294 --map 18 --end-frame 4475 --timeout 3600 --log-window 4472 4475 --detail
+end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 17 --cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile
+ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=4473
+--tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 13:42:44, exited 13:43:17 (32.5 s launch to exit). `success`, 4476 frames.
+  `rngcmp.py` against run1279's trace: 4476 of 4476 identical. Not filed: the packet is the product. `df -g ~` read
+  127 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1294/map-18/frame-snapshot.bin`, 859,389,656 bytes,
+SHA-256 `f55e706f8e5a25efa1cb11dc5156cfc4a0d434cfb21e3eb70b2472585e38feb0`.
+
+**What it holds**: `get_position.py entries 153` gives nine rows at scale 1.0: node 4 at `(0, 0)`, `(10, 18)`,
+`(11, 18)`, `(12, 16)` and `(13, 19)`, and node 0 at the four attack keys. `get_position.py pivot 153 0 <anim> <time>
+1` for each key (92,416 cells, kept at `~/ron-data/lab-experiments/2026-10-25-item-3632/`) is the oracle of
+`sim::pivot`'s four `RELEASES` rows. It disagrees with the integer form on one cell, which is that row's
+`float_lands`.

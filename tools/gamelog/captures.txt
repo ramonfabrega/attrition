@@ -10689,3 +10689,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3633: the Roman Medieval word 5971 (`docs/AI.md` §330; `docs/RUNS.md` run1295) ====
 #   run1295  --map 18 --end-frame 5979 --allow-early-end --timeout 3600 --log-window 5833 5979 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 6 --cover cover=0, run1274's lobby   (the word 5971's window, to the game's last frame)
 # Checks: `rngcmp.py` run1275 vs run1295 -> 5980 identical.
+# ==== item 3632: the Mongol Gunpowder word 4499 -> 4632, the Horde's pivot (`docs/AI.md` §331.2; `docs/RUNS.md` run1294) ====
+#   run1294  --map 18 --end-frame 4475 --timeout 3600 --log-window 4472 4475 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 17 --cover cover=0 --tracer-def RON_STATE_FRAME=4473, run1278's lobby   (piece 153's packet)
+# Checks: `rngcmp.py` run1279 vs run1294 -> 4476 identical.

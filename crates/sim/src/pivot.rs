@@ -82,6 +82,12 @@ pub struct Node {
 /// 206): run1235b's packet reads the same `(4, 0, 0)` entry as 1545's,
 /// `RData +0x88` 1.0.
 ///
+/// **Piece 153, the Horde** (item 3632, unit type 203, `HORDE`):
+/// run1294's packet (logger frame 4473, the Mongol Gunpowder lobby) reads
+/// its `(4, 0, 0)` entry as `(0.0, −3.38, 32.63)` (`0xc05851ec`),
+/// `RData +0x88` 1.0 — the saddle a little further back than the Horse
+/// Archers'.
+///
 /// **Piece 168, the Armored Scout Car** (item 3518, `TankDestroyer`'s
 /// `ARMOREDCAR-DEFAULT` piece, unit type 218): run1164's packet (logger
 /// frame 4528, the American Modern lobby) reads its `(4, 0, 0)` entry as
@@ -130,6 +136,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (1898, 4, Node { px: -6, py: -148 }),
     (841, 4, Node { px: -6, py: -148 }),
     (156, 4, Node { px: -6, py: -148 }),
+    (153, 4, Node { px: 0, py: -338 }),
     (139, 4, Node { px: 0, py: -148 }),
     (168, 4, Node { px: 0, py: 179 }),
     (166, 4, Node { px: 0, py: 1114 }),
@@ -1903,6 +1910,64 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             ],
         },
     ),
+    // **The Horde, piece 153** (unit type 203, `HORDE`; item 3632,
+    // `docs/AI.md` §331.2): run1294's packet (`RON_STATE_FRAME=4473` on the
+    // Mongols' held Gunpowder East Indies seed), the piece's nine entries —
+    // the pivot at `(4, anim, time)` and the release node 0 at the four
+    // attack keys. who=1's `1/21` looses at the Citizen `0/5` on 4458 from
+    // (5570, 10826, 245) and the round flies 17; this crate's left the
+    // figure's own (5592, 10920), flew 18 and struck a frame after the
+    // original's (the leaders' `treaties` bit 2, run1292c's block 4475).
+    // `get_position.py pivot 153 0 <anim> <time> 1` agrees with the integer
+    // form on every cell but one of `CHAR_ATTACK3`, its `float_lands`.
+    (
+        153,
+        crate::anim::ATTACKWALK,
+        18,
+        Release {
+            piece: 153,
+            node: 0,
+            pivot: [0, -4_586_834, 34_506_775],
+            at: [224_176, -15_053_246, 19_689_476],
+            float_lands: &[],
+        },
+    ),
+    (
+        153,
+        crate::anim::ATTACK1,
+        18,
+        Release {
+            piece: 153,
+            node: 0,
+            pivot: [0, -3_380_000, 32_630_001],
+            at: [888_244, -16_728_748, 16_062_641],
+            float_lands: &[],
+        },
+    ),
+    (
+        153,
+        crate::anim::ATTACK2,
+        16,
+        Release {
+            piece: 153,
+            node: 0,
+            pivot: [0, -3_380_000, 32_630_001],
+            at: [1_242_316, -16_864_357, 16_494_263],
+            float_lands: &[],
+        },
+    ),
+    (
+        153,
+        crate::anim::ATTACK3,
+        19,
+        Release {
+            piece: 153,
+            node: 0,
+            pivot: [0, -3_380_000, 32_583_332],
+            at: [-18_684_110, 2_242_623, 26_876_545],
+            float_lands: &[(307, 187, 82, -47)],
+        },
+    ),
     // **The Dreadnought, piece 298** (unit type 348; item 3523, `docs/AI.md`
     // §303): run1169's packet (logger frame 3769 of the Japanese Industrial
     // lobby) holds the piece's fourteen entries — its two pivots at
@@ -2907,6 +2972,89 @@ mod tests {
         let (x, y, z) = release_offset_at(&r, 184, 316);
         assert_eq!((5544 + x, 10152 + y, 34 + z), (5484, 10096, 263));
         assert_eq!(node(156, 4), Some(Node { px: -6, py: -148 }));
+    }
+
+    /// **The original's pivot branch on every cell, for piece 153** (item
+    /// 3632): `tools/recomp/get_position.py … pivot 153 0 <anim> <time> 1`
+    /// on run1294's packet for its four rows. `$RON_RELEASE_TABLE_153` is
+    /// the directory holding `pivot-153-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-25-item-3632/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_153() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_153") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_153 (item 3632's oracle, run1294)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 18),
+            (crate::anim::ATTACK1, 18),
+            (crate::anim::ATTACK2, 16),
+            (crate::anim::ATTACK3, 19),
+        ] {
+            let path = format!("{dir}/pivot-153-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_153");
+            let r = release(153, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} ({}, {}, {}, {})", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The Horde's nine dumped rounds** (item 3632, `docs/AI.md` §331.2):
+    /// every round run1292c and run1292b print from a Horde, beside its
+    /// figure's `GUY` pose on the block before the round's first print, is
+    /// one of piece 153's cells at the facing's degree — some key, some
+    /// turret step — and `sz − z` is the key's height. The turret is the
+    /// simulation's to get right and the windows compare it; this pins the
+    /// geometry. Made to fail with the rows out of `RELEASES`: every round
+    /// would leave from the figure.
+    #[test]
+    fn run1292_s_horde_rounds_leave_through_piece_153_s_pivot() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+        // (x, y, facing, sx, sy, sz − z)
+        let rounds: [(i32, i32, i32, i32, i32, i32); 9] = [
+            (5592, 10920, -174_784_512, 5570, 10826, 235), // run1292c 4459 1/21 at 0/5
+            (5592, 10920, -174_784_512, 5678, 10901, 285), // run1292c 4487
+            (5544, 10536, -121_896_960, 5543, 10440, 233), // run1292b 4526
+            (5544, 10536, -121_896_960, 5549, 10441, 233), // run1292b 4551
+            (5544, 10536, -121_896_960, 5549, 10440, 235), // run1292b 4575
+            (5544, 10536, -121_896_960, 5522, 10443, 233), // run1292b 4602
+            (6888, 9288, 541_917_184, 6951, 9215, 235),    // run1292b 4697
+            (5976, 10536, -449_642_496, 5959, 10443, 235), // run1292b 4730 1/23
+            (7320, 8808, 494_338_048, 7387, 8865, 285),    // run1292b 4746
+        ];
+        for (x, y, facing, sx, sy, dz) in rounds {
+            let d = release_rotation(Angle(facing));
+            let hit = [
+                (ATTACKWALK, 18),
+                (ATTACK1, 18),
+                (ATTACK2, 16),
+                (ATTACK3, 19),
+            ]
+            .into_iter()
+            .any(|(slot, time)| {
+                let r = release(153, slot, time).expect("the Horde's row");
+                (0..256).any(|i| {
+                    release_offset_at(&r, d, fast_degrees(i << 24)) == (sx - x, sy - y, dz)
+                })
+            });
+            assert!(
+                hit,
+                "({x}, {y}) at {facing} (degree {d}): ({sx}, {sy}, {dz})"
+            );
+        }
+        assert_eq!(node(153, 4), Some(Node { px: 0, py: -338 }));
     }
 
     /// The table is the sine: a quarter turn, the thirty and the axes.
