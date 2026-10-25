@@ -12,14 +12,14 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-24, **the fifty-sixth tranche (commander, Opus): 1 of 20 landed from `a30d051d3`**; 3600 and 3609 live on two Opus lanes at medium; the last whole gate is the drain's (`f05256314`).*
-- **Words**: two open — the Maya from Ancient, 4429 of 5,935 (lower map first — East Indies (Maya, Ancient)), 3600; the Koreans at Classical, 8379 of 8,777, 3609.
-  **The headline, the early ages**: the Koreans at Classical first try 8379 of 8777 (3601; Elite Hwarang and Flaming Arrow both fielded,
+*2026-10-24, **the fifty-sixth tranche (commander, Opus): 2 of 20 landed from `a30d051d3`**; 3609 live on two Opus lanes at medium; the last whole gate is the drain's (`f05256314`).*
+- **Words**: one open — the Koreans at Classical, 8379 of 8,777 (lower map first — Great Sahara (Koreans, Classical)), 3609; the Maya whole at 5,935.
+  **The headline, the early ages**: the Maya closed 4429 → 5935 (3600: the Bowmen's arrow off piece 473's regions); the Koreans at Classical first try 8379 of 8777 (3601; Elite Hwarang and Flaming Arrow both fielded,
   counted when the pair closes); six pairs owed (3602–3607); three booked lines never fielded (3587a, 3596, 3585a).
-- **The rubric, lockstep**: ages 8 of 8, types 167 → 179 of 302, **bytes 77.4 %** unmoved; the scan 0 of 39 dead. 20 gates green, no `FABLE:`.
+- **The rubric, lockstep**: ages 8 of 8, types 179 of 302 (180 by 3600's count, its pin not moved), **bytes 77.4 %** unmoved; the scan 0 of 39 dead. 20 gates green, no `FABLE:`.
 - **The gate is the clock**: 30.7 of 35.2 waiting minutes a session; eight stand-ups' lane gates ran the whole timed suite for three row-list
   edits — `release_gate.py --lane` reads the hunks now (Loop 3608, DECISIONS 94 §2); the next drain measures it in `tranche.py`'s gate class.
-- **Lanes: two Opus at medium** (the lane rule read on the gate, DECISIONS 94 §1); two live (3600, 3609); six booked. Next 3610, run 1264.
+- **Lanes: two Opus at medium** (the lane rule read on the gate, DECISIONS 94 §1); one live (3609); six booked. Next 3610, run 1264.
   Pools: AI §329–334, park RJ–RN.
 - **Fable backlog: 6 Loop items** (3382, 3350, 3237, 3188, 3143, 3118); 3498, 3433 and 2003 closed unreached (DECISIONS 54), their text in the record.
 
@@ -30,7 +30,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6748 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w4429 of 5,935 · GreatSaharaGermanAncient w5314 of 5,314 · GreatSaharaKoreanClassical w8379 of 8,777
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6748 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w5935 of 5,935 · GreatSaharaGermanAncient w5314 of 5,314 · GreatSaharaKoreanClassical w8379 of 8,777
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -49,11 +49,6 @@ draw delta); **an early-age pair stood up** (`mongol_pair.rs`'s shape: own `DUMP
 the walk seeded from the start (3506a), the age held by `STARTING_TECHNOLOGY=A ENDING_TECHNOLOGY=A` and read back by `Pair::assert_lobby` — an Ancient
 start is `0`/`1`, read back `1`: age 0 cannot be held (3559a) — booked on the nation `rubric.py --tables 3` prints in braces, `diff::<name>_pair` at its
 first parting, a scoreboard line). **No twin for a pair varying only age and nation** (93 §2). **The refill is the next nation and age off the braces, a lobby that fields two never-seen lines first** (94 §4; the order is in the pass's record).
-
-3600. **The Maya word, frame 4429: ours 10 draws against 12, index 1** (ours `Guy::set_anim+0x97a` < `Unit::do_idle+0x7d`, theirs
-`Guy::set_anim+0x97a` < `Unit::move_step+0x823`; 3599's widening, AI §320): the state parts on run1234b's block 4338, Citizen `0/10`'s
-`hits:damage` ours 8 against theirs 9; 3599's hypothesis is the Bowmen `1/46` throwing from its own square (piece 824 has no bays; its
-`AttachPos` rows are on run1247's packet). Run 1248; amend §320 in place; park RA.
 
 3609. **The Korean Classical word, frame 8379: ours 29 draws against 27, index 10** (ours `Guy::set_anim+0x97a` < `Unit::move_step+0x823`,
 theirs `Unit::fight+0x824`; 3601's widening, AI §322): the state parts on run1250b's block 8375, where the Citizen `0/4` takes the Elite
