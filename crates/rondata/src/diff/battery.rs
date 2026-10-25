@@ -253,6 +253,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatSaharaKoreanTier3`, `(7, 16, 3)`, another difficulty, nor the
     // Ancient-start pair's `(18, 16, 5)`, another map.
     (7, 16, 5),
+    // The Aztec Ancient pair's (item 3604): the Aztecs from an Ancient
+    // start, Difficulty 5, East Indies — not the held-out
+    // `EastIndiesAztecTier1`, `(18, 0, 1)`, another difficulty, nor the
+    // Great Sahara lobbies `(7, 0, 3)` (AllTech) and `(7, 0, 2)`.
+    (18, 0, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

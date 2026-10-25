@@ -38,6 +38,8 @@ mod american_word;
 #[cfg(test)]
 mod aztec_alltech_pair;
 #[cfg(test)]
+mod aztec_ancient_pair;
+#[cfg(test)]
 mod aztec_word;
 #[cfg(test)]
 mod bantu_ancient_pair;

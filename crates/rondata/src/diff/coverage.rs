@@ -3484,6 +3484,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::japanese_ancient_pair::japanese_ancient_stride_window(),
         || super::japanese_ancient_pair::japanese_ancient_gap_window(),
         || super::japanese_ancient_pair::japanese_ancient_closing_window(),
+        || super::aztec_ancient_pair::aztec_ancient_frame_8716_window(),
+        || super::aztec_ancient_pair::aztec_ancient_stride_window(),
         || super::german_ancient_pair::german_ancient_closing_window(),
         || super::korean_classical_pair::korean_classical_frame_8379_window(),
         || super::korean_classical_pair::korean_classical_closing_window(),
