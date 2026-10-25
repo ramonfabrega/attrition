@@ -432,8 +432,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// over run1259, run1260 and run1260b), the line §327 booked. Item 3618:
 /// 187 -> 188 on the tree holding 3617's merge, the Russian Medieval pair
 /// whole at 4541 — `Rusiny Lancer` (224, 288 figure rows), the line §326
-/// booked, read by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 188;
+/// booked, read by `rubric.py --tables 3` on this tree. Item 3621:
+/// 188 -> 189, the Dutch Medieval pair whole at 7095 — the `Brig` (331,
+/// sea; 618 figure rows), the line §329 booked, read by `rubric.py
+/// --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 189;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

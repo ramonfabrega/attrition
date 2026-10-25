@@ -29547,7 +29547,7 @@ this age in 6106 frames. `unit types seen` stays 187 of 302.
 no draw apart is not established. It could be one blow landed only in ours,
 or a heal only theirs made. No dump between 5501 and 5601 prints the unit.
 
-## 329. The Dutch at a held Medieval age, East Indies: first try 7063 of 7095 (item 3619)
+## 329. The Dutch at a held Medieval age, East Indies: first try 7063 of 7095, whole since item 3621 (items 3619, 3621)
 
 **The lobby.** East Indies (`MAP_STYLE 18`), human Nubians (4) against the Dutch (22) at Difficulty 5, seed 12345,
 `STARTING_RESOURCES 7`, the age held by `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`, which both takes' `GAME
@@ -29594,7 +29594,52 @@ So on 7063 the Citizen at its tile takes `do_non_flat_gather`'s stand-at-tile ar
 
 **Hypothesis** for the next item, not built here: `find_nearby_spot`'s answer for a unit whose `collide` stands at
 6 against `1/265`. COLLISION §15 parted on the same draw site at Great Lakes' 14650, a gatherer near its point
-giving the walk up.
+giving the walk up. ~~Answered by item 3621, below: the answer agrees; the arm's third refusal does not.~~
+
+**Item 3621: the spot is the unit's `avoid` point.** The arm refuses three answers, not two, and this crate held only
+the first two. `Unit::do_non_flat_gather@005f0170:277-345`, read off the listing at `005f1191`–`005f1318`, takes the
+no-spot arm (tile −1, `goto_build` 1, `wait` −1, `dist_mod` one less, and the hold doober dropped) when any of these
+holds:
+- `UnitType::find_nearby_spot` finds nothing;
+- the spot is the unit's own decoded position;
+- the spot is **`UnitData::avoid_x/avoid_y`** (`+0x120/+0x124`: `cmpl 0x120(%ebx), %edi` at `5f1298`, `cmpl
+  0x124(%ebx), %esi` at `5f12a0`).
+
+The third test is in this arm alone. The function's two other spot calls, the camp approach and its `0x600` retry,
+compare nothing.
+
+**Ours, on the word's frame.** `RON_DEBUG_UNIT=1/146@7058-7064` prints `avoid` beside `coll` now:
+
+| frame | `1/146` | ours |
+|---|---|---|
+| 7058–7060 | a `MoveTo` (33384, 35064) over the gather, `collide` 4 → 6, `avoid` none | (both sides' orders agree) |
+| 7061 | the gather alone, tile none, `goto_build` 1: `do_move`'s gather park fired (COLLISION §15, elapsed 6) | `avoid` (33384, 35064) |
+| 7062 | tile (173, 183) picked, `wait` 1000000 | `avoid` (33384, 35064) |
+| 7063 | the stand arm's `find_nearby_spot` answers (33384, 35064) | equal to `avoid` |
+
+So the sweep agrees, and the spot it answers is the point the park left in `avoid` two frames before. Theirs refuses
+that spot and re-picks under `+0x54b`. Ours walked to it. `Sim::do_non_flat_gather`'s stand arm (`orders.rs`) now
+refuses a spot equal to `units[u].avoid`.
+
+**Whole: 7095 of 7095**, by the count and the sequence, the game's last frame. The value diff on the word's frame:
+`1/146`'s `orders.len` 2 against 1 and `order:kind` 1 against 7 on 7063, and every row of its cascade on 7064 and
+after, are gone. run1273b re-walked reads **152 keys**, down from 306, and all are standing:
+- block 7057's families: every unit's `form`, who=1's groups' `held` and pools, who=0's `SITE[i].reg` and
+  `aggression[1]`;
+- two births' `form`: `1/307` on 7063 and `1/308` on 7093.
+
+Theirs' seventh farm draw, `Farms::inc_time+0x1de`, is matched too. Which farm spends it is not named. The stride is
+unmoved (306).
+
+**The closing state** (`dutch_medieval_pair_run1273_s_closing_state`): run1273's closing block 7096, walked from
+run1272. It compares **321 units**, with none off, torn, unlinked or extra, and `Closing fields: none`. Its widening is
+run1273b's window, which reaches the closing block.
+
+**The killer.** `tools/mutate.py` took the `avoid` conjunct out on the committed tree.
+`dutch_medieval_pair_first_parting` failed at 7063 against 7095, and every other lobby's `first_parting` (64 tests) is
+green with the conjunct in.
+
+**The rubric**: 188 → 189 of 302. The pair is lockstep now, so the `Brig` (331, sea) enters.
 
 **The value diff.** run1273b walked from run1272: 39 blocks, **306 keys**, the two `gaia:` keys unprinted, 9
 inexact ground corners (`GROUND_INEXACT`).
@@ -29623,9 +29668,15 @@ ledger: **the `Brig` (331, sea), ×618**, the booking's line. The AI built it. T
 `census::RUBRIC_UNIT_TYPES_SEEN` stays 188.
 
 **What is not established.**
-- Why `find_nearby_spot` answers a spot in ours and none in theirs.
-- Which farm spends theirs' `+0x1de` draw.
+- ~~Why `find_nearby_spot` answers a spot in ours and none in theirs.~~ Item 3621: both sides answer the same spot,
+  and theirs refuses it as the unit's `avoid` point (above).
+- ~~Which farm spends theirs' `+0x1de` draw.~~ Ours spends it too since item 3621. The farm itself is not named.
+- **Theirs' `avoid` value is read, not measured.** No dump prints `+0x120`. That theirs holds (33384, 35064) rests on
+  §15's park arm, which both sides fire on 7061, and on the closure (parked 3621a).
 - The Merchant Fleet's 20 hits: no reading has been made.
+
+**Coverage.** Diff-backed: the third refusal, by the word's closure and the mutation. Reading only: that the third
+test is in the stand arm alone, from the listing.
 
 ## 330. Reserved for the next item on the AI track
 
