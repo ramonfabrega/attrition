@@ -272,6 +272,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `EastIndiesIncaTier3`, `(18, 2, 3)`, another difficulty, nor
     // `GreatSaharaIncaTier3`, `(7, 2, 3)`; no battery game fields the Inca.
     (18, 2, 5),
+    // The Dutch Medieval pair's (item 3619): the Dutch at a held Medieval
+    // age, Difficulty 5, East Indies — not the AI words
+    // `EastIndiesDutchTier4`, `(18, 22, 4)`, another difficulty, nor
+    // `GreatSaharaDutchTier3`, `(7, 22, 3)`; the held-out
+    // `GreatLakesDutchTier4` is `(14, 22, 4)`, another map.
+    (18, 22, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

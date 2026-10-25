@@ -3502,6 +3502,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::inca_classical_pair::inca_classical_stride_5357_window(),
         || super::inca_classical_pair::inca_classical_gap_5357_window(),
         || super::inca_classical_pair::inca_classical_closing_window(),
+        || super::dutch_medieval_pair::dutch_medieval_frame_7063_window(),
+        || super::dutch_medieval_pair::dutch_medieval_stride_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
         || super::lakota_medieval_pair::lakota_medieval_rounds_window(),
         || super::lakota_medieval_pair::lakota_medieval_closing_window(),

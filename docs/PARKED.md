@@ -10915,13 +10915,16 @@ compares them. No score names it.
 `orders_y` on 4395 (11160, 28008 against 11145, 28001), `1/70`'s `orders_x` on 4398 (10824 against 10823) and
 `1/125`'s `dest_angle` on 4509 (−1605566464 against 1814626304). None parts a draw through the closing block.
 
-## Parked by the next landing, slot RR — reserved
+## Parked by item 3619, 2026-10-25 — the Dutch at a held Medieval age, East Indies
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3619a) **The Dutch Merchant Fleet's 20 hits** (`docs/AI.md` §329). run1273's stride has four of who=1's Merchant
+Fleets (TypeIndex 318, sea; `1/142` from 4301, `1/247`, `1/156`, `1/271`) at 192 hits in theirs against ours' 172,
+in `hits_left` and `myhits` alike. Nothing has wounded them, so it is the type's maximum as the Dutch field it.
+None spends a draw before the word 7063. No score names it.
+
+(3619b) **A garrisoned Scholar's `g.angle[0]`** (§329). Seven of who=1's Scholars (52; `1/193` from 5701, `inside_up`
+2008) print `g.angle[0]` 0 in theirs against ours' 1431655765 (`0x55555555`), from the stride through run1273b's
+block 7057. No draw and no score names it.
 
 ## Parked by the next landing, slot RS — reserved
 

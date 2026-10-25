@@ -27812,3 +27812,70 @@ SHA-256 `0b899fb4899c02649aef63d5371fba5168fd4ba9106631402b7e1b8c5ddeebff`.
 **What it holds**: `russian_medieval_pair_run1268b_s_word_frame_is_widened_whole` (256 blocks, 1411 keys). On the
 word's block 4443 six of who=1's Elite Javelineers round the empty city `0/2000` leave each side, and not the
 same six.
+
+## run1272 — the Dutch at a held Medieval age, East Indies: the `DUMP_ALL` start (2026-10-25, item 3619, `att-3619`)
+
+`docs/AI.md` §329. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1272 --map 18 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 22 --profile STARTING_TECHNOLOGY=2 --profile
+ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 08:11:52, exited 08:12:20 (27.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 22, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Filed with `filerun.py run1272
+  eastindies-dutch-medieval-start --map 18`. `df -g ~` read 113 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1272-eastindies-dutch-medieval-start.txt`, 153,899,787 bytes,
+SHA-256 `ac3a45a2cada4fcf600f4d743ac65a92054b0d8facf7ee4c44100b262c1af5c7`.
+
+Archive `rontrace-run1272.log`, 10,034,016 bytes,
+SHA-256 `4d1944664299e64ca9c59d303a6d3fa5792659bba3a906082a2bed4512ac1ea5`.
+
+**What it holds**: the start of `dutch_medieval_pair::DUTCH_MEDIEVAL`, and the walk's initial state.
+
+## run1273 — the Dutch at a held Medieval age, East Indies: the draw stream to the game's end (2026-10-25, item 3619, `att-3619`)
+
+`docs/AI.md` §329. run1260's line with `--ai-tribe 22` and run1272's lobby: `--map 18 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 22 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1272. Launched 08:11:52, exited 08:12:40 (48.3 s launch to exit). `success`. **The game
+  ended itself on 7095** (closing block 7096, `ended_early`). `GAME INFO` reads back as run1272's. `rngcmp.py`
+  against run1272: 37 frames identical. Filed with `filerun.py run1273 eastindies-dutch-medieval-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1273-eastindies-dutch-medieval-trace.txt`, 50,268,579 bytes,
+SHA-256 `f684522d5e1b0306e47c5e8f350aa4416ef26eb12867878e9ca730f88aed8d56`.
+
+Archive `rontrace-run1273.log`, 383,563,712 bytes,
+SHA-256 `cfe6ffb7d6d1b5091406dba72997997858fadb6ef790b2259dbe5484ec7060a5`.
+
+**What it holds**: the pair's first try. `dutch_medieval_pair_first_parting` walks it from run1272: **frame 7063 of
+7095** by the count and the sequence. Theirs spends 14 game-stream draws against ours' 12, and they part at index 0,
+theirs `Unit::do_non_flat_gather+0x54b < Unit::do_gather+0xea0` against ours `Guy::set_anim+0x97a <
+Unit::move_step+0x823`. The draw is the Citizen `1/146`'s. Its stride, walked over 101..7001, parts on the standing
+families, four Merchant Fleets' hits (172 against 192) and seven garrisoned Scholars' `g.angle[0]`, and on no
+position or order.
+
+## run1273b — the Dutch at a held Medieval age, East Indies: the word 7063's window, blocks 7057..7096 (2026-10-25, item 3619, `att-3619`)
+
+`docs/AI.md` §329. **What the disk could not answer**: every record on the word's frame. run1273's stride prints
+units on 7001 and the closing block 7096 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no
+other dump holds this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1273b --map 18
+--end-frame 7095 --allow-early-end --timeout 3600 --log-window 7057 7096 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 22 --cover cover=0 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 08:17:15, exited 08:18:07 (51.8 s launch to exit). `success`: 7096 frames, closing frame
+  7096. `rngcmp.py` against run1273: 7096 of 7096 identical. Filed with `filerun.py run1273b
+  eastindies-dutch-medieval-window-7057-7096 --map 18`. `df -g ~` read 110 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1273b-eastindies-dutch-medieval-window-7057-7096.txt`, 115,061,522 bytes,
+SHA-256 `3326e859a0146f305328bf3a64ce83085de77a8285183affedc214fc02d24bdf`.
+
+Archive `rontrace-run1273b.log`, 383,614,624 bytes,
+SHA-256 `d7e44a86a36884e6879d6d5479c91493a4bbdab66fc681317f0cb2e87becc195`.
+
+**What it holds**: `dutch_medieval_pair_run1273b_s_word_frame_is_widened_whole` (39 blocks, 306 keys). On the word's
+block 7064 the Citizen `1/146`'s gather parts: theirs drops its tile on 7063 and takes (172, 182), and ours walks
+to a spot at (33384, 35064).

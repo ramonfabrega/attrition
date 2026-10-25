@@ -10654,3 +10654,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1258  run1202's line with --ai-tribe 13 and run1257's lobby   (the draw stream; ended itself on 4541)
 #   run1258b --map 7 --end-frame 3399 --timeout 3600 --log-window 3143 3399 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0, run1257's lobby   (the word 3149's window)
 # Checks: `rngcmp.py` run1257 vs run1258 -> 37 identical; run1258 vs run1258b -> 3400 identical.
+# ==== item 3619: the Dutch at a held Medieval age, East Indies (`docs/AI.md` §329; `docs/RUNS.md` run1272, run1273, run1273b) ====
+#   run1272  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 22 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1273  run1260's line with --ai-tribe 22 and run1272's lobby   (the draw stream; ended itself on 7095)
+#   run1273b --map 18 --end-frame 7095 --allow-early-end --timeout 3600 --log-window 7057 7096 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 22 --cover cover=0, run1272's lobby   (the word 7063's window)
+# Checks: `rngcmp.py` run1272 vs run1273 -> 37 identical; run1273 vs run1273b -> 7096 identical.
