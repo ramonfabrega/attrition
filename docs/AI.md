@@ -29082,7 +29082,7 @@ reads unit types seen **184 of 302**. `Xopilli Atl-Atls` (87) stays unfielded.
 **What is not established.** Piece 35 at any heading, since no Atl-Atls round is dumped, and piece 36 at a heading
 no dumped round took: those are the sweep's fit and no dump's. The writer of `1/175`'s arrival `dest_angle` (3613a).
 
-## 326. The Russians at a held Medieval age, Great Sahara: first try 3149 of 4541, 3349 on 3614's tree (item 3605)
+## 326. The Russians at a held Medieval age, Great Sahara: first try 3149 of 4541, 3349 on 3614's tree, 4442 on 3615's (items 3605, 3615)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §313's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
 Nubians (4) against the **Russians (13)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY
@@ -29157,7 +29157,66 @@ sees 17 types. One is new to the lockstep set: **`Rusiny Lancer` (224), the book
 on 3614's tree (184 at this item's base).
 
 **What is not established.** Theirs' birth frame for the wagon: no dump on disk prints 3102..3142. 3614's rule
-numbers it as theirs does, and the draw stream agrees through 3348. Why `1/27` takes `0/2005` in ours.
+numbers it as theirs does, and the draw stream agrees through 3348. ~~Why `1/27` takes `0/2005` in ours.~~ §326.1.
+
+### 326.1 The Market is a training building: `compare_target`'s class arm (item 3615)
+
+**Both act; the pick differs.** On block 3348 both sides draw `1/27`'s `Unit::fight+0x824` (the AI guard's charge
+roll), odd, so both drop the attack and run the guard's own `find_melee_target`. `0/2005` is a Library (TI 435,
+damage 19), `0/2006` a Market (TI 436). Ours scored them 9 and 9 (`dist 0 + 8·0x30 = 384`, value 27; `756`, value
+36) and kept the first scanned; theirs takes the Market. `targeted` (`ObjectData +0x3d`, not dumped for a building)
+was the first suspect.
+
+**The packet** (run1268, `RON_STATE_FRAME=3347`). `targeted` is 0 for both buildings: killed. `step4.py` on
+`1/27`'s whole `Unit::process` scores the Library 27 at 384 → 9 and **the Market 71 at 756 → 17**. Entered alone
+(its first argument the Market's number, 2006; the search passes `ai` 0), `compare_target` takes the Market's `cost × 4` = 320 at `64e76d`
+to **640 at `64eac1`**, then `× 11` → 71. The doubling is the computer searcher's building-class arm
+(`0064e79b`–`0064e9e2`, `LAB_0064e9e2`): the Market is a training building (`BuildTypeData::is_training_building`).
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3347 (packet) | `compare_target(1/27, 0/2006)` | value | 36 | 71 |
+| 3347 (packet) | `compare_target(1/27, 0/2005)` | value | 27 | 27 |
+| 3347 (packet) | `compare_target(1/27, 0/2000)` (an empty city) | value | 2785 | 2787 |
+| 3348 | `1/27` | `order:target` | `0/2005` | `0/2006` |
+
+**Built** (`Sim::building_class_weight`, `fight.rs`): for a finished Build-proper target, `× 10` under `ai`; then,
+not raiding and the searcher's leader not human, the first class that answers — a city `× 5` (`return 100` under
+`ai`), defensive and not ANTI_AIR `× 4` (`× 40`), a military trainer `× 3` (a stocked Missile Silo `× 15`; a raiding
+computer siege ship `× 5000`), a training building `× 2`; the wonder's `/ 25` (`64e783`) ahead of it. **And the
+armed weight's empty-city gate** (`64f171`, `docs/COMBAT.md` §12.3's old SEAM): a city with `num_inside(0) == 0`
+skips the computer's `× 5` and `+1,000,000`. The two are one change. The city rung alone moved 25 floors, because
+the ungated armed weight already counted a city `× 5` (the packet's empty city is 13935 with the arm alone, 2787
+with both); the gate alone moved Great Lakes' second game. Together every other floor holds.
+
+**The word moves 3349 → 4442** of 4541, by the count and the sequence: ours 28 game-stream draws against 25, parting
+at index 12, ours `Ammo::init+0xcd9` against theirs `Guy::set_anim+0x97a < Guy::inc_time+0x1ed`. run1258b falls
+337 → **55 keys**. Past who=1's group pools (standing from 3143), its first rows are block 3351's. Theirs frees the
+Elite Javelineers `1/41` (damage 35, `damage_frac` 8 on 3350; a Citizen takes its slot on 3384) and wounds `1/42`
+19 → 20, `damage_frac` 0. Ours keeps `1/41` and leaves `1/42` at 19, `damage_frac` 8. No draw parts there.
+
+**The word's window** (run1268b, blocks 4286..4542, the closing block, at run1258b's detail: 256 blocks, **1411
+keys**; 4542 of 4542 frames identical to run1258). Past the standing families, two order points part before the
+word (`1/78`'s `orders_x` 11160 against 11145 on 4395; `1/70`'s 10824 against 10823 on 4398). **The value diff
+on the word's block 4443:**
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4443 | Elite Javelineers (TI 84) `1/200`, `1/205`, `1/209`, `1/212`, `1/215`, `1/218` | present | yes | gone |
+| 4443 | Elite Javelineers (TI 84) `1/202`, `1/207`, `1/211`, `1/214`, `1/217`, `1/220` | present | gone | yes |
+| 4446 | the empty city `0/2000` | `build:damage` | 1091 | 1087 |
+
+All twelve are on 4442 at full hits (110), round the empty city `0/2000` on an `ATTACKORDER` at it. Each side
+removes six, and not the same six. On 4442 theirs' dump prints `near` set (`0/2000` or `0/2005`) for each of the
+six theirs removes, and `near -1/-1` for each of the six it keeps. Theirs' `1/41` on 3351 printed `near 0/2000` too. **The next item's hypothesis**, unread: one rule
+removes whole units at the city, and ours picks them by another order. The removal on 3351 is the same shape, and
+there ours removes none. Test `russian_medieval_pair_s_guard_search_values_the_market_as_a_trainer` pins (27, 71)
+and the city's 2787 on block 3347. The training rung's `× 2` and the empty-city gate are each mutated away, and
+the walk catches each one.
+
+**What is not established.** The `ai` arms (`× 10`, the city's `100`, `× 40`) and the silo's `× 15` rest on the
+reading alone. The packet's search passes `ai` 0, so they are owed a blind second reading (`docs/COMBAT.md`). What
+removes the Elite Javelineers at the city, and how each side chooses them.
 
 ## 327. The Inca at a held Classical age, East Indies: first try 4501 of 6073 (item 3606)
 

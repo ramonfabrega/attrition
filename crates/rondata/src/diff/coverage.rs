@@ -3489,6 +3489,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::aztec_ancient_pair::aztec_ancient_gap_window(),
         || super::aztec_ancient_pair::aztec_ancient_closing_window(),
         || super::russian_medieval_pair::russian_medieval_run1258b_window(),
+        || super::russian_medieval_pair::russian_medieval_run1268b_window(),
         || super::russian_medieval_pair::russian_medieval_stride_window(),
         || super::german_ancient_pair::german_ancient_closing_window(),
         || super::korean_classical_pair::korean_classical_frame_8379_window(),

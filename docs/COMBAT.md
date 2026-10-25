@@ -1632,11 +1632,12 @@ else `×5`; siege vs armed `+100,000`. *(Item 1131, the listing
 (`testb $0x4, 0xe3a390(who · 0x6eec)`, `jne` past the weight); "armed" is the
 target type's `attack`, zeroed for an ANTI_AIR target of an attacker not of
 the air domain. The arm between (`64f171`: a target whose object flags carry
-`0x20` takes the weight only with `num_inside` non-zero) is a SEAM: read as
-"a city", it moved Great Lakes' second game from its close at 5930 to 5158,
-and what the bit is was not read. This crate gave the ×5 to every attacker
-until then, and run404's human `0/7` re-pointed its strafe at the
-Radar on tick 818 for it.)* Unit targets: combat-role `×20`;
+`0x20` takes the weight only with `num_inside` non-zero) is built by item
+3615 (`docs/AI.md` §326.1) with the class arm's city `×5`: an empty city
+skips the `×5` and the `+1,000,000`. Alone, the gate moved Great Lakes'
+second game (5930 → 5158); together, every floor holds. This crate gave the
+×5 to every attacker until then, and run404's human `0/7` re-pointed its
+strafe at the Radar on tick 818 for it.)* Unit targets: combat-role `×20`;
 spellcasters casting at me `+10,000,000`, spies `+6,000,000`; a detected
 hidden unit `/4`; raid weights (citizens and caravans `+9,000,000`, else
 `/10`; the stealth-ship weights); not raiding: combat-role `+1,000,000`, a
@@ -5105,10 +5106,9 @@ on every commit — the hoplites' three `Target` rows are gone from 635 and
 
 **Reading-only, and owed a blind second reading**:
 
-- **`ai`'s other arms are still unmodelled.** §12.3's building-class
-  multipliers (`×10`, a city `100`, a defensive building `×40`, a silo
-  `×15`) are all gated on a building target, and no capture on disk has a
-  building in a target search.
+- **`ai`'s other arms** — §12.3's building-class `×10`, a city `100`,
+  `×40`, a silo `×15` — are built by item 3615 (`docs/AI.md` §326.1),
+  and are still reading-only: run1268's packet search passes `ai` 0.
 - **The `ai` gate's third term** — `game.semaphore[1] & 2` — has no model
   here. It can only *clear* the flag, so this errs toward the AI arm on a
   setting no capture uses, and `get_diff`'s own multiplayer branches

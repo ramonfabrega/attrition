@@ -10858,13 +10858,13 @@ holds one row past its standing families: `1/23`'s `dest_angle` on block 3277, o
 draw stream, which agrees to the game's end. Names no score: the pair is closed, and a row that parts no draw moves
 no word. The writer of `dest_angle` on each frame is unread.
 
-## Parked by the next landing, slot RN — reserved
+## Parked by item 3615, 2026-10-25 — the Russian Medieval word: the Market is a training building, 3349 → 4442
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3615a) **The `ai` arms of `compare_target`'s building class rest on a reading** (`docs/AI.md` §326.1,
+`docs/COMBAT.md`). `× 10`, a city's `return 100` and a defensive building's `× 40` apply only when the search
+passes `ai`, and the silo's `× 15` only to a stocked Missile Silo. run1268's search passes `ai` 0, and no capture
+on disk puts a stocked silo in a computer's search. The rows name no score, so they wait on a blind second reading
+and on a capture whose word reaches them.
 
 ## Parked by item 3616, 2026-10-25 — the Dromon's bays
 
