@@ -10249,6 +10249,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         Some("russian_medieval_pair_run1258b_s_word_frame_is_widened_whole"),
         3605,
         Some(crate::diff::russian_medieval_pair::WIDENING_RUSSIAN_MEDIEVAL_RUN1258B),
+    ),
     // **The Inca at a held Classical age** (item 3606): East Indies —
     // first try 4501 of 6073; widened on run1260b over 4495..4751 (the
     // word's block 4502).
@@ -12105,6 +12106,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_541,
         endpoint: None,
         window: Some("russian_medieval_run1258b_window"),
+    },
     // The Inca at a held Classical age (`STARTING_TECHNOLOGY` 1,
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3606): first try 4501 of a
     // game that ends itself on 6073, widened on run1260b.
