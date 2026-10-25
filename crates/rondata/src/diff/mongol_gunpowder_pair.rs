@@ -43,8 +43,15 @@ pub(crate) const MONGOL_GUNPOWDER: Pair = Pair {
     // 767 + 1000). On 4499 ours spends 11 draws against 10, parting at
     // index 2 — ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
-    count: 4499,
-    sequence: 4499,
+    // Item 3632: 4499 → 4632. The Horde's piece 153 looses through its
+    // saddle pivot (`sim::pivot`, run1294's packet), so `1/21`'s round at
+    // the Citizen `0/5` leaves from (5570, 10826) on 4458, flies 17 frames
+    // and strikes on 4474 as theirs does (`hits_left` 24 and both leaders'
+    // `treaties` 3 on block 4475, where ours read 50 and 1). On 4632 ours
+    // spends 54 draws against 52, parting at index 40 — ours
+    // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::fight+0x9b0`.
+    count: 4632,
+    sequence: 4632,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -385,7 +392,16 @@ fn mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole() {
     // draws against 10, index 2: ours `Guy::set_anim+0x97a <
     // Unit::move_step+0x823`, theirs `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d`.
-    pin_eq!(w.firsts.len(), 5030, "run1292b baseline");
+    // Item 3632: 5030 → 1772 (the Horde's round strikes `0/5` on 4474), and
+    // the window is **the word 4632's widening**: nothing but the standing
+    // families parts before block 4633, the word's own (frame 4632). There
+    // who=1's group 80 — the Bombard `1/84` (TypeIndex 267) and the Hussars
+    // `1/93`, `1/94`, `1/95` (211) — part in their orders: `1/84`'s
+    // `orders.len` 2 against theirs' 3 (a second `GROUPATTACKTOORDER`),
+    // `1/93`'s `order:kind` 2 against 10, `1/94`'s and `1/95`'s 21 against
+    // 2. **The word 4632**, ours 54 draws against 52, index 40: ours
+    // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Unit::fight+0x9b0`.
+    pin_eq!(w.firsts.len(), 1772, "run1292b baseline");
 }
 
 /// **The long's stride between the windows** (item 3630): run1279's
@@ -486,5 +502,8 @@ fn mongol_gunpowder_pair_run1292c_walks_back_from_4499() {
     // city's `raid_stamp` 4474) with a second order (kind 4 over ours' 7).
     // From 4476 `0/5`'s position parts, and from 4479 who=1's move
     // destinations; no draw parts until 4499.
-    pin_eq!(w.firsts.len(), 404, "run1292c baseline");
+    // Item 3632: 404 → 136, the standing families alone: the Horde `1/21`'s
+    // round leaves through piece 153's pivot and strikes `0/5` on 4474, so
+    // block 4475's treaties, wound and flight agree.
+    pin_eq!(w.firsts.len(), 136, "run1292c baseline");
 }

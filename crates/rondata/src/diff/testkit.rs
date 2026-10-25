@@ -10333,12 +10333,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run1279b over 1968..2224 (the word's block 1974). Item 3630 moved it
     // to 4499 (a supplier's pool takes the supply upgrade's multiple) and
     // widened it on run1292b over 4493..4749 (the word's block 4500); the
-    // state first parts on run1292c's block 4475.
+    // state first parts on run1292c's block 4475. Item 3632 moved it to
+    // 4632 (the Horde looses through its saddle pivot), inside the same
+    // window: the state first parts on the word's own block 4633.
     (
         "MONGOL_GUNPOWDER_PAIR_WORD",
         crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER_PAIR_WORD,
         Some("mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole"),
-        3630,
+        3632,
         Some(crate::diff::mongol_gunpowder_pair::WIDENING_MONGOL_GUNPOWDER_FRAME_4499),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
@@ -12246,7 +12248,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Mongols at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3623): first try 1973 of a
     // game that ends itself on 5399, widened on run1279b; 4499 since item
-    // 3630, widened on run1292b.
+    // 3630, widened on run1292b; 4632 since item 3632, the same window.
     AiWord {
         line: "Late ages",
         map: "EastIndiesMongolGunpowder",
