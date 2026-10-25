@@ -106,7 +106,7 @@ fn roman_medieval_pair_is_no_other_lobby() {
     let p = &ROMAN_MEDIEVAL;
     let triple = (p.map_style, p.ai_tribe, p.difficulty);
     assert!(battery::SCORED_LOBBIES.contains(&triple));
-    assert!(
+    pin!(
         !battery::BATTERY
             .iter()
             .any(|l| (l.map_style, l.ai_tribe, l.difficulty) == triple)
@@ -226,7 +226,7 @@ fn roman_medieval_pair_run1275b_s_word_frame_is_widened_whole() {
     // standing families on 1870 and value rows past 1918 (the pools and
     // groups from 1919, `SITE[i]` on 1976, `1/64`'s `form` on 2030), none
     // of them the Citizen's.
-    assert!(
+    pin!(
         w.firsts.keys().all(|(who, o, _)| (*who, *o) != (1, 17)),
         "the Citizen 1/17 parts nowhere in the window"
     );
@@ -289,7 +289,7 @@ fn roman_medieval_pair_run1277_s_word_frame_is_widened_whole() {
     // on block 3615, at `1/49`'s move: `order:move.x`/`.y` (37944, 24504)
     // against (38328, 23928), `off_x`/`off_y` (312, 696) against (696,
     // 120), `path:length` 46 against 47.
-    assert!(
+    pin!(
         w.firsts.values().all(|(f, _)| !(3604..=3614).contains(f)),
         "nothing parts from block 3604 to 3614"
     );
