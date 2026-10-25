@@ -10866,13 +10866,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RO — reserved
+## Parked by item 3616, 2026-10-25 — the Dromon's bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3616a) **A moving shooter's lead, killed** (`docs/AI.md` §327.1). The Dromon's offsets are the Bark's rows with
+`fwd` 119 further forward on all three frames, and the Bark's rows came from stationary Barks. So a reading stood
+that a moving shooter leads by two frames of its 60-unit speed. run1217's packet kills it: piece 274's own
+`AttachPos` rows carry the 119 in the model's `y`, and the rows built from them reproduce every dumped round of the
+moving Dromon. Unbuilt. No score names it.
 
 ## Parked by the next landing, slot RP — reserved
 
