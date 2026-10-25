@@ -13,7 +13,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const MAYA_ANCIENT: Pair = Pair {
     name: "EastIndiesMayaAncient",
@@ -46,8 +46,14 @@ pub(crate) const MAYA_ANCIENT: Pair = Pair {
     // draws against 12, index 1 — ours `Guy::set_anim+0x97a <
     // Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a <
     // Unit::move_step+0x823` (section 320.2).
-    count: 4429,
-    sequence: 4429,
+    //
+    // Item 3600: 4429 → whole, 5935 of 5935. The Bowmen's arrows leave
+    // from piece 824's bays (`sim::launch`): `1/46`'s at the Citizen
+    // `0/10`, loosed on 4318, from (6481, 9189) in 20 frames where ours
+    // loosed from the unit's square (6552, 9240) in 21, so `0/10`'s third
+    // point lands on 4337 as theirs' does (section 320.3).
+    count: 5935,
+    sequence: 5935,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -190,5 +196,113 @@ fn maya_ancient_pair_run1234b_s_word_frame_is_widened_whole() {
     // (5963, 8757) in 6 and 7 frames, as run1247's `AMMO` records print,
     // where ours threw from the units' squares in 7 and 8; block 4311
     // agrees whole. The word is 4429 (block 4430).
-    pin_eq!(w.firsts.len(), 167, "run1234b baseline");
+    //
+    // Item 3600, piece 824's bays: 167 → 82 keys. `1/46`'s arrow at
+    // `0/10`, loosed on 4318, leaves from (6481, 9189) in 20 frames where
+    // ours loosed from (6552, 9240) in 21, so `0/10`'s `damage` is 9 on
+    // block 4338 on both sides (ours 8 before); the Citizen `0/11`'s
+    // wound on 4386 and the Bowmen `1/44`..`1/46`'s angles from 4396
+    // agree with it. What stands is the standing families (4177, 4179,
+    // groups 77 and 78 from 4202 and 4238, `1/79`'s `form` on 4302).
+    pin_eq!(w.firsts.len(), 82, "run1234b baseline");
+}
+
+/// **The closing state** (item 3600): run1234's closing block 5936, the
+/// whole map's units, walked from run1233's start.
+#[test]
+fn maya_ancient_pair_run1234_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &MAYA_ANCIENT;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Maya Ancient pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 5936, "the closing block");
+    pin_eq!(e.compared, 180, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run1248: the closing window, blocks 5680..5936 at the long's detail
+/// with `LEADERS=9` (item 3600) — run1234 prints units every hundredth
+/// block and no leader, building or city record past the start, so no
+/// dump held the last blocks.
+pub(crate) const RUN1248: &str = "gamelog-run1248-eastindies-maya-ancient-window-5680-5936.txt";
+
+/// The closing window: block 5680 through the closing block 5936.
+pub(crate) const WINDOW_MAYA_ANCIENT_CLOSING: (i64, i64) = (5680, 5936);
+
+/// **The closing window**: run1248 walked from run1233's start with the
+/// recorder on (item 3600).
+pub(crate) fn maya_ancient_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MAYA_ANCIENT.start],
+        true,
+        MAYA_ANCIENT.long,
+        "run1248",
+        &[(RUN1248, WINDOW_MAYA_ANCIENT_CLOSING.0)],
+        WINDOW_MAYA_ANCIENT_CLOSING,
+        1,
+        &[5936],
+        true,
+    )
+}
+
+#[test]
+fn maya_ancient_pair_run1248_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = maya_ancient_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 86, "run1248 baseline");
 }

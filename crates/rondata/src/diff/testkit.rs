@@ -7297,7 +7297,15 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ),
     // Item 3599: the Maya Ancient pair's walk to the word 4429 — the
     // Balamob Slingers' stones leave from piece 38's bays — reads 1.
-    ("maya_ancient_pair_first_parting", 1),
+    // Item 3600: 51, the walk whole to 5935 — the Bowmen's arrows leave
+    // from piece 824's bays — and its closing state, a block on, 52.
+    ("maya_ancient_pair_first_parting", 51),
+    ("maya_ancient_pair_run1234_s_closing_state", 52),
+    // And run1248's closing window, 5680..5936 (item 3600): 52.
+    (
+        "maya_ancient_pair_run1248_s_closing_frame_is_widened_whole",
+        52,
+    ),
     // Item 3585: run1230b's window over 5956..6212, the Egyptian
     // Classical pair's word 5961, reads 3 inexact corners.
     (
@@ -10148,13 +10156,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Maya from an Ancient start** (item 3587): East Indies — 4182
     // first try, widened on run1234b over 4177..4433 (block 4183); item
     // 3597's 4324 sits in the same window (block 4325), its state apart
-    // from block 4311; item 3599's 4429 too (block 4430).
+    // from block 4311; item 3599's 4429 too (block 4430). Item 3600:
+    // whole, 5935 of 5935, the closing state compared; widened on run1248
+    // over 5680..5936 (the closing block).
     (
         "MAYA_ANCIENT_PAIR_WORD",
         crate::diff::maya_ancient_pair::MAYA_ANCIENT_PAIR_WORD,
-        Some("maya_ancient_pair_run1234b_s_word_frame_is_widened_whole"),
-        3599,
-        Some(crate::diff::maya_ancient_pair::WIDENING_MAYA_ANCIENT_FRAME_4182),
+        Some("maya_ancient_pair_run1248_s_closing_frame_is_widened_whole"),
+        3600,
+        Some(crate::diff::maya_ancient_pair::WINDOW_MAYA_ANCIENT_CLOSING),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -11910,15 +11920,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Maya from an Ancient start (`STARTING_TECHNOLOGY` 0, read back
     // `ENDING_TECHNOLOGY` 1), East Indies (item 3587): first try 4182, of
-    // a game that ends itself on 5935; widened on run1234b.
+    // a game that ends itself on 5935; widened on run1234b. Item 3600:
+    // whole, the closing state compared, widened on run1248.
     AiWord {
         line: "Late ages",
         map: "EastIndiesMayaAncient",
         named: "East Indies (Maya, Ancient)",
         word: crate::diff::maya_ancient_pair::MAYA_ANCIENT_PAIR_WORD,
         length: 5_935,
-        endpoint: None,
-        window: Some("maya_ancient_frame_4182_window"),
+        endpoint: Some("maya_ancient_pair_run1234_s_closing_state"),
+        window: Some("maya_ancient_closing_window"),
     },
     // The Germans from an Ancient start (`STARTING_TECHNOLOGY` 0,
     // `ENDING_TECHNOLOGY` 1), Great Sahara (item 3596): whole on its first
