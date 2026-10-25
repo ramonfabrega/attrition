@@ -255,3 +255,55 @@ fn mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole() {
     // on 1976 and the make list from 1983.
     pin_eq!(w.firsts.len(), 1038, "run1279b baseline");
 }
+
+/// run1292: the gap before the word's window, blocks 1895..1975 at
+/// run1279b's detail, `cover=1` (item 3630) — the stride's block 1901 and
+/// the gap 1902..1967 that no earlier dump printed.
+pub(crate) const RUN1292: &str = "gamelog-run1292-eastindies-mongol-gunpowder-window-1895-1975.txt";
+
+/// The window: block 1895 through 1975; the cast's own block is 1947.
+pub(crate) const WIDENING_MONGOL_GUNPOWDER_GAP: (i64, i64) = (1895, 1975);
+
+/// **The gap's window**: run1292 walked from run1278's start with the
+/// recorder on (item 3630).
+pub(crate) fn mongol_gunpowder_gap_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[MONGOL_GUNPOWDER.start],
+        true,
+        MONGOL_GUNPOWDER.long,
+        "run1292",
+        &[(RUN1292, WIDENING_MONGOL_GUNPOWDER_GAP.0)],
+        WIDENING_MONGOL_GUNPOWDER_GAP,
+        1,
+        &[1947],
+        true,
+    )
+}
+
+#[test]
+fn mongol_gunpowder_pair_run1292_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = mongol_gunpowder_gap_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 81, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1292 baseline");
+}
