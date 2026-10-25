@@ -29878,7 +29878,10 @@ keys) and the multiple on every unit (the test's "a General is no
 supplier").
 
 **What it moved.** The word **1973 → 4499** by the count and the
-sequence; every other lobby's `first_parting` is unmoved (66 of 66).
+sequence; every other lobby's `first_parting` is unmoved (66 of 66). The
+successor pair's closing window (`run844_s_closing_frame_is_widened_whole`)
+goes 202 → 200: The Citizen `1/191` (TypeIndex 356, a supplier) casts
+Create Decoy on 5009 as theirs does.
 run1279b's window 1038 → 90 keys (the Monarch's rows gone; who=1's
 `leader:attack` 210 against 218 on 1976 stays), run1292's 85 → 80, every
 row standing. The walk now reads 2 inexact ground corners
