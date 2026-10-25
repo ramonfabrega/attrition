@@ -10308,13 +10308,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The Romans at a held Medieval age** (item 3620): East Indies —
     // first try 1875 of 5979 by the count and the sequence, widened on
-    // run1275b over 1870..2126 (the word's block 1876).
+    // run1275b over 1870..2126 (the word's block 1876). Item 3622: 1875 ->
+    // 3607, widened on run1277 over 3602..3858 (the word's block 3608).
     (
         "ROMAN_MEDIEVAL_PAIR_WORD",
         crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL_PAIR_WORD,
-        Some("roman_medieval_pair_run1275b_s_word_frame_is_widened_whole"),
-        3620,
-        Some(crate::diff::roman_medieval_pair::WIDENING_ROMAN_MEDIEVAL_FRAME_1875),
+        Some("roman_medieval_pair_run1277_s_word_frame_is_widened_whole"),
+        3622,
+        Some(crate::diff::roman_medieval_pair::WIDENING_ROMAN_MEDIEVAL_FRAME_3607),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12207,7 +12208,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Romans at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), East Indies (item 3620): first try 1875 of a
-    // game that ends itself on 5979, widened on run1275b.
+    // game that ends itself on 5979, widened on run1275b; 3607 since item
+    // 3622, widened on run1277.
     AiWord {
         line: "Late ages",
         map: "EastIndiesRomanMedieval",
@@ -12215,7 +12217,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::roman_medieval_pair::ROMAN_MEDIEVAL_PAIR_WORD,
         length: 5_979,
         endpoint: None,
-        window: Some("roman_medieval_frame_1875_window"),
+        window: Some("roman_medieval_frame_3607_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

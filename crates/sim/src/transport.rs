@@ -2327,7 +2327,11 @@ mod tests {
         // No transport level: the land ring finds no land, and neither
         // the approach nor the build goes in, nor the builder's mark.
         f.sim.swarm_around(c, site, Body::Build(site), true);
-        assert!(f.sim.units[c].orders.is_empty(), "{:?}", f.sim.units[c].orders);
+        assert!(
+            f.sim.units[c].orders.is_empty(),
+            "{:?}",
+            f.sim.units[c].orders
+        );
         assert!(!f.sim.units[c].was_builder, "no order, no mark");
 
         // A finished dock grants the civilian level; the ring is now the
