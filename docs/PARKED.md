@@ -11073,13 +11073,15 @@ leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` st
   unread (`docs/AI.md` §331.3). No walk moved on it and it names no open word's frame; the killer is a member of
   a walking attack-move group whose opportunity find theirs dumps as a `GROUPATTACKTOORDER` bump.
 
-## Parked by the next landing, slot SH — reserved
+## Parked by item 3635, 2026-10-25 — the Roman Medieval pair whole
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3635a. The closing compare does not see a fire-on-the-move target.**
+  With `set_all_pivots`' old health test put back (`tools/mutate.py`), the
+  word falls to 5971 and run1295 to 104 keys, but
+  `roman_medieval_pair_run1275_s_closing_state` stays green at 247 units
+  and no closing field: `cavarch_o`, `cavarch_who` and the guys' `ox`
+  parted for eight frames and left nothing a closing block compares. The
+  word and the window are what hold the mechanism. It names no score.
 
 ## Parked by the next landing, slot SI — reserved
 

@@ -1804,7 +1804,10 @@ impl Sim {
         }
         self.units[i].guys[g].turret.node_flags = 0;
         self.units[i].guys[g].turret.des_flags = 0;
-        let Some(target) = target.filter(|&t| self.active(t)) else {
+        // `005d8c69`: the gone test is the target slot's `flags & 1`, never
+        // its hit points — a city at its ceiling is still borne on
+        // ([`Sim::struck`]; item 3635).
+        let Some(target) = target.filter(|&t| self.struck(t)) else {
             return true;
         };
         let (from, to) = (self.units[i].pos, self.pos_of(target));
