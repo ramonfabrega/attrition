@@ -10739,19 +10739,20 @@ run1241b's block 6718. No score names any of it: the Egyptian pair is whole and 
 
 ## Parked by item 3599, 2026-10-24 — the Balamob Slingers' bays
 
-- **3599a. Piece 38's `CHAR_ATTACK3` row is diffed on no dumped round.** run1247's two `AMMO` records are
+- **3599a. ~~Piece 38's `CHAR_ATTACK3` row is diffed on no dumped round.~~** (Item 3600, `docs/AI.md` §320.3:
+  keyed away, the whole walk parts on 4415, so the walk holds it; the Royal Balamob piece stands.) run1247's two `AMMO` records are
   `1/32`'s stone on `CHAR_ATTACK2` (19) and `1/33`'s on `CHAR_ATTACK1` (18); the third row (21) rests on the
   packet's `AttachPos` row and `get_position.py`'s sweep alone (97 lattice points). The Royal Balamob Slingers
   (89, `BAMOBSLINGERSELITE`, the `Slinger_Royal.bh3` model) are another piece and unmeasured. `docs/AI.md` §320.2.
   **Score**: none until a walk throws a stone on that key across a frame boundary.
 
-## Parked by the next landing, slot RA — reserved
+## Parked by item 3600, 2026-10-24 — the Bowmen's bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3600a. Piece 824's launch points are dumped on no round.** Its three attack rows are piece 473's centroids
+  (run1247's packet: the same keys and the same lattice regions), and the whole walk holds each one, since each
+  row keyed away parts it (4429, 4493, 4916). But no capture of the Maya Ancient lobby writes `AMMO` past 4307,
+  and nothing has read whether 824 and 473 share one model. `docs/AI.md` §320.3. **Score**: none. The pair is
+  whole, so a mismatch would show up as a later parting.
 
 ## Parked by item 3601, 2026-10-24 — the Koreans at a held Classical age
 

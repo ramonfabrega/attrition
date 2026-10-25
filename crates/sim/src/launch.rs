@@ -2100,6 +2100,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
+    // **Piece 824, the Maya's Bowmen** (`BOWMEN-AMERICAN`, type 170, `120 +
+    // 2 × 0x160`; item 3600, `docs/AI.md` §320.3): run1247's
+    // `RON_STATE_FRAME=4306` packet on the Maya East Indies game holds its
+    // four `AttachPos` rows — node 0 at anims 11, 12 and 13, times 12, 9
+    // and 15, piece 120's keys, and a `CHAR_DIE` row (anim 4) no round
+    // reads — and `tools/recomp/fit_bay.py` on `get_position.py`'s sweep of
+    // each finds piece 473's regions to the point (221, 277 and 124
+    // lattice points), so the rows are 473's centroids. Without them the
+    // Bowmen `1/46`'s arrow at the fleeing Citizen `0/10`, loosed on 4318,
+    // left the unit's own square (6552, 9240) and flew 21 frames.
+    (
+        824,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -1_826,
+            fwd: 88_749,
+            dz: 163,
+        },
+    ),
+    (
+        824,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: 336,
+            fwd: 87_408,
+            dz: 164,
+        },
+    ),
+    (
+        824,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 9_711,
+            fwd: 66_508,
+            dz: 164,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -3298,6 +3338,43 @@ mod tests {
                 (x, y),
                 "{anim} {time} {deg}"
             );
+        }
+    }
+
+    /// **The Maya Bowmen's piece 824** (item 3600): four headings of each
+    /// attack row's sweep off run1247's packet, the way
+    /// [`the_peltasts_bays_are_the_packet_s_sweep`] reads 1442's — and the
+    /// rows are piece 473's, the Archers', key for key and row for row.
+    #[test]
+    fn the_maya_bowmen_s_bays_are_the_packet_s_sweep_and_piece_473_s() {
+        const S: &[(i8, u32, i64, i32, i32)] = &[
+            (11, 12, 0, 1, 88),
+            (11, 12, 97, -88, -9),
+            (11, 12, 233, 69, -54),
+            (11, 12, 300, 77, 42),
+            (12, 9, 0, 0, 87),
+            (12, 9, 97, -86, -10),
+            (12, 9, 233, 70, -52),
+            (12, 9, 300, 75, 43),
+            (13, 15, 0, -9, 66),
+            (13, 15, 97, -64, -17),
+            (13, 15, 233, 58, -32),
+            (13, 15, 300, 52, 41),
+        ];
+        for &(anim, time, deg, x, y) in S {
+            let want = (deg + 180) % 360;
+            let facing = (0..1u32 << 12)
+                .map(|i| Angle((i << 20) as i32))
+                .find(|&a| whole_degrees(a) == want)
+                .expect("a facing at the degree");
+            let b = bay(824, anim, time, 0).expect("every attack AttachPos row");
+            let at = b.point(Pos::new(10_000, 10_000), facing);
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{anim} {time} {deg}"
+            );
+            assert_eq!(Some(b), bay(473, anim, time, 0), "{anim} {time}");
         }
     }
 

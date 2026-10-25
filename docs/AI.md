@@ -28488,9 +28488,30 @@ pins 167. One mutation through `tools/mutate.py` on the committed tree **held** 
 4429. Packet and sweep only: the `CHAR_ATTACK3` row (parked 3599a).
 
 **What is not established.**
-- Piece 38's `CHAR_ATTACK3` row on a dumped round, and the Royal Balamob Slingers' piece (parked 3599a).
-- Why `0/10`'s damage parts on block 4338, and who strikes `0/11` on 4386 in theirs. The next item's frame is
-  4429, ours 10 draws against 12, index 1, with the state apart on block 4338.
+- ~~Piece 38's `CHAR_ATTACK3` row~~ (§320.3), and the Royal Balamob Slingers' piece (parked 3599a).
+- ~~Why `0/10`'s damage parts on block 4338.~~ §320.3: `1/46`'s arrow, from piece 824's bays.
+
+### 320.3 The Bowmen's bays: 4429 → whole, 5935 of 5935 (item 3600)
+
+**The blow.** run1234b's Citizen `0/10` (TypeIndex 50) takes one point on each of blocks 4334, 4336 and 4338. Ours
+lands the first two, the Balamob Slingers `1/27`'s and `1/43`'s stones. The third is the Bowmen **`1/46`'s**
+arrow (TypeIndex 170), loosed on 4318. Ours loosed it from the unit's square, (6552, 9240), in 21 frames, so it had
+not landed by 4338 (`RON_DEBUG_AMMO`). Its piece is **824**, `BOWMEN-AMERICAN` (`120 + 2 × 0x160`), which had no
+row. run1247's packet holds 824's rows on piece 120's keys: `CHAR_ATTACK1` at 12, `2` at 9, `3` at 15.
+`fit_bay.py` finds **piece 473's regions to the point** (221, 277, 124), so the rows
+are 473's centroids.
+
+**The value diff**: `1/46`'s arrow (6552, 9240)/21 → (6481, 9189)/20, and on block 4338 `0/10`'s `hits:damage`
+goes 8 → 9 (theirs 9). run1234b goes from 167 keys to **82**, the standing families alone.
+
+**The score: 4429 → whole, 5935 of 5935** (+1506). The closing state, block 5936, compares 180 units, none off.
+**The closing window** is run1248, blocks 5680..5936 at `LEADERS=9`, 256 blocks, 5936 frames identical to
+run1234. It holds 86 keys, all standing families: `form`, who=0's `SITE[i].reg`, `aggression[1]`, and who=1's
+groups' `held` and pools. Unit types seen 179 → 180.
+
+**Coverage.** Each of 824's rows, keyed away through `tools/mutate.py`, parts the walk: `CHAR_ATTACK2` (`1/46`'s)
+at 4429, `1` at 4493, `3` at 4916. Piece 38's `CHAR_ATTACK3` parts it at 4415. The launch points themselves are
+on no dumped round (parked 3600a).
 
 ## 321. The Germans from an Ancient start, Great Sahara: whole on its first try, 5314 of 5314 (item 3596)
 
