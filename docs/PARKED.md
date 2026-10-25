@@ -3772,6 +3772,14 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's. **The fiftieth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2471 → 2537 functions, 9,607,787 → 9,745,971 bytes (85.5 %) on the tranche's 53 pool captures (`Census entered: simulation 2537 of 3611 functions · 1396 entered and unbacked`); the definition yours. Ramon's. **The fifty-first pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2537 → 2566 functions, 9,745,971 → 9,798,451 bytes (86.0 %) on the tranche's 46 pool captures (`Census entered: simulation 2566 of 3611 functions · 1410 entered and unbacked`); the definition yours. Ramon's. **The fifty-second pass**: bytes 37.9 % unmoved; the census's `entered` column moves on the tranche's 38 captures (the record); 2,449 lines landed in `crates/sim` on six late-age pairs and the census counts none of it, which is the column's whole case; the definition yours. Ramon's. **The fifty-third pass**: backed 1696, port 568, layout 1128 unmoved through 785 sim lines on ten files (the launch rows, `fight`'s wait, the eject path, a tower's sight); the `audit` column is not built, the definition yours. Ramon's. **The fifty-fifth pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); 1,111 sim lines on eleven files (`launch.rs` +338, `pivot.rs` +252, `fight.rs` +143) and the census counts none of it; the definition yours. Ramon's.
 
+## Loop, filed 2026-10-25 — the fifty-sixth tranche's
+
+(3611) **3610's "for the Loop"** (the journal's line, filed at its merge): the classifier answered `no verdict (error)` on Bash and Monitor
+for several minutes mid-item while the file tool kept working — and on 3603 the same hour (its message: no verdicts on Bash, Monitor or
+SendMessage), whose row sat `tempo=idle` until `lanewait.py` exited `STALLED lane-3603 30` and the commander sent the lost-exit line. The
+outage rule (`CLAUDE.md`, back off on a Monitor) held; what the waiter cannot do is tell an outage from a lost exit notice, so the
+`STALLED` answer named the wrong remedy. For the pass: whether `STALLED` reads the lane's last tool result for `no verdict` first.
+
 ## Loop, filed 2026-10-24 — the fifty-fifth tranche's
 
 No row: twenty journals' "for the Loop" lines say `none`, and the pass's one finding was built in the pass — Loop 3608, the lane gate's
@@ -10824,13 +10832,10 @@ state compares 407 units, none apart (`run1250_korean_classical_pair_closing_sta
 frame, so no score names it. The garrisoned `g.angle[0]` of 3601a reaches two more units, `1/381` on 8380 and
 `1/388` on 8503.
 
-## Parked by the next landing, slot RJ — reserved
+## Parked by item 3610, 2026-10-25 — the Japanese Ancient word: the Bowmen's bays, whole at 6126
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair is whole at 6126. Its windows (run1264, run1252b, run1264c) and its stride read only the
+standing families, and its closing block 6127 compares 169 units with no field apart (`docs/AI.md` §323.1).
 
 ## Parked by the next landing, slot RK — reserved
 
