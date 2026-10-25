@@ -27257,4 +27257,69 @@ SHA-256 `d7eb89d692affdbbc0592011559b74f00431e368e70e2f890cfbd37e5a686b82`.
 **What it holds**: `japanese_ancient_pair_run1252b_s_word_frame_is_widened_whole` (256 blocks, 1962 keys): the
 window opens apart on 4928 — the Bowmen `1/51`'s move to (7416, 6024) in ours against (6984, 5832) in theirs, the
 Citizen `0/6`'s wound on 4905 against 4904 — then `1/51`'s order 10 against 1 on 4933 and its extra draw on the
-word's block 4935.
+word's block 4935. Item 3610: 82 keys, the standing families alone, with piece 1176's bays.
+
+## run1264 — the Japanese from an Ancient start, East Indies: the gap's window, blocks 4895..4940 (2026-10-25, item 3610, `att-3610`)
+
+`docs/AI.md` §323.1. **What the disk could not answer**: blocks 4902..4927. run1252's stride prints 4901 and 5001,
+and run1252b opens on 4928, already apart. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1264
+--map 18 --end-frame 4940 --timeout 3600 --log-window 4895 4940 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0 --profile
+STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 01:02:17, exited 01:02:46 (29.2 s launch to exit). `success`: 4941 frames.
+  `rngcmp.py` against run1252: 4941 of 4941 frames identical. Filed with `filerun.py run1264
+  eastindies-japanese-ancient-window-4895-4940 --map 18`. `df -g ~` read 139 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1264-eastindies-japanese-ancient-window-4895-4940.txt`, 98,423,139 bytes,
+SHA-256 `2a5a227008e7560023a5987e718c4be51d36591571d76a960d29c047dc5ff4f7`.
+
+Archive `rontrace-run1264.log`, 83,959,456 bytes,
+SHA-256 `95689d7b64c9ad4224d4ecef8f0c408fbdd06f60a9ee8a456499463a343d0eaf`.
+
+**What it holds**: `japanese_ancient_pair_run1264_s_gap_is_widened_whole` (45 blocks). Before piece 1176's bays
+it read 153 keys, the first unit field on block 4905: the Citizen `0/6` wounded on 4904 in theirs alone, by the
+Bowmen `1/50`'s arrow from (7529, 5749, 476) in 16 frames, where ours loosed from (7608, 5784) in 17. With the bays,
+79 keys, the standing families alone.
+
+## run1264b — the Japanese from an Ancient start, East Indies: a packet at logger frame 4919, piece 1176 (2026-10-25, item 3610, `att-3610`)
+
+`docs/AI.md` §323.1. **What the disk could not answer**: piece 1176's `AttachPos` rows (the Japanese Bowmen),
+which only a packet of a game fielding the type holds. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1264b --map 18 --end-frame 4921 --timeout 3600 --log-window 4918 4921 --detail
+end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 15 --cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=4919
+--tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 01:08:59, exited 01:09:25 (25.9 s). `success`, 4922 frames. `rngcmp.py`
+  against run1252: 4922 of 4922 identical. `df -g ~` read 137 GiB free before it. Not filed: the packet is the
+  product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1264b/map-18/frame-snapshot.bin`, 826,801,332 bytes,
+SHA-256 `01a81dad44df8b361891f24115d072a0d15842705bedf3c72226e513b3ac3244`.
+
+**What it holds**: `get_position.py entries 1176` gives four rows at scale 0.98: node 0 at (11, 12), (12, 9) and
+(13, 15), and a `CHAR_DIE` row at (4, 34). `fit_bay.py` on each attack key's sweep gives the three `BAYS` rows
+(−1790, 86974, 160), (331, 85656, 160) and (9531, 65185, 161).
+
+## run1264c — the Japanese from an Ancient start, East Indies: the closing window, blocks 5871..6127 (2026-10-25, item 3610, `att-3610`)
+
+`docs/AI.md` §323.1. **What the disk could not answer**: the pair went whole, and run1252 prints units every
+hundredth block and no leader, building or city record past the start, so no dump held the last blocks.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1264c --map 18 --end-frame 6126 --allow-early-end
+--timeout 3600 --log-window 5871 6127 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15
+--cover cover=0 --profile STARTING_TECHNOLOGY=0 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 01:12:46, exited 52.8 s later. `success`: 6127 frames. `rngcmp.py` against
+  run1252: 6127 of 6127 identical. Filed with `filerun.py run1264c eastindies-japanese-ancient-window-5871-6127 --map
+  18`. `df -g ~` read 136 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1264c-eastindies-japanese-ancient-window-5871-6127.txt`, 582,305,765 bytes,
+SHA-256 `effb820d1d811e1f15821234db1db8868295f52c2f017260415038d0e230fe19`.
+
+Archive `rontrace-run1264c.log`, 115,121,152 bytes,
+SHA-256 `dac41535d65075aff385ab9e0300bed2a96f74f618b8219943cbdef81c832132`.
+
+**What it holds**: `japanese_ancient_pair_run1264c_s_closing_frame_is_widened_whole` (256 blocks, 59 keys, the
+standing families alone, through the closing block 6127).

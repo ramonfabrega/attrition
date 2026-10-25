@@ -10619,3 +10619,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1252  run1234's line with --ai-tribe 15 and run1251's lobby   (the draw stream; ended itself on 6126)
 #   run1252b --map 18 --end-frame 5184 --timeout 3600 --log-window 4928 5184 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1251's lobby   (the word 4934's window)
 # Checks: `rngcmp.py` run1251 vs run1252 -> 37 identical; run1252 vs run1252b -> 5185 identical.
+# ==== item 3610: the Japanese Ancient word 4934 -> 6126, whole (`docs/AI.md` §323.1; `docs/RUNS.md` run1264, run1264b, run1264c) ====
+#   run1264  --map 18 --end-frame 4940 --timeout 3600 --log-window 4895 4940 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1251's lobby   (the gap's window)
+#   run1264b --map 18 --end-frame 4921 --log-window 4918 4921 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 15 --cover cover=0 --tracer-def RON_STATE_FRAME=4919 --tracer-def RON_STATE_PLAN=…/2026-09-23-item-597/plan/plan.h, run1251's lobby   (a packet: piece 1176, the Japanese Bowmen)
+#   run1264c --map 18 --end-frame 6126 --allow-early-end --timeout 3600 --log-window 5871 6127 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 15 --cover cover=0, run1251's lobby   (the closing window)
+# Checks: `rngcmp.py` run1252 vs run1264 -> 4941 identical; vs run1264b -> 4922 identical; vs run1264c -> 6127 identical.

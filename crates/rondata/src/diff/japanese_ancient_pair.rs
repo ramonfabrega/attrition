@@ -16,7 +16,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const JAPANESE_ANCIENT: Pair = Pair {
     name: "EastIndiesJapaneseAncient",
@@ -36,9 +36,13 @@ pub(crate) const JAPANESE_ANCIENT: Pair = Pair {
     // Item 3602, first try: frame 4934 by the count and the sequence, ours
     // 180 draws against theirs' 179, parting at index 0 — ours
     // `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
-    // `Unit::think_fish+0x27a` (`docs/AI.md` section 323).
-    count: 4934,
-    sequence: 4934,
+    // `Unit::think_fish+0x27a` (`docs/AI.md` section 323). Item 3610: 4934
+    // → 6126, the game's last frame — whole. The Bowmen loose from piece
+    // 1176's bays (`sim::launch`), so `1/50`'s arrow at the Citizen `0/6`
+    // leaves (7529, 5749) and flies 16 frames, where it left the unit's
+    // own square (7608, 5784) and flew 17.
+    count: 6126,
+    sequence: 6126,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -230,7 +234,9 @@ fn japanese_ancient_pair_run1252b_s_word_frame_is_widened_whole() {
     // theirs 1 (`orders.len` 2 against 3) and the Bowmen `1/29`'s move
     // goes to (4488, 4968) against (4248, 5112); on the word's block 4935
     // `1/51` takes the extra `Guy::set_anim < Guy::move` draw in ours.
-    pin_eq!(w.firsts.len(), 1962, "run1252b baseline");
+    // Item 3610: 1962 → 82, the standing families alone, with piece
+    // 1176's bays: `1/50`'s arrow lands on `0/6` on 4904 on both sides.
+    pin_eq!(w.firsts.len(), 82, "run1252b baseline");
 }
 
 /// **The long's stride, walked back from the word 4934** (item 3602):
@@ -276,4 +282,162 @@ fn japanese_ancient_pair_the_long_s_stride_walks_back_from_4934() {
     // not print — from 101 through 4901: no unit field parts on any stride
     // block, so the state run1252b opens apart on 4928 parts after 4901.
     pin_eq!(w.firsts.len(), 134, "the stride's baseline");
+}
+
+/// run1264: the gap's window, blocks 4895..4940 at run1252b's detail with
+/// `AMMO=5` (item 3610) — the stride agrees through 4901 and run1252b
+/// opens apart on 4928, so no dump held 4902..4927.
+pub(crate) const RUN1264: &str = "gamelog-run1264-eastindies-japanese-ancient-window-4895-4940.txt";
+
+/// The window: block 4895 through 4940; the word 4934's own block is 4935.
+pub(crate) const WIDENING_JAPANESE_ANCIENT_GAP: (i64, i64) = (4895, 4940);
+
+/// **The gap's window**: run1264 walked from run1251's start with the
+/// recorder on (item 3610).
+pub(crate) fn japanese_ancient_gap_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[JAPANESE_ANCIENT.start],
+        true,
+        JAPANESE_ANCIENT.long,
+        "run1264",
+        &[(RUN1264, WIDENING_JAPANESE_ANCIENT_GAP.0)],
+        WIDENING_JAPANESE_ANCIENT_GAP,
+        1,
+        &[4935],
+        true,
+    )
+}
+
+#[test]
+fn japanese_ancient_pair_run1264_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_ancient_gap_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 45, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3610, before piece 1176's bays: 153 keys, the first unit field
+    // on block 4905 — the Citizen `0/6`'s wound (`hits_left` 40 against
+    // 37, `damage_frame` 0 against 4904), struck by the Bowmen `1/50`'s
+    // arrow, which left (7608, 5784) in 17 frames in ours and (7529, 5749)
+    // in 16 in theirs; then `0/6`'s flight (order 7 against 4) and, on
+    // 4926, `1/51`'s re-aim. With the bays: 79, the standing families
+    // alone (every unit's `form`, who=0's `SITE[i].reg`, `aggression[1]`,
+    // who=1's groups' `held`).
+    pin_eq!(w.firsts.len(), 79, "run1264 baseline");
+}
+
+/// **The closing state** (item 3610): run1252's closing block 6127, the
+/// whole map's units, walked from run1251's start.
+#[test]
+fn japanese_ancient_pair_run1252_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &JAPANESE_ANCIENT;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Japanese Ancient pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 6127, "the closing block");
+    pin_eq!(e.compared, 169, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run1264c: the closing window, blocks 5871..6127 at the long's detail
+/// with `LEADERS=9` (item 3610) — run1252 prints units every hundredth
+/// block and no leader, building or city record past the start, so no
+/// dump held the last blocks.
+pub(crate) const RUN1264C: &str =
+    "gamelog-run1264c-eastindies-japanese-ancient-window-5871-6127.txt";
+
+/// The closing window: block 5871 through the closing block 6127.
+pub(crate) const WINDOW_JAPANESE_ANCIENT_CLOSING: (i64, i64) = (5871, 6127);
+
+/// **The closing window**: run1264c walked from run1251's start with the
+/// recorder on (item 3610).
+pub(crate) fn japanese_ancient_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[JAPANESE_ANCIENT.start],
+        true,
+        JAPANESE_ANCIENT.long,
+        "run1264c",
+        &[(RUN1264C, WINDOW_JAPANESE_ANCIENT_CLOSING.0)],
+        WINDOW_JAPANESE_ANCIENT_CLOSING,
+        1,
+        &[6127],
+        true,
+    )
+}
+
+#[test]
+fn japanese_ancient_pair_run1264c_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_ancient_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3610: 59 keys, the standing families alone, through the
+    // closing block 6127.
+    pin_eq!(w.firsts.len(), 59, "run1264c baseline");
 }

@@ -28657,7 +28657,7 @@ packet, above). Still open:
 - piece 131's `CHAR_ATTACK1` keys and `ATTACK2`@22, which no dumped round diffs (they are piece 130's rows, read
   off the packet).
 
-## 323. The Japanese from an Ancient start, East Indies: first try 4934 of 6126 (item 3602)
+## 323. The Japanese from an Ancient start, East Indies: first try 4934 of 6126, whole at 6126 (items 3602, 3610)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §320's lobby with the nation moved: East Indies (`MAP_STYLE 18`), human
 Nubians (4) against the **Japanese (15)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
@@ -28708,11 +28708,52 @@ run1252b. It is new to the ledger and enters when the pair is lockstep. `Bushi` 
 Senator 353, three boats (Fishermen 317, Merchant Fleet 318, Transport Barge 320), and the horse, fish and whale
 herds. `rubric.py` on this tree reads unit types seen **182 of 302**, unmoved: the pair is open.
 
-**What is not established.** Why theirs' `1/51` re-aims inside 4902..4927 and ours' does not, and who wounded
-`0/6` on 4904 (theirs) against 4905 (ours): a round's flight a frame shorter in theirs is the Maya pair's shape
-(§320.2, §320.3), and `0/6`'s wound is the gap's earliest named row. No dump holds the gap's blocks at the long's
-detail; the next item's first read is a window over 4898..4928 with `AMMO=5`. The next item's frame is 4934,
-ours 180 draws against 179 at index 0.
+**323.1 Item 3610: the Bowmen loose from piece 1176's bays, and the pair is whole at 6126.** run1264 is the
+gap's window (blocks 4895..4940, `AMMO=5`, identical to run1252 over 4941 frames; 45 blocks, 153 keys). Its first
+unit field is on block 4905: **the Citizen `0/6`** (TI 50, land) wounded on 4904 in theirs (`hits_left` 37,
+`damage_frame` 4904, then a flight, order 4 against ours' 7) and untouched in ours. The blow is **the Bowmen
+`1/50`'s arrow** (TI 170, who=1's group 64), loosed before the window opened. The shooter stands at (7608, 5784)
+on both sides. Theirs' round leaves **(7529, 5749, 476)** with `total_time` **16**. Ours' leaves the unit's own
+square (7608, 5784) in **17**, because `sim::launch` has no row for the Japanese Bowmen's piece, **1176** (`120 +
+3 × 0x160`, the Asian style, as the Mongol Archers' 1177 is 121's). `1/51`'s re-aim on 4926 is downstream of
+`0/6`'s flight.
+
+**The piece.** run1264b, a `RON_STATE_FRAME=4919` packet on the same lobby, holds piece 1176's four `AttachPos`
+rows at scale 0.98: node 0 at piece 120's three attack keys, plus a `CHAR_DIE` row. `fit_bay.py` fits each key's
+`get_position.py` sweep to one region (321, 274 and 332 lattice points):
+
+| key | right | fwd | dz |
+|---|---|---|---|
+| `CHAR_ATTACK1` at 12 | −1790 | 86974 | 160 |
+| `CHAR_ATTACK2` at 9 | 331 | 85656 | 160 |
+| `CHAR_ATTACK3` at 15 | 9531 | 65185 | 161 |
+
+The heights are not piece 120's or 473's (163/164), so the piece is its own model.
+`run1264_s_japanese_arrows_leave_from_the_bowmen_s_bays` puts all seventeen Bowmen rounds run1264 and run1252b
+print, each beside its figure's `GUY` record on the block before, at the dump's `sx, sy` and `sz − z` exactly.
+
+**The value diff.**
+
+| frame | record | field | before (ours / theirs) | after |
+|---|---|---|---|---|
+| before 4895 | Bowmen `1/50`'s round | `sx, sy` / `total_time` | (7608, 5784) / 17 against (7529, 5749) / 16 | agrees |
+| 4904 (block 4905) | Citizen `0/6` | `damage_frame`, `hits_left` | 0, 40 / 4904, 37 | agrees |
+| 4926 | Bowmen `1/51` | `orders_x`/`_y` | (7416, 6024) / (6984, 5832) | agrees |
+| 4934 | draws | index 0 | `Guy::set_anim < Guy::move` / `Unit::think_fish` (180 / 179) | agree |
+
+**The word: 4934 → 6126, the game's last frame — whole**, by the count and the sequence. With the rows:
+- run1264 falls from 153 keys to 79, and run1252b from 1962 to 82: the standing families alone (every unit's
+  `form`, who=0's `SITE[i].reg`, `aggression[1]`, who=1's groups' `held` and pools).
+- `japanese_ancient_pair_run1252_s_closing_state` compares the closing block 6127 whole: 169 units, none torn, off
+  or unlinked, no field apart.
+- run1264c, the closing window over 5871..6127 at `LEADERS=9`, reads 59 keys, the standing families alone.
+
+Zeroing the `CHAR_ATTACK2` row (`tools/mutate.py`) walks the pair back to 5008 (exit 101). The pair being whole
+puts the **Ashigaru Spearmen (157)** in the lockstep set: `rubric.py --tables 3` reads unit types seen **183 of
+302**. `Bushi` (158) stays unfielded (3602a).
+
+**What is not established.** The `CHAR_DIE` row (anim 4, time 34), which no round reads. Piece 1176 at a
+heading no dumped round took is the sweep's fit, not a dump's.
 
 ## 324. Reserved for the next item on the AI track
 

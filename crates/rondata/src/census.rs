@@ -417,8 +417,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// lines §322 booked, read by `rubric.py --tables 3` on this tree.
 /// Item 3600's `Balamob Slingers` (88), the Maya Ancient pair whole at 5935,
 /// landed beside it unpinned: 182 at 3609's booking, `rubric.py --tables 3`
-/// on the tree holding both merges.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 182;
+/// on the tree holding both merges. Item 3610: 182 -> 183, the Japanese
+/// Ancient pair whole at 6126 — `Ashigaru Spearmen` (157, 2268 figure
+/// rows over run1251 and run1252), one of the two lines §323 booked;
+/// `Bushi` (158) was not fielded (parked 3602a).
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 183;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

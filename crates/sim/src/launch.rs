@@ -2209,6 +2209,47 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
+    // **Piece 1176, the Japanese Bowmen** (`BOWMEN`, type 170, `120 + 3 ×
+    // 0x160`; item 3610, `docs/AI.md` §323): run1264b's
+    // `RON_STATE_FRAME=4919` packet on the Japanese Ancient East Indies
+    // game holds its four `AttachPos` rows at scale 0.98 — node 0 at
+    // piece 120's keys, and a `CHAR_DIE` row no round reads — and
+    // `tools/recomp/fit_bay.py` on each key's sweep finds one region (321,
+    // 274 and 332 lattice points); the rows are their centroids, and the
+    // heights 160, 160 and 161 are the sweep's and the dump's `sz − z`.
+    // Without them the Bowmen `1/50`'s arrow at the Citizen `0/6` left the
+    // unit's own square (7608, 5784) and flew 17 frames where theirs left
+    // (7529, 5749) and flew 16, and `0/6` was struck a frame late.
+    (
+        1176,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -1_790,
+            fwd: 86_974,
+            dz: 160,
+        },
+    ),
+    (
+        1176,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: 331,
+            fwd: 85_656,
+            dz: 160,
+        },
+    ),
+    (
+        1176,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 9_531,
+            fwd: 65_185,
+            dz: 161,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -2413,6 +2454,50 @@ mod tests {
         }
         assert_eq!(release_dz(121, 12, 9, 0), Some(164));
         assert_eq!(release_dz(121, 11, 12, 0), Some(163));
+    }
+
+    /// **The Japanese Bowmen loose from piece 1176's bays** (item 3610):
+    /// every Bowmen round run1264 and run1252b print, the first print beside
+    /// the figure's `GUY` record on the block before — `x, y`, its angle,
+    /// and the dump's `sx, sy` and `sz − z` — each reproduced exactly by
+    /// one of the piece's three keys at the figure's own square.
+    #[test]
+    fn run1264_s_japanese_arrows_leave_from_the_bowmen_s_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 17] = [
+            (7608, 5784, -768_344_064, 7529, 5749, 160),
+            (7080, 5544, -671_481_856, 7008, 5499, 160),
+            (6936, 5688, -552_271_872, 6896, 5636, 161),
+            (7080, 5544, -802_357_248, 7002, 5511, 160),
+            (6936, 5688, -689_635_328, 6886, 5647, 161),
+            (7368, 5256, -1_045_495_808, 7303, 5246, 161),
+            (6936, 5688, -837_615_616, 6854, 5660, 160),
+            (7080, 5544, -913_113_088, 6995, 5527, 160),
+            (7080, 5544, -769_720_320, 7025, 5508, 161),
+            (6456, 5400, -579_403_776, 6414, 5351, 161),
+            (7080, 5544, -801_374_208, 7002, 5511, 160),
+            (6456, 5400, -837_484_544, 6376, 5371, 160),
+            (7560, 6216, -1_455_685_632, 7488, 6261, 160),
+            (7128, 5784, 2_102_591_488, 7133, 5869, 160),
+            (6888, 5688, 1_901_068_288, 6920, 5768, 160),
+            (7560, 6216, 1_861_091_328, 7595, 6293, 160),
+            (6888, 5688, 1_624_899_584, 6948, 5748, 160),
+        ];
+        let keys = [
+            (crate::anim::ATTACK1, 12),
+            (crate::anim::ATTACK2, 9),
+            (crate::anim::ATTACK3, 15),
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let hit = keys.iter().find(|&&(a, t)| {
+                let at = launch_point(Pos::new(x, y), Angle(facing), 1176, a, t, 0);
+                (at.x, at.y) == (sx, sy) && release_dz(1176, a, t, 0) == Some(dz)
+            });
+            assert!(
+                hit.is_some(),
+                "({x}, {y}) at {facing}: no key reaches ({sx}, {sy}, {dz})"
+            );
+        }
     }
 
     /// **The Korean stone and the Hwarang's arrow leave from pieces 1088's
