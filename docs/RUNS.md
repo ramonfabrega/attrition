@@ -28071,3 +28071,24 @@ SHA-256 `8213be832d932081c5811bb16a784f06af07c46acf162998a466863e4fc2577f`.
 **What it holds**: `mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole` (256 blocks, 1038 keys). On its
 first block 1968 the Monarch `1/17` (TI 354) holds a `CASTORDER` (Create Decoy, `spell_time` 22) in theirs and
 idles in ours.
+## run1293 — the Romans at a held Medieval age, East Indies: a packet at logger frame 3606, who=1's fog (2026-10-25, item 3631, `att-3631`)
+
+`docs/AI.md` §330. **What the disk could not answer**: who=1's `seen2` at fog cell (110, 85), which `was_seen`
+reads for the Caravan `1/49`'s road node 126 on 3606, and the territory under it (`WData.who`, `region`). No
+dump prints the fog grid past the start's `WORLD`, and run1277's window prints no `WORLD` record.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1293 --map 18 --end-frame 3608 --log-window 3605
+3608 --detail end:MISC,UNITS=3,BUILDS=7,GUYS=2 --ai-tribe 6 --cover cover=0 --profile STARTING_TECHNOLOGY=2
+--profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def
+RON_STATE_FRAME=3606 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 13:00:01, exited 13:01:35 (94.4 s). `success`, 3609 frames. Not filed: the
+  packet is the product. `df -g ~` read 129 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1293/map-18/frame-snapshot.bin`, 831,528,424 bytes,
+SHA-256 `f46c6cd4cb8d37d489d0232d0f29d0c3e5e3305927eab5cfa8ab28035e48b3e9`.
+
+**What it holds**: `worldc` (`0xc061d0`) → `seen2` (`+0x160`), 120 × 120 fog cells. Against ours after tick 3605,
+**nine** cells differ, all who=1's bit and all on one arc one fog cell outside ours' lit edge: (110, 85), (111,
+86), (112, 86), (112, 87), (113, 88), (114, 88), (114, 89), (115, 90), (115, 91). The cell (55, 42) under them is
+unowned (`who` −1) on both sides, so `was_seen`'s territory arm is out. The arc is the Fort `1/2013`'s disc at
+radius 8 (`mylos 16` in run1277) against ours' 7. With the fort term built, every byte of the grid agrees.

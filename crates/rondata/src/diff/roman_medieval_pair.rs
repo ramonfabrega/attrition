@@ -41,8 +41,15 @@ pub(crate) const ROMAN_MEDIEVAL: Pair = Pair {
     // word: ours 3205 draws against 3208, index 3201 — ours
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
     // `PathFinder::calc_road_cost+0x46`.
-    count: 3607,
-    sequence: 3607,
+    // Item 3631: 3607 -> **5582** by the count and the sequence — a
+    // finished fort sees `FORT_UPGRADE_LOS[get_fort_los - 1]` further, so
+    // the Roman Fort `1/2013`'s disc lights fog cell (110, 85) and the
+    // Caravan `1/49`'s road search on 3606 prices node 126 at 89, not 179.
+    // The new word: ours 31 draws against 35, index 7 — ours
+    // `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a <
+    // Unit::move_step+0x823`.
+    count: 5582,
+    sequence: 5582,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -289,11 +296,27 @@ fn roman_medieval_pair_run1277_s_word_frame_is_widened_whole() {
     // on block 3615, at `1/49`'s move: `order:move.x`/`.y` (37944, 24504)
     // against (38328, 23928), `off_x`/`off_y` (312, 696) against (696,
     // 120), `path:length` 46 against 47.
+    //
+    // Item 3631: 720 -> **112**. The road search parted on 3606, node 126
+    // (ours 179 against 89: `was_seen`'s doubling), because the Roman Fort
+    // `1/2013` saw 14 here and 16 there (`FORT_UPGRADE_LOS` at fort level
+    // 2) and its disc left nine of who=1's fog cells dark (run1293's
+    // packet). With the fort term, `1/49`'s rows are gone; what stays is
+    // the standing families (106 on 3602..3603) and, later, the pools and
+    // groups 73 (3635) and 77 (3782) and `form` on `1/186` (3683) and
+    // `1/187` (3736) — no position, no order.
     pin!(
         w.firsts.values().all(|(f, _)| !(3604..=3614).contains(f)),
         "nothing parts from block 3604 to 3614"
     );
-    pin_eq!(w.firsts.len(), 720, "run1277 baseline");
+    pin!(
+        w.firsts.iter().all(|((_, _, what), (f, _))| *f <= 3603
+            || what == "form"
+            || what.starts_with("pool:")
+            || what.starts_with("group:")),
+        "past the standing blocks only pools, groups and form part"
+    );
+    pin_eq!(w.firsts.len(), 112, "run1277 baseline");
 }
 
 /// **The word's road search, node for node** (item 3631): every road search
@@ -362,15 +385,100 @@ fn roman_medieval_pair_s_road_search_on_3607_holds_node_for_node() {
     // Item 3631: (3201, 3204) on the word, and the first node parting on
     // 3606 (node 126, the diagonal onto (42336, 32928), tile (220, 171):
     // ours 179 against theirs 89, `was_seen`'s doubling of fog cell
-    // (110, 85)).
+    // (110, 85)) until a finished fort carried `FORT_UPGRADE_LOS`: the
+    // Fort `1/2013`'s disc reaches it at radius 8.
     pin_eq!(
         on_word,
-        (3201, 3204),
+        (3204, 3204),
         "the word's road nodes, ours and theirs"
     );
     pin_eq!(
         first.as_deref().map(|s| s.split(':').next().unwrap_or("")),
-        Some("3606 at 126"),
+        None,
         "the first node that parts"
     );
+}
+
+/// run1293b: the word 5582's window, blocks 5577..5833 at the long's detail
+/// — six blocks before the word's block 5583 and 250 after (item 3631);
+/// the stride's blocks are 5501 and 5601.
+pub(crate) const RUN1293B: &str = "gamelog-run1293b-eastindies-roman-medieval-window-5577-5833.txt";
+
+/// The window: block 5577 through 5833; the word 5582's own block is 5583.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_FRAME_5582: (i64, i64) = (5577, 5833);
+
+/// **The word 5582's window**: run1293b walked from run1274's start with
+/// the recorder on (item 3631).
+pub(crate) fn roman_medieval_frame_5582_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_MEDIEVAL.start],
+        true,
+        ROMAN_MEDIEVAL.long,
+        "run1293b",
+        &[(RUN1293B, WIDENING_ROMAN_MEDIEVAL_FRAME_5582.0)],
+        WIDENING_ROMAN_MEDIEVAL_FRAME_5582,
+        1,
+        &[5583],
+        true,
+    )
+}
+
+#[test]
+fn roman_medieval_pair_run1293b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_medieval_frame_5582_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 2550, "run1293b baseline");
+}
+
+/// **The long's stride, walked back from the word 5582** (item 3631):
+/// run1275's stride blocks 3901..5501, between run1277's window and
+/// run1293b's.
+pub(crate) const WIDENING_ROMAN_MEDIEVAL_STRIDE: (i64, i64) = (3901, 5501);
+
+pub(crate) fn roman_medieval_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[ROMAN_MEDIEVAL.start],
+        true,
+        ROMAN_MEDIEVAL.long,
+        "run1275 stride",
+        &[(ROMAN_MEDIEVAL.long.0, WIDENING_ROMAN_MEDIEVAL_STRIDE.0)],
+        WIDENING_ROMAN_MEDIEVAL_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn roman_medieval_pair_the_long_s_stride_walks_back_from_5582() {
+    let _pins = Pins::hold();
+    let Some(w) = roman_medieval_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 17, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(w.firsts.len(), 180, "run1275 stride baseline");
 }
