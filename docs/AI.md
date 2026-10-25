@@ -29082,7 +29082,7 @@ reads unit types seen **184 of 302**. `Xopilli Atl-Atls` (87) stays unfielded.
 **What is not established.** Piece 35 at any heading, since no Atl-Atls round is dumped, and piece 36 at a heading
 no dumped round took: those are the sweep's fit and no dump's. The writer of `1/175`'s arrival `dest_angle` (3613a).
 
-## 326. The Russians at a held Medieval age, Great Sahara: first try 3149 of 4541, 3349 on 3614's tree, 4442 on 3615's (items 3605, 3615)
+## 326. The Russians at a held Medieval age, Great Sahara: first try 3149 of 4541, 3349 on 3614's tree, 4442 on 3615's, whole at 4541 on 3618's (items 3605, 3615, 3618)
 
 **The pair** (DECISIONS 90, 91, 93, 94). §313's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
 Nubians (4) against the **Russians (13)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY
@@ -29215,8 +29215,63 @@ and the city's 2787 on block 3347. The training rung's `× 2` and the empty-city
 the walk catches each one.
 
 **What is not established.** The `ai` arms (`× 10`, the city's `100`, `× 40`) and the silo's `× 15` rest on the
-reading alone. The packet's search passes `ai` 0, so they are owed a blind second reading (`docs/COMBAT.md`). What
-removes the Elite Javelineers at the city, and how each side chooses them.
+reading alone. The packet's search passes `ai` 0, so they are owed a blind second reading (`docs/COMBAT.md`). ~~What
+removes the Elite Javelineers at the city, and how each side chooses them.~~ Attrition, and the remainder share: §326.2.
+
+### 326.2 The remainder share is the last figure's: attrition at the city (item 3618)
+
+**Both act; the rule differs.** The booking's "twelve" are eighteen Elite Javelineers (TI 84, `uber_size` 3, `myhits`
+110), six squads of a captain and two members: `1/200`–`202`, `205`–`207`, `209`–`211`, `212`–`214`, `215`–`217`,
+`218`–`220` (the dump's `o_up`/`o_down`; the Knights `1/203` and `1/208` sit between). On 4442 every figure stands
+at damage 35, `damage_frac` 10, round the empty city `0/2000`, and attrition deals each one its tick
+(`Sim::suffer_attrition`, a probe's backtrace, one commit reverted whole). The shares are `110 / 3 = 36` and the
+remainder `110 − 2 · 36 = 37`. The removals are draw-silent on both sides: no death draw on 4442, so no combat
+death. `near` (`ObjectData::near_o`) is set on each captain because only a captain searches (`docs/COMBAT.md` §18);
+it has nothing to do with the removal.
+
+| block | squad | theirs | ours |
+|---|---|---|---|
+| 4443 | captain, first member | gone (36 of share 36) | captain kept (36 of share 37), first member gone |
+| 4443 | third figure | kept, damage 36 | gone |
+| 4444 | the figure left | gone (37 of share 37) | gone (the captain, 37) |
+
+**The rule** (`Object::take_damage@00652020`, the `+0x308` block, §7.2 step 8 of `docs/COMBAT.md`): a figure takes
+the remainder only when it is a captain (vslot `+0xe8`) **and** `UnitData::curr_uber_size(this, 1)` answers 1. That
+is the last figure standing. Theirs processes the squad in object order. The captain falls at 36. `Unit::close`
+hands the squad to the first member, which is now a captain of two and falls at 36. The third is then a captain
+alone and keeps its 36 against 37. **Ours read the stored `Unit::squad_size`**, which nothing outside the tests
+writes past 1. So every captain of a whole squad took the remainder, and the two members fell first. Block 3351
+is the same rule, draw-silent: theirs' captain `1/41` falls at 36, and `1/42`, alone, takes a lone figure's whole
+point (19 → 20, `damage_frac` 8 → 0).
+
+**Built**: `Sim::takes_remainder_share` (captain, and the live `curr_uber_size == 1`) at both of `take_damage`'s
+share sites: attrition's (`suffer_view.rs`) and combat's (`fight.rs`). All 61 other `first_parting`s hold.
+**The word closes, 4442 → 4541 of 4541**, by the count and the sequence. run1258b falls 55 → **49 keys** (block
+3351 agrees), run1268b 1411 → **55** (blocks 4443, 4444 and the city's damage on 4446 agree). Past the standing
+families, run1268b's rows are the two order points before the word and `1/125`'s `dest_angle` on 4509 (ours
+-1605566464, theirs 1814626304). No draw parts. **The closing state** (run1258's block 4542, 222 units) has every
+count at 0 (`russian_medieval_pair_run1258_s_closing_state`).
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 3351 | `1/41` (captain) | present | yes | gone | gone |
+| 3351 | `1/42` | damage, `damage_frac` | 19, 8 | 20, 0 | 20, 0 |
+| 4443 | `1/200` (captain) | present | yes | gone | gone |
+| 4443 | `1/202` (third figure) | damage | gone | 36 | 36 |
+| 4446 | the city `0/2000` | `build:damage` | 1091 | 1087 | 1087 |
+
+Tests: `russian_medieval_pair_s_attrition_gives_the_remainder_to_the_last_figure` (3351, 4443, 4444) and
+`fight::tests::a_captain_takes_the_remainder_share_only_alone` (the combat site). No walk holds the combat site:
+its mutation fails nothing across the 62 `first_parting`s, so the sim test holds it. Mutation of the shared helper
+back to `squad_size`: the value test, `first_parting` and both widenings go red.
+
+**The rubric.** The pair is whole, so its lines join the lockstep set: **unit types 186 → 187 of 302**. The
+`Rusiny Lancer` (224, 288 figure rows) is the line this section booked.
+
+**What is not established.** The captain test is ours' `combat.captain == index`, where the original asks vslot
+`+0xe8` (`is_captain`, `o_up`'s sign). The two agree wherever `relink_squad` runs, but no reader compares them
+directly. The combat site's predicate rests on the sim test and the listing; no capture lands a blow on a squad's
+last figure.
 
 ## 327. The Inca at a held Classical age, East Indies: first try 4501 of 6073 (item 3606)
 
