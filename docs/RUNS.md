@@ -27190,3 +27190,90 @@ SHA-256 `9b5580a5245e1c2e205795808441821e9a7024d25b8d409e752ef59bd63217b1`.
 804), 18. `tools/recomp/get_position.py entries 131` reads six `AttachPos` rows bit for bit piece 130's, and each
 key's sweep is reproduced at all 361 headings by piece 130's `BAYS` rows. Pinned by
 `launch::tests::run1263_s_elite_hwarang_arrows_leave_from_piece_131_s_bays`.
+
+## run1253 — the Egyptians at a held Gunpowder age, Great Sahara: the `DUMP_ALL` start (2026-10-25, item 3603, `att-3603`)
+
+`docs/AI.md` §324. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1253 --map 7 --end-frame
+36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 7 --profile STARTING_TECHNOLOGY=3 --profile
+ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 00:17:32, exited 00:17:58 (26.3 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 7, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3`. Filed with `filerun.py run1253
+  greatsahara-egyptian-gunpowder-start`. `df -g ~` read 142 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1253-greatsahara-egyptian-gunpowder-start.txt`, 149,933,377 bytes,
+SHA-256 `1367efa79f22d30cd184f9209dc6224e69974e5c1017b233ff067a918086f80e`.
+
+Archive `rontrace-run1253.log`, 8,704,608 bytes,
+SHA-256 `00575576f9085556ee040450ed63a27873a54c74138e06b7ff39188ae7b387f2`.
+
+**What it holds**: the start of `egyptian_gunpowder_pair::EGYPTIAN_GUNPOWDER`, and the walk's initial state.
+
+## run1254 — the Egyptians at a held Gunpowder age, Great Sahara: the draw stream to the game's end (2026-10-25, item 3603, `att-3603`)
+
+`docs/AI.md` §324. run1250's line with `--ai-tribe 7`: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 7
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1253's
+lobby.
+- Pool lane 2, beside run1253. Launched 00:17:36, exited 00:18:00 (24.2 s launch to exit). `success`. **The game
+  ended itself on 4454** (closing block 4455, `ended_early`). `GAME INFO` reads back as run1253's. `rngcmp.py`
+  against run1253: 37 frames identical. Filed with `filerun.py run1254 greatsahara-egyptian-gunpowder-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1254-greatsahara-egyptian-gunpowder-trace.txt`, 24,268,883 bytes,
+SHA-256 `a6aaaf582721cbdc8f198e205cafced7ff7b0f6c2dec042620379431deeb6347`.
+
+Archive `rontrace-run1254.log`, 70,180,576 bytes,
+SHA-256 `23171bd2dfd8347c25c647afebea24d766fe7abff569133d2359b87963180864`.
+
+**What it holds**: the pair's first try. `egyptian_gunpowder_pair_first_parting` walks it from run1253: **frame
+3118 of 4454** by the count and the sequence, ours 13 draws against 14, index 11; 3238 after piece 48's bays.
+
+## run1254b — the Egyptians at a held Gunpowder age, Great Sahara: the word 3118's window, blocks 3113..3369 (2026-10-25, item 3603, `att-3603`)
+
+`docs/AI.md` §324. **What the disk could not answer**: every record on the word's frame. run1254's stride prints
+units every hundredth block (3101 and 3201 around the word) and no `LEADERDATA` past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1254b --map 7 --end-frame 3369 --timeout 3600
+--log-window 3113 3369 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 7 --cover cover=0
+--profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1. Launched 00:19:54, exited 00:20:38 (43.7 s launch to exit). `success`: 3370 frames. `rngcmp.py`
+  against run1254: 3370 frames identical. Filed with `filerun.py run1254b
+  greatsahara-egyptian-gunpowder-window-3113-3369`. `df -g ~` read 141 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1254b-greatsahara-egyptian-gunpowder-window-3113-3369.txt`, 515,700,833 bytes,
+SHA-256 `28d552828155c8ba0899d16451ca55e13bbdbf70d13ab56ee1b292ed430183d8`.
+
+Archive `rontrace-run1254b.log`, 45,908,160 bytes,
+SHA-256 `5465a08b42a061e2ca0f9c656cbc42a9dc3d429c4b24cdcd49dba81ecaf54793`.
+
+**What it holds**: the word's widening, `egyptian_gunpowder_pair_run1254b_s_word_frame_is_widened_whole`: 1685
+keys on the first walk (the Citizen `0/9` dead on block 3119 in theirs), 880 after piece 48's bays (the state
+apart from block 3225).
+
+## run1254c — the Egyptians at a held Gunpowder age, Great Sahara: a packet at logger frame 3115, the Arquebusiers' rounds (2026-10-25, item 3603, `att-3603`)
+
+`docs/AI.md` §324. **What the disk could not answer**: where the Arquebusiers `1/32`'s round at the Citizen `0/9`
+(fired on 3114) leaves from and how long it flies, and the `AttachPos` rows of the Egyptian Arquebusiers' piece
+48. No capture of an Egyptian lobby writes an `AMMO` record, and no packet on disk is of an Egyptian game.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1254c --map 7 --end-frame 3117 --timeout 3600
+--log-window 3114 3116 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 7 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=3115 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- A first launch without `RON_STATE_PLAN` was refused by the runner before anything ran (parked 2006).
+- Pool lane 2, seed 12345. Launched 00:24:54, exited 00:25:15 (20.9 s launch to exit). `success`, 3118 frames.
+  `rngcmp.py` against run1254: 3118 frames in common, 0 differing. Not filed: the packet is the product.
+  `df -g ~` read 137 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1254c/map-7/frame-snapshot.bin`, 862,592,672 bytes,
+SHA-256 `e8e50e489dcfe169dd8e2c3b338ad41a891577f6dbbf12d72e1d98eb1667ebf9`.
+
+**What it holds**: three `AMMO` records on block 3115, all at `0/9`: `1/32` from (7459, 30915, 792), `total_time`
+5 (ours 6 from the figure's own (7560, 30840)); `1/31` from (5827, 30661, 818), 5; `1/43` from (8299, 31334, 796),
+6. `tools/recomp/get_position.py entries 48` reads three `AttachPos` rows on piece 1104's keys with their own
+points; `fit_bay.py` fits each sweep to one region. Pinned by
+`launch::tests::run1254c_s_egyptian_arquebusiers_fire_from_piece_48_s_bays`.

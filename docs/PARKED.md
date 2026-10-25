@@ -10769,13 +10769,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RD — reserved
+## Parked by item 3603, 2026-10-25 — the Egyptians at a held Gunpowder age
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3603a — which nations' Arquebusiers play piece 48.** The Egyptian
+  Arquebusiers (TypeIndex 98) play piece 48 (`docs/AI.md` §324, run1254c's
+  packet), the Japanese piece 1104 (§316), and the two arts' `AttachPos`
+  rows differ on the same keys. No other nation's Arquebusier round has
+  been read; a lobby whose word lands on one reads its piece off the probe
+  first. Names no score: every lobby's `first_parting` holds with piece
+  48's rows in.
 
 ## Parked by the next landing, slot RE — reserved
 
