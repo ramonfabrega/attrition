@@ -10953,13 +10953,11 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot RV — reserved
+## Parked by item 3623, 2026-10-25 — the Mongols at a held Gunpowder age, East Indies: first try 1973
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting books: the Monarch `1/17` (TI 354) casts Create Decoy (spell 634) in theirs
+in the undumped gap 1902..1967 and idles in ours, and ours' idle figure draws twice on 1973 (`docs/AI.md` §331).
+`Horde` (203) is fielded.
 
 ## Parked by the next landing, slot RW — reserved
 

@@ -290,6 +290,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // held-out `GreatLakesRomanTier2`, `(14, 6, 2)`, nor the Classical
     // pair's `(7, 6, 5)`, another map.
     (18, 6, 5),
+    // The Mongol Gunpowder pair's (item 3623): the Mongols at a held
+    // Gunpowder age, Difficulty 5, East Indies — not the successor pair's
+    // `(18, 17, 3)`, another difficulty, nor `(7, 17, 3)` or the Classical
+    // pair's `(7, 17, 5)`, another map; the battery fields no Mongols.
+    (18, 17, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
