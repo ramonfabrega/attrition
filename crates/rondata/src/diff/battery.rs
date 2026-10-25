@@ -278,6 +278,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // third pair's `(14, 10, 5)` and `(18, 10, 5)`, other maps; no battery
     // game fields the French.
     (7, 10, 5),
+    // The Roman Medieval pair's (item 3620): the Romans at a held Medieval
+    // age, Difficulty 5, East Indies — not the AI word
+    // `EastIndiesRomanTier2`, `(18, 6, 2)`, another difficulty, nor the
+    // held-out `GreatLakesRomanTier2`, `(14, 6, 2)`, nor the Classical
+    // pair's `(7, 6, 5)`, another map.
+    (18, 6, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
