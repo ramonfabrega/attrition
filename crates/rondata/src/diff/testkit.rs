@@ -7316,6 +7316,12 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole",
         2,
     ),
+    // Item 3634: run1296b's window, walked from run1278 through 5297,
+    // reads the same 2.
+    (
+        "mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole",
+        2,
+    ),
     // Item 3630: run1292c's walk back, through 4495, reads the same 2.
     ("mongol_gunpowder_pair_run1292c_walks_back_from_4499", 2),
     // Item 3619: the Dutch Medieval pair's first try, walked from run1272
@@ -10358,13 +10364,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // widened it on run1292b over 4493..4749 (the word's block 4500); the
     // state first parts on run1292c's block 4475. Item 3632 moved it to
     // 4632 (the Horde looses through its saddle pivot), inside the same
-    // window: the state first parts on the word's own block 4633.
+    // window: the state first parts on the word's own block 4633. Item
+    // 3634 moved it to 5047 (fight's re-search hands its find to the
+    // group) and widened it on run1296b over 5041..5297 (the word's block
+    // 5048).
     (
         "MONGOL_GUNPOWDER_PAIR_WORD",
         crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER_PAIR_WORD,
-        Some("mongol_gunpowder_pair_run1292b_s_word_frame_is_widened_whole"),
-        3632,
-        Some(crate::diff::mongol_gunpowder_pair::WIDENING_MONGOL_GUNPOWDER_FRAME_4499),
+        Some("mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole"),
+        3634,
+        Some(crate::diff::mongol_gunpowder_pair::WIDENING_MONGOL_GUNPOWDER_FRAME_5047),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12273,7 +12282,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Mongols at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3623): first try 1973 of a
     // game that ends itself on 5399, widened on run1279b; 4499 since item
-    // 3630, widened on run1292b; 4632 since item 3632, the same window.
+    // 3630, widened on run1292b; 4632 since item 3632, the same window;
+    // 5047 since item 3634, widened on run1296b.
     AiWord {
         line: "Late ages",
         map: "EastIndiesMongolGunpowder",
@@ -12281,7 +12291,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::mongol_gunpowder_pair::MONGOL_GUNPOWDER_PAIR_WORD,
         length: 5_399,
         endpoint: None,
-        window: Some("mongol_gunpowder_frame_4499_window"),
+        window: Some("mongol_gunpowder_frame_5047_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

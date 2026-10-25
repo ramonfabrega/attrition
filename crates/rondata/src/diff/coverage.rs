@@ -3517,6 +3517,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::mongol_gunpowder_pair::mongol_gunpowder_late_stride_window(),
         || super::mongol_gunpowder_pair::mongol_gunpowder_before_4499_window(),
         || super::mongol_gunpowder_pair::mongol_gunpowder_frame_4499_window(),
+        || super::mongol_gunpowder_pair::mongol_gunpowder_frame_5047_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
         || super::lakota_medieval_pair::lakota_medieval_rounds_window(),
         || super::lakota_medieval_pair::lakota_medieval_closing_window(),
