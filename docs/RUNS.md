@@ -27658,6 +27658,52 @@ SHA-256 `ca8ad2d956c6220677323e079c962ea140e92dcfa678cc456644f8b13e34cd84`.
 Archers `1/74`'s round at the Scout `0/0` leaves (7140, 8347) and flies 15 frames in theirs, against the figure's
 own square and 16 frames in ours, and the Scout is a step behind from the first block.
 
+## run1270 — the Inca at a held Classical age, East Indies: the gap before the word 5357, blocks 5301..5360 (2026-10-25, item 3617, `att-3617`)
+
+`docs/AI.md` §327.2. **What the disk could not answer**: the state's first parted frame, which lies in the gap
+5302..5350. run1260's stride prints units on 5301 and 5401 only, and run1269 opens on 5351 with the Scout `0/0`
+already a step behind. Taken from the stride's last block (3155). `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1270 --map 18 --end-frame 5360 --timeout 3600 --log-window 5301 5360 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover cover=0 --profile
+STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 06:35:33, exited 06:36:07 (33.1 s launch to exit). `success`: 5361 frames, seed 12345.
+  `rngcmp.py` of its trace against run1260's: 5361 frames identical. Filed with `filerun.py run1270
+  eastindies-inca-classical-window-5301-5360 --map 18`. `df -g ~` read 116 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1270-eastindies-inca-classical-window-5301-5360.txt`, 132,489,588 bytes,
+SHA-256 `5b6e01f537b6f3d47d9ea5027a0e6ad7f417d7cb6a40a3e6b7bbb96c841c578c`.
+
+Archive `rontrace-run1270.log`, 112,263,168 bytes,
+SHA-256 `1bd97ccbd36381e3a61cc77e60da953391140c0048c89f5e12aaa5406b30a188`.
+
+**What it holds**: `inca_classical_pair_run1270_s_gap_is_widened_whole` (59 blocks; 149 keys before piece 825's
+bays, 115 after). The state first parts on block 5344. The Scout `0/0` is wounded in theirs on 5343 by the Archers
+`1/58`'s arrow, which leaves (7278, 8882) and flies 17 frames. Ours leaves the figure's own (7224, 8952) and flies
+18. `run1270_s_inca_archers_loose_from_piece_825_s_bays` holds `1/58`'s, `1/73`'s and `1/74`'s launches.
+
+## run1270b — the Inca at a held Classical age, East Indies: the closing window, blocks 5817..6074 (2026-10-25, item 3617, `att-3617`)
+
+`docs/AI.md` §327.2. **What the disk could not answer**: the pair went whole, and run1260 prints units every
+hundredth block and no leader, building or city record past the start, so no dump held the last blocks at detail.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1270b --map 18 --end-frame 6073 --allow-early-end
+--timeout 3600 --log-window 5817 6074 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --ai-tribe 2
+--cover cover=0 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 06:46:59, exited 06:48:05 (66.2 s launch to exit). `success`: 6074 frames, closing frame
+  6074. `rngcmp.py` against run1260: 6074 of 6074 identical. Filed with `filerun.py run1270b
+  eastindies-inca-classical-window-5817-6074 --map 18`. `df -g ~` read 114 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1270b-eastindies-inca-classical-window-5817-6074.txt`, 578,406,959 bytes,
+SHA-256 `3338e3dfefa807826956353e406f6c708bbbcdcb0098756574bcdefae41e522d`.
+
+Archive `rontrace-run1270b.log`, 150,004,128 bytes,
+SHA-256 `fc1dcfa91acdc269435a57425d391e71ce8904d49503e6a36ac67989f2880db0`.
+
+**What it holds**: `inca_classical_pair_run1270b_s_closing_frame_is_widened_whole` (257 blocks, 95 keys: the
+standing families and who=1's `free_peasants`/`gatherers` from 5978) through the closing block.
+
 ## run1257 — the Russians at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-25, item 3605, `att-3605`)
 
 `docs/AI.md` §326. §313's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh

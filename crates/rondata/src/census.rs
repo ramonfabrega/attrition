@@ -427,7 +427,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Gunpowder pair whole at 4454 — `Mameluke` (197, 286 figure rows over
 /// run1253 and run1254) and `Elite Camel Warrior` (215, 204), the two
 /// lines §324 booked, read by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 186;
+/// Item 3617: 186 -> 187 on the tree holding 3615's merge, the Inca
+/// Classical pair whole at 6073 — `Inti Clubmen` (91, 10266 figure rows
+/// over run1259, run1260 and run1260b), the line §327 booked.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 187;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
