@@ -10676,3 +10676,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1279  run1273's line with --ai-tribe 17 and run1278's lobby   (the draw stream; ended itself on 5399)
 #   run1279b --map 18 --end-frame 2224 --allow-early-end --timeout 3600 --log-window 1968 2224 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0, run1278's lobby   (the word 1973's window)
 # Checks: `rngcmp.py` run1278 vs run1279 -> 37 identical; run1279 vs run1279b -> 2225 identical.
+# ==== item 3630: the Mongol Gunpowder word, the gap and the moved word (`docs/AI.md` §331; `docs/RUNS.md` run1292, run1292b, run1292c) ====
+#   run1292  --map 18 --end-frame 1975 --allow-early-end --timeout 3600 --log-window 1895 1975 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=1, run1278's lobby   (the gap 1902..1967)
+#   run1292b --map 18 --end-frame 4749 --allow-early-end --timeout 3600 --log-window 4493 4749 --detail (run1292's) --ai-tribe 17 --cover cover=0, run1278's lobby   (the word 4499's window)
+#   run1292c --map 18 --end-frame 4495 --allow-early-end --timeout 3600 --log-window 4395 4495 --detail (run1292's) --ai-tribe 17 --cover cover=0, run1278's lobby   (the walk back from 4499)
+# Checks: `rngcmp.py` run1279 vs run1292 -> 1976 identical; vs run1292b -> 4750 identical; vs run1292c -> 4496 identical.
