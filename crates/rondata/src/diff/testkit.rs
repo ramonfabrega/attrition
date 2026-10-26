@@ -10560,6 +10560,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3661,
         Some(crate::diff::american_enlightenment_pair::WIDENING_AMERICAN_ENLIGHTENMENT_FRAME_6669),
     ),
+    // **The British at a held Classical age, at difficulty 4** (item
+    // 3651): East Indies — first try 4567 of 8980 by the count and the
+    // sequence, widened on run1316b over 4561..4817 (the word's block
+    // 4568), the rounds compared.
+    (
+        "BRITISH_CLASSICAL_PAIR_WORD",
+        crate::diff::british_classical_pair::BRITISH_CLASSICAL_PAIR_WORD,
+        Some("british_classical_pair_run1316b_s_word_frame_is_widened_whole"),
+        3651,
+        Some(crate::diff::british_classical_pair::WIDENING_BRITISH_CLASSICAL_FRAME_4567),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12616,6 +12627,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 6_669,
         endpoint: Some("american_enlightenment_pair_run1314_s_closing_state"),
         window: Some("american_enlightenment_frame_6669_window"),
+    },
+    // The British at a held Classical age (`STARTING_TECHNOLOGY` 1,
+    // `ENDING_TECHNOLOGY` 1) at difficulty 4, East Indies (item 3651):
+    // first try 4567 of a game that ends itself on 8980, widened on
+    // run1316b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesBritishClassical",
+        named: "East Indies (British, Classical)",
+        word: crate::diff::british_classical_pair::BRITISH_CLASSICAL_PAIR_WORD,
+        length: 8_980,
+        endpoint: None,
+        window: Some("british_classical_frame_4567_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

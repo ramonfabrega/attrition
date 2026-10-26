@@ -29527,3 +29527,82 @@ SHA-256 `7579267df52db553636d0664fe76dcb983441aed9a965353730364acb07ce0f9`.
 **What it holds**: `american_enlightenment_pair_run1325d_s_closing_window_is_widened_whole` (256 blocks, 147 keys, all
 standing; rounds 82 a side, none parting). Before piece 218's bays who=1's Cannons' four rounds left the carriage's own
 point, 100 low: `1/96`'s on 6475 from (9480, 9864, 318) against (9369, 9768, 418).
+## run1315 — the British at a held Classical age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-26, item 3651, `att-3651`)
+
+`docs/AI.md` §342. run1313's lobby with the nation, the age and the difficulty moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1315 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 11 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 1. Launched 10:43:03, exited 10:43:26 (23.8 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 11, five files restored. `GAME INFO` reads back
+  `DIFFICULTY 4`, `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1` (`Pair::assert_lobby`). Filed with `filerun.py
+  run1315 eastindies-british-classical-start`. `df -g ~` read 71 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1315-eastindies-british-classical-start.txt`, 153,787,371 bytes,
+SHA-256 `72cb5b1857e26bb7577a270b8a751823380f7aaac075b603611efc9385cf0045`.
+
+Archive `rontrace-run1315.log`, 10,113,184 bytes,
+SHA-256 `b2c4e1532752aa73767bde76b6adf184c1b07c4551bde4ca077952c0e2c29ea2`.
+
+**What it holds**: the start of `british_classical_pair::BRITISH_CLASSICAL`, and the walk's initial state.
+
+## run1316 — the British at a held Classical age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-26, item 3651, `att-3651`)
+
+`docs/AI.md` §342. run1314's line with `--ai-tribe 11` and run1315's lobby.
+- Pool lane 2, beside run1315. Launched 10:43:09, exited 10:43:51 (42.0 s launch to exit). `success`. **The game
+  ended itself on 8980** (closing block 8981, `ended_early`). `GAME INFO` reads back as run1315's. `rngcmp.py`
+  against run1315: 37 frames identical. Filed with `filerun.py run1316 eastindies-british-classical-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1316-eastindies-british-classical-trace.txt`, 63,363,186 bytes,
+SHA-256 `48ed1355deaaf74fb18dbfd0af2dfaf60a5aaeff7e9485b7ce79fde3b6a70b6e`.
+
+Archive `rontrace-run1316.log`, 358,973,824 bytes,
+SHA-256 `2741f3b06b913a7d675425eef740ffdad02e244115aa3f46f30961500905df6e`.
+
+**What it holds**: the pair's first try. `british_classical_pair_first_parting` walks it from run1315: **4567 of
+8980** by the count and the sequence (ours 13 draws against 16, index 1).
+`british_classical_pair_the_long_s_stride_walks_back_from_4567` walks its stride 101..4501: 45 blocks, 186 keys; the
+first unit rows are on 4401 (the Citizen `0/5`, the Galleys `1/21` and `1/27`).
+
+## run1316b — the British at a held Classical age, East Indies, at difficulty 4: the word 4567's window, blocks 4561..4817 (2026-10-26, item 3651, `att-3651`)
+
+`docs/AI.md` §342. **What the disk could not answer**: every record on the word's frame. run1316's stride prints
+units on 4501 and 4601 only, and no `LEADERDATA`, building or `AMMO` record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1316b --map 18 --end-frame 4817 --allow-early-end
+--timeout 3600 --log-window 4561 4817 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe
+11 --cover cover=0` and run1315's lobby.
+- Pool lane 1. Launched 10:46:03, exited after 49.9 s. `success`: 4818 frames. `rngcmp.py` against run1316: 4818 of
+  4818 identical. Filed with `filerun.py run1316b eastindies-british-classical-window-4561-4817`. `df -g ~` read 69
+  GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1316b-eastindies-british-classical-window-4561-4817.txt`, 565,329,909 bytes,
+SHA-256 `46469ac3e629ab36d0270f15255b474a6971186395da55bdffdddd141531b7e7`.
+
+Archive `rontrace-run1316b.log`, 102,086,336 bytes,
+SHA-256 `e60250a7b06fede08a16619afebdae2c600c264d0a5210ec51ea6622a215bf7a`.
+
+**What it holds**: `british_classical_pair_run1316b_s_word_frame_is_widened_whole` (256 blocks, 959 keys, rounds
+809 theirs against 899 ours, 145 parting). On the word's block 4568 who=1's Galley `1/21` (TI 341) fires again at
+`0/10` in theirs; ours has lost it and turns to `0/3`.
+
+## run1316c — the British at a held Classical age, East Indies, at difficulty 4: the stride's gap, blocks 4295..4401 (2026-10-26, item 3651, `att-3651`)
+
+`docs/AI.md` §342. **What the disk could not answer**: the frame the state parts in run1316's gap 4302..4400, which
+its stride agrees on at 4301 and parts on at 4401. run1316b's line with `--end-frame 4401 --log-window 4295 4401`.
+- Pool lane 1. Launched 10:49:07, exited after 36.7 s. `success`: 4402 frames. `rngcmp.py` against run1316: 4402 of
+  4402 identical. Filed with `filerun.py run1316c eastindies-british-classical-window-4295-4401`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1316c-eastindies-british-classical-window-4295-4401.txt`, 232,351,693 bytes,
+SHA-256 `e4d2954bab06967d22f4e859cea5f2c127b7193eecd4fdf95fa849c72eb5092c`.
+
+Archive `rontrace-run1316c.log`, 91,424,224 bytes,
+SHA-256 `d88208ece660aa2dd41c21a34aeb6589de43730a4948fe760e4a8772084a2b2d`.
+
+**What it holds**: `british_classical_pair_run1316c_s_gap_is_widened_whole` (106 blocks, 140 keys, rounds 167
+theirs against 164 ours, 26 parting). The first parting round is on 4298: who=1's Galley `1/29` (TI 341) launches
+from (2690, 3917) at `sz` 52 in theirs and from the hull's square (2472, 4200) at 0 in ours; the human's building
+`0/2004` and its city `0/2000` part on 4328.

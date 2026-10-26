@@ -31832,12 +31832,69 @@ refusal — are not built and no capture reaches them (parked 3661a). The
 bays are centroids of their fit regions, exact at every whole degree
 only.
 
-## 342. Reserved for the next item on the AI track
+## 342. The British at a held Classical age, East Indies, at difficulty 4: first try 4567 of 8980 (item 3651)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** East Indies (`MAP_STYLE 18`), human Nubians (4) against the
+British (11) at **Difficulty 4**, seed 12345, `STARTING_RESOURCES 7`, the
+age held at Classical (`STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY 1`).
+The difficulty is the lobby's `--profile DIFFICULTY=4`, as every pair
+sets its own; both takes read it back from `GAME INFO`
+(`Pair::assert_lobby`'s `DIFFICULTY` row), and the walk pins it again
+(`w.difficulty`). The triple `(18, 11, 4)` is new: every other British
+triple the scored words hold is at difficulty 0 or 5, and the battery
+fields no British (`british_classical_pair_is_no_other_lobby`).
+Captures: run1315 (the `DUMP_ALL` start), run1316 (the draw stream; the
+game ended itself on 8980), run1316b (the word's window, 4561..4817) and
+run1316c (the stride's gap, 4295..4401). The pair is
+`rondata::diff::british_classical_pair`.
+
+**The score.** First try **4567 of 8980**, by the count and the sequence:
+on 4567 ours spends 13 draws against theirs' 16, parting at index 1 —
+theirs' `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` stands where ours
+spends `… < Guy::inc_time+0x271`, and theirs spends two more
+`Guy::set_anim+0x104b`.
+
+**The value diff, walked back.**
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4298 | `1/29` Galley's round `ammo[0]` | `sx`, `sy`, `sz` | (2472, 4200), 0 | (2690, 3917), 52 |
+| 4298 | the same | `ex`, `ey` | (4241, 5678) | (4258, 5659) |
+| 4328 | the human's building `0/2004` | `build:damage`, `damage_frac` | 90, 3 | 87, 14 |
+| 4328 | its city `0/2000` | `raid_stamp` | 4327 | 4321 |
+| 4399 | the human's Citizen `0/5` (TY 0, TI 50) | `hits_left` | 48 | 50 |
+| 4401 | Galley `1/21` (TY 291, TI 341) | move `off_y`, `dest_y` | 24, 6936 | 744, 6888 |
+| 4568 | `1/21` | `in_range`, `recharging`, target | 0, 0, `0/3` | 1, 40, `0/10` |
+
+**The direction: theirs' Galleys loose their rounds from a bay off the
+hull; ours from the hull's own square.** who=1's Galley `1/29` (TY 291,
+TypeIndex 341, sea, by `RON_DEBUG_UNIT`) stands at (2472, 4200) and
+shoots the human's `0/2004`. Its round on 4298 starts in theirs at
+(+218, −283) off the hull and 52 up; ours starts at the hull at 0. The
+end point parts, the blow lands on another frame, and the building's
+damage and the city's raid stamp part on 4328. By 4399 a Galley's round
+wounds the Citizen `0/5` in ours alone; it flees, and the Galleys' group
+move orders part on 4401. On the word, `1/21` stands 48 nearer its target
+`0/10` in theirs and fires again; ours has lost it and turns to `0/3`.
+
+**The next item's hypothesis** is the Galley's launch piece:
+`sim::launch::BAYS` holds no row for unit type 341, so ours launches from
+the square. The recipe is item 3660's and 3659's (a packet on the round's
+launch frame, the piece's bay off it). Not read off the listing; a
+hypothesis.
+
+**The rounds**, both directions: run1316c reads 167 round-blocks theirs
+against 164 ours, 26 parting, the first on 4298 above; run1316b reads 809
+against 899, 145 parting — the Galleys' rounds.
+
+**The standing families**: `build:extra` on 56 buildings, `form` on 71
+units, who=1's groups' `held` and pools, both leaders' `SITE[·].reg` 65
+against 0 and `aggression[1]` — as on every pair.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **201 of
+302**, unmoved: the pair parts, so it is not lockstep. **`Longbowmen`
+(177)**, the booking's line, **is fielded**: 9312 guy records across
+run1316 and run1316b (`rubric.py --dumps`).
 
 ## 343. Reserved for the next item on the AI track
 
