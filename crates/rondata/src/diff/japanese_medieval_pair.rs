@@ -160,7 +160,7 @@ fn japanese_medieval_pair_the_long_s_stride_walks_to_5101() {
     let Some(w) = japanese_medieval_stride_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every stride block in the window");
+    pin_eq!(w.blocks, 51, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -173,7 +173,11 @@ fn japanese_medieval_pair_the_long_s_stride_walks_to_5101() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "the stride's baseline");
+    // Item 3664: 108 keys, all of them the standing families — 65
+    // buildings' `build:extra` (which the stride does not print), `form`
+    // on 27 units, and who=1's groups' `held` and pools 64..71 as each is
+    // minted. **No unit row parts on any stride block to 5101.**
+    pin_eq!(w.firsts.len(), 108, "the stride's baseline");
 }
 
 /// run1329b: the closing window, blocks 4884..5141 at the word window's
@@ -280,7 +284,10 @@ fn japanese_medieval_pair_run1329_s_closing_state() {
         harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 5141, "the closing block");
-    pin_eq!(e.compared, 0, "units compared");
+    // Item 3664, the pair whole on its first try: 187 units, none off,
+    // torn, unlinked or extra, `Closing fields: none` — the game ends
+    // itself on 5140.
+    pin_eq!(e.compared, 187, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.extra.clone(),
