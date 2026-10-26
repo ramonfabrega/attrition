@@ -12,17 +12,12 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-26, **the fifty-eighth tranche (commander, Opus): 20 of 20 landed from `1e8ec999d`**; no lane live; the last whole gate is `01cd9550e`.*
-- **Words**: one open — the Koreans at Medieval, 3401 of 4,559 (lower map first — Great Lakes (Koreans, Medieval)), 3666 on 3401 (3665 stood it up).
-  **Closed: the Lakota** 4187 → 4750 (3645, 3654), **the Spanish** 4859 → 6128 (3646); **stood up and closed: the Iroquois** 3962 → 5128
-  (3629, 3655), **the Inca** 3095 → 4045 (3648, 3659); **the Aztecs** 2556 → 4602 (3647, 3657, 3658), **the Indians** 4157 → 5000 (3649, 3660), **the Americans** 3215 → 6669 (3650, 3661), **the British** 4567 → 8980 (3651, 3662), **the Persians** 10937 → 11633 (3652, 3663); **whole on its first try: the Japanese at Medieval** 5140 (3664). Nine of ten fixes were launch points (3661's and 3662's beside a SEAM each).
-- **The rubric, lockstep**: types 189 → 195 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; 107 never (Air 21, Sea 2, Land 84); row in `rubric.tsv`.
-- **The lane gate's floor is the sim crate's own suite, not the timed set** (the pass replayed 3626's lane gate on its branch tip: the rule
-  fired, 758 timed tests left to the booking gate, and the release step ran long anyway — the budget's file times the data crate alone, and
-  the sim's five test binaries ran whole in every lane gate; cut for a lane that touches no sim path, Loop 3653, DECISIONS 96 §1). Lanes stay two: waiting 46.5 a landing (44.2) holds within a
-  fifth, and the gate class 31.8 a session stands above the 26.1 the third lane was taken at.
-- **Lanes: none live; one booked** (3666 the Korean word). Next 3667, run 1333. Pools: AI §346–349, park TI.
-- **Fable backlog: 8 Loop items** (3656, 3611, 3382, 3350, 3237, 3188, 3143, 3118); 3638 built and 3644 ruled into the words' items (the record).
+*2026-10-26, **the fifty-eighth tranche (commander, Opus): drained at twenty from `1e8ec999d`**, every lane reaped; **the pass is due**.*
+- **Words**: one open — the Koreans at Medieval, 3401 of 4,559 (lower map first — Great Lakes (Koreans, Medieval)), 3666 on 3401 (3665 stood it up). **The headline, the early ages**: two words closed — Lakota Gunpowder 4187 → 4750 (3645, 3654), Spanish Gunpowder 4859 → 6128 (3646); nine pairs stood up, eight closed — Iroquois 3962 → 5128 (3629, 3655), Inca 3095 → 4045 (3648, 3659), Aztecs 2556 → 4602 (3647, 3657, 3658), Indians 4157 → 5000 (3649, 3660), Americans 3215 → 6669 (3650, 3661), British at difficulty 4 4567 → 8980 (3651, 3662), Persians 10937 → 11633 (3652, 3663), Japanese whole first try 5140 (3664). Nine of ten fixes were launch points (bay or pivot rows off a packet); 3661 and 3662 each closed a SEAM beside theirs.
+- **The rubric, lockstep**: unit types 195 → 205 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; 97 never (Air 21, Sea 2, Land 74); row in `rubric.tsv`. Three pairs went to Great Lakes at 5 by entry 72's rule (3), each nation holding no Great Lakes game (3652, 3664, 3665).
+- **For the pass** (`tranche.py --base 1e8ec999d`, `gates.py`): 20 landings · six DEEP (3645 321 k, 3646 317 k, 3654 310 k, 3655 306 k, 3661 325 k, 3662 322 k) · 40.2 minutes waiting a landing (46.5) · 8.06 USD a landing (161.15 over 24 sessions; 7.66) · 2.5 captures a landing; 17 booking gates logged before the drain's (3657's and 3658's logs are not on disk): 6 whole, 11 scoped (11 widened), 0 red, 417.9 minutes; admission 1964.1 s, longest 37.8 s; 5 past the cores; gate 25.3 of 51.2 lane minutes a session (31.8); two Opus lanes, 12 h 24. **Loop 3653's cut, measured**: the four stand-ups that touched no sim path ran release 5.6–6.9 lane-gate minutes (3650, 3651, 3652, 3664) against 17.3–23.8 for the rest.
+- **Lanes: none live; one booked** (3666 the Korean word); the record's refill after it: the Russians at Gunpowder, the Romans at Gunpowder, the French at Enlightenment, each by rule (3). Next 3667, run 1333. Pools: AI §346–349, park TI (one slot left).
+- **Fable backlog: 8 Loop items** (3656, 3611, 3382, 3350, 3237, 3188, 3143, 3118); `test_viadriver` flaked under load in three lane gates (3656).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -41,7 +36,7 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 205 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-eighth tranche (commander, Opus) — two Opus lanes at medium, 3645 the Lakota word first (frame 4187, the lower map), 3646 beside it, then the pairs 3629 and 3647–3652 in order; the refill after 3652 is the record's order; drain at twenty and clear the steer row.**
+**Opener: the fifty-eighth pass (steer, Fable) — the tranche drained at twenty from `1e8ec999d`; this handoff, the one open word (3666 the Koreans, Great Lakes), the record's refill and the park pool, the backlog.**
 
 ## The queue
 
