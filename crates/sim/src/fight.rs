@@ -2699,6 +2699,23 @@ impl Sim {
             ap.ammo_per_att,
             ap.uber_size,
         );
+        if std::env::var("RON_PROBE_3677").is_ok() {
+            eprintln!(
+                "PROBE3677 f{frame} {:?}->{:?} attack {} armor {} pct {} dmg {} count {} ammo {} dealt {:?} at {:?} tt {:?} ap {:?}",
+                attacker,
+                target,
+                self.attack_of(attacker),
+                self.armor_of(target),
+                pct,
+                dmg,
+                count,
+                ammo,
+                dealt,
+                at,
+                tt,
+                ap
+            );
+        }
         // Step 6: `dtype`, which is the death animation's gate (§42.1).
         // `get_damage` leaves 2, or 3 for an EXPLOSIVE/BOMBARD attacker;
         // `do_damage` then overrides it to **4** for an ammo whose graphic
