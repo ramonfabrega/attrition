@@ -967,6 +967,11 @@ pub struct Tuning {
     pub plunder: i32,
     /// Percent bonus on plunder for an Aztec attacker.
     pub aztec_plunder: i32,
+    /// Whole units of a good an Aztec kill pays per age (`ages + 1`):
+    /// `Unit::plunder@00605b00`'s `aztec_slay_bonus` (`constants +0x56c`).
+    pub aztec_slay_bonus: i32,
+    /// The ceiling on that pay: `aztec_slay_cap` (`constants +0x570`).
+    pub aztec_slay_cap: i32,
     /// Percent of plunder the Despot (or Spitamenes) adds as the hero cut.
     pub thedespot_plunder: i32,
     /// Whole units of a good The Despot (or Spitamenes) adds to a unit kill
@@ -1640,6 +1645,8 @@ impl Tuning {
         capital_plunder: 500,
         plunder: 100,
         aztec_plunder: 100,
+        aztec_slay_bonus: 15,
+        aztec_slay_cap: 60,
         thedespot_plunder: 100,
         thedespot_unit_plunder: 15,
         russian_plunder_steal: 1,
@@ -2442,6 +2449,8 @@ impl Tuning {
             ("CAPITAL_PLUNDER", Slot::Value(T.capital_plunder)),
             ("PLUNDER", Slot::Value(T.plunder)),
             ("AZTEC_PLUNDER", Slot::Value(T.aztec_plunder)),
+            ("AZTEC_SLAY_BONUS", Slot::Value(T.aztec_slay_bonus)),
+            ("AZTEC_SLAY_CAP", Slot::Value(T.aztec_slay_cap)),
             ("THEDESPOT_PLUNDER", Slot::Value(T.thedespot_plunder)),
             (
                 "THEDESPOT_UNIT_PLUNDER",

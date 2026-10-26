@@ -100,7 +100,9 @@ pub trait PlunderView {
     fn has_tribe_bonus(&mut self, who: i32, bonus: i32) -> bool;
     /// The leader's bucket of `good`.
     fn bucket(&mut self, who: i32, good: i32) -> i32;
-    /// The word at bucket `+0xdc` (the Aztec slay count) unscrambled.
+    /// The word at bucket `+0xdc` unscrambled (`^ 0x62766`): the leader's
+    /// `ages` (`LeaderDataEncrypt::walk_data@006d9900`), which the Aztec
+    /// slay pay multiplies as `ages + 1` (item 3657).
     fn slay_count(&mut self, who: i32) -> i32;
     /// The bucket of `good` gains `n`.
     fn add_good(&mut self, who: i32, good: i32, n: i32);
@@ -395,10 +397,10 @@ impl PlunderView for SimPlunder<'_> {
         0
     }
     fn slay_bonus_of_killer(&mut self) -> i32 {
-        0
+        self.sim.tuning.aztec_slay_bonus
     }
     fn aztec_slay_cap(&mut self) -> i32 {
-        0
+        self.sim.tuning.aztec_slay_cap
     }
     fn aztec_plunder(&mut self) -> i32 {
         self.sim.tuning.aztec_plunder
@@ -423,8 +425,8 @@ impl PlunderView for SimPlunder<'_> {
     fn bucket(&mut self, who: i32, good: i32) -> i32 {
         self.sim.ledgers[who as usize].bucket[good as usize]
     }
-    fn slay_count(&mut self, _who: i32) -> i32 {
-        0
+    fn slay_count(&mut self, who: i32) -> i32 {
+        self.sim.tech[who as usize].ages
     }
     fn add_good(&mut self, who: i32, good: i32, n: i32) {
         let b = &mut self.sim.ledgers[who as usize].bucket[good as usize];

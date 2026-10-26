@@ -3140,12 +3140,21 @@ impl Sim {
     /// run943's Citizen `0/3`, killed on 10852 by `1/58` beside The Despot
     /// `1/46`: four draws (oil not yet available) and who=1's metal 44 → 59.
     ///
+    /// **The Aztec slay arm** comes first (`:553`–`:555`, item 3657): a
+    /// killer whose leader has tribe bonus 0 (the Aztecs) and whose type's
+    /// trainer (`+0x40`) is **by equality** the Barracks (`0x1ab`), the
+    /// Stable (`0x1ac`) or the Dock (`0x1b0`) calls `plunder(v, k, who, 1,
+    /// 0)` whatever the victim, Despot or none. The pay is `(ages + 1) ×
+    /// AZTEC_SLAY_BONUS` up to `AZTEC_SLAY_CAP`, in the good the same four
+    /// draws pick; run1308b's Heavy Horse Archer `1/29` (a Stable type) kills
+    /// the Citizen `0/13` on 2556 at Medieval (`ages` 2) and who=1's timber
+    /// goes 12714 → 12759.
+    ///
     /// The body is [`crate::plunder::plunder_steps`] over [`crate::plunder::SimPlunder`]
     /// (the original's whole function, swept against it in item 3356).
     ///
     /// SEAM: the General, caravan and supply-wagon victims
-    /// (their own plunder constants), the Aztec killer's slay bonus
-    /// (the `param_3` of the original), the Inca refund, and the victim
+    /// (their own plunder constants), the Inca refund, and the victim
     /// redirect of a type with `+0x2b4 & 0x10` are not carried.
     pub(crate) fn unit_plunder(&mut self, v: usize, k: usize) {
         use crate::ai_load::uflags2;
@@ -3159,6 +3168,24 @@ impl Sim {
         let (vw, at) = (victim.owner, victim.pos);
         let who = self.units[k].owner;
         if who == vw || self.is_ally(vw, who) {
+            return;
+        }
+        let slay = self.nation[who as usize].aztecs
+            && self.units[k]
+                .ty
+                .and_then(|t| self.trainer_ident(t))
+                .is_some_and(|i| {
+                    use crate::build::Ident;
+                    matches!(i, Ident::Barracks | Ident::Stable | Ident::Dock)
+                });
+        if slay {
+            crate::plunder::plunder_steps(
+                &mut crate::plunder::SimPlunder { sim: self, v },
+                k as i32,
+                i32::from(who),
+                1,
+                0,
+            );
             return;
         }
         let kind = self.units[v]
