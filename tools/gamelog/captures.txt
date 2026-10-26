@@ -10747,3 +10747,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1291  run1157's line with --ai-tribe 18 and run1290's lobby   (the draw stream; ended itself on 5128)
 #   run1291b --map 18 --end-frame 4212 --allow-early-end --timeout 3600 --log-window 3956 4212 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 18 --cover cover=0, run1290's lobby   (the word 3962's window)
 # Checks: `rngcmp.py` run1290 vs run1291 -> 37 identical; run1291 vs run1291b -> 4213 identical.
+# ==== item 3647: the Aztecs at a held Medieval age, Great Sahara (`docs/AI.md` §338; `docs/RUNS.md` run1307, run1308, run1308b) ====
+#   run1307  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1308  run1281's line with --ai-tribe 0 and run1307's lobby   (the draw stream; ended itself on 4602)
+#   run1308b --map 7 --end-frame 2806 --timeout 3600 --log-window 2550 2806 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover cover=0, run1307's lobby   (the word 2556's window)
+# Checks: `rngcmp.py` run1307 vs run1308 -> 37 identical; run1308 vs run1308b -> 2807 identical.

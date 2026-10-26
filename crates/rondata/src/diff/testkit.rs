@@ -10493,6 +10493,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3629,
         Some(crate::diff::iroquois_enlightenment_pair::WIDENING_IROQUOIS_ENLIGHTENMENT_FRAME_3962),
     ),
+    // **The Aztecs at a held Medieval age** (item 3647): Great Sahara —
+    // first try 2556 of 4602 by the count and the sequence, widened on
+    // run1308b over 2550..2806 (the word's block 2557), the rounds
+    // compared.
+    (
+        "AZTEC_MEDIEVAL_PAIR_WORD",
+        crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL_PAIR_WORD,
+        Some("aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole"),
+        3647,
+        Some(crate::diff::aztec_medieval_pair::WIDENING_AZTEC_MEDIEVAL_FRAME_2556),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12493,6 +12504,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_128,
         endpoint: None,
         window: Some("iroquois_enlightenment_frame_3962_window"),
+    },
+    // The Aztecs at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3647): first try 2556 of a
+    // game that ends itself on 4602, widened on run1308b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaAztecMedieval",
+        named: "Great Sahara (Aztecs, Medieval)",
+        word: crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL_PAIR_WORD,
+        length: 4_602,
+        endpoint: None,
+        window: Some("aztec_medieval_frame_2556_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
