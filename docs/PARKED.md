@@ -3774,6 +3774,11 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-25 — the fifty-seventh tranche's
 
+(3644) **3642's "for the Loop"** (the journal's line, filed at its merge): the pair widenings (`widen_on_siblings`) compare no `AMMO`
+record, though every pair window since run1287b dumps `AMMO=5`; on the Spanish Gunpowder pair a round's launch point parted on 3860, sixteen
+frames before any key did (3876). `coverage.rs` names the family `OWN_PARSER` (`diff::golden`), so neither the read pin nor the compared pin
+sees the gap. For the pass: whether the pair walks compare `AMMO` (and the coverage pins count it), which every open word would inherit.
+
 (3638) **`test_viadriver`'s second-launch case fails under load** (3634's and 3626's journals, filed at 3626's merge): twice in one
 tranche a lane gate stopped in offline on `test_a_second_launch_while_the_first_runs_still_carries_its_arguments` (`'args: ' not found
 in ''`), each passing three of three alone with nothing under `tools/` touched — and each cost a lane gate's whole re-run. The test's
