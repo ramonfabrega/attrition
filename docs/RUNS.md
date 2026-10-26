@@ -28608,6 +28608,27 @@ SHA-256 `4dca1a5238163778605e82bb77358e85e53aad5c189ed9aa375c61997cbc862a`.
 block 5190 already parts at the human's Citizen `0/10`, wounded on 5132 in theirs and 5133 in ours (run1283b's
 5133), and at who=1's `1/39`'s aim.
 
+## run1302 — the Chinese at a held Gunpowder age, East Indies: the closing window, blocks 5446..5569 (2026-10-25, item 3641, `att-3641`)
+
+`docs/AI.md` §333.3. **What the disk could not answer**: every record from run1299's last block 5446 through the
+closing block 5569, where the word moved to the game's last frame. run1283's stride prints 5501 and the closing
+block only, at `UNITS=3,GUYS=2`. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1302 --map 18
+--end-frame 5568 --allow-early-end --timeout 3600 --log-window 5446 5569 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 14 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 21:42:23, exited 21:43:15 (51.9 s launch to exit). `success`: 5569 frames,
+  closing frame 5569. `rngcmp.py` against run1283: 5569 of 5569 identical. Filed with `filerun.py run1302
+  eastindies-chinese-gunpowder-window-5446-5569 --map 18`. `df -g ~` read 94 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1302-eastindies-chinese-gunpowder-window-5446-5569.txt`, 313,065,663 bytes,
+SHA-256 `852ae5c9ad7ec3c8bd07d51b9505d2df108d7992d8e83f49db2a6c99ef52ee7c`.
+
+Archive `rontrace-run1302.log`, 266,792,000 bytes,
+SHA-256 `bfca76c75e2ad1698554bbbffa1f81a731257c7542b62257bf8ec51a8320bb83`.
+
+**What it holds**: `chinese_gunpowder_pair_run1302_s_closing_window_is_widened_whole` (123 blocks, 129 keys, every
+one a standing family). No unit's position or orders part through the closing block.
 ## run1301 — the Spanish at a held Gunpowder age, East Indies: the gap 2102..2162, blocks 2095..2170 (2026-10-25, item 3640, `att-3640`)
 
 `docs/AI.md` §335.1. **What the disk could not answer**: theirs' side of 2102..2162, where ours casts the Transport

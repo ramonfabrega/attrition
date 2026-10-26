@@ -278,21 +278,32 @@ impl Network {
     ///
     /// Wagons first, then generals — the original's order, and the only thing
     /// the caller does with the answer is test it.
-    pub fn supplies<F>(&self, t: &Tuning, at: Pos, wagon: F) -> bool
+    ///
+    /// `upgrades` is `LeaderData::get_supply_upgrade` asked now
+    /// ([`crate::Sim::supply_upgrade_level`]), never a stored copy: the
+    /// radius reads the research the player holds on the frame it is
+    /// asked (`SupplyData::get_radius`). Item 3641: a stored count in [`PlayerSupply`]
+    /// had no writer, so every wagon reached 14 tiles. run1299's Bombard
+    /// `1/98` fired on 5324 with who=1's Supply Wagon `1/102` 2737 units
+    /// off — out at 14 tiles (2688), in at the 16 Forage gives (who=1
+    /// researched it on 5192) — and
+    /// theirs reloads 60 where ours took the out-of-supply 120.
+    pub fn supplies<F>(&self, t: &Tuning, upgrades: i32, at: Pos, wagon: F) -> bool
     where
         F: Fn(usize) -> Option<Wagon>,
     {
-        self.list.find(at, self.player.radius(t), wagon).is_some()
-            || find_general(&self.generals, at).is_some()
+        let radius = supply_radius(t, upgrades, self.player.terra_cotta);
+        self.list.find(at, radius, wagon).is_some() || find_general(&self.generals, at).is_some()
     }
 }
 
 /// Everything about a player that the supply network reads.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+///
+/// The steps of the supply upgrade chain are not here: they are research,
+/// asked when the radius is ([`Network::supplies`]). A stored copy stood
+/// here with no writer until item 3641.
 pub struct PlayerSupply {
-    /// Steps of the supply upgrade chain held, 0 to 3. Research only — no
-    /// nation grants one, see [`supply_radius`].
-    pub upgrades: i32,
     pub terra_cotta: bool,
     /// The nation bonus that makes supply heal.
     pub heal_bonus: bool,
@@ -300,10 +311,6 @@ pub struct PlayerSupply {
 }
 
 impl PlayerSupply {
-    pub const fn radius(&self, t: &Tuning) -> i32 {
-        supply_radius(t, self.upgrades, self.terra_cotta)
-    }
-
     pub const fn heal_period(&self, t: &Tuning) -> i32 {
         heal_period(t, self.heal_bonus, self.versailles)
     }
@@ -514,6 +521,23 @@ mod tests {
         assert_eq!(supply_radius(&T, 3, false), 20);
         // The wonder is wired in and ships contributing nothing.
         assert_eq!(supply_radius(&T, 0, true), 14);
+    }
+
+    /// Item 3641, run1299's frame 5324: who=1's Bombard `1/98` at (7608,
+    /// 10680) and its Supply Wagon `1/102` at (8040, 7977), 2737 apart.
+    /// The network's answer reads the research it is handed: out at the
+    /// plain 14 tiles (2688), in at the 16 one `SUPPLY_WAGONS_*` step
+    /// gives (3072; who=1's Forage) — and so the Bombard reloads 60
+    /// rather than 120.
+    #[test]
+    fn the_network_s_radius_is_the_research_it_is_asked_with() {
+        let mut net = Network::default();
+        net.list.register(0);
+        let bombard = Pos::new(7608, 10680);
+        let at = |upgrades| net.supplies(&T, upgrades, bombard, |_| Some(wagon(8040, 7977)));
+        assert_eq!(crate::world::vector_dist(7608 - 8040, 10680 - 7977), 2737);
+        assert!(!at(0));
+        assert!(at(1));
     }
 
     #[test]

@@ -447,8 +447,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// read by `rubric.py --tables 3` on this tree. Item 3626: 193 -> 194, the
 /// Greek Gunpowder pair whole at 4074 on its first try — `Stratiotai`
 /// (233, land; 260 figure rows), the line §334 booked, read by `rubric.py
-/// --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 194;
+/// --tables 3` on this tree. Item 3641: 194 -> 195, the Chinese Gunpowder
+/// pair whole at 5568 — `Heavy Fire Lances` (97, land; 1620 figure rows),
+/// the line §333 booked, read by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 195;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
