@@ -10395,15 +10395,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3624,
         Some(crate::diff::bantu_medieval_pair::WINDOW_BANTU_MEDIEVAL_CLOSING),
     ),
-    // **The Chinese at a held Gunpowder age** (items 3625, 3637): East
-    // Indies — first try 4884 of a game that ends itself on 5568; 3637's
-    // planner roll kept, 5196, widened on run1299 over 5190..5446 (the
-    // word's block 5197).
+    // **The Chinese at a held Gunpowder age** (items 3625, 3637, 3639):
+    // East Indies — first try 4884 of a game that ends itself on 5568;
+    // 3637's planner roll kept, 5196; 3639's Dragoon round from piece
+    // 1195's pivot, 5384, widened on run1299 over 5190..5446 (the word's
+    // block 5385).
     (
         "CHINESE_GUNPOWDER_PAIR_WORD",
         crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER_PAIR_WORD,
         Some("chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole"),
-        3637,
+        3639,
         Some(crate::diff::chinese_gunpowder_pair::WIDENING_CHINESE_GUNPOWDER_FRAME_5196),
     ),
     // **The Greeks at a held Gunpowder age** (item 3626): Great Sahara —
@@ -12362,7 +12363,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Chinese at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3625): first try 4884 of a
-    // game that ends itself on 5568; 5196 by item 3637, widened on run1299.
+    // game that ends itself on 5568; 5196 by item 3637, 5384 by item 3639,
+    // widened on run1299.
     AiWord {
         line: "Late ages",
         map: "EastIndiesChineseGunpowder",

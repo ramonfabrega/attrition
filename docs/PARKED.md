@@ -11121,21 +11121,27 @@ leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` st
 
 `do_move` keeps the failed unit-grid search's `retry` roll, and the pair moves 4884 → 5196 (`docs/AI.md` §333.1).
 
-- **3637a. The human's Citizen `0/10` is wounded a frame earlier in theirs, on 5132.** run1283b's first unit row
+- ~~**3637a. The human's Citizen `0/10` is wounded a frame earlier in theirs, on 5132.** run1283b's first unit row
   past the standing families: on block 5133 `0/10` (type 50, uid 17) reads `hits:damage` 26, `hits_left` 24 and
   `damage_frame` 5132 in theirs, against 0, 50 and 0 in ours, and holds a `FLEEORDER` to (6600, 7512) where ours
   idles; ours' wound lands on 5133 (run1299's 5190: `damage_frame` 5133 against 5132). Who struck it is not
   read: the window's `AMMO` records are the next reading, and the draw word 5196 (ours 19 against 20, index 1:
   theirs' second `Unit::do_idle+0x7d` between `1/115` and `1/126`) is the booking. **Score**: the Chinese
-  Gunpowder word, through its frame.
+  Gunpowder word, through its frame.~~ **Built by item 3639** (`docs/AI.md` §333.2): the Dragoon `1/97`'s
+  round of 5130, from piece 1195's pivot.
 
-## Parked by the next landing, slot SK — reserved
+## Parked by item 3639, 2026-10-25 — the Chinese Gunpowder word, 5196 → 5384: the Chinese Dragoon's pivot
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Dragoon's piece 1195 reads piece 139's pivot and release rows, and the pair moves 5196 → 5384 (`docs/AI.md`
+§333.2).
+
+- **3639a. The Bombard `1/98` reloads 120 frames in ours against 60 in theirs, from block 5325.** run1299's first
+  row past the standing families: `1/98` (TypeIndex 267, `BOMBARD`, land, uid 141, four figures; the unit the
+  Dragoon `1/97` guards, in group 67) on a mandatory `ATTACKORDER` at the human's city `0/2000` reads `recharging`
+  120 in ours against 60 in theirs on block 5325. On the word 5384 (ours 49 draws against 53, index 30) theirs
+  spends four `Guy::set_anim+0xf2f < Unit::set_anim < Unit::fight+0x19f6` (a four-figure swing) where ours spends
+  `1/154`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`. Neither the reload's writer nor the swing's unit is read
+  yet; the frame and the delta are the booking. **Score**: the Chinese Gunpowder word, through its frame.
 
 ## Parked by item 3640, 2026-10-25 — the Spanish Gunpowder word 2168 → 3866: the Galleon unloads at its army's shore
 

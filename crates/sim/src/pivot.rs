@@ -225,8 +225,34 @@ const fn trunc_div(n: i64, d: i64) -> i32 {
     (n / d) as i32
 }
 
+/// **A piece whose `AttachPos` rows are another's, bit for bit**: `(piece,
+/// the piece it reads as)`. The rows are measured on the piece itself and
+/// compared, never assumed from the unit's name.
+///
+/// **Piece 1195, the Chinese Dragoon** (item 3639, `docs/AI.md` §333.2):
+/// run1237's packet (logger frame 2674, the Japanese Gunpowder lobby)
+/// holds its nine entries, `pos_start` 102, `RData +0x88` 1.0, and every
+/// float is piece 139's — the `(4, 0, 0)` pivot `(0.0, −1.48, 31.05)`
+/// (`0xbfbd70a3`, `0x41f86666`) and the four `<RELEASEEVENT>`s' pivot and
+/// release rows (`CHAR_ATTACKWALK` 12 at `0xc14f6142 0xc1dc8ff1
+/// 0x413b1ad8`, …). The Chinese Gunpowder pair's Dragoon `1/97`
+/// (TypeIndex 189) threw its `CHAR_ATTACKWALK` round of 5130 from its own
+/// square here, flew four frames and wounded the Citizen `0/10` on 5133,
+/// where the original's left from (8009, 10001, 470), flew three and
+/// struck on 5132.
+const SAME_AS: &[(i32, i32)] = &[(1195, 139)];
+
+/// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
+fn rows_of(piece: i32) -> i32 {
+    SAME_AS
+        .iter()
+        .find(|(p, _)| *p == piece)
+        .map_or(piece, |&(_, q)| q)
+}
+
 /// The node's point.
 pub fn node(piece: i32, node: i32) -> Option<Node> {
+    let piece = rows_of(piece);
     NODES
         .iter()
         .find(|(p, n, _)| (*p, *n) == (piece, node))
@@ -2030,6 +2056,7 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
 /// The release row for `(piece, anim, starttime frame)`, if the piece
 /// pivots and its row is measured.
 pub fn release(piece: i32, anim: i8, time: u32) -> Option<Release> {
+    let piece = rows_of(piece);
     RELEASES
         .iter()
         .find(|(p, a, t, _)| (*p, *a, *t) == (piece, anim, time))
@@ -2145,6 +2172,37 @@ mod tests {
             (6805, 31302),
             "the dump's own turret"
         );
+    }
+
+    /// **The Chinese Dragoon's round leaves from its pivot** (item 3639,
+    /// `docs/AI.md` §333.2): piece 1195 reads piece 139's rows
+    /// ([`SAME_AS`]), and run1283b's `AMMO=5` record of `1/97`'s
+    /// `CHAR_ATTACKWALK` round of 5130 — the figure at (8022, 10152), z
+    /// 265, angle −332857344 on block 5130 — leaves from (8009, 10001) at
+    /// height 470, which one turret step fits.
+    #[test]
+    fn the_chinese_dragoon_s_round_leaves_from_its_pivot() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3, ATTACKWALK};
+        for (a, t) in [
+            (ATTACKWALK, 12),
+            (ATTACK1, 12),
+            (ATTACK2, 13),
+            (ATTACK3, 18),
+        ] {
+            assert_eq!(release(1195, a, t), release(139, a, t), "anim {a}");
+            assert!(release(1195, a, t).is_some(), "anim {a}");
+        }
+        assert_eq!(node(1195, 4), node(139, 4));
+        let r = release(1195, ATTACKWALK, 12).unwrap();
+        let f = Angle(-332_857_344);
+        let fits: Vec<i32> = (-128..128)
+            .filter(|i| {
+                let (dx, dy, _) = release_offset(&r, f, i << 24);
+                (8022 + dx, 10152 + dy) == (8009, 10001)
+            })
+            .collect();
+        assert_eq!(fits.len(), 1, "one turret step: {fits:?}");
+        assert_eq!(265 + release_offset(&r, f, 0).2, 470, "the dump's height");
     }
 
     /// **The Mongol Nomad's rounds leave from its pivot** (item 3581):
