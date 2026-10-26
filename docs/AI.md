@@ -31896,12 +31896,67 @@ against 0 and `aggression[1]` — as on every pair.
 (177)**, the booking's line, **is fielded**: 9312 guy records across
 run1316 and run1316b (`rubric.py --dumps`).
 
-## 343. Reserved for the next item on the AI track
+## 343. The Persians at a held Classical age, Great Lakes: first try 10937 of 11633 (item 3652)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
+the Persians (23) at Toughest (5), seed 12345, `STARTING_RESOURCES 7`,
+the age held at Classical (`STARTING_TECHNOLOGY 1`, `ENDING_TECHNOLOGY
+1`), both takes read back by `Pair::assert_lobby`. The triple `(14, 23,
+5)` is new: the other Persian lobbies are `(18, 23, 5)` (the coverage
+and Medieval pairs), `(7, 23, 5)` and the AI word
+`GreatLakesPersianTier2`'s `(14, 23, 2)`, and the battery fields no
+Persians (`persian_classical_pair_is_no_other_lobby`). The first held-age
+pair on Great Lakes on the `Late ages` line. Captures: run1317 (the
+`DUMP_ALL` start), run1318 (the draw stream; the game ended itself on
+11633) and run1318b (the word's window, 10895..11188). The pair is
+`rondata::diff::persian_classical_pair`.
+
+**The score.** First try **10937 of 11633**, by the count and the
+sequence: on 10937 ours spends 34 draws against theirs' 36, parting at
+index 28 — theirs' `Ammo::do_damage+0xc59` stands where ours spends
+`Farms::inc_time+0x1ae`.
+
+**The value diff, walked back.** The stride (run1318, 101..10901, 109
+blocks, 143 keys) parts on the standing families alone; run1318b's
+rounds agree 10895..10930.
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 10931 | Javelineers `1/312`'s round `ammo[0]` | `sx`, `sy`, `sz` | (5064, 31368), 499 | (5054, 31417), 669 |
+| 10931 | the same | `angle` | −2076508160 | −2081554432 |
+| 10935 | the same | `whom`, `ox` | −1, −1 | 0, 12 |
+| 10937 | the draw stream, index 28 | site | `Farms::inc_time+0x1ae` | `Ammo::do_damage+0xc59` |
+| 10939 | who=1's `1/26` | move `x`, `off_x` | 41208, 504 | 41592, 120 |
+
+**The direction: theirs' Javelineers throw from a bay off the figure;
+ours from the figure's own square.** who=1's `1/312` (TY 83,
+Javelineers, by `unitat.py`) guards at (5064, 31368) and attacks the
+human's Citizen `0/12` (TY 50). Its javelin on 10931 starts in theirs at
+(−10, +49) off the figure and 170 above ours' 499 — the height the
+Javelineers' bays carry (pieces 34, 1089 and 1441, `sim::launch`). On
+10935 theirs' round holds its target, `0/12`, where ours' holds none, and
+theirs' 10937 spends the blow's `Ammo::do_damage` draw. The records first
+part on 10939.
+
+**The next item's hypothesis** is the Persian Javelineers' launch piece:
+ours throws as a piece with no `launch::BAYS` row does. The piece number
+is not read here; the recipe is item 3579's and 3255's (a packet on the
+throw's frame, the piece's attack `AttachPos` rows off it). A
+hypothesis. The rounds are not dumped before 10895, so an earlier parting
+round is possible; the first on disk is 10931's.
+
+**The rounds**, both directions: run1318b reads 520 round-blocks theirs
+against 699 ours, 114 parting.
+
+**The standing families**: `build:extra` on 96 buildings, `form` on 27
+units, who=1's groups' `held` and pools 64..73, both leaders — as on
+every pair.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **202 of
+302**, unmoved: the pair parts, so it is not lockstep. **`Anusiya`
+(163)**, the booking's line, **is fielded**: 59,358 guy records across
+run1318 and run1318b (`rubric.py --dumps`), the only one of the pair's 16
+types on the "never" list.
 
 ## 344. Reserved for the next item on the AI track
 

@@ -173,6 +173,84 @@ fn persian_classical_pair_the_long_s_stride_walks_back_from_10937() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3652.
+    // Item 3652: 143 keys, all of them the standing families — 96
+    // buildings' `build:extra` (which the stride does not print), `form`
+    // on 27 units, and who=1's groups' `held` and pools 64..73 as each is
+    // minted. **No unit row parts on any stride block to 10901**: the
+    // parting is in 10902..10937, which is run1318b's.
     pin_eq!(w.firsts.len(), 143, "the stride's baseline");
+}
+
+/// run1318b: the word 10937's window, blocks 10895..11188 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` — six blocks before the stride's
+/// last block 10901 and 250 after the word's block 10938 (item 3652).
+pub(crate) const RUN1318B: &str =
+    "gamelog-run1318b-greatlakes-persian-classical-window-10895-11188.txt";
+
+/// The window: block 10895 through 11188; the word 10937's own block is
+/// 10938.
+pub(crate) const WIDENING_PERSIAN_CLASSICAL_FRAME_10937: (i64, i64) = (10895, 11188);
+
+/// **The word 10937's window**: run1318b walked from run1317's start with
+/// the recorder on and every round compared (item 3652).
+pub(crate) fn persian_classical_frame_10937_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[PERSIAN_CLASSICAL.start],
+        true,
+        PERSIAN_CLASSICAL.long,
+        "run1318b",
+        &[(RUN1318B, WIDENING_PERSIAN_CLASSICAL_FRAME_10937.0)],
+        WIDENING_PERSIAN_CLASSICAL_FRAME_10937,
+        1,
+        &[10938],
+        true,
+    )
+}
+
+#[test]
+fn persian_classical_pair_run1318b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_classical_frame_10937_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 293, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3652, the first walk: 8523 keys. Block 10895 carries the
+    // standing families (`form`, both leaders, who=1's groups and pools);
+    // **the records first part on 10939**, after the round below: who=1's
+    // `1/26`'s move order (`x` ours 41208 theirs 41592, `off_x` 504
+    // against 120), and the guards' `retry` on `1/257`, `1/318`, `1/331`.
+    pin_eq!(w.firsts.len(), 8523, "run1318b baseline");
+    // Every round, both directions: 520 round-blocks theirs, 699 ours, 114
+    // parting. **The first is on 10931, who=1's Javelineers `1/312`** (TY
+    // 83) at the human's Citizen `0/12`: theirs launches from (5054,
+    // 31417) at `sz` 669, ours from the figure's own square (5064, 31368)
+    // at 499 — 170 under theirs, the Javelineers' bay height — and on
+    // 10935 theirs' round holds `whom` 0, `ox` 12 where ours' holds -1;
+    // theirs' 10937 draws `Ammo::do_damage+0xc59` at index 28 where ours
+    // draws `Farms::inc_time+0x1ae`. The hypothesis: the Persian
+    // Javelineers' piece has no `launch::BAYS` row (`docs/AI.md` §343).
+    pin_eq!(w.rounds_read, (520, 699), "the rounds read");
+    pin_eq!(w.rounds.len(), 114, "the rounds that part");
 }
