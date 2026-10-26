@@ -25,8 +25,9 @@
 //! go_inside(g, b)
 //! ```
 //!
-//! Still seams, in [`SimTransport`]: the sounds, `MARINES` (`unit_masks2`
-//! and `update_speed`), the caravan's `0x200` bit, the selection group's
+//! `MARINES` is built (item 3661, `docs/AI.md` §341): the boat takes
+//! [`crate::combat::umask2::MARINES`], `update_hits` and `update_speed`.
+//! Still seams, in [`SimTransport`]: the sounds, the caravan's `0x200` bit, the selection group's
 //! swap and `replace_hotunit` — none of them is state this crate keeps.
 //! ~~The caravan's slot hand-over~~ is built (item 3370, `docs/AI.md`
 //! §286): the slot is [`crate::Unit::caravan`].
@@ -300,10 +301,24 @@ impl TransportView for SimTransport<'_> {
         false
     }
     fn sound(&mut self, _id: i32) {}
-    fn is(&mut self, _g: i32, _ty: i32) -> bool {
-        false
+    fn is(&mut self, g: i32, ty: i32) -> bool {
+        self.sim.speed_is(g as usize, ty, false)
     }
-    fn marines(&mut self, _b: i32) {}
+    fn marines(&mut self, b: i32) {
+        // `unit_masks2 |= 0x200`, then vslot `+0x15c(0)` (`Unit::update_hits`,
+        // which keeps the damage as `calc_unit_stats` does) and
+        // `update_speed`.
+        let b = b as usize;
+        self.sim.units[b].unit_masks2 |= crate::combat::umask2::MARINES;
+        let Some(ty) = self.sim.units[b].ty else {
+            return;
+        };
+        let hits = self.sim.own_hits(b, ty);
+        let damage = self.sim.units[b].max_health - self.sim.units[b].health;
+        self.sim.units[b].max_health = hits;
+        self.sim.units[b].health = hits - damage;
+        self.sim.units[b].movement.speed = self.sim.own_speed(b, ty);
+    }
     fn same_damage(&mut self, b: i32, g: i32, _who: i32) {
         self.sim.same_damage(b as usize, g as usize);
     }

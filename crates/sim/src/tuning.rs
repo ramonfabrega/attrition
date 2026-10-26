@@ -488,6 +488,12 @@ pub struct Tuning {
     /// Percentage faster for a Bantu leader's citizens, Barracks units and
     /// Militia line (`Unit::update_speed`'s Bantu arm).
     pub bantu_units_move: i32,
+    /// Hit points an American marines' transport adds (`update_hits`'s
+    /// `unit_masks2 & 0x200` term, `constants +0x870`).
+    pub americans_marine_hp_bonus: i32,
+    /// Speed an American marines' transport adds per Military library
+    /// level (`update_speed`'s `unit_masks2 & 0x200` term).
+    pub americans_marine_speed_bonus: i32,
     /// Extra timber-worker capacity before the gather-access cap.
     pub french_woodies: i32,
     /// The same, for the Inca on wealth.
@@ -1449,6 +1455,8 @@ impl Tuning {
         german_submarine_cost: 25,
         versailles_units_move: 25,
         bantu_units_move: 25,
+        americans_marine_hp_bonus: 70,
+        americans_marine_speed_bonus: 2,
         french_woodies: 1,
         inca_wealth_cap: 33,
         republic_commerce_bonus: [50, 50, 50],
@@ -1984,6 +1992,14 @@ impl Tuning {
                 Slot::Value(T.versailles_units_move),
             ),
             ("BANTU_UNITS_MOVE", Slot::Value(T.bantu_units_move)),
+            (
+                "AMERICANS_MARINE_HP_BONUS",
+                Slot::Value(T.americans_marine_hp_bonus),
+            ),
+            (
+                "AMERICANS_MARINE_SPEED_BONUS",
+                Slot::Value(T.americans_marine_speed_bonus),
+            ),
             ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
             (
                 "REPUBLIC_COMMERCE_BONUS",

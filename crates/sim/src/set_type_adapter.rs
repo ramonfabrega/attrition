@@ -137,9 +137,8 @@ impl UnitSetTypeView for SimSetType<'_> {
     fn pop_guy(&mut self, _i: i32) {}
     fn install_type(&mut self, _ty: i32) {
         let (u, rec) = (self.u, self.rec);
-        let who = self.who();
         let damage = self.sim.units[u].max_health - self.sim.units[u].health;
-        let hits = self.sim.unit_hits(who, rec);
+        let hits = self.sim.own_hits(u, rec);
         {
             let unit = &mut self.sim.units[u];
             unit.ty = Some(rec);
@@ -148,7 +147,7 @@ impl UnitSetTypeView for SimSetType<'_> {
         }
         self.sim.units[u].kind = self.sim.unit_types[rec].kind;
         self.sim.units[u].type_index = self.sim.unit_types[rec].type_index;
-        self.sim.units[u].movement.speed = self.sim.type_speed(who, rec);
+        self.sim.units[u].movement.speed = self.sim.own_speed(u, rec);
         // `Unit::set_type@00612fa0:235`: `update_hits`, then `update_los`,
         // `update_armor` and `update_speed` on the new type.
         self.sim.update_los(u);

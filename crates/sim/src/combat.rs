@@ -105,6 +105,13 @@ pub mod umask2 {
     /// (`docs/ANIM.md` §5). It is the third value of a step that looks
     /// like it has two.
     pub const NOT_FIRING: u32 = 0x10;
+    /// **`0x200` — an American marines' transport** (item 3661,
+    /// `docs/TRANSPORT.md` §6): `SpellType::cast_transport@00670db0`'s
+    /// `MARINES` arm sets it on the boat it builds for a caster that
+    /// `is(0x77, 0)`, and `Unit::update_hits@0060e930` adds
+    /// `AMERICANS_MARINE_HP_BONUS` and `Unit::update_speed@006055c0`
+    /// `AMERICANS_MARINE_SPEED_BONUS` per Military library level for it.
+    pub const MARINES: u32 = 0x200;
 }
 
 /// The `obj_masks` bits by the names the shipped `balance.xml` gives them
