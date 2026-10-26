@@ -31645,12 +31645,95 @@ a different target's; and the Man o' War's rounds from 4383.
 parts. **`Culverin Mahout` (264)**, the booking's line, **is fielded**:
 516 guy records in run1312 and 4096 in run1312b (`rubric.scan`).
 
-## 341. Reserved for the next item on the AI track
+## 341. The Americans at a held Enlightenment age, East Indies: first try 3215 of 6669 (item 3650)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), on §340's
+lobby with the nation moved: East Indies, `MAP_STYLE 18`, human Nubians
+(4) against **the Americans (20)** at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`.
+`crates/rondata/src/diff/american_enlightenment_pair.rs` pins it. Its
+triple `(18, 20, 5)` is minted in `battery::SCORED_LOBBIES`. The battery
+fields no Americans; the other American lobbies are the AI words
+`american_word` `(18, 20, 1)` and `american_lakes_word` `(14, 20, 4)`, and
+the Modern pair `(7, 20, 3)`.
+
+**The captures.** run1313 is the `DUMP_ALL` start, and run1314 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 6669**. run1314b is the word's window, blocks 3209..3465, with
+`LEADERS=9` and `AMMO=5`. `GAME INFO` reads back `DIFFICULTY 5`,
+`STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` on both pair takes
+(`Pair::assert_lobby`). By `rngcmp.py`, run1313 against run1314 is 37 of
+37 frames identical, and run1314b against run1314 3466 of 3466. The walk
+is seeded from run1313's initial state (3506a).
+
+**First try: frame 3215 of 6669**, by the count and the sequence. On 3215
+ours spends 15 game-stream draws against theirs' 16, parting at index 9:
+ours `Guy::set_anim+0x104b`, theirs
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+
+**The stride** (`american_enlightenment_pair_the_long_s_stride_walks_back_from_3215`,
+101..3201: 32 blocks, 135 keys). It parts on the standing families (51
+buildings' `build:extra`, `form` on 33 units, who=1's groups' `held` and
+pools), on the garrisoned Scholar `1/14`'s (TypeIndex 52) figure `angle`
+from 401 (ours `0x55555555` against 0), and on one unit, on its last block
+3201: who=1's Transport Galleon `1/105`.
+
+**The word's widening** (run1314b, walked from run1313 with every round
+compared: 256 blocks, **1911 keys**, rounds 9 theirs against 18 ours with
+3 parting, the two `gaia:` keys unprinted).
+Beyond the standing families, every unit row up to the word is
+`1/105`'s, which the long's walk names by `RON_DEBUG_UNIT`: **Transport
+Galleon**, `TY` 271, TypeIndex 321, sea, born in ours on 3183 at
+(35430, 43159) carrying who=1's **Marines** `1/29` (`TY` 69, TypeIndex
+119, land: the booking's `Continental Marines` line), whose `ATTACKTOORDER`
+to (34200, 42360) it inherits.
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3201 | `1/105` | `myhits`, `hits_left` | 90 | 160 |
+| 3201 | `1/105` | `myspeed` | 25 | 31 |
+| 3201 | `1/105` | `pos` | (35137, 43021) | (34971, 43021) |
+| 3209 | `1/105` | `pos` | (34937, 43029) | (34723, 43029) |
+| 3214 | `1/105` | path length | 11 | 10 |
+| 3215 | `1/105` | the move's `dest_x`, `dest_y` | (34584, 43032) | (34536, 43080) |
+| 3216 | `1/105` | the figure's `y` | 43032 | 43054 |
+
+**The direction: theirs' boat is the stronger and the faster, from its
+birth.** The boat's `o` is 105 on both sides and its `y` agrees through
+3209, so both cast it in the gap 3102..3200. From there theirs' galleon
+holds 160 hits against ours' 90 and steps 31 a frame against ours' 25, so
+it reaches its path's next waypoint first (3214) and turns for the next
+on 3215, where ours is still walking the old leg. That is the word's draw.
+
+**The hypothesis** for the next item: `SpellType::cast_transport`'s
+`MARINES` arm (§6.1 of `docs/TRANSPORT.md`: `unit_masks2 |= 0x200` and
+`update_speed`) and `Unit::update_hits`'s American-marines term, both
+SEAMs here (`SimTransport::marines` is empty in
+`crates/sim/src/cast_transport.rs`; `cast.rs`'s `unit_hits` names the
+term "which no scored nation or holding takes", and `TypeHits::is_marine`
+answers `false`). The shipped `rules.xml` carries
+`AMERICANS_MARINE_HP_BONUS` "70 extra hitpoints for marine transports"
+(90 + 70 = 160) and `AMERICANS_MARINE_SPEED_BONUS` "2 speed bonus for
+marine transports per military tech" (25 + 2 × 3 = 31, if who=1 holds
+three military techs: unread). Neither the term's arithmetic nor the
+speed's count is read off the listing yet.
+
+**The rounds.** Every round in the window parts only on the Sloop `1/61`
+(`TY` 327, sea) at the human's `0/2005`: its round's end point on 3240,
+(4773, 7451) in ours against (4799, 7405), and on 3367 a round this
+crate holds alone. Ours reads 18 round-blocks against theirs' 9. Both are
+after the word, and unread.
+
+**What is not established.** The cast's frame on each side (the gap
+3102..3200 is undumped); the speed bonus's tech count; the Sloop's
+rounds; and the Scholar's figure `angle`, which stands from 401 and moves
+no draw in the walk.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **200 of
+302**, unmoved: the rubric counts lockstep games only, and this pair
+parts. **`Continental Marines` (119)**, the booking's line, **is
+fielded**: 3420 guy records in run1314 and 7680 in run1314b
+(`rubric.scan`).
 
 ## 342. Reserved for the next item on the AI track
 
