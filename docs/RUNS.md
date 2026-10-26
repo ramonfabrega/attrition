@@ -29379,3 +29379,68 @@ SHA-256 `24d75b6cafba0b86996e05ceb5021f0a8cb53b2736d2e2bf392b8dc3a25104b2`.
 **What it holds**: `get_position.py … entries 1809`: three rows, node 0 on frames 1, 7 and 4 of `CHAR_ATTACK1`..`3`,
 `RData +0x88` 1.1. The sweeps (and piece 294's, off run1185's packet) are under
 `~/ron-data/lab-experiments/2026-10-26-item-3660/`.
+## run1313 — the Americans at a held Enlightenment age, East Indies: the `DUMP_ALL` start (2026-10-26, item 3650, `att-3650`)
+
+`docs/AI.md` §341. §340's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1313 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 20 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 09:24:38, exited 09:25:08 (30.6 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 20, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`. Filed with `filerun.py run1313
+  eastindies-american-enlightenment-start`. `df -g ~` read 81 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1313-eastindies-american-enlightenment-start.txt`, 153,796,572 bytes,
+SHA-256 `4fadade02ef4726024e0c7564917f60f779aa48252fc784eaea0eee35252175c`.
+
+Archive `rontrace-run1313.log`, 10,409,376 bytes,
+SHA-256 `9d7ccdb9f9fd1f5621f4ea70e4c636cc9df31dceafb897a4996eac1e9aaeed4e`.
+
+**What it holds**: the start of `american_enlightenment_pair::AMERICAN_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1314 — the Americans at a held Enlightenment age, East Indies: the draw stream to the game's end (2026-10-26, item 3650, `att-3650`)
+
+`docs/AI.md` §341. run1312's line with `--ai-tribe 20`: `--map 18 --end-frame 24000 --timeout 7200 --allow-early-end
+--log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 20 --detail
+end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1313's
+lobby.
+- Pool lane 3, beside run1313. Launched 09:24:41, exited 09:25:14 (33.1 s launch to exit). `success`. **The game
+  ended itself on 6669** (closing block 6670, `ended_early`). `GAME INFO` reads back as run1313's. `rngcmp.py`
+  against run1313: 37 frames identical. Filed with `filerun.py run1314 eastindies-american-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1314-eastindies-american-enlightenment-trace.txt`, 51,684,226 bytes,
+SHA-256 `ed29118202f954a6a7b4d4004efddd4dffadb0743134950909cd5533fd499e97`.
+
+Archive `rontrace-run1314.log`, 213,246,592 bytes,
+SHA-256 `f53883b03d4eff906f7ba3b9082cf4441ca238bcc7bc0f18eb78fa6bd807acb1`.
+
+**What it holds**: the pair's first try. `american_enlightenment_pair_first_parting` walks it from run1313: **3215 of
+6669** by the count and the sequence (ours 15 draws against 16, index 9).
+`american_enlightenment_pair_the_long_s_stride_walks_back_from_3215` walks its stride 101..3201: 32 blocks, 135 keys;
+the one unit row is who=1's Transport Galleon `1/105` on 3201, `myhits` ours 90 theirs 160, `myspeed` 25 against 31.
+
+## run1314b — the Americans at a held Enlightenment age, East Indies: the word 3215's window, blocks 3209..3465 (2026-10-26, item 3650, `att-3650`)
+
+`docs/AI.md` §341. **What the disk could not answer**: every record on the word's frame. run1314's stride prints
+units on 3201 and 3301 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1314b --map 18 --end-frame 3465
+--allow-early-end --timeout 3600 --log-window 3209 3465 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 09:26:49, exited 09:27:43 (54.0 s launch to exit). `success`: 3466 frames, closing frame
+  3466. `rngcmp.py` against run1314: 3466 of 3466 identical. Filed with `filerun.py run1314b
+  eastindies-american-enlightenment-window-3209-3465`. `df -g ~` read 87 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1314b-eastindies-american-enlightenment-window-3209-3465.txt`, 537,822,044 bytes,
+SHA-256 `7f77958c701b689c1d871d111ca0e8e650df9ca8ebdf5cc8fc0e66e00a0c886d`.
+
+Archive `rontrace-run1314b.log`, 62,220,192 bytes,
+SHA-256 `4cbf9d8e30b999400b453b71c6a91b9f482f1a694a080d498142ededfef8404b`.
+
+**What it holds**: `american_enlightenment_pair_run1314b_s_word_frame_is_widened_whole` (256 blocks, 1911 keys,
+rounds 9 theirs against 18 ours, 3 parting). Who=1's Transport Galleon `1/105` (TI 321), carrying the Marines `1/29`
+(TI 119), holds 90 hits against 160 and steps 25 against 31 from its cast in the gap 3102..3200; theirs reaches its
+next waypoint first, and on 3215 the move's destination parts. 3102..3200 is undumped.
