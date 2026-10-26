@@ -31433,7 +31433,9 @@ launches (3658a). ~~Where a Heavy Horse Archer's round leaves from
 302**, unmoved: the rubric counts lockstep games only, and this pair
 parts. **`Xopilli Atl-Atls` (87)**, the booking's line, **is fielded**:
 1506 guy records in run1308 and 11586 in run1308b (`rubric.scan`). It
-stays on the "never" list until the pair closes.
+stays on the "never" list until the pair closes. **Item 3658: the pair closes, and
+`rubric.py --tables 3` reads 198 → 199** with `Xopilli Atl-Atls` (87) added
+(`census::RUBRIC_UNIT_TYPES_SEEN`).
 
 ## 339. The Inca at a held Enlightenment age, Great Sahara: first try 3095 of 4045 (item 3648)
 

@@ -458,8 +458,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// read by `rubric.py --tables 3` on this tree. Item 3655: 197 -> 198 on
 /// the tree holding 3654's merge, the Iroquois Enlightenment pair whole at
 /// 5128 — `Okwari` (81, land; 348 figure rows), the line §337 booked, read
-/// by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 198;
+/// by `rubric.py --tables 3` on this tree. Item 3658: 198 -> 199, the
+/// Aztec Medieval pair whole at 4602 — `Xopilli Atl-Atls` (87, land; 1506
+/// figure rows), the line §338 booked, read by `rubric.py --tables 3` on
+/// this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 199;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
