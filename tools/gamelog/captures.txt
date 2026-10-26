@@ -10730,3 +10730,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3637: the Chinese Gunpowder word, 4884 -> 5196, the planner's retry roll kept (`docs/AI.md` §333; `docs/RUNS.md` run1299) ====
 #   run1299  --map 18 --end-frame 5446 --allow-early-end --timeout 3600 --log-window 5190 5446 --detail (run1283b's) --ai-tribe 14 --cover cover=0, run1282's lobby   (the word 5196's window)
 # Checks: `rngcmp.py` run1283 vs run1299 -> 5447 identical.
+# ==== item 3628: the Lakota at a held Gunpowder age, Great Sahara (`docs/AI.md` §336; `docs/RUNS.md` run1288, run1289, run1289b) ====
+#   run1288  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 19 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1289  run1258's line with --ai-tribe 19 and run1288's lobby   (the draw stream; ended itself on 4750)
+#   run1289b --map 7 --end-frame 4438 --allow-early-end --timeout 3600 --log-window 4182 4438 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0, run1288's lobby   (the word 4187's window)
+# Checks: `rngcmp.py` run1288 vs run1289 -> 37 identical; run1289 vs run1289b -> 4439 identical.

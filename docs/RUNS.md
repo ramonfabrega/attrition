@@ -28671,6 +28671,71 @@ SHA-256 `1fa05b94eeada46394707059c93af9d929a1cbf92b8c53746421ee07a79e0f90`.
 first block 3861 who=1's Frigate `1/29` (TI 343) holds an `ATTACKORDER` on the human's `0/2004` in theirs and no order
 in ours. 3802..3860 is undumped.
 
+## run1288 — the Lakota at a held Gunpowder age, Great Sahara: the `DUMP_ALL` start (2026-10-25, item 3628, `att-3628`)
+
+`docs/AI.md` §336. §334's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1288 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 19 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 22:55:17, exited 22:55:42 (24.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 19, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3`. Filed with `filerun.py run1288
+  greatsahara-lakota-gunpowder-start`. `df -g ~` read 93 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1288-greatsahara-lakota-gunpowder-start.txt`, 149,432,043 bytes,
+SHA-256 `376162503bb0cb13c9bcc7fe86cb41db3cc888f8aeeef88b80606261c4901c7e`.
+
+Archive `rontrace-run1288.log`, 8,312,128 bytes,
+SHA-256 `68269c5d5971358c1a31b5deeebb64ff75be4820342b1a11c0f23a3babd12105`.
+
+**What it holds**: the start of `lakota_gunpowder_pair::LAKOTA_GUNPOWDER`, and the walk's initial state.
+
+## run1289 — the Lakota at a held Gunpowder age, Great Sahara: the draw stream to the game's end (2026-10-25, item 3628, `att-3628`)
+
+`docs/AI.md` §336. run1258's line with `--ai-tribe 19`: `--map 7 --end-frame 24000 --timeout 7200 --allow-early-end
+--log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 19 --detail
+end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1288's
+lobby.
+- Pool lane 2, beside run1288. Launched 22:55:17, exited 22:55:52 (34.2 s launch to exit). `success`. **The game
+  ended itself on 4750** (closing block 4751, `ended_early`). `GAME INFO` reads back as run1288's. `rngcmp.py`
+  against run1288: 37 frames identical. Filed with `filerun.py run1289 greatsahara-lakota-gunpowder-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1289-greatsahara-lakota-gunpowder-trace.txt`, 23,300,104 bytes,
+SHA-256 `570176edf1242732d716cb63eaae0e81a8f4533d0b38fec58cf1499eb6e096fd`.
+
+Archive `rontrace-run1289.log`, 77,399,296 bytes,
+SHA-256 `4744ee0b03cf82cd6568759b401b8dfbd764a6752445220a77e397410c98877b`.
+
+**What it holds**: the pair's first try. `lakota_gunpowder_pair_first_parting` walks it from run1288: **4187 of
+4750** by the count and the sequence (ours 14 draws against 12, index 3).
+`lakota_gunpowder_pair_the_long_s_stride_walks_back_from_4187` walks its stride 101..4101: 41 blocks, 83 keys, all
+standing.
+
+## run1289b — the Lakota at a held Gunpowder age, Great Sahara: the word 4187's window, blocks 4182..4438 (2026-10-25, item 3628, `att-3628`)
+
+`docs/AI.md` §336. **What the disk could not answer**: every record on the word's frame. run1289's stride prints
+units on 4101 and 4201 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1289b --map 7 --end-frame 4438
+--allow-early-end --timeout 3600 --log-window 4182 4438 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 22:59:03, exited 23:00:17 (74.1 s launch to exit). `success`: 4439 frames, closing frame
+  4439. `rngcmp.py` against run1289: 4439 of 4439 identical. Filed with `filerun.py run1289b
+  greatsahara-lakota-gunpowder-window-4182-4438`. `df -g ~` read 92 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1289b-greatsahara-lakota-gunpowder-window-4182-4438.txt`, 530,535,368 bytes,
+SHA-256 `280d4da84ea083910d032246c01d4bc16e41ae9a6704f13ece5587265eb9dce6`.
+
+Archive `rontrace-run1289b.log`, 67,030,176 bytes,
+SHA-256 `65314f45922277b73054429cd26d434c94ec39872d53ee643292d043d448e6c4`.
+
+**What it holds**: `lakota_gunpowder_pair_run1289b_s_word_frame_is_widened_whole` (256 blocks, 2311 keys). Theirs'
+Musket Horse `1/54` (TI 207) has a round in flight at the human's Citizen `0/5` on the first block, 4182, and it lands
+on 4183: `0/5`'s `hits_left` ours 50 theirs 24, and both leaders' `treaties` ours 1 theirs 3 on block 4184. Ours fires
+nothing. 4102..4181 is undumped.
 ## run1303 — the Spanish at a held Gunpowder age, East Indies: the gap 3802..3860, blocks 3795..3866 (2026-10-25, item 3642, `att-3642`)
 
 `docs/AI.md` §335.2. **What the disk could not answer**: the frame on which theirs' Frigate `1/29` takes its
