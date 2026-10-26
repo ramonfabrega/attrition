@@ -69,6 +69,10 @@ pub const HOPLITES: crate::tech::TypeId = 0x84;
 
 pub const SITE_ATTACK_POS_FIGHT: &str = "Unit::find_attack_pos+0xea9 < Unit::fight+0xcb4";
 
+/// `TypeIndex::FIRESHIP` (`0x150`), the lineage `Object::compare_target`'s
+/// sea raid arm tests the attacker and the target against (`0064ede2`).
+pub const FIRESHIP: crate::tech::TypeId = 0x150;
+
 /// **The one-in-five re-search's own draw** — `Unit::fight@005fd4d0`,
 /// `005fde80`, the roll `docs/COMBAT.md` §8.2 step 0 spends *before* it
 /// reads either suppression. The simulation has spent it since item 288
@@ -5268,11 +5272,51 @@ impl Sim {
             // human's; a computer's also takes a combat-role unit at
             // `+10,000`; anything else is worth a tenth.
             //
-            // SEAM: an AI ship's raid arm (`bVar16`, `0064edd8`–`0064ef64`:
-            // the `0x150`/`0x13d` lineage tests and the stealth-ship
-            // weights) is read as the land arm; no capture reaches one.
+            // **A computer's raiding ship has its own arm** (`bVar3 &&
+            // bVar16`, `0064edd8`–`0064ef64`; item 3662, `docs/AI.md` §342),
+            // and a peasant is worth nothing extra in it:
+            //
+            // - a **Fireship** (`is(FIRESHIP)`, `0x150`) returns 0 for a
+            //   fishing boat (`is(FISHERMEN)`, `0x13d`) and takes a tenth of
+            //   a target that fires on the move (`unit_flags & 0x200000`);
+            // - any other ship that fires on the move takes a Fireship at
+            //   `+1,000,000`;
+            // - otherwise a transport (`unit_flags & 0x10`) is `+900,000`, a
+            //   fishing boat `+100,000`, a military role (`+0x2c8 &
+            //   0x10000`) `+10,000`, and anything else stands.
+            //
+            // run1326's packet runs who=1's Galley `1/21` on 4567: its
+            // re-search scores the Citizens `0/3` and `0/10` at 512 and 596,
+            // where the land arm's `+900,000` made them 9512 and 9596 and
+            // took the nearer.
             let peasant = matches!(target, Obj::Unit(u) if self.is_peasant(u));
-            if raiding {
+            let sea_raider = raiding && ai_raider && matches!(ap.domain, Domain::Sea);
+            if sea_raider {
+                let line = |o: Obj, t: crate::tech::TypeId| matches!(o, Obj::Unit(u) if self.unit_line_is(u, t));
+                let flags_of = |o: Obj| match o {
+                    Obj::Unit(u) => self.units[u]
+                        .ty
+                        .map_or(0, |t| self.unit_types[t].cols.unit_flags),
+                    Obj::Building(_) => 0,
+                };
+                let moving_fire = |o: Obj| flags_of(o) & uflags::FIRES_ON_MOVE != 0;
+                if line(attacker, FIRESHIP) {
+                    if line(target, crate::fish::FISHERMEN) {
+                        return 0;
+                    }
+                    if moving_fire(target) {
+                        v /= 10;
+                    }
+                } else if moving_fire(attacker) && line(target, FIRESHIP) {
+                    v += 1_000_000;
+                } else if flags_of(target) & uflags::TRANSPORT != 0 {
+                    v += 900_000;
+                } else if line(target, crate::fish::FISHERMEN) {
+                    v += 100_000;
+                } else if tp.combat_role {
+                    v += 10_000;
+                }
+            } else if raiding {
                 if peasant || tp.is(role::CARAVAN) {
                     v += if ai_raider { 900_000 } else { 9_000_000 };
                 } else if ai_raider && tp.combat_role {
@@ -7852,6 +7896,55 @@ mod tests {
             !admits(false, false, false),
             "a warship leaves the fishing boat"
         );
+    }
+
+    /// **A computer's raiding ship weighs a peasant at nothing extra**
+    /// (item 3662, `docs/AI.md` §342; `Object::compare_target`'s sea raid
+    /// arm, `0064edd8`–`0064ef64`): a transport is `+900,000`, a peasant
+    /// and a plain unit stand — where the land
+    /// arm gives a computer's raider `+900,000` for the peasant and a tenth
+    /// for anything else. run1326's packet scores the Citizens `0/3` and
+    /// `0/10` at 512 and 596 for who=1's Galley `1/21` on 4567.
+    ///
+    /// Made to fail by reading the ship as the land arm (the peasant's and
+    /// the plain unit's rows). The Fireship and fishing-boat lineages need
+    /// a tech tree, and the military role moves the threat terms above the
+    /// arm, so neither is asserted here.
+    #[test]
+    fn a_computer_s_raiding_ship_weighs_a_peasant_at_nothing_extra() {
+        let weigh = |sea: bool, raid: bool, kind: u8| {
+            let (mut sim, ty) = at_war();
+            sim.nation[0].human = false;
+            let mut at = sim.unit_types[ty].clone();
+            if sea {
+                at.combat.domain = Domain::Sea;
+                at.kind.domain = Domain::Sea;
+            }
+            let at = sim.add_unit_type(at);
+            let mut tt = sim.unit_types[ty].clone();
+            tt.combat.cost = 5000;
+            tt.combat.attack = 0;
+            tt.combat.max_range = 0;
+            match kind {
+                1 => tt.worker = crate::orders::Worker::Citizen,
+                2 => tt.cols.unit_flags |= crate::ai_load::uflags::TRANSPORT,
+                _ => {}
+            }
+            let tt = sim.add_unit_type(tt);
+            let me = put(&mut sim, 0, at, Pos::new(3000, 3000));
+            if raid {
+                sim.units[me].combat.stance = Stance::Raid;
+            }
+            let t = put(&mut sim, 1, tt, Pos::new(3300, 3000));
+            sim.compare_target(Obj::Unit(me), Obj::Unit(t), false, false)
+        };
+        // The base is 40,000 here; the tail is `(v + 99) / 100`.
+        let plain = weigh(true, true, 0);
+        assert_eq!(plain, 400, "a plain unit stands: no tenth");
+        assert_eq!(weigh(true, true, 1), 400, "the peasant stands");
+        assert_eq!(weigh(true, true, 2), 9400, "a transport: + 900,000");
+        assert_eq!(weigh(false, true, 1), 9400, "the land arm's peasant");
+        assert_eq!(weigh(false, true, 0), 40, "the land arm's tenth");
     }
 
     #[test]

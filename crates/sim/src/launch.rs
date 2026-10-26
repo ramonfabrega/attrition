@@ -919,6 +919,77 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 176,
         },
     ),
+    // **Piece 291, the Galley** (unit type 341; item 3662, `docs/AI.md`
+    // §342): run1217's packet (logger frame 7728 of the Greek Classical
+    // lobby) holds its six attack `AttachPos` rows — node 0 at frames 9,
+    // 12 and 17 of `CHAR_ATTACK1` and `CHAR_ATTACK2` — `RData +0x88` 0.8,
+    // and no `<RESTRICTION>`, so it is a bay. `tools/recomp/fit_bay.py`
+    // fits each sweep (9, 298, 269, 9, 298 and 439 lattice points; the
+    // centroid is kept, 361 of 361 headings each). Without them the Galley
+    // fired from the hull's own square at the water's `z` 0: run1316c's
+    // `1/29` loosed at the human's `0/2004` on 4298 from (2472, 4200, 0)
+    // where the original's left (2690, 3917, 52) (the British Classical
+    // word 4567's Galleys).
+    (
+        291,
+        11,
+        9,
+        Bay {
+            right: 2648,
+            fwd: -357_619,
+            dz: 52,
+        },
+    ),
+    (
+        291,
+        11,
+        12,
+        Bay {
+            right: 2541,
+            fwd: -357_616,
+            dz: 52,
+        },
+    ),
+    (
+        291,
+        11,
+        17,
+        Bay {
+            right: 963,
+            fwd: -357_625,
+            dz: 53,
+        },
+    ),
+    (
+        291,
+        12,
+        9,
+        Bay {
+            right: 2648,
+            fwd: -357_619,
+            dz: 52,
+        },
+    ),
+    (
+        291,
+        12,
+        12,
+        Bay {
+            right: 2541,
+            fwd: -357_616,
+            dz: 48,
+        },
+    ),
+    (
+        291,
+        12,
+        17,
+        Bay {
+            right: 1164,
+            fwd: -357_625,
+            dz: 57,
+        },
+    ),
     // **Piece 1625, the Lakota's Bombard** (unit type 267; item 3645,
     // `docs/AI.md` §336): run1305b's packet holds its one attack
     // `AttachPos` row, node 0 at `CHAR_ATTACK2` frame 9 (666 ms), and
@@ -2547,6 +2618,23 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 245,
         },
     ),
+    // **Piece 215, the Catapult's default style** (item 3662, `docs/AI.md`
+    // §342): run1326's packet (the British Classical lobby, logger frame
+    // 4567) holds its one attack `AttachPos` row, piece 567's own — node 0
+    // at frame 12 of `CHAR_ATTACK2`, `RData +0x88` 1.0 — and
+    // `tools/recomp/fit_bay.py` fits its sweep in 435 lattice points that
+    // hold 567's row, 361 of 361 headings. Without it the British
+    // Catapults' rounds in run1326b left their square 245 under.
+    (
+        215,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: -33_219,
+            dz: 245,
+        },
+    ),
     // **Piece 1794, the Peltasts in the Persians' art style** (`34 + 5 ×
     // 0x160`, type 84; item 3555, `docs/AI.md` §308): run1007b's
     // `RON_STATE_FRAME=15915` packet on the Indian Great Sahara game holds
@@ -3385,6 +3473,56 @@ mod tests {
             .collect();
         assert_eq!(fits, [&(12, 7)], "1/80's round on 4905");
         assert_eq!(315 + release_dz(1809, 12, 7, 0).unwrap(), 489);
+    }
+
+    /// **The British Catapult throws from piece 215's bay** (item 3662,
+    /// `docs/AI.md` §342): run1326b's `1/119` (TI 265) on block 8855, the
+    /// figure at (6456, 10488, 39) and angle −38862848, its round from
+    /// (6458, 10521, 284). Made to fail with the row out of `BAYS`.
+    #[test]
+    fn run1326b_s_catapult_throws_from_piece_215_s_bay() {
+        let at = launch_point(
+            Pos::new(6456, 10488),
+            Angle(-38_862_848),
+            215,
+            crate::anim::ATTACK2,
+            12,
+            0,
+        );
+        assert_eq!((at.x, at.y), (6458, 10521), "1/119's round on 8855");
+        assert_eq!(
+            39 + release_dz(215, crate::anim::ATTACK2, 12, 0).unwrap(),
+            284
+        );
+    }
+
+    /// **The Galley looses from piece 291's bays** (item 3662,
+    /// `docs/AI.md` §342): run1316c's `1/29` on block 4298, the hull at
+    /// (2472, 4200) and angle −1683357696, its round at the human's
+    /// `0/2004` from (2690, 3917, 52). Made to fail with the rows out of
+    /// `BAYS`: the round leaves the hull's own square at `z` 0.
+    #[test]
+    fn run1316c_s_galley_looses_from_piece_291_s_bay() {
+        let keys = [(11, 9), (11, 12), (11, 17), (12, 9), (12, 12), (12, 17)];
+        let fits: Vec<_> = keys
+            .iter()
+            .filter(|&&(anim, start)| {
+                let at = launch_point(
+                    Pos::new(2472, 4200),
+                    Angle(-1_683_357_696),
+                    291,
+                    anim,
+                    start,
+                    0,
+                );
+                (at.x, at.y) == (2690, 3917) && release_dz(291, anim, start, 0) == Some(52)
+            })
+            .collect();
+        assert_eq!(
+            fits,
+            [&(11, 9), &(11, 12), &(12, 9)],
+            "1/29's round on 4298"
+        );
     }
 
     /// **The Egyptian Arquebusiers' rounds leave from piece 48's bays**
