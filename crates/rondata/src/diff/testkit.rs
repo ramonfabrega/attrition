@@ -7298,8 +7298,18 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ),
     // Item 3643: the Spanish Gunpowder pair, walked from run1286 along
     // run1287 to its new word 4859: the Frigate `1/29`'s rounds at the
-    // Farm `0/2004` read 2 inexact corners, as run1301b's do.
-    ("spanish_gunpowder_pair_first_parting", 2),
+    // Farm `0/2004` read 2 inexact corners, as run1301b's do. Item 3646:
+    // walked to the game's end, 6128, it reads 28.
+    ("spanish_gunpowder_pair_first_parting", 28),
+    // Item 3646: the closing state, walked along run1287 to its closing
+    // block 6129, reads the walk's 28 as `first_parting` does.
+    ("spanish_gunpowder_pair_run1287_s_closing_state", 28),
+    // Item 3646: run1306, the Spanish Gunpowder closing window, 5873..6129,
+    // walked from run1286, reads the walk's 28.
+    (
+        "spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole",
+        28,
+    ),
     // Item 3643: run1304b, the Spanish Gunpowder word 4859's window,
     // 4853..5109, reads 8 inexact corners.
     (
@@ -10442,13 +10452,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // to 3866 (the sequence), widened on run1301b over 3861..4117 (the
     // word's block 3867). Item 3642 moved it to 3876, inside the same
     // window (the word's block 3877). Item 3643 moved it to 4859, widened
-    // on run1304b over 4853..5109 (the word's block 4860).
+    // on run1304b over 4853..5109 (the word's block 4860). Whole since
+    // item 3646, 6128 of 6128 (a sea-only attacker takes only a sea
+    // unit), the closing state compared; widened on run1306 over
+    // 5873..6129 (the closing block), the rounds compared.
     (
         "SPANISH_GUNPOWDER_PAIR_WORD",
         crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER_PAIR_WORD,
-        Some("spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole"),
-        3643,
-        Some(crate::diff::spanish_gunpowder_pair::WIDENING_SPANISH_GUNPOWDER_FRAME_4859),
+        Some("spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole"),
+        3646,
+        Some(crate::diff::spanish_gunpowder_pair::WIDENING_SPANISH_GUNPOWDER_FRAME_6128),
     ),
     // **The Lakota at a held Gunpowder age** (item 3628): Great Sahara —
     // first try 4187 of 4750 by the count and the sequence, widened on
@@ -12424,15 +12437,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3627): first try 2168 of a
     // game that ends itself on 6128, widened on run1287b; 3866 since item
     // 3640, widened on run1301b; 3876 since item 3642, the same window;
-    // 4859 since item 3643, widened on run1304b.
+    // 4859 since item 3643, widened on run1304b. Whole since item 3646,
+    // 6128 of 6128 (a sea-only attacker takes only a sea unit), the
+    // closing state compared; widened on run1306 (the closing window).
     AiWord {
         line: "Late ages",
         map: "EastIndiesSpanishGunpowder",
         named: "East Indies (Spanish, Gunpowder)",
         word: crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER_PAIR_WORD,
         length: 6_128,
-        endpoint: None,
-        window: Some("spanish_gunpowder_frame_4859_window"),
+        endpoint: Some("spanish_gunpowder_pair_run1287_s_closing_state"),
+        window: Some("spanish_gunpowder_frame_6128_window"),
     },
     // The Lakota at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3628): first try 4187 of a

@@ -1157,6 +1157,27 @@ impl Sim {
         }
         let ap = self.profile(attacker);
         let tp = self.profile(target);
+        // **A sea-only attacker** (`6473c3`–`6473ea`, item 3646): a unit
+        // whose type's `unit_flags` (`+0x2b4`) carries `0x102000` — `n`,
+        // "destroyed when it attacks" (the fire rafts and fire ships), or
+        // `u` (the three submarines) — takes only a domain-1 (sea) target,
+        // and not one whose vslot `+0x1c` answers (a building). run1304b's
+        // Fire Ship `1/86` (TypeIndex 336) is never handed its group's
+        // Citizen `0/12` on 4859, where the Frigate and the Bombard Ships
+        // beside it are (`docs/AI.md` §335.4).
+        //
+        // SEAM: the domain-1 arm's other refusal (`647472`) — a unit
+        // target whose type carries `0x100000` (a submarine) to a domain-0
+        // asker — is not carried; which domain a building asker's type
+        // reports is not established here.
+        if let Obj::Unit(u) = attacker
+            && self.units[u]
+                .ty
+                .is_some_and(|ty| self.unit_types[ty].cols.flag(0x10_2000))
+            && (!matches!(tp.domain, Domain::Sea) || matches!(target, Obj::Building(_)))
+        {
+            return false;
+        }
         if matches!(tp.domain, Domain::Air) {
             if self.max_range_of(attacker) == 0 {
                 return false;
@@ -7101,6 +7122,59 @@ mod tests {
             sim.find_nearby_target(Obj::Unit(me), 0),
             Some(Obj::Unit(foe))
         );
+    }
+
+    /// **A sea-only attacker takes only a sea unit** (item 3646,
+    /// `ObjectData::valid_target_const@006472c0`, `6473c3`–`6473ea`): a
+    /// type whose `unit_flags` carries `0x2000` (`n`, the fire rafts and
+    /// fire ships) or `0x100000` (`u`, the submarines) refuses a land
+    /// unit and a building, a sea one among them, and takes a ship. A
+    /// Frigate beside it, with neither flag, takes all three — run1304b's
+    /// group 71 on 4859, where the Fire Ship `1/86` is never handed the
+    /// Citizen `0/12` its Frigate and Bombard Ships are. Made to fail on
+    /// purpose with the arm dropped.
+    #[test]
+    fn a_fire_ship_or_a_submarine_takes_only_a_ship() {
+        let (mut sim, land) = at_war();
+        let sea_type = |sim: &mut Sim, flags: u32| {
+            let mut t = sim.unit_types[land].clone();
+            t.combat.domain = Domain::Sea;
+            t.cols.unit_flags = flags;
+            sim.add_unit_type(t)
+        };
+        let fire_ship = sea_type(&mut sim, 0x2000);
+        let submarine = sea_type(&mut sim, 0x10_0000);
+        let frigate = sea_type(&mut sim, 0);
+        let at = |x| Pos::new(0x1000 + x, 0x1000);
+        let askers = [
+            put(&mut sim, 1, fire_ship, at(0)),
+            put(&mut sim, 1, submarine, at(0x20)),
+            put(&mut sim, 1, frigate, at(0x40)),
+        ];
+        let citizen = Obj::Unit(put(&mut sim, 0, land, at(0x100)));
+        let ship = Obj::Unit(put(&mut sim, 0, frigate, at(0x120)));
+        let dock = sim.add_building(0, at(0x140), 1);
+        sim.buildings[dock].hits = 100;
+        sim.buildings[dock].health = 100;
+        sim.buildings[dock].combat = Some(Profile {
+            domain: Domain::Sea,
+            ..Profile::default()
+        });
+        let dock = Obj::Building(dock);
+        let takes = |sim: &Sim, a: usize| {
+            [citizen, dock, ship].map(|t| sim.valid_target_const(Obj::Unit(a), t))
+        };
+        assert_eq!(
+            takes(&sim, askers[0]),
+            [false, false, true],
+            "the fire ship"
+        );
+        assert_eq!(
+            takes(&sim, askers[1]),
+            [false, false, true],
+            "the submarine"
+        );
+        assert_eq!(takes(&sim, askers[2]), [true, true, true], "the frigate");
     }
 
     /// **A hit is answered by the victim's captain, never by the figure that

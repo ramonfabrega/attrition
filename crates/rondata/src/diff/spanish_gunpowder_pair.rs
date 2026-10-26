@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const SPANISH_GUNPOWDER: Pair = Pair {
     name: "EastIndiesSpanishGunpowder",
@@ -51,8 +51,13 @@ pub(crate) const SPANISH_GUNPOWDER: Pair = Pair {
     // round leaves (1809, 5233) for 12 frames with theirs and lands on
     // 3877 (§335.3). On 4859 ours spends 16 draws against 18, parting at
     // index 7: ours `Unit::fight+0x9b0`, theirs `Unit::come_out+0x25ca`.
-    count: 4859,
-    sequence: 4859,
+    // Item 3646: 4859 → **6128**, the game's end, by both — a sea-only
+    // attacker (`unit_flags & 0x102000`) takes only a sea unit
+    // (`valid_target_const`'s `6473c3` arm), so the Fire Ship `1/86` is
+    // not handed its group's Citizen `0/12` on 4859 and spends no
+    // `fight+0x9b0` (§335.4). The pair closes.
+    count: 6128,
+    sequence: 6128,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -255,6 +260,10 @@ fn spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
         for (b, rows) in &w.standing {
             for ((who, o, what), r) in rows {
                 eprintln!("  standing {b} {who}/{o} {what}: {r}");
@@ -450,6 +459,10 @@ fn spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
         for (b, rows) in &w.standing {
             for ((who, o, what), r) in rows {
                 eprintln!("  standing {b} {who}/{o} {what}: {r}");
@@ -500,7 +513,7 @@ pub(crate) const WIDENING_SPANISH_GUNPOWDER_FRAME_4859: (i64, i64) = (4853, 5109
 /// **The word 4859's window**: run1304b walked from run1286's start with
 /// the recorder on (item 3643).
 pub(crate) fn spanish_gunpowder_frame_4859_window() -> Option<harness::tests::Widened> {
-    harness::tests::widen_on_siblings(
+    harness::tests::widen_on_siblings_with_rounds(
         &[SPANISH_GUNPOWDER.start],
         true,
         SPANISH_GUNPOWDER.long,
@@ -527,6 +540,10 @@ fn spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
         for (b, rows) in &w.standing {
             for ((who, o, what), r) in rows {
                 eprintln!("  standing {b} {who}/{o} {what}: {r}");
@@ -549,5 +566,169 @@ fn spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole() {
     // (600, 7944) (`docs/AI.md` §335.3). The word 4859: ours 16 draws
     // against 18, parting at index 7, ours `Unit::fight+0x9b0`, theirs
     // `Unit::come_out+0x25ca`.
-    pin_eq!(w.firsts.len(), 857, "run1304b baseline");
+    // Item 3646: **135** keys. The Fire Ship is never handed the Citizen
+    // (a sea-only attacker, `valid_target_const`'s `0x102000` arm), and no
+    // unit parts past the standing families but `1/122`'s `half_step` on
+    // 4878 (ours 1, theirs 0).
+    pin_eq!(w.firsts.len(), 135, "run1304b baseline");
+    // **Every round, both directions** (item 3645's walk, Loop 3644): 608
+    // round-blocks a side. What parts is three rounds on block 5002 (`1/56`,
+    // `1/57`, `1/73`) whose target `0/12` has left the dump: theirs keep
+    // `whom` 0 `ox` 12, ours forget it (parked 3646b).
+    pin_eq!(w.rounds_read, (608, 608), "the rounds read");
+    pin_eq!(
+        w.rounds
+            .iter()
+            .map(|((who, o, what), (f, _))| format!("{f} {who}/{o} {what}"))
+            .collect::<Vec<_>>(),
+        [
+            "5002 1/56 ammo[2].ox",
+            "5002 1/56 ammo[2].whom",
+            "5002 1/57 ammo[1].ox",
+            "5002 1/57 ammo[1].whom",
+            "5002 1/73 ammo[4].ox",
+            "5002 1/73 ammo[4].whom",
+        ],
+        "the rounds that part"
+    );
+}
+
+/// run1306: the closing window, blocks 5873..6129 at run1304b's detail,
+/// `cover=0` (item 3646) — 256 blocks through the closing block, so the
+/// word 6128, the game's last frame, sits inside a window.
+pub(crate) const RUN1306: &str =
+    "gamelog-run1306-eastindies-spanish-gunpowder-window-5873-6129.txt";
+
+/// The window: block 5873 through the closing block 6129.
+pub(crate) const WIDENING_SPANISH_GUNPOWDER_FRAME_6128: (i64, i64) = (5873, 6129);
+
+/// **The closing window**: run1306 walked from run1286's start with the
+/// recorder on, the rounds compared (item 3646).
+pub(crate) fn spanish_gunpowder_frame_6128_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[SPANISH_GUNPOWDER.start],
+        true,
+        SPANISH_GUNPOWDER.long,
+        "run1306",
+        &[(RUN1306, WIDENING_SPANISH_GUNPOWDER_FRAME_6128.0)],
+        WIDENING_SPANISH_GUNPOWDER_FRAME_6128,
+        1,
+        &[6129],
+        true,
+    )
+}
+
+#[test]
+fn spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_gunpowder_frame_6128_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3646, the pair whole: 137 keys, every one standing — `form`
+    // (64), who=1's pools (31) and groups' `held`, `SITE[i].reg` (10) and
+    // who=0's `aggression[1]`. No unit's field parts through the closing
+    // block.
+    pin!(
+        w.firsts
+            .iter()
+            .filter(|((_, o, _), _)| *o >= 0)
+            .filter(|((_, _, k), _)| k != "form")
+            .map(|(k, (f, _))| (*f, k.clone()))
+            .min()
+            .is_none(),
+        "no unit parts"
+    );
+    pin_eq!(w.firsts.len(), 137, "run1306 baseline");
+    // **Every round, both directions** (item 3645's walk): 439 round-blocks
+    // a side, and none parts.
+    pin_eq!(w.rounds_read, (439, 439), "the rounds read");
+    pin!(w.rounds.is_empty(), "no round parts");
+}
+
+/// **The closing state** (item 3646): run1287's closing block 6129, the
+/// whole map's units, walked from run1286's start.
+#[test]
+fn spanish_gunpowder_pair_run1287_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &SPANISH_GUNPOWDER;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Spanish Gunpowder pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    pin_eq!(e.frame, 6129, "the closing block");
+    // Item 3646, the pair whole: 219 units, none off, torn or unlinked,
+    // `Closing fields: none`. The one extra is the shutdown tick's own
+    // birth: the Village `1/2000` holds its Citizen at 16200 of a 16200
+    // target on 6128 on both sides (run1306's block 6128), and the tick
+    // `compare_shutdown` takes past it trains the Citizen into slot 196 —
+    // a tick the original's quit on 6128 never ran (parked 3646a).
+    pin_eq!(e.compared, 219, "units compared");
+    pin_eq!(e.counts(), [0, 0, 1, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![(1, 196)], "the closing extras");
 }

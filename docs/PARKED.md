@@ -11172,11 +11172,12 @@ The Dragoon's piece 1195 reads piece 139's pivot and release rows, and the pair 
 
 ## Parked by item 3642, 2026-10-25 — the Spanish Gunpowder word 3866 → 3876: a raiding computer ship zeroes only a dock
 
-- **The pair walks compare no `AMMO` record** (`widen_on_siblings`; `diff::ammo` is read by `diff::golden` alone,
+- ~~**The pair walks compare no `AMMO` record** (`widen_on_siblings`; `diff::ammo` is read by `diff::golden` alone,
   and `coverage.rs`' `OWN_PARSER` leaves the family to it). Theirs' Frigate `1/29` launched its broadside from
   (1809, 5233) on 3860 and ours from (1896, 5352), and no key parted until the Farm's `damage` on 3877. That instrument
   gap is on every pair window that dumps `AMMO=5`. The next word 3876 is booked on its own frame. This row names the
-  reader that would have shown the launch sixteen frames sooner (`docs/AI.md` §335.2).
+  reader that would have shown the launch sixteen frames sooner (`docs/AI.md` §335.2).~~ *Closed by item 3645's
+  `widen_on_siblings_with_rounds`, which run1304b and run1306 take since item 3646 (`docs/AI.md` §335.4).*
 - **`compare_target`'s dock arm under SIEGE is still reading-only**: a raiding computer SIEGE ship that does not
   fire on the move weighs a dock (`64e80e`–`64e81f`, objmask `0x40000`). No capture on file reaches it, and it names
   no score.
@@ -11209,13 +11210,22 @@ names the word 4477's frame:
   on both sides, and its rows agree through 4438, so the blow lands either way. The killer: a building row of
   `0/2004` that parts on a round's landing frame.
 
-## Parked by the next landing, slot SQ — reserved
+## Parked by item 3646, 2026-10-26 — the Spanish Gunpowder pair whole: a sea-only attacker takes only a sea unit
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The word moves 4859 → 6128 and the pair closes (`docs/AI.md` §335.4).
+
+- **3646a. The shutdown tick's births read as extras.** `compare_shutdown` runs one tick past the last frame, and
+  theirs quit on 6128 without running it. On that tick ours' Village `1/2000`, at 16200 of 16200 on 6128 on both
+  sides, trains a Citizen into the freed slot 196 (the Merchant Fleet `1/196` died on 6073), and the closing state
+  reads it as extra `1/196`. `spanish_gunpowder_pair_run1287_s_closing_state` pins it as `[0, 0, 1, 0, 0, 0, 0]`
+  and `[(1, 196)]`. A comparison that left out what the extra tick mints would read none. Names no score: the
+  closing state agrees on every unit theirs printed.
+- **3646b. A round keeps its gone target in theirs.** On run1304b's 5002 the rounds of `1/56`, `1/57` and `1/73`
+  are aimed at `0/12`, which has left the dump. Theirs keep `whom` 0 `ox` 12; ours' `Sim::forget` clears them. Six
+  round rows on 5002, of run1304b's 608 rounds. No draw, position or later word follows from it. Names no score.
+- **3646c. `valid_target_const`'s submarine-target arm is unbuilt.** At `647472`, a domain-0 asker refuses a unit
+  target whose type carries `0x100000` (`u`). `Sim::valid_target_const` carries it as a `SEAM`, because which domain
+  a building asker's type reports is not established. No window this item read reaches it. Names no score.
 
 ## Parked by the next landing, slot SR — reserved
 
