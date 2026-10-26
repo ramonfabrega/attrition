@@ -3818,6 +3818,11 @@ impl Sim {
                 Some(t)
             }
             SquadHead::Search => {
+                // `find_nearby_target`'s siege shortcut answers this caller
+                // too ([`Self::take_siege_army_target`], item 3654).
+                if let Some(t) = self.take_siege_army_target(u) {
+                    return Some(t);
+                }
                 let t = self.find_melee_target(u, range)?;
                 self.nearby_normalize(u);
                 // A guard's attack-move leg goes under the find
@@ -3836,8 +3841,13 @@ impl Sim {
     /// take a valid army target strictly inside the response radius,
     /// mandatory and QUEUE_FIRST, before ranking nearby candidates.
     /// Used by the attack-move look, the packer's chase re-search
-    /// (`docs/COMBAT.md` §88) and `think`'s idle search (item 2864);
-    /// the other search callers remain unestablished.
+    /// (`docs/COMBAT.md` §88), `think`'s idle search (item 2864), and
+    /// since item 3654 (`docs/AI.md` §336.2) `find_new_target`'s search
+    /// ([`Self::find_melee_target_headed`]) and `Group::target_opportunity`'s
+    /// member search ([`Self::find_melee_target_added_in`]): the shortcut
+    /// sits inside `find_nearby_target@00648da0:198`–`222`, ahead of its
+    /// add flag, so every caller takes it. SEAM: `Group::action_attack`'s
+    /// per-member search (`attack_view.rs`) does not ask it.
     fn take_siege_army_target(&mut self, u: usize) -> Option<Obj> {
         let who = self.units[u].owner;
         let p = self.profile(Obj::Unit(u));
@@ -9634,6 +9644,10 @@ impl Sim {
                 Some(t)
             }
             SquadHead::Search => {
+                // `find_nearby_target`'s siege shortcut (item 3654).
+                if let Some(t) = self.take_siege_army_target(u) {
+                    return Some(t);
+                }
                 let t = self.find_melee_target(u, -1)?;
                 // A group's attack-move hands the target to
                 // `Group::action_attack` ([`Self::nearby_add`], item 3634).

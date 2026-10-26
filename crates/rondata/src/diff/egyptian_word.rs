@@ -375,8 +375,12 @@ fn run967g_s_word_frame_is_widened_whole() {
     //
     // Item 3336: 3286 → 41 with the word's four fixes, then → 38 with
     // `Wall::set_type` leaving the hits to the next `calc_wall_stats`
-    // (who=1's cities' `myhits` on block 20036 agree).
-    pin_eq!(w.firsts.len(), 38, "run967g on its first try");
+    // (who=1's cities' `myhits` on block 20036 agree). Item 3654: 38 → 34
+    // with the packed-siege shortcut asked from `find_new_target` and
+    // `Group::target_opportunity` (`docs/AI.md` §336.2): `1/92`'s and
+    // `1/160`'s `attack[1].mandatory` on 20025 and `attack[0].mandatory`
+    // on 20044, ours 0 against theirs 1 before, now agree. The word holds.
+    pin_eq!(w.firsts.len(), 34, "run967g on its first try");
 }
 
 /// The closing state's window: run645's closing block alone, the long's

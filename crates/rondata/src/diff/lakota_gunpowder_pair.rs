@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const LAKOTA_GUNPOWDER: Pair = Pair {
     name: "GreatSaharaLakotaGunpowder",
@@ -40,8 +40,15 @@ pub(crate) const LAKOTA_GUNPOWDER: Pair = Pair {
     // (piece 1456) and the Bombards' (piece 1625) bays. 4477: ours 73
     // draws against 83, index 56, ours `Guy::set_anim < Unit::move_step`,
     // theirs `Unit::find_attack_pos < Unit::fight`.
-    count: 4477,
-    sequence: 4477,
+    // Item 3654: 4477 -> 4750, the game's last frame. On 4477 the President
+    // `1/15` casts Create Decoy and the decoy Bombards `1/180`/`1/185` search
+    // through `find_new_target` and `Group::target_opportunity`; theirs take
+    // the army's target `0/2000` `mandatory 1` there (`find_nearby_target`'s
+    // siege shortcut) and `1/185` walks its ring, where ours took a found
+    // target `mandatory 0` and stood (`docs/AI.md` §336.2). The closing
+    // state compares (`lakota_gunpowder_pair_run1289_s_closing_state`).
+    count: 4750,
+    sequence: 4750,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -408,6 +415,14 @@ fn lakota_gunpowder_pair_run1305c_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3654: 3790 -> **51** keys, every one a standing family on 4472
+    // (`form`, `SITE[i].reg`, who=0's `aggression[1]`, who=1's groups'
+    // `held`/`pool`; group 67's from 4475, `SITE[1].reg` 4576). **The value
+    // diff on the word's block 4478**: `1/185` (Bombard, TI 267) stands at
+    // (9192, 26808) under one `ATTACK` before, at (9201, 26816) on a `MOVE`
+    // to (9240, 27240) over its `ATTACK` now, as theirs; `1/180`'s
+    // `attack[1].mandatory` 0 -> 1, theirs 1 (`docs/AI.md` §336.2).
+    //
     // Item 3645, the first walk: 3790 keys. Block 4472 carries the standing
     // families and who=1's food (`bucket[0:food]` 10920 against 10966,
     // parked 3645b). **The word 4477's block 4478** parts on who=1's units
@@ -418,10 +433,130 @@ fn lakota_gunpowder_pair_run1305c_s_word_frame_is_widened_whole() {
     // 1. The draw on 4477: ours 73 against 83, index 56, ours
     // `Guy::set_anim < Unit::move_step`, theirs `Unit::find_attack_pos <
     // Unit::fight` (`docs/AI.md` §336).
-    pin_eq!(w.firsts.len(), 3790, "run1305c baseline");
+    pin_eq!(w.firsts.len(), 51, "run1305c baseline");
     // Every round, both directions: 203 round-blocks theirs, 185 ours; the
     // first to part are the Musket Horse `1/25`'s landing on 4478 (ours
     // (6076, 28723) against (6067, 28724)) and the Bombard `1/58`'s on 4480.
-    pin_eq!(w.rounds_read, (203, 185), "the rounds read");
-    pin_eq!(w.rounds.len(), 47, "the rounds that part");
+    // Item 3654: 203 a side, and none part.
+    pin_eq!(w.rounds_read, (203, 203), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// **The pair's closing state**: run1289's closing dump, block 4751,
+/// walked to and compared whole — a draw stream that agrees to a game's end
+/// says nothing of the end itself (item 1099; item 3654).
+#[test]
+fn lakota_gunpowder_pair_run1289_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &LAKOTA_GUNPOWDER;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Lakota Gunpowder pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4751, "the closing block");
+    // Item 3654, the pair whole: 214 units compared, none off, torn or
+    // unlinked, and no building or city field-row.
+    pin_eq!(e.compared, 214, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+}
+
+/// run1319: the pair's last blocks, 4495..4751 at run1289b's detail — the
+/// word 4750 is the game's last frame and 4751 its closing block (item
+/// 3654). run1289 prints units only every hundredth block and no
+/// `LEADERS`, `BUILDS` or `CITIES` record past the start, and run1305c ends
+/// on 4728.
+pub(crate) const RUN1319: &str =
+    "gamelog-run1319-greatsahara-lakota-gunpowder-window-4495-4751.txt";
+
+/// The window: block 4495 through the closing block 4751.
+pub(crate) const WINDOW_LAKOTA_GUNPOWDER_CLOSING: (i64, i64) = (4495, 4751);
+
+/// **The pair's last blocks**: run1319 walked from run1288's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3654).
+pub(crate) fn lakota_gunpowder_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[LAKOTA_GUNPOWDER.start],
+        true,
+        LAKOTA_GUNPOWDER.long,
+        "run1319",
+        &[(RUN1319, WINDOW_LAKOTA_GUNPOWDER_CLOSING.0)],
+        WINDOW_LAKOTA_GUNPOWDER_CLOSING,
+        1,
+        &[4751],
+        true,
+    )
+}
+
+#[test]
+fn lakota_gunpowder_pair_run1319_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_gunpowder_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3654, the first walk: **50** keys, every one standing. Block
+    // 4495 carries the standing families (`form`, `SITE[i].reg`, who=1's
+    // groups 64..70's `held`/`pool`) and who=1's food (`bucket[0:food]`,
+    // `leftover[0:food]`, parked 3645b); group 67's from 4675 and
+    // `SITE[1].reg` from 4576. No unit, building, city or round field parts,
+    // and the closing block 4751 agrees.
+    pin_eq!(w.firsts.len(), 50, "run1319 baseline");
+    // 168 round-blocks a side, and none part.
+    pin_eq!(w.rounds_read, (168, 168), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
