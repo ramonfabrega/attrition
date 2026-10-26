@@ -38,7 +38,7 @@ pub(crate) const GERMAN_INDUSTRIAL: Pair = Pair {
     // attack`'s `0x164` arm: who=1's Armored Car `1/27` struck the Citizen
     // `0/13` on 3521 for 7 6/16 in theirs, 6 12/16 in ours). On 4348 ours
     // spends 17 draws against 20, parting at index 1: theirs
-    // `Unit::fight+0x824` (`1/27` fires on Napata), ours `Guy::move`'s.
+    // `Unit::fight+0x824` under `Unit::do_attack`, ours `Guy::move`'s.
     count: 4348,
     sequence: 4348,
 };
