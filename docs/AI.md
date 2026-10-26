@@ -31143,6 +31143,12 @@ units, and every count is 0. run1319 (blocks 4495..4751,
 `lakota_gunpowder_pair_run1319_s_closing_frame_is_widened_whole`) reads 50
 keys, all standing, and 168 rounds a side; none part.
 
+**It reaches the Egyptian lobby too.** run967g's widening falls from 38
+keys to 34 (`egyptian_word::run967g_s_word_frame_is_widened_whole`). The
+rows that agree now are `1/92`'s and `1/160`'s `attack[1].mandatory` on
+block 20025 and `attack[0].mandatory` on 20044, ours 0 against theirs 1
+before. The Egyptian word does not move.
+
 **What is not established.** `Group::action_attack`'s caller, as above,
 and any capture that reaches the `find_new_target` arm.
 Why parked 3645a–c's standing rows stand is unread.
