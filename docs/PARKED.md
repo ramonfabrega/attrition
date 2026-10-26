@@ -3774,6 +3774,11 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-25 — the fifty-seventh tranche's
 
+(3644) **3642's "for the Loop"** (the journal's line, filed at its merge): the pair widenings (`widen_on_siblings`) compare no `AMMO`
+record, though every pair window since run1287b dumps `AMMO=5`; on the Spanish Gunpowder pair a round's launch point parted on 3860, sixteen
+frames before any key did (3876). `coverage.rs` names the family `OWN_PARSER` (`diff::golden`), so neither the read pin nor the compared pin
+sees the gap. For the pass: whether the pair walks compare `AMMO` (and the coverage pins count it), which every open word would inherit.
+
 (3638) **`test_viadriver`'s second-launch case fails under load** (3634's and 3626's journals, filed at 3626's merge): twice in one
 tranche a lane gate stopped in offline on `test_a_second_launch_while_the_first_runs_still_carries_its_arguments` (`'args: ' not found
 in ''`), each passing three of three alone with nothing under `tools/` touched — and each cost a lane gate's whole re-run. The test's
@@ -11163,13 +11168,16 @@ The Dragoon's piece 1195 reads piece 139's pivot and release rows, and the pair 
   instead). `TERRA_COTTA_RANGE` ships 0, so no capture can part on it; `heal_bonus` and `versailles` beside it are
   read by nothing that reaches a frame. **Score**: none — it is a mod's, and parks for that.
 
-## Parked by the next landing, slot SN — reserved
+## Parked by item 3642, 2026-10-25 — the Spanish Gunpowder word 3866 → 3876: a raiding computer ship zeroes only a dock
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **The pair walks compare no `AMMO` record** (`widen_on_siblings`; `diff::ammo` is read by `diff::golden` alone,
+  and `coverage.rs`' `OWN_PARSER` leaves the family to it). Theirs' Frigate `1/29` launched its broadside from
+  (1809, 5233) on 3860 and ours from (1896, 5352), and no key parted until the Farm's `damage` on 3877. That instrument
+  gap is on every pair window that dumps `AMMO=5`. The next word 3876 is booked on its own frame. This row names the
+  reader that would have shown the launch sixteen frames sooner (`docs/AI.md` §335.2).
+- **`compare_target`'s dock arm under SIEGE is still reading-only**: a raiding computer SIEGE ship that does not
+  fire on the move weighs a dock (`64e80e`–`64e81f`, objmask `0x40000`). No capture on file reaches it, and it names
+  no score.
 
 ## Parked by the next landing, slot SO — reserved
 
