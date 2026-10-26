@@ -1224,7 +1224,13 @@ fn run790_s_word_frame_is_widened_whole() {
     // Item 2677: −1 with the city clamp's kept fraction and the crash
     // round's strike (`docs/AI.md` §230).
     // Item 2761: 116 → 112 with `Unit::close`'s count (`docs/AI.md` §232).
-    pin_eq!(w.firsts.len(), 84, "initial run790 baseline");
+    // Item 3641: 84 → 85 with the supply radius read from the research
+    // held (`docs/AI.md` §333.3): `1/143`, already apart from 3986
+    // (`attrition` ours 12 against theirs' 0, ours bleeding it where
+    // theirs does not), has its tick of 4010 vetoed by a wagon that now
+    // reaches it — `sheltered` ours 1 against 0. Downstream of the
+    // standing `attrition` row, not a new parting of its own.
+    pin_eq!(w.firsts.len(), 85, "initial run790 baseline");
 }
 
 /// run817, item 2055: the lobby's blocks 4260..4341 at run790's detail —
@@ -1300,5 +1306,12 @@ fn run817_s_word_frame_is_widened_whole() {
     // number (`docs/AI.md` §311): who=1's `popwin_stamp` and
     // `popwin_timer`, ours 0 and 0 against theirs 4135 and 1 from 4260,
     // agree.
-    pin_eq!(w.firsts.len(), 262, "initial run817 baseline");
+    // Item 3641: 262 → 229, the supply radius read from the research held
+    // (`docs/AI.md` §333.3): who=1's wounds on 4260 shrink toward theirs
+    // as its wagons shelter more ticks (`1/22` and `1/23` agree; `1/104`
+    // 25 → 22 against 0, `1/136` 22 → 11 against 0), and `1/143`'s
+    // `recharging` 80 against 25 is gone. `1/117` and `1/136` gain a
+    // `sheltered` row, ours 1 against 0, on units already apart by their
+    // `hits:damage`.
+    pin_eq!(w.firsts.len(), 229, "initial run817 baseline");
 }

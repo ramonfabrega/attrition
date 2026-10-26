@@ -11135,13 +11135,15 @@ leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` st
 The Dragoon's piece 1195 reads piece 139's pivot and release rows, and the pair moves 5196 → 5384 (`docs/AI.md`
 §333.2).
 
-- **3639a. The Bombard `1/98` reloads 120 frames in ours against 60 in theirs, from block 5325.** run1299's first
+- ~~**3639a. The Bombard `1/98` reloads 120 frames in ours against 60 in theirs, from block 5325.** run1299's first
   row past the standing families: `1/98` (TypeIndex 267, `BOMBARD`, land, uid 141, four figures; the unit the
   Dragoon `1/97` guards, in group 67) on a mandatory `ATTACKORDER` at the human's city `0/2000` reads `recharging`
   120 in ours against 60 in theirs on block 5325. On the word 5384 (ours 49 draws against 53, index 30) theirs
   spends four `Guy::set_anim+0xf2f < Unit::set_anim < Unit::fight+0x19f6` (a four-figure swing) where ours spends
   `1/154`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`. Neither the reload's writer nor the swing's unit is read
-  yet; the frame and the delta are the booking. **Score**: the Chinese Gunpowder word, through its frame.
+  yet; the frame and the delta are the booking. **Score**: the Chinese Gunpowder word, through its frame.~~
+  **Built by item 3641** (`docs/AI.md` §333.3): who=1's Forage puts its wagons at 16 tiles, and the swing is
+  `1/98`'s.
 
 ## Parked by the next landing, slot SL — reserved
 
@@ -11151,13 +11153,15 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot SM — reserved
+## Parked by item 3641, 2026-10-25 — the Chinese Gunpowder pair whole: the supply radius reads the research
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+`Sim::supplied_at` asks `supply_upgrade_level` for the radius, and the pair moves 5384 → 5568, whole (`docs/AI.md`
+§333.3).
+
+- **3641a. `PlayerSupply::terra_cotta` has no writer.** `Network::supplies` adds `TERRA_COTTA_RANGE` when it is
+  set, and nothing sets it (`hero_radius_view` asks `has_wonder(WONDER_TERRA_COTTA)` for the generals' radius
+  instead). `TERRA_COTTA_RANGE` ships 0, so no capture can part on it; `heal_bonus` and `versailles` beside it are
+  read by nothing that reaches a frame. **Score**: none — it is a mod's, and parks for that.
 
 ## Parked by the next landing, slot SN — reserved
 

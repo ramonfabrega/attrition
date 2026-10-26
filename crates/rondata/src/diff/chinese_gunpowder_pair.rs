@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const CHINESE_GUNPOWDER: Pair = Pair {
     name: "EastIndiesChineseGunpowder",
@@ -58,8 +58,18 @@ pub(crate) const CHINESE_GUNPOWDER: Pair = Pair {
     // 0x19f6`, a four-figure swing; the state parts first on block 5325
     // at the Bombard `1/98`'s `recharging`, ours 120 against 60
     // (`docs/AI.md` section 333.2).
-    count: 5384,
-    sequence: 5384,
+    //
+    // Item 3641: 5384 → 5568, the game's last frame — the pair is whole.
+    // The supply radius reads the research held (`SupplyData::get_radius`),
+    // where `sim::supply` read a stored count no one wrote: who=1 researches
+    // Forage (605, the first step) on 5192, so its wagons reach 16 tiles,
+    // not 14. On
+    // 5324 the Bombard `1/98` at (7608, 10680) fires with the Supply Wagon
+    // `1/102` at (8040, 7977), 2737 off: in supply, and on block 5325 its
+    // `recharging` is 60 on both sides, where ours read the
+    // out-of-supply 120 (`docs/AI.md` section 333.3).
+    count: 5568,
+    sequence: 5568,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -361,7 +371,136 @@ fn chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole() {
     // and **the word 5384**'s block 5385, ours 49 draws against 53, index
     // 30: theirs swings four figures under `Unit::fight+0x19f6`
     // (`docs/AI.md` section 333.2).
-    pin_eq!(w.firsts.len(), 1545, "run1299 baseline");
+    //
+    // Item 3641: **1545 → 138**, the standing families alone (`form`, the
+    // leaders' `SITE[*].reg`, who=1's groups' `held` and pools). With
+    // who=1's wagon radius at its one researched step, `1/98`'s reload of
+    // 5324 is 60 on both sides (block 5325), and the swing of 5384 and
+    // everything after it agree (`docs/AI.md` section 333.3).
+    pin_eq!(w.firsts.len(), 138, "run1299 baseline");
+}
+
+/// run1302: the closing window, blocks 5446..5569 at run1283b's detail,
+/// `cover=0` (item 3641) — from run1299's last block through the closing
+/// block, so the game's last frame, 5568, sits inside a window.
+pub(crate) const RUN1302: &str =
+    "gamelog-run1302-eastindies-chinese-gunpowder-window-5446-5569.txt";
+
+/// The window: block 5446 through the closing block 5569.
+pub(crate) const WIDENING_CHINESE_GUNPOWDER_FRAME_5568: (i64, i64) = (5446, 5569);
+
+/// **The closing window**: run1302 walked from run1282's start with the
+/// recorder on (item 3641).
+pub(crate) fn chinese_gunpowder_frame_5568_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[CHINESE_GUNPOWDER.start],
+        true,
+        CHINESE_GUNPOWDER.long,
+        "run1302",
+        &[(RUN1302, WIDENING_CHINESE_GUNPOWDER_FRAME_5568.0)],
+        WIDENING_CHINESE_GUNPOWDER_FRAME_5568,
+        1,
+        &[5569],
+        true,
+    )
+}
+
+#[test]
+fn chinese_gunpowder_pair_run1302_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = chinese_gunpowder_frame_5568_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 123, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3641, the pair whole: 129 keys, every one standing — block
+    // 5446's families (`form`, the leaders' `SITE[*].reg`, human
+    // `aggression[1]`, who=1's groups' `held` and pools), then births'
+    // `form` and the `SITE[0..5].reg` rows again on 5567 and 5568. No
+    // unit's position or orders part through the closing block.
+    pin_eq!(w.firsts.len(), 129, "run1302 baseline");
+}
+
+/// **The closing state** (item 3641): run1283's closing block 5569, the
+/// whole map's units, walked from run1282's start.
+#[test]
+fn chinese_gunpowder_pair_run1283_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &CHINESE_GUNPOWDER;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Chinese Gunpowder pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    // Item 3641, the pair whole: 264 units, none off, torn or unlinked,
+    // no extra, `Closing fields: none`.
+    pin_eq!(e.frame, 5569, "the closing block");
+    pin_eq!(e.compared, 264, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }
 
 /// run1283c: the gap before the word's window, blocks 4795..4880 at

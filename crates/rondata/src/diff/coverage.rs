@@ -3523,6 +3523,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::bantu_medieval_pair::bantu_medieval_closing_window(),
         || super::chinese_gunpowder_pair::chinese_gunpowder_frame_4884_window(),
         || super::chinese_gunpowder_pair::chinese_gunpowder_frame_5196_window(),
+        || super::chinese_gunpowder_pair::chinese_gunpowder_frame_5568_window(),
         || super::chinese_gunpowder_pair::chinese_gunpowder_stride_window(),
         || super::chinese_gunpowder_pair::chinese_gunpowder_gap_window(),
         || super::greek_gunpowder_pair::greek_gunpowder_closing_window(),
