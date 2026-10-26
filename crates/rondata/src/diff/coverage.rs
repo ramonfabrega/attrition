@@ -3547,6 +3547,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::aztec_medieval_pair::aztec_medieval_frame_4602_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_frame_3095_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_stride_window(),
+        || super::indian_enlightenment_pair::indian_enlightenment_frame_4157_window(),
+        || super::indian_enlightenment_pair::indian_enlightenment_stride_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_gap_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_frame_4045_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),

@@ -11247,13 +11247,11 @@ Nothing parked: the window's every parting round parts on its target too,
 and the word's next take is the item the commander books (`docs/AI.md`
 §339).
 
-## Parked by the next landing, slot ST — reserved
+## Parked by item 3649, 2026-10-26 — the Indian Enlightenment pair stood up
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot ST renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the gap's strike on `0/13` and the Bomb Ketch's launch
+points are the word's own next take, the item the commander books
+(`docs/AI.md` §340).
 
 ## Parked by the next landing, slot SU — reserved
 

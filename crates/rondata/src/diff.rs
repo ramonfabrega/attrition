@@ -108,6 +108,8 @@ mod inca_sahara_word;
 #[cfg(test)]
 mod inca_word;
 #[cfg(test)]
+mod indian_enlightenment_pair;
+#[cfg(test)]
 mod indian_sahara_word;
 #[cfg(test)]
 mod indian_word;

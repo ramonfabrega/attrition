@@ -283,6 +283,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `EastIndiesIncaTier3` `(18, 2, 3)` or the Classical pair's
     // `(18, 2, 5)`, another map; no battery game fields the Inca.
     (7, 2, 5),
+    // The Indian Enlightenment pair's (item 3649): the Indians at a held
+    // Enlightenment age, Difficulty 5, East Indies — not the AI word
+    // `EastIndiesIndianTier2`, `(18, 21, 2)`, another difficulty, nor
+    // `GreatSaharaIndianTier3`, `(7, 21, 3)`, another map; no battery game
+    // fields the Indians.
+    (18, 21, 5),
     // The French Classical pair's (item 3607): the French at a held
     // Classical age, Difficulty 5, Great Sahara — not the AI word
     // `GreatSaharaFrenchTier4`, `(7, 10, 4)`, another difficulty, nor the
