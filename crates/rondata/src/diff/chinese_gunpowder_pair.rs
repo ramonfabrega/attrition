@@ -37,8 +37,17 @@ pub(crate) const CHINESE_GUNPOWDER: Pair = Pair {
     // at index 6 — ours `PathFinder::calc_road_cost+0x46`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823` (`docs/AI.md` section
     // 333).
-    count: 4884,
-    sequence: 4884,
+    //
+    // Item 3637: **4884 → 5196**. `do_move` keeps the failed unit-grid
+    // search's `retry` roll (the Heavy Fire Lance `1/215`, 6 on block 4862
+    // on both sides now). On 5196 ours spends 19 draws against theirs' 20,
+    // parting at index 1 — ours `Guy::set_anim+0x97a < Unit::do_guard+
+    // 0x7f4` (`1/126`), theirs a second `< Unit::do_idle+0x7d`, a who=1
+    // unit between `1/115` and `1/126`; the state parts first on block
+    // 5133 at the human's `0/10`, wounded in theirs on 5132 (`docs/AI.md`
+    // section 333).
+    count: 5196,
+    sequence: 5196,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -260,7 +269,61 @@ fn chinese_gunpowder_pair_run1283b_s_word_frame_is_widened_whole() {
     // `calc_road_cost` run that ours reaches at 6. On the word's block 4885 the units round
     // `1/215` part: `1/185`, `1/186`, `1/197` and `1/213`'s positions,
     // `collide` and paths.
-    pin_eq!(w.firsts.len(), 3727, "run1283b baseline");
+    pin_eq!(w.firsts.len(), 167, "run1283b baseline");
+}
+
+/// run1299: the word 5196's window, blocks 5190..5446 at run1283b's detail
+/// (item 3637) — six blocks before the word's own block 5197 and 250
+/// after; the long's stride prints 5101 and 5201 only.
+pub(crate) const RUN1299: &str =
+    "gamelog-run1299-eastindies-chinese-gunpowder-window-5190-5446.txt";
+
+/// The window: block 5190 through 5446; the word 5196's own block is 5197.
+pub(crate) const WIDENING_CHINESE_GUNPOWDER_FRAME_5196: (i64, i64) = (5190, 5446);
+
+/// **The word 5196's window**: run1299 walked from run1282's start with
+/// the recorder on (item 3637).
+pub(crate) fn chinese_gunpowder_frame_5196_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[CHINESE_GUNPOWDER.start],
+        true,
+        CHINESE_GUNPOWDER.long,
+        "run1299",
+        &[(RUN1299, WIDENING_CHINESE_GUNPOWDER_FRAME_5196.0)],
+        WIDENING_CHINESE_GUNPOWDER_FRAME_5196,
+        1,
+        &[5197],
+        true,
+    )
+}
+
+#[test]
+fn chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = chinese_gunpowder_frame_5196_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3637, the first walk.
+    pin_eq!(w.firsts.len(), 4356, "run1299 baseline");
 }
 
 /// run1283c: the gap before the word's window, blocks 4795..4880 at
@@ -323,5 +386,5 @@ fn chinese_gunpowder_pair_run1283c_s_gap_is_widened_whole() {
     // order's row does not compare (`order.rs`). Theirs stands out the six
     // frames and re-paths on 4869 to (40068, 36732), ours on 4863, so ours
     // walks six frames (222) ahead (`docs/AI.md` section 333).
-    pin_eq!(w.firsts.len(), 144, "run1283c baseline");
+    pin_eq!(w.firsts.len(), 130, "run1283c baseline");
 }
