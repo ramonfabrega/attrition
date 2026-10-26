@@ -31458,17 +31458,68 @@ frame `0/5`'s `damage_frame` parts on (3053 against 3054) and who struck
 it: its first take is a gap window over the undumped 3002..3088, which no
 dump on disk holds.
 
-**What is not established.** Who struck `0/5` on 3053 in theirs, and why
-ours strikes it a frame later; why ours' `1/36` takes `0/5` on 3085 where
-theirs' holds `0/12`; and whether the Musketeers' launch point agrees —
-every round that parts in the window also parts on its target, so none
-answers it.
+**What is not established** (at 3648). Who struck `0/5` on 3053 in theirs,
+and why ours strikes it a frame later; why ours' `1/36` takes `0/5` on
+3085 where theirs' holds `0/12`; and whether the Musketeers' launch point
+agrees. Answered by item 3659, §339.1.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **198 of
 302**, unmoved: the rubric counts lockstep games only, and this pair
 parts. **`Mortar` (274)**, the booking's line, **is fielded**: 570 guy
-records in run1310 and 9078 in run1310b (`rubric.scan`). It stays on the
-"never" list until the pair closes.
+records in run1310 and 9078 in run1310b (`rubric.scan`). Item 3659:
+**199**, the pair whole (§339.1).
+
+### 339.1 The pair whole: the Musketeers' and Fusiliers' bays (item 3659)
+
+**Theirs acted first, on a launch point.** run1323 widens the gap over
+blocks 3001..3094 (`inca_enlightenment_pair_run1323_s_gap_is_widened_whole`),
+and its first row past the standing families is `0/5` on block 3054:
+`damage_frame` 0 ours against 3053 theirs, `hits_left` 65 against 51.
+Every round of group 64's Musketeers (`1/21`..`1/48`, TypeIndex 99) parts
+on its launch point, 30 theirs against 35 ours: ours leaves the figure's
+own square at its `z`, theirs some 130 ahead and 160–200 above. `1/25`'s
+round at `0/5` leaves on 3053 from (7752, 30840, 640) in ours against
+(7795, 30717, 838), flies 3 frames against 2, and lands a frame late. The
+target `1/36` holds on 3087 follows from it.
+
+**The piece.** The Inca draw the Musketeer on piece **753**,
+`MUSKETEERS-AMERICAN` (`Musketeer_amer.bh3`): 49 + 2·0x160 by
+`unit_gpiece`'s style walk, the nation's `UNIT_CONTINENT` 2. No row in
+`launch::BAYS`, `MEASURED` or `pivot::RELEASES` named it, and no packet
+on disk loaded it (run1011e, run1015b). run1323b's packet at 3052 holds
+its three attack `AttachPos` rows (node 0, frames 1, 7, 4; `RData +0x88`
+1.0); `fit_bay.py` fits each sweep, 361 of 361 headings. **The closing
+block** then read 6 `build_unlinked` and 1 `city_unlinked`: who=1
+captures the human's capital `0/2000` on 4045 (`1/2043`, `capture_stamp`
+4045) with its five buildings, where ours held it at 4 health. run1323c,
+the closing window 3790..4046, parts it on 3815: `0/2000`'s `damage` 785
+ours, 791 theirs, from the Fusilier `1/44`'s round (TypeIndex 136, piece
+**790**, `FUSILIER-AMERICAN`) leaving (8136, 31080, 662) against (8048,
+31009, 772). The same packet holds 790's three rows, fit the same way.
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 3053 | `1/25`'s round | `sx, sy, sz` | (7752, 30840, 640) | (7795, 30717, 838) | (7795, 30717, 838) |
+| 3053 | `1/25`'s round | `total_time` | 3 | 2 | 2 |
+| 3054 | `0/5` | `damage_frame` | 0 | 3053 | 3053 |
+| 3089 | `1/36` | `order:target` | `0/5` | `0/12` | `0/12` |
+| 3815 | `1/44`'s round | `sx, sy, sz` | (8136, 31080, 662) | (8048, 31009, 772) | (8048, 31009, 772) |
+| 4046 | `0/2000` | owner | who=0, 4 health | `1/2043` | `1/2043` |
+
+**What moved.** **3095 → 4045 of 4045**, by the count and the sequence:
+the pair closes. The closing state
+(`inca_enlightenment_pair_run1310_s_closing_state`) compares 166 units,
+none off, torn, unlinked or extra, `Closing fields: none`. run1310b falls
+1205 → 50 keys, all standing, its rounds 104 a side with 4 keys parting
+(3659b). run1323 reads 51 keys, all standing, its rounds 30 a side, none
+parting. run1323c reads 49 keys: the standing families and two idle
+guards' `dest_angle` (3567a's shape); its rounds 214 a side, one parting —
+the Carbineer `1/83`'s (piece 844, a pivot piece, 3659a). The rubric
+reads unit types seen **199 of 302** (`Mortar`, 274).
+
+**What is not established.** Piece 844's pivot rows (3659a), and
+whether theirs' `0/3` is garrisoned or dead on 3239 (3659b). The bays
+are centroids of their fit regions, exact at every whole degree only.
 
 ## 340. Reserved for the next item on the AI track
 
