@@ -4072,7 +4072,7 @@ pub(super) fn ammo_value_rows(
     .collect()
 }
 
-fn ammo_flag_rows(
+pub(crate) fn ammo_flag_rows(
     p: &sim::combat::Projectile,
     a: &super::ammo::Ammo,
 ) -> [(&'static str, i64, i64); 6] {

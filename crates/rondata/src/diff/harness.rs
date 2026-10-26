@@ -4791,6 +4791,13 @@ pub(crate) mod tests {
             if gaia {
                 compared += widen_gaia(&built, frame, players, n, &mut here, &mut missing);
             }
+            // **The rounds** (item 3646, Loop 3644): a window
+            // [`crate::diff::ammo::AMMO_COMPARED`] names holds every `AMMO`
+            // record against this crate's projectiles, both directions.
+            if crate::diff::ammo::AMMO_COMPARED.contains(&name) {
+                let raw = ix.read_frame(at).unwrap();
+                compared += crate::diff::ammo::compare_block(&built.sim, &raw, n, &mut here);
+            }
             if let Some(t) = stage {
                 stages[3] += t.elapsed();
             }
