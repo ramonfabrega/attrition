@@ -12,15 +12,15 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-25, **the fifty-seventh tranche (commander, Opus): 20 of 20 landed from `656fb6ac5`**; no lane live, the drain; the last whole gate is `f3c3ffb61`.*
+*2026-10-26, **the fifty-seventh tranche (commander, Opus): drained at twenty from `656fb6ac5`**, every lane reaped; **the pass is due**.*
 - **Words**: two open — the Lakota at Gunpowder, 4187 of 4,750 (lower map first — Great Sahara (Lakota, Gunpowder)), 3645 on 4187; the Spanish 4859, 3646.
-  **The headline, the early ages**: two words closed this tranche — Roman Medieval 1875 → 5979 in five items (3622, 3631, 3633, 3635: an
-  unreachable swarm, a road node's fog, pivot rows, a pivot's gone test) and Mongol Gunpowder, first try 1973 (3623) → 5399 in four (3630–3636); Bantu Medieval whole on its first try, 4914 (3624); Chinese Gunpowder first try 4884 (3625) → 5196 (3637) → 5384 (3639) → whole (3641); Greek Gunpowder whole on its first try, 4074 (3626); Spanish Gunpowder first try 2168 (3627) → 3866 (3640) → 3876 (3642) → 4859 (3643); Lakota Gunpowder first try 4187 (3628).
-  **Booked for the fifty-seventh**: seven early-age pairs off the braces (3623–3629), one line each — no lobby fields two never-seen lines now.
+  **The headline, the early ages**: six pairs stood up, four whole; the Roman word closed (1875 → 5979, 3622, 3631–3635). Mongol Gunpowder 1973 → 5399
+  (3623, 3630–3636); Chinese 4884 → 5568 (3625, 3637–3641); Bantu Medieval, Greek Gunpowder whole first try (3624, 3626); Spanish 2168 → 4859 (3627, 3640–3643).
 - **The rubric, lockstep**: types 179 → 195 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; 107 never (Air 21, Sea 2, Land 84); refill after 3629: the Aztecs at Medieval, Great Sahara `(7, 0, 5)`, `Xopilli Atl-Atls` (87).
-- **The fifty-sixth tranche** (`tranche.py --base a30d051d3`, `gates.py`): 20 landings · one DEEP · 44.2 minutes waiting a landing (40.5) · 6.40 USD a landing (7.25) ·
-  gate 34.2 of 60.3 lane minutes a session (30.7) — **Loop 3608's reading saved nothing** (zero of twenty lane gates kept the fast suite: every stand-up also
-  adds the coverage window line and two test-kit rows); the pass reads those as rows too (eight of twenty would have) and the fifty-seventh's drain measures it.
+- **For the pass** (`tranche.py --base 656fb6ac5`, `gates.py`): 20 landings · three DEEP (3631 324 k, 3633 311 k, 3634 333 k) · 46.5 minutes waiting a
+  landing (44.2) · 7.66 USD a landing (153.11 over 23 sessions; 6.40) · 1.9 captures a landing; 19 booking gates: 6 whole, 13 scoped (13 widened), 0 red,
+  427.6 minutes; admission 1208.2 s, longest 59.4 s; 1 past the cores; gate 31.8 of 58.7 lane minutes a session (34.2); two Opus lanes, 13 h 09. **The
+  lane gate's row reading, measured**: zero of twenty kept the fast suite (release 16.1–20.5 min, the six stand-ups included). Loop 3638 and 3644 filed.
 - **Lanes: none live; three booked** (3645 the Lakota word, 3646 the Spanish word, 3629 the pair). Next 3647, run 1307. Pools: AI §338–345, park SR.
 - **Fable backlog: 9 Loop items** (3644, 3638, 3611, 3382, 3350, 3237, 3188, 3143, 3118); 3611 is built on a second outage, in the shape its row names.
 
@@ -41,7 +41,7 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 195 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-seventh tranche (commander, Opus) — two Opus lanes at medium, 3622 the Roman word first (frame 1875), then the pairs 3623–3629 in order; the refill after 3629 is the handoff's line; drain at twenty and clear the steer row.**
+**Opener: the fifty-seventh pass (steer, Fable) — the tranche drained at twenty from `656fb6ac5`; this handoff, the two open words (3645 Lakota first, 3646 Spanish), 3629 and the refill owed, the backlog.**
 
 ## The queue
 
