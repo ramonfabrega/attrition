@@ -864,6 +864,44 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 104,
         },
     ),
+    // **Piece 218, the Cannon** (unit type 268; item 3661, `docs/AI.md`
+    // §341): run1325c's packet holds its three attack `AttachPos` rows,
+    // node 0 at frame 9 of `CHAR_ATTACK1`..`3`, one point, `RData +0x88`
+    // 1.0, and `fit_bay.py` fits each sweep to the same region of 99
+    // lattice points; the rows are its centroid, `dz` 100 at every
+    // heading. Without them who=1's Cannons fired from the carriage's own
+    // point — run1325d's `1/96` on 6475 from (9480, 9864, 318) against the
+    // original's (9369, 9768, 418), in the closing window.
+    (
+        218,
+        11,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    (
+        218,
+        12,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    (
+        218,
+        13,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
     // **The Javelineers' piece 34** (item 2997, `docs/AI.md` §244): run912e's
     // `RON_STATE_FRAME=12753` packet holds its three `AttachPos` rows, and
     // `tools/recomp/get_position.py`'s sweep of each is reproduced by these
