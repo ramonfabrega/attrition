@@ -10406,6 +10406,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3637,
         Some(crate::diff::chinese_gunpowder_pair::WIDENING_CHINESE_GUNPOWDER_FRAME_5196),
     ),
+    // **The Greeks at a held Gunpowder age** (item 3626): Great Sahara —
+    // whole on its first try, 4074 of 4074, the closing state compared;
+    // widened on run1285b over 3819..4075 (the closing block).
+    (
+        "GREEK_GUNPOWDER_PAIR_WORD",
+        crate::diff::greek_gunpowder_pair::GREEK_GUNPOWDER_PAIR_WORD,
+        Some("greek_gunpowder_pair_run1285b_s_closing_frame_is_widened_whole"),
+        3626,
+        Some(crate::diff::greek_gunpowder_pair::WINDOW_GREEK_GUNPOWDER_CLOSING),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12349,6 +12359,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_568,
         endpoint: None,
         window: Some("chinese_gunpowder_frame_5196_window"),
+    },
+    // The Greeks at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
+    // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3626): whole on its first
+    // try, 4074 of a game that ends itself on 4074, its closing state
+    // compared; widened on run1285b over the closing block.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaGreekGunpowder",
+        named: "Great Sahara (Greeks, Gunpowder)",
+        word: crate::diff::greek_gunpowder_pair::GREEK_GUNPOWDER_PAIR_WORD,
+        length: 4_074,
+        endpoint: Some("greek_gunpowder_pair_run1285_s_closing_state"),
+        window: Some("greek_gunpowder_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
