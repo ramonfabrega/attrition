@@ -269,6 +269,12 @@ fn chinese_gunpowder_pair_run1283b_s_word_frame_is_widened_whole() {
     // `calc_road_cost` run that ours reaches at 6. On the word's block 4885 the units round
     // `1/215` part: `1/185`, `1/186`, `1/197` and `1/213`'s positions,
     // `collide` and paths.
+    //
+    // Item 3637: **3727 → 167**. With `retry` kept, `1/215` agrees, and the
+    // window is the standing families until block 5133: the human's
+    // Citizen `0/10` (type 50, uid 17) reads `hits:damage` 26, `hits_left`
+    // 24 and `damage_frame` 5132 in theirs against 0, 50 and 0 in ours,
+    // and flees; on 5134 its walk, path and `idle` part.
     pin_eq!(w.firsts.len(), 167, "run1283b baseline");
 }
 
@@ -322,7 +328,14 @@ fn chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3637, the first walk.
+    // Item 3637, the first walk: 4356 keys. Block 5190 holds the standing
+    // families and two units already apart: the human's Citizen `0/10`,
+    // wounded on 5132 in theirs and 5133 in ours (run1283b's block 5133),
+    // and who=1's `1/39`, whose move aims at (7272, 8664) against theirs'
+    // (7224, 8664); on 5202 its attack names `0/12` against `0/10`. **The
+    // word 5196**, ours 19 draws against 20, index 1: theirs spends a
+    // second `Unit::do_idle+0x7d` before the `do_guard+0x7f4` ours spends
+    // at 1 on `1/126` (`docs/AI.md` section 333.1).
     pin_eq!(w.firsts.len(), 4356, "run1299 baseline");
 }
 
@@ -386,5 +399,9 @@ fn chinese_gunpowder_pair_run1283c_s_gap_is_widened_whole() {
     // order's row does not compare (`order.rs`). Theirs stands out the six
     // frames and re-paths on 4869 to (40068, 36732), ours on 4863, so ours
     // walks six frames (222) ahead (`docs/AI.md` section 333).
+    //
+    // Item 3637: **144 → 130**. The move row compares `retry` and
+    // `attempts`, and `do_move` keeps the roll: `1/215`'s rows leave, and
+    // what remains is the standing families (`docs/AI.md` section 333.1).
     pin_eq!(w.firsts.len(), 130, "run1283c baseline");
 }

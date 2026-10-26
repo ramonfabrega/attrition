@@ -30381,9 +30381,11 @@ frames counting it down (4863..4868), gains `attempts` 3 and re-paths on
 arm with a non-final top: `mo.has_waypoint = false; self.store_move(u, mo,
 flags)`) stores back its copy `mo`, taken before the search, over it. The
 original clears `dest` in place and keeps the roll. I built nothing.
+**Built by item 3637, as read** (§333.1).
 `moveorder.retry` and `attempts` are left out of the move order's row
 (`crates/rondata/src/diff/order.rs`, "nothing here writes them"), which is
-why the first compared row is 4863 rather than 4862 (parked 3625a).
+why the first compared row is 4863 rather than 4862 (parked 3625a; both
+compared since item 3637).
 
 The stride (`chinese_gunpowder_pair_the_long_s_stride_walks_back_from_4884`,
 101..4801: 48 blocks, 177 keys) parts on the standing families alone: `form`
@@ -30397,7 +30399,71 @@ the ledger: **`Heavy Fire Lances` (97), the booking's line, fielded**
 
 **Not established.** Why theirs' frame 4884 spends 16 more road-cost draws
 than ours: the caravan road's search reads the unit grid, which `1/215`'s
-six frames have moved.
+six frames have moved. **Answered by item 3637** (§333.1): with the roll
+kept, frame 4884 agrees, so the road-cost run was downstream of the six
+frames.
+
+### 333.1 The planner's roll is the order's: 4884 → 5196 (item 3637)
+
+**The direction.** On frame 4861 both sides spend `Unit::do_move+0xe84`
+(the grid draw) and `PathFinder::astar_path+0x1697 < find_upath`: `1/215`'s
+unit-grid search fails and rolls `retry` (`r % 3 + 6`). The record that
+shows who kept the roll is the move order's own. Now that `retry` and
+`attempts` are in `order.rs`'s move row, run1283c's first compared row is
+block 4862's `1/215 order:move.retry`, ours 0 against theirs' 6, then
+4868's `attempts`, 0 against 3. **Theirs made the record; ours lost it.**
+
+**The original, on that arm.** `Unit::do_move@005f7b30` holds the order as
+a pointer (`pMVar3`) through the whole straight-line check. The refused
+non-final top pops and writes `pMVar3->dest = 0` in place (`:711`), so the
+roll `find_upath` wrote into the same `MoveOrder` stands. Ours copies the
+order into `mo` at entry, and every store after the planner call wrote the
+pre-search copy back; here it was the refused arm's `store_move`.
+`seams.py --field retry` names no seam on the arm, and `roll_upath_retry`
+is the one planner writer of `retry`. So **the fix re-reads `retry` from
+the live order after the planner call** (`crates/sim/src/orders.rs`,
+beside the unchanged-length refusal), and every later store carries it.
+3625's hypothesis was right, and it is built as read.
+
+**What moved.**
+
+- **Chinese Gunpowder 4884 → 5196** of 5568, by the count and the
+  sequence. On block 4862 both sides now hold `retry` 6. run1283c's 130
+  keys and run1283b's 167 are standing families until block 5133.
+- **No other lobby moved.** The whole `rondata` suite ran every floor and
+  widening on the fix. The only pins that changed were this pair's and
+  `coverage.rs`'s `OrderDump` pin, which `retry` and `attempts` leave.
+- **A mutation** that drops the re-read (`tools/mutate.py`) fails
+  `chinese_gunpowder_pair_first_parting` at 4884.
+
+**The new word: frame 5196, ours 19 draws against 20, index 1.** Both open
+on `1/115`'s `Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Theirs then
+spends a second `do_idle+0x7d` (by `Unit::set_anim+0xb6`) before the
+`do_guard+0x7f4` that ours spends at index 1 on `1/126`. So a who=1 unit
+between `1/115` and `1/126` idles in theirs. run1299 (blocks 5190..5446,
+the word's block 5197, run1283b's detail) is the word's widening:
+`chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole`, 256
+blocks, **4356 keys**.
+
+**The value diff, walked back.** The state first parts on **block 5133**
+in run1283b, at the human's Citizen `0/10` (type 50, uid 17):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5133 | `0/10` | `hits:damage` | 0 | 26 |
+| 5133 | `0/10` | `hits_left` | 50 | 24 |
+| 5133 | `0/10` | `damage_frame` | 0 | 5132 |
+| 5133 | `0/10` | `orders.len` (theirs a `FLEEORDER` to (6600, 7512)) | 0 | 1 |
+| 5190 | `0/10` | `damage_frame` | 5133 | 5132 |
+
+Theirs wounds the Citizen on 5132 and it flees. Ours wounds it a frame
+later. By 5190 the who=1 unit `1/39` aims at (7272, 8664) against theirs'
+(7224, 8664), and on 5202 its attack names `0/12` where theirs names
+`0/10`.
+
+**Not established.** Who struck `0/10` on 5132, and with what: run1283b's
+`AMMO` records are the next reading (parked 3637a). Whether the extra
+`do_idle` on 5196 belongs to that chain or another.
 
 ## 334. Reserved for the next item on the AI track
 
