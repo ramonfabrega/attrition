@@ -7896,6 +7896,55 @@ mod tests {
         );
     }
 
+    /// **A computer's raiding ship weighs a peasant at nothing extra**
+    /// (item 3662, `docs/AI.md` §342; `Object::compare_target`'s sea raid
+    /// arm, `0064edd8`–`0064ef64`): a transport is `+900,000`, a peasant
+    /// and a plain unit stand — where the land
+    /// arm gives a computer's raider `+900,000` for the peasant and a tenth
+    /// for anything else. run1326's packet scores the Citizens `0/3` and
+    /// `0/10` at 512 and 596 for who=1's Galley `1/21` on 4567.
+    ///
+    /// Made to fail by reading the ship as the land arm (the peasant's and
+    /// the plain unit's rows). The Fireship and fishing-boat lineages need
+    /// a tech tree, and the military role moves the threat terms above the
+    /// arm, so neither is asserted here.
+    #[test]
+    fn a_computer_s_raiding_ship_weighs_a_peasant_at_nothing_extra() {
+        let weigh = |sea: bool, raid: bool, kind: u8| {
+            let (mut sim, ty) = at_war();
+            sim.nation[0].human = false;
+            let mut at = sim.unit_types[ty].clone();
+            if sea {
+                at.combat.domain = Domain::Sea;
+                at.kind.domain = Domain::Sea;
+            }
+            let at = sim.add_unit_type(at);
+            let mut tt = sim.unit_types[ty].clone();
+            tt.combat.cost = 5000;
+            tt.combat.attack = 0;
+            tt.combat.max_range = 0;
+            match kind {
+                1 => tt.worker = crate::orders::Worker::Citizen,
+                2 => tt.cols.unit_flags |= crate::ai_load::uflags::TRANSPORT,
+                _ => {}
+            }
+            let tt = sim.add_unit_type(tt);
+            let me = put(&mut sim, 0, at, Pos::new(3000, 3000));
+            if raid {
+                sim.units[me].combat.stance = Stance::Raid;
+            }
+            let t = put(&mut sim, 1, tt, Pos::new(3300, 3000));
+            sim.compare_target(Obj::Unit(me), Obj::Unit(t), false, false)
+        };
+        // The base is 40,000 here; the tail is `(v + 99) / 100`.
+        let plain = weigh(true, true, 0);
+        assert_eq!(plain, 400, "a plain unit stands: no tenth");
+        assert_eq!(weigh(true, true, 1), 400, "the peasant stands");
+        assert_eq!(weigh(true, true, 2), 9400, "a transport: + 900,000");
+        assert_eq!(weigh(false, true, 1), 9400, "the land arm's peasant");
+        assert_eq!(weigh(false, true, 0), 40, "the land arm's tenth");
+    }
+
     #[test]
     fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
         let weigh_at = |human: bool,

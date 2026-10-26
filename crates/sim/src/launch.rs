@@ -3402,7 +3402,11 @@ mod tests {
                 (at.x, at.y) == (2690, 3917) && release_dz(291, anim, start, 0) == Some(52)
             })
             .collect();
-        assert_eq!(fits, [&(11, 9), &(11, 12), &(12, 9)], "1/29's round on 4298");
+        assert_eq!(
+            fits,
+            [&(11, 9), &(11, 12), &(12, 9)],
+            "1/29's round on 4298"
+        );
     }
 
     /// **The Egyptian Arquebusiers' rounds leave from piece 48's bays**
