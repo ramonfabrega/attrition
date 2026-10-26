@@ -582,6 +582,37 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 30,
         },
     ),
+    // **The Frigate's piece 293** (unit type 343, `FRIGATE-DEFAULT-AGE0`;
+    // item 3643, `docs/AI.md` §335.3): run1304's `RON_STATE_FRAME=3865`
+    // packet on the Spanish Gunpowder East Indies seed holds its two attack
+    // `AttachPos` rows, node 0 at frame 7 (the `InvisibleAmmo` release at
+    // 500 ms) of `CHAR_ATTACK1` (`Frigate Left Attack`) and `CHAR_ATTACK2`
+    // (`Right Attack`). Each `get_position.py` sweep has one feasible region
+    // (1097 and 151 lattice points) reproducing all 361 headings, x and y;
+    // the rows are its middles and `dz` the sweep's `z`. who=1's `1/29`
+    // fired at the Farm `0/2004` on 3866 from (1809, 5233), `sz` 20, where
+    // this crate fired from the hull's (1896, 5352): 11 frames against 12,
+    // and the Farm struck on 3876, a frame early.
+    (
+        293,
+        crate::anim::ATTACK1,
+        7,
+        Bay {
+            right: -117_433,
+            fwd: -11_024,
+            dz: 47,
+        },
+    ),
+    (
+        293,
+        crate::anim::ATTACK2,
+        7,
+        Bay {
+            right: -103_432,
+            fwd: 106_239,
+            dz: 20,
+        },
+    ),
     // **The Arquebusiers' piece 1104** (unit type 98 as the Japanese field
     // it; item 3590, `docs/AI.md` §316): run1237's `RON_STATE_FRAME=2674`
     // packet on the Japanese Gunpowder Great Sahara seed holds its three
@@ -3906,6 +3937,50 @@ mod tests {
                 "{anim} {time} {deg}"
             );
         }
+    }
+
+    /// **The Frigate's piece 293** (item 3643): four headings of each row's
+    /// `get_position.py` sweep on run1304's packet, `(anim, starttime,
+    /// degree, x, y)`, the degree the sweep's own column (180 off
+    /// [`whole_degrees`]); and the round run1301b prints, `1/29` at
+    /// (1896, 5352) facing 104464384 on `CHAR_ATTACK2`, leaving (1809, 5233).
+    #[test]
+    fn the_frigate_s_bays_are_the_packet_s_sweep() {
+        const S: &[(i8, u32, i64, i32, i32)] = &[
+            (11, 7, 0, 117, -11),
+            (11, 7, 97, -3, 117),
+            (11, 7, 233, -79, -87),
+            (11, 7, 300, 49, -107),
+            (12, 7, 0, 103, 106),
+            (12, 7, 97, -118, 89),
+            (12, 7, 188, -87, -119),
+            (12, 7, 233, 22, -146),
+            (12, 7, 300, 143, -36),
+        ];
+        for &(anim, time, deg, x, y) in S {
+            let want = (deg + 180) % 360;
+            let facing = (0..1u32 << 12)
+                .map(|i| Angle((i << 20) as i32))
+                .find(|&a| whole_degrees(a) == want)
+                .expect("a facing at the degree");
+            let b = bay(293, anim, time, 0).expect("every attack AttachPos row");
+            let at = b.point(Pos::new(10_000, 10_000), facing);
+            assert_eq!(
+                (at.x - 10_000, at.y - 10_000),
+                (x, y),
+                "{anim} {time} {deg}"
+            );
+        }
+        let at = launch_point(
+            Pos::new(1896, 5352),
+            Angle(104_464_384),
+            293,
+            crate::anim::ATTACK2,
+            7,
+            0,
+        );
+        assert_eq!((at.x, at.y), (1809, 5233));
+        assert_eq!(release_dz(293, crate::anim::ATTACK2, 7, 0), Some(20));
     }
 
     /// **Piece 1442, the Native American Peltasts** (item 3287): four
