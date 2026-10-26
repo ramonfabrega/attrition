@@ -11302,13 +11302,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot SZ — reserved
+## Parked by item 3657, 2026-10-26 — the Aztec Medieval word: the slay arm pays by the age
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3647's hypothesis held, and so did its unit.** `Object::take_damage`'s Aztec arm pays a Barracks, Stable or Dock
+killer `(ages + 1) × AZTEC_SLAY_BONUS` (the "slay count" at bucket `+0xdc` is `LeaderDataEncrypt::ages`). It is built
+in `Sim::unit_plunder`, and so is the steps' own Despot search, which `SimPlunder::find_hero` answered inverted. The
+word moves 2556 → 2569 (`docs/AI.md` §338). One row parks, and it names no score:
+
+- **3657a. The General, caravan and supply-wagon victims' `plunder(v, k, who, 0, 0)`** (`take_damage@00652020`'s
+  `is(0x36)`/`is(0x3b)`/`is(0x3f)` arm, a `SEAM` in `Sim::unit_plunder`). Ours returns before the plunder, so
+  neither `GENERAL_PLUNDER`/`CARAVAN_PLUNDER` nor the four draws are spent, and the view's `general_plunder` and
+  `caravan_plunder` answer 0. No word on file kills one of these. The killer: a kill of a General, caravan or supply
+  wagon by a non-Aztec-trainer killer on a word's frame, whose killer's leader then parts by the constant.
 
 ## Parked by the next landing, slot TA — reserved
 
