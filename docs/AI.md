@@ -31157,12 +31157,94 @@ Why parked 3645a–c's standing rows stand is unread.
 302** on the tree holding item 3646's merge (196 there): the pair is lockstep
 now, and Musket Horse (207, land; 280 figure rows) leaves the "never" list.
 
-## 337. Reserved for the next item on the AI track
+## 337. The Iroquois at a held Enlightenment age, East Indies: first try 3962 of 5128 (item 3629)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the British
+Enlightenment pair's lobby (§306) with the nation moved: East Indies,
+`MAP_STYLE 18`, human Nubians (4) against **the Iroquois (18)** at
+Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4`
+and `ENDING_TECHNOLOGY 4`. `crates/rondata/src/diff/iroquois_enlightenment_pair.rs`
+pins it. Its triple `(18, 18, 5)` is minted in `battery::SCORED_LOBBIES`.
+The battery fields no Iroquois: both its Tier3s left it for AI words,
+`iroquois_word`'s `GreatLakesIroquoisTier3` `(14, 18, 3)` and
+`iroquois_sahara_word`'s `GreatSaharaIroquoisTier3` `(7, 18, 3)`. The
+Ancient-start pair is Great Sahara's `(7, 18, 5)`.
+
+**The captures.** run1290 is the `DUMP_ALL` start, and run1291 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 5128**. run1291b is the word's window, blocks 3956..4212, with
+`LEADERS=9` and `AMMO=5`. `GAME INFO` reads back `STARTING_TECHNOLOGY 4`
+and `ENDING_TECHNOLOGY 4` on both pair takes (`Pair::assert_lobby`). By
+`rngcmp.py`, run1290 against run1291 is 37 of 37 frames identical, and
+run1291b against run1291 4213 of 4213. The walk is seeded from run1290's
+initial state (3506a).
+
+**First try: frame 3962 of 5128**, by the count and the sequence. On 3962
+ours spends 11 game-stream draws against theirs' 14, parting at index 6:
+ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+
+**The stride** (`iroquois_enlightenment_pair_the_long_s_stride_walks_back_from_3962`,
+101..3901: 39 blocks, 155 keys) parts only on the standing families: 47
+buildings' `build:extra`, `form` on 65 units, who=1's 20 groups' `held`
+and pools (65 on 101 through 83 on 3501), and `blown` on `1/0`, `1/18` and
+`1/19` (the Iroquois Scout's cloak, parked 3114).
+
+**Both sides fired; the round leaves from the wrong point in ours.** The
+window's first block, 3956, already holds who=1's Bomb Ketch `1/82`'s
+round at the human's Citizen `0/4`, on both sides, fired in the undumped
+gap 3902..3955:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3956 | `1/82`'s round | `sx, sy` | (3912, 12792) | (4013, 12593) |
+| 3956 | `1/82`'s round | `sz` | 0 | 133 |
+| 3956 | `1/82`'s round | `total_time` | 43 | 41 |
+| 3956 | `1/82`'s round | `angle` | 323813376 | 323944448 |
+| 3956 | `1/82`'s round | `v1z` | 230760315 | 217286438 |
+
+- `1/82` is a **Bomb Ketch** (TypeIndex 347, `TY` 297, sea), stance Raid,
+  at (3896, 12633), with an attack on `0/4` (`in_range` 1) over an
+  `ATTACKTOORDER`. Its stack agrees on both sides through block 4169.
+- `0/4` is the human's **Citizen** (TypeIndex 50), on a `GATHERORDER`.
+- Every round that parts in the window is a Bomb Ketch's (`1/64`, `1/65`,
+  `1/80`, `1/82`, all TypeIndex 347), and each leaves from the hull at
+  `sz` 0 in ours against 130–133 in theirs. The Bomb Vessel's piece 296
+  has pivot rows (item 1257, `sim::pivot`); the Ketch has no row in
+  `pivot::NODES` or `launch::BAYS`. That is the next item's hypothesis,
+  not a finding.
+
+**The value diff on the word's block 3963** (run1291b, walked from
+run1290 with every round compared: 256 blocks, **756 keys**, rounds 301
+theirs against 228 ours with 62 parting, the two `gaia:` keys unprinted, 2
+inexact ground corners pinned in `GROUND_INEXACT`). Theirs' round lands on
+3962 and ours' is still flying:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3963 | `0/4` | `hits_left` | 65 | 47 |
+| 3963 | `0/4` | `damage_frame` | 0 | 3962 |
+| 3963 | `0/4` | top order | `GATHERORDER` (7) | `FLEEORDER` (4) to (6600, 7608) |
+| 3963 | `0/2002`, `0/2003`, `0/2004` | `damage` | 0, 0, 0 | 4, 15, 1 |
+| 3963 | city `0/2000` | `raid_stamp` | 0 | 3962 |
+| 3963 | who=0's leader | `treaties[1]` | 1 | 3 |
+| 3963 | who=1's leader | `treaties[0]` | 1 | 3 |
+
+So the word's draw is theirs' `take_damage` on the landing. Block 3956
+carries only the standing families (`form`, `SITE[i].reg`, who=0's
+`aggression[1]`, who=1's groups' `held` and pools, `blown`). The next row
+past `0/4`'s flight is `1/107`'s move on 3979.
+
+**What is not established.** Where the Bomb Ketch's round leaves from
+(its piece, and whether it is a pivot or a bay), and the frame it fired
+on, in the gap 3902..3955. A gap window over 3895..3962 and a packet at
+the fire would answer both, as item 3645's did for the Musket Horse.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **196 of
+302**, unmoved: the rubric counts lockstep games only, and this pair
+parts. **`Okwari` (81)**, the booking's line, **is fielded**: 338 guy
+records in run1291 and 2048 in run1291b. It is the one type this game
+holds that the lockstep ledger has not seen, and it stays on the "never"
+list until the pair closes.
 
 ## 338. Reserved for the next item on the AI track
 

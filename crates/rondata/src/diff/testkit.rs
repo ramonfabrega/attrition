@@ -7289,6 +7289,12 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3629: run1291b, the Iroquois Enlightenment word 3962's window,
+    // 3956..4212: 2 inexact corners.
+    (
+        "iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole",
+        2,
+    ),
     // Item 3642: run1301b, the Spanish Gunpowder word 3876's window,
     // 3861..4117: the raiding Frigate `1/29`'s rounds at the human's Farm
     // `0/2004` read 2 inexact corners.
@@ -10476,6 +10482,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3654,
         Some(crate::diff::lakota_gunpowder_pair::WINDOW_LAKOTA_GUNPOWDER_CLOSING),
     ),
+    // **The Iroquois at a held Enlightenment age** (item 3629): East
+    // Indies — first try 3962 of 5128 by the count and the sequence,
+    // widened on run1291b over 3956..4212 (the word's block 3963), the
+    // rounds compared.
+    (
+        "IROQUOIS_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT_PAIR_WORD,
+        Some("iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole"),
+        3629,
+        Some(crate::diff::iroquois_enlightenment_pair::WIDENING_IROQUOIS_ENLIGHTENMENT_FRAME_3962),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12464,6 +12481,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_750,
         endpoint: Some("lakota_gunpowder_pair_run1289_s_closing_state"),
         window: Some("lakota_gunpowder_closing_window"),
+    },
+    // The Iroquois at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), East Indies (item 3629): first try 3962 of a
+    // game that ends itself on 5128, widened on run1291b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesIroquoisEnlightenment",
+        named: "East Indies (Iroquois, Enlightenment)",
+        word: crate::diff::iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT_PAIR_WORD,
+        length: 5_128,
+        endpoint: None,
+        window: Some("iroquois_enlightenment_frame_3962_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

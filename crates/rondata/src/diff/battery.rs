@@ -317,12 +317,19 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `EastIndiesSpanishTier3`, `(18, 9, 3)`, another difficulty, nor the
     // Classical pair's `(7, 9, 5)`, another map; the battery fields no
     // Spanish.
-    (18, 9, 5), // The Lakota Gunpowder pair's (item 3628): the Lakota at a held
+    (18, 9, 5),
+    // The Lakota Gunpowder pair's (item 3628): the Lakota at a held
     // Gunpowder age, Difficulty 5, Great Sahara — not the battery's
     // `GreatSaharaLakotaTier2`, `(7, 19, 2)`, another difficulty, nor the
     // AI word `GreatLakesLakotaTier2`, `(14, 19, 2)`, nor the Peace and
     // Medieval pairs' `(18, 19, 3)` and `(18, 19, 5)`, another map.
     (7, 19, 5),
+    // The Iroquois Enlightenment pair's (item 3629): the Iroquois at a held
+    // Enlightenment age, Difficulty 5, East Indies — not the AI words
+    // `GreatLakesIroquoisTier3`, `(14, 18, 3)`, and
+    // `GreatSaharaIroquoisTier3`, `(7, 18, 3)`, nor the Ancient-start
+    // pair's `(7, 18, 5)`, another map; the battery fields no Iroquois.
+    (18, 18, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

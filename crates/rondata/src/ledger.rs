@@ -283,6 +283,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the Lakota Gunpowder pair's walks: it compares no field itself (item 3628)",
     ),
     (
+        "diff/iroquois_enlightenment_pair.rs",
+        "the Iroquois Enlightenment pair's walks: it compares no field itself (item 3629)",
+    ),
+    (
         "diff/korean_classical_pair.rs",
         "the Korean Classical pair's walks: it compares no field itself (item 3601)",
     ),
