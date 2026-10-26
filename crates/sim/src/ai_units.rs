@@ -658,20 +658,6 @@ impl Sim {
                 .ok()
                 .is_some_and(|sp| crate::ai_make::debug_make_wanted(&sp, self.frame));
         let mut probe_stage: Option<(TypeId, &str)> = None;
-        if probe {
-            let tv = &self.tech[w].tech;
-            let mut bytes = String::new();
-            for i in 0..tv.len().div_ceil(8) {
-                let mut b = 0u32;
-                for k in 0..8 {
-                    if tv.get(i * 8 + k).copied().unwrap_or(false) {
-                        b |= 1 << k;
-                    }
-                }
-                bytes.push_str(&b.to_string());
-            }
-            eprintln!("OFFERS f={} TECH len={} bytes={} t131={} t123={}", self.frame, tv.len(), bytes, tv[131], tv[123]);
-        }
         for c in cities {
             let city_o = self.cities[c].building;
             let r = self.city_region(c);
@@ -2356,26 +2342,6 @@ impl Sim {
     ) -> i32 {
         let _ = (city, o);
         let w = who as usize;
-        // PROBE 3678
-        if who == 1
-            && t == 281
-            && std::env::var("RON_DEBUG_OFFERS")
-                .ok()
-                .is_some_and(|sp| crate::ai_make::debug_make_wanted(&sp, self.frame))
-        {
-            eprintln!(
-                "OFFERS f={} CHECK_INCOME t={} scale={} num={} esc={} price={:?} income={:?} avail={:?} afford={}",
-                self.frame,
-                t,
-                scale,
-                num,
-                flag || escrow != 0,
-                self.type_price(who, t),
-                self.ledgers[w].income,
-                self.holdings[w].available,
-                self.type_affordable(who, t, flag || escrow != 0)
-            );
-        }
         let escrow_on = flag || escrow != 0;
         let n = self.type_affordable(who, t, escrow_on);
         let mut f = 0x100;
