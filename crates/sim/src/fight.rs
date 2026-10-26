@@ -1535,20 +1535,8 @@ impl Sim {
     }
 
     /// Sets a unit's target, keeping the `targeted` counts.
-    #[track_caller]
     fn retarget(&mut self, attacker: Obj, target: Option<Obj>, mandatory: bool) {
         let Obj::Unit(i) = attacker else { return };
-        if std::env::var("RON_PROBE_3646").is_ok()
-            && self.units[i].owner == 1
-            && matches!(self.units[i].index, 58 | 86 | 74 | 87)
-            && (4858..=4861).contains(&self.frame)
-        {
-            eprintln!(
-                "P3646 retarget f{} 1/{} target {:?} from {}",
-                self.frame, self.units[i].index, target.map(|t| self.pos_of(t)),
-                std::panic::Location::caller()
-            );
-        }
         let has_order = self.units[i]
             .orders
             .iter()
