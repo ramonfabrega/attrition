@@ -31823,7 +31823,8 @@ run1325d, the closing window 6414..6670, parted only who=1's Cannons'
 packet holds piece **218**'s three rows (one point, frame 9), fit the
 same way. Every window now reads the standing families alone, and every
 round agrees: run1314b 1911 → 102 keys, rounds (9, 9); run1325 124, (9,
-9); run1325b 164, (84, 84); run1325d 147, (82, 82).
+9); run1325b 164, (84, 84); run1325d 147, (82, 82). The rubric reads unit
+types seen **202 of 302** (`Continental Marines`, 119).
 
 **What is not established.** The other trench writers — the Entrench
 spell (`0x27d`), `Unit::close`'s clear, `detect_boat_collision`'s
