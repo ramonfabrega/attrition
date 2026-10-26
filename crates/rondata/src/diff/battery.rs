@@ -371,6 +371,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(7, 15, 5)` nor the AI word `GreatSaharaJapaneseTier1`'s
     // `(7, 15, 1)`, each another map; the battery fields no Japanese.
     (14, 15, 5),
+    // The Koreans at a held Medieval age, Great Lakes (item 3665): not the
+    // Ancient-start pair's `(18, 16, 5)` nor the Classical pair's
+    // `(7, 16, 5)`, another map, nor the held-out `GreatSaharaKoreanTier3`,
+    // `(7, 16, 3)`; the battery fields no Koreans.
+    (14, 16, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

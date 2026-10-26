@@ -11396,13 +11396,10 @@ units with none off (`docs/AI.md` §343). One row of its closing window (run1327
   693 up; `v1z` 210946716 against 192709869. The landing, flight time and every hit agree to the closing block, and
   the pair is whole. Names no score: books with 3658b when a word lands on a Trebuchet's round.
 
-## Parked by the next landing, slot TH — reserved
+## Parked by item 3665, 2026-10-26 — the Koreans at a held Medieval age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the pair lands at its first parting, 3401 of 4559, and its next word is booked by frame
+(`docs/AI.md` §345).
 
 ## Parked by the next landing, slot TI — reserved
 
