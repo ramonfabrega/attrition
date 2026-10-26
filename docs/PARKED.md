@@ -3773,6 +3773,14 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's. **The fiftieth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2471 → 2537 functions, 9,607,787 → 9,745,971 bytes (85.5 %) on the tranche's 53 pool captures (`Census entered: simulation 2537 of 3611 functions · 1396 entered and unbacked`); the definition yours. Ramon's. **The fifty-first pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2537 → 2566 functions, 9,745,971 → 9,798,451 bytes (86.0 %) on the tranche's 46 pool captures (`Census entered: simulation 2566 of 3611 functions · 1410 entered and unbacked`); the definition yours. Ramon's. **The fifty-second pass**: bytes 37.9 % unmoved; the census's `entered` column moves on the tranche's 38 captures (the record); 2,449 lines landed in `crates/sim` on six late-age pairs and the census counts none of it, which is the column's whole case; the definition yours. Ramon's. **The fifty-third pass**: backed 1696, port 568, layout 1128 unmoved through 785 sim lines on ten files (the launch rows, `fight`'s wait, the eject path, a tower's sight); the `audit` column is not built, the definition yours. Ramon's. **The fifty-fifth pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); 1,111 sim lines on eleven files (`launch.rs` +338, `pivot.rs` +252, `fight.rs` +143) and the census counts none of it; the definition yours. Ramon's. **The fifty-fifth and fifty-sixth passes**: bytes 37.9 % and port 568 unmoved (no sweep ran either tranche); the fifty-fifth appended no line here though its record says it did. Ramon's.
 
+## Loop, filed 2026-10-26 — the fifty-ninth tranche's
+
+(3680) **3666's "for the Loop"** (the journal's line, filed at its merge): a switch meant to turn a build off measures nothing when the build
+also rebinds a name outside it — 3666's "off" run of `Guy::do_turn`'s crew rewrite left a shadowed `from` live, so it still regressed the
+fourteen lobbies and the switch read as the build's cost. For the pass: whether the brief's probe rows (a payoff probe changes only the frames
+under test) want a clause that an off-switch is checked by its own diff against the base — the tree with the switch off builds the base's
+binary — before its run is read.
+
 ## Loop, filed 2026-10-26 — the fifty-eighth tranche's
 
 One row, built by the fifty-eighth pass and its text kept in `docs/audit/2026-10-26-fable-pass-58.md`: **3656** (3654's "for the Loop": `test_viadriver`'s
@@ -11408,13 +11416,14 @@ units with none off (`docs/AI.md` §343). One row of its closing window (run1327
 Nothing parked: the pair lands at its first parting, 3401 of 4559, and its next word is booked by frame
 (`docs/AI.md` §345).
 
-## Parked by the next landing, slot TI — reserved
+## Parked by item 3666, 2026-10-26 — the Korean Medieval word 4379: piece 1090's bays and `Guy::do_turn`'s crew loop
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+~~(3666) closed 2026-10-26 by item 3666: booked as 3679 by the commander. **The Korean word 4379's widening is owed.** Item 3666 moved the word 3401 → 3627 → 4379 (`docs/AI.md`
+§345). On 4379 ours spends 25 draws against theirs' 28, parting at index 3: ours `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, theirs `Unit::resolve_unit_collision+0xb52`. run1331b ends on block 3652 and reads the
+standing families alone now; run1331 prints units every hundredth block and no `AMMO`. So no dump holds 4379's
+block, and a window capture over 4373..4559 (the game ends itself on 4559) at run1331b's detail is the widening
+the word owes. **Score**: the headline, Great Lakes (Koreans, Medieval) w4379 of 4,559. **Booked as 3679** (the fifty-ninth commander).~~
 
 ## Parked by item 3667, 2026-10-26 — the Germans at a held Industrial age, Great Lakes
 
