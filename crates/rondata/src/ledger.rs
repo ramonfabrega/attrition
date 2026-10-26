@@ -295,6 +295,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the Indian Enlightenment pair's walks: it compares no field itself (item 3649)",
     ),
     (
+        "diff/american_enlightenment_pair.rs",
+        "the American Enlightenment pair's walks: it compares no field itself (item 3650)",
+    ),
+    (
         "diff/inca_enlightenment_pair.rs",
         "the Inca Enlightenment pair's walks: it compares no field itself (item 3648)",
     ),
