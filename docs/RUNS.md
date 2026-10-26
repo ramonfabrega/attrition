@@ -28805,6 +28805,30 @@ SHA-256 `c6312767f679b1905216c4ecd0591b0d77af18b3b493c2013b34e8b29fdd7fed`.
 4853 carries only the standing families; the first row past them is the word's block 4860, who=1's Fire Ship
 `1/86` (TypeIndex 336) at (31656, 30984) against theirs' (31643, 31002), and on 4861 the Frigate `1/58`
 (TypeIndex 343) holds 3 orders in theirs against ours' 1.
+
+## run1306 — the Spanish at a held Gunpowder age, East Indies: the closing window, blocks 5873..6129 (2026-10-26, item 3646, `att-3646`)
+
+`docs/AI.md` §335.4. **What the disk could not answer**: item 3646 moved the word from 4859 to the game's end, 6128,
+and no window held this lobby past 5109 at the pair's detail; run1287's stride prints only `UNITS` and `GUYS`.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1306 --map 18 --end-frame 6128 --allow-early-end
+--timeout 3600 --log-window 5873 6129 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9
+--cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 02:58:24, exited 02:59:16 (52.3 s launch to exit). `success`: 6129 frames, closing frame
+  6129. `rngcmp.py` against run1287: 6129 of 6129 identical. Filed with `filerun.py run1306
+  eastindies-spanish-gunpowder-window-5873-6129 --map 18`. `df -g ~` read 104 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1306-eastindies-spanish-gunpowder-window-5873-6129.txt`, 638,763,593 bytes,
+SHA-256 `68ed8cc2186fc67869fa0d89dc2305cb7ca465fa2d3f100449cc0e470b0c91ca`.
+
+Archive `rontrace-run1306.log`, 297,342,624 bytes,
+SHA-256 `9ac8de588914c20f8a3def22030985e1caabcb9f96bd0bc5ddf352fe9f69bda7`.
+
+**What it holds**: `spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole` (256 blocks, 137 keys, every
+one standing, with 439 `AMMO` records compared and none parted). Its block 6128 is the closing state
+`spanish_gunpowder_pair_run1287_s_closing_state` holds ours' against: 219 units, one extra (`1/196`, the shutdown
+tick's Citizen, parked 3646a).
 ## run1305 — the Lakota at a held Gunpowder age, Great Sahara: the gap 4102..4181, blocks 4096..4187 (2026-10-26, item 3645, `att-3645`)
 
 `docs/AI.md` §336.1. **What the disk could not answer**: the frame theirs' Musket Horse `1/54` fires on, and whether
