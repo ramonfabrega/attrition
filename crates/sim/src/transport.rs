@@ -627,9 +627,10 @@ impl Sim {
     ///
     /// 1. any of the boat's nine cells (its own and its eight neighbours,
     ///    `move_x`/`move_y`) in the army's region (`ArmyData +0x8`) —
-    ///    `eject_contents(0, -1, 0, 1)` and `return 1`. SEAM: the eject is
-    ///    not modelled; the boat answers `true` and keeps its cargo, as
-    ///    the civilian arm's shore eject does;
+    ///    `eject_contents(0, -1, 0, 1)` and `return 1`, or the boat's
+    ///    death when that left nothing inside (item 3640, `docs/AI.md`
+    ///    §335: run1301's Transport Galleon `1/68` puts the Arquebusiers
+    ///    `1/48`–`1/50` ashore on 2163 and is gone);
     /// 2. otherwise a **live** target (`+0x30`, `+0x34`; the object's
     ///    `+8 & 1`) — a `MOVE_TO` to the centre of the target's cell, the
     ///    merchant's inlined `add_move_order(…, QUEUE_NEW, 0)`, snapped to
@@ -665,6 +666,16 @@ impl Sim {
                 && self.world.region_of(c).map_or(-1, i32::from) == reg.map_or(-1, i32::from)
         });
         if ashore {
+            // `eject_contents(0, -1, 0, 1)` (`think_carry@005f2ee0:108`): a
+            // unit host is never deferred (the head's `+0x60 |= 0x4000` arm
+            // is a building's), so the riders come out now, keeping their
+            // own empty lists (`param_3 = 0`). Then `inside_down >= 0`
+            // answers 1, and an emptied boat dies, `Object::die(boat, 0,
+            // -1, 0)` — whatever its type (item 3640: run1301's `1/68`).
+            self.eject_riders(u, false);
+            if !(0..self.units.len()).any(|i| self.units[i].inside_unit == Some(u)) {
+                self.transport_dies(u);
+            }
             return true;
         }
         let Some(t) = target.filter(|&t| self.obj_alive(t)) else {
@@ -3711,7 +3722,8 @@ mod tests {
     /// cell, snapped to 48 — run879's `1/225`, (6240, 7008) to (6552,
     /// 7320); here (6240, 2000) in cell (8, 2) to (6552, 1944). No group,
     /// no army or a dead target answer no; a boat beside the army's region
-    /// answers yes and keeps its cargo (the eject's seam).
+    /// answers yes, puts its rider ashore and, emptied, dies (item 3640,
+    /// `think_carry@005f2ee0:108`–`115`; run1301's Galleon `1/68` on 2163).
     #[test]
     fn a_boat_carrying_a_soldier_sails_to_its_army_s_target() {
         let mut f = fix();
@@ -3750,18 +3762,21 @@ mod tests {
             .and_then(|o| o.move_dest())
             .expect("a move order");
         assert_eq!((dest.x, dest.y), (6552, 1944));
-        // Beside the army's region: the eject's seam, and no new order.
+        // Out at sea with the target dead: the region arm's seam.
         f.sim.units[boat].orders.clear();
-        f.sim.units[boat].pos = Pos::new(8 * 0x300 + 700, 3 * 0x300 + 0x180);
-        f.sim.armies[1].list[slot].reg = Some(f.land);
-        assert!(f.sim.think_carry(boat), "ashore beside its army's region");
-        assert!(f.sim.units[boat].orders.is_empty());
-        // Out at sea again with the target dead: the region arm's seam.
-        f.sim.units[boat].pos = tile_pos(36, 12);
         f.sim.units[target].health = 0;
         assert!(!f.sim.obj_alive(Obj::Unit(target)), "the target is dead");
         assert!(!f.sim.think_carry(boat), "no live target: no");
         assert!(f.sim.units[boat].orders.is_empty());
+        // Beside the army's region: `eject_contents(0, -1, 0, 1)`, the
+        // rider ashore with its own empty list, and the emptied boat dead.
+        f.sim.units[boat].pos = Pos::new(8 * 0x300 + 700, 3 * 0x300 + 0x180);
+        f.sim.armies[1].list[slot].reg = Some(f.land);
+        assert!(f.sim.think_carry(boat), "ashore beside its army's region");
+        assert_eq!(f.sim.units[rider].inside_unit, None, "the rider is out");
+        assert!(f.sim.units[rider].on_map, "and on the map");
+        assert!(f.sim.units[rider].orders.is_empty(), "with its own list");
+        assert!(!f.sim.units[boat].alive(), "the emptied boat dies");
     }
 
     #[test]
