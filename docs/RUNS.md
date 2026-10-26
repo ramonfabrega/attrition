@@ -29182,3 +29182,65 @@ SHA-256 `737a33316b0d5f63110ffa2c3286723364c5ec456c094263c6eea9cf5f054127`.
 **What it holds**: the pair's closing window, 57 keys parted — the standing families and three guards'
 `orders_x/y` and `dest_angle` (3658c) — and 362 rounds a side, 38 parting, the Trebuchets' launches among them
 (3658b).
+## run1323 — the Inca at a held Enlightenment age, Great Sahara: the gap 3002..3088, blocks 3001..3094 (2026-10-26, item 3659, `att-3659`)
+
+`docs/AI.md` §339.1. **What the disk could not answer**: where the state parts in the undumped gap 3002..3088 —
+run1310's stride prints units on 3001 and 3101 only, and run1310b starts at 3089. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1323 --map 7 --end-frame 3094 --timeout 3600 --log-window 3001 3094
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 07:42:30, exited 07:43:00 (30.0 s). `success`: 3095 frames. `rngcmp.py`
+  against run1310: 3095 of 3095 identical. Filed with `filerun.py run1323
+  greatsahara-inca-enlightenment-window-3001-3094`. `df -g ~` read 96 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1323-greatsahara-inca-enlightenment-window-3001-3094.txt`, 183,800,770 bytes,
+SHA-256 `9b64cd720d237d6f9c946a464a594458a566d056936ab0dda05ddf8788b10ecf`.
+
+Archive `rontrace-run1323.log`, 38,636,672 bytes,
+SHA-256 `0451984370426920e5be9470a94d219dd71bd662bd799be7dce645e3a9f1de45`.
+
+**What it holds**: `inca_enlightenment_pair_run1323_s_gap_is_widened_whole` (93 blocks): before piece 753's bays,
+`0/5` struck on 3053 in theirs alone and every group-64 Musketeer round parting on its launch point; after, 51
+standing keys and 30 rounds a side, none parting.
+
+## run1323b — the Inca at a held Enlightenment age, Great Sahara: a packet at logger frame 3052, pieces 753 and 790 (2026-10-26, item 3659, `att-3659`)
+
+`docs/AI.md` §339.1. **What the disk could not answer**: the Inca Musketeer's release nodes. Its piece, 753
+(`MUSKETEERS-AMERICAN`), is loaded only in a game that builds one, and neither Inca packet on disk (run1011e,
+run1015b) holds it. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1323b --map 7 --end-frame 3054
+--timeout 3600 --log-window 3051 3053 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 2 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=3052 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 07:47:01, exited 07:47:23 (21.6 s). `success`, 3055 frames. Not filed: the
+  packet is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1323b/map-7/frame-snapshot.bin`, 867,368,812 bytes,
+SHA-256 `5b5c1708ad205a451732d6be47d9f75f2cfe1d05c016f5a0636bfa37e5744fa3`.
+
+**What it holds**: `get_position.py … entries 753`: three rows, node 0 on frames 1, 7 and 4 of `CHAR_ATTACK1`..`3`,
+`RData +0x88` 1.0; `entries 790` (the Fusilier): frames 6, 6 and 8, 1.0; `entries 844` (the Carbineer): node 0 and
+pivot node 4 rows (3659a). The sweeps are under `~/ron-data/lab-experiments/2026-10-26-item-3659/`.
+
+## run1323c — the Inca at a held Enlightenment age, Great Sahara: the closing window, blocks 3790..4046 (2026-10-26, item 3659, `att-3659`)
+
+`docs/AI.md` §339.1. **What the disk could not answer**: the word moved to the game's end, 4045, and no window held
+blocks past 3345 at the pair's detail. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1323c --map 7
+--end-frame 4045 --allow-early-end --timeout 3600 --log-window 3790 4046 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 07:51:10, exited 07:51:57 (47.3 s). `success`, closing frame 4046. `rngcmp.py`
+  against run1310: 4046 of 4046 identical. Filed with `filerun.py run1323c
+  greatsahara-inca-enlightenment-window-3790-4046`. `df -g ~` read 94 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1323c-greatsahara-inca-enlightenment-window-3790-4046.txt`, 524,686,641 bytes,
+SHA-256 `c4340d08a14e6cc0a1a89835cbb163ac19a71ecbfda05dac4e0570524eceeefa`.
+
+Archive `rontrace-run1323c.log`, 55,510,976 bytes,
+SHA-256 `d0e12ef052d8dd4d0e143ee7a9c5981a580f680a0766c46b467b7077bb76d7f3`.
+
+**What it holds**: `inca_enlightenment_pair_run1323c_s_closing_window_is_widened_whole` (256 blocks, 49 keys):
+before piece 790's bays, the capital `0/2000`'s damage parting on 3815 from the Fusilier `1/44`'s round; after, the
+standing families, two guards' `dest_angle`, and the Carbineer `1/83`'s round on 4026 (3659a).

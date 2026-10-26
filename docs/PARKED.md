@@ -11337,13 +11337,21 @@ word moves 2556 → 2569 (`docs/AI.md` §338). One row parks, and it names no sc
   (10632, 29880), where theirs prints the unit's own (10627, 29883); `1/118`'s `dest_angle` is 1583677440 against
   −1778057216. No position, order kind or draw parts. Names no score.
 
-## Parked by the next landing, slot TB — reserved
+## Parked by item 3659, 2026-10-26 — the Inca Enlightenment pair whole: the Musketeers' and Fusiliers' bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The pair closes, 3095 → 4045 of 4045 by the count and the sequence, and its closing state compares 166 units with
+none off (`docs/AI.md` §339). Two rows of its windows park; neither moves a draw or a unit:
+
+- **3659a. The Carbineer's round leaves the figure's own point** (run1323c, block 4026): `1/83` (TypeIndex 190,
+  `CARBINEER-AMERICAN`, piece 844) fires from (9048, 28872, 497) in ours against (8917, 28944, 707) in theirs; the
+  round lands two units apart and nothing downstream parts through the closing block. Piece 844 is a pivot piece —
+  run1323b's packet holds node 4 rows beside node 0's (`get_position.py … entries 844`) — so it wants
+  `pivot::NODES`/`RELEASES` rows, 3645's shape for piece 157, not `launch::BAYS`. The killer: a word whose frame an
+  American-style Carbineer's round parts on.
+- **3659b. A round in flight keeps a target that left the dump** (run1310b, block 3239): `1/37`'s `ammo[2]` and
+  `1/38`'s `ammo[3]` read `whom`/`ox` −1 in ours and `0/3` in theirs; the Citizen `0/3` is last printed on 3238.
+  Positions and landings agree. The killer: `RON_DEBUG_AMMO=3237-3240` beside a packet at 3238 for whether theirs'
+  `0/3` lives (garrisoned) or died and the round keeps a stale target.
 
 ## Parked by the next landing, slot TC — reserved
 
