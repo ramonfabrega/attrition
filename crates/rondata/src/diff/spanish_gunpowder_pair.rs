@@ -263,6 +263,10 @@ fn spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole() {
     // `half_step` (2165) and `pos` (2166), and on **the word 2168**, ours
     // 35 draws against 34 at index 30, ours spends `1/63`'s `Guy::set_anim
     // < Unit::move_step`; on 2169 `1/63` collides with `1/68` (`collide_o`
-    // 68, `path:length` 1 against 15).
-    pin_eq!(w.firsts.len(), 1343, "run1287b baseline");
+    // 68, `path:length` 1 against 15). 1343 → **1347** on the tree that
+    // merged item 3637, whose move row compares `retry` and `attempts`: four
+    // rows past the word, `1/63`'s `retry` 0 against 8 (2194) and
+    // `attempts` 0 against 3 (2202), and `1/21`'s `retry` 8 against 6
+    // (2283) and `attempts` 0 against 3 (2289).
+    pin_eq!(w.firsts.len(), 1347, "run1287b baseline");
 }

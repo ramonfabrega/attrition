@@ -28584,7 +28584,7 @@ SHA-256 `61e5365bb5beebc651392b6907b842b748b383857451547c4cc183836215a20c`.
 Archive `rontrace-run1287b.log`, 64,625,440 bytes,
 SHA-256 `02fb56f281a0508df9ae7f3b470f46064fe0c10ecc28b6b81bbd24bb4d3c1fb1`.
 
-**What it holds**: `spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole` (256 blocks, 1343 keys). On its
+**What it holds**: `spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole` (256 blocks, 1347 keys). On its
 first block 2163 ours holds a Transport Galleon `1/68` (TI 321) with the Arquebusiers `1/48`, `1/49` and `1/50`
 inside, cast on 2153 in the undumped gap; theirs prints no `1/68`, and its three stand ashore.
 ## run1299 — the Chinese at a held Gunpowder age, East Indies: the word 5196's window, blocks 5190..5446 (2026-10-25, item 3637, `att-3637`)

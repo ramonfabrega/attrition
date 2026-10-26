@@ -30558,8 +30558,10 @@ and `1/49` agree on an `ATTACKTOORDER` to (40776, 37128), with waypoint
 The Galleon is made by `do_cast_effect`'s `cast_transport`
 (`transport.rs`, `cast_transport.rs`). The gap 2102..2162 is undumped.
 
-**The value diff** (run1287b, walked from run1286: 256 blocks, **1343
-keys**, the two `gaia:` keys unprinted, no inexact ground corner). Block
+**The value diff** (run1287b, walked from run1286: 256 blocks, **1347
+keys** on the tree that merged item 3637, whose move row compares `retry`
+and `attempts` — four rows past the word on `1/63` and `1/21`; 1343 before
+it — the two `gaia:` keys unprinted, no inexact ground corner). Block
 2163 carries the standing families (`form` on 28 units, `SITE[i].reg`,
 who=0's `aggression[1]`, who=1's groups' `held` and pools), and:
 
