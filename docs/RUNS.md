@@ -28983,6 +28983,47 @@ SHA-256 `a279872c4e124ba4565798702198b09ad1fde1824431fdc33d18f8b69d86da5f`.
 flight on both sides on the first block, 3956, from (3912, 12792, 0) in 43 frames in ours against (4013, 12593, 133)
 in 41 in theirs; theirs lands on 3962: `0/4`'s `hits_left` ours 65 theirs 47 on block 3963. 3902..3955 is undumped.
 
+## run1320 — the Iroquois at a held Enlightenment age, East Indies: the closing window, blocks 4873..5129 (2026-10-26, item 3655, `att-3655`)
+
+`docs/AI.md` §337.1. **What the disk could not answer**: the word moved to the game's end, 5128, and no window held
+blocks past 4212 at the pair's detail. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1320 --map 18
+--end-frame 5128 --allow-early-end --timeout 3600 --log-window 4873 5129 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 18 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 05:11:38, exited 05:12:38 (60.8 s). `success`: 5129 frames, closing frame 5129.
+  `rngcmp.py` against run1291: 5129 of 5129 identical. Filed with `filerun.py run1320
+  eastindies-iroquois-enlightenment-window-4873-5129 --map 18`. `df -g ~` read 98 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1320-eastindies-iroquois-enlightenment-window-4873-5129.txt`, 618,885,729 bytes,
+SHA-256 `2177b25a740540335196fcb203f8a20be071ded47346e3616180ddd92d4c7437`.
+
+Archive `rontrace-run1320.log`, 136,655,872 bytes,
+SHA-256 `1d785346b04a53b921269e65a16b6e650f84c3483581b532975c7122157abbcc`.
+
+**What it holds**: `iroquois_enlightenment_pair_run1320_s_closing_window_is_widened_whole` (256 blocks, 131 keys, rounds
+940 a side with none parting; the only object rows are `1/2005`'s queue price on 4983 and 5064, parked 3655a).
+
+## run1320b — the Iroquois at a held Enlightenment age, East Indies: a packet at logger frame 5066, piece 1457 (2026-10-26, item 3655, `att-3655`)
+
+`docs/AI.md` §337.1. **What the disk could not answer**: the Iroquois Musketeer's release nodes. Its piece, 1457
+(`MUSKETEERS-NA`), is loaded only in a game that builds one, and neither Iroquois packet on disk (run946, run1001d)
+holds it. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1320b --map 18 --end-frame 5068 --timeout 3600
+--log-window 5065 5067 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 18 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=5066 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 05:16:48, exited 05:17:24 (36.0 s). `success`, 5069 frames. Not filed: the
+  packet is the product. `df -g ~` read 96 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1320b/map-18/frame-snapshot.bin`, 870,793,120 bytes,
+SHA-256 `1be27394e32b1ca53cced0598ee95f659457374039effa6587a18228059b3aa8`.
+
+**What it holds**: `get_position.py … entries 1457`: three rows, node 0 on frames 1, 7 and 4 of `CHAR_ATTACK1`..`3`,
+`RData +0x88` 1.1. Its sweeps, and piece 297's pivot sweeps off run1185's packet, are under
+`~/ron-data/lab-experiments/2026-10-26-item-3655/`; `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_297`
+reads the latter with `RON_RELEASE_TABLE_297` set.
+
 ## run1307 — the Aztecs at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-26, item 3647, `att-3647`)
 
 `docs/AI.md` §338. §332's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
