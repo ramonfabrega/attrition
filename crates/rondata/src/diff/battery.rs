@@ -366,6 +366,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatLakesPersianTier2`, `(14, 23, 2)`, another difficulty; the
     // battery fields no Persians.
     (14, 23, 5),
+    // The Japanese at a held Medieval age, Great Lakes (item 3664): not the
+    // Industrial and Ancient pairs' `(18, 15, 5)` nor the Gunpowder pair's
+    // `(7, 15, 5)` nor the AI word `GreatSaharaJapaneseTier1`'s
+    // `(7, 15, 1)`, each another map; the battery fields no Japanese.
+    (14, 15, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

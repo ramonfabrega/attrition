@@ -131,6 +131,7 @@ mod japanese_ancient_pair;
 mod japanese_gunpowder_pair;
 #[cfg(test)]
 mod japanese_industrial_pair;
+mod japanese_medieval_pair;
 #[cfg(test)]
 mod japanese_word;
 #[cfg(test)]
