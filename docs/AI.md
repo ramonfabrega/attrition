@@ -30461,9 +30461,102 @@ later. By 5190 the who=1 unit `1/39` aims at (7272, 8664) against theirs'
 (7224, 8664), and on 5202 its attack names `0/12` where theirs names
 `0/10`.
 
-**Not established.** Who struck `0/10` on 5132, and with what: run1283b's
+**Not established.** ~~Who struck `0/10` on 5132, and with what: run1283b's
 `AMMO` records are the next reading (parked 3637a). Whether the extra
-`do_idle` on 5196 belongs to that chain or another.
+`do_idle` on 5196 belongs to that chain or another.~~ **Answered by item
+3639** (§333.2): the Dragoon `1/97`'s round, from its pivot; with it the
+word 5196 agrees, so the extra `do_idle` was downstream of the wound.
+
+### 333.2 The Chinese Dragoon releases from its pivot: 5196 → 5384 (item 3639)
+
+**The direction.** run1283b's `AMMO=5` records hold one round at `0/10`:
+who=1's `o` 97, `ox` 10, `total_time` 3, printed on blocks 5131 and 5132
+(`cur_time` 1 and 2) and gone on 5133, where the Citizen reads
+`damage_frame` 5132. `1/97` is a **Dragoon** (TypeIndex 189, `DRAGOON`,
+land, uid 139). It stands at (8022, 10152) in group 67 on a `GUARDORDER`
+over the Bombard `1/98` (uid 141), with an `ATTACKORDER` at `0/10`,
+`cavarch_o` 10 and `recharging` counting down from 22 on 5129, the same on
+both sides. Ours (`RON_DEBUG_AMMO`) launches the same round on the same
+frame, 5130, from guy 0's `CHAR_ATTACKWALK` release at frame 12. The two
+rounds differ in where they leave from:
+
+| block 5131 | `sx, sy` | `ex, ey` | flight | `angle` |
+|---|---|---|---|---|
+| theirs | (8009, 10001), `sz` 470 | (7319, 8855) | 1 of **3** | −370278400 |
+| ours, before | (8022, 10152), the figure's square | (7319, 8855) | 1 of **4** | −339279872 |
+
+So **both sides acted, and theirs' record shows the launch**: 1338 units
+to fly against ours' 1475, one frame fewer. The figure's piece is
+**1195**, the Chinese Dragoon's, and `sim::pivot` had rows for piece 139
+(the French Dragoon's, §280) and none for 1195. The release arm fell back
+to the figure's own square (`anim.rs`, `guy_release_events`' `None` arm).
+
+**The rows, measured.** No packet of this lobby exists. A scan of all 62
+packets on disk with `get_position.py … entries 1195` found the piece built
+on one, run1237's (logger frame 2674, the Japanese Gunpowder lobby):
+`pos_start` 102, nine rows, `RData +0x88` 1.0. **Every float is piece
+139's, bit for bit**: the `(4, 0, 0)` pivot `(0.0, −1.48, 31.05)`, and the
+pivot and release rows of `CHAR_ATTACKWALK` 12, `CHAR_ATTACK1` 12,
+`CHAR_ATTACK2` 13 and `CHAR_ATTACK3` 18. The pivot count is the type's
+(`<RESTRICTION name="Dragoon" node="4">`, read by `TypeIndex`), so 189's
+figures already took the pivot gate.
+
+**The fix.** `sim::pivot::SAME_AS` names `(1195, 139)`, and `node` and
+`release` read through it. `pivot::tests::the_chinese_dragoon_s_round_leaves_from_its_pivot`
+pins it: the four release rows and the node are 139's, and the round's
+pose (guy (8022, 10152), z 265, angle −332857344 on block 5130) fits one
+turret step to (8009, 10001), at height 265 + 205 = 470, the dump's.
+
+**The value diff, block 5131, after**: ours' `1/97` round leaves from
+(8009, 10001) for (7319, 8855), 1 of 3, accuracy 282, `angle` −370278400:
+theirs', field for field. It lands on 5132 on both sides.
+
+**What moved.**
+
+- **Chinese Gunpowder 5196 → 5384** of 5568, by the count and the
+  sequence.
+- run1283b: **167 → 148** keys, the standing families alone (`form`,
+  who=1's groups' `held` and pools).
+- run1299: **4356 → 1545**. `0/10` and `1/39` agree.
+- **A mutation** that empties `SAME_AS` (`tools/mutate.py`) fails
+  `chinese_gunpowder_pair_first_parting` at 5196 (exit 101).
+
+**The new word: frame 5384, ours 49 draws against 53, index 30.** Both
+sides spend the birds' `Animal::think_bird` triples to index 29. Then:
+
+- theirs spends four `Guy::set_anim+0xf2f < Unit::set_anim < Unit::fight+0x19f6`
+  (indexes 30..33), a four-figure swing;
+- then both sides spend the same three `Unit::move_step+0x823` draws (ours'
+  `1/154`, `1/156` and `1/168`) and `1/172`'s `resolve_unit_collision`.
+
+The word sits inside run1299's window (its block 5385), so run1299 stays
+its widening.
+
+**The value diff, walked back.** run1299's first row past the standing
+families is on **block 5325**, at the Bombard `1/98` (TypeIndex 267,
+`BOMBARD`, land, uid 141, four figures, group 67, on a mandatory
+`ATTACKORDER` at the human's city `0/2000`):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5325 | `1/98` | `recharging` | 120 | 60 |
+| 5376 | leader 1 | `SITE[5].reg` | 65 | 0 |
+| 5385 | `1/172` | `order:move.pause` | 2 | 1 |
+
+The four-figure swing on 5384 would be a Bombard's shot; whether it is
+`1/98`'s is not read (parked 3639a).
+
+**Not established.** Which writer gives `1/98` a reload of 120 where theirs
+reads 60, and whether theirs' swing on 5384 is `1/98`'s. Why piece 1195
+was built on the Japanese lobby's packet: the type's piece by nation is
+`get_unit_gpiece`'s, and only its rows were read. Whether any other piece
+shares another's rows the same way: the scan was of 1195 alone.
+
+**Coverage.** Diff-backed: the round's launch, flight and angle (run1283b's
+`AMMO` record against `RON_DEBUG_AMMO`, and through the word and both
+windows' pins); piece 1195's rows (run1237's packet, bit for bit, in the
+pivot test). Reading-backed: none new; the branch is §280's and COMBAT
+§55's.
 
 ## 334. The Greeks at a held Gunpowder age, Great Sahara: whole on its first try, 4074 of 4074 (item 3626)
 

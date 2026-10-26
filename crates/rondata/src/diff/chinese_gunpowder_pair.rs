@@ -46,8 +46,20 @@ pub(crate) const CHINESE_GUNPOWDER: Pair = Pair {
     // unit between `1/115` and `1/126`; the state parts first on block
     // 5133 at the human's `0/10`, wounded in theirs on 5132 (`docs/AI.md`
     // section 333).
-    count: 5196,
-    sequence: 5196,
+    //
+    // Item 3639: **5196 → 5384**. The Citizen's wound was the Dragoon
+    // `1/97`'s `CHAR_ATTACKWALK` round of 5130 (TypeIndex 189, piece 1195),
+    // which left its own square here, (8022, 10152), and flew 4; theirs
+    // left the pivot's release, (8009, 10001), and flew 3. Piece 1195's
+    // rows are piece 139's (`sim::pivot::SAME_AS`, run1237's packet). On
+    // 5384 ours spends 49 draws against theirs' 53, parting at index 30 —
+    // ours `Guy::set_anim+0x97a < Unit::move_step+0x823` (`1/154`),
+    // theirs four `Guy::set_anim+0xf2f < Unit::set_anim < Unit::fight+
+    // 0x19f6`, a four-figure swing; the state parts first on block 5325
+    // at the Bombard `1/98`'s `recharging`, ours 120 against 60
+    // (`docs/AI.md` section 333.2).
+    count: 5384,
+    sequence: 5384,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -275,7 +287,11 @@ fn chinese_gunpowder_pair_run1283b_s_word_frame_is_widened_whole() {
     // Citizen `0/10` (type 50, uid 17) reads `hits:damage` 26, `hits_left`
     // 24 and `damage_frame` 5132 in theirs against 0, 50 and 0 in ours,
     // and flees; on 5134 its walk, path and `idle` part.
-    pin_eq!(w.firsts.len(), 167, "run1283b baseline");
+    //
+    // Item 3639: **167 → 148**. The Dragoon `1/97`'s round of 5130 leaves
+    // piece 1195's pivot and lands on 5132 on both sides; the window is the
+    // standing families alone (`form`, who=1's groups' `held` and pools).
+    pin_eq!(w.firsts.len(), 148, "run1283b baseline");
 }
 
 /// run1299: the word 5196's window, blocks 5190..5446 at run1283b's detail
@@ -336,7 +352,16 @@ fn chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole() {
     // word 5196**, ours 19 draws against 20, index 1: theirs spends a
     // second `Unit::do_idle+0x7d` before the `do_guard+0x7f4` ours spends
     // at 1 on `1/126` (`docs/AI.md` section 333.1).
-    pin_eq!(w.firsts.len(), 4356, "run1299 baseline");
+    //
+    // Item 3639: **4356 → 1545**. With the Dragoon's round from its pivot,
+    // `0/10` and `1/39` agree and the word 5196 agrees. Past the standing
+    // families, the first row is block 5325's Bombard `1/98` (TypeIndex
+    // 267, uid 141, attacking `0/2000`): `recharging` ours 120 against
+    // theirs' 60. Then 5376's `SITE[5].reg`, 5385's `1/172` move `pause`
+    // and **the word 5384**'s block 5385, ours 49 draws against 53, index
+    // 30: theirs swings four figures under `Unit::fight+0x19f6`
+    // (`docs/AI.md` section 333.2).
+    pin_eq!(w.firsts.len(), 1545, "run1299 baseline");
 }
 
 /// run1283c: the gap before the word's window, blocks 4795..4880 at
