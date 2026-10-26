@@ -2586,6 +2586,45 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 156,
         },
     ),
+    // **Piece 1793, the Javelineers in the Persians' art style** (`33 + 5 ×
+    // 0x160`, type 83; item 3663, `docs/AI.md` §343): run1327's
+    // `RON_STATE_FRAME=10930` packet on the Persian Great Lakes game holds
+    // its three attack `AttachPos` rows — piece 33's keys, node 0, `y` 8.12
+    // further forward — and `get_position.py`'s sweep of each is reproduced
+    // at all 361 headings by these, the centroids of the same exact regions
+    // as piece 1794's (229, 895 and 1047 lattice points). Without them
+    // `1/312`'s javelin at the Citizen `0/12` left the figure's own square
+    // (5064, 31368) on 10931 where run1318b's leaves (5054, 31417), 170 up.
+    (
+        1793,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 38_946,
+            fwd: 60_202,
+            dz: 163,
+        },
+    ),
+    (
+        1793,
+        crate::anim::ATTACK2,
+        6,
+        Bay {
+            right: 1_685,
+            fwd: 50_747,
+            dz: 170,
+        },
+    ),
+    (
+        1793,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: 21_762,
+            fwd: 35_444,
+            dz: 156,
+        },
+    ),
     // **Piece 212, the Mahout** (type 262, `mjvyk`; item 3555): the same
     // packet's five node-1 rows, the howdah's archer, one per attack slot
     // at frame 16 (`CHAR_ATTACKWALK` the fire on the move's), each the
@@ -3081,6 +3120,25 @@ mod tests {
                 "{piece} ({anim}, {start})"
             );
         }
+    }
+
+    /// **The Persian Javelineers throw from piece 1793's bay** (item 3663):
+    /// run1318b's `1/312` at the Citizen `0/12` on 10931, the figure at
+    /// (5064, 31368, 499) facing −2023817216 (its `GUY` record on 10930)
+    /// and the round at (5054, 31417, 669). Made to fail with the rows out of `BAYS`: the javelin
+    /// leaves the figure's own square, as ours did.
+    #[test]
+    fn run1318b_s_persian_javelin_leaves_from_piece_1793_s_bay() {
+        let at = launch_point(
+            Pos::new(5064, 31368),
+            Angle(-2_023_817_216),
+            1793,
+            crate::anim::ATTACK2,
+            6,
+            0,
+        );
+        assert_eq!((at.x, at.y), (5054, 31417));
+        assert_eq!(release_dz(1793, crate::anim::ATTACK2, 6, 0), Some(170));
     }
 
     /// **The Greek Archers' arrows leave from piece 121's bays** (item
