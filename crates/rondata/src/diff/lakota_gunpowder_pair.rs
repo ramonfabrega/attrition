@@ -491,3 +491,72 @@ fn lakota_gunpowder_pair_run1289_s_closing_state() {
     pin_eq!(e.compared, 214, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
 }
+
+/// run1319: the pair's last blocks, 4495..4751 at run1289b's detail — the
+/// word 4750 is the game's last frame and 4751 its closing block (item
+/// 3654). run1289 prints units only every hundredth block and no
+/// `LEADERS`, `BUILDS` or `CITIES` record past the start, and run1305c ends
+/// on 4728.
+pub(crate) const RUN1319: &str =
+    "gamelog-run1319-greatsahara-lakota-gunpowder-window-4495-4751.txt";
+
+/// The window: block 4495 through the closing block 4751.
+pub(crate) const WINDOW_LAKOTA_GUNPOWDER_CLOSING: (i64, i64) = (4495, 4751);
+
+/// **The pair's last blocks**: run1319 walked from run1288's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3654).
+pub(crate) fn lakota_gunpowder_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[LAKOTA_GUNPOWDER.start],
+        true,
+        LAKOTA_GUNPOWDER.long,
+        "run1319",
+        &[(RUN1319, WINDOW_LAKOTA_GUNPOWDER_CLOSING.0)],
+        WINDOW_LAKOTA_GUNPOWDER_CLOSING,
+        1,
+        &[4751],
+        true,
+    )
+}
+
+#[test]
+fn lakota_gunpowder_pair_run1319_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_gunpowder_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3654, the first walk: **50** keys, every one standing. Block
+    // 4495 carries the standing families (`form`, `SITE[i].reg`, who=1's
+    // groups 64..70's `held`/`pool`) and who=1's food (`bucket[0:food]`,
+    // `leftover[0:food]`, parked 3645b); group 67's from 4675 and
+    // `SITE[1].reg` from 4576. No unit, building, city or round field parts,
+    // and the closing block 4751 agrees.
+    pin_eq!(w.firsts.len(), 50, "run1319 baseline");
+    // 168 round-blocks a side, and none part.
+    pin_eq!(w.rounds_read, (168, 168), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}

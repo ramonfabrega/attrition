@@ -10454,12 +10454,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // first try 4187 of 4750 by the count and the sequence, widened on
     // run1289b over 4182..4438 (the word's block 4188). Item 3645 moved it
     // to 4477, widened on run1305c over 4472..4728 (the word's block 4478).
+    // Item 3654 closed it, 4750 of 4750, the closing state compared;
+    // widened on run1319 over 4495..4751 (the closing block).
     (
         "LAKOTA_GUNPOWDER_PAIR_WORD",
         crate::diff::lakota_gunpowder_pair::LAKOTA_GUNPOWDER_PAIR_WORD,
-        Some("lakota_gunpowder_pair_run1305c_s_word_frame_is_widened_whole"),
-        3645,
-        Some(crate::diff::lakota_gunpowder_pair::WIDENING_LAKOTA_GUNPOWDER_FRAME_4477),
+        Some("lakota_gunpowder_pair_run1319_s_closing_frame_is_widened_whole"),
+        3654,
+        Some(crate::diff::lakota_gunpowder_pair::WINDOW_LAKOTA_GUNPOWDER_CLOSING),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12437,15 +12439,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Lakota at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3628): first try 4187 of a
     // game that ends itself on 4750, widened on run1289b; 4477 since item
-    // 3645, widened on run1305c.
+    // 3645, widened on run1305c; whole since item 3654, its closing state
+    // compared, widened on run1319 over the closing block.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaLakotaGunpowder",
         named: "Great Sahara (Lakota, Gunpowder)",
         word: crate::diff::lakota_gunpowder_pair::LAKOTA_GUNPOWDER_PAIR_WORD,
         length: 4_750,
-        endpoint: None,
-        window: Some("lakota_gunpowder_frame_4477_window"),
+        endpoint: Some("lakota_gunpowder_pair_run1289_s_closing_state"),
+        window: Some("lakota_gunpowder_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
