@@ -205,5 +205,12 @@ fn aztec_alltech_pair_run1147b_s_word_frame_is_widened_whole() {
     // number (`docs/AI.md` section 311): who=1's `popwin_timer` and
     // `popwin_stamp`, ours 0 and 0 against theirs 1 and 3919 from 4376,
     // agree.
-    pin_eq!(w.firsts.len(), 306, "run1147b baseline");
+    // Item 3641: 306 → 277, the supply radius read from the research held
+    // (`docs/AI.md` §333.3): who=1's wagons reach their researched tiles,
+    // so its units on hostile ground are sheltered where theirs are and
+    // their wounds agree. The `sheltered` rows that open (`1/47` on
+    // 4454, `1/94` on 4455, …) sit on units already apart by their
+    // `attrition` period (ours 6 against theirs' 24), whose ticks fall on
+    // other frames.
+    pin_eq!(w.firsts.len(), 277, "run1147b baseline");
 }

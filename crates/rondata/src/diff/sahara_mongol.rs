@@ -224,5 +224,11 @@ fn run834_s_word_frame_is_widened_whole() {
     // Item 3635: 271 -> 267, `set_all_pivots`' gone test is the slot's
     // `flags & 1`: `1/25` and `1/34` keep `cavarch_o` 2000 on the city at
     // its ceiling on 3265 (and `1/25`'s `recharging`, `cavarch_who` with it).
-    pin_eq!(w.firsts.len(), 267, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
+    // Item 3641: 267 → 249, the supply radius read from the research held
+    // (`docs/AI.md` §333.3): who=1's wagons reach their researched tiles,
+    // so its units on hostile ground are sheltered where theirs are and
+    // their wounds agree. The `sheltered` rows that open (`1/57` on
+    // 2989, `1/43` on 3000, …) sit on units already apart by their
+    // `attrition` period (ours 6 against theirs' 48).
+    pin_eq!(w.firsts.len(), 249, "run834 baseline"); // Item 2677: −1, a key the crash strike or the capture fraction closed (parked 2680).
 }
