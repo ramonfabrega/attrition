@@ -30508,12 +30508,91 @@ sheep and peacock herds. `Royal Stratiotai` (234) is Enlightenment's and is not 
 **What is not established.** When the seventeen `dest_angle` rows part is seen, but why is not read (3626a, beside
 3624a). Nothing in the window parts a wound, so the closing compare's silence on `hits` (3584a) holds here too.
 
-## 335. Reserved for the next item on the AI track
+## 335. The Spanish at a held Gunpowder age, East Indies: first try 2168 of 6128 (item 3627)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Mongol
+Gunpowder pair's lobby (§331) with the nation moved: East Indies, `MAP_STYLE
+18`, human Nubians (4) against the **Spanish (9)** at Difficulty 5, seed
+12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 3` and
+`ENDING_TECHNOLOGY 3`. `crates/rondata/src/diff/spanish_gunpowder_pair.rs`
+pins it. Its triple `(18, 9, 5)` is minted in `battery::SCORED_LOBBIES`. The
+battery fields no Spanish. The battery's old `EastIndiesSpanishTier3`, now
+the AI word, is `(18, 9, 3)`: another difficulty. The Classical pair's
+`(7, 9, 5)` is another map, and `GreatSaharaSpanishTier3`'s `(7, 9, 3)` and
+`GreatLakesSpanishTier4`'s `(14, 9, 4)` differ in both.
+
+**The captures.** run1286 is the `DUMP_ALL` start, and run1287 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 6128**. run1287b is the word's window, blocks 2163..2419, with `LEADERS=9`
+and `AMMO=5`. `GAME INFO` reads back `STARTING_TECHNOLOGY 3` and
+`ENDING_TECHNOLOGY 3` on both pair takes (`Pair::assert_lobby`). By
+`rngcmp.py`, run1286 against run1287 is 37 of 37 frames identical, and
+run1287 against run1287b 2420 of 2420. The walk is seeded from run1286's
+initial state (3506a).
+
+**First try: frame 2168 of 6128**, by the count and the sequence. On 2168
+ours spends 35 game-stream draws against theirs' 34, parting at index 30
+(ours `RON_DEBUG_SITES=2168-2168`):
+
+- ours spends **`1/63`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`**,
+  then the four theirs spends from index 30;
+- theirs spends `Guy::set_anim+0x104b` (the animals `9/21` twice and
+  `9/22`), then `Farms::inc_time+0x1ae`.
+
+`1/63` is an **Arquebusier** (TypeIndex 98, land, uid 99), in who=1's group
+75 on an `ATTACKTOORDER`.
+
+**Ours acts, on 2153, in the gap.** The stride
+(`spanish_gunpowder_pair_the_long_s_stride_walks_back_from_2168`, 101..2101:
+21 blocks, 100 keys) parts on the standing families alone: `build:extra`,
+the groups' `held` and pools, and `form`. On 2101 the Arquebusiers `1/48`
+and `1/49` agree on an `ATTACKTOORDER` to (40776, 37128), with waypoint
+(41928, 36168), and `1/50` stands idle at (41287, 37725). Ours'
+`RON_DEBUG_UNIT=1/68@2100-2170,1/50@2100-2163` shows the rest:
+
+- on **2153** ours mints a **Transport Galleon** `1/68` (TypeIndex 321, sea,
+  `#213`) at (42097, 36253). It carries `1/48`'s `ATTACKTOORDER`, with path
+  `[(40776, 37128) f5, (41928, 36168) f0]`.
+- the same frame, `1/50` goes `inside` it while it stands at (41287, 37725).
+
+The Galleon is made by `do_cast_effect`'s `cast_transport`
+(`transport.rs`, `cast_transport.rs`). The gap 2102..2162 is undumped.
+
+**The value diff** (run1287b, walked from run1286: 256 blocks, **1347
+keys** on the tree that merged item 3637, whose move row compares `retry`
+and `attempts` — four rows past the word on `1/63` and `1/21`; 1343 before
+it — the two `gaia:` keys unprinted, no inexact ground corner). Block
+2163 carries the standing families (`form` on 28 units, `SITE[i].reg`,
+who=0's `aggression[1]`, who=1's groups' `held` and pools), and:
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2163 | `1/68` (TI 321) | the unit | a Transport Galleon | none printed |
+| 2163 | `1/48` (TI 98) | `inside`, `pos` | 68, (41928, 36300) | −1, (41688, 36360) |
+| 2163 | `1/49` (TI 98) | `inside`, `pos` | 68, (41976, 36456) | −1, (41688, 36168) |
+| 2163 | `1/50` (TI 98) | `inside`, `pos` | 68, (41287, 37725) | −1, (41832, 36504) |
+| 2165 | `1/61` (TI 98) | `half_step` | 0 | 1 |
+| 2166 | `1/61` | `pos` | (41880, 36591) | (41880, 36606) |
+| 2169 | `1/63` (TI 98) | `collide_o`, `path:length` | 68, 1 | −1, 15 |
+
+Theirs' three Arquebusiers are ashore at 2163 with no orders, and theirs
+prints no `1/68`. Ours' three are cargo in a Galleon theirs never made. On
+the word's next block, ours' `1/63` collides with that Galleon and its path
+is cut to one entry. So the word follows from the embark.
+
+Why ours casts the Transport on 2153 and theirs does not is the next item's
+hypothesis. The candidates are the shore predicate (`docs/TRANSPORT.md` §6)
+and the leader's transport level and unit bit that gate it (§2–§4), read
+against `1/48`'s first path leg, which carries flag 5 on both sides on
+2101. No dump prints 2102..2162, so a gap window (`--log-window 2101 2163`)
+or a packet at 2152 is the next item's first take. I built nothing.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **194 of 302**,
+unmoved: the pair is open. Its own dumps (run1286, run1287 and run1287b)
+see 24 types, and one is new to the ledger: **`Tercios` (151), the
+booking's line, fielded** (×2088). It enters when the pair closes. `Royal
+Tercios` (152) is Enlightenment's, is not fielded here, and is already in
+the lockstep set.
 
 ## 336. Reserved for the next item on the AI track
 
