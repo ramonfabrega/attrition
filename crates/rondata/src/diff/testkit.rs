@@ -10536,8 +10536,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Indians at a held Enlightenment age** (item 3649): East Indies
     // — first try 4157 of 5000 by the count and the sequence, widened on
     // run1312b over 4151..4407 (the word's block 4158), the rounds
-    // compared; 4911 since item 3660 (piece 294's bays), widened on
-    // run1324b over 4905..5001 (the word's block 4912).
+    // compared; whole at 5000 since item 3660 (pieces 294's and 1809's
+    // bays), widened on run1324b over 4905..5001 (the closing block).
     (
         "INDIAN_ENLIGHTENMENT_PAIR_WORD",
         crate::diff::indian_enlightenment_pair::INDIAN_ENLIGHTENMENT_PAIR_WORD,
@@ -12578,15 +12578,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Indians at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
     // `ENDING_TECHNOLOGY` 4), East Indies (item 3649): first try 4157 of a
-    // game that ends itself on 5000, widened on run1312b; 4911 since item
-    // 3660, widened on run1324b.
+    // game that ends itself on 5000, widened on run1312b; whole at 5000
+    // since item 3660, the closing state compared, widened on run1324b.
     AiWord {
         line: "Late ages",
         map: "EastIndiesIndianEnlightenment",
         named: "East Indies (Indians, Enlightenment)",
         word: crate::diff::indian_enlightenment_pair::INDIAN_ENLIGHTENMENT_PAIR_WORD,
         length: 5_000,
-        endpoint: None,
+        endpoint: Some("indian_enlightenment_pair_run1312_s_closing_state"),
         window: Some("indian_enlightenment_frame_4911_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,

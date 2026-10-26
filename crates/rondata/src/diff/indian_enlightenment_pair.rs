@@ -329,7 +329,8 @@ fn indian_enlightenment_pair_run1324_s_gap_is_widened_whole() {
 
 /// run1324b: the word 4911's window, blocks 4905..5001 at run1312b's
 /// detail — six blocks before the word's block 4912, to the game's
-/// closing block (item 3660).
+/// closing block (item 3660); since piece 1809's bays the pair is whole
+/// and this is its closing window.
 pub(crate) const RUN1324B: &str =
     "gamelog-run1324b-eastindies-indian-enlightenment-window-4905-5001.txt";
 
@@ -381,6 +382,18 @@ fn indian_enlightenment_pair_run1324b_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
+    // Item 3660, before piece 1809's bays: 786 keys — the Citizen `0/10`
+    // struck a frame apart in the gap before the window (`damage_frame`
+    // ours 4900 theirs 4899 on 4905, `hits_left` 24 against 10 on 4908),
+    // closed on 4911 in theirs alone (who=0's `num_units[0]` 12 against
+    // 11 on 4912: the word's `Unit::close` draw); rounds 321 theirs
+    // against 320 ours with 87 parting, first the Musketeers `1/80` and
+    // `1/81`'s (TypeIndex 99, piece 1809) — `1/80`'s on 4905 from (11256,
+    // 7608, 315) in 5 frames against (11095, 7683, 489) in 4. After:
+    // **133**, the standing families and three rows: the Musketeer
+    // `1/56`'s target on 4955 (`0/5` against `0/12`), and who=1's timber
+    // and the building `1/2005`'s `queue[2].cost[0]` on 4983 (250 against
+    // 125) — parked 3660a and 3660b; rounds 320 a side, none parting.
     pin_eq!(w.firsts.len(), 133, "run1324b baseline");
     pin_eq!(w.rounds_read, (320, 320), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
