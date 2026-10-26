@@ -388,9 +388,12 @@ fn inca_enlightenment_pair_run1310_s_closing_state() {
                 "    unlinked building {}/{} at {:?} type {:?}",
                 b.who, b.o, b.pos, b.orig_type
             );
-            for x in built.sim.buildings.iter().filter(|x| {
-                i64::from(x.pos.x) == i64::from(b.pos.x) && i64::from(x.pos.y) == i64::from(b.pos.y)
-            }) {
+            for x in built
+                .sim
+                .buildings
+                .iter()
+                .filter(|x| i64::from(x.pos.x) == b.pos.x && i64::from(x.pos.y) == b.pos.y)
+            {
                 eprintln!(
                     "      ours {}/{} alive {} hits {} health {} ty {:?}",
                     x.owner, x.index, x.alive, x.hits, x.health, x.ty
