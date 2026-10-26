@@ -10519,13 +10519,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Inca at a held Enlightenment age** (item 3648): Great Sahara —
     // first try 3095 of 4045 by the count and the sequence, widened on
     // run1310b over 3089..3345 (the word's block 3096), the rounds
-    // compared.
+    // compared. Whole since item 3659, 4045 of 4045 (the Musketeers' and
+    // Fusiliers' bays, pieces 753 and 790), the closing state compared;
+    // the gap 3002..3088 widened on run1323 and the closing window on
+    // run1323c over 3790..4046 (the closing block), the rounds compared.
     (
         "INCA_ENLIGHTENMENT_PAIR_WORD",
         crate::diff::inca_enlightenment_pair::INCA_ENLIGHTENMENT_PAIR_WORD,
-        Some("inca_enlightenment_pair_run1310b_s_word_frame_is_widened_whole"),
-        3648,
-        Some(crate::diff::inca_enlightenment_pair::WIDENING_INCA_ENLIGHTENMENT_FRAME_3095),
+        Some("inca_enlightenment_pair_run1323c_s_closing_window_is_widened_whole"),
+        3659,
+        Some(crate::diff::inca_enlightenment_pair::WIDENING_INCA_ENLIGHTENMENT_FRAME_4045),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12544,15 +12547,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Inca at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
     // `ENDING_TECHNOLOGY` 4), Great Sahara (item 3648): first try 3095 of a
-    // game that ends itself on 4045, widened on run1310b.
+    // game that ends itself on 4045, widened on run1310b; whole since item
+    // 3659, its closing state compared and its closing window run1323c.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaIncaEnlightenment",
         named: "Great Sahara (Inca, Enlightenment)",
         word: crate::diff::inca_enlightenment_pair::INCA_ENLIGHTENMENT_PAIR_WORD,
         length: 4_045,
-        endpoint: None,
-        window: Some("inca_enlightenment_frame_3095_window"),
+        endpoint: Some("inca_enlightenment_pair_run1310_s_closing_state"),
+        window: Some("inca_enlightenment_frame_4045_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

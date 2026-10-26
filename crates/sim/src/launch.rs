@@ -812,6 +812,44 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 162,
         },
     ),
+    // **Piece 790, `FUSILIER-AMERICAN`** (unit type 136 as the Inca field
+    // it; item 3659, `docs/AI.md` §339): run1323b's packet holds its three
+    // attack `AttachPos` rows (node 0, frames 6, 6 and 8), `RData +0x88`
+    // 1.0, and `fit_bay.py` fits each sweep (48, 207 and 1679 lattice
+    // points; the centroid is kept, 361 of 361 headings each). Without
+    // them the Fusiliers left from the figure's own point — run1323c's
+    // `1/44` on 3815 from (8136, 31080, 662) against the original's
+    // (8048, 31009, 772), at the human's capital `0/2000`.
+    (
+        790,
+        11,
+        6,
+        Bay {
+            right: 21_445,
+            fwd: 111_997,
+            dz: 110,
+        },
+    ),
+    (
+        790,
+        12,
+        6,
+        Bay {
+            right: 4_874,
+            fwd: 96_147,
+            dz: 116,
+        },
+    ),
+    (
+        790,
+        13,
+        8,
+        Bay {
+            right: 16_206,
+            fwd: 100_152,
+            dz: 115,
+        },
+    ),
     // **Piece 1625, the Lakota's Bombard** (unit type 267; item 3645,
     // `docs/AI.md` §336): run1305b's packet holds its one attack
     // `AttachPos` row, node 0 at `CHAR_ATTACK2` frame 9 (666 ms), and
@@ -3161,6 +3199,32 @@ mod tests {
             .collect();
         assert_eq!(fits, [&(11, 1)], "1/25's round on 3053");
         assert_eq!(640 + release_dz(753, 11, 1, 0).unwrap(), 838);
+    }
+
+    /// **The Inca Fusiliers leave from piece 790's bays** (item 3659,
+    /// `docs/AI.md` §339): run1323c's `1/44` on block 3815, the figure at
+    /// (8136, 31080, 662) and angle −733020160 on 3814, its round at the
+    /// capital from (8048, 31009, 772) — `CHAR_ATTACK1`'s row, and no
+    /// other key's.
+    #[test]
+    fn run1323c_s_inca_fusilier_leaves_from_piece_790_s_bay() {
+        let keys = [(11, 6), (12, 6), (13, 8)];
+        let fits: Vec<_> = keys
+            .iter()
+            .filter(|&&(anim, start)| {
+                let at = launch_point(
+                    Pos::new(8136, 31080),
+                    Angle(-733_020_160),
+                    790,
+                    anim,
+                    start,
+                    0,
+                );
+                (at.x, at.y) == (8048, 31009)
+            })
+            .collect();
+        assert_eq!(fits, [&(11, 6)], "1/44's round on 3815");
+        assert_eq!(662 + release_dz(790, 11, 6, 0).unwrap(), 772);
     }
 
     /// **The Egyptian Arquebusiers' rounds leave from piece 48's bays**
