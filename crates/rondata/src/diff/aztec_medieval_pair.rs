@@ -285,6 +285,95 @@ fn aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 20, "the rounds that part");
 }
 
+/// run1322: the closing window, blocks 4347..4603 at run1308b's detail,
+/// `cover=0` (item 3658) — 256 blocks through the closing block, so the
+/// word 4602, the game's last frame, sits inside a window.
+pub(crate) const RUN1322: &str = "gamelog-run1322-greatsahara-aztec-medieval-window-4347-4603.txt";
+
+/// The window: block 4347 through the closing block 4603.
+pub(crate) const WIDENING_AZTEC_MEDIEVAL_FRAME_4602: (i64, i64) = (4347, 4603);
+
+/// **The closing window**: run1322 walked from run1307's start with the
+/// recorder on, the rounds compared (item 3658).
+pub(crate) fn aztec_medieval_frame_4602_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[AZTEC_MEDIEVAL.start],
+        true,
+        AZTEC_MEDIEVAL.long,
+        "run1322",
+        &[(RUN1322, WIDENING_AZTEC_MEDIEVAL_FRAME_4602.0)],
+        WIDENING_AZTEC_MEDIEVAL_FRAME_4602,
+        1,
+        &[4603],
+        true,
+    )
+}
+
+#[test]
+fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = aztec_medieval_frame_4602_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((_, o, _), _)| *o >= 0)
+            .filter(|((_, _, k), _)| k != "form")
+            .map(|((who, o, k), (f, _))| format!("{f} {who}/{o} {k}"))
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>(),
+        [
+            "4376 1/89 orders_x",
+            "4376 1/89 orders_y",
+            "4494 1/69 orders_x",
+            "4494 1/69 orders_y",
+            "4496 1/118 dest_angle",
+        ],
+        "the object rows past `form`"
+    );
+    // Item 3658, the pair whole: 57 keys. Past the standing families —
+    // `form`, both leaders' `SITE[i].reg`, who=0's `aggression[1]`, who=1's
+    // groups' `held` and pools — three guards' bookkeeping (3658c): the
+    // Heavy Archers `1/89` (TypeIndex 173) and `1/118` and the Xopilli
+    // Atl-Atl `1/69` (87) hold `orders_x/y` at their guard point where
+    // theirs print the unit's own, and `1/118`'s `dest_angle` parts on
+    // 4496. No position, hit or draw parts through the closing block.
+    pin_eq!(w.firsts.len(), 57, "run1322 baseline");
+    pin_eq!(w.rounds_read, (362, 362), "the rounds read");
+    // Every round, both directions: 362 a side, 38 parting — the slot
+    // shifts from theirs' spent arrows (`docs/COMBAT.md` §46.7), the Heavy
+    // Horse Archers' one-unit launches (3658a), and the Trebuchets'
+    // (TypeIndex 266, `1/56`, `1/79`, `1/107`, `1/124`) from 4553 on, which
+    // leave their own square in ours and about 300 out and 693 up in
+    // theirs (3658b); their landings and flights agree.
+    pin_eq!(w.rounds.len(), 38, "the rounds that part");
+}
+
 /// **The closing state** (item 3658): run1308's closing block 4603, the
 /// whole map's units, walked from run1307's start.
 #[test]

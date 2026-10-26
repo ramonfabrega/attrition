@@ -10508,13 +10508,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // first try 2556 of 4602 by the count and the sequence, widened on
     // run1308b over 2550..2806 (the word's block 2557), the rounds
     // compared. Item 3657 moves it to 2569, inside the same window: the
-    // widening holds the new word's frame.
+    // widening holds the new word's frame. Whole since item 3658, 4602 of
+    // 4602 (the Horse Archer's piece 842 releases through 138's pivot), the
+    // closing state compared; widened on run1322 over 4347..4603 (the
+    // closing block), the rounds compared.
     (
         "AZTEC_MEDIEVAL_PAIR_WORD",
         crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL_PAIR_WORD,
-        Some("aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole"),
-        3657,
-        Some(crate::diff::aztec_medieval_pair::WIDENING_AZTEC_MEDIEVAL_FRAME_2556),
+        Some("aztec_medieval_pair_run1322_s_closing_window_is_widened_whole"),
+        3658,
+        Some(crate::diff::aztec_medieval_pair::WIDENING_AZTEC_MEDIEVAL_FRAME_4602),
     ),
     // **The Inca at a held Enlightenment age** (item 3648): Great Sahara —
     // first try 3095 of 4045 by the count and the sequence, widened on
@@ -12533,14 +12536,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Aztecs at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3647): first try 2556 of a
     // game that ends itself on 4602, widened on run1308b; 2569 (item 3657).
+    // Whole since item 3658, 4602 of 4602 (the Horse Archer's piece 842
+    // through 138's pivot), the closing state compared; widened on run1322
+    // (the closing window).
     AiWord {
         line: "Late ages",
         map: "GreatSaharaAztecMedieval",
         named: "Great Sahara (Aztecs, Medieval)",
         word: crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL_PAIR_WORD,
         length: 4_602,
-        endpoint: None,
-        window: Some("aztec_medieval_frame_2556_window"),
+        endpoint: Some("aztec_medieval_pair_run1308_s_closing_state"),
+        window: Some("aztec_medieval_frame_4602_window"),
     },
     // The Inca at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
     // `ENDING_TECHNOLOGY` 4), Great Sahara (item 3648): first try 3095 of a

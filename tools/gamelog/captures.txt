@@ -10761,3 +10761,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1310  run1281's line with --ai-tribe 2 and run1309's lobby   (the draw stream; ended itself on 4045)
 #   run1310b --map 7 --end-frame 3345 --timeout 3600 --log-window 3089 3345 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover cover=0, run1309's lobby   (the word 3095's window)
 # Checks: `rngcmp.py` run1309 vs run1310 -> 37 identical; run1310 vs run1310b -> 3346 identical.
+# ==== item 3658: the Aztec Medieval word 2569 -> 4602, the pair whole (`docs/AI.md` §338; `docs/RUNS.md` run1322) ====
+#   run1322  --map 7 --end-frame 4602 --allow-early-end --timeout 3600 --log-window 4347 4603 --detail (run1308b's) --ai-tribe 0 --cover cover=0, run1307's lobby   (the closing window)
+# Checks: `rngcmp.py` run1308 vs run1322 -> 4603 identical.

@@ -8270,7 +8270,7 @@ reading, not a measurement.
   bearing is the middle of its exact fits; a second pose, or the piece's `AttachPos` rows (run985b's packet may hold
   them: `get_position.py … entries 122`), would say whether it is a `Bay`'s whole-degree turn. Names no score: the
   close compares whole.
-- **3359b — piece 842, the Horse Archer, as the Dragoon** (3338a's open row). run973g's `AttachPos` rows put every
+- ~~**3359b — piece 842, the Horse Archer, as the Dragoon** (3338a's open row).~~ Built by item 3658, as piece 138's rows (`pivot::SAME_AS`). run973g's `AttachPos` rows put every
   dumped round's height at the pivot's z plus the release's, × 4.8 (225, 228, 208), as piece 139's do — the pivot
   branch, its turret unmodelled in `launch::MEASURED`'s planar rows. Carry it as `pivot::RELEASES` rows when a word
   parts on a Horse Archer's round.
@@ -8485,7 +8485,7 @@ Nothing parked: the word closed (`docs/AI.md` §265).
 
 ## Parked by item 3338, 2026-10-19 — the Maya word 776 → 13086, the game's end
 
-- (3338a) **The Horse Archer's release is not the packet's sweep** (piece 842; `docs/AI.md` §273). run973g's
+- ~~(3338a) **The Horse Archer's release is not the packet's sweep**~~ — answered by item 3658: the pivot arm with the turret; run973f's miss fits step 248 (`docs/AI.md` §338). (piece 842; `docs/AI.md` §273). run973g's
   `get_position.py` sweep of the piece's three node-0 `AttachPos` rows fits a `Bay` at all 361 headings, and those
   bays miss run973e/f's four dumped rounds by 6 to 16 units at the unit's facing; the sweep's height (68, 58, 72) is
   about 155 under the dump's `sz − guy z` (225, 208, 228). The planar rows kept in `launch::MEASURED` reproduce three
@@ -11235,7 +11235,7 @@ The word moves 4859 → 6128 and the pair closes (`docs/AI.md` §335.4).
 
 ## Parked by item 3647, 2026-10-26 — the Aztecs at a held Medieval age, Great Sahara: first try 2556
 
-- **3647a. The Heavy Horse Archer's round leaves from another point.** run1308b, from the window's first block 2550:
+- ~~**3647a. The Heavy Horse Archer's round leaves from another point.**~~ Built by item 3658: piece 842 reads piece 138's pivot rows (`pivot::SAME_AS`, `docs/AI.md` §338). run1308b, from the window's first block 2550:
   who=1's `1/29` (TY 138, TypeIndex 188) fires at the Citizen `0/13` from (7599, 31648, 659) in ours against
   (7556, 31716, 901) in theirs, at (7488, 31651); `1/22`'s round of 2556 parts the same way. The flight time agrees,
   and `0/13` dies on 2556 on both sides. **Score**: none while the word is the plunder on 2556 (`docs/AI.md` §338);
@@ -11317,13 +11317,25 @@ word moves 2556 → 2569 (`docs/AI.md` §338). One row parks, and it names no sc
   `caravan_plunder` answer 0. No word on file kills one of these. The killer: a kill of a General, caravan or supply
   wagon by a non-Aztec-trainer killer on a word's frame, whose killer's leader then parts by the constant.
 
-## Parked by the next landing, slot TA — reserved
+## Parked by item 3658, 2026-10-26 — the Aztec Medieval pair whole: piece 842 reads piece 138's pivot
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3658a) **Three Heavy Horse Archer rounds leave one unit off** (piece 842 through 138's pivot rows; `docs/AI.md`
+  §338). run1308b's rounds: `1/29`'s on 2601 (`sx` ours 5997, theirs 5999; `ex` 6143 against 6144) and on 2651
+  (`sy` 31388 against 31389), and `1/22`'s on 2631 ((5716, 30535) against (5715, 30536)). Each figure's pose on the
+  block before fits one turret step exactly (`pivot::tests::piece_842_…`, 2631's on step 255), so the step ours'
+  turret holds at the release is the likeliest term; the moving rounds' poses are not on any dumped block. No draw,
+  hit or later word follows: the pair is whole to 4602 and its closing state compares 211 units with none off. Names
+  no score.
+- (3658b) **A Trebuchet's round leaves from its own square** (TypeIndex 266; run1322). Who=1's `1/56`, `1/79`,
+  `1/107` and `1/124` throw from 4553 on: ours from the unit's point at its `z`, theirs about 300 units out and 693
+  up — `1/56` on 4563 ours (9528, 27960, 468) against theirs (9778, 27792, 1161), and `v1z` parts with the height.
+  The landing, the flight time and every hit agree to the closing block, so the arm's release node (no `pivot`,
+  `BAYS` or `MEASURED` row for the piece) moves nothing compared. Names no score: books when a word lands on a
+  Trebuchet's round (a release row off a packet that fields the piece).
+- (3658c) **Three guards' `orders_x/y` and a `dest_angle`** (run1322). The Heavy Archers `1/89` (TypeIndex 173) on
+  4376 and `1/118` on 4496, and the Xopilli Atl-Atl `1/69` (87) on 4494: ours holds `orders_x/y` at the guard point
+  (10632, 29880), where theirs prints the unit's own (10627, 29883); `1/118`'s `dest_angle` is 1583677440 against
+  −1778057216. No position, order kind or draw parts. Names no score.
 
 ## Parked by the next landing, slot TB — reserved
 

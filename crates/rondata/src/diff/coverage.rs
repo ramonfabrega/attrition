@@ -3544,6 +3544,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::iroquois_enlightenment_pair::iroquois_enlightenment_frame_5128_window(),
         || super::aztec_medieval_pair::aztec_medieval_frame_2556_window(),
         || super::aztec_medieval_pair::aztec_medieval_stride_window(),
+        || super::aztec_medieval_pair::aztec_medieval_frame_4602_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_frame_3095_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_stride_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
