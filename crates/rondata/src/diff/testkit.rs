@@ -10608,6 +10608,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3665,
         Some(crate::diff::korean_medieval_pair::WIDENING_KOREAN_MEDIEVAL_FRAME_3401),
     ),
+    // **The Germans at a held Industrial age** (item 3667): Great Lakes —
+    // first try 4323 of 4772 by the count and the sequence, widened on
+    // run1334b over 4295..4574 (the word's block 4324), the rounds
+    // compared.
+    (
+        "GERMAN_INDUSTRIAL_PAIR_WORD",
+        crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL_PAIR_WORD,
+        Some("german_industrial_pair_run1334b_s_word_frame_is_widened_whole"),
+        3667,
+        Some(crate::diff::german_industrial_pair::WIDENING_GERMAN_INDUSTRIAL_FRAME_4323),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12715,6 +12726,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_559,
         endpoint: None,
         window: Some("korean_medieval_frame_3401_window"),
+    },
+    // The Germans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
+    // `ENDING_TECHNOLOGY` 5), Great Lakes (item 3667): first try 4323 of a
+    // game that ends itself on 4772, widened on run1334b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesGermanIndustrial",
+        named: "Great Lakes (Germans, Industrial)",
+        word: crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL_PAIR_WORD,
+        length: 4_772,
+        endpoint: None,
+        window: Some("german_industrial_frame_4323_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
