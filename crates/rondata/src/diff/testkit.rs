@@ -10586,6 +10586,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3663,
         Some(crate::diff::persian_classical_pair::WIDENING_PERSIAN_CLASSICAL_FRAME_11633),
     ),
+    // **The Japanese at a held Medieval age** (item 3664): Great Lakes —
+    // whole on its first try, 5140 of 5140, the closing state compared;
+    // widened on run1329b over 4884..5141 (the closing block), the rounds
+    // compared.
+    (
+        "JAPANESE_MEDIEVAL_PAIR_WORD",
+        crate::diff::japanese_medieval_pair::JAPANESE_MEDIEVAL_PAIR_WORD,
+        Some("japanese_medieval_pair_run1329b_s_closing_window_is_widened_whole"),
+        3664,
+        Some(crate::diff::japanese_medieval_pair::WIDENING_JAPANESE_MEDIEVAL_FRAME_5140),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12669,6 +12680,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 11_633,
         endpoint: Some("persian_classical_pair_run1318_s_closing_state"),
         window: Some("persian_classical_frame_11633_window"),
+    },
+    // The Japanese at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), Great Lakes (item 3664): whole on its first
+    // try, 5140 of 5140, the closing state compared.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesJapaneseMedieval",
+        named: "Great Lakes (Japanese, Medieval)",
+        word: crate::diff::japanese_medieval_pair::JAPANESE_MEDIEVAL_PAIR_WORD,
+        length: 5_140,
+        endpoint: Some("japanese_medieval_pair_run1329_s_closing_state"),
+        window: Some("japanese_medieval_frame_5140_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

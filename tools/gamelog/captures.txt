@@ -10805,6 +10805,11 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1318  run1316's line on --map 14 with --ai-tribe 23 and run1317's lobby   (the draw stream; ended itself on 11633)
 #   run1318b --map 14 --end-frame 11188 --allow-early-end --timeout 3600 --log-window 10895 11188 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0, run1317's lobby   (the word 10937's window)
 # Checks: `rngcmp.py` run1317 vs run1318 -> 37 identical; run1318 vs run1318b -> 11189 identical.
+# ==== item 3664: the Japanese at a held Medieval age, Great Lakes (`docs/AI.md` §344; `docs/RUNS.md` run1328, run1329, run1329b) ====
+#   run1328  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1329  run1314's line on --map 14 with --ai-tribe 15 and run1328's lobby   (the draw stream; ended itself on 5140)
+#   run1329b --map 14 --end-frame 5140 --allow-early-end --timeout 3600 --log-window 4884 5141 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1328's lobby   (the closing window)
+# Checks: `rngcmp.py` run1328 vs run1329 -> 37 identical; run1329 vs run1329b -> 5141 identical.
 # ==== item 3663: the Persian Classical word 10937 -> 11633, the pair whole (`docs/AI.md` §343; `docs/RUNS.md` run1327, run1327b) ====
 #   run1327  --map 14 --end-frame 10932 --timeout 3600 --log-window 10929 10931 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 23 --cover cover=0 --tracer-def RON_STATE_FRAME=10930 --tracer-def RON_STATE_PLAN=…, run1317's lobby   (a packet: pieces 1793, 1881, 113, 1975)
 #   run1327b --map 14 --end-frame 11633 --allow-early-end --timeout 3600 --log-window 11378 11634 --detail (run1318b's) --ai-tribe 23 --cover cover=0, run1317's lobby   (the closing window)

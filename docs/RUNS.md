@@ -29710,6 +29710,68 @@ blocks, 8523 keys, rounds 520 theirs against 699 ours, 114 parting). The first p
 Javelineers `1/312` (TY 83) throws at the Citizen `0/12` from (5054, 31417) at `sz` 669 in theirs and from the
 figure's square (5064, 31368) at 499 in ours; the records first part on 10939.
 
+## run1328 — the Japanese at a held Medieval age, Great Lakes: the `DUMP_ALL` start (2026-10-26, item 3664, `att-3664`)
+
+`docs/AI.md` §344. run1317's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1328 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 13:30:28, exited 13:30:55 (26.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 15, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1328 greatlakes-japanese-medieval-start`. `df -g ~` read 57 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1328-greatlakes-japanese-medieval-start.txt`, 151,130,823 bytes,
+SHA-256 `f152eafabac1b943e49c3e92be82701c1e1759887f1325e64344e69d9d7753e4`.
+
+Archive `rontrace-run1328.log`, 8,930,112 bytes,
+SHA-256 `7338c94fc59c3f9ecbc8b11521a810404f591d9675cb754dbfeadc60e32d9c99`.
+
+**What it holds**: the start of `japanese_medieval_pair::JAPANESE_MEDIEVAL`, and the walk's initial state.
+
+## run1329 — the Japanese at a held Medieval age, Great Lakes: the draw stream to the game's end (2026-10-26, item 3664, `att-3664`)
+
+`docs/AI.md` §344. run1314's line (`--end-frame 24000 --timeout 7200 --allow-early-end --log-window 0 24001 --stride
+100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000` and its four `--detail` flags) on `--map 14` with `--ai-tribe
+15` and run1328's lobby.
+- Pool lane 2, beside run1328. Launched 13:30:32, exited 13:31:13 (40.5 s launch to exit). `success`. **The game
+  ended itself on 5140** (closing block 5141, `ended_early`). `GAME INFO` reads back as run1328's. `rngcmp.py`
+  against run1328: 37 frames identical. Filed with `filerun.py run1329 greatlakes-japanese-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1329-greatlakes-japanese-medieval-trace.txt`, 28,772,515 bytes,
+SHA-256 `88b2a2524bc9d538907b758376052a6ba56b7d802f03f545a7731331a077b6ad`.
+
+Archive `rontrace-run1329.log`, 97,100,224 bytes,
+SHA-256 `03b7a678721903263e2cfc6c43e0b7b475f5580f6b91c0b2bd0807b6c33722ba`.
+
+**What it holds**: the pair's first try. `japanese_medieval_pair_first_parting` walks it from run1328: **whole, 5140
+of 5140** by the count and the sequence. `japanese_medieval_pair_run1329_s_closing_state` compares its closing block
+5141: 187 units, every count 0. `japanese_medieval_pair_the_long_s_stride_walks_to_5101` walks its stride 101..5101:
+51 blocks, 108 keys, the standing families alone.
+
+## run1329b — the Japanese at a held Medieval age, Great Lakes: the closing window, blocks 4884..5141 (2026-10-26, item 3664, `att-3664`)
+
+`docs/AI.md` §344. **What the disk could not answer**: every record past the stride's last block 5101 to the close,
+and every round. run1329's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1329b --map 14 --end-frame 5140 --allow-early-end --timeout 3600
+--log-window 4884 5141 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover
+cover=0` and run1328's lobby: the last 257 blocks, through the closing block.
+- Pool lane 1. Launched 13:34:19, exited after 56.3 s. `success`: 5141 frames. `rngcmp.py` against run1329: 5141 of
+  5141 identical. Filed with `filerun.py run1329b greatlakes-japanese-medieval-window-4884-5141`. `df -g ~` read 55
+  GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1329b-greatlakes-japanese-medieval-window-4884-5141.txt`, 566,544,729 bytes,
+SHA-256 `24a270e8355ed73653b4bdb0a8206ef0903ff5921b26e71671dbac9b058b1867`.
+
+Archive `rontrace-run1329b.log`, 97,182,720 bytes,
+SHA-256 `f0061d9334236e8d537cbc1cc9ab9979da0095846fe291a0cac48430e5a05595`.
+
+**What it holds**: `japanese_medieval_pair_run1329b_s_closing_window_is_widened_whole` walks it from run1328 (257
+blocks, 52 keys, all on 4884 and standing; rounds 143 a side, all the Trebuchet `1/59`'s, four launch fields parting,
+parked 3664a).
 ## run1327 — the Persians at a held Classical age, Great Lakes: a packet at logger frame 10930, pieces 1793, 1881, 113 and 1975 (2026-10-26, item 3663, `att-3663`)
 
 `docs/AI.md` §343. **What the disk could not answer**: the Persian Javelineers' release nodes. Their piece, 1793

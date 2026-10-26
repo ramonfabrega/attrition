@@ -11389,13 +11389,12 @@ units with none off (`docs/AI.md` §343). One row of its closing window (run1327
   `RON_DEBUG_UNIT=1/172@11395-11403` beside the dump's `angle` and `near` on 11402, for whether the turn is a
   guard's look toward a foe (a target search ours runs on a different set) or an idle anim's turn.
 
-## Parked by the next landing, slot TG — reserved
+## Parked by item 3664, 2026-10-26 — the Japanese at a held Medieval age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TG renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3664a) **3658b's Trebuchet launch in a second lobby** (TypeIndex 266; run1329b). Who=1's `1/59` throws four rounds
+  at `0/2000` over 4884..5140: ours from the unit's square (6936, 32184) at `sz` 92, theirs from (7219, 32287) at 785,
+  693 up; `v1z` 210946716 against 192709869. The landing, flight time and every hit agree to the closing block, and
+  the pair is whole. Names no score: books with 3658b when a word lands on a Trebuchet's round.
 
 ## Parked by the next landing, slot TH — reserved
 
