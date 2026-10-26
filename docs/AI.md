@@ -32225,12 +32225,75 @@ run1334 and run1334b): `Riflemen` (101) ×1,794, `Anti-tank Rifle` (138)
 ×10,744 the pair fields five types the lockstep ledger has not seen, of
 the 20 it fields.
 
-## 347. Reserved for the next item on the AI track
+## 347. The British at a held Industrial age, Great Sahara, at difficulty 4: first try 2382 of 4767 (item 3668)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Sahara (`MAP_STYLE 7`), human Nubians (4) against
+the British (11) at Hard (4), seed 12345, `STARTING_RESOURCES 7`, the
+age held at Industrial (`STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5`),
+both takes read back by `Pair::assert_lobby`. The triple `(7, 11, 4)` is
+new: every other British lobby is at difficulty 0 or 5 but the Classical
+pair's `(18, 11, 4)`, another map, and the battery fields no British
+(`british_industrial_pair_is_no_other_lobby`). Captures: run1335 (the
+`DUMP_ALL` start), run1336 (the draw stream; the game ended itself on
+4767), run1336b (the word's window, 2295..2633), run1336c (the stride to
+2301 with the leaders and buildings) and run1336d (the gap 2095..2201).
+The pair is `rondata::diff::british_industrial_pair`.
+
+**The score.** First try **2382 of 4767**, by the count and the
+sequence: on 2382 ours spends 71 draws against theirs' 15, parting at
+index 5. Both open on who=1's `Leader::make_stuff` (two `+0x221`, then
+`+0x63d`); at index 5 theirs spends a fourth `make_stuff+0x63d` (eight
+in all) where ours spends 53 `Leader::produce_building+0xc99`, two
+`+0x1805` and a `Farms::add+0x128` — ours places a building theirs does
+not — and both close on the same six unit and farm draws.
+
+**The value diff, walked back.** The stride (run1336, 101..2301, 23
+blocks, 80 keys) parts on the standing families alone, but it prints no
+leader and no building. run1336c prints both on the same stride: the
+standing families and both leaders' `SITE[*].reg` and `aggression`
+(§2.7's seam) from 101, agreeing otherwise on 2101 and parted on 2201.
+run1336d's gap puts the first parted record on 2184.
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2184 | who=1's `MAKE[0]` | `t`, `val`, `num` | 131 (Flamethrower), 1014609, 2 | 281 (Anti-Aircraft Gun), 1028320, 1 |
+| 2184 | `MAKE[1]` | `t`, `val`, `num` | 281, 941484, 1 | 287 (Biplane), 109001, 4 |
+| 2184 | `MAKE[3]` | `t`, `val`, `num` | −1, 99999, 1 | 123 (Machine Gun), 78152, 2 |
+| 2186 | `1/2024`'s `queue[0..3]`, `1/2013`'s `queue[3]` | `type` | 131 | 123 |
+| 2186 | who=1's leader | `num_queued[81]`, `num_queued[73]` | 5, 0 | 0, 5 |
+| 2382 | `MAKE[3]` | `cat`, `city` | 4, 2 | 6, 0 |
+| 2383 | building `1/2034` (ours alone) | `build:extra` | held | — |
+
+**The direction: ours admits the Flamethrower (131) to who=1's make
+list on 2184 and theirs does not.** On 2183 both lists agree (589, 63,
+269 Artillery, 628, 417, values decayed a hundredfold). On 2184 both
+rebuild it: theirs from the AA Gun, the Biplane and the Machine Gun;
+ours puts the Flamethrower at its head, above an AA Gun valued 941484
+against theirs' 1028320, and no Machine Gun. Two buildings queue five
+Flamethrowers in ours and five Machine Guns in theirs on 2186; the
+costs differ (ours `cost[0]` 144..178 food, theirs 79..118 with
+`good[0]` 2), the buckets part, and on 2382 ours' make list reaches a
+building (`cat` 4 at city 2) where theirs' reaches a unit (`cat` 6) —
+the draw delta. Theirs does field Flamethrowers later in the game (214
+of run1336's stride records), none in run1336d's gap: the type is left
+out on 2184, not for good.
+
+**The next item's hypothesis** is the make list's candidate predicate
+for the Flamethrower (TY 131) — which unit types enter who=1's list on
+2184 and at what value. The recipe is the make list's head
+(`RON_DEBUG_MAKE`, Loop 2955) widened to the whole list on 2183–2184,
+then the candidate's gate read off the original; a value no dump prints
+takes a packet at `RON_STATE_FRAME=2183`.
+
+**The rounds**, both directions: none in flight on either side in
+run1336b or run1336d.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **205 of
+302**, unmoved: the pair parts, so it is not lockstep. The booking's two
+lines **are fielded**: `Black Watch` (115) 11,196 guy records and `Light
+Tank` (240, `MARK4`) 2,754 across run1336 and run1336b (`rubric.py
+--dumps`). They are the pair's only types the lockstep ledger has not
+seen, so they are the two new to it once the pair closes.
 
 ## 348. Reserved for the next item on the AI track
 
