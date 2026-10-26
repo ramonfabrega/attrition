@@ -6883,6 +6883,32 @@ impl Sim {
         }
         let unit = &mut self.units[u];
         unit.movement.facing = step.facing;
+        // **`Guy::do_turn`'s own `set_angle(guy 0, angle, 0)`** — every
+        // arm that gets here calls `Guy::do_turn(guy 0, heading, facing,
+        // …)` (`005fb2b4`, `005fb2e1` and the walking one), and its body
+        // writes guy 0's `angle` and then runs `Guy::set_angle` on it with
+        // the **new facing**, keeping only guy 0's own `des_angle`. That
+        // call's crew loop tells every tracked figure its `des` from guy
+        // 0's point and this angle, **after** `Unit::set_angle`'s heading
+        // loop above and before the collision block. So a crew figure that
+        // stood on its point last frame stands on it again when the blocked
+        // stand asks, and rolls its idle: run1331's `1/126` (TI 280, a
+        // Heavy Flaming Arrow), whose guy 2 the heading loop put on (32169,
+        // 21229) and this one back on (32167, 21225), its body, on 3627
+        // (item 3666, `docs/AI.md` §345; run1332a's packet watched both
+        // writes).
+        let from = unit.movement.body.pos;
+        let before: Vec<_> = self.units[u].guys.iter().map(|g| g.follow.map(|f| (f.body.pos, f.des))).collect();
+        self.crew_des(u, from, step.facing, false);
+        if std::env::var_os("RON_PROBE_3666_DES").is_some() {
+            for (g, b) in before.iter().enumerate() {
+                if let (Some((body, old)), Some(f)) = (b, self.units[u].guys[g].follow) {
+                    if f.des != *old && (f.des == *body || *old == *body) {
+                        eprintln!("DES3666 f{} {}/{} g{g} body {:?} heading-des {:?} facing-des {:?} turned_in_place {}", self.frame, self.units[u].owner, self.units[u].index, body, old, f.des, step.turned_in_place.is_some());
+                    }
+                }
+            }
+        }
 
         // **And there the frame ends** (`docs/COLLISION.md` §8.8). Both
         // turn-in-place arms are `call Guy::do_turn(…, 0, 1); mov eax,1;
