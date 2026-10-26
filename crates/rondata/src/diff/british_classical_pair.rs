@@ -182,8 +182,9 @@ fn british_classical_pair_the_long_s_stride_walks_back_from_4567() {
     // 4399, `pos` (4370, 5540) against (4357, 5518)), and who=1's Galleys
     // `1/21` and `1/27` (TY 291, TI 341, sea) — `1/21`'s move order
     // `off_y` ours 24 theirs 744, `dest_y` 6936 against 6888. The gap
-    // 4302..4400 is run1316c's (`docs/AI.md` §342).
-    pin_eq!(w.firsts.len(), 186, "the stride's baseline");
+    // 4302..4400 is run1316c's (`docs/AI.md` §342). Item 3662: 186 →
+    // 163, the standing families alone — no unit row parts through 4501.
+    pin_eq!(w.firsts.len(), 163, "the stride's baseline");
 }
 
 /// run1316c: the stride's gap before its first unit row, blocks
@@ -240,15 +241,16 @@ fn british_classical_pair_run1316c_s_gap_is_widened_whole() {
     // `damage_frac` 3 against 14, and its city `0/2000`'s `raid_stamp`
     // 4327 against 4321; on 4399 a round wounds the Citizen `0/5` (TI
     // 50) in ours alone (`hits_left` 48 against 50), and it flees.
-    pin_eq!(w.firsts.len(), 140, "run1316c baseline");
+    // Item 3662: 140 → 108, the standing families alone.
+    pin_eq!(w.firsts.len(), 108, "run1316c baseline");
     // Every round, both directions: 167 round-blocks theirs, 164 ours,
-    // 26 parting. **The first is on 4298, who=1's Galley `1/29`** (TY 291,
-    // TI 341) at `0/2004`: theirs launches from (2690, 3917) at `sz` 52,
-    // ours from the hull's square (2472, 4200) at 0, so the end point
-    // parts, (4241, 5678) against (4258, 5659) — the Galley has no
-    // `launch::BAYS` row (`docs/AI.md` §342).
-    pin_eq!(w.rounds_read, (167, 164), "the rounds read");
-    pin_eq!(w.rounds.len(), 26, "the rounds that part");
+    // 26 parting. **The first was on 4298, who=1's Galley `1/29`** (TY
+    // 291, TI 341) at `0/2004`: theirs launches from (2690, 3917) at `sz`
+    // 52, ours from the hull's square (2472, 4200) at 0, so the end point
+    // parted, (4241, 5678) against (4258, 5659). Item 3662, piece 291's
+    // bays (`launch::BAYS`): 167 a side, none parting (`docs/AI.md` §342).
+    pin_eq!(w.rounds_read, (167, 167), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1316b: the word 4567's window, blocks 4561..4817 at the long's
@@ -283,6 +285,7 @@ fn british_classical_pair_run1316b_s_word_frame_is_widened_whole() {
     let Some(w) = british_classical_frame_4567_window() else {
         return;
     };
+    // 8725..8980; the closing block 8981 is the endpoint's.
     pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
@@ -316,11 +319,17 @@ fn british_classical_pair_run1316b_s_word_frame_is_widened_whole() {
     // does not — ours 13 draws against 16, index 1, ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` (`docs/AI.md` §342).
-    pin_eq!(w.firsts.len(), 959, "run1316b baseline");
+    // Item 3662: 959 → 906 with piece 291's bays (the Galleys stand
+    // whole to 4567, and `1/21` still turns to `0/3` there), then → 109,
+    // the standing families alone, with `compare_target`'s sea raid arm:
+    // on 4567 run1326's packet scores `0/3` and `0/10` at 512 and 596
+    // for `1/21`, ours 9512 and 9596.
+    pin_eq!(w.firsts.len(), 109, "run1316b baseline");
     // Every round, both directions: 809 round-blocks theirs, 899 ours,
     // 145 parting — the Galleys' rounds from the hull's square in ours.
-    pin_eq!(w.rounds_read, (809, 899), "the rounds read");
-    pin_eq!(w.rounds.len(), 145, "the rounds that part");
+    // Item 3662: 809 a side, none parting.
+    pin_eq!(w.rounds_read, (809, 809), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1326b: the closing window, blocks 8725..8981 at run1316b's detail
@@ -354,7 +363,8 @@ fn british_classical_pair_run1326b_s_closing_window_is_widened_whole() {
     let Some(w) = british_classical_frame_8980_window() else {
         return;
     };
-    pin_eq!(w.blocks, 257, "every captured block");
+    // 8725..8980; the closing block 8981 is the endpoint's.
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -372,8 +382,17 @@ fn british_classical_pair_run1326b_s_closing_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1326b baseline");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    // Item 3662: 99 keys. The standing families, and nine rows past
+    // them that no draw and no closing count reaches: `dest_angle` on
+    // eight of who=1's units from 8813 (`1/110`, `1/136`, `1/115`,
+    // `1/108`, `1/124`, `1/114`, `1/98`, `1/105`), and the Javelineers
+    // `1/114`'s `orders_x`/`orders_y` on 8760, (7953, 10301) against
+    // (7958, 10275) (parked 3662a).
+    pin_eq!(w.firsts.len(), 99, "run1326b baseline");
+    // Every round, both directions: 209 a side. The British Catapults
+    // (TI 265, piece 215) threw from their square 245 under until piece
+    // 215 took piece 567's row; 23 parted before it.
+    pin_eq!(w.rounds_read, (209, 209), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
@@ -420,11 +439,16 @@ fn british_classical_pair_run1316_s_closing_state() {
         harness::compare(&built, &fin, 8).closing_fields()
     );
     pin_eq!(e.frame, 8981, "the closing block");
-    pin_eq!(e.compared, 0, "units compared");
+    // Item 3662, the pair whole: 329 units, none off, unlinked or extra,
+    // `Closing fields: none` — the game ends itself on 8980.
+    pin_eq!(e.compared, 329, "units compared");
     pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
     pin_eq!(
         e.extra.clone(),
         Vec::<(i64, i64)>::new(),
         "the closing extras"
     );
+    // The dump's own tear (`0/4` at the simulation's `n − 1`), not a
+    // divergence.
+    pin_eq!(e.torn.clone(), vec![(0, 4)], "the closing tears");
 }
