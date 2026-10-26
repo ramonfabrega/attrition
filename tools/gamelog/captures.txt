@@ -10761,3 +10761,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1310  run1281's line with --ai-tribe 2 and run1309's lobby   (the draw stream; ended itself on 4045)
 #   run1310b --map 7 --end-frame 3345 --timeout 3600 --log-window 3089 3345 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover cover=0, run1309's lobby   (the word 3095's window)
 # Checks: `rngcmp.py` run1309 vs run1310 -> 37 identical; run1310 vs run1310b -> 3346 identical.
+# ==== item 3659: the Inca Enlightenment word 3095 -> 4045, the pair whole (`docs/AI.md` §339.1; `docs/RUNS.md` run1323, run1323b, run1323c) ====
+#   run1323  --map 7 --end-frame 3094 --timeout 3600 --log-window 3001 3094 --detail (run1310b's) --ai-tribe 2 --cover cover=0, run1309's lobby   (the gap 3002..3088)
+#   run1323b --map 7 --end-frame 3054 --timeout 3600 --log-window 3051 3053 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 2 --cover cover=0 --tracer-def RON_STATE_FRAME=3052 --tracer-def RON_STATE_PLAN=…, run1309's lobby   (a packet: pieces 753, 790)
+#   run1323c --map 7 --end-frame 4045 --allow-early-end --timeout 3600 --log-window 3790 4046 --detail (run1310b's) --ai-tribe 2 --cover cover=0, run1309's lobby   (the closing window)
+# Checks: `rngcmp.py` run1310 vs run1323 -> 3095 identical; run1310 vs run1323c -> 4046 identical.
