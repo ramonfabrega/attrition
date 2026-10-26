@@ -413,8 +413,14 @@ impl PlunderView for SimPlunder<'_> {
         1
     }
     fn find_hero(&mut self, x: i32, y: i32, who: i32, ty: i32) -> i32 {
+        // A found hero is an index, none is −1 (item 3657: the steps'
+        // own Despot search, reached first by the Aztec slay arm's `p4 = 0`).
         let at = crate::world::Pos { x, y };
-        i32::from(!self.sim.hero_near(who as crate::Player, ty, at, 0)) - 1
+        if self.sim.hero_near(who as crate::Player, ty, at, 0) {
+            0
+        } else {
+            -1
+        }
     }
     fn type_avail(&mut self, who: i32, good: i32) -> bool {
         self.sim.holdings[who as usize].available[good as usize]
