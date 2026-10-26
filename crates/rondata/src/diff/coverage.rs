@@ -3548,6 +3548,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::inca_enlightenment_pair::inca_enlightenment_frame_3095_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_stride_window(),
         || super::indian_enlightenment_pair::indian_enlightenment_frame_4157_window(),
+        || super::indian_enlightenment_pair::indian_enlightenment_gap_window(),
+        || super::indian_enlightenment_pair::indian_enlightenment_frame_4911_window(),
         || super::indian_enlightenment_pair::indian_enlightenment_stride_window(),
         || super::american_enlightenment_pair::american_enlightenment_frame_3215_window(),
         || super::american_enlightenment_pair::american_enlightenment_stride_window(),
