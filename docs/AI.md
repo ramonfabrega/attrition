@@ -31979,12 +31979,44 @@ Javelineers' bays carry (pieces 34, 1089 and 1441, `sim::launch`). On
 theirs' 10937 spends the blow's `Ammo::do_damage` draw. The records first
 part on 10939.
 
-**The next item's hypothesis** is the Persian Javelineers' launch piece:
-ours throws as a piece with no `launch::BAYS` row does. The piece number
-is not read here; the recipe is item 3579's and 3255's (a packet on the
-throw's frame, the piece's attack `AttachPos` rows off it). A
-hypothesis. The rounds are not dumped before 10895, so an earlier parting
-round is possible; the first on disk is 10931's.
+~~**The next item's hypothesis** is the Persian Javelineers' launch piece:
+ours throws as a piece with no `launch::BAYS` row does.~~ Confirmed and
+built by item 3663, below.
+
+**Built: four Persian pieces' bays (item 3663), 10937 → 11028 → 11633, the
+pair whole.** `1/312` plays piece **1793** (`unit_gpiece`: 33 + 5·`0x160`).
+No packet on disk held its rows (run1007b loads it with none), so run1327
+took one at 10930. Its three node-0 rows are piece 33's keys, and
+`fit_bay.py` fits each over 361 of 361 headings to piece 1794's own
+centroids. With them the word moves to **11028** (ours 28 draws against 30,
+index 5, theirs `Unit::fight+0x824`). The state there parts first on 10994:
+the Citizen `0/11` is struck on 10993 in theirs alone, by `1/299`'s arrow.
+who=1's Archers (TY 171) play piece **1881** (121 + 5·`0x160`); they loosed
+from the figure, 16 frames against 15. The same packet gives its three attack
+rows on piece 121's keys, and with them the pair runs **whole, 11633 of
+11633**. The closing window (run1327b, 11378..11634) still showed the Anusiya
+(TY 163, piece **113**) and the Persian Catapult (TY 265, piece **1975**)
+loosing from the figure. These moved no draw. Off the same packet, 113 takes
+two rows and 1975 takes piece 567's row, which its fit admits.
+
+| block | record | field | ours before | ours | theirs |
+|---|---|---|---|---|---|
+| 10931 | `1/312`'s round | `sx, sy, sz` | (5064, 31368), 499 | (5054, 31417), 669 | (5054, 31417), 669 |
+| 10980 | `1/299`'s round | `sx, sy`, `total_time` | (5592, 30984), 16 | (5528, 30923), 15 | (5528, 30923), 15 |
+| 10994 | `0/11` | `hits_left`, `damage_frame` | 50, 0 | 46, 10993 | 46, 10993 |
+| 11381 | `1/333`'s round | `sx, sy, sz` | (3912, 31080), 543 | (3821, 31024), 721 | (3821, 31024), 721 |
+| 11511 | `1/119`'s round | `sz` | 208 | 453 | 453 |
+
+**The closing state** (`persian_classical_pair_run1318_s_closing_state`,
+block 11634): 444 units, none off, torn, unlinked or extra, and `Closing
+fields: none`. run1318b falls 8523 → 58 keys, all of them standing; its rounds
+read 520 a side, with 68 parting. run1327b reads 59 keys, rounds 1278 a side
+with 24 parting: the dead targets' `whom`/`ox` (theirs keeps them, §338) and
+the slot shifts theirs' spent arrows make (COMBAT §46.7). Three idle guards'
+`dest_angle` park (3663a). The tests are `launch::tests::run1318b_s_persian_*`
+and `run1327b_s_anusiya_and_catapult_rounds_leave_from_their_bays`, and a
+mutation unkeying each piece's row holds. With the pair lockstep, the rubric's
+unit types read **203** (Anusiya).
 
 **The rounds**, both directions: run1318b reads 520 round-blocks theirs
 against 699 ours, 114 parting.

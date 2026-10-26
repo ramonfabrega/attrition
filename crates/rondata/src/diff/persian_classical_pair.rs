@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const PERSIAN_CLASSICAL: Pair = Pair {
     name: "GreatLakesPersianClassical",
@@ -35,9 +35,11 @@ pub(crate) const PERSIAN_CLASSICAL: Pair = Pair {
     // Item 3652, first try: frame 10937, by the count and the sequence —
     // ours 34 draws against 36, parting at index 28, ours
     // `Farms::inc_time+0x1ae`, theirs `Ammo::do_damage+0xc59`
-    // (`docs/AI.md` §343).
-    count: 10937,
-    sequence: 10937,
+    // (`docs/AI.md` §343). Item 3663: 10937 → 11028 (piece 1793's bays,
+    // the Persian Javelineers') → **11633, the game's last frame**
+    // (piece 1881's, the Persian Archers'), the pair whole.
+    count: 11633,
+    sequence: 11633,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -241,7 +243,10 @@ fn persian_classical_pair_run1318b_s_word_frame_is_widened_whole() {
     // **the records first part on 10939**, after the round below: who=1's
     // `1/26`'s move order (`x` ours 41208 theirs 41592, `off_x` 504
     // against 120), and the guards' `retry` on `1/257`, `1/318`, `1/331`.
-    pin_eq!(w.firsts.len(), 8523, "run1318b baseline");
+    // Item 3663, pieces 1793's, 1881's, 113's and 1975's bays: **58**,
+    // the standing families alone (`SITE[i].reg`, `aggression[1]`,
+    // `form`, who=1's groups' `held` and pools as each is minted).
+    pin_eq!(w.firsts.len(), 58, "run1318b baseline");
     // Every round, both directions: 520 round-blocks theirs, 699 ours, 114
     // parting. **The first is on 10931, who=1's Javelineers `1/312`** (TY
     // 83) at the human's Citizen `0/12`: theirs launches from (5054,
@@ -251,6 +256,161 @@ fn persian_classical_pair_run1318b_s_word_frame_is_widened_whole() {
     // theirs' 10937 draws `Ammo::do_damage+0xc59` at index 28 where ours
     // draws `Farms::inc_time+0x1ae`. The hypothesis: the Persian
     // Javelineers' piece has no `launch::BAYS` row (`docs/AI.md` §343).
-    pin_eq!(w.rounds_read, (520, 699), "the rounds read");
-    pin_eq!(w.rounds.len(), 114, "the rounds that part");
+    // Item 3663: `1/312`'s launch agrees (piece 1793), and so do the
+    // Persian Archers' (piece 1881) — `1/299`'s on 10980 from (5528,
+    // 30923) where ours threw from (5592, 30984), 15 frames against 16,
+    // and `0/11` struck on 10993 on both sides — and the Anusiya's
+    // (piece 113). 520 a side, 68 parting: the dead target's `whom`/`ox`
+    // (theirs keeps it, §338) and the slot shifts theirs' spent arrows
+    // make (COMBAT §46.7).
+    pin_eq!(w.rounds_read, (520, 520), "the rounds read");
+    pin_eq!(w.rounds.len(), 68, "the rounds that part");
+}
+
+/// run1327b: the closing window, blocks 11378..11634 at run1318b's detail,
+/// `cover=0` (item 3663) — 257 blocks through the closing block, so the
+/// word 11633, the game's last frame, sits inside a window.
+pub(crate) const RUN1327B: &str =
+    "gamelog-run1327b-greatlakes-persian-classical-window-11378-11634.txt";
+
+/// The window: block 11378 through the closing block 11634.
+pub(crate) const WIDENING_PERSIAN_CLASSICAL_FRAME_11633: (i64, i64) = (11378, 11634);
+
+/// **The closing window**: run1327b walked from run1317's start with the
+/// recorder on, the rounds compared (item 3663).
+pub(crate) fn persian_classical_frame_11633_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[PERSIAN_CLASSICAL.start],
+        true,
+        PERSIAN_CLASSICAL.long,
+        "run1327b",
+        &[(RUN1327B, WIDENING_PERSIAN_CLASSICAL_FRAME_11633.0)],
+        WIDENING_PERSIAN_CLASSICAL_FRAME_11633,
+        1,
+        &[11634],
+        true,
+    )
+}
+
+#[test]
+fn persian_classical_pair_run1327b_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_classical_frame_11633_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3663: **59** — the standing families, and three idle guards'
+    // `dest_angle` (the Javelineers `1/172` on 11403 and `1/173` on 11613,
+    // the Archer `1/124` on 11406; parked 3663a). Before pieces 113's and
+    // 1975's bays: 65, with the human's `0/2000`'s `build:damage` (414
+    // against 420 on 11378), `1/296`'s `damage_o` and `city_flags[0x4]`.
+    pin_eq!(w.firsts.len(), 59, "run1327b baseline");
+    pin_eq!(w.rounds_read, (1278, 1278), "the rounds read");
+    // 1278 a side, 24 parting: dead targets' `whom`/`ox` and slot shifts.
+    // Before pieces 113's and 1975's bays: 1278 against 1310, 254 parting,
+    // the Anusiya's arrows (`1/333`'s on 11381 from (3912, 31080, 543)
+    // against (3821, 31024, 721), 3 frames against 2) and the Catapults'
+    // stones (`1/119`'s on 11511 from 208 against 453).
+    pin_eq!(w.rounds.len(), 24, "the rounds that part");
+}
+
+/// **The closing state** (item 3663): run1318's closing block 11634, the
+/// whole map's units, walked from run1317's start.
+#[test]
+fn persian_classical_pair_run1318_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &PERSIAN_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Persian Classical pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    for b in &fin.builds {
+        if (0..2).contains(&b.who) && harness::link_building(&built.sim, b.who, b.o).is_none() {
+            eprintln!(
+                "    unlinked building {}/{} at {:?} type {:?}",
+                b.who, b.o, b.pos, b.orig_type
+            );
+            for x in built
+                .sim
+                .buildings
+                .iter()
+                .filter(|x| i64::from(x.pos.x) == b.pos.x && i64::from(x.pos.y) == b.pos.y)
+            {
+                eprintln!(
+                    "      ours {}/{} alive {} hits {} health {} ty {:?}",
+                    x.owner, x.index, x.alive, x.hits, x.health, x.ty
+                );
+            }
+        }
+    }
+    pin_eq!(e.frame, 11634, "the closing block");
+    // Item 3663, the pair whole: 444 units, none off, torn, unlinked or
+    // extra, `Closing fields: none` — the game ends itself on 11633.
+    pin_eq!(e.compared, 444, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }

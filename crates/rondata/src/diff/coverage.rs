@@ -3561,6 +3561,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::british_classical_pair::british_classical_stride_window(),
         || super::british_classical_pair::british_classical_frame_8980_window(),
         || super::persian_classical_pair::persian_classical_frame_10937_window(),
+        || super::persian_classical_pair::persian_classical_frame_11633_window(),
         || super::persian_classical_pair::persian_classical_stride_window(),
         || super::japanese_medieval_pair::japanese_medieval_frame_5140_window(),
         || super::japanese_medieval_pair::japanese_medieval_stride_window(),

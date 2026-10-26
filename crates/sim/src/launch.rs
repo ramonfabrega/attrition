@@ -2674,6 +2674,128 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 156,
         },
     ),
+    // **Piece 1793, the Javelineers in the Persians' art style** (`33 + 5 ×
+    // 0x160`, type 83; item 3663, `docs/AI.md` §343): run1327's
+    // `RON_STATE_FRAME=10930` packet on the Persian Great Lakes game holds
+    // its three attack `AttachPos` rows — piece 33's keys, node 0, `y` 8.12
+    // further forward — and `get_position.py`'s sweep of each is reproduced
+    // at all 361 headings by these, the centroids of the same exact regions
+    // as piece 1794's (229, 895 and 1047 lattice points). Without them
+    // `1/312`'s javelin at the Citizen `0/12` left the figure's own square
+    // (5064, 31368) on 10931 where run1318b's leaves (5054, 31417), 170 up.
+    (
+        1793,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 38_946,
+            fwd: 60_202,
+            dz: 163,
+        },
+    ),
+    (
+        1793,
+        crate::anim::ATTACK2,
+        6,
+        Bay {
+            right: 1_685,
+            fwd: 50_747,
+            dz: 170,
+        },
+    ),
+    (
+        1793,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: 21_762,
+            fwd: 35_444,
+            dz: 156,
+        },
+    ),
+    // **Piece 1881, the Archers in the Persians' art style** (`121 + 5 ×
+    // 0x160`, type 171; item 3663, `docs/AI.md` §343): run1327's packet
+    // holds its three attack `AttachPos` rows on piece 121's keys, node 0,
+    // and `get_position.py`'s sweep of each is reproduced at all 361
+    // headings by these, each the centroid of its exact region (221, 277
+    // and 124 lattice points). Without them the Persian arrows left the
+    // figure's own square: `1/299`'s at the Citizen `0/11` from (5592,
+    // 30984) on 10980 where run1318b's leaves (5528, 30923), 16 frames
+    // against 15, and `0/11` went unstruck on 10993.
+    (
+        1881,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -1_826,
+            fwd: 88_749,
+            dz: 163,
+        },
+    ),
+    (
+        1881,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: 336,
+            fwd: 87_408,
+            dz: 164,
+        },
+    ),
+    (
+        1881,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 9_711,
+            fwd: 66_508,
+            dz: 164,
+        },
+    ),
+    // **Piece 113, the Anusiya** (type 163, the Persians' own archers; item
+    // 3663, `docs/AI.md` §343): run1327's packet holds its two attack
+    // `AttachPos` rows, node 0, and `get_position.py`'s sweep of each is
+    // reproduced at all 361 headings by these, the centroids of their
+    // exact regions (105 and 115 lattice points). Without them the
+    // Anusiya loosed from the figure's own square: `1/333`'s arrow at the
+    // human's city centre `0/2000` on 11381 left (3912, 31080), 178 under
+    // run1327b's (3821, 31024), in 3 frames against 2.
+    (
+        113,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_067,
+            fwd: 104_603,
+            dz: 178,
+        },
+    ),
+    (
+        113,
+        crate::anim::ATTACK3,
+        6,
+        Bay {
+            right: 27_678,
+            fwd: 36_793,
+            dz: 171,
+        },
+    ),
+    // **Piece 1975, the Catapult in the Persians' art style** (`215 + 5 ×
+    // 0x160`, type 265; item 3663): run1327's packet holds its one
+    // `AttachPos` row, node 0 at frame 12 of `CHAR_ATTACK2`, and its sweep
+    // admits piece 567's row (435 lattice points about it). Without it
+    // `1/119`'s stone at `0/2000` on 11511 left the carriage's own point,
+    // (6264, 32904) at 208, where run1327b's leaves (6291, 32922) at 453.
+    (
+        1975,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: -33_219,
+            dz: 245,
+        },
+    ),
     // **Piece 212, the Mahout** (type 262, `mjvyk`; item 3555): the same
     // packet's five node-1 rows, the howdah's archer, one per attack slot
     // at frame 16 (`CHAR_ATTACKWALK` the fire on the move's), each the
@@ -3168,6 +3290,66 @@ mod tests {
                 Some(dz),
                 "{piece} ({anim}, {start})"
             );
+        }
+    }
+
+    /// **The Persian Javelineers throw from piece 1793's bay** (item 3663):
+    /// run1318b's `1/312` at the Citizen `0/12` on 10931, the figure at
+    /// (5064, 31368, 499) facing −2023817216 (its `GUY` record on 10930)
+    /// and the round at (5054, 31417, 669). Made to fail with the rows out of `BAYS`: the javelin
+    /// leaves the figure's own square, as ours did.
+    #[test]
+    fn run1318b_s_persian_javelin_leaves_from_piece_1793_s_bay() {
+        let at = launch_point(
+            Pos::new(5064, 31368),
+            Angle(-2_023_817_216),
+            1793,
+            crate::anim::ATTACK2,
+            6,
+            0,
+        );
+        assert_eq!((at.x, at.y), (5054, 31417));
+        assert_eq!(release_dz(1793, crate::anim::ATTACK2, 6, 0), Some(170));
+    }
+
+    /// **The Persian Archers loose from piece 1881's bays** (item 3663):
+    /// run1318b's three arrows at the Citizen `0/11` over 10980..10989, each
+    /// the figure's `GUY` pose on the block before the round's first print
+    /// and the dump's `sx, sy, sz − z`. Made to fail with the rows out of
+    /// `BAYS`: the arrows leave the figure's own square, as ours did.
+    #[test]
+    fn run1318b_s_persian_arrows_leave_from_piece_1881_s_bays() {
+        // (anim, starttime, x, y, facing, sx, sy, sz − z)
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32);
+        let rows: [Row; 3] = [
+            (11, 12, 5592, 30984, -534_249_472, 5528, 30923, 163),
+            (12, 9, 5544, 31368, -455_737_344, 5490, 31300, 164),
+            (12, 9, 6024, 30840, -733_413_376, 5947, 30799, 164),
+        ];
+        for (anim, start, x, y, facing, sx, sy, dz) in rows {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 1881, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "({x}, {y}) ({anim}, {start})");
+            assert_eq!(release_dz(1881, anim, start, 0), Some(dz));
+        }
+    }
+
+    /// **The Anusiya and the Persian Catapult loose from their bays** (item
+    /// 3663): run1327b's rounds at `0/2000`, each the figure's `GUY` pose
+    /// on the block before the round's first print and the dump's `sx, sy,
+    /// sz − z`. Made to fail with the rows out of `BAYS`.
+    #[test]
+    fn run1327b_s_anusiya_and_catapult_rounds_leave_from_their_bays() {
+        // (piece, anim, starttime, x, y, facing, sx, sy, sz − z)
+        type Row = (i32, i8, u32, i32, i32, i32, i32, i32, i32);
+        let rows: [Row; 3] = [
+            (113, 12, 14, 3912, 31080, -839_254_016, 3821, 31024, 178),
+            (113, 12, 14, 3384, 31560, -194_248_704, 3378, 31453, 178),
+            (1975, 12, 12, 6264, 32904, -667_811_840, 6291, 32922, 245),
+        ];
+        for (piece, anim, start, x, y, facing, sx, sy, dz) in rows {
+            let at = launch_point(Pos::new(x, y), Angle(facing), piece, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "{piece} ({x}, {y})");
+            assert_eq!(release_dz(piece, anim, start, 0), Some(dz), "{piece}");
         }
     }
 

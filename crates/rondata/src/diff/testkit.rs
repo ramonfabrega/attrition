@@ -10576,13 +10576,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Persians at a held Classical age** (item 3652): Great Lakes —
     // first try 10937 of 11633 by the count and the sequence, widened on
     // run1318b over 10895..11188 (the word's block 10938), the rounds
-    // compared.
+    // compared; whole at 11633 since item 3663 (pieces 1793's, 1881's,
+    // 113's and 1975's bays), widened on run1327b over 11378..11634 (the
+    // closing block).
     (
         "PERSIAN_CLASSICAL_PAIR_WORD",
         crate::diff::persian_classical_pair::PERSIAN_CLASSICAL_PAIR_WORD,
-        Some("persian_classical_pair_run1318b_s_word_frame_is_widened_whole"),
-        3652,
-        Some(crate::diff::persian_classical_pair::WIDENING_PERSIAN_CLASSICAL_FRAME_10937),
+        Some("persian_classical_pair_run1327b_s_closing_window_is_widened_whole"),
+        3663,
+        Some(crate::diff::persian_classical_pair::WIDENING_PERSIAN_CLASSICAL_FRAME_11633),
     ),
     // **The Japanese at a held Medieval age** (item 3664): Great Lakes —
     // whole on its first try, 5140 of 5140, the closing state compared;
@@ -12668,15 +12670,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Persians at a held Classical age (`STARTING_TECHNOLOGY` 1,
     // `ENDING_TECHNOLOGY` 1), Great Lakes (item 3652): first try 10937 of
-    // a game that ends itself on 11633, widened on run1318b.
+    // a game that ends itself on 11633, widened on run1318b; whole since
+    // item 3663, its closing state compared and its closing window run1327b.
     AiWord {
         line: "Late ages",
         map: "GreatLakesPersianClassical",
         named: "Great Lakes (Persians, Classical)",
         word: crate::diff::persian_classical_pair::PERSIAN_CLASSICAL_PAIR_WORD,
         length: 11_633,
-        endpoint: None,
-        window: Some("persian_classical_frame_10937_window"),
+        endpoint: Some("persian_classical_pair_run1318_s_closing_state"),
+        window: Some("persian_classical_frame_11633_window"),
     },
     // The Japanese at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), Great Lakes (item 3664): whole on its first

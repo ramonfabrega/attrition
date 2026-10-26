@@ -11377,13 +11377,17 @@ none off (`docs/AI.md` §342). One family of its closing window (run1326b) parks
   No position, draw or closing count follows. The killer: `RON_DEBUG_UNIT=1/114@8740-8760` beside the dump's group 68
   orders on 8759, for whether the point is a formation slot (a member's offset) or a different order.
 
-## Parked by the next landing, slot TF — reserved
+## Parked by item 3663, 2026-10-26 — the Persian Classical pair whole: four Persian pieces' bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TF renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The pair closes, 10937 → 11028 → 11633 of 11633 by the count and the sequence, and its closing state compares 444
+units with none off (`docs/AI.md` §343). One row of its closing window (run1327b) parks; it moves no draw or unit:
+
+- **3663a. Three idle guards face another way** (run1327b, blocks 11403, 11406 and 11613): who=1's Javelineers
+  `1/172` and `1/173` (TY 83, piece 1793) and Archer `1/124` (TY 171, piece 1881), each under a `GUARDORDER` with
+  no target, read `dest_angle` −280100864, −1605566464 and −261029888 in ours against −96468992, −54853632 and
+  −402259968 in theirs. Nothing downstream parts through the closing block. The killer:
+  `RON_DEBUG_UNIT=1/172@11395-11403` beside the dump's `angle` and `near` on 11402, for whether the turn is a
+  guard's look toward a foe (a target search ours runs on a different set) or an idle anim's turn.
 
 ## Parked by item 3664, 2026-10-26 — the Japanese at a held Medieval age, Great Lakes
 
