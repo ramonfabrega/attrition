@@ -1015,8 +1015,9 @@ impl Sim {
     /// is the boat's own, so the boat does not try to board a transport of
     /// its own on the first step.
     ///
-    /// SEAMS, all stated: the `MARINES` arm (`unit_masks2 & 0x200` and
-    /// `update_speed`), the console sound, the selection group's swap and
+    /// The `MARINES` arm is built (item 3661): `unit_masks2 & 0x200`,
+    /// `update_hits` and `update_speed`, in `SimTransport::marines`.
+    /// SEAMS, all stated: the console sound, the selection group's swap and
     /// `replace_hotunit` — none of them is state this crate keeps. ~~The
     /// caravan's slot hand-over~~ is built (item 3370): the fleet takes
     /// [`Unit::caravan`] and [`Sim::disembark`] gives it back.

@@ -342,9 +342,9 @@ left out; a constant with no reader in the export is dead there too.
 | `AMERICANS_FREE_SCHOLAR` | 1 | Build::activate | modelled at nations.rs | `americans_free_scholar` |
 | `AMERICANS_FREE_BOMBER` | 1 | Build::activate, Leader::gain_tech, LeaderData::get_support_count | modelled at nations.rs | `americans_free_bomber` |
 | `AMERICANS_AIRCRAFT` | 20 | TypeData::get_cost | not carried | `americans_aircraft` |
-| `AMERICANS_MARINE_SPEED_BONUS` | 2 | Unit::update_speed | not carried | `americans_marine_speed_bonus` |
-| `AMERICANS_MARINE_HP_BONUS` | 70 | Unit::update_hits | not carried | `americans_marine_hp_bonus` |
-| `AMERICANS_MARINE_ENTRENCH` | 5 | Unit::check_idle | not carried | `americans_marine_entrench` |
+| `AMERICANS_MARINE_SPEED_BONUS` | 2 | Unit::update_speed | modelled at rares.rs | `americans_marine_speed_bonus` |
+| `AMERICANS_MARINE_HP_BONUS` | 70 | Unit::update_hits | modelled at cast.rs | `americans_marine_hp_bonus` |
+| `AMERICANS_MARINE_ENTRENCH` | 5 | Unit::check_idle | modelled at tuning.rs | `americans_marine_entrench` |
 | `AMERICANS_STARTING_FARMS` | 3 | Setup::build_units, Setup::small_city_buildings | not carried | `americans_starting_farms` |
 | `AMERICANS_FREE_SCIENCE` | 0 | ConquestGame::setup_scenario_bonuses, Leader::init | modelled at tech.rs | `americans_free_science` |
 | `AMERICANS_SCIENCE_DISCOUNT` | 0 | TypeData::get_cost | modelled at lib.rs | `americans_science_discount` |

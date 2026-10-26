@@ -806,6 +806,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 115,
         },
     ),
+    // **Piece 69, `MARINES`** (unit type 119, the Americans' Continental
+    // Marines; item 3661, `docs/AI.md` §341): run1325c's
+    // `RON_STATE_FRAME=5578` packet on the American Enlightenment East
+    // Indies seed holds its three attack `AttachPos` rows (node 0, frames 1,
+    // 7 and 4), `RData +0x88` 1.1, and `fit_bay.py` fits each sweep (65,
+    // 2136 and 595 lattice points; the centroid is kept, 361 of 361
+    // headings each). Without them the Marines left from the figure's own
+    // point — run1325b's `1/122` on 5578 from (7464, 9624, 190) against the
+    // original's (7451, 9479, 418), and its round on the human's capital
+    // `0/2000` landed a frame late: the word 5583.
+    (
+        69,
+        11,
+        1,
+        Bay {
+            right: 49_240,
+            fwd: 137_168,
+            dz: 228,
+        },
+    ),
+    (
+        69,
+        12,
+        7,
+        Bay {
+            right: 27_027,
+            fwd: 168_687,
+            dz: 188,
+        },
+    ),
+    (
+        69,
+        13,
+        4,
+        Bay {
+            right: 28_173,
+            fwd: 164_233,
+            dz: 191,
+        },
+    ),
     // **Piece 294, `MANOWAR-DEFAULT`** (unit type 344, `manowar.bh3`;
     // item 3660, `docs/AI.md` §340): run1185's packet (logger frame 4582
     // of the British Enlightenment lobby) holds its two attack
@@ -895,6 +935,44 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             right: -710,
             fwd: 147_904,
             dz: 104,
+        },
+    ),
+    // **Piece 218, the Cannon** (unit type 268; item 3661, `docs/AI.md`
+    // §341): run1325c's packet holds its three attack `AttachPos` rows,
+    // node 0 at frame 9 of `CHAR_ATTACK1`..`3`, one point, `RData +0x88`
+    // 1.0, and `fit_bay.py` fits each sweep to the same region of 99
+    // lattice points; the rows are its centroid, `dz` 100 at every
+    // heading. Without them who=1's Cannons fired from the carriage's own
+    // point — run1325d's `1/96` on 6475 from (9480, 9864, 318) against the
+    // original's (9369, 9768, 418), in the closing window.
+    (
+        218,
+        11,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    (
+        218,
+        12,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
+        },
+    ),
+    (
+        218,
+        13,
+        9,
+        Bay {
+            right: -720,
+            fwd: 147_549,
+            dz: 100,
         },
     ),
     // **The Javelineers' piece 34** (item 2997, `docs/AI.md` §244): run912e's

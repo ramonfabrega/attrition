@@ -10548,13 +10548,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Americans at a held Enlightenment age** (item 3650): East
     // Indies — first try 3215 of 6669 by the count and the sequence,
     // widened on run1314b over 3209..3465 (the word's block 3216), the
-    // rounds compared.
+    // rounds compared. Whole since item 3661, 6669 of 6669 (the marines'
+    // trench, their boat's hits and speed, and piece 69's bays), the
+    // closing state compared; the old word's clocks widened on run1325,
+    // 5583's window on run1325b and the closing window on run1325d over
+    // 6414..6670 (the closing block), the rounds compared.
     (
         "AMERICAN_ENLIGHTENMENT_PAIR_WORD",
         crate::diff::american_enlightenment_pair::AMERICAN_ENLIGHTENMENT_PAIR_WORD,
-        Some("american_enlightenment_pair_run1314b_s_word_frame_is_widened_whole"),
-        3650,
-        Some(crate::diff::american_enlightenment_pair::WIDENING_AMERICAN_ENLIGHTENMENT_FRAME_3215),
+        Some("american_enlightenment_pair_run1325d_s_closing_window_is_widened_whole"),
+        3661,
+        Some(crate::diff::american_enlightenment_pair::WIDENING_AMERICAN_ENLIGHTENMENT_FRAME_6669),
     ),
     // **The British at a held Classical age, at difficulty 4** (item
     // 3651): East Indies — first try 4567 of 8980 by the count and the
@@ -12613,15 +12617,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Americans at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
     // `ENDING_TECHNOLOGY` 4), East Indies (item 3650): first try 3215 of a
-    // game that ends itself on 6669, widened on run1314b.
+    // game that ends itself on 6669, widened on run1314b; whole since item
+    // 3661, its closing state compared and its closing window run1325d.
     AiWord {
         line: "Late ages",
         map: "EastIndiesAmericanEnlightenment",
         named: "East Indies (Americans, Enlightenment)",
         word: crate::diff::american_enlightenment_pair::AMERICAN_ENLIGHTENMENT_PAIR_WORD,
         length: 6_669,
-        endpoint: None,
-        window: Some("american_enlightenment_frame_3215_window"),
+        endpoint: Some("american_enlightenment_pair_run1314_s_closing_state"),
+        window: Some("american_enlightenment_frame_6669_window"),
     },
     // The British at a held Classical age (`STARTING_TECHNOLOGY` 1,
     // `ENDING_TECHNOLOGY` 1) at difficulty 4, East Indies (item 3651):
