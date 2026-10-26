@@ -4860,29 +4860,6 @@ impl Sim {
                         if score == 0 && value != 0 {
                             score = 1;
                         }
-                        if std::env::var("RON_PROBE_SEARCH")
-                            .is_ok_and(|v| v == self.frame.to_string())
-                        {
-                            eprintln!(
-                                "PROBE f{} {:?}->{:?}({}/{}) raw {} dist {} targeted {} value {} in_range {} score {} flags {:#x} halve {}",
-                                self.frame,
-                                attacker,
-                                o,
-                                self.owner_of(o),
-                                match o {
-                                    Obj::Unit(u) => i64::from(self.units[u].index),
-                                    Obj::Building(b) => i64::from(self.buildings[b].index),
-                                },
-                                self.attack_dist(attacker, o),
-                                dist,
-                                targeted,
-                                value,
-                                in_range,
-                                score,
-                                flags,
-                                halve
-                            );
-                        }
                         // `local_70`, seeded at 0 (`find_nearby_target@00648da0:232`) and taken past
                         // `jle` (`64987d`): a score of 0 — a candidate
                         // `compare_target` answered 0 for — is never the
