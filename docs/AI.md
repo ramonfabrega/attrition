@@ -30902,7 +30902,8 @@ run1301b's block 3877 the first non-standing rows are:
 round (`RON_DEBUG_AMMO`) leaves the ship's centre (1896, 5352) with 11
 frames and lands at (4221, 5645). That is 2447 world units against 2343
 at about 204 a frame. The draws agree on every frame a round is fired, so
-the launch point is the next item's hypothesis. **The pair widenings
+the launch point is the next item's hypothesis. *Confirmed and built:
+the Frigate's piece 293 had no release row, §335.3 (item 3643, run1304).* **The pair widenings
 compare no `AMMO` record** (`diff::ammo` is read by `diff::golden`
 alone), so the launch parted on 3860 and no key showed it until the
 Farm's `damage` on 3877. 3802..3860 is now dumped and 3861..4117 was
@@ -30911,6 +30912,84 @@ walk's comparison, is the next take.
 
 **The rubric.** The pair is open (3876 of 6128). `RUBRIC_UNIT_TYPES_SEEN`
 stays 194.
+
+### 335.3 The Frigate fires its broadside from its bays: piece 293 (item 3643, 2026-10-25)
+
+*Item 3643, Opus 5.5. Runs 1304 (a packet) and 1304b (the word's
+window).* **The word moves 3876 → 4859** (the count and the sequence).
+
+**The rounds, both directions** (run1301b's `AMMO=5`, every field). The
+Frigate `1/29` (TypeIndex 343, piece 293) fires one round every 40
+frames at the Farm `0/2004`, from 3866: `graph_index` 0 on 3866, 1 on
+3906, 2 on 3946. Every round of theirs leaves **(1809, 5233)**, `sz` 20,
+for 12 frames, angle 1205665792; the first lands at (4222, 5638). Ours'
+(`RON_DEBUG_AMMO`) leaves on the same frame from the hull's (1896, 5352)
+for 11 and lands at (4221, 5645). The ship stands at (1896, 5352),
+facing 104464384, on both sides through all three; ours plays
+`CHAR_ATTACK2` (anim 12, `RON_DEBUG_UNIT`) and releases on the same
+tick. So the launch frame and the target agree and the launch point is
+the whole difference.
+
+**Why ours fired from the hull.** `launch::launch_point` returns the
+unit's own position for a piece no table names (parked 3633b), and piece
+293 had no `BAYS`, `GUNS` or `MEASURED` row. Its `<RELEASEEVENT>`s
+(`FRIGATE-DEFAULT-AGE0`) are `InvisibleAmmo` at 500 ms on node 0 of
+`CHAR_ATTACK1` (`Frigate Left Attack`) and `CHAR_ATTACK2` (`Right
+Attack`), which is frame 7 of each.
+
+**The packet.** No packet on file loads the piece: run1296's has
+`pos_num` 0 for it, and run1266c, run1247, run1238c and run1235b hold no
+`RData` for it. run1304 is a `RON_STATE_FRAME=3865` packet on this lobby.
+`get_position.py … entries 293` gives two rows, node 0 at frame 7 of
+anims 11 and 12, scale 0.7. Each sweep (`sweep 293 0 <anim> 7`, all 361
+whole degrees) has one feasible integer `Bay` region, 1097 and 151
+lattice points, and the rows are its middles:
+
+| anim | `right` | `fwd` | `dz` |
+|---|---|---|---|
+| 11 (`CHAR_ATTACK1`) | −117,433 | −11,024 | 47 |
+| 12 (`CHAR_ATTACK2`) | −103,432 | 106,239 | 20 |
+
+Anim 12 at the sweep's degree 188 (the ship's facing) is (−87, −119),
+`z` 20: theirs' launch to the unit.
+
+**Built** (`crates/sim/src/launch.rs`, `BAYS`): the two rows.
+`launch::tests::the_frigate_s_bays_are_the_packet_s_sweep` checks nine
+sweep headings and run1301b's round. Ours' round now leaves (1809, 5233)
+for 12 frames and lands at (4222, 5638), angle 1205665792: every field
+`RON_DEBUG_AMMO` prints agrees with theirs. Mutation (`tools/mutate.py`
+on `c9c2b2f86`): piece 293 filtered out of `launch::bay` →
+`spanish_gunpowder_pair_first_parting` exits 101, back to 3876 / 3876.
+
+**The value diff on 3877** (run1301b, walked from run1286): the Farm
+`0/2004`'s `damage`, the city `0/2000`'s raid flags and `raid_stamp`,
+and both leaders' `treaties` agree. run1301b goes **102 → 95 keys**, all
+standing: block 3861's families, and who=1's groups' `held` and pools on
+3882, 3966, 4018, 4028 and 4106. run1303 stays at 89. All 70 lobbies'
+`first_parting` hold; no other word moved. The walk to 4859 reads 2
+ground corners not known to be the original's single (the rounds at the
+Farm), pinned in `GROUND_INEXACT`.
+
+**The next word: frame 4859, ours 16 draws against 18, index 7.** Ours
+spends `Unit::fight+0x9b0`, theirs `Unit::come_out+0x25ca`. run1304b
+(blocks 4853..5109, `spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole`,
+857 keys, 8 inexact corners) carries only the standing families on 4853.
+The first rows past them:
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4860 | `1/86` (TI 336, Fire Ship, group 71) | `pos` | (31656, 30984) | (31643, 31002) |
+| 4861 | `1/86` | `heading` | 1073741824 | 1064960000 |
+| 4861 | `1/58` (TI 343, Frigate, group 71) | `orders.len`, current kind | 1, `ATTACKTOORDER` | 3, a move to (3240, 6168) |
+
+Both units walk an `ATTACKTOORDER` on 4859 (`1/86` to (1416, 7944),
+`1/58` to (600, 7944)). On 4860 theirs pushes onto `1/58` (2 orders, 3
+on 4861); ours pushes nothing. Which side acted first, and what the
+`come_out` draw belongs to, is the next item's to read. I built nothing
+for it.
+
+**The rubric.** The pair is open (4859 of 6128).
+`RUBRIC_UNIT_TYPES_SEEN` is unmoved.
 
 ## 336. Reserved for the next item on the AI track
 

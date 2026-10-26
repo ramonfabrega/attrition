@@ -28694,3 +28694,49 @@ SHA-256 `5cdde47b29d7c90989edfff8c0f87b8c10d2922fe6c2bbdafda1d957509b6c84`.
 tree that weighs the Farm; 110 before it). The Frigate's `ATTACKTOORDER` ends on 3858 on both sides, and on 3859,
 its first idle frame, theirs takes the human's Farm `0/2004` (`new_ord` 1) where ours weighed it at 0. On 3860 theirs
 fires its first broadside.
+
+## run1304 — the Spanish at a held Gunpowder age, East Indies: a packet at logger frame 3865, the Frigate's bays (2026-10-25, item 3643, `att-3643`)
+
+`docs/AI.md` §335.3. **What the disk could not answer**: where the Frigate's piece 293 releases its round. run1301b
+prints theirs' round leaving (1809, 5233) at one heading only, and no packet on file holds piece 293's `AttachPos`
+rows (`get_position.py … entries 293`: run1296's `pos_num` 0; run1266c, run1247, run1238c and run1235b do not load
+the piece).
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1304 --map 18 --end-frame 3867 --allow-early-end
+--timeout 3600 --log-window 3864 3867 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 9 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=3865 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 23:37:08, exited 23:37:35 (27.1 s). `success`, 3868 frames. Not filed: the
+  packet is the product. `df -g ~` read 91 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1304/map-18/frame-snapshot.bin`, 896,679,896 bytes,
+SHA-256 `9e07ef2943074a883f3c32da103f08b2116f0e40ead0267988540a53468a02f8`.
+
+**What it holds**: piece 293's two attack `AttachPos` rows, node 0 at frame 7 of `CHAR_ATTACK1` and of
+`CHAR_ATTACK2`, scale 0.7. `get_position.py … sweep 293 0 <anim> 7` fits one `Bay` region each over all 361
+headings (1097 and 151 lattice points); `CHAR_ATTACK2` at the sweep's degree 188 is theirs' launch, (−87, −119)
+and `z` 20.
+
+## run1304b — the Spanish at a held Gunpowder age, East Indies: the word 4859's window, blocks 4853..5109 (2026-10-25, item 3643, `att-3643`)
+
+`docs/AI.md` §335.3. **What the disk could not answer**: the word's block 4860. Item 3643 moved the word from 3876
+to 4859; run1287's stride prints only 4801 and 4901, and no other capture holds this lobby past 4117.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1304b --map 18 --end-frame 5109 --allow-early-end
+--timeout 3600 --log-window 4853 5109 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9
+--cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 23:42:29, exited 23:44:25 (116.6 s launch to exit). `success`: 5110 frames, closing frame
+  5110. `rngcmp.py` against run1287: 5110 of 5110 identical. Filed with `filerun.py run1304b
+  eastindies-spanish-gunpowder-window-4853-5109 --map 18`. `df -g ~` read 88 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1304b-eastindies-spanish-gunpowder-window-4853-5109.txt`, 628,664,816 bytes,
+SHA-256 `7666665ad442357e5f556c59bdceef69caee14080fe6c8bbcb8ce601133d1ee8`.
+
+Archive `rontrace-run1304b.log`, 242,922,080 bytes,
+SHA-256 `c6312767f679b1905216c4ecd0591b0d77af18b3b493c2013b34e8b29fdd7fed`.
+
+**What it holds**: `spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole` (256 blocks, 857 keys). Block
+4853 carries only the standing families; the first row past them is the word's block 4860, who=1's Fire Ship
+`1/86` (TypeIndex 336) at (31656, 30984) against theirs' (31643, 31002), and on 4861 the Frigate `1/58`
+(TypeIndex 343) holds 3 orders in theirs against ours' 1.

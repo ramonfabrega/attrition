@@ -10720,6 +10720,10 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1287  run1279's line with --ai-tribe 9 and run1286's lobby   (the draw stream; ended itself on 6128)
 #   run1287b --map 18 --end-frame 2419 --allow-early-end --timeout 3600 --log-window 2163 2419 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1286's lobby   (the word 2168's window)
 # Checks: `rngcmp.py` run1286 vs run1287 -> 37 identical; run1287 vs run1287b -> 2420 identical.
+# ==== item 3643: the Spanish Gunpowder word, 3876 -> 4859, the Frigate fires from its bays (`docs/AI.md` §335.3; `docs/RUNS.md` run1304, run1304b) ====
+#   run1304  --map 18 --end-frame 3867 --allow-early-end --timeout 3600 --log-window 3864 3867 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 9 --cover cover=0 --tracer-def RON_STATE_FRAME=3865 --tracer-def RON_STATE_PLAN=<item 597's plan.h>, run1286's lobby   (a packet: piece 293, the Frigate)
+#   run1304b --map 18 --end-frame 5109 --allow-early-end --timeout 3600 --log-window 4853 5109 --detail (run1287b's) --ai-tribe 9 --cover cover=0, run1286's lobby   (the word 4859's window)
+# Checks: `rngcmp.py` run1287 vs run1304b -> 5110 identical.
 # ==== item 3642: the Spanish Gunpowder word, 3866 -> 3876, a raiding computer ship zeroes only a dock (`docs/AI.md` §335.2; `docs/RUNS.md` run1303) ====
 #   run1303  --map 18 --end-frame 3866 --allow-early-end --timeout 3600 --log-window 3795 3866 --detail (run1287b's) --ai-tribe 9 --cover cover=0, run1286's lobby   (the gap 3802..3860)
 # Checks: `rngcmp.py` run1287 vs run1303 -> 3867 identical.
