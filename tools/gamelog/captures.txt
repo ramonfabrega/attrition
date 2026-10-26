@@ -10742,3 +10742,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1289  run1258's line with --ai-tribe 19 and run1288's lobby   (the draw stream; ended itself on 4750)
 #   run1289b --map 7 --end-frame 4438 --allow-early-end --timeout 3600 --log-window 4182 4438 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0, run1288's lobby   (the word 4187's window)
 # Checks: `rngcmp.py` run1288 vs run1289 -> 37 identical; run1289 vs run1289b -> 4439 identical.
+# ==== item 3629: the Iroquois at a held Enlightenment age, East Indies (`docs/AI.md` §337; `docs/RUNS.md` run1290, run1291, run1291b) ====
+#   run1290  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 18 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1291  run1157's line with --ai-tribe 18 and run1290's lobby   (the draw stream; ended itself on 5128)
+#   run1291b --map 18 --end-frame 4212 --allow-early-end --timeout 3600 --log-window 3956 4212 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 18 --cover cover=0, run1290's lobby   (the word 3962's window)
+# Checks: `rngcmp.py` run1290 vs run1291 -> 37 identical; run1291 vs run1291b -> 4213 identical.

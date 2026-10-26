@@ -110,6 +110,8 @@ mod indian_word;
 #[cfg(test)]
 mod iroquois_ancient_pair;
 #[cfg(test)]
+mod iroquois_enlightenment_pair;
+#[cfg(test)]
 mod iroquois_sahara_word;
 #[cfg(test)]
 mod iroquois_word;
