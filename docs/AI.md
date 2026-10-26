@@ -31822,7 +31822,7 @@ move orders part on 4401. On the word, `1/21` stands 48 nearer its target
 `sim::launch::BAYS` holds no row for unit type 341, so ours launches from
 the square. The recipe is item 3660's and 3659's (a packet on the round's
 launch frame, the piece's bay off it). Not read off the listing; a
-hypothesis.
+hypothesis. *Held, and not the word's cause: §342.1.*
 
 **The rounds**, both directions: run1316c reads 167 round-blocks theirs
 against 164 ours, 26 parting, the first on 4298 above; run1316b reads 809
@@ -31836,6 +31836,46 @@ against 0 and `aggression[1]` — as on every pair.
 302**, unmoved: the pair parts, so it is not lockstep. **`Longbowmen`
 (177)**, the booking's line, **is fielded**: 9312 guy records across
 run1316 and run1316b (`rubric.py --dumps`).
+
+### 342.1 The pair whole: the Galley's bays, and a computer's raiding ship weighs a peasant at nothing extra (item 3662)
+
+**4567 → 8980 of 8980, by the count and the sequence; the closing state
+compares 329 units, none off, unlinked or extra, `Closing fields: none`.**
+Captures: run1326 (a packet at logger frame 4567) and run1326b (the
+closing window, 8725..8981, draw for draw run1316's).
+
+1. **Piece 291's bays** (`launch::BAYS`). run1217's packet, already on disk
+   (the Greek Classical lobby), holds the Galley's six attack rows: node 0
+   at frames 9, 12 and 17 of `CHAR_ATTACK1` and `CHAR_ATTACK2`, scale 0.8.
+   `fit_bay.py` fits each, 361 of 361 headings. The gap's rounds go whole
+   (26 parting → 0) and the Galleys stand whole to 4567 — **but the word
+   holds**: the hypothesis was a true residue, not the frame's cause.
+2. **The word's cause: `compare_target`'s sea raid arm** (COMBAT §68.1).
+   On 4567 `1/21` (TI 341, stance Raid) spends `Unit::fight+0x9b0`'s roll
+   (59762, not a fifth) on both sides and re-searches; both agree `0/3` is
+   the nearest (`near`). run1326's packet runs its `Unit::process`:
+   `find_nearby_target` scores the Citizens at distances 1808 and 1956,
+   as ours, with `targeted` 0 on both (the crowding term no dump prints —
+   that reading's kill), and `compare_target` answers **512 and 596**,
+   where ours answered 9512 and 9596. The difference is the land arm's
+   `+900,000` for a peasant, which the original's AI-ship arm
+   (`0064edd8`–`0064ef64`) does not pay; with it ours took the nearer
+   `0/3` (951 against 872) and theirs keeps `0/10` (51 against 54).
+3. **Piece 215's bay**: the closing window's 23 parting rounds were the
+   British Catapults (TI 265), drawn on the default-style piece 215, whose
+   one row run1326's packet holds — piece 567's own.
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 4298 | `1/29`'s round | `sx, sy, sz` | (2472, 4200, 0) | (2690, 3917, 52) | (2690, 3917, 52) |
+| 4568 | `1/21` | target, `in_range`, `recharging` | `0/3`, 0, 0 | `0/10`, 1, 40 | `0/10`, 1, 40 |
+| 8855 | `1/119`'s round | `sx, sy, sz` | (6456, 10488, 39) | (6458, 10521, 284) | (6458, 10521, 284) |
+
+Widenings: run1316c 140 → 108 keys, run1316b 959 → 109, the stride 186 →
+163, all standing; run1326b 99 keys, the standing families and 3662a's
+turns. Every other lobby's `first_parting` holds. The rubric: unit types
+seen **201 → 202** (`Longbowmen`, 177). **Not established**: the arm's
+Fireship and fishing-boat rows, which no capture reaches.
 
 ## 343. Reserved for the next item on the AI track
 

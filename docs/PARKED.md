@@ -1269,8 +1269,9 @@ COMBAT §70: read, not established.
 
 ## Parked by item 1028, 2026-09-28 — the raid's edges
 
-(1035) **The ship raid arm** (`0064edd8`–`0064ef64`) of
-`compare_target`: read, not built (COMBAT §68).
+(1035) ~~**The ship raid arm** (`0064edd8`–`0064ef64`) of
+`compare_target`: read, not built (COMBAT §68).~~ Built by item 3662
+(COMBAT §68.1, `docs/AI.md` §342).
 
 (1036) **The best-score seed of 0** (`0064929e`): this crate takes a
 zero-value candidate where the original's seed does not.
@@ -11366,13 +11367,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot TE — reserved
+## Parked by item 3662, 2026-10-26 — the British Classical pair whole: the Galley's bays and the sea raid arm
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TE renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The pair closes, 4567 → 8980 of 8980 by the count and the sequence, and its closing state compares 329 units with
+none off (`docs/AI.md` §342). One family of its closing window (run1326b) parks; it moves no draw and no unit:
+
+- **3662a. Turns and one move point, past the word** (run1326b, blocks 8760..8958): `dest_angle` parts on eight of
+  who=1's units (`1/110` on 8813 first, then `1/136`, `1/115`, `1/108`, `1/124`, `1/114`, `1/98`, `1/105`), and the
+  Javelineers `1/114` (TypeIndex 83) read `orders_x`/`orders_y` (7953, 10301) in ours against (7958, 10275) on 8760.
+  No position, draw or closing count follows. The killer: `RON_DEBUG_UNIT=1/114@8740-8760` beside the dump's group 68
+  orders on 8759, for whether the point is a formation slot (a member's offset) or a different order.
 
 ## Parked by the next landing, slot TF — reserved
 

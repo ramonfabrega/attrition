@@ -29524,3 +29524,45 @@ SHA-256 `d88208ece660aa2dd41c21a34aeb6589de43730a4948fe760e4a8772084a2b2d`.
 theirs against 164 ours, 26 parting). The first parting round is on 4298: who=1's Galley `1/29` (TI 341) launches
 from (2690, 3917) at `sz` 52 in theirs and from the hull's square (2472, 4200) at 0 in ours; the human's building
 `0/2004` and its city `0/2000` part on 4328.
+
+## run1326 — the British at a held Classical age, East Indies, at difficulty 4: a packet at logger frame 4567, the Galley's re-search (2026-10-26, item 3662, `att-3662`)
+
+`docs/AI.md` §342.1. **What the disk could not answer**: why who=1's Galley `1/21` keeps `0/10` on 4567 where ours
+turns to `0/3` — the search's crowding term (`targeted`, `ObjectData +0x3d`) and `compare_target`'s value, which no
+dump prints, and no packet of this lobby existed. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1326
+--map 18 --end-frame 4569 --timeout 3600 --log-window 4566 4568 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 11
+--cover cover=0 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --tracer-def RON_STATE_FRAME=4567 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 11:35:59, exited 11:36:26 (27.1 s). `success`, 4570 frames. Not filed: the packet
+  is the product. `df -g ~` read 66 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1326/map-18/frame-snapshot.bin`, 858,725,552 bytes,
+SHA-256 `3df34210ad32f83fa56fd6de0c126d422145cb7a6cfba4e1f9b3b05fb9116064`.
+
+**What it holds**: `targeted` 0 on `0/3` and `0/10`; `step4.py --entry 610bc0 --this 1593aaa4` (`1/21`'s
+`Unit::process`) reaches `find_new_target` → `find_melee_target` → `find_nearby_target(0x1200, …)`, and
+`compare_target` answers 512 for `0/3` and 596 for `0/10` (hooked at `00649715`), so the search returns `0/10`. It
+also holds piece 215's one attack `AttachPos` row (the British Catapult).
+
+## run1326b — the British at a held Classical age, East Indies, at difficulty 4: the closing window, blocks 8725..8981 (2026-10-26, item 3662, `att-3662`)
+
+`docs/AI.md` §342.1. **What the disk could not answer**: the word moved to the game's end, 8980, and no window held a
+block past 4817 at the pair's detail. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1326b --map 18
+--end-frame 8980 --allow-early-end --timeout 3600 --log-window 8725 8981 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0 --profile
+STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 1, seed 12345. Launched 11:41:29, exited 11:42:35 (66.1 s). `success`, closing frame 8981. `rngcmp.py`
+  against run1316: 8981 of 8981 identical. Filed with `filerun.py run1326b eastindies-british-classical-window-8725-8981`.
+  `df -g ~` read 68 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1326b-eastindies-british-classical-window-8725-8981.txt`, 682,383,479 bytes,
+SHA-256 `3dc6d053f91f69bd1796d4128cdd2468065e8889290cbf8853fd965029416408`.
+
+Archive `rontrace-run1326b.log`, 358,556,192 bytes,
+SHA-256 `938910e02c51b155b4af53c67aee89dd30f9914d2df5d2b7a92d42fd464f062a`.
+
+**What it holds**: `british_classical_pair_run1326b_s_closing_window_is_widened_whole` (256 blocks, 99 keys, rounds
+209 a side, none parting once piece 215 holds piece 567's row; 23 parted before it). Past the standing families:
+`dest_angle` on eight of who=1's units and the Javelineers `1/114`'s move point on 8760 (parked 3662a).

@@ -1641,7 +1641,7 @@ second game (5930 → 5158); together, every floor holds. This crate gave the
 strafe at the Radar on tick 818 for it.)* Unit targets: combat-role `×20`;
 spellcasters casting at me `+10,000,000`, spies `+6,000,000`; a detected
 hidden unit `/4`; raid weights (citizens and caravans `+9,000,000`, else
-`/10`; the stealth-ship weights); not raiding: combat-role `+1,000,000`, a
+`/10`; a computer's ship its own, §68.1); not raiding: combat-role `+1,000,000`, a
 supply wagon `+4,000,000` for a building attacker, else `+100,000`; land siege
 vs a non-sea, non-siege unit `/10,000`; **a sea attacker of the Bark line
 (`is(BARK)`, 0x143) against a sea target: a Trireme-line one (`is(TRIREME)`,
@@ -11666,9 +11666,16 @@ struck the citizen `0/3`, and ours has retargeted to the human's scout
     `/10` (`0064ee6e`);
   - a human's raider (`0064efc3`–`0064eff9`): a peasant or a caravan
     `+9,000,000`; else `/10`;
-  - a computer's ship (`0064edd8`–`0064ef64`): the `0x150`/`0x13d` lineage
-    tests and the stealth-ship weights. **Not built**; read as the land
-    arm (a SEAM, no capture).
+  - a computer's ship (`0064edd8`–`0064ef64`; **built by item 3662**,
+    `docs/AI.md` §342): a Fireship (`is(0x150)`) returns 0 for a fishing
+    boat (`is(0x13d)`) and takes a tenth of a target that fires on the move
+    (`unit_flags & 0x200000`); any other ship that fires on the move takes
+    a Fireship at `+1,000,000`; otherwise a transport (`unit_flags & 0x10`)
+    `+900,000`, a fishing boat `+100,000`, a combat unit (`+0x2c8 &
+    0x10000`) `+10,000`, and anything else stands — **a peasant is worth
+    nothing extra, and nothing takes the tenth**. run1326's packet runs the
+    British Galley `1/21` on 4567: the Citizens `0/3` and `0/10` at 512 and
+    596, where the land arm made them 9512 and 9596.
 - **Arithmetic, checked on the packet.** `0/3`: `80,000 + 900,000` →
   `ceil(/100)` 9800. The scout: `3,200 / 10 = 320` → 4 → the floor, 15. The
   city's trace on the packet: cost 20, `4 × 20 = 80`, `/20` → 4, × damage 7,
@@ -11760,8 +11767,10 @@ city read 31 here on logger frame 4688 against the packet's 0.
 
 ### 68.6 What is not established
 
-- **The ship raid arm** (§68.1, `0064edd8`–`0064ef64`) and the raiding
-  ship's two early zeros at `0064e7af`–`0064e821`.
+- ~~**The ship raid arm** (§68.1, `0064edd8`–`0064ef64`)~~ — built by item
+  3662 (§68.1); its Fireship and fishing-boat rows are read and asserted by
+  no capture. ~~The raiding ship's two early zeros at
+  `0064e7af`–`0064e821`~~ — built by item 2001 (`docs/AI.md` §203).
 - **`has_stance_type`'s refusal**: a type with no stance type never raids.
   This crate sets RAID only where a stance exists.
 - **A detected hidden unit's `/4`** in place of the raid weights, and the
