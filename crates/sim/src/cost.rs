@@ -226,6 +226,11 @@ pub struct Modifiers {
     /// percent is written in the executable; `SALT_BARRACKS_COST`'s 15% is
     /// never read here (item 3318, `docs/AI.md` §264).
     pub salt: bool,
+    /// The British Anti-Aircraft Gun percentage (`get_cost:283`–`289`),
+    /// its own truncating step after the American aircraft arm and before
+    /// the Nubian merchants' and the Russian spy's (item 3678, `docs/AI.md`
+    /// §347).
+    pub british_aa: i32,
     /// The Russians' Spy percentage (`get_cost:299`), its own
     /// `(100 - x) * cost / 100` before [`Modifiers::discount`] and the
     /// Spy/General arm that follows it in the original's tail.
@@ -628,6 +633,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     let mut cost = scaled;
     if m.salt {
         cost = cost * 9 / 10;
+    }
+    if m.british_aa != 0 {
+        cost = (100 - m.british_aa) * cost / 100;
     }
     if m.russian_spy != 0 {
         cost = (100 - m.russian_spy) * cost / 100;
