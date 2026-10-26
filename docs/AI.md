@@ -21818,7 +21818,7 @@ crate had no attack arm. `think_carry` answered no, the tail asked nothing of a 
   `get_army`'s membership test). It runs the nine-cell test against `reg`, then sends the live target's cell centre through
   `add_move_order`.
 - **SEAMS**, stated in the code:
-  - the eject itself: the boat answers yes and keeps its cargo, as the civilian shore arm does;
+  - ~~the eject itself: the boat answers yes and keeps its cargo, as the civilian shore arm does;~~ built, item 3640 (§335.1): the riders come out and an emptied boat dies;
   - the no-army arm and the dead-target arm: both answer no;
   - `think_carry_idle`;
   - the rider chain's head is taken as the lowest-numbered rider.
@@ -30635,7 +30635,9 @@ ours spends 35 game-stream draws against theirs' 34, parting at index 30
 `1/63` is an **Arquebusier** (TypeIndex 98, land, uid 99), in who=1's group
 75 on an `ATTACKTOORDER`.
 
-**Ours acts, on 2153, in the gap.** The stride
+**~~Ours acts, on 2153, in the gap.~~** *Both sides cast it, on 2152, and
+theirs alone puts the cargo ashore on 2163 — §335.1 (item 3640, run1301).*
+The stride
 (`spanish_gunpowder_pair_the_long_s_stride_walks_back_from_2168`, 101..2101:
 21 blocks, 100 keys) parts on the standing families alone: `build:extra`,
 the groups' `held` and pools, and `form`. On 2101 the Arquebusiers `1/48`
@@ -30673,8 +30675,9 @@ prints no `1/68`. Ours' three are cargo in a Galleon theirs never made. On
 the word's next block, ours' `1/63` collides with that Galleon and its path
 is cut to one entry. So the word follows from the embark.
 
-Why ours casts the Transport on 2153 and theirs does not is the next item's
-hypothesis. The candidates are the shore predicate (`docs/TRANSPORT.md` §6)
+~~Why ours casts the Transport on 2153 and theirs does not is the next
+item's hypothesis.~~ *Theirs casts it too; the parting is the unload,
+§335.1.* The candidates are the shore predicate (`docs/TRANSPORT.md` §6)
 and the leader's transport level and unit bit that gate it (§2–§4), read
 against `1/48`'s first path leg, which carries flag 5 on both sides on
 2101. No dump prints 2102..2162, so a gap window (`--log-window 2101 2163`)
@@ -30686,6 +30689,93 @@ see 24 types, and one is new to the ledger: **`Tercios` (151), the
 booking's line, fielded** (×2088). It enters when the pair closes. `Royal
 Tercios` (152) is Enlightenment's, is not fielded here, and is already in
 the lockstep set.
+
+### 335.1 The Galleon unloads at its army's shore: `think_carry`'s eject (item 3640, 2026-10-25)
+
+*Item 3640, Opus 5.5. Run 1301 (the gap) and run1301b (the next word's
+window).* **The word moves 2168 → 3866** (the sequence; the count 3877).
+
+**Theirs casts the same Transport.** run1301 is the gap at run1287b's
+detail, blocks 2095..2170, and `rngcmp.py` against run1287 is 2171 of 2171
+frames identical. It holds theirs' side of every frame 3627 could not see,
+and **through 2162 theirs is ours**:
+
+- on 2152 both sides spend `1/48`'s `Guy::set_anim+0x97a <
+  Unit::do_cast+0xc89` and the boat's `Guy::init_real+0x52 <
+  Objects::init_unit` (theirs' indexes 30 and 31). 3627's "ours acts" read
+  the birth off ours' `RON_DEBUG_UNIT` alone;
+- on 2153 theirs prints the Transport Galleon `1/68` (TI 321, uid 104) at
+  (42097, 36253) with `inside_down` 48, and the chain `1/48` → `1/49` →
+  `1/50` (`inside_up` 68, 48, 49), as ours;
+- the Galleon steps (−23, −11) a frame to (41928, 36168) on 2161, and on
+  2162 it stands with no path and no order, both sides.
+
+**The state parts on 2163.** Theirs puts the three ashore: `1/48` at
+(41688, 36360), `1/49` at (41688, 36168), `1/50` at (41832, 36504), each
+`inside` −1 with no orders, and `1/68` is not printed again. Ours kept
+them aboard. That is the first parted field: `inside` on `1/48`–`1/50`,
+68 against −1, and `1/68` alive against gone.
+
+**The cause: a seam, named.** With its order gone, the boat's think reaches
+`Unit::think_carry@005f2ee0`. A captain aboard attacks, so the attack
+arm runs (§235). `1/48`'s group 75 has an army, and one of the boat's nine
+cells lies in the army's region. That arm is `eject_contents(0, -1, 0, 1)`
+(`think_carry:108`). Then it returns 1 if `inside_down` is still set, and
+otherwise kills the boat, `Object::die(this, 0, -1, 0)`, whatever its type
+(`:109`–`115`). `transport.rs` carried the arm as a SEAM: it answered yes
+and kept the cargo.
+
+`eject_contents`' head would defer the eject: `param_2 < 0`, the vslot
+`+0x20` test, `semaphore[1] & 8` clear and not `can_carry(AIR)` set
+`+0x60 |= 0x4000` on the host's record and return. For a unit host it
+does not defer. The riders come out on the frame, as `boat_eject_all`'s
+civilian eject already does (item 3521, §303), and as run1301 shows.
+
+**Built** (`crates/sim/src/transport.rs`, `Sim::think_carry_army`): the
+ashore arm calls `eject_riders(boat, false)`, which is
+`eject_contents`' loop with `param_3 = 0`, so each rider keeps its own
+empty list. Then the boat goes through `transport_dies` when nothing is
+left inside. `transport::tests::a_boat_carrying_a_soldier_sails_to_its_army_s_target`
+now asserts the rider is out and on the map, its list empty, and the boat
+dead.
+
+**Mutations** (`tools/mutate.py`, on `85437f3cc`):
+- the eject and the death removed: `spanish_gunpowder_pair_first_parting`
+  exits 101, back to 2168;
+- the eject kept and the death dropped: the pair exits 101, the word 2175,
+  run1287b 85 → 1174 keys, run1301 76 → 77.
+
+**The value diff**, on 2163 (run1287b, walked from run1286): `1/48`'s
+`inside` and `pos` are −1 and (41688, 36360) on both sides, `1/49`'s −1 and
+(41688, 36168), `1/50`'s −1 and (41832, 36504), and `1/68` is absent on
+both. run1287b goes **1347 → 85 keys**, every one standing: `form`, who=1's
+groups' `held` and pools, `SITE[i].reg` and who=0's `aggression[1]` on 2163,
+the same families as groups 77–81 are minted, and `form` on three more.
+run1301 (`spanish_gunpowder_pair_run1301_s_gap_is_widened_whole`, 75 blocks)
+holds **76**, every one standing. All 70 lobbies' `first_parting` hold, so
+no other word moved.
+
+**The next word: frame 3866, 11 draws each, index 0.** Ours spends `Guy::
+set_anim+0x97a < Guy::inc_time+0x271`, theirs a round, `Ammo::init+0xcd9`
+and `+0xd0b < Objects::add_ammo < GraphicEvents::execute_game_events`.
+run1301b is its window (blocks 3861..4117, 256 blocks, **738 keys**,
+`spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole`; `rngcmp.py`
+against run1287 4118 of 4118). On its first block 3861, who=1's
+**Frigate `1/29`** (TypeIndex 343, sea, uid 57, group 71, stance 3)
+stands at (1896, 5352) on both sides:
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3861 | `1/29` (TI 343) | `orders.len` | 0 | 1, an `ATTACKORDER` on `0/2004` (uid 4), `in_range` 1 |
+| 3861 | `1/29` | `fought`, `blown`, `recharging` | 0, 0, 0 | 1, 1, 39 |
+| 3861 | `1/29` | `heading` | −756678656 | 104464384 |
+| 3862 | `1/29` | `idle` | 1 | 0 |
+
+On the stride's 3801 both sides walk it on an `ATTACKTOORDER` to (1896,
+5352). 3802..3860 is undumped. So theirs' Frigate takes the human's
+`0/2004` on arrival and ours does not. Who targets it, and when in the
+gap, is the next item's to place. A gap window over 3795..3866 is its
+first take.
 
 ## 336. Reserved for the next item on the AI track
 

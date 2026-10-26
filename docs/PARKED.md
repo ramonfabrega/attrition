@@ -11143,13 +11143,15 @@ The Dragoon's piece 1195 reads piece 139's pivot and release rows, and the pair 
   `1/154`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`. Neither the reload's writer nor the swing's unit is read
   yet; the frame and the delta are the booking. **Score**: the Chinese Gunpowder word, through its frame.
 
-## Parked by the next landing, slot SL — reserved
+## Parked by item 3640, 2026-10-25 — the Spanish Gunpowder word 2168 → 3866: the Galleon unloads at its army's shore
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3627's hypothesis, killed by run1301.** It read the parting as ours casting a Transport theirs does not, and named
+  the shore predicate (`docs/TRANSPORT.md` §6) and the transport level and bit (§2–§4) as candidates. run1301's gap
+  shows theirs casting the same Galleon `1/68` on 2152, so nothing in the cast's gate differs. Nothing was built
+  for it (`docs/AI.md` §335.1).
+- **`think_carry`'s no-army arm is still a seam** (`transport.rs`, `Sim::think_carry_army`): a group with no army
+  ejects (`think_carry:48`), and then dies or searches the leader's cities for the nearest coastal one. No capture
+  on file reaches it. It names no score.
 
 ## Parked by the next landing, slot SM — reserved
 

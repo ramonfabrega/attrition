@@ -34,8 +34,13 @@ pub(crate) const SPANISH_GUNPOWDER: Pair = Pair {
     length: 6128,
     // Item 3627, first try: frame 2168, by the count and the sequence —
     // ours 35 draws against 34, parting at index 30 (`docs/AI.md` §335).
-    count: 2168,
-    sequence: 2168,
+    // Item 3640: 2168 → 3877 by the count and **3866** by the sequence —
+    // `think_carry`'s army arm puts the Transport Galleon `1/68`'s
+    // Arquebusiers ashore on 2163 and the emptied boat dies (§335.1). On
+    // 3866 both sides spend 11 draws and part at index 0: ours `Guy::
+    // set_anim+0x97a < Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`.
+    count: 3877,
+    sequence: 3866,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -268,5 +273,137 @@ fn spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole() {
     // rows past the word, `1/63`'s `retry` 0 against 8 (2194) and
     // `attempts` 0 against 3 (2202), and `1/21`'s `retry` 8 against 6
     // (2283) and `attempts` 0 against 3 (2289).
-    pin_eq!(w.firsts.len(), 1347, "run1287b baseline");
+    //
+    // Item 3640: 1347 → **85**, every one standing from 2163 — `form` on
+    // 28 units, who=1's groups' `held` and pools, `SITE[i].reg` and who=0's
+    // `aggression[1]`, then the same families as groups are minted (77 on
+    // 2224 to 81 on 2311) and `form` on three more. `think_carry`'s army
+    // arm now ejects at the shore: on 2163 ours' `1/48` stands at (41688,
+    // 36360), `1/49` at (41688, 36168) and `1/50` at (41832, 36504), as
+    // theirs, `inside` −1, and `1/68` is gone on both sides.
+    pin_eq!(w.firsts.len(), 85, "run1287b baseline");
+}
+
+/// run1301: the gap 2102..2162 that the long's stride does not print, at
+/// run1287b's detail (item 3640) — six blocks before the stride's block
+/// 2101 and through 2170, past run1287b's first block 2163.
+pub(crate) const RUN1301: &str =
+    "gamelog-run1301-eastindies-spanish-gunpowder-window-2095-2170.txt";
+
+/// The window: block 2095 through 2170.
+pub(crate) const WIDENING_SPANISH_GUNPOWDER_GAP: (i64, i64) = (2095, 2170);
+
+/// **The gap's window**: run1301 walked from run1286's start with the
+/// recorder on (item 3640).
+pub(crate) fn spanish_gunpowder_gap_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_GUNPOWDER.start],
+        true,
+        SPANISH_GUNPOWDER.long,
+        "run1301",
+        &[(RUN1301, WIDENING_SPANISH_GUNPOWDER_GAP.0)],
+        WIDENING_SPANISH_GUNPOWDER_GAP,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn spanish_gunpowder_pair_run1301_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_gunpowder_gap_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 75, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3640, on the tree that ejects: 76 keys, every one standing —
+    // block 2095's `form` on 27 units, who=1's groups' `held` and pools,
+    // `SITE[i].reg` and who=0's `aggression[1]`; group 70's on 2102, and
+    // `form` on the births `1/67` (2108) and `1/68` (2153). **Theirs casts
+    // the same Transport**: on 2152 both sides spend `1/48`'s `Guy::
+    // set_anim < Unit::do_cast+0xc89` and the boat's `Guy::init_real`;
+    // `1/48`, `1/49` and `1/50` are `inside` the Galleon `1/68` from 2153,
+    // which sails to (41928, 36168) and stands on 2162 with no path and no
+    // order, both sides. **The state parted on 2163** before this item:
+    // theirs puts the three ashore and `1/68` dies; ours kept them aboard
+    // (`think_carry_army`'s eject was a seam, `docs/AI.md` §335.1).
+    pin_eq!(w.firsts.len(), 76, "run1301 baseline");
+}
+
+/// run1301b: the word 3866's window, blocks 3861..4117 at run1287b's
+/// detail — six blocks before the word's block 3867 and 250 after (item
+/// 3640); the stride's blocks are 3801 and 3901.
+pub(crate) const RUN1301B: &str =
+    "gamelog-run1301b-eastindies-spanish-gunpowder-window-3861-4117.txt";
+
+/// The window: block 3861 through 4117; the word 3866's own block is 3867.
+pub(crate) const WIDENING_SPANISH_GUNPOWDER_FRAME_3866: (i64, i64) = (3861, 4117);
+
+/// **The word 3866's window**: run1301b walked from run1286's start with
+/// the recorder on (item 3640).
+pub(crate) fn spanish_gunpowder_frame_3866_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_GUNPOWDER.start],
+        true,
+        SPANISH_GUNPOWDER.long,
+        "run1301b",
+        &[(RUN1301B, WIDENING_SPANISH_GUNPOWDER_FRAME_3866.0)],
+        WIDENING_SPANISH_GUNPOWDER_FRAME_3866,
+        1,
+        &[3867],
+        true,
+    )
+}
+
+#[test]
+fn spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_gunpowder_frame_3866_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3640, the first walk: 738 keys. Block 3861 carries the standing
+    // families (`form` on 33 units, 16 groups' `held` and pools,
+    // `SITE[i].reg`, who=0's `aggression[1]`) and **one unit already
+    // parted**: who=1's Frigate `1/29` (TypeIndex 343, sea, uid 57) stands
+    // at (1896, 5352) on both sides, where theirs holds an `ATTACKORDER`
+    // on the human's `0/2004` (uid 4, `in_range` 1) with `fought` 1,
+    // `blown` 1 and `recharging` 39, and ours none (`orders.len` 0 against
+    // 1, `idle` 1 against 0 on 3862). On the stride's block 3801 both
+    // sides walk it on its `ATTACKTOORDER` to (1896, 5352); 3802..3860 is
+    // undumped. The word 3866: 11 draws each, parting at index 0, ours
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
+    // `Ammo::init+0xcd9` — a round theirs fires (`docs/AI.md` §335.1).
+    pin_eq!(w.firsts.len(), 738, "run1301b baseline");
 }

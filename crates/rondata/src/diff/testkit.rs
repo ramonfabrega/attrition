@@ -10419,13 +10419,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     ),
     // **The Spanish at a held Gunpowder age** (item 3627): East Indies —
     // first try 2168 of 6128 by the count and the sequence, widened on
-    // run1287b over 2163..2419 (the word's block 2169).
+    // run1287b over 2163..2419 (the word's block 2169). Item 3640 moved it
+    // to 3866 (the sequence), widened on run1301b over 3861..4117 (the
+    // word's block 3867).
     (
         "SPANISH_GUNPOWDER_PAIR_WORD",
         crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER_PAIR_WORD,
-        Some("spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole"),
-        3627,
-        Some(crate::diff::spanish_gunpowder_pair::WIDENING_SPANISH_GUNPOWDER_FRAME_2168),
+        Some("spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole"),
+        3640,
+        Some(crate::diff::spanish_gunpowder_pair::WIDENING_SPANISH_GUNPOWDER_FRAME_3866),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12387,7 +12389,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Spanish at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3627): first try 2168 of a
-    // game that ends itself on 6128, widened on run1287b.
+    // game that ends itself on 6128, widened on run1287b; 3866 since item
+    // 3640, widened on run1301b.
     AiWord {
         line: "Late ages",
         map: "EastIndiesSpanishGunpowder",
@@ -12395,7 +12398,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER_PAIR_WORD,
         length: 6_128,
         endpoint: None,
-        window: Some("spanish_gunpowder_frame_2168_window"),
+        window: Some("spanish_gunpowder_frame_3866_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
