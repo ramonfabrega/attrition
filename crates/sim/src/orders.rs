@@ -2693,6 +2693,7 @@ impl Sim {
     /// `Unit::add_attack_order(o, who, pos, mandatory, action)` (§7.1). The
     /// target and `mandatory` live in [`combat::State`]; the order carries
     /// the rest.
+    #[track_caller]
     pub fn add_attack_order(
         &mut self,
         u: usize,
@@ -2701,6 +2702,17 @@ impl Sim {
         mandatory: bool,
         action: bool,
     ) {
+        if std::env::var("RON_PROBE_3646").is_ok()
+            && self.units[u].owner == 1
+            && matches!(self.units[u].index, 58 | 86 | 74 | 87)
+            && (4858..=4861).contains(&self.frame)
+        {
+            eprintln!(
+                "P3646 add_attack f{} 1/{} target {:?} owner {} pos {:?} at {} from {}",
+                self.frame, self.units[u].index, target, self.owner_of(target),
+                self.pos_of(target), 0, std::panic::Location::caller()
+            );
+        }
         if pos == QueuePos::New {
             self.units[u].path.clear();
             self.close_orders(u);
