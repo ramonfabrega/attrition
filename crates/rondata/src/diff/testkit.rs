@@ -10530,6 +10530,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3659,
         Some(crate::diff::inca_enlightenment_pair::WIDENING_INCA_ENLIGHTENMENT_FRAME_4045),
     ),
+    // **The Indians at a held Enlightenment age** (item 3649): East Indies
+    // — first try 4157 of 5000 by the count and the sequence, widened on
+    // run1312b over 4151..4407 (the word's block 4158), the rounds
+    // compared.
+    (
+        "INDIAN_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::indian_enlightenment_pair::INDIAN_ENLIGHTENMENT_PAIR_WORD,
+        Some("indian_enlightenment_pair_run1312b_s_word_frame_is_widened_whole"),
+        3649,
+        Some(crate::diff::indian_enlightenment_pair::WIDENING_INDIAN_ENLIGHTENMENT_FRAME_4157),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12557,6 +12568,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_045,
         endpoint: Some("inca_enlightenment_pair_run1310_s_closing_state"),
         window: Some("inca_enlightenment_frame_4045_window"),
+    },
+    // The Indians at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), East Indies (item 3649): first try 4157 of a
+    // game that ends itself on 5000, widened on run1312b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesIndianEnlightenment",
+        named: "East Indies (Indians, Enlightenment)",
+        word: crate::diff::indian_enlightenment_pair::INDIAN_ENLIGHTENMENT_PAIR_WORD,
+        length: 5_000,
+        endpoint: None,
+        window: Some("indian_enlightenment_frame_4157_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

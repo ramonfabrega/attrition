@@ -29221,3 +29221,72 @@ SHA-256 `d0e12ef052d8dd4d0e143ee7a9c5981a580f680a0766c46b467b7077bb76d7f3`.
 **What it holds**: `inca_enlightenment_pair_run1323c_s_closing_window_is_widened_whole` (256 blocks, 49 keys):
 before piece 790's bays, the capital `0/2000`'s damage parting on 3815 from the Fusilier `1/44`'s round; after, the
 standing families, two guards' `dest_angle`, and the Carbineer `1/83`'s round on 4026 (3659a).
+
+## run1311 — the Indians at a held Enlightenment age, East Indies: the `DUMP_ALL` start (2026-10-26, item 3649, `att-3649`)
+
+`docs/AI.md` §340. §337's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1311 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 21 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 2. Launched 08:39:11, exited 08:39:33 (21.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 21, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`. Filed with `filerun.py run1311
+  eastindies-indian-enlightenment-start`. `df -g ~` read 85 GiB free before it. Its first launch (08:38:51) passed
+  the lobby's four `--profile` flags as one shell word, and the runner refused it at argparse, before staging; it ran
+  nothing and wrote no directory.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1311-eastindies-indian-enlightenment-start.txt`, 153,813,307 bytes,
+SHA-256 `267866fda05189da45128ef141297ba148dad14902a6e5e9c0d177d49fa10755`.
+
+Archive `rontrace-run1311.log`, 10,080,480 bytes,
+SHA-256 `52a5753a03ae4b6c9b5242329f4be65b6908ea04aeaca297aabe0ae568c65244`.
+
+**What it holds**: the start of `indian_enlightenment_pair::INDIAN_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1312 — the Indians at a held Enlightenment age, East Indies: the draw stream to the game's end (2026-10-26, item 3649, `att-3649`)
+
+`docs/AI.md` §340. run1291's line with `--ai-tribe 21`: `--map 18 --end-frame 24000 --timeout 7200 --allow-early-end
+--log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 21 --detail
+end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1311's
+lobby.
+- Pool lane 1, beside run1311. Launched 08:39:04, exited 08:39:46 (41.4 s launch to exit). `success`. **The game
+  ended itself on 5000** (closing block 5001, `ended_early`). `GAME INFO` reads back as run1311's. `rngcmp.py`
+  against run1311: 37 frames identical. Filed with `filerun.py run1312 eastindies-indian-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1312-eastindies-indian-enlightenment-trace.txt`, 35,160,930 bytes,
+SHA-256 `271d88ae31afe453c679a2e4d8f82167ec8c8352cc667b21d71e7e38533a1f27`.
+
+Archive `rontrace-run1312.log`, 177,254,144 bytes,
+SHA-256 `95e22976f113947100a6621cd54bb977b69280e9261218d4eaed2d02b64b38c7`.
+
+**What it holds**: the pair's first try. `indian_enlightenment_pair_first_parting` walks it from run1311: **4157 of
+5000** by the count and the sequence (ours 7 draws against 11, index 0).
+`indian_enlightenment_pair_the_long_s_stride_walks_back_from_4157` walks its stride 101..4101: 41 blocks, 139 keys;
+the one unit row is the Citizen `0/13`'s `damage_frame` on 4101, ours 4091 theirs 4092.
+
+## run1312b — the Indians at a held Enlightenment age, East Indies: the word 4157's window, blocks 4151..4407 (2026-10-26, item 3649, `att-3649`)
+
+`docs/AI.md` §340. **What the disk could not answer**: every record on the word's frame. run1312's stride prints
+units on 4101 and 4201 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1312b --map 18 --end-frame 4407
+--allow-early-end --timeout 3600 --log-window 4151 4407 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 21 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 08:41:57, exited 08:43:00 (63.7 s launch to exit). `success`: 4408 frames, closing frame
+  4408. `rngcmp.py` against run1312: 4408 of 4408 identical. Filed with `filerun.py run1312b
+  eastindies-indian-enlightenment-window-4151-4407`. `df -g ~` read 86 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1312b-eastindies-indian-enlightenment-window-4151-4407.txt`, 569,290,875 bytes,
+SHA-256 `14d37c4b585d51b60c12b9f21c1a383a46e2645d42937b78b2f249914c31dc78`.
+
+Archive `rontrace-run1312b.log`, 146,797,664 bytes,
+SHA-256 `d0e39354dbe263e3ecdff769c7098819a18baeb2cf3c25e136ef35e6019bbdd0`.
+
+**What it holds**: `indian_enlightenment_pair_run1312b_s_word_frame_is_widened_whole` (256 blocks, 1549 keys, rounds
+711 theirs against 631 ours, 72 parting). The Citizen `0/13` (TI 50) is struck in the gap a frame apart
+(`damage_frame` 4091 against 4092), flees a frame ahead, and arrives on 4157 a frame early: ours idles where theirs
+walks. The first parting round is the Bomb Ketch `1/53` (TI 347)'s on 4165, from (3410, 10633, 133) in ours
+against (3241, 10766, 130) in theirs. 4002..4100 is undumped.

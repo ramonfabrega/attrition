@@ -10766,3 +10766,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1323b --map 7 --end-frame 3054 --timeout 3600 --log-window 3051 3053 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 2 --cover cover=0 --tracer-def RON_STATE_FRAME=3052 --tracer-def RON_STATE_PLAN=…, run1309's lobby   (a packet: pieces 753, 790)
 #   run1323c --map 7 --end-frame 4045 --allow-early-end --timeout 3600 --log-window 3790 4046 --detail (run1310b's) --ai-tribe 2 --cover cover=0, run1309's lobby   (the closing window)
 # Checks: `rngcmp.py` run1310 vs run1323 -> 3095 identical; run1310 vs run1323c -> 4046 identical.
+# ==== item 3649: the Indians at a held Enlightenment age, East Indies (`docs/AI.md` §340; `docs/RUNS.md` run1311, run1312, run1312b) ====
+#   run1311  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 21 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1312  run1291's line with --ai-tribe 21 and run1311's lobby   (the draw stream; ended itself on 5000)
+#   run1312b --map 18 --end-frame 4407 --allow-early-end --timeout 3600 --log-window 4151 4407 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 21 --cover cover=0, run1311's lobby   (the word 4157's window)
+# Checks: `rngcmp.py` run1311 vs run1312 -> 37 identical; run1312 vs run1312b -> 4408 identical.

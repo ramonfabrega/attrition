@@ -31521,12 +31521,87 @@ reads unit types seen **199 of 302** (`Mortar`, 274).
 whether theirs' `0/3` is garrisoned or dead on 3239 (3659b). The bays
 are centroids of their fit regions, exact at every whole degree only.
 
-## 340. Reserved for the next item on the AI track
+## 340. The Indians at a held Enlightenment age, East Indies: first try 4157 of 5000 (item 3649)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), on the
+Iroquois Enlightenment pair's map and age (§337) with the nation moved:
+East Indies, `MAP_STYLE 18`, human Nubians (4) against **the Indians
+(21)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`.
+`crates/rondata/src/diff/indian_enlightenment_pair.rs` pins it. Its triple
+`(18, 21, 5)` is minted in `battery::SCORED_LOBBIES`. The battery fields
+no Indians; the AI words `indian_word` and `indian_sahara_word` are
+`(18, 21, 2)` and `(7, 21, 3)`.
+
+**The captures.** run1311 is the `DUMP_ALL` start, and run1312 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 5000**. run1312b is the word's window, blocks 4151..4407, with
+`LEADERS=9` and `AMMO=5`. `GAME INFO` reads back `DIFFICULTY 5`,
+`STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` on both pair takes
+(`Pair::assert_lobby`). By `rngcmp.py`, run1311 against run1312 is 37 of
+37 frames identical, and run1312b against run1312 4408 of 4408. The walk
+is seeded from run1311's initial state (3506a).
+
+**First try: frame 4157 of 5000**, by the count and the sequence. On 4157
+ours spends 7 game-stream draws against theirs' 11, parting at index 0:
+ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+`Guy::set_anim+0x97a < Guy::inc_time+0x271`.
+
+**The stride** (`indian_enlightenment_pair_the_long_s_stride_walks_back_from_4157`,
+101..4101: 41 blocks, 139 keys). It parts on the standing families (49
+buildings' `build:extra`, `form` on 46 units, and who=1's 19 groups'
+`held` and pools, 64..82), and on one unit, on its last block 4101: the
+human's Citizen `0/13`'s `damage_frame`, ours 4091 against theirs 4092,
+with its `pos`, `heading` and figure. Block 4001 agrees on every unit beyond `form`.
+
+**The word's widening** (run1312b, walked from run1311 with every round
+compared: 256 blocks, **1549 keys**, rounds 711 theirs against 631 ours
+with 72 parting, the two `gaia:` keys unprinted, no inexact ground
+corner). Beyond the standing families, the first block's one unit row is
+`0/13`'s, which the long's walk names by `RON_DEBUG_UNIT`: **Citizen**,
+`TY` 0, TypeIndex 50, land, stance StandGround.
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4101 | `0/13` | `damage_frame` | 4091 | 4092 |
+| 4101 | `0/13` | `pos` | (5214, 7428) | (5192, 7416) |
+| 4151 | `0/13` | `pos` | (6372, 7730) | (6348, 7726) |
+| 4157 | `0/13` | `orders.len`, path length | 0 | 1 |
+| 4158 | `0/13` | `idle` | 1 | 0 |
+
+**The direction: ours acted first, a frame early, in the gap.** In ours
+the walk has `0/13` standing at (5016, 7320), unharmed (65 hits), until
+4091; its `FLEEORDER` to (6504, 7752) is on 4092 and it moves on 4093.
+Theirs' flee starts a frame later. Both sides walk the same 24-unit steps
+along the same line, so ours arrives on 4157 a frame early. Ours' `0/13`
+has no order there and idles (`Unit::do_idle`'s `set_anim`), and theirs'
+still walks (`Guy::inc_time`'s). That is the word's draw. What struck
+`0/13` on 4091 in ours and 4092 in theirs is in the undumped gap
+4002..4100. Who=1's Bomb Ketches `1/53` and `1/66` (`TY` 297, TypeIndex
+347, sea, stance Raid, army 2) hold `0/5` as their target there on 4085 to
+4088. The next item's **hypothesis** is a Ketch round whose flight time
+parts by a frame; its first take is a gap window over 4002..4100.
+
+**The rounds.** Every round in the window agrees through 4164. The first
+to part is the Ketch `1/53`'s, on 4165. Its hull agrees on both sides
+through 4311, but the round leaves (3410, 10633, 133) in ours against
+(3241, 10766, 130) in theirs, bound for (6105, 7255) against
+(5992, 7345). `1/66`'s on 4173 is the mirror: `sz` 130 in ours against 133
+in theirs. Ours' launch point sits about 170 units off theirs along the
+hull, which is the gap between the Ketch's two pivots (§337.1: the stern
+on `CHAR_ATTACK1`/`3`, the bow on `CHAR_ATTACK2`). Every parting round is a
+Ketch's (`1/53`, `1/54`, `1/65`, `1/66`, `1/83`) except the Man o' War
+`1/97`'s (`TY` 294, TypeIndex 344) from 4383. Which attack anim each side
+plays is unread, so this is a **hypothesis**, not a finding.
+
+**What is not established.** What struck `0/13` in the gap, and why a
+frame apart; whether the Ketch's `sz` swap is the attack anim's choice or
+a different target's; and the Man o' War's rounds from 4383.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **199 of
+302**, unmoved: the rubric counts lockstep games only, and this pair
+parts. **`Culverin Mahout` (264)**, the booking's line, **is fielded**:
+516 guy records in run1312 and 4096 in run1312b (`rubric.scan`).
 
 ## 341. Reserved for the next item on the AI track
 

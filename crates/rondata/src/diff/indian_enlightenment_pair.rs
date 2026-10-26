@@ -1,0 +1,253 @@
+//! **The Indians at a held Enlightenment age, East Indies** (DECISIONS 90,
+//! 91, 93, 94, item 3649): East Indies, `MAP_STYLE 18`, human Nubians (4)
+//! against the **Indians (21)** at Difficulty 5, seed 12345,
+//! `STARTING_RESOURCES 7`, the age held at Enlightenment:
+//! `STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4` —
+//! `iroquois_enlightenment_pair`'s lobby with the nation moved. Its triple,
+//! `(18, 21, 5)`, is new: the battery fields no Indians (both its Indian
+//! games left it for AI words: `indian_word`'s `(18, 21, 2)` and
+//! `indian_sahara_word`'s `(7, 21, 3)`). Captures: run1311 (a `DUMP_ALL`
+//! start) and run1312 (the draw stream to the game's end, `cover=0`,
+//! `end:UNITS=3,GUYS=2` on a stride of 100, walked from the start's
+//! initial state). The first try is in `docs/AI.md` §340.
+
+use super::coverage_pair::Pair;
+use super::testkit::*;
+use super::*;
+use crate::testenv::dump;
+
+pub(crate) const INDIAN_ENLIGHTENMENT: Pair = Pair {
+    name: "EastIndiesIndianEnlightenment",
+    map_style: 18,
+    ai_tribe: 21,
+    difficulty: 5,
+    starting_technology: 4,
+    ending_technology: 4,
+    starting_resources: 7,
+    start: "gamelog-run1311-eastindies-indian-enlightenment-start.txt",
+    long: (
+        "gamelog-run1312-eastindies-indian-enlightenment-trace.txt",
+        "rontrace-run1312.log",
+    ),
+    // The game ended itself on 5000 (closing block 5001).
+    length: 5000,
+    // Item 3649, first try: frame 4157, by the count and the sequence —
+    // ours 7 draws against 11, parting at index 0, ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §340).
+    count: 4157,
+    sequence: 4157,
+};
+
+/// The pair's word as the handoff's line carries it: the lower of the two
+/// partings.
+pub(crate) const INDIAN_ENLIGHTENMENT_PAIR_WORD: i64 =
+    if INDIAN_ENLIGHTENMENT.count < INDIAN_ENLIGHTENMENT.sequence {
+        INDIAN_ENLIGHTENMENT.count
+    } else {
+        INDIAN_ENLIGHTENMENT.sequence
+    };
+
+/// **The pair's first parting**, walked from its own start.
+#[test]
+fn indian_enlightenment_pair_first_parting() {
+    let _pins = Pins::hold();
+    let p = &INDIAN_ENLIGHTENMENT;
+    let Some(w) = third::walk_from(p.start, p.long) else {
+        return;
+    };
+    eprintln!(
+        "INDIAN_ENLIGHTENMENT {}: count {} sequence {} of {}; {}",
+        p.name, w.count, w.sequence, w.last, w.row
+    );
+    pin_eq!(w.difficulty, p.difficulty, "the lobby read back");
+    pin_eq!(w.last, p.length, "the game's last frame");
+    pin_eq!(w.count, p.count, "the draw count's first parting");
+    pin_eq!(w.sequence, p.sequence, "the draw sequence's first parting");
+}
+
+/// Both captures say their lobby from their own `GAME INFO` and `PLAYER`
+/// blocks, the age held at 4, and the long is scoreable.
+#[test]
+fn indian_enlightenment_pair_captures_say_their_lobby() {
+    let p = &INDIAN_ENLIGHTENMENT;
+    for name in [p.long.0, p.start] {
+        let Some(path) = dump(name) else {
+            continue;
+        };
+        let text = crate::capture::read(&path);
+        let log = Log::parse(&text);
+        let init = log.initial().expect("an initial state");
+        p.assert_lobby(&init, name);
+    }
+    let Some(path) = dump(p.long.0) else {
+        return;
+    };
+    let text = crate::capture::read(&path);
+    assert_eq!(
+        third_pair::incomplete_long(&Log::parse(&text)),
+        Vec::<&str>::new(),
+        "the Indian Enlightenment pair's long is not scoreable"
+    );
+}
+
+/// The pair is a scored lobby (minted by item 3649; the battery's identity
+/// test refuses it) and none of the battery's: the battery fields no
+/// Indians; and no other pinned Indian lobby's: `indian_word`'s
+/// `(18, 21, 2)`, the same map at another difficulty, and
+/// `indian_sahara_word`'s `(7, 21, 3)` (item 3649).
+#[test]
+fn indian_enlightenment_pair_is_no_other_lobby() {
+    let p = &INDIAN_ENLIGHTENMENT;
+    let triple = (p.map_style, p.ai_tribe, p.difficulty);
+    assert!(battery::SCORED_LOBBIES.contains(&triple));
+    assert!(
+        !battery::BATTERY
+            .iter()
+            .any(|l| (l.map_style, l.ai_tribe, l.difficulty) == triple)
+    );
+    assert!(
+        !battery::BATTERY.iter().any(|l| l.ai_tribe == p.ai_tribe),
+        "the battery fields the Indians"
+    );
+    let word = &super::indian_word::INDIAN;
+    let sahara = &super::indian_sahara_word::INDIAN_SAHARA;
+    for (name, other) in [
+        (word.name, (word.map_style, word.ai_tribe, word.difficulty)),
+        (
+            sahara.name,
+            (sahara.map_style, sahara.ai_tribe, sahara.difficulty),
+        ),
+    ] {
+        assert_eq!(other.1, p.ai_tribe, "{name} fields the Indians");
+        assert_ne!(other, triple, "{name} is this lobby");
+    }
+}
+
+/// **The long's stride, walked back from the word 4157** (item 3649):
+/// only run1312's stride blocks are on disk before the word's window.
+pub(crate) const WIDENING_INDIAN_ENLIGHTENMENT_STRIDE: (i64, i64) = (101, 4101);
+
+pub(crate) fn indian_enlightenment_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[INDIAN_ENLIGHTENMENT.start],
+        true,
+        INDIAN_ENLIGHTENMENT.long,
+        "run1312 stride",
+        &[(
+            INDIAN_ENLIGHTENMENT.long.0,
+            WIDENING_INDIAN_ENLIGHTENMENT_STRIDE.0,
+        )],
+        WIDENING_INDIAN_ENLIGHTENMENT_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn indian_enlightenment_pair_the_long_s_stride_walks_back_from_4157() {
+    let _pins = Pins::hold();
+    let Some(w) = indian_enlightenment_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 41, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3649: 139 keys. The standing families: 49 buildings'
+    // `build:extra` (which the stride does not print), `form` on 46 units,
+    // and who=1's 19 groups' `held` and pools (64..82) as each is minted.
+    // **The first unit row is on block 4101, the human's `0/13`**:
+    // `damage_frame` ours 4091 theirs 4092, `pos` (5214, 7428) against
+    // (5192, 7416), `heading` and the guy's `x`, `y` and `angle` — the
+    // state parts in the undumped gap 4002..4100 (`docs/AI.md` §340).
+    pin_eq!(w.firsts.len(), 139, "the stride's baseline");
+}
+
+/// run1312b: the word 4157's window, blocks 4151..4407 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` — six blocks before the word's
+/// block 4158 and 250 after (item 3649); the stride's blocks are 4101 and
+/// 4201.
+pub(crate) const RUN1312B: &str =
+    "gamelog-run1312b-eastindies-indian-enlightenment-window-4151-4407.txt";
+
+/// The window: block 4151 through 4407; the word 4157's own block is 4158.
+pub(crate) const WIDENING_INDIAN_ENLIGHTENMENT_FRAME_4157: (i64, i64) = (4151, 4407);
+
+/// **The word 4157's window**: run1312b walked from run1311's start with
+/// the recorder on and every round compared (item 3649).
+pub(crate) fn indian_enlightenment_frame_4157_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[INDIAN_ENLIGHTENMENT.start],
+        true,
+        INDIAN_ENLIGHTENMENT.long,
+        "run1312b",
+        &[(RUN1312B, WIDENING_INDIAN_ENLIGHTENMENT_FRAME_4157.0)],
+        WIDENING_INDIAN_ENLIGHTENMENT_FRAME_4157,
+        1,
+        &[4158],
+        true,
+    )
+}
+
+#[test]
+fn indian_enlightenment_pair_run1312b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = indian_enlightenment_frame_4157_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3649, the first walk: 1549 keys. Block 4151 carries the
+    // standing families (`SITE[i].reg`, `form`, who=0's `aggression[1]`,
+    // who=1's groups' `held` and pools) and **the human's Citizen `0/13`**
+    // (TypeIndex 50), struck in the undumped gap 4002..4100 a frame apart
+    // — `damage_frame` ours 4091 theirs 4092 — and fleeing to (6504,
+    // 7752) a frame ahead: `pos` (6372, 7730) against (6348, 7726). On
+    // the word 4157 ours' `0/13` has arrived — `orders.len` and the path
+    // ours 0 theirs 1 — and on 4158 it is idle (`idle` 1 against 0): the
+    // draw on 4157, ours 7 against 11, index 0, ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §340).
+    pin_eq!(w.firsts.len(), 1549, "run1312b baseline");
+    // Every round, both directions: 711 round-blocks theirs, 631 ours,
+    // 72 parting. The first to part is the Bomb Ketch `1/53`'s (TypeIndex
+    // 347, sea, stance Raid) on 4165, its hull agreeing to 4312: it leaves
+    // (3410, 10633, 133) in ours against (3241, 10766, 130) in theirs, for
+    // (6105, 7255) against (5992, 7345). Every parting round is a Ketch's
+    // (`1/53`, `1/54`, `1/65`, `1/66`, `1/83`) but the Man o' War `1/97`'s
+    // (TypeIndex 344) from 4383.
+    pin_eq!(w.rounds_read, (711, 631), "the rounds read");
+    pin_eq!(w.rounds.len(), 72, "the rounds that part");
+}
