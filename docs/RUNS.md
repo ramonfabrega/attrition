@@ -28522,3 +28522,68 @@ SHA-256 `d25aa3d04362a995ede56084fab7c69f23e47865190170c2fa74762761391e1e`.
 
 **What it holds**: `chinese_gunpowder_pair_run1283c_s_gap_is_widened_whole` (85 blocks, 144 keys). **The state first
 parts on block 4863, at the Heavy Fire Lance `1/215`**: theirs stands out a `retry` of 6 it holds on 4862, ours 0.
+
+## run1286 — the Spanish at a held Gunpowder age, East Indies: the `DUMP_ALL` start (2026-10-25, item 3627, `att-3627`)
+
+`docs/AI.md` §335. run1278's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1286 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 9 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 19:36:57, exited 19:37:24 (26.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 9, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3`. Filed with `filerun.py run1286
+  eastindies-spanish-gunpowder-start --map 18`. `df -g ~` read 103 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1286-eastindies-spanish-gunpowder-start.txt`, 153,827,512 bytes,
+SHA-256 `6793a3163c0d3692cd279e43154182879ce397ca1eda2357325a17cf233a876b`.
+
+Archive `rontrace-run1286.log`, 10,045,280 bytes,
+SHA-256 `745121954ec2a0fb976084369dd811c838dcd1bae009eacf5bbb21ea54ace03c`.
+
+**What it holds**: the start of `spanish_gunpowder_pair::SPANISH_GUNPOWDER`, and the walk's initial state.
+
+## run1287 — the Spanish at a held Gunpowder age, East Indies: the draw stream to the game's end (2026-10-25, item 3627, `att-3627`)
+
+`docs/AI.md` §335. run1279's line with `--ai-tribe 9` and run1286's lobby: `--map 18 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 9 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1286. Launched 19:36:57, exited 19:37:37 (39.1 s launch to exit). `success`. **The game
+  ended itself on 6128** (closing block 6129, `ended_early`). `GAME INFO` reads back as run1286's. `rngcmp.py`
+  against run1286: 37 frames identical. Filed with `filerun.py run1287 eastindies-spanish-gunpowder-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1287-eastindies-spanish-gunpowder-trace.txt`, 44,057,080 bytes,
+SHA-256 `bc9b88a3bc9fd628a260946ef242b57a6d77b74fd66369000f35c3a30a825f25`.
+
+Archive `rontrace-run1287.log`, 297,399,872 bytes,
+SHA-256 `d486a57d70b5e9c542a28e8a479b11b19f981e3e5d30362b37b9d04d26be9913`.
+
+**What it holds**: the pair's first try. `spanish_gunpowder_pair_first_parting` walks it from run1286: **frame 2168
+of 6128** by the count and the sequence. Ours spends 35 game-stream draws against theirs' 34, parting at index 30:
+ours spends the Arquebusier `1/63`'s `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs an animal's
+`Guy::set_anim+0x104b`. Its stride, walked over 101..2101, parts on the standing families alone.
+
+## run1287b — the Spanish at a held Gunpowder age, East Indies: the word 2168's window, blocks 2163..2419 (2026-10-25, item 3627, `att-3627`)
+
+`docs/AI.md` §335. **What the disk could not answer**: every record on the word's frame. run1287's stride prints
+units on 2101 and 2201 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1287b --map 18 --end-frame 2419
+--allow-early-end --timeout 3600 --log-window 2163 2419 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 19:40:56, exited 19:41:34 (38.3 s launch to exit). `success`: 2420 frames, closing frame
+  2420. `rngcmp.py` against run1287: 2420 of 2420 identical. Filed with `filerun.py run1287b
+  eastindies-spanish-gunpowder-window-2163-2419 --map 18`. `df -g ~` read 101 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1287b-eastindies-spanish-gunpowder-window-2163-2419.txt`, 512,161,505 bytes,
+SHA-256 `61e5365bb5beebc651392b6907b842b748b383857451547c4cc183836215a20c`.
+
+Archive `rontrace-run1287b.log`, 64,625,440 bytes,
+SHA-256 `02fb56f281a0508df9ae7f3b470f46064fe0c10ecc28b6b81bbd24bb4d3c1fb1`.
+
+**What it holds**: `spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole` (256 blocks, 1343 keys). On its
+first block 2163 ours holds a Transport Galleon `1/68` (TI 321) with the Arquebusiers `1/48`, `1/49` and `1/50`
+inside, cast on 2153 in the undumped gap; theirs prints no `1/68`, and its three stand ashore.

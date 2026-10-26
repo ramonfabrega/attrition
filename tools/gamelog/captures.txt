@@ -10715,3 +10715,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1283b --map 18 --end-frame 5135 --allow-early-end --timeout 3600 --log-window 4879 5135 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 14 --cover cover=0, run1282's lobby   (the word 4884's window)
 #   run1283c --map 18 --end-frame 4880 --allow-early-end --timeout 3600 --log-window 4795 4880 --detail (run1283b's) --ai-tribe 14 --cover cover=0, run1282's lobby   (the gap 4802..4878)
 # Checks: `rngcmp.py` run1282 vs run1283 -> 37 identical; run1283 vs run1283b -> 5136 identical; vs run1283c -> 4881 identical.
+# ==== item 3627: the Spanish at a held Gunpowder age, East Indies (`docs/AI.md` §335; `docs/RUNS.md` run1286, run1287, run1287b) ====
+#   run1286  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1287  run1279's line with --ai-tribe 9 and run1286's lobby   (the draw stream; ended itself on 6128)
+#   run1287b --map 18 --end-frame 2419 --allow-early-end --timeout 3600 --log-window 2163 2419 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1286's lobby   (the word 2168's window)
+# Checks: `rngcmp.py` run1286 vs run1287 -> 37 identical; run1287 vs run1287b -> 2420 identical.
