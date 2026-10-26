@@ -652,12 +652,6 @@ impl Sim {
             .filter(|&c| self.cities[c].alive && self.cities[c].owner == who)
             .collect();
 
-        // PROBE 3678
-        let probe = w == 1
-            && std::env::var("RON_DEBUG_OFFERS")
-                .ok()
-                .is_some_and(|sp| crate::ai_make::debug_make_wanted(&sp, self.frame));
-        let mut probe_stage: Option<(TypeId, &str)> = None;
         for c in cities {
             let city_o = self.cities[c].building;
             let r = self.city_region(c);
@@ -669,11 +663,6 @@ impl Sim {
             let city_attacked = self.cities[c].no_heal;
 
             for &t in &units {
-                // PROBE 3678
-                if probe && let Some((pt, st)) = probe_stage.take() {
-                    eprintln!("OFFERS f={} who={} c={} t={} skip@{}", self.frame, who, c, pt, st);
-                }
-                probe_stage = Some((t, "avail"));
                 // 1. The population and the availability.
                 if self.ai[w].effective_pop > pop_cap || !self.type_available(who, t) {
                     continue;
@@ -682,7 +671,6 @@ impl Sim {
                     continue;
                 };
                 // 2. The trainer buildings, including their upgraded forms.
-                probe_stage = probe_stage.map(|(t, _)| (t, "where"));
                 let Some(wt) = self.tech_tree.types[t].where_ else {
                     continue;
                 };
@@ -695,7 +683,6 @@ impl Sim {
                     continue;
                 }
                 // 4. City-trained or globally trained.
-                probe_stage = probe_stage.map(|(t, _)| (t, "citytrain"));
                 let fort = self.build_is_ident(wrec, Ident::Fort);
                 let per_city = !fort
                     && (!self.is_military_trainer(wrec)
@@ -709,7 +696,6 @@ impl Sim {
                 }
 
                 // 5. The count cap.
-                probe_stage = probe_stage.map(|(t, _)| (t, "cap"));
                 let (units_now, queued_now) = self.raw_counts(who, f.rec);
                 let owned = units_now + queued_now;
                 let non_siege = self.ai[w].census.non_siege;
@@ -752,7 +738,6 @@ impl Sim {
                 }
 
                 // 6. The base.
-                probe_stage = probe_stage.map(|(t, _)| (t, "base"));
                 let mut base = self.ai[w].census.pop * 1000 / city_num.max(1);
                 let mut escrow = 0;
 
@@ -809,7 +794,6 @@ impl Sim {
                 }
 
                 // 8. The common body: the near-cap tapering, then `want`.
-                probe_stage = probe_stage.map(|(t, _)| (t, "common"));
                 if !f.citizen && !f.caravan && !f.military {
                     let eff = self.ai[w].effective_pop;
                     if eff > pop_cap - 4 {
@@ -1002,7 +986,6 @@ impl Sim {
                 }
 
                 // 10. The tail.
-                probe_stage = probe_stage.map(|(t, _)| (t, "tail"));
                 let mut val = v;
                 if cap >= 0
                     && !self
@@ -1052,13 +1035,6 @@ impl Sim {
                 if self.ai[w].wonder_mod != 0 {
                     out /= 2;
                 }
-                if probe {
-                    probe_stage = None;
-                    eprintln!(
-                        "OFFERS f={} who={} c={} t={} OFFER out={} v={} val={} cap={} remaining={} units_now={} queued_now={} fac={} want={} num={} escrow={} cat={} base={} mil={} land={} siege={} fc={} fd={} city_num={}",
-                        self.frame, who, c, t, out, v, val, cap, remaining, units_now, queued_now, fac, want, num, escrow, cat, base, f.military, f.land, f.siege, f.flag_c, f.flag_d, city_num
-                    );
-                }
                 self.ai[w].unit_offers.push(crate::ai::MakeObject {
                     t: t as i32,
                     val: out,
@@ -1076,9 +1052,6 @@ impl Sim {
                     .make_me(t as i32, out, escrow, cat, c as i32, 0, num, 0, 0);
             }
             first_city = false;
-        }
-        if probe && let Some((pt, st)) = probe_stage.take() {
-            eprintln!("OFFERS f={} who={} t={} skip@{}", self.frame, who, pt, st);
         }
     }
 
