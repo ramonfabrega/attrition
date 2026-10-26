@@ -34,8 +34,14 @@ pub(crate) const LAKOTA_GUNPOWDER: Pair = Pair {
     length: 4750,
     // Item 3628, first try: frame 4187, by the count and the sequence —
     // ours 14 draws against 12, parting at index 3 (`docs/AI.md` §336).
-    count: 4187,
-    sequence: 4187,
+    // Item 3645: 4187 -> 4477. The Musket Horse `1/54`'s round on block
+    // 4182 left from (8712, 27240) and flew 4 in ours against theirs'
+    // (8560, 27252) and 3 — piece 157's pivot rows; then the Arquebusiers'
+    // (piece 1456) and the Bombards' (piece 1625) bays. 4477: ours 73
+    // draws against 83, index 56, ours `Guy::set_anim < Unit::move_step`,
+    // theirs `Unit::find_attack_pos < Unit::fight`.
+    count: 4477,
+    sequence: 4477,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -255,7 +261,34 @@ fn lakota_gunpowder_pair_run1289b_s_word_frame_is_widened_whole() {
     // ours' Elite Pikeman `1/75` (TypeIndex 135) collides with `1/74`
     // (`collide_o` 74, `retry` 6) where theirs' steps clear, and `1/74`'s
     // order is ours 10 against theirs 12 (`docs/AI.md` §336).
-    pin_eq!(w.firsts.len(), 2311, "run1289b baseline");
+    // **Item 3645: 2311 -> 55 keys.** The three release rows (piece 157's
+    // pivot, 1456's and 1625's bays) leave every round from the original's
+    // point: theirs' `1/54`'s round on 4182 now ours too, from (8560, 27252)
+    // in 3, and `0/5` is struck on 4183 on both sides. What stands: the
+    // standing families on 4182, four guards' `dest_angle` (`1/42` on 4214,
+    // `1/51` 4215, `1/63` 4231, `1/50` 4315 — theirs writes it with the
+    // turn, ours keeps the old) and who=1's `bucket[0:food]` 10681 against
+    // 10683 from 4219; nothing past them parts through 4438.
+    pin_eq!(w.firsts.len(), 55, "run1289b baseline");
+    // **Every round, both directions** (item 3645, Loop 3644): 222 round-
+    // blocks a side. Before the rows 235 ours against 222 and 119 round
+    // keys, the first `1/39`'s launch on 4217. What stands is two rounds'
+    // target on 4409 — the building `0/2004` falls that frame, theirs'
+    // record keeps `whom`/`ox` 0/2004 and ours' target is gone.
+    pin_eq!(w.rounds_read, (222, 222), "the rounds read");
+    pin_eq!(
+        w.rounds
+            .iter()
+            .map(|((who, o, what), (f, _))| format!("{f} {who}/{o} {what}"))
+            .collect::<Vec<_>>(),
+        [
+            "4409 1/20 ammo[1].ox",
+            "4409 1/20 ammo[1].whom",
+            "4409 1/78 ammo[4].ox",
+            "4409 1/78 ammo[4].whom",
+        ],
+        "the rounds that part"
+    );
 }
 
 /// run1305: the gap 4102..4181 before the word's window, blocks 4096..4187
@@ -289,7 +322,7 @@ fn lakota_gunpowder_pair_run1305_s_gap_is_widened_whole() {
     let Some(w) = lakota_gunpowder_gap_4096_window() else {
         return;
     };
-    pin_eq!(w.blocks, 92, "every captured block");
+    pin_eq!(w.blocks, 91, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -307,5 +340,16 @@ fn lakota_gunpowder_pair_run1305_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1305 baseline");
+    // Item 3645: 49 keys, every one standing — the start's `form`, who=0's
+    // `SITE[i].reg` and `aggression[1]`, who=1's groups 64..70's `held`
+    // and pools as each is minted (67 on 4128, 69 on 4132). Theirs'
+    // Musket Horse `1/54` (TypeIndex 207, `FLAGS` `majvy`: `v` fires on
+    // the move) takes `cavarch_o` 5 on block 4171 (frame 4170, `(54 +
+    // 4170) % 32 == 0`) and strikes on 4172 (`recharging` 30) on both
+    // sides; its round leaves on frame 4181 from (8560, 27252, 666) and
+    // flies 3 — ours' too since piece 157's rows, from (8712, 27240) and
+    // 4 before. The Citizen `0/5` is struck on 4183 on both sides.
+    pin_eq!(w.firsts.len(), 49, "run1305 baseline");
+    pin_eq!(w.rounds_read, (2, 2), "the rounds read");
+    pin!(w.rounds.is_empty(), "a round parts: {:?}", w.rounds);
 }

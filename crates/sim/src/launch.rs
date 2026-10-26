@@ -734,6 +734,24 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 166,
         },
     ),
+    // **Piece 1625, the Lakota's Bombard** (unit type 267; item 3645,
+    // `docs/AI.md` §336): run1305b's packet holds its one attack
+    // `AttachPos` row, node 0 at `CHAR_ATTACK2` frame 9 (666 ms), and
+    // `tools/recomp/fit_bay.py` fits the sweep to one region of 924 lattice
+    // points; the row is its centroid, `dz` 104 at every heading. Without it the Bombards `1/58`
+    // and `1/66` fired at the city `0/2000` from the hull's own point —
+    // run1289b's `1/58` on 4303 from (9000, 27144) against the original's
+    // (8898, 27250, 585).
+    (
+        1625,
+        12,
+        9,
+        Bay {
+            right: -710,
+            fwd: 147_904,
+            dz: 104,
+        },
+    ),
     // **The Javelineers' piece 34** (item 2997, `docs/AI.md` §244): run912e's
     // `RON_STATE_FRAME=12753` packet holds its three `AttachPos` rows, and
     // `tools/recomp/get_position.py`'s sweep of each is reproduced by these
@@ -2971,6 +2989,46 @@ mod tests {
                 "131 ({anim}, {start})"
             );
         }
+    }
+
+    /// **The Lakota's Arquebusiers and Bombard leave from pieces 1456's and
+    /// 1625's bays** (item 3645, `docs/AI.md` §336): run1289b's `AMMO`
+    /// records beside each shooter's pose on the block before — the
+    /// Arquebusiers `1/39`'s round on 4217, which one of 1456's three keys
+    /// reproduces (the dump does not print the figure's anim), and the
+    /// Bombard `1/58`'s on 4303, `CHAR_ATTACK2` at frame 9. 1456's rows are
+    /// piece 48's to the digit: the same model.
+    #[test]
+    fn run1289b_s_lakota_arquebusiers_and_bombard_leave_from_their_bays() {
+        let keys = [(11, 6), (12, 25), (13, 23)];
+        let fits: Vec<_> = keys
+            .iter()
+            .filter(|&&(anim, start)| {
+                let at = launch_point(
+                    Pos::new(8520, 27864),
+                    Angle(-1_529_217_024),
+                    1456,
+                    anim,
+                    start,
+                    0,
+                );
+                (at.x, at.y) == (8395, 27931)
+            })
+            .collect();
+        assert_eq!(fits, [&(11, 6)], "1/39's round on 4217");
+        for (anim, start) in keys {
+            assert_eq!(bay(1456, anim, start, 0), bay(48, anim, start, 0));
+        }
+        let ball = launch_point(
+            Pos::new(9000, 27144),
+            Angle(-1_623_785_472),
+            1625,
+            crate::anim::ATTACK2,
+            9,
+            0,
+        );
+        assert_eq!((ball.x, ball.y), (8898, 27250), "1/58's round on 4303");
+        assert_eq!(release_dz(1625, crate::anim::ATTACK2, 9, 0), Some(104));
     }
 
     /// **The Egyptian Arquebusiers' rounds leave from piece 48's bays**

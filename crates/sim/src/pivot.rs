@@ -3124,6 +3124,26 @@ mod tests {
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
+    /// **run1305's Musket Horse `1/54`** (item 3645, `docs/AI.md` §336):
+    /// its round at the Citizen `0/5`, fired on the move on 4181
+    /// (`CHAR_ATTACKWALK` at frame 12), from the figure's (8712, 27240) at
+    /// facing −1073741824 to the dump's `AMMO` (8560, 27252) — a cell of
+    /// the turret's sweep. Made to fail with the rows out of `RELEASES`:
+    /// the round leaves from the figure and flies 4 frames against 3.
+    #[test]
+    fn run1305_s_musket_horse_fires_on_the_move_through_piece_157_s_pivot() {
+        let r = release(157, crate::anim::ATTACKWALK, 12).expect("the Musket Horse's row");
+        let d = release_rotation(Angle(-1_073_741_824));
+        let fits: Vec<i32> = (0..360)
+            .filter(|&t| {
+                let (x, y, _) = release_offset_at(&r, d, t);
+                (8712 + x, 27240 + y) == (8560, 27252)
+            })
+            .collect();
+        assert!(!fits.is_empty(), "no turret step reproduces 1/54's round");
+        assert_eq!(node(157, 4), Some(Node { px: 8, py: -148 }));
+    }
+
     /// **run1235's Eagle Feather Horse `1/32`** (item 3588, `docs/AI.md`
     /// §314): its round at the Citizen `0/5`, `CHAR_ATTACK3` at frame 18 on
     /// 4127, from the figure's (5544, 10152, 34) at facing 56098816 to the
