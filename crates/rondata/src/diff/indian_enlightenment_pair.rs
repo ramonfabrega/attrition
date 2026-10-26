@@ -324,3 +324,62 @@ fn indian_enlightenment_pair_run1324_s_gap_is_widened_whole() {
     pin_eq!(w.rounds_read, (197, 197), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
+
+/// run1324b: the word 4911's window, blocks 4905..5001 at run1312b's
+/// detail — six blocks before the word's block 4912, to the game's
+/// closing block (item 3660).
+pub(crate) const RUN1324B: &str =
+    "gamelog-run1324b-eastindies-indian-enlightenment-window-4905-5001.txt";
+
+/// The window: block 4905 through 5001; the word 4911's own block is 4912.
+pub(crate) const WIDENING_INDIAN_ENLIGHTENMENT_FRAME_4911: (i64, i64) = (4905, 5001);
+
+/// **The word 4911's window**: run1324b walked from run1311's start with
+/// the recorder on and every round compared (item 3660).
+pub(crate) fn indian_enlightenment_frame_4911_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[INDIAN_ENLIGHTENMENT.start],
+        true,
+        INDIAN_ENLIGHTENMENT.long,
+        "run1324b",
+        &[(RUN1324B, WIDENING_INDIAN_ENLIGHTENMENT_FRAME_4911.0)],
+        WIDENING_INDIAN_ENLIGHTENMENT_FRAME_4911,
+        1,
+        &[4912],
+        true,
+    )
+}
+
+#[test]
+fn indian_enlightenment_pair_run1324b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = indian_enlightenment_frame_4911_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 96, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 786, "run1324b baseline");
+    pin_eq!(w.rounds_read, (320, 321), "the rounds read");
+    pin_eq!(w.rounds.len(), 87, "the rounds that part");
+}
