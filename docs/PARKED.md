@@ -11485,13 +11485,14 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot TS — reserved
+## Parked by item 3677, 2026-10-26 — the German Industrial word 4323 → 4348
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3677a. who=1's Albatrosses' `myspeed`** (TY 288), 55 in ours against 68 in theirs on every one from its first
+  stride block (3001), each parked in its airport (`docs/AI.md` §346). Draw-silent to 4348 and unread here: it names
+  no frame the draws part on. `UnitData::speed`'s terms (`unit_speed_view`) are the first reading.
+- **3677b. The Citizen's armour arm** (`UnitData::armor@00610160`, `has_general(0, 0x164)`, `THECITIZEN_ARMOR_BONUS`
+  2), read beside the attack arm item 3677 built and not built: no window on disk holds a blow on a unit beside a
+  Citizen that parts. Names no score.
 
 ## Parked by the next landing, slot TT — reserved
 
