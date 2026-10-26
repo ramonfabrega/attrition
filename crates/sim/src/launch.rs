@@ -2664,6 +2664,50 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 164,
         },
     ),
+    // **Piece 113, the Anusiya** (type 163, the Persians' own archers; item
+    // 3663, `docs/AI.md` §343): run1327's packet holds its two attack
+    // `AttachPos` rows, node 0, and `get_position.py`'s sweep of each is
+    // reproduced at all 361 headings by these, the centroids of their
+    // exact regions (105 and 115 lattice points). Without them the
+    // Anusiya loosed from the figure's own square: `1/333`'s arrow at the
+    // human's city centre `0/2000` on 11381 left (3912, 31080), 178 under
+    // run1327b's (3821, 31024), in 3 frames against 2.
+    (
+        113,
+        crate::anim::ATTACK2,
+        14,
+        Bay {
+            right: 25_067,
+            fwd: 104_603,
+            dz: 178,
+        },
+    ),
+    (
+        113,
+        crate::anim::ATTACK3,
+        6,
+        Bay {
+            right: 27_678,
+            fwd: 36_793,
+            dz: 171,
+        },
+    ),
+    // **Piece 1975, the Catapult in the Persians' art style** (`215 + 5 ×
+    // 0x160`, type 265; item 3663): run1327's packet holds its one
+    // `AttachPos` row, node 0 at frame 12 of `CHAR_ATTACK2`, and its sweep
+    // admits piece 567's row (435 lattice points about it). Without it
+    // `1/119`'s stone at `0/2000` on 11511 left the carriage's own point,
+    // (6264, 32904) at 208, where run1327b's leaves (6291, 32922) at 453.
+    (
+        1975,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: -33_219,
+            dz: 245,
+        },
+    ),
     // **Piece 212, the Mahout** (type 262, `mjvyk`; item 3555): the same
     // packet's five node-1 rows, the howdah's archer, one per attack slot
     // at frame 16 (`CHAR_ATTACKWALK` the fire on the move's), each the
@@ -3198,6 +3242,26 @@ mod tests {
             let at = launch_point(Pos::new(x, y), Angle(facing), 1881, anim, start, 0);
             assert_eq!((at.x, at.y), (sx, sy), "({x}, {y}) ({anim}, {start})");
             assert_eq!(release_dz(1881, anim, start, 0), Some(dz));
+        }
+    }
+
+    /// **The Anusiya and the Persian Catapult loose from their bays** (item
+    /// 3663): run1327b's rounds at `0/2000`, each the figure's `GUY` pose
+    /// on the block before the round's first print and the dump's `sx, sy,
+    /// sz − z`. Made to fail with the rows out of `BAYS`.
+    #[test]
+    fn run1327b_s_anusiya_and_catapult_rounds_leave_from_their_bays() {
+        // (piece, anim, starttime, x, y, facing, sx, sy, sz − z)
+        type Row = (i32, i8, u32, i32, i32, i32, i32, i32, i32);
+        let rows: [Row; 3] = [
+            (113, 12, 14, 3912, 31080, -839_254_016, 3821, 31024, 178),
+            (113, 12, 14, 3384, 31560, -194_248_704, 3378, 31453, 178),
+            (1975, 12, 12, 6264, 32904, -667_811_840, 6291, 32922, 245),
+        ];
+        for (piece, anim, start, x, y, facing, sx, sy, dz) in rows {
+            let at = launch_point(Pos::new(x, y), Angle(facing), piece, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "{piece} ({x}, {y})");
+            assert_eq!(release_dz(piece, anim, start, 0), Some(dz), "{piece}");
         }
     }
 

@@ -266,6 +266,60 @@ fn persian_classical_pair_run1318b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 77, "the rounds that part");
 }
 
+/// run1327b: the closing window, blocks 11378..11634 at run1318b's detail,
+/// `cover=0` (item 3663) — 257 blocks through the closing block, so the
+/// word 11633, the game's last frame, sits inside a window.
+pub(crate) const RUN1327B: &str =
+    "gamelog-run1327b-greatlakes-persian-classical-window-11378-11634.txt";
+
+/// The window: block 11378 through the closing block 11634.
+pub(crate) const WIDENING_PERSIAN_CLASSICAL_FRAME_11633: (i64, i64) = (11378, 11634);
+
+/// **The closing window**: run1327b walked from run1317's start with the
+/// recorder on, the rounds compared (item 3663).
+pub(crate) fn persian_classical_frame_11633_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[PERSIAN_CLASSICAL.start],
+        true,
+        PERSIAN_CLASSICAL.long,
+        "run1327b",
+        &[(RUN1327B, WIDENING_PERSIAN_CLASSICAL_FRAME_11633.0)],
+        WIDENING_PERSIAN_CLASSICAL_FRAME_11633,
+        1,
+        &[11634],
+        true,
+    )
+}
+
+#[test]
+fn persian_classical_pair_run1327b_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_classical_frame_11633_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1327b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
 /// **The closing state** (item 3663): run1318's closing block 11634, the
 /// whole map's units, walked from run1317's start.
 #[test]
