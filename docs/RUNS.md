@@ -28369,6 +28369,73 @@ SHA-256 `687feec775fecf652055b025c310e24e966a0739f050cf164cc32871395caeb3`.
 **What it holds**: `mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole` (103 blocks, 114 keys), the
 standing families alone: the pair is whole at 5399 since item 3636.
 
+## run1284 — the Greeks at a held Gunpowder age, Great Sahara: the `DUMP_ALL` start (2026-10-25, item 3626, `att-3626`)
+
+`docs/AI.md` §334. §324's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1284 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 5 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 18:21:22, exited 18:21:48 (26.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 5, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3`. Filed with `filerun.py run1284
+  greatsahara-greek-gunpowder-start`. `df -g ~` read 107 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1284-greatsahara-greek-gunpowder-start.txt`, 149,940,372 bytes,
+SHA-256 `b264d1a9750e0b536a60580bc36c992204df041060385e7f9ba657d236673bb4`.
+
+Archive `rontrace-run1284.log`, 8,279,008 bytes,
+SHA-256 `f9684d81c562310cb9bb7975de79aa6eeba12cd428fd5cf99dd177d959b5a8ee`.
+
+**What it holds**: the start of `greek_gunpowder_pair::GREEK_GUNPOWDER`, and the walk's initial state.
+
+## run1285 — the Greeks at a held Gunpowder age, Great Sahara: the draw stream to the game's end (2026-10-25, item 3626, `att-3626`)
+
+`docs/AI.md` §334. run1258's line with `--ai-tribe 5`: `--map 7 --end-frame 24000 --timeout 7200 --allow-early-end
+--log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 5 --detail
+end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1284's
+lobby.
+- Pool lane 2, beside run1284. Launched 18:21:22, exited 18:21:49 (27.5 s launch to exit). `success`. **The game
+  ended itself on 4074** (closing block 4075, `ended_early`). `GAME INFO` reads back as run1284's. `rngcmp.py`
+  against run1284: 37 frames identical. Filed with `filerun.py run1285 greatsahara-greek-gunpowder-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1285-greatsahara-greek-gunpowder-trace.txt`, 23,233,374 bytes,
+SHA-256 `82e6e4bacaffbf923d0a188be869322e6b88bb455dd2bb385d345cc81b8f853b`.
+
+Archive `rontrace-run1285.log`, 83,381,216 bytes,
+SHA-256 `b0237f9893e2f07a1da556db1bc03a94ee003fc831a1f95114761fc9213b935f`.
+
+**What it holds**: the pair's first try. `greek_gunpowder_pair_first_parting` walks it from run1284: **whole, 4074 of
+4074** by the count and the sequence; `greek_gunpowder_pair_run1285_s_closing_state` compares the closing block 4075,
+211 units, none off.
+
+## run1285b — the Greeks at a held Gunpowder age, Great Sahara: the closing window, blocks 3819..4075 (2026-10-25, item 3626, `att-3626`)
+
+`docs/AI.md` §334. **What the disk could not answer**: every record on the pair's last blocks. run1285's stride
+prints units every hundredth block and no `LEADERDATA`, `BUILDDATA` or `CITYDATA` past the start, and no other dump
+holds this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1285b --map 7 --end-frame 4074
+--allow-early-end --timeout 3600 --log-window 3819 4075 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 5 --cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- **A dead take first** (1503): the launch at 18:24 died in Wine before the game started (`wine: Unhandled page
+  fault on read access to 00004ECD at address 7BF21139`; the runner's traceback `process failed: 40`, no receipt).
+  Its directory is kept as `~/ron-golden/run1285b-dead`; nothing from it was filed.
+- The relaunch, into `~/ron-golden/run1285b-2` and renamed `run1285b` before filing: pool lane 1. Launched 18:25:17,
+  exited 18:26:03 (46.7 s launch to exit). `success`: 4075 frames, closing frame 4075. `rngcmp.py` against run1285:
+  4075 frames identical. Filed with `filerun.py run1285b greatsahara-greek-gunpowder-window-3819-4075`. `df -g ~`
+  read 105 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1285b-greatsahara-greek-gunpowder-window-3819-4075.txt`, 564,373,646 bytes,
+SHA-256 `8076de308e778fc6543e5a98e056e3bbe22813718a8e77061cb81a9206757c60`.
+
+Archive `rontrace-run1285b.log`, 83,237,120 bytes,
+SHA-256 `fda04725951a4ffbefe3be33473016f8b7f30020bcdfb5d49e657fd8e2164b48`.
+
+**What it holds**: `greek_gunpowder_pair_run1285b_s_closing_frame_is_widened_whole` (256 blocks, 65 keys): the
+standing families on 3819, group 66's on 3904, and seventeen `dest_angle` rows on who=1's guards (parked 3626a); the
+closing block agrees.
 ## run1282 — the Chinese at a held Gunpowder age, East Indies: the `DUMP_ALL` start (2026-10-25, item 3625, `att-3625`)
 
 `docs/AI.md` §333. Through `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1282 --map 18 --end-frame

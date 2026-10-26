@@ -93,6 +93,8 @@ mod golden;
 #[cfg(test)]
 mod greek_classical_pair;
 #[cfg(test)]
+mod greek_gunpowder_pair;
+#[cfg(test)]
 mod greek_word;
 mod harness;
 #[cfg(test)]

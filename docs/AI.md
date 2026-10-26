@@ -30399,12 +30399,48 @@ the ledger: **`Heavy Fire Lances` (97), the booking's line, fielded**
 than ours: the caravan road's search reads the unit grid, which `1/215`'s
 six frames have moved.
 
-## 334. Reserved for the next item on the AI track
+## 334. The Greeks at a held Gunpowder age, Great Sahara: whole on its first try, 4074 of 4074 (item 3626)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4). §324's lobby with the nation moved: Great Sahara (`MAP_STYLE 7`), human
+Nubians (4) against the **Greeks (5)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 3`,
+`ENDING_TECHNOLOGY 3`. Both age settings read back `3` on both `GAME INFO`s (`Pair::assert_lobby`). Captures: run1284
+(a `DUMP_ALL` start) and run1285 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended
+itself on 4074. The walk is seeded from run1284's initial state (3506a). run1284 against run1285 is 37 of 37 frames
+identical. `diff::greek_gunpowder_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(7, 5, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the battery
+fields no Greeks since `GreatSaharaGreekTier1`, `(7, 5, 1)`, left it for the AI word (`diff::greek_word`, another
+difficulty). It is no pinned lobby's: the Classical pair `greek_classical_pair` is `(18, 5, 5)`, another map.
+`greek_gunpowder_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, frame 4074 of 4074**, by the count and the sequence. **The closing state** (run1285's closing
+block 4075, `greek_gunpowder_pair_run1285_s_closing_state`) compares 211 units, none off, torn or unlinked, and no
+building or city field-row (`closing_fields`: none).
+
+**The closing window** (run1285b, blocks 3819..4075 at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+run1284: 256 blocks, 65 keys, the two `gaia:` keys unprinted). run1285's stride prints units every hundredth block
+and no leader, building or city record past the start, so no dump held the last blocks. run1285 against run1285b is
+4075 of 4075 frames identical.
+- The standing families on 3819: `form` on 27 units, `SITE[0..9].reg`, who=0's `aggression[1]` (ours 0 against
+  theirs 1), who=1's groups 64, 65, 67 and 68's `held` and `pool`; group 66's on 3904.
+- **Seventeen `dest_angle` rows**, 3624a's shape, all on who=1's `GUARDORDER`s. Sixteen are group 64's, guarding the
+  Bombard `1/72` (TypeIndex 267, land): the Arquebusiers (98) `1/33` and `1/92` (3828), `1/55` (3864), `1/57`
+  (3870), `1/59` (3871), `1/44` (3873), `1/36` (3876), `1/32` (3878), `1/48` (3882), `1/67` (3947), `1/34` and
+  `1/53` (3961) and `1/49` (4002); the Elite Pikemen (135) `1/63` (3873); the Crossbowmen (172) `1/96` (3892); the
+  Supply Wagon (63) `1/71` (3940). The seventeenth is group 65's Crossbowman `1/146` (3864), guarding `1/118`. No
+  other field of the seventeen parts, and the closing block agrees. The draw stream is whole, so they name no score
+  (parked 3626a).
+- No unit, building or city field parts in the window beyond those.
+
+**The rubric.** Unit types seen 193 → **194** of 302 (`rubric.py --tables 3`, `census::RUBRIC_UNIT_TYPES_SEEN`):
+**`Stratiotai` (233)**, the booking's line, is fielded and new to the ledger (260 figure rows on the lockstep count,
+2820 over the pair's three dumps). The pair's other seventeen types are in the lockstep set already: Citizen 50,
+General 54, Spy 58, Caravan 59, Merchant 61, Supply Wagon 63, Explorer 71, Arquebusiers 98, Elite Pikemen 135,
+Crossbowmen 172, Dragoon 189, Elite Light Cavalry 211, Bombard 267, The Senator 353, The President 355, and the
+sheep and peacock herds. `Royal Stratiotai` (234) is Enlightenment's and is not fielded.
+
+**What is not established.** When the seventeen `dest_angle` rows part is seen, but why is not read (3626a, beside
+3624a). Nothing in the window parts a wound, so the closing compare's silence on `hits` (3584a) holds here too.
 
 ## 335. Reserved for the next item on the AI track
 
