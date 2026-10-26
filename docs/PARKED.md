@@ -11351,13 +11351,18 @@ none off (`docs/AI.md` §339). Two rows of its windows park; neither moves a dra
   Positions and landings agree. The killer: `RON_DEBUG_AMMO=3237-3240` beside a packet at 3238 for whether theirs'
   `0/3` lives (garrisoned) or died and the round keeps a stale target.
 
-## Parked by the next landing, slot TC — reserved
+## Parked by item 3660, 2026-10-26 — the Indian Enlightenment pair whole: the Man o' War's and Musketeers' bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The pair closes, 4157 → 4911 → 5000 of 5000 by the count and the sequence, and its closing state compares 176 units
+with none off (`docs/AI.md` §340.1). Two rows of its closing window (run1324b) park; neither moves a draw or a unit:
+
+- **3660a. A Musketeer picks another target** (run1324b, block 4955): who=1's `1/56` (TypeIndex 99, piece 1809) holds
+  `order:target` `0/5` in ours against `0/12` in theirs. Nothing downstream parts through the closing block. The
+  killer: `RON_DEBUG_UNIT=1/56@4940-4955` beside the dump's `0/5` and `0/12` positions on 4954, for whether the pick
+  reads a distance a figure's step apart (a position parted unseen) or a different search.
+- **3660b. A queue's price and the timber behind it** (run1324b, block 4983): who=1's building `1/2005` reads
+  `queue[2].cost[0]` 250 in ours against 125 in theirs, and who=1's `bucket[1:timber]` 11875 against 12000 — 3655a's
+  shape (`1/2005`'s queue price there, 500 against 250). The killer: the item that reads 3655a's price.
 
 ## Parked by the next landing, slot TD — reserved
 
