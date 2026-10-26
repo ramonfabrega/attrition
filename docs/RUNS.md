@@ -29648,3 +29648,64 @@ SHA-256 `938910e02c51b155b4af53c67aee89dd30f9914d2df5d2b7a92d42fd464f062a`.
 **What it holds**: `british_classical_pair_run1326b_s_closing_window_is_widened_whole` (256 blocks, 99 keys, rounds
 209 a side, none parting once piece 215 holds piece 567's row; 23 parted before it). Past the standing families:
 `dest_angle` on eight of who=1's units and the Javelineers `1/114`'s move point on 8760 (parked 3662a).
+## run1317 — the Persians at a held Classical age, Great Lakes: the `DUMP_ALL` start (2026-10-26, item 3652, `att-3652`)
+
+`docs/AI.md` §343. run1315's lobby with the map, the nation and the difficulty moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1317 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 23 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 12:01:37, exited 12:02:01 (24.6 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 23, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 1` and `ENDING_TECHNOLOGY 1` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1317 greatlakes-persian-classical-start`. `df -g ~` read 65 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1317-greatlakes-persian-classical-start.txt`, 151,131,255 bytes,
+SHA-256 `e53f9f3b2987c4a2fe7670f15ac012023b68e2bd617a021b1698e38c6a6b1c46`.
+
+Archive `rontrace-run1317.log`, 8,918,080 bytes,
+SHA-256 `c3c71c90139fb3dd7f2cbb41175d7a600684768a8bcb0655f8b1f640dbb8f59e`.
+
+**What it holds**: the start of `persian_classical_pair::PERSIAN_CLASSICAL`, and the walk's initial state.
+
+## run1318 — the Persians at a held Classical age, Great Lakes: the draw stream to the game's end (2026-10-26, item 3652, `att-3652`)
+
+`docs/AI.md` §343. run1316's line on `--map 14` with `--ai-tribe 23` and run1317's lobby.
+- Pool lane 2, beside run1317. Launched 12:01:41, exited 12:02:33 (51.8 s launch to exit). `success`. **The game
+  ended itself on 11633** (closing block 11634, `ended_early`). `GAME INFO` reads back as run1317's. `rngcmp.py`
+  against run1317: 37 frames identical. Filed with `filerun.py run1318 greatlakes-persian-classical-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1318-greatlakes-persian-classical-trace.txt`, 89,140,388 bytes,
+SHA-256 `a51ab13851a1e53ba3178757233d0befea2eed831740fedbd31e6de151dc46fa`.
+
+Archive `rontrace-run1318.log`, 444,369,632 bytes,
+SHA-256 `56a1039f5f49f381d27c21f1c0a603e3f0bd625781907facf76e20bf68127dfe`.
+
+**What it holds**: the pair's first try. `persian_classical_pair_first_parting` walks it from run1317: **10937 of
+11633** by the count and the sequence (ours 34 draws against 36, index 28).
+`persian_classical_pair_the_long_s_stride_walks_back_from_10937` walks its stride 101..10901: 109 blocks, 143 keys,
+the standing families alone.
+
+## run1318b — the Persians at a held Classical age, Great Lakes: the word 10937's window, blocks 10895..11188 (2026-10-26, item 3652, `att-3652`)
+
+`docs/AI.md` §343. **What the disk could not answer**: every record between the stride's last block 10901 and the
+word, and every round — run1318's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1318b --map 14 --end-frame 11188 --allow-early-end --timeout 3600
+--log-window 10895 11188 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 23 --cover
+cover=0` and run1317's lobby: six blocks before the stride's 10901, and 250 after the word's block 10938.
+- Pool lane 1. Launched 12:06:25, exited after 78.9 s. `success`: 11189 frames. `rngcmp.py` against run1318: 11189
+  of 11189 identical. Filed with `filerun.py run1318b greatlakes-persian-classical-window-10895-11188`. `df -g ~`
+  read 63 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1318b-greatlakes-persian-classical-window-10895-11188.txt`, 866,724,536 bytes,
+SHA-256 `6f4a5e8e37431f6f2cf0b80299e942a74ca1d5a560a8d002d6def6547fea5107`.
+
+Archive `rontrace-run1318b.log`, 398,486,272 bytes,
+SHA-256 `ac32a460cc38f6b70c48350e75eb249a7d46472484bbfda6b26a6ce4441f1864`.
+
+**What it holds**: `persian_classical_pair_run1318b_s_word_frame_is_widened_whole` walks it from run1317 (293
+blocks, 8523 keys, rounds 520 theirs against 699 ours, 114 parting). The first parting round is on 10931: who=1's
+Javelineers `1/312` (TY 83) throws at the Citizen `0/12` from (5054, 31417) at `sz` 669 in theirs and from the
+figure's square (5064, 31368) at 499 in ours; the records first part on 10939.

@@ -11264,13 +11264,10 @@ word's own next take, the item the commander books (`docs/AI.md` §341).
 Nothing parked: the Galley's launch point is the word's own next take, the
 item the commander books (`docs/AI.md` §342).
 
-## Parked by the next landing, slot SW — reserved
+## Parked by item 3652, 2026-10-26 — the Persians at a held Classical age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SW renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the Javelineers' launch point is the word's own next take,
+the item the commander books (`docs/AI.md` §343).
 
 ## Parked by item 3654, 2026-10-26 — the Lakota Gunpowder pair closes: the decoy Bombards take their army's target
 

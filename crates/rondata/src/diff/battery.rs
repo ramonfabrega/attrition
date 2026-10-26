@@ -360,6 +360,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // every other British triple is at 0 or 5, and the battery fields no
     // British.
     (18, 11, 4),
+    // The Persians at a held Classical age, Great Lakes (item 3652): the
+    // first held-age pair on Great Lakes — not the coverage and Medieval
+    // pairs' `(18, 23, 5)` nor `(7, 23, 5)`, another map, nor the AI word
+    // `GreatLakesPersianTier2`, `(14, 23, 2)`, another difficulty; the
+    // battery fields no Persians.
+    (14, 23, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
