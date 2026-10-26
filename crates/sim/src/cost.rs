@@ -1674,6 +1674,32 @@ mod tests {
         );
     }
 
+    /// `get_cost:283`: a British AA Gun loses `BRITISH_AA_COST` percent in
+    /// its own truncating step, ahead of the Russian spy's and the
+    /// Spy/General arm's (item 3678).
+    #[test]
+    fn a_british_aa_gun_costs_a_quarter_less() {
+        let aa = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Metal, 4)
+        };
+        let price = |british_aa: i32, discount: i32| {
+            let m = Modifiers {
+                british_aa,
+                discount,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &aa, Resource::Metal, owned(0), &m)
+        };
+        let plain = price(0, 0);
+        assert_eq!(T.british_aa_cost, 25);
+        assert_eq!(price(T.british_aa_cost, 0), (100 - 25) * plain / 100);
+        assert_eq!(
+            price(T.british_aa_cost, 50),
+            ((100 - 25) * plain / 100) * (100 - 50) / 100
+        );
+    }
+
     /// `get_cost:299`: a Russian Spy loses `RUSSIAN_SPY_COST` percent in its
     /// own truncating step, ahead of the Spy/General arm's.
     #[test]

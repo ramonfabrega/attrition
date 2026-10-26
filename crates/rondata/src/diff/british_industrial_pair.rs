@@ -33,8 +33,18 @@ pub(crate) const BRITISH_INDUSTRIAL: Pair = Pair {
     // ours 71 draws against 15, parting at index 5, ours
     // `Leader::produce_building+0xc99`, theirs `Leader::make_stuff+0x63d`
     // (`docs/AI.md` §347).
-    count: 2382,
-    sequence: 2382,
+    //
+    // Item 3678: **2382 → 2939**, by both. The AA Gun takes the British
+    // `BRITISH_AA_COST` (25 %) off its price (`get_cost:283`), so on 2184
+    // who=1's `create_units` values it 1028320 as theirs does (941484
+    // without it: food and metal 79 against 59, the income factor 206
+    // against 225), and its offer overwrites the Flamethrower's 1014609
+    // at the make list's head as theirs' does. On 2939 ours spends 22
+    // draws against 21, parting at index 4: ours `Unit::fight+0x9b0`,
+    // theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+    // Unit::move_step+0x3b6`.
+    count: 2939,
+    sequence: 2939,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -242,10 +252,132 @@ fn british_industrial_pair_run1336b_s_word_frame_is_widened_whole() {
     // 2382 who=1's `MAKE[3]` is ours `cat` 4 at city 2 against theirs'
     // 6 at city 0: ours places a building (`1/2034`, 15000
     // `constr_time`) theirs does not (`docs/AI.md` §347).
-    pin_eq!(w.firsts.len(), 1189, "run1336b baseline");
+    //
+    // Item 3678: **1189 → 53**, the standing families alone (`form`,
+    // `build:extra`, who=1's groups' `held` and pools, the human leader's
+    // `SITE[*].reg` and `aggression[1]`): the AA Gun's British discount
+    // keeps the Flamethrower off who=1's make list on 2184, and the
+    // queues, the list and the buckets agree to 2633. The value diff on
+    // the old word's block 2383 is empty.
+    pin_eq!(w.firsts.len(), 53, "run1336b baseline");
     // No round is in flight on either side over the window.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// **A British AA Gun costs a quarter less** (item 3678): `get_cost:283`–
+/// `289`, a British leader (`has_tribe_bonus(0xb)`) and a unit that
+/// `is(0x119, 0)` take `BRITISH_AA_COST` (25) off. On run1335's start the
+/// British leader's AA Gun costs 60 food and 60 metal, and the Nubian
+/// human's 80 and 80. On 2183 the walk prices it 59 and 59 for who=1 —
+/// the income factor 225 and the offer 1028320 theirs' make list holds
+/// on 2184 — where without the arm it was 79 and 79, the factor 206 and
+/// the offer 941484, which let the Flamethrower keep the head.
+///
+/// Made to fail first: with `BRITISH_AA_COST` at 0, who=1's price reads
+/// the Nubian's 80 and 80.
+#[test]
+fn british_industrial_pair_a_british_aa_gun_costs_a_quarter_less() {
+    let Some(inst) = crate::testenv::install() else {
+        return;
+    };
+    let Some(path) = dump(BRITISH_INDUSTRIAL.start) else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(&path);
+    let log = Log::parse(&text);
+    let init = replay_initial(&log).unwrap();
+    let mut built = build_sim(&loaded, &init, sim::Tuning::RON);
+    let sim = &mut built.sim;
+    let aa = loaded
+        .unit_named("Anti-Aircraft Gun")
+        .expect("an AA Gun type");
+    let tree = sim.unit_types[aa].tree.expect("in the tree");
+    assert_eq!(
+        loaded.type_index(tree),
+        0x119,
+        "ANTIAIRCRAFTGUN in the original"
+    );
+    assert!(sim.nation[1].british && !sim.nation[0].british);
+    let price = sim.price_of(1, aa);
+    assert_eq!((price[0], price[2]), (60, 60), "the British price");
+    let nubian = sim.price_of(0, aa);
+    assert_eq!((nubian[0], nubian[2]), (80, 80), "the Nubian pays it whole");
+    sim.tuning.british_aa_cost = 0;
+    let whole = sim.price_of(1, aa);
+    assert_eq!((whole[0], whole[2]), (80, 80), "without BRITISH_AA_COST");
+}
+
+/// run1352: the word 2939's window, blocks 2933..3190 at run1336b's
+/// detail — six blocks before the word's block 2940 and 250 after it
+/// (item 3678).
+pub(crate) const RUN1352: &str =
+    "gamelog-run1352-greatsahara-british-industrial-window-2933-3190.txt";
+
+/// The window: block 2933 through 3190; the word 2939's own block is 2940.
+pub(crate) const WIDENING_BRITISH_INDUSTRIAL_FRAME_2939: (i64, i64) = (2933, 3190);
+
+/// **The word 2939's window**: run1352 walked from run1335's start with
+/// the recorder on and every round compared (item 3678).
+pub(crate) fn british_industrial_frame_2939_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[BRITISH_INDUSTRIAL.start],
+        true,
+        BRITISH_INDUSTRIAL.long,
+        "run1352",
+        &[(RUN1352, WIDENING_BRITISH_INDUSTRIAL_FRAME_2939.0)],
+        WIDENING_BRITISH_INDUSTRIAL_FRAME_2939,
+        1,
+        &[2940],
+        true,
+    )
+}
+
+#[test]
+fn british_industrial_pair_run1352_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = british_industrial_frame_2939_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3678: 1533 keys. Block 2933 carries the standing families
+    // alone (`form`, who=1's groups' `held` and pools 64..69, the human
+    // leader's `SITE[*].reg` and `aggression[1]`). **The first record
+    // to part is a round, on 2934**: who=1's Light Tank `1/28` (TY 240,
+    // `MARK4`, attacking the human's Citizen `0/3`) launches `ammo[1]`
+    // from (9432, 31128) at `sz` 619 in ours — the figure's square — and
+    // from (9218, 31078) at 757 in theirs, `total_time` 6 against 5. So
+    // on 2937 theirs' round lands on `0/3` (32 damage, `hits_left` 33)
+    // and ours' is still flying on 2938; on the word 2939 `0/3` walks a
+    // different path and ours' `Unit::fight` draws where theirs does not
+    // (`docs/AI.md` §347).
+    pin_eq!(w.firsts.len(), 1533, "run1352 baseline");
+    // Rounds are in flight on both sides over the window.
+    pin_eq!(w.rounds_read, (306, 278), "the rounds read");
+    pin_eq!(w.rounds.len(), 110, "the rounds that part");
 }
 
 /// run1336c: the long's stride to 2301 again, with `BUILDS=7`, `CITIES=5`
@@ -305,7 +437,11 @@ fn british_industrial_pair_run1336c_s_leaders_stride_is_widened_whole() {
     // `num_queued[81]` 5 against `num_queued[73]` 5, the `MAKE[0..3]`
     // rows and the food, wealth and metal buckets. Both sides agree on
     // 2101; run1336d holds the gap.
-    pin_eq!(w.firsts.len(), 97, "run1336c baseline");
+    //
+    // Item 3678: **97 → 59**, the standing families alone to 2301: the
+    // make list, the queues and the buckets agree on 2201 with the
+    // British AA Gun's discount (`docs/AI.md` §347).
+    pin_eq!(w.firsts.len(), 59, "run1336c baseline");
 }
 
 /// run1336d: the gap 2095..2201 between run1336c's agreeing 2101 and its
@@ -362,7 +498,16 @@ fn british_industrial_pair_run1336d_s_gap_is_widened_whole() {
     // second at 941484. The queues take the pick on 2186 (`1/2013`'s
     // `queue[3]`, `1/2024`'s `queue[0..3]`: 131 against 123), and the
     // buckets follow (`docs/AI.md` §347).
-    pin_eq!(w.firsts.len(), 93, "run1336d baseline");
+    //
+    // Item 3678: **93 → 54**, the standing families alone. The two
+    // offers are the same on both sides: `create_units` offers the
+    // Flamethrower first (1014609, the count cap's tail) and the AA Gun
+    // after it, and `MakeList::make_me` overwrites a beaten head without
+    // shifting it down — so the head is whichever is dearer. The AA Gun
+    // was 941484 here without the British `BRITISH_AA_COST` (its price 79
+    // food and 79 metal, the income factor 206) and is 1028320 with it
+    // (59 and 59, 225), as theirs: the value diff on 2184 is empty.
+    pin_eq!(w.firsts.len(), 54, "run1336d baseline");
     // No round is in flight on either side over the gap.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");

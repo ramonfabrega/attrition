@@ -10622,13 +10622,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The British at a held Industrial age, at difficulty 4** (item
     // 3668): Great Sahara — first try 2382 of 4767 by the count and the
     // sequence, widened on run1336b over 2295..2633 (the word's block
-    // 2383), the rounds compared.
+    // 2383), the rounds compared. Item 3678 moved it to 2939 (the British
+    // AA Gun's `BRITISH_AA_COST`), widened on run1352 over 2933..3190 (the
+    // word's block 2940), the rounds compared.
     (
         "BRITISH_INDUSTRIAL_PAIR_WORD",
         crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL_PAIR_WORD,
-        Some("british_industrial_pair_run1336b_s_word_frame_is_widened_whole"),
-        3668,
-        Some(crate::diff::british_industrial_pair::WIDENING_BRITISH_INDUSTRIAL_FRAME_2382),
+        Some("british_industrial_pair_run1352_s_word_frame_is_widened_whole"),
+        3678,
+        Some(crate::diff::british_industrial_pair::WIDENING_BRITISH_INDUSTRIAL_FRAME_2939),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12753,7 +12755,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
     // first try 2382 of a game that ends itself on 4767, widened on
-    // run1336b.
+    // run1336b; 2939 since item 3678, widened on run1352.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaBritishIndustrial",
@@ -12761,7 +12763,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::british_industrial_pair::BRITISH_INDUSTRIAL_PAIR_WORD,
         length: 4_767,
         endpoint: None,
-        window: Some("british_industrial_frame_2382_window"),
+        window: Some("british_industrial_frame_2939_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
