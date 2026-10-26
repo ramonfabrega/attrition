@@ -39,8 +39,15 @@ pub(crate) const SPANISH_GUNPOWDER: Pair = Pair {
     // Arquebusiers ashore on 2163 and the emptied boat dies (§335.1). On
     // 3866 both sides spend 11 draws and part at index 0: ours `Guy::
     // set_anim+0x97a < Guy::inc_time+0x271`, theirs `Ammo::init+0xcd9`.
-    count: 3877,
-    sequence: 3866,
+    // Item 3642: 3866 → **3876** by both — a computer's raiding ship
+    // zeroes a building only when it is a dock (`compare_target`'s
+    // vslot `+0x108` is `is_dock`), so the Frigate `1/29` takes the
+    // human's Farm `0/2004` on 3859 and fires with theirs (§335.2). On
+    // 3876 ours spends 8 draws against 7, parting at index 4: ours
+    // `Object::take_damage+0xe1` (its round lands on the Farm), theirs
+    // `Farms::inc_time+0x1ae` (its round lands on 3877).
+    count: 3876,
+    sequence: 3876,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -388,7 +395,15 @@ fn spanish_gunpowder_pair_run1303_s_gap_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 110, "run1303 baseline");
+    // Item 3642, on the tree that weighs the Farm: 89 keys, every one
+    // standing — block 3795's `form` on 30 units, who=1's groups' `held`
+    // and pools, `SITE[i].reg` and who=0's `aggression[1]`, and `form` on
+    // the birth `1/100` (3814). Before the build, 110: **the state parted
+    // on 3859**, `1/29`'s `orders.len` ours 0 against 1 — on its first
+    // idle frame after its `ATTACKTOORDER` ends on 3858 (both sides),
+    // theirs' search takes the Farm `0/2004` and ours' weighed it at 0
+    // (`docs/AI.md` §335.2).
+    pin_eq!(w.firsts.len(), 89, "run1303 baseline");
 }
 
 /// run1301b: the word 3866's window, blocks 3861..4117 at run1287b's
@@ -453,5 +468,13 @@ fn spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole() {
     // undumped. The word 3866: 11 draws each, parting at index 0, ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Ammo::init+0xcd9` — a round theirs fires (`docs/AI.md` §335.1).
-    pin_eq!(w.firsts.len(), 738, "run1301b baseline");
+    // Item 3642: 738 → 102. The Frigate attacks the Farm on both sides
+    // from 3859 (run1303) and the first row past the standing families
+    // is block 3877, the word 3876's: the Farm `0/2004`'s `damage` ours
+    // 9 against 0, who=0's city `0/2000`'s raid flags and `raid_stamp`
+    // 3876, and both leaders' `treaties`. Ours' round lands a frame
+    // early: launched from the ship's centre (1896, 5352) for 11 frames,
+    // where theirs' broadside leaves (1809, 5233) for 12 (`docs/AI.md`
+    // §335.2; this walk compares no `AMMO` record).
+    pin_eq!(w.firsts.len(), 102, "run1301b baseline");
 }

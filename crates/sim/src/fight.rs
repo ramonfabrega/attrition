@@ -5017,11 +5017,19 @@ impl Sim {
         // `bVar3 && bVar16`, the raid stance on an AI-driven unit
         // (`unit_masks & 0x40000`) of the sea domain, returns 0 when the
         // ship fires on the move (`unit_flags & 0x200000`, `v`), and
-        // otherwise when the target's type `is_build_type` (every
-        // building's, `0x19e..0x21e`) and the ship lacks SIEGE. A zero
-        // is never taken (`find_nearby_target`'s `local_70 < score`, from
-        // 0), though `near_o` is already written. run810's packet: the
-        // Aegis Cruiser `1/113` returns 0 at `64e7e5` for `0/2000`.
+        // otherwise when the target is a **dock** and the ship lacks
+        // SIEGE. A zero is never taken (`find_nearby_target`'s `local_70
+        // < score`, from 0), though `near_o` is already written. run810's
+        // packet: the Aegis Cruiser `1/113` returns 0 at `64e7e5` for
+        // `0/2000`.
+        //
+        // **The second test is `is_dock`, not `is_build_type`** (item
+        // 3642, `docs/AI.md` §335.2): `64e7ff`–`64e804` call vslot
+        // `+0x108` on the target's type (`+0x18`), which the PDB's
+        // `ObjectTypeData` field list names `is_dock` (`is_build_type` is
+        // `TypeData`'s `+0x14`), and `BuildTypeData::is_dock@00472a70` is
+        // `is(DOCK, 0)`. run1303: the computer's raiding Frigate `1/29`
+        // takes the human's Farm `0/2004` on its first idle frame, 3859.
         if let Obj::Unit(i) = attacker
             && let Obj::Building(b) = target
             && self.units[i].combat.stance == Stance::Raid
@@ -5029,7 +5037,11 @@ impl Sim {
             && matches!(ap.domain, Domain::Sea)
             && self.buildings[b].index < crate::WALL_BASE
             && self.buildings[b].active
-            && (self.fires_on_move(i) || !ap.has(mask::SIEGE))
+            && (self.fires_on_move(i)
+                || (self.buildings[b]
+                    .ty
+                    .is_some_and(|t| crate::build::is_dock(&self.build_types, t))
+                    && !ap.has(mask::SIEGE)))
         {
             return 0;
         }
@@ -7741,7 +7753,12 @@ mod tests {
 
     #[test]
     fn a_computer_s_raiding_ship_weighs_a_finished_building_at_zero() {
-        let weigh = |human: bool, raid: bool, siege: bool, on_move: bool, active: bool| {
+        let weigh_at = |human: bool,
+                        raid: bool,
+                        siege: bool,
+                        on_move: bool,
+                        active: bool,
+                        ident: Option<crate::build::Ident>| {
             let (mut sim, ty) = at_war();
             sim.nation[0].human = human;
             let mut at = sim.unit_types[ty].clone();
@@ -7764,11 +7781,24 @@ mod tests {
                 y_size: 2,
                 ..Profile::default()
             });
+            if let Some(ident) = ident {
+                let bt = sim.add_build_type(crate::build::BuildType {
+                    ident,
+                    x_size: 2,
+                    y_size: 2,
+                    ..crate::build::BuildType::default()
+                });
+                sim.buildings[b].ty = Some(bt);
+            }
             let me = put(&mut sim, 0, at, Pos::new(3600, 3000));
             if raid {
                 sim.units[me].combat.stance = Stance::Raid;
             }
             sim.compare_target(Obj::Unit(me), Obj::Building(b), true, false)
+        };
+        let dock = Some(crate::build::Ident::Dock);
+        let weigh = |human, raid, siege, on_move, active| {
+            weigh_at(human, raid, siege, on_move, active, dock)
         };
         assert_eq!(weigh(false, true, false, false, true), 0, "the cruiser");
         assert_eq!(weigh(false, true, true, true, true), 0, "fires on the move");
@@ -7776,6 +7806,19 @@ mod tests {
         assert!(weigh(false, false, false, false, true) > 0, "not raiding");
         assert!(weigh(false, true, true, false, true) > 0, "a SIEGE ship");
         assert!(weigh(false, true, false, false, false) > 0, "unfinished");
+        // **Item 3642: the second test is `is_dock`.** run1303's raiding
+        // Frigate `1/29` takes the human's Farm `0/2004`; a ship that
+        // fires on the move still leaves any building alone.
+        let farm = Some(crate::build::Ident::Farm);
+        assert!(
+            weigh_at(false, true, false, false, true, farm) > 0,
+            "the Frigate at a Farm"
+        );
+        assert_eq!(
+            weigh_at(false, true, false, true, true, farm),
+            0,
+            "a Farm, firing on the move"
+        );
     }
 
     /// **An idle captain off the search's phase takes its cached nearest**

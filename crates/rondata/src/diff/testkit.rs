@@ -7289,6 +7289,13 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3642: run1301b, the Spanish Gunpowder word 3876's window,
+    // 3861..4117: the raiding Frigate `1/29`'s rounds at the human's Farm
+    // `0/2004` read 2 inexact corners.
+    (
+        "spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole",
+        2,
+    ),
     // Item 3633: the Roman Medieval pair, walked from run1274 along
     // run1275 to its new word 5971, reads 27 inexact corners.
     ("roman_medieval_pair_first_parting", 27),
@@ -10421,12 +10428,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // first try 2168 of 6128 by the count and the sequence, widened on
     // run1287b over 2163..2419 (the word's block 2169). Item 3640 moved it
     // to 3866 (the sequence), widened on run1301b over 3861..4117 (the
-    // word's block 3867).
+    // word's block 3867). Item 3642 moved it to 3876, inside the same
+    // window (the word's block 3877).
     (
         "SPANISH_GUNPOWDER_PAIR_WORD",
         crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER_PAIR_WORD,
         Some("spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole"),
-        3640,
+        3642,
         Some(crate::diff::spanish_gunpowder_pair::WIDENING_SPANISH_GUNPOWDER_FRAME_3866),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
@@ -12390,7 +12398,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Spanish at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3627): first try 2168 of a
     // game that ends itself on 6128, widened on run1287b; 3866 since item
-    // 3640, widened on run1301b.
+    // 3640, widened on run1301b; 3876 since item 3642, the same window.
     AiWord {
         line: "Late ages",
         map: "EastIndiesSpanishGunpowder",
