@@ -4369,9 +4369,6 @@ impl Sim {
         };
         let flags = self.melee_search_flags_with(i, word);
         let found = self.find_nearby_target_as(me, radius, flags, cavarch);
-        if self.probe_3642(i) {
-            eprintln!("P3642 melee f{} range {range} radius {radius} flags {flags:#x} found {found:?}", self.frame);
-        }
         if found.is_none() && self.fires_on_move(i) {
             let n = self.units[i].guys.len().min(crate::anim::SQUAD_SIZE);
             for g in 0..n {
@@ -4656,22 +4653,6 @@ impl Sim {
                         )
                         .collect();
                     for o in here {
-                        let probe = matches!(attacker, Obj::Unit(i) if self.probe_3642(i))
-                            && matches!(o, Obj::Building(_));
-                        if probe {
-                            eprintln!(
-                                "P3642 cand {o:?} owner {} pos {:?} valid {} admits {} dist {}",
-                                self.owner_of(o), self.pos_of(o), self.valid_target(attacker, o),
-                                self.search_admits(o, flags), self.attack_dist(attacker, o)
-                            );
-                            if let Obj::Unit(i) = attacker {
-                                eprintln!(
-                                    "P3642   reaches {} poor {} in_range {} must_reach {must_reach} max_dist {max_dist}",
-                                    self.check_target_reaches(i, o, duty), self.poor_target(attacker, o),
-                                    self.is_in_range(attacker, o)
-                                );
-                            }
-                        }
                         if !self.valid_target(attacker, o) {
                             continue;
                         }
