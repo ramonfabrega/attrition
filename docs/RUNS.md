@@ -28607,3 +28607,45 @@ SHA-256 `4dca1a5238163778605e82bb77358e85e53aad5c189ed9aa375c61997cbc862a`.
 **What it holds**: `chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole` (256 blocks, 4356 keys). Its first
 block 5190 already parts at the human's Citizen `0/10`, wounded on 5132 in theirs and 5133 in ours (run1283b's
 5133), and at who=1's `1/39`'s aim.
+
+## run1301 — the Spanish at a held Gunpowder age, East Indies: the gap 2102..2162, blocks 2095..2170 (2026-10-25, item 3640, `att-3640`)
+
+`docs/AI.md` §335.1. **What the disk could not answer**: theirs' side of 2102..2162, where ours casts the Transport
+Galleon `1/68`. run1287's stride prints units on 2101 and 2201 only, and run1287b starts on 2163.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1301 --map 18 --end-frame 2170 --allow-early-end
+--timeout 3600 --log-window 2095 2170 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9
+--cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 20:50:02, exited 20:50:56 (53.6 s launch to exit). `success`: 2171 frames, closing frame
+  2171. `rngcmp.py` against run1287: 2171 of 2171 identical. Filed with `filerun.py run1301
+  eastindies-spanish-gunpowder-window-2095-2170 --map 18`. `df -g ~` read 98 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1301-eastindies-spanish-gunpowder-window-2095-2170.txt`, 149,834,601 bytes,
+SHA-256 `833d06027d963a56a7d51b799c7eb63744c5eca764fd87c4e7de7c6497c68637`.
+
+Archive `rontrace-run1301.log`, 46,312,416 bytes,
+SHA-256 `b8f4707e27fd800c2ec8df063d709da4f2034fb1a1c17ff75a1a273e4e4384ae`.
+
+**What it holds**: `spanish_gunpowder_pair_run1301_s_gap_is_widened_whole` (75 blocks, 76 keys, all standing, on the
+tree that ejects). Theirs casts the same Galleon `1/68` on 2152, loads `1/48`–`1/50`, and stands it at (41928, 36168)
+with no order on 2162, as ours. On 2163 theirs puts the three ashore and `1/68` dies.
+
+## run1301b — the Spanish at a held Gunpowder age, East Indies: the word 3866's window, blocks 3861..4117 (2026-10-25, item 3640, `att-3640`)
+
+`docs/AI.md` §335.1. **What the disk could not answer**: every record on the new word's frame 3866. run1287's stride
+prints units on 3801 and 3901 only. The line is run1301's with `--end-frame 4117 --log-window 3861 4117`.
+- Pool lane 1. Launched 20:55:07, exited 20:55:51 (44.4 s launch to exit). `success`: 4118 frames, closing frame
+  4118. `rngcmp.py` against run1287: 4118 of 4118 identical. Filed with `filerun.py run1301b
+  eastindies-spanish-gunpowder-window-3861-4117 --map 18`. `df -g ~` read 97 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1301b-eastindies-spanish-gunpowder-window-3861-4117.txt`, 546,394,737 bytes,
+SHA-256 `4adb3f8a7513176c356e5c1047bb873c338e25fa84729e9c39a4d1654e5543e9`.
+
+Archive `rontrace-run1301b.log`, 192,131,904 bytes,
+SHA-256 `1fa05b94eeada46394707059c93af9d929a1cbf92b8c53746421ee07a79e0f90`.
+
+**What it holds**: `spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole` (256 blocks, 738 keys). On its
+first block 3861 who=1's Frigate `1/29` (TI 343) holds an `ATTACKORDER` on the human's `0/2004` in theirs and no order
+in ours. 3802..3860 is undumped.
