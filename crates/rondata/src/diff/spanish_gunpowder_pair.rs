@@ -343,6 +343,54 @@ fn spanish_gunpowder_pair_run1301_s_gap_is_widened_whole() {
     pin_eq!(w.firsts.len(), 76, "run1301 baseline");
 }
 
+/// run1303: the gap 3802..3860 that the long's stride does not print, at
+/// run1287b's detail (item 3642) — six blocks before the stride's block
+/// 3801 and through the word 3866.
+pub(crate) const RUN1303: &str =
+    "gamelog-run1303-eastindies-spanish-gunpowder-window-3795-3866.txt";
+
+/// The window: block 3795 through 3866.
+pub(crate) const WIDENING_SPANISH_GUNPOWDER_GAP_3866: (i64, i64) = (3795, 3866);
+
+/// **The second gap's window**: run1303 walked from run1286's start with
+/// the recorder on (item 3642).
+pub(crate) fn spanish_gunpowder_gap_3866_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_GUNPOWDER.start],
+        true,
+        SPANISH_GUNPOWDER.long,
+        "run1303",
+        &[(RUN1303, WIDENING_SPANISH_GUNPOWDER_GAP_3866.0)],
+        WIDENING_SPANISH_GUNPOWDER_GAP_3866,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn spanish_gunpowder_pair_run1303_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_gunpowder_gap_3866_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 71, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 110, "run1303 baseline");
+}
+
 /// run1301b: the word 3866's window, blocks 3861..4117 at run1287b's
 /// detail — six blocks before the word's block 3867 and 250 after (item
 /// 3640); the stride's blocks are 3801 and 3901.
