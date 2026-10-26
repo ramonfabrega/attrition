@@ -29668,3 +29668,42 @@ SHA-256 `ac32a460cc38f6b70c48350e75eb249a7d46472484bbfda6b26a6ce4441f1864`.
 blocks, 8523 keys, rounds 520 theirs against 699 ours, 114 parting). The first parting round is on 10931: who=1's
 Javelineers `1/312` (TY 83) throws at the Citizen `0/12` from (5054, 31417) at `sz` 669 in theirs and from the
 figure's square (5064, 31368) at 499 in ours; the records first part on 10939.
+
+## run1327 — the Persians at a held Classical age, Great Lakes: a packet at logger frame 10930, pieces 1793, 1881, 113 and 1975 (2026-10-26, item 3663, `att-3663`)
+
+`docs/AI.md` §343. **What the disk could not answer**: the Persian Javelineers' release nodes. Their piece, 1793
+(`33 + 5 × 0x160`), is loaded with no `AttachPos` rows in run1007b's packet, the one other packet that loads it at
+all; every other packet on disk refuses `entries 1793`. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1327 --map 14 --end-frame 10932 --timeout 3600 --log-window 10929 10931 --detail
+end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 23 --cover cover=0 --profile STARTING_TECHNOLOGY=1 --profile
+ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=10930
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 12:49:05, exited 12:49:58 (53.3 s). `success`, 10933 frames. `rngcmp.py`
+  against run1318: 10933 of 10933 identical. Not filed: the packet is the product. `df -g ~` read 61 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1327/map-14/frame-snapshot.bin`, 858,807,596 bytes,
+SHA-256 `3ac81b8c0c375927fb63cad84a702fd679df3d74ef7f5d8778428f02186ef178`.
+
+**What it holds**: `get_position.py … entries`: piece 1793, three node-0 rows on piece 33's keys (`y` 8.12
+further forward); piece 1881 (the Persian Archers), three attack rows on piece 121's keys and one at
+`(anim 4, time 34)`; piece 113 (the Anusiya), two rows, frames 14 and 6 of `CHAR_ATTACK2` and `3`; piece 1975 (the
+Persian Catapult), one row, frame 12 of `CHAR_ATTACK2`. All four at `RData +0x88` 1.0. The sweeps are under
+`~/ron-data/lab-experiments/2026-10-26-item-3663/`.
+
+## run1327b — the Persians at a held Classical age, Great Lakes: the closing window, blocks 11378..11634 (2026-10-26, item 3663, `att-3663`)
+
+`docs/AI.md` §343. **What the disk could not answer**: the word moved to the game's end, 11633, and no window held
+blocks past 11188 at the pair's detail. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1327b --map 14
+--end-frame 11633 --allow-early-end --timeout 3600 --log-window 11378 11634 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0` and run1317's lobby.
+- Pool lane 1, seed 12345. Launched 13:05:31, exited 13:06:52 (81.6 s). `success`, closing frame 11634. `rngcmp.py`
+  against run1318: 11634 of 11634 identical. Filed with `filerun.py run1327b
+  greatlakes-persian-classical-window-11378-11634`. `df -g ~` read 60 GiB free before it.
+- Minutes waited on another lane: none.
+
+**What it holds**: `persian_classical_pair_run1327b_s_closing_window_is_widened_whole` walks it from run1317 (256
+blocks). With pieces 1793's and 1881's bays alone: 65 keys, rounds 1278 theirs against 1310 ours, 254 parting —
+the Anusiya's arrows and the Persian Catapults' stones from the figure's own point. With pieces 113's and 1975's:
+59 keys (the standing families and three idle guards' `dest_angle`, parked 3663a), rounds 1278 a side, 24 parting.
