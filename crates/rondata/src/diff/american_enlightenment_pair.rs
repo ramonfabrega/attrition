@@ -32,12 +32,13 @@ pub(crate) const AMERICAN_ENLIGHTENMENT: Pair = Pair {
     ),
     // The game ended itself on 6669 (closing block 6670).
     length: 6669,
-    // Item 3650, first try: frame 3215, by the count and the sequence —
-    // ours 15 draws against 16, parting at index 9, ours
-    // `Guy::set_anim+0x104b`, theirs
-    // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §341).
-    count: 3215,
-    sequence: 3215,
+    // Item 3650, first try: frame 3215 — ours 15 draws against 16 at
+    // index 9 (`docs/AI.md` §341). Item 3661, 3215 → 5583: the marines
+    // dig in (`check_idle`'s trench), and their boat takes its hits and
+    // speed; on 5583 ours spends 11 draws against 12, parting at index 6,
+    // ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1`.
+    count: 5583,
+    sequence: 5583,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -180,7 +181,7 @@ fn american_enlightenment_pair_the_long_s_stride_walks_back_from_3215() {
     // 3183 with the Marines `1/29` (TY 69, TI 119) inside: `myhits` and
     // `hits_left` ours 90 theirs 160, `myspeed` 25 against 31, `pos`
     // (35137, 43021) against (34971, 43021) (`docs/AI.md` §341).
-    pin_eq!(w.firsts.len(), 135, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 127, "the stride's baseline");
 }
 
 /// run1314b: the word 3215's window, blocks 3209..3465 at the long's
@@ -249,11 +250,69 @@ fn american_enlightenment_pair_run1314b_s_word_frame_is_widened_whole() {
     // against (34536, 43080): the draw on 3215, ours 15 against 16, index
     // 9, ours `Guy::set_anim+0x104b`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271` (`docs/AI.md` §341).
-    pin_eq!(w.firsts.len(), 1911, "run1314b baseline");
+    pin_eq!(w.firsts.len(), 102, "run1314b baseline");
     // Every round, both directions: 9 round-blocks theirs, 18 ours, 3
     // parting — all the Sloop `1/61`'s (TI 327) at the human's `0/2005`:
     // its round's end point on 3240, `ex`/`ey` (4773, 7451) against
     // (4799, 7405), and on 3367 a round this crate holds alone.
-    pin_eq!(w.rounds_read, (9, 18), "the rounds read");
-    pin_eq!(w.rounds.len(), 3, "the rounds that part");
+    pin_eq!(w.rounds_read, (9, 9), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1325: blocks 3178..3434 with the figures' clocks (`GUYS=4`), taken by
+/// item 3661 because no dump on disk printed a figure's `cur_anim` or
+/// `cur_time` before the word 3215: theirs' extra draw on 3215 is the
+/// Marines `1/55`'s (TI 119) seventy-frame idle wrapping, and the record
+/// that says why is `unit_masks` `0x2000000` with `unit_masks2` `0x20800` —
+/// the marines in their own trench (`docs/AI.md` §341).
+pub(crate) const RUN1325: &str =
+    "gamelog-run1325-eastindies-american-enlightenment-window-3178-3434.txt";
+
+/// The window: block 3178 through 3434, six before 1/47's arrival block
+/// 3184 and 250 after it.
+pub(crate) const WIDENING_AMERICAN_ENLIGHTENMENT_CLOCKS: (i64, i64) = (3178, 3434);
+
+/// **The figures' clocks over the old word**: run1325 walked from run1313's
+/// start, every round compared (item 3661).
+pub(crate) fn american_enlightenment_clocks_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[AMERICAN_ENLIGHTENMENT.start],
+        true,
+        AMERICAN_ENLIGHTENMENT.long,
+        "run1325",
+        &[(RUN1325, WIDENING_AMERICAN_ENLIGHTENMENT_CLOCKS.0)],
+        WIDENING_AMERICAN_ENLIGHTENMENT_CLOCKS,
+        1,
+        &[3216],
+        true,
+    )
+}
+
+#[test]
+fn american_enlightenment_pair_run1325_s_clocks_are_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_enlightenment_clocks_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        Vec::<String>::new(),
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3661, with the marines' trench and their boat built: 124 keys,
+    // the standing families (`SITE[*].reg`, `form`, who=1's groups and
+    // pools) and what follows the old word; unread by the draft — the
+    // next session's first job (journal 2026-10-26, item 3661).
+    pin_eq!(w.firsts.len(), 124, "run1325 baseline");
+    pin_eq!(w.rounds_read, (9, 9), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
