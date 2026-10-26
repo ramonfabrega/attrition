@@ -29748,3 +29748,69 @@ end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 23 --cover
 blocks). With pieces 1793's and 1881's bays alone: 65 keys, rounds 1278 theirs against 1310 ours, 254 parting —
 the Anusiya's arrows and the Persian Catapults' stones from the figure's own point. With pieces 113's and 1975's:
 59 keys (the standing families and three idle guards' `dest_angle`, parked 3663a), rounds 1278 a side, 24 parting.
+
+## run1330 — the Koreans at a held Medieval age, Great Lakes: the `DUMP_ALL` start (2026-10-26, item 3665, `att-3665`)
+
+`docs/AI.md` §345. run1317's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1330 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 16 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 13:59:20, exited 13:59:45 (24.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 16, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1330 greatlakes-korean-medieval-start`. `df -g ~` read 55 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1330-greatlakes-korean-medieval-start.txt`, 151,163,134 bytes,
+SHA-256 `ee358a04ad02e9c4825d41f0a971d6bd4cad7f4d8bdd8973ed261a0d166aca16`.
+
+Archive `rontrace-run1330.log`, 8,996,640 bytes,
+SHA-256 `770e15fb69b167196b2a3cda3e0cc699367586e82daf4dceb11647a34005baf4`.
+
+**What it holds**: the start of `korean_medieval_pair::KOREAN_MEDIEVAL`, and the walk's initial state.
+
+## run1331 — the Koreans at a held Medieval age, Great Lakes: the draw stream to the game's end (2026-10-26, item 3665, `att-3665`)
+
+`docs/AI.md` §345. run1312's line on `--map 14` with `--ai-tribe 16` and run1330's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 16 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1330. Launched 13:59:24, exited 13:59:51 (26.3 s launch to exit). `success`. **The game
+  ended itself on 4559** (closing block 4560, `ended_early`). `GAME INFO` reads back as run1330's. `rngcmp.py`
+  against run1330: 37 frames identical. Filed with `filerun.py run1331 greatlakes-korean-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1331-greatlakes-korean-medieval-trace.txt`, 28,420,404 bytes,
+SHA-256 `87ca2ed6f7512d8f2a0a53c3b474b1e0c52cc76f1ad7ba702fd72f347019ea7f`.
+
+Archive `rontrace-run1331.log`, 99,841,792 bytes,
+SHA-256 `606ee4b51b73003c32dddeea9c04d7a880eb8155de426e4175c2e323b0741d16`.
+
+**What it holds**: the pair's first try. `korean_medieval_pair_first_parting` walks it from run1330: **3401 of 4559**
+by the count and the sequence (ours 18 draws against 16, index 0).
+`korean_medieval_pair_the_long_s_stride_walks_back_from_3401` walks its stride 101..3301: 33 blocks, 108 keys, the
+standing families alone.
+
+## run1331b — the Koreans at a held Medieval age, Great Lakes: the word 3401's window, blocks 3295..3652 (2026-10-26, item 3665, `att-3665`)
+
+`docs/AI.md` §345. **What the disk could not answer**: every record between the stride's last block 3301 and the
+word, and every round — run1331's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1331b --map 14 --end-frame 3652 --allow-early-end --timeout 3600
+--log-window 3295 3652 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 16 --cover
+cover=0` and run1330's lobby: six blocks before the stride's 3301, and 250 after the word's block 3402.
+- Pool lane 1. Launched 14:02:08, exited 14:03:09 (61.1 s launch to exit). `success`: 3653 frames. `rngcmp.py`
+  against run1331: 3653 of 3653 identical. Filed with `filerun.py run1331b
+  greatlakes-korean-medieval-window-3295-3652`. `df -g ~` read 52 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1331b-greatlakes-korean-medieval-window-3295-3652.txt`, 760,066,335 bytes,
+SHA-256 `71141c9b5029c51a60c292d26b34d7bdebe34ee3f666a270b103463df7309acb`.
+
+Archive `rontrace-run1331b.log`, 71,117,248 bytes,
+SHA-256 `fc3d9b83b2121f773d7e3a6ae430109adba454f068fed3817b27e59538064693`.
+
+**What it holds**: `korean_medieval_pair_run1331b_s_word_frame_is_widened_whole` walks it from run1330 (357 blocks,
+4369 keys, rounds 2152 theirs against 1975 ours, 298 parting by slot). The first launch that parts is on 3354:
+who=1's Elite Javelineers `1/47` (TY 84) throws at the Citizen `0/13` from (6934, 30317) at `sz` 436 in theirs and
+from the figure's square (6984, 30312) at 266 in ours; the records first part on 3367.

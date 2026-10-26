@@ -1528,15 +1528,17 @@ pub(crate) fn debug_ammo(built: &Built, frame: i64) {
             sim::combat::Obj::Building(_) => None,
         });
         eprintln!(
-            "  f{frame} ammo #{} {} -> {:?} at {:?} launch ({},{}) land ({},{}) t{}/{} acc {} roll {} missed {} angle {}",
+            "  f{frame} ammo #{} {} -> {:?} at {:?} launch ({},{},{}) land ({},{},{}) t{}/{} acc {} roll {} missed {} angle {}",
             p.slot,
             name(p.shooter),
             p.target.map(name),
             tpos.map(|q| (q.x, q.y)),
             p.launch.x,
             p.launch.y,
+            p.sz,
             p.landing.x,
             p.landing.y,
+            p.ez,
             p.cur_time,
             p.total_time,
             p.accuracy,

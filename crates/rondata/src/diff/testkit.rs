@@ -10586,6 +10586,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3663,
         Some(crate::diff::persian_classical_pair::WIDENING_PERSIAN_CLASSICAL_FRAME_11633),
     ),
+    // **The Koreans at a held Medieval age** (item 3665): Great Lakes —
+    // first try 3401 of 4559 by the count and the sequence, widened on
+    // run1331b over 3295..3652 (the word's block 3402), the rounds
+    // compared.
+    (
+        "KOREAN_MEDIEVAL_PAIR_WORD",
+        crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL_PAIR_WORD,
+        Some("korean_medieval_pair_run1331b_s_word_frame_is_widened_whole"),
+        3665,
+        Some(crate::diff::korean_medieval_pair::WIDENING_KOREAN_MEDIEVAL_FRAME_3401),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12669,6 +12680,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 11_633,
         endpoint: Some("persian_classical_pair_run1318_s_closing_state"),
         window: Some("persian_classical_frame_11633_window"),
+    },
+    // The Koreans at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), Great Lakes (item 3665): first try 3401 of a
+    // game that ends itself on 4559, widened on run1331b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesKoreanMedieval",
+        named: "Great Lakes (Koreans, Medieval)",
+        word: crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL_PAIR_WORD,
+        length: 4_559,
+        endpoint: None,
+        window: Some("korean_medieval_frame_3401_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

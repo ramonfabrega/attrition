@@ -32038,12 +32038,73 @@ never touch adjacent lines (parked 1741): the booking assigns it by number
 in the queue's own words and edits nothing here; the item's worker renames
 the heading and writes the section.
 
-## 345. Reserved for the next item on the AI track
+## 345. The Koreans at a held Medieval age, Great Lakes: first try 3401 of 4559 (item 3665)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
+the Koreans (16) at Toughest (5), seed 12345, `STARTING_RESOURCES 7`,
+the age held at Medieval (`STARTING_TECHNOLOGY 2`, `ENDING_TECHNOLOGY
+2`), both takes read back by `Pair::assert_lobby`. The triple `(14, 16,
+5)` is new: the other Korean lobbies are the Ancient-start pair's `(18,
+16, 5)`, the Classical pair's `(7, 16, 5)` and the held-out
+`GreatSaharaKoreanTier3`'s `(7, 16, 3)`, and the battery fields no
+Koreans (`korean_medieval_pair_is_no_other_lobby`). Captures: run1330
+(the `DUMP_ALL` start), run1331 (the draw stream; the game ended itself
+on 4559) and run1331b (the word's window, 3295..3652). The pair is
+`rondata::diff::korean_medieval_pair`.
+
+**The score.** First try **3401 of 4559**, by the count and the
+sequence: on 3401 ours spends 18 draws against theirs' 16, parting at
+index 0 — ours `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
+Unit::move_step+0x3b6` where theirs spends `Guy::set_anim+0x97a <
+Unit::move_step+0x823`; the walk's `anim` row on 3401 is `1/47`'s, ours
+turning (8 → 7) where theirs' figure is in its throw.
+
+**The value diff, walked back.** The stride (run1331, 101..3301, 33
+blocks, 108 keys) parts on the standing families alone. run1331b's
+records part first on 3367; its rounds, compared as a set per block
+with theirs' spent arrows set aside, part first on 3354.
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3354 | Elite Javelineers `1/47`'s round | `sx`, `sy`, `sz` | (6984, 30312), 266 | (6934, 30317), 436 |
+| 3354 | the same | `total_time`, `ex`, `ey` | 15, 5499, 30102 | 14, 5516, 30119 |
+| 3367 | the Citizen `0/13` | `hits:damage`, `hits_left` | 33, 17 | 35, 15 |
+| 3367 | `0/2000` | `city:raid_stamp` | 3365 | 3366 |
+| 3401 | the draw stream, index 0 | site | `Guy::do_turn+0x4a < Unit::move_step+0x3b6` | `Unit::move_step+0x823` |
+
+**The direction: theirs' Elite Javelineers throw from a bay off the
+figure; ours from the figure's own square.** who=1's `1/47` (TY 84,
+`Elite Javelineers[PELTASTS]`, by `unitat.py`), in army group 67 with
+three Royal Hwarang, attacks the human's Citizen `0/13` (TY 50). Its
+javelin on 3354 starts in theirs at (−50, +5) off the figure and 170
+above ours' 266 — the javelin bays' height (§343, pieces 34, 1089, 1441
+and 1793). Theirs' javelin lands in 14 frames and strikes `0/13` on 3367,
+a frame before ours'. `1/47`'s throw cycle then runs a frame apart, and
+on 3401 ours turns the figure where theirs does not.
+
+The slot rows the comparator reports from 3351 are theirs' spent arrows
+(COMBAT §46.7): the Royal Hwarang `1/52`'s 3314 arrow, spent on 3331, is
+re-armed in its slot on 3333 as `flags 1`, `whom` −1, `total_time` 20 —
+this crate removes it, so later rounds sit a slot lower. No launch the
+Royal Hwarang make parts before 3354.
+
+**The next item's hypothesis** is the Korean Elite Javelineers' launch
+piece: ours throws as a piece with no `launch::BAYS` row does. The piece
+number is not read here; the recipe is 3663's — a packet on the throw's
+frame (`RON_STATE_FRAME=3353`) and the piece's attack rows off it.
+
+**The rounds**, both directions: run1331b reads 2152 round-blocks theirs
+against 1975 ours, 298 parting (by slot).
+
+**The standing families**: `build:extra` on 56 buildings, `form` on 28
+units, who=1's groups' `held` and pools 64..75, both leaders — as on
+every pair.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **204 of
+302**, unmoved: the pair parts, so it is not lockstep. **`Royal Hwarang`
+(182)**, the booking's line, **is fielded**: 20,106 guy records across
+run1331 and run1331b (`rubric.py --dumps`), the only one of the pair's 19
+types the lockstep ledger has not seen.
 
 ## 346. Reserved for the next item on the AI track
 

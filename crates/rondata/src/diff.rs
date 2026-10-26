@@ -138,6 +138,8 @@ mod korean_ancient_pair;
 #[cfg(test)]
 mod korean_classical_pair;
 #[cfg(test)]
+mod korean_medieval_pair;
+#[cfg(test)]
 mod korean_word;
 #[cfg(test)]
 mod lakota_gunpowder_pair;

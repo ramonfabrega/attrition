@@ -366,6 +366,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatLakesPersianTier2`, `(14, 23, 2)`, another difficulty; the
     // battery fields no Persians.
     (14, 23, 5),
+    // The Koreans at a held Medieval age, Great Lakes (item 3665): not the
+    // Ancient-start pair's `(18, 16, 5)` nor the Classical pair's
+    // `(7, 16, 5)`, another map, nor the held-out `GreatSaharaKoreanTier3`,
+    // `(7, 16, 3)`; the battery fields no Koreans.
+    (14, 16, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

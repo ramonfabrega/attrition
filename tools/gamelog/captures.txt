@@ -10809,3 +10809,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1327  --map 14 --end-frame 10932 --timeout 3600 --log-window 10929 10931 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 23 --cover cover=0 --tracer-def RON_STATE_FRAME=10930 --tracer-def RON_STATE_PLAN=…, run1317's lobby   (a packet: pieces 1793, 1881, 113, 1975)
 #   run1327b --map 14 --end-frame 11633 --allow-early-end --timeout 3600 --log-window 11378 11634 --detail (run1318b's) --ai-tribe 23 --cover cover=0, run1317's lobby   (the closing window)
 # Checks: `rngcmp.py` run1318 vs run1327 -> 10933 identical; run1318 vs run1327b -> 11634 identical.
+# ==== item 3665: the Koreans at a held Medieval age, Great Lakes (`docs/AI.md` §345; `docs/RUNS.md` run1330, run1331, run1331b) ====
+#   run1330  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 16 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1331  run1312's line on --map 14 with --ai-tribe 16 and run1330's lobby   (the draw stream; ended itself on 4559)
+#   run1331b --map 14 --end-frame 3652 --allow-early-end --timeout 3600 --log-window 3295 3652 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 16 --cover cover=0, run1330's lobby   (the word 3401's window)
+# Checks: `rngcmp.py` run1330 vs run1331 -> 37 identical; run1331 vs run1331b -> 3653 identical.
