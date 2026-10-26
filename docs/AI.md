@@ -32153,6 +32153,45 @@ pair: it parts, so it is not lockstep. **`Royal Hwarang`
 run1331 and run1331b (`rubric.py --dumps`), the only one of the pair's 19
 types the lockstep ledger has not seen.
 
+**Item 3666: the word 3401 → 3627 → 4379.** Two builds, each with its
+value diff.
+
+1. **Piece 1090's bays** (`launch::BAYS`): `34 + 3 × 0x160`, the
+   Peltasts in the Asian art style, read off run991d's packet (the
+   Korean Great Sahara game) and fitted at all 361 headings to the
+   regions of piece 1794's rows. `1/47`'s javelin on 3354 now leaves
+   (6934, 30317) at 436 and lands (5516, 30119) in 14 frames, theirs'
+   exactly, and the word goes to **3627**: ours 24 draws against 25 at
+   index 8, theirs `Guy::set_anim+0x97a < Unit::set_anim+0xb6 <
+   Unit::move_step+0x823` — a crew figure's idle roll in the blocked
+   stand of `1/126`, a Heavy Flaming Arrow (TY 230) with two tracked crew.
+2. **`Guy::do_turn`'s crew loop.** run1332a's packet at 3627, under
+   `step4.py` with `1/126`'s guy 2 watched, shows the crew loop write its
+   `des` twice before any `set_anim`: `Unit::set_angle` from the
+   heading, (32169, 21229), and then `Guy::do_turn(guy 0, …)`'s own
+   `Guy::set_angle(guy 0, facing, 0)` (`005d97a0`), from the new facing,
+   (32167, 21225), the figure's body. `do_turn` keeps guy 0's own
+   `des_angle` across the call. The crate wrote only the first, so its
+   guy 2 was off its `des` and skipped the roll. The second write is now
+   in `unit_step` after the facing, from guy 0's point (the body before
+   `Guy::move` steps it). The word goes to **4379**: ours 25 draws
+   against 28, parting at index 3, ours `Guy::set_anim+0x97a <
+   Unit::move_step+0x823`, theirs `Unit::resolve_unit_collision+0xb52`.
+
+| block | record | field | without the crew loop | with it, and theirs |
+|---|---|---|---|---|
+| 3630 | `1/95` | `order:move.pause` | 7 | 5 |
+| 3632 | `1/130` | facing, heading | −945422336 | −707788800 |
+| 3632 | `1/130` | `recharging`, `attack[0].in_range` | 0, 0 | 30, 1 |
+
+run1331b now reads **64 keys**, the standing families alone, and
+its rounds agree as a set on every block (0 of 288; 244 part by slot,
+theirs' spent records). **4379 is past run1331b's last block**, so the
+word's widening is owed (parked 3666). The first draft of the second
+build bound guy 0's point to `from`, shadowing `unit_step`'s own `from`
+(the unit's position, which the arrival reads), and so moved fourteen
+other lobbies' floors. Under another name, every other floor holds.
+
 ## 346. The Germans at a held Industrial age, Great Lakes: first try 4323 of 4772 (item 3667)
 
 **The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
