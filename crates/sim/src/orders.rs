@@ -4362,6 +4362,13 @@ impl Sim {
         })
     }
 
+    pub(crate) fn probe_3642(&self, u: usize) -> bool {
+        std::env::var("RON_PROBE_3642").is_ok()
+            && self.units[u].owner == 1
+            && self.units[u].index == 29
+            && (3858..=3860).contains(&self.frame)
+    }
+
     /// `Unit::check_idle`: 0 → 1 → 2 on consecutive frames, then +1 every
     /// 16 frames phased by `o`, wrapping to 1.
     fn check_idle(&mut self, u: usize, frame: i64) {
@@ -4413,6 +4420,17 @@ impl Sim {
         // its captain is attacking. That is what the golden record's
         // `near_o` witnesses (`docs/COMBAT.md` §18): over 901 frames only
         // `1/6` and `0/6`, the two captains, ever carry one.
+        let probe = self.probe_3642(u);
+        if probe {
+            let packed_think = self.think_attack_packed(u);
+            let un = &self.units[u];
+            let pr = self.profile(Obj::Unit(u));
+            eprintln!(
+                "P3642 think f{} captain {} idle {} cant_reach {} attack {} role {} stance {:?} target {:?} near {:?} packed_think {}",
+                self.frame, un.captain, un.idle, un.cant_reach, pr.attack, pr.combat_role, un.combat.stance, un.combat.target, un.near,
+                packed_think
+            );
+        }
         if !self.units[u].captain {
             self.captain_mirror(u);
             return;
