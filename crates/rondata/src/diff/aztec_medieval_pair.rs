@@ -35,9 +35,13 @@ pub(crate) const AZTEC_MEDIEVAL: Pair = Pair {
     // Item 3647, first try: frame 2556, by the count and the sequence —
     // ours 185 draws against 189, parting at index 180, ours
     // `Unit::close+0xcb6`, theirs `Unit::plunder+0x4e5` (`docs/AI.md`
-    // §338).
-    count: 2556,
-    sequence: 2556,
+    // §338). Item 3657, 2556 -> 2569: `take_damage`'s Aztec slay arm
+    // (`plunder(v, k, who, 1, 0)` for a Stable killer) pays who=1 45
+    // timber on 2556, 12759 on block 2557 on both sides. 2569: ours 6
+    // draws against 8, parting at index 1, ours `Farms::inc_time+0x1ae`,
+    // theirs `Ammo::do_damage+0xc59`.
+    count: 2569,
+    sequence: 2569,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -249,12 +253,19 @@ fn aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole() {
     // `Unit::close+0xcb6`, theirs `Unit::plunder+0x4e5` (`docs/AI.md`
     // §338). Positions part from 2563 (the Citizen `1/1`'s `move.pause`
     // on 2558 first, then group 64's Heavy Horse Archer `1/22`).
-    pin_eq!(w.firsts.len(), 2414, "run1308b baseline");
+    // Item 3657, 2414 -> 69: the slay arm pays the 45 timber and nothing
+    // else parts on 2557. 48 of the 69 are block 2550's standing
+    // families; the first rows past them are the human's building
+    // `0/2000` on 2585 (`build:damage` ours 2 theirs 4, `city:raid_stamp`
+    // ours 2566 theirs 2584), group 66's pool on 2586, and `0/3`'s
+    // wound on 2721 (`hits:damage` 17 against 35).
+    pin_eq!(w.firsts.len(), 69, "run1308b baseline");
     // Every round, both directions: 163 round-blocks theirs, 141 ours. The
     // first to part is `1/29`'s, on the window's first block, at the
     // Citizen `0/13`: ours leaves from (7599, 31648, 659), theirs from
     // (7556, 31716, 901), the same flight time — it kills `0/13` on 2556
     // on both sides. `1/22`'s round launched on 2556 parts the same way.
-    pin_eq!(w.rounds_read, (163, 141), "the rounds read");
-    pin_eq!(w.rounds.len(), 49, "the rounds that part");
+    // Item 3657: ours reads 167 (141 before), 36 parting (49).
+    pin_eq!(w.rounds_read, (163, 167), "the rounds read");
+    pin_eq!(w.rounds.len(), 36, "the rounds that part");
 }

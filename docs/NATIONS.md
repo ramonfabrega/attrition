@@ -145,8 +145,8 @@ left out; a constant with no reader in the export is dead there too.
 <!-- GENERATED:consts1 -->
 | constant | rules | the export reads it in | status | witness |
 |---|---:|---|---|---|
-| `AZTEC_SLAY_BONUS` | 15 | Unit::plunder | not carried | `aztec_slay_bonus` |
-| `AZTEC_SLAY_CAP` | 60 | Unit::plunder | not carried | `aztec_slay_cap` |
+| `AZTEC_SLAY_BONUS` | 15 | Unit::plunder | modelled at plunder.rs | `aztec_slay_bonus` |
+| `AZTEC_SLAY_CAP` | 60 | Unit::plunder | modelled at plunder.rs | `aztec_slay_cap` |
 | `AZTEC_BARRACKS_LIGHT` | 1 | Build::activate | modelled at nations.rs | `aztec_barracks_light` |
 | `AZTEC_MAX_LIGHT` | 3 | Build::activate | modelled at nations.rs | `aztec_max_light` |
 | `AZTEC_PLUNDER` | 100 | Build::plunder, Unit::plunder | modelled at plunder.rs | `aztec_plunder` |
@@ -396,7 +396,7 @@ start builder (`Setup::`), whose state the harness takes from the dump.
 | `Unit::set_new_location@005f8d20` | 18 | carried at collide.rs | `005f8d20` |
 | `Unit::explore_goody@005f9780` | 9 | carried at goody.rs | `005f9780` |
 | `Unit::update_speed@006055c0` | 0 3 10 | carried at rares.rs | `006055c0` |
-| `Unit::plunder@00605b00` | 0 | not modelled | `aztec_slay_bonus` |
+| `Unit::plunder@00605b00` | 0 | modelled at plunder.rs | `aztec_slay_bonus` |
 | `Unit::update_los@0060e4d0` | 8 9 18 | carried at vision.rs | `0060e4d0` |
 | `Unit::update_hits@0060e930` | 4 18 22 | carried at cast.rs | `0060e930` |
 | `Unit::close@0060ee50` | 19 20 | carried at fight.rs | `0060ee50` |

@@ -193,9 +193,10 @@ OVERRIDES = {
     "BuildData::construct_time@0062d5c0": ("modelled at build.rs", "iroquois_quick_senate"),
     "Build::plunder@00623660": ("modelled at city.rs", "russian_plunder_steal"),
     "Leader::lost_a_city@006dc6d0": ("carried at city.rs", "fn lost_a_city"),
-    # The Despot's arm is built (fight.rs, item 3279); the Aztec arms the
-    # census counts (the slay bonus, AZTEC_PLUNDER on a unit) are not.
-    "Unit::plunder@00605b00": ("not modelled", "aztec_slay_bonus"),
+    # The Despot's arm is built (fight.rs, item 3279), and the Aztec slay
+    # arm `take_damage` calls with `param_3 = 1` (item 3657): its pay is read
+    # in plunder.rs's view.
+    "Unit::plunder@00605b00": ("modelled at plunder.rs", "aztec_slay_bonus"),
     # Its Spanish arm is leader state, not the start: `leader_flags |=
     # 0x1000`, which `sees_every_cell` carries (item 3318).
     "Setup::build_empire@005abb80": ("modelled at ai_sites.rs", "sees_every_cell"),

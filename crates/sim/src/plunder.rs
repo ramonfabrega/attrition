@@ -100,7 +100,9 @@ pub trait PlunderView {
     fn has_tribe_bonus(&mut self, who: i32, bonus: i32) -> bool;
     /// The leader's bucket of `good`.
     fn bucket(&mut self, who: i32, good: i32) -> i32;
-    /// The word at bucket `+0xdc` (the Aztec slay count) unscrambled.
+    /// The word at bucket `+0xdc` unscrambled (`^ 0x62766`): the leader's
+    /// `ages` (`LeaderDataEncrypt::walk_data@006d9900`), which the Aztec
+    /// slay pay multiplies as `ages + 1` (item 3657).
     fn slay_count(&mut self, who: i32) -> i32;
     /// The bucket of `good` gains `n`.
     fn add_good(&mut self, who: i32, good: i32, n: i32);
@@ -395,10 +397,10 @@ impl PlunderView for SimPlunder<'_> {
         0
     }
     fn slay_bonus_of_killer(&mut self) -> i32 {
-        0
+        self.sim.tuning.aztec_slay_bonus
     }
     fn aztec_slay_cap(&mut self) -> i32 {
-        0
+        self.sim.tuning.aztec_slay_cap
     }
     fn aztec_plunder(&mut self) -> i32 {
         self.sim.tuning.aztec_plunder
@@ -411,8 +413,14 @@ impl PlunderView for SimPlunder<'_> {
         1
     }
     fn find_hero(&mut self, x: i32, y: i32, who: i32, ty: i32) -> i32 {
+        // A found hero is an index, none is −1 (item 3657: the steps'
+        // own Despot search, reached first by the Aztec slay arm's `p4 = 0`).
         let at = crate::world::Pos { x, y };
-        i32::from(!self.sim.hero_near(who as crate::Player, ty, at, 0)) - 1
+        if self.sim.hero_near(who as crate::Player, ty, at, 0) {
+            0
+        } else {
+            -1
+        }
     }
     fn type_avail(&mut self, who: i32, good: i32) -> bool {
         self.sim.holdings[who as usize].available[good as usize]
@@ -423,8 +431,8 @@ impl PlunderView for SimPlunder<'_> {
     fn bucket(&mut self, who: i32, good: i32) -> i32 {
         self.sim.ledgers[who as usize].bucket[good as usize]
     }
-    fn slay_count(&mut self, _who: i32) -> i32 {
-        0
+    fn slay_count(&mut self, who: i32) -> i32 {
+        self.sim.tech[who as usize].ages
     }
     fn add_good(&mut self, who: i32, good: i32, n: i32) {
         let b = &mut self.sim.ledgers[who as usize].bucket[good as usize];

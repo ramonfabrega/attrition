@@ -10507,12 +10507,13 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Aztecs at a held Medieval age** (item 3647): Great Sahara —
     // first try 2556 of 4602 by the count and the sequence, widened on
     // run1308b over 2550..2806 (the word's block 2557), the rounds
-    // compared.
+    // compared. Item 3657 moves it to 2569, inside the same window: the
+    // widening holds the new word's frame.
     (
         "AZTEC_MEDIEVAL_PAIR_WORD",
         crate::diff::aztec_medieval_pair::AZTEC_MEDIEVAL_PAIR_WORD,
         Some("aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole"),
-        3647,
+        3657,
         Some(crate::diff::aztec_medieval_pair::WIDENING_AZTEC_MEDIEVAL_FRAME_2556),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
@@ -12520,7 +12521,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Aztecs at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3647): first try 2556 of a
-    // game that ends itself on 4602, widened on run1308b.
+    // game that ends itself on 4602, widened on run1308b; 2569 (item 3657).
     AiWord {
         line: "Late ages",
         map: "GreatSaharaAztecMedieval",

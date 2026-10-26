@@ -31284,7 +31284,7 @@ nothing in the closing state: the rounds that reach `0/0` and `0/3` are the othe
 
 **The rubric**: unit types seen **197 → 198** on the tree holding item 3654's merge (which took 196 → 197), `Okwari` (81, 348 figure rows).
 
-## 338. The Aztecs at a held Medieval age, Great Sahara: first try 2556 of 4602 (item 3647)
+## 338. The Aztecs at a held Medieval age, Great Sahara: first try 2556 of 4602, the slay arm 2569 (items 3647, 3657)
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Bantu
 Medieval pair's lobby (§332) with the nation moved: Great Sahara,
@@ -31354,9 +31354,40 @@ another Heavy Horse Archer of group 64, fires on 2556 and its round parts
 the same way. The Heavy Horse Archer's launch point parks as 3647a; it
 does not move the word.
 
-**What is not established.** The killer type predicate's field
-(`+0x40`) and its value for TypeIndex 188; who writes the Aztec slay
-count; and where a Heavy Horse Archer's round leaves from (3647a).
+**Built: the slay arm pays by the age (item 3657), 2556 → 2569.** The
+arm's predicate, read: the killer's leader (`local_10 = leaders[param_8]`)
+has tribe bonus 0, and the killer's type `+0x40` — the trainer, `WHERE`,
+compared **by equality** — is the Barracks `0x1ab`, the Stable `0x1ac` or
+the Dock `0x1b0`; the victim's kind and any Despot are not asked. The pay
+(`Unit::plunder@00605b00:219`–`222`) is `((bucket +0xdc ^ 0x62766) + 1) ×
+AZTEC_SLAY_BONUS` (15) up to `AZTEC_SLAY_CAP` (60), and `+0xdc` is no slay
+count: it is `LeaderDataEncrypt::ages` (`types.txt`; `walk_data@006d9900`
+writes it), the word the Dutch bonus reads too. At Medieval `ages` is 2,
+so the kill pays 45, which is the dump's figure. `Sim::unit_plunder` takes
+the arm ahead of its victim gate, through `trainer_ident`. The first walk
+paid 60: the steps' own Despot search (`p4 == 0`), never reached before,
+went through `SimPlunder::find_hero`, which said "found" (0) for no hero
+and −1 for one. A one-run probe read `despot 1, ages 2`, and the fix is
+an index or −1. The test is
+`an_aztec_kill_from_a_barracks_line_trainer_pays_its_age` (`cities_tests`),
+and five mutations hold on it: the arm, the Aztec gate, the trainer gate,
+`ages + 1`, and the inverted search.
+
+| block | record | field | ours before | ours | theirs |
+|---|---|---|---|---|---|
+| 2557 | who=1's leader | `bucket[1:timber]` | 12714 | 12759 | 12759 |
+
+**The word, 2569: ours 6 draws against 8, index 1** (ours
+`Farms::inc_time+0x1ae`, theirs `Ammo::do_damage+0xc59`). run1308b's
+widening drops from 2414 keys to 69, and 48 of them are block 2550's
+standing families. The first rows past those are the human's building
+`0/2000` on 2585 (`build:damage` 2 against 4, `city:raid_stamp` 2566
+against 2584), group 66's pool on 2586, and `0/3`'s wound on 2721. Rounds
+read: 163 theirs and 167 ours, 36 parting.
+
+**What is not established.** Where a Heavy Horse Archer's round leaves
+from (3647a), and the General, caravan and supply-wagon victims'
+`plunder(…, 0, 0)` (3657a).
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **197 of
 302**, unmoved: the rubric counts lockstep games only, and this pair

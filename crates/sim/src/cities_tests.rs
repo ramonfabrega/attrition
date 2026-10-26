@@ -1927,6 +1927,88 @@ fn the_despot_beside_a_kill_plunders_the_least_stocked_good() {
     );
 }
 
+/// **The Aztec slay arm** (item 3657, `docs/AI.md` §338):
+/// `Object::take_damage@00652020`'s kill arm calls `plunder(v, k, who, 1,
+/// 0)` for an Aztec killer whose trainer is by equality a Barracks,
+/// Stable or Dock, whatever the victim and with no Despot near: one draw
+/// per available good, and `(ages + 1) × AZTEC_SLAY_BONUS` up to
+/// `AZTEC_SLAY_CAP` into the least stocked. run1308b's Heavy Horse Archer
+/// `1/29` paid who=1 45 timber at Medieval (`ages` 2) on 2556.
+///
+/// Made to fail with the arm dropped, with the Aztec gate always held,
+/// with the trainer gate always held, with `ages` read as `ages + 1`, and
+/// with the steps' own Despot search inverted (a Despot cut of 15 on top,
+/// 60 where theirs paid 45).
+#[test]
+fn an_aztec_kill_from_a_barracks_line_trainer_pays_its_age() {
+    use crate::tech::{TechTree, TypeDef};
+    let mut sim = world_sim();
+    let t = install_types(&mut sim);
+    let mut tree = TechTree::new();
+    let stable_t = tree.add(TypeDef::building("Stable"));
+    let village_t = tree.add(TypeDef::building("Village"));
+    let mut rider = TypeDef::unit("Rider", crate::tech::UnitTraits::default());
+    rider.where_ = Some(stable_t);
+    let rider_t = tree.add(rider);
+    let mut peasant = TypeDef::unit("Peasant", crate::tech::UnitTraits::default());
+    peasant.where_ = Some(village_t);
+    let peasant_t = tree.add(peasant);
+    sim.set_tech_tree(tree);
+    let stable = sim.add_build_type(sim.build_types[t.barracks].clone());
+    sim.build_types[stable].ident = Ident::Stable;
+    sim.build_types[stable].tree = Some(stable_t);
+    sim.build_types[t.village].tree = Some(village_t);
+    let foot = |tree| crate::UnitType {
+        hits: 40,
+        tree,
+        price: crate::cost::Price {
+            pop: 1,
+            ..crate::cost::Price::default()
+        },
+        ..crate::UnitType::default()
+    };
+    let (horse, citizen) = (
+        sim.add_unit_type(foot(Some(rider_t))),
+        sim.add_unit_type(foot(Some(peasant_t))),
+    );
+    assert_eq!(sim.trainer_ident(horse), Some(Ident::Stable));
+    let victim = sim.init_unit(0, citizen, tile_pos(40, 40));
+    let killer = sim.init_unit(1, horse, tile_pos(41, 40));
+    let peasant_killer = sim.init_unit(1, citizen, tile_pos(41, 41));
+    // Food, timber, wealth and metal available, oil not; knowledge
+    // skipped. Timber is the least stocked.
+    sim.holdings[1].available = [true, true, true, true, true, false];
+    sim.ledgers[1].bucket = [20000, 12714, 20000, 0, 20000, 0];
+    let start = sim.ledgers[1].bucket;
+    sim.tech[1].ages = 2;
+    sim.unit_plunder(victim, killer);
+    assert_eq!(sim.ledgers[1].bucket, start, "not an Aztec");
+    sim.nation[1].aztecs = true;
+    sim.unit_plunder(victim, peasant_killer);
+    assert_eq!(sim.ledgers[1].bucket, start, "a Village's unit");
+    let mut want = sim.rng;
+    for _ in 0..4 {
+        let _ = want.roll();
+    }
+    sim.unit_plunder(victim, killer);
+    assert_eq!(sim.rng, want, "four draws: food, timber, wealth, metal");
+    assert_eq!(
+        sim.ledgers[1].bucket[1], 12759,
+        "run1308b's 2557: (2 + 1) × AZTEC_SLAY_BONUS 15, no Despot cut"
+    );
+    sim.tech[1].ages = 7;
+    sim.unit_plunder(victim, killer);
+    assert_eq!(
+        sim.ledgers[1].bucket[1],
+        12759 + sim.tuning.aztec_slay_cap,
+        "AZTEC_SLAY_CAP 60"
+    );
+    assert_eq!(
+        (sim.tuning.aztec_slay_bonus, sim.tuning.aztec_slay_cap),
+        (15, 60)
+    );
+}
+
 /// **An Iroquois leader's first Senate is free and instant** (item 3231,
 /// `docs/AI.md` §254): `TypeData::get_cost@00664090`'s building arm returns
 /// 0 (`006656f5`..`0066576b`) and `BuildData::construct_time@0062d5c0`'s
