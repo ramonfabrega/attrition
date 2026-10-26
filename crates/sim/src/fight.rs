@@ -622,7 +622,7 @@ impl Sim {
                     attacks: self.attack_of(o) != 0,
                     entrenched: u.combat.entrenched,
                     facing: u.movement.heading,
-                    trench_facing: u.movement.facing,
+                    trench_facing: u.combat.trench_angle,
                     // The object's own `z` (`+0xc`), which `Unit::update_z`
                     // writes as `find_tcoord_z` at its tile, clamped at zero
                     // (§46.2, item 1131).
@@ -4605,7 +4605,9 @@ impl Sim {
             || match attacker {
                 Obj::Unit(i) => {
                     let c = self.units[i].combat;
-                    c.stance == Stance::StandGround || c.entrenched || (ap.packs && !c.packed)
+                    c.stance == Stance::StandGround
+                        || self.hard_trench(i)
+                        || (ap.packs && !c.packed)
                 }
                 Obj::Building(_) => false,
             };

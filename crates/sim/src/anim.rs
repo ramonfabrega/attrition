@@ -1598,7 +1598,14 @@ impl Sim {
                 // rather than 0. [`Sim::scholar_slot`].
                 v = self.scholar_slot(u, v);
             }
-            if v != DEFAULT && guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, v) {
+            // `005daba0`: a slot the packet does not name, **or a unit in a
+            // trench** (`unit_masks & 0x2000000`, the raw bit), plays
+            // `CHAR_DEFAULT` — the roll spent and its variant dropped
+            // (item 3661, `docs/AI.md` §341).
+            if v != DEFAULT
+                && (self.units[u].combat.entrenched
+                    || (guy.gpiece >= 0 && !self.packet_has(u, guy.gpiece, v)))
+            {
                 v = DEFAULT;
             }
             v

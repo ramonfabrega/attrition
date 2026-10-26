@@ -3895,8 +3895,7 @@ impl Sim {
         if let Some(t) = self.units[cap].combat.target
             && self.valid_target(me, t)
             && ((self.units[u].combat.stance != combat::Stance::StandGround
-                && !self.units[u].combat.entrenched
-                && !self.units[cap].combat.entrenched)
+                && !(self.hard_trench(u) && self.hard_trench(cap)))
                 || self.is_in_range(me, t))
         {
             return SquadHead::Captain(t, self.units[cap].combat.mandatory);
@@ -4380,6 +4379,30 @@ impl Sim {
             unit.idle = 1;
         } else if unit.idle <= 1 || (frame + i64::from(unit.index)) & 15 == 0 {
             unit.idle += 1;
+            // `check_idle@006032c0:30`: the fourth count of a unit in a
+            // trench turns it back to the trench's facing (item 3661).
+            if unit.idle == 4 && unit.combat.entrenched {
+                let a = unit.combat.trench_angle;
+                self.unit_set_angle(u, a);
+            }
+        }
+        // **The marines dig in** (`check_idle@006032c0:33`–`41`, item
+        // 3661): a unit of the Marines line (`unit_masks2 & 0x800`) idle
+        // for `AMERICANS_MARINE_ENTRENCH` counts as loaded (7) and not yet
+        // in a trench takes `unit_masks |= 0x2000000`, `unit_masks2 |=
+        // 0x20000`, and the trench's facing from its angle (`+0x5c =
+        // +0x50`). The graphic event is not state. run1325's `1/29` is in
+        // one at idle 7; ours played idle variants a trench refuses, and
+        // `1/55`'s seventy-frame idle wrapped on 3215 in theirs alone
+        // (`docs/AI.md` §341).
+        let unit = &mut self.units[u];
+        if unit.unit_masks2 & combat::umask2::MARINE != 0
+            && i32::from(unit.idle) >= self.tuning.marine_entrench_idle()
+            && !unit.combat.entrenched
+        {
+            unit.combat.entrenched = true;
+            unit.unit_masks2 |= combat::umask2::MARINE_TRENCH;
+            unit.combat.trench_angle = unit.movement.heading;
         }
         // `check_idle@006032c0:47`: `(unit_masks & 0x11000) == 0x1000`
         // drops the blown bit once the counter has reached 10.
@@ -6767,6 +6790,13 @@ impl Sim {
     /// `docs/MOVEMENT.md`, then the Manhattan test against the waypoint's
     /// tolerance, the pop, the facing on the final waypoint, the kill.
     fn unit_step(&mut self, u: usize, mut mo: MoveOrder, speed: i32) -> Did {
+        // `move_step@005faf30:60`–`65`: a step leaves the trench —
+        // `unit_masks &= ~0x2000000` and `unit_masks2 &= 0xfffdefff`
+        // (item 3661).
+        if self.units[u].combat.entrenched {
+            self.units[u].combat.entrenched = false;
+            self.units[u].unit_masks2 &= 0xfffd_efff;
+        }
         // STEP (§4.4): `avoid_x/y = −1,−1` before every step.
         self.units[u].avoid = None;
         // `move_step@005faf30:66-100`, at its head: a fire-on-the-move
@@ -9252,7 +9282,12 @@ impl Sim {
         // guard's still walks. Every packer and worker reads 2
         // (`get_combat_stance@00610a30`, item 2265): run589's cannon
         // `1/132`, packed on its attack-move, walks at `0/2000` on 17945.
-        if !state.mandatory && state.stance == combat::Stance::StandGround && !self.on_duty(u) {
+        // And a unit in a trench the marines did not dig (`005fd8f0`'s
+        // `unit_masks & 0x2000000 && !(unit_masks2 & 0x20000)`, item 3661).
+        if !state.mandatory
+            && ((state.stance == combat::Stance::StandGround && !self.on_duty(u))
+                || self.hard_trench(u))
+        {
             return false;
         }
         // **The chase** (`docs/COMBAT.md` §17): the unit asks where to

@@ -176,10 +176,16 @@ impl UnitSetTypeView for SimSetType<'_> {
     }
     fn set_flags6c(&mut self, f: i32) {
         self.flags = f;
+        // The marine mark (`is(0x77)`'s `| 0x800`) is the one bit of the
+        // word this crate keeps from here (item 3661).
+        if f & crate::combat::umask2::MARINE as i32 != 0 {
+            self.sim.units[self.u].unit_masks2 |= crate::combat::umask2::MARINE;
+        }
     }
     fn update_ceo_position(&mut self) {}
     fn is_77(&mut self) -> bool {
-        false
+        self.sim
+            .speed_is(self.u, crate::cast_transport::MARINES, false)
     }
     fn slot_15c(&mut self) {}
     fn slot_160(&mut self) {}

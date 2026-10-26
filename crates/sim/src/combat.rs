@@ -112,6 +112,19 @@ pub mod umask2 {
     /// `AMERICANS_MARINE_HP_BONUS` and `Unit::update_speed@006055c0`
     /// `AMERICANS_MARINE_SPEED_BONUS` per Military library level for it.
     pub const MARINES: u32 = 0x200;
+    /// **`0x800` — a unit of the Marines line** (item 3661):
+    /// `Unit::set_type@00612fa0` sets it on a type that `is(0x77, 0)`, at
+    /// birth and on every upgrade, and never clears it. It is what
+    /// `Unit::check_idle@006032c0`'s marine trench asks.
+    pub const MARINE: u32 = 0x800;
+    /// **`0x20000` — the marines' own trench** (item 3661):
+    /// `check_idle` sets it beside `unit_masks |= 0x2000000`, and
+    /// `move_step` and `close` clear it with the trench
+    /// (`& 0xfffdefff`). `fight`, `find_melee_target` and
+    /// `find_nearby_target` read a trench that carries it as none
+    /// ([`crate::Sim::hard_trench`]); `get_damage`, the two collision
+    /// refusals and `Guy::set_anim` read the trench alone.
+    pub const MARINE_TRENCH: u32 = 0x20000;
 }
 
 /// The `obj_masks` bits by the names the shipped `balance.xml` gives them
@@ -372,6 +385,11 @@ pub struct State {
     /// `unit_masks & 0x80000`.
     pub packed: bool,
     pub entrenched: bool,
+    /// `UnitData +0x5c`, the trench's facing: `check_idle`'s marine arm
+    /// copies the unit's angle (`+0x50`) into it as it digs in, its fourth
+    /// idle count turns the unit back to it, and `get_damage`'s
+    /// entrenchment step measures the blow against it (item 3661).
+    pub trench_angle: crate::movement::Angle,
     /// The overkill record (§7.1 step 2): the frame of the first hit in the
     /// current window and the captain index of whoever struck it.
     pub damage_frame: i64,

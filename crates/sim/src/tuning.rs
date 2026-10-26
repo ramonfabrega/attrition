@@ -494,6 +494,10 @@ pub struct Tuning {
     /// Speed an American marines' transport adds per Military library
     /// level (`update_speed`'s `unit_masks2 & 0x200` term).
     pub americans_marine_speed_bonus: i32,
+    /// Idle counts before a marine digs in, as the file writes it
+    /// (seconds); `Constants::init@00569a90` stores `x − x / 15 + 2`
+    /// ([`Tuning::marine_entrench_idle`]).
+    pub americans_marine_entrench: i32,
     /// Extra timber-worker capacity before the gather-access cap.
     pub french_woodies: i32,
     /// The same, for the Inca on wealth.
@@ -1293,6 +1297,13 @@ pub struct Tuning {
 }
 
 impl Tuning {
+    /// `AMERICANS_MARINE_ENTRENCH` as `Constants::init@00569a90:1825`
+    /// stores it, `x − x / 15 + 2`: the shipped 5 is an idle count of 7.
+    pub const fn marine_entrench_idle(&self) -> i32 {
+        let x = self.americans_marine_entrench;
+        x - x / 15 + 2
+    }
+
     /// The values Rise of Nations ships.
     ///
     /// Two of these are not read straight off a constant. `red_fort_borders`
@@ -1457,6 +1468,7 @@ impl Tuning {
         bantu_units_move: 25,
         americans_marine_hp_bonus: 70,
         americans_marine_speed_bonus: 2,
+        americans_marine_entrench: 5,
         french_woodies: 1,
         inca_wealth_cap: 33,
         republic_commerce_bonus: [50, 50, 50],
@@ -1999,6 +2011,10 @@ impl Tuning {
             (
                 "AMERICANS_MARINE_SPEED_BONUS",
                 Slot::Value(T.americans_marine_speed_bonus),
+            ),
+            (
+                "AMERICANS_MARINE_ENTRENCH",
+                Slot::Value(T.americans_marine_entrench),
             ),
             ("INCA_WEALTH_CAP", Slot::Value(T.inca_wealth_cap)),
             (
