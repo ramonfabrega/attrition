@@ -253,3 +253,51 @@ fn lakota_gunpowder_pair_run1289b_s_word_frame_is_widened_whole() {
     // order is ours 10 against theirs 12 (`docs/AI.md` §336).
     pin_eq!(w.firsts.len(), 2311, "run1289b baseline");
 }
+
+/// run1305: the gap 4102..4181 before the word's window, blocks 4096..4187
+/// at run1289b's detail (`LEADERS=9`, `AMMO=5`) — from the stride's last
+/// dumped block 4101, six blocks before, to the word (item 3645).
+pub(crate) const RUN1305: &str =
+    "gamelog-run1305-greatsahara-lakota-gunpowder-window-4096-4187.txt";
+
+/// The gap window: block 4096 through 4187.
+pub(crate) const WIDENING_LAKOTA_GUNPOWDER_GAP_4096: (i64, i64) = (4096, 4187);
+
+/// **The gap before the word**: run1305 walked from run1288's start with
+/// the recorder on (item 3645).
+pub(crate) fn lakota_gunpowder_gap_4096_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[LAKOTA_GUNPOWDER.start],
+        true,
+        LAKOTA_GUNPOWDER.long,
+        "run1305",
+        &[(RUN1305, WIDENING_LAKOTA_GUNPOWDER_GAP_4096.0)],
+        WIDENING_LAKOTA_GUNPOWDER_GAP_4096,
+        1,
+        &[4182],
+        true,
+    )
+}
+
+#[test]
+fn lakota_gunpowder_pair_run1305_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_gunpowder_gap_4096_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 92, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1305 baseline");
+}
