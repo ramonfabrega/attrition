@@ -470,10 +470,13 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// --tables 3` on this tree. Item 3661: 201 -> 202, the American
 /// Enlightenment pair whole at 6669 — `Continental Marines` (119, land;
 /// 3420 figure rows in run1314), the line §341 booked, read by `rubric.py
-/// --tables 3` on this tree. Item 3663: 202 -> 203, the Persian
+/// --tables 3` on this tree. Item 3662: 202 -> 203, the British
+/// Classical pair whole at 8980 — `Longbowmen` (177, land; 9312 guy
+/// records across run1316 and run1316b), the line §342 booked, read by
+/// `rubric.py --tables 3` on this tree. Item 3663: 203 -> 204, the Persian
 /// Classical pair whole at 11633 — `Anusiya` (163, land; 8976 figure rows),
-/// the line §343 booked, read by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 203;
+/// the line §343 booked, read by `rubric.py --tables 3` on the merged tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 204;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

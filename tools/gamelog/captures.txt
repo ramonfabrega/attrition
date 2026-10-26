@@ -10796,6 +10796,10 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1316b --map 18 --end-frame 4817 --allow-early-end --timeout 3600 --log-window 4561 4817 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1315's lobby   (the word 4567's window)
 #   run1316c the same with --end-frame 4401 --log-window 4295 4401   (the stride's gap)
 # Checks: `rngcmp.py` run1315 vs run1316 -> 37 identical; run1316 vs run1316b -> 4818 identical; run1316 vs run1316c -> 4402 identical.
+# ==== item 3662: the British Classical word 4567 -> 8980, the pair whole (`docs/AI.md` §342.1; `docs/RUNS.md` run1326, run1326b) ====
+#   run1326  --map 18 --end-frame 4569 --timeout 3600 --log-window 4566 4568 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 11 --cover cover=0 --tracer-def RON_STATE_FRAME=4567 --tracer-def RON_STATE_PLAN=…, run1315's lobby   (a packet: 1/21's re-search on 4567, piece 215)
+#   run1326b --map 18 --end-frame 8980 --allow-early-end --timeout 3600 --log-window 8725 8981 --detail (run1316b's) --ai-tribe 11 --cover cover=0, run1315's lobby   (the closing window)
+# Checks: `rngcmp.py` run1316 vs run1326b -> 8981 identical.
 # ==== item 3652: the Persians at a held Classical age, Great Lakes (`docs/AI.md` §343; `docs/RUNS.md` run1317, run1318, run1318b) ====
 #   run1317  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 23 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1318  run1316's line on --map 14 with --ai-tribe 23 and run1317's lobby   (the draw stream; ended itself on 11633)
