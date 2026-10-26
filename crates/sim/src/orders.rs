@@ -6899,11 +6899,13 @@ impl Sim {
         // writes).
         let from = unit.movement.body.pos;
         let before: Vec<_> = self.units[u].guys.iter().map(|g| g.follow.map(|f| (f.body.pos, f.des))).collect();
-        self.crew_des(u, from, step.facing, false);
+        if std::env::var_os("RON_PROBE_3666_OFF").is_none() {
+            self.crew_des(u, from, step.facing, false);
+        }
         if std::env::var_os("RON_PROBE_3666_DES").is_some() {
             for (g, b) in before.iter().enumerate() {
                 if let (Some((body, old)), Some(f)) = (b, self.units[u].guys[g].follow) {
-                    if f.des != *old && (f.des == *body || *old == *body) {
+                    if f.des != *old {
                         eprintln!("DES3666 f{} {}/{} g{g} body {:?} heading-des {:?} facing-des {:?} turned_in_place {}", self.frame, self.units[u].owner, self.units[u].index, body, old, f.des, step.turned_in_place.is_some());
                     }
                 }
