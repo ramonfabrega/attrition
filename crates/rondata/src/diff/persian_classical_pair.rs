@@ -243,10 +243,10 @@ fn persian_classical_pair_run1318b_s_word_frame_is_widened_whole() {
     // **the records first part on 10939**, after the round below: who=1's
     // `1/26`'s move order (`x` ours 41208 theirs 41592, `off_x` 504
     // against 120), and the guards' `retry` on `1/257`, `1/318`, `1/331`.
-    // Item 3663, pieces 1793's and 1881's bays: **72**, block 10895's
-    // standing families alone (`SITE[i].reg`, `aggression[1]`, `form`,
-    // who=1's groups' `held` and pools).
-    pin_eq!(w.firsts.len(), 72, "run1318b baseline");
+    // Item 3663, pieces 1793's, 1881's, 113's and 1975's bays: **58**,
+    // the standing families alone (`SITE[i].reg`, `aggression[1]`,
+    // `form`, who=1's groups' `held` and pools as each is minted).
+    pin_eq!(w.firsts.len(), 58, "run1318b baseline");
     // Every round, both directions: 520 round-blocks theirs, 699 ours, 114
     // parting. **The first is on 10931, who=1's Javelineers `1/312`** (TY
     // 83) at the human's Citizen `0/12`: theirs launches from (5054,
@@ -259,11 +259,12 @@ fn persian_classical_pair_run1318b_s_word_frame_is_widened_whole() {
     // Item 3663: `1/312`'s launch agrees (piece 1793), and so do the
     // Persian Archers' (piece 1881) — `1/299`'s on 10980 from (5528,
     // 30923) where ours threw from (5592, 30984), 15 frames against 16,
-    // and `0/11` struck on 10993 on both sides. 520 theirs against 535
-    // ours, 77 parting: the dead target's `whom`/`ox` (theirs keeps it,
-    // §338) and the slot shifts theirs' spent arrows make (COMBAT §46.7).
-    pin_eq!(w.rounds_read, (520, 535), "the rounds read");
-    pin_eq!(w.rounds.len(), 77, "the rounds that part");
+    // and `0/11` struck on 10993 on both sides — and the Anusiya's
+    // (piece 113). 520 a side, 68 parting: the dead target's `whom`/`ox`
+    // (theirs keeps it, §338) and the slot shifts theirs' spent arrows
+    // make (COMBAT §46.7).
+    pin_eq!(w.rounds_read, (520, 520), "the rounds read");
+    pin_eq!(w.rounds.len(), 68, "the rounds that part");
 }
 
 /// run1327b: the closing window, blocks 11378..11634 at run1318b's detail,
@@ -297,7 +298,7 @@ fn persian_classical_pair_run1327b_s_closing_window_is_widened_whole() {
     let Some(w) = persian_classical_frame_11633_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 256, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -315,9 +316,19 @@ fn persian_classical_pair_run1327b_s_closing_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1327b baseline");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    // Item 3663: **59** — the standing families, and three idle guards'
+    // `dest_angle` (the Javelineers `1/172` on 11403 and `1/173` on 11613,
+    // the Archer `1/124` on 11406; parked 3663a). Before pieces 113's and
+    // 1975's bays: 65, with the human's `0/2000`'s `build:damage` (414
+    // against 420 on 11378), `1/296`'s `damage_o` and `city_flags[0x4]`.
+    pin_eq!(w.firsts.len(), 59, "run1327b baseline");
+    pin_eq!(w.rounds_read, (1278, 1278), "the rounds read");
+    // 1278 a side, 24 parting: dead targets' `whom`/`ox` and slot shifts.
+    // Before pieces 113's and 1975's bays: 1278 against 1310, 254 parting,
+    // the Anusiya's arrows (`1/333`'s on 11381 from (3912, 31080, 543)
+    // against (3821, 31024, 721), 3 frames against 2) and the Catapults'
+    // stones (`1/119`'s on 11511 from 208 against 453).
+    pin_eq!(w.rounds.len(), 24, "the rounds that part");
 }
 
 /// **The closing state** (item 3663): run1318's closing block 11634, the
