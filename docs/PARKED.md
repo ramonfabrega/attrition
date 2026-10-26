@@ -11233,13 +11233,13 @@ The word moves 4859 → 6128 and the pair closes (`docs/AI.md` §335.4).
   target whose type carries `0x100000` (`u`). `Sim::valid_target_const` carries it as a `SEAM`, because which domain
   a building asker's type reports is not established. No window this item read reaches it. Names no score.
 
-## Parked by the next landing, slot SR — reserved
+## Parked by item 3647, 2026-10-26 — the Aztecs at a held Medieval age, Great Sahara: first try 2556
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SR renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3647a. The Heavy Horse Archer's round leaves from another point.** run1308b, from the window's first block 2550:
+  who=1's `1/29` (TY 138, TypeIndex 188) fires at the Citizen `0/13` from (7599, 31648, 659) in ours against
+  (7556, 31716, 901) in theirs, at (7488, 31651); `1/22`'s round of 2556 parts the same way. The flight time agrees,
+  and `0/13` dies on 2556 on both sides. **Score**: none while the word is the plunder on 2556 (`docs/AI.md` §338);
+  it books when a word lands on a Heavy Horse Archer's round.
 
 ## Parked by the next landing, slot SS — reserved
 

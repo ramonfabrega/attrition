@@ -330,6 +330,13 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatSaharaIroquoisTier3`, `(7, 18, 3)`, nor the Ancient-start
     // pair's `(7, 18, 5)`, another map; the battery fields no Iroquois.
     (18, 18, 5),
+    // The Aztec Medieval pair's (item 3647): the Aztecs at a held Medieval
+    // age, Difficulty 5, Great Sahara — not the AI word
+    // `GreatSaharaAztecTier2`, `(7, 0, 2)`, nor the AllTech pair's
+    // `(7, 0, 3)`, another difficulty, nor the Ancient-start pair's
+    // `(18, 0, 5)`, another map; the battery's one Aztec game is the
+    // held-out `EastIndiesAztecTier1`, `(18, 0, 1)`.
+    (7, 0, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
