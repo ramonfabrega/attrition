@@ -1466,7 +1466,7 @@ impl Sim {
         let end_at_entry = guy.end_time;
         let who = self.units[u].owner;
         let at_des = self.body_at_des(u, g);
-        if std::env::var("RON_PROBE_3666").is_ok_and(|v| v == format!("{}/{}@{}", who, self.units[u].index, frame)) {
+        if std::env::var("RON_PROBE_3666").is_ok_and(|v| v == format!("{frame}")) {
             let f = guy.follow;
             eprintln!(
                 "PROBE3666 f{frame} {}/{} g{g} req {anim} force {force} p3 {p3} cur {} t{}/{} at_des {at_des} unit_body {:?} unit_pos {:?} follow {:?}",
