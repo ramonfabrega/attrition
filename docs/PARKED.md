@@ -10987,12 +10987,14 @@ The pair's first parting books: the Heavy Fire Lance `1/215` (TI 97) keeps its s
 theirs and loses it in ours on block 4862, so ours walks six frames ahead from 4863 (`docs/AI.md` §333).
 `Heavy Fire Lances` (97) is fielded.
 
-- **3625a. The move order's row leaves out `retry` and `attempts` on a reason that no longer holds.**
+- ~~**3625a. The move order's row leaves out `retry` and `attempts` on a reason that no longer holds.**
   `crates/rondata/src/diff/order.rs` skips `tolerance`, `retry`, `attempts` and `orig_x/orig_y` "because nothing
   here writes them", but `sim::orders::MoveOrder` carries `retry` and `attempts` and `do_move` and
   `roll_upath_retry` write both. On the Chinese Gunpowder pair the dump's `moveorder.retry` parts on block 4862
   (ours 0, theirs 6) and the first compared row is 4863. Comparing the two would name the parting a block
-  earlier. It names no score of its own; the word's next item reads it.
+  earlier. It names no score of its own; the word's next item reads it.~~ **Built by item 3637** (`docs/AI.md`
+  §333.1): the move row compares both, and they leave `coverage.rs`'s pin; run1283c's first compared row is now
+  4862's `retry`.
 
 ## Parked by item 3626, 2026-10-25 — the Greeks at a held Gunpowder age, Great Sahara
 
@@ -11116,13 +11118,17 @@ leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` st
   wounds, a kill's death roll and a first wound), and no walk has parted on it (`docs/AI.md` §331.4). The killer
   is a splash round whose `take_damage` draws theirs' trace orders differently from ours on the same frame.
 
-## Parked by the next landing, slot SJ — reserved
+## Parked by item 3637, 2026-10-25 — the Chinese Gunpowder word, 4884 → 5196: the planner's roll kept
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+`do_move` keeps the failed unit-grid search's `retry` roll, and the pair moves 4884 → 5196 (`docs/AI.md` §333.1).
+
+- **3637a. The human's Citizen `0/10` is wounded a frame earlier in theirs, on 5132.** run1283b's first unit row
+  past the standing families: on block 5133 `0/10` (type 50, uid 17) reads `hits:damage` 26, `hits_left` 24 and
+  `damage_frame` 5132 in theirs, against 0, 50 and 0 in ours, and holds a `FLEEORDER` to (6600, 7512) where ours
+  idles; ours' wound lands on 5133 (run1299's 5190: `damage_frame` 5133 against 5132). Who struck it is not
+  read: the window's `AMMO` records are the next reading, and the draw word 5196 (ours 19 against 20, index 1:
+  theirs' second `Unit::do_idle+0x7d` between `1/115` and `1/126`) is the booking. **Score**: the Chinese
+  Gunpowder word, through its frame.
 
 ## Parked by the next landing, slot SK — reserved
 

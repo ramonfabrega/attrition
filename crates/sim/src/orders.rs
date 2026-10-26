@@ -6101,6 +6101,18 @@ impl Sim {
                         (self.find_tpath(u), len_before, false)
                     }
                 };
+                // **The planner's roll is the order's, not the copy's**
+                // (item 3637, `docs/AI.md` §333): a failed unit-grid search
+                // writes `retry` into the live order
+                // ([`Sim::roll_upath_retry`]), and the original goes on
+                // writing through its `MoveOrder*` (`do_move@005f7b30:711`: `dest = 0`
+                // in place), so every store below must carry the roll, not
+                // the `mo` taken before the search. East Indies' Chinese
+                // Heavy Fire Lance `1/215` on 4861 held `retry` 6 in theirs
+                // and 0 in ours, and re-pathed six frames early.
+                if let Some(m) = self.current_move(u) {
+                    mo.retry = m.retry;
+                }
                 // A positive return with the stack length unchanged counts
                 // as a refusal.
                 let r = if r > 0 && self.units[u].path.len() == len_before {

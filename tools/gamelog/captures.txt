@@ -10715,3 +10715,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1283b --map 18 --end-frame 5135 --allow-early-end --timeout 3600 --log-window 4879 5135 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 14 --cover cover=0, run1282's lobby   (the word 4884's window)
 #   run1283c --map 18 --end-frame 4880 --allow-early-end --timeout 3600 --log-window 4795 4880 --detail (run1283b's) --ai-tribe 14 --cover cover=0, run1282's lobby   (the gap 4802..4878)
 # Checks: `rngcmp.py` run1282 vs run1283 -> 37 identical; run1283 vs run1283b -> 5136 identical; vs run1283c -> 4881 identical.
+# ==== item 3637: the Chinese Gunpowder word, 4884 -> 5196, the planner's retry roll kept (`docs/AI.md` §333; `docs/RUNS.md` run1299) ====
+#   run1299  --map 18 --end-frame 5446 --allow-early-end --timeout 3600 --log-window 5190 5446 --detail (run1283b's) --ai-tribe 14 --cover cover=0, run1282's lobby   (the word 5196's window)
+# Checks: `rngcmp.py` run1283 vs run1299 -> 5447 identical.
