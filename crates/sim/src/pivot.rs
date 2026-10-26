@@ -258,7 +258,18 @@ const fn trunc_div(n: i64, d: i64) -> i32 {
 /// square here, flew four frames and wounded the Citizen `0/10` on 5133,
 /// where the original's left from (8009, 10001, 470), flew three and
 /// struck on 5132.
-const SAME_AS: &[(i32, i32)] = &[(1195, 139)];
+///
+/// **Piece 842, the Horse Archer's style-2 art** (unit type 188,
+/// `CAVARCHERS`, as the Aztecs, Maya and Inca draw it; item 3658, `docs/AI.md`
+/// §338): run973g's packet (item 3338, the Maya Great Sahara seed) holds its
+/// nine entries, `pos_start` 146, `RData +0x88` 1.0, and every float is
+/// piece 138's off run1293's — the `(4, 0, 0)` pivot and the four
+/// `<RELEASEEVENT>`s' pivot and release rows, `CHAR_ATTACKWALK` 18 among
+/// them, which `launch::MEASURED`'s planar rows never had. The Aztec
+/// Medieval pair's `1/22` threw its `CHAR_ATTACKWALK` round of 2556 from its
+/// own square (7018, 31206), where the original's left from (7020, 31282,
+/// 873), and the round's arc came down a frame later than theirs.
+const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138)];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
 fn rows_of(piece: i32) -> i32 {
@@ -2753,6 +2764,42 @@ mod tests {
                 })
                 .collect();
             assert_eq!(fits, vec![step], "anim {anim}");
+        }
+    }
+
+    /// **Piece 842's rounds fit piece 138's pivot rows** (item 3658,
+    /// [`SAME_AS`]): run973e/f's four Horse Archer rounds of the Maya Great
+    /// Sahara seed — the fourth, `CHAR_ATTACK1` on 12287, the miss
+    /// `launch::MEASURED`'s planar row pinned at (8587, 30273) — and run1308b's
+    /// standing Aztec rounds, each the figure's pose on the block before its
+    /// first `AMMO` print against the round's `sx, sy, sz − z`, and each on the
+    /// turret steps listed.
+    #[test]
+    fn piece_842_s_horse_archer_rounds_fit_piece_138_s_pivot_rows() {
+        // (anim, starttime, x, y, facing, sx, sy, sz − z, the steps)
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32, &'static [i32]);
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+        #[rustfmt::skip]
+        let rows: [Row; 9] = [
+            (ATTACK3, 20, 8808, 31944, -730_923_008, 8725, 31923, 228, &[0]),
+            (ATTACK1, 18, 8808, 31944, -730_923_008, 8729, 31908, 225, &[0]),
+            (ATTACK2, 16, 8664, 30312, -704_315_392, 8573, 30286, 208, &[248]),
+            (ATTACK1, 18, 8664, 30312, -704_315_392, 8581, 30287, 225, &[248]),
+            (ATTACK2, 16, 5784, 30600, -494_338_048, 5715, 30536, 208, &[255]),
+            (ATTACK2, 16, 5784, 30600, -494_338_048, 5757, 30510, 208, &[22]),
+            (ATTACK3, 20, 5592, 31464, -369_426_432, 5530, 31405, 228, &[255]),
+            (ATTACK1, 18, 5640, 31176, 334_168_064, 5674, 31096, 225, &[0]),
+            (ATTACK2, 16, 5640, 31176, 334_168_064, 5676, 31089, 208, &[0]),
+        ];
+        for (anim, time, x, y, facing, sx, sy, dz, steps) in rows {
+            let r = release(842, anim, time).expect("piece 842 reads 138's rows");
+            let fits: Vec<i32> = (0..256)
+                .filter(|&i| {
+                    let (ox, oy, oz) = release_offset(&r, Angle(facing), i << 24);
+                    (x + ox, y + oy, oz) == (sx, sy, dz)
+                })
+                .collect();
+            assert_eq!(fits, steps, "({x}, {y}) anim {anim}");
         }
     }
 
