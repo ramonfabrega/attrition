@@ -376,6 +376,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(7, 16, 5)`, another map, nor the held-out `GreatSaharaKoreanTier3`,
     // `(7, 16, 3)`; the battery fields no Koreans.
     (14, 16, 5),
+    // The Germans at a held Industrial age, Great Lakes (item 3667): not
+    // the All Technologies pair's `(18, 12, 5)` nor the Ancient-start
+    // pair's `(7, 12, 5)`, another map, nor the held-out `(18, 12, 3)` and
+    // `(7, 12, 3)`; the battery fields no Germans.
+    (14, 12, 5),
     // The British at a held Industrial age, Great Sahara, at difficulty 4
     // (item 3668): not the Classical pair's `(18, 11, 4)`, another map;
     // every other British triple is at 0 or 5, and the battery fields no

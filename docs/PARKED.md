@@ -11416,13 +11416,10 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot TJ — reserved
+## Parked by item 3667, 2026-10-26 — the Germans at a held Industrial age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the pair lands at its first parting, 4323 of 4772, and its next word is booked by frame
+(`docs/AI.md` §346).
 
 ## Parked by item 3668, 2026-10-26 — the British at a held Industrial age, Great Sahara, at difficulty 4
 

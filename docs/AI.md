@@ -32153,12 +32153,77 @@ pair: it parts, so it is not lockstep. **`Royal Hwarang`
 run1331 and run1331b (`rubric.py --dumps`), the only one of the pair's 19
 types the lockstep ledger has not seen.
 
-## 346. Reserved for the next item on the AI track
+## 346. The Germans at a held Industrial age, Great Lakes: first try 4323 of 4772 (item 3667)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
+the Germans (12) at Toughest (5), seed 12345, `STARTING_RESOURCES 7`,
+the age held at Industrial (`STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY
+5`), both takes read back by `Pair::assert_lobby`. The triple `(14, 12,
+5)` is new: the other German lobbies are the All Technologies pair's
+`(18, 12, 5)`, the Ancient-start pair's `(7, 12, 5)` and the held-out
+words' `(18, 12, 3)` and `(7, 12, 3)`, and the battery fields no Germans
+(`german_industrial_pair_is_no_other_lobby`). Captures: run1333 (the
+`DUMP_ALL` start), run1334 (the draw stream; the game ended itself on
+4772) and run1334b (the word's window, 4295..4574). The pair is
+`rondata::diff::german_industrial_pair`.
+
+**The score.** First try **4323 of 4772**, by the count and the
+sequence: on 4323 theirs spends 18 draws against ours' 17, parting at
+index 11 — theirs `Unit::close+0xcb6` (seed `1a0e6a60`) where ours
+spends the `Farms::inc_time+0x1ae` that is theirs' index 12; the other
+seventeen agree. **Theirs acts**: the draw is the human's Citizen `0/11`
+(TY 50) dying, which ours' `0/11` does not.
+
+**The value diff, walked back.** The stride (run1334, 101..4301, 43
+blocks, 135 keys) parts on the standing families and, from 3001, on two
+unit families; run1334b (4295..4574, 279 blocks, 2841 keys) parts on the
+word's block and on the rounds from 4304.
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3001 | who=1's Albatrosses (TY 288), `1/39` first, 18 by 4295 | `myspeed` | 55 | 68 |
+| 3601 | the Citizen `0/13` | `hits:damage`, `hits_left` | 31, 34 | 34, 31 |
+| 3901 | Albatross `1/41` | `g.z[0]` | 0 | 426 |
+| 4295 | the Citizen `0/11` | `hits:damage`, `hits_left` | 42, 23 | 46, 19 |
+| 4304 | A7V `1/48`'s round (TY 242) | `sx`, `sy`, `sz` | (5544, 31512), 409 | (5427, 31534), 587 |
+| 4305 | Anti-tank Rifle `1/51`'s round (TY 138) | `sx`, `sy`, `sz`, `total_time` | (4392, 31656), 589, 3 | (4217, 31694), 652, 2 |
+| 4324 | the human's leader | `num_units[0]`, `peasants` | 13, 13 | 12, 12 |
+| 4323 | the draw stream, index 11 | site | `Farms::inc_time+0x1ae` | `Unit::close+0xcb6` |
+
+**The direction: theirs' Citizens take more damage, earlier, and `0/11`
+dies on 4323 in theirs alone.** who=1's army group 64 — Armored Cars
+(TY 216), A7V Light Tanks (TY 242) and German Anti-tank Rifles (TY 138),
+by `unitat.py` — raids the human's Citizens by `0/2000`. In the window
+each A7V and Anti-tank Rifle round that parts launches in theirs off the figure
+and above it (`1/48`'s at (−117, +22) and 178 up) and in ours from the
+figure's own square: the shape of every bay row the last tranche fit
+(§343–345). The stride parts no round (it prints no `AMMO`), so the
+damage parting from 3601 is not placed here; who=1's Albatrosses run
+`myspeed` 55 in ours against 68 in theirs from the first one built
+(68/55 ≈ 1.24: a speed bonus ours does not apply), parked in their
+airports (`inside_up` 2026, 2034, 2040).
+
+**The next item's hypothesis** is two `launch::BAYS` rows, the A7V's and
+the German Anti-tank Rifle's pieces, fit off a packet at the throw's
+frame (3663's recipe), and a window over 3500..3601 that places the
+damage's first round. The Albatrosses' `myspeed` is a second
+hypothesis: it names no frame the draws part on yet.
+
+**The rounds**, both directions: run1334b reads 1018 round-blocks theirs
+against 246 ours, 168 parting (by slot).
+
+**The standing families**: `build:extra` on 63 buildings, `form` on 27
+units, who=1's groups' `held` and pools 64..71, both leaders — as on
+every pair.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **205 of
+302**, unmoved by this pair: it parts, so it is not lockstep. Of the
+booking's five lines **four are fielded** (`rubric.py --dumps` over
+run1334 and run1334b): `Riflemen` (101) ×1,794, `Anti-tank Rifle` (138)
+×19,218, `Light Tank` (242, `A7V`) ×3,074 and `Artillery` (270)
+×9,552; **`Machine Gun` (124) is not**. With `Biplane[ALBATROSS]` (288)
+×10,744 the pair fields five types the lockstep ledger has not seen, of
+the 20 it fields.
 
 ## 347. The British at a held Industrial age, Great Sahara, at difficulty 4: first try 2382 of 4767 (item 3668)
 
