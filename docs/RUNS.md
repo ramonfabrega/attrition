@@ -28893,3 +28893,70 @@ SHA-256 `fc2011bad27dbaecac482e2af46fee456ad4528ec5e7c2ba65062c885844990e`.
 read 203 blocks theirs and 185 ours, and 47 round keys part. On the word's block 4478, who=1's units born in the
 window part: `1/177`..`1/186`'s positions, their collisions, `1/185`'s order and `1/180`'s
 `attack[1].mandatory`.
+
+## run1290 — the Iroquois at a held Enlightenment age, East Indies: the `DUMP_ALL` start (2026-10-26, item 3629, `att-3629`)
+
+`docs/AI.md` §337. §306's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1290 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 18 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 04:18:54, exited 04:19:18 (24.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 18, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`. Filed with `filerun.py run1290
+  eastindies-iroquois-enlightenment-start`. `df -g ~` read 98 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1290-eastindies-iroquois-enlightenment-start.txt`, 153,784,693 bytes,
+SHA-256 `a70cac696a818c2de99139d41b4d001ac1a48e199b03156c99e1ef30ff56e8d3`.
+
+Archive `rontrace-run1290.log`, 9,878,528 bytes,
+SHA-256 `701a8586cb315b19b57f4528676241d931a239cd89aad23619e805e92b7c8746`.
+
+**What it holds**: the start of `iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1291 — the Iroquois at a held Enlightenment age, East Indies: the draw stream to the game's end (2026-10-26, item 3629, `att-3629`)
+
+`docs/AI.md` §337. run1157's line with `--ai-tribe 18`: `--map 18 --end-frame 24000 --timeout 7200 --allow-early-end
+--log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 18 --detail
+end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1290's
+lobby.
+- Pool lane 2, beside run1290. Launched 04:18:58, exited 04:19:27 (28.6 s launch to exit). `success`. **The game
+  ended itself on 5128** (closing block 5129, `ended_early`). `GAME INFO` reads back as run1290's. `rngcmp.py`
+  against run1290: 37 frames identical. Filed with `filerun.py run1291 eastindies-iroquois-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1291-eastindies-iroquois-enlightenment-trace.txt`, 39,388,577 bytes,
+SHA-256 `ec3585c4b567fe6546b8bfc800cd07523e21af27c6342307124760f90c7920f2`.
+
+Archive `rontrace-run1291.log`, 137,033,952 bytes,
+SHA-256 `96a0d9f10546e4be14767803e3975a5586a037412ade407348ab1f9507a6e919`.
+
+**What it holds**: the pair's first try. `iroquois_enlightenment_pair_first_parting` walks it from run1290: **3962 of
+5128** by the count and the sequence (ours 11 draws against 14, index 6).
+`iroquois_enlightenment_pair_the_long_s_stride_walks_back_from_3962` walks its stride 101..3901: 39 blocks, 155 keys,
+all standing.
+
+## run1291b — the Iroquois at a held Enlightenment age, East Indies: the word 3962's window, blocks 3956..4212 (2026-10-26, item 3629, `att-3629`)
+
+`docs/AI.md` §337. **What the disk could not answer**: every record on the word's frame. run1291's stride prints
+units on 3901 and 4001 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1291b --map 18 --end-frame 4212
+--allow-early-end --timeout 3600 --log-window 3956 4212 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 18 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. The runner's first take exited 40 and it retook after 4.3 s; launched 04:22:11, exited 04:23:16
+  (64.8 s launch to exit). `success`: 4213 frames, closing frame 4213. `rngcmp.py` against run1291: 4213 of 4213
+  identical. Filed with `filerun.py run1291b eastindies-iroquois-enlightenment-window-3956-4212`. `df -g ~` read 95
+  GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1291b-eastindies-iroquois-enlightenment-window-3956-4212.txt`, 594,681,779 bytes,
+SHA-256 `72425dc9da6103a82912dcaf436a504fc76e0191f3da1b21bcbb1fd8b01f9b09`.
+
+Archive `rontrace-run1291b.log`, 105,658,944 bytes,
+SHA-256 `a279872c4e124ba4565798702198b09ad1fde1824431fdc33d18f8b69d86da5f`.
+
+**What it holds**: `iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole` (256 blocks, 756 keys, rounds
+301 theirs against 228 ours, 62 parting). The Bomb Ketch `1/82` (TI 347)'s round at the human's Citizen `0/4` is in
+flight on both sides on the first block, 3956, from (3912, 12792, 0) in 43 frames in ours against (4013, 12593, 133)
+in 41 in theirs; theirs lands on 3962: `0/4`'s `hits_left` ours 65 theirs 47 on block 3963. 3902..3955 is undumped.

@@ -11030,13 +11030,12 @@ Nothing parks. The pair parts on its first try at 4187 of 4750. Theirs' Musket H
 round in flight at the human's Citizen `0/5` on run1289b's first block, 4182, and it lands on 4183. Ours fires
 nothing. That word is the next item's to book (`docs/AI.md` §336): a gap window over 4096..4187 first.
 
-## Parked by the next landing, slot SB — reserved
+## Parked by item 3629, 2026-10-26 — the Iroquois Enlightenment pair: the Bomb Ketch's round leaves from the hull
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair parts on its first try at 3962 of 5128. Who=1's Bomb Ketch `1/82` (TypeIndex 347) has a round
+in flight at the human's Citizen `0/4` on run1291b's first block, 3956, on both sides: ours from (3912, 12792, 0) in
+43 frames, theirs from (4013, 12593, 133) in 41, so theirs strikes `0/4` on 3962. That word is the next item's to book
+(`docs/AI.md` §337): a gap window over 3895..3962 first.
 
 ## Parked by item 3630, 2026-10-25 — the Mongol Gunpowder word: a supplier's pool takes the supply upgrade, 1973 → 4499
 
