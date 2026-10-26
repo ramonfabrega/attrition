@@ -2366,6 +2366,32 @@ mod tests {
         assert_eq!(265 + release_offset(&r, f, 0).2, 470, "the dump's height");
     }
 
+    /// **The A7V's round leaves from its turret's muzzle** (item 3677,
+    /// `docs/AI.md` §346): piece 192 reads piece 189's rows ([`SAME_AS`]),
+    /// and run1334b's `AMMO=5` record of `1/48`'s `CHAR_ATTACK3` round of
+    /// 4304 — the figure at (5544, 31512), z 409, angle −748683264 on block
+    /// 4303 — leaves from (5427, 31534) at height 587, which one turret step
+    /// fits. Made to fail with the row out of `SAME_AS`.
+    #[test]
+    fn the_a7v_s_round_leaves_from_its_turret() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+        for (a, t) in [(ATTACK1, 4), (ATTACK2, 21), (ATTACK3, 14)] {
+            assert_eq!(release(192, a, t), release(189, a, t), "anim {a}");
+            assert!(release(192, a, t).is_some(), "anim {a}");
+        }
+        assert_eq!(node(192, 4), node(189, 4));
+        let r = release(192, ATTACK3, 14).unwrap();
+        let f = Angle(-748_683_264);
+        let fits: Vec<i32> = (-128..128)
+            .filter(|i| {
+                let (dx, dy, _) = release_offset(&r, f, i << 24);
+                (5544 + dx, 31512 + dy) == (5427, 31534)
+            })
+            .collect();
+        assert!(!fits.is_empty(), "a turret step: {fits:?}");
+        assert_eq!(409 + release_offset(&r, f, 0).2, 587, "the dump's height");
+    }
+
     /// **The Mongol Nomad's rounds leave from its pivot** (item 3581):
     /// every Nomad round run1222's and run1224's `AMMO=5` windows print to
     /// 9826, at the figure's pose on the block before the round's first

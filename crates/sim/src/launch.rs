@@ -3867,6 +3867,36 @@ mod tests {
         assert!(got.contains(&Pos::new(3766, 32893)), "{got:?}");
     }
 
+    /// **The German Anti-tank Rifles' rounds leave from piece 88's bays**
+    /// (item 3677): run1334b's `AMMO=5` records of `1/50`'s `CHAR_ATTACK1`
+    /// and `1/51`'s `CHAR_ATTACK2` rounds of 4305, each beside its figure's
+    /// `GUY` pose on 4304, at the dump's `sx, sy` and `sz − z`. Made to
+    /// fail with the rows out of `BAYS`.
+    #[test]
+    fn run1334b_s_german_anti_tank_rifles_leave_from_piece_88_s_bays() {
+        for (at, facing, anim, start, want, dz) in [
+            (
+                Pos::new(4920, 31848),
+                -1_094_451_200,
+                crate::anim::ATTACK1,
+                18,
+                Pos::new(4740, 31841),
+                548 - 488,
+            ),
+            (
+                Pos::new(4392, 31656),
+                -1_232_142_336,
+                crate::anim::ATTACK2,
+                4,
+                Pos::new(4217, 31694),
+                652 - 589,
+            ),
+        ] {
+            assert_eq!(launch_point(at, Angle(facing), 88, anim, start, 0), want);
+            assert_eq!(release_dz(88, anim, start, 0), Some(dz));
+        }
+    }
+
     /// **The Chinese Anti-tank Rifles' rounds leave from piece 1143's
     /// bays** (item 3538): run1155c's packet, `get_position.py … sweep 1143
     /// 0 <anim> <time>`, at the four facings whose top byte is a whole
