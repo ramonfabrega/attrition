@@ -29088,3 +29088,73 @@ SHA-256 `edb5cce145e4e05ad8752fe683766ecf1692ed03b12a4a237d6048785d11f957`.
 **What it holds**: `aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole` (256 blocks, 2414 keys, rounds
 (163, 141) with 49 parting): the Citizen `0/13`'s kill by `1/29` on 2556 on both sides, theirs' plunder of it
 (who=1's timber 12714 against 12759 on 2557), and the Heavy Horse Archers' launch points (parked 3647a).
+
+## run1309 — the Inca at a held Enlightenment age, Great Sahara: the `DUMP_ALL` start (2026-10-26, item 3648, `att-3648`)
+
+`docs/AI.md` §339. §338's start line with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1309 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 2 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 06:55:36, exited 06:56:08 (31.4 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 2, five files restored. `GAME INFO` reads back
+  `DIFFICULTY 5`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`. Filed with `filerun.py run1309
+  greatsahara-inca-enlightenment-start`. `df -g ~` read 95 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1309-greatsahara-inca-enlightenment-start.txt`, 149,912,032 bytes,
+SHA-256 `3507cc02932a0b9f37567c0f0e9d205dc5ecd10632618da7cc347927eedb09bd`.
+
+Archive `rontrace-run1309.log`, 8,654,464 bytes,
+SHA-256 `da0cdc1938e8743dc4f392de5b4a2b71002e2e0cece2c952440331709e9f3ba9`.
+
+**What it holds**: the start of `inca_enlightenment_pair::INCA_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1310 — the Inca at a held Enlightenment age, Great Sahara: the draw stream to the game's end (2026-10-26, item 3648, `att-3648`)
+
+`docs/AI.md` §339. run1281's line with `--ai-tribe 2`: `--map 7 --end-frame 24000 --timeout 7200 --allow-early-end
+--log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 2 --detail
+end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1309's
+lobby.
+- **Two dead takes first.** Launched beside run1309, the first take died with a traceback and no receipt: `close the
+  original game before staging/restoring` (a pool lane held by a live game; 1503). Its output directory was moved
+  aside, never deleted, to `~/ron-golden/run1310.dead-take-1`; a retake into the same directory refused at once
+  (`FileExistsError`) and ran nothing.
+- The third take: pool lane 1. Launched 06:57:14, exited 06:57:58 (43.7 s launch to exit). `success`. **The game
+  ended itself on 4045** (closing block 4046, `ended_early`). `GAME INFO` reads back as run1309's. `rngcmp.py`
+  against run1309: 37 frames identical. Filed with `filerun.py run1310 greatsahara-inca-enlightenment-trace`.
+- Minutes waited on another lane: under one (the dead take's lane).
+
+Archive `gamelog-run1310-greatsahara-inca-enlightenment-trace.txt`, 21,279,773 bytes,
+SHA-256 `62ea27c62a595614af192fe00e4a25c41093931cd192d1a9294a7e9bccf4c041`.
+
+Archive `rontrace-run1310.log`, 55,336,896 bytes,
+SHA-256 `bb42109604d7c95a5f86e60f93fbc51ce9d41f7b50e83e6cf1b2ec235b2191ca`.
+
+**What it holds**: the pair's first try. `inca_enlightenment_pair_first_parting` walks it from run1309: **3095 of
+4045** by the count and the sequence (ours 13 draws against 12, index 9).
+`inca_enlightenment_pair_the_long_s_stride_walks_back_from_3095` walks its stride 101..3001: 30 blocks, 84 keys, all
+standing.
+
+## run1310b — the Inca at a held Enlightenment age, Great Sahara: the word 3095's window, blocks 3089..3345 (2026-10-26, item 3648, `att-3648`)
+
+`docs/AI.md` §339. **What the disk could not answer**: every record on the word's frame. run1310's stride prints
+units on 3001 and 3101 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1310b --map 7 --end-frame 3345 --timeout
+3600 --log-window 3089 3345 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover
+cover=0 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1. Launched 07:03:38, exited 07:04:22 (44.2 s launch to exit). `success`: 3346 frames. `rngcmp.py`
+  against run1310: 3346 frames identical. Filed with `filerun.py run1310b
+  greatsahara-inca-enlightenment-window-3089-3345`. `df -g ~` read 93 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1310b-greatsahara-inca-enlightenment-window-3089-3345.txt`, 507,904,666 bytes,
+SHA-256 `84771e2017d3a6f2c587fa5dd501f54319d904f043db9c9a32c3d5c3d986af48`.
+
+Archive `rontrace-run1310b.log`, 41,037,792 bytes,
+SHA-256 `5e7c9650c5f62df05db0510e023d073829b7de894ce68e06c4911221a536c7b6`.
+
+**What it holds**: `inca_enlightenment_pair_run1310b_s_word_frame_is_widened_whole` (256 blocks, 1205 keys, rounds
+(104, 138) with 109 parting): the Musketeers `1/36`'s target (`0/5` ours, `0/12` theirs) and `0/5`'s
+`damage_frame` (3054 against 3053) on the first block, and ours' kill of `0/5` on 3095.

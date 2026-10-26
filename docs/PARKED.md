@@ -11241,13 +11241,11 @@ The word moves 4859 → 6128 and the pair closes (`docs/AI.md` §335.4).
   and `0/13` dies on 2556 on both sides. **Score**: none while the word is the plunder on 2556 (`docs/AI.md` §338);
   it books when a word lands on a Heavy Horse Archer's round.
 
-## Parked by the next landing, slot SS — reserved
+## Parked by item 3648, 2026-10-26 — the Inca at a held Enlightenment age, Great Sahara
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the window's every parting round parts on its target too,
+and the word's next take is the item the commander books (`docs/AI.md`
+§339).
 
 ## Parked by the next landing, slot ST — reserved
 
