@@ -476,7 +476,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `rubric.py --tables 3` on this tree. Item 3663: 203 -> 204, the Persian
 /// Classical pair whole at 11633 — `Anusiya` (163, land; 8976 figure rows),
 /// the line §343 booked, read by `rubric.py --tables 3` on the merged tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 204;
+/// Item 3664: 204 -> 205, the Japanese Medieval pair whole at 5140 —
+/// `Elite Bushi` (159, land; 3444 guy records across run1329 and run1329b),
+/// the line §344 booked, read by `rubric.py --tables 3` on the merged tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 205;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
