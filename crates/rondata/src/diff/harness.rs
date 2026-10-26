@@ -4404,8 +4404,102 @@ pub(crate) mod tests {
             near,
             records,
             &[],
+            false,
         )
         .map(|(whole, _)| whole)
+    }
+
+    /// [`widen_on_siblings`] with **every round compared**, both directions
+    /// (item 3645, Loop 3644): each block's `AMMO` records against
+    /// `Sim::projectiles`, keyed on the shooter and the pool slot, every
+    /// field this crate carries — [`Widened::rounds`], kept apart from
+    /// `firsts` so that a window which opts in moves no other pin. It
+    /// reads every block's text a second time, which the oracle cache
+    /// otherwise spares, so a window opts in rather than every walk paying.
+    #[expect(clippy::too_many_arguments, reason = "widen_on_siblings' arguments")]
+    pub(crate) fn widen_on_siblings_with_rounds(
+        siblings: &[&str],
+        gaia: bool,
+        base: (&str, &str),
+        name: &str,
+        chain: &[(&str, i64)],
+        window: (i64, i64),
+        pools: i64,
+        near: &[i64],
+        records: bool,
+    ) -> Option<Widened> {
+        widen_on_siblings_with_checkpoints(
+            siblings,
+            gaia,
+            base,
+            name,
+            chain,
+            window,
+            pools,
+            near,
+            records,
+            &[],
+            true,
+        )
+        .map(|(whole, _)| whole)
+    }
+
+    /// Every round on block `n`, both directions: the dump's live `AMMO`
+    /// records (`flags & 2`) against this crate's projectiles, keyed on
+    /// `(shooter's who, shooter's o, pool slot)` — run235's walk
+    /// (`golden::rounds_record_for_record`) inside the pair walk. A round
+    /// one side holds alone is the row `ammo[slot]`; a field that parts is
+    /// `ammo[slot].<field>`. Returns the rounds read on each side.
+    pub(crate) fn compare_rounds(
+        sim: &sim::Sim,
+        raw: &str,
+        n: i64,
+        here: &mut std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+    ) -> (usize, usize) {
+        use std::collections::{BTreeMap, BTreeSet};
+        let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(raw)
+            .into_iter()
+            .filter(|(a, _)| a.flags & 2 != 0)
+            .map(|(a, _)| ((a.who, a.o, a.index), a))
+            .collect();
+        let ident = |o: sim::combat::Obj| match o {
+            sim::combat::Obj::Unit(u) => {
+                (i64::from(sim.units[u].owner), i64::from(sim.units[u].index))
+            }
+            sim::combat::Obj::Building(b) => (
+                i64::from(sim.buildings[b].owner),
+                i64::from(sim.buildings[b].index),
+            ),
+        };
+        let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = sim
+            .projectiles
+            .iter()
+            .map(|p| {
+                let (w, o) = ident(p.shooter);
+                ((w, o, i64::from(p.slot)), *p)
+            })
+            .collect();
+        let keys: BTreeSet<_> = theirs.keys().chain(ours.keys()).copied().collect();
+        for key @ (who, o, slot) in keys {
+            let (Some(a), Some(p)) = (theirs.get(&key), ours.get(&key)) else {
+                let side = if theirs.contains_key(&key) {
+                    "the dump"
+                } else {
+                    "this crate"
+                };
+                here.entry((who, o, format!("ammo[{slot}]")))
+                    .or_insert((n, format!("{side} holds it alone")));
+                continue;
+            };
+            let target = p.target.map_or((-1, -1), ident);
+            for (field, mine, dumped) in super::golden::round_rows(p, a, target) {
+                if mine != dumped {
+                    here.entry((who, o, format!("ammo[{slot}].{field}")))
+                        .or_insert((n, format!("ours {mine} theirs {dumped}")));
+                }
+            }
+        }
+        (theirs.len(), ours.len())
     }
 
     /// Snapshot cumulative results at the original tests' endpoints. The sim,
@@ -4425,6 +4519,7 @@ pub(crate) mod tests {
         near: &[i64],
         records: bool,
         checkpoints: &[(i64, &[i64])],
+        rounds: bool,
     ) -> Option<(Widened, Vec<Widened>)> {
         let walk = |reuse, prefix| {
             widen_walk(
@@ -4438,6 +4533,7 @@ pub(crate) mod tests {
                 near,
                 records,
                 checkpoints,
+                rounds,
                 reuse,
                 prefix,
             )
@@ -4500,6 +4596,7 @@ pub(crate) mod tests {
         near: &[i64],
         records: bool,
         checkpoints: &[(i64, &[i64])],
+        rounds: bool,
         reuse: bool,
         prefix: bool,
     ) -> Option<(Widened, Vec<Widened>)> {
@@ -4567,6 +4664,8 @@ pub(crate) mod tests {
         let players = built.sim.players.len();
         use std::collections::{BTreeMap, BTreeSet};
         let mut firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut round_firsts: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
+        let mut rounds_read = (0usize, 0usize);
         let mut missing: BTreeSet<String> = BTreeSet::new();
         let (mut blocks, mut compared, mut leader_rows, mut pool_lists) =
             (0usize, 0usize, 0usize, 0usize);
@@ -4665,6 +4764,15 @@ pub(crate) mod tests {
             debug_leader(&built, n);
             debug_ammo(&built, n);
             debug_builds(&built, n);
+            if rounds {
+                let raw = match &reused_text {
+                    Some(t) => t.clone(),
+                    None => ix.read_frame(at).unwrap(),
+                };
+                let (t, o) = compare_rounds(&built.sim, &raw, n, &mut round_firsts);
+                rounds_read.0 += t;
+                rounds_read.1 += o;
+            }
             let mut here: BTreeMap<(i64, i64, String), (i64, String)> = BTreeMap::new();
             let (fr, rows) = widen_block(&built, frame, players, n, &mut here);
             compared += rows;
@@ -4879,6 +4987,8 @@ pub(crate) mod tests {
                         .map(|(n, rows)| (*n, rows.clone()))
                         .collect(),
                     army_lists: ArmyLists::new(),
+                    rounds: round_firsts.clone(),
+                    rounds_read,
                 });
             }
         }
@@ -4944,6 +5054,8 @@ pub(crate) mod tests {
                 housed,
                 standing,
                 army_lists: ArmyLists::new(),
+                rounds: round_firsts,
+                rounds_read,
             },
             snapshots,
         ))
@@ -7368,6 +7480,8 @@ pub(crate) mod tests {
                 housed,
                 standing,
                 army_lists,
+                rounds: Default::default(),
+                rounds_read: (0, 0),
             },
             compared,
         ))
@@ -7470,6 +7584,13 @@ pub(crate) mod tests {
         /// numbers in list order, an empty side for an army the other
         /// side lacks. [`widen_east_indies`] alone fills it.
         pub(crate) army_lists: ArmyLists,
+        /// **Every round's first parting**, keyed as `firsts` is
+        /// (`ammo[slot]`, `ammo[slot].<field>`) — filled only by
+        /// [`widen_on_siblings_with_rounds`] (item 3645); empty otherwise.
+        pub(crate) rounds: std::collections::BTreeMap<(i64, i64, String), (i64, String)>,
+        /// `(theirs, ours)`: the round-blocks read on each side, so that
+        /// an empty [`Self::rounds`] is never a blind one.
+        pub(crate) rounds_read: (usize, usize),
     }
 
     /// [`Widened::army_lists`]: block → `(who, army)` → `(ours, theirs)`.

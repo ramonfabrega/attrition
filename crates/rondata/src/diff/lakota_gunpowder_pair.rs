@@ -195,7 +195,7 @@ pub(crate) const WIDENING_LAKOTA_GUNPOWDER_FRAME_4187: (i64, i64) = (4182, 4438)
 /// **The word 4187's window**: run1289b walked from run1288's start with
 /// the recorder on (item 3628).
 pub(crate) fn lakota_gunpowder_frame_4187_window() -> Option<harness::tests::Widened> {
-    harness::tests::widen_on_siblings(
+    harness::tests::widen_on_siblings_with_rounds(
         &[LAKOTA_GUNPOWDER.start],
         true,
         LAKOTA_GUNPOWDER.long,
@@ -222,6 +222,10 @@ fn lakota_gunpowder_pair_run1289b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
         for (b, rows) in &w.standing {
             for ((who, o, what), r) in rows {
                 eprintln!("  standing {b} {who}/{o} {what}: {r}");
@@ -266,7 +270,7 @@ pub(crate) const WIDENING_LAKOTA_GUNPOWDER_GAP_4096: (i64, i64) = (4096, 4187);
 /// **The gap before the word**: run1305 walked from run1288's start with
 /// the recorder on (item 3645).
 pub(crate) fn lakota_gunpowder_gap_4096_window() -> Option<harness::tests::Widened> {
-    harness::tests::widen_on_siblings(
+    harness::tests::widen_on_siblings_with_rounds(
         &[LAKOTA_GUNPOWDER.start],
         true,
         LAKOTA_GUNPOWDER.long,
@@ -293,6 +297,10 @@ fn lakota_gunpowder_pair_run1305_s_gap_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
     }
     pin_eq!(
         w.missing.iter().cloned().collect::<Vec<_>>(),

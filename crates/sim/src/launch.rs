@@ -694,6 +694,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 166,
         },
     ),
+    // **Piece 1456, the Lakota's Arquebusiers** (unit type 98 as the
+    // Lakota field it; item 3645, `docs/AI.md` §336): run1305b's
+    // `RON_STATE_FRAME=4181` packet on the Lakota Gunpowder Great Sahara
+    // seed holds three attack `AttachPos` rows on 1104's keys, and
+    // `tools/recomp/fit_bay.py` fits each sweep to the very regions piece
+    // 48's packet gave (14, 1293 and 238 lattice points): the same model,
+    // so the same rows. Without them group 64's Arquebusiers left from the
+    // figure's own point — run1289b's `1/39` on 4217 from (8520, 27864)
+    // against the original's (8395, 27931, 659), and `1/37`'s round on 4236
+    // flew 5 frames against 4.
+    (
+        1456,
+        11,
+        6,
+        Bay {
+            right: 26_383,
+            fwd: 140_546,
+            dz: 168,
+        },
+    ),
+    (
+        1456,
+        12,
+        25,
+        Bay {
+            right: 25_298,
+            fwd: 124_214,
+            dz: 159,
+        },
+    ),
+    (
+        1456,
+        13,
+        23,
+        Bay {
+            right: 13_387,
+            fwd: 117_132,
+            dz: 166,
+        },
+    ),
     // **The Javelineers' piece 34** (item 2997, `docs/AI.md` §244): run912e's
     // `RON_STATE_FRAME=12753` packet holds its three `AttachPos` rows, and
     // `tools/recomp/get_position.py`'s sweep of each is reproduced by these
