@@ -3190,8 +3190,9 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
         "des_node_flags des_turret_angles guy_flags guy_num kind last_pos node_flags \
          turret_angles",
     ),
-    // `OrderDump`: the move row leaves `tolerance`, `retry`, `attempts`
-    // and `orig_x`/`orig_y` to run29's field-table test on purpose
+    // `OrderDump`: the move row leaves `tolerance` and `orig_x`/`orig_y`
+    // to run29's field-table test on purpose (`retry` and `attempts` are
+    // compared since item 3637, parked 3625a)
     // (`compare_orders`); the `GROUPORDER`, patrol, guard, garrison, cast,
     // air, strafe and ground rows on their orders, none of which stands on
     // this window (the guard's six were compared on run202's, where one
@@ -3308,10 +3309,10 @@ const UNCOMPARED_BY_THE_INSTRUMENT: &[(&str, &str)] = &[
     // `strafe_yy` leave the pin.
     (
         "OrderDump",
-        "attempts build_type \
+        "build_type \
          garrison_search \
          metric non_flat_gather \
-         orig_x orig_y retry \
+         orig_x orig_y \
          tolerance uid ",
     ),
     // `BuildDump`: **`orig_type` no site compares** (parked 728, the
@@ -3521,6 +3522,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::mongol_gunpowder_pair::mongol_gunpowder_frame_5399_window(),
         || super::bantu_medieval_pair::bantu_medieval_closing_window(),
         || super::chinese_gunpowder_pair::chinese_gunpowder_frame_4884_window(),
+        || super::chinese_gunpowder_pair::chinese_gunpowder_frame_5196_window(),
         || super::chinese_gunpowder_pair::chinese_gunpowder_stride_window(),
         || super::chinese_gunpowder_pair::chinese_gunpowder_gap_window(),
         || super::greek_gunpowder_pair::greek_gunpowder_closing_window(),

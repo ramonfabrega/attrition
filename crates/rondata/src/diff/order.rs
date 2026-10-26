@@ -452,9 +452,9 @@ pub(crate) fn compare_orders(
             }
         }
         // **The move order's own row**, field for field (§4.1) — every
-        // field of the record this crate models. `tolerance`, `retry`,
-        // `attempts` and `orig_x/orig_y` are left out because nothing here
-        // writes them and `run29_s_move_orders_match_the_field_table_row_
+        // field of the record this crate models. `tolerance` and
+        // `orig_x/orig_y` are left out because nothing here writes them
+        // and `run29_s_move_orders_match_the_field_table_row_
         // for_row` already pins them against the original; `off_x/off_y`
         // are `x mod 0x300` and so are the destination said twice, which
         // is worth having as a check on this crate's own snapping.
@@ -491,6 +491,8 @@ pub(crate) fn compare_orders(
                 ("last_x", i64::from(last.x), theirs.last_x),
                 ("last_y", i64::from(last.y), theirs.last_y),
                 ("pause", i64::from(m.pause), theirs.pause),
+                ("retry", i64::from(m.retry), theirs.retry),
+                ("attempts", i64::from(m.attempts), theirs.attempts),
                 ("timer", i64::from(m.timer), theirs.timer),
                 ("facing", m.facing.map_or(-1, i64::from), theirs.facing),
                 ("off_x", i64::from(m.dest.x).rem_euclid(0x300), theirs.off_x),

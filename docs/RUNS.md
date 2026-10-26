@@ -28587,3 +28587,23 @@ SHA-256 `02fb56f281a0508df9ae7f3b470f46064fe0c10ecc28b6b81bbd24bb4d3c1fb1`.
 **What it holds**: `spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole` (256 blocks, 1343 keys). On its
 first block 2163 ours holds a Transport Galleon `1/68` (TI 321) with the Arquebusiers `1/48`, `1/49` and `1/50`
 inside, cast on 2153 in the undumped gap; theirs prints no `1/68`, and its three stand ashore.
+## run1299 — the Chinese at a held Gunpowder age, East Indies: the word 5196's window, blocks 5190..5446 (2026-10-25, item 3637, `att-3637`)
+
+`docs/AI.md` §333.1. **What the disk could not answer**: every record on the word's frame 5196. run1283's stride
+prints units on 5101 and 5201 only, and run1283b ends on 5135. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1299 --map 18 --end-frame 5446 --allow-early-end --timeout 3600 --log-window 5190 5446` with
+run1283b's detail, tribe, cover and lobby.
+- Pool lane 1. Launched 19:04:51, exited 19:06:26 (95.0 s launch to exit). `success`: 5447 frames, closing frame
+  5447. `rngcmp.py` against run1283: 5447 of 5447 identical. Filed with `filerun.py run1299
+  eastindies-chinese-gunpowder-window-5190-5446 --map 18`. `df -g ~` read 104 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1299-eastindies-chinese-gunpowder-window-5190-5446.txt`, 646,588,992 bytes,
+SHA-256 `46aa288d8f3866b2b883376b94db03dc9b69cdc7f4381e55cda13b6f557e3a12`.
+
+Archive `rontrace-run1299.log`, 259,278,528 bytes,
+SHA-256 `4dca1a5238163778605e82bb77358e85e53aad5c189ed9aa375c61997cbc862a`.
+
+**What it holds**: `chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole` (256 blocks, 4356 keys). Its first
+block 5190 already parts at the human's Citizen `0/10`, wounded on 5132 in theirs and 5133 in ours (run1283b's
+5133), and at who=1's `1/39`'s aim.
