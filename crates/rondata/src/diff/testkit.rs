@@ -7291,6 +7291,15 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3629: run1291b, the Iroquois Enlightenment word 3962's window,
     // 3956..4212: 2 inexact corners.
+    // Item 3655: the Iroquois Enlightenment pair walked whole, run1290
+    // along run1291 to the game's end 5128; the closing state along the
+    // same walk; run1320, the closing window 4873..5129.
+    ("iroquois_enlightenment_pair_first_parting", 2),
+    ("iroquois_enlightenment_pair_run1291_s_closing_state", 2),
+    (
+        "iroquois_enlightenment_pair_run1320_s_closing_window_is_widened_whole",
+        2,
+    ),
     (
         "iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole",
         2,
@@ -10485,13 +10494,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Iroquois at a held Enlightenment age** (item 3629): East
     // Indies — first try 3962 of 5128 by the count and the sequence,
     // widened on run1291b over 3956..4212 (the word's block 3963), the
-    // rounds compared.
+    // rounds compared. Whole since item 3655, 5128 of 5128 (the Bomb
+    // Ketch fires from its pivots), the closing state compared; widened on
+    // run1320 over 4873..5129 (the closing block), the rounds compared.
     (
         "IROQUOIS_ENLIGHTENMENT_PAIR_WORD",
         crate::diff::iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT_PAIR_WORD,
-        Some("iroquois_enlightenment_pair_run1291b_s_word_frame_is_widened_whole"),
-        3629,
-        Some(crate::diff::iroquois_enlightenment_pair::WIDENING_IROQUOIS_ENLIGHTENMENT_FRAME_3962),
+        Some("iroquois_enlightenment_pair_run1320_s_closing_window_is_widened_whole"),
+        3655,
+        Some(crate::diff::iroquois_enlightenment_pair::WIDENING_IROQUOIS_ENLIGHTENMENT_FRAME_5128),
     ),
     // **The Aztecs at a held Medieval age** (item 3647): Great Sahara —
     // first try 2556 of 4602 by the count and the sequence, widened on
@@ -12495,15 +12506,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Iroquois at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
     // `ENDING_TECHNOLOGY` 4), East Indies (item 3629): first try 3962 of a
-    // game that ends itself on 5128, widened on run1291b.
+    // game that ends itself on 5128, widened on run1291b. Whole since item
+    // 3655, 5128 of 5128 (the Bomb Ketch fires from its pivots), the
+    // closing state compared; widened on run1320 (the closing window).
     AiWord {
         line: "Late ages",
         map: "EastIndiesIroquoisEnlightenment",
         named: "East Indies (Iroquois, Enlightenment)",
         word: crate::diff::iroquois_enlightenment_pair::IROQUOIS_ENLIGHTENMENT_PAIR_WORD,
         length: 5_128,
-        endpoint: None,
-        window: Some("iroquois_enlightenment_frame_3962_window"),
+        endpoint: Some("iroquois_enlightenment_pair_run1291_s_closing_state"),
+        window: Some("iroquois_enlightenment_frame_5128_window"),
     },
     // The Aztecs at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), Great Sahara (item 3647): first try 2556 of a

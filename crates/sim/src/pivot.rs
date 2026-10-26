@@ -60,6 +60,14 @@ pub struct Node {
 /// −29.45, 18.78)` (`0xc1eb9999`). The pivot sits behind the hull's
 /// centre, where the Chariot's sits ahead of it.
 ///
+/// **Piece 297, the Bomb Ketch** (item 3655, unit type 347, `MORTARSHIP`,
+/// `BombKetch.bh3`): run1185's packet (logger frame 4582 of the British
+/// Enlightenment lobby, which fields the Ketch) reads its two pivots,
+/// `(4, 0, 0)` `(0.0, −50.37, 19.45)` and `(5, 0, 0)` `(0.0, 5.86, 19.45)`
+/// (`0xc2497ae1`, `0x40bb851e`), `RData +0x88` 0.8 — one per
+/// `<RESTRICTION name="MortarShip">`, the stern mortar on 4 and the bow's
+/// on 5.
+///
 /// **Piece 491, the Dragoon** (item 1776): run773's packet (frame 961, the
 /// game that fields it) reads its `(4, 0, 0)` entry as `(0.0, −1.48,
 /// 31.05)` (`0xbfbd70a3`), `RData +0x88` 1.0. The bow-side pivot sits a
@@ -133,6 +141,8 @@ pub struct Node {
 const NODES: &[(i32, i32, Node)] = &[
     (145, 4, Node { px: 0, py: 2464 }),
     (296, 4, Node { px: 0, py: -2945 }),
+    (297, 4, Node { px: 0, py: -5037 }),
+    (297, 5, Node { px: 0, py: 586 }),
     (491, 4, Node { px: 0, py: -148 }),
     (137, 4, Node { px: -6, py: -148 }),
     (149, 4, Node { px: 0, py: -148 }),
@@ -167,6 +177,7 @@ const SCALE: (i64, i64) = (48, 10);
 /// (`0x3f4ccccd`, run486's packet). A piece with no row is 1.0.
 const RDATA_SCALE: &[(i32, (i64, i64))] = &[
     (296, (4, 5)),
+    (297, (4, 5)),
     (194, (9, 10)),
     (279, (9, 10)),
     (168, (19, 20)),
@@ -430,6 +441,17 @@ const FLOAT_LANDS_298_A12_N1: &[(i32, i32, i32, i32)] =
 const FLOAT_LANDS_278_N0: &[(i32, i32, i32, i32)] = &[(220, 24, 214, -227)];
 const FLOAT_LANDS_278_N1: &[(i32, i32, i32, i32)] = &[(321, 3, 140, 166)];
 const FLOAT_LANDS_278_N2: &[(i32, i32, i32, i32)] = &[(77, 124, 464, -163), (167, 124, 163, 464)];
+
+/// Piece 297's [`Release::float_lands`], one list per turret (item 3655):
+/// `CHAR_ATTACK1` and `3` are the same bits on node 0.
+const FLOAT_LANDS_297_N0: &[(i32, i32, i32, i32)] = &[
+    (27, 325, -83, 202),
+    (117, 325, -202, -83),
+    (207, 325, 83, -202),
+    (297, 325, 202, 83),
+    (325, 345, 134, 177),
+];
+const FLOAT_LANDS_297_N1: &[(i32, i32, i32, i32)] = &[];
 
 /// `(piece, anim, starttime frame) → release`. **Measured, not derived**:
 /// run147's packet holds piece 145's nine `AttachPos` entries, the
@@ -1603,6 +1625,53 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             pivot: [0, -29_576_756, 18_779_999],
             at: [0, -11_213_131, 16_269_558],
             float_lands: &[],
+        },
+    ),
+    // **The Bomb Ketch, piece 297** (unit type 347, `MORTARSHIP`; item
+    // 3655, `docs/AI.md` §337): run1185's packet (logger frame 4582 of the
+    // British Enlightenment lobby) holds the piece's eleven entries — its
+    // two pivots at `(anim 0, time 0)` and, for each `<RELEASEEVENT>` (266
+    // ms, frame 3), the pivot's and the release node's: node 0 from pivot 4
+    // on `CHAR_ATTACK1` and `3` (the same bits), node 1 from pivot 5 on
+    // `CHAR_ATTACK2`. Without them its rounds left the hull's own square at
+    // the water's `z` 0: the Iroquois Enlightenment lobby's `1/82` loosed
+    // at the Citizen `0/4` from (4013, 12593, 133) and flew 41 frames,
+    // where this crate's left (3912, 12792, 0) and flew 43, so theirs
+    // struck on 3962 and ours was still in the air (the word 3962's draw).
+    (
+        297,
+        crate::anim::ATTACK1,
+        3,
+        Release {
+            piece: 297,
+            node: 0,
+            pivot: [0, -50_437_000, 19_346_149],
+            at: [49_741, -7_746_784, 15_496_639],
+            float_lands: FLOAT_LANDS_297_N0,
+        },
+    ),
+    (
+        297,
+        crate::anim::ATTACK2,
+        3,
+        Release {
+            piece: 297,
+            node: 1,
+            pivot: [0, 5_809_750, 19_372_950],
+            at: [23_246, -7_899_697, 14_525_358],
+            float_lands: FLOAT_LANDS_297_N1,
+        },
+    ),
+    (
+        297,
+        crate::anim::ATTACK3,
+        3,
+        Release {
+            piece: 297,
+            node: 0,
+            pivot: [0, -50_437_000, 19_346_149],
+            at: [49_741, -7_746_784, 15_496_639],
+            float_lands: FLOAT_LANDS_297_N0,
         },
     ),
     // **The Dragoon** (item 1776): run773's packet, piece 491's nine entries
@@ -3122,6 +3191,69 @@ mod tests {
         }
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 297** (item
+    /// 3655): `tools/recomp/get_position.py … pivot 297 <node> <anim> 3 2`
+    /// on run1185's packet for its three rows. `$RON_RELEASE_TABLE_297` is
+    /// the directory holding `pivot-297-a<anim>-t3.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-26-item-3655/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_297() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_297") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_297 (item 3655's oracle, run1185)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for slot in [
+            crate::anim::ATTACK1,
+            crate::anim::ATTACK2,
+            crate::anim::ATTACK3,
+        ] {
+            let path = format!("{dir}/pivot-297-a{slot}-t3.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_297");
+            let r = release(297, slot, 3).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} ({}, {}, {}, {})", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 3 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **run1291b's Bomb Ketch `1/82`** (item 3655, `docs/AI.md` §337):
+    /// its round at the Citizen `0/4`, fired in the undumped gap before
+    /// block 3956. This crate's left the hull's own square, (3912, 12792)
+    /// at `z` 0; the original's (4013, 12593, 133) is a cell of the stern
+    /// mortar's sweep from that square at the figure's facing on 3956,
+    /// 323813376, and its height is the row's. Made to fail with piece
+    /// 297's rows out of `RELEASES`: no row, the hull's square.
+    #[test]
+    fn run1291b_s_bomb_ketch_fires_through_piece_297_s_pivot() {
+        let r = release(297, crate::anim::ATTACK1, 3).expect("the Bomb Ketch's row");
+        let d = release_rotation(Angle(323_813_376));
+        let fits: Vec<i32> = (0..360)
+            .filter(|&t| {
+                let (x, y, _) = release_offset_at(&r, d, t);
+                (3912 + x, 12792 + y) == (4013, 12593)
+            })
+            .collect();
+        assert!(!fits.is_empty(), "no turret step reproduces 1/82's round");
+        assert_eq!(release_offset_at(&r, d, 0).2, 133);
+        assert_eq!(
+            release(297, crate::anim::ATTACK2, 3).map(|r| release_offset_at(&r, d, 0).2),
+            Some(130)
+        );
+        assert_eq!(node(297, 4), Some(Node { px: 0, py: -5037 }));
+        assert_eq!(node(297, 5), Some(Node { px: 0, py: 586 }));
     }
 
     /// **run1305's Musket Horse `1/54`** (item 3645, `docs/AI.md` §336):

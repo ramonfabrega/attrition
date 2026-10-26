@@ -734,6 +734,45 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 166,
         },
     ),
+    // **Piece 1457, `MUSKETEERS-NA`** (unit type 99 as the Iroquois field
+    // it, `musketeer_na.bh3`; item 3655, `docs/AI.md` §337): run1320b's
+    // `RON_STATE_FRAME=5066` packet on the Iroquois Enlightenment East
+    // Indies seed holds its three attack `AttachPos` rows (node 0, 0, 500
+    // and 333 ms: frames 1, 7 and 4), `RData +0x88` 1.1, and
+    // `tools/recomp/fit_bay.py` fits each sweep (348, 73 and 27 lattice
+    // points; the centroid is kept). Without them group 78's Musketeers
+    // left from the figure's own point — run1320's `1/75` on 5067 from
+    // (7512, 8664, 298) against the original's (7614, 8539, 476).
+    (
+        1457,
+        11,
+        1,
+        Bay {
+            right: 32_553,
+            fwd: 139_478,
+            dz: 218,
+        },
+    ),
+    (
+        1457,
+        12,
+        7,
+        Bay {
+            right: 11_054,
+            fwd: 166_181,
+            dz: 176,
+        },
+    ),
+    (
+        1457,
+        13,
+        4,
+        Bay {
+            right: 11_950,
+            fwd: 161_692,
+            dz: 178,
+        },
+    ),
     // **Piece 1625, the Lakota's Bombard** (unit type 267; item 3645,
     // `docs/AI.md` §336): run1305b's packet holds its one attack
     // `AttachPos` row, node 0 at `CHAR_ATTACK2` frame 9 (666 ms), and
@@ -3029,6 +3068,33 @@ mod tests {
         );
         assert_eq!((ball.x, ball.y), (8898, 27250), "1/58's round on 4303");
         assert_eq!(release_dz(1625, crate::anim::ATTACK2, 9, 0), Some(104));
+    }
+
+    /// **The Iroquois Musketeers leave from piece 1457's bays** (item 3655,
+    /// `docs/AI.md` §337): run1320's `1/75` on block 5067, the figure at
+    /// (7512, 8664, 298) and angle 426639360 on 5066, its round at
+    /// (7614, 8539, 476) — `CHAR_ATTACK3`'s row, and no other key's.
+    /// Made to fail with the rows out of `BAYS`: the round leaves the
+    /// figure's own point at `z` 298.
+    #[test]
+    fn run1320_s_iroquois_musketeer_leaves_from_piece_1457_s_bay() {
+        let keys = [(11, 1), (12, 7), (13, 4)];
+        let fits: Vec<_> = keys
+            .iter()
+            .filter(|&&(anim, start)| {
+                let at = launch_point(
+                    Pos::new(7512, 8664),
+                    Angle(426_639_360),
+                    1457,
+                    anim,
+                    start,
+                    0,
+                );
+                (at.x, at.y) == (7614, 8539)
+            })
+            .collect();
+        assert_eq!(fits, [&(13, 4)], "1/75's round on 5067");
+        assert_eq!(298 + release_dz(1457, 13, 4, 0).unwrap(), 476);
     }
 
     /// **The Egyptian Arquebusiers' rounds leave from piece 48's bays**

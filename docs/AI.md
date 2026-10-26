@@ -31157,7 +31157,7 @@ Why parked 3645a–c's standing rows stand is unread.
 302** on the tree holding item 3646's merge (196 there): the pair is lockstep
 now, and Musket Horse (207, land; 280 figure rows) leaves the "never" list.
 
-## 337. The Iroquois at a held Enlightenment age, East Indies: first try 3962 of 5128 (item 3629)
+## 337. The Iroquois at a held Enlightenment age, East Indies: first try 3962 of 5128 (item 3629), whole at 5128 since item 3655
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the British
 Enlightenment pair's lobby (§306) with the nation moved: East Indies,
@@ -31234,17 +31234,55 @@ carries only the standing families (`form`, `SITE[i].reg`, who=0's
 `aggression[1]`, who=1's groups' `held` and pools, `blown`). The next row
 past `0/4`'s flight is `1/107`'s move on 3979.
 
-**What is not established.** Where the Bomb Ketch's round leaves from
-(its piece, and whether it is a pivot or a bay), and the frame it fired
-on, in the gap 3902..3955. A gap window over 3895..3962 and a packet at
-the fire would answer both, as item 3645's did for the Musket Horse.
+**What is not established.** ~~Where the Bomb Ketch's round leaves from
+(its piece, and whether it is a pivot or a bay)~~ — answered by item 3655
+(§337.1): piece 297, two pivots. The frame it fired on, in the gap
+3902..3955, was not needed and is not read.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **196 of
 302**, unmoved: the rubric counts lockstep games only, and this pair
 parts. **`Okwari` (81)**, the booking's line, **is fielded**: 338 guy
 records in run1291 and 2048 in run1291b. It is the one type this game
 holds that the lockstep ledger has not seen, and it stays on the "never"
-list until the pair closes.
+list until the pair closes. — It closed, and the rubric counts it: §337.1.
+
+### 337.1 The Bomb Ketch fires from its pivots, and the pair closes (item 3655)
+
+*2026-10-26, Opus 5.5; runs 1320 (the closing window, 4873..5129) and 1320b (a packet at logger frame 5066).*
+
+**The disk answered the hypothesis without a gap window.** `1/82` is TypeIndex 347 (`MORTARSHIP`), piece 297
+(`BombKetch.bh3`), and two `<RESTRICTION name="MortarShip">` rows (nodes 4 and 5) make it a pivot piece. With no
+row in `pivot::RELEASES` its round left the hull's square at the water's `z` 0. The British Enlightenment lobby
+fields the Ketch, and run1185's packet (logger frame 4582) holds piece 297's eleven `AttachPos` entries: pivots
+`(0.0, −50.37, 19.45)` and `(0.0, 5.86, 19.45)`, `RData +0x88` 0.8, and a release from each at frame 3 (266 ms) —
+node 0 from pivot 4 on `CHAR_ATTACK1` and `3`, node 1 from pivot 5 on `CHAR_ATTACK2`. The height is `3.84 ×
+(19.346 + 15.497)` = 133, theirs' `sz`; `CHAR_ATTACK2`'s is 130, the window's other Ketch rounds. Built:
+`pivot::NODES` (297, 4/5), `RDATA_SCALE` 4/5 and three `RELEASES` rows; the original's pivot branch under unicorn
+agrees on all 277,248 cells with five `float_lands`
+(`pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_297`, gated on `RON_RELEASE_TABLE_297`).
+`run1291b_s_bomb_ketch_fires_through_piece_297_s_pivot` puts theirs' (4013, 12593, 133) on a turret step from
+ours' fire point (3912, 12792) at the figure's facing on 3956.
+
+**The value diff, on the word's block 3963** (run1291b): `0/4` `hits_left` ours 65 → **47**, theirs 47;
+`damage_frame` 0 → **3962**; the top order `GATHERORDER` → **`FLEEORDER`**. `1/82`'s round on 3956: (3912, 12792, 0)
+in 43 → **(4013, 12593, 133) in 41**. run1291b falls **756 → 121** keys, all standing; its rounds read 301 a side,
+none parting (62 before).
+
+**The pair closes: 3962 → 5128 of 5128**, by the count and the sequence. The closing state
+(`iroquois_enlightenment_pair_run1291_s_closing_state`, block 5129) first read 199 units with the human's Explorer
+`0/0` (−11, 32) and Citizen `0/3` (−22, 12) off. run1320 named why: who=1's **Musketeers** (`1/73`..`1/75`, TypeIndex
+99) fire from the figure's own point from 5067 — the Iroquois draw piece **1457** (`MUSKETEERS-NA`, style 4), which
+has no row in `launch::BAYS`. run1320b's packet holds its three rows (`RData +0x88` 1.1), and `fit_bay.py` fits each
+sweep (348, 73 and 27 lattice points); `run1320_s_iroquois_musketeer_leaves_from_piece_1457_s_bay` holds `1/75`'s
+round on 5067 at (7614, 8539, 476). Now **199 units, none off, torn, unlinked or extra; `Closing fields: none`**.
+run1320's window reads 131 keys, rounds 940 a side with none parting; past the standing families its only object
+rows are `1/2005`'s queue price on 4983 and 5064 (TypeIndex 555, ours 500 against 250; parked 3655a).
+
+**Mutations** (`tools/mutate.py`): piece 297's `CHAR_ATTACK1` row unkeyed, `first_parting` held at 4174; piece
+1457's bays refused in `bay()`, the closing state held at two off. The `CHAR_ATTACK3` bay alone unkeyed failed
+nothing in the closing state: the rounds that reach `0/0` and `0/3` are the other two keys'.
+
+**The rubric**: unit types seen **197 → 198** on the tree holding item 3654's merge (which took 196 → 197), `Okwari` (81, 348 figure rows).
 
 ## 338. The Aztecs at a held Medieval age, Great Sahara: first try 2556 of 4602 (item 3647)
 

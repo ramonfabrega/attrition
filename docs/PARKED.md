@@ -11294,13 +11294,17 @@ every caller in the original, and ours asked it from only three (`docs/AI.md` §
   the sim test alone (the mutation holds on the test, and the pair walk passes without the arm). The killer: a
   pair whose word frame has a packed computer siege engine in an army take a target through `action_attack`.
 
-## Parked by the next landing, slot SY — reserved
+## Parked by item 3655, 2026-10-26 — the Iroquois Enlightenment pair whole: the Bomb Ketch's pivots and the Musketeer's bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The pair closes, 3962 → 5128 of 5128 by the count and the sequence, and its closing state compares 199 units with
+none off (`docs/AI.md` §337.1). One row of the closing window run1320 parks; it moves no draw and no unit:
+
+- **3655a. A tech's price in who=1's queue** (run1320, block 4983): building `1/2005` (type 435) queues TypeIndex
+  555 third on both sides, and ours prices it `cost[0]` 500 where theirs prices it 250; who=1's
+  `leader:bucket[2:wealth]` reads 15568 against 15818 from the same block, and the price parts again on 5064 at
+  `queue[1]`. `queue[k].type` agrees, so the item is the same and only its price differs. Nothing downstream parts
+  through the closing block 5129. The killer: `RON_DEBUG_MAKE=4983` (ours) for the item's price terms, against a
+  packet at 4982 for theirs'.
 
 ## Parked by the next landing, slot SZ — reserved
 
