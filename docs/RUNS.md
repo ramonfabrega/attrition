@@ -30048,3 +30048,26 @@ SHA-256 `e37ed8adaa0c56fc002d07640eb5c0c068265c9b6e401b918603ae28431b0da6`.
 2841 keys, rounds 1018 theirs against 246 ours, 168 parting by slot). On the word's block 4324 the human's leader
 holds a unit more in ours and `0/11` is ours alone; the first launch that parts is on 4304, who=1's A7V `1/48` (TY
 242) from (5427, 31534) at `sz` 587 in theirs and from the figure's square (5544, 31512) at 409 in ours.
+## run1352 — the British at a held Industrial age, Great Sahara, at difficulty 4: the word 2939's window, blocks 2933..3190 (2026-10-26, item 3678, `att-3678`)
+
+`docs/AI.md` §347. **What the disk could not answer**: every record on the moved word 2939 and around it. run1336's
+stride prints units every hundred frames, and no leader, building or `AMMO` record. run1336b ends on 2633.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1352 --map 7 --end-frame 3190 --allow-early-end
+--timeout 3600 --log-window 2933 3190 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe
+11 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`: six blocks before the word's block 2940 and 250 after it.
+- Pool lane 1. Launched 18:00:43, exited 18:01:25 (42.1 s launch to exit). `success`: 3191 frames. `rngcmp.py` against
+  run1336: 3191 of 3191 identical. Filed with `filerun.py run1352 greatsahara-british-industrial-window-2933-3190`.
+  `df -g ~` read 81 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1352-greatsahara-british-industrial-window-2933-3190.txt`, 506,183,147 bytes,
+SHA-256 `ba8e588098631647b288c7de02edab7347d2fc47a786b4141b791ddd779a82cf`.
+
+Archive `rontrace-run1352.log`, 45,096,064 bytes,
+SHA-256 `190b021e3c04044890cbe8eabe01e8ec54bf652a84dacce53a3ece1975b4d727`.
+
+**What it holds**: `british_industrial_pair_run1352_s_word_frame_is_widened_whole` walks it from run1335 (257 blocks,
+1533 keys, rounds read 306 and 278, 110 parting). Block 2933 carries the standing families alone. The first record
+to part is on 2934: who=1's Light Tank `1/28` (TY 240, `MARK4`) launches `ammo[1]` from (9432, 31128) at `sz` 619 in
+ours and from (9218, 31078) at 757 in theirs, `total_time` 6 against 5.
