@@ -10571,6 +10571,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3651,
         Some(crate::diff::british_classical_pair::WIDENING_BRITISH_CLASSICAL_FRAME_4567),
     ),
+    // **The Persians at a held Classical age** (item 3652): Great Lakes —
+    // first try 10937 of 11633 by the count and the sequence, widened on
+    // run1318b over 10895..11188 (the word's block 10938), the rounds
+    // compared.
+    (
+        "PERSIAN_CLASSICAL_PAIR_WORD",
+        crate::diff::persian_classical_pair::PERSIAN_CLASSICAL_PAIR_WORD,
+        Some("persian_classical_pair_run1318b_s_word_frame_is_widened_whole"),
+        3652,
+        Some(crate::diff::persian_classical_pair::WIDENING_PERSIAN_CLASSICAL_FRAME_10937),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12640,6 +12651,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 8_980,
         endpoint: None,
         window: Some("british_classical_frame_4567_window"),
+    },
+    // The Persians at a held Classical age (`STARTING_TECHNOLOGY` 1,
+    // `ENDING_TECHNOLOGY` 1), Great Lakes (item 3652): first try 10937 of
+    // a game that ends itself on 11633, widened on run1318b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesPersianClassical",
+        named: "Great Lakes (Persians, Classical)",
+        word: crate::diff::persian_classical_pair::PERSIAN_CLASSICAL_PAIR_WORD,
+        length: 11_633,
+        endpoint: None,
+        window: Some("persian_classical_frame_10937_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
