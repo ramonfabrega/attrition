@@ -12,17 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-26, **the fifty-eighth tranche (commander, Opus): 3 of 20 landed from `1e8ec999d`**; 3654 and 3655 live on two Opus lanes at medium; the last whole gate is `3e6f5b9ba`.*
-- **Words**: two open — the Iroquois at Enlightenment, 3962 of 5,128 (lower map first — East Indies (Iroquois, Enlightenment)), 3655 on 3962; the Lakota 4477, 3654.
-  **The Lakota 4187 → 4477** (3645: the Musket Horse fires from its pivot, piece 157; the `AMMO` comparator in the pair walk); **the Spanish closed, 4859 → 6128** (3646); the Iroquois stood up at 3962 (3629).
+*2026-10-26, **the fifty-eighth tranche (commander, Opus): 4 of 20 landed from `1e8ec999d`**; 3655 and 3647 live on two Opus lanes at medium; the last whole gate is `b605a6180`.*
+- **Words**: one open — the Iroquois at Enlightenment, 3962 of 5,128 (lower map first — East Indies (Iroquois, Enlightenment)), 3655 on 3962.
+  **The Lakota closed, 4187 → 4477 → 4750** (3645: the Musket Horse's pivot and the `AMMO` comparator; 3654: the decoy Bombards' siege target); **the Spanish closed, 4859 → 6128** (3646); the Iroquois stood up at 3962 (3629).
   Six more pairs booked, 3647–3652, in the record's order; the last two by entry 72's rule (3), no triple at 5 being free for either.
 - **The rubric, lockstep**: types 189 → 195 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; 107 never (Air 21, Sea 2, Land 84); row in `rubric.tsv`.
 - **The lane gate's floor is the sim crate's own suite, not the timed set** (the pass replayed 3626's lane gate on its branch tip: the rule
   fired, 758 timed tests left to the booking gate, and the release step ran long anyway — the budget's file times the data crate alone, and
   the sim's five test binaries ran whole in every lane gate; cut for a lane that touches no sim path, Loop 3653, DECISIONS 96 §1). Lanes stay two: waiting 46.5 a landing (44.2) holds within a
   fifth, and the gate class 31.8 a session stands above the 26.1 the third lane was taken at.
-- **Lanes: two live (3654, 3655); six booked** (3647–3652 the pairs). Next 3656, run 1321. Pools: AI §344–349, park SZ–TC.
-- **Fable backlog: 7 Loop items** (3611, 3382, 3350, 3237, 3188, 3143, 3118); 3638 built and 3644 ruled into the words' items (the record).
+- **Lanes: two live (3655, 3647); five booked** (3648–3652 the pairs). Next 3657, run 1321. Pools: AI §344–349, park SZ–TC.
+- **Fable backlog: 8 Loop items** (3656, 3611, 3382, 3350, 3237, 3188, 3143, 3118); 3638 built and 3644 ruled into the words' items (the record).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,14 +31,14 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6748 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w5935 of 5,935 · GreatSaharaGermanAncient w5314 of 5,314 · GreatSaharaKoreanClassical w8777 of 8,777 · EastIndiesJapaneseAncient w6126 of 6,126 · GreatSaharaEgyptianGunpowder w4454 of 4,454 · EastIndiesAztecAncient w9258 of 9,258 · GreatSaharaRussianMedieval w4541 of 4,541 · EastIndiesIncaClassical w6073 of 6,073 · GreatSaharaFrenchClassical w6106 of 6,106 · EastIndiesDutchMedieval w7095 of 7,095 · EastIndiesRomanMedieval w5979 of 5,979 · EastIndiesMongolGunpowder w5399 of 5,399 · GreatSaharaBantuMedieval w4914 of 4,914 · EastIndiesChineseGunpowder w5568 of 5,568 · GreatSaharaGreekGunpowder w4074 of 4,074 · EastIndiesSpanishGunpowder w6128 of 6,128 · GreatSaharaLakotaGunpowder w4477 of 4,750 · EastIndiesIroquoisEnlightenment w3962 of 5,128
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6748 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w5935 of 5,935 · GreatSaharaGermanAncient w5314 of 5,314 · GreatSaharaKoreanClassical w8777 of 8,777 · EastIndiesJapaneseAncient w6126 of 6,126 · GreatSaharaEgyptianGunpowder w4454 of 4,454 · EastIndiesAztecAncient w9258 of 9,258 · GreatSaharaRussianMedieval w4541 of 4,541 · EastIndiesIncaClassical w6073 of 6,073 · GreatSaharaFrenchClassical w6106 of 6,106 · EastIndiesDutchMedieval w7095 of 7,095 · EastIndiesRomanMedieval w5979 of 5,979 · EastIndiesMongolGunpowder w5399 of 5,399 · GreatSaharaBantuMedieval w4914 of 4,914 · EastIndiesChineseGunpowder w5568 of 5,568 · GreatSaharaGreekGunpowder w4074 of 4,074 · EastIndiesSpanishGunpowder w6128 of 6,128 · GreatSaharaLakotaGunpowder w4750 of 4,750 · EastIndiesIroquoisEnlightenment w3962 of 5,128
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
 Golden: every chapter closed · 99 closed
 Endpoint 24001: EastIndies 0 off, 0 unlinked · GreatLakes 0 off, 0 unlinked · GreatSahara 0 off, 0 unlinked
 Blind: never 247 · residue 208 · open 39
-Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 196 of 302
+Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 197 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
 **Opener: the fifty-eighth tranche (commander, Opus) — two Opus lanes at medium, 3645 the Lakota word first (frame 4187, the lower map), 3646 beside it, then the pairs 3629 and 3647–3652 in order; the refill after 3652 is the record's order; drain at twenty and clear the steer row.**
@@ -55,11 +55,6 @@ first parting, a scoreboard line). **No twin for a pair varying only age and nat
 `Object::take_damage+0xe1`; 3629's first try, run1291b, AI §337): the state parts on the window's first block 3956, in the Bomb Ketch `1/82`'s
 (TI 347) round — ours leaves (3912, 12792, 0) for 43 frames, theirs (4013, 12593, 133) for 41 — and theirs strikes `0/4` on 3962. 3629's
 hypothesis is the ketch's launch point; a gap window over 3895..3962 is the first take, then a packet at the fire. Run 1320; amend §337; park SY.
-
-3654. **The Lakota Gunpowder word, frame 4477: ours 73 draws against 83, index 56** (ours `Guy::set_anim < Unit::move_step`, theirs
-`Unit::find_attack_pos < Unit::fight`; 3645's widening, run1305c 4472..4728, 3790 keys, rounds 203 theirs against 185, AI §336): on 4478 who=1's
-units born in the window, `1/177`..`1/186`, part — positions first, then collisions, then `1/185`'s order (ours kind 10 against 1) and `1/180`'s
-`attack[1].mandatory`. 3645's hypothesis is the births (`births.py`, `RON_DEBUG_BUILDS` over 4472..4478). Run 1319; amend §336; park SX.
 
 3647. **The Aztecs at a held Medieval age, Great Sahara** (`GreatSaharaAztecMedieval`, map 7, tribe 0, difficulty 5, age 2 held; the
 Ancient-start pair is East Indies' `(18, 0, 5)`, whole at 9258, the AllTech `(7, 0, 3)` at 4565 and the Tier2 `(7, 0, 2)`; no Great Sahara
