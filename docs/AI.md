@@ -19451,7 +19451,8 @@ run810, `RON_STATE_FRAME=3631`. `step4.py --entry 610bc0 --this 15e52afc` (`1/11
 `compare_target`'s `0064e7a5`..`0064e81f`: under `iVar5 && iVar4` — the target is a **finished** (`flags & 4`) **Build-proper** (vslot
 `+0x20`; a wall answers 0) — and `bVar3 && bVar16` — the attacker is on the raid stance, AI-driven (`unit_masks & 0x40000`), of the sea
 domain — the answer is 0 when the ship fires on the move (`unit_flags & 0x200000`, `v`), and otherwise 0 when the target's type
-`is_build_type` (every building's, `0x19e..0x21e`) and the ship lacks SIEGE. And `find_nearby_target`'s winner is `local_70 < score`, seeded
+~~`is_build_type` (every building's, `0x19e..0x21e`)~~ *is a dock — the vslot is `+0x108`, `ObjectTypeData::is_dock` (§335.2, item 3642)*
+and the ship lacks SIEGE. And `find_nearby_target`'s winner is `local_70 < score`, seeded
 0 (`00648da0:232`, `jle` at `64987d`): a zero is never taken, not even first; `near_o` is written regardless. Built in `fight.rs`
 (`compare_target`, and the search's `score > best.map_or(0, …)` where ours took a first candidate at any score).
 
@@ -30773,9 +30774,105 @@ stands at (1896, 5352) on both sides:
 
 On the stride's 3801 both sides walk it on an `ATTACKTOORDER` to (1896,
 5352). 3802..3860 is undumped. So theirs' Frigate takes the human's
-`0/2004` on arrival and ours does not. Who targets it, and when in the
-gap, is the next item's to place. A gap window over 3795..3866 is its
-first take.
+`0/2004` on arrival and ours does not. ~~Who targets it, and when in the
+gap, is the next item's to place.~~ *Theirs' own idle search, on 3859:
+§335.2.* A gap window over 3795..3866 is its first take.
+
+### 335.2 A raiding computer ship zeroes only a dock: `compare_target`'s `is_dock` (item 3642, 2026-10-25)
+
+*Item 3642, Opus 5.5. Run 1303 (the gap).* **The word moves 3866 →
+3876** (the count and the sequence).
+
+**The units.** `1/29` is a **Frigate** (TypeIndex 343, sea, uid 57),
+who=1's, in group 71, stance 3 (RAID). `0/2004` is the human's **Farm**
+(TypeIndex 417, uid 4) at (4416, 5760), finished, unarmed
+(`buildat.py`, run1303).
+
+**The gap.** run1303 is blocks 3795..3866 at run1287b's detail, and
+`rngcmp.py` against run1287 is 3867 of 3867 identical. Both sides walk
+the Frigate's `ATTACKTOORDER` down its path to (1908, 5351). On **3858**
+both pop it: no path, no order, `idle` 0. On **3859**, its first idle
+frame, theirs sets `near` 0/2004 and pushes an `ATTACKORDER` on the Farm
+(`new_ord` 1, `in_range` 0). Ours stands idle. On 3860 theirs fires.
+Theirs spends no draw for the push, and the draw streams agree through
+3865.
+
+**The value diff, both ways** (`spanish_gunpowder_pair_run1303_s_gap_is_widened_whole`,
+71 blocks, 110 keys before the build). Every non-standing key agrees
+from 3795 through 3858. The first parted field is `1/29`'s `orders.len`
+on **3859**, ours 0 against 1. On 3860 the rest follow: `fought`,
+`blown`, `recharging` 0 against 40, the `ATTACKORDER`'s fields, `pos`
+(1908, 5351) against (1896, 5352), and `heading`.
+
+**Both sides searched; ours weighed the Farm at 0.** An env-guarded probe
+in `Unit::think` and `find_nearby_target` (committed and reverted whole)
+put ours on the same path as theirs: `idle` 1, a captain with attack 260
+and the military role, `think_attack`'s `find_melee_target(−1)` at radius
+4608, `flags` 0. The Farm (`Building(5)`, index 2004, 2280 away) passes
+`valid_target`, the `flags` filter, `check_target`'s reach head and
+`poor_target`, and is in range. Then `compare_target` answers **0**, and
+a zero is never taken. That zero is §203's arm: under the raid stance, an
+AI-driven sea unit and a finished Build-proper target, this crate
+returned 0 for any building when the ship lacked SIEGE.
+
+**The listing says dock.** `compare_target@0064e5c0`'s second test is
+`64e7f0`–`64e804`. It loads the target's type (`+0x18`) and calls its
+vslot **`+0x108`**. `rise.pdb`'s field list for `ObjectTypeData`
+(`0x14662`) puts **`is_dock`** at vftable offset 264 (`+0x108`), between
+`is_defense` (260) and `is_siege` (268). `is_build_type` is `TypeData`'s
+offset 20 (`+0x14`). `BuildTypeData::is_dock@00472a70` is `is(0x1b0, 0)`,
+TypeIndex 432, `DOCK`. So the arm is:
+
+- the ship fires on the move (`type +0x2b4 & 0x200000`): 0;
+- otherwise, the target is a dock and the ship lacks objmask `0x40000`
+  (SIEGE): 0;
+- otherwise, the candidate is weighed.
+
+§203's run810 took the first return (`64e7e5`), ahead of the dock test,
+so that reading never reached a capture until now.
+
+**Built** (`crates/sim/src/fight.rs`, `Sim::compare_target`): the
+second term is `crate::build::is_dock` on the target's type, and
+`!SIEGE`. `fight::tests::a_computer_s_raiding_ship_weighs_a_finished_building_at_zero`
+gives its zero cases a Dock and adds two Farm cases: weighed above zero,
+and zero when the ship fires on the move. Mutations (`tools/mutate.py`,
+on `53f73aa6d`):
+
+- the dock term forced true (the old reading):
+  `spanish_gunpowder_pair_first_parting` exits 101, back to 3877 / 3866;
+- forced false: the sim test exits 101 on "the cruiser" (16 against 0).
+
+**The value diff on 3859** (run1303, walked from run1286): `1/29`'s
+`orders.len` is 1 on both sides, an `ATTACKORDER` on `0/2004`. run1303
+goes **110 → 89 keys**, every one standing: `form`, who=1's groups'
+`held` and pools, `SITE[i].reg` and who=0's `aggression[1]`. run1301b
+goes **738 → 102**. All 70 lobbies' `first_parting` hold.
+
+**The next word: frame 3876, ours 8 draws against 7, index 4.** Ours
+spends `Object::take_damage+0xe1`, theirs `Farms::inc_time+0x1ae`. On
+run1301b's block 3877 the first non-standing rows are:
+
+| frame | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3877 | `0/2004` (the Farm) | `damage` | 9 | 0 |
+| 3877 | `0/2000` (the city) | `city_flags[0x2]`, `[0x4]`, `[0x8]`; `raid_stamp` | 1, 1, 1; 3876 | 0, 0, 0; 0 |
+| 3877 | leaders 0 and 1 | `treaties[1]`, `treaties[0]` | 3 | 1 |
+
+**Ours' round lands a frame early.** Theirs fires a three-round broadside
+(`AMMO` `graph_index` 0, 1 and 2). Every round leaves **(1809, 5233)**,
+`sz` 20, with `total_time` 12, and the first lands at (4222, 5638). Ours'
+round (`RON_DEBUG_AMMO`) leaves the ship's centre (1896, 5352) with 11
+frames and lands at (4221, 5645). That is 2447 world units against 2343
+at about 204 a frame. The draws agree on every frame a round is fired, so
+the launch point is the next item's hypothesis. **The pair widenings
+compare no `AMMO` record** (`diff::ammo` is read by `diff::golden`
+alone), so the launch parted on 3860 and no key showed it until the
+Farm's `damage` on 3877. 3802..3860 is now dumped and 3861..4117 was
+already, so a packet at the broadside, or `AMMO` added to the pair
+walk's comparison, is the next take.
+
+**The rubric.** The pair is open (3876 of 6128). `RUBRIC_UNIT_TYPES_SEEN`
+stays 194.
 
 ## 336. Reserved for the next item on the AI track
 

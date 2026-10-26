@@ -10720,6 +10720,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1287  run1279's line with --ai-tribe 9 and run1286's lobby   (the draw stream; ended itself on 6128)
 #   run1287b --map 18 --end-frame 2419 --allow-early-end --timeout 3600 --log-window 2163 2419 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1286's lobby   (the word 2168's window)
 # Checks: `rngcmp.py` run1286 vs run1287 -> 37 identical; run1287 vs run1287b -> 2420 identical.
+# ==== item 3642: the Spanish Gunpowder word, 3866 -> 3876, a raiding computer ship zeroes only a dock (`docs/AI.md` §335.2; `docs/RUNS.md` run1303) ====
+#   run1303  --map 18 --end-frame 3866 --allow-early-end --timeout 3600 --log-window 3795 3866 --detail (run1287b's) --ai-tribe 9 --cover cover=0, run1286's lobby   (the gap 3802..3860)
+# Checks: `rngcmp.py` run1287 vs run1303 -> 3867 identical.
 # ==== item 3640: the Spanish Gunpowder word, 2168 -> 3866, the Galleon unloads at its army's shore (`docs/AI.md` §335.1; `docs/RUNS.md` run1301, run1301b) ====
 #   run1301  --map 18 --end-frame 2170 --allow-early-end --timeout 3600 --log-window 2095 2170 --detail (run1287b's) --ai-tribe 9 --cover cover=0, run1286's lobby   (the gap 2102..2162)
 #   run1301b --map 18 --end-frame 4117 --allow-early-end --timeout 3600 --log-window 3861 4117 --detail (run1287b's) --ai-tribe 9 --cover cover=0, run1286's lobby   (the word 3866's window)

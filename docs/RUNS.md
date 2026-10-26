@@ -28649,3 +28649,27 @@ SHA-256 `1fa05b94eeada46394707059c93af9d929a1cbf92b8c53746421ee07a79e0f90`.
 **What it holds**: `spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole` (256 blocks, 738 keys). On its
 first block 3861 who=1's Frigate `1/29` (TI 343) holds an `ATTACKORDER` on the human's `0/2004` in theirs and no order
 in ours. 3802..3860 is undumped.
+
+## run1303 — the Spanish at a held Gunpowder age, East Indies: the gap 3802..3860, blocks 3795..3866 (2026-10-25, item 3642, `att-3642`)
+
+`docs/AI.md` §335.2. **What the disk could not answer**: the frame on which theirs' Frigate `1/29` takes its
+`ATTACKORDER` on `0/2004`. run1287's stride prints units on 3801 and 3901 only, and run1301b starts on 3861.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1303 --map 18 --end-frame 3866 --allow-early-end
+--timeout 3600 --log-window 3795 3866 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9
+--cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 22:10:28, exited 22:10:59 (30.5 s launch to exit). `success`: 3867 frames, closing frame
+  3867. `rngcmp.py` against run1287: 3867 of 3867 identical. Filed with `filerun.py run1303
+  eastindies-spanish-gunpowder-window-3795-3866 --map 18`. `df -g ~` read 96 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1303-eastindies-spanish-gunpowder-window-3795-3866.txt`, 151,440,903 bytes,
+SHA-256 `71748e78ba5beaf6b87fe218e1e22ce80eef6bdcfa977f0bdb0debe8096afebe`.
+
+Archive `rontrace-run1303.log`, 172,181,760 bytes,
+SHA-256 `5cdde47b29d7c90989edfff8c0f87b8c10d2922fe6c2bbdafda1d957509b6c84`.
+
+**What it holds**: `spanish_gunpowder_pair_run1303_s_gap_is_widened_whole` (71 blocks, 89 keys, all standing, on the
+tree that weighs the Farm; 110 before it). The Frigate's `ATTACKTOORDER` ends on 3858 on both sides, and on 3859,
+its first idle frame, theirs takes the human's Farm `0/2004` (`new_ord` 1) where ours weighed it at 0. On 3860 theirs
+fires its first broadside.
