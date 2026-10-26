@@ -10402,17 +10402,19 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3624,
         Some(crate::diff::bantu_medieval_pair::WINDOW_BANTU_MEDIEVAL_CLOSING),
     ),
-    // **The Chinese at a held Gunpowder age** (items 3625, 3637, 3639):
-    // East Indies — first try 4884 of a game that ends itself on 5568;
-    // 3637's planner roll kept, 5196; 3639's Dragoon round from piece
-    // 1195's pivot, 5384, widened on run1299 over 5190..5446 (the word's
-    // block 5385).
+    // **The Chinese at a held Gunpowder age** (items 3625, 3637, 3639,
+    // 3641): East Indies — first try 4884 of a game that ends itself on
+    // 5568; 3637's planner roll kept, 5196; 3639's Dragoon round from
+    // piece 1195's pivot, 5384, widened on run1299 over 5190..5446. Whole
+    // since item 3641, 5568 of 5568 (the wagon radius reads Forage), the
+    // closing state compared; widened on run1302 over 5446..5569 (the
+    // closing block).
     (
         "CHINESE_GUNPOWDER_PAIR_WORD",
         crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER_PAIR_WORD,
-        Some("chinese_gunpowder_pair_run1299_s_word_frame_is_widened_whole"),
-        3639,
-        Some(crate::diff::chinese_gunpowder_pair::WIDENING_CHINESE_GUNPOWDER_FRAME_5196),
+        Some("chinese_gunpowder_pair_run1302_s_closing_window_is_widened_whole"),
+        3641,
+        Some(crate::diff::chinese_gunpowder_pair::WIDENING_CHINESE_GUNPOWDER_FRAME_5568),
     ),
     // **The Greeks at a held Gunpowder age** (item 3626): Great Sahara —
     // whole on its first try, 4074 of 4074, the closing state compared;
@@ -12372,15 +12374,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Chinese at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3625): first try 4884 of a
     // game that ends itself on 5568; 5196 by item 3637, 5384 by item 3639,
-    // widened on run1299.
+    // widened on run1299; whole since item 3641, its closing state
+    // compared and widened on run1302.
     AiWord {
         line: "Late ages",
         map: "EastIndiesChineseGunpowder",
         named: "East Indies (Chinese, Gunpowder)",
         word: crate::diff::chinese_gunpowder_pair::CHINESE_GUNPOWDER_PAIR_WORD,
         length: 5_568,
-        endpoint: None,
-        window: Some("chinese_gunpowder_frame_5196_window"),
+        endpoint: Some("chinese_gunpowder_pair_run1283_s_closing_state"),
+        window: Some("chinese_gunpowder_frame_5568_window"),
     },
     // The Greeks at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3626): whole on its first

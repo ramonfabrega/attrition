@@ -6097,7 +6097,8 @@ impl Sim {
     /// else, so a wagon that dies or boards a transport stops supplying with
     /// no bookkeeping anywhere.
     pub fn supplied_at(&self, owner: Player, at: Pos) -> bool {
-        self.supply[owner as usize].supplies(&self.tuning, at, |u| {
+        let upgrades = self.supply_upgrade_level(owner);
+        self.supply[owner as usize].supplies(&self.tuning, upgrades, at, |u| {
             self.units.get(u).map(|w| supply::Wagon {
                 pos: w.pos,
                 active: w.alive(),

@@ -30547,8 +30547,9 @@ families is on **block 5325**, at the Bombard `1/98` (TypeIndex 267,
 The four-figure swing on 5384 would be a Bombard's shot; whether it is
 `1/98`'s is not read (parked 3639a).
 
-**Not established.** Which writer gives `1/98` a reload of 120 where theirs
-reads 60, and whether theirs' swing on 5384 is `1/98`'s. Why piece 1195
+**Not established.** ~~Which writer gives `1/98` a reload of 120 where theirs
+reads 60, and whether theirs' swing on 5384 is `1/98`'s.~~ **Answered by item
+3641 (§333.3)**: the out-of-supply arm of `recharge()`, and it is. Why piece 1195
 was built on the Japanese lobby's packet: the type's piece by nation is
 `get_unit_gpiece`'s, and only its rows were read. Whether any other piece
 shares another's rows the same way: the scan was of 1195 alone.
@@ -30558,6 +30559,43 @@ shares another's rows the same way: the scan was of 1195 alone.
 windows' pins); piece 1195's rows (run1237's packet, bit for bit, in the
 pivot test). Reading-backed: none new; the branch is §280's and COMBAT
 §55's.
+
+### 333.3 The supply radius reads the research: 5384 → 5568, the pair whole (item 3641)
+
+**The direction.** run1299's Bombard `1/98` (TypeIndex 267, uid 141) stands
+at (7608, 10680) throughout. Theirs' `recharging` reads 120 on block 5205,
+then **60** on 5325 and 5385: shots on 5204, 5324 and 5384, so **the word's
+four-figure swing is `1/98`'s**. Ours took 120 on 5325 too, `recharge()`'s
+out-of-supply ×2 (COMBAT §8.3). who=1's `territory` holds at 548; what
+changed is the Supply Wagon `1/102` (TypeIndex 63) walking up beside it,
+on the same squares on both sides: (8040, 7977) on 5324, 2737 off by
+`vector_dist`.
+
+**The reach.** `SupplyData::get_radius` is 14 tiles plus 2 a held
+`SUPPLY_WAGONS_*` step (`docs/SUPPLY.md`, "The radius"): 2688 or 3072.
+who=1 researches **Forage** (605, rules.xml's bonus 79) on 5192.
+`sim::supply::Network::supplies` read the step count from
+`PlayerSupply::upgrades`, which **had no writer**: every wagon reached 14
+tiles. Now `Sim::supplied_at` asks `supply_upgrade_level(owner)` and the
+stored field is gone; reload, attrition and supply healing read it alike.
+`supply::tests::the_network_s_radius_is_the_research_it_is_asked_with`
+pins the frame's numbers.
+
+**The value diff, block 5325**: `1/98` `recharging` 60 on both sides
+(ours 120 before); 60 again on 5385.
+
+**What moved.** Chinese Gunpowder **5384 → 5568** of 5568: **the pair is
+whole**. run1299 1545 → 138, the standing families. The closing state
+(run1283's 5569): 264 units, none apart, `Closing fields: none`. The
+closing window, run1302 (5446..5569): 129 keys, every one standing. No
+`first_parting` moved; seven other widenings lose keys (the journal). The
+rubric: 194 → 195, `Heavy Fire Lances` (97).
+
+**Not established.** `PlayerSupply::terra_cotta` has no writer either; it
+moves nothing while `TERRA_COTTA_RANGE` ships 0 (parked 3641a).
+
+**Coverage.** Diff-backed: the reloads of 5324 and 5384, the whole game's
+draws, the closing state and window. Reading-backed: none new.
 
 ## 334. The Greeks at a held Gunpowder age, Great Sahara: whole on its first try, 4074 of 4074 (item 3626)
 
