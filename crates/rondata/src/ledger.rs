@@ -303,6 +303,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
         "the British Classical pair's walks: it compares no field itself (item 3651)",
     ),
     (
+        "diff/british_industrial_pair.rs",
+        "the British Industrial pair's walks: it compares no field itself (item 3668)",
+    ),
+    (
         "diff/persian_classical_pair.rs",
         "the Persian Classical pair's walks: it compares no field itself (item 3652)",
     ),
@@ -313,6 +317,10 @@ const NOT_A_DIFFER: &[(&str, &str)] = &[
     (
         "diff/korean_medieval_pair.rs",
         "the Korean Medieval pair's walks: it compares no field itself (item 3665)",
+    ),
+    (
+        "diff/german_industrial_pair.rs",
+        "the German Industrial pair's walks: it compares no field itself (item 3667)",
     ),
     (
         "diff/inca_enlightenment_pair.rs",

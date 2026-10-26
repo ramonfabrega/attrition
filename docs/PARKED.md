@@ -11417,21 +11417,15 @@ standing families alone now; run1331 prints units every hundredth block and no `
 block, and a window capture over 4373..4559 (the game ends itself on 4559) at run1331b's detail is the widening
 the word owes. **Score**: the headline, Great Lakes (Koreans, Medieval) w4379 of 4,559.
 
-## Parked by the next landing, slot TJ — reserved
+## Parked by item 3667, 2026-10-26 — the Germans at a held Industrial age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TJ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the pair lands at its first parting, 4323 of 4772, and its next word is booked by frame
+(`docs/AI.md` §346).
 
-## Parked by the next landing, slot TK — reserved
+## Parked by item 3668, 2026-10-26 — the British at a held Industrial age, Great Sahara, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the pair lands at its first parting, 2382 of 4767, and its next word is booked by frame
+(`docs/AI.md` §347).
 
 ## Parked by the next landing, slot TL — reserved
 

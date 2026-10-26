@@ -57,6 +57,8 @@ mod battery;
 mod british_classical_pair;
 #[cfg(test)]
 mod british_enlightenment_pair;
+#[cfg(test)]
+mod british_industrial_pair;
 mod build;
 #[cfg(test)]
 mod chinese_gunpowder_pair;
@@ -90,6 +92,8 @@ mod french_word;
 mod german_alltech_pair;
 #[cfg(test)]
 mod german_ancient_pair;
+#[cfg(test)]
+mod german_industrial_pair;
 #[cfg(test)]
 mod german_sahara_word;
 #[cfg(test)]

@@ -10823,3 +10823,15 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1332  run1332a's line with RON_STATE_PLAN unquoted   (dead: the tracer build failed)
 #   run1332a --map 14 --end-frame 3629 --log-window 3626 3628 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 16 --cover cover=0 --tracer-def RON_STATE_FRAME=3627 --tracer-def RON_STATE_PLAN=…, run1330's lobby   (a packet: 1/126's crew)
 # Checks: `rngcmp.py` run1331 vs run1332a -> 3630 identical.
+# ==== item 3668: the British at a held Industrial age, Great Sahara, at difficulty 4 (`docs/AI.md` §347; `docs/RUNS.md` run1335, run1336, run1336b, run1336c, run1336d) ====
+#   run1335  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 11 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1336  run1331's line on --map 7 with --ai-tribe 11 and run1335's lobby   (the draw stream; ended itself on 4767)
+#   run1336b --map 7 --end-frame 2633 --allow-early-end --timeout 3600 --log-window 2295 2633 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1335's lobby   (the word 2382's window)
+#   run1336c --map 7 --end-frame 2301 --timeout 3600 --allow-early-end --log-window 0 2302 --stride 100 --cover cover=0 --ai-tribe 11 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1, run1335's lobby   (the leaders' stride)
+#   run1336d --map 7 --end-frame 2201 --allow-early-end --timeout 3600 --log-window 2095 2201 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1335's lobby   (the gap 2101..2201)
+# Checks: `rngcmp.py` run1335 vs run1336 -> 37 identical; run1336 vs run1336b -> 2634 identical; run1336 vs run1336c -> 2302 identical; run1336 vs run1336d -> 2202 identical.
+# ==== item 3667: the Germans at a held Industrial age, Great Lakes (`docs/AI.md` §346; `docs/RUNS.md` run1333, run1334, run1334b) ====
+#   run1333  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1334  run1312's line on --map 14 with --ai-tribe 12 and run1333's lobby   (the draw stream; ended itself on 4772)
+#   run1334b --map 14 --end-frame 4574 --allow-early-end --timeout 3600 --log-window 4295 4574 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1333's lobby   (the word 4323's window)
+# Checks: `rngcmp.py` run1333 vs run1334 -> 37 identical; run1334 vs run1334b -> 4575 identical.
