@@ -212,7 +212,8 @@ fn japanese_medieval_pair_run1329b_s_closing_window_is_widened_whole() {
     let Some(w) = japanese_medieval_frame_5140_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    // 4884..5140; the closing block 5141 is the endpoint's.
+    pin_eq!(w.blocks, 257, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -235,9 +236,20 @@ fn japanese_medieval_pair_run1329b_s_closing_window_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    pin_eq!(w.firsts.len(), 0, "run1329b baseline");
-    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
-    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+    // Item 3664, the first walk: 52 keys, every one on the window's first
+    // block 4884 and a standing family — `form` on 27 units, who=0's
+    // `SITE[i].reg` (12), `aggression`, and who=1's groups' `held` and
+    // pools. No unit, building or city field parts.
+    pin_eq!(w.firsts.len(), 52, "run1329b baseline");
+    // Every round, both directions: 143 a side, every one the Trebuchet
+    // `1/59`'s (TI 266), four throws at the human's `0/2000`. The four rows
+    // that part are its launch, first on 4884 and on every block after:
+    // ours throws from the figure's square (6936, 32184) at `sz` 92, theirs
+    // from (7219, 32287) at 785, and `v1z` 210946716 against 192709869;
+    // the landing (3187, 30722), the flight and every hit agree to the
+    // closing block (parked 3658b, 3664a).
+    pin_eq!(w.rounds_read, (143, 143), "the rounds read");
+    pin_eq!(w.rounds.len(), 4, "the rounds that part");
 }
 
 /// **The closing state** (item 3664): the long's own closing block,
