@@ -1001,6 +1001,10 @@ pub struct Tuning {
     pub reassimilation: i32,
     /// How many frames of assimilation pass per frame with the Citizen in the city.
     pub thecitizen_assimilation_speed: i32,
+    /// `THECITIZEN_ATTACK_BONUS`: the attack, in tenths of the stat's unit,
+    /// a unit within one of its owner's Citizens' radii adds (`UnitData::
+    /// attack@006103c0`, ×10 there).
+    pub thecitizen_attack_bonus: i32,
     /// Frames between a city's self-repair steps.
     pub city_heal_rate: i32,
     /// Whether Chinese cities are founded as Large Cities.
@@ -1676,6 +1680,7 @@ impl Tuning {
         turk_assimilate: 200,
         reassimilation: 300,
         thecitizen_assimilation_speed: 4,
+        thecitizen_attack_bonus: 2,
         city_heal_rate: 4,
         chinese_large_cities: 1,
         maya_building_speed: 20,
@@ -2500,6 +2505,10 @@ impl Tuning {
             (
                 "THECITIZEN_ASSIMILATION_SPEED",
                 Slot::Value(T.thecitizen_assimilation_speed),
+            ),
+            (
+                "THECITIZEN_ATTACK_BONUS",
+                Slot::Value(T.thecitizen_attack_bonus),
             ),
             ("CITY_HEAL_RATE", Slot::Value(T.city_heal_rate)),
             ("CHINESE_LARGE_CITIES", Slot::Value(T.chinese_large_cities)),

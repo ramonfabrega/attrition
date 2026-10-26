@@ -262,3 +262,56 @@ fn german_industrial_pair_run1334b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds_read, (1018, 246), "the rounds read");
     pin_eq!(w.rounds.len(), 168, "the rounds that part");
 }
+
+/// run1351b: the window over the Citizens' damage parting, blocks
+/// 3495..3851 at run1334b's detail — six blocks before the stride's 3501,
+/// where the damage still agrees, and 250 after its 3601 (item 3677).
+pub(crate) const RUN1351B: &str = "gamelog-run1351b-greatlakes-german-industrial-window-3495-3851.txt";
+
+/// The window: block 3495 through 3851.
+pub(crate) const WIDENING_GERMAN_INDUSTRIAL_DAMAGE: (i64, i64) = (3495, 3851);
+
+/// **The damage's window**: run1351b walked from run1333's start with the
+/// recorder on and every round compared (item 3677).
+pub(crate) fn german_industrial_damage_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[GERMAN_INDUSTRIAL.start],
+        true,
+        GERMAN_INDUSTRIAL.long,
+        "run1351b",
+        &[(RUN1351B, WIDENING_GERMAN_INDUSTRIAL_DAMAGE.0)],
+        WIDENING_GERMAN_INDUSTRIAL_DAMAGE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn german_industrial_pair_run1351b_s_damage_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = german_industrial_damage_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1351b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}

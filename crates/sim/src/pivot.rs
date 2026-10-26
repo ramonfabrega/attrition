@@ -269,7 +269,18 @@ const fn trunc_div(n: i64, d: i64) -> i32 {
 /// Medieval pair's `1/22` threw its `CHAR_ATTACKWALK` round of 2556 from its
 /// own square (7018, 31206), where the original's left from (7020, 31282,
 /// 873), and the round's arc came down a frame later than theirs.
-const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138)];
+///
+/// **Piece 192, the German Light Tank `A7V`** (unit type 242; item 3677,
+/// `docs/AI.md` §346): run1351's packet (logger frame 4303, the German
+/// Industrial Great Lakes lobby) holds its seven entries, `pos_start` 107,
+/// `RData +0x88` 0.9, and every float is piece 189's off run1169 — the
+/// `(4, 0, 0)` turret `(0.0, −3.96, 37.31)` (`0xc07d70a7`) and the three
+/// `<RELEASEEVENT>`s' turret and muzzle rows (node 8; 4 of `CHAR_ATTACK1`,
+/// 21 of `2`, 14 of `3`). `<RESTRICTION name="A7V" node="4">` makes it a
+/// pivot piece. who=1's `1/48` fired its `CHAR_ATTACK3` round of 4304 from
+/// the hull's square (5544, 31512, 409) here, where the original's left the
+/// muzzle at (5427, 31534, 587).
+const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138), (192, 189)];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
 fn rows_of(piece: i32) -> i32 {

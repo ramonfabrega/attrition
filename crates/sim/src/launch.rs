@@ -2277,6 +2277,45 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 83,
         },
     ),
+    // **Piece 88, the German Anti-tank Rifle** (type 138,
+    // `ANTITANKRIFLEGERMAN`; item 3677, `docs/AI.md` §346): run1351's
+    // `RON_STATE_FRAME=4303` packet on the German Industrial Great Lakes
+    // game holds its three `AttachPos` rows, bit for bit piece 1143's (node
+    // 0 at 18 of `CHAR_ATTACK1`, 4 of `2` and 16 of `3`), and each sweep's
+    // exact region is 1143's (62, 160 and 57 lattice points), so the rows
+    // are its. who=1's `1/50` and `1/51` fired their rounds of 4305 from the
+    // figures' own squares here, where the original's left (−180, −7) and
+    // (−175, +38) off them, 60 and 63 up.
+    (
+        88,
+        crate::anim::ATTACK1,
+        18,
+        Bay {
+            right: 17_058,
+            fwd: 180_195,
+            dz: 60,
+        },
+    ),
+    (
+        88,
+        crate::anim::ATTACK2,
+        4,
+        Bay {
+            right: 4_863,
+            fwd: 179_398,
+            dz: 63,
+        },
+    ),
+    (
+        88,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: -2_310,
+            fwd: 161_815,
+            dz: 83,
+        },
+    ),
     // **Piece 64, the Highlanders** (type 114, `HIGHLANDER-DEFAULT-AGE0`;
     // item 3542, `docs/AI.md` §306): node 0 at frame 6 of `CHAR_ATTACK1`, 10
     // of `2` and 12 of `3`, `RData +0x88` 1.05, off the same run1185 packet
