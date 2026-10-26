@@ -31563,7 +31563,7 @@ reads unit types seen **199 of 302** (`Mortar`, 274).
 whether theirs' `0/3` is garrisoned or dead on 3239 (3659b). The bays
 are centroids of their fit regions, exact at every whole degree only.
 
-## 340. The Indians at a held Enlightenment age, East Indies: first try 4157 of 5000 (item 3649)
+## 340. The Indians at a held Enlightenment age, East Indies: first try 4157 of 5000 (item 3649), whole at 5000 since item 3660
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), on the
 Iroquois Enlightenment pair's map and age (§337) with the nation moved:
@@ -31636,14 +31636,52 @@ Ketch's (`1/53`, `1/54`, `1/65`, `1/66`, `1/83`) except the Man o' War
 `1/97`'s (`TY` 294, TypeIndex 344) from 4383. Which attack anim each side
 plays is unread, so this is a **hypothesis**, not a finding.
 
-**What is not established.** What struck `0/13` in the gap, and why a
-frame apart; whether the Ketch's `sz` swap is the attack anim's choice or
-a different target's; and the Man o' War's rounds from 4383.
+**What is not established.** ~~What struck `0/13` in the gap, and why a
+frame apart~~ (§340.1: the Man o' War's broadside); ~~whether the Ketch's
+`sz` swap is the attack anim's choice or a different target's~~ (§340.1:
+the anim roll, downstream of the word's draw); ~~and the Man o' War's
+rounds from 4383~~ (§340.1: piece 294's bays).
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **199 of
 302**, unmoved: the rubric counts lockstep games only, and this pair
 parts. **`Culverin Mahout` (264)**, the booking's line, **is fielded**:
 516 guy records in run1312 and 4096 in run1312b (`rubric.scan`).
+
+### 340.1 The Man o' War's and the Musketeers' bays, and the pair closes (item 3660)
+
+*2026-10-26, Opus 5.5; runs 1324 (the gap 4001..4150), 1324b (the closing window 4905..5001) and 1324c (a packet at
+logger frame 4904).*
+
+**The strike was a broadside, not a Ketch's round.** run1324's first non-standing row is `0/13` on block 4092
+(`damage_frame` 4091 against 0, `hits_left` 50 against 65). Every parting round in the gap is who=1's **Man o'
+War** `1/97`'s (`TY` 294, TypeIndex 344, piece **294**, `MANOWAR-DEFAULT`): on 4082, on `CHAR_ATTACK2`, it loosed at
+`0/13` from the hull's own square at the water's `z` 0, (3000, 8472, 0), flying 11 frames, where theirs left
+(2866, 8510, −33) and flew 12. Piece 294 had no row in `launch::BAYS`. run1185's packet already holds its two
+release rows (node 0 at frame 7 of `CHAR_ATTACK1` and `2`, `RData +0x88` 0.7, no `<RESTRICTION>`): the starboard
+node's `z` −9.97 × 4.8 × 0.7 is theirs' −33. `fit_bay.py` fits each sweep (141 and 558 lattice points, 361 of 361
+headings). The Ketch's 4165 swap was its attack anim's one-draw roll (`set_anim`, 30/40/30), past the word's draw.
+
+**The value diff, on block 4092** (run1324): `0/13` `damage_frame` ours 4091 → **0**, theirs 0; `hits_left` 50 →
+**65**; `1/97`'s round on 4082 (3000, 8472, 0) in 11 → **(2866, 8510, −33) in 12**. The word moves **4157 → 4911**
+(ours 8 draws against 9, index 6: ours `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6`).
+
+**4911 is the same shape on the Indians' Musketeers.** run1324b: the Citizen `0/10` is struck on 4899 in theirs
+against 4900 in ours, and closes on 4911 in theirs alone. who=1's Musketeers (TypeIndex 99) are drawn on piece
+**1809**, which no packet on disk had loaded; run1324c's holds its three rows (node 0, frames 1, 7 and 4, `RData
++0x88` 1.1), fitted the same way (132, 247 and 624 points). `1/80`'s round on 4905: (11256, 7608, 315) in 5 →
+**(11095, 7683, 489) in 4**, theirs'.
+
+**The pair closes: 4911 → 5000 of 5000**, by the count and the sequence. The closing state
+(`indian_enlightenment_pair_run1312_s_closing_state`, block 5001) compares **176 units, none off, torn, unlinked or
+extra; `Closing fields: none`**. The windows: run1324 119 → **99** keys, all standing, rounds 197 a side, none
+parting; run1312b 1549 → **109**, rounds 711 a side, none parting; run1324b 786 → **133**, rounds 320 a side, none
+parting, its rows past the standing families parked (3660a, 3660b); the stride 139 → 133.
+
+**Mutations** (`tools/mutate.py`): piece 294's `CHAR_ATTACK2` row unkeyed, `first_parting` held at 4157; piece 1809
+refused whole in `bay()`, held at 4911; 1809's `CHAR_ATTACK2` row alone unkeyed failed nothing in `first_parting`
+or the closing state and held in run1324b's pins (its rounds part) — the sim test holds that row too.
+
+**The rubric**: unit types seen **200 → 201**, `Culverin Mahout` (264, 516 figure rows in run1312).
 
 ## 341. The Americans at a held Enlightenment age, East Indies: first try 3215 of 6669 (item 3650)
 

@@ -29314,6 +29314,71 @@ SHA-256 `d0e39354dbe263e3ecdff769c7098819a18baeb2cf3c25e136ef35e6019bbdd0`.
 walks. The first parting round is the Bomb Ketch `1/53` (TI 347)'s on 4165, from (3410, 10633, 133) in ours
 against (3241, 10766, 130) in theirs. 4002..4100 is undumped.
 
+## run1324 — the Indians at a held Enlightenment age, East Indies: the gap 4002..4100, blocks 4001..4150 (2026-10-26, item 3660, `att-3660`)
+
+`docs/AI.md` §340.1. **What the disk could not answer**: where the state parts in the undumped gap 4002..4100 —
+run1312's stride prints units on 4001 and 4101 only, and run1312b starts at 4151. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1324 --map 18 --end-frame 4150 --timeout 3600 --log-window 4001 4150
+--detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 21 --cover cover=0 --profile
+STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 2, seed 12345. Launched 09:24:40, exited 09:25:34 (54.9 s). `success`: 4151 frames. `rngcmp.py`
+  against run1312: 4151 of 4151 identical. Filed with `filerun.py run1324
+  eastindies-indian-enlightenment-window-4001-4150`. `df -g ~` read 81 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1324-eastindies-indian-enlightenment-window-4001-4150.txt`, 324,845,299 bytes,
+SHA-256 `b9f2b673c34ab6e375c2f2bd809e9a7387415f7dfa3ab27c5a25de2a0f769121`.
+
+Archive `rontrace-run1324.log`, 125,823,424 bytes,
+SHA-256 `823410ef11b58547593d4662c9ba77a6538f8271fcc418586d2404928f8e0e55`.
+
+**What it holds**: `indian_enlightenment_pair_run1324_s_gap_is_widened_whole` (149 blocks): before piece 294's bays,
+119 keys — the Citizen `0/13` struck on 4091 in ours alone by block 4092, from the Man o' War `1/97`'s round on 4082
+(ours (3000, 8472, 0) in 11 frames, theirs (2866, 8510, −33) in 12), 7 rounds parting, all `1/97`'s; after, 99
+standing keys and 197 rounds a side, none parting.
+
+## run1324b — the Indians at a held Enlightenment age, East Indies: the word 4911's window, blocks 4905..5001 (2026-10-26, item 3660, `att-3660`)
+
+`docs/AI.md` §340.1. **What the disk could not answer**: every record on the word 4911's frame — run1312's stride
+prints units on 4901 and the closing block only, and no `AMMO` or leader record past the start. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1324b --map 18 --end-frame 5000 --allow-early-end --timeout 3600
+--log-window 4905 5001 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 21 --cover
+cover=0 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 09:37:23, exited 09:38:03 (39.5 s). `success`, closing frame 5001. `rngcmp.py`
+  against run1312: 5001 of 5001 identical. Filed with `filerun.py run1324b
+  eastindies-indian-enlightenment-window-4905-5001`. `df -g ~` read 84 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1324b-eastindies-indian-enlightenment-window-4905-5001.txt`, 218,722,285 bytes,
+SHA-256 `7a4d1a007f20f399022cddcd47bd39c5678bd5d8d05d302895b9fe5b201c8bd4`.
+
+Archive `rontrace-run1324b.log`, 176,851,904 bytes,
+SHA-256 `e213dc38693fbd4f3e97716b1d65f2589c3a85ff81560057eb68fd49334a10d5`.
+
+**What it holds**: `indian_enlightenment_pair_run1324b_s_word_frame_is_widened_whole` (96 blocks): before piece 1809's
+bays, 786 keys — the Citizen `0/10` struck a frame early in theirs and closed on 4911 in theirs alone, every
+Musketeer round parting on its launch point (87); after, 133 keys, the standing families and parked 3660a–b, and
+320 rounds a side, none parting. Since the pair closed it is the closing window.
+
+## run1324c — the Indians at a held Enlightenment age, East Indies: a packet at logger frame 4904, piece 1809 (2026-10-26, item 3660, `att-3660`)
+
+`docs/AI.md` §340.1. **What the disk could not answer**: the Indian Musketeer's release nodes. Its piece, 1809, is
+loaded only in a game that builds one; run1185's packet and run1007b's (the Great Sahara Indians) refuse
+`entries 1809`. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1324c --map 18 --end-frame 4906
+--timeout 3600 --log-window 4903 4905 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 21 --cover cover=0
+--profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=4904 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 09:40:30, exited 09:40:56 (26.7 s). `success`, 4907 frames. Not filed: the
+  packet is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1324c/map-18/frame-snapshot.bin`, 909,910,052 bytes,
+SHA-256 `24d75b6cafba0b86996e05ceb5021f0a8cb53b2736d2e2bf392b8dc3a25104b2`.
+
+**What it holds**: `get_position.py … entries 1809`: three rows, node 0 on frames 1, 7 and 4 of `CHAR_ATTACK1`..`3`,
+`RData +0x88` 1.1. The sweeps (and piece 294's, off run1185's packet) are under
+`~/ron-data/lab-experiments/2026-10-26-item-3660/`.
 ## run1313 — the Americans at a held Enlightenment age, East Indies: the `DUMP_ALL` start (2026-10-26, item 3650, `att-3650`)
 
 `docs/AI.md` §341. §340's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
