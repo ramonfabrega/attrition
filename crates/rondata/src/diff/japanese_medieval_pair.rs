@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const JAPANESE_MEDIEVAL: Pair = Pair {
     name: "GreatLakesJapaneseMedieval",
@@ -31,12 +31,10 @@ pub(crate) const JAPANESE_MEDIEVAL: Pair = Pair {
     ),
     // The game ended itself on 5140 (closing block 5141).
     length: 5140,
-    // Item 3652, first try: frame 10937, by the count and the sequence —
-    // ours 34 draws against 36, parting at index 28, ours
-    // `Farms::inc_time+0x1ae`, theirs `Ammo::do_damage+0xc59`
-    // (`docs/AI.md` §343).
-    count: 10937,
-    sequence: 10937,
+    // Item 3664, first try: whole — frame 5140 of 5140 by the count and
+    // the sequence (`docs/AI.md` §344).
+    count: 5140,
+    sequence: 5140,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -133,4 +131,165 @@ fn japanese_medieval_pair_is_no_other_lobby() {
     let w = &super::japanese_word::JAPANESE;
     assert_eq!(w.ai_tribe, p.ai_tribe);
     assert_ne!((w.map_style, w.ai_tribe, w.difficulty), triple);
+}
+
+/// **The long's stride, walked to the game's end** (item 3664): run1329's
+/// stride blocks, 101 through 5101, the last before the closing window.
+pub(crate) const WIDENING_JAPANESE_MEDIEVAL_STRIDE: (i64, i64) = (101, 5101);
+
+pub(crate) fn japanese_medieval_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[JAPANESE_MEDIEVAL.start],
+        true,
+        JAPANESE_MEDIEVAL.long,
+        "run1329 stride",
+        &[(
+            JAPANESE_MEDIEVAL.long.0,
+            WIDENING_JAPANESE_MEDIEVAL_STRIDE.0,
+        )],
+        WIDENING_JAPANESE_MEDIEVAL_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn japanese_medieval_pair_the_long_s_stride_walks_to_5101() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_medieval_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "the stride's baseline");
+}
+
+/// run1329b: the closing window, blocks 4884..5141 at the word window's
+/// detail with `LEADERS=9` and `AMMO=5` (item 3664): the pair is whole on
+/// its first try, and run1329 prints units only every hundredth block and
+/// no `AMMO`, `LEADERS`, `BUILDS` or `CITIES` record past the start.
+pub(crate) const RUN1329B: &str =
+    "gamelog-run1329b-greatlakes-japanese-medieval-window-4884-5141.txt";
+
+/// The window: block 4884 through the closing block 5141.
+pub(crate) const WIDENING_JAPANESE_MEDIEVAL_FRAME_5140: (i64, i64) = (4884, 5141);
+
+/// **The closing window**: run1329b walked from run1328's start with the
+/// recorder on and every round compared (item 3664).
+pub(crate) fn japanese_medieval_frame_5140_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[JAPANESE_MEDIEVAL.start],
+        true,
+        JAPANESE_MEDIEVAL.long,
+        "run1329b",
+        &[(RUN1329B, WIDENING_JAPANESE_MEDIEVAL_FRAME_5140.0)],
+        WIDENING_JAPANESE_MEDIEVAL_FRAME_5140,
+        1,
+        &[5141],
+        true,
+    )
+}
+
+#[test]
+fn japanese_medieval_pair_run1329b_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = japanese_medieval_frame_5140_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1329b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// **The closing state** (item 3664): the long's own closing block,
+/// walked to its close and compared unit for unit — a draw stream that
+/// agrees to a game's end says nothing of the end itself (item 1099).
+#[test]
+fn japanese_medieval_pair_run1329_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &JAPANESE_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Japanese Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 5141, "the closing block");
+    pin_eq!(e.compared, 0, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
+    pin_eq!(
+        e.torn.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing tears"
+    );
 }
