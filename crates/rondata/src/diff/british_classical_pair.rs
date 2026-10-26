@@ -119,8 +119,10 @@ fn british_classical_pair_is_no_other_lobby() {
     );
     for l in battery::SCORED_LOBBIES.iter().filter(|l| l.1 == p.ai_tribe) {
         assert!(
-            *l == triple || l.2 == 0 || l.2 == 5,
-            "{l:?} is another British lobby at difficulty {}",
+            // The Industrial pair's `(7, 11, 4)` (item 3668) is at 4 on
+            // another map.
+            *l == triple || l.2 == 0 || l.2 == 5 || l.0 != p.map_style,
+            "{l:?} is another British lobby on this map at difficulty {}",
             l.2
         );
     }
