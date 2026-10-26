@@ -35,8 +35,15 @@ pub(crate) const KOREAN_MEDIEVAL: Pair = Pair {
     // ours 18 draws against 16, parting at index 0, ours `Guy::set_anim+0x97a
     // < Guy::do_turn+0x4a < Unit::move_step+0x3b6`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823` (`docs/AI.md` §345).
-    count: 3401,
-    sequence: 3401,
+    // Item 3666: **4379**, by both. Piece 1090's bays took it to 3627 (ours
+    // 24 draws against 25, index 8: theirs' blocked stand of `1/126`, a
+    // Heavy Flaming Arrow, rolls a crew figure's idle), and `Guy::do_turn`'s
+    // own crew loop to 4379 — ours 25 draws against 28, parting at index 3,
+    // ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+    // `Unit::resolve_unit_collision+0xb52`. Past run1331b's last block, so
+    // its widening is owed (parked 3666).
+    count: 4379,
+    sequence: 4379,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -239,7 +246,13 @@ fn korean_medieval_pair_run1331b_s_word_frame_is_widened_whole() {
     // human's Citizen `0/13` (TY 50) is struck a frame earlier in theirs
     // (`hits:damage` ours 33 theirs 35, `hits_left` 17 against 15), and
     // `0/2000`'s `city:raid_stamp` 3365 against 3366.
-    pin_eq!(w.firsts.len(), 4369, "run1331b baseline");
+    // Item 3666: **64**, the standing families alone (blocks 3295 and
+    // 3297, and who=1's `SITE[·].reg` from 3376). Without piece 1090's
+    // bays the rounds parted first; without `Guy::do_turn`'s crew loop
+    // the records part first on 3630, `1/95`'s `move.pause` ours 7
+    // theirs 5, then `1/130` on 3632 (facing −945422336 against
+    // −707788800, `recharging` 0 against 30).
+    pin_eq!(w.firsts.len(), 64, "run1331b baseline");
     // Every round, both directions: 2152 round-blocks theirs, 1975 ours,
     // 298 parting. The slot rows from 3351 are theirs' spent arrows
     // (`flags 1`, held in their slot, COMBAT §46.7: the Royal Hwarang
@@ -250,6 +263,10 @@ fn korean_medieval_pair_run1331b_s_word_frame_is_widened_whole() {
     // 266 in 15 — 170 under theirs, the javelin bay's height. The
     // hypothesis: the Korean Elite Javelineers' piece has no
     // `launch::BAYS` row (`docs/AI.md` §345).
-    pin_eq!(w.rounds_read, (2152, 1975), "the rounds read");
-    pin_eq!(w.rounds.len(), 298, "the rounds that part");
+    // Item 3666: (2152, 2152), 244 parting by slot — and **none as a set**:
+    // every block's launches, landings and flight times agree over the
+    // whole window once theirs' spent `flags 1` records are set aside (0
+    // of 288 blocks), so what parts is the slot a round sits in.
+    pin_eq!(w.rounds_read, (2152, 2152), "the rounds read");
+    pin_eq!(w.rounds.len(), 244, "the rounds that part");
 }

@@ -11408,13 +11408,14 @@ units with none off (`docs/AI.md` §343). One row of its closing window (run1327
 Nothing parked: the pair lands at its first parting, 3401 of 4559, and its next word is booked by frame
 (`docs/AI.md` §345).
 
-## Parked by the next landing, slot TI — reserved
+## Parked by item 3666, 2026-10-26 — the Korean Medieval word 4379: piece 1090's bays and `Guy::do_turn`'s crew loop
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TI renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3666) **The Korean word 4379's widening is owed.** Item 3666 moved the word 3401 → 3627 → 4379 (`docs/AI.md`
+§345). On 4379 ours spends 25 draws against theirs' 28, parting at index 3: ours `Guy::set_anim+0x97a <
+Unit::move_step+0x823`, theirs `Unit::resolve_unit_collision+0xb52`. run1331b ends on block 3652 and reads the
+standing families alone now; run1331 prints units every hundredth block and no `AMMO`. So no dump holds 4379's
+block, and a window capture over 4373..4559 (the game ends itself on 4559) at run1331b's detail is the widening
+the word owes. **Score**: the headline, Great Lakes (Koreans, Medieval) w4379 of 4,559.
 
 ## Parked by item 3667, 2026-10-26 — the Germans at a held Industrial age, Great Lakes
 

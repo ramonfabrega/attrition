@@ -2752,6 +2752,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 156,
         },
     ),
+    // **Piece 1090, the Peltasts in the Asian art style** (`34 + 3 ×
+    // 0x160`, type 84, the Koreans' Elite Javelineers; item 3666,
+    // `docs/AI.md` §345): run991d's `RON_STATE_FRAME=15256` packet on the
+    // Korean Great Sahara game holds its three attack `AttachPos` rows —
+    // piece 34's keys, node 0 — and `get_position.py`'s sweep of each is
+    // reproduced at all 361 headings by these, the centroids of the same
+    // exact regions as piece 1794's (229, 895 and 1047 lattice points).
+    // Without them `1/47`'s javelin at the Citizen `0/13` left the figure's
+    // own square (6984, 30312) on 3354 where run1331b's leaves (6934,
+    // 30317), 170 up.
+    (
+        1090,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 38_946,
+            fwd: 60_202,
+            dz: 163,
+        },
+    ),
+    (
+        1090,
+        crate::anim::ATTACK2,
+        6,
+        Bay {
+            right: 1_685,
+            fwd: 50_747,
+            dz: 170,
+        },
+    ),
+    (
+        1090,
+        crate::anim::ATTACK3,
+        27,
+        Bay {
+            right: 21_762,
+            fwd: 35_444,
+            dz: 156,
+        },
+    ),
     // **Piece 1881, the Archers in the Persians' art style** (`121 + 5 ×
     // 0x160`, type 171; item 3663, `docs/AI.md` §343): run1327's packet
     // holds its three attack `AttachPos` rows on piece 121's keys, node 0,
