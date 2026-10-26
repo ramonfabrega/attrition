@@ -10608,7 +10608,7 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         "KOREAN_MEDIEVAL_PAIR_WORD",
         crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL_PAIR_WORD,
         None,
-        3666,
+        3679,
         None,
     ),
     // **The Germans at a held Industrial age** (item 3667): Great Lakes —
