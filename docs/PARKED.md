@@ -11018,13 +11018,11 @@ Galleon `1/68` (TI 321) and loads the Arquebusiers `1/48`, `1/49` and `1/50` (TI
 ashore. On 2168 ours' `1/63` takes a `move_step` draw theirs does not, and on 2169 it collides with the Galleon
 (`docs/AI.md` §335). `Tercios` (151) is fielded.
 
-## Parked by the next landing, slot SA — reserved
+## Parked by item 3628, 2026-10-25 — the Lakota Gunpowder pair: theirs' Musket Horse fires first
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair parts on its first try at 4187 of 4750. Theirs' Musket Horse `1/54` (TypeIndex 207) has a
+round in flight at the human's Citizen `0/5` on run1289b's first block, 4182, and it lands on 4183. Ours fires
+nothing. That word is the next item's to book (`docs/AI.md` §336): a gap window over 4096..4187 first.
 
 ## Parked by the next landing, slot SB — reserved
 

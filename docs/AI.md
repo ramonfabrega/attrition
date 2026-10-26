@@ -30815,12 +30815,89 @@ On the stride's 3801 both sides walk it on an `ATTACKTOORDER` to (1896,
 gap, is the next item's to place. A gap window over 3795..3866 is its
 first take.
 
-## 336. Reserved for the next item on the AI track
+## 336. The Lakota at a held Gunpowder age, Great Sahara: first try 4187 of 4750 (item 3628)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Greek
+Gunpowder pair's lobby (§334) with the nation moved: Great Sahara,
+`MAP_STYLE 7`, human Nubians (4) against **the Lakota (19)** at Difficulty
+5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 3` and
+`ENDING_TECHNOLOGY 3`. `crates/rondata/src/diff/lakota_gunpowder_pair.rs`
+pins it. Its triple `(7, 19, 5)` is minted in `battery::SCORED_LOBBIES`.
+The battery's one Lakota game, `GreatSaharaLakotaTier2`, is `(7, 19, 2)`:
+this map at another difficulty. The other Lakota lobbies are `lakota_word`'s
+`GreatLakesLakotaTier2` `(14, 19, 2)` and the Peace and Medieval pairs,
+East Indies' `(18, 19, 3)` and `(18, 19, 5)`.
+
+**The captures.** run1288 is the `DUMP_ALL` start, and run1289 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 4750**. run1289b is the word's window, blocks 4182..4438, with
+`LEADERS=9` and `AMMO=5`. `GAME INFO` reads back `STARTING_TECHNOLOGY 3`
+and `ENDING_TECHNOLOGY 3` on both pair takes (`Pair::assert_lobby`). By
+`rngcmp.py`, run1288 against run1289 is 37 of 37 frames identical, and
+run1289 against run1289b 4439 of 4439. The walk is seeded from run1288's
+initial state (3506a).
+
+**First try: frame 4187 of 4750**, by the count and the sequence. On 4187
+ours spends 14 game-stream draws against theirs' 12, parting at index 3:
+ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`.
+
+**The stride** (`lakota_gunpowder_pair_the_long_s_stride_walks_back_from_4187`,
+101..4101: 41 blocks, 83 keys) parts only on the standing families:
+`build:extra`, who=1's groups' `held` and pools (65 on 101 through 70 on
+4101), and `form` on 24 units. On 4101 the Musket Horse `1/54` and the
+Citizen `0/5` agree. `1/54` is on an `ATTACKTOORDER` to (10440, 28248).
+
+**Theirs acts, in the gap 4102..4181.** The state first parts on block
+4184, frame 4183, and the record that shows it is theirs' `AMMO`:
+
+| block | theirs' round | ours |
+|---|---|---|
+| 4182 | `1/54` → `0/5`, cur_time 1 of 3, from (8560, 27252) to (7415, 27958) | none |
+| 4183 | the same, 2 of 3 | none |
+| 4202..4205 | `1/36` → `0/5`, 1..4 of 5 | none (ours' `1/36` reads `cavarch_o` 5, `fought` 1 and `recharging` 30 on block 4190) |
+
+- `1/54` is a **Musket Horse** (TypeIndex 207, land, uid 80): the
+  booking's line, and it is fielded. It is a guard of who=1's group 64
+  about `1/58`, with `near` 0/5 on 4182, standing at (8712, 27240). Ours'
+  `1/54` stands at the same spot and fires nothing.
+- `0/5` is the human's **Citizen** (TypeIndex 50, uid 12), on a
+  `GATHERORDER` at `0/2004`.
+
+**The value diff on 4184** (run1289b, walked from run1288: 256 blocks,
+**2311 keys**, the two `gaia:` keys unprinted, no inexact ground corner):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4184 | `0/5` | `hits_left` | 50 | 24 |
+| 4184 | `0/5` | `damage_frame` | 0 | 4183 |
+| 4184 | `0/5` | top order | `GATHERORDER` (7) | `FLEEORDER` (4) to (6072, 28728) |
+| 4184 | city `0/2000` | `raid_stamp` | 0 | 4183 |
+| 4184 | who=0's leader | `treaties[1]` | 1 | 3 |
+| 4184 | who=1's leader | `treaties[0]` | 1 | 3 |
+
+The treaties rows are §173's bit 1: a hit across players ors 2 into both
+leaders. This is the game's first cross-player blow. Block 4182 carries
+only the standing families (`form`, `SITE[i].reg`, who=0's
+`aggression[1]`, and who=1's groups 64, 65, 66, 68 and 70's `held` and
+pools).
+
+**Past it, on the word.** On 4188 ours' Elite Pikeman `1/75` (TypeIndex
+135) collides with `1/74` (`collide_o` 74, `retry` 6, `safe` 30), where
+theirs' steps clear. `1/74`'s top order is ours 10 against theirs 12. Both
+are group 64's guards, on the same post as `1/54`. So the word's draw
+(ours' `move_step` against theirs' `do_idle`) is downstream of the guard
+post's response to the shot, and the shot is the cause to place.
+
+**What is not established.** Why theirs' `1/54` fires on `0/5` and ours'
+does not: the guard's target search (`find_new_target` on a
+`GUARDORDER`) or the Citizen's approach, in a gap no dump prints. A gap
+window over 4096..4187 (`AMMO=5`, `LEADERS=9`) is the next item's first
+take, then `RON_DEBUG_UNIT=1/54` both sides.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **195 of
+302**, unmoved: the rubric counts lockstep games only, and this pair
+parts. Musket Horse (207) stays on the lockstep "never" list.
 
 ## 337. Reserved for the next item on the AI track
 
