@@ -51,8 +51,13 @@ pub(crate) const SPANISH_GUNPOWDER: Pair = Pair {
     // round leaves (1809, 5233) for 12 frames with theirs and lands on
     // 3877 (§335.3). On 4859 ours spends 16 draws against 18, parting at
     // index 7: ours `Unit::fight+0x9b0`, theirs `Unit::come_out+0x25ca`.
-    count: 4859,
-    sequence: 4859,
+    // Item 3646: 4859 → **6128**, the game's end, by both — a sea-only
+    // attacker (`unit_flags & 0x102000`) takes only a sea unit
+    // (`valid_target_const`'s `6473c3` arm), so the Fire Ship `1/86` is
+    // not handed its group's Citizen `0/12` on 4859 and spends no
+    // `fight+0x9b0` (§335.4). The pair closes.
+    count: 6128,
+    sequence: 6128,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two

@@ -1157,6 +1157,27 @@ impl Sim {
         }
         let ap = self.profile(attacker);
         let tp = self.profile(target);
+        // **A sea-only attacker** (`6473c3`–`6473ea`, item 3646): a unit
+        // whose type's `unit_flags` (`+0x2b4`) carries `0x102000` — `n`,
+        // "destroyed when it attacks" (the fire rafts and fire ships), or
+        // `u` (the three submarines) — takes only a domain-1 (sea) target,
+        // and not one whose vslot `+0x1c` answers (a building). run1304b's
+        // Fire Ship `1/86` (TypeIndex 336) is never handed its group's
+        // Citizen `0/12` on 4859, where the Frigate and the Bombard Ships
+        // beside it are (`docs/AI.md` §335.4).
+        //
+        // SEAM: the domain-1 arm's other refusal (`647472`) — a unit
+        // target whose type carries `0x100000` (a submarine) to a domain-0
+        // asker — is not carried; which domain a building asker's type
+        // reports is not established here.
+        if let Obj::Unit(u) = attacker
+            && self.units[u]
+                .ty
+                .is_some_and(|ty| self.unit_types[ty].cols.flag(0x10_2000))
+            && (!matches!(tp.domain, Domain::Sea) || matches!(target, Obj::Building(_)))
+        {
+            return false;
+        }
         if matches!(tp.domain, Domain::Air) {
             if self.max_range_of(attacker) == 0 {
                 return false;

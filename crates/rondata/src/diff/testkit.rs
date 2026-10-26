@@ -7298,8 +7298,9 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     ),
     // Item 3643: the Spanish Gunpowder pair, walked from run1286 along
     // run1287 to its new word 4859: the Frigate `1/29`'s rounds at the
-    // Farm `0/2004` read 2 inexact corners, as run1301b's do.
-    ("spanish_gunpowder_pair_first_parting", 2),
+    // Farm `0/2004` read 2 inexact corners, as run1301b's do. Item 3646:
+    // walked to the game's end, 6128, it reads 28.
+    ("spanish_gunpowder_pair_first_parting", 28),
     // Item 3643: run1304b, the Spanish Gunpowder word 4859's window,
     // 4853..5109, reads 8 inexact corners.
     (
