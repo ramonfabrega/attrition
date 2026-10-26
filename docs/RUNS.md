@@ -28982,3 +28982,68 @@ SHA-256 `a279872c4e124ba4565798702198b09ad1fde1824431fdc33d18f8b69d86da5f`.
 301 theirs against 228 ours, 62 parting). The Bomb Ketch `1/82` (TI 347)'s round at the human's Citizen `0/4` is in
 flight on both sides on the first block, 3956, from (3912, 12792, 0) in 43 frames in ours against (4013, 12593, 133)
 in 41 in theirs; theirs lands on 3962: `0/4`'s `hits_left` ours 65 theirs 47 on block 3963. 3902..3955 is undumped.
+
+## run1307 — the Aztecs at a held Medieval age, Great Sahara: the `DUMP_ALL` start (2026-10-26, item 3647, `att-3647`)
+
+`docs/AI.md` §338. §332's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1307 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 0 --profile
+STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1. Launched 05:51:42, exited 05:52:09 (26.8 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 0, five files restored. `GAME INFO` reads back
+  `STARTING_TECHNOLOGY 2` and `ENDING_TECHNOLOGY 2`. Filed with `filerun.py run1307
+  greatsahara-aztec-medieval-start`. `df -g ~` read 98 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1307-greatsahara-aztec-medieval-start.txt`, 149,928,331 bytes,
+SHA-256 `904320b1832fae54d1a0e505adf920a9950d74a9dd3153bb8ec351c9007c91fb`.
+
+Archive `rontrace-run1307.log`, 8,316,288 bytes,
+SHA-256 `0b52beede78662c2625d7e7c474bdd8c47e0d6cd814474e898cdb80f9bbf6853`.
+
+**What it holds**: the start of `aztec_medieval_pair::AZTEC_MEDIEVAL`, and the walk's initial state.
+
+## run1308 — the Aztecs at a held Medieval age, Great Sahara: the draw stream to the game's end (2026-10-26, item 3647, `att-3647`)
+
+`docs/AI.md` §338. run1281's line with `--ai-tribe 0`: `--map 7 --end-frame 24000 --timeout 7200 --allow-early-end
+--log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 0 --detail
+end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1` and run1307's
+lobby.
+- Pool lane 2, beside run1307. Launched 05:51:42, exited 05:52:13 (30.2 s launch to exit). `success`. **The game
+  ended itself on 4602** (closing block 4603, `ended_early`). `GAME INFO` reads back as run1307's. `rngcmp.py`
+  against run1307: 37 frames identical. Filed with `filerun.py run1308 greatsahara-aztec-medieval-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1308-greatsahara-aztec-medieval-trace.txt`, 24,663,044 bytes,
+SHA-256 `ff4fa44cd2e5d74e78b032a5de053dcad4fd3b55cec77ad2a3c7cb77eb885fce`.
+
+Archive `rontrace-run1308.log`, 81,692,448 bytes,
+SHA-256 `bcd97a5b9048157c111f78d219ebadfdb20fdf5b1f2cdbfaaf5374dc953c6df3`.
+
+**What it holds**: the pair's first try. `aztec_medieval_pair_first_parting` walks it from run1307: **2556 of 4602**
+by the count and the sequence (ours 185 draws against 189, index 180).
+`aztec_medieval_pair_the_long_s_stride_walks_back_from_2556` walks its stride 101..2501: 25 blocks, 81 keys, all
+standing.
+
+## run1308b — the Aztecs at a held Medieval age, Great Sahara: the word 2556's window, blocks 2550..2806 (2026-10-26, item 3647, `att-3647`)
+
+`docs/AI.md` §338. **What the disk could not answer**: every record on the word's frame. run1308's stride prints
+units on 2501 and 2601 only, and no `LEADERDATA`, building or `AMMO` record past the start, and no other dump holds
+this lobby. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1308b --map 7 --end-frame 2806 --timeout
+3600 --log-window 2550 2806 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover
+cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1. Launched 05:54:02, exited 05:54:59 (57.0 s launch to exit). `success`: 2807 frames. `rngcmp.py`
+  against run1308: 2807 frames identical. Filed with `filerun.py run1308b
+  greatsahara-aztec-medieval-window-2550-2806`. `df -g ~` read 96 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1308b-greatsahara-aztec-medieval-window-2550-2806.txt`, 490,998,016 bytes,
+SHA-256 `629a916df141ac10cb0c3526875e7d0da589e7ed3d1a13c70fd2767ab04e011c`.
+
+Archive `rontrace-run1308b.log`, 39,716,704 bytes,
+SHA-256 `edb5cce145e4e05ad8752fe683766ecf1692ed03b12a4a237d6048785d11f957`.
+
+**What it holds**: `aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole` (256 blocks, 2414 keys, rounds
+(163, 141) with 49 parting): the Citizen `0/13`'s kill by `1/29` on 2556 on both sides, theirs' plunder of it
+(who=1's timber 12714 against 12759 on 2557), and the Heavy Horse Archers' launch points (parked 3647a).

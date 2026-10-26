@@ -31246,12 +31246,85 @@ records in run1291 and 2048 in run1291b. It is the one type this game
 holds that the lockstep ledger has not seen, and it stays on the "never"
 list until the pair closes.
 
-## 338. Reserved for the next item on the AI track
+## 338. The Aztecs at a held Medieval age, Great Sahara: first try 2556 of 4602 (item 3647)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Bantu
+Medieval pair's lobby (§332) with the nation moved: Great Sahara,
+`MAP_STYLE 7`, human Nubians (4) against **the Aztecs (0)** at Difficulty
+5, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 2` and
+`ENDING_TECHNOLOGY 2`. `crates/rondata/src/diff/aztec_medieval_pair.rs`
+pins it. Its triple `(7, 0, 5)` is minted in `battery::SCORED_LOBBIES`.
+The battery's one Aztec game is the held-out `EastIndiesAztecTier1`
+`(18, 0, 1)`; `aztec_word`'s `GreatSaharaAztecTier2` is `(7, 0, 2)`, the
+AllTech pair `(7, 0, 3)` and the Ancient-start pair East Indies'
+`(18, 0, 5)`.
+
+**The captures.** run1307 is the `DUMP_ALL` start, and run1308 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 4602**. run1308b is the word's window, blocks 2550..2806, with
+`LEADERS=9` and `AMMO=5`. `GAME INFO` reads back `STARTING_TECHNOLOGY 2`
+and `ENDING_TECHNOLOGY 2` on both pair takes (`Pair::assert_lobby`). By
+`rngcmp.py`, run1307 against run1308 is 37 of 37 frames identical, and
+run1308b against run1308 2807 of 2807. The walk is seeded from run1307's
+initial state (3506a).
+
+**First try: frame 2556 of 4602**, by the count and the sequence. On 2556
+ours spends 185 game-stream draws against theirs' 189, parting at index
+180: ours `Unit::close+0xcb6`, theirs `Unit::plunder+0x4e5`.
+
+**The stride** (`aztec_medieval_pair_the_long_s_stride_walks_back_from_2556`,
+101..2501: 25 blocks, 81 keys) parts only on the standing families: 44
+buildings' `build:extra`, `form` on 27 units, and who=1's five groups'
+`held` and pools (65 on 101 through 68 on 1901).
+
+**Both sides make the same kill; theirs plunders it.** On 2556 who=1's
+**Heavy Horse Archer** `1/29` (`TY` 138, TypeIndex 188, group 64, stance
+Raid, `RON_DEBUG_UNIT`) lands a round on the human's **Citizen** `0/13`
+(TypeIndex 50, on a `FLEETOORDER`), and `0/13` closes on both sides: it is
+in block 2556 and gone from 2557 in run1308b, and no unit record
+parts on 2557. Theirs' four extra draws sit before the close, at
+`Unit::plunder+0x4e5` — the plunder's one roll per good the killer's
+leader has available — and theirs banks the plunder:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2557 | who=1's leader | `bucket[1:timber]` | 12714 | 12759 |
+
+That is the only record that parts on 2557. The next rows are the
+Citizen `1/1`'s `move.pause` on 2558 (3 against 7) and positions from
+2563.
+
+**The direction: theirs acted.** `Object::take_damage@00652020`'s kill
+arm (the export's lines 550–608) calls `Unit::plunder(v, k, who, 1, 0)`,
+the slay-bonus arm, when the killer's leader has tribe bonus 0 (the
+Aztecs) and the killer's type record `+0x40` is `0x1ab`, `0x1ac` or
+`0x1b0`; otherwise it takes the Despot path. Ours' `Sim::unit_plunder`
+carries only the Despot path, and its `SEAM` names the Aztec slay bonus as
+not carried. `plunder::plunder_steps` already holds the slay arm
+(`AZTEC_SLAY_BONUS`, `AZTEC_SLAY_CAP`, the slay count at bucket `+0xdc`),
+swept against the original in item 3356. Building the caller's arm is
+the next item's **hypothesis**: neither the `+0x40` predicate on the Heavy
+Horse Archer nor the slay count's writers have been read.
+
+**The rounds** (run1308b, walked from run1307 with every round compared:
+256 blocks, **2414 keys**, rounds 163 theirs against 141 ours with 49
+parting, the two `gaia:` keys unprinted, no inexact ground corner). The
+first to part is `1/29`'s round at `0/13`, on the window's first block:
+ours leaves from (7599, 31648, 659), theirs from (7556, 31716, 901). The
+flight time is the same, so the kill lands on 2556 on both sides. `1/22`,
+another Heavy Horse Archer of group 64, fires on 2556 and its round parts
+the same way. The Heavy Horse Archer's launch point parks as 3647a; it
+does not move the word.
+
+**What is not established.** The killer type predicate's field
+(`+0x40`) and its value for TypeIndex 188; who writes the Aztec slay
+count; and where a Heavy Horse Archer's round leaves from (3647a).
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **197 of
+302**, unmoved: the rubric counts lockstep games only, and this pair
+parts. **`Xopilli Atl-Atls` (87)**, the booking's line, **is fielded**:
+1506 guy records in run1308 and 11586 in run1308b (`rubric.scan`). It
+stays on the "never" list until the pair closes.
 
 ## 339. Reserved for the next item on the AI track
 
