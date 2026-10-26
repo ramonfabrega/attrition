@@ -3540,6 +3540,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::lakota_gunpowder_pair::lakota_gunpowder_frame_4477_window(),
         || super::iroquois_enlightenment_pair::iroquois_enlightenment_frame_3962_window(),
         || super::iroquois_enlightenment_pair::iroquois_enlightenment_stride_window(),
+        || super::iroquois_enlightenment_pair::iroquois_enlightenment_frame_5128_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
         || super::lakota_medieval_pair::lakota_medieval_rounds_window(),
         || super::lakota_medieval_pair::lakota_medieval_closing_window(),

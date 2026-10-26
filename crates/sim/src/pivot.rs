@@ -3229,6 +3229,33 @@ mod tests {
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
     }
 
+    /// **run1291b's Bomb Ketch `1/82`** (item 3655, `docs/AI.md` §337):
+    /// its round at the Citizen `0/4`, fired in the undumped gap before
+    /// block 3956. This crate's left the hull's own square, (3912, 12792)
+    /// at `z` 0; the original's (4013, 12593, 133) is a cell of the stern
+    /// mortar's sweep from that square at the figure's facing on 3956,
+    /// 323813376, and its height is the row's. Made to fail with piece
+    /// 297's rows out of `RELEASES`: no row, the hull's square.
+    #[test]
+    fn run1291b_s_bomb_ketch_fires_through_piece_297_s_pivot() {
+        let r = release(297, crate::anim::ATTACK1, 3).expect("the Bomb Ketch's row");
+        let d = release_rotation(Angle(323_813_376));
+        let fits: Vec<i32> = (0..360)
+            .filter(|&t| {
+                let (x, y, _) = release_offset_at(&r, d, t);
+                (3912 + x, 12792 + y) == (4013, 12593)
+            })
+            .collect();
+        assert!(!fits.is_empty(), "no turret step reproduces 1/82's round");
+        assert_eq!(release_offset_at(&r, d, 0).2, 133);
+        assert_eq!(
+            release(297, crate::anim::ATTACK2, 3).map(|r| release_offset_at(&r, d, 0).2),
+            Some(130)
+        );
+        assert_eq!(node(297, 4), Some(Node { px: 0, py: -5037 }));
+        assert_eq!(node(297, 5), Some(Node { px: 0, py: 586 }));
+    }
+
     /// **run1305's Musket Horse `1/54`** (item 3645, `docs/AI.md` §336):
     /// its round at the Citizen `0/5`, fired on the move on 4181
     /// (`CHAR_ATTACKWALK` at frame 12), from the figure's (8712, 27240) at
