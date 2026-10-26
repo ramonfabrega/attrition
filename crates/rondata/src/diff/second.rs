@@ -2849,8 +2849,10 @@ mod tests {
         // and a half-way heading byte rounded up; not attributed per round.
         // Item 3603: ours' rounds 1343 → 1339 and the baseline 337 → 256 once
         // piece 48's bays (the Arquebusiers' art, run1254c) move its rounds
-        // onto theirs' launch points.
-        pin_eq!(a.firsts.len(), 256, "run594 projectile baseline");
+        // onto theirs' launch points. Item 3661: 256 → 251 with piece 218's
+        // bays (the Cannon, run1325c): `1/132`'s round on 18093 left (7512,
+        // 11016, 173) against theirs' (7466, 10876, 273), and now agrees.
+        pin_eq!(a.firsts.len(), 251, "run594 projectile baseline");
         pin_eq!(
             a.unmodelled,
             (115, 16282458979908766585),
