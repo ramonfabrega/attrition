@@ -31999,12 +31999,58 @@ every pair.
 run1318 and run1318b (`rubric.py --dumps`), the only one of the pair's 16
 types on the "never" list.
 
-## 344. Reserved for the next item on the AI track
+## 344. The Japanese at a held Medieval age, Great Lakes: whole on its first try, 5140 of 5140 (item 3664)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
+the Japanese (15) at Toughest (5), seed 12345, `STARTING_RESOURCES 7`,
+the age held at Medieval (`STARTING_TECHNOLOGY 2`, `ENDING_TECHNOLOGY
+2`), both takes read back by `Pair::assert_lobby`. The triple `(14, 15,
+5)` is new: the other Japanese lobbies are `(18, 15, 5)` (the Industrial
+and Ancient pairs), `(7, 15, 5)` (the Gunpowder pair) and the AI word
+`GreatSaharaJapaneseTier1`'s `(7, 15, 1)`, each another map, and the
+battery fields no Japanese (`japanese_medieval_pair_is_no_other_lobby`).
+Captures: run1328 (the `DUMP_ALL` start), run1329 (the draw stream; the
+game ended itself on 5140) and run1329b (the closing window,
+4884..5141). The pair is `rondata::diff::japanese_medieval_pair`.
+
+**The score.** First try **whole: 5140 of 5140**, by the count and the
+sequence — no frame's draws part to the game's last frame.
+
+**The closing state** (`japanese_medieval_pair_run1329_s_closing_state`,
+block 5141): **187 units compared, every count 0** — none off, torn,
+unlinked or extra, `Closing fields: none`.
+
+**The value diff on the last blocks.** The stride (run1329, 101..5101,
+51 blocks, 108 keys) parts on the standing families alone: 65
+buildings' `build:extra`, `form` on 27 units, who=1's groups' `held`
+and pools 64..71. run1329b (257 blocks, 52 keys) parts only on its
+first block 4884, and only on the standing families (`form` on 27
+units, who=0's `SITE[i].reg`, `aggression`, who=1's groups and pools).
+No unit, building or city field parts on any block.
+
+**The rounds**, both directions: 143 a side, every one who=1's
+Trebuchet `1/59` (TI 266, by `unitat.py`), four throws at the human's
+`0/2000`. Four fields part, from 4884 on every block, all of them the
+launch:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4884 | Trebuchet `1/59`'s round `ammo[0]` | `sx`, `sy` | (6936, 32184) | (7219, 32287) |
+| 4884 | the same | `sz` | 92 | 785 |
+| 4884 | the same | `v1z` | 210946716 | 192709869 |
+
+Ours throws from the figure's own square. Theirs throws from (+283, +103)
+off it and 693 up, the same height parked 3658b measured on the Aztec
+Medieval pair's Trebuchets. The landing (3187, 30722), the flight time
+(38) and every hit agree to the closing block, so no compared field
+moves. The row is 3658b's in a second lobby (parked 3664a). It names no
+score.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **203 →
+204 of 302**. The pair is lockstep, and **`Elite Bushi` (159)**, the
+booking's line, **is fielded**: 3444 guy records across run1329 and
+run1329b (`rubric.py --dumps`), 360 in the lockstep set.
+`census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned.
 
 ## 345. Reserved for the next item on the AI track
 
