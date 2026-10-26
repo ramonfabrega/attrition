@@ -295,9 +295,6 @@ fn pick<V: PlunderView>(v: &mut V, who: i32, p3: i32, despot: i32) -> (i32, i32)
         }
     }
     let mut slay = 0;
-    if std::env::var_os("RON_PROBE_3657").is_some() {
-        eprintln!("PROBE3657 who {who} p3 {p3} despot {despot} ages {} best {best}", v.slay_count(who));
-    }
     if p3 != 0 {
         let cap = v.aztec_slay_cap();
         slay = v
