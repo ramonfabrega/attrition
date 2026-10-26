@@ -28805,3 +28805,67 @@ SHA-256 `c6312767f679b1905216c4ecd0591b0d77af18b3b493c2013b34e8b29fdd7fed`.
 4853 carries only the standing families; the first row past them is the word's block 4860, who=1's Fire Ship
 `1/86` (TypeIndex 336) at (31656, 30984) against theirs' (31643, 31002), and on 4861 the Frigate `1/58`
 (TypeIndex 343) holds 3 orders in theirs against ours' 1.
+## run1305 — the Lakota at a held Gunpowder age, Great Sahara: the gap 4102..4181, blocks 4096..4187 (2026-10-26, item 3645, `att-3645`)
+
+`docs/AI.md` §336.1. **What the disk could not answer**: the frame theirs' Musket Horse `1/54` fires on, and whether
+ours fires. run1289's stride prints units on 4101 and 4201 only, and run1289b starts on 4182 with the round already
+in the air. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1305 --map 7 --end-frame 4187
+--allow-early-end --timeout 3600 --log-window 4096 4187 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 02:45:10, exited 02:45:41 (30.7 s). `success`: 4188 frames, closing frame 4188.
+  `rngcmp.py` against run1289: 4188 of 4188 identical. Filed with `filerun.py run1305
+  greatsahara-lakota-gunpowder-window-4096-4187`. `df -g ~` read 110 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1305-greatsahara-lakota-gunpowder-window-4096-4187.txt`, 188,090,716 bytes,
+SHA-256 `30493eea2577157d97444c42cea3753aa6bc53536e309e2b7d935ac4e5d872a3`.
+
+Archive `rontrace-run1305.log`, 61,765,536 bytes,
+SHA-256 `3200b4a7961c2aed4f0cdb9f22d53dc37be3e12c621bf50952ce087699b1257e`.
+
+**What it holds**: `lakota_gunpowder_pair_run1305_s_gap_is_widened_whole` (91 blocks, 49 keys, all standing; 2 rounds
+a side, none parting). Theirs' `1/54` takes `cavarch_o` 5 on block 4171 and strikes on 4172. Its round is the
+window's only `AMMO` record, on 4182 and 4183, from (8560, 27252, 666) in 3 frames. Before item 3645's rows, ours'
+round left (8712, 27240) in 4.
+## run1305b — the Lakota at a held Gunpowder age, Great Sahara: a packet at logger frame 4181, pieces 157, 1456 and 1625 (2026-10-26, item 3645, `att-3645`)
+
+`docs/AI.md` §336.1. **What the disk could not answer**: the Musket Horse's, the Lakota Arquebusiers' and the
+Bombard's release nodes. No packet on disk fields any of them, and run1305 prints one Musket Horse round.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1305b --map 7 --end-frame 4183 --timeout 3600
+--log-window 4180 4182 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 19 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=4181 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 02:52:26, exited 02:52:49 (22.3 s). `success`, 4184 frames. Not filed: the
+  packet is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1305b/map-7/frame-snapshot.bin`, 866,070,232 bytes,
+SHA-256 `809924579ec15b7920daa5cbd46a841eefba9d75d2c9e80d8f06f0e63dc9acf9`.
+
+**What it holds**: `get_position.py … entries`. Piece 157 has nine rows: its pivot node 4 at (0.08, −1.48, 31.05),
+and its release node 0 on frames 12, 12, 13 and 18 of `CHAR_ATTACKWALK` and `CHAR_ATTACK1`..`3`. Piece 1456 has
+three rows, which fit piece 48's bays. Piece 1625 has one row, `CHAR_ATTACK2` frame 9. The sweeps are under
+`~/ron-data/lab-experiments/2026-10-26-item-3645/`. `pivot::tests::the_original_s_release_agrees_on_every_cell_for_piece_157`
+reads them with `RON_RELEASE_TABLE_157` set.
+## run1305c — the Lakota at a held Gunpowder age, Great Sahara: the word 4477's window, blocks 4472..4728 (2026-10-26, item 3645, `att-3645`)
+
+`docs/AI.md` §336.1. **What the disk could not answer**: every record on the word 4477's frame. run1289's stride prints
+units on 4401 and 4501 only, and run1289b ends on 4438. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1305c --map 7 --end-frame 4728
+--allow-early-end --timeout 3600 --log-window 4472 4728 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 03:06:49, exited 03:07:33 (43.9 s). `success`: 4729 frames. `rngcmp.py` against run1289: 4729 of 4729 identical. Filed with
+  `filerun.py run1305c greatsahara-lakota-gunpowder-window-4472-4728`. `df -g ~` read 102 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1305c-greatsahara-lakota-gunpowder-window-4472-4728.txt`, 554,423,531 bytes,
+SHA-256 `f904c629ad371b5e08e6a16125cd617ffee127ca1304722b1d67483ca6fcec33`.
+
+Archive `rontrace-run1305c.log`, 76,899,808 bytes,
+SHA-256 `fc2011bad27dbaecac482e2af46fee456ad4528ec5e7c2ba65062c885844990e`.
+
+**What it holds**: `lakota_gunpowder_pair_run1305c_s_word_frame_is_widened_whole`: 256 blocks and 3790 keys. Its rounds
+read 203 blocks theirs and 185 ours, and 47 round keys part. On the word's block 4478, who=1's units born in the
+window part: `1/177`..`1/186`'s positions, their collisions, `1/185`'s order and `1/180`'s
+`attack[1].mandatory`.

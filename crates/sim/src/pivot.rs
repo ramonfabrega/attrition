@@ -82,6 +82,12 @@ pub struct Node {
 /// 206): run1235b's packet reads the same `(4, 0, 0)` entry as 1545's,
 /// `RData +0x88` 1.0.
 ///
+/// **Piece 157, the Lakota Musket Horse** (item 3645, unit type 207):
+/// run1305b's packet (logger frame 4181, the Lakota Gunpowder lobby) reads
+/// its `(4, 0, 0)` entry as `(0.08, −1.48, 31.05)` (`0x3da3d70a`),
+/// `RData +0x88` 1.0 — the saddle of 139's, set 0.08 to the right where
+/// 156's sits 0.06 to the left.
+///
 /// **Piece 153, the Horde** (item 3632, unit type 203, `HORDE`):
 /// run1294's packet (logger frame 4473, the Mongol Gunpowder lobby) reads
 /// its `(4, 0, 0)` entry as `(0.0, −3.38, 32.63)` (`0xc05851ec`),
@@ -136,6 +142,7 @@ const NODES: &[(i32, i32, Node)] = &[
     (1898, 4, Node { px: -6, py: -148 }),
     (841, 4, Node { px: -6, py: -148 }),
     (156, 4, Node { px: -6, py: -148 }),
+    (157, 4, Node { px: 8, py: -148 }),
     (153, 4, Node { px: 0, py: -338 }),
     (139, 4, Node { px: 0, py: -148 }),
     (168, 4, Node { px: 0, py: 179 }),
@@ -1873,6 +1880,69 @@ const RELEASES: &[(i32, i8, u32, Release)] = &[
             float_lands: &[(129, 155, 77, 0), (219, 155, 0, 77), (309, 155, -77, 0)],
         },
     ),
+    // **The Lakota Musket Horse, piece 157** (unit type 207,
+    // `MUSKETHORSE`; item 3645, `docs/AI.md` §336): run1305b's packet
+    // (`RON_STATE_FRAME=4181` on the Lakota's held Gunpowder Great Sahara
+    // seed), the piece's nine entries. `<RESTRICTION name="MUSKETHORSE"
+    // node="4">` makes it a pivot piece; without these rows its rounds left
+    // the figure's own point. who=1's `1/54` fires on the move at the
+    // Citizen `0/5` on 4181 (`CHAR_ATTACKWALK`, frame 12) from (8560,
+    // 27252, 666) and the round flies 3; this crate's left (8712, 27240),
+    // flew 4 and struck a frame late, which is the word 4187's draw.
+    (
+        157,
+        crate::anim::ATTACKWALK,
+        12,
+        Release {
+            piece: 157,
+            node: 0,
+            pivot: [138_111, -1_380_116, 31_034_378],
+            at: [-12_961_245, -27_570_284, 11_694_054],
+            float_lands: &[(37, 219, 140, 34), (217, 219, -140, -34)],
+        },
+    ),
+    (
+        157,
+        crate::anim::ATTACK1,
+        12,
+        Release {
+            piece: 157,
+            node: 0,
+            pivot: [4_388_261, -1_638_021, 31_049_999],
+            at: [-3_027_300, -29_267_675, 15_569_523],
+            float_lands: &[],
+        },
+    ),
+    (
+        157,
+        crate::anim::ATTACK2,
+        13,
+        Release {
+            piece: 157,
+            node: 0,
+            pivot: [80_000, 6_483_696, 34_750_904],
+            at: [-8_452_114, -17_947_832, 20_006_462],
+            float_lands: &[],
+        },
+    ),
+    (
+        157,
+        crate::anim::ATTACK3,
+        18,
+        Release {
+            piece: 157,
+            node: 0,
+            pivot: [80_000, -1_480_000, 31_049_999],
+            at: [-4_867_605, -28_791_185, 12_283_539],
+            float_lands: &[
+                (63, 197, 134, 2),
+                (153, 197, -2, 134),
+                (333, 197, 2, -134),
+                (263, 253, -27, -137),
+                (75, 271, 3, 141),
+            ],
+        },
+    ),
     // **The Lakota Eagle Feather Horse, piece 156** (unit type 206,
     // `EAGLEFEATHER`; item 3588, `docs/AI.md` §314): run1235b's packet
     // (`RON_STATE_FRAME=4127` on the Lakota's held Medieval East Indies
@@ -3015,6 +3085,63 @@ mod tests {
         }
         assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
         assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **The original's pivot branch on every cell, for piece 157** (item
+    /// 3645): `tools/recomp/get_position.py … pivot 157 0 <anim> <time> 1`
+    /// on run1305b's packet for its four rows. `$RON_RELEASE_TABLE_157` is
+    /// the directory holding `pivot-157-a<anim>-t<time>.txt`, outside git
+    /// (`~/ron-data/lab-experiments/2026-10-26-item-3645/`).
+    #[test]
+    fn the_original_s_release_agrees_on_every_cell_for_piece_157() {
+        let Ok(dir) = std::env::var("RON_RELEASE_TABLE_157") else {
+            eprintln!("skipping: set RON_RELEASE_TABLE_157 (item 3645's oracle, run1305b)");
+            return;
+        };
+        let (mut rows, mut off) = (0, Vec::new());
+        for (slot, time) in [
+            (crate::anim::ATTACKWALK, 12),
+            (crate::anim::ATTACK1, 12),
+            (crate::anim::ATTACK2, 13),
+            (crate::anim::ATTACK3, 18),
+        ] {
+            let path = format!("{dir}/pivot-157-a{slot}-t{time}.txt");
+            let table = std::fs::read_to_string(&path).expect("RON_RELEASE_TABLE_157");
+            let r = release(157, slot, time).expect("the row");
+            for line in table.lines() {
+                let f: Vec<i32> = line
+                    .split_whitespace()
+                    .take(6)
+                    .map(|x| x.parse().unwrap_or_else(|_| panic!("{line}")))
+                    .collect();
+                if release_offset_at(&r, f[0], f[2]) != (f[3], f[4], f[5]) {
+                    off.push(format!("{slot} ({}, {}, {}, {})", f[0], f[2], f[3], f[4]));
+                }
+                rows += 1;
+            }
+        }
+        assert!(rows >= 4 * 92_000, "{dir}: {rows} rows");
+        assert!(off.is_empty(), "{} cells disagree: {off:?}", off.len());
+    }
+
+    /// **run1305's Musket Horse `1/54`** (item 3645, `docs/AI.md` §336):
+    /// its round at the Citizen `0/5`, fired on the move on 4181
+    /// (`CHAR_ATTACKWALK` at frame 12), from the figure's (8712, 27240) at
+    /// facing −1073741824 to the dump's `AMMO` (8560, 27252) — a cell of
+    /// the turret's sweep. Made to fail with the rows out of `RELEASES`:
+    /// the round leaves from the figure and flies 4 frames against 3.
+    #[test]
+    fn run1305_s_musket_horse_fires_on_the_move_through_piece_157_s_pivot() {
+        let r = release(157, crate::anim::ATTACKWALK, 12).expect("the Musket Horse's row");
+        let d = release_rotation(Angle(-1_073_741_824));
+        let fits: Vec<i32> = (0..360)
+            .filter(|&t| {
+                let (x, y, _) = release_offset_at(&r, d, t);
+                (8712 + x, 27240 + y) == (8560, 27252)
+            })
+            .collect();
+        assert!(!fits.is_empty(), "no turret step reproduces 1/54's round");
+        assert_eq!(node(157, 4), Some(Node { px: 8, py: -148 }));
     }
 
     /// **run1235's Eagle Feather Horse `1/32`** (item 3588, `docs/AI.md`

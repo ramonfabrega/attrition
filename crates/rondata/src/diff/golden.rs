@@ -729,26 +729,7 @@ fn rounds_record_for_record(
                 continue;
             };
             let target = p.target.map_or((-1, -1), ident);
-            for (field, mine, dumped) in [
-                ("cur_time", i64::from(p.cur_time), a.cur_time),
-                ("total_time", i64::from(p.total_time), a.total_time),
-                ("sx", i64::from(p.launch.x), a.sx),
-                ("sy", i64::from(p.launch.y), a.sy),
-                ("ex", i64::from(p.landing.x), a.ex),
-                ("ey", i64::from(p.landing.y), a.ey),
-                ("whom", target.0, a.whom),
-                ("ox", target.1, a.ox),
-                ("accuracy", i64::from(p.accuracy), a.accuracy),
-                ("splash_area", i64::from(p.splash_area), a.splash_area),
-                ("num_guys", i64::from(p.num_guys), a.num_guys),
-                ("sz", i64::from(p.sz), a.sz),
-                ("ez", i64::from(p.ez), a.ez),
-                ("angle", i64::from(p.angle.0), a.angle),
-                ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
-            ]
-            .into_iter()
-            .chain(ammo_flag_rows(p, a))
-            {
+            for (field, mine, dumped) in round_rows(p, a, target) {
                 if mine != dumped {
                     firsts
                         .entry((who, o, format!("ammo[{slot}].{field}")))
@@ -4050,6 +4031,37 @@ pub(super) fn ammo_value_rows(
     a: &super::ammo::Ammo,
 ) -> Vec<(&'static str, i64, i64)> {
     let target = p.target.map_or((-1, -1), |t| obj_ident(sim, t));
+    [
+        ("cur_time", i64::from(p.cur_time), a.cur_time),
+        ("total_time", i64::from(p.total_time), a.total_time),
+        ("sx", i64::from(p.launch.x), a.sx),
+        ("sy", i64::from(p.launch.y), a.sy),
+        ("ex", i64::from(p.landing.x), a.ex),
+        ("ey", i64::from(p.landing.y), a.ey),
+        ("whom", target.0, a.whom),
+        ("ox", target.1, a.ox),
+        ("accuracy", i64::from(p.accuracy), a.accuracy),
+        ("splash_area", i64::from(p.splash_area), a.splash_area),
+        ("num_guys", i64::from(p.num_guys), a.num_guys),
+        ("sz", i64::from(p.sz), a.sz),
+        ("ez", i64::from(p.ez), a.ez),
+        ("angle", i64::from(p.angle.0), a.angle),
+        ("v1z", super::ammo::tests::printed(p.v1z), a.v1z),
+    ]
+    .into_iter()
+    .chain(ammo_flag_rows(p, a))
+    .collect()
+}
+
+/// Every `AMMO` field this crate carries, `(field, ours, the dump's)`,
+/// for a round both sides hold — run235's list, which
+/// `harness::tests::compare_rounds` shares (item 3645). `target` is
+/// ours' target as `(who, o)`, `(-1, -1)` for none.
+pub(crate) fn round_rows(
+    p: &sim::combat::Projectile,
+    a: &super::ammo::Ammo,
+    target: (i64, i64),
+) -> Vec<(&'static str, i64, i64)> {
     [
         ("cur_time", i64::from(p.cur_time), a.cur_time),
         ("total_time", i64::from(p.total_time), a.total_time),

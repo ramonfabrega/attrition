@@ -11190,13 +11190,24 @@ The Dragoon's piece 1195 reads piece 139's pivot and release rows, and the pair 
   graph and has no row. A capture whose Frigate fires to port would test
   the row; it names no score.
 
-## Parked by the next landing, slot SP — reserved
+## Parked by item 3645, 2026-10-26 — the Lakota Gunpowder word: ours fired too, from the figure
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3628's reading was wrong in the direction.** Ours' Musket Horse `1/54` did fire at `0/5` on 4181; its round left
+the figure's own point and flew 4 frames against 3, so `0/5` was struck a frame late. No pair walk compared an
+`AMMO` record (Loop 3644), so "ours fires nothing" stood unmeasured. Built: piece 157's pivot rows, piece 1456's
+and piece 1625's bays, and the round comparison (`docs/AI.md` §336). Two rows of run1289b's window park; neither
+names the word 4477's frame:
+
+- **3645a. Four guards' `dest_angle` on an idle turn** (run1289b, who=1's group 64): `1/42` (TI 98) on 4214, ours
+  −1073741824 against theirs −756678656, with `heading` agreeing; then `1/51` on 4215, `1/63` on 4231 and `1/50`
+  on 4315. Theirs writes `dest_angle` with the turn; ours keeps the old. Nothing downstream parts through 4438.
+  The killer: a value row past 4438 whose unit is one of the four.
+- **3645b. who=1's food bucket from 4219** (run1289b): `leader:bucket[0:food]` ours 10681 against 10683, and
+  `leftover[0:food]` 6456 against 6399. Nothing downstream parts through 4438.
+- **3645c. Two Arquebusier rounds at the building `0/2004` hold no target in ours** (run1289b, 4409): `1/20`'s and
+  `1/78`'s rounds read `whom`/`ox` 0/2004 in theirs and −1/−1 in ours, every other field agreeing. `0/2004` stands
+  on both sides, and its rows agree through 4438, so the blow lands either way. The killer: a building row of
+  `0/2004` that parts on a round's landing frame.
 
 ## Parked by the next landing, slot SQ — reserved
 
