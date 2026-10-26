@@ -29876,3 +29876,32 @@ SHA-256 `fc3d9b83b2121f773d7e3a6ae430109adba454f068fed3817b27e59538064693`.
 4369 keys, rounds 2152 theirs against 1975 ours, 298 parting by slot). The first launch that parts is on 3354:
 who=1's Elite Javelineers `1/47` (TY 84) throws at the Citizen `0/13` from (6934, 30317) at `sz` 436 in theirs and
 from the figure's square (6984, 30312) at 266 in ours; the records first part on 3367.
+
+## run1332 — the Koreans at a held Medieval age, Great Lakes: a packet at logger frame 3627, dead (2026-10-26, item 3666, `att-3666`)
+
+`docs/AI.md` §345. The first take of run1332a's line ran nothing. The tracer build failed because
+`RON_STATE_PLAN` was passed without its C string quotes (3663's line carries them), so no game launched and no
+receipt was written. `~/ron-golden/run1332/` holds only the staged tree.
+- Pool lane 1. Minutes waited on another lane: none.
+
+## run1332a — the Koreans at a held Medieval age, Great Lakes: a packet at logger frame 3627, `1/126`'s crew (2026-10-26, item 3666, `att-3666`)
+
+`docs/AI.md` §345. **What the disk could not answer**: where the original's crew figures of `1/126` (a Heavy Flaming
+Arrow, TY 230) are told to stand at the blocked stand on 3627. The dump prints a guy's `x`, `y`, `angle` and anim,
+and never its `des` or `des_angle`. `tools/explore/golden_capture.sh ~/ron-golden/run1332a --map 14
+--end-frame 3629 --log-window 3626 3628 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 16
+--cover cover=0` and run1330's lobby (`--profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`), `--tracer-def RON_STATE_FRAME=3627 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 16:51:54, exited 16:52:19 (25.2 s). `success`, 3630 frames. `rngcmp.py`
+  against run1331: 3630 of 3630 identical. Not filed: the packet is the product. `df -g ~` read 91 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1332a/map-14/frame-snapshot.bin`, 873,930,120 bytes,
+SHA-256 `63d3b8f38becaa7c2efd3de29ae2dfccacd28ca64482ef831d6713404c04db99`.
+
+**What it holds**: all three of `1/126`'s guys stand on their `des`. `step4.py` runs `Unit::process` on the unit
+(`this` 167673f4) with `--watch` on guy 2's `des_x`/`des_y`. It shows two crew-loop writes before any `set_anim`:
+`Unit::set_angle` from the heading, (32169, 21229), then `Guy::do_turn(guy 0, …)`'s own `Guy::set_angle(guy 0,
+facing, 0)` from the new facing 1332830976, (32167, 21225), the figure's body.

@@ -10600,13 +10600,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Koreans at a held Medieval age** (item 3665): Great Lakes —
     // first try 3401 of 4559 by the count and the sequence, widened on
     // run1331b over 3295..3652 (the word's block 3402), the rounds
-    // compared.
+    // compared; **4379** since item 3666 (piece 1090's bays and
+    // `Guy::do_turn`'s crew loop), past run1331b's last block, which now
+    // reads the standing families alone (4369 → 64): the word's widening
+    // is owed (parked 3666).
     (
         "KOREAN_MEDIEVAL_PAIR_WORD",
         crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL_PAIR_WORD,
-        Some("korean_medieval_pair_run1331b_s_word_frame_is_widened_whole"),
-        3665,
-        Some(crate::diff::korean_medieval_pair::WIDENING_KOREAN_MEDIEVAL_FRAME_3401),
+        None,
+        3666,
+        None,
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
