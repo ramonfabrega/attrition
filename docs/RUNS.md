@@ -28894,6 +28894,28 @@ read 203 blocks theirs and 185 ours, and 47 round keys part. On the word's block
 window part: `1/177`..`1/186`'s positions, their collisions, `1/185`'s order and `1/180`'s
 `attack[1].mandatory`.
 
+## run1319 — the Lakota at a held Gunpowder age, Great Sahara: the closing window, blocks 4495..4751 (2026-10-26, item 3654, `att-3654`)
+
+`docs/AI.md` §336.2. **What the disk could not answer**: every record from the word 4477's fix to the closing block
+4751. run1305c ends on 4728, and run1289's stride prints units on 4501 and the closing block only.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1319 --map 7 --end-frame 4750 --allow-early-end
+--timeout 3600 --log-window 4495 4751 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 19 --cover cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 03:56:11, exited 03:57:40 (89.3 s launch to exit). `success`: 4751 frames,
+  closing frame 4751. `rngcmp.py` against run1289: 4751 of 4751 identical. Filed with `filerun.py run1319
+  greatsahara-lakota-gunpowder-window-4495-4751`. `df -g ~` read 97 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1319-greatsahara-lakota-gunpowder-window-4495-4751.txt`, 556,592,260 bytes,
+SHA-256 `e914b71d8163b842484d07ced6d7ebad679fc9d91ffb19e50e47ee0b2f1f4f38`.
+
+Archive `rontrace-run1319.log`, 76,605,088 bytes,
+SHA-256 `1bfb232e49a474c66cffc96b2ef90dcaffd7e6d41ac4dc37ea5059bdbcb573bc`.
+
+**What it holds**: `lakota_gunpowder_pair_run1319_s_closing_frame_is_widened_whole`: 50 keys, every one standing, and
+168 rounds a side, none parting. No unit's position or orders part through the closing block. run1305c's own pin
+falls to 51 keys in the same landing.
 ## run1290 — the Iroquois at a held Enlightenment age, East Indies: the `DUMP_ALL` start (2026-10-26, item 3629, `att-3629`)
 
 `docs/AI.md` §337. §306's lobby with the nation moved, through `viadriver.sh tools/explore/golden_capture.sh

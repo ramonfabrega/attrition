@@ -452,11 +452,14 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// the line §333 booked, read by `rubric.py --tables 3` on this tree.
 /// Item 3646: 195 -> 196, the Spanish Gunpowder pair whole at 6128 —
 /// `Tercios` (151, land; 552 figure rows), the line §335 booked, read by
-/// `rubric.py --tables 3` on this tree. Item 3655: 196 -> 197, the
-/// Iroquois Enlightenment pair whole at 5128 — `Okwari` (81, land; 348
-/// figure rows), the line §337 booked, read by `rubric.py --tables 3` on
-/// this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 197;
+/// `rubric.py --tables 3` on this tree. Item 3654: 196 -> 197 on the tree
+/// holding 3646's merge, the Lakota Gunpowder pair whole at 4750 —
+/// `Musket Horse` (207, land; 280 figure rows), the line §336 booked,
+/// read by `rubric.py --tables 3` on this tree. Item 3655: 197 -> 198 on
+/// the tree holding 3654's merge, the Iroquois Enlightenment pair whole at
+/// 5128 — `Okwari` (81, land; 348 figure rows), the line §337 booked, read
+/// by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 198;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

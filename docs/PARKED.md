@@ -3772,6 +3772,13 @@ it. Candidate: an `audit` column — a function a document marks diff-backed tha
 beside `port`, measured first; whether it joins `backed` is the score's definition and Ramon's (Loop 3237's rule).
 Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 % on the sweeps alone (`Census bytes: simulation 3554995 of 11392782 bytes backed`); the `audit` column is not built, the score's definition yours. Ramon's. **The forty-seventh pass**: bytes 31.2 → 37.1 % on thirteen sweep landings (`Census bytes: simulation 4232258 of 11392782`), port 501 → 568; the `audit` column is not built, the definition yours. Ramon's. **The forty-eighth pass**: bytes 37.1 → 37.9 % on the two last sweeps (`Census bytes: simulation 4317313 of 11392782`), port 568 unmoved, layout 1118 → 1128; the sweep source is spent, so the column moves only on a definition. The `audit` column is not built, the definition yours. Ramon's. **The same day, with Ramon**: the column is built as `entered` (`census.py --layers --pin`, an Opus subagent): `Census entered: simulation 2388 of 3611 functions · 1348 entered and unbacked · 9331606 of 11392782 bytes` — 81.9 % of the bytes entered by a pinned trace; the largest entered-and-unbacked are loaders and map generation. Measured, joined to nothing; whether `entered` joins `backed` is still the definition and yours. **The forty-ninth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2388 → 2471 functions, 9,331,606 → 9,607,787 bytes (84.3 %) on the tranche's thirty-four captures; the definition yours. Ramon's. **The fiftieth pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2471 → 2537 functions, 9,607,787 → 9,745,971 bytes (85.5 %) on the tranche's 53 pool captures (`Census entered: simulation 2537 of 3611 functions · 1396 entered and unbacked`); the definition yours. Ramon's. **The fifty-first pass**: bytes 37.9 % unmoved (no sweep, no document landing); `entered` 2537 → 2566 functions, 9,745,971 → 9,798,451 bytes (86.0 %) on the tranche's 46 pool captures (`Census entered: simulation 2566 of 3611 functions · 1410 entered and unbacked`); the definition yours. Ramon's. **The fifty-second pass**: bytes 37.9 % unmoved; the census's `entered` column moves on the tranche's 38 captures (the record); 2,449 lines landed in `crates/sim` on six late-age pairs and the census counts none of it, which is the column's whole case; the definition yours. Ramon's. **The fifty-third pass**: backed 1696, port 568, layout 1128 unmoved through 785 sim lines on ten files (the launch rows, `fight`'s wait, the eject path, a tower's sight); the `audit` column is not built, the definition yours. Ramon's. **The fifty-fifth pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); 1,111 sim lines on eleven files (`launch.rs` +338, `pivot.rs` +252, `fight.rs` +143) and the census counts none of it; the definition yours. Ramon's. **The fifty-fifth and fifty-sixth passes**: bytes 37.9 % and port 568 unmoved (no sweep ran either tranche); the fifty-fifth appended no line here though its record says it did. Ramon's.
 
+## Loop, filed 2026-10-26 — the fifty-eighth tranche's
+
+(3656) **3654's "for the Loop"** (the journal's line, filed at its merge): `test_viadriver`'s
+`test_a_second_launch_while_the_first_runs_still_carries_its_arguments` still flakes on a loaded host after Loop 3638's widened deadline —
+red in 2 of the lane's 5 gates, each time `'args: ' not found in ''` on the first launch's log, green in every one of 6 runs alone. For the
+pass: whether the first launch's log is written at all under load inside the twenty seconds, or the case races the log's creation.
+
 ## Loop, filed 2026-10-25 — the fifty-seventh tranche's
 
 Two rows, both ruled by the fifty-seventh pass and their text kept in `docs/audit/2026-10-26-fable-pass-57.md`: **3638** (3634's and
@@ -11274,13 +11281,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot SX — reserved
+## Parked by item 3654, 2026-10-26 — the Lakota Gunpowder pair closes: the decoy Bombards take their army's target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3645's hypothesis, the births, was killed by its own frame.** The twenty decoys The President casts on 4477 are
+born alike on both sides. The parting was `1/185`'s search: `find_nearby_target`'s packed-siege shortcut answers
+every caller in the original, and ours asked it from only three (`docs/AI.md` §336.2). The pair closes at 4750 of
+4750. One row parks, and it names no score:
+
+- **3654a. `Group::action_attack`'s per-member search does not ask the siege shortcut** (`sim::attack_view`, a
+  `SEAM`). The original's shortcut sits inside `find_nearby_target`, so this caller would take it too. No capture
+  on file reaches it with a packed siege engine in an army, and `find_new_target`'s arm, built here, is backed by
+  the sim test alone (the mutation holds on the test, and the pair walk passes without the arm). The killer: a
+  pair whose word frame has a packed computer siege engine in an army take a target through `action_attack`.
 
 ## Parked by item 3655, 2026-10-26 — the Iroquois Enlightenment pair whole: the Bomb Ketch's pivots and the Musketeer's bays
 
