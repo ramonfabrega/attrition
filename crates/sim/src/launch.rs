@@ -806,6 +806,46 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 115,
         },
     ),
+    // **Piece 69, `MARINES`** (unit type 119, the Americans' Continental
+    // Marines; item 3661, `docs/AI.md` §341): run1325c's
+    // `RON_STATE_FRAME=5578` packet on the American Enlightenment East
+    // Indies seed holds its three attack `AttachPos` rows (node 0, frames 1,
+    // 7 and 4), `RData +0x88` 1.1, and `fit_bay.py` fits each sweep (65,
+    // 2136 and 595 lattice points; the centroid is kept, 361 of 361
+    // headings each). Without them the Marines left from the figure's own
+    // point — run1325b's `1/122` on 5578 from (7464, 9624, 190) against the
+    // original's (7451, 9479, 418), and its round on the human's capital
+    // `0/2000` landed a frame late: the word 5583.
+    (
+        69,
+        11,
+        1,
+        Bay {
+            right: 49_240,
+            fwd: 137_168,
+            dz: 228,
+        },
+    ),
+    (
+        69,
+        12,
+        7,
+        Bay {
+            right: 27_027,
+            fwd: 168_687,
+            dz: 188,
+        },
+    ),
+    (
+        69,
+        13,
+        4,
+        Bay {
+            right: 28_173,
+            fwd: 164_233,
+            dz: 191,
+        },
+    ),
     // **Piece 1625, the Lakota's Bombard** (unit type 267; item 3645,
     // `docs/AI.md` §336): run1305b's packet holds its one attack
     // `AttachPos` row, node 0 at `CHAR_ATTACK2` frame 9 (666 ms), and
