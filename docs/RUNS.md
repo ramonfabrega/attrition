@@ -29159,6 +29159,29 @@ SHA-256 `5e7c9650c5f62df05db0510e023d073829b7de894ce68e06c4911221a536c7b6`.
 (104, 138) with 109 parting): the Musketeers `1/36`'s target (`0/5` ours, `0/12` theirs) and `0/5`'s
 `damage_frame` (3054 against 3053) on the first block, and ours' kill of `0/5` on 3095.
 
+## run1322 — the Aztecs at a held Medieval age, Great Sahara: the closing window, blocks 4347..4603 (2026-10-26, item 3658, `att-3658`)
+
+`docs/AI.md` §338. **What the disk could not answer**: the word moved to the game's end, 4602, and no window held
+blocks past 2806 at the pair's detail (run1308's stride prints units only, every 100). `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1322 --map 7 --end-frame 4602 --allow-early-end --timeout 3600
+--log-window 4347 4603 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 0 --cover
+cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5`.
+- Pool lane 1, seed 12345. The first launch was relaunched after 300 s; launched 08:00:21, exited 08:01:04 (42.5 s
+  launch to exit). `success`: 4603 frames, closing frame 4603. `rngcmp.py` against run1308: 4603 of 4603 identical.
+  Filed with `filerun.py run1322 greatsahara-aztec-medieval-window-4347-4603 --map 7`. `df -g ~` read 90 GiB free
+  before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1322-greatsahara-aztec-medieval-window-4347-4603.txt`, 549,206,293 bytes,
+SHA-256 `1b216072e84d0fa7be2d1e4ceca67596a0715d8193a8a8f2e0c1c7001ad0c9b4`.
+
+Archive `rontrace-run1322.log`, 81,606,240 bytes,
+SHA-256 `737a33316b0d5f63110ffa2c3286723364c5ec456c094263c6eea9cf5f054127`.
+
+**What it holds**: the pair's closing window, 57 keys parted — the standing families and three guards'
+`orders_x/y` and `dest_angle` (3658c) — and 362 rounds a side, 38 parting, the Trebuchets' launches among them
+(3658b).
 ## run1323 — the Inca at a held Enlightenment age, Great Sahara: the gap 3002..3088, blocks 3001..3094 (2026-10-26, item 3659, `att-3659`)
 
 `docs/AI.md` §339.1. **What the disk could not answer**: where the state parts in the undumped gap 3002..3088 —

@@ -24064,7 +24064,7 @@ release_nodes`.
 bays miss all four dumped rounds by 6 to 16 units at the unit's facing, with the sweep's height 68/58/72 against the
 dump's 225/208/228. The planar rows are kept: three of four rounds exact, the draw stream to the end, the close whole.
 The fourth, run973f's `CHAR_ATTACK1` on 12287 at the second facing, leaves from (8581, 30287) in the original and
-(8587, 30273) here; it parts nothing compared (parked, slot KV).
+(8587, 30273) here; it parts nothing compared (parked, slot KV). **Settled by item 3658** (§338): the rows are piece 138's, a pivot piece's, and the fourth round fits turret step 248 with the third; the planar rows are gone.
 
 **Captures** (`docs/RUNS.md`): run972/972b (the Bantu), run973 (770..1026), run973b (10491..10747), run973c (the gap
 1027..10477 at stride 50), run973d (12191..12447), run973e/f (`AMMO=5` over 12128..12200 and 12205..12300), run973g
@@ -24436,8 +24436,8 @@ rows past its word 337 → 298.
 against −358678528) with the same landing and flight (parked 3359a): `launch::MEASURED`'s piece 122 rows are
 single-pose fits and the piece may be a `Bay`'s whole-degree turn. Ours' turret is not compared: no widening reads
 `turret_angles`, and run985b's is the only `GUYS=4` block of the lobby. The Horse Archer's piece 842 (parked 3338a)
-has the same shape — its heights are its pivot's sums too (run973g's rows: 225, 228, 208, the dump's) — and is not
-carried here.
+has the same shape — its heights are its pivot's sums too (run973g's rows: 225, 228, 208, the dump's) — ~~and is not
+carried here~~ — carried by item 3658 as piece 138's rows (§338).
 
 **Coverage.** Diff-backed: the four Dragoon rounds by `the_french_dragoon_s_rounds_leave_from_its_pivot`, the close
 by `run977b_french_closing_state`, the third pair's three windows. Reading-backed: none new; the branch is §55's.
@@ -31284,7 +31284,7 @@ nothing in the closing state: the rounds that reach `0/0` and `0/3` are the othe
 
 **The rubric**: unit types seen **197 → 198** on the tree holding item 3654's merge (which took 196 → 197), `Okwari` (81, 348 figure rows).
 
-## 338. The Aztecs at a held Medieval age, Great Sahara: first try 2556 of 4602, the slay arm 2569 (items 3647, 3657)
+## 338. The Aztecs at a held Medieval age, Great Sahara: first try 2556 of 4602, the slay arm 2569, the Horse Archer's pivot 4602 (items 3647, 3657, 3658)
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Bantu
 Medieval pair's lobby (§332) with the nation moved: Great Sahara,
@@ -31385,15 +31385,57 @@ standing families. The first rows past those are the human's building
 against 2584), group 66's pool on 2586, and `0/3`'s wound on 2721. Rounds
 read: 163 theirs and 167 ours, 36 parting.
 
-**What is not established.** Where a Heavy Horse Archer's round leaves
-from (3647a), and the General, caravan and supply-wagon victims'
-`plunder(…, 0, 0)` (3657a).
+**Built: piece 842 reads piece 138's pivot (item 3658), 2569 → 4602, the
+pair whole.** On 2569 theirs' extra draws are `Ammo::do_damage`'s puncture
+pair (`+0xc59`, `+0xc7e`): `1/22`'s `CHAR_ATTACKWALK` round of 2556, at the
+Citizen `0/13` that died on 2556, is rolling (flag 4), finds no target on
+its last step (flag 8, `whom −1`), comes down under the ground at `t =
+14/14` and punctures (COMBAT §9.3); theirs' piece then sticks as the spent
+arrow (`flags 1`, `cur_time 0`). Ours' round left the figure's own square,
+(7018, 31206), because `1/22` plays piece **842** (`unit_gpiece`: 138 +
+2·`0x160`, the style-2 art) and 842 had only `launch::MEASURED`'s three
+planar rows (item 3338), no `CHAR_ATTACKWALK` key; its arc was above the
+ground at 14/14 and flew on. run973g's packet (`get_position.py … entries
+842`) holds 842's nine `AttachPos` rows, and every float is piece 138's off
+run1293's — the `(4, 0, 0)` pivot and all four release rows, `RData +0x88`
+1.0 — so it is a pivot piece, and 3338a's misses were the turret the planar
+rows left out. `pivot::SAME_AS` takes `(842, 138)` and the planar rows go;
+`pivot::tests::piece_842_s_horse_archer_rounds_fit_piece_138_s_pivot_rows`
+fits nine rounds (run973e/f's four, the parked miss among them, and five of
+run1308b's) each on one turret step, `dz` exact. A mutation dropping the row
+holds on `first_parting` (back to 2569) and on the sim test.
+
+| block | record | field | ours before | ours | theirs |
+|---|---|---|---|---|---|
+| 2556 | `1/22`'s round | `sx, sy` | (7018, 31206) | (7020, 31282) | (7020, 31282) |
+| 2556 | `1/22`'s round | `angle` | 2023030784 | 2016804864 | 2016804864 |
+| 2569 | `1/22`'s round | lands | flies on, `t` 15 | 2569 | 2569 |
+
+**The word is the game's end, 4602 of 4602**, by the count and the
+sequence. run1308b falls 69 → 52 keys, all standing (block 2550's families
+and groups 66 and 70's pools as each is minted); `0/2000`'s `build:damage`
+and `city:raid_stamp` agree. Rounds read 163 a side, 20 parting: `whom`/`ox`
+on a dead target (theirs keeps it), slot shifts from theirs' spent arrows
+(COMBAT §46.7), and three launches one unit off (3658a). **The closing
+state** (`aztec_medieval_pair_run1308_s_closing_state`, block 4603): 211
+units, none off, torn, unlinked or extra, `Closing fields: none`. **run1322,
+the closing window** (blocks 4347..4603 at run1308b's detail, 4603 frames
+identical to run1308): 57 keys, the standing families and three guards'
+`orders_x/y`/`dest_angle` (3658c); 362 rounds a side, 38 parting, the
+Trebuchets' launches (3658b) among them; no position, hit or draw parts.
+
+**What is not established.** The General, caravan and supply-wagon victims'
+`plunder(…, 0, 0)` (3657a), and the turret step behind three one-unit
+launches (3658a). ~~Where a Heavy Horse Archer's round leaves from
+(3647a)~~ — 138's pivot rows, item 3658.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **197 of
 302**, unmoved: the rubric counts lockstep games only, and this pair
 parts. **`Xopilli Atl-Atls` (87)**, the booking's line, **is fielded**:
 1506 guy records in run1308 and 11586 in run1308b (`rubric.scan`). It
-stays on the "never" list until the pair closes.
+stays on the "never" list until the pair closes. **Item 3658: the pair closes, and
+`rubric.py --tables 3` reads 199 → 200** on the tree holding 3659's merge, with `Xopilli Atl-Atls` (87) added
+(`census::RUBRIC_UNIT_TYPES_SEEN`).
 
 ## 339. The Inca at a held Enlightenment age, Great Sahara: first try 3095 of 4045 (item 3648)
 

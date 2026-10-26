@@ -461,8 +461,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// by `rubric.py --tables 3` on this tree. Item 3659: 198 -> 199, the
 /// Inca Enlightenment pair whole at 4045 — `Mortar` (274, land; 570
 /// figure rows in run1310), the line §339 booked, read by `rubric.py
-/// --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 199;
+/// --tables 3` on this tree. Item 3658: 199 -> 200 on the tree holding
+/// 3659's merge, the Aztec Medieval pair whole at 4602 — `Xopilli
+/// Atl-Atls` (87, land; 1506 figure rows), the line §338 booked, read by
+/// `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 200;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const AZTEC_MEDIEVAL: Pair = Pair {
     name: "GreatSaharaAztecMedieval",
@@ -39,9 +39,13 @@ pub(crate) const AZTEC_MEDIEVAL: Pair = Pair {
     // (`plunder(v, k, who, 1, 0)` for a Stable killer) pays who=1 45
     // timber on 2556, 12759 on block 2557 on both sides. 2569: ours 6
     // draws against 8, parting at index 1, ours `Farms::inc_time+0x1ae`,
-    // theirs `Ammo::do_damage+0xc59`.
-    count: 2569,
-    sequence: 2569,
+    // theirs `Ammo::do_damage+0xc59`. Item 3658: **4602 of 4602, the pair
+    // whole** — the Heavy Horse Archer's piece 842 reads piece 138's pivot
+    // rows (`sim::pivot::SAME_AS`), so `1/22`'s `CHAR_ATTACKWALK` round of
+    // 2556 leaves (7020, 31282, 873) and comes down on 2569, its target
+    // gone, through `do_damage`'s puncture pair on both sides.
+    count: 4602,
+    sequence: 4602,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -259,13 +263,178 @@ fn aztec_medieval_pair_run1308b_s_word_frame_is_widened_whole() {
     // `0/2000` on 2585 (`build:damage` ours 2 theirs 4, `city:raid_stamp`
     // ours 2566 theirs 2584), group 66's pool on 2586, and `0/3`'s
     // wound on 2721 (`hits:damage` 17 against 35).
-    pin_eq!(w.firsts.len(), 69, "run1308b baseline");
+    // Item 3658, 69 -> 52: piece 842 releases through 138's pivot, and
+    // every row past block 2550's standing families leaves but group 66's
+    // pool on 2586 and group 70's on 2655 — the standing pool family as
+    // each group is minted. `0/2000`'s `build:damage` and
+    // `city:raid_stamp` on 2585 agree.
+    pin_eq!(w.firsts.len(), 52, "run1308b baseline");
     // Every round, both directions: 163 round-blocks theirs, 141 ours. The
     // first to part is `1/29`'s, on the window's first block, at the
     // Citizen `0/13`: ours leaves from (7599, 31648, 659), theirs from
     // (7556, 31716, 901), the same flight time — it kills `0/13` on 2556
     // on both sides. `1/22`'s round launched on 2556 parts the same way.
-    // Item 3657: ours reads 167 (141 before), 36 parting (49).
-    pin_eq!(w.rounds_read, (163, 167), "the rounds read");
-    pin_eq!(w.rounds.len(), 36, "the rounds that part");
+    // Item 3657: ours reads 167 (141 before), 36 parting (49). Item 3658:
+    // 163 a side, 20 parting. On 2556 `1/22`'s round leaves (7020, 31282)
+    // on both sides (ours left its own square, (7018, 31206)). What parts:
+    // `whom`/`ox` on 2557, which theirs keeps on a dead target and ours
+    // forgets; the slot shifts from 2683 on, theirs' spent arrows holding
+    // their slots (`docs/COMBAT.md` §46.7); and three launches one unit
+    // off, `1/29`'s on 2601 and 2651 and `1/22`'s on 2631 (3658a).
+    pin_eq!(w.rounds_read, (163, 163), "the rounds read");
+    pin_eq!(w.rounds.len(), 20, "the rounds that part");
+}
+
+/// run1322: the closing window, blocks 4347..4603 at run1308b's detail,
+/// `cover=0` (item 3658) — 256 blocks through the closing block, so the
+/// word 4602, the game's last frame, sits inside a window.
+pub(crate) const RUN1322: &str = "gamelog-run1322-greatsahara-aztec-medieval-window-4347-4603.txt";
+
+/// The window: block 4347 through the closing block 4603.
+pub(crate) const WIDENING_AZTEC_MEDIEVAL_FRAME_4602: (i64, i64) = (4347, 4603);
+
+/// **The closing window**: run1322 walked from run1307's start with the
+/// recorder on, the rounds compared (item 3658).
+pub(crate) fn aztec_medieval_frame_4602_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[AZTEC_MEDIEVAL.start],
+        true,
+        AZTEC_MEDIEVAL.long,
+        "run1322",
+        &[(RUN1322, WIDENING_AZTEC_MEDIEVAL_FRAME_4602.0)],
+        WIDENING_AZTEC_MEDIEVAL_FRAME_4602,
+        1,
+        &[4603],
+        true,
+    )
+}
+
+#[test]
+fn aztec_medieval_pair_run1322_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = aztec_medieval_frame_4602_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(
+        w.firsts
+            .iter()
+            .filter(|((_, o, _), _)| *o >= 0)
+            .filter(|((_, _, k), _)| k != "form")
+            .map(|((who, o, k), (f, _))| format!("{f} {who}/{o} {k}"))
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>(),
+        [
+            "4376 1/89 orders_x",
+            "4376 1/89 orders_y",
+            "4494 1/69 orders_x",
+            "4494 1/69 orders_y",
+            "4496 1/118 dest_angle",
+        ],
+        "the object rows past `form`"
+    );
+    // Item 3658, the pair whole: 57 keys. Past the standing families —
+    // `form`, both leaders' `SITE[i].reg`, who=0's `aggression[1]`, who=1's
+    // groups' `held` and pools — three guards' bookkeeping (3658c): the
+    // Heavy Archers `1/89` (TypeIndex 173) and `1/118` and the Xopilli
+    // Atl-Atl `1/69` (87) hold `orders_x/y` at their guard point where
+    // theirs print the unit's own, and `1/118`'s `dest_angle` parts on
+    // 4496. No position, hit or draw parts through the closing block.
+    pin_eq!(w.firsts.len(), 57, "run1322 baseline");
+    pin_eq!(w.rounds_read, (362, 362), "the rounds read");
+    // Every round, both directions: 362 a side, 38 parting — the slot
+    // shifts from theirs' spent arrows (`docs/COMBAT.md` §46.7), the Heavy
+    // Horse Archers' one-unit launches (3658a), and the Trebuchets'
+    // (TypeIndex 266, `1/56`, `1/79`, `1/107`, `1/124`) from 4553 on, which
+    // leave their own square in ours and about 300 out and 693 up in
+    // theirs (3658b); their landings and flights agree.
+    pin_eq!(w.rounds.len(), 38, "the rounds that part");
+}
+
+/// **The closing state** (item 3658): run1308's closing block 4603, the
+/// whole map's units, walked from run1307's start.
+#[test]
+fn aztec_medieval_pair_run1308_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &AZTEC_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Aztec Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    pin_eq!(e.frame, 4603, "the closing block");
+    // Item 3658, the pair whole: 211 units, none off, torn, unlinked or
+    // extra, `Closing fields: none`.
+    pin_eq!(e.compared, 211, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }
