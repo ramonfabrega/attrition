@@ -10784,3 +10784,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1314  run1312's line with --ai-tribe 20 and run1313's lobby   (the draw stream; ended itself on 6669)
 #   run1314b --map 18 --end-frame 3465 --allow-early-end --timeout 3600 --log-window 3209 3465 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0, run1313's lobby   (the word 3215's window)
 # Checks: `rngcmp.py` run1313 vs run1314 -> 37 identical; run1314 vs run1314b -> 3466 identical.
+# ==== item 3651: the British at a held Classical age, East Indies, at difficulty 4 (`docs/AI.md` §342; `docs/RUNS.md` run1315, run1316, run1316b, run1316c) ====
+#   run1315  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 11 --profile STARTING_TECHNOLOGY=1 --profile ENDING_TECHNOLOGY=1 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1316  run1314's line with --ai-tribe 11 and run1315's lobby   (the draw stream; ended itself on 8980)
+#   run1316b --map 18 --end-frame 4817 --allow-early-end --timeout 3600 --log-window 4561 4817 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1315's lobby   (the word 4567's window)
+#   run1316c the same with --end-frame 4401 --log-window 4295 4401   (the stride's gap)
+# Checks: `rngcmp.py` run1315 vs run1316 -> 37 identical; run1316 vs run1316b -> 4818 identical; run1316 vs run1316c -> 4402 identical.
