@@ -2625,6 +2625,45 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 156,
         },
     ),
+    // **Piece 1881, the Archers in the Persians' art style** (`121 + 5 ×
+    // 0x160`, type 171; item 3663, `docs/AI.md` §343): run1327's packet
+    // holds its three attack `AttachPos` rows on piece 121's keys, node 0,
+    // and `get_position.py`'s sweep of each is reproduced at all 361
+    // headings by these, each the centroid of its exact region (221, 277
+    // and 124 lattice points). Without them the Persian arrows left the
+    // figure's own square: `1/299`'s at the Citizen `0/11` from (5592,
+    // 30984) on 10980 where run1318b's leaves (5528, 30923), 16 frames
+    // against 15, and `0/11` went unstruck on 10993.
+    (
+        1881,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: -1_826,
+            fwd: 88_749,
+            dz: 163,
+        },
+    ),
+    (
+        1881,
+        crate::anim::ATTACK2,
+        9,
+        Bay {
+            right: 336,
+            fwd: 87_408,
+            dz: 164,
+        },
+    ),
+    (
+        1881,
+        crate::anim::ATTACK3,
+        15,
+        Bay {
+            right: 9_711,
+            fwd: 66_508,
+            dz: 164,
+        },
+    ),
     // **Piece 212, the Mahout** (type 262, `mjvyk`; item 3555): the same
     // packet's five node-1 rows, the howdah's archer, one per attack slot
     // at frame 16 (`CHAR_ATTACKWALK` the fire on the move's), each the
@@ -3139,6 +3178,27 @@ mod tests {
         );
         assert_eq!((at.x, at.y), (5054, 31417));
         assert_eq!(release_dz(1793, crate::anim::ATTACK2, 6, 0), Some(170));
+    }
+
+    /// **The Persian Archers loose from piece 1881's bays** (item 3663):
+    /// run1318b's three arrows at the Citizen `0/11` over 10980..10989, each
+    /// the figure's `GUY` pose on the block before the round's first print
+    /// and the dump's `sx, sy, sz − z`. Made to fail with the rows out of
+    /// `BAYS`: the arrows leave the figure's own square, as ours did.
+    #[test]
+    fn run1318b_s_persian_arrows_leave_from_piece_1881_s_bays() {
+        // (anim, starttime, x, y, facing, sx, sy, sz − z)
+        type Row = (i8, u32, i32, i32, i32, i32, i32, i32);
+        let rows: [Row; 3] = [
+            (11, 12, 5592, 30984, -534_249_472, 5528, 30923, 163),
+            (12, 9, 5544, 31368, -455_737_344, 5490, 31300, 164),
+            (12, 9, 6024, 30840, -733_413_376, 5947, 30799, 164),
+        ];
+        for (anim, start, x, y, facing, sx, sy, dz) in rows {
+            let at = launch_point(Pos::new(x, y), Angle(facing), 1881, anim, start, 0);
+            assert_eq!((at.x, at.y), (sx, sy), "({x}, {y}) ({anim}, {start})");
+            assert_eq!(release_dz(1881, anim, start, 0), Some(dz));
+        }
     }
 
     /// **The Greek Archers' arrows leave from piece 121's bays** (item
