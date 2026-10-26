@@ -811,6 +811,32 @@ class GateTests(unittest.TestCase):
         command, policy = self.release_command(touched=rows, scope='abc1234', isolated=True)
         self.assertNotIn('--exclude-package', command)
 
+    def test_a_widened_lane_that_touches_no_sim_path_still_leaves_the_sim_crate(self):
+        # Loop 3653's sequel (the fifty-eighth pass): the cut was tied to a
+        # lane that keeps the fast suite, and two of the tranche's nine
+        # stand-ups widened on one data-crate file each — 3629 on a comment
+        # moved in `battery.rs`, 3665 on a debug print in `harness.rs` —
+        # and ran the sim crate's five binaries for eleven minutes apiece
+        # (release 18.0 and 18.3 against the seven cut stand-ups' 5.6–6.9).
+        # The sim crate depends on nothing in the workspace, so a data-crate
+        # edit that widens the timed set cannot move its binaries: the cut
+        # reads the branch's paths alone, widened or not.
+        command, policy = self.release_command(touched=['crates/rondata/src/diff/harness.rs'],
+                                               lane=True, tests=WORD)
+        self.assertNotIn('--skip', command)
+        self.assertEqual(command[command.index('--no-fail-fast'):command.index('--')],
+                         ['--no-fail-fast', '--workspace', '--exclude', 'sim'])
+        self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
+        command, policy = self.release_command(touched=['crates/rondata/src/diff/harness.rs'],
+                                               lane=True, tests=WORD, isolated=True)
+        self.assertEqual(command[command.index('--exclude-package') + 1], 'sim')
+        # What the binaries are built from besides the crate: the workspace
+        # manifest, the lock, the toolchain pin and cargo's config keep them.
+        for path in ('Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.cargo/config.toml'):
+            command, policy = self.release_command(touched=[path, 'docs/AI.md'], lane=True, tests=WORD)
+            self.assertNotIn('--exclude', command, path)
+            self.assertEqual(policy['lane']['sim_crate'], 'run', path)
+
     def test_a_branch_that_can_move_the_diff_pins_widens_the_lane_gate(self):
         # Loop 2415 (the thirty-fifth pass; DECISIONS 71 amended): both kill
         # rules of the thirty-fifth tranche tripped by one route — 2384's

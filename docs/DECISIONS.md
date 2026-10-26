@@ -103,6 +103,7 @@ is append-only and amended in place, as it always was.
 - 94 standing — The fifty-fifth tranche is scored on two Opus lanes at twenty landings in 11 h 19 on the early ages, thirteen pairs stand and twelve run whole, the Mongol word closes in one item, the rubric reads unit types 179 of 302, the lane rule is read on the gate and holds two lanes, a pair stand-up's row-list edits stop widening the lane gate, three Loop items close unreached, and the fifty-sixth tranche is booked on the Maya word and seven early-age pairs
 - 95 standing — The fifty-sixth tranche is scored on two Opus lanes at twenty landings in 11 h 45 on the early ages, eleven pairs stand and ten run whole, the Maya word closes in two items, the rubric reads unit types 189 of 302, Loop 3608's reading is measured at zero and widened to the window line and the test-kit rows, the lane rule holds two lanes, and the fifty-seventh tranche is booked on the Roman word and seven early-age pairs
 - 96 standing — The fifty-seventh tranche is scored on two Opus lanes at twenty landings in 13 h 22 on the early ages, six pairs stand and four run whole, the Roman word closes in four items, the rubric reads unit types 195 of 302, the lane gate's floor is measured as the sim crate's own suite and cut from a lane that touches no sim path, the lane rule holds two lanes, and the fifty-eighth tranche is booked on the two open words and seven early-age pairs
+- 97 standing — The fifty-eighth tranche: two Opus lanes, twenty landings in 12 h 34, nine pairs stand and eight run whole, the Lakota and Spanish words close, unit types 205 of 302, the lane gate's cut measured and widened, the third lane returns, the fifty-ninth booked on the Korean word and nine pairs
 - 92 amended by 93 — The fifty-third tranche is scored on two Opus lanes at twenty landings in 9 h 57 on the late ages, nine pairs stand up and eight run whole, every whole pair's `cover=1` twin lands and lockstep bytes move 77.0 → 77.4 with the twins spent, the rubric reads unit types 162 of 302, a third lane is added by the rule, the fifty-fourth tranche is booked on the Persian word and eight early-age pairs, and eleven Loop items become tools, rules, closes or Ramon's
 - 90 amended in place — The fifty-first tranche is scored on two Opus lanes at eighteen `cover=1` landings in 8 h 05 at the loop's cheapest and fastest, the blind list closes to a floor of thirty-nine referenced rows, the headline moves to the rubric's unit types and six lobbies are booked for it, the pass and the commander stop messaging each other, and eleven Loop items become rules, rows, tools or closes
 - 89 amended in place — The fiftieth tranche is scored on two Opus lanes at twenty `cover=1` landings in 13 h 08, the blind list's open rows are scanned for references and ratified by family 192 → 91, the console's `!eval` strikes seventeen residue rows, the pool photographs itself, and the fifty-first tranche is booked against what a capture can still enter
@@ -8803,3 +8804,140 @@ release minutes against 16.1–19.3 — the lane rule read on the gate, at
 two lanes, against 26.1; the admission against 1,215.7 s; red gates
 against zero; `DEEP` against three; the lane rows at the drain against
 zero; the backlog against 7; the disk against 127 GiB.
+
+## 97. The fifty-eighth tranche is scored on two Opus lanes at twenty landings in 12 h 34 on the early ages, nine pairs stand and eight run whole, the Lakota and Spanish words close, the rubric reads unit types 205 of 302, the lane gate's cut is measured at seven of nine stand-ups and read on the branch's paths alone, the lane rule returns the third lane, and the fifty-ninth tranche is booked on the Korean word and nine pairs off the braces
+
+*2026-10-26, the fifty-eighth pass (the `steer` session, Fable), reached by
+the commander's `ccc clear steer --then` at the drain (`a9498b12d`), with
+every lane reaped and no message between the rows. The record is
+`docs/audit/2026-10-26-fable-pass-58.md`; this entry carries the
+decisions.*
+
+**What was measured.** Twenty landings on two Opus 5.5 lanes at `--effort
+medium`, every lane session's model read off its transcript (24 of 24
+`claude-opus-5-5`), in **12 h 34** from the base (`1e8ec999d`, 02:40
+−05:00 on 10-26) to the drain (`a9498b12d`, 15:14). **Two Gunpowder words
+closed**: the Lakota 4187 → 4750 (3645, 3654), the Spanish 4859 → 6128
+(3646). **Nine early-age pairs stood up and eight closed**: the Japanese at
+Medieval whole on its first try (3664); the Iroquois (3629 → 3655), the
+Inca (3648 → 3659), the Aztecs (3647 → 3657 → 3658), the Indians (3649 →
+3660), the Americans (3650 → 3661), the British at difficulty 4 (3651 →
+3662) and the Persians on Great Lakes (3652 → 3663) by their residue; the
+Koreans at Medieval on Great Lakes open at 3401 of 4559 (3665; 3666
+booked). Nine of the ten fixes were launch points — bay or pivot rows off
+a packet — and 3661 and 3662 each closed a `SEAM` beside theirs. **The
+rubric, lockstep: ages held 8 of 8, unit types seen 195 → 205 of 302 (97
+never: Air 21, Sea 2, Land 74), lockstep bytes 77.4 unmoved.** 1,799 lines
+in `crates/sim` over seventeen files (`launch.rs` +916, `pivot.rs` +308,
+`fight.rs` +246); the whole tree 67 files +12,334 −446; `docs/AI.md`
+§338–345. The blind list unmoved at 247 · 208 · 39 and `blind.rs`
+untouched since the base, so the fifty-seventh's scan (none dead) stands
+by construction. **The price: 161.15 USD list for the workers, 8.06 a
+landing** (153.11 / 7.66); the commander's two sessions 17.30 (20.56);
+**178.45 in all** (173.67). **Waiting 40.2 minutes a landing** (46.5):
+**the gate 25.3 of 33.5 a session** (31.8 of 40.4), the capture 5.6 (4.4);
+eighteen gate logs for twenty bookings — 3657 and 3658 each booked in the
+minute of a pair's booking and gated under its gate — seven whole at
+37.1–40.2 minutes, eleven scoped and widened at 15.9–18.0, **none red**,
+455.0 minutes of gate (461.6); **admission 1,972.4 s summed, longest 37.8**
+(1,215.7 / 59.4); five gate ends of eighteen past the sixteen cores (one
+of twenty). **Six `DEEP`** (3645 at 321 k, 3646 at 317 k, 3654 at 310 k,
+3655 at 306 k, 3661 at 325 k, 3662 at 322 k; four landed from a second
+session, 3645 and 3655 from their own). No kill rule, no merge backed out,
+every lane row reaped at the drain. The pool held three lanes at its peak,
+waited nothing at the cap, median **105.1 frames a wall second** over 50
+captures (2.5 a landing). The archives compressed 58 → 99 GiB free. **The
+cut measured** (Loop 3653, entry 96 §1): the seven stand-ups whose branch
+touched no sim path and kept the fast suite ran release **5.6–6.9**
+minutes in their journals' `Gate minutes:` (3647 5.7, 3648 6.3, 3649 6.1,
+3650 5.6, 3651 6.0, 3652 6.7, 3664 6.9) against 17.3–23.8 for the residue
+items, each receipt reading `left to the booking gate`; the two stand-ups
+that widened on one data-crate file each — 3629 on a comment moved in
+`battery.rs`, 3665 on a debug print in `harness.rs` — ran **18.0 and
+18.3**, their receipts `run`.
+
+**What it means.**
+
+1. **The cut reads the branch's paths alone, widened or not** (Loop 3676,
+   `release_gate.py`'s `sim_crate_left`, a test red first). The clause
+   that tied it to a lane keeping the fast suite was caution, not
+   evidence: the sim crate depends on nothing in the workspace, so a
+   data-crate edit that widens the timed set cannot move its five test
+   binaries, and the two widened stand-ups paid eleven release minutes
+   apiece for them. What can move the binaries besides a path under the
+   crate — the workspace manifest, the lock, the toolchain pin, cargo's
+   config — keeps the crate (`SIM_BUILD_INPUTS`), and the `Lane suite:`
+   line carries the clause on the widened branch too.
+2. **The lane rule returns the third lane.** Entry 94 §1's clause: the
+   lane returns when a two-lane tranche's gate a session is under the
+   26.1 it was taken at, or the gate's class is cut. Both hold — the gate
+   read **25.3** a session on the cut, waiting 40.2 a landing against 46.5
+   holds within a fifth — so the fifty-ninth runs **three Opus 5.5 lanes
+   at `--effort medium`**, the models Ramon's and unchanged, and the
+   fifty-ninth's drain reads waiting against 40.2 and the gate against
+   25.3: waiting a fifth above 40.2 takes the lane away again, as the
+   fifty-fourth's did (entry 93 §1, 58.8 against 34.3). The admission
+   figure to beat is the fifty-fourth's three-lane 4,304.8 s; the cut
+   stand-ups hold a third of the CPU the fifty-fourth's did.
+3. **Nine pairs are booked off the braces, two-line lobbies first** (entry
+   94 §4), one line each after: the Germans at Industrial on Great Lakes
+   `(14, 12, 5)` — five never-seen lines, the most of any lobby (3667);
+   the British at Industrial on Great Sahara at difficulty 4 `(7, 11, 4)`
+   (3668) and the Americans at Industrial on Great Sahara `(7, 20, 5)`
+   (3669), two lines each; then the fifty-seventh record's three — the
+   Russians at Gunpowder `(14, 13, 5)` (3670), the Romans at Gunpowder
+   `(14, 6, 5)` (3671), the French at Enlightenment on East Indies at
+   difficulty 4 `(18, 10, 4)` (3672); then the Mongols, Greeks and Chinese
+   at Enlightenment on Great Lakes (3673–3675). Every Great Lakes or
+   difficulty-4 lobby is entry 72's rule (3) and its stanza says so; the
+   free triples were read on the tree against `SCORED_LOBBIES` and the
+   battery. The refill order after 3675 stands in the queue's handoff
+   (the Lakota, Japanese, Spanish, Persians, Inca, Egyptians) so the
+   commander's refill is a read.
+4. **3656 is built**: the viadriver case waits sixty seconds and its
+   failure names when each `args:` line arrived, so the next flake under
+   load says whether the log is late or never comes — the question the row
+   asked — instead of costing a lane gate's re-run; three green runs on
+   the pass's tree.
+5. **3611 closes unreached** (entry 54): no `no verdict (error)` tool
+   result in the tranche's twenty-four lane transcripts, the waiter's
+   exits six `DEEP` and no `STALLED`, two tranches running without an
+   outage; its text is kept in the record and its next reach files it
+   again.
+6. **The rest**: the suite re-timed first (124 untimed at the pass's
+   start, the nine pairs' and two words' tests); five rows stay Ramon's
+   with this tranche's numbers; no marked row entered the tree; the Korean
+   word's item 3666 stands first as the commander booked it. The backlog
+   8 → 6.
+
+**Against entry 96's estimate**: the Lakota word closes within three
+items — met (two); the Spanish within three — met (one); the seven pairs
+stand and at least four run whole — met (seven stood, 3664 and 3665
+beside them, eight of nine closed); unit types 195 → at least 200 — met
+(205); lockstep bytes unmoved — met; a stand-up's lane gate under nine
+release minutes and the gate class under 28 — met (5.6–6.9 on seven of
+nine, the two widened at 18.0 and 18.3 being §1's finding; 25.3); waiting
+under 42 and a landing under 7.00 USD — **missed on the price** (40.2;
+8.06); admission under 1,200 s — **missed** (1,972.4); `DEEP` under three —
+**missed** (six); no red booking gate — met; a gate log for every booking
+— **missed** (3657 and 3658 under the next pair's); the drain arms the
+clear with every lane reaped — met; no dead row — met. Nine of thirteen.
+
+**The estimate, written down to be wrong on record**, on ten items and
+three Opus lanes: the Korean word closes within three items; the nine
+pairs stand up and at least six run whole; unit types seen 205 → at least
+212 (ten over nine pairs this tranche, and the German lobby fields five);
+lockstep bytes 77.4 unmoved; every stand-up's lane gate under nine release
+minutes, widened or not; the gate class under 32 a session on three lanes;
+waiting a landing under 48 minutes (a fifth above 40.2 is the rule's trip)
+and a landing under 8.00 USD; admission under 3,000 s; `DEEP` under four;
+no red booking gate; a gate log for every booking; the drain arms the
+clear with every lane reaped; the scan finds no dead row among the 39.
+
+**The measure for the next pass**: unit types against 205, lockstep bytes
+against 77.4, ages 8 of 8 held; each landing's USD and waiting against
+8.06 / 40.2, the gate class against 25.3 a session — the lane rule read on
+waiting at three lanes, a fifth above 40.2 taking the lane; every
+stand-up's release minutes against 5.6–6.9; the admission against 1,972.4
+s; red gates against zero; `DEEP` against six; the lane rows at the drain
+against zero; the backlog against 6; the disk against 99 GiB.

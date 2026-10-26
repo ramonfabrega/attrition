@@ -281,11 +281,19 @@ and the journals 16–19 release minutes — because the budget's file
 times the data crate alone and the sim crate's five test binaries ran
 whole, 680 of a stand-up's 1,044 release seconds in the pass's replay
 of 3626's gate; **the fifty-seventh pass cut them** (Loop 3653,
-`sim_crate_left`): a lane that keeps the fast suite and touches no
-path under `crates/sim/` leaves the sim crate to the booking gate,
-which runs it on every merge, and the fifty-eighth's drain measures
-it in the stand-up journals' `Gate minutes:` — the gate class, not
-the lane count, is still the lever); a
+`sim_crate_left`): a lane that touches no path under `crates/sim/`
+leaves the sim crate to the booking gate, which runs it on every
+merge — **measured at the fifty-eighth's drain**: seven of nine
+stand-ups ran release 5.6–6.9 against 17.3–23.8 for the rest, and the
+two that widened on one data-crate file each (3629, 3665) ran 18.0
+and 18.3 because the cut was tied to the fast suite, so the
+fifty-eighth pass reads it on the branch's paths alone, widened or
+not (Loop 3676: the sim crate depends on nothing in the workspace);
+**and the gate read 25.3 a session on two lanes, under the 26.1 the
+third lane was taken at, with waiting 40.2 a landing against 46.5 —
+so the third lane returns by this clause for the fifty-ninth**, three
+Opus lanes at medium, read at its drain against 40.2 waiting and 25.3
+gate, and a fifth above 40.2 takes it away again (DECISIONS 97)); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

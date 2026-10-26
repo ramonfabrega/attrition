@@ -21556,3 +21556,23 @@ items, 3611 stays one tranche more; the scan found no dead row among the
 3629 kept, and six early-age pairs in the fifty-sixth record's order
 (3647–3652), the last two by entry 72's rule (3). **DECISIONS 96.**
 `docs/audit/2026-10-26-fable-pass-57.md`.
+
+**2026-10-26 — the fifty-eighth Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the fifty-eighth tranche measured — twenty
+landings on two Opus lanes from `1e8ec999d` in 12 h 34; the Lakota and
+Spanish Gunpowder words closed, nine early-age pairs stood up and eight
+closed, the Japanese whole at the first try, the Koreans open at 3401 on
+Great Lakes; unit types seen 195 → 205 of 302, lockstep bytes 77.4
+unmoved; 8.06 USD and 40.2 minutes waiting a landing against 7.66 / 46.5.
+Loop 3653's cut measured in the stand-up journals: seven of nine ran
+release 5.6–6.9 against 17.3–23.8, and the two that widened on one
+data-crate file ran 18.0 and 18.3 — so the cut reads the branch's paths
+alone now, widened or not (Loop 3676; the sim crate depends on nothing in
+the workspace). The gate read 25.3 a session, under the 26.1 the third lane
+was taken at, and the lane rule returns it: the fifty-ninth runs three Opus
+lanes at medium. 3656 built (the viadriver case waits sixty seconds and
+reports when each line arrived), 3611 closed unreached. Booked: 3666 the
+Korean word first, then nine pairs off the braces, two-line lobbies first
+— the Germans at Industrial with five never-seen lines — then the record's
+three and three at Enlightenment (3667–3675). **DECISIONS 97.**
+`docs/audit/2026-10-26-fable-pass-58.md`.

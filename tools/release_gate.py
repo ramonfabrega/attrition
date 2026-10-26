@@ -36,11 +36,15 @@ and its two test-kit rows — do not (`row_only_edits`, Loop 3608 and its
 sequel), and the receipt's `row_only` names them.
 A lane whose item moves no test (a retirement, a tooling item) gates with
 `--lane --whole` in place of `--tests`: every test, the timed ones
-included, with the lane's forgiveness and `Lane verdict:` (Loop 3489). Since the fifty-seventh pass a lane that keeps the fast suite and touches no path
-under `crates/sim/` also leaves the sim crate's five test binaries — the four
+included, with the lane's forgiveness and `Lane verdict:` (Loop 3489). Since the fifty-seventh pass a lane that touches no path
+under `crates/sim/` — nor the workspace manifest, the lock, the toolchain
+pin or cargo's config — also leaves the sim crate's five test binaries — the four
 emulator sweep targets and the lib — to the booking gate (`sim_crate_left`,
 Loop 3653: 680 of a stand-up's 1,044 release seconds at four threads were theirs,
-on binaries its branch cannot change); the receipt's `sim_crate` says which.
+on binaries its branch cannot change), widened or not since the fifty-eighth
+(the cut had been tied to the fast suite, and two stand-ups that widened on one
+data-crate file each ran the binaries for eleven minutes apiece); the receipt's
+`sim_crate` says which.
 
 The worker's own full run, measured on the tree after its last `ccc
 update`, is still owed before the gate (the brief's "measure" rows); the
@@ -402,15 +406,26 @@ def row_only_edits(base, run=subprocess.run):
 # runs it on every merge; the sim paperwork guards (`docs_guard`, `no_float`)
 # run in the guard step (`guard.sh --built`) on every lane as before. A sweep
 # lane touches `sweep/` and keeps them; a sim edit widened already.
+# Widened or not (the fifty-eighth pass, Loop 3653's sequel): the cut was
+# first tied to a lane keeping the fast suite, and two of the fifty-eighth
+# tranche's nine stand-ups widened on one data-crate file each (3629 a
+# comment moved in `battery.rs`, 3665 a debug print in `harness.rs`) and ran
+# the five binaries for eleven minutes apiece — release 18.0 and 18.3
+# against the cut stand-ups' 5.6–6.9. The sim crate depends on nothing in
+# the workspace, so a data-crate edit cannot move them; what can besides a
+# path under the crate is the workspace manifest, the lock, the toolchain
+# pin and cargo's config, and those keep the crate.
 SIM_CRATE = 'crates/sim/'
+SIM_BUILD_INPUTS = (SIM_CRATE, 'Cargo.toml', 'Cargo.lock', 'rust-toolchain.toml', '.cargo/')
 
 
-def sim_crate_left(touched, widened, *, lane, whole):
+def sim_crate_left(touched, *, lane, whole):
     """Whether a lane gate leaves the sim crate's test binaries to the
-    booking gate: a lane, not `--whole`, keeping the fast suite, whose
-    branch (`touched`, None when the base is not a ref) has no sim path."""
-    return bool(lane and not whole and not widened and touched is not None
-                and not any(p.startswith(SIM_CRATE) for p in touched))
+    booking gate: a lane, not `--whole`, whose branch (`touched`, None when
+    the base is not a ref) touches nothing the binaries are built from
+    (`SIM_BUILD_INPUTS`) — widened or not."""
+    return bool(lane and not whole and touched is not None
+                and not any(p.startswith(SIM_BUILD_INPUTS) for p in touched))
 
 
 def branch_paths(base, run=subprocess.run):
@@ -635,7 +650,9 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
             timings = TIMINGS.read_text()
             skips = lane_skips(timings, tests)
             paperwork = lane_paperwork(timings)
-    sim_left = sim_crate_left(touched, widened, lane=lane, whole=whole)
+    sim_left = sim_crate_left(touched, lane=lane, whole=whole)
+    sim_clause = ("; the sim crate's test binaries left to the booking gate — no path under "
+                  f"{SIM_CRATE} touched (Loop 3653)" if sim_left else '')
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
@@ -737,14 +754,12 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
     elif lane and widened:
         print(f"Lane suite: every timed test — the branch touches {len(widened)} path(s) that can move "
               f"the diff:: pins ({widened[0]}{', …' if len(widened) > 1 else ''}; Loop 2415); "
-              f"the word's: {', '.join(tests)}", flush=True)
+              f"the word's: {', '.join(tests)}" + sim_clause, flush=True)
     elif lane:
         print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
               f"booking gate ({TIMINGS.relative_to(ROOT)}); the word's: {', '.join(tests)}"
               + (f"; base {base} is not a ref here, so nothing widened" if touched is None else '')
-              + kept_line(paperwork)
-              + ("; the sim crate's test binaries left to the booking gate too — no path under "
-                 f"{SIM_CRATE} touched (Loop 3653)" if sim_left else ''), flush=True)
+              + kept_line(paperwork) + sim_clause, flush=True)
     reached = []
     seconds = []
     load_at_start = host_load()

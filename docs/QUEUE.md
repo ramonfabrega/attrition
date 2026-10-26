@@ -12,12 +12,17 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-26, **the fifty-eighth tranche (commander, Opus): drained at twenty from `1e8ec999d`**, every lane reaped; **the pass is due**.*
-- **Words**: one open — the Koreans at Medieval, 3401 of 4,559 (lower map first — Great Lakes (Koreans, Medieval)), 3666 on 3401 (3665 stood it up). **The headline, the early ages**: two words closed — Lakota Gunpowder 4187 → 4750 (3645, 3654), Spanish Gunpowder 4859 → 6128 (3646); nine pairs stood up, eight closed — Iroquois 3962 → 5128 (3629, 3655), Inca 3095 → 4045 (3648, 3659), Aztecs 2556 → 4602 (3647, 3657, 3658), Indians 4157 → 5000 (3649, 3660), Americans 3215 → 6669 (3650, 3661), British at difficulty 4 4567 → 8980 (3651, 3662), Persians 10937 → 11633 (3652, 3663), Japanese whole first try 5140 (3664). Nine of ten fixes were launch points (bay or pivot rows off a packet); 3661 and 3662 each closed a SEAM beside theirs.
-- **The rubric, lockstep**: unit types 195 → 205 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; 97 never (Air 21, Sea 2, Land 74); row in `rubric.tsv`. Three pairs went to Great Lakes at 5 by entry 72's rule (3), each nation holding no Great Lakes game (3652, 3664, 3665).
-- **For the pass** (`tranche.py --base 1e8ec999d`, `gates.py`): 20 landings · six DEEP (3645 321 k, 3646 317 k, 3654 310 k, 3655 306 k, 3661 325 k, 3662 322 k) · 40.2 minutes waiting a landing (46.5) · 8.06 USD a landing (161.15 over 24 sessions; 7.66) · 2.5 captures a landing; 17 booking gates logged before the drain's (3657's and 3658's logs are not on disk): 6 whole, 11 scoped (11 widened), 0 red, 417.9 minutes; admission 1964.1 s, longest 37.8 s; 5 past the cores; gate 25.3 of 51.2 lane minutes a session (31.8); two Opus lanes, 12 h 24. **Loop 3653's cut, measured**: the four stand-ups that touched no sim path ran release 5.6–6.9 lane-gate minutes (3650, 3651, 3652, 3664) against 17.3–23.8 for the rest.
-- **Lanes: none live; one booked** (3666 the Korean word); the record's refill after it: the Russians at Gunpowder, the Romans at Gunpowder, the French at Enlightenment, each by rule (3). Next 3667, run 1333. Pools: AI §346–349, park TI (one slot left).
-- **Fable backlog: 8 Loop items** (3656, 3611, 3382, 3350, 3237, 3188, 3143, 3118); `test_viadriver` flaked under load in three lane gates (3656).
+*2026-10-26, **the fifty-eighth pass (steer, Fable): the tranche measured and the fifty-ninth booked on three Opus lanes**; the commander's opener is this section's last line.*
+- **Words**: one open — the Koreans at Medieval, 3401 of 4,559 (lower map first — Great Lakes (Koreans, Medieval)), 3666 on 3401 (3665 stood it up).
+  **The headline, the early ages**: the fifty-eighth closed two Gunpowder words and eight of nine pairs (the record). Nine pairs booked, 3667–3675, off the
+  braces, two-line lobbies first (the Germans at Industrial, five never-seen lines; the British and Americans), then the record's three and three at
+  Enlightenment; Great Lakes and difficulty 4 by entry 72's rule (3). **The refill after 3675 is the record's order.**
+- **The rubric, lockstep**: unit types 195 → 205 of 302, ages 8 of 8, **bytes 77.4 %** unmoved; 97 never (Air 21, Sea 2, Land 74); row in `rubric.tsv`.
+- **Three lanes, by the lane rule** (DECISIONS 97 §2: the gate 25.3 a session on two lanes, under the 26.1 the third was taken at; waiting 40.2 a landing against
+  46.5 holds; a fifth above 40.2 at the drain takes it away again): Opus 5.5 at medium on each, `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`.
+  **The lane gate's cut reads the branch's paths alone now**, widened or not (Loop 3676: seven of nine stand-ups ran release 5.6–6.9; the two that widened ran 18).
+- **Lanes: none live; ten booked** (3666 the Korean word; 3667–3675 the pairs). Next 3677, run 1351. Pools: AI §346–360 (3667–3675 take §346–354), park TI–UC (3666 TI, 3667–3675 TJ–TR).
+- **Fable backlog: 6 Loop items** (3382, 3350, 3237, 3188, 3143, 3118); 3656 built and 3611 closed unreached (the record, DECISIONS 97).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -36,7 +41,7 @@ Blind: never 247 · residue 208 · open 39
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 205 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-eighth pass (steer, Fable) — the tranche drained at twenty from `1e8ec999d`; this handoff, the one open word (3666 the Koreans, Great Lakes), the record's refill and the park pool, the backlog.**
+**Opener: the fifty-ninth tranche (commander, Opus) — three Opus lanes at medium, 3666 the Korean word first (frame 3401, Great Lakes), then the pairs 3667–3675 in order; the refill after 3675 is the record's order; drain at twenty and clear the steer row.**
 
 ## The queue
 
@@ -50,6 +55,41 @@ first parting, a scoreboard line). **No twin for a pair varying only age and nat
 `Unit::move_step+0x823`, both under `Guy::set_anim+0x97a`; 3665's first try, AI §345): the state parts by 3354, where who=1's Elite Javelineers
 `1/47` (TY 84) throws from (6934, 30317) at `sz` 436 in theirs and from the figure's square (6984, 30312) at 266 in ours. The hypothesis is a
 `launch::BAYS` row for the Korean Elite Javelineers' piece, fit off a packet at 3353. Run 1332; amend §345; park TI.
+
+3667. **The Germans at a held Industrial age, Great Lakes** (`GreatLakesGermanIndustrial`, map 14, tribe 12, difficulty 5, age 5 held; minted
+by entry 72's rule (3): the German words hold `(18, 12, 3)`, `(18, 12, 5)`, `(7, 12, 3)` and `(7, 12, 5)`, so Great Lakes is the free map at 5):
+the lines are `Riflemen` (101), `Machine Gun` (124), `Anti-tank Rifle` (138), `Light Tank` (242) and `Artillery` (270) — five never seen, the most
+of any lobby on the braces. Runs 1333–1334; AI §346; park TJ.
+
+3668. **The British at a held Industrial age, Great Sahara, at difficulty 4** (`GreatSaharaBritishIndustrial`, map 7, tribe 11, difficulty 4,
+age 5 held; rule (3): the British hold every map at 5 and East Indies at 4 (3651), so Great Sahara at 4 is the free triple): the lines are
+`Black Watch` (115) and `Light Tank` (240, shared with the Russians). Runs 1335–1336; AI §347; park TK.
+
+3669. **The Americans at a held Industrial age, Great Sahara** (`GreatSaharaAmericanIndustrial`, map 7, tribe 20, difficulty 5, age 5 held;
+`(7, 20, 5)` is free — the American words hold `(18, 20, 1)`, `(7, 20, 3)`, `(14, 20, 4)` and `(18, 20, 5)`): the lines are `Marine Riflemen`
+(120) and `Armored Car` (217). Runs 1337–1338; AI §348; park TL.
+
+3670. **The Russians at a held Gunpowder age, Great Lakes** (`GreatLakesRussianGunpowder`, map 14, tribe 13, difficulty 5, age 3 held; rule
+(3): the Russian words hold `(18, 13, 5)` and `(7, 13, 5)`, the battery `(7, 13, 4)` and the Tier2 `(14, 13, 2)`): the line is `Cossack` (225).
+Runs 1339–1340; AI §349; park TM.
+
+3671. **The Romans at a held Gunpowder age, Great Lakes** (`GreatLakesRomanGunpowder`, map 14, tribe 6, difficulty 5, age 3 held; rule (3):
+the Roman words hold `(18, 6, 2)`, `(18, 6, 5)` and `(7, 6, 5)`, the Tier2 `(14, 6, 2)`): the line is `Praetorian Guards` (148). Runs
+1341–1342; AI §350; park TN.
+
+3672. **The French at a held Enlightenment age, East Indies, at difficulty 4** (`EastIndiesFrenchEnlightenment`, map 18, tribe 10, difficulty 4,
+age 4 held; rule (3): the French hold `(18, 10, 5)`, `(7, 10, 5)`, the third pair's `(14, 10, 5)` and the battery `(7, 10, 4)`): the line is
+`Horse Guard Grenadier` (238). Runs 1343–1344; AI §351; park TO.
+
+3673. **The Mongols at a held Enlightenment age, Great Lakes** (`GreatLakesMongolEnlightenment`, map 14, tribe 17, difficulty 5, age 4 held;
+rule (3): the Mongol words hold `(18, 17, 5)`, `(7, 17, 3)` and `(7, 17, 5)`): the line is `Golden Horde` (204). Runs 1345–1346; AI §352; park TP.
+
+3674. **The Greeks at a held Enlightenment age, Great Lakes** (`GreatLakesGreekEnlightenment`, map 14, tribe 5, difficulty 5, age 4 held; rule
+(3): the Greek words hold `(18, 5, 5)`, `(7, 5, 1)` and `(7, 5, 5)`): the line is `Royal Stratiotai` (234). Runs 1347–1348; AI §353; park TQ.
+
+3675. **The Chinese at a held Enlightenment age, Great Lakes** (`GreatLakesChineseEnlightenment`, map 14, tribe 14, difficulty 5, age 4 held;
+rule (3): the Chinese words hold `(18, 14, 5)`, `(7, 14, 3)` and `(7, 14, 5)`, the Tier1 `(14, 14, 1)`): the line is `Manchu Musketeers` (116).
+Runs 1349–1350; AI §354; park TR.
 
 ## How to maintain this file
 

@@ -90,14 +90,29 @@ class Viadriver(unittest.TestCase):
         # log and then writes it, and twice in one tranche a loaded host read
         # it in between — `'args: ' not found in ''` — and cost a lane gate's
         # whole re-run; the deadline is twice the sibling's for the same load.
-        deadline = time.time() + 20
-        while time.time() < deadline and not (self._args_line(first) and self._args_line(second)):
-            time.sleep(0.2)
-        self.assertIn('args: ', first.read_text() if first.exists() else '')
+        # Loop 3656 (the fifty-eighth pass): the twenty seconds flaked twice
+        # more in one lane's five gates, `'args: ' not found in ''` on the
+        # FIRST launch's log each time and green six of six alone — so the
+        # open question is whether a loaded host writes the log late or not
+        # at all. The wait is sixty seconds now, and the failure says when
+        # each line arrived, so the next flake answers that instead of
+        # costing a lane gate's re-run.
+        started = time.time()
+        deadline = started + 60
+        arrived = {}
+        while time.time() < deadline and len(arrived) < 2:
+            for name, log in (('first', first), ('second', second)):
+                if name not in arrived and self._args_line(log):
+                    arrived[name] = round(time.time() - started, 1)
+            if len(arrived) < 2:
+                time.sleep(0.2)
+        report = (f'args lines arrived (seconds after the second launch): {arrived}; '
+                  f'past the old 20 s: {[n for n, at in arrived.items() if at > 20]}')
+        self.assertIn('args: ', first.read_text() if first.exists() else '', report)
         text = second.read_text() if second.exists() else ''
         self.assertIn('args: ', text,
                       'the second launch wrote no log: `open` without `-n` activated the '
-                      'running instance and dropped the arguments (parked 810)')
+                      'running instance and dropped the arguments (parked 810); ' + report)
         self.assertIn(str(second), text)
 
     @staticmethod
