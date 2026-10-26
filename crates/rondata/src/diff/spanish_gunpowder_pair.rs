@@ -260,6 +260,10 @@ fn spanish_gunpowder_pair_run1287b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
         for (b, rows) in &w.standing {
             for ((who, o, what), r) in rows {
                 eprintln!("  standing {b} {who}/{o} {what}: {r}");
@@ -455,6 +459,10 @@ fn spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
         for (b, rows) in &w.standing {
             for ((who, o, what), r) in rows {
                 eprintln!("  standing {b} {who}/{o} {what}: {r}");
@@ -505,7 +513,7 @@ pub(crate) const WIDENING_SPANISH_GUNPOWDER_FRAME_4859: (i64, i64) = (4853, 5109
 /// **The word 4859's window**: run1304b walked from run1286's start with
 /// the recorder on (item 3643).
 pub(crate) fn spanish_gunpowder_frame_4859_window() -> Option<harness::tests::Widened> {
-    harness::tests::widen_on_siblings(
+    harness::tests::widen_on_siblings_with_rounds(
         &[SPANISH_GUNPOWDER.start],
         true,
         SPANISH_GUNPOWDER.long,
@@ -532,6 +540,10 @@ fn spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
         for (b, rows) in &w.standing {
             for ((who, o, what), r) in rows {
                 eprintln!("  standing {b} {who}/{o} {what}: {r}");
@@ -554,14 +566,31 @@ fn spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole() {
     // (600, 7944) (`docs/AI.md` §335.3). The word 4859: ours 16 draws
     // against 18, parting at index 7, ours `Unit::fight+0x9b0`, theirs
     // `Unit::come_out+0x25ca`.
-    // Item 3646: **141** keys, the rounds compared. The Fire Ship is never
-    // handed the Citizen (a sea-only attacker, `valid_target_const`'s
-    // `0x102000` arm), and no unit parts past the standing families but
-    // `1/122`'s `half_step` on 4878 (ours 1, theirs 0). The six round rows
-    // are three rounds on block 5002 (`1/56`, `1/57`, `1/73`) whose target
-    // `0/12` has left the dump: theirs keep `whom` 0 `ox` 12, ours forget
-    // it (parked 3646b).
-    pin_eq!(w.firsts.len(), 141, "run1304b baseline");
+    // Item 3646: **135** keys. The Fire Ship is never handed the Citizen
+    // (a sea-only attacker, `valid_target_const`'s `0x102000` arm), and no
+    // unit parts past the standing families but `1/122`'s `half_step` on
+    // 4878 (ours 1, theirs 0).
+    pin_eq!(w.firsts.len(), 135, "run1304b baseline");
+    // **Every round, both directions** (item 3645's walk, Loop 3644): 608
+    // round-blocks a side. What parts is three rounds on block 5002 (`1/56`,
+    // `1/57`, `1/73`) whose target `0/12` has left the dump: theirs keep
+    // `whom` 0 `ox` 12, ours forget it (parked 3646b).
+    pin_eq!(w.rounds_read, (608, 608), "the rounds read");
+    pin_eq!(
+        w.rounds
+            .iter()
+            .map(|((who, o, what), (f, _))| format!("{f} {who}/{o} {what}"))
+            .collect::<Vec<_>>(),
+        [
+            "5002 1/56 ammo[2].ox",
+            "5002 1/56 ammo[2].whom",
+            "5002 1/57 ammo[1].ox",
+            "5002 1/57 ammo[1].whom",
+            "5002 1/73 ammo[4].ox",
+            "5002 1/73 ammo[4].whom",
+        ],
+        "the rounds that part"
+    );
 }
 
 /// run1306: the closing window, blocks 5873..6129 at run1304b's detail,
@@ -576,7 +605,7 @@ pub(crate) const WIDENING_SPANISH_GUNPOWDER_FRAME_6128: (i64, i64) = (5873, 6129
 /// **The closing window**: run1306 walked from run1286's start with the
 /// recorder on, the rounds compared (item 3646).
 pub(crate) fn spanish_gunpowder_frame_6128_window() -> Option<harness::tests::Widened> {
-    harness::tests::widen_on_siblings(
+    harness::tests::widen_on_siblings_with_rounds(
         &[SPANISH_GUNPOWDER.start],
         true,
         SPANISH_GUNPOWDER.long,
@@ -603,6 +632,10 @@ fn spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole() {
             eprintln!("  first {f} {who}/{o} {what}: {r}");
         }
         eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
         for (b, rows) in &w.standing {
             for ((who, o, what), r) in rows {
                 eprintln!("  standing {b} {who}/{o} {what}: {r}");
@@ -616,8 +649,7 @@ fn spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole() {
     );
     // Item 3646, the pair whole: 137 keys, every one standing — `form`
     // (64), who=1's pools (31) and groups' `held`, `SITE[i].reg` (10) and
-    // who=0's `aggression[1]`. With the rounds compared (439 `AMMO`
-    // records), no unit's field and no round's parts through the closing
+    // who=0's `aggression[1]`. No unit's field parts through the closing
     // block.
     pin!(
         w.firsts
@@ -627,9 +659,13 @@ fn spanish_gunpowder_pair_run1306_s_closing_window_is_widened_whole() {
             .map(|(k, (f, _))| (*f, k.clone()))
             .min()
             .is_none(),
-        "no unit and no round parts"
+        "no unit parts"
     );
     pin_eq!(w.firsts.len(), 137, "run1306 baseline");
+    // **Every round, both directions** (item 3645's walk): 439 round-blocks
+    // a side, and none parts.
+    pin_eq!(w.rounds_read, (439, 439), "the rounds read");
+    pin!(w.rounds.is_empty(), "no round parts");
 }
 
 /// **The closing state** (item 3646): run1287's closing block 6129, the
