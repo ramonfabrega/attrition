@@ -36,7 +36,11 @@ and its two test-kit rows — do not (`row_only_edits`, Loop 3608 and its
 sequel), and the receipt's `row_only` names them.
 A lane whose item moves no test (a retirement, a tooling item) gates with
 `--lane --whole` in place of `--tests`: every test, the timed ones
-included, with the lane's forgiveness and `Lane verdict:` (Loop 3489).
+included, with the lane's forgiveness and `Lane verdict:` (Loop 3489). Since the fifty-seventh pass a lane that keeps the fast suite and touches no path
+under `crates/sim/` also leaves the sim crate's five test binaries — the four
+emulator sweep targets and the lib — to the booking gate (`sim_crate_left`,
+Loop 3653: 680 of a stand-up's 1,044 release seconds at four threads were theirs,
+on binaries its branch cannot change); the receipt's `sim_crate` says which.
 
 The worker's own full run, measured on the tree after its last `ccc
 update`, is still owed before the gate (the brief's "measure" rows); the
@@ -386,6 +390,29 @@ def row_only_edits(base, run=subprocess.run):
     return found
 
 
+# Loop 3653 (the fifty-seventh pass): every stand-up's lane gate of the
+# fifty-seventh tranche fired Loop 3608's rule — 758 timed tests left to the
+# booking gate, each gate's `gate-policy.json` says — and still ran 16–19
+# release minutes, because `TIMINGS` times the data crate alone and the sim
+# crate's five test binaries ran whole: in the pass's replay of 3626's gate
+# at four threads, the four emulator sweep targets 583 s and the lib 98 s
+# against the data crate's kept set 275 s and the build 84 s (release 17.4).
+# A branch that touches no path under `crates/sim/` cannot change those
+# binaries, so its lane gate leaves the sim crate to the booking gate, which
+# runs it on every merge; the sim paperwork guards (`docs_guard`, `no_float`)
+# run in the guard step (`guard.sh --built`) on every lane as before. A sweep
+# lane touches `sweep/` and keeps them; a sim edit widened already.
+SIM_CRATE = 'crates/sim/'
+
+
+def sim_crate_left(touched, widened, *, lane, whole):
+    """Whether a lane gate leaves the sim crate's test binaries to the
+    booking gate: a lane, not `--whole`, keeping the fast suite, whose
+    branch (`touched`, None when the base is not a ref) has no sim path."""
+    return bool(lane and not whole and not widened and touched is not None
+                and not any(p.startswith(SIM_CRATE) for p in touched))
+
+
 def branch_paths(base, run=subprocess.run):
     """Every path the branch changed since it left `base`, or None when
     `base` is not a ref this tree knows."""
@@ -608,6 +635,7 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
             timings = TIMINGS.read_text()
             skips = lane_skips(timings, tests)
             paperwork = lane_paperwork(timings)
+    sim_left = sim_crate_left(touched, widened, lane=lane, whole=whole)
     install = Path(install).resolve()
     if not (install / 'Data/rules.xml').is_file():
         raise ValueError(f'not an install: missing {install / "Data/rules.xml"}')
@@ -656,7 +684,8 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
                           'whole': bool(whole),
                           'budget_seconds': LANE_BUDGET_SECONDS, 'skipped': len(skips),
                           'paperwork_kept': len(paperwork), 'base': base, 'widened': widened,
-                          'row_only': row_only}
+                          'row_only': row_only,
+                          'sim_crate': 'left to the booking gate' if sim_left else 'run'}
     (report_dir / 'gate-policy.json').write_text(json.dumps(policy, indent=2) + '\n')
     # No game launch: rondata surveys the user's data files.
     #
@@ -675,7 +704,9 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         ['cargo', 'fmt', '--check'],
         ['cargo', 'run', '-p', 'rondata', '--', str(install)],
         ['zsh', 'tools/memcap.sh', str(min(32, memory_cap_gib(test_threads))), 'cargo', 'test', '--release',
-         '--no-fail-fast', '--', f'--test-threads={test_threads}']
+         '--no-fail-fast']
+        + (['--workspace', '--exclude', 'sim'] if sim_left else [])
+        + ['--', f'--test-threads={test_threads}']
         + (['--exact'] + [arg for name in skips for arg in ('--skip', name)] if (lane or scope is not None) else []),
         # The guards ran in the release suite already; the reflex script
         # re-runs them on the release binary in seconds (the thirty-fifth
@@ -684,8 +715,10 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         ['zsh', 'tools/guard.sh', '--built'],
     ]
     if isolated:
-        commands[4] = [sys.executable, 'tools/isolated_tests.py', '--release',
-                       '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)] + [arg for name in skips for arg in ('--skip', name)]
+        commands[4] = ([sys.executable, 'tools/isolated_tests.py', '--release',
+                        '--output', str(report_dir / 'isolated'), '--test-threads', str(test_threads)]
+                       + (['--exclude-package', 'sim'] if sim_left else [])
+                       + [arg for name in skips for arg in ('--skip', name)])
     if scope is not None:
         print((f"Booking gate scoped to {scope}: " +
                (f"every timed test — a merge touches {len(widened)} path(s) that can move the pins ({widened[0]}"
@@ -709,7 +742,9 @@ def gate(install, *, report_dir=None, require_fixtures=False, test_threads=2, ru
         print(f"Lane suite: {len(skips)} timed tests over {LANE_BUDGET_SECONDS:g} s alone left to the "
               f"booking gate ({TIMINGS.relative_to(ROOT)}); the word's: {', '.join(tests)}"
               + (f"; base {base} is not a ref here, so nothing widened" if touched is None else '')
-              + kept_line(paperwork), flush=True)
+              + kept_line(paperwork)
+              + ("; the sim crate's test binaries left to the booking gate too — no path under "
+                 f"{SIM_CRATE} touched (Loop 3653)" if sim_left else ''), flush=True)
     reached = []
     seconds = []
     load_at_start = host_load()

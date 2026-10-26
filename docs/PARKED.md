@@ -3764,7 +3764,7 @@ method where it has one, or parked naming the generator flag it could not spell.
 
 ## Loop, filed 2026-10-19 — the forty-fifth pass's own
 
-(3350) **The census counts the large functions the behavioural diff reaches as unbacked** (the forty-fifth pass's **The fifty-fourth pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); the `audit`/`entered` column joins nothing, the definition yours. Ramon's.
+(3350) **The census counts the large functions the behavioural diff reaches as unbacked** (the forty-fifth pass's **The fifty-fourth pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); the `audit`/`entered` column joins nothing, the definition yours. Ramon's. **The fifty-seventh pass**: bytes 37.9 % and port 568 unmoved (no sweep ran); 996 sim lines on fifteen files (`pivot.rs` +363 new, `launch.rs` +345, `fight.rs` +74) and the census counts none of it; the definition yours. Ramon's.
 reader, byte-weighted: 1,580 of 3,611 simulation functions backed is 43.8 % of functions and about 23.5 % of their
 bytes; the 200 largest are 45 % of the bytes and 25 of them backed; `--unbacked` lists shortest-first): the words
 drive `Unit::think`, `do_move`, `find_path` every frame against the original's logger, and the census credits none of
@@ -3774,16 +3774,17 @@ Ramon's. **The forty-sixth pass**: the byte-weighted column moved 23.5 → 31.2 
 
 ## Loop, filed 2026-10-25 — the fifty-seventh tranche's
 
-(3644) **3642's "for the Loop"** (the journal's line, filed at its merge): the pair widenings (`widen_on_siblings`) compare no `AMMO`
-record, though every pair window since run1287b dumps `AMMO=5`; on the Spanish Gunpowder pair a round's launch point parted on 3860, sixteen
-frames before any key did (3876). `coverage.rs` names the family `OWN_PARSER` (`diff::golden`), so neither the read pin nor the compared pin
-sees the gap. For the pass: whether the pair walks compare `AMMO` (and the coverage pins count it), which every open word would inherit.
+Two rows, both ruled by the fifty-seventh pass and their text kept in `docs/audit/2026-10-26-fable-pass-57.md`: **3638** (3634's and
+3626's `test_viadriver` flake under load) is built — the second-launch case waits on the log's *content* inside a twenty-second deadline,
+three green runs on the pass's tree; **3644** (3642's: the pair walks compare no `AMMO` record, and `coverage.rs`'s `OWN_PARSER` keeps
+the compared pin from saying so) is a clause on the open words' items, 3645 and 3646 — the next widening on each compares the `AMMO`
+record on the word's window, both directions, and the next pair stand-up inherits the walk — because a comparison that can move a pin is
+a lane's to land and re-pin, never the pass's.
 
-(3638) **`test_viadriver`'s second-launch case fails under load** (3634's and 3626's journals, filed at 3626's merge): twice in one
-tranche a lane gate stopped in offline on `test_a_second_launch_while_the_first_runs_still_carries_its_arguments` (`'args: ' not found
-in ''`), each passing three of three alone with nothing under `tools/` touched — and each cost a lane gate's whole re-run. The test's
-deadline loop waits for both logs to *exist* and then reads them once; if the stub's `echo "args: $*"` lands after the file is created, a
-loaded host reads it empty (a reading of the test, unmeasured). For the pass: wait on the content (`'args: '` in the text) inside the deadline, not on the file.
+The pass's one finding was built in the pass — **Loop 3653**, the lane gate's floor: Loop 3608's rule fired on every stand-up of the
+tranche (the receipts) and saved nothing because the sim crate's five test binaries, outside the budget's file, were 680 of a stand-up's
+1,044 release seconds; a lane that keeps the fast suite and touches no path under `crates/sim/` now leaves them to the booking gate
+(`release_gate.py`, `sim_crate_left`; the record, DECISIONS 96 §1). Measured at the fifty-eighth's drain.
 
 ## Loop, filed 2026-10-25 — the fifty-sixth tranche's
 
@@ -3791,7 +3792,7 @@ loaded host reads it empty (a reading of the test, unmeasured). For the pass: wa
 for several minutes mid-item while the file tool kept working — and on 3603 the same hour (its message: no verdicts on Bash, Monitor or
 SendMessage), whose row sat `tempo=idle` until `lanewait.py` exited `STALLED lane-3603 30` and the commander sent the lost-exit line. The
 outage rule (`CLAUDE.md`, back off on a Monitor) held; what the waiter cannot do is tell an outage from a lost exit notice, so the
-`STALLED` answer named the wrong remedy. For the pass: whether `STALLED` reads the lane's last tool result for `no verdict` first. **The fifty-sixth pass**: stays one tranche — one outage in the tranche's twenty-one lane sessions, and the `STALLED` line cost one message the lane read when the classifier returned. Built on a second occurrence, in this shape: the waiter reads the idle lane's transcript tail for a `no verdict (error)` tool result before naming `STALLED`, and exits `OUTAGE <lane>` instead, which the commander answers with a wait, not a line.
+`STALLED` answer named the wrong remedy. For the pass: whether `STALLED` reads the lane's last tool result for `no verdict` first. **The fifty-sixth pass**: stays one tranche — one outage in the tranche's twenty-one lane sessions, and the `STALLED` line cost one message the lane read when the classifier returned. Built on a second occurrence, in this shape: the waiter reads the idle lane's transcript tail for a `no verdict (error)` tool result before naming `STALLED`, and exits `OUTAGE <lane>` instead, which the commander answers with a wait, not a line. **The fifty-seventh pass**: no outage — the tranche's twenty-three lane transcripts carry no `no verdict (error)` answer outside the rule's own text, and the waiter exited `DEEP` three times, `STALLED` never. Stays one tranche more in the same shape; a fifty-eighth tranche without one closes it unreached (DECISIONS 54).
 
 **3615's "for the Loop"** (the journal's line, filed at its merge; no Loop number, nothing for the pass): it is a booking note, not a Loop
 finding — read run1258b's block 3351 before the word's frame 4442 — and the booking took it as 3618's first read. Its "next free run is
@@ -3844,7 +3845,7 @@ Loop 2003's reaches in the forty-seventh tranche, filed here below its own row (
 
 ## Loop, filed 2026-10-19 — the forty-sixth tranche's
 
-(3382) **One slow test a pass** (the forty-sixth steer, Ramon): six tests run over 30 s and two of them — **The fifty-fourth pass**: the suite re-timed first (`suite_timings.py --stale-only`, 114 untimed tests in three minutes; 0 of 1,261 untimed, 3,268 s); five tests over 30 s, the compared pin 202 s on file and its lever the forty-eighth pass's `schema()` key — no thirty minutes spent, the budget went to two builds (Loop 3564, parked 3556a). Stays.
+(3382) **One slow test a pass** (the forty-sixth steer, Ramon): six tests run over 30 s and two of them — **The fifty-fourth pass**: the suite re-timed first (`suite_timings.py --stale-only`, 114 untimed tests in three minutes; 0 of 1,261 untimed, 3,268 s); five tests over 30 s, the compared pin 202 s on file and its lever the forty-eighth pass's `schema()` key — no thirty minutes spent, the budget went to two builds (Loop 3564, parked 3556a). Stays. **The fifty-seventh pass**: the suite re-timed first (`suite_timings.py --stale-only`, 52 untimed — the Spanish and Lakota pairs' and the Roman word's tests); the thirty minutes went to the lane gate's floor, which a replay of a stand-up's gate measured (the record, DECISIONS 96 §1) — the timed set is not where the lane's release minutes go. Stays, Ramon's.
 `diff::coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned` at 202 s and
 `every_key_the_dump_prints_is_read_or_pinned` at 137 s — are 339 of the suite's 3,144 s (`suite_timings.py`,
 2026-10-20). Not a lane (a lane gate is thirteen minutes of CPU a landing for a win of seconds a gate): the pass's,
@@ -3873,7 +3874,7 @@ malloc (3339a). The forty-fifth pass's ten rulings on this section's rows are in
 
 ## Loop, filed 2026-10-18 — the forty-third tranche's
 
-(3237) **The port count rises on a sweep that diffs an inline copy, not the crate** (3234's parked (a), filed at its **The fifty-fourth pass**: not re-measured (35 of 1,421 stands; port 568 unmoved, no sweep ran). The recommendation stands: a `called` column beside `port`, measured first. Ramon's.
+(3237) **The port count rises on a sweep that diffs an inline copy, not the crate** (3234's parked (a), filed at its **The fifty-fourth pass**: not re-measured (35 of 1,421 stands; port 568 unmoved, no sweep ran). The recommendation stands: a `called` column beside `port`, measured first. Ramon's. **The fifty-seventh pass**: not re-measured (port 568 unmoved, no sweep ran). The recommendation stands: a `called` column beside `port`, measured first. Ramon's.
 merge): five of 3234's six sweeps assert logic inlined in the test, and `Sim::same_damage`, `Sim::do_patrol`,
 `Sim::add_trade_order`, `Sim::check_ever_seen` and `Sim::find_new_bomber_target` are not diffed; the census marks all
 six `port` because the crate spells each `Class::method` outside `sweep/`, so `Census:` port moved 317 → 323 with
@@ -3889,7 +3890,7 @@ with 3102) and a null `--answer-win` (3181); 3182 `--regen` under a new `--answe
 plain name (3013's third reach); 3200 the `--wbias` header's decimal offsets (3218); and 3102's second half, a port
 that returns early wrapped in a closure by the generator, stays the lane's.
 
-(3188) **The nations lane's named family is spent for the battery's leaders** (the commander, at 3172's merge, for the **The fifty-fourth pass**: no nations lane ran; the early-age pairs carry the nation lines now (unit types 162 → 167). Ramon's.
+(3188) **The nations lane's named family is spent for the battery's leaders** (the commander, at 3172's merge, for the **The fifty-fourth pass**: no nations lane ran; the early-age pairs carry the nation lines now (unit types 162 → 167). Ramon's. **The fifty-seventh pass**: no nations lane ran; the early-age pairs carry the nation lines now (unit types 189 → 195, the Horde, the Impi, the Heavy Fire Lances, the Stratiotai among them). Ramon's.
 pass and for Ramon): 3145, 3160 and 3172 audited `get_cost`'s and `train_time`'s national arms against the eight
 battery leaders — 3160's Citizen arms moved the median 2270 → 4770; 3172's audit of `train_time` is negative and its
 Sulphur arm moved no lobby. What the lane takes next is NATIONS §7's sixth candidate (the tiers' arms, booked 3187); whether a
@@ -3897,7 +3898,7 @@ nations lane stays on the roster is Ramon's (DECISIONS 78). One reach. **The for
 
 ## Loop, filed 2026-10-17 — the forty-first tranche's
 
-(3143) **The host at saturation, and a runaway the budget cannot see** (Ramon, 2026-10-18, for the steer): at 01:12 **The fifty-fourth pass**: a third Opus lane — admission **4,304.8 s summed at the door, longest 59.2** (499.7 / 28.6 on two lanes), nine of nineteen gate ends past the sixteen cores (five of seventeen), the gate class 26.1 → 41.0 minutes a session; the lane rule takes the lane away (DECISIONS 93 §1). The slot policy and the reaper stay yours.
+(3143) **The host at saturation, and a runaway the budget cannot see** (Ramon, 2026-10-18, for the steer): at 01:12 **The fifty-fourth pass**: a third Opus lane — admission **4,304.8 s summed at the door, longest 59.2** (499.7 / 28.6 on two lanes), nine of nineteen gate ends past the sixteen cores (five of seventeen), the gate class 26.1 → 41.0 minutes a session; the lane rule takes the lane away (DECISIONS 93 §1). The slot policy and the reaper stay yours. **The fifty-seventh pass**: two Opus lanes — admission **1,215.7 s summed at the door, longest 59.4** (1,400.5 / 56.5 the tranche before), one gate end of twenty past the sixteen cores (two of nineteen), the gate class 31.8 a session (34.2). The slot policy and the reaper stay yours.
 during the forty-first tranche's whole gate, with four lanes live and 3140's run921 capture under Wine, the load was 32 on
 16 cores at 0% idle; the admission budget held 16 leases (16 CPU slots of the v2 policy's 32, 16 GiB reserved), so it was
 admitting freely while the box was already full. Memory was not the constraint: 26 GiB unused, compressor 1.8 GiB, swap
@@ -3909,7 +3910,7 @@ receipt reads seconds while every lane's wall clock stretches; (ii) a reaper, or
 that outlives no supervisor, so a test whose supervisor died cannot run a day; (iii) the sweep test that did not
 terminate (the soak found one in an hour; this one ran under no budget). **The forty-first pass** (02:00–02:40, 2026-10-18, the box idle but for the pass): the orphan is **alive** — pid 51257, the same debug `sweep_a_f … city_data_num_city_buildings` binary, parent 1, started 2026-10-17 03:25:59, 22 h 40 m at 100 % — so the fortieth pass's (iii) was wrong: the `kill 63145 33786` named the cargo parents, not the test; the pass's own `kill 51257` was refused by the classifier (Interfere With Workloads) and goes to Ramon. The budget at 20 made the wait visible: the fourteen booking gates waited **1375.6 s summed at the door, longest 83.8 s** (246 s over nineteen the tranche before), and the lane gates still ran **19–31 minutes on ten of fourteen** (6–13 on the four after 01:00, two lanes live), so twenty slots on sixteen cores beside a Wine capture outside the budget and the orphan's core is still a load past the cores; the gate prints `Host load:` at start and end now (Loop 3091). Loop 3088 (the same orphan) is folded here. Candidates unchanged: a sweep test's emulator loop takes an instruction budget; a lease timeout no supervisor outlives; the capture lane takes a lease. **The forty-second pass** (08:00–09:30, 2026-10-18): the orphan is **still alive** — pid 51257, 1 d 4 h 22 m at 99.7 % of a core; Ramon's `kill 51257`. The tranche's fifteen booking gates, read by `tools/gates.py` (built this pass from the probe three passes wrote by hand): admission **1351.8 s summed, longest 134.8 s** (1375.6 / 83.8 before); **four of fifteen ended past the sixteen cores** (24.0, 19.7, 20.0, 18.7) and eleven under; the lane gates ran **11–51 minutes** (`tranche.py`'s gate class, 21.6 a session mean; 3207's 51.4 beside the sixteenth landing's whole gate and three other lane gates), and 3170's lane gate waited **400.9 s at the door**. Twenty slots is not what the receipts show as the ceiling: the box was under its cores at eleven of fifteen gate ends and the lane gates still ran twenty minutes — the gate prints `Gate minutes:` by step now (Loop 3224), and the next pass reads where a lane gate's minutes go before any slot count moves. Candidates unchanged; Ramon's. **The forty-third pass** (14:45–, 2026-10-18): the orphan is **gone** — pid 51257 is not on the box. The tranche's seventeen booking gates (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t43`): admission **1357.1 s summed, longest 168.3 s** (1351.8 / 134.8), **five of seventeen ended past the sixteen cores** (16.4, 20.0, 23.3, 17.6, 16.2); the lane gates ran 14.8–57.4 minutes a lane as **two to four gate runs a landing**, the release step 4.9–7.5 minutes where a journal quoted it (four of twenty did; the guard now asks all). The slot count is not the ceiling the receipts name; the runs a landing are (Loop 3265). The pass recommends no slot change. Ramon's. **The forty-fourth pass** (23:23–, 2026-10-18): the tranche's seventeen booking gates (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t44`): admission **993.8 s summed, longest 31.8 s** (1357.1 / 168.3), **eight of seventeen ended past the sixteen cores** (20.8, 19.3, 26.5, 25.6, 16.3, 16.1, 23.7, 16.6), 174.3 minutes of gate on the commander's 445; the lane gates' release step **6.0–26.4 minutes, median 18.9**, off twenty journals (4.9–7.5 off four the tranche before), at `--test-threads 4` and widened on every sim path — the thread count under a widening is the loop's lever (Loop 3313), the slot policy is still yours. No orphan. The pass recommends no slot change. **The forty-fifth pass** (17:50–, 2026-10-19): the tranche's twenty booking gates (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t45`): admission **2992.4 s summed, longest 96.1 s** (993.8 / 31.8), **none of twenty ended past the sixteen cores** (3.6–16.3 at the end, against eight of seventeen), 258.4 minutes of gate on the commander's 1015, three lanes (DECISIONS 83); the lane gates' release step off twenty journals: the battery words' (widened, four threads) **9.5–18.6 minutes, median 10.8** (18.9 the tranche before), the `--no-widen` sweep's 8.6–17.0. The thread count stayed and the step fell by a third with one lane fewer — the clock was the box, not the width (Loop 3313, closed). The pass recommends no slot change. Ramon's. **The forty-sixth pass** (2026-10-20): the tranche's twenty-one booking gates (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t46`): admission **3623.4 s summed, longest 160.0 s** (2992.4 / 96.1), **six of twenty-one ended past the sixteen cores** (18.1, 24.3, 26.3, 22.4, 17.3, 18.5; none of twenty before), 351.5 minutes of gate, four lanes (DECISIONS 84); the lane gates' release step off twenty journals: the battery words' (widened, four threads) **9.8–21.3 minutes, median 13.2** (10.8), the `--no-widen` sweeps' 5.8–16.6, median 10.6 (14.2). The fourth lane put six gate ends past the cores where three lanes put none; the slot policy is still yours. The pass recommends no slot change. Ramon's. **The forty-seventh pass**: six of twenty gate ends past the sixteen cores again (19.0, 24.9, 16.2, 23.4, 19.9, 18.6), the admission 5261 s summed at the door (3623), the longest wait 152 s; no orphan found (`pgrep -fl sweep_` empty at the pass). The slot policy stays yours. **The forty-eighth pass** (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t48`): seven booking gates, admission **238.2 s summed, longest 24.0 s** (5261 / 152 the tranche before), one gate end past the sixteen cores (3410's 25.3, four lanes building at once); the lane gates' release step 11.5–15.2 minutes. The box was idle but for the loop. The orphan is not re-checked by this pass. Ramon's. **The forty-ninth pass** (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t49`): sixteen booking gates, admission **98.4 s summed, longest 2.3 s** (238.2 / 24.0), one gate end past the sixteen cores (3424's 16.2, three pool lanes live); 242.7 minutes of gate; `pgrep -fl sweep_` empty at the pass. The slot policy stays yours. Ramon's. **The fiftieth pass**: (`tools/gates.py ~/.claude/jobs/1b2cdb50/tmp/t50`): twenty-one booking gates, admission **118.5 s summed, longest 3.7 s** (98.4 / 2.3), two gate ends past the sixteen cores (3442's 19.7 with three pool lanes live, 3462's 16.2); 289.9 minutes of gate; `pgrep -fl sweep_` empty at the pass. The slot policy stays yours. Ramon's. **The fifty-first pass**: seventeen booking gates waited 119.4 s summed at the door, longest 0.9 s; `Host load:` past the sixteen cores at two gate ends (3491's 25.3 beside three pool lanes, 3497's 26.0); no orphan at the pass's start. Ramon's. **The fifty-second pass**: twenty booking gates waited **1,180.7 s summed at the door, longest 25.9 s** (119.4 / 0.9 the tranche before): seven whole gates of 24–26 minutes beside thirteen scoped ones, two lanes' gates colliding; `Host load:` past the sixteen cores at three gate ends; no orphan at the pass's start. Ramon's. **The fifty-third pass**: admission 499.7 s summed, longest 28.6 s (1,180.7 / 25.9 before), on seven whole gates beside ten scoped; `Host load:` past the sixteen cores at five gate ends of seventeen, 21.6 the highest (3538's whole gate beside 3539's). No orphan found. Yours. **The fifty-fifth pass**: two Opus lanes — admission 1,822.9 s summed at the door, longest 26.1 s (4,304.8 / 59.2 on three), two of twenty gate ends past the sixteen cores (nine of nineteen); the gate class 30.7 minutes a session (41.0 on three, 26.1 on the last two-lane tranche), 87 % of a lane's waiting. The slot policy and the reaper stay yours. **The fifty-fifth pass**: two Opus lanes — admission 1,822.9 s summed, longest 26.1; two gate ends of twenty past the cores (no line was appended here, though its record says so). **The fifty-sixth pass**: two lanes — admission **1,400.5 s summed, longest 56.5** (gate-book3613), two gate ends of nineteen past the cores; the gate class 30.7 → 34.2 a session on seven whole gates of 30.9–35.5 minutes (27.8 at the last drain). The slot policy and the reaper stay yours.
 
-(3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is **The fifty-fourth pass**: not measured — a pass cannot hear the box; thirty captures ran. The muted-launch trial stays yours.
+(3118) **The captures are not silent** (Ramon, 2026-10-17, during the forty-first tranche, for the steer): sound is **The fifty-fourth pass**: not measured — a pass cannot hear the box; thirty captures ran. The muted-launch trial stays yours. **The fifty-seventh pass**: not measured — a pass cannot hear the box; thirty-eight captures ran. The muted-launch trial stays yours.
 heard while captures run, though the click-free lane was meant to be muted (parked 343, DECISIONS 40's list). What the
 tree does: `unattended_capture.py`'s `mute()` zeroes `MUSIC_VOL`, `SOUND_VOL` and `TAUNT_VOL` in the lane profile's
 `Player.dat` beside `set_map`, under the staged backup and restore; the queue lane (`runqueue.sh`, `longtrace.sh`,
@@ -11209,6 +11210,94 @@ words and edits nothing here; a refill lands when two remain.
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot SR renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SS — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SS renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot ST — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot ST renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SU — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SU renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SV — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SV renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SW — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SW renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SX — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SX renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SY — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SY renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SZ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SZ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot TA — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot TA renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot TB — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot TB renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot TC — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot TC renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

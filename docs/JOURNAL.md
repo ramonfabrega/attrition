@@ -21535,3 +21535,24 @@ dead row among the 39. Booked: the Roman word (3622, kept) and seven
 early-age pairs on free triples at difficulty 5 (3623–3629), with the
 refill order and the two nations that need entry 72's rule (3) in the
 record. **DECISIONS 95.** `docs/audit/2026-10-25-fable-pass-56.md`.
+
+**2026-10-26 — the fifty-seventh Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the fifty-seventh tranche measured — twenty
+landings on two Opus lanes from `656fb6ac5` in 13 h 22; the Roman word
+closed in four items and six early-age pairs stood up, four whole, the
+Bantu and Greeks at their first try; unit types seen 189 → 195 of 302,
+lockstep bytes 77.4 unmoved; 7.66 USD and 46.5 minutes waiting a landing
+against 6.40 / 44.2. The gate is 31.8 of a session's 40.4 waiting minutes,
+and every stand-up's lane gate fired Loop 3608's rule — the receipts say
+758 timed tests left — and ran 16–19 release minutes anyway: the budget's
+file times the data crate alone, and a replay of 3626's gate put 680 of a
+stand-up's 1,044 release seconds in the sim crate's five test binaries,
+which its branch cannot change. Built, red first: such a lane leaves the
+sim crate to the booking gate (Loop 3653); the replay with the cut read
+release 4.4 against 17.4, the lane gate six minutes wall against twenty. The lane count stays two by entry 94 §1's clause. 3638 built
+(the viadriver test waits on content), 3644 a clause on the open words'
+items, 3611 stays one tranche more; the scan found no dead row among the
+39. Booked: the two open words (3645 the Lakota first, 3646 the Spanish),
+3629 kept, and six early-age pairs in the fifty-sixth record's order
+(3647–3652), the last two by entry 72's rule (3). **DECISIONS 96.**
+`docs/audit/2026-10-26-fable-pass-57.md`.

@@ -757,7 +757,59 @@ class GateTests(unittest.TestCase):
         self.assertNotIn('diff::floors::tests::the_gate_has_a_bounded_test_width', skipped)
         self.assertEqual(len(skipped), policy['lane']['skipped'])
         self.assertGreater(len(skipped), 400)
-        self.assertEqual(command[:8], ['zsh','tools/memcap.sh','20','cargo','test','--release','--no-fail-fast','--'])
+        self.assertEqual(command[:7], ['zsh','tools/memcap.sh','20','cargo','test','--release','--no-fail-fast'])
+        self.assertEqual(command[command.index('--'):command.index('--') + 3],
+                         ['--', '--test-threads=4', '--exact'])
+
+    def test_a_lane_that_touches_no_sim_path_leaves_the_sim_crate_to_the_booking_gate(self):
+        # Loop 3653 (the fifty-seventh pass): every stand-up's lane gate of
+        # the fifty-seventh tranche fired Loop 3608's rule — 758 timed tests
+        # left to the booking gate, the receipts say — and still ran 16–19
+        # release minutes, because the timings file times the data crate
+        # alone and the sim crate's five test binaries (the four emulator
+        # sweep targets and the lib) ran whole: 682 s at four threads in the
+        # pass's replay of 3626's gate, against the data crate's kept set. A
+        # branch that touches no path under `crates/sim/` cannot change
+        # those binaries, so its lane gate leaves them to the booking gate,
+        # which always runs them; the paperwork guards in `sim` run in the
+        # guard step (`guard.sh --built`) on every lane as before.
+        rows = ['crates/rondata/src/diff.rs', 'crates/rondata/src/diff/battery.rs',
+                'crates/rondata/src/diff/greek_gunpowder_pair.rs', 'docs/AI.md', 'docs/RUNS.md']
+        command, policy = self.release_command(touched=rows, row_only=rows[:3], lane=True, tests=WORD)
+        self.assertEqual(command[command.index('--no-fail-fast'):command.index('--')],
+                         ['--no-fail-fast', '--workspace', '--exclude', 'sim'])
+        self.assertIn('--skip', command)
+        self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
+        # A sweep lane touches `sweep/`, which never widens: the timed set is
+        # still left, and its own sweeps run.
+        command, policy = self.release_command(touched=['crates/sim/src/sweep/x.rs'], lane=True, tests=WORD)
+        self.assertNotIn('--exclude', command)
+        self.assertIn('--skip', command)
+        self.assertEqual(policy['lane']['sim_crate'], 'run')
+        # A sim edit widens, and runs everything.
+        command, policy = self.release_command(touched=['crates/sim/src/fight.rs'], lane=True, tests=WORD)
+        self.assertNotIn('--exclude', command)
+        self.assertNotIn('--skip', command)
+        self.assertEqual(policy['lane']['sim_crate'], 'run')
+        # `--lane --whole` runs every test; the booking gate is never cut.
+        command, policy = self.release_command(touched=rows, row_only=rows[:3], lane=True, whole=True)
+        self.assertNotIn('--exclude', command)
+        self.assertEqual(policy['lane']['sim_crate'], 'run')
+        command, policy = self.release_command(touched=rows, scope='abc1234')
+        self.assertNotIn('--exclude', command)
+        self.assertNotIn('lane', policy)
+        # The default runner is the per-binary dispatcher (`isolated_tests.py`):
+        # the second replay of 3626's gate ran every sweep with the receipt
+        # saying `left to the booking gate`, because only the combined
+        # command carried the exclusion. Both paths carry it.
+        command, policy = self.release_command(touched=rows, row_only=rows[:3], lane=True, tests=WORD, isolated=True)
+        self.assertIn('tools/isolated_tests.py', command)
+        self.assertEqual(command[command.index('--exclude-package') + 1], 'sim')
+        self.assertEqual(policy['lane']['sim_crate'], 'left to the booking gate')
+        command, policy = self.release_command(touched=['crates/sim/src/sweep/x.rs'], lane=True, tests=WORD, isolated=True)
+        self.assertNotIn('--exclude-package', command)
+        command, policy = self.release_command(touched=rows, scope='abc1234', isolated=True)
+        self.assertNotIn('--exclude-package', command)
 
     def test_a_branch_that_can_move_the_diff_pins_widens_the_lane_gate(self):
         # Loop 2415 (the thirty-fifth pass; DECISIONS 71 amended): both kill

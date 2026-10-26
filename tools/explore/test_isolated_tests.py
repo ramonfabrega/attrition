@@ -311,3 +311,26 @@ class Manifest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ExcludedPackages(unittest.TestCase):
+    def test_a_package_left_to_the_booking_gate_keeps_its_binaries_out_of_the_run(self):
+        # Loop 3653 (the fifty-seventh pass): the gate passes
+        # `--exclude-package sim` for a lane that touches no sim path.
+        manifests = {'/w/crates/sim/Cargo.toml': '[package]\nname = "sim"\n',
+                     '/w/crates/rondata/Cargo.toml': '[package]\nname = "rondata"\n'}
+        def row(exe, manifest, src, name, kind):
+            return {'reason': 'compiler-artifact', 'executable': exe, 'manifest_path': manifest,
+                    'profile': {'test': True}, 'target': {'src_path': src, 'name': name, 'kind': [kind]}}
+        rows = [row('/t/sim-1', '/w/crates/sim/Cargo.toml', '/w/crates/sim/src/lib.rs', 'sim', 'lib'),
+                row('/t/sweep_a_f-1', '/w/crates/sim/Cargo.toml', '/w/crates/sim/tests/sweep_a_f.rs', 'sweep_a_f', 'test'),
+                row('/t/rondata-1', '/w/crates/rondata/Cargo.toml', '/w/crates/rondata/src/lib.rs', 'rondata', 'lib'),
+                {'reason': 'build-script-executed', 'executable': None, 'profile': {'test': False}}]
+        read = manifests.__getitem__
+        kept, left = runner.kept_targets(rows, exclude=('sim',), read=read)
+        self.assertEqual([exe for exe, _ in kept], ['/t/rondata-1'])
+        self.assertEqual(left, [('sim', '/w/crates/sim/src/lib.rs'), ('sim', '/w/crates/sim/tests/sweep_a_f.rs')])
+        kept, left = runner.kept_targets(rows, read=read)
+        self.assertEqual(len(kept), 3)
+        self.assertEqual(left, [])
+

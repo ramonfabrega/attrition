@@ -275,7 +275,17 @@ every stand-up's lane gate still ran the timed suite, because a stand-up
 also adds the coverage driver's window line and two test-kit rows, which
 the rule did not read — it reads them now, eight of that tranche's
 twenty gates would have kept the fast suite, and the fifty-seventh's
-drain measures it); a
+drain measured it: **the rule fired on every stand-up and saved
+nothing** — each gate's `gate-policy.json` reads 758 timed tests left
+and the journals 16–19 release minutes — because the budget's file
+times the data crate alone and the sim crate's five test binaries ran
+whole, 680 of a stand-up's 1,044 release seconds in the pass's replay
+of 3626's gate; **the fifty-seventh pass cut them** (Loop 3653,
+`sim_crate_left`): a lane that keeps the fast suite and touches no
+path under `crates/sim/` leaves the sim crate to the booking gate,
+which runs it on every merge, and the fifty-eighth's drain measures
+it in the stand-up journals' `Gate minutes:` — the gate class, not
+the lane count, is still the lever); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

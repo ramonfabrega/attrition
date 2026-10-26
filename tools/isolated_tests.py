@@ -214,7 +214,34 @@ def target_budget(target, test_threads):
     return 8, 32768
 
 
-def release(output, directory, slots, test_threads, skips=()):
+def package_name(manifest_path, read=lambda path: Path(path).read_text()):
+    """The `[package] name` of a Cargo manifest — what `--exclude` names."""
+    import tomllib
+    return tomllib.loads(read(manifest_path))['package']['name']
+
+
+def kept_targets(rows, exclude=(), read=lambda path: Path(path).read_text()):
+    """The test executables Cargo's `--no-run --message-format=json` rows
+    name, less the packages in `exclude` (Loop 3653, the fifty-seventh
+    pass: a lane that touches no sim path leaves the sim crate's binaries
+    to the booking gate; the gate passes `--exclude-package sim`). Each
+    kept row is `(executable, target)`; each left one is `(package,
+    src_path)`."""
+    kept, left, names = [], [], {}
+    for row in rows:
+        if not (row.get('reason') == 'compiler-artifact' and row.get('executable') and row['profile']['test']):
+            continue
+        manifest = row.get('manifest_path')
+        if manifest not in names:
+            names[manifest] = package_name(manifest, read=read) if manifest else None
+        if names[manifest] in exclude:
+            left.append((names[manifest], row['target']['src_path']))
+        else:
+            kept.append((row['executable'], row['target']))
+    return kept, left
+
+
+def release(output, directory, slots, test_threads, skips=(), exclude_packages=()):
     selection = (['--exact'] + [arg for name in skips for arg in ('--skip', name)]) if skips else []
     output.mkdir(parents=True, exist_ok=False)
     env = child_environment()
@@ -229,11 +256,11 @@ def release(output, directory, slots, test_threads, skips=()):
     print(build.stderr, end='', flush=True)
     if build.returncode:
         return build.returncode
-    targets = []
-    for line in build.stdout.splitlines():
-        row = json.loads(line)
-        if row.get('reason') == 'compiler-artifact' and row.get('executable') and row['profile']['test']:
-            targets.append((row['executable'], row['target']))
+    rows = [json.loads(line) for line in build.stdout.splitlines()]
+    targets, left = kept_targets(rows, exclude=tuple(exclude_packages))
+    for package, src_path in left:
+        print(f"     Leaving unittests {src_path} to the booking gate (package {package}, --exclude-package; Loop 3653)",
+              flush=True)
     if not targets or len({p for p, _ in targets}) != len(targets):
         raise ValueError('empty or duplicate Cargo executable manifest')
     (output / 'targets.json').write_text(json.dumps(targets, indent=2)+'\n')
@@ -261,8 +288,9 @@ def release(output, directory, slots, test_threads, skips=()):
             return 130
     # --no-run does not discover doctests. Keep Cargo responsible for them.
     exits.append(subprocess.run(wrapper(directory, 32768, 8) +
-                 ['cargo', 'test', '--workspace', '--release', '--doc', '--no-fail-fast', '--',
-                  f'--test-threads={test_threads}', *selection], cwd=ROOT, env=env).returncode)
+                 ['cargo', 'test', '--workspace', '--release', '--doc', '--no-fail-fast']
+                 + [arg for package in exclude_packages for arg in ('--exclude', package)]
+                 + ['--', f'--test-threads={test_threads}', *selection], cwd=ROOT, env=env).returncode)
     (output / 'exit-codes.json').write_text(json.dumps(exits)+'\n')
     return next((rc for rc in exits if rc), 0)
 
@@ -275,8 +303,11 @@ def main():
     parser.add_argument('--slots', type=int, choices=range(1, 9), default=8)
     parser.add_argument('--test-threads', type=int, default=4)
     parser.add_argument('--skip', action='append', default=[], help='exact libtest names excluded by the gate selection')
+    parser.add_argument('--exclude-package', action='append', default=[],
+                        help="a workspace package whose test binaries are left to the booking gate (Loop 3653)")
     args = parser.parse_args()
-    return release(args.output.resolve(), args.resource_directory, args.slots, args.test_threads, args.skip)
+    return release(args.output.resolve(), args.resource_directory, args.slots, args.test_threads, args.skip,
+                   exclude_packages=args.exclude_package)
 
 
 if __name__ == '__main__':

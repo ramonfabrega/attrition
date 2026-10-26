@@ -85,8 +85,13 @@ class Viadriver(unittest.TestCase):
         first = self.launch()
         time.sleep(1)
         second = self.launch()
-        deadline = time.time() + 10
-        while time.time() < deadline and not (first.exists() and second.exists()):
+        # Loop 3638 (the fifty-seventh pass): the wait is on the CONTENT, not
+        # on the file. The fixture's `echo "args: $*" >> "$log"` creates the
+        # log and then writes it, and twice in one tranche a loaded host read
+        # it in between — `'args: ' not found in ''` — and cost a lane gate's
+        # whole re-run; the deadline is twice the sibling's for the same load.
+        deadline = time.time() + 20
+        while time.time() < deadline and not (self._args_line(first) and self._args_line(second)):
             time.sleep(0.2)
         self.assertIn('args: ', first.read_text() if first.exists() else '')
         text = second.read_text() if second.exists() else ''
@@ -94,6 +99,10 @@ class Viadriver(unittest.TestCase):
                       'the second launch wrote no log: `open` without `-n` activated the '
                       'running instance and dropped the arguments (parked 810)')
         self.assertIn(str(second), text)
+
+    @staticmethod
+    def _args_line(log):
+        return 'args: ' in (log.read_text() if log.exists() else '')
 
     def test_two_launches_in_one_second_have_two_logs(self):
         # Item 1568: the log was named by the second, so two capture lanes
