@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const BRITISH_CLASSICAL: Pair = Pair {
     name: "EastIndiesBritishClassical",
@@ -35,8 +35,13 @@ pub(crate) const BRITISH_CLASSICAL: Pair = Pair {
     // ours 13 draws against 16, parting at index 1, ours
     // `Guy::set_anim+0x97a < Guy::inc_time+0x271`, theirs
     // `Guy::set_anim+0x97a < Guy::inc_time+0x1ed` (`docs/AI.md` §342).
-    count: 4567,
-    sequence: 4567,
+    // Item 3662: **4567 → 8980, the game's last frame — the pair closes.**
+    // The Galley's bays (piece 291) took the gap's rounds whole, and the
+    // sea raid arm of `compare_target` took `1/21`'s re-search on 4567:
+    // the Citizens `0/3` and `0/10` at 512 and 596, where ours scored
+    // 9512 and 9596 and turned to `0/3` (run1326's packet).
+    count: 8980,
+    sequence: 8980,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -316,4 +321,110 @@ fn british_classical_pair_run1316b_s_word_frame_is_widened_whole() {
     // 145 parting — the Galleys' rounds from the hull's square in ours.
     pin_eq!(w.rounds_read, (809, 899), "the rounds read");
     pin_eq!(w.rounds.len(), 145, "the rounds that part");
+}
+
+/// run1326b: the closing window, blocks 8725..8981 at run1316b's detail
+/// (item 3662): the word moved to the game's last frame, 8980, and no
+/// window held a block past 4817.
+pub(crate) const RUN1326B: &str =
+    "gamelog-run1326b-eastindies-british-classical-window-8725-8981.txt";
+
+/// The window: block 8725 through the closing block 8981.
+pub(crate) const WIDENING_BRITISH_CLASSICAL_FRAME_8980: (i64, i64) = (8725, 8981);
+
+/// **The closing window**: run1326b walked from run1315's start with the
+/// recorder on and every round compared (item 3662).
+pub(crate) fn british_classical_frame_8980_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[BRITISH_CLASSICAL.start],
+        true,
+        BRITISH_CLASSICAL.long,
+        "run1326b",
+        &[(RUN1326B, WIDENING_BRITISH_CLASSICAL_FRAME_8980.0)],
+        WIDENING_BRITISH_CLASSICAL_FRAME_8980,
+        1,
+        &[8981],
+        true,
+    )
+}
+
+#[test]
+fn british_classical_pair_run1326b_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = british_classical_frame_8980_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1326b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// **The closing state** (item 3662): the long's own closing block,
+/// walked to its close and compared unit for unit.
+#[test]
+fn british_classical_pair_run1316_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &BRITISH_CLASSICAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "British Classical pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 8981, "the closing block");
+    pin_eq!(e.compared, 0, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
 }

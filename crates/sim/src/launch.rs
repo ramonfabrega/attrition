@@ -2540,6 +2540,23 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 245,
         },
     ),
+    // **Piece 215, the Catapult's default style** (item 3662, `docs/AI.md`
+    // §342): run1326's packet (the British Classical lobby, logger frame
+    // 4567) holds its one attack `AttachPos` row, piece 567's own — node 0
+    // at frame 12 of `CHAR_ATTACK2`, `RData +0x88` 1.0 — and
+    // `tools/recomp/fit_bay.py` fits its sweep in 435 lattice points that
+    // hold 567's row, 361 of 361 headings. Without it the British
+    // Catapults' rounds in run1326b left their square 245 under.
+    (
+        215,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 0,
+            fwd: -33_219,
+            dz: 245,
+        },
+    ),
     // **Piece 1794, the Peltasts in the Persians' art style** (`34 + 5 ×
     // 0x160`, type 84; item 3555, `docs/AI.md` §308): run1007b's
     // `RON_STATE_FRAME=15915` packet on the Indian Great Sahara game holds
@@ -3378,6 +3395,27 @@ mod tests {
             .collect();
         assert_eq!(fits, [&(12, 7)], "1/80's round on 4905");
         assert_eq!(315 + release_dz(1809, 12, 7, 0).unwrap(), 489);
+    }
+
+    /// **The British Catapult throws from piece 215's bay** (item 3662,
+    /// `docs/AI.md` §342): run1326b's `1/119` (TI 265) on block 8855, the
+    /// figure at (6456, 10488, 39) and angle −38862848, its round from
+    /// (6458, 10521, 284). Made to fail with the row out of `BAYS`.
+    #[test]
+    fn run1326b_s_catapult_throws_from_piece_215_s_bay() {
+        let at = launch_point(
+            Pos::new(6456, 10488),
+            Angle(-38_862_848),
+            215,
+            crate::anim::ATTACK2,
+            12,
+            0,
+        );
+        assert_eq!((at.x, at.y), (6458, 10521), "1/119's round on 8855");
+        assert_eq!(
+            39 + release_dz(215, crate::anim::ATTACK2, 12, 0).unwrap(),
+            284
+        );
     }
 
     /// **The Galley looses from piece 291's bays** (item 3662,
