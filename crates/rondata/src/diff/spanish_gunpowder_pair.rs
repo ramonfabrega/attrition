@@ -46,8 +46,13 @@ pub(crate) const SPANISH_GUNPOWDER: Pair = Pair {
     // 3876 ours spends 8 draws against 7, parting at index 4: ours
     // `Object::take_damage+0xe1` (its round lands on the Farm), theirs
     // `Farms::inc_time+0x1ae` (its round lands on 3877).
-    count: 3876,
-    sequence: 3876,
+    // Item 3643: 3876 → **4859** by both — the Frigate's piece 293 fires
+    // its broadside from `launch::BAYS`' rows (run1304's packet), so the
+    // round leaves (1809, 5233) for 12 frames with theirs and lands on
+    // 3877 (§335.3). On 4859 ours spends 16 draws against 18, parting at
+    // index 7: ours `Unit::fight+0x9b0`, theirs `Unit::come_out+0x25ca`.
+    count: 4859,
+    sequence: 4859,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -476,5 +481,73 @@ fn spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole() {
     // early: launched from the ship's centre (1896, 5352) for 11 frames,
     // where theirs' broadside leaves (1809, 5233) for 12 (`docs/AI.md`
     // §335.2; this walk compares no `AMMO` record).
-    pin_eq!(w.firsts.len(), 102, "run1301b baseline");
+    // Item 3643: 102 → 95. The Frigate's broadside leaves its piece 293's
+    // bay (1809, 5233) for 12 frames with theirs, and the Farm is struck
+    // on 3877 both sides; what is left past block 3861 is who=1's groups'
+    // `held` and pools on 3882, 3966, 4018, 4028 and 4106 (§335.3).
+    pin_eq!(w.firsts.len(), 95, "run1301b baseline");
+}
+
+/// run1304b: the word 4859's window, blocks 4853..5109 at run1287b's
+/// detail — six blocks before the word's block 4860 and 250 after (item
+/// 3643); the stride's blocks are 4801 and 4901.
+pub(crate) const RUN1304B: &str =
+    "gamelog-run1304b-eastindies-spanish-gunpowder-window-4853-5109.txt";
+
+/// The window: block 4853 through 5109; the word 4859's own block is 4860.
+pub(crate) const WIDENING_SPANISH_GUNPOWDER_FRAME_4859: (i64, i64) = (4853, 5109);
+
+/// **The word 4859's window**: run1304b walked from run1286's start with
+/// the recorder on (item 3643).
+pub(crate) fn spanish_gunpowder_frame_4859_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[SPANISH_GUNPOWDER.start],
+        true,
+        SPANISH_GUNPOWDER.long,
+        "run1304b",
+        &[(RUN1304B, WIDENING_SPANISH_GUNPOWDER_FRAME_4859.0)],
+        WIDENING_SPANISH_GUNPOWDER_FRAME_4859,
+        1,
+        &[4860],
+        true,
+    )
+}
+
+#[test]
+fn spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_gunpowder_frame_4859_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3643, the first walk: 857 keys. Block 4853 carries only the
+    // standing families (`form`, who=1's groups' `held` and pools,
+    // `SITE[i].reg`, who=0's `aggression[1]`). The first row past them is
+    // the word's block 4860: who=1's Fire Ship `1/86` (TypeIndex 336, uid
+    // 132, group 71, on an `ATTACKTOORDER`) at (31656, 30984) against
+    // theirs' (31643, 31002); on 4861 the Frigate `1/58` (TypeIndex 343,
+    // uid 93, group 71) holds 3 orders in theirs against ours' 1, the
+    // current a `MOVEORDER` to (3240, 6168) over its `ATTACKTOORDER` to
+    // (600, 7944) (`docs/AI.md` §335.3). The word 4859: ours 16 draws
+    // against 18, parting at index 7, ours `Unit::fight+0x9b0`, theirs
+    // `Unit::come_out+0x25ca`.
+    pin_eq!(w.firsts.len(), 857, "run1304b baseline");
 }

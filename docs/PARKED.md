@@ -11088,6 +11088,7 @@ leaders' `treaties` part (3 against 1). The space-air arm of `UnitData::mana` st
   the Caravel, now has its broadside (`launch::BAYS`, item 3633), 150 units
   off the hull; any other ship's piece with no `BAYS`, `GUNS` or `MEASURED`
   row still looses from the hull's square, a frame of flight long at range.
+  *Piece 293, the Frigate, has its two rows since item 3643 (§335.3).*
   Which ship pieces release with no row is a grep of the install's
   `<RELEASEEVENT>`s against the three tables. It names no score.
 
@@ -11179,13 +11180,14 @@ The Dragoon's piece 1195 reads piece 139's pivot and release rows, and the pair 
   fire on the move weighs a dock (`64e80e`–`64e81f`, objmask `0x40000`). No capture on file reaches it, and it names
   no score.
 
-## Parked by the next landing, slot SO — reserved
+## Parked by item 3643, 2026-10-25 — the Frigate's bays
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3643a. The Frigate's left broadside is the packet's alone.** Piece
+  293's `CHAR_ATTACK1` row (`launch::BAYS`, −117,433 / −11,024, `dz` 47)
+  is run1304's sweep; no round on file plays it (every round of run1301b
+  is `CHAR_ATTACK2`). The Asian Frigate (`FRIGATE-ASIAN-AGE0`) is another
+  graph and has no row. A capture whose Frigate fires to port would test
+  the row; it names no score.
 
 ## Parked by the next landing, slot SP — reserved
 

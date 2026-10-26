@@ -7296,6 +7296,16 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole",
         2,
     ),
+    // Item 3643: the Spanish Gunpowder pair, walked from run1286 along
+    // run1287 to its new word 4859: the Frigate `1/29`'s rounds at the
+    // Farm `0/2004` read 2 inexact corners, as run1301b's do.
+    ("spanish_gunpowder_pair_first_parting", 2),
+    // Item 3643: run1304b, the Spanish Gunpowder word 4859's window,
+    // 4853..5109, reads 8 inexact corners.
+    (
+        "spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole",
+        8,
+    ),
     // Item 3633: the Roman Medieval pair, walked from run1274 along
     // run1275 to its new word 5971, reads 27 inexact corners.
     ("roman_medieval_pair_first_parting", 27),
@@ -10431,13 +10441,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run1287b over 2163..2419 (the word's block 2169). Item 3640 moved it
     // to 3866 (the sequence), widened on run1301b over 3861..4117 (the
     // word's block 3867). Item 3642 moved it to 3876, inside the same
-    // window (the word's block 3877).
+    // window (the word's block 3877). Item 3643 moved it to 4859, widened
+    // on run1304b over 4853..5109 (the word's block 4860).
     (
         "SPANISH_GUNPOWDER_PAIR_WORD",
         crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER_PAIR_WORD,
-        Some("spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole"),
-        3642,
-        Some(crate::diff::spanish_gunpowder_pair::WIDENING_SPANISH_GUNPOWDER_FRAME_3866),
+        Some("spanish_gunpowder_pair_run1304b_s_word_frame_is_widened_whole"),
+        3643,
+        Some(crate::diff::spanish_gunpowder_pair::WIDENING_SPANISH_GUNPOWDER_FRAME_4859),
     ),
     // **The Lakota at a held Gunpowder age** (item 3628): Great Sahara —
     // first try 4187 of 4750 by the count and the sequence, widened on
@@ -12411,7 +12422,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Spanish at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies (item 3627): first try 2168 of a
     // game that ends itself on 6128, widened on run1287b; 3866 since item
-    // 3640, widened on run1301b; 3876 since item 3642, the same window.
+    // 3640, widened on run1301b; 3876 since item 3642, the same window;
+    // 4859 since item 3643, widened on run1304b.
     AiWord {
         line: "Late ages",
         map: "EastIndiesSpanishGunpowder",
@@ -12419,7 +12431,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::spanish_gunpowder_pair::SPANISH_GUNPOWDER_PAIR_WORD,
         length: 6_128,
         endpoint: None,
-        window: Some("spanish_gunpowder_frame_3866_window"),
+        window: Some("spanish_gunpowder_frame_4859_window"),
     },
     // The Lakota at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), Great Sahara (item 3628): first try 4187 of a

@@ -30902,7 +30902,7 @@ run1301b's block 3877 the first non-standing rows are:
 round (`RON_DEBUG_AMMO`) leaves the ship's centre (1896, 5352) with 11
 frames and lands at (4221, 5645). That is 2447 world units against 2343
 at about 204 a frame. The draws agree on every frame a round is fired, so
-the launch point is the next item's hypothesis. **The pair widenings
+the launch point is the next item's hypothesis. *Built, §335.3.* **The pair widenings
 compare no `AMMO` record** (`diff::ammo` is read by `diff::golden`
 alone), so the launch parted on 3860 and no key showed it until the
 Farm's `damage` on 3877. 3802..3860 is now dumped and 3861..4117 was
@@ -30911,6 +30911,24 @@ walk's comparison, is the next take.
 
 **The rubric.** The pair is open (3876 of 6128). `RUBRIC_UNIT_TYPES_SEEN`
 stays 194.
+
+### 335.3 The Frigate fires from its bays: piece 293 (item 3643, 2026-10-25)
+
+*Item 3643, Opus 5.5; runs 1304 (packet) and 1304b.* **3876 → 4859.** run1301b's `AMMO` rounds from `1/29` (piece
+293) leave (1809, 5233) for 12 frames on both release ticks; ours left
+the hull (parked 3633b: no row). run1304's packet holds node 0 at frame 7
+(500 ms) of anims 11 and 12; each sweep fits one `Bay` region at all 361
+headings. **Built**: `launch::BAYS` rows `(293, 11, 7)` −117,433 /
+−11,024 / 47 and `(293, 12, 7)` −103,432 / 106,239 / 20
+(`launch::tests::the_frigate_s_bays_are_the_packet_s_sweep`). The
+round and the Farm's 3877 agree; run1301b 102 → 95 keys, all standing.
+Mutation: piece 293 out of `launch::bay` → back to 3876.
+
+**The next word: 4859, ours 16 draws against 18, index 7** (ours
+`Unit::fight+0x9b0`, theirs `Unit::come_out+0x25ca`; run1304b, 857
+keys). On 4860 the Fire Ship `1/86` (TI 336, group 71) is at (31656,
+30984) against (31643, 31002); on 4861 the Frigate `1/58` (TI 343,
+group 71) holds 1 order against theirs' 3, which pushes from 4860.
 
 ## 336. The Lakota at a held Gunpowder age, Great Sahara: first try 4187 of 4750 (item 3628)
 

@@ -3532,6 +3532,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::spanish_gunpowder_pair::spanish_gunpowder_gap_window(),
         || super::spanish_gunpowder_pair::spanish_gunpowder_frame_3866_window(),
         || super::spanish_gunpowder_pair::spanish_gunpowder_gap_3866_window(),
+        || super::spanish_gunpowder_pair::spanish_gunpowder_frame_4859_window(),
         || super::lakota_gunpowder_pair::lakota_gunpowder_frame_4187_window(),
         || super::lakota_gunpowder_pair::lakota_gunpowder_stride_window(),
         || super::lakota_medieval_pair::lakota_medieval_frame_4168_window(),
