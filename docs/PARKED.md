@@ -11265,13 +11265,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot SX — reserved
+## Parked by item 3654, 2026-10-26 — the Lakota Gunpowder pair closes: the decoy Bombards take their army's target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SX renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+**3645's hypothesis, the births, was killed by its own frame.** The twenty decoys The President casts on 4477 are
+born alike on both sides. The parting was `1/185`'s search: `find_nearby_target`'s packed-siege shortcut answers
+every caller in the original, and ours asked it from only three (`docs/AI.md` §336.2). The pair closes at 4750 of
+4750. One row parks, and it names no score:
+
+- **3654a. `Group::action_attack`'s per-member search does not ask the siege shortcut** (`sim::attack_view`, a
+  `SEAM`). The original's shortcut sits inside `find_nearby_target`, so this caller would take it too. No capture
+  on file reaches it with a packed siege engine in an army, and `find_new_target`'s arm, built here, is backed by
+  the sim test alone (the mutation holds on the test, and the pair walk passes without the arm). The killer: a
+  pair whose word frame has a packed computer siege engine in an army take a target through `action_attack`.
 
 ## Parked by the next landing, slot SY — reserved
 

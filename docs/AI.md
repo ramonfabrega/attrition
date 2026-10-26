@@ -31069,14 +31069,74 @@ part, then their collisions (`collide_o` 185 in theirs on
 (9240, 27240)) and `1/180`'s `attack[1].mandatory` (0 against 1). The
 first round to part is the Musket Horse `1/25`'s landing on 4478.
 
-**What is not established.** Why `1/177`..`1/186` stand and move apart
+**What is not established.** ~~Why `1/177`..`1/186` stand and move apart
 on 4478. Their births are inside run1305c, and nothing here reads them
-(`births.py`, `RON_DEBUG_BUILDS` over 4472–4478). The 3645a–c rows are
-read only as far as their own blocks.
+(`births.py`, `RON_DEBUG_BUILDS` over 4472–4478).~~ Answered by item 3654
+(§336.2): the births agree, and the decoy Bombards' army target parts. The
+3645a–c rows are read only as far as their own blocks.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **195 of
 302**, unmoved: the rubric counts lockstep games only, and this pair
 parts. Musket Horse (207) stays on the lockstep "never" list.
+
+### 336.2 The decoy Bombards take their army's target (item 3654)
+
+*Item 3654, 2026-10-26, Opus 5.5.* **3645's hypothesis is killed: the births
+agree.** On frame 4477 The President `1/15` (TI 355) casts Create Decoy
+(spell 634, `crate::cast_decoy`), and twenty decoys `1/170`..`1/189` are born
+into group 64 (`births.py` over run1305c 4472..4480). Both sides spend 26
+`Guy::init_real` draws on them, and theirs' `set_new_location` puts every
+decoy where ours does. The draw delta is one unit's. Theirs' draws 56..64 are
+nine `Unit::find_attack_pos < Unit::fight` draws of `1/185`, a decoy Bombard
+(TI 267, packs), and ours spends none for it.
+
+- **Ours' path** (a probe, `29f26b0e8`, reverted whole in `ce99a83b8`): both
+  Bombards took `0/2000` with `mandatory` 0. They got it through
+  `Group::target_opportunity`'s member search
+  (`find_melee_target_added_in`) and `fight`'s re-search (`find_new_target`
+  → `find_melee_target_headed`). Neither asked the packed-siege shortcut.
+  `fight` then met the STAND_GROUND gate (`!mandatory && StandGround &&
+  !on_duty`) and returned before `find_attack_pos`.
+- **The original's**: the shortcut lies inside
+  `Object::find_nearby_target@00648da0:198`–`222`, ahead of the add flag, so
+  every `find_melee_target` caller takes it. `Unit::fight`'s third argument
+  is the order's `mandatory` at `do_attack` time. `[ebp+0x10]` is written
+  only at `5fd867` (llvm-objdump of `fight`); the decompile's later
+  `param_3 =` lines are register reuse.
+- **The fix**: `take_siege_army_target` is asked first in the
+  `SquadHead::Search` arms of both functions (`sim::orders`). The test is
+  `fight::tests::find_new_target_and_target_opportunity_take_the_army_target_mandatory`.
+  The mutation (`tools/mutate.py`, each arm unkeyed) holds on both. The
+  `target_opportunity` arm is caught by the test and by
+  `lakota_gunpowder_pair_first_parting`. The `find_new_target` arm is caught
+  by the test alone, because the pair walk passes without it.
+  **SEAM**: `Group::action_attack`'s per-member search (`attack_view.rs`)
+  does not ask it, and no run here reaches that caller with a packed siege
+  engine.
+
+**The value diff on block 4478:**
+
+| record | field | ours before | ours now | theirs |
+|---|---|---|---|---|
+| `1/185` | position | (9192, 26808) | (9201, 26816) | (9201, 26816) |
+| `1/185` | top order | `ATTACK` (10) | `MOVE` (1) to (9240, 27240) | `MOVE` to (9240, 27240) |
+| `1/180` | `attack[1].mandatory` | 0 | 1 | 1 |
+
+**The word: 4477 → 4750 of 4750**, by the count and the sequence, and **the
+pair closes**. run1305c falls from 3790 keys to 51, all standing, and its
+rounds read 203 a side. The closing state
+(`lakota_gunpowder_pair_run1289_s_closing_state`, block 4751) compares 214
+units, and every count is 0. run1319 (blocks 4495..4751,
+`lakota_gunpowder_pair_run1319_s_closing_frame_is_widened_whole`) reads 50
+keys, all standing, and 168 rounds a side; none part.
+
+**What is not established.** `Group::action_attack`'s caller, as above,
+and any capture that reaches the `find_new_target` arm.
+Why parked 3645a–c's standing rows stand is unread.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **196 of
+302**, up from 195: the pair is lockstep now, and Musket Horse (207, land;
+280 figure rows) leaves the "never" list.
 
 ## 337. Reserved for the next item on the AI track
 

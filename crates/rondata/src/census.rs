@@ -450,7 +450,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// --tables 3` on this tree. Item 3641: 194 -> 195, the Chinese Gunpowder
 /// pair whole at 5568 — `Heavy Fire Lances` (97, land; 1620 figure rows),
 /// the line §333 booked, read by `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 195;
+/// Item 3654: 195 -> 196, the Lakota Gunpowder pair whole at 4750 —
+/// `Musket Horse` (207, land; 280 figure rows), the line §336 booked,
+/// read by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 196;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
