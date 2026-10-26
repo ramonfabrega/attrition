@@ -355,6 +355,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `(18, 0, 5)`, another map; the battery's one Aztec game is the
     // held-out `EastIndiesAztecTier1`, `(18, 0, 1)`.
     (7, 0, 5),
+    // The British at a held Classical age, East Indies, at difficulty 4
+    // (item 3651): the first held-age pair below difficulty 5 on this map;
+    // every other British triple is at 0 or 5, and the battery fields no
+    // British.
+    (18, 11, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

@@ -11258,13 +11258,10 @@ points are the word's own next take, the item the commander books
 Nothing parked: the Marines' Transport Galleon's hits and speed are the
 word's own next take, the item the commander books (`docs/AI.md` §341).
 
-## Parked by the next landing, slot SV — reserved
+## Parked by item 3651, 2026-10-26 — the British at a held Classical age, East Indies, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot SV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the Galley's launch point is the word's own next take, the
+item the commander books (`docs/AI.md` §342).
 
 ## Parked by the next landing, slot SW — reserved
 

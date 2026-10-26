@@ -54,6 +54,8 @@ mod bantu_word;
 #[cfg(test)]
 mod battery;
 #[cfg(test)]
+mod british_classical_pair;
+#[cfg(test)]
 mod british_enlightenment_pair;
 mod build;
 #[cfg(test)]
