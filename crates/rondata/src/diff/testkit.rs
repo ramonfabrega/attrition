@@ -10516,6 +10516,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3657,
         Some(crate::diff::aztec_medieval_pair::WIDENING_AZTEC_MEDIEVAL_FRAME_2556),
     ),
+    // **The Inca at a held Enlightenment age** (item 3648): Great Sahara —
+    // first try 3095 of 4045 by the count and the sequence, widened on
+    // run1310b over 3089..3345 (the word's block 3096), the rounds
+    // compared.
+    (
+        "INCA_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::inca_enlightenment_pair::INCA_ENLIGHTENMENT_PAIR_WORD,
+        Some("inca_enlightenment_pair_run1310b_s_word_frame_is_widened_whole"),
+        3648,
+        Some(crate::diff::inca_enlightenment_pair::WIDENING_INCA_ENLIGHTENMENT_FRAME_3095),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12530,6 +12541,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_602,
         endpoint: None,
         window: Some("aztec_medieval_frame_2556_window"),
+    },
+    // The Inca at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), Great Sahara (item 3648): first try 3095 of a
+    // game that ends itself on 4045, widened on run1310b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatSaharaIncaEnlightenment",
+        named: "Great Sahara (Inca, Enlightenment)",
+        word: crate::diff::inca_enlightenment_pair::INCA_ENLIGHTENMENT_PAIR_WORD,
+        length: 4_045,
+        endpoint: None,
+        window: Some("inca_enlightenment_frame_3095_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

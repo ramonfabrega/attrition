@@ -31395,12 +31395,80 @@ parts. **`Xopilli Atl-Atls` (87)**, the booking's line, **is fielded**:
 1506 guy records in run1308 and 11586 in run1308b (`rubric.scan`). It
 stays on the "never" list until the pair closes.
 
-## 339. Reserved for the next item on the AI track
+## 339. The Inca at a held Enlightenment age, Great Sahara: first try 3095 of 4045 (item 3648)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), on the
+Turkish Enlightenment pair's map and age (§307) with the nation moved and
+the difficulty at 5: Great Sahara, `MAP_STYLE 7`, human Nubians (4)
+against **the Inca (2)** at Difficulty 5, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4`.
+`crates/rondata/src/diff/inca_enlightenment_pair.rs` pins it. Its triple
+`(7, 2, 5)` is minted in `battery::SCORED_LOBBIES`. The battery fields no
+Inca; the AI words `inca_word` and `inca_sahara_word` are `(18, 2, 3)` and
+`(7, 2, 3)`, and the Classical pair East Indies' `(18, 2, 5)`.
+
+**The captures.** run1309 is the `DUMP_ALL` start, and run1310 the long
+(`cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which **ended itself
+on 4045**. run1310b is the word's window, blocks 3089..3345, with
+`LEADERS=9` and `AMMO=5`. `GAME INFO` reads back `DIFFICULTY 5`,
+`STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` on both pair takes
+(`Pair::assert_lobby`). By `rngcmp.py`, run1309 against run1310 is 37 of
+37 frames identical, and run1310b against run1310 3346 of 3346. The walk
+is seeded from run1309's initial state (3506a).
+
+**First try: frame 3095 of 4045**, by the count and the sequence. On 3095
+ours spends 13 game-stream draws against theirs' 12, parting at index 9:
+ours `Unit::close+0xcb6`, theirs `Farms::inc_time+0x1ae`.
+
+**The stride** (`inca_enlightenment_pair_the_long_s_stride_walks_back_from_3095`,
+101..3001: 30 blocks, 84 keys) parts only on the standing families: 47
+buildings' `build:extra`, `form` on 27 units, and who=1's five groups'
+`held` and pools (65 on 101 through 68 on 2101).
+
+**The state parts in the gap, on a target.** run1310b's window (walked
+from run1309 with every round compared: 256 blocks, **1205 keys**, rounds
+104 theirs against 138 ours with 109 parting, the two `gaia:` keys
+unprinted, no inexact ground corner) parts on its first block, 3089,
+beyond the standing families. Who=1's **Musketeers** `1/36` (`TY` 49,
+TypeIndex 99, group 64, stance Raid, `RON_DEBUG_UNIT`) holds an attack on
+a different Citizen of the human's on each side, and the Citizen `0/5`
+was struck a frame apart:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3089 | `1/36` | `order:target` | `0/5` | `0/12` |
+| 3089 | `0/5` (TypeIndex 50) | `damage_frame` | 3054 | 3053 |
+| 3089 | `0/5` | `pos` | (7536, 29352) | (7525, 29330) |
+| 3089 | city `0/2000` | `raid_stamp` | 3077 | 3076 |
+| 3095 | `0/12` (TypeIndex 50) | `hits_left` | 12 | 8 |
+| 3096 | `0/5` | `hits:damage` | 72 | 58 |
+| 3096 | who=0's leader | `num_units[0]` | 11 | 12 |
+
+`RON_DEBUG_UNIT` on the long walk has ours' `1/36` take `0/5` on 3085.
+The draw streams agree through 3094, so whatever parted `0/5`'s
+`damage_frame` by one frame near 3053 spent no draw of its own.
+
+**The direction: ours acted.** On the word 3095 ours' rounds bring `0/5`'s
+damage past its 65 hits and close it — the extra draw at
+`Unit::close+0xcb6` — while theirs' `0/5`, struck less (58), lives, and
+theirs' next draw is the farm's `Farms::inc_time+0x1ae`. Theirs' `1/36`
+strikes `0/12` instead. The kill is downstream of the target, and the
+target downstream of the gap. The next item's **hypothesis** is the
+frame `0/5`'s `damage_frame` parts on (3053 against 3054) and who struck
+it: its first take is a gap window over the undumped 3002..3088, which no
+dump on disk holds.
+
+**What is not established.** Who struck `0/5` on 3053 in theirs, and why
+ours strikes it a frame later; why ours' `1/36` takes `0/5` on 3085 where
+theirs' holds `0/12`; and whether the Musketeers' launch point agrees —
+every round that parts in the window also parts on its target, so none
+answers it.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **198 of
+302**, unmoved: the rubric counts lockstep games only, and this pair
+parts. **`Mortar` (274)**, the booking's line, **is fielded**: 570 guy
+records in run1310 and 9078 in run1310b (`rubric.scan`). It stays on the
+"never" list until the pair closes.
 
 ## 340. Reserved for the next item on the AI track
 

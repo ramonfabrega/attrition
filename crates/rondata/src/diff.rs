@@ -102,6 +102,8 @@ mod harness;
 #[cfg(test)]
 mod inca_classical_pair;
 #[cfg(test)]
+mod inca_enlightenment_pair;
+#[cfg(test)]
 mod inca_sahara_word;
 #[cfg(test)]
 mod inca_word;
