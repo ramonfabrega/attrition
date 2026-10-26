@@ -10747,3 +10747,7 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1291  run1157's line with --ai-tribe 18 and run1290's lobby   (the draw stream; ended itself on 5128)
 #   run1291b --map 18 --end-frame 4212 --allow-early-end --timeout 3600 --log-window 3956 4212 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 18 --cover cover=0, run1290's lobby   (the word 3962's window)
 # Checks: `rngcmp.py` run1290 vs run1291 -> 37 identical; run1291 vs run1291b -> 4213 identical.
+# ==== item 3655: the Iroquois Enlightenment word 3962 -> 5128, the pair whole (`docs/AI.md` §337.1; `docs/RUNS.md` run1320, run1320b) ====
+#   run1320  --map 18 --end-frame 5128 --allow-early-end --timeout 3600 --log-window 4873 5129 --detail (run1291b's) --ai-tribe 18 --cover cover=0, run1290's lobby   (the closing window)
+#   run1320b --map 18 --end-frame 5068 --timeout 3600 --log-window 5065 5067 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 18 --cover cover=0 --tracer-def RON_STATE_FRAME=5066 --tracer-def RON_STATE_PLAN=…, run1290's lobby   (a packet: piece 1457)
+# Checks: `rngcmp.py` run1291 vs run1320 -> 5129 identical.
