@@ -11392,6 +11392,40 @@ mod tests {
         }
     }
 
+    /// **`find_new_target`'s and `Group::target_opportunity`'s searches
+    /// take the shortcut too** (item 3654, `docs/AI.md` §336.2): it sits
+    /// inside `find_nearby_target@00648da0:198`–`222`, ahead of the add
+    /// flag, so every `find_melee_target` caller reaches it. The Lakota
+    /// Gunpowder pair's decoy Bombards `1/180` and `1/185` took the army's
+    /// `0/2000` there `mandatory 1` on 4477, and `1/185` walked its ring.
+    /// Out of an army the engine searches, and at this distance takes
+    /// nothing.
+    #[test]
+    fn find_new_target_and_target_opportunity_take_the_army_target_mandatory() {
+        for (arm, in_army) in [
+            ("find_new_target", true),
+            ("find_new_target", false),
+            ("target_opportunity", true),
+            ("target_opportunity", false),
+        ] {
+            let limit = at_war().0.tuning.unit_respond_range * 0x180;
+            let (mut sim, me, foe) = idle_packed_engine(limit - 48, in_army);
+            if arm == "find_new_target" {
+                sim.find_new_target(me, false);
+            } else {
+                sim.find_melee_target_added_in(me, limit * 2);
+            }
+            let attacking = sim.order_type(me) == crate::orders::index::ATTACK
+                && sim.units[me].combat.target == Some(Obj::Unit(foe));
+            assert_eq!(
+                attacking && sim.units[me].combat.mandatory,
+                in_army,
+                "{arm}, in_army {in_army}: {:?}",
+                sim.units[me].orders
+            );
+        }
+    }
+
     /// **An idle melee-and-ranged type searches at its second range**
     /// (`Unit::think_attack@005f5a80:167`–`174`, item 3383, `docs/AI.md`
     /// §291): a type whose flags carry `0x400` has `max_range` 0 and its
