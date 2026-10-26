@@ -353,3 +353,75 @@ fn lakota_gunpowder_pair_run1305_s_gap_is_widened_whole() {
     pin_eq!(w.rounds_read, (2, 2), "the rounds read");
     pin!(w.rounds.is_empty(), "a round parts: {:?}", w.rounds);
 }
+
+/// run1305c: the word 4477's window, blocks 4472..4728 at run1289b's
+/// detail — six blocks before the word's block 4478 and 250 after (item
+/// 3645).
+pub(crate) const RUN1305C: &str =
+    "gamelog-run1305c-greatsahara-lakota-gunpowder-window-4472-4728.txt";
+
+/// The window: block 4472 through 4728; the word 4477's own block is 4478.
+pub(crate) const WIDENING_LAKOTA_GUNPOWDER_FRAME_4477: (i64, i64) = (4472, 4728);
+
+/// **The word 4477's window**: run1305c walked from run1288's start with
+/// the recorder on and every round compared (item 3645).
+pub(crate) fn lakota_gunpowder_frame_4477_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[LAKOTA_GUNPOWDER.start],
+        true,
+        LAKOTA_GUNPOWDER.long,
+        "run1305c",
+        &[(RUN1305C, WIDENING_LAKOTA_GUNPOWDER_FRAME_4477.0)],
+        WIDENING_LAKOTA_GUNPOWDER_FRAME_4477,
+        1,
+        &[4478],
+        true,
+    )
+}
+
+#[test]
+fn lakota_gunpowder_pair_run1305c_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = lakota_gunpowder_frame_4477_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3645, the first walk: 3790 keys. Block 4472 carries the standing
+    // families and who=1's food (`bucket[0:food]` 10920 against 10966,
+    // parked 3645b). **The word 4477's block 4478** parts on who=1's units
+    // born in the window, `1/177`..`1/186`: positions (`1/185` at (9192,
+    // 26808) against (9201, 26816)), collisions (`collide_o` 185 in theirs
+    // on `1/177`..`1/179`), `1/185`'s order (ours kind 10 against theirs'
+    // 1, to (9240, 27240)) and `1/180`'s `attack[1].mandatory` 0 against
+    // 1. The draw on 4477: ours 73 against 83, index 56, ours
+    // `Guy::set_anim < Unit::move_step`, theirs `Unit::find_attack_pos <
+    // Unit::fight` (`docs/AI.md` §336).
+    pin_eq!(w.firsts.len(), 3790, "run1305c baseline");
+    // Every round, both directions: 203 round-blocks theirs, 185 ours; the
+    // first to part are the Musket Horse `1/25`'s landing on 4478 (ours
+    // (6076, 28723) against (6067, 28724)) and the Bombard `1/58`'s on 4480.
+    pin_eq!(w.rounds_read, (203, 185), "the rounds read");
+    pin_eq!(w.rounds.len(), 47, "the rounds that part");
+}
