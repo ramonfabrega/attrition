@@ -31743,7 +31743,8 @@ holds 160 hits against ours' 90 and steps 31 a frame against ours' 25, so
 it reaches its path's next waypoint first (3214) and turns for the next
 on 3215, where ours is still walking the old leg. That is the word's draw.
 
-**The hypothesis** for the next item: `SpellType::cast_transport`'s
+**The hypothesis** for the next item (built by item 3661, and real, but
+not the word's draw: §341.1): `SpellType::cast_transport`'s
 `MARINES` arm (§6.1 of `docs/TRANSPORT.md`: `unit_masks2 |= 0x200` and
 `update_speed`) and `Unit::update_hits`'s American-marines term, both
 SEAMs here (`SimTransport::marines` is empty in
@@ -31763,8 +31764,8 @@ crate holds alone. Ours reads 18 round-blocks against theirs' 9. Both are
 after the word, and unread.
 
 **What is not established.** The cast's frame on each side (the gap
-3102..3200 is undumped); the speed bonus's tech count; the Sloop's
-rounds; and the Scholar's figure `angle`, which stands from 401 and moves
+3102..3200 is undumped); ~~the speed bonus's tech count~~ (Military 3,
+§341.1); ~~the Sloop's rounds~~ (agree since §341.1); and the Scholar's figure `angle`, which stands from 401 and moves
 no draw in the walk.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **200 of
@@ -31772,6 +31773,63 @@ no draw in the walk.
 parts. **`Continental Marines` (119)**, the booking's line, **is
 fielded**: 3420 guy records in run1314 and 7680 in run1314b
 (`rubric.scan`).
+
+### 341.1 The pair whole: the marines dig in, and three pieces' bays (item 3661)
+
+**The boat first.** `cast_transport`'s `MARINES` arm sets `unit_masks2 |=
+0x200` (`combat::umask2::MARINES`), and `own_hits`/`own_speed` read it:
+`AMERICANS_MARINE_HP_BONUS` 70, and the Military level times
+`AMERICANS_MARINE_SPEED_BONUS` 2 ahead of every percentage
+(`update_speed@006055c0`). run1314b's `LEADERDATA` has who=1 at Military
+3: 25 + 6 = 31, 90 + 70 = 160. `1/105` then agrees on the stride; the word
+stayed at 3215, same draw delta.
+
+**3215 is a Marine's idle wrap.** Theirs spends four `Guy::inc_time`
+wraps at indices 6–9 against ours' three. run1325 (blocks 3178..3434,
+`GUYS=4`) prints the figures' clocks: on 3214 four Marines (`1/40`,
+`1/49`, `1/55`, `1/56`) play idle variant 0 in theirs and 1 or 2 in ours,
+and `1/55` is at t68 of 70, so it wraps on 3215 in theirs alone. They are
+**in their own trench**: `check_idle@006032c0:33–41` digs in a unit with
+`unit_masks2 & 0x800` (`set_type`'s `is(0x77)` mark) idle for
+`AMERICANS_MARINE_ENTRENCH` as loaded — `x − x/15 + 2` = 7
+(`Constants::init@00569a90:1825`) — and `Guy::set_anim`'s `005daba0`
+sends a trenched figure to anim 0. A step leaves it
+(`move_step@005faf30:60–65`). `fight`, `find_melee_target` and
+`find_nearby_target` honour only a trench without `0x20000`
+(`Sim::hard_trench`).
+
+**5583 is a launch point.** run1325b (blocks 5577..5833) parts the human's
+capital `0/2000` on 5584 (`build:damage` 0 ours, 4 theirs) from the
+Marine `1/122`'s round, which left the figure's own point in ours. The
+Marines draw piece **69** (`MARINES`) and no table named it; run1325c's
+`RON_STATE_FRAME=5578` packet holds its three attack `AttachPos` rows
+(node 0, frames 1, 7, 4; `RData +0x88` 1.1), and `fit_bay.py` fits each
+sweep, 361 of 361 headings.
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 3201 | `1/105` | `myhits`, `myspeed` | 90, 25 | 160, 31 | 160, 31 |
+| 3214 | `1/55` | `unit_masks2`; anim, `end_time` | 0; 2, 98 | `0x20800`; 0, 70 | `0x20800`; 0, 70 |
+| 5579 | `1/122`'s round | `sx, sy, sz` | (7464, 9624, 190) | (7451, 9479, 418) | (7451, 9479, 418) |
+| 5584 | `0/2000` | `build:damage` | 0 | 4 | 4 |
+| 6475 | `1/96`'s round | `sx, sy, sz` | (9480, 9864, 318) | (9369, 9768, 418) | (9369, 9768, 418) |
+
+**What moved.** **3215 → 5583 → 6669 of 6669**, by the count and the
+sequence: the pair closes. The closing state
+(`american_enlightenment_pair_run1314_s_closing_state`) compares 305
+units, none off, torn, unlinked or extra, `Closing fields: none`.
+run1325d, the closing window 6414..6670, parted only who=1's Cannons'
+(type 268) rounds, 100 low from the carriage's own point; the same
+packet holds piece **218**'s three rows (one point, frame 9), fit the
+same way. Every window now reads the standing families alone, and every
+round agrees: run1314b 1911 → 102 keys, rounds (9, 9); run1325 124, (9,
+9); run1325b 164, (84, 84); run1325d 147, (82, 82).
+
+**What is not established.** The other trench writers — the Entrench
+spell (`0x27d`), `Unit::close`'s clear, `detect_boat_collision`'s
+refusal — are not built and no capture reaches them (parked 3661a). The
+bays are centroids of their fit regions, exact at every whole degree
+only.
 
 ## 342. Reserved for the next item on the AI track
 

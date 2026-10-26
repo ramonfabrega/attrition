@@ -29444,3 +29444,86 @@ SHA-256 `4cbf9d8e30b999400b453b71c6a91b9f482f1a694a080d498142ededfef8404b`.
 rounds 9 theirs against 18 ours, 3 parting). Who=1's Transport Galleon `1/105` (TI 321), carrying the Marines `1/29`
 (TI 119), holds 90 hits against 160 and steps 25 against 31 from its cast in the gap 3102..3200; theirs reaches its
 next waypoint first, and on 3215 the move's destination parts. 3102..3200 is undumped.
+
+## run1325 — the Americans at a held Enlightenment age, East Indies: the figures' clocks over the word 3215, blocks 3178..3434 (2026-10-26, item 3661, `att-3661`)
+
+`docs/AI.md` §341.1. **What the disk could not answer**: a figure's `cur_anim` and `cur_time` before 3215. run1314b
+prints `GUYS=2`, which carries neither, and the extra `Guy::inc_time` wrap on 3215 is a who=1 figure's.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1325 --map 18 --end-frame 3434 --timeout 3600
+--log-window 3178 3434 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0
+--profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5`.
+- Pool lane 1, seed 12345. Launched 10:10:59, exited 10:11:58 (59.0 s). `success`, 3435 frames. `rngcmp.py` against
+  run1314: 3435 of 3435 identical. Filed with `filerun.py run1325 eastindies-american-enlightenment-window-3178-3434`.
+  `df -g ~` read 77 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1325-eastindies-american-enlightenment-window-3178-3434.txt`, 648,399,303 bytes,
+SHA-256 `d43075d694e6c31481eab7c74b5650acb9d778aa41a4eff8ee3ae1956d42548a`.
+
+Archive `rontrace-run1325.log`, 61,224,736 bytes,
+SHA-256 `4c754721f6a184ef81ac90393d8ec51562558ceb39a96d05db807b5fbf806c64`.
+
+**What it holds**: `american_enlightenment_pair_run1325_s_clocks_are_widened_whole` (256 blocks, 124 keys, rounds 9 a
+side). Before the trench, four Marines (`1/40`, `1/49`, `1/55`, `1/56`) played idle variant 0 in theirs and 1 or 2 in
+ours on 3214, `unit_masks2` `0x20800` theirs against 0: `1/55`'s seventy-frame idle wraps on 3215 in theirs alone.
+
+## run1325b — the Americans at a held Enlightenment age, East Indies: the word 5583's window, blocks 5577..5833 (2026-10-26, item 3661, `att-3661`)
+
+`docs/AI.md` §341.1. **What the disk could not answer**: every record on the word 5583's frame; no window held blocks
+past 3465. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1325b --map 18 --end-frame 5833 --timeout 3600
+--log-window 5577 5833 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0`
+and run1313's lobby.
+- Pool lane 1, seed 12345. Launched 10:22:07, exited 10:23:06 (58.9 s). `success`, 5834 frames. `rngcmp.py` against
+  run1314: 5834 of 5834 identical. Filed with `filerun.py run1325b eastindies-american-enlightenment-window-5577-5833`.
+  `df -g ~` read 75 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1325b-eastindies-american-enlightenment-window-5577-5833.txt`, 684,982,355 bytes,
+SHA-256 `62d05e0aca6f3177586cd586e8b8aed0d8c696d0b03c2d0aea200886b184a323`.
+
+Archive `rontrace-run1325b.log`, 182,451,808 bytes,
+SHA-256 `07d0b302666440c6a767c7384f2e15e9e0cbc2ae49122a9e355bc09986a66e71`.
+
+**What it holds**: `american_enlightenment_pair_run1325b_s_word_frame_is_widened_whole` (256 blocks, 164 keys, all
+standing; rounds 84 a side, none parting). Before piece 69's bays the Marine `1/122`'s round left (7464, 9624, 190)
+against (7451, 9479, 418) on 5578, and the human's capital `0/2000` took its damage on 5584 in theirs alone.
+
+## run1325c — the Americans at a held Enlightenment age, East Indies: a packet at logger frame 5578, pieces 69 and 218 (2026-10-26, item 3661, `att-3661`)
+
+`docs/AI.md` §341.1. **What the disk could not answer**: the Marines' release nodes. Piece 69 (`MARINES`) is loaded only
+in a game that builds one, and no packet on disk comes from an American game. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1325c --map 18 --end-frame 5580 --timeout 3600 --log-window 5577 5579
+--detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 20 --cover cover=0 --profile STARTING_TECHNOLOGY=4 --profile
+ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=5578
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 10:28:47, exited 10:29:17 (29.5 s). `success`, 5581 frames. Not filed: the packet
+  is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1325c/map-18/frame-snapshot.bin`, 922,497,048 bytes,
+SHA-256 `cd1a2ad421d374e86ffd91ec2c0116be8d96676c30d241d23087ddcc43308c24`.
+
+**What it holds**: `get_position.py … entries 69`: three rows, node 0 on frames 1, 7 and 4 of `CHAR_ATTACK1`..`3`,
+`RData +0x88` 1.1; `entries 218` (the Cannon): three rows at frame 9, one point, 1.0. Piece 922 (218's American
+style) is not loaded. The sweeps are under `~/ron-data/lab-experiments/2026-10-26-item-3661/`.
+
+## run1325d — the Americans at a held Enlightenment age, East Indies: the closing window, blocks 6414..6670 (2026-10-26, item 3661, `att-3661`)
+
+`docs/AI.md` §341.1. **What the disk could not answer**: the word moved to the game's end, 6669, and no window held
+blocks past 5833 at the pair's detail. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1325d --map 18
+--end-frame 6669 --allow-early-end --timeout 3600 --log-window 6414 6670 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0` and run1313's lobby.
+- Pool lane 1, seed 12345. Launched 10:31:43, exited 10:32:40 (57.7 s). `success`, closing frame 6670. `rngcmp.py`
+  against run1314: 6670 of 6670 identical. Filed with `filerun.py run1325d
+  eastindies-american-enlightenment-window-6414-6670`. `df -g ~` read 72 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1325d-eastindies-american-enlightenment-window-6414-6670.txt`, 700,961,662 bytes,
+SHA-256 `c74c838e66f6dd1cc00e5089a820e778d15d92c8341b8c9946f3cc8eb206aa05`.
+
+Archive `rontrace-run1325d.log`, 213,182,528 bytes,
+SHA-256 `7579267df52db553636d0664fe76dcb983441aed9a965353730364acb07ce0f9`.
+
+**What it holds**: `american_enlightenment_pair_run1325d_s_closing_window_is_widened_whole` (256 blocks, 147 keys, all
+standing; rounds 82 a side, none parting). Before piece 218's bays who=1's Cannons' four rounds left the carriage's own
+point, 100 low: `1/96`'s on 6475 from (9480, 9864, 318) against (9369, 9768, 418).

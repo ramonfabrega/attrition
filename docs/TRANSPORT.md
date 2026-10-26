@@ -390,6 +390,15 @@ land unit is now cargo. Run21 enters `cast_transport` at frame 3608, 29
 frames after the dock, with `detect_boat_collision` the same frame: the
 AI's first citizen sailing.
 
+**The `MARINES` arm is built** (item 3661, `docs/AI.md` §341.1):
+`SimTransport::marines` sets `combat::umask2::MARINES` on the boat, and
+`Sim::own_hits`/`own_speed` read it — `AMERICANS_MARINE_HP_BONUS` 70 on the
+hits, and the Military level times `AMERICANS_MARINE_SPEED_BONUS` 2 on the
+speed ahead of every percentage. run1314b's Transport Galleon `1/105`
+agrees at 160 hits and speed 31 (Military 3), diff-backed by
+`american_enlightenment_pair_the_long_s_stride_walks_back_from_3215`. The
+caravan's inherited `0x200` is not built.
+
 ### 6.1 Who casts it, and where the order comes from (2026-09-01)
 
 **`Unit::set_new_location@005f8d20` is the adder**, and it is the only one:
