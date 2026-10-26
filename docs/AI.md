@@ -31004,11 +31004,75 @@ are group 64's guards, on the same post as `1/54`. So the word's draw
 (ours' `move_step` against theirs' `do_idle`) is downstream of the guard
 post's response to the shot, and the shot is the cause to place.
 
-**What is not established.** Why theirs' `1/54` fires on `0/5` and ours'
-does not: the guard's target search (`find_new_target` on a
-`GUARDORDER`) or the Citizen's approach, in a gap no dump prints. A gap
-window over 4096..4187 (`AMMO=5`, `LEADERS=9`) is the next item's first
-take, then `RON_DEBUG_UNIT=1/54` both sides.
+~~**What is not established.** Why theirs' `1/54` fires on `0/5` and ours'
+does not.~~ Answered by item 3645 (§336.1): ours fired too. The round left
+from the figure, so it flew a frame long.
+
+### 336.1 Ours fired too: three release rows (item 3645)
+
+*Item 3645, 2026-10-26, Opus 5.5.* **The direction was wrong.** No pair
+walk compared an `AMMO` record (Loop 3644), so 3628's "ours fires nothing"
+was never measured. The gap window run1305 (blocks 4096..4187) agrees on
+every non-standing key through 4183. Its `AMMO` records name the cause:
+
+- The Musket Horse's `FLAGS` are `majvy`: `v` is fire on the move
+  (`sim::cavarch`). Both sides' `1/54` take `cavarch_o` 5 on block 4171,
+  which is frame 4170, `(54 + 4170) % 32 == 0`. Both strike on 4172
+  (`recharging` 30) and loose on frame 4181 on `CHAR_ATTACKWALK` frame 12.
+- **The value diff on block 4182**, `1/54`'s round:
+
+| field | ours before | ours now | theirs |
+|---|---|---|---|
+| `sx, sy` | (8712, 27240) | (8560, 27252) | (8560, 27252) |
+| `sz` | 461 | 666 | 666 |
+| `total_time` | 4 | 3 | 3 |
+| `angle` | −1420361728 | −1452605440 | −1452605440 |
+
+  Before the fix the round left the figure's own point. It landed a frame
+  late, so `0/5`'s wound, its flight and the guard post's response all
+  slipped by a frame, and the word drew on 4187.
+- **The fix is piece 157's pivot rows** (`pivot::RELEASES`, `NODES`).
+  `<RESTRICTION name="MUSKETHORSE" node="4">` makes the Musket Horse a
+  pivot piece, and run1305b's packet (`RON_STATE_FRAME=4181`) holds its
+  nine `AttachPos` entries. The four `get_position.py … pivot` sweeps
+  agree with `release_offset_at` on all 369,664 cells, given seven
+  `float_lands`.
+
+**The pair walk now compares every round**, on the windows that opt in
+(`harness::tests::widen_on_siblings_with_rounds`, `Widened::rounds`,
+`compare_rounds`, using run235's field list). The map is kept apart from
+`firsts`, so no other window's pin moved. On run1289b it read 235 rounds
+ours against 222 theirs, and 119 keys parted. Two more pieces had left
+from the figure:
+
+- **The Arquebusiers, piece 1456** (TI 98 in the Lakota's art). An example
+  is `1/39` on 4217: ours from (8520, 27864), theirs from (8395, 27931).
+  The run1305b sweeps give exactly piece 48's three `launch::BAYS` rows.
+- **The Bombard, piece 1625** (TI 267, guy 0 unpacked, `CHAR_ATTACK2`
+  frame 9). An example is `1/58` on 4303: ours from (9000, 27144), theirs
+  from (8898, 27250). One bay row covers it.
+
+After both, run1289b's rounds read 222 a side, and its keys fall from 2311
+to 55. Two rows part, on 4409, `whom`/`ox` (parked 3645c). Everything left
+in run1289b's firsts is a standing row: the standing families, four
+guards' `dest_angle` from 4214 (parked 3645a) and who=1's food bucket from
+4219 (parked 3645b).
+
+**The word: 4187 → 4477**, by the count and the sequence. On 4477 ours
+spends 73 draws against 83, parting at index 56: ours `Guy::set_anim <
+Unit::move_step`, theirs `Unit::find_attack_pos < Unit::fight`. Its
+window is run1305c (blocks 4472..4728, 256 blocks, 3790 keys, rounds
+203 theirs against 185 ours). On the word's block 4478 the parting is
+who=1's units born in the window, `1/177`..`1/186`. Their positions
+part, then their collisions (`collide_o` 185 in theirs on
+`1/177`..`1/179`), then `1/185`'s order (ours kind 10, theirs 1, to
+(9240, 27240)) and `1/180`'s `attack[1].mandatory` (0 against 1). The
+first round to part is the Musket Horse `1/25`'s landing on 4478.
+
+**What is not established.** Why `1/177`..`1/186` stand and move apart
+on 4478. Their births are inside run1305c, and nothing here reads them
+(`births.py`, `RON_DEBUG_BUILDS` over 4472–4478). The 3645a–c rows are
+read only as far as their own blocks.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **195 of
 302**, unmoved: the rubric counts lockstep games only, and this pair
