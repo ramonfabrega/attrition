@@ -11011,13 +11011,12 @@ theirs and loses it in ours on block 4862, so ours walks six frames ahead from 4
   against -1344339968). No other field of the seventeen parts, and the closing block 4075 agrees.
   **Score**: none. The pair is whole at 4074 (parked 3567a, 3580b, 3624a; `docs/AI.md` §334).
 
-## Parked by the next landing, slot RZ — reserved
+## Parked by item 3627, 2026-10-25 — the Spanish at a held Gunpowder age, East Indies: first try 2168
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot RZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parks. The pair's first parting books. On 2153, in the undumped gap 2102..2162, ours casts a Transport
+Galleon `1/68` (TI 321) and loads the Arquebusiers `1/48`, `1/49` and `1/50` (TI 98), where theirs' three come
+ashore. On 2168 ours' `1/63` takes a `move_step` draw theirs does not, and on 2169 it collides with the Galleon
+(`docs/AI.md` §335). `Tercios` (151) is fielded.
 
 ## Parked by the next landing, slot SA — reserved
 
@@ -11148,6 +11147,54 @@ The Dragoon's piece 1195 reads piece 139's pivot and release rows, and the pair 
 
 A park heading the pass lands ahead (parked 1812): a lane whose brief
 names slot SL renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SM — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SM renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SN — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SN renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SO — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SO renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SP — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SP renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SQ — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SQ renames this heading `## Parked by item N, <date> — <title>`
+and files its parked rows under it, so two lanes' parks are never one hunk
+at the file's tail. The commander assigns a slot by letter in the queue's
+words and edits nothing here; a refill lands when two remain.
+
+## Parked by the next landing, slot SR — reserved
+
+A park heading the pass lands ahead (parked 1812): a lane whose brief
+names slot SR renames this heading `## Parked by item N, <date> — <title>`
 and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.

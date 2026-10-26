@@ -312,6 +312,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Classical pair's `(18, 5, 5)`, another map; the battery fields no
     // Greeks.
     (7, 5, 5),
+    // The Spanish Gunpowder pair's (item 3627): the Spanish at a held
+    // Gunpowder age, Difficulty 5, East Indies — not the AI word
+    // `EastIndiesSpanishTier3`, `(18, 9, 3)`, another difficulty, nor the
+    // Classical pair's `(7, 9, 5)`, another map; the battery fields no
+    // Spanish.
+    (18, 9, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
