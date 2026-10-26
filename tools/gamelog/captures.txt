@@ -10819,3 +10819,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1331  run1312's line on --map 14 with --ai-tribe 16 and run1330's lobby   (the draw stream; ended itself on 4559)
 #   run1331b --map 14 --end-frame 3652 --allow-early-end --timeout 3600 --log-window 3295 3652 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 16 --cover cover=0, run1330's lobby   (the word 3401's window)
 # Checks: `rngcmp.py` run1330 vs run1331 -> 37 identical; run1331 vs run1331b -> 3653 identical.
+# ==== item 3667: the Germans at a held Industrial age, Great Lakes (`docs/AI.md` §346; `docs/RUNS.md` run1333, run1334, run1334b) ====
+#   run1333  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1334  run1312's line on --map 14 with --ai-tribe 12 and run1333's lobby   (the draw stream; ended itself on 4772)
+#   run1334b --map 14 --end-frame 4574 --allow-early-end --timeout 3600 --log-window 4295 4574 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1333's lobby   (the word 4323's window)
+# Checks: `rngcmp.py` run1333 vs run1334 -> 37 identical; run1334 vs run1334b -> 4575 identical.

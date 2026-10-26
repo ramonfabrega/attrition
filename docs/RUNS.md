@@ -29876,3 +29876,70 @@ SHA-256 `fc3d9b83b2121f773d7e3a6ae430109adba454f068fed3817b27e59538064693`.
 4369 keys, rounds 2152 theirs against 1975 ours, 298 parting by slot). The first launch that parts is on 3354:
 who=1's Elite Javelineers `1/47` (TY 84) throws at the Citizen `0/13` from (6934, 30317) at `sz` 436 in theirs and
 from the figure's square (6984, 30312) at 266 in ours; the records first part on 3367.
+
+## run1333 — the Germans at a held Industrial age, Great Lakes: the `DUMP_ALL` start (2026-10-26, item 3667, `att-3667`)
+
+`docs/AI.md` §346. run1330's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1333 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 12 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 16:33:52, exited 16:34:16 (24.4 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 12, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 5` and `ENDING_TECHNOLOGY 5` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1333 greatlakes-german-industrial-start`. `df -g ~` read 99 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1333-greatlakes-german-industrial-start.txt`, 151,502,120 bytes,
+SHA-256 `4b532917df38a73704f2f3b889682a9aca78212f37e5fead9f89bd2d97ab004e`.
+
+Archive `rontrace-run1333.log`, 9,074,304 bytes,
+SHA-256 `08578cb96cee6033c56a154e4f2efca6b74b66897211b4ff2a3226429e086d2f`.
+
+**What it holds**: the start of `german_industrial_pair::GERMAN_INDUSTRIAL`, and the walk's initial state.
+
+## run1334 — the Germans at a held Industrial age, Great Lakes: the draw stream to the game's end (2026-10-26, item 3667, `att-3667`)
+
+`docs/AI.md` §346. run1312's line on `--map 14` with `--ai-tribe 12` and run1333's lobby: `--map 14 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 12 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1333. Launched 16:33:57, exited 16:34:23 (26.2 s launch to exit). `success`. **The game
+  ended itself on 4772** (closing block 4773, `ended_early`). `GAME INFO` reads back as run1333's. `rngcmp.py`
+  against run1333: 37 frames identical. Filed with `filerun.py run1334 greatlakes-german-industrial-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1334-greatlakes-german-industrial-trace.txt`, 26,035,469 bytes,
+SHA-256 `56f8766953be32f59600f20a8c7c2de43ffae95510931df0b2586944aa4bcb97`.
+
+Archive `rontrace-run1334.log`, 87,416,736 bytes,
+SHA-256 `c6ef7af9dd4ea17243d48f845fc78909beb3a465a6cae792f2c88176215f9f52`.
+
+**What it holds**: the pair's first try. `german_industrial_pair_first_parting` walks it from run1333: **4323 of 4772**
+by the count and the sequence (theirs 18 draws against 17, index 11, theirs `Unit::close+0xcb6`).
+`german_industrial_pair_the_long_s_stride_walks_back_from_4323` walks its stride 101..4301: 43 blocks, 135 keys — the
+standing families, who=1's Albatrosses' `myspeed` (55 against 68) from 3001 and the Citizens' damage from 3601.
+
+## run1334b — the Germans at a held Industrial age, Great Lakes: the word 4323's window, blocks 4295..4574 (2026-10-26, item 3667, `att-3667`)
+
+`docs/AI.md` §346. **What the disk could not answer**: every record between the stride's last block 4301 and the
+word, and every round — run1334's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1334b --map 14 --end-frame 4574 --allow-early-end --timeout 3600
+--log-window 4295 4574 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover
+cover=0` and run1333's lobby: six blocks before the stride's 4301, and 250 after the word's block 4324.
+- Pool lane 1. Launched 16:36:54, exited 16:37:44 (50.5 s launch to exit). `success`: 4575 frames. `rngcmp.py`
+  against run1334: 4575 of 4575 identical. Filed with `filerun.py run1334b
+  greatlakes-german-industrial-window-4295-4574`. `df -g ~` read 96 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1334b-greatlakes-german-industrial-window-4295-4574.txt`, 586,886,156 bytes,
+SHA-256 `83a62a72a8a226bf65d0ec1df13426c965b6563b2d0b2dea67113925421400be`.
+
+Archive `rontrace-run1334b.log`, 80,864,256 bytes,
+SHA-256 `e37ed8adaa0c56fc002d07640eb5c0c068265c9b6e401b918603ae28431b0da6`.
+
+**What it holds**: `german_industrial_pair_run1334b_s_word_frame_is_widened_whole` walks it from run1333 (279 blocks,
+2841 keys, rounds 1018 theirs against 246 ours, 168 parting by slot). On the word's block 4324 the human's leader
+holds a unit more in ours and `0/11` is ours alone; the first launch that parts is on 4304, who=1's A7V `1/48` (TY
+242) from (5427, 31534) at `sz` 587 in theirs and from the figure's square (5544, 31512) at 409 in ours.
