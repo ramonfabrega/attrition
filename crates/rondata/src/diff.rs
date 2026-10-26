@@ -57,6 +57,8 @@ mod battery;
 mod british_classical_pair;
 #[cfg(test)]
 mod british_enlightenment_pair;
+#[cfg(test)]
+mod british_industrial_pair;
 mod build;
 #[cfg(test)]
 mod chinese_gunpowder_pair;
