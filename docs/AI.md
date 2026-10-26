@@ -30640,7 +30640,7 @@ sheep and peacock herds. `Royal Stratiotai` (234) is Enlightenment's and is not 
 **What is not established.** When the seventeen `dest_angle` rows part is seen, but why is not read (3626a, beside
 3624a). Nothing in the window parts a wound, so the closing compare's silence on `hits` (3584a) holds here too.
 
-## 335. The Spanish at a held Gunpowder age, East Indies: first try 2168 of 6128 (item 3627)
+## 335. The Spanish at a held Gunpowder age, East Indies: first try 2168 of 6128 (item 3627), whole at 6128 since item 3646
 
 A pair stood up at a held age (DECISIONS 90, 91, 93, 94 §4), in the Mongol
 Gunpowder pair's lobby (§331) with the nation moved: East Indies, `MAP_STYLE
@@ -30690,13 +30690,10 @@ and `1/49` agree on an `ATTACKTOORDER` to (40776, 37128), with waypoint
 - the same frame, `1/50` goes `inside` it while it stands at (41287, 37725).
 
 The Galleon is made by `do_cast_effect`'s `cast_transport`
-(`transport.rs`, `cast_transport.rs`). The gap 2102..2162 is undumped.
+(`transport.rs`, `cast_transport.rs`). ~~The gap 2102..2162 is undumped.~~
 
 **The value diff** (run1287b, walked from run1286: 256 blocks, **1347
-keys** on the tree that merged item 3637, whose move row compares `retry`
-and `attempts` — four rows past the word on `1/63` and `1/21`; 1343 before
-it — the two `gaia:` keys unprinted, no inexact ground corner). Block
-2163 carries the standing families (`form` on 28 units, `SITE[i].reg`,
+keys**). Block 2163 carries the standing families (`form` on 28 units, `SITE[i].reg`,
 who=0's `aggression[1]`, who=1's groups' `held` and pools), and:
 
 | frame | record | field | ours | theirs |
@@ -30716,11 +30713,11 @@ is cut to one entry. So the word follows from the embark.
 
 ~~Why ours casts the Transport on 2153 and theirs does not is the next
 item's hypothesis.~~ *Theirs casts it too; the parting is the unload,
-§335.1.* The candidates are the shore predicate (`docs/TRANSPORT.md` §6)
+§335.1.* ~~The candidates are the shore predicate (`docs/TRANSPORT.md` §6)
 and the leader's transport level and unit bit that gate it (§2–§4), read
 against `1/48`'s first path leg, which carries flag 5 on both sides on
 2101. No dump prints 2102..2162, so a gap window (`--log-window 2101 2163`)
-or a packet at 2152 is the next item's first take. I built nothing.
+or a packet at 2152 is the next item's first take. I built nothing.~~
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **194 of 302**,
 unmoved: the pair is open. Its own dumps (run1286, run1287 and run1287b)
@@ -30764,11 +30761,8 @@ otherwise kills the boat, `Object::die(this, 0, -1, 0)`, whatever its type
 (`:109`–`115`). `transport.rs` carried the arm as a SEAM: it answered yes
 and kept the cargo.
 
-`eject_contents`' head would defer the eject: `param_2 < 0`, the vslot
-`+0x20` test, `semaphore[1] & 8` clear and not `can_carry(AIR)` set
-`+0x60 |= 0x4000` on the host's record and return. For a unit host it
-does not defer. The riders come out on the frame, as `boat_eject_all`'s
-civilian eject already does (item 3521, §303), and as run1301 shows.
+`eject_contents`' deferral (`+0x60 |= 0x4000`) is not a unit host's: the
+riders come out on the frame, as `boat_eject_all`'s do (§303).
 
 **Built** (`crates/sim/src/transport.rs`, `Sim::think_carry_army`): the
 ashore arm calls `eject_riders(boat, false)`, which is
@@ -30778,11 +30772,8 @@ left inside. `transport::tests::a_boat_carrying_a_soldier_sails_to_its_army_s_ta
 now asserts the rider is out and on the map, its list empty, and the boat
 dead.
 
-**Mutations** (`tools/mutate.py`, on `85437f3cc`):
-- the eject and the death removed: `spanish_gunpowder_pair_first_parting`
-  exits 101, back to 2168;
-- the eject kept and the death dropped: the pair exits 101, the word 2175,
-  run1287b 85 → 1174 keys, run1301 76 → 77.
+**Mutations** (`tools/mutate.py`): the eject and the death removed, the
+pair back to 2168; the death alone dropped, the word 2175.
 
 **The value diff**, on 2163 (run1287b, walked from run1286): `1/48`'s
 `inside` and `pos` are −1 and (41688, 36360) on both sides, `1/49`'s −1 and
@@ -30797,9 +30788,7 @@ no other word moved.
 **The next word: frame 3866, 11 draws each, index 0.** Ours spends `Guy::
 set_anim+0x97a < Guy::inc_time+0x271`, theirs a round, `Ammo::init+0xcd9`
 and `+0xd0b < Objects::add_ammo < GraphicEvents::execute_game_events`.
-run1301b is its window (blocks 3861..4117, 256 blocks, **738 keys**,
-`spanish_gunpowder_pair_run1301b_s_word_frame_is_widened_whole`; `rngcmp.py`
-against run1287 4118 of 4118). On its first block 3861, who=1's
+run1301b is its window (blocks 3861..4117, **738 keys**). On its first block 3861, who=1's
 **Frigate `1/29`** (TypeIndex 343, sea, uid 57, group 71, stance 3)
 stands at (1896, 5352) on both sides:
 
@@ -30814,7 +30803,7 @@ On the stride's 3801 both sides walk it on an `ATTACKTOORDER` to (1896,
 5352). 3802..3860 is undumped. So theirs' Frigate takes the human's
 `0/2004` on arrival and ours does not. ~~Who targets it, and when in the
 gap, is the next item's to place.~~ *Theirs' own idle search, on 3859:
-§335.2.* A gap window over 3795..3866 is its first take.
+§335.2.*
 
 ### 335.2 A raiding computer ship zeroes only a dock: `compare_target`'s `is_dock` (item 3642, 2026-10-25)
 
@@ -30842,14 +30831,10 @@ on **3859**, ours 0 against 1. On 3860 the rest follow: `fought`,
 `blown`, `recharging` 0 against 40, the `ATTACKORDER`'s fields, `pos`
 (1908, 5351) against (1896, 5352), and `heading`.
 
-**Both sides searched; ours weighed the Farm at 0.** An env-guarded probe
-in `Unit::think` and `find_nearby_target` (committed and reverted whole)
-put ours on the same path as theirs: `idle` 1, a captain with attack 260
-and the military role, `think_attack`'s `find_melee_target(−1)` at radius
-4608, `flags` 0. The Farm (`Building(5)`, index 2004, 2280 away) passes
-`valid_target`, the `flags` filter, `check_target`'s reach head and
-`poor_target`, and is in range. Then `compare_target` answers **0**, and
-a zero is never taken. That zero is §203's arm: under the raid stance, an
+**Both sides searched; ours weighed the Farm at 0.** A probe (reverted
+whole) put ours on theirs' path, `think_attack`'s `find_melee_target(−1)`.
+The Farm passes every filter and is in range; `compare_target` answers
+**0**, and a zero is never taken. That zero is §203's arm: under the raid stance, an
 AI-driven sea unit and a finished Build-proper target, this crate
 returned 0 for any building when the ship lacked SIEGE.
 
@@ -30873,12 +30858,8 @@ so that reading never reached a capture until now.
 second term is `crate::build::is_dock` on the target's type, and
 `!SIEGE`. `fight::tests::a_computer_s_raiding_ship_weighs_a_finished_building_at_zero`
 gives its zero cases a Dock and adds two Farm cases: weighed above zero,
-and zero when the ship fires on the move. Mutations (`tools/mutate.py`,
-on `53f73aa6d`):
-
-- the dock term forced true (the old reading):
-  `spanish_gunpowder_pair_first_parting` exits 101, back to 3877 / 3866;
-- forced false: the sim test exits 101 on "the cruiser" (16 against 0).
+and zero when the ship fires on the move. Mutations: the dock term forced
+true (the old reading), the pair back to 3866; forced false, the sim test red.
 
 **The value diff on 3859** (run1303, walked from run1286): `1/29`'s
 `orders.len` is 1 on both sides, an `ATTACKORDER` on `0/2004`. run1303
@@ -30902,12 +30883,12 @@ run1301b's block 3877 the first non-standing rows are:
 round (`RON_DEBUG_AMMO`) leaves the ship's centre (1896, 5352) with 11
 frames and lands at (4221, 5645). That is 2447 world units against 2343
 at about 204 a frame. The draws agree on every frame a round is fired, so
-the launch point is the next item's hypothesis. *Built, §335.3.* **The pair widenings
+the launch point is the next item's hypothesis. *Built, §335.3.* ~~**The pair widenings
 compare no `AMMO` record** (`diff::ammo` is read by `diff::golden`
 alone), so the launch parted on 3860 and no key showed it until the
 Farm's `damage` on 3877. 3802..3860 is now dumped and 3861..4117 was
 already, so a packet at the broadside, or `AMMO` added to the pair
-walk's comparison, is the next take.
+walk's comparison, is the next take.~~ *Compared since §335.4.*
 
 **The rubric.** The pair is open (3876 of 6128). `RUBRIC_UNIT_TYPES_SEEN`
 stays 194.
@@ -30924,11 +30905,45 @@ headings. **Built**: `launch::BAYS` rows `(293, 11, 7)` −117,433 /
 round and the Farm's 3877 agree; run1301b 102 → 95 keys, all standing.
 Mutation: piece 293 out of `launch::bay` → back to 3876.
 
-**The next word: 4859, ours 16 draws against 18, index 7** (ours
-`Unit::fight+0x9b0`, theirs `Unit::come_out+0x25ca`; run1304b, 857
-keys). On 4860 the Fire Ship `1/86` (TI 336, group 71) is at (31656,
-30984) against (31643, 31002); on 4861 the Frigate `1/58` (TI 343,
-group 71) holds 1 order against theirs' 3, which pushes from 4860.
+**The next word: 4859**, §335.4.
+
+### 335.4 A sea-only attacker takes only a sea unit: `valid_target_const`'s `0x102000` arm (item 3646, 2026-10-26)
+
+*Item 3646, Opus 5.5; run1306 (the closing window).* **4859 → 6128 of 6128,
+by the count and the sequence: the pair is whole.**
+
+**The frame.** On 4859 ours spends 16 draws against 18, parting at index 7.
+Ours spends `Unit::fight+0x9b0` for `1/74`, `1/86` and `1/87`; theirs for
+`1/74` and `1/87` alone (`1/86` stands until 4862).
+`1/86` is who=1's **Fire Ship** (TI 336, group 71, `FLAGS` `njz`), `1/58`
+a Frigate (TI 343), `1/74` and `1/87` Bombard Ships (TI 346). A probe
+(reverted whole) put all four on the Citizen `0/12` through
+`Group::target_opportunity`; theirs never hands the Fire Ship it.
+
+**The arm.** `ObjectData::valid_target_const@006472c0`, `6473c3`–`6473ea`:
+an asker whose type's `+0x2b4` carries `0x102000` — `n` (`0x2000`, the
+fire rafts and fire ships) or `u` (`0x100000`, the submarines) — refuses
+a target that is not domain 1, or that answers vslot `+0x1c` (a
+building). `TargetConstView`'s steps had it; `Sim::valid_target_const`
+did not. **Built** there (`fight::tests::a_fire_ship_or_a_submarine_takes_only_a_ship`);
+`647472`, a domain-0 asker and a `u` target, is a `SEAM` (parked 3646c).
+Mutation (the mask to 0): the pair back to 4859, the sim test red.
+
+| frame | record | field | ours before | theirs | ours after |
+|---|---|---|---|---|---|
+| 4859 | the game stream | draws | 16 | 18 | 18 |
+| 4860 | `1/86` | `pos` | (31656, 30984) | (31643, 31002) | (31643, 31002) |
+| 4861 | `1/58` | `orders.len` | 1 | 3 | 3 |
+
+**`AMMO` compared.** `diff::ammo::compare_block` keys a window's rounds
+by shooter and pool slot; the walk calls it for `ammo::AMMO_COMPARED`'s
+windows (run1304b, run1306). run1304b: 857 → 141 keys, the standing
+families, `1/122`'s `half_step` on 4878, and six round rows on 5002
+(parked 3646b). run1306: 256 blocks, 137 keys, all standing; 439 rounds,
+none parted. **The closing state**: 219 units, one extra, the shutdown
+tick's Citizen `1/196` (parked 3646a).
+
+**The rubric**: 195 → 196, `Tercios` (151), the line §335 booked.
 
 ## 336. The Lakota at a held Gunpowder age, Great Sahara: first try 4187 of 4750 (item 3628)
 
