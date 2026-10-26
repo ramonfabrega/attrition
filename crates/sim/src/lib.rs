@@ -2486,6 +2486,7 @@ impl Sim {
     /// type lacks objmask 4 — no reader in this crate, and run897's
     /// citizens print `unit_masks2` 0.
     pub fn init_iroquois_masks(&mut self, u: usize) {
+        self.init_marine_mask(u);
         let who = self.units[u].owner;
         if self.unit_line_is(u, 0x45)
             && self.tech.get(who as usize).is_some_and(|p| {
@@ -2495,6 +2496,27 @@ impl Sim {
         {
             self.units[u].unit_masks2 |= crate::combat::umask2::IROQUOIS_SCOUT;
         }
+    }
+
+    /// `Unit::set_type@00612fa0`'s marine mark, which `Unit::init` reaches
+    /// through its `set_type` (item 3661): a unit that `is(0x77, 0)` — the
+    /// Marines line — takes `unit_masks2 |= 0x800`
+    /// ([`combat::umask2::MARINE`]). run1325's Marines print `unit_masks2`
+    /// `0x20800`, this and the trench (`docs/AI.md` §341).
+    pub(crate) fn init_marine_mask(&mut self, u: usize) {
+        if self.speed_is(u, crate::cast_transport::MARINES, false) {
+            self.units[u].unit_masks2 |= crate::combat::umask2::MARINE;
+        }
+    }
+
+    /// **A trench `fight`, `find_melee_target` and `find_nearby_target`
+    /// honour** (item 3661): `unit_masks & 0x2000000` without the marines'
+    /// `unit_masks2 & 0x20000` — the shape `UnitData::is_entrenched(1)`
+    /// names. A marine dug in by `check_idle` still chases and still takes
+    /// the reduced blow.
+    pub(crate) fn hard_trench(&self, u: usize) -> bool {
+        let unit = &self.units[u];
+        unit.combat.entrenched && unit.unit_masks2 & combat::umask2::MARINE_TRENCH == 0
     }
 
     /// `TypeData::get_cost@00664090`'s **Salt arm** (`:208`–`213`, the head

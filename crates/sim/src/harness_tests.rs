@@ -4532,3 +4532,98 @@ fn salmon_prices_a_sea_unit_and_maize_halves_the_ramp() {
     let f = economy::Resource::Food.index();
     assert!(halved[f] < plain[f], "{halved:?} < {plain:?}");
 }
+
+/// **The marines dig in at idle 7, and a step leaves the trench** (item
+/// 3661, `check_idle@006032c0:33`–`41`, `move_step@005faf30:60`–`65`): a
+/// unit carrying `unit_masks2 & 0x800` takes the trench on the frame its
+/// idle count reaches `AMERICANS_MARINE_ENTRENCH` as loaded (5 → 7) and not
+/// before, with `0x20000` and its own heading as the trench's angle; a unit
+/// without the mark never does; and the trench is not the hard one
+/// `fight`'s stand gate honours.
+#[test]
+fn a_marine_digs_in_at_idle_seven_and_a_step_leaves_the_trench() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let m = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::NORTH,
+    );
+    let plain = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(2000, 1000),
+        movement::Angle::NORTH,
+    );
+    sim.units[m].unit_masks2 |= combat::umask2::MARINE;
+    assert_eq!(sim.tuning.marine_entrench_idle(), 7);
+    let mut dug = None;
+    for f in 0..200 {
+        let before = sim.units[m].idle;
+        sim.tick();
+        let unit = &sim.units[m];
+        if unit.combat.entrenched {
+            dug.get_or_insert((f, before, unit.idle));
+        } else {
+            assert!(
+                unit.idle < 7 || unit.idle == 0xff,
+                "idle {} and no trench",
+                unit.idle
+            );
+        }
+        assert!(!sim.units[plain].combat.entrenched, "no mark, no trench");
+    }
+    let (_, before, at) = dug.expect("the marine dug in");
+    assert_eq!((before, at), (6, 7), "the trench comes with idle 7");
+    let unit = &sim.units[m];
+    assert_ne!(unit.unit_masks2 & combat::umask2::MARINE_TRENCH, 0);
+    assert_eq!(unit.combat.trench_angle, unit.movement.heading);
+    assert!(
+        !sim.hard_trench(m),
+        "the marines' own trench is not the hard one"
+    );
+    sim.units[plain].combat.entrenched = true;
+    assert!(sim.hard_trench(plain), "a trench without 0x20000 is");
+    // A step leaves it: both bits go.
+    sim.order_move(m, Pos::new(1000, 2000));
+    run(&mut sim, 5);
+    let unit = &sim.units[m];
+    assert!(!unit.combat.entrenched);
+    assert_eq!(unit.unit_masks2 & combat::umask2::MARINE_TRENCH, 0);
+    assert_ne!(
+        unit.unit_masks2 & combat::umask2::MARINE,
+        0,
+        "the mark stays"
+    );
+}
+
+/// **The marines' boat takes its hits and its speed** (item 3661,
+/// `Unit::update_hits@0060e930`, `Unit::update_speed@006055c0`): a unit
+/// carrying `unit_masks2 & 0x200` has `AMERICANS_MARINE_HP_BONUS` more hits
+/// than its type, and its speed gains the Military level times
+/// `AMERICANS_MARINE_SPEED_BONUS` ahead of every percentage.
+#[test]
+fn the_marines_boat_takes_its_hits_and_its_speed() {
+    let mut sim = arena();
+    let hop = sim.add_unit_type(hoplite_type());
+    let u = combatant(
+        &mut sim,
+        0,
+        hop,
+        Pos::new(1000, 1000),
+        movement::Angle::NORTH,
+    );
+    let hits = sim.own_hits(u, hop);
+    let speed = sim.own_speed(u, hop);
+    assert_eq!(hits, sim.unit_hits(0, hop));
+    assert_eq!(speed, sim.type_speed(0, hop));
+    sim.units[u].unit_masks2 |= combat::umask2::MARINES;
+    assert_eq!(sim.own_hits(u, hop), hits + 70);
+    assert_eq!(sim.own_speed(u, hop), speed, "Military 0 adds nothing");
+    sim.tech[0].epoch[0] = 3;
+    assert_eq!(sim.own_speed(u, hop), speed + 3 * 2);
+    assert_eq!(sim.type_speed(0, hop), speed, "the type's own is unmoved");
+}

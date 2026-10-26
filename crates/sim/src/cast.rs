@@ -237,12 +237,32 @@ impl Sim {
     /// `(IROQUOIS_EXTRA_HITS + 100) × hits / 100`, truncated — run897's
     /// Scout `1/0` is 63 on block 1, the type's 60 × 105 %.
     ///
-    /// SEAM: the other terms — the American marines, Copper and Bananas,
-    /// the Dutch — which no scored nation or holding takes.
+    /// **The American marines'** (item 3661, `0060e95c`): a unit whose
+    /// `unit_masks2` carries `0x200` ([`crate::combat::umask2::MARINES`],
+    /// the transport `cast_transport` builds for a Marines caster) adds
+    /// `AMERICANS_MARINE_HP_BONUS` to the base, before every percentage —
+    /// [`Sim::own_hits`] asks the unit; this per-type answer has no unit
+    /// and asks false. run1314's Transport Galleon `1/105` is 160, the
+    /// type's 90 + 70 (`docs/AI.md` §341).
+    ///
+    /// SEAM: the other terms — Copper and Bananas, the Dutch — which no
+    /// scored nation or holding takes.
     /// The Spy's upgrades are carried (item 1585), and the General's
     /// (item 1614).
     pub fn unit_hits(&self, who: Player, rec: usize) -> i32 {
+        self.update_hits_of(who, rec, false)
+    }
+
+    /// `Unit::update_hits` of the unit `u` as type `rec`: [`Sim::unit_hits`]
+    /// with the marines' bit read off the unit.
+    pub(crate) fn own_hits(&self, u: usize, rec: usize) -> i32 {
+        let marine = self.units[u].unit_masks2 & crate::combat::umask2::MARINES != 0;
+        self.update_hits_of(self.units[u].owner, rec, marine)
+    }
+
+    fn update_hits_of(&self, who: Player, rec: usize, marine: bool) -> i32 {
         let k = crate::unit_update_hits_view::UnitHitsK {
+            marine: self.tuning.americans_marine_hp_bonus,
             iroquois: self.tuning.iroquois_extra_hits,
             dutch: self.tuning.dutch_hp_bonus,
             nubian: self.tuning.nubian_hit_points,
@@ -254,6 +274,7 @@ impl Sim {
             sim: self,
             who,
             rec,
+            marine,
             stored_hits: 0,
         };
         crate::unit_update_hits_view::unit_update_hits(&k, &mut v)
@@ -1364,7 +1385,7 @@ impl Sim {
 
     /// `ObjectData::is(x, strict)` on unit `u`: the lineage test on its
     /// tree row, false off a tree or a row the tree lacks.
-    fn speed_is(&self, u: usize, x: i32, strict: bool) -> bool {
+    pub(crate) fn speed_is(&self, u: usize, x: i32, strict: bool) -> bool {
         let Some(tree) = self.unit_tree(u) else {
             return false;
         };
@@ -2023,13 +2044,15 @@ mod tests {
 }
 
 /// [`crate::unit_update_hits_view::UnitHitsView`] on a unit type of the
-/// port: the unit is its type, always a captain; the marines', Copper and
-/// Bananas terms are the SEAM (no staged nation takes them) and ask false,
+/// port: the unit is its type, always a captain; the marines' bit is the
+/// caller's (the unit's `unit_masks2 & 0x200`); the Copper and Bananas
+/// terms are the SEAM (no staged nation takes them) and ask false,
 /// and the patch gate is taken as passed (the shipped build is past it).
 struct TypeHits<'a> {
     sim: &'a Sim,
     who: Player,
     rec: usize,
+    marine: bool,
     stored_hits: i32,
 }
 
@@ -2056,7 +2079,7 @@ impl crate::unit_update_hits_view::UnitHitsView for TypeHits<'_> {
         self.sim.type_hits(self.who, self.rec)
     }
     fn is_marine(&mut self) -> bool {
-        false
+        self.marine
     }
     fn copper_bit(&mut self) -> bool {
         false

@@ -38,8 +38,8 @@
 //!   not. It is the one exception to "a rare pays only through a merchant"
 //!   and it is the wonder layer's.
 //! - **`rare_conquest`**, Conquer-the-World's own mask; always empty here.
-//! - **Everything else `update_speed` does** — the transport and marine
-//!   bonuses, Bantu, French siege,
+//! - **Everything else `update_speed` does** — the transport bonus
+//!   (`MILITARY_TRANSPORT_BONUS`, 0 as shipped), Bantu, French siege,
 //!   Versailles, aluminium, the spy/general upgrade counts and the two
 //!   Aztec types (`docs/MOVEMENT.md`, "The speed pipeline"). None of them is
 //!   modelled anywhere in this crate, so recomputing a unit's cached speed
@@ -239,7 +239,28 @@ impl Sim {
     /// The supply-bit upgrade adds `level * speed / 4` after those terms
     /// (SUPPLY, "Upgrade speed", item 1441).
     pub(crate) fn type_speed(&self, who: Player, ty: usize) -> i32 {
+        self.speed_of(who, ty, false)
+    }
+
+    /// `Unit::update_speed` of the unit `u` as type `ty`: [`Sim::type_speed`]
+    /// with the marines' bit read off the unit.
+    pub(crate) fn own_speed(&self, u: usize, ty: usize) -> i32 {
+        let marine = self.units[u].unit_masks2 & crate::combat::umask2::MARINES != 0;
+        self.speed_of(self.units[u].owner, ty, marine)
+    }
+
+    fn speed_of(&self, who: Player, ty: usize, marine: bool) -> i32 {
         let mut speed = self.unit_types[ty].moves;
+        // **The American marines' arm** (item 3661, `update_speed@006055c0`,
+        // before the `UNIT_MOVE_SPEED` scale and every percentage): a unit
+        // carrying `unit_masks2 & 0x200` adds the Military library level
+        // (`epoch[0]`) times `AMERICANS_MARINE_SPEED_BONUS`. The transport
+        // arm beside it, `MILITARY_TRANSPORT_BONUS`, ships as 0. run1314b's
+        // who=1 is at Military 3 and its Transport Galleon `1/105` steps 31
+        // on a `MOVES` of 25 (`docs/AI.md` §341).
+        if marine && let Some(p) = self.tech.get(who as usize) {
+            speed += p.military_level() as i32 * self.tuning.americans_marine_speed_bonus;
+        }
         let naval = self.unit_types[ty].combat.obj_masks & crate::combat::mask::NAVAL != 0;
         if naval && self.has_rare(who, economy::WHALES) {
             speed = (self.tuning.whales_ships_move + 100) * speed / 100;
@@ -601,12 +622,12 @@ impl Sim {
             // Despot's 659 is 109 once `age` has rescaled the upgrade
             // prerequisites (item 2448, `docs/GOLDEN.md` §89, run859).
             if self.is_captain(u) {
-                let hits = self.unit_hits(who, ty);
+                let hits = self.own_hits(u, ty);
                 let damage = self.units[u].max_health - self.units[u].health;
                 self.units[u].max_health = hits;
                 self.units[u].health = hits - damage;
             }
-            self.units[u].movement.speed = self.type_speed(who, ty);
+            self.units[u].movement.speed = self.own_speed(u, ty);
         }
     }
 }

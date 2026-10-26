@@ -248,7 +248,14 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
         {
             let un = &built.sim.units[link.unit];
             let live = u.damage_frame.is_some_and(|f| f != 0) && un.combat.damage_frame != 0;
-            let rows: [(&'static str, i64, Option<i64>); 5] = [
+            // The marines' bits beside it (item 3661): the boat's `0x200`,
+            // the line's `0x800` and its own trench `0x20000` — and the
+            // trench itself, `unit_masks & 0x2000000`.
+            let masks2 = sim::combat::umask2::NOT_FIRING
+                | sim::combat::umask2::MARINES
+                | sim::combat::umask2::MARINE
+                | sim::combat::umask2::MARINE_TRENCH;
+            let rows: [(&'static str, i64, Option<i64>); 6] = [
                 ("recharging", i64::from(un.combat.recharging), u.recharging),
                 // **`unit_masks2 & 0x10`** — the frozen frame's mark
                 // (item 502, `docs/COMBAT.md` §43.2). The word is printed
@@ -273,9 +280,13 @@ pub fn compare(built: &Built, frame: &Frame, players: usize) -> FrameResult {
                 // what `0x40000` and `4` owe.
                 (
                     "unit_masks2",
-                    i64::from(un.unit_masks2 & sim::combat::umask2::NOT_FIRING),
-                    u.unit_masks2
-                        .map(|m| m & i64::from(sim::combat::umask2::NOT_FIRING)),
+                    i64::from(un.unit_masks2 & masks2),
+                    u.unit_masks2.map(|m| m & i64::from(masks2)),
+                ),
+                (
+                    "unit_masks",
+                    i64::from(un.combat.entrenched),
+                    u.unit_masks.map(|m| i64::from(m & 0x200_0000 != 0)),
                 ),
                 ("damage_frame", un.combat.damage_frame, u.damage_frame),
                 (

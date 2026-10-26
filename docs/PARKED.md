@@ -11359,13 +11359,15 @@ with none off (`docs/AI.md` §340.1). Two rows of its closing window (run1324b) 
   `queue[2].cost[0]` 250 in ours against 125 in theirs, and who=1's `bucket[1:timber]` 11875 against 12000 — 3655a's
   shape (`1/2005`'s queue price there, 500 against 250). The killer: the item that reads 3655a's price.
 
-## Parked by the next landing, slot TD — reserved
+## Parked by item 3661, 2026-10-26 — the marines dig in
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TD renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The American Enlightenment pair closes, 3215 → 5583 → 6669 of 6669 by the count and the sequence, and its closing
+state compares 305 units with none off (`docs/AI.md` §341.1). One row parks; it moves no draw in any capture on disk:
+
+- **3661a. The other trench writers** (`docs/AI.md` §341.1): `check_idle`'s marine trench and `move_step`'s clear are
+  built; the Entrench spell (`0x27d`, the trench `unit_masks & 0x2000000` without `0x20000`), `Unit::close`'s clear
+  and `detect_boat_collision`'s refusal of a trenched unit are not. No capture on disk casts Entrench (grep `0x27d` in
+  a run's draw stream). The killer: a lobby whose census reaches the spell, and the trench bits on its frame.
 
 ## Parked by item 3662, 2026-10-26 — the British Classical pair whole: the Galley's bays and the sea raid arm
 

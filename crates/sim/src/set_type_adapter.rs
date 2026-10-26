@@ -137,9 +137,8 @@ impl UnitSetTypeView for SimSetType<'_> {
     fn pop_guy(&mut self, _i: i32) {}
     fn install_type(&mut self, _ty: i32) {
         let (u, rec) = (self.u, self.rec);
-        let who = self.who();
         let damage = self.sim.units[u].max_health - self.sim.units[u].health;
-        let hits = self.sim.unit_hits(who, rec);
+        let hits = self.sim.own_hits(u, rec);
         {
             let unit = &mut self.sim.units[u];
             unit.ty = Some(rec);
@@ -148,7 +147,7 @@ impl UnitSetTypeView for SimSetType<'_> {
         }
         self.sim.units[u].kind = self.sim.unit_types[rec].kind;
         self.sim.units[u].type_index = self.sim.unit_types[rec].type_index;
-        self.sim.units[u].movement.speed = self.sim.type_speed(who, rec);
+        self.sim.units[u].movement.speed = self.sim.own_speed(u, rec);
         // `Unit::set_type@00612fa0:235`: `update_hits`, then `update_los`,
         // `update_armor` and `update_speed` on the new type.
         self.sim.update_los(u);
@@ -177,10 +176,16 @@ impl UnitSetTypeView for SimSetType<'_> {
     }
     fn set_flags6c(&mut self, f: i32) {
         self.flags = f;
+        // The marine mark (`is(0x77)`'s `| 0x800`) is the one bit of the
+        // word this crate keeps from here (item 3661).
+        if f & crate::combat::umask2::MARINE as i32 != 0 {
+            self.sim.units[self.u].unit_masks2 |= crate::combat::umask2::MARINE;
+        }
     }
     fn update_ceo_position(&mut self) {}
     fn is_77(&mut self) -> bool {
-        false
+        self.sim
+            .speed_is(self.u, crate::cast_transport::MARINES, false)
     }
     fn slot_15c(&mut self) {}
     fn slot_160(&mut self) {}

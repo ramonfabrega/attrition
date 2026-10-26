@@ -467,11 +467,14 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `rubric.py --tables 3` on this tree. Item 3660: 200 -> 201, the Indian
 /// Enlightenment pair whole at 5000 — `Culverin Mahout` (264, land; 516
 /// figure rows in run1312), the line §340 booked, read by `rubric.py
-/// --tables 3` on this tree. Item 3662: 201 -> 202, the British
+/// --tables 3` on this tree. Item 3661: 201 -> 202, the American
+/// Enlightenment pair whole at 6669 — `Continental Marines` (119, land;
+/// 3420 figure rows in run1314), the line §341 booked, read by `rubric.py
+/// --tables 3` on this tree. Item 3662: 202 -> 203, the British
 /// Classical pair whole at 8980 — `Longbowmen` (177, land; 9312 guy
 /// records across run1316 and run1316b), the line §342 booked, read by
 /// `rubric.py --tables 3` on this tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 202;
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 203;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
