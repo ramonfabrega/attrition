@@ -783,6 +783,13 @@ impl Sim {
                             pv = pv * 3 / 2;
                         }
                         self.mark(SITE_UNIT_BIAS);
+                        if std::env::var_os("RON_PROBE_3698").is_some() {
+                            eprintln!(
+                                "PROBE3698 f{} who {} city {} t {} {:?} rec {:?} owned {} cap {} land_army {} mil {} d {}",
+                                self.frame, who, c, t, self.tech_tree.types[t].name, f.rec,
+                                owned, cap, non_siege - sea_combat, mil_level, d
+                            );
+                        }
                         let roll = self.rng.roll();
                         pv = (roll % 3 + 4) * pv / 5;
                         if d < 2 {
