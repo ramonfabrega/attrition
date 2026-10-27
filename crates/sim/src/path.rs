@@ -1596,8 +1596,8 @@ impl Sim {
     /// when the unit's `is_supply` virtual answers yes (`00689680`–
     /// `006896a9`). Every unit vtable's `+0xcc` is the base
     /// `UnitData::is_supply@0046ce80`, `unit_flags2 & 0x40`, so the arm is
-    /// the raw bit — without [`Sim::is_supply_unit`]'s hero exclusion,
-    /// which no hero reaches here, being armed. A Supply Wagon plans as an
+    /// the raw bit, as [`Sim::is_supply_unit`] is (item 3682 dropped its
+    /// hero exclusion). A Supply Wagon plans as an
     /// army and pays `base << 5` for every `0x200` cell; golden chapter
     /// four's wagon `1/10` is the first `find_wpath` of one in the corpus.
     #[cfg(test)]

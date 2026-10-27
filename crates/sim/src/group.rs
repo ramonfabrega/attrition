@@ -2264,11 +2264,15 @@ impl Sim {
             .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::GENERAL))
     }
 
+    /// `UnitData::is_supply@0046ce80`, the base every unit vtable's `+0xcc`
+    /// names: `unit_flags2 & 0x40`, the raw bit (swept by
+    /// `sweep::unit_is_supply`). A hero that carries it — The Citizen, TY
+    /// 356 — answers yes, so `action_siege_attack_to`'s supply arm takes
+    /// it before a later Supply Wagon (item 3682, `docs/AI.md` §346.2).
     pub(crate) fn is_supply_unit(&self, u: usize) -> bool {
-        self.units[u].ty.is_some_and(|t| {
-            let c = self.unit_types[t].cols;
-            c.flag2(uflags2::SUPPLY_OR_HERO) && !c.flag2(uflags2::GENERAL)
-        })
+        self.units[u]
+            .ty
+            .is_some_and(|t| self.unit_types[t].cols.flag2(uflags2::SUPPLY_OR_HERO))
     }
 
     pub(crate) fn is_special_unit(&self, u: usize) -> bool {
