@@ -3092,18 +3092,6 @@ impl Sim {
         // The anchor: the sub-group member with the smallest total
         // Manhattan distance to the whole group, in 1024-unit steps.
         let anchor = self.siege_anchor(g, &sub);
-        if std::env::var_os("RON_PROBE_3682").is_some() {
-            let n = |u: usize| format!("{}/{}", self.units[u].owner, self.units[u].index);
-            eprintln!(
-                "PROBE3682 f{} siege_attack_to list {:?} sub {:?} anchor {:?} to ({},{})",
-                self.frame,
-                g.list.iter().map(|&u| n(u)).collect::<Vec<_>>(),
-                sub.list.iter().map(|&u| n(u)).collect::<Vec<_>>(),
-                anchor.map(n),
-                to.x,
-                to.y
-            );
-        }
         let Some(anchor) = anchor else {
             self.group_action_move_to(g, to, QueuePos::New, true, angle, MoveKind::AttackTo, true);
             return;
