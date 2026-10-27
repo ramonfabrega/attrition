@@ -11758,6 +11758,52 @@ mod tests {
         }
     }
 
+    /// **`Group::action_attack`'s member search takes the shortcut too**
+    /// (item 3690, `docs/AI.md` §348.2): its `find_melee_target(maxd,
+    /// &ww, 0, 0, word)` reaches `find_nearby_target`'s head, whose add
+    /// (`00649263`, theirs' `find_nearby_target+0x4c8`) is ahead of the
+    /// add flag. The American Industrial pair's packed Artillery `1/131`,
+    /// halted by its group's attack on the Citizen `0/10`, took the army's
+    /// `0/2000` `mandatory 1` on 5678. Out of an army the search finds
+    /// nothing a packed engine can reach, and it is ordered on the group's
+    /// own target. The member's own `QUEUE_NEW` add follows the shortcut's
+    /// here as in theirs (`action_attack+0xeb1`); whether `mandatory`
+    /// survives it is the army group's insert, which this bare fixture
+    /// does not stage — run1356's widening pins that value on block 5679.
+    #[test]
+    fn group_action_attack_s_member_search_takes_the_army_target() {
+        for in_army in [true, false] {
+            let limit = at_war().0.tuning.unit_respond_range * 0x180;
+            let (mut sim, me, foe) = idle_packed_engine(limit - 48, in_army);
+            let foe_ty = sim.units[foe].ty.unwrap();
+            let at = sim.units[me].pos;
+            let blocker = put(&mut sim, 1, foe_ty, Pos::new(at.x, at.y + 600));
+            let g = match sim.army_of(me) {
+                Some(slot) => sim.army_group(0, slot),
+                None => crate::group::Group {
+                    who: 0,
+                    army: None,
+                    pushed: None,
+                    list: vec![me],
+                },
+            };
+            sim.group_action_attack(
+                &g,
+                Obj::Unit(blocker),
+                false,
+                crate::orders::QueuePos::First,
+                0,
+            );
+            let want = if in_army { foe } else { blocker };
+            assert_eq!(
+                sim.units[me].combat.target,
+                Some(Obj::Unit(want)),
+                "in_army {in_army}: {:?}",
+                sim.units[me].orders
+            );
+        }
+    }
+
     /// **An idle melee-and-ranged type searches at its second range**
     /// (`Unit::think_attack@005f5a80:167`–`174`, item 3383, `docs/AI.md`
     /// §291): a type whose flags carry `0x400` has `max_range` 0 and its

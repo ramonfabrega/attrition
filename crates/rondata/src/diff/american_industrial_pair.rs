@@ -39,9 +39,14 @@ pub(crate) const AMERICAN_INDUSTRIAL: Pair = Pair {
     // 5678: piece 87's bays (the round of 3105 leaves the rifle's muzzle)
     // and the CEO's heal (`1/36` repaired a point on block 3167) — ours
     // 56 draws against 55, parting at index 21, ours `Unit::fight+0x9b0`,
-    // theirs `Unit::fight+0x824` (`docs/AI.md` §348.1).
-    count: 5678,
-    sequence: 5678,
+    // theirs `Unit::fight+0x824` (`docs/AI.md` §348.1). Item 3690 moved
+    // it to 5701: piece 167's bays and the packed-siege shortcut in
+    // `Group::action_attack`'s member search (`1/131` takes its army's
+    // `0/2000` mandatory on 5678) — ours 20 draws against 19, parting at
+    // index 2, ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
+    // `Guy::set_anim+0x97a < Animal::do_idle+0x19` (`docs/AI.md` §348.2).
+    count: 5701,
+    sequence: 5701,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -298,7 +303,8 @@ pub(crate) fn american_industrial_frame_5678_window() -> Option<harness::tests::
         &[(RUN1356, WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678.0)],
         WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678,
         1,
-        &[5679],
+        // The word's block, and since item 3690 the new word 5701's (5702).
+        &[5679, 5702],
         true,
     )
 }
@@ -345,7 +351,15 @@ fn american_industrial_pair_run1356_s_word_frame_is_widened_whole() {
     // group-65 members' move orders part (`1/145`'s `x` 12216 against
     // 11448), and `1/131` takes a second order in theirs (`docs/AI.md`
     // §348.1).
-    pin_eq!(w.firsts.len(), 2670, "run1356 baseline");
-    pin_eq!(w.rounds_read, (166, 191), "the rounds read");
-    pin_eq!(w.rounds.len(), 52, "the rounds that part");
+    // Item 3690: piece 167's bays put `1/104`'s round of 5620 on theirs'
+    // (7758, 30368) at `sz` 672 — both sides fly it 3 frames — and the
+    // packed-siege shortcut in `Group::action_attack`'s member search
+    // gives `1/131` its army's `0/2000` mandatory on the word's block
+    // 5679, as theirs' (`[ATTACK mandatory 1 → 0/2000, CASTORDER 652
+    // paid 0]`; ours had a fresh non-mandatory `ATTACK` and re-searched).
+    // The first round to part is now 5735's (`1/104` again); group 65's
+    // move orders still part on 5679 (`1/145`'s `x` 12216 against 11448).
+    pin_eq!(w.firsts.len(), 2153, "run1356 after item 3690");
+    pin_eq!(w.rounds_read, (166, 49), "the rounds read");
+    pin_eq!(w.rounds.len(), 27, "the rounds that part");
 }

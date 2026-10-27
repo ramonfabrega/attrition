@@ -11602,13 +11602,25 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot UA — reserved
+## Parked by item 3690, 2026-10-27 — a Greyhound's bays and a packed siege's army target
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UA renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3690a — `find_nearby_target`'s tail siege arm, killed for 5678.**
+  `00649934`–`00649b43` (decompile lines 495–541): a group member that is
+  siege and computer-driven and finds an `OBJECT_CITY` building takes the
+  add mandatory and writes its army's target, muster and muster angle
+  (`find_angle(city − unit)` in `ecx`/`edx` at `649afb`–`649b1f`). It sits
+  behind the add flag (`param_3 != 0 && param_4 == 0`), which
+  `Group::action_attack`'s `(…, 0, 0, word)` never passes. It was built as
+  WIP (`2344c1620`), did not move the word, and is reverted; the head's
+  shortcut was the arm (`docs/AI.md` §348.2). Which caller with the add
+  flag reaches it on a city is not scanned. It names no score.
+- **3690b — piece 167's other rows.** The sixteen node-0 rows are fit at
+  `CHAR_ATTACKWALK` and `CHAR_ATTACK2`. Of the piece's 37, the rest are
+  unmeasured. Only 5620's round, and 5735's onward on run1356, are checked
+  against a dump. They name no score.
+- **3690c — `orders.rs`'s `group_move_follower` SEAM** (the attack-context
+  hand-off, not modelled). run1356 does not reach it, because both sides'
+  `1/73` took the leader arm. It names no score.
 
 ## Parked by the next landing, slot UB — reserved
 

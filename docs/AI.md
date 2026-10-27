@@ -32815,6 +32815,70 @@ keys, rounds (166, 191), 52 parting.
   none. An Armored Car's gun is a turret, so 3677's pivot-versus-bay test
   applies, fit off a packet before 5620.
 
+### 348.2 A Greyhound's bays and a packed siege's army target: the word 5678 → 5701 (item 3690)
+
+*Item 3690, 2026-10-26/27, Opus 5.5, two sessions. Packets run1359
+(`RON_STATE_FRAME` 5619), run1359b (5677, the wrong frame) and run1359c
+(5678), run1337's lobby; no new window.*
+
+**Piece 167's bays** (`crates/sim/src/launch.rs`). The Greyhound (TY
+217, `GREYHOUND-DEFAULT-AGE0`, `armoredscoutcar_na.bh3`) is not a pivot
+piece: no `<RESTRICTION>` names it, and its `turret_angles` are 0 on
+`GUYS=4`. Its sixteen rows are node 0 at `CHAR_ATTACKWALK` and
+`CHAR_ATTACK2`, frames 3, 9, 12, 17, 20, 22, 24 and 29, each the centroid
+of `tools/recomp/fit_bay.py`'s exact region over run1359's sweep of all
+361 headings. §348.1's "flies 3 frames against 2" was a misreading: both
+sides read `total_time` 3.
+
+**The packed-siege shortcut answers `Group::action_attack` too.** On
+5678, who=1's Anti-tank Rifle `1/73` is blocked by the Citizen `0/10`,
+and its `do_group_move` calls `Group::action_attack(group 65, 0/10, 0,
+QUEUE_FIRST, 0)` from `+0x215` on both sides. The member loop's
+`find_melee_target(maxd, &ww, 0, 0, word)` reaches
+`Object::find_nearby_target`, whose **head** (`00649240`–`00649263`)
+holds the shortcut: a packed AI siege unit takes its army's target
+(`+0x30`/`+0x34`) when it is valid and inside `unit_respond_range ×
+0x180`, `add_attack_order(…, QUEUE_FIRST, mandatory 1, 0)` — ahead of
+the add flag, so this `(0, 0)` caller takes it. run1359c's hook
+(`5e5410`) names the add `find_nearby_target+0x4c8`, i.e. the return
+address `649268`. Theirs' `1/131` (the packed Artillery, TY 269, army 2)
+takes `0/2000`, the human's capital, mandatory. Ours'
+`take_siege_army_target` (item 3654) was asked by every other caller
+and, per its own SEAM, not by `attack_view.rs`'s member search; it is
+now (`SimAttack::find_melee_target`).
+- **The previous session's hypothesis is killed**: `find_nearby_target`'s
+  *tail* siege arm (`00649934`–`00649b43`, the city find that writes the
+  army's target and muster) sits behind `param_3 != 0 && param_4 == 0`,
+  and `action_attack` passes both 0. It was built as WIP (`2344c1620`),
+  did not move the word, and is reverted; it stays unbuilt, and AI
+  §238's "Not established" for it stands.
+
+**The value diff:**
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 5620 | `1/104`'s round | `sx, sy, sz` | (7926, 30423), 655 | (7758, 30368), 672 | (7758, 30368), 672 |
+| 5679 | `1/131`'s attack | `mandatory`, target | 0, `0/2000` | 1, `0/2000` | 1, `0/2000` |
+
+On block 5679, theirs' orders read `[ATTACK mandatory 1 → 0/2000,
+CASTORDER 652 paid 0]`, and ours' now read the same pair. Ours' `fight`
+no longer spends the one-in-five re-search (`Unit::fight+0x9b0`).
+
+**What moved:**
+- **`AMERICAN_INDUSTRIAL`: 5678 → 5701 of 5861**, by the count and the
+  sequence. The bays alone left it on 5678.
+- **run1356**: 2670 → 2153 keys; rounds (166, 191) → (166, 49); 52 → 27
+  parting. The first round to part is 5735's (`1/104`). Block 5595's
+  standing families stand. On 5679, group 65's move orders still part
+  (`1/145`'s `x` 12216 against 11448).
+- **Every lobby**: `first_parting` 86 of 86 on this tree.
+
+**The next word, 5701: ours 20 draws against 19, index 2**, ours
+`Guy::set_anim+0x97a < Guy::move+0x19f`, theirs `Guy::set_anim+0x97a <
+Animal::do_idle+0x19`. It is inside run1356, whose `near` list now
+carries 5702. Group 65's move orders on 5679 are the nearest standing
+non-family rows; whether they reach 5701's draw is that item's to read.
+
 ## 349. The Russians at a held Gunpowder age, Great Lakes: first try 3711 of 5341 (item 3670)
 
 **The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
