@@ -65,8 +65,13 @@ pub(crate) const PERSIAN_GUNPOWDER: Pair = Pair {
     // idle think on 4841 searched for a build (run1387, §358.4). On 4948
     // ours spends 48 draws against 49, parting at index 43: ours
     // `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6`.
-    count: 4948,
-    sequence: 4948,
+    // Item 3713: 4948 → 5673 of 5673, the game's last frame. The Gun Mahout
+    // `1/99`'s (TI 263) round on 4907 left the elephant's own square at 273;
+    // piece 213's five howdah bays (`launch::BAYS`, run1385p's packet) put
+    // it at (6929, 8608, 699), as theirs, and it kills `0/11` on 4948
+    // (`docs/AI.md` §358.5).
+    count: 5673,
+    sequence: 5673,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -435,9 +440,16 @@ fn persian_gunpowder_pair_run1387_s_word_frame_is_widened_whole() {
     // `total_time` 4 against 3 — theirs' kills the human's `0/11` on 4948
     // (`Unit::close`), and ours' is still in flight on 4949 with `0/11`
     // alive (`extra`). The rest follow from 4950.
-    pin_eq!(w.firsts.len(), 1933, "run1387 baseline");
-    pin_eq!(w.rounds_read, (5, 6), "the rounds read");
-    pin_eq!(w.rounds.len(), 9, "the rounds that part");
+    // Item 3713, with piece 213's bays (the word closed): **143** keys,
+    // rounds 5 against 5, none parting. 116 are block 4795's standing
+    // families (`form`, groups' pools, `SITE[i]`); then `1/58`'s `form`
+    // (4805), groups 70/71 held (4820), the formation `g.des_x`/`g.des_y`
+    // rows a few units off (4883..4938), `1/21`'s `dest_angle` (4886),
+    // `1/99`'s order after its kill on 4951 (ours `kind` 21, theirs 2;
+    // `cur_time` 17 against 18, parked 3713a), and `SITE[2..4].reg` on 4976.
+    pin_eq!(w.firsts.len(), 143, "run1387 baseline");
+    pin_eq!(w.rounds_read, (5, 5), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// run1385: the site's window, blocks 2695..2801 at run1383b's detail —
@@ -557,11 +569,9 @@ fn persian_gunpowder_pair_run1370_s_closing_state() {
     // `[215, 1, 1, 0, 75, 0, 61]`, who=1's `1/235` the one extra.
     // Item 3710 (the word at 4948): 257 compared, counts
     // `[209, 0, 2, 0, 60, 0, 49]`, who=1's `1/235` and `1/246` extra.
+    // Item 3713 (the word closed, 5673 of 5673): 257 compared, none off,
+    // torn, unlinked or extra; `Closing fields: none`.
     pin_eq!(e.compared, 257, "units compared");
-    pin_eq!(e.counts(), [209, 0, 2, 0, 60, 0, 49], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![(1, 235), (1, 246)],
-        "the closing extras"
-    );
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
