@@ -479,7 +479,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3664: 204 -> 205, the Japanese Medieval pair whole at 5140 —
 /// `Elite Bushi` (159, land; 3444 guy records across run1329 and run1329b),
 /// the line §344 booked, read by `rubric.py --tables 3` on the merged tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 205;
+/// Item 3679: 205 -> 206, the Korean Medieval pair whole at 4559 — `Royal
+/// Hwarang` (182, land; 1542 figure rows, every one in run1330 and
+/// run1331), the line §345 booked, read by `rubric.py --tables 3` on the
+/// merged tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 206;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
