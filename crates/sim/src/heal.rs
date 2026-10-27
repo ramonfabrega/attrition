@@ -77,7 +77,7 @@ impl Sim {
     /// `healing` (`+0x38`) and the `0x4000` clear are not carried.
     ///
     /// SEAM: the Monarch's and the Comrade's arms, which also ask an
-    /// allied cell; no capture on file reaches them.
+    /// allied cell; read, not built (parked 3686a).
     pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
         const THECEO: i32 = 0x165;
         let rate = i64::from(self.tuning.french_supply_heal_rate);
@@ -120,8 +120,8 @@ impl Sim {
     ///
     /// SEAM: past the chain's last live figure, a squad under its
     /// `uber_size` (`+0x308`) **trains a figure back** (`Objects::find_free`,
-    /// `init`, a spot and a move order, the group joins): no capture on
-    /// file reaches it, and here the remainder is dropped.
+    /// `init`, a spot and a move order, the group joins): read, not built,
+    /// and here the remainder is dropped (parked 3686b).
     pub(crate) fn repair_unit_damage(&mut self, i: usize, amount: i32) {
         let mut cur = Some(i);
         let mut left = amount;
