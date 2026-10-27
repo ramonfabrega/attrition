@@ -200,26 +200,8 @@ impl Sim {
                 me,
             )?;
             self.mark(SITE_JITTER);
-            let roll = self.rng.roll();
-            if std::env::var("RON_PROBE_FISH").is_ok_and(|v| v == frame.to_string()) {
-                eprintln!(
-                    "PROBE fish {}/{} f{} cell ({},{}) land {} flags {:#x} base {} roll {} good {:?} claim {:?}",
-                    who, me, frame, x, y, d.land, d.flags, base, roll,
-                    self.find_good_at(c, who), self.claim_of(c)
-                );
-            }
-            Some((base, roll))
+            Some((base, self.rng.roll()))
         });
-        if std::env::var("RON_PROBE_FISH").is_ok_and(|v| v == frame.to_string()) {
-            eprintln!("PROBE fish {}/{} f{} here ({},{}) best {} -> {:?}", who, me, frame, here.x, here.y, best, MOVE_289[best]);
-            let c = Cell::new(here.x - 2, here.y);
-            eprintln!("PROBE chain {:?}", self.cell_chain(c));
-            for (k, v) in self.units.iter().enumerate() {
-                if v.pos.cell() == c {
-                    eprintln!("PROBE at k{} {}/{} ty {:?} up {:?} down {:?} pos {:?}", k, v.owner, v.index, v.ty, v.up, v.down, v.pos);
-                }
-            }
-        }
 
         let (dx, dy) = MOVE_289[best];
         if dx == 0 && dy == 0 {
