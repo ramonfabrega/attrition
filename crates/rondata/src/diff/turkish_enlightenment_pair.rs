@@ -363,5 +363,7 @@ fn turkish_enlightenment_pair_run1186c_s_closing_frame_is_widened_whole() {
     // then who=1's `SITE[2].val` on 3576 (ours 290625 against 193719),
     // `dest_angle` on `1/22` (3605) and `1/64` (3618), and ours' later
     // groups 65, 69 and 71. The closing block 3813 parts nothing new.
-    pin_eq!(w.firsts.len(), 59, "run1186c baseline");
+    // Item 3708: 59 → 58, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 58, "run1186c baseline");
 }

@@ -10788,12 +10788,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // Hard — its first try parts at 1180 of a game that ends itself on
     // 5673; widened on run1370b over 1095..1431, the rounds compared.
     // Item 3706 moved it 1180 → 3020 (the Elite Pikemen's mask), widened
-    // on run1383b over 3014..3270: 672 keys, no rounds.
+    // on run1383b over 3014..3270: 672 keys, no rounds. Item 3708 moved
+    // it 3020 → 3130 (`find_fort` and an unbuilt fort); the word's block
+    // 3131 is inside run1383b's window, 295 keys, no rounds.
     (
         "PERSIAN_GUNPOWDER_PAIR_WORD",
         crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER_PAIR_WORD,
         Some("persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole"),
-        3706,
+        3708,
         Some(crate::diff::persian_gunpowder_pair::WIDENING_PERSIAN_GUNPOWDER_FRAME_3020),
     ),
     // **The Inca at a held Industrial age** (item 3699): Great Lakes at
@@ -13138,7 +13140,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Persians at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies at Hard (item 3698): its first
     // try parts at 1180 of a game that ends itself on 5673, widened on
-    // run1370b; item 3706 moved it to 3020, widened on run1383b.
+    // run1370b; item 3706 moved it to 3020, widened on run1383b; item 3708
+    // moved it to 3130, inside the same window.
     AiWord {
         line: "Late ages",
         map: "EastIndiesPersianGunpowder",

@@ -1184,7 +1184,9 @@ fn run710_s_word_frame_is_widened_whole() {
     // leader's 47 (`docs/AI.md` §161).
     // Item 2761: 106 → 100 with `Unit::close`'s count (`docs/AI.md` §232).
     // Item 3279: −14, `death:extra` on a capture that logs no `DEATHS` (`docs/AI.md` §259).
-    pin_eq!(w.firsts.len(), 79, "initial run710 baseline");
+    // Item 3708: 79 → 78, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 78, "initial run710 baseline");
     // **The word 2288's value diff, item 1598** (`docs/AI.md` §166): the
     // ARMOREDCAVALRY `1/40` (`TypeIndex` 220), put ashore by Freighter
     // `1/52` on 1703, parted first there — `pos` ours (42648, 37176)

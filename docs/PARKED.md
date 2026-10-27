@@ -11879,13 +11879,18 @@ score on its own.
   214) against (7733, 11111, 350)), 19 round rows parting. It is 3683b's row on a third game (3693a the second).
   The pair is whole, so it names no score; a packet that loads the piece fits its bays.
 
-## Parked by the next landing, slot UQ — reserved
+## Parked by item 3708, 2026-10-27 — a fort counts when it is built: the Persian Gunpowder word moves 3020 → 3130
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UQ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Persian Gunpowder word moves 3020 → 3130 (`docs/AI.md` §358.3). Its next residue item, who=1's Fishermen
+`1/125` on 3130, is the commander's to book. Neither row below names a score on its own.
+
+- **3708a. The Gun Mahout `1/42`'s `dest_angle` parts on the stride's 2901** (TI 263, land, a `GUARDORDER` on `1/17`
+  that has just moved posts, `dx` −540 → 540): −1073741824 in ours against 1556283392. The mutated tree (the base's
+  `fort_at`) prints the same row. run1383b's 3014 reads it quiet again, and no draw parts before 3130. It names no
+  score. The first step: `unitat.py` on run1383b's block for `1/42`, then `seams.py --field dest_angle`.
+- **3708b. `Forts::close_fort@0073ec90` is read and not modelled.** `fort_at` asks `alive && active` for list
+  membership. A fort's death leaves the list, and `alive` stands for that; its capture is the arm nobody holds, and
+  no capture on disk takes a fort. It names no score until one does.
 
 ## Parked by the next landing, slot UR — reserved
 

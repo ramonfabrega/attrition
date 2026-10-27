@@ -386,7 +386,9 @@ fn british_industrial_pair_run1352_s_word_frame_is_widened_whole() {
     // alone; `1/28`'s round leaves the `MARK4`'s muzzle (piece 190) at
     // (9218, 31078) and 757 as theirs' does, and the rounds part (306, 278)
     // → (306, 306), 110 → 6, all dead targets' `whom`/`ox`.
-    pin_eq!(w.firsts.len(), 53, "run1352 baseline");
+    // Item 3708: 53 → 52, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 52, "run1352 baseline");
     // Rounds are in flight on both sides over the window.
     pin_eq!(w.rounds_read, (306, 306), "the rounds read");
     pin_eq!(w.rounds.len(), 6, "the rounds that part");

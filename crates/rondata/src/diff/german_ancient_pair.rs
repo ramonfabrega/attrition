@@ -227,5 +227,7 @@ fn german_ancient_pair_run1244b_s_closing_frame_is_widened_whole() {
     // `SITE[6].rank` 2 against 3, which agree again by block 5313 (parked
     // 3596a); groups 71's `held`/`pool` on 5065 and 73's on 5179. No unit,
     // building or city field parts.
-    pin_eq!(w.firsts.len(), 55, "run1244b baseline");
+    // Item 3708: 55 → 50, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 50, "run1244b baseline");
 }

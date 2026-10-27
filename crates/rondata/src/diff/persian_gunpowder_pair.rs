@@ -45,8 +45,15 @@ pub(crate) const PERSIAN_GUNPOWDER: Pair = Pair {
     // spends 15 draws against theirs' 10, parting at index 0: ours
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
-    count: 3020,
-    sequence: 3020,
+    // Item 3708: 3020 → 3130. `Forts::find_fort` answers only for a fort
+    // `Build::activate` has listed; ours counted the unbuilt `1/2034` in
+    // `compute_site_stats`' 5×5 from 2375, scored the home region's samples
+    // ×3/2, and kept a different site table, so the Village went to
+    // (34, 32) where theirs takes (34, 33) (run1385, run1385p, §358.3). On
+    // 3130 ours spends 98 draws against theirs' 97, parting at index 54:
+    // ours `Unit::think_fish+0x27a`, theirs `Guy::init_real+0x52`.
+    count: 3130,
+    sequence: 3130,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -200,7 +207,13 @@ fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_the_word() {
     // against (26088, 26184) in theirs — ours places the Village 768 lower
     // (`y_internal` 24672 against 25440 on run1383b's 3014). No draw parts
     // there; on 2901 `1/10`'s `pos` parts, and on 3001 the Explorer `1/0`'s.
-    pin_eq!(w.firsts.len(), 150, "the stride's baseline");
+    // Item 3708 (`find_fort` waits for a built fort): **132** keys. The
+    // Village stands where theirs does and `1/10`'s rows agree; the first
+    // row that is not standing is on 2901, the Gun Mahout `1/42` (TI 263,
+    // land, a `GUARDORDER` on `1/17` that has just changed posts)
+    // `dest_angle` ours -1073741824 against 1556283392 — on the base too
+    // (the mutation's stride prints it), and quiet again by run1383b's 3014.
+    pin_eq!(w.firsts.len(), 132, "the stride's baseline");
 }
 
 /// run1370b: the word 1180's window, blocks 1095..1431 at the long's
@@ -331,7 +344,74 @@ fn persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole() {
     // (`orders.len` 0 against 1), at the same `pos` (24304, 25076); on
     // 3021 it is idle in ours (`idle` 1 against 0) and its `do_idle` roll
     // is the draw ours spends first. No round flies in the window.
-    pin_eq!(w.firsts.len(), 672, "run1383b baseline");
+    // Item 3708 (the word at 3130): **295** keys, the standing families to
+    // the word's block. **On 3131** who=1's Fishermen `1/125` (TI 317, sea;
+    // idle and orderless on 3130) takes a `MOVEORDER` to (34968, 44952) in
+    // ours against (29592, 41880) in theirs (`orders_x`, `orders_y`,
+    // `order:move.angle`); on 3132 its path is 1 node against 7.
+    pin_eq!(w.firsts.len(), 295, "run1383b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1385: the site's window, blocks 2695..2801 at run1383b's detail —
+/// six blocks before the stride's 2701 and through 2801, the block the
+/// state first parts on (item 3708).
+pub(crate) const RUN1385: &str =
+    "gamelog-run1385-eastindies-persian-gunpowder-window-2695-2801.txt";
+
+/// The window: block 2695 through 2801.
+pub(crate) const WIDENING_PERSIAN_GUNPOWDER_FRAME_2801: (i64, i64) = (2695, 2801);
+
+/// **The site's window**: run1385 walked from run1369's start with the
+/// recorder on and every round compared (item 3708).
+pub(crate) fn persian_gunpowder_frame_2801_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[PERSIAN_GUNPOWDER.start],
+        true,
+        PERSIAN_GUNPOWDER.long,
+        "run1385",
+        &[(RUN1385, WIDENING_PERSIAN_GUNPOWDER_FRAME_2801.0)],
+        WIDENING_PERSIAN_GUNPOWDER_FRAME_2801,
+        1,
+        &[2801],
+        true,
+    )
+}
+
+#[test]
+fn persian_gunpowder_pair_run1385_s_site_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_gunpowder_frame_2801_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 106, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    // Item 3708, before its build: **118** keys — the standing families,
+    // and who=1's site table already parted on 2695 (theirs holds
+    // (42, 53) at 198 in slot 8, ours (44, 52) at 247); on 2776 `SITE[9]`
+    // (34, 33) at 53784 in ours against (34, 32) at 215784, and on 2778 the
+    // Village `1/2039`'s `y_internal` 24672 against 25440 (cells 32 and
+    // 33). Built (`find_fort` waits for `Build::activate`): **91** keys,
+    // every one a standing family (`form`, the leaders' `SITE[i].reg` and
+    // `aggression`, who=1's groups and pools); the site table agrees.
+    pin_eq!(w.firsts.len(), 91, "run1385 baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -385,11 +465,9 @@ fn persian_gunpowder_pair_run1370_s_closing_state() {
     // high in ours (6000 against 5500 on `1/2000`, parked 3698a).
     // Item 3706 (the word at 3020): 250 units compared, and the human's
     // `0/11` and `0/13` and who=1's `1/235` stand in ours alone (extra).
+    // Item 3708 (the word at 3130): 250 compared, counts
+    // `[237, 7, 1, 7, 180, 1, 83]`, the human's `0/13` the one extra.
     pin_eq!(e.compared, 250, "units compared");
-    pin_eq!(e.counts(), [237, 7, 3, 9, 121, 1, 94], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![(0, 11), (0, 13), (1, 235)],
-        "the closing extras"
-    );
+    pin_eq!(e.counts(), [237, 7, 1, 7, 180, 1, 83], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![(0, 13)], "the closing extras");
 }
