@@ -1803,7 +1803,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("PRODUCTION.md", 4),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
-    ("TECH.md", 7),
+    ("TECH.md", 6),
     ("TRANSPORT.md", 3),
 ];
 
