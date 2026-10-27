@@ -11848,13 +11848,19 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot UP — reserved
+## Parked by item 3707, 2026-10-27 — the Egyptian Industrial word closes, 4959 → 5689
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UP renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3707a. Group 71's Riflemen read `order:target` `0/10` in ours against the human's building `0/2003` in theirs**,
+  from 4949 on run1374b (`1/77`, `1/76`, `1/80`, `1/79`, `1/72`, `1/71`). In theirs the current order on 4949 is an
+  `ATTACKORDER` at `0/10` (uid 17), as ours'; the `0/2003` attack (uid 3) is the ring's bottom entry `[0]`, under a
+  `MOVEORDER` and the `ATTACKTOORDER`. The key compares an entry ours' ring does not keep, so the row stands for
+  the ring's depth, not for the order being run. The rows stood before the word closed (§360), no round parts, and
+  draws agree to the game's end, so it names no score. The first step: grep the harness's `order:target` reader
+  for the entry it picks, then count ours' ring depth on 4949.
+- **3707b. The Artillery's launches** (TY 269, `ARTILLERY`) on run1384, the closing window: `1/81`, `1/89` and
+  `1/91` loose seven rounds from their figures' squares, 136 below theirs' (`1/81`'s of 5441 from (7752, 11160,
+  214) against (7733, 11111, 350)), 19 round rows parting. It is 3683b's row on a third game (3693a the second).
+  The pair is whole, so it names no score; a packet that loads the piece fits its bays.
 
 ## Parked by the next landing, slot UQ — reserved
 
