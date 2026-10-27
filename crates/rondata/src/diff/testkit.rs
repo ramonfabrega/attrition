@@ -7289,6 +7289,22 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3703: the Greek Medieval pair's first try, run1380 walked from
+    // run1379's start to the word 5626: 1 inexact corner.
+    ("greek_medieval_pair_first_parting", 1),
+    // Item 3703: its closing state, run1380 walked to the closing block
+    // 5943 past the word: 1 inexact corner.
+    ("greek_medieval_pair_run1380_s_closing_state", 1),
+    // Item 3703: its stride walk-back 101..5601 and the word's window
+    // 5595..5877 on run1380b: 1 inexact corner each.
+    (
+        "greek_medieval_pair_the_long_s_stride_walks_back_from_the_word",
+        1,
+    ),
+    (
+        "greek_medieval_pair_run1380b_s_word_frame_is_widened_whole",
+        1,
+    ),
     // Item 3702: the Mongol Medieval pair's closing state, run1378 walked
     // to its closing block 5593 past the word 2595: 2 inexact corners.
     ("mongol_medieval_pair_run1378_s_closing_state", 2),
@@ -10828,6 +10844,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3702,
         Some(crate::diff::mongol_medieval_pair::WIDENING_MONGOL_MEDIEVAL_FRAME_2595),
     ),
+    // **The Greeks at a held Medieval age** (item 3703): East Indies at
+    // Hard — first try 5626 of 5942, the Heavy Fire Raft `1/70`'s
+    // `do_move` draw; widened on run1380b over 5595..5877, the rounds
+    // compared.
+    (
+        "GREEK_MEDIEVAL_PAIR_WORD",
+        crate::diff::greek_medieval_pair::GREEK_MEDIEVAL_PAIR_WORD,
+        Some("greek_medieval_pair_run1380b_s_word_frame_is_widened_whole"),
+        3703,
+        Some(crate::diff::greek_medieval_pair::WIDENING_GREEK_MEDIEVAL_FRAME_5626),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13176,6 +13203,20 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_592,
         endpoint: Some("mongol_medieval_pair_run1378_s_closing_state"),
         window: Some("mongol_medieval_frame_2595_window"),
+    },
+    // The Greeks at a held Medieval age (`STARTING_TECHNOLOGY` 2,
+    // `ENDING_TECHNOLOGY` 2), East Indies at Hard (item 3703): first try
+    // 5626 of 5942, the Heavy Fire Raft `1/70` spending one `do_move` draw
+    // more in ours and keeping no order; widened on run1380b over
+    // 5595..5877.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesGreekMedieval",
+        named: "East Indies (Greek, Medieval)",
+        word: crate::diff::greek_medieval_pair::GREEK_MEDIEVAL_PAIR_WORD,
+        length: 5_942,
+        endpoint: Some("greek_medieval_pair_run1380_s_closing_state"),
+        window: Some("greek_medieval_frame_5626_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

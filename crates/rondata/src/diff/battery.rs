@@ -474,6 +474,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // this map at other difficulties, nor `(7, 17, 3)`, `(7, 17, 5)` or
     // `(14, 17, 5)`, other maps; the battery fields no Mongols.
     (18, 17, 4),
+    // Item 3703: the Greeks at a held Medieval age on East Indies at Hard
+    // (`diff::greek_medieval_pair`), minted under rule (3) — not the
+    // Classical pair's `(18, 5, 5)`, this map at another difficulty, nor
+    // `(7, 5, 1)`, `(7, 5, 5)` or `(14, 5, 5)`, other maps; the battery
+    // fields no Greeks.
+    (18, 5, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

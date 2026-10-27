@@ -34415,12 +34415,71 @@ and run1378b reads 8070 figure rows. It stays on the never list.
 **Not established**: which cell ours accepts and theirs refuses, and on which of `think_fish`'s terms; whether
 the bucket and queued-cost partings before the word are its cause or a separate residue.
 
-## 363. Reserved for the next item on the AI track
+## 363. The Greeks at a held Medieval age, East Indies, at difficulty 4: first try 5626 of 5942 (item 3703)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3703, 2026-10-27, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §362's lobby with the nation moved: `MAP_STYLE 18`, human
+Nubians (4) against the **Greeks (5)** at Difficulty 4, seed 12345, `STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY
+2`, `ENDING_TECHNOLOGY 2`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures: run1379 (a `DUMP_ALL`
+start) and run1380 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on
+5942; run1379 against run1380 is 37 of 37 frames identical. The walk is seeded from run1379's initial state
+(3506a). `diff::greek_medieval_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 5, 4)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no Greeks (`battery::BATTERY`'s tribes are 0, 6, 7, 8, 13, 14, 19 and 22). The Greek
+lobbies already pinned are `greek_classical_pair`'s `(18, 5, 5)` (this map, another difficulty), `greek_word`'s
+`(7, 5, 1)`, `greek_gunpowder_pair`'s `(7, 5, 5)` and `greek_enlightenment_pair`'s `(14, 5, 5)` (other maps).
+`(18, 5, 4)` appeared nowhere in the tree. `greek_medieval_pair_is_no_other_lobby` asserts all of it.
+
+**First try: 5626 of 5942**, by the count and the sequence. On 5626 ours spends **29 draws against theirs' 28**,
+parting at index 9: ours `Unit::do_move+0xe84` (`orders::SITE_MOVE_GRID`, the grid planner's draw), theirs
+`Guy::set_anim+0x97a < Guy::move+0x19f`. `RON_DEBUG_SITES=5626-5626` lists ours' frame: `8/1`'s and `9/2`'s
+animal draws, then **eight** `do_move+0xe84` for `1/21`, `1/27`, `1/30`, `1/44`, `1/45`, `1/55`, `1/69` and
+**`1/70`**, then `1/82`'s two `Guy::move` draws. Theirs' index 9 is `1/82`'s, so theirs spends **seven**, and the
+eighth — at index 9 — is `1/70`'s.
+
+**The direction: ours acts, once more.** `1/70` is a **Heavy Fire Raft** (TI 335, TY 285, sea, unpacked, stance
+Raid; `RON_DEBUG_UNIT=1/70@5624-5628`), idle and orderless on both sides through 5626 at (45675, 37688). On 5626
+ours spends one grid-planner draw for it and ends the frame with no order and `avoid` set to its own square; theirs
+spends none and ends it holding a one-node move.
+
+**The value diff** (run1380b):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 5626 | the draw stream, index 9 | site | `Unit::do_move+0xe84` (`1/70`'s) | `Guy::set_anim+0x97a < Guy::move+0x19f` |
+| 5627 | the Heavy Fire Raft `1/70` | `orders.len`; `path:length` | 0; 0 | 1; 1 |
+| 5627 | the same | `orders_x`, `orders_y` | 45675, 37688 | 46056, 38088 |
+| 5627 | the same | `heading`; `angle:Facing` | 145883136; 145883136 | 1153564672; 1100320256 |
+| 5628 | the same | `pos`; `idle` | (45675, 37688); 1 | (45683, 37689); 0 |
+
+**The state first parts on the word's own block.** In run1380b's window (5595..5877) block 5595 carries only the
+standing families (`form`, `build:extra`, who=1's groups and pools, who=0's `SITE[i].reg` and `aggression[1]`), and
+no bucket parts. No unit, building or city row parts before 5627, and `1/70` is the first. run1380's stride
+(101..5601, 56 blocks, **253 keys**) is standing families only.
+
+**The rounds** part earlier but never reach the draws: 1205 against 1199 over the window, 243 rows. The first are
+launch points a unit or two off — the Heavy Horse Archer `1/151`'s (TI 188) `ammo[4]` on 5601 (`sx` 6566 against
+6565, `sy` 8539 against 8540) and the Crossbowmen `1/157`'s (TI 172) `ammo[0]` on 5612 (parked 3703a).
+
+**The windows.**
+- run1380's stride, 101..5601 (56 blocks, 253 keys): standing families only.
+- run1380b, blocks 5595..5877 at the long's detail with `LEADERS=9` and `AMMO=5` (282 blocks, **3660 keys**, the
+  two `gaia:` keys unprinted). run1380 against run1380b is 5878 of 5878 frames identical.
+
+**The closing state** is downstream. run1380's block 5943 compares 319 units: counts `[119, 3, 1, 7, 6, 1, 0]`,
+3 unlinked (`1/308`, `1/312`, `1/318`), 1 extra (`1/313`), who=1's army off and two buildings (`1/2066`,
+`1/2067`) in the closing fields (parked 3703b). Each of the four walks reads 1 inexact ground corner, now
+`GROUND_INEXACT` rows.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **227 of 302, unmoved**. The pair parts, so it adds no
+lockstep game. The booking's line, **`Royal Companion` (232, `COMPANIONELITE`), was fielded**: `--dumps` over
+run1380 and run1380b reads 5734 figure rows. It stays on the never list.
+
+**Not established**: why ours' raft reaches the grid planner and gives up where theirs keeps a one-node move —
+whether both sides were handed the same order on 5626 and ours' planner refuses it, or theirs alone was handed
+one; who issued it (the raft is in army 1).
 
 ## 364. Reserved for the next item on the AI track
 
