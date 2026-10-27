@@ -262,4 +262,92 @@ mod tests {
             "outside an ally's territory, nothing"
         );
     }
+
+    /// **A CEO heals its army abroad, a point every 20 frames, down the
+    /// squad** (item 3686, `docs/AI.md` §348.1): `process_healing`'s third
+    /// economic-patriot arm runs on the captain, phased on the captain's
+    /// `o`, and its `repair_damage(1, …)` hands the point down `o_down`
+    /// past an unhurt figure to the hurt one, zeroing its fraction. The
+    /// cell is nobody's. Off the phase, without a CEO, or under an
+    /// attrition period, nothing. run1338b's `1/36` (captain `1/35`) went
+    /// 4 and 14/16 to 3 and 6/16 on block 3167, a point and then the
+    /// bleed. Made to fail with the arm out of `Unit::process`'s heal.
+    #[test]
+    fn a_ceo_heals_the_hurt_figure_of_a_squad_abroad_every_20_frames() {
+        use crate::ai_load::{UnitCols, uflags2};
+        use crate::world::{Pos, World};
+        let mut sim = crate::Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let rifle = sim.add_unit_type(crate::UnitType {
+            hits: 645,
+            type_index: 137,
+            combat: crate::combat::Profile {
+                uber_size: 3,
+                ..crate::combat::Profile::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let ceo = sim.add_unit_type(crate::UnitType {
+            hits: 110,
+            type_index: 0x165,
+            cols: UnitCols {
+                unit_flags2: uflags2::GENERAL | uflags2::SUPPLY_OR_HERO,
+                ..UnitCols::default()
+            },
+            ..crate::UnitType::default()
+        });
+        let at = Pos::new(30 * 0x300 + 0x198, 30 * 0x300 + 0x198);
+        let put = |sim: &mut crate::Sim, t: usize, hits: i32| {
+            let index = i16::try_from(sim.units.len()).unwrap();
+            let mut u = crate::Unit::new(1, index, at, hits);
+            u.ty = Some(t);
+            u.type_index = sim.unit_types[t].type_index;
+            u.on_map = true;
+            u.kind = sim.unit_types[t].kind;
+            sim.add_unit(u)
+        };
+        let squad = [
+            put(&mut sim, rifle, 215),
+            put(&mut sim, rifle, 215),
+            put(&mut sim, rifle, 215),
+        ];
+        sim.units[squad[0]].captain = true;
+        sim.units[squad[0]].o_down = Some(squad[1]);
+        sim.units[squad[1]].captain = false;
+        sim.units[squad[1]].o_up = Some(squad[0]);
+        sim.units[squad[1]].o_down = Some(squad[2]);
+        sim.units[squad[2]].captain = false;
+        sim.units[squad[2]].o_up = Some(squad[0]);
+        let hurt = squad[2];
+        sim.units[hurt].health = 215 - 4;
+        sim.units[hurt].damage_frac = 14;
+        let c = squad[0];
+        let o = i64::from(sim.units[c].index);
+        let due = 20 * 160 - o;
+        let state = |sim: &crate::Sim| (sim.units[hurt].health, sim.units[hurt].damage_frac);
+        sim.ceo_heal(c, due);
+        assert_eq!(state(&sim), (211, 14), "no CEO, nothing");
+        let boss = put(&mut sim, ceo, 110);
+        sim.units[boss].captain = true;
+        sim.ceo_heal(c, due - 1);
+        assert_eq!(state(&sim), (211, 14), "off the phase, nothing");
+        sim.ceo_heal(hurt, due);
+        assert_eq!(
+            state(&sim),
+            (211, 14),
+            "a figure below the captain is not asked"
+        );
+        sim.ceo_heal(c, due);
+        assert_eq!(
+            state(&sim),
+            (212, 0),
+            "a point down the chain, and the fraction"
+        );
+        assert_eq!(
+            sim.units[squad[1]].health, 215,
+            "the unhurt figure passes it on"
+        );
+        sim.units[c].attrition = 48;
+        sim.ceo_heal(c, due + 20);
+        assert_eq!(state(&sim), (212, 0), "under an attrition period, nothing");
+    }
 }

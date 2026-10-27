@@ -35,9 +35,13 @@ pub(crate) const AMERICAN_INDUSTRIAL: Pair = Pair {
     // Item 3669, first try: frame 3174, by the count and the sequence —
     // ours 24 draws against 25, parting at index 1, ours
     // `Unit::fight+0x824`, theirs `Guy::set_anim+0x97a <
-    // Unit::move_step+0x823` (`docs/AI.md` §348).
-    count: 3174,
-    sequence: 3174,
+    // Unit::move_step+0x823` (`docs/AI.md` §348). Item 3686 moved it to
+    // 5678: piece 87's bays (the round of 3105 leaves the rifle's muzzle)
+    // and the CEO's heal (`1/36` repaired a point on block 3167) — ours
+    // 56 draws against 55, parting at index 21, ours `Unit::fight+0x9b0`,
+    // theirs `Unit::fight+0x824` (`docs/AI.md` §348.1).
+    count: 5678,
+    sequence: 5678,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -262,8 +266,79 @@ fn american_industrial_pair_run1338b_s_word_frame_is_widened_whole() {
     // `hits_left` 53) and its Citizen flees on 3143 where ours' stands;
     // on the word 3174 ours' `Unit::fight` draws where theirs'
     // `Unit::move_step` does (`docs/AI.md` §348).
-    pin_eq!(w.firsts.len(), 2030, "run1338b baseline");
+    pin_eq!(w.firsts.len(), 76, "run1338b baseline");
     // Rounds are in flight on both sides over the window.
-    pin_eq!(w.rounds_read, (326, 359), "the rounds read");
-    pin_eq!(w.rounds.len(), 223, "the rounds that part");
+    pin_eq!(w.rounds_read, (326, 326), "the rounds read");
+    pin_eq!(w.rounds.len(), 2, "the rounds that part");
+}
+
+/// run1356: the word 5678's window, blocks 5595..5861 at run1338b's
+/// detail — six blocks before the stride's block 5601 and on to the game's
+/// own end, 5861 (item 3686).
+const RUN1356: &str = "gamelog-run1356-greatsahara-american-industrial-window-5595-5861.txt";
+
+/// The window: block 5595 through 5861; the word 5678's own block is 5679.
+pub(crate) const WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678: (i64, i64) = (5595, 5861);
+
+/// **The word 5678's window**: run1356 walked from run1337's start with
+/// the recorder on and every round compared (item 3686).
+pub(crate) fn american_industrial_frame_5678_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[AMERICAN_INDUSTRIAL.start],
+        true,
+        AMERICAN_INDUSTRIAL.long,
+        "run1356",
+        &[(RUN1356, WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678.0)],
+        WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678,
+        1,
+        &[5679],
+        true,
+    )
+}
+
+#[test]
+fn american_industrial_pair_run1356_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = american_industrial_frame_5678_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 266, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3686, the first walk: 2670 keys. **Block 5595 carries the
+    // standing families** (`form`, who=1's groups' `held` and pools, the
+    // human leader's `SITE[*].reg` and `aggression[1]`, `1/14`'s
+    // `g.angle[0]`) **and 3669a's**: the Airbases' queues at `cost[0]` 165
+    // against 147 and who=1's buckets with them. **The first record to
+    // part after it is a round, on 5620**: who=1's Armored Car `1/104` (TY
+    // 217, `GREYHOUND`, piece 167, firing on the move in group 65)
+    // launches `ammo[0]` from (7926, 30423) at `sz` 655 in ours and from
+    // (7758, 30368) at 672 in theirs, and flies 3 frames against 2; its
+    // round of 5646 parts the same way. On the word's block 5679 who=1's
+    // group-65 members' move orders part (`1/145`'s `x` 12216 against
+    // 11448), and `1/131` takes a second order in theirs (`docs/AI.md`
+    // §348.1).
+    pin_eq!(w.firsts.len(), 2670, "run1356 baseline");
+    pin_eq!(w.rounds_read, (166, 191), "the rounds read");
+    pin_eq!(w.rounds.len(), 52, "the rounds that part");
 }

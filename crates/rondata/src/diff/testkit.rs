@@ -10643,13 +10643,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Americans at a held Industrial age** (item 3669): Great
     // Sahara — first try 3174 of 5861 by the count and the sequence,
     // widened on run1338b over 3095..3425 (the word's block 3175), the
-    // rounds compared.
+    // rounds compared. Item 3686 moved it to 5678 (piece 87's bays and the
+    // CEO's heal), widened on run1356 over 5595..5861 (the word's block
+    // 5679, to the game's end), the rounds compared.
     (
         "AMERICAN_INDUSTRIAL_PAIR_WORD",
         crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL_PAIR_WORD,
-        Some("american_industrial_pair_run1338b_s_word_frame_is_widened_whole"),
-        3669,
-        Some(crate::diff::american_industrial_pair::WIDENING_AMERICAN_INDUSTRIAL_FRAME_3174),
+        Some("american_industrial_pair_run1356_s_word_frame_is_widened_whole"),
+        3686,
+        Some(crate::diff::american_industrial_pair::WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678),
     ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
@@ -12787,7 +12789,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Americans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara (item 3669): first try 3174 of
-    // a game that ends itself on 5861, widened on run1338b.
+    // a game that ends itself on 5861, widened on run1338b; item 3686
+    // moved it to 5678, widened on run1356.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaAmericanIndustrial",
@@ -12795,7 +12798,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL_PAIR_WORD,
         length: 5_861,
         endpoint: None,
-        window: Some("american_industrial_frame_3174_window"),
+        window: Some("american_industrial_frame_5678_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
