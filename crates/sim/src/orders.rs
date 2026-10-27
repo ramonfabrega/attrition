@@ -7665,7 +7665,13 @@ impl Sim {
     /// SEAM: a computer's `REPAIR` swarm is `MOVE_TO` in the original and
     /// an `EXPLORE_TO` here; the AI repairs on both long captures, so the
     /// change is held until both words are measured with it.
+    #[track_caller]
     pub(crate) fn swarm_around(&mut self, u: usize, b: usize, body: Body, action: bool) {
+        if std::env::var("RON_PROBE_3710").is_ok() && self.units[u].owner == 1 && (4830..=4845).contains(&self.frame) {
+            eprintln!("PROBE3710 f{} swarm 1/{} b {} from {}", self.frame, self.units[u].index, b, std::panic::Location::caller());
+            let bd = &self.buildings[b];
+            eprintln!("PROBE3710   building {}/{} ty {:?} pos ({}, {}) active {} alive {} unit pos ({}, {})", bd.owner, bd.index, bd.ty, bd.pos.x, bd.pos.y, bd.active, bd.alive, self.units[u].pos.x, self.units[u].pos.y);
+        }
         let building = matches!(body, Body::Build(_));
         let kind = if self.nation[self.units[u].owner as usize].human {
             MoveKind::MoveTo
@@ -8043,7 +8049,11 @@ impl Sim {
     ///
     /// The original wraps the swarm in a one-member `Group`; every other
     /// swarm call site here is the same single-unit shape (§10).
+    #[track_caller]
     pub(crate) fn find_build_spot(&mut self, u: usize) -> bool {
+        if std::env::var("RON_PROBE_3710").is_ok() && self.units[u].owner == 1 && self.units[u].index == 95 && (4830..=4845).contains(&self.frame) {
+            eprintln!("PROBE3710 f{} find_build_spot 1/95 from {} was_builder {} stance {}", self.frame, std::panic::Location::caller(), self.units[u].was_builder, self.units[u].stance);
+        }
         crate::build_spot_view::build_spot_steps(&mut crate::build_spot_view::SimBuildSpot::new(
             self, u,
         ))
