@@ -32562,6 +32562,77 @@ lines **are fielded** (`rubric.py --dumps` over run1338 and run1338b):
 `Marine Riflemen` (120, `MARINERIFLEMEN`) 13,110 guy records and
 `Armored Car` (217, `GREYHOUND`) 722. The pair fields 22 types.
 
+### 348.1 A rifle's muzzle and a CEO's heal: the word 3174 → 5678 (item 3686)
+
+*Item 3686, 2026-10-26, Opus 5.5. Run 1356; no packet was taken.*
+
+**The direction**, both sides, from run1338b's dump and `RON_DEBUG_GAP`:
+- **3105, theirs' round leaves the muzzle.** `1/18` (TY 137,
+  `ANTITANKRIFLE`) plays **piece 87** in ours (`p87`, `CHAR_ATTACK3`
+  frame 16): the Americans' style has no rifle of its own. `launch.rs`
+  had no rows for it, so the round left the figure's square. Piece
+  1143's `CHAR_ATTACK3` row, put on piece 87, gives theirs' launch point
+  exactly: from (9528, 31080) at −798359552 and `z` 612, it gives
+  (9379, 31019) at 695. Piece 87 takes 1143's three `BAYS` rows. The
+  other two rows are unmeasured on this piece (parked 3686c).
+- **3167, theirs heals `1/36`.** With the rows in, the word went to 3342
+  and the first live row was `1/36`'s damage on block 3167: ours 5 and
+  4/16 against theirs' 3 and 6/16. The figure is the bottom of `1/35`'s
+  three-figure squad, bleeding 6/16 a tick on both sides. Theirs repairs
+  a whole point and zeroes the fraction before the tick, and does it
+  again on 3187. No round names it. The CEO `1/16` (TY 357, `0x165`)
+  stands 898 off.
+  - `Unit::process_healing@005e0670:149`–`:232` runs the three
+    economic patriots' arms on `FRENCH_SUPPLY_HEAL_RATE` (20), phased
+    on `(o + frame)`.
+  - The third arm is the CEO's: the leader counts a `0x165`, and the
+    unit is skipped when it has an attrition period (`unit_masks & 0x80`,
+    which `process_attrition` clears on entry and sets with the period)
+    without `unit_masks2 & 0x40000`, or is a supplier. Otherwise
+    `has_general(0, 0x165)` gives `repair_damage(1, 1, 1)`. **It asks
+    nothing of the cell's owner**: a CEO heals abroad.
+  - `Unit::repair_damage@0060de10` repairs the captain's own damage
+    first and hands `amount − damage` down `o_down`, so the point reaches
+    the hurt figure below an unhurt captain. Its sparkle draws
+    `internal_random` only for the console's allies.
+  - Built as `Sim::ceo_heal` and `Sim::repair_unit_damage`
+    (`crates/sim/src/heal.rs`), called beside the civilian heal.
+
+**The value diff:**
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 3105 | `1/18`'s round | `sx, sy, sz` | (9528, 31080), 612 | (9379, 31019), 695 | (9379, 31019), 695 |
+| 3167 | `1/36` | `hits:damage`, `damage_frac` | 5, 4 | 3, 6 | 3, 6 |
+
+**What moved:**
+- **`AMERICAN_INDUSTRIAL`: 3174 → 5678 of 5861**, by the count and the
+  sequence. The rows alone gave 3342.
+- **run1338b**: 2030 → 76 keys; rounds (326, 359) → (326, 326); parting
+  223 → 2. What parts after block 3095's standing families is who=1's
+  groups' `held` and pools, and one round on 3399: `1/18`'s names no
+  target in ours (`whom`, `ox` −1) and the Citizen `0/13` in theirs.
+- **Every lobby**: `first_parting` 83 of 83 and `battery_floors` green on
+  this tree.
+
+**The next word, 5678: ours 56 draws against 55, index 21** (ours
+`Unit::fight+0x9b0`, theirs `Unit::fight+0x824`). Widened on run1356
+(5595..5861, to the game's end, the rounds compared): 266 blocks, 2670
+keys, rounds (166, 191), 52 parting.
+- Block 5595 carries the standing families and 3669a's queue costs (165
+  against 147).
+- **The first record to part after them is a round, on 5620.** who=1's
+  Armored Car `1/104` (TY 217, `GREYHOUND`, piece 167, firing on the
+  move in group 65) launches from (7926, 30423) at `sz` 655 in ours and
+  from (7758, 30368) at 672 in theirs, and flies 3 frames against 2. Its
+  round of 5646 parts the same way.
+- On the word's block 5679, the group-65 members' move orders part
+  (`1/145`'s `x` 12216 against 11448), and `1/131` holds a second order
+  in theirs.
+- The hypothesis is a row for piece 167. `launch.rs` and `pivot.rs` have
+  none. An Armored Car's gun is a turret, so 3677's pivot-versus-bay test
+  applies, fit off a packet before 5620.
+
 ## 349. Reserved for the next item on the AI track
 
 A stub the opening booking lands so a lane's rewrite and the next booking

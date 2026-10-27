@@ -30276,3 +30276,28 @@ SHA-256 `84668435258f1e17ce981fb6135b6a438ec6477df31cbad688cb3659f84556d5`.
 blocks, 2030 keys, rounds read 326 and 359, 223 parting). Its first block 3095 holds who=1's Airbases' Biplane queues
 parted (`cost[0]` 107 in ours, 90 in theirs). The first round to part is on 3105: who=1's Anti-tank Rifle `1/18`
 (TY 137) launches `ammo[0]` from (9528, 31080) at `sz` 612 in ours and from (9379, 31019) at 695 in theirs.
+
+## run1356 — the Americans at a held Industrial age, Great Sahara: the word 5678's window, blocks 5595..5861 (2026-10-26, item 3686, `att-3686`)
+
+`docs/AI.md` §348.1. **What the disk could not answer**: every record between the stride's block 5601 and the game's
+end, every leader and building, and every round. run1338b ends at 3425, and run1338's stride prints units every
+hundred frames and no `LEADERS`, `BUILDS` or `AMMO`. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1356
+--map 7 --end-frame 5861 --allow-early-end --timeout 3600 --log-window 5595 5861 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0` and run1337's lobby: six
+blocks before the stride's 5601, and on to the game's own end.
+- Pool lane 1. Launched 21:12:38, 74.1 s launch to exit. `success`: 5862 frames, not ended early. `rngcmp.py`
+  against run1338: 5862 of 5862 identical. Filed with `filerun.py run1356
+  greatsahara-american-industrial-window-5595-5861`. `df -g ~` read 64 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1356-greatsahara-american-industrial-window-5595-5861.txt`, 617,069,185 bytes,
+SHA-256 `169bd088cbabd86858834314b4e778f4fd7e3574e6a2da20c0d92dc0157ebe58`.
+
+Archive `rontrace-run1356.log`, 138,642,912 bytes,
+SHA-256 `1e6424d1b3b5a536eb01068cbfc859f06073fbfa9215092cf59c21251228f0b0`.
+
+**What it holds**: `american_industrial_pair_run1356_s_word_frame_is_widened_whole` walks it from run1337 (266
+blocks, 2670 keys, rounds read 166 and 191, 52 parting). Block 5595 holds the standing families and who=1's Airbase
+queues parted (`cost[0]` 165 in ours, 147 in theirs; 3669a). The first round to part is on 5620: who=1's Armored Car
+`1/104` (TY 217, piece 167) launches `ammo[0]` from (7926, 30423) at `sz` 655 in ours and from (7758, 30368) at 672
+in theirs.

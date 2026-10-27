@@ -1,5 +1,5 @@
 //! The on-map heals of `Unit::process_healing@005e0670` — the civilian
-//! heal alone so far. `docs/COMBAT.md` §72.
+//! heal (`docs/COMBAT.md` §72) and the CEO's (`docs/AI.md` §348.1).
 //!
 //! The function's `inside_up ≥ 0` branch is the garrison heal
 //! ([`crate::Sim::garrison_heal`], `docs/CITIES.md` §6.7). Its on-map
