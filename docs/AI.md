@@ -32859,7 +32859,8 @@ blocks, `rngcmp.py` 5342 of 5342 identical to run1340): 60 keys, the
 standing families and four draw-silent rows (parked 3688b); rounds 504
 a side, 153 parting by a unit or two at the Crossbowmen's launch and at
 the Bombards' height (parked 3688a). Every other lobby's
-`first_parting` holds (83 of 83). The mutation `0x162` → `0x9162`
+`first_parting` holds (83 of 83), and the Roman Gunpowder pair that
+landed beside it closes whole on the same arm (§350.1). The mutation `0x162` → `0x9162`
 takes the word back to 3711 (exit 101).
 
 **The rubric**: unit types seen 213 → **214**, the Cossack (225) — the
@@ -32939,6 +32940,26 @@ not read.
 **is fielded** (`rubric.py --dumps` over run1342 and run1342b):
 `Praetorian Guards` (148, `PIKELEGION`), 10,402 guy records. It is the
 pair's only type new to the lockstep ledger. The pair fields 18 types.
+
+### 350.1 Whole on the Monarch's cavalry arm: 4062 of 4062 (item 3688)
+
+The Heavy Knights' harder blows here are §349.1's term: who=1's Heavy
+Knights (TY 229, Stable-trained) strike within a Monarch's reach, and
+`UnitData::attack`'s last arm adds `THEMONARCH_CAV_ATTACK × 10`. Built
+for the Russian pair, it closes this one with no Roman reading:
+`ROMAN_GUNPOWDER` 2926 → **4062 of 4062**, by the count and the
+sequence. On run1342b's block 2895, who=1's `attack` (659 against 669)
+and both Citizens' damage are gone. run1342b goes 2059 → 55 keys, the
+standing families alone, with its rounds (17, 17), 2 parting: `1/135`'s
+of 2962 onto a target dead in ours alone, the dead-target shape. The
+stride goes 94 → 90. **The closing state** (run1342's block 4063): 183
+units, none off, torn, unlinked or extra, `Closing fields: none`.
+**The closing window** run1357c (3807..4063, 256 blocks, `rngcmp.py`
+4063 of 4063 identical to run1342): 46 keys, the standing families and
+two draw-silent rows (parked 3688b); rounds 431 a side, 10 parting at
+the Bombards' launch (parked 3688a). **The rubric**: 214 → **215**, the
+`Praetorian Guards` (148). Item 3689, booked on 2926, is answered by
+this.
 
 ## 351. Reserved for the next item on the AI track
 

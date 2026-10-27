@@ -10874,4 +10874,5 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3688: the Russian Gunpowder pair whole, 3711 -> 5341, the Monarch's cavalry arm (`docs/AI.md` §349.1; `docs/RUNS.md` run1357, run1357b) ====
 #   run1357  --map 14 --end-frame 3441 --timeout 3600 --log-window 3438 3440 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 13 --cover cover=0 --tracer-def RON_STATE_FRAME=3439 --tracer-def RON_STATE_PLAN=…, run1339's lobby   (a packet: the blow of 3440)
 #   run1357b --map 14 --end-frame 5341 --allow-early-end --timeout 3600 --log-window 5086 5342 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0, run1339's lobby   (the closing window)
-# Checks: `rngcmp.py` run1340 vs run1357 -> 3442 identical; vs run1357b -> 5342 identical.
+#   run1357c --map 14 --end-frame 4062 --allow-early-end --timeout 3600 --log-window 3807 4063 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 6 --cover cover=0, run1341's lobby   (the Romans' closing window)
+# Checks: `rngcmp.py` run1340 vs run1357 -> 3442 identical; vs run1357b -> 5342 identical; run1342 vs run1357c -> 4063 identical.

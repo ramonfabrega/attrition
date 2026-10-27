@@ -30562,3 +30562,23 @@ SHA-256 `5e92d3f26b6f61034cf6b648470740ef1fb8815f3f15175c3b60735579e86045`.
 **What it holds**: `russian_gunpowder_pair_run1357b_s_closing_window_is_widened_whole` walks it from run1339 (256
 blocks, 60 keys; rounds 504 a side, 153 parting, none in a draw).
 
+## run1357c — the Romans at a held Gunpowder age, Great Lakes: the closing window, blocks 3807..4063 (2026-10-26, item 3688, `att-3688`)
+
+`docs/AI.md` §350.1. **What the disk could not answer**: every record on the Roman word once item 3688's arm took it
+to the game's end — run1342's stride prints units every hundred frames and no leader, building or `AMMO` record, and
+run1342b stops at 3177. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1357c --map 14 --end-frame 4062
+--allow-early-end --timeout 3600 --log-window 3807 4063 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 6 --cover cover=0` and run1341's lobby.
+- Pool lane 1. Launched 22:52:39, exited 22:53:23 (44.1 s). `success`: the game ended itself on 4062, closing block
+  4063. `rngcmp.py` against run1342: 4063 of 4063 identical. Filed with `filerun.py run1357c
+  greatlakes-roman-gunpowder-window-3807-4063`. `df -g ~` read 57 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1357c-greatlakes-roman-gunpowder-window-3807-4063.txt`, 567,386,322 bytes,
+SHA-256 `d141d9973dea7da6b09922512c6be09c6a1465087afd7205271392bd950208e6`.
+
+Archive `rontrace-run1357c.log`, 73,806,208 bytes,
+SHA-256 `0c40881d7d4129002f25bd03b246cd939c2682c09cecba2f355a4384e25c657e`.
+
+**What it holds**: `roman_gunpowder_pair_run1357c_s_closing_window_is_widened_whole` walks it from run1341 (256
+blocks, 46 keys; rounds 431 a side, 10 parting, none in a draw).
