@@ -33598,10 +33598,70 @@ the closing fields — downstream of the word.
 **The next item's hypothesis** is the two pieces' launch rows, the Manchu Musketeer's (TI 116) and the Chinese
 Fusilier's (TI 136), from the shots this window holds: `1/52` on 3195, `1/47` on 3198 and `1/42` on 3261, the
 guy's pose on the block before the round's first print, in the shape of 3692's piece-1105 bays. I built nothing.
+**Answered by item 3704 (§354.2)**: pieces 66 and 1142, three bays each off run1381's packet; the pair is whole.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **221 of 302** (with 3695's), unmoved: the pair parts, so it is not
 lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1350 and run1350b): `Manchu
 Musketeers` (116, `MANCHUMUSKETEERS`), 22,212 guy rows, the word's own shooter; the pair fields 16 types.
+
+### 354.2 Pieces 66 and 1142 have bays: the word 3263 → 3836, the pair whole (item 3704)
+
+*Item 3704, 2026-10-27, Opus 5.5.*
+
+**The two pieces, named first.** Ours' `RON_DEBUG_UNIT` over the three shooters the booking names: the Fusilier `1/52`
+(TY 86, TI 136) is **piece 1142** (`FUSILIER-ASIAN`), on `CHAR_ATTACK2` at time 6 on 3195; the Manchu Musketeers
+`1/47` and `1/42` (TY 66, TI 116) are **piece 66** (`MANCHUMUSKETEERS`), `1/42` on `CHAR_ATTACK1` at time 1 on 3261.
+Neither piece had a row in `sim::launch::BAYS` or `sim::pivot`, so `launch_point` loosed both from the figure's own
+square. **The direction: ours lacked the rows, and theirs acted from its `AttachPos` table**, as the booking said.
+
+**The disk, before the capture.** run1350b prints every round but not the animation, and `get_position.py … entries`
+over the 79 packets on disk finds piece 66 filled by none (the two Chinese packets do not load it; run1224b loads it
+with no rows) and piece 1142 filled by run1361's, the Mongol Enlightenment packet. So run1381 took a
+`RON_STATE_FRAME=3262` packet on run1349's lobby, with the word's round in flight (`docs/RUNS.md` run1381).
+
+**The rows.** run1381's packet holds three attack `AttachPos` rows a piece, node 0:
+
+| piece | anim | time | region (lattice points) | `right` | `fwd` | `dz` |
+|---|---|---|---|---|---|---|
+| 66 | 11 | 1 | 285 | 29,267 | 130,145 | 214 |
+| 66 | 12 | 7 | 14 | 9,324 | 155,739 | 182 |
+| 66 | 13 | 4 | 132 | 9,222 | 152,372 | 178 |
+| 1142 | 11 | 6 | 475 | 52,732 | 124,892 | 112 |
+| 1142 | 12 | 6 | 12 | 22,738 | 114,918 | 117 |
+| 1142 | 13 | 8 | 206 | 47,713 | 110,072 | 111 |
+
+`RData +0x88` is 1.03 for piece 66 and 1.0 for piece 1142, whose floats are run1361's bit for bit. Each row is
+`fit_bay.py`'s centroid of the one region that reproduces the sweep at all 361 headings, x and y. run1350b's 103
+who=1 rounds of the two lines fall into the six release heights (31, 35 and 25 at 214, 182 and 178; 3, 2 and 7 at
+112, 117 and 111), so every key is fired in the window.
+
+**The value diff on the word.** The Musketeer `1/42`'s round of 3261 at the city centre `0/2000` now leaves
+(5094, 31444, 678), the dump's, and flies 4 frames, where it left (5208, 31512, 464) and flew 5. It strikes on 3263 in
+both, and `0/2000`'s `build:damage` reads 4 on 3264 on both sides. The Citizen `0/6`'s first wound is on 3245 in both.
+
+**The score: 3263 → 3836 of 3836, the game's last frame**, by the count and the sequence.
+- **run1350b**: 1575 → **58 keys**. The rounds read 263 against 263, and 2 rows part: the Manchu Musketeer `1/48`'s
+  `ammo[1]` on 3286, `whom` and `ox` (ours −1, theirs `0/8`), with its launch and landing agreeing (parked 3704a).
+  What stands is the families block 3195 carries and who=1's `SITE[8].rank` on 3376 (ours 6, theirs 7; 3675a's
+  family).
+- **The closing state**: run1350's block 3837 compares 156 units, none off, torn, unlinked or extra, and
+  `Closing fields: none`.
+- **run1381b**, the closing window (3580..3837, 257 blocks): **62 keys**, every one a standing family on 3580 —
+  `form`, who=1's groups and pools, the human's `SITE[i].reg` and `aggression[1]`, and who=1's `SITE[0..6]` ranks,
+  values and squares. The rounds read 231 against 231, none parting. It is the word's widening in `WIDENINGS` and
+  sits in the coverage driver.
+
+**Coverage.** Diff-backed: the six rows by `launch::tests::run1350b_s_chinese_musketeers_and_fusiliers_leave_from_their_bays`
+(one round a key, reproduced at the dump's `sx, sy` and `sz − z` by exactly one key) and by the window's 263 rounds
+agreeing in launch and flight. **Mutations** (`tools/mutate.py`): piece 66's `CHAR_ATTACK1` row out drops the word
+back to 3263 (`chinese_enlightenment_pair_first_parting`); piece 1142's `CHAR_ATTACK2` row out fails the launch
+test and moves run1350b to 1593 keys and 138 parting rounds. **Not established**: who clears `1/48`'s round's
+target in ours (3704a). The rows are exact under `Bay::point`'s whole-degree turn: every point of a region gives the
+same 361 headings, so the centroid is a choice among equals, not an estimate.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen 222 → **223** of 302 on the tree merged with 3696
+(its Gun Samurai is the 222nd): `Manchu Musketeers` (116, `MANCHUMUSKETEERS`, land), 1,356 figure rows on the
+lockstep count (`census::RUBRIC_UNIT_TYPES_SEEN`).
 
 ## 355. The Lakota at a held Enlightenment age, Great Lakes: whole on its first try, 4673 of 4673 (item 3695)
 
@@ -33827,8 +33887,8 @@ rounds. **Not established**: who sets `0x100` on the three foundations in theirs
 (3705a). The rows are exact under `Bay::point`'s whole-degree turn: every point of a region gives the same 361
 headings, so the centroid is a choice among equals, not an estimate.
 
-**The rubric.** `rubric.py --tables 3` reads unit types seen 222 → **223** of 302 on this branch: `Commando` (74,
-`COMMANDOSPANISH`, land), the line §357 named, 200 figure rows on the lockstep count
+**The rubric.** `rubric.py --tables 3` reads unit types seen 223 → **224** of 302 on the tree merged with 3704's
+landing: `Commando` (74, `COMMANDOSPANISH`, land), the line §357 named, 200 figure rows on the lockstep count
 (`census::RUBRIC_UNIT_TYPES_SEEN`).
 
 ## 358. Reserved for the next item on the AI track

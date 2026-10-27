@@ -517,10 +517,15 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3696: 221 -> 222, the Japanese Enlightenment pair whole on its
 /// first try at 4701 — `Gun Samurai` (161, `GUNSAMURAI`, land; 264 figure
 /// rows), the line §356 named, read by `rubric.py --tables 3`.
-/// Item 3705: 222 -> 223, the Spanish Industrial pair whole at 4200 —
+/// Item 3704: 222 -> 223, the Chinese Enlightenment pair whole at 3836 —
+/// `Manchu Musketeers` (116, `MANCHUMUSKETEERS`, land; 1356 figure rows),
+/// the line §354 named, read by `rubric.py --tables 3` on the tree merged
+/// with 3696's landing.
+/// Item 3705: 223 -> 224, the Spanish Industrial pair whole at 4200 —
 /// `Commando` (74, `COMMANDOSPANISH`, land; 200 figure rows), the line
-/// §357 named, read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 223;
+/// §357 named, read by `rubric.py --tables 3` on the tree merged with
+/// 3704's landing.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 224;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
