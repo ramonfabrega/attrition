@@ -31376,6 +31376,68 @@ the standing families and what parted on the stride before it (the Village `1/20
 and is in the coverage driver.
 
 
+## run1385 — the Persians at a held Gunpowder age, East Indies: the site's window, blocks 2695..2801 (2026-10-27, item 3708, `att-3708`)
+
+`docs/AI.md` §358.3. **What the disk could not answer**: who=1's site table and the Village `1/2039`'s placement
+between the stride's 2701 and 2801. run1370's stride prints units every hundred frames and no leader or building
+record past the start; run1370b ends on 1431 and run1383b starts on 3014. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1385 --map 18 --end-frame 2801 --timeout 3600 --log-window 2695 2801 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0 --profile STARTING_TECHNOLOGY=3
+--profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`.
+- Pool lane 3. Launched 10:49:25, exited 10:49:58 (33.4 s launch to exit). `success`, 2802 frames, not ended early.
+  `rngcmp.py` against run1370: 2802 of 2802 identical. Filed with `filerun.py run1385
+  eastindies-persian-gunpowder-window-2695-2801`. `df -g ~` read 150 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1385-eastindies-persian-gunpowder-window-2695-2801.txt`, 221,373,569 bytes,
+SHA-256 `ae0dc338f2bdaf5c3d98755aaf4c99f4596ee5594be9e2c8d91ecf95f9968dda`.
+
+Archive `rontrace-run1385.log`, 72,314,784 bytes,
+SHA-256 `5eddc45027dca14c8ff3932bd3245b409d1c40ed4691012bf1b0b182b6274ce1`.
+
+**What it holds**: 106 blocks walked from run1369's start. Before item 3708's build, **118 keys**: who=1's site table
+already parted on 2695, and on 2778 the Village `1/2039` stands at `y_internal` 24672 in ours against 25440 (cells 32
+and 33). Built, **91 keys**, every one a standing family
+(`persian_gunpowder_pair_run1385_s_site_window_is_widened_whole`). It is in the coverage driver.
+
+## run1385p — the Persians at a held Gunpowder age, East Indies: a packet at logger frame 2775, `Leader::compute_sites` (2026-10-27, item 3708, `att-3708`)
+
+`docs/AI.md` §358.3. **What the disk could not answer**: what theirs' 2775 site sweep does inside the sweep: the
+rescore of each kept site, the sampler's cells and values, and which slot each insertion takes. No dump prints a
+`compute_site_stats` call. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1385p --map 18 --end-frame
+2777 --timeout 3600 --log-window 2774 2777 --detail end:MISC,UNITS=3,LEADERS=9 --ai-tribe 23 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4
+--tracer-def RON_STATE_FRAME=2775 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 10:55:48, exited 10:56:10 (22.2 s launch to exit). `success`, 2778 frames. The
+  packet is 890,449,784 bytes. Not filed: the packet is the product. `df -g ~` read 146 GiB free before it.
+- Minutes waited on another lane: none.
+
+**What it holds**: on it, `step4.py --entry 6cc950 --this e4127c --args 0` runs who=1's `compute_sites` to its return
+(10.8 M instructions). The ten sites before and after it are block 2776's table exactly.
+
+## run1385c — the Persians at a held Gunpowder age, East Indies: the leaders on a stride, 1502..2602 (2026-10-27, item 3708, `att-3708`)
+
+`docs/AI.md` §358.3. **What the disk could not answer**: which of the site sweeps between 1431 and 2695 parts first.
+The sweep runs every 200 frames (175, 375, …), and no record on disk prints a leader between run1370b's 1431 and
+run1385's 2695. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1385c --map 18 --end-frame 2601
+--timeout 3600 --log-window 1501 2602 --stride 100 --detail end:MISC,UNITS=3,GUYS=2,LEADERS=9 --ai-tribe 23 --cover
+cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4`.
+- Pool lane 1. Launched 10:59:09, exited 10:59:31 (22.0 s launch to exit). `success`, 2602 frames. `rngcmp.py`
+  against run1370: 2602 of 2602 identical. Filed with `filerun.py run1385c eastindies-persian-gunpowder-stride-1501-2601`.
+  `df -g ~` read 145 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1385c-eastindies-persian-gunpowder-stride-1501-2601.txt`, 22,003,322 bytes,
+SHA-256 `04780676079a026cfe6e022d2bad484289169eb4cebad30536962d93290a4198`.
+
+Archive `rontrace-run1385c.log`, 65,097,280 bytes,
+SHA-256 `2ad5ff32553a125a85fb9a4174c8d93db301536c9c3c788a5325464412ebe62f`.
+
+**What it holds**: twelve blocks with who=1's site table. It agrees with ours' sweeps of 1575..2175 and parts on
+2375's (block 2402): (43, 53) at 231 in theirs against 336 in ours. It is read by a scratch parser; no test walks
+it, because the walk already has run1385.
+
 ## run1373 — the Egyptians at a held Industrial age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3700, `att-3700`)
 
 `docs/AI.md` §360. run1365's lobby with the nation and age moved, through `viadriver.sh

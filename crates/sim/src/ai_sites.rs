@@ -36,8 +36,10 @@
 //! * The map type `world+0x30` is taken as [`crate::ai::Lobby::map_style`],
 //!   which is also `GameInfo.map_style`; the original reads two fields.
 //! * `Region.coords` order — the original walks the region's own coordinate
-//!   list (flood-fill order); [`crate::world::World::cells_in`] is
-//!   row-major, so the sampler visits a different subset of the same region.
+//!   list; [`crate::world::World::cells_in`] is row-major. On run1385p's
+//!   2775 sweep the two visit the same cells in the same order, all 77
+//!   calls in two regions (item 3708, `docs/AI.md` §358.3); no other map is
+//!   read.
 //! * `ObjectsData::find_city`/`find_unit` search *friendly* objects (mine
 //!   and my allies'); here they search mine. Both are only used as presence
 //!   flags on this path.
