@@ -443,6 +443,14 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // at another difficulty, nor `(7, 9, 3)`, `(7, 9, 5)`, `(18, 9, 3)` or
     // `(18, 9, 5)`, other maps; the battery fields no Spanish.
     (14, 9, 5),
+    // Item 3698: the Persians at a held Gunpowder age on East Indies at
+    // Hard (`diff::persian_gunpowder_pair`), minted under rule (3) — not
+    // the coverage pair's and the Medieval pair's `(18, 23, 5)`, this map
+    // at another difficulty, nor the Sahara coverage pair's `(7, 23, 5)`,
+    // the Classical pair's `(14, 23, 5)` or the AI word
+    // `GreatLakesPersianTier2`'s `(14, 23, 2)`, other maps; the battery
+    // fields no Persians.
+    (18, 23, 4),
     // Item 3700: the Egyptians at a held Industrial age on East Indies at
     // Hard (`diff::egyptian_industrial_pair`), minted under rule (3) — not
     // the held-out `(18, 7, 3)` or the Classical pair's `(18, 7, 5)`,
