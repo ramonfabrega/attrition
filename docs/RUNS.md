@@ -30210,3 +30210,69 @@ SHA-256 `190b021e3c04044890cbe8eabe01e8ec54bf652a84dacce53a3ece1975b4d727`.
 1533 keys, rounds read 306 and 278, 110 parting). Block 2933 carries the standing families alone. The first record
 to part is on 2934: who=1's Light Tank `1/28` (TY 240, `MARK4`) launches `ammo[1]` from (9432, 31128) at `sz` 619 in
 ours and from (9218, 31078) at 757 in theirs, `total_time` 6 against 5.
+
+## run1337 — the Americans at a held Industrial age, Great Sahara: the `DUMP_ALL` start (2026-10-26, item 3669, `att-3669`)
+
+`docs/AI.md` §348. run1335's line with the nation and the difficulty moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1337 --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 20 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 20:14:32, exited 20:15:01 (29.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 20, map style 7, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 5` and `ENDING_TECHNOLOGY 5` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1337 greatsahara-american-industrial-start`. `df -g ~` read 71 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1337-greatsahara-american-industrial-start.txt`, 149,915,476 bytes,
+SHA-256 `536bf8cfe1121bf7f47eef87cef40b173e28c0a569d7a06b58e12202a1f059ef`.
+
+Archive `rontrace-run1337.log`, 8,454,976 bytes,
+SHA-256 `75ff45571751f8b9240143c0a38a0274f9a80480c69c70025e5bd6bd76411c7e`.
+
+**What it holds**: the start of `american_industrial_pair::AMERICAN_INDUSTRIAL`, and the walk's initial state.
+
+## run1338 — the Americans at a held Industrial age, Great Sahara: the draw stream to the game's end (2026-10-26, item 3669, `att-3669`)
+
+`docs/AI.md` §348. run1336's line with `--ai-tribe 20` and run1337's lobby: `--map 7 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 20
+--detail end:MISC,UNITS=3,GUYS=2 --detail start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1
+--detail misc:CHECKSUM=2 --detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1337. Launched 20:14:31, exited 20:15:08 (36.7 s launch to exit). `success`. **The game
+  ended itself on 5861** (closing block 5862, `ended_early`). `GAME INFO` reads back as run1337's. `rngcmp.py`
+  against run1337: 37 frames identical. Filed with `filerun.py run1338 greatsahara-american-industrial-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1338-greatsahara-american-industrial-trace.txt`, 30,897,143 bytes,
+SHA-256 `1020831e233a89eaabe2c116d0ea204fd02ce9f528a2ac2dbcfabcb0b2df47ec`.
+
+Archive `rontrace-run1338.log`, 138,863,456 bytes,
+SHA-256 `aa6bfb8920487e7638dc660f35aed774dcfd91647a5cf23d5791da2760e64e39`.
+
+**What it holds**: the pair's first try. `american_industrial_pair_first_parting` walks it from run1337: **3174 of
+5861** by the count and the sequence (ours 24 draws against 25, index 1).
+`american_industrial_pair_the_long_s_stride_walks_back_from_3174` walks its stride 101..3101: 31 blocks, 100 keys,
+the standing families alone.
+
+## run1338b — the Americans at a held Industrial age, Great Sahara: the word 3174's window, blocks 3095..3425 (2026-10-26, item 3669, `att-3669`)
+
+`docs/AI.md` §348. **What the disk could not answer**: every record between the stride's last block 3101 and the
+word, every leader and building, and every round — run1338's stride prints units every hundred frames and no
+`LEADERS`, `BUILDS` or `AMMO`. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1338b --map 7
+--end-frame 3425 --allow-early-end --timeout 3600 --log-window 3095 3425 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0` and run1337's lobby: six
+blocks before the stride's 3101, and 250 after the word's block 3175.
+- Pool lane 1. Launched 20:18:04, 93.5 s launch to exit. `success`: 3426 frames. `rngcmp.py` against run1338: 3426
+  of 3426 identical. Filed with `filerun.py run1338b greatsahara-american-industrial-window-3095-3425`. `df -g ~`
+  read 70 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1338b-greatsahara-american-industrial-window-3095-3425.txt`, 667,686,650 bytes,
+SHA-256 `978a78058e7ff16b5363d7e6bdc63a4add4373f1238d7da4b144fa2d09b263a8`.
+
+Archive `rontrace-run1338b.log`, 54,861,664 bytes,
+SHA-256 `84668435258f1e17ce981fb6135b6a438ec6477df31cbad688cb3659f84556d5`.
+
+**What it holds**: `american_industrial_pair_run1338b_s_word_frame_is_widened_whole` walks it from run1337 (330
+blocks, 2030 keys, rounds read 326 and 359, 223 parting). Its first block 3095 holds who=1's Airbases' Biplane queues
+parted (`cost[0]` 107 in ours, 90 in theirs). The first round to part is on 3105: who=1's Anti-tank Rifle `1/18`
+(TY 137) launches `ammo[0]` from (9528, 31080) at `sz` 612 in ours and from (9379, 31019) at 695 in theirs.

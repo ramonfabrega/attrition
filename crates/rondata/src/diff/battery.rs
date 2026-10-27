@@ -386,6 +386,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // every other British triple is at 0 or 5, and the battery fields no
     // British.
     (7, 11, 4),
+    // The Americans at a held Industrial age, Great Sahara (item 3669):
+    // not the Modern pair's `(7, 20, 3)`, another difficulty, nor the
+    // Enlightenment pair's `(18, 20, 5)`, `(18, 20, 1)` or `(14, 20, 4)`,
+    // other maps; the battery fields no Americans.
+    (7, 20, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
