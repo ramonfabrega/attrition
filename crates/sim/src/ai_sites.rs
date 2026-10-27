@@ -409,6 +409,10 @@ impl Sim {
         };
         let (world_w, world_h) = (self.world.width(), self.world.height());
         let here = Cell::new(wx, wy);
+        let pr = std::env::var("RON_PROBE_3708").is_ok()
+            && who == 1
+            && matches!((wx, wy), (44, 52) | (42, 53) | (43, 53))
+            && matches!(self.frame, 2375 | 2575 | 2775);
 
         // 1. The centre tile inside a city radius, unseen, another
         //    leader's, or water.
@@ -514,6 +518,9 @@ impl Sim {
             }
         }
 
+        if pr {
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) keep={keep} @4 base={base} danger={danger} water={water} forts={forts} tadj={target_adj} s=({sx},{sy})", self.frame);
+        }
         // 4.
         if base < 1 {
             return zero(sx, sy);
@@ -549,6 +556,9 @@ impl Sim {
             }
         }
 
+        if pr {
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) keep={keep} @// 6. Water, danger and forts.: v={v}", self.frame);
+        }
         // 6. Water, danger and forts.
         let cities = self.city_num(who);
         v = mul(v, 250) / (water + 1);
@@ -565,6 +575,9 @@ impl Sim {
         }
         v = mul_div(target_adj + 1, v, 2);
 
+        if pr {
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) keep={keep} @// 7. The map edge, on the mov: v={v}", self.frame);
+        }
         // 7. The map edge, on the moved coordinates.
         let map = self.lobby.map_style;
         if map != 0xc && map != 0x11 {
@@ -586,6 +599,9 @@ impl Sim {
             }
         }
 
+        if pr {
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) keep={keep} @// 8. Danger at the site, then: v={v}", self.frame);
+        }
         // 8. Danger at the site, then the cell's *second* claimant.
         let site = Cell::new(sx, sy);
         v /= self.site_danger(who, sx, sy).max(1);
@@ -602,6 +618,9 @@ impl Sim {
             None => v = mul(v, 2),
         }
 
+        if pr {
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) keep={keep} @// 9. The region's crowding.: v={v}", self.frame);
+        }
         // 9. The region's crowding.
         if self.lobby.map_style != 0x14 {
             let c = &self.ai[w].census;
@@ -627,6 +646,9 @@ impl Sim {
             }
         }
 
+        if pr {
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) keep={keep} @let goods = self.world.cell_da: v={v}", self.frame);
+        }
         let goods = self.world.cell_data(site).goods;
 
         // 11 (the decompile's order: the nomad block precedes the goods
@@ -669,6 +691,9 @@ impl Sim {
             }
         }
 
+        if pr {
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) keep={keep} @// 10. The goods near the cell: v={v}", self.frame);
+        }
         // 10. The goods near the cell against the economy's wants.
         let mut have = 0i32;
         let mut lack = 0i32;
@@ -700,6 +725,9 @@ impl Sim {
             }
         }
 
+        if pr {
+            eprintln!("PROBE3708 f{} css ({wx},{wy}) keep={keep} @12 v={v} goods={goods:#x} have={have} lack={lack} parity={parity} city={city} unit={unit} econ={:?}", self.frame, self.ai[w].econ);
+        }
         // 12. The distance term. **Settled** (`docs/AI.md` §13's first open
         //     item): the two tests inside the per-city loop are `return`s,
         //     not `break`s — at `006cd9e7` and `006cd9f4` both branches
