@@ -11823,13 +11823,19 @@ words and edits nothing here; a refill lands when two remain.
   each built after (4074, 4086, 4098). It is 3677a's family on another lobby, parked in their airports and
   draw-silent to the game's end.
 
-## Parked by the next landing, slot UO — reserved
+## Parked by item 3706, 2026-10-27 — the Elite Pikemen are not Persian: `finalize_grafting`'s mask
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UO renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Persian Gunpowder word moves 1180 → 3020 (`docs/AI.md` §358.2). The word's residue item, a Village `1/2039`
+placed 768 lower in ours between 2702 and 2801, is the commander's to book on 3020. Neither row below names a
+score on its own.
+
+- **3706a. The barbarian term of `finalize_grafting`'s rewrite is carried and never exercised.**
+  `TechTree::live_tribe_mask` ORs the barbarian tribes (`Tribe +0x58`) into a rewritten graft's mask, but the
+  roster's `barbarian` is false for every nation (`docs/TECH.md`, "What is not established"), and no capture on
+  disk fields a barbarian tribe. It names no score until a lobby fields one.
+- **3706b. 3698b and 3698a are now read on another game.** `1/12`'s collision `pause` (3698b) no longer parts:
+  run1370b's window is 52 keys, all standing families. 3698a's closing `myhits` reads on a closing state the word
+  3020 now reaches first: 250 units, `[237, 7, 3, 9, 121, 1, 94]`, three extras in ours. Both are downstream of 3020.
 
 ## Parked by the next landing, slot UP — reserved
 

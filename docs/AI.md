@@ -33957,11 +33957,95 @@ reads high in ours (6000 against 5500 on `1/2000`). The walk to it reads 2 inexa
 trainers, `city_could_queue`, the count cap, the military gate) that admits one of the seven non-98 candidates
 theirs refuses at `mil_level` 2 under a held Gunpowder age. The candidate is named by a packet at
 `RON_STATE_FRAME=1179` with `Leader::create_units@006c40a0` entered and its `Random::get` caller's `local_8` watched,
-or by theirs' `MAKE` rows against a probe of ours' values. I built nothing.
+or by theirs' `MAKE` rows against a probe of ours' values. I built nothing. **Answered by item 3706 (§358.2)**:
+the candidate is the Elite Pikemen (135), and the gate is step 1's availability: `tribe_can_type` reads the
+Pikemen's mask after `Types::finalize_grafting`, which takes the Persians out of it for the Arqimmortal.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **224 of 302** on the tree merged with 3705's
 landing, unmoved by this pair: it parts, so it is not lockstep. The booking's line **is fielded**: `Arqimmortal` (165), 528 figure rows over run1370 and run1370b
 (`rubric.py --tables 3 --dumps`). It stays in the never list until a lockstep game holds it.
+
+### 358.2 The Elite Pikemen are not Persian: `finalize_grafting`'s mask (item 3706)
+
+*Item 3706, 2026-10-27, Opus 5.5. The word 1180 moves to **3020 of 5673**.*
+
+**The candidate, off a packet.** run1383 is a packet at `RON_STATE_FRAME=1180`. That is the word itself read as a
+logger frame (`docs/EMULATOR.md` §8), so tick 1180's valuation is still ahead of it. The booking had named 1179.
+`step4.py --entry 6c40a0 --this e4127c` runs who=1's `Leader::create_units` to its return and calls `Random::get`
+seven times at `+0x63d`, as the trace does. Hooked at `unit_prod_value@006cc580`'s entry (the bias's own call,
+return `006c46b4`), theirs values **98, 165, 172, 189, 211, 229 and 263**. **The Elite Pikemen (135) is the one
+theirs refuses**, and it is the unit ours trains on 1186.
+
+**The predicate.** The chain to it, each call run on the packet:
+- `type_avail(135, 1)` reads 0, where 165, 98 and 172 read 4;
+- `has_preq(135)` reads 1;
+- `type_eligible(135, 1)` reads 0, at its first test, `tribe_can_type(135) != 4`;
+- `tribe_can_type(135)` reads 0. Hooked at `006d9454`, it tests the Persians' bit `0x800000` against the Pikemen's
+  `TypeData +0x10`, which reads **`0x007b6dbf`**. The file's `TRIBE_MASK` (`111110110110110110111111`) is
+  **`0xfb6dbf`**. The two differ in bit 23 alone.
+
+**The writer.** `Types::finalize_grafting@00669840` (from `Game::init_data`, so after the lobby) has a first loop over
+the unit types `0x32..0x192`. For each type `u` with `unit_flags & 0x1000000` (`y`, unique) and a `GRAFT` (`+0x25c`)
+`g ≠ u`, it rewrites `g`'s mask:
+- under unique units, `mask[g] &= ~mask[u]`, then `mask[g] |= ` the barbarian tribes (`Tribe +0x58`);
+- under "No Unique Units" (`info.flags & 8`), `mask[g] |= mask[u]`.
+
+The Arqimmortal (165, mask bit 23 alone, `y`) grafts the Elite Pikemen. So the Persians lose the Pikemen, and with
+them every `type_avail`, `get_graft` and `check_predecessor` that reads the mask. `docs/TECH.md` had recorded the
+rewrite as "read and not modelled". **Over the whole of `unitrules.xml`, this is the one pair the rewrite changes**:
+the five other uniques that graft the Elite Pikemen (the Praetorian Guards, Tercios, Landsknechts, Samurai, Elite
+Mohawk Spearmen) have their nations already cleared in the file. No other unique grafts a generic whose file mask
+still holds its nation.
+
+**Built.** `TypeDef::graft_unique_mask`, filled by `TechTree::finalize` with the loop's own predicate. Then
+`TechTree::live_tribe_mask` applies the rewrite with the lobby's `no_unique_units` and the roster's barbarians, and
+`tribe_can_type` and `check_predecessor` read it. `tribe_mask` stays the file's mask, and the graft tables
+(`rondata::load::tribe_grafts`, `UnitType::init`'s passes, which run before the rewrite) are unchanged. Test:
+`tech::tests::a_unique_unit_s_nations_leave_its_graft_s_mask`. **Mutation** (`tools/mutate.py`, the gathering line
+taken out): `persian_gunpowder_pair_first_parting` reads 1180 again, `held — zsh exited 101`.
+
+**The score: 1180 → 3020 of 5673**, by the count and the sequence. On 3020 ours spends 15 draws against theirs' 10,
+parting at index 0: ours `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs `Guy::set_anim+0x97a <
+Unit::move_step+0x823`. Every other lobby's `first_parting` holds (92 of 93, this pair the one moved).
+
+**The value diff on 1180's window** (run1370b): 809 → **52** keys, and every one is a standing family (`form`,
+who=1's pools and `held` on 1095, group 67's mint on 1146 and 68's on 1394). The make lists and the Barracks' queue
+agree.
+
+**The value diff on the word** (run1383b, blocks 3014..3270, 256 blocks, **672 keys**, no rounds):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3020 | the draw stream, index 0 | site | `Guy::set_anim+0x97a < Unit::do_idle+0x7d` | `Guy::set_anim+0x97a < Unit::move_step+0x823` |
+| 3020 | who=1's Explorer `1/0` (TI 71, land), at (24304, 25076) on both | `orders.len`; `orders_x`, `orders_y` | 0; 24288, 25056 | 1 (`EXPLORETOORDER`); 24312, 25080 |
+| 3021 | `1/0` | `idle`; `group` | 1; 80 | 0; 87 (80 on 3022) |
+
+Ours ends the Explorer's explore step one tick early. On 3021 it is idle, and its idle roll is the draw ours spends
+first. **That is the word's frame, not its first parted state.** The stride, walked on to 3001 (run1370, 101..3001:
+30 blocks, **150 keys**), is the standing families through 2701 and **parts first on 2801**:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2801 | who=1's Citizen `1/10` (TI 50, land; `EXPLORETOORDER` over a `BUILDORDER` on `1/2039`) | `order:move.y`, `path[0].to` | 25416; (26088, 25416) | 26184; (26088, 26184) |
+| 2901 | `1/10` | `pos` | (25600, 26218) | (25784, 26410) |
+| 3001 | the Explorer `1/0` | `pos` | (24767, 25488) | (24775, 25547) |
+| 3014 | who=1's Village `1/2039` (TI 414, `frame_started` 2917 in theirs) | `y_internal` | 24672 | 25440 |
+
+So **ours places a Village (a new city site) 768 lower, three tiles in y at the same x**, between 2702 and 2801.
+Nothing parts in the draws before 3020: the site choice spends none, and the Citizen's walk to it parts the
+Explorer's path only on 3020. The Village's site is the next item's.
+
+**The closing state** (run1370's 5674) is downstream: 250 units compared, counts `[237, 7, 3, 9, 121, 1, 94]`. The
+human's `0/11` and `0/13` and who=1's `1/235` stand in ours alone (`extra`). The walk reads 3 inexact ground corners
+(`GROUND_INEXACT`, 2 → 3).
+
+**What this has not established.** *Where* ours' city-site search parts from theirs': the block that books the
+Village, and whether it is the search, a site score, or a `SITE[i]` the leaders' standing rows already show.
+run1383b and the stride print no `SITE` row between 2701 and 2801, so no dump on disk names the site frame. The
+barbarian term of the rewrite is carried but unexercised: the roster's `barbarian` is false everywhere
+(`docs/TECH.md`).
+
+**The rubric** does not move: the word does not close.
 
 ## 359. Reserved for the next item on the AI track
 
