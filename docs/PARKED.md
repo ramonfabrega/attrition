@@ -3781,6 +3781,18 @@ fourteen lobbies and the switch read as the build's cost. For the pass: whether 
 under test) want a clause that an off-switch is checked by its own diff against the base — the tree with the switch off builds the base's
 binary — before its run is read.
 
+(3681) **The whole gate's coverage walk runs at its budget's cap.** `coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned`
+(`test_runtime.py`'s `bounded_test`, one CPU slot under `resource_budget.py`'s default 1800 s) ran 1693 s and 1613 s in the fifty-eighth's
+whole gates (14:37, 15:50 on 10-26) and 352–475 s in its scoped ones, and the fifty-ninth's third booking gate (`f3ac4231e`, whole, `--test-threads
+8`, host load 4.4 → 9.6) killed it at 1800.07 s — the gate red on a timeout, the test green alone in 345 s; `release_gate.py`'s header still says
+80 s. For the pass: whether the walk's own cost grew with the windows the coverage driver is handed (one per pair stood up), and whether its
+budget follows the measured figure or the whole gate gives it more than one slot; the commander's re-run takes `--test-threads 4`.
+
+(3684) **3678's "for the Loop"** (the journal's line, filed at its merge): the leader's tech mask (`bit_values`, 806 bits) is read and not
+compared (`leader.rs`), so a tech bit can part unseen; ours' `tech` is indexed by `TypeId` (628) and the original's by `TypeIndex` (806), so
+comparing it needs that mapping first. For the pass: whether it is a `coverage` item (a pinned uncompared key on the newest word's window) or a
+widening row the next residue item takes.
+
 ## Loop, filed 2026-10-26 — the fifty-eighth tranche's
 
 One row, built by the fifty-eighth pass and its text kept in `docs/audit/2026-10-26-fable-pass-58.md`: **3656** (3654's "for the Loop": `test_viadriver`'s
@@ -11491,21 +11503,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot TS — reserved
+## Parked by item 3677, 2026-10-26 — the German Industrial word 4323 → 4348
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TS renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3677a. who=1's Albatrosses' `myspeed`** (TY 288), 55 in ours against 68 in theirs on every one from its first
+  stride block (3001), each parked in its airport (`docs/AI.md` §346). Draw-silent to 4348 and unread here: it names
+  no frame the draws part on. `UnitData::speed`'s terms (`unit_speed_view`) are the first reading.
+- **3677b. The Citizen's armour arm** (`UnitData::armor@00610160`, `has_general(0, 0x164)`, `THECITIZEN_ARMOR_BONUS`
+  2), read beside the attack arm item 3677 built and not built: no window on disk holds a blow on a unit beside a
+  Citizen that parts. Names no score.
 
-## Parked by the next landing, slot TT — reserved
+## Parked by item 3678, 2026-10-26 — the British Industrial word: the AA Gun's British discount
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3678a) **3668's hypothesis, killed unbuilt: a candidate predicate that keeps the Flamethrower (TY 131) off who=1's
+  make list on 2184.** No predicate differs. Ours' `create_units` offers the Flamethrower at 1014609 and the Machine Gun
+  at 78152 (theirs' `MAKE[3]`, to the unit). The original's `make_me` overwrites a beaten head without shifting it,
+  so theirs' AA Gun at 1028320 replaced the Flamethrower, while ours' at 941484 ranked second. The cause was the
+  British `BRITISH_AA_COST` (built, `docs/AI.md` §347). Names no score.
 
 ## Parked by item 3679, 2026-10-26 — the Korean Medieval pair closed: the spent arrow
 

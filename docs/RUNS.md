@@ -30124,3 +30124,89 @@ Before item 3679's build the records first parted on **4308**: theirs numbers a 
 `1/181`..`1/183` where ours numbers the third `1/139`, the slot of who=1's decoy closed on 4267 (both sides last
 print it on 4266). Theirs' `1/139` spent arrow (`flags 1`) reads `cur_time` 57 on 4195 and 199 on 4337 and is gone
 on 4338. With the spent arrow: 49 keys, the standing families alone, rounds 3230 a side, none parting.
+## run1351 — the Germans at a held Industrial age, Great Lakes: a packet at logger frame 4303, pieces 192 and 88 (2026-10-26, item 3677, `att-3677`)
+
+`docs/AI.md` §346. **What the disk could not answer**: the A7V's (TY 242) and the German Anti-tank Rifle's (TY 138)
+release nodes. Their pieces, 192 and 88 (ours' `gpiece`, `RON_DEBUG_GAP` on run1334b's 4300..4306), are refused by
+every one of the 71 packets under `~/ron-golden` (`get_position.py … entries`). `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1351 --map 14 --end-frame 4305 --timeout 3600 --log-window 4302 4304
+--detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 12 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile
+ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=4303
+--tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 17:16:07, exited 17:17:19 (72.1 s). `success`, 4306 frames. `rngcmp.py` against
+  run1334: 4306 of 4306 identical. Not filed: the packet is the product. `df -g ~` read 88 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1351/map-14/frame-snapshot.bin`, 907,747,568 bytes,
+SHA-256 `89dbfc1035ddadb098e08d0a7fc07c780a99aaf057b59f488d25ab5f5f321fc2`.
+
+**What it holds**: `get_position.py … entries`: piece 192 (the A7V), seven rows at `pos_start` 107, `RData +0x88`
+0.9 — the turret `(4, 0, 0)` and node 4 and node 8 at 4 of `CHAR_ATTACK1`, 21 of `2` and 14 of `3`, every float piece
+189's (item 3529's Light Tank); piece 88 (the German Anti-tank Rifle), three node-0 rows at `pos_start` 114, `RData
++0x88` 1.0, 18 of `CHAR_ATTACK1`, 4 of `2` and 16 of `3`, whose sweeps' exact regions are piece 1143's (62, 160 and
+57 lattice points). The sweeps are under `~/ron-data/lab-experiments/2026-10-26-item-3677/`.
+
+## run1351b — the Germans at a held Industrial age, Great Lakes: the damage's window, blocks 3495..3851 (2026-10-26, item 3677, `att-3677`)
+
+`docs/AI.md` §346. **What the disk could not answer**: the round behind the Citizens' damage parting by 3601 —
+run1334's stride prints units every hundred frames and no `AMMO`, and agreed on 3501. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1351b --map 14 --end-frame 3851 --allow-early-end --timeout 3600
+--log-window 3495 3851 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover
+cover=0` and run1333's lobby: six blocks before the stride's 3501, and 250 after its 3601.
+- Pool lane 2, beside run1351. Launched 17:16:11, exited 17:17:45 (94.5 s). `success`: 3852 frames. `rngcmp.py`
+  against run1334: 3852 of 3852 identical. Filed with `filerun.py run1351b
+  greatlakes-german-industrial-window-3495-3851`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1351b-greatlakes-german-industrial-window-3495-3851.txt`, 736,800,170 bytes,
+SHA-256 `1e7b14cf418fd490e77c8021dd3f811d90ea35f0f5b3cc87cfe6f0c728757072`.
+
+Archive `rontrace-run1351b.log`, 61,616,608 bytes,
+SHA-256 `e259375d1788d3fdbcfe650e6ed54bbca48cb66a202853b7ad66c0093af0c46e`.
+
+**What it holds**: `german_industrial_pair_run1351b_s_damage_window_is_widened_whole` walks it from run1333 (356
+blocks; rounds 51 a side, none parting). On the base the first unit row was 3522's blow on the human's Citizen `0/13`
+— `hits:damage` 6 and 12/16 in ours against 7 and 6/16 — from who=1's Armored Car `1/27`'s round of 3517, the round
+agreeing in every field: 75 keys. With the Citizen's attack arm, 70, all standing.
+
+## run1351c — the Germans at a held Industrial age, Great Lakes: a packet at logger frame 3521, the blow (2026-10-26, item 3677, `att-3677`)
+
+`docs/AI.md` §346. **What the disk could not answer**: the attack the original's blow of 3521 used — no dump prints a
+unit's attack. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1351c --map 14 --end-frame 3523
+--timeout 3600 --log-window 3520 3522 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 12 --cover cover=0 --profile
+STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=3521 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 17:28:52. `success`, 3524 frames. `rngcmp.py` against run1334: 3524 of 3524
+  identical. Not filed: the packet is the product. `df -g ~` read 85 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1351c/map-14/frame-snapshot.bin`, 918,102,132 bytes,
+SHA-256 `3f2a32b6ec5d30f4fd76764866ca9274cf60c420764c516abe1d0420e67e08dc`.
+
+**What it holds**: `step4.py --entry 644130 --this 1613ad44 --args 13,0,0,0,1,0` (who=1's Armored Car `1/27` on the
+human's Citizen `0/13`): `ObjectData::get_damage` returns 37, table 170 (`0x644196`), armour 0 (`0x6441b7`), attack
+**220** (`0x6441c4`). `--entry 6103c0` (`UnitData::attack`): `ObjectData::attack` 200 (`0x6103d2`), and
+`has_general(this, 0, 0x164)` answers 17 (`0x61040f`): the Citizen `1/17` (TY 356), so `THECITIZEN_ATTACK_BONUS × 10`.
+## run1352 — the British at a held Industrial age, Great Sahara, at difficulty 4: the word 2939's window, blocks 2933..3190 (2026-10-26, item 3678, `att-3678`)
+
+`docs/AI.md` §347. **What the disk could not answer**: every record on the moved word 2939 and around it. run1336's
+stride prints units every hundred frames, and no leader, building or `AMMO` record. run1336b ends on 2633.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1352 --map 7 --end-frame 3190 --allow-early-end
+--timeout 3600 --log-window 2933 3190 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe
+11 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`: six blocks before the word's block 2940 and 250 after it.
+- Pool lane 1. Launched 18:00:43, exited 18:01:25 (42.1 s launch to exit). `success`: 3191 frames. `rngcmp.py` against
+  run1336: 3191 of 3191 identical. Filed with `filerun.py run1352 greatsahara-british-industrial-window-2933-3190`.
+  `df -g ~` read 81 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1352-greatsahara-british-industrial-window-2933-3190.txt`, 506,183,147 bytes,
+SHA-256 `ba8e588098631647b288c7de02edab7347d2fc47a786b4141b791ddd779a82cf`.
+
+Archive `rontrace-run1352.log`, 45,096,064 bytes,
+SHA-256 `190b021e3c04044890cbe8eabe01e8ec54bf652a84dacce53a3ece1975b4d727`.
+
+**What it holds**: `british_industrial_pair_run1352_s_word_frame_is_widened_whole` walks it from run1335 (257 blocks,
+1533 keys, rounds read 306 and 278, 110 parting). Block 2933 carries the standing families alone. The first record
+to part is on 2934: who=1's Light Tank `1/28` (TY 240, `MARK4`) launches `ammo[1]` from (9432, 31128) at `sz` 619 in
+ours and from (9218, 31078) at 757 in theirs, `total_time` 6 against 5.

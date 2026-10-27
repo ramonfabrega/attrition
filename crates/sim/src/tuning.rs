@@ -1001,6 +1001,10 @@ pub struct Tuning {
     pub reassimilation: i32,
     /// How many frames of assimilation pass per frame with the Citizen in the city.
     pub thecitizen_assimilation_speed: i32,
+    /// `THECITIZEN_ATTACK_BONUS`: the attack, in tenths of the stat's unit,
+    /// a unit within one of its owner's Citizens' radii adds (`UnitData::
+    /// attack@006103c0`, ×10 there).
+    pub thecitizen_attack_bonus: i32,
     /// Frames between a city's self-repair steps.
     pub city_heal_rate: i32,
     /// Whether Chinese cities are founded as Large Cities.
@@ -1079,6 +1083,9 @@ pub struct Tuning {
     /// `ObjectData::train_time` and the tower in `Wall::update_construct_time`
     /// read the same constant.
     pub british_aa_speed: i32,
+    /// Percentage off a British leader's unit of the Anti-Aircraft Gun's
+    /// lineage (`get_cost:283`–`289`, `is(0x119, 0)`).
+    pub british_aa_cost: i32,
     /// Percent faster Citizen creation with the Wool rare —
     /// `ObjectData::train_time@006508c0`'s tail, on a type whose `TypeIndex`
     /// is a Citizen (0x32, 0x33). Ships as 33 (`docs/AI.md` §184).
@@ -1676,6 +1683,7 @@ impl Tuning {
         turk_assimilate: 200,
         reassimilation: 300,
         thecitizen_assimilation_speed: 4,
+        thecitizen_attack_bonus: 2,
         city_heal_rate: 4,
         chinese_large_cities: 1,
         maya_building_speed: 20,
@@ -1699,6 +1707,7 @@ impl Tuning {
         fort_upgrade_los: [0, 2, 4, 6, 8],
         british_archer_speed: 0,
         british_aa_speed: 33,
+        british_aa_cost: 25,
         wool_citizens_speed: 33,
         cotton_creation_speed: 25,
         monarchy_unit_prod: [25, 25],
@@ -2501,6 +2510,10 @@ impl Tuning {
                 "THECITIZEN_ASSIMILATION_SPEED",
                 Slot::Value(T.thecitizen_assimilation_speed),
             ),
+            (
+                "THECITIZEN_ATTACK_BONUS",
+                Slot::Value(T.thecitizen_attack_bonus),
+            ),
             ("CITY_HEAL_RATE", Slot::Value(T.city_heal_rate)),
             ("CHINESE_LARGE_CITIES", Slot::Value(T.chinese_large_cities)),
             ("MAYA_BUILDING_SPEED", Slot::Value(T.maya_building_speed)),
@@ -2540,6 +2553,7 @@ impl Tuning {
             ("BRITISH_TOWER_RANGE", Slot::Value(T.british_tower_range)),
             ("BRITISH_ARCHER_SPEED", Slot::Value(T.british_archer_speed)),
             ("BRITISH_AA_SPEED", Slot::Value(T.british_aa_speed)),
+            ("BRITISH_AA_COST", Slot::Value(T.british_aa_cost)),
             ("WOOL_CITIZENS_SPEED", Slot::Value(T.wool_citizens_speed)),
             (
                 "COTTON_CREATION_SPEED",

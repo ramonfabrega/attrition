@@ -32288,11 +32288,68 @@ damage parting from 3601 is not placed here; who=1's Albatrosses run
 (68/55 ≈ 1.24: a speed bonus ours does not apply), parked in their
 airports (`inside_up` 2026, 2034, 2040).
 
-**The next item's hypothesis** is two `launch::BAYS` rows, the A7V's and
+~~**The next item's hypothesis** is two `launch::BAYS` rows, the A7V's and
 the German Anti-tank Rifle's pieces, fit off a packet at the throw's
 frame (3663's recipe), and a window over 3500..3601 that places the
-damage's first round. The Albatrosses' `myspeed` is a second
-hypothesis: it names no frame the draws part on yet.
+damage's first round.~~ **Answered by item 3677 (§346.1)**: the damage
+was the Armored Car's attack, a Citizen's aura; the launches were one
+`pivot` row and three bays, both off rows already measured. The
+Albatrosses' `myspeed` is a second hypothesis: it names no frame the
+draws part on yet.
+
+### 346.1 The Citizen's attack, and the word 4323 → 4348 (item 3677)
+
+**The blow.** run1351b (3495..3851, `AMMO=5`) parts first on 3522: the
+human's Citizen `0/13` takes 6 and 12/16 in ours and 7 and 6/16 in
+theirs from who=1's Armored Car `1/27` (TY 216), whose round of 3517
+agrees in every field. On run1351c's packet (logger frame 3521) the
+original's `ObjectData::get_damage@00644130` on the pair returns 37 —
+table 170, armour 0, **attack 220** — where ours computes 34 at attack
+200. `UnitData::attack@006103c0`'s base is 200 on both sides; its
+second term, `has_general(this, 0, 0x164) >= 0`, answers 17 — who=1's
+THECITIZEN `1/17` (TY 356), 368 units off — and adds
+`THECITIZEN_ATTACK_BONUS × 10` (`rules.xml` 2). `Sim::attack_of` carried
+no `UnitData::attack` term; `Sim::citizen_attack` is that arm, over
+`Sim::has_general` (`near_monarch`'s walk with the type a parameter).
+The other terms stay in `unit_attack_view`, swept and unwired.
+
+**The launches.** Ours' `gpiece` is 192 for the A7V and 88 for the
+German Anti-tank Rifle. run1351's packet (logger frame 4303) loads both;
+no packet on disk did. Piece 192 is a pivot piece (`<RESTRICTION
+name="A7V" node="4">`) and its seven entries are piece 189's bit for
+bit (item 3529's Light Tank), so it is a `pivot::SAME_AS` row, not a
+`launch::BAYS` row. Piece 88's three sweeps admit piece 1143's regions
+exactly (62, 160 and 57 lattice points), so its rows are 1143's.
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 3522 | the Citizen `0/13` | `hits:damage`, `damage_frac` | 6, 12 | 7, 6 | 7, 6 |
+| 4304 | A7V `1/48`'s round | `sx, sy, sz` | (5544, 31512), 409 | (5427, 31534), 587 | (5427, 31534), 587 |
+| 4305 | Anti-tank Rifle `1/51`'s round | `sx, sy, sz`, `total_time` | (4392, 31656), 589, 3 | (4217, 31694), 652, 2 | (4217, 31694), 652, 2 |
+| 4348 | the draw stream, index 1 | site | — | `Guy::move+0x19f`'s | `Unit::fight+0x824` |
+
+**The word moves 4323 → 4348**, by the count and the sequence: on 4348
+theirs spends 20 draws against ours' 17, parting at index 1 — theirs
+`Unit::fight+0x824` twice and `Unit::fight+0x19f6`'s `set_anim` under
+`Unit::do_attack`, a unit's fight that ours does not run (which unit
+is not placed: the draws sit before `1/87`'s `Guy::move`). The stride parts the
+standing families and the Albatrosses' `myspeed` alone (135 → 125);
+run1334b 2841 → 2796, its rounds parting 168 → 132.
+
+**The next parting, 4349, both directions**: group 67 — two Supply
+Wagons (`1/126`, `1/127`, TY 63) and the General `1/128` (TY 57) —
+merges into group 64 on 4348 on both sides. On 4349 theirs sends the
+joiners to the front (`orders_at` (4392, 32376), (3912, 31032), (4248,
+31896)) and its members keep guarding the Citizen `1/17`. **Ours acts**:
+`1/17`, `1/21`, `1/22` and the rest take a guard on the wagon `1/127`
+at (38808, 19656) and walk off. The next
+item's hypothesis is the merged group's order — which member it
+guards — not a mechanism this item read.
+
+**Not established.** The Citizen's armour arm (`UnitData::armor@
+00610160`, `THECITIZEN_ARMOR_BONUS` 2) is read and not built: no blow on
+a unit beside a Citizen parts in a window on disk. `has_general`'s
+leader count at `+0x56fe` stays the SEAM `near_monarch` named.
 
 **The rounds**, both directions: run1334b reads 1018 round-blocks theirs
 against 246 ours, 168 parting (by slot).
@@ -32363,12 +32420,59 @@ the draw delta. Theirs does field Flamethrowers later in the game (214
 of run1336's stride records), none in run1336d's gap: the type is left
 out on 2184, not for good.
 
-**The next item's hypothesis** is the make list's candidate predicate
-for the Flamethrower (TY 131) — which unit types enter who=1's list on
-2184 and at what value. The recipe is the make list's head
-(`RON_DEBUG_MAKE`, Loop 2955) widened to the whole list on 2183–2184,
-then the candidate's gate read off the original; a value no dump prints
-takes a packet at `RON_STATE_FRAME=2183`.
+~~**The next item's hypothesis** is the make list's candidate predicate
+for the Flamethrower (TY 131).~~ Killed, unbuilt (item 3678, parked
+3678a). The cause is below.
+
+**The cause: a British AA Gun costs a quarter less (item 3678).** The
+whole of `create_units`' offers on 2183 (the walk's sim frame for the
+dump's block 2184) shows **no gate differing**. Ours offers the
+Flamethrower at 1014609 (`val` 2340000, the count cap's tail ×
+`remaining` × 10, `check_income` 111) and the Machine Gun at 78152,
+which is theirs' `MAKE[3]` to the unit. It offers the Flamethrower
+before the AA Gun. `MakeList::make_me@006c9be0` **overwrites a beaten
+head and does not shift it down**, so whichever of the two is dearer
+holds the head, and the other leaves the list. Theirs' AA Gun is
+1028320 and replaces the Flamethrower; ours' was 941484 and ranked
+second. The two differ in `check_income` alone, 225 against 206.
+- Ours priced the AA Gun at 79 food and 79 metal. Against an income of
+  480 and 320 that is q = 2 and 3: 256 → 235 → 206.
+- Theirs' factor needs 59 and 59: q = 1 and 2, 256 → 245 → 225.
+- Theirs' queue on 2583 prints the AA Gun at 58 food and 58 metal
+  (run1336b), and ours agrees there now.
+- `TypeData::get_cost@00664090:283`–`289`: a British leader
+  (`has_tribe_bonus(0xb)`) and a unit that `is(0x119, 0)` take
+  `BRITISH_AA_COST` (25, `rules.xml`) off. The step is its own
+  truncating `(100 − x) × cost / 100`, after the American aircraft arm
+  and before the Nubian merchants' and the Russian spy's.
+
+`docs/NATIONS.md` listed the constant as "not carried". It is now
+`Modifiers::british_aa` in `cost_of`, ahead of `russian_spy`, set by
+`Sim::british_aa_discount`. The AA Gun's value parting is the same cause
+as the Flamethrower's, not a second one.
+
+**The value diff, walked back** (2184, the frame the state parted): both
+`MAKE[0]` rows are 281 with `val` 1028320 and `num` 1; `MAKE[1]` is 287
+at 109001 with `num` 4; `MAKE[3]` is 123 at 78152 with `num` 2. run1336d
+parts on the standing families alone (93 → 54 keys), as do run1336c
+(97 → 59) and run1336b (1189 → 53). The value diff on the old word's
+block 2383 is empty. **The word: 2382 → 2939**, by the count and the
+sequence. Every other lobby's `first_parting` holds.
+
+**The word now: 2939, ours 22 draws against theirs' 21, index 4.** Ours
+spends `Unit::fight+0x9b0` where theirs goes on to `Guy::set_anim+0x97a
+< Guy::do_turn+0x4a < Unit::move_step+0x3b6`. run1352 (2933..3190,
+`british_industrial_pair_run1352_s_word_frame_is_widened_whole`: 257
+blocks, 1533 keys, rounds read 306 and 278) puts **the first parting on
+a round on 2934**. Who=1's Light Tank `1/28` (TY 240, `MARK4`) attacks
+the human's Citizen `0/3` (TY 50). It launches `ammo[1]` from (9432,
+31128) at `sz` 619 in ours, the figure's square, and from (9218, 31078)
+at 757 in theirs. `total_time` is 6 against 5 and `v1z` 53462505 against
+25018749. Theirs' round lands on 2937: `0/3` takes 32 and `hits_left`
+reads 33 against 65. On 2938 ours' round is still flying and `0/3`'s
+orders part: theirs holds two with kind 4 current, ours one of kind 7. **The next item's
+hypothesis** is a `launch::BAYS` row for the Light Tank's piece, fit off
+a packet before 2934. 3677's A7V rows (TY 242) are the same shape.
 
 **The rounds**, both directions: none in flight on either side in
 run1336b or run1336d.

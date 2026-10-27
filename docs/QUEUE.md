@@ -12,8 +12,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-26, **the fifty-ninth tranche (commander, Opus): 3 of 20 landed from `604a8c8c0`**; 3677, 3678 and 3679 live on three Opus lanes at medium; the last whole gate is `a9498b12d`.*
-- **Words**: three open — the British at Industrial, 2382 of 4,767 (lower map first — Great Sahara (British, Industrial)), 3678; the Koreans 4379, 3679; the Germans 4323, 3677.
+*2026-10-26, **the fifty-ninth tranche (commander, Opus): 5 of 20 landed from `604a8c8c0`**; 3679, 3682 and 3683 live on three Opus lanes at medium; the last whole gate is `a9498b12d`.*
+- **Words**: three open — the British at Industrial, 2939 of 4,767 (lower map first — Great Sahara (British, Industrial)), 3683; the Koreans 4379, 3679; the Germans 4348, 3682.
   **The headline, the early ages**: the fifty-eighth closed two Gunpowder words and eight of nine pairs (the record). Nine pairs booked, 3667–3675, off the
   braces, two-line lobbies first (the Germans at Industrial, five never-seen lines; the British and Americans), then the record's three and three at
   Enlightenment; Great Lakes and difficulty 4 by entry 72's rule (3). **The refill after 3675 is the record's order.**
@@ -21,8 +21,8 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 - **Three lanes, by the lane rule** (DECISIONS 97 §2: the gate 25.3 a session on two lanes, under the 26.1 the third was taken at; waiting 40.2 a landing against
   46.5 holds; a fifth above 40.2 at the drain takes it away again): Opus 5.5 at medium on each, `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`.
   **The lane gate's cut reads the branch's paths alone now**, widened or not (Loop 3676: seven of nine stand-ups ran release 5.6–6.9; the two that widened ran 18).
-- **Lanes: three live (3677, 3678, 3679); seven booked** (3669–3675 the pairs). Next 3681, run 1354. Pools: AI §348–360 (3669–3675 take §348–354), park TL–UC (3669–3675 TL–TR, 3677 TS, 3678 TT, 3679 TU).
-- **Fable backlog: 7 Loop items** (3680, 3382, 3350, 3237, 3188, 3143, 3118); 3656 built and 3611 closed unreached (the record, DECISIONS 97).
+- **Lanes: three live (3679, 3682, 3683); seven booked** (3669–3675 the pairs). Next 3685, run 1356. Pools: AI §348–360 (3669–3675 take §348–354), park TL–UC (3669–3675 TL–TR, 3679 TU, 3682 TV, 3683 TW).
+- **Fable backlog: 9 Loop items** (3684, 3681, 3680, 3382, 3350, 3237, 3188, 3143, 3118); 3656 built and 3611 closed unreached (the record, DECISIONS 97).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -31,7 +31,7 @@ Third pair: EastIndiesFrench w17379 of 17,379 · GreatLakesFrench w5638 of 5,638
 Coverage pair: EastIndiesPersianAllTech w4730 of 4,730
 Successor pair: EastIndiesMongolAllTech w5056 of 5,056
 Peace pair: EastIndiesLakotaPeace w6822 of 6,822
-Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6748 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w5935 of 5,935 · GreatSaharaGermanAncient w5314 of 5,314 · GreatSaharaKoreanClassical w8777 of 8,777 · EastIndiesJapaneseAncient w6126 of 6,126 · GreatSaharaEgyptianGunpowder w4454 of 4,454 · EastIndiesAztecAncient w9258 of 9,258 · GreatSaharaRussianMedieval w4541 of 4,541 · EastIndiesIncaClassical w6073 of 6,073 · GreatSaharaFrenchClassical w6106 of 6,106 · EastIndiesDutchMedieval w7095 of 7,095 · EastIndiesRomanMedieval w5979 of 5,979 · EastIndiesMongolGunpowder w5399 of 5,399 · GreatSaharaBantuMedieval w4914 of 4,914 · EastIndiesChineseGunpowder w5568 of 5,568 · GreatSaharaGreekGunpowder w4074 of 4,074 · EastIndiesSpanishGunpowder w6128 of 6,128 · GreatSaharaLakotaGunpowder w4750 of 4,750 · EastIndiesIroquoisEnlightenment w5128 of 5,128 · GreatSaharaAztecMedieval w4602 of 4,602 · GreatSaharaIncaEnlightenment w4045 of 4,045 · EastIndiesIndianEnlightenment w5000 of 5,000 · EastIndiesAmericanEnlightenment w6669 of 6,669 · EastIndiesBritishClassical w8980 of 8,980 · GreatLakesPersianClassical w11633 of 11,633 · GreatLakesJapaneseMedieval w5140 of 5,140 · GreatLakesKoreanMedieval w4379 of 4,559 · GreatLakesGermanIndustrial w4323 of 4,772 · GreatSaharaBritishIndustrial w2382 of 4,767
+Late ages: EastIndiesGermanAllTech w4175 of 4,175 · GreatSaharaAztecAllTech w4565 of 4,565 · EastIndiesRussianModern w5841 of 5,841 · GreatSaharaAmericanModern w4548 of 4,548 · EastIndiesJapaneseIndustrial w4547 of 4,547 · GreatSaharaChineseIndustrial w4467 of 4,467 · EastIndiesBritishEnlightenment w5522 of 5,522 · GreatSaharaTurkishEnlightenment w3812 of 3,812 · EastIndiesPersianMedieval w4759 of 4,759 · EastIndiesGreekClassical w8126 of 8,126 · EastIndiesKoreanAncient w5639 of 5,639 · GreatSaharaRomanClassical w7130 of 7,130 · GreatSaharaMongolClassical w9884 of 9,884 · GreatSaharaChineseMedieval w4520 of 4,520 · EastIndiesLakotaMedieval w4973 of 4,973 · EastIndiesBantuAncient w6210 of 6,210 · GreatSaharaJapaneseGunpowder w3673 of 3,673 · GreatSaharaIroquoisAncient w8420 of 8,420 · EastIndiesEgyptianClassical w6748 of 6,748 · GreatSaharaSpanishClassical w8565 of 8,565 · EastIndiesMayaAncient w5935 of 5,935 · GreatSaharaGermanAncient w5314 of 5,314 · GreatSaharaKoreanClassical w8777 of 8,777 · EastIndiesJapaneseAncient w6126 of 6,126 · GreatSaharaEgyptianGunpowder w4454 of 4,454 · EastIndiesAztecAncient w9258 of 9,258 · GreatSaharaRussianMedieval w4541 of 4,541 · EastIndiesIncaClassical w6073 of 6,073 · GreatSaharaFrenchClassical w6106 of 6,106 · EastIndiesDutchMedieval w7095 of 7,095 · EastIndiesRomanMedieval w5979 of 5,979 · EastIndiesMongolGunpowder w5399 of 5,399 · GreatSaharaBantuMedieval w4914 of 4,914 · EastIndiesChineseGunpowder w5568 of 5,568 · GreatSaharaGreekGunpowder w4074 of 4,074 · EastIndiesSpanishGunpowder w6128 of 6,128 · GreatSaharaLakotaGunpowder w4750 of 4,750 · EastIndiesIroquoisEnlightenment w5128 of 5,128 · GreatSaharaAztecMedieval w4602 of 4,602 · GreatSaharaIncaEnlightenment w4045 of 4,045 · EastIndiesIndianEnlightenment w5000 of 5,000 · EastIndiesAmericanEnlightenment w6669 of 6,669 · EastIndiesBritishClassical w8980 of 8,980 · GreatLakesPersianClassical w11633 of 11,633 · GreatLakesJapaneseMedieval w5140 of 5,140 · GreatLakesKoreanMedieval w4379 of 4,559 · GreatLakesGermanIndustrial w4348 of 4,772 · GreatSaharaBritishIndustrial w2939 of 4,767
 Battery word: GreatLakesSpanishTier4 w14068 of 14,068 · GreatLakesAmericanTier4 w6152 of 6,152 · GreatLakesTurkishTier4 w15503 of 15,503 · EastIndiesSpanishTier3 w24000 of 24,000 · EastIndiesIncaTier3 w24000 of 24,000 · GreatSaharaFrenchTier4 w16764 of 16,764 · GreatLakesPersianTier2 w7105 of 7,105 · GreatSaharaAztecTier2 w17554 of 17,554 · EastIndiesAmericanTier1 w24000 of 24,000 · GreatSaharaKoreanTier3 w15944 of 15,944 · GreatSaharaDutchTier3 w16109 of 16,109 · GreatSaharaIroquoisTier3 w16371 of 16,371 · GreatSaharaGermanTier3 w19483 of 19,483 · GreatSaharaIncaTier3 w15632 of 15,632 · GreatSaharaIndianTier3 w16564 of 16,564 · GreatLakesLakotaTier2 w7902 of 7,902 · GreatSaharaBantuTier4 w23627 of 23,627 · GreatLakesRussianTier2 w7303 of 7,303 · EastIndiesIndianTier2 w24000 of 24,000 · GreatSaharaMayaTier4 w13086 of 13,086 · GreatSaharaEgyptianTier4 w20380 of 20,380 · EastIndiesDutchTier4 w24000 of 24,000 · GreatSaharaJapaneseTier1 w24000 of 24,000 · GreatSaharaGreekTier1 w24000 of 24,000 · GreatSaharaSpanishTier3 w22700 of 22,700 · GreatLakesIroquoisTier3 w12658 of 12,658 · EastIndiesRomanTier2 w18620 of 18,620 · EastIndiesGermanTier3 w13519 of 13,519
 Census: simulation backed 1696 of 3611 · port 568 · layout 1128
 Third map: GreatSahara w24000 of 24,000 · GreatSaharaToughest w15432 of 15,432 · GreatSaharaPersianAllTech w4340 of 4,340 · GreatSaharaMongolAllTech w3268 of 3,268
@@ -51,22 +51,21 @@ the walk seeded from the start (3506a), the age held by `STARTING_TECHNOLOGY=A E
 start is `0`/`1`, read back `1`: age 0 cannot be held (3559a) — booked on the nation `rubric.py --tables 3` prints in braces, `diff::<name>_pair` at its
 first parting, a scoreboard line). **No twin for a pair varying only age and nation** (93 §2). **The refill is the next nation and age off the braces, a lobby that fields two never-seen lines first** (94 §4; the order is in the pass's record).
 
-3678. **The British Industrial word, frame 2382: ours 71 draws against 15, index 5** (ours `Leader::produce_building+0xc99`, theirs
-`Leader::make_stuff+0x63d`; 3668's first try, AI §347): the state parts by 2184, where who=1's make list holds the Flamethrower (131) at its head
-in ours, and in theirs the AA Gun (281) at its head with the Machine Gun (123) at `MAKE[3]`. The hypothesis is the make list's candidate predicate
-for TY 131, read off the whole list on 2183–2184. Run 1352; amend §347; park TT.
-
-3677. **The German Industrial word, frame 4323: theirs 18 draws against 17, index 11** (theirs `Unit::close+0xcb6`, the human's Citizen `0/11`
-dying; ours `Farms::inc_time+0x1ae`; 3667's first try, AI §346): the Citizens' damage parts by 3601 on the stride; in run1334b's window who=1's
-A7V (TY 242) and German Anti-tank Rifle (TY 138) rounds launch off the figure in theirs and from its square in ours from 4304. The hypothesis is two
-`launch::BAYS` rows fit off a packet, with a window before 3601; the Albatrosses' `myspeed` 55 against 68 from 3001 is the second. Run 1351;
-amend §346; park TS.
+3683. **The British Industrial word, frame 2939: ours 22 draws against 21, index 4** (ours `Unit::fight+0x9b0`, theirs `Guy::set_anim+0x97a <
+Guy::do_turn+0x4a < Unit::move_step+0x3b6`; 3678 moved it 2382 → 2939 with the British AA Gun's cost, AI §347): widened on the window take over
+2933..3190, the first parting is a round on 2934 — who=1's Light Tank `1/28` (TY 240) launches from its square at `sz` 619 in ours and from
+(9218, 31078) at 757 in theirs. The hypothesis is a `launch::BAYS` row for its piece, fit off a packet before 2934. Run 1355; amend §347; park TW.
 
 3679. **The Korean Medieval word, frame 4379: ours 25 draws against 28, index 3** (ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
 `Unit::resolve_unit_collision+0xb52`; 3666 moved it 3401 → 3627 → 4379 with piece 1090's bays and `Guy::do_turn`'s crew loop, AI §345; parked by
 3666): **the widening is owed** — no dump holds 4379's block (the window take ends on 3652, the long prints units every hundredth block and no
 `AMMO`), so a window over 4373..4559 at the window take's detail is the first act, then every record on 4379 both directions. Run 1353; amend
 §345; park TU.
+
+3682. **The German Industrial word, frame 4348: theirs 20 draws against 17, index 1** (theirs `Unit::fight+0x824` under `Unit::do_attack`, ours
+`Guy::move+0x19f`'s `set_anim`; 3677 moved it 4323 → 4348, AI §346.1): widened on the window take, the state parts on 4349 — group 67 merges into
+group 64 on 4348, and on 4349 ours' members guard the Supply Wagon `1/127` at (38808, 19656) where theirs keep guarding the Citizen `1/17` and send
+the joiners forward. The hypothesis is the merged group's guard target. Run 1354; amend §346; park TV.
 
 3669. **The Americans at a held Industrial age, Great Sahara** (`GreatSaharaAmericanIndustrial`, map 7, tribe 20, difficulty 5, age 5 held;
 `(7, 20, 5)` is free — the American words hold `(18, 20, 1)`, `(7, 20, 3)`, `(14, 20, 4)` and `(18, 20, 5)`): the lines are `Marine Riflemen`

@@ -372,7 +372,27 @@ impl Sim {
         if base == 0 {
             return 0;
         }
-        base + self.mods_of(self.owner_of(o) as usize).attack
+        base + self.mods_of(self.owner_of(o) as usize).attack + self.citizen_attack(o)
+    }
+
+    /// **`UnitData::attack@006103c0`'s Citizen arm** (item 3677, `docs/AI.md`
+    /// §346): a unit with one of its owner's Citizens (`0x164`, THECITIZEN)
+    /// in reach — `has_general(0, 0x164) >= 0`, [`Sim::has_general`] — adds
+    /// `THECITIZEN_ATTACK_BONUS × 10`. run1351c's packet (logger frame 3521
+    /// of the German Industrial Great Lakes game) runs the original's
+    /// `get_damage` on who=1's Armored Car `1/27` and the human's Citizen
+    /// `0/13`: table 170, armour 0 and attack **220**, the base 200 and 20
+    /// off this arm (`has_general` answered 17, the Citizen `1/17` 368
+    /// units off), so the blow is 37 where this crate dealt 34.
+    ///
+    /// SEAM: the override's other terms (Terra Cotta, the Obsidian Archers,
+    /// the Space Program's scale and the named generals') — the view
+    /// [`crate::unit_attack_view`] holds them all, swept, unwired.
+    fn citizen_attack(&self, o: Obj) -> i32 {
+        match o {
+            Obj::Unit(u) if self.has_general(u, 0x164) => self.tuning.thecitizen_attack_bonus * 10,
+            _ => 0,
+        }
     }
 
     /// `ages × DUTCH_ATTACK_BONUS` for a unit of a Dutch kind, else 0

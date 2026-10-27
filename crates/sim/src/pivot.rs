@@ -269,7 +269,18 @@ const fn trunc_div(n: i64, d: i64) -> i32 {
 /// Medieval pair's `1/22` threw its `CHAR_ATTACKWALK` round of 2556 from its
 /// own square (7018, 31206), where the original's left from (7020, 31282,
 /// 873), and the round's arc came down a frame later than theirs.
-const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138)];
+///
+/// **Piece 192, the German Light Tank `A7V`** (unit type 242; item 3677,
+/// `docs/AI.md` §346): run1351's packet (logger frame 4303, the German
+/// Industrial Great Lakes lobby) holds its seven entries, `pos_start` 107,
+/// `RData +0x88` 0.9, and every float is piece 189's off run1169 — the
+/// `(4, 0, 0)` turret `(0.0, −3.96, 37.31)` (`0xc07d70a7`) and the three
+/// `<RELEASEEVENT>`s' turret and muzzle rows (node 8; 4 of `CHAR_ATTACK1`,
+/// 21 of `2`, 14 of `3`). `<RESTRICTION name="A7V" node="4">` makes it a
+/// pivot piece. who=1's `1/48` fired its `CHAR_ATTACK3` round of 4304 from
+/// the hull's square (5544, 31512, 409) here, where the original's left the
+/// muzzle at (5427, 31534, 587).
+const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138), (192, 189)];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
 fn rows_of(piece: i32) -> i32 {
@@ -2353,6 +2364,32 @@ mod tests {
             .collect();
         assert_eq!(fits.len(), 1, "one turret step: {fits:?}");
         assert_eq!(265 + release_offset(&r, f, 0).2, 470, "the dump's height");
+    }
+
+    /// **The A7V's round leaves from its turret's muzzle** (item 3677,
+    /// `docs/AI.md` §346): piece 192 reads piece 189's rows ([`SAME_AS`]),
+    /// and run1334b's `AMMO=5` record of `1/48`'s `CHAR_ATTACK3` round of
+    /// 4304 — the figure at (5544, 31512), z 409, angle −748683264 on block
+    /// 4303 — leaves from (5427, 31534) at height 587, which one turret step
+    /// fits. Made to fail with the row out of `SAME_AS`.
+    #[test]
+    fn the_a7v_s_round_leaves_from_its_turret() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+        for (a, t) in [(ATTACK1, 4), (ATTACK2, 21), (ATTACK3, 14)] {
+            assert_eq!(release(192, a, t), release(189, a, t), "anim {a}");
+            assert!(release(192, a, t).is_some(), "anim {a}");
+        }
+        assert_eq!(node(192, 4), node(189, 4));
+        let r = release(192, ATTACK3, 14).unwrap();
+        let f = Angle(-748_683_264);
+        let fits: Vec<i32> = (-128..128)
+            .filter(|i| {
+                let (dx, dy, _) = release_offset(&r, f, i << 24);
+                (5544 + dx, 31512 + dy) == (5427, 31534)
+            })
+            .collect();
+        assert!(!fits.is_empty(), "a turret step: {fits:?}");
+        assert_eq!(409 + release_offset(&r, f, 0).2, 587, "the dump's height");
     }
 
     /// **The Mongol Nomad's rounds leave from its pivot** (item 3581):

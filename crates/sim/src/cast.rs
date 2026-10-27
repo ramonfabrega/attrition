@@ -1321,16 +1321,24 @@ impl Sim {
     /// without a live Monarch. `is(0x162)` is taken as the type itself, as
     /// in [`Sim::hero_radius`].
     pub(crate) fn near_monarch(&self, u: usize) -> bool {
-        const MONARCH: i32 = 0x162;
+        self.has_general(u, 0x162)
+    }
+
+    /// `ObjectData::has_general(u, 0, ty) >= 0` (`00646b00`) for a hero
+    /// type `ty`: [`Sim::near_monarch`]'s walk with the type a parameter —
+    /// `u` itself a hero of `ty`, or one of its owner's on the map whose
+    /// `get_radius × 0xc0` covers `u`'s point. The same SEAM: the leader's
+    /// per-type count at `+0x56fe` is not read.
+    pub(crate) fn has_general(&self, u: usize, ty: i32) -> bool {
         let unit = &self.units[u];
-        if unit.type_index == MONARCH && self.is_hero_unit(u) {
+        if unit.type_index == ty && self.is_hero_unit(u) {
             return true;
         }
         let (who, at) = (unit.owner, unit.pos);
         (0..self.units.len()).any(|h| {
             let x = &self.units[h];
             x.owner == who
-                && x.type_index == MONARCH
+                && x.type_index == ty
                 && x.alive()
                 && x.on_map
                 && self.is_hero_unit(h)
