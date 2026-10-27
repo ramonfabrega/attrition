@@ -32879,6 +32879,85 @@ Animal::do_idle+0x19`. It is inside run1356, whose `near` list now
 carries 5702. Group 65's move orders on 5679 are the nearest standing
 non-family rows; whether they reach 5701's draw is that item's to read.
 
+### 348.3 An unarmed member's stand-off: `get_max_range` asks for siege, and the pair closes, 5701 → 5861 (item 3693)
+
+*Item 3693, 2026-10-27, Opus 5.5. No capture: run1338's trace and
+run1356's window answered it.*
+
+**The direction on 5701: ours acts.** `RON_DEBUG_SITES=5701-5701` names
+ours' index 2: who=1's General `1/171` (TI 54, `GENERAL`, army 2,
+group 65) arriving, `Guy::set_anim+0x97a < Guy::move+0x19f`. Theirs'
+index 2 is gaia's `9/22` idling, which ours spends at 3. Theirs' first
+arrival on that site is 5702's (`report.py … draws 5695-5710`). So
+`1/171` arrives a frame early.
+
+**The first parted field, walked back: block 5679, group 65's
+unarmed members' moves.** Two kinds of keys stand from 5595: the
+families, and groups 68's and 71's `held` on 5614 and 5617. Past
+them, the first keys to part are 61, all on 5679, all `order:move`
+(`x`, `y`, `angle`, `off_x`, `off_y`). They sit on thirteen members:
+the Supply Wagons, Generals and Spies `1/145`, `1/151`, `1/155`,
+`1/160`, `1/165`, `1/171`, `1/172`, `1/177`, `1/178`, `1/182`, `1/189`,
+`1/190` and `1/191`. On theirs' 5679, these are the army's only members
+whose head is a `MOVEORDER`. The others head an `ATTACKORDER`, a
+`GROUPATTACKTOORDER`, a `GUARDORDER` or the Artillery's `CASTORDER`.
+Each move sits above the re-issued `GROUPATTACKTOORDER` and the
+`GUARDORDER` on `1/131`.
+
+The writer is ours' `do_attack`, found by a backtrace probe on
+`add_move_facing_order_grouped` (`1d05ff20d`, reverted whole by
+`d9b0e982e`). On 5678, `1/73`'s `Group::action_attack(group 65, 0/10, 0,
+QUEUE_FIRST, 0)` (§348.2) gives every orderable member the attack on
+the Citizen `0/10`, at (7608, 29688). An unarmed member in a group
+takes `Unit::do_attack@005f1b80`'s grouped arm. That arm stands it off
+at `(get_max_range + 2) × 0xc0` from the target (another `0xc0` for a
+supply type), along the bearing to itself. Measured from `0/10`,
+theirs' thirteen spots sit at 3574–3800 and ours' at 4332–4552. That
+is four `0xc0` more, a group range of 20 against 16.
+
+**`GroupData::get_max_range@00711080`'s argument selects siege
+members, not workers.** `do_attack` passes its own `is_worker` (`:120`–
+`:122`). The function compares that argument with each member's type
+vslot `+0x10c`, which is `is_siege` (the `Type` table read from the PE,
+§ the vslot table near the top of this document). With 0, only
+non-siege members count. This crate's emulator sweep already read it so
+(`sweep/group_data_get_max_range.rs`: "answers non-zero exactly when the
+argument a[0] is"), but the live view tested each member's `is_worker`.
+That let the Artillery's range 20 into a General's stand-off where the
+original takes the rifles' 16. `do_attack/live.rs` now tests
+`is_siege_unit`.
+
+**The value diff:**
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 5679 | `1/171`'s move | `x, y` | (11544, 27624) | (10872, 28008) | (10872, 28008) |
+| 5679 | `1/145`'s move | `x, y` | (12216, 29400) | (11448, 29448) | (11448, 29448) |
+
+The other eleven members' moves agree too: no `order:move` key parts on
+5679.
+
+**What moved:**
+- **`AMERICAN_INDUSTRIAL`: 5701 → 5861 of 5861**, the game's last
+  frame, by the count and the sequence. **The pair is whole.**
+- **The closing state**
+  (`american_industrial_pair_run1338_s_closing_state`): block 5862, 213
+  units, none off, torn, unlinked or extra, `Closing fields: none`.
+- **run1356**: 2153 → 78 keys, rounds (166, 49) → (166, 166), 27 → 5
+  parting. What stands is block 5595's families and 5614's and 5617's
+  groups 68 and 71. The five rounds left are one launch, 5851's: the
+  packed Artillery `1/131` (TY 269) leaves its own square, (10008,
+  29880) at `sz` 589, against theirs' (9955, 29882) at 725. That is
+  3683b's bay row on another game, and the draws agree past it (3693a).
+  `near` gains the closing block 5862.
+- **Every lobby**: `first_parting` holds on all 87 other lobbies.
+- **The mutation**: restoring `is_worker` reddens the word, the closing
+  state and the widening (`tools/mutate.py`: held, exit 101).
+
+**Not established**: `get_max_range`'s building-group arm and its
+`+8`/`+0xbc`/`+0xc0` reads. They are taken as alive, on the map and not
+air, and are swept, not diffed (3693b).
+
 ## 349. The Russians at a held Gunpowder age, Great Lakes: first try 3711 of 5341 (item 3670)
 
 **The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
