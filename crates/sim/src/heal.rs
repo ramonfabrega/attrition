@@ -80,6 +80,10 @@ impl Sim {
     /// allied cell; no capture on file reaches them.
     pub(crate) fn ceo_heal(&mut self, i: usize, frame: i64) {
         const THECEO: i32 = 0x165;
+        if std::env::var_os("RON_PROBE_3686").is_some() && self.units[i].owner == 1 && self.units[i].index == 36 && (3160..3170).contains(&frame) {
+            let u = &self.units[i];
+            eprintln!("PROBE3686 f{frame} idx{} cap{} on{} h{}/{} frac{} attr{} m2{:x} gen{} dom{:?}", u.index, self.captain_of(i) == i, u.on_map, u.health, u.max_health, u.damage_frac, u.attrition, u.unit_masks2, self.has_general(i, THECEO), u.kind.domain);
+        }
         let rate = i64::from(self.tuning.french_supply_heal_rate);
         if rate == 0 || (i64::from(self.units[i].index) + frame) % rate != 0 {
             return;
