@@ -4732,12 +4732,15 @@ made to fail first. The WCoord world shape (parked 1994) was reached once, not b
 
 ## Parked by item 2117, 2026-10-13 — chapter sixty-two closes
 
-(2118) **`1/14`'s walk to the Scout takes a path 120 units east of the original's** (2117, `docs/GOLDEN.md`
+~~(2118) **`1/14`'s walk to the Scout takes a path 120 units east of the original's** (2117, `docs/GOLDEN.md`
 §77; run818, block 901). Both sides have the same order point (46056, 10056), `off` 744/72 and `path[0]` (46079,
 10067). From `path[1]` on, ours stands 120 east: `path[42]` (44663, 31571) against (44543, 31571), and
 `order:move.dest_x` 44663 against 44543. So the first step (44144, 33073) against (44142, 33072) and the heading
 228917248 against 177405952 part, through 903. `1/12` and `1/13`, walked by the same group move, agree. The draws
-agree through 1000. Names no frame: chapter sixty-two is closed.
+agree through 1000. Names no frame: chapter sixty-two is closed.~~
+**Closed 2026-10-27 by item 3711** (`docs/AI.md` §363.1): `1/14`'s slot stood past the map's edge, and
+`Group::action_move_near` writes its clamp into the slot table, so the member's translation reads the clamped slot;
+its 56 rows on 901–903 leave chapter sixty-two's widening.
 
 ## Parked by item 2122, 2026-10-13 — the sweep's fiftieth batch
 
