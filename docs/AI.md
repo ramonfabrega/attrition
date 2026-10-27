@@ -34289,12 +34289,70 @@ re-pinned.
 **Not established**: piece 216's attach rows (a packet that loads a Trebuchet, as 3705's loaded piece 50); whether
 the group-`held` rows on 5088 and 5160 are the standing family's forming order or a choice — neither parts the draws.
 
-## 362. Reserved for the next item on the AI track
+## 362. The Mongols at a held Medieval age, East Indies, at difficulty 4: first try 2595 of 5592 (item 3702)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3702, 2026-10-27, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §358's lobby with the nation and age moved: `MAP_STYLE
+18`, human Nubians (4) against the **Mongols (17)** at Difficulty 4, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 2`, `ENDING_TECHNOLOGY 2`, read back on both `GAME INFO`s (`Pair::assert_lobby`). Captures:
+run1377 (a `DUMP_ALL` start) and run1378 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100),
+which ended itself on 5592; run1377 against run1378 is 37 of 37 frames identical. The walk is seeded from run1377's
+initial state (3506a). `diff::mongol_medieval_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 17, 4)`, is minted into `battery::SCORED_LOBBIES` under entry 72's rule (3). The
+held-out battery fields no Mongols (`battery::BATTERY`'s tribes are 6, 13, 14, 19 and 22). The Mongol lobbies
+already pinned are `mongol_pair`'s `(18, 17, 3)` and `mongol_gunpowder_pair`'s `(18, 17, 5)` (this map, other
+difficulties), `sahara_mongol`'s `(7, 17, 3)`, `mongol_classical_pair`'s `(7, 17, 5)` and
+`mongol_enlightenment_pair`'s `(14, 17, 5)` (other maps). `(18, 17, 4)` appeared nowhere in the tree.
+`mongol_medieval_pair_is_no_other_lobby` asserts all of it.
+
+**First try: 2595 of 5592**, by the count and the sequence. On 2595 ours spends **55 draws against theirs' 54**,
+parting at index 53: ours `Unit::think_fish+0x27a`, theirs `Farms::inc_time+0x1ae`. `RON_DEBUG_SITES=2594-2595`
+lists ours' frame: two `Guy::set_anim+0x97a < Guy::move+0x19f` for `1/61`, then **52** `think_fish+0x27a` for
+`1/85`, then `Farms::inc_time+0x1ae`. Theirs' index 53 is the `Farms` draw, so theirs spends **51**.
+
+**The direction: ours acts, once more.** `1/85` is a **Fishermen** (TI 317, TY 267, sea, packed;
+`RON_DEBUG_UNIT=1/85@2594-2597`), absent on 2594 and born on 2595. Its first frame runs `think_fish`
+(`docs/ORDERS.md` 6.8), whose one draw site is the `rnd(60)` each accepted cell spends. So ours accepts **one cell
+more** than theirs, and the boat heads for a different fish.
+
+**The value diff** (run1378b):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2595 | the draw stream, index 53 | site | `Unit::think_fish+0x27a` (52nd) | `Farms::inc_time+0x1ae` |
+| 2596 | the Fishermen `1/85` | `order:move.x`, `orders_x` | 34968 | 30360 |
+| 2596 | the same | `dest_angle`, `order:move.angle` | −1170669568 | −1099563008 |
+| 2597 | the same | `pos` | (36658, 44670) | (36659, 44676) |
+| 2597 | the same | `path:length`; `path[0].to` | 1; (34968, 44952) | 7; (30360, 44952) |
+
+**Before the word, two families already part**, and no record on disk walks either back:
+- who=1's buckets on the window's first block 2495: food 17182 against 17188, timber 14828 against 14832, wealth
+  18222 against 18256, metal 16561 against 16602. No leader record prints between run1377's start and 2495;
+- on 2586, the queued costs of who=1's buildings `1/2015`, `1/2018` and `1/2029` (`queue[i].cost`: 132/88 in ours
+  against 126/84).
+
+Whether either feeds `think_fish`'s cell predicate is **not established**. That is the next item's first question.
+
+**The windows.**
+- run1378's stride, 101..2501 (25 blocks, **100 keys**): only the standing families part (`form`, the leaders on
+  101, `build:extra`, who=1's groups 64..78's `held` and pools as each is minted, `form` on `1/56` and `1/60` from
+  2201). No unit row parts before the window.
+- run1378b, blocks 2495..2846 at the long's detail with `LEADERS=9` and `AMMO=5` (351 blocks, **910 keys**, the
+  two `gaia:` keys unprinted). run1378 against run1378b is 2847 of 2847 frames identical. **Rounds read (0, 0)**:
+  no round flies in the window.
+
+**The closing state** is downstream. run1378's block 5593 compares 157 units: counts `[131, 5, 16, 9, 102, 1, 55]`,
+5 unlinked, 16 extra, and who=1's cities and buildings in the closing fields (parked 3702a). The walk reads 2
+inexact ground corners, now a `GROUND_INEXACT` row.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **227 of 302, unmoved**. The pair parts, so it adds no
+lockstep game. The booking's line, **`Steppe Nomad` (200, `ELITENOMADS`), was fielded**: `--dumps` over run1378
+and run1378b reads 8070 figure rows. It stays on the never list.
+
+**Not established**: which cell ours accepts and theirs refuses, and on which of `think_fish`'s terms; whether
+the bucket and queued-cost partings before the word are its cause or a separate residue.
 
 ## 363. Reserved for the next item on the AI track
 

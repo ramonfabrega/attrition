@@ -10949,3 +10949,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1376  run1334's line with --ai-tribe 11 and run1375's lobby   (the draw stream; ended itself on 5282)
 #   run1376b --map 14 --end-frame 5282 --allow-early-end --timeout 3600 --log-window 5027 5283 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1375's lobby   (the closing window)
 # Checks: `rngcmp.py` run1375 vs run1376 -> 37 identical; run1376 vs run1376b -> 5283 identical.
+# ==== item 3702: the Mongols at a held Medieval age, East Indies, at difficulty 4 (`docs/AI.md` §362; `docs/RUNS.md` run1377, run1378, run1378b) ====
+#   run1377  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 17 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1378  run1376's line with --map 18 --ai-tribe 17 and run1377's lobby   (the draw stream; ended itself on 5592)
+#   run1378b --map 18 --end-frame 2846 --timeout 3600 --log-window 2495 2846 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0, run1377's lobby   (the word 2595's window)
+# Checks: `rngcmp.py` run1377 vs run1378 -> 37 identical; run1378 vs run1378b -> 2847 identical.
