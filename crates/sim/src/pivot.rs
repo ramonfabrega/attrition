@@ -301,7 +301,18 @@ const fn trunc_div(n: i64, d: i64) -> i32 {
 /// own square (6264, 28728, 480) here, where the original's left from
 /// (6180, 28775, 715), flew 11 frames against 10, and struck the Citizen
 /// `0/6` a frame late.
-const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138), (192, 189), (154, 153)];
+///
+/// **Piece 193, the Egyptian Light Tank `A7VDES`** (unit type 243; item
+/// 3707, `docs/AI.md` §360.2): `unit_graphics.xml`'s `A7VDES-DEFAULT-AGE0` is
+/// piece 189's `lighttank.bh3` at scale 0.9 under a desert texture, with its
+/// anim files, its three `HOWITZER BLAST`s on node 8 and `<RESTRICTION
+/// name="A7VDES" node="4">`. No packet on disk loads the piece (all 82
+/// tried); run1374b's seven Light Tank rounds fit piece 189's rows, one key
+/// each. who=1's `1/54` loosed its round of 4940 at the human's Citizen
+/// `0/10` from the hull's square (6120, 10968, 22) here, where the
+/// original's left the muzzle at (6098, 10851, 200), and `0/10` was struck
+/// on 4943 in theirs alone.
+const SAME_AS: &[(i32, i32)] = &[(1195, 139), (842, 138), (192, 189), (154, 153), (193, 189)];
 
 /// The piece whose rows `piece` reads: [`SAME_AS`]'s, or its own.
 fn rows_of(piece: i32) -> i32 {
@@ -2460,6 +2471,49 @@ mod tests {
             .collect();
         assert!(!fits.is_empty(), "a turret step: {fits:?}");
         assert_eq!(409 + release_offset(&r, f, 0).2, 587, "the dump's height");
+    }
+
+    /// **The Egyptian Light Tank's rounds leave from its turret's muzzle**
+    /// (item 3707, `docs/AI.md` §360.2): piece 193 (`A7VDES`, unit type 243)
+    /// is `lighttank.bh3` at scale 0.9 with `<RESTRICTION name="A7VDES"
+    /// node="4">` and piece 189's anims and `HOWITZER BLAST` nodes, so it reads
+    /// piece 189's rows ([`SAME_AS`]). All seven of run1374b's `AMMO=5`
+    /// rounds from who=1's `1/54` and `1/66` at their first frame, each beside
+    /// its figure's `GUY` pose on the block before, are reproduced at the
+    /// dump's `sx, sy` and `sz − z` by exactly one of the three keys at some
+    /// turret step. Made to fail with the row out of `SAME_AS`.
+    #[test]
+    fn run1374b_s_egyptian_light_tank_rounds_leave_from_its_turret() {
+        use crate::anim::{ATTACK1, ATTACK2, ATTACK3};
+        // (x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32); 7] = [
+            (6120, 10968, -505_479_168, 6098, 10851, 178), // 4940 1/54
+            (6120, 10968, -505_479_168, 6085, 10848, 177), // 4970 1/54
+            (6792, 10536, -317_063_168, 6724, 10430, 177), // 4972 1/66
+            (6792, 10536, -317_063_168, 6736, 10431, 178), // 5025 1/66
+            (5928, 10632, -350_420_992, 5866, 10530, 178), // 5032 1/54
+            (6792, 10536, -317_063_168, 6778, 10418, 178), // 5066 1/66
+            (5304, 10296, -107_675_648, 5279, 10165, 175), // 5102 1/54
+        ];
+        for (x, y, facing, sx, sy, dz) in rows {
+            let f = Angle(facing);
+            let keys: Vec<i8> = [(ATTACK1, 4), (ATTACK2, 21), (ATTACK3, 14)]
+                .into_iter()
+                .filter(|&(a, t)| {
+                    let Some(r) = release(193, a, t) else {
+                        return false;
+                    };
+                    release_offset(&r, f, 0).2 == dz
+                        && (-128..128).any(|i| {
+                            let (dx, dy, _) = release_offset(&r, f, i << 24);
+                            (x + dx, y + dy) == (sx, sy)
+                        })
+                })
+                .map(|(a, _)| a)
+                .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+        assert_eq!(node(193, 4), node(189, 4));
     }
 
     /// **The `MARK4`'s round leaves from its turret's muzzle** (item 3683,
