@@ -271,8 +271,11 @@ impl Sim {
             };
             let start = self.units[u].path.last().map_or(from, |p| p.to);
             let saved = std::mem::replace(&mut self.units[u].path, vec![goal]);
-            self.find_wpath_from(u, start, false);
+            let r = self.find_wpath_from(u, start, false);
             let mut chain = std::mem::replace(&mut self.units[u].path, saved);
+            if std::env::var("RON_PROBE_3711").is_ok() && (5624..=5626).contains(&self.frame) {
+                eprintln!("PROBE3711 plan_each u{u} pos {:?} start {:?} goal {:?} -> {r:?} chain {:?}", self.units[u].pos, start, goal.to, chain);
+            }
             if chain.is_empty() {
                 // The search refused: the goal goes on by itself, off the
                 // copy `action_move_near` kept before the call.
