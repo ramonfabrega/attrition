@@ -11604,13 +11604,16 @@ draw parts; it names no score.
   term item 3688 built; `fight.rs`'s `rally_armor` SEAM names it. No blow on disk strikes a Stable unit by a
   Monarch. Names no score.
 
-## Parked by the next landing, slot TZ — reserved
+## Parked by item 3693, 2026-10-27 — the American Industrial close: an unarmed member's stand-off
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TZ renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3693a — the packed Artillery's launch on 5851** (TY 269, `1/131`, run1356): `ammo[0]` leaves its own square
+  (10008, 29880) at `sz` 589 in ours and (9955, 29882) at 725 in theirs (`v1z` 69091667 against 57758335); the
+  draws agree through the game's end. It is 3683b's row on another game: the piece's bays are unfitted, and a packet
+  that loads it fits them. The pair closes whole; it names no score.
+- **3693b — `get_max_range`'s other filters, unmeasured.** `GroupData::get_max_range@00711080` asks each member's
+  vslots `+8`, `+0xbc` and `+0xc0` and a `buildings` group's `+0x20`; `do_attack/live.rs` reads them as alive, on
+  the map, not air, and has no building-group arm. Only the siege argument is diffed (`docs/AI.md` §348.3); the sweep
+  stubs the rest. No walk reaches a building group's `do_attack`. It names no score.
 
 ## Parked by item 3690, 2026-10-27 — a Greyhound's bays and a packed siege's army target
 

@@ -507,7 +507,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// try at 4705 — `Royal Stratiotai` (234, `STRATIOTAIHEAVY`, land; 268
 /// figure rows), the line §353 named, read by `rubric.py --tables 3`.
 /// Both on the merged tree: 218 (`rubric.py --tables 3`).
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 218;
+/// Item 3693: 218 -> 220, the American Industrial pair whole at 5861 —
+/// `Marine Riflemen` (120, `MARINERIFLEMEN`, land; 1230 figure rows) and
+/// `Armored Car` (217, `GREYHOUND`, land; 62), the two lines §348 named,
+/// read by `rubric.py --tables 3` on the tree merged with 3692's landing.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 220;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

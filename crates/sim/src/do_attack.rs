@@ -89,7 +89,8 @@ pub trait DoAttackView {
     fn set_group(&mut self, group: i32);
     /// `ObjectData::is_worker@0046fa10`.
     fn is_worker(&mut self) -> bool;
-    /// `GroupData::get_max_range(groups[group], worker)`.
+    /// `GroupData::get_max_range(groups[group], worker)` — whose argument
+    /// selects the **siege** members (type vslot `+0x10c`), not the workers.
     fn group_max_range(&mut self, worker: bool) -> i32;
     /// vtable `+0xcc` (`is_supply`), or the type's `+0x2b8 & 0x40`.
     fn is_supply(&mut self) -> bool;

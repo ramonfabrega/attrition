@@ -15,7 +15,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const AMERICAN_INDUSTRIAL: Pair = Pair {
     name: "GreatSaharaAmericanIndustrial",
@@ -45,8 +45,14 @@ pub(crate) const AMERICAN_INDUSTRIAL: Pair = Pair {
     // `0/2000` mandatory on 5678) — ours 20 draws against 19, parting at
     // index 2, ours `Guy::set_anim+0x97a < Guy::move+0x19f`, theirs
     // `Guy::set_anim+0x97a < Animal::do_idle+0x19` (`docs/AI.md` §348.2).
-    count: 5701,
-    sequence: 5701,
+    // Item 3693 closes it, 5701 → 5861, the game's last frame:
+    // `GroupData::get_max_range`'s argument selects the siege members, so
+    // the unarmed members `Group::action_attack` handed `0/10` on 5678 stand
+    // off at the rifles' range 16, not the Artillery's 20 — the General
+    // `1/171`'s move goes to (10872, 28008), the dump's, where it went to
+    // (11544, 27624) and arrived a frame early (`docs/AI.md` §348.3).
+    count: 5861,
+    sequence: 5861,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -284,13 +290,98 @@ fn american_industrial_pair_run1338b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 2, "the rounds that part");
 }
 
+/// **The closing state** (item 3693): run1338's closing block 5862, the
+/// whole map's units, walked from run1337's start.
+#[test]
+fn american_industrial_pair_run1338_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &AMERICAN_INDUSTRIAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "American Industrial pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    for &(who, o) in &e.extra {
+        if let Some(u) = built
+            .sim
+            .units
+            .iter()
+            .find(|u| u.alive() && i64::from(u.owner) == who && i64::from(u.index) == o)
+        {
+            let name = u.ty.and_then(|ty| loaded.unit_names.get(ty).cloned());
+            eprintln!("    extra {who}/{o} {name:?} at {:?}", u.pos);
+        }
+    }
+    for b in &fin.builds {
+        if (0..2).contains(&b.who) && harness::link_building(&built.sim, b.who, b.o).is_none() {
+            eprintln!(
+                "    unlinked building {}/{} at {:?} type {:?}",
+                b.who, b.o, b.pos, b.orig_type
+            );
+            for x in built
+                .sim
+                .buildings
+                .iter()
+                .filter(|x| i64::from(x.pos.x) == b.pos.x && i64::from(x.pos.y) == b.pos.y)
+            {
+                eprintln!(
+                    "      ours {}/{} alive {} hits {} health {} ty {:?}",
+                    x.owner, x.index, x.alive, x.hits, x.health, x.ty
+                );
+            }
+        }
+    }
+    pin_eq!(e.frame, 5862, "the closing block");
+    // Item 3693, the pair whole: 213 units, none off, torn, unlinked or
+    // extra, `Closing fields: none` — the game ends itself on 5861.
+    pin_eq!(e.compared, 213, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
+}
+
 /// run1356: the word 5678's window, blocks 5595..5861 at run1338b's
 /// detail — six blocks before the stride's block 5601 and on to the game's
 /// own end, 5861 (item 3686).
 const RUN1356: &str = "gamelog-run1356-greatsahara-american-industrial-window-5595-5861.txt";
 
-/// The window: block 5595 through 5861; the word 5678's own block is 5679.
-pub(crate) const WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678: (i64, i64) = (5595, 5861);
+/// The window: block 5595 through the closing block 5862 (since item 3693;
+/// 5861 before); the word 5678's own block is 5679.
+pub(crate) const WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678: (i64, i64) = (5595, 5862);
 
 /// **The word 5678's window**: run1356 walked from run1337's start with
 /// the recorder on and every round compared (item 3686).
@@ -303,8 +394,9 @@ pub(crate) fn american_industrial_frame_5678_window() -> Option<harness::tests::
         &[(RUN1356, WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678.0)],
         WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678,
         1,
-        // The word's block, and since item 3690 the new word 5701's (5702).
-        &[5679, 5702],
+        // The word's block, since item 3690 the word 5701's (5702), and
+        // since item 3693 the closing block 5862.
+        &[5679, 5702, 5862],
         true,
     )
 }
@@ -359,7 +451,17 @@ fn american_industrial_pair_run1356_s_word_frame_is_widened_whole() {
     // paid 0]`; ours had a fresh non-mandatory `ATTACK` and re-searched).
     // The first round to part is now 5735's (`1/104` again); group 65's
     // move orders still part on 5679 (`1/145`'s `x` 12216 against 11448).
-    pin_eq!(w.firsts.len(), 2153, "run1356 after item 3690");
-    pin_eq!(w.rounds_read, (166, 49), "the rounds read");
-    pin_eq!(w.rounds.len(), 27, "the rounds that part");
+    // Item 3693: `get_max_range`'s siege argument puts group 65's unarmed
+    // members — the Generals, Spies and Supply Wagons `1/145`…`1/191` —
+    // on theirs' stand-off from `0/10` on 5679 (`1/171`'s `x, y` (10872,
+    // 28008), where ours read (11544, 27624)), and every non-standing key
+    // leaves: what stands is block 5595's families and 5614's and 5617's
+    // groups 68 and 71. **One round still parts, 5851's**: the packed
+    // Artillery `1/131` (TY 269) launches `ammo[0]` from its own square
+    // (10008, 29880, 589) in ours and from (9955, 29882, 725) in theirs —
+    // a bay row its piece lacks; the draws agree through the game's end
+    // (3693a).
+    pin_eq!(w.firsts.len(), 78, "run1356 after item 3693");
+    pin_eq!(w.rounds_read, (166, 166), "the rounds read");
+    pin_eq!(w.rounds.len(), 5, "the rounds that part");
 }

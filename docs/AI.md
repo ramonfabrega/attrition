@@ -32879,6 +32879,46 @@ Animal::do_idle+0x19`. It is inside run1356, whose `near` list now
 carries 5702. Group 65's move orders on 5679 are the nearest standing
 non-family rows; whether they reach 5701's draw is that item's to read.
 
+### 348.3 An unarmed member's stand-off: `get_max_range` asks for siege, and the pair closes, 5701 → 5861 (item 3693)
+
+*Item 3693, 2026-10-27, Opus 5.5; no capture. The walk is the journal's.*
+
+**5701, ours acts**: ours' index 2 is the General `1/171` (TI 54, army 2)
+arriving (`Guy::move+0x19f`), a frame before theirs' first arrival
+(5702). Past the standing families, run1356's first parted keys are 61
+`order:move` rows on 5679. They sit on group 65's thirteen unarmed
+members (Generals, Spies, Supply Wagons `1/145`…`1/191`), the army's
+only members whose head is a move.
+
+**The move is `Unit::do_attack@005f1b80`'s grouped arm.** On 5678,
+`Group::action_attack(…, 0/10, …)` (§348.2) hands every member the attack
+on `0/10`. An unarmed member stands off at `(get_max_range + 2) × 0xc0`
+(`+0xc0` for supply), along its bearing from the target. From `0/10`,
+theirs' spots sit at 3574–3800 and ours' at 4332–4552: a range of 16
+against 20.
+
+**`GroupData::get_max_range@00711080`'s argument selects the siege
+members, not the workers.** `do_attack` passes its own `is_worker`
+(`:120`–`:122`). The function matches it against each member type's
+vslot `+0x10c`, which is `is_siege` (§2.10). The sweep
+(`sweep/group_data_get_max_range.rs`) had it. `do_attack/live.rs`
+tested the members' `is_worker`, which let the Artillery's 20 in, and
+now tests `is_siege_unit`.
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 5679 | `1/171`'s move | `x, y` | (11544, 27624) | (10872, 28008) | (10872, 28008) |
+| 5679 | `1/145`'s move | `x, y` | (12216, 29400) | (11448, 29448) | (11448, 29448) |
+
+**What moved**: `AMERICAN_INDUSTRIAL` **5701 → 5861 of 5861, the pair
+whole**. The closing state (block 5862): 213 units, none parting. run1356
+(now through 5862): 2153 → 78 keys, 27 → 5 rounds parting. The 5 are the
+packed Artillery `1/131`'s launch on 5851 from its own square, 3683b's
+bay row (3693a). Every other lobby's `first_parting` holds. Restoring
+`is_worker` reddens all three (`mutate.py`: held). **Not established**:
+`get_max_range`'s building-group arm and its `+8`/`+0xbc`/`+0xc0` reads
+(3693b).
+
 ## 349. The Russians at a held Gunpowder age, Great Lakes: first try 3711 of 5341 (item 3670)
 
 **The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
