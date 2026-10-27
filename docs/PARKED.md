@@ -3781,6 +3781,18 @@ fourteen lobbies and the switch read as the build's cost. For the pass: whether 
 under test) want a clause that an off-switch is checked by its own diff against the base — the tree with the switch off builds the base's
 binary — before its run is read.
 
+(3681) **The whole gate's coverage walk runs at its budget's cap.** `coverage::every_parsed_field_is_compared_by_the_instrument_or_pinned`
+(`test_runtime.py`'s `bounded_test`, one CPU slot under `resource_budget.py`'s default 1800 s) ran 1693 s and 1613 s in the fifty-eighth's
+whole gates (14:37, 15:50 on 10-26) and 352–475 s in its scoped ones, and the fifty-ninth's third booking gate (`f3ac4231e`, whole, `--test-threads
+8`, host load 4.4 → 9.6) killed it at 1800.07 s — the gate red on a timeout, the test green alone in 345 s; `release_gate.py`'s header still says
+80 s. For the pass: whether the walk's own cost grew with the windows the coverage driver is handed (one per pair stood up), and whether its
+budget follows the measured figure or the whole gate gives it more than one slot; the commander's re-run takes `--test-threads 4`.
+
+(3684) **3678's "for the Loop"** (the journal's line, filed at its merge): the leader's tech mask (`bit_values`, 806 bits) is read and not
+compared (`leader.rs`), so a tech bit can part unseen; ours' `tech` is indexed by `TypeId` (628) and the original's by `TypeIndex` (806), so
+comparing it needs that mapping first. For the pass: whether it is a `coverage` item (a pinned uncompared key on the newest word's window) or a
+widening row the next residue item takes.
+
 ## Loop, filed 2026-10-26 — the fifty-eighth tranche's
 
 One row, built by the fifty-eighth pass and its text kept in `docs/audit/2026-10-26-fable-pass-58.md`: **3656** (3654's "for the Loop": `test_viadriver`'s
