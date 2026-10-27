@@ -33599,7 +33599,7 @@ the closing fields — downstream of the word.
 Fusilier's (TI 136), from the shots this window holds: `1/52` on 3195, `1/47` on 3198 and `1/42` on 3261, the
 guy's pose on the block before the round's first print, in the shape of 3692's piece-1105 bays. I built nothing.
 
-**The rubric.** `rubric.py --tables 3` reads unit types seen **220 of 302**, unmoved: the pair parts, so it is not
+**The rubric.** `rubric.py --tables 3` reads unit types seen **221 of 302** (with 3695's), unmoved: the pair parts, so it is not
 lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1350 and run1350b): `Manchu
 Musketeers` (116, `MANCHUMUSKETEERS`), 22,212 guy rows, the word's own shooter; the pair fields 16 types.
 
