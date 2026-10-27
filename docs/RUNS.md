@@ -30163,3 +30163,71 @@ SHA-256 `190b021e3c04044890cbe8eabe01e8ec54bf652a84dacce53a3ece1975b4d727`.
 1533 keys, rounds read 306 and 278, 110 parting). Block 2933 carries the standing families alone. The first record
 to part is on 2934: who=1's Light Tank `1/28` (TY 240, `MARK4`) launches `ammo[1]` from (9432, 31128) at `sz` 619 in
 ours and from (9218, 31078) at 757 in theirs, `total_time` 6 against 5.
+
+## run1355 — the British at a held Industrial age, Great Sahara, at difficulty 4: a packet at logger frame 2933, pieces 190 and 65 (2026-10-26, item 3683, `att-3683`)
+
+`docs/AI.md` §347.1. **What the disk could not answer**: the release node of who=1's Light Tank `1/28` (TY 240,
+`MARK4`). Its piece, 190 (ours' `gpiece`, `RON_DEBUG_GAP`), is refused by every one of the 73 packets under
+`~/ron-golden` (`get_position.py … entries 190`). `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1355
+--map 7 --end-frame 2935 --timeout 3600 --log-window 2932 2934 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 11
+--cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4 --tracer-def RON_STATE_FRAME=2933 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 19:22:30, exited 19:22:53 (23.0 s). `success`, 2936 frames. `rngcmp.py` against run1336:
+  2936 of 2936 identical. Not filed: the packet is the product. `df -g ~` read 82 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1355/map-7/frame-snapshot.bin`, 911,548,616 bytes,
+SHA-256 `0626893a5c20f9e47f626ac3298bdd709e387c73dbf8cb263a071a80c48d441b`.
+
+**What it holds**: `get_position.py … entries`: piece 190 (`MARK4-DEFAULT-AGE0`), seven rows at `pos_start` 107,
+`RData +0x88` 0.9 — the turret `(4, 0, 0)` and node 0 at 4 of `CHAR_ATTACK1`, 21 of `2` and 1 of `3`, the same bits
+on all three; `pivot 190 0 11 4 1` swept 92,416 cells. Piece 65 (the Black Watch), three node-0 rows at 10, 15 and 16,
+`RData +0x88` 1.0, fit by `fit_bay.py` at 361 of 361 headings. The sweeps are under
+`~/ron-data/lab-experiments/2026-10-26-item-3683/sweeps/`.
+
+## run1355b — the British at a held Industrial age, Great Sahara, at difficulty 4: the word 2918's window, blocks 2903..3168 (2026-10-26, item 3683, `att-3683`)
+
+`docs/AI.md` §347.1. **What the disk could not answer**: every record on the moved word 2918 and the strikes before
+it. No dump held 2902..2932: run1336's stride prints 2901, and run1352 starts on 2933. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1355b --map 7 --end-frame 3168 --allow-early-end --timeout 3600
+--log-window 2903 3168 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover
+cover=0` and run1335's lobby.
+- Pool lane 1. Launched 19:33:47, exited 19:34:26 (38.6 s). `success`: 3169 frames. `rngcmp.py` against run1336:
+  3169 of 3169 identical. Filed with `filerun.py run1355b greatsahara-british-industrial-window-2903-3168`. `df -g ~`
+  read 75 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1355b-greatsahara-british-industrial-window-2903-3168.txt`, 521,018,472 bytes,
+SHA-256 `680be82c43291a937cf7a54dbb11943e3ec16ee0443bb51df3afb163f3e7a37e`.
+
+Archive `rontrace-run1355b.log`, 44,348,000 bytes,
+SHA-256 `37fddd9801d525da3f8d33f876e7fed13deec21a198d16b2838bd6cd2c0527cb`.
+
+**What it holds**: `british_industrial_pair_run1355b_s_word_frame_is_widened_whole` walks it from run1335 (265
+blocks, 52 keys, 363 rounds a side, 10 parting). Before piece 65's rows the first parted record was the human's
+Citizen `0/8` on 2903 — `hits:damage` 54 and `damage_o` 15 on 2901 in ours against 41 and 28 on 2871 — from the
+Black Watch `1/15`'s round of 2901, thrown from the figure's square.
+
+## run1355c — the British at a held Industrial age, Great Sahara, at difficulty 4: the closing window, blocks 4512..4768 (2026-10-26, item 3683, `att-3683`)
+
+`docs/AI.md` §347.1. **What the disk could not answer**: the closing state, and every record on the word once it
+reached the game's end — run1336's stride prints units every hundred frames, and no leader, building or `AMMO`
+record. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1355c --map 7 --end-frame 4767
+--allow-early-end --timeout 3600 --log-window 4512 4768 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5
+--ai-tribe 11 --cover cover=0` and run1335's lobby.
+- Pool lane 1. Launched 19:49:13, exited 19:50:13 (59.8 s). `success`: the game ended itself on 4768, 4768 frames.
+  `rngcmp.py` against run1336: 4768 of 4768 identical. Filed with `filerun.py run1355c
+  greatsahara-british-industrial-window-4512-4768`. `df -g ~` read 71 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1355c-greatsahara-british-industrial-window-4512-4768.txt`, 541,571,182 bytes,
+SHA-256 `24854531b0ca18a504b2bdedd984d98da17412cb6902af75a6e624b6e68185f2`.
+
+Archive `rontrace-run1355c.log`, 88,882,944 bytes,
+SHA-256 `f0d98e87273609a07973d473dc9667b5e37aae57dd8115175b5a533c4800e87c`.
+
+**What it holds**: `british_industrial_pair_run1355c_s_closing_window_is_widened_whole` walks it from run1335 (256
+blocks, 58 keys, 295 rounds a side, 37 parting): standing families and dead targets' `whom`/`ox`, except the
+Artillery's launches (parked 3683b) and two `dest_angle`s (3683c). Block 4768, the closing state: 179 units, counts
+all 0, `Closing fields: none`.
