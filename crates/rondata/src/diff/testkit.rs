@@ -7289,6 +7289,10 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 /// `ez` one either side as well (measured, item 770's journal); 17 holds
 /// for any drop in 1516–1698. So the reads are counted, and pinned.
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
+    // Item 3698: the Persian Gunpowder pair's closing state, run1370
+    // walked to its closing block 5674 past the word 1180: 2 inexact
+    // corners.
+    ("persian_gunpowder_pair_run1370_s_closing_state", 2),
     // Item 3629: run1291b, the Iroquois Enlightenment word 3962's window,
     // 3956..4212: 2 inexact corners.
     // Item 3655: the Iroquois Enlightenment pair walked whole, run1290
