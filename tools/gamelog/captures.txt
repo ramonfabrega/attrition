@@ -10962,3 +10962,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3709: the Mongol Medieval word moves 2595 -> 3989 (`docs/AI.md` §362.1; `docs/RUNS.md` run1386) ====
 #   run1386  --map 18 --end-frame 4240 --timeout 3600 --log-window 3895 4240 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0, run1377's lobby   (the word 3989's window)
 # Checks: `rngcmp.py` run1378 vs run1386 -> 4241 identical.
+# ==== item 3703: the Greeks at a held Medieval age, East Indies, at difficulty 4 (`docs/AI.md` §363; `docs/RUNS.md` run1379, run1380, run1380b) ====
+#   run1379  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 5 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1380  run1378's line with --ai-tribe 5 and run1379's lobby   (the draw stream; ended itself on 5942)
+#   run1380b --map 18 --end-frame 5877 --timeout 3600 --log-window 5595 5877 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 5 --cover cover=0, run1379's lobby   (the word 5626's window)
+# Checks: `rngcmp.py` run1379 vs run1380 -> 37 identical; run1380 vs run1380b -> 5878 identical.

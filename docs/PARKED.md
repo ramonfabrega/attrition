@@ -11808,13 +11808,19 @@ The Mongol Medieval pair parts on its first try at 2595 of 5592 (`docs/AI.md` §
   who=1's cities `1/2000`..`1/2044` and buildings `1/2017`..`1/2055` in the closing fields
   (`mongol_medieval_pair_run1378_s_closing_state` pins them). It names no score until the word reaches it.
 
-## Parked by the next landing, slot UL — reserved
+## Parked by item 3703, 2026-10-27 — the Greeks at a held Medieval age, East Indies, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UL renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Greek Medieval pair parts on its first try at 5626 of 5942 (`docs/AI.md` §363): the Heavy Fire Raft `1/70`
+spends one `Unit::do_move+0xe84` grid draw in ours and keeps no order. The word is the next item's. The rows below
+are sub-scores of the pair that name no frame of it.
+
+- **3703a. Launch points a unit or two off, before the word.** run1380b's rounds read 1205 against 1199, 243
+  rows apart. The first are the Heavy Horse Archer `1/151`'s (TI 188) `ammo[4]` on 5601 (`sx` 6566 against 6565,
+  `sy` 8539 against 8540) and the Crossbowmen `1/157`'s (TI 172) `ammo[0]` on 5612 (`sx` 7041 against 7043).
+  The draws never feel them (`greek_medieval_pair_run1380b_s_word_frame_is_widened_whole` pins the count).
+- **3703b. The closing state is downstream of 5626.** run1380's closing block 5943 compares 319 units, counts
+  `[119, 3, 1, 7, 6, 1, 0]`: 3 unlinked (`1/308`, `1/312`, `1/318`), 1 extra (`1/313`), who=1's army off and
+  `1/2066`, `1/2067` in the closing fields (`greek_medieval_pair_run1380_s_closing_state` pins them).
 
 ## Parked by item 3704, 2026-10-27 — the Chinese Enlightenment word closes, 3263 → 3836
 

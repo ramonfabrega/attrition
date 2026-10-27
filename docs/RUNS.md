@@ -31754,3 +31754,69 @@ SHA-256 `3b27e928b145b0a3069150033f17e22c820528caab067d72f12b66768c271549`.
 221 keys, rounds (209, 210) with 83 parting. On 3981 the Crossbowmen `1/43`'s round launches from (6120, 11208, 19)
 in ours against (6103, 11142, 159) and flies 11 frames against 10; on 3990 theirs' round has struck `0/2004`. It is
 the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+## run1379 — the Greeks at a held Medieval age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3703, `att-3703`)
+
+`docs/AI.md` §363. run1377's lobby with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1379 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 5 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 2. Launched 12:04:42, exited 12:05:08 (26.0 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 5, map style 18, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4` and `STARTING_TECHNOLOGY 2` (`Pair::assert_lobby`). Filed with `filerun.py run1379
+  eastindies-greek-medieval-start --map 18`. `df -g ~` read 143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1379-eastindies-greek-medieval-start.txt`, 153,813,433 bytes,
+SHA-256 `021cdac3f2a7b2dac96f64e9da4f8269e17a6b85551fd6077e9cc4fcbfc6509d`.
+
+Archive `rontrace-run1379.log`, 10,097,696 bytes,
+SHA-256 `381e678eee217572868360687e8b4227618d73cb1e37547f28981b9745afab7a`.
+
+**What it holds**: the start of `greek_medieval_pair::GREEK_MEDIEVAL`, and the walk's initial state.
+
+## run1380 — the Greeks at a held Medieval age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3703, `att-3703`)
+
+`docs/AI.md` §363. run1378's line with `--ai-tribe 5` and run1379's lobby: `--map 18 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 5 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1, beside run1379. Launched 12:04:42, exited 12:05:26 (44.2 s launch to exit). `success`. **The game
+  ended itself on 5942** (closing block 5943, `ended_early`). `GAME INFO` reads back as run1379's. `rngcmp.py`
+  against run1379: 37 frames identical. Filed with `filerun.py run1380 eastindies-greek-medieval-trace --map 18`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1380-eastindies-greek-medieval-trace.txt`, 48,826,337 bytes,
+SHA-256 `105a00b47a9323c91717642bcf1eff6b02e8f5c481c9fa779f177378cf7c2d17`.
+
+Archive `rontrace-run1380.log`, 226,759,744 bytes,
+SHA-256 `3da0a89fd36d9d86fa038b0f2a735ae3451ebae2947723bf4786000fb2db6373`.
+
+**What it holds**: the pair's first try. `greek_medieval_pair_first_parting` walks it from run1379: **5626 of
+5942**, by the count and the sequence, ours 29 draws against 28 at index 9 (ours `Unit::do_move+0xe84`, theirs
+`Guy::set_anim+0x97a < Guy::move+0x19f`). Its stride 101..5601 is the pair's walk-back (253 keys, standing families
+only), and its closing block 5943 the pair's closing state (319 units, downstream; parked 3703b).
+
+## run1380b — the Greeks at a held Medieval age, East Indies, at difficulty 4: the word 5626's window, blocks 5595..5877 (2026-10-27, item 3703, `att-3703`)
+
+`docs/AI.md` §363. **What the disk could not answer**: every record and every round on the word's frame. run1380's
+stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1380b --map 18 --end-frame 5877 --timeout 3600
+--log-window 5595 5877 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 5 --cover
+cover=0` and run1379's lobby: six blocks before the stride's last block 5601 and 250 past the word's block 5627.
+- Pool lane 1. Launched 12:07:53, exited 12:09:18 (84.9 s launch to exit). `success`: 5878 frames. `rngcmp.py`
+  against run1380: 5878 of 5878 identical. Filed with `filerun.py run1380b
+  eastindies-greek-medieval-window-5595-5877 --map 18`. `df -g ~` read 142 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1380b-eastindies-greek-medieval-window-5595-5877.txt`, 730,119,364 bytes,
+SHA-256 `5326fc67784a7226f5776dab76b50223328351ac3814e797f91d24d135a91cfc`.
+
+Archive `rontrace-run1380b.log`, 224,506,528 bytes,
+SHA-256 `75fa7a75986321c169d86f5b98757ca154c7aa48ed5f7d231f6fb6deafa1c79a`.
+
+**What it holds**: `greek_medieval_pair_run1380b_s_word_frame_is_widened_whole` walks it from run1379: 282 blocks
+and 3660 keys, rounds read (1205, 1199) with 243 parting. On 5627 the Heavy Fire Raft `1/70` (TI 335) holds no order
+in ours against a move to (46056, 38088) in theirs. It is the pair's widening in `WIDENINGS` and the `AI_WORDS`
+window, and it sits in the coverage driver.
