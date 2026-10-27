@@ -10786,6 +10786,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3699,
         Some(crate::diff::inca_industrial_pair::WIDENING_INCA_INDUSTRIAL_CLOSING),
     ),
+    // **The Egyptians at a held Industrial age** (item 3700): East Indies
+    // at Hard — its first try parts at 4959 of a game that ends itself on
+    // 5689; widened on run1374b over 4895..5210, the rounds compared, and
+    // the stride over 101..4901.
+    (
+        "EGYPTIAN_INDUSTRIAL_PAIR_WORD",
+        crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL_PAIR_WORD,
+        Some("egyptian_industrial_pair_run1374b_s_word_frame_is_widened_whole"),
+        3700,
+        Some(crate::diff::egyptian_industrial_pair::WIDENING_EGYPTIAN_INDUSTRIAL_FRAME_4959),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -13093,6 +13104,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_471,
         endpoint: Some("inca_industrial_pair_run1372_s_closing_state"),
         window: Some("inca_industrial_closing_window"),
+    },
+    // The Egyptians at a held Industrial age (`STARTING_TECHNOLOGY` 5,
+    // `ENDING_TECHNOLOGY` 5), East Indies at Hard (item 3700): its first
+    // try parts at 4959 of a game that ends itself on 5689, widened on
+    // run1374b.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesEgyptianIndustrial",
+        named: "East Indies (Egyptian, Industrial)",
+        word: crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL_PAIR_WORD,
+        length: 5_689,
+        endpoint: Some("egyptian_industrial_pair_run1374_s_closing_state"),
+        window: Some("egyptian_industrial_frame_4959_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

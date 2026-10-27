@@ -34023,12 +34023,65 @@ precedent for a whole word with one closing field pinned.
 booking's line **is fielded and new** — `Siege Mortar` (275, `SIEGEMORTAR`), 738 figure rows.
 `census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned.
 
-## 360. Reserved for the next item on the AI track
+## 360. The Egyptians at a held Industrial age, East Indies, at difficulty 4: first try 4959 of 5689 (item 3700)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §356's lobby with the nation and age moved: East Indies
+(`MAP_STYLE 18`), human Nubians (4) against the **Egyptians (7)** at Difficulty 4, seed 12345,
+`STARTING_RESOURCES 7`, `STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5`, read back on both `GAME INFO`s
+(`Pair::assert_lobby`). Captures: run1373 (a `DUMP_ALL` start) and run1374 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 5689; run1373 against run1374 is 37 of 37 frames
+identical. The walk is seeded from run1373's initial state (3506a). `diff::egyptian_industrial_pair` pins it. No
+twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 7, 4)`, is minted into `battery::SCORED_LOBBIES`. The Egyptian lobbies: the held-out
+battery's `EastIndiesEgyptianTier3` `(18, 7, 3)` and `egyptian_classical_pair` `(18, 7, 5)` are this map at other
+difficulties; `egyptian_word` `(7, 7, 4)` and `egyptian_gunpowder_pair` `(7, 7, 5)` are another map. `(18, 7, 4)`
+appeared nowhere in the tree. `egyptian_industrial_pair_is_no_other_lobby` asserts all of it.
+
+**First try: frame 4959 of 5689**, by the count and the sequence. On 4959 ours spends 14 game draws against
+theirs' 16, parting at index 3: ours `Guy::set_anim+0x97a < Guy::move+0x19f` (who=1's `1/37`), theirs
+`Guy::set_anim+0x97a < Unit::move_step+0x823`, ahead of `1/37`'s pair. Both spend the same three
+`calc_market`, two `Guy::move`, two `do_idle` and four `Guy::inc_time` draws; theirs spends a fourth gaia
+`Guy::set_anim+0x104b` to ours' three (`9/11`, `9/17` twice). **Theirs acts**: the human's Citizen `0/10`, wounded
+and ordered away in theirs on 4943, is still walking on 4959; ours' was never hit and stands.
+
+**The stride** (run1374, 101..4901: 49 blocks, **155 keys**) parts on the standing families alone: `form` on 35
+units, the buildings' `build:extra` and who=1's groups 64..84's `held` and pools as each is minted. No unit row
+parts on it.
+
+**The word's window** (run1374b, blocks 4895..5210 at the long's detail with `LEADERS=9` and `AMMO=5`, walked
+from run1373 with every round compared: 315 blocks, **1132 keys**, the two `gaia:` keys unprinted; rounds 46 ours
+against 54 theirs, 13 parting, the first on 4940). run1374 against run1374b is 5211 of 5211 frames identical.
+Block 4895 carries the standing families (both leaders' `SITE[i].reg`, who=0's `aggression[1]`) and who=1's
+food `bucket`/`escrow` one low and `leftover[2:wealth]` 960 low in ours (parked 3700a).
+
+**The value diff** (`AMMO`, `UNIT` and `LEADER` on run1374b; the units named by `RON_DEBUG_UNIT` on 4938..4945):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4940 | the Light Tank `1/54`'s round `ammo[0]` (TI 243, at `0/10`) | `sx, sy, sz` | 6120, 10968, 22 | 6098, 10851, 200 |
+| 4940 | the same | `total_time`; `v1z` | 6; 65629173 | 5; 31618750 |
+| 4944 | the Citizen `0/10` (TI 50) | `damage_frame`; `hits_left` | 0; 65 | 4943; 33 |
+| 4944 | the same | `orders.len`; `orders_x, orders_y` | 0; 5784, 8856 | 1; 5544, 7320 |
+| 4944 | both leaders | `treaties[0]` / `treaties[1]` | 1 | 3 |
+| 4945 | `0/10` | `pos` | (5784, 8856) | (5780, 8832) |
+| 4959 | the draw stream, index 3 | site | `Guy::move+0x19f` | `Unit::move_step+0x823` |
+
+The shooter is who=1's `1/54`, **TI 243 `Light Tank` (`A7VDES`), TY 193 (`A7Vd`), land, piece 193 (`g193`)**, on
+anim slot 13, standing at (6120, 10968) on an `ATTACKORDER` at `0/10`. Ours' launch point is the tank's own square
+with `sz` 22; theirs' leaves forward and 178 higher, and lands a frame sooner. **Piece 193 has no row in
+`sim::launch::BAYS` or `GUNS`** (69 and 3 pieces parsed), the shape of §354, §357.2 and 3699b on a fifth
+launcher. The other Light Tank in the window, `1/66` (TI 243), holds rounds one side alone on 4972 and 4989. The
+rest are group 71's Riflemen (TI 100, piece 50, which has bays): `1/68` on 5046, `1/76` on 5029 and 5089, `1/77`
+on 5087, each one side holds alone. From 4949 `1/76` and `1/77` target `0/10` in ours and the human's building
+`0/2003` in theirs. All of that is downstream of the wound.
+
+**The next item's hypothesis** is the Light Tank's launch row (piece 193), from `1/54`'s shot on 4940 and the
+later rounds this window holds; a packet at the shot reads the bay as §357.2 did. I built nothing.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **224 of 302**, unmoved: the pair parts, so it is not
+lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1374 and run1374b): `Light
+Tank` (243, `A7VDES`), 4,950 figure rows. It stays in the never list until a lockstep game holds it.
 
 ## 361. Reserved for the next item on the AI track
 
