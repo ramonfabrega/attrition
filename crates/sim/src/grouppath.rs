@@ -149,7 +149,16 @@ impl Sim {
                 let slot = f.to[i];
                 let p =
                     self.restrict_pos(Pos::new(w.to.x + slot.x - base.x, w.to.y + slot.y - base.y));
+                let p0 = p;
                 let p = self.group_plan_keep_area(u, p, w.to, short);
+                if std::env::var("RON_PROBE_3711").is_ok() && u == 212 && (5624..=5626).contains(&self.frame) {
+                    eprintln!(
+                        "PROBE3711 group_plan u{u} leader {leader} w {:?} base {:?} slot {:?} p0 {:?} reg(p0) {} reg(w) {} inv(p0) {} short {short} -> p {:?} last {last}",
+                        w, base, slot, p0,
+                        self.world.tregion_alt(p0.tile()), self.world.tregion_alt(w.to.tile()),
+                        self.invalid_loc(u, p0.tile(), true, true, false, false, false), p
+                    );
+                }
                 // The leader walks the whole chain and so does every final
                 // waypoint. An intermediate leg reaches a follower only
                 // when that follower is **not** in the formation — the
