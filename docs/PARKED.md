@@ -11522,7 +11522,7 @@ words and edits nothing here; a refill lands when two remain.
 
 ## Parked by item 3679, 2026-10-26 — the Korean Medieval pair closed: the spent arrow
 
-(3679) **A live round keeps its target after the target dies in flight; ours forgets it at the death.**
+(3685) **A live round keeps its target after the target dies in flight; ours forgets it at the death.**
 run1331b's rounds, compared slot for slot since the spent arrow, part on 46 rows from 3398, all `whom`/`ox` on 23
 live rounds (`flags 6`): who=1's Royal Hwarang `1/52`'s 3395 arrow at the Citizen `0/13`, which dies on 3397,
 prints `whom 0 ox 13` to its landing in theirs and `−1` in ours, because `Sim::forget` clears every round aimed at
