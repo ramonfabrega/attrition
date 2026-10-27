@@ -262,9 +262,11 @@ fn persian_classical_pair_run1318b_s_word_frame_is_widened_whole() {
     // and `0/11` struck on 10993 on both sides — and the Anusiya's
     // (piece 113). 520 a side, 68 parting: the dead target's `whom`/`ox`
     // (theirs keeps it, §338) and the slot shifts theirs' spent arrows
-    // make (COMBAT §46.7).
-    pin_eq!(w.rounds_read, (520, 520), "the rounds read");
-    pin_eq!(w.rounds.len(), 68, "the rounds that part");
+    // make (COMBAT §46.7). Item 3679: theirs' spent arrows are compared
+    // and ours keeps its own (§46.7) — 1091 a side, 14 parting, every one
+    // a dead target's `whom`/`ox` (parked 3679).
+    pin_eq!(w.rounds_read, (1091, 1091), "the rounds read");
+    pin_eq!(w.rounds.len(), 14, "the rounds that part");
 }
 
 /// run1327b: the closing window, blocks 11378..11634 at run1318b's detail,
@@ -322,13 +324,15 @@ fn persian_classical_pair_run1327b_s_closing_window_is_widened_whole() {
     // 1975's bays: 65, with the human's `0/2000`'s `build:damage` (414
     // against 420 on 11378), `1/296`'s `damage_o` and `city_flags[0x4]`.
     pin_eq!(w.firsts.len(), 59, "run1327b baseline");
-    pin_eq!(w.rounds_read, (1278, 1278), "the rounds read");
+    pin_eq!(w.rounds_read, (1332, 1332), "the rounds read");
     // 1278 a side, 24 parting: dead targets' `whom`/`ox` and slot shifts.
+    // Item 3679: 1332 a side, 6 parting — the spent arrows held (COMBAT
+    // §46.7), only the dead targets' `whom`/`ox` (parked 3679).
     // Before pieces 113's and 1975's bays: 1278 against 1310, 254 parting,
     // the Anusiya's arrows (`1/333`'s on 11381 from (3912, 31080, 543)
     // against (3821, 31024, 721), 3 frames against 2) and the Catapults'
     // stones (`1/119`'s on 11511 from 208 against 453).
-    pin_eq!(w.rounds.len(), 24, "the rounds that part");
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
 }
 
 /// **The closing state** (item 3663): run1318's closing block 11634, the

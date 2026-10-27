@@ -14,7 +14,7 @@
 use super::coverage_pair::Pair;
 use super::testkit::*;
 use super::*;
-use crate::testenv::dump;
+use crate::testenv::{dump, install};
 
 pub(crate) const KOREAN_MEDIEVAL: Pair = Pair {
     name: "GreatLakesKoreanMedieval",
@@ -42,8 +42,15 @@ pub(crate) const KOREAN_MEDIEVAL: Pair = Pair {
     // ours `Guy::set_anim+0x97a < Unit::move_step+0x823`, theirs
     // `Unit::resolve_unit_collision+0xb52`. Past run1331b's last block, so
     // its widening is owed (parked 3666).
-    count: 4379,
-    sequence: 4379,
+    // Item 3679: **4559, the game's end**, by both. run1353 widened 4379
+    // and walked back to run1353b's 4308: who=1's decoy Royal Hwarang
+    // `1/139` closed on 4267 with a spent arrow in the pool, which holds
+    // its number in theirs until the arrow goes on 4338; ours had no spent
+    // arrows, freed 139 by 4297 and numbered the 4308 squad's third Royal
+    // Hwarang 139 where theirs takes 183 (`docs/COMBAT.md` §46.7, `docs/AI.md`
+    // §345).
+    count: 4559,
+    sequence: 4559,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -267,6 +274,211 @@ fn korean_medieval_pair_run1331b_s_word_frame_is_widened_whole() {
     // every block's launches, landings and flight times agree over the
     // whole window once theirs' spent `flags 1` records are set aside (0
     // of 288 blocks), so what parts is the slot a round sits in.
-    pin_eq!(w.rounds_read, (2152, 2152), "the rounds read");
-    pin_eq!(w.rounds.len(), 244, "the rounds that part");
+    // Item 3679: **(3443, 3443), 46 parting** — the spent arrows compared
+    // too (`flags 1`, COMBAT §46.7), and every slot agrees. The 46 rows
+    // are 23 live rounds' `whom`/`ox` from 3398: the round flies on at a
+    // target that died in flight (the Citizen `0/13` on 3397, `1/52`'s
+    // 3395 arrow), theirs keeps the pair to the landing and ours'
+    // `Sim::forget` clears it at the death (parked 3679).
+    pin_eq!(w.rounds_read, (3443, 3443), "the rounds read");
+    pin_eq!(w.rounds.len(), 46, "the rounds that part");
+}
+
+/// run1353: the word 4379's window, blocks 4373..4559 at run1331b's detail
+/// (`LEADERS=9`, `AMMO=5`) — six blocks before the word and on to the
+/// game's own end, so the closing window since the word closed (item 3679).
+pub(crate) const RUN1353: &str = "gamelog-run1353-greatlakes-korean-medieval-window-4373-4559.txt";
+
+/// The window: block 4373 through the closing block 4560, so the word
+/// 4559, the game's last frame, sits inside it; the old word 4379's own
+/// block is 4380.
+pub(crate) const WIDENING_KOREAN_MEDIEVAL_FRAME_4559: (i64, i64) = (4373, 4560);
+
+/// **The closing window**: run1353 walked from run1330's start with the
+/// recorder on and every round compared (item 3679).
+pub(crate) fn korean_medieval_frame_4559_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[KOREAN_MEDIEVAL.start],
+        true,
+        KOREAN_MEDIEVAL.long,
+        "run1353",
+        &[(RUN1353, WIDENING_KOREAN_MEDIEVAL_FRAME_4559.0)],
+        WIDENING_KOREAN_MEDIEVAL_FRAME_4559,
+        1,
+        &[4380],
+        true,
+    )
+}
+
+#[test]
+fn korean_medieval_pair_run1353_s_closing_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = korean_medieval_frame_4559_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 186, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3679, the first walk, before the spent arrow: 2007 keys, 223 of
+    // them on the window's first block 4373 — who=1's Royal Hwarang squad
+    // `1/181`..`1/185` a formation slot apart, `1/186` a Royal Hwarang
+    // (uid 247, hits 97, group 74) in theirs and a Korean Citizen in ours,
+    // and `1/139` held by ours alone: the numbering parted in the gap
+    // (run1353b, 4308). With the spent arrow: **50**, the standing
+    // families alone (`form`, both leaders, who=1's groups and pools,
+    // who=0's `aggression[1]`).
+    pin_eq!(w.firsts.len(), 50, "run1353 baseline");
+    // Every round, live and spent, slot for slot: 3730 a side, none
+    // parting.
+    pin_eq!(w.rounds_read, (3730, 3730), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// **The closing state** (item 3679): the long's own closing block,
+/// walked to its close and compared unit for unit — a draw stream that
+/// agrees to a game's end says nothing of the end itself (item 1099).
+#[test]
+fn korean_medieval_pair_run1331_s_closing_state() {
+    let _pins = Pins::hold();
+    let p = &KOREAN_MEDIEVAL;
+    let Some(inst) = install() else {
+        return;
+    };
+    let (Some(path), Some(start), Some(tr)) = (dump(p.long.0), dump(p.start), trace(p.long.1))
+    else {
+        return;
+    };
+    let loaded = crate::load::load(&inst).unwrap();
+    let text = crate::capture::read(path);
+    let start_text = crate::capture::read(start);
+    let log = Log::parse(&text);
+    let start_log = Log::parse(&start_text);
+    let mut init = log.initial().unwrap();
+    let sibling = start_log.initial().unwrap();
+    borrow_from_siblings(&mut init, &[&sibling]);
+    borrow_pasture(&mut init, &tr);
+    let mut built = build_sim(&loaded, &init, Tuning::RON);
+    let fin = log
+        .final_state()
+        .or_else(|| log.frame_states().pop())
+        .expect("closing whole-map state");
+    let e = endpoint::walk_to_close(&mut built, &fin, 8);
+    eprintln!(
+        "Korean Medieval pair closing: frame {} units {} counts {:?} torn {:?} off {:?} unlinked {:?} extra {:?}",
+        e.frame,
+        e.compared,
+        e.counts(),
+        e.torn,
+        e.off,
+        e.unlinked,
+        e.extra
+    );
+    eprintln!(
+        "Closing fields: {}",
+        harness::compare(&built, &fin, 8).closing_fields()
+    );
+    pin_eq!(e.frame, 4560, "the closing block");
+    // Item 3679, the pair whole: 198 units, none off, torn, unlinked or
+    // extra, `Closing fields: none` — the game ends itself on 4559.
+    pin_eq!(e.compared, 198, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(
+        e.extra.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing extras"
+    );
+    pin_eq!(
+        e.torn.clone(),
+        Vec::<(i64, i64)>::new(),
+        "the closing tears"
+    );
+}
+
+/// run1353b: the gap before the word's window, blocks 4195..4373 at the
+/// same detail — six blocks before the long's stride block 4201, to the
+/// word's window's first block (item 3679).
+pub(crate) const RUN1353B: &str =
+    "gamelog-run1353b-greatlakes-korean-medieval-window-4195-4373.txt";
+
+/// The gap's window: block 4195 through 4373.
+pub(crate) const WIDENING_KOREAN_MEDIEVAL_GAP_4195: (i64, i64) = (4195, 4373);
+
+/// **The gap before the word 4379**: run1353b walked from run1330's start
+/// with every round compared (item 3679).
+pub(crate) fn korean_medieval_gap_4195_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[KOREAN_MEDIEVAL.start],
+        true,
+        KOREAN_MEDIEVAL.long,
+        "run1353b",
+        &[(RUN1353B, WIDENING_KOREAN_MEDIEVAL_GAP_4195.0)],
+        WIDENING_KOREAN_MEDIEVAL_GAP_4195,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn korean_medieval_pair_run1353b_s_gap_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = korean_medieval_gap_4195_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 178, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3679, the first walk, before the spent arrow: 281 keys, the
+    // records first parting on **4308** — theirs numbers a squad of three
+    // Royal Hwarang `1/181`..`1/183` (uids 242..244, group 71) where ours
+    // numbers the third `1/139`, the slot of who=1's decoy Royal Hwarang
+    // that closed on 4267. Theirs' `1/139` arrow is spent (`flags 1`,
+    // `cur_time` 57 on 4195, 199 on 4337) and holds its dead shooter's
+    // number until it goes on 4338 (`Ammo::inc_time`'s bump). With the
+    // spent arrow: **49**, the standing families alone.
+    pin_eq!(w.firsts.len(), 49, "run1353b baseline");
+    // Every round, live and spent, slot for slot (before: 2374 a side with
+    // theirs' spent records set aside, 7 slot rows parting).
+    pin_eq!(w.rounds_read, (3230, 3230), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }

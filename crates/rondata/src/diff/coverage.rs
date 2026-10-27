@@ -3566,6 +3566,8 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::japanese_medieval_pair::japanese_medieval_frame_5140_window(),
         || super::japanese_medieval_pair::japanese_medieval_stride_window(),
         || super::korean_medieval_pair::korean_medieval_frame_3401_window(),
+        || super::korean_medieval_pair::korean_medieval_frame_4559_window(),
+        || super::korean_medieval_pair::korean_medieval_gap_4195_window(),
         || super::korean_medieval_pair::korean_medieval_stride_window(),
         || super::german_industrial_pair::german_industrial_frame_4323_window(),
         || super::german_industrial_pair::german_industrial_stride_window(),

@@ -397,6 +397,8 @@ mod tests {
             v1z: crate::single::Single::ZERO,
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         };
         // Through the round's own landing (`Sim::land`'s nuke arm): the
@@ -553,6 +555,8 @@ mod tests {
             v1z: crate::single::Single::ZERO,
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         });
         s.process_projectiles(3200);

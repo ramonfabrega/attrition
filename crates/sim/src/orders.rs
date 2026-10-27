@@ -1550,7 +1550,9 @@ impl AttackGroundView for SimAttackGround<'_> {
             false,
             false,
             // SEAM: a shot no animation launches has no release event, so
-            // no ammo name to read `flame` off (`docs/COMBAT.md` §9.0).
+            // no ammo name to read `flame` or `puncture` off
+            // (`docs/COMBAT.md` §9.0).
+            false,
             false,
         );
     }

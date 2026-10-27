@@ -30077,6 +30077,53 @@ SHA-256 `e37ed8adaa0c56fc002d07640eb5c0c068265c9b6e401b918603ae28431b0da6`.
 holds a unit more in ours and `0/11` is ours alone; the first launch that parts is on 4304, who=1's A7V `1/48` (TY
 242) from (5427, 31534) at `sz` 587 in theirs and from the figure's square (5544, 31512) at 409 in ours.
 
+## run1353 — the Koreans at a held Medieval age, Great Lakes: the word 4379's window, blocks 4373..4559 (2026-10-26, item 3679, `att-3679`)
+
+`docs/AI.md` §345. **What the disk could not answer**: every record on the word's block 4380 and on to the game's
+end — run1331b ends on block 3652, and run1331's stride prints units every hundred frames and no `AMMO`. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1353 --map 14 --end-frame 4559 --allow-early-end --timeout 3600
+--log-window 4373 4559 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 16 --cover
+cover=0` and run1330's lobby (`--profile STARTING_TECHNOLOGY=2 ENDING_TECHNOLOGY=2 STARTING_RESOURCES=7
+DIFFICULTY=5`): six blocks before the word, to the game's own end on 4559.
+- Pool lane 1. Launched 18:14:39, exited 18:15:21 (42.2 s launch to exit). `success`: 4560 frames. `rngcmp.py`
+  against run1331: 4560 of 4560 identical. Filed with `filerun.py run1353
+  greatlakes-korean-medieval-window-4373-4559`. `df -g ~` read 79 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1353-greatlakes-korean-medieval-window-4373-4559.txt`, 416,227,744 bytes,
+SHA-256 `633dbac64e2d254488a9ae6b34a1d0e1c6428c4c19608bf46de717236125cb72`.
+
+Archive `rontrace-run1353.log`, 99,504,384 bytes,
+SHA-256 `a73d89a56dfc91e1807b88922855b91991916c3c25cd953e4ec4d182099273ac`.
+
+**What it holds**: `korean_medieval_pair_run1353_s_closing_window_is_widened_whole` walks it from run1330 (186
+blocks). Before item 3679's build it read 2007 keys, 223 on its first block 4373: who=1's `1/186` a Royal Hwarang
+(uid 247) in theirs and a Korean Citizen in ours, and `1/139` ours alone — the numbering had parted before the
+window. With the spent arrow: 50 keys, the standing families alone, and every round, live and spent, slot for slot
+(3730 a side).
+
+## run1353b — the Koreans at a held Medieval age, Great Lakes: the gap, blocks 4195..4373 (2026-10-26, item 3679, `att-3679`)
+
+`docs/AI.md` §345. **What the disk could not answer**: when theirs' Royal Hwarang `1/139` (present on run1331's
+stride block 4201, gone on 4301) left, and what held its number — run1353 opens on 4373 already parted, and the
+stride prints neither a death nor `AMMO`. run1353's line with `--end-frame 4373 --log-window 4195 4373`: six
+blocks before the stride's 4201, to run1353's first block.
+- Pool lane 1. Launched 18:41:20, exited 18:42:05 (44.6 s launch to exit). `success`: 4374 frames. `rngcmp.py`
+  against run1331: 4374 of 4374 identical. Filed with `filerun.py run1353b
+  greatlakes-korean-medieval-window-4195-4373`. `df -g ~` read 78 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1353b-greatlakes-korean-medieval-window-4195-4373.txt`, 393,109,002 bytes,
+SHA-256 `30b95ec63593894a0ad32616a1a0275d49ed892f3de324a868dce703c508e80c`.
+
+Archive `rontrace-run1353b.log`, 94,160,896 bytes,
+SHA-256 `f9ff495f8665549f413f40a79eb95d1f46215df02d3e23e20d70fd47575379f8`.
+
+**What it holds**: `korean_medieval_pair_run1353b_s_gap_is_widened_whole` walks it from run1330 (178 blocks).
+Before item 3679's build the records first parted on **4308**: theirs numbers a squad of three Royal Hwarang
+`1/181`..`1/183` where ours numbers the third `1/139`, the slot of who=1's decoy closed on 4267 (both sides last
+print it on 4266). Theirs' `1/139` spent arrow (`flags 1`) reads `cur_time` 57 on 4195 and 199 on 4337 and is gone
+on 4338. With the spent arrow: 49 keys, the standing families alone, rounds 3230 a side, none parting.
 ## run1351 — the Germans at a held Industrial age, Great Lakes: a packet at logger frame 4303, pieces 192 and 88 (2026-10-26, item 3677, `att-3677`)
 
 `docs/AI.md` §346. **What the disk could not answer**: the A7V's (TY 242) and the German Anti-tank Rifle's (TY 138)
