@@ -45,8 +45,15 @@ pub(crate) const PERSIAN_GUNPOWDER: Pair = Pair {
     // spends 15 draws against theirs' 10, parting at index 0: ours
     // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
     // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
-    count: 3020,
-    sequence: 3020,
+    // Item 3708: 3020 → 3130. `Forts::find_fort` answers only for a fort
+    // `Build::activate` has listed; ours counted the unbuilt `1/2034` in
+    // `compute_site_stats`' 5×5 from 2375, scored the home region's samples
+    // ×3/2, and kept a different site table, so the Village went to
+    // (34, 32) where theirs takes (34, 33) (run1385, run1385p, §358.3). On
+    // 3130 ours spends 98 draws against theirs' 97, parting at index 54:
+    // ours `Unit::think_fish+0x27a`, theirs `Guy::init_real+0x52`.
+    count: 3130,
+    sequence: 3130,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -200,7 +207,7 @@ fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_the_word() {
     // against (26088, 26184) in theirs — ours places the Village 768 lower
     // (`y_internal` 24672 against 25440 on run1383b's 3014). No draw parts
     // there; on 2901 `1/10`'s `pos` parts, and on 3001 the Explorer `1/0`'s.
-    pin_eq!(w.firsts.len(), 150, "the stride's baseline");
+    pin_eq!(w.firsts.len(), 132, "the stride's baseline");
 }
 
 /// run1370b: the word 1180's window, blocks 1095..1431 at the long's
@@ -331,7 +338,7 @@ fn persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole() {
     // (`orders.len` 0 against 1), at the same `pos` (24304, 25076); on
     // 3021 it is idle in ours (`idle` 1 against 0) and its `do_idle` roll
     // is the draw ours spends first. No round flies in the window.
-    pin_eq!(w.firsts.len(), 672, "run1383b baseline");
+    pin_eq!(w.firsts.len(), 295, "run1383b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -367,7 +374,7 @@ fn persian_gunpowder_pair_run1385_s_site_window_is_widened_whole() {
     let Some(w) = persian_gunpowder_frame_2801_window() else {
         return;
     };
-    pin_eq!(w.blocks, 0, "every captured block");
+    pin_eq!(w.blocks, 106, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -385,7 +392,7 @@ fn persian_gunpowder_pair_run1385_s_site_window_is_widened_whole() {
             }
         }
     }
-    pin_eq!(w.firsts.len(), 0, "run1385 baseline");
+    pin_eq!(w.firsts.len(), 91, "run1385 baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -440,10 +447,6 @@ fn persian_gunpowder_pair_run1370_s_closing_state() {
     // Item 3706 (the word at 3020): 250 units compared, and the human's
     // `0/11` and `0/13` and who=1's `1/235` stand in ours alone (extra).
     pin_eq!(e.compared, 250, "units compared");
-    pin_eq!(e.counts(), [237, 7, 3, 9, 121, 1, 94], "the closing counts");
-    pin_eq!(
-        e.extra.clone(),
-        vec![(0, 11), (0, 13), (1, 235)],
-        "the closing extras"
-    );
+    pin_eq!(e.counts(), [237, 7, 1, 7, 180, 1, 83], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![(0, 13)], "the closing extras");
 }
