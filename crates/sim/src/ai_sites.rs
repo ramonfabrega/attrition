@@ -930,6 +930,9 @@ impl Sim {
             while i < size {
                 let c = cells[i as usize];
                 let st = self.compute_site_stats(who, c.x, c.y, city, unit, reg, true);
+                if std::env::var("RON_PROBE_3708").is_ok() && who == 1 {
+                    eprintln!("PROBE3708 f{} sample r={r} ({}, {}) -> ({}, {}) {} city={city} unit={unit} size={size} stride={stride} start={start}", self.frame, c.x, c.y, st.wx, st.wy, st.val);
+                }
                 i += stride;
 
                 // The insertion, transliterated: the running minimum starts
