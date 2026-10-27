@@ -10791,13 +10791,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Egyptians at a held Industrial age** (item 3700): East Indies
     // at Hard — its first try parts at 4959 of a game that ends itself on
     // 5689; widened on run1374b over 4895..5210, the rounds compared, and
-    // the stride over 101..4901.
+    // the stride over 101..4901. Item 3707 closed it, 5689 of 5689 (piece
+    // 193 on piece 189's turret rows), widened on run1384 over 5433..5690
+    // (the closing block): 128 keys, rounds 122 against 122.
     (
         "EGYPTIAN_INDUSTRIAL_PAIR_WORD",
         crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL_PAIR_WORD,
-        Some("egyptian_industrial_pair_run1374b_s_word_frame_is_widened_whole"),
-        3700,
-        Some(crate::diff::egyptian_industrial_pair::WIDENING_EGYPTIAN_INDUSTRIAL_FRAME_4959),
+        Some("egyptian_industrial_pair_run1384_s_closing_frame_is_widened_whole"),
+        3707,
+        Some(crate::diff::egyptian_industrial_pair::WIDENING_EGYPTIAN_INDUSTRIAL_CLOSING),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13110,7 +13112,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Egyptians at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), East Indies at Hard (item 3700): its first
     // try parts at 4959 of a game that ends itself on 5689, widened on
-    // run1374b.
+    // run1374b; whole since item 3707, 5689 of 5689, widened on run1384
+    // through the closing block.
     AiWord {
         line: "Late ages",
         map: "EastIndiesEgyptianIndustrial",
@@ -13118,7 +13121,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::egyptian_industrial_pair::EGYPTIAN_INDUSTRIAL_PAIR_WORD,
         length: 5_689,
         endpoint: Some("egyptian_industrial_pair_run1374_s_closing_state"),
-        window: Some("egyptian_industrial_frame_4959_window"),
+        window: Some("egyptian_industrial_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

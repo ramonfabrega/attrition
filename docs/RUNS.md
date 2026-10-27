@@ -31507,3 +31507,30 @@ SHA-256 `3029ace80715708e7b3e5cb819489cf6978120eb1227f90fab4ea224b167e0a0`.
 **What it holds**: `inca_industrial_pair_run1372b_s_closing_frame_is_widened_whole` walks it from run1371: 256
 blocks and 78 keys, the standing families, the Biplanes' `myspeed` (3677a) and `1/54`'s `dest_angle`. The rounds
 read 297 against 297, with 10 rows parting, every one a Siege Mortar (piece 225) launch point (parked 3699b).
+
+## run1384 — the Egyptians at a held Industrial age, East Indies, at difficulty 4: the closing window, blocks 5433..5690 (2026-10-27, item 3707, `att-3707`)
+
+`docs/AI.md` §360.2. **What the disk could not answer**: every record of the pair's last blocks once the word reached
+the game's last frame. run1374's stride prints units every hundred frames, no `AMMO` and no leader, building or city
+record past the start, and run1374b ends on 5210. The run number was booked for a packet at the Light Tank's shot.
+The packet was not needed: no packet of 82 on disk loads piece 193, but `unit_graphics.xml` makes the piece piece
+189's model and turret, and run1374b's seven Light Tank rounds fit 189's rows. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1384 --map 18 --end-frame 5689 --allow-early-end --timeout 3600
+--log-window 5433 5690 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 7 --cover cover=0
+--profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4`:
+the 258 blocks through the closing block.
+- Pool lane 1, seed 12345. Launched 10:10:08, exited 10:11:09 (61.0 s launch to exit). `success`: 5690 frames, not
+  ended early. `rngcmp.py` against run1374: 5690 of 5690 identical. Filed with `filerun.py run1384
+  eastindies-egyptian-industrial-window-5433-5690`. `df -g ~` read 151 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1384-eastindies-egyptian-industrial-window-5433-5690.txt`, 597,946,487 bytes,
+SHA-256 `f95fc11b43a159add996f3e7a51c2f69b84b8257974922a33ccb7fb636bd2169`.
+
+Archive `rontrace-run1384.log`, 143,452,480 bytes,
+SHA-256 `ea440184086adf4ce8afe9c9a29ae2b76c0817bdc801c3378efeea44356da640`.
+
+**What it holds**: `egyptian_industrial_pair_run1384_s_closing_frame_is_widened_whole` walks it from run1373: 257
+blocks, **128 keys**, every one a standing family; rounds 122 against 122, 19 parting. The 19 are the Artillery's
+(TY 269) launches from the figures' squares (parked 3707b). It is the word's widening in `WIDENINGS` and the
+`AI_WORDS` window, and it sits in the coverage driver.

@@ -528,7 +528,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3699: 224 -> 225, the Inca Industrial pair whole on its first try
 /// at 4471 — `Siege Mortar` (275, `SIEGEMORTAR`, land; 738 figure rows),
 /// the line §359 named, read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 225;
+/// Item 3707: 225 -> 226, the Egyptian Industrial pair whole at 5689 —
+/// `Light Tank` (243, `A7VDES`, land; 540 figure rows), the line §360
+/// named, read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 226;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
