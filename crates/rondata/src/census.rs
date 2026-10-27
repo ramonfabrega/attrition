@@ -500,14 +500,18 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3691: 215 -> 216, the French Enlightenment pair whole at 4940 —
 /// `Horse Guard Grenadier` (238, `HORSEGUARDGREN`, land; 284 figure rows),
 /// the line §351 named, read by `rubric.py --tables 3` on the merged tree.
+/// Item 3692: 216 -> 217, the Mongol Enlightenment pair whole at 4949 —
+/// `Golden Horde` (204, `GOLDENHORDE`, land; 646 figure rows), the line
+/// §352 named, read by `rubric.py --tables 3`.
 /// Item 3674: 216 -> 217, the Greek Enlightenment pair whole on its first
 /// try at 4705 — `Royal Stratiotai` (234, `STRATIOTAIHEAVY`, land; 268
 /// figure rows), the line §353 named, read by `rubric.py --tables 3`.
-/// Item 3693: 217 -> 219, the American Industrial pair whole at 5861 —
+/// Both on the merged tree: 218 (`rubric.py --tables 3`).
+/// Item 3693: 218 -> 220, the American Industrial pair whole at 5861 —
 /// `Marine Riflemen` (120, `MARINERIFLEMEN`, land; 1230 figure rows) and
 /// `Armored Car` (217, `GREYHOUND`, land; 62), the two lines §348 named,
-/// read by `rubric.py --tables 3` after the lane's last `ccc update`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 219;
+/// read by `rubric.py --tables 3` on the tree merged with 3692's landing.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 220;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

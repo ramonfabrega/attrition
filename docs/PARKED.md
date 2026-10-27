@@ -11660,10 +11660,23 @@ Each is a residue of run1344b's window (4495..4756) after piece 49's bays.
   besides group 77's `held` on 4518. It still stands at run1360's first
   block, 4685, with `hits_left` 156 against 161.
 
-## Parked by the next landing, slot UC — reserved
+## Parked by item 3692, 2026-10-27 — what run1346c still parts once the Mongol word closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UC renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Mongol Enlightenment pair closes at 4949 of 4949 (`docs/AI.md` §352.1); the
+draw stream holds to the game's end, so none of these names a score. Each is a
+residue of run1346c's window (4795..4950) after piece 154's pivot rows and piece
+1105's bays: 89 keys and 24 parting round rows.
+
+- **3692a. The Mongol Cannons' rounds leave from the figure's own square.**
+  who=1's Cannons (TY 268, `CANNON`) `1/91`, `1/103` and `1/111` shoot at the
+  human's capital `0/2000`: `1/91`'s round of 4795 leaves (7128, 29544, 328) in
+  ours and (6988, 29590, 428) in theirs, `1/103`'s of 4818 (7320, 32232) against
+  (7180, 32188), `1/111`'s of 4816 (6840, 28344) against (6720, 28429), each
+  100 low and with its `angle` and `v1z` parting. That is 20 of the 24 rows.
+  Read it as a launch row this crate lacks for the Mongol Cannon's piece. It is
+  3673's "the Cannon `1/91`'s, from its own square in ours".
+- **3692b. Two Golden Horde rounds carry a target of −1 in ours.** `1/99`'s
+  `ammo[2]` on 4855 and `1/97`'s `ammo[4]` on 4931 read `whom`/`ox` −1 in ours
+  against `0/6` and `0/13` in theirs. The dump prints two later rounds whose
+  launch is an earlier round's at a target of −1 (4872, 4937), so this reads as
+  a reused slot's target, the same shape as 3691b.
