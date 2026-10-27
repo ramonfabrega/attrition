@@ -10687,7 +10687,8 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // widened on run1338b over 3095..3425 (the word's block 3175), the
     // rounds compared. Item 3686 moved it to 5678 (piece 87's bays and the
     // CEO's heal), widened on run1356 over 5595..5861 (the word's block
-    // 5679, to the game's end), the rounds compared.
+    // 5679, to the game's end), the rounds compared. Item 3693 closes it,
+    // 5861 of 5861: the window runs through the closing block 5862.
     (
         "AMERICAN_INDUSTRIAL_PAIR_WORD",
         crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL_PAIR_WORD,
@@ -12898,14 +12899,15 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Americans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara (item 3669): first try 3174 of
     // a game that ends itself on 5861, widened on run1338b; item 3686
-    // moved it to 5678, widened on run1356.
+    // moved it to 5678, widened on run1356; whole since item 3693, 5861
+    // of 5861, run1356 widened through the closing block 5862.
     AiWord {
         line: "Late ages",
         map: "GreatSaharaAmericanIndustrial",
         named: "Great Sahara (Americans, Industrial)",
         word: crate::diff::american_industrial_pair::AMERICAN_INDUSTRIAL_PAIR_WORD,
         length: 5_861,
-        endpoint: None,
+        endpoint: Some("american_industrial_pair_run1338_s_closing_state"),
         window: Some("american_industrial_frame_5678_window"),
     },
     // The Russians at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,

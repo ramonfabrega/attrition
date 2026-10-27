@@ -379,8 +379,9 @@ fn american_industrial_pair_run1338_s_closing_state() {
 /// own end, 5861 (item 3686).
 const RUN1356: &str = "gamelog-run1356-greatsahara-american-industrial-window-5595-5861.txt";
 
-/// The window: block 5595 through 5861; the word 5678's own block is 5679.
-pub(crate) const WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678: (i64, i64) = (5595, 5861);
+/// The window: block 5595 through the closing block 5862 (since item 3693;
+/// 5861 before); the word 5678's own block is 5679.
+pub(crate) const WIDENING_AMERICAN_INDUSTRIAL_FRAME_5678: (i64, i64) = (5595, 5862);
 
 /// **The word 5678's window**: run1356 walked from run1337's start with
 /// the recorder on and every round compared (item 3686).
