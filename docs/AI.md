@@ -34169,11 +34169,58 @@ standing families and 2901's `1/42` `dest_angle`), run1387 **1933** keys.
 `1/246` extra (`GROUND_INEXACT` stays 3).
 
 **What this has not established.**
-- **Why `1/99`'s round launches 426 higher in theirs on 4907**, or whether the formation's few-unit `des_x`/`des_y`
-  from 4883 put the Gun Mahout elsewhere first: the next item's, on run1387, which holds 4948.
+- ~~**Why `1/99`'s round launches 426 higher in theirs on 4907**, or whether the formation's few-unit
+  `des_x`/`des_y` from 4883 put the Gun Mahout elsewhere first~~ — **answered by item 3713, below**: piece 213 had no
+  bay; the formation does not move it.
 - **`check_orphaned_buildings`' order** is read, not diffed: no floor reaches it.
 
 **The rubric** does not move: the word does not close.
+
+**Item 3713, 2026-10-27, Opus 5.5: the Gun Mahout's howdah, the word 4948 → 5673 of 5673.**
+
+*The direction.* Theirs acts: its round lands on 4947 and kills `0/11` on 4948, and ours' is a frame late. The
+shooter, by `RON_DEBUG_UNIT=1/99@4905-4908`: TI 263 (`GUNMAHOUT`), TY 213, land, not packed, **piece 213**, on
+slot 10 (`CHAR_ATTACKWALK`, the fire on the move) at frame 14 of 40 on 4907, under a `MOVEORDER` over its
+`ATTACKORDER` at `0/11`. Its pose agrees on both sides on 4907, (6921, 8712) at angle 197197824, so the formation's
+`g.des_x`/`g.des_y` rows from 4883 (who=1's `1/160`..`1/169`, not the mahout) do not move it. Ours' round leaves
+exactly the figure's square, at the guy's `z` of 273: `launch::BAYS` has no piece-213 row. Piece 212's rows (the
+Mahout, item 3555) are another model. `unit_graphics.xml`'s `GUNMAHOUT-DEFAULT-AGE0` is `mahoutmusket.bh3` with no
+`<RESTRICTION>`, so it is a fixed bay and not a `pivot` row. Its five `<RELEASEEVENT … node="1">`s are at 833
+(`CHAR_ATTACK1..3`, frame 12) and 999 (`CHAR_ATTACKWALK`, `CHAR_ATTACKSPECIAL`, frame 14).
+
+*The disk, no packet.* `get_position.py … entries 213` over all 83 packets on disk: **run1385p** (this lobby,
+item 3708's) and run1007b load the piece, with the same eleven rows bit for bit. The five node-1 rows are the
+musket. `get_position.py … sweep 213 1 <anim> <time>` on run1385p, fitted by `fit_bay.py`:
+
+| key | region | right | fwd | dz |
+|---|---|---|---|---|
+| `ATTACKWALK`, 14 | 186 | −18 396 | 103 327 | 426 |
+| `ATTACK1`, 12 | 68 | 9 808 | 94 776 | 440 |
+| `ATTACK2`, 12 | 589 | 48 | 63 526 | 422 |
+| `ATTACK3`, 12 | 94 | −1 026 | 87 367 | 449 |
+| `ATTACKSPECIAL`, 14 | 1639 | −16 035 | 89 982 | 506 |
+
+**Built**: the five rows in `BAYS`; test `launch::tests::run1387_s_gun_mahout_round_leaves_from_piece_213_s_howdah`
+(the 4907 pose gives (6929, 8608) and dz 426 = 699 − 273, as run1387's round). Run 1390 went to the closing window.
+
+**The score: 4948 → 5673 of 5673, the game's last frame**, by the count and the sequence. **Mutation**
+(`tools/mutate.py`, piece 213's `ATTACKWALK` row keyed to 9213): held, the first parting back at 4948, 48 against 49
+at index 43. **The value diff on the word**, run1387: `1/99`'s round of 4907 leaves (6929, 8608, 699) and lands on
+4947, and `0/11` closes on 4948 on both sides; the rounds read 5 against 5, none parting (9 before), and the window
+drops **1933 → 143** keys. Those are block 4795's standing families, the formation rows above (parked 3713b), and
+`1/99`'s next order on 4951, ours `kind` 21 against theirs 2 (parked 3713a).
+
+- **The closing state** (run1370's block 5674): 257 units, none off, torn, unlinked or extra; `Closing fields: none`.
+- **run1390**, the closing window (5416..5674; `docs/RUNS.md`): 258 blocks, **152 keys**, no unit position, building
+  or city row. Rounds 219 against 219, **40 parting**: six Bombards (TI 267, piece 1977) loose at their carriages'
+  squares, 104 low, on `CHAR_ATTACK2` frame 9. run1385p holds piece 1977's one row (parked 3713c). It is the word's
+  widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+
+**The rubric**: `rubric.py --tables 3` reads unit types seen **228 → 229 of 302**; the new type is the **Gun Mahout**
+(263, `GUNMAHOUT`), 1926 figure rows. `census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned.
+
+**What this has not established**: piece 213's `ATTACK1..3` and `ATTACKSPECIAL` rows are fitted from the packet and
+reproduce its sweep at all 361 headings, but no round on disk fires from them. Only `ATTACKWALK` is diff-backed.
 
 ## 359. The Inca at a held Industrial age, Great Lakes: whole on its first try, 4471 of 4471 (item 3699)
 

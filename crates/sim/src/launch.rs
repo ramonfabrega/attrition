@@ -3363,6 +3363,66 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 452,
         },
     ),
+    // **Piece 213, the Gun Mahout** (type 263, `mahoutmusket.bh3`; item
+    // 3713, `docs/AI.md` §358.4): run1385p's packet on the Persian
+    // Gunpowder lobby holds its five node-1 rows (run1007b's carries the
+    // same floats), the musket on the howdah, one per attack slot at the
+    // file's release frame (833 → 12, 999 → 14), each the centroid of its
+    // exact region over all 361 headings (186, 68, 589, 94 and 1639
+    // lattice points). Piece 212's rows are the Mahout's archer, another
+    // model. Without them `1/99`'s round at the human's `0/11` on 4907 left
+    // the elephant's own square, (6921, 8712) at 273, where run1387's
+    // leaves (6929, 8608) at 699, and landed a frame late.
+    (
+        213,
+        crate::anim::ATTACKWALK,
+        14,
+        Bay {
+            right: -18_396,
+            fwd: 103_327,
+            dz: 426,
+        },
+    ),
+    (
+        213,
+        crate::anim::ATTACK1,
+        12,
+        Bay {
+            right: 9_808,
+            fwd: 94_776,
+            dz: 440,
+        },
+    ),
+    (
+        213,
+        crate::anim::ATTACK2,
+        12,
+        Bay {
+            right: 48,
+            fwd: 63_526,
+            dz: 422,
+        },
+    ),
+    (
+        213,
+        crate::anim::ATTACK3,
+        12,
+        Bay {
+            right: -1_026,
+            fwd: 87_367,
+            dz: 449,
+        },
+    ),
+    (
+        213,
+        crate::anim::ATTACKSPECIAL,
+        14,
+        Bay {
+            right: -16_035,
+            fwd: 89_982,
+            dz: 506,
+        },
+    ),
     // **Piece 43, the Bantu Umpakati** (type 93; item 3591, `docs/AI.md`
     // §315.2): run1238c's `RON_STATE_FRAME=5021` packet on the Bantu East
     // Indies game holds its three attack `AttachPos` rows — the
@@ -4183,6 +4243,28 @@ mod tests {
                 "131 ({anim}, {start})"
             );
         }
+    }
+
+    /// **The Gun Mahout's round leaves from piece 213's howdah** (item
+    /// 3713, `docs/AI.md` §358.4): run1387's `AMMO` record of `1/99`'s
+    /// round on 4907, fired on the move (`CHAR_ATTACKWALK`, frame 14) from
+    /// the figure's pose on that block, (6921, 8712) at 197197824 and a
+    /// guy `z` of 273; theirs' round leaves (6929, 8608, 699).
+    #[test]
+    fn run1387_s_gun_mahout_round_leaves_from_piece_213_s_howdah() {
+        let at = launch_point(
+            Pos::new(6921, 8712),
+            Angle(197_197_824),
+            213,
+            crate::anim::ATTACKWALK,
+            14,
+            0,
+        );
+        assert_eq!((at.x, at.y), (6929, 8608), "1/99's round on 4907");
+        assert_eq!(
+            release_dz(213, crate::anim::ATTACKWALK, 14, 0),
+            Some(699 - 273)
+        );
     }
 
     /// **The Lakota's Arquebusiers and Bombard leave from pieces 1456's and

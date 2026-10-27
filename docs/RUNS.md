@@ -31868,3 +31868,28 @@ SHA-256 `31f1160b05260fee8f2e8f974cc3041864e03c52ed8f5a966764ed0bd48427e8`.
 3710, the word 4948: the Gun Mahout `1/99`'s round launches on 4907 from (6921, 8712, 273) in ours against (6929,
 8608, 699) and flies 4 frames against 3; on 4948 theirs' round has killed the human's `0/11`. It is the pair's
 widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
+
+## run1390 — the Persians at a held Gunpowder age, East Indies, at difficulty 4: the closing window, blocks 5416..5674 (2026-10-27, item 3713, `att-3713`)
+
+`docs/AI.md` §358.4. **What the disk could not answer**: the word closed at the game's last frame, 5673, and no
+dump held the last blocks: run1370's stride prints `GUYS=2`, no `AMMO` and no leader past the start, and run1387
+ends on 5093. The booked question (the Gun Mahout's launch point) the disk answered: run1385p's packet already holds
+piece 213's rows, so the run went to the closing window instead of a packet. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1390 --map 18 --end-frame 5673 --allow-early-end --timeout 3600
+--log-window 5416 5674 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover
+cover=0 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4`: 257 blocks before the closing block 5674.
+- Pool lane 1. Launched 15:23:54, exited 15:25:11 (77.0 s launch to exit). `success`: 5674 frames, not ended
+  early. `rngcmp.py` against run1370: 5674 of 5674 identical. Filed with `filerun.py run1390
+  eastindies-persian-gunpowder-window-5416-5674`. `df -g ~` read 128 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1390-eastindies-persian-gunpowder-window-5416-5674.txt`, 840,159,784 bytes,
+SHA-256 `3bc76c7d695166009cebc18e83c75d767a45ab41e70adb0d9f189b4341be4d14`.
+
+Archive `rontrace-run1390.log`, 299,741,344 bytes,
+SHA-256 `cb5f6ab1cfb3261aed011d09150311b43fc4ee278a6206c8c8ed1af674085090`.
+
+**What it holds**: `persian_gunpowder_pair_run1390_s_closing_frame_is_widened_whole` walks it from run1369: 258
+blocks, 152 keys, rounds (219, 219) with 40 parting: the six Bombards' (piece 1977) launches, 104 low (parked
+3713c). It is the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
