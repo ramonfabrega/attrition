@@ -1005,6 +1005,10 @@ pub struct Tuning {
     /// a unit within one of its owner's Citizens' radii adds (`UnitData::
     /// attack@006103c0`, ×10 there).
     pub thecitizen_attack_bonus: i32,
+    /// `THEMONARCH_CAV_ATTACK`: the attack, in tenths of the stat's unit, a
+    /// Stable-trained unit within one of its owner's Monarchs' radii adds
+    /// (`UnitData::attack@006103c0`, ×10 there).
+    pub themonarch_cav_attack: i32,
     /// Frames between a city's self-repair steps.
     pub city_heal_rate: i32,
     /// Whether Chinese cities are founded as Large Cities.
@@ -1684,6 +1688,7 @@ impl Tuning {
         reassimilation: 300,
         thecitizen_assimilation_speed: 4,
         thecitizen_attack_bonus: 2,
+        themonarch_cav_attack: 2,
         city_heal_rate: 4,
         chinese_large_cities: 1,
         maya_building_speed: 20,
@@ -2513,6 +2518,10 @@ impl Tuning {
             (
                 "THECITIZEN_ATTACK_BONUS",
                 Slot::Value(T.thecitizen_attack_bonus),
+            ),
+            (
+                "THEMONARCH_CAV_ATTACK",
+                Slot::Value(T.themonarch_cav_attack),
             ),
             ("CITY_HEAL_RATE", Slot::Value(T.city_heal_rate)),
             ("CHINESE_LARGE_CITIES", Slot::Value(T.chinese_large_cities)),
