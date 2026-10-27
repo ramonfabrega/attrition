@@ -30454,3 +30454,45 @@ SHA-256 `17c00b2a7c247b8fe24a71f49a77d1ea35e1c1ceaa00931af48853c47761a44f`.
 **What it holds**: `russian_gunpowder_pair_run1340c_s_damage_window_is_widened_whole` walks it from run1339 (356
 blocks, 227 keys, no round). The first unit row is the blow of 3440: who=1's Heavy Knight `1/32` (TY 229) strikes
 `0/5` for 29 in theirs against 26 in ours (block 3441).
+
+## run1357 — the Russians at a held Gunpowder age, Great Lakes: a packet at logger frame 3439, the blow (2026-10-26, item 3688, `att-3688`)
+
+`docs/AI.md` §349.1. **What the disk could not answer**: the attack the original's blow of 3440 used — no dump prints a
+unit's attack. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1357 --map 14 --end-frame 3441
+--timeout 3600 --log-window 3438 3440 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 13 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=3439 --tracer-def 'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1, seed 12345. Launched 22:11:18, exited 22:11:51 (32.7 s). `success`, 3442 frames. `rngcmp.py` against
+  run1340: 3442 of 3442 identical. Not filed: the packet is the product. `df -g ~` read 62 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1357/map-14/frame-snapshot.bin`, 867,057,324 bytes,
+SHA-256 `e3436937065cb7f30377e0aeb581e0bf057d1359d8f2bc558d6d6320023f180f`.
+
+**What it holds**: `step4.py --entry 644130 --this 1685ea3c --args 5,0,0,0,1,0` (who=1's Heavy Knight `1/32`, found by
+`unitaddr.py` at (3389, 32918), on the human's Citizen `0/5`): `ObjectData::get_damage` returns 29, table 150
+(`0x644196`), armour 0 (`0x6441b7`), attack **190** (`0x6441c4`). `--entry 6103c0` (`UnitData::attack`):
+`ObjectData::attack` 170 (`0x6103d2`), `has_general(0x164)` −1 (`0x61040f`), and `has_general(this, 0, 0x162)` 18
+(`0x61082a`): the Monarch `1/18`, so `THEMONARCH_CAV_ATTACK × 10`.
+
+## run1357b — the Russians at a held Gunpowder age, Great Lakes: the closing window, blocks 5086..5342 (2026-10-26, item 3688, `att-3688`)
+
+`docs/AI.md` §349.1. **What the disk could not answer**: every record on the word once it reached the game's end —
+run1340's stride prints units every hundred frames and no leader, building or `AMMO` record, and run1340b stops at
+3961. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1357b --map 14 --end-frame 5341 --allow-early-end
+--timeout 3600 --log-window 5086 5342 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13
+--cover cover=0` and run1339's lobby.
+- Pool lane 1. Launched 22:16:43, exited 22:17:39 (55.4 s). `success`: the game ended itself on 5341, closing block
+  5342. `rngcmp.py` against run1340: 5342 of 5342 identical. Filed with `filerun.py run1357b
+  greatlakes-russian-gunpowder-window-5086-5342`. `df -g ~` read 60 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1357b-greatlakes-russian-gunpowder-window-5086-5342.txt`, 636,047,037 bytes,
+SHA-256 `752c2a7866bf13712d8f49c3a1d2f19c0193a85b46f532bfbfb84617a2e7e643`.
+
+Archive `rontrace-run1357b.log`, 192,372,064 bytes,
+SHA-256 `5e92d3f26b6f61034cf6b648470740ef1fb8815f3f15175c3b60735579e86045`.
+
+**What it holds**: `russian_gunpowder_pair_run1357b_s_closing_window_is_widened_whole` walks it from run1339 (256
+blocks, 60 keys; rounds 504 a side, 153 parting, none in a draw).
+
