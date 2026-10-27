@@ -12750,7 +12750,18 @@ impl GatherOrderView for GatherSim<'_> {
         self.sim.clear_partial_path(u);
         self.sim.update_action(u);
     }
-    fn take_order(&mut self) {}
+    /// **A gather order takes the builder's mark off** (`61a5f7`: `andl
+    /// $0xfffffbff, 0x68(%ebx)`, every position, ahead of the order). This
+    /// crate carries the bit as `was_builder`, and only `think_peasant`'s
+    /// tail cleared it, so a citizen sent from a site to a gather kept it
+    /// and its next idle think searched for a build. run1387's `1/95`
+    /// carried it from 2861 to 4841 in ours and lost it before 4101 in
+    /// theirs (`unit_masks` 0x840408 → 0x840008 on run1370's stride), and
+    /// on 4841 ours sent it to the unbuilt `1/2052` (`docs/AI.md` §358.4,
+    /// item 3710).
+    fn take_order(&mut self) {
+        self.sim.units[self.u].was_builder = false;
+    }
     fn is_gather_type(&mut self) -> bool {
         self.sim.is_gather_type(self.b)
     }

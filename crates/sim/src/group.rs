@@ -2985,6 +2985,15 @@ impl Sim {
                     Some(to),
                 );
             }
+            // **Either arm takes the builder's mark off** (`705fe3`: `andl
+            // $0xfffffbff, 0x68(%eax)`, after the member's order): a citizen
+            // an army or a raid moves off its site is no longer "has been a
+            // builder", and its next idle think does not search for a
+            // build. run1370's `1/95` leaves its `BUILDORDER` for group 80's
+            // move between 4001 and 4101 and its `unit_masks` loses 0x400;
+            // ours kept it to 4841 and sent it to the unbuilt `1/2052`
+            // (`docs/AI.md` §358.4, item 3710).
+            self.units[u].was_builder = false;
         }
         // §6.7: the group's own path, planned once off the leader's slot
         // and handed to every member translated. It sits exactly here in
