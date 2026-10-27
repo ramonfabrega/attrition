@@ -33096,13 +33096,98 @@ in flight on 4495..4506), and the Fusilier `1/48`'s target from 4401.
 
 **The next item's hypothesis** is the piece-49 `ATTACK2` launch row from
 this measurement, one shot. A second shot at another facing would pin the
-bearing. I built nothing.
+bearing. I built nothing. **Built by item 3691 (§351.1)**: the disk held 41
+such shots, and the row is a bay.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **213 of
 302**, unmoved: the pair parts, so it is not lockstep. The booking's line
 **is fielded** (`rubric.py --dumps` over run1344 and run1344b): `Horse
 Guard Grenadier` (238, `HORSEGUARDGREN`), 2,894 guy records. It is the
 pair's only type new to the lockstep ledger. The pair fields 23 types.
+
+### 351.1 Piece 49's three bays: the word 4505 → 4940, the pair whole (item 3691)
+
+*Item 3691, 2026-10-27, Opus 5.5. Run 1360, the closing window. No packet
+was taken.*
+
+**The frame, both sides.** On 4505 ours spends 154 draws and theirs 152.
+Indices 149..152 are ours' two `Ammo::do_damage` puncture pairs (`+0xc59`,
+`+0xc7e`), the rounds of `1/37` and `1/45`, against theirs' one. **Ours
+acts.** On 4499 who=1's Musketeer `1/37` (TY 99, piece 49, `MUSKETEER`)
+plays `CHAR_ATTACK2` at frame 7, and `sim::launch` held no row for that
+key. Its round left from the figure's own square, (6072, 9480, 127), where
+theirs left from (6152, 9334, 303). It flew 5 frames against 4 and struck
+on the word.
+
+**The disk answers the bearing, and more than the bearing.** No packet or
+window was needed for the row. Every `AMMO` dump on disk (127 of 994
+gamelogs) was scanned for the first print (`cur_time 1`) of a TY-99 round,
+each against its figure's `GUY` pose on the block before. Piece 49 is
+fielded by two lobbies, run1344b's French (92 rounds) and run971's Egyptians
+(2). The Iroquois, Inca and Indian Musketeers are pieces 1457, 753 and
+1809, which carry bays already. The dump does not print the animation, but
+the rounds fall into three heights over the figure:
+
+| `sz − z` | rounds | facings | the key | named by |
+|---|---|---|---|---|
+| 218 | 23 | 18 | `CHAR_ATTACK1`, frame 1 | run971's `1/54` (item 3336) |
+| 178 | 30 | 24 | `CHAR_ATTACK3`, frame 4 | run971's `1/136` (item 3336) |
+| 176 | 41 | 29 | `CHAR_ATTACK2`, frame 7 | this crate's `1/37` on 4499 |
+
+**Item 3336's two `Node` rows were each one shot, and they missed.**
+Against these 94 rounds they hit none: every round is 1 to 3 units out.
+Under the whole-degree turn `launch::Bay::point` takes (`docs/ORDERS.md`
+§35.2), each height has exactly one feasible region at a step of 5
+thousandths: 729, 697 and 28 lattice points. The rows are each region's
+centre-most point:
+
+| key | `right` | `fwd` | `dz` |
+|---|---|---|---|
+| `CHAR_ATTACK1`, 1 | 33,072 | 139,813 | 218 |
+| `CHAR_ATTACK2`, 7 | 11,452 | 166,595 | 176 |
+| `CHAR_ATTACK3`, 4 | 12,256 | 162,078 | 178 |
+
+**Built.** All three are `BAYS` rows, and piece 49 leaves `MEASURED`.
+`launch::tests::run1344b_s_french_musketeers_leave_from_piece_49_s_bays`
+holds twenty of run1344b's rounds, the word's first. Each is reproduced by
+exactly one of the three keys at the dump's `sx, sy` and `sz − z`.
+`run971_s_musketeer_rounds_leave_from_their_release_nodes` holds run971's
+two.
+
+**The value diff, 4499.** The record is `1/37`'s round `ammo[1]` at `0/10`:
+
+| field | ours before | ours now | theirs |
+|---|---|---|---|
+| `sx, sy, sz` | 6072, 9480, 127 | 6152, 9334, 303 | 6152, 9334, 303 |
+| `total_time` | 5 | 4 | 4 |
+
+**The word: 4505 → 4940 of 4940**, the game's last frame, by the count and
+the sequence (`french_enlightenment_pair_first_parting`). **The closing
+state** on run1344's closing block 4941
+(`french_enlightenment_pair_run1344_s_closing_state`): 195 units, none off,
+torn, unlinked or extra, `Closing fields: none`.
+
+**The widenings.**
+
+- **run1344b (4495..4756): 2344 → 122 keys.** Our rounds go 446 → 428,
+  against theirs' 421, and 255 → 139 part. Nothing parts on 4505.
+- **run1360, the closing window (4685..4941, 256 blocks): 117 keys.**
+  Most are the standing families (`form`, who=1's groups and pools, both
+  leaders' `SITE[*].reg`, the human's `aggression[1]`). The Horse Guard
+  Grenadier `1/29`'s damage is 5 in ours since 4552. The capital
+  `0/2000`'s `build:damage` on 4691 reads 421 against 427. Rounds are 465
+  theirs against 477 ours, and 202 part: 195 rows are six Fusiliers'
+  (TY 136) launches, and the rest are slot swaps.
+- Neither moves a draw. They park as 3691a–c.
+
+**What is not established.**
+
+- **Whether the rows are the art's `AttachPos` vectors.** A packet would
+  give those, as it did for piece 1457, and each row is only the centre of
+  its region. The `CHAR_ATTACK2` region is the narrowest, 45 by 20
+  thousandths.
+- **Which key a round played.** This is read off its height, and run971's
+  two rounds tie the heights to their keys. No dump prints the animation.
 
 ## 352. The Mongols at a held Enlightenment age, Great Lakes: first try 4854 of 4949 (item 3673)
 

@@ -98,36 +98,6 @@ const MEASURED: &[(i32, i8, u32, Node)] = &[
             dz: 161,
         },
     ),
-    // **49 is `MUSKETEERS`** (unit type 99; item 3336, run971 on the
-    // Egyptian Great Sahara seed, `AMMO=5` over `[20368, 20380]`): the
-    // Musketeer's two release events a round of run971 leaves from —
-    // `1/136`'s `CHAR_ATTACK3` at 333 ms (frame 4) on tick 20374, guy
-    // (5448, 26856) at angle −1656487936, `sx, sy, sz` (5333, 26970, 682)
-    // over a guy `z` of 504; and `1/54`'s `CHAR_ATTACK1` at 0 ms (frame 1)
-    // on tick 20378, guy (5544, 26808) at −1641873408, (5426, 26889, 713)
-    // over 495. One shot each, so the bearing is any of the exact fits
-    // (the middle one is kept) and the radius the only one there is;
-    // `CHAR_ATTACK2`'s frame 7 is not measured.
-    (
-        49,
-        crate::anim::ATTACK1,
-        1,
-        Node {
-            bearing: 157_810_688,
-            radius: 142,
-            dz: 218,
-        },
-    ),
-    (
-        49,
-        crate::anim::ATTACK3,
-        4,
-        Node {
-            bearing: 49_020_928,
-            radius: 161,
-            dz: 178,
-        },
-    ),
     // Piece 842, the Horse Archer (item 3338), left for `pivot::SAME_AS`
     // (item 3658): its `AttachPos` rows are piece 138's, a pivot piece's, so
     // its rounds turn with the rider's turret.
@@ -688,6 +658,52 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             right: 13_387,
             fwd: 117_132,
             dz: 166,
+        },
+    ),
+    // **Piece 49, `MUSKETEERS`** (unit type 99 as the French and the
+    // Egyptians field it; item 3691, `docs/AI.md` §351): every round of
+    // piece 49 the disk holds — run1344b's 92 on the French Enlightenment
+    // East Indies seed (4495..4756) and run971's two (item 3336, which kept
+    // them as two `Node` rows) — each against its figure's `GUY` pose on the
+    // block before. The dump does not print the animation, and the rounds
+    // fall into three heights, 218, 178 and 176 over the figure: run971's
+    // `1/54` (`CHAR_ATTACK1`, frame 1) and `1/136` (`CHAR_ATTACK3`, frame
+    // 4) name the first two, and this crate's `1/37` on 4499 played
+    // `CHAR_ATTACK2` at frame 7 for the third. Each height's rounds (23, 30
+    // and 41, at 18, 24 and 29 facings) have one feasible region under the
+    // whole-degree turn (729, 697 and 28 lattice points at a step of 5);
+    // the rows are its centre-most point. The `Node` rows missed every one
+    // by 1 to 3 units, and `CHAR_ATTACK2` had none: `1/37` left from the
+    // figure's own (6072, 9480) on 4499 where the original's left from
+    // (6152, 9334), and its round struck a frame late, on 4505.
+    (
+        49,
+        crate::anim::ATTACK1,
+        1,
+        Bay {
+            right: 33_072,
+            fwd: 139_813,
+            dz: 218,
+        },
+    ),
+    (
+        49,
+        crate::anim::ATTACK2,
+        7,
+        Bay {
+            right: 11_452,
+            fwd: 166_595,
+            dz: 176,
+        },
+    ),
+    (
+        49,
+        crate::anim::ATTACK3,
+        4,
+        Bay {
+            right: 12_256,
+            fwd: 162_078,
+            dz: 178,
         },
     ),
     // **Piece 1457, `MUSKETEERS-NA`** (unit type 99 as the Iroquois field
@@ -4719,10 +4735,60 @@ mod tests {
         }
     }
 
+    /// **The French Musketeers leave from piece 49's bays** (item 3691,
+    /// `docs/AI.md` §351): run1344b's rounds at seven, six and six facings
+    /// of each of the three heights, each the figure's `GUY` pose on the
+    /// block before the round's first print, reproduced at the dump's `sx,
+    /// sy` and `sz − z` by exactly one of the piece's three attack keys.
+    /// The first row is the word's: `1/37` on 4499, which this crate
+    /// launched from the figure's own square.
+    #[test]
+    fn run1344b_s_french_musketeers_leave_from_piece_49_s_bays() {
+        // (x, y, facing, sx, sy, sz − z)
+        #[rustfmt::skip]
+        const ROWS: &[(i32, i32, i32, i32, i32, i32)] = &[
+            (6072, 9480, 315_359_232, 6152, 9334, 176), // 1/37 on 4499
+            (7464, 8760, -417_398_784, 7378, 8617, 176), // 1/34 on 4733
+            (7272, 9672, -253_689_856, 7221, 9514, 176), // 1/36 on 4556
+            (6840, 9192, -183_042_048, 6808, 9029, 176), // 1/22 on 4642
+            (6648, 9048, -130_482_176, 6628, 8883, 176), // 1/31 on 4628
+            (6504, 9192, -77_070_336, 6496, 9026, 176), // 1/38 on 4636
+            (6264, 8712, -8_650_752, 6272, 8546, 176), // 1/47 on 4681
+            (5832, 9384, 111_149_056, 5866, 9221, 176), // 1/32 on 4570
+            (7464, 8760, -417_398_784, 7382, 8621, 178), // 1/34 on 4642
+            (7032, 9480, -213_778_432, 6994, 9323, 178), // 1/36 on 4641
+            (6552, 8520, -134_873_088, 6528, 8360, 178), // 1/46 on 4679
+            (6552, 9048, -98_435_072, 6542, 8886, 178), // 1/26 on 4674
+            (6072, 9480, 42_663_936, 6092, 9319, 178), // 1/37 on 4585
+            (6552, 9720, 127_467_520, 6592, 9563, 178), // 1/22 on 4495
+            (7464, 8760, -417_398_784, 7411, 8627, 218), // 1/34 on 4683
+            (6840, 8904, -211_353_600, 6829, 8761, 218), // 1/46 on 4588
+            (6840, 9624, -150_863_872, 6840, 9481, 218), // 1/24 on 4539
+            (6408, 9672, -39_518_208, 6431, 9531, 218), // 1/22 on 4548
+            (6024, 8760, 78_643_200, 6071, 8625, 218), // 1/37 on 4675
+            (5640, 9336, 170_917_888, 5705, 9209, 218), // 1/30 on 4654
+        ];
+        for &(x, y, facing, sx, sy, dz) in ROWS {
+            let keys: Vec<(i8, u32)> = [
+                (crate::anim::ATTACK1, 1),
+                (crate::anim::ATTACK2, 7),
+                (crate::anim::ATTACK3, 4),
+            ]
+            .into_iter()
+            .filter(|&(anim, t)| {
+                let at = launch_point(Pos::new(x, y), Angle(facing), 49, anim, t, 0);
+                (at.x, at.y) == (sx, sy) && release_dz(49, anim, t, 0) == Some(dz)
+            })
+            .collect();
+            assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
     /// run971's two Musketeer rounds (piece 49, item 3336), the rows
-    /// [`MEASURED`] was fitted to: `1/136`'s `ATTACK3` at frame 4 on 20374
-    /// and `1/54`'s `ATTACK1` at frame 1 on 20378, `(anim, t, gx, gy, ga,
-    /// gz, sx, sy, sz)` as the dump prints them.
+    /// [`MEASURED`] was once fitted to and [`BAYS`] keeps (item 3691):
+    /// `1/136`'s `ATTACK3` at frame 4 on 20374 and `1/54`'s `ATTACK1` at
+    /// frame 1 on 20378, `(anim, t, gx, gy, ga, gz, sx, sy, sz)` as the
+    /// dump prints them.
     #[test]
     fn run971_s_musketeer_rounds_leave_from_their_release_nodes() {
         type Row = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
@@ -4740,18 +4806,6 @@ mod tests {
                 "piece 49 dz"
             );
         }
-        assert_eq!(
-            launch_point(
-                Pos::new(5448, 26856),
-                Angle(0),
-                49,
-                crate::anim::ATTACK2,
-                7,
-                0
-            ),
-            Pos::new(5448, 26856),
-            "ATTACK2's frame 7 is not measured: the unit's own position"
-        );
     }
 
     /// **Piece 1531, `HEAVYARCHERS-NA`** (item 3375): run1001b's round of
@@ -5348,8 +5402,9 @@ mod tests {
     /// are [`BAYS`] rows since run437 turned them (item 1200); their keys
     /// are 5, 9 and 17 because the frame is `starttime / 67` (§50.1):
     /// under the old `× 3 / 200` the first and third would be 6 and 18,
-    /// keys the event walk never reaches. **49**, the Musketeer's two, are
-    /// run971's (item 3336): 0 ms and 333 ms, keys 1 and 4. **122**, the
+    /// keys the event walk never reaches. **49**, the Musketeer's two from
+    /// run971 (item 3336), are [`BAYS`] rows since run1344b's 92 rounds
+    /// turned them (item 3691). **122**, the
     /// Crossbowman's three, are run982's (item 3347): keys 5, 3 and 6. The
     /// Dragoon's, **139**, left for `pivot::RELEASES` (item 3359), the
     /// Cavalry Archer's, **138**, too (item 3633), and the Horse Archer's,
@@ -5362,8 +5417,6 @@ mod tests {
         assert_eq!(
             keys,
             vec![
-                (49, crate::anim::ATTACK1, 1),
-                (49, crate::anim::ATTACK3, 4),
                 (122, crate::anim::ATTACK1, 5),
                 (122, crate::anim::ATTACK2, 3),
                 (122, crate::anim::ATTACK3, 6),
