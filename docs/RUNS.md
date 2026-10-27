@@ -31223,6 +31223,71 @@ blocks and 776 keys, rounds 98 theirs against 105 ours, 55 parting. Who=1's grou
 round from their own square in ours; on the word the Rifleman `1/53`'s round at the human's building `0/2003`
 lands in theirs (`Object::take_damage`) and a frame later in ours.
 
+## run1369 — the Persians at a held Gunpowder age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3698, `att-3698`)
+
+`docs/AI.md` §358. run1365's lobby with the nation and the age moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1369 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 23 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 1. Launched 08:10:17, exited 08:10:41 (23.9 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 23, map style 18, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4`, `STARTING_TECHNOLOGY 3` and `ENDING_TECHNOLOGY 3` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1369 eastindies-persian-gunpowder-start`. `df -g ~` read 165 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1369-eastindies-persian-gunpowder-start.txt`, 153,796,495 bytes,
+SHA-256 `830f2278ba023d6097459395a944aa7a7b33d4824cba57ba7595ec393f31bfbe`.
+
+Archive `rontrace-run1369.log`, 9,905,472 bytes,
+SHA-256 `e1e2c9e0af7cd2ce926ef76c03c04804d88324285aef2549dbe783b469a0ad41`.
+
+**What it holds**: the start of `persian_gunpowder_pair::PERSIAN_GUNPOWDER`, and the walk's initial state.
+
+## run1370 — the Persians at a held Gunpowder age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3698, `att-3698`)
+
+`docs/AI.md` §358. run1334's line with `--map 18 --ai-tribe 23` and run1369's lobby: `--map 18 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 23 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1369. Launched 08:10:21, exited 08:10:51 (30.4 s launch to exit). `success`. **The game
+  ended itself on 5673** (closing block 5674, `ended_early`). `GAME INFO` reads back as run1369's. `rngcmp.py`
+  against run1369: 37 of 37 frames identical. Filed with `filerun.py run1370 eastindies-persian-gunpowder-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1370-eastindies-persian-gunpowder-trace.txt`, 42,058,053 bytes,
+SHA-256 `38bc31a1f54987fda4943b3942c44cef61770853e60b7c223e1b0e2f821fc6b4`.
+
+Archive `rontrace-run1370.log`, 299,922,144 bytes,
+SHA-256 `6d6dbc5065f9328d792dcdb814d7b3ceb61e667f96f81eee7b83489d8e7085ed`.
+
+**What it holds**: the pair's first try. `persian_gunpowder_pair_first_parting` walks it from run1369: **1180 of
+5673** by the count and the sequence. `persian_gunpowder_pair_run1370_s_closing_state` compares the closing block
+5674: 238 units, counts `[237, 19, 0, 4, 321, 1, 123]`, all downstream of the word.
+
+## run1370b — the Persians at a held Gunpowder age, East Indies, at difficulty 4: the word 1180's window, blocks 1095..1431 (2026-10-27, item 3698, `att-3698`)
+
+`docs/AI.md` §358. **What the disk could not answer**: every record and every round on the word's frame. run1370's
+stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1370b --map 18 --end-frame 1431 --timeout 3600
+--log-window 1095 1431 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 23 --cover
+cover=0` and run1369's lobby: six blocks before the stride's last block 1101 and 250 past the word's block 1181.
+- Pool lane 1. Launched 08:13:52, exited 08:14:32 (40.3 s launch to exit). `success`: 1432 frames. `rngcmp.py`
+  against run1370: 1432 of 1432 identical. Filed with `filerun.py run1370b
+  eastindies-persian-gunpowder-window-1095-1431`. `df -g ~` read 162 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1370b-eastindies-persian-gunpowder-window-1095-1431.txt`, 612,203,721 bytes,
+SHA-256 `fa597919db5342422ae75a753a3b053651939e97f522d8bd64a2b583e7862c73`.
+
+Archive `rontrace-run1370b.log`, 18,576,800 bytes,
+SHA-256 `6cddf64fbef6e64f07ffba151fe1d8e8b593057f41db3f15d26cd17e466591a3`.
+
+**What it holds**: `persian_gunpowder_pair_run1370b_s_word_frame_is_widened_whole` walks it from run1369: 336
+blocks and 809 keys, no rounds in the window. On the word, ours spends one more `Leader::create_units+0x642`
+roll than theirs (8 against 7), the AI's first military valuation of the game. The leaders' make lists agree on
+block 1181 and part on 1183 (`MAKE[6].t` ours 98, theirs -1).
 
 ## run1382 — the Spanish at a held Industrial age, Great Lakes: a packet at logger frame 3228, piece 50's `AttachPos` rows (2026-10-27, item 3705, `att-3705`)
 
