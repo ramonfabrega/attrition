@@ -185,6 +185,8 @@ mod roman_medieval_pair;
 #[cfg(test)]
 mod roman_word;
 #[cfg(test)]
+mod russian_gunpowder_pair;
+#[cfg(test)]
 mod russian_medieval_pair;
 #[cfg(test)]
 mod russian_modern_pair;
