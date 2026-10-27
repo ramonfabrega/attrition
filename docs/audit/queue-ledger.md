@@ -131,3 +131,8 @@ file; each one is a ten-minute read of the code the row names.
   twin at `cover=1`, as 3576 (DECISIONS 93 §2). Nothing landed under 3582.
 - **3583** dropped by the fifty-fourth pass, unbooked: the Chinese Medieval
   twin at `cover=1`, as 3576 (DECISIONS 93 §2). Nothing landed under 3583.
+- **3689** dropped by the fifty-ninth tranche's commander, unbooked: the
+  Roman Gunpowder word on 2926, held behind 3688 for the same Heavy
+  Knight blow. 3688's fix (the Monarch's cavalry bonus in
+  `UnitData::attack`) closed it whole, 2926 → 4062 of 4062
+  (`docs/journal/2026-10-26-item-3688.md`). Nothing landed under 3689.

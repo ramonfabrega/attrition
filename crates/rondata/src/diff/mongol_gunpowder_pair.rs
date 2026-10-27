@@ -285,7 +285,9 @@ fn mongol_gunpowder_pair_run1279b_s_word_frame_is_widened_whole() {
     // upgrade), so `1/17`'s rows leave the window; what stays is the
     // standing families and who=1's `leader:attack` 210 against 218 on
     // 1976. The word left this window for 4499.
-    pin_eq!(w.firsts.len(), 90, "run1279b baseline");
+    // Item 3688: 90 → 89. who=1's `leader:attack` agrees with the
+    // Monarch's cavalry arm of `UnitData::attack` (`docs/AI.md` §349.1).
+    pin_eq!(w.firsts.len(), 89, "run1279b baseline");
 }
 
 /// run1292: the gap before the word's window, blocks 1895..1975 at
@@ -484,7 +486,9 @@ fn mongol_gunpowder_pair_run1296b_s_word_frame_is_widened_whole() {
     // Item 3636: 3282 → 119. The splash's tenth cell wounds `0/2005` on
     // 5047 in ours too; block 5041's families stand and nothing else
     // parts through 5297.
-    pin_eq!(w.firsts.len(), 119, "run1296b baseline");
+    // Item 3688: 119 → 118, block 5041's `leader:attack` agreeing (the
+    // Monarch's cavalry arm, `docs/AI.md` §349.1).
+    pin_eq!(w.firsts.len(), 118, "run1296b baseline");
 }
 
 /// run1298: the closing window, blocks 5297..5400 at run1296b's detail,
@@ -541,7 +545,9 @@ fn mongol_gunpowder_pair_run1298_s_closing_window_is_widened_whole() {
     // 5337, `1/224`, `1/227`, `1/232`) and who=1's groups' `held` and
     // pools as each is minted or refilled (64, 75, 78, 85, 87). No unit's
     // position or orders part through the closing block.
-    pin_eq!(w.firsts.len(), 114, "run1298 baseline");
+    // Item 3688: 114 → 113, `leader:attack` agreeing (the Monarch's
+    // cavalry arm, `docs/AI.md` §349.1).
+    pin_eq!(w.firsts.len(), 113, "run1298 baseline");
 }
 
 /// **The closing state** (item 3636): run1279's closing block 5400, the

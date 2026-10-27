@@ -23,10 +23,11 @@
 //!    override), Napoleon's with the type's slot `0x10c`, Blucher's and the
 //!    Monarch's with the type's word `+0x40 == 0x1ac`.
 //!
-//! The crate carries none of this: `Sim::attack_of` has no unit override and
-//! none of the wonder, general or leader flag words, so the view is
-//! **standalone** (nothing in `Sim` calls it) and the sweep is its only
-//! caller. Whether wiring it moves a diff pin is not established.
+//! The crate carries two of these terms, by hand, in `Sim::attack_of`: the
+//! Citizen's (2, item 3677) and the Monarch's cavalry arm (the last, item
+//! 3688). It has none of the wonder or named generals' leader words, so the
+//! view is **standalone** (nothing in `Sim` calls it) and the sweep is its
+//! only caller. Whether wiring the rest moves a diff pin is not established.
 
 /// Offsets into the constants record (`GameAccessConst::constantsc`).
 pub mod constant {

@@ -165,7 +165,10 @@ fn run1013_s_word_frame_is_widened_whole() {
     // the standing family, 13576's `leader:attack` (269 against 275), two
     // `dest_angle` rows (`1/74` 13710, `1/78` 13732) and a newborn's
     // `g.angle[0]` (`1/89`, 13735), none parting a draw.
-    pin_eq!(w.firsts.len(), 38, "keys that part in the window");
+    // Item 3688: 38 → 37. 13576's `leader:attack` agrees with the
+    // Monarch's cavalry arm of `UnitData::attack` (`docs/AI.md` §349.1;
+    // parked 3390a answered).
+    pin_eq!(w.firsts.len(), 37, "keys that part in the window");
 }
 
 /// run1013b: the gap 8380..13489 at a stride of 16 (item 3390): blocks
