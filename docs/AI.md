@@ -32298,7 +32298,8 @@ joiners to the front (`orders_at` (4392, 32376), (3912, 31032), (4248,
 `1/17`, `1/21`, `1/22` and the rest take a guard on the wagon `1/127`
 at (38808, 19656) and walk off. The next
 item's hypothesis is the merged group's order — which member it
-guards — not a mechanism this item read.
+guards — not a mechanism this item read. *(Answered in §346.2: the
+siege anchor's supply arm, `UnitData::is_supply`'s raw bit.)*
 
 **Not established.** The Citizen's armour arm (`UnitData::armor@
 00610160`, `THECITIZEN_ARMOR_BONUS` 2) is read and not built: no blow on
@@ -32320,6 +32321,76 @@ run1334 and run1334b): `Riflemen` (101) ×1,794, `Anti-tank Rifle` (138)
 ×9,552; **`Machine Gun` (124) is not**. With `Biplane[ALBATROSS]` (288)
 ×10,744 the pair fields five types the lockstep ledger has not seen, of
 the 20 it fields.
+
+### 346.2 The merged army's siege anchor, and the pair whole (item 3682)
+
+**The direction: ours acted.** Ours' army 1/0 (who=1's group 64) ticks
+on 4348 — its muster cell moves (4, 42) → (4, 41) — and its
+`do_marching` calls `Group::action_siege_attack_to@0070d830`. The
+wagons were already in its list: ours closed army 1/3 (the Supply Wagons
+`1/126`, `1/127`, TY 63, and the General `1/128`, TY 57) into it on
+4343, where the dump's group field moves on 4348 on both sides. A probe
+behind `RON_PROBE_3682` (`5655d748f`, reverted whole in `43d1453d3`)
+printed the call's sub-group on each of the army's ticks: `1/17` from
+2556 to 4092, and on 4348 **`1/127`**. Ours' supply arm passed over the
+Citizen and took the wagon, and ours' `action_guard(anchor, QUEUE_NEW)`
+cleared every member's head order. Theirs kept the attacks of `1/21`,
+`1/25`, `1/27`, `1/52` and the rest on the human's `0/2000`. Those
+attacks are theirs' `Unit::fight+0x824` draws at index 1, where ours'
+members were already walking (`Guy::move+0x19f`). On 4349 the joiners
+take a guard on `1/17` in theirs (`1/126`'s `guard_x, guard_y` (4392,
+32376)) and on `1/127` in ours. **The draw delta and the state's parting
+are one event.**
+
+**The predicate.** The sub-group's arms (`0070d830`) are siege, then the
+first member whose vslot `+0xcc` answers, then the first whose `+0xc4`
+answers. Every unit vtable's `+0xcc` is `UnitData::is_supply@0046ce80`,
+`unit_flags2 & 0x40`; `+0xc4` is `UnitData::is_hero`, `& 0x20`. The
+Citizen `1/17` (TY 356, `THECITIZEN`) carries both bits (`load.rs`'s
+`supply_or_hero` takes `THECITIZEN`) and heads the list. So the
+original's supply arm takes it first. `Sim::is_supply_unit` added `&&
+!GENERAL`, which no listing has (the `unit_is_supply` sweep, item 1691,
+already said so). It refused the Citizen and reached the wagon behind it.
+Before 4343 no wagon was in the list, so the hero arm took the Citizen
+and the two sides agreed. `is_supply_unit` is now the raw bit. Its other
+callers OR it with `is_hero_unit`, so the exclusion moved nothing there;
+`collide`'s `is_supply` reads it alone and is the original's
+`+0xcc` too.
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 4348 | the draw stream, index 1 | site | `Guy::move+0x19f`'s `set_anim` | `Unit::fight+0x824` | `Unit::fight+0x824` |
+| 4349 | `1/126`'s guard | `target`, `guard_x, guard_y` | `1/127`, (37848, 19992) | `1/17`, (4392, 32376) | `1/17`, (4392, 32376) |
+| 4349 | `1/21`'s stack | orders | guard | attack on `0/2000`, guard | attack on `0/2000`, guard |
+
+**The word moves 4348 → 4772 of 4772, whole**, by the count and the
+sequence. run1334b 2796 → 76 keys, all standing (4295's families and
+group 70's `held` on 4565); its rounds read 1018 a side (ours 251 →
+1018), 4 parting, all 4324's dead target (§338's standing row).
+Every other lobby's `first_parting` holds (81 of 81).
+
+**The closing state** (`german_industrial_pair_run1334_s_closing_state`):
+the long's closing block 4773, 141 units, none off, torn, unlinked or
+extra, `Closing fields: none`. **The closing window** run1354 (4516..4773,
+`german_industrial_pair_run1354_s_closing_window_is_widened_whole`): 257
+blocks, 73 keys — the standing families on 4516, with the Albatrosses'
+`myspeed` (parked 3677a) and `1/41`'s `g.z[0]`; group 70 on 4565;
+`SITE[0].reg` on 4576; and two units. The German Anti-tank Rifles `1/62`
+and `1/68` part `dest_angle` at their posts (parked 3682b). Rounds read
+995 a side, 11 parting: six are 4728's dead targets, and five are who=1's
+German Artillery `1/71` (TY 270) launching on 4770 from the figure's
+square, (7320, 31848) at `sz` 94 against theirs' (7269, 31837) at 230
+(parked 3682a). Neither moves a draw.
+
+**The rubric**: unit types seen **205 → 210 of 302** — `Riflemen` (101),
+the German `Anti-tank Rifle` (138), the `A7V` (242), the German
+`Artillery` (270) and the `Albatross` (288). The booking's fifth line,
+`Machine Gun` (124), is still not fielded.
+
+**Not established.** Ours merges army 1/3 on 4343, and the dump's group
+field moves on 4348 on both sides. No `ARMYDATA` record is dumped, so
+the merge's own frame in theirs is not compared. The anchor and every
+order agree from 4348.
 
 ## 347. The British at a held Industrial age, Great Sahara, at difficulty 4: first try 2382 of 4767 (item 3668)
 
