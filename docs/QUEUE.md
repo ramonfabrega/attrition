@@ -12,7 +12,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-27, **the fifty-ninth tranche (commander, Opus): 19 of 20 landed from `604a8c8c0`**; 3693 live on one Opus lane at medium; the last whole gate is `a710a3f92`.*
+*2026-10-27, **the fifty-ninth tranche (commander, Opus): 19 of 20 landed from `604a8c8c0`**; 3693 live on one Opus lane at medium; the last whole gate is `edd3dc55c`.*
 - **Words**: one open — the Americans at Industrial, 5701 of 5,861 (lower map first — Great Sahara (Americans, Industrial)), 3693 (3686 moved it from 3174, piece 87's bays and the CEO's heal; 3690 to 5701, piece 167's bays and the packed-siege shortcut in the member search). The Koreans (3679), the Germans (3682), the British (3683), the Russians and Romans at Gunpowder (3688: the Monarch's cavalry bonus, one fix for both) the French at Enlightenment (3691: the Musketeer's three release bays, off rounds on disk) the Greeks at Enlightenment (3674, on their first try) and the Mongols at Enlightenment (3692: the Golden Horde reads the Horde's pivot, the Asian Musketeer's bays) close whole.
   **The headline, the early ages**: the fifty-eighth closed two Gunpowder words and eight of nine pairs (the record). Nine pairs booked, 3667–3675, off the
   braces, two-line lobbies first (the Germans at Industrial, five never-seen lines; the British and Americans), then the record's three and three at
