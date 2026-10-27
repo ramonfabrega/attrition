@@ -525,7 +525,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `Commando` (74, `COMMANDOSPANISH`, land; 200 figure rows), the line
 /// §357 named, read by `rubric.py --tables 3` on the tree merged with
 /// 3704's landing.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 224;
+/// Item 3699: 224 -> 225, the Inca Industrial pair whole on its first try
+/// at 4471 — `Siege Mortar` (275, `SIEGEMORTAR`, land; 738 figure rows),
+/// the line §359 named, read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 225;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
