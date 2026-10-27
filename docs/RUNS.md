@@ -30674,6 +30674,53 @@ blocks, 2344 keys, rounds 421 theirs against 446 ours, 255 parting from 4495). O
 5 frames' flight against 4 — and it resolves on the word 4505 in ours, a frame after theirs retired.
 
 
+## run1359 — the Americans at a held Industrial age, Great Sahara: a packet at logger frame 5619, piece 167 (2026-10-26, item 3690, `att-3690`)
+
+`docs/AI.md` §348.2. **What the disk could not answer**: the release node of who=1's Armored Car `1/104` (TY 217, `GREYHOUND`), piece 167: none of the 75 packets under `~/ron-golden` loads it (`get_position.py … entries 167`). `df -g ~` read 53 GiB free before it. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1359 --map 7 --end-frame 5621 --timeout 3600 --log-window 5618 5621 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5
+--ai-tribe 20 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=5619 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 23:33:27, exited 23:34:00 (33.7 s). `success`, 5622 frames, seed 12345. Not filed: the packet
+  is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1359/map-7/frame-snapshot.bin`, 889,872,376 bytes,
+SHA-256 `c7500ed0fdeae73a5177dffe0102e77fcecd3a63490b061bb5adff1912988289`.
+
+**What it holds**: piece 167 (`GREYHOUND-DEFAULT-AGE0`), 37 rows at `pos_start` 136, `RData +0x88` 1.1; its `turret_angles` are 0, so the rows are bays. Sixteen node-0 rows at `CHAR_ATTACKWALK` and `CHAR_ATTACK2`, frames 3, 9, 12, 17, 20, 22, 24 and 29, fit by `fit_bay.py` at 361 of 361 headings — `launch.rs`'s rows (`e7a47e97b`).
+
+## run1359b — the Americans at a held Industrial age, Great Sahara: a packet at logger frame 5677, the wrong frame (2026-10-26, item 3690, `att-3690`)
+
+`docs/AI.md` §348.2. **What the disk could not answer**: who writes who=1's Artillery `1/131`'s orders on the word 5678; no dump prints a writer. `df -g ~` read 51 GiB free before it. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1359b --map 7 --end-frame 5679 --timeout 3600 --log-window 5676 5679 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5
+--ai-tribe 20 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=5677 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 23:40:42, exited 23:42:07 (84.1 s). `success`, 5680 frames, seed 12345. Not filed: the packet
+  is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1359b/map-7/frame-snapshot.bin`, 873,676,836 bytes,
+SHA-256 `1197828b4804f8c1b45d760dacf4568d2af1d63e6734cbe5e4f691ef26ece82a`.
+
+**What it holds**: the state at logger frame 5677's boundary — one frame early for the word's decision; run1359c re-took it at 5678. Kept for the record, read for nothing.
+
+## run1359c — the Americans at a held Industrial age, Great Sahara: a packet at logger frame 5678, `1/131`'s attack (2026-10-26, item 3690, `att-3690`)
+
+`docs/AI.md` §348.2. **What the disk could not answer**: the same as run1359b's, at the right frame. `viadriver.sh tools/explore/golden_capture.sh
+~/ron-golden/run1359c --map 7 --end-frame 5680 --timeout 3600 --log-window 5677 5680 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5
+--ai-tribe 20 --cover cover=0 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=5678 --tracer-def
+'RON_STATE_PLAN="…/2026-09-23-item-597/plan/plan.h"'`.
+- Pool lane 1. Launched 23:45:00, exited 23:45:31 (31.8 s). `success`, 5681 frames, seed 12345. Not filed: the packet
+  is the product.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1359c/map-7/frame-snapshot.bin`, 907,485,328 bytes,
+SHA-256 `b33154444958f08f3c7cf651a8e5f5264a86b1aa551a4b1aa035f7a1ea7bc1fe`.
+
+**What it holds**: logger frame 5678 entered under `step4.py --entry 65dce0 --this c0ab70 --hook 712490` (`1/73`'s `do_group_move` calling `Group::action_attack(group 65, 0/10, 0, QUEUE_FIRST, 0)` from `+0x215`), with `5e5410:300` and `5e2cb0:400` hooked: `1/131` takes `0/2000` mandatory `QUEUE_FIRST` from `find_nearby_target+0x4c8` — the packed-siege shortcut's add, return `649268` — then `action_attack+0xeb1`'s `QUEUE_NEW` add and one `kill_current_order`. Built as the shortcut in `attack_view.rs`'s member search; the word 5678 → 5701.
 ## run1345 — the Mongols at a held Enlightenment age, Great Lakes: the `DUMP_ALL` start (2026-10-27, item 3673, `att-3673`)
 
 `docs/AI.md` §352. run1341's lobby with the nation and the age moved, through `viadriver.sh

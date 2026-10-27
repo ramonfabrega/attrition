@@ -3848,9 +3848,10 @@ impl Sim {
     /// ([`Self::find_melee_target_headed`]) and `Group::target_opportunity`'s
     /// member search ([`Self::find_melee_target_added_in`]): the shortcut
     /// sits inside `find_nearby_target@00648da0:198`–`222`, ahead of its
-    /// add flag, so every caller takes it. SEAM: `Group::action_attack`'s
-    /// per-member search (`attack_view.rs`) does not ask it.
-    fn take_siege_army_target(&mut self, u: usize) -> Option<Obj> {
+    /// add flag, so every caller takes it — `Group::action_attack`'s
+    /// per-member search too (`attack_view.rs`, item 3690: run1359c's
+    /// `1/131` on 5678, `find_nearby_target+0x4c8`).
+    pub(crate) fn take_siege_army_target(&mut self, u: usize) -> Option<Obj> {
         let who = self.units[u].owner;
         let p = self.profile(Obj::Unit(u));
         if !p.packs
