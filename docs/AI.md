@@ -34077,11 +34077,74 @@ on 5087, each one side holds alone. From 4949 `1/76` and `1/77` target `0/10` in
 `0/2003` in theirs. All of that is downstream of the wound.
 
 **The next item's hypothesis** is the Light Tank's launch row (piece 193), from `1/54`'s shot on 4940 and the
-later rounds this window holds; a packet at the shot reads the bay as §357.2 did. I built nothing.
+later rounds this window holds; a packet at the shot reads the bay as §357.2 did. I built nothing. **Answered by
+item 3707 (§360.2)**: the piece is piece 189's turret, a `pivot` row rather than a `launch::BAYS` one, read without
+a packet. The pair is whole.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **224 of 302**, unmoved: the pair parts, so it is not
 lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1374 and run1374b): `Light
 Tank` (243, `A7VDES`), 4,950 figure rows. It stays in the never list until a lockstep game holds it.
+
+### 360.2 Piece 193 is piece 189's turret: the word 4959 → 5689, the pair whole (item 3707)
+
+*Item 3707, 2026-10-27, Opus 5.5.*
+
+**The piece, named first.** run1374b's `GUY` and `AMMO` records name the shooter: who=1's `1/54`, TI 243 (`A7VDES`),
+land, piece 193, at (6120, 10968), z 22, angle −505479168 on 4937..4941, its round of 4940 leaving (6098, 10851, 200).
+**The direction: theirs acts from the turret's muzzle; ours lacked the row**, as the booking said. But the table the
+booking named is the wrong one: `launch::BAYS` holds fixed bays. A piece with a `<RESTRICTION>` turns a turret, and
+its rows live in `sim::pivot`.
+
+**The disk, before any capture.** `unit_graphics.xml`'s `A7VDES-DEFAULT-AGE0` is `lighttank.bh3` at scale 0.9 under
+`lighttank_desert.tga`. It has piece 189's anim files (`LightTank Attack1..3`), its three `HOWITZER BLAST`s on node
+8, and `<RESTRICTION name="A7VDES" node="4" minangle="-180" maxangle="180"/>`. That is piece 189's model, scale and
+turret. It is also piece 192's (the German `A7V`, §346), which its packet showed to be every float of 189's.
+`get_position.py … entries 193` over all 82 packets on disk finds the piece loaded by none. The booked packet would
+only have re-read 189's floats, so I took none.
+
+**The rows.** `pivot::SAME_AS` gains `(193, 189)`. run1374b prints seven Light Tank rounds at their first frame,
+four from `1/54` and three from `1/66`. Each sits beside its figure's `GUY` pose on the block before, and each is
+reproduced at the dump's `sx, sy` and `sz − z` by exactly one of 189's three keys at some turret step:
+
+| frame | shooter | figure (x, y, z) | angle | round (sx, sy, sz) | dz |
+|---|---|---|---|---|---|
+| 4940 | `1/54` | 6120, 10968, 22 | −505479168 | 6098, 10851, 200 | 178 |
+| 4970 | `1/54` | 6120, 10968, 22 | −505479168 | 6085, 10848, 199 | 177 |
+| 4972 | `1/66` | 6792, 10536, 56 | −317063168 | 6724, 10430, 233 | 177 |
+| 5025 | `1/66` | 6792, 10536, 56 | −317063168 | 6736, 10431, 234 | 178 |
+| 5032 | `1/54` | 5928, 10632, 26 | −350420992 | 5866, 10530, 204 | 178 |
+| 5066 | `1/66` | 6792, 10536, 56 | −317063168 | 6778, 10418, 234 | 178 |
+| 5102 | `1/54` | 5304, 10296, 25 | −107675648 | 5279, 10165, 200 | 175 |
+
+**The value diff on the word.** `1/54`'s round of 4940 now leaves (6098, 10851, 200), theirs, and flies 5 frames
+where it left the hull's square (6120, 10968, 22) and flew 6. The human's Citizen `0/10` is struck on 4943 on both
+sides (`damage_frame` 4943, `hits_left` 33) and walks off toward (5544, 7320). On 4959 both sides spend
+`Unit::move_step+0x823` for it at index 3.
+
+**The score: 4959 → 5689 of 5689, the game's last frame**, by the count and the sequence.
+- **run1374b**: 1132 → **119 keys**. The rounds read 46 against 46, none parting. What stands is block 4895's
+  standing families, `form` as units are built, who=1's `bucket[2:wealth]` one low on 4943 (3700a's family), and
+  groups 65, 83 and 84 as each is minted. Group 71's Riflemen also part `order:target` from 4949: `0/10` in ours
+  against `0/2003` in theirs. Theirs' current order is the `0/10` attack too, and `0/2003` is the bottom entry of
+  its ring (parked 3707a).
+- **run1374's stride** (101..4901): 155 keys, unmoved.
+- **The closing state**: run1374's block 5690 compares **191 units, none off, torn, unlinked or extra**, and no
+  closing field parts. 3700b's army, cities and buildings are gone with the word.
+- **run1384**, the closing window (5433..5690, 257 blocks; `docs/RUNS.md` run1384): **128 keys**, every one a
+  standing family on 5433 or a unit or group made after it. The rounds read 122 against 122, and 19 part. The 19
+  are the Artillery's (TY 269) seven launches from `1/81`, `1/89` and `1/91` at their figures' squares, 136 low.
+  That is 3683b's unfitted bays on a third game (parked 3707b), and none of them moves a draw. run1384 is the
+  word's widening in `WIDENINGS` and sits in the coverage driver.
+
+**Coverage.** Diff-backed: `pivot::tests::run1374b_s_egyptian_light_tank_rounds_leave_from_its_turret` (seven
+rounds, one key each, red with the row out), and both windows' rounds agreeing in launch and flight. **Mutation**
+(`tools/mutate.py`, `(193, 189)` out of `SAME_AS`): held — `egyptian_industrial_pair_first_parting` reads 4959 by the
+count and the sequence, the old word. **Not established**: piece 193's own floats. The
+claim that they are 189's rests on the shipped XML naming the same model and scale and on the seven fits, not on a
+packet. A turret step no round reached would be a cell no test reads, as for piece 192.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen 225 → **226** of 302: `Light Tank` (243, `A7VDES`,
+land), the line §360 named, now lockstep with 540 figure rows (`census::RUBRIC_UNIT_TYPES_SEEN`).
 
 ## 361. Reserved for the next item on the AI track
 
