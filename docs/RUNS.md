@@ -30774,3 +30774,27 @@ is 256 blocks and 117 keys: the standing families, the Horse Guard Grenadier `1/
 capital `0/2000`'s `build:damage` on 4691 (421 against 427). The rounds read 465 theirs against 477 ours, and 202
 part: six Fusiliers' launches (TY 136; parked 3691a) and slot swaps. The draw stream holds to 4940, the game's
 last frame.
+
+## run1361 — the Mongols at a held Enlightenment age, Great Lakes: a packet at logger frame 4840, pieces 154 and 1105's `AttachPos` rows (2026-10-27, item 3692, `att-3692`)
+
+`docs/AI.md` §352.1. **What the disk could not answer**: the Golden Horde's (piece 154) release at every heading and
+turret step, and the Mongol Musketeer's (piece 1105) three attack rows. run1346c prints thirteen Horde rounds and three
+Musketeer rounds, but the Horde is a pivot piece (`<RESTRICTION name="GOLDENHORDE" node="4">`) whose release also turns
+with the rider's turret angle, which no dump prints; and none of the 78 packets on disk fills either piece
+(`get_position.py … entries`). `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1361 --map 14 --end-frame
+4842 --timeout 3600 --log-window 4839 4842 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 17 --cover cover=0
+--profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5
+--tracer-def RON_STATE_FRAME=4840 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 02:05:56, exited 02:06:50 (53.3 s launch to exit). `success`, 4843 frames.
+  `rngcmp.py` against run1346's trace: 4843 of 4843 identical. Not filed: the packet is the product. `df -g ~` read
+  143 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1361/map-14/frame-snapshot.bin`, 876,035,768 bytes,
+SHA-256 `ac4247aeda596366acef46870faa4352924cdc7d229f104917b3a7251b91832f`.
+
+**What it holds**: `get_position.py entries 154` gives nine rows at scale 1.0, `pos_start` 126, and every float is
+piece 153's off run1294, bit for bit. `entries 1105` gives three rows (node 0, `CHAR_ATTACK1`..`3` at frames 1, 7
+and 4), `RData +0x88` 1.1. `get_position.py sweep 1105 0 <anim> <time>` for each key is kept at
+`~/ron-data/lab-experiments/2026-10-27-item-3692/bay-1105-a<anim>-t<time>.txt`; `fit_bay.py` fits each to one region
+(411, 196 and 113 lattice points).
