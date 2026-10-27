@@ -36,8 +36,12 @@ pub(crate) const EGYPTIAN_INDUSTRIAL: Pair = Pair {
     // parting at index 3 — ours `Guy::set_anim+0x97a < Guy::move+0x19f`,
     // theirs `Guy::set_anim+0x97a < Unit::move_step+0x823`; theirs also
     // spends a fourth gaia `Guy::set_anim+0x104b` (`docs/AI.md` §360).
-    count: 4959,
-    sequence: 4959,
+    // Item 3707: **5689 of 5689, the game's last frame** — piece 193 reads
+    // piece 189's turret rows (`sim::pivot::SAME_AS`), and who=1's Light
+    // Tank `1/54`'s round of 4940 leaves (6098, 10851, 200), theirs, and
+    // wounds the human's Citizen `0/10` on 4943 on both sides (§360.2).
+    count: 5689,
+    sequence: 5689,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -252,15 +256,96 @@ fn egyptian_industrial_pair_run1374b_s_word_frame_is_widened_whole() {
     // against theirs' (6098, 10851, 200), and flies a frame longer. On the
     // word 4959 theirs' `0/10` is still moving (`Unit::move_step+0x823`,
     // index 3) and ours' stands.
-    pin_eq!(w.firsts.len(), 1132, "run1374b baseline");
-    pin_eq!(w.rounds_read, (46, 54), "the rounds read");
+    // Item 3707, piece 193 on piece 189's turret rows: 1132 → **119**. No
+    // unit row but group 71's `order:target` (`0/10` ours, `0/2003` theirs
+    // from 4949 — the buried `ATTACKORDER` at the bottom of theirs' ring;
+    // the current order is `0/10` on both, parked 3707a); the rest is
+    // block 4895's standing families, `form` on `1/112` and `1/122`,
+    // who=1's `bucket[2:wealth]` one low on 4943 (3700a's family), and
+    // groups 65, 83 and 84's `held` and pools as each is minted.
+    pin_eq!(w.firsts.len(), 119, "run1374b baseline");
+    pin_eq!(w.rounds_read, (46, 46), "the rounds read");
     // Every round, both directions: 46 round-blocks ours, 54 theirs; 13
     // rows part, the first `1/54`'s launch on 4940 (`total_time` 6 against
     // 5, `v1z` 65629173 against 31618750): piece 193 has no
     // `launch::BAYS` row, the word's residue (`docs/AI.md` §360). After
     // it, rounds one side holds alone: the Light Tank `1/66`'s and group
     // 71's Riflemen `1/68`, `1/76` and `1/77`'s, downstream of the wound.
-    pin_eq!(w.rounds.len(), 13, "the rounds that part");
+    // (The pair is `(theirs, ours)`: 46 theirs, 54 ours.) Item 3707: 46
+    // against 46, **none parting** — `1/54`'s round of 4940 leaves the
+    // turret's muzzle, as do `1/54`'s and `1/66`'s six after it.
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1384: the pair's last blocks, 5433..5690 at the long's detail with
+/// `LEADERS=9` and `AMMO=5`, through the closing block (item 3707): no dump
+/// held them once the word reached the game's last frame — run1374's
+/// stride prints units every hundred frames and no `AMMO`, leader,
+/// building or city record past the start, and run1374b ends on 5210.
+pub(crate) const RUN1384: &str =
+    "gamelog-run1384-eastindies-egyptian-industrial-window-5433-5690.txt";
+
+/// The closing window: block 5433 through the closing block 5690.
+pub(crate) const WIDENING_EGYPTIAN_INDUSTRIAL_CLOSING: (i64, i64) = (5433, 5690);
+
+/// **The pair's last blocks**: run1384 walked from run1373's start with
+/// the recorder on and every round compared (item 3707).
+pub(crate) fn egyptian_industrial_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[EGYPTIAN_INDUSTRIAL.start],
+        true,
+        EGYPTIAN_INDUSTRIAL.long,
+        "run1384",
+        &[(RUN1384, WIDENING_EGYPTIAN_INDUSTRIAL_CLOSING.0)],
+        WIDENING_EGYPTIAN_INDUSTRIAL_CLOSING,
+        1,
+        &[5690],
+        true,
+    )
+}
+
+#[test]
+fn egyptian_industrial_pair_run1384_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = egyptian_industrial_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3707: **128 keys**, all standing — on 5433 `form` on 45 units,
+    // both leaders' `SITE[i].reg`, who=0's `aggression[1]`, who=1's
+    // `bucket`/`escrow`/`leftover` (3700a's family) and groups and pools;
+    // after it, who=1's `bucket[2:wealth]` one low on 5436, `form` on
+    // eighteen units as each is built, and groups 69 and 83 minted (5488,
+    // 5516). No unit position, order, building or city row parts.
+    pin_eq!(w.firsts.len(), 128, "run1384 baseline");
+    // Every round, both directions: 122 a side, 19 parting — the
+    // Artillery's (TY 269) seven launches from `1/81`, `1/89` and `1/91`
+    // at their figures' squares, 136 low (5441..5621; 3683b's unfitted
+    // bays, parked 3707b). None moves a draw.
+    pin_eq!(w.rounds_read, (122, 122), "the rounds read");
+    pin_eq!(w.rounds.len(), 19, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3700): run1374's closing block 5690,
@@ -312,7 +397,9 @@ fn egyptian_industrial_pair_run1374_s_closing_state() {
     // buildings and the cities `1/2018` and `1/2047` part in the closing
     // fields, the slot `1/2047` holding a different city each side
     // (parked 3700b).
-    pin_eq!(e.compared, 189, "units compared");
-    pin_eq!(e.counts(), [105, 2, 2, 0, 48, 0, 39], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(0, 4), (0, 11)], "the closing extras");
+    // Item 3707, the pair whole: **191 units, none off, torn, unlinked or
+    // extra**, and no closing field parts.
+    pin_eq!(e.compared, 191, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
 }
