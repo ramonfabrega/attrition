@@ -42,8 +42,14 @@ pub(crate) const MONGOL_MEDIEVAL: Pair = Pair {
     // (§362.1). On 3989 ours spends 8 draws against theirs' 9, parting at
     // index 7: ours `Farms::inc_time+0x1ae`, theirs `Object::take_damage+0xe1
     // < Object::do_damage+0x159e < Ammo::do_damage+0xc11`.
-    count: 3989,
-    sequence: 3989,
+    // Item 3712: 3989 → 4220. The Crossbowmen play piece 1178 (`122 + 3 ×
+    // 0x160`, the Asian style), which had no launch row, so their bolts
+    // left the figure's own square; `launch::BAYS` now holds its three
+    // keys off run1296's packet (§362.2). On 4220 ours spends 11 draws
+    // against theirs' 12, parting at index 10: ours `Farms::inc_time+0x1ae`,
+    // theirs `Unit::close+0xcb6`.
+    count: 4220,
+    sequence: 4220,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -332,9 +338,17 @@ fn mongol_medieval_pair_run1386_s_word_frame_is_widened_whole() {
     // `0/2004` (`damage` 1, `damage_frac` 10), city `0/2000`'s
     // `raid_stamp` reads 3989 and both leaders' `treaties` 3, where ours
     // reads 0, 0 and 1.
-    pin_eq!(w.firsts.len(), 221, "run1386 baseline");
-    pin_eq!(w.rounds_read, (209, 210), "the rounds read");
-    pin_eq!(w.rounds.len(), 83, "the rounds that part");
+    // Item 3712, the word 4220 (piece 1178's launch rows): **211** keys,
+    // the rounds read 209 against 206 and 47 part. The Crossbowmen's bolts
+    // agree; the first round to part is the Steppe Nomad `1/22`'s (TI 200,
+    // piece 150, a pivot piece) on 4175, (6312, 10440, 38) against (6319,
+    // 10344, 271), 16 frames against 15. The first unit row is the human's
+    // `0/13` on 4189: struck on 4188 in theirs (`hits:damage` 18), not in
+    // ours; it dies on 4220 in theirs (`Unit::close`), and block 4221 reads
+    // who=0's `active`/`control` 14 against 13.
+    pin_eq!(w.firsts.len(), 211, "run1386 baseline");
+    pin_eq!(w.rounds_read, (209, 206), "the rounds read");
+    pin_eq!(w.rounds.len(), 47, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3702): run1378's closing block 5593,
@@ -386,7 +400,9 @@ fn mongol_medieval_pair_run1378_s_closing_state() {
     // (`GROUND_INEXACT`).
     // Item 3709 (the word at 3989): 162 compared, counts
     // `[108, 0, 0, 4, 81, 1, 25]`, no extra.
+    // Item 3712 (the word at 4220): 162 compared, counts
+    // `[83, 0, 0, 4, 94, 1, 28]`, no extra.
     pin_eq!(e.compared, 162, "units compared");
-    pin_eq!(e.counts(), [108, 0, 0, 4, 81, 1, 25], "the closing counts");
+    pin_eq!(e.counts(), [83, 0, 0, 4, 94, 1, 28], "the closing counts");
     pin_eq!(e.extra.len(), 0, "the closing extras");
 }

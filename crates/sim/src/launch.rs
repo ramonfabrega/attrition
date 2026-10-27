@@ -3597,6 +3597,49 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 161,
         },
     ),
+    // **Piece 1178, the Crossbowmen in the Asian art style** (`CROSSBOWMEN`,
+    // type 172, `122 + 3 × 0x160`; item 3712, `docs/AI.md` §362.2): the
+    // Mongols' Crossbowman. run1296's `RON_STATE_FRAME` packet (and run1294's,
+    // run1237's and run1220b's, every float the same) holds its three
+    // `AttachPos` rows at scale 1.04, node 0 at piece 122's keys, and
+    // `tools/recomp/fit_bay.py` on each key's sweep finds one region (1177,
+    // 491 and 223 lattice points); the rows are their centroids, and the
+    // heights 173, 140 and 168 are the sweep's and run1386's `sz − z`.
+    // Piece 122's planar [`MEASURED`] rows are the default style's and never
+    // reached it. Without these who=1's `1/43` loosed its bolt of 3981 at the
+    // human's `0/2004` from its own square (6120, 11208, 19) against the
+    // original's (6103, 11142, 159), flew 11 frames against 10, and the
+    // building was struck a frame late.
+    (
+        1178,
+        crate::anim::ATTACK1,
+        5,
+        Bay {
+            right: 11_856,
+            fwd: 87_864,
+            dz: 173,
+        },
+    ),
+    (
+        1178,
+        crate::anim::ATTACK2,
+        3,
+        Bay {
+            right: 15_464,
+            fwd: 67_070,
+            dz: 140,
+        },
+    ),
+    (
+        1178,
+        crate::anim::ATTACK3,
+        6,
+        Bay {
+            right: 15_879,
+            fwd: 78_459,
+            dz: 168,
+        },
+    ),
 ];
 
 /// `(piece, animation slot, node)` → bay, for a piece whose every event
@@ -3832,6 +3875,60 @@ mod tests {
                 })
                 .collect();
             assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
+    /// **The Mongols' Crossbowmen loose from piece 1178's bays** (item
+    /// 3712): run1386's three bolts at the human's `0/2004` on 3981, 3983
+    /// and 3989, one of each attack key, each beside its figure's `GUY`
+    /// pose on the block before, reproduced at the dump's `sx, sy` and `sz −
+    /// z`. Made to fail with the rows out of `BAYS`: each bolt leaves the
+    /// figure's own square.
+    #[test]
+    fn run1386_s_mongol_crossbowmen_leave_from_their_bays() {
+        type Round = (i8, u32, i32, i32, i32, i32, i32, i32, i32);
+        const R: &[Round] = &[
+            // `1/43`, 3981.
+            (
+                crate::anim::ATTACK2,
+                3,
+                6120,
+                11208,
+                19,
+                -325_976_064,
+                6103,
+                11142,
+                159,
+            ),
+            // `1/44`, 3983.
+            (
+                crate::anim::ATTACK1,
+                5,
+                5976,
+                11208,
+                15,
+                -289_800_192,
+                5950,
+                11124,
+                188,
+            ),
+            // `1/45`, 3989.
+            (
+                crate::anim::ATTACK3,
+                6,
+                6264,
+                11208,
+                23,
+                -360_448_000,
+                6238,
+                11133,
+                191,
+            ),
+        ];
+        for &(anim, t, gx, gy, gz, ga, sx, sy, sz) in R {
+            let got = launch_point(Pos::new(gx, gy), Angle(ga), 1178, anim, t, 0);
+            let z = gz + release_dz(1178, anim, t, 0).unwrap_or(0);
+            assert_eq!((got.x, got.y, z), (sx, sy, sz), "anim {anim} t {t}");
         }
     }
 

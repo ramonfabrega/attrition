@@ -34539,9 +34539,81 @@ the parting is the round's **launch point and height**, and with it the flight t
 140 higher. It is the same shape as the launch rows 3704 and 3705 read off packets.
 
 **Not established**:
-- the Crossbowmen's launch offset, and whether ours has a launch row for TY 122 at all;
+- ~~the Crossbowmen's launch offset, and whether ours has a launch row for TY 122 at all;~~ Answered by item
+  3712 (§362.2): the Mongols' Crossbowmen play piece 1178, which had none;
 - whether `9/19` ever stood over another chain read (`find_nearby_target`, the collision walks) earlier in any game.
   No other floor moved.
+
+### 362.2 The Mongols' Crossbowmen loose from piece 1178's bays: the word moves 3989 → 4220 (item 3712)
+
+*Item 3712, 2026-10-27, Opus 5.5.*
+
+**The pieces, by `TypeIndex` and domain.** Ours' `RON_DEBUG_UNIT` over the three shooters on 3978..3984 reads
+the same for `1/43`, `1/44` and `1/45`: TY 122 (Crossbowmen), TI 172, land, on an `ATTACKORDER` at the human's
+`0/2004`, **graphic piece 1178**. That is `122 + 3 × 0x160`, the Asian art style, which the Mongols field.
+`launch.rs` had piece 122's three planar `MEASURED` rows (run982, item 3347) and nothing for 1178, so each bolt
+left the figure's own square. The figures' own rows agree on both sides: `1/43` at (6120, 11208) `z` 19, facing
+−325976064; `1/44` at (5976, 11208) `z` 15, −289800192; `1/45` at (6264, 11208) `z` 23, −360448000.
+
+**The disk answered; no capture was taken.** `get_position.py … entries 1178` over the 83 packets on disk:
+run1296, run1294, run1237 and run1220b fill the piece, every float the same. There are three rows at
+`RData +0x88` 1.04, node 0, at piece 122's keys: `CHAR_ATTACK1` frame 5, `CHAR_ATTACK2` frame 3 and
+`CHAR_ATTACK3` frame 6. `sweep 1178 0 <anim> <time>` on run1296's packet, through `fit_bay.py`, gives one region
+a key:
+
+| key | region | `right`, `fwd` (centroid) | `dz` |
+|---|---|---|---|
+| `CHAR_ATTACK1`, 5 | 1177 points | 11 856, 87 864 | 173 |
+| `CHAR_ATTACK2`, 3 | 491 points | 15 464, 67 070 | 140 |
+| `CHAR_ATTACK3`, 6 | 223 points | 15 879, 78 459 | 168 |
+
+The sweeps are kept at `~/ron-data/lab-experiments/2026-10-27-item-3712/`. run1386's three bolts at `0/2004`
+each play one key, and each is reproduced at the dump's `sx, sy` and `sz − z`:
+- `1/43`'s of 3981 plays `CHAR_ATTACK2`: (6103, 11142, 159);
+- `1/44`'s of 3983 plays `CHAR_ATTACK1`: (5950, 11124, 188);
+- `1/45`'s of 3989 plays `CHAR_ATTACK3`: (6238, 11133, 191).
+
+**Built.** The three rows are now `launch::BAYS` rows. The test
+`launch::tests::run1386_s_mongol_crossbowmen_leave_from_their_bays` asserts those three bolts. **Mutation**
+(`tools/mutate.py`): keying the `CHAR_ATTACK2` row away fails the new test at (6120, 11208, 19), and
+`mongol_medieval_pair_first_parting` reads 3989 again. Both exit 101.
+
+**What moved.**
+- **The word, 3989 → 4220.** On 3989 the bolts land on the same frame on both sides, and `0/2004`, city
+  `0/2000` and both leaders' `treaties` agree on 3990.
+- **The other lobbies' `first_parting`**: 97 of 98 green, this one re-pinned. 3713's Persian Gunpowder word
+  (4948) is unmoved; its Gun Mahout plays another piece.
+- **run1386's window**: 221 → 211 keys, rounds read (209, 206), 83 → 47 parting.
+- **The closing state**: 162 compared, counts `[108, 0, 0, 4, 81, 1, 25]` → `[83, 0, 0, 4, 94, 1, 28]`, no extra.
+- The first parting's walk now reads one inexact ground corner (`GROUND_INEXACT`).
+- **The Chinese Medieval closing window** (run1223, item 3580): 52 → 51 keys. The Crossbowmen `1/69`'s round
+  of 4452 plays the same piece, and the human's capital `0/2000`'s `damage_frac` now agrees (parked 3580a,
+  struck).
+
+**The new word, 4220**: ours 11 draws against theirs' 12, parting at index 10. Ours `Farms::inc_time+0x1ae`,
+theirs `Unit::close+0xcb6`. **The direction: theirs acts.** A human unit dies in theirs and not in ours. The value
+diff (run1386, walked back from the word):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4175 | the Steppe Nomad `1/22`'s round (TI 200, TY 150, land) | `ammo[0].sx`, `sy`, `sz` | 6312, 10440, 38 | 6319, 10344, 271 |
+| 4175 | the same | `total_time` | 16 | 15 |
+| 4184 | `1/20`'s round (the same type) | `sz`; `total_time` | 43; 15 | 276; 14 |
+| 4189 | the human's `0/13` | `hits:damage`, `damage_frame` | 0, 0 | 18, 4188 |
+| 4189 | the same | `orders.len`; `orders_x`, `orders_y` | 0; 6552, 8856 | 1; 6792, 7320 |
+| 4221 | `0/13` | the record | ours alone | (dead) |
+| 4221 | who=0 | `active`, `control`; `num_units[0]`, `peasants` | 14; 13 | 13; 12 |
+
+The shooters' own rows agree, so the first parting is again a round's launch point. The Steppe Nomads play
+graphic piece **150**, `ELITENOMADS`. Unlike 1178, it is a **pivot piece**: `unit_graphics.xml` gives it
+`<RESTRICTION name="ELITENOMADS" node="4" minangle="-160" maxangle="160">`, the shape of the Cavalry Archer's
+piece 138 (item 3633, `pivot::RELEASES`). No packet on disk fills it: all 83 load it with `pos_num` 0. That is
+the next item's hypothesis, and it needs a packet of this lobby before the launch (`RON_STATE_FRAME=4174`).
+
+**Not established**:
+- whether piece 150's release turns with the rider's turret as 138's does, or sits on a fixed node;
+- which keys the Steppe Nomads' attack animations release on (ours plays `CHAR_ATTACK1` at 18 and
+  `CHAR_ATTACK2` at 16).
 
 ## 363. The Greeks at a held Medieval age, East Indies, at difficulty 4: first try 5626 of 5942 (item 3703)
 

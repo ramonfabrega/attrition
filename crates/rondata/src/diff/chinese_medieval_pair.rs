@@ -397,5 +397,9 @@ fn chinese_medieval_pair_run1223_s_closing_frame_is_widened_whole() {
     // 1178, no `sim::launch` bay) lands its round a frame late, and the
     // two agree again on 4453 (parked 3580a). The closing block 4521
     // agrees.
-    pin_eq!(w.firsts.len(), 52, "run1223 baseline");
+    // Item 3712: 52 → **51**. Piece 1178's `launch::BAYS` rows (the
+    // Mongols' Crossbowmen, the same Asian style) launch `1/69`'s round
+    // from its bay, and 4452's `0/2000` `damage_frac` agrees (parked 3580a,
+    // struck).
+    pin_eq!(w.firsts.len(), 51, "run1223 baseline");
 }
