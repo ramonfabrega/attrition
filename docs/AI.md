@@ -34586,6 +34586,9 @@ each play one key, and each is reproduced at the dump's `sx, sy` and `sz − z`:
 - **run1386's window**: 221 → 211 keys, rounds read (209, 206), 83 → 47 parting.
 - **The closing state**: 162 compared, counts `[108, 0, 0, 4, 81, 1, 25]` → `[83, 0, 0, 4, 94, 1, 28]`, no extra.
 - The first parting's walk now reads one inexact ground corner (`GROUND_INEXACT`).
+- **The Chinese Medieval closing window** (run1223, item 3580): 52 → 51 keys. The Crossbowmen `1/69`'s round
+  of 4452 plays the same piece, and the human's capital `0/2000`'s `damage_frac` now agrees (parked 3580a,
+  struck).
 
 **The new word, 4220**: ours 11 draws against theirs' 12, parting at index 10. Ours `Farms::inc_time+0x1ae`,
 theirs `Unit::close+0xcb6`. **The direction: theirs acts.** A human unit dies in theirs and not in ours. The value
