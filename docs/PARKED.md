@@ -11930,13 +11930,18 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot UU — reserved
+## Parked by item 3712, 2026-10-27 — the Mongols' Crossbowmen loose from piece 1178's bays: the Mongol Medieval word moves 3989 → 4220
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Mongol Medieval word moves 3989 → 4220 (`docs/AI.md` §362.2). The next residue item on 4220 (the Steppe Nomads'
+rounds, a pivot piece no packet on disk fills) is the commander's to book. The row below names no score.
+
+- **3712a. The Crossbowmen's other art styles have no launch row.** Piece 122 (the default style) keeps run982's
+  planar `MEASURED` rows, and piece 1178 (`122 + 3 × 0x160`, the Asian style) now has `BAYS` rows. The `NA`
+  (`122 + 4 × 0x160` = 1530) and Persian (`122 + 5 × 0x160` = 1882) styles, and any other style the Crossbowmen
+  field, still loose from the figure's own square, and so does piece 122 under `BAYS`' model. The rows 1178's
+  packet gives are not piece 122's (ATTACK2's height is 140 against 122's 134), so a style's rows are its own.
+  This names no score until a lobby fields a Crossbowman of another style and its rounds part: `get_position.py
+  … entries <piece>` on a packet of that lobby.
 
 ## Parked by the next landing, slot UV — reserved
 
