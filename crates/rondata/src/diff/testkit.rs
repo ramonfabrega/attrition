@@ -10603,12 +10603,12 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // compared; **4379** since item 3666 (piece 1090's bays and
     // `Guy::do_turn`'s crew loop), past run1331b's last block, which now
     // reads the standing families alone (4369 → 64): the word's widening
-    // is owed (parked 3666).
+    // is owed (parked 3666, booked as 3679).
     (
         "KOREAN_MEDIEVAL_PAIR_WORD",
         crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL_PAIR_WORD,
         None,
-        3666,
+        3679,
         None,
     ),
     // **The Germans at a held Industrial age** (item 3667): Great Lakes —
