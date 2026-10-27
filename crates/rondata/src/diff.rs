@@ -181,6 +181,8 @@ mod report;
 #[cfg(test)]
 mod roman_classical_pair;
 #[cfg(test)]
+mod roman_gunpowder_pair;
+#[cfg(test)]
 mod roman_medieval_pair;
 #[cfg(test)]
 mod roman_word;
