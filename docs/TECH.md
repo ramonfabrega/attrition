@@ -177,9 +177,14 @@ reading; `crates/sim/src/tech.rs` does them in `TechTree::finalize`):
   Stockade.
 - **`Types::finalize_grafting`** rewrites the `tribe_mask` of every unique
   unit's graft: the graft loses the unique unit's nations (or gains them
-  under "No Unique Units"), and barbarian tribes always get the graft. Not
-  modelled in the simulation — it needs the roster's barbarian flags and the
-  lobby flag at load time.
+  under "No Unique Units"), and barbarian tribes always get the graft.
+  ~~Not modelled in the simulation — it needs the roster's barbarian flags
+  and the lobby flag at load time.~~ **Modelled by item 3706** (`docs/AI.md`
+  §358.2): `TechTree::finalize` gathers each graft's `graft_unique_mask`,
+  and `TechTree::live_tribe_mask` applies it with the lobby flag and the
+  roster's barbarians at read time. One pair in the shipped rules moves:
+  the Arqimmortal takes the Persians out of the Elite Pikemen (run1383's
+  packet reads `0x7b6dbf` against the file's `0xfb6dbf`).
 
 Every prerequisite column is resolved by `Types::tech_key`, which compares the
 text — case-insensitively; the shipped file writes both `none` and `None`, and
@@ -1339,8 +1344,8 @@ load is not established) and the never-cleared claim are a reading.
 - ~~**The nation free-upgrade blocks for unit ranges** have per-block
   differences.~~ Read by the second reading: two shapes, recorded at step 13;
   the Statue of Liberty variant is recorded and not implemented.
-- **`Types::finalize_grafting`**, the unique-unit mask rewrite, is read and
-  not modelled.
+- ~~**`Types::finalize_grafting`**, the unique-unit mask rewrite, is read and
+  not modelled.~~ Modelled by item 3706 (above, and `docs/AI.md` §358.2).
 - **`misery`** (`LeaderData +0x7ec`), zeroed on every epoch; its reader is
   elsewhere.
 - **`tech_frame` and `tech_cat_frame`** (`+0x7c4`, `+0x7c8`): named, logged

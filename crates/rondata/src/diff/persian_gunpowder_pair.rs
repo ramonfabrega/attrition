@@ -39,8 +39,14 @@ pub(crate) const PERSIAN_GUNPOWDER: Pair = Pair {
     // Unit::move_step+0x823`. The AI's first military valuation of the
     // game: ours rolls the bias on eight candidates, theirs on seven
     // (`docs/AI.md` §358).
-    count: 1180,
-    sequence: 1180,
+    // Item 3706: 1180 → 3020. Theirs refuses the Elite Pikemen (135):
+    // `Types::finalize_grafting` takes the Persians out of its mask for the
+    // Arqimmortal, which grafts it (run1383's packet, §358.2). On 3020 ours
+    // spends 15 draws against theirs' 10, parting at index 0: ours
+    // `Guy::set_anim+0x97a < Unit::do_idle+0x7d`, theirs
+    // `Guy::set_anim+0x97a < Unit::move_step+0x823`.
+    count: 3020,
+    sequence: 3020,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -141,9 +147,10 @@ fn persian_gunpowder_pair_is_no_other_lobby() {
     }
 }
 
-/// **The long's stride, walked back from the word 1180** (item 3698):
-/// only run1370's stride blocks are on disk before the word's window.
-pub(crate) const WIDENING_PERSIAN_GUNPOWDER_STRIDE: (i64, i64) = (101, 1101);
+/// **The long's stride, walked back from the word** (item 3698, from 1180;
+/// item 3706 extended it to 3001, the last stride block before 3020's
+/// window): only run1370's stride blocks are on disk outside the windows.
+pub(crate) const WIDENING_PERSIAN_GUNPOWDER_STRIDE: (i64, i64) = (101, 3001);
 
 pub(crate) fn persian_gunpowder_stride_window() -> Option<harness::tests::Widened> {
     harness::tests::widen_on_siblings(
@@ -163,12 +170,12 @@ pub(crate) fn persian_gunpowder_stride_window() -> Option<harness::tests::Widene
 }
 
 #[test]
-fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_1180() {
+fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_the_word() {
     let _pins = Pins::hold();
     let Some(w) = persian_gunpowder_stride_window() else {
         return;
     };
-    pin_eq!(w.blocks, 11, "every stride block in the window");
+    pin_eq!(w.blocks, 30, "every stride block in the window");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -185,7 +192,15 @@ fn persian_gunpowder_pair_the_long_s_stride_walks_back_from_1180() {
     // leaders on 101, the buildings' `build:extra` (which the stride does
     // not print) and who=1's groups 64 and 66's `held` and pools on 801.
     // No unit row parts before the word's window.
-    pin_eq!(w.firsts.len(), 61, "the stride's baseline");
+    // Item 3706, walked on to 3001 (30 blocks): **150** keys. 101..2701 is
+    // the standing families alone (groups minted, `held`, pools, `form`,
+    // the leaders, `build:extra`). **The state first parts on 2801**: the
+    // Citizen `1/10` (TI 50), on an `EXPLORETOORDER` above a `BUILDORDER`
+    // for the Village `1/2039` (TI 414), walks to (26088, 25416) in ours
+    // against (26088, 26184) in theirs — ours places the Village 768 lower
+    // (`y_internal` 24672 against 25440 on run1383b's 3014). No draw parts
+    // there; on 2901 `1/10`'s `pos` parts, and on 3001 the Explorer `1/0`'s.
+    pin_eq!(w.firsts.len(), 150, "the stride's baseline");
 }
 
 /// run1370b: the word 1180's window, blocks 1095..1431 at the long's
@@ -252,8 +267,71 @@ fn persian_gunpowder_pair_run1370b_s_word_frame_is_widened_whole() {
     // The make lists agree on 1181 and part on 1183 (`MAKE[6].t` ours 98,
     // theirs -1); on 1186 the Barracks `1/2014` queues the Elite Pikemen
     // (135) in ours against the `Arqimmortal` (165) in theirs.
-    pin_eq!(w.firsts.len(), 809, "run1370b baseline");
+    pin_eq!(w.firsts.len(), 52, "run1370b baseline");
     // Every round, both directions: none fly in the window.
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1383b: the word 3020's window, blocks 3014..3270 at run1370b's
+/// detail — six blocks before the word's own block 3021 and 250 past it
+/// (item 3706).
+pub(crate) const RUN1383B: &str =
+    "gamelog-run1383b-eastindies-persian-gunpowder-window-3014-3270.txt";
+
+/// The window: block 3014 through 3270; the word 3020's own block is 3021.
+pub(crate) const WIDENING_PERSIAN_GUNPOWDER_FRAME_3020: (i64, i64) = (3014, 3270);
+
+/// **The word 3020's window**: run1383b walked from run1369's start with
+/// the recorder on and every round compared (item 3706).
+pub(crate) fn persian_gunpowder_frame_3020_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[PERSIAN_GUNPOWDER.start],
+        true,
+        PERSIAN_GUNPOWDER.long,
+        "run1383b",
+        &[(RUN1383B, WIDENING_PERSIAN_GUNPOWDER_FRAME_3020.0)],
+        WIDENING_PERSIAN_GUNPOWDER_FRAME_3020,
+        1,
+        &[3021],
+        true,
+    )
+}
+
+#[test]
+fn persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_gunpowder_frame_3020_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 256, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    // Item 3706: **672** keys. Block 3014 carries the standing families
+    // and what parted on the stride before it: the Village `1/2039`'s
+    // `y_internal` (24672 against 25440), `construct_hits` and
+    // `job_counter`, the Citizen `1/10`'s and the Explorer `1/0`'s `pos`.
+    // **The word's block**: on 3020 the Explorer `1/0` (TI 71, land) holds
+    // its `EXPLORETOORDER` to (24312, 25080) in theirs and none in ours
+    // (`orders.len` 0 against 1), at the same `pos` (24304, 25076); on
+    // 3021 it is idle in ours (`idle` 1 against 0) and its `do_idle` roll
+    // is the draw ours spends first. No round flies in the window.
+    pin_eq!(w.firsts.len(), 672, "run1383b baseline");
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
@@ -305,15 +383,13 @@ fn persian_gunpowder_pair_run1370_s_closing_state() {
     // block 5674 compares 238 units, nearly every one off and who=1's
     // `1/226`..`1/245` unlinked; every who=1 building's `myhits` reads
     // high in ours (6000 against 5500 on `1/2000`, parked 3698a).
-    pin_eq!(e.compared, 238, "units compared");
-    pin_eq!(
-        e.counts(),
-        [237, 19, 0, 4, 321, 1, 123],
-        "the closing counts"
-    );
+    // Item 3706 (the word at 3020): 250 units compared, and the human's
+    // `0/11` and `0/13` and who=1's `1/235` stand in ours alone (extra).
+    pin_eq!(e.compared, 250, "units compared");
+    pin_eq!(e.counts(), [237, 7, 3, 9, 121, 1, 94], "the closing counts");
     pin_eq!(
         e.extra.clone(),
-        Vec::<(i64, i64)>::new(),
+        vec![(0, 11), (0, 13), (1, 235)],
         "the closing extras"
     );
 }

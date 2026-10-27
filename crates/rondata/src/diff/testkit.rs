@@ -7291,8 +7291,8 @@ pub(crate) const WIDENING_CHAPTER_THREE_RESTAGE: (i64, i64) = (605, 1001);
 pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
     // Item 3698: the Persian Gunpowder pair's closing state, run1370
     // walked to its closing block 5674 past the word 1180: 2 inexact
-    // corners.
-    ("persian_gunpowder_pair_run1370_s_closing_state", 2),
+    // corners. Item 3706 (the word at 3020): 3.
+    ("persian_gunpowder_pair_run1370_s_closing_state", 3),
     // Item 3629: run1291b, the Iroquois Enlightenment word 3962's window,
     // 3956..4212: 2 inexact corners.
     // Item 3655: the Iroquois Enlightenment pair walked whole, run1290
@@ -10768,12 +10768,14 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Persians at a held Gunpowder age** (item 3698): East Indies at
     // Hard — its first try parts at 1180 of a game that ends itself on
     // 5673; widened on run1370b over 1095..1431, the rounds compared.
+    // Item 3706 moved it 1180 → 3020 (the Elite Pikemen's mask), widened
+    // on run1383b over 3014..3270: 672 keys, no rounds.
     (
         "PERSIAN_GUNPOWDER_PAIR_WORD",
         crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER_PAIR_WORD,
-        Some("persian_gunpowder_pair_run1370b_s_word_frame_is_widened_whole"),
-        3698,
-        Some(crate::diff::persian_gunpowder_pair::WIDENING_PERSIAN_GUNPOWDER_FRAME_1180),
+        Some("persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole"),
+        3706,
+        Some(crate::diff::persian_gunpowder_pair::WIDENING_PERSIAN_GUNPOWDER_FRAME_3020),
     ),
     // **The Inca at a held Industrial age** (item 3699): Great Lakes at
     // Toughest — whole on its first try, 4471 of 4471, the closing state
@@ -13082,7 +13084,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The Persians at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
     // `ENDING_TECHNOLOGY` 3), East Indies at Hard (item 3698): its first
     // try parts at 1180 of a game that ends itself on 5673, widened on
-    // run1370b.
+    // run1370b; item 3706 moved it to 3020, widened on run1383b.
     AiWord {
         line: "Late ages",
         map: "EastIndiesPersianGunpowder",
@@ -13090,7 +13092,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER_PAIR_WORD,
         length: 5_673,
         endpoint: Some("persian_gunpowder_pair_run1370_s_closing_state"),
-        window: Some("persian_gunpowder_frame_1180_window"),
+        window: Some("persian_gunpowder_frame_3020_window"),
     },
     // The Inca at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Lakes at Toughest (item 3699): whole on

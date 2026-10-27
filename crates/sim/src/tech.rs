@@ -164,8 +164,16 @@ pub struct TypeDef {
     pub obs: Preq,
     /// `WHERE`: the building type that makes it.
     pub where_: Option<TypeId>,
-    /// `TRIBE_MASK`, one bit per nation.
+    /// `TRIBE_MASK`, one bit per nation, as the file writes it. Read it
+    /// through [`TechTree::live_tribe_mask`], which applies
+    /// `Types::finalize_grafting`'s rewrite.
     pub tribe_mask: u32,
+    /// **`Types::finalize_grafting@00669840`'s rewrite of this mask** (item
+    /// 3706, `docs/AI.md` §358.2): the union of the `TRIBE_MASK`s of every
+    /// unique unit (`unit_flags & 0x1000000`, `y`) in `0x32..0x192` whose
+    /// `GRAFT` (`+0x25c`) is this type. Zero for a type no unique grafts.
+    /// Filled by [`TechTree::finalize`].
+    pub graft_unique_mask: u32,
     /// A tech's `AGE` column.
     pub age: i32,
     /// A unit's `GRAFT`: the nation variant this one is a variant of.
@@ -208,6 +216,7 @@ impl TypeDef {
             obs: Preq::Disabled,
             where_: None,
             tribe_mask: u32::MAX,
+            graft_unique_mask: 0,
             age: -1,
             graft: None,
             is_list: Vec::new(),
@@ -886,6 +895,20 @@ impl TechTree {
     ///   nothing.
     pub fn finalize(&mut self) {
         let n = self.types.len();
+        // `Types::finalize_grafting@00669840`'s first loop, over the unit
+        // types `0x32..0x192`: a unique unit takes its nations out of its
+        // graft's mask — [`TechTree::live_tribe_mask`] applies it.
+        for u in 0x32..n.min(0x192) {
+            let Kind::Unit(traits) = self.types[u].kind else {
+                continue;
+            };
+            if let Some(g) = self.types[u].graft
+                && g != u
+                && traits.unique
+            {
+                self.types[g].graft_unique_mask |= self.types[u].tribe_mask;
+            }
+        }
         for u in 0..n {
             let Kind::Unit(traits) = self.types[u].kind else {
                 continue;
@@ -1056,6 +1079,34 @@ impl TechTree {
         p.power == Some(n)
     }
 
+    /// **The type's `+0x10` as the game reads it**: `TRIBE_MASK` after
+    /// `Types::finalize_grafting@00669840` (called from `Game::init_data`,
+    /// so after the lobby). For each unique unit grafting onto `t`, under
+    /// unique units its nations leave `t`'s mask and the barbarian tribes
+    /// (`Tribe +0x58`) join it; under "No Unique Units" (`info.flags & 8`)
+    /// its nations join instead. Item 3706 (`docs/AI.md` §358.2): the
+    /// Arqimmortal's graft is the Elite Pikemen, whose shipped mask still
+    /// holds the Persians, and run1383's packet reads `0x7b6dbf` against
+    /// the file's `0xfb6dbf` — the one pair in the shipped rules the
+    /// rewrite changes.
+    pub fn live_tribe_mask(&self, setup: &Setup, t: TypeId) -> u32 {
+        let d = &self.types[t];
+        let c = d.graft_unique_mask;
+        if c == 0 {
+            return d.tribe_mask;
+        }
+        if setup.no_unique_units {
+            return d.tribe_mask | c;
+        }
+        let barbarians = self
+            .tribes
+            .iter()
+            .enumerate()
+            .filter(|(i, tr)| tr.barbarian && *i < 24)
+            .fold(0u32, |m, (i, _)| m | 1 << i);
+        (d.tribe_mask & !c) | barbarians
+    }
+
     /// `LeaderData::tribe_can_type`: 4 or 0.
     pub fn tribe_can_type(&self, setup: &Setup, p: &PlayerTech, t: TypeId) -> i32 {
         if let Some(u) = self.kind(t).unit()
@@ -1064,7 +1115,7 @@ impl TechTree {
         {
             return 0;
         }
-        if self.types[t].tribe_mask & (1u32 << (p.tribe as u32 & 31)) != 0 {
+        if self.live_tribe_mask(setup, t) & (1u32 << (p.tribe as u32 & 31)) != 0 {
             4
         } else {
             0
@@ -1507,7 +1558,7 @@ impl TechTree {
             if self.type_avail(setup, p, x, false) >= 3 {
                 break;
             }
-            if self.types[x].tribe_mask & (1u32 << (p.tribe as u32 & 31)) != 0 {
+            if self.live_tribe_mask(setup, x) & (1u32 << (p.tribe as u32 & 31)) != 0 {
                 return false;
             }
             pred = self.get_graft(setup, p, self.types[x].from);
@@ -2663,6 +2714,54 @@ mod tests {
             f.tree.type_avail_built(&s, &p, f.barracks, true, true),
             NOT_AVAILABLE
         );
+    }
+
+    /// **A unique unit takes its nations out of its graft's mask**
+    /// (`Types::finalize_grafting@00669840`, item 3706, `docs/AI.md`
+    /// §358.2): the Arqimmortal's `GRAFT` is the Elite Pikemen, whose
+    /// shipped `TRIBE_MASK` still holds the Persians (23); run1383's packet
+    /// reads the Pikemen's `+0x10` as `0x7b6dbf` and `tribe_can_type(135)`
+    /// as 0 for them. Under "No Unique Units" the nations join it instead.
+    #[test]
+    fn a_unique_unit_s_nations_leave_its_graft_s_mask() {
+        let f = fixture();
+        let mut tree = f.tree.clone();
+        while tree.types.len() < 0x32 {
+            tree.add(TypeDef::new("pad", Kind::Plain));
+        }
+        let unique = UnitTraits { unique: true, ..H };
+        let generic = tree.add(
+            TypeDef::unit("Elite Pikemen", H)
+                .at(f.barracks)
+                .tribes(0xfb6dbf),
+        );
+        let mut arq = TypeDef::unit("Arqimmortal", unique)
+            .at(f.barracks)
+            .tribes(1 << 23);
+        arq.graft = Some(generic);
+        let arq = tree.add(arq);
+        while tree.tribes.len() < 24 {
+            tree.add_tribe(Tribe::default());
+        }
+        tree.finalize();
+        assert_eq!(
+            tree.types[generic].tribe_mask, 0xfb6dbf,
+            "the file's mask stays"
+        );
+        let s = Setup::STANDARD;
+        assert_eq!(tree.live_tribe_mask(&s, generic), 0x7b6dbf);
+        assert_eq!(tree.live_tribe_mask(&s, arq), 1 << 23);
+        let mut p = PlayerTech::new(&tree);
+        p.tribe = 23;
+        assert_eq!(tree.tribe_can_type(&s, &p, generic), 0);
+        assert_eq!(tree.tribe_can_type(&s, &p, arq), 4);
+        p.tribe = 11;
+        assert_eq!(tree.tribe_can_type(&s, &p, generic), 4);
+        let nouu = Setup {
+            no_unique_units: true,
+            ..Setup::STANDARD
+        };
+        assert_eq!(tree.live_tribe_mask(&nouu, generic), 0xfb6dbf);
     }
 
     #[test]

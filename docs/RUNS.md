@@ -31330,6 +31330,51 @@ against 458, none parting. The word's widening (`spanish_industrial_pair_run1382
 and in the coverage driver. Block 4201 is the closing `GameInfo` alone; the per-frame `BUILD` records never print
 who=1's foundations `1/2056..2058` (parked 3705a).
 
+## run1383 — the Persians at a held Gunpowder age, East Indies: a packet at logger frame 1180, `Leader::create_units` (2026-10-27, item 3706, `att-3706`)
+
+`docs/AI.md` §358.2. **What the disk could not answer**: which of ours' eight military candidates theirs does not
+value on 1180. No dump prints `create_units`' candidates, and run1370b's make list on 1181 shows only the four that
+reach it. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1383 --map 18 --end-frame 1182 --timeout 3600
+--log-window 1179 1182 --detail end:MISC,UNITS=3,LEADERS=9 --ai-tribe 23 --cover cover=0 --profile
+STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4
+--tracer-def RON_STATE_FRAME=1180 --tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`. The brief named 1179; the
+packet is taken at the word as a logger frame (`docs/EMULATOR.md` §8: logger frame 1180 is the state before tick
+1180's decision).
+- Pool lane 1, seed 12345. Launched 09:21:28, exited 09:21:47 (19.1 s launch to exit). `success`, 1183 frames. Not
+  filed: the packet is the product. `df -g ~` read 155 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1383/map-18/frame-snapshot.bin`, 864,431,872 bytes,
+SHA-256 `34d6f95d41fa5c7e7f051a233fc3f31559693c5ffca1d712344584fa3de17808`.
+
+**What it holds**: `step4.py --entry 6c40a0 --this e4127c` runs who=1's `create_units` to its return (739,511
+instructions) with seven `Random::get` calls at `+0x63d`. Hooked at `unit_prod_value@006cc580`'s entry (return
+`006c46b4`), the seven types are 98, 165, 172, 189, 211, 229 and 263. **The Elite Pikemen (135) is the one theirs
+refuses.** `type_avail(135, 1)` reads 0 (165, 98 and 172 read 4), through `type_eligible` 0, through
+`tribe_can_type(135)` 0. Hooked at `006d9454`, the Persians' bit is `0x800000` and the Pikemen's `+0x10` reads
+`0x007b6dbf`, against the file's `TRIBE_MASK` `0xfb6dbf`.
+
+## run1383b — the Persians at a held Gunpowder age, East Indies: the word 3020's window, blocks 3014..3270 (2026-10-27, item 3706, `att-3706`)
+
+`docs/AI.md` §358.2. **What the disk could not answer**: every record on the moved word's blocks. run1370's stride
+prints units every hundred frames, with no `AMMO` and no leader, building or city record past the start, and
+run1370b ends on 1431. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1383b --map 18 --end-frame 3270
+--timeout 3600 --log-window 3014 3270 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe
+23 --cover cover=0` and run1369's lobby: six blocks before the word's block 3021 and 250 past it.
+- Pool lane 1. Launched 09:31:30, exited 09:32:41 (71.6 s launch to exit). `success`, 3271 frames, not ended early.
+  `rngcmp.py` against run1370: 3271 of 3271 identical. Filed with `filerun.py run1383b
+  eastindies-persian-gunpowder-window-3014-3270`. `df -g ~` read 152 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1383b-eastindies-persian-gunpowder-window-3014-3270.txt`, 545,437,960 bytes,
+SHA-256 `1c0b8e26f378895152cd5e9a8418ca9e8ed3bf8a2edb72c2f6400b0abde3e315`.
+
+**What it holds**: 256 blocks walked from run1369's start, **672 keys**, no rounds on either side. Block 3014 carries
+the standing families and what parted on the stride before it (the Village `1/2039`'s `y_internal`, the Citizen
+`1/10`'s and the Explorer `1/0`'s `pos`). On the word's block 3020 the Explorer `1/0` holds no order in ours and its
+`EXPLORETOORDER` in theirs. It is the word's widening (`persian_gunpowder_pair_run1383b_s_word_frame_is_widened_whole`)
+and is in the coverage driver.
+
 
 ## run1373 — the Egyptians at a held Industrial age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3700, `att-3700`)
 
