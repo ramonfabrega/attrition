@@ -3607,6 +3607,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::persian_gunpowder_pair::persian_gunpowder_frame_1180_window(),
         || super::persian_gunpowder_pair::persian_gunpowder_stride_window(),
         || super::persian_gunpowder_pair::persian_gunpowder_frame_3020_window(),
+        || super::persian_gunpowder_pair::persian_gunpowder_frame_2801_window(),
         || super::inca_industrial_pair::inca_industrial_closing_window(),
         || super::egyptian_industrial_pair::egyptian_industrial_frame_4959_window(),
         || super::egyptian_industrial_pair::egyptian_industrial_closing_window(),

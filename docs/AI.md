@@ -34039,11 +34039,72 @@ Explorer's path only on 3020. The Village's site is the next item's.
 human's `0/11` and `0/13` and who=1's `1/235` stand in ours alone (`extra`). The walk reads 3 inexact ground corners
 (`GROUND_INEXACT`, 2 → 3).
 
-**What this has not established.** *Where* ours' city-site search parts from theirs': the block that books the
+**What this has not established.** ~~*Where* ours' city-site search parts from theirs': the block that books the
 Village, and whether it is the search, a site score, or a `SITE[i]` the leaders' standing rows already show.
-run1383b and the stride print no `SITE` row between 2701 and 2801, so no dump on disk names the site frame. The
+run1383b and the stride print no `SITE` row between 2701 and 2801, so no dump on disk names the site frame.~~
+**Answered by item 3708 (§358.3)**: a site score, from 2375. The sampler's `forts` term counted a fort that is not
+yet built. The
 barbarian term of the rewrite is carried but unexercised: the roster's `barbarian` is false everywhere
 (`docs/TECH.md`).
+
+**The rubric** does not move: the word does not close.
+
+
+### 358.3 A fort counts when it is built: `find_fort` and the site sweep (item 3708)
+
+*Item 3708, 2026-10-27, Opus 5.5. The word 3020 moves to **3130 of 5673**.*
+
+**The frame.** The word 3020's state first parts on the stride's 2801: the Village `1/2039` (TI 414) is one cell
+(`0x300`) lower in ours. run1385 (2695..2801, with `LEADERS`) places it on 2778 at cell (34, 32) in ours against
+(34, 33) in theirs. On 2777 both sides offer both cells, both saturate to 3906, and `make_stuff` takes the first
+slot; the two sides hold them in slots 8 and 9 the other way round. The order is set by the 2775 sweep
+(`Leader::compute_sites@006cc950`). On the packet run1385p (`step4.py --entry 6cc950 --this e4127c --args 0`) theirs'
+sweep reproduces block 2776's table exactly; its rescore and its 53 region-8 samples (`compute_site_stats`, `keep` 1)
+agree with ours call for call, so **the row-major `cells_in` walks the original's order here** (the `Region.coords`
+seam). The insertion rule (`006cced4`..`006ccf05`) is ours' clause for clause: the tables going *into* 2775 differ.
+run1385c (leaders on a stride, 1502..2602) walks them back (the full table is the item's journal):
+
+| sweep (block) | site | ours | theirs |
+|---|---|---|---|
+| 1575..2175 | every slot | agree | agree |
+| 2375 (2402) | (43, 53) `val` | 336 | 231 |
+| 2775 (2776) | region 12's samples | 1995, 1311, 242 | 1330, 874, 154 |
+
+**Ours scores the home region's samples ×3/2**, while its `keep` 0 rescore of (44, 52) reads 1330 as theirs does.
+With three cities the only ×3/2 inside the slide gate is step 6's `forts != 0` arm, counted only under `keep`. Ours
+counted the **Fort `1/2034` (TI 30) at (44, 53)**: placed by 2375, `active` and `activated` false on 2775.
+
+**The predicate.** `Forts::find_fort@0073ebe0` walks `forts.lists[who]` (count `LeaderData +0x428`) for an entry
+with `+6 & 1` at the cell. `Fort::init@0073eac0` sets that byte, and its one caller is `Forts::init_fort@0073ed70`,
+whose one caller is `Build::activate@00623e20:566` (beside `UnbuiltForts::remove_unbuilt_fort`). A placed fort is
+not on the list. Ours' `fort_at` now asks `active` too, as the census's `Sim::reg_forts` already did.
+
+**Built.** `Sim::fort_at` (`ai_sites.rs`); test `a_fort_is_found_once_it_is_built_not_once_it_is_placed`. With
+`&& b.active` mutated out, `persian_gunpowder_pair_first_parting` reads 3020 again (held).
+
+**The score: 3020 → 3130 of 5673**, by the count and the sequence. The value diff on the word (run1383b, 3014..3270:
+**295** keys, every key before 3131 a standing family):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3130 | draws 98 / 97, index 54 | site | `Unit::think_fish+0x27a` | `Guy::init_real+0x52` |
+| 3130 | who=1's Fishermen `1/125` (TI 317, sea), idle | `orders.len` | 0 | 0 |
+| 3131 | `1/125` | `orders_x`, `orders_y` (its `MOVEORDER`) | 34968, 44952 | 29592, 41880 |
+| 3132 | `1/125` | `path:length`; `pos` | 1; (35891, 44676) | 7; (35890, 44663) |
+
+**The windows** (re-pinned in `persian_gunpowder_pair.rs`): run1385 118 → **91** keys, the stride (run1370) 150 →
+**132**, run1370b's 1180 window holds at 52; all standing families but the stride's 2901 row (`1/42`'s
+`dest_angle`), which the mutated tree prints too (3708a).
+
+**The closing state** (run1370's 5674): 250 units compared, counts `[237, 7, 1, 7, 180, 1, 83]`, and the human's `0/13`
+the one extra (`GROUND_INEXACT` stays 3).
+
+**What this has not established.**
+- **Why ours' fisherman goes where it does on 3131.** Theirs spends a `Guy::init_real` (a birth) at the index where
+  ours runs `think_fish`; that is the next item's.
+- **The list's other exits.** `close_fort` is read and not modelled: it covers a fort's death, which `alive` stands
+  for, and its capture, which no capture on disk holds.
+- **The `Region.coords` seam is closed for one sweep**, region 8 and region 12 on run1385p, not for every map.
 
 **The rubric** does not move: the word does not close.
 

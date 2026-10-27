@@ -548,7 +548,9 @@ fn run681_s_word_frame_is_widened_whole() {
     // Item 2384: +2, `leader:aggression[i]` ours 0 theirs 1, standing
     // from the window's first block (both leaders): compared since 2384;
     // theirs' writer on an at-war slot is parked 2385.
-    pin_eq!(w.firsts.len(), 53, "initial run681 baseline");
+    // Item 3708: 53 → 50, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 50, "initial run681 baseline");
     pin_eq!(
         w.firsts.values().filter(|(f, _)| *f == 1191).count(),
         46,
@@ -1313,5 +1315,7 @@ fn run817_s_word_frame_is_widened_whole() {
     // `recharging` 80 against 25 is gone. `1/117` and `1/136` gain a
     // `sheltered` row, ours 1 against 0, on units already apart by their
     // `hits:damage`.
-    pin_eq!(w.firsts.len(), 229, "initial run817 baseline");
+    // Item 3708: 229 → 223, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 223, "initial run817 baseline");
 }

@@ -193,7 +193,9 @@ fn persian_medieval_pair_run1181b_s_word_frame_is_widened_whole() {
     // what is left is the standing families alone — 74 rows on 2220
     // (`form`, `leader`, who=1's groups' `held` and `pool`), and the
     // births' `form` and groups' `held` as they come.
-    pin_eq!(w.firsts.len(), 86, "run1181b baseline");
+    // Item 3708: 86 → 85, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 85, "run1181b baseline");
 }
 
 /// run1189: the landing's window, blocks 2160..2220 at the long's detail
@@ -257,7 +259,9 @@ fn persian_medieval_pair_run1189_lands_the_explorer_on_its_attack() {
     // and 78 on 2164 and 2172 (78 is the Explorer's `go_to` group, which
     // theirs' pool prints as no list) and `SITE[8].val` on 2176. The
     // Explorer's orders agree on 2172.
-    pin_eq!(w.firsts.len(), 77, "run1189 baseline");
+    // Item 3708: 77 → 76, a fort placed but not built no longer
+    // counts in the site sweep (`fort_at` asks `active`, `docs/AI.md` §358.3).
+    pin_eq!(w.firsts.len(), 76, "run1189 baseline");
 }
 
 /// run1189b: the word 4038's window, blocks 4033..4289 at the long's
