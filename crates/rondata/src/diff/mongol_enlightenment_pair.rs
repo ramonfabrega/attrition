@@ -210,7 +210,7 @@ fn mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole() {
     let Some(w) = mongol_enlightenment_frame_4854_window() else {
         return;
     };
-    pin_eq!(w.blocks, 261, "every captured block");
+    pin_eq!(w.blocks, 155, "every captured block");
     if std::env::var("RON_FIRSTS").is_ok() {
         let mut rows: Vec<_> = w.firsts.iter().collect();
         rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
@@ -233,21 +233,23 @@ fn mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole() {
         ["gaia:cur_anim", "gaia:cur_time"],
         "the keys the capture prints and nothing reads"
     );
-    // Item 3672, the first walk: 2344 keys. Block 4495 carries the
-    // standing families (`form`, both leaders' `SITE[i].reg`, the human's
-    // `aggression[1]`, who=1's groups and pools) and the Fusilier `1/48`'s
-    // attack target the stride parts from 4401. **The rounds part from the
-    // window's first block** by a pixel of launch, and on 4499 **who=1's
-    // Musketeer `1/37` (TY 99) fires its `CHAR_ATTACK2` round at `0/10`
-    // from its own square in ours** — (6072, 9480, 127), 5 frames' flight
-    // — against theirs' (6152, 9334, 303) and 4: `sim::launch` has no
-    // piece-49 `ATTACK2` row. Theirs' round retires on 4504; ours' resolves
-    // on the word 4505 beside `1/45`'s, ours' extra `Ammo::do_damage`
-    // pair at index 151. On 4504 the Citizen `0/11` carries theirs' 14
-    // from `1/36` on 4503, ours none.
-    pin_eq!(w.firsts.len(), 2344, "run1346c baseline");
-    // Every round, both directions: 421 round-blocks theirs, 446 ours, 255
-    // parting, the first on the window's first block 4495.
-    pin_eq!(w.rounds_read, (421, 446), "the rounds read");
-    pin_eq!(w.rounds.len(), 255, "the rounds that part");
+    // Item 3673, the first walk: 754 keys. Block 4795 carries the
+    // standing families (`form`, who=1's leader buckets, the queue costs of
+    // who=1's buildings `1/2029` and `1/2030` — ours 99 and 114 against
+    // theirs 94 and 110 — and who=1's groups and pools). **On 4850 the
+    // human's Citizen `0/6` (TY 50) carries `hits:damage` 35 in ours
+    // against 46 in theirs**: who=1's Golden Horde `1/97` (TI 204, piece
+    // 154) looses its `CHAR_ATTACK2` round at `0/6` on 4841 from its own
+    // square in ours — (6264, 28728, 480), 11 frames' flight — against
+    // theirs' (6180, 28775, 715) and 10: `sim::launch` holds no piece-154
+    // row. Theirs' round lands on 4850, ours' on 4851. On the word 4854
+    // the Musketeer `1/21`'s round (ours from its own square, 3 frames
+    // against 2) kills `0/6` in theirs — `Unit::close+0xcb6`, index 17 —
+    // and ours holds it on 4855.
+    pin_eq!(w.firsts.len(), 754, "run1346c baseline");
+    // Every round, both directions: 294 round-blocks theirs, 275 ours, 99
+    // parting, the first on the window's first block 4795 (the Cannon
+    // `1/91`'s, from its own square in ours).
+    pin_eq!(w.rounds_read, (294, 275), "the rounds read");
+    pin_eq!(w.rounds.len(), 99, "the rounds that part");
 }
