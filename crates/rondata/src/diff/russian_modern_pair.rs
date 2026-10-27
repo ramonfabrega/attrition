@@ -476,7 +476,10 @@ fn russian_modern_pair_run1170_s_word_frame_is_widened_whole() {
     // `free_peasants`/`gatherers` 5 against 6 on 5778), who=0's
     // `aggression[1]`, and the Special Forces `0/0`'s blow on 5786
     // (`hits_left` 88 against 79), which no draw follows (parked 3527a).
-    pin_eq!(w.firsts.len(), 179, "run1170 baseline");
+    // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
+    // `gatherers` agree now that `produce_city` walks its citizens by
+    // object number (`docs/AI.md` §358.4).
+    pin_eq!(w.firsts.len(), 177, "run1170 baseline");
 }
 
 /// run1168: the gap before the word 4097's window, blocks 3928..4098 at the

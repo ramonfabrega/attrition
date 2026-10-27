@@ -641,7 +641,10 @@ fn roman_medieval_pair_run1295_s_word_frame_is_widened_whole() {
             .is_none(),
         "no unit parts past the standing block"
     );
-    pin_eq!(w.firsts.len(), 98, "run1295 baseline");
+    // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
+    // `gatherers` agree now that `produce_city` walks its citizens by
+    // object number (`docs/AI.md` §358.4).
+    pin_eq!(w.firsts.len(), 96, "run1295 baseline");
 }
 
 /// **The closing state** (item 3635): run1275's closing block 5980, the

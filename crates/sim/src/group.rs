@@ -2985,6 +2985,15 @@ impl Sim {
                     Some(to),
                 );
             }
+            // **Either arm takes the builder's mark off** (`705fe3`: `andl
+            // $0xfffffbff, 0x68(%eax)`, after the member's order): a citizen
+            // an army or a raid moves off its site is no longer "has been a
+            // builder", and its next idle think does not search for a
+            // build. run1370's `1/95` leaves its `BUILDORDER` for group 80's
+            // move between 4001 and 4101 and its `unit_masks` loses 0x400;
+            // ours kept it to 4841 and sent it to the unbuilt `1/2052`
+            // (`docs/AI.md` §358.4, item 3710).
+            self.units[u].was_builder = false;
         }
         // §6.7: the group's own path, planned once off the leader's slot
         // and handed to every member translated. It sits exactly here in
@@ -5757,6 +5766,54 @@ mod tests {
     /// does not (`docs/ORDERS.md` §8.2's gate), and a group with no army
     /// takes none at all — this crate's own line, since a player's
     /// selection has no persistent group for `do_group_move` to read.
+    /// **A group move takes the builder's mark off** (item 3710,
+    /// `Group::action_move_near@00704990`'s `705fe3`, after either arm's
+    /// order): run1370's Citizen `1/95` left its site for group 80's move
+    /// between 4001 and 4101 and lost `unit_masks & 0x400`; this crate kept
+    /// `was_builder` and its idle think on 4841 searched for a build. Both
+    /// arms: an army's `GroupMoveOrder` and a selection's plain move.
+    #[test]
+    fn a_group_move_takes_the_builder_s_mark_off() {
+        let mut s = sim();
+        let t = fighter(&mut s);
+        let a = spawn(&mut s, 1, t, Pos::new(0x1000, 0x1000));
+        let b = spawn(&mut s, 1, t, Pos::new(0x1200, 0x1000));
+        let slot = s.init_army(1, None);
+        s.army_add_unit(1, slot, a);
+        s.army_add_unit(1, slot, b);
+        let g = s.army_group(1, slot);
+        s.units[a].was_builder = true;
+        s.units[b].was_builder = true;
+        s.group_action_move_to(
+            &g,
+            Pos::new(0x4000, 0x4000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        assert!(s.current_move(a).expect("a move").group.is_some());
+        assert!(
+            !s.units[a].was_builder && !s.units[b].was_builder,
+            "the grouped arm"
+        );
+
+        let plain = group_of(1, &[a, b]);
+        s.units[a].was_builder = true;
+        s.group_action_move_to(
+            &plain,
+            Pos::new(0x5000, 0x5000),
+            QueuePos::New,
+            true,
+            Angle(0),
+            MoveKind::MoveTo,
+            true,
+        );
+        assert!(s.current_move(a).expect("a move").group.is_none());
+        assert!(!s.units[a].was_builder, "the plain arm");
+    }
+
     #[test]
     fn an_army_s_move_is_a_group_order_and_a_selection_s_is_not() {
         let mut s = sim();

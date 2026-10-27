@@ -2329,6 +2329,19 @@ impl Sim {
             .position(|u| u.owner == who && u.index == o && u.alive())
     }
 
+    /// `who`'s unit slots in the original's list order — `units[who][o]`
+    /// walked from 0, which is object number, not this crate's slot order
+    /// (a reused number sits at the end of `self.units`). Dead units are
+    /// kept; a caller filters on `alive()` as the original's `vtable+8`
+    /// does.
+    pub(crate) fn units_by_o(&self, who: Player) -> Vec<usize> {
+        let mut v: Vec<usize> = (0..self.units.len())
+            .filter(|&u| self.units[u].owner == who)
+            .collect();
+        v.sort_by_key(|&u| self.units[u].index);
+        v
+    }
+
     /// The live building of `who` numbered `o`, if any.
     pub fn building_by_o(&self, who: Player, o: i16) -> Option<usize> {
         self.buildings
