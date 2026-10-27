@@ -10847,6 +10847,11 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3678: the British Industrial word moved to 2939 (`docs/AI.md` §347; `docs/RUNS.md` run1352) ====
 #   run1352 --map 7 --end-frame 3190 --allow-early-end --timeout 3600 --log-window 2933 3190 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1335's lobby   (the word 2939's window)
 # Checks: `rngcmp.py` run1336 vs run1352 -> 3191 identical.
+# ==== item 3683: the British Industrial pair whole, 2939 -> 2918 -> 4767 (`docs/AI.md` §347.1; `docs/RUNS.md` run1355, run1355b, run1355c) ====
+#   run1355  --map 7 --end-frame 2935 --timeout 3600 --log-window 2932 2934 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 11 --cover cover=0 --tracer-def RON_STATE_FRAME=2933 --tracer-def RON_STATE_PLAN=…, run1335's lobby   (a packet: pieces 190, 65)
+#   run1355b --map 7 --end-frame 3168 --allow-early-end --timeout 3600 --log-window 2903 3168 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1335's lobby   (the word 2918's window)
+#   run1355c --map 7 --end-frame 4767 --allow-early-end --timeout 3600 --log-window 4512 4768 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1335's lobby   (the closing window)
+# Checks: `rngcmp.py` run1336 vs run1355 -> 2936 identical; vs run1355b -> 3169 identical; vs run1355c -> 4768 identical.
 # ==== item 3682: the German Industrial pair whole, the closing window (`docs/AI.md` §346.2; `docs/RUNS.md` run1354) ====
 #   run1354 --map 14 --end-frame 4772 --allow-early-end --timeout 3600 --log-window 4516 4773 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1333's lobby   (the closing window)
 # Checks: `rngcmp.py` run1334 vs run1354 -> 4773 identical.
