@@ -418,6 +418,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // pair's `(18, 5, 5)` or the Gunpowder pair's `(7, 5, 5)`, other maps;
     // no battery game fields the Greeks.
     (14, 5, 5),
+    // The Lakota at a held Enlightenment age, Great Lakes (item 3695): not
+    // the AI word `GreatLakesLakotaTier2`'s `(14, 19, 2)`, another
+    // difficulty, nor the battery's `GreatSaharaLakotaTier2`, `(7, 19, 2)`,
+    // the peace pair's `(18, 19, 3)`, the Medieval pair's `(18, 19, 5)` or
+    // the Gunpowder pair's `(7, 19, 5)`, other maps.
+    (14, 19, 5),
     // The Chinese at a held Enlightenment age, Great Lakes (item 3675): not
     // the held-out `GreatLakesChineseTier1`'s `(14, 14, 1)`, another
     // difficulty, nor the Medieval pair's `(7, 14, 5)`, the Industrial

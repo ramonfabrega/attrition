@@ -33603,12 +33603,55 @@ guy's pose on the block before the round's first print, in the shape of 3692's p
 lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1350 and run1350b): `Manchu
 Musketeers` (116, `MANCHUMUSKETEERS`), 22,212 guy rows, the word's own shooter; the pair fields 16 types.
 
-## 355. Reserved for the next item on the AI track
+## 355. The Lakota at a held Enlightenment age, Great Lakes: whole on its first try, 4673 of 4673 (item 3695)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §353's lobby with the nation moved: Great Lakes
+(`MAP_STYLE 14`), human Nubians (4) against the **Lakota (19)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`. Both age settings read back `4` on both `GAME INFO`s
+(`Pair::assert_lobby`). Captures: run1363 (a `DUMP_ALL` start) and run1364 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 4673. The walk is seeded from run1363's initial
+state (3506a). run1363 against run1364 is 37 of 37 frames identical. `diff::lakota_enlightenment_pair` pins it. No
+twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 19, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery's one Lakota game, `GreatSaharaLakotaTier2`, is `(7, 19, 2)`, another map. It is no pinned lobby's: the AI
+word `GreatLakesLakotaTier2` (`diff::lakota_word`) is `(14, 19, 2)`, another difficulty; the peace pair
+(`lakota_pair`) is `(18, 19, 3)`, `lakota_medieval_pair` `(18, 19, 5)` and `lakota_gunpowder_pair` `(7, 19, 5)`,
+other maps. `lakota_enlightenment_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, frame 4673 of 4673**, by the count and the sequence. **The closing state** (run1364's closing
+block 4674, `lakota_enlightenment_pair_run1364_s_closing_state`) compares 188 units, none off, torn, unlinked or
+extra, and no building or city field-row (`closing_fields`: none).
+
+**The closing window** (run1364b, blocks 4418..4674 at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+run1363 with every round compared: 256 blocks, **57 keys**, the two `gaia:` keys unprinted; rounds read 120 ours and
+123 theirs, **45 parting**). run1364's stride prints units every hundredth block, no `AMMO`, and no leader, building
+or city record past the start, so no dump held the last blocks. run1364 against run1364b is 4674 of 4674 frames
+identical.
+- The standing families on 4418: `form`, who=1's groups and pools, both leaders' `SITE[i].reg`, who=0's
+  `aggression[1]` (ours 0 against theirs 1), and leader 1's food (`bucket[0]` 10305 against 10333, `leftover[0]`
+  6144 against 5352).
+- **The rounds: every parting row is a launch.** who=1's group 64 attacks the human's city `0/2003` (uid 3) with two
+  **Repeating Rifle Horse** (208, `RIFLEHORSE`), `1/71` and `1/76`, and a **Cannon** (268) `1/75`. Each round leaves
+  from the unit's own position in ours and from an offset launch point in theirs, and its `angle` and `v1z` part with
+  it; the impact `ex, ey` agree within three.
+
+| block | round | ours `sx, sy, sz` | theirs | `v1z` ours / theirs |
+|---|---|---|---|---|
+| 4424 | `1/71` `ammo[1]` | 5976, 32664, 276 | 5938, 32613, 538 | 95724998 / 30225000 |
+| 4428 | `1/75` `ammo[1]` | 6648, 31896, 168 | 6507, 31854, 268 | 91135796 / 82044891 |
+| 4440 | `1/76` `ammo[0]` | 5880, 32424, 297 | 5842, 32366, 559 | 108397919 / 21064585 |
+
+  `1/71`'s round of 4459 flies `total_time` 4 in ours against 3 in theirs and lands a frame later, so the city's
+  `build:damage` reads 203 against 210 on 4461; ours holds the round alone on 4461. The Cannon's offset is the
+  Mongol Cannon's (3692a); the rider's is new. Parked 3695a.
+- Two Musketeers (99) in group 64, `1/39` on 4656 and `1/38` on 4661, part on `dest_angle` alone (parked 3695b).
+- No unit position, order, building or city field parts in the window beyond those, and the draw stream holds to the
+  game's end, so none of it names a score.
+
+**The rubric.** Unit types seen 220 → **221** of 302 (`rubric.py --tables 3`, `census::RUBRIC_UNIT_TYPES_SEEN`):
+**`Repeating Rifle Horse` (208, `RIFLEHORSE`)**, the booking's line, is fielded and new to the lockstep ledger, with
+352 figure rows on the lockstep count.
 
 ## 356. Reserved for the next item on the AI track
 

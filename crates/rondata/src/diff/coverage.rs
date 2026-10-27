@@ -3596,6 +3596,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::russian_gunpowder_pair::russian_gunpowder_damage_window(),
         || super::russian_gunpowder_pair::russian_gunpowder_frame_5341_window(),
         || super::greek_enlightenment_pair::greek_enlightenment_closing_window(),
+        || super::lakota_enlightenment_pair::lakota_enlightenment_closing_window(),
         || super::chinese_enlightenment_pair::chinese_enlightenment_frame_3263_window(),
         || super::chinese_enlightenment_pair::chinese_enlightenment_stride_window(),
         || super::inca_enlightenment_pair::inca_enlightenment_gap_window(),

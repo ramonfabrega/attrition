@@ -511,7 +511,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `Marine Riflemen` (120, `MARINERIFLEMEN`, land; 1230 figure rows) and
 /// `Armored Car` (217, `GREYHOUND`, land; 62), the two lines §348 named,
 /// read by `rubric.py --tables 3` on the tree merged with 3692's landing.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 220;
+/// Item 3695: 220 -> 221, the Lakota Enlightenment pair whole on its first
+/// try at 4673 — `Repeating Rifle Horse` (208, `RIFLEHORSE`, land; 352
+/// figure rows), the line §355 named, read by `rubric.py --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 221;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
