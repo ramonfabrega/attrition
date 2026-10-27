@@ -483,7 +483,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Hwarang` (182, land; 1542 figure rows, every one in run1330 and
 /// run1331), the line §345 booked, read by `rubric.py --tables 3` on the
 /// merged tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 206;
+/// Item 3682: 206 -> 211, the German Industrial pair whole at 4772 —
+/// `Riflemen` (101), the German `Anti-tank Rifle` (138), the `A7V` (242),
+/// the German `Artillery` (270) and the `Albatross` (288), all off the
+/// never list, read by `rubric.py --tables 3` on the merged tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 211;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

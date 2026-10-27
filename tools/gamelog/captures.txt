@@ -10847,6 +10847,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3678: the British Industrial word moved to 2939 (`docs/AI.md` §347; `docs/RUNS.md` run1352) ====
 #   run1352 --map 7 --end-frame 3190 --allow-early-end --timeout 3600 --log-window 2933 3190 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1335's lobby   (the word 2939's window)
 # Checks: `rngcmp.py` run1336 vs run1352 -> 3191 identical.
+# ==== item 3682: the German Industrial pair whole, the closing window (`docs/AI.md` §346.2; `docs/RUNS.md` run1354) ====
+#   run1354 --map 14 --end-frame 4772 --allow-early-end --timeout 3600 --log-window 4516 4773 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1333's lobby   (the closing window)
+# Checks: `rngcmp.py` run1334 vs run1354 -> 4773 identical.
 # ==== item 3669: the Americans at a held Industrial age, Great Sahara (`docs/AI.md` §348; `docs/RUNS.md` run1337, run1338, run1338b) ====
 #   run1337  --map 7 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 20 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1338  run1336's line with --ai-tribe 20 and run1337's lobby   (the draw stream; ended itself on 5861)
