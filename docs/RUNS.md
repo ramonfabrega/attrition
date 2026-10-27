@@ -30611,3 +30611,30 @@ blocks, 2344 keys, rounds 421 theirs against 446 ours, 255 parting from 4495). O
 99) fires a `CHAR_ATTACK2` round from its own square in ours — (6072, 9480, 127) against theirs' (6152, 9334, 303),
 5 frames' flight against 4 — and it resolves on the word 4505 in ours, a frame after theirs retired.
 
+
+## run1360 — the French at a held Enlightenment age, East Indies, at difficulty 4: the closing window, blocks 4685..4941 (2026-10-27, item 3691, `att-3691`)
+
+`docs/AI.md` §351.1. **What the disk could not answer**: every record on the word once it reached the game's end.
+run1344b stops at 4756. run1344's stride prints units every hundred frames, and no leader, building or `AMMO` record.
+The launch row itself needed no capture: run1344b's and run971's 94 piece-49 rounds fit it.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1360 --map 18 --end-frame 4940 --allow-early-end
+--timeout 3600 --log-window 4685 4941 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe
+10 --cover cover=0 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 1. Launched 00:05:19, exited 00:06:41 (81.9 s launch to exit). `success`: 4941 frames, closing frame
+  4941, seed 12345, players tribe 4 and tribe 10, map style 18, five files restored. `rngcmp.py` against run1344:
+  4941 of 4941 identical. Filed with `filerun.py run1360 eastindies-french-enlightenment-closing-window-4685-4941`.
+  `df -g ~` read 51 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1360-eastindies-french-enlightenment-closing-window-4685-4941.txt`, 632,377,857 bytes,
+SHA-256 `42a0f3d88a88c64ba4c95cae5ba54f1ab645a3ffdae58c0078dd769b0225778e`.
+
+Archive `rontrace-run1360.log`, 127,719,840 bytes,
+SHA-256 `f65c22facca7647bb52d4dc4cd57eb79a0a055a5fef5e1e0e9106224deeb698c`.
+
+**What it holds**: `french_enlightenment_pair_run1360_s_closing_window_is_widened_whole` walks it from run1343. That
+is 256 blocks and 117 keys: the standing families, the Horse Guard Grenadier `1/29`'s damage from 4552, and the
+capital `0/2000`'s `build:damage` on 4691 (421 against 427). The rounds read 465 theirs against 477 ours, and 202
+part: six Fusiliers' launches (TY 136; parked 3691a) and slot swaps. The draw stream holds to 4940, the game's
+last frame.
