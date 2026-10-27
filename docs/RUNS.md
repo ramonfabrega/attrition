@@ -31111,3 +31111,69 @@ SHA-256 `cbae70f2b502f3fe65e493090fb2e687b3ea400769815af66c520f748f67340c`.
 That is 256 blocks and 148 keys: the standing families, the city `0/2000`'s damage on 4557, and two Musketeers'
 `dest_angle` (parked 3696b). The rounds read 102 ours and 115 theirs, 72 parting, every one a launch of the Gun
 Samurai `1/53`, `1/54` and `1/55` (parked 3696a). The draw stream holds to 4701, the game's last frame.
+
+## run1367 — the Spanish at a held Industrial age, Great Lakes: the `DUMP_ALL` start (2026-10-27, item 3697, `att-3697`)
+
+`docs/AI.md` §357. run1333's lobby with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1367 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 9 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 06:53:37, exited 06:54:02 (25.2 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 9, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 5` and `ENDING_TECHNOLOGY 5` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1367 greatlakes-spanish-industrial-start`. `df -g ~` read 169 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1367-greatlakes-spanish-industrial-start.txt`, 151,156,972 bytes,
+SHA-256 `92765aea9e478a27eecd6fd33efb80c61b79c548a617b5dd2f5b789fa9d17410`.
+
+Archive `rontrace-run1367.log`, 8,844,288 bytes,
+SHA-256 `481ec8ebd30903d967f9dc9a1cb7c7f1421bfe5cf72cb3e998673ea18086d4d1`.
+
+**What it holds**: the start of `spanish_industrial_pair::SPANISH_INDUSTRIAL`, and the walk's initial state.
+
+## run1368 — the Spanish at a held Industrial age, Great Lakes: the draw stream to the game's end (2026-10-27, item 3697, `att-3697`)
+
+`docs/AI.md` §357. run1334's line with `--ai-tribe 9` and run1367's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 9 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1367. Launched 06:53:43, exited 06:54:09 (26.6 s launch to exit). `success`. **The game
+  ended itself on 4200** (closing block 4201, `ended_early`). `GAME INFO` reads back as run1367's. `rngcmp.py`
+  against run1367: 37 frames identical. Filed with `filerun.py run1368 greatlakes-spanish-industrial-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1368-greatlakes-spanish-industrial-trace.txt`, 25,760,803 bytes,
+SHA-256 `609d3aec2909337b58a67c1fd891dd4713011c3f2256bfe528b2cc20d8e82b0e`.
+
+Archive `rontrace-run1368.log`, 93,659,168 bytes,
+SHA-256 `33025cfa3151817aa36be574b82a9361b824f1993bbb8e36392bf79042f306d8`.
+
+**What it holds**: the pair's first try. `spanish_industrial_pair_first_parting` walks it from run1367: **3229 of
+4200** by the count and the sequence. `spanish_industrial_pair_run1368_s_closing_state` compares the closing block
+4201: 176 units, downstream of the word.
+
+## run1368b — the Spanish at a held Industrial age, Great Lakes: the word 3229's window, blocks 3195..3480 (2026-10-27, item 3697, `att-3697`)
+
+`docs/AI.md` §357. **What the disk could not answer**: every record and every round on the word's frame. run1368's
+stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the start.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1368b --map 14 --end-frame 3480 --timeout 3600
+--log-window 3195 3480 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover
+cover=0` and run1367's lobby: six blocks before the stride's last block 3201 and 250 past the word's block 3230.
+- Pool lane 1. Launched 06:56:57, exited 06:57:44 (46.4 s launch to exit). `success`: 3481 frames. `rngcmp.py`
+  against run1368: 3481 of 3481 identical. Filed with `filerun.py run1368b
+  greatlakes-spanish-industrial-window-3195-3480`. `df -g ~` read 168 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1368b-greatlakes-spanish-industrial-window-3195-3480.txt`, 596,049,115 bytes,
+SHA-256 `1e1ca89e607a0a8f31dc9c13c4df8696e2bcde04af020de0ca3b1972ad9d34a1`.
+
+Archive `rontrace-run1368b.log`, 63,721,536 bytes,
+SHA-256 `78cb3cbee45c32c059706b342f395ed44222050f63a7f35f43a5d942c48c9984`.
+
+**What it holds**: `spanish_industrial_pair_run1368b_s_word_frame_is_widened_whole` walks it from run1367: 285
+blocks and 776 keys, rounds 98 theirs against 105 ours, 55 parting. Who=1's group 64 Riflemen (TY 100) loose every
+round from their own square in ours; on the word the Rifleman `1/53`'s round at the human's building `0/2003`
+lands in theirs (`Object::take_damage`) and a frame later in ours.
