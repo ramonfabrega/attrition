@@ -188,6 +188,8 @@ mod order;
 #[cfg(test)]
 mod persian_classical_pair;
 #[cfg(test)]
+mod persian_gunpowder_pair;
+#[cfg(test)]
 mod persian_medieval_pair;
 #[cfg(test)]
 mod persian_word;
