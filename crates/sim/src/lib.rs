@@ -6495,15 +6495,6 @@ impl Sim {
     ///   more tick up to 32 frames after walking out — and, symmetrically,
     ///   takes nothing for up to 32 frames after walking in.
     pub fn tick(&mut self) -> Vec<Tick> {
-        if std::env::var("RON_PROBE_3710").is_ok() {
-            static LAST: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
-            if let Some(u) = self.unit_by_o(1, 95) {
-                let v = i32::from(self.units[u].was_builder);
-                if LAST.swap(v, std::sync::atomic::Ordering::Relaxed) != v {
-                    eprintln!("PROBE3710 tick f{} 1/95 was_builder {} pos ({}, {}) orders {:?}", self.frame, v, self.units[u].pos.x, self.units[u].pos.y, self.units[u].orders.iter().map(|o| o.index()).collect::<Vec<_>>());
-                }
-            }
-        }
         self.in_play = true;
         let frame = self.frame;
         let mut events = Vec::new();
