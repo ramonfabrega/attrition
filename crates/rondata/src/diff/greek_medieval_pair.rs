@@ -35,8 +35,14 @@ pub(crate) const GREEK_MEDIEVAL: Pair = Pair {
     // Item 3703, first try: 5626 of 5942 by the count and the sequence —
     // ours 29 draws against 28, index 9: ours `Unit::do_move+0xe84`,
     // theirs `Guy::set_anim+0x97a < Guy::move+0x19f` (`docs/AI.md` §363).
-    count: 5626,
-    sequence: 5626,
+    // Item 3711 closes it, 5626 → 5942, the game's last frame (§363.1):
+    // `Group::action_move_near` writes its world clamp back into the slot
+    // table, so the Heavy Fire Raft `1/70`'s slot (46259, 38109), past the
+    // map's edge at 46080, goes on its stack as (46079, 38109); its
+    // `find_path` pulls back from there to (45683, 37689), the dump's
+    // `path[0]`, and walks it without the grid draw ours spent.
+    count: 5942,
+    sequence: 5942,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -241,15 +247,21 @@ fn greek_medieval_pair_run1380b_s_word_frame_is_widened_whole() {
     // own square; theirs spends none and gives it a move to (46056, 38088).
     // So on 5627 its `orders.len` reads 0 against 1, `orders_x/y` 45675,
     // 37688 against 46056, 38088 and `heading` 145883136 against
-    // 1153564672, and on 5628 its `pos` parts.
-    pin_eq!(w.firsts.len(), 3660, "run1380b baseline");
+    // 1153564672, and on 5628 its `pos` parts. Item 3711, the raft's slot
+    // clamped into the table: **137** keys — the standing families on 5595
+    // (121), and then only `group:N.held`/`pool:N` on 5606, 5821 and 5831,
+    // `form`, `g.angle[0]` and `dest_angle` rows, and `1/195`'s
+    // `order:target` on 5875 (`0/4` against `0/10`, parked 3711a); no
+    // draw feels any of them before the game ends.
+    pin_eq!(w.firsts.len(), 137, "run1380b baseline");
     // Every round, both directions: 1205 against 1199. The first to part
     // are launch points a unit or two off — the Heavy Horse Archer
     // `1/151`'s `ammo[4]` on 5601 (`sx` 6566 against 6565) and the
     // Crossbowmen `1/157`'s `ammo[0]` on 5612 — before the word, and the
-    // draws never feel them (parked 3703a).
-    pin_eq!(w.rounds_read, (1205, 1199), "the rounds read");
-    pin_eq!(w.rounds.len(), 243, "the rounds that part");
+    // draws never feel them (parked 3703a). Item 3711: 1205 against 1205,
+    // 115 parting.
+    pin_eq!(w.rounds_read, (1205, 1205), "the rounds read");
+    pin_eq!(w.rounds.len(), 115, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3703): run1380's closing block,
@@ -298,8 +310,10 @@ fn greek_medieval_pair_run1380_s_closing_state() {
     // Item 3703, downstream of the word 5626: 319 units compared, counts
     // `[119, 3, 1, 7, 6, 1, 0]`, 3 unlinked and 1 extra, who=1's army off
     // and two of its buildings apart (parked 3703b); 1 inexact ground
-    // corner (`GROUND_INEXACT`).
-    pin_eq!(e.compared, 319, "units compared");
-    pin_eq!(e.counts(), [119, 3, 1, 7, 6, 1, 0], "the closing counts");
-    pin_eq!(e.extra.len(), 1, "the closing extras");
+    // corner (`GROUND_INEXACT`). Item 3711, the pair whole: 322 units, none
+    // off, torn, unlinked or extra, `Closing fields: none` — the game ends
+    // itself on 5942.
+    pin_eq!(e.compared, 322, "units compared");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 0, 0, 0], "the closing counts");
+    pin_eq!(e.extra.len(), 0, "the closing extras");
 }
