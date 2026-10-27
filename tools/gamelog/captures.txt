@@ -10860,3 +10860,9 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1338  run1336's line with --ai-tribe 20 and run1337's lobby   (the draw stream; ended itself on 5861)
 #   run1338b --map 7 --end-frame 3425 --allow-early-end --timeout 3600 --log-window 3095 3425 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 20 --cover cover=0, run1337's lobby   (the word 3174's window)
 # Checks: `rngcmp.py` run1337 vs run1338 -> 37 identical; run1338 vs run1338b -> 3426 identical.
+# ==== item 3670: the Russians at a held Gunpowder age, Great Lakes (`docs/AI.md` §349; `docs/RUNS.md` run1339, run1340, run1340b, run1340c) ====
+#   run1339  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 13 --profile STARTING_TECHNOLOGY=3 --profile ENDING_TECHNOLOGY=3 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1340  run1334's line with --ai-tribe 13 and run1339's lobby   (the draw stream; ended itself on 5341)
+#   run1340b --map 14 --end-frame 3961 --allow-early-end --timeout 3600 --log-window 3695 3961 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0, run1339's lobby   (the word 3711's window)
+#   run1340c --map 14 --end-frame 3751 --allow-early-end --timeout 3600 --log-window 3395 3751 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 13 --cover cover=0, run1339's lobby   (the damage's window)
+# Checks: `rngcmp.py` run1339 vs run1340 -> 37 identical; run1340 vs run1340b -> 3962 identical; vs run1340c -> 3752 identical.

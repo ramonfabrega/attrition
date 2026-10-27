@@ -32744,12 +32744,75 @@ lines **are fielded** (`rubric.py --dumps` over run1338 and run1338b):
 `Marine Riflemen` (120, `MARINERIFLEMEN`) 13,110 guy records and
 `Armored Car` (217, `GREYHOUND`) 722. The pair fields 22 types.
 
-## 349. Reserved for the next item on the AI track
+## 349. The Russians at a held Gunpowder age, Great Lakes: first try 3711 of 5341 (item 3670)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
+the Russians (13) at Toughest (5), seed 12345, `STARTING_RESOURCES 7`,
+the age held at Gunpowder (`STARTING_TECHNOLOGY 3`, `ENDING_TECHNOLOGY
+3`), both takes read back by `Pair::assert_lobby`. The triple `(14, 13,
+5)` is new: the other Russian lobbies are `russian_word`'s `(14, 13, 2)`
+(this map, another difficulty), `russian_modern_pair`'s `(18, 13, 5)` and
+`russian_medieval_pair`'s `(7, 13, 5)`, and the battery's one Russian game
+is the held-out `GreatSaharaRussianTier4`, `(7, 13, 4)`
+(`russian_gunpowder_pair_is_no_other_lobby`). Captures: run1339 (the
+`DUMP_ALL` start), run1340 (the draw stream; the game ended itself on
+5341), run1340b (the word's window, 3695..3961) and run1340c (the
+damage's window, 3395..3751). The pair is
+`rondata::diff::russian_gunpowder_pair`.
+
+**The score.** First try **3711 of 5341** by the sequence (3712 by the
+count): on 3711 both sides spend 19 draws, parting at index 2 — theirs
+`Unit::close+0xcb6` (seed `346b0468`), ours `Unit::fight+0x824`, which
+theirs draws at index 3. Theirs draws the close where ours draws a second
+`Unit::fight+0x9b0` (ours' index 3); the other seventeen agree site for site
+(`RON_DEBUG_SITES`).
+**Theirs acts**: the close is the human's Citizen `0/5` (TY 50) dying
+under who=1's Heavy Knight `1/32`, and ours' `0/5` lives.
+
+**The value diff, walked back.** The stride (run1340, 101..3701, 37
+blocks, 102 keys) parts on the standing families — `form`,
+`build:extra`, who=1's groups' `held` and pools 64..73 — and on one unit
+row, `0/5`'s damage from 3501. run1340c (356 blocks, 227 keys) and
+run1340b (266 blocks, 3037 keys) are walked from run1339 with every round
+compared; neither window holds a round:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 3395 | who=1's leader | `attack` | 888 | 894 |
+| 3441 | the Citizen `0/5` (TY 50), struck by `1/32` (TY 229) on 3440 | `hits:damage`, `hits_left` | 26, 24 | 29, 21 |
+| 3695 | the Citizen `0/5` | `hits:damage`, `hits_left` | 20, 30 | 23, 27 |
+| 3711 | the draw stream, index 2 | site | `Unit::fight+0x824` | `Unit::close+0xcb6` |
+| 3712 | the human's leader | `num_units[0]`, `peasants` | 13, 13 | 12, 12 |
+| 3712 | Heavy Knight `1/42` (TY 229) | `orders.len`, `pos` | 3, (4367, 34036) | 2, (4344, 34008) |
+
+**The direction: theirs' Heavy Knight strikes the Citizen harder.**
+`1/32` (TY 229, `KNIGHTSELITE`, land; `unitat.py` prints its enum `ELITEKNIGHT`) is in who=1's group 64,
+attacking `0/5`, who gathers at the human's `0/2004`. Its blow of 3440 is
+the first unit row that parts: 29 in theirs against 26 in ours (11 %
+more), and the Citizen flees on both sides. The 3-point gap rides the
+Citizen to 3711, where theirs' last blow kills it and ours' leaves it
+standing; on 3712 ours' `0/5` is ours alone, the human's leader holds a
+unit more, and the next Heavy Knight's move (`1/42`) lands two frames
+early in ours. `leader:attack` is `mongol_gunpowder_pair`'s standing row
+and parts before the window.
+
+**The next item's hypothesis** is an attack or damage term ours does not
+apply to the Heavy Knight's blow on a Citizen — the shape of item 3677's
+`UnitData::attack` Citizen arm (§346.1), whose other terms (the named
+generals' among them) stay swept and unwired in `unit_attack_view`. Fit
+it off a packet at logger frame 3439, running the original's
+`ObjectData::get_damage@00644130` on `1/32` and `0/5`, as run1351c did. I
+did not read the blow's terms.
+
+**The rounds**, both directions: none in either window — the fighting
+is melee.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **211 of 302**,
+unmoved: the pair parts, so it is not lockstep. The booking's line **is
+fielded** (`rubric.py --dumps` over run1340, run1340b and run1340c):
+`Cossack` (225) ×10,374 guy records, the one type of the pair's 18 new to
+the ledger. The Heavy Knight (229, `KNIGHTSELITE`) that strikes the blow
+is seen already.
 
 ## 350. Reserved for the next item on the AI track
 

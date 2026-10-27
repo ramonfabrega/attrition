@@ -11462,13 +11462,10 @@ Nothing parked: the pair lands at its first parting, 2382 of 4767, and its next 
   the word 3174's chain is the rifle rounds', and no dump on disk prints a building before 3095 to say when the
   queues parted (a `BUILDS=7` stride, as run1336c was, would).
 
-## Parked by the next landing, slot TM — reserved
+## Parked by item 3670, 2026-10-26 — the Russians at a held Gunpowder age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+Nothing parked: the first try's one parted unit field, the Elite Knight's blow of 3440, is on the word's chain and
+books (`docs/AI.md` §349).
 
 ## Parked by the next landing, slot TN — reserved
 
