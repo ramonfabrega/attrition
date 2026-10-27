@@ -30911,3 +30911,71 @@ SHA-256 `411681c26df94a971bb2ac391c94743c320ea8707fdebdc538052978ed8f0bb7`.
 is 256 blocks and 74 keys: the standing families, and who=1's four Barracks' later queue slots dearer in ours with
 leader 1's buckets (parked 3674a). The rounds read 40 a side, none parting. The draw stream holds to 4705, the
 game's last frame.
+
+## run1363 — the Lakota at a held Enlightenment age, Great Lakes: the `DUMP_ALL` start (2026-10-27, item 3695, `att-3695`)
+
+`docs/AI.md` §355. run1347's lobby with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1363 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 19 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 3. Launched 05:47:40, exited 05:48:04 (24.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 19, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1363 greatlakes-lakota-enlightenment-start`. `df -g ~` read 185 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1363-greatlakes-lakota-enlightenment-start.txt`, 151,007,762 bytes,
+SHA-256 `573bf5f5e1790fd8513793e9ca09ce5bbdc67267fe1cf64cd8f7728d5322dcdd`.
+
+Archive `rontrace-run1363.log`, 9,313,664 bytes,
+SHA-256 `b732cdb590b063bb90bfa8d129b6c90258ec2e178a18fbf74375dbefffbb257e`.
+
+**What it holds**: the start of `lakota_enlightenment_pair::LAKOTA_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1364 — the Lakota at a held Enlightenment age, Great Lakes: the draw stream to the game's end (2026-10-27, item 3695, `att-3695`)
+
+`docs/AI.md` §355. run1334's line with `--ai-tribe 19` and run1363's lobby: `--map 14 --end-frame 24000 --timeout
+7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 19 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 1, beside run1363. Launched 05:47:55, exited 05:48:18 (23.6 s launch to exit). `success`. **The game
+  ended itself on 4673** (closing block 4674, `ended_early`). `GAME INFO` reads back as run1363's. `rngcmp.py`
+  against run1363: 37 frames identical. Filed with `filerun.py run1364 greatlakes-lakota-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1364-greatlakes-lakota-enlightenment-trace.txt`, 25,773,516 bytes,
+SHA-256 `a79bfdee03fc6c8e841dd3cc3bec1c4566c9d8eb4df48755b9bc1e272b3f0cca`.
+
+Archive `rontrace-run1364.log`, 76,021,984 bytes,
+SHA-256 `e76cb3bb3dce1ab9568837e99a6a7050da3e00ac191b974148d535a7ccafc3f2`.
+
+**What it holds**: the pair's first try. `lakota_enlightenment_pair_first_parting` walks it from run1363: **whole,
+4673 of 4673** by the count and the sequence. `lakota_enlightenment_pair_run1364_s_closing_state` compares the
+closing block 4674: 188 units, every count zero.
+
+## run1364b — the Lakota at a held Enlightenment age, Great Lakes: the closing window, blocks 4418..4674 (2026-10-27, item 3695, `att-3695`)
+
+`docs/AI.md` §355. **What the disk could not answer**: every record of the pair's last blocks, and every round.
+run1364's stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the
+start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1364b --map 14 --end-frame 4673
+--allow-early-end --timeout 3600 --log-window 4418 4674 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0` and run1363's lobby: the
+256 blocks through the closing block.
+- Pool lane 1. Launched 05:50:46, exited 05:51:41 (54.8 s launch to exit). `success`: 4674 frames. `rngcmp.py`
+  against run1364: 4674 of 4674 identical. Filed with `filerun.py run1364b
+  greatlakes-lakota-enlightenment-window-4418-4674`. `df -g ~` read 182 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1364b-greatlakes-lakota-enlightenment-window-4418-4674.txt`, 554,673,922 bytes,
+SHA-256 `9561df4e3561e1f9fd26cd3c42a3d127fee305ca025f7b74ee32106a98afc7d0`.
+
+Archive `rontrace-run1364b.log`, 75,803,232 bytes,
+SHA-256 `29de445e4fd983dedcdc9467f3e1cbfbb944eda36528579c328e0ab0a193c063`.
+
+**What it holds**: `lakota_enlightenment_pair_run1364b_s_closing_frame_is_widened_whole` walks it from run1363. That
+is 256 blocks and 57 keys: the standing families, the city `0/2003`'s damage on 4461, and two Musketeers'
+`dest_angle` (parked 3695b). The rounds read 120 ours and 123 theirs, 45 parting, every one a launch of the
+Repeating Rifle Horse `1/71` and `1/76` or the Cannon `1/75` (parked 3695a). The draw stream holds to 4673, the
+game's last frame.

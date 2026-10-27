@@ -10894,3 +10894,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1346  run1334's line with --map 14 --ai-tribe 17 and run1345's lobby   (the draw stream; ended itself on 4949)
 #   run1346c --map 14 --end-frame 4949 --allow-early-end --timeout 3600 --log-window 4795 4950 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0, run1345's lobby   (the word 4854's window, to the closing block; run1346b, the same line, a dead take)
 # Checks: `rngcmp.py` run1345 vs run1346 -> 37 identical; run1346 vs run1346c -> 4950 identical.
+# ==== item 3695: the Lakota at a held Enlightenment age, Great Lakes (`docs/AI.md` §355; `docs/RUNS.md` run1363, run1364, run1364b) ====
+#   run1363  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 19 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1364  run1334's line with --ai-tribe 19 and run1363's lobby   (the draw stream; ended itself on 4673)
+#   run1364b --map 14 --end-frame 4673 --allow-early-end --timeout 3600 --log-window 4418 4674 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0, run1363's lobby   (the closing window)
+# Checks: `rngcmp.py` run1363 vs run1364 -> 37 identical; run1364 vs run1364b -> 4674 identical.
