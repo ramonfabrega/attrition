@@ -123,10 +123,18 @@ impl DoAttackView for SimDoAttack<'_> {
     }
     fn group_max_range(&mut self, worker: bool) -> i32 {
         // `GroupData::get_max_range@00711080`: the longest `max_range` over
-        // the members that are alive, on the map, no aircraft and a worker
-        // exactly when asked for one, whose type attacks. The crate has no
-        // method of its own (that function's sweep is an inline copy); this
-        // is that reading over the pool's live members.
+        // the members that are alive, on the map, no aircraft and whose
+        // type attacks — and whose type is **siege** (`is_siege`, the type's
+        // vslot `+0x10c`) exactly when the argument is non-zero. The caller
+        // passes its own `is_worker`, but the function tests siege with it
+        // (`00711106`–`0071115a`, and the sweep's own reading in
+        // `sweep/group_data_get_max_range.rs`), so a worker's ask is the
+        // siege members' range and anyone else's the rest's. Testing the
+        // members' `is_worker` instead put the American Artillery's 20 into
+        // a General's stand-off on Great Sahara 5678, where the original's
+        // is the rifles' 16 (item 3693, `docs/AI.md` §348.3). The crate has
+        // no method of its own (that function's sweep is an inline copy);
+        // this is that reading over the pool's live members.
         let Some(slot) = self.s.units[self.u].group_ptr else {
             return 0;
         };
@@ -140,7 +148,7 @@ impl DoAttackView for SimDoAttack<'_> {
             if unit.alive()
                 && unit.on_map
                 && self.s.group_domain(m) != crate::attrition::Domain::Air
-                && self.s.is_worker(m) == worker
+                && self.s.is_siege_unit(m) == worker
                 && attacks
             {
                 best = best.max(self.s.max_range_of(Obj::Unit(m)));
