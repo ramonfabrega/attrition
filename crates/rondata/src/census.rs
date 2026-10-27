@@ -497,7 +497,10 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// 215 with it, the Roman Gunpowder pair whole at 4062 on the same arm —
 /// `Praetorian Guards` (148, `PIKELEGION`, land; 814 guy records), the line
 /// §350 named, read by `rubric.py --tables 3` on the merged tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 215;
+/// Item 3691: 215 -> 216, the French Enlightenment pair whole at 4940 —
+/// `Horse Guard Grenadier` (238, `HORSEGUARDGREN`, land; 284 figure rows),
+/// the line §351 named, read by `rubric.py --tables 3` on the merged tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 216;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

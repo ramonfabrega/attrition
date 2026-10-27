@@ -10645,13 +10645,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The French at a held Enlightenment age, at difficulty 4** (item
     // 3672): East Indies — first try 4505 of 4940 by the count and the
     // sequence, widened on run1344b over 4495..4756 (the word's block
-    // 4506), the rounds compared.
+    // 4506), the rounds compared. Item 3691 closed it, 4940 of 4940
+    // (piece 49's three bays), widened on run1360 over 4685..4941 (the
+    // closing block), the rounds compared, the closing state whole.
     (
         "FRENCH_ENLIGHTENMENT_PAIR_WORD",
         crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT_PAIR_WORD,
-        Some("french_enlightenment_pair_run1344b_s_word_frame_is_widened_whole"),
-        3672,
-        Some(crate::diff::french_enlightenment_pair::WIDENING_FRENCH_ENLIGHTENMENT_FRAME_4505),
+        Some("french_enlightenment_pair_run1360_s_closing_window_is_widened_whole"),
+        3691,
+        Some(crate::diff::french_enlightenment_pair::WIDENING_FRENCH_ENLIGHTENMENT_FRAME_4940),
     ),
     // **The British at a held Industrial age, at difficulty 4** (item
     // 3668): Great Sahara — first try 2382 of 4767 by the count and the
@@ -12834,15 +12836,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // The French at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
     // `ENDING_TECHNOLOGY` 4), East Indies, at difficulty 4 (item 3672):
     // first try 4505 of a game that ends itself on 4940, widened on
-    // run1344b.
+    // run1344b; whole since item 3691, 4940 of 4940, widened on run1360
+    // through the closing block.
     AiWord {
         line: "Late ages",
         map: "EastIndiesFrenchEnlightenment",
         named: "East Indies (French, Enlightenment)",
         word: crate::diff::french_enlightenment_pair::FRENCH_ENLIGHTENMENT_PAIR_WORD,
         length: 4_940,
-        endpoint: None,
-        window: Some("french_enlightenment_frame_4505_window"),
+        endpoint: Some("french_enlightenment_pair_run1344_s_closing_state"),
+        window: Some("french_enlightenment_frame_4940_window"),
     },
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
