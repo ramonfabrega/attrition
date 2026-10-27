@@ -11804,13 +11804,17 @@ words and edits nothing here; a refill lands when two remain.
   them from the models for every piece would close the family whole. The first reading is `init_unit_events` and
   the art file's attach records it parses.
 
-## Parked by the next landing, slot UN — reserved
+## Parked by item 3705, 2026-10-27 — the Spanish Industrial word closes, 3229 → 4200
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UN renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3705a. Three of who=1's foundations carry `regen_roads` 1 in theirs and 0 in ours at the close.** On run1368's
+  closing block 4201, `1/2056`, `1/2057` and `1/2058` (`constr_time` 15000, `construct_hits` 440: placed and not
+  yet built) print `build_masks` 20784, 20736 and 20736, each with `0x100` set; ours holds the three with the flag
+  clear. run1382b's per-frame `BUILD` records never print the three (no `o 2056..2058` in 3944..4200), so no dump on
+  disk dates the flag or names its writer. The game ends on 4200, so no road search follows and no draw parts: it
+  names no score. A reading of `Build::init@00629740`'s `build_masks` writes on a foundation is the first step.
+- **3705b. The Albatrosses' `myspeed` (TY 288), 55 in ours against 68**, on every one in run1382b from 3944 and on
+  each built after (4074, 4086, 4098). It is 3677a's family on another lobby, parked in their airports and
+  draw-silent to the game's end.
 
 ## Parked by the next landing, slot UO — reserved
 

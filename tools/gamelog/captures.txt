@@ -10918,3 +10918,7 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1368  run1334's line with --ai-tribe 9 and run1367's lobby   (the draw stream; ended itself on 4200)
 #   run1368b --map 14 --end-frame 3480 --timeout 3600 --log-window 3195 3480 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1367's lobby   (the word 3229's window)
 # Checks: `rngcmp.py` run1367 vs run1368 -> 37 identical; run1368 vs run1368b -> 3481 identical.
+# ==== item 3705: the Spanish Industrial word closes (`docs/AI.md` §357.2; `docs/RUNS.md` run1382, run1382b) ====
+#   run1382  --map 14 --end-frame 3230 --timeout 3600 --log-window 3226 3230 --detail end:MISC,UNITS=3,GUYS=4,AMMO=5 --ai-tribe 9 --cover cover=0 --tracer-def RON_STATE_FRAME=3228 --tracer-def RON_STATE_PLAN=<item 597's plan.h>, run1367's lobby   (the packet: piece 50)
+#   run1382b --map 14 --end-frame 4200 --allow-early-end --timeout 3600 --log-window 3944 4201 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 9 --cover cover=0, run1367's lobby   (the closing window)
+# Checks: `rngcmp.py` run1368 vs run1382b -> 4201 identical.

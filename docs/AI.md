@@ -33827,10 +33827,69 @@ the closing fields (parked 3697b).
 
 **The next item's hypothesis** is the Rifleman's launch row (TY 100), from the shots this window holds: `1/54` on
 3198, `1/55` on 3202 and `1/53` on 3229, read beside §354's two rows. I built nothing.
+**Answered by item 3705 (§357.2)**: piece 50, three bays off run1382's packet; the pair is whole.
 
 **The rubric.** `rubric.py --tables 3` reads unit types seen **222 of 302**, unmoved: the pair parts, so it is not
 lockstep. The booking's line **is fielded** (`rubric.py --tables 3 --dumps` over run1368 and run1368b): `Commando`
 (74, `COMMANDOSPANISH`), 1,320 figure rows. It stays in the never list until a lockstep game holds it.
+
+### 357.2 Piece 50 has bays: the word 3229 → 4200, the pair whole (item 3705)
+
+*Item 3705, 2026-10-27, Opus 5.5.*
+
+**The piece, named first.** Ours' `RON_DEBUG_UNIT` over the shooters the booking names: `1/53` and `1/54` are TY
+50, TI 100 (`Riflemen`), land, **piece 50**; `1/53` is on `CHAR_ATTACK2` (slot 12) at time 15 on 3229, `1/54` on
+`CHAR_ATTACK1` (slot 11) at time 10 on 3198. Piece 50 had no row in `sim::launch::BAYS` or `sim::pivot`, so
+`launch_point` loosed it from the figure's own square. **The direction: ours lacked the rows, and theirs acted from
+its `AttachPos` table**, as the booking said.
+
+**The disk, before the capture.** run1368b prints every round but not the animation, and `get_position.py …
+entries 50` over the 80 packets on disk finds the piece loaded by none. So run1382 took a `RON_STATE_FRAME=3228`
+packet on run1367's lobby, with the word's round in flight (`docs/RUNS.md` run1382).
+
+**The rows.** run1382's packet holds three attack `AttachPos` rows, node 0, `RData +0x88` 1.0:
+
+| anim | time | region (lattice points) | `right` | `fwd` | `dz` |
+|---|---|---|---|---|---|
+| 11 | 10 | 629 | 15,269 | 121,470 | 168 |
+| 12 | 15 | 15 | 5,281 | 133,941 | 122 |
+| 13 | 16 | 412 | 13,151 | 120,822 | 167 |
+
+Each row is `fit_bay.py`'s centroid of the one region that reproduces the sweep at all 361 headings, x and y. The
+three keys and regions are piece 65's, the Black Watch's (item 3683, §347), to the lattice point: the two pieces
+share the rifle's model. run1368b's 21 Rifleman first prints fall into the three release heights (4, 12 and 5 at
+168, 122 and 167), so every key is fired in the window.
+
+**The value diff on the word.** The Rifleman `1/53`'s round of 3229 at the human's building `0/2003` now leaves
+(4328, 33795, 588), the dump's, and flies 2 frames, where it left (4392, 33912, 466) and flew 3. It strikes on 3229
+in both, and `0/2003`'s `build:damage` reads 5 on 3230 on both sides. The Citizen `0/4`'s `damage_frame` (3189
+against 3188, 3697a) was a Rifleman round too, and agrees.
+
+**The score: 3229 → 4200 of 4200, the game's last frame**, by the count and the sequence.
+- **run1368b**: 776 → **56 keys**. The rounds read 98 against 98, none parting. What stands is the families block
+  3195 carries (`form` on 27 units, both leaders' `SITE[i].reg`, who=0's `aggression[1]`, who=1's groups and pools)
+  and groups 69, 70 and 71 as each is minted.
+- **run1368's stride** (101..3201): 99 → **93 keys**, no unit row.
+- **The closing state**: run1368's block 4201 compares 176 units, none off, torn, unlinked or extra (3697b's
+  `myhits` gone with the word). Three building rows stand: who=1's foundations `1/2056..2058` carry `regen_roads` 0
+  in ours against 1 (parked 3705a). The game ends on 4200, so no road search follows and no draw parts.
+- **run1382b**, the closing window (3944..4201, 257 blocks): **70 keys**, every one a standing family on 3944 or a
+  group minted after it, plus the Albatrosses' `myspeed` (TY 288, 55 against 68; 3677a's family, parked 3705b).
+  The rounds read 458 against 458, none parting. It is the word's widening in `WIDENINGS` and sits in the coverage
+  driver.
+
+**Coverage.** Diff-backed: the three rows by `launch::tests::run1368b_s_spanish_riflemen_leave_from_piece_50_s_bays`
+(two rounds a key, reproduced at the dump's `sx, sy` and `sz − z` by exactly one key) and by both windows' rounds
+agreeing in launch and flight. **Mutations** (`tools/mutate.py`, each piece-50 row keyed away by its time): the
+`CHAR_ATTACK2` row drops the word back to 3229 (`spanish_industrial_pair_first_parting`); the `CHAR_ATTACK1` row fails
+the launch test (`1/54`'s round of 3198 finds no key); the `CHAR_ATTACK3` row moves run1368b to 59 keys and 28 parting
+rounds. **Not established**: who sets `0x100` on the three foundations in theirs
+(3705a). The rows are exact under `Bay::point`'s whole-degree turn: every point of a region gives the same 361
+headings, so the centroid is a choice among equals, not an estimate.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen 223 → **224** of 302 on the tree merged with 3704's
+landing: `Commando` (74, `COMMANDOSPANISH`, land), the line §357 named, 200 figure rows on the lockstep count
+(`census::RUBRIC_UNIT_TYPES_SEEN`).
 
 ## 358. Reserved for the next item on the AI track
 

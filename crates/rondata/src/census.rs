@@ -521,7 +521,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// `Manchu Musketeers` (116, `MANCHUMUSKETEERS`, land; 1356 figure rows),
 /// the line §354 named, read by `rubric.py --tables 3` on the tree merged
 /// with 3696's landing.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 223;
+/// Item 3705: 223 -> 224, the Spanish Industrial pair whole at 4200 —
+/// `Commando` (74, `COMMANDOSPANISH`, land; 200 figure rows), the line
+/// §357 named, read by `rubric.py --tables 3` on the tree merged with
+/// 3704's landing.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 224;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so

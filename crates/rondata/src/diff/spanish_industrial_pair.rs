@@ -10,7 +10,9 @@
 //! `(18, 9, 5)`; the battery fields no Spanish. Captures: run1367 (a
 //! `DUMP_ALL` start) and run1368 (the draw stream to the game's end,
 //! `cover=0`, `end:UNITS=3,GUYS=2` on a stride of 100, walked from the
-//! start's initial state). The first try is in `docs/AI.md` §357.
+//! start's initial state). The first try is in `docs/AI.md` §357; whole
+//! since item 3705 (§357.2), 4200 of 4200, widened on run1382b through the
+//! closing block.
 
 use super::coverage_pair::Pair;
 use super::testkit::*;
@@ -34,9 +36,11 @@ pub(crate) const SPANISH_INDUSTRIAL: Pair = Pair {
     length: 4200,
     // Item 3697, first try: 3229 by the count and the sequence, ours 22
     // draws against theirs 23, at index 19 ours `Farms::inc_time+0x1ae`,
-    // theirs `Object::take_damage+0xe1` (`docs/AI.md` §357).
-    count: 3229,
-    sequence: 3229,
+    // theirs `Object::take_damage+0xe1` (`docs/AI.md` §357). Item 3705:
+    // 3229 → 4200, the game's last frame, once the Rifleman's piece 50
+    // looses from its three bays (`sim::launch::BAYS`, §357.2).
+    count: 4200,
+    sequence: 4200,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -180,10 +184,12 @@ fn spanish_industrial_pair_the_long_s_stride_walks_back_from_3229() {
     // Item 3697: 99 keys, all but six a standing family — `form` on 27
     // units, the buildings' `build:extra` (which the stride does not
     // print) and who=1's groups 64..66's `held` and pools as each is
-    // minted. **The first unit row is on the stride's last block 3201**:
-    // the human's Citizen `0/4` (TY 50) wounded on 3189 in ours against
-    // 3188 in theirs (`damage_frame`), and its position after it.
-    pin_eq!(w.firsts.len(), 99, "the stride's baseline");
+    // minted. The first unit row was on the stride's last block 3201: the
+    // human's Citizen `0/4` (TY 50) wounded on 3189 in ours against 3188
+    // in theirs (`damage_frame`), and its position after it. **Item 3705:
+    // 99 → 93**, the Citizen's rows gone with piece 50's bays — the wound
+    // was a Rifleman's round; no unit row parts.
+    pin_eq!(w.firsts.len(), 93, "the stride's baseline");
 }
 
 /// run1368b: the word 3229's window, blocks 3195..3480 at the long's
@@ -252,12 +258,20 @@ fn spanish_industrial_pair_run1368b_s_word_frame_is_widened_whole() {
     // lands in theirs
     // (`Object::take_damage+0xe1`, index 19) and ours holds it to 3230:
     // `0/2003`'s `build:damage` 5 in theirs on block 3230, ours 0.
-    pin_eq!(w.firsts.len(), 776, "run1368b baseline");
+    // **Item 3705: 776 → 56**, every one a standing family on 3195
+    // (`form` on 27 units, both leaders' `SITE[i].reg`, who=0's
+    // `aggression[1]`, who=1's groups and pools) or a group minted after it
+    // (69, 70, 71 on 3204, 3410, 3431): the Riflemen loose from piece 50's
+    // bays (`sim::launch::BAYS`), `1/53`'s round of 3229 leaves (4328,
+    // 33795, 588) and flies 2 frames as theirs does, `0/2003`'s
+    // `build:damage` 5 on block 3230 both sides, and the Citizen `0/4`'s
+    // `damage_frame` agrees.
+    pin_eq!(w.firsts.len(), 56, "run1368b baseline");
     // Every round, both directions: 98 round-blocks theirs, 105 ours (each
-    // of ours flies a frame longer), 55 parting, the first on 3198
-    // (item 3697).
-    pin_eq!(w.rounds_read, (98, 105), "the rounds read");
-    pin_eq!(w.rounds.len(), 55, "the rounds that part");
+    // of ours flew a frame longer), 55 parting, the first on 3198 (item
+    // 3697); **98 against 98, none parting** since item 3705.
+    pin_eq!(w.rounds_read, (98, 98), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
 
 /// **The pair's closing state** (item 3697): run1368's closing block 4201,
@@ -307,7 +321,79 @@ fn spanish_industrial_pair_run1368_s_closing_state() {
     // block 4201 compares 176 units — who=1's army off, `1/170` torn and
     // `1/174` extra; who=1's buildings part in the closing fields
     // (`myhits` a tenth low in ours on every one) and cities 2000..2054.
+    // **Item 3705, whole at 4200**: 176 units, none off, torn, unlinked or
+    // extra, and three building rows — who=1's `1/2056`, `1/2057` and
+    // `1/2058` carry `regen_roads` 0 in ours against 1 (parked 3705a).
     pin_eq!(e.compared, 176, "units compared");
-    pin_eq!(e.counts(), [114, 0, 1, 4, 112, 0, 50], "the closing counts");
-    pin_eq!(e.extra.clone(), vec![(1, 174)], "the closing extras");
+    pin_eq!(e.counts(), [0, 0, 0, 0, 3, 0, 0], "the closing counts");
+    pin_eq!(e.extra.clone(), vec![], "the closing extras");
+}
+
+/// run1382b: the pair's last blocks, 3944..4201 at the long's detail with
+/// `LEADERS=9` and `AMMO=5`, through the closing block (item 3705): no dump
+/// held them once the word reached the game's last frame — run1368's
+/// stride prints units every hundred frames and no `AMMO`, leader,
+/// building or city record past the start, and run1368b ends on 3480.
+pub(crate) const RUN1382B: &str =
+    "gamelog-run1382b-greatlakes-spanish-industrial-window-3944-4201.txt";
+
+/// The closing window: block 3944 through the closing block 4201.
+pub(crate) const WIDENING_SPANISH_INDUSTRIAL_CLOSING: (i64, i64) = (3944, 4201);
+
+/// **The pair's last blocks**: run1382b walked from run1367's start with
+/// the recorder on and every round compared (item 3705).
+pub(crate) fn spanish_industrial_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[SPANISH_INDUSTRIAL.start],
+        true,
+        SPANISH_INDUSTRIAL.long,
+        "run1382b",
+        &[(RUN1382B, WIDENING_SPANISH_INDUSTRIAL_CLOSING.0)],
+        WIDENING_SPANISH_INDUSTRIAL_CLOSING,
+        1,
+        &[4201],
+        true,
+    )
+}
+
+#[test]
+fn spanish_industrial_pair_run1382b_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = spanish_industrial_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3705: **70 keys**, all standing — on 3944 `form`, both
+    // leaders' `SITE[i].reg`, who=0's `aggression[1]`, who=1's groups and
+    // pools, and the Albatrosses' (TY 288) `myspeed`, 55 in ours against
+    // 68 (3677a's family, parked in their airports); after it, three more
+    // Albatrosses' `myspeed` as each is built (4074, 4086, 4098) and
+    // groups 66 and 70 minted (4151, 4182). No unit position, order,
+    // building or city row parts.
+    pin_eq!(w.firsts.len(), 70, "run1382b baseline");
+    // Every round, both directions, none parting.
+    pin_eq!(w.rounds_read, (458, 458), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
