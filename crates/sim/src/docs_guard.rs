@@ -1767,6 +1767,11 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 1479 banked two** (AI 32 → 30): `0x261` and `0x263`, `CARPENTRY`
 /// and `PAPERMILL`, are the French Carpentry block's range in
 /// `rondata::load` (`docs/AI.md` §123).
+///
+/// **Item 3683 lowered one, and it is not a build**: ORDERS 7 → 6,
+/// `0x481`, the chase move's `vector_dist` gate, read as built from the
+/// decimal `1153` in piece 190's `pivot::NODES` row (`py: -1153`, the
+/// `MARK4`'s turret) — 813's collision again, now in production code.
 const UNBUILT: &[(&str, usize)] = &[
     ("AI.md", 11),
     ("ANIM.md", 2),
@@ -1780,7 +1785,7 @@ const UNBUILT: &[(&str, usize)] = &[
     ("GOODY.md", 4),
     ("GROUPS.md", 3),
     ("MERCHANT.md", 2),
-    ("ORDERS.md", 7),
+    ("ORDERS.md", 6),
     ("PRODUCTION.md", 3),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
