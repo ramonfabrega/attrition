@@ -31730,3 +31730,27 @@ SHA-256 `210d08614f4e84f6a26225f3eefe9733adcaa9dc6d8e6243bb68fc3a9da8c1ac`.
 and 910 keys. Rounds read (0, 0). On 2596 the Fishermen `1/85` (TI 317), born on 2595, heads for x 34968 in ours
 against 30360 in theirs. Who=1's buckets already part on 2495. It is the pair's widening in `WIDENINGS` and the
 `AI_WORDS` window, and it sits in the coverage driver.
+
+## run1386 — the Mongols at a held Medieval age, East Indies, at difficulty 4: the word 3989's window, blocks 3895..4240 (2026-10-27, item 3709, `att-3709`)
+
+`docs/AI.md` §362.1. **What the disk could not answer**: every record and every round on the moved word's frame
+3989. run1378's stride prints units every hundred frames, no `AMMO` and no leader record; run1378b ends at 2846.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1386 --map 18 --end-frame 4240 --timeout 3600
+--log-window 3895 4240 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover
+cover=0 --profile STARTING_TECHNOLOGY=2 --profile ENDING_TECHNOLOGY=2 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4`: six blocks before the stride's 3901 and 250 past the word's block 3990.
+- Pool lane 1. Launched 12:48:31, exited 12:49:27 (55.3 s launch to exit). `success`: 4241 frames. `rngcmp.py`
+  against run1378: 4241 of 4241 identical. Filed with `filerun.py run1386
+  eastindies-mongol-medieval-window-3895-4240 --map 18`. `df -g ~` read 137 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1386-eastindies-mongol-medieval-window-3895-4240.txt`, 780,131,603 bytes,
+SHA-256 `ef07db31b956b97b1554db8c147f9ffc8b277418aefde5b6e01525073801b26f`.
+
+Archive `rontrace-run1386.log`, 97,563,840 bytes,
+SHA-256 `3b27e928b145b0a3069150033f17e22c820528caab067d72f12b66768c271549`.
+
+**What it holds**: `mongol_medieval_pair_run1386_s_word_frame_is_widened_whole` walks it from run1377: 345 blocks,
+221 keys, rounds (209, 210) with 83 parting. On 3981 the Crossbowmen `1/43`'s round launches from (6120, 11208, 19)
+in ours against (6103, 11142, 159) and flies 11 frames against 10; on 3990 theirs' round has struck `0/2004`. It is
+the pair's widening in `WIDENINGS` and the `AI_WORDS` window, and it sits in the coverage driver.
