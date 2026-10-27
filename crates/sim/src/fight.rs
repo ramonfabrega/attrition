@@ -372,7 +372,40 @@ impl Sim {
         if base == 0 {
             return 0;
         }
-        base + self.mods_of(self.owner_of(o) as usize).attack + self.citizen_attack(o)
+        base + self.mods_of(self.owner_of(o) as usize).attack
+            + self.citizen_attack(o)
+            + self.monarch_cav_attack(o)
+    }
+
+    /// **`UnitData::attack@006103c0`'s Monarch arm** (item 3688, `docs/AI.md`
+    /// §349), the override's last term (`610800`–`61083c`): a unit whose
+    /// type's trainer is the Stable (`type +0x40 == 0x1ac`, by equality —
+    /// [`Sim::trainer_ident`]) and which has one of its owner's Monarchs
+    /// (`0x162`) in reach — `has_general(0, 0x162) >= 0`,
+    /// [`Sim::has_general`] — adds `THEMONARCH_CAV_ATTACK × 10`. The gate
+    /// ahead of both, the leader's short `+0x59c2`, is `+0x56fe`'s
+    /// per-type hero count at `0x162` (`0x56fe + 2 × 0x162`), which a live
+    /// Monarch the walk finds already implies. run1357's packet (logger
+    /// frame 3439 of the Russian Gunpowder Great Lakes game) runs the
+    /// original's `get_damage` on who=1's Heavy Knight `1/32` and the
+    /// human's Citizen `0/5`: table 150, armour 0 and attack **190**, the
+    /// base 170 and 20 off this arm (`has_general` answered 18 at
+    /// `0x61082a`, the Monarch `1/18` the knight guards), so the blow is 29
+    /// where this crate dealt 26.
+    ///
+    /// SEAM: the leader's per-type count is not read (a Monarch counted
+    /// and off the map), as in [`Sim::near_monarch`].
+    fn monarch_cav_attack(&self, o: Obj) -> i32 {
+        match o {
+            Obj::Unit(u)
+                if self.units[u].ty.is_some_and(|ty| {
+                    self.trainer_ident(ty) == Some(crate::build::Ident::Stable)
+                }) && self.has_general(u, 0x162) =>
+            {
+                self.tuning.themonarch_cav_attack * 10
+            }
+            _ => 0,
+        }
     }
 
     /// **`UnitData::attack@006103c0`'s Citizen arm** (item 3677, `docs/AI.md`
