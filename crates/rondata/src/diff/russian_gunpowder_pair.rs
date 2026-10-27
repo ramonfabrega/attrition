@@ -32,8 +32,12 @@ pub(crate) const RUSSIAN_GUNPOWDER: Pair = Pair {
     ),
     // The game ended itself on 5341 (closing block 5342).
     length: 5341,
-    count: 0,
-    sequence: 0,
+    // Item 3670, first try: frame 3711 by the sequence (3712 by the
+    // count), 19 draws a side, parting at index 2 — ours
+    // `Unit::fight+0x824`, theirs `Unit::close+0xcb6` (`docs/AI.md`
+    // §349).
+    count: 3712,
+    sequence: 3711,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -141,4 +145,110 @@ fn russian_gunpowder_pair_is_no_other_lobby() {
     let w = &super::russian_word::RUSSIAN;
     assert_eq!(w.ai_tribe, p.ai_tribe);
     assert_ne!((w.map_style, w.ai_tribe, w.difficulty), triple);
+}
+
+/// **The long's stride, walked back from the word 3711** (item 3670):
+/// only run1340's stride blocks are on disk before the word's window.
+pub(crate) const WIDENING_RUSSIAN_GUNPOWDER_STRIDE: (i64, i64) = (101, 3701);
+
+pub(crate) fn russian_gunpowder_stride_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings(
+        &[RUSSIAN_GUNPOWDER.start],
+        true,
+        RUSSIAN_GUNPOWDER.long,
+        "run1340 stride",
+        &[(
+            RUSSIAN_GUNPOWDER.long.0,
+            WIDENING_RUSSIAN_GUNPOWDER_STRIDE.0,
+        )],
+        WIDENING_RUSSIAN_GUNPOWDER_STRIDE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn russian_gunpowder_pair_the_long_s_stride_walks_back_from_3711() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_gunpowder_stride_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 37, "every stride block in the window");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3670: 102 keys. The standing families — 53 buildings'
+    // `build:extra` (which the stride does not print), `form` on 27 units,
+    // and who=1's groups' `held` and pools 64..71 as each is minted — and
+    // **one unit row, on 3501: the human's Citizen `0/5`'s damage**
+    // (`hits_left` ours 25 against theirs 22, `hits:damage` 25 against 28).
+    pin_eq!(w.firsts.len(), 102, "the stride's baseline");
+}
+
+/// run1340b: the word 3711's window, blocks 3695..3961 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` — six blocks before the stride's
+/// last block 3701 and 250 after the word's block 3712 (item 3670).
+pub(crate) const RUN1340B: &str = "gamelog-run1340b-greatlakes-russian-gunpowder-window-3695-3961.txt";
+
+/// The window: block 3695 through 3961; the word 3711's own block is 3712.
+pub(crate) const WIDENING_RUSSIAN_GUNPOWDER_FRAME_3711: (i64, i64) = (3695, 3961);
+
+/// **The word 3711's window**: run1340b walked from run1339's start with
+/// the recorder on and every round compared (item 3670).
+pub(crate) fn russian_gunpowder_frame_3711_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[RUSSIAN_GUNPOWDER.start],
+        true,
+        RUSSIAN_GUNPOWDER.long,
+        "run1340b",
+        &[(RUN1340B, WIDENING_RUSSIAN_GUNPOWDER_FRAME_3711.0)],
+        WIDENING_RUSSIAN_GUNPOWDER_FRAME_3711,
+        1,
+        &[3712],
+        true,
+    )
+}
+
+#[test]
+fn russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_gunpowder_frame_3711_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 0, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 0, "run1340b baseline");
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
