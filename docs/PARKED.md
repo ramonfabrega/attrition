@@ -11818,9 +11818,11 @@ are sub-scores of the pair that name no frame of it.
   rows apart. The first are the Heavy Horse Archer `1/151`'s (TI 188) `ammo[4]` on 5601 (`sx` 6566 against 6565,
   `sy` 8539 against 8540) and the Crossbowmen `1/157`'s (TI 172) `ammo[0]` on 5612 (`sx` 7041 against 7043).
   The draws never feel them (`greek_medieval_pair_run1380b_s_word_frame_is_widened_whole` pins the count).
-- **3703b. The closing state is downstream of 5626.** run1380's closing block 5943 compares 319 units, counts
+- ~~**3703b. The closing state is downstream of 5626.** run1380's closing block 5943 compares 319 units, counts
   `[119, 3, 1, 7, 6, 1, 0]`: 3 unlinked (`1/308`, `1/312`, `1/318`), 1 extra (`1/313`), who=1's army off and
-  `1/2066`, `1/2067` in the closing fields (`greek_medieval_pair_run1380_s_closing_state` pins them).
+  `1/2066`, `1/2067` in the closing fields (`greek_medieval_pair_run1380_s_closing_state` pins them).~~
+  **Answered by item 3711** (`docs/AI.md` §363.1): the pair is whole to 5942, and block 5943 compares 322 units
+  with every count 0 and `Closing fields: none`.
 
 ## Parked by item 3704, 2026-10-27 — the Chinese Enlightenment word closes, 3263 → 3836
 
@@ -11917,13 +11919,16 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot UT — reserved
+## Parked by item 3711, 2026-10-27 — the Greek Medieval word closes, 5626 → 5942
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The group's slot clamp is written back into the table (`docs/AI.md` §363.1), and the Greek Medieval pair runs
+lockstep to the game's last frame, its closing state whole. The row below names no score: the draws never feel it.
+
+- **3711a. One Crossbowman's attack target, late in the window.** run1380b's widening keeps 137 keys after the fix:
+  121 standing families on 5595, then 15 `group:N.held`/`pool:N`, `form`, `g.angle[0]` and `dest_angle` rows, and
+  the Crossbowmen `1/195`'s (TI 172) `order:target` on 5875 (`0/4` in ours against `0/10` in theirs). The draw
+  stream holds to 5942 and the closing block agrees, so it names no score. The first reading: `RON_DEBUG_UNIT=1/195@5870-5876` on both sides,
+  and who in ours wrote the target (`seams.py --field target`).
 
 ## Parked by the next landing, slot UU — reserved
 
