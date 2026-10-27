@@ -31090,3 +31090,69 @@ SHA-256 `d7761a997faf76ae7b352e1d6c25f7bfb38a665c1c9b73122437470285e5c07e`.
 
 **What it holds**: `chinese_enlightenment_pair_run1381b_s_closing_frame_is_widened_whole` walks it from run1349: 257
 blocks, 62 keys, every one a standing family on block 3580; the rounds read 231 each side, none parting.
+## run1365 — the Japanese at a held Enlightenment age, East Indies, at difficulty 4: the `DUMP_ALL` start (2026-10-27, item 3696, `att-3696`)
+
+`docs/AI.md` §356. run1343's lobby with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1365 --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=4`.
+- Pool lane 1. Launched 06:12:51, exited 06:13:19 (28.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 15, map style 18, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 4`, `STARTING_TECHNOLOGY 4` and `ENDING_TECHNOLOGY 4` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1365 eastindies-japanese-enlightenment-start`. `df -g ~` read 173 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1365-eastindies-japanese-enlightenment-start.txt`, 153,795,792 bytes,
+SHA-256 `97e26064fc0cea8f83df7d1879b4ac4827f03b983db4af10d00c927f0d5ca942`.
+
+Archive `rontrace-run1365.log`, 10,333,152 bytes,
+SHA-256 `6daf0c182fe1d6c210622d32de877935f16478e504272a55cada9d1e9a22b45c`.
+
+**What it holds**: the start of `japanese_enlightenment_pair::JAPANESE_ENLIGHTENMENT`, and the walk's initial state.
+
+## run1366 — the Japanese at a held Enlightenment age, East Indies, at difficulty 4: the draw stream to the game's end (2026-10-27, item 3696, `att-3696`)
+
+`docs/AI.md` §356. run1334's line with `--map 18 --ai-tribe 15` and run1365's lobby: `--map 18 --end-frame 24000
+--timeout 7200 --allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000
+--ai-tribe 15 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=4 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1365. Launched 06:12:59, exited 06:13:27 (28.1 s launch to exit). `success`. **The game
+  ended itself on 4701** (closing block 4702, `ended_early`). `GAME INFO` reads back as run1365's. `rngcmp.py`
+  against run1365: 37 frames identical. Filed with `filerun.py run1366 eastindies-japanese-enlightenment-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1366-eastindies-japanese-enlightenment-trace.txt`, 35,147,630 bytes,
+SHA-256 `58395fc7ac403e0fc6afe4365596b33a0da757fcf1643c1d2e024efd7908f419`.
+
+Archive `rontrace-run1366.log`, 141,214,304 bytes,
+SHA-256 `e3f79ad9fcab1e78a6908993adcc17fe94063d4d8912aab7f891d306d9c5d25c`.
+
+**What it holds**: the pair's first try. `japanese_enlightenment_pair_first_parting` walks it from run1365: **whole,
+4701 of 4701** by the count and the sequence. `japanese_enlightenment_pair_run1366_s_closing_state` compares the
+closing block 4702: 214 units, every count zero.
+
+## run1366b — the Japanese at a held Enlightenment age, East Indies, at difficulty 4: the closing window, blocks 4446..4702 (2026-10-27, item 3696, `att-3696`)
+
+`docs/AI.md` §356. **What the disk could not answer**: every record of the pair's last blocks, and every round.
+run1366's stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the
+start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1366b --map 18 --end-frame 4701
+--allow-early-end --timeout 3600 --log-window 4446 4702 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0` and run1365's lobby: the
+256 blocks through the closing block.
+- Pool lane 1. Launched 06:16:44, exited 06:17:44 (59.4 s launch to exit). `success`: 4702 frames. `rngcmp.py`
+  against run1366: 4702 of 4702 identical. Filed with `filerun.py run1366b
+  eastindies-japanese-enlightenment-window-4446-4702`. `df -g ~` read 172 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1366b-eastindies-japanese-enlightenment-window-4446-4702.txt`, 598,981,602 bytes,
+SHA-256 `dbeaa46d81bc30a267a8f6c0140dc70e2583aeea21463ddde980f03f77cbc284`.
+
+Archive `rontrace-run1366b.log`, 140,953,184 bytes,
+SHA-256 `cbae70f2b502f3fe65e493090fb2e687b3ea400769815af66c520f748f67340c`.
+
+**What it holds**: `japanese_enlightenment_pair_run1366b_s_closing_frame_is_widened_whole` walks it from run1365.
+That is 256 blocks and 148 keys: the standing families, the city `0/2000`'s damage on 4557, and two Musketeers'
+`dest_angle` (parked 3696b). The rounds read 102 ours and 115 theirs, 72 parting, every one a launch of the Gun
+Samurai `1/53`, `1/54` and `1/55` (parked 3696a). The draw stream holds to 4701, the game's last frame.

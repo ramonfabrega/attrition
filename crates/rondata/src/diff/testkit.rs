@@ -10748,6 +10748,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3704,
         Some(crate::diff::chinese_enlightenment_pair::WIDENING_CHINESE_ENLIGHTENMENT_CLOSING),
     ),
+    // **The Japanese at a held Enlightenment age** (item 3696): East Indies
+    // at Hard — whole on its first try, 4701 of 4701, the closing state
+    // compared; widened on run1366b over 4446..4702 (the closing block),
+    // the rounds compared.
+    (
+        "JAPANESE_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::japanese_enlightenment_pair::JAPANESE_ENLIGHTENMENT_PAIR_WORD,
+        Some("japanese_enlightenment_pair_run1366b_s_closing_frame_is_widened_whole"),
+        3696,
+        Some(crate::diff::japanese_enlightenment_pair::WIDENING_JAPANESE_ENLIGHTENMENT_CLOSING),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12991,6 +13002,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 3_836,
         endpoint: Some("chinese_enlightenment_pair_run1350_s_closing_state"),
         window: Some("chinese_enlightenment_closing_window"),
+    },
+    // The Japanese at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), East Indies at Hard (item 3696): whole on its
+    // first try, 4701 of a game that ends itself on 4701, widened on
+    // run1366b through the closing block.
+    AiWord {
+        line: "Late ages",
+        map: "EastIndiesJapaneseEnlightenment",
+        named: "East Indies (Japanese, Enlightenment)",
+        word: crate::diff::japanese_enlightenment_pair::JAPANESE_ENLIGHTENMENT_PAIR_WORD,
+        length: 4_701,
+        endpoint: Some("japanese_enlightenment_pair_run1366_s_closing_state"),
+        window: Some("japanese_enlightenment_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

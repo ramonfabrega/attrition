@@ -33659,8 +33659,9 @@ test and moves run1350b to 1593 keys and 138 parting rounds. **Not established**
 target in ours (3704a). The rows are exact under `Bay::point`'s whole-degree turn: every point of a region gives the
 same 361 headings, so the centroid is a choice among equals, not an estimate.
 
-**The rubric.** `rubric.py --tables 3` reads unit types seen 221 → **222** of 302: `Manchu Musketeers` (116,
-`MANCHUMUSKETEERS`, land), 1,356 figure rows on the lockstep count (`census::RUBRIC_UNIT_TYPES_SEEN`).
+**The rubric.** `rubric.py --tables 3` reads unit types seen 222 → **223** of 302 on the tree merged with 3696
+(its Gun Samurai is the 222nd): `Manchu Musketeers` (116, `MANCHUMUSKETEERS`, land), 1,356 figure rows on the
+lockstep count (`census::RUBRIC_UNIT_TYPES_SEEN`).
 
 ## 355. The Lakota at a held Enlightenment age, Great Lakes: whole on its first try, 4673 of 4673 (item 3695)
 
@@ -33712,12 +33713,57 @@ identical.
 **`Repeating Rifle Horse` (208, `RIFLEHORSE`)**, the booking's line, is fielded and new to the lockstep ledger, with
 352 figure rows on the lockstep count.
 
-## 356. Reserved for the next item on the AI track
+## 356. The Japanese at a held Enlightenment age, East Indies, at difficulty 4: whole on its first try, 4701 of 4701 (item 3696)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §351's lobby with the nation moved: East Indies
+(`MAP_STYLE 18`), human Nubians (4) against the **Japanese (15)** at Difficulty 4, seed 12345, `STARTING_RESOURCES
+7`, `STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`. Both age settings read back `4` on both `GAME INFO`s
+(`Pair::assert_lobby`). Captures: run1365 (a `DUMP_ALL` start) and run1366 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 4701. The walk is seeded from run1365's initial
+state (3506a). run1365 against run1366 is 37 of 37 frames identical. `diff::japanese_enlightenment_pair` pins it.
+No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(18, 15, 4)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery fields no Japanese (`GreatSaharaJapaneseTier1` left it for the AI word on item 3331). It is no pinned
+lobby's: `japanese_ancient_pair` and `japanese_industrial_pair` are `(18, 15, 5)`, this map at another difficulty;
+`japanese_medieval_pair` is `(14, 15, 5)`, `japanese_gunpowder_pair` `(7, 15, 5)` and the AI word
+`GreatSaharaJapaneseTier1` (`diff::japanese_word`) `(7, 15, 1)`, other maps.
+`japanese_enlightenment_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, frame 4701 of 4701**, by the count and the sequence. **The closing state** (run1366's closing
+block 4702, `japanese_enlightenment_pair_run1366_s_closing_state`) compares 214 units, none off, torn, unlinked or
+extra, and no building or city field-row (`closing_fields`: none).
+
+**The closing window** (run1366b, blocks 4446..4702 at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+run1365 with every round compared: 256 blocks, **148 keys**, the two `gaia:` keys unprinted; rounds read 102 ours
+and 115 theirs, **72 parting**). run1366's stride prints units every hundredth block, no `AMMO`, and no leader,
+building or city record past the start, so no dump held the last blocks. run1366 against run1366b is 4702 of 4702
+frames identical.
+- The standing families on 4446 (134 of the keys): `form`, who=1's groups and pools, both leaders' `SITE[i].reg`
+  and who=0's `aggression[1]` (ours 0 against theirs 1). After it, who=1's groups 93 and 97 (4448, 4535) and six
+  more `form` rows.
+- **The rounds: every parting row is a launch.** who=1's group 66 attacks the human's city `0/2000` with three
+  **Gun Samurai** (161, `ELITESAMURAI`), `1/53`, `1/54` and `1/55`, named by `unitat.py` on 4555. Each round leaves
+  from the unit's own position in ours and from an offset, higher launch point in theirs; `angle` and `v1z` part
+  with it, the impact `ex, ey` agree within ten, and **every** parting round flies `total_time` one frame longer in
+  ours.
+
+| block | round | ours `sx, sy, sz` | theirs | `v1z` ours / theirs | `total_time` |
+|---|---|---|---|---|---|
+| 4555 | `1/53` `ammo[0]` | 6840, 8616, 281 | 6842, 8472, 439 | -1025000 / -66268745 | 4 / 3 |
+| 4565 | `1/54` `ammo[3]` | 6936, 8280, 309 | 6892, 8153, 439 | -22935415 / -112512497 | 3 / 2 |
+| 4566 | `1/55` `ammo[2]` | 7128, 8184, 319 | 7089, 8045, 477 | -26268747 / -131512497 | 3 / 2 |
+
+  `1/53`'s round of 4555 lands a frame later in ours, so the city's `build:damage` reads 715 against 722 on 4557
+  (`damage_frac` 3 against 13). It is 3695a's shape on a third launcher. Parked 3696a.
+- Two Musketeers (99) in group 88, `1/129` on 4619 and `1/111` on 4643, guarding, part on `dest_angle` alone
+  (3695b's shape; parked 3696b).
+- No unit position, order or building field parts in the window beyond those, and the draw stream holds to the
+  game's end, so none of it names a score.
+
+**The rubric.** Unit types seen 221 → **222** of 302 (`rubric.py --tables 3`, `census::RUBRIC_UNIT_TYPES_SEEN`):
+**`Gun Samurai` (161, `GUNSAMURAI`)**, the booking's line, is fielded and new to the lockstep ledger; all 264 of its
+figure rows on the lockstep count are this pair's.
 
 ## 357. Reserved for the next item on the AI track
 

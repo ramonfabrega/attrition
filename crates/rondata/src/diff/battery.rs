@@ -429,6 +429,14 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // difficulty, nor the Medieval pair's `(7, 14, 5)`, the Industrial
     // pair's `(7, 14, 3)` or the Gunpowder pair's `(18, 14, 5)`, other maps.
     (14, 14, 5),
+    // Item 3696: the Japanese at a held Enlightenment age on East Indies at
+    // Hard (`diff::japanese_enlightenment_pair`), minted under rule (3) —
+    // not the Ancient and Industrial pairs' `(18, 15, 5)`, this map at
+    // another difficulty, nor the Medieval pair's `(14, 15, 5)`, the
+    // Gunpowder pair's `(7, 15, 5)` or the AI word
+    // `GreatSaharaJapaneseTier1`'s `(7, 15, 1)`, other maps; the battery
+    // fields no Japanese.
+    (18, 15, 4),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

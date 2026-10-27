@@ -10908,3 +10908,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1364  run1334's line with --ai-tribe 19 and run1363's lobby   (the draw stream; ended itself on 4673)
 #   run1364b --map 14 --end-frame 4673 --allow-early-end --timeout 3600 --log-window 4418 4674 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 19 --cover cover=0, run1363's lobby   (the closing window)
 # Checks: `rngcmp.py` run1363 vs run1364 -> 37 identical; run1364 vs run1364b -> 4674 identical.
+# ==== item 3696: the Japanese at a held Enlightenment age, East Indies, at difficulty 4 (`docs/AI.md` §356; `docs/RUNS.md` run1365, run1366, run1366b) ====
+#   run1365  --map 18 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 15 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=4   (start)
+#   run1366  run1334's line with --map 18 --ai-tribe 15 and run1365's lobby   (the draw stream; ended itself on 4701)
+#   run1366b --map 18 --end-frame 4701 --allow-early-end --timeout 3600 --log-window 4446 4702 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 15 --cover cover=0, run1365's lobby   (the closing window)
+# Checks: `rngcmp.py` run1365 vs run1366 -> 37 identical; run1366 vs run1366b -> 4702 identical.
