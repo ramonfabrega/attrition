@@ -32868,12 +32868,77 @@ line this section named — once the pair is lockstep.
 **Not established**: the Monarch's armour twin (`THEMONARCH_CAV_ARMOR`,
 parked 3688c), and the leader's count read apart from the walk.
 
-## 350. Reserved for the next item on the AI track
+## 350. The Romans at a held Gunpowder age, Great Lakes: first try 2926 of 4062 (item 3671)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
+the Romans (6) at Toughest (5), seed 12345, `STARTING_RESOURCES 7`, the
+age held at Gunpowder (`STARTING_TECHNOLOGY 3`, `ENDING_TECHNOLOGY 3`),
+both takes read back by `Pair::assert_lobby`. The triple `(14, 6, 5)` is
+new. The other Roman lobbies are the AI word's `(18, 6, 2)`, the
+Classical pair's `(7, 6, 5)`, the Medieval pair's `(18, 6, 5)` and the
+held-out battery's `GreatLakesRomanTier2`, `(14, 6, 2)`: this map at
+another difficulty (`roman_gunpowder_pair_is_no_other_lobby`). Captures:
+run1341 (the `DUMP_ALL` start), run1342 (the draw stream; the game ended
+itself on 4062) and run1342b (the word's window, 2895..3177). The pair is
+`rondata::diff::roman_gunpowder_pair`.
+
+**The score.** First try **2926 of 4062**, by the count and the
+sequence. On 2926 theirs spends 15 draws against ours' 14, parting at
+index 2: theirs `Unit::close+0xcb6`, ours `Guy::set_anim+0x97a <
+Unit::move_step+0x823`. **Theirs acts**: the draw is the human's Citizen
+`0/4` (TY 50) dying. On block 2927 `0/4` is ours alone, and the human's
+leader holds a unit more in ours (`num_units[0]`, `peasants`, `active`
+and `control`, 13 or 14 against 12 or 13).
+
+**The stride** (run1342, 101..2901: 29 blocks, **94 keys**) parts on the
+standing families: 49 buildings' `build:extra`, `form` on 27 units, and
+who=1's groups' `held` and pools 64..70. It parts on one unit family, the
+human's Citizens' damage, from 2701.
+
+**The word's window** (run1342b, 2895..3177: 282 blocks, **2059 keys**;
+rounds 17 theirs against 11 ours, 7 parting, the first on 2960) is
+walked from run1341 with every round compared.
+
+**The value diff, walked back** (the dump's `damage`, `damage_frame`,
+`damage_o`; the comparator's `hits:damage`):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2701 | the Citizen `0/13`, struck on 2631 by who=1's Heavy Knight `1/25` (TY 229, `KNIGHTSELITE`) | `hits:damage` | 24 | 27 |
+| 2801 | the Citizen `0/4`, struck on 2788 by the Heavy Knight `1/24` (TY 229) | `hits:damage` | 26 | 29 |
+| 2895 | `0/4` | `hits_left` | 26 | 23 |
+| 2927 | the human's leader | `num_units[0]`, `peasants` | 13, 13 | 12, 12 |
+| 2927 | the Heavy Knight `1/25` | `order:target` (from 2929) | `0/4` | `0/5` |
+| 2926 | the draw stream, index 2 | site | `Guy::set_anim+0x97a` | `Unit::close+0xcb6` |
+
+**The direction: theirs' Heavy Knights strike the Citizens for 3 more,
+blow for blow.** Each Citizen's first parted field is the blow that first
+lands on it. On 2631 `1/25` hits `0/13` for 27 in theirs against 24 in
+ours, and on 2788 `1/24` hits `0/4` for 29 against 26. Nothing strikes
+either Citizen again before the word: theirs' `damage_frame` reads 2788
+on block 2926. On 2926 `1/24` swings at `0/4` again. Both sides'
+`ATTACKORDER` turns `in_range` 1 on block 2927, and the knight agrees on
+every field. Theirs' `0/4` dies from the blow, carrying 26 damage of 50.
+Ours' `0/4` is left standing and takes a `FleeTo` order on 2927, which
+is the attacked Citizen's response. That `set_anim` is ours' index 2. No
+round is in flight on 2926 on either side. who=1's General `1/28` (TY
+354, `THEMONARCH`) casts Create Decoy (`spell 634`) on 2926 on both
+sides, and it agrees.
+
+**The next item's hypothesis** is the Heavy Knight's blow against a
+Citizen, 3 short in ours. It could be an attack or armour bonus that ours
+does not apply, for the knight's type, the Romans or the Citizen. The
+item after 3667 found the German Citizens' parting in `UnitData::attack`'s
+`0x164` arm (§346.1). A window over 2595..2701 would read the 2631 blow
+and both values on its frame. I read no formula and built nothing.
+The 2926 blow itself is placed by the flee alone. Ours' blow there is
+not read.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **213 of
+302**, unmoved: the pair parts, so it is not lockstep. The booking's line
+**is fielded** (`rubric.py --dumps` over run1342 and run1342b):
+`Praetorian Guards` (148, `PIKELEGION`), 10,402 guy records. It is the
+pair's only type new to the lockstep ledger. The pair fields 18 types.
 
 ## 351. Reserved for the next item on the AI track
 

@@ -396,6 +396,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Medieval pairs' `(18, 13, 5)` and `(7, 13, 5)`, other maps, nor the
     // held-out `GreatSaharaRussianTier4`'s `(7, 13, 4)`.
     (14, 13, 5),
+    // The Romans at a held Gunpowder age, Great Lakes (item 3671): not the
+    // held-out `GreatLakesRomanTier2`'s `(14, 6, 2)`, another difficulty,
+    // nor the AI word's `(18, 6, 2)`, the Classical pair's `(7, 6, 5)` or
+    // the Medieval pair's `(18, 6, 5)`, other maps.
+    (14, 6, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

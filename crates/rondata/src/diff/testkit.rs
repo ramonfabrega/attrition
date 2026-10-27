@@ -10629,6 +10629,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3682,
         Some(crate::diff::german_industrial_pair::WIDENING_GERMAN_INDUSTRIAL_FRAME_4772),
     ),
+    // **The Romans at a held Gunpowder age** (item 3671): Great Lakes —
+    // first try 2926 of 4062 by the count and the sequence, widened on
+    // run1342b over 2895..3177 (the word's block 2927), the rounds
+    // compared.
+    (
+        "ROMAN_GUNPOWDER_PAIR_WORD",
+        crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER_PAIR_WORD,
+        Some("roman_gunpowder_pair_run1342b_s_word_frame_is_widened_whole"),
+        3671,
+        Some(crate::diff::roman_gunpowder_pair::WIDENING_ROMAN_GUNPOWDER_FRAME_2926),
+    ),
     // **The British at a held Industrial age, at difficulty 4** (item
     // 3668): Great Sahara — first try 2382 of 4767 by the count and the
     // sequence, widened on run1336b over 2295..2633 (the word's block
@@ -12791,6 +12802,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_772,
         endpoint: Some("german_industrial_pair_run1334_s_closing_state"),
         window: Some("german_industrial_frame_4772_window"),
+    },
+    // The Romans at a held Gunpowder age (`STARTING_TECHNOLOGY` 3,
+    // `ENDING_TECHNOLOGY` 3), Great Lakes (item 3671): first try 2926 of a
+    // game that ends itself on 4062, widened on run1342b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesRomanGunpowder",
+        named: "Great Lakes (Romans, Gunpowder)",
+        word: crate::diff::roman_gunpowder_pair::ROMAN_GUNPOWDER_PAIR_WORD,
+        length: 4_062,
+        endpoint: None,
+        window: Some("roman_gunpowder_frame_2926_window"),
     },
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
