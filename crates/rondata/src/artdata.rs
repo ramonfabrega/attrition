@@ -456,6 +456,16 @@ pub fn flame_ammo(install: &Install) -> std::collections::BTreeSet<String> {
     ammo_where(install, "flame", 1)
 }
 
+/// The `<AMMO>` names of `effects_graphics.xml` whose `puncture` is 1:
+/// `init_ammo_piece_ranges`' `ammo_flags |= 1`, the first attribute it
+/// reads (`int_str_array + 0x12958`, `internal_strings.xml`'s `puncture`).
+/// The install names six: `BuildingArrow`, `ArcherArrow`,
+/// `ArcherArrowWOtip`, `FlamingArrowBolt`, `FlamingArrow` and `Spear`
+/// (item 3679, `docs/COMBAT.md` §46.7).
+pub fn puncture_ammo(install: &Install) -> std::collections::BTreeSet<String> {
+    ammo_where(install, "puncture", 1)
+}
+
 /// The `<AMMO>` names whose integer attribute `attr` reads `value`.
 fn ammo_where(install: &Install, attr: &str, value: i32) -> std::collections::BTreeSet<String> {
     let path = install.data("effects_graphics.xml");
@@ -627,6 +637,7 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
     let harmless = harmless_ammo(install);
     let missile = missile_ammo(install);
     let flame = flame_ammo(install);
+    let puncture = puncture_ammo(install);
     let mut out = PieceReleases::new();
     for u in udoc.descendants().filter(|n| n.has_tag_name("UNIT")) {
         let Some(name) = u.attribute("name") else {
@@ -654,9 +665,15 @@ pub fn piece_releases(install: &Install, graphs: &[String]) -> PieceReleases {
             let quiet = e.attribute("type").is_some_and(|t| harmless.contains(t));
             let flies = e.attribute("type").is_some_and(|t| missile.contains(t));
             let burns = e.attribute("type").is_some_and(|t| flame.contains(t));
-            rows.entry(slot)
-                .or_default()
-                .push((release_frame(ms), node, quiet, flies, burns));
+            let sticks = e.attribute("type").is_some_and(|t| puncture.contains(t));
+            rows.entry(slot).or_default().push((
+                release_frame(ms),
+                node,
+                quiet,
+                flies,
+                burns,
+                sticks,
+            ));
         }
         if rows.is_empty() {
             continue;

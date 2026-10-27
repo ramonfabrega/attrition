@@ -32187,10 +32187,56 @@ value diff.
 run1331b now reads **64 keys**, the standing families alone, and
 its rounds agree as a set on every block (0 of 288; 244 part by slot,
 theirs' spent records). **4379 is past run1331b's last block**, so the
-word's widening is owed (parked 3666). The first draft of the second
+word's widening was owed (parked 3666; paid by item 3679, below). The first draft of the second
 build bound guy 0's point to `from`, shadowing `unit_step`'s own `from`
 (the unit's position, which the arrival reads), and so moved fourteen
 other lobbies' floors. Under another name, every other floor holds.
+
+**Item 3679: the word 4379 → 4559, the pair closed — the spent arrow.**
+run1353 (4373..4559, to the game's end) is the word's widening; it opens
+apart, 223 keys on its first block, so run1353b (4195..4373) walked it
+back. **The state first parts on 4308, a birth's number, and theirs is
+the side that holds**: who=1 trains a squad of three Royal Hwarang
+(TI 182), and theirs numbers them `1/181`..`1/183` where ours numbers the
+third `1/139` — the slot of who=1's decoy Royal Hwarang `1/139`, which
+both sides close on 4267. In theirs that slot is still held: the decoy's
+arrow lies spent in the ammo pool, and `Ammo::inc_time` bumps a dead
+shooter's `hold_frames` for every record it holds, so `Objects::find_free`
+passes over 139 until the arrow goes (and theirs reuses it on 4390, for a
+Citizen). Ours had no spent arrows (COMBAT §46.7's open row, parked 521),
+freed 139 thirty frames after the close and spent it on 4308.
+
+| block | record | field | ours, before | theirs, and ours now |
+|---|---|---|---|---|
+| 4195 | `1/139`'s arrow, slot 16 | held at all | no | `flags 1`, `cur_time` 57, `total_time` 15, `whom` −1 |
+| 4337 | the same | `cur_time` | — | 199; gone on 4338 |
+| 4308 | the squad's third Royal Hwarang | `o` | 139 | 183 (uid 244, group 71) |
+| 4373 | `1/186` | type, `hits` | Korean Citizen, 50 | Royal Hwarang (uid 247), 97 |
+| 4379 | the draw stream, index 3 | site | `Guy::set_anim+0x97a < Unit::move_step+0x823` | `Unit::resolve_unit_collision+0xb52` |
+
+**The build** (`Sim::stick`, `fight.rs`): `Ammo::do_damage@00678060`'s
+puncture arm, after its two draws, restricts the point and — when the
+piece punctures (`verify_ammo_flags(…, 1)`, `effects_graphics.xml`'s
+`puncture="1"`: the arrows, the flaming arrows and the Spear) and the tile
+is not ocean — leaves the round in its slot as `flags 1`, `cur_time` 0,
+the rolled and missed bits cleared, the target kept; `inc_time` ages it
+and closes it at 200 (`SPENT_LIFE`). The harness's round readers
+compare spent records both ways now (`flags & 3`, and a `flags&2` row);
+the birth-keyed `second.rs` sets them aside on both sides. **The word
+goes to 4559 of 4559**, the game's end, by the count and the sequence;
+the closing state (`korean_medieval_pair_run1331_s_closing_state`) is
+198 units, none off, torn, unlinked or extra, `Closing fields: none`.
+run1353 reads 50 keys and run1353b 49, the standing families alone, and
+every round of both, live and spent, agrees slot for slot (3730 and 3230
+a side). run1331b's rounds read 3443 a side, 46 parting: 23 live rounds'
+`whom`/`ox` after their target dies in flight, which theirs keeps to the
+landing and ours' `Sim::forget` clears (parked 3679).
+
+**What is not established.** A building's arrow (`BuildingArrow` punctures)
+and a round no animation launches carry no ammo piece in this crate, so
+neither sticks here (two `SEAM`s); `do_damage`'s puncture arm is also
+entered when the round's target is its own shooter, which this crate
+returns from before the draws. No capture on file reaches either.
 
 ## 346. The Germans at a held Industrial age, Great Lakes: first try 4323 of 4772 (item 3667)
 

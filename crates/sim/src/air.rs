@@ -1814,6 +1814,8 @@ impl Sim {
             v1z: crate::combat::arc_v1z(sz, ez, MISSILE_FLIGHT),
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: None,
         });
     }
@@ -3908,7 +3910,7 @@ impl Sim {
         let frame = self.frame;
         self.fire_ammo_pub(me, t, angle, frame, from, z + dz, node, harmless, false);
         for p in self.projectiles.iter_mut() {
-            if p.shooter == me && p.cur_time == 0 {
+            if p.shooter == me && p.cur_time == 0 && !p.spent {
                 p.num_guys = 0;
             }
         }
@@ -4124,6 +4126,8 @@ impl Sim {
             v1z: Single::ZERO,
             slot: 0,
             flame: false,
+            punctures: false,
+            spent: false,
             crash: Some(crate::combat::Crash { bank, rolling }),
         });
     }

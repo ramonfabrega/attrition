@@ -2396,12 +2396,12 @@ by hand. An instrument; promote it when a golden word parts on a shot.
 
 ## Parked by item 495, 2026-09-22 — past the word, and the remedy for a guard
 
-(521) **A spent arrow holds its pool slot for 200 frames; this crate drops
+~~(521) closed 2026-10-26 by item 3679: a slot's number parted on it, the Korean Medieval word, built and closed (`docs/AI.md` §345, `docs/COMBAT.md` §46.7). **A spent arrow holds its pool slot for 200 frames; this crate drops
 it.** `Ammo::do_damage@00678060`'s puncture arm leaves a sticking shot as
 `flags 1` with `cur_time` reset, and `inc_time` keeps it in its slot for
 200 frames. run112 has 239 such records, the first on 780, past chapter
 two's word (762). It names no score today; promote it when a word reaches
-780 or a slot index is found to part on it.
+780 or a slot index is found to part on it.~~
 
 (522) **run122: `master_land_heights` as raw bits.** An in-process read of
 `TerrainData+0x464` at frame 0 settles all 2,058 of Great Lakes' ambiguous
@@ -11520,13 +11520,23 @@ words and edits nothing here; a refill lands when two remain.
   so theirs' AA Gun at 1028320 replaced the Flamethrower, while ours' at 941484 ranked second. The cause was the
   British `BRITISH_AA_COST` (built, `docs/AI.md` §347). Names no score.
 
-## Parked by the next landing, slot TU — reserved
+## Parked by item 3679, 2026-10-26 — the Korean Medieval pair closed: the spent arrow
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TU renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+(3685) **A live round keeps its target after the target dies in flight; ours forgets it at the death.**
+run1331b's rounds, compared slot for slot since the spent arrow, part on 46 rows from 3398, all `whom`/`ox` on 23
+live rounds (`flags 6`): who=1's Royal Hwarang `1/52`'s 3395 arrow at the Citizen `0/13`, which dies on 3397,
+prints `whom 0 ox 13` to its landing in theirs and `−1` in ours, because `Sim::forget` clears every round aimed at
+the dead at the death. The original's clear is `Ammo::do_damage`'s head, at the landing (`678060`, the
+`field_0x48`/`0x4c` reset on a target whose `flags & 1` is clear). Building it moves what `land` and the rolling
+arm read on a dead target, so it is not a field-only change. **Score**: none — every word's draws agree across it;
+promote it when a word parts on a round at a target dead in flight. A note for whoever takes it: making `forget`
+skip spent records alone moved nothing (item 3679 tried it, on a misread; the rows are live rounds).
+
+(3679a) **A building's arrow and a round no animation launches never stick.** `BuildingArrow` carries
+`puncture="1"`, and so may the piece of a unit `Unit::fight` fires for (`fire_ammo`, `do_attack_ground`'s own
+shot); this crate reads no ammo piece for either, so both close on a miss (`SEAM`s in `fight.rs` and `orders.rs`).
+`do_damage`'s puncture arm is also entered for a round whose target is its own shooter, which `land` returns from
+before the draws. **Score**: none on file; promote it when a slot or a number parts on a building's miss.
 
 ## Parked by item 3682, 2026-10-26 — the German Industrial pair whole: the Citizen keeps the siege anchor
 

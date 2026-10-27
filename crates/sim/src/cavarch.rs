@@ -706,9 +706,12 @@ mod tests {
                 let piece = sim.units[me].guys[0].gpiece;
                 sim.art.releases.insert(
                     piece,
-                    [(crate::anim::ATTACK1, vec![(1, 0, false, false, false)])]
-                        .into_iter()
-                        .collect(),
+                    [(
+                        crate::anim::ATTACK1,
+                        vec![(1, 0, false, false, false, false)],
+                    )]
+                    .into_iter()
+                    .collect(),
                 );
             }
             sim.add_attack_order(me, Obj::Unit(foe), QueuePos::New, false, true);

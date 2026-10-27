@@ -4323,7 +4323,7 @@ pub(super) fn chapter_three_s_word_frame_is_widened_whole() {
     let (firsts, ammo_theirs, ammo_ours) = (w.firsts, w.ammo_theirs, w.ammo_ours);
     // **Anti-vacuity for the `AMMO` record**: run145's live rounds are all
     // read — the chariots' from 651 — and this crate's side is not empty.
-    pin_eq!(ammo_theirs, 89, "run145's live rounds are not all read");
+    pin_eq!(ammo_theirs, 948, "run145's live rounds are not all read");
     pin!(ammo_ours > 0, "this crate fired no round in the window");
     // **The standing families on the capture's first block**, none of
     // them the chapter's: the unmodelled `form` (also every staged unit's
@@ -4395,7 +4395,9 @@ pub(super) fn chapter_three_s_word_frame_is_widened_whole() {
     // - a round's target, cleared here on its target's death (678, 705,
     //   757) where the original's `Ammo::check_hit` rewrites it on the
     //   round's due frame;
-    // - the pool slot a round takes (703, 729, 730, 754), one apart;
+    // - ~~the pool slot a round takes (703, 729, 730, 754), one apart~~:
+    //   **item 3679** — theirs' spent arrows hold their slots 200 frames
+    //   (`docs/COMBAT.md` §46.7), and every round takes the dump's slot;
     // - ~~`0/8`'s launch point on 753, one unit in `sx` and `sy`, after
     //   its turn to 61.7° on 711~~: **item 1257** — the release rotates by
     //   `fast_angle_to_degrees` of the facing, not `angle_to_degrees`
@@ -4407,20 +4409,14 @@ pub(super) fn chapter_three_s_word_frame_is_widened_whole() {
         vec![
             "705 0/6 ammo[1].ox: ours -1 theirs 7",
             "705 0/6 ammo[1].whom: ours -1 theirs 1",
-            "730 0/6 ammo[2]: this crate holds it alone",
             "678 0/6 ammo[2].ox: ours -1 theirs 8",
             "678 0/6 ammo[2].whom: ours -1 theirs 1",
-            "730 0/6 ammo[5]: the dump holds it alone",
-            "754 0/7 ammo[1]: this crate holds it alone",
-            "703 0/7 ammo[2]: this crate holds it alone",
-            "703 0/7 ammo[3]: the dump holds it alone",
-            "754 0/7 ammo[4]: the dump holds it alone",
+            "757 0/6 ammo[5].ox: ours -1 theirs 6",
+            "757 0/6 ammo[5].whom: ours -1 theirs 1",
             "757 0/8 ammo[0].ox: ours -1 theirs 6",
             "757 0/8 ammo[0].whom: ours -1 theirs 1",
-            "729 0/8 ammo[1]: this crate holds it alone",
             "678 0/8 ammo[1].ox: ours -1 theirs 8",
-            "678 0/8 ammo[1].whom: ours -1 theirs 1",
-            "729 0/8 ammo[4]: the dump holds it alone",
+            "678 0/8 ammo[1].whom: ours -1 theirs 1"
         ],
         "a row past run145's first rounds moved"
     );
@@ -4431,10 +4427,7 @@ pub(super) fn chapter_three_s_word_frame_is_widened_whole() {
     );
     pin_eq!(
         whole_on(753, 754),
-        vec![
-            "754 0/7 ammo[1]: this crate holds it alone",
-            "754 0/7 ammo[4]: the dump holds it alone",
-        ],
+        Vec::<&String>::new(),
         "the turned chariot's round moved (item 1257: its launch agrees)"
     );
     pin_eq!(
@@ -4774,7 +4767,7 @@ pub(super) fn chapter_three_s_restage_is_widened_whole() {
         return;
     };
     let firsts = w.firsts;
-    pin_eq!(w.ammo_theirs, 89, "run146's live rounds are not all read");
+    pin_eq!(w.ammo_theirs, 289, "run146's live rounds are not all read");
     pin!(w.ammo_ours > 0, "this crate fired no round in the window");
     // The standing families on the first block are run145's, the same 26.
     let standing = |what: &str| {
@@ -4853,15 +4846,19 @@ pub(super) fn chapter_three_s_restage_is_widened_whole() {
     // capture's end. What stands, past the first rounds, is three
     // families and no draw: a round's target (736), a round's pool slot
     // (798) and the scout's move facing (847).
+    //
+    // **Item 3679**: theirs' spent arrows hold their slots
+    // (`docs/COMBAT.md` §46.7), so the catapult's round takes slot 1 on
+    // both sides on 798, and what the slot had hidden is its `angle`: ours
+    // 1130823680, theirs 1192951808, the rest of the record agreeing.
     pin_eq!(first, Some(736), "run146's first value parting moved");
     pin_eq!(
         rows_on(WIDENING_CHAPTER_THREE_RESTAGE.0 + 1, WORD + 1),
         vec![
-            "798 0/6 ammo[0]: this crate holds it alone",
-            "798 0/6 ammo[1]: the dump holds it alone",
+            "798 0/6 ammo[1].angle: ours 1130823680 theirs 1192951808",
             "736 0/7 ammo[0].ox: ours -1 theirs 8",
             "736 0/7 ammo[0].whom: ours -1 theirs 1",
-            "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }",
+            "847 1/0 order:move.facing: Move { field: \"facing\", ours: 1, theirs: 0 }"
         ],
         "a row past run146's first rounds moved"
     );
@@ -4966,6 +4963,9 @@ pub(super) fn chapter_three_s_restage_numbers_its_objects() {
         let o_ammo: BTreeSet<(i64, i64, i64)> = sim
             .projectiles
             .iter()
+            // Live rounds, as theirs' `flags & 2` (item 3679: a spent
+            // arrow keeps its record on both sides).
+            .filter(|p| !p.spent)
             .filter_map(|p| match p.shooter {
                 sim::combat::Obj::Unit(u) => {
                     let un = &sim.units[u];
@@ -5060,21 +5060,12 @@ pub(super) fn chapter_three_s_restage_numbers_its_objects() {
     // build** (`docs/COMBAT.md` §59) those three rows are gone: a dead
     // number is not handed out while its death object holds it.
     //
-    // The rounds' pool slot is a second family, run145's (`docs/COMBAT.md`
-    // §55.5): the catapult's one round takes slot 1 in the dump and 0
-    // here on 798. **Since item 627** (`docs/COMBAT.md` §60) ours no
+    // The rounds' pool slot was a second family, run145's (`docs/COMBAT.md`
+    // §55.5): the catapult's one round took slot 1 in the dump and 0
+    // here on 798, until item 3679's spent arrows held theirs (§46.7). **Since item 627** (`docs/COMBAT.md` §60) ours no
     // longer fires again on 960: the catapult's fresh attack after its
     // reload, and the chase that carried it out of its minimum, are gone.
-    assert_eq!(
-        rows,
-        vec![
-            "798 ammo arrives (0, 6, 0): ours alone",
-            "798 ammo arrives (0, 6, 1): the dump's alone",
-            "830 ammo leaves (0, 6, 0): ours alone",
-            "830 ammo leaves (0, 6, 1): the dump's alone",
-        ],
-        "run146's numbering moved"
-    );
+    assert_eq!(rows, Vec::<String>::new(), "run146's numbering moved");
 }
 
 pub(super) fn chapter_three_s_arena_a_hoplites_take_the_dump_s_numbers() {

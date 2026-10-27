@@ -10835,6 +10835,10 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1334  run1312's line on --map 14 with --ai-tribe 12 and run1333's lobby   (the draw stream; ended itself on 4772)
 #   run1334b --map 14 --end-frame 4574 --allow-early-end --timeout 3600 --log-window 4295 4574 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1333's lobby   (the word 4323's window)
 # Checks: `rngcmp.py` run1333 vs run1334 -> 37 identical; run1334 vs run1334b -> 4575 identical.
+# ==== item 3679: the Korean Medieval word 4379 -> 4559, the pair closed (`docs/AI.md` §345; `docs/RUNS.md` run1353, run1353b) ====
+#   run1353  --map 14 --end-frame 4559 --allow-early-end --timeout 3600 --log-window 4373 4559 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 16 --cover cover=0, run1330's lobby   (the word 4379's window, to the game's end)
+#   run1353b --map 14 --end-frame 4373 --allow-early-end --timeout 3600 --log-window 4195 4373 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 16 --cover cover=0, run1330's lobby   (the gap 4195..4373)
+# Checks: `rngcmp.py` run1331 vs run1353 -> 4560 identical; run1331 vs run1353b -> 4374 identical.
 # ==== item 3677: the German Industrial word 4323 -> 4348, the Citizen's attack (`docs/AI.md` §346; `docs/RUNS.md` run1351, run1351b, run1351c) ====
 #   run1351  --map 14 --end-frame 4305 --timeout 3600 --log-window 4302 4304 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 12 --cover cover=0 --tracer-def RON_STATE_FRAME=4303 --tracer-def RON_STATE_PLAN=…, run1333's lobby   (a packet: pieces 192, 88)
 #   run1351b --map 14 --end-frame 3851 --allow-early-end --timeout 3600 --log-window 3495 3851 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1333's lobby   (the damage's window)

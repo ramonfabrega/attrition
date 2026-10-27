@@ -10603,13 +10603,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // compared; **4379** since item 3666 (piece 1090's bays and
     // `Guy::do_turn`'s crew loop), past run1331b's last block, which now
     // reads the standing families alone (4369 → 64): the word's widening
-    // is owed (parked 3666, booked as 3679).
+    // is owed (parked 3666). Item 3679 paid it on run1353 (4373..4560) and
+    // walked back on run1353b (4195..4373) to 4308, where the decoy's
+    // spent arrow held its number; with the spent arrow built the pair
+    // closes, **4559**, run1353 the closing window.
     (
         "KOREAN_MEDIEVAL_PAIR_WORD",
         crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL_PAIR_WORD,
-        None,
+        Some("korean_medieval_pair_run1353_s_closing_window_is_widened_whole"),
         3679,
-        None,
+        Some(crate::diff::korean_medieval_pair::WIDENING_KOREAN_MEDIEVAL_FRAME_4559),
     ),
     // **The Germans at a held Industrial age** (item 3667): Great Lakes —
     // first try 4323 of 4772 by the count and the sequence, widened on
@@ -12737,15 +12740,16 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Koreans at a held Medieval age (`STARTING_TECHNOLOGY` 2,
     // `ENDING_TECHNOLOGY` 2), Great Lakes (item 3665): first try 3401 of a
-    // game that ends itself on 4559, widened on run1331b.
+    // game that ends itself on 4559, widened on run1331b; closed by item
+    // 3679 (the spent arrow), its closing window run1353.
     AiWord {
         line: "Late ages",
         map: "GreatLakesKoreanMedieval",
         named: "Great Lakes (Koreans, Medieval)",
         word: crate::diff::korean_medieval_pair::KOREAN_MEDIEVAL_PAIR_WORD,
         length: 4_559,
-        endpoint: None,
-        window: Some("korean_medieval_frame_3401_window"),
+        endpoint: Some("korean_medieval_pair_run1331_s_closing_state"),
+        window: Some("korean_medieval_frame_4559_window"),
     },
     // The Germans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Lakes (item 3667): first try 4323 of a
