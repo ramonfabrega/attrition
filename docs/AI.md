@@ -33189,12 +33189,94 @@ torn, unlinked or extra, `Closing fields: none`.
 - **Which key a round played.** This is read off its height, and run971's
   two rounds tie the heights to their keys. No dump prints the animation.
 
-## 352. Reserved for the next item on the AI track
+## 352. The Mongols at a held Enlightenment age, Great Lakes: first try 4854 of 4949 (item 3673)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
+the Mongols (17) at Toughest (5), seed 12345, `STARTING_RESOURCES 7`, the
+age held at Enlightenment (`STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY
+4`), both takes read back by `Pair::assert_lobby`, difficulty 5 by the
+walk. The triple `(14, 17, 5)` is new. The other Mongol lobbies are the
+successor pair's `(18, 17, 3)`, `GreatSaharaMongolAllTech`'s `(7, 17, 3)`,
+the Classical pair's `(7, 17, 5)` and the Gunpowder pair's `(18, 17, 5)`,
+which are this difficulty on the other two maps. No battery game fields
+the Mongols (`mongol_enlightenment_pair_is_no_other_lobby`). Captures:
+run1345 (the `DUMP_ALL` start), run1346 (the draw stream; the game ended
+itself on 4949) and run1346c (the word's window, 4795..4950, to the
+closing block; run1346b, the same line, was a dead take). The pair is
+`rondata::diff::mongol_enlightenment_pair`.
+
+**The score.** First try **4854 of 4949**, by the count and the
+sequence. On 4854 theirs spends 18 game draws against ours' 17, parting
+at index 17: theirs `Unit::close+0xcb6 < Object::die+0x29 < Unit::die`,
+ours none. **Theirs acts**: a unit dies in theirs on 4854, after a
+round's `AmmoOut::graphic_finish`, and not in ours. The unit is the
+human's Citizen `0/6` (TY 50). Ours still holds it on block 4855, and the
+human's leader reads `num_units[0]` 11 in ours against 10 in theirs.
+
+**The stride** (run1346, 101..4801: 48 blocks, **104 keys**) parts on the
+standing families: 58 buildings' `build:extra`, `form` on 27 units, and
+who=1's groups' `held` and pools 64..70. It parts on one unit row, who=1's
+`1/119`: its five angle fields on 4701, ours 1769734144 against theirs
+1848311808.
+
+**The word's window** (run1346c, 4795..4950: 155 blocks, **754 keys**;
+rounds 294 theirs against 275 ours, 99 parting, the first on the window's
+first block) is walked from run1345 with every round compared. Block 4795
+carries the standing families and two leader-scale rows the stride does
+not print: who=1's resource buckets, and the queue costs of who=1's
+buildings `1/2029` and `1/2030`, ours 99 and 114 against theirs 94 and
+110.
+
+**The value diff** (`AMMO` and `UNIT` on run1346c; ours'
+`RON_DEBUG_UNIT`):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4841 | the Golden Horde `1/97`'s round `ammo[0]` (TI 204, at `0/6`) | `sx, sy, sz` | 6264, 28728, 480 | 6180, 28775, 715 |
+| 4841 | the same | `total_time` | 11 | 10 |
+| 4841 | the guy `1/97` (both sides) | `x, y`, `angle` | 6264, 28728, −1476001792 | the same |
+| 4841 | ours' `1/97` | animation at the shot | slot 12 (`ATTACK2`), `t16/25`, piece 154 | — |
+| 4850 | the Citizen `0/6` | `hits:damage` | 35 | 46 |
+| 4850 | the round | held | ours | retired |
+| 4854 | the Musketeer `1/21`'s round `ammo[0]` (TI 99, piece 1105, at `0/6`) | `sx, sy, sz`; `total_time` | 6552, 28728, 423; 3 | 6415, 28769, 641; 2 |
+| 4854 | the draw stream, index 17 | site | none | `Unit::close+0xcb6` |
+
+**The direction: ours' Golden Horde round leaves the unit's own
+square.** `sim::launch` holds no row for piece 154, nor does `pivot`.
+Ours' `1/97` shoots from `ATTACK2` at frame 16, so the fallback launches
+from the guy's own position, (6264, 28728, 480). It flies a
+frame longer, and the Citizen `0/6` takes the Horde's 11 on 4851 in ours
+against 4850 in theirs. On the word the Musketeer `1/21`'s round lands in
+theirs and kills `0/6`, with 19 hits left. In ours that round is also
+launched from its own square and lands a frame later. Theirs measures the
+Horde's missing row in one shot: guy (6264, 28728) at angle −1476001792,
+launch (6180, 28775, z 715), an offset of (−84, +47) and `dz` 235 over
+ours' launch. The Musketeer `1/21` (TI 99) is the Mongols' own model,
+piece 1105, shooting from `ATTACK1` at frame 1 (`RON_DEBUG_UNIT`), and
+`launch` holds no piece-1105 row: 3691's piece-49 bays do not reach it,
+and the merged tree's walk is unmoved by them.
+
+**Not this item's.** The rounds part from 4795 by their launch point on
+other shooters: the Cannon `1/91`'s (TY 268) from its own square in ours,
+(7128, 29544) against (6988, 29590), and the Musketeer `1/19`'s. The
+stride prints no `AMMO`, so they are not walked back before the window.
+Also not mine: who=1's queue costs and buckets standing at 4795, and
+`1/119`'s heading from 4701.
+
+**The next item's hypothesis** is the Golden Horde's piece-154 `ATTACK2`
+launch row from this measurement, one shot. Ours prints a `cavarch_o` on
+`1/97`, so the Horde is read as a cavalry archer, and the row may belong in
+`pivot` beside piece 138 rather than in `launch`. A second shot pins the
+bearing. The Mongol Musketeer's piece-1105 `ATTACK1` row stands beside it
+on the word, perhaps piece 49's bays as piece 1177 takes piece 121's. I
+built nothing.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **215 of
+302**, unmoved: the pair parts, so it is not lockstep. The booking's line
+**is fielded** (`rubric.py --dumps` over run1346 and run1346c): `Golden
+Horde` (204, `GOLDENHORDE`), 5,480 guy records, the word's own shooter.
+It is the pair's only type new to the lockstep ledger. The pair fields 17
+types.
 
 ## 353. Reserved for the next item on the AI track
 
