@@ -3793,6 +3793,11 @@ compared (`leader.rs`), so a tech bit can part unseen; ours' `tech` is indexed b
 comparing it needs that mapping first. For the pass: whether it is a `coverage` item (a pinned uncompared key on the newest word's window) or a
 widening row the next residue item takes.
 
+(3687) **3683's "for the Loop"** (the journal's line, filed at its merge): the `UNBUILT` guard's decimal spelling banks a constant from any
+production integer that collides with it — `0x481` fell 7 → 6 on a pivot row's `-1153`, the same collision 813's pins hit in the harness — so
+the guard cannot tell a data row from a build. For the pass: whether the guard matches the hex spelling or a named constant only, and leaves a
+table row's integers alone.
+
 ## Loop, filed 2026-10-26 — the fifty-eighth tranche's
 
 One row, built by the fifty-eighth pass and its text kept in `docs/audit/2026-10-26-fable-pass-58.md`: **3656** (3654's "for the Loop": `test_viadriver`'s
