@@ -424,6 +424,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // the peace pair's `(18, 19, 3)`, the Medieval pair's `(18, 19, 5)` or
     // the Gunpowder pair's `(7, 19, 5)`, other maps.
     (14, 19, 5),
+    // The Chinese at a held Enlightenment age, Great Lakes (item 3675): not
+    // the held-out `GreatLakesChineseTier1`'s `(14, 14, 1)`, another
+    // difficulty, nor the Medieval pair's `(7, 14, 5)`, the Industrial
+    // pair's `(7, 14, 3)` or the Gunpowder pair's `(18, 14, 5)`, other maps.
+    (14, 14, 5),
     // Item 3696: the Japanese at a held Enlightenment age on East Indies at
     // Hard (`diff::japanese_enlightenment_pair`), minted under rule (3) —
     // not the Ancient and Industrial pairs' `(18, 15, 5)`, this map at

@@ -10734,6 +10734,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3695,
         Some(crate::diff::lakota_enlightenment_pair::WIDENING_LAKOTA_ENLIGHTENMENT_CLOSING),
     ),
+    // **The Chinese at a held Enlightenment age** (item 3675): Great Lakes —
+    // its first try parts at 3263 of 3836, the Manchu Musketeer `1/42`'s
+    // round landing a frame early in theirs; widened on run1350b over
+    // 3195..3514, the rounds compared, and the stride over 101..3201.
+    (
+        "CHINESE_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT_PAIR_WORD,
+        Some("chinese_enlightenment_pair_run1350b_s_word_frame_is_widened_whole"),
+        3675,
+        Some(crate::diff::chinese_enlightenment_pair::WIDENING_CHINESE_ENLIGHTENMENT_FRAME_3263),
+    ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
     // compared; widened on run1366b over 4446..4702 (the closing block),
@@ -12974,6 +12985,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_673,
         endpoint: Some("lakota_enlightenment_pair_run1364_s_closing_state"),
         window: Some("lakota_enlightenment_closing_window"),
+    },
+    // The Chinese at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), Great Lakes (item 3675): its first try parts
+    // at 3263 of a game that ends itself on 3836, widened on run1350b.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesChineseEnlightenment",
+        named: "Great Lakes (Chinese, Enlightenment)",
+        word: crate::diff::chinese_enlightenment_pair::CHINESE_ENLIGHTENMENT_PAIR_WORD,
+        length: 3_836,
+        endpoint: Some("chinese_enlightenment_pair_run1350_s_closing_state"),
+        window: Some("chinese_enlightenment_frame_3263_window"),
     },
     // The Japanese at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
     // `ENDING_TECHNOLOGY` 4), East Indies at Hard (item 3696): whole on its
