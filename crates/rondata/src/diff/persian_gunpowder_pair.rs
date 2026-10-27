@@ -52,8 +52,19 @@ pub(crate) const PERSIAN_GUNPOWDER: Pair = Pair {
     // (34, 32) where theirs takes (34, 33) (run1385, run1385p, §358.3). On
     // 3130 ours spends 98 draws against theirs' 97, parting at index 54:
     // ours `Unit::think_fish+0x27a`, theirs `Guy::init_real+0x52`.
-    count: 3130,
-    sequence: 3130,
+    // Item 3709's fix (owner 9 never heads a cell's chain, carried here)
+    // moves it 3130 → 4842: the Fishermen `1/125` was 3709's bird-headed
+    // claim. On 4842 ours spends 21 draws against 22, parting at index 5:
+    // theirs' idle Citizen `1/95` rolls `Unit::do_idle+0x7d` where ours has
+    // sent it to the unbuilt `1/2052`.
+    // Item 3710: 4842 → 4948. `Group::action_move_near` takes each member's
+    // builder mark off (`unit_masks & ~0x400`, `705fe3`); ours kept `1/95`'s
+    // from its build on 2861 through group 80's move (4001..4101), so its
+    // idle think on 4841 searched for a build (run1387, §358.4). On 4948
+    // ours spends 48 draws against 49, parting at index 43: ours
+    // `Farms::inc_time+0x1ae`, theirs `Unit::close+0xcb6`.
+    count: 4948,
+    sequence: 4948,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
