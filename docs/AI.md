@@ -33278,12 +33278,50 @@ Horde` (204, `GOLDENHORDE`), 5,480 guy records, the word's own shooter.
 It is the pair's only type new to the lockstep ledger. The pair fields 17
 types.
 
-## 353. Reserved for the next item on the AI track
+## 353. The Greeks at a held Enlightenment age, Great Lakes: whole on its first try, 4705 of 4705 (item 3674)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3). §350's lobby with the nation and the age moved: Great Lakes
+(`MAP_STYLE 14`), human Nubians (4) against the **Greeks (5)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 4`, `ENDING_TECHNOLOGY 4`. Both age settings read back `4` on both `GAME INFO`s
+(`Pair::assert_lobby`). Captures: run1347 (a `DUMP_ALL` start) and run1348 (the draw stream, `cover=0`,
+`end:UNITS=3,GUYS=2` on a stride of 100), which ended itself on 4705. The walk is seeded from run1347's initial
+state (3506a). run1347 against run1348 is 37 of 37 frames identical. `diff::greek_enlightenment_pair` pins it. No
+twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 5, 5)`, is minted into `battery::SCORED_LOBBIES`. It is no held-out game's: the
+battery fields no Greeks since `GreatSaharaGreekTier1`, `(7, 5, 1)`, left it for the AI word (`diff::greek_word`).
+It is no pinned lobby's: `greek_classical_pair` is `(18, 5, 5)` and `greek_gunpowder_pair` `(7, 5, 5)`, other maps.
+`greek_enlightenment_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, frame 4705 of 4705**, by the count and the sequence. **The closing state** (run1348's closing
+block 4706, `greek_enlightenment_pair_run1348_s_closing_state`) compares 237 units, none off, torn, unlinked or
+extra, and no building or city field-row (`closing_fields`: none).
+
+**The closing window** (run1348b, blocks 4450..4706 at the long's detail with `LEADERS=9` and `AMMO=5`, walked from
+run1347 with every round compared: 256 blocks, **74 keys**, the two `gaia:` keys unprinted; rounds 40 a side, none
+parting). run1348's stride prints units every hundredth block, no `AMMO`, and no leader, building or city record
+past the start, so no dump held the last blocks. run1348 against run1348b is 4706 of 4706 frames identical.
+- The standing families on 4450: `form` on 27 units, both leaders' `SITE[i].reg`, who=0's `aggression[1]` (ours 0
+  against theirs 1), who=1's groups 64..67, 70 and 71's `held` and pools; 68's on 4503, 69's on 4533.
+- **One family that is not standing: who=1's queued prices.** Four Barracks (type 427), `1/2014`, `1/2017`, `1/2026`
+  and `1/2028`, hold their first two queue slots at the same price on both sides and their later slots dearer in
+  ours:
+
+| unit queued | ours `cost[0]/cost[1]` | theirs |
+|---|---|---|
+| Musketeers (99) | 140 / 120 | 125 / 108 |
+| Fusiliers (136) | 120 / 99 | 108 / 89 |
+| Explorer (71) | 44 / 44 | 35 / 35 |
+
+  Leader 1's buckets stand lower in ours with them on 4450: food 2750 against 2804, timber 2202 against 2226, wealth
+  15598 against 15607, metal 12198 against 12227. The same slots part again on 4533, 4616 and 4698 as each moves up
+  the queue. The price is set when the slot is queued, before the window's first block, and the stride prints no
+  `BUILDS`. It moves neither the draw stream nor the closing block, so it names no score (parked 3674a).
+- No unit, round, building or city field parts in the window beyond those.
+
+**The rubric.** Unit types seen 216 → **217** of 302 (`rubric.py --tables 3`, `census::RUBRIC_UNIT_TYPES_SEEN`):
+**`Royal Stratiotai` (234, `STRATIOTAIHEAVY`)**, the booking's line, is fielded and new to the lockstep ledger, with
+268 figure rows on the lockstep count.
 
 ## 354. Reserved for the next item on the AI track
 

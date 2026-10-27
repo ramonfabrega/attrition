@@ -10708,6 +10708,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3688,
         Some(crate::diff::russian_gunpowder_pair::WIDENING_RUSSIAN_GUNPOWDER_FRAME_5341),
     ),
+    // **The Greeks at a held Enlightenment age** (item 3674): Great Lakes —
+    // whole on its first try, 4705 of 4705, the closing state compared;
+    // widened on run1348b over 4450..4706 (the closing block), the rounds
+    // compared.
+    (
+        "GREEK_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::greek_enlightenment_pair::GREEK_ENLIGHTENMENT_PAIR_WORD,
+        Some("greek_enlightenment_pair_run1348b_s_closing_frame_is_widened_whole"),
+        3674,
+        Some(crate::diff::greek_enlightenment_pair::WIDENING_GREEK_ENLIGHTENMENT_CLOSING),
+    ),
     // **The Germans from an Ancient start** (item 3596): Great Sahara —
     // whole on its first try, 5314 of 5314, the closing state compared;
     // widened on run1244b over 5059..5315 (the closing block).
@@ -12909,6 +12920,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_341,
         endpoint: Some("russian_gunpowder_pair_run1340_s_closing_state"),
         window: Some("russian_gunpowder_frame_5341_window"),
+    },
+    // The Greeks at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), Great Lakes (item 3674): whole on its first
+    // try, 4705 of a game that ends itself on 4705, widened on run1348b
+    // through the closing block.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesGreekEnlightenment",
+        named: "Great Lakes (Greeks, Enlightenment)",
+        word: crate::diff::greek_enlightenment_pair::GREEK_ENLIGHTENMENT_PAIR_WORD,
+        length: 4_705,
+        endpoint: Some("greek_enlightenment_pair_run1348_s_closing_state"),
+        window: Some("greek_enlightenment_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when

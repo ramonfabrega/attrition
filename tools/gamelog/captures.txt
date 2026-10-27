@@ -10884,6 +10884,11 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1344  run1334's line with --map 18 --ai-tribe 10 and run1343's lobby   (the draw stream; ended itself on 4940)
 #   run1344b --map 18 --end-frame 4756 --allow-early-end --timeout 3600 --log-window 4495 4756 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover cover=0, run1343's lobby   (the word 4505's window)
 # Checks: `rngcmp.py` run1343 vs run1344 -> 37 identical; run1344 vs run1344b -> 4757 identical.
+# ==== item 3674: the Greeks at a held Enlightenment age, Great Lakes (`docs/AI.md` §353; `docs/RUNS.md` run1347, run1348, run1348b) ====
+#   run1347  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 5 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1348  run1334's line with --ai-tribe 5 and run1347's lobby   (the draw stream; ended itself on 4705)
+#   run1348b --map 14 --end-frame 4705 --allow-early-end --timeout 3600 --log-window 4450 4706 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 5 --cover cover=0, run1347's lobby   (the closing window)
+# Checks: `rngcmp.py` run1347 vs run1348 -> 37 identical; run1348 vs run1348b -> 4706 identical.
 # ==== item 3673: the Mongols at a held Enlightenment age, Great Lakes (`docs/AI.md` §352; `docs/RUNS.md` run1345, run1346, run1346c) ====
 #   run1345  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 17 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1346  run1334's line with --map 14 --ai-tribe 17 and run1345's lobby   (the draw stream; ended itself on 4949)
