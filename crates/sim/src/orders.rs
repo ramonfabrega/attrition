@@ -10335,6 +10335,30 @@ mod all_gathering_tests {
         assert!(sim.units[u].was_builder, "a repair swarm marks it");
     }
 
+    /// **A gather order takes the mark off** (item 3710,
+    /// `Unit::add_gather_order@0061a5c0`'s `61a5f7`, every queue position):
+    /// the sweep's view clears `+0x68 & 0x400` in `take_order`, and this
+    /// crate's left `was_builder` standing.
+    #[test]
+    fn a_gather_order_takes_the_builder_s_mark_off() {
+        let mut sim = Sim::new(crate::tuning::Tuning::RON, World::new(60, 60), 2);
+        let citizen = sim.add_unit_type(crate::UnitType {
+            hits: 10,
+            worker: Worker::Citizen,
+            ..crate::UnitType::default()
+        });
+        let site = sim.add_building(1, Pos::new(0x1000, 0x1000), 1);
+        let mut u = crate::Unit::new(1, 0, Pos::new(0x1400, 0x1000), 10);
+        u.ty = Some(citizen);
+        u.on_map = true;
+        let u = sim.add_unit(u);
+        for pos in [QueuePos::Last, QueuePos::New] {
+            sim.units[u].was_builder = true;
+            sim.add_gather_order(u, site, pos, true);
+            assert!(!sim.units[u].was_builder, "{pos:?}");
+        }
+    }
+
     /// **`find_repair_spot` is a tier arm** (item 3187,
     /// `Unit::find_repair_spot@00604320`): a computer below difficulty 2
     /// answers 0, and from 2 up it swarms the nearest damaged friendly
@@ -12750,7 +12774,18 @@ impl GatherOrderView for GatherSim<'_> {
         self.sim.clear_partial_path(u);
         self.sim.update_action(u);
     }
-    fn take_order(&mut self) {}
+    /// **A gather order takes the builder's mark off** (`61a5f7`: `andl
+    /// $0xfffffbff, 0x68(%ebx)`, every position, ahead of the order). This
+    /// crate carries the bit as `was_builder`, and only `think_peasant`'s
+    /// tail cleared it, so a citizen sent from a site to a gather kept it
+    /// and its next idle think searched for a build. run1387's `1/95`
+    /// carried it from 2861 to 4841 in ours and lost it before 4101 in
+    /// theirs (`unit_masks` 0x840408 → 0x840008 on run1370's stride), and
+    /// on 4841 ours sent it to the unbuilt `1/2052` (`docs/AI.md` §358.4,
+    /// item 3710).
+    fn take_order(&mut self) {
+        self.sim.units[self.u].was_builder = false;
+    }
     fn is_gather_type(&mut self) -> bool {
         self.sim.is_gather_type(self.b)
     }

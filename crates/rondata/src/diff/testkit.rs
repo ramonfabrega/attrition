@@ -10803,14 +10803,16 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // it 3020 → 3130 (`find_fort` and an unbuilt fort); the word's block
     // 3131 is inside run1383b's window, 295 keys, no rounds. Item 3709
     // moved it 3130 → 4842 (owner 9 never heads a cell's chain), past
-    // every window on disk: the widening is owed by the item on the word,
-    // 3710.
+    // every window on disk. Item 3710 widened it on run1387 over
+    // 4795..5093 and moved it 4842 → 4948 (a group move takes the
+    // builder's mark off), inside the same window: 1933 keys, the rounds
+    // compared — the Gun Mahout `1/99`'s round lands a frame later.
     (
         "PERSIAN_GUNPOWDER_PAIR_WORD",
         crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER_PAIR_WORD,
-        None,
+        Some("persian_gunpowder_pair_run1387_s_word_frame_is_widened_whole"),
         3710,
-        None,
+        Some(crate::diff::persian_gunpowder_pair::WIDENING_PERSIAN_GUNPOWDER_FRAME_4842),
     ),
     // **The Inca at a held Industrial age** (item 3699): Great Lakes at
     // Toughest — whole on its first try, 4471 of 4471, the closing state
@@ -13159,7 +13161,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // `ENDING_TECHNOLOGY` 3), East Indies at Hard (item 3698): its first
     // try parts at 1180 of a game that ends itself on 5673, widened on
     // run1370b; item 3706 moved it to 3020, widened on run1383b; item 3708
-    // moved it to 3130, inside the same window.
+    // moved it to 3130, inside the same window; item 3709 to 4842 and item
+    // 3710 to 4948, widened on run1387 over 4795..5093.
     AiWord {
         line: "Late ages",
         map: "EastIndiesPersianGunpowder",
@@ -13167,7 +13170,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::persian_gunpowder_pair::PERSIAN_GUNPOWDER_PAIR_WORD,
         length: 5_673,
         endpoint: Some("persian_gunpowder_pair_run1370_s_closing_state"),
-        window: Some("persian_gunpowder_frame_3020_window"),
+        window: Some("persian_gunpowder_frame_4842_window"),
     },
     // The Inca at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Lakes at Toughest (item 3699): whole on

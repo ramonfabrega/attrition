@@ -34100,11 +34100,78 @@ not on the list. Ours' `fort_at` now asks `active` too, as the census's `Sim::re
 the one extra (`GROUND_INEXACT` stays 3).
 
 **What this has not established.**
-- **Why ours' fisherman goes where it does on 3131.** Theirs spends a `Guy::init_real` (a birth) at the index where
-  ours runs `think_fish`; that is the next item's.
+- ~~**Why ours' fisherman goes where it does on 3131.** Theirs spends a `Guy::init_real` (a birth) at the index where
+  ours runs `think_fish`; that is the next item's.~~ Answered by item 3709 (§362.1): a bird headed the fish cell's
+  chain in ours, and owner 9 is never threaded; the word moves 3130 → 4842 (§358.4).
 - **The list's other exits.** `close_fort` is read and not modelled: it covers a fort's death, which `alive` stands
   for, and its capture, which no capture on disk holds.
 - **The `Region.coords` seam is closed for one sweep**, region 8 and region 12 on run1385p, not for every map.
+
+**The rubric** does not move: the word does not close.
+
+## 358.4 The Persians at Gunpowder: a group move takes the builder's mark off, the word 4842 → 4948 (item 3710)
+
+*Split from §358 at the section ceiling; §358.1–358.3 stand under §358.*
+
+*Item 3710, 2026-10-27, Opus 5.5. 3709's owner-9 chain (§362.1) moves the word 3130 → **4842**; this item moves it
+to **4948 of 5673**.*
+
+**The frame 3130** was 3709's: the Fishermen `1/125` (TI 317), born on 3130, took a cell a bird headed in ours.
+With 3709's fix the word reads 4842 here, and no second fix was built.
+
+**The frame 4842.** Ours 21 draws against 22, index 5: ours `Guy::set_anim+0x97a < Unit::do_guard+0x7f4`, theirs
+`Guy::set_anim+0x97a < Unit::do_idle+0x7d`. Nothing on disk held 4842 at a figure's clock, so it took **run1387**
+(4795..5093, `GUYS=4`, `LEADERS=9`, `AMMO=5`, `docs/RUNS.md`). Its widening on 4842:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4842 | the Citizen `1/95` (TI 50), idle on 4841 | `orders.len` | 2 (`ExploreTo` over `Build(1/2052)`) | 0 |
+| 4842 | `1/95` | `orders_x`, `orders_y` | 20040, 21144 | 20352, 20352 |
+| 4795 | who=1's leader | `free_peasants`; `gatherers` | 12; 8 | 11; 9 |
+
+**The builder's mark.** `Unit::think_peasant@005f5760`'s build arm reads `unit_masks & 0x400` (`was_builder`).
+`1/95` set it on 2861 in both. Theirs has lost it by 4101 (`unit_masks` 0x840408 → 0x840008 on run1370's stride),
+between the blocks where it leaves its `BUILDORDER` for group 80's `MOVEORDER`; ours kept it to 4841, so its idle
+think searched for a build. The original takes the mark off a unit in three places:
+`Group::action_move_near@00704990` at `705fe3`, after either arm's member order;
+`Unit::add_gather_order@0061a5c0` at `61a5f7`, at every queue position; and `think_peasant`'s own tail, which ours
+had. **Built** both missing clears (`group.rs`; `GatherSim::take_order` in `orders.rs`). The group clear moves the
+word (with it mutated out, 4842 again, held). The gather clear moves no floor; it closes golden run255's four
+`builder` rows (`0/6`..`0/9` on their first gather, `cases_setup.rs`), test `a_gather_order_takes_the_builder_s_mark_off`.
+
+**The leader row on 4795.** `Leader::produce_city@006cb120` walks `units[who]` **by object number**
+(`006cb172`..`006cb224`), and its last examined citizen decides which count loses the builder. Ours walked slots: on
+4777 it ended on `1/59` (a gatherer at a reused number) and decremented `gatherers`; theirs ended on `1/179` and
+decremented `free_peasants`. Built (`Sim::units_by_o`, `ai_sites.rs`; test
+`the_last_examined_citizen_is_the_highest_numbered_not_the_last_slot`): run1387's 4795 leader rows agree. It moves no
+floor. `Leader::check_orphaned_buildings@006c9f20` walks by `o` the same way (`006ca235`..`006ca399`,
+`006ca548`..`006ca689`); built and reverted, because no floor reads it (parked, slot US).
+
+**The score: 4842 → 4948 of 5673**, by the count and the sequence. The value diff on the word (run1387, **1933**
+keys, rounds read 5 against 6, 9 round rows):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4948 | draws 48 / 49, index 43 | site | `Farms::inc_time+0x1ae` | `Unit::close+0xcb6` |
+| 4907 | the Gun Mahout `1/99` (TI 263)'s round | `ammo[0].sx`, `sy`, `sz` | 6921, 8712, 273 | 6929, 8608, 699 |
+| 4907 | the same | `ammo[0].v1z` | 60474998 | -46025002 |
+| 4947 | the same | `ex`, `ey`; `total_time` | 7604, 6349; 4 | 7598, 6370; 3 |
+| 4949 | the human's `0/11` | — | alive (`extra`) | closed on 4948 |
+
+Before 4907 the rows that are not standing families are who=1's formation `g.des_x`/`g.des_y`, a few units apart
+from 4883 (`1/162`, `1/166`, `1/169`, `1/160`), and `1/21`'s `dest_angle` on 4886. Theirs' round leaves from 426
+higher and lands a frame sooner, and kills `0/11`.
+
+**The windows** (re-pinned): run1383b 295 → **102** (3709), the stride walked on to 4801 (48 blocks, **187** keys:
+standing families and 2901's `1/42` `dest_angle`), run1387 **1933** keys.
+
+**The closing state** (run1370's 5674): 257 units compared, counts `[209, 0, 2, 0, 60, 0, 49]`, who=1's `1/235` and
+`1/246` extra (`GROUND_INEXACT` stays 3).
+
+**What this has not established.**
+- **Why `1/99`'s round launches 426 higher in theirs on 4907**, or whether the formation's few-unit `des_x`/`des_y`
+  from 4883 put the Gun Mahout elsewhere first: the next item's, on run1387, which holds 4948.
+- **`check_orphaned_buildings`' order** is read, not diffed: no floor reaches it.
 
 **The rubric** does not move: the word does not close.
 

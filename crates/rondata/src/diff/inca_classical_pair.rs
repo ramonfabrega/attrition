@@ -317,7 +317,10 @@ fn inca_classical_pair_run1269_s_word_frame_is_widened_whole() {
     // against 3 and `gatherers` 28 against 29 (standing from run1270's
     // 5301, parked as 3617c), and `1/57`'s `dest_angle` on 5444 (554893312 against
     // 1777795072), parked as 3617a.
-    pin_eq!(w.firsts.len(), 118, "run1269 baseline");
+    // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
+    // `gatherers` agree now that `produce_city` walks its citizens by
+    // object number (`docs/AI.md` §358.4).
+    pin_eq!(w.firsts.len(), 116, "run1269 baseline");
 }
 
 /// run1270: the gap 5302..5350's window, blocks 5301..5360 at run1269's
@@ -376,7 +379,10 @@ fn inca_classical_pair_run1270_s_gap_is_widened_whole() {
     // own (7224, 8952) and flew 18 frames in ours, and (7278, 8882) and 17
     // in theirs; then its flight from 5345. With the bays: 115, the
     // standing families and `free_peasants`/`gatherers` alone (3617c).
-    pin_eq!(w.firsts.len(), 115, "run1270 baseline");
+    // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
+    // `gatherers` agree now that `produce_city` walks its citizens by
+    // object number (`docs/AI.md` §358.4).
+    pin_eq!(w.firsts.len(), 113, "run1270 baseline");
 }
 
 /// **The long's stride between the two windows** (item 3616): run1260's
@@ -541,5 +547,8 @@ fn inca_classical_pair_run1270b_s_closing_frame_is_widened_whole() {
     // who=0's `aggression[1]`) and who=1's `free_peasants` 5 against 6 and
     // `gatherers` 35 against 34 from 5978 (3617c), through the closing
     // block 6074.
-    pin_eq!(w.firsts.len(), 95, "run1270b baseline");
+    // Item 3710: 2 keys fewer — who=1's leader `free_peasants` and
+    // `gatherers` agree now that `produce_city` walks its citizens by
+    // object number (`docs/AI.md` §358.4).
+    pin_eq!(w.firsts.len(), 93, "run1270b baseline");
 }
