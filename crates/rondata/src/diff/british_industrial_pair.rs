@@ -43,8 +43,17 @@ pub(crate) const BRITISH_INDUSTRIAL: Pair = Pair {
     // draws against 21, parting at index 4: ours `Unit::fight+0x9b0`,
     // theirs `Guy::set_anim+0x97a < Guy::do_turn+0x4a <
     // Unit::move_step+0x3b6`.
-    count: 2939,
-    sequence: 2939,
+    //
+    // Item 3683: **2939 → 2918 → 4767, the game's end**, by both. Piece
+    // 190's turret and muzzle (`pivot::RELEASES`, the British Light Tank
+    // `MARK4`) put who=1's `1/28` rounds where theirs' leave — its 2868
+    // round strikes the Citizen `0/8` on 2871 as theirs' does — and the
+    // word fell to 2918 on the Black Watch's rounds, thrown from the
+    // figures' squares. Piece 65's three `launch::BAYS` rows close it:
+    // `1/15`'s round of 2897 misses `0/8` as theirs' does, and the pair is
+    // whole (`docs/AI.md` §347).
+    count: 4767,
+    sequence: 4767,
 };
 
 /// The pair's word as the handoff's line carries it: the lower of the two
@@ -374,10 +383,72 @@ fn british_industrial_pair_run1352_s_word_frame_is_widened_whole() {
     // and ours' is still flying on 2938; on the word 2939 `0/3` walks a
     // different path and ours' `Unit::fight` draws where theirs does not
     // (`docs/AI.md` §347).
-    pin_eq!(w.firsts.len(), 1533, "run1352 baseline");
+    pin_eq!(w.firsts.len(), 53, "run1352 baseline");
     // Rounds are in flight on both sides over the window.
-    pin_eq!(w.rounds_read, (306, 278), "the rounds read");
-    pin_eq!(w.rounds.len(), 110, "the rounds that part");
+    pin_eq!(w.rounds_read, (306, 306), "the rounds read");
+    pin_eq!(w.rounds.len(), 6, "the rounds that part");
+}
+
+/// run1355b: the word 2918's window, blocks 2903..3168 at run1352's
+/// detail — the Armored Car `1/30`'s rounds of 2911 and the human's
+/// Citizen `0/8`'s death on 2912 in it, and 250 blocks past the word's
+/// block 2919 (item 3683).
+pub(crate) const RUN1355B: &str =
+    "gamelog-run1355b-greatsahara-british-industrial-window-2903-3168.txt";
+
+/// The window: block 2903 through 3168; the word 2918's own block is 2919.
+pub(crate) const WIDENING_BRITISH_INDUSTRIAL_FRAME_2918: (i64, i64) = (2903, 3168);
+
+/// **The word 2918's window**: run1355b walked from run1335's start with
+/// the recorder on and every round compared (item 3683).
+pub(crate) fn british_industrial_frame_2918_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[BRITISH_INDUSTRIAL.start],
+        true,
+        BRITISH_INDUSTRIAL.long,
+        "run1355b",
+        &[(RUN1355B, WIDENING_BRITISH_INDUSTRIAL_FRAME_2918.0)],
+        WIDENING_BRITISH_INDUSTRIAL_FRAME_2918,
+        1,
+        &[2919],
+        true,
+    )
+}
+
+#[test]
+fn british_industrial_pair_run1355b_s_word_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = british_industrial_frame_2918_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 265, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        let mut rounds: Vec<_> = w.rounds.iter().collect();
+        rounds.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    pin_eq!(w.firsts.len(), 52, "run1355b baseline");
+    pin_eq!(w.rounds_read, (363, 363), "the rounds read");
+    pin_eq!(w.rounds.len(), 10, "the rounds that part");
 }
 
 /// run1336c: the long's stride to 2301 again, with `BUILDS=7`, `CITIES=5`

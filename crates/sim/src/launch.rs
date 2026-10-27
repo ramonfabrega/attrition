@@ -2316,6 +2316,48 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 83,
         },
     ),
+    // **Piece 65, the Black Watch** (type 115, `EHIGHLANDERS`,
+    // `HIGHLANDERELITE-DEFAULT-AGE0`; item 3683, `docs/AI.md` §347):
+    // run1355's `RON_STATE_FRAME=2933` packet on the British Industrial
+    // Great Sahara game holds its three `AttachPos` rows (node 0 at 10 of
+    // `CHAR_ATTACK1`, 15 of `2` and 16 of `3`, `RData +0x88` 1.0), and
+    // `fit_bay.py` fits each sweep at all 361 headings with its region's
+    // centroid (629, 15 and 412 lattice points). The musket stands some 122
+    // to 134 units ahead of the figure. who=1's `1/15`, `1/16` and `1/17`
+    // threw from the figures' own squares here; run1355b's `1/16` round of
+    // 2911 left (8435, 31093) at 763, 133 ahead of the figure's (8568,
+    // 31080) and 122 up, and ours' struck the Citizen `0/8` on 2901 where
+    // theirs' did not.
+    (
+        65,
+        crate::anim::ATTACK1,
+        10,
+        Bay {
+            right: 15_269,
+            fwd: 121_470,
+            dz: 168,
+        },
+    ),
+    (
+        65,
+        crate::anim::ATTACK2,
+        15,
+        Bay {
+            right: 5_281,
+            fwd: 133_941,
+            dz: 122,
+        },
+    ),
+    (
+        65,
+        crate::anim::ATTACK3,
+        16,
+        Bay {
+            right: 13_151,
+            fwd: 120_822,
+            dz: 167,
+        },
+    ),
     // **Piece 64, the Highlanders** (type 114, `HIGHLANDER-DEFAULT-AGE0`;
     // item 3542, `docs/AI.md` §306): node 0 at frame 6 of `CHAR_ATTACK1`, 10
     // of `2` and 12 of `3`, `RData +0x88` 1.05, off the same run1185 packet
