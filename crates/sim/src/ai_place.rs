@@ -1040,6 +1040,9 @@ impl Sim {
             let leader = &mut self.ai[w];
             let reg = areg.map(|r| r as usize);
             let gatherer = builder.is_some_and(|(_, k)| k == index::GATHER);
+            if std::env::var("RON_PROBE_3710").is_ok() && w == 1 {
+                eprintln!("PROBE3710 f{} place-take builder {:?} gatherer {} build o {}", frame, builder.map(|(u, k)| (self.units[u].index, k)), gatherer, o);
+            }
             if gatherer {
                 leader.census.gatherers -= 1;
                 if let Some(c) = city {
