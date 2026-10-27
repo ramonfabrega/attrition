@@ -31396,3 +31396,69 @@ SHA-256 `c3c90c609880c8a505a0a90841256a601e075e77056a6419901c40f5b6919e51`.
 **What it holds**: `egyptian_industrial_pair_run1374b_s_word_frame_is_widened_whole` walks it from run1373: 315
 blocks and 1132 keys. The rounds read 46 ours against 54 theirs, 13 parting; the first is the Light Tank `1/54`'s
 (TI 243, piece 193) launch on 4940, which wounds the human's Citizen `0/10` on 4943 in theirs alone.
+## run1371 — the Inca at a held Industrial age, Great Lakes: the `DUMP_ALL` start (2026-10-27, item 3699, `att-3699`)
+
+`docs/AI.md` §359. run1367's lobby with the nation moved, through `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1371 --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover
+cover=0 --ai-tribe 2 --profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7
+--profile DIFFICULTY=5`.
+- Pool lane 1. Launched 08:36:30, exited 08:36:56 (26.1 s launch to exit). `success`: 37 frames, 3370 `GROUPDATA`
+  blocks on frame 1, seed 12345, players tribe 4 and tribe 2, map style 14, five files restored. `GAME INFO` reads
+  back `DIFFICULTY 5`, `STARTING_TECHNOLOGY 5` and `ENDING_TECHNOLOGY 5` (`Pair::assert_lobby`). Filed with
+  `filerun.py run1371 greatlakes-inca-industrial-start`. `df -g ~` read 162 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1371-greatlakes-inca-industrial-start.txt`, 151,491,616 bytes,
+SHA-256 `f6754cc9f165f69b164078ef3a23386fd75e460fe9978dbc91816ee8356b8414`.
+
+Archive `rontrace-run1371.log`, 8,824,768 bytes,
+SHA-256 `bb8f659a22b8853cc9794f777fb276eab89040075f6719f90f777280b646daaf`.
+
+**What it holds**: the start of `inca_industrial_pair::INCA_INDUSTRIAL`, and the walk's initial state.
+
+## run1372 — the Inca at a held Industrial age, Great Lakes: the draw stream to the game's end (2026-10-27, item 3699, `att-3699`)
+
+`docs/AI.md` §359. run1368's line with `--ai-tribe 2`: `--map 14 --end-frame 24000 --timeout 7200
+--allow-early-end --log-window 0 24001 --stride 100 --ffwd-minute 27 --cover cover=0 --callwin 0 24000 --ai-tribe 2
+--profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile STARTING_RESOURCES=7 --profile
+DIFFICULTY=5 --detail end:MISC,UNITS=3,GUYS=2 --detail
+start:MISC,WORLD=6,TERRAIN=2,GOODS=3,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,DEATHS=1 --detail misc:CHECKSUM=2
+--detail endgame:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,DEATHS=1`.
+- Pool lane 2, beside run1371. Launched 08:36:35, exited 08:37:00 (25.4 s launch to exit). `success`. **The game
+  ended itself on 4471** (closing block 4472, `ended_early`): who=1 takes the human's capital Napata. `GAME INFO`
+  reads back as run1371's. `rngcmp.py` against run1371: 37 frames identical. Filed with `filerun.py run1372
+  greatlakes-inca-industrial-trace`.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1372-greatlakes-inca-industrial-trace.txt`, 24,898,401 bytes,
+SHA-256 `6def287e2040bfade8e729f5b0de3ddd3cc9b65e8868de23e6c4902c3cda6bad`.
+
+Archive `rontrace-run1372.log`, 79,634,144 bytes,
+SHA-256 `a0c7fd72c7b0ce96e724ad3e18f551f5b2bc8fc98e523a381d614f1457b34bfb`.
+
+**What it holds**: the pair's first try. `inca_industrial_pair_first_parting` walks it from run1371: **4471 of
+4471**, whole, by the count and the sequence. `inca_industrial_pair_run1372_s_closing_state` compares the closing
+block 4472: 156 units, none apart; one closing field, Napata's `assimilation_timer` (parked 3699a).
+
+## run1372b — the Inca at a held Industrial age, Great Lakes: the closing window, blocks 4216..4472 (2026-10-27, item 3699, `att-3699`)
+
+`docs/AI.md` §359. **What the disk could not answer**: every record and every round on the pair's last blocks.
+run1372's stride prints units every hundred frames, no `AMMO`, and no leader, building or city record past the
+start. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1372b --map 14 --end-frame 4471
+--allow-early-end --timeout 3600 --log-window 4216 4472 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 2 --cover cover=0` and run1371's lobby: 256
+blocks to the closing block.
+- Pool lane 1. Launched 08:39:29, exited 08:40:17 (48.3 s launch to exit). `success`: 4472 frames. `rngcmp.py`
+  against run1372: 4472 of 4472 identical. Filed with `filerun.py run1372b
+  greatlakes-inca-industrial-window-4216-4472`. `df -g ~` read 160 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1372b-greatlakes-inca-industrial-window-4216-4472.txt`, 543,230,701 bytes,
+SHA-256 `625fe1b103a0a76cee9c7ffc955754046c659f4adddb62e6f863dada42a6c2dd`.
+
+Archive `rontrace-run1372b.log`, 79,464,992 bytes,
+SHA-256 `3029ace80715708e7b3e5cb819489cf6978120eb1227f90fab4ea224b167e0a0`.
+
+**What it holds**: `inca_industrial_pair_run1372b_s_closing_frame_is_widened_whole` walks it from run1371: 256
+blocks and 78 keys, the standing families, the Biplanes' `myspeed` (3677a) and `1/54`'s `dest_angle`. The rounds
+read 297 against 297, with 10 rows parting, every one a Siege Mortar (piece 225) launch point (parked 3699b).

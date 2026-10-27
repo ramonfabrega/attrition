@@ -33963,12 +33963,65 @@ or by theirs' `MAKE` rows against a probe of ours' values. I built nothing.
 landing, unmoved by this pair: it parts, so it is not lockstep. The booking's line **is fielded**: `Arqimmortal` (165), 528 figure rows over run1370 and run1370b
 (`rubric.py --tables 3 --dumps`). It stays in the never list until a lockstep game holds it.
 
-## 359. Reserved for the next item on the AI track
+## 359. The Inca at a held Industrial age, Great Lakes: whole on its first try, 4471 of 4471 (item 3699)
 
-A stub the opening booking lands so a lane's rewrite and the next booking
-never touch adjacent lines (parked 1741): the booking assigns it by number
-in the queue's own words and edits nothing here; the item's worker renames
-the heading and writes the section.
+*Item 3699, 2026-10-27, Opus 5.5.*
+
+**The pair** (DECISIONS 90, 91, 93, 94 §4, 97 §3, 98 §3). §357's lobby with the nation moved: Great Lakes
+(`MAP_STYLE 14`), human Nubians (4) against the **Inca (2)** at Difficulty 5, seed 12345, `STARTING_RESOURCES 7`,
+`STARTING_TECHNOLOGY 5`, `ENDING_TECHNOLOGY 5`, read back `5` on both `GAME INFO`s (`Pair::assert_lobby`).
+Captures: run1371 (a `DUMP_ALL` start) and run1372 (the draw stream, `cover=0`, `end:UNITS=3,GUYS=2` on a stride
+of 100), which ended itself on 4471; run1371 against run1372 is 37 of 37 frames identical. The walk is seeded from
+run1371's initial state (3506a). `diff::inca_industrial_pair` pins it. No twin (DECISIONS 93 §2).
+
+**The lobby's triple**, `(14, 2, 5)`, is minted into `battery::SCORED_LOBBIES`. The held-out battery fields no
+Inca (`battery::BATTERY` has no tribe-2 game). The Inca lobbies — `inca_word` `(18, 2, 3)`, `inca_sahara_word`
+`(7, 2, 3)`, `inca_classical_pair` `(18, 2, 5)` and `inca_enlightenment_pair` `(7, 2, 5)` — are all other maps.
+`(14, 2, 5)` appeared nowhere in the tree. `inca_industrial_pair_is_no_other_lobby` asserts all of it.
+
+**First try: whole, 4471 of 4471**, by the count and the sequence — the game's last frame. The game ends on who=1's
+capture of the human's capital, Napata (`1/2058` in the closing block, `race 0`, `capture_stamp 4471`).
+
+**The closing window** (run1372b, blocks 4216..4472 at the long's detail with `LEADERS=9` and `AMMO=5`, walked
+from run1371 with every round compared: 256 blocks, **78 keys**, the two `gaia:` keys unprinted; rounds 297
+against 297, **10 rows parting**). run1372 against run1372b is 4472 of 4472 frames identical. What parts:
+- the standing families on block 4216: `form` on 27 units, who=1's groups 64..71's `held` and pools, both
+  leaders' `SITE[i].reg`, who=0's `aggression[1]` (ours 0, theirs 1);
+- the Biplanes' (TI 287) `myspeed`, ours 55 against theirs 68 on 18 units (3677a's family), and `1/33`'s `g.z[0]`
+  0 against 30 (3682's shape);
+- the Rifleman `1/54`'s `dest_angle` on 4362 (3695b's shape);
+- **the Siege Mortars' launch points**, below.
+
+**The value diff** (`AMMO` on run1372b; the shooters named by `unitat.py` and `RON_DEBUG_UNIT`):
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 4236 | the Siege Mortar `1/60`'s round `ammo[0]` | `sx, sz` | 7128, 179 | 7125, 340 |
+| 4236 | the same | `v1z` | 208657242 | 204420395 |
+| 4291 | `1/60`'s `ammo[1]` | `sx, sz`; `v1z` | 7128, 179; 208657242 | 7125, 340; 204420395 |
+| 4285 | the Siege Mortar `1/69`'s round `ammo[0]` | `sx, sy, sz` | 7416, 32664, 41 | 7413, 32663, 202 |
+| 4285 | the same | `v1z` | 212288818 | 208051971 |
+| 4472 | the city `1/2058` (Napata) | `assimilation_timer` | 4471 | 4468 |
+
+**The direction: ours' Siege Mortar rounds leave the lead figure's own square.** `1/60` and `1/69` are group 66's
+Siege Mortars: TI 275 (`SIEGEMORTAR`), TY 225, land, a packed unit of three figures whose lead is **piece 225**,
+on slot 12 (`CHAR_ATTACK2`, `1/60`) and slot 11 (`CHAR_ATTACK1`, `1/69`), each on an `ATTACKORDER` at the
+human's city `0/2000`. `launch::BAYS` has no piece-225 row. Ours looses from (7128, 31176), the figure's square,
+about 160 low; theirs from 3 back and higher. Each round lands on the same frame both sides, so the draws never
+feel it. This is §354's and §357's shape on a fifth launcher, and it does not part the pair (parked 3699b).
+
+**The closing state** (run1372's block 4472): 156 units compared, none off, torn, unlinked or extra, no building
+row. **One closing field**: Napata's `assimilation_timer`, ours 4471 against theirs 4468. The city was taken on the
+game's last frame. `docs/CITIES.md`'s timer reads `has_general(THECITIZEN) ≥ 0: assimilation_timer += 1 −
+THECITIZEN_ASSIMILATION_SPEED`, −3 a frame, and theirs' 4468 is one such step after the capture. Ours'
+`sim::city::assimilation_tick` keys it on `City::has_citizen`, which **no writer in `sim` ever sets true**
+(every constructor writes `false`). So the hypothesis is that the step is unwired, not mistimed. Which side's
+general (TI 356, The Comrade) qualifies is not read (parked 3699a). `inca_word`'s closing city row (`peasant_dist`, item 3360) is the
+precedent for a whole word with one closing field pinned.
+
+**The rubric.** `rubric.py --tables 3` reads unit types seen **224 → 225 of 302**: the pair is lockstep, and the
+booking's line **is fielded and new** — `Siege Mortar` (275, `SIEGEMORTAR`), 738 figure rows.
+`census::RUBRIC_UNIT_TYPES_SEEN` is re-pinned.
 
 ## 360. The Egyptians at a held Industrial age, East Indies, at difficulty 4: first try 4959 of 5689 (item 3700)
 

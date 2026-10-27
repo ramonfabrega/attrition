@@ -451,6 +451,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // `GreatLakesPersianTier2`'s `(14, 23, 2)`, other maps; the battery
     // fields no Persians.
     (18, 23, 4),
+    // Item 3699: the Inca at a held Industrial age on Great Lakes at
+    // Toughest (`diff::inca_industrial_pair`), minted under rule (3) —
+    // not `(18, 2, 3)`, `(7, 2, 3)`, `(18, 2, 5)` or `(7, 2, 5)`, other
+    // maps; the battery fields no Inca.
+    (14, 2, 5),
     // Item 3700: the Egyptians at a held Industrial age on East Indies at
     // Hard (`diff::egyptian_industrial_pair`), minted under rule (3) — not
     // the held-out `(18, 7, 3)` or the Classical pair's `(18, 7, 5)`,

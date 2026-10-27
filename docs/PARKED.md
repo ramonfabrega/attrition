@@ -11754,13 +11754,22 @@ its own.
   the extra `create_units` roll in both streams, so the pause takes a shifted seed. A residue item that builds the
   roll should see `1/12` agree. If it does not, the collision's own pause arithmetic is the next suspect.
 
-## Parked by the next landing, slot UH — reserved
+## Parked by item 3699, 2026-10-27 — the Inca at a held Industrial age, Great Lakes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UH renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Inca Industrial pair is whole on its first try, 4471 of 4471 (`docs/AI.md` §359). Neither row below parts the
+draw stream; each is a sub-score of the closed pair.
+
+- **3699a. Napata's `assimilation_timer` at the close.** On run1372's closing block 4472 the human's capital
+  `1/2058`, taken by who=1 on 4471, reads 4471 in ours against 4468 in theirs: one
+  `1 − THECITIZEN_ASSIMILATION_SPEED` step after the capture in theirs. `sim::city::assimilation_tick` keys
+  the step on `City::has_citizen`, and nothing in `sim` sets it true. The hypothesis is the unwired
+  `has_general(THECITIZEN)` test. It is the pair's one closing field (`inca_industrial_pair_run1372_s_closing_state`
+  pins counts `[0, 0, 0, 0, 0, 0, 1]`), and a fix moves it to zero.
+- **3699b. The Siege Mortar's piece 225 has no `launch::BAYS` row.** On run1372b, group 66's Siege Mortars (TI
+  275, TY 225) `1/60` (4236, 4291; `CHAR_ATTACK2`) and `1/69` (4285; `CHAR_ATTACK1`) loose from the lead
+  figure's own square in ours, `sz` about 160 low. Each round lands on the same frame both sides. Those are the
+  window's 10 parting round rows (`inca_industrial_pair_run1372b_s_closing_frame_is_widened_whole` pins 10). The
+  rows come off a packet that loads piece 225, as 3705's did for piece 50.
 
 ## Parked by item 3700, 2026-10-27 — the Egyptians at a held Industrial age, East Indies, at difficulty 4
 

@@ -10775,6 +10775,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3698,
         Some(crate::diff::persian_gunpowder_pair::WIDENING_PERSIAN_GUNPOWDER_FRAME_1180),
     ),
+    // **The Inca at a held Industrial age** (item 3699): Great Lakes at
+    // Toughest — whole on its first try, 4471 of 4471, the closing state
+    // compared; widened on run1372b over 4216..4472 (the closing block),
+    // the rounds compared.
+    (
+        "INCA_INDUSTRIAL_PAIR_WORD",
+        crate::diff::inca_industrial_pair::INCA_INDUSTRIAL_PAIR_WORD,
+        Some("inca_industrial_pair_run1372b_s_closing_frame_is_widened_whole"),
+        3699,
+        Some(crate::diff::inca_industrial_pair::WIDENING_INCA_INDUSTRIAL_CLOSING),
+    ),
     // **The Egyptians at a held Industrial age** (item 3700): East Indies
     // at Hard — its first try parts at 4959 of a game that ends itself on
     // 5689; widened on run1374b over 4895..5210, the rounds compared, and
@@ -13080,6 +13091,19 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 5_673,
         endpoint: Some("persian_gunpowder_pair_run1370_s_closing_state"),
         window: Some("persian_gunpowder_frame_1180_window"),
+    },
+    // The Inca at a held Industrial age (`STARTING_TECHNOLOGY` 5,
+    // `ENDING_TECHNOLOGY` 5), Great Lakes at Toughest (item 3699): whole on
+    // its first try, 4471 of 4471, the game ending on who=1's capture of
+    // the human's capital; widened on run1372b through the closing block.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesIncaIndustrial",
+        named: "Great Lakes (Inca, Industrial)",
+        word: crate::diff::inca_industrial_pair::INCA_INDUSTRIAL_PAIR_WORD,
+        length: 4_471,
+        endpoint: Some("inca_industrial_pair_run1372_s_closing_state"),
+        window: Some("inca_industrial_closing_window"),
     },
     // The Egyptians at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), East Indies at Hard (item 3700): its first
