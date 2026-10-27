@@ -12,7 +12,7 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-26, **the fifty-ninth tranche (commander, Opus): 11 of 20 landed from `604a8c8c0`**; 3672, 3686 and 3688 live on three Opus lanes at medium; the last whole gate is `a9498b12d`.*
+*2026-10-26, **the fifty-ninth tranche (commander, Opus): 11 of 20 landed from `604a8c8c0`**; 3672, 3686 and 3688 live on three Opus lanes at medium; the last whole gate is `eae77c2c7` (the coverage walk under its 3600 s cap).*
 - **Words**: three open — the Romans at Gunpowder, 2926 of 4,062 (lower map first — Great Lakes (Romans, Gunpowder)), 3689, held behind 3688 (the same Heavy Knight blow, 3 short in ours); the Americans 3174, 3686; the Russians 3711, 3688. The Koreans (3679), the Germans (3682) and the British (3683) close whole.
   **The headline, the early ages**: the fifty-eighth closed two Gunpowder words and eight of nine pairs (the record). Nine pairs booked, 3667–3675, off the
   braces, two-line lobbies first (the Germans at Industrial, five never-seen lines; the British and Americans), then the record's three and three at
