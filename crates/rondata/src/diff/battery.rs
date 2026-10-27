@@ -391,6 +391,11 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // Enlightenment pair's `(18, 20, 5)`, `(18, 20, 1)` or `(14, 20, 4)`,
     // other maps; the battery fields no Americans.
     (7, 20, 5),
+    // The Romans at a held Gunpowder age, Great Lakes (item 3671): not the
+    // held-out `GreatLakesRomanTier2`'s `(14, 6, 2)`, another difficulty,
+    // nor the AI word's `(18, 6, 2)`, the Classical pair's `(7, 6, 5)` or
+    // the Medieval pair's `(18, 6, 5)`, other maps.
+    (14, 6, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[
