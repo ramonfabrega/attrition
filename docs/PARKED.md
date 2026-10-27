@@ -11798,13 +11798,15 @@ the draw stream; it is a sub-score of the closed pair.
   window's 10 parting round rows (`british_medieval_pair_run1376b_s_closing_frame_is_widened_whole` pins 10). The
   rows come off a packet that loads piece 216, as 3705's did for piece 50 and 3699b asks for piece 225.
 
-## Parked by the next landing, slot UK — reserved
+## Parked by item 3702, 2026-10-27 — the Mongols at a held Medieval age, East Indies, at difficulty 4
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UK renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Mongol Medieval pair parts on its first try at 2595 of 5592 (`docs/AI.md` §362): the Fishermen `1/85`'s first
+`think_fish` accepts one cell more in ours. The word is the next item's. The row below is downstream of it.
+
+- **3702a. The closing state is downstream of 2595.** run1378's closing block 5593 compares 157 units, counts
+  `[131, 5, 16, 9, 102, 1, 55]`: 5 unlinked (`1/40`, `1/60`, `1/96`, `1/161`, `1/162`), 16 extra in ours, and
+  who=1's cities `1/2000`..`1/2044` and buildings `1/2017`..`1/2055` in the closing fields
+  (`mongol_medieval_pair_run1378_s_closing_state` pins them). It names no score until the word reaches it.
 
 ## Parked by the next landing, slot UL — reserved
 
