@@ -7150,6 +7150,39 @@ mod tests {
         assert_eq!(s.units[a].orders.len(), 1);
     }
 
+    /// **A hero carrying the supply bit is the supply arm's anchor** (item
+    /// 3682, `docs/AI.md` §346.2): `UnitData::is_supply@0046ce80` is the
+    /// raw `unit_flags2 & 0x40`, so The Citizen (TY 356, both `0x40` and
+    /// `0x20`) at the list's head is taken before a Supply Wagon behind it
+    /// — run1334's merged army 1/0 kept guarding its Citizen `1/17` when
+    /// group 67's wagons joined on 4348.
+    #[test]
+    fn a_hero_with_the_supply_bit_is_the_anchor_before_a_later_wagon() {
+        let mut s = sim();
+        let foot = fighter(&mut s);
+        let wagon = wagon_type(&mut s);
+        let citizen = s.add_unit_type(UnitType {
+            hits: 100,
+            cols: crate::ai_load::UnitCols {
+                unit_flags2: uflags2::SUPPLY_OR_HERO | uflags2::GENERAL,
+                ..crate::ai_load::UnitCols::default()
+            },
+            ..UnitType::default()
+        });
+        let h = spawn(&mut s, 1, citizen, Pos::new(0x1400, 0x1000));
+        let a = spawn(&mut s, 1, foot, Pos::new(0x1000, 0x1000));
+        let w = spawn(&mut s, 1, wagon, Pos::new(0x1400, 0x1400));
+        let g = group_of(1, &[h, a, w]);
+        s.group_action_siege_attack_to(&g, Pos::new(0x4000, 0x4000), Angle(0));
+        assert_eq!(s.order_type(h), index::ATTACK_TO, "the Citizen walks in");
+        for u in [a, w] {
+            let Some(Body::Guard(o)) = s.units[u].orders.front().map(|o| o.body) else {
+                panic!("{u} does not guard: {:?}", s.units[u].orders);
+            };
+            assert_eq!(o.target, h, "{u} guards the Citizen");
+        }
+    }
+
     /// **The anchor's sub-group lays out on its own record** (§26, item
     /// 736): `action_siege_attack_to@0070d830` builds it on the stack with
     /// `Group::clear(-1)`, so its `facing` is 0 whatever the parent's is,

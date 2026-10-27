@@ -479,7 +479,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3664: 204 -> 205, the Japanese Medieval pair whole at 5140 —
 /// `Elite Bushi` (159, land; 3444 guy records across run1329 and run1329b),
 /// the line §344 booked, read by `rubric.py --tables 3` on the merged tree.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 205;
+/// Item 3682: 205 -> 210, the German Industrial pair whole at 4772 —
+/// `Riflemen` (101), the German `Anti-tank Rifle` (138), the `A7V` (242),
+/// the German `Artillery` (270) and the `Albatross` (288), all off the
+/// never list, read by `rubric.py --tables 3` on this tree.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 210;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
