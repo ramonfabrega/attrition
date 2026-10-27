@@ -69,7 +69,7 @@ pub(crate) const PERSIAN_GUNPOWDER: Pair = Pair {
     // `1/99`'s (TI 263) round on 4907 left the elephant's own square at 273;
     // piece 213's five howdah bays (`launch::BAYS`, run1385p's packet) put
     // it at (6929, 8608, 699), as theirs, and it kills `0/11` on 4948
-    // (`docs/AI.md` §358.5).
+    // (`docs/AI.md` §358.4).
     count: 5673,
     sequence: 5673,
 };
@@ -450,6 +450,71 @@ fn persian_gunpowder_pair_run1387_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 143, "run1387 baseline");
     pin_eq!(w.rounds_read, (5, 5), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1390: the pair's last blocks, 5416..5674 at run1387's detail,
+/// through the closing block (item 3713): no dump held them once the word
+/// reached the game's last frame — run1370's stride prints `GUYS=2`, no
+/// `AMMO` and no leader past the start, and run1387 ends on 5093.
+pub(crate) const RUN1390: &str =
+    "gamelog-run1390-eastindies-persian-gunpowder-window-5416-5674.txt";
+
+/// The closing window: block 5416 through the closing block 5674.
+pub(crate) const WIDENING_PERSIAN_GUNPOWDER_CLOSING: (i64, i64) = (5416, 5674);
+
+/// **The pair's last blocks**: run1390 walked from run1369's start with
+/// the recorder on and every round compared (item 3713).
+pub(crate) fn persian_gunpowder_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[PERSIAN_GUNPOWDER.start],
+        true,
+        PERSIAN_GUNPOWDER.long,
+        "run1390",
+        &[(RUN1390, WIDENING_PERSIAN_GUNPOWDER_CLOSING.0)],
+        WIDENING_PERSIAN_GUNPOWDER_CLOSING,
+        1,
+        &[5674],
+        true,
+    )
+}
+
+#[test]
+fn persian_gunpowder_pair_run1390_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = persian_gunpowder_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 258, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    // Item 3713: **152 keys**, no unit position, building or city row —
+    // 100 are block 5416's standing families (`form`, groups' pools,
+    // `SITE[i]`); after it, groups 89, 92 and 93 held and `form` on units
+    // as each is built, eight `dest_angle`s (5545..5646), and group 79's
+    // `order:group.id` 5658907 against 5658909 from 5652.
+    pin_eq!(w.firsts.len(), 152, "run1390 baseline");
+    pin_eq!(w.rounds_read, (219, 219), "the rounds read");
+    // Every round, both directions: 219 a side, 40 parting — the six
+    // Bombards' (TI 267, piece 1977) launches from `1/73`, `1/76`, `1/86`,
+    // `1/90`, `1/94` and `1/96` at their carriages' squares, 104 low
+    // (5463..5641; piece 1977 has no `BAYS` row, parked 3713c). None moves
+    // a draw.
+    pin_eq!(w.rounds.len(), 40, "the rounds that part");
 }
 
 /// run1385: the site's window, blocks 2695..2801 at run1383b's detail —

@@ -3364,7 +3364,7 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
         },
     ),
     // **Piece 213, the Gun Mahout** (type 263, `mahoutmusket.bh3`; item
-    // 3713, `docs/AI.md` §358.5): run1385p's packet on the Persian
+    // 3713, `docs/AI.md` §358.4): run1385p's packet on the Persian
     // Gunpowder lobby holds its five node-1 rows (run1007b's carries the
     // same floats), the musket on the howdah, one per attack slot at the
     // file's release frame (833 → 12, 999 → 14), each the centroid of its
@@ -4149,7 +4149,7 @@ mod tests {
     }
 
     /// **The Gun Mahout's round leaves from piece 213's howdah** (item
-    /// 3713, `docs/AI.md` §358.5): run1387's `AMMO` record of `1/99`'s
+    /// 3713, `docs/AI.md` §358.4): run1387's `AMMO` record of `1/99`'s
     /// round on 4907, fired on the move (`CHAR_ATTACKWALK`, frame 14) from
     /// the figure's pose on that block, (6921, 8712) at 197197824 and a
     /// guy `z` of 273; theirs' round leaves (6929, 8608, 699).

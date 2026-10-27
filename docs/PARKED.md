@@ -11950,13 +11950,23 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot UV — reserved
+## Parked by item 3713, 2026-10-27 — the Gun Mahout's howdah bays: the Persian Gunpowder word closes, 4948 → 5673
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UV renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The Persian Gunpowder word closes whole, 4948 → 5673 of 5673, on piece 213's five `launch::BAYS` rows read off
+run1385p's packet (`docs/AI.md` §358.4). Neither row below names a score: the pair is lockstep to its last frame.
+
+- **3713a. `1/99`'s order after its kill.** On run1387's block 4951 the Gun Mahout's top order is `kind` 21 in ours
+  against 2 in theirs (`order:flags` 0 against 4, `action` false against true), and its three figures' `cur_time`
+  17 against 18. Theirs takes its next order the frame its target dies; ours a frame later. No draw feels it. It
+  names a score when a shooter's retarget after a kill reaches a draw on a word's frame.
+- **3713b. who=1's formation `g.des_x`/`g.des_y`, a few units off** (run1387, from 4883: `1/162` 33601 against
+  33600 and 41086 against 41088; then `1/166`, `1/169`, `1/160` to 4938), and `1/21`'s `dest_angle` on 4886
+  (1073741824 against -724566016). They do not move the Gun Mahout (its pose agrees on 4907) and no draw feels
+  them. They name a score when a formation slot's rounding puts a figure on another cell.
+- **3713c. The Persian Bombard's bay, piece 1977** (TI 267, TY 217, `217 + 5 × 0x160`). run1390's six Bombards
+  (`1/73`, `1/76`, `1/86`, `1/90`, `1/94`, `1/96`) loose at their carriages' squares, 104 low, on `CHAR_ATTACK2` frame 9
+  (40 round rows, 5463..5641). run1385p's packet holds its one `AttachPos` row (node 0, anim 12, time 9), so the row
+  is a fit away. It names a score when a Bombard's round lands a frame apart on a word's frame.
 
 ## Parked by the next landing, slot UW — reserved
 

@@ -10973,3 +10973,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 # ==== item 3710: the Persian Gunpowder word moves 4842 -> 4948 (`docs/AI.md` §358.4; `docs/RUNS.md` run1387) ====
 #   run1387  --map 18 --end-frame 5093 --timeout 3600 --log-window 4795 5093 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0, run1369's lobby   (the word 4842's window)
 # Checks: `rngcmp.py` run1370 vs run1387 -> 5094 identical.
+# ==== item 3713: the Persian Gunpowder word closes, 4948 -> 5673 (`docs/AI.md` §358.4; `docs/RUNS.md` run1390) ====
+#   run1390  --map 18 --end-frame 5673 --allow-early-end --timeout 3600 --log-window 5416 5674 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=4,LEADERS=9,AMMO=5 --ai-tribe 23 --cover cover=0, run1369's lobby   (the closing window)
+# Checks: `rngcmp.py` run1370 vs run1390 -> 5674 identical.

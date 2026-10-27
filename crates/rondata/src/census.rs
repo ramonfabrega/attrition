@@ -538,7 +538,11 @@ pub const RUBRIC_AGES_HELD: usize = 8;
 /// Item 3711: 227 -> 228, the Greek Medieval pair whole at 5942 —
 /// `Royal Companion` (232, `COMPANIONELITE`, land; 834 figure rows), the
 /// line §363 named, read by `rubric.py --tables 3`.
-pub const RUBRIC_UNIT_TYPES_SEEN: usize = 228;
+/// Item 3713: 228 -> 229, the Persian Gunpowder pair whole at 5673 —
+/// `Gun Mahout` (263, `GUNMAHOUT`, land; 1926 figure rows), the shooter
+/// whose howdah bays closed the word (§358.4), read by `rubric.py
+/// --tables 3`.
+pub const RUBRIC_UNIT_TYPES_SEEN: usize = 229;
 /// `unitrules.xml`'s records.
 pub const RUBRIC_UNIT_TYPES: usize = 364;
 /// Records no skirmish trains: `TRIBE_MASK` all zero, so
