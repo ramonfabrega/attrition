@@ -8307,12 +8307,19 @@ dump, is past the word, and this crate no longer reaches it.
   where the original works in singles (DECISIONS 31), so a corner a
   building has changed is not known to be the original's single. The
   guard counts any read of one, and none happens on a replayed window.
-- **The spent arrow.** `Ammo::do_damage@00678060`'s puncture arm leaves a
+- ~~**The spent arrow.** `Ammo::do_damage@00678060`'s puncture arm leaves a
   shot whose piece can stick, on valid non-water ground, as `flags 1`,
   with `cur_time` reset. `inc_time` holds it for 200 frames, **in its
   slot**. This crate removes it, so a later shot can take a slot the
   original's cannot. run112 carries 239 such records, the first on 780,
-  past the word. It is parked rather than landed.
+  past the word. It is parked rather than landed.~~ **Built by item 3679**
+  (`Sim::stick`, `combat::Projectile::spent`, `docs/AI.md` §345): the
+  slot is not all it holds — `inc_time` bumps a dead shooter's
+  `hold_frames` for the record's whole life, so the shooter's *number*
+  is held 200 frames too, which closed the Korean Medieval pair. The
+  harness compares spent records both ways. A building's arrow and a
+  round no animation launches carry no piece here and do not stick
+  (`SEAM`).
 - **`sz` for a piece with a release table and no measured node** takes a
   `dz` of 0, and `ez` for a building target is its tile's `z`. Neither is
   reached by a rolled shot on any capture.

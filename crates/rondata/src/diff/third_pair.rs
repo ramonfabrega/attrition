@@ -1882,12 +1882,13 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             "{capture}: ammo counts {ammo_counts:?}, differences {ammo_differences:?}, unmodelled {ammo_unmodelled:?}"
         );
         // Item 2609: twenty-two fields a record, once `rolling` and the
-        // crash's bank pair are compared on every round (`docs/AI.md` §228).
+        // crash's bank pair are compared on every round (`docs/AI.md` §228);
+        // item 3679, twenty-three with the live bit (`flags & 2`).
         if window == WIDENING_FRENCH_LAKES_CLOSING {
             assert_eq!(
                 ammo_counts,
-                (7, 7, 154),
-                "every lifetime and twenty-two comparisons per record"
+                (7, 7, 161),
+                "every lifetime and twenty-three comparisons per record"
             );
             assert_eq!(
                 ammo_differences,
@@ -1942,10 +1943,11 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // theirs' 70, and 442 → 337 rows. Item 3359, the Dragoon's pivot
             // rows (piece 139): 337 → 298. Item 3603, piece 48's bays (the
             // Arquebusiers' art, run1254c): 71 → 70 against theirs' 70, and
-            // 298 → 40 rows.
+            // 298 → 40 rows. Item 3679: 1540 → 1610, twenty-three fields
+            // with the live bit (`flags & 2`); the rows unmoved.
             assert_eq!(
                 (ammo_counts, ammo_differences.len() - before.len()),
-                ((70, 70, 1540), 40),
+                ((70, 70, 1610), 40),
                 "the rounds past the word"
             );
             assert_eq!(
@@ -1968,8 +1970,8 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // (from ours' (6603, 8854), 6359, −128122880).
             assert_eq!(
                 ammo_counts,
-                (3, 3, 66),
-                "three lifetimes, twenty-two fields each"
+                (3, 3, 69),
+                "three lifetimes, twenty-three fields each (item 3679: the live bit)"
             );
             assert_eq!(
                 ammo_differences,
@@ -1994,11 +1996,12 @@ fn third_pair_windows_check_groups_and_projectiles_on_both_sides() {
             // piece (`pivot::RELEASES` piece 139, run985b's packet), and
             // the round agrees whole — `sx, sy` (6467, 9094), `ex, ey`
             // (6216, 7336) and `angle` −69140480 on both sides, 17166..17169
-            // (from ours' (6498, 9100), (6220, 7335), −78708736).
+            // (from ours' (6498, 9100), (6220, 7335), −78708736). Item
+            // 3679: twenty-three fields, with the live bit (`flags & 2`).
             assert_eq!(
                 ammo_counts,
-                (4, 4, 88),
-                "four lifetimes, twenty-two fields each"
+                (4, 4, 92),
+                "four lifetimes, twenty-three fields each"
             );
             assert_eq!(
                 ammo_differences,

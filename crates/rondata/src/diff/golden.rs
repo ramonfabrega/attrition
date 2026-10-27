@@ -684,7 +684,9 @@ fn rounds_record_for_record(
         let raw = s.ix.read_frame(at).unwrap();
         let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(&raw)
             .into_iter()
-            .filter(|(a, _)| a.flags & 2 != 0)
+            // Live (`flags & 2`) or spent (`flags 1`, item 3679): both hold
+            // their slot.
+            .filter(|(a, _)| a.flags & 3 != 0)
             .map(|(a, _)| ((a.who, a.o, a.index), a))
             .collect();
         let sim = &s.built.sim;
@@ -3728,7 +3730,9 @@ fn widen_chapter_three(
         // the pool slot (chapter five's reading, `docs/COMBAT.md` §46.4).
         let theirs: BTreeMap<(i64, i64, i64), super::ammo::Ammo> = super::ammo::blocks(&raw)
             .into_iter()
-            .filter(|(a, _)| a.flags & 2 != 0)
+            // Live (`flags & 2`) or spent (`flags 1`, item 3679): both hold
+            // their slot.
+            .filter(|(a, _)| a.flags & 3 != 0)
             .map(|(a, _)| ((a.who, a.o, a.index), a))
             .collect();
         let ours: BTreeMap<(i64, i64, i64), sim::combat::Projectile> = s
@@ -4087,9 +4091,12 @@ pub(crate) fn round_rows(
 fn ammo_flag_rows(
     p: &sim::combat::Projectile,
     a: &super::ammo::Ammo,
-) -> [(&'static str, i64, i64); 6] {
+) -> [(&'static str, i64, i64); 7] {
     let (roll, bank) = p.crash.map_or((0, (0, 0)), |c| (c.rolling, c.bank));
     [
+        // A spent arrow is `flags 1`, a live round carries `2` (item
+        // 3679, `docs/COMBAT.md` §46.7).
+        ("flags&2", if p.spent { 0 } else { 2 }, a.flags & 2),
         ("flags&4", if p.rolling { 4 } else { 0 }, a.flags & 4),
         ("flags&8", if p.missed { 8 } else { 0 }, a.flags & 8),
         // `Ammo::init`'s bit `0x10`, a `do_damage="0"` round (item 853,

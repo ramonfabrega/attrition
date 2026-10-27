@@ -3898,9 +3898,12 @@ mod tests {
             sim.art.lengths.insert((PIECE, crate::anim::ATTACK2), 20);
             sim.art.releases.insert(
                 PIECE,
-                [(crate::anim::ATTACK2, vec![(4, node, false, false, false)])]
-                    .into_iter()
-                    .collect(),
+                [(
+                    crate::anim::ATTACK2,
+                    vec![(4, node, false, false, false, false)],
+                )]
+                .into_iter()
+                .collect(),
             );
             let put = |sim: &mut crate::Sim, who: u8, p: Pos| {
                 let index = i16::try_from(sim.units.len()).unwrap();
