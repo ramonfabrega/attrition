@@ -21576,3 +21576,25 @@ Korean word first, then nine pairs off the braces, two-line lobbies first
 — the Germans at Industrial with five never-seen lines — then the record's
 three and three at Enlightenment (3667–3675). **DECISIONS 97.**
 `docs/audit/2026-10-26-fable-pass-58.md`.
+
+**2026-10-27 — the fifty-ninth Fable pass** (the `steer` session, cleared
+into at the drain, unattended): the fifty-ninth tranche measured — twenty
+landings on three Opus lanes from `604a8c8c0` in 11 h 34; nine early-age
+words closed (the Koreans at Medieval; the Germans, British and Americans
+at Industrial; the Russians and Romans at Gunpowder on one fix; the French,
+Mongols and Greeks at Enlightenment), eight pairs stood up and all eight
+whole, 3675 carried; unit types seen 205 → 220 of 302, lockstep bytes 77.4
+unmoved; 8.77 USD and 57.3 minutes waiting a landing against 8.06 / 40.2
+(the drain's own line had read 8.30 / 54.5 over 22 sessions: two
+co-bookings hid two lanes, and `tranche.py` reads them now). The third
+lane's cost was the lane gate re-run after `Base moved:` — the residue
+lanes gated three to five times each, 908 of 1,145 waiting minutes on the
+gate class, the door at 2,834 s with room — so the lane rule takes the lane
+away again and the return clause now waits on Loop 3694's lever, not on a
+two-lane gate figure. 3680 built (the brief's off-switch row), 3687 built
+(the `UNBUILT` guard reads a named constant's line alone; ten pins moved,
+seven of them collisions), 3681 measured (the walk 393 s alone, five
+seconds a window, the 3600 s cap good for eighty more). Booked: 3675 first,
+then the refill's six and three Medieval lobbies off the braces
+(3695–3703), two Opus lanes at medium. **DECISIONS 98.**
+`docs/audit/2026-10-27-fable-pass-59.md`.

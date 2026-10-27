@@ -185,16 +185,20 @@ def fold(tr: dict, gap_s: int, deep_k: int) -> dict:
     }
 
 
-BOOK = re.compile(r"^Book (\d+)\b")
+BOOK = re.compile(r"^Book (\d+(?:(?:, | and )\d+)*)\b")
 
 
 def booked_items(subjects: list[str]) -> list[int]:
     """The items a tranche landed, off its first-parent commit subjects
-    newest first (`git log --first-parent --format=%s <base>..HEAD`): one
-    per `Book N` commit, oldest first. A `Queue:` or `Merge` commit is not
-    a landing (the fifty-fourth pass, Loop 3564)."""
-    out = [int(m.group(1)) for sub in subjects if (m := BOOK.match(sub))]
-    return out[::-1]
+    newest first (`git log --first-parent --format=%s <base>..HEAD`): every
+    item a `Book N` commit names — `Book 3674 and 3690` is two landings
+    (the fifty-ninth pass: two co-booked lanes, 25.54 USD and 164 waiting
+    minutes, were missing from the drain's handoff line) — oldest first. A
+    `Queue:` or `Merge` commit is not a landing (the fifty-fourth pass,
+    Loop 3564)."""
+    commits = [[int(n) for n in re.findall(r"\d+", m.group(1))]
+               for sub in subjects if (m := BOOK.match(sub))]
+    return [item for items in commits[::-1] for item in items]
 
 
 def handoff_line(rows: list[dict], deep_k: int) -> str:

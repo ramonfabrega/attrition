@@ -39,58 +39,58 @@ Before any reading, in order:
    placed by `Unit::inc_time`'s `+0x3e`/`+0x6e` callers in theirs'
    trace** (2639).
 2. **Both sides' event on the word's frame** (1076, 1085, 1088, 1097):
-   `RON_STACKS` both sides; the arguments of the call a value parts
-   through; our rounds whose first row is a wound
-   (`RON_DEBUG_AMMO`), the `kill_current_order` caller; a `Group::` caller takes
-   `RON_DEBUG_ARMIES` too (2610); **index-0 sites in different callers:
+   `RON_STACKS` both sides; the arguments of the parting call; rounds
+   whose first row is a wound (`RON_DEBUG_AMMO`); the
+   `kill_current_order` caller; a `Group::` caller adds
+   `RON_DEBUG_ARMIES` (2610); **index-0 sites in different callers:
    theirs' first; a reach gap at equal distance is `max_range`'s terms**
    (2847).
 3. **Every instance of the parting event on disk** (1058), **and each
-   value the booking names, grepped in the dump first** (737); **two destinations: both sides' `RON_DEBUG_UNIT`, the unit's firsts**
-   (1622);
-   **a birth no queue holds is `births.py`'s** (1674);
-   **a birth on the word's frame: `RON_DEBUG_BUILDS` over
-   `<word−1>–<word>`** (2319); **the make
-   list's head: `RON_DEBUG_MAKE=<frame>`** (2955); **a value the dump
-   prints and no reading produces: the export** (2577);
-   **one ours does not compute: a packet** (2527).
+   value the booking names, grepped in the dump** (737); **two
+   destinations: both sides' `RON_DEBUG_UNIT`, the unit's firsts**
+   (1622); **a birth no queue holds is `births.py`'s** (1674); **a birth
+   on the word's frame: `RON_DEBUG_BUILDS` over `<word−1>–<word>`**
+   (2319); **the make list's head: `RON_DEBUG_MAKE=<frame>`** (2955);
+   **a value the dump prints and no reading produces: the export**
+   (2577); **one ours does not compute: a packet** (2527).
 4. **The first parting's field list, not its unit** (758), both
    directions, every unit on the block; **walk the object back to its
    first parted field before calling a block quiet** (1046); **a first
    row is no cause until its key is read on every unit in the window**
-   (1155); **a gone actor parts no key** (1199). **A projectile's landing reads the shooter's firsts;
-   two swapped numbers are births, by `uid`** (1597); numbering or
-   state: `unitat.py` on an earlier window (2154). **A fallback's parting asks which gate input differs** (2726);
-   **a one-field path parting lists the writers that copy an entry**
-   (2762).
+   (1155); **a gone actor parts no key** (1199); **a projectile's
+   landing reads the shooter's firsts; swapped numbers are births, by
+   `uid`** (1597); numbering or state: `unitat.py` on an earlier window
+   (2154); **a fallback's parting asks which gate input differs**
+   (2726); **a one-field path parting lists the writers that copy an
+   entry** (2762).
 5. **Count the writers of the field that parted**, by offset in every
    spelling, never by name (823, 869); a row booked under a mechanism
    counts its writers first (889).
 6. **Grep the compared pin for the word's record** (772) **and
    `coverage.rs`'s unread list for the parted field** — quiet is blind
-   (1475; `standing.py --unread`, 3547) — **pipe the
-   widening's `RON_FIRSTS=1` print through `standing.py`**
-   (1250, 1471): a standing field this crate reads: the journal, both
-   values (769, 834, 1162, 1187); **agreeing is quiet, not proven** (898, 1039).
-   **A standing row on a unit the block names, or the parted orders'
-   target, is walked back through every earlier widening** (2180, 2264,
-   2738). **A leader row:
-   `diff` the whole `LEADERDATA` across the block, unread fields too**
-   (2292); **a standing `num_units`/`control` row on the parted
+   (1475; `standing.py --unread`, 3547) — **pipe the widening's
+   `RON_FIRSTS=1` print through `standing.py`** (1250, 1471): a standing
+   field this crate reads: the journal, both values (769, 834, 1162,
+   1187); **agreeing is quiet, not proven** (898, 1039). **A standing
+   row on a unit the block names, or the parted orders' target, walks
+   back through every earlier widening** (2180, 2264, 2738). **A leader
+   row: `diff` the whole `LEADERDATA` across the block, unread fields
+   too** (2292); **a standing `num_units`/`control` row on the parted
    queue's player: the parked file first** (2781).
-7. **"Seams, read for you" below**, then `seams.py --field <first
-   parted field>`, `--callees <its writer>`, `--unwritten <Struct>`
-   (1397, 1382, 1400, 1560), **`--item` on `think_<type>` of a unit the
-   draws name** (2827) **and the pair a `view` line names** (3553): the `SEAM`s and gap
-   paragraphs (830, 860, 1146, 1159, 1193, 1240, 1253, 1322, 1337,
-   1340), **grepped for the event's subsystem, not the field** (1633);
-   **one side spent nothing: the other's order chain** (1233);
-   an absence's seam is `--dated` (1132, 1590).
+7. **"Seams, read for you" below**, then `seams.py --field <parted
+   field>`, `--callees <its writer>`, `--unwritten <Struct>` (1397,
+   1382, 1400, 1560), **`--item` on `think_<type>` of a unit the draws
+   name** (2827) **and the pair a `view` line names** (3553): the
+   `SEAM`s and gap paragraphs (830, 860, 1146, 1159, 1193, 1240, 1253,
+   1322, 1337, 1340), **grepped for the event's subsystem, not the
+   field** (1633); **one side spent nothing: the other's order chain**
+   (1233); an absence's seam is `--dated` (1132, 1590).
 8. **Units are `unitat.py <dump> <frame|lo-hi> <who>/<o>[,..]`, one
-   pass** (1981, 1739, 1601, 2145, 2896). **A parked row is wording, never a citation**: grep its nouns in the
-   export's index, `NEVER` and struck text (1010, 1033).
+   pass** (1981, 1739, 1601, 2145, 2896). **A parked row is wording,
+   never a citation**: grep its nouns in the export's index, `NEVER` and
+   struck text (1010, 1033).
 9. **A road-node parting: log ours' map around the tile over the whole
-   game first** (3323); **a larger blow with `get_damage` agreeing: the
+   game** (3323); **a larger blow with `get_damage` agreeing: the
    packet's live `Ammo` first** (3328, 3322).
 
 ## reading
@@ -115,32 +115,32 @@ Before any reading, in order:
 
 ## capture
 
-- **Grep the disk before booking a capture**; the booking cites what
-  the disk could not say; a round's packet asks if `AMMO` printed
-  (1079, 783).
+- **Grep the disk before booking a capture**; the booking cites what the
+  disk could not say; a round's packet asks if `AMMO` printed (1079,
+  783).
 - **A value no dump prints takes a packet, not a detail capture**, at
   `RON_STATE_FRAME=N−1` for a decision block N prints (2303, EMULATOR
   §8), the entered function named, never `Game::do_frame` (1026, 685);
-  **run the unit's whole `process` first** (1526),
-  `step4.py --poke`/`--hook` (1869), **hooked at the caller's return**
-  (2903), the address off `unitaddr.py <packet> <x> <y>` (1953).
+  **the unit's whole `process` first** (1526), `step4.py
+  --poke`/`--hook` (1869), **hooked at the caller's return** (2903), the
+  address off `unitaddr.py <packet> <x> <y>` (1953).
 - **The window is sized to the word**: six blocks before for
   `samegame.py`, 250 after (799), **from the last dumped block when a
-  gap leaves it near** (3155); a `check:` wraps the count in
-  `(… || true)` (1080); a measurement names its instrument (881);
+  gap leaves it near** (3155); a `check:` wraps the count in `(… ||
+  true)` (1080); a measurement names its instrument (881);
   **`--end-frame` is the game's last frame when the window reaches it**
   (1529); a self-ending lobby takes `--allow-early-end` (1551); **a word
   at a lobby's last frame: the long's closing block first** (3086).
 - **`cover=1` runs on the click-free pool** (3429); `@` lines run on
-  your tree's DLL (936); a new pair names its `GAME INFO` line (979, 992).
+  your tree's DLL (936); a new pair names its `GAME INFO` line (979,
+  992).
 - **Launch through `viadriver.sh golden_capture.sh`, never your shell —
-  the tool refuses a `Background` launch** (3334); **wait with
+  it refuses a `Background` launch** (3334); **wait with
   `tools/gamelog/waitrun.sh <viadriver log>`** — the launcher's `log:`
-  file, never your redirect (2449),
-  backgrounded, **the Bash tool's `timeout:
-  3600000`, never a `timeout` command** (1672, 2599); end the turn;
-  minutes waited on another lane: the journal; **a windowed capture is
-  filed by `filerun.py <run> <tag>`** (2933).
+  file, never your redirect (2449), backgrounded, **the Bash tool's
+  `timeout: 3600000`, never a `timeout` command** (1672, 2599); end the
+  turn; minutes waited on another lane: the journal; **a windowed
+  capture is filed by `filerun.py <run> <tag>`** (2933).
 - **The pool picks the lane** (1568, 1569): never set
   `RON_CAPTURE_LANE`; a traceback and no receipt is a dead take (1503).
 
@@ -370,44 +370,42 @@ Before any reading, in order:
   `1` are one game, read back as `1`; the pair fields the age-0 and age-1
   lines, and its `assert_lobby` reads `ENDING_TECHNOLOGY 1`.
 - **A whole pair's `cover=1` twin is what moves lockstep bytes** (3531;
-  DECISIONS 91): a `cover=0` trace enters nothing but its hooks, so the
-  four whole late-age pairs moved the share not at all; the twin is the
-  pair's own long lobby retaken at `cover=1`, checked against the
+  DECISIONS 91): a `cover=0` trace enters only its hooks; the twin is
+  the pair's long lobby retaken at `cover=1`, checked against the
   `cover=0` long, and `rubric.py --tables 4` re-pins
   `census::RUBRIC_LOCKSTEP_BYTES_TENTHS` once it is in `blind::TRACES`.
   **The twins are spent** (3531–3534, 3548, 3549, 3551, 3552: 77.04 →
-  77.45, hundredths a twin, the eighth none; Loop 3541), **and a pair
-  that varies only age and nation books no twin** (3552a, 3572a, 3573a:
-  three twins in a row entered no function another lockstep trace had
-  not; DECISIONS 93): lockstep bytes move only on a `cover=1` take of a
-  lobby whose *settings* no trace reached — a map, a game type, a
-  difficulty — and a twin is never booked ahead of its pair.
+  77.45, hundredths a twin; Loop 3541), **and a pair varying only age
+  and nation books no twin** (3552a, 3572a, 3573a; DECISIONS 93): bytes
+  move only on a `cover=1` take of a lobby whose *settings* — map, game
+  type, difficulty — no trace reached, never a twin ahead of its pair.
 
 ## build
 
 - **Per reading, a killer that tests the claim's own unit and that the
   readings disagree on** (789), a mutation on the built tree (864)
-  **through `tools/mutate.py`**: a clean tree, committed (784, 907,
+  **through `tools/mutate.py`** on a clean, committed tree (784, 907,
   1391).
-- **A mutation is scored by the exit code and the failed tests'
-  names**, `git diff --stat` non-empty first, **and means what it is
-  for** (918, 1018); a mechanism called built
-  has a test that fails without it; one no walk holds names its arm.
+- **A mutation is scored by the exit code and the failed tests' names**,
+  `git diff --stat` non-empty first, **and means what it is for** (918,
+  1018); a mechanism called built has a test that fails without it; one
+  no walk holds names its arm.
 - **A re-pin's tests run green before a mutation is scored** (1083):
-  `Pins::hold()` and the `pin*!` macros show every moved pin, `repin.py <log> --write` rewrites them (1349,
-  1411); "stands
-  from N" is the window's first block or the gap's. **A new record kind
-  in a window runs the `coverage` tests** (1601).
-- **Your test run is `zsh tools/check.sh test …`** (2763), one filter
-  a run (1551); **kill a gate by its `Gate pid:`, never `pkill
-  -f`** (1527, 1713).
+  `Pins::hold()` and the `pin*!` macros show each moved pin, `repin.py
+  <log> --write` rewrites them (1349, 1411); "stands from N" is the
+  window's first block or the gap's. **A new record kind in a window
+  runs the `coverage` tests** (1601).
+- **Your test run is `zsh tools/check.sh test …`** (2763), one filter a
+  run (1551); **kill a gate by its `Gate pid:`, never `pkill -f`**
+  (1527, 1713).
 - **A probe goes in behind one env guard, in one commit reverted
-  whole** , never stripped by a pattern or a `git checkout` (1727,
-  1717), **committed before any other edit, never `commit -a` across
-  it** (1864); **a new window names its
-  `GROUND_INEXACT` row first** (1715).
-- **A divergence your change introduces is built or named a
-  regression, never parked** (864).
+  whole**, never stripped by a pattern or a `git checkout` (1727, 1717),
+  **committed before any other edit, never `commit -a` across it**
+  (1864); **a new window names its `GROUND_INEXACT` row first** (1715);
+  **an off-switch is diffed against the base before its off run is
+  read** (3680).
+- **A divergence your change introduces is built or named a regression,
+  never parked** (864).
 - **A command the worktree guard refuses runs from
   `$CLAUDE_JOB_DIR/tmp/`**, no `timeout` (1537); a `&&`-chain edit is
   python or `sed -i ''` (2628); **`no verdict (error)` is an outage: a
@@ -416,39 +414,39 @@ Before any reading, in order:
 ## landing
 
 - **The word moves with its value diff beside it**: the record, the
-  field and both sides' values on the word's frame, or on the frame the
-  state first parted, walked back; the constant re-pinned, the delta
-  in its comment, the block in its widening, its window in the coverage
+  field and both sides' values on the word's frame, or the frame the
+  state first parted, walked back; the constant re-pinned, the delta in
+  its comment, the block in its widening, its window in the coverage
   driver's slice (1959).
 - **Your journal is `docs/journal/<the day you land>-item-{item}.md`**,
-  yours alone, before the gate (3089): every module touched; one "for
-  the Loop" line: `none`, or a finding I file; **at 300 k I
-  send one line** (1637, 1638): draft it, commit, end the turn.
-- **Documents and journal by the file tool, never in a backgrounded
-  `&&` chain (1781); commit, then gate, no suite first (2409, 2415).**
-  Parked rows go under your park heading (1812). The gate: `python3 tools/release_gate.py
-  ~/code/fun/attrition/game --test-threads 4 --lane --item {item}
-  --tests {tests}{widen}` (1567, 1623, 3313), to a file, backgrounded; read
-  its exit; quote `Lane verdict:`, `Gate steps:` and `Gate minutes:`
-  (969, 3224); its verdict: a second commit.
+  yours alone, before the gate (3089): each module touched; one "for the
+  Loop" line: `none`, or a finding I file; **at 300 k I send one line**
+  (1637, 1638): draft it, commit, end the turn.
+- **Documents and journal by the file tool, never in a backgrounded `&&`
+  chain (1781); commit, then gate, no suite first (2409, 2415).** Parked
+  rows: your park heading (1812). The gate: `python3
+  tools/release_gate.py ~/code/fun/attrition/game --test-threads 4
+  --lane --item {item} --tests {tests}{widen}` (1567, 1623, 3313), to a
+  file, backgrounded; read its exit; quote `Lane verdict:`, `Gate
+  steps:` and `Gate minutes:` (969, 3224); its verdict: a second commit.
   **A red on the journal-quote or Loop-line guard alone is forgiven**:
-  quote the lines; your Loop line is mine to file (3277, 3328).
+  quote the lines; the Loop line is mine to file (3277, 3328).
 - **`ccc update att-<n>` takes the ref, never a SHA** (1557);
   `--keep-conflicts` on a conflict, keep both, commit (1161); **a `Base
-  moved:` line past the commander's paperwork is an update and a
-  second gate, and a refused gate ran nothing** (3341, 3366, 3401); a re-pinned
-  count is the merged tree's (1151); read your run's RUNS section
-  (1285); a landing that moves another's word says so (1289).
-  **`check.sh` exits as cargo does; never read a pipe's** (3327).
-  **Paperwork guards run under `--lane`** (3373); **never delete under
-  `~/ron-data`** (3375).
+  moved:` past the commander's paperwork is an update and a second gate;
+  a refused gate ran nothing** (3341, 3366, 3401); a re-pinned count is
+  the merged tree's (1151); read your run's RUNS section (1285); a
+  landing that moves another's word says so (1289). **`check.sh` exits
+  as cargo does; never read a pipe's** (3327). **Paperwork guards run
+  under `--lane`** (3373); **never delete under `~/ron-data`** (3375).
 - **At a trace's end, `runwiring.py runNNN` says what the word owes**
-  (1729); a `Pair`'s word and a golden `WANT_CH*` list are
-  consts `repin.py --write` rewrites (1767, 2071).
-- **The constants and widenings are yours to pin; the queue's lines
-  are mine**: say what books and parks, the next word by frame and delta.
-- **When you are done and pushed, send me one line** (1412; 3503) — `SendMessage` (via `ToolSearch`) to `commander`: your tip
-  SHA on origin, a non-empty `git log <base>..<branch>`, `Lane verdict:` and
-  `Gate steps:` (1406); **then end the turn done, never needing
-  input**: a `blocked` row never takes the clear (1671); at ninety
-  minutes unlanded: your step and what runs.
+  (1729); a `Pair`'s word and a golden `WANT_CH*` list are consts
+  `repin.py --write` rewrites (1767, 2071).
+- **The constants and widenings are yours to pin; the queue's lines are
+  mine**: say what books and parks, the next word by frame and delta.
+- **When you are done and pushed, send me one line** (1412; 3503) —
+  `SendMessage` (via `ToolSearch`) to `commander`: your origin tip SHA,
+  a non-empty `git log <base>..<branch>`, `Lane verdict:` and `Gate
+  steps:` (1406); **then end the turn done, needing no input**: a
+  `blocked` row never takes the clear (1671); at ninety minutes
+  unlanded: your step and what runs.

@@ -12,13 +12,13 @@ score parks**: only the headline's frame, a floor, or a takes-chain books here.
 
 ## Where things stand
 
-*2026-10-27, **the fifty-ninth tranche (commander, Opus): drained at twenty from `604a8c8c0`**, every lane reaped; the last whole gate is `6c6903b44` (the drain, green, release 36.9 min); **the pass is due**.*
-- **Words**: none open — every pinned game whole (lower map first — closed). **The headline, the early ages**: nine words closed — the Koreans at Medieval (3666 → 3679), the Germans (3667 → 3682), British (3668 → 3683) and Americans (3669 → 3686, 3690, 3693: 3174 → 5678 → 5701 → 5861) at Industrial, the Russians and Romans at Gunpowder on one fix (3670, 3671 → 3688, the Monarch's cavalry bonus), the French (3672 → 3691) and Mongols (3673 → 3692) at Enlightenment, and the Greeks at Enlightenment at their first try (3674). Eight pairs stood up, all eight whole; 3675 carried. The fixes: launch rows (bays and pivots, four of them fit off rounds already on disk with no packet), a nation's unit-cost discount (3678), a hero's attack arm (3677), the supply predicate (3682), a CEO's heal (3686), the Monarch's cavalry bonus (3688), the packed-siege shortcut in a group's member search (3690) and `get_max_range`'s siege filter (3693).
-- **The rubric, lockstep**: unit types 205 → 220 of 302 this tranche (Royal Hwarang, 3679; five German Industrial types, 3682; two British, 3683; the Cossack and the Praetorian Guards, 3688; the Horse Guard Grenadier, 3691; the Royal Stratiotai, 3674; the Golden Horde, 3692; the Marine Riflemen and the Greyhound, 3693), ages 8 of 8, **bytes 77.4 %** at the pass; 89 never.
-- **For the pass** (`tranche.py --base 604a8c8c0`, `gates.py`): 20 landings (18 `Book` commits: 3677–3678 and 3674 + 3690 booked two each; 3689 answered by 3688 and ledgered) · six DEEP (3666 330 k, 3677 319 k, 3679 319 k, 3683 324 k, 3686 300 k; 3690 326 k by the waiter's log) · **54.5 minutes waiting a landing (40.2)** · 8.30 USD a landing (149.40 over 22 sessions; 8.06) · 2.5 captures a landing; 12 booking gates logged: 6 whole, 6 scoped (6 widened), 2 red (3666's and 3678's whole gates, the coverage walk killed at 1800 s — Loop 3681, the 3600 s cap `eae77c2c7`), 391.2 minutes; admission 2825.7 s, longest 383.2 s; 2 past the cores; gate 34.4 of 62.8 lane minutes a session (25.3); three Opus lanes at medium. **Waiting rose above 40.2 on the third lane**: DECISIONS 97 §2 hands the pass its removal.
-- **Three lanes, by the lane rule** (DECISIONS 97 §2: the gate 25.3 a session on two lanes, under the 26.1 the third was taken at; waiting 40.2 a landing against 46.5 holds; a fifth above 40.2 at the drain takes it away again): Opus 5.5 at medium on each, `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`. **The lane gate's cut reads the branch's paths alone now**, widened or not (Loop 3676: seven of nine stand-ups ran release 5.6–6.9; the two that widened ran 18).
-- **Lanes: none live; one booked** (3675, the Chinese at Enlightenment on Great Lakes, carried: piece 1105's bays, built by 3692, may reach it); the record's refill after it (DECISIONS 97 §3): the Lakota, Japanese, Spanish, Persians, Inca and Egyptians. Next 3694, run 1363. Pools: AI §354–360 (3675 takes §354), park TR (3675; the TO–UC pool spent after it — 3693a–b sit in TZ).
-- **Fable backlog: 10 Loop items** (3687, 3684, 3681, 3680, 3382, 3350, 3237, 3188, 3143, 3118); 3656 built and 3611 closed unreached (the record, DECISIONS 97).
+*2026-10-27, **the fifty-ninth pass (steer, Fable): the fifty-ninth tranche scored and the sixtieth booked**, two Opus lanes; the last whole gate is `6c6903b44` (the drain, green, release 36.9 min); the pass's own gate is quoted in `docs/audit/2026-10-27-fable-pass-59.md`.*
+- **Words**: none open — every pinned game whole (lower map first — closed). **The headline, the early ages**: ten pairs to stand up off the braces — 3675 carried (the Chinese at Enlightenment), the record's refill (the Lakota and Japanese at Enlightenment, the Spanish, Inca and Egyptians at Industrial, the Persians at Gunpowder) and three Medieval lobbies (the British, Mongols, Greeks) — each a word on its first try, its partings residue items on it (`mongol_pair.rs`'s shape). After them the braces hold one free land line of ages 1–5 (the French `Heavy Chevalier` (236) at Medieval, `(14, 10, 4)`); what follows is the sixtieth pass's to name.
+- **The rubric, lockstep**: unit types 220 of 302 (82 never: Air 20, Sea 2, Land 60 — seven Nubian, the human's; the Militia and Minuteman nationless; seven lines booked before and never fielded), ages 8 of 8, **bytes 77.4 %**; the fifty-ninth read 205 → 220 over eight pairs.
+- **The fifty-ninth, scored** (DECISIONS 98): 20 landings in 11 h 34 on three Opus lanes, nine words closed, 8.77 USD and **57.3 minutes waiting a landing** (8.06 / 40.2 on two lanes) — the lane rule takes the third lane away. Its cost was the lane gate re-run on `Base moved:` (the residue lanes gated three to five times each; Loop 3694), not the door (admission 2,834 s, two gate ends of thirteen past the cores); two booking gates red on the coverage walk's 1800 s kill, its cap 3600 s since `eae77c2c7`.
+- **Two lanes, by the lane rule** (DECISIONS 98 §2): Opus 5.5 at medium on each, `ccc spawn --model 'claude-opus-5-5[1m]' --effort medium`; the third returns when Loop 3694's lever is built and measured on a two-lane tranche, or on Ramon's word. **The lane gate's cut reads the branch's paths alone** (Loop 3676); a stand-up's gate ran release 6.6–9.2 this tranche.
+- **Lanes: none live; ten booked** (3675, 3695–3703). Next 3704, run 1381. Pools: AI §355–363 taken, §364–370 free; park UD–UL taken, UM–UW free (3675 holds TR).
+- **Fable backlog: 8 Loop items** (3694, 3684, 3382, 3350, 3237, 3188, 3143, 3118); 3680 and 3687 built, 3681 measured (the record, DECISIONS 98).
 
 Scoreboard: EastIndies 1851/1850 w1850 · GreatLakes 1772/1772 w1850 · GreatSahara 1850/1850 w1850
 Long captures: EastIndies w24000 of 24,000 · GreatLakes w24000 of 24,000
@@ -37,7 +37,7 @@ Blind: never 248 · residue 208 · open 40
 Rubric: mechanics 36 of 112 at 100 % · lockstep bytes 77.4 % · ages held 8 of 8 · unit types seen 220 of 302
 Held-out: 8 of 8 whole · shortest 6147
 
-**Opener: the fifty-ninth pass (steer, Fable) — the tranche drained at twenty from `604a8c8c0`; this handoff, every word closed and none open (the next pair stood up is the next word), 3675 carried and the record's refill, the lane rule's measures, the park pool, the backlog.**
+**Opener: the sixtieth tranche (commander, Opus) — two Opus lanes at medium, 3675 the Chinese pair first (Great Lakes, Enlightenment held), then 3695–3703 in order, the refill's six before the three Medieval lobbies; a pair that parts books its residue item on its own word; drain at twenty and clear the steer row.**
 
 ## The queue
 
@@ -50,6 +50,42 @@ first parting, a scoreboard line). **No twin for a pair varying only age and nat
 3675. **The Chinese at a held Enlightenment age, Great Lakes** (`GreatLakesChineseEnlightenment`, map 14, tribe 14, difficulty 5, age 4 held;
 rule (3): the Chinese words hold `(18, 14, 5)`, `(7, 14, 3)` and `(7, 14, 5)`, the Tier1 `(14, 14, 1)`): the line is `Manchu Musketeers` (116).
 Runs 1349–1350; AI §354; park TR.
+
+3695. **The Lakota at a held Enlightenment age, Great Lakes** (`GreatLakesLakotaEnlightenment`, map 14, tribe 19, difficulty 5, age 4 held;
+rule (3): the Lakota words hold `(7, 19, 2)`, `(7, 19, 5)`, `(14, 19, 2)`, `(18, 19, 3)` and `(18, 19, 5)`, so Great Lakes at 5 is the free
+triple): the line is `Repeating Rifle Horse` (208). Runs 1363–1364; AI §355; park UD.
+
+3696. **The Japanese at a held Enlightenment age, East Indies, at difficulty 4** (`EastIndiesJapaneseEnlightenment`, map 18, tribe 15,
+difficulty 4, age 4 held; rule (3): the Japanese hold every map at 5 and Great Sahara at 1, so East Indies at 4 is the free triple): the line
+is `Gun Samurai` (161). Runs 1365–1366; AI §356; park UE.
+
+3697. **The Spanish at a held Industrial age, Great Lakes** (`GreatLakesSpanishIndustrial`, map 14, tribe 9, difficulty 5, age 5 held;
+rule (3): the Spanish words hold `(7, 9, 3)`, `(7, 9, 5)`, `(14, 9, 4)`, `(18, 9, 3)` and `(18, 9, 5)`, so Great Lakes at 5 is the free
+triple): the line is `Commando` (74). Runs 1367–1368; AI §357; park UF.
+
+3698. **The Persians at a held Gunpowder age, East Indies, at difficulty 4** (`EastIndiesPersianGunpowder`, map 18, tribe 23, difficulty 4,
+age 3 held; rule (3): the Persians hold every map at 5 and Great Lakes at 2, so East Indies at 4 is the free triple): the line is
+`Arqimmortal` (165). Runs 1369–1370; AI §358; park UG.
+
+3699. **The Inca at a held Industrial age, Great Lakes** (`GreatLakesIncaIndustrial`, map 14, tribe 2, difficulty 5, age 5 held; `(14, 2, 5)`
+is free — the Inca words hold `(7, 2, 3)`, `(7, 2, 5)`, `(18, 2, 3)` and `(18, 2, 5)`, so Great Lakes is the free map at 5): the line is
+`Siege Mortar` (275). Runs 1371–1372; AI §359; park UH.
+
+3700. **The Egyptians at a held Industrial age, East Indies, at difficulty 4** (`EastIndiesEgyptianIndustrial`, map 18, tribe 7, difficulty 4,
+age 5 held; rule (3): the Egyptian words hold `(7, 7, 4)`, `(7, 7, 5)`, `(18, 7, 3)` and `(18, 7, 5)`, so East Indies at 4 is the free
+triple): the line is `Light Tank` (243, the `A7VDES`, shared with the Turks). Runs 1373–1374; AI §360; park UI.
+
+3701. **The British at a held Medieval age, Great Lakes, at difficulty 4** (`GreatLakesBritishMedieval`, map 14, tribe 11, difficulty 4,
+age 2 held; rule (3): the British hold every map at 0 and 5 and East Indies and Great Sahara at 4, so Great Lakes at 4 is the free triple):
+the line is `King's Longbowmen` (178). Runs 1375–1376; AI §361; park UJ.
+
+3702. **The Mongols at a held Medieval age, East Indies, at difficulty 4** (`EastIndiesMongolMedieval`, map 18, tribe 17, difficulty 4,
+age 2 held; rule (3): the Mongols hold both pair maps at 5, Great Sahara at 3 and 5 and East Indies at 3, so East Indies at 4 is the free
+triple): the line is `Steppe Nomad` (200). Runs 1377–1378; AI §362; park UK.
+
+3703. **The Greeks at a held Medieval age, East Indies, at difficulty 4** (`EastIndiesGreekMedieval`, map 18, tribe 5, difficulty 4, age 2
+held; rule (3): the Greeks hold every map at 5 and Great Sahara at 1, so East Indies at 4 is the free triple): the line is `Royal Companion`
+(232; the `Companion` (231) was booked at Classical and never fielded). Runs 1379–1380; AI §363; park UL.
 
 ## How to maintain this file
 

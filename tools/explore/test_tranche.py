@@ -148,6 +148,17 @@ class TheHandoff(unittest.TestCase):
     def test_the_items_are_the_book_commits_oldest_first(self):
         self.assertEqual(tranche.booked_items(self.SUBJECTS), [3573, 3578, 3580])
 
+    def test_a_commit_that_books_two_items_is_two_landings(self):
+        # The fifty-ninth pass: `Book 3674 and 3690` and `Book 3677 and 3678`
+        # each read as one item, and the drain's handoff line priced 22
+        # sessions where 26 had run — 25.54 USD and 164 waiting minutes
+        # unread. "and drain" is not an item.
+        subjects = ['Book 3674 and 3690: the Greeks whole, the Americans 5678 -> 5701',
+                    'Merge worktree-att-3690 (13 commits)',
+                    'Book 3677 and 3678: the German Industrial word 4323 -> 4348',
+                    'Book 3666, 3667 and drain the tranche at twenty']
+        self.assertEqual(tranche.booked_items(subjects), [3666, 3667, 3677, 3678, 3674, 3690])
+
     def test_the_line_counts_landings_deep_lanes_waiting_and_price(self):
         rows = [{'item': 3567, 'session': 'a', 'peak_k': 328, 'price': 11.91, 'waiting_min': 21.0},
                 {'item': 3567, 'session': 'b', 'peak_k': 146, 'price': 2.75, 'waiting_min': 90.9},

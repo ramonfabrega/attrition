@@ -391,6 +391,21 @@ stall. The pass added the fifth kind, `coverage`, and these rows.
   cited what it read and entered nothing; the click-free pool takes
   `cover=1` as well as the queue lane (3429). *(Amended by item 3485, 2026-10-22: the queue lane retired; a need for it again is a steer.)*
 
+## The brief checklist, from the fifty-ninth pass
+
+The fifty-ninth tranche (DECISIONS 98): twenty landings on three Opus
+lanes in 11 h 34, nine words closed and eight pairs stood up whole, 8.77
+USD and 57.3 minutes waiting a landing (8.06 / 40.2), two red booking
+gates on the coverage walk's cap, six `DEEP`. The pass added this row.
+
+- **An off-switch is checked by its own diff against the base before its
+  "off" run is read** (3680; 3666's "for the Loop"): a switch meant to
+  turn a build off measures nothing when the build also rebinds a name
+  outside it — 3666's "off" run of `Guy::do_turn`'s crew rewrite left a
+  shadowed `from` live, still regressed fourteen lobbies, and the switch
+  read as the build's cost. The tree with the switch off builds the
+  base's binary, or the probe is not a probe.
+
 ## The brief checklist, from the fifty-second pass
 
 The fifty-second tranche (DECISIONS 91): twenty landings on two Opus

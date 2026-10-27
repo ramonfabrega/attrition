@@ -1776,25 +1776,35 @@ fn a_dead_listed_address_is_cited_only_where_pinned() {
 /// **Item 3690 lowered one, and it is not a build either**: ECONOMY 9 →
 /// 8, `0x2bf` (Agriculture's tech index), read as built from the decimal
 /// `703` in piece 167's `BAYS` row (`right: -703`, the Greyhound).
+///
+/// **The fifty-ninth pass closed the collision** (Loop 3687): the decimal
+/// spelling is read from a named constant's own line and from nothing
+/// else ([`named_constant_lines`]), and the pins rose by ten — seven of
+/// them rows that had banked a constant by coincidence (`0x481`, `0x2bf`,
+/// `0x2c1` a pivot row's `705`, `0x3001` a bay row's `12289`, `0x216f` a
+/// bay row's `8559`, `0x3e70` a speed table's `15984`, `0x420` a
+/// caravan's `1056`) and three honest inline spellings a later item may
+/// name as constants to bank again (`0x2710` `ai_build.rs`'s `10000`,
+/// `0x31f` `gaia.rs`'s `799`, `0x384` `target_score.rs`'s `900`).
 const UNBUILT: &[(&str, usize)] = &[
-    ("AI.md", 11),
+    ("AI.md", 14),
     ("ANIM.md", 2),
-    ("ARMY.md", 4),
+    ("ARMY.md", 5),
     ("ATTRITION.md", 1),
     ("CITIES.md", 3),
     ("COMBAT.md", 3),
     ("COSTS.md", 1),
-    ("ECONOMY.md", 8),
+    ("ECONOMY.md", 10),
     ("GOLDEN.md", 4),
     ("GOODY.md", 4),
     ("GROUPS.md", 3),
     ("MERCHANT.md", 2),
-    ("ORDERS.md", 6),
-    ("PRODUCTION.md", 3),
+    ("ORDERS.md", 7),
+    ("PRODUCTION.md", 4),
     ("ROADS.md", 1),
     ("SCOUT.md", 1),
-    ("TECH.md", 6),
-    ("TRANSPORT.md", 2),
+    ("TECH.md", 7),
+    ("TRANSPORT.md", 3),
 ];
 
 /// Which documents the constant check reads: the specifications, not the
@@ -1849,6 +1859,28 @@ fn production_code(raw: &str) -> String {
     crate::no_float::without_test_modules(&crate::no_float::code_only(raw))
 }
 
+/// The lines of `code` that open a named constant — `const`, `static`,
+/// with or without `pub`/`pub(crate)` — and nothing else: the one place a
+/// decimal spelling names the constant it is, where a table row's or an
+/// expression's integer is a coordinate, a frame or a coincidence (Loop
+/// 3687). A constant whose table spans lines keeps only its opening line.
+fn named_constant_lines(code: &str) -> String {
+    let mut out = String::new();
+    for line in code.lines() {
+        let t = line.trim_start();
+        let t = t
+            .strip_prefix("pub(crate) ")
+            .or_else(|| t.strip_prefix("pub(super) "))
+            .or_else(|| t.strip_prefix("pub "))
+            .unwrap_or(t);
+        if t.starts_with("const ") || t.starts_with("static ") {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
+}
+
 /// The files `lib.rs` mounts only under `#[cfg(test)]`: `mod name;` on the
 /// line after the attribute.
 fn test_only_files(lib: &str) -> Vec<String> {
@@ -1884,6 +1916,27 @@ fn the_decimal_spelling_is_read_from_production_code() {
     assert_eq!(
         test_only_files(lib),
         vec!["harness_tests.rs".to_string(), "no_float.rs".to_string()]
+    );
+}
+
+/// **A table row's integer banks no constant** (Loop 3687, the fifty-ninth
+/// pass): `0x481` fell 7 → 6 on a pivot row's `-1153` and `0x2bf` 9 → 8 on
+/// a bay row's `-703`, 813's collision now in production code. Made to
+/// fail first on the reading that took the decimal from every production
+/// line.
+#[test]
+fn the_decimal_spelling_is_read_from_a_named_constant_s_line() {
+    let code = "pub const REACH: i32 = 640;\npub(crate) static MASK: u32 = 4096;\n\
+                fn f(d: i32) -> bool { d > 1153 }\n\
+                const NODES: &[(i32, i32)] = &[\n    (703, -1153),\n];\n";
+    let consts = named_constant_lines(code);
+    assert!(
+        consts.contains("640") && consts.contains("4096"),
+        "{consts}"
+    );
+    assert!(
+        !consts.contains("1153") && !consts.contains("703"),
+        "a row's or an expression's integer read as a named constant: {consts}"
     );
 }
 
@@ -1951,7 +2004,7 @@ fn a_constant_a_document_names_is_built_or_pinned() {
                     .is_some_and(|n| test_files.iter().any(|t| t == n));
                 if path.starts_with(&sim) && !mounted_for_tests {
                     let raw = std::fs::read_to_string(&path).expect("read");
-                    sim_code.push_str(&production_code(&raw).to_lowercase());
+                    sim_code.push_str(&named_constant_lines(&production_code(&raw)).to_lowercase());
                     sim_code.push('\n');
                 }
                 code.push_str(&file_code);
@@ -1965,7 +2018,12 @@ fn a_constant_a_document_names_is_built_or_pinned() {
         // hex forms alone read it as unbuilt. Below 0x100 the decimal is
         // any small number and is not accepted — and it is accepted from
         // `crates/sim` alone, never from the harness, whose integers are
-        // frames and floors (parked 820).
+        // frames and floors (parked 820) — **and from a named constant's
+        // own line alone** (Loop 3687, the fifty-ninth pass): a table
+        // row's integer banked `0x481` from a pivot row's `-1153` (3683)
+        // and `0x2bf` from a bay row's `-703` (3690), 813's collision in
+        // production code, so a decimal inside a row or an expression
+        // builds nothing here.
         let decimal = u32::from_str_radix(hex, 16)
             .ok()
             .filter(|v| *v >= 0x100)

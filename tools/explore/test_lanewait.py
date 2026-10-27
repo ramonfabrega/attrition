@@ -69,6 +69,13 @@ class Event(unittest.TestCase):
         self.assertIsNone(lanewait.event(watch, {'a': 'working'}, tips, 6, 100))
         self.assertIsNone(lanewait.event(watch, {'a': 'done'}, tips, 7, 100))
 
+    def test_a_reaped_tree_has_no_tip_and_no_crash(self):
+        # The fifty-ninth tranche's lanewait-30: a waiter on lane 3690 ran
+        # after the commander removed its worktree and died in subprocess
+        # on the missing cwd — a waiter that dies names nothing.
+        self.assertIsNone(lanewait.origin_tip('/nonexistent/worktrees/att-0', 'worktree-att-0'))
+        self.assertIsNone(lanewait.origin_tip(None, 'worktree-att-0'))
+
     def test_a_row_the_roster_lost_is_gone(self):
         watch = watching(a='1' * 40)
         lanewait.event(watch, {'a': None}, {'a': '1' * 40}, 5, 100)

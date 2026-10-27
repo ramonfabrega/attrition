@@ -24,7 +24,11 @@ The lane gate's release step runs:
     ran turns the gate red — a typo is not a pass;
   * and **never** the two coverage pins or the rest of the slow walks
     (`coverage::every_key_the_dump_prints_is_read_or_pinned`, 118 s alone;
-    `..._every_parsed_field_is_compared_by_the_instrument_or_pinned`, 80 s):
+    `..._every_parsed_field_is_compared_by_the_instrument_or_pinned`, 393 s
+    alone on 2026-10-27 — 345 s nine windows earlier, so about five
+    seconds a window the coverage driver is handed, and four to five
+    times that inside a whole gate at `--test-threads 8`, which is why its
+    budget is `test_runtime.py`'s 3600 s and not the default 1800):
     those, and the whole suite, are the booking gate's. A worker whose
     landing reads a new key passes `--tests coverage::` and runs them.
 

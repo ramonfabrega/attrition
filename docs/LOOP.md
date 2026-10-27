@@ -293,7 +293,17 @@ not (Loop 3676: the sim crate depends on nothing in the workspace);
 third lane was taken at, with waiting 40.2 a landing against 46.5 —
 so the third lane returns by this clause for the fifty-ninth**, three
 Opus lanes at medium, read at its drain against 40.2 waiting and 25.3
-gate, and a fifth above 40.2 takes it away again (DECISIONS 97)); a
+gate, and a fifth above 40.2 takes it away again (DECISIONS 97); **the
+fifty-ninth's drain read 57.3 and the lane goes again** (DECISIONS 98
+§2) — and its cost was not the door: admission 2,834 s against the
+fifty-fourth's 4,305 and two gate ends of thirteen past the cores, but
+the residue lanes gated three to five times each on `Base moved:`,
+every landing touching the rubric pin, the AI section, the test-kit
+rows and the window line, 908 of 1,145 waiting minutes on the gate
+class (Loop 3694); **so the lane returns when Loop 3694's lever is
+built and measured on a two-lane tranche — a base move on row-list
+paths alone no longer re-runs the lane gate — or on Ramon's word,
+never on a two-lane gate figure alone, which 25.3 already was**); a
 lane with no word of its own is a sweep lane, which runs the
 original's functions under the emulator and contends for no capture
 (DECISIONS 61) — **and with no battery word open and the sweep pool

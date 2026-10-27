@@ -662,6 +662,13 @@ def arm_pushes(watch, tips, sessions, pending, template, arm=arm_clear, already_
 
 
 def origin_tip(cwd, branch):
+    """The branch's pushed tip as the lane's tree sees it, or None — also
+    when the tree is gone: a waiter started on a lane the commander had
+    already reaped died on `FileNotFoundError` from `subprocess` (the
+    fifty-ninth tranche's `lanewait-30.log`, lane 3690), and a dead
+    waiter names nothing."""
+    if not cwd or not os.path.isdir(cwd):
+        return None
     out = subprocess.run(['git', 'rev-parse', '--verify', '-q', f'refs/remotes/origin/{branch}'],
                          cwd=cwd, capture_output=True, text=True, check=False)
     return out.stdout.strip() or None
