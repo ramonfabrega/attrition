@@ -11631,13 +11631,30 @@ words and edits nothing here; a refill lands when two remain.
   hand-off, not modelled). run1356 does not reach it, because both sides'
   `1/73` took the leader arm. It names no score.
 
-## Parked by the next landing, slot UB — reserved
+## Parked by item 3691, 2026-10-27 — what run1344b still parts once the French word closes
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UB renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+The French Enlightenment pair closes at 4940 of 4940 (`docs/AI.md` §351.1);
+the draw stream holds to the game's end, so none of these names a score.
+Each is a residue of run1344b's window (4495..4756) after piece 49's bays.
+
+- **3691a. Six French Fusiliers' rounds leave from the wrong point.** 129 of
+  the window's 139 parting round rows are who=1's Fusiliers (TY 136) `1/42`,
+  `1/43`, `1/44`, `1/48`, `1/49` and `1/50`. `1/44`'s round of 4507 leaves
+  from (5976, 10536, 30) in ours and (5932, 10432, 140) in theirs, and its
+  `v1z` and `angle` part with it. Read it as a launch row this crate lacks
+  for the French Fusilier's piece. run1360's closing window (4685..4941)
+  parts 195 rows on the same six. On 4691 the capital `0/2000`'s
+  `build:damage` reads 421 in ours against 427 in theirs, under their
+  rounds. It books if a lobby's word lands on a
+  Fusilier's round.
+- **3691b. Three Musketeer rounds carry `ox`/`whom` −1 in ours.** The rounds
+  are `1/37` and `1/45` on 4499 (at `0/10`) and `1/35` on 4536 (at `0/11`).
+  Theirs carry the target. The launch point agrees, so it is the record's
+  target field, not the flight.
+- **3691c. The Horse Guard Grenadier `1/29`'s `damage_frac`, 4552.** Ours
+  5, theirs 0 (TY 238). This is the window's one unit row after 4495
+  besides group 77's `held` on 4518. It still stands at run1360's first
+  block, 4685, with `hits_left` 156 against 161.
 
 ## Parked by the next landing, slot UC — reserved
 

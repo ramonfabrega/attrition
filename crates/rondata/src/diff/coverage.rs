@@ -3577,6 +3577,7 @@ fn every_parsed_field_is_compared_by_the_instrument_or_pinned() {
         || super::roman_gunpowder_pair::roman_gunpowder_stride_window(),
         || super::roman_gunpowder_pair::roman_gunpowder_frame_4062_window(),
         || super::french_enlightenment_pair::french_enlightenment_frame_4505_window(),
+        || super::french_enlightenment_pair::french_enlightenment_frame_4940_window(),
         || super::french_enlightenment_pair::french_enlightenment_stride_window(),
         || super::british_industrial_pair::british_industrial_frame_2382_window(),
         || super::british_industrial_pair::british_industrial_stride_window(),
