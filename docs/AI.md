@@ -34591,6 +34591,13 @@ read (1205, 1205), 115 parting. **The closing block 5943**: 322 units, none off,
 **The rubric**: unit types seen **227 → 228 of 302**. The Royal Companion (232, `COMPANIONELITE`, 834 figure rows),
 the line §363 named, now counts because the pair runs lockstep.
 
+**Elsewhere**: golden chapter sixty-two's `1/14` (parked 2118, a path 120 east of the original's at order point
+46056) is the same off-edge slot, and its 56 rows on 901–903 leave the chapter's widening.
+
+**The closing window**: run1388, blocks 5686..5943, 5943 of 5943 frames identical to run1380.
+`greek_medieval_pair_run1388_s_closing_frame_is_widened_whole` reads 257 blocks and 141 keys, with nothing on 5943.
+Its rounds read 1239 each side, 133 parting, among them the Trebuchet `1/132`'s (TI 266) launch point (parked 3711b).
+
 **Not established**: whether any other reader of a group's slot table in this crate reads it before the order
 loop's clamp. `group_plan_path` reads it after, which is the case this word reached.
 

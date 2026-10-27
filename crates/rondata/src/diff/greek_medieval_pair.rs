@@ -264,6 +264,78 @@ fn greek_medieval_pair_run1380b_s_word_frame_is_widened_whole() {
     pin_eq!(w.rounds.len(), 115, "the rounds that part");
 }
 
+/// run1388: the pair's closing window, blocks 5686..5943 at the long's
+/// detail with `LEADERS=9` and `AMMO=5` (item 3711). The word reached the
+/// game's last frame; run1380's stride prints units every hundred frames,
+/// and run1380b ends on 5877, so no dump held the last blocks.
+pub(crate) const RUN1388: &str =
+    "gamelog-run1388-eastindies-greek-medieval-closing-window-5686-5943.txt";
+
+/// The window: block 5686 through the closing block 5943.
+pub(crate) const WIDENING_GREEK_MEDIEVAL_CLOSING: (i64, i64) = (5686, 5943);
+
+/// **The pair's last blocks**: run1388 walked from run1379's start with
+/// the recorder on and every round compared. The word is the game's last
+/// frame (item 3711).
+pub(crate) fn greek_medieval_closing_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[GREEK_MEDIEVAL.start],
+        true,
+        GREEK_MEDIEVAL.long,
+        "run1388",
+        &[(RUN1388, WIDENING_GREEK_MEDIEVAL_CLOSING.0)],
+        WIDENING_GREEK_MEDIEVAL_CLOSING,
+        1,
+        &[5943],
+        true,
+    )
+}
+
+#[test]
+fn greek_medieval_pair_run1388_s_closing_frame_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = greek_medieval_closing_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 257, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+        for (b, rows) in &w.standing {
+            for ((who, o, what), r) in rows {
+                eprintln!("  standing {b} {who}/{o} {what}: {r}");
+            }
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3711, the first walk: **141** keys. 120 standing families on
+    // block 5686 (`form`, who=1's groups and pools, the human's
+    // `SITE[i].reg` and `aggression[1]`); then `form`, `g.angle[0]`,
+    // `dest_angle` and group-pool rows, and the Crossbowmen `1/195`'s
+    // `order:target` on 5875 (`0/4` against `0/10`, parked 3711a). Nothing
+    // parts on the closing block 5943, and no draw parts to 5942.
+    pin_eq!(w.firsts.len(), 141, "run1388 baseline");
+    // Every round, both directions: 1239 each side, 133 parting: 3703a's
+    // launch points a unit or two off, and the Trebuchet `1/132`'s (TI 266)
+    // `ammo[3]` on 5817, which leaves from the figure's own (6456, 10680,
+    // 36) against theirs' (6476, 10981, 729) — a piece with no
+    // `launch::BAYS` row (parked 3711b).
+    pin_eq!(w.rounds_read, (1239, 1239), "the rounds read");
+    pin_eq!(w.rounds.len(), 133, "the rounds that part");
+}
+
 /// **The pair's closing state** (item 3703): run1380's closing block,
 /// the whole map's units, walked from run1379's start.
 #[test]

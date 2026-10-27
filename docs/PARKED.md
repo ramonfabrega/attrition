@@ -11932,6 +11932,10 @@ lockstep to the game's last frame, its closing state whole. The row below names 
   the Crossbowmen `1/195`'s (TI 172) `order:target` on 5875 (`0/4` in ours against `0/10` in theirs). The draw
   stream holds to 5942 and the closing block agrees, so it names no score. The first reading: `RON_DEBUG_UNIT=1/195@5870-5876` on both sides,
   and who in ours wrote the target (`seams.py --field target`).
+- **3711b. A Trebuchet's round leaves from the figure's own point.** run1388's closing window reads 1239 rounds
+  each side, 133 parting. Among them the Trebuchet `1/132`'s (TI 266) `ammo[3]` on 5817 leaves from (6456, 10680,
+  36) in ours against (6476, 10981, 729) in theirs: the shape of 3704b, a graphic piece with no `sim::launch::BAYS`
+  row. The draws never feel it here. It joins 3704b's list of pieces to read off the art files.
 
 ## Parked by the next landing, slot UU — reserved
 
