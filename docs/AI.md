@@ -32424,9 +32424,10 @@ the human's Citizen `0/3` (TY 50). It launches `ammo[1]` from (9432,
 at 757 in theirs. `total_time` is 6 against 5 and `v1z` 53462505 against
 25018749. Theirs' round lands on 2937: `0/3` takes 32 and `hits_left`
 reads 33 against 65. On 2938 ours' round is still flying and `0/3`'s
-orders part: theirs holds two with kind 4 current, ours one of kind 7. **The next item's
-hypothesis** is a `launch::BAYS` row for the Light Tank's piece, fit off
-a packet before 2934. 3677's A7V rows (TY 242) are the same shape.
+orders part: theirs holds two with kind 4 current, ours one of kind 7.
+~~**The next item's hypothesis** is a `launch::BAYS` row for the Light
+Tank's piece, fit off a packet before 2934.~~ The piece is a pivot piece,
+so the rows are `pivot`'s, and the pair closes (item 3683, §347.1).
 
 **The rounds**, both directions: none in flight on either side in
 run1336b or run1336d.
@@ -32437,6 +32438,115 @@ lines **are fielded**: `Black Watch` (115) 11,196 guy records and `Light
 Tank` (240, `MARK4`) 2,754 across run1336 and run1336b (`rubric.py
 --dumps`). They are the pair's only types the lockstep ledger has not
 seen, so they are the two new to it once the pair closes.
+
+~~205 of 302~~ **207 of 302** since item 3683: the pair is whole, and
+`Black Watch` (115) and `Light Tank` (240) are the two it adds
+(`census::RUBRIC_UNIT_TYPES_SEEN`).
+
+### 347.1 The pair whole: the `MARK4`'s turret and the Black Watch's musket, 2939 → 2918 → 4767 (item 3683)
+
+*Item 3683, 2026-10-26, Opus 5.5. Runs 1355 (a packet at logger frame
+2933), 1355b (the window 2903..3168) and 1355c (the closing window
+4512..4768).*
+
+**The units.** `1/28` is who=1's Light Tank, TY 240, `MARK4`, `gpiece`
+**190** (`RON_DEBUG_GAP`): `MARK4-DEFAULT-AGE0`, its own model
+`lighttank_mkiv.bh3`, so not piece 189's (the A7V's art is 189's, §346).
+`unit_graphics.xml` gives it `<RESTRICTION name="MARK4" node="4">`: a
+**pivot piece**, and its three `<RELEASEEVENT>`s are on node 0. So its
+rounds take `pivot::release`, and the booking's `launch::BAYS` row was the
+wrong table. `1/15`, `1/16` and `1/17` are who=1's Black Watch, TY 115,
+`EHIGHLANDERS`, `gpiece` **65** (`HIGHLANDERELITE-DEFAULT-AGE0`), with no
+restriction. `1/30` and `1/38` are Armored Cars (TY 216). `0/8` is the
+human's Citizen (TY 50).
+
+**The packet.** None of the 73 packets under `~/ron-golden` loads piece
+190 (`get_position.py … entries`), so run1355 was taken at logger frame
+2933. Piece 190 has seven entries, `pos_start` 107 and `RData +0x88` 0.9:
+- the turret `(4, 0, 0)`: (−0.08, −11.53, 31.2) (`0xbda3d70a 0xc1387ae2
+  0x41f99999`);
+- node 0 at 4 of `CHAR_ATTACK1`, 21 of `2` and 1 of `3`: the turret
+  (−0.08, −11.53, 31.2) and the muzzle (−0.0717, −39.84, 0.784), the same
+  bits on all three.
+
+`get_position.py … pivot 190 0 11 4 1` swept 92,416 cells, and the three
+rows reproduce every one with no `float_lands`
+(`the_original_s_release_agrees_on_every_cell_for_piece_190`: 277,248
+cells). The same packet holds piece 65's three node-0 rows, at 10, 15 and
+16 of `CHAR_ATTACK1`..`3`, `RData +0x88` 1.0. `fit_bay.py` fits each sweep
+at all 361 headings with its region's centroid: (15269, 121470) dz 168,
+(5281, 133941) dz 122 and (13151, 120822) dz 167, over regions of 629, 15
+and 412 lattice points.
+
+**The direction, 2939.** With piece 190's rows, `1/28`'s round of 2934
+leaves (9218, 31078) at 757, as theirs' does
+(`the_mark4_s_round_leaves_from_its_turret`). The word **fell to 2918**:
+ours 17 draws against 15 at index 11, ours `Ammo::do_damage+0xc59`,
+theirs `Farms::inc_time+0x1ae`. Ours was the side that changed. `1/28`'s
+round of 2868 now leaves the muzzle at (9795, 30802, 720), flies 4 frames
+instead of 5, and strikes `0/8` on 2871. `0/8` then flees a frame sooner.
+Against run1336's stride, ours' `0/8` on 2901 is (7363, 31273) with the
+rows and (7388, 31268) without; theirs is (7363, 31273). So the rows put
+2871 right, and the old 2939 had stood on a wrong strike that no draw saw.
+
+**The direction, 2918.** No dump held 2902..2932, so run1355b was taken.
+Its first parted record is `0/8` itself, on 2903:
+
+| block | record | field | ours | theirs |
+|---|---|---|---|---|
+| 2903 | `0/8` | `hits:damage`, `hits_left` | 54, 11 | 41, 24 |
+| 2903 | `0/8` | `damage_o`, `damage_frame` | 15, 2901 | 28, 2871 |
+
+Theirs' last blow is `1/28`'s on 2871 (the rows' strike). Ours took a
+further one from the Black Watch `1/15` on 2901, whose round left the
+figure's square (9480, 31176) at 616. The Black Watch's rounds in run1355b
+leave about 133 ahead and 122 up: `1/16`'s of 2911 leaves (8435, 31093) at
+763 in theirs and (8568, 31080) at 641 in ours. So on tick 2912 ours'
+`1/17` round kills `0/8` before `1/16`'s arrives. `1/16`'s then forgets its
+target, rolls on, and comes down on 2918: that is ours' puncture pair.
+Theirs lands three rounds on 2912 (`1/17`, `1/38`, `1/16`), and the third
+kills `0/8` (`Unit::close+0xcb6`). This is §338's dead-target row (parked
+780), and it moved a draw here only because of the Black Watch's launch
+point.
+
+**The build.** `pivot.rs` takes piece 190's `NODES` row (−8, −1153), its
+`RDATA_SCALE` 9/10 and three `RELEASES` rows. `launch.rs` takes piece
+65's three `BAYS` rows.
+
+**The value diff.**
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 2934 | `1/28`'s round | `sx, sy, sz` | (9432, 31128), 619 | (9218, 31078), 757 | (9218, 31078), 757 |
+| 2903 | `0/8` | `hits:damage`, `damage_o` | 54, 15 | 41, 28 | 41, 28 |
+| 2912 | `1/16`'s round | `sx, sy, sz` | (8568, 31080), 641 | (8435, 31093), 763 | (8435, 31093), 763 |
+
+**The word: 2939 → 4767, the game's end**, by the count and the sequence
+(`british_industrial_pair_first_parting`).
+- run1352: 1533 → 53 keys, the rounds (306, 278) → (306, 306), 110 → 6.
+- run1355b: 52 keys and 363 rounds a side, 10 parting.
+- run1355c: 58 keys and 295 rounds a side, 37 parting.
+
+Every remaining key is a standing family (`form`, who=1's groups' `held`
+and pools, the human leader's `SITE[*].reg` and `aggression[1]`) or a dead
+target's `whom`/`ox`, with two exceptions in run1355c:
+- the Artillery's (TY 269) eight launches from the figure's square (parked
+  3683b);
+- two idle Black Watch's `dest_angle` (parked 3683c).
+
+**The closing state** (`british_industrial_pair_run1336_s_closing_state`,
+block 4768): 179 units, none off, torn, unlinked or extra; `Closing
+fields: none`. Every other lobby's `first_parting` holds, 82 of 82.
+
+**What is not established.** Piece 191, `MARK4DES` (parked 3683a), and the
+Artillery's piece are not measured. The `float_lands` of piece 190 are
+empty on this packet's sweep; a turret step the sweep did not reach would
+be a cell no test reads.
+
+**Diff-backed**: piece 190's three rows (277,248 cells of the original's
+own pivot arm, and run1352's 2934 round); piece 65's three rows (the sweeps
+at 361 headings, and run1355b's rounds, 363 a side, none parting at the
+launch); the closing state.
 
 ## 348. Reserved for the next item on the AI track
 
