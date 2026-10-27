@@ -10884,3 +10884,8 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1344  run1334's line with --map 18 --ai-tribe 10 and run1343's lobby   (the draw stream; ended itself on 4940)
 #   run1344b --map 18 --end-frame 4756 --allow-early-end --timeout 3600 --log-window 4495 4756 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 10 --cover cover=0, run1343's lobby   (the word 4505's window)
 # Checks: `rngcmp.py` run1343 vs run1344 -> 37 identical; run1344 vs run1344b -> 4757 identical.
+# ==== item 3673: the Mongols at a held Enlightenment age, Great Lakes (`docs/AI.md` §352; `docs/RUNS.md` run1345, run1346, run1346c) ====
+#   run1345  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 17 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
+#   run1346  run1334's line with --map 14 --ai-tribe 17 and run1345's lobby   (the draw stream; ended itself on 4949)
+#   run1346c --map 14 --end-frame 4949 --allow-early-end --timeout 3600 --log-window 4795 4950 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 17 --cover cover=0, run1345's lobby   (the word 4854's window, to the closing block; run1346b, the same line, a dead take)
+# Checks: `rngcmp.py` run1345 vs run1346 -> 37 identical; run1346 vs run1346c -> 4950 identical.

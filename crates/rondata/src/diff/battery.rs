@@ -407,6 +407,12 @@ pub(crate) const SCORED_LOBBIES: &[(i32, i32, i32)] = &[
     // word `GreatSaharaFrenchTier4`'s `(7, 10, 4)`, other maps; no battery
     // game fields the French.
     (18, 10, 4),
+    // The Mongol Enlightenment pair's (item 3673): the Mongols at a held
+    // Enlightenment age, Difficulty 5, Great Lakes — not the successor
+    // pair's `(18, 17, 3)` or `(7, 17, 3)`, another difficulty, nor the
+    // Classical pair's `(7, 17, 5)` or the Gunpowder pair's `(18, 17, 5)`,
+    // another map; the battery fields no Mongols.
+    (14, 17, 5),
 ];
 
 pub(crate) const BATTERY: &[Lobby] = &[

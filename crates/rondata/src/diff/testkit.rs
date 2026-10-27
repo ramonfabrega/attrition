@@ -10655,6 +10655,17 @@ pub(crate) const WIDENINGS: &[Widening] = &[
         3691,
         Some(crate::diff::french_enlightenment_pair::WIDENING_FRENCH_ENLIGHTENMENT_FRAME_4940),
     ),
+    // **The Mongols at a held Enlightenment age** (item 3673): Great Lakes
+    // — first try 4854 of 4949 by the count and the sequence, widened on
+    // run1346c over 4795..4950 (the word's block 4855, to the closing
+    // block), the rounds compared.
+    (
+        "MONGOL_ENLIGHTENMENT_PAIR_WORD",
+        crate::diff::mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT_PAIR_WORD,
+        Some("mongol_enlightenment_pair_run1346c_s_word_frame_is_widened_whole"),
+        3673,
+        Some(crate::diff::mongol_enlightenment_pair::WIDENING_MONGOL_ENLIGHTENMENT_FRAME_4854),
+    ),
     // **The British at a held Industrial age, at difficulty 4** (item
     // 3668): Great Sahara — first try 2382 of 4767 by the count and the
     // sequence, widened on run1336b over 2295..2633 (the word's block
@@ -12846,6 +12857,18 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         length: 4_940,
         endpoint: Some("french_enlightenment_pair_run1344_s_closing_state"),
         window: Some("french_enlightenment_frame_4940_window"),
+    },
+    // The Mongols at a held Enlightenment age (`STARTING_TECHNOLOGY` 4,
+    // `ENDING_TECHNOLOGY` 4), Great Lakes (item 3673): first try 4854 of a
+    // game that ends itself on 4949, widened on run1346c.
+    AiWord {
+        line: "Late ages",
+        map: "GreatLakesMongolEnlightenment",
+        named: "Great Lakes (Mongols, Enlightenment)",
+        word: crate::diff::mongol_enlightenment_pair::MONGOL_ENLIGHTENMENT_PAIR_WORD,
+        length: 4_949,
+        endpoint: None,
+        window: Some("mongol_enlightenment_frame_4854_window"),
     },
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
