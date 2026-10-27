@@ -3916,14 +3916,12 @@ impl Sim {
     /// 4)`. Anything else takes it alone, `add_attack_order(…,
     /// QUEUE_FIRST, 0, 0)` (`LAB_00649ba0`).
     ///
-    /// **The siege arm** (`00649934`–`00649b43`, the decompile's lines
-    /// 495–541; item 3690, `docs/AI.md` §348.2) comes after the normalize:
-    /// [`Self::siege_city_find`].
-    ///
-    /// SEAM: the naval refusal (`+0x218 == 2`). No capture reaches it.
+    /// SEAM: the siege arm (`local_2c`: an AI siege unit on a building
+    /// whose `+8 & 0x20` is set takes it `mandatory` and writes the army's
+    /// target, and a plain `ATTACK_TO` is killed first), and the naval
+    /// refusal (`+0x218 == 2`). No capture reaches either.
     fn attack_move_add(&mut self, u: usize, t: Obj) {
         self.nearby_normalize(u);
-        let mandatory = self.siege_city_find(u, t);
         // `local_2c` first: a guard's leg is killed under the attack, and
         // its group never takes the find (`:551`, [`Self::nearby_add`]).
         let group_move = self.guard_activity(u).is_none()
@@ -3940,49 +3938,7 @@ impl Sim {
             self.group_action_attack(&g, t, false, QueuePos::First, 4);
             return;
         }
-        self.nearby_add_order(u, t, mandatory);
-    }
-
-    /// **`find_nearby_target`'s siege arm** (`00649934`–`00649b43`; item
-    /// 3690, `docs/AI.md` §348.2): a unit its own group lists
-    /// (`GroupData::member(…, 1)`, after the normalize) whose type is siege
-    /// (vslot `+0x10c`), which is computer-driven (`unit_masks & 0x40000`),
-    /// and whose find is a building (vslot `+0x1c`) carrying `OBJECT_CITY`
-    /// (`+8 & 0x20`) takes the attack **mandatory** (`0x8(%ebp) = 1`,
-    /// `649a2d`), and its army (`get_army`) takes the city: the target
-    /// (`+0x30`/`+0x34`), the muster at the unit's own cell
-    /// (`div_3_table[pos >> 8]`, `+0x48`/`+0x4c`), and the muster angle
-    /// `find_angle(city − unit)` (`+0x50`; the listing's `ecx`/`edx` at
-    /// `649afb`–`649b1f`, which the decompile prints as `unaff_`).
-    ///
-    /// run1359c's packet (logger frame 5678 of the American Industrial
-    /// lobby) is the witness: who=1's packed Artillery `1/131` (TY 269),
-    /// halted by its group's `action_attack`, re-finds the human's capital
-    /// `0/2000` under `find_melee_target` and takes it mandatory
-    /// (`find_nearby_target+0x4c8`), so its `fight` skips the re-search
-    /// and unpacks.
-    fn siege_city_find(&mut self, u: usize, t: Obj) -> bool {
-        let Obj::Building(b) = t else {
-            return false;
-        };
-        let member = self.group_of(u).is_some_and(|g| g.list.contains(&u));
-        if !member
-            || !self.profile(Obj::Unit(u)).siege
-            || !self.ai_driven(self.units[u].owner)
-            || !self.building_is_city(b)
-        {
-            return false;
-        }
-        if let Some(slot) = self.army_of(u) {
-            let here = self.units[u].pos;
-            let at = self.buildings[b].pos;
-            let who = self.units[u].owner as usize;
-            let a = &mut self.armies[who].list[slot];
-            a.target = Some(t);
-            a.muster = here.cell();
-            a.muster_angle = find_angle(at.x - here.x, at.y - here.y);
-        }
-        true
+        self.nearby_add_order(u, t);
     }
 
     /// `Unit::do_attack_to_pause@005f22a0` (`docs/ORDERS.md` §24.9): an
@@ -9827,7 +9783,7 @@ impl Sim {
     }
 
     /// [`Self::nearby_add`]'s order, once the group is normalized.
-    fn nearby_add_order(&mut self, u: usize, t: Obj, mandatory: bool) {
+    fn nearby_add_order(&mut self, u: usize, t: Obj) {
         let head = self.order_type(u);
         let pos = if self.guard_activity(u).is_some() {
             if head == index::ATTACK_TO {
@@ -9841,7 +9797,7 @@ impl Sim {
         } else {
             QueuePos::New
         };
-        self.add_attack_order(u, t, pos, mandatory, false);
+        self.add_attack_order(u, t, pos, false, false);
     }
 
     /// **`do_move`'s flank clause on a chase** (item 1061, `docs/COMBAT.md`
