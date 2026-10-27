@@ -931,6 +931,13 @@ impl Sim {
             }
         }
 
+        if std::env::var("RON_PROBE_3708").is_ok() {
+            eprintln!(
+                "PROBE3708 f{} compute_sites who={who} sites={:?}",
+                self.frame,
+                self.ai[w].sites.iter().map(|s| (s.wx, s.wy, s.val, s.reg)).collect::<Vec<_>>()
+            );
+        }
         // `rank[i]` = how many of the ten score no more than site `i` —
         // itself included, so a set of one 370 and nine zeroes ranks 10 and
         // 9. (`docs/AI.md` §2.7's "1 + count" counts the other nine.)
