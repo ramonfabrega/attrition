@@ -32558,8 +32558,8 @@ seen, so they are the two new to it once the pair closes.
 
 ~~205 of 302~~ **207 of 302** since item 3683: the pair is whole, and
 `Black Watch` (115) and `Light Tank` (240) are the two it adds
-(`census::RUBRIC_UNIT_TYPES_SEEN`); 208 on the tree merged with item
-3679's Royal Hwarang.
+(`census::RUBRIC_UNIT_TYPES_SEEN`); 213 on the tree merged with items
+3679 and 3682.
 
 ### 347.1 The pair whole: the `MARK4`'s turret and the Black Watch's musket, 2939 → 2918 → 4767 (item 3683)
 
