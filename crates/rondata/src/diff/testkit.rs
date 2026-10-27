@@ -12749,15 +12749,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Germans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Lakes (item 3667): first try 4323 of a
-    // game that ends itself on 4772, widened on run1334b.
+    // game that ends itself on 4772, widened on run1334b. Item 3682
+    // closed it: whole, the closing state compared, the closing window
+    // run1354.
     AiWord {
         line: "Late ages",
         map: "GreatLakesGermanIndustrial",
         named: "Great Lakes (Germans, Industrial)",
         word: crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL_PAIR_WORD,
         length: 4_772,
-        endpoint: None,
-        window: Some("german_industrial_frame_4323_window"),
+        endpoint: Some("german_industrial_pair_run1334_s_closing_state"),
+        window: Some("german_industrial_frame_4772_window"),
     },
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
