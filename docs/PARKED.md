@@ -11787,13 +11787,22 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot UM — reserved
+## Parked by item 3704, 2026-10-27 — the Chinese Enlightenment word closes, 3263 → 3836
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3704a. One Manchu Musketeer round's target stamp** (`docs/AI.md` §354.2; run1350b, block 3286): `1/48`'s
+  `ammo[1]` reads `whom` −1 and `ox` −1 in ours against theirs' `0/8`; its launch point, landing and flight time
+  agree, and nothing else on the round parts. The draw stream holds to the game's end and the closing state agrees,
+  so it names no score. The first reading is who clears a live round's target in ours when the human's `0/8` is
+  gone, against the original's `Ammo` writers of `whom`.
+- **3704b. Every piece's `AttachPos` rows from the art files, not one packet per piece** (`docs/AI.md` §354.2; the
+  commander's word, 2026-10-27). `sim::launch::BAYS` is keyed by graphic piece, and a piece with no row looses from
+  the figure's own square: lower, and a frame longer in flight. That one fallback is the shape behind 3695a (the
+  Repeating Rifle Horse, 208, and the Cannon, 268), 3696a (the Gun Samurai, 161), 3697's word 3229 (the Rifleman,
+  TY 100, 55 parting launches in run1368b) and this item's pieces 66 and 1142 (closed here off run1381's packet).
+  The rows are what `GraphicEvents::init_unit_events@008e2520` fills when a unit of the type is first built, so
+  today each costs a packet from a game that fields the piece (`get_position.py … entries`, `fit_bay.py`). Reading
+  them from the models for every piece would close the family whole. The first reading is `init_unit_events` and
+  the art file's attach records it parses.
 
 ## Parked by the next landing, slot UN — reserved
 

@@ -863,6 +863,84 @@ const BAYS: &[(i32, i8, u32, Bay)] = &[
             dz: 178,
         },
     ),
+    // **Piece 66, `MANCHUMUSKETEERS`** (unit type 116, the Chinese Manchu
+    // Musketeers; item 3704, `docs/AI.md` §354.2): run1381's
+    // `RON_STATE_FRAME=3262` packet on the Chinese Enlightenment Great
+    // Lakes seed holds its three attack `AttachPos` rows (node 0, frames 1,
+    // 7 and 4), `RData +0x88` 1.03, and `fit_bay.py` fits each sweep (285,
+    // 14 and 132 lattice points; the centroid is kept, 361 of 361 headings
+    // each). No other packet on disk fills it. Without them who=1's `1/42`
+    // loosed its round of 3261 at the human's city centre `0/2000` from its
+    // own square (5208, 31512, 464) against the original's (5094, 31444,
+    // 678), flew 5 frames against 4, and the city was struck a frame late.
+    (
+        66,
+        11,
+        1,
+        Bay {
+            right: 29_267,
+            fwd: 130_145,
+            dz: 214,
+        },
+    ),
+    (
+        66,
+        12,
+        7,
+        Bay {
+            right: 9_324,
+            fwd: 155_739,
+            dz: 182,
+        },
+    ),
+    (
+        66,
+        13,
+        4,
+        Bay {
+            right: 9_222,
+            fwd: 152_372,
+            dz: 178,
+        },
+    ),
+    // **Piece 1142, `FUSILIER-ASIAN`** (unit type 136, the Fusiliers as the
+    // Chinese and the Mongols field them; item 3704, `docs/AI.md` §354.2):
+    // run1381's packet holds its three attack `AttachPos` rows (node 0,
+    // frames 6, 6 and 8), `RData +0x88` 1.0 — run1361's packet holds the
+    // same floats — and `fit_bay.py` fits each sweep (475, 12 and 206
+    // lattice points; the centroid is kept, 361 of 361 headings each).
+    // Without them who=1's `1/52` loosed its round of 3195 from its own
+    // square (6216, 29448, 492) against the original's (6117, 29386, 609).
+    (
+        1142,
+        11,
+        6,
+        Bay {
+            right: 52_732,
+            fwd: 124_892,
+            dz: 112,
+        },
+    ),
+    (
+        1142,
+        12,
+        6,
+        Bay {
+            right: 22_738,
+            fwd: 114_918,
+            dz: 117,
+        },
+    ),
+    (
+        1142,
+        13,
+        8,
+        Bay {
+            right: 47_713,
+            fwd: 110_072,
+            dz: 111,
+        },
+    ),
     // **Piece 69, `MARINES`** (unit type 119, the Americans' Continental
     // Marines; item 3661, `docs/AI.md` §341): run1325c's
     // `RON_STATE_FRAME=5578` packet on the American Enlightenment East
@@ -3684,6 +3762,44 @@ mod tests {
                 })
                 .collect();
             assert_eq!(keys.len(), 1, "({x}, {y}) at {facing}: keys {keys:?}");
+        }
+    }
+
+    /// **The Chinese Manchu Musketeers and Fusiliers loose from pieces 66
+    /// and 1142's bays** (item 3704): one round of each attack key run1350b
+    /// prints from a shooter's first frame, beside its figure's `GUY` pose
+    /// on the block before, reproduced at the dump's `sx, sy` and `sz − z`
+    /// by exactly one of the piece's three attack keys. Made to fail with
+    /// the rows out of `BAYS`: each round leaves the figure's own square.
+    #[test]
+    fn run1350b_s_chinese_musketeers_and_fusiliers_leave_from_their_bays() {
+        // (piece, x, y, facing, sx, sy, sz − z)
+        let rows: [(i32, i32, i32, i32, i32, i32, i32); 6] = [
+            (66, 6216, 30360, -506_855_424, 6147, 30247, 214), // 3198 1/47
+            (66, 5784, 31416, -655_032_320, 5661, 31322, 182), // 3244 1/35
+            (66, 6216, 30840, -419_037_184, 6137, 30710, 178), // 3205 1/48
+            (1142, 4872, 29208, -575_012_864, 4813, 29087, 112), // 3359 1/52
+            (1142, 5112, 29112, -1_044_840_448, 4998, 29088, 117), // 3273 1/52
+            (1142, 5976, 29784, -627_376_128, 5917, 29680, 111), // 3205 1/51
+        ];
+        for (piece, x, y, facing, sx, sy, dz) in rows {
+            let attack: [(i8, u32); 3] = if piece == 66 {
+                [(11, 1), (12, 7), (13, 4)]
+            } else {
+                [(11, 6), (12, 6), (13, 8)]
+            };
+            let keys: Vec<(i8, u32)> = attack
+                .into_iter()
+                .filter(|&(anim, t)| {
+                    let at = launch_point(Pos::new(x, y), Angle(facing), piece, anim, t, 0);
+                    (at.x, at.y) == (sx, sy) && release_dz(piece, anim, t, 0) == Some(dz)
+                })
+                .collect();
+            assert_eq!(
+                keys.len(),
+                1,
+                "{piece} ({x}, {y}) at {facing}: keys {keys:?}"
+            );
         }
     }
 
