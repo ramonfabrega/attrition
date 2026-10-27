@@ -3801,7 +3801,7 @@ classifies every simulation function per source file as ported, layout-only, nam
 (529 / 1,167 / 4 / 452 / 1,459 on this tree). For the steer: graduate it into `tools/census.py` and `tools/rubric.py` as the
 scoreboard's first table; add a **`replaced by design`** mark, given per group on Ramon's word, for the layers the project
 replaced on purpose (the command packaging and manager, the turn pump, the XML loaders, the scripting VM, the order classes'
-plumbing) so they stop counting as missing; add an **entered × age matrix** from the `rontrace-run*.log` function coverage and
+plumbing) so they stop counting as missing — **Ramon's word, 2026-10-27 at the talk: all five groups take the mark**, reversible per group if a port is wanted after all; add an **entered × age matrix** from the `rontrace-run*.log` function coverage and
 each run's held age (which cell has the most never-entered functions is what the next capture stages); and a **per-unit-type
 state counter** off the dumps — seen, moved, attacked, died, boarded — beside "seen". The queue's `Rubric:` line is then this
 table's, and the braces' refill reads the matrix, not the age buckets.
