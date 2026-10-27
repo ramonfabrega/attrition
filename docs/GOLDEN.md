@@ -11543,7 +11543,7 @@ chapter tests fail. `army_pool_record` answering nothing: held, both fail.
 - A follower's `think_attack` still runs the plain search, where the original's `find_melee_target(…, param_3 0,
   …)` answers a follower from the squad head (`find_melee_target_headed`). The run reaches no follower on this
   arm with a search that would differ.
-- Why `1/14`'s path is shifted (parked 2118).
+- ~~Why `1/14`'s path is shifted (parked 2118).~~ **Answered by item 3711** (`docs/AI.md` §363.1): its slot stood past the map's edge, and the group's clamp is written back into the slot table.
 
 ### 77.1 Coverage
 

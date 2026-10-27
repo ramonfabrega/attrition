@@ -2844,7 +2844,19 @@ impl Sim {
             }
             // §6.6 step 3: the member's **own** slot, clamped into the
             // world — not the group's destination.
+            //
+            // **The clamp is written back into the table**
+            // (`action_move_near@00704990:521`–`536`: the four stores are
+            // to `param_9 + 0x514`/`+0x714` themselves), so §6.7's plan
+            // — the leader's base, a member's translation and
+            // `group_plan_each`'s own goal — reads the clamped slot. Greek
+            // East Indies' Heavy Fire Raft `1/70` on 5626: its slot sat
+            // at x 46259 on a map 46080 wide, and the raw one went on its
+            // stack, so `find_path` pulled back off the map's edge onto
+            // its own square where theirs, from (46079, 38109), stopped
+            // at (45683, 37689) (item 3711, `docs/AI.md` §363.1).
             let mut slot = self.restrict_pos(slots.to[i]);
+            slots.to[i] = slot;
             // §6.6 step 4's **different-region** arm (`705a2a`..`705c9b`):
             // a member past the first whose slot's `get_tregion` — the
             // coastal-water `region2` arm, [`crate::world::World::tregion_alt`]

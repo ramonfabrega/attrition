@@ -7305,6 +7305,11 @@ pub(crate) const GROUND_INEXACT: &[(&str, u32)] = &[
         "greek_medieval_pair_run1380b_s_word_frame_is_widened_whole",
         1,
     ),
+    // Item 3711: the closing window 5686..5943 on run1388.
+    (
+        "greek_medieval_pair_run1388_s_closing_frame_is_widened_whole",
+        1,
+    ),
     // Item 3702: the Mongol Medieval pair's closing state, run1378 walked
     // to its closing block 5593 past the word 2595: 2 inexact corners.
     ("mongol_medieval_pair_run1378_s_closing_state", 2),
@@ -10860,13 +10865,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // **The Greeks at a held Medieval age** (item 3703): East Indies at
     // Hard — first try 5626 of 5942, the Heavy Fire Raft `1/70`'s
     // `do_move` draw; widened on run1380b over 5595..5877, the rounds
-    // compared.
+    // compared. Item 3711 closed it, 5942 of 5942 (the group's slot clamp
+    // written back into the table), widened on run1388 over 5686..5943
+    // (the closing block), the closing state whole.
     (
         "GREEK_MEDIEVAL_PAIR_WORD",
         crate::diff::greek_medieval_pair::GREEK_MEDIEVAL_PAIR_WORD,
-        Some("greek_medieval_pair_run1380b_s_word_frame_is_widened_whole"),
-        3703,
-        Some(crate::diff::greek_medieval_pair::WIDENING_GREEK_MEDIEVAL_FRAME_5626),
+        Some("greek_medieval_pair_run1388_s_closing_frame_is_widened_whole"),
+        3711,
+        Some(crate::diff::greek_medieval_pair::WIDENING_GREEK_MEDIEVAL_CLOSING),
     ),
     // **The Japanese at a held Enlightenment age** (item 3696): East Indies
     // at Hard — whole on its first try, 4701 of 4701, the closing state
@@ -13225,6 +13232,8 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     // 5626 of 5942, the Heavy Fire Raft `1/70` spending one `do_move` draw
     // more in ours and keeping no order; widened on run1380b over
     // 5595..5877.
+    // Item 3711 closed it, 5942 of 5942, widened on run1388 through the
+    // closing block.
     AiWord {
         line: "Late ages",
         map: "EastIndiesGreekMedieval",
@@ -13232,7 +13241,7 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
         word: crate::diff::greek_medieval_pair::GREEK_MEDIEVAL_PAIR_WORD,
         length: 5_942,
         endpoint: Some("greek_medieval_pair_run1380_s_closing_state"),
-        window: Some("greek_medieval_frame_5626_window"),
+        window: Some("greek_medieval_closing_window"),
     },
     // **The coverage pair** (DECISIONS 61 §6, 62 §3; item 1511): one game,
     // East Indies with the Persians at All Technologies, which ends when
