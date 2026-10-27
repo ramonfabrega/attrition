@@ -9021,8 +9021,9 @@ score.
 
 ## Parked by item 3390, 2026-10-20 — the Spanish at Great Lakes close: the draw-silent residue
 
-- **3390a. run1013's `leader:attack` on 13576** (who=1, ours 269 against theirs 275), the AI leader's attack
-  tally; it parts no draw to the game's end, and the close compares whole. Names no score.
+- ~~**3390a. run1013's `leader:attack` on 13576** (who=1, ours 269 against theirs 275), the AI leader's attack
+  tally; it parts no draw to the game's end, and the close compares whole. Names no score.~~ Answered by item 3688:
+  the Monarch's cavalry arm of `UnitData::attack` (`docs/AI.md` §349.1); the row agrees.
 - **3390b. `dest_angle` on run1013's `1/74` (13710) and `1/78` (13732)**, ours 1073741824 and 671481856 against
   1251016704 and −70647808, with positions agreeing: the shape run1007's 3383a parked. No draw parts.
 - **3390c. Newborns' `g.angle[0]`** (`1/62` on run1013b's 8557, `1/89` on run1013's 13735), ours 1431655765
@@ -11586,13 +11587,21 @@ draw parts; it names no score.
   unmeasured on this piece. Only the `CHAR_ATTACK3` row of 3105 is
   checked against a dump. They name no score.
 
-## Parked by the next landing, slot TY — reserved
+## Parked by item 3688, 2026-10-26 — the Russian Gunpowder close: the draw-silent residue
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TY renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3688a. run1357b's rounds, 153 of 504 parting, none in a draw.** who=1's Crossbowmen (TY 172, land) launch a unit
+  or two off theirs (`1/36`'s of 5146 from (3777, 31725) against (3779, 31724), `angle`, `sx`, `sy`, `ex`, `ey`),
+  the shape 3580a parked for piece 1178's missing bay; and its Bombards (TY 267, `1/68` on 5086 and 5258) leave at
+  `sz` 269 against 373 (`v1z` 100587502 against 94087502). The pair closes whole; names no score. run1357c (the
+  Romans' close) parts the same way: the Bombards `1/64` and `1/100` launch from their square in ours, against
+  (6886, 30285) at `sz` 365 in theirs for `1/100`'s of 4048, 10 of 431 rounds.
+- **3688b. run1357b's walk ends and idle facings.** The Crossbowmen `1/60` (`orders_x`/`_y` (6312, 30744) against
+  (6308, 30738) on 5237) and `1/59` (5275), and `dest_angle` on `1/65` (5239) and the Arquebusiers `1/75` (TY 98,
+  5271): draw-silent to the close; run1357c's Pike Legion `1/68` (`orders_x` 8424 against 8471 on 3987) and Spy
+  `1/98`'s `dest_angle` (4048) likewise. Names no score.
+- **3688c. `UnitData::armor`'s Monarch arm** (`THEMONARCH_CAV_ARMOR`, rules.xml 2), the armour twin of the attack
+  term item 3688 built; `fight.rs`'s `rally_armor` SEAM names it. No blow on disk strikes a Stable unit by a
+  Monarch. Names no score.
 
 ## Parked by the next landing, slot TZ — reserved
 

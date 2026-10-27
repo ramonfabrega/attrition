@@ -32885,6 +32885,61 @@ fielded** (`rubric.py --dumps` over run1340, run1340b and run1340c):
 the ledger. The Heavy Knight (229, `KNIGHTSELITE`) that strikes the blow
 is seen already.
 
+### 349.1 The Monarch's cavalry arm: the pair whole, 5341 of 5341 (item 3688)
+
+**The direction held, and the term was the Monarch's.** run1357 (a
+packet at logger frame 3439, `rngcmp.py` 3442 of 3442 identical to
+run1340) runs the original on who=1's Heavy Knight `1/32` (TY 229,
+`KNIGHTSELITE`, land) and the human's Citizen `0/5` (TY 50):
+`ObjectData::get_damage@00644130` returns **29**, table 150
+(`0x644196`), armour 0 (`0x6441b7`), attack **190** (`0x6441c4`).
+`UnitData::attack@006103c0` reads `ObjectData::attack` 170
+(`0x6103d2`), as ours; the Citizen arm's `has_general(0x164)` answers
+−1 (`0x61040f`), and of the named generals' arms only the last is
+entered: the leader's short `+0x59c2` is set, the type's word `+0x40`
+is `0x1ac` (the Stable), and `has_general(this, 0, 0x162)` answers
+**18** (`0x61082a`) — the Monarch `1/18`, whom `1/32` guards in group
+64 — so `THEMONARCH_CAV_ATTACK × 10` = 20 (`610833`–`61083c`). Ours
+(a probe behind `RON_PROBE_3688`, reverted whole): attack 170, armour
+0, table 150, 26. The leader's short is `+0x56fe + 2 × 0x162`, the
+per-type hero count `has_general` already gates on, so a live Monarch
+the walk finds implies it.
+
+**Built**: `Sim::monarch_cav_attack` (`fight.rs`), the Stable test by
+`Sim::trainer_ident`'s equality and the reach by `Sim::has_general`,
+and `THEMONARCH_CAV_ATTACK` loaded into `Tuning`.
+
+| block | record | field | ours before | ours now | theirs |
+|---|---|---|---|---|---|
+| 3395 | who=1's leader | `attack` | 888 | 894 | 894 |
+| 3441 | the Citizen `0/5` | `hits:damage`, `hits_left` | 26, 24 | 29, 21 | 29, 21 |
+| 3712 | the draw stream, index 2 | site | `Unit::fight+0x824` | `Unit::close+0xcb6` | `Unit::close+0xcb6` |
+| 5342 | the closing state | units compared, counts | — | 248, all 0 | 248 |
+
+`leader:attack` was the same cause: it leaves both windows with the
+Citizen's rows (the leader's tally reads the unit's attack), so
+`mongol_gunpowder_pair`'s standing row on 1976 is worth reading for a
+Stable unit near a Monarch.
+
+**What moved.** `RUSSIAN_GUNPOWDER`: 3711 → **5341 of 5341**, by the
+count and the sequence. The stride 102 → 100 keys, run1340b 3037 → 58,
+run1340c 227 → 58: the standing families alone. **The closing state**
+(run1340's block 5342): 248 units, none off, torn, unlinked or extra,
+`Closing fields: none`. **The closing window** run1357b (5086..5342, 256
+blocks, `rngcmp.py` 5342 of 5342 identical to run1340): 60 keys, the
+standing families and four draw-silent rows (parked 3688b); rounds 504
+a side, 153 parting by a unit or two at the Crossbowmen's launch and at
+the Bombards' height (parked 3688a). Every other lobby's
+`first_parting` holds (83 of 83), and the Roman Gunpowder pair that
+landed beside it closes whole on the same arm (§350.1). The mutation that renames the Monarch's type in the arm
+takes the word back to 3711 (exit 101).
+
+**The rubric**: unit types seen 213 → **214**, the Cossack (225) — the
+line this section named — once the pair is lockstep.
+
+**Not established**: the Monarch's armour twin (`THEMONARCH_CAV_ARMOR`,
+parked 3688c), and the leader's count read apart from the walk.
+
 ## 350. The Romans at a held Gunpowder age, Great Lakes: first try 2926 of 4062 (item 3671)
 
 **The lobby.** Great Lakes (`MAP_STYLE 14`), human Nubians (4) against
@@ -32956,6 +33011,26 @@ not read.
 **is fielded** (`rubric.py --dumps` over run1342 and run1342b):
 `Praetorian Guards` (148, `PIKELEGION`), 10,402 guy records. It is the
 pair's only type new to the lockstep ledger. The pair fields 18 types.
+
+### 350.1 Whole on the Monarch's cavalry arm: 4062 of 4062 (item 3688)
+
+The Heavy Knights' harder blows here are §349.1's term: who=1's Heavy
+Knights (TY 229, Stable-trained) strike within a Monarch's reach, and
+`UnitData::attack`'s last arm adds `THEMONARCH_CAV_ATTACK × 10`. Built
+for the Russian pair, it closes this one with no Roman reading:
+`ROMAN_GUNPOWDER` 2926 → **4062 of 4062**, by the count and the
+sequence. On run1342b's block 2895, who=1's `attack` (659 against 669)
+and both Citizens' damage are gone. run1342b goes 2059 → 55 keys, the
+standing families alone, with its rounds (17, 17), 2 parting: `1/135`'s
+of 2962 onto a target dead in ours alone, the dead-target shape. The
+stride goes 94 → 90. **The closing state** (run1342's block 4063): 183
+units, none off, torn, unlinked or extra, `Closing fields: none`.
+**The closing window** run1357c (3807..4063, 256 blocks, `rngcmp.py`
+4063 of 4063 identical to run1342): 46 keys, the standing families and
+two draw-silent rows (parked 3688b); rounds 431 a side, 10 parting at
+the Bombards' launch (parked 3688a). **The rubric**: 214 → **215**, the
+`Praetorian Guards` (148). Item 3689, booked on 2926, is answered by
+this.
 
 ## 351. The French at a held Enlightenment age, East Indies, at difficulty 4: first try 4505 of 4940 (item 3672)
 
