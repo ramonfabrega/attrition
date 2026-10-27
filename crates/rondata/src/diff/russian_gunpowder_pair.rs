@@ -198,7 +198,8 @@ fn russian_gunpowder_pair_the_long_s_stride_walks_back_from_3711() {
 /// run1340b: the word 3711's window, blocks 3695..3961 at the long's
 /// detail with `LEADERS=9` and `AMMO=5` — six blocks before the stride's
 /// last block 3701 and 250 after the word's block 3712 (item 3670).
-pub(crate) const RUN1340B: &str = "gamelog-run1340b-greatlakes-russian-gunpowder-window-3695-3961.txt";
+pub(crate) const RUN1340B: &str =
+    "gamelog-run1340b-greatlakes-russian-gunpowder-window-3695-3961.txt";
 
 /// The window: block 3695 through 3961; the word 3711's own block is 3712.
 pub(crate) const WIDENING_RUSSIAN_GUNPOWDER_FRAME_3711: (i64, i64) = (3695, 3961);
@@ -261,6 +262,69 @@ fn russian_gunpowder_pair_run1340b_s_word_frame_is_widened_whole() {
     pin_eq!(w.firsts.len(), 3037, "run1340b baseline");
     // Every round, both directions: none — the window's fighting is
     // melee.
+    pin_eq!(w.rounds_read, (0, 0), "the rounds read");
+    pin_eq!(w.rounds.len(), 0, "the rounds that part");
+}
+
+/// run1340c: the window over the Citizen `0/5`'s damage parting, blocks
+/// 3395..3751 at run1340b's detail — six blocks before the stride's 3401,
+/// where the damage still agrees, and 250 after its 3501 (item 3670).
+pub(crate) const RUN1340C: &str =
+    "gamelog-run1340c-greatlakes-russian-gunpowder-window-3395-3751.txt";
+
+/// The window: block 3395 through 3751.
+pub(crate) const WIDENING_RUSSIAN_GUNPOWDER_DAMAGE: (i64, i64) = (3395, 3751);
+
+/// **The damage's window**: run1340c walked from run1339's start with the
+/// recorder on and every round compared (item 3670).
+pub(crate) fn russian_gunpowder_damage_window() -> Option<harness::tests::Widened> {
+    harness::tests::widen_on_siblings_with_rounds(
+        &[RUSSIAN_GUNPOWDER.start],
+        true,
+        RUSSIAN_GUNPOWDER.long,
+        "run1340c",
+        &[(RUN1340C, WIDENING_RUSSIAN_GUNPOWDER_DAMAGE.0)],
+        WIDENING_RUSSIAN_GUNPOWDER_DAMAGE,
+        1,
+        &[],
+        true,
+    )
+}
+
+#[test]
+fn russian_gunpowder_pair_run1340c_s_damage_window_is_widened_whole() {
+    let _pins = Pins::hold();
+    let Some(w) = russian_gunpowder_damage_window() else {
+        return;
+    };
+    pin_eq!(w.blocks, 356, "every captured block");
+    if std::env::var("RON_FIRSTS").is_ok() {
+        let mut rows: Vec<_> = w.firsts.iter().collect();
+        rows.sort_by_key(|(k, (f, _))| (*f, (*k).clone()));
+        for ((who, o, what), (f, r)) in rows {
+            eprintln!("  first {f} {who}/{o} {what}: {r}");
+        }
+        eprintln!("  missing {:?}", w.missing);
+        eprintln!("  rounds read {:?}", w.rounds_read);
+        for ((who, o, what), (f, r)) in &w.rounds {
+            eprintln!("  round {f} {who}/{o} {what}: {r}");
+        }
+    }
+    pin_eq!(
+        w.missing.iter().cloned().collect::<Vec<_>>(),
+        ["gaia:cur_anim", "gaia:cur_time"],
+        "the keys the capture prints and nothing reads"
+    );
+    // Item 3670, the first walk: 227 keys. Block 3395 carries the
+    // standing families and who=1's leader's `attack` (888 against 894,
+    // `mongol_gunpowder_pair`'s standing row). **The first unit row is
+    // the blow of 3440: who=1's Elite Knight `1/32` (TY 229) strikes the
+    // human's Citizen `0/5` — `hits:damage` 26 in ours against 29 in
+    // theirs on block 3441** (`hits_left` 24 against 21); `0/5` flees
+    // on both sides. The rest is the word's block 3712 and after, as
+    // run1340b's.
+    pin_eq!(w.firsts.len(), 227, "run1340c baseline");
+    // No round: the blow is melee.
     pin_eq!(w.rounds_read, (0, 0), "the rounds read");
     pin_eq!(w.rounds.len(), 0, "the rounds that part");
 }
