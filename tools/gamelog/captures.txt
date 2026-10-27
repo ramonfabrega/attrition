@@ -10889,6 +10889,10 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1350  run1334's line with --ai-tribe 14 and run1349's lobby   (the draw stream; ended itself on 3836)
 #   run1350b --map 14 --end-frame 3514 --timeout 3600 --log-window 3195 3514 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 14 --cover cover=0, run1349's lobby   (the word 3263's window)
 # Checks: `rngcmp.py` run1349 vs run1350 -> 37 identical; run1350 vs run1350b -> 3515 identical.
+# ==== item 3704: the Chinese Enlightenment word closes (`docs/AI.md` §354.2; `docs/RUNS.md` run1381, run1381b) ====
+#   run1381  --map 14 --end-frame 3264 --timeout 3600 --log-window 3260 3264 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 14 --cover cover=0 --tracer-def RON_STATE_FRAME=3262 --tracer-def RON_STATE_PLAN=<item 597's plan.h>, run1349's lobby   (the packet: pieces 66 and 1142)
+#   run1381b --map 14 --end-frame 3836 --allow-early-end --timeout 3600 --log-window 3580 3837 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 14 --cover cover=0, run1349's lobby   (the closing window)
+# Checks: `rngcmp.py` run1350 vs run1381b -> 3837 identical.
 # ==== item 3674: the Greeks at a held Enlightenment age, Great Lakes (`docs/AI.md` §353; `docs/RUNS.md` run1347, run1348, run1348b) ====
 #   run1347  --map 14 --end-frame 36 --timeout 1200 --dump-all-start --cover cover=0 --ai-tribe 5 --profile STARTING_TECHNOLOGY=4 --profile ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5   (start)
 #   run1348  run1334's line with --ai-tribe 5 and run1347's lobby   (the draw stream; ended itself on 4705)

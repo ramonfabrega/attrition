@@ -11770,13 +11770,13 @@ and files its parked rows under it, so two lanes' parks are never one hunk
 at the file's tail. The commander assigns a slot by letter in the queue's
 words and edits nothing here; a refill lands when two remain.
 
-## Parked by the next landing, slot UM — reserved
+## Parked by item 3704, 2026-10-27 — the Chinese Enlightenment word closes, 3263 → 3836
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot UM renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- **3704a. One Manchu Musketeer round's target stamp** (`docs/AI.md` §354.2; run1350b, block 3286): `1/48`'s
+  `ammo[1]` reads `whom` −1 and `ox` −1 in ours against theirs' `0/8`; its launch point, landing and flight time
+  agree, and nothing else on the round parts. The draw stream holds to the game's end and the closing state agrees,
+  so it names no score. The first reading is who clears a live round's target in ours when the human's `0/8` is
+  gone, against the original's `Ammo` writers of `whom`.
 
 ## Parked by the next landing, slot UN — reserved
 

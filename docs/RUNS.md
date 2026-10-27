@@ -31044,3 +31044,49 @@ is 256 blocks and 57 keys: the standing families, the city `0/2003`'s damage on 
 `dest_angle` (parked 3695b). The rounds read 120 ours and 123 theirs, 45 parting, every one a launch of the
 Repeating Rifle Horse `1/71` and `1/76` or the Cannon `1/75` (parked 3695a). The draw stream holds to 4673, the
 game's last frame.
+
+## run1381 — the Chinese at a held Enlightenment age, Great Lakes: a packet at logger frame 3262, pieces 66 and 1142's `AttachPos` rows (2026-10-27, item 3704, `att-3704`)
+
+`docs/AI.md` §354.2. **What the disk could not answer**: the Manchu Musketeer's (piece 66) three attack rows. run1350b
+prints every round the Manchu Musketeers and Fusiliers loose, but not the animation each plays, and of the 79 packets
+on disk none fills piece 66 (`get_position.py … entries 66`: run1155c and run1220b, the Chinese packets, do not load
+it; run1224b loads it with no rows). Piece 1142, the Fusilier's, is filled by run1361's packet. `viadriver.sh
+tools/explore/golden_capture.sh ~/ron-golden/run1381 --map 14 --end-frame 3264 --timeout 3600 --log-window 3260 3264
+--detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 14 --cover cover=0 --profile STARTING_TECHNOLOGY=4 --profile
+ENDING_TECHNOLOGY=4 --profile STARTING_RESOURCES=7 --profile DIFFICULTY=5 --tracer-def RON_STATE_FRAME=3262
+--tracer-def 'RON_STATE_PLAN="<item 597's plan.h>"'`.
+- Pool lane 1, seed 12345. Launched 06:33:10, exited 06:33:35 (25.3 s launch to exit). `success`, 3265 frames.
+  `rngcmp.py` against run1350's trace: 3265 of 3265 identical. Not filed: the packet is the product. `df -g ~` read
+  172 GiB free before it.
+- Minutes waited on another lane: none.
+
+Packet `~/ron-golden/run1381/map-14/frame-snapshot.bin`, 869,732,164 bytes,
+SHA-256 `9dc010c07ce2ca903a5134dd69ad3031607351d4004692862353781bafab6135`.
+
+**What it holds**: `get_position.py entries 66` gives three rows (node 0, `CHAR_ATTACK1`..`3` at frames 1, 7 and 4),
+`RData +0x88` 1.03; `entries 1142` three rows (node 0, frames 6, 6 and 8), `RData +0x88` 1.0, every float run1361's.
+`get_position.py sweep <piece> 0 <anim> <time>` for each of the six keys is kept at
+`~/ron-data/lab-experiments/2026-10-27-item-3704/bay-<piece>-a<anim>-t<time>.txt`; `fit_bay.py` fits each to one
+region (piece 66: 285, 14 and 132 lattice points; piece 1142: 475, 12 and 206).
+
+## run1381b — the Chinese at a held Enlightenment age, Great Lakes: the closing window, blocks 3580..3837 (2026-10-27, item 3704, `att-3704`)
+
+`docs/AI.md` §354.2. **What the disk could not answer**: every record of the pair's last blocks once the word reached
+the game's last frame. run1350's stride prints units every hundred frames, no `AMMO` and no leader, building or city
+record past the start, and run1350b ends on 3514. `viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1381b
+--map 14 --end-frame 3836 --allow-early-end --timeout 3600 --log-window 3580 3837 --detail
+end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 14 --cover cover=0` and run1349's lobby: the
+258 blocks through the closing block.
+- Pool lane 1. Launched 06:35:43, exited 06:36:27 (44.1 s launch to exit). `success`: 3837 frames, not ended early.
+  `rngcmp.py` against run1350: 3837 of 3837 identical. Filed with `filerun.py run1381b
+  greatlakes-chinese-enlightenment-closing-window-3580-3837`. `df -g ~` read 170 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1381b-greatlakes-chinese-enlightenment-closing-window-3580-3837.txt`, 539,753,136 bytes,
+SHA-256 `0895b711fdd95935540bd9bd22ac1bb71192f9455fd7cbcb895823c2a4d008b9`.
+
+Archive `rontrace-run1381b.log`, 75,246,720 bytes,
+SHA-256 `d7761a997faf76ae7b352e1d6c25f7bfb38a665c1c9b73122437470285e5c07e`.
+
+**What it holds**: `chinese_enlightenment_pair_run1381b_s_closing_frame_is_widened_whole` walks it from run1349: 257
+blocks, 62 keys, every one a standing family on block 3580; the rounds read 231 each side, none parting.
