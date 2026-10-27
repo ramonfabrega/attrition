@@ -13670,3 +13670,18 @@ impl crate::check_build_view::CheckBuildView for SimCheckBuild<'_> {
 fn probe_3711(frame: i64, u: usize) -> bool {
     std::env::var("RON_PROBE_3711").is_ok() && (5624..=5626).contains(&frame) && u == 212
 }
+
+#[cfg(test)]
+mod probe_3711_tests {
+    #[test]
+    fn probe_3711_pull_back_by_speed() {
+        let here = crate::Pos::new(45675, 37688);
+        let goal = crate::Pos::new(46259, 38109);
+        let a = crate::movement::find_angle(goal.x - here.x, goal.y - here.y).0;
+        for s in [48, 54, 59, 60, 61] {
+            let bx = crate::movement::sin_component(crate::movement::Angle(a), s);
+            let by = crate::movement::cos_component(crate::movement::Angle(a), s);
+            eprintln!("PROBE3711 speed {s}: back ({bx}, {by}); 12 steps -> ({}, {})", goal.x - 12 * bx, goal.y + 12 * by);
+        }
+    }
+}
