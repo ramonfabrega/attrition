@@ -30211,6 +30211,29 @@ SHA-256 `190b021e3c04044890cbe8eabe01e8ec54bf652a84dacce53a3ece1975b4d727`.
 to part is on 2934: who=1's Light Tank `1/28` (TY 240, `MARK4`) launches `ammo[1]` from (9432, 31128) at `sz` 619 in
 ours and from (9218, 31078) at 757 in theirs, `total_time` 6 against 5.
 
+## run1354 — the Germans at a held Industrial age, Great Lakes: the closing window, blocks 4516..4773 (2026-10-26, item 3682, `att-3682`)
+
+`docs/AI.md` §346.2. **What the disk could not answer**: every record past run1334b's last block 4574 to the close,
+and every round. The word closed at 4772, and run1334's stride prints units every hundred frames and no `AMMO`.
+`viadriver.sh tools/explore/golden_capture.sh ~/ron-golden/run1354 --map 14 --end-frame 4772 --allow-early-end
+--timeout 3600 --log-window 4516 4773 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12
+--cover cover=0` and run1333's lobby (`--profile STARTING_TECHNOLOGY=5 --profile ENDING_TECHNOLOGY=5 --profile
+STARTING_RESOURCES=7 --profile DIFFICULTY=5`): the last 257 blocks, through the closing block.
+- Pool lane 1. Launched 19:27:26, exited 19:28:14 (47.2 s launch to exit). `success`: 4773 frames, `closing_frame`
+  4773. `rngcmp.py` against run1334: 4773 of 4773 identical. Filed with `filerun.py run1354
+  greatlakes-german-industrial-window-4516-4773`. `df -g ~` read 78 GiB free before it.
+- Minutes waited on another lane: none.
+
+Archive `gamelog-run1354-greatlakes-german-industrial-window-4516-4773.txt`, 544,454,249 bytes,
+SHA-256 `929f09fbee1c542e8e3ff980326d51650ba7fd315a8c2be10a5a42b25f190a7d`.
+
+Archive `rontrace-run1354.log`, 86,778,752 bytes,
+SHA-256 `b4e8cdf59b85947fd8885b83f582f5c295085c54173f778159ba0d06829503da`.
+
+**What it holds**: `german_industrial_pair_run1354_s_closing_window_is_widened_whole` walks it from run1333 (257
+blocks, 73 keys, rounds read 995 a side, 11 parting). The keys are the standing families, the Albatrosses' `myspeed`
+and two Anti-tank Rifles' `dest_angle` (parked 3682b). The rounds are 4728's dead targets and the German Artillery
+`1/71`'s launch on 4770 (parked 3682a). No draw parts.
 ## run1337 — the Americans at a held Industrial age, Great Sahara: the `DUMP_ALL` start (2026-10-26, item 3669, `att-3669`)
 
 `docs/AI.md` §348. run1335's line with the nation and the difficulty moved, through `viadriver.sh

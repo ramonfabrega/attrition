@@ -10619,13 +10619,15 @@ pub(crate) const WIDENINGS: &[Widening] = &[
     // run1334b over 4295..4574 (the word's block 4324), the rounds
     // compared. Item 3677 moved it to 4348 (the Citizen's attack arm) and
     // walked the same window again: the word's block 4349 parts group
-    // 64's orders.
+    // 64's orders. Item 3682 closed it, 4772 of 4772 (the merged army's
+    // siege anchor stays the Citizen), widened on run1354 over 4516..4773
+    // (the closing block), the rounds compared, the closing state whole.
     (
         "GERMAN_INDUSTRIAL_PAIR_WORD",
         crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL_PAIR_WORD,
-        Some("german_industrial_pair_run1334b_s_word_frame_is_widened_whole"),
-        3677,
-        Some(crate::diff::german_industrial_pair::WIDENING_GERMAN_INDUSTRIAL_FRAME_4323),
+        Some("german_industrial_pair_run1354_s_closing_window_is_widened_whole"),
+        3682,
+        Some(crate::diff::german_industrial_pair::WIDENING_GERMAN_INDUSTRIAL_FRAME_4772),
     ),
     // **The British at a held Industrial age, at difficulty 4** (item
     // 3668): Great Sahara — first try 2382 of 4767 by the count and the
@@ -12762,15 +12764,17 @@ pub(crate) const AI_WORDS: &[AiWord] = &[
     },
     // The Germans at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Lakes (item 3667): first try 4323 of a
-    // game that ends itself on 4772, widened on run1334b.
+    // game that ends itself on 4772, widened on run1334b. Item 3682
+    // closed it: whole, the closing state compared, the closing window
+    // run1354.
     AiWord {
         line: "Late ages",
         map: "GreatLakesGermanIndustrial",
         named: "Great Lakes (Germans, Industrial)",
         word: crate::diff::german_industrial_pair::GERMAN_INDUSTRIAL_PAIR_WORD,
         length: 4_772,
-        endpoint: None,
-        window: Some("german_industrial_frame_4323_window"),
+        endpoint: Some("german_industrial_pair_run1334_s_closing_state"),
+        window: Some("german_industrial_frame_4772_window"),
     },
     // The British at a held Industrial age (`STARTING_TECHNOLOGY` 5,
     // `ENDING_TECHNOLOGY` 5), Great Sahara, at difficulty 4 (item 3668):
