@@ -34109,7 +34109,9 @@ the one extra (`GROUND_INEXACT` stays 3).
 
 **The rubric** does not move: the word does not close.
 
-### 358.4 A group move takes the builder's mark off: the word 4842 → 4948 (item 3710)
+## 358.4 The Persians at Gunpowder: a group move takes the builder's mark off, the word 4842 → 4948 (item 3710)
+
+*Split from §358 at the section ceiling; §358.1–358.3 stand under §358.*
 
 *Item 3710, 2026-10-27, Opus 5.5. 3709's owner-9 chain (§362.1) moves the word 3130 → **4842**; this item moves it
 to **4948 of 5673**.*
@@ -34134,8 +34136,8 @@ think searched for a build. The original takes the mark off a unit in three plac
 `Group::action_move_near@00704990` at `705fe3`, after either arm's member order;
 `Unit::add_gather_order@0061a5c0` at `61a5f7`, at every queue position; and `think_peasant`'s own tail, which ours
 had. **Built** both missing clears (`group.rs`; `GatherSim::take_order` in `orders.rs`). The group clear moves the
-word (with it mutated out, 4842 again, held); the gather clear moves no floor (test
-`a_gather_order_takes_the_builder_s_mark_off`).
+word (with it mutated out, 4842 again, held). The gather clear moves no floor; it closes golden run255's four
+`builder` rows (`0/6`..`0/9` on their first gather, `cases_setup.rs`), test `a_gather_order_takes_the_builder_s_mark_off`.
 
 **The leader row on 4795.** `Leader::produce_city@006cb120` walks `units[who]` **by object number**
 (`006cb172`..`006cb224`), and its last examined citizen decides which count loses the builder. Ours walked slots: on
@@ -34169,7 +34171,7 @@ standing families and 2901's `1/42` `dest_angle`), run1387 **1933** keys.
 **What this has not established.**
 - **Why `1/99`'s round launches 426 higher in theirs on 4907**, or whether the formation's few-unit `des_x`/`des_y`
   from 4883 put the Gun Mahout elsewhere first: the next item's, on run1387, which holds 4948.
-- **The gather clear** and **`check_orphaned_buildings`' order** are read, not diffed: no floor reaches them.
+- **`check_orphaned_buildings`' order** is read, not diffed: no floor reaches it.
 
 **The rubric** does not move: the word does not close.
 

@@ -10964,7 +10964,7 @@ spends no draw, so the stream cannot see it. Not read: whether theirs' productio
 capture's game-over, or whether `1/2040`'s queue timer is a frame behind ours (the closing compare reads no queue
 progress). It names the closing counts, a floor no queue line carries.
 
-(3617c) **who=1's `free_peasants` and `gatherers`, a count that parts and heals.** They read 4 against 3 and 28
+(3617c) closed 2026-10-27 by item 3710: **`Leader::produce_city@006cb120` walks its citizens by object number**, so its last examined citizen — the one that loses the builder — is the highest-numbered; this crate walked slots (`docs/AI.md` §358.4). run1269, run1270 and run1270b's rows agree. The entry as parked: **who=1's `free_peasants` and `gatherers`, a count that parts and heals.** They read 4 against 3 and 28
 against 29 from run1270's first block 5301 through run1269's 5607. They agree in run1260b (4495..4751) and in
 run1270b over 5817..5977, then part again on 5978, 5 against 6 and 35 against 34. The draws never move. No
 `LEADERDATA` prints between 4751 and 5301, so the frame the first parting begins on is not on disk; run1270b's
@@ -11918,9 +11918,9 @@ below names a score.
 - **3710a. `Leader::check_orphaned_buildings@006c9f20` walks `units[who]` by object number** (`006ca235`..`006ca399`,
   `006ca548`..`006ca689`), as `produce_city` does; ours walks slots. Built with `Sim::units_by_o` and reverted:
   no floor moved either way. It names a score when a reused number leads its walk to a different building.
-- **3710b. `Unit::add_gather_order@0061a5c0`'s builder clear (`61a5f7`) is built and read by no floor.** Its test
-  is `a_gather_order_takes_the_builder_s_mark_off`; mutated out, every `first_parting` holds. It names a score when
-  a citizen keeps the mark through a gather order on a frame a dump reaches.
+- **3710b. `Unit::add_gather_order@0061a5c0`'s builder clear (`61a5f7`) moves no floor.** It closes golden run255's
+  four `builder` rows and its test is `a_gather_order_takes_the_builder_s_mark_off`; mutated out, every
+  `first_parting` holds. It names a score when a citizen keeps the mark through a gather order on a word's frame.
 
 ## Parked by the next landing, slot UT — reserved
 

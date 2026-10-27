@@ -155,22 +155,12 @@ pub(super) fn run255_s_repair_is_the_original_s_unit_for_unit() {
         .iter()
         .map(|((w, o, what), (f, _))| format!("{f} {w}/{o} {what}"))
         .collect();
-    // **The builder bit outlives the repair here.** The original clears
-    // `unit_masks & 0x400` in `Unit::add_gather_order@0061a5c0`, always,
-    // and in `Unit::think_peasant@005f5760` when its build-and-repair arm
-    // finds nothing; this crate sets `was_builder` in `add_build_order`
-    // and `add_repair_order` and never clears it. Each citizen's first
-    // gather is the block the original's goes to 0: `orders.rs`, not this
-    // item's module.
-    let want: Vec<String> = [
-        "1083 0/6 builder",
-        "1130 0/7 builder",
-        "1129 0/8 builder",
-        "1176 0/9 builder",
-    ]
-    .iter()
-    .map(|r| r.to_string())
-    .collect();
+    // **The builder bit outlived the repair here** until item 3710: the
+    // original clears `unit_masks & 0x400` in
+    // `Unit::add_gather_order@0061a5c0` (`61a5f7`), always, and this crate
+    // did not, so `0/6`..`0/9` parted on their first gather (1083, 1130,
+    // 1129, 1176). `GatherSim::take_order` clears it now; nothing parts.
+    let want: Vec<String> = Vec::new();
     assert_eq!(
         got, want,
         "run255: what parts in the repair's own state moved"
