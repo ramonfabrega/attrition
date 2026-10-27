@@ -266,6 +266,13 @@ fn american_industrial_pair_run1338b_s_word_frame_is_widened_whole() {
     // `hits_left` 53) and its Citizen flees on 3143 where ours' stands;
     // on the word 3174 ours' `Unit::fight` draws where theirs'
     // `Unit::move_step` does (`docs/AI.md` §348).
+    //
+    // Item 3686: 2030 → 76 keys. Piece 87's bays put the round of 3105 on
+    // theirs' (9379, 31019) at 695, and the CEO's heal repairs `1/36` on
+    // block 3167. After block 3095's standing families, nothing but
+    // who=1's groups' `held` and pools parts until one round on 3399:
+    // `1/18`'s `ammo[0]` names no target in ours (`whom`, `ox` −1) and the
+    // Citizen `0/13` in theirs.
     pin_eq!(w.firsts.len(), 76, "run1338b baseline");
     // Rounds are in flight on both sides over the window.
     pin_eq!(w.rounds_read, (326, 326), "the rounds read");
