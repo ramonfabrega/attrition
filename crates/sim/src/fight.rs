@@ -2707,6 +2707,16 @@ impl Sim {
             frame,
             &self.mods_of(owner),
         );
+        if std::env::var_os("RON_PROBE_3688").is_some() && (3436..=3444).contains(&frame) {
+            eprintln!(
+                "PROBE3688 f={frame} a={attacker:?} t={target:?} attack={} armor={} pct={pct} dmg={dmg} angle={:?} splash={splash} count={count} contact={} mods={:?} at={at:?} tt={tt:?}",
+                self.attack_of(attacker),
+                self.armor_of(target),
+                angle,
+                matches!(target, Obj::Unit(t) if self.units[t].contact),
+                self.mods_of(owner),
+            );
+        }
         // Step 2: the target's captain reacts, and the overkill record.
         if let Obj::Unit(t) = target
             && !quiet
