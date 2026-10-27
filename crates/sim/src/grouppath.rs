@@ -68,6 +68,9 @@ impl Sim {
         // `tolerance 0`.
         const TOLERANCE: i32 = 0;
 
+        if std::env::var("RON_PROBE_3711").is_ok() && g.list.contains(&212) && (5624..=5626).contains(&self.frame) {
+            eprintln!("PROBE3711 group_plan_path enter list {:?} idx {} to {:?} members {:?} from {:?}", g.list, f.idx, f.to, members.len(), from);
+        }
         let Some(base) = f.to.get(f.idx).copied() else {
             return;
         };

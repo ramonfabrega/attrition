@@ -5369,6 +5369,9 @@ impl Sim {
     /// waypoint take with both arrival tests, the straight-line check, the
     /// step.
     pub(crate) fn do_move(&mut self, u: usize, frame: i64) -> Did {
+        if probe_3711(self.frame, u) {
+            eprintln!("PROBE3711 do_move enter orders {:?} path {:?}", self.units[u].orders, self.units[u].path);
+        }
         let Some(Order {
             body: Body::Move(mut mo),
             flags,
