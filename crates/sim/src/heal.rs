@@ -119,7 +119,7 @@ impl Sim {
     /// whole of it on, so a captain's heal reaches the hurt figure below.
     ///
     /// SEAM: past the chain's last live figure, a squad under its
-    /// `uber_size` (`+0x308`) **trains a figure back** (`Objects::find_free`,
+    /// `uber_size` (`+0x308`) **trains a figure back** (a free object slot,
     /// `init`, a spot and a move order, the group joins): read, not built,
     /// and here the remainder is dropped (parked 3686b).
     pub(crate) fn repair_unit_damage(&mut self, i: usize, amount: i32) {
