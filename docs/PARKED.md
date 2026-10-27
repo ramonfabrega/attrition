@@ -11500,13 +11500,13 @@ words and edits nothing here; a refill lands when two remain.
   2), read beside the attack arm item 3677 built and not built: no window on disk holds a blow on a unit beside a
   Citizen that parts. Names no score.
 
-## Parked by the next landing, slot TT — reserved
+## Parked by item 3678, 2026-10-26 — the British Industrial word: the AA Gun's British discount
 
-A park heading the pass lands ahead (parked 1812): a lane whose brief
-names slot TT renames this heading `## Parked by item N, <date> — <title>`
-and files its parked rows under it, so two lanes' parks are never one hunk
-at the file's tail. The commander assigns a slot by letter in the queue's
-words and edits nothing here; a refill lands when two remain.
+- (3678a) **3668's hypothesis, killed unbuilt: a candidate predicate that keeps the Flamethrower (TY 131) off who=1's
+  make list on 2184.** No predicate differs. Ours' `create_units` offers the Flamethrower at 1014609 and the Machine Gun
+  at 78152 (theirs' `MAKE[3]`, to the unit). The original's `make_me` overwrites a beaten head without shifting it,
+  so theirs' AA Gun at 1028320 replaced the Flamethrower, while ours' at 941484 ranked second. The cause was the
+  British `BRITISH_AA_COST` (built, `docs/AI.md` §347). Names no score.
 
 ## Parked by the next landing, slot TU — reserved
 

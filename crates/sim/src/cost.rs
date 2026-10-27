@@ -226,6 +226,11 @@ pub struct Modifiers {
     /// percent is written in the executable; `SALT_BARRACKS_COST`'s 15% is
     /// never read here (item 3318, `docs/AI.md` §264).
     pub salt: bool,
+    /// The British Anti-Aircraft Gun percentage (`get_cost:283`–`289`),
+    /// its own truncating step after the American aircraft arm and before
+    /// the Nubian merchants' and the Russian spy's (item 3678, `docs/AI.md`
+    /// §347).
+    pub british_aa: i32,
     /// The Russians' Spy percentage (`get_cost:299`), its own
     /// `(100 - x) * cost / 100` before [`Modifiers::discount`] and the
     /// Spy/General arm that follows it in the original's tail.
@@ -628,6 +633,9 @@ pub fn cost_of(t: &Tuning, price: &Price, r: Resource, counts: Counts, m: &Modif
     let mut cost = scaled;
     if m.salt {
         cost = cost * 9 / 10;
+    }
+    if m.british_aa != 0 {
+        cost = (100 - m.british_aa) * cost / 100;
     }
     if m.russian_spy != 0 {
         cost = (100 - m.russian_spy) * cost / 100;
@@ -1663,6 +1671,32 @@ mod tests {
         assert_eq!(
             price(T.korean_tower_cost, [T.colosseum_fort_cost, 0]),
             (100 - 20) * ((100 - 33) * base / 100) / 100
+        );
+    }
+
+    /// `get_cost:283`: a British AA Gun loses `BRITISH_AA_COST` percent in
+    /// its own truncating step, ahead of the Russian spy's and the
+    /// Spy/General arm's (item 3678).
+    #[test]
+    fn a_british_aa_gun_costs_a_quarter_less() {
+        let aa = Price {
+            kind: Kind::Unit,
+            ..Price::free().with_base(Resource::Metal, 4)
+        };
+        let price = |british_aa: i32, discount: i32| {
+            let m = Modifiers {
+                british_aa,
+                discount,
+                ..Modifiers::default()
+            };
+            cost_of(&T, &aa, Resource::Metal, owned(0), &m)
+        };
+        let plain = price(0, 0);
+        assert_eq!(T.british_aa_cost, 25);
+        assert_eq!(price(T.british_aa_cost, 0), (100 - 25) * plain / 100);
+        assert_eq!(
+            price(T.british_aa_cost, 50),
+            ((100 - 25) * plain / 100) * (100 - 50) / 100
         );
     }
 

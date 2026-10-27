@@ -2424,6 +2424,7 @@ impl Sim {
         let stable_rares = self.stable_rare_discounts(who, ty);
         let discount = self.nation_unit_discount(who, ty);
         let russian_spy = self.russian_spy_discount(who, ty);
+        let british_aa = self.british_aa_discount(who, ty);
         let roman_legion = self.roman_legion_discount(who, ty);
         let uranium = self.uranium_discount(who, ty);
         let citizens = self.citizen_discounts(who, ty);
@@ -2437,6 +2438,7 @@ impl Sim {
             Some(r) => cost::Modifiers {
                 research: Some(r),
                 indian_elephant,
+                british_aa,
                 russian_spy,
                 roman_legion,
                 discount,
@@ -2458,6 +2460,7 @@ impl Sim {
                 socialism: self.socialism_cost_discount(who, ty),
                 salmon: self.salmon_cost_discount(who, ty),
                 maize: self.has_rare(who, economy::MAIZE),
+                british_aa,
                 russian_spy,
                 roman_legion,
                 discount,
@@ -2870,6 +2873,25 @@ impl Sim {
             -k * p.epoch[0].min(p.ages)
         } else {
             k
+        }
+    }
+
+    /// `get_cost:283`–`289`: a British leader (`has_tribe_bonus(0xb)`)'s
+    /// unit of the Anti-Aircraft Gun's lineage (`is(0x119, 0)`, the loose
+    /// test) takes `BRITISH_AA_COST` (25) off, a step of its own after the
+    /// American aircraft arm. Great Sahara's British at Industrial price the
+    /// AA Gun at 58 food and 58 metal in theirs' queues and 79 and 79 here
+    /// without it, and `create_units`' income factor read 206 against
+    /// theirs' 225 on 2184 (item 3678, `docs/AI.md` §347).
+    pub fn british_aa_discount(&self, who: Player, ty: usize) -> i32 {
+        if self.nation[who as usize].british
+            && self.unit_types[ty].tree.is_some_and(|t| {
+                self.tech_tree.types.get(0x119).is_some() && self.tech_tree.is(t, 0x119, false)
+            })
+        {
+            self.tuning.british_aa_cost
+        } else {
+            0
         }
     }
 

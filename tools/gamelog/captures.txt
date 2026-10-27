@@ -10840,3 +10840,6 @@ check: (python3 tools/trace/report.py "$HOME/ron-data/AppData/Roaming/Microsoft 
 #   run1351b --map 14 --end-frame 3851 --allow-early-end --timeout 3600 --log-window 3495 3851 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 12 --cover cover=0, run1333's lobby   (the damage's window)
 #   run1351c --map 14 --end-frame 3523 --timeout 3600 --log-window 3520 3522 --detail end:MISC,UNITS=3,GUYS=2,AMMO=5 --ai-tribe 12 --cover cover=0 --tracer-def RON_STATE_FRAME=3521 --tracer-def RON_STATE_PLAN=…, run1333's lobby   (a packet: the blow of 3521)
 # Checks: `rngcmp.py` run1334 vs run1351 -> 4306 identical; vs run1351b -> 3852 identical; vs run1351c -> 3524 identical.
+# ==== item 3678: the British Industrial word moved to 2939 (`docs/AI.md` §347; `docs/RUNS.md` run1352) ====
+#   run1352 --map 7 --end-frame 3190 --allow-early-end --timeout 3600 --log-window 2933 3190 --detail end:MISC,UNITS=3,BUILDS=7,CITIES=5,GUYS=2,LEADERS=9,AMMO=5 --ai-tribe 11 --cover cover=0, run1335's lobby   (the word 2939's window)
+# Checks: `rngcmp.py` run1336 vs run1352 -> 3191 identical.

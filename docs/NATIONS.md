@@ -243,7 +243,7 @@ left out; a constant with no reader in the export is dead there too.
 | `BRITISH_SHIP_SPEED` | 33 | ObjectData::train_time | modelled at lib.rs | `british_ship_speed` |
 | `BRITISH_ARCHER_SPEED` | 0 | ObjectData::train_time | modelled at lib.rs | `british_archer_speed` |
 | `BRITISH_ARCHER_UPGRADES` | 1 | Leader::gain_tech | loaded at load.rs | `british_archer_upgrades` |
-| `BRITISH_AA_COST` | 25 | TypeData::get_cost | not carried | `british_aa_cost` |
+| `BRITISH_AA_COST` | 25 | TypeData::get_cost | modelled at cost.rs | `british_aa_cost` |
 | `BRITISH_AA_SPEED` | 33 | ObjectData::train_time, Wall::update_construct_time | modelled at build.rs | `british_aa_speed` |
 | `BRITISH_FREE_SHIP` | 0 | no reader in the export | not carried | `british_free_ship` |
 | `BRITISH_TAXATION` | 100 | Leader::calc_gather, TypeData::get_desc_parsed | modelled at lib.rs | `british_taxation` |

@@ -32374,12 +32374,59 @@ the draw delta. Theirs does field Flamethrowers later in the game (214
 of run1336's stride records), none in run1336d's gap: the type is left
 out on 2184, not for good.
 
-**The next item's hypothesis** is the make list's candidate predicate
-for the Flamethrower (TY 131) — which unit types enter who=1's list on
-2184 and at what value. The recipe is the make list's head
-(`RON_DEBUG_MAKE`, Loop 2955) widened to the whole list on 2183–2184,
-then the candidate's gate read off the original; a value no dump prints
-takes a packet at `RON_STATE_FRAME=2183`.
+~~**The next item's hypothesis** is the make list's candidate predicate
+for the Flamethrower (TY 131).~~ Killed, unbuilt (item 3678, parked
+3678a). The cause is below.
+
+**The cause: a British AA Gun costs a quarter less (item 3678).** The
+whole of `create_units`' offers on 2183 (the walk's sim frame for the
+dump's block 2184) shows **no gate differing**. Ours offers the
+Flamethrower at 1014609 (`val` 2340000, the count cap's tail ×
+`remaining` × 10, `check_income` 111) and the Machine Gun at 78152,
+which is theirs' `MAKE[3]` to the unit. It offers the Flamethrower
+before the AA Gun. `MakeList::make_me@006c9be0` **overwrites a beaten
+head and does not shift it down**, so whichever of the two is dearer
+holds the head, and the other leaves the list. Theirs' AA Gun is
+1028320 and replaces the Flamethrower; ours' was 941484 and ranked
+second. The two differ in `check_income` alone, 225 against 206.
+- Ours priced the AA Gun at 79 food and 79 metal. Against an income of
+  480 and 320 that is q = 2 and 3: 256 → 235 → 206.
+- Theirs' factor needs 59 and 59: q = 1 and 2, 256 → 245 → 225.
+- Theirs' queue on 2583 prints the AA Gun at 58 food and 58 metal
+  (run1336b), and ours agrees there now.
+- `TypeData::get_cost@00664090:283`–`289`: a British leader
+  (`has_tribe_bonus(0xb)`) and a unit that `is(0x119, 0)` take
+  `BRITISH_AA_COST` (25, `rules.xml`) off. The step is its own
+  truncating `(100 − x) × cost / 100`, after the American aircraft arm
+  and before the Nubian merchants' and the Russian spy's.
+
+`docs/NATIONS.md` listed the constant as "not carried". It is now
+`Modifiers::british_aa` in `cost_of`, ahead of `russian_spy`, set by
+`Sim::british_aa_discount`. The AA Gun's value parting is the same cause
+as the Flamethrower's, not a second one.
+
+**The value diff, walked back** (2184, the frame the state parted): both
+`MAKE[0]` rows are 281 with `val` 1028320 and `num` 1; `MAKE[1]` is 287
+at 109001 with `num` 4; `MAKE[3]` is 123 at 78152 with `num` 2. run1336d
+parts on the standing families alone (93 → 54 keys), as do run1336c
+(97 → 59) and run1336b (1189 → 53). The value diff on the old word's
+block 2383 is empty. **The word: 2382 → 2939**, by the count and the
+sequence. Every other lobby's `first_parting` holds.
+
+**The word now: 2939, ours 22 draws against theirs' 21, index 4.** Ours
+spends `Unit::fight+0x9b0` where theirs goes on to `Guy::set_anim+0x97a
+< Guy::do_turn+0x4a < Unit::move_step+0x3b6`. run1352 (2933..3190,
+`british_industrial_pair_run1352_s_word_frame_is_widened_whole`: 257
+blocks, 1533 keys, rounds read 306 and 278) puts **the first parting on
+a round on 2934**. Who=1's Light Tank `1/28` (TY 240, `MARK4`) attacks
+the human's Citizen `0/3` (TY 50). It launches `ammo[1]` from (9432,
+31128) at `sz` 619 in ours, the figure's square, and from (9218, 31078)
+at 757 in theirs. `total_time` is 6 against 5 and `v1z` 53462505 against
+25018749. Theirs' round lands on 2937: `0/3` takes 32 and `hits_left`
+reads 33 against 65. On 2938 ours' round is still flying and `0/3`'s
+orders part: theirs holds two with kind 4 current, ours one of kind 7. **The next item's
+hypothesis** is a `launch::BAYS` row for the Light Tank's piece, fit off
+a packet before 2934. 3677's A7V rows (TY 242) are the same shape.
 
 **The rounds**, both directions: none in flight on either side in
 run1336b or run1336d.
